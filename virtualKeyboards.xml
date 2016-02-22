@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>
+    Configure virtual keyboards here.
+    The key of every entry is the name of the tab that is added to the GUI. 
+    The value of the entry is a list of unicode characters OR a valid unicode range in 4-digit hex-format 
+    (i.e. 0080-00FF for Latin-1 supplement) - Note that both, a list of characters and multiple ranges, can be combined 
+    	into one keyboard by seperating the values with a whitespace!
+    The keyboards are sorted by their name in the GUI - add leading numbers to enforce a special order!
+</comment>
+<entry key="Custom">— ¬  ̄</entry>
+<entry key="Greek/Coptic">0370-03FF</entry>
+<entry key="Latin-1 Supp.">00A0-00FF</entry> <!-- 0080-009F are control characters... -->
+<entry key="Latin-1 Extended-A.">0100-017F</entry>
+<entry key="Latin-1 Extended-B.">0180-024F</entry>
+<entry key="Hebrew">0590-05FF</entry>
+<entry key="General Punctuation">2000-206F</entry>
+</properties>

@@ -1,0 +1,11 @@
+	editorial declaration
+		Referenzen
+	
+	HTR: (joan suggestion)
+		possibility to upload additional document for "experiment" (collection / document level)
+		
+	statistics:
+		word graph: size of file, input degree 
+		preprocessing information
+		
+	

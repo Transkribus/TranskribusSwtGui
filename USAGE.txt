@@ -1,0 +1,72 @@
+====Notes====
+This document serves as a usage file for TRP user interface by UIBK (Transkribus) <br>
+NOTE / TODO: The content is rather old and may not cover all current features of the platform
+
+==General==
+* Open a local folder via "File->Open local folder" or using the folder icon in the menu bar
+** A local folder has to contain the image files and a "page" subfolder with corresponding PAGE xml files. If PAGE files are not available but only Finreader XML ocr files, put them into a subolder "ocr". Then, at the first start, a conversion process is started that converts each Finereader XML file in the ocr folder to PAGE xml file in the page subfolder!
+** The subfolder "thumbs" is used to store thumbnail images of all pages. If some or all thumbnails are not there, they are created in the background, which can take some time -> stay patient and grab a coffee ;-)
+** The segmentation is hierarchically structured; every page consists of:
+<pre>
+			Printspace (optional)
+			Text Regions (0 - NR_OF_REGIONS)
+				|--- Text Lines (0 - NR_OF_LINES)
+				 	|--- Baseline (optional)
+					|--- Word (0 - NR_OF_WORDS)
+					
+</pre>
+This essentially means: every text line must have a parent region and each baseline and each word must have a parent line!
+
+==Top Toolbar==
+* To login into the server use the login icon at the very left of the top toolbar, then enter your credentials.
+* The 2nd, 3rd and 4th buttons of the top toolbar can be used to toggle the visibility of the left, right and bottom view respectively
+* Use the save button to save the current page either to the server (if this is remote document) or to the corresponding local file
+* Use the paging button to switch between the pages of the document
+* Different versions of a transcript (availably only for server documents!) are listed in the combobox next to the "Versions:" label
+* Use the "P", "R", "L", "B", "W" toggle buttons to enable/disable the visibility of the Printspace, Regions, Lines, Baselines and Words respectively
+* The next to last button is used to enable/disable the line editor that is shown underneath a selected line - NOTE: you should not use this editor if you want a word based transcription!
+* The last button is used to enable/disable autocomplete in the transcription editors - currently its proposals are all different words that occur on a page
+
+==Left view:==
+* A logged on user can load remote documents from the server using the "Documents" tab on the left, where all documents of the  user are listed
+* The "Structure" tab displays the hierarchical structure of the document. If you select an item there it will also be selected in the canvas. Currently the following information is displayed in different columns for each item: Type, Text, Structure type, ID and Coordinates. The user can edit the text and the structure type of each item in this view
+* Multiple selection in the structure view (and in the canvas) is done by holding the *ctrl* (strg) button and selecting/deselecting  the corresponding items
+*  Use the "Pages" tab to get a thumbnail overview of all pages. Doubleclick a thumbnail for opening the  corresponding page Canvas (the image area in the center): 
+* Hold the *right* mouse button to drag the image
+* Press *escape* to enable the default selection mode at any time in the canvas (or select the default mouse cursor item in the canvas toolbar, i.e. the very first button therein)
+* Hold *shift* button to resize a shape according to its aspect ratio along its bounding rectangle  (which is drawn as a dashed-dotted line around the shape if its not rectangular itself!)
+** this is especially useful when the shape is rectangular! 
+* Add a structure (Printspace, Region, Line, Baseline, Word) by pressing the corresponding button in the canvas toolbar (e.g. the W+ for adding a word). By default, new shapes are then added as rectangles, meaning you have to specify the upper left and lower right point of the new shape. If this mode is disabled, new shapes are added as polygons, point by point, and *enter* has to be pressed to finish a shape. Note that each new structure that demands a parent element (Line->Region, Baseline->Line, Word->Line) has to overlap its new parent structure during painting or the shape cannot be added!
+* Focus an element by double clicking its shape (or select it first and press the foucs icon in the toolbar!)
+* Splitting a shape can be done horizontally and vertically: select a shape to split, press the split icon and split the shape according to the drawn line
+* Merge two or more elements by multiselecting them (hold *ctrl* button while selecting!) and presssing the merge icon
+* Delete a shape by selecting one or more elements and pressing *del* (entf) or by hitting the icon in the toolbar (minus symbol over red disk)
+* Use the undo button to undo the last edit step in the canvas. Warning: while undo should work, do not heavily rely on this feature as it is quite error prone... the save button is your friend!
+
+==Transcription (bottom area):==
+* There are two different modes: "Line based transcription" where the text is corrected on line segmentation level and "Word based transcrption" where the text is corrected on word level. Important note: if you correct on line level, the text cannot automatically be applied to word level, because the corresponding segmentation are  not known or may not even be there. The other way round, a word based transcription can be applied (manually) to line level if desired (Use the "Apply text to lines" button!)
+* A user (currently) cannot create *new* line or word elements in the transcription window: every such new element has to created first in the canvas. Then, the user can edit its text in the corresponding transcription widget
+* Use the font buttons to change the display font in the transcription widget. Note that this does not affect the text style metadata which can be specified in the right widget!
+
+==Navigation:==
+* Word and line based trancription:
+** User *arrow up*/*-down* or *enter* to jump to the previous / next line
+** Press *ctrl*-*enter* or double-click to focus the line/word the cursor is currently in
+* Word based transcription only:
+** Use tab to jump to the next word
+** Use *ctrl*-*arrow right* / *crtl*-*arrow left* to jump to the next / previous word
+
+==Metadata widget (right area): ==
+* Is used to specify additional metadata on the page and its content:
+* Page type: the type of the current page (front-cover, back-cover, content etc.)
+* Links: Use links to express a correspondence between two shapes, e.g. a footnote and its number in the text
+** Link two shapes by selecting them and pressing the link icon (the chain symbol) -> the link is then added to the list by specifying the two shape IDs (which can be obtained for each shape in the structure view on the left)
+** Remove a link by first selecting it in the list. Then the two shapes that constitute the link are selected in the canvas. Press the un-link symbol (broken chain) or right click the item and press delete to remove it.
+
+==Structure and Text style: ==
+* To apply a structure type or text style to a single element, select its shape and tick the corresponding boxes (bold, italic, subscript etc.)
+** For multiple selected elements you have to press the "Apply" button to apply it to all elements!
+** To apply a style or structure for all elements and its child elements (e.g. a region and its lines and words), press the "Apply recursively" button
+
+==Stylesheets==
+* If you want to save a collection of text styles as a stylesheet for later use, tick the corresponding boxes, enter a name for the stylesheet in the "Name: ..." box and press "Add stylesheet". The stylesheet is then added to the list of stylesheets and stored into a local file called "style_sheets.xml", s.t. it is stored across multiple session. To apply a stylesheet, select it in the box and the corresponding styles are ticked (Note that for multiple selected elements you still have to press the apply button to apply the style to those elements!)

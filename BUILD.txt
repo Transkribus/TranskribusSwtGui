@@ -1,0 +1,2 @@
+Version=${project.version}
+Date=${timestamp}

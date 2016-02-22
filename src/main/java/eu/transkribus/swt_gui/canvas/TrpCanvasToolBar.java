@@ -1,0 +1,319 @@
+package eu.transkribus.swt_gui.canvas;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.dea.swt.canvas.CanvasToolBar;
+import org.dea.swt.canvas.CanvasWidget;
+import org.dea.swt.canvas.listener.CanvasToolBarSelectionListener;
+import org.dea.swt.util.DropDownToolItem;
+import org.dea.swt.util.Images;
+import org.dea.swt.util.SWTUtil;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.ToolItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.model.beans.pagecontent_extension.RegionTypeUtil;
+import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+
+public class TrpCanvasToolBar extends CanvasToolBar {
+	private final static Logger logger = LoggerFactory.getLogger(TrpCanvasToolBar.class);
+	
+	protected ToolItem addTextRegion;
+	protected ToolItem addLine;
+	protected ToolItem addBaseLine;
+	protected ToolItem addWord;
+		
+	protected ToolItem addPrintspace;
+	protected DropDownToolItem addSpecialRegion;
+	protected DropDownToolItem optionsItem;
+	//
+	MenuItem rectangleModeItem;
+	MenuItem autoCreateParentItem;
+	MenuItem addToOverlappingRegionItem, addToOverlappingLineItem;
+	MenuItem selectNewlyCreatedShapeItem;
+	
+//	protected ToolItem shapeAddRectMode;
+//	protected ToolItem autoCreateParent;
+	
+	List<ToolItem> addItems;
+//	protected ToolItem linkShapes;
+//	protected ToolItem linkBreakShapes;
+	
+	CanvasWidget canvasWidget;
+	
+	DropDownToolItem imageVersionItem;
+		
+//	static Class[] REGION_TYPES = {
+//			 SeparatorRegionType.class,
+//			 ChartRegionType.class,
+//			 AdvertRegionType.class,
+//			 UnknownRegionType.class,
+//			 MathsRegionType.class,
+//			 TableRegionType.class,
+//			 MusicRegionType.class,
+//			 NoiseRegionType.class,
+//			 GraphicRegionType.class,
+//			 ChemRegionType.class,
+//			 TextRegionType.class,
+//			 ImageRegionType.class,
+//			 LineDrawingRegionType.class
+//	};
+	
+	private TrpMainWidget mainWidget;
+
+	public TrpCanvasToolBar(CanvasWidget parent, TrpMainWidget mainWidget, int style) {
+		super(parent, style);
+		
+		this.canvasWidget = parent;
+		this.mainWidget = mainWidget;
+		
+		initTrpCanvasToolBar();
+	}
+	
+	private void initTrpCanvasToolBar() {
+		modeMap.remove(addShape);
+		addShape.dispose();
+		
+		imageVersionItem = new DropDownToolItem(this, true, false, SWT.RADIO, 0);
+		
+		String versText = "Image file type displayed\n\torig: original image\n\tview: compressed viewing file\n\tbin: binarized image";
+		imageVersionItem.addItem("orig", null, versText, false);
+		imageVersionItem.addItem("view", null, versText, true);
+		imageVersionItem.addItem("bin", null, versText, false);
+		imageVersionItem.selectItem(1, false);
+		
+		int i = indexOf(editingEnabledToolItem);
+		logger.debug("index = "+i);
+		
+		if (false) {
+		addPrintspace = new ToolItem(this, SWT.RADIO, ++i);
+		addPrintspace.setText("PS");
+		addPrintspace.setToolTipText("Add a printspace");
+		addPrintspace.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
+		modeMap.put(addPrintspace, TrpCanvasAddMode.ADD_PRINTSPACE);
+		addToRadioGroup(addPrintspace);
+		}
+		
+		addTextRegion = new ToolItem(this, SWT.RADIO, ++i);
+		addTextRegion.setText("TR");
+		addTextRegion.setToolTipText("Add a text region");
+		addTextRegion.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
+		modeMap.put(addTextRegion, TrpCanvasAddMode.ADD_TEXTREGION);
+		addToRadioGroup(addTextRegion);
+		
+		addLine = new ToolItem(this, SWT.RADIO, ++i);
+		addLine.setText("L");
+		addLine.setToolTipText("Add a line");
+		addLine.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
+		modeMap.put(addLine, TrpCanvasAddMode.ADD_LINE);
+		addToRadioGroup(addLine);
+		
+		addBaseLine = new ToolItem(this, SWT.RADIO, ++i);
+		addBaseLine.setText("BL");
+		addBaseLine.setToolTipText("Add a baseline");
+		addBaseLine.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
+		modeMap.put(addBaseLine, TrpCanvasAddMode.ADD_BASELINE);
+		addToRadioGroup(addBaseLine);
+
+		addWord = new ToolItem(this, SWT.RADIO, ++i);
+		addWord.setText("W");
+		addWord.setToolTipText("Add a word");
+		addWord.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
+		modeMap.put(addWord, TrpCanvasAddMode.ADD_WORD);
+		addToRadioGroup(addWord);
+		
+		if (true) { // TODO: add "special" regions
+			addSpecialRegion = new DropDownToolItem(this, true, true, SWT.RADIO, ++i);
+			
+			MenuItem mi = addSpecialRegion.addItem(RegionTypeUtil.PRINTSPACE_TYPE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass("Printspace"));
+			for (String name : RegionTypeUtil.SPECIAL_REGIONS) {
+//				mode.data = c;
+				mi = addSpecialRegion.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
+			}
+			
+//			CanvasMode mode = TrpCanvasAddMode.ADD_OTHERREGION;
+			modeMap.put(addSpecialRegion.ti, TrpCanvasAddMode.ADD_OTHERREGION);
+			
+//			for (RegionType rt : specialRegions) {
+//				addSpecialRegion.addItem(rt.getClass().getSimpleName(), Images.getOrLoad("/icons/shape_square_add.png"), "");	
+//			}
+		}
+		
+		
+		optionsItem = new DropDownToolItem(this, false, true, SWT.CHECK, ++i);
+		optionsItem.ti.setImage(Images.getOrLoad("/icons/wrench.png"));
+		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.getOrLoad("/icons/wrench.png"), "");
+		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.getOrLoad("/icons/wrench.png"), "");
+		addToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: only use selected region as parent)", Images.getOrLoad("/icons/wrench.png"), "");
+		addToOverlappingLineItem = optionsItem.addItem("Add words and baselines to overlapping parent lines (else: only use selected lines as parent)", Images.getOrLoad("/icons/wrench.png"), "");
+		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.getOrLoad("/icons/wrench.png"), "");
+		
+//		new ToolItem(this, SWT.SEPARATOR, ++i);
+		
+//		shapeAddRectMode = new ToolItem(this, SWT.CHECK, ++i);
+//		shapeAddRectMode.setImage(Images.getOrLoad("/icons/shape_square.png"));
+//		shapeAddRectMode.setToolTipText("Toggles rectangle mode: if enabled, all shapes (except baselines) are added as rectangles instead of polygons - additional points can be added later however!");
+		
+//		autoCreateParent = new ToolItem(this, SWT.CHECK, ++i);
+//		autoCreateParent.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
+//		autoCreateParent.setToolTipText("If enabled, missing parent shapes (i.e. text regions or lines) are automatically created if they are not found!");
+		
+//		new ToolItem(this, SWT.SEPARATOR, ++i);
+		
+		
+//		linkShapes = new ToolItem(this, SWT.PUSH, ++i);
+//		linkShapes.setImage(Images.getOrLoad("/icons/link.png"));
+//		linkShapes.setToolTipText("Links two shapes, e.g. a footnote and a link to it");
+		
+//		linkBreakShapes = new ToolItem(this, SWT.PUSH, ++i);
+//		linkBreakShapes.setImage(Images.getOrLoad("/icons/link_break.png"));
+//		linkBreakShapes.setToolTipText("Removes an existing link");
+		
+		addItems = new ArrayList<>();
+		addItems.add(addPrintspace);
+		addItems.add(addTextRegion);
+		addItems.add(addLine);
+		addItems.add(addBaseLine);
+		addItems.add(addWord);
+
+//		addItems.add(shapeAddRectMode);
+
+		i = indexOf(mergeShapes);
+		i += 2;
+		
+		new ToolItem(this, SWT.SEPARATOR, i);
+		
+		viewSettingsMenuItem = new ToolItem(this, SWT.PUSH, ++i);
+		viewSettingsMenuItem.setToolTipText("Change &viewing settings...");
+		viewSettingsMenuItem.setImage(Images.getOrLoad("/icons/palette.png"));
+		
+		new ToolItem(this, SWT.SEPARATOR);
+		
+		this.pack();
+		
+	}
+	
+	public String getSelectedSpecialRegionType() {
+		MenuItem si = addSpecialRegion.getSelected();
+		return (si != null) ? si.getText() : "";
+	}
+	
+	@Override public void addAddButtonsSelectionListener(SelectionListener listener) {
+		super.addAddButtonsSelectionListener((CanvasToolBarSelectionListener)listener);
+
+		SWTUtil.addToolItemSelectionListener(imageVersionItem.ti, listener);
+		
+		SWTUtil.addToolItemSelectionListener(addPrintspace, listener);
+		SWTUtil.addToolItemSelectionListener(addTextRegion, listener);
+		SWTUtil.addToolItemSelectionListener(addLine, listener);
+		SWTUtil.addToolItemSelectionListener(addBaseLine, listener);
+		SWTUtil.addToolItemSelectionListener(addWord, listener);
+		
+		SWTUtil.addToolItemSelectionListener(addSpecialRegion.ti, listener);
+
+		SWTUtil.addToolItemSelectionListener(viewSettingsMenuItem, listener);
+		
+//		for (Class c : REGION_TYPES) {
+//			CanvasMode m = TrpCanvasAddMode.ADD_OTHERREGION;
+//			m.data = c;
+//			
+//			MenuItem mi = addSpecialRegion.getItemWithData(c);
+//			
+//			
+//			mi.addSelectionListener(listener);			
+//		}
+	}
+	
+	@Override
+	public void updateButtonVisibility() {
+		super.updateButtonVisibility();
+		
+		if (canvasWidget==null)
+			return;
+		
+		TrpSWTCanvas canvas = (TrpSWTCanvas) canvasWidget.getCanvas();
+		boolean isEditingEnabled = canvas.getSettings().isEditingEnabled();
+		for (ToolItem ai : addItems)
+			SWTUtil.setEnabled(ai, isEditingEnabled);
+		
+		SWTUtil.setEnabled(optionsItem.ti, isEditingEnabled);
+		
+//		if (linkShapes!=null)
+//			SWTUtil.setToolItemVisibility(linkShapes, canvasWidget.getCanvas().getNSelected()==2 && 
+//				canvasWidget.getCanvas().getSettings().isEditingEnabled());
+	}
+
+//	public ToolItem getAddPrintspace() {
+//		return addPrintspace;
+//	}
+
+	public ToolItem getAddTextRegion() {
+		return addTextRegion;
+	}
+
+	public ToolItem getAddLine() {
+		return addLine;
+	}
+
+	public ToolItem getAddBaseLine() {
+		return addBaseLine;
+	}
+
+	public ToolItem getAddWord() {
+		return addWord;
+	}
+	
+//	public ToolItem getShapeAddRectMode() {
+//		return shapeAddRectMode;
+//	}
+//	
+//	public ToolItem getAutoCreateParent() {
+//		return autoCreateParent;
+//	}
+	
+	public DropDownToolItem getImageVersionItem() {
+		return imageVersionItem;
+	}
+
+	public MenuItem getRectangleModeItem() {
+		return rectangleModeItem;
+	}
+	
+	public MenuItem getAutoCreateParentItem() {
+		return autoCreateParentItem;
+	}
+	
+	public MenuItem getAddToOverlappingRegionItem() {
+		return addToOverlappingRegionItem;
+	}
+
+	public MenuItem getAddToOverlappingLineItem() {
+		return addToOverlappingLineItem;
+	}
+	
+	public MenuItem getSelectNewlyCreatedShapeItem() {
+		return selectNewlyCreatedShapeItem;
+	}
+	
+	public DropDownToolItem getAddSpecialRegion() {
+		return addSpecialRegion;
+	}
+
+//	public ToolItem getLinkShapes() {
+//		return linkShapes;
+//	}
+
+//	public ToolItem getLinkBreakShapes() {
+//		return linkBreakShapes;
+//	}	
+	
+	
+	
+	
+
+}

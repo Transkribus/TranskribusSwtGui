@@ -1,0 +1,25 @@
+
+-> To deploy a new version you have to change the <version> parameter in the pom.xml.
+	The syntax of the version should always be: <major>-<minor>-<revision>[-<modifier>]
+	Use 'mvn deploy' to deploy the package to the SVN and/or dea_scratch etc.
+	Two deploy options are available depending on the format of the version string: 
+	
+	1.) Release version: empty or non snapshot modifier, e.g. '0.4.3', '0.4.4-RELEASE' ...
+		Those versions are deployed to the svn server under the subfolder "releases" and the current version is also updated in the
+		BUILD.txt file which is uploaded to the ftp to quickly check the latest version for the internal program updater
+	2.) modifier set to SNAPSHOT, e.g. 0.4.3-SNAPSHOT
+		Those version are deployed to the svn server under the subfolder "snapshots" and are intended for snapshot version of the program
+
+-> If the SWT version is set to 4.4 you need to set the SWT_GTK3 environment variable to 0 (export SWT_GTK3=0) to *not* use 
+gtk3, which is buggy for linux with SWT!
+	However, if you use SWT version 4.3 the variable SWT_GTK3 must not be set at all, since if it is set to any value, the
+	program will use gtk3 and thus produces a broken program...
+	
+	In the startup script for linux (TrpGui.sh) the variable will automatically be set according to the SWT version that is present
+	in the libs directory (TODO).
+	
+	Manually set SWT_GTK3 variable if you start the program directly e.g. in Eclipse via Run-Configurations->Environment tab
+	
+->  In Eclipse use the TrpMainWidget class to start the program, within the packaged application use the TrpGui class which 
+explicitely loads the correct SWT jar for the current platform (this won't work inside eclipse!)
+

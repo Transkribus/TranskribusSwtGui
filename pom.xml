@@ -1,0 +1,940 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>eu.transkribus</groupId>
+	<artifactId>TranskribusSwtGui</artifactId>
+	<packaging>jar</packaging>
+	<version>0.7.7</version>
+	<!-- <version>0.4.6</version> -->
+	<name>Transkribus</name>
+
+	<properties>
+		<program-name>Transkribus</program-name>
+		<mainClassName>org.dea.transcript.trp.gui.TrpGui</mainClassName>
+		<!-- <dependency-dir>${project.build.finalName}-lib</dependency-dir> -->
+		<dependency-dir>libs</dependency-dir>
+		<swt-lib-name>swt-${swt.version}.jar</swt-lib-name>
+
+		<maven.build.timestamp.format>dd_MM_yyyy_HH:mm</maven.build.timestamp.format>
+		<timestamp>${maven.build.timestamp}</timestamp> <!-- For external filtering as maven.build.timestamp does not get propagated 
+			due to a bug -->
+
+		<swt.groupId>org.eclipse.swt</swt.groupId>
+		<swt.version>4.5</swt.version>
+
+		<jface.groupId>org.eclipse.ui</jface.groupId>
+		<jface.version>3.7.1.v20120104-1859</jface.version>
+		<jface.artifactId>org.eclipse.ui.workbench</jface.artifactId>
+	</properties>
+
+	<distributionManagement>
+		<repository>
+			<id>trp-ftp</id> <!-- specify password for this server in your settings.xml! -->
+			<url>ftp://dea-gulliver.uibk.ac.at</url>
+		</repository>
+	</distributionManagement>
+
+	<build>
+	    <finalName>${project.name}-${project.version}</finalName>
+	    
+	    <resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		
+	    <filters>
+			<filter>src/main/resources/info.properties</filter>
+		</filters>
+	    
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ftp</artifactId>
+				<version>2.10</version>
+			</extension>
+		</extensions>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			
+			<!-- Compute checksums: -->
+<!-- 			<plugin> -->
+<!--         <groupId>net.ju-n.maven.plugins</groupId> -->
+<!--         <artifactId>checksum-maven-plugin</artifactId> -->
+<!--         <version>1.2</version> -->
+<!--         <executions> -->
+<!--           <execution> -->
+<!--             <goals> -->
+<!--               <goal>dependencies</goal> -->
+<!--             </goals> -->
+<!--           </execution> -->
+<!--         </executions> -->
+<!--         <configuration> -->
+<!--           <csvSummaryFile>dependencies-checksums.csv</csvSummaryFile> -->
+<!--         </configuration> -->
+<!--       </plugin> -->
+
+			<!-- Create jars that refers to classpath of necessary libs outside: -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+<!-- 				<version>2.4</version> -->
+				<configuration>
+				    <!-- Including examples package costs about 0.1 MB, so dont risk anything here... -->
+<!-- 				    <excludes> -->
+<!--             			<exclude>examples/**</exclude> -->
+<!--           			</excludes> -->
+					<archive>
+					    <addMavenDescriptor>false</addMavenDescriptor> <!-- do not add maven descripor in jar! -->
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>${dependency-dir}/</classpathPrefix>
+							<mainClass>${mainClassName}</mainClass>
+						</manifest>
+						<!-- Wildcards do not work in manifest.mf ... -->
+						<manifestEntries>
+							<Class-Path>${dependency-dir}/${swt-lib-name}</Class-Path>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- Copy jars to dedicated lib in target folder: -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.5.1</version>
+				<executions>
+					<!-- <execution> <id>copy</id> <phase>package</phase> <goals> <goal>copy-dependencies</goal> 
+						<goal>copy</goal> </goals> <configuration> <artifactItems> <artifactItem> 
+						<groupId>org.eclipse.swt</groupId> <artifactId>${swt.artifactId}</artifactId> 
+						<version>4.3</version> <type>jar</type> <overWrite>true</overWrite> <outputDirectory>${project.build.directory}/${dependency-dir}/</outputDirectory> 
+						<destFileName>${swt-lib-name}</destFileName> </artifactItem> </artifactItems> 
+						<outputDirectory>${project.build.directory}/${dependency-dir}/</outputDirectory> 
+						</configuration> </execution> -->
+
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<!-- <goal>copy-dependencies</goal> -->
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<excludeArtifactIds>${swt.artifactId}</excludeArtifactIds>
+							<!-- <includeGroupIds>*</includeGroupIds> -->
+							<outputDirectory>${project.build.directory}/${dependency-dir}/</outputDirectory>
+
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Copy some files to output directory (config file ...) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>config-file</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>.</directory>
+									<filtering>true</filtering>
+									<includes>
+										<!-- <include>config.properties</include> -->
+										<!-- <include>log4j.properties</include> -->
+										<include>README.txt</include>
+										<include>USAGE.txt</include>
+										<include>CHANGES.txt</include>
+										<include>BUILD.txt</include>
+										<include>Transkribus.bat</include>
+										<include>Transkribus.sh</include>
+										<include>Transkribus.command</include>
+										<include>TranskribusMac</include>										
+										<include>virtualKeyboards.xml</include>
+										
+<!-- 										<include>How_to_use_TRANSKRIBUS-0.1.6.pdf</include> -->
+									</includes>
+								</resource>
+								
+								<resource>
+									<directory>.</directory>
+									<filtering>false</filtering>
+									<includes>
+										<include>How_to_use_TRANSKRIBUS-0.1.6.pdf</include>
+									</includes>
+								</resource>	
+															
+								<resource>
+									<!-- For deployment use the log4j.properties (has log level set 
+										to INFO! and config.properties files in src/main/resources ): -->
+									<directory>src/main/resources</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>logback.xml</include>
+										<include>log4j.properties</include>
+										<include>config.properties</include>
+										<include>info.properties</include>
+									</includes>
+								</resource>
+								
+<!-- 								<resource> -->
+<!-- 									<directory>src/main/resources/i18n</directory> -->
+<!-- 									<filtering>false</filtering> -->
+<!-- 									<includes> -->
+<!-- 										<include>*.properties</include> -->
+<!-- 									</includes> -->
+<!-- 								</resource>								 -->
+							</resources>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>swt-libs</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/${dependency-dir}/</outputDirectory>
+							<resources>
+								<resource>
+									<directory>./swt/</directory>
+									<includes>
+										<include>swt-${swt.version}-linux32.jar</include>
+										<include>swt-${swt.version}-linux64.jar</include>
+										<include>swt-${swt.version}-win32.jar</include>
+										<include>swt-${swt.version}-win64.jar</include>
+										<include>swt-${swt.version}-osx32.jar</include>
+										<include>swt-${swt.version}-osx64.jar</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			
+			<!-- LAUNCH4J PLUGIN TO CREATE WINDOWS EXE FILE -->
+			<plugin>
+				<groupId>com.akathist.maven.plugins.launch4j</groupId>
+				<artifactId>launch4j-maven-plugin</artifactId>
+				<version>1.5.1</version>
+				<executions>
+					<execution>
+						<id>l4j-clui</id>
+						<phase>package</phase>
+						<goals>
+							<goal>launch4j</goal>
+						</goals>
+						<configuration>
+							<dontWrapJar>true</dontWrapJar>
+							<!-- <jarPath>.</jarPath> -->
+							<headerType>gui</headerType>
+							<!-- <jar>${project.build.directory}/${project.build.finalName}-shaded.jar</jar> -->
+							<jar>${project.build.finalName}.jar</jar>
+							<outfile>${project.build.directory}/${project.name}.exe</outfile>
+							<downloadUrl>http://java.com/download</downloadUrl>
+							<classPath>
+								<mainClass>${mainClassName}</mainClass>
+								<preCp>anything</preCp>
+							</classPath>
+							<icon>src/main/resources/icons/pencil.ico</icon>
+							<jre>
+								<minVersion>1.7.0</minVersion>
+								<jdkPreference>preferJre</jdkPreference>
+							</jre>
+							<!-- <versionInfo> -->
+							<!-- <fileVersion>1.0.0.0</fileVersion> -->
+							<!-- <txtFileVersion>${project.version}</txtFileVersion> -->
+							<!-- <fileDescription>${project.name}</fileDescription> -->
+							<!-- <copyright>2012 hasCode.com</copyright> -->
+							<!-- <productVersion>1.0.0.0</productVersion> -->
+							<!-- <txtProductVersion>1.0.0.0</txtProductVersion> -->
+							<!-- <productName>${project.name}</productName> -->
+							<!-- <companyName>hasCode.com</companyName> -->
+							<!-- <internalName>hasCode</internalName> -->
+							<!-- <originalFilename>hasCode.exe</originalFilename> -->
+							<!-- </versionInfo> -->
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>			
+			
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<descriptor>src/assembly/dep.xml</descriptor>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id> <!-- this is used for inheritance merges -->
+						<phase>package</phase> <!-- append to the packaging phase. -->
+						<goals>
+							<goal>single</goal> <!-- goals == mojos -->
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- FTP UPLOAD: -->
+
+			<!-- Skip the default deployment: -->
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.2</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+
+			<!-- Creates a build number that increments for each version, see http://mojo.codehaus.org/buildnumber-maven-plugin/usage.html -->
+			<!-- <plugin> -->
+			<!-- <groupId>org.codehaus.mojo</groupId> -->
+			<!-- <artifactId>buildnumber-maven-plugin</artifactId> -->
+			<!-- <version>1.3</version> -->
+			<!-- <executions> -->
+			<!-- <execution> -->
+			<!-- <phase>validate</phase> -->
+			<!-- <goals> -->
+			<!-- <goal>create</goal> -->
+			<!-- </goals> -->
+			<!-- </execution> -->
+			<!-- </executions> -->
+			<!-- <configuration> -->
+			<!-- <format>{0,date,yyyy-MM-dd HH:mm:ss}</format> -->
+			<!-- <items> -->
+			<!-- <item>timestamp</item> -->
+			<!-- </items> -->
+			<!-- </configuration> -->
+			<!-- </plugin> -->
+
+			<!-- Antrun plugin - do some stuff with ant attached to different phases -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+
+					<!-- Change user permissions for startup scripts (because they are lost 
+						after copy-dependencies!!) -->
+					<execution>
+						<id>change_permissions_for_scripts</id>
+						<phase>package</phase>
+						<configuration>
+							<target>
+<!-- 								<chmod file="target/TrpGui.sh" perm="755" /> -->
+<!-- 								<chmod file="target/TrpGui.command" perm="755" /> -->
+								
+								<chmod file="target/Transkribus.sh" perm="755" />
+								<chmod file="target/Transkribus.command" perm="755" />
+<!-- 								<chmod file="target/TranskribusMac" perm="755" />							 -->
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+
+					<!-- Upload assembly zip to FTP and SVN using ant tasks -->
+					<!-- 'mvn deploy' will install the while package and the upload the 
+						file to the FTP -->
+					<!-- 'mvn antrun:run' will only try to upload an existing zip file to 
+						the FTP if you dont want the whole install process to be started again! -->
+					<execution>
+						<!-- with this id the execution will be picked up during the antrun:run 
+							goal -->
+						<id>default-cli</id>
+						<!--<phase>deploy</phase> -->
+						<configuration>
+							<target>
+								<taskdef resource="net/sf/antcontrib/antcontrib.properties"
+									classpathref="maven.plugin.classpath" />
+									
+								<!-- A local backup directory for all versions - create subfolders "releases" and "snapshots" -->
+								<property name="backupDir" value="${env.HOME}/Transkribus/"/>
+									
+								<if>
+									<!-- <contains string="${ftp}" substring="-SNAPSHOT" /> -->
+									<matches pattern=".*-SNAPSHOT" string="${project.version}" />
+									<then>
+										<echo
+											message="${project.version} is a snapshot build - now deploying to corresponding folder(s)" />
+
+										<!-- Copy to dea-scratch: -->
+										<copy todir="/mnt/dea_scratch/TRP/Transkribus/snapshots/">
+											<fileset dir="${project.build.directory}">
+												<include name="*.zip" />
+												<include name="BUILD.txt" />
+											</fileset>
+										</copy>
+										
+										<!-- Copy to local backup dir: -->
+										<property name="snapshotBackupDir" value="${backupDir}snapshots/"/>
+										<if>
+										  <available file="${snapshotBackupDir}" type="dir" />
+										  <then>
+										    <echo message="Local backup directory ${snapshotBackupDir} exists - copying snapshot version to it" />
+											<copy todir="${snapshotBackupDir}">
+												<fileset dir="${project.build.directory}">
+													<include name="*.zip" />
+													<include name="BUILD.txt" />
+												</fileset>
+											</copy>										    
+										  </then>
+										  <else>
+										    <echo message="Local backup directory ${snapshotBackupDir} does not exist - skipping backup copy" />
+										  </else>
+										</if>										
+										
+									</then>
+									<else>
+										<echo
+											message="${project.version} is a release build - now deploying to corresponding folder(s)" />
+
+										<!-- Copy to dea-scratch: -->
+										<copy todir="/media/dea_scratch/TRP/Transkribus/releases/">
+											<fileset dir="${project.build.directory}">
+												<include name="*.zip" />
+												<include name="BUILD.txt" />
+											</fileset>
+										</copy>
+										
+										<!-- Copy to local backup dir: -->
+										<property name="releasesBackupDir" value="${backupDir}releases/"/>
+										<if>
+										  <available file="${env.HOME}/Transkribus/releases/" type="dir" />
+										  <then>
+										    <echo message="Local backup directory ${releasesBackupDir} exists - copying snapshot version to it" />
+											<copy todir="${releasesBackupDir}">
+												<fileset dir="${project.build.directory}">
+													<include name="*.zip" />
+													<include name="BUILD.txt" />
+												</fileset>
+											</copy>										    
+										  </then>
+										  <else>
+										    <echo message="Local backup directory ${releasesBackupDir} does not exist - skipping backup copy" />
+										  </else>
+										</if>
+
+									</else>
+								</if>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>ant</groupId>
+						<artifactId>ant-jsch</artifactId>
+						<version>1.6.5</version>
+					</dependency>
+					<dependency>
+						<groupId>com.jcraft</groupId>
+						<artifactId>jsch</artifactId>
+						<version>0.1.42</version>
+					</dependency>
+					<dependency>
+						<groupId>ant</groupId>
+						<artifactId>ant-commons-net</artifactId>
+						<version>1.6.5</version>
+					</dependency>
+					<dependency>
+						<groupId>org.apache.ant</groupId>
+						<artifactId>ant-nodeps</artifactId>
+						<version>1.8.1</version>
+					</dependency>
+
+					<dependency>
+						<groupId>commons-net</groupId>
+						<artifactId>commons-net</artifactId>
+						<version>3.3</version>
+					</dependency>
+
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>1.0b3</version>
+						<exclusions> <!-- DO NOT REMOVE THIS EXCLUSION! -->
+							<exclusion>
+								<artifactId>ant</artifactId>
+								<groupId>ant</groupId>
+							</exclusion>
+						</exclusions>
+					</dependency>
+				</dependencies>
+			</plugin>
+
+		</plugins>
+
+		<!-- M2E Lifecycle mapping bug workaround, see http://wiki.eclipse.org/M2E_plugin_execution_not_covered -->
+		<pluginManagement>
+			<plugins>
+				<plugin>
+          			<groupId>org.apache.maven.plugins</groupId>
+          			<artifactId>maven-jar-plugin</artifactId>
+          			<version>2.6</version>
+        		</plugin>
+			
+				<!-- Ignore/Execute plugin execution -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<!-- anrtun plugin -->
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-antrun-plugin</artifactId>
+										<versionRange>1.7</versionRange>
+										<goals>
+											<goal>run</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+											<runOnIncremental>false</runOnIncremental>
+										</execute>
+									</action>
+								</pluginExecution>
+
+								<!-- copy-dependency plugin -->
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-dependency-plugin</artifactId>
+										<versionRange>[1.0.0,)</versionRange>
+										<goals>
+											<goal>copy-dependencies</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<!-- <ignore /> -->
+										<execute>
+											<runOnIncremental>false</runOnIncremental>
+										</execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+	</build>
+
+	<dependencies>
+		<!-- TRP dependencies: -->
+		<!-- <dependency> <groupId>org.dea.transcript.trp</groupId> <artifactId>core</artifactId> 
+			<version>0.0.1-SNAPSHOT</version> </dependency> -->
+
+		<dependency>
+			<groupId>eu.transkribus</groupId>
+			<artifactId>TranskribusClient</artifactId>
+			<version>0.0.1</version>
+		</dependency>
+
+		<!-- SWT dependencies: -->
+		<!-- SWT dependency (replaces project reference!) -->
+		<!-- NOTE: swt.artifactId should be defined in a profile below or in $USER_HOME/.m2/settings.xml -->
+		<dependency>
+			<groupId>${swt.groupId}</groupId>
+			<artifactId>${swt.artifactId}</artifactId>
+			<version>${swt.version}</version>
+			<scope>provided</scope> <!-- Set scope to provided -> actual swt library is set on runtime depending 
+				on OS! -->
+		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.eclipse</groupId> -->
+		<!-- <artifactId>swt-win32</artifactId> -->
+		<!-- <version>4.3</version> -->
+		<!-- </dependency> -->
+
+
+		<!-- org.eclipse.ui.workbench (extensions for JFace, adds dependency on 
+			JFace also): -->
+		<dependency>
+			<groupId>${jface.groupId}</groupId>
+			<artifactId>${jface.artifactId}</artifactId>
+			<version>${jface.version}</version>
+		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.eclipse</groupId> -->
+		<!-- <artifactId>jface</artifactId> -->
+		<!-- <version>3.2.1-M20060908-1000</version> -->
+		<!-- </dependency> -->
+
+		<!-- <dependency> <groupId>org.mod4j.org.eclipse.jface</groupId> <artifactId>databinding</artifactId> 
+			<version>1.3.0</version> </dependency> <dependency> <groupId>org.mod4j.org.eclipse.core</groupId> 
+			<artifactId>runtime</artifactId> <version>3.5.0</version> </dependency> -->
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.mod4j.org.eclipse</groupId> -->
+		<!-- <artifactId>jface</artifactId> -->
+		<!-- <version>3.5.0</version> -->
+		<!-- </dependency> -->
+
+
+		<!-- Dependency for JFace only (without workbench extensions): -->
+		<!-- <dependency> <groupId>org.eclipse.jface</groupId> <artifactId>org.eclipse.jface</artifactId> 
+			<version>3.7.0.v20110928-1505</version> <version>3.8.0.v20120521-2329</version> 
+			</dependency> -->
+
+		<!-- Other: -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+
+		<!-- Graph library: -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.jgrapht</groupId> -->
+		<!-- <artifactId>jgrapht-core</artifactId> -->
+		<!-- <version>0.9.0</version> -->
+		<!-- </dependency> -->
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.jgrapht</groupId> -->
+		<!-- <artifactId>jgrapht-demo</artifactId> -->
+		<!-- <version>0.9.0</version> -->
+		<!-- </dependency> -->
+
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.9.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+
+		<!-- <dependency> <groupId>org.apache.felix</groupId> <artifactId>org.apache.felix.shell</artifactId> 
+			<version>1.4.3</version> </dependency> <dependency> <groupId>com.ibm.icu</groupId> 
+			<artifactId>icu4j</artifactId> <version>52.1</version> </dependency> -->
+
+
+		<dependency>
+			<groupId>org.eclipse.core.databinding</groupId>
+			<artifactId>beans</artifactId>
+			<version>1.2.200.v20120523-1955</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.core.databinding</groupId>
+			<artifactId>observable</artifactId>
+			<version>1.4.1.v20120521-2329</version>
+		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.eclipse.ui</groupId> -->
+		<!-- <artifactId>forms</artifactId> -->
+		<!-- <version>3.6.1.v20130822-1117</version> -->
+		<!-- </dependency> -->
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.eclipse.core.databinding</groupId> -->
+		<!-- <artifactId>property</artifactId> -->
+		<!-- <version>1.4.100.v20120523-1955</version> -->
+		<!-- </dependency> -->
+
+		<dependency>
+			<groupId>org.eclipse.core.databinding</groupId>
+			<artifactId>property</artifactId>
+			<version>1.4.100</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jface</groupId>
+			<artifactId>databinding</artifactId>
+			<version>1.6.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.core</groupId>
+			<artifactId>databinding</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jface</groupId>
+			<artifactId>text</artifactId>
+			<version>3.8</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse</groupId>
+			<artifactId>text</artifactId>
+			<version>3.5</version>
+		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.eclipse.nebula.widgets</groupId> -->
+		<!-- <artifactId>org.eclipse.nebula.widgets.gallery_0.6.0.201403182228</artifactId> -->
+		<!-- <version>org.eclipse.nebula.widgets.gallery_0.6.0.201403182228</version> -->
+		<!-- </dependency> -->
+
+		<dependency>
+			<groupId>org.eclipse.nebula.widgets</groupId>
+			<artifactId>gallery</artifactId>
+			<version>0.6.0.201403182228</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.nebula.widgets</groupId>
+			<artifactId>pagination</artifactId>
+			<version>1.0.0.201410030017</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.ui</groupId>
+			<artifactId>forms</artifactId>
+			<version>3.6.1.v20130822-1117</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.10</version>
+		</dependency>
+
+		<dependency>
+			<groupId>math.geom2d</groupId>
+			<artifactId>javaGeom</artifactId>
+			<version>0.11.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.thoughtworks.xstream</groupId>
+			<artifactId>xstream</artifactId>
+			<version>1.2.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.lingala.zip4j</groupId>
+			<artifactId>zip4j</artifactId>
+			<version>1.3.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>2.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.jmatio</groupId>
+			<artifactId>jmatio</artifactId>
+			<version>041212</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.googlecode.java-diff-utils</groupId>
+			<artifactId>diffutils</artifactId>
+			<version>1.3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.j2bugzilla</groupId>
+			<artifactId>j2bugzilla</artifactId>
+			<version>2.2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>opal</groupId>
+			<artifactId>opal</artifactId>
+			<version>1.0.1</version>
+		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.commons</groupId> -->
+		<!-- <artifactId>commons-math3</artifactId> -->
+		<!-- <version>3.0</version> -->
+		<!-- </dependency> -->
+
+
+		<!-- websocket -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.eclipse.jetty.websocket</groupId> -->
+		<!-- <artifactId>websocket-client</artifactId> -->
+		<!-- <version>9.1.2.v20140210</version> -->
+		<!-- </dependency> -->
+
+		<!-- <dependency> -->
+		<!-- <groupId>com.github.nkzawa</groupId> -->
+		<!-- <artifactId>socket.io-client</artifactId> -->
+		<!-- <version>0.1.1-SNAPSHOT</version> -->
+		<!-- </dependency> -->
+
+		<!-- <dependency> -->
+		<!-- <groupId>com.corundumstudio.socketio</groupId> -->
+		<!-- <artifactId>netty-socketio</artifactId> -->
+		<!-- <version>1.6.1</version> -->
+		<!-- </dependency> -->
+
+		<!-- <dependencies> -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.github.nkzawa</groupId> -->
+		<!-- <artifactId>engine.io-client</artifactId> -->
+		<!-- <version>0.1.3</version> -->
+		<!-- </dependency> -->
+		<!-- </dependencies> -->
+
+		<dependency>
+			<groupId>org.eclipse</groupId>
+			<artifactId>org.eclipse.jface</artifactId>
+			<version>3.7.0.v20110928-1505</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.core</groupId>
+			<artifactId>org.eclipse.core.commands</artifactId>
+			<version>3.6.0.I20110111-0800</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>dea-gulliver</id>
+			<name>dea-gulliver-releases</name>
+			<url>http://dea-gulliver:8888/artifactory/libs-release-local</url>
+		</repository>
+		<repository>
+			<id>maven2-repository.dev.java.net</id>
+			<name>Java.net Repository for Maven</name>
+			<url>http://download.java.net/maven/2/</url>
+			<layout>default</layout>
+		</repository>
+
+		<!-- SWT repository on google code -->
+		<repository>
+			<id>swt-repo</id>
+<!-- 			<url>https://swt-repo.googlecode.com/svn/repo/</url> -->
+			<url>http://maven-eclipse.github.io/maven</url>
+<!-- 			https://github.com/maven-eclipse/swt-repo -->
+			
+		</repository>
+	</repositories>
+
+
+
+	<!-- Define profiles for different OS and architectures: -->
+	<profiles>
+		<!-- linux 64 bit profile -->
+		<profile>
+			<id>linux64</id>
+			<activation>
+				<os>
+					<family>linux</family>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<properties>
+				<!-- <swt.groupId>org.eclipse.swt</swt.groupId> -->
+				<!-- <swt.version>4.3</swt.version> -->
+				<swt.artifactId>org.eclipse.swt.gtk.linux.x86_64</swt.artifactId>
+			</properties>
+		</profile>
+
+		<!-- linux 32 bit profile -->
+		<profile>
+			<id>linux32</id>
+			<activation>
+				<os>
+					<family>linux</family>
+					<arch>x86</arch>
+				</os>
+			</activation>
+			<properties>
+				<!-- <swt.groupId>org.eclipse.swt</swt.groupId> -->
+				<!-- <swt.version>4.3</swt.version> -->
+				<swt.artifactId>org.eclipse.swt.gtk.linux.x86</swt.artifactId>
+			</properties>
+		</profile>
+
+		<!-- windows 64 bit profile -->
+		<profile>
+			<id>windows64</id>
+			<activation>
+				<os>
+					<family>Windows</family>
+					<arch>amd64</arch>
+				</os>
+			</activation>
+			<properties>
+				<!-- <swt.groupId>org.eclipse.swt</swt.groupId> -->
+				<!-- <swt.version>4.3</swt.version> -->
+				<swt.artifactId>org.eclipse.swt.win32.win32.x86_64</swt.artifactId>
+			</properties>
+		</profile>
+
+		<!-- windows §" bit profile -->
+		<profile>
+			<id>windows32</id>
+			<activation>
+				<os>
+					<family>Windows</family>
+					<arch>x86</arch>
+				</os>
+			</activation>
+			<properties>
+				<!-- <swt.groupId>org.eclipse.swt</swt.groupId> -->
+				<!-- <swt.version>4.3</swt.version> -->
+				<swt.artifactId>org.eclipse.swt.win32.win32.x86</swt.artifactId>
+			</properties>
+		</profile>
+
+		<profile>
+			<id>mac64</id>
+			<activation>
+				<os>
+					<family>mac</family>
+					<arch>x86_64</arch>
+				</os>
+			</activation>
+			<properties>
+				<!-- <swt.groupId>org.eclipse.swt</swt.groupId> -->
+				<!-- <swt.version>4.3</swt.version> -->
+				<swt.artifactId>org.eclipse.swt.cocoa.macosx.x86_64</swt.artifactId>
+			</properties>
+		</profile>
+	</profiles>
+</project>

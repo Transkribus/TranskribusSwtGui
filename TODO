@@ -1,0 +1,38 @@
+TODO LIST:
+
+-> Visualize Letter spaced, small caps, gothic/antiqua, font size
+
+
+-> Multiselection mit auswahlfenster / auswahl von-bis / select all 
+-> style von finereader übernommen? PHIL
+-> split: text auch mitsplitten & durchschlagend splitten
+-> wechsel zwischen modi einfacher machen? (evtl: oben anzeigen, dass man escape taste drücken muss!)
+-> Text undo
+-> style type undo
+-> wort/line erstellen: automatisches erstellen der übergeordneten elemente!?
+-> redo??
+-> Segmentierung -> wenn wort geändert -> automatisches anpassen der übergeordneten Regionen??
+-> wörter von zeile zu zeile verschieben?
+-> buttons der top-toolbar verschwinden wenn maximiert bei kleinem bildschirm
+-> Changes in text!
+
+TAGGING:
+
+-> DELETE TAGS! ( einzeln und clear tags for selection)
+-> ANZEIGE DER TAGS IM WORD EDITOR
+-> TESTEN!!!
+
+-> how to delete tags?? (!!!!!!!!!!!!)
+-> common tags of selection
+-> performance & anzeige
+-> change color for tag (NOT SO IMPORTANT)
+-> add tags defined in XML (DONE)
+
+KLEINSCHEISS:
+
+-> Page Locking besser sichtbar anzeigen -> Page lock icon neben "Page" (done)
+-> Zu Job-View springen wenn job zb in layout analysis widget gestartet wurde
+
+
+
+
