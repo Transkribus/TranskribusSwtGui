@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.security.auth.login.LoginException;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +24,6 @@ import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -43,15 +41,14 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.connection.TrpServerConn;
-import eu.transkribus.client.io.TrpDocUploadFtp;
+import eu.transkribus.client.util.FtpConsts;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.listener.AStorageObserver;
 
 public class UploadDialogUltimate extends Dialog {
@@ -61,7 +58,7 @@ public class UploadDialogUltimate extends Dialog {
 	
 	private final static String INFO_MSG = 
 			"You can upload folders containing image files to:\n\n"
-			+ TrpDocUploadFtp.FTP_PROT + TrpDocUploadFtp.FTP_URL + "\n\n"
+			+ FtpConsts.FTP_PROT + FtpConsts.FTP_URL + "\n\n"
 			+ "by using your favorite FTP client.\n"
 			+ "For accessing the FTP server please use your\n"
 			+ "Transkribus credentials.\n"
@@ -276,7 +273,7 @@ public class UploadDialogUltimate extends Dialog {
 		lblDir.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblDir.setText("Location:");
 		link = new Link(container, SWT.NONE);
-	    final String linkText = "<a href=\"" + TrpDocUploadFtp.FTP_PROT + getUsernameEncoded() + "@" + TrpDocUploadFtp.FTP_URL + "\">"+ TrpDocUploadFtp.FTP_PROT + TrpDocUploadFtp.FTP_URL + "</a>";
+	    final String linkText = "<a href=\"" + FtpConsts.FTP_PROT + getUsernameEncoded() + "@" + FtpConsts.FTP_URL + "\">"+ FtpConsts.FTP_PROT + FtpConsts.FTP_URL + "</a>";
 	    link.setText(linkText);
 	    helpBtn = new Button(container, SWT.NONE);
 		helpBtn.setImage(Images.getOrLoad("/icons/help.png"));
