@@ -9,6 +9,7 @@
 	<name>Transkribus</name>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<program-name>Transkribus</program-name>
 		<mainClassName>org.dea.transcript.trp.gui.TrpGui</mainClassName>
 		<!-- <dependency-dir>${project.build.finalName}-lib</dependency-dir> -->
