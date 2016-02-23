@@ -1,7 +1,7 @@
 README
 ------------------------------------------------------
-
-- Transkribus is contained in the main jar file Transkribus-<version>.jar
+- This is an SWT based GUI for the Transkribus platform
+- After installation, it is contained in the main jar file Transkribus-<version>.jar
 - Java 7 is needed to run the program. Make sure Java 7 is either installed system wide
 or copy a JRE into the program directory!
 
