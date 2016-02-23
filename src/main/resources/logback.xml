@@ -43,19 +43,20 @@
 		</rollingPolicy>
 	</appender>    
     
+	<logger name="eu.transkribus" level="INFO">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="LOGFILE" />
+	</logger>    
 	<logger name="org.dea" level="INFO">
 		<appender-ref ref="CONSOLE" />
-		<!-- <appender-ref ref="CONSOLE_ERR"/> -->
 		<appender-ref ref="LOGFILE" />
 	</logger>    
 	<logger name="org.eclipse" level="INFO">
 		<appender-ref ref="CONSOLE" />
-		<!-- <appender-ref ref="CONSOLE_ERR"/> -->
 		<appender-ref ref="LOGFILE" />
 	</logger>
 	<logger name="org.apache" level="ERROR">
 		<appender-ref ref="CONSOLE" />
-		<!-- <appender-ref ref="CONSOLE_ERR"/> -->
 		<appender-ref ref="LOGFILE" />
 	</logger>
 </configuration>
