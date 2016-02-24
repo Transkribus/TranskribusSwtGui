@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -34,6 +32,8 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.tei.TeiExportMode;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 import eu.transkribus.swt_gui.util.TagsSelector;
 

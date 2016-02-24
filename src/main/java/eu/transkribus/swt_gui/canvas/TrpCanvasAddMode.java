@@ -1,6 +1,6 @@
 package eu.transkribus.swt_gui.canvas;
 
-import org.dea.swt.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.CanvasMode;
 
 public class TrpCanvasAddMode extends CanvasMode {
 	public final static CanvasMode ADD_PRINTSPACE = new TrpCanvasAddMode(true, false, false, true, "Printspace");

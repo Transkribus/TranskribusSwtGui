@@ -1,11 +1,12 @@
 package org.eclipse.swt.widgets;
 
-import org.dea.swt.util.Colors;
-import org.dea.swt.util.Fonts;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+
+import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 
 public class TextToolItem extends ACustomToolItem {
 	

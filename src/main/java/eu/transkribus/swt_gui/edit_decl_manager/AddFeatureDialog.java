@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.edit_decl_manager;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
@@ -22,6 +21,7 @@ import org.eclipse.ui.internal.dnd.SwtUtil;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.EdFeature;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class AddFeatureDialog extends Dialog {

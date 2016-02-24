@@ -1,12 +1,13 @@
 package examples;
 
-import org.dea.swt.util.Images;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+
+import eu.transkribus.swt_canvas.util.Images;
 
 
 

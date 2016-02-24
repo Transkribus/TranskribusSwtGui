@@ -24,12 +24,6 @@ import org.apache.commons.io.FileUtils;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
-import org.dea.swt.canvas.CanvasImage;
-import org.dea.swt.canvas.shapes.ICanvasShape;
-import org.dea.util.DataCache;
-import org.dea.util.DataCacheFactory;
-import org.dea.util.MathUtil;
-import org.dea.util.Utils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
@@ -77,7 +71,13 @@ import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
+import eu.transkribus.swt_canvas.canvas.CanvasImage;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.util.DataCache;
+import eu.transkribus.util.DataCacheFactory;
+import eu.transkribus.util.MathUtil;
+import eu.transkribus.util.Utils;
 
 /** Singleton class that contains all data related to loading a transcription */
 public class Storage extends Observable {

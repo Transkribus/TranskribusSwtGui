@@ -7,11 +7,11 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.PrimaUtils;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 
-import org.dea.swt.canvas.shapes.ICanvasShape;
 import org.eclipse.swt.widgets.Event;
 
 public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListener {

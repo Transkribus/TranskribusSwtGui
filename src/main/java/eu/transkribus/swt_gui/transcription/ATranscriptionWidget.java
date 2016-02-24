@@ -13,16 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.dea.swt.canvas.CanvasKeys;
-import org.dea.swt.pagingtoolbar.PagingToolBar;
-import org.dea.swt.util.Colors;
-import org.dea.swt.util.DropDownToolItem;
-import org.dea.swt.util.Fonts;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SWTUtil;
-import org.dea.swt.util.UndoRedoImpl;
-import org.dea.swt.util.databinding.DataBinder;
-import org.dea.util.Utils;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -84,6 +74,15 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
+import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
+import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.DropDownToolItem;
+import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_canvas.util.UndoRedoImpl;
+import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
@@ -93,6 +92,7 @@ import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
 import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
+import eu.transkribus.util.Utils;
 
 public abstract class ATranscriptionWidget extends Composite {
 	public static enum Type {

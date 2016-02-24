@@ -2,11 +2,6 @@ package eu.transkribus.swt_gui.canvas;
 
 import java.awt.Graphics2D;
 
-import org.dea.swt.canvas.CanvasSettings;
-import org.dea.swt.canvas.SWTCanvas;
-import org.dea.swt.canvas.shapes.ICanvasShape;
-import org.dea.swt.util.CanvasTransform;
-import org.dea.util.MathUtil;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -33,12 +28,17 @@ import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.CanvasTransform;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.transcription.LineEditor;
 import eu.transkribus.swt_gui.transcription.WordTagEditor;
 import eu.transkribus.swt_gui.util.GuiUtil;
+import eu.transkribus.util.MathUtil;
 
 /**
  * Overrides the default canvas implementation to add TRP specific functionality

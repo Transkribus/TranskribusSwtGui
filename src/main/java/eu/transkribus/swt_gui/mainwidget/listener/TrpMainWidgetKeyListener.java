@@ -4,13 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.connection.TrpServerConn;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
+import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
 import org.apache.commons.exec.OS;
-import org.dea.swt.canvas.CanvasKeys;
-import org.dea.swt.canvas.CanvasMode;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;

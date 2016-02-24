@@ -6,12 +6,11 @@ import java.beans.PropertyChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-
-import org.dea.swt.canvas.CanvasMode;
-import org.dea.swt.canvas.CanvasSettings;
-import org.dea.swt.canvas.shapes.CanvasShapeType;
 
 public class CanvasSettingsPropertyChangeListener implements PropertyChangeListener {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasSettingsPropertyChangeListener.class);

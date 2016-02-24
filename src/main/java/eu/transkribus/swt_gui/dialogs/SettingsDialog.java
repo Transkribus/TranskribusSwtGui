@@ -1,7 +1,5 @@
 package eu.transkribus.swt_gui.dialogs;
 
-import org.dea.swt.canvas.CanvasSettings;
-import org.dea.swt.util.databinding.DataBinder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -16,6 +14,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
+import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 

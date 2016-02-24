@@ -1,9 +1,5 @@
 package eu.transkribus.swt_gui.transcription;
 
-import org.dea.swt.canvas.shapes.CanvasPolygon;
-import org.dea.swt.canvas.shapes.ICanvasShape;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
@@ -21,6 +17,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 
 /**

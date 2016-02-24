@@ -8,8 +8,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.WordType;
-
-import org.dea.swt.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
 
 
 public class RegionTypeComparator implements Comparator<Object> {

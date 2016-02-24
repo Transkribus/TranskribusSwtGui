@@ -6,7 +6,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dea.swt.util.ImgUrlListViewer;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -24,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.swt_canvas.util.ImgUrlListViewer;
 import eu.transkribus.swt_gui.util.DocPageViewer;
 
 public class BatchImageReplaceDialog extends Dialog {

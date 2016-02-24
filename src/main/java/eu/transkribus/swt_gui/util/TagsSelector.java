@@ -5,9 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.SWTUtil;
-import org.dea.util.Utils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -29,6 +26,9 @@ import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.util.Utils;
 
 public class TagsSelector extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TagsSelector.class);

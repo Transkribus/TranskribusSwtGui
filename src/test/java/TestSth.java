@@ -24,7 +24,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.util.Base64;
-import org.dea.util.DesktopApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +41,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_gui.TrpGui;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
+import eu.transkribus.util.DesktopApi;
 
 
 

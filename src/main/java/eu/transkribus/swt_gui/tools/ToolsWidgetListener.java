@@ -3,8 +3,6 @@ package eu.transkribus.swt_gui.tools;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dea.swt.canvas.shapes.ICanvasShape;
-import org.dea.swt.util.DialogUtil;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.ICheckStateListener;
@@ -28,6 +26,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.RecMode;

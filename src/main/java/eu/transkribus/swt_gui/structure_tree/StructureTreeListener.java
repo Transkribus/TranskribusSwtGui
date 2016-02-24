@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.structure_tree;
 
-import org.dea.swt.canvas.shapes.ICanvasShape;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -17,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.util.GuiUtil;

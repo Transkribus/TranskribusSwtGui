@@ -4,10 +4,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Locale;
 
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.SWTUtil;
-import org.dea.swt.util.XmlViewer;
-import org.dea.util.DesktopApi;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -16,6 +12,9 @@ import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_canvas.util.XmlViewer;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
@@ -25,6 +24,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.menubar.TrpMenuBar;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.util.DesktopApi;
 
 public class TrpMainWidgetListener extends SelectionAdapter {
 	private final static Logger logger = LoggerFactory.getLogger(TrpMainWidgetListener.class);

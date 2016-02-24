@@ -9,12 +9,6 @@ import java.util.List;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.mytableviewer.MyTableViewer;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -45,6 +39,12 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocDir;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;

@@ -3,10 +3,6 @@ package eu.transkribus.swt_gui.util;
 import java.io.IOException;
 import java.net.URL;
 
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.util.APreviewListViewer;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
-import org.dea.swt.util.ImgLoader;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -15,6 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.util.APreviewListViewer;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_canvas.util.ImgLoader;
 
 public class DocPageViewer extends APreviewListViewer<TrpPage> {
 	private final static Logger logger = LoggerFactory.getLogger(DocPageViewer.class);

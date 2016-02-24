@@ -5,12 +5,6 @@ import java.util.List;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.dea.swt.pagination_table.ATableWidgetPagination;
-import org.dea.swt.pagination_table.IPageLoadMethods;
-import org.dea.swt.pagination_table.RemotePageLoader;
-import org.dea.swt.pagination_table.TableColumnBeanLabelProvider;
-import org.dea.swt.util.Fonts;
-import org.dea.swt.util.Images;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
@@ -19,6 +13,12 @@ import org.eclipse.swt.widgets.Composite;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.swt_canvas.pagination_table.ATableWidgetPagination;
+import eu.transkribus.swt_canvas.pagination_table.IPageLoadMethods;
+import eu.transkribus.swt_canvas.pagination_table.RemotePageLoader;
+import eu.transkribus.swt_canvas.pagination_table.TableColumnBeanLabelProvider;
+import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

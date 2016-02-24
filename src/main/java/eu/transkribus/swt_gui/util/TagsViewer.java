@@ -8,13 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.mytableviewer.MyTableViewer;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.ImgLoader;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -48,6 +41,13 @@ import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.ImgLoader;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class TagsViewer extends Composite {

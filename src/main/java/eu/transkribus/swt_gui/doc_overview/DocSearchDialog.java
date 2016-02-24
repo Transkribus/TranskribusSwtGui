@@ -5,13 +5,6 @@ import java.util.List;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.dea.swt.pagination_table.IPageLoadMethods;
-import org.dea.swt.util.Colors;
-import org.dea.swt.util.ComboInputDialog;
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.LabeledCombo;
-import org.dea.swt.util.LabeledText;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -38,6 +31,13 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.swt_canvas.pagination_table.IPageLoadMethods;
+import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.ComboInputDialog;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.LabeledCombo;
+import eu.transkribus.swt_canvas.util.LabeledText;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;

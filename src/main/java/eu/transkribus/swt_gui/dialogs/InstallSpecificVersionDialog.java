@@ -5,8 +5,6 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -24,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.program_updater.FTPProgramPackageFile;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.util.FTPProgramUpdater;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
 

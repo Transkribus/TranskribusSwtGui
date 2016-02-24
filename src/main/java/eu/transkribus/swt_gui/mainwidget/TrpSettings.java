@@ -2,9 +2,6 @@ package eu.transkribus.swt_gui.mainwidget;
 
 import java.util.Locale;
 
-import org.dea.swt.util.Colors;
-import org.dea.swt.util.Fonts;
-import org.dea.util.APropertyChangeSupport;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
@@ -19,7 +16,10 @@ import eu.transkribus.core.model.beans.pagecontent.WordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.Fonts;
 import eu.transkribus.swt_gui.Msgs;
+import eu.transkribus.util.APropertyChangeSupport;
 
 /**
  * Segmentation viewing settings bean for the canvas 

@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import org.dea.swt.util.LabeledText;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -16,6 +14,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.swt_canvas.util.LabeledText;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 
 public class AffineTransformDialog extends Dialog {

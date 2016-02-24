@@ -8,13 +8,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.dea.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.util.Utils;
 
 public class TrpGui {
 	private final static Logger logger = LoggerFactory.getLogger(TrpGui.class);

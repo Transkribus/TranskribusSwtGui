@@ -7,13 +7,6 @@ import java.util.List;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.pagination_table.ATableWidgetPagination;
-import org.dea.swt.pagination_table.IPageLoadMethods;
-import org.dea.swt.pagination_table.RemotePageLoader;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
-import org.dea.swt.util.Fonts;
-import org.dea.swt.util.TableUtils;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.nebula.widgets.pagination.table.SortTableColumnSelectionListener;
@@ -25,6 +18,13 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.pagination_table.ATableWidgetPagination;
+import eu.transkribus.swt_canvas.pagination_table.IPageLoadMethods;
+import eu.transkribus.swt_canvas.pagination_table.RemotePageLoader;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt_canvas.util.TableUtils;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

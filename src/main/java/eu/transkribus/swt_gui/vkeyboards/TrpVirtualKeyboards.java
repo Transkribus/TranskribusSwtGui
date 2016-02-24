@@ -15,7 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.dea.swt.util.VirtualKeyboard;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -26,6 +25,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.transkribus.swt_canvas.util.VirtualKeyboard;
 
 //public class TrpVirtualKeyboards extends TabFolder {
 public class TrpVirtualKeyboards extends CTabFolder {

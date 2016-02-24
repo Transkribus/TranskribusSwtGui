@@ -6,9 +6,6 @@ import java.util.ListIterator;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.dea.swt.pagination_table.ATableWidgetPagination;
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.nebula.widgets.pagination.IPageLoader;
 import org.eclipse.nebula.widgets.pagination.collections.PageResult;
@@ -35,6 +32,9 @@ import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NotImplementedException;
 import eu.transkribus.core.model.beans.PageLock;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.swt_canvas.pagination_table.ATableWidgetPagination;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 

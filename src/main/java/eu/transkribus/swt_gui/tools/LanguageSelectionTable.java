@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dea.swt.util.Colors;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
@@ -22,6 +21,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.transkribus.swt_canvas.util.Colors;
 
 public class LanguageSelectionTable extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(LanguageSelectionTable.class);

@@ -4,11 +4,6 @@ package eu.transkribus.swt_gui.factory;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dea.swt.canvas.CanvasMode;
-import org.dea.swt.canvas.SWTCanvas;
-import org.dea.swt.canvas.shapes.CanvasPolygon;
-import org.dea.swt.canvas.shapes.CanvasPolyline;
-import org.dea.swt.canvas.shapes.ICanvasShape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +22,11 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpConstructedWithParentEvent;
 import eu.transkribus.core.util.PrimaUtils;
+import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.exceptions.BaselineExistsException;

@@ -2,7 +2,9 @@ package eu.transkribus.swt_gui.transcription.autocomplete;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.dea.util.Utils;
+
+import eu.transkribus.util.Utils;
+
 import org.eclipse.jface.fieldassist.ContentProposalAdapter;
 import org.eclipse.jface.fieldassist.IControlContentAdapter;
 import org.eclipse.jface.fieldassist.IControlContentAdapter2;

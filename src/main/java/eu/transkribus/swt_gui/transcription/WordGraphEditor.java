@@ -7,9 +7,6 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.dea.swt.util.Colors;
-import org.dea.swt.util.Fonts;
-import org.dea.util.Utils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -43,6 +40,10 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.util.Utils;
 
 public class WordGraphEditor extends Composite {
 	public static enum EditType { /*RELOAD,*/ REPLACE, DELETE, ADD };

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Stack;
 
-import org.dea.swt.util.Images;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
@@ -55,6 +54,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.EnumUtils;
+import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

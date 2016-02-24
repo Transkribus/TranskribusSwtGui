@@ -4,9 +4,6 @@ import java.util.List;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.window.ApplicationWindow;
@@ -32,6 +29,9 @@ import eu.transkribus.client.io.TrpDocUploadZipHttp;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;

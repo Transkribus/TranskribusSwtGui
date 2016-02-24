@@ -10,13 +10,6 @@ import java.util.Observer;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.dea.swt.canvas.CanvasKeys;
-import org.dea.swt.util.Colors;
-import org.dea.swt.util.CustomTagPropertyTable;
-import org.dea.swt.util.Fonts;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SWTUtil;
-import org.dea.swt.util.TableUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
@@ -65,6 +58,13 @@ import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
+import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.CustomTagPropertyTable;
+import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_canvas.util.TableUtils;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

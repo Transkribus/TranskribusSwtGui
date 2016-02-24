@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.page_metadata;
 
-import org.dea.swt.util.Colors;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.util.RegexPattern;
+import eu.transkribus.swt_canvas.util.Colors;
 
 @Deprecated
 public class AddTagAttributeDialog extends Dialog {

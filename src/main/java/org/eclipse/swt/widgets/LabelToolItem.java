@@ -1,10 +1,11 @@
 package org.eclipse.swt.widgets;
 
-import org.dea.swt.util.Fonts;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
+
+import eu.transkribus.swt_canvas.util.Fonts;
 
 public class LabelToolItem extends ACustomToolItem {
 	

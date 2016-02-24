@@ -2,12 +2,12 @@ package eu.transkribus.swt_gui.menubar;
 
 import java.util.Locale;
 
-import org.dea.swt.canvas.CanvasSettings;
 import org.docx4j.model.fields.merge.MailMergerWithNext;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MenuItem;
 
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;

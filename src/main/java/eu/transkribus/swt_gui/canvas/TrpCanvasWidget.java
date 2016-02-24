@@ -1,9 +1,5 @@
 package eu.transkribus.swt_gui.canvas;
 
-import org.dea.swt.canvas.CanvasToolBar;
-import org.dea.swt.canvas.CanvasWidget;
-import org.dea.swt.canvas.SWTCanvas;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -11,6 +7,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
+import eu.transkribus.swt_canvas.canvas.CanvasWidget;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class TrpCanvasWidget extends CanvasWidget {

@@ -6,8 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
-import org.dea.swt.progress.ProgressBarDialog;
-import org.dea.swt.util.DialogUtil;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
@@ -27,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.connection.ATrpServerConn;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
+import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.ProgramInfo;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;

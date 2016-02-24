@@ -2,11 +2,6 @@ package eu.transkribus.swt_gui.versions;
 
 import java.util.List;
 
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.mytableviewer.MyTableViewer;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.TableViewerSorter;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -22,6 +17,11 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.TableViewerSorter;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsTableWidgetListener;
 
 public class VersionsWidget extends Composite {

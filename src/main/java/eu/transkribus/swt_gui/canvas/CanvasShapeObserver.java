@@ -8,10 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.util.PrimaUtils;
+import eu.transkribus.swt_canvas.canvas.shapes.ACanvasShape;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-
-import org.dea.swt.canvas.shapes.ACanvasShape;
-import org.dea.swt.canvas.shapes.ICanvasShape;
 
 /**
  * Observes changes in a given shape (i.e. changes in their coordinates) and updates the corresponding TreeItem and PAGE data

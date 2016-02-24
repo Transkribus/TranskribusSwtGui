@@ -2,9 +2,6 @@ package eu.transkribus.swt_gui.tools;
 
 import java.util.List;
 
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -29,6 +26,9 @@ import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;

@@ -5,12 +5,6 @@ import java.util.List;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.pagination_table.IPageLoadMethods;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -42,6 +36,12 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpUserCollection;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.pagination_table.IPageLoadMethods;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;

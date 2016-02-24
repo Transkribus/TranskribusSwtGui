@@ -10,8 +10,6 @@ import java.util.List;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang.StringUtils;
-import org.dea.swt.util.ComboInputDialog;
-import org.dea.swt.util.DialogUtil;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
@@ -34,6 +32,8 @@ import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.UserInputChecker;
+import eu.transkribus.swt_canvas.util.ComboInputDialog;
+import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;

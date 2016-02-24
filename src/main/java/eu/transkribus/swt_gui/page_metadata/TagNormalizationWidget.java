@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.dea.swt.progress.ProgressBarDialog;
-import org.dea.swt.util.CustomTagPropertyTable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
@@ -24,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
+import eu.transkribus.swt_canvas.util.CustomTagPropertyTable;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

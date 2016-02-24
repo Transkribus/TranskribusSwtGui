@@ -8,11 +8,10 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.util.TextStyleTypeUtils;
+import eu.transkribus.swt_canvas.canvas.CanvasScene;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.util.GuiUtil;
-
-import org.dea.swt.canvas.CanvasScene;
-import org.dea.swt.canvas.shapes.ICanvasShape;
 
 public class TrpCanvasScene extends CanvasScene {
 	private final static Logger logger = LoggerFactory.getLogger(TrpCanvasScene.class);

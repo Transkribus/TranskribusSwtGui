@@ -3,9 +3,6 @@ package eu.transkribus.swt_gui.doc_overview;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.mytableviewer.MyTableViewer;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
@@ -16,6 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
 
 public class DocTableWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocTableWidget.class);

@@ -2,8 +2,10 @@ package org.eclipse.swt.widgets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.dea.swt.util.Colors;
-import org.dea.swt.util.Fonts;
+
+import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.Fonts;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.ModifyEvent;

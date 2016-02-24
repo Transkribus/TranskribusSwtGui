@@ -12,14 +12,14 @@ import java.util.Properties;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.dea.swt.canvas.CanvasSettings;
-import org.dea.util.APropertyChangeSupport;
-import org.dea.util.Utils;
 import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.util.APropertyChangeSupport;
+import eu.transkribus.util.Utils;
 
 public class TrpConfig {
 	private final static Logger logger = LoggerFactory.getLogger(TrpConfig.class);

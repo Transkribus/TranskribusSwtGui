@@ -8,9 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.dea.swt.canvas.shapes.ICanvasShape;
-import org.dea.swt.util.Fonts;
-import org.dea.util.Utils;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Display;
@@ -23,7 +20,10 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.Fonts;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.util.Utils;
 
 public class GuiUtil {
 	private static Logger logger = LoggerFactory.getLogger(GuiUtil.class);

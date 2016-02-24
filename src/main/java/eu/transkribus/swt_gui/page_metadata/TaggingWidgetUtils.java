@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.dea.swt.util.Colors;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
@@ -18,6 +17,7 @@ import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.util.IntRange;
+import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 

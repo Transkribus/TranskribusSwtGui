@@ -9,9 +9,6 @@ import junit.framework.Assert;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.dea.swt.canvas.CanvasKeys;
-import org.dea.swt.util.Colors;
-import org.dea.util.Utils;
 import org.eclipse.jface.text.JFaceTextUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ExtendedModifyEvent;
@@ -40,12 +37,15 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
+import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.util.GuiUtil;
+import eu.transkribus.util.Utils;
 
 public class LineTranscriptionWidget extends ATranscriptionWidget {
 	private final static Logger logger = LoggerFactory.getLogger(LineTranscriptionWidget.class);

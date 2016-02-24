@@ -1,8 +1,7 @@
 package eu.transkribus.swt_gui.mainwidget.listener;
 
-import org.dea.swt.pagingtoolbar.PagingToolBar;
-import org.dea.swt.pagingtoolbar.PagingToolBarListener;
-
+import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
+import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBarListener;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

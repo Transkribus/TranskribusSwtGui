@@ -1,11 +1,12 @@
 package eu.transkribus.swt_gui.page_metadata;
 
-import org.dea.swt.util.Images;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+
+import eu.transkribus.swt_canvas.util.Images;
 
 public class TagAddRemoveComposite extends Composite {
 	

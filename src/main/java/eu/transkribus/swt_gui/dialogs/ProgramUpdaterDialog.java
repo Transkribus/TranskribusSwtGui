@@ -16,12 +16,6 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.commons.exec.OS;
 import org.apache.commons.lang3.tuple.Pair;
-import org.dea.swt.progress.ProgressBarDialog;
-import org.dea.swt.util.DialogUtil;
-import org.dea.swt.util.SWTUtil;
-import org.dea.util.SebisZipUtils;
-import org.dea.util.SebisZipUtils.UnzipListener;
-import org.dea.util.SebisZipUtils.ZipEvent;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -40,6 +34,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGui;
 import eu.transkribus.swt_gui.mainwidget.ProgramInfo;
@@ -47,6 +44,9 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.util.FTPProgramUpdater;
 import eu.transkribus.swt_gui.util.HttpProgramUpdater;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
+import eu.transkribus.util.SebisZipUtils;
+import eu.transkribus.util.SebisZipUtils.UnzipListener;
+import eu.transkribus.util.SebisZipUtils.ZipEvent;
 
 public class ProgramUpdaterDialog {
 	private final static Logger logger = LoggerFactory.getLogger(ProgramUpdaterDialog.class);

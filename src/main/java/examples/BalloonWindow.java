@@ -2,7 +2,6 @@ package examples;
 
 import java.util.ArrayList;
 
-import org.dea.swt.util.Fonts;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -23,6 +22,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
+
+import eu.transkribus.swt_canvas.util.Fonts;
 
 
 /**

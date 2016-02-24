@@ -3,8 +3,6 @@ package eu.transkribus.swt_gui.page_metadata;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -39,6 +37,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.util.EnumUtils;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 
 public class PageMetadataWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(PageMetadataWidget.class);

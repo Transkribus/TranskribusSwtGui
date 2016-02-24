@@ -10,7 +10,6 @@ import java.util.List;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang.StringUtils;
-import org.dea.swt.util.DialogUtil;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.window.Window;
@@ -26,6 +25,7 @@ import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
+import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 //

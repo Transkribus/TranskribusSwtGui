@@ -3,13 +3,13 @@ package eu.transkribus.swt_gui.canvas;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
-import org.dea.swt.canvas.CanvasMode;
-import org.dea.swt.canvas.CanvasToolBar;
-import org.dea.swt.canvas.listener.CanvasToolBarSelectionListener;
-import org.dea.swt.canvas.SWTCanvas;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;

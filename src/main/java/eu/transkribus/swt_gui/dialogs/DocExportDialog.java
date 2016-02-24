@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.dialogs;
 
 import java.io.File;
 
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -14,6 +13,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
+import eu.transkribus.swt_canvas.util.SWTUtil;
 
 public class DocExportDialog extends Dialog {
 

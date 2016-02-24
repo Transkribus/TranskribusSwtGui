@@ -2,8 +2,6 @@ package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.Date;
 
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SCSimpleDateTimeWidget;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -23,6 +21,8 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SCSimpleDateTimeWidget;
 import eu.transkribus.swt_gui.tools.LanguageSelectionTable;
 
 public class DocMetadataEditor extends Composite {

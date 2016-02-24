@@ -1,8 +1,5 @@
 package eu.transkribus.swt_gui.comments_widget;
 
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.mytableviewer.MyTableViewer;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -16,6 +13,9 @@ import eu.transkribus.core.model.beans.customtags.CommentTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
 
 public class CommentsTable extends MyTableViewer {
 	

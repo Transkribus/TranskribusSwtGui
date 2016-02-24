@@ -3,12 +3,6 @@ package eu.transkribus.swt_gui.canvas;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dea.swt.canvas.CanvasToolBar;
-import org.dea.swt.canvas.CanvasWidget;
-import org.dea.swt.canvas.listener.CanvasToolBarSelectionListener;
-import org.dea.swt.util.DropDownToolItem;
-import org.dea.swt.util.Images;
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MenuItem;
@@ -17,6 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
+import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
+import eu.transkribus.swt_canvas.canvas.CanvasWidget;
+import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
+import eu.transkribus.swt_canvas.util.DropDownToolItem;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

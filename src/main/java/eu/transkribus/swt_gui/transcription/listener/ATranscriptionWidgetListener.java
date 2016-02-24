@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.transcription.listener;
 
-import org.dea.swt.util.databinding.DataBinder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -9,6 +8,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;

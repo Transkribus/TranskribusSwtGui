@@ -4,11 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
 
-import org.dea.swt.canvas.shapes.ICanvasShape;
 import org.eclipse.swt.widgets.Event;
 
 public class WordTranscriptionWidgetListener extends ATranscriptionWidgetListener {

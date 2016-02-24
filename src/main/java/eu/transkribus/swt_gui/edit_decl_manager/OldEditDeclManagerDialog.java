@@ -2,9 +2,6 @@ package eu.transkribus.swt_gui.edit_decl_manager;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.mytableviewer.MyTableViewer;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -23,6 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 

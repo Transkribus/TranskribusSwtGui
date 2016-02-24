@@ -6,13 +6,6 @@ import java.util.List;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dea.swt.mytableviewer.ColumnConfig;
-import org.dea.swt.pagination_table.ATableWidgetPagination;
-import org.dea.swt.pagination_table.IPageLoadMethods;
-import org.dea.swt.pagination_table.RemotePageLoader;
-import org.dea.swt.pagination_table.TableColumnBeanLabelProvider;
-import org.dea.swt.util.Colors;
-import org.dea.swt.util.DefaultTableColumnViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -34,6 +27,13 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
+import eu.transkribus.swt_canvas.pagination_table.ATableWidgetPagination;
+import eu.transkribus.swt_canvas.pagination_table.IPageLoadMethods;
+import eu.transkribus.swt_canvas.pagination_table.RemotePageLoader;
+import eu.transkribus.swt_canvas.pagination_table.TableColumnBeanLabelProvider;
+import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

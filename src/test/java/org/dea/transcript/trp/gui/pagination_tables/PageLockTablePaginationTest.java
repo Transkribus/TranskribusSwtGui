@@ -2,13 +2,13 @@ package org.dea.transcript.trp.gui.pagination_tables;
 
 import javax.security.auth.login.LoginException;
 
-import org.dea.swt.util.SWTUtil;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
 import eu.transkribus.client.connection.TrpServerConn;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
 
