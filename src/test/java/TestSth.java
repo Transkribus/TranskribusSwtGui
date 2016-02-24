@@ -38,7 +38,7 @@ import eu.transkribus.core.model.beans.pagecontent.OrderedGroupIndexedType;
 import eu.transkribus.core.model.beans.pagecontent.OrderedGroupType;
 import eu.transkribus.core.model.beans.pagecontent.ReadingOrderType;
 import eu.transkribus.core.model.beans.pagecontent.RegionRefIndexedType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_gui.TrpGui;
 import eu.transkribus.swt_gui.util.ProgramUpdater;

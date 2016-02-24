@@ -35,9 +35,9 @@ import eu.transkribus.core.model.beans.pagecontent.PageTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent.RelationType;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
-import eu.transkribus.core.model.beans.pagecontent_extension.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_extension.RegionTypeUtil;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.util.EnumUtils;
 
 public class PageMetadataWidget extends Composite {

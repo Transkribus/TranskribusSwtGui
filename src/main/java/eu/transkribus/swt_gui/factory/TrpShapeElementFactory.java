@@ -1,7 +1,6 @@
 package eu.transkribus.swt_gui.factory;
 
 
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,22 +12,20 @@ import org.dea.swt.canvas.shapes.ICanvasShape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.pagecontent.BaselineType;
 import eu.transkribus.core.model.beans.pagecontent.CoordsType;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextEquivType;
-import eu.transkribus.core.model.beans.pagecontent_extension.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_extension.RegionTypeUtil;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpBaselineType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpLocation;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpPrintSpaceType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpTextRegionType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpWordType;
-import eu.transkribus.core.model.beans.pagecontent_extension.observable.TrpObserveEvent.TrpConstructedWithParentEvent;
-import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpConstructedWithParentEvent;
 import eu.transkribus.core.util.PrimaUtils;
 import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
@@ -208,7 +205,7 @@ public class TrpShapeElementFactory {
 			logger.debug("adding special region, type  = "+specialRegionType);
 			if (!specialRegionType.isEmpty()) {
 				TrpPageType parent = Storage.getInstance().getTranscript().getPage();
-				RegionType rt = createRegionType(shape, parent, specialRegionType);
+				TrpRegionType rt = createRegionType(shape, parent, specialRegionType);
 				trpShape = rt;
 			} else
 				throw new Exception("Invalid special region type: "+specialRegionType+" - should not happen!");			
@@ -424,7 +421,7 @@ public class TrpShapeElementFactory {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	public static RegionType createRegionType(ICanvasShape shape, TrpPageType parent, String type) throws InstantiationException, IllegalAccessException {
+	public static TrpRegionType createRegionType(ICanvasShape shape, TrpPageType parent, String type) throws InstantiationException, IllegalAccessException {
 		
 		if (!RegionTypeUtil.isSpecialRegion(type)) {
 			throw new UnsupportedOperationException("This is not a special region type: "+type);
@@ -435,7 +432,7 @@ public class TrpShapeElementFactory {
 			throw new UnsupportedOperationException("Could not create region of type: "+type);
 		}
 		
-		RegionType rt = (RegionType) clazz.newInstance();
+		TrpRegionType rt = (TrpRegionType) clazz.newInstance();
 		
 		rt.setParent(parent);
 		rt.getObservable().setChangedAndNotifyObservers(new TrpConstructedWithParentEvent(rt));

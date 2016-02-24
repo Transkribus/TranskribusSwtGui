@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
-import eu.transkribus.core.model.beans.pagecontent_extension.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 
 /**

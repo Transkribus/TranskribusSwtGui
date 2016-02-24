@@ -16,8 +16,9 @@ import eu.transkribus.core.model.beans.pagecontent.PrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.WordType;
-import eu.transkribus.core.model.beans.pagecontent_extension.RegionTypeUtil;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpTextRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.swt_gui.Msgs;
 
 /**
@@ -524,7 +525,7 @@ public class TrpSettings extends APropertyChangeSupport {
 			if (wrappedData instanceof TrpTextRegionType)
 				return sets.colorTextRegions;
 			else {
-				String rt = RegionTypeUtil.getRegionType((RegionType)wrappedData);
+				String rt = RegionTypeUtil.getRegionType((TrpRegionType)wrappedData);
 				if (rt.equals(RegionTypeUtil.BLACKENING_REGION)) {
 					return Colors.getSystemColor(SWT.COLOR_BLACK);
 				}

@@ -6,7 +6,7 @@ import java.util.List;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 
 public class DocOverviewTreeContentProvider implements ITreeContentProvider {
 	TrpPageType page;

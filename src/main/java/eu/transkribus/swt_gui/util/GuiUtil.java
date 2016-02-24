@@ -22,7 +22,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
-import eu.transkribus.core.model.beans.pagecontent_extension.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 
 public class GuiUtil {

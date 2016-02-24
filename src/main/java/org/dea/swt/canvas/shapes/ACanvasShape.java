@@ -30,8 +30,8 @@ import org.eclipse.swt.graphics.GC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent_extension.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import math.geom2d.Vector2D;
 import math.geom2d.polygon.Polygon2D;
 import math.geom2d.polygon.Polygons2D;

@@ -15,7 +15,7 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.customtags.CommentTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpTextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 
 public class CommentsTable extends MyTableViewer {
 	

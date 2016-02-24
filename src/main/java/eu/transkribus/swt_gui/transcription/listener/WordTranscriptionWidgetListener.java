@@ -3,7 +3,7 @@ package eu.transkribus.swt_gui.transcription.listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpWordType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;

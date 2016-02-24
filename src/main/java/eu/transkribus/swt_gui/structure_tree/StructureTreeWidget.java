@@ -1,35 +1,12 @@
 package eu.transkribus.swt_gui.structure_tree;
 
-import java.io.IOException;
-import java.util.Collections;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Stack;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.core.model.beans.customtags.StructureTag;
-import eu.transkribus.core.model.beans.pagecontent.RegionType;
-import eu.transkribus.core.model.beans.pagecontent.TextLineType;
-import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
-import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
-import eu.transkribus.core.model.beans.pagecontent.WordType;
-import eu.transkribus.core.model.beans.pagecontent_extension.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpBaselineType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpShapeTypeUtils;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpTextRegionType;
-import eu.transkribus.core.model.beans.pagecontent_extension.TrpWordType;
-import eu.transkribus.core.util.EnumUtils;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-
 import org.dea.swt.util.Images;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
@@ -55,7 +32,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -63,6 +39,24 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.model.beans.customtags.StructureTag;
+import eu.transkribus.core.model.beans.pagecontent.RegionType;
+import eu.transkribus.core.model.beans.pagecontent.TextLineType;
+import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
+import eu.transkribus.core.model.beans.pagecontent.WordType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.util.EnumUtils;
+import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class StructureTreeWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(StructureTreeWidget.class);
@@ -242,7 +236,7 @@ public class StructureTreeWidget extends Composite {
 				int targetIdx = 0;
 				int oldIdx = 0;
 				
-				List<RegionType> regions = null;
+				List<TrpRegionType> regions = null;
 				List<TextLineType> lines = null;
 				List<WordType> words = null;
 				
@@ -259,9 +253,9 @@ public class StructureTreeWidget extends Composite {
 						//parentLine is a line;
 						words = ((TrpTextLineType) parentShape).getWord();
 					}
-					else if(targetSt instanceof RegionType){
+					else if(targetSt instanceof TrpRegionType){
 						//get all regions
-						regions = ((RegionType) targetSt).getPage().getTextRegionOrImageRegionOrLineDrawingRegion(); 
+						regions = ((TrpRegionType) targetSt).getPage().getTextRegionOrImageRegionOrLineDrawingRegion(); 
 					}
 					
 				}

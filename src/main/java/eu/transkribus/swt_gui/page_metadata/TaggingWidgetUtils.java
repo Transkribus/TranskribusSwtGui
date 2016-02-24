@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
-import eu.transkribus.core.model.beans.pagecontent_extension.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
