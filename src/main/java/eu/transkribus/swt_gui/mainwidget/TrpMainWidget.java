@@ -2321,6 +2321,8 @@ public class TrpMainWidget {
 			final Set<Integer> copyOfPageIndices = pageIndices;
 			Set<String> selectedTags = null;
 			
+			logger.debug("loading transcripts..." + copyOfPageIndices.size());
+			
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
@@ -2336,9 +2338,15 @@ public class TrpMainWidget {
 				}
 			}, "Loading of transcripts: ", true);
 			
+			logger.debug("transcripts loaded");
+			
+			
 			
 			if (exportDiag.isTagableExport()) {
+							
 				selectedTags = exportDiag.getSelectedTagsList();
+				
+				logger.debug("loading tags..." + selectedTags.size());
 				
 				final Set<String> copyOfSelectedTags = selectedTags;
 
@@ -2358,6 +2366,8 @@ public class TrpMainWidget {
 						}
 					}
 				}, "Loading of tags: ", true);
+				
+				logger.debug("tags loaded");
 				
 			}
 			
