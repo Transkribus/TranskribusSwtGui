@@ -72,9 +72,6 @@ public class TranscriptObserver implements Observer {
 		}
 		else if (source instanceof TrpBaselineType) {
 		}
-		else if (source instanceof TrpWordType) {
-			mainWidget.getCanvas().getWordTagEditor().updatePosition();
-		}
 		
 //		logger.debug("refreshing tree for element "+source);
 		// update tree:

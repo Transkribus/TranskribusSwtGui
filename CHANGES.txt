@@ -293,6 +293,7 @@ CHANGES AND BUGFIXES
 	
 0.7.8:
 	-> rotate image 90 degrees
+	-> bugfix: baseline focus with angle >180 degrees were displayed upside down
 	-> export bugs fixed
 	
 	

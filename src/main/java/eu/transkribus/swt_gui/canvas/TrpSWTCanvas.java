@@ -1,24 +1,11 @@
 package eu.transkribus.swt_gui.canvas;
 
-import java.awt.Graphics2D;
-
-import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Transform;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,15 +34,12 @@ public class TrpSWTCanvas extends SWTCanvas {
 	private final static Logger logger = LoggerFactory.getLogger(TrpSWTCanvas.class);
 	
 	public static final double FOCUS_ANGLE_THRESHOLD = Math.PI / 16.0d;
-	public static final boolean DO_FIX_WRONG_BASELINES_DIRECTIONS = true;
+	public static final boolean DO_FIX_WRONG_BASELINES_DIRECTIONS = false;
 	
 	StyledText readingOrderText;
 	
 	TrpMainWidget mainWidget;
 	LineEditor lineEditor;
-	WordTagEditor wordTagEditor;
-	
-	
 	
 	public TrpSWTCanvas(Composite parent, int style, TrpMainWidget mainWidget) {
 		super(parent, style);
@@ -63,8 +47,7 @@ public class TrpSWTCanvas extends SWTCanvas {
 		this.mainWidget = mainWidget;
 //		dialog = new Shell(SWTUtil.dummyShell, SWT.DIALOG_TRIM);
 		lineEditor = new LineEditor(this, SWT.BORDER);
-		wordTagEditor = new WordTagEditor(this, SWT.BORDER);
-				
+		
 		// set custom undo stack:
 //		setUndoStack(new TrpUndoStack(this));
 		initTrpCanvasListener();
@@ -395,7 +378,6 @@ public class TrpSWTCanvas extends SWTCanvas {
 	
 	public void updateEditors() {
 		lineEditor.updateEditor();
-		wordTagEditor.updateEditor();
 	}
 	
 	@Override
@@ -403,10 +385,8 @@ public class TrpSWTCanvas extends SWTCanvas {
 		super.onTransformChanged(transform);
 		
 		lineEditor.updatePosition();
-		wordTagEditor.updatePosition();
 	}
 	
 	public LineEditor getLineEditor() { return lineEditor; }
-	public WordTagEditor getWordTagEditor() { return wordTagEditor; }
 
 }
