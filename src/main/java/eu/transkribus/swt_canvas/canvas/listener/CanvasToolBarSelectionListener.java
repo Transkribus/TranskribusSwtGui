@@ -44,26 +44,26 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.getZoomOut()) {
 			canvas.zoomOut();
 		}		
-		else if (s == toolbar.getRotateLeft()) {
-			canvas.rotateLeft();
-		}
-		else if (s == toolbar.getRotateRight()) {
-			canvas.rotateRight();
-		}
-		else if (s == toolbar.getFitToPage()) {
-			canvas.fitToPage();
-		}
-		else if (s == toolbar.getFitWidth()) {
-			canvas.fitWidth();
-		}
-		else if (s == toolbar.getFitHeight()) {
-			canvas.fitHeight();
-		}
+//		else if (s == toolbar.getRotateLeft()) {
+//			canvas.rotateLeft();
+//		}
+//		else if (s == toolbar.getRotateRight()) {
+//			canvas.rotateRight();
+//		}
+//		else if (s == toolbar.getFitToPage()) {
+//			canvas.fitToPage();
+//		}
+//		else if (s == toolbar.getFitWidth()) {
+//			canvas.fitWidth();
+//		}
+//		else if (s == toolbar.getFitHeight()) {
+//			canvas.fitHeight();
+//		}
 		else if (s == toolbar.getOriginalSize()) {
 			canvas.resetTransformation();
 		}
-		else if (s == toolbar.getTranlateItem().ti && e.detail != SWT.ARROW) {
-			switch (toolbar.getTranlateItem().getLastSelectedIndex()) {
+		else if (s == toolbar.getTranslateItem().ti && e.detail != SWT.ARROW) {
+			switch (toolbar.getTranslateItem().getLastSelectedIndex()) {
 			case 0:
 				canvas.translateLeft();
 				break;
@@ -78,6 +78,23 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 				break;
 			}
 		}
+		
+		else if (s == toolbar.getRotateItem().ti && e.detail != SWT.ARROW) {
+			switch (toolbar.getRotateItem().getLastSelectedIndex()) {
+			case 0:
+				canvas.rotateLeft();
+				break;
+			case 1:
+				canvas.rotateRight();
+				break;
+			case 2:
+				canvas.rotate90Left();
+				break;
+			case 3:
+				canvas.rotate90Right();
+				break;
+			}
+		}		
 		
 		else if (s == toolbar.getFitItem().ti && e.detail != SWT.ARROW) {
 			switch (toolbar.getFitItem().getLastSelectedIndex()) {
@@ -96,18 +113,18 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			}
 		}		
 		
-		else if (s == toolbar.getTranslateLeft()) {
-			canvas.translateLeft();
-		}
-		else if (s == toolbar.getTranslateRight()) {
-			canvas.translateRight();
-		}
-		else if (s == toolbar.getTranslateUp()) {
-			canvas.translateUp();
-		}
-		else if (s == toolbar.getTranslateDown()) {
-			canvas.translateDown();
-		}
+//		else if (s == toolbar.getTranslateLeft()) {
+//			canvas.translateLeft();
+//		}
+//		else if (s == toolbar.getTranslateRight()) {
+//			canvas.translateRight();
+//		}
+//		else if (s == toolbar.getTranslateUp()) {
+//			canvas.translateUp();
+//		}
+//		else if (s == toolbar.getTranslateDown()) {
+//			canvas.translateDown();
+//		}
 		else if (s == toolbar.getFocus()) {
 			canvas.focusFirstSelected();
 		}

@@ -137,37 +137,37 @@ public class CanvasWidget extends Composite {
 		return toolBar.getZoomSelection();
 	}
 
-	public ToolItem getRotateRight() {
-		return toolBar.getRotateRight();
-	}
-
-	public ToolItem getRotateLeft() {
-		return toolBar.getRotateLeft();
-	}
-
-	public ToolItem getTranslateLeft() {
-		return toolBar.getTranslateLeft();
-	}
-
-	public ToolItem getFitToPage() {
-		return toolBar.getFitToPage();
-	}
-
-	public ToolItem getTranslateRight() {
-		return toolBar.getTranslateRight();
-	}
+//	public ToolItem getRotateRight() {
+//		return toolBar.getRotateRight();
+//	}
+//
+//	public ToolItem getRotateLeft() {
+//		return toolBar.getRotateLeft();
+//	}
+//
+//	public ToolItem getTranslateLeft() {
+//		return toolBar.getTranslateLeft();
+//	}
+//
+//	public ToolItem getFitToPage() {
+//		return toolBar.getFitToPage();
+//	}
+//
+//	public ToolItem getTranslateRight() {
+//		return toolBar.getTranslateRight();
+//	}
 
 	public ToolItem getSelectionMode() {
 		return toolBar.getSelectionMode();
 	}
 
-	public ToolItem getTranslateDown() {
-		return toolBar.getTranslateDown();
-	}
-
-	public ToolItem getTranslateUp() {
-		return toolBar.getTranslateUp();
-	}
+//	public ToolItem getTranslateDown() {
+//		return toolBar.getTranslateDown();
+//	}
+//
+//	public ToolItem getTranslateUp() {
+//		return toolBar.getTranslateUp();
+//	}
 
 	public ToolItem getOriginalSize() {
 		return toolBar.getOriginalSize();

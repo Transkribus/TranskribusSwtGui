@@ -292,7 +292,9 @@ CHANGES AND BUGFIXES
 	-> bugfix: could not load local document any more
 	
 0.7.8:
-	-> 
+	-> rotate image 90 degrees
+	-> export bugs fixed
+	
 	
 	
 
