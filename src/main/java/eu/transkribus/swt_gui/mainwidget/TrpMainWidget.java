@@ -261,7 +261,7 @@ public class TrpMainWidget {
 		tip.open(getShell());
 
 		getTrpSets().setShowTipOfTheDay(tip.isShowOnStartup());
-		TrpConfig.save(TrpSettings.SHOW_TIP_OF_THE_DAY_PROPERTY);
+//		TrpConfig.save(TrpSettings.SHOW_TIP_OF_THE_DAY_PROPERTY);
 	}
 
 	/**

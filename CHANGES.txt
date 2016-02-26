@@ -295,6 +295,7 @@ CHANGES AND BUGFIXES
 	-> rotate image 90 degrees
 	-> bugfix: baseline focus with angle >180 degrees were displayed upside down
 	-> export bugs fixed
+	-> drawing direction arcs for baselines
 	
 	
 	

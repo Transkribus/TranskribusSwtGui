@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
@@ -179,6 +181,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	public static final String PROXY_USER = "proxyUser";
 	public String proxyPassword = "";
 	public static final String PROXY_PW = "proxyPw";
+	
+	public static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
+	}};
 	
 	public TrpSettings() {
 		super();

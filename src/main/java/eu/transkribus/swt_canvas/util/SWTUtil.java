@@ -19,14 +19,10 @@ import java.util.TimerTask;
 
 import javax.imageio.ImageIO;
 
-import math.geom2d.Vector2D;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ICellEditorValidator;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -51,8 +47,6 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
@@ -62,6 +56,7 @@ import eu.transkribus.core.io.LocalDocConst;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.ImgUtils;
+import math.geom2d.Vector2D;
 
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
@@ -857,6 +852,38 @@ public class SWTUtil {
     public static void tryDelete(Control ctrl) {
     	if (ctrl != null && !ctrl.isDisposed())
     		ctrl.dispose();
+    }
+    
+    public static void drawTriangleArc(GC gc, int sX, int sY, int dX, int dY, int l, int w, boolean fill) {
+    	logger.trace("drawTriangleArc, sX="+sX+" sY="+sY+" dX="+dX+" dY="+dY+" l="+l+" w="+w+" fill="+fill);
+    	// compute directions:
+    	double dirX = sX-dX;
+    	double dirY = sY-dY;
+    	double norm = Math.sqrt(dirX*dirX+dirY*dirY);
+    	if (norm > 0) {
+    		dirX /= norm;
+    		dirY /= norm;
+    	}
+    	double dirNX = -dirY;
+    	double dirNY = dirX;
+    	double tmpX = dX + dirX*l;
+    	double tmpY = dY + dirY*l;
+    	
+    	// set points of polyon
+    	int[] pts = new int[6];
+    	pts[0] = dX;
+    	pts[1] = dY;
+    	pts[2] = (int) (tmpX + dirNX*w/2);
+    	pts[3] = (int) (tmpY + dirNY*w/2);
+    	pts[4] = (int) (tmpX - dirNX*w/2);
+    	pts[5] = (int) (tmpY - dirNY*w/2);
+    	
+//    	logger.trace("drawTriangleArc, pts = "+pts[0]+" "+pts[1]+" "+pts[2]+" "+pts[3]+" "+pts[4]+" "+pts[5]);
+    	if (fill) {
+    		gc.fillPolygon(pts);
+    	} else {
+    		gc.drawPolygon(pts);
+    	}
     }
 	
 

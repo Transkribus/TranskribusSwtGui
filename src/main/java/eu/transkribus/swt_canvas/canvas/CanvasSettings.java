@@ -1,5 +1,8 @@
 package eu.transkribus.swt_canvas.canvas;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -76,6 +79,9 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		private boolean drawSelectedCornerNumbers = false;
 		public static final String DRAW_SELECTED_CORNER_NUMBERS_PROPERTY="drawSelectedCornerNumbers";
 		
+		private boolean drawPolylineArcs = true;
+		public static final String DRAW_POLYLINE_ARCS_PROPERTY="drawPolylineArcs";
+		
 		private int backgroundAlpha = 50;
 		public final static String BACKGROUND_ALPHA_PROPERTY = "backgroundAlpha";
 		
@@ -109,9 +115,12 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		/** Determines whether a smooth transition is performed when focusing a shape */
 		private boolean doTransition = false;
 		public static final String DO_TRANSITION_PROPERTY = "doTransition";
+		
+		
+		public static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
+		    	add(MODE_PROPERTY);
+		}};
 
-		
-		
 //		private void setChangedAndNotifyObservers() {
 //			this.setChanged();
 //			this.notifyObservers(this);
@@ -260,6 +269,16 @@ public class CanvasSettings extends APropertyChangeSupport  {
 			this.drawSelectedCornerNumbers = drawSelectedCornerNumbers;
 			firePropertyChange( DRAW_SELECTED_CORNER_NUMBERS_PROPERTY, !this.drawSelectedCornerNumbers, this.drawSelectedCornerNumbers );
 		}
+
+		public boolean isDrawPolylineArcs() {
+			return drawPolylineArcs;
+		}
+
+		public void setDrawPolylineArcs(boolean drawPolylineArcs) {
+			this.drawPolylineArcs = drawPolylineArcs;
+			firePropertyChange( DRAW_POLYLINE_ARCS_PROPERTY, !this.drawPolylineArcs, this.drawPolylineArcs );
+		}
+
 		public int getLineStyle() {
 			return lineStyle;
 		}

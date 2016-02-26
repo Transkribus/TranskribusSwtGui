@@ -544,7 +544,7 @@ public abstract class ATranscriptionWidget extends Composite {
 							settings.setRenderTags(textStyleDisplayOptions.getSelected().getSelection()); break;
 					}
 					
-					TrpConfig.save();
+//					TrpConfig.save();
 					updateLineStyles();
 					text.redraw();
 				}
@@ -705,18 +705,20 @@ public abstract class ATranscriptionWidget extends Composite {
 					if (!settings.isRenderTags())
 						text.setLineSpacing(DEFAULT_LINE_SPACING);
 				}
-				else if (pn.equals(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY)) {
-					logger.debug("saving settings due to change in "+pn+" property!");
-					TrpConfig.save(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY);
-				}
-				else if (pn.equals(TrpSettings.SHOW_LINE_BULLETS_PROPERTY)) {
-					redrawText(true);
-					TrpConfig.save(TrpSettings.SHOW_LINE_BULLETS_PROPERTY);
-				}
-				else if (pn.equals(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY)) {
-					redrawText(true);
-					TrpConfig.save(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY);
-				}				
+				
+				// saving on change not needed anymore... gets saved anyway
+//				else if (pn.equals(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY)) {
+//					logger.debug("saving settings due to change in "+pn+" property!");
+//					TrpConfig.save(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY);
+//				}
+//				else if (pn.equals(TrpSettings.SHOW_LINE_BULLETS_PROPERTY)) {
+//					redrawText(true);
+//					TrpConfig.save(TrpSettings.SHOW_LINE_BULLETS_PROPERTY);
+//				}
+//				else if (pn.equals(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY)) {
+//					redrawText(true);
+//					TrpConfig.save(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY);
+//				}				
 			}
 		});
 		
@@ -1494,7 +1496,7 @@ public abstract class ATranscriptionWidget extends Composite {
 				settings.setTranscriptionFontStyle(fontData.getStyle());
 
 				setFontFromSettings();
-				TrpConfig.save();
+//				TrpConfig.save();
 								
 				updateLineStyles();
 				text.redraw();

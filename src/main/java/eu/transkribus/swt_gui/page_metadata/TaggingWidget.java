@@ -265,7 +265,7 @@ public class TaggingWidget extends Composite implements Observer {
 				logger.debug("storing tagNamesProp: "+tagNamesProp);
 				
 				TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
-				TrpConfig.save();
+//				TrpConfig.save();
 			}
 		});
 				

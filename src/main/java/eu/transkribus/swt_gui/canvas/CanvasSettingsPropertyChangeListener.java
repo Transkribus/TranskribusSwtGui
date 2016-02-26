@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
@@ -19,6 +20,8 @@ public class CanvasSettingsPropertyChangeListener implements PropertyChangeListe
 	TrpMainWidgetView ui;
 	TrpSWTCanvas canvas;
 	
+	public static boolean SAVE_PROPS_ON_CHANGE = true;
+	
 	public CanvasSettingsPropertyChangeListener(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;
 		this.ui = mainWidget.getUi();
@@ -27,11 +30,12 @@ public class CanvasSettingsPropertyChangeListener implements PropertyChangeListe
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		logger.debug("property changed: " + evt.getPropertyName());
+		String pn = evt.getPropertyName();
+		logger.debug("property changed: " + pn);
 
-		if (evt.getPropertyName().equals(CanvasSettings.EDITING_ENABLED_PROPERTY)) {
+		if (pn.equals(CanvasSettings.EDITING_ENABLED_PROPERTY)) {
 			mainWidget.updateSegmentationEditStatus();
-		} else if (evt.getPropertyName().equals(CanvasSettings.MODE_PROPERTY)) {
+		} else if (pn.equals(CanvasSettings.MODE_PROPERTY)) {
 			CanvasMode m = (CanvasMode) evt.getNewValue();
 			if (m.isSplitOperation())
 				canvas.getShapeEditor().setShapeToDraw(CanvasShapeType.POLYLINE);
@@ -45,7 +49,11 @@ public class CanvasSettingsPropertyChangeListener implements PropertyChangeListe
 //			}
 //			else if (m == CanvasMode.SELECTION)
 //				ui.setStatusMessage("", 0);
-
+		}
+		
+		if (SAVE_PROPS_ON_CHANGE && !CanvasSettings.DO_NOT_SAVE_THOSE_PROPERTIES.contains(pn)) {
+			logger.debug("saving config file...");
+			TrpConfig.save(pn);
 		}
 
 	}
