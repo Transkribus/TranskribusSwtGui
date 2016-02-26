@@ -1,11 +1,11 @@
 all:
 	mvn clean install -f ../PdfUtils/pom.xml
-	mvn clean install -f ../TrpCore/pom.xml
-	mvn clean install -f ../TrpClient/pom.xml
+	mvn clean install -f ../TranskribusCore/pom.xml
+	mvn clean install -f ../TranskribusClient/pom.xml
 	mvn clean install
 
 core:	
-	mvn clean install -f ../TrpCore/pom.xml
+	mvn clean install -f ../TranskribusCore/pom.xml
 
 gui:
 	mvn clean install
