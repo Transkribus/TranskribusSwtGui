@@ -212,8 +212,12 @@ public class TrpMainWidget {
 		info = new ProgramInfo();
 		VERSION = info.getVersion();
 		NAME = info.getName();
+		
+		Display.setAppName(NAME+"asdf");
+		Display.setAppVersion(VERSION);
+		
 		// String time = info.getTimestampString();
-
+		
 		// Display display = Display.getDefault();
 		// canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, this);
 		ui = new TrpMainWidgetView(parent, this);
@@ -1745,6 +1749,10 @@ public class TrpMainWidget {
 	}
 
 	public static void show() {
+		ProgramInfo info = new ProgramInfo();
+		Display.setAppName(info.getName());
+		Display.setAppVersion(info.getVersion());
+		
 		show(null);
 	}
 
