@@ -102,7 +102,11 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	
 	private void doMouseDownShapeEditOperations(MouseButtons button, Point moustPt, int stateMask) {
 		// add point:
-		if (button == settings.getEditMouseButton() 
+		final boolean ADD_POINT_ON_BOUNDARY_CLICK = true;
+		
+		if (ADD_POINT_ON_BOUNDARY_CLICK)
+		if (button == settings.getEditMouseButton()
+				&& CanvasKeys.isCtrlOrCommandKeyDown(stateMask)
 				&& shapeBoundaryPt != null
 				&& mouseOverPoint == -1
 				&& ( mouseOverDirection == RectDirection.NONE
