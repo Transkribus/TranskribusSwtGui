@@ -929,7 +929,7 @@ public class TrpMainWidget {
 
 		// ui.getUpdateIDsItem().setEnabled(isEditOn);
 		if (isEditOn) {
-			updateSegmentationViewSettings();
+			canvas.getScene().updateSegmentationViewSettings();
 		}
 
 		// updateAddShapeActionButton();
@@ -1415,7 +1415,7 @@ public class TrpMainWidget {
 
 			ui.taggingWidget.updateAvailableTags();
 			updateTranscriptionWidgetsData();
-			updateSegmentationViewSettings();
+			canvas.getScene().updateSegmentationViewSettings();
 
 			logger.debug("loaded transcript - edited = " + storage.isTranscriptEdited());
 		} catch (Throwable th) {
@@ -1883,32 +1883,7 @@ public class TrpMainWidget {
 		return ui.getTrpSets();
 	}
 
-	public void updateSegmentationViewSettings() {
-		TrpSettings sets = getTrpSets();
-		logger.debug("TrpSets: " + sets.toString());
-
-		for (ICanvasShape s : getScene().getShapes()) {
-			if (s.hasDataType(TrpPrintSpaceType.class)) {
-				s.setVisible(sets.isShowPrintSpace());
-			}
-			if (s.hasDataType(TrpTextRegionType.class)) {
-				s.setVisible(sets.isShowTextRegions());
-			}
-			if (s.hasDataType(TrpTextLineType.class)) {
-				s.setVisible(sets.isShowLines());
-			}
-			if (s.hasDataType(TrpBaselineType.class)) {
-				s.setVisible(sets.isShowBaselines());
-			}
-			if (s.hasDataType(TrpWordType.class)) {
-				s.setVisible(sets.isShowWords());
-			}
-		}
-		redraw();
-	}
-	
-
-	public void redraw() {
+	public void redrawCanvas() {
 		getCanvas().redraw();
 	}
 

@@ -300,9 +300,9 @@ public class TrpSWTCanvas extends SWTCanvas {
 		if (Math.abs(angle) < FOCUS_ANGLE_THRESHOLD) { // if angle is below a threshold, do no correct!
 			angle = 0.0f;
 		}
-					
+			
 		Rectangle br = new Rectangle(awtR.x-offsetX, awtR.y-offsetY, awtR.width+2*offsetX, awtR.height+2*offsetY);	
-		zoomToBounds(br, true, settings.isDoTransition(), -(float)MathUtil.radToDeg(angle));
+		focusBounds(br, true, settings.isDoTransition(), -(float)MathUtil.radToDeg(angle), settings.isLockZoomOnFocus());
 	}
 	
 	/**

@@ -170,6 +170,20 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		return false;
 	}
 	
+	public CanvasPolygon getDefaultPolyRectangle() {
+		int distUp = 45;
+		int distDown = 5;
+		
+		return getPolyRectangle(distUp, distDown, 0);
+	}
+	
+	public CanvasPolygon getDefaultPolyRectangle4Baseline() {
+		int distUp = 30;
+		int distDown = 5;
+		
+		return getPolyRectangle(distUp, distDown, 0);
+	}
+	
 	public CanvasPolygon getDistancePolyRectangle() {
 		return getPolyRectangle(DIST_CONTAINS_THRESHOLD, DIST_CONTAINS_THRESHOLD, 0);
 	}
@@ -181,7 +195,7 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	 *  */
 	public CanvasPolygon getPolyRectangle(int distUp, int distDown, int type) {
 		List<Point> pts = getPoints();
-		logger.debug("nr of pts in polyline = "+pts.size());
+		logger.trace("nr of pts in polyline = "+pts.size());
 
 		List<Point> ptsUp = new ArrayList<>();
 		List<Point> ptsDown = new ArrayList<>();
@@ -260,21 +274,26 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	 * Contains for polylines returns true if min-distance from point to all lines is smaller than some threshold
 	 */
 	public boolean contains(double x, double y) {
-		List<Point> pts = getPoints();
-		
-		double minDist = Integer.MAX_VALUE;
-		for (int i=0; i<pts.size()-1; ++i) {
-			Line2D line = new Line2D.Double(pts.get(i).x, pts.get(i).y, pts.get(i+1).x, pts.get(i+1).y);
-			double dist = line.ptSegDist(x, y);
-//			logger.debug("dist to baseline: "+dist);
-			if (dist < minDist)
-				minDist = dist;
+		final boolean USE_DEFAULT_POLY_RECT = true;
+		if (!USE_DEFAULT_POLY_RECT) { // the old version using some dist threshold
+			List<Point> pts = getPoints();
+			
+			double minDist = Integer.MAX_VALUE;
+			for (int i=0; i<pts.size()-1; ++i) {
+				Line2D line = new Line2D.Double(pts.get(i).x, pts.get(i).y, pts.get(i+1).x, pts.get(i+1).y);
+				double dist = line.ptSegDist(x, y);
+	//			logger.debug("dist to baseline: "+dist);
+				if (dist < minDist)
+					minDist = dist;
+			}
+			
+			boolean contains = minDist < DIST_CONTAINS_THRESHOLD;
+	//		logger.debug("contains of polyline "+this+" contains: "+contains);
+			
+			return contains;
+		} else { // the new version using the default poly rectangle around the polyline
+			return getDefaultPolyRectangle4Baseline().contains(x, y);
 		}
-		
-		boolean contains = minDist < DIST_CONTAINS_THRESHOLD;
-//		logger.debug("contains of polyline "+this+" contains: "+contains);
-		
-		return contains;
 //		return awtShape.contains(arg0);
 	}
 	

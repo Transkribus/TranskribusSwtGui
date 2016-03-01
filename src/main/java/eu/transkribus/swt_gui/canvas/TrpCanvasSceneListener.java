@@ -77,7 +77,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 					ICanvasShape shapeOfParent = null;
 					if (mode == TrpCanvasAddMode.ADD_BASELINE) { // for a baseline add a parent line that is extended beyond the bounding box
 						CanvasPolyline baselineShape = (CanvasPolyline) shape;
-						shapeOfParent = baselineShape.getPolyRectangle(30, 5, 0);
+						shapeOfParent = baselineShape.getDefaultPolyRectangle();
 					} else  { // for a word or line add parent shape that is almost the same as the shape to add
 						shapeOfParent = shape.getBoundsPolygon();
 					}
@@ -114,6 +114,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		if (TrpMainWidget.getTrpSettings().isSelectNewlyCreatedShape())
 			mainWidget.getScene().selectObject(e.getFirstShape(), true, false);
 		mainWidget.updateTranscriptionWidgetsData();
+		mainWidget.getScene().updateSegmentationViewSettings();
 	}
 	
 	@Override
@@ -251,7 +252,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			// note: the jaxb element from the merged shape has already been removed by the remove method in canvasscene
 
 			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.updateSegmentationViewSettings();
+			mainWidget.getScene().updateSegmentationViewSettings();
 			mainWidget.refreshStructureView();
 			mainWidget.getScene().selectObject(null, true, false);
 			mainWidget.updateTranscriptionWidgetsData();
@@ -289,7 +290,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 			
 			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.updateSegmentationViewSettings();
+			mainWidget.getScene().updateSegmentationViewSettings();
 			mainWidget.refreshStructureView();
 			mainWidget.updateTranscriptionWidgetsData();
 		} catch (Exception e) {
@@ -310,7 +311,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 			
 			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.updateSegmentationViewSettings();
+			mainWidget.getScene().updateSegmentationViewSettings();
 			mainWidget.refreshStructureView();
 			mainWidget.updateTranscriptionWidgetsData();
 		} catch (Exception e) {

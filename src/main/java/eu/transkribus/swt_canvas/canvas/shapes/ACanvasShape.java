@@ -475,15 +475,16 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 				drawDirectionArrows(canvas, gc);
 			}
 		}
-		// TEST:
 		drawSelectedPoints(canvas, gc);
 
 		// TEST: draw "tube" around polylines
-//		if (this instanceof CanvasPolyline) {
-//			CanvasPolygon bp = ((CanvasPolyline) this).getBufferPolygon();
-////			gc.drawPolygon(bp.getPointArray());
+		if (this instanceof CanvasPolyline) {
+			CanvasPolygon bp = ((CanvasPolyline) this).getDefaultPolyRectangle4Baseline();
+			
+			gc.setAlpha(isSelected() ? 75 : 50);
+			gc.fillPolygon(bp.getPointArray());
 //			bp.draw(canvas, gc);
-//		}
+		}
 	}
 	
 	//Test

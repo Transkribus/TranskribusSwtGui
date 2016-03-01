@@ -38,7 +38,7 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 		} else if (pn.equals(TrpSettings.SHOW_LINE_EDITOR_PROPERTY)) {
 			canvas.getLineEditor().updateEditor();
 		} else if (TrpSettings.isSegmentationVisibilityProperty(pn)){
-			mainWidget.updateSegmentationViewSettings();	
+			mainWidget.getScene().updateSegmentationViewSettings();	
 		} else if (pn.equals(TrpSettings.ENABLE_INDEXED_STYLES)) {
 			logger.debug("indexed styles visibility toggled: "+evt.getNewValue());
 			ui.getSelectedTranscriptionWidget().redrawText(true);

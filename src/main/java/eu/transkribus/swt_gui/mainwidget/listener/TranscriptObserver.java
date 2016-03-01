@@ -57,7 +57,7 @@ public class TranscriptObserver implements Observer {
 
 		mainWidget.updateTranscriptionWidgetsData();
 		mainWidget.refreshStructureView();
-		mainWidget.redraw();
+		mainWidget.redrawCanvas();
 	}
 	
 	private void onCoordinatesChanged(Object source, TrpCoordsChangedEvent e) {

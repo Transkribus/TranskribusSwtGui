@@ -115,7 +115,9 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		/** Determines whether a smooth transition is performed when focusing a shape */
 		private boolean doTransition = false;
 		public static final String DO_TRANSITION_PROPERTY = "doTransition";
-		
+
+		private boolean lockZoomOnFocus=false;
+		public static final String LOCK_ZOOM_ON_FOCUS_PROPERTY = "lockZoomOnFocus";
 		
 		public static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 		    	add(MODE_PROPERTY);
@@ -395,6 +397,14 @@ public class CanvasSettings extends APropertyChangeSupport  {
 			this.readingOrderCircleWidth = readingOrderCircleWidth;
 			firePropertyChange( READING_ORDER_PROPERTY, old, this.readingOrderCircleWidth );
 		}
-		
-		
+
+		public boolean isLockZoomOnFocus() {
+			return lockZoomOnFocus;
+		}
+
+		public void setLockZoomOnFocus(boolean lockZoomOnFocus) {
+			this.lockZoomOnFocus = lockZoomOnFocus;
+			firePropertyChange( LOCK_ZOOM_ON_FOCUS_PROPERTY, !this.lockZoomOnFocus, this.lockZoomOnFocus );
+		}
+
 	}
