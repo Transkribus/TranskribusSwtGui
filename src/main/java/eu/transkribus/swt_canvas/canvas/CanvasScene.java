@@ -500,15 +500,6 @@ public class CanvasScene {
 	 */
 	public List<ICanvasShape> getSelectedAsNewArray() {
 		return new ArrayList<ICanvasShape>(selected);
-//		return selected;
-
-		// OLD VERSION:
-		// List<ICanvasShape> sel = new ArrayList<ICanvasShape>();
-		// for (ICanvasShape s : shapes) {
-		// if (s.isSelected())
-		// sel.add(s);
-		// }
-		// return sel;
 	}
 	
 	public List<Object> getSelectedData() {

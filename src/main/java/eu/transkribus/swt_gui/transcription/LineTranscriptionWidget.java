@@ -122,6 +122,9 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 	}
 	
 	@Override public Pair<ITrpShapeType, Integer> getTranscriptionUnitAndRelativePositionFromOffset(int offset) {
+		if (offset < 0 || offset > text.getCharCount())
+			return null;
+		
 		int li = text.getLineAtOffset(offset);
 		ITrpShapeType line = getLineObject(li);
 		if (line==null)

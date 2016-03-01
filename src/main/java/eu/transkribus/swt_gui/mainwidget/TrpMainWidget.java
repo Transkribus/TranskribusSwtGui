@@ -1172,8 +1172,6 @@ public class TrpMainWidget {
 		List<ICanvasShape> selected = canvas.getScene().getSelectedAsNewArray();
 
 		if (!storage.hasTranscript()) {
-			// ui.getMetadataWidget().updateData(null, false, null, false, null,
-			// new ArrayList<String>());
 			ui.taggingWidget.setSelectedTags(null);
 			ui.getMetadataWidget().updateData(null, null, nSel, null, null, new ArrayList<CustomTag>());
 			return;
@@ -1591,7 +1589,11 @@ public class TrpMainWidget {
 			loadLocalDoc("C:/Schauplatz_small");
 			// loadLocalDoc("C:/trp_doc_97");
 
-		} else {
+		} 
+		else if (SysUtils.isOsx()) {
+			loadLocalDoc("/Users/hansm/Documents/testDocs/Bentham_box_035/");
+		}
+		else {
 			// loadLocalDoc("/mnt/dea_scratch/TRP/TrpTestDoc_20140127/");
 			// loadLocalDoc("/mnt/dea_scratch/TRP/Schauplatz_small");
 			// loadLocalDoc("/mnt/dea_scratch/TRP/Schauplatz");

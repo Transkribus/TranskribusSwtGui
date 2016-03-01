@@ -1207,7 +1207,11 @@ public abstract class ATranscriptionWidget extends Composite {
 				int lo = text.getOffsetAtLine(li);
 				int ll = text.getLine(li).length();
 				
-				StyleRange sr = text.getStyleRangeAtOffset(offset + tag.getOffset());
+				StyleRange sr = null;
+				int styleOffset = offset + tag.getOffset();
+				if (styleOffset>=0 && styleOffset<text.getCharCount())
+					sr = text.getStyleRangeAtOffset(offset + tag.getOffset());
+				
 				// handle special case where a tag is empty and at the end of the line -> sr will be null from the last call in this case --> construct 'artificial' StyleRange!!
 				boolean canBeEmptyAndIsAtTheEnd = tag.canBeEmpty() && ( (offset+tag.getOffset()) == (lo+ll));
 				if (canBeEmptyAndIsAtTheEnd)
@@ -1256,11 +1260,11 @@ public abstract class ATranscriptionWidget extends Composite {
 //				}
 				
 				if (tag.canBeEmpty() && tag.isEmpty()) {
-					logger.debug("drawing empty tag: "+tag);
+					logger.trace("drawing empty tag: "+tag);
 					Point p = text.getLocationAtOffset(sr.start);
 					int lineHeight = text.getLineHeight(sr.start);
 					
-					logger.debug("line height: "+lineHeight+" point = "+p);
+					logger.trace("line height: "+lineHeight+" point = "+p);
 					
 					// draw empty tags as vertical bar:
 //					Rectangle b1=bounds.get(0);
@@ -1760,13 +1764,13 @@ public abstract class ATranscriptionWidget extends Composite {
 	/** Returns all custom tags at the given offset */
 	public List<CustomTag> getCustomTagsForOffset(int caretOffset) {
 		List<CustomTag> tags = new ArrayList<>();
-		if (caretOffset<0 || caretOffset>=text.getCharCount())
+		if (caretOffset<0 || caretOffset>text.getCharCount())
 			return tags;
 		
-		Pair<ITrpShapeType, Integer> shapeAtOffset = getTranscriptionUnitAndRelativePositionFromOffset(caretOffset);
-		if (shapeAtOffset != null) {
-			logger.debug("getting overlapping tags for offset="+caretOffset);
-			tags.addAll(shapeAtOffset.getLeft().getCustomTagList().getOverlappingTags(null, shapeAtOffset.getRight(), 0));
+		Pair<ITrpShapeType, Integer> shapeAndOffset = getTranscriptionUnitAndRelativePositionFromOffset(caretOffset);
+		logger.debug("getting overlapping tags for offset="+caretOffset+", shape at offset = "+shapeAndOffset);
+		if (shapeAndOffset != null) {
+			tags.addAll(shapeAndOffset.getLeft().getCustomTagList().getOverlappingTags(null, shapeAndOffset.getRight(), 0));
 		}
 		
 		return tags;
