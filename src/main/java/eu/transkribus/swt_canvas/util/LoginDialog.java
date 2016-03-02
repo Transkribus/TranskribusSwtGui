@@ -28,6 +28,7 @@ public class LoginDialog extends Dialog {
   protected CCombo serverCombo;
   protected Button rememberCredentials;
   protected Button clearStoredCredentials;
+  protected Button autoLogin;
   
   protected String message;
   protected String[] userProposals;
@@ -90,13 +91,19 @@ public class LoginDialog extends Dialog {
     
     rememberCredentials = new Button(container, SWT.CHECK);
     rememberCredentials.setText("Remember credentials");
-    rememberCredentials.setToolTipText("If enabled and login is successful credentials will be stored and remembered at the next login");
+    rememberCredentials.setToolTipText("If login is successful those credentials will be stored");
 //    rememberCredentials.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
 //            true, 2, 2));
     
     clearStoredCredentials = new Button(container, SWT.PUSH);
     clearStoredCredentials.setText("Clear stored credentials");
     clearStoredCredentials.setToolTipText("Clears previously stored credentials from harddisk");
+    
+    autoLogin = new Button(container, SWT.CHECK);
+    autoLogin.setText("Auto login");
+    autoLogin.setToolTipText("Auto login with last remembered credentials on next startup");
+    
+    new Label(container, 0);
     
     infoLabel = new Label(container, SWT.FLAT);
     infoLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
@@ -167,7 +174,7 @@ protected void configureShell(Shell shell) {
 
   @Override
   protected Point getInitialSize() {
-    return new Point(450, 250);
+    return new Point(450, 300);
   }
 
 //  @Override

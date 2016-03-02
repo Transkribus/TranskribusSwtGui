@@ -95,6 +95,10 @@ public class TrpGuiPrefs {
 		pref.put(LAST_USER_KEY, username);
 	}
 	
+	public static Pair<String, String> getLastStoredCredentials() {
+		return getStoredCredentials(null);
+	}
+	
 	/**
 	 * Retrieves stored credentials for the given username if it exists, returns null elsewise.
 	 * If the parameter username is null it will return the user stored by the storeLastLogin call.

@@ -100,6 +100,7 @@ import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LoginDialog;
 import eu.transkribus.swt_canvas.util.SWTLog;
 import eu.transkribus.swt_canvas.util.SplashWindow;
+import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
@@ -288,25 +289,17 @@ public class TrpMainWidget {
 		if (tagNamesProp != null)
 			CustomTagFactory.addCustomDefinedTagsToRegistry(tagNamesProp);
 		
-		// TEST: add custom tag:
-		if (false) {
-			try {
-				CustomTag t = CustomTagFactory.create("testTag");
-				t.setAttribute("floatProp", null, Float.class, true);
-				t.setAttribute("boolProp", null, Boolean.class, true);
-				t.setAttribute("intProp", null, Integer.class, true);
-
-				CustomTagFactory.addToRegistry(t, null);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		// CustomTagUtil.registerCustomTagsFromXml();
-
 		// check for updates:
-		if (TrpConfig.getTrpSettings().isCheckForUpdates()) {
+		if (getTrpSets().isCheckForUpdates()) {
 			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
+		}
+		
+		if (getTrpSets().isAutoLogin()) {
+			Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
+			if (lastLogin != null) {
+				// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
+				login(TrpServerConn.PROD_SERVER_URI, lastLogin.getLeft(), lastLogin.getRight(), true);
+			}
 		}
 
 		if (getTrpSets().isShowTipOfTheDay()) {
@@ -684,6 +677,10 @@ public class TrpMainWidget {
 				}
 
 				@Override protected void postInit() {
+					DataBinder db = DataBinder.get();
+					
+					db.bindBeanToWidgetSelection(TrpSettings.AUTO_LOGIN_PROPERTY, getTrpSets(), autoLogin);
+					
 					clearStoredCredentials.addSelectionListener(new SelectionAdapter() {
 						@Override public void widgetSelected(SelectionEvent e) {
 							try {

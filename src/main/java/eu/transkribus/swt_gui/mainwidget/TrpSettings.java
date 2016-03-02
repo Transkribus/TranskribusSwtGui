@@ -182,6 +182,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	public String proxyPassword = "";
 	public static final String PROXY_PW = "proxyPw";
 	
+	public boolean autoLogin = false;
+	public static final String AUTO_LOGIN_PROPERTY = "autoLogin";
+	
 	public static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
 	
@@ -732,6 +735,17 @@ public class TrpSettings extends APropertyChangeSupport {
 		this.proxyPassword  = proxyPassword;
 		firePropertyChange(PROXY_PW, old, this.proxyPassword);
 	}
+
+	public boolean isAutoLogin() {
+		return autoLogin;
+	}
+
+	public void setAutoLogin(boolean autoLogin) {
+		this.autoLogin = autoLogin;
+		firePropertyChange(AUTO_LOGIN_PROPERTY, !this.autoLogin, this.autoLogin);
+	}
+	
+	
 	
 //	public boolean isUseSnapshotUpdates() { return useSnapshotUpdates; }
 //	public void setUseSnapshotUpdates(boolean useSnapshotUpdates) {
