@@ -303,7 +303,7 @@ CHANGES AND BUGFIXES
 	-> rendering of polyrectangle around baselines (and selection of the baselines within those)
 	-> locking zoom on focus possible (via wrench tool on canvas toolbar)
 	-> auto login feature
-
+	-> fixed catti bug (whitespace from recieved suffix removed)
 
 
 	
