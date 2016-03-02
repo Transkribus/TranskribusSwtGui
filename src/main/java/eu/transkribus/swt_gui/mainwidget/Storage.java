@@ -1726,13 +1726,13 @@ public class Storage extends Observable {
 	public List<HtrModel> getHtrModels() throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
 		List<HtrModel> models = conn.getHtrModelList();
-//		//FIXME this step is not needed once all models work again
-//		List<HtrModel> out = new LinkedList<>();
-//		for(HtrModel m : models){
-//			if(m.getIsUsableInTranskribus() == 1){
-//				out.add(m);
-//			}
-//		}
+		//remove models that are incompatible with HTR in Transkribus 
+		List<HtrModel> out = new LinkedList<>();
+		for(HtrModel m : models){
+			if(m.getIsUsableInTranskribus() == 1){
+				out.add(m);
+			}
+		}
 		return models;
 	}
 	
