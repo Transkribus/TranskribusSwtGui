@@ -220,22 +220,37 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		String suffix = lineTxt.substring(nwbi, lineTxt.length());
 //		String suffixDetokenized = CoreUtils.detokenizeForCATTI(suffix);
 		
-		logger.trace("1prefix = '"+prefix);
-		logger.trace("1suffix = '"+suffix);
+		logger.trace("1prefix = '"+prefix+"'");
+		logger.trace("1suffix = '"+suffix+"'");
 		if (!prefix.equals(message.getPrefix())) {
 			logger.error("prefix do not match: " + prefix + " / "+message.getPrefix());
 			return;
 		}
-		logger.debug("replacing text!");
+		logger.trace("replacing text!");
 		cattiEditFlag = true; // prevents that this method gets called and called and called again... fuck you fuckin' endless loop!
 		
 		int cutIndex = prefix.length() > message.getCorrected_translation_out().length() ? message.getCorrected_translation_out().length() : prefix.length();
 //		text.replaceTextRange(nwbi+lo, suffix.length(), message.getCorrected_translation_out().substring(cutIndex));
 
 		// with detokinization:
-		String replaceText = CoreUtils.detokenizeForCATTI(message.getCorrected_translation_out().substring(cutIndex));
-		if (suffix.startsWith(" ")) // add extra space if suffix started with that. Elsewise, it would have been deleted by the tokenization! 
-			replaceText = " "+replaceText;
+		String suffixFromTranlationOut = message.getCorrected_translation_out().substring(cutIndex);
+		int nWhitespaces = CoreUtils.getNOfRepeatingChars(suffixFromTranlationOut, 0, ' ');
+		logger.trace("suffixFromTranlationOut: '"+suffixFromTranlationOut+"'"+" nWhitespaces = "+nWhitespaces);
+		String replaceText = CoreUtils.detokenizeForCATTI("    "+suffixFromTranlationOut);
+		logger.trace("replaceText: '"+replaceText+"'");
+		
+		// add whitespaces from beginning removed by detokenization: 
+		if (nWhitespaces>0)
+			replaceText = StringUtils.repeat(' ', nWhitespaces) + replaceText;
+		
+		// add extra space if suffix started with that. Elsewise, it would have been deleted by the tokenization!
+//		if (false) {
+//		if (suffixFromTranlationOut.startsWith(" ") && !replaceText.startsWith(" "))
+////		if (suffix.startsWith(" "))
+//			replaceText = " "+replaceText;
+//		}
+		
+		logger.trace("replaceText1: "+replaceText);
 		
 		text.replaceTextRange(nwbi+lo, suffix.length(), replaceText);
 	}
@@ -245,7 +260,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		
 		if (cattiEditFlag) {
 			cattiEditFlag = false;
-			logger.debug("peventing double call...");
+			logger.debug("preventing double call...");
 			return;
 		}
 		
