@@ -271,8 +271,8 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 			String lid = currentLineObject.getId();
 			try {
 				if (!isCattiEndpointOpen()) {
-					logger.debug("creating new catti endpoint!");
-					ce = new TrpCattiClientEndpoint(null, 0, docid, pid, lid);
+					logger.debug("creating new catti endpoint on url: "+mw.getTrpSets().getCattiServerUrl());
+					ce = new TrpCattiClientEndpoint(mw.getTrpSets().getCattiServerUrl(), 0, docid, pid, lid);
 					ce.addMessageHandler(new CattiMessageHandler() {
 						@Override public void handleMessage(final CattiRequest request) {
 							String msg = "";

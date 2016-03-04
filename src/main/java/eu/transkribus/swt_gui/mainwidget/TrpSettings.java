@@ -9,6 +9,7 @@ import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.catti.TrpCattiClientEndpoint;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.model.beans.pagecontent.BaselineType;
 import eu.transkribus.core.model.beans.pagecontent.PrintSpaceType;
@@ -184,6 +185,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	public boolean autoLogin = false;
 	public static final String AUTO_LOGIN_PROPERTY = "autoLogin";
+	
+	public String cattiServerUrl = TrpCattiClientEndpoint.DEFAULT_CATTI_URI;
+	public static final String CATTI_SERVER_URL_PROPERTY = "cattiServerUrl";
 	
 	public static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
@@ -734,6 +738,16 @@ public class TrpSettings extends APropertyChangeSupport {
 		String old = this.proxyPassword;
 		this.proxyPassword  = proxyPassword;
 		firePropertyChange(PROXY_PW, old, this.proxyPassword);
+	}
+	
+	public String getCattiServerUrl() {
+		return cattiServerUrl;
+	}
+
+	public void setCattiServerUrl(String cattiServerUrl) {
+		String old = this.cattiServerUrl;
+		this.cattiServerUrl = cattiServerUrl;
+		firePropertyChange(CATTI_SERVER_URL_PROPERTY, old, this.cattiServerUrl);
 	}
 
 	public boolean isAutoLogin() {

@@ -382,8 +382,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				logger.debug("a1 = "+a1+" a2 = "+a2+", text size: "+origTxt.length()+", text split index: "+splitIndex);
 				el2.setUnicodeText(origTxt.substring(0, splitIndex), this);
 				el1.setUnicodeText(origTxt.substring(Math.min(splitIndex+1, origTxt.length())), this);
-			} else { // just assign one element all the text
-				el1.setUnicodeText("", this);
+			} else { // just assign one (or both) element all the text
+//				el1.setUnicodeText("", this);
 			}
 			
 			logger.debug("el1, el2 children = "+el1.getChildren(false).size()+" / "+el2.getChildren(false).size());
