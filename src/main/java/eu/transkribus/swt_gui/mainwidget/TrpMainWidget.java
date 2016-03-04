@@ -27,7 +27,6 @@ import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -75,7 +74,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
@@ -421,19 +419,19 @@ public class TrpMainWidget {
 		getUi().getDocOverviewWidget().clearDocList();
 	}
 
-	public void reloadHtrModels() {
-		try {
-			storage.reloadHtrModelsStr();
-			ui.getToolsWidget().setHtrModelList(storage.getHtrModelsStr());
-		} catch (Exception e) {
-			onError("Error", "Error during update of HTR models", e);
-		}
-	}
+//	public void reloadHtrModels() {
+//		try {
+//			storage.reloadHtrModelsStr();
+//			ui.getToolsWidget().setHtrModelList(storage.getHtrModelsStr());
+//		} catch (Exception e) {
+//			onError("Error", "Error during update of HTR models", e);
+//		}
+//	}
 
-	public void clearHtrModelList() {
-		storage.clearHtrModels();
-		getUi().getToolsWidget().clearHtrModelList();
-	}
+//	public void clearHtrModelList() {
+//		storage.clearHtrModels();
+//		getUi().getToolsWidget().clearHtrModelList();
+//	}
 
 	public String updateDocumentInfo() {
 		String loadedDocStr = "", currentCollectionStr = "";
@@ -465,7 +463,7 @@ public class TrpMainWidget {
 		ui.getDocOverviewWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 
-		ui.toolsWidget.updateParameter(st, language);
+//		ui.toolsWidget.updateParameter(st, language);
 
 		return loadedDocStr;
 	}
@@ -746,7 +744,7 @@ public class TrpMainWidget {
 
 			reloadJobList();
 //			reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
-			reloadHtrModels();
+//			reloadHtrModels();
 			// reloadJobListForDocument();
 			sessionExpired = false;
 			lastLoginServer = server;
@@ -783,7 +781,7 @@ public class TrpMainWidget {
 		}
 
 		clearDocList();
-		clearHtrModelList();
+//		clearHtrModelList();
 		ui.getVersionsWidget().refreshPage(true);
 		ui.getJobOverviewWidget().refreshPage(true);
 		updateThumbs();
