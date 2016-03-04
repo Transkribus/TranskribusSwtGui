@@ -17,6 +17,7 @@ import java.util.Set;
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
+import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -2021,7 +2022,21 @@ public class TrpMainWidget {
 				logger.debug("uploading title: " + ud.getTitle() + " to collection: " +cId);
 				//test url: http://rosdok.uni-rostock.de/file/rosdok_document_0000007322/rosdok_derivate_0000026952/ppn778418405.dv.mets.xml
 				int h = DialogUtil.showInfoMessageBox(getShell(), "Upload Information", "Upload document!\nNote: the document will be ready after document processing on the server is finished - this takes a while - reload the document list occasionally");
-				storage.uploadDocumentFromMetsUrl(cId, ud.getMetsUrl());
+				try {
+					storage.uploadDocumentFromMetsUrl(cId, ud.getMetsUrl());
+				}catch (ClientErrorException e){
+					if(e.getMessage().contains("DFG-Viewer Standard")){
+						onError("Error during uploading from Mets URL - reason: ", e.getMessage(), e);
+					}
+					else{
+						throw e;
+					}
+				
+				} 
+//				catch (SessionExpiredException | ServerErrorException eo) {
+//				// TODO Auto-generated catch block
+//				throw eo;
+//			}
 
 
 			} else { // private ftp ingest

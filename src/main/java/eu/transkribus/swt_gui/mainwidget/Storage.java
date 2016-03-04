@@ -16,6 +16,7 @@ import java.util.Observer;
 import java.util.Set;
 
 import javax.security.auth.login.LoginException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBException;
@@ -1392,9 +1393,10 @@ public class Storage extends Observable {
 		conn.ingestDocFromFtp(cId, dirName, checkForDuplicateTitle);
 	}
 	
-	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws Exception {
-		if (!isLoggedIn())
-			throw new Exception("Not logged in!");
+	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException{
+//		if (!isLoggedIn())
+//			throw new Exception("Not logged in!");
+		checkConnection(true);
 		conn.ingestDocFromUrl(cId, metsUrl);
 	}
 	
