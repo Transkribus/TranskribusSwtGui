@@ -55,7 +55,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 	TrpCattiClientEndpoint ce;
 	long lastTextChange=0;
 	boolean cattiEditFlag=false;
-	
+		
 	public LineTranscriptionWidget(Composite parent, int style, TrpSettings settings, final TrpMainWidgetView view) {
 		super(parent, style, settings, view);
 		
@@ -265,14 +265,16 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		}
 		
 		final TrpMainWidget mw = TrpMainWidget.getInstance();
-		if (Storage.getInstance().isRemoteDoc() && Storage.getInstance().isPageLoaded() && currentLineObject != null) {
-			int docid = Storage.getInstance().getDoc().getId();
-			int pid = Storage.getInstance().getPage().getPageNr();
+		final Storage store = Storage.getInstance();
+		if (store.isRemoteDoc() && store.isPageLoaded() && currentLineObject != null) {
+			int docid = store.getDoc().getId();
+			int pid = store.getPage().getPageNr();
 			String lid = currentLineObject.getId();
 			try {
 				if (!isCattiEndpointOpen()) {
 					logger.debug("creating new catti endpoint on url: "+mw.getTrpSets().getCattiServerUrl());
-					ce = new TrpCattiClientEndpoint(mw.getTrpSets().getCattiServerUrl(), 0, docid, pid, lid);
+					
+					ce = new TrpCattiClientEndpoint(mw.getTrpSets().getCattiServerUrl(), store.getUserId(), docid, pid, lid);
 					ce.addMessageHandler(new CattiMessageHandler() {
 						@Override public void handleMessage(final CattiRequest request) {
 							String msg = "";
@@ -339,7 +341,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				logger.debug("prefix tokenized: '"+prefix+"'");
 				logger.debug("suffix tokenized: '"+suffix+"'");
 				
-				CattiRequest r = new CattiRequest(0, docid, pid, lid, method, prefix, suffix, last_token_is_partial, corrected_out);
+				CattiRequest r = new CattiRequest(store.getUserId(), docid, pid, lid, method, prefix, suffix, last_token_is_partial, corrected_out);
 				ce.sendObjectBasicRemote(r);
 			} catch (Exception e) {
 				logger.debug(e.getMessage(), e);

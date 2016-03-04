@@ -304,6 +304,7 @@ CHANGES AND BUGFIXES
 	-> locking zoom on focus possible (via wrench tool on canvas toolbar)
 	-> auto login feature
 	-> fixed catti bug (whitespace from recieved suffix removed)
-
+	-> catti server made reentrant (multiple users from different clients now possible)
+	-> adding paragraphs in textfield possible via shift+enter or dedicated button on transcription toolbar
 
 	

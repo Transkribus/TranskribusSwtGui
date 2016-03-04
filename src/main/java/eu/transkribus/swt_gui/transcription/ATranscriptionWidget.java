@@ -41,6 +41,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
@@ -67,7 +68,9 @@ import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.customtags.CommentTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
+import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
+import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TaggedWord;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
@@ -180,6 +183,7 @@ public abstract class ATranscriptionWidget extends Composite {
 	
 //	protected WritingOrientation writingOrientation = WritingOrientation.LEFT_TO_RIGHT;
 	protected ExtendedModifyListener rightToLeftModifyListener;
+	protected ToolItem addParagraphItem;
 		
 	// some consts:
 	public static final int DEFAULT_LINE_SPACING=6;
@@ -620,6 +624,12 @@ public abstract class ATranscriptionWidget extends Composite {
 		notSign.setToolTipText("Inserts an angled dash (not sign) e.g. as a dash at the end of a line");
 		additionalToolItems.add(notSign);
 		
+		addParagraphItem = new ToolItem(regionsToolbar, SWT.CHECK);
+//		showLineBulletsItem.setImage(Images.getOrLoad("/icons/text_list_numbers.png"));
+		addParagraphItem.setText("+ \u00B6");
+		addParagraphItem.setToolTipText("Toggle paragraph on selected line");
+		additionalToolItems.add(addParagraphItem);
+		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
 		undoItem = new ToolItem(regionsToolbar, SWT.PUSH);
@@ -718,7 +728,9 @@ public abstract class ATranscriptionWidget extends Composite {
 //				else if (pn.equals(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY)) {
 //					redrawText(true);
 //					TrpConfig.save(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY);
-//				}				
+//				}	
+				
+				text.redraw();
 			}
 		});
 		
@@ -1129,6 +1141,11 @@ public abstract class ATranscriptionWidget extends Composite {
 		return getTranscriptionUnitAndRelativePositionFromOffset(text.getCaretOffset());
 	}
 	public abstract Pair<ITrpShapeType, Integer> getTranscriptionUnitAndRelativePositionFromOffset(int offset);
+	
+	public TrpTextLineType getTextLineAtOffset(int offset) {
+		int li = text.getLineAtOffset(offset);
+		return getLineObject(li);
+	}
 
 	protected int getNTextLines() {
 		return currentRegionObject==null ? 0 : currentRegionObject.getTextLine().size();
@@ -1156,6 +1173,10 @@ public abstract class ATranscriptionWidget extends Composite {
 				
 				// reinterpret enter as arrow down
 				if (e.keyCode == SWT.CR || e.keyCode == SWT.KEYPAD_CR) {
+					if (CanvasKeys.isShiftKeyDown(e.stateMask)) { // shift and enter -> mark as paragraph!
+						toggleParagraphOnSelectedLine();
+					}
+					
 					e.keyCode = SWT.ARROW_DOWN;
 					e.doit = false;
 					if (CanvasKeys.isCtrlKeyDown(e)) { // if ctrl-enter pressed: focus element, i.e. send mouse double click signal
@@ -1335,7 +1356,7 @@ public abstract class ATranscriptionWidget extends Composite {
 		StyleRange sr = null;
 		if (!text.getText().isEmpty())
 			sr = text.getStyleRangeAtOffset(0);
-		for (int i = firstCharIndex; i<=lastCharIndex-1; ++i) {
+		for (int i = firstCharIndex; i<=lastCharIndex-1; ++i) {			
 			String charStr = text.getText(i, i);
 
 			StyleRange sr1 = text.getStyleRangeAtOffset(i);
@@ -1355,9 +1376,17 @@ public abstract class ATranscriptionWidget extends Composite {
 				} else {
 					controlChar = "\u00B7";	
 				}
-			} else if (charStr.endsWith("\n")) { // draw end of line
-				logger.trace("END OF LINE CHAR!!");
-				controlChar = "\u00B6";
+			} else if (charStr.endsWith("\n")) { // draw end of line or paragraph				
+				TrpTextLineType line = getTextLineAtOffset(i);
+				logger.trace("line = "+line);
+				
+				if (line != null && CustomTagUtil.hasParagraphStructure(line)) {
+					logger.trace("PARAGRAPH CHAR!!");
+					controlChar = "\u00B6";	
+				} else {
+					logger.trace("END OF LINE CHAR!!");
+					controlChar = "\u23CE";
+				}
 			} else if (charStr.equals("\t")) { // draw tab
 				logger.trace("TAB CHAR!!");
 				controlChar = "\u21A6";
@@ -1505,7 +1534,13 @@ public abstract class ATranscriptionWidget extends Composite {
 				updateLineStyles();
 				text.redraw();
 			}
-		});		
+		});	
+		
+		addParagraphItem.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				toggleParagraphOnSelectedLine();
+			}
+		});
 		
 		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY,
 				settings, centerCurrentLineItem);
@@ -1518,6 +1553,17 @@ public abstract class ATranscriptionWidget extends Composite {
 		
 		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.FOCUS_SHAPE_ON_DOUBLE_CLICK_IN_TRANSCRIPTION_WIDGET,
 				settings, focusShapeOnDoubleClickInTranscriptionWidgetItem);
+	}
+	
+	protected void toggleParagraphOnSelectedLine() {
+		if (currentLineObject != null) {
+			logger.debug("toggling structure on line: "+currentLineObject.getId()+" current structure: "+currentLineObject.getStructure());
+			if (CustomTagUtil.hasParagraphStructure(currentLineObject)) {
+				currentLineObject.setStructure("", false, this);	
+			} else {
+				currentLineObject.setStructure(TextTypeSimpleType.PARAGRAPH.value(), false, this);
+			}
+		}
 	}
 	
 	protected void updateTextAlignment() {
@@ -1572,6 +1618,9 @@ public abstract class ATranscriptionWidget extends Composite {
     		}
     		logger.trace("-------------------------------------");		
     		
+    		// update buttons:
+    		updateButtonsOnSelectionChanged();
+    		
     		Event e = new Event();
     		e.item = this;
     		e.start = text.getSelection().x;
@@ -1581,6 +1630,10 @@ public abstract class ATranscriptionWidget extends Composite {
     	oldTextSelection = text.getSelection();
 	}
 	
+	private void updateButtonsOnSelectionChanged() {
+		addParagraphItem.setSelection(currentLineObject != null && CustomTagUtil.hasParagraphStructure(currentLineObject));
+	}
+
 	protected void sendSelectionChangedSignal() {
 		Event e = new Event();
 		e.item = this;

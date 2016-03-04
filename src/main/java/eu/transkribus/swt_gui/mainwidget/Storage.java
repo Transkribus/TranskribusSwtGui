@@ -492,6 +492,10 @@ public class Storage extends Observable {
 	public TrpUserLogin getUser() {
 		return user;
 	}
+	
+	public int getUserId() {
+		return user!=null ? user.getUserId() : -1;
+	}
 
 	public boolean isLoggedIn() {
 		return (conn != null && user != null);
