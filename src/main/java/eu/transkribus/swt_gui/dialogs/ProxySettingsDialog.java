@@ -131,7 +131,7 @@ public class ProxySettingsDialog extends Dialog {
 		saveButton.setText("OK");
 		saveButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				TrpConfig.save();
+//				TrpConfig.save();
 				shell.close();
 			}
 		});

@@ -343,7 +343,7 @@ public class CanvasShapeEditor {
 		}
 	}
 
-	public void addPointToSelected(int mouseX, int mouseY) {
+	public int addPointToSelected(int mouseX, int mouseY) {
 		logger.debug("inserting point!");
 		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
 		ICanvasShape selected = canvas.getFirstSelected();
@@ -351,8 +351,9 @@ public class CanvasShapeEditor {
 			
 			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", selected);
 			addToUndoStack(op);
-			selected.insertPoint(mousePtWoTr.x, mousePtWoTr.y);
+			return selected.insertPoint(mousePtWoTr.x, mousePtWoTr.y);
 		}
+		return -1;
 	}
 	
 	public void removePointFromSelected(int pointIndex) {

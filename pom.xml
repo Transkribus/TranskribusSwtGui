@@ -4,14 +4,14 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>0.7.7</version>
+	<version>0.7.9.3-SNAPSHOT</version>
 	<!-- <version>0.4.6</version> -->
 	<name>Transkribus</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<program-name>Transkribus</program-name>
-		<mainClassName>org.dea.transcript.trp.gui.TrpGui</mainClassName>
+		<mainClassName>eu.transkribus.swt_gui.TrpGui</mainClassName>
 		<!-- <dependency-dir>${project.build.finalName}-lib</dependency-dir> -->
 		<dependency-dir>libs</dependency-dir>
 		<swt-lib-name>swt-${swt.version}.jar</swt-lib-name>

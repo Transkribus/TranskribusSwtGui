@@ -1,18 +1,14 @@
 package eu.transkribus.swt_gui.tools;
 
-import java.util.List;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.internal.SWTEventListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
@@ -22,16 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.core.util.EnumUtils;
-import eu.transkribus.core.util.FinereaderUtils;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class ToolsWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(ToolsWidget.class);
@@ -44,17 +36,19 @@ public class ToolsWidget extends Composite {
 	Button structAnalysisPageBtn, saInfoBtn;
 	Button detectPageNumbers, detectRunningTitles, detectFootnotesCheck;
 	
-	Button startOcrBtn, startOcrPageBtn;
-	Combo scriptTypeCombo;
-	LanguageSelectionTable languagesTable;
 	
 	Button startRecogBtn;
 	
 	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
 	Label ncsrIconL;
 
-	Combo htrModelsCombo;
-	Button runHtrOnPageBtn;
+	/* Deprecated Elements */
+//	Button startOcrBtn, startOcrPageBtn;
+//	Combo scriptTypeCombo;
+//	LanguageSelectionTable languagesTable;
+//	Combo htrModelsCombo;
+//	Button runHtrOnPageBtn;
+	/* =============== END */
 	
 //	Combo refVersionCombo, hypVersionCombo;
 	TranscriptVersionChooser refVersionChooser, hypVersionChooser;
@@ -142,8 +136,8 @@ public class ToolsWidget extends Composite {
 		initRecogTools();
 		initStructureTools();
 		initWerGroup();
-		initOCRTools();
-		initHTRTools();
+//		initOCRTools();
+//		initHTRTools();
 		
 //		Button btn = createButton(segModeGroup, SWT.RADIO, "Block segmentation", 1, false);
 //		segModeRadios.add(btn);
@@ -286,17 +280,6 @@ public class ToolsWidget extends Composite {
 		});
 	}
 	
-	private void postInitExpandable(ExpandableComposite exp, Composite c, String title) {
-		exp.setClient(c);
-		exp.setText("OCR (TYPEWRITTEN documents ONLY!!)");
-		exp.setExpanded(false);
-		exp.addExpansionListener(new ExpansionAdapter() {
-			public void expansionStateChanged(ExpansionEvent e) {
-				layout();
-			}
-		});
-	}
-	
 	private void initRecogTools() {
 		ExpandableComposite exp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
 		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -343,81 +326,7 @@ public class ToolsWidget extends Composite {
 			}
 		});
 	}
-	
-	private void initOCRTools() {
-		ExpandableComposite exp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
-		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Composite c = new Composite(exp, SWT.SHADOW_ETCHED_IN);
-		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		c.setLayout(new GridLayout(2, false));
-		
-		Composite c2 = new Composite(c, SWT.SHADOW_ETCHED_IN);
-		c2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		c2.setLayout(new GridLayout(3, false));
-		
-		startOcrBtn = new Button(c2, SWT.PUSH);
-		startOcrBtn.setText("Start OCR for document");
-		startOcrBtn.setToolTipText("Starts the OCR process for the current book");
-		startOcrBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		startOcrPageBtn = new Button(c2, SWT.PUSH);
-		startOcrPageBtn.setText("Start OCR for page");
-		startOcrPageBtn.setToolTipText("Starts the OCR process for the current page");
-		startOcrPageBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Button aboutOcrBtn = new Button(c2, SWT.PUSH);
-		aboutOcrBtn.setImage(Images.getOrLoad("/icons/information.png"));
-		aboutOcrBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				String title = "About: OCR";
-				String msg = "Status\n"
-						+ "\t-Productive\n"
-						+ "Behaviour\n"
-						+ "\t-All pages/images of the document are processed with\n"
-						+ "\tABBYY FineReader 11 SDK\n"
-						+ "\t-Select one or more languages\n"
-						+ "\t-Select “combined” if Gothic text and Roman Typeface\n"
-						+ "\t are used within one document\n"
-						+ "\t-Select “OldGerman”, “OldEnglish”, etc. to activate the\n"
-						+ "\t recognition of the long “s” in Roman Type Face books\n"
-						+ "\t-The document is processed from scratch, manually segmented\n"
-						+ "\t text blocks are not taken into account.\n"
-						+ "Background\n"
-						+ "\t-ABBYY FineReader is one of the leading OCR engines worldwide.\n"
-						+ "\t-We have implemented only a very small set of the features provided\n"
-						+ "\t by the ABBYY SDK.\n"
-						+ "\t-UIBK runs a powerful ABBYY FineReader SDK Cluster and is able to\n"
-						+ "\t process large mounts of documents.\n"
-						+ "Provider\n"
-						+ "\t-ABBYY FineReader\n"
-						+ "\t-University Innsbruck, Digitisation and Digital Preservation group\n"
-						+ "Credits\n"
-						+ "\t-ABBYY FineReader for 15 years of cooperation\n"
-						+ "\t-This implementation is based on the infrastructure set up during\n"
-						+ "\t the the Europeana Newspaper Project (2013-2015)\n"
-						+ "\t http://www.europeana-newspapers.eu/";
-				
-				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
-			}
-		});		
-		
-		Label l0 = new Label(c, 0);
-		l0.setText("Script type: ");		
-		scriptTypeCombo = new Combo(c, SWT.DROP_DOWN | SWT.READ_ONLY);
-//		TrpDocMetadata md = Storage.getInstance().getDoc().getMd();
-		scriptTypeCombo.setItems(EnumUtils.stringsArray(ScriptType.class));
-		scriptTypeCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
-		Label l1 = new Label(c, 0);
-		l1.setText("Language: ");
-//		languageCombo = new Combo(c, SWT.DROP_DOWN);
-//		languageCombo.setItems(FinereaderUtils.FINEREADER_LANGUAGES);
-		languagesTable = new LanguageSelectionTable(c, 0);
-		languagesTable.setAvailableLanguages(FinereaderUtils.FINEREADER_LANGUAGES);
-		languagesTable.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		postInitExpandable(exp, c, "OCR");
-	}
 	
 	private void initStructureTools() {
 		ExpandableComposite exp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
@@ -487,78 +396,6 @@ public class ToolsWidget extends Composite {
 			}
 		});
 	}
-	
-	private void initHTRTools() {
-		ExpandableComposite htrToolsExp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
-		htrToolsExp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Composite htrToolsComp = new Composite(htrToolsExp, SWT.SHADOW_ETCHED_IN);
-		htrToolsComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-//		metadatagroup.setText("Document metadata");
-		htrToolsComp.setLayout(new GridLayout(2, false));
-		
-		htrModelsCombo = new Combo(htrToolsComp,  SWT.DROP_DOWN | SWT.READ_ONLY);
-		htrModelsCombo.setEnabled(false);
-		htrModelsCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		htrModelsCombo.setItems(new String[]{""});
-		
-		runHtrOnPageBtn = new Button(htrToolsComp, SWT.PUSH);
-		runHtrOnPageBtn.setText("Start HTR for page ");
-//		runHtrOnPageBtn.setEnabled(false);
-		runHtrOnPageBtn.setToolTipText("Runs handwritten text recognition on current page");
-		runHtrOnPageBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Button aboutBtn = new Button(htrToolsComp, SWT.PUSH);
-		aboutBtn.setImage(Images.getOrLoad("/icons/information.png"));
-//		aboutBtn.setText("About...");
-		aboutBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				String title = "About: HTR Processing";
-				String msg = "Status\n"
-						+ "\t-Experimental\n"
-						+ "\t-Do not use for production\n"
-						+ "Behaviour\n"
-						+ "\t-Trained HTR models can be selected and applied to one page\n"
-						+ "\t-Note: HTR is a sophisticated system where character sets and\n"
-						+ "\t language models need to play together.\n"
-						+ "\t-Words which are not in the lexicon will not be recognized.\n"
-						+ "\t-Characters (e.g. special characters) which were not seen by\n"
-						+ "\t the HTR engine during the training process, can also not be recognized\n"
-						+ "Available HTR models\n"
-						+ "\t-Reichsgericht\n"
-						+ "\t\t-Trained on German Kurrent from the early 20th century.\n"
-						+ "\t\t Three writers.\n"
-						+ "\t\t-Only a very limited vocabulary based on juridical texts was used for\n"
-						+ "\t\t training.\n"
-						+ "\t-Bozen and Zwettl\n"
-						+ "\t\t-Trained on about 200 pages of German Kurrent texts from the\n"
-						+ "\t\t 17th century. Several writers.\n"
-						+ "\t\t-No lexicon currently available in the background, therefore\n"
-						+ "\t\t limited applicability\n"
-						+ "Background\n"
-						+ "\t-This is one of the very first implementations for processing handwritten\n"
-						+ "\t historical texts out-of-the-box.\n"
-						+ "Provider\n"
-						+ "\t-Technical University Valencia, Pattern Recognition and Human\n"
-						+ "\t Language Technology\n"
-						+ "\t-Instituut voor Nederlandse Lexicologie (INL)\n"
-						+ "Contact\n"
-						+ "\t https://www.prhlt.upv.es/\n"
-						+ "\t http://www.inl.nl/";
-				
-				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);
-			}
-		});
-		
-		htrToolsExp.setClient(htrToolsComp);
-		htrToolsExp.setText("HTR");
-		htrToolsExp.setExpanded(false);
-		htrToolsExp.addExpansionListener(new ExpansionAdapter() {
-			public void expansionStateChanged(ExpansionEvent e) {
-				layout();
-			}
-		});
-		
-	}
 
 	private void initWerGroup() {
 		werExp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
@@ -604,43 +441,7 @@ public class ToolsWidget extends Composite {
 	public Button getLinesBtn() { return lineSegBtn; }
 	public Button getWordsBtn() { return wordSegBtn; }
 	public Button getBaselineBtn() { return baselineBtn; }
-	public Button getRunHtrOnPageBtn() { return runHtrOnPageBtn; }
-	public Combo getHtrModelsCombo() {return htrModelsCombo; }
-	
-	public Combo getScriptTypeCombo() { return scriptTypeCombo; }
 
-//	public Combo getLanguageCombo() { return languageCombo; }
-
-	public void clearHtrModelList() {
-		htrModelsCombo.setItems(new String[]{""});
-		htrModelsCombo.setEnabled(false);
-	}
-
-	public void setHtrModelList(String[] htrModels) {
-		htrModelsCombo.setEnabled(true);
-		htrModelsCombo.setItems(htrModels);
-		htrModelsCombo.select(0);
-	}
-
-	public void updateParameter(ScriptType st, String languages) {
-		SWTUtil.select(scriptTypeCombo, EnumUtils.indexOf(st));
-//		SWTUtil.select(languageCombo, FinereaderUtils.getLanguageIndex(language));
-		
-		languagesTable.setSelectedLanguages(languages);
-		
-			
-//		java.util.List<Integer> sel = new java.util.ArrayList<>();
-//		for (String l : ls) {
-//			int i = FinereaderUtils.getLanguageIndex(language);
-//			if (i != -1) {
-//				sel.add(i);
-//			}
-//		}
-//		languageList.setSelection(items);
-		
-		// TODO Auto-generated method stub
-		
-	}
 	
 	public static String getTranscriptLabel(TrpTranscriptMetadata t) {
 		final String labelStr = CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(t.getTime()) 
@@ -667,4 +468,183 @@ public class ToolsWidget extends Composite {
 //		//pack the whole fucking tools widget or the expandable won't resize
 //		this.pack();
 //	}
+	
+// OLD OCR and HTR settings ======
+	
+//	private void initOCRTools() {
+//		ExpandableComposite exp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
+//		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		Composite c = new Composite(exp, SWT.SHADOW_ETCHED_IN);
+//		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		c.setLayout(new GridLayout(2, false));
+//		
+//		Composite c2 = new Composite(c, SWT.SHADOW_ETCHED_IN);
+//		c2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+//		c2.setLayout(new GridLayout(3, false));
+//		
+//		startOcrBtn = new Button(c2, SWT.PUSH);
+//		startOcrBtn.setText("Start OCR for document");
+//		startOcrBtn.setToolTipText("Starts the OCR process for the current book");
+//		startOcrBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		
+//		startOcrPageBtn = new Button(c2, SWT.PUSH);
+//		startOcrPageBtn.setText("Start OCR for page");
+//		startOcrPageBtn.setToolTipText("Starts the OCR process for the current page");
+//		startOcrPageBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		
+//		Button aboutOcrBtn = new Button(c2, SWT.PUSH);
+//		aboutOcrBtn.setImage(Images.getOrLoad("/icons/information.png"));
+//		aboutOcrBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				String title = "About: OCR";
+//				String msg = "Status\n"
+//						+ "\t-Productive\n"
+//						+ "Behaviour\n"
+//						+ "\t-All pages/images of the document are processed with\n"
+//						+ "\tABBYY FineReader 11 SDK\n"
+//						+ "\t-Select one or more languages\n"
+//						+ "\t-Select “combined” if Gothic text and Roman Typeface\n"
+//						+ "\t are used within one document\n"
+//						+ "\t-Select “OldGerman”, “OldEnglish”, etc. to activate the\n"
+//						+ "\t recognition of the long “s” in Roman Type Face books\n"
+//						+ "\t-The document is processed from scratch, manually segmented\n"
+//						+ "\t text blocks are not taken into account.\n"
+//						+ "Background\n"
+//						+ "\t-ABBYY FineReader is one of the leading OCR engines worldwide.\n"
+//						+ "\t-We have implemented only a very small set of the features provided\n"
+//						+ "\t by the ABBYY SDK.\n"
+//						+ "\t-UIBK runs a powerful ABBYY FineReader SDK Cluster and is able to\n"
+//						+ "\t process large mounts of documents.\n"
+//						+ "Provider\n"
+//						+ "\t-ABBYY FineReader\n"
+//						+ "\t-University Innsbruck, Digitisation and Digital Preservation group\n"
+//						+ "Credits\n"
+//						+ "\t-ABBYY FineReader for 15 years of cooperation\n"
+//						+ "\t-This implementation is based on the infrastructure set up during\n"
+//						+ "\t the the Europeana Newspaper Project (2013-2015)\n"
+//						+ "\t http://www.europeana-newspapers.eu/";
+//				
+//				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
+//			}
+//		});		
+//		
+//		Label l0 = new Label(c, 0);
+//		l0.setText("Script type: ");		
+//		scriptTypeCombo = new Combo(c, SWT.DROP_DOWN | SWT.READ_ONLY);
+////		TrpDocMetadata md = Storage.getInstance().getDoc().getMd();
+//		scriptTypeCombo.setItems(EnumUtils.stringsArray(ScriptType.class));
+//		scriptTypeCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//
+//		Label l1 = new Label(c, 0);
+//		l1.setText("Language: ");
+////		languageCombo = new Combo(c, SWT.DROP_DOWN);
+////		languageCombo.setItems(FinereaderUtils.FINEREADER_LANGUAGES);
+//		languagesTable = new LanguageSelectionTable(c, 0);
+//		languagesTable.setAvailableLanguages(FinereaderUtils.FINEREADER_LANGUAGES);
+//		languagesTable.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		
+//		postInitExpandable(exp, c, "OCR");
+//	}
+//	public Button getRunHtrOnPageBtn() { return runHtrOnPageBtn; }
+//	public Combo getHtrModelsCombo() {return htrModelsCombo; }
+//	public Combo getScriptTypeCombo() { return scriptTypeCombo; }
+
+//	public Combo getLanguageCombo() { return languageCombo; }
+
+//	public void clearHtrModelList() {
+//		htrModelsCombo.setItems(new String[]{""});
+//		htrModelsCombo.setEnabled(false);
+//	}
+//
+//	public void setHtrModelList(String[] htrModels) {
+//		htrModelsCombo.setEnabled(true);
+//		htrModelsCombo.setItems(htrModels);
+//		htrModelsCombo.select(0);
+//	}
+
+//	public void updateParameter(ScriptType st, String languages) {
+//		SWTUtil.select(scriptTypeCombo, EnumUtils.indexOf(st));
+//		languagesTable.setSelectedLanguages(languages);		
+//	}
+//	private void initHTRTools() {
+//	ExpandableComposite htrToolsExp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
+//	htrToolsExp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//	Composite htrToolsComp = new Composite(htrToolsExp, SWT.SHADOW_ETCHED_IN);
+//	htrToolsComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+////	metadatagroup.setText("Document metadata");
+//	htrToolsComp.setLayout(new GridLayout(2, false));
+//	
+//	htrModelsCombo = new Combo(htrToolsComp,  SWT.DROP_DOWN | SWT.READ_ONLY);
+//	htrModelsCombo.setEnabled(false);
+//	htrModelsCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//	htrModelsCombo.setItems(new String[]{""});
+//	
+//	runHtrOnPageBtn = new Button(htrToolsComp, SWT.PUSH);
+//	runHtrOnPageBtn.setText("Start HTR for page ");
+////	runHtrOnPageBtn.setEnabled(false);
+//	runHtrOnPageBtn.setToolTipText("Runs handwritten text recognition on current page");
+//	runHtrOnPageBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//	
+//	Button aboutBtn = new Button(htrToolsComp, SWT.PUSH);
+//	aboutBtn.setImage(Images.getOrLoad("/icons/information.png"));
+////	aboutBtn.setText("About...");
+//	aboutBtn.addSelectionListener(new SelectionAdapter() {
+//		@Override public void widgetSelected(SelectionEvent e) {
+//			String title = "About: HTR Processing";
+//			String msg = "Status\n"
+//					+ "\t-Experimental\n"
+//					+ "\t-Do not use for production\n"
+//					+ "Behaviour\n"
+//					+ "\t-Trained HTR models can be selected and applied to one page\n"
+//					+ "\t-Note: HTR is a sophisticated system where character sets and\n"
+//					+ "\t language models need to play together.\n"
+//					+ "\t-Words which are not in the lexicon will not be recognized.\n"
+//					+ "\t-Characters (e.g. special characters) which were not seen by\n"
+//					+ "\t the HTR engine during the training process, can also not be recognized\n"
+//					+ "Available HTR models\n"
+//					+ "\t-Reichsgericht\n"
+//					+ "\t\t-Trained on German Kurrent from the early 20th century.\n"
+//					+ "\t\t Three writers.\n"
+//					+ "\t\t-Only a very limited vocabulary based on juridical texts was used for\n"
+//					+ "\t\t training.\n"
+//					+ "\t-Bozen and Zwettl\n"
+//					+ "\t\t-Trained on about 200 pages of German Kurrent texts from the\n"
+//					+ "\t\t 17th century. Several writers.\n"
+//					+ "\t\t-No lexicon currently available in the background, therefore\n"
+//					+ "\t\t limited applicability\n"
+//					+ "Background\n"
+//					+ "\t-This is one of the very first implementations for processing handwritten\n"
+//					+ "\t historical texts out-of-the-box.\n"
+//					+ "Provider\n"
+//					+ "\t-Technical University Valencia, Pattern Recognition and Human\n"
+//					+ "\t Language Technology\n"
+//					+ "\t-Instituut voor Nederlandse Lexicologie (INL)\n"
+//					+ "Contact\n"
+//					+ "\t https://www.prhlt.upv.es/\n"
+//					+ "\t http://www.inl.nl/";
+//			
+//			DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);
+//		}
+//	});
+//	
+//	htrToolsExp.setClient(htrToolsComp);
+//	htrToolsExp.setText("HTR");
+//	htrToolsExp.setExpanded(false);
+//	htrToolsExp.addExpansionListener(new ExpansionAdapter() {
+//		public void expansionStateChanged(ExpansionEvent e) {
+//			layout();
+//		}
+//	});
+//	
+//}
+//private void postInitExpandable(ExpandableComposite exp, Composite c, String title) {
+//exp.setClient(c);
+//exp.setText("OCR (TYPEWRITTEN documents ONLY!!)");
+//exp.setExpanded(false);
+//exp.addExpansionListener(new ExpansionAdapter() {
+//	public void expansionStateChanged(ExpansionEvent e) {
+//		layout();
+//	}
+//});
+//}	
 }

@@ -31,13 +31,16 @@ public class CanvasToolBar extends ToolBar {
 	protected ToolItem zoomOut;
 	protected ToolItem zoomSelection;
 	protected ToolItem loupe;
-	protected ToolItem rotateRight;
-	protected ToolItem rotateLeft;
+	
+	protected DropDownToolItem rotateItem;
+	
+//	protected ToolItem rotateRight;
+//	protected ToolItem rotateLeft;
 	
 	protected DropDownToolItem fitItem;
-	protected ToolItem fitToPage;
-	protected ToolItem fitWidth;
-	protected ToolItem fitHeight;
+//	protected ToolItem fitToPage;
+//	protected ToolItem fitWidth;
+//	protected ToolItem fitHeight;
 	
 	protected ToolItem originalSize;
 	
@@ -45,10 +48,10 @@ public class CanvasToolBar extends ToolBar {
 	// ToolItem toolItem;
 	
 	protected DropDownToolItem translateItem;
-	protected ToolItem translateLeft;
-	protected ToolItem translateDown;
-	protected ToolItem translateUp;
-	protected ToolItem translateRight;
+//	protected ToolItem translateLeft;
+//	protected ToolItem translateDown;
+//	protected ToolItem translateUp;
+//	protected ToolItem translateRight;
 	
 	
 	protected ToolItem focus;
@@ -157,13 +160,19 @@ public class CanvasToolBar extends ToolBar {
 //		originalSize.setToolTipText("Original size");
 //		originalSize.setImage(Images.getOrLoad("/icons/arrow_out.png"));		
 
-		rotateLeft = new ToolItem(this, SWT.PUSH);
-		rotateLeft.setToolTipText("Rotate left");
-		rotateLeft.setImage(Images.getOrLoad("/icons/arrow_turn_left.png"));
-
-		rotateRight = new ToolItem(this, SWT.PUSH);
-		rotateRight.setToolTipText("Rotate right");
-		rotateRight.setImage(Images.getOrLoad("/icons/arrow_turn_right.png"));
+//		rotateLeft = new ToolItem(this, SWT.PUSH);
+//		rotateLeft.setToolTipText("Rotate left");
+//		rotateLeft.setImage(Images.getOrLoad("/icons/arrow_turn_left.png"));
+//
+//		rotateRight = new ToolItem(this, SWT.PUSH);
+//		rotateRight.setToolTipText("Rotate right");
+//		rotateRight.setImage(Images.getOrLoad("/icons/arrow_turn_right.png"));
+		
+		rotateItem = new DropDownToolItem(this, false, true, SWT.NONE);
+		rotateItem.addItem("Rotate left", Images.getOrLoad("/icons/arrow_turn_left.png"), "Rotate left");
+		rotateItem.addItem("Rotate right", Images.getOrLoad("/icons/arrow_turn_right.png"), "Rotate right");
+		rotateItem.addItem("Rotate left 90 degress", Images.getOrLoad("/icons/arrow_turn_left_90.png"), "Rotate left 90 degress");
+		rotateItem.addItem("Rotate right 90 degrees", Images.getOrLoad("/icons/arrow_turn_right_90.png"), "Rotate right 90 degrees");
 		
 		translateItem = new DropDownToolItem(this, false, true, SWT.NONE);
 		translateItem.addItem("Translate left", Images.getOrLoad("/icons/arrow_left.png"), "Translate left");
@@ -389,9 +398,10 @@ public class CanvasToolBar extends ToolBar {
 		SWTUtil.addToolItemSelectionListener(zoomIn, listener);
 		SWTUtil.addToolItemSelectionListener(zoomOut, listener);
 		SWTUtil.addToolItemSelectionListener(loupe, listener);
-		SWTUtil.addToolItemSelectionListener(rotateLeft, listener);
-		SWTUtil.addToolItemSelectionListener(rotateRight, listener);
+//		SWTUtil.addToolItemSelectionListener(rotateLeft, listener);
+//		SWTUtil.addToolItemSelectionListener(rotateRight, listener);
 		SWTUtil.addToolItemSelectionListener(fitItem.ti, listener);
+		SWTUtil.addToolItemSelectionListener(rotateItem.ti, listener);
 		SWTUtil.addToolItemSelectionListener(translateItem.ti, listener);
 		
 		SWTUtil.addToolItemSelectionListener(focus, listener);
@@ -419,46 +429,58 @@ public class CanvasToolBar extends ToolBar {
 	public ToolItem getZoomSelection() {
 		return zoomSelection;
 	}
-
-	public ToolItem getRotateRight() {
-		return rotateRight;
-	}
-
-	public ToolItem getRotateLeft() {
-		return rotateLeft;
-	}
-
-	public ToolItem getTranslateLeft() {
-		return translateLeft;
-	}
-
-	public ToolItem getFitToPage() {
-		return fitToPage;
+	
+	public DropDownToolItem getRotateItem() {
+		return rotateItem;
 	}
 	
-	public ToolItem getFitWidth() {
-		return fitWidth;
+	public DropDownToolItem getTranslateItem() {
+		return translateItem;
 	}
 	
-	public ToolItem getFitHeight() {
-		return fitHeight;
+	public DropDownToolItem getFitItem() {
+		return fitItem;
 	}
 
-	public ToolItem getTranslateRight() {
-		return translateRight;
-	}
+//	public ToolItem getRotateRight() {
+//		return rotateRight;
+//	}
+//
+//	public ToolItem getRotateLeft() {
+//		return rotateLeft;
+//	}
+
+//	public ToolItem getTranslateLeft() {
+//		return translateLeft;
+//	}
+
+//	public ToolItem getFitToPage() {
+//		return fitToPage;
+//	}
+//	
+//	public ToolItem getFitWidth() {
+//		return fitWidth;
+//	}
+//	
+//	public ToolItem getFitHeight() {
+//		return fitHeight;
+//	}
+
+//	public ToolItem getTranslateRight() {
+//		return translateRight;
+//	}
 
 	public ToolItem getSelectionMode() {
 		return selectionMode;
 	}
 
-	public ToolItem getTranslateDown() {
-		return translateDown;
-	}
-
-	public ToolItem getTranslateUp() {
-		return translateUp;
-	}
+//	public ToolItem getTranslateDown() {
+//		return translateDown;
+//	}
+//
+//	public ToolItem getTranslateUp() {
+//		return translateUp;
+//	}
 
 	public ToolItem getOriginalSize() {
 		return originalSize;
@@ -538,14 +560,5 @@ public class CanvasToolBar extends ToolBar {
 		SWTUtil.setEnabled(simplifyEpsItem.ti, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(undo, isEditingEnabled);
 	}
-
-	public DropDownToolItem getTranlateItem() {
-		return translateItem;
-	}
-	
-	public DropDownToolItem getFitItem() {
-		return fitItem;
-	}
-
 
 }

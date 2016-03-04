@@ -34,7 +34,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	//
 	MenuItem rectangleModeItem;
 	MenuItem autoCreateParentItem;
-	MenuItem addToOverlappingRegionItem, addToOverlappingLineItem;
+	MenuItem addToOverlappingRegionItem, addToOverlappingLineItem, lockZoomOnFocusItem;
 	MenuItem selectNewlyCreatedShapeItem;
 	
 //	protected ToolItem shapeAddRectMode;
@@ -152,6 +152,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		addToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: only use selected region as parent)", Images.getOrLoad("/icons/wrench.png"), "");
 		addToOverlappingLineItem = optionsItem.addItem("Add words and baselines to overlapping parent lines (else: only use selected lines as parent)", Images.getOrLoad("/icons/wrench.png"), "");
 		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.getOrLoad("/icons/wrench.png"), "");
+		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.getOrLoad("/icons/wrench.png"), "");
 		
 //		new ToolItem(this, SWT.SEPARATOR, ++i);
 		
@@ -294,6 +295,10 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 
 	public MenuItem getAddToOverlappingLineItem() {
 		return addToOverlappingLineItem;
+	}
+	
+	public MenuItem getLockZoomOnFocusItem() {
+		return lockZoomOnFocusItem;
 	}
 	
 	public MenuItem getSelectNewlyCreatedShapeItem() {

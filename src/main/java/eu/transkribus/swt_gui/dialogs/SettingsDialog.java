@@ -40,7 +40,8 @@ public class SettingsDialog extends Dialog {
 	private Button linesColorButton;
 	private Button baselinesColorButton;
 	private Button wordsColorButton;
-	Button saveButton;
+	Button closebutton;
+	private Button drawPolylineArcs;
 
 	/**
 	 * Create the dialog.
@@ -80,6 +81,7 @@ public class SettingsDialog extends Dialog {
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.SELECTED_POINT_RADIUS_PROPERTY, canvasSets, selectedPointRadiusSpinner);
 		
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.DRAW_SELECTED_CORNER_NUMBERS_PROPERTY, canvasSets, drawSelectedCornerNumbersCb);
+		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.DRAW_POLYLINE_ARCS_PROPERTY, canvasSets, drawPolylineArcs);
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.DO_TRANSITION_PROPERTY, canvasSets, doTransitionCb);
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.FOREGROUND_ALPHA_PROPERY, canvasSets, foregroundAlphaSpinner);
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.BACKGROUND_ALPHA_PROPERTY, canvasSets, backgroundAlphaSpinner);
@@ -159,10 +161,16 @@ public class SettingsDialog extends Dialog {
 		readingOrderCircleWidthSpinner.setMinimum(1);
 		//readingOrderCircleWidthSpinner.setMaximum(255);
 		
+		drawPolylineArcs = new Button(shell, SWT.CHECK);
+		drawPolylineArcs.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+		drawPolylineArcs.setText("Draw baseline arcs");
+		drawPolylineArcs.setToolTipText("Draw arcs on the lines of a baseline to visualize the direction");
+		
 		drawSelectedCornerNumbersCb = new Button(shell, SWT.CHECK);
 		drawSelectedCornerNumbersCb.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
 		drawSelectedCornerNumbersCb.setText("Draw selected corner numbers");
 		drawSelectedCornerNumbersCb.setToolTipText("Draws the corner numbers of the polygon of the selected element - for debugging purposes...");
+		
 		
 		doTransitionCb = new Button(shell, SWT.CHECK);
 		doTransitionCb.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
@@ -214,24 +222,24 @@ public class SettingsDialog extends Dialog {
 		buttonComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		buttonComposite.setLayout(new FillLayout());
 		
-		saveButton = new Button(buttonComposite, SWT.NONE);
-		saveButton.setText("OK");
-		saveButton.addSelectionListener(new SelectionAdapter() {
+		closebutton = new Button(buttonComposite, SWT.NONE);
+		closebutton.setText("Close");
+		closebutton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				TrpConfig.save();
+//				TrpConfig.save(); // props get saved anyway by property change listeners!
 				shell.close();
 			}
 		});
-		saveButton.setToolTipText("Stores the configuration in the configuration file and closes the dialog");
+//		saveButton.setToolTipText("Stores the configuration in the configuration file and closes the dialog");
 		
-		Button closeButton = new Button(buttonComposite, SWT.PUSH);
-		closeButton.setText("Cancel");
-		closeButton.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				shell.close();
-			}	
-		});
-		closeButton.setToolTipText("Closes this dialog without saving");
+//		Button closeButton = new Button(buttonComposite, SWT.PUSH);
+//		closeButton.setText("Cancel");
+//		closeButton.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				shell.close();
+//			}	
+//		});
+//		closeButton.setToolTipText("Closes this dialog without saving");
 		
 		shell.pack();
 	}

@@ -292,10 +292,19 @@ CHANGES AND BUGFIXES
 	-> bugfix: could not load local document any more
 	
 0.7.8:
-	-> 
+	-> rotate image 90 degrees
+	-> bugfix: baseline focus with angle >180 degrees were displayed upside down
+	-> export bugs fixed
+	-> drawing direction arcs for baselines
 	
-	
-
-
+0.7.9:
+	-> adding new points on boundary only possible when holding down ctrl/cmd key (prevents adding new points by accident)
+	-> bugfix: adding gap tag at the end of last line of region led to crash 
+	-> rendering of polyrectangle around baselines (and selection of the baselines within those)
+	-> locking zoom on focus possible (via wrench tool on canvas toolbar)
+	-> auto login feature
+	-> fixed catti bug (whitespace from recieved suffix removed)
+	-> catti server made reentrant (multiple users from different clients now possible)
+	-> adding paragraphs in textfield possible via shift+enter or dedicated button on transcription toolbar
 
 	

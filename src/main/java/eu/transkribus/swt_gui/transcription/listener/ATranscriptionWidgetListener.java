@@ -51,6 +51,7 @@ public abstract class ATranscriptionWidgetListener implements Listener {
 			handleFocus(event);
 		}
 		else if (event.type == SWT.Selection) {
+			
 			handleSelectionChanged(event);
 		}
 		else if (event.type == SWT.DefaultSelection) {

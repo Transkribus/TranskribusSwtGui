@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.core.net.SyslogOutputStream;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
@@ -865,6 +866,7 @@ public class TrpMainWidgetView extends Composite {
 		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, canvasWidget.getToolBar().getAutoCreateParentItem());
 		db.bindBeanToWidgetSelection(TrpSettings.ADD_TO_OVERLAPPING_PARENT_REGION_PROPERTY, trpSets, canvasWidget.getToolBar().getAddToOverlappingRegionItem());
 		db.bindBeanToWidgetSelection(TrpSettings.ADD_TO_OVERLAPPING_PARENT_LINE_PROPERTY, trpSets, canvasWidget.getToolBar().getAddToOverlappingLineItem());
+		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), canvasWidget.getToolBar().getLockZoomOnFocusItem());
 		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, canvasWidget.getToolBar().getSelectNewlyCreatedShapeItem());
 		
 //		db.bindBeanToWidgetSelection(TrpSettings.ENABLE_INDEXED_STYLES, trpSets, metadataWidget.getTextStyleWidget().getEnableIndexedStylesBtn());

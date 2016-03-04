@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Listener;
  * Call method setVisible with true and a corresponding TextLineType object to make it visible. If setVisible is called
  * with false it is made invisible again and the internal TextLineType object is set to null, i.e. the second argument
  * has no effect then!
+ * @deprecated very very old and untested. currently not activated
  */
 public class LineEditor extends CanvasShapeAttachWidget<TrpTextLineType> {
 	private final static Logger logger = LoggerFactory.getLogger(LineEditor.class);

@@ -57,7 +57,7 @@ public class TranscriptObserver implements Observer {
 
 		mainWidget.updateTranscriptionWidgetsData();
 		mainWidget.refreshStructureView();
-		mainWidget.redraw();
+		mainWidget.redrawCanvas();
 	}
 	
 	private void onCoordinatesChanged(Object source, TrpCoordsChangedEvent e) {
@@ -71,9 +71,6 @@ public class TranscriptObserver implements Observer {
 			lineEditor.updatePosition();
 		}
 		else if (source instanceof TrpBaselineType) {
-		}
-		else if (source instanceof TrpWordType) {
-			mainWidget.getCanvas().getWordTagEditor().updatePosition();
 		}
 		
 //		logger.debug("refreshing tree for element "+source);

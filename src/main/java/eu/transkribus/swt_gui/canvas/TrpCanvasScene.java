@@ -7,10 +7,17 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasScene;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
 public class TrpCanvasScene extends CanvasScene {
@@ -20,6 +27,31 @@ public class TrpCanvasScene extends CanvasScene {
 		super(canvas);
 	}
 	
+	public void updateSegmentationViewSettings() {
+		TrpSettings sets = TrpMainWidget.getInstance().getTrpSets();
+				logger.debug("TrpSets: " + sets.toString());
+
+		for (ICanvasShape s : getShapes()) {
+			if (s.hasDataType(TrpPrintSpaceType.class)) {
+				s.setVisible(sets.isShowPrintSpace());
+			}
+			if (s.hasDataType(TrpTextRegionType.class)) {
+				s.setVisible(sets.isShowTextRegions());
+			}
+			if (s.hasDataType(TrpTextLineType.class)) {
+				s.setVisible(sets.isShowLines());
+			}
+			if (s.hasDataType(TrpBaselineType.class)) {
+				s.setVisible(sets.isShowBaselines());
+			}
+			if (s.hasDataType(TrpWordType.class)) {
+				s.setVisible(sets.isShowWords());
+			}
+		}
+		
+		canvas.redraw();
+	}
+			
 	public ICanvasShape selectObjectWithId(String id, boolean sendSignal, boolean multiselect) {
 		for (ICanvasShape s : getShapes()) {
 			if (s.getData() instanceof ITrpShapeType) {

@@ -55,7 +55,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 	TrpCattiClientEndpoint ce;
 	long lastTextChange=0;
 	boolean cattiEditFlag=false;
-	
+		
 	public LineTranscriptionWidget(Composite parent, int style, TrpSettings settings, final TrpMainWidgetView view) {
 		super(parent, style, settings, view);
 		
@@ -122,6 +122,9 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 	}
 	
 	@Override public Pair<ITrpShapeType, Integer> getTranscriptionUnitAndRelativePositionFromOffset(int offset) {
+		if (offset < 0 || offset > text.getCharCount())
+			return null;
+		
 		int li = text.getLineAtOffset(offset);
 		ITrpShapeType line = getLineObject(li);
 		if (line==null)
@@ -217,22 +220,37 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		String suffix = lineTxt.substring(nwbi, lineTxt.length());
 //		String suffixDetokenized = CoreUtils.detokenizeForCATTI(suffix);
 		
-		logger.trace("1prefix = '"+prefix);
-		logger.trace("1suffix = '"+suffix);
+		logger.trace("1prefix = '"+prefix+"'");
+		logger.trace("1suffix = '"+suffix+"'");
 		if (!prefix.equals(message.getPrefix())) {
 			logger.error("prefix do not match: " + prefix + " / "+message.getPrefix());
 			return;
 		}
-		logger.debug("replacing text!");
+		logger.trace("replacing text!");
 		cattiEditFlag = true; // prevents that this method gets called and called and called again... fuck you fuckin' endless loop!
 		
 		int cutIndex = prefix.length() > message.getCorrected_translation_out().length() ? message.getCorrected_translation_out().length() : prefix.length();
 //		text.replaceTextRange(nwbi+lo, suffix.length(), message.getCorrected_translation_out().substring(cutIndex));
 
 		// with detokinization:
-		String replaceText = CoreUtils.detokenizeForCATTI(message.getCorrected_translation_out().substring(cutIndex));
-		if (suffix.startsWith(" ")) // add extra space if suffix started with that. Elsewise, it would have been deleted by the tokenization! 
-			replaceText = " "+replaceText;
+		String suffixFromTranlationOut = message.getCorrected_translation_out().substring(cutIndex);
+		int nWhitespaces = CoreUtils.getNOfRepeatingChars(suffixFromTranlationOut, 0, ' ');
+		logger.trace("suffixFromTranlationOut: '"+suffixFromTranlationOut+"'"+" nWhitespaces = "+nWhitespaces);
+		String replaceText = CoreUtils.detokenizeForCATTI("    "+suffixFromTranlationOut);
+		logger.trace("replaceText: '"+replaceText+"'");
+		
+		// add whitespaces from beginning removed by detokenization: 
+		if (nWhitespaces>0)
+			replaceText = StringUtils.repeat(' ', nWhitespaces) + replaceText;
+		
+		// add extra space if suffix started with that. Elsewise, it would have been deleted by the tokenization!
+//		if (false) {
+//		if (suffixFromTranlationOut.startsWith(" ") && !replaceText.startsWith(" "))
+////		if (suffix.startsWith(" "))
+//			replaceText = " "+replaceText;
+//		}
+		
+		logger.trace("replaceText1: "+replaceText);
 		
 		text.replaceTextRange(nwbi+lo, suffix.length(), replaceText);
 	}
@@ -242,19 +260,21 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		
 		if (cattiEditFlag) {
 			cattiEditFlag = false;
-			logger.debug("peventing double call...");
+			logger.debug("preventing double call...");
 			return;
 		}
 		
 		final TrpMainWidget mw = TrpMainWidget.getInstance();
-		if (Storage.getInstance().isRemoteDoc() && Storage.getInstance().isPageLoaded() && currentLineObject != null) {
-			int docid = Storage.getInstance().getDoc().getId();
-			int pid = Storage.getInstance().getPage().getPageNr();
+		final Storage store = Storage.getInstance();
+		if (store.isRemoteDoc() && store.isPageLoaded() && currentLineObject != null) {
+			int docid = store.getDoc().getId();
+			int pid = store.getPage().getPageNr();
 			String lid = currentLineObject.getId();
 			try {
 				if (!isCattiEndpointOpen()) {
-					logger.debug("creating new catti endpoint!");
-					ce = new TrpCattiClientEndpoint(null, 0, docid, pid, lid);
+					logger.debug("creating new catti endpoint on url: "+mw.getTrpSets().getCattiServerUrl());
+					
+					ce = new TrpCattiClientEndpoint(mw.getTrpSets().getCattiServerUrl(), store.getUserId(), docid, pid, lid);
 					ce.addMessageHandler(new CattiMessageHandler() {
 						@Override public void handleMessage(final CattiRequest request) {
 							String msg = "";
@@ -321,7 +341,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				logger.debug("prefix tokenized: '"+prefix+"'");
 				logger.debug("suffix tokenized: '"+suffix+"'");
 				
-				CattiRequest r = new CattiRequest(0, docid, pid, lid, method, prefix, suffix, last_token_is_partial, corrected_out);
+				CattiRequest r = new CattiRequest(store.getUserId(), docid, pid, lid, method, prefix, suffix, last_token_is_partial, corrected_out);
 				ce.sendObjectBasicRemote(r);
 			} catch (Exception e) {
 				logger.debug(e.getMessage(), e);

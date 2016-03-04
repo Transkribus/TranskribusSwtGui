@@ -77,7 +77,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 					ICanvasShape shapeOfParent = null;
 					if (mode == TrpCanvasAddMode.ADD_BASELINE) { // for a baseline add a parent line that is extended beyond the bounding box
 						CanvasPolyline baselineShape = (CanvasPolyline) shape;
-						shapeOfParent = baselineShape.getPolyRectangle(30, 5, 0);
+						shapeOfParent = baselineShape.getDefaultPolyRectangle();
 					} else  { // for a word or line add parent shape that is almost the same as the shape to add
 						shapeOfParent = shape.getBoundsPolygon();
 					}
@@ -114,6 +114,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		if (TrpMainWidget.getTrpSettings().isSelectNewlyCreatedShape())
 			mainWidget.getScene().selectObject(e.getFirstShape(), true, false);
 		mainWidget.updateTranscriptionWidgetsData();
+		mainWidget.getScene().updateSegmentationViewSettings();
 	}
 	
 	@Override
@@ -251,7 +252,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			// note: the jaxb element from the merged shape has already been removed by the remove method in canvasscene
 
 			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.updateSegmentationViewSettings();
+			mainWidget.getScene().updateSegmentationViewSettings();
 			mainWidget.refreshStructureView();
 			mainWidget.getScene().selectObject(null, true, false);
 			mainWidget.updateTranscriptionWidgetsData();
@@ -289,7 +290,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 			
 			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.updateSegmentationViewSettings();
+			mainWidget.getScene().updateSegmentationViewSettings();
 			mainWidget.refreshStructureView();
 			mainWidget.updateTranscriptionWidgetsData();
 		} catch (Exception e) {
@@ -310,7 +311,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 			
 			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.updateSegmentationViewSettings();
+			mainWidget.getScene().updateSegmentationViewSettings();
 			mainWidget.refreshStructureView();
 			mainWidget.updateTranscriptionWidgetsData();
 		} catch (Exception e) {
@@ -381,8 +382,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				logger.debug("a1 = "+a1+" a2 = "+a2+", text size: "+origTxt.length()+", text split index: "+splitIndex);
 				el2.setUnicodeText(origTxt.substring(0, splitIndex), this);
 				el1.setUnicodeText(origTxt.substring(Math.min(splitIndex+1, origTxt.length())), this);
-			} else { // just assign one element all the text
-				el1.setUnicodeText("", this);
+			} else { // just assign one (or both) element all the text
+//				el1.setUnicodeText("", this);
 			}
 			
 			logger.debug("el1, el2 children = "+el1.getChildren(false).size()+" / "+el2.getChildren(false).size());

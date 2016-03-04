@@ -28,7 +28,6 @@ import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -76,7 +75,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
@@ -101,6 +99,7 @@ import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LoginDialog;
 import eu.transkribus.swt_canvas.util.SWTLog;
 import eu.transkribus.swt_canvas.util.SplashWindow;
+import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
@@ -213,8 +212,12 @@ public class TrpMainWidget {
 		info = new ProgramInfo();
 		VERSION = info.getVersion();
 		NAME = info.getName();
+		
+		Display.setAppName(NAME+"asdf");
+		Display.setAppVersion(VERSION);
+		
 		// String time = info.getTimestampString();
-
+		
 		// Display display = Display.getDefault();
 		// canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, this);
 		ui = new TrpMainWidgetView(parent, this);
@@ -262,7 +265,7 @@ public class TrpMainWidget {
 		tip.open(getShell());
 
 		getTrpSets().setShowTipOfTheDay(tip.isShowOnStartup());
-		TrpConfig.save(TrpSettings.SHOW_TIP_OF_THE_DAY_PROPERTY);
+//		TrpConfig.save(TrpSettings.SHOW_TIP_OF_THE_DAY_PROPERTY);
 	}
 
 	/**
@@ -285,25 +288,17 @@ public class TrpMainWidget {
 		if (tagNamesProp != null)
 			CustomTagFactory.addCustomDefinedTagsToRegistry(tagNamesProp);
 		
-		// TEST: add custom tag:
-		if (false) {
-			try {
-				CustomTag t = CustomTagFactory.create("testTag");
-				t.setAttribute("floatProp", null, Float.class, true);
-				t.setAttribute("boolProp", null, Boolean.class, true);
-				t.setAttribute("intProp", null, Integer.class, true);
-
-				CustomTagFactory.addToRegistry(t, null);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		// CustomTagUtil.registerCustomTagsFromXml();
-
 		// check for updates:
-		if (TrpConfig.getTrpSettings().isCheckForUpdates()) {
+		if (getTrpSets().isCheckForUpdates()) {
 			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
+		}
+		
+		if (getTrpSets().isAutoLogin()) {
+			Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
+			if (lastLogin != null) {
+				// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
+				login(TrpServerConn.PROD_SERVER_URI, lastLogin.getLeft(), lastLogin.getRight(), true);
+			}
 		}
 
 		if (getTrpSets().isShowTipOfTheDay()) {
@@ -425,19 +420,19 @@ public class TrpMainWidget {
 		getUi().getDocOverviewWidget().clearDocList();
 	}
 
-	public void reloadHtrModels() {
-		try {
-			storage.reloadHtrModelsStr();
-			ui.getToolsWidget().setHtrModelList(storage.getHtrModelsStr());
-		} catch (Exception e) {
-			onError("Error", "Error during update of HTR models", e);
-		}
-	}
+//	public void reloadHtrModels() {
+//		try {
+//			storage.reloadHtrModelsStr();
+//			ui.getToolsWidget().setHtrModelList(storage.getHtrModelsStr());
+//		} catch (Exception e) {
+//			onError("Error", "Error during update of HTR models", e);
+//		}
+//	}
 
-	public void clearHtrModelList() {
-		storage.clearHtrModels();
-		getUi().getToolsWidget().clearHtrModelList();
-	}
+//	public void clearHtrModelList() {
+//		storage.clearHtrModels();
+//		getUi().getToolsWidget().clearHtrModelList();
+//	}
 
 	public String updateDocumentInfo() {
 		String loadedDocStr = "", currentCollectionStr = "";
@@ -469,7 +464,7 @@ public class TrpMainWidget {
 		ui.getDocOverviewWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 
-		ui.toolsWidget.updateParameter(st, language);
+//		ui.toolsWidget.updateParameter(st, language);
 
 		return loadedDocStr;
 	}
@@ -681,6 +676,10 @@ public class TrpMainWidget {
 				}
 
 				@Override protected void postInit() {
+					DataBinder db = DataBinder.get();
+					
+					db.bindBeanToWidgetSelection(TrpSettings.AUTO_LOGIN_PROPERTY, getTrpSets(), autoLogin);
+					
 					clearStoredCredentials.addSelectionListener(new SelectionAdapter() {
 						@Override public void widgetSelected(SelectionEvent e) {
 							try {
@@ -746,7 +745,7 @@ public class TrpMainWidget {
 
 			reloadJobList();
 //			reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
-			reloadHtrModels();
+//			reloadHtrModels();
 			// reloadJobListForDocument();
 			sessionExpired = false;
 			lastLoginServer = server;
@@ -783,7 +782,7 @@ public class TrpMainWidget {
 		}
 
 		clearDocList();
-		clearHtrModelList();
+//		clearHtrModelList();
 		ui.getVersionsWidget().refreshPage(true);
 		ui.getJobOverviewWidget().refreshPage(true);
 		updateThumbs();
@@ -926,7 +925,7 @@ public class TrpMainWidget {
 
 		// ui.getUpdateIDsItem().setEnabled(isEditOn);
 		if (isEditOn) {
-			updateSegmentationViewSettings();
+			canvas.getScene().updateSegmentationViewSettings();
 		}
 
 		// updateAddShapeActionButton();
@@ -1169,8 +1168,6 @@ public class TrpMainWidget {
 		List<ICanvasShape> selected = canvas.getScene().getSelectedAsNewArray();
 
 		if (!storage.hasTranscript()) {
-			// ui.getMetadataWidget().updateData(null, false, null, false, null,
-			// new ArrayList<String>());
 			ui.taggingWidget.setSelectedTags(null);
 			ui.getMetadataWidget().updateData(null, null, nSel, null, null, new ArrayList<CustomTag>());
 			return;
@@ -1414,7 +1411,7 @@ public class TrpMainWidget {
 
 			ui.taggingWidget.updateAvailableTags();
 			updateTranscriptionWidgetsData();
-			updateSegmentationViewSettings();
+			canvas.getScene().updateSegmentationViewSettings();
 
 			logger.debug("loaded transcript - edited = " + storage.isTranscriptEdited());
 		} catch (Throwable th) {
@@ -1588,7 +1585,11 @@ public class TrpMainWidget {
 			loadLocalDoc("C:/Schauplatz_small");
 			// loadLocalDoc("C:/trp_doc_97");
 
-		} else {
+		} 
+		else if (SysUtils.isOsx()) {
+			loadLocalDoc("/Users/hansm/Documents/testDocs/Bentham_box_035/");
+		}
+		else {
 			// loadLocalDoc("/mnt/dea_scratch/TRP/TrpTestDoc_20140127/");
 			// loadLocalDoc("/mnt/dea_scratch/TRP/Schauplatz_small");
 			// loadLocalDoc("/mnt/dea_scratch/TRP/Schauplatz");
@@ -1746,6 +1747,10 @@ public class TrpMainWidget {
 	}
 
 	public static void show() {
+		ProgramInfo info = new ProgramInfo();
+		Display.setAppName(info.getName());
+		Display.setAppVersion(info.getVersion());
+		
 		show(null);
 	}
 
@@ -1874,32 +1879,7 @@ public class TrpMainWidget {
 		return ui.getTrpSets();
 	}
 
-	public void updateSegmentationViewSettings() {
-		TrpSettings sets = getTrpSets();
-		logger.debug("TrpSets: " + sets.toString());
-
-		for (ICanvasShape s : getScene().getShapes()) {
-			if (s.hasDataType(TrpPrintSpaceType.class)) {
-				s.setVisible(sets.isShowPrintSpace());
-			}
-			if (s.hasDataType(TrpTextRegionType.class)) {
-				s.setVisible(sets.isShowTextRegions());
-			}
-			if (s.hasDataType(TrpTextLineType.class)) {
-				s.setVisible(sets.isShowLines());
-			}
-			if (s.hasDataType(TrpBaselineType.class)) {
-				s.setVisible(sets.isShowBaselines());
-			}
-			if (s.hasDataType(TrpWordType.class)) {
-				s.setVisible(sets.isShowWords());
-			}
-		}
-		redraw();
-	}
-	
-
-	public void redraw() {
+	public void redrawCanvas() {
 		getCanvas().redraw();
 	}
 

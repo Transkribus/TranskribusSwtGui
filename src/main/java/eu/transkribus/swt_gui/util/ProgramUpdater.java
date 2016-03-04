@@ -57,8 +57,7 @@ public abstract class ProgramUpdater<T extends ProgramPackageFile> {
 		};
 		
 		File[] libs = libDirF.listFiles(filter);		
-//		for (File l : libs) {
-		for (int i=0; i<libs.length; ++i) {
+		for (int i=0; libs!=null && i<libs.length; ++i) {
 			File l = libs[i];
 			
 			try (FileInputStream fis = new FileInputStream(l)) {

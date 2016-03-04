@@ -16,6 +16,7 @@ import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.util.APropertyChangeSupport;
@@ -92,6 +93,8 @@ public class TrpConfig {
 	
 	private static void updateConfigFromBean(APropertyChangeSupport bean, String... forceAddThisProperties) {
 		List<String> addThoseL = Arrays.asList(forceAddThisProperties);
+
+		logger.debug("updating config from bean: "+bean.getClass().getName()+ ", adding those props: "+CoreUtils.toListString(addThoseL));
 		
 		for (PropertyDescriptor pd :  PropertyUtils.getPropertyDescriptors(bean)) {
 			Object value = null;
@@ -100,7 +103,7 @@ public class TrpConfig {
 				value = PropertyUtils.getProperty(bean, pd.getName());
 				String strVal = getValue(value);
 				if (config.getProperty(pd.getName())!=null) {
-					logger.debug("updating property "+pd.getName()+" to "+strVal);
+					logger.trace("updating property "+pd.getName()+" to "+strVal);
 					config.setProperty(pd.getName(), strVal);
 				} else if (addThoseL.contains(pd.getName())) {
 					logger.debug("adding new property "+pd.getName()+" to "+strVal);
@@ -126,6 +129,12 @@ public class TrpConfig {
 			return String.valueOf(value);
 		}
 	}
+	
+//	public static void save(APropertyChangeSupport bean, String... forceAddThisProperties) {
+//		updateConfigFromBean(bean, forceAddThisProperties);
+//		
+//		config.save();
+//	}
 	
 	public static void save(String... forceAddThisProperties) {
 		try {

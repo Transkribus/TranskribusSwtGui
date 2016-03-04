@@ -278,7 +278,7 @@ public class SWTCanvas extends Canvas {
 	
 	public void fitToPage() {
 		transform.identity();
-		zoomToBounds(scene.getBounds(), false, false, 0.0f);
+		focusBounds(scene.getBounds(), false, false, 0.0f, false);
 		// after zoomToBounds, image will be centered, but we want it at the top-left corner:
 //		transform.setTranslation(0, 0);
 		redraw();
@@ -286,7 +286,7 @@ public class SWTCanvas extends Canvas {
 	
 	public void fitWidth() {
 //		transform.identity();
-		zoomToBounds(new Rectangle(0, 0, scene.getBounds().width, 1), false, false, 0.0f);
+		focusBounds(new Rectangle(0, 0, scene.getBounds().width, 1), false, false, 0.0f, false);
 		// after zoomToBounds, image will be centered, but we want it at the top-left corner:
 //		transform.setTranslation(0, 0);
 		redraw();
@@ -294,14 +294,14 @@ public class SWTCanvas extends Canvas {
 	
 	public void fitHeight() {
 //		transform.identity();
-		zoomToBounds(new Rectangle(0, 0, 1, scene.getBounds().height), false, false, 0.0f);
+		focusBounds(new Rectangle(0, 0, 1, scene.getBounds().height), false, false, 0.0f, false);
 		// after zoomToBounds, image will be centered, but we want it at the top-left corner:
 //		transform.setTranslation(0, 0);
 		redraw();
 	}
 	
-	public void zoomToBounds(Rectangle bounds) {
-		zoomToBounds(bounds, true, settings.isDoTransition(), 0.0f);
+	public void focusBounds(Rectangle bounds) {
+		focusBounds(bounds, true, settings.isDoTransition(), 0.0f, settings.isLockZoomOnFocus());
 	}
 	
 	/**
@@ -337,7 +337,7 @@ public class SWTCanvas extends Canvas {
 		return Pair.of(scaleToWidth, sf);
 	}
 	
-	public void zoomToBounds(Rectangle bounds, boolean doCentering, boolean doTransition, float angle) {
+	public void focusBounds(Rectangle bounds, boolean doCentering, boolean doTransition, float angle, boolean keepOriginalZoom) {
 		if (bounds.width == 0.0f || bounds.height == 0.0f) {
 			return;
 		}		
@@ -347,9 +347,16 @@ public class SWTCanvas extends Canvas {
 		Rectangle clientRect = getClientArea();
 		
 		Pair<Boolean, Float> scaleInfo = getScaleToInfo(clientRect, bounds);
-		float sf = scaleInfo.getRight();
+		
+//		float sfXold = transform.getScaleX();
+//		float sfYold = transform.getScaleY();
+		
+//		float sf = scaleInfo.getRight();
 		boolean scaleToWidth = scaleInfo.getLeft();
-
+		
+		float sfX = scaleInfo.getRight();
+		float sfY = scaleInfo.getRight();
+				
 //		float relWDiff = (float)clientRect.width / (float)bounds.width;
 //		float relHDiff = (float)clientRect.height / (float)bounds.height;
 //		logger.debug("relWDiff = "+relWDiff+" relHDiff = "+relHDiff);
@@ -371,17 +378,26 @@ public class SWTCanvas extends Canvas {
 //		
 //		// determine scaling factor and scale:
 //		float sf = (scaleToWidth) ? relWDiff : relHDiff;
-				
-		logger.debug("zoomToBounds, bounds = "+bounds+" clientRect = "+clientRect+" sf = "+sf+" scaleToWidth = "+scaleToWidth);
-		transformCopy.scale(sf, sf);
+		
+		if (keepOriginalZoom) {
+			sfX = transform.getScaleX();
+			sfY = transform.getScaleY();
+		}
+		
+		logger.debug("zoomToBounds, bounds = "+bounds+" clientRect = "+clientRect+" sfX = "+sfX+" sfY = "+sfY+" scaleToWidth = "+scaleToWidth);
+		
+		transformCopy.scale(sfX, sfY);
 		
 		// do centering of bounds if desired:
 		if (doCentering) {
-			if (scaleToWidth) { 		// center image at height
-				transformCopy.translate(-bounds.x, clientRect.height/sf/(2.0f)-(bounds.y+bounds.height/2.0f));
-			} else { 		// center image at width
-				transformCopy.translate(clientRect.width/sf/(2.0f)-(bounds.x+bounds.width/2.0f), -bounds.y);
-			}
+			if (!keepOriginalZoom || true) {
+				if (scaleToWidth) { 		// center image at height
+					transformCopy.translate(-bounds.x, clientRect.height/sfY/(2.0f)-(bounds.y+bounds.height/2.0f));
+				} else { 		// center image at width
+					transformCopy.translate(clientRect.width/sfX/(2.0f)-(bounds.x+bounds.width/2.0f), -bounds.y);
+				}
+			} else // keeping original zoom -> center image at height TODO: determine centering direction also here! 
+				transformCopy.translate(-bounds.x, clientRect.height/sfY/(2.0f)-(bounds.y+bounds.height/2.0f));
 		}
 		
 		// correction for rotation - rotate around center of bounds s.t. bounds are still centered afterwards:
@@ -927,7 +943,7 @@ public class SWTCanvas extends Canvas {
 		// act upon drawn rectangle depending on mode:
 		if (settings.getMode() == CanvasMode.ZOOM) {
 			Rectangle invR = inverseTransform(r);
-			zoomToBounds(invR);
+			focusBounds(invR);
 		} else if (settings.getMode() == CanvasMode.SELECTION) {
 			Rectangle invR = inverseTransform(r);
 			// if only one shape selected and intersection area overlaps this shape -> select points from shape
@@ -1028,7 +1044,7 @@ public class SWTCanvas extends Canvas {
 				
 //		Rectangle ca = this.getClientArea();
 		
-		zoomToBounds(new Rectangle(awtR.x-offsetX, awtR.y-offsetY, awtR.width+2*offsetX, awtR.height+2*offsetY));
+		focusBounds(new Rectangle(awtR.x-offsetX, awtR.y-offsetY, awtR.width+2*offsetX, awtR.height+2*offsetY));
 	}
 	
 	public void setMode(CanvasMode mode) {

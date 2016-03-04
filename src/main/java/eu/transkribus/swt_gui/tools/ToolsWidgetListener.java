@@ -4,11 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.viewers.CheckStateChangedEvent;
-import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MessageBox;
@@ -17,14 +13,11 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.HtrModel;
 import eu.transkribus.core.model.beans.TrpDoc;
-import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
-import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
@@ -35,7 +28,7 @@ import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
-public class ToolsWidgetListener implements SelectionListener, ModifyListener, ICheckStateListener {
+public class ToolsWidgetListener implements SelectionListener {
 	private final static Logger logger = LoggerFactory.getLogger(ToolsWidgetListener.class);
 	
 	TrpMainWidget mw;
@@ -58,16 +51,16 @@ public class ToolsWidgetListener implements SelectionListener, ModifyListener, I
 //		wordSegBtn.addSelectionListener(this);
 		tw.baselineBtn.addSelectionListener(this);
 		tw.structAnalysisPageBtn.addSelectionListener(this);
-		tw.startOcrBtn.addSelectionListener(this);
-		tw.startOcrPageBtn.addSelectionListener(this);
-		
 		tw.startRecogBtn.addSelectionListener(this);
-		
-		tw.languagesTable.addCheckStateListener(this);
-		tw.scriptTypeCombo.addModifyListener(this);
-		tw.runHtrOnPageBtn.addSelectionListener(this);
-		tw.htrModelsCombo.addModifyListener(this);
 		tw.computeWerBtn.addSelectionListener(this);
+		
+		//OLD
+//		tw.startOcrBtn.addSelectionListener(this);
+//		tw.startOcrPageBtn.addSelectionListener(this);
+//		tw.languagesTable.addCheckStateListener(this);
+//		tw.scriptTypeCombo.addModifyListener(this);
+//		tw.runHtrOnPageBtn.addSelectionListener(this);
+//		tw.htrModelsCombo.addModifyListener(this);
 	}
 	
 	List<String> getSelectedRegionIds() {
@@ -82,9 +75,6 @@ public class ToolsWidgetListener implements SelectionListener, ModifyListener, I
 		return rids;
 	}
 	
-	boolean isParameterSource(Object s) {
-		return (s == tw.scriptTypeCombo || s == tw.languagesTable);
-	}
 	
 	boolean isLayoutAnalysis(Object s) {
 		return (s == tw.getBlocksBtn() || s == tw.getBlocksInPsBtn() || s == tw.getLinesBtn() || s == tw.getBaselineBtn());
@@ -98,9 +88,9 @@ public class ToolsWidgetListener implements SelectionListener, ModifyListener, I
 			return;
 				
 		final TrpPage p = store.getPage();
-		boolean isPar = isParameterSource(s);
+//		boolean isPar = (s == tw.scriptTypeCombo || s == tw.languagesTable);
 		
-		if (!isPar) {
+//		if (!isPar) {
 			if (!store.isPageLoaded()) {
 				DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No page loaded!");
 				return;
@@ -111,7 +101,7 @@ public class ToolsWidgetListener implements SelectionListener, ModifyListener, I
 				DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "The tools are only available for remote documents!");
 				return;
 			}
-		}
+//		}
 
 //		final TrpServerConn conn = store.getConnection();
 		try {
@@ -157,35 +147,8 @@ public class ToolsWidgetListener implements SelectionListener, ModifyListener, I
 				mw.analyzePageStructure(tw.detectPageNumbers.getSelection(), tw.detectRunningTitles.getSelection(), tw.detectFootnotesCheck.getSelection());
 			}
 			
-			// ocr:
-			else if (s == tw.startOcrBtn) {
-				mw.saveDocMetadata();
-				TrpDocMetadata md = store.getDoc().getMd();
-				if(md.getScriptType() == null || md.getLanguage() == null || md.getLanguage().isEmpty()) {
-					DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "Please select script type and language.");
-				} else {
-					logger.info("starting ocr for doc "+docId+" and col "+colId);
-					jobId = store.runOcr(colId, docId);
-				}
-			} 
-			else if (s == tw.startOcrPageBtn){
-				mw.saveDocMetadata();
-				final int pageNr = p.getPageNr();
-				TrpDocMetadata md = store.getDoc().getMd();
-				if(md.getScriptType() == null || md.getLanguage() == null || md.getLanguage().isEmpty()) {
-					DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "Please select script type and language.");
-				} else {
-					logger.info("starting ocr for doc "+docId+", page " + pageNr + " and col "+colId);
-					jobId = store.runOcr(colId, docId, pageNr);
-				}
-			} else if (s == tw.getRunHtrOnPageBtn()) {
-				store.saveTranscript(colId, null);
-				store.setLatestTranscriptAsCurrent();
-				final int pageNr = store.getPage().getPageNr();
-				final String model = tw.htrModelsCombo.getItem(tw.htrModelsCombo.getSelectionIndex());
-				logger.info("starting HTR for doc " + docId + " on page " + pageNr + " with model = " + model);
-				jobId = store.runHtrOnPage(colId, docId, pageNr, model);
-			} else if(s == tw.computeWerBtn){
+			
+			else if(s == tw.computeWerBtn){
 				
 				TrpTranscriptMetadata ref = (TrpTranscriptMetadata)tw.refVersionChooser.selectedMd;
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata)tw.hypVersionChooser.selectedMd;
@@ -236,7 +199,35 @@ public class ToolsWidgetListener implements SelectionListener, ModifyListener, I
 //				d.getMd().setLanguage(tw.languageCombo.getText());
 //				mw.saveDocMetadata();
 //			}
-
+				// ocr:
+//				else if (s == tw.startOcrBtn) {
+//					mw.saveDocMetadata();
+//					TrpDocMetadata md = store.getDoc().getMd();
+//					if(md.getScriptType() == null || md.getLanguage() == null || md.getLanguage().isEmpty()) {
+//						DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "Please select script type and language.");
+//					} else {
+//						logger.info("starting ocr for doc "+docId+" and col "+colId);
+//						jobId = store.runOcr(colId, docId);
+//					}
+//				} 
+//				else if (s == tw.startOcrPageBtn){
+//					mw.saveDocMetadata();
+//					final int pageNr = p.getPageNr();
+//					TrpDocMetadata md = store.getDoc().getMd();
+//					if(md.getScriptType() == null || md.getLanguage() == null || md.getLanguage().isEmpty()) {
+//						DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "Please select script type and language.");
+//					} else {
+//						logger.info("starting ocr for doc "+docId+", page " + pageNr + " and col "+colId);
+//						jobId = store.runOcr(colId, docId, pageNr);
+//					}
+//				} else if (s == tw.getRunHtrOnPageBtn()) {
+//					store.saveTranscript(colId, null);
+//					store.setLatestTranscriptAsCurrent();
+//					final int pageNr = store.getPage().getPageNr();
+//					final String model = tw.htrModelsCombo.getItem(tw.htrModelsCombo.getSelectionIndex());
+//					logger.info("starting HTR for doc " + docId + " on page " + pageNr + " with model = " + model);
+//					jobId = store.runHtrOnPage(colId, docId, pageNr, model);
+//				} 
 			} else {
 				mw.onError("Error", "Unknown event!", null);
 				return;
@@ -273,40 +264,40 @@ public class ToolsWidgetListener implements SelectionListener, ModifyListener, I
 	public void widgetDefaultSelected(SelectionEvent e) {
 	}
 
-	@Override
-	public void modifyText(ModifyEvent e) {
-		Object s = e.getSource();
-		
-		TrpDoc d = store.getDoc();
-		
-		if (s == tw.scriptTypeCombo) {
-			logger.debug("new script type: "+tw.scriptTypeCombo.getText());
-			ScriptType st = EnumUtils.fromString(ScriptType.class, tw.scriptTypeCombo.getText());
-			if (d != null) {
-				d.getMd().setScriptType(st);
-//				mw.saveDocMetadata();
-			}
-		}
-	}
-
-	@Override
-	public void checkStateChanged(CheckStateChangedEvent event) {
-		logger.debug("check state changed!!");
-		if (event.getSource() == tw.languagesTable.getTv()) {
-			String languages = tw.languagesTable.getSelectedLanguagesString();
-			logger.debug("setting languages: "+languages);
-			TrpDoc d = store.getDoc();
-			if (d != null)
-				d.getMd().setLanguage(languages);
-			return;
-		}
-	}
-
 //	@Override public void keyTraversed(TraverseEvent e) {
 //		Object s = e.getSource();
 //		if (s == tw.languageCombo && e.detail == SWT.TRAVERSE_RETURN) {
 //			logger.debug("enter pressed on language field!");
 ////			mw.saveDocMetadata();
+//		}
+//	}
+	
+// Deprecated: old OCR section. 
+//	@Override
+//	public void modifyText(ModifyEvent e) {
+//		Object s = e.getSource();
+//		
+//		TrpDoc d = store.getDoc();
+//		
+//		if (s == tw.scriptTypeCombo) {
+//			logger.debug("new script type: "+tw.scriptTypeCombo.getText());
+//			ScriptType st = EnumUtils.fromString(ScriptType.class, tw.scriptTypeCombo.getText());
+//			if (d != null) {
+//				d.getMd().setScriptType(st);
+////				mw.saveDocMetadata();
+//			}
+//		}
+//	}
+//	@Override
+//	public void checkStateChanged(CheckStateChangedEvent event) {
+//		logger.debug("check state changed!!");
+//		if (event.getSource() == tw.languagesTable.getTv()) {
+//			String languages = tw.languagesTable.getSelectedLanguagesString();
+//			logger.debug("setting languages: "+languages);
+//			TrpDoc d = store.getDoc();
+//			if (d != null)
+//				d.getMd().setLanguage(languages);
+//			return;
 //		}
 //	}
 }

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.plutext.jaxb.svg11.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,7 @@ import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.GeomUtils;
 import eu.transkribus.swt_canvas.util.RamerDouglasPeuckerFilter;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import math.geom2d.Vector2D;
 import math.geom2d.polygon.Polygon2D;
 import math.geom2d.polygon.Polygons2D;
@@ -304,11 +306,10 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	}
 	
 	@Override
-	public boolean insertPoint(int x, int y) {
+	public int insertPoint(int x, int y) {
 		int ii = getInsertIndex(x, y);
 		
 		List<Point> newPts = new ArrayList<Point>();
-		boolean found = false;
 		
 		int i=0;
 		for (Point pt : getPoints()) {
@@ -322,7 +323,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		}
 				
 		setPoints(newPts);
-		return found;		
+		return ii;		
 		
 //		Line2D line = this.getClosestLine(x, y);
 //		Point pt1 = new Point((int)line.getP1().getX(), (int)line.getP1().getY());
@@ -469,17 +470,21 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 			}
 			if (sets.isDrawSelectedCornerNumbers()) {
 				drawCornerPointNumbers(canvas, gc);
-			}	
+			}
+			if (!isClosedShape() && sets.isDrawPolylineArcs()) {
+				drawDirectionArrows(canvas, gc);
+			}
 		}
-		// TEST:
 		drawSelectedPoints(canvas, gc);
 
 		// TEST: draw "tube" around polylines
-//		if (this instanceof CanvasPolyline) {
-//			CanvasPolygon bp = ((CanvasPolyline) this).getBufferPolygon();
-////			gc.drawPolygon(bp.getPointArray());
+		if (this instanceof CanvasPolyline) {
+			CanvasPolygon bp = ((CanvasPolyline) this).getDefaultPolyRectangle4Baseline();
+			
+			gc.setAlpha(isSelected() ? 75 : 25);
+			gc.fillPolygon(bp.getPointArray());
 //			bp.draw(canvas, gc);
-//		}
+		}
 	}
 	
 	//Test
@@ -581,6 +586,21 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 			int off = 2;
 			gc.drawString(""+(i+1), pt.x+radius+off, pt.y+radius+off);
 			++i;
+		}
+	}
+	
+	public void drawDirectionArrows(SWTCanvas canvas, GC gc) {
+		gc.setAlpha(canvas.getSettings().getForegroundAlpha());
+		gc.setBackground(getColor());
+		
+		List<Point> pts = getPoints();
+		
+		int N = isClosedShape() ? pts.size() : pts.size()-1;
+		for (int i=0; i<N; ++i) {
+			Point pt0 = pts.get(i);
+			Point pt1 = pts.get( (i+1) % pts.size() );
+			
+			SWTUtil.drawTriangleArc(gc, pt0.x, pt0.y, pt1.x, pt1.y, 20, 10, true);
 		}
 	}
 	

@@ -210,8 +210,8 @@ public class CanvasRect extends ACanvasShape<java.awt.Rectangle> {
 	}
 
 	@Override
-	public boolean insertPoint(int x, int y) {
-		return false; // inserting into a rectangle is not permitted
+	public int insertPoint(int x, int y) {
+		return -1; // inserting into a rectangle is not permitted
 	}
 
 	@Override
