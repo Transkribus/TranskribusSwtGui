@@ -119,7 +119,7 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		private boolean lockZoomOnFocus=false;
 		public static final String LOCK_ZOOM_ON_FOCUS_PROPERTY = "lockZoomOnFocus";
 		
-		public static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
+		static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 		    	add(MODE_PROPERTY);
 		}};
 
@@ -405,6 +405,10 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		public void setLockZoomOnFocus(boolean lockZoomOnFocus) {
 			this.lockZoomOnFocus = lockZoomOnFocus;
 			firePropertyChange( LOCK_ZOOM_ON_FOCUS_PROPERTY, !this.lockZoomOnFocus, this.lockZoomOnFocus );
+		}
+
+		@Override public List<String> getPropertiesToNotSave() {
+			return DO_NOT_SAVE_THOSE_PROPERTIES;
 		}
 
 	}

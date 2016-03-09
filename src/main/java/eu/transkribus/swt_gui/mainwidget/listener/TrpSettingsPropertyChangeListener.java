@@ -51,10 +51,5 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 			canvas.updateShapeColors();
 		}
 		
-		if (SAVE_PROPS_ON_CHANGE && !TrpSettings.DO_NOT_SAVE_THOSE_PROPERTIES.contains(pn)) {
-			logger.debug("saving config file on TrpSettings change of property: "+pn);
-			TrpConfig.save(pn);
-		}
-
 	}
 }

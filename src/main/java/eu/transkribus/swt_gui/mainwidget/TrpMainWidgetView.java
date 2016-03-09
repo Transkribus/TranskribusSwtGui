@@ -122,6 +122,7 @@ public class TrpMainWidgetView extends Composite {
 	ToolItem renderBlackeningsToggle;
 	
 	DropDownToolItem showReadingOrderToolItem;
+	DropDownToolItem profilesToolItem;
 	
 	ToolItem showLineEditorToggle;
 	ToolItem loadTranscriptInTextEditor;
@@ -415,7 +416,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	private void initSettings() {
 		trpSets = new TrpSettings();
-		TrpConfig.registerBean(trpSets);
+		TrpConfig.registerBean(trpSets, true);
 	}
 	
 //	private void init(TrpSWTCanvas canvas) {
@@ -723,6 +724,13 @@ public class TrpMainWidgetView extends Composite {
 		
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		
+		profilesToolItem = new DropDownToolItem(toolBar, false, false, SWT.NONE);
+		profilesToolItem.ti.setImage(Images.CONTROL_EQUALIZER);
+		profilesToolItem.ti.setToolTipText("Profiles");
+		updateProfiles();
+		
+		new ToolItem(toolBar, SWT.SEPARATOR);
+		
 		renderBlackeningsToggle = new ToolItem(toolBar, SWT.CHECK);
 		renderBlackeningsToggle.setToolTipText("If toggled, blackening regions are rendered with opaque background");
 		renderBlackeningsToggle.setText("Render blackenings");
@@ -766,6 +774,16 @@ public class TrpMainWidgetView extends Composite {
 		
 //		cbItem.setControl(pagesPagingToolBar.getToolBar());
 		updateToolBarSize();
+	}
+	
+	public void updateProfiles() {
+		profilesToolItem.removeAll();
+		
+		for (String name : TrpConfig.getAvailableProfiles()) {
+			profilesToolItem.addItem(name, null, null);
+		}
+		profilesToolItem.addItem("New...", null, null);
+		
 	}
 	
 	void updateToolBarSize() {
@@ -1134,6 +1152,10 @@ public class TrpMainWidgetView extends Composite {
 
 	public DropDownToolItem getShowReadingOrderToolItem() {
 		return showReadingOrderToolItem;
+	}
+	
+	public DropDownToolItem getProfilesToolItem() {
+		return profilesToolItem;
 	}
 	
 //	public DropDownToolItem getLanguageDropDown() {

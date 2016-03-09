@@ -150,47 +150,42 @@ public class XmlViewer extends Dialog {
 	}
 	
 	private void search() {
-		int startSearchIndex = lastFoundIndex+1 >= text.getCharCount() ? 0 : lastFoundIndex+1;
-		if (!keywordText.getText().equals(keyword)) { // new word!
-			lastFoundIndex = -1;
-			startSearchIndex = text.getCaretOffset();
-		}
-		keyword = keywordText.getText();		
-		logger.debug("search for keyword: "+keyword+" startSearchIndex: "+startSearchIndex);
-		
-		// NEW:
-		boolean caseSensitive = caseSensitveCheck.getSelection();
-		boolean wholeWord = wholeWordCheck.getSelection();
-		boolean previous = previousCheck.getSelection();
-		boolean wrap = wrapSearchCheck.getSelection();
-		
-		int index = CoreUtils.indexOf(text.getText(), keyword, startSearchIndex, previous, caseSensitive, wholeWord);
-		logger.debug("index = "+index);
-		if (index == -1 && wrap) {
-			int newStart = previous ? text.getCharCount()-1 : 0;
-			logger.debug("newStart = "+newStart);
-			index = CoreUtils.indexOf(text.getText(), keyword, newStart, previous, caseSensitive, wholeWord);
-			logger.debug("index, wrapped = "+index);
-		}
-		
-		if (index != -1) {
-			lastFoundIndex = index;
-		}
-		
-//		lastFoundIndex = CoreUtils.indexOf(text.getText(), keyword, startSearchIndex, previous, caseSensitive, wholeWord);
-//		if (lastFoundIndex == -1 && wrap)
-//			lastFoundIndex = CoreUtils.indexOf(text.getText(), keyword, 0, previous, caseSensitive, wholeWord);
+		try {
+			int startSearchIndex = lastFoundIndex+1 >= text.getCharCount() ? 0 : lastFoundIndex+1;
+			if (!keywordText.getText().equals(keyword)) { // new word!
+				lastFoundIndex = -1;
+				startSearchIndex = text.getCaretOffset();
+			}
+			keyword = keywordText.getText();		
+			logger.debug("search for keyword: "+keyword+" startSearchIndex: "+startSearchIndex);
+			
+			boolean caseSensitive = caseSensitveCheck.getSelection();
+			boolean wholeWord = wholeWordCheck.getSelection();
+			boolean previous = previousCheck.getSelection();
+			boolean wrap = wrapSearchCheck.getSelection();
+			
+			int index = CoreUtils.indexOf(text.getText(), keyword, startSearchIndex, previous, caseSensitive, wholeWord);
+			logger.debug("index = "+index);
+			if (index == -1 && wrap) {
+				int newStart = previous ? text.getCharCount()-1 : 0;
+				logger.debug("newStart = "+newStart);
+				index = CoreUtils.indexOf(text.getText(), keyword, newStart, previous, caseSensitive, wholeWord);
+				logger.debug("index, wrapped = "+index);
+			}
+			
+			if (index != -1) {
+				lastFoundIndex = index;
+			}
 
-		// OLD:
-//		lastFoundIndex = text.getText().indexOf(keyword, startSearchIndex);
-//		if (lastFoundIndex == -1)
-//			lastFoundIndex = text.getText().indexOf(keyword, 0);
-		
-		highlightXml();
-		
-		if (lastFoundIndex!=-1) {
-			text.setCaretOffset(lastFoundIndex);
-			centerCurrentLine();
+			highlightXml();
+			
+			if (lastFoundIndex!=-1) {
+				text.setCaretOffset(lastFoundIndex);
+				centerCurrentLine();
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			DialogUtil.showErrorMessageBox(shell, "Unexpected error", "Unexpeceted error while searching: "+e.getMessage());
 		}
 	}
 		

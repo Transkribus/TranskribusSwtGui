@@ -1,9 +1,11 @@
 package eu.transkribus.swt_gui.mainwidget.listener;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Locale;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -84,6 +86,8 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		ui.getVkeyboards().addSelectionListener(this);
 		
 		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
+		SWTUtil.addToolItemSelectionListener(ui.getProfilesToolItem().ti, this);
+		
 //		SWTUtil.addToolItemSelectionListener(ui.getLanguageDropDown().ti, this);
 		
 		// listener for tagging:
@@ -133,71 +137,19 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 			mainWidget.updateReadingOrderVisibility(ui.getShowReadingOrderToolItem().getSelectedIndices());
 			
 			canvas.redraw();
-		
-//		canvas.getScene().setShowReadingOrderForShapes();
-			
-//			switch (ui.getShowReadingOrderToolItem().getLastSelectedIndex()) {
-//			case 0:
-//				//if (previously clicked the subsequent click means show no reading order
-//				if (canvas.getScene().isRegionsRO()){
-////					ui.getShowReadingOrderToolItem().ti.setImage(Images.getOrLoad("/icons/reading_order_r_hide.png"));
-//					canvas.getScene().setRegionsRO(false);
-//				}
-//				else{
-////					ui.getShowReadingOrderToolItem().ti.setImage(Images.getOrLoad("/icons/reading_order_r.png"));
-//					canvas.getScene().setRegionsRO(true);
-//				}
-//				canvas.getScene().setLinesRO(false);
-//				canvas.getScene().setWordsRO(false);
-//				canvas.getScene().setShowReadingOrderForShapes();
-//				break;
-//			case 1:
-//				if (canvas.getScene().isLinesRO()){
-//					ui.getShowReadingOrderToolItem().ti.setImage(Images.getOrLoad("/icons/reading_order_l_hide.png"));
-//					canvas.getScene().setLinesRO(false);
-//				}
-//				else{
-//					ui.getShowReadingOrderToolItem().ti.setImage(Images.getOrLoad("/icons/reading_order_l.png"));
-//					canvas.getScene().setLinesRO(true);
-//				}
-//				canvas.getScene().setRegionsRO(false);
-//				canvas.getScene().setWordsRO(false);
-//				canvas.getScene().setShowReadingOrderForShapes();
-//				break;
-//			case 2:
-//				if (canvas.getScene().isWordsRO()){
-//					ui.getShowReadingOrderToolItem().ti.setImage(Images.getOrLoad("/icons/reading_order_w_hide.png"));
-//					canvas.getScene().setWordsRO(false);
-//				}
-//				else{
-//					ui.getShowReadingOrderToolItem().ti.setImage(Images.getOrLoad("/icons/reading_order_w.png"));
-//					canvas.getScene().setWordsRO(true);
-//				}
-//				canvas.getScene().setRegionsRO(false);
-//				canvas.getScene().setLinesRO(false);
-//				canvas.getScene().setShowReadingOrderForShapes();
-//				break;
-//			case 3:
-//				if (canvas.getScene().isAllRO()){
-//					ui.getShowReadingOrderToolItem().ti.setImage(Images.getOrLoad("/icons/readingOrder_hide.png"));
-//					canvas.getScene().setAllRO(false);
-//					canvas.getScene().setRegionsRO(false);
-//					canvas.getScene().setLinesRO(false);
-//					canvas.getScene().setWordsRO(false);
-//				}
-//				else{
-//					ui.getShowReadingOrderToolItem().ti.setImage(Images.getOrLoad("/icons/readingOrder.png"));
-//					canvas.getScene().setAllRO(true);
-//					canvas.getScene().setRegionsRO(true);
-//					canvas.getScene().setLinesRO(true);
-//					canvas.getScene().setWordsRO(true);
-//				}
-//				canvas.getScene().setShowReadingOrderForShapes();
-//				break;
-//			}
 		}
-		
-		
+		else if (s == ui.getProfilesToolItem().ti && e.detail != SWT.ARROW) {
+			int i = ui.getProfilesToolItem().getLastSelectedIndex();
+			if (i < ui.getProfilesToolItem().getItemCount()-1) { // profile selected
+				String name = ui.getProfilesToolItem().getSelected().getText();
+				logger.info("selecting profile: "+name);
+				mainWidget.selectProfile(name);
+			} else if (i == ui.getProfilesToolItem().getItemCount()-1){
+				logger.info("opening save profile dialog... TODO!");
+			}
+			
+			
+		}
 		else if (s == menuBar.getSyncWordsWithLinesMenuItem()) {
 			mainWidget.syncTextOfDocFromWordsToLinesAndRegions();
 

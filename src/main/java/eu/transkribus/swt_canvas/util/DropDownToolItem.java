@@ -274,6 +274,10 @@ public class DropDownToolItem extends Widget {
 		return selected;
 	}
 	
+	public int getItemCount() {
+		return listener.menu.getItemCount();
+	}
+	
 	public MenuItem getItemWithData(Object data) {
 		for (MenuItem mi : listener.menu.getItems()) {
 			if (mi.getData().equals(data))

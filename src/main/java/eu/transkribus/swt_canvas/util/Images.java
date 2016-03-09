@@ -16,6 +16,7 @@ public class Images {
 	public static final Image LOADING_IMG = Images.getOrLoad("/icons/loading.gif");
 	public static final Image ERROR_IMG = Images.getOrLoad("/icons/broken_image.png");
 	public static final Image COMMENT = Images.getOrLoad("/icons/comment.png");
+	public static final Image CONTROL_EQUALIZER = Images.getOrLoad("/icons/control_equalizer.png");
 	
 	public static final Image IMAGE_EDIT = Images.getOrLoad("/icons/image_edit.png");
 	public static final Image IMAGE_DELETE = Images.getOrLoad("/icons/image_delete.png");

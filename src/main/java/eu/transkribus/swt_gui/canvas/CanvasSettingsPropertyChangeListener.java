@@ -50,11 +50,5 @@ public class CanvasSettingsPropertyChangeListener implements PropertyChangeListe
 //			else if (m == CanvasMode.SELECTION)
 //				ui.setStatusMessage("", 0);
 		}
-		
-		if (SAVE_PROPS_ON_CHANGE && !CanvasSettings.DO_NOT_SAVE_THOSE_PROPERTIES.contains(pn)) {
-			logger.debug("saving config file...");
-			TrpConfig.save(pn);
-		}
-
 	}
 }

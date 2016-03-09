@@ -2,6 +2,9 @@ package eu.transkribus.util;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.List;
+
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 
 public abstract class APropertyChangeSupport implements IPropertyChangeSupport {
 	private PropertyChangeSupport changes = new PropertyChangeSupport(this);
@@ -44,7 +47,13 @@ public abstract class APropertyChangeSupport implements IPropertyChangeSupport {
 	@Override
 	public PropertyChangeSupport getChanges() {
 		return changes;
-	}	
+	}
+	
+	public abstract List<String> getPropertiesToNotSave();
+	
+	public boolean isSaveProperty(String propertyName) {
+		return !(getPropertiesToNotSave().contains(propertyName));
+	}
 	
 
 }

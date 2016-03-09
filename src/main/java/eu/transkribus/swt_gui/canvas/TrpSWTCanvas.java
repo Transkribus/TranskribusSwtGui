@@ -55,7 +55,7 @@ public class TrpSWTCanvas extends SWTCanvas {
 	
 	@Override protected void initSettings() {
 		settings = new CanvasSettings();
-		TrpConfig.registerBean(settings);
+		TrpConfig.registerBean(settings, true);
 	}
 	
 	private void initTrpCanvasListener() {

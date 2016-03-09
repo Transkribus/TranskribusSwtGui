@@ -19,6 +19,7 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
@@ -3233,6 +3234,15 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			onError("Error", "Error during batch replace of images", e);
 		}		
+	}
+
+	public void selectProfile(String name) {
+		try {
+			TrpConfig.loadProfile(name);
+//			ui.updateProfiles();
+		} catch (Exception e) {
+			onError("Error loading profile!", e.getMessage(), null, false, false);
+		}
 	}
 
 }

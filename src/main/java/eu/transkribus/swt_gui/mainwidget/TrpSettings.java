@@ -189,7 +189,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	public String cattiServerUrl = TrpCattiClientEndpoint.DEFAULT_CATTI_URI;
 	public static final String CATTI_SERVER_URL_PROPERTY = "cattiServerUrl";
 	
-	public static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
+	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
 	
 	public TrpSettings() {
@@ -757,6 +757,10 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setAutoLogin(boolean autoLogin) {
 		this.autoLogin = autoLogin;
 		firePropertyChange(AUTO_LOGIN_PROPERTY, !this.autoLogin, this.autoLogin);
+	}
+
+	@Override public List<String> getPropertiesToNotSave() {
+		return DO_NOT_SAVE_THOSE_PROPERTIES;
 	}
 	
 	
