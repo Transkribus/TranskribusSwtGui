@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>0.7.9.3-SNAPSHOT</version>
+	<version>0.8.0.1-SNAPSHOT</version>
 	<!-- <version>0.4.6</version> -->
 	<name>Transkribus</name>
 
@@ -344,11 +344,11 @@
 						<phase>package</phase>
 						<configuration>
 							<target>
-<!-- 								<chmod file="target/TrpGui.sh" perm="755" /> -->
-<!-- 								<chmod file="target/TrpGui.command" perm="755" /> -->
-								
-								<chmod file="target/Transkribus.sh" perm="755" />
-								<chmod file="target/Transkribus.command" perm="755" />
+<!-- 								<copy file="${project.build.directory}/Transkribus.sh" tofile="${project.build.directory}/Transkribus.command" /> -->
+
+								<!-- Needed? Permissions also changed in assembly! Nevermind, it won't hurt... -->
+								<chmod file="${project.build.directory}/Transkribus.sh" perm="755" />
+								<chmod file="${project.build.directory}/Transkribus.command" perm="755" />
 <!-- 								<chmod file="target/TranskribusMac" perm="755" />							 -->
 							</target>
 						</configuration>
@@ -357,11 +357,9 @@
 						</goals>
 					</execution>
 
-					<!-- Upload assembly zip to FTP and SVN using ant tasks -->
-					<!-- 'mvn deploy' will install the while package and the upload the 
-						file to the FTP -->
-					<!-- 'mvn antrun:run' will only try to upload an existing zip file to 
-						the FTP if you dont want the whole install process to be started again! -->
+					<!-- Upload assembly zip to wherever needed -->
+					<!-- 'mvn deploy' will install the package and the upload the stuff -->
+					<!-- 'mvn antrun:run' will only try to upload an existing zip file -->
 					<execution>
 						<!-- with this id the execution will be picked up during the antrun:run 
 							goal -->

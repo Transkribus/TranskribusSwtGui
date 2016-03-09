@@ -58,14 +58,17 @@ if ! isValidJava $_java; then
     exit 1
 fi
 
+# set some java flags
+# set max heap space to 2 GB
+java_flags="-Xmx2048m " 
 # add -XstartOnFirstThread flag for mac-os (i.e. $OSTYPE == 'darwin'*)
 # since elsewise there will be a deadlock on startup: 
-java_flags=""
 if [[ $OSTYPE == 'darwin'* ]]; then
-  java_flags="-XstartOnFirstThread"
+java_flags=$java_flags" -XstartOnFirstThread"
 fi
+echo "java flags are: "$java_flags
 
-# define SWT_GTK3=0
+# do *not* use gtk 3 on linux systems!
 export SWT_GTK3=0
 
 # start the bloody thing:

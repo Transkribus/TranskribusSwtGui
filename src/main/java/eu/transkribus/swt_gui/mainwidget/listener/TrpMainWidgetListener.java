@@ -302,7 +302,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		
 		else if (s == ui.getLoadTranscriptInTextEditor()) {
 			logger.debug("loading transcript source");
-			if (Storage.getInstance().isPageLoaded()) {
+			if (Storage.getInstance().isPageLoaded() && Storage.getInstance().getTranscriptMetadata()!=null) {
 				URL url = Storage.getInstance().getTranscriptMetadata().getUrl();
 				
 				try {

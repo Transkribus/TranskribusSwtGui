@@ -262,6 +262,8 @@ public class XmlViewer extends Dialog {
 	}
 	
 	public boolean open(URL url) throws IOException {
+		if (url==null)
+			throw new IOException("URL is null!");
 		
 		result = false;
 		this.url = url;
