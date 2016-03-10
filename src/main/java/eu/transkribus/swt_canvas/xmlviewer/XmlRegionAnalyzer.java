@@ -1,9 +1,9 @@
-package eu.transkribus.swt_canvas.util;
+package eu.transkribus.swt_canvas.xmlviewer;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.transkribus.swt_canvas.util.XmlRegion.XmlRegionType;
+import eu.transkribus.swt_canvas.xmlviewer.XmlRegion.XmlRegionType;
 
 /**
  * A class that builds style ranges from a XML input.

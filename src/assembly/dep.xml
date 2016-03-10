@@ -8,40 +8,73 @@
     <format>zip</format>
   </formats>
   <fileSets>
+  
+	<!-- Files from the build directory -->
     <fileSet>
       <directory>${project.build.directory}</directory>
       <outputDirectory>/</outputDirectory>
       <fileMode>0755</fileMode>
       <includes>
-        <include>${project.build.finalName}.jar</include> <!-- The main jar -->
-        <include>logback.xml</include> <!-- logback props -->
-<!--         <include>log4j.properties</include> log4j props -->
-        <include>config.properties</include> <!-- config props -->
-        
+        <include>${project.build.finalName}.jar</include> <!-- The main jar -->        
         <include>${project.name}.exe</include>
-        <include>${project.name}.bat</include>
-        <include>${project.name}.sh</include>
-        <include>${project.name}.command</include>
-        <include>TranskribusMac</include>
-                
-        <include>README.txt</include>
-        <include>USAGE.txt</include>
-        <include>CHANGES.txt</include>
-        <include>BUILD.txt</include>
-        <include>virtualKeyboards.xml</include>
-        
-        <include>How_to_use_TRANSKRIBUS-0.1.7.pdf</include>
       </includes>
     </fileSet>
-    <!-- The libs dir:  -->
+    
+    <!-- Files from the base directory -->
+    <fileSet>
+       	<directory>.</directory>
+    	<outputDirectory>/</outputDirectory>
+    	<includes>
+        	<include>CHANGES.txt</include>   	
+        </includes>
+    </fileSet>    
+    
+    <!-- Scripts -->
+    <fileSet>
+       	<directory>${project.build.directory}/classes</directory>
+    	<outputDirectory>/</outputDirectory>
+    	<fileMode>0755</fileMode>
+    	<includes>
+        	<include>${project.name}.bat</include>
+        	<include>${project.name}.sh</include>
+        	<include>${project.name}.command</include>    	
+        </includes>
+    </fileSet>
+    
+    <!-- Files from the classes directory (i.e. the copied resources from src/main/resouces) -->
+    <fileSet>
+    	<directory>${project.build.directory}/classes</directory>
+    	<outputDirectory>/</outputDirectory>
+    	<includes>  	
+	    	<include>README.txt</include>
+	        <include>USAGE.txt</include>
+	        <include>CHANGES.txt</include>
+	        <include>BUILD.txt</include>
+	        <include>virtualKeyboards.xml</include>
+	        <include>How_to_use_TRANSKRIBUS-0.1.7.pdf</include>
+        	<include>logback.xml</include>
+<!--         <include>log4j.properties</include> -->
+        	<include>config.properties</include>
+        </includes>
+    </fileSet>
+    
+    <!-- i18n dir -->
+    <fileSet>
+    	<directory>${project.build.directory}/classes/i18n</directory>
+    	<outputDirectory>/i18n</outputDirectory>
+    </fileSet>
+    
+    <!-- profiles dir -->
+    <fileSet>
+    	<directory>${project.build.directory}/classes/profiles</directory>
+    	<outputDirectory>/profiles</outputDirectory>
+    </fileSet>
+    
+    <!-- libs dir  -->
     <fileSet>
       <directory>${project.build.directory}/${dependency-dir}</directory>
       <outputDirectory>/${dependency-dir}</outputDirectory>
     </fileSet>
-<!--     i18n dir:  -->
-<!--     <fileSet> -->
-<!--       <directory>${project.build.directory}/${dependency-dir}</directory> -->
-<!--       <outputDirectory>/${dependency-dir}</outputDirectory> -->
-<!--     </fileSet>     -->
+    
   </fileSets>
 </assembly>

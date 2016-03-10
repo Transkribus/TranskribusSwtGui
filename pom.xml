@@ -42,6 +42,9 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
+				<excludes>
+					<exclude>How_to_use_TRANSKRIBUS-0.1.7.pdf</exclude>
+				</excludes>
 			</resource>
 		</resources>
 		
@@ -156,33 +159,13 @@
 						<configuration>
 							<outputDirectory>${project.build.directory}</outputDirectory>
 							<resources>
-								<resource>
-									<directory>.</directory>
-									<filtering>true</filtering>
-									<includes>
-										<!-- <include>config.properties</include> -->
-										<!-- <include>log4j.properties</include> -->
-										<include>README.txt</include>
-										<include>USAGE.txt</include>
-										<include>CHANGES.txt</include>
-										<include>BUILD.txt</include>
-										<include>Transkribus.bat</include>
-										<include>Transkribus.sh</include>
-										<include>Transkribus.command</include>
-										<include>TranskribusMac</include>										
-										<include>virtualKeyboards.xml</include>
-										
+<!-- 								<resource> -->
+<!-- 									<directory>.</directory> -->
+<!-- 									<filtering>false</filtering> -->
+<!-- 									<includes> -->
 <!-- 										<include>How_to_use_TRANSKRIBUS-0.1.6.pdf</include> -->
-									</includes>
-								</resource>
-								
-								<resource>
-									<directory>.</directory>
-									<filtering>false</filtering>
-									<includes>
-										<include>How_to_use_TRANSKRIBUS-0.1.6.pdf</include>
-									</includes>
-								</resource>	
+<!-- 									</includes> -->
+<!-- 								</resource>	 -->
 															
 								<resource>
 									<!-- For deployment use the log4j.properties (has log level set 

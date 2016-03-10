@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.util.XmlViewer;
+import eu.transkribus.swt_canvas.xmlviewer.XmlViewer;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;

@@ -13,7 +13,6 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 
-@Deprecated
 /** @deprecated This class causes problems and looks ugly - use {@link org.dea.swt.util.DropDownToolItem} instead! */
 public class ComboToolItem extends ACustomToolItem {
 	private final static Logger logger = LoggerFactory.getLogger(ComboToolItem.class);

@@ -5,3 +5,5 @@
 logs
 /config.properties
 /profiles
+/virtualKeyboards.xml
+/TODO

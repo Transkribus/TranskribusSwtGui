@@ -571,35 +571,35 @@ public class TrpMainWidgetView extends Composite {
 		loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
 //		loginToggle.setImage(Images.getOrLoad("/icons/connect.png"));
 		if (true) {
-			class DockingSl extends SelectionAdapter {
-				DropDownToolItem item;
-				Position pos;
-				
-				public DockingSl(DropDownToolItem item, Position pos) {
-					this.item = item;
-					this.pos = pos;
-				}
-				
-				@Override public void widgetSelected(SelectionEvent e) {
-					logger.debug("selected: "+pos+", menu visible: "+item.isMenuVisible());
-					
-					if (e.detail == SWT.ARROW)
-						return;
-					if (item.isMenuVisible())
-						return;
-					
-//					logger.debug("selected: "+e);
-					switch (portalWidget.getDocking(pos)) {
-					case DOCKED:
-						portalWidget.setWidgetDockingType(pos, Docking.INVISIBLE);
-						break;
-					case UNDOCKED:
-					case INVISIBLE:
-						portalWidget.setWidgetDockingType(pos, Docking.DOCKED);
-						break;					
-					}		
-				}
-			};
+//			class DockingSl extends SelectionAdapter {
+//				DropDownToolItem item;
+//				Position pos;
+//				
+//				public DockingSl(DropDownToolItem item, Position pos) {
+//					this.item = item;
+//					this.pos = pos;
+//				}
+//				
+//				@Override public void widgetSelected(SelectionEvent e) {
+//					logger.debug("selected: "+pos+", menu visible: "+item.isMenuVisible());
+//					
+//					if (e.detail == SWT.ARROW)
+//						return;
+//					if (item.isMenuVisible())
+//						return;
+//					
+////					logger.debug("selected: "+e);
+//					switch (portalWidget.getDocking(pos)) {
+//					case DOCKED:
+//						portalWidget.setWidgetDockingType(pos, Docking.INVISIBLE);
+//						break;
+//					case UNDOCKED:
+//					case INVISIBLE:
+//						portalWidget.setWidgetDockingType(pos, Docking.DOCKED);
+//						break;					
+//					}		
+//				}
+//			};
 			
 			leftViewDockingDropItem = new DropDownToolItem(toolBar, false, true, SWT.RADIO, preInsertIndex++);
 			leftViewDockingDropItem.addItem("Docked", Images.APPLICATION_SIDE_CONTRACT, "Left view docking state: docked", false, Docking.DOCKED);
@@ -639,6 +639,13 @@ public class TrpMainWidgetView extends Composite {
 		bottomViewVisibleToggle.setToolTipText("Show bottom view");
 		bottomViewVisibleToggle.setImage(Images.getOrLoad("/icons/application_put.png"));
 		}
+		
+		profilesToolItem = new DropDownToolItem(toolBar, false, false, SWT.NONE, preInsertIndex++);
+		profilesToolItem.ti.setImage(Images.CONTROL_EQUALIZER);
+		profilesToolItem.ti.setToolTipText("Profiles");
+		updateProfiles();
+		
+		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);		
 		
 		openLocalFolderButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		openLocalFolderButton.setToolTipText("Open local folder");
@@ -724,13 +731,6 @@ public class TrpMainWidgetView extends Composite {
 		showWordsToggle= new ToolItem(toolBar, SWT.CHECK);
 		showWordsToggle.setToolTipText("Show words (F5)");
 		showWordsToggle.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
-		
-		new ToolItem(toolBar, SWT.SEPARATOR);
-		
-		profilesToolItem = new DropDownToolItem(toolBar, false, false, SWT.NONE);
-		profilesToolItem.ti.setImage(Images.CONTROL_EQUALIZER);
-		profilesToolItem.ti.setToolTipText("Profiles");
-		updateProfiles();
 		
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		

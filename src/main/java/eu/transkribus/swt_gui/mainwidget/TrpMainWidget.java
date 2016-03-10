@@ -483,6 +483,7 @@ public class TrpMainWidget {
 		String fn = "";
 		String key = "";
 		int pageNr = -1;
+		String imgUrl="", transcriptUrl="";
 
 		int docId = -1;
 
@@ -492,8 +493,16 @@ public class TrpMainWidget {
 			if (storage.getPage() != null) {
 				fn = storage.getPage().getImgFileName() != null ? storage.getPage().getImgFileName() : "";
 				key = storage.getPage().getKey() != null ? storage.getPage().getKey() : "";
+				
+//				imgUrl = CoreUtils.urlToString(storage.getPage().getUrl());
+				if (storage.getCurrentImage()!=null)
+					imgUrl = CoreUtils.urlToString(storage.getCurrentImage().url);
 
 				pageNr = storage.getPage().getPageNr();
+				
+				if (storage.getTranscriptMetadata() != null && storage.getTranscriptMetadata().getUrl()!=null) {
+					transcriptUrl = CoreUtils.urlToString(storage.getTranscriptMetadata().getUrl());
+				}
 
 				loadedPageStr = "Page " + pageNr + ", file: " + fn;
 				if (storage.isPageLocked()) {
@@ -536,7 +545,10 @@ public class TrpMainWidget {
 		ui.getDocOverviewWidget().getLoadedDocText().setText(loadedDocStr);
 		// if (pageNr != -1) {
 		ui.getDocOverviewWidget().getLoadedPageText().setText(fn);
-		ui.getDocOverviewWidget().getLoadedPageKey().setText(key);
+//		ui.getDocOverviewWidget().getLoadedPageKey().setText(key);
+		ui.getDocOverviewWidget().getLoadedImageUrl().setText(imgUrl);
+		ui.getDocOverviewWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
+		
 		// }
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 		ui.getShell().setText(title);
@@ -1271,6 +1283,7 @@ public class TrpMainWidget {
 	public void reloadCurrentImage() {
 		try {
 			Storage.getInstance().reloadCurrentImage(TrpMainWidget.getInstance().getSelectedImageFileType());
+			updatePageInfo();
 		} catch (Throwable e) {
 			onError("Image load error", "Error loading main image", e);
 		}

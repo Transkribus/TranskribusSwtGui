@@ -477,7 +477,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		}
 		drawSelectedPoints(canvas, gc);
 
-		// TEST: draw "tube" around polylines
+		// draw "tube" around polylines
 		if (this instanceof CanvasPolyline) {
 			CanvasPolygon bp = ((CanvasPolyline) this).getDefaultPolyRectangle4Baseline();
 			
