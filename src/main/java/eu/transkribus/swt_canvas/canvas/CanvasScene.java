@@ -923,36 +923,4 @@ public class CanvasScene {
 		return selected.size();
 	}
 
-	public boolean isRegionsRO() {
-		return regionsRO;
-	}
-
-	public void setRegionsRO(boolean regionsRO) {
-		this.regionsRO = regionsRO;
-	}
-
-	public boolean isLinesRO() {
-		return linesRO;
-	}
-
-	public void setLinesRO(boolean linesRO) {
-		this.linesRO = linesRO;
-	}
-
-	public boolean isWordsRO() {
-		return wordsRO;
-	}
-
-	public void setWordsRO(boolean wordsRO) {
-		this.wordsRO = wordsRO;
-	}
-
-	public boolean isAllRO() {
-		return allRO;
-	}
-
-	public void setAllRO(boolean allRO) {
-		this.allRO = allRO;
-	}
-
 }

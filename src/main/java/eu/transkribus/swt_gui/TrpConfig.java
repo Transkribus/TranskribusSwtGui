@@ -43,9 +43,12 @@ public class TrpConfig {
 	
 	public final static String PROFILES_FOLDERNAME = "profiles";
 	public final static File PROFILES_FOLDER = new File(PROFILES_FOLDERNAME);
-	public final static String DEFAULT_PROFILE_NAME = "default";
-	public final static String PROFILE_NAME_REGEX = "[a-zA-Z0-9_]";
+	
+	public final static String PROFILE_NAME_REGEX = "[a-zA-Z0-9_]+";
 	public final static String PROFILE_SUFFIX = ".properties";
+	
+	public final static String DEFAULT_PROFILE_NAME = "default";
+	public final static List<String> PREDEFINED_PROFILES = new ArrayList<String>();
 	
 	public static Properties tips = new Properties();
 	
@@ -79,6 +82,7 @@ public class TrpConfig {
 
 	static {
 		init();
+		PREDEFINED_PROFILES.add(DEFAULT_PROFILE_NAME);
 	}
 	
 	public static void init() {
@@ -273,6 +277,26 @@ public class TrpConfig {
 		return profiles;
 	}
 	
+	public static List<String> getPredefinedProfiles() {
+		List<String> profiles = new ArrayList<>();
+		for (String pn : getAvailableProfiles()) {
+			if (isPredefinedProfile(pn))
+				profiles.add(pn);
+		}
+		
+		return profiles;
+	}
+	
+	public static List<String> getCustomProfiles() {
+		List<String> profiles = new ArrayList<>();
+		for (String pn : getAvailableProfiles()) {
+			if (!isPredefinedProfile(pn))
+				profiles.add(pn);
+		}
+		
+		return profiles;
+	}
+	
 	public static File getProfileFile(String name) throws IOException {
 		File pf = new File(PROFILES_FOLDER+"/"+name+PROFILE_SUFFIX);
 		if (!pf.exists())
@@ -281,15 +305,15 @@ public class TrpConfig {
 		return pf;
 	}
 	
-	public static void saveProfile(String name, boolean overrideExisting) throws IOException, FileExistsException, ConfigurationException {
+	public static File saveProfile(String name, boolean overrideExisting) throws IOException, FileExistsException, ConfigurationException {
 		if (StringUtils.isEmpty(name))
 			throw new IOException("No name given!");
 		
 		if (!name.matches(PROFILE_NAME_REGEX))
 			throw new IOException("Invalid profile name "+name+" - only alphanumeric characters and underscores are allowed!");
 		
-		if (name.equals(DEFAULT_PROFILE_NAME))
-			throw new IOException("Cannot ovverride default profile!");
+		if (isPredefinedProfile(name))
+			throw new IOException("Cannot ovverride a predefined profile!");
 		
 		if (getAvailableProfiles().contains(name) && !overrideExisting) {
 			throw new FileExistsException("Profile "+name+" already exists!");
@@ -299,6 +323,11 @@ public class TrpConfig {
 		logger.info("storing new profile: "+profileFile.getAbsolutePath());
 		
 		config.save(profileFile);
+		return profileFile;
+	}
+	
+	public static boolean isPredefinedProfile(String name) {
+		return PREDEFINED_PROFILES.contains(name);
 	}
 	
 	public static void loadProfile(String name) throws IOException, ConfigurationException {
@@ -314,6 +343,8 @@ public class TrpConfig {
 	public static void loadDefaultProfile() throws IOException, ConfigurationException {
 		loadProfile(DEFAULT_PROFILE_NAME);
 	}
+
+
 
 
 	

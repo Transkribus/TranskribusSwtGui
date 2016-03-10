@@ -20,7 +20,9 @@ import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.eclipse.core.databinding.observable.Realm;
@@ -28,6 +30,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -3094,22 +3097,22 @@ public class TrpMainWidget {
 		d.open();
 	}
 
-	//update visibility of reading order
-	public void updateReadingOrderVisibility(List<Integer> selectedIndices) {
-
-		for (ICanvasShape s : getScene().getShapes()) {
-
-			if (s.hasDataType(TrpTextRegionType.class)) {
-				s.showReadingOrder(selectedIndices.contains(0));
-			}
-			if (s.hasDataType(TrpTextLineType.class)) {
-				s.showReadingOrder(selectedIndices.contains(1));
-			}
-			if (s.hasDataType(TrpWordType.class)) {
-				s.showReadingOrder(selectedIndices.contains(2));
-			}
-		}
-	}
+//	//update visibility of reading order
+//	public void updateReadingOrderVisibility() {
+//
+//		for (ICanvasShape s : getScene().getShapes()) {
+//
+//			if (s.hasDataType(TrpTextRegionType.class)) {
+//				s.showReadingOrder(getTrpSets().isShowReadingOrderRegions());
+//			}
+//			if (s.hasDataType(TrpTextLineType.class)) {
+//				s.showReadingOrder(getTrpSets().isShowReadingOrderLines());
+//			}
+//			if (s.hasDataType(TrpWordType.class)) {
+//				s.showReadingOrder(getTrpSets().isShowReadingOrderWords());
+//			}
+//		}
+//	}
 
 	public void showEventMessages() {
 		try {
@@ -3241,8 +3244,43 @@ public class TrpMainWidget {
 			TrpConfig.loadProfile(name);
 //			ui.updateProfiles();
 		} catch (Exception e) {
-			onError("Error loading profile!", e.getMessage(), null, false, false);
+			onError("Error loading profile!", e.getMessage(), e, true, false);
 		}
+	}
+	
+	public void saveNewProfile() {
+		
+		try {
+			InputDialog dlg = new InputDialog(getShell(), "Save current settings as profile", "Profile name: ", "", new IInputValidator() {
+				@Override public String isValid(String newText) {
+					if (StringUtils.isEmpty(newText) || !newText.matches(TrpConfig.PROFILE_NAME_REGEX))
+						return "Invalid profile name - only alphanumeric characters and underscores allowed!";
+					
+					return null;
+				}
+			});
+			if (dlg.open() != Window.OK)
+				return;
+			
+			String profileName = dlg.getValue();
+			logger.debug("profileName = "+profileName);
+			
+			File profileFile=null;
+			try {
+				profileFile=TrpConfig.saveProfile(profileName, false);
+				ui.updateProfiles();
+			} catch (FileExistsException e ) {
+				if (DialogUtil.showYesNoDialog(getShell(), "Profile already exists!", "Do want to overwrite the existing one?") == SWT.YES) {
+					profileFile=TrpConfig.saveProfile(profileName, true);
+				}				
+			}
+			if (profileFile!=null)
+				DialogUtil.showMessageBox(getShell(), "Success", "Written profile to: \n\n"+profileFile.getAbsolutePath(), SWT.ICON_INFORMATION);
+			
+		} catch (Exception e) {
+			onError("Error saving profile!", e.getMessage(), e, true, false);
+		}
+		
 	}
 
 }

@@ -40,13 +40,13 @@ public class CanvasSettings extends APropertyChangeSupport  {
 //		public MouseButtons editMouseButton = DEFAULT_EDIT_MOUSE_BUTTON;
 		
 		private Color drawColor = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
-		public static String DRAW_COLOR_PROPERTY = "drawColor";
+		public static final String DRAW_COLOR_PROPERTY = "drawColor";
 		
 		private Color newDrawColor = Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED);
-		public static String NEW_DRAW_COLOR_PROPERTY = "newDrawColor";
+		public static final String NEW_DRAW_COLOR_PROPERTY = "newDrawColor";
 		
 		private int newDrawLineWidth = 3;
-		public static String NEW_DRAW_LINE_WIDTH_PROPERTY = "newDrawLineWidth";
+		public static final String NEW_DRAW_LINE_WIDTH_PROPERTY = "newDrawLineWidth";
 		
 		private Color readingOrderBackgroundColor = Display.getDefault().getSystemColor(SWT.COLOR_YELLOW);
 		
@@ -106,7 +106,7 @@ public class CanvasSettings extends APropertyChangeSupport  {
 //		private boolean multiselect= false;
 //		public static final String MULTISELECT_PROPERTY="multiselect";
 		
-		private boolean editingEnabled= false;
+		private boolean editingEnabled= true;
 		public static final String EDITING_ENABLED_PROPERTY="editingEnabled";
 
 		/** Determines whether the first or last selected element is the one with the focus in a multiselect scenario */
@@ -221,18 +221,21 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		public void setFillColor(Color fillColor) {
 			this.fillColor = fillColor;
 		}
+		
 		public Color getSelectedColor() {
 			return selectedColor;
 		}
 		public void setSelectedColor(Color selectedColor) {
 			this.selectedColor = selectedColor;
 		}
+		
 		public Color getSelectedPointColor() {
 			return selectedPointColor;
 		}
 		public void setSelectedPointColor(Color selectedPointColor) {
 			this.selectedPointColor = selectedPointColor;
 		}
+		
 		public Color getMouseOverPointColor() {
 			return mouseOverPointColor;
 		}
@@ -348,7 +351,9 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		}
 
 		public void setBackgroundAlpha(int backgroundAlpha) {
+			int old = this.backgroundAlpha;
 			this.backgroundAlpha = backgroundAlpha;
+			firePropertyChange( DO_TRANSITION_PROPERTY, old, this.backgroundAlpha );
 		}
 
 		public int getForegroundAlpha() {
@@ -356,7 +361,9 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		}
 
 		public void setForegroundAlpha(int foregroundAlpha) {
+			int old = this.foregroundAlpha;
 			this.foregroundAlpha = foregroundAlpha;
+			firePropertyChange( DO_TRANSITION_PROPERTY, old, this.foregroundAlpha );
 		}
 
 		public boolean isDoTransition() {

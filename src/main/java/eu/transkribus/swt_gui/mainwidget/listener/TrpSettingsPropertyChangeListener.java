@@ -51,5 +51,6 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 			canvas.updateShapeColors();
 		}
 		
+		canvas.redraw();
 	}
 }

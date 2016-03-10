@@ -31,6 +31,8 @@ public class DropDownToolItem extends Widget {
 	boolean renderTextInMainItem=false;
 	boolean renderImageInMainItem=true;
 	
+	public static final int IS_DROP_DOWN_ITEM_DETAIL = 1;
+	
 	List<SelectionListener> selListener=new ArrayList<>();
 
 //	boolean highlightSelected=false;
@@ -146,6 +148,7 @@ public class DropDownToolItem extends Widget {
 				e.index = findItemIndex(item);
 				logger.debug("firing selection event, data = "+item.getData());
 				e.data = item.getData();
+				e.detail = IS_DROP_DOWN_ITEM_DETAIL;
 				
 //				dropdown.notifyListeners(SWT.Selection, new Event());
 				dropdown.notifyListeners(SWT.Selection, e);
@@ -173,7 +176,7 @@ public class DropDownToolItem extends Widget {
 //						m.
 //					}
 //				}
-			} else {				
+			} else {
 				ti.setSelection(true);
 
 				// logger.debug("setting selection event...");
@@ -241,6 +244,10 @@ public class DropDownToolItem extends Widget {
 //	@Override
 	@Override
 	protected void checkSubclass() {
+	}
+	
+	public MenuItem addSeparator() {
+		return addItem("", null, "", SWT.SEPARATOR, false, null);
 	}
 	
 	public MenuItem addItem(String text, Image image, String toolTipText) {

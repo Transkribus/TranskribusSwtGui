@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.XmlViewer;
 import eu.transkribus.swt_gui.Msgs;
@@ -85,7 +86,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		
 		ui.getVkeyboards().addSelectionListener(this);
 		
-		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
+//		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
 		SWTUtil.addToolItemSelectionListener(ui.getProfilesToolItem().ti, this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getLanguageDropDown().ti, this);
@@ -122,33 +123,35 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 			mainWidget.closeCurrentDocument(false);
 		}
 	
-		else if (s == ui.getShowReadingOrderToolItem().ti && e.detail != SWT.ARROW) {
-			logger.debug("tool item choice is: " + ui.getShowReadingOrderToolItem().getLastSelectedIndex());
-			
-			boolean showR = ui.getShowReadingOrderToolItem().getSelectedIndices().contains(0);
-			boolean showL = ui.getShowReadingOrderToolItem().getSelectedIndices().contains(1);
-			boolean showW = ui.getShowReadingOrderToolItem().getSelectedIndices().contains(2);
-			
-			
-			canvas.getScene().setRegionsRO(showR);
-			canvas.getScene().setLinesRO(showL);
-			canvas.getScene().setWordsRO(showW);
-			
-			mainWidget.updateReadingOrderVisibility(ui.getShowReadingOrderToolItem().getSelectedIndices());
-			
-			canvas.redraw();
-		}
-		else if (s == ui.getProfilesToolItem().ti && e.detail != SWT.ARROW) {
+//		else if (s == ui.getShowReadingOrderToolItem().ti && e.detail != SWT.ARROW && e.detail == DropDownToolItem.IS_DROP_DOWN_ITEM_DETAIL) {
+//			logger.debug("tool item choice is: " + ui.getShowReadingOrderToolItem().getLastSelectedIndex());
+//			
+//			boolean showR = ui.getShowReadingOrderToolItem().getSelectedIndices().contains(0);
+//			boolean showL = ui.getShowReadingOrderToolItem().getSelectedIndices().contains(1);
+//			boolean showW = ui.getShowReadingOrderToolItem().getSelectedIndices().contains(2);
+//
+//			canvas.getScene().setRegionsRO(showR);
+//			canvas.getScene().setLinesRO(showL);
+//			canvas.getScene().setWordsRO(showW);
+//			
+//			mainWidget.updateReadingOrderVisibility(ui.getShowReadingOrderToolItem().getSelectedIndices());
+//			
+//			canvas.redraw();
+//		}
+		else if (s == ui.getProfilesToolItem().ti && e.detail != SWT.ARROW && e.detail == DropDownToolItem.IS_DROP_DOWN_ITEM_DETAIL) {			
 			int i = ui.getProfilesToolItem().getLastSelectedIndex();
-			if (i < ui.getProfilesToolItem().getItemCount()-1) { // profile selected
-				String name = ui.getProfilesToolItem().getSelected().getText();
-				logger.info("selecting profile: "+name);
-				mainWidget.selectProfile(name);
-			} else if (i == ui.getProfilesToolItem().getItemCount()-1){
-				logger.info("opening save profile dialog... TODO!");
+			logger.debug("i = "+i+" detail = "+e.detail);
+			
+			if (i>=0 && i < ui.getProfilesToolItem().getItemCount()-1) { // profile selected
+				if (!SWTUtil.isDisposed(ui.getProfilesToolItem().getSelected()) && ui.getProfilesToolItem().getSelected().getData() instanceof String) {				
+					String name = (String) ui.getProfilesToolItem().getSelected().getData();
+					logger.info("selecting profile: "+name);
+					mainWidget.selectProfile(name);
+				}
+			} else if (i == ui.getProfilesToolItem().getItemCount()-1) {
+				logger.info("opening save profile dialog...");
+				mainWidget.saveNewProfile();
 			}
-			
-			
 		}
 		else if (s == menuBar.getSyncWordsWithLinesMenuItem()) {
 			mainWidget.syncTextOfDocFromWordsToLinesAndRegions();

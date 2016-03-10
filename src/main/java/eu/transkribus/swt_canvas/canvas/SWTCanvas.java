@@ -550,6 +550,10 @@ public class SWTCanvas extends Canvas {
 		// can be overridden by subclasses to draw additional application specific stuff, e.g. TrpSWTCanvas!
 	}
 	
+	protected void onBeforePaintScene(final GC gc) {
+		// can be overridden by subclasses to draw additional application specific stuff, e.g. TrpSWTCanvas!
+	}
+	
 	/* Paint function */
 	protected void paint(final PaintEvent event) {
 //		logger.debug("PAINTING");
@@ -581,6 +585,7 @@ public class SWTCanvas extends Canvas {
 			gc.setClipping(clientRect);
 			
 			gc.setTransform(transform);
+			onBeforePaintScene(gc);
 			scene.paint(gc);
 			onAfterPaintScene(gc);
 			
