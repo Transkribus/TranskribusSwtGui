@@ -563,8 +563,9 @@ public class TrpMainWidget {
 					event.doit = false;
 					return;
 				}
-
-				storage.finalize();
+				
+				System.exit(0);
+//				storage.finalize();
 			}
 		});
 

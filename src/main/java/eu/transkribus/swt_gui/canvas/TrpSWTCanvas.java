@@ -304,9 +304,9 @@ public class TrpSWTCanvas extends SWTCanvas {
 			logger.debug("focus on region");
 			offsetX = 10;
 			offsetY = 10;
-		} else if (sel.getData() instanceof TrpTextLineType) {
-			logger.debug("focus on line");
-			offsetX = 10;
+		} else if (sel.getData() instanceof TrpTextLineType || sel.getData() instanceof TrpBaselineType) {
+			logger.debug("focus on line/baseline");
+//			offsetX = 40;
 			offsetY = scene.getBounds().height / 15;
 		} else if (sel.getData() instanceof TrpWordType) {
 			logger.debug("focus on word");

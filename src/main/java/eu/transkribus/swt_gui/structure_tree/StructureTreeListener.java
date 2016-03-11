@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.Storage;
@@ -80,6 +81,14 @@ public class StructureTreeListener implements ISelectionChangedListener, IDouble
 		mainWidget.getCanvas().getScene().selectObject(null, false, false);		
 		for (Object el : selection.toArray()) {
 			if (el instanceof ITrpShapeType) {
+				
+				// select baseline if line selected but they are not visible
+				if (el instanceof TrpTextLineType && !mainWidget.getTrpSets().isShowLines()) {
+					TrpTextLineType line = (TrpTextLineType) el;
+					if (line.getBaseline()!=null)
+						el = line.getBaseline();
+				}
+				
 				ITrpShapeType s = (ITrpShapeType) el;
 				logger.debug("tree selected data:  "+s+" id : "+s.getId());	
 				mainWidget.selectObjectWithData(s, true, true);

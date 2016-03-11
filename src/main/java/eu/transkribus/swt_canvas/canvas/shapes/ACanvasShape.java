@@ -481,7 +481,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		if (this instanceof CanvasPolyline) {
 			CanvasPolygon bp = ((CanvasPolyline) this).getDefaultPolyRectangle4Baseline();
 			
-			gc.setAlpha(isSelected() ? 75 : 25);
+			gc.setAlpha(isSelected() ? sets.getBackgroundAlpha() : 25);
 			gc.fillPolygon(bp.getPointArray());
 //			bp.draw(canvas, gc);
 		}

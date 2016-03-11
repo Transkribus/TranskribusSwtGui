@@ -151,47 +151,6 @@
 				<version>2.4</version>
 				<executions>
 					<execution>
-						<id>config-file</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}</outputDirectory>
-							<resources>
-<!-- 								<resource> -->
-<!-- 									<directory>.</directory> -->
-<!-- 									<filtering>false</filtering> -->
-<!-- 									<includes> -->
-<!-- 										<include>How_to_use_TRANSKRIBUS-0.1.6.pdf</include> -->
-<!-- 									</includes> -->
-<!-- 								</resource>	 -->
-															
-								<resource>
-									<!-- For deployment use the log4j.properties (has log level set 
-										to INFO! and config.properties files in src/main/resources ): -->
-									<directory>src/main/resources</directory>
-									<filtering>true</filtering>
-									<includes>
-										<include>logback.xml</include>
-										<include>log4j.properties</include>
-										<include>config.properties</include>
-										<include>info.properties</include>
-									</includes>
-								</resource>
-								
-<!-- 								<resource> -->
-<!-- 									<directory>src/main/resources/i18n</directory> -->
-<!-- 									<filtering>false</filtering> -->
-<!-- 									<includes> -->
-<!-- 										<include>*.properties</include> -->
-<!-- 									</includes> -->
-<!-- 								</resource>								 -->
-							</resources>
-						</configuration>
-					</execution>
-
-					<execution>
 						<id>swt-libs</id>
 						<phase>package</phase>
 						<goals>
