@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>0.8.0</version>
+	<version>0.8.1.1-SNAPSHOT</version>
 	<!-- <version>0.4.6</version> -->
 	<name>Transkribus</name>
 
@@ -324,7 +324,7 @@
 
 										<!-- Copy to dea-scratch: -->
 										<copy todir="/mnt/dea_scratch/TRP/Transkribus/snapshots/">
-											<fileset dir="${project.build.directory}">
+											<fileset dir="${project.build.directory}/classes">
 												<include name="*.zip" />
 												<include name="BUILD.txt" />
 											</fileset>
@@ -337,7 +337,7 @@
 										  <then>
 										    <echo message="Local backup directory ${snapshotBackupDir} exists - copying snapshot version to it" />
 											<copy todir="${snapshotBackupDir}">
-												<fileset dir="${project.build.directory}">
+												<fileset dir="${project.build.directory}/classes">
 													<include name="*.zip" />
 													<include name="BUILD.txt" />
 												</fileset>
@@ -355,7 +355,7 @@
 
 										<!-- Copy to dea-scratch: -->
 										<copy todir="/media/dea_scratch/TRP/Transkribus/releases/">
-											<fileset dir="${project.build.directory}">
+											<fileset dir="${project.build.directory}/classes">
 												<include name="*.zip" />
 												<include name="BUILD.txt" />
 											</fileset>
@@ -368,7 +368,7 @@
 										  <then>
 										    <echo message="Local backup directory ${releasesBackupDir} exists - copying snapshot version to it" />
 											<copy todir="${releasesBackupDir}">
-												<fileset dir="${project.build.directory}">
+												<fileset dir="${project.build.directory}/classes">
 													<include name="*.zip" />
 													<include name="BUILD.txt" />
 												</fileset>
