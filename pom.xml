@@ -773,10 +773,11 @@
 	</dependencies>
 
 	<repositories>
+		<!-- dea artifactory: -->		
 		<repository>
-			<id>dea-gulliver</id>
-			<name>dea-gulliver-releases</name>
-			<url>http://dea-gulliver:8888/artifactory/libs-release-local</url>
+			<id>dea-artifactory</id>
+			<name>dea-artifactory-releases</name>
+			<url>http://dbis-halvar.uibk.ac.at/artifactory/libs-release/</url>
 		</repository>
 		<repository>
 			<id>maven2-repository.dev.java.net</id>
