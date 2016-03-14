@@ -28,12 +28,12 @@
 		<jface.artifactId>org.eclipse.ui.workbench</jface.artifactId>
 	</properties>
 
-	<distributionManagement>
-		<repository>
-			<id>trp-ftp</id> <!-- specify password for this server in your settings.xml! -->
-			<url>ftp://dea-gulliver.uibk.ac.at</url>
-		</repository>
-	</distributionManagement>
+<!-- 	<distributionManagement> -->
+<!-- 		<repository> -->
+<!-- 			<id>trp-ftp</id> specify password for this server in your settings.xml! -->
+<!-- 			<url>ftp://dea-gulliver.uibk.ac.at</url> -->
+<!-- 		</repository> -->
+<!-- 	</distributionManagement> -->
 
 	<build>
 	    <finalName>${project.name}-${project.version}</finalName>
@@ -278,7 +278,7 @@
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.7</version>
 				<executions>
-
+				
 					<!-- Change user permissions for startup scripts (because they are lost 
 						after copy-dependencies!!) -->
 					<execution>
@@ -298,90 +298,59 @@
 							<goal>run</goal>
 						</goals>
 					</execution>
-
+					
 					<!-- Upload assembly zip to wherever needed -->
-					<!-- 'mvn deploy' will install the package and the upload the stuff -->
+					<!-- 'mvn deploy' will install the package and upload the stuff -->
 					<!-- 'mvn antrun:run' will only try to upload an existing zip file -->
 					<execution>
-						<!-- with this id the execution will be picked up during the antrun:run 
+					<!-- with this id the execution will be picked up during the antrun:run 
 							goal -->
 						<id>default-cli</id>
-						<!--<phase>deploy</phase> -->
+<!-- 						<id>test_for</id> -->
+<!-- 						<phase>generate-sources</phase> -->
 						<configuration>
-							<target>
-								<taskdef resource="net/sf/antcontrib/antcontrib.properties"
+						<target>
+							<taskdef resource="net/sf/antcontrib/antlib.xml"
 									classpathref="maven.plugin.classpath" />
-									
-								<!-- A local backup directory for all versions - create subfolders "releases" and "snapshots" -->
-								<property name="backupDir" value="${env.HOME}/Transkribus/"/>
-									
 								<if>
-									<!-- <contains string="${ftp}" substring="-SNAPSHOT" /> -->
-									<matches pattern=".*-SNAPSHOT" string="${project.version}" />
-									<then>
-										<echo
-											message="${project.version} is a snapshot build - now deploying to corresponding folder(s)" />
+								  <matches pattern=".*-SNAPSHOT" string="${project.version}" />
+								  <then>
+								    <property name="deploySubDir" value="/snapshots/"/>	
+								    <echo>This is a snapshot build - subdir = ${deploySubDir}</echo>							    
+								  </then>
+								  <else>
+								    <property name="deploySubDir" value="/releases/"/>
+								    <echo>This is a release build - subdir = ${deploySubDir}</echo>
+								  </else>
+								</if>
+								
+								<property name="deployDir1" value="/mnt/dea_scratch/TRP/Transkribus" />
+								<property name="deployDir2" value="${env.HOME}/Transkribus" />
+								
+								<for list="${deployDir1},${deployDir2}" param="dir">
+								  <sequential>
+								  		<echo>Trying to deploy zip to @{dir}${deploySubDir}</echo>
 
-										<!-- Copy to dea-scratch: -->
-										<copy todir="/mnt/dea_scratch/TRP/Transkribus/snapshots/">
-											<fileset dir="${project.build.directory}/classes">
-												<include name="*.zip" />
-												<include name="BUILD.txt" />
-											</fileset>
-										</copy>
-										
-										<!-- Copy to local backup dir: -->
-										<property name="snapshotBackupDir" value="${backupDir}snapshots/"/>
 										<if>
-										  <available file="${snapshotBackupDir}" type="dir" />
+										  <available file="@{dir}${deploySubDir}" type="dir" />
 										  <then>
-										    <echo message="Local backup directory ${snapshotBackupDir} exists - copying snapshot version to it" />
-											<copy todir="${snapshotBackupDir}">
+										    <echo message="Directory @{dir}${deploySubDir} exists - now copying zip and BUILD.txt file to it" />
+											<copy todir="@{dir}${deploySubDir}">
 												<fileset dir="${project.build.directory}/classes">
-													<include name="*.zip" />
 													<include name="BUILD.txt" />
 												</fileset>
-											</copy>										    
-										  </then>
-										  <else>
-										    <echo message="Local backup directory ${snapshotBackupDir} does not exist - skipping backup copy" />
-										  </else>
-										</if>										
-										
-									</then>
-									<else>
-										<echo
-											message="${project.version} is a release build - now deploying to corresponding folder(s)" />
-
-										<!-- Copy to dea-scratch: -->
-										<copy todir="/media/dea_scratch/TRP/Transkribus/releases/">
-											<fileset dir="${project.build.directory}/classes">
-												<include name="*.zip" />
-												<include name="BUILD.txt" />
-											</fileset>
-										</copy>
-										
-										<!-- Copy to local backup dir: -->
-										<property name="releasesBackupDir" value="${backupDir}releases/"/>
-										<if>
-										  <available file="${env.HOME}/Transkribus/releases/" type="dir" />
-										  <then>
-										    <echo message="Local backup directory ${releasesBackupDir} exists - copying snapshot version to it" />
-											<copy todir="${releasesBackupDir}">
-												<fileset dir="${project.build.directory}/classes">
+												<fileset dir="${project.build.directory}">
 													<include name="*.zip" />
-													<include name="BUILD.txt" />
 												</fileset>
-											</copy>										    
+											</copy>								    
 										  </then>
 										  <else>
-										    <echo message="Local backup directory ${releasesBackupDir} does not exist - skipping backup copy" />
+										    <echo message="Directory @{dir}${deploySubDir} does not exist - skipping" />
 										  </else>
 										</if>
-
-									</else>
-								</if>
-							</target>
+								  </sequential>
+								</for>
+						</target>
 						</configuration>
 						<goals>
 							<goal>run</goal>
