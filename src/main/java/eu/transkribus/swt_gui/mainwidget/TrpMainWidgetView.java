@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -122,6 +124,8 @@ public class TrpMainWidgetView extends Composite {
 	ToolItem renderBlackeningsToggle;
 	
 	DropDownToolItem showReadingOrderToolItem;
+	MenuItem showReadingOrderRegionsItem, showReadingOrderLinesItem, showReadingOrderWordsItem;
+	DropDownToolItem profilesToolItem;
 	
 	ToolItem showLineEditorToggle;
 	ToolItem loadTranscriptInTextEditor;
@@ -415,7 +419,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	private void initSettings() {
 		trpSets = new TrpSettings();
-		TrpConfig.registerBean(trpSets);
+		TrpConfig.registerBean(trpSets, true);
 	}
 	
 //	private void init(TrpSWTCanvas canvas) {
@@ -567,35 +571,35 @@ public class TrpMainWidgetView extends Composite {
 		loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
 //		loginToggle.setImage(Images.getOrLoad("/icons/connect.png"));
 		if (true) {
-			class DockingSl extends SelectionAdapter {
-				DropDownToolItem item;
-				Position pos;
-				
-				public DockingSl(DropDownToolItem item, Position pos) {
-					this.item = item;
-					this.pos = pos;
-				}
-				
-				@Override public void widgetSelected(SelectionEvent e) {
-					logger.debug("selected: "+pos+", menu visible: "+item.isMenuVisible());
-					
-					if (e.detail == SWT.ARROW)
-						return;
-					if (item.isMenuVisible())
-						return;
-					
-//					logger.debug("selected: "+e);
-					switch (portalWidget.getDocking(pos)) {
-					case DOCKED:
-						portalWidget.setWidgetDockingType(pos, Docking.INVISIBLE);
-						break;
-					case UNDOCKED:
-					case INVISIBLE:
-						portalWidget.setWidgetDockingType(pos, Docking.DOCKED);
-						break;					
-					}		
-				}
-			};
+//			class DockingSl extends SelectionAdapter {
+//				DropDownToolItem item;
+//				Position pos;
+//				
+//				public DockingSl(DropDownToolItem item, Position pos) {
+//					this.item = item;
+//					this.pos = pos;
+//				}
+//				
+//				@Override public void widgetSelected(SelectionEvent e) {
+//					logger.debug("selected: "+pos+", menu visible: "+item.isMenuVisible());
+//					
+//					if (e.detail == SWT.ARROW)
+//						return;
+//					if (item.isMenuVisible())
+//						return;
+//					
+////					logger.debug("selected: "+e);
+//					switch (portalWidget.getDocking(pos)) {
+//					case DOCKED:
+//						portalWidget.setWidgetDockingType(pos, Docking.INVISIBLE);
+//						break;
+//					case UNDOCKED:
+//					case INVISIBLE:
+//						portalWidget.setWidgetDockingType(pos, Docking.DOCKED);
+//						break;					
+//					}		
+//				}
+//			};
 			
 			leftViewDockingDropItem = new DropDownToolItem(toolBar, false, true, SWT.RADIO, preInsertIndex++);
 			leftViewDockingDropItem.addItem("Docked", Images.APPLICATION_SIDE_CONTRACT, "Left view docking state: docked", false, Docking.DOCKED);
@@ -635,6 +639,13 @@ public class TrpMainWidgetView extends Composite {
 		bottomViewVisibleToggle.setToolTipText("Show bottom view");
 		bottomViewVisibleToggle.setImage(Images.getOrLoad("/icons/application_put.png"));
 		}
+		
+		profilesToolItem = new DropDownToolItem(toolBar, false, false, SWT.NONE, preInsertIndex++);
+		profilesToolItem.ti.setImage(Images.CONTROL_EQUALIZER);
+		profilesToolItem.ti.setToolTipText("Profiles");
+		updateProfiles();
+		
+		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);		
 		
 		openLocalFolderButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		openLocalFolderButton.setToolTipText("Open local folder");
@@ -730,14 +741,14 @@ public class TrpMainWidgetView extends Composite {
 		
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		
-		showReadingOrderToolItem = new DropDownToolItem(toolBar, false, true, SWT.CHECK);
+		showReadingOrderToolItem = new DropDownToolItem(toolBar, false, false, SWT.CHECK);
 
 //		showReadingOrderToolItem.addItem("Show reading order of regions", Images.getOrLoad("/icons/reading_order_r.png"), "Show the reading order of all text or image or graphics regions", SWT.NONE);
 //		showReadingOrderToolItem.addItem("Show reading order of lines", Images.getOrLoad( "/icons/reading_order_l.png"), "Show the reading order of all lines on this page", SWT.NONE);
 //		showReadingOrderToolItem.addItem("Show reading order of words", Images.getOrLoad("/icons/reading_order_w.png"), "Show the reading order of all words on this page", SWT.NONE);
-		showReadingOrderToolItem.addItem("Show reading order of regions", Images.getOrLoad("/icons/reading_order_r.png"), "Show the reading order of all text or image or graphics regions");
-		showReadingOrderToolItem.addItem("Show reading order of lines", Images.getOrLoad( "/icons/reading_order_l.png"), "Show the reading order of all lines on this page");
-		showReadingOrderToolItem.addItem("Show reading order of words", Images.getOrLoad("/icons/reading_order_w.png"), "Show the reading order of all words on this page");
+		showReadingOrderRegionsItem = showReadingOrderToolItem.addItem("Show reading order of regions", Images.getOrLoad("/icons/reading_order_r.png"), "Show the reading order of all text or image or graphics regions");
+		showReadingOrderLinesItem = showReadingOrderToolItem.addItem("Show reading order of lines", Images.getOrLoad( "/icons/reading_order_l.png"), "Show the reading order of all lines on this page");
+		showReadingOrderWordsItem = showReadingOrderToolItem.addItem("Show reading order of words", Images.getOrLoad("/icons/reading_order_w.png"), "Show the reading order of all words on this page");
 		
 		showReadingOrderToolItem.ti.setImage( Images.getOrLoad("/icons/readingOrder.png"));
 		
@@ -766,6 +777,24 @@ public class TrpMainWidgetView extends Composite {
 		
 //		cbItem.setControl(pagesPagingToolBar.getToolBar());
 		updateToolBarSize();
+	}
+	
+	public void updateProfiles() {
+		profilesToolItem.removeAll();
+		
+		for (String name : TrpConfig.getPredefinedProfiles()) {
+			MenuItem i = profilesToolItem.addItem(name, null, null);
+			i.setData(name);			
+		}
+		profilesToolItem.addSeparator();
+		for (String name : TrpConfig.getCustomProfiles()) {
+			MenuItem i = profilesToolItem.addItem(name, null, null);
+			i.setData(name);
+		}
+		if (!TrpConfig.getCustomProfiles().isEmpty())
+			profilesToolItem.addSeparator();
+		
+		profilesToolItem.addItem("Save current as new profile...", null, null);
 	}
 	
 	void updateToolBarSize() {
@@ -808,7 +837,7 @@ public class TrpMainWidgetView extends Composite {
 			}
 			
 			@Override public void widgetSelected(SelectionEvent e) {
-				if (e.detail != SWT.ARROW) {
+				if (e.detail != SWT.ARROW && e.detail == DropDownToolItem.IS_DROP_DOWN_ITEM_DETAIL) {
 					logger.debug("widgetSelected: "+item.getSelected().getData());
 					portalWidget.setWidgetDockingType(pos, (Docking) item.getSelected().getData());
 				}
@@ -869,6 +898,10 @@ public class TrpMainWidgetView extends Composite {
 		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), canvasWidget.getToolBar().getLockZoomOnFocusItem());
 		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, canvasWidget.getToolBar().getSelectNewlyCreatedShapeItem());
 		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, showReadingOrderRegionsItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, showReadingOrderLinesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, showReadingOrderWordsItem);
+				
 //		db.bindBeanToWidgetSelection(TrpSettings.ENABLE_INDEXED_STYLES, trpSets, metadataWidget.getTextStyleWidget().getEnableIndexedStylesBtn());
 		
 //		DataBinder.get().bindWidgetSelection(menu.getSaveTranscriptionMenuItem(), saveTranscriptButton);
@@ -1134,6 +1167,10 @@ public class TrpMainWidgetView extends Composite {
 
 	public DropDownToolItem getShowReadingOrderToolItem() {
 		return showReadingOrderToolItem;
+	}
+	
+	public DropDownToolItem getProfilesToolItem() {
+		return profilesToolItem;
 	}
 	
 //	public DropDownToolItem getLanguageDropDown() {

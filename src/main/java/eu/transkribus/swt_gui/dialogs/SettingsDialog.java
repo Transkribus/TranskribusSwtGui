@@ -28,6 +28,9 @@ public class SettingsDialog extends Dialog {
 	private Spinner selectedLineWidthSpinner;
 	private Spinner foregroundAlphaSpinner, backgroundAlphaSpinner;
 	private Spinner selectedPointRadiusSpinner;
+	private Spinner newDrawLineWidthSpinner;
+	private Button newDrawColorButton;
+	
 	private Spinner readingOrderCircleWidthSpinner;
 	
 
@@ -80,9 +83,13 @@ public class SettingsDialog extends Dialog {
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.SELECTED_LINE_WIDTH_PROPERTY, canvasSets, selectedLineWidthSpinner);
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.SELECTED_POINT_RADIUS_PROPERTY, canvasSets, selectedPointRadiusSpinner);
 		
+		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.NEW_DRAW_LINE_WIDTH_PROPERTY, canvasSets, newDrawLineWidthSpinner);
+		DataBinder.get().bindColorToButton(CanvasSettings.NEW_DRAW_COLOR_PROPERTY, canvasSets, newDrawColorButton);
+		
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.DRAW_SELECTED_CORNER_NUMBERS_PROPERTY, canvasSets, drawSelectedCornerNumbersCb);
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.DRAW_POLYLINE_ARCS_PROPERTY, canvasSets, drawPolylineArcs);
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.DO_TRANSITION_PROPERTY, canvasSets, doTransitionCb);
+		
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.FOREGROUND_ALPHA_PROPERY, canvasSets, foregroundAlphaSpinner);
 		DataBinder.get().bindBeanToWidgetSelection(CanvasSettings.BACKGROUND_ALPHA_PROPERTY, canvasSets, backgroundAlphaSpinner);
 		
@@ -128,6 +135,22 @@ public class SettingsDialog extends Dialog {
 		selectedPointRadiusSpinner = new Spinner(shell, SWT.BORDER);
 		selectedPointRadiusSpinner.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		selectedPointRadiusSpinner.setMinimum(1);
+		selectedPointRadiusSpinner.setToolTipText("The radius of corner points when a shape is selected");
+		
+		Label labelNewDrawLineWidth = new Label(shell, SWT.NONE);
+		labelNewDrawLineWidth.setText("New draw line width");
+				
+		newDrawLineWidthSpinner = new Spinner(shell, SWT.BORDER);
+		newDrawLineWidthSpinner.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		newDrawLineWidthSpinner.setMinimum(1);
+		newDrawLineWidthSpinner.setToolTipText("The width of the line when a new shape is drawn");
+		
+		Label newDrawColorLabel = new Label(shell, SWT.NONE);
+		newDrawColorLabel.setText("New draw color");
+
+		newDrawColorButton = new Button(shell, SWT.NONE);
+		newDrawColorButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		newDrawColorButton.setToolTipText("The color of the line when a new shape is drawn");
 		
 		Label l1 = new Label(shell, SWT.NONE);
 		l1.setText("Foreground alpha (0-255): ");
@@ -137,7 +160,7 @@ public class SettingsDialog extends Dialog {
 		GridData gd_foregroundAlphaSpinner = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_foregroundAlphaSpinner.widthHint = 79;
 		foregroundAlphaSpinner.setLayoutData(gd_selectedLineWidthSpinner);
-		foregroundAlphaSpinner.setMinimum(1);
+		foregroundAlphaSpinner.setMinimum(0);
 		foregroundAlphaSpinner.setMaximum(255);
 		
 		Label l2 = new Label(shell, SWT.NONE);
@@ -148,7 +171,7 @@ public class SettingsDialog extends Dialog {
 		GridData gd_backgroundAlphaSpinner = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_backgroundAlphaSpinner.widthHint = 79;
 		backgroundAlphaSpinner.setLayoutData(gd_backgroundAlphaSpinner);
-		backgroundAlphaSpinner.setMinimum(1);
+		backgroundAlphaSpinner.setMinimum(0);
 		backgroundAlphaSpinner.setMaximum(255);
 		
 		Label l3 = new Label(shell, SWT.NONE);

@@ -71,11 +71,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	private boolean renderBlackenings=false;
 	public static final String RENDER_BLACKENINGS_PROPERTY = "renderBlackenings";
-	
-	//
-	private boolean showReadingOrder=false;
-	public static final String SHOW_READING_ORDER_PROPERTY = "showReadingOrder";
-	
+		
 	// autocomplete:
 	private boolean autocomplete=false;
 	public static final String AUTOCOMPLETE_PROPERTY = "autocomplete";
@@ -98,6 +94,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	private boolean selectNewlyCreatedShape=false;
 	public static final String SELECT_NEWLY_CREATED_SHAPE_PROPERTY = "selectNewlyCreatedShape";
+	
+	private boolean showReadingOrderRegions=false;
+	public static final String SHOW_READING_ORDER_REGIONS_PROPERTY = "showReadingOrderRegions";
+	
+	private boolean showReadingOrderLines=false;
+	public static final String SHOW_READING_ORDER_LINES_PROPERTY = "showReadingOrderLines";
+	
+	private boolean showReadingOrderWords=false;
+	public static final String SHOW_READING_ORDER_WORDS_PROPERTY = "showReadingOrderWords";
 	
 	// segmentation colors:
 	private Color colorPrintSpace = Colors.getSystemColor(SWT.COLOR_MAGENTA);
@@ -189,7 +194,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	public String cattiServerUrl = TrpCattiClientEndpoint.DEFAULT_CATTI_URI;
 	public static final String CATTI_SERVER_URL_PROPERTY = "cattiServerUrl";
 	
-	public static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
+	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
 	
 	public TrpSettings() {
@@ -224,12 +229,7 @@ public class TrpSettings extends APropertyChangeSupport {
 						|| pn.equals(TrpSettings.SHOW_WORDS_PROPERTY));
 	}
 
-	
-	public static boolean isReadingOrderVisibilityProperty(String pn) {
-		return pn!=null && 
-				(pn.equals(TrpSettings.SHOW_READING_ORDER_PROPERTY));
-	}
-	
+
 	public boolean isShowAll() {
 		return (showPrintSpace && showTextRegions && showLines && showBaselines && showWords);
 	}
@@ -287,12 +287,7 @@ public class TrpSettings extends APropertyChangeSupport {
 		this.showWords = showWords;
 		firePropertyChange(SHOW_WORDS_PROPERTY, !this.showWords, this.showWords);
 	}
-	
-	public void setShowReadingOrder(boolean showReadingOrder) {
-		this.showReadingOrder = showReadingOrder;
-		firePropertyChange(SHOW_READING_ORDER_PROPERTY, !this.showReadingOrder, this.showReadingOrder);
-	}
-	
+		
 	public boolean isAutocomplete() {
 		return autocomplete;
 	}
@@ -511,9 +506,18 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setRenderTags(boolean renderTags) {
 		this.renderTags = renderTags;
 		firePropertyChange(RENDER_TAGS, !this.renderTags, this.renderTags);
-	}	
+	}
 	
-	public boolean isEnableIndexedStyles() { return enableIndexedStyles; }
+	/**
+	 * @deprecated non-indexed styles are not supported anymore - will be removed
+	 */
+	public boolean isEnableIndexedStyles() {
+		return true;
+//		return enableIndexedStyles;
+		}
+	/**
+	 * @deprecated non-indexed styles are not supported anymore - will be removed
+	 */	
 	public void setEnableIndexedStyles(boolean enableIndexedStyles) { 
 		this.enableIndexedStyles = enableIndexedStyles;
 		firePropertyChange(ENABLE_INDEXED_STYLES, !this.enableIndexedStyles, this.enableIndexedStyles);
@@ -620,10 +624,12 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(SHOW_TIP_OF_THE_DAY_PROPERTY, !this.showTipOfTheDay, this.showTipOfTheDay);
 	}
 	
+	@Deprecated
 	public boolean isUseFtpProgramUpdater() {
 		return useFtpProgramUpdater;
 	}
 
+	@Deprecated
 	public void setUseFtpProgramUpdater(boolean useFtpProgramUpdater) {
 		this.useFtpProgramUpdater = useFtpProgramUpdater;
 		firePropertyChange(USE_FTP_PROGRAM_UPDATER, !this.useFtpProgramUpdater, this.useFtpProgramUpdater);
@@ -667,8 +673,31 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(FOCUS_SHAPE_ON_DOUBLE_CLICK_IN_TRANSCRIPTION_WIDGET, !this.focusShapeOnDoubleClickInTranscriptionWidget, this.focusShapeOnDoubleClickInTranscriptionWidget);
 	}
 
-	public boolean isShowReadingOrder() {
-		return showReadingOrder;
+	public boolean isShowReadingOrderRegions() {
+		return showReadingOrderRegions;
+	}
+
+	public void setShowReadingOrderRegions(boolean showReadingOrderRegions) {
+		this.showReadingOrderRegions = showReadingOrderRegions;
+		firePropertyChange(SHOW_READING_ORDER_REGIONS_PROPERTY, !this.showReadingOrderRegions, this.showReadingOrderRegions);
+	}
+
+	public boolean isShowReadingOrderLines() {
+		return showReadingOrderLines;
+	}
+
+	public void setShowReadingOrderLines(boolean showReadingOrderLines) {
+		this.showReadingOrderLines = showReadingOrderLines;
+		firePropertyChange(SHOW_READING_ORDER_LINES_PROPERTY, !this.showReadingOrderLines, this.showReadingOrderLines);
+	}
+
+	public boolean isShowReadingOrderWords() {
+		return showReadingOrderWords;
+	}
+
+	public void setShowReadingOrderWords(boolean showReadingOrderWords) {
+		this.showReadingOrderWords = showReadingOrderWords;
+		firePropertyChange(SHOW_READING_ORDER_WORDS_PROPERTY, !this.showReadingOrderWords, this.showReadingOrderWords);
 	}
 
 	public int getShowEventsMaxDays() {
@@ -757,6 +786,10 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setAutoLogin(boolean autoLogin) {
 		this.autoLogin = autoLogin;
 		firePropertyChange(AUTO_LOGIN_PROPERTY, !this.autoLogin, this.autoLogin);
+	}
+
+	@Override public List<String> getPropertiesToNotSave() {
+		return DO_NOT_SAVE_THOSE_PROPERTIES;
 	}
 	
 	

@@ -20,7 +20,16 @@ public class ProgramInfo {
 	
 	public ProgramInfo() {
 		try {
-			INFO_PROPS.load(this.getClass().getClassLoader().getResourceAsStream("info.properties"));
+//			try {
+				INFO_PROPS.load(this.getClass().getClassLoader().getResourceAsStream("info.properties"));
+//			} catch (NullPointerException e) {
+//				logger.warn("COULD NOT FIND info.properties FILE - UPDATE WILL NOT WORK!");
+//				INFO_PROPS.setProperty("version", "NA");
+//				INFO_PROPS.setProperty("name", "name");
+//				INFO_PROPS.setProperty("helptext", "NA");
+//				INFO_PROPS.setProperty("timestamp", "NA");
+//			}
+				
 			ATrpServerConn.guiVersion = getVersion();
 			
 			try {

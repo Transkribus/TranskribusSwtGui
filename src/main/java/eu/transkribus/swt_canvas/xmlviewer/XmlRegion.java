@@ -1,4 +1,4 @@
-package eu.transkribus.swt_canvas.util;
+package eu.transkribus.swt_canvas.xmlviewer;
 
 /**
  * A XML region, with a type, a start position (included) and an end position

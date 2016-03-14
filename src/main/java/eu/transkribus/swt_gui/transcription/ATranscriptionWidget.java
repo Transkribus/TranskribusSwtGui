@@ -41,7 +41,6 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
@@ -59,6 +58,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FontDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
@@ -86,7 +86,6 @@ import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.UndoRedoImpl;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
@@ -125,6 +124,8 @@ public abstract class ATranscriptionWidget extends Composite {
 	
 	protected ToolItem centerCurrentLineItem;
 	protected DropDownToolItem textStyleDisplayOptions;
+	protected MenuItem renderFontStyleTypeItem, renderTextStylesItem, renderOtherStyleTypeItem, renderTagsItem;
+	
 	protected ToolItem focusShapeOnDoubleClickInTranscriptionWidgetItem;
 	
 	
@@ -522,38 +523,17 @@ public abstract class ATranscriptionWidget extends Composite {
 		
 		centerCurrentLineItem = new ToolItem(regionsToolbar, SWT.CHECK);
 		centerCurrentLineItem.setImage(Images.getOrLoad("/icons/arrow_up_down.png"));
-		centerCurrentLineItem.setToolTipText("If toggled, it is ensured that there is always a visible line above and below the selected one in the text field (if possible)");
+		centerCurrentLineItem.setToolTipText("Ensures that there is always a visible line above and below the selected one in the text field if possible");
 		centerCurrentLineItem.setSelection(settings.isCenterCurrentTranscriptionLine());
 		additionalToolItems.add(centerCurrentLineItem);
 
 		textStyleDisplayOptions = new DropDownToolItem(regionsToolbar, false, true, SWT.CHECK);
 		String tt = "Determines which styles are rendered in the transcription widget";
 		textStyleDisplayOptions.ti.setToolTipText(tt);
-		textStyleDisplayOptions.addItem("Font type styles: serif, monospace, letter spaced (will override default font!)", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderFontStyles());
-		textStyleDisplayOptions.addItem("Text style: normal, italic, bold, bold&italic", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTextStyles());
-		textStyleDisplayOptions.addItem("Other: underlined, strikethrough, etc.", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderOtherStyles());
-		textStyleDisplayOptions.addItem("Tags: colored underlines for tags", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTags());
-		textStyleDisplayOptions.ti.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				if (e.detail != SWT.ARROW) {
-					switch (textStyleDisplayOptions.getLastSelectedIndex()) {
-						case 0:
-							logger.debug("HERE!!");
-							settings.setRenderFontStyles(textStyleDisplayOptions.getSelected().getSelection()); break;
-						case 1:
-							settings.setRenderTextStyles(textStyleDisplayOptions.getSelected().getSelection()); break;
-						case 2:
-							settings.setRenderOtherStyles(textStyleDisplayOptions.getSelected().getSelection()); break;
-						case 3:
-							settings.setRenderTags(textStyleDisplayOptions.getSelected().getSelection()); break;
-					}
-					
-//					TrpConfig.save();
-					updateLineStyles();
-					text.redraw();
-				}
-			}
-		});
+		renderFontStyleTypeItem = textStyleDisplayOptions.addItem("Font type styles: serif, monospace, letter spaced (will override default font!)", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderFontStyles());
+		renderTextStylesItem= textStyleDisplayOptions.addItem("Text style: normal, italic, bold, bold&italic", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTextStyles());
+		renderOtherStyleTypeItem = textStyleDisplayOptions.addItem("Other: underlined, strikethrough, etc.", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderOtherStyles());
+		renderTagsItem = textStyleDisplayOptions.addItem("Tags: colored underlines for tags", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTags());
 		additionalToolItems.add(textStyleDisplayOptions.ti);
 		
 		focusShapeOnDoubleClickInTranscriptionWidgetItem = new ToolItem(regionsToolbar, SWT.CHECK);
@@ -715,6 +695,18 @@ public abstract class ATranscriptionWidget extends Composite {
 					if (!settings.isRenderTags())
 						text.setLineSpacing(DEFAULT_LINE_SPACING);
 				}
+								
+				if (pn.equals(TrpSettings.TRANSCRIPTION_FONT_NAME_PROPERTY)) {
+					setFontFromSettings();
+				}
+				
+				if (pn.equals(TrpSettings.TRANSCRIPTION_FONT_SIZE_PROPERTY)) {
+					setFontFromSettings();
+				}
+				
+				if (pn.equals(TrpSettings.TRANSCRIPTION_FONT_STYLE_PROPERTY)) {
+					setFontFromSettings();
+				}
 				
 				// saving on change not needed anymore... gets saved anyway
 //				else if (pn.equals(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY)) {
@@ -730,6 +722,7 @@ public abstract class ATranscriptionWidget extends Composite {
 //					TrpConfig.save(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY);
 //				}	
 				
+				updateLineStyles();
 				text.redraw();
 			}
 		});
@@ -786,7 +779,7 @@ public abstract class ATranscriptionWidget extends Composite {
 //			}
 //		});
 		
-		initTextAlignmentAndFontListener();
+		initLocalGuiListenerAndBindings();
 		initSelectionListener();
 		initCaretListener();
 		initMouseListener();
@@ -1492,7 +1485,7 @@ public abstract class ATranscriptionWidget extends Composite {
 //		});
 //	}
 
-	protected void initTextAlignmentAndFontListener() {
+	protected void initLocalGuiListenerAndBindings() {
 		textAlignmentSelectionAdapter = new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				updateTextAlignment();
@@ -1528,7 +1521,7 @@ public abstract class ATranscriptionWidget extends Composite {
 				settings.setTranscriptionFontSize(fontData.getHeight());
 				settings.setTranscriptionFontStyle(fontData.getStyle());
 
-				setFontFromSettings();
+//				setFontFromSettings();
 //				TrpConfig.save();
 								
 				updateLineStyles();
@@ -1542,16 +1535,22 @@ public abstract class ATranscriptionWidget extends Composite {
 			}
 		});
 		
-		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY,
+		DataBinder db = DataBinder.get();
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_FONT_STYLES, settings, renderFontStyleTypeItem);
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_TEXT_STYLES, settings, renderTextStylesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_OTHER_STYLES, settings, renderOtherStyleTypeItem);
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_TAGS, settings, renderTagsItem);
+		
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY,
 				settings, centerCurrentLineItem);
 		
-		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINE_BULLETS_PROPERTY,
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINE_BULLETS_PROPERTY,
 				settings, showLineBulletsItem);
 		
-		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY,
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY,
 				settings, showControlSignsItem);
 		
-		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.FOCUS_SHAPE_ON_DOUBLE_CLICK_IN_TRANSCRIPTION_WIDGET,
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.FOCUS_SHAPE_ON_DOUBLE_CLICK_IN_TRANSCRIPTION_WIDGET,
 				settings, focusShapeOnDoubleClickInTranscriptionWidgetItem);
 	}
 	

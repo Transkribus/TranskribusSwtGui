@@ -306,5 +306,9 @@ CHANGES AND BUGFIXES
 	-> fixed catti bug (whitespace from recieved suffix removed)
 	-> catti server made reentrant (multiple users from different clients now possible)
 	-> adding paragraphs in textfield possible via shift+enter or dedicated button on transcription toolbar
+	
+0.8.0:
+	-> profiles
+	-> show complete img and transcript url in DocOverviewWidget
 
 	

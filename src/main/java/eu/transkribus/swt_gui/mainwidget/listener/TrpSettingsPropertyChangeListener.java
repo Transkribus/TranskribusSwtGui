@@ -6,8 +6,6 @@ import java.beans.PropertyChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
-import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
@@ -19,9 +17,7 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
 	TrpSWTCanvas canvas;
-	
-	public static boolean SAVE_PROPS_ON_CHANGE = true;
-	
+		
 	public TrpSettingsPropertyChangeListener(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;
 		this.ui = mainWidget.getUi();
@@ -51,10 +47,6 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 			canvas.updateShapeColors();
 		}
 		
-		if (SAVE_PROPS_ON_CHANGE && !TrpSettings.DO_NOT_SAVE_THOSE_PROPERTIES.contains(pn)) {
-			logger.debug("saving config file on TrpSettings change of property: "+pn);
-			TrpConfig.save(pn);
-		}
-
+		canvas.redraw();
 	}
 }

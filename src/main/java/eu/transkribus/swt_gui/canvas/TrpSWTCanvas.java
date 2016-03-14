@@ -14,6 +14,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
@@ -55,7 +56,7 @@ public class TrpSWTCanvas extends SWTCanvas {
 	
 	@Override protected void initSettings() {
 		settings = new CanvasSettings();
-		TrpConfig.registerBean(settings);
+		TrpConfig.registerBean(settings, true);
 	}
 	
 	private void initTrpCanvasListener() {
@@ -123,8 +124,11 @@ public class TrpSWTCanvas extends SWTCanvas {
 		boolean isRegion = trpShape instanceof RegionType;
 		boolean isLine = trpShape instanceof TrpTextLineType;
 		boolean isWord = trpShape instanceof TrpWordType;
-		boolean showRo = (isRegion && getScene().isRegionsRO()) || (isLine && getScene().isLinesRO())
-				|| (isWord && getScene().isWordsRO());
+		
+		TrpSettings trpSets = mainWidget.getTrpSets();
+		
+		boolean showRo = (isRegion && trpSets.isShowReadingOrderRegions()) || (isLine && trpSets.isShowReadingOrderLines())
+				|| (isWord && trpSets.isShowReadingOrderWords());
 		
 		boolean isSel = s.isSelected();
 		
@@ -241,6 +245,28 @@ public class TrpSWTCanvas extends SWTCanvas {
 		
 	}
 	
+	@Override protected void onBeforePaintScene(final GC gc) {
+		
+		// set reading order visibility:
+		boolean isShowR = mainWidget.getTrpSets().isShowReadingOrderRegions();
+		boolean isShowL = mainWidget.getTrpSets().isShowReadingOrderLines();
+		boolean isShowW = mainWidget.getTrpSets().isShowReadingOrderWords();
+		for (ICanvasShape s : getScene().getShapes()) {
+			if (s.hasDataType(TrpTextRegionType.class)) {
+				s.showReadingOrder(isShowR);
+			}
+			if (s.hasDataType(TrpTextLineType.class)) {
+				s.showReadingOrder(isShowL);
+			}
+			if (s.hasDataType(TrpWordType.class)) {
+				s.showReadingOrder(isShowW);
+			}
+		}
+		
+		
+		
+	}
+	
 	@Override protected void onAfterPaintScene(final GC gc) {
 		boolean renderBlackenings = mainWidget.getTrpSets().isRenderBlackenings();
 		
@@ -278,9 +304,9 @@ public class TrpSWTCanvas extends SWTCanvas {
 			logger.debug("focus on region");
 			offsetX = 10;
 			offsetY = 10;
-		} else if (sel.getData() instanceof TrpTextLineType) {
-			logger.debug("focus on line");
-			offsetX = 10;
+		} else if (sel.getData() instanceof TrpTextLineType || sel.getData() instanceof TrpBaselineType) {
+			logger.debug("focus on line/baseline");
+//			offsetX = 40;
 			offsetY = scene.getBounds().height / 15;
 		} else if (sel.getData() instanceof TrpWordType) {
 			logger.debug("focus on word");

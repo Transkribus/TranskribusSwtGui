@@ -112,14 +112,15 @@ public class TrpShapeElementFactory {
 		//create reading Order shape for canvas shape
 		shape.createReadingOrderShape((SWTCanvas) canvas, trpShape instanceof TrpTextRegionType, trpShape instanceof TrpTextLineType, trpShape instanceof TrpWordType, hasBaseline);
 		
+		// needed? also done in onBeforeDrawScene
 		if (trpShape instanceof TrpTextRegionType){
-			shape.showReadingOrder(canvas.getScene().isRegionsRO());
+			shape.showReadingOrder(mainWidget.getTrpSets().isShowReadingOrderRegions());
 		}
 		else if (trpShape instanceof TrpTextLineType){
-			shape.showReadingOrder(canvas.getScene().isLinesRO());
+			shape.showReadingOrder(mainWidget.getTrpSets().isShowReadingOrderLines());
 		}
 		else if (trpShape instanceof TrpWordType){
-			shape.showReadingOrder(canvas.getScene().isWordsRO());
+			shape.showReadingOrder(mainWidget.getTrpSets().isShowReadingOrderWords());
 		}
 
 		

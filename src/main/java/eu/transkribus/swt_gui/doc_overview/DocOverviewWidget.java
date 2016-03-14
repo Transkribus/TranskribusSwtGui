@@ -41,7 +41,7 @@ public class DocOverviewWidget extends Composite {
 	Label loadedDocLabel;
 	Text loadedDocText, currentCollectionText;
 	
-	Text loadedPageText, loadedPageKey;
+	Text loadedPageText, loadedImageUrl, loadedTranscriptUrl;
 	DocTableWidgetPagination docTableWidget;
 	Button uploadDocsItem;
 
@@ -140,17 +140,31 @@ public class DocOverviewWidget extends Composite {
 		
 		Label loadedPageLabel = new Label(c1, SWT.NONE);
 		loadedPageLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		loadedPageLabel.setText("Current file: ");
+		loadedPageLabel.setText("Current filename: ");
 		
 		loadedPageText = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
 		loadedPageText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Label loadedPageKeyLabel = new Label(c1, SWT.NONE);
-		loadedPageKeyLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		loadedPageKeyLabel.setText("Key: ");
+//		Label loadedPageKeyLabel = new Label(c1, SWT.NONE);
+//		loadedPageKeyLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+//		loadedPageKeyLabel.setText("Key: ");
+//		
+//		loadedPageKey = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
+//		loadedPageKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		loadedPageKey = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
-		loadedPageKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));		
+		Label loadedImageUrlLabel = new Label(c1, SWT.NONE);
+		loadedImageUrlLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		loadedImageUrlLabel.setText("Current image URL: ");
+		
+		loadedImageUrl = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
+		loadedImageUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label loadedTranscriptUrlLabel = new Label(c1, SWT.NONE);
+		loadedTranscriptUrlLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		loadedTranscriptUrlLabel.setText("Current transcript URL: ");
+		
+		loadedTranscriptUrl = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
+		loadedTranscriptUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 //		ExpandBar container = new ExpandBar (this, SWT.V_SCROLL);
 		
@@ -439,6 +453,8 @@ public class DocOverviewWidget extends Composite {
 	public Text getLoadedDocText() { return loadedDocText; }
 	public Text getCurrentCollectionText() { return currentCollectionText; }
 	
+	
+	
 //	public void setCurrentCollection(String currentCollection) {
 //		currentCollectionText.setText(currentCollection);
 //		int i = collectionComboViewer.getCombo().indexOf(currentCollection);
@@ -447,8 +463,16 @@ public class DocOverviewWidget extends Composite {
 //		}
 //	}
 	
+	public Text getLoadedImageUrl() {
+		return loadedImageUrl;
+	}
+
+	public Text getLoadedTranscriptUrl() {
+		return loadedTranscriptUrl;
+	}
+
 	public Text getLoadedPageText() { return loadedPageText; }
-	public Text getLoadedPageKey() { return loadedPageKey; }
+//	public Text getLoadedPageKey() { return loadedPageKey; }
 	public Label getServerLabel() { return serverLabel; }
 	public Label getUsernameLabel() { return usernameLabel; }
 		

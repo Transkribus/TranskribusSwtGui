@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
@@ -885,6 +886,10 @@ public class SWTUtil {
     		gc.drawPolygon(pts);
     	}
     }
+
+	public static boolean isDisposed(Item item) {
+		return item==null || item.isDisposed();
+	}
 	
 
 }

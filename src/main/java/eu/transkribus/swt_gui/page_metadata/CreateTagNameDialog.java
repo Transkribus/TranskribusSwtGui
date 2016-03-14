@@ -26,7 +26,7 @@ public class CreateTagNameDialog extends Dialog {
 
 	String title;
 	Text nameTxt;
-	Combo typeCombo;
+//	Combo typeCombo;
 
 	String name = null;
 	Text status;
@@ -64,6 +64,7 @@ public class CreateTagNameDialog extends Dialog {
 				validateInput();
 			}
 		});
+		
 		
 		status = new Text(container, SWT.MULTI | SWT.READ_ONLY | SWT.WRAP);
 		status.setForeground(Colors.getSystemColor(SWT.COLOR_RED));

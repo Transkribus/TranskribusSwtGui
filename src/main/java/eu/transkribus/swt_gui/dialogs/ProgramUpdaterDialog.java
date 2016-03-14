@@ -66,13 +66,13 @@ public class ProgramUpdaterDialog {
 //	public static ProgramUpdater PROGRAM_UPDATER = new FTPProgramUpdater();
 	public static ProgramUpdater PROGRAM_UPDATER;
 	static {
-		if (TrpConfig.getTrpSettings().isUseFtpProgramUpdater()) {
-			PROGRAM_UPDATER = new FTPProgramUpdater();
-			logger.info("using FTP program updater");
-		} else {
+//		if (TrpConfig.getTrpSettings().isUseFtpProgramUpdater()) {
+//			PROGRAM_UPDATER = new FTPProgramUpdater();
+//			logger.info("using FTP program updater");
+//		} else {
 			PROGRAM_UPDATER = new HttpProgramUpdater();
 			logger.info("using HTTP program updater");
-		}
+//		}
 	}
 	
 	private static String getZipBaseDirName() throws IOException {

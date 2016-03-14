@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>0.8.0.1-SNAPSHOT</version>
+	<version>0.8.1.1-SNAPSHOT</version>
 	<!-- <version>0.4.6</version> -->
 	<name>Transkribus</name>
 
@@ -42,6 +42,9 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
+				<excludes>
+					<exclude>How_to_use_TRANSKRIBUS-0.1.7.pdf</exclude>
+				</excludes>
 			</resource>
 		</resources>
 		
@@ -147,67 +150,6 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.4</version>
 				<executions>
-					<execution>
-						<id>config-file</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>.</directory>
-									<filtering>true</filtering>
-									<includes>
-										<!-- <include>config.properties</include> -->
-										<!-- <include>log4j.properties</include> -->
-										<include>README.txt</include>
-										<include>USAGE.txt</include>
-										<include>CHANGES.txt</include>
-										<include>BUILD.txt</include>
-										<include>Transkribus.bat</include>
-										<include>Transkribus.sh</include>
-										<include>Transkribus.command</include>
-										<include>TranskribusMac</include>										
-										<include>virtualKeyboards.xml</include>
-										
-<!-- 										<include>How_to_use_TRANSKRIBUS-0.1.6.pdf</include> -->
-									</includes>
-								</resource>
-								
-								<resource>
-									<directory>.</directory>
-									<filtering>false</filtering>
-									<includes>
-										<include>How_to_use_TRANSKRIBUS-0.1.6.pdf</include>
-									</includes>
-								</resource>	
-															
-								<resource>
-									<!-- For deployment use the log4j.properties (has log level set 
-										to INFO! and config.properties files in src/main/resources ): -->
-									<directory>src/main/resources</directory>
-									<filtering>true</filtering>
-									<includes>
-										<include>logback.xml</include>
-										<include>log4j.properties</include>
-										<include>config.properties</include>
-										<include>info.properties</include>
-									</includes>
-								</resource>
-								
-<!-- 								<resource> -->
-<!-- 									<directory>src/main/resources/i18n</directory> -->
-<!-- 									<filtering>false</filtering> -->
-<!-- 									<includes> -->
-<!-- 										<include>*.properties</include> -->
-<!-- 									</includes> -->
-<!-- 								</resource>								 -->
-							</resources>
-						</configuration>
-					</execution>
-
 					<execution>
 						<id>swt-libs</id>
 						<phase>package</phase>
@@ -382,7 +324,7 @@
 
 										<!-- Copy to dea-scratch: -->
 										<copy todir="/mnt/dea_scratch/TRP/Transkribus/snapshots/">
-											<fileset dir="${project.build.directory}">
+											<fileset dir="${project.build.directory}/classes">
 												<include name="*.zip" />
 												<include name="BUILD.txt" />
 											</fileset>
@@ -395,7 +337,7 @@
 										  <then>
 										    <echo message="Local backup directory ${snapshotBackupDir} exists - copying snapshot version to it" />
 											<copy todir="${snapshotBackupDir}">
-												<fileset dir="${project.build.directory}">
+												<fileset dir="${project.build.directory}/classes">
 													<include name="*.zip" />
 													<include name="BUILD.txt" />
 												</fileset>
@@ -413,7 +355,7 @@
 
 										<!-- Copy to dea-scratch: -->
 										<copy todir="/media/dea_scratch/TRP/Transkribus/releases/">
-											<fileset dir="${project.build.directory}">
+											<fileset dir="${project.build.directory}/classes">
 												<include name="*.zip" />
 												<include name="BUILD.txt" />
 											</fileset>
@@ -426,7 +368,7 @@
 										  <then>
 										    <echo message="Local backup directory ${releasesBackupDir} exists - copying snapshot version to it" />
 											<copy todir="${releasesBackupDir}">
-												<fileset dir="${project.build.directory}">
+												<fileset dir="${project.build.directory}/classes">
 													<include name="*.zip" />
 													<include name="BUILD.txt" />
 												</fileset>

@@ -19,6 +19,7 @@ final public class CanvasImage {
 	public final float DEFAULT_INTERNAL_SCALING=0.5f;
 	public final int N_PIXELS_THRESHOLD_FOR_SCALING = (int) (15 * 1e6);
 	
+	public URL url;
 	public Image img;
 	public int width;
 	public int height;
@@ -27,6 +28,7 @@ final public class CanvasImage {
 	public Float internalScalingFactor=null;
 	
 	public CanvasImage(URL url) throws Exception {
+		this.url = url;
 		Image imgIn = ImgLoader.load(url);
 		if (imgIn==null)
 			throw new Exception("Could not load image: "+url);

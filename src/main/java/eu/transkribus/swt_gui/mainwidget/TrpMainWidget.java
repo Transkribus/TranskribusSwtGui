@@ -19,7 +19,10 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.eclipse.core.databinding.observable.Realm;
@@ -27,6 +30,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -479,6 +483,7 @@ public class TrpMainWidget {
 		String fn = "";
 		String key = "";
 		int pageNr = -1;
+		String imgUrl="", transcriptUrl="";
 
 		int docId = -1;
 
@@ -488,8 +493,16 @@ public class TrpMainWidget {
 			if (storage.getPage() != null) {
 				fn = storage.getPage().getImgFileName() != null ? storage.getPage().getImgFileName() : "";
 				key = storage.getPage().getKey() != null ? storage.getPage().getKey() : "";
+				
+//				imgUrl = CoreUtils.urlToString(storage.getPage().getUrl());
+				if (storage.getCurrentImage()!=null)
+					imgUrl = CoreUtils.urlToString(storage.getCurrentImage().url);
 
 				pageNr = storage.getPage().getPageNr();
+				
+				if (storage.getTranscriptMetadata() != null && storage.getTranscriptMetadata().getUrl()!=null) {
+					transcriptUrl = CoreUtils.urlToString(storage.getTranscriptMetadata().getUrl());
+				}
 
 				loadedPageStr = "Page " + pageNr + ", file: " + fn;
 				if (storage.isPageLocked()) {
@@ -532,7 +545,10 @@ public class TrpMainWidget {
 		ui.getDocOverviewWidget().getLoadedDocText().setText(loadedDocStr);
 		// if (pageNr != -1) {
 		ui.getDocOverviewWidget().getLoadedPageText().setText(fn);
-		ui.getDocOverviewWidget().getLoadedPageKey().setText(key);
+//		ui.getDocOverviewWidget().getLoadedPageKey().setText(key);
+		ui.getDocOverviewWidget().getLoadedImageUrl().setText(imgUrl);
+		ui.getDocOverviewWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
+		
 		// }
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 		ui.getShell().setText(title);
@@ -547,8 +563,9 @@ public class TrpMainWidget {
 					event.doit = false;
 					return;
 				}
-
-				storage.finalize();
+				
+				System.exit(0);
+//				storage.finalize();
 			}
 		});
 
@@ -1267,6 +1284,7 @@ public class TrpMainWidget {
 	public void reloadCurrentImage() {
 		try {
 			Storage.getInstance().reloadCurrentImage(TrpMainWidget.getInstance().getSelectedImageFileType());
+			updatePageInfo();
 		} catch (Throwable e) {
 			onError("Image load error", "Error loading main image", e);
 		}
@@ -3093,22 +3111,22 @@ public class TrpMainWidget {
 		d.open();
 	}
 
-	//update visibility of reading order
-	public void updateReadingOrderVisibility(List<Integer> selectedIndices) {
-
-		for (ICanvasShape s : getScene().getShapes()) {
-
-			if (s.hasDataType(TrpTextRegionType.class)) {
-				s.showReadingOrder(selectedIndices.contains(0));
-			}
-			if (s.hasDataType(TrpTextLineType.class)) {
-				s.showReadingOrder(selectedIndices.contains(1));
-			}
-			if (s.hasDataType(TrpWordType.class)) {
-				s.showReadingOrder(selectedIndices.contains(2));
-			}
-		}
-	}
+//	//update visibility of reading order
+//	public void updateReadingOrderVisibility() {
+//
+//		for (ICanvasShape s : getScene().getShapes()) {
+//
+//			if (s.hasDataType(TrpTextRegionType.class)) {
+//				s.showReadingOrder(getTrpSets().isShowReadingOrderRegions());
+//			}
+//			if (s.hasDataType(TrpTextLineType.class)) {
+//				s.showReadingOrder(getTrpSets().isShowReadingOrderLines());
+//			}
+//			if (s.hasDataType(TrpWordType.class)) {
+//				s.showReadingOrder(getTrpSets().isShowReadingOrderWords());
+//			}
+//		}
+//	}
 
 	public void showEventMessages() {
 		try {
@@ -3233,6 +3251,50 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			onError("Error", "Error during batch replace of images", e);
 		}		
+	}
+
+	public void selectProfile(String name) {
+		try {
+			TrpConfig.loadProfile(name);
+//			ui.updateProfiles();
+		} catch (Exception e) {
+			onError("Error loading profile!", e.getMessage(), e, true, false);
+		}
+	}
+	
+	public void saveNewProfile() {
+		
+		try {
+			InputDialog dlg = new InputDialog(getShell(), "Save current settings as profile", "Profile name: ", "", new IInputValidator() {
+				@Override public String isValid(String newText) {
+					if (StringUtils.isEmpty(newText) || !newText.matches(TrpConfig.PROFILE_NAME_REGEX))
+						return "Invalid profile name - only alphanumeric characters and underscores allowed!";
+					
+					return null;
+				}
+			});
+			if (dlg.open() != Window.OK)
+				return;
+			
+			String profileName = dlg.getValue();
+			logger.debug("profileName = "+profileName);
+			
+			File profileFile=null;
+			try {
+				profileFile=TrpConfig.saveProfile(profileName, false);
+				ui.updateProfiles();
+			} catch (FileExistsException e ) {
+				if (DialogUtil.showYesNoDialog(getShell(), "Profile already exists!", "Do want to overwrite the existing one?") == SWT.YES) {
+					profileFile=TrpConfig.saveProfile(profileName, true);
+				}				
+			}
+			if (profileFile!=null)
+				DialogUtil.showMessageBox(getShell(), "Success", "Written profile to: \n\n"+profileFile.getAbsolutePath(), SWT.ICON_INFORMATION);
+			
+		} catch (Exception e) {
+			onError("Error saving profile!", e.getMessage(), e, true, false);
+		}
+		
 	}
 
 }
