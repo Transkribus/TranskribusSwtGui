@@ -167,25 +167,29 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 	}
 
 	@Override public void deleteTagsOnSelection() {
-		logger.debug("clearing tags from selection!");
-		ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
-		if (aw==null) {
-			logger.debug("no transcription widget selected - doin nothing!");
-			return;
+		try {
+			logger.debug("clearing tags from selection!");
+			ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
+			if (aw==null) {
+				logger.debug("no transcription widget selected - doin nothing!");
+				return;
+			}
+			
+			List<Pair<ITrpShapeType, IntRange>> ranges = aw.getSelectedShapesAndRanges();
+			for (Pair<ITrpShapeType, IntRange> p : ranges) {
+				ITrpShapeType s = p.getLeft();
+				IntRange r = p.getRight();
+				s.getCustomTagList().deleteTagsInRange(r.getOffset(), r.getLength(), true);
+				s.setTextStyle(null); // delete also text styles from range!
+			}
+			
+			mainWidget.updatePageRelatedMetadata();
+			mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
+			mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
+			mainWidget.refreshStructureView();
+		} catch (Exception e) {
+			mainWidget.onError("Unexpected error deleting tags", e.getMessage(), e);
 		}
-		
-		List<Pair<ITrpShapeType, IntRange>> ranges = aw.getSelectedShapesAndRanges();
-		for (Pair<ITrpShapeType, IntRange> p : ranges) {
-			ITrpShapeType s = p.getLeft();
-			IntRange r = p.getRight();
-			s.getCustomTagList().deleteTagsInRange(r.getOffset(), r.getLength(), true);
-			s.setTextStyle(null); // delete also text styles from range!
-		}
-		
-		mainWidget.updatePageRelatedMetadata();
-		mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
-		mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
-		mainWidget.refreshStructureView();
 	}
 
 //	@Override public void tagsUpdated() {
