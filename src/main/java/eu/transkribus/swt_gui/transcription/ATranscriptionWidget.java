@@ -1387,12 +1387,13 @@ public abstract class ATranscriptionWidget extends Composite {
 			
 			// draw control character if set:
 			if (controlChar != null) {
-				e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_WHITE));
+//				e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_WHITE));
 				e.gc.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
 				
 				if (sr != null) {
 					e.gc.setFont(sr.font);
 				}
+				e.gc.setAntialias(SWT.ON);
 				
 				boolean BOLD_CONTROL_SIGN_FONT = false;
 				if (BOLD_CONTROL_SIGN_FONT)
@@ -1400,7 +1401,7 @@ public abstract class ATranscriptionWidget extends Composite {
 				
 				Point p = text.getLocationAtOffset(i);
 				logger.trace("point = "+p);
-				e.gc.drawText(controlChar, p.x, p.y);
+				e.gc.drawText(controlChar, p.x, p.y, true);
 			}
 			
 		}	
