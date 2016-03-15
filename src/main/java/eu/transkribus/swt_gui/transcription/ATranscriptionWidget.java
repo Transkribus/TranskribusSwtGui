@@ -1334,7 +1334,7 @@ public abstract class ATranscriptionWidget extends Composite {
 	}
 	
 	/**
-	 * Parses through all visible characters and renders control signs (whitespace, tab, end of line)
+	 * Parses through all visible characters and renders control signs (whitespace, tab, end of line, paragraphs)
 	 * into the text area without changing the text itself.
 	 */
 	protected void paintControlSigns(PaintEvent e) {
@@ -1389,9 +1389,13 @@ public abstract class ATranscriptionWidget extends Composite {
 			if (controlChar != null) {
 				e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_WHITE));
 				e.gc.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
+				
 				if (sr != null) {
-					e.gc.setFont(Fonts.createBoldFont(sr.font));
-				} else
+					e.gc.setFont(sr.font);
+				}
+				
+				boolean BOLD_CONTROL_SIGN_FONT = false;
+				if (BOLD_CONTROL_SIGN_FONT)
 					e.gc.setFont(Fonts.createBoldFont(e.gc.getFont()));
 				
 				Point p = text.getLocationAtOffset(i);

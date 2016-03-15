@@ -228,6 +228,7 @@
 				<version>2.4</version>
 				<configuration>
 					<descriptor>src/assembly/dep.xml</descriptor>
+<!-- 					<appendAssemblyId>false</appendAssemblyId> -->
 				</configuration>
 				<executions>
 					<execution>
