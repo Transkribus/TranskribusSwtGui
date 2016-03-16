@@ -86,11 +86,21 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean autoCreateParent=false;
 	public static final String AUTO_CREATE_PARENT_PROPERTY = "autoCreateParent";
 	
-	private boolean addToOverlappingParentLine=false;
-	public static final String ADD_TO_OVERLAPPING_PARENT_LINE_PROPERTY = "addToOverlappingParentLine";
+//	private boolean addToOverlappingParentLine=false;
+//	public static final String ADD_TO_OVERLAPPING_PARENT_LINE_PROPERTY = "addToOverlappingParentLine";
 	
-	private boolean addToOverlappingParentRegion=false;
-	public static final String ADD_TO_OVERLAPPING_PARENT_REGION_PROPERTY = "addToOverlappingParentRegion";
+//	private boolean addToOverlappingParentRegion=false;
+//	public static final String ADD_TO_OVERLAPPING_PARENT_REGION_PROPERTY = "addToOverlappingParentRegion";
+
+	private boolean addLinesToOverlappingRegions=true;
+	public static final String ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY = "addLinesToOverlappingRegions";
+	
+	private boolean addBaselinesToOverlappingLines=false;
+	public static final String ADD_BASELINES_TO_OVERLAPPING_LINES_PROPERTY = "addBaselinesToOverlappingLines";
+	
+	private boolean addWordsToOverlappingLines=true;
+	public static final String ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY = "addWordsToOverlappingLines";
+	
 	
 	private boolean selectNewlyCreatedShape=false;
 	public static final String SELECT_NEWLY_CREATED_SHAPE_PROPERTY = "selectNewlyCreatedShape";
@@ -635,24 +645,49 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(USE_FTP_PROGRAM_UPDATER, !this.useFtpProgramUpdater, this.useFtpProgramUpdater);
 	}
 	
-	
+//	public boolean isAddToOverlappingParentLine() {
+//		return addToOverlappingParentLine;
+//	}
+//
+//	public void setAddToOverlappingParentLine(boolean addToOverlappingParentLine) {
+//		this.addToOverlappingParentLine = addToOverlappingParentLine;
+//		firePropertyChange(ADD_TO_OVERLAPPING_PARENT_LINE_PROPERTY, !this.addToOverlappingParentLine, this.addToOverlappingParentLine);
+//	}
+//
+//	public boolean isAddToOverlappingParentRegion() {
+//		return addToOverlappingParentRegion;
+//	}
+//
+//	public void setAddToOverlappingParentRegion(boolean addToOverlappingParentRegion) {
+//		this.addToOverlappingParentRegion = addToOverlappingParentRegion;
+//		firePropertyChange(ADD_TO_OVERLAPPING_PARENT_REGION_PROPERTY, !this.addToOverlappingParentRegion, this.addToOverlappingParentRegion);
+//	}
 
-	public boolean isAddToOverlappingParentLine() {
-		return addToOverlappingParentLine;
+	public boolean isAddLinesToOverlappingRegions() {
+		return addLinesToOverlappingRegions;
 	}
 
-	public void setAddToOverlappingParentLine(boolean addToOverlappingParentLine) {
-		this.addToOverlappingParentLine = addToOverlappingParentLine;
-		firePropertyChange(ADD_TO_OVERLAPPING_PARENT_LINE_PROPERTY, !this.addToOverlappingParentLine, this.addToOverlappingParentLine);
+	public void setAddLinesToOverlappingRegions(boolean addLinesToOverlappingRegions) {
+		this.addLinesToOverlappingRegions = addLinesToOverlappingRegions;
+		firePropertyChange(ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, !this.addLinesToOverlappingRegions, this.addLinesToOverlappingRegions);
 	}
 
-	public boolean isAddToOverlappingParentRegion() {
-		return addToOverlappingParentRegion;
+	public boolean isAddBaselinesToOverlappingLines() {
+		return addBaselinesToOverlappingLines;
 	}
 
-	public void setAddToOverlappingParentRegion(boolean addToOverlappingParentRegion) {
-		this.addToOverlappingParentRegion = addToOverlappingParentRegion;
-		firePropertyChange(ADD_TO_OVERLAPPING_PARENT_REGION_PROPERTY, !this.addToOverlappingParentRegion, this.addToOverlappingParentRegion);
+	public void setAddBaselinesToOverlappingLines(boolean addBaselinesToOverlappingLines) {
+		this.addBaselinesToOverlappingLines = addBaselinesToOverlappingLines;
+		firePropertyChange(ADD_BASELINES_TO_OVERLAPPING_LINES_PROPERTY, !this.addBaselinesToOverlappingLines, this.addBaselinesToOverlappingLines);
+	}
+
+	public boolean isAddWordsToOverlappingLines() {
+		return addWordsToOverlappingLines;
+	}
+
+	public void setAddWordsToOverlappingLines(boolean addWordsToOverlappingLines) {
+		this.addWordsToOverlappingLines = addWordsToOverlappingLines;
+		firePropertyChange(ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, !this.addWordsToOverlappingLines, this.addWordsToOverlappingLines);
 	}
 
 	public boolean isSelectNewlyCreatedShape() {

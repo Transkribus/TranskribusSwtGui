@@ -34,7 +34,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	//
 	MenuItem rectangleModeItem;
 	MenuItem autoCreateParentItem;
-	MenuItem addToOverlappingRegionItem, addToOverlappingLineItem, lockZoomOnFocusItem;
+	MenuItem addLineToOverlappingRegionItem, addBaselineToOverlappingLineItem, addWordsToOverlappingLineItem, lockZoomOnFocusItem;
 	MenuItem selectNewlyCreatedShapeItem;
 	
 //	protected ToolItem shapeAddRectMode;
@@ -149,8 +149,9 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		optionsItem.ti.setImage(Images.getOrLoad("/icons/wrench.png"));
 		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.getOrLoad("/icons/wrench.png"), "");
 		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.getOrLoad("/icons/wrench.png"), "");
-		addToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: only use selected region as parent)", Images.getOrLoad("/icons/wrench.png"), "");
-		addToOverlappingLineItem = optionsItem.addItem("Add words and baselines to overlapping parent lines (else: only use selected lines as parent)", Images.getOrLoad("/icons/wrench.png"), "");
+		addLineToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: use the selected region as parent)", Images.getOrLoad("/icons/wrench.png"), "");
+		addBaselineToOverlappingLineItem = optionsItem.addItem("Add baselines to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), "");
+		addWordsToOverlappingLineItem = optionsItem.addItem("Add words to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), "");
 		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.getOrLoad("/icons/wrench.png"), "");
 		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.getOrLoad("/icons/wrench.png"), "");
 		
@@ -289,12 +290,16 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		return autoCreateParentItem;
 	}
 	
-	public MenuItem getAddToOverlappingRegionItem() {
-		return addToOverlappingRegionItem;
+	public MenuItem getAddLineToOverlappingRegionItem() {
+		return addLineToOverlappingRegionItem;
 	}
 
-	public MenuItem getAddToOverlappingLineItem() {
-		return addToOverlappingLineItem;
+	public MenuItem getAddBaselineToOverlappingLineItem() {
+		return addBaselineToOverlappingLineItem;
+	}
+	
+	public MenuItem getAddWordsToOverlappingLineItem() {
+		return addWordsToOverlappingLineItem;
 	}
 	
 	public MenuItem getLockZoomOnFocusItem() {

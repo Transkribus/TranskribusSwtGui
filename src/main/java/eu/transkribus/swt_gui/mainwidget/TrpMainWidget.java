@@ -1259,6 +1259,18 @@ public class TrpMainWidget {
 		}
 
 		List<Object> selData = canvas.getScene().getSelectedData();
+		
+		
+		if (!getTrpSets().isShowLines()) {
+			for (int i=0; i<selData.size(); ++i) {
+				Object o = selData.get(i);
+				if (o instanceof TrpBaselineType) {
+					TrpBaselineType bl = (TrpBaselineType) o;
+					selData.set(i, bl.getLine());
+				}
+			}
+		}
+
 		// logger.debug("selected data size = "+selData.size());
 
 		StructuredSelection sel = new StructuredSelection(selData);

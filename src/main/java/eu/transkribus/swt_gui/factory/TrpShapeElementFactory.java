@@ -181,9 +181,8 @@ public class TrpShapeElementFactory {
 		ITrpShapeType trpShape=null;
 		ICanvasShape parentShape = null;
 		
-		boolean addToOverlapRegion = TrpMainWidget.getTrpSettings().isAddToOverlappingParentRegion();
-		boolean addToOverlapLine = TrpMainWidget.getTrpSettings().isAddToOverlappingParentLine();
-		
+		TrpSettings setts = TrpMainWidget.getTrpSettings();
+				
 		logger.debug("adding - data = "+m.data);
 		
 		String specialRegionType = (m.data != null && m.data instanceof String) ? (String) m.data : "";
@@ -212,42 +211,57 @@ public class TrpShapeElementFactory {
 				throw new Exception("Invalid special region type: "+specialRegionType+" - should not happen!");			
 		}
 		else if (m.equals(TrpCanvasAddMode.ADD_LINE)) {
-			if (addToOverlapRegion)
+			String errorMsg = "";
+			if (setts.isAddLinesToOverlappingRegions()) {
 				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTextRegionType.class);
-			else if (selectedParentShape != null && selectedParentShape.getData() instanceof TrpTextRegionType)
+				errorMsg = "Could not find an overlapping parent text region!";
+			}
+			else if (selectedParentShape != null && selectedParentShape.getData() instanceof TrpTextRegionType) {
 				parentShape = selectedParentShape;
+				errorMsg = "No parent region selected!";
+			}
 			
 			if (parentShape == null)
-				throw new NoParentRegionException("Could not find an overlapping parent text region!");
+				throw new NoParentRegionException(errorMsg);
 			
 			TrpTextRegionType parent = (TrpTextRegionType) parentShape.getData();
 			TrpTextLineType tl = createPAGETextLine(shape, parent);
 			trpShape = tl;
 		}
 		else if (m.equals(TrpCanvasAddMode.ADD_BASELINE)) {
-			if (addToOverlapLine)
+			String errorMsg = "";
+			if (setts.isAddBaselinesToOverlappingLines()) {
 				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTextLineType.class);
-			else if (selectedParentShape != null && selectedParentShape.getData() instanceof TrpTextLineType)
+				errorMsg = "Could not find an overlapping parent line!";	
+			}
+			else if (selectedParentShape != null && selectedParentShape.getData() instanceof TrpTextLineType) {
 				parentShape = selectedParentShape;
+				errorMsg = "No parent line selected!";
+			}
 			
 			if (parentShape == null)
-				throw new NoParentLineException("Could not find an overlapping parent line!");			
+				throw new NoParentLineException(errorMsg);			
 			
 			TrpTextLineType parent = (TrpTextLineType) parentShape.getData();
 			if (parent.getBaseline()!=null)
-				throw new BaselineExistsException("Baseline already exists in this line - remove or edit existing baseline!");
+				throw new BaselineExistsException("Baseline already exists in parent line with id = "+parent.getId()+"\nRemove or edit existing baseline!");
 			
 			TrpBaselineType bl = createPAGEBaseline(shape, parent);
 			trpShape = bl;
 		}
 		else if (m.equals(TrpCanvasAddMode.ADD_WORD)) {
-			if (addToOverlapLine)
-				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTextLineType.class);			
-			else if (selectedParentShape != null && selectedParentShape.getData() instanceof TrpTextLineType)
+			String errorMsg = "";
+			if (setts.isAddWordsToOverlappingLines()) {
+				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTextLineType.class);
+				errorMsg = "Could not find an overlapping parent line!";
+			}
+			else if (selectedParentShape != null && selectedParentShape.getData() instanceof TrpTextLineType) {
 				parentShape = selectedParentShape;
+				errorMsg = "No parent line selected!";
+			}
 			
 			if (parentShape == null)
-				throw new NoParentLineException("Could not find an overlapping parent line!");
+				throw new NoParentLineException(errorMsg);
 			
 			TrpTextLineType parent = (TrpTextLineType) parentShape.getData();
 			TrpWordType word = createPAGEWord(shape, parent);

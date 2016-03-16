@@ -893,8 +893,11 @@ public class TrpMainWidgetView extends Composite {
 		
 		db.bindBeanToWidgetSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, canvasWidget.getToolBar().getRectangleModeItem());
 		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, canvasWidget.getToolBar().getAutoCreateParentItem());
-		db.bindBeanToWidgetSelection(TrpSettings.ADD_TO_OVERLAPPING_PARENT_REGION_PROPERTY, trpSets, canvasWidget.getToolBar().getAddToOverlappingRegionItem());
-		db.bindBeanToWidgetSelection(TrpSettings.ADD_TO_OVERLAPPING_PARENT_LINE_PROPERTY, trpSets, canvasWidget.getToolBar().getAddToOverlappingLineItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, trpSets, canvasWidget.getToolBar().getAddLineToOverlappingRegionItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_BASELINES_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolBar().getAddBaselineToOverlappingLineItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolBar().getAddWordsToOverlappingLineItem());
+		
 		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), canvasWidget.getToolBar().getLockZoomOnFocusItem());
 		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, canvasWidget.getToolBar().getSelectNewlyCreatedShapeItem());
 		
