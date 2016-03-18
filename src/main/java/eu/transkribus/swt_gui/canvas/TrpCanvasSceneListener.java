@@ -23,6 +23,7 @@ import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
 public class TrpCanvasSceneListener extends CanvasSceneListener {
@@ -68,7 +69,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 					logger.debug("answer = "+rc);
 					
 					doCreateParentRegion = rc==IDialogConstants.YES_ID;
-					TrpMainWidget.getTrpSettings().setAutoCreateParent(d.getToggleState());
+					if (doCreateParentRegion)
+						TrpMainWidget.getTrpSettings().setAutoCreateParent(d.getToggleState());
 				}
 				if (doCreateParentRegion) {
 					// first add missing parent region:
@@ -120,6 +122,34 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	@Override
 	public void onBeforeShapeRemoved(SceneEvent e) {
 //		logger.debug("before shape removed called: "+e.shape);
+		
+		TrpSettings set = mainWidget.getTrpSettings();
+		
+		for (ICanvasShape s : e.shapes) {
+			ITrpShapeType st = GuiUtil.getTrpShape(s);
+			if (st instanceof TrpBaselineType) {
+				boolean removeParentLine = set.isDeleteLineIfBaselineDeleted();
+				if (!removeParentLine) {
+				
+					MessageDialogWithToggle d = MessageDialogWithToggle.openYesNoQuestion(canvas.getShell(), "Delete line also?", "Do you also want to delete the parent line of this baseline?", 
+							"Delete always", TrpMainWidget.getTrpSettings().isDeleteLineIfBaselineDeleted(), null, null);
+					int rc = d.getReturnCode();
+					logger.debug("answer = "+rc);
+					
+					removeParentLine = rc==IDialogConstants.YES_ID;
+					if (removeParentLine)
+						TrpMainWidget.getTrpSettings().setDeleteLineIfBaselineDeleted(d.getToggleState());
+				}
+
+				if (removeParentLine) { // remove parent line!
+					logger.debug("TODO: remove parent line!");
+					canvas.getShapeEditor().removeShapeFromCanvas(s.getParent());
+					e.stop = true;
+				}
+			}
+			
+		}
+		
 	}
 
 	@Override

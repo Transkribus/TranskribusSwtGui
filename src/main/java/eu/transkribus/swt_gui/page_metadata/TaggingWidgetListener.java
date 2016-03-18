@@ -118,6 +118,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 			}		
 		}
 		
+		mainWidget.updatePageRelatedMetadata();
 		mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
 		mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
 		mainWidget.refreshStructureView();

@@ -84,7 +84,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		ui.getSendBugReportButton().addSelectionListener(this);
 		ui.getLoginToggle().addSelectionListener(this);
 		
-		ui.getVkeyboards().addSelectionListener(this);
+		ui.getVkeyboards().addKeySelectionListener(this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
 		SWTUtil.addToolItemSelectionListener(ui.getProfilesToolItem().ti, this);

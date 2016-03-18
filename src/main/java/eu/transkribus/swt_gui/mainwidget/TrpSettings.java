@@ -101,6 +101,8 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean addWordsToOverlappingLines=true;
 	public static final String ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY = "addWordsToOverlappingLines";
 	
+	private boolean deleteLineIfBaselineDeleted=false;
+	public static final String DELETE_LINE_IF_BASELINE_DELETED_PROPERTY = "deleteLineIfBaselineDeleted";
 	
 	private boolean selectNewlyCreatedShape=false;
 	public static final String SELECT_NEWLY_CREATED_SHAPE_PROPERTY = "selectNewlyCreatedShape";
@@ -688,6 +690,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setAddWordsToOverlappingLines(boolean addWordsToOverlappingLines) {
 		this.addWordsToOverlappingLines = addWordsToOverlappingLines;
 		firePropertyChange(ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, !this.addWordsToOverlappingLines, this.addWordsToOverlappingLines);
+	}
+	
+	public boolean isDeleteLineIfBaselineDeleted() {
+		return deleteLineIfBaselineDeleted;
+	}
+
+	public void setDeleteLineIfBaselineDeleted(boolean deleteLineIfBaselineDeleted) {
+		this.deleteLineIfBaselineDeleted = deleteLineIfBaselineDeleted;
+		firePropertyChange(DELETE_LINE_IF_BASELINE_DELETED_PROPERTY, !this.deleteLineIfBaselineDeleted, this.deleteLineIfBaselineDeleted);
 	}
 
 	public boolean isSelectNewlyCreatedShape() {

@@ -1260,7 +1260,7 @@ public class TrpMainWidget {
 
 		List<Object> selData = canvas.getScene().getSelectedData();
 		
-		
+		// select lines for baselines in struct view if lines not visible: 
 		if (!getTrpSets().isShowLines()) {
 			for (int i=0; i<selData.size(); ++i) {
 				Object o = selData.get(i);

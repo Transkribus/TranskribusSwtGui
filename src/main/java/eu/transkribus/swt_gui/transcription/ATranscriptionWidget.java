@@ -439,6 +439,9 @@ public abstract class ATranscriptionWidget extends Composite {
 	}
 	
 	private void setFontFromSettings() {
+		if (false)
+			return;
+		
 		FontData fd = new FontData();
 		
 		logger.debug("settings font name: '"+settings.getTranscriptionFontName()

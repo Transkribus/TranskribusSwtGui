@@ -132,7 +132,8 @@ public class TaggingWidget extends Composite implements Observer {
 		this.withProperties = withProperties;
 		
 		sf = new SashForm(this, SWT.VERTICAL | SWT.SMOOTH );
-		sf.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
+//		sf.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
+		sf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 //		sf.setBackground(sf.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY));
 		
 		initTagsTable(type);
@@ -150,7 +151,8 @@ public class TaggingWidget extends Composite implements Observer {
 		
 		if (sf instanceof SashForm && withProperties) {
 //			logger.debug("l = "+sf.getWeights().length);
-			sf.setWeights(new int[] {33, 77});
+//			sf.setWeights(new int[] {65, 35});
+			sf.setWeights(new int[] {50, 15, 35});
 		}
 		
 		CustomTagFactory.registryObserver.addObserver(this);
@@ -466,14 +468,20 @@ public class TaggingWidget extends Composite implements Observer {
 	}
 	
 	private void initSelectedTagsTable() {
-		selectedTagsTableViewer = new TableViewer(tagsTableContainer);
+		Composite container = new Composite(sf, 0);
+		container.setLayout(new GridLayout(1, false));
+		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+//		selectedTagsTableViewer = new TableViewer(tagsTableContainer);
+		selectedTagsTableViewer = new TableViewer(container);
 		selectedTagsTableViewer.setContentProvider(new ArrayContentProvider());
 		final Table t = selectedTagsTableViewer.getTable();
 		t.setHeaderVisible(true);
 		
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-		gd.heightHint = 75;
-		t.setLayoutData(gd);
+//		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+//		gd.heightHint = 75;
+//		t.setLayoutData(gd);
+		t.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		TableViewerColumn tagCol = TableUtils.createTableViewerColumn(selectedTagsTableViewer, SWT.LEFT, "Tags under cursor", 200);
 		TableViewerColumn deleteTagCol = TableUtils.createTableViewerColumn(selectedTagsTableViewer, SWT.LEFT, "", 50);
@@ -516,7 +524,7 @@ public class TaggingWidget extends Composite implements Observer {
 			}
 		});
 		
-		clearTagsBtn = new Button(tagsTableContainer, SWT.PUSH);
+		clearTagsBtn = new Button(container, SWT.PUSH);
 		clearTagsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		clearTagsBtn.setImage(Images.DELETE);
 		clearTagsBtn.setText("Clear tags for selection");

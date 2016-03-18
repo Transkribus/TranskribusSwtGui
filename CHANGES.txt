@@ -311,4 +311,9 @@ CHANGES AND BUGFIXES
 	-> profiles
 	-> show complete img and transcript url in DocOverviewWidget
 
+0.8.1:
+	-> bugfix: after tag was added, "Tags under cursor" and "Properties" were not updated
+	-> deleteLineIfBaselineDeleted property (configure via wrench tool)
+	-> virtual keyboard configurable
+
 	

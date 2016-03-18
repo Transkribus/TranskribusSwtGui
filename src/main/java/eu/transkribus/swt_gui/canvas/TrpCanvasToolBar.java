@@ -34,7 +34,8 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	//
 	MenuItem rectangleModeItem;
 	MenuItem autoCreateParentItem;
-	MenuItem addLineToOverlappingRegionItem, addBaselineToOverlappingLineItem, addWordsToOverlappingLineItem, lockZoomOnFocusItem;
+	MenuItem addLineToOverlappingRegionItem, addBaselineToOverlappingLineItem, 
+				addWordsToOverlappingLineItem, lockZoomOnFocusItem, deleteLineIfBaselineDeletedItem;
 	MenuItem selectNewlyCreatedShapeItem;
 	
 //	protected ToolItem shapeAddRectMode;
@@ -154,6 +155,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		addWordsToOverlappingLineItem = optionsItem.addItem("Add words to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), "");
 		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.getOrLoad("/icons/wrench.png"), "");
 		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.getOrLoad("/icons/wrench.png"), "");
+		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.getOrLoad("/icons/wrench.png"), "");
 		
 //		new ToolItem(this, SWT.SEPARATOR, ++i);
 		
@@ -304,6 +306,10 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	
 	public MenuItem getLockZoomOnFocusItem() {
 		return lockZoomOnFocusItem;
+	}
+	
+	public MenuItem getDeleteLineIfBaselineDeletedItem() {
+		return deleteLineIfBaselineDeletedItem;
 	}
 	
 	public MenuItem getSelectNewlyCreatedShapeItem() {

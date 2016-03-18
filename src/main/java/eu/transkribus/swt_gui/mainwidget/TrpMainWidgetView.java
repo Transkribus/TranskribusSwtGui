@@ -67,7 +67,8 @@ import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
-import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboards;
+import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsTabWidget;
+import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsWidget;
 
 public class TrpMainWidgetView extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TrpMainWidgetView.class);
@@ -93,7 +94,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	public static boolean SHOW_NEW_TW = true;
 	TaggingWidget taggingWidget;
-	TrpVirtualKeyboards vkeyboards;
+	TrpVirtualKeyboardsWidget vkeyboards;
 	ToolsWidget toolsWidget;
 	CommentsWidget commentsWidget;
 //	AnalyticsWidget analyticsWidget;
@@ -243,7 +244,7 @@ public class TrpMainWidgetView extends Composite {
 			rightTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			
 			metadataWidget = new PageMetadataWidget(rightTabFolder, SWT.TOP);
-			vkeyboards = new TrpVirtualKeyboards(rightTabFolder, SWT.TOP | SWT.BORDER | SWT.FLAT );
+			vkeyboards = new TrpVirtualKeyboardsWidget(rightTabFolder, SWT.TOP | SWT.BORDER | SWT.FLAT );
 			toolsWidget = new ToolsWidget(rightTabFolder, SWT.TOP);
 			toolsWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			
@@ -899,6 +900,9 @@ public class TrpMainWidgetView extends Composite {
 		db.bindBeanToWidgetSelection(TrpSettings.ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolBar().getAddWordsToOverlappingLineItem());
 		
 		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), canvasWidget.getToolBar().getLockZoomOnFocusItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.DELETE_LINE_IF_BASELINE_DELETED_PROPERTY, trpSets, canvasWidget.getToolBar().getDeleteLineIfBaselineDeletedItem());
+		
 		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, canvasWidget.getToolBar().getSelectNewlyCreatedShapeItem());
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, showReadingOrderRegionsItem);
@@ -1123,7 +1127,7 @@ public class TrpMainWidgetView extends Composite {
 	public ToolItem getLoginToggle() { return loginToggle; }
 	
 	public PageMetadataWidget getMetadataWidget() { return metadataWidget; }
-	public TrpVirtualKeyboards getVkeyboards() { return vkeyboards; }
+	public TrpVirtualKeyboardsWidget getVkeyboards() { return vkeyboards; }
 	public ToolsWidget getToolsWidget() { return toolsWidget; }
 //	public AnalyticsWidget getAnalyticsWidget() { return analyticsWidget; }
 		
