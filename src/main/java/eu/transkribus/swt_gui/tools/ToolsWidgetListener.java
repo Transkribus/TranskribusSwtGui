@@ -79,6 +79,10 @@ public class ToolsWidgetListener implements SelectionListener {
 	boolean isLayoutAnalysis(Object s) {
 		return (s == tw.getBlocksBtn() || s == tw.getBlocksInPsBtn() || s == tw.getLinesBtn() || s == tw.getBaselineBtn());
 	}
+	
+	boolean needsRegions(Object s) {
+		return s == tw.getBaselineBtn() || s == tw.getLinesBtn();
+	}
 		
 	@Override
 	public void widgetSelected(SelectionEvent e) {
@@ -111,6 +115,11 @@ public class ToolsWidgetListener implements SelectionListener {
 			String jobId = null;
 			int colId = store.getCurrentDocumentCollectionId();
 			
+			if (needsRegions(s) && !PageXmlUtils.hasRegions(pageData)) {
+				DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "You have to define text regions first!");
+				return;
+			}
+			
 			if (isLayoutAnalysis(s) && store.isTranscriptEdited())
 				mw.saveTranscription(false);
 			
@@ -123,13 +132,8 @@ public class ToolsWidgetListener implements SelectionListener {
 				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
 			} else if(s == tw.getLinesBtn()) {
 				logger.info("Get new line seg.");
-				if(!PageXmlUtils.hasRegions(pageData)){
-					DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "You have to define text regions in order to detect lines.");
-					return;
-				} else {
-					List<String> rids = getSelectedRegionIds();
-					jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-				}
+				List<String> rids = getSelectedRegionIds();
+				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
 			} 
 //			else if(s == lw.getWordsBtn()) {
 //				logger.info("Get new word seg.");
@@ -146,7 +150,6 @@ public class ToolsWidgetListener implements SelectionListener {
 			else if (s == tw.structAnalysisPageBtn) {
 				mw.analyzePageStructure(tw.detectPageNumbers.getSelection(), tw.detectRunningTitles.getSelection(), tw.detectFootnotesCheck.getSelection());
 			}
-			
 			
 			else if(s == tw.computeWerBtn){
 				

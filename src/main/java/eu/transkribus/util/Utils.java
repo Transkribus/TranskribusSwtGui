@@ -30,6 +30,7 @@ import difflib.DiffUtils;
 import difflib.Patch;
 import eu.transkribus.core.i18n.I18nUtils;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.swt_canvas.portal.PortalWidget.Docking;
 import eu.transkribus.swt_canvas.util.Colors;
 
 public class Utils {
@@ -255,7 +256,7 @@ public class Utils {
 	 * **/
 	public static void setBeanProperties(Object bean, Properties properties) /*throw IllegalAccessException, InvocationTargetException, NoSuchMethodException*/ {
 		BeanMap beanmap = new BeanMap(bean);
-		
+				
 		for (Map.Entry<Object, Object> e : properties.entrySet()) {
 			if (e.getKey() instanceof String && beanmap.containsKey(e.getKey())) {
 				String key = (String) e.getKey();
@@ -264,25 +265,7 @@ public class Utils {
 				
 				try {
 					Object valueObject = getValue(beanmap.getType(key), value);
-					BeanUtils.setProperty(bean, key, valueObject);					
-					
-//					if (beanmap.getType(key) == org.eclipse.swt.graphics.Color.class) { // if type of member is swt color, parse input as (x,y,z) string vector
-//	//					logger.debug("this is an swt color!");
-//						List<Integer> v = parseIntVectors(value);
-//						if (v.size() != 3)
-//							throw new Exception("Could not parse vector, size: "+v.size());
-//						
-//						RGB rgb = new RGB(v.get(0), v.get(1), v.get(2));
-//						BeanUtils.setProperty(bean, key, Colors.createColor(rgb));
-//						
-//					} 
-//					else if (beanmap.getType(key) == Locale.class) {
-//						BeanUtils.setProperty(bean, key, I18nUtils.getLocaleFromString(value));
-//					}					
-//					else {
-//						// set "normal" property:
-//						BeanUtils.setProperty(bean, key, e.getValue().toString().trim());
-//					}
+					BeanUtils.setProperty(bean, key, valueObject);
 				}
 				catch (Exception ex) {
 					logger.warn("Could not set value of config attribute "+key+" to "+value+", error: "+ex.getMessage());
@@ -304,24 +287,6 @@ public class Utils {
 			try {
 				Object valueObject = getValue(beanmap.getType(key), value);
 				BeanUtils.setProperty(bean, key, valueObject);
-				
-//				if (beanmap.getType(key) == org.eclipse.swt.graphics.Color.class) { // if type of member is swt color, parse input as (x,y,z) string vector
-////					logger.debug("this is an swt color!");
-//					List<Integer> v = parseIntVectors(value);
-//					if (v.size() != 3)
-//						throw new Exception("Could not parse vector, size: "+v.size());
-//					
-//					RGB rgb = new RGB(v.get(0), v.get(1), v.get(2));
-//					BeanUtils.setProperty(bean, key, Colors.createColor(rgb));
-//					
-//				} 
-//				else if (beanmap.getType(key) == Locale.class) {
-//					BeanUtils.setProperty(bean, key, I18nUtils.getLocaleFromString(value));
-//				}
-//				else {
-//					// set "normal" property:
-//					BeanUtils.setProperty(bean, key, value);
-//				}
 			}
 			catch (Exception ex) {
 				logger.warn("Could not set value of config attribute "+key+" to "+value+", error: "+ex.getMessage());
@@ -338,10 +303,14 @@ public class Utils {
 				throw new Exception("Could not parse vector, size: "+v.size());
 			
 			RGB rgb = new RGB(v.get(0), v.get(1), v.get(2));
-			return rgb;
+			return Colors.createColor(rgb);
+//			return rgb;
 		}
 		else if (type == Locale.class) {
 			return I18nUtils.getLocaleFromString(valueStr);
+		}
+		else if (type == Docking.class) {
+			return Docking.valueOf(valueStr);
 		}
 		
 		return valueStr;
@@ -350,7 +319,7 @@ public class Utils {
 	public static void testDiffUtils() {
 		
 		String str1="hello world";
-		String str2="hello fucking world";
+		String str2="hello cruel world";
 		
 		List<String> l1 = new ArrayList<>();
 		List<String> l2 = new ArrayList<>();

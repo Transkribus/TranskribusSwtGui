@@ -111,7 +111,7 @@ public class DebuggerDialog extends Dialog {
 		// prevent closing:
 //		shell.addListener(SWT.Close, new Listener() {
 //			@Override public void handleEvent(Event event) {
-//				logger.debug("I WONT QUIT MOTHERFUCKER!");
+//				logger.debug("I WONT QUIT!");
 //				event.doit = false;
 //				shell.setVisible(false);
 //			}

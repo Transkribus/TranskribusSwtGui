@@ -124,7 +124,6 @@ import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.doc_overview.DocMetadataEditor;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
-import eu.transkribus.swt_gui.doc_overview.DocSearchDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
 import eu.transkribus.swt_gui.mainwidget.listener.RegionsPagingToolBarListener;
@@ -137,6 +136,7 @@ import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsTableWidgetListener;
+import eu.transkribus.swt_gui.search.SearchDialog;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
 import eu.transkribus.swt_gui.tools.ToolsWidgetListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
@@ -1610,30 +1610,30 @@ public class TrpMainWidget {
 	}
 
 	public void loadLocalTestset() {
+		String localTestdoc = "";
+		
 		if (SysUtils.isWin()) {
-			// loadLocalDoc("C:/TrpTestDoc_20140127/");
-			loadLocalDoc("C:/Schauplatz_small");
-			// loadLocalDoc("C:/trp_doc_97");
-
-		} 
+			localTestdoc = "C:/Schauplatz_small";
+		}
 		else if (SysUtils.isOsx()) {
-			loadLocalDoc("/Users/hansm/Documents/testDocs/Bentham_box_035/");
+			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
 		}
 		else {
-			// loadLocalDoc("/mnt/dea_scratch/TRP/TrpTestDoc_20140127/");
-			// loadLocalDoc("/mnt/dea_scratch/TRP/Schauplatz_small");
-			// loadLocalDoc("/mnt/dea_scratch/TRP/Schauplatz");
-			// loadLocalDoc("/media/dea_scratch/TRP/TrpTestDoc_20140127/");
-			// loadLocalDoc("/media/dea_scratch/TRP/Schauplatz_small/");
-			loadLocalDoc("/home/sebastianc/Dokumente/Bentham_box_035/");
-
-			// try {
-			// LocalDocWriter.writeTrpDoc(doc,
-			// "/home/sebastianc/workspace/TrpGui/test_doc_out");
-			// } catch (Exception e) {
-			// e.printStackTrace();
-			// }
+			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
 		}
+		
+		File f = new File(localTestdoc);
+		if (!f.isDirectory()) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error loading local testset", "The local testset directory does not exist:\n "+f.getAbsolutePath());
+			return;
+		}
+
+		loadLocalDoc(localTestdoc);
+	}
+	
+	public void loadRemoteTestset() {
+		// TODO
+		
 	}
 
 	public void loginAsTestUser() {
@@ -3118,8 +3118,8 @@ public class TrpMainWidget {
 
 	}
 
-	public void findDocuments() {
-		DocSearchDialog d = new DocSearchDialog(getShell());
+	public void openSearchDialog() {
+		SearchDialog d = new SearchDialog(getShell());
 		d.open();
 	}
 

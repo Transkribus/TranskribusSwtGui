@@ -50,6 +50,12 @@ public class DataBinder {
 //		
 //		ctx.bindValue(v2, v1);	}
 	
+	public Binding bindBeanPropertyToObservableValue(String property, Object bean, IObservableValue v) {
+		IObservableValue model = BeanProperties.value(property).observe(bean);
+		
+		return ctx.bindValue(v, model);
+	}
+	
 	public Binding bindBeanToWidgetSelection(String property, Object bean, Widget w) {		
 		IObservableValue v1 = BeanProperties.value(property).observe(bean);
 		IObservableValue v2 = SWTObservables.observeSelection(w);

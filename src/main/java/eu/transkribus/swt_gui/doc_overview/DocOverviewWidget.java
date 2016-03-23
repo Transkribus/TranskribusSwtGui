@@ -49,7 +49,7 @@ public class DocOverviewWidget extends Composite {
 	
 	Button manageCollectionsBtn;
 	Button showActivityWidgetBtn;
-	Button findDocumentsBtn;
+	Button searchBtn;
 	Text quickLoadByID;
 	
 	Button openMetadataEditorBtn;
@@ -99,7 +99,7 @@ public class DocOverviewWidget extends Composite {
 
 //		uploadSingleDocItem.setEnabled(isLoggedIn);
 		uploadDocsItem.setEnabled(isLoggedIn);
-		findDocumentsBtn.setEnabled(isLoggedIn);
+		searchBtn.setEnabled(isLoggedIn);
 		
 //		boolean canDelete = getSelectedCollection().getRole()==null || getSelectedCollection().getRole().canDelete();
 //		deleteItem.setEnabled(isLoggedIn);
@@ -287,9 +287,9 @@ public class DocOverviewWidget extends Composite {
 //		uploadFromPrivateFtpItem.setImage(Images.getOrLoad("/icons/weather_clouds.png"));
 		uploadDocsItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
 		
-		findDocumentsBtn = new Button(btns, 0);
-		findDocumentsBtn.setToolTipText("Search for documents");
-		findDocumentsBtn.setImage(Images.getOrLoad("/icons/find.png"));
+		searchBtn = new Button(btns, 0);
+		searchBtn.setToolTipText("Search for documents, keywords... tbc");
+		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
 		
 //		Label l = new Label(btns, 0);
 //		l.setText("Quick load by ID: ");

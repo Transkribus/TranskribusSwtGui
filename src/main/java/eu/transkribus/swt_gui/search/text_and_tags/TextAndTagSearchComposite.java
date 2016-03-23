@@ -1,8 +1,7 @@
-package eu.transkribus.swt_gui.page_metadata;
+package eu.transkribus.swt_gui.search.text_and_tags;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,8 +10,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -34,14 +31,13 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
@@ -72,10 +68,11 @@ import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.TableLabelProvider;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.page_metadata.CustomTagSearcher;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
 
-public class TagSearchDialog extends Dialog {
-	private final static Logger logger = LoggerFactory.getLogger(TagSearchDialog.class);
+public class TextAndTagSearchComposite extends Composite {
+	private final static Logger logger = LoggerFactory.getLogger(TextAndTagSearchComposite.class);
 	
 	static final String SCOPE_DOC = "Current document";
 	static final String SCOPE_PAGE = "Current page";
@@ -143,23 +140,14 @@ public class TagSearchDialog extends Dialog {
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public TagSearchDialog(Shell parentShell) {
-		super(parentShell);
-		
-		setShellStyle(SWT.SHELL_TRIM | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.MAX);
-		setBlockOnOpen(false);
+	public TextAndTagSearchComposite(Composite parent, int style) {
+		super(parent, style);
+		createContents();
 	}
 	
-	@Override protected boolean isResizable() {
-		return true;
-	}
-
-	/**
-	 * Create contents of the dialog.
-	 * @param parent
-	 */
-	@Override protected Control createDialogArea(Composite parent) {
-		Composite c = (Composite) super.createDialogArea(parent);
+	protected void createContents() {
+		this.setLayout(new FillLayout());
+		Composite c = new Composite(this, 0);
 		c.setLayout(new FillLayout());
 		
 		SashForm sf = new SashForm(c, SWT.VERTICAL);
@@ -358,7 +346,6 @@ public class TagSearchDialog extends Dialog {
 			}
 		});
 
-		return c;
 	}
 	
 	protected boolean isNormalizationPossible() {
@@ -553,7 +540,7 @@ public class TagSearchDialog extends Dialog {
 	protected void updateNormalizationSelection() {
 		logger.debug("updating norm selection...");
 		if (!isNormalizationPossible()) {
-			tagNormWidget.pt.setInput(null, null);
+			tagNormWidget.propertyTable.setInput(null, null);
 			return;
 		}
 		
@@ -628,7 +615,6 @@ public class TagSearchDialog extends Dialog {
 	}
 	
 	void findTags() {
-		
 		final CustomTagSearchFacets facets;
 		if (isTagSearch()) {
 			facets = new CustomTagSearchFacets(tagNameInput.getText(), tagValueInput.getText(), props, false, 
@@ -651,8 +637,11 @@ public class TagSearchDialog extends Dialog {
 //		}
 
 		final Storage s = Storage.getInstance();
+		final TrpMainWidget mw = TrpMainWidget.getInstance();
+		final int currentCollID = mw.getUi().getDocOverviewWidget().getSelectedCollectionId();
+		
 		String scope = scopeCombo.getText();
-		logger.debug("searching on scope: "+scope);
+		logger.debug("searching on scope: "+scope+ " currentCollID = "+currentCollID);
 		
 		foundTags.clear();
 		resultsLabel.setText("");
@@ -660,40 +649,31 @@ public class TagSearchDialog extends Dialog {
 		ProgressBarDialog pd = new ProgressBarDialog(getShell()) {
 			@Override public void subTask(final String name) {
 				super.subTask(name);
-				Shell s = TagSearchDialog.this.getShell();
-				if (!s.isDisposed()) {
-					s.getDisplay().syncExec(new Runnable() {
-						@Override
-						public void run() {
-							logger.debug("updating results table from timer task...");
-	                    	resultsTable.refresh();
+				Display.getDefault().syncExec(new Runnable() {
+					@Override public void run() {
+						Shell s = TextAndTagSearchComposite.this.getShell();
+						if (!s.isDisposed()) {
+							updateResults();
 						}
-					});
-				}
+					}
+				});
 			}
 		};
 		
-		if (scope.equals(SCOPE_COLL)) {
-			try {
+		try {
+			if (scope.equals(SCOPE_COLL)) {
 				pd.open(new IRunnableWithProgress() {
 					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							CustomTagSearcher.searchOnCollection_WithoutIndex(foundTags, facets, monitor);
+							CustomTagSearcher.searchOnCollection_WithoutIndex(currentCollID, foundTags, facets, monitor);
 							
 						} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
 							throw new InvocationTargetException(e);
 						}
 					}
 				}, "Searching", true);
-				
-			} catch (Throwable e) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", e.getMessage());
-				logger.error(e.getMessage(), e);
-				return;
 			}
-		}
-		else if (scope.equals(SCOPE_DOC)) {
-			try {
+			else if (scope.equals(SCOPE_DOC)) {
 				if (!s.isDocLoaded()) {
 					DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No document loaded!");
 					return;
@@ -703,58 +683,47 @@ public class TagSearchDialog extends Dialog {
 						CustomTagSearcher.searchOnDoc_WithoutIndex(foundTags, s.getDoc(), facets, 0, 0, 0, false, 0, false, monitor, false);
 					}
 				}, "Searching", true);
-			} catch (Throwable e) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", e.getMessage());
-				logger.error(e.getMessage(), e);
-				return;
 			}
-			
-		}
-		else if (scope.equals(SCOPE_PAGE)) {
-//			if (s.getTranscript()==null || s.getTranscript().getPage() == null) {
-			if (!s.isPageLoaded() || s.getTranscript().getPageData() == null) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No page loaded!");
-				return;
-			}
-			TrpPageType p = s.getTranscript().getPage();
-			
-			CustomTagSearcher.searchOnPage(foundTags, p, facets, 0, 0, false, 0, false);
-		} else if (scope.equals(SCOPE_REGION)) {
-			TrpTextRegionType r = s.getCurrentRegionObject();
-			if (r==null) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No region selected!");
-				return;
-			}
+			else if (scope.equals(SCOPE_PAGE)) {
+	//			if (s.getTranscript()==null || s.getTranscript().getPage() == null) {
+				if (!s.isPageLoaded() || s.getTranscript().getPageData() == null) {
+					DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No page loaded!");
+					return;
+				}
+				TrpPageType p = s.getTranscript().getPage();
 				
-			CustomTagSearcher.searchOnRegion(foundTags, r, facets, 0, false, 0, false);
-		}		
-		resultsLabel.setText(foundTags.size()+" matches");
+				CustomTagSearcher.searchOnPage(foundTags, p, facets, 0, 0, false, 0, false);
+			} else if (scope.equals(SCOPE_REGION)) {
+				TrpTextRegionType r = s.getCurrentRegionObject();
+				if (r==null) {
+					DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No region selected!");
+					return;
+				}
+					
+				CustomTagSearcher.searchOnRegion(foundTags, r, facets, 0, false, 0, false);
+			}
+		}
+		catch (Throwable e) {
+			mw.onError("Error in tag search", e.getMessage(), e);
+			return;
+		}
 		
 		logger.debug("setting item count to "+foundTags.size());
+		
+		updateResults();
+	}
+	
+	void updateResults() {
+		logger.debug("updating results table, N = "+foundTags.size());
+		resultsLabel.setText(foundTags.size()+" matches");
+		
 		resultsTable.setItemCount(foundTags.size());
-
 		resultsTable.refresh();
 	}
 	
-	public void updateTagNames() {
+	void updateTagNames() {
 		tagNameInput.setItems((String[]) CustomTagFactory.getRegisteredTagNames().toArray(new String[0]));
 	}
 
-	/**
-	 * Create contents of the button bar.
-	 * @param parent
-	 */
-	@Override protected void createButtonsForButtonBar(Composite parent) {
-//		createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CLOSE_LABEL, false);
-//		createButton(parent, IDialogConstants.CLOSE_ID, IDialogConstants.CLOSE_LABEL, true);
-	}
-
-	/**
-	 * Return the initial size of the dialog.
-	 */
-	@Override protected Point getInitialSize() {
-		return new Point(800, 800);
-	}
-
 }
+

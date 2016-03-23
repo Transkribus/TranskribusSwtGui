@@ -227,7 +227,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 			return;
 		}
 		logger.trace("replacing text!");
-		cattiEditFlag = true; // prevents that this method gets called and called and called again... fuck you fuckin' endless loop!
+		cattiEditFlag = true; // prevents an endless loop
 		
 		int cutIndex = prefix.length() > message.getCorrected_translation_out().length() ? message.getCorrected_translation_out().length() : prefix.length();
 //		text.replaceTextRange(nwbi+lo, suffix.length(), message.getCorrected_translation_out().substring(cutIndex));

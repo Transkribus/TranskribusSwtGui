@@ -19,6 +19,7 @@ import eu.transkribus.core.model.beans.pagecontent.WordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.swt_canvas.portal.PortalWidget.Docking;
 import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.Fonts;
 import eu.transkribus.swt_gui.Msgs;
@@ -202,6 +203,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	public boolean autoLogin = false;
 	public static final String AUTO_LOGIN_PROPERTY = "autoLogin";
+	
+	public Docking leftViewDockingState = Docking.DOCKED;
+	public static final String LEFT_VIEW_DOCKING_STATE_PROPERTY = "leftViewDockingState";
+	
+	public Docking rightViewDockingState = Docking.DOCKED;
+	public static final String RIGHT_VIEW_DOCKING_STATE_PROPERTY = "rightViewDockingState";
+	
+	public Docking bottomViewDockingState = Docking.DOCKED;
+	public static final String BOTTOM_VIEW_DOCKING_STATE_PROPERTY = "bottomViewDockingState";
 	
 	public String cattiServerUrl = TrpCattiClientEndpoint.DEFAULT_CATTI_URI;
 	public static final String CATTI_SERVER_URL_PROPERTY = "cattiServerUrl";
@@ -837,7 +847,36 @@ public class TrpSettings extends APropertyChangeSupport {
 	@Override public List<String> getPropertiesToNotSave() {
 		return DO_NOT_SAVE_THOSE_PROPERTIES;
 	}
-	
+
+	public Docking getLeftViewDockingState() {
+		return leftViewDockingState;
+	}
+
+	public void setLeftViewDockingState(Docking leftViewDockingState) {
+		Docking old = this.leftViewDockingState;
+		this.leftViewDockingState = leftViewDockingState;
+		firePropertyChange(LEFT_VIEW_DOCKING_STATE_PROPERTY, old, this.leftViewDockingState);
+	}
+
+	public Docking getRightViewDockingState() {
+		return rightViewDockingState;
+	}
+
+	public void setRightViewDockingState(Docking rightViewDockingState) {
+		Docking old = this.rightViewDockingState;
+		this.rightViewDockingState = rightViewDockingState;
+		firePropertyChange(RIGHT_VIEW_DOCKING_STATE_PROPERTY, old, this.rightViewDockingState);
+	}
+
+	public Docking getBottomViewDockingState() {
+		return bottomViewDockingState;
+	}
+
+	public void setBottomViewDockingState(Docking bottomViewDockingState) {
+		Docking old = this.bottomViewDockingState;
+		this.bottomViewDockingState = bottomViewDockingState;
+		firePropertyChange(BOTTOM_VIEW_DOCKING_STATE_PROPERTY, old, this.bottomViewDockingState);
+	}
 	
 	
 //	public boolean isUseSnapshotUpdates() { return useSnapshotUpdates; }

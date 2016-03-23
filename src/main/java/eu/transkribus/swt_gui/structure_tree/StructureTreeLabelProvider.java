@@ -98,7 +98,7 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.READING_ORDER_TYPE)
 			return readingOrder;
 		
-		return "fucked up code!";
+		return "i am error!";
 		
 	}
 

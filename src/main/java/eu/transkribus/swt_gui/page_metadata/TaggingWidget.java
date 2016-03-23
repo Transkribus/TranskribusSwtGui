@@ -92,14 +92,15 @@ public class TaggingWidget extends Composite implements Observer {
 	ExpandableComposite propsExp, tagExp;
 	Button addAtrributeBtn;
 	
-	Button searchTagsBtn;
+//	Button searchTagsBtn;
 	
 	List<CustomTag> selectedTags = new ArrayList<>();
 		
 	Map<String, ControlEditor> addDelEditors = new HashMap<>();
 	Map<String, ControlEditor> colorEditors = new HashMap<>();
 	
-	Map<String, ControlEditor> delSelectedEditors = new HashMap<>();
+//	Map<String, ControlEditor> delSelectedEditors = new HashMap<>();
+	Map<CustomTag, ControlEditor> delSelectedEditors = new HashMap<>();
 	
 	ISelectionChangedListener tagsTableSelectionListener;
 	
@@ -233,17 +234,17 @@ public class TaggingWidget extends Composite implements Observer {
 			}
 		});
 		
-		searchTagsBtn = new Button(btnsContainer, SWT.PUSH);
-		searchTagsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		searchTagsBtn.setText("Find tags...");
-		searchTagsBtn.setImage(Images.FIND);
-		searchTagsBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				TagSearchDialog d = new TagSearchDialog(getShell());
-				int rc = d.open();
-				logger.debug("rc = "+rc);
-			}
-		});
+//		searchTagsBtn = new Button(btnsContainer, SWT.PUSH);
+//		searchTagsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		searchTagsBtn.setText("Find tags...");
+//		searchTagsBtn.setImage(Images.FIND);
+//		searchTagsBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				TagSearchDialog d = new TagSearchDialog(getShell());
+//				int rc = d.open();
+//				logger.debug("rc = "+rc);
+//			}
+//		});
 		
 //		searchTextBtn = new Button(btnsContainer, SWT.PUSH);
 //		searchTextBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -271,19 +272,20 @@ public class TaggingWidget extends Composite implements Observer {
 			}
 		});
 				
-		if (false) {
-		addSelectedTagBtn = new Button(btnsContainer, SWT.PUSH);
-		addSelectedTagBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		addSelectedTagBtn.setImage(Images.ADD);
-		addSelectedTagBtn.addSelectionListener(new TagActionSelectionListener(this, listener, TaggingActionType.ADD_TAG));
-		addSelectedTagBtn.setToolTipText("Adds the selected tag to the selection in the transcription widget");
-		
-		removeSelectedTagBtn = new Button(tagsTableContainer, SWT.PUSH);
-		removeSelectedTagBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		removeSelectedTagBtn.setImage(Images.DELETE);
-		removeSelectedTagBtn.addSelectionListener(new TagActionSelectionListener(this, listener, TaggingActionType.DELETE_TAG));
-		removeSelectedTagBtn.setToolTipText("Removes the selected tag from the current selection in the transcription widget");
-		}
+//		if (false) {
+//		addSelectedTagBtn = new Button(btnsContainer, SWT.PUSH);
+//		addSelectedTagBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		addSelectedTagBtn.setImage(Images.ADD);
+//		addSelectedTagBtn.addSelectionListener(new AddTagSelectionListener(listener, this, tagName));
+//		addSelectedTagBtn.addSelectionListener(new TagActionSelectionListener(this, listener, TaggingActionType.ADD_TAG));
+//		addSelectedTagBtn.setToolTipText("Adds the selected tag to the selection in the transcription widget");
+//		
+//		removeSelectedTagBtn = new Button(tagsTableContainer, SWT.PUSH);
+//		removeSelectedTagBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		removeSelectedTagBtn.setImage(Images.DELETE);
+//		removeSelectedTagBtn.addSelectionListener(new TagActionSelectionListener(this, listener, TaggingActionType.DELETE_TAG));
+//		removeSelectedTagBtn.setToolTipText("Removes the selected tag from the current selection in the transcription widget");
+//		}
 		
 		if (false) {
 		tagsInSelectionLabel = new Label(btnsContainer, SWT.NONE);
@@ -410,9 +412,9 @@ public class TaggingWidget extends Composite implements Observer {
 				TagAddRemoveComposite c = new TagAddRemoveComposite((Composite) cell.getViewerRow().getControl(), SWT.NONE, true, createDelBtn);
 				
 				if (c.getAddButton() != null)
-					c.getAddButton().addSelectionListener(new TagActionSelectionListener(TaggingWidget.this, listener, TaggingActionType.ADD_TAG, tagName));
-				if (c.getRemoveButton() != null)
-					c.getRemoveButton().addSelectionListener(new TagActionSelectionListener(TaggingWidget.this, listener, TaggingActionType.DELETE_TAG, tagName));
+					c.getAddButton().addSelectionListener(new AddTagSelectionListener(listener, TaggingWidget.this, tagName));
+//				if (c.getRemoveButton() != null)
+//					c.getRemoveButton().addSelectionListener(new TagActionSelectionListener(TaggingWidget.this, listener, TaggingActionType.DELETE_TAG, tagName));
 				c.pack();
 				                
                 Point size = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -496,13 +498,14 @@ public class TaggingWidget extends Composite implements Observer {
 		deleteTagCol.setLabelProvider(new CellLabelProvider() {
 			@Override public void update(ViewerCell cell) {
 				final CustomTag tag = (CustomTag) cell.getElement();
-				String tagName = tag.getTagName();
+//				String tagName = tag.getTagName();
 				
 				final TableItem item = (TableItem) cell.getItem();
 				TableEditor editor = new TableEditor(item.getParent());
 				TagAddRemoveComposite c = new TagAddRemoveComposite((Composite) cell.getViewerRow().getControl(), SWT.NONE, false, true);
 				c.getRemoveButton().setToolTipText("Remove this tag");
-				c.getRemoveButton().addSelectionListener(new TagActionSelectionListener(TaggingWidget.this, listener, TaggingActionType.DELETE_TAG, tagName));
+//				c.getRemoveButton().addSelectionListener(new TagActionSelectionListener(TaggingWidget.this, listener, TaggingActionType.DELETE_TAG, tagName));
+				c.getRemoveButton().addSelectionListener(new DeleteTagSelectionListener(listener, tag));
 				c.pack();
 				   
                 Point size = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -512,7 +515,8 @@ public class TaggingWidget extends Composite implements Observer {
                 editor.setEditor(c , item, cell.getColumnIndex());
                 editor.layout();
                 
-                TaggingWidgetUtils.replaceEditor(delSelectedEditors, tagName, editor);
+//                TaggingWidgetUtils.replaceEditor(delSelectedEditors, tagName, editor);
+                TaggingWidgetUtils.replaceEditor(delSelectedEditors, tag, editor);
 			}
 		});
 		
@@ -529,7 +533,8 @@ public class TaggingWidget extends Composite implements Observer {
 		clearTagsBtn.setImage(Images.DELETE);
 		clearTagsBtn.setText("Clear tags for selection");
 		clearTagsBtn.setToolTipText("Clears all tags from the current selection in the transcription widget");
-		clearTagsBtn.addSelectionListener(new TagActionSelectionListener(this, listener, TaggingActionType.CLEAR_TAGS));
+//		clearTagsBtn.addSelectionListener(new TagActionSelectionListener(this, listener, TaggingActionType.CLEAR_TAGS));
+		clearTagsBtn.addSelectionListener(new ClearTagsSelectionListener(listener));
 	}
 	
 	boolean isTagSelected(String tagName) {
@@ -556,7 +561,8 @@ public class TaggingWidget extends Composite implements Observer {
 	private void updateEditors() {
 		TaggingWidgetUtils.updateEditors(colorEditors, availableTagNames);
 		TaggingWidgetUtils.updateEditors(addDelEditors, availableTagNames);
-		TaggingWidgetUtils.updateEditors(delSelectedEditors, getSelectedTagNames());
+//		TaggingWidgetUtils.updateEditors(delSelectedEditors, getSelectedTagNames());
+		TaggingWidgetUtils.updateEditors(delSelectedEditors, selectedTags);
 	}
 		
 	public void updateAvailableTags() {
@@ -783,7 +789,8 @@ public class TaggingWidget extends Composite implements Observer {
 		logger.debug("n-selected tags: "+selectedTags.size());
 
 		selectedTagsTableViewer.setInput(selectedTags);
-		TaggingWidgetUtils.updateEditors(delSelectedEditors, getSelectedTagNames());
+//		TaggingWidgetUtils.updateEditors(delSelectedEditors, getSelectedTagNames());
+		TaggingWidgetUtils.updateEditors(delSelectedEditors, selectedTags);
 				
 		selectFirstSelectedTag();
 		updateButtonVisibility();

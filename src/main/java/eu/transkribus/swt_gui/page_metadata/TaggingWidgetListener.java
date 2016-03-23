@@ -132,7 +132,22 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 //		mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
 //		mainWidget.refreshStructureView();
 //	}
+	
+	@Override public void deleteTag(CustomTag tag) {
+		if (tag == null || tag.getCustomTagList() == null)
+			return;
+		
+		tag.getCustomTagList().deleteTagAndContinuations(tag);
+		
+		mainWidget.updatePageRelatedMetadata();
+		mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
+		mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
+		mainWidget.refreshStructureView();
+	}
 
+	/**
+	 * @deprecated Ambigious
+	 */
 	@Override public void deleteTagForSelection(String tagName) {
 		ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
 		if (aw==null) {
@@ -248,5 +263,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 	private void updateTaggingWidgets() {
 		ui.getTaggingWidgetNew().updatePropertiesForSelectedTag();
 	}
+
+
 
 }

@@ -116,7 +116,7 @@ public class TaggingWidgetUtils {
 		editor.dispose();
 	}
 		
-	public static <T> void updateEditors(Map<T, ControlEditor> editors, Collection<String> tagNames) {
+	public static <T> void updateEditors(Map<T, ControlEditor> editors, Collection<T> tagNames) {
 		Set<T> keys = new HashSet<>(editors.keySet());
 	
 		for (T tn : keys) {

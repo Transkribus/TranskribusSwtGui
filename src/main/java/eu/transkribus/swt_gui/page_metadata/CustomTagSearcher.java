@@ -36,13 +36,10 @@ public class CustomTagSearcher {
 //		throw new NotImplementedException("searching on remote doc not implemented yet!");
 //	}
 	
-	public static void searchOnCollection_WithoutIndex(List<CustomTag> tags, CustomTagSearchFacets facets, IProgressMonitor monitor) throws NoConnectionException, SessionExpiredException, IllegalArgumentException {		
+	public static void searchOnCollection_WithoutIndex(int collId, List<CustomTag> tags, CustomTagSearchFacets facets, IProgressMonitor monitor) throws NoConnectionException, SessionExpiredException, IllegalArgumentException {		
 		Storage s = Storage.getInstance();
 		s.checkConnection(true);
 		TrpServerConn conn = Storage.getInstance().getConnection();
-		TrpMainWidget mw = TrpMainWidget.getInstance();
-		
-		int collId = mw.getUi().getDocOverviewWidget().getSelectedCollectionId();
 		
 		if (collId <= 0)
 			throw new IllegalArgumentException("No collection loaded!");
@@ -61,7 +58,7 @@ public class CustomTagSearcher {
 			
 			monitor.setTaskName("Searching in doc "+(i+1)+"/"+nD);
 			
-			TrpDoc d = conn.getTrpDoc(s.getCurrentDocumentCollectionId(), dm.getDocId(), 1);
+			TrpDoc d = conn.getTrpDoc(collId, dm.getDocId(), 1);
 				
 			searchOnDoc_WithoutIndex(tags, d, facets, 0, 0, 0, false, 0, false, monitor, true);
 
@@ -104,13 +101,13 @@ public class CustomTagSearcher {
 				SebisStopWatch.SW.start();
 				TrpPageType pt = s.getOrBuildPage(p.getCurrentTranscript(), false);
 //				TrpPageType pt = TrpPageTranscriptBuilder.build(p.getCurrentTranscript()).getPage();
-				logger.debug("BUILT "+SebisStopWatch.SW.stop(true));
+				SebisStopWatch.SW.stop(true, "time for unmarshal: ", logger);
 				
 				SebisStopWatch.SW.start();
 				searchOnPage(tags, pt, facets, startRegionIndex, startLineIndex, stopOnFirst, startOffset, previous);
 				if (!tags.isEmpty() && stopOnFirst)
 					break;
-				logger.debug("SEARCHED ON PAGE "+SebisStopWatch.SW.stop(true));
+				SebisStopWatch.SW.stop(true, "time for searching: ", logger);
 				
 			} catch (Exception e) {
 				logger.error("Error searching tags on page "+(i+1)+": "+e.getMessage(), e);
@@ -128,9 +125,7 @@ public class CustomTagSearcher {
 		
 		SebisStopWatch.SW.start();
 		List<TrpTextRegionType> regions = p.getTextRegions(true);
-		logger.debug("getting regions: "+SebisStopWatch.SW.stop(true));
-//		if (startRegionIndex<0 || startRegionIndex>=regions.size())
-//			return;
+		SebisStopWatch.SW.stop(true, "time for getting regions: ", logger);
 		
 		if (startRegionIndex == -1) {
 			startRegionIndex = previous ? regions.size()-1 : 0;

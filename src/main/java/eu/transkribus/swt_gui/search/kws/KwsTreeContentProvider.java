@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.doc_overview;
+package eu.transkribus.swt_gui.search.kws;
 
 import java.util.List;
 

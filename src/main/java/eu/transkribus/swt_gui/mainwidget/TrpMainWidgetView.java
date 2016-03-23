@@ -5,6 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Locale;
 
+import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -300,6 +301,12 @@ public class TrpMainWidgetView extends Composite {
 		portalWidget.setMinWidth(Position.RIGHT, 300);
 		
 		portalWidget.setMinHeight(Position.RIGHT, rightTabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		
+		logger.debug("left view docking state: "+getTrpSets().getLeftViewDockingState());
+		
+		portalWidget.setWidgetDockingType(Position.LEFT, getTrpSets().getLeftViewDockingState());
+		portalWidget.setWidgetDockingType(Position.RIGHT, getTrpSets().getRightViewDockingState());
+		portalWidget.setWidgetDockingType(Position.BOTTOM, getTrpSets().getBottomViewDockingState());
 		
 		addInternalListener();
 		addBindings();
@@ -869,6 +876,13 @@ public class TrpMainWidgetView extends Composite {
 	
 	private void addBindings() {
 		DataBinder db = DataBinder.get();
+				
+		db.bindBeanPropertyToObservableValue(TrpSettings.LEFT_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.LEFT));
+		db.bindBeanPropertyToObservableValue(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY, trpSets,
+				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.RIGHT));
+		db.bindBeanPropertyToObservableValue(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.BOTTOM));
 		
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, showPrintSpaceToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, showRegionsToggle);
@@ -1178,6 +1192,10 @@ public class TrpMainWidgetView extends Composite {
 	
 	public DropDownToolItem getProfilesToolItem() {
 		return profilesToolItem;
+	}
+	
+	public PortalWidget getPortalWidget() {
+		return portalWidget;
 	}
 	
 //	public DropDownToolItem getLanguageDropDown() {

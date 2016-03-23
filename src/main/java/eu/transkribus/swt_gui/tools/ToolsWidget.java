@@ -465,7 +465,7 @@ public class ToolsWidget extends Composite {
 //		refVersionCombo.pack();
 //		hypVersionCombo.pack();
 //		werExp.layout();
-//		//pack the whole fucking tools widget or the expandable won't resize
+//		//pack the whole tools widget or the expandable won't resize
 //		this.pack();
 //	}
 	

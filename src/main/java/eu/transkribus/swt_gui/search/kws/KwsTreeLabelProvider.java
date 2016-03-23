@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.doc_overview;
+package eu.transkribus.swt_gui.search.kws;
 
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -61,24 +61,24 @@ public class KwsTreeLabelProvider extends CellLabelProvider implements ITableLab
 			lineId = ""+hit.getLineId();
 		}
 
-		if (columnIndex < 0 || columnIndex >= DocSearchDialog.COLUMNS.length)
+		if (columnIndex < 0 || columnIndex >= KeywordSpottingComposite.COLUMNS.length)
 			return "wrong col index";
-		else if (DocSearchDialog.COLUMNS[columnIndex] == DocSearchDialog.TYPE_COL)
+		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.TYPE_COL)
 			return type;
-		else if (DocSearchDialog.COLUMNS[columnIndex] == DocSearchDialog.DOC_ID_COL)
+		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.DOC_ID_COL)
 			return docId;
-		else if (DocSearchDialog.COLUMNS[columnIndex] == DocSearchDialog.TITLE_COL)
+		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.TITLE_COL)
 			return title;
-		else if (DocSearchDialog.COLUMNS[columnIndex] == DocSearchDialog.PAGE_NR_COL)
+		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.PAGE_NR_COL)
 			return pageNr;
-		else if (DocSearchDialog.COLUMNS[columnIndex] == DocSearchDialog.SCORE_COL)
+		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.SCORE_COL)
 			return score;
-		else if (DocSearchDialog.COLUMNS[columnIndex] == DocSearchDialog.LINE_ID_COL)
+		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.LINE_ID_COL)
 			return lineId;
-		else if (DocSearchDialog.COLUMNS[columnIndex] == DocSearchDialog.HITS_COL)
+		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.HITS_COL)
 			return hits;
 		
-		return "fucked up code!";
+		return "i am error!";
 		
 	}
 
@@ -91,7 +91,7 @@ public class KwsTreeLabelProvider extends CellLabelProvider implements ITableLab
 
 	@Override
 	public void update(ViewerCell cell) {
-		ColConfig cf = DocSearchDialog.COLUMNS[cell.getColumnIndex()];
+		ColConfig cf = KeywordSpottingComposite.COLUMNS[cell.getColumnIndex()];
 		Object element = cell.getViewerRow().getElement();
 //		logger.trace("column = "+cf.name);
 		 

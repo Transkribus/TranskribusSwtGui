@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.page_metadata;
 import java.util.List;
 import java.util.Map;
 
+import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 
 
@@ -18,4 +19,5 @@ public interface ITaggingWidgetListener {
 	void deleteAttributeOnCustomTag(String tn, String attributeName);
 	void createNewTag(String tagName);
 	void removeTagDefinition(String tagName);
+	void deleteTag(CustomTag tag);
 }

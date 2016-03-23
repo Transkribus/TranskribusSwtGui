@@ -2,15 +2,16 @@ package eu.transkribus.swt_canvas.portal;
 
 import java.util.HashMap;
 
-import junit.framework.Assert;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.batik.dom.GenericEntityReference;
+import org.eclipse.core.databinding.observable.Observables;
+import org.eclipse.core.databinding.observable.map.IObservableMap;
+import org.eclipse.core.databinding.observable.map.WritableMap;
+import org.eclipse.core.databinding.observable.value.IObservableValue;
+import org.eclipse.core.databinding.property.Properties;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -18,6 +19,13 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.swt_canvas.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import junit.framework.Assert;
 
 public class PortalWidget extends Composite {
 	public static enum Position {		
@@ -28,7 +36,32 @@ public class PortalWidget extends Composite {
 			this.isLeftSideOfSashForm = isLeftSideOfSashForm;
 		}
 	};
-	public static enum Docking { DOCKED, UNDOCKED, INVISIBLE };
+	
+	public static enum Docking { 
+		DOCKED(0), UNDOCKED(1), INVISIBLE(2);
+		
+		int value=0;
+		private Docking(int value) {
+			this.value = value;
+		}
+		
+		public int getValue() {
+			return this.value;
+		}
+		
+		public static Docking fromValue(int value) {
+			switch (value) {
+			case 0:
+				return DOCKED;
+			case 1:
+				return UNDOCKED;
+			case 2:
+				return INVISIBLE;
+			default:
+				return DOCKED;
+			}
+		}
+	};
 	
 	private final static Logger logger = LoggerFactory.getLogger(PortalWidget.class);
 	
@@ -64,10 +97,12 @@ public class PortalWidget extends Composite {
 	
 //	HashMap<Position, Shell> shells = new HashMap<>();
 	HashMap<Position, ScrolledComposite> widgets = new HashMap<>();
-	HashMap<Position, Docking> dockingMap = new HashMap<>();
+//	HashMap<Position, Docking> dockingMap = new HashMap<>();
 	HashMap<Position, SashForm> positionSashFormMap = new HashMap<>();
 	HashMap<Position, Shell> shells = new HashMap<>();
 	HashMap<Position, Point> sizes = new HashMap<>();
+	
+	IObservableMap dockingMap = new WritableMap();
 	
 	/**
 	 * Simple portal widget with a top, left, right, center and bottom widget and sashes to resize the areas.
@@ -116,6 +151,7 @@ public class PortalWidget extends Composite {
 		}
 		else
 			setWidgetDockingType(Position.RIGHT, Docking.INVISIBLE);
+		
 	}
 	
 	private void fillScrolledComposite(ScrolledComposite sc, Composite child) {
@@ -373,14 +409,19 @@ public class PortalWidget extends Composite {
 	public void setWidgetDockingType(Position pos, Docking docking) {
 		Assert.assertNotNull(pos);
 		Assert.assertNotNull(docking);
-		
+
 		logger.debug("setting "+ pos + " view docking type: "+docking);
+
+//		if (getDocking(pos) == docking) {
+//			logger.debug("already in this docking state");
+//			return;
+//		}
 		
 		SashForm sf = positionSashFormMap.get(pos);
 		
 //		int nChildren = sf.getChildren().length;
 //		logger.debug("nChildren = "+nChildren);
-		
+
 		switch (docking) {
 		case DOCKED:
 			reattachWidget(pos);
@@ -413,7 +454,7 @@ public class PortalWidget extends Composite {
 	}
 	
 	public Docking getDocking(Position pos) {
-		return dockingMap.get(pos);
+		return (Docking) dockingMap.get(pos);
 	}
 	
 	private void reattachWidget(Position pos) {
@@ -541,6 +582,10 @@ public class PortalWidget extends Composite {
 	}
 	
 	public void setSashWidth(int sashWidth) { this.sashWidth = sashWidth; }
+	
+	public IObservableMap getDockingMap() {
+		return dockingMap;
+	}
 	
 //	public Shell getShell(Position pos) {
 //		return shells.get(pos);

@@ -48,7 +48,7 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		dow.getOpenEditDeclManagerBtn().removeSelectionListener(this);
 //		dow.uploadSingleDocItem.removeSelectionListener(this);
 		dow.uploadDocsItem.removeSelectionListener(this);
-		dow.findDocumentsBtn.removeSelectionListener(this);
+		dow.searchBtn.removeSelectionListener(this);
 //		docOverviewWidget.getDeleteItem().removeSelectionListener(this);
 		dow.collectionComboViewerWidget.collectionCombo.removeSelectionListener(this);
 //		dow.collectionComboViewerWidget.reloadCollectionsBtn.removeSelectionListener(this);
@@ -70,7 +70,7 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		dow.getOpenEditDeclManagerBtn().addSelectionListener(this);
 //		dow.uploadSingleDocItem.addSelectionListener(this);
 		dow.uploadDocsItem.addSelectionListener(this);
-		dow.findDocumentsBtn.addSelectionListener(this);
+		dow.searchBtn.addSelectionListener(this);
 //		docOverviewWidget.getDeleteItem().addSelectionListener(this);
 		dow.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
 //		dow.collectionComboViewerWidget.reloadCollectionsBtn.addSelectionListener(this);
@@ -121,8 +121,8 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 //		} 
 		if (s == dow.uploadDocsItem) {
 			mainWidget.uploadDocuments();
-		} else if (s == dow.findDocumentsBtn) {
-			mainWidget.findDocuments();
+		} else if (s == dow.searchBtn) {
+			mainWidget.openSearchDialog();
 		}
 //		else if (s == docOverviewWidget.getDocMetadataEditor().getApplyBtn()) {
 //			mainWidget.applyMetadata();

@@ -75,7 +75,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 			mw.saveTranscription(false);
 		}
 		else if (isCtrlOrCommand && kc == 'f') {
-			mw.findDocuments();
+			mw.openSearchDialog();
 		}
 		else if (isCtrlOrCommand && kc == 'r') {
 			logger.debug("reloading current transcript!");

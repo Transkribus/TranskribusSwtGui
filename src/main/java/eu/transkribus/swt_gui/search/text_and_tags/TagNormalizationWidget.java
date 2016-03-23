@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.page_metadata;
+package eu.transkribus.swt_gui.search.text_and_tags;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -27,10 +27,10 @@ import eu.transkribus.swt_canvas.util.CustomTagPropertyTable;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
-public class TagNormalizationWidget extends Composite {
+class TagNormalizationWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TagNormalizationWidget.class);
 	
-	CustomTagPropertyTable pt;
+	CustomTagPropertyTable propertyTable;
 	Button normalizeBtn;
 	Label label;
 	
@@ -43,8 +43,8 @@ public class TagNormalizationWidget extends Composite {
 		label = new Label(this, 0);
 		label.setText("Normalization: ");
 		
-		pt = new CustomTagPropertyTable(this, 0);
-		pt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		propertyTable = new CustomTagPropertyTable(this, 0);
+		propertyTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		normalizeBtn = new Button(this, 0);
 		normalizeBtn.setText("Normalize selected tags!");
@@ -89,7 +89,7 @@ public class TagNormalizationWidget extends Composite {
 						if (monitor.isCanceled())
 							return;
 						
-						t.setAttributes(pt.getSelectedTag(), false, true);
+						t.setAttributes(propertyTable.getSelectedTag(), false, true);
 						
 						affectedPages.put(t.getCustomTagList().getShape().getPage().getMd(), t.getCustomTagList().getShape().getPage());
 						
@@ -127,10 +127,10 @@ public class TagNormalizationWidget extends Composite {
 			
 			CustomTag protoTag = selectedTags.get(0).copy();
 
-			pt.setInput(protoTag, protoTag);
+			propertyTable.setInput(protoTag, protoTag);
 		} else {
 			this.selectedTags = null;
-			pt.setInput(null, null);
+			propertyTable.setInput(null, null);
 		}
 	}
 
