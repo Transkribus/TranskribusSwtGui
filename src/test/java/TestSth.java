@@ -221,7 +221,7 @@ public class TestSth {
 	
 	public static void testStrRegexStuff() {
 		String r = "asd?";
-		r = CoreUtils.createRegexFromSearchString(r, true);
+		r = CoreUtils.createRegexFromSearchString(r, true, true, true);
 		System.out.println("r = "+r);
 		
 		String test = "asdf";

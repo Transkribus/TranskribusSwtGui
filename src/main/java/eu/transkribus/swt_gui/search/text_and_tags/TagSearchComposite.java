@@ -1,6 +1,6 @@
 package eu.transkribus.swt_gui.search.text_and_tags;
 
-import java.lang.reflect.InvocationTargetException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILazyContentProvider;
@@ -46,51 +44,28 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.customtags.search.CustomTagSearchFacets;
-import eu.transkribus.core.model.beans.customtags.search.SearchFacets;
-import eu.transkribus.core.model.beans.customtags.search.TextSearchFacets;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
 import eu.transkribus.swt_canvas.mytableviewer.MyTableLabelProvider;
 import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
-import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
 import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.MapContentProvider;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.TableLabelProvider;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.page_metadata.CustomTagSearcher;
-import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
 
-/**
- * @deprecated split up into two different widget TextSearchComposite and TagSearchComposite
- */
-public class TextAndTagSearchComposite extends Composite {
-	private final static Logger logger = LoggerFactory.getLogger(TextAndTagSearchComposite.class);
+public class TagSearchComposite extends ATextAndSearchComposite {
+	private final static Logger logger = LoggerFactory.getLogger(TagSearchComposite.class);
+
+//	String[] SEARCH_TYPES = new String[] { TYPE_TAGS, TYPE_TEXT };
 	
-	static final String SCOPE_DOC = "Current document";
-	static final String SCOPE_PAGE = "Current page";
-	static final String SCOPE_REGION = "Current region";
-	static final String SCOPE_COLL = "Current collection";
-	
-	static final String TYPE_TAGS = "Tags";
-	static final String TYPE_TEXT = "Text";
-	
-	String[] SCOPES = new String[] { SCOPE_COLL, SCOPE_DOC, SCOPE_PAGE, SCOPE_REGION };
-	String[] SEARCH_TYPES = new String[] { TYPE_TAGS, TYPE_TEXT };
-	
-	Combo scopeCombo, tagNameInput, propNameCombo, typeCombo;
+	Combo scopeCombo, tagNameInput, propNameCombo;
 	Text tagValueInput;
 	Button searchBtn, searchPrevBtn, searchNextBtn, showNormalizeWidgetBtn;
 	
@@ -100,15 +75,15 @@ public class TextAndTagSearchComposite extends Composite {
 	Label labelTagName;
 	Composite addPropsC;
 	Composite parameters;
-	Button wholeWordCheck, caseSensitiveCheck;
+	
+//	Button wholeWordCheck;
+	Button caseSensitiveCheck;
 	
 	Group facetsGroup;
 	
 	MyTableViewer resultsTable, propsTable;
 	Map<String, Object> props = new HashMap<String, Object>();
-	final List<CustomTag> foundTags = new ArrayList<>();
 	
-//	CustomTagPropertyTable normPropertyTable;
 	TagNormalizationWidget tagNormWidget;
 	SashForm resultsSf;
 	
@@ -145,7 +120,7 @@ public class TextAndTagSearchComposite extends Composite {
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public TextAndTagSearchComposite(Composite parent, int style) {
+	public TagSearchComposite(Composite parent, int style) {
 		super(parent, style);
 		createContents();
 	}
@@ -164,49 +139,34 @@ public class TextAndTagSearchComposite extends Composite {
 		facetsGroup.setLayout(new GridLayout(2, false));
 		facetsGroup.setText("Search facets - use * and ? as wildcards for multiple or one unknown character");
 		
-		Label l0 = new Label(facetsGroup, 0);
-		l0.setText("Search for: ");
-		typeCombo = new Combo(facetsGroup, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-		typeCombo.setItems(SEARCH_TYPES);
-		typeCombo.select(0);		
-		
 		Label lS = new Label(facetsGroup, 0);
 		lS.setText("Search scope: ");
 		
 		scopeCombo = new Combo(facetsGroup, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		scopeCombo.setItems(SCOPES);
 		scopeCombo.select(2);
-		
-		typeCombo.addModifyListener(new ModifyListener() {
-			@Override public void modifyText(ModifyEvent e) {
-				updateGuiOnType();
-			}
-		});
-		
+				
 		parameters = new Composite(facetsGroup, 0);
 		parameters.setLayout(new GridLayout(2, false));
 		parameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
-		wholeWordCheck = new Button(SWTUtil.dummyShell, SWT.CHECK);
-		wholeWordCheck.setText("Whole word");
-		
-		caseSensitiveCheck = new Button(SWTUtil.dummyShell, SWT.CHECK);
-		caseSensitiveCheck.setText("Case sensitive");		
-		
 		labelTagName = new Label(parameters, 0);
 		labelTagName.setText("Tag name: ");
+		
+		TraverseListener findTagsOnEnterListener = new TraverseListener() {
+			@Override public void keyTraversed(TraverseEvent e) {
+				if (e.detail == SWT.TRAVERSE_RETURN) {
+					logger.debug("finding tags!");
+					findTags();
+				}
+			}
+		};
 		
 		tagNameInput = new Combo(parameters, SWT.SIMPLE | SWT.DROP_DOWN | SWT.BORDER);
 		tagNameInput.setToolTipText("The name of tag to search");
 		tagNameInput.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		updateTagNames();
-		tagNameInput.addTraverseListener(new TraverseListener() {
-			@Override public void keyTraversed(TraverseEvent e) {
-				if (e.detail == SWT.TRAVERSE_RETURN) {
-					findTags();
-				}
-			}
-		});
+		tagNameInput.addTraverseListener(findTagsOnEnterListener);
 		tagNameInput.addModifyListener(new ModifyListener() {
 			@Override public void modifyText(ModifyEvent e) {
 				updateTagProps();
@@ -218,14 +178,11 @@ public class TextAndTagSearchComposite extends Composite {
 		tagValueInput = new Text(parameters, SWT.SINGLE | SWT.BORDER);
 		tagValueInput.setToolTipText("The text contained by the tag");
 		tagValueInput.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		tagValueInput.addTraverseListener(new TraverseListener() {
-			@Override public void keyTraversed(TraverseEvent e) {
-				if (e.detail == SWT.TRAVERSE_RETURN) {
-					findTags();
-				}
-			}
-		});		
+		tagValueInput.addTraverseListener(findTagsOnEnterListener);	
 		
+//		wholeWordCheck = new Button(SWTUtil.dummyShell, SWT.CHECK);
+//		wholeWordCheck.setText("Whole word");
+
 		labelProperties = new Label(parameters, 0);
 		labelProperties.setText("Properties to search:");
 		labelProperties.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -262,7 +219,7 @@ public class TextAndTagSearchComposite extends Composite {
 		propNameCombo.setToolTipText("The name of the property to search");
 		Label lV = new Label(addPropsC, 0);
 		lV.setText("Value: ");
-		propValueTxt = new Text(addPropsC, SWT.SIMPLE | SWT.BORDER);
+		propValueTxt = new Text(addPropsC, SWT.SINGLE | SWT.BORDER);
 		propValueTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		propValueTxt.setToolTipText("The value of the property to search - can be empty");
 		Button addPropBtn = new Button(addPropsC, SWT.PUSH);
@@ -281,6 +238,11 @@ public class TextAndTagSearchComposite extends Composite {
 				propsTable.refresh();
 			}
 		});
+		
+		caseSensitiveCheck = new Button(parameters, SWT.CHECK);
+		caseSensitiveCheck.setText("Case sensitive");
+		
+		new Label(parameters, 0); // placeholder label
 		
 		Button deletePropBtn = new Button(addPropsC, SWT.PUSH);
 		deletePropBtn.setImage(Images.DELETE);
@@ -354,7 +316,7 @@ public class TextAndTagSearchComposite extends Composite {
 	}
 	
 	protected boolean isNormalizationPossible() {
-		return typeCombo.getText().equals(TYPE_TAGS) && showNormalizeWidgetBtn.getSelection();
+		return showNormalizeWidgetBtn.getSelection();
 	}
 	
 	protected void updateNormalizationWidgetVisibility() {		
@@ -366,50 +328,6 @@ public class TextAndTagSearchComposite extends Composite {
 		updateNormalizationSelection();
 	}
 		
-	protected void updateGuiOnType() {
-		boolean isTypeTag = typeCombo.getText().equals(TYPE_TAGS);
-		if (isTypeTag) {
-			labelTagValue.setText("Tag value: ");
-		} else {
-			labelTagValue.setText("Text: ");
-		}
-		
-//		tagValueInput.setEnabled(isTypeTag);
-//		propsTable.getTable().setEnabled(isTypeTag);
-//		addPropsC.setEnabled(isTypeTag);
-//		labelTagValue.setEnabled(isTypeTag);
-//		labelProperties.setEnabled(isTypeTag);		
-		
-//		labelTagValue.setVisible(isTypeTag);
-//		labelProperties.setVisible(isTypeTag);
-//		tagValueInput.setVisible(isTypeTag);
-//		propsTable.getTable().setVisible(isTypeTag);
-//		addPropsC.setVisible(isTypeTag);
-		
-		labelTagName.setParent(!isTypeTag ? SWTUtil.dummyShell : parameters);
-		tagNameInput.setParent(!isTypeTag ? SWTUtil.dummyShell : parameters);
-		if (isTypeTag) {
-			labelTagName.moveAbove(labelTagValue);
-			tagNameInput.moveBelow(labelTagName);
-		}
-		
-		labelProperties.setParent(!isTypeTag ? SWTUtil.dummyShell : parameters);
-		propsTable.getTable().setParent(!isTypeTag ? SWTUtil.dummyShell : parameters);
-		addPropsC.setParent(!isTypeTag ? SWTUtil.dummyShell : parameters);
-
-		wholeWordCheck.setParent(isTypeTag ? SWTUtil.dummyShell : parameters);
-		caseSensitiveCheck.setParent(isTypeTag ? SWTUtil.dummyShell : parameters);
-		
-		facetsGroup.layout();
-		parameters.layout();
-		
-		showNormalizeWidgetBtn.setVisible(isTypeTag);
-		if (!isTypeTag)
-			showNormalizeWidgetBtn.setSelection(false);
-		
-		updateNormalizationWidgetVisibility();
-	}
-
 	void initResultsTable(Composite container) {
 		Group resultsGroup = new Group(container, SWT.NONE);
 		resultsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -564,163 +482,58 @@ public class TextAndTagSearchComposite extends Composite {
 		}
 	}
 	
-	SearchFacets getFacets() {
-		if (isTagSearch()) {
-			return new CustomTagSearchFacets(tagNameInput.getText(), tagValueInput.getText(), props, 
-					wholeWordCheck.getSelection(), caseSensitiveCheck.getSelection());
-		} else {
-			return new TextSearchFacets(tagValueInput.getText(),
-					wholeWordCheck.getSelection(), caseSensitiveCheck.getSelection());
-		}
-		
-	}
-	
-	void findNextTag(final boolean previous) {
-		final SearchFacets facets = getFacets();
-		
-		logger.debug("searching for next tag, previous = "+previous);
-		
-		final Storage s = Storage.getInstance();
-		try {
-			if (!s.isDocLoaded()) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No document loaded!");
-				return;
-			}
-			
-			final List<CustomTag> tag = new ArrayList<>();
-			// TODO: specify real current position here, and display a wait dialog
-			final int startPageIndex = s.getPageIndex();
-			final int startRegionIndex = s.getCurrentRegion()==-1 ? 0 : s.getCurrentRegion();
-			final int startLineIndex = s.getCurrentLineObject()==null ? 0 : s.getCurrentLineObject().getIndex();
-			int currentOffsetTmp = 0;
-			TrpMainWidget mw = TrpMainWidget.getInstance();
-			if (mw.getUi().getSelectedTranscriptionType() == Type.LINE_BASED) {
-				int o = mw.getUi().getSelectedTranscriptionWidget().getText().getCaretOffset();
-				int lo = mw.getUi().getSelectedTranscriptionWidget().getText().getOffsetAtLine(startLineIndex);
-				logger.debug("o = "+o+" lo = "+lo);
-				currentOffsetTmp = o-lo;
-			}
-			final int currentOffset = currentOffsetTmp;
-			logger.info("searching for next tag, startPageIndex= "+startPageIndex+", startRegionIndex= "+startRegionIndex+", startLindex= "+startLineIndex+" currentOffset= "+currentOffset+", previous= "+previous);			
-			
-			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					CustomTagSearcher.searchOnDoc_WithoutIndex(tag, s.getDoc(), facets, startPageIndex, startRegionIndex, startLineIndex, true, currentOffset, previous, monitor, false);
-				}
-			}, "Searching", true);		
-			
-			if (!tag.isEmpty()) {
-				logger.info("found a tag - displaying: "+tag.get(0));
-				TrpLocation l = new TrpLocation(tag.get(0));
-				TrpMainWidget.getInstance().showLocation(l);
-			} else {
-				DialogUtil.showInfoMessageBox(getShell(), "No match", "No match found!");
-			}
-		} catch (Throwable e) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", e.getMessage());
-			logger.error(e.getMessage(), e);
-			return;
-		}
-		
-	}
-	
-	public boolean isTagSearch() {
-		return typeCombo.getText().equals(TYPE_TAGS);
-	}
-	
-	void findTags() {
-		final SearchFacets facets = getFacets();
-		
-//		final CustomTagSearchFacets facets = new CustomTagSearchFacets(tagNameInput.getText(), tagValueInput.getText(), props, !isTagSearch(), 
-//				wholeWordCheck.getSelection(), caseSensitiveCheck.getSelection());
-		
-//		facets.setSearchText(!isTagSearch());
-		logger.debug("searching for: "+facets.getType());
-		
-//		final String tn = tagNameInput.getText();
-//		if (StringUtils.isEmpty(tn)) {
-//			DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "tag name cannot be empty - use * wildcard to search for any tag!");			
+//	void findNextTag(final boolean previous) {
+//		final CustomTagSearchFacets facets = 
+//				new CustomTagSearchFacets(tagNameInput.getText(), tagValueInput.getText(), props, typeCombo.getText()==TYPE_TEXT, 
+//											wholeWordCheck.getSelection(), caseSensitiveCheck.getSelection());
+//		
+//		logger.debug("searching for next tag, previous = "+previous);
+//		
+//		final Storage s = Storage.getInstance();
+//		try {
+//			if (!s.isDocLoaded()) {
+//				DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No document loaded!");
+//				return;
+//			}
+//			
+//			final List<CustomTag> tag = new ArrayList<>();
+//			// TODO: specify real current position here, and display a wait dialog
+//			final int startPageIndex = s.getPageIndex();
+//			final int startRegionIndex = s.getCurrentRegion()==-1 ? 0 : s.getCurrentRegion();
+//			final int startLineIndex = s.getCurrentLineObject()==null ? 0 : s.getCurrentLineObject().getIndex();
+//			int currentOffsetTmp = 0;
+//			TrpMainWidget mw = TrpMainWidget.getInstance();
+//			if (mw.getUi().getSelectedTranscriptionType() == Type.LINE_BASED) {
+//				int o = mw.getUi().getSelectedTranscriptionWidget().getText().getCaretOffset();
+//				int lo = mw.getUi().getSelectedTranscriptionWidget().getText().getOffsetAtLine(startLineIndex);
+//				logger.debug("o = "+o+" lo = "+lo);
+//				currentOffsetTmp = o-lo;
+//			}
+//			final int currentOffset = currentOffsetTmp;
+//			logger.info("searching for next tag, startPageIndex= "+startPageIndex+", startRegionIndex= "+startRegionIndex+", startLindex= "+startLineIndex+" currentOffset= "+currentOffset+", previous= "+previous);			
+//			
+//			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+//				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+//					CustomTagSearcher.searchOnDoc_WithoutIndex(tag, s.getDoc(), facets, startPageIndex, startRegionIndex, startLineIndex, true, currentOffset, previous, monitor, false);
+//				}
+//			}, "Searching", true);		
+//			
+//			if (!tag.isEmpty()) {
+//				logger.info("found a tag - displaying: "+tag.get(0));
+//				TrpLocation l = new TrpLocation(tag.get(0));
+//				TrpMainWidget.getInstance().showLocation(l);
+//			} else {
+//				DialogUtil.showInfoMessageBox(getShell(), "No match", "No match found!");
+//			}
+//		} catch (Throwable e) {
+//			DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", e.getMessage());
+//			logger.error(e.getMessage(), e);
 //			return;
 //		}
+//		
+//	}
 
-		final Storage s = Storage.getInstance();
-		final TrpMainWidget mw = TrpMainWidget.getInstance();
-		final int currentCollID = mw.getUi().getDocOverviewWidget().getSelectedCollectionId();
-		
-		String scope = scopeCombo.getText();
-		logger.debug("searching on scope: "+scope+ " currentCollID = "+currentCollID);
-		
-		foundTags.clear();
-		resultsLabel.setText("");
-
-		ProgressBarDialog pd = new ProgressBarDialog(getShell()) {
-			@Override public void subTask(final String name) {
-				super.subTask(name);
-				Display.getDefault().syncExec(new Runnable() {
-					@Override public void run() {
-						Shell s = TextAndTagSearchComposite.this.getShell();
-						if (!s.isDisposed()) {
-							updateResults();
-						}
-					}
-				});
-			}
-		};
-		
-		try {
-			if (scope.equals(SCOPE_COLL)) {
-				pd.open(new IRunnableWithProgress() {
-					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						try {
-							CustomTagSearcher.searchOnCollection_WithoutIndex(currentCollID, foundTags, facets, monitor);
-							
-						} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
-							throw new InvocationTargetException(e);
-						}
-					}
-				}, "Searching", true);
-			}
-			else if (scope.equals(SCOPE_DOC)) {
-				if (!s.isDocLoaded()) {
-					DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No document loaded!");
-					return;
-				}
-				pd.open(new IRunnableWithProgress() {
-					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						CustomTagSearcher.searchOnDoc_WithoutIndex(foundTags, s.getDoc(), facets, 0, 0, 0, false, 0, false, monitor, false);
-					}
-				}, "Searching", true);
-			}
-			else if (scope.equals(SCOPE_PAGE)) {
-	//			if (s.getTranscript()==null || s.getTranscript().getPage() == null) {
-				if (!s.isPageLoaded() || s.getTranscript().getPageData() == null) {
-					DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No page loaded!");
-					return;
-				}
-				TrpPageType p = s.getTranscript().getPage();
-				
-				CustomTagSearcher.searchOnPage(foundTags, p, facets, 0, 0, false, 0, false);
-			} else if (scope.equals(SCOPE_REGION)) {
-				TrpTextRegionType r = s.getCurrentRegionObject();
-				if (r==null) {
-					DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No region selected!");
-					return;
-				}
-					
-				CustomTagSearcher.searchOnRegion(foundTags, r, facets, 0, false, 0, false);
-			}
-		}
-		catch (Throwable e) {
-			mw.onError("Error in tag search", e.getMessage(), e);
-			return;
-		}
-		
-		logger.debug("setting item count to "+foundTags.size());
-		
-		updateResults();
-	}
-	
-	void updateResults() {
+	@Override public void updateResults() {
 		logger.debug("updating results table, N = "+foundTags.size());
 		resultsLabel.setText(foundTags.size()+" matches");
 		
@@ -731,19 +544,27 @@ public class TextAndTagSearchComposite extends Composite {
 	void updateTagNames() {
 		tagNameInput.setItems((String[]) CustomTagFactory.getRegisteredTagNames().toArray(new String[0]));
 	}
-	
+
+	@Override public String getScope() {
+		return scopeCombo.getText();
+	}
+
+	@Override public CustomTagSearchFacets getFacets() throws IOException {
+		return new CustomTagSearchFacets(tagNameInput.getText(), tagValueInput.getText(), props, false, 
+				caseSensitiveCheck.getSelection());
+	}
+
 	public static void main(String [] args) {
 		Shell shell = new Shell();
 		shell.setLayout(new FillLayout());
 		shell.setSize(800, 700);
 		Display display = shell.getDisplay();
 		
-		TextAndTagSearchComposite c = new TextAndTagSearchComposite(shell, 0);
+		TagSearchComposite c = new TagSearchComposite(shell, 0);
 
 		shell.open();
 		while (!shell.isDisposed())
 		if (!display.readAndDispatch()) display.sleep();
 	}
-
 }
 

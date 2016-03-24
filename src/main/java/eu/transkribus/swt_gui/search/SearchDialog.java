@@ -18,7 +18,8 @@ import eu.transkribus.swt_canvas.util.LabeledCombo;
 import eu.transkribus.swt_canvas.util.LabeledText;
 import eu.transkribus.swt_gui.search.documents.DocSearchComposite;
 import eu.transkribus.swt_gui.search.kws.KeywordSpottingComposite;
-import eu.transkribus.swt_gui.search.text_and_tags.TextAndTagSearchComposite;
+import eu.transkribus.swt_gui.search.text_and_tags.TagSearchComposite;
+import eu.transkribus.swt_gui.search.text_and_tags.TextSearchComposite;
 
 public class SearchDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(SearchDialog.class);
@@ -67,10 +68,18 @@ public class SearchDialog extends Dialog {
 		docSearchComposite = new DocSearchComposite(tabFolder, 0);
 		docSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		docSearchTabItem = createCTabItem(tabFolder, docSearchComposite, "Documents");
+		
+		TextSearchComposite textSearchComp = new TextSearchComposite(tabFolder, 0);
+		textSearchComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		textAndTagsItem = createCTabItem(tabFolder, textSearchComp, "Text");
+		
+		TagSearchComposite tagSearchComp = new TagSearchComposite(tabFolder, 0);
+		tagSearchComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		textAndTagsItem = createCTabItem(tabFolder, tagSearchComp, "Tags");		
 
-		TextAndTagSearchComposite tsc = new TextAndTagSearchComposite(tabFolder, 0);
-		tsc.setLayoutData(new GridData(GridData.FILL_BOTH));
-		textAndTagsItem = createCTabItem(tabFolder, tsc, "Text / Tags");
+//		TextAndTagSearchComposite tsc = new TextAndTagSearchComposite(tabFolder, 0);
+//		tsc.setLayoutData(new GridData(GridData.FILL_BOTH));
+//		textAndTagsItem = createCTabItem(tabFolder, tsc, "Text / Tags");
 		
 		kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
 		kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));

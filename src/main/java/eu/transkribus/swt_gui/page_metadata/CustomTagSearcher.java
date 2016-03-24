@@ -13,14 +13,15 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.CustomTagSearchFacets;
+import eu.transkribus.core.model.beans.customtags.search.CustomTagSearchFacets;
+import eu.transkribus.core.model.beans.customtags.search.SearchFacets;
+import eu.transkribus.core.model.beans.customtags.search.TextSearchFacets;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class CustomTagSearcher {
 	private final static Logger logger = LoggerFactory.getLogger(CustomTagSearcher.class);
@@ -36,7 +37,7 @@ public class CustomTagSearcher {
 //		throw new NotImplementedException("searching on remote doc not implemented yet!");
 //	}
 	
-	public static void searchOnCollection_WithoutIndex(int collId, List<CustomTag> tags, CustomTagSearchFacets facets, IProgressMonitor monitor) throws NoConnectionException, SessionExpiredException, IllegalArgumentException {		
+	public static void searchOnCollection_WithoutIndex(int collId, List<CustomTag> tags, SearchFacets facets, IProgressMonitor monitor) throws NoConnectionException, SessionExpiredException, IllegalArgumentException {		
 		Storage s = Storage.getInstance();
 		s.checkConnection(true);
 		TrpServerConn conn = Storage.getInstance().getConnection();
@@ -69,7 +70,7 @@ public class CustomTagSearcher {
 	}
 	
 	// TODO: search on doc with index???
-	public static void searchOnDoc_WithoutIndex(List<CustomTag> tags, TrpDoc doc, CustomTagSearchFacets facets, int startPageIndex, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous, IProgressMonitor monitor, boolean onlyMonitorSubTask) { 		
+	public static void searchOnDoc_WithoutIndex(List<CustomTag> tags, TrpDoc doc, SearchFacets facets, int startPageIndex, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous, IProgressMonitor monitor, boolean onlyMonitorSubTask) { 		
 //		int nP = doc.getNPages()-startPageIndex;
 		int nP = previous ? startPageIndex+1 : doc.getNPages()-startPageIndex;
 		if (monitor != null && !onlyMonitorSubTask)
@@ -119,7 +120,7 @@ public class CustomTagSearcher {
 		}
 	}
 	
-	public static void searchOnPage(List<CustomTag> tags, TrpPageType p, CustomTagSearchFacets facets, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
+	public static void searchOnPage(List<CustomTag> tags, TrpPageType p, SearchFacets facets, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
 		if (p==null)
 			return;
 		
@@ -147,7 +148,7 @@ public class CustomTagSearcher {
 		}
 	}
 	
-	public static void searchOnRegion(List<CustomTag> tags, TrpTextRegionType region, CustomTagSearchFacets facets, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
+	public static void searchOnRegion(List<CustomTag> tags, TrpTextRegionType region, SearchFacets facets, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
 		List<TextLineType> lines = region.getTextLine();
 //		if (startLineIndex<0 || startLineIndex>=lines.size())
 //			return;
@@ -165,10 +166,14 @@ public class CustomTagSearcher {
 			if (i != startLineIndex) // // vely impoltant
 				startOffset = -1;
 			
-//			List<CustomTag> lineTags = 
-			List<CustomTag> lineTags = facets.isSearchText() ? 
-					tl.getCustomTagList().findText(facets, stopOnFirst, startOffset, previous)		
-					: tl.getCustomTagList().findTags(facets, stopOnFirst, startOffset, previous);
+			List<CustomTag> lineTags;
+			if (facets instanceof TextSearchFacets) {
+				lineTags = tl.getCustomTagList().findText((TextSearchFacets) facets, stopOnFirst, startOffset, previous);
+			} else if (facets instanceof CustomTagSearchFacets) {
+				lineTags = tl.getCustomTagList().findTags((CustomTagSearchFacets) facets, stopOnFirst, startOffset, previous);
+			} else {
+				throw new RuntimeException("Unknown facets type: "+facets.getClass().getCanonicalName());
+			}
 			
 			tags.addAll(lineTags);
 			if (!tags.isEmpty() && stopOnFirst)
