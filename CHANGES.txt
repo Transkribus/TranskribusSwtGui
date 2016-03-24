@@ -312,8 +312,11 @@ CHANGES AND BUGFIXES
 	-> show complete img and transcript url in DocOverviewWidget
 
 0.8.1:
+	-> multiple bugfixes
 	-> bugfix: after tag was added, "Tags under cursor" and "Properties" were not updated
 	-> deleteLineIfBaselineDeleted property (configure via wrench tool)
-	-> virtual keyboard configurable
+	-> virtual keyboard configurable in gui (1st version)
+	-> moved tag & text search to main search dialog in documents view
+	-> find text and tag it
 
 	

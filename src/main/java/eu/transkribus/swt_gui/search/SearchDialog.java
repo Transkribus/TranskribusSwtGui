@@ -102,7 +102,7 @@ public class SearchDialog extends Dialog {
 	 * Return the initial size of the dialog.
 	 */
 	@Override protected Point getInitialSize() {
-		return new Point(800, 800);
+		return new Point(1000, 800);
 	}
 	private CTabItem createCTabItem(CTabFolder tabFolder, Control control, String Text) {
 		CTabItem ti = new CTabItem(tabFolder, SWT.NONE);

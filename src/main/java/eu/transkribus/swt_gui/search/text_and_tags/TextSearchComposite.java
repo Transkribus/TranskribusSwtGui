@@ -1,8 +1,14 @@
 package eu.transkribus.swt_gui.search.text_and_tags;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILazyContentProvider;
@@ -17,6 +23,7 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.FillLayout;
@@ -33,18 +40,25 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.customtags.search.TextSearchFacets;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
 import eu.transkribus.swt_canvas.mytableviewer.MyTableLabelProvider;
 import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
+import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
 import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LabeledText;
+import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.page_metadata.TaggingWidget;
 
 public class TextSearchComposite extends ATextAndSearchComposite {
 	private final static Logger logger = LoggerFactory.getLogger(TextSearchComposite.class);
@@ -60,6 +74,12 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 	Group facetsGroup;
 	
 	MyTableViewer resultsTable;
+	
+	AddTagWidget addTagWidget;
+
+	SashForm resultsSf;
+
+	Button showTaggingWidgetBtn;
 		
 	public static final String PROP_COL = "Property";
 	public static final String VALUE_COL = "Value (Regex)";
@@ -103,7 +123,7 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 		this.setLayout(new FillLayout());
 		Composite c = new Composite(this, 0);
 		c.setLayout(new FillLayout());
-		
+				
 		SashForm sf = new SashForm(c, SWT.VERTICAL);
 		sf.setLayout(new GridLayout(1, false));
 		
@@ -175,6 +195,15 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 		searchNextBtn.setText("Next");
 		searchNextBtn.setToolTipText("Find and display the next match in the current document, starting from the cursor position");
 		searchNextBtn.addSelectionListener(findNextPrevL);
+		
+		showTaggingWidgetBtn = new Button(btnsComp, SWT.TOGGLE);
+		showTaggingWidgetBtn.setText("Tagging");
+		showTaggingWidgetBtn.setToolTipText("Tag search results");
+		showTaggingWidgetBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				updateTaggingWidgetVisibility();
+			}
+		});
 
 		initResultsTable(sf);
 		
@@ -197,11 +226,11 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 		resultsLabel = new Label(resultsGroup, 0);
 		resultsLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-//		resultsSf = new SashForm(resultsGroup, SWT.HORIZONTAL);
-//		resultsSf.setLayout(new GridLayout(1, false));
-//		resultsSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		resultsSf = new SashForm(resultsGroup, SWT.HORIZONTAL);
+		resultsSf.setLayout(new GridLayout(1, false));
+		resultsSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		resultsTable = new MyTableViewer(resultsGroup, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		resultsTable = new MyTableViewer(resultsSf, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		resultsTable.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		resultsTable.getTable().setHeaderVisible(true);
 		resultsTable.addColumns(RESULT_COLS);
@@ -303,147 +332,113 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 				}
 				
 			}
-		});	
+		});
+		
+		addTagWidget = new AddTagWidget(resultsSf, 0);
+		addTagWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		addTagWidget.getTagBtn().addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				tagSelectedTags();
+			}
+		});
+		
+		updateTaggingWidgetVisibility();
+	}
+	
+	boolean isTaggingPossible() {
+		return showTaggingWidgetBtn.getSelection();
+	}
+	
+	void updateTaggingWidgetVisibility() {
+		if (isTaggingPossible())
+			resultsSf.setWeights(new int[] {66,34});
+		else
+			resultsSf.setWeights(new int[] {100,0});
+		
+//		updateNormalizationSelection();
+	}
+	
+	List<CustomTag> getSelectedTags() {
+		IStructuredSelection sel = (IStructuredSelection) resultsTable.getSelection();
+		List<CustomTag> selTags = sel.toList();
+		logger.debug("n selTags: "+selTags.size());
+		return selTags;
 	}
 			
-//	void findNextTag(final boolean previous) {
-//		final CustomTagSearchFacets facets = 
-//				new CustomTagSearchFacets(inputText.getText(), "", null, true, 
-//											wholeWordCheck.getSelection(), caseSensitiveCheck.getSelection());
-//		
-//		logger.debug("searching for next tag, previous = "+previous);
-//		
-//		final Storage s = Storage.getInstance();
-//		try {
-//			if (!s.isDocLoaded()) {
-//				DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No document loaded!");
-//				return;
-//			}
-//			
-//			final List<CustomTag> tag = new ArrayList<>();
-//			// TODO: specify real current position here, and display a wait dialog
-//			final int startPageIndex = s.getPageIndex();
-//			final int startRegionIndex = s.getCurrentRegion()==-1 ? 0 : s.getCurrentRegion();
-//			final int startLineIndex = s.getCurrentLineObject()==null ? 0 : s.getCurrentLineObject().getIndex();
-//			int currentOffsetTmp = 0;
-//			TrpMainWidget mw = TrpMainWidget.getInstance();
-//			if (mw.getUi().getSelectedTranscriptionType() == Type.LINE_BASED) {
-//				int o = mw.getUi().getSelectedTranscriptionWidget().getText().getCaretOffset();
-//				int lo = mw.getUi().getSelectedTranscriptionWidget().getText().getOffsetAtLine(startLineIndex);
-//				logger.debug("o = "+o+" lo = "+lo);
-//				currentOffsetTmp = o-lo;
-//			}
-//			final int currentOffset = currentOffsetTmp;
-//			logger.info("searching for next tag, startPageIndex= "+startPageIndex+", startRegionIndex= "+startRegionIndex+", startLindex= "+startLineIndex+" currentOffset= "+currentOffset+", previous= "+previous);			
-//			
-//			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-//				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-//					CustomTagSearcher.searchOnDoc_WithoutIndex(tag, s.getDoc(), facets, startPageIndex, startRegionIndex, startLineIndex, true, currentOffset, previous, monitor, false);
-//				}
-//			}, "Searching", true);		
-//			
-//			if (!tag.isEmpty()) {
-//				logger.info("found a tag - displaying: "+tag.get(0));
-//				TrpLocation l = new TrpLocation(tag.get(0));
-//				TrpMainWidget.getInstance().showLocation(l);
-//			} else {
-//				DialogUtil.showInfoMessageBox(getShell(), "No match", "No match found!");
-//			}
-//		} catch (Throwable e) {
-//			DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", e.getMessage());
-//			logger.error(e.getMessage(), e);
-//			return;
-//		}
-//	}
+	void tagSelectedTags() {
+		final List<CustomTag> selectedTags = getSelectedTags();
 		
-//	void findTags() {
-//		final CustomTagSearchFacets facets = new CustomTagSearchFacets(inputText.getText(), "", null, true, 
-//					wholeWordCheck.getSelection(), caseSensitiveCheck.getSelection());
-//		
-//		logger.debug("searching for text: "+facets.isSearchText());
-//		
-////		final String tn = tagNameInput.getText();
-////		if (StringUtils.isEmpty(tn)) {
-////			DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "tag name cannot be empty - use * wildcard to search for any tag!");			
-////			return;
-////		}
-//
-//		final Storage s = Storage.getInstance();
-//		final TrpMainWidget mw = TrpMainWidget.getInstance();
-//		final int currentCollID = mw.getUi().getDocOverviewWidget().getSelectedCollectionId();
-//		
-//		String scope = scopeCombo.getText();
-//		logger.debug("searching on scope: "+scope+ " currentCollID = "+currentCollID);
-//		
-//		foundTags.clear();
-//		resultsLabel.setText("");
-//
-//		ProgressBarDialog pd = new ProgressBarDialog(getShell()) {
-//			@Override public void subTask(final String name) {
-//				super.subTask(name);
-//				Display.getDefault().syncExec(new Runnable() {
-//					@Override public void run() {
-//						Shell s = TextSearchComposite.this.getShell();
-//						if (!s.isDisposed()) {
-//							updateResults();
-//						}
-//					}
-//				});
-//			}
-//		};
-//		
-//		try {
-//			if (scope.equals(SCOPE_COLL)) {
-//				pd.open(new IRunnableWithProgress() {
-//					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-//						try {
-//							CustomTagSearcher.searchOnCollection_WithoutIndex(currentCollID, foundTags, facets, monitor);
-//							
-//						} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
-//							throw new InvocationTargetException(e);
-//						}
-//					}
-//				}, "Searching", true);
-//			}
-//			else if (scope.equals(SCOPE_DOC)) {
-//				if (!s.isDocLoaded()) {
-//					DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No document loaded!");
-//					return;
-//				}
-//				pd.open(new IRunnableWithProgress() {
-//					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-//						CustomTagSearcher.searchOnDoc_WithoutIndex(foundTags, s.getDoc(), facets, 0, 0, 0, false, 0, false, monitor, false);
-//					}
-//				}, "Searching", true);
-//			}
-//			else if (scope.equals(SCOPE_PAGE)) {
-//	//			if (s.getTranscript()==null || s.getTranscript().getPage() == null) {
-//				if (!s.isPageLoaded() || s.getTranscript().getPageData() == null) {
-//					DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No page loaded!");
-//					return;
-//				}
-//				TrpPageType p = s.getTranscript().getPage();
-//				
-//				CustomTagSearcher.searchOnPage(foundTags, p, facets, 0, 0, false, 0, false);
-//			} else if (scope.equals(SCOPE_REGION)) {
-//				TrpTextRegionType r = s.getCurrentRegionObject();
-//				if (r==null) {
-//					DialogUtil.showErrorMessageBox(getShell(), "Error in tag search", "No region selected!");
-//					return;
-//				}
-//					
-//				CustomTagSearcher.searchOnRegion(foundTags, r, facets, 0, false, 0, false);
-//			}
-//		}
-//		catch (Throwable e) {
-//			mw.onError("Error in tag search", e.getMessage(), e);
-//			return;
-//		}
-//		
-//		logger.debug("setting item count to "+foundTags.size());
-//		
-//		updateResults();
-//	}
+		if (selectedTags == null || selectedTags.isEmpty())
+			return;
+		
+		final Storage s = Storage.getInstance();
+		
+		try {
+			final String tagName = addTagWidget.getSelectedTag();
+			if (!CustomTagFactory.getRegisteredTagNames().contains(tagName)) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "Invalid tag name: "+tagName);
+				return; 
+			}
+			final Map<String, Object> attributes = addTagWidget.getCurrentAttributes(); 
+			
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+//					monitor.setTaskName("Saving");
+					logger.info("tagging text: "+selectedTags.size());
+					
+					monitor.beginTask("Tagging", selectedTags.size());
+					int c=0;
+					Map<TrpTranscriptMetadata, TrpPageType> affectedPages = new HashMap<>();
+
+					for (final CustomTag t : selectedTags) {
+						if (monitor.isCanceled())
+							return;
+						
+						try {
+							final CustomTag newTag = CustomTagFactory.create(tagName, t.getOffset(), t.getLength(), attributes);
+							Display.getDefault().syncExec(new Runnable() {
+								@Override public void run() {
+									t.getCustomTagList().addOrMergeTag(newTag, null);		
+								}
+							});
+							
+						} catch (Exception e) {
+							throw new InvocationTargetException(e);
+						}
+						
+						affectedPages.put(t.getCustomTagList().getShape().getPage().getMd(), t.getCustomTagList().getShape().getPage());
+						
+//						t.getCustomTagList().getShape().getPage();
+						monitor.worked(c++);
+					}
+					
+					logger.debug("nr of affected transcripts: "+affectedPages.size());
+					
+					if (true) {
+					monitor.beginTask("Saving affected transcripts", affectedPages.size());
+					c=0;
+					for (TrpPageType pt : affectedPages.values()) {
+						if (monitor.isCanceled())
+							return;
+						
+//						monitor.subTask("Page "+pt.getMd().getPageNr());
+						
+						try {
+							s.saveTranscript(s.getCurrentDocumentCollectionId(), pt, null, pt.getMd().getTsId(), "Tagged from text");
+						} catch (Exception e) {
+							throw new InvocationTargetException(e);
+						}
+						
+						monitor.worked(c++);
+					}
+					}
+				}
+			}, "Normalizing tag values", true);
+		} catch (Throwable e) {
+			TrpMainWidget.getInstance().onError("Error normalizing tag values", e.getMessage(), e, true, false);
+		}
+	}
 	
 	@Override public void updateResults() {
 		logger.debug("updating results table, N = "+foundTags.size());
