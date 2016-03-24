@@ -47,13 +47,18 @@ public class CommonExportDialog extends Dialog {
 	String docName;
 	File result=null;
 	Button wordBasedBtn;
-	Button blackeningBtn;
 	Button exportTagsBtn;
+	Button blackeningBtn;
 	Button createTitlePageBtn;
 	boolean wordBased=false;
 	boolean tagExport=false;
 	boolean doBlackening = false;
 	boolean createTitlePage = false;
+	
+	Button markUnclearWordsBtn;
+	boolean markUnclearWords = false;
+	Button expandAbbrevBtn;
+	boolean expandAbbreviations = false;
 	
 	Button noZonesRadio;
 	Button zonePerParRadio;
@@ -616,6 +621,30 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 		
+		markUnclearWordsBtn = new Button(docxComposite, SWT.CHECK);
+		markUnclearWordsBtn.setText("Mark unclear words");
+		markUnclearWordsBtn.setToolTipText("If checked, all unclear tags get printed inside two square brackets -> [unclear]. Tag export must be choosen too!");
+		markUnclearWordsBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
+
+		markUnclearWordsBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setMarkUnclearWords(markUnclearWordsBtn.getSelection());
+			}
+		});
+		
+		expandAbbrevBtn = new Button(docxComposite, SWT.CHECK);
+		expandAbbrevBtn.setText("Expand abbreviations");
+		expandAbbrevBtn.setToolTipText("If checked, all abbreviations are followed by their expansion. Tag export must be choosen too!");
+		expandAbbrevBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
+
+		expandAbbrevBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setExpandAbbrevs(expandAbbrevBtn.getSelection());
+			}
+		});
+		
+		
+		
 	    return docxComposite;
 	}
 	  
@@ -771,6 +800,22 @@ public class CommonExportDialog extends Dialog {
 
 	public void setTagExport(boolean tagExport) {
 		this.tagExport = tagExport;
+	}
+	
+	public boolean isMarkUnclearWords() {
+		return markUnclearWords;
+	}
+
+	public void setMarkUnclearWords(boolean markUnclear) {
+		this.markUnclearWords = markUnclear;
+	}
+	
+	public boolean isExpandAbbrevs() {
+		return expandAbbreviations;
+	}
+
+	public void setExpandAbbrevs(boolean expandAbbrevs) {
+		this.expandAbbreviations = expandAbbrevs;
 	}
 
 	public boolean isXlsxExport() {
