@@ -22,6 +22,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.search.text_and_tags.ATextAndSearchComposite.SearchResult;
 
 public class CustomTagSearcher {
 	private final static Logger logger = LoggerFactory.getLogger(CustomTagSearcher.class);
@@ -37,7 +38,7 @@ public class CustomTagSearcher {
 //		throw new NotImplementedException("searching on remote doc not implemented yet!");
 //	}
 	
-	public static void searchOnCollection_WithoutIndex(int collId, List<CustomTag> tags, SearchFacets facets, IProgressMonitor monitor) throws NoConnectionException, SessionExpiredException, IllegalArgumentException {		
+	public static void searchOnCollection_WithoutIndex(int collId, SearchResult result, SearchFacets facets, IProgressMonitor monitor) throws NoConnectionException, SessionExpiredException, IllegalArgumentException {		
 		Storage s = Storage.getInstance();
 		s.checkConnection(true);
 		TrpServerConn conn = Storage.getInstance().getConnection();
@@ -57,11 +58,11 @@ public class CustomTagSearcher {
 			if (monitor != null && monitor.isCanceled())
 				break;
 			
-			monitor.setTaskName("Searching in doc "+(i+1)+"/"+nD);
+			monitor.setTaskName("Doc "+(i+1)+"/"+nD+" - "+dm.getTitle()+" ("+dm.getDocId()+") ");
 			
 			TrpDoc d = conn.getTrpDoc(collId, dm.getDocId(), 1);
 				
-			searchOnDoc_WithoutIndex(tags, d, facets, 0, 0, 0, false, 0, false, monitor, true);
+			searchOnDoc_WithoutIndex(result, collId, d, facets, 0, 0, 0, false, 0, false, monitor, true);
 
 			++i;
 			if (monitor != null)
@@ -70,11 +71,12 @@ public class CustomTagSearcher {
 	}
 	
 	// TODO: search on doc with index???
-	public static void searchOnDoc_WithoutIndex(List<CustomTag> tags, TrpDoc doc, SearchFacets facets, int startPageIndex, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous, IProgressMonitor monitor, boolean onlyMonitorSubTask) { 		
+	public static void searchOnDoc_WithoutIndex(SearchResult result, int collId, TrpDoc doc, SearchFacets facets, int startPageIndex, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous, IProgressMonitor monitor, boolean onlyMonitorSubTask) { 		
 //		int nP = doc.getNPages()-startPageIndex;
 		int nP = previous ? startPageIndex+1 : doc.getNPages()-startPageIndex;
+
 		if (monitor != null && !onlyMonitorSubTask)
-			monitor.beginTask("Searching for tags in document...", nP);
+			monitor.beginTask("Searching in document "+doc.getMd().getTitle(), nP);
 		
 		List<TrpPage> pages = doc.getPages();
 		int inc = previous ? -1 : 1;
@@ -97,7 +99,13 @@ public class CustomTagSearcher {
 			}
 			
 			if (monitor != null)
-				monitor.subTask("Searching in page "+(c+1)+"/"+nP);
+				monitor.subTask("Page "+(c+1)+"/"+nP);
+			
+//			if (monitor != null && onlyMonitorSubTask)
+//				monitor.subTask("Page "+(c+1)+"/"+nP);
+//			else if (monitor!=null && !onlyMonitorSubTask)
+//				monitor.setTaskName("Page "+(c+1)+"/"+nP);
+			
 			try {
 				SebisStopWatch.SW.start();
 				TrpPageType pt = s.getOrBuildPage(p.getCurrentTranscript(), false);
@@ -105,8 +113,8 @@ public class CustomTagSearcher {
 				SebisStopWatch.SW.stop(true, "time for unmarshal: ", logger);
 				
 				SebisStopWatch.SW.start();
-				searchOnPage(tags, pt, facets, startRegionIndex, startLineIndex, stopOnFirst, startOffset, previous);
-				if (!tags.isEmpty() && stopOnFirst)
+				searchOnPage(result, collId, pt, facets, startRegionIndex, startLineIndex, stopOnFirst, startOffset, previous);
+				if (!result.foundTags.isEmpty() && stopOnFirst)
 					break;
 				SebisStopWatch.SW.stop(true, "time for searching: ", logger);
 				
@@ -120,7 +128,7 @@ public class CustomTagSearcher {
 		}
 	}
 	
-	public static void searchOnPage(List<CustomTag> tags, TrpPageType p, SearchFacets facets, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
+	public static void searchOnPage(SearchResult result, int collId, TrpPageType p, SearchFacets facets, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
 		if (p==null)
 			return;
 		
@@ -142,16 +150,18 @@ public class CustomTagSearcher {
 				startOffset = -1;
 			}
 
-			searchOnRegion(tags, r, facets, startLineIndex, stopOnFirst, startOffset, previous);
-			if (!tags.isEmpty() && stopOnFirst)
+			searchOnRegion(result, collId, r, facets, startLineIndex, stopOnFirst, startOffset, previous);
+			if (!result.foundTags.isEmpty() && stopOnFirst)
 				break;
 		}
 	}
 	
-	public static void searchOnRegion(List<CustomTag> tags, TrpTextRegionType region, SearchFacets facets, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
+	public static void searchOnRegion(SearchResult result, int collId, TrpTextRegionType region, SearchFacets facets, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
 		List<TextLineType> lines = region.getTextLine();
 //		if (startLineIndex<0 || startLineIndex>=lines.size())
 //			return;
+		
+		result.collId = collId;
 		
 		if (startLineIndex == -1) {
 			startLineIndex = previous ? lines.size()-1 : 0;
@@ -175,8 +185,8 @@ public class CustomTagSearcher {
 				throw new RuntimeException("Unknown facets type: "+facets.getClass().getCanonicalName());
 			}
 			
-			tags.addAll(lineTags);
-			if (!tags.isEmpty() && stopOnFirst)
+			result.foundTags.addAll(lineTags);
+			if (!result.foundTags.isEmpty() && stopOnFirst)
 				break;			
 		}
 	}

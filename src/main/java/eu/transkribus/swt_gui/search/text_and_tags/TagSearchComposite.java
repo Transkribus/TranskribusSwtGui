@@ -277,7 +277,7 @@ public class TagSearchComposite extends ATextAndSearchComposite {
 		
 		SelectionAdapter findNextPrevL = new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				findNextTag(e.getSource() == searchPrevBtn);
+				findNextTagOnCurrentDocument(e.getSource() == searchPrevBtn);
 			}
 		};
 		
@@ -409,8 +409,8 @@ public class TagSearchComposite extends ATextAndSearchComposite {
 			@Override public void dispose() { }
 			@Override public void updateElement(int index) {
 				logger.trace("replacing element at index: "+index);
-				if (index >= 0 && index < foundTags.size()) {
-					resultsTable.replace(foundTags.get(index), index);
+				if (index >= 0 && index < searchResult.size()) {
+					resultsTable.replace(searchResult.get(index), index);
 				}
 			}
 		});
@@ -433,7 +433,7 @@ public class TagSearchComposite extends ATextAndSearchComposite {
 			}
 		});
 
-		resultsTable.setInput(foundTags);
+		resultsTable.setInput(searchResult.foundTags);
 		
 		resultsTable.addDoubleClickListener(new IDoubleClickListener() {	
 			@Override public void doubleClick(DoubleClickEvent event) {
@@ -534,10 +534,10 @@ public class TagSearchComposite extends ATextAndSearchComposite {
 //	}
 
 	@Override public void updateResults() {
-		logger.debug("updating results table, N = "+foundTags.size());
-		resultsLabel.setText(foundTags.size()+" matches");
+		logger.debug("updating results table, N = "+searchResult.size());
+		resultsLabel.setText(searchResult.size()+" matches");
 		
-		resultsTable.setItemCount(foundTags.size());
+		resultsTable.setItemCount(searchResult.size());
 		resultsTable.refresh();
 	}
 	

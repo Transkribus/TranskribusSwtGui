@@ -17,9 +17,7 @@ import java.util.Set;
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
-import javax.ws.rs.ServerErrorException;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1465,29 +1463,32 @@ public class TrpMainWidget {
 
 		logger.info("showing loation: " + l);
 
-		// 1st: load doc:
+		// 1st: load doc & page
 		if (!l.hasDoc()) {
 			logger.info("location has no doc specified!");
 			return;
 		}
+		int pageIndex = l.hasPage() ? l.pageNr -1 : 0;
 
+		boolean wasDocLoaded=false;
 		if (!storage.isThisDocLoaded(l.docId, l.localFolder)) {
+			wasDocLoaded = true;
 			if (l.docId == -1) {
-				if (!loadLocalDoc(l.localFolder.getAbsolutePath()))
+				if (!loadLocalDoc(l.localFolder.getAbsolutePath(), pageIndex))
 					return;
 			} else {
-				if (!loadRemoteDoc(l.docId, l.collectionId))
+				if (!loadRemoteDoc(l.docId, l.collectionId, pageIndex))
 					return;
 			}
 		}
 		
-		// 2nd: load page:
+		// 2nd: load page if not loaded by doc anyway:
 		if (!l.hasPage()) {
 			logger.info("location has no page specified!");
 			return;
 		}
 
-		if (storage.getPageIndex() != l.pageNr - 1) {
+		if (!wasDocLoaded && storage.getPageIndex() != l.pageNr - 1) {
 			if (!storage.setCurrentPage(l.pageNr - 1))
 				return;
 			if (!reloadCurrentPage(true))
@@ -1628,7 +1629,7 @@ public class TrpMainWidget {
 			return;
 		}
 
-		loadLocalDoc(localTestdoc);
+		loadLocalDoc(localTestdoc, 0);
 	}
 	
 	public void loadRemoteTestset() {
@@ -1639,8 +1640,12 @@ public class TrpMainWidget {
 	public void loginAsTestUser() {
 
 	}
-
+	
 	public boolean loadLocalDoc(String folder) {
+		return loadLocalDoc(folder, 0);
+	}
+
+	public boolean loadLocalDoc(String folder, int pageIndex) {
 		if (!saveTranscriptDialogOrAutosave()) {
 			return false;
 		}
@@ -1655,7 +1660,9 @@ public class TrpMainWidget {
 			};
 			ctt.start();
 
+			storage.setCurrentPage(pageIndex);
 			reloadCurrentPage(true);
+			
 			updateThumbs();
 			getCanvas().fitWidth();
 			return true;
@@ -1682,6 +1689,10 @@ public class TrpMainWidget {
 //	public boolean loadRemoteDoc(final int docId) {
 //		return loadRemoteDoc(docId, 0);
 //	}
+	
+	public boolean loadRemoteDoc(final int docId, int colId) {
+		return loadRemoteDoc(docId, colId, 0);
+	}
 
 	/**
 	 * Loads a document from the remote server
@@ -1690,7 +1701,7 @@ public class TrpMainWidget {
 	 * A colId <= 0 means, the currently selected collection from the DocOverViewWidget is taken (if one is selected!)
 	 * @return True for success, false otherwise
 	 */
-	public boolean loadRemoteDoc(final int docId, int colId) {
+	public boolean loadRemoteDoc(final int docId, int colId, int pageIndex) {
 		if (!saveTranscriptDialogOrAutosave()) {
 			return false;
 		}
@@ -1726,8 +1737,9 @@ public class TrpMainWidget {
 				}
 			}, "Loading document from server", false);
 
-			logger.debug("reloading current document!!");
+			storage.setCurrentPage(pageIndex);
 			reloadCurrentPage(true);
+			
 			updateThumbs();
 			getCanvas().fitWidth();
 			tmpCount++;

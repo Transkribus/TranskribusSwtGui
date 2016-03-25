@@ -81,13 +81,6 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 
 	Button showTaggingWidgetBtn;
 		
-	public static final String PROP_COL = "Property";
-	public static final String VALUE_COL = "Value (Regex)";
-	public static final ColumnConfig[] PROPS_COLS = new ColumnConfig[] {
-		new ColumnConfig(PROP_COL, 100, true, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(VALUE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
-	};
-	
 	public static final String DOC_COL = "Doc";
 	public static final String TITLE_COL = "Title";
 	public static final String PAGE_COL = "Page";
@@ -96,10 +89,8 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 	public static final String WORD_COL = "Word";
 //	public static final String TAG_COL = "Tag";
 	public static final String CONTEXT_COL = "Context";
-	public static final String TAG_VALUE_COL = "Value";
 	public static final ColumnConfig[] RESULT_COLS = new ColumnConfig[] {
-		new ColumnConfig(TAG_VALUE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(CONTEXT_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(CONTEXT_COL, 500, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(DOC_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
 //		new ColumnConfig(TITLE_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(PAGE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
@@ -180,7 +171,7 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 		
 		SelectionAdapter findNextPrevL = new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				findNextTag(e.getSource() == searchPrevBtn);
+				findNextTagOnCurrentDocument(e.getSource() == searchPrevBtn);
 			}
 		};
 		
@@ -269,10 +260,7 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 				else if (cn.equals(CONTEXT_COL)) {
 					txt = t.getTextOfShape();
 				}
-				else if (cn.equals(TAG_VALUE_COL)) {
-					txt = t.getContainedText();
-				}				
-				
+			
 				return txt;
 			}
 		};
@@ -295,8 +283,8 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 			@Override public void dispose() { }
 			@Override public void updateElement(int index) {
 				logger.trace("replacing element at index: "+index);
-				if (index >= 0 && index < foundTags.size()) {
-					resultsTable.replace(foundTags.get(index), index);
+				if (index >= 0 && index < searchResult.size()) {
+					resultsTable.replace(searchResult.get(index), index);
 				}
 			}
 		});
@@ -319,7 +307,7 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 			}
 		});
 
-		resultsTable.setInput(foundTags);
+		resultsTable.setInput(searchResult.foundTags);
 		
 		resultsTable.addDoubleClickListener(new IDoubleClickListener() {	
 			@Override public void doubleClick(DoubleClickEvent event) {
@@ -415,23 +403,10 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 					
 					logger.debug("nr of affected transcripts: "+affectedPages.size());
 					
-					if (true) {
-					monitor.beginTask("Saving affected transcripts", affectedPages.size());
-					c=0;
-					for (TrpPageType pt : affectedPages.values()) {
-						if (monitor.isCanceled())
-							return;
-						
-//						monitor.subTask("Page "+pt.getMd().getPageNr());
-						
-						try {
-							s.saveTranscript(s.getCurrentDocumentCollectionId(), pt, null, pt.getMd().getTsId(), "Tagged from text");
-						} catch (Exception e) {
-							throw new InvocationTargetException(e);
-						}
-						
-						monitor.worked(c++);
-					}
+					try {
+						ATextAndSearchComposite.saveAffectedPages(monitor, s.getCurrentDocumentCollectionId(), affectedPages.values());
+					} catch (Exception e) {
+						throw new InvocationTargetException(e);
 					}
 				}
 			}, "Normalizing tag values", true);
@@ -441,10 +416,10 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 	}
 	
 	@Override public void updateResults() {
-		logger.debug("updating results table, N = "+foundTags.size());
-		resultsLabel.setText(foundTags.size()+" matches");
+		logger.debug("updating results table, N = "+searchResult.size());
+		resultsLabel.setText(searchResult.size()+" matches");
 		
-		resultsTable.setItemCount(foundTags.size());
+		resultsTable.setItemCount(searchResult.size());
 		resultsTable.refresh();
 	}
 	

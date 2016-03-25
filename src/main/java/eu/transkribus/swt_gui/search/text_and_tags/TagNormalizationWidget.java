@@ -98,21 +98,11 @@ class TagNormalizationWidget extends Composite {
 					}
 					
 					logger.debug("nr of affected transcripts: "+affectedPages.size());
-					monitor.beginTask("Saving transcripts", affectedPages.size());
-					c=0;
-					for (TrpPageType pt : affectedPages.values()) {
-						if (monitor.isCanceled())
-							return;
-						
-						monitor.subTask("Saving transcript for page "+pt.getMd().getPageNr());
-						
-						try {
-							s.saveTranscript(s.getCurrentDocumentCollectionId(), pt, null, pt.getMd().getTsId(), "Tags normalized");
-						} catch (Exception e) {
-							throw new InvocationTargetException(e);
-						}
-						
-						monitor.worked(c++);
+					
+					try {
+						ATextAndSearchComposite.saveAffectedPages(monitor, s.getCurrentDocumentCollectionId(), affectedPages.values());
+					} catch (Exception e) {
+						throw new InvocationTargetException(e);
 					}
 				}
 			}, "Normalizing tag values", true);

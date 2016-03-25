@@ -3,7 +3,10 @@ package eu.transkribus.swt_gui.search.text_and_tags;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+
+import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -15,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.search.SearchFacets;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
@@ -36,8 +40,27 @@ public abstract class ATextAndSearchComposite extends Composite {
 	static final String SCOPE_COLL = "Current collection";
 	
 	String[] SCOPES = new String[] { SCOPE_COLL, SCOPE_DOC, SCOPE_PAGE, SCOPE_REGION };
+	
+	public static class SearchResult {		
+		public int collId;
+		public List<CustomTag> foundTags;
 		
-	protected List<CustomTag> foundTags = new ArrayList<>();
+		public SearchResult() {
+			clear();
+		}
+		
+		public int size() { return foundTags.size(); }
+		public CustomTag get(int index) { return foundTags.get(index); }
+		
+		public void clear() {
+			collId = -1;
+			foundTags = new ArrayList<>();
+		}
+	}
+	
+	protected SearchResult searchResult = new SearchResult();
+		
+//	protected List<CustomTag> foundTags = new ArrayList<>();
 	
 	public ATextAndSearchComposite(Composite parent, int style) {
 		super(parent, style);
@@ -48,7 +71,7 @@ public abstract class ATextAndSearchComposite extends Composite {
 	
 	public abstract SearchFacets getFacets() throws IOException;
 	
-	protected void findNextTag(final boolean previous) {
+	protected void findNextTagOnCurrentDocument(final boolean previous) {
 		
 		final SearchFacets facets;
 		try {
@@ -67,7 +90,10 @@ public abstract class ATextAndSearchComposite extends Composite {
 				return;
 			}
 			
-			final List<CustomTag> tag = new ArrayList<>();
+			final SearchResult sr = new SearchResult();
+			sr.collId = s.getCurrentDocumentCollectionId();
+			
+//			final List<CustomTag> tag = new ArrayList<>();
 			// TODO: specify real current position here, and display a wait dialog
 			final int startPageIndex = s.getPageIndex();
 			final int startRegionIndex = s.getCurrentRegion()==-1 ? 0 : s.getCurrentRegion();
@@ -85,13 +111,13 @@ public abstract class ATextAndSearchComposite extends Composite {
 			
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					CustomTagSearcher.searchOnDoc_WithoutIndex(tag, s.getDoc(), facets, startPageIndex, startRegionIndex, startLineIndex, true, currentOffset, previous, monitor, false);
+					CustomTagSearcher.searchOnDoc_WithoutIndex(sr, s.getCurrentDocumentCollectionId(), s.getDoc(), facets, startPageIndex, startRegionIndex, startLineIndex, true, currentOffset, previous, monitor, false);
 				}
 			}, "Searching", true);		
 			
-			if (!tag.isEmpty()) {
-				logger.info("found a tag - displaying: "+tag.get(0));
-				TrpLocation l = new TrpLocation(tag.get(0));
+			if (!sr.foundTags.isEmpty()) {
+				logger.info("found a tag - displaying: "+sr.foundTags.get(0));
+				TrpLocation l = new TrpLocation(sr.foundTags.get(0));
 				TrpMainWidget.getInstance().showLocation(l);
 			} else {
 				DialogUtil.showInfoMessageBox(getShell(), "No match", "No match found!");
@@ -117,12 +143,12 @@ public abstract class ATextAndSearchComposite extends Composite {
 
 		final Storage s = Storage.getInstance();
 		final TrpMainWidget mw = TrpMainWidget.getInstance();
-		final int currentCollID = mw.getUi().getDocOverviewWidget().getSelectedCollectionId();
-		
+				
 		String scope = getScope();
-		logger.debug("searching on scope: "+scope+ " currentCollID = "+currentCollID);
+		logger.debug("searching on scope: "+scope);
 		
-		foundTags.clear();
+		searchResult.clear();
+				
 		updateResults();
 
 		ProgressBarDialog pd = new ProgressBarDialog(getShell()) {
@@ -142,27 +168,40 @@ public abstract class ATextAndSearchComposite extends Composite {
 		
 		try {
 			if (scope.equals(SCOPE_COLL)) {
+				final TrpCollection currCol =  mw.getUi().getDocOverviewWidget().getSelectedCollection();
+				final int currentCollID = currCol == null ? -1 : currCol.getColId();
+
+				if (currCol == null) {
+					DialogUtil.showErrorMessageBox(getShell(), "Error", "No collection selected!");
+					return;
+				}
+				
+				searchResult.collId = currentCollID;
+				
 				pd.open(new IRunnableWithProgress() {
 					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							CustomTagSearcher.searchOnCollection_WithoutIndex(currentCollID, foundTags, facets, monitor);
+							CustomTagSearcher.searchOnCollection_WithoutIndex(currentCollID, searchResult, facets, monitor);
 							
 						} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
 							throw new InvocationTargetException(e);
 						}
 					}
-				}, "Searching", true);
+				}, "Searching in collection "+currCol.getColName(), true);
 			}
 			else if (scope.equals(SCOPE_DOC)) {
 				if (!s.isDocLoaded()) {
 					DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded!");
 					return;
 				}
+				String docTitle = s.getDoc().getMd() != null ? s.getDoc().getMd().getTitle() : "NA";
+				searchResult.collId = s.getCurrentDocumentCollectionId();
+				
 				pd.open(new IRunnableWithProgress() {
 					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						CustomTagSearcher.searchOnDoc_WithoutIndex(foundTags, s.getDoc(), facets, 0, 0, 0, false, 0, false, monitor, false);
+						CustomTagSearcher.searchOnDoc_WithoutIndex(searchResult, s.getCurrentDocumentCollectionId(), s.getDoc(), facets, 0, 0, 0, false, 0, false, monitor, false);
 					}
-				}, "Searching", true);
+				}, "Searching in document "+docTitle, true);
 			}
 			else if (scope.equals(SCOPE_PAGE)) {
 	//			if (s.getTranscript()==null || s.getTranscript().getPage() == null) {
@@ -171,16 +210,18 @@ public abstract class ATextAndSearchComposite extends Composite {
 					return;
 				}
 				TrpPageType p = s.getTranscript().getPage();
+				searchResult.collId = s.getCurrentDocumentCollectionId();
 				
-				CustomTagSearcher.searchOnPage(foundTags, p, facets, 0, 0, false, 0, false);
+				CustomTagSearcher.searchOnPage(searchResult, s.getCurrentDocumentCollectionId(), p, facets, 0, 0, false, 0, false);
 			} else if (scope.equals(SCOPE_REGION)) {
 				TrpTextRegionType r = s.getCurrentRegionObject();
 				if (r==null) {
 					DialogUtil.showErrorMessageBox(getShell(), "Error", "No region selected!");
 					return;
 				}
+				searchResult.collId = s.getCurrentDocumentCollectionId();
 					
-				CustomTagSearcher.searchOnRegion(foundTags, r, facets, 0, false, 0, false);
+				CustomTagSearcher.searchOnRegion(searchResult, s.getCurrentDocumentCollectionId(), r, facets, 0, false, 0, false);
 			}
 		}
 		catch (Throwable e) {
@@ -188,9 +229,29 @@ public abstract class ATextAndSearchComposite extends Composite {
 			return;
 		}
 		
-		logger.debug("setting item count to "+foundTags.size());
+		logger.debug("setting item count to "+searchResult.foundTags.size());
 		
 		updateResults();
+	}
+	
+	protected static void saveAffectedPages(IProgressMonitor monitor, int collId, Collection<TrpPageType> affectedPages)
+			throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
+		if (monitor != null)
+			monitor.beginTask("Saving affected transcripts", affectedPages.size());
+
+		Storage s = Storage.getInstance();
+		int c = 0;
+		for (TrpPageType pt : affectedPages) {
+			if (monitor != null && monitor.isCanceled())
+				return;
+
+			s.saveTranscript(s.getCurrentDocumentCollectionId(), pt, null, pt.getMd().getTsId(), "Tagged from text");
+
+			if (monitor != null)
+				monitor.worked(c++);
+
+			++c;
+		}
 	}
 
 }

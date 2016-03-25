@@ -559,8 +559,7 @@ public class Storage extends Observable {
 	}
 
 	private void clearTranscriptContent() {
-		transcript.setMd(null);
-		transcript.setPageData(null);
+		transcript.clear();
 	}
 
 	private void preloadSurroundingImages(String fileType) {
@@ -615,16 +614,11 @@ public class Storage extends Observable {
 	 * @return True if the page exists and was set, false elsewise
 	 */
 	public boolean setCurrentPage(int pageIndex) {
-		if (doc == null)
-			return false;
-
-		if (pageIndex < getNPages() && pageIndex >= 0) {
+		if (hasPageIndex(pageIndex)) {
 			page = doc.getPages().get(pageIndex);
-
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	public boolean setCurrentTranscript(TrpTranscriptMetadata md) {
@@ -634,7 +628,7 @@ public class Storage extends Observable {
 		if (transcript.getMd() == md)
 			return false;
 
-		transcript.setMd(md);
+		transcript.setData(md, null);
 		return true;
 	}
 
@@ -1133,7 +1127,7 @@ public class Storage extends Observable {
 		
 		// NEW:
 		TrpPageType p = getOrBuildPage(trMd, true);
-		transcript.setMd(trMd);
+		transcript.setData(trMd, p.getPcGtsType());
 		transcript.setPageData(p.getPcGtsType());
 		
 		transcript.getPage().setEdited(false);
