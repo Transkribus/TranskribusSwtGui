@@ -84,7 +84,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		ui.getSendBugReportButton().addSelectionListener(this);
 		ui.getLoginToggle().addSelectionListener(this);
 		
-		ui.getVkeyboards().addKeySelectionListener(this);
+		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addKeySelectionListener(this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
 		SWTUtil.addToolItemSelectionListener(ui.getProfilesToolItem().ti, this);
@@ -245,7 +245,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 //		}
 		
 		// VISUAL KEYBOARD:
-		else if (s == ui.getVkeyboards()) {
+		else if (s == ui.getVkeyboards().getVirtualKeyboardsTabWidget()) {
 			Character c = (char) e.detail;
 			logger.debug("key pressed: "+c+", name: "+e.text);
 			

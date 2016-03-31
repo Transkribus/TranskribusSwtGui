@@ -89,23 +89,24 @@ public class TrpVirtualKeyboardsWidget extends Composite {
 	}
 	
 	
-	public void addKeySelectionListener(SelectionListener l) {
-		tabWidget.addKeySelectionListener(l);
+//	public void addKeySelectionListener(final SelectionListener l) {
+//		tabWidget.addKeySelectionListener(l);
+//	}
+	
+	public TrpVirtualKeyboardsTabWidget getVirtualKeyboardsTabWidget() {
+		return tabWidget;
 	}
 	
-
-
 	public static void main(String [] args) throws Exception {
 		Display display = new Display ();
 		Shell shell = new Shell(display);
 		shell.setLayout(new FillLayout());
 		
 		final TrpVirtualKeyboardsWidget vk = new TrpVirtualKeyboardsWidget(shell, 0);
-//		if (false)
-		vk.addKeySelectionListener(new SelectionListener() {
-			
+		vk.getVirtualKeyboardsTabWidget().addKeySelectionListener(new SelectionListener() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				if (e.getSource() == vk) {
+				logger.info("e  = "+e.getSource());
+				if (e.getSource() == vk.getVirtualKeyboardsTabWidget()) {
 					logger.info("event = "+e);
 					Character c = (char) e.detail;
 					logger.info("key pressed: "+c+" detail = "+e.detail+", name: "+e.text);

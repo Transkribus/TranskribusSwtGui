@@ -318,5 +318,8 @@ CHANGES AND BUGFIXES
 	-> virtual keyboard configurable in gui (1st version)
 	-> moved tag & text search to main search dialog in documents view
 	-> find text and tag it
+	
+0.8.2:
+	-> bugfixes: "no transcript loaded" when saving twice & virtual keyboards not working
 
 	

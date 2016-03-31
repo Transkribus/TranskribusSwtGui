@@ -625,10 +625,10 @@ public class Storage extends Observable {
 		if (doc == null || page == null)
 			return false;
 
-		if (transcript.getMd() == md)
+		if (transcript.getMd()!=null && transcript.getMd().equals(md))
 			return false;
-
-		transcript.setData(md, null);
+		
+		transcript.setMd(md);
 		return true;
 	}
 
@@ -1127,7 +1127,7 @@ public class Storage extends Observable {
 		
 		// NEW:
 		TrpPageType p = getOrBuildPage(trMd, true);
-		transcript.setData(trMd, p.getPcGtsType());
+		transcript.setMd(trMd);
 		transcript.setPageData(p.getPcGtsType());
 		
 		transcript.getPage().setEdited(false);
