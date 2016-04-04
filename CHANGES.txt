@@ -321,5 +321,12 @@ CHANGES AND BUGFIXES
 	
 0.8.2:
 	-> bugfixes: "no transcript loaded" when saving twice & virtual keyboards not working
+	
+0.8.3:
+	-> splitting regions bug fixed
+	-> swapped horizontal / vertical splitting semantic
+	
+	
+	
 
 	

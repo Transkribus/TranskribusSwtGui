@@ -13,7 +13,7 @@ import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 public abstract class CanvasSceneListener implements EventListener {
 	static public enum SceneEventType {
 		BEFORE_UNDO, UNDO, BEFORE_ADD, ADD, BEFORE_REMOVE, REMOVE, BEFORE_MOVE, MOVE, SELECTION_CHANGED,
-		BEFORE_SPLIT, SPLIT, BEFORE_MERGE, MERGE, READING_ORDER_CHANGED
+		BEFORE_SPLIT, AFTER_SPLIT, SPLIT, BEFORE_MERGE, MERGE, READING_ORDER_CHANGED
 	}
 	
 	
@@ -175,6 +175,9 @@ public abstract class CanvasSceneListener implements EventListener {
 		case SPLIT:
 			onSplit(e);
 			break;
+		case AFTER_SPLIT:
+			onAfterSplit(e);
+			break;
 			
 		case BEFORE_MERGE:
 			onBeforeMerge(e);
@@ -211,6 +214,8 @@ public abstract class CanvasSceneListener implements EventListener {
 	public void onBeforeSplit(SceneEvent e) {}
 
 	public void onSplit(SceneEvent e) {}
+	
+	public void onAfterSplit(SceneEvent e) {}
 	
 	public void onBeforeMerge(SceneEvent e) {}
 

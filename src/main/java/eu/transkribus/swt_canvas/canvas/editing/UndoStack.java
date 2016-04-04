@@ -83,6 +83,7 @@ public class UndoStack extends Observable {
 	
 	public void addToUndoStack(List<ShapeEditOperation> ops) {
 		this.setChanged();
+				
 		this.notifyObservers(BEFORE_ADD_OP);
 		undoStack.push(ops);
 		this.setChanged();
@@ -223,7 +224,7 @@ public class UndoStack extends Observable {
 	
 	protected void undoSplit(ShapeEditOperation op) {
 		logger.debug("undoing split: "+op.getShapes().size());
-				
+						
 		canvas.getScene().notifyOnBeforeUndo(op);
 		
 		ICanvasShape origShape = op.getFirstShape();

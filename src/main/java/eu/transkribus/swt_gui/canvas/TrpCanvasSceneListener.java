@@ -296,13 +296,15 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		logger.debug("processUndoSplit");
 
 		try {
+			mainWidget.getTranscriptObserver().setActive(false);
+			
 			// reset parent shape and all that shit:
 			ICanvasShape origShape = op.getFirstShape();
 			ITrpShapeType origSt = GuiUtil.getTrpShape(origShape);
 			ITrpShapeType s1St = GuiUtil.getTrpShape(op.getNewShapes().get(0));
 			ITrpShapeType s2St = GuiUtil.getTrpShape(op.getNewShapes().get(1));
 			
-			logger.debug("undo split: "+origSt+", parent = "+s1St.getParent());
+			logger.debug("undo split: "+origSt+", parent = "+s1St.getParent()+" op = "+op);
 			s1St.removeFromParent();
 			s2St.removeFromParent();
 			origSt.setParent(s1St.getParent());
@@ -319,13 +321,26 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				mainWidget.getScene().updateParentInfo(s, false);	
 			}
 			
-			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.getScene().updateSegmentationViewSettings();
-			mainWidget.refreshStructureView();
-			mainWidget.updateTranscriptionWidgetsData();
+//			mainWidget.getScene().updateAllShapesParentInfo();
+//			mainWidget.getScene().updateSegmentationViewSettings();
+//			mainWidget.refreshStructureView();
+//			mainWidget.updateTranscriptionWidgetsData();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			mainWidget.onError("Error undoing", "Could not undo split operation "+op.getDescription(), e);
+		} finally {
+			mainWidget.getTranscriptObserver().setActive(true);
+			
+			if (!op.isFollowUp()) {
+				logger.debug("updating gui after last operation on undo split!");
+				mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
+				mainWidget.getScene().updateAllShapesParentInfo();
+				mainWidget.getScene().updateSegmentationViewSettings();
+				mainWidget.refreshStructureView();
+				mainWidget.updateTranscriptionWidgetsData();
+				mainWidget.redrawCanvas();
+			}
+			
 		}
 	}
 	
@@ -353,9 +368,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	@Override
 	public void onBeforeSplit(SceneEvent e) {
 		try {
-			logger.debug("before splitting, isFollowUp: "+e.op.isFollowUp+" shape = "+e.op.getFirstShape());
+			logger.debug("before splitting, isFollowUp: "+e.op.isFollowUp()+" shape = "+e.op.getFirstShape());
 			
-			if (!e.op.isFollowUp && e.op.getFirstShape().getData() instanceof TrpBaselineType) {
+			if (!e.op.isFollowUp() && e.op.getFirstShape().getData() instanceof TrpBaselineType) {
 				throw new Exception("Cannot directly split a baseline!");
 			}
 			
@@ -371,7 +386,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	@Override
 	public void onSplit(SceneEvent e) {
 		try {
-			logger.debug("on split!");
+			mainWidget.getTranscriptObserver().setActive(false);
+			
+			logger.debug("on split, op = "+e.op);
 			ICanvasShape origShape = e.op.getFirstShape();
 			ITrpShapeType origShapeData = (ITrpShapeType) origShape.getData();
 			
@@ -427,18 +444,36 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			el1.getPage().removeDeadLinks();
 			
 			logger.debug("el1, el2 children (2) = "+el1.getChildren(false).size()+" / "+el2.getChildren(false).size());
-			
-			mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
-			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.refreshStructureView();
-			if (!e.op.isFollowUp)
+
+			if (!e.op.isFollowUp())
 				mainWidget.getScene().selectObject(s1, true, false);
-			mainWidget.updateTranscriptionWidgetsData();
+
 		}
 		catch (Throwable ex) {
 			mainWidget.onError("Error during operation", "Error splitting element", ex);
 			e.stop = true;
+		} finally {
+			mainWidget.getTranscriptObserver().setActive(true);
+			
+//			if (e.op.isLast()) {
+//				logger.debug("updating gui after last operation on split!");
+//				mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
+//				mainWidget.getScene().updateAllShapesParentInfo();
+//				mainWidget.refreshStructureView();
+//				mainWidget.updateTranscriptionWidgetsData();
+//				mainWidget.redrawCanvas();
+//			}
 		}
+	}
+	
+	@Override
+	public void onAfterSplit(SceneEvent e) {
+		logger.debug("updating gui after split is done!");
+		mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
+		mainWidget.getScene().updateAllShapesParentInfo();
+		mainWidget.refreshStructureView();
+		mainWidget.updateTranscriptionWidgetsData();
+		mainWidget.redrawCanvas();
 	}
 
 	@Override
