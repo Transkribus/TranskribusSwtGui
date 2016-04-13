@@ -228,14 +228,14 @@ public class CanvasToolBar extends ToolBar {
 		modeMap.put(removePoint, CanvasMode.REMOVE_POINT);
 				
 		splitShapeHorizontal = new ToolItem(this, SWT.RADIO);
-		splitShapeHorizontal.setToolTipText("Splits a shape into subshapes horizontally");
+		splitShapeHorizontal.setToolTipText("Splits a shape using a horizontal line");
 //		splitShapeHorizontal.setImage(Images.getOrLoad("/icons/scissor_h.png"));
 		splitShapeHorizontal.setImage(Images.getOrLoad("/icons/scissor.png"));
 		splitShapeHorizontal.setText("H");
 		modeMap.put(splitShapeHorizontal, CanvasMode.SPLIT_SHAPE_HORIZONTAL);
 		
 		splitShapeVertical = new ToolItem(this, SWT.RADIO);
-		splitShapeVertical.setToolTipText("Splits a shape into subshapes vertically");
+		splitShapeVertical.setToolTipText("Splits a shape using a vertical line");
 //		splitShapeVertical.setImage(Images.getOrLoad("/icons/scissor_v.png"));
 		splitShapeVertical.setImage(Images.getOrLoad("/icons/scissor.png"));
 		splitShapeVertical.setText("V");
@@ -243,7 +243,7 @@ public class CanvasToolBar extends ToolBar {
 		
 		if (ENABLE_SPLIT_SHAPE_LINE) {
 		splitShapeLine = new ToolItem(this, SWT.RADIO);
-		splitShapeLine.setToolTipText("Splits a shape into subshapes by a user defined line");
+		splitShapeLine.setToolTipText("Splits a shape using a custom line");
 //		splitShapeLine.setImage(Images.getOrLoad("/icons/scissor_l.png"));
 		splitShapeLine.setImage(Images.getOrLoad("/icons/scissor.png"));
 		splitShapeLine.setText("L");

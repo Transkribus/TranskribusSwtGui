@@ -3,10 +3,11 @@ package eu.transkribus.swt_canvas.canvas.editing;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Point;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +23,6 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.util.CanvasTransform;
-
-import org.eclipse.swt.graphics.Point;
-import org.junit.Assert;
 
 /**
  * This class is resonsible for editing and drawing new shapes according to interactive points drawn by the user.
@@ -85,9 +83,9 @@ public class CanvasShapeEditor {
 				drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));			
 			}
 		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
-			splitShape(invPt.x, -1, invPt.x, 1);
-		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_VERTICAL) {
 			splitShape(-1, invPt.y, 1, invPt.y);
+		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_VERTICAL) {
+			splitShape(invPt.x, -1, invPt.x, 1);
 		}
 	}
 	
@@ -98,15 +96,15 @@ public class CanvasShapeEditor {
 			return;
 		}
 		
-		List<ICanvasShape> children = selected.getChildren(true); // get all children, recursively!!
+		List<ICanvasShape> children = selected.getChildren(true); // get all children (recursively)!
 		List<ShapeEditOperation> splitOps = new ArrayList<>();
-		
+				
 		ShapeEditOperation op = scene.splitShape(selected, x1, y1, x2, y2, true, null, null, false);
 		if (op!=null) {
 			splitOps.add(op);
 		}
 		
-		// FIXME?: Split child shapes recursively
+		// Split all child shapes
 		for (ICanvasShape child : children) {
 			// Determine the parent shapes of the child shape that shall be splitted by iterating through the edit operations that were done so far
 			ICanvasShape p1=null, p2=null;
@@ -127,6 +125,8 @@ public class CanvasShapeEditor {
 				splitOps.add(opChild);
 			}
 		}
+		
+		scene.notifyOnAfterShapeSplitted(op);
 		
 		addToUndoStack(splitOps);
 	}

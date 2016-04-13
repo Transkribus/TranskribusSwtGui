@@ -33,7 +33,7 @@ public class ShapeEditOperation {
 		
 	ShapeEditType type;
 	String description;
-	public boolean isFollowUp=false; // specifies if this operation is a follow-up operation, e.g. for splitting the split of a child shape!
+	boolean isFollowUp=false; // specifies if this operation is a follow-up operation, e.g. for splitting the split of a child shape!
 	
 	public ShapeEditOperation(SWTCanvas canvas, ShapeEditType type, String description, ICanvasShape affectedShape) {
 		this.canvas = canvas;
@@ -63,7 +63,15 @@ public class ShapeEditOperation {
 			backupShapes();	
 		}
 	}	
-		
+	
+	public boolean isFollowUp() {
+		return isFollowUp;
+	}
+
+	public void setFollowUp(boolean isFollowUp) {
+		this.isFollowUp = isFollowUp;
+	}
+	
 	public void addNewShape(ICanvasShape newShape) {
 		this.newShapes.add(newShape);
 	}
@@ -110,4 +118,11 @@ public class ShapeEditOperation {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+
+	@Override public String toString() {
+		return "ShapeEditOperation [n-shapes=" + shapes.size() + ", n-backupShapes=" + backupShapes.size() + ", n-newShapes=" + newShapes.size() + ", type=" + type
+				+ ", description=" + description + ", isFollowUp="+isFollowUp + "]";
+	}
+	
+	
 }

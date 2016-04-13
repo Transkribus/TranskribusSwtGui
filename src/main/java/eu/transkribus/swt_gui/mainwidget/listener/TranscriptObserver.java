@@ -163,7 +163,7 @@ public class TranscriptObserver implements Observer {
 
 	@Override
 	public void update(Observable o, Object arg) {
-		if (!active)
+		if (!isActive())
 			return;
 		
 		if (arg == null || !(arg instanceof TrpObserveEvent))

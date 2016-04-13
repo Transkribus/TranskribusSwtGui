@@ -55,6 +55,7 @@ public class TrpShapeElementFactory {
 		parentTrpShape.removeChildren();
 		for (ICanvasShape childShape : shape.getChildren(false)) {
 			ITrpShapeType st = GuiUtil.getTrpShape(childShape);
+			
 			logger.trace("shape type: "+st+" parent shape: "+parentTrpShape);
 			
 			if (st!=null) {
@@ -64,6 +65,7 @@ public class TrpShapeElementFactory {
 			} else {
 				throw new Exception("Fatal error: could not find the data object for the child shape: "+childShape);
 			}
+			
 		}
 		logger.trace("n-childs after child readjust: "+parentTrpShape.getChildren(false).size());
 	}

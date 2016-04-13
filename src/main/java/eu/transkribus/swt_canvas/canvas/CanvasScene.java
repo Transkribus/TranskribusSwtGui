@@ -285,7 +285,7 @@ public class CanvasScene {
 		
 		logger.debug("splitting shape "+shape);
 		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.SPLIT, "Shape splitted", shape);
-		op.isFollowUp = isFollowUp;
+		op.setFollowUp(isFollowUp);
 		
 		if (sendSignal) {
 			if (notifyOnBeforeShapeSplitted(op))
@@ -888,6 +888,11 @@ public class CanvasScene {
 
 	private boolean notifyOnShapeSplitted(ShapeEditOperation op) {
 		SceneEvent e = new SceneEvent(SceneEventType.SPLIT, this, op);
+		return notifyAllListener(e);
+	}
+	
+	public boolean notifyOnAfterShapeSplitted(ShapeEditOperation op) {
+		SceneEvent e = new SceneEvent(SceneEventType.AFTER_SPLIT, this, op);
 		return notifyAllListener(e);
 	}
 	
