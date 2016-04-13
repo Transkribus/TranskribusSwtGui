@@ -14,6 +14,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
+import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.*;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
@@ -170,9 +171,12 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				s.getPage().removeLinks(s);
 				
 				((ITrpShapeType) e.getFirstShape().getData()).getPage().removeDeadLinks();
+				
+				//sort children: means create new reading order without the deleted shape
+				s.getParentShape().sortChildren(true);
 			}
 			logger.debug("removed "+e.getFirstShape().getData() +" from JAXB");
-						
+		
 			mainWidget.updatePageRelatedMetadata();
 			mainWidget.getScene().updateAllShapesParentInfo();
 			mainWidget.refreshStructureView();
@@ -308,7 +312,10 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			origSt.setParent(s1St.getParent());
 			
 			Integer ro = origSt.getReadingOrder();
-			origSt.reInsertIntoParent(ro==null ? -1 : ro-1);
+			
+			logger.debug("original ro: " + ro);
+			
+			origSt.reInsertIntoParent(ro==null ? -1 : ro);
 						
 			for (ICanvasShape s : origShape.getChildren(false)) {
 				ITrpShapeType childSt = GuiUtil.getTrpShape(s);
@@ -336,7 +343,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			for (ICanvasShape s : op.getShapes()) {
 				mainWidget.getCanvasShapeObserver().addShapeToObserve(s);
 				ITrpShapeType st = (ITrpShapeType) s.getData();
-				st.reInsertIntoParent();
+				//preserve the old reading order
+				Integer ro = st.getReadingOrder();
+				st.reInsertIntoParent(ro==null ? -1 : ro);
 				mainWidget.getScene().updateParentInfo(s, false);	
 			}
 			
@@ -391,13 +400,14 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			
 			logger.debug("splitting - parents: "+s1.getParent()+"/"+s2.getParent());
 			
-			// add new elements to JAXB (first second, then first to ensure right order):
+			// add new elements to JAXB (first second, then first to ensure wright order):
 			ITrpShapeType el2 = mainWidget.getShapeFactory().copyJAXBElementFromShapeAndData(s2, indexOfOrigShape);
 			s2.setData(el2);
 			
 			ITrpShapeType el1 = mainWidget.getShapeFactory().copyJAXBElementFromShapeAndData(s1, indexOfOrigShape);
 			s1.setData(el1);
-			
+
+
 			// split text between elements
 			final boolean SPLIT_TEXT_ON_AREA_PERCENTAGE = false;
 			if (SPLIT_TEXT_ON_AREA_PERCENTAGE) {
@@ -552,6 +562,10 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			int ro2Idx = Integer.valueOf(newRo)-1;
 			st.reInsertIntoParent(ro2Idx);
 			//logger.debug("after reinsert " + newRo);
+			
+			//to store the reading order durable
+			st.getObservable().setChangedAndNotifyObservers(new TrpReadingOrderChangedEvent(this));
+
 			
 		} catch (Throwable th) {
 			e.stop = true;

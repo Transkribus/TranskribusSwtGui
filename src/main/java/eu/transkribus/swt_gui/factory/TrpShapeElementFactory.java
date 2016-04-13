@@ -159,11 +159,12 @@ public class TrpShapeElementFactory {
 		ITrpShapeType parentTrpShape = GuiUtil.getTrpShape(shape.getParent());
 		if (parentTrpShape!=null)
 			copyTrpShape.setParent(parentTrpShape);
-		copyTrpShape.reInsertIntoParent(index);				
 		
 		// set coordinates:
 		copyTrpShape.setCoordinates(PrimaUtils.pointsToString(shape.getPoints()), this);
-					
+		
+		copyTrpShape.reInsertIntoParent(index);				
+			
 		// sync canvas shape and trp shape info:
 		syncCanvasShapeAndTrpShape(shape, copyTrpShape);
 		
@@ -339,9 +340,26 @@ public class TrpShapeElementFactory {
 		
 		CoordsType coords = new CoordsType();
 		coords.setPoints(PrimaUtils.pointsToString(shape.getPoints()));
-		tr.setCoords(coords);		
+		tr.setCoords(coords);	
+		
+		//TODO: add index according to coordinates		int idxOfNewLine = parent.getIndexAccordingToCoordinates(tl);
+		int idxOfNewTextRegion = parent.getIndexAccordingToCoordinates(tr);
+		logger.debug("idxOfNewTextRegion " + idxOfNewTextRegion);
+		
+		if (parent.getTextRegionOrImageRegionOrLineDrawingRegion().size() > idxOfNewTextRegion){
+			//inserts at specific pos
+			tr.setReadingOrder(idxOfNewTextRegion,  TrpShapeElementFactory.class);
+			parent.getTextRegionOrImageRegionOrLineDrawingRegion().add(idxOfNewTextRegion, tr);
+		}
+		else{
+			//append list
+			tr.setReadingOrder(parent.getTextRegionOrImageRegionOrLineDrawingRegion().size(),  TrpShapeElementFactory.class);
+			parent.getTextRegionOrImageRegionOrLineDrawingRegion().add(tr);
+		}
 				
-		parent.getTextRegionOrImageRegionOrLineDrawingRegion().add(tr);
+		//parent.getTextRegionOrImageRegionOrLineDrawingRegion().add(tr);
+		
+		TrpMainWidget.getInstance().getScene().updateAllShapesParentInfo();
 		parent.sortRegions();
 		
 		return tr;

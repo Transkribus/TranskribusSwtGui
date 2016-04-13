@@ -237,7 +237,7 @@ public class UndoStack extends Observable {
 		for (ICanvasShape c : s2.getChildren(false)) {
 			origShape.addChild(c);
 		}
-		
+				
 		canvas.getScene().addShape(origShape, null, false);
 		boolean r1 = canvas.getScene().removeShape(s1, false, false);
 		boolean r2 = canvas.getScene().removeShape(s2, false, false);
