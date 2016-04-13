@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -64,6 +65,11 @@ public class TextRecognitionDialog extends Dialog {
 	
 	private CTabFolder tabFolder;
 	private CTabItem ocrItem, htrItem;
+	private CTabFolder htrTabFolder;
+	private CTabItem hmmItem, rnnItem;
+	
+	Combo netCombo, dictCombo;
+	List<String> htrNets, htrDicts;
 	
 	private Button currPageBtn;
 	
@@ -72,6 +78,10 @@ public class TextRecognitionDialog extends Dialog {
 	private static RecMode selRecMode = null;
 	private static String selPagesStr = null;
 
+	private static HtrRecMode selHtrMode = null;
+	private static String selRnn = null;
+	private static String selDict = null;
+	
 	public static final String ID_COL = "ID";
 	public static final String MODEL_NAME_COL = "Model Name";
 	public static final String LABEL_COL = "Label";
@@ -112,18 +122,43 @@ public class TextRecognitionDialog extends Dialog {
 		tabFolder = new CTabFolder(container, SWT.BORDER | SWT.FLAT);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		
-		htrModelTv = new MyTableViewer(tabFolder, SWT.FULL_SELECTION);
+		htrTabFolder = new CTabFolder(tabFolder, SWT.BORDER | SWT.FLAT);
+		htrTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		
+		Composite hmmContainer = new Composite(htrTabFolder, SWT.NONE);
+		hmmContainer.setLayout(new GridLayout(4, false));
+		
+		htrModelTv = new MyTableViewer(hmmContainer, SWT.FULL_SELECTION);
 		htrModelTv.setContentProvider(new ArrayContentProvider());
 		htrModelTv.setLabelProvider(new HtrModelTableLabelProvider(htrModelTv));
 		
 		htrModelTable = htrModelTv.getTable();
 		htrModelTable.setHeaderVisible(true);
 		htrModelTable.setLinesVisible(true);
-		htrModelTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		htrModelTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
 		
 		htrModelTv.addColumns(MODEL_COLS);
 		
-		htrItem = createCTabItem(tabFolder, htrModelTable, "HTR");
+		hmmItem = createCTabItem(htrTabFolder, hmmContainer, "Hidden Markov Models");
+		
+		Composite rnnContainer = new Composite(htrTabFolder, SWT.NONE);
+		rnnContainer.setLayout(new GridLayout(2, false));
+		Label netLbl = new Label(rnnContainer, SWT.NONE);
+		netLbl.setText("Network:");
+		netCombo = new Combo(rnnContainer, SWT.READ_ONLY);
+		netCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		netCombo.setItems(new String[]{""});
+		
+		Label dictLbl = new Label(rnnContainer, SWT.NONE);
+		dictLbl.setText("Dictionary:");
+		dictCombo = new Combo(rnnContainer, SWT.READ_ONLY);
+		dictCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		dictCombo.setItems(new String[]{""});
+		
+		rnnItem = createCTabItem(htrTabFolder, rnnContainer, "Recurrent Neural Networks");
+		
+		htrTabFolder.setSelection(hmmItem);
+		htrItem = createCTabItem(tabFolder, htrTabFolder, "HTR");
 		
 		ocrContainer = new Composite(tabFolder, SWT.NONE);
 		ocrContainer.setLayout(new GridLayout(1, false));
@@ -138,6 +173,7 @@ public class TextRecognitionDialog extends Dialog {
 		
 		setPageSelectionToCurrentPage();
 		updateHtrModels();
+		updateHtrNetsAndDicts();
 		updateTabSelection();
 		addListener();
 		return mainContainer;
@@ -228,7 +264,11 @@ public class TextRecognitionDialog extends Dialog {
 				updateBtnVisibility();
 			}
 		});
-		
+		htrTabFolder.addSelectionListener(new SelectionAdapter(){
+			@Override public void widgetSelected(SelectionEvent e){
+				updateBtnVisibility();
+			}
+		});
 	}
 	
 	private void setPageSelectionToCurrentPage(){
@@ -247,7 +287,11 @@ public class TextRecognitionDialog extends Dialog {
 			if(tabFolder.getSelection().equals(ocrItem)){
 				getButton(IDialogConstants.OK_ID).setEnabled(isOcrMdComplete());
 			} else if (tabFolder.getSelection().equals(htrItem)){
-				getButton(IDialogConstants.OK_ID).setEnabled(getSelectedHtrModelFromTable() != null);
+				if(htrTabFolder.getSelection().equals(hmmItem)) {
+					getButton(IDialogConstants.OK_ID).setEnabled(getSelectedHtrModelFromTable() != null);
+				} else if(htrTabFolder.getSelection().equals(rnnItem)) {
+					getButton(IDialogConstants.OK_ID).setEnabled(getSelectedRnn() != null && getSelectedDict() != null);
+				}
 			}
 		}
 	}
@@ -261,7 +305,29 @@ public class TextRecognitionDialog extends Dialog {
 		}
 		htrModelTv.setInput(htrModels);
 	}
+	
+	private void updateHtrNetsAndDicts(){
+		try {
+			this.htrNets = store.getHtrNets();
+			this.htrDicts = store.getHtrDicts();
+		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+				| NoConnectionException e) {
+			mw.onError("Error", "Could not load HTR model list!", e);
+		}
+		netCombo.setItems(this.htrNets.toArray(new String[this.htrNets.size()]));
+		netCombo.select(0);
+		dictCombo.setItems(this.htrDicts.toArray(new String[this.htrDicts.size()]));
+		dictCombo.select(0);
+	}
 
+	private String getSelectedRnn() {
+		return netCombo.getItem(netCombo.getSelectionIndex());
+	}
+
+	private String getSelectedDict() {
+		return dictCombo.getItem(dictCombo.getSelectionIndex());
+	}
+	
 	// overriding this methods allows you to set the
 	// title of the custom dialog
 	@Override protected void configureShell(Shell newShell) {
@@ -283,12 +349,21 @@ public class TextRecognitionDialog extends Dialog {
 		selHtrModel = getSelectedHtrModelFromTable();
 		selRecMode = tabFolder.getSelection().equals(htrItem) ? RecMode.HTR : RecMode.OCR;
 		selPagesStr = dps.getPagesText().getText();
+		
+		selHtrMode = htrTabFolder.getSelection().equals(rnnItem) ? HtrRecMode.RNN : HtrRecMode.HMM;
+		selRnn = getSelectedRnn();
+		selDict = getSelectedDict();
+		
 		dme.applyMetadataFromGui(store.getDoc().getMd());
 		mw.saveDocMetadata();
 		if(selPagesStr == null || selPagesStr.isEmpty()) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select pages to be recognized.");
-		} else if(tabFolder.getSelection().equals(htrItem) && selHtrModel == null){
-			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select an HTR model.");
+		} else if(tabFolder.getSelection().equals(htrItem) && selHtrMode.equals(HtrRecMode.HMM) 
+				&& selHtrModel == null) {
+				DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select an HTR model.");
+		} else if(tabFolder.getSelection().equals(htrItem) && selHtrMode.equals(HtrRecMode.RNN) 
+				&& (selRnn == null || selDict == null)){
+				DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select a neural network and a dictionary.");
 		} else if(tabFolder.getSelection().equals(ocrItem) && !isOcrMdComplete()){
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please select a script type and language.");
 		} else {
@@ -318,6 +393,18 @@ public class TextRecognitionDialog extends Dialog {
 	
 	public String getSelectedPages() {
 		return selPagesStr;
+	}
+	
+	public HtrRecMode getHtrRecMode(){
+		return selHtrMode;
+	}
+	
+	public String getRnnName(){
+		return selRnn;
+	}
+
+	public String getDictName(){
+		return selDict;
 	}
 	
 	private void updateTabSelection(){
@@ -367,5 +454,9 @@ public class TextRecognitionDialog extends Dialog {
 	
 	public enum RecMode {
 		OCR, HTR;
+	}
+	
+	public enum HtrRecMode {
+		RNN, HMM;
 	}
 }

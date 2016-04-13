@@ -252,6 +252,37 @@ public class ToolsWidget extends Composite {
 			}
 		});		
 		
+		wordSegBtn = new Button(laToolsGroup, SWT.PUSH);
+		wordSegBtn.setText("Detect words");
+		wordSegBtn.setToolTipText("Detects words in all lines of the selected regions (or of all regions if no region is selected) - warning: current baselines of affected lines will be lost!");
+		wordSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		
+		Button aboutWordBtn = new Button(laToolsGroup, SWT.PUSH);
+		aboutWordBtn.setImage(Images.getOrLoad("/icons/information.png"));
+		aboutWordBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				String title = "About: Detect baselines";
+				String msg = "Status\n"
+						+ "\t-Beta version\n"
+						+ "\t-Can be used for productive work\n"
+						+ "Behaviour\n"
+						+ "\t-Note: This is a tool with a very special purpose: If line regions are\n"
+						+ "\t already available the tool will detect corresponding baselines\n"
+						+ "\t-Needs correct line regions as input\n"
+						+ "\t-Detects baselines within line regions\n"
+						+ "Background\n"
+						+ "\t-In some rare cases researchers may have correct line regions\n"
+						+ "\t available, these line regions can be enriched with baselines.\n"
+						+ "Provider\n"
+						+ "\t-National Centre for Scientific Research (NCSR) – Demokritos in\n"
+						+ "\t Greece/Athens.\n"
+						+ "Contact\n"
+						+ "\t https://www.iit.demokritos.gr/cil/";
+				
+				DialogUtil.showMessageDialog(getShell(), title, msg, null, ncsrIcon, new String[] { "Close" }, 0);				
+			}
+		});		
+		
 //		Button aboutBtn = new Button(laToolsGroup, SWT.PUSH);
 //		aboutBtn.setText("About NCSR...");
 //		aboutBtn.addSelectionListener(new SelectionAdapter() {
