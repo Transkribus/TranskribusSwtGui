@@ -657,6 +657,8 @@ public abstract class ATranscriptionWidget extends Composite {
 		if (currentRegionObject==null)
 			return;
 		
+		logger.debug("text orientation: " + text.getOrientation());
+		
 //		if (text.isFocCusControl()) {
 		text.setFocus();
 			text.insert(textToInsert);
@@ -666,6 +668,7 @@ public abstract class ATranscriptionWidget extends Composite {
 //				this.setFocus();
 //				text.setSelection(text.getSelection().x+1);
 				text.setCaretOffset(text.getCaretOffset()+1);
+				
 			}
 //		}
 	}

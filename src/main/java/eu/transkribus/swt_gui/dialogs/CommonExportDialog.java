@@ -55,6 +55,8 @@ public class CommonExportDialog extends Dialog {
 	boolean doBlackening = false;
 	boolean createTitlePage = false;
 	
+	Button preserveLinebreaksBtn;
+	boolean preserveLinebreaks = false;
 	Button markUnclearWordsBtn;
 	boolean markUnclearWords = false;
 	Button expandAbbrevBtn;
@@ -621,6 +623,17 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 		
+		preserveLinebreaksBtn = new Button(docxComposite, SWT.CHECK);
+		preserveLinebreaksBtn.setText("Preserve line breaks");
+		preserveLinebreaksBtn.setToolTipText("If checked, all line breaks are adopted to the exported text.");
+		preserveLinebreaksBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
+
+		preserveLinebreaksBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setPreserveLineBreaks(preserveLinebreaksBtn.getSelection());
+			}
+		});
+		
 		markUnclearWordsBtn = new Button(docxComposite, SWT.CHECK);
 		markUnclearWordsBtn.setText("Mark unclear words");
 		markUnclearWordsBtn.setToolTipText("If checked, all unclear tags get printed inside two square brackets -> [unclear]. Tag export must be choosen too!");
@@ -649,6 +662,8 @@ public class CommonExportDialog extends Dialog {
 	}
 	  
 	
+
+
 	public Set<Integer> getSelectedPages() {
 		return selectedPages;
 	}
@@ -802,6 +817,16 @@ public class CommonExportDialog extends Dialog {
 		this.tagExport = tagExport;
 	}
 	
+	public boolean isPreserveLinebreaks() {
+		// TODO Auto-generated method stub
+		return preserveLinebreaks;
+	}
+	
+	protected void setPreserveLineBreaks(boolean preserveBreaks) {
+		this.preserveLinebreaks = preserveBreaks;
+		
+	}
+	
 	public boolean isMarkUnclearWords() {
 		return markUnclearWords;
 	}
@@ -846,6 +871,8 @@ public class CommonExportDialog extends Dialog {
 	public String getFileNamePattern() {
 		return fileNamePattern;
 	}
+
+
 	
 //	  /**
 //	   * Gets the control for tab one

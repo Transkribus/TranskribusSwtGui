@@ -121,7 +121,7 @@ public class TrpSWTCanvas extends SWTCanvas {
 		
 		//Graphics2D g2D = (Graphics2D) gc;
 		
-		boolean isRegion = trpShape instanceof RegionType;
+		boolean isRegion = trpShape instanceof TrpTextRegionType;
 		boolean isLine = trpShape instanceof TrpTextLineType;
 		boolean isWord = trpShape instanceof TrpWordType;
 		

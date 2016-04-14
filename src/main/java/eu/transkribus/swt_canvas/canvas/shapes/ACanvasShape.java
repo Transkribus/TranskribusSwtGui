@@ -1004,14 +1004,23 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 //		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 //		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 
-		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
-		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 		
 		ICanvasShape s1 = CanvasShapeFactory.copyShape(this);		
 		s1.setPoints2D(pI1.vertices());
 		
 		ICanvasShape s2 = CanvasShapeFactory.copyShape(this);
 		s2.setPoints2D(pI2.vertices());
+		
+	
+		/*
+		 * compare the newly created shapes to have the proper reading order later on 
+		 * ordering (or better s1, s2) differs for horizontal and vertical splits and hence we correct this here
+		 */ 
+		if (s1.compareByLevelAndYXCoordinates(s2) > 0){
+			return Pair.of(s2, s1);
+		}
 						
 		return Pair.of(s1, s2);
 	}
