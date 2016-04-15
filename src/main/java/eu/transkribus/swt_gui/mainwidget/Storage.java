@@ -1953,16 +1953,30 @@ public class Storage extends Observable {
 			System.setProperty("https.proxyUser", proxyUser);
 			System.setProperty("https.proxyPassword", proxyPassword);
 			System.setProperty("https.nonProxyHosts", "localhost|127.0.0.1");
+			System.setProperty("http.proxyHost", proxyHost);
+			System.setProperty("http.proxyPort", proxyPort);
+			System.setProperty("http.proxyUser", proxyUser);
+			System.setProperty("http.proxyPassword", proxyPassword);
+			System.setProperty("http.nonProxyHosts", "localhost|127.0.0.1");
+
 		} else {
 			logger.debug("PROXY IS DISABLED");
 			System.setProperty("https.proxyHost", "");
 			System.setProperty("https.proxyPort", "");
 			System.setProperty("https.proxyUser", "");
 			System.setProperty("https.proxyPassword", "");
+			System.setProperty("http.proxyHost", "");
+			System.setProperty("http.proxyPort", "");
+			System.setProperty("http.proxyUser", "");
+			System.setProperty("http.proxyPassword", "");
 		}
 		logger.debug("ProxyHost = " + System.getProperty("https.proxyHost"));
 		logger.debug("ProxyPort = " + System.getProperty("https.proxyPort"));
 		logger.debug("ProxyUser = " + System.getProperty("https.proxyUser"));
 		logger.debug("ProxyPassword = " + System.getProperty("https.proxyPassword"));
+		logger.debug("ProxyHost = " + System.getProperty("http.proxyHost"));
+		logger.debug("ProxyPort = " + System.getProperty("http.proxyPort"));
+		logger.debug("ProxyUser = " + System.getProperty("http.proxyUser"));
+		logger.debug("ProxyPassword = " + System.getProperty("http.proxyPassword"));
 	}
 }
