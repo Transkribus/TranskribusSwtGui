@@ -89,11 +89,11 @@ public class CanvasShapeEditor {
 		}
 	}
 	
-	public void splitShape(int x1, int y1, int x2, int y2) {
+	public List<ShapeEditOperation> splitShape(int x1, int y1, int x2, int y2) {
 		ICanvasShape selected = canvas.getFirstSelected();
 		if (selected == null) {
 			logger.warn("Cannot split - no shape selected!");
-			return;
+			return null;
 		}
 		
 		List<ICanvasShape> children = selected.getChildren(true); // get all children (recursively)!
@@ -126,9 +126,16 @@ public class CanvasShapeEditor {
 			}
 		}
 		
+		if (splitOps.isEmpty()) {
+			logger.warn("Cannot split - no shapes actually splitted by line!");
+			return null;
+		}
+		
 		scene.notifyOnAfterShapeSplitted(op);
 		
 		addToUndoStack(splitOps);
+		
+		return splitOps;
 	}
 
 	/** Adds the given point as a new point while drawing a new shape */

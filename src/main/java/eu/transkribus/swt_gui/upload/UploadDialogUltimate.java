@@ -52,7 +52,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.listener.AStorageObserver;
 
 public class UploadDialogUltimate extends Dialog {
-	private final static Logger logger = LoggerFactory.getLogger(UploadFromFtpDialog.class);
+	private final static Logger logger = LoggerFactory.getLogger(UploadDialogUltimate.class);
 	
 //	private final static String ENC_USERNAME = Storage.getInstance().getUser().getUserName().replace("@", "%40");
 	

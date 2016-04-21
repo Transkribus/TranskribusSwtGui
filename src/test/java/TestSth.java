@@ -235,9 +235,14 @@ public class TestSth {
 			
 	public static void main(String [] args) {
 		try {
+			
+//			System.setProperty("java.library.path", "whatever");
+			
+			System.out.println(System.getProperty("java.library.path"));
+			
 //			testStrRegexStuff();
 //			testDownloadClientFile();
-			testDownloadClientFileNew(args[0], args[1]);
+//			testDownloadClientFileNew(args[0], args[1]);
 //			copyAVBefore1926Data();
 			
 //			testReadingOrder();

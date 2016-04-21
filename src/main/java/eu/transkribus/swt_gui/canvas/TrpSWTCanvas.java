@@ -6,6 +6,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.part.EditorActionBarContributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.CanvasTransform;
 import eu.transkribus.swt_gui.TrpConfig;
@@ -61,6 +63,10 @@ public class TrpSWTCanvas extends SWTCanvas {
 	
 	private void initTrpCanvasListener() {
 		this.addKeyListener(new TrpCanvasKeyListener(this));
+	}
+	
+	@Override protected void initShapeEditor() {
+		shapeEditor = new TrpCanvasShapeEditor(this);
 	}
 	
 	@Override protected void initCanvasScene() {

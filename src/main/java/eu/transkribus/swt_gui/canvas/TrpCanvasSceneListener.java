@@ -338,10 +338,11 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		} finally {
 			mainWidget.getTranscriptObserver().setActive(true);
 			
+			mainWidget.getScene().updateAllShapesParentInfo();
+			mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
+			
 			if (!op.isFollowUp()) {
 				logger.debug("updating gui after last operation on undo split!");
-				mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
-				mainWidget.getScene().updateAllShapesParentInfo();
 				mainWidget.getScene().updateSegmentationViewSettings();
 				mainWidget.refreshStructureView();
 				mainWidget.updateTranscriptionWidgetsData();
@@ -379,6 +380,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		try {
 			logger.debug("before splitting, isFollowUp: "+e.op.isFollowUp()+" shape = "+e.op.getFirstShape());
 			
+			// this case should never happen, since direct splitting of baselines gets prevented in TrpCanvasScene.splitShape function!
 			if (!e.op.isFollowUp() && e.op.getFirstShape().getData() instanceof TrpBaselineType) {
 				throw new Exception("Cannot directly split a baseline!");
 			}
@@ -396,6 +398,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	public void onSplit(SceneEvent e) {
 		try {
 			mainWidget.getTranscriptObserver().setActive(false);
+			logger.debug("transcript observer active: "+mainWidget.getTranscriptObserver().isActive());
 			
 			logger.debug("on split, op = "+e.op);
 			ICanvasShape origShape = e.op.getFirstShape();
@@ -455,6 +458,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			
 			logger.debug("el1, el2 children (2) = "+el1.getChildren(false).size()+" / "+el2.getChildren(false).size());
 
+			// select new shape: 
 			if (!e.op.isFollowUp())
 				mainWidget.getScene().selectObject(s1, true, false);
 
@@ -464,6 +468,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			e.stop = true;
 		} finally {
 			mainWidget.getTranscriptObserver().setActive(true);
+			
+//			mainWidget.getScene().updateAllShapesParentInfo();
+//			mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
 			
 //			if (e.op.isLast()) {
 //				logger.debug("updating gui after last operation on split!");
