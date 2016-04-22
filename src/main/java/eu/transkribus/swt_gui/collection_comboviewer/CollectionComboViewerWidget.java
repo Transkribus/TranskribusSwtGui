@@ -105,7 +105,7 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 			collectionFilterText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			collectionFilterText.addModifyListener(new ModifyListener() {
 				@Override public void modifyText(ModifyEvent e) {
-					collectionComboViewer.refresh();				
+					collectionComboViewer.refresh();	
 				}
 			});
 			collectionFilterText.addTraverseListener(new TraverseListener() {
