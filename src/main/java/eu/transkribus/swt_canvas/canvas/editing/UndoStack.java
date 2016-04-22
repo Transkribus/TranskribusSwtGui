@@ -30,6 +30,10 @@ public class UndoStack extends Observable {
 	public UndoStack(SWTCanvas canvas) {
 		this.canvas = canvas;
 	}
+	
+	public Object getLastOp() {
+		return undoStack.getFirst();
+	}
 		
 	public String getLastOperationDescription() {
 		if (undoStack.isEmpty())

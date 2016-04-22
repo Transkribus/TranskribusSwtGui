@@ -325,6 +325,7 @@ CHANGES AND BUGFIXES
 0.8.3:
 	-> splitting regions bug fixed
 	-> swapped horizontal / vertical splitting semantic
+	-> split parent line too if splitting baselines
 	
 	
 	
