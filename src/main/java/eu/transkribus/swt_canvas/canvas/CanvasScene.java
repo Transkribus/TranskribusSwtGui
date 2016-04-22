@@ -837,7 +837,7 @@ public class CanvasScene {
 		sceneListener.remove(listener);
 	}
 
-	private boolean notifyOnSelectionChanged(ICanvasShape shape) {
+	public boolean notifyOnSelectionChanged(ICanvasShape shape) {
 		SceneEvent e = new SceneEvent(SceneEventType.SELECTION_CHANGED, this, shape);
 		canvas.onSelectionChanged(shape);
 		return notifyAllListener(e);
@@ -851,42 +851,42 @@ public class CanvasScene {
 		return notifyAllListener(new SceneEvent(SceneEventType.UNDO, this, op));
 	}	
 
-	private boolean notifyOnBeforeShapeAdded(ICanvasShape shape) {
+	public boolean notifyOnBeforeShapeAdded(ICanvasShape shape) {
 		return notifyAllListener(new SceneEvent(SceneEventType.BEFORE_ADD, this, shape));
 	}
 
-	private boolean notifyOnShapeAdded(ICanvasShape shape) {
+	public boolean notifyOnShapeAdded(ICanvasShape shape) {
 		return notifyAllListener(new SceneEvent(SceneEventType.ADD, this, shape));
 	}
 
-	private boolean notifyOnBeforeShapeRemoved(ICanvasShape shape) {
+	public boolean notifyOnBeforeShapeRemoved(ICanvasShape shape) {
 		SceneEvent e = new SceneEvent(SceneEventType.BEFORE_REMOVE, this, shape);
 		return notifyAllListener(e);
 	}
 
-	private boolean notifyOnShapeRemoved(ICanvasShape shape) {
+	public boolean notifyOnShapeRemoved(ICanvasShape shape) {
 		SceneEvent e = new SceneEvent(SceneEventType.REMOVE, this, shape);
 		return notifyAllListener(e);
 	}
 
-	private boolean notifyOnBeforeShapeMoved(ICanvasShape shape, int tx, int ty) {
+	public boolean notifyOnBeforeShapeMoved(ICanvasShape shape, int tx, int ty) {
 		SceneEvent e = new SceneEvent(SceneEventType.BEFORE_MOVE, this, shape);
 		e.data = new Point(tx, ty);
 		return notifyAllListener(e);
 	}
 
-	private boolean notifyOnShapeMoved(ICanvasShape shape, int tx, int ty) {
+	public boolean notifyOnShapeMoved(ICanvasShape shape, int tx, int ty) {
 		SceneEvent e = new SceneEvent(SceneEventType.MOVE, this, shape);
 		e.data = new Point(tx, ty);
 		return notifyAllListener(e);
 	}
 	
-	private boolean notifyOnBeforeShapeSplitted(ShapeEditOperation op) {
+	public boolean notifyOnBeforeShapeSplitted(ShapeEditOperation op) {
 		SceneEvent e = new SceneEvent(SceneEventType.BEFORE_SPLIT, this, op);
 		return notifyAllListener(e);
 	}
 
-	private boolean notifyOnShapeSplitted(ShapeEditOperation op) {
+	public boolean notifyOnShapeSplitted(ShapeEditOperation op) {
 		SceneEvent e = new SceneEvent(SceneEventType.SPLIT, this, op);
 		return notifyAllListener(e);
 	}
@@ -896,24 +896,24 @@ public class CanvasScene {
 		return notifyAllListener(e);
 	}
 	
-	private boolean notifyOnBeforeShapesMerged(List<ICanvasShape> merged) {
+	public boolean notifyOnBeforeShapesMerged(List<ICanvasShape> merged) {
 		SceneEvent e = new SceneEvent(SceneEventType.BEFORE_MERGE, this, merged);
 		return notifyAllListener(e);
 	}
 	
-	private boolean notifyOnReadingOrderChanged(ICanvasShape changed, String newRo) {
+	public boolean notifyOnReadingOrderChanged(ICanvasShape changed, String newRo) {
 		SceneEvent e = new SceneEvent(SceneEventType.READING_ORDER_CHANGED, this, changed);
 		e.data = newRo;
 		return notifyAllListener(e);
 	}
 
-	private boolean notifyOnShapesMerged(ShapeEditOperation op) {
+	public boolean notifyOnShapesMerged(ShapeEditOperation op) {
 		SceneEvent e = new SceneEvent(SceneEventType.MERGE, this, op);
 		return notifyAllListener(e);
 	}
 
 	/** Returns true is stopping is requested. **/
-	private boolean notifyAllListener(SceneEvent e) {
+	public boolean notifyAllListener(SceneEvent e) {
 
 		boolean stop = false;
 		for (CanvasSceneListener sl : sceneListener) {

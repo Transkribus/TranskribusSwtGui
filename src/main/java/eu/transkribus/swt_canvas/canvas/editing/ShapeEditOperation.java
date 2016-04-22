@@ -35,6 +35,9 @@ public class ShapeEditOperation {
 	String description;
 	boolean isFollowUp=false; // specifies if this operation is a follow-up operation, e.g. for splitting the split of a child shape!
 	
+	public int code = -1; // user defined code for edit operation
+	public Object data = null; // user defined data
+	
 	public ShapeEditOperation(SWTCanvas canvas, ShapeEditType type, String description, ICanvasShape affectedShape) {
 		this.canvas = canvas;
 		this.type = type;

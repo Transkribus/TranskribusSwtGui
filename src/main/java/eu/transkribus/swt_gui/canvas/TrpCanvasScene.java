@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.canvas;
 
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +15,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasScene;
+import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
+import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -129,6 +132,19 @@ public class TrpCanvasScene extends CanvasScene {
 //			updateParentInfo(s, false);
 //		}
 	}
+	
+//	@Override public ShapeEditOperation splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, boolean sendSignal, ICanvasShape p1, ICanvasShape p2, boolean isFollowUp) {
+//		if (shape == null)
+//			return null;
+//		
+//		// if this is a baseline, split its parent line too!
+//		if (shape.getData() instanceof TrpBaselineType) {
+//			ShapeEditOperation op = splitShape(shape.getParent(), x1, y1, x2, y2, sendSignal, p1, p2, isFollowUp);			
+//		}
+//
+//		// ...else: perform default split op in superclass
+//		return super.splitShape(shape, x1, y1, x2, y2, sendSignal, p1, p2, isFollowUp);
+//	}
 
 
 }

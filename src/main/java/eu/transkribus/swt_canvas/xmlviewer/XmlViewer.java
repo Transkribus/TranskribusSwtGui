@@ -169,12 +169,12 @@ public class XmlViewer extends Dialog {
 			boolean wrap = wrapSearchCheck.getSelection();
 			
 			int index = CoreUtils.indexOf(text.getText(), keyword, startSearchIndex, previous, caseSensitive, wholeWord);
-			logger.debug("index = "+index);
+			logger.trace("index = "+index);
 			if (index == -1 && wrap) {
 				int newStart = previous ? text.getCharCount()-1 : 0;
-				logger.debug("newStart = "+newStart);
+				logger.trace("newStart = "+newStart);
 				index = CoreUtils.indexOf(text.getText(), keyword, newStart, previous, caseSensitive, wholeWord);
-				logger.debug("index, wrapped = "+index);
+				logger.trace("index, wrapped = "+index);
 			}
 			
 			if (index != -1) {
