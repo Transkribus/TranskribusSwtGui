@@ -500,10 +500,10 @@ public class SWTCanvas extends Canvas {
 //				logger.debug("mousept = "+mP);
 				if (mP!=null)
 					SWTUtil.drawLineExtended(gc, drawnPoints.get(0).x, drawnPoints.get(0).y, mP.x, mP.y);
-			} else if (m==CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
+			} else if (m==CanvasMode.SPLIT_SHAPE_VERTICAL) {
 				if (mP!=null)
 					SWTUtil.drawLineExtended(gc, -1, mP.y, 1, mP.y);
-			} else if (m==CanvasMode.SPLIT_SHAPE_VERTICAL) {
+			} else if (m==CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
 				if (mP!=null)
 					SWTUtil.drawLineExtended(gc, mP.x, -1, mP.x, 1);
 			}
