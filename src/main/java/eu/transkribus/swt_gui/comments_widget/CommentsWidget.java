@@ -12,6 +12,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
@@ -43,6 +45,7 @@ public class CommentsWidget extends Composite {
 	Combo scopeCombo;
 	Text commentText;
 	Button refresh, addComment, editComment, deleteComment, showComments;
+	Label intro;
 
 	public CommentsWidget(Composite parent, int style) {
 		super(parent, style);
@@ -51,13 +54,79 @@ public class CommentsWidget extends Composite {
 		SashForm sf = new SashForm(this, SWT.VERTICAL);
 		
 		Composite top = new Composite(sf, 0);
-		top.setLayout(new GridLayout(2, false));
+		top.setLayout(new GridLayout(3, false));
 		
+		commentText = new Text(top, SWT.SEARCH | SWT.MULTI);
+		commentText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		commentText.setMessage(String.format("Enter your comment...(Select text in editor first)"));
+		//commentText.setText("test");
+//		commentText.addModifyListener(new ModifyListener() {
+//			@Override public void modifyText(ModifyEvent e) {
+//				logger.debug("modifying comment...: "+commentText.getText());
+//				editSelectedComment();
+//			}
+//		});
+		
+	    // add a focus listener
+//	    FocusListener focusListener = new FocusListener() {
+//	      public void focusGained(FocusEvent e) {
+//	        Text t = (Text) e.widget;
+//	        t.cut();
+//	        //t.selectAll();
+//	      }
+//
+//	      public void focusLost(FocusEvent e) {
+//	        Text t = (Text) e.widget;
+//	        if (t.getSelectionCount() > 0) {
+//	          t.clearSelection();
+//	        }
+//	      }
+//	    };
+//	    commentText.addFocusListener(focusListener);
+		
+
+        addComment = new Button(top, SWT.PUSH);
+        addComment.setImage(Images.ADD);
+        addComment.setText("Add");
+        addComment.setToolTipText("Adds the comment below to the current selection in the transcription widget");
+        addComment.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+        addComment.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				addNewComment();
+				commentText.setText("");
+			}
+		});
+        
+        editComment = new Button(top, SWT.PUSH);
+        editComment.setImage(Images.PENCIL);
+        editComment.setText("Edit selected");
+        editComment.setToolTipText("Edits the selected comment with the text below");
+        editComment.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+        editComment.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				editSelectedComment();
+			}
+		}); 
+        
+        deleteComment = new Button(top, SWT.PUSH);
+        deleteComment.setImage(Images.DELETE);
+        deleteComment.setText("Delete selected");
+        deleteComment.setToolTipText("Deletes the selected comment from the list");
+        deleteComment.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+        deleteComment.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				deleteSelectedComment();
+			}
+		});        
+        
+        Composite bottom = new Composite(sf, 0);
+        bottom.setLayout(new GridLayout(2, false));
+        
 		if (false) {
-		Label scopeLabel = new Label(top, 0);
+		Label scopeLabel = new Label(bottom, 0);
 		scopeLabel.setText("Comments - scope: ");
 		
-		scopeCombo = new Combo(top, SWT.READ_ONLY | SWT.DROP_DOWN);
+		scopeCombo = new Combo(bottom, SWT.READ_ONLY | SWT.DROP_DOWN);
 //		scopeCombo.setItems(new String[] {"Page", "Document"});
 		scopeCombo.setItems(new String[] {"Page"});
 		scopeCombo.addSelectionListener(new SelectionAdapter() {
@@ -68,7 +137,7 @@ public class CommentsWidget extends Composite {
 		scopeCombo.select(0);
 		}
 		
-		refresh = new Button(top, SWT.PUSH);
+		refresh = new Button(bottom, SWT.PUSH);
 		refresh.setImage(Images.REFRESH);
 		refresh.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
@@ -76,7 +145,7 @@ public class CommentsWidget extends Composite {
 			}
 		});
 		
-		showComments = new Button(top, SWT.CHECK);
+		showComments = new Button(bottom, SWT.CHECK);
 		showComments.setText("Highlight comments");
 		showComments.setToolTipText("Display comments in transcription widget");
 		showComments.addSelectionListener(new SelectionAdapter() {
@@ -87,7 +156,7 @@ public class CommentsWidget extends Composite {
 		});
 		showComments.setSelection(true);
 		
-		commentsTable = new CommentsTable(top, 0);
+		commentsTable = new CommentsTable(bottom, 0);
 		commentsTable.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		commentsTable.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
@@ -101,52 +170,8 @@ public class CommentsWidget extends Composite {
 			}
 		});
 
-        Composite bottom = new Composite(sf, 0);
-        bottom.setLayout(new GridLayout(3, false));
-
-        addComment = new Button(bottom, SWT.PUSH);
-        addComment.setImage(Images.ADD);
-        addComment.setText("Add");
-        addComment.setToolTipText("Adds the comment below to the current selection in the transcription widget");
-        addComment.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-        addComment.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				addNewComment();
-			}
-		});
-        
-        editComment = new Button(bottom, SWT.PUSH);
-        editComment.setImage(Images.PENCIL);
-        editComment.setText("Edit selected");
-        editComment.setToolTipText("Edits the selected comment with the text below");
-        editComment.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-        editComment.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				editSelectedComment();
-			}
-		}); 
-        
-        deleteComment = new Button(bottom, SWT.PUSH);
-        deleteComment.setImage(Images.DELETE);
-        deleteComment.setText("Delete selected");
-        deleteComment.setToolTipText("Deletes the selected comment from the list");
-        deleteComment.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-        deleteComment.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				deleteSelectedComment();
-			}
-		});        
-        
-		commentText = new Text(bottom, SWT.MULTI);
-		commentText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
-//		commentText.addModifyListener(new ModifyListener() {
-//			@Override public void modifyText(ModifyEvent e) {
-//				logger.debug("modifying comment...: "+commentText.getText());
-//				editSelectedComment();
-//			}
-//		});
 		
-		sf.setWeights(new int[] { 65, 35 });
+		sf.setWeights(new int[] { 35, 65 });
 	}
 	
 	protected void showSelectedComment() {
