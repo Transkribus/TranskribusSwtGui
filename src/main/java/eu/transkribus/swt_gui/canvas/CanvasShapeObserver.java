@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.util.PrimaUtils;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt_canvas.canvas.shapes.ACanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -37,7 +37,7 @@ public class CanvasShapeObserver implements Observer {
 	
 	private void updateCoordinatesFromShapeData(ICanvasShape shape) {
 //		logger.debug("Updating coordinates of shape");
-		String ptsStr = PrimaUtils.pointsToString(shape.getPoints());
+		String ptsStr = PointStrUtils.pointsToString(shape.getPoints());
 		
 		// update points in JAXB:
 		if (shape.getData() instanceof ITrpShapeType) {

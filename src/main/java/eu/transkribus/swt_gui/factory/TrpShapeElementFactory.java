@@ -21,7 +21,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpConstructedWithParentEvent;
-import eu.transkribus.core.util.PrimaUtils;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
@@ -163,7 +163,7 @@ public class TrpShapeElementFactory {
 			copyTrpShape.setParent(parentTrpShape);
 		
 		// set coordinates:
-		copyTrpShape.setCoordinates(PrimaUtils.pointsToString(shape.getPoints()), this);
+		copyTrpShape.setCoordinates(PointStrUtils.pointsToString(shape.getPoints()), this);
 		
 		copyTrpShape.reInsertIntoParent(index);				
 			
@@ -326,7 +326,7 @@ public class TrpShapeElementFactory {
 		TrpPrintSpaceType ps = new TrpPrintSpaceType(parent);
 		
 		CoordsType coords = new CoordsType();
-		coords.setPoints(PrimaUtils.pointsToString(shape.getPoints()));
+		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		ps.setCoords(coords);
 		
 		parent.setPrintSpace(ps);
@@ -341,7 +341,7 @@ public class TrpShapeElementFactory {
 //		tr.setId("region_"+System.currentTimeMillis());
 		
 		CoordsType coords = new CoordsType();
-		coords.setPoints(PrimaUtils.pointsToString(shape.getPoints()));
+		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		tr.setCoords(coords);	
 		
 		//TODO: add index according to coordinates		int idxOfNewLine = parent.getIndexAccordingToCoordinates(tl);
@@ -377,7 +377,7 @@ public class TrpShapeElementFactory {
 		//tl.setReadingOrder(-1,  TrpShapeElementFactory.class);
 		
 		CoordsType coords = new CoordsType();
-		coords.setPoints(PrimaUtils.pointsToString(shape.getPoints()));
+		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		tl.setCoords(coords);			
 		
 		tl.setTextEquiv(new TextEquivType());
@@ -415,7 +415,7 @@ public class TrpShapeElementFactory {
 	
 	private static TrpBaselineType createPAGEBaseline(ICanvasShape shape, TrpTextLineType parent) {
 		TrpBaselineType bl = new TrpBaselineType(parent);
-		bl.setPoints(PrimaUtils.pointsToString(shape.getPoints()));
+		bl.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		
 		//during creation set the ReadingOrder on the first position - sorting should than merge the shape according to the coordinates
 		bl.setReadingOrder(-1,  TrpShapeElementFactory.class);
@@ -434,7 +434,7 @@ public class TrpShapeElementFactory {
 		word.setReadingOrder(-1,  TrpShapeElementFactory.class);
 		
 		CoordsType coords = new CoordsType();
-		coords.setPoints(PrimaUtils.pointsToString(shape.getPoints()));
+		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		word.setCoords(coords);	
 		
 		word.setTextEquiv(new TextEquivType());
@@ -483,7 +483,7 @@ public class TrpShapeElementFactory {
 //		word.setId("word_"+System.currentTimeMillis());
 		
 		CoordsType coords = new CoordsType();
-		coords.setPoints(PrimaUtils.pointsToString(shape.getPoints()));
+		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		rt.setCoords(coords);	
 				
 		parent.getTextRegionOrImageRegionOrLineDrawingRegion().add(rt);

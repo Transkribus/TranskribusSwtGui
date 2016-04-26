@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.core.util.PrimaUtils;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -77,7 +77,7 @@ public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListene
 	private static ITrpShapeType getShapeToSelect(TrpTextLineType tl) {
 		int nPts=0;
 		try {
-			nPts = PrimaUtils.parsePoints(tl.getCoordinates()).size();
+			nPts = PointStrUtils.parsePoints(tl.getCoordinates()).size();
 		} catch (Exception e) {
 			logger.warn("cannot parse points from line: "+tl.getId()+", t = "+tl.getUnicodeText());
 		}
@@ -98,7 +98,7 @@ public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListene
 			
 			if (event.data!=null && event.data instanceof TrpTextLineType) {
 				TrpTextLineType tl = (TrpTextLineType) event.data;
-				int nPts = PrimaUtils.parsePoints(tl.getCoordinates()).size();
+				int nPts = PointStrUtils.parsePoints(tl.getCoordinates()).size();
 				
 				ITrpShapeType shapeToSelect = getShapeToSelect(tl);
 				logger.debug("selecting shape with data: "+shapeToSelect);

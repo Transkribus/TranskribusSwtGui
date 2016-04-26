@@ -10,7 +10,7 @@ import math.geom2d.polygon.SimplePolygon2D;
 
 import org.eclipse.swt.graphics.GC;
 
-import eu.transkribus.core.util.PrimaUtils;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 
 /**
@@ -34,7 +34,7 @@ public class CanvasPolygon extends ACanvasShape<java.awt.Polygon> {
 	}
 	
 	public CanvasPolygon(String points) throws Exception {
-		setPoints(PrimaUtils.parsePoints(points));
+		setPoints(PointStrUtils.parsePoints(points));
 	}
 	
 	public CanvasPolygon(CanvasPolygon src) {
