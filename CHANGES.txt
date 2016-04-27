@@ -326,6 +326,8 @@ CHANGES AND BUGFIXES
 	-> splitting regions bug fixed
 	-> swapped horizontal / vertical splitting semantic
 	-> split parent line too if splitting baselines
+	-> bugfix: group 4 compressed local images were displayed blank white
+	
 	
 	
 	
