@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
@@ -338,6 +340,9 @@ public class DocOverviewWidget extends Composite {
 //		docTableWidget = new DocTableWidget(remotedocsgroup, 0);
 		docTableWidget = new DocTableWidgetPagination(docsContainer, 0, 25);
 		docTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
+		ColumnViewerToolTipSupport.enableFor(docTableWidget.getPageableTable().getViewer(), ToolTip.NO_RECREATE);
+		docTableWidget.getPageableTable().setToolTipText("");
 		
 //		tableViewer = docTableWidget.getTableViewer();
 		

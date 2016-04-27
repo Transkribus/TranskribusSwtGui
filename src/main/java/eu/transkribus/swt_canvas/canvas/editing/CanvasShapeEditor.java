@@ -82,9 +82,9 @@ public class CanvasShapeEditor {
 				// actually add point:
 				drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));			
 			}
-		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
-			splitShape(-1, invPt.y, 1, invPt.y);
 		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_VERTICAL) {
+			splitShape(-1, invPt.y, 1, invPt.y);
+		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
 			splitShape(invPt.x, -1, invPt.x, 1);
 		}
 	}
