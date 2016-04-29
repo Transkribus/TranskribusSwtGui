@@ -34,6 +34,7 @@ import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -55,10 +56,15 @@ public class CommentsWidget extends Composite {
 		
 		Composite top = new Composite(sf, 0);
 		top.setLayout(new GridLayout(3, false));
+				
+		Label l = new Label(top, 0);
+		l.setText("Enter your comment:");
+		l.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 3, 1));
 		
-		commentText = new Text(top, SWT.SEARCH | SWT.MULTI);
+		commentText = new Text(top,  SWT.MULTI);
 		commentText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
-		commentText.setMessage(String.format("Enter your comment...(Select text in editor first)"));
+//		commentText.setMessage(String.format("Enter your comment...(Select text in editor first)")); // onyl works when SWT.SEARCH is set in Text constructor!
+		
 		//commentText.setText("test");
 //		commentText.addModifyListener(new ModifyListener() {
 //			@Override public void modifyText(ModifyEvent e) {
@@ -183,14 +189,21 @@ public class CommentsWidget extends Composite {
 	}
 
 	private void addNewComment() {
-		if (commentText.getText().isEmpty())
+		if (commentText.getText().isEmpty()) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error", "Cannot add an empty comment!");
 			return;
+		}
 		
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 		
+		boolean isTextSelectedInTranscriptionWidget = mw.isTextSelectedInTranscriptionWidget();
+		if (!isTextSelectedInTranscriptionWidget) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error", "No text seleceted in transcription widget!");
+			return;
+		}
+		
 		Map<String, Object> atts = new HashMap<>();
 		atts.put(CommentTag.COMMENT_PROPERTY_NAME, commentText.getText());
-		
 		mw.getTaggingWidgetListener().addTagForSelection(CommentTag.TAG_NAME, atts);
 		reloadComments();
 	}
