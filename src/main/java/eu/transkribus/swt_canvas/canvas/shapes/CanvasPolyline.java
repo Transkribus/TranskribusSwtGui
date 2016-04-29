@@ -13,7 +13,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.util.PrimaUtils;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 
 import org.eclipse.swt.graphics.GC;
@@ -36,7 +36,7 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	}
 	
 	public CanvasPolyline(String points) throws Exception {
-		setPoints(PrimaUtils.parsePoints(points));
+		setPoints(PointStrUtils.parsePoints(points));
 	}
 	
 	public CanvasPolyline(CanvasPolyline src) {

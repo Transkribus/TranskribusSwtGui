@@ -87,22 +87,28 @@ public class DataCache<K, D> {
 		
 	}
 	
+	public synchronized D getOrPut(K key, boolean keepAlways, Object opts) throws Exception {
+		return getOrPut(key, keepAlways, opts, false);
+	}
+	
 	/**
 	 * Retrieve element with specified key from cache or create new data and put it into cache if it is not there.
 	 * Least important elements are removed if the size of the cache is exceeded.
-	 * @param key The search key
-	 * @param keepAlways True if the specified key should always be kept in memory
+	 * @param key the search key
+	 * @param keepAlways true if the specified key should always be kept in memory
+	 * @param opts data specific options for reloading
+	 * @param forceReload true to force a reload of this element
 	 * @return The data element that has either been just retrieved or newly created.
 	 * @throws Exception
 	 */
-	public synchronized D getOrPut(K key, boolean keepAlways, Object opts) throws Exception {
+	public synchronized D getOrPut(K key, boolean keepAlways, Object opts, boolean forceReload) throws Exception {
 //		if (true) throw new Exception("TEST: Error loading image!");
 		
 		DataWrapper d = elements.get(key);
 		if (keepAlways) {
 			doNotDelete = key;
-		}		
-		if (d != null) {
+		}
+		if (d != null && !forceReload) {
 			d.incCount();
 			logger.debug("already got element: "+key+", access count: "+d.getCount() + ", size: "+size);			
 			return d.data;

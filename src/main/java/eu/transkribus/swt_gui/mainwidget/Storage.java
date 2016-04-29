@@ -966,7 +966,8 @@ public class Storage extends Observable {
 			urlStr = UriBuilder.fromUri(urlStr).replaceQueryParam("fileType", fileType).toString();
 		
 		logger.debug("Loading image: " + urlStr);
-		currentImg = imCache.getOrPut(new URL(urlStr), true, fileType);
+		final boolean FORCE_RELOAD = false;
+		currentImg = imCache.getOrPut(new URL(urlStr), true, fileType, FORCE_RELOAD);
 		logger.debug("loaded image: " + currentImg);
 		
 		setCurrentImageMetadata();

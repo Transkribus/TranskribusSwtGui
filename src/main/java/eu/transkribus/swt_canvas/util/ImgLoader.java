@@ -105,8 +105,10 @@ public class ImgLoader {
 						logger.warn("temp image file could not be deleted: "+tempFile.getAbsolutePath());
 					return img;
 				} else {
-					logger.trace("this is a local image!");
-					return new Image(Display.getDefault(), is);
+					logger.debug("this is a local image: "+url.getFile());					
+					// NOTE: have to use constructor with filename to initiate native call, cf. https://bugs.eclipse.org/bugs/show_bug.cgi?id=57382
+					// constructor with inputstream will return blank white image for group 4 compressed local images!
+					return new Image(Display.getDefault(), url.getFile()); 
 				}
 			} catch (Throwable e) {
 				throw new IOException(e.getMessage(), e);
