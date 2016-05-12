@@ -70,8 +70,18 @@ public class ImgLoader {
 	}
 	
 	public static Image loadWithJAI(URL url) throws IOException {
-		BufferedImage buffImg = ImageIO.read(url);
-
+		String prot = url.getProtocol() == null ? "" : url.getProtocol();
+		logger.trace("loading image with protocol = "+prot);
+		
+		BufferedImage buffImg;
+		if (!prot.startsWith("file")) {
+			buffImg = ImageIO.read(url);
+		} else {
+			//ImageIO can't open stream from URL when filename contains "#"
+			final String path = url.toExternalForm().replace("file:", "");
+			//TODO test on windows
+			buffImg = ImageIO.read(new File(path));
+		}
 		ImageData swtImg = SWTUtil.convertToSWT(buffImg);
 		return new Image(Display.getDefault(), swtImg);
 	}
@@ -105,10 +115,12 @@ public class ImgLoader {
 						logger.warn("temp image file could not be deleted: "+tempFile.getAbsolutePath());
 					return img;
 				} else {
-					logger.debug("this is a local image: "+url.getFile());					
+					//FIXME getFile() will not respect filenames with "#"!
+					final String path = url.getFile(); //url.toExternalForm().replaceFirst(url.getProtocol(), "");
+					logger.debug("this is a local image: "+ path);					
 					// NOTE: have to use constructor with filename to initiate native call, cf. https://bugs.eclipse.org/bugs/show_bug.cgi?id=57382
 					// constructor with inputstream will return blank white image for group 4 compressed local images!
-					return new Image(Display.getDefault(), url.getFile()); 
+					return new Image(Display.getDefault(), path); 
 				}
 			} catch (Throwable e) {
 				throw new IOException(e.getMessage(), e);
