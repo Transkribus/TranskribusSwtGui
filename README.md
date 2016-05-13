@@ -1,5 +1,4 @@
-
-# TranskribusCore
+# TranskribusSwtGui
 SWT based GUI for the Transkribus platform
 
 [![Build Status](http://dbis-halvar.uibk.ac.at/jenkins/buildStatus/icon?job=TranskribusSwtGui)](http://dbis-halvar.uibk.ac.at/jenkins/job/TranskribusSwtGui)
