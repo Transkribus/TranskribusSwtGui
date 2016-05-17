@@ -330,6 +330,8 @@ CHANGES AND BUGFIXES
 	-> Collection manager usability: document search possibility, load collections with double click,...
 	-> Comments tool rearranged
 	-> Document Table: mouse over shows complete document info 
+	-> edit of virtual keyboard chars in gui saves back to virtualKeyboards.xml
+	-> tei tags for Person, Place and Organization changed to "persName", "placeName" and "orgName"
 	
 	
 	

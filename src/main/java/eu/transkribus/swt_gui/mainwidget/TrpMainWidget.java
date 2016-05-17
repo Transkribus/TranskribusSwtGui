@@ -85,7 +85,7 @@ import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.docx.DocxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
-import eu.transkribus.core.model.builder.tei.TeiExportMode;
+import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
@@ -2444,8 +2444,16 @@ public class TrpMainWidget {
 			}
 
 			if (doTeiExport) {
-					
-				exportTei(teiExportFile, exportDiag.getTeiExportMode(), wordBased, doBlackening, pageIndices, selectedTags);
+				
+				TeiExportPars pars = new TeiExportPars();
+				pars.mode = exportDiag.getTeiExportMode();
+				pars.linebreakMode = exportDiag.getTeiLinebreakMode();
+				pars.writeTextOnWordLevel = wordBased;
+				pars.doBlackening = doBlackening;
+				pars.pageIndices = pageIndices;
+				pars.selectedTags = selectedTags;
+
+				exportTei(teiExportFile, pars);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -2803,21 +2811,21 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	public void exportTei(final File file, final TeiExportMode mode, final boolean writeTextOnWordLevel, final boolean doBlackening, final Set<Integer> pageIndices, final Set<String> selectedTags) throws Throwable {
+	public void exportTei(final File file, final TeiExportPars pars) throws Throwable {
 		try {
 
 			if (file == null)
 				return;
 
-			logger.info("TEI export. Mode = " + mode);
+			logger.info("TEI export. Mode = " + pars.mode);
 
 			lastExportFolder = file.getParentFile().getAbsolutePath();
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						logger.debug("creating TEI document, mode = "+mode+" writeTextOnWordLevel = "+writeTextOnWordLevel+" doBlackening = "+doBlackening);
+						logger.debug("creating TEI document, pars: "+pars);
 
-						storage.exportTei(file, mode, writeTextOnWordLevel, doBlackening, monitor, pageIndices, selectedTags);
+						storage.exportTei(file, pars, monitor);
 						monitor.done();
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
