@@ -1931,7 +1931,7 @@ public class Storage extends Observable {
 			if (!CoreUtils.isLocalFile(u))
 				throw new Exception("Not a local file: "+u);
 			
-			File imgFile = new File(u.getPath());
+			File imgFile = FileUtils.toFile(u);
 			
 			TrpPage newPage = conn.replacePageImage(getCurrentDocumentCollectionId(), getDocId(), p.getPageNr(), imgFile, null);
 			doc.getPages().set(pageIndex, newPage);
