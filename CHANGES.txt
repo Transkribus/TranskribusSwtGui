@@ -332,6 +332,8 @@ CHANGES AND BUGFIXES
 	-> Document Table: mouse over shows complete document info 
 	-> edit of virtual keyboard chars in gui saves back to virtualKeyboards.xml
 	-> tei tags for Person, Place and Organization changed to "persName", "placeName" and "orgName"
+	-> new tei tag "add" for addition
+	-> tei export option: tag lines via <l>...</l> or <lb/> tag
 	
 	
 	
