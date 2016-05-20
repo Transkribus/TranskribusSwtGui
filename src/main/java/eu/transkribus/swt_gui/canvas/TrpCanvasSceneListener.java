@@ -173,7 +173,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				((ITrpShapeType) e.getFirstShape().getData()).getPage().removeDeadLinks();
 				
 				//sort children: means create new reading order without the deleted shape
-				s.getParentShape().sortChildren(true);
+				if (s.getParentShape() != null)
+					s.getParentShape().sortChildren(true);
 			}
 			logger.debug("removed "+e.getFirstShape().getData() +" from JAXB");
 		

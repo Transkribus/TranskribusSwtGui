@@ -31,7 +31,8 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.builder.ExportUtils;
-import eu.transkribus.core.model.builder.tei.TeiExportMode;
+import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiExportMode;
+import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiLinebreakMode;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
@@ -67,7 +68,11 @@ public class CommonExportDialog extends Dialog {
 	Button zonePerLineRadio;
 	Button zonePerWordRadio;
 	
+	Button lineTagsRadio, lineBreaksRadio;
+	
 	TeiExportMode teiExportMode;
+	TeiLinebreakMode teiLinebreakMode;
+	
 	boolean docxExport, pdfExport, teiExport, altoExport, metsExport, pageExport, xlsxExport;
 	String fileNamePattern = "${filename}";
 	Button addExtraTextPagesBtn;
@@ -122,8 +127,10 @@ public class CommonExportDialog extends Dialog {
 		
 	    // Create the first Group
 	    Group group1 = new Group(choiceComposite, SWT.SHADOW_IN);
-	    group1.setText("Choose export formats?");
+	    group1.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+	    group1.setText("Choose export formats");
 	    group1.setLayout(new GridLayout(1, false));
+	    
 	    Button b0 = new Button(group1, SWT.CHECK);
 	    b0.setText("IMAGE, PAGE, METS");
 	    Button b1 = new Button(group1, SWT.CHECK); 
@@ -308,6 +315,8 @@ public class CommonExportDialog extends Dialog {
 		exportButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				updateTeiExportMode();
+				updateLineBreakMode();
+				
 				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isXlsxExport()){
 					DialogUtil.showInfoMessageBox(shell, "Missing export format", "Please choose an export format to continue");
 				}
@@ -574,23 +583,42 @@ public class CommonExportDialog extends Dialog {
 //		Label modeLabel = new Label(modeComposite, SWT.NONE);
 //		modeLabel.setText("TEI Mode: ");
 		
-		noZonesRadio = new Button(teiComposite, SWT.RADIO);
+		Group zonesGroup = new Group(teiComposite, 0);
+		zonesGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
+		zonesGroup.setLayout(new GridLayout(1, true));
+		zonesGroup.setText("Zones");
+		
+		noZonesRadio = new Button(zonesGroup, SWT.RADIO);
 		noZonesRadio.setText("No zones");
 		noZonesRadio.setToolTipText("Create no zones, just paragraphs");
 		
-		zonePerParRadio = new Button(teiComposite, SWT.RADIO);
+		zonePerParRadio = new Button(zonesGroup, SWT.RADIO);
 		zonePerParRadio.setText("Zone per region");
 		zonePerParRadio.setToolTipText("Create a zone element for each region");
 //		zonePerParRadio.setSelection(true);
 		
-		zonePerLineRadio = new Button(teiComposite, SWT.RADIO);
+		zonePerLineRadio = new Button(zonesGroup, SWT.RADIO);
 		zonePerLineRadio.setToolTipText("Create a zone element for each region and line");
 		zonePerLineRadio.setText("Zone per line");
 		zonePerLineRadio.setSelection(true);
 		
-		zonePerWordRadio = new Button(teiComposite, SWT.RADIO);
+		zonePerWordRadio = new Button(zonesGroup, SWT.RADIO);
 		zonePerWordRadio.setToolTipText("Create a zone element for each region, line and word");
 		zonePerWordRadio.setText("Zone per word");
+		
+		Group linebreakTypeGroup = new Group(teiComposite, 0);
+		linebreakTypeGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
+		linebreakTypeGroup.setLayout(new GridLayout(1, true));
+		linebreakTypeGroup.setText("Line breaks");
+		
+		lineTagsRadio = new Button(linebreakTypeGroup, SWT.RADIO);
+		lineTagsRadio.setToolTipText("Create a line tag (<l>...</l>) to tag a line");
+		lineTagsRadio.setText("Line tags (<l>...</l>)");
+		lineTagsRadio.setSelection(true);
+		
+		lineBreaksRadio = new Button(linebreakTypeGroup, SWT.RADIO);
+		lineBreaksRadio.setToolTipText("Create a line break (<lb/>) to tag a line");
+		lineBreaksRadio.setText("Line breaks (<lb/>");
 
 	    return teiComposite;
 	}
@@ -700,6 +728,19 @@ public class CommonExportDialog extends Dialog {
 		}
 	}
 	
+	private void updateLineBreakMode() {
+		teiLinebreakMode = TeiLinebreakMode.LINE_TAG;
+		
+		if (lineBreaksRadio.getSelection()) {
+			teiLinebreakMode = TeiLinebreakMode.LINE_BREAKS;
+		} else if (lineTagsRadio.getSelection()) {
+			teiLinebreakMode = TeiLinebreakMode.LINE_TAG;
+		} else {
+			logger.error("No TEI linebreak mode could be set - should never happen!");
+		}
+		
+	}
+	
 	private void updatePages() {
 //		startPage = startSpinner.getSelection();
 //		endPage = endSpinner.getSelection();
@@ -708,6 +749,10 @@ public class CommonExportDialog extends Dialog {
 	
 	public TeiExportMode getTeiExportMode(){
 		return teiExportMode;
+	}
+	
+	public TeiLinebreakMode getTeiLinebreakMode() {
+		return teiLinebreakMode;
 	}
 	
 	public boolean isWordBased() {

@@ -67,7 +67,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.builder.alto.AltoExporter;
 import eu.transkribus.core.model.builder.pdf.PdfExporter;
 import eu.transkribus.core.model.builder.tei.ATeiBuilder;
-import eu.transkribus.core.model.builder.tei.TeiExportMode;
+import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.Event;
@@ -1564,7 +1564,7 @@ public class Storage extends Observable {
 		return pdf.getAbsolutePath();
 	}
 
-	public String exportTei(File tei, TeiExportMode mode, boolean writeTextOnWordLevel, boolean doBlackening, IProgressMonitor monitor, Set<Integer> pageIndices, Set<String> selectedTags) throws IOException, Exception {
+	public String exportTei(File tei, TeiExportPars pars, IProgressMonitor monitor) throws IOException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
 		if (tei.isDirectory()) {
@@ -1575,10 +1575,14 @@ public class Storage extends Observable {
 		}
 
 		logger.debug("Trying to export TEI XML file to " + tei.getAbsolutePath());
+		
 //		TrpTeiDomBuilder builder = new TrpTeiDomBuilder(doc, mode, monitor, pageIndices);
-		ATeiBuilder builder = new TrpTeiStringBuilder(doc, mode, writeTextOnWordLevel, doBlackening, monitor, pageIndices, selectedTags);
+		ATeiBuilder builder = new TrpTeiStringBuilder(doc, pars, monitor);
 		builder.buildTei();
-		monitor.setTaskName("Writing TEI XML file");
+		
+		if (monitor != null)
+			monitor.setTaskName("Writing TEI XML file");
+		
 		builder.writeTeiXml(tei);
 
 		return tei.getAbsolutePath();
@@ -1946,7 +1950,7 @@ public class Storage extends Observable {
 			if (!CoreUtils.isLocalFile(u))
 				throw new Exception("Not a local file: "+u);
 			
-			File imgFile = new File(u.getPath());
+			File imgFile = FileUtils.toFile(u);
 			
 			TrpPage newPage = conn.replacePageImage(getCurrentDocumentCollectionId(), getDocId(), p.getPageNr(), imgFile, null);
 			doc.getPages().set(pageIndex, newPage);

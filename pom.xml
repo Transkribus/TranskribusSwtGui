@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>0.8.3.1-SNAPSHOT</version>
+	<version>0.8.3</version>
 	<!-- <version>0.4.6</version> -->
 	<name>Transkribus</name>
 
@@ -34,6 +34,14 @@
 <!-- 			<url>ftp://dea-gulliver.uibk.ac.at</url> -->
 <!-- 		</repository> -->
 <!-- 	</distributionManagement> -->
+
+	<distributionManagement>
+	    <site>
+			<id>website</id>
+			<name>transkribus.eu</name>
+			<url>scp://read01.uibk.ac.at/var/www/html/TranskribusSwtGui</url>
+		</site>
+	</distributionManagement>
 
 	<build>
 	    <finalName>${project.name}-${project.version}</finalName>
@@ -399,7 +407,16 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+					<show>private</show>
+					<nohelp>true</nohelp>
+				</configuration>
+			</plugin>	
 		</plugins>
 
 		<!-- M2E Lifecycle mapping bug workaround, see http://wiki.eclipse.org/M2E_plugin_execution_not_covered -->
@@ -457,11 +474,35 @@
 						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.5.1</version>
+					<dependencies>
+						<dependency><!-- add support for ssh/scp -->
+							<groupId>org.apache.maven.wagon</groupId>
+							<artifactId>wagon-ssh</artifactId>
+							<version>1.0</version>
+						</dependency>
+					</dependencies>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 
 	</build>
-
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<configuration>
+					<show>public</show>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
 	<dependencies>
 		<!-- TRP dependencies: -->
 		<!-- <dependency> <groupId>org.dea.transcript.trp</groupId> <artifactId>core</artifactId> 

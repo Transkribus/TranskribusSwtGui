@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLPropertiesConfiguration;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -35,7 +36,6 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 	
 	Set<SelectionListener> selListener = new HashSet<>();
 	XMLPropertiesConfiguration conf;
-	
 		
 	public TrpVirtualKeyboardsTabWidget(Composite parent, int style) {
 		super(parent, style);
@@ -65,7 +65,9 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 			
 			conf = new XMLPropertiesConfiguration();
 			conf.setEncoding("UTF-8");
-			conf.load(VK_XML);
+			conf.setFile(VK_XML);
+			conf.load();
+			conf.setAutoSave(true);
 			
 			List<UnicodeList> unicodeLists = loadVirtualKeyboardsXml(conf);
 			for (UnicodeList ul : unicodeLists) {
@@ -78,6 +80,34 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 		if (getItemCount()>0)
 			setSelection(0);
 		
+	}
+	
+	public void setConfProperrty(String name, String unicodeRange, boolean save) throws ConfigurationException {
+		if (conf.containsKey(name)) {
+			logger.debug("setting vk "+name+" values to: "+unicodeRange);
+			conf.setProperty(name, unicodeRange);
+			
+//			if (save)
+//				saveConf();
+		}
+	}
+
+	
+	public void saveConf() throws ConfigurationException {
+		conf.save();
+		logger.debug("saved "+conf.getPath());
+	}
+		
+	public void saveConfFromTabs() throws ConfigurationException {
+		for (CTabItem i : getItems()) {
+			if (!(i.getControl() instanceof VirtualKeyboard))
+				continue;
+				
+			VirtualKeyboard vk = (VirtualKeyboard) i.getControl();	
+			
+			setConfProperrty(vk.getVirtualKeyboardName(), vk.getUnicodeHexRange(), false);
+		}
+		saveConf();
 	}
 	
 	private static List<UnicodeList> loadVirtualKeyboardsXml(XMLPropertiesConfiguration conf)
