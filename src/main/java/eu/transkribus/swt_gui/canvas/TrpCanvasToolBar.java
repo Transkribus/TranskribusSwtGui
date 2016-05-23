@@ -31,6 +31,9 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	protected ToolItem addPrintspace;
 	protected DropDownToolItem addSpecialRegion;
 	protected DropDownToolItem optionsItem;
+	
+	protected ToolItem imgEnhanceItem;
+	
 	//
 	MenuItem rectangleModeItem;
 	MenuItem autoCreateParentItem;
@@ -87,6 +90,9 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		imageVersionItem.addItem("view", null, versText, true);
 		imageVersionItem.addItem("bin", null, versText, false);
 		imageVersionItem.selectItem(1, false);
+		
+		imgEnhanceItem = new ToolItem(this, SWT.PUSH, 0);
+		imgEnhanceItem.setImage(Images.CONTRAST);
 		
 		int i = indexOf(editingEnabledToolItem);
 		logger.debug("index = "+i);
@@ -222,6 +228,8 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 
 		SWTUtil.addToolItemSelectionListener(viewSettingsMenuItem, listener);
 		
+		SWTUtil.addToolItemSelectionListener(imgEnhanceItem, listener);
+		
 //		for (Class c : REGION_TYPES) {
 //			CanvasMode m = TrpCanvasAddMode.ADD_OTHERREGION;
 //			m.data = c;
@@ -282,6 +290,10 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	
 	public DropDownToolItem getImageVersionItem() {
 		return imageVersionItem;
+	}
+	
+	public ToolItem getImgEnhanceItem() { 
+		return imgEnhanceItem;
 	}
 
 	public MenuItem getRectangleModeItem() {
