@@ -195,7 +195,7 @@ public abstract class APreviewListViewer<T> extends Composite {
 		
 		this.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
-				SWTUtil.tryDelete(selectedImage);
+				SWTUtil.dispose(selectedImage);
 			}
 		});
 	}
@@ -216,7 +216,7 @@ public abstract class APreviewListViewer<T> extends Composite {
 		
 		T selected = getFirstSelected();
 		logger.debug("reloading image for element: "+selected);
-		SWTUtil.tryDelete(selectedImage);
+		SWTUtil.dispose(selectedImage);
 		selectedImage = null;
 		if (selected == null) {
 			//if no page is selected in GUI show the first page on canvas

@@ -96,19 +96,26 @@ public abstract class ProgramUpdater<T extends ProgramPackageFile> {
 		T lastFile = versions.get(versions.size()-1);
 		String lastVersion = vt.getLeft();
 		Date remoteTimestamp = vt.getRight();
+		Pair<T, Date> newV = Pair.of(lastFile, remoteTimestamp);
+		
+		logger.debug("check for updates, currentVersion = "+currentVersion+" lastVersion = "+lastVersion);
 		
 		// check if this is a snapshot version and the latest (release) version on the server equals the snapshot version:
 		if (currentVersion.endsWith(ProgramPackageFile.SNAPSHOT_SUFFIX)) {
-			if (currentVersion.replaceFirst(ProgramPackageFile.SNAPSHOT_SUFFIX, "").equals(lastVersion)) {
-				return Pair.of(lastFile, remoteTimestamp);
-			}
+			currentVersion = currentVersion.replaceFirst(ProgramPackageFile.SNAPSHOT_SUFFIX, "");
+			if (currentVersion.startsWith(lastVersion)) // if this is a snapshot version of the latest version
+				return newV;
+			
+//			if (currentVersion.replaceFirst(ProgramPackageFile.SNAPSHOT_SUFFIX, "").equals(lastVersion)) {
+//				return Pair.of(lastFile, remoteTimestamp);
+//			}
 		}
 
 		if (noc.compare(currentVersion, lastVersion) < 0) { // version smaller -> get newest
-			return Pair.of(lastFile, remoteTimestamp);
+			return newV;
 		} else if (noc.compare(currentVersion, lastVersion) == 0) { // version equal -> check timestamp
 			if (vt.getRight() != null && localTimestamp.compareTo(remoteTimestamp)<0) {
-				return Pair.of(lastFile, remoteTimestamp);
+				return newV;
 			} else
 				return null;
 		}
@@ -167,10 +174,13 @@ public abstract class ProgramUpdater<T extends ProgramPackageFile> {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Map<String, String> libs = getLibs(true);
-		System.out.println("got libs = "+libs.size()+ ", str sizie = "+getLibsSize(libs));
-		reduceLibsSize(libs);
-		System.out.println("reduced libs = "+libs.size()+ ", str sizie = "+getLibsSize(libs));
+		System.out.println(noc.compare("0.8.3", "0.8.3"));
+//		System.out.println(noc.compare("0.8.3.1", "0.8.3"));
+		
+//		Map<String, String> libs = getLibs(true);
+//		System.out.println("got libs = "+libs.size()+ ", str sizie = "+getLibsSize(libs));
+//		reduceLibsSize(libs);
+//		System.out.println("reduced libs = "+libs.size()+ ", str sizie = "+getLibsSize(libs));
 	}
 
 }
