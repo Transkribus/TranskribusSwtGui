@@ -586,6 +586,16 @@ public class PortalWidget extends Composite {
 	public IObservableMap getDockingMap() {
 		return dockingMap;
 	}
+
+	public void setNewSashFormVerticalTopLevelWeights(int [] weights) {
+		if (weights != null){
+			sashFormVerticalTopLevel.setWeights(weights);
+		}
+		else{
+			sashFormHorizontalTopLevel.setWeights(DEFAULT_WEIGHTS_VERTICAL_TOP_LEVEL);
+		}
+		
+	}
 	
 //	public Shell getShell(Position pos) {
 //		return shells.get(pos);

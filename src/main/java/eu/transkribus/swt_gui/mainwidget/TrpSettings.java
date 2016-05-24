@@ -213,8 +213,21 @@ public class TrpSettings extends APropertyChangeSupport {
 	public Docking bottomViewDockingState = Docking.DOCKED;
 	public static final String BOTTOM_VIEW_DOCKING_STATE_PROPERTY = "bottomViewDockingState";
 	
+	public int[] newWeightsForVerticalTopLevelSlash = new int [] {80, 20};
+	public static final String NEW_WEIGHTS_FOR_VERTICAL_TOP_LEVEL = "newWeightsForVerticalTopLevelSlash";
+	
 	public String cattiServerUrl = TrpCattiClientEndpoint.DEFAULT_CATTI_URI;
 	public static final String CATTI_SERVER_URL_PROPERTY = "cattiServerUrl";
+	
+	public int leftTabSelectionId = 0;
+	public static final String LEFT_TAB_SELECTION_ID = "leftTabSelectionId";
+	
+	public int rightTabSelectionId = 0;
+	public static final String RIGHT_TAB_SELECTION_ID = "rightTabSelectionId";
+	
+	public String imgFitTo = "width";
+	public static final String IMG_FIT_TO = "imgFitTo";
+			
 	
 	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
@@ -250,7 +263,7 @@ public class TrpSettings extends APropertyChangeSupport {
 						|| pn.equals(TrpSettings.SHOW_LINES_PROPERTY) || pn.equals(TrpSettings.SHOW_BASELINES_PROPERTY) 
 						|| pn.equals(TrpSettings.SHOW_WORDS_PROPERTY));
 	}
-
+	
 
 	public boolean isShowAll() {
 		return (showPrintSpace && showTextRegions && showLines && showBaselines && showWords);
@@ -855,6 +868,8 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setLeftViewDockingState(Docking leftViewDockingState) {
 		Docking old = this.leftViewDockingState;
 		this.leftViewDockingState = leftViewDockingState;
+		logger.debug("set left docking state");
+		
 		firePropertyChange(LEFT_VIEW_DOCKING_STATE_PROPERTY, old, this.leftViewDockingState);
 	}
 
@@ -876,6 +891,47 @@ public class TrpSettings extends APropertyChangeSupport {
 		Docking old = this.bottomViewDockingState;
 		this.bottomViewDockingState = bottomViewDockingState;
 		firePropertyChange(BOTTOM_VIEW_DOCKING_STATE_PROPERTY, old, this.bottomViewDockingState);
+	}
+	
+	public int[] getNewWeightsForVerticalTopLevelSlash() {
+		return newWeightsForVerticalTopLevelSlash;
+	}
+	
+	public void setNewWeightsForVerticalTopLevelSlash(int [] weights) {		
+		int [] old = this.newWeightsForVerticalTopLevelSlash;
+		this.newWeightsForVerticalTopLevelSlash = weights;
+		firePropertyChange(NEW_WEIGHTS_FOR_VERTICAL_TOP_LEVEL, old, this.newWeightsForVerticalTopLevelSlash);
+	}
+
+	public int getLeftTabSelectionId() {
+		return leftTabSelectionId;
+	}
+
+	public void setLeftTabSelectionId(int leftTabSelectionId) {
+		logger.debug("set left tab selection id");
+		int old = this.leftTabSelectionId;
+		this.leftTabSelectionId = leftTabSelectionId;
+		firePropertyChange(LEFT_TAB_SELECTION_ID, old, this.leftTabSelectionId);
+	}
+
+	public int getRightTabSelectionId() {
+		return rightTabSelectionId;
+	}
+
+	public void setRightTabSelectionId(int rightTabSelectionId) {
+		int old = this.rightTabSelectionId;
+		this.rightTabSelectionId = rightTabSelectionId;
+		firePropertyChange(RIGHT_TAB_SELECTION_ID, old, this.rightTabSelectionId);
+	}
+
+	public String getImgFitTo() {
+		return imgFitTo;
+	}
+
+	public void setImgFitTo(String imgFitTo) {
+		String oldValue = this.imgFitTo;
+		this.imgFitTo = imgFitTo;
+		firePropertyChange(IMG_FIT_TO, oldValue, this.imgFitTo);
 	}
 	
 	
