@@ -337,6 +337,8 @@ CHANGES AND BUGFIXES
 
 0.8.4:
 	-> gamma correction
+	-> tif bug on windows fix
+	-> Transcription and Segmentation profiles added
 	
 	
 	
