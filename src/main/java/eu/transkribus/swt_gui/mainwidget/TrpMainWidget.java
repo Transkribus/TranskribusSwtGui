@@ -1653,12 +1653,14 @@ public class TrpMainWidget {
 		try {
 			storage.loadLocalDoc(folder);
 
-			CreateThumbsThread ctt = new CreateThumbsThread(storage.getDoc()) {
-				@Override protected void onFinished() {
-					updateThumbs();
-				}
-			};
-			ctt.start();
+			if (getTrpSets().isCreateThumbs()) {
+				CreateThumbsThread ctt = new CreateThumbsThread(storage.getDoc()) {
+					@Override protected void onFinished() {
+						updateThumbs();
+					}
+				};
+				ctt.start();
+			}
 
 			storage.setCurrentPage(pageIndex);
 			reloadCurrentPage(true);
@@ -3108,7 +3110,7 @@ public class TrpMainWidget {
 				return;
 
 			TrpDoc localDoc = LocalDocReader.load(fn);
-			// create thumbs for this doc:
+			// create thumbs for this doc:			
 			CreateThumbsThread ctt = new CreateThumbsThread(localDoc) {
 				@Override protected void onFinished() {
 					updateThumbs();

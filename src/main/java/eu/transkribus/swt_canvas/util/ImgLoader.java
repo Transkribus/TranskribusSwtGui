@@ -38,7 +38,7 @@ public class ImgLoader {
 		String prot = url.getProtocol() == null ? "" : url.getProtocol();
 		boolean isLocal = prot.startsWith("file");
 
-		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST && !(isLocal && SysUtils.isWin())) {
+		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST /*&& !(isLocal && SysUtils.isWin())*/) {
 			try {
 				logger.debug("loading image with jface");
 				return loadWithSWTDownloadFirst(url);
