@@ -334,6 +334,9 @@ CHANGES AND BUGFIXES
 	-> tei tags for Person, Place and Organization changed to "persName", "placeName" and "orgName"
 	-> new tei tag "add" for addition
 	-> tei export option: tag lines via <l>...</l> or <lb/> tag
+
+0.8.4:
+	-> gamma correction
 	
 	
 	

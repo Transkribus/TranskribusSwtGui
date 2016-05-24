@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasImage;
 import eu.transkribus.swt_canvas.canvas.CanvasWidget;
 
@@ -31,10 +32,15 @@ public class ImgLoader {
 	static Image ERROR_IMG = Images.getOrLoad("/icons/broken_image.png");
 	
 	public static boolean TRY_LOAD_IMAGES_WITH_JFACE_FIRST = true;
+	public static boolean LOAD_LOCAL_IMAGES_WITH_JFACE_ON_WINDOWS = true;
 	
 	public static Image load(URL url) throws IOException {
-		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST) {
+		String prot = url.getProtocol() == null ? "" : url.getProtocol();
+		boolean isLocal = prot.startsWith("file");
+
+		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST && !(isLocal && SysUtils.isWin())) {
 			try {
+				logger.debug("loading image with jface");
 				return loadWithSWTDownloadFirst(url);
 			} catch (Exception e) {
 				logger.warn("Error loading image using JFace - now trying to load using JAI (will be slower due to the awt->swt-image conversion process!, url: "+url);

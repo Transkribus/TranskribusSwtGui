@@ -68,7 +68,7 @@ public class ImageEnhanceDialog extends Dialog {
 	
 	@Override protected void configureShell(Shell shell) {
 	      super.configureShell(shell);
-	      shell.setText("Image enhancement");
+	      shell.setText("Image modification");
 	}
 	
 	@Override protected boolean isResizable() {
