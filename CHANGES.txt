@@ -340,7 +340,7 @@ CHANGES AND BUGFIXES
 	-> tif bug on windows fix
 	-> Transcription and Segmentation profiles added
 	-> createThumbs for local docs flag (configure via Menu -> File -> Create thumbs when opening local folder)
-	 
+	
 	
 	
 	

@@ -65,6 +65,7 @@ public class CreateThumbsService {
 	}
 	
 	public static void createThumbs(TrpDoc doc, boolean overwrite, final Runnable onFinished) {
+		logger.info("CREATING THUMBS!");
 		ex.execute(new CreateThumbsRunnable(doc, overwrite) {
 			protected void onFinished() {
 				Display.getDefault().asyncExec(onFinished);

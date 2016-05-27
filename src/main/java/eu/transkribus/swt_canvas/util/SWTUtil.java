@@ -7,6 +7,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBufferByte;
 import java.awt.image.DirectColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
@@ -810,6 +811,22 @@ public class SWTUtil {
 		}
 	}
 	
+	public static ImageData convertToSWT2(BufferedImage bufferedImage) throws IOException {
+//		/2) awt.BufferedImage -> raw Data
+		java.awt.image.WritableRaster awtRaster = bufferedImage.getRaster();
+		java.awt.image.DataBufferByte awtData = (DataBufferByte) awtRaster.getDataBuffer();
+		byte[] rawData = awtData.getData();
+
+		//3) raw Data -> swt.ImageData
+		org.eclipse.swt.graphics.PaletteData swtPalette = new PaletteData(0xff, 0xff00, 0xff0000);
+
+		int depth = 0x18;
+		org.eclipse.swt.graphics.ImageData swtImageData = new ImageData(bufferedImage.getWidth(), bufferedImage.getHeight(), 
+				depth, swtPalette, bufferedImage.getWidth(), rawData);
+		
+		return swtImageData;
+//		return new Image(Display.getDefault(), swtImageData);		
+	}
 	
 	
 	/**

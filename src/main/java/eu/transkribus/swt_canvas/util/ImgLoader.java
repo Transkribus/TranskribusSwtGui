@@ -32,21 +32,22 @@ public class ImgLoader {
 	static Image ERROR_IMG = Images.getOrLoad("/icons/broken_image.png");
 	
 	public static boolean TRY_LOAD_IMAGES_WITH_JFACE_FIRST = true;
-	public static boolean LOAD_LOCAL_IMAGES_WITH_JFACE_ON_WINDOWS = true;
+	public static boolean LOAD_LOCAL_IMAGES_WITH_JAI = true;
 	
 	public static Image load(URL url) throws IOException {
 		String prot = url.getProtocol() == null ? "" : url.getProtocol();
 		boolean isLocal = prot.startsWith("file");
 
-		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST && !(isLocal && SysUtils.isWin())) {
+		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST && !(isLocal && LOAD_LOCAL_IMAGES_WITH_JAI)) {
 			try {
-				logger.trace("loading image with jface");
+				logger.debug("loading image with jface");
 				return loadWithSWTDownloadFirst(url);
 			} catch (Exception e) {
 				logger.warn("Error loading image with JFace - now trying to load with JAI (slower due to the awt->swt-image conversion process!, url: "+url);
 				return loadWithJAI(url);
 			}
 		} else {
+			logger.debug("loading image with jai");
 			return loadWithJAI(url);
 		}
 	}
@@ -76,9 +77,15 @@ public class ImgLoader {
 	}
 	
 	public static Image loadWithJAI(URL url) throws IOException {
-		BufferedImage buffImg = ImageIO.read(url);
+//		SebisStopWatch.SW.start();
+//		ImageIO.setUseCache(false);
 
+		BufferedImage buffImg = ImageIO.read(url);
+//		SebisStopWatch.SW.stop(true, "loading with jai: ", logger);
+
+//		SebisStopWatch.SW.start();
 		ImageData swtImg = SWTUtil.convertToSWT(buffImg);
+//		SebisStopWatch.SW.stop(true, "converting awt->swt: ", logger);
 		return new Image(Display.getDefault(), swtImg);
 	}
 	
@@ -95,6 +102,7 @@ public class ImgLoader {
 	}
 	
 	public static Image loadWithSWTDownloadFirst(URL url) throws IOException {
+		
 		try (InputStream is = url.openStream()) {
 			try {
 				String prot = url.getProtocol() == null ? "" : url.getProtocol();
@@ -109,6 +117,7 @@ public class ImgLoader {
 					Image img = new Image(Display.getDefault(), tempFile.getAbsolutePath());
 					if (!tempFile.delete())
 						logger.warn("temp image file could not be deleted: "+tempFile.getAbsolutePath());
+
 					return img;
 				} else {
 					logger.debug("this is a local image: "+url.getFile());					
@@ -131,14 +140,14 @@ public class ImgLoader {
 //		String path = "file:///home/sebastianc/Downloads/wp54808274x-00044-uncompressed.tif";
 //		String path = "https://dbis-thure.uibk.ac.at/f/Get?id=DPHHOZDONDISGPLGBQFCYZCH";
 //		String path = "https://dbis-thure.uibk.ac.at/fimagestoreTrp/Get?id=EGRAXVKOJJNRSIKNPOWENBYV";
-		String path = "https://dbis-thure.uibk.ac.at/f/Get?id=ZFGXEWUAHRBYUKIAYZPVKACO";
+//		String path = "https://dbis-thure.uibk.ac.at/f/Get?id=ZFGXEWUAHRBYUKIAYZPVKACO";
+		String path = "file:///home/sebastianc/Transkribus_TestDoc/035_323_001.jpg";
 //		String path = "file:///home/sebastianc/Downloads/av_1930_61_0031.TIF";
 //		String path = "file:///home/sebastianc/Bilder/watch_you_step_jpeg2000.jp2";
 //		String path = "https://dbis-thure.uibk.ac.at/fimagestoreTrp/Get?id=UHLQLLVFELOQECBZJCRTRVDO";
 //		String path = "https://dbis-thure.uibk.ac.at/fimagestoreTrp/Get?id=UHLQLLVFELOQECBZJCRTRVDO";
 		
 		final URL url = new URL(path);
-		final CanvasImage img = new CanvasImage(url);
 		
 //		ImageData imDat = img.img.getImageData();
 //		for (int i=0; i<img.width; ++i) {
@@ -148,24 +157,27 @@ public class ImgLoader {
 //			}
 //		}
 		
-		sw.start();
-		loadWithSWT(url);
-		sw.stop(true);
-//		
-		sw.start();
-		loadWithJFace(url);
-		sw.stop(true);
+//		sw.start();
+//		loadWithSWT(url);
+//		sw.stop(true);
+	
+//		sw.start();
+//		loadWithJFace(url);
+//		sw.stop(true);
 		
 		sw.start();
 		loadWithSWTDownloadFirst(url);
 		sw.stop(true);
 		
 		sw.start();
-		loadWithJAI(url);
+		for (int i=0; i<10; ++i)
+			loadWithJAI(url);
 		sw.stop(true);
 		
 		if (true)
 			return;
+		
+		final CanvasImage img = new CanvasImage(url);
 		
 		// run the event loop as long as the window is open
 		final Display display = Display.getCurrent();
