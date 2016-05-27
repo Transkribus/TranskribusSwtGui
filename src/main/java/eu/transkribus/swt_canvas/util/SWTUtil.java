@@ -357,6 +357,61 @@ public class SWTUtil {
 		
 		return v;
 	}
+	
+	/**
+	 * Creates a thumbnail image for the given TrpPage p. <br/>
+	 * If img != null, this image is used for the thumbnail generation and not loaded again.<br/>
+	 * If overwrite == true, an existing thumbnail image is overwritten, elsewise not.
+	 */
+	public static boolean createThumbForPage(TrpPage p, Image img, boolean overwrite) throws IOException {
+		File imgFile = FileUtils.toFile(p.getUrl());
+		if (imgFile == null) 
+			throw new IOException("Cannot retrieve image url from: "+p.getUrl());
+		
+		File thumbsFile = FileUtils.toFile(p.getThumbUrl());
+		if (thumbsFile == null)
+			throw new IOException("Cannot retrieve thumbs url from: "+p.getThumbUrl());
+		
+		if (thumbsFile.exists() && !overwrite) // skip if already there and overwrite not specified 
+			return false;
+		
+		logger.debug("creating thumb file: "+thumbsFile);
+		long st = System.currentTimeMillis();
+		
+		if (img != null) {
+			createThumbnail(img.getImageData(), thumbsFile, -1, LocalDocConst.THUMB_SIZE_HEIGHT);
+		} else {
+			createThumbnailFileOverSWTSecure(imgFile, thumbsFile, -1, LocalDocConst.THUMB_SIZE_HEIGHT);	
+		}
+		
+		
+		
+		if (false) {
+			int newHeight = LocalDocConst.THUMB_SIZE_HEIGHT;
+			BufferedImage originalImage = ImgUtils.readImage(imgFile);
+			if (originalImage==null)
+				throw new IOException("Cannot load image "+imgFile.getAbsolutePath());
+			
+			double sf = (double)newHeight / (double)originalImage.getHeight();
+			int newWidth = (int)(sf * originalImage.getWidth());
+	
+			BufferedImage thmbImg = new BufferedImage(newWidth, newHeight, originalImage.getType());
+			Graphics2D g = thmbImg.createGraphics();
+			RenderingHints rh = new RenderingHints(
+		             RenderingHints.KEY_INTERPOLATION,
+		             RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g.setRenderingHints(rh);
+			g.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+			g.dispose();
+	//			logger.debug("thmbImg: "+originalImage+ " size: "+thmbImg.getWidth()+"x"+thmbImg.getHeight());
+			
+			if (!ImageIO.write(thmbImg, FilenameUtils.getExtension(thumbsFile.getName()), thumbsFile))
+				throw new IOException("Could not write thumb file - no appropriate writer found!");
+		}
+		
+	    logger.debug("created thumb file: "+thumbsFile.getAbsolutePath()+" time = "+(System.currentTimeMillis()-st));
+	    return true;
+	}
 			
 	public static void createThumbsForDoc(TrpDoc doc, boolean overwrite) throws Exception {
 		if (doc.getMd()==null || doc.getMd().getLocalFolder()==null)
@@ -367,49 +422,13 @@ public class SWTUtil {
 		File thmbsDir = new File(doc.getMd().getLocalFolder().getAbsolutePath() + File.separator + LocalDocConst.THUMBS_FILE_SUB_FOLDER);
 		FileUtils.forceMkdir(thmbsDir);
 		
-		int newHeight = LocalDocConst.THUMB_SIZE_HEIGHT;
 		for (TrpPage p : doc.getPages()) {
-			File imgFile = FileUtils.toFile(p.getUrl());
-			if (imgFile == null) 
-				throw new IOException("Cannot retrieve image url from: "+p.getUrl());
-			
-			File thumbsFile = FileUtils.toFile(p.getThumbUrl());
-			if (thumbsFile == null)
-				throw new IOException("Cannot retrieve thumbs url from: "+p.getThumbUrl());
-			
-			if (thumbsFile.exists() && !overwrite) // skip if already there and overwrite not specified 
-				continue;
-			
-			logger.debug("creating thumb file: "+thumbsFile);
-			long st = System.currentTimeMillis();
-			
-			if (true)  {
-				SWTUtil.createThumbnailFileOverSWTSecure(imgFile, thumbsFile, -1, LocalDocConst.THUMB_SIZE_HEIGHT);
+			if (Thread.currentThread().isInterrupted()) {
+				logger.info("interrupted - stopping thumbs creation for doc");
+				return;
 			}
 			
-			if (false) {
-			BufferedImage originalImage = ImgUtils.readImage(imgFile);
-			if (originalImage==null)
-				throw new IOException("Cannot load image "+imgFile.getAbsolutePath());
-			
-			double sf = (double)newHeight / (double)originalImage.getHeight();
-			int newWidth = (int)(sf * originalImage.getWidth());
-
-			BufferedImage thmbImg = new BufferedImage(newWidth, newHeight, originalImage.getType());
-			Graphics2D g = thmbImg.createGraphics();
-			RenderingHints rh = new RenderingHints(
-		             RenderingHints.KEY_INTERPOLATION,
-		             RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-			g.setRenderingHints(rh);
-			g.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
-			g.dispose();
-//				logger.debug("thmbImg: "+originalImage+ " size: "+thmbImg.getWidth()+"x"+thmbImg.getHeight());
-			
-			if (!ImageIO.write(thmbImg, FilenameUtils.getExtension(thumbsFile.getName()), thumbsFile))
-				throw new Exception("Could not write thumb file - no appropriate writer found!");
-			}
-			
-		    logger.debug("created thumb file: "+thumbsFile.getAbsolutePath()+" time = "+(System.currentTimeMillis()-st));
+			createThumbForPage(p, null, overwrite);
 		}
 	}
 	
@@ -468,54 +487,40 @@ public class SWTUtil {
 	}
 	
 	public static boolean createThumbnailFileOverSWTSecure(File origImg, File thumb, int width, int height) throws IOException {
-		boolean result = false;
-
-		ImageLoader imgLoader = new ImageLoader();
-
 		Image img = new Image(Display.getCurrent(), origImg.getAbsolutePath());
-		ImageData imgData = img.getImageData();
-
-		if (imgData != null) {
-			ImageData actImage = imgData;
-			
-			actImage = scaleImageData(actImage, width, height);
-
-			imgLoader.data = new ImageData[] { actImage };
-			imgLoader.save(thumb.getAbsolutePath(), SWT.IMAGE_PNG);
-			result = true;
-
-		} else {
-			logger.warn("Unable to load " + origImg.getAbsolutePath());
+		
+		try {	
+			if (img.getImageData() != null) {				
+				createThumbnail(img.getImageData(), thumb, width, height);
+				return true;
+			} else {
+				logger.warn("Unable to load " + origImg.getAbsolutePath());
+				return false;
+			}
+		} finally {
+			img.dispose();
 		}
-
-		img.dispose();
-		return result;
 
 	}
 
 	public static boolean createThumbnailFileOverSWTFast(File origImg, File thumb, int width, int height) throws IOException {
-
-		boolean result = false;
-
 		ImageLoader imgLoader = new ImageLoader();
-
 		ImageData[] imgData = imgLoader.load(origImg.getAbsolutePath());
 
 		if (imgData.length > 0) {
-			ImageData actImage = imgData[0];
-
-			actImage = scaleImageData(actImage, width, height);
-
-			imgLoader.data = new ImageData[] { actImage };
-			imgLoader.save(thumb.getAbsolutePath(), SWT.IMAGE_PNG);
-			result = true;
-
+			createThumbnail(imgData[0], thumb, width, height);
+			return true;
 		} else {
 			logger.info("Unable to load " + origImg.getAbsolutePath());
+			return false;
 		}
-
-		return result;
-
+	}
+	
+	public static void createThumbnail(ImageData imageData, File thumb, int width, int height) throws IOException {
+		ImageLoader imgLoader = new ImageLoader();
+		ImageData scaledImageData = scaleImageData(imageData, width, height);
+		imgLoader.data = new ImageData[] { scaledImageData };
+		imgLoader.save(thumb.getAbsolutePath(), SWT.IMAGE_PNG);		
 	}
 	
 	public static List<Control> getAllChildren(Control ctrl) {

@@ -1,32 +1,19 @@
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mkobos.pca_transform.PCA;
+import com.mkobos.pca_transform.PCA.TransformationType;
+
+import Jama.Matrix;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocWriter;
@@ -39,14 +26,35 @@ import eu.transkribus.core.model.beans.pagecontent.ReadingOrderType;
 import eu.transkribus.core.model.beans.pagecontent.RegionRefIndexedType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt_gui.TrpGui;
-import eu.transkribus.swt_gui.util.ProgramUpdater;
 import eu.transkribus.util.DesktopApi;
-
 
 
 public class TestSth {
 	private final static Logger logger = LoggerFactory.getLogger(TestSth.class);
+	
+	public static void testPCABaselineCorrection() {
+		Matrix trainingData = new Matrix(new double[][] {
+//            {1, 2, 3, 4, 5, 6},
+//            {6, 5, 4, 3, 2, 1},
+//            {2, 2, 2, 2, 2, 2}}
+		
+        {4, 2},
+        {2, 4}
+//        {2, 2, 2, 2, 2, 2}		
+		});
+		
+		PCA pca = new PCA(trainingData);
+		
+		Matrix tm = pca.transform(trainingData, TransformationType.WHITENING);
+		
+		pca.getEigenvectorsMatrix().print(2, 2);
+		tm.print(2, 2);
+		
+		
+//		pca.transform(data, TransformationType.WHITENING);
+		
+		
+	}
 	
 	public static void testDownloadClientFileNew(String un, String pw) throws Exception {
 		TrpServerConn conn = new TrpServerConn(TrpServerConn.TEST_SERVER_URI);
@@ -235,10 +243,11 @@ public class TestSth {
 			
 	public static void main(String [] args) {
 		try {
+			testPCABaselineCorrection();
 			
 //			System.setProperty("java.library.path", "whatever");
 			
-			System.out.println(System.getProperty("java.library.path"));
+//			System.out.println(System.getProperty("java.library.path"));
 			
 //			testStrRegexStuff();
 //			testDownloadClientFile();

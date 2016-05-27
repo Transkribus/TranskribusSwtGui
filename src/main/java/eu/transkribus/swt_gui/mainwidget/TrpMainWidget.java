@@ -89,13 +89,12 @@ import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
-import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
-import eu.transkribus.swt_canvas.util.CreateThumbsThread;
+import eu.transkribus.swt_canvas.util.CreateThumbsService;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LoginDialog;
@@ -207,6 +206,12 @@ public class TrpMainWidget {
 	
 	DebuggerDialog debugDiag;
 	public static DocMetadataEditor docMetadataEditor;
+	
+	private Runnable updateThumbsRunnable = new Runnable() {
+		@Override public void run() {
+			ui.thumbnailWidget.reload();
+		}
+	};
 	
 	private TrpMainWidget(Composite parent) {
 		// GlobalResourceManager.init();
@@ -561,6 +566,9 @@ public class TrpMainWidget {
 					event.doit = false;
 					return;
 				}
+				
+				logger.debug("stopping CreateThumbsService");
+				CreateThumbsService.stop(true);
 				
 				System.exit(0);
 //				storage.finalize();
@@ -1309,6 +1317,7 @@ public class TrpMainWidget {
 			return false;
 
 		try {
+			logger.info("loading page: "+storage.getPage());
 			clearCurrentPage();
 
 			final int colId = storage.getCurrentDocumentCollectionId();
@@ -1351,21 +1360,18 @@ public class TrpMainWidget {
 			updatePageInfo();
 		}
 	}
+	
+	public void createThumbForCurrentPage() {
+		// generate thumb for loaded page if local doc:
+		if (storage.isLocalDoc() && storage.getPage() != null && storage.getCurrentImage() != null) {
+			CreateThumbsService.createThumbs(storage.getPage(), storage.getCurrentImage().img, false, updateThumbsRunnable);
+		}
+	}
 
 	public void updateThumbs() {
-		SebisStopWatch sw = new SebisStopWatch("updateThumbs");
-		sw.start();
-		logger.debug("updating thumbs");
-		// if (!storage.isDocLoaded())
-		// return;
-
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override public void run() {
-				ui.thumbnailWidget.reload();
-			}
-		});
-		sw.stop(false);
-		logger.debug("finished updating thumbs");
+		logger.trace("updating thumbs");
+		
+		Display.getDefault().asyncExec(updateThumbsRunnable); // asyncExec needed??
 
 		// try {
 		// ui.thumbnailWidget.setUrls(storage.getDoc().getThumbUrls(),
@@ -1373,7 +1379,6 @@ public class TrpMainWidget {
 		// } catch (Exception e) {
 		// onError("Error loading thumbnails", e.getMessage(), e);
 		// }
-
 	}
 
 	private void clearCurrentPage() {
@@ -1408,10 +1413,10 @@ public class TrpMainWidget {
 		}
 
 		// LOAD STRUCT ELEMENTS FROM TRANSCRIPTS
-		try {
+		try {			
 			// save transcript if edited:
 			// clearTranscriptFromView();
-			logger.debug("reloading transcript: " + storage.getTranscript().getMd() + " tryLocalReload: " + tryLocalReload);
+			logger.info("loading transcript: " + storage.getTranscript().getMd() + " tryLocalReload: " + tryLocalReload);
 			canvas.getScene().selectObject(null, true, false); // security
 																// measure due
 																// to mysterious
@@ -1654,12 +1659,7 @@ public class TrpMainWidget {
 			storage.loadLocalDoc(folder);
 
 			if (getTrpSets().isCreateThumbs()) {
-				CreateThumbsThread ctt = new CreateThumbsThread(storage.getDoc()) {
-					@Override protected void onFinished() {
-						updateThumbs();
-					}
-				};
-				ctt.start();
+				CreateThumbsService.createThumbs(storage.getDoc(), false, updateThumbsRunnable);
 			}
 
 			storage.setCurrentPage(pageIndex);
@@ -3111,12 +3111,7 @@ public class TrpMainWidget {
 
 			TrpDoc localDoc = LocalDocReader.load(fn);
 			// create thumbs for this doc:			
-			CreateThumbsThread ctt = new CreateThumbsThread(localDoc) {
-				@Override protected void onFinished() {
-					updateThumbs();
-				}
-			};
-			ctt.start();
+			CreateThumbsService.createThumbs(localDoc, false, updateThumbsRunnable);
 
 			final DocSyncDialog d = new DocSyncDialog(getShell(), storage.getDoc(), localDoc);
 			if (d.open() != Dialog.OK) {

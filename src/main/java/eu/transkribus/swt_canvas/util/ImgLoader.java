@@ -38,12 +38,12 @@ public class ImgLoader {
 		String prot = url.getProtocol() == null ? "" : url.getProtocol();
 		boolean isLocal = prot.startsWith("file");
 
-		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST /*&& !(isLocal && SysUtils.isWin())*/) {
+		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST && !(isLocal && SysUtils.isWin())) {
 			try {
-				logger.debug("loading image with jface");
+				logger.trace("loading image with jface");
 				return loadWithSWTDownloadFirst(url);
 			} catch (Exception e) {
-				logger.warn("Error loading image using JFace - now trying to load using JAI (will be slower due to the awt->swt-image conversion process!, url: "+url);
+				logger.warn("Error loading image with JFace - now trying to load with JAI (slower due to the awt->swt-image conversion process!, url: "+url);
 				return loadWithJAI(url);
 			}
 		} else {
