@@ -118,7 +118,7 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 			});
 		}
 				
-		collectionCombo = new Combo(this, SWT.READ_ONLY);
+		collectionCombo = new Combo(this, SWT.READ_ONLY | SWT.DROP_DOWN);
 		collectionCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		collectionComboViewer = new ComboViewer(collectionCombo);
 				

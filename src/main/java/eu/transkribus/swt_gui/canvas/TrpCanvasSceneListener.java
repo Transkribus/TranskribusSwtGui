@@ -405,9 +405,21 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			ICanvasShape origShape = e.op.getFirstShape();
 			ITrpShapeType origShapeData = (ITrpShapeType) origShape.getData();
 			
+			Integer oldReadingOrder = -1;
+			if (origShapeData != null){
+				oldReadingOrder = origShapeData.getReadingOrder();
+			}
+			
+			
 			int indexOfOrigShape = -1;
 			if (origShapeData.getParentShape() != null)
 				indexOfOrigShape = origShapeData.getParentShape().getChildren(false).indexOf(origShapeData);
+			
+			
+			//for region types: otherwise the splitted elements got inserted at the end of the regions becuase they have not parent shape
+			if (indexOfOrigShape == -1 && oldReadingOrder != null){
+				indexOfOrigShape = oldReadingOrder;
+			}
 			
 			ICanvasShape s1 = e.op.getNewShapes().get(0);
 			ICanvasShape s2 = e.op.getNewShapes().get(1);
@@ -421,7 +433,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			
 			logger.debug("splitting - parents: "+s1.getParent()+"/"+s2.getParent());
 			
-			// add new elements to JAXB (first second, then first to ensure wright order):
+			logger.debug("INDEX OF ORIG SHAPE: "+ indexOfOrigShape);
+			
+			// add new elements to JAXB (first second, then first to ensure right order):
 			ITrpShapeType el2 = mainWidget.getShapeFactory().copyJAXBElementFromShapeAndData(s2, indexOfOrigShape);
 			s2.setData(el2);
 			
