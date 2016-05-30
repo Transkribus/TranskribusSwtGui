@@ -781,6 +781,14 @@
 			<artifactId>org.eclipse.core.commands</artifactId>
 			<version>3.6.0.I20110111-0800</version>
 		</dependency>
+		
+		
+		<dependency>
+    <groupId>com.mkobos</groupId>
+    <artifactId>pca_transform</artifactId>
+    <version>1.0.2</version>
+</dependency>
+		
 	</dependencies>
 
 	<repositories>

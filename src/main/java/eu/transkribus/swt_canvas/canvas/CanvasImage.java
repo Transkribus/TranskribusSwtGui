@@ -65,6 +65,7 @@ final public class CanvasImage {
 			
 			gc.setTransform(scaleTr);
 			gc.drawImage(imgIn, 0, 0);
+			
 			gc.dispose();
 			scaleTr.dispose();
 			

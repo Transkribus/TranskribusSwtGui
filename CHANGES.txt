@@ -334,6 +334,13 @@ CHANGES AND BUGFIXES
 	-> tei tags for Person, Place and Organization changed to "persName", "placeName" and "orgName"
 	-> new tei tag "add" for addition
 	-> tei export option: tag lines via <l>...</l> or <lb/> tag
+
+0.8.4:
+	-> gamma correction
+	-> tif bug on windows fix
+	-> Transcription and Segmentation profiles added
+	-> createThumbs for local docs flag (configure via Menu -> File -> Create thumbs when opening local folder)
+	
 	
 	
 	

@@ -227,6 +227,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	public String imgFitTo = "width";
 	public static final String IMG_FIT_TO = "imgFitTo";
+	
+	public boolean createThumbs = true;
+	public static final String CREATE_THUMBS_PROPERTY = "createThumbs";
 			
 	
 	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
@@ -855,6 +858,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setAutoLogin(boolean autoLogin) {
 		this.autoLogin = autoLogin;
 		firePropertyChange(AUTO_LOGIN_PROPERTY, !this.autoLogin, this.autoLogin);
+	}
+
+	public boolean isCreateThumbs() {
+		return createThumbs;
+	}
+
+	public void setCreateThumbs(boolean createThumbs) {
+		this.createThumbs = createThumbs;
+		firePropertyChange(CREATE_THUMBS_PROPERTY, !this.createThumbs, this.createThumbs);
 	}
 
 	@Override public List<String> getPropertiesToNotSave() {

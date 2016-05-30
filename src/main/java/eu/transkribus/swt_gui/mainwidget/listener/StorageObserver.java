@@ -1,26 +1,15 @@
 package eu.transkribus.swt_gui.mainwidget.listener;
 
-import java.util.List;
-
-import javax.ws.rs.ServerErrorException;
-
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.exceptions.NoConnectionException;
-import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
-import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.Storage.DocLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.Storage.DocMetadataUpdateEvent;
@@ -30,6 +19,8 @@ import eu.transkribus.swt_gui.mainwidget.Storage.MainImageLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.Storage.PageLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.Storage.TranscriptListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.Storage.TranscriptLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
 public class StorageObserver extends AStorageObserver {
 	private static final Logger logger = LoggerFactory.getLogger(StorageObserver.class);
@@ -154,6 +145,9 @@ public class StorageObserver extends AStorageObserver {
 
 	@Override protected void handlePageLoadEvent(PageLoadEvent arg) {
 		canvas.setMode(CanvasMode.SELECTION);
+		
+		// generate thumb for loaded page if local doc:
+		mw.createThumbForCurrentPage();
 	}
 	
 	@Override protected void handleDocMetadataUpdateEvent(DocMetadataUpdateEvent e) {
