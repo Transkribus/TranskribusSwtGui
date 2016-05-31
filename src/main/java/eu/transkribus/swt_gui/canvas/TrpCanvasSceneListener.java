@@ -547,9 +547,19 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				if (st==null)
 					throw new Exception("Could not extract the data from a merged shape - should not happen!");
 				
+				Integer oldReadingOrder = -1;
+				if (st != null){
+					oldReadingOrder = st.getReadingOrder();
+				}
+				
 				int index = -1;
 				if (st.getParentShape() != null)
 					index = st.getParentShape().getChildren(false).indexOf(st);
+				
+				//parent shape for region is null -> hence take ro of the smallest shape
+				if (index == -1 && oldReadingOrder != null){
+					index = oldReadingOrder;
+				}
 				
 				if (index < minIndex)
 					minIndex = index;
