@@ -68,17 +68,18 @@ public class UploadDialogUltimate extends Dialog {
 			+ "the documents should be linked, within this Dialog.";
 	
 	
-	Button singleDocButton, ftpButton, metsUrlButton;
-	Group ftpGroup, singleGroup, metsUrlGroup;
+	Button singleDocButton, ftpButton, metsUrlButton, pdfButton;
+	Group ftpGroup, singleGroup, metsUrlGroup, pdfGroup;
 	
 	Text folderText;
 	Text titleText, urlText;
+	Text fileText;
 	Combo uploadTypeCombo;
 	
 //	String dirName;
-	String folder, title, url;
+	String file, folder, title, url;
 	
-	boolean singleUploadViaFtp=false, isSingleDocUpload=true, isMetsUrlUpload=false;
+	boolean singleUploadViaFtp=false, isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false;
 	
 //	TrpDoc doc;
 	
@@ -147,6 +148,10 @@ public class UploadDialogUltimate extends Dialog {
 		metsUrlButton.setText("Upload via URL of DFG Viewer METS");
 		metsUrlButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		
+		pdfButton = new Button(container, SWT.RADIO);
+		pdfButton.setText("Extract and upload images from pdf");
+		pdfButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 2));
+		
 		spacerLabel = new Label(container, 0); // spacer
 		
 		ftpGroup = new Group(container, 0);
@@ -166,6 +171,12 @@ public class UploadDialogUltimate extends Dialog {
 		metsUrlGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		metsUrlGroup.setLayout(new GridLayout(3, false));
 		createMetsUrlGroup(metsUrlGroup);	
+		
+		pdfGroup = new Group(SWTUtil.dummyShell, 0);
+		pdfGroup.setText("Extract images from pdf (locally) and upload");
+		pdfGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		pdfGroup.setLayout(new GridLayout(3, false));
+		createPdfGroup(pdfGroup);
 		
 		Label lblCollections = new Label(container, SWT.NONE);
 		lblCollections.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -230,6 +241,59 @@ public class UploadDialogUltimate extends Dialog {
 		titleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
 		titleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(container, SWT.NONE);
+		
+		Label l = new Label(container, 0);
+		l.setText("Upload via: ");
+		
+		uploadTypeCombo = new Combo(container, SWT.READ_ONLY | SWT.DROP_DOWN);
+		uploadTypeCombo.add("HTTP (default)");
+		uploadTypeCombo.add("FTP");
+		uploadTypeCombo.select(0);
+		uploadTypeCombo.setToolTipText("The type of upload - usually HTTP should be fine but you can try FTP also if it does not work");
+	}
+
+	private void createPdfGroup(Composite container) {
+		Label lblFileLabel = new Label(container, SWT.NONE);
+		lblFileLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblFileLabel.setText("Local pdf file:");
+
+		fileText = new Text(container, SWT.BORDER);
+		fileText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		if (store.isLocalDoc())
+			fileText.setText(store.getDoc().getMd().getLocalFolder().getAbsolutePath());
+
+		Button setFileBtn = new Button(container, SWT.NONE);
+		setFileBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				file = DialogUtil.showOpenFileDialog(getShell(), 
+						"Select pdf file containing images for upload", file, new String[]{"*.pdf", "*.PDF", "*.*"});
+				if (file != null) {
+					fileText.setText(file);
+				}
+			}
+		});
+		setFileBtn.setImage(Images.getOrLoad("/icons/folder_explore.png"));
+
+		Label lblExtractFolder = new Label(container, SWT.NONE);
+		lblExtractFolder.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblExtractFolder.setText("Local folder for extracted images:");
+
+		folderText = new Text(container, SWT.BORDER);
+		folderText.setToolTipText("Name of directory to which images in pdf are extracted. "
+				+ "Must have writing permits on chosen folder.");
+		folderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Button setFolderBtn = new Button(container, SWT.NONE);
+		setFolderBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				folder = DialogUtil.showOpenFolderDialog(getShell(), "Specify a folder to which the images are extracted", folder);
+				if (folder != null) {
+					folderText.setText(folder);
+				}
+			}
+		});
+		setFolderBtn.setImage(Images.getOrLoad("/icons/folder.png"));
 		
 		Label l = new Label(container, 0);
 		l.setText("Upload via: ");
@@ -309,17 +373,26 @@ public class UploadDialogUltimate extends Dialog {
 			add = singleGroup;
 			ftpGroup.setParent(SWTUtil.dummyShell);
 			metsUrlGroup.setParent(SWTUtil.dummyShell);
+			pdfGroup.setParent(SWTUtil.dummyShell);
 		} else if (ftpButton.getSelection()){
 			add = ftpGroup;
 			singleGroup.setParent(SWTUtil.dummyShell);
 			metsUrlGroup.setParent(SWTUtil.dummyShell);
+			pdfGroup.setParent(SWTUtil.dummyShell);
 			//remove = singleGroup;
+		} else if (pdfButton.getSelection()) {
+			// new case: pdf upload
+			add = pdfGroup;
+			ftpGroup.setParent(SWTUtil.dummyShell);
+			singleGroup.setParent(SWTUtil.dummyShell);
+			metsUrlGroup.setParent(SWTUtil.dummyShell);
 		}
 		//new case: upload via url 
 		else{
 			add = metsUrlGroup;
 			singleGroup.setParent(SWTUtil.dummyShell);
 			ftpGroup.setParent(SWTUtil.dummyShell);
+			pdfGroup.setParent(SWTUtil.dummyShell);
 		}
 		logger.info("is disposed: "+add.isDisposed());
 		
@@ -336,6 +409,12 @@ public class UploadDialogUltimate extends Dialog {
 	private void addListener() {
 		
 		singleDocButton.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				updateGroupVisibility();
+			}
+		});
+		
+		pdfButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				updateGroupVisibility();
 			}
@@ -531,6 +610,12 @@ public class UploadDialogUltimate extends Dialog {
 //			}
 ////			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select directories for ingesting.");
 //		}
+		else if (isPdfUpload && StringUtils.isEmpty(file)) {
+			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You need to select a pdf first");
+		} else if (isPdfUpload && StringUtils.isEmpty(folder)) {
+			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please specify a folder to "
+					+ "which you want to extract the images in your pdf");
+		}
 		else {
 			super.okPressed();
 		}
@@ -539,12 +624,14 @@ public class UploadDialogUltimate extends Dialog {
 	private void saveInput() {
 		this.isSingleDocUpload = singleDocButton.getSelection();
 		this.isMetsUrlUpload = metsUrlButton.getSelection();
+		this.isPdfUpload = pdfButton.getSelection();
 		
 		this.selDocDirs = getSelectedDocDirs();
 		this.selColl =  getSelectedCollection();
 		
 		this.folder = folderText.getText();
 		this.url = urlText.getText();
+		this.file = fileText.getText();
 		
 		this.title = titleText.getText();
 		this.singleUploadViaFtp = uploadTypeCombo.getSelectionIndex()==1;
@@ -566,12 +653,20 @@ public class UploadDialogUltimate extends Dialog {
 		return folder;
 	}
 	
+	public String getFile() {
+		return file;
+	}
+	
 	public boolean isSingleUploadViaFtp() {
 		return singleUploadViaFtp;
 	}
 	
 	public boolean isSingleDocUpload() {
 		return isSingleDocUpload;
+	}
+	
+	public boolean isUploadFromPdf() {
+		return isPdfUpload;
 	}
 		
 	public List<TrpDocDir> getSelectedDocDirs(){
