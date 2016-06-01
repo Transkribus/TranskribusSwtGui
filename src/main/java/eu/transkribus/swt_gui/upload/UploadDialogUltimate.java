@@ -136,12 +136,13 @@ public class UploadDialogUltimate extends Dialog {
 //		container.setSize(700, 600);
 		
 		ftpButton = new Button(container, SWT.RADIO);
-		ftpButton.setText("Upload via private FTP (recommended)");
-		ftpButton.setSelection(true);
+		ftpButton.setText("Upload via private FTP");
+		//ftpButton.setSelection(true);
 		ftpButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		
 		singleDocButton = new Button(container, SWT.RADIO);
 		singleDocButton.setText("Upload single document (only small docs)");
+		singleDocButton.setSelection(true);
 		singleDocButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 		
 		metsUrlButton = new Button(container, SWT.RADIO);

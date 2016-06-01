@@ -277,7 +277,7 @@ public class MyDefaultGalleryItemRenderer extends AbstractGalleryItemRenderer {
 			String text = RendererHelper.createLabel(item.getText(), gc,
 					width - 10);
 			
-			logger.debug("text width in my default gallery item renderer " + text);
+			logger.trace("text width in my default gallery item renderer " + text);
 
 			// Center text
 			/*
@@ -288,8 +288,8 @@ public class MyDefaultGalleryItemRenderer extends AbstractGalleryItemRenderer {
 			int textWidth2 = item.getBounds().width;
 			int textxShift = RendererHelper.getShift(width, textWidth);
 			
-			logger.debug("textWidth width in my default gallery item renderer " + textWidth);
-			logger.debug("textWidth width in my default gallery item renderer " + textWidth2);
+			logger.trace("textWidth width in my default gallery item renderer " + textWidth);
+			logger.trace("textWidth width in my default gallery item renderer " + textWidth2);
 
 			// Draw
 			gc.drawText(item.getText(), x + textxShift, y + height - textHeight, true);

@@ -5,14 +5,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
-import org.eclipse.nebula.widgets.gallery.DefaultGalleryGroupRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;
 import org.eclipse.nebula.widgets.gallery.GalleryItem;
 import org.eclipse.nebula.widgets.gallery.ListItemRenderer;
@@ -24,18 +17,21 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class ThumbnailWidget extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidget.class);
@@ -385,6 +381,14 @@ public class ThumbnailWidget extends Composite {
 		 */
 		
 		logger.debug("reloading thumbs, nr of thumbs = "+ N);
+		
+		// remember index of selected item:
+		int selectedIndex=-1;
+		if (gallery.getSelectionCount() > 0) {
+			GalleryItem si = gallery.getSelection()[0];
+//			logger.debug("si = "+si);
+			selectedIndex = gallery.indexOf(si);
+		}
 
 		// first: stop old thread
 		stopActiveThread();
@@ -424,12 +428,21 @@ public class ThumbnailWidget extends Composite {
 			logger.debug("running thumbnail reload method");
 			loadThread.run(); // sequential version -> just call run() method
 		}
-			
+		
+		// select item previously selected:
+		logger.debug("previously selected index = "+selectedIndex+ " n-items = "+group.getItemCount());
+		if (selectedIndex >= 0 && selectedIndex<group.getItemCount()) {
+			GalleryItem it = group.getItem(selectedIndex);
+			logger.trace("it = "+it);
+			if (it != null) {
+				it.setExpanded(true);
+				gallery.setSelection( new GalleryItem[]{it} );
+			}
+		}	
 	}
 	
 	private void setTranscripts(List<TrpTranscriptMetadata> transcripts2) {
 		this.transcripts = transcripts2;
-		
 	}
 
 	private void setItemText(GalleryItem item, int i) {

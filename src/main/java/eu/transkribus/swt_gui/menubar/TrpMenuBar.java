@@ -30,6 +30,7 @@ public class TrpMenuBar {
 	MenuItem manageCollectionsMenuItem;
 	MenuItem syncWordsWithLinesMenuItem;
 	MenuItem proxySettingsMenuItem;
+	MenuItem createThumbsMenuItem;
 	
 	Menu languageMenu;
 	MenuItem languageMenuItem;
@@ -119,6 +120,10 @@ public class TrpMenuBar {
 		openLocalPageFileItem = new MenuItem(fileMenu, 0);
 		openLocalPageFileItem.setImage(null);
 		openLocalPageFileItem.setText("Open local page file for current page");
+		
+		createThumbsMenuItem = new MenuItem(fileMenu, SWT.CHECK);
+		createThumbsMenuItem.setImage(null);
+		createThumbsMenuItem.setText("Create thumbs when opening local folder");
 				
 		uploadImagesFromPdfFileItem = new MenuItem(fileMenu, 0);
 		uploadImagesFromPdfFileItem.setText("Upload images from pdf file");
@@ -249,6 +254,7 @@ public class TrpMenuBar {
 		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, viewSets, showLinesMenuItem);
 		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, viewSets, showBaselinesMenuItem);
 		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, viewSets, showWordsMenuItem);
+		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.CREATE_THUMBS_PROPERTY, viewSets, createThumbsMenuItem);
 	}
 	
 //	public MenuItem getDrawSelectedCornerNumbersMenuItem() {

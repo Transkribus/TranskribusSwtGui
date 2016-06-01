@@ -82,7 +82,7 @@ import eu.transkribus.util.Utils;
 
 /** Singleton class that contains all data related to loading a transcription */
 public class Storage extends Observable {
-	private final static Logger logger = LoggerFactory.getLogger(Storage.class);
+	private final static Logger logger = LoggerFactory.getLogger(Storage.class);	
 
 	@SuppressWarnings("serial")
 	public static class LoginOrLogoutEvent extends Event {

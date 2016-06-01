@@ -5,12 +5,15 @@ import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBufferByte;
 import java.awt.image.DirectColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -36,6 +39,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Region;
+import org.eclipse.swt.graphics.Resource;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
@@ -44,6 +49,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
@@ -56,7 +62,9 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.io.LocalDocConst;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.ImgUtils;
+import eu.transkribus.core.util.SebisStopWatch;
 import math.geom2d.Vector2D;
 
 public class SWTUtil {
@@ -350,6 +358,61 @@ public class SWTUtil {
 		
 		return v;
 	}
+	
+	/**
+	 * Creates a thumbnail image for the given TrpPage p. <br/>
+	 * If img != null, this image is used for the thumbnail generation and not loaded again.<br/>
+	 * If overwrite == true, an existing thumbnail image is overwritten, elsewise not.
+	 */
+	public static boolean createThumbForPage(TrpPage p, Image img, boolean overwrite) throws IOException {
+		File imgFile = FileUtils.toFile(p.getUrl());
+		if (imgFile == null) 
+			throw new IOException("Cannot retrieve image url from: "+p.getUrl());
+		
+		File thumbsFile = FileUtils.toFile(p.getThumbUrl());
+		if (thumbsFile == null)
+			throw new IOException("Cannot retrieve thumbs url from: "+p.getThumbUrl());
+		
+		if (thumbsFile.exists() && !overwrite) // skip if already there and overwrite not specified 
+			return false;
+		
+		logger.debug("creating thumb file: "+thumbsFile);
+		long st = System.currentTimeMillis();
+		
+		if (img != null) {
+			createThumbnail(img.getImageData(), thumbsFile, -1, LocalDocConst.THUMB_SIZE_HEIGHT);
+		} else {
+			createThumbnailFileOverSWTSecure(imgFile, thumbsFile, -1, LocalDocConst.THUMB_SIZE_HEIGHT);	
+		}
+		
+		
+		
+		if (false) {
+			int newHeight = LocalDocConst.THUMB_SIZE_HEIGHT;
+			BufferedImage originalImage = ImgUtils.readImage(imgFile);
+			if (originalImage==null)
+				throw new IOException("Cannot load image "+imgFile.getAbsolutePath());
+			
+			double sf = (double)newHeight / (double)originalImage.getHeight();
+			int newWidth = (int)(sf * originalImage.getWidth());
+	
+			BufferedImage thmbImg = new BufferedImage(newWidth, newHeight, originalImage.getType());
+			Graphics2D g = thmbImg.createGraphics();
+			RenderingHints rh = new RenderingHints(
+		             RenderingHints.KEY_INTERPOLATION,
+		             RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g.setRenderingHints(rh);
+			g.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+			g.dispose();
+	//			logger.debug("thmbImg: "+originalImage+ " size: "+thmbImg.getWidth()+"x"+thmbImg.getHeight());
+			
+			if (!ImageIO.write(thmbImg, FilenameUtils.getExtension(thumbsFile.getName()), thumbsFile))
+				throw new IOException("Could not write thumb file - no appropriate writer found!");
+		}
+		
+	    logger.debug("created thumb file: "+thumbsFile.getAbsolutePath()+" time = "+(System.currentTimeMillis()-st));
+	    return true;
+	}
 			
 	public static void createThumbsForDoc(TrpDoc doc, boolean overwrite) throws Exception {
 		if (doc.getMd()==null || doc.getMd().getLocalFolder()==null)
@@ -360,49 +423,13 @@ public class SWTUtil {
 		File thmbsDir = new File(doc.getMd().getLocalFolder().getAbsolutePath() + File.separator + LocalDocConst.THUMBS_FILE_SUB_FOLDER);
 		FileUtils.forceMkdir(thmbsDir);
 		
-		int newHeight = LocalDocConst.THUMB_SIZE_HEIGHT;
 		for (TrpPage p : doc.getPages()) {
-			File imgFile = FileUtils.toFile(p.getUrl());
-			if (imgFile == null) 
-				throw new IOException("Cannot retrieve image url from: "+p.getUrl());
-			
-			File thumbsFile = FileUtils.toFile(p.getThumbUrl());
-			if (thumbsFile == null)
-				throw new IOException("Cannot retrieve thumbs url from: "+p.getThumbUrl());
-			
-			if (thumbsFile.exists() && !overwrite) // skip if already there and overwrite not specified 
-				continue;
-			
-			logger.debug("creating thumb file: "+thumbsFile);
-			long st = System.currentTimeMillis();
-			
-			if (true)  {
-				SWTUtil.createThumbnailFileOverSWTSecure(imgFile, thumbsFile, -1, LocalDocConst.THUMB_SIZE_HEIGHT);
+			if (Thread.currentThread().isInterrupted()) {
+				logger.info("interrupted - stopping thumbs creation for doc");
+				return;
 			}
 			
-			if (false) {
-			BufferedImage originalImage = ImgUtils.readImage(imgFile);
-			if (originalImage==null)
-				throw new IOException("Cannot load image "+imgFile.getAbsolutePath());
-			
-			double sf = (double)newHeight / (double)originalImage.getHeight();
-			int newWidth = (int)(sf * originalImage.getWidth());
-
-			BufferedImage thmbImg = new BufferedImage(newWidth, newHeight, originalImage.getType());
-			Graphics2D g = thmbImg.createGraphics();
-			RenderingHints rh = new RenderingHints(
-		             RenderingHints.KEY_INTERPOLATION,
-		             RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-			g.setRenderingHints(rh);
-			g.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
-			g.dispose();
-//				logger.debug("thmbImg: "+originalImage+ " size: "+thmbImg.getWidth()+"x"+thmbImg.getHeight());
-			
-			if (!ImageIO.write(thmbImg, FilenameUtils.getExtension(thumbsFile.getName()), thumbsFile))
-				throw new Exception("Could not write thumb file - no appropriate writer found!");
-			}
-			
-		    logger.debug("created thumb file: "+thumbsFile.getAbsolutePath()+" time = "+(System.currentTimeMillis()-st));
+			createThumbForPage(p, null, overwrite);
 		}
 	}
 	
@@ -461,54 +488,40 @@ public class SWTUtil {
 	}
 	
 	public static boolean createThumbnailFileOverSWTSecure(File origImg, File thumb, int width, int height) throws IOException {
-		boolean result = false;
-
-		ImageLoader imgLoader = new ImageLoader();
-
 		Image img = new Image(Display.getCurrent(), origImg.getAbsolutePath());
-		ImageData imgData = img.getImageData();
-
-		if (imgData != null) {
-			ImageData actImage = imgData;
-			
-			actImage = scaleImageData(actImage, width, height);
-
-			imgLoader.data = new ImageData[] { actImage };
-			imgLoader.save(thumb.getAbsolutePath(), SWT.IMAGE_PNG);
-			result = true;
-
-		} else {
-			logger.warn("Unable to load " + origImg.getAbsolutePath());
+		
+		try {	
+			if (img.getImageData() != null) {				
+				createThumbnail(img.getImageData(), thumb, width, height);
+				return true;
+			} else {
+				logger.warn("Unable to load " + origImg.getAbsolutePath());
+				return false;
+			}
+		} finally {
+			img.dispose();
 		}
-
-		img.dispose();
-		return result;
 
 	}
 
 	public static boolean createThumbnailFileOverSWTFast(File origImg, File thumb, int width, int height) throws IOException {
-
-		boolean result = false;
-
 		ImageLoader imgLoader = new ImageLoader();
-
 		ImageData[] imgData = imgLoader.load(origImg.getAbsolutePath());
 
 		if (imgData.length > 0) {
-			ImageData actImage = imgData[0];
-
-			actImage = scaleImageData(actImage, width, height);
-
-			imgLoader.data = new ImageData[] { actImage };
-			imgLoader.save(thumb.getAbsolutePath(), SWT.IMAGE_PNG);
-			result = true;
-
+			createThumbnail(imgData[0], thumb, width, height);
+			return true;
 		} else {
 			logger.info("Unable to load " + origImg.getAbsolutePath());
+			return false;
 		}
-
-		return result;
-
+	}
+	
+	public static void createThumbnail(ImageData imageData, File thumb, int width, int height) throws IOException {
+		ImageLoader imgLoader = new ImageLoader();
+		ImageData scaledImageData = scaleImageData(imageData, width, height);
+		imgLoader.data = new ImageData[] { scaledImageData };
+		imgLoader.save(thumb.getAbsolutePath(), SWT.IMAGE_PNG);		
 	}
 	
 	public static List<Control> getAllChildren(Control ctrl) {
@@ -749,6 +762,72 @@ public class SWTUtil {
 		gc.drawLine((int)p1.x(), (int)p1.y(), (int)p2.x(), (int)p2.y());
 	}
 	
+	public static BufferedImage convertToAWT(ImageData data) {
+		ColorModel colorModel = null;
+		PaletteData palette = data.palette;
+		if (palette.isDirect) {
+			colorModel = new DirectColorModel(data.depth, palette.redMask, palette.greenMask, palette.blueMask);
+			BufferedImage bufferedImage = new BufferedImage(colorModel, colorModel.createCompatibleWritableRaster(data.width, data.height), false, null);
+			WritableRaster raster = bufferedImage.getRaster();
+			int[] pixelArray = new int[3];
+			for (int y = 0; y < data.height; y++) {
+				for (int x = 0; x < data.width; x++) {
+					int pixel = data.getPixel(x, y);
+					RGB rgb = palette.getRGB(pixel);
+					pixelArray[0] = rgb.red;
+					pixelArray[1] = rgb.green;
+					pixelArray[2] = rgb.blue;
+					raster.setPixels(x, y, 1, 1, pixelArray);
+				}
+			}
+			return bufferedImage;
+		} else {
+			RGB[] rgbs = palette.getRGBs();
+			byte[] red = new byte[rgbs.length];
+			byte[] green = new byte[rgbs.length];
+			byte[] blue = new byte[rgbs.length];
+			for (int i = 0; i < rgbs.length; i++) {
+				RGB rgb = rgbs[i];
+				red[i] = (byte) rgb.red;
+				green[i] = (byte) rgb.green;
+				blue[i] = (byte) rgb.blue;
+			}
+			if (data.transparentPixel != -1) {
+				colorModel = new IndexColorModel(data.depth, rgbs.length, red, green, blue, data.transparentPixel);
+			} else {
+				colorModel = new IndexColorModel(data.depth, rgbs.length, red, green, blue);
+			}
+			BufferedImage bufferedImage = new BufferedImage(colorModel, colorModel.createCompatibleWritableRaster(data.width, data.height), false, null);
+			WritableRaster raster = bufferedImage.getRaster();
+			int[] pixelArray = new int[1];
+			for (int y = 0; y < data.height; y++) {
+				for (int x = 0; x < data.width; x++) {
+					int pixel = data.getPixel(x, y);
+					pixelArray[0] = pixel;
+					raster.setPixel(x, y, pixelArray);
+				}
+			}
+			return bufferedImage;
+		}
+	}
+	
+	public static ImageData convertToSWT2(BufferedImage bufferedImage) throws IOException {
+//		/2) awt.BufferedImage -> raw Data
+		java.awt.image.WritableRaster awtRaster = bufferedImage.getRaster();
+		java.awt.image.DataBufferByte awtData = (DataBufferByte) awtRaster.getDataBuffer();
+		byte[] rawData = awtData.getData();
+
+		//3) raw Data -> swt.ImageData
+		org.eclipse.swt.graphics.PaletteData swtPalette = new PaletteData(0xff, 0xff00, 0xff0000);
+
+		int depth = 0x18;
+		org.eclipse.swt.graphics.ImageData swtImageData = new ImageData(bufferedImage.getWidth(), bufferedImage.getHeight(), 
+				depth, swtPalette, bufferedImage.getWidth(), rawData);
+		
+		return swtImageData;
+//		return new Image(Display.getDefault(), swtImageData);		
+	}
+	
 	
 	/**
      * Converts a buffered image to SWT <code>ImageData</code>.
@@ -844,13 +923,13 @@ public class SWTUtil {
         
         throw new IOException("Unknown colour model: "+bufferedImage.getColorModel().getClass().getCanonicalName());
     }
-    
-    public static void tryDelete(Image img) {
+        
+    public static void dispose(Image img) {
     	if (img != null && !img.isDisposed())
     		img.dispose();
     }
     
-    public static void tryDelete(Control ctrl) {
+    public static void dispose(Control ctrl) {
     	if (ctrl != null && !ctrl.isDisposed())
     		ctrl.dispose();
     }
@@ -886,9 +965,111 @@ public class SWTUtil {
     		gc.drawPolygon(pts);
     	}
     }
+    
+	public static boolean isDisposed(Control x) {
+		return x==null || x.isDisposed();
+	}
 
-	public static boolean isDisposed(Item item) {
-		return item==null || item.isDisposed();
+	public static boolean isDisposed(Item x) {
+		return x==null || x.isDisposed();
+	}
+	
+	public static boolean isDisposed(Image i) {
+		return i==null || i.isDisposed();
+	}	
+	
+	/**
+	 * Multiplies all pixels of the given ImageData with the given scalar factor
+	 * and returns a new image data
+	 */
+	public static ImageData multScalar(ImageData data, double factor, boolean inPlace) {
+		ImageData newImageData = inPlace ? data : 
+				new ImageData (data.width, data.height, 24, new PaletteData (0xFF, 0xFF00, 0xFF0000));
+		
+		final int w = data.width;
+		final int h = data.height;
+	
+		for (int x=0; x<w; ++x) {
+			for (int y=0; y<h; ++y) {
+				int p = data.getPixel(x, y);
+				
+				RGB rgb = data.palette.getRGB(p);
+				
+//				System.out.println("rgb = "+rgb);
+				
+				rgb.red = CoreUtils.bound(rgb.red *= factor, 0, 255);
+				rgb.green = CoreUtils.bound(rgb.green *= factor, 0, 255);
+				rgb.blue = CoreUtils.bound(rgb.blue *= factor, 0, 255);
+				
+//				rgb.red = CoreUtils.bound((int) Math.pow(rgb.red, gamma), 0, 255);
+//				rgb.green = CoreUtils.bound((int) Math.pow(rgb.green, gamma), 0, 255);
+//				rgb.blue = CoreUtils.bound((int) Math.pow(rgb.blue, gamma), 0, 255);
+				
+//				System.out.println("rgb2 = "+rgb);
+				newImageData.setPixel(x, y, newImageData.palette.getPixel(rgb));				
+			}
+		}
+		
+		return newImageData;
+	}
+
+	public static void displayImage(Image img) {
+		
+		Shell shell = new Shell(SWT.SHELL_TRIM);
+		shell.setLayout(new FillLayout());
+		Label label = new Label(shell, SWT.NONE);
+		label.setImage(img);
+		
+		final Display display = Display.getDefault();
+		shell.open();
+		shell.setSize(1000, 1000);
+		
+		while (!shell.isDisposed()) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+
+		   		
+	}
+	
+	public static void main(String[] args) throws Exception {
+		
+//		BufferedImage img = ImageIO.read(new URL("https://dbis-thure.uibk.ac.at/f/Get?id=XXJYXABIYBIAFUXHPXUQQYMY&fileType=bin"));
+//		System.out.println("type = "+img.getType());
+		
+		
+
+		
+		
+//		SebisStopWatch.SW.start();
+		Image img = ImgLoader.load(new URL("file:/home/sebastianc/Transkribus_TestDoc/035_322_001.jpg"));
+//		SebisStopWatch.SW.stop();
+		
+		double gamma = 50;
+		double logGamma = Math.tanh(0.01*gamma) + 1;
+		
+		SebisStopWatch.SW.start();
+		ImageData imgDataGamma = multScalar(img.getImageData(), logGamma, true);
+		SebisStopWatch.SW.stop();
+		
+//		SebisStopWatch.SW.start();
+//		multScalar(img.getImageData(), logGamma, true);
+//		SebisStopWatch.SW.stop();		
+		
+		Image img2 = new Image(Display.getDefault(), imgDataGamma);
+		
+		displayImage(img2);
+//		
+//		SebisStopWatch.SW.start();
+//		BufferedImage bi = SWTUtil.convertToAWT(img.getImageData());
+//		
+//		
+//		SebisStopWatch.SW.stop();
+//		
+//		SebisStopWatch.SW.start();
+//		ImageData id = SWTUtil.convertToSWT(bi);
+//		SebisStopWatch.SW.stop();
 	}
 	
 

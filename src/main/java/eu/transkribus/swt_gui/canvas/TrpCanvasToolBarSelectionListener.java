@@ -7,6 +7,7 @@ import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
+import eu.transkribus.swt_gui.dialogs.ImageEnhanceDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -47,6 +48,11 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 		}
 		else if (s == toolbar.getImageVersionItem().ti && e.detail != SWT.ARROW) {
 			TrpMainWidget.getInstance().reloadCurrentImage();
+		}
+		else if (s == toolbar.getImgEnhanceItem()) {
+			// TODO: open enhance dialog
+			ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
+			d.open();
 		}
 	}
 

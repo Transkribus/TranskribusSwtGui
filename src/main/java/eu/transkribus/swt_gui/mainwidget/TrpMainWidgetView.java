@@ -300,6 +300,8 @@ public class TrpMainWidgetView extends Composite {
 		portalWidget.setMinWidth(Position.BOTTOM, 400);
 		portalWidget.setMinWidth(Position.RIGHT, 300);
 		
+		
+		
 		portalWidget.setMinHeight(Position.RIGHT, rightTabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		
 		logger.debug("left view docking state: "+getTrpSets().getLeftViewDockingState());
@@ -384,6 +386,28 @@ public class TrpMainWidgetView extends Composite {
 	
 	public void selectJobListTab() {
 		leftTabFolder.setSelection(jobOverviewItem);
+	}
+	
+	public void selectMetadataTab(){
+		rightTabFolder.setSelection(metadataItem);
+	}
+	
+	public void selectToolsTab() {
+		rightTabFolder.setSelection(laItem);
+	}
+	
+	public void selectLeftTab(int idx){
+		if (idx < 0 || idx >= leftTabFolder.getItemCount()){
+			idx = 0;
+		}
+		leftTabFolder.setSelection(idx);
+	}
+	
+	public void selectRightTab(int idx){
+		if (idx < 0 || idx >= rightTabFolder.getItemCount()){
+			idx = 0;
+		}
+		rightTabFolder.setSelection(idx);
 	}
 	
 	public void setStatusMessage(String text, int time) {

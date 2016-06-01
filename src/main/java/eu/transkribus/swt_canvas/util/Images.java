@@ -21,6 +21,8 @@ public class Images {
 	public static final Image IMAGE_EDIT = Images.getOrLoad("/icons/image_edit.png");
 	public static final Image IMAGE_DELETE = Images.getOrLoad("/icons/image_delete.png");
 	
+	public static final Image CONTRAST = Images.getOrLoad("/icons/contrast.png");
+	
 	public static final Image APPLICATION_SIDE_CONTRACT = getOrLoad("/icons/application_side_contract.png");
 	public static final Image APPLICATION_SIDE_EXPAND = getOrLoad("/icons/application_side_expand.png");
 	public static final Image APPLICATION_SIDE_PUT = getOrLoad("/icons/application_put.png");
