@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.canvas;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -21,9 +20,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		super(canvas);
 	}
 	
-	@Override public List<ShapeEditOperation> splitShape(int x1, int y1, int x2, int y2) {
-		logger.debug("HERE!");
-		
+	@Override public List<ShapeEditOperation> splitShape(int x1, int y1, int x2, int y2) {		
 		ICanvasShape selected = canvas.getFirstSelected();
 		if (selected == null) {
 			logger.warn("Cannot split - no shape selected!");

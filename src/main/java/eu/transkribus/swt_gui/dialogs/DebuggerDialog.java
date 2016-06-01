@@ -11,20 +11,24 @@ import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.GlyphMetrics;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent.TextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
@@ -38,12 +42,16 @@ public class DebuggerDialog extends Dialog {
 	public Button invalidateSessionBtn;
 	
 	public TrpMainWidget mw = TrpMainWidget.getInstance();
+	public TrpSWTCanvas canvas = mw.getCanvas();
+	
 	public Storage storage = Storage.getInstance();
 	public Button processUploadedZipFileBtn;
 	public Text processZipFileText;
 	public Button listLibsBtn, clearDebugText;
 	
 	public StyledText debugText;
+	
+//	public Button sortBaselinePts;
 	
 
 	/**
@@ -67,6 +75,10 @@ public class DebuggerDialog extends Dialog {
 
 		invalidateSessionBtn = new Button(shell, SWT.PUSH);
 		invalidateSessionBtn.setText("Invalidate session");
+		
+//		sortBaselinePts = new Button(shell, SWT.PUSH);
+//		sortBaselinePts.setText("sort baseline pts");
+		
 //		new Label(shell, SWT.NONE);
 		
 		if (false) {
@@ -127,12 +139,36 @@ public class DebuggerDialog extends Dialog {
 						logger.debug("invalidating session...");
 						storage.invalidateSession();
 					}
+//					if (e.widget == sortBaselinePts) {
+//						// TODO
+//						ICanvasShape s = canvas.getFirstSelected();
+//						if (s != null && s.getData() instanceof TrpTextRegionType) {
+//							TrpTextRegionType r = (TrpTextRegionType) s.getData();
+//							for (TextLineType l : r.getTextLine()) {
+//								TrpTextLineType tl = (TrpTextLineType) l;
+//								if (tl.getBaseline() != null) {
+//									ICanvasShape bls = canvas.getScene().findShapeWithData(tl);
+//									if (bls instanceof CanvasPolyline) {
+//										CanvasPolyline pl = (CanvasPolyline) bls;
+//
+//										int x = (int) s.getBounds().getWidth();
+//										int y = 0;
+//
+//										pl.sortPoints(x, y);
+//
+//									}
+//								}
+//
+//							}
+//						}
+//					}
 				} catch (Exception ex) {
 					mw.onError("An error occured", ex.getMessage(), ex);
 				}
 			}
 		};
 		invalidateSessionBtn.addSelectionListener(selectionAdapter);
+//		sortBaselinePts.addSelectionListener(selectionAdapter);
 		
 		if (processUploadedZipFileBtn != null) {
 			processUploadedZipFileBtn.addSelectionListener(new SelectionAdapter() {		

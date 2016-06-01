@@ -270,6 +270,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	private void processUndoMerge(ShapeEditOperation op) {
 		logger.debug("processUndoMerge");
 		try {
+			mainWidget.getTranscriptObserver().setActive(false);
+			
 			// reinsert data objects of all formerly removed shapes into the jaxb again: 
 			for (ICanvasShape s : op.getShapes()) {
 				ITrpShapeType st = GuiUtil.getTrpShape(s);
@@ -294,6 +296,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			mainWidget.onError("Error undoing", "Could not undo merge operation "+op.getDescription(), e);
+		} finally {
+			mainWidget.getTranscriptObserver().setActive(true);
 		}
 	}
 	
@@ -533,6 +537,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	@Override
 	public void onMerge(SceneEvent e) {
 		try {
+			mainWidget.getTranscriptObserver().setActive(false);
+			
 			ICanvasShape newShape = e.op.getNewShapes().get(0);
 			logger.debug("merged shape: "+newShape);
 						
@@ -614,6 +620,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		} catch (Throwable th) {
 			e.stop = true;
 			mainWidget.onError("Error merging elements", "Could not merge elements", th);
+		} finally {
+			mainWidget.getTranscriptObserver().setActive(true);
+			
 		}
 	}	
 	

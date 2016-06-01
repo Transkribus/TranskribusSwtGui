@@ -31,6 +31,10 @@ public class TrpMenuBar {
 	MenuItem proxySettingsMenuItem;
 	MenuItem createThumbsMenuItem;
 	
+//	Menu testMenu;
+	MenuItem testMenuItem;
+	MenuItem sortBaselinePtsItem;
+	
 	Menu languageMenu;
 	MenuItem languageMenuItem;
 	
@@ -130,6 +134,12 @@ public class TrpMenuBar {
 		loadTestsetMenuItem = new MenuItem(fileMenu, SWT.PUSH);
 		loadTestsetMenuItem.setText("Load &testset");
 		
+//		testMenuItem = new MenuItem(fileMenu, SWT.CASCADE);
+//		sortBaselinePtsItem = new MenuItem(testMenuItem, 0);
+//		sortBaselinePtsItem.setText("Sort baseline pts of selected );
+		
+		
+		
 		// VIEW MENU:
 //		viewMenuItem = new MenuItem(menuBar, SWT.CASCADE);
 //		viewMenuItem.setText("&View");
@@ -205,7 +215,6 @@ public class TrpMenuBar {
 			if (l.equals(TrpConfig.getTrpSettings().getLocale()))
 				li.setSelection(true);
 		}
-		
 		
 		manageCollectionsMenuItem = new MenuItem(menuBar, SWT.NONE);
 		manageCollectionsMenuItem.setText("Manage collections...");
