@@ -155,7 +155,7 @@ public class TextRecognitionDialog extends Dialog {
 		dictCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		dictCombo.setItems(new String[]{""});
 		
-		rnnItem = createCTabItem(htrTabFolder, rnnContainer, "Recurrent Neural Networks");
+		rnnItem = createCTabItem(htrTabFolder, rnnContainer, "Recurrent Neural Networks (Beta)");
 		
 		htrTabFolder.setSelection(hmmItem);
 		htrItem = createCTabItem(tabFolder, htrTabFolder, "HTR");
