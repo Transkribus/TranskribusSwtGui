@@ -1,6 +1,8 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.Bullet;
@@ -17,6 +19,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
@@ -27,6 +31,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.LabeledText;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
@@ -51,7 +56,9 @@ public class DebuggerDialog extends Dialog {
 	
 	public StyledText debugText;
 	
-//	public Button sortBaselinePts;
+	public Button sortBaselinePts;
+	public LabeledText sortXText, sortYText;
+	public Button sortBaselineAllRegionsBtn;
 	
 
 	/**
@@ -76,8 +83,24 @@ public class DebuggerDialog extends Dialog {
 		invalidateSessionBtn = new Button(shell, SWT.PUSH);
 		invalidateSessionBtn.setText("Invalidate session");
 		
-//		sortBaselinePts = new Button(shell, SWT.PUSH);
-//		sortBaselinePts.setText("sort baseline pts");
+		new Label(shell, 0);
+		
+		Group sortBaselinePtsGroup = new Group(shell, 0);
+		sortBaselinePtsGroup.setText("Sort baseline pts");
+		
+		sortBaselinePtsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		
+		sortBaselinePtsGroup.setLayout(new GridLayout(3, false));
+		sortXText = new LabeledText(sortBaselinePtsGroup, "X = ");
+		sortXText.text.setText("1");
+		sortYText = new LabeledText(sortBaselinePtsGroup, "Y = ");
+		sortYText.text.setText("0");
+		sortBaselineAllRegionsBtn = new Button(sortBaselinePtsGroup, SWT.CHECK);
+		sortBaselineAllRegionsBtn.setSelection(true);
+		sortBaselineAllRegionsBtn.setText("All regions");
+		
+		sortBaselinePts = new Button(sortBaselinePtsGroup, SWT.PUSH);
+		sortBaselinePts.setText("Sort!");
 		
 //		new Label(shell, SWT.NONE);
 		
@@ -139,36 +162,16 @@ public class DebuggerDialog extends Dialog {
 						logger.debug("invalidating session...");
 						storage.invalidateSession();
 					}
-//					if (e.widget == sortBaselinePts) {
-//						// TODO
-//						ICanvasShape s = canvas.getFirstSelected();
-//						if (s != null && s.getData() instanceof TrpTextRegionType) {
-//							TrpTextRegionType r = (TrpTextRegionType) s.getData();
-//							for (TextLineType l : r.getTextLine()) {
-//								TrpTextLineType tl = (TrpTextLineType) l;
-//								if (tl.getBaseline() != null) {
-//									ICanvasShape bls = canvas.getScene().findShapeWithData(tl);
-//									if (bls instanceof CanvasPolyline) {
-//										CanvasPolyline pl = (CanvasPolyline) bls;
-//
-//										int x = (int) s.getBounds().getWidth();
-//										int y = 0;
-//
-//										pl.sortPoints(x, y);
-//
-//									}
-//								}
-//
-//							}
-//						}
-//					}
-				} catch (Exception ex) {
+					if (e.widget == sortBaselinePts) {
+						sortBaselinePts();
+					}
+				} catch (Throwable ex) {
 					mw.onError("An error occured", ex.getMessage(), ex);
 				}
 			}
 		};
 		invalidateSessionBtn.addSelectionListener(selectionAdapter);
-//		sortBaselinePts.addSelectionListener(selectionAdapter);
+		sortBaselinePts.addSelectionListener(selectionAdapter);
 		
 		if (processUploadedZipFileBtn != null) {
 			processUploadedZipFileBtn.addSelectionListener(new SelectionAdapter() {		
@@ -194,6 +197,47 @@ public class DebuggerDialog extends Dialog {
 				}
 			}
 		});
+	}
+	
+	void sortBaselinePts() {
+		int x = 1; int y = 0;
+		try {
+			x = Integer.parseInt(sortXText.getText());
+		} catch (Exception ex) {
+		}
+		try {
+			y = Integer.parseInt(sortYText.getText());
+		} catch (Exception ex) {
+		}						
+		
+		List<TrpTextRegionType> regions = new ArrayList<>();
+		if (sortBaselineAllRegionsBtn.getSelection()) {
+			regions.addAll(storage.getTranscript().getPage().getTextRegions(false));
+		} else {
+			ICanvasShape s = canvas.getFirstSelected();
+			if (s != null && s.getData() instanceof TrpTextRegionType) {
+				regions.add((TrpTextRegionType) s.getData());
+			}
+		}
+		
+		logger.debug("sorting baseline pts, x = "+x+" y = "+y+" nregions = "+regions.size());
+		
+		for (TrpTextRegionType r : regions) {
+			for (TextLineType l : r.getTextLine()) {
+				logger.debug("sorting baseline pts for line: "+l);
+				TrpTextLineType tl = (TrpTextLineType) l;
+				if (tl.getBaseline() != null) {
+					ICanvasShape bls = canvas.getScene().findShapeWithData(tl.getBaseline());
+//					logger.debug("bls = "+bls);
+					if (bls instanceof CanvasPolyline) {
+						logger.debug("sorting baseline pts!");
+						CanvasPolyline pl = (CanvasPolyline) bls;
+						pl.sortPoints(x, y);
+					}
+				}
+			}
+		}
+		mw.getCanvas().redraw();
 	}
 
 	/**
