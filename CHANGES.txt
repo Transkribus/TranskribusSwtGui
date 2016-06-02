@@ -327,6 +327,19 @@ CHANGES AND BUGFIXES
 	-> swapped horizontal / vertical splitting semantic
 	-> split parent line too if splitting baselines
 	-> bugfix: group 4 compressed local images were displayed blank white
+	-> Collection manager usability: document search possibility, load collections with double click,...
+	-> Comments tool rearranged
+	-> Document Table: mouse over shows complete document info 
+	-> edit of virtual keyboard chars in gui saves back to virtualKeyboards.xml
+	-> tei tags for Person, Place and Organization changed to "persName", "placeName" and "orgName"
+	-> new tei tag "add" for addition
+	-> tei export option: tag lines via <l>...</l> or <lb/> tag
+
+0.8.4:
+	-> gamma correction
+	-> tif bug on windows fix
+	-> Transcription and Segmentation profiles added
+	-> createThumbs for local docs flag (configure via Menu -> File -> Create thumbs when opening local folder)
 	
 	
 	

@@ -139,13 +139,21 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 					PageResult<T> res = (PageResult<T>) pageableTable.getPageLoader().loadPage(c1);
 					
 //					PageResult<T> res = PagingUtils.loadPage(methods, c);
-					items = res.getContent();
+					
+					c.setCurrentPage(i);
+					items = (List<T>) pageableTable.getViewer().getInput();
+					
+					//items = res.getContent();
+					//
+
 					item = findItem(items, propertyName, value);
 					
 					if (item != null) {
 						logger.debug("found item in page "+i);
-						c.setCurrentPage(i);
+						logger.debug("item found "+ item);
+						
 						selectElement(item);
+						
 						return;
 					}
 				}
@@ -312,6 +320,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	
 	public List<T> getSelected() {
 		return ((IStructuredSelection) tv.getSelection()).toList();
+	}
+	
+	public IStructuredSelection getSelectedAsIStructuredSelection() {
+		return ((IStructuredSelection) tv.getSelection());
 	}
 	
 	protected abstract void createColumns();

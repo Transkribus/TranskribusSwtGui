@@ -105,7 +105,9 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 			collectionFilterText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			collectionFilterText.addModifyListener(new ModifyListener() {
 				@Override public void modifyText(ModifyEvent e) {
-					collectionComboViewer.refresh();				
+					collectionComboViewer.refresh();
+					//show all filtered results in the combo viewer during typing in the filter text
+					collectionComboViewer.getCombo().setListVisible(true);
 				}
 			});
 			collectionFilterText.addTraverseListener(new TraverseListener() {
@@ -116,7 +118,7 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 			});
 		}
 				
-		collectionCombo = new Combo(this, SWT.READ_ONLY);
+		collectionCombo = new Combo(this, SWT.READ_ONLY | SWT.DROP_DOWN);
 		collectionCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		collectionComboViewer = new ComboViewer(collectionCombo);
 				

@@ -5,6 +5,7 @@ import java.util.List;
 import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -132,6 +133,15 @@ public class FindUsersWidget extends Composite {
 		IStructuredSelection sel = (IStructuredSelection) usersTv.getSelection();
 		return sel.toList();	
 	}
+	
+	public IStructuredSelection getSelectedUsersAsStructuredSelection() {
+		IStructuredSelection sel = (IStructuredSelection) usersTv.getSelection();
+		return sel;	
+	}
+	
+	public void setSelectedUsers(IStructuredSelection users) {
+		usersTv.setSelection(users);	
+	}
 		
 	public MyTableViewer getUsersTableViewer() {
 		return usersTv;
@@ -153,5 +163,6 @@ public class FindUsersWidget extends Composite {
 	public void setUsers(List<TrpUser> users) {
 		usersTv.setInput(users);
 	}
+
 	
 }

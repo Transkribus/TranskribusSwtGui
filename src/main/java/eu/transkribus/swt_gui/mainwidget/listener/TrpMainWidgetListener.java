@@ -50,6 +50,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		menuBar.getLoadTestsetMenuItem().addSelectionListener(this);
 		menuBar.getOpenMenuItem().addSelectionListener(this);
 		menuBar.getOpenLocalPageFileItem().addSelectionListener(this);
+		menuBar.getUploadImagesFromPdfFileItem().addSelectionListener(this);
 		menuBar.getManageCollectionsMenuItem().addSelectionListener(this);
 		menuBar.getSyncWordsWithLinesMenuItem().addSelectionListener(this);
 		menuBar.getSaveTranscriptionToNewFileMenuItem().addSelectionListener(this);
@@ -114,6 +115,9 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		}
 		else if (s == menuBar.getOpenLocalPageFileItem()) {
 			mainWidget.loadLocalPageXmlFile();
+		}
+		else if (s == menuBar.getUploadImagesFromPdfFileItem()) {
+			mainWidget.uploadDocuments();
 		}
 		
 		else if (s == menuBar.getManageCollectionsMenuItem()) {

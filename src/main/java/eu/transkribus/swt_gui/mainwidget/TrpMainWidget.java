@@ -85,17 +85,16 @@ import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.docx.DocxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
-import eu.transkribus.core.model.builder.tei.TeiExportMode;
+import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
-import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
-import eu.transkribus.swt_canvas.util.CreateThumbsThread;
+import eu.transkribus.swt_canvas.util.CreateThumbsService;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LoginDialog;
@@ -207,6 +206,12 @@ public class TrpMainWidget {
 	
 	DebuggerDialog debugDiag;
 	public static DocMetadataEditor docMetadataEditor;
+	
+	private Runnable updateThumbsRunnable = new Runnable() {
+		@Override public void run() {
+			ui.thumbnailWidget.reload();
+		}
+	};
 	
 	private TrpMainWidget(Composite parent) {
 		// GlobalResourceManager.init();
@@ -561,6 +566,9 @@ public class TrpMainWidget {
 					event.doit = false;
 					return;
 				}
+				
+				logger.debug("stopping CreateThumbsService");
+				CreateThumbsService.stop(true);
 				
 				System.exit(0);
 //				storage.finalize();
@@ -1309,6 +1317,7 @@ public class TrpMainWidget {
 			return false;
 
 		try {
+			logger.info("loading page: "+storage.getPage());
 			clearCurrentPage();
 
 			final int colId = storage.getCurrentDocumentCollectionId();
@@ -1351,21 +1360,18 @@ public class TrpMainWidget {
 			updatePageInfo();
 		}
 	}
+	
+	public void createThumbForCurrentPage() {
+		// generate thumb for loaded page if local doc:
+		if (storage.isLocalDoc() && storage.getPage() != null && storage.getCurrentImage() != null) {
+			CreateThumbsService.createThumbs(storage.getPage(), storage.getCurrentImage().img, false, updateThumbsRunnable);
+		}
+	}
 
 	public void updateThumbs() {
-		SebisStopWatch sw = new SebisStopWatch("updateThumbs");
-		sw.start();
-		logger.debug("updating thumbs");
-		// if (!storage.isDocLoaded())
-		// return;
-
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override public void run() {
-				ui.thumbnailWidget.reload();
-			}
-		});
-		sw.stop(false);
-		logger.debug("finished updating thumbs");
+		logger.trace("updating thumbs");
+		
+		Display.getDefault().asyncExec(updateThumbsRunnable); // asyncExec needed??
 
 		// try {
 		// ui.thumbnailWidget.setUrls(storage.getDoc().getThumbUrls(),
@@ -1373,7 +1379,6 @@ public class TrpMainWidget {
 		// } catch (Exception e) {
 		// onError("Error loading thumbnails", e.getMessage(), e);
 		// }
-
 	}
 
 	private void clearCurrentPage() {
@@ -1408,10 +1413,10 @@ public class TrpMainWidget {
 		}
 
 		// LOAD STRUCT ELEMENTS FROM TRANSCRIPTS
-		try {
+		try {			
 			// save transcript if edited:
 			// clearTranscriptFromView();
-			logger.debug("reloading transcript: " + storage.getTranscript().getMd() + " tryLocalReload: " + tryLocalReload);
+			logger.info("loading transcript: " + storage.getTranscript().getMd() + " tryLocalReload: " + tryLocalReload);
 			canvas.getScene().selectObject(null, true, false); // security
 																// measure due
 																// to mysterious
@@ -1653,12 +1658,9 @@ public class TrpMainWidget {
 		try {
 			storage.loadLocalDoc(folder);
 
-			CreateThumbsThread ctt = new CreateThumbsThread(storage.getDoc()) {
-				@Override protected void onFinished() {
-					updateThumbs();
-				}
-			};
-			ctt.start();
+			if (getTrpSets().isCreateThumbs()) {
+				CreateThumbsService.createThumbs(storage.getDoc(), false, updateThumbsRunnable);
+			}
 
 			storage.setCurrentPage(pageIndex);
 			reloadCurrentPage(true);
@@ -2059,8 +2061,30 @@ public class TrpMainWidget {
 //				// TODO Auto-generated catch block
 //				throw eo;
 //			}
+			// extract images from pdf and upload extracted images
+			} else if (ud.isUploadFromPdf()) {
+				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + ud.getFolder());
+				logger.debug("ingest into collection: " + cId+" viaFtp: "+ud.isSingleUploadViaFtp());
+				String type = ud.isSingleUploadViaFtp() ? "FTP" : "HTTP";
 
-
+				// final int colId =
+				// storage.getCollectionId(ui.getDocOverviewWidget().getSelectedCollectionIndex());
+				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+					@Override public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						try {
+							// storage.uploadDocument(4, ud.getFolder(),
+							// ud.getTitle(), monitor);// TEST
+							boolean uploadViaFTP = ud.isSingleUploadViaFtp();
+							logger.debug("uploadViaFTP = "+uploadViaFTP);
+							storage.uploadDocument(cId, ud.getFolder(), ud.getTitle(), monitor);
+							if (!monitor.isCanceled())
+								displaySuccessMessage("Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
+						} catch (Exception e) {
+							throw new InvocationTargetException(e);
+						}
+					}
+				}, "Uploading via "+type, true);
+				
 			} else { // private ftp ingest
 				final List<TrpDocDir> dirs = ud.getDocDirs();
 				if(dirs == null || dirs.isEmpty()){
@@ -2444,8 +2468,16 @@ public class TrpMainWidget {
 			}
 
 			if (doTeiExport) {
-					
-				exportTei(teiExportFile, exportDiag.getTeiExportMode(), wordBased, doBlackening, pageIndices, selectedTags);
+				
+				TeiExportPars pars = new TeiExportPars();
+				pars.mode = exportDiag.getTeiExportMode();
+				pars.linebreakMode = exportDiag.getTeiLinebreakMode();
+				pars.writeTextOnWordLevel = wordBased;
+				pars.doBlackening = doBlackening;
+				pars.pageIndices = pageIndices;
+				pars.selectedTags = selectedTags;
+
+				exportTei(teiExportFile, pars);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -2803,21 +2835,21 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	public void exportTei(final File file, final TeiExportMode mode, final boolean writeTextOnWordLevel, final boolean doBlackening, final Set<Integer> pageIndices, final Set<String> selectedTags) throws Throwable {
+	public void exportTei(final File file, final TeiExportPars pars) throws Throwable {
 		try {
 
 			if (file == null)
 				return;
 
-			logger.info("TEI export. Mode = " + mode);
+			logger.info("TEI export. Mode = " + pars.mode);
 
 			lastExportFolder = file.getParentFile().getAbsolutePath();
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						logger.debug("creating TEI document, mode = "+mode+" writeTextOnWordLevel = "+writeTextOnWordLevel+" doBlackening = "+doBlackening);
+						logger.debug("creating TEI document, pars: "+pars);
 
-						storage.exportTei(file, mode, writeTextOnWordLevel, doBlackening, monitor, pageIndices, selectedTags);
+						storage.exportTei(file, pars, monitor);
 						monitor.done();
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
@@ -3100,13 +3132,8 @@ public class TrpMainWidget {
 				return;
 
 			TrpDoc localDoc = LocalDocReader.load(fn);
-			// create thumbs for this doc:
-			CreateThumbsThread ctt = new CreateThumbsThread(localDoc) {
-				@Override protected void onFinished() {
-					updateThumbs();
-				}
-			};
-			ctt.start();
+			// create thumbs for this doc:			
+			CreateThumbsService.createThumbs(localDoc, false, updateThumbsRunnable);
 
 			final DocSyncDialog d = new DocSyncDialog(getShell(), storage.getDoc(), localDoc);
 			if (d.open() != Dialog.OK) {

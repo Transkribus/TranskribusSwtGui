@@ -26,9 +26,15 @@ public class TrpMenuBar {
 	MenuItem saveTranscriptionMenuItem;
 	MenuItem openMenuItem;
 	MenuItem openLocalPageFileItem;
+	MenuItem uploadImagesFromPdfFileItem;
 	MenuItem manageCollectionsMenuItem;
 	MenuItem syncWordsWithLinesMenuItem;
 	MenuItem proxySettingsMenuItem;
+	MenuItem createThumbsMenuItem;
+	
+//	Menu testMenu;
+	MenuItem testMenuItem;
+	MenuItem sortBaselinePtsItem;
 	
 	Menu languageMenu;
 	MenuItem languageMenuItem;
@@ -118,12 +124,25 @@ public class TrpMenuBar {
 		openLocalPageFileItem = new MenuItem(fileMenu, 0);
 		openLocalPageFileItem.setImage(null);
 		openLocalPageFileItem.setText("Open local page file for current page");
+		
+		createThumbsMenuItem = new MenuItem(fileMenu, SWT.CHECK);
+		createThumbsMenuItem.setImage(null);
+		createThumbsMenuItem.setText("Create thumbs when opening local folder");
 				
+		uploadImagesFromPdfFileItem = new MenuItem(fileMenu, 0);
+		uploadImagesFromPdfFileItem.setText("Upload images from pdf file");
+		
 		syncWordsWithLinesMenuItem = new MenuItem(fileMenu, SWT.NONE);
 		syncWordsWithLinesMenuItem.setText("Sync word transcription with text in lines");
 		
 		loadTestsetMenuItem = new MenuItem(fileMenu, SWT.PUSH);
 		loadTestsetMenuItem.setText("Load &testset");
+		
+//		testMenuItem = new MenuItem(fileMenu, SWT.CASCADE);
+//		sortBaselinePtsItem = new MenuItem(testMenuItem, 0);
+//		sortBaselinePtsItem.setText("Sort baseline pts of selected );
+		
+		
 		
 		// VIEW MENU:
 //		viewMenuItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -201,7 +220,6 @@ public class TrpMenuBar {
 				li.setSelection(true);
 		}
 		
-		
 		manageCollectionsMenuItem = new MenuItem(menuBar, SWT.NONE);
 		manageCollectionsMenuItem.setText("Manage collections...");
 		
@@ -245,6 +263,7 @@ public class TrpMenuBar {
 		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, viewSets, showLinesMenuItem);
 		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, viewSets, showBaselinesMenuItem);
 		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, viewSets, showWordsMenuItem);
+		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.CREATE_THUMBS_PROPERTY, viewSets, createThumbsMenuItem);
 	}
 	
 //	public MenuItem getDrawSelectedCornerNumbersMenuItem() {
@@ -295,6 +314,10 @@ public class TrpMenuBar {
 	
 	public MenuItem getOpenLocalPageFileItem() {
 		return openLocalPageFileItem;
+	}
+	
+	public MenuItem getUploadImagesFromPdfFileItem() {
+		return uploadImagesFromPdfFileItem;
 	}
 	
 	public MenuItem getManageCollectionsMenuItem() {

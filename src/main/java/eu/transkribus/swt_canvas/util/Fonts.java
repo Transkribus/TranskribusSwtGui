@@ -266,8 +266,6 @@ public class Fonts {
 		return rise;
 	}
 	
-
-	
 	public static void main(String[] args) {
 		SebisStopWatch sw = new SebisStopWatch();
 		
@@ -276,9 +274,12 @@ public class Fonts {
 		sw.stop();
 		
 		
+		
 		sw.start();
 		java.awt.Font awtFont = Fonts.toAwtFont(Display.getDefault(), font.getFontData()[0], false);
 		sw.stop();
+		
+		
 		
 		sw.start();
 		int i = awtFont.canDisplayUpTo("asdkjfla kajdlfj kljalsdf asdf asdfasdf adf asdfasdf asdfasdf asdf asdf"

@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.vkeyboards;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -19,6 +20,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_gui.dialogs.MultilineInputDialog;
 
@@ -59,21 +61,32 @@ public class TrpVirtualKeyboardsWidget extends Composite {
 				final VirtualKeyboard vk = tabWidget.getSelected();
 				if (vk == null)
 					return;
+				
+				final String tabName = getSelectedTabName();
 								
-				InputDialog dlg = new MultilineInputDialog(getShell(), "Edit characters of '"+getSelectedTabName()+"' table", 
+//				String unicodeStr = vk.getPrintableUnicodeRange();
+				String unicodeStr = vk.getUnicodeHexRange();
+				InputDialog dlg = new MultilineInputDialog(getShell(), "Edit characters of '"+tabName+"' table", 
 						"Enter unicode character string, i.e.:"
 						+ "\n\t- Provide a unicode code directly (U+XXXX)"
 						+ "\n\t- Provide a valid unicode code range (U+XXXX-U+YYYY)"
 						+ "\n\t- Copy and paste some characters into the text field."
-						+ "\nNote: Unicode codes and ranges have to be separated by whitespaces or new lines", vk.getUnicodeHexRange(), null);
+						+ "\nNote: Unicode codes and ranges have to be separated by whitespaces or new lines", unicodeStr, null);
 				
-				if (dlg.open()==Window.OK) {
+				if (dlg.open()==Window.OK) {					
 					// TODO: set input of dialog!
 					String value = dlg.getValue();
 					logger.info("value = "+value);
 					
 					vk.reload(value);
 					vk.pack();
+
+					try {
+						tabWidget.setConfProperrty(tabName, value, true);
+					} catch (ConfigurationException e1) {
+						DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not save virtual keyboard:\n\n"+e1.getMessage());
+						logger.error(e1.getMessage(), e1);
+					}
 				}
 			}
 		});

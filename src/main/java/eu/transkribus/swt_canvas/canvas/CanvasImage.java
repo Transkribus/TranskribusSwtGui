@@ -2,16 +2,18 @@ package eu.transkribus.swt_canvas.canvas;
 
 import java.net.URL;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt_canvas.util.CanvasTransform;
 import eu.transkribus.swt_canvas.util.ImgLoader;
-
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 
 final public class CanvasImage {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasImage.class);
@@ -21,15 +23,23 @@ final public class CanvasImage {
 	
 	public URL url;
 	public Image img;
+	public Image imgBackup;
+//	public Image img;
+	
 	public int width;
 	public int height;
 	public long nPixels;
 	
 	public Float internalScalingFactor=null;
 	
+	public double gamma=1.0f;
+	
 	public CanvasImage(URL url) throws Exception {
 		this.url = url;
 		Image imgIn = ImgLoader.load(url);
+		
+		logger.debug("loaded image from "+url.toString()+" depth = "+imgIn.getImageData().depth);
+		
 		if (imgIn==null)
 			throw new Exception("Could not load image: "+url);
 		
@@ -55,6 +65,7 @@ final public class CanvasImage {
 			
 			gc.setTransform(scaleTr);
 			gc.drawImage(imgIn, 0, 0);
+			
 			gc.dispose();
 			scaleTr.dispose();
 			
@@ -64,11 +75,50 @@ final public class CanvasImage {
 		else {
 			this.img = imgIn;
 		}
+		
+		backup();
+	}
+	
+	private void backup() {
+		if (img != null && !img.isDisposed()) {
+			SWTUtil.dispose(imgBackup);
+			this.imgBackup = new Image(img.getDevice(), img, SWT.IMAGE_COPY);
+		}
+	}
+	
+	public void revert() {
+		if (imgBackup != null && !imgBackup.isDisposed()) {
+			SWTUtil.dispose(img);
+			this.img = new Image(imgBackup.getDevice(), imgBackup, SWT.IMAGE_COPY);
+		}
+	}
+	
+	public void applyGamma(double gamma) {
+		if (SWTUtil.isDisposed(img) || SWTUtil.isDisposed(imgBackup)) {
+			return;
+		}
+		
+		if (false) { // in-place gamma correction doesn't work, no clue why... 
+			logger.debug("this.gamma = "+this.gamma);	
+			double scaledGamma = gamma / this.gamma;
+			logger.debug("scaledGamma = "+scaledGamma);
+			SWTUtil.multScalar(img.getImageData(), scaledGamma, true);	
+		} else {
+			logger.debug("gamma = "+gamma);
+			ImageData d = SWTUtil.multScalar(imgBackup.getImageData(), gamma, false);
+			SWTUtil.dispose(img);
+			img = new Image(Display.getDefault(), d);
+		}
+		
+		this.gamma = gamma;
 	}
 	
 	public void dispose() {
-		if (img!=null && !img.isDisposed())
-			img.dispose();
+		SWTUtil.dispose(img);
+		SWTUtil.dispose(imgBackup);
+		
+//		if (img!=null && !img.isDisposed())
+//			img.dispose();
 	}
 	
 	public boolean isDisposed() {
@@ -81,12 +131,17 @@ final public class CanvasImage {
 				CanvasTransform myT = canvas.getTransformCopy();
 				myT.scale(1.0f/internalScalingFactor, 1.0f/internalScalingFactor); // revert internal scaling!
 				gc.setTransform(myT);
+				
+//				gc.setF
+				
 				gc.drawImage(img, 0, 0);
 				gc.setTransform(canvas.getPersistentTransform());
 				myT.dispose();
 			}
 			else if (img != null && !img.isDisposed())
 				gc.drawImage(img, 0, 0);
+//			img.getImageData().depth
+			
 		}
 		catch (Throwable e) {
 			e.printStackTrace();

@@ -28,6 +28,8 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
+		
+		logger.debug("get source of property: " + evt.getSource());
 		logger.debug(evt.getPropertyName() + " property changed, new value: " + evt.getNewValue());
 		String pn = evt.getPropertyName();
 
@@ -53,6 +55,33 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 		else if (pn.equals(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY)) {
 			ui.getPortalWidget().setWidgetDockingType(Position.BOTTOM, (Docking) evt.getNewValue());
 		}
+		
+		else if (pn.equals(TrpSettings.NEW_WEIGHTS_FOR_VERTICAL_TOP_LEVEL)) {
+			ui.getPortalWidget().setNewSashFormVerticalTopLevelWeights((int[]) evt.getNewValue());
+		}
+		
+		else if (pn.equals(TrpSettings.LEFT_TAB_SELECTION_ID)){
+			ui.selectLeftTab((int) evt.getNewValue());
+		}
+		else if (pn.equals(TrpSettings.RIGHT_TAB_SELECTION_ID)){
+			ui.selectRightTab((int) evt.getNewValue());
+		}
+		else if (pn.equals(TrpSettings.IMG_FIT_TO)){
+			String howtoFit = (String) evt.getNewValue();
+			if (howtoFit.equals("page")){
+				mainWidget.getCanvas().fitToPage();
+			}
+			else if (howtoFit.equals("width")){
+				mainWidget.getCanvas().fitWidth();
+			}
+			else if (howtoFit.equals("height")){
+				mainWidget.getCanvas().fitHeight();
+			}
+			else{
+				mainWidget.getCanvas().fitWidth();
+			}
+		}
+		
 		
 		
 		

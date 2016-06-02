@@ -9,6 +9,8 @@ import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Listener;
+import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -221,6 +223,25 @@ public class TrpMainWidgetView extends Composite {
 		if (true) {
 		leftTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.BORDER | SWT.FLAT);
 		leftTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		leftTabFolder.setMinimizeVisible(true);
+//		leftTabFolder.addCTabFolder2Listener(new CTabFolder2Listener() {
+//			
+//			@Override public void showList(CTabFolderEvent event) {
+//			}
+//			
+//			@Override public void restore(CTabFolderEvent event) {
+//			}
+//			
+//			@Override public void minimize(CTabFolderEvent event) {
+//				leftTabFolder.setMinimized(true);
+//			}
+//			
+//			@Override public void maximize(CTabFolderEvent event) {
+//			}
+//			
+//			@Override public void close(CTabFolderEvent event) {
+//			}
+//		});
 		
 		docOverviewWidget = new DocOverviewWidget(leftTabFolder);
 		structureTreeWidget = new StructureTreeWidget(leftTabFolder);
@@ -299,6 +320,8 @@ public class TrpMainWidgetView extends Composite {
 		portalWidget.setMinWidth(Position.CENTER, 400);
 		portalWidget.setMinWidth(Position.BOTTOM, 400);
 		portalWidget.setMinWidth(Position.RIGHT, 300);
+		
+		
 		
 		portalWidget.setMinHeight(Position.RIGHT, rightTabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		
@@ -384,6 +407,28 @@ public class TrpMainWidgetView extends Composite {
 	
 	public void selectJobListTab() {
 		leftTabFolder.setSelection(jobOverviewItem);
+	}
+	
+	public void selectMetadataTab(){
+		rightTabFolder.setSelection(metadataItem);
+	}
+	
+	public void selectToolsTab() {
+		rightTabFolder.setSelection(laItem);
+	}
+	
+	public void selectLeftTab(int idx){
+		if (idx < 0 || idx >= leftTabFolder.getItemCount()){
+			idx = 0;
+		}
+		leftTabFolder.setSelection(idx);
+	}
+	
+	public void selectRightTab(int idx){
+		if (idx < 0 || idx >= rightTabFolder.getItemCount()){
+			idx = 0;
+		}
+		rightTabFolder.setSelection(idx);
 	}
 	
 	public void setStatusMessage(String text, int time) {

@@ -23,6 +23,7 @@ import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
+import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.HtrRecMode;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.RecMode;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -48,7 +49,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		tw.blockSegBtn.addSelectionListener(this);
 //		blockSegWPsBtn.addSelectionListener(this);
 		tw.lineSegBtn.addSelectionListener(this);
-//		wordSegBtn.addSelectionListener(this);
+		tw.wordSegBtn.addSelectionListener(this);
 		tw.baselineBtn.addSelectionListener(this);
 		tw.structAnalysisPageBtn.addSelectionListener(this);
 		tw.startRecogBtn.addSelectionListener(this);
@@ -135,11 +136,11 @@ public class ToolsWidgetListener implements SelectionListener {
 				List<String> rids = getSelectedRegionIds();
 				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
 			} 
-//			else if(s == lw.getWordsBtn()) {
-//				logger.info("Get new word seg.");
-//				List<String> rids = getSelectedRegionIds();
-//				jobId = store.analyzeWords(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-//			} 
+			else if(s == tw.getWordsBtn()) {
+				logger.info("Get new word seg.");
+				List<String> rids = getSelectedRegionIds();
+				jobId = store.analyzeWords(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+			} 
 			else if(s == tw.getBaselineBtn()) {
 				logger.info("Get new Baselines.");
 				List<String> rids = getSelectedRegionIds();
@@ -182,19 +183,28 @@ public class ToolsWidgetListener implements SelectionListener {
 //				}
 				
 			} else if (s == tw.startRecogBtn) {
-				TextRecognitionDialog htrD = new TextRecognitionDialog(mw.getShell());
-				int ret = htrD.open();
-				final String pageStr = htrD.getSelectedPages();
+				TextRecognitionDialog trD = new TextRecognitionDialog(mw.getShell());
+				int ret = trD.open();
+				final String pageStr = trD.getSelectedPages();
 				if (ret == IDialogConstants.OK_ID) {
-					if(htrD.getRecMode().equals(RecMode.OCR)){
+					if(trD.getRecMode().equals(RecMode.OCR)){
 						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
 						jobId = store.runOcr(colId, docId, pageStr);
 					} else { //HTR
 						store.saveTranscript(colId, null);
 						store.setLatestTranscriptAsCurrent();
-						final HtrModel model = htrD.getSelectedHtrModel();
-						logger.info("starting HTR for doc " + docId + " on pages " + pageStr + " with model = " + model.getModelName());
-						jobId = store.runHtr(colId, docId, pageStr, model.getModelName());
+						if(trD.getHtrRecMode().equals(HtrRecMode.HMM)) {
+							final HtrModel model = trD.getSelectedHtrModel();
+							logger.info("starting HMM HTR for doc " + docId + " on pages " + pageStr + " with model = " + model.getModelName());
+							jobId = store.runHtr(colId, docId, pageStr, model.getModelName());
+						} else if(trD.getHtrRecMode().equals(HtrRecMode.RNN)){
+							final String netName = trD.getRnnName();
+							final String dictName = trD.getDictName();
+							logger.info("starting RNN HTR for doc " + docId + " on pages " + pageStr + " with net = " + netName + " | dict = " + dictName);
+							jobId = store.runRnnHtr(colId, docId, pageStr, netName, dictName);
+						} else {
+							DialogUtil.showErrorMessageBox(TrpMainWidget.getInstance().getShell(), "Info", "Result: 42");
+						}
 					}
 				}
 				

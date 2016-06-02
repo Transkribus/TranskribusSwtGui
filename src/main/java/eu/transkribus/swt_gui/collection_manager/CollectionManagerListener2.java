@@ -296,36 +296,41 @@ public class CollectionManagerListener2 extends AStorageObserver implements Sele
 	}
 	
 	void editSelectedUsersFromCollection() {
-		TrpCollection collection = cmw.getSelectedCollection();
-		if (store.isLoggedIn() && collection!=null) {
-			TrpServerConn conn = store.getConnection();
-			TrpRole r = cmw.getSelectedRole();
-			List<TrpUser> selected = cmw.getSelectedUsersInCollection();
-			
-			List<String> error = new ArrayList<>();
-			for (TrpUser u : selected) {
-				logger.debug("edit user: "+u+ " new role: "+r.toString());				
-				try {
-					conn.addOrModifyUserInCollection(collection.getColId(), u.getUserId(), r);
-					logger.info("edited user: "+u+ " new role: "+r.toString());		
-				} catch (Throwable e) {
-					logger.warn("Could not edit user: "+u+ " new role: "+r.toString());		
-					error.add(u.getUserName()+" - reason: "+e.getMessage());
+		//add dialog to check with the user
+		int a = DialogUtil.showYesNoDialog(cmw.getShell(), "Change user role", "Really change the role of the selected user?");
+		if (a == SWT.YES){
+	
+			TrpCollection collection = cmw.getSelectedCollection();
+			if (store.isLoggedIn() && collection!=null) {
+				TrpServerConn conn = store.getConnection();
+				TrpRole r = cmw.getSelectedRole();
+				List<TrpUser> selected = cmw.getSelectedUsersInCollection();
+				
+				List<String> error = new ArrayList<>();
+				for (TrpUser u : selected) {
+					logger.debug("edit user: "+u+ " new role: "+r.toString());				
+					try {
+						conn.addOrModifyUserInCollection(collection.getColId(), u.getUserId(), r);
+						logger.info("edited user: "+u+ " new role: "+r.toString());		
+					} catch (Throwable e) {
+						logger.warn("Could not edit user: "+u+ " new role: "+r.toString());		
+						error.add(u.getUserName()+" - reason: "+e.getMessage());
+					}
 				}
-			}
-			
-			if (!error.isEmpty()) {
-				String msg = "Could not edit the following user:\n";
-				for (String u : error) {
-					msg += u + "\n";
+				
+				if (!error.isEmpty()) {
+					String msg = "Could not edit the following user:\n";
+					for (String u : error) {
+						msg += u + "\n";
+					}
+								
+					mw.onError("Error editing user", msg, null);
+				} else {
+					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully edited user ("+selected.size()+")");
 				}
-							
-				mw.onError("Error editing user", msg, null);
-			} else {
-				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully edited user ("+selected.size()+")");
+				
+				cmw.updateUsersForSelectedCollection();
 			}
-			
-			cmw.updateUsersForSelectedCollection();
 		}
 	}
 	

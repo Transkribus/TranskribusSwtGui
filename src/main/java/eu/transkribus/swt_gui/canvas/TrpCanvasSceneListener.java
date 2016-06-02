@@ -173,7 +173,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				((ITrpShapeType) e.getFirstShape().getData()).getPage().removeDeadLinks();
 				
 				//sort children: means create new reading order without the deleted shape
-				s.getParentShape().sortChildren(true);
+				if (s.getParentShape() != null)
+					s.getParentShape().sortChildren(true);
 			}
 			logger.debug("removed "+e.getFirstShape().getData() +" from JAXB");
 		
@@ -269,6 +270,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	private void processUndoMerge(ShapeEditOperation op) {
 		logger.debug("processUndoMerge");
 		try {
+			mainWidget.getTranscriptObserver().setActive(false);
+			
 			// reinsert data objects of all formerly removed shapes into the jaxb again: 
 			for (ICanvasShape s : op.getShapes()) {
 				ITrpShapeType st = GuiUtil.getTrpShape(s);
@@ -293,6 +296,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			mainWidget.onError("Error undoing", "Could not undo merge operation "+op.getDescription(), e);
+		} finally {
+			mainWidget.getTranscriptObserver().setActive(true);
 		}
 	}
 	
@@ -404,9 +409,21 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			ICanvasShape origShape = e.op.getFirstShape();
 			ITrpShapeType origShapeData = (ITrpShapeType) origShape.getData();
 			
+			Integer oldReadingOrder = -1;
+			if (origShapeData != null){
+				oldReadingOrder = origShapeData.getReadingOrder();
+			}
+			
+			
 			int indexOfOrigShape = -1;
 			if (origShapeData.getParentShape() != null)
 				indexOfOrigShape = origShapeData.getParentShape().getChildren(false).indexOf(origShapeData);
+			
+			
+			//for region types: otherwise the splitted elements got inserted at the end of the regions becuase they have not parent shape
+			if (indexOfOrigShape == -1 && oldReadingOrder != null){
+				indexOfOrigShape = oldReadingOrder;
+			}
 			
 			ICanvasShape s1 = e.op.getNewShapes().get(0);
 			ICanvasShape s2 = e.op.getNewShapes().get(1);
@@ -420,7 +437,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			
 			logger.debug("splitting - parents: "+s1.getParent()+"/"+s2.getParent());
 			
-			// add new elements to JAXB (first second, then first to ensure wright order):
+			logger.debug("INDEX OF ORIG SHAPE: "+ indexOfOrigShape);
+			
+			// add new elements to JAXB (first second, then first to ensure right order):
 			ITrpShapeType el2 = mainWidget.getShapeFactory().copyJAXBElementFromShapeAndData(s2, indexOfOrigShape);
 			s2.setData(el2);
 			
@@ -518,6 +537,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	@Override
 	public void onMerge(SceneEvent e) {
 		try {
+			mainWidget.getTranscriptObserver().setActive(false);
+			
 			ICanvasShape newShape = e.op.getNewShapes().get(0);
 			logger.debug("merged shape: "+newShape);
 						
@@ -532,9 +553,19 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				if (st==null)
 					throw new Exception("Could not extract the data from a merged shape - should not happen!");
 				
+				Integer oldReadingOrder = -1;
+				if (st != null){
+					oldReadingOrder = st.getReadingOrder();
+				}
+				
 				int index = -1;
 				if (st.getParentShape() != null)
 					index = st.getParentShape().getChildren(false).indexOf(st);
+				
+				//parent shape for region is null -> hence take ro of the smallest shape
+				if (index == -1 && oldReadingOrder != null){
+					index = oldReadingOrder;
+				}
 				
 				if (index < minIndex)
 					minIndex = index;
@@ -589,6 +620,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		} catch (Throwable th) {
 			e.stop = true;
 			mainWidget.onError("Error merging elements", "Could not merge elements", th);
+		} finally {
+			mainWidget.getTranscriptObserver().setActive(true);
+			
 		}
 	}	
 	

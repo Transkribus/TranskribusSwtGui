@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -27,7 +28,7 @@ import eu.transkribus.swt_canvas.util.Images;
 public class VirtualKeyboard extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(VirtualKeyboard.class);
 	
-	List<SelectionListener> selListener = new ArrayList<>(); 
+	List<SelectionListener> selListener = new ArrayList<>();
 	
 	/**
 	 * redirects selection events from buttons to internal listeners
@@ -61,9 +62,13 @@ public class VirtualKeyboard extends Composite {
 	Button addBtn;
 	
 	UnicodeList ul;
+	
+	java.awt.Font awtFont;
 		
 	public VirtualKeyboard(Composite parent, int style, UnicodeList ul) {
 		super(parent, style);
+		
+		awtFont = Fonts.toAwtFont(Display.getDefault(), getFont().getFontData()[0], false);
 		
 		this.ul = ul;
 				
@@ -71,6 +76,68 @@ public class VirtualKeyboard extends Composite {
 		        
         initButtons(ul.getChars());
 //        initInternalListener();
+	}
+	
+	/**
+	 * @deprecated not finished yet...
+	 */
+	public String getHexCodeOrChar(String unicodeString) {
+		unicodeString = unicodeString.toUpperCase();
+		
+		if (!unicodeString.matches(UnicodeList.UNICODE_VALUE_REGEX))
+			return unicodeString;
+		
+		try {
+			String t = StringUtils.removeStart(unicodeString, "U+");
+			logger.info("t = "+t);
+			char c = (char) Integer.parseInt(t, 16);
+			logger.info("c = "+c);
+			if (awtFont.canDisplay(c)) {
+				logger.info("1");
+				return ""+c;
+			}
+			else
+				return unicodeString;
+		} catch (Exception e) {
+			return unicodeString;
+		}
+		
+//		if (awtFont.canDisplayUpTo(unicodeString)==-1) {
+//			return ""+UnicodeList.toCharacter(unicodeString);
+//		} else {
+//			return unicodeString;
+//		}
+	}
+	
+	/**
+	 * @deprecated not finished yet
+	 */
+	public String getPrintableUnicodeRange() {
+		String hr = getUnicodeHexRange();
+		
+		hr = hr.toLowerCase();
+//		hr = hr.replaceAll("u\\+", "\\\\u");
+		
+		logger.info("hr = "+hr);
+		
+		String pr = "";
+		for (String r : hr.split(" ")) {
+			logger.info("r = "+r);
+			
+			if (r.contains("-")) {
+				String s[] = r.split("-");
+				if (s.length != 2)
+					continue;
+
+				pr += getHexCodeOrChar(s[0])+"-"+getHexCodeOrChar(s[1])+" ";
+				logger.info("pr = "+pr);
+			} else {
+				pr += getHexCodeOrChar(r)+" ";
+				
+				logger.info("pr = "+pr);
+			}
+		}
+		return pr.trim();
 	}
 	
 	public String getUnicodeHexRange() {

@@ -49,7 +49,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 		}
 		count++;
 		
-		logger.debug("kc = "+kc+", lastKc = "+lastKc+", count = "+count+", timeThresholdExceeded="+timeThresholdExceeded);
+		logger.trace("kc = "+kc+", lastKc = "+lastKc+", count = "+count+", timeThresholdExceeded="+timeThresholdExceeded);
 		
 		boolean isCtrlOrCommand = CanvasKeys.isCtrlOrCommandKeyDown(event.stateMask);
 		boolean isAlt = CanvasKeys.isAltKeyDown(event.stateMask);

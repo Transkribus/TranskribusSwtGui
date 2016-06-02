@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -48,6 +49,9 @@ public class TrpConfig {
 	public final static String PROFILE_SUFFIX = ".properties";
 	
 	public final static String DEFAULT_PROFILE_NAME = "default";
+	public final static String SEGMENTATION_PROFILE_NAME = "Segmentation";
+	public final static String TRANSCRIPTION_PROFILE_NAME = "Transcription";
+	
 	public final static List<String> PREDEFINED_PROFILES = new ArrayList<String>();
 	
 	public static Properties tips = new Properties();
@@ -83,6 +87,8 @@ public class TrpConfig {
 	static {
 		init();
 		PREDEFINED_PROFILES.add(DEFAULT_PROFILE_NAME);
+		PREDEFINED_PROFILES.add(SEGMENTATION_PROFILE_NAME);
+		PREDEFINED_PROFILES.add(TRANSCRIPTION_PROFILE_NAME);
 	}
 	
 	public static void init() {
@@ -274,17 +280,21 @@ public class TrpConfig {
 			profiles.add(StringUtils.removeEnd(fn, PROFILE_SUFFIX));			
 		}
 		
+		Collections.sort(profiles);
+		
 		return profiles;
 	}
 	
 	public static List<String> getPredefinedProfiles() {
-		List<String> profiles = new ArrayList<>();
-		for (String pn : getAvailableProfiles()) {
-			if (isPredefinedProfile(pn))
-				profiles.add(pn);
-		}
+		return PREDEFINED_PROFILES;
 		
-		return profiles;
+//		List<String> profiles = new ArrayList<>();
+//		for (String pn : getAvailableProfiles()) {
+//			if (isPredefinedProfile(pn))
+//				profiles.add(pn);
+//		}
+//		
+//		return profiles;
 	}
 	
 	public static List<String> getCustomProfiles() {

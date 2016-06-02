@@ -79,6 +79,13 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 				this.colName = colName;
 			}
 			
+			@Override
+			public String getToolTipText(Object element) {
+				
+				TrpDocMetadata docMd = (TrpDocMetadata) element;
+				return "ID=" + docMd.getDocId() + " / Title=" + docMd.getTitle() + " / N-Pages=" + docMd.getNrOfPages() + " / Uploader=" + docMd.getUploader() + " / Uploaded=" + docMd.getUploadTime().toString() + " / Collections=" + docMd.getColString();
+			}
+			
             @Override public String getText(Object element) {
             	try {
 					return BeanUtils.getSimpleProperty(element, colName);
@@ -162,5 +169,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		RemotePageLoader<TrpDocMetadata> pl = new RemotePageLoader<>(pageableTable.getController(), methods);
 		pageableTable.setPageLoader(pl);
 	}
+
+
 
 }

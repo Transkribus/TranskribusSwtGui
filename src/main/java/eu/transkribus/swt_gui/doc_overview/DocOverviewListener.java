@@ -1,16 +1,27 @@
 package eu.transkribus.swt_gui.doc_overview;
 
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
@@ -18,11 +29,12 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.swt_canvas.util.Fonts;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
-public class DocOverviewListener extends SelectionAdapter implements ISelectionChangedListener, IDoubleClickListener, KeyListener  {
+public class DocOverviewListener extends SelectionAdapter implements ISelectionChangedListener, IDoubleClickListener, KeyListener, MouseTrackListener {
 	private final static Logger logger = LoggerFactory.getLogger(DocOverviewListener.class);
 	
 	static TrpMainWidget mainWidget;
@@ -35,6 +47,8 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		this.mainWidget = mainWidget;
 		this.dow = mainWidget.getUi().getDocOverviewWidget();
 		this.docTableViewer = dow.getTableViewer();
+		
+		
 
 		attach();
 	}
@@ -42,6 +56,7 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 	public void detach() {
 		docTableViewer.removeSelectionChangedListener(this);
 		docTableViewer.removeDoubleClickListener(this);
+		docTableViewer.getTable().removeMouseTrackListener(this);
 		docTableViewer.getTable().removeKeyListener(this);
 //		docOverviewWidget.getDocMetadataEditor().getApplyBtn().removeSelectionListener(this);
 		dow.getOpenMetadataEditorBtn().removeSelectionListener(this);
@@ -64,6 +79,7 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 	public void attach() {
 		docTableViewer.addSelectionChangedListener(this);
 		docTableViewer.addDoubleClickListener(this);
+		docTableViewer.getTable().addMouseTrackListener(this);
 		docTableViewer.getTable().addKeyListener(this);
 //		docOverviewWidget.getDocMetadataEditor().getApplyBtn().addSelectionListener(this);
 		dow.getOpenMetadataEditorBtn().addSelectionListener(this);
@@ -197,6 +213,53 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 
 	@Override
 	public void keyReleased(KeyEvent e) {		
+	}
+
+	@Override
+	public void mouseEnter(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExit(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseHover(MouseEvent e) {
+////		System.out.println("mouse event hover on source : " + e.getSource()	);
+////		docTableViewer.getTable().getItem(new Point (e.x, e.y));
+//		
+//		TableViewer tv = dow.getDocTableWidget().getPageableTable().getViewer();
+////		ColumnViewerToolTipSupport.enableFor(tv);
+//		
+//		//tv.getLabelProvider();
+//		
+//		class MyDocTableColumnLabelProvider extends ColumnLabelProvider {
+//			
+//			@Override
+//			public String getToolTipText(Object element) {
+//				
+//				TrpDocMetadata docMd = (TrpDocMetadata) element;
+//				return "ID=" + docMd.getDocId() + " / Title=" + docMd.getTitle() + " / N-Pages=" + docMd.getNrOfPages() + " / Uploader=" + docMd.getUploader() + " / Uploaded=" + docMd.getUploadTime().toString() + " / Collections=" + docMd.getColString();
+//			}
+//
+//		}
+//		
+//
+//		MyDocTableColumnLabelProvider labelProvider = new MyDocTableColumnLabelProvider();
+//
+//	    tv.setLabelProvider(labelProvider);
+////		
+////		ViewerCell vc = tv.getCell(new Point(e.x, e.y));
+////		
+////		tv.getTable().getToolTipText();
+//		
+//		
+//		
+//		
 	}
 
 
