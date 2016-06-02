@@ -1,12 +1,13 @@
 package eu.transkribus.swt_canvas.canvas.shapes;
 
 import java.awt.Point;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import math.geom2d.Vector2D;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
 //import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
@@ -14,10 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.PointStrUtils;
-import eu.transkribus.swt_canvas.canvas.SWTCanvas;
-
-import org.eclipse.swt.graphics.GC;
-import org.junit.Assert;
+import math.geom2d.Vector2D;
 
 //public class CanvasPolyline extends ACanvasShape<java.awt.geom.GeneralPath> {
 public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
@@ -382,6 +380,29 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		awtShape.addPoint(x, y);
 		setChanged();
 		notifyObservers();
+	}
+	
+	/**
+	 * Sort points according to given direction vector (must *not* be normalized)
+	 */
+	public void sortPoints(int x, int y) {
+		logger.debug("sorting points according to direction vector x="+x+" y="+y);
+		Vector2D v = new Vector2D(x, y);
+		v = v.normalize();
+		
+		SortedMap<Double, Point> pointsMap = new TreeMap<>();
+		for (Point p : getPoints()) {			
+			Vector2D a = new Vector2D(p.getX(), p.getY());
+			double sp = a.dot(v);
+			pointsMap.put(sp, p);
+		}
+		
+		// reset points according to sorting in treemap
+		List<Point> pts = new ArrayList<>();
+		for (Point p : pointsMap.values()) {
+			pts.add(p);
+		}
+		setPoints(pts);
 	}
 
 

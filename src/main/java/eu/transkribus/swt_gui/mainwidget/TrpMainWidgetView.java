@@ -9,6 +9,8 @@ import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Listener;
+import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -221,6 +223,25 @@ public class TrpMainWidgetView extends Composite {
 		if (true) {
 		leftTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.BORDER | SWT.FLAT);
 		leftTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		leftTabFolder.setMinimizeVisible(true);
+//		leftTabFolder.addCTabFolder2Listener(new CTabFolder2Listener() {
+//			
+//			@Override public void showList(CTabFolderEvent event) {
+//			}
+//			
+//			@Override public void restore(CTabFolderEvent event) {
+//			}
+//			
+//			@Override public void minimize(CTabFolderEvent event) {
+//				leftTabFolder.setMinimized(true);
+//			}
+//			
+//			@Override public void maximize(CTabFolderEvent event) {
+//			}
+//			
+//			@Override public void close(CTabFolderEvent event) {
+//			}
+//		});
 		
 		docOverviewWidget = new DocOverviewWidget(leftTabFolder);
 		structureTreeWidget = new StructureTreeWidget(leftTabFolder);

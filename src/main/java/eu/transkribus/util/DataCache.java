@@ -1,6 +1,7 @@
 package eu.transkribus.util;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -41,7 +42,8 @@ public class DataCache<K, D> {
 	public final static int DEFAULT_SIZE=5;
 	private int size = DEFAULT_SIZE;
 	private DataCacheFactory<K, D> factory;
-	private ConcurrentHashMap<K, DataWrapper> elements = new ConcurrentHashMap<K, DataWrapper>();
+//	private ConcurrentHashMap<K, DataWrapper> elements = new ConcurrentHashMap<K, DataWrapper>();
+	private Map<K, DataWrapper> elements = new ConcurrentHashMap<K, DataWrapper>();
 	
 	private K doNotDelete = null; // key of the object that is always kept in memory
 	
