@@ -600,7 +600,7 @@ public class UploadDialogUltimate extends Dialog {
 		else if(isMetsUrlUpload && StringUtils.isEmpty(url)){
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please copy a valid url into the text field!");
 		}
-		else if((!isSingleDocUpload && !isMetsUrlUpload) && (selDocDirs == null || selDocDirs.isEmpty())) {
+		else if((!isSingleDocUpload && !isMetsUrlUpload && !isPdfUpload) && (selDocDirs == null || selDocDirs.isEmpty())) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select directories for ingesting.");
 		} 
 //		else if (!isSingleDocUpload) {

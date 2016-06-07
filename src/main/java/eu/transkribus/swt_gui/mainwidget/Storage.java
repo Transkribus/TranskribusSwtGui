@@ -1384,6 +1384,30 @@ public class Storage extends Observable {
 
 		conn.postTrpDoc(colId, doc, monitor);
 	}
+	
+	/**
+	 * Upload pdf by extracting images first and uploading them as a new document
+	 * @param colId ID of new collection
+	 * @param file path of pdf file
+	 * @param dirName name of directory
+	 * @param monitor
+	 * @throws IOException
+	 * @throws Exception
+	 */
+	public void uploadDocumentFromPdf(int colId, String file, String dirName, IProgressMonitor monitor) 
+			throws IOException, Exception {
+		if (!isLoggedIn())
+			throw new Exception("Not logged in!");
+
+		// extract images from pdf and load images into Trp document
+		TrpDoc doc = LocalDocReader.loadPdf(file, dirName);
+		logger.debug("Extracted and loaded pdf " + file);
+		
+		if (file != null && !file.isEmpty())
+			doc.getMd().setTitle(file);
+
+		conn.postTrpDoc(colId, doc, monitor);
+	}
 
 	public void uploadDocumentFromPrivateFtp(int cId, String dirName, boolean checkForDuplicateTitle) throws Exception {
 		if (!isLoggedIn())
