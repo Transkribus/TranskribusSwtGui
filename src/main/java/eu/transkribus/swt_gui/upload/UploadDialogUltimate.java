@@ -194,7 +194,7 @@ public class UploadDialogUltimate extends Dialog {
 		addListener();
 		
 		this.container = container;
-//		updateGroupVisibility();
+		updateGroupVisibility();
 		
 		return container;
 	}
