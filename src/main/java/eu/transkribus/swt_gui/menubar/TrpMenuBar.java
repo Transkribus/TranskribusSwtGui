@@ -26,6 +26,7 @@ public class TrpMenuBar {
 	MenuItem saveTranscriptionMenuItem;
 	MenuItem openMenuItem;
 	MenuItem openLocalPageFileItem;
+	MenuItem uploadImagesFromPdfFileItem;
 	MenuItem manageCollectionsMenuItem;
 	MenuItem syncWordsWithLinesMenuItem;
 	MenuItem proxySettingsMenuItem;
@@ -128,6 +129,9 @@ public class TrpMenuBar {
 		createThumbsMenuItem.setImage(null);
 		createThumbsMenuItem.setText("Create thumbs when opening local folder");
 				
+		uploadImagesFromPdfFileItem = new MenuItem(fileMenu, 0);
+		uploadImagesFromPdfFileItem.setText("Upload images from pdf file");
+		
 		syncWordsWithLinesMenuItem = new MenuItem(fileMenu, SWT.NONE);
 		syncWordsWithLinesMenuItem.setText("Sync word transcription with text in lines");
 		
@@ -310,6 +314,10 @@ public class TrpMenuBar {
 	
 	public MenuItem getOpenLocalPageFileItem() {
 		return openLocalPageFileItem;
+	}
+	
+	public MenuItem getUploadImagesFromPdfFileItem() {
+		return uploadImagesFromPdfFileItem;
 	}
 	
 	public MenuItem getManageCollectionsMenuItem() {

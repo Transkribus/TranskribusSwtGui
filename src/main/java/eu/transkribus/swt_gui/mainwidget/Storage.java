@@ -1744,6 +1744,21 @@ public class Storage extends Observable {
 	public String[] getHtrModelsStr() {
 		return htrModelList.toArray(new String[htrModelList.size()]);
 	}
+	
+	public String runRnnHtr(int colId, int docId, String pageStr, String netName, String dictName) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.runRnnHtr(colId, docId, pageStr, netName, dictName);
+	}
+	
+	public List<String> getHtrNets() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
+		checkConnection(true);
+		return conn.getHtrRnnListText();
+	}
+	
+	public List<String> getHtrDicts() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
+		checkConnection(true);
+		return conn.getHtrDictListText();
+	}
 
 	public void reloadHtrModelsStr() throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);

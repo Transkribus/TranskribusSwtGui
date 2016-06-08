@@ -2061,8 +2061,30 @@ public class TrpMainWidget {
 //				// TODO Auto-generated catch block
 //				throw eo;
 //			}
+			// extract images from pdf and upload extracted images
+			} else if (ud.isUploadFromPdf()) {
+				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + ud.getFolder());
+				logger.debug("ingest into collection: " + cId+" viaFtp: "+ud.isSingleUploadViaFtp());
+				String type = ud.isSingleUploadViaFtp() ? "FTP" : "HTTP";
 
-
+				// final int colId =
+				// storage.getCollectionId(ui.getDocOverviewWidget().getSelectedCollectionIndex());
+				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+					@Override public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						try {
+							// storage.uploadDocument(4, ud.getFolder(),
+							// ud.getTitle(), monitor);// TEST
+							boolean uploadViaFTP = ud.isSingleUploadViaFtp();
+							logger.debug("uploadViaFTP = "+uploadViaFTP);
+							storage.uploadDocument(cId, ud.getFolder(), ud.getTitle(), monitor);
+							if (!monitor.isCanceled())
+								displaySuccessMessage("Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
+						} catch (Exception e) {
+							throw new InvocationTargetException(e);
+						}
+					}
+				}, "Uploading via "+type, true);
+				
 			} else { // private ftp ingest
 				final List<TrpDocDir> dirs = ud.getDocDirs();
 				if(dirs == null || dirs.isEmpty()){

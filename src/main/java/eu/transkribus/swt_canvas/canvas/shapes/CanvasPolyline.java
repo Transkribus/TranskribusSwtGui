@@ -386,25 +386,23 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	 * Sort points according to given direction vector (must *not* be normalized)
 	 */
 	public void sortPoints(int x, int y) {
-		logger.debug("sorting points according to direction vector...");
+		logger.debug("sorting points according to direction vector x="+x+" y="+y);
 		Vector2D v = new Vector2D(x, y);
 		v = v.normalize();
 		
 		SortedMap<Double, Point> pointsMap = new TreeMap<>();
-		for (Point p : getPoints()) {
+		for (Point p : getPoints()) {			
 			Vector2D a = new Vector2D(p.getX(), p.getY());
 			double sp = a.dot(v);
 			pointsMap.put(sp, p);
 		}
 		
-		// TODO: reset points according to sorting in treemap
+		// reset points according to sorting in treemap
 		List<Point> pts = new ArrayList<>();
 		for (Point p : pointsMap.values()) {
 			pts.add(p);
 		}
 		setPoints(pts);
-		
-//		setPoints(pointsMap.values());
 	}
 
 
