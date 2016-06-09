@@ -325,11 +325,19 @@ public class TextRecognitionDialog extends Dialog {
 	}
 
 	private String getSelectedRnn() {
-		return netCombo.getItem(netCombo.getSelectionIndex());
+		String rnn = null;
+		if(netCombo.getSelectionIndex() >= 0){
+			rnn = netCombo.getItem(netCombo.getSelectionIndex());
+		}
+		return rnn;
 	}
 
 	private String getSelectedDict() {
-		return dictCombo.getItem(dictCombo.getSelectionIndex());
+		String dict = null;
+		if(dictCombo.getSelectionIndex() >= 0){
+			dict = dictCombo.getItem(dictCombo.getSelectionIndex());
+		}
+		return dict;
 	}
 	
 	// overriding this methods allows you to set the
