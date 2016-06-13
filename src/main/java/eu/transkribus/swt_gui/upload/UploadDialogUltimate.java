@@ -71,7 +71,7 @@ public class UploadDialogUltimate extends Dialog {
 	Button singleDocButton, ftpButton, metsUrlButton, pdfButton;
 	Group ftpGroup, singleGroup, metsUrlGroup, pdfGroup;
 	
-	Text folderText;
+	Text folderText, pdfFolderText;
 	Text titleText, urlText;
 	Text fileText;
 	Combo uploadTypeCombo;
@@ -151,7 +151,7 @@ public class UploadDialogUltimate extends Dialog {
 		
 		pdfButton = new Button(container, SWT.RADIO);
 		pdfButton.setText("Extract and upload images from pdf");
-		pdfButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 2));
+		pdfButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 		
 		spacerLabel = new Label(container, 0); // spacer
 		
@@ -205,7 +205,7 @@ public class UploadDialogUltimate extends Dialog {
 		addListener();
 		
 		this.container = container;
-//		updateGroupVisibility();
+		updateGroupVisibility();
 		
 		return container;
 	}
@@ -280,17 +280,17 @@ public class UploadDialogUltimate extends Dialog {
 		lblExtractFolder.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblExtractFolder.setText("Local folder for extracted images:");
 
-		folderText = new Text(container, SWT.BORDER);
-		folderText.setToolTipText("Name of directory to which images in pdf are extracted. "
+		pdfFolderText = new Text(container, SWT.BORDER);
+		pdfFolderText.setToolTipText("Name of directory to which images in pdf are extracted. "
 				+ "Must have writing permits on chosen folder.");
-		folderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		pdfFolderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Button setFolderBtn = new Button(container, SWT.NONE);
 		setFolderBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				folder = DialogUtil.showOpenFolderDialog(getShell(), "Specify a folder to which the images are extracted", folder);
 				if (folder != null) {
-					folderText.setText(folder);
+					pdfFolderText.setText(folder);
 				}
 			}
 		});
