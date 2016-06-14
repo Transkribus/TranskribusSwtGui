@@ -11,6 +11,9 @@ public class TrpCanvasAddMode extends CanvasMode {
 		
 	public final static CanvasMode ADD_OTHERREGION = new TrpCanvasAddMode(true, false, false, true, "Region");
 	
+	
+	public final static CanvasMode ADD_TABLECELL = new TrpCanvasAddMode(true, false, false, true, "TableCell");
+	
 	protected TrpCanvasAddMode(boolean isEditOperation, boolean highlightPointsRequired, boolean endsWithMouseUp, boolean isAddOperation, String description) {
 		super(isEditOperation, highlightPointsRequired, endsWithMouseUp, isAddOperation, description);
 	}

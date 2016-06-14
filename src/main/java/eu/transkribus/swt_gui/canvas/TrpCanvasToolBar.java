@@ -27,7 +27,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	protected ToolItem addLine;
 	protected ToolItem addBaseLine;
 	protected ToolItem addWord;
-		
+			
 	protected ToolItem addPrintspace;
 	protected DropDownToolItem addSpecialRegion;
 	protected DropDownToolItem optionsItem;
@@ -133,7 +133,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		addWord.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
 		modeMap.put(addWord, TrpCanvasAddMode.ADD_WORD);
 		addToRadioGroup(addWord);
-		
+				
 		if (true) { // TODO: add "special" regions
 			addSpecialRegion = new DropDownToolItem(this, true, true, SWT.RADIO, ++i);
 			

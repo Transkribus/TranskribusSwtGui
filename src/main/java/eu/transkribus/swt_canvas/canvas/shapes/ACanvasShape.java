@@ -256,11 +256,6 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 //		return minLine;
 //	}	
 	
-	@Override 
-	public int getPointIndex(Point pt) {
-		return getPointIndex(pt.x, pt.y);
-	}
-	
 	@Override
 	public int getPointIndex(int x, int y) {
 		int i=0; 

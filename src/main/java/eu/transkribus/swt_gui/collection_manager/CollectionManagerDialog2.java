@@ -795,26 +795,25 @@ public class CollectionManagerDialog2 extends Dialog {
 		}
 	}
 	
+	
+	
 	public void updateDocumentsTable(boolean resetToFirstPage) {
 		logger.debug("updating documents...");
 		TrpCollection c = getSelectedCollection();
 		
-		docOverviewWidget.getSelectedDocument();
-		
+		myDocsTableWidget.refreshPage(resetToFirstPage);
+				
 		if (c!=null && store.isLoggedIn()) {
 			if(resetToFirstPage){
 				docsTableWidget.refreshList(c.getColId(), resetToFirstPage);
 			}
-
-				
-				TrpDocMetadata docMd = docOverviewWidget.getSelectedDocument();
-				if (docMd != null){
-					docsTableWidget.loadPage("docId", docMd.getDocId(), false);
-				}
-				
-				//docsTableWidget.selectElement(docMd);
-				
 			
+			TrpDocMetadata docMd = docOverviewWidget.getSelectedDocument();
+			if (docMd != null){
+				docsTableWidget.loadPage("docId", docMd.getDocId(), false);
+			}
+			
+			//docsTableWidget.selectElement(docMd);
 			//updateDocsTableTitle();			
 		}
 	}

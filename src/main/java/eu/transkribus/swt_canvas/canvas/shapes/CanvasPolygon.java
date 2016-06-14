@@ -20,6 +20,8 @@ import eu.transkribus.swt_canvas.canvas.SWTCanvas;
  * @param <D> The Type of the data object
  */
 public class CanvasPolygon extends ACanvasShape<java.awt.Polygon> {
+	
+	protected CanvasPolygon() {}
 
 //	public CanvasPolygon(java.awt.Polygon polygon) {
 //		super(polygon);
@@ -98,19 +100,9 @@ public class CanvasPolygon extends ACanvasShape<java.awt.Polygon> {
 	public boolean move(int tx, int ty) {
 		awtShape.translate(tx, ty);
 		
-//		for (int i=0; i<awtShape.npoints; ++i) {
-//			awtShape.xpoints[i] += tx;
-//			awtShape.ypoints[i] += ty;
-//		}
-				
 		setChanged();
 		notifyObservers();
-		
-//		List<Point> newPts = getPoints();
-//		for (Point p : newPts) {
-//			p.setLocation(p.x+tx, p.y+ty);
-//		}
-//		setPoints(newPts);
+
 		return true;
 	}
 		
@@ -120,11 +112,8 @@ public class CanvasPolygon extends ACanvasShape<java.awt.Polygon> {
 	}
 	
 	@Override
-	public boolean isPointRemovePossible(int i) { 
-		if (getNPoints() < 4) return false;
-		if (i < 0 || i >= getNPoints()) return false;
-		
-		return true;
+	public boolean isPointRemovePossible(int i) {
+		return (getNPoints() > 3 && i>=0 && i<getNPoints());
 	}
 		
 	@Override

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.swt_canvas.canvas.CanvasKeys;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
@@ -84,6 +85,11 @@ public class TrpMainWidgetKeyListener implements Listener {
 		else if (isCtrlOrCommand && kc == 'o') {
 			logger.debug("open local folder!");
 			mw.loadLocalFolder();
+		}
+		
+		// TEST:
+		if (isCtrlOrCommand && kc == 'c') {
+			mw.getCanvas().setMode(TrpCanvasAddMode.ADD_TABLECELL);
 		}
 		
 		lastTime = time;

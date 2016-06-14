@@ -25,7 +25,7 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	int getX();
 	int getY();
 
-	/** Find the index after which to insert the given point. **/
+	/** Find the index at which to insert the given point. **/
 	int getInsertIndex(int x, int y);
 	/** Returns the indices of the nPts number of closest points to (x,y) **/
 	int[] getClosestPtsIndices(int x, int y, int nPts);
@@ -36,8 +36,6 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	Line2D getClosestLine(int x, int y);
 	/** Returns the index of the given point (x,y), -1 if this is not a point of this shape. **/
 	int getPointIndex(int x, int y);
-	/** Returns the index of the given point pt, -1 if this is not a point of this shape. **/
-	int getPointIndex(Point pt);
 	/** Returns the index of the given point with some threshold, -1 if there is no such point. **/
 	int getPointIndex(int x, int y, int threshold);
 	
@@ -144,7 +142,8 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	boolean isPointSelected(int ptIndex);
 	void deselectPoint(int ptIndex, boolean sendSignal);	
 	
-	void addPoint(int x, int y); // TESTING PHASE
+	/** Adds a point to the end of the list */
+	void addPoint(int x, int y);
 
 	void createReadingOrderShape(SWTCanvas canvas, boolean r, boolean l, boolean w, boolean hasBaseline);
 	void updateReadingOrderShapeWidth(int newWidth);
