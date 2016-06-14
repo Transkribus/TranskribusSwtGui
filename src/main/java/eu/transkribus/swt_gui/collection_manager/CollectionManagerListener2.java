@@ -523,7 +523,7 @@ public class CollectionManagerListener2 extends AStorageObserver implements Sele
 				DialogUtil.showErrorMessageBox(cmw.getShell(), "No collection selected", "Please select a collection to duplicate the document to!");
 				return;
 			}
-			int colId = c.getColId();
+			int toColId = c.getColId();
 			
 			InputDialog dlg = new InputDialog(shell, "New name", "Enter the new name of the document", null, null);
 			if (dlg.open() != Window.OK)
@@ -532,7 +532,7 @@ public class CollectionManagerListener2 extends AStorageObserver implements Sele
 			String newName = dlg.getValue();
 			
 			try {
-				store.duplicateDocument(colId, md.getDocId(), newName);
+				store.duplicateDocument(cmw.getSelectedCollection().getColId(), md.getDocId(), newName, toColId <= 0 ? null : toColId);
 			} catch (SessionExpiredException | ServerErrorException
 					| IllegalArgumentException | NoConnectionException e) {
 				mw.onError("Error duplicating document", e.getMessage(), e);

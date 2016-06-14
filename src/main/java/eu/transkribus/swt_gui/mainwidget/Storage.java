@@ -1938,9 +1938,9 @@ public class Storage extends Observable {
 		FileUtils.writeLines(eventsTxt, lines, true);
 	}
 
-	public String duplicateDocument(int colId, int docId, String newName) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+	public String duplicateDocument(int colId, int docId, String newName, Integer toColId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
-		return conn.duplicateDocument(colId, docId, newName);		
+		return conn.duplicateDocument(colId, docId, newName, toColId);		
 	}
 
 	public void batchReplaceImages(List<TrpPage> checkedPages, List<URL> checkedUrls, IProgressMonitor monitor) throws Exception {
