@@ -71,13 +71,13 @@ public class UploadDialogUltimate extends Dialog {
 	Button singleDocButton, ftpButton, metsUrlButton, pdfButton;
 	Group ftpGroup, singleGroup, metsUrlGroup, pdfGroup;
 	
-	Text folderText;
+	Text folderText, pdfFolderText;
 	Text titleText, urlText;
 	Text fileText;
 	Combo uploadTypeCombo;
 	
 //	String dirName;
-	String file, folder, title, url;
+	String file, folder, pdffolder, title, url;
 	
 	boolean singleUploadViaFtp=false, isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false;
 	
@@ -151,7 +151,7 @@ public class UploadDialogUltimate extends Dialog {
 		
 		pdfButton = new Button(container, SWT.RADIO);
 		pdfButton.setText("Extract and upload images from pdf");
-		pdfButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 2));
+		pdfButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 		
 		spacerLabel = new Label(container, 0); // spacer
 		
@@ -205,7 +205,7 @@ public class UploadDialogUltimate extends Dialog {
 		addListener();
 		
 		this.container = container;
-//		updateGroupVisibility();
+		updateGroupVisibility();
 		
 		return container;
 	}
@@ -280,17 +280,18 @@ public class UploadDialogUltimate extends Dialog {
 		lblExtractFolder.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblExtractFolder.setText("Local folder for extracted images:");
 
-		folderText = new Text(container, SWT.BORDER);
-		folderText.setToolTipText("Name of directory to which images in pdf are extracted. "
+		pdfFolderText = new Text(container, SWT.BORDER);
+		pdfFolderText.setToolTipText("Name of directory to which images in pdf are extracted. "
 				+ "Must have writing permits on chosen folder.");
-		folderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		pdfFolderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Button setFolderBtn = new Button(container, SWT.NONE);
 		setFolderBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				folder = DialogUtil.showOpenFolderDialog(getShell(), "Specify a folder to which the images are extracted", folder);
-				if (folder != null) {
-					folderText.setText(folder);
+				pdffolder = DialogUtil.showOpenFolderDialog(getShell(), 
+						"Specify a folder to which the images are extracted", pdffolder);
+				if (pdffolder != null) {
+					pdfFolderText.setText(pdffolder);
 				}
 			}
 		});
@@ -600,7 +601,7 @@ public class UploadDialogUltimate extends Dialog {
 		else if(isMetsUrlUpload && StringUtils.isEmpty(url)){
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please copy a valid url into the text field!");
 		}
-		else if((!isSingleDocUpload && !isMetsUrlUpload) && (selDocDirs == null || selDocDirs.isEmpty())) {
+		else if((!isSingleDocUpload && !isMetsUrlUpload && !isPdfUpload) && (selDocDirs == null || selDocDirs.isEmpty())) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select directories for ingesting.");
 		} 
 //		else if (!isSingleDocUpload) {
@@ -613,7 +614,7 @@ public class UploadDialogUltimate extends Dialog {
 //		}
 		else if (isPdfUpload && StringUtils.isEmpty(file)) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You need to select a pdf first");
-		} else if (isPdfUpload && StringUtils.isEmpty(folder)) {
+		} else if (isPdfUpload && StringUtils.isEmpty(pdffolder)) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please specify a folder to "
 					+ "which you want to extract the images in your pdf");
 		}
@@ -631,6 +632,7 @@ public class UploadDialogUltimate extends Dialog {
 		this.selColl =  getSelectedCollection();
 		
 		this.folder = folderText.getText();
+		this.pdffolder = pdfFolderText.getText();
 		this.url = urlText.getText();
 		this.file = fileText.getText();
 		
@@ -652,6 +654,10 @@ public class UploadDialogUltimate extends Dialog {
 	
 	public String getFolder() {
 		return folder;
+	}
+	
+	public String getPdfFolder() {
+		return pdffolder;
 	}
 	
 	public String getFile() {
