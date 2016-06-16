@@ -1475,7 +1475,7 @@ public class Storage extends Observable {
 		conn.deletePage(colId, docId, pageNr);
 	}
 
-	public String exportDocument(File dir, Set<Integer> pageIndices, boolean exportPage, boolean exportAlto, final String fileNamePattern, final IProgressMonitor monitor) throws SessionExpiredException, ServerErrorException, IllegalArgumentException,
+	public String exportDocument(File dir, Set<Integer> pageIndices, boolean exportImg, boolean exportPage, boolean exportAlto, final String fileNamePattern, final IProgressMonitor monitor) throws SessionExpiredException, ServerErrorException, IllegalArgumentException,
 			NoConnectionException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
@@ -1515,7 +1515,7 @@ public class Storage extends Observable {
 		};
 		DocExporter de = new DocExporter();
 		de.addObserver(o);
-		de.writeRawDoc(doc, path, true, pageIndices, exportPage, exportAlto, fileNamePattern);
+		de.writeRawDoc(doc, path, true, pageIndices, exportImg, exportPage, exportAlto, fileNamePattern);
 
 		return path;
 	}
