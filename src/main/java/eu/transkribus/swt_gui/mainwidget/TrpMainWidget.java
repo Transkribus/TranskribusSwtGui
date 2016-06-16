@@ -2076,7 +2076,7 @@ public class TrpMainWidget {
 							// ud.getTitle(), monitor);// TEST
 							boolean uploadViaFTP = ud.isSingleUploadViaFtp();
 							logger.debug("uploadViaFTP = "+uploadViaFTP);
-							storage.uploadDocument(cId, ud.getFolder(), ud.getTitle(), monitor);
+							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getFolder(), monitor);
 							if (!monitor.isCanceled())
 								displaySuccessMessage("Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
 						} catch (Exception e) {

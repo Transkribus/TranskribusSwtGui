@@ -77,7 +77,7 @@ public class UploadDialogUltimate extends Dialog {
 	Combo uploadTypeCombo;
 	
 //	String dirName;
-	String file, folder, title, url;
+	String file, folder, pdffolder, title, url;
 	
 	boolean singleUploadViaFtp=false, isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false;
 	
@@ -288,9 +288,10 @@ public class UploadDialogUltimate extends Dialog {
 		Button setFolderBtn = new Button(container, SWT.NONE);
 		setFolderBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				folder = DialogUtil.showOpenFolderDialog(getShell(), "Specify a folder to which the images are extracted", folder);
-				if (folder != null) {
-					pdfFolderText.setText(folder);
+				pdffolder = DialogUtil.showOpenFolderDialog(getShell(), 
+						"Specify a folder to which the images are extracted", pdffolder);
+				if (pdffolder != null) {
+					pdfFolderText.setText(pdffolder);
 				}
 			}
 		});
@@ -600,7 +601,7 @@ public class UploadDialogUltimate extends Dialog {
 		else if(isMetsUrlUpload && StringUtils.isEmpty(url)){
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please copy a valid url into the text field!");
 		}
-		else if((!isSingleDocUpload && !isMetsUrlUpload) && (selDocDirs == null || selDocDirs.isEmpty())) {
+		else if((!isSingleDocUpload && !isMetsUrlUpload && !isPdfUpload) && (selDocDirs == null || selDocDirs.isEmpty())) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select directories for ingesting.");
 		} 
 //		else if (!isSingleDocUpload) {
@@ -613,7 +614,7 @@ public class UploadDialogUltimate extends Dialog {
 //		}
 		else if (isPdfUpload && StringUtils.isEmpty(file)) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You need to select a pdf first");
-		} else if (isPdfUpload && StringUtils.isEmpty(folder)) {
+		} else if (isPdfUpload && StringUtils.isEmpty(pdffolder)) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please specify a folder to "
 					+ "which you want to extract the images in your pdf");
 		}
@@ -631,6 +632,7 @@ public class UploadDialogUltimate extends Dialog {
 		this.selColl =  getSelectedCollection();
 		
 		this.folder = folderText.getText();
+		this.pdffolder = pdfFolderText.getText();
 		this.url = urlText.getText();
 		this.file = fileText.getText();
 		
@@ -652,6 +654,10 @@ public class UploadDialogUltimate extends Dialog {
 	
 	public String getFolder() {
 		return folder;
+	}
+	
+	public String getPdfFolder() {
+		return pdffolder;
 	}
 	
 	public String getFile() {
