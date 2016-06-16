@@ -2063,7 +2063,7 @@ public class TrpMainWidget {
 //			}
 			// extract images from pdf and upload extracted images
 			} else if (ud.isUploadFromPdf()) {
-				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + ud.getFolder());
+				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + ud.getPdfFolder());
 				logger.debug("ingest into collection: " + cId+" viaFtp: "+ud.isSingleUploadViaFtp());
 				String type = ud.isSingleUploadViaFtp() ? "FTP" : "HTTP";
 
@@ -2076,7 +2076,7 @@ public class TrpMainWidget {
 							// ud.getTitle(), monitor);// TEST
 							boolean uploadViaFTP = ud.isSingleUploadViaFtp();
 							logger.debug("uploadViaFTP = "+uploadViaFTP);
-							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getFolder(), monitor);
+							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getPdfFolder(), monitor);
 							if (!monitor.isCanceled())
 								displaySuccessMessage("Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
 						} catch (Exception e) {
