@@ -106,14 +106,12 @@ public class UploadDialogUltimate extends Dialog {
 	public static final String DIRECTORY_COL = "Directory";
 	public static final String TITLE_COL = "Title";
 	public static final String NR_OF_IMGS_COL = "Nr. of Images";
-	public static final String SIZE_COL = "Size";
 	public static final String CREATE_DATE_COL = "Last modified";
 	
 	public static final ColumnConfig[] DOC_DIR_COLS = new ColumnConfig[] {
 		new ColumnConfig(DIRECTORY_COL, 180, true, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(TITLE_COL, 110, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(NR_OF_IMGS_COL, 110, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(SIZE_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(CREATE_DATE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
 	};
 	
