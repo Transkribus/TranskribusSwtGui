@@ -77,7 +77,7 @@ public class UploadDialogUltimate extends Dialog {
 	Combo uploadTypeCombo;
 	
 //	String dirName;
-	String file, folder, title, url;
+	String file, folder, pdffolder, title, url;
 	
 	boolean singleUploadViaFtp=false, isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false;
 	
@@ -106,14 +106,12 @@ public class UploadDialogUltimate extends Dialog {
 	public static final String DIRECTORY_COL = "Directory";
 	public static final String TITLE_COL = "Title";
 	public static final String NR_OF_IMGS_COL = "Nr. of Images";
-	public static final String SIZE_COL = "Size";
 	public static final String CREATE_DATE_COL = "Last modified";
 	
 	public static final ColumnConfig[] DOC_DIR_COLS = new ColumnConfig[] {
 		new ColumnConfig(DIRECTORY_COL, 180, true, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(TITLE_COL, 110, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(NR_OF_IMGS_COL, 110, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(SIZE_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(CREATE_DATE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
 	};
 	
@@ -288,9 +286,10 @@ public class UploadDialogUltimate extends Dialog {
 		Button setFolderBtn = new Button(container, SWT.NONE);
 		setFolderBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				folder = DialogUtil.showOpenFolderDialog(getShell(), "Specify a folder to which the images are extracted", folder);
-				if (folder != null) {
-					pdfFolderText.setText(folder);
+				pdffolder = DialogUtil.showOpenFolderDialog(getShell(), 
+						"Specify a folder to which the images are extracted", pdffolder);
+				if (pdffolder != null) {
+					pdfFolderText.setText(pdffolder);
 				}
 			}
 		});
@@ -600,7 +599,7 @@ public class UploadDialogUltimate extends Dialog {
 		else if(isMetsUrlUpload && StringUtils.isEmpty(url)){
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please copy a valid url into the text field!");
 		}
-		else if((!isSingleDocUpload && !isMetsUrlUpload) && (selDocDirs == null || selDocDirs.isEmpty())) {
+		else if((!isSingleDocUpload && !isMetsUrlUpload && !isPdfUpload) && (selDocDirs == null || selDocDirs.isEmpty())) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select directories for ingesting.");
 		} 
 //		else if (!isSingleDocUpload) {
@@ -613,7 +612,7 @@ public class UploadDialogUltimate extends Dialog {
 //		}
 		else if (isPdfUpload && StringUtils.isEmpty(file)) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You need to select a pdf first");
-		} else if (isPdfUpload && StringUtils.isEmpty(folder)) {
+		} else if (isPdfUpload && StringUtils.isEmpty(pdffolder)) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please specify a folder to "
 					+ "which you want to extract the images in your pdf");
 		}
@@ -631,6 +630,7 @@ public class UploadDialogUltimate extends Dialog {
 		this.selColl =  getSelectedCollection();
 		
 		this.folder = folderText.getText();
+		this.pdffolder = pdfFolderText.getText();
 		this.url = urlText.getText();
 		this.file = fileText.getText();
 		
@@ -652,6 +652,10 @@ public class UploadDialogUltimate extends Dialog {
 	
 	public String getFolder() {
 		return folder;
+	}
+	
+	public String getPdfFolder() {
+		return pdffolder;
 	}
 	
 	public String getFile() {

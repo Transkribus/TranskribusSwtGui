@@ -156,9 +156,9 @@ public class TextRecognitionDialog extends Dialog {
 		dictCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		dictCombo.setItems(new String[]{""});
 		
-		if(Storage.getInstance().getServerUri().contains("Testing")) {
-			rnnItem = createCTabItem(htrTabFolder, rnnContainer, "Recurrent Neural Networks (Beta)");
-		}
+//		if(Storage.getInstance().getServerUri().contains("Testing")) {
+		rnnItem = createCTabItem(htrTabFolder, rnnContainer, "Recurrent Neural Networks (Beta)");
+//		}
 		htrTabFolder.setSelection(hmmItem);
 		htrItem = createCTabItem(tabFolder, htrTabFolder, "HTR");
 		
@@ -175,9 +175,9 @@ public class TextRecognitionDialog extends Dialog {
 		
 		setPageSelectionToCurrentPage();
 		updateHtrModels();
-		if(Storage.getInstance().getServerUri().contains("Testing")) {
-			updateHtrNetsAndDicts();
-		}
+//		if(Storage.getInstance().getServerUri().contains("Testing")) {
+		updateHtrNetsAndDicts();
+//		}
 		updateTabSelection();
 		addListener();
 		return mainContainer;
@@ -325,11 +325,19 @@ public class TextRecognitionDialog extends Dialog {
 	}
 
 	private String getSelectedRnn() {
-		return netCombo.getItem(netCombo.getSelectionIndex());
+		String rnn = null;
+		if(netCombo.getSelectionIndex() >= 0){
+			rnn = netCombo.getItem(netCombo.getSelectionIndex());
+		}
+		return rnn;
 	}
 
 	private String getSelectedDict() {
-		return dictCombo.getItem(dictCombo.getSelectionIndex());
+		String dict = null;
+		if(dictCombo.getSelectionIndex() >= 0){
+			dict = dictCombo.getItem(dictCombo.getSelectionIndex());
+		}
+		return dict;
 	}
 	
 	// overriding this methods allows you to set the

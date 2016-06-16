@@ -429,7 +429,7 @@ public class CollectionManagerListener extends AStorageObserver implements Selec
 			String newName = cd.inputText;
 	        
 			try {
-				store.duplicateDocument(colId, md.getDocId(), newName);
+				store.duplicateDocument(colId, md.getDocId(), newName, null);
 			} catch (SessionExpiredException | ServerErrorException
 					| IllegalArgumentException | NoConnectionException e) {
 				final String msg = e.getMessage();
