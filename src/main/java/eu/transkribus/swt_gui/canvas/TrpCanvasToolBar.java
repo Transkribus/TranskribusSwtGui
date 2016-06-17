@@ -137,10 +137,11 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		if (true) { // TODO: add "special" regions
 			addSpecialRegion = new DropDownToolItem(this, true, true, SWT.RADIO, ++i);
 			
-			MenuItem mi = addSpecialRegion.addItem(RegionTypeUtil.PRINTSPACE_TYPE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass("Printspace"));
+			MenuItem miTr = addSpecialRegion.addItem(RegionTypeUtil.TABLE_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass("Table"));
+			MenuItem miPs = addSpecialRegion.addItem(RegionTypeUtil.PRINTSPACE_TYPE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass("Printspace"));
 			for (String name : RegionTypeUtil.SPECIAL_REGIONS) {
 //				mode.data = c;
-				mi = addSpecialRegion.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
+				MenuItem mi = addSpecialRegion.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
 			}
 			
 //			CanvasMode mode = TrpCanvasAddMode.ADD_OTHERREGION;

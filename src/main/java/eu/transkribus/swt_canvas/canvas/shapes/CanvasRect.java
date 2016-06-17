@@ -8,6 +8,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.util.PointStrUtils.PointParseException;
+
 public class CanvasRect extends ACanvasShape<java.awt.Rectangle> {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasRect.class);
 	
@@ -20,10 +22,10 @@ public class CanvasRect extends ACanvasShape<java.awt.Rectangle> {
 		setRectValues(x, y, width, height);
 	}
 	
-	public CanvasRect(List<Point> pts) throws Exception {
+	public CanvasRect(List<Point> pts) throws CanvasShapeException {
 		this();
 		if (!setPoints(pts)) {
-			throw new Exception("Could not create rectangle from set of points - length of point vector must be two; given: "+pts.size());
+			throw new CanvasShapeException("Could not create rectangle from set of points - length of point vector must be two; given: "+pts.size());
 		}
 	}
 	
@@ -39,6 +41,10 @@ public class CanvasRect extends ACanvasShape<java.awt.Rectangle> {
 	
 	public CanvasRect(CanvasRect rect) {
 		super(rect);
+	}
+	
+	public CanvasRect copy() {
+		return new CanvasRect(this);
 	}
 	
 	@Override

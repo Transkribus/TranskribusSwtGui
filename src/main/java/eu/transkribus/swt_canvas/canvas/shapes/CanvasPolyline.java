@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.PointStrUtils;
+import eu.transkribus.core.util.PointStrUtils.PointParseException;
 import math.geom2d.Vector2D;
 
 //public class CanvasPolyline extends ACanvasShape<java.awt.geom.GeneralPath> {
@@ -31,12 +32,16 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		setPoints(pts);
 	}
 	
-	public CanvasPolyline(String points) throws Exception {
+	public CanvasPolyline(String points) throws PointParseException {
 		setPoints(PointStrUtils.parsePoints(points));
 	}
 	
 	public CanvasPolyline(CanvasPolyline src) {
 		super(src);
+	}
+	
+	public CanvasPolyline copy() {
+		return new CanvasPolyline(this);
 	}
 
 //	@Override
@@ -82,9 +87,9 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		if (!intersected)
 			return null;
 		
-		ICanvasShape s1 = CanvasShapeFactory.copyShape(this);		
+		ICanvasShape s1 = this.copy();
 		s1.setPoints(pts1);
-		ICanvasShape s2 = CanvasShapeFactory.copyShape(this);
+		ICanvasShape s2 = this.copy();
 		s2.setPoints(pts2);
 						
 		return Pair.of(s1, s2);

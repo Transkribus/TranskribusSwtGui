@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -59,6 +60,7 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 //				name = RegionTypeUtil.getRegionType(s);
 			
 			coords = s.getCoordinates();
+			
 			id = s.getId();
 			regionType = s.getStructure()!=null ? s.getStructure() : "";
 			
@@ -67,6 +69,10 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 				text = s.getUnicodeText();
 			if (element instanceof TrpTextLineType || element instanceof TrpWordType || element instanceof TrpTextRegionType) {
 				readingOrder = s.getReadingOrder()!=null ? ""+(s.getReadingOrder()+1) : "";
+			}
+			
+			if (element instanceof TrpTableCellType) {
+				text = ((TrpTableCellType) element).getCoords().getCornerPts();
 			}
 			
 //			if (element instanceof TrpTextRegionType) {

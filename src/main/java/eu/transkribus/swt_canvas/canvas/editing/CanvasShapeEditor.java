@@ -215,7 +215,7 @@ public class CanvasShapeEditor {
 		canvas.redraw();
 	}
 	
-	private static ICanvasShape constructShapeFromPoints(List<java.awt.Point> pts, CanvasShapeType shapeType) {
+	protected ICanvasShape constructShapeFromPoints(List<java.awt.Point> pts, CanvasShapeType shapeType) {
 		ICanvasShape newShape=null;
 		if (shapeType == CanvasShapeType.POLYGON && pts.size()>=3) {
 			newShape = new CanvasPolygon(pts);

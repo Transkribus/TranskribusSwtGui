@@ -31,6 +31,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -227,6 +228,8 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 			return TrpCanvasAddMode.ADD_WORD;
 		else if (convertClazz.equals(TrpPrintSpaceType.class))
 			return TrpCanvasAddMode.ADD_PRINTSPACE;
+		else if (convertClazz.equals(TrpTableRegionType.class))
+			return TrpCanvasAddMode.ADD_TABLEREGION;
 		
 		else if (RegionType.class.isAssignableFrom(convertClazz))
 			return TrpCanvasAddMode.ADD_OTHERREGION;

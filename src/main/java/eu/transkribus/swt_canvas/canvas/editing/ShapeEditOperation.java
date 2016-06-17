@@ -93,7 +93,8 @@ public class ShapeEditOperation {
 	private void backupShapes() {
 		backupShapes = new ArrayList<>();
 		for (ICanvasShape s : shapes) {
-			backupShapes.add(CanvasShapeFactory.copyShape(s));
+			backupShapes.add(s.copy());
+//			backupShapes.add(CanvasShapeFactory.copyShape(s));
 		}
 	}
 	

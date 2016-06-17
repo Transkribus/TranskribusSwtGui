@@ -18,6 +18,8 @@ import org.eclipse.swt.graphics.GC;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 
 public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode<ICanvasShape> {
+	ICanvasShape copy();
+	
 	String getType();
 	
 	void draw(SWTCanvas canvas, GC gc);

@@ -11,6 +11,7 @@ import math.geom2d.polygon.SimplePolygon2D;
 import org.eclipse.swt.graphics.GC;
 
 import eu.transkribus.core.util.PointStrUtils;
+import eu.transkribus.core.util.PointStrUtils.PointParseException;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 
 /**
@@ -35,13 +36,17 @@ public class CanvasPolygon extends ACanvasShape<java.awt.Polygon> {
 		setPoints2D(ptsIn);
 	}
 	
-	public CanvasPolygon(String points) throws Exception {
+	public CanvasPolygon(String points) throws PointParseException {
 		setPoints(PointStrUtils.parsePoints(points));
 	}
 	
 	public CanvasPolygon(CanvasPolygon src) {
 		super(src);
 	}
+	
+	@Override public CanvasPolygon copy() {
+		return new CanvasPolygon(this);
+	}	
 	
 	@Override public String getType() {
 		return "POLYGON";

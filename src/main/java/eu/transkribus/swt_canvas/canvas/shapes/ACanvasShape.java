@@ -1002,10 +1002,10 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 		
-		ICanvasShape s1 = CanvasShapeFactory.copyShape(this);		
+		ICanvasShape s1 = this.copy();
 		s1.setPoints2D(pI1.vertices());
 		
-		ICanvasShape s2 = CanvasShapeFactory.copyShape(this);
+		ICanvasShape s2 = this.copy();
 		s2.setPoints2D(pI2.vertices());
 		
 	
@@ -1030,7 +1030,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		
 		Polygon2D mergedPoly2D =ch.convexHull(pts);
 		
-		ICanvasShape merged = CanvasShapeFactory.copyShape(this);
+		ICanvasShape merged = this.copy();
 		merged.setPoints2D(mergedPoly2D.vertices());
 		
 		return merged;

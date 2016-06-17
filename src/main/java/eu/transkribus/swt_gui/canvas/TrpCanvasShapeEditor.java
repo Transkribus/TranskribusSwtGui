@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.canvas;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -8,6 +9,10 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 
 ///**
@@ -18,6 +23,21 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 
 	public TrpCanvasShapeEditor(TrpSWTCanvas canvas) {
 		super(canvas);
+	}
+	
+	@Override protected ICanvasShape constructShapeFromPoints(List<java.awt.Point> pts, CanvasShapeType shapeType) {
+		if (canvas.getMode() == TrpCanvasAddMode.ADD_TABLECELL) {
+			// assume table cell is drawn as rectangle
+			List<java.awt.Point> polyPts = new ArrayList<>();
+			polyPts.add(pts.get(0));
+			polyPts.add(new java.awt.Point(pts.get(0).x, pts.get(1).y));
+			polyPts.add(pts.get(1));
+			polyPts.add(new java.awt.Point(pts.get(1).x, pts.get(0).y));
+				
+			return new CanvasQuadPolygon(polyPts);
+		} else {
+			return super.constructShapeFromPoints(pts, shapeType);
+		}
 	}
 	
 	@Override public List<ShapeEditOperation> splitShape(int x1, int y1, int x2, int y2) {		

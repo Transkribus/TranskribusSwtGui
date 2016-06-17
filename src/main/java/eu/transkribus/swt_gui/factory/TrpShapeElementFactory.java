@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.BaselineType;
+import eu.transkribus.core.model.beans.pagecontent.CellCoordsType;
 import eu.transkribus.core.model.beans.pagecontent.CoordsType;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextEquivType;
@@ -207,6 +208,12 @@ public class TrpShapeElementFactory {
 			TrpTextRegionType tr = createPAGETextRegion(shape, parent);
 			trpShape = tr;
 		}
+		else if (m.equals(TrpCanvasAddMode.ADD_TABLEREGION)) {
+			logger.debug("creating table region...");
+			TrpPageType parent = Storage.getInstance().getTranscript().getPage();
+			TrpTableRegionType tr = createPAGETableRegion(shape, parent);
+			trpShape = tr;
+		}
 		else if (m.equals(TrpCanvasAddMode.ADD_OTHERREGION)) {
 			logger.debug("adding special region, type  = "+specialRegionType);
 			if (!specialRegionType.isEmpty()) {
@@ -274,12 +281,15 @@ public class TrpShapeElementFactory {
 			trpShape = word;
 		}
 		else if (m.equals(TrpCanvasAddMode.ADD_TABLECELL)) {
+			logger.debug("creating tablecell");
 			String errorMsg="";
 			parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTableRegionType.class);
+			logger.debug("parentShape = "+parentShape);
 			if (parentShape == null)
 				throw new NoParentRegionException(errorMsg);
 			
 			TrpTableRegionType parent = (TrpTableRegionType) parentShape.getData();
+			logger.debug("parent = "+parent);
 			
 			TrpTableCellType tc = createPAGETableCell(shape, parent);
 			trpShape = tc;
@@ -389,6 +399,21 @@ public class TrpShapeElementFactory {
 		return tr;
 	}
 	
+	private static TrpTableRegionType createPAGETableRegion(ICanvasShape shape, TrpPageType parent) {		
+		TrpTableRegionType tr = new TrpTableRegionType(parent);
+		
+		tr.setId(TrpPageType.getUniqueId(tr.getName()));
+		
+		CoordsType coords = new CoordsType();
+		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
+		tr.setCoords(coords);	
+		
+		TrpMainWidget.getInstance().getScene().updateAllShapesParentInfo();
+		parent.sortRegions();
+		
+		return tr;
+	}
+	
 	private static TrpTextLineType createPAGETextLine(ICanvasShape shape, TrpTextRegionType parent) {
 		TrpTextLineType tl = new TrpTextLineType(parent);
 		
@@ -469,11 +494,20 @@ public class TrpShapeElementFactory {
 	}
 	
 	private static TrpTableCellType createPAGETableCell(ICanvasShape shape, TrpTableRegionType parent) {
+		if (!(shape instanceof CanvasQuadPolygon))
+			throw new RuntimeException("table cell shape is not a quad polygon: "+shape);
+		
 		TrpTableCellType tc = new TrpTableCellType(parent);
 		
 		tc.setId(TrpPageType.getUniqueId(tc.getName()));
 		
 		// TODO: set reading order ???? -> maybe r.o. for table cells is rowwise from left to right...
+		
+		CellCoordsType coords = new CellCoordsType();
+		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
+		String cornersStr = PointStrUtils.cornerPtsToString(((CanvasQuadPolygon) shape).getCorners());
+		coords.setCornerPts( cornersStr );
+		tc.setCoords(coords);
 		
 		parent.getTableCell().add(tc);
 		// TODO: sort table cells??? (most probably not...)

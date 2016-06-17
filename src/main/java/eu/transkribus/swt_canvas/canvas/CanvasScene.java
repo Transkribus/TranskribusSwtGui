@@ -240,7 +240,7 @@ public class CanvasScene {
 		}
 		 				
 		clearSelected();
-		ICanvasShape merged = CanvasShapeFactory.copyShape(selectedShapes.get(0));
+		ICanvasShape merged = selectedShapes.get(0).copy();
 		removeShape(selectedShapes.get(0), false, false);
 		
 		for (int i=1; i<selectedShapes.size(); ++i) {
