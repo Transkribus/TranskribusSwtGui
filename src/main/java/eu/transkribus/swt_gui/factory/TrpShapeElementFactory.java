@@ -17,6 +17,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -26,6 +28,7 @@ import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
@@ -270,6 +273,17 @@ public class TrpShapeElementFactory {
 			TrpWordType word = createPAGEWord(shape, parent);
 			trpShape = word;
 		}
+		else if (m.equals(TrpCanvasAddMode.ADD_TABLECELL)) {
+			String errorMsg="";
+			parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTableRegionType.class);
+			if (parentShape == null)
+				throw new NoParentRegionException(errorMsg);
+			
+			TrpTableRegionType parent = (TrpTableRegionType) parentShape.getData();
+			
+			TrpTableCellType tc = createPAGETableCell(shape, parent);
+			trpShape = tc;
+		}
 		else {
 			throw new Exception("No add valid operation specified (should not happen...)");
 		}
@@ -290,6 +304,14 @@ public class TrpShapeElementFactory {
 		ICanvasShape shape = null;
 		if (trpShape instanceof BaselineType) {
 			shape = new CanvasPolyline(points);
+		}
+		else if (trpShape instanceof TrpTableCellType) {
+			logger.debug("adding table cell as CanvasQuadPolygon shape");
+			shape = new CanvasQuadPolygon(points);
+			TrpTableCellType tc = (TrpTableCellType) trpShape;
+			
+			int[] corners = PointStrUtils.parseCornerPts(tc.getCoords().getCornerPts());
+			((CanvasQuadPolygon) shape).setCornerPts(corners);
 		}
 		else {
 			shape = new CanvasPolygon(points);
@@ -444,6 +466,19 @@ public class TrpShapeElementFactory {
 		parent.sortWords();
 			
 		return word;
+	}
+	
+	private static TrpTableCellType createPAGETableCell(ICanvasShape shape, TrpTableRegionType parent) {
+		TrpTableCellType tc = new TrpTableCellType(parent);
+		
+		tc.setId(TrpPageType.getUniqueId(tc.getName()));
+		
+		// TODO: set reading order ???? -> maybe r.o. for table cells is rowwise from left to right...
+		
+		parent.getTableCell().add(tc);
+		// TODO: sort table cells??? (most probably not...)
+		
+		return tc;
 	}
 	
 	/**

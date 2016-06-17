@@ -43,6 +43,11 @@ public class SettingsDialog extends Dialog {
 	private Button linesColorButton;
 	private Button baselinesColorButton;
 	private Button wordsColorButton;
+	
+	private Button tablesColorButton;
+	private Button tableCellsColorButton;
+	
+	
 	Button closebutton;
 	private Button drawPolylineArcs;
 
@@ -100,6 +105,8 @@ public class SettingsDialog extends Dialog {
 		DataBinder.get().bindColorToButton(TrpSettings.COLOR_LINES_PROPERTY, trpSets, this.linesColorButton);
 		DataBinder.get().bindColorToButton(TrpSettings.COLOR_BASELINES_PROPERTY, trpSets, this.baselinesColorButton);
 		DataBinder.get().bindColorToButton(TrpSettings.COLOR_WORDS_PROPERTY, trpSets, this.wordsColorButton);
+		DataBinder.get().bindColorToButton(TrpSettings.COLOR_TABLES_PROPERTY, trpSets, this.tablesColorButton);
+		DataBinder.get().bindColorToButton(TrpSettings.COLOR_TABLE_CELLS_PROPERTY, trpSets, this.tableCellsColorButton);
 	}
 
 	/**
@@ -240,6 +247,19 @@ public class SettingsDialog extends Dialog {
 		wordsColorButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 //		wordsColorButton.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		
+		Label tablesColorLabel = new Label(shell, SWT.NONE);
+		tablesColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		tablesColorLabel.setText("Tables color");
+		
+		tablesColorButton = new Button(shell, SWT.NONE);
+		tablesColorButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		
+		Label tableCellsColorLabel = new Label(shell, SWT.NONE);
+		tableCellsColorLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		tableCellsColorLabel.setText("Table cell color");
+		
+		tableCellsColorButton = new Button(shell, SWT.NONE);
+		tableCellsColorButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		
 		Composite buttonComposite = new Composite(shell, SWT.NONE);
 		buttonComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
