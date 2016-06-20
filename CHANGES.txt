@@ -340,6 +340,8 @@ CHANGES AND BUGFIXES
 	-> tif bug on windows fix
 	-> Transcription and Segmentation profiles added
 	-> createThumbs for local docs flag (configure via Menu -> File -> Create thumbs when opening local folder)
+	-> Export: Possibility to export all chosen export formats in a ZIP file
+	-> Docx export - consider soft breaks
 	
 	
 	
