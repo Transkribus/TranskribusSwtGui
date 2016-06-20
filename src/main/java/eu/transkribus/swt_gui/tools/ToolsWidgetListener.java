@@ -3,6 +3,8 @@ package eu.transkribus.swt_gui.tools;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.ClientErrorException;
+
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -260,9 +262,16 @@ public class ToolsWidgetListener implements SelectionListener {
 			// updates widget on job status:
 //			LayoutJobUpdater ju = new LayoutJobUpdater(mainWidget, jobId);
 //			ju.startJobThread();
-
+		} catch (ClientErrorException cee) {
+			final int status = cee.getResponse().getStatus();
+			if(status == 400) {
+				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", 
+						"A job of this type already exists for this page/document!");
+			} else {
+				mw.onError("Error", cee.getMessage(), cee);
+			}
 		} catch (Exception ex) {
-			mw.onError("Layout analysis error", ex.getMessage(), ex);
+			mw.onError("Error", ex.getMessage(), ex);
 		}
 		return;
 	}
