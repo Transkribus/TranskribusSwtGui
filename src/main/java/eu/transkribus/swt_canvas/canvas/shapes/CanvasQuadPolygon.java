@@ -2,19 +2,19 @@ package eu.transkribus.swt_canvas.canvas.shapes;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.graphics.GC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import math.geom2d.polygon.Polygon2D;
+import math.geom2d.polygon.Polygons2D;
+import math.geom2d.polygon.SimplePolygon2D;
 
 public class CanvasQuadPolygon extends CanvasPolygon {
 	
@@ -221,6 +221,57 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	}
 	
 	@Override
+	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
+		//TODO use intersectionPoints method in both directions to determine split points and their index, then construct the two
+		// splits using them -> Polygons2D.intersection not needed here!!
+		
+		
+		
+		
+//		int nIntersections = intersectionPoints(x1, y1, x2, y2, true).size();
+//		logger.debug("nr of intersections: "+nIntersections);
+//		
+//		// for a closed shape, the nr of intersections shall be 2, otherwise more than two split shapes will be created!
+//		// for an open shape (e.g. a polyline) the nr of intersections must be 1
+//		if ( (this.isClosed() && nIntersections!=2) || (!this.isClosed() && nIntersections !=1) ) 
+//			return null;
+//		
+//		List<Point> pts = new ArrayList<Point>();
+//		pts.add(new Point(x1, y1));
+//		pts.add(new Point(x2, y2));
+//		CanvasPolyline pl  = new CanvasPolyline(pts);
+//		
+//		final int extDist = (int)1e6;
+//		pl.extendAtEnds(extDist);
+//		
+//		CanvasPolygon pUp = pl.getPolyRectangle(extDist, extDist, 1);
+//		CanvasPolygon pDown = pl.getPolyRectangle(extDist, extDist, 2);
+//		
+////		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+////		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+//		
+//		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+//		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+//		
+//		ICanvasShape s1 = this.copy();
+//		s1.setPoints2D(pI1.vertices());
+//		
+//		ICanvasShape s2 = this.copy();
+//		s2.setPoints2D(pI2.vertices());
+//		
+//	
+//		/*
+//		 * compare the newly created shapes to have the proper reading order later on 
+//		 * ordering (or better s1, s2) differs for horizontal and vertical splits and hence we correct this here
+//		 */ 
+//		if (s1.compareByLevelAndYXCoordinates(s2) > 0){
+//			return Pair.of(s2, s1);
+//		}
+//						
+//		return Pair.of(s1, s2);
+	}
+	
+	@Override
 	public int insertPoint(int x, int y) {
 //		throw new CanvasShapeException("insertPoint operation not implemented yet for quad polygons!");
 		
@@ -252,6 +303,87 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		
 		return ii;
 	}
+	
+	
+	public List<Point> getPointsOfSegment(int cornerPtIndex) {
+		List<Point> pts = new ArrayList<>();
+		if (cornerPtIndex<0 || cornerPtIndex>4)
+			return pts;
+					
+		int firstCornerPt = corners[cornerPtIndex];
+		int secondCornerPt = cornerPtIndex==3 ? getNPoints() : corners[cornerPtIndex+1];
+		
+		int i=firstCornerPt;
+		while (i<secondCornerPt) {
+			pts.add(getPoint(i++));
+		}
+		
+		return pts;
+	}
+	
+	public class ShapePoint {
+		public java.awt.Point p;
+		public int index;
+		
+		public ShapePoint(Point p, int index) {
+			this.p = p;
+			this.index = index;
+		}
+	}
+		
+	/**
+	 * Returns the intersection points of the given line with a specific side of the QuadPolygon specified by the cornerPtIndex
+	 */
+	public List<ShapePoint> intersectionPoints(int x1, int y1, int x2, int y2, boolean extendLine, int cornerPtIndex) {
+		List<ShapePoint> ipts = new ArrayList<>();
+		if (cornerPtIndex<0 || cornerPtIndex>4)
+			return ipts;
+					
+		math.geom2d.line.LinearElement2D lGiven = null;
+		if (!extendLine)
+			lGiven = new math.geom2d.line.LineSegment2D(x1, y1, x2, y2);
+		else
+			lGiven = new math.geom2d.line.StraightLine2D(x1, y1, x2-x1, y2-y1);
+		
+		int istart = corners[cornerPtIndex];
+		int iend = cornerPtIndex==3 ? getNPoints() : corners[cornerPtIndex+1];
+		
+		List<Point> pts = getPoints();
+		int N = pts.size();
+		
+		for (int i=istart; i<iend; ++i) {
+			int iNext = (i+1) % N;
+			
+			math.geom2d.line.Line2D l = new math.geom2d.line.Line2D((int)pts.get(i).getX(), (int)pts.get(i).getY(),
+					(int)pts.get(iNext).getX(), (int)pts.get(iNext).getY());
+		
+			math.geom2d.Point2D pt = lGiven.intersection(l);
+			if (pt!=null) {
+				ipts.add(new ShapePoint(pt.getAsInt(), i));
+			}
+		}
+		
+		return ipts;
+	}
+	
+	public enum Direction {
+		HORIZONAL, VERTICAL;
+	}
+	
+	public Pair<ShapePoint, ShapePoint> computeSplitPoints(int x1, int y1, int x2, int y2, boolean extendLine, Direction dir) {
+		int cp1 = dir==Direction.HORIZONAL ? 1 : 0;
+		int cp2 = dir==Direction.HORIZONAL ? 3 : 2;
+		
+		List<ShapePoint> ipts1 = intersectionPoints(x1, y1, x2, y2, extendLine, cp1);
+		if (ipts1.size() != 1)
+			return null;
+		
+		List<ShapePoint> ipts2 = intersectionPoints(x1, y1, x2, y2, extendLine, cp2);
+		if (ipts2.size() != 1)
+			return null;
+		
+		return Pair.of(ipts1.get(0), ipts2.get(0));
+	}	
 	
 	@Override
 	public void simplify(double eps) {

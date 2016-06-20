@@ -76,30 +76,30 @@ public class CanvasShapeEditor {
 		
 		if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_LINE) {
 			if (drawnPoints.size() == 1) {
-				splitShape(drawnPoints.get(0).x, drawnPoints.get(0).y, invPt.x,invPt.y);
+				splitShape(canvas.getFirstSelected(), drawnPoints.get(0).x, drawnPoints.get(0).y, invPt.x,invPt.y);
 				drawnPoints.clear();
 			} else {
 				// actually add point:
 				drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));			
 			}
 		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_VERTICAL) {
-			splitShape(-1, invPt.y, 1, invPt.y);
+			splitShape(canvas.getFirstSelected(), -1, invPt.y, 1, invPt.y);
 		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
-			splitShape(invPt.x, -1, invPt.x, 1);
+			splitShape(canvas.getFirstSelected(), invPt.x, -1, invPt.x, 1);
 		}
 	}
 	
-	public List<ShapeEditOperation> splitShape(int x1, int y1, int x2, int y2) {
-		ICanvasShape selected = canvas.getFirstSelected();
-		if (selected == null) {
+	public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2) {
+//		ICanvasShape selected = canvas.getFirstSelected();
+		if (shape == null) {
 			logger.warn("Cannot split - no shape selected!");
 			return null;
 		}
 		
-		List<ICanvasShape> children = selected.getChildren(true); // get all children (recursively)!
+		List<ICanvasShape> children = shape.getChildren(true); // get all children (recursively)!
 		List<ShapeEditOperation> splitOps = new ArrayList<>();
 				
-		ShapeEditOperation op = scene.splitShape(selected, x1, y1, x2, y2, true, null, null, false);
+		ShapeEditOperation op = scene.splitShape(shape, x1, y1, x2, y2, true, null, null, false);
 		if (op!=null) {
 			splitOps.add(op);
 		}

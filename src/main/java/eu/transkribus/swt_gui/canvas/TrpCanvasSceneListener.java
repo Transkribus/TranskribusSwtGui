@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,13 +15,14 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
-import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.*;
+import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -30,18 +32,19 @@ import eu.transkribus.swt_gui.util.GuiUtil;
 public class TrpCanvasSceneListener extends CanvasSceneListener {
 	private final static Logger logger = LoggerFactory.getLogger(TrpCanvasSceneListener.class);
 	
-	TrpMainWidget mainWidget;
+	TrpMainWidget mw;
 	TrpSWTCanvas canvas;
+	Shell shell;
 
 	public TrpCanvasSceneListener(TrpMainWidget mainWidget) {
-		this.mainWidget = mainWidget;
+		this.mw = mainWidget;
 		this.canvas = mainWidget.getCanvas();
+		this.shell = mw.getShell();
 		
 		mainWidget.getScene().addCanvasSceneListener(this);
 	}
 
-	@Override
-	public void onBeforeShapeAdded(SceneEvent e) {
+	@Override public void onBeforeShapeAdded(SceneEvent e) {
 		logger.debug("before shape added called!");
 		ICanvasShape shape = e.getFirstShape();
 		try {
@@ -49,82 +52,85 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				throw new Exception("No shape to add - should not happen...");
 							
 			// add element to JAXB:
-			CanvasMode mode = mainWidget.getCanvas().getMode();
+			CanvasMode mode = mw.getCanvas().getMode();
 			try {
-				ITrpShapeType el = mainWidget.getShapeFactory().createJAXBElementFromShape(shape, mainWidget.getCanvas().getMode(), mainWidget.getCanvas().getFirstSelected());
+				ITrpShapeType el = mw.getShapeFactory().createJAXBElementFromShape(shape, mw.getCanvas().getMode(), mw.getCanvas().getFirstSelected());
 			} catch (NoParentRegionException | NoParentLineException ex) {
 				boolean noRegion = ex instanceof NoParentRegionException;
 				String parentType = noRegion ? "region" : "line";
 				
 				// create parent shape if none existed!
 				final boolean CREATE_PARENT_SHAPE_IF_NONE_EXISTS = true;
-				if (CREATE_PARENT_SHAPE_IF_NONE_EXISTS) {
-				boolean doCreateParentRegion = TrpMainWidget.getTrpSettings().isAutoCreateParent();
-				if (!doCreateParentRegion) {
-//					doCreateParentRegion =
-//							DialogUtil.showYesNoDialog(canvas.getShell(), "Create parent?", "No parent "+parentType+" found - do you want to create it?")==SWT.YES;
-					
-					MessageDialogWithToggle d = MessageDialogWithToggle.openYesNoQuestion(canvas.getShell(), "Create parent?", "No parent "+parentType+" found - do you want to create it?", 
-							"Create always", TrpMainWidget.getTrpSettings().isAutoCreateParent(), null, null);
-					int rc = d.getReturnCode();
-					logger.debug("answer = "+rc);
-					
-					doCreateParentRegion = rc==IDialogConstants.YES_ID;
-					if (doCreateParentRegion)
-						TrpMainWidget.getTrpSettings().setAutoCreateParent(d.getToggleState());
-				}
-				if (doCreateParentRegion) {
-					// first add missing parent region:
-					logger.debug("Adding parent "+parentType);
-					// determine parent shape:
-					ICanvasShape shapeOfParent = null;
-					if (mode == TrpCanvasAddMode.ADD_BASELINE) { // for a baseline add a parent line that is extended beyond the bounding box
-						CanvasPolyline baselineShape = (CanvasPolyline) shape;
-						shapeOfParent = baselineShape.getDefaultPolyRectangle();
-					} else  { // for a word or line add parent shape that is almost the same as the shape to add
-						shapeOfParent = shape.getBoundsPolygon();
+				boolean askForParentCreation = mode != TrpCanvasAddMode.ADD_TABLECELL;
+				
+				if (CREATE_PARENT_SHAPE_IF_NONE_EXISTS && askForParentCreation) {
+					boolean doCreateParentRegion = TrpMainWidget.getTrpSettings().isAutoCreateParent();
+					if (!doCreateParentRegion) {
+	//					doCreateParentRegion =
+	//							DialogUtil.showYesNoDialog(canvas.getShell(), "Create parent?", "No parent "+parentType+" found - do you want to create it?")==SWT.YES;
+						
+						MessageDialogWithToggle d = MessageDialogWithToggle.openYesNoQuestion(canvas.getShell(), "Create parent?", "No parent "+parentType+" found - do you want to create it?", 
+								"Create always", TrpMainWidget.getTrpSettings().isAutoCreateParent(), null, null);
+						int rc = d.getReturnCode();
+						logger.debug("answer = "+rc);
+						
+						doCreateParentRegion = rc==IDialogConstants.YES_ID;
+						if (doCreateParentRegion)
+							TrpMainWidget.getTrpSettings().setAutoCreateParent(d.getToggleState());
 					}
-					// backup and set correct mode:
-					CanvasMode modeBackup = canvas.getMode();
-					canvas.setMode(noRegion ? TrpCanvasAddMode.ADD_TEXTREGION : TrpCanvasAddMode.ADD_LINE);
-					// try to add parent region:
-					boolean success = canvas.getShapeEditor().addShapeToCanvas(shapeOfParent);
-					canvas.setMode(modeBackup);
-					if (!success) { // if not successfully added parent shape, abort this operation!
+					if (doCreateParentRegion) {
+						// first add missing parent region:
+						logger.debug("Adding parent "+parentType);
+						// determine parent shape:
+						ICanvasShape shapeOfParent = null;
+						if (mode == TrpCanvasAddMode.ADD_BASELINE) { // for a baseline add a parent line that is extended beyond the bounding box
+							CanvasPolyline baselineShape = (CanvasPolyline) shape;
+							shapeOfParent = baselineShape.getDefaultPolyRectangle();
+						} else  { // for a word or line add parent shape that is almost the same as the shape to add
+							shapeOfParent = shape.getBoundsPolygon();
+						}
+						// backup and set correct mode:
+						CanvasMode modeBackup = canvas.getMode();
+						canvas.setMode(noRegion ? TrpCanvasAddMode.ADD_TEXTREGION : TrpCanvasAddMode.ADD_LINE);
+						// try to add parent region:
+						boolean success = canvas.getShapeEditor().addShapeToCanvas(shapeOfParent);
+						canvas.setMode(modeBackup);
+						if (!success) { // if not successfully added parent shape, abort this operation!
+							e.stop = true;
+						} else { // if successfully added parent shape, once again try to add original shape
+							ITrpShapeType el = mw.getShapeFactory().createJAXBElementFromShape(shape, mw.getCanvas().getMode(), shapeOfParent);
+						}
+					} else {
 						e.stop = true;
-					} else { // if successfully added parent shape, once again try to add original shape
-						ITrpShapeType el = mainWidget.getShapeFactory().createJAXBElementFromShape(shape, mainWidget.getCanvas().getMode(), shapeOfParent);
 					}
-				} else {
+				}
+				else {
+					DialogUtil.showErrorMessageBox(mw.getShell(), "Error adding element", "No suitable parent region!");
 					e.stop = true;
+//					throw ex;
 				}
-				}
-				else
-					throw ex;
 			}
 		}
 		catch (Throwable ex) {
-			mainWidget.onError("Error adding element", "Error adding element", ex);
+			mw.onError("Error adding element", "Error adding element", ex);
 			e.stop = true;
 		}
 	}
 
-	@Override
-	public void onShapeAdded(SceneEvent e) {
-		mainWidget.getScene().updateAllShapesParentInfo();
-		mainWidget.getCanvasShapeObserver().addShapeToObserve(e.getFirstShape());
-		mainWidget.refreshStructureView();
+	@Override public void onShapeAdded(SceneEvent e) {
+		mw.getScene().updateAllShapesParentInfo();
+		mw.getCanvasShapeObserver().addShapeToObserve(e.getFirstShape());
+		mw.refreshStructureView();
 		if (TrpMainWidget.getTrpSettings().isSelectNewlyCreatedShape())
-			mainWidget.getScene().selectObject(e.getFirstShape(), true, false);
-		mainWidget.updateTranscriptionWidgetsData();
-		mainWidget.getScene().updateSegmentationViewSettings();
+			mw.getScene().selectObject(e.getFirstShape(), true, false);
+		mw.updateTranscriptionWidgetsData();
+		mw.getScene().updateSegmentationViewSettings();
 	}
 	
-	@Override
-	public void onBeforeShapeRemoved(SceneEvent e) {
+	@Override public void onBeforeShapeRemoved(SceneEvent e) {
 //		logger.debug("before shape removed called: "+e.shape);
 		
-		TrpSettings set = mainWidget.getTrpSettings();
+		TrpSettings set = TrpMainWidget.getTrpSettings();
 		
 		for (ICanvasShape s : e.shapes) {
 			ITrpShapeType st = GuiUtil.getTrpShape(s);
@@ -143,7 +149,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				}
 
 				if (removeParentLine) { // remove parent line!
-					logger.debug("TODO: remove parent line!");
+					logger.debug("removing parent line!");
 					canvas.getShapeEditor().removeShapeFromCanvas(s.getParent());
 					e.stop = true;
 				}
@@ -153,8 +159,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		
 	}
 
-	@Override
-	public void onShapeRemoved(SceneEvent e) {	
+	@Override public void onShapeRemoved(SceneEvent e) {	
 		logger.debug("on shape removed called: "+e.getFirstShape());
 		
 		try {
@@ -178,21 +183,20 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 			logger.debug("removed "+e.getFirstShape().getData() +" from JAXB");
 		
-			mainWidget.updatePageRelatedMetadata();
-			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.refreshStructureView();
-			mainWidget.getScene().selectObject(null, true, false);
-			mainWidget.updateTranscriptionWidgetsData();
+			mw.updatePageRelatedMetadata();
+			mw.getScene().updateAllShapesParentInfo();
+			mw.refreshStructureView();
+			mw.getScene().selectObject(null, true, false);
+			mw.updateTranscriptionWidgetsData();
 
 		}
 		catch (Throwable ex) {
-			mainWidget.onError("Error removing shape", "Could not remove element from JAXB", ex);
+			mw.onError("Error removing shape", "Could not remove element from JAXB", ex);
 			e.stop = true;
 		}		
 	}
 
-	@Override
-	public void onSelectionChanged(final SceneEvent e) {
+	@Override public void onSelectionChanged(final SceneEvent e) {
 		try {
 //			if (true) return;
 			
@@ -205,7 +209,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 //				logger.debug("last selected data = "+st+" text = "+st.getUnicodeText());
 //			}
 			
-			logger.debug("main shell enabled: "+mainWidget.getShell().isEnabled());
+			logger.debug("main shell enabled: "+mw.getShell().isEnabled());
 			
 //			if (true) return;
 //			Display.getDefault().asyncExec(new Runnable() {
@@ -220,41 +224,37 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 //				}
 //			});
 			
-			mainWidget.updatePageRelatedMetadata();
-			mainWidget.updateTreeSelectionFromCanvas();
+			mw.updatePageRelatedMetadata();
+			mw.updateTreeSelectionFromCanvas();
 			if (newFirstSelected) {
 //				mainWidget.selectTranscriptionWidgetOnSelectedShape(e.getFirstShape());
-				mainWidget.updateTranscriptionWidgetsData();
-				mainWidget.getCanvas().updateEditors();
+				mw.updateTranscriptionWidgetsData();
+				mw.getCanvas().updateEditors();
 			}
 			/*
 			 * to see the width * height information of the selected shape in the page info
 			 */
-			mainWidget.updatePageInfo();
+			mw.updatePageInfo();
 			
 		} catch (Throwable th) {		
-			mainWidget.onError("Error updating selection", "Could not update selection from canvas", th);
+			mw.onError("Error updating selection", "Could not update selection from canvas", th);
 		}
 	}
 
-	@Override
-	public void onBeforeShapeMoved(SceneEvent e) {
+	@Override public void onBeforeShapeMoved(SceneEvent e) {
 		
 		
 		
 	}
 
-	@Override
-	public void onShapeMoved(SceneEvent e) {
+	@Override public void onShapeMoved(SceneEvent e) {
 	}
 
-	@Override
-	public void onBeforeUndo(SceneEvent e) {
+	@Override public void onBeforeUndo(SceneEvent e) {
 		logger.debug("onBeforeUndo called, type: "+e.op.getType());
 	}
 	
-	@Override
-	public void onUndo(SceneEvent e) {
+	@Override public void onUndo(SceneEvent e) {
 		logger.debug("onUndo called, type: "+e.op.getType());
 		if (e.op.getType() == ShapeEditType.DELETE) {
 			processUndoDelete(e.op);
@@ -270,7 +270,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	private void processUndoMerge(ShapeEditOperation op) {
 		logger.debug("processUndoMerge");
 		try {
-			mainWidget.getTranscriptObserver().setActive(false);
+			mw.getTranscriptObserver().setActive(false);
 			
 			// reinsert data objects of all formerly removed shapes into the jaxb again: 
 			for (ICanvasShape s : op.getShapes()) {
@@ -288,16 +288,16 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 			// note: the jaxb element from the merged shape has already been removed by the remove method in canvasscene
 
-			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.getScene().updateSegmentationViewSettings();
-			mainWidget.refreshStructureView();
-			mainWidget.getScene().selectObject(null, true, false);
-			mainWidget.updateTranscriptionWidgetsData();
+			mw.getScene().updateAllShapesParentInfo();
+			mw.getScene().updateSegmentationViewSettings();
+			mw.refreshStructureView();
+			mw.getScene().selectObject(null, true, false);
+			mw.updateTranscriptionWidgetsData();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			mainWidget.onError("Error undoing", "Could not undo merge operation "+op.getDescription(), e);
+			mw.onError("Error undoing", "Could not undo merge operation "+op.getDescription(), e);
 		} finally {
-			mainWidget.getTranscriptObserver().setActive(true);
+			mw.getTranscriptObserver().setActive(true);
 		}
 	}
 	
@@ -305,7 +305,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		logger.debug("processUndoSplit");
 
 		try {
-			mainWidget.getTranscriptObserver().setActive(false);
+			mw.getTranscriptObserver().setActive(false);
 			
 			// reset parent shape and all that shit:
 			ICanvasShape origShape = op.getFirstShape();
@@ -328,9 +328,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				ITrpShapeType childSt = GuiUtil.getTrpShape(s);
 				childSt.removeFromParent();
 				childSt.setParent(origSt);
-				mainWidget.getCanvasShapeObserver().addShapeToObserve(s);
+				mw.getCanvasShapeObserver().addShapeToObserve(s);
 				childSt.reInsertIntoParent();
-				mainWidget.getScene().updateParentInfo(s, false);	
+				mw.getScene().updateParentInfo(s, false);	
 			}
 			
 //			mainWidget.getScene().updateAllShapesParentInfo();
@@ -339,19 +339,19 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 //			mainWidget.updateTranscriptionWidgetsData();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			mainWidget.onError("Error undoing", "Could not undo split operation "+op.getDescription(), e);
+			mw.onError("Error undoing", "Could not undo split operation "+op.getDescription(), e);
 		} finally {
-			mainWidget.getTranscriptObserver().setActive(true);
+			mw.getTranscriptObserver().setActive(true);
 			
-			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
+			mw.getScene().updateAllShapesParentInfo();
+			mw.getCanvasShapeObserver().updateObserverForAllShapes();
 			
 			if (!op.isFollowUp()) {
 				logger.debug("updating gui after last operation on undo split!");
-				mainWidget.getScene().updateSegmentationViewSettings();
-				mainWidget.refreshStructureView();
-				mainWidget.updateTranscriptionWidgetsData();
-				mainWidget.redrawCanvas();
+				mw.getScene().updateSegmentationViewSettings();
+				mw.refreshStructureView();
+				mw.updateTranscriptionWidgetsData();
+				mw.redrawCanvas();
 			}
 			
 		}
@@ -362,26 +362,25 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 
 		try {
 			for (ICanvasShape s : op.getShapes()) {
-				mainWidget.getCanvasShapeObserver().addShapeToObserve(s);
+				mw.getCanvasShapeObserver().addShapeToObserve(s);
 				ITrpShapeType st = (ITrpShapeType) s.getData();
 				//preserve the old reading order
 				Integer ro = st.getReadingOrder();
 				st.reInsertIntoParent(ro==null ? -1 : ro);
-				mainWidget.getScene().updateParentInfo(s, false);	
+				mw.getScene().updateParentInfo(s, false);	
 			}
 			
-			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.getScene().updateSegmentationViewSettings();
-			mainWidget.refreshStructureView();
-			mainWidget.updateTranscriptionWidgetsData();
+			mw.getScene().updateAllShapesParentInfo();
+			mw.getScene().updateSegmentationViewSettings();
+			mw.refreshStructureView();
+			mw.updateTranscriptionWidgetsData();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			mainWidget.onError("Error undoing", "Could not undo delete operation "+op.getDescription(), e);
+			mw.onError("Error undoing", "Could not undo delete operation "+op.getDescription(), e);
 		}
 	}
 
-	@Override
-	public void onBeforeSplit(SceneEvent e) {
+	@Override public void onBeforeSplit(SceneEvent e) {
 		try {
 			logger.debug("before splitting, isFollowUp: "+e.op.isFollowUp()+" shape = "+e.op.getFirstShape());
 			
@@ -395,15 +394,14 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 		} catch (Exception ex) {
 			e.stop = true;
-			mainWidget.onError("Error during operation", "Could not split elements", ex);
+			mw.onError("Error during operation", "Could not split elements", ex);
 		}
 	}
 
-	@Override
-	public void onSplit(SceneEvent e) {
+	@Override public void onSplit(SceneEvent e) {
 		try {
-			mainWidget.getTranscriptObserver().setActive(false);
-			logger.debug("transcript observer active: "+mainWidget.getTranscriptObserver().isActive());
+			mw.getTranscriptObserver().setActive(false);
+			logger.debug("transcript observer active: "+mw.getTranscriptObserver().isActive());
 			
 			logger.debug("on split, op = "+e.op);
 			ICanvasShape origShape = e.op.getFirstShape();
@@ -440,10 +438,10 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			logger.debug("INDEX OF ORIG SHAPE: "+ indexOfOrigShape);
 			
 			// add new elements to JAXB (first second, then first to ensure right order):
-			ITrpShapeType el2 = mainWidget.getShapeFactory().copyJAXBElementFromShapeAndData(s2, indexOfOrigShape);
+			ITrpShapeType el2 = mw.getShapeFactory().copyJAXBElementFromShapeAndData(s2, indexOfOrigShape);
 			s2.setData(el2);
 			
-			ITrpShapeType el1 = mainWidget.getShapeFactory().copyJAXBElementFromShapeAndData(s1, indexOfOrigShape);
+			ITrpShapeType el1 = mw.getShapeFactory().copyJAXBElementFromShapeAndData(s1, indexOfOrigShape);
 			s1.setData(el1);
 
 
@@ -469,8 +467,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			logger.debug("onSplit, s1 n-children = "+s1.getChildren(false).size() +" s2 n-children = "+s2.getChildren(false).size());
 
 			// readjust parents of child shapes:
-			mainWidget.getShapeFactory().readjustChildrenForShape(s1, el1);
-			mainWidget.getShapeFactory().readjustChildrenForShape(s2, el2);
+			mw.getShapeFactory().readjustChildrenForShape(s1, el1);
+			mw.getShapeFactory().readjustChildrenForShape(s2, el2);
 						
 			// Remove deadlinks from page, i.e. links that point to non-existing shapes (not undoable!)
 			el1.getPage().removeDeadLinks();
@@ -479,14 +477,14 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 
 			// select new shape: 
 			if (!e.op.isFollowUp())
-				mainWidget.getScene().selectObject(s1, true, false);
+				mw.getScene().selectObject(s1, true, false);
 
 		}
 		catch (Throwable ex) {
-			mainWidget.onError("Error during operation", "Error splitting element", ex);
+			mw.onError("Error during operation", "Error splitting element", ex);
 			e.stop = true;
 		} finally {
-			mainWidget.getTranscriptObserver().setActive(true);
+			mw.getTranscriptObserver().setActive(true);
 			
 //			mainWidget.getScene().updateAllShapesParentInfo();
 //			mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
@@ -502,18 +500,16 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		}
 	}
 	
-	@Override
-	public void onAfterSplit(SceneEvent e) {
+	@Override public void onAfterSplit(SceneEvent e) {
 		logger.debug("updating gui after split is done!");
-		mainWidget.getCanvasShapeObserver().updateObserverForAllShapes();
-		mainWidget.getScene().updateAllShapesParentInfo();
-		mainWidget.refreshStructureView();
-		mainWidget.updateTranscriptionWidgetsData();
-		mainWidget.redrawCanvas();
+		mw.getCanvasShapeObserver().updateObserverForAllShapes();
+		mw.getScene().updateAllShapesParentInfo();
+		mw.refreshStructureView();
+		mw.updateTranscriptionWidgetsData();
+		mw.redrawCanvas();
 	}
 
-	@Override
-	public void onBeforeMerge(SceneEvent e) {
+	@Override public void onBeforeMerge(SceneEvent e) {
 		try {
 			logger.debug("before merging");
 			
@@ -530,14 +526,13 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 		} catch (Throwable th) {
 			e.stop = true;
-			mainWidget.onError("Error during operation", "Could not merge elements", th);
+			mw.onError("Error during operation", "Could not merge elements", th);
 		}		
 	}
 
-	@Override
-	public void onMerge(SceneEvent e) {
+	@Override public void onMerge(SceneEvent e) {
 		try {
-			mainWidget.getTranscriptObserver().setActive(false);
+			mw.getTranscriptObserver().setActive(false);
 			
 			ICanvasShape newShape = e.op.getNewShapes().get(0);
 			logger.debug("merged shape: "+newShape);
@@ -574,7 +569,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 			Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>());
 			
-			ITrpShapeType mergedSt = mainWidget.getShapeFactory().copyJAXBElementFromShapeAndData(newShape, minIndex);
+			ITrpShapeType mergedSt = mw.getShapeFactory().copyJAXBElementFromShapeAndData(newShape, minIndex);
 			logger.debug("newshape data: "+((ITrpShapeType)newShape.getData()).print());			
 
 			for (ITrpShapeType st : trpMergedShapes) {				
@@ -611,23 +606,22 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				}
 			}
 			if (baselineToRemove!=null)
-				mainWidget.getScene().removeShape(baselineToRemove, false, false);
+				mw.getScene().removeShape(baselineToRemove, false, false);
 			
-			mainWidget.getScene().updateAllShapesParentInfo();
-			mainWidget.refreshStructureView();
-			mainWidget.getScene().selectObject(newShape, true, false);
-			mainWidget.updateTranscriptionWidgetsData();
+			mw.getScene().updateAllShapesParentInfo();
+			mw.refreshStructureView();
+			mw.getScene().selectObject(newShape, true, false);
+			mw.updateTranscriptionWidgetsData();
 		} catch (Throwable th) {
 			e.stop = true;
-			mainWidget.onError("Error merging elements", "Could not merge elements", th);
+			mw.onError("Error merging elements", "Could not merge elements", th);
 		} finally {
-			mainWidget.getTranscriptObserver().setActive(true);
+			mw.getTranscriptObserver().setActive(true);
 			
 		}
 	}	
 	
-	@Override
-	public void onReadingOrderChanged(SceneEvent e) {
+	@Override public void onReadingOrderChanged(SceneEvent e) {
 		try {
 			//logger.debug("on reading order changed");
 			ITrpShapeType st = GuiUtil.getTrpShape(e.getFirstShape());
@@ -645,7 +639,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			
 		} catch (Throwable th) {
 			e.stop = true;
-			mainWidget.onError("Error during operation", "Could not set new reading order", th);
+			mw.onError("Error during operation", "Could not set new reading order", th);
 		}		
 	}
 
