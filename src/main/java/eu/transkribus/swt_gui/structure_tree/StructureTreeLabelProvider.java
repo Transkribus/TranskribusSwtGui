@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -65,7 +66,8 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 			// show text only for lines and words, otherwise the tree elements get too big:
 			if (element instanceof TrpTextLineType || element instanceof TrpWordType)
 				text = s.getUnicodeText();
-			if (element instanceof TrpTextLineType || element instanceof TrpWordType || element instanceof TrpTextRegionType) {
+			//show reading order for lines, words as well as for all regions
+			if (element instanceof TrpTextLineType || element instanceof TrpWordType || element instanceof TrpRegionType) {
 				readingOrder = s.getReadingOrder()!=null ? ""+(s.getReadingOrder()+1) : "";
 			}
 			

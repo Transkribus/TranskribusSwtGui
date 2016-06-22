@@ -642,7 +642,7 @@ public class StructureTreeWidget extends Composite {
 
 					@Override protected boolean canEdit(Object element) {
 						boolean isPageLocked = Storage.getInstance().isPageLocked();
-						boolean isRegionOrLineOrWord = element instanceof TrpTextRegionType || element instanceof TrpTextLineType || element instanceof TrpWordType;
+						boolean isRegionOrLineOrWord = element instanceof TrpRegionType || element instanceof TrpTextLineType || element instanceof TrpWordType;
 						return !isPageLocked && isRegionOrLineOrWord;
 					}
 				});

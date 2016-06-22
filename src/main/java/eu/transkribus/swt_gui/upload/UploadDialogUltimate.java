@@ -236,7 +236,8 @@ public class UploadDialogUltimate extends Dialog {
 		lblTitle.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblTitle.setText("Title on server:");
 
-		titleText = new Text(container, SWT.BORDER);
+		if(titleText == null)
+			titleText = new Text(container, SWT.BORDER);
 		titleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
 		titleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(container, SWT.NONE);
@@ -317,7 +318,8 @@ public class UploadDialogUltimate extends Dialog {
 		lblTitle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		lblTitle.setText("Title on server:");
 
-		titleText = new Text(container, SWT.BORDER);
+		if(titleText == null)
+			titleText = new Text(container, SWT.BORDER);
 		titleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
 		titleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		new Label(container, SWT.NONE);

@@ -14,6 +14,7 @@ import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -127,7 +128,11 @@ public class TrpSWTCanvas extends SWTCanvas {
 		
 		//Graphics2D g2D = (Graphics2D) gc;
 		
-		boolean isRegion = trpShape instanceof TrpTextRegionType;
+		//boolean isRegion = trpShape instanceof TrpTextRegionType;
+		/*
+		 * this draws reading order for all kind of regions
+		 */
+		boolean isRegion = trpShape instanceof TrpRegionType;
 		boolean isLine = trpShape instanceof TrpTextLineType;
 		boolean isWord = trpShape instanceof TrpWordType;
 		
@@ -258,7 +263,9 @@ public class TrpSWTCanvas extends SWTCanvas {
 		boolean isShowL = mainWidget.getTrpSets().isShowReadingOrderLines();
 		boolean isShowW = mainWidget.getTrpSets().isShowReadingOrderWords();
 		for (ICanvasShape s : getScene().getShapes()) {
-			if (s.hasDataType(TrpTextRegionType.class)) {
+			
+			//change to TrpTextRegionType if only text regions showd be editable in the canvas
+			if (s.hasDataType(TrpRegionType.class)) {
 				s.showReadingOrder(isShowR);
 			}
 			if (s.hasDataType(TrpTextLineType.class)) {
