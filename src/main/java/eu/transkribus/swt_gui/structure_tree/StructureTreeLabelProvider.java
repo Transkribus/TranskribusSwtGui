@@ -73,6 +73,10 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 			
 			if (element instanceof TrpTableCellType) {
 				TrpTableCellType tc = (TrpTableCellType) element;
+<<<<<<< Upstream, based on branch 'dev_sebi' of https://github.com/Transkribus/TranskribusSwtGui
+=======
+//				logger.debug("HEEEEEEEEEEEEEEERE, tc = "+tc);
+>>>>>>> bdee48e tmi
 				text = tc.getCornerPts();
 				text += " ("+tc.getRow()+","+tc.getCol()+")";
 			}
