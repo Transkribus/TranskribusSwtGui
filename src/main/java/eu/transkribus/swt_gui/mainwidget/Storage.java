@@ -1006,7 +1006,7 @@ public class Storage extends Observable {
 		logger.debug("nr of transcripts: " + getNTranscripts());
 		logger.debug("image filename: " + page.getUrl());
 		
-		if (isRemoteDoc())
+		if (isRemoteDoc() && this.getRoleOfUserInCurrentCollection().getValue() > TrpRole.Reader.getValue())
 			lockPage(getCurrentDocumentCollectionId(), page);
 		
 		if (TrpConfig.getTrpSettings().isPreloadImages())
