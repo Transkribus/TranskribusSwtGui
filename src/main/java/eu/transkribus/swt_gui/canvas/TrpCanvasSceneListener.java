@@ -15,6 +15,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
@@ -22,6 +23,7 @@ import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
@@ -407,6 +409,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			ICanvasShape origShape = e.op.getFirstShape();
 			ITrpShapeType origShapeData = (ITrpShapeType) origShape.getData();
 			
+//			e.op.data
+			
 			Integer oldReadingOrder = -1;
 			if (origShapeData != null){
 				oldReadingOrder = origShapeData.getReadingOrder();
@@ -419,7 +423,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			
 			
 			//for region types: otherwise the splitted elements got inserted at the end of the regions becuase they have not parent shape
-			if (indexOfOrigShape == -1 && oldReadingOrder != null){
+			if (indexOfOrigShape == -1 && oldReadingOrder != null) {
 				indexOfOrigShape = oldReadingOrder;
 			}
 			
@@ -443,7 +447,6 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			
 			ITrpShapeType el1 = mw.getShapeFactory().copyJAXBElementFromShapeAndData(s1, indexOfOrigShape);
 			s1.setData(el1);
-
 
 			// split text between elements
 			final boolean SPLIT_TEXT_ON_AREA_PERCENTAGE = false;

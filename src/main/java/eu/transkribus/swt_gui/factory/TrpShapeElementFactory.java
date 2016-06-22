@@ -169,14 +169,20 @@ public class TrpShapeElementFactory {
 		// set coordinates:
 		copyTrpShape.setCoordinates(PointStrUtils.pointsToString(shape.getPoints()), this);
 		
+		// set corner pts if this is a TrpTableCellType and shape is a CanvasQuadPolygon:
+		if (copyTrpShape instanceof TrpTableCellType && shape instanceof CanvasQuadPolygon) {
+			String cornerPts = PointStrUtils.cornerPtsToString( ((CanvasQuadPolygon) shape).getCorners());
+			((TrpTableCellType) copyTrpShape).setCornerPts(cornerPts, this);
+		}
+		
 		copyTrpShape.reInsertIntoParent(index);				
 			
 		// sync canvas shape and trp shape info:
 		syncCanvasShapeAndTrpShape(shape, copyTrpShape);
 		
 		return copyTrpShape;		
-	}	
-	
+	}
+		
 	/** Creates a new ITrpShapeType element from the given shape that was created in the canvas. The CanvasMode m determines
 	 * the type of shape that shall be created.
 	 * @param selSt 

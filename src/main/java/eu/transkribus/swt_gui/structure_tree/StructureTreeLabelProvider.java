@@ -72,7 +72,9 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 			}
 			
 			if (element instanceof TrpTableCellType) {
-				text = ((TrpTableCellType) element).getCoords().getCornerPts();
+				TrpTableCellType tc = (TrpTableCellType) element;
+				text = tc.getCornerPts();
+				text += " ("+tc.getRow()+","+tc.getCol()+")";
 			}
 			
 //			if (element instanceof TrpTextRegionType) {

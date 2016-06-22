@@ -279,13 +279,14 @@ public class CanvasScene {
 	 * @param isFollowUp Indicates that this is a follow-up split, i.e. a split occuring from splitting a parent shape!
 	 * @return A ShapeEditOperation object that contains information on the performed split or null if there was some error
 	 */
-	public ShapeEditOperation splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, boolean sendSignal, ICanvasShape p1, ICanvasShape p2, boolean isFollowUp) {
+	public ShapeEditOperation splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, boolean sendSignal, ICanvasShape p1, ICanvasShape p2, boolean isFollowUp, Object data) {
 		if (shape == null)
 			return null;
 		
 		logger.debug("splitting shape "+shape);
 		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.SPLIT, "Shape splitted", shape);
 		op.setFollowUp(isFollowUp);
+		op.data = data;
 		
 		if (sendSignal) {
 			if (notifyOnBeforeShapeSplitted(op))

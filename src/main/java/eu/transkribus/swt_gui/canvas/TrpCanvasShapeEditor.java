@@ -7,16 +7,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent.TableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon.Direction;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon.ShapePoint;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
 
 ///**
 // * @deprecated not used currently
@@ -52,7 +52,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 //		scene.selectObject(selected.getParent(), false, false);
 		
 		// try to select first split of baseline:
-		List<ShapeEditOperation> splitOps = super.splitShape(selected, x1, y1, x2, y2);
+		List<ShapeEditOperation> splitOps = super.splitShape(selected, x1, y1, x2, y2, null);
 		logger.debug("trying to select left baseline split, nr of ops = "+splitOps.size());
 		if (splitOps != null) {
 			for (ShapeEditOperation o : splitOps) {
@@ -70,23 +70,26 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return splitOps;
 	}
 	
-	private List<TrpTableCellType> getSplittableCells(int x1, int y1, int x2, int y2, TrpTableRegionType table) {
+	private Pair<SplitDirection, List<TrpTableCellType>> getSplittableCells(int x1, int y1, int x2, int y2, TrpTableRegionType table) {
 		Pair<Integer, Integer> maxRowCol = table.getMaxRowCol();
 		
 		int nRows = maxRowCol.getLeft() + 1;
 		int nCols = maxRowCol.getRight() + 1;
 		
 		List<TrpTableCellType> splittableCells=null;
+		SplitDirection dir = null;
 		for (int j=0; j<2; ++j) {
 			int N = j==0 ? nRows : nCols;
 			
 			for (int i=0; i<N; ++i) {
 				List<TrpTableCellType> cells = table.getCells(j==0, i);
+				dir = j==0 ? SplitDirection.VERTICAL : SplitDirection.HORIZONAL;
 				
 				for (TrpTableCellType c : cells) {
 					CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
 					
-					if (qp.computeSplitPoints(x1, y1, x2, y2, true, Direction.VERTICAL) == null) {
+					if (qp.computeSplitPoints(x1, y1, x2, y2, true, dir) == null) {
+						logger.debug("cells not splittable in dir = "+dir);
 						cells = null;
 						break;
 					}
@@ -102,27 +105,74 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				break;				
 			}
 		}
-		
-		return splittableCells;
+
+		return Pair.of(dir, splittableCells);
 	}
 	
 	private List<ShapeEditOperation> splitTrpTableType(int x1, int y1, int x2, int y2, TrpTableRegionType table) {	
 		// search for row / col cells to split:
-		List<TrpTableCellType> splittableCells = getSplittableCells(x1, y1, x2, y2, table);
-		if (splittableCells == null)
+		Pair<SplitDirection, List<TrpTableCellType>> splittableCells = getSplittableCells(x1, y1, x2, y2, table);
+		if (splittableCells == null) {
+			logger.debug("cells not splittable in this direction!");
 			return null;
+		}
 		
+		SplitDirection dir = splittableCells.getLeft();
 		// FIXME??ß
 		
 		List<ShapeEditOperation> splitOps = new ArrayList<>();
-		for (TrpTableCellType c : splittableCells) {
-			splitOps.addAll(super.splitShape((ICanvasShape) c.getData(), x1, y1, x2, y2));
+		for (TrpTableCellType c : splittableCells.getRight()) {
+			List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), x1, y1, x2, y2, dir);
+			for (ShapeEditOperation op : splitOps4Cell) {
+				op.data = dir;
+			}
+			
+			splitOps.addAll(splitOps4Cell);
+		}
+		
+		// adjust indexes on table:
+		int insertIndex = dir==SplitDirection.HORIZONAL ? splittableCells.getRight().get(0).getCol() : splittableCells.getRight().get(0).getRow();
+//		boolean isRowInserted = dir==SplitDirection.VERTICAL;
+		
+//		table.adjustCellIndexesOnRowOrColInsert(insertIndex, isRowInserted);
+				
+		for (ShapeEditOperation op : splitOps) {
+			logger.debug("t-op = "+op);
+//			op.getFirstShape();
+//			TrpTableCellType tc1 = (TrpTableCellType) op.getNewShapes().get(0).getData();
+			TrpTableCellType tc2 = (TrpTableCellType) op.getNewShapes().get(1).getData();
+			logger.debug("tc2 = "+tc2);
+			
+			if (dir == SplitDirection.HORIZONAL) {
+				tc2.setCol(-1);
+			} else {
+				tc2.setRow(-1);
+			}
+//			op.data = splittableCells.getLeft();
+		}
+		
+		for (TableCellType tc : table.getTableCell()) {
+			if (dir == SplitDirection.HORIZONAL) {
+				if (tc.getCol() > insertIndex) {
+					tc.setCol(tc.getCol()+1);
+				} else if (tc.getCol() == -1) {
+					logger.debug("here1 "+insertIndex);
+					tc.setCol(insertIndex+1);
+				}
+			} else {
+				if (tc.getRow() > insertIndex) {
+					tc.setRow(tc.getRow()+1);
+				} else if (tc.getCol() == -1) {
+					logger.debug("here2 "+insertIndex);
+					tc.setRow(insertIndex+1);
+				}	
+			}
 		}
 
 		return splitOps;
 	}
 	
-	@Override public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2) {		
+	@Override public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, Object data) {		
 //		ICanvasShape selected = canvas.getFirstSelected();
 		if (shape == null) {
 			logger.warn("Cannot split - no shape selected!");
@@ -146,7 +196,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		
 		else { // not splitting a basline -> perform default split operation on base class
-			return super.splitShape(shape, x1, y1, x2, y2);
+			return super.splitShape(shape, x1, y1, x2, y2, null);
 		}
 	}
 	

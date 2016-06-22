@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +13,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
-import math.geom2d.polygon.Polygon2D;
-import math.geom2d.polygon.Polygons2D;
-import math.geom2d.polygon.SimplePolygon2D;
+import eu.transkribus.swt_canvas.util.Colors;
 
 public class CanvasQuadPolygon extends CanvasPolygon {
 	
@@ -42,7 +41,11 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	}
 	
 	public CanvasQuadPolygon(String points, int[] corners) throws PointParseException, CanvasShapeException {
-		setPoints(PointStrUtils.parsePoints(points));
+		this(PointStrUtils.parsePoints(points), corners);
+	}
+	
+	public CanvasQuadPolygon(List<Point> pts, int[] corners) throws PointParseException, CanvasShapeException {
+		setPoints(pts);
 		setCornerPts(corners);
 	}
 
@@ -220,56 +223,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		logger.debug("corners: "+ PointStrUtils.cornerPtsToString(corners));		
 	}
 	
-	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
-		//TODO use intersectionPoints method in both directions to determine split points and their index, then construct the two
-		// splits using them -> Polygons2D.intersection not needed here!!
-		
-		
-		
-		
-//		int nIntersections = intersectionPoints(x1, y1, x2, y2, true).size();
-//		logger.debug("nr of intersections: "+nIntersections);
-//		
-//		// for a closed shape, the nr of intersections shall be 2, otherwise more than two split shapes will be created!
-//		// for an open shape (e.g. a polyline) the nr of intersections must be 1
-//		if ( (this.isClosed() && nIntersections!=2) || (!this.isClosed() && nIntersections !=1) ) 
-//			return null;
-//		
-//		List<Point> pts = new ArrayList<Point>();
-//		pts.add(new Point(x1, y1));
-//		pts.add(new Point(x2, y2));
-//		CanvasPolyline pl  = new CanvasPolyline(pts);
-//		
-//		final int extDist = (int)1e6;
-//		pl.extendAtEnds(extDist);
-//		
-//		CanvasPolygon pUp = pl.getPolyRectangle(extDist, extDist, 1);
-//		CanvasPolygon pDown = pl.getPolyRectangle(extDist, extDist, 2);
-//		
-////		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
-////		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
-//		
-//		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
-//		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
-//		
-//		ICanvasShape s1 = this.copy();
-//		s1.setPoints2D(pI1.vertices());
-//		
-//		ICanvasShape s2 = this.copy();
-//		s2.setPoints2D(pI2.vertices());
-//		
-//	
-//		/*
-//		 * compare the newly created shapes to have the proper reading order later on 
-//		 * ordering (or better s1, s2) differs for horizontal and vertical splits and hence we correct this here
-//		 */ 
-//		if (s1.compareByLevelAndYXCoordinates(s2) > 0){
-//			return Pair.of(s2, s1);
-//		}
-//						
-//		return Pair.of(s1, s2);
-	}
+
 	
 	@Override
 	public int insertPoint(int x, int y) {
@@ -321,16 +275,6 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		return pts;
 	}
 	
-	public class ShapePoint {
-		public java.awt.Point p;
-		public int index;
-		
-		public ShapePoint(Point p, int index) {
-			this.p = p;
-			this.index = index;
-		}
-	}
-		
 	/**
 	 * Returns the intersection points of the given line with a specific side of the QuadPolygon specified by the cornerPtIndex
 	 */
@@ -366,13 +310,9 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		return ipts;
 	}
 	
-	public enum Direction {
-		HORIZONAL, VERTICAL;
-	}
-	
-	public Pair<ShapePoint, ShapePoint> computeSplitPoints(int x1, int y1, int x2, int y2, boolean extendLine, Direction dir) {
-		int cp1 = dir==Direction.HORIZONAL ? 1 : 0;
-		int cp2 = dir==Direction.HORIZONAL ? 3 : 2;
+	public Pair<ShapePoint, ShapePoint> computeSplitPoints(int x1, int y1, int x2, int y2, boolean extendLine, SplitDirection dir) {
+		int cp1 = dir==SplitDirection.HORIZONAL ? 1 : 0;
+		int cp2 = dir==SplitDirection.HORIZONAL ? 3 : 2;
 		
 		List<ShapePoint> ipts1 = intersectionPoints(x1, y1, x2, y2, extendLine, cp1);
 		if (ipts1.size() != 1)
@@ -383,18 +323,142 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 			return null;
 		
 		return Pair.of(ipts1.get(0), ipts2.get(0));
-	}	
+	}
 	
 	@Override
 	public void simplify(double eps) {
 		throw new CanvasShapeException("simplify operation not supported for quad polygons!");
 	}
 	
+	private CanvasQuadPolygon computeSplitShape(SplitDirection dir, boolean topOrLeft, Pair<ShapePoint, ShapePoint> sp) {
+		logger.debug("computeSplitShape, topOrLeft = "+topOrLeft+" sp = "+sp+" dir = "+dir);
+		
+		int[] newCorners = { 0, 0, 0, 0 };
+		List<Point> newPts = new ArrayList<>();
+		
+		int cc=0;
+		if (!topOrLeft) cc = 1;
+		
+		int pc=0;
+		for (int i=0; i<getNPoints(); ++i) {
+			if (topOrLeft) {
+				if (i<=sp.getLeft().index || i>sp.getRight().index) {
+					if (isCornerPoint(i)) {
+						logger.debug("cc0 = "+cc+" i = "+i);
+						newCorners[cc++] = pc;
+					}
+					newPts.add(getPoint(i));
+					++pc;
+				}
+
+				if (i == sp.getLeft().index) {
+					newPts.add(sp.getLeft().p);
+					logger.debug("cc1 = "+cc+" i = "+i);
+					newCorners[cc++] = pc;
+					++pc;
+				} else if (i == sp.getRight().index) {
+					newPts.add(sp.getRight().p);
+					logger.debug("cc2 = "+cc+" i = "+i);
+					newCorners[cc++] = pc;
+					++pc;
+				}
+			} else {
+				if (i>sp.getLeft().index && i<=sp.getRight().index) {
+					if (isCornerPoint(i)) {
+						logger.debug("cc3 = "+cc+" i = "+i);
+						newCorners[cc++] = pc;
+					}
+					newPts.add(getPoint(i));
+					++pc;
+				}
+
+				if (i == sp.getLeft().index) {
+					logger.debug("cc4 = "+cc+" i = "+i);
+					newPts.add(sp.getLeft().p);
+					newCorners[cc++] = pc;
+					++pc;
+				} else if (i == sp.getRight().index) {
+					logger.debug("cc5 = "+cc+" i = "+i);
+					// add last pt of right-horizontal split to front
+					newPts.add(0, sp.getRight().p);
+					newCorners[0] = 0;
+					for (int j=1; j<4; ++j) {
+						++newCorners[j];
+					}
+					
+					++pc;
+				}
+			}
+		}
+		
+		CanvasQuadPolygon qp = copy();
+		for (int i=0; i<4; ++i) {
+			qp.corners[i] = newCorners[i];
+		}
+		qp.setPoints(newPts);
+		
+		return qp;
+	}
+
+//	private CanvasQuadPolygon computeLeftSplitShape(SplitDirection dir, Pair<ShapePoint, ShapePoint> sp) {			
+//		int[] splitCorners = { 0, 0, 0, 0 };
+//		List<Point> pts = new ArrayList<>();
+//		
+//		int c=0;
+//		
+//		int is1 = corners[0];
+//		int ie1 = sp.getLeft().index;
+//		for (int i=is1; i<ie1; ++i) {
+//			pts.add(getPoint(i));
+//			++c;
+//		}
+//		pts.add(sp.getLeft().p);
+//		splitCorners[1] = c++;
+//		
+//		pts.add(sp.getRight().p);
+//		splitCorners[2] = c++;
+//		
+//		int is2 = sp.getRight().index+1;
+//		int ie2 = corners[3];
+//		for (int i=is2; i<ie2; ++i) {
+//			pts.add(getPoint(i));
+//			++c;
+//		}
+//		
+////		pts.add(getPoint(corners[3]));
+//		
+//		splitCorners[3] = c;
+//		int is3 = corners[3];
+//		int ie3 = getNPoints();
+//		for (int i=is3; i<ie3; ++i) {
+//			pts.add(getPoint(i));
+//		}
+//		
+//		return new CanvasQuadPolygon(pts, splitCorners);
+//	}
+	
 	@Override
 	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
-		throw new CanvasShapeException("splitShape operation not implemented yet for quad polygons!");
+		//TODO use intersectionPoints method in both directions to determine split points and their index, then construct the two
+		// splits using them -> Polygons2D.intersection not needed here!!
+		
+		// try to find horizontal or vertical split points:
+		SplitDirection dir = SplitDirection.HORIZONAL;
+		Pair<ShapePoint, ShapePoint> sp = this.computeSplitPoints(x1, y1, x2, y2, true, dir);
+		if (sp == null) {
+			dir = SplitDirection.VERTICAL;
+			sp = this.computeSplitPoints(x1, y1, x2, y2, true, dir);
+		}
+		// no split points found -> no split possible -> return null
+		if (sp == null)
+			return null;
+		
+		ICanvasShape s1 = computeSplitShape(dir, true, sp);
+		ICanvasShape s2 = computeSplitShape(dir, false, sp);
+		
+		return Pair.of(s1, s2);
 	}
-	
+		
 	@Override
 	public ICanvasShape mergeShapes(ICanvasShape shape) {
 		throw new CanvasShapeException("mergeShapes operation not implemented yet for quad polygons!");
@@ -416,7 +480,12 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		int i=0;
 		for (Point pt : getPoints()) {
 			if (isCornerPoint(i)) {
-				gc.fillRectangle(pt.x-radius-2, pt.y-radius-2, (radius+2)*2, (radius+2)*2);	
+				gc.fillRectangle(pt.x-radius-2, pt.y-radius-2, (radius+2)*2, (radius+2)*2);
+				
+				gc.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
+				
+				gc.drawString(""+(getCornerPtPosition(i)+1), pt.x-radius-2, pt.y-radius-2, true);
+				
 			} else {
 				gc.fillOval(pt.x-radius, pt.y-radius, radius*2, radius*2);	
 			}
