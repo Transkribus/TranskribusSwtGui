@@ -1288,13 +1288,7 @@ public class TrpMainWidget {
 		// }
 
 		getTreeListener().detach();
-		
 		ui.getStructureTreeViewer().setSelection(sel, true);
-		
-		for (Object element : selData)
-			ui.getStructureTreeWidget().getTreeViewer().refresh(element, true);
-		
-		
 		getTreeListener().attach();
 	}
 
