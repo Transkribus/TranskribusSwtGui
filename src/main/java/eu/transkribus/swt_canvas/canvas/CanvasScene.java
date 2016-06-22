@@ -782,13 +782,14 @@ public class CanvasScene {
 	public ICanvasShape selectObject(int x, int y, boolean sendSignal, boolean multiselect) {
 		ICanvasShape minShape = null;
 		double minDist = Double.MAX_VALUE;	
-			
+		boolean found = false;
 		for (ICanvasShape s : shapes) {
 			
 			if (!s.isVisible() || !s.isSelectable())
 				continue;
 			
-			if (s.isReadingOrderVisible() && s.getReadingOrderCircle().contains(x, y)){
+			
+			if (s.isReadingOrderVisible() && s.getReadingOrderCircle().contains(x, y) && !found){
 				//logger.debug("reading order selected is true for mouse point " + x + " , " + y );
 				//Display display = canvas.getDisplay();
 				Shell shell = canvas.getShell();
@@ -798,6 +799,7 @@ public class CanvasScene {
 					logger.debug(" new reading order is " + changedRo);
 					notifyOnReadingOrderChanged(s, changedRo);
 				}
+				found = true;
 			}
 
 			double dist = s.distance(x, y, true);

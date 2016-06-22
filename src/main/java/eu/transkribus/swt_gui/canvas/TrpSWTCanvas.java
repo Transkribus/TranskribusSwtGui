@@ -264,7 +264,7 @@ public class TrpSWTCanvas extends SWTCanvas {
 		boolean isShowW = mainWidget.getTrpSets().isShowReadingOrderWords();
 		for (ICanvasShape s : getScene().getShapes()) {
 			
-			//change to TrpTextRegionType if only text regions showd be editable in the canvas
+			//change to TrpTextRegionType if only text regions should be editable in the canvas
 			if (s.hasDataType(TrpRegionType.class)) {
 				s.showReadingOrder(isShowR);
 			}
