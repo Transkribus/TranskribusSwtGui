@@ -597,7 +597,11 @@ public class EditDeclManagerDialog extends Dialog {
 	}
 	
 	public void setSelectedFeature(EdFeature feat) {
-		featTv.setSelection(new StructuredSelection(feat), true);	
+		try {
+			featTv.setSelection(new StructuredSelection(feat), true);
+		} catch (Exception e) {
+			//do nothing. may happen on collection-specific features and duplicated documents
+		}
 	}
 	
 	public void setSelectedOption(int optionId) {
@@ -614,6 +618,10 @@ public class EditDeclManagerDialog extends Dialog {
 	}
 	
 	public void setSelectedOption(EdOption opt){
-		optTv.setSelection(new StructuredSelection(opt), true);
+		try{ 
+			optTv.setSelection(new StructuredSelection(opt), true);
+		} catch (Exception e) {
+			//do nothing. may happen on collection-specific features and duplicated documents
+		}
 	}
 }
