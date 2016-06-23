@@ -346,15 +346,9 @@ CHANGES AND BUGFIXES
 	-> HTR based on RNN by Rostock integrated (alpha stage)
 	
 0.8.5:
-<<<<<<< Upstream, based on branch 'master' of https://github.com/Transkribus/TranskribusSwtGui
 	-> fixed a bug that occurred on duplicated documents with editorial declaration (collection-specific features)
 	-> fixed a bug in the date setting widget in document metadata
-=======
-	-> hot bugfix: date widget set month incorrectly
 	-> PAGE XML viewer can now edit XML and reload page from it
-	
-	
->>>>>>> c275d74 PAGE XML viewer can not edit text and update page from edited text
 	
 	
 	
