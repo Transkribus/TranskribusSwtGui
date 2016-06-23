@@ -285,7 +285,7 @@ public class CanvasToolBar extends ToolBar {
 		new ToolItem(this, SWT.SEPARATOR);
 		undo = new ToolItem(this, SWT.PUSH);
 		undo.setToolTipText("Undo last edit step");
-		undo.setImage(Images.getOrLoad("/icons/arrow_undo.png"));	
+		undo.setImage(Images.ARROW_UNDO);
 		
 		
 //		ToolItem item = new ToolItem(this, SWT.DROP_DOWN);
