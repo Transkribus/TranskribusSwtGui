@@ -345,7 +345,9 @@ CHANGES AND BUGFIXES
 	-> PDF import
 	-> HTR based on RNN by Rostock integrated (alpha stage)
 	
-	
+0.8.5:
+	-> fixed a bug that occurred on duplicated documents with editorial declaration (collection-specific features)
+	-> fixed a bug in the date setting widget in document metadata
 	
 	
 	
