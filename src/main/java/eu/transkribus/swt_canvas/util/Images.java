@@ -31,6 +31,9 @@ public class Images {
 	public static final Image ARROW_UP = getOrLoad("/icons/arrow_up.png");
 	public static final Image ARROW_DOWN = getOrLoad("/icons/arrow_down.png");
 	public static final Image ARROW_LEFT = getOrLoad("/icons/arrow_left.png");
+	public static final Image ARROW_UNDO = getOrLoad("/icons/arrow_undo.png");
+	public static final Image ARROW_REDO = getOrLoad("/icons/arrow_redo.png");
+	
 	public static final Image TICK = getOrLoad("/icons/tick.png");
 	public static final Image FIND = getOrLoad("/icons/find.png");
 	

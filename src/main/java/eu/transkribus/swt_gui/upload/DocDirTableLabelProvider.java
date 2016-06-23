@@ -65,9 +65,7 @@ public class DocDirTableLabelProvider implements ITableLabelProvider, ITableColo
 			}
 			else if (ct.equals(UploadFromFtpDialog.NR_OF_IMGS_COL)) {
 				return ""+dir.getNrOfImgs();
-			} else if (ct.equals(UploadFromFtpDialog.SIZE_COL)) {
-				return ""+dir.getSize();
-			}  else if (ct.equals(UploadFromFtpDialog.CREATE_DATE_COL)) {
+			} else if (ct.equals(UploadFromFtpDialog.CREATE_DATE_COL)) {
 				return ""+dir.getCreateDate().toString();
 			}
 		}

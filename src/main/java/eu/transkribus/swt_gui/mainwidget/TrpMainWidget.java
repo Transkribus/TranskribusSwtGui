@@ -1,6 +1,8 @@
 package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -12,12 +14,16 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 
+import org.apache.commons.io.FileDeleteStrategy;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -191,10 +197,10 @@ public class TrpMainWidget {
 	boolean isPageLocked = false;
 
 	String lastExportFolder = System.getProperty("user.home");
-	String lastExportPdfFn = System.getProperty("user.home");
-	String lastExportTeiFn = System.getProperty("user.home");
-	String lastExportDocxFn = System.getProperty("user.home");
-	String lastExportXlsxFn = System.getProperty("user.home");
+//	String lastExportPdfFn = System.getProperty("user.home");
+//	String lastExportTeiFn = System.getProperty("user.home");
+//	String lastExportDocxFn = System.getProperty("user.home");
+//	String lastExportXlsxFn = System.getProperty("user.home");
 
 	String lastLocalDocFolder = null;
 	boolean sessionExpired = false;
@@ -940,6 +946,8 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			onError("Saving Error", "Error while saving transcription", e);
 			return false;
+		} finally {
+			updatePageInfo();
 		}
 	}
 
@@ -2063,7 +2071,7 @@ public class TrpMainWidget {
 //			}
 			// extract images from pdf and upload extracted images
 			} else if (ud.isUploadFromPdf()) {
-				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + ud.getFolder());
+				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + ud.getPdfFolder());
 				logger.debug("ingest into collection: " + cId+" viaFtp: "+ud.isSingleUploadViaFtp());
 				String type = ud.isSingleUploadViaFtp() ? "FTP" : "HTTP";
 
@@ -2076,7 +2084,7 @@ public class TrpMainWidget {
 							// ud.getTitle(), monitor);// TEST
 							boolean uploadViaFTP = ud.isSingleUploadViaFtp();
 							logger.debug("uploadViaFTP = "+uploadViaFTP);
-							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getFolder(), monitor);
+							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getPdfFolder(), monitor);
 							if (!monitor.isCanceled())
 								displaySuccessMessage("Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
 						} catch (Exception e) {
@@ -2330,11 +2338,16 @@ public class TrpMainWidget {
 			String exportFileOrDir = dir.getAbsolutePath();
 			Set<Integer> pageIndices = null;
 			
+			boolean doZipExport = false;
+			
 			boolean doMetsExport = false;
 			boolean doPdfExport = false;
 			boolean doDocxExport = false;
 			boolean doTeiExport = false;
 			boolean doXlsxExport = false;
+			
+			String tempDir = null;
+
 			
 			String pdfExportFileOrDir = dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".pdf";
 			File pdfExportFile = new File(pdfExportFileOrDir);	
@@ -2348,19 +2361,34 @@ public class TrpMainWidget {
 			String xlsxExportFileOrDir = dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".xlsx";
 			File xlsxExportFile = new File(xlsxExportFileOrDir);
 			
-			doMetsExport = (exportDiag.isMetsExport() && exportDiag.getExportPathComp().checkExportFile(dir, null, getShell()));
+			String zipExportFileOrDir = dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".zip";
+			File zipExportFile = new File(zipExportFileOrDir);
 			
-			doPdfExport = (exportDiag.isPdfExport() && exportDiag.getExportPathComp().checkExportFile(pdfExportFile, ".pdf", getShell()));	
+			/*
+			 * only check export path if it is not ZIP because than we check just the ZIP location
+			 */
+			if (!exportDiag.isZipExport()){
+				doMetsExport = (exportDiag.isMetsExport() && exportDiag.getExportPathComp().checkExportFile(dir, null, getShell()));
 			
-			doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
+				doPdfExport = (exportDiag.isPdfExport() && exportDiag.getExportPathComp().checkExportFile(pdfExportFile, ".pdf", getShell()));	
+			
+				doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
 
-			doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
+				doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
 
-			doXlsxExport = (exportDiag.isXlsxExport() && exportDiag.getExportPathComp().checkExportFile(xlsxExportFile, ".xlsx", getShell()));
+				doXlsxExport = (exportDiag.isXlsxExport() && exportDiag.getExportPathComp().checkExportFile(xlsxExportFile, ".xlsx", getShell()));
+			}
+			
+			doZipExport = (exportDiag.isZipExport() && exportDiag.getExportPathComp().checkExportFile(zipExportFile, ".zip", getShell()));
+			
+			if (doZipExport){
+				tempDir = System.getProperty("java.io.tmpdir");
+				//logger.debug("temp dir is ..." + tempDir);
+			}
 			
 			final String fileNamePattern = exportDiag.getFileNamePattern();
 			
-			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doXlsxExport){
+			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doXlsxExport && !doZipExport){
 				/*
 				 * if the export file exists and the user wants not to overwrite it then the 
 				 * export dialog shows up again with the possibility to choose another location
@@ -2435,10 +2463,61 @@ public class TrpMainWidget {
 			boolean wordBased = exportDiag.isWordBased();
 			boolean doBlackening = exportDiag.isDoBlackening();
 			boolean createTitle = exportDiag.isCreateTitlePage();
+			
+			if (doZipExport){
+				
+				if (tempDir == null)
+					return;
+				
+				String tempZipDirParent = tempDir + "/" + dir.getName();
+				File tempZipDirParentFile = new File(tempZipDirParent);
+				
+				if (tempZipDirParentFile.exists()){
+				    Random randomGenerator = new Random();
+				    int randomInt = randomGenerator.nextInt(1000);
+				    tempZipDirParent = tempZipDirParent.concat(Integer.toString(randomInt));
+					tempZipDirParentFile = new File(tempZipDirParent);
+				}
+				
+				String tempZipDir = tempZipDirParent + "/" + dir.getName();
+				File tempZipFileDir = new File(tempZipDir);
+				FileUtils.forceMkdir(tempZipFileDir);
+				
+				if (exportDiag.isMetsExport())
+					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), fileNamePattern);
+				if (exportDiag.isPdfExport())
+					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
+				if (exportDiag.isTeiExport())
+					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag);
+				if (exportDiag.isDocxExport())
+					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, selectedTags, createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isPreserveLinebreaks());
+				if (exportDiag.isXlsxExport())
+					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(), selectedTags);
+				
+				createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".zip");
+				
+				if (exportFormats != "") {
+					exportFormats += " and ";
+				}
+				exportFormats += "ZIP";
+				
+				lastExportFolder = dir.getParentFile().getAbsolutePath();
+				
+				if (exportFormats != "") {
+					displaySuccessMessage("Sucessfully written " + exportFormats + " to " + exportFileOrDir);
+				}
+				
+				//delete the temp folder for making the ZIP
+				FileDeleteStrategy.FORCE.delete(tempZipDirParentFile);
+				
+				//export was done via ZIP and is completed now
+				return;
+				
+			}
 
 			if (doMetsExport) {
 
-				exportDocument(dir, pageIndices, exportDiag.isPageExport(), exportDiag.isAltoExport(), fileNamePattern);
+				exportDocument(dir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), fileNamePattern);
 				if (exportDiag.isPageExport()) {
 					if (exportFormats != "") {
 						exportFormats += " and ";
@@ -2457,9 +2536,7 @@ public class TrpMainWidget {
 
 			if (doPdfExport) {
 
-				boolean highlightTags = exportDiag.isHighlightTags();
-
-				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), selectedTags, highlightTags, wordBased, doBlackening, createTitle);
+				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -2469,15 +2546,7 @@ public class TrpMainWidget {
 
 			if (doTeiExport) {
 				
-				TeiExportPars pars = new TeiExportPars();
-				pars.mode = exportDiag.getTeiExportMode();
-				pars.linebreakMode = exportDiag.getTeiLinebreakMode();
-				pars.writeTextOnWordLevel = wordBased;
-				pars.doBlackening = doBlackening;
-				pars.pageIndices = pageIndices;
-				pars.selectedTags = selectedTags;
-
-				exportTei(teiExportFile, pars);
+				exportTei(teiExportFile, exportDiag);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -2497,17 +2566,11 @@ public class TrpMainWidget {
 
 			if (doXlsxExport) {
 				
-				if (ExportUtils.getCustomTagMapForDoc().isEmpty()){
-					logger.info("No tags to store -> Xlsx export cancelled");
-					displayCancelMessage("No custom tags in document to store -> Xlsx export cancelled");
+				exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(), selectedTags);
+				if (exportFormats != "") {
+					exportFormats += " and ";
 				}
-				else{
-					exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(), selectedTags);
-					if (exportFormats != "") {
-						exportFormats += " and ";
-					}
-					exportFormats += "Xlsx";
-				}
+				exportFormats += "Xlsx";
 				
 			}
 
@@ -2564,7 +2627,49 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportPage, final boolean exportAlto, final String fileNamePattern) throws Throwable {
+	private void createZipFromFolder(String srcFolder, String destZipFile) throws Exception {
+	    ZipOutputStream zip = null;
+	    FileOutputStream fileWriter = null;
+
+	    fileWriter = new FileOutputStream(destZipFile);
+	    zip = new ZipOutputStream(fileWriter);
+
+	    addFolderToZip("", srcFolder, zip);
+	    zip.flush();
+	    zip.close();
+	  } 
+	
+	  static private void addFileToZip(String path, String srcFile, ZipOutputStream zip)
+	      throws Exception {
+
+	    File folder = new File(srcFile);
+	    if (folder.isDirectory()) {
+	      addFolderToZip(path, srcFile, zip);
+	    } else {
+	      byte[] buf = new byte[1024];
+	      int len;
+	      FileInputStream in = new FileInputStream(srcFile);
+	      zip.putNextEntry(new ZipEntry(path + "/" + folder.getName()));
+	      while ((len = in.read(buf)) > 0) {
+	        zip.write(buf, 0, len);
+	      }
+	    }
+	  }
+
+	  static private void addFolderToZip(String path, String srcFolder, ZipOutputStream zip)
+	      throws Exception {
+	    File folder = new File(srcFolder);
+
+	    for (String fileName : folder.list()) {
+	      if (path.equals("")) {
+	        addFileToZip(folder.getName(), srcFolder + "/" + fileName, zip);
+	      } else {
+	        addFileToZip(path + "/" + folder.getName(), srcFolder + "/" + fileName, zip);
+	      }
+	    }
+	  }
+
+	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto, final String fileNamePattern) throws Throwable {
 		try {
 
 			if (dir == null)
@@ -2576,7 +2681,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("exporting document...");
-						final String path = storage.exportDocument(dir, pageIndices, exportPage, exportAlto, fileNamePattern, monitor);
+						final String path = storage.exportDocument(dir, pageIndices, exportImg, exportPage, exportAlto, fileNamePattern, monitor);
 						monitor.done();
 						// displaySuccessMessage("Written export to "+path);
 					} catch (Exception e) {
@@ -2639,8 +2744,6 @@ public class TrpMainWidget {
 			throws Throwable {
 		try {
 
-			logger.debug("lastExportRtfFn = " + lastExportDocxFn);
-
 			if (file == null)
 				return;
 
@@ -2668,8 +2771,6 @@ public class TrpMainWidget {
 			throws Throwable {
 		try {
 
-			logger.debug("lastExportDocxFn = " + lastExportDocxFn);
-
 			if (file == null)
 				return;
 
@@ -2696,8 +2797,14 @@ public class TrpMainWidget {
 	public void exportXlsx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final Set<String> selectedTags)
 			throws Throwable {
 		try {
+			
+			if (ExportUtils.getCustomTagMapForDoc().isEmpty()){
+				logger.info("No tags to store -> Xlsx export cancelled");
+				displayCancelMessage("No custom tags in document to store -> Xlsx export cancelled");
+				return;
+			}
 
-			logger.debug("lastExportXlsxFn = " + lastExportXlsxFn);
+			//logger.debug("lastExportXlsxFn = " + lastExportXlsxFn);
 
 			if (file == null)
 				return;
@@ -2718,7 +2825,7 @@ public class TrpMainWidget {
 			}, "Exporting", true);
 		} catch (Throwable e) {
 			onError("Export error", "Error during Xlsx export of document", e);
-			throw e;
+			//throw e;
 		}
 	}
 
@@ -2835,8 +2942,16 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	public void exportTei(final File file, final TeiExportPars pars) throws Throwable {
+	public void exportTei(final File file, final CommonExportDialog exportDiag) throws Throwable {
 		try {
+			
+			final TeiExportPars pars = new TeiExportPars();
+			pars.mode = exportDiag.getTeiExportMode();
+			pars.linebreakMode = exportDiag.getTeiLinebreakMode();
+			pars.writeTextOnWordLevel = exportDiag.isWordBased();
+			pars.doBlackening = exportDiag.isDoBlackening();
+			pars.pageIndices = exportDiag.getSelectedPages();
+			pars.selectedTags = exportDiag.getSelectedTagsList();
 
 			if (file == null)
 				return;

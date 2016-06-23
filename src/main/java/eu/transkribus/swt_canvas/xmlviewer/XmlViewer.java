@@ -4,20 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt_canvas.canvas.CanvasKeys;
-import eu.transkribus.swt_canvas.util.Colors;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.text.JFaceTextUtil;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.swt.SWT;
@@ -27,7 +19,6 @@ import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -44,30 +35,57 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
+import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_canvas.util.UndoRedoImpl;
 
 public class XmlViewer extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(XmlViewer.class);
 	
-	Shell shell;
-	boolean result=false;
-	URL url;
-	StyledText text;
-	Text keywordText;
-	Button searchBtn, caseSensitveCheck, wholeWordCheck, previousCheck, wrapSearchCheck;
-	String keyword;
-	int lastFoundIndex=-1;
+	protected Shell shell;
+//	protected boolean result=false;
+	protected URL url;
+	protected Text srcUrlText;
+	protected StyledText text;
+	protected Text keywordText;
+	protected Button searchBtn, caseSensitveCheck, wholeWordCheck, previousCheck, wrapSearchCheck;
+	protected Button editBtn, undoBtn, redoBtn;
+	protected String keyword;
+	protected int lastFoundIndex=-1;
+	
+	protected boolean textChanged=false;
+	protected String origText="";
+	protected String currentText="";
+	
+	protected UndoRedoImpl undoRedo;
+	
+	protected Composite topRightBtns;
 	
 	public XmlViewer(Shell parent, int style) {
 		super(parent, style |= /*SWT.DIALOG_TRIM  |*/ SWT.SHELL_TRIM );
 //		super(parent, style);
+		
+		createContents();
 	}
 	
-	private void createContents() throws IOException {
+	public Composite getTopRightBtns() {
+		return topRightBtns;
+	}
+	
+	protected void createContents() /*throws IOException*/ {
 		shell = new Shell(getParent(), getStyle() );
 //		shell.setSize(673, 420);
 		shell.setSize(300, 200);
 		shell.setText("XML Viewer");
-		int nCols = 2;
+		int nCols = 3;
 		shell.setLayout(new GridLayout(nCols, false));
 //		shell.setLayout(new FillLayout());
 		
@@ -78,9 +96,41 @@ public class XmlViewer extends Dialog {
 //		l1.setFont(new Font(shell.getDisplay(), fd));
 		l1.setFont(Fonts.createFont(fd));
 		
-		Text srcText = new Text(shell, SWT.READ_ONLY);
-		srcText.setText(url.toString());
+		srcUrlText = new Text(shell, SWT.READ_ONLY);
+		srcUrlText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
+		topRightBtns = new Composite(shell, 0);
+		topRightBtns.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
+		topRightBtns.setLayout(new FillLayout(SWT.HORIZONTAL));		
+		
+		editBtn = new Button(topRightBtns, SWT.TOGGLE);
+		editBtn.setToolTipText("Edit XML");
+		editBtn.setImage(Images.PENCIL);
+		
+		editBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				editBtnClicked();
+			}
+		});
+		
+		undoBtn = new Button(topRightBtns, SWT.TOGGLE);
+		undoBtn.setToolTipText("Undo last edit");
+		undoBtn.setImage(Images.ARROW_UNDO);
+		undoBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				undoRedo.undo();
+			}
+		});
+		
+		redoBtn = new Button(topRightBtns, SWT.TOGGLE);
+		redoBtn.setToolTipText("Redo last edit");
+		redoBtn.setImage(Images.ARROW_REDO);
+		redoBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				undoRedo.redo();
+			}
+		});
+				
 		Composite btnsC = new Composite(shell, 0);
 		btnsC.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		btnsC.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -129,14 +179,14 @@ public class XmlViewer extends Dialog {
 	    wrapSearchCheck.setText("Wrap search");
 	    wrapSearchCheck.setSelection(true);
 		
-		String textStr = readUrl(url);
-		text = new StyledText(shell, SWT.READ_ONLY | SWT.BORDER | SWT.VERTICAL 
+		text = new StyledText(shell, /*SWT.READ_ONLY |*/ SWT.BORDER | SWT.VERTICAL 
 				| SWT.H_SCROLL);
 		GridData gld = new GridData(SWT.FILL, SWT.FILL, true, true, nCols, 1);
 		gld.widthHint = 800;
 		gld.heightHint = 600;
 		text.setLayoutData(gld);
-		text.setText(textStr);
+//		text.setText("");
+		text.setEditable(editBtn.getSelection());
 		
 		text.addKeyListener(new KeyAdapter() {
 			@Override public void keyPressed(KeyEvent e) {
@@ -146,11 +196,55 @@ public class XmlViewer extends Dialog {
 					keywordText.selectAll();
 				}
 			}
-		});		
+		});
+		
+		text.addModifyListener(new ModifyListener() {
+			@Override public void modifyText(ModifyEvent e) {
+				currentText = text.getText();
+				
+				highlightXml();
+				updateHasChanged();
+			}
+		});
+		
+		undoRedo = new UndoRedoImpl(text);
 		
 		highlightXml();
+		updateHasChanged();
+		editBtnClicked();
 		
 		shell.pack();
+	}
+	
+	protected void editBtnClicked() {
+		text.setEditable(editBtn.getSelection());
+		undoBtn.setEnabled(editBtn.getSelection());
+		redoBtn.setEnabled(editBtn.getSelection());
+	}
+	
+	private void updateHasChanged() {
+		textChanged = !origText.equals(text.getText());
+		
+		final String textChangedSuffix = " *";
+		
+		String title = shell.getText();
+		title = StringUtils.removeEnd(title, textChangedSuffix);
+		if (textChanged)
+			title += textChangedSuffix;
+		
+		shell.setText(title);
+	}
+	
+	public String getOrigText() {
+		return origText;
+	}
+	
+	public String getText() {
+		return currentText;
+	}
+	
+	public boolean hasTextChanged() {
+		return textChanged;
 	}
 	
 	private void search() {
@@ -250,7 +344,7 @@ public class XmlViewer extends Dialog {
 	
 	private String readUrl(URL url) throws IOException {
 		BufferedReader in = new BufferedReader(new InputStreamReader(
-				url.openStream()));
+				url.openStream(), Charset.forName("UTF-8")));
 
 		String str = "";
 		String inputLine;
@@ -260,13 +354,15 @@ public class XmlViewer extends Dialog {
 		return str;
 	}
 	
-	public boolean open(URL url) throws IOException {
+	public void open(URL url) throws IOException {
 		if (url==null)
 			throw new IOException("URL is null!");
 		
-		result = false;
 		this.url = url;
-		createContents();
+		origText = currentText = readUrl(url);
+		text.setText(origText);
+		
+		srcUrlText.setText(url.toString());
 		
 		SWTUtil.centerShell(shell);
 		shell.open();
@@ -277,7 +373,6 @@ public class XmlViewer extends Dialog {
 				display.sleep();
 			}
 		}
-		return result;
 	}
 
 	/**

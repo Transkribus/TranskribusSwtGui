@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
@@ -73,7 +74,7 @@ public class CommonExportDialog extends Dialog {
 	TeiExportMode teiExportMode;
 	TeiLinebreakMode teiLinebreakMode;
 	
-	boolean docxExport, pdfExport, teiExport, altoExport, metsExport, pageExport, xlsxExport;
+	boolean docxExport, pdfExport, teiExport, altoExport, imgExport, metsExport, pageExport, xlsxExport, zipExport;
 	String fileNamePattern = "${filename}";
 	Button addExtraTextPagesBtn;
 	boolean addExtraTextPages2PDF;
@@ -131,16 +132,28 @@ public class CommonExportDialog extends Dialog {
 	    group1.setText("Choose export formats");
 	    group1.setLayout(new GridLayout(1, false));
 	    
-	    Button b0 = new Button(group1, SWT.CHECK);
-	    b0.setText("IMAGE, PAGE, METS");
-	    Button b1 = new Button(group1, SWT.CHECK); 
+	    final Button b0 = new Button(group1, SWT.CHECK);
+	    b0.setText("TRP Document");
+	    final Button b1 = new Button(group1, SWT.CHECK); 
 	    b1.setText("PDF");
-	    Button b2 = new Button(group1, SWT.CHECK);
+	    final Button b2 = new Button(group1, SWT.CHECK);
 	    b2.setText("TEI");
-	    Button b3 = new Button(group1, SWT.CHECK);
+	    final Button b3 = new Button(group1, SWT.CHECK);
 	    b3.setText("DOCX");
-	    Button b4 = new Button(group1, SWT.CHECK);
+	    final Button b4 = new Button(group1, SWT.CHECK);
 	    b4.setText("Tag Export (Excel)");
+	    // Create a horizontal separator
+	    Label separator = new Label(group1, SWT.HORIZONTAL | SWT.SEPARATOR);
+	    separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    //----------
+	    Button b5 = new Button(group1, SWT.CHECK);
+	    b5.setText("Export ALL formats");
+	    // Create a horizontal separator
+	    Label separator2 = new Label(group1, SWT.HORIZONTAL | SWT.SEPARATOR);
+	    separator2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    //----------
+	    Button b6 = new Button(group1, SWT.CHECK);
+	    b6.setText("Export Selected as ZIP");
 	    
 	    
 	    Composite optionsComposite = new Composite(choiceComposite, SWT.NONE);
@@ -196,8 +209,7 @@ public class CommonExportDialog extends Dialog {
 		tagsSelector = new TagsSelector(optionsComposite, SWT.NONE, getSelectedTagsList());
 		tagsSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tagsSelector.setVisible(false);
-	
-	    
+			    
 	    b0.addSelectionListener(new SelectionAdapter() {
 	        @Override
 	        public void widgetSelected(SelectionEvent event) {
@@ -217,8 +229,6 @@ public class CommonExportDialog extends Dialog {
 	        }
 	    });
 	    
-
-
 	    b1.addSelectionListener(new SelectionAdapter() {
 
 	        @Override
@@ -305,6 +315,35 @@ public class CommonExportDialog extends Dialog {
 	            
 	        }
 	    });
+
+	    b5.addSelectionListener(new SelectionAdapter() {
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	            Button btn = (Button) event.getSource();
+	            b0.setSelection(btn.getSelection());
+	            b0.notifyListeners(SWT.Selection, new Event());
+	            b1.setSelection(btn.getSelection());
+	            b1.notifyListeners(SWT.Selection, new Event());
+	            b2.setSelection(btn.getSelection());
+	            b2.notifyListeners(SWT.Selection, new Event());
+	            b3.setSelection(btn.getSelection());
+	            b3.notifyListeners(SWT.Selection, new Event());
+	            b4.setSelection(btn.getSelection());
+	            b4.notifyListeners(SWT.Selection, new Event());
+
+	        }
+	    });
+	    
+	    b6.addSelectionListener(new SelectionAdapter() {
+
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	            Button btn = (Button) event.getSource();
+            	setZipExport(btn.getSelection());
+	            shell.layout();
+	            
+	        }
+	    });
 	    
 		Composite buttonComposite = new Composite(shell, SWT.NONE);
 		buttonComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
@@ -348,6 +387,9 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 //		closeButton.setToolTipText("Closes this dialog without saving");
+		
+	    b0.setSelection(true);
+	    b0.notifyListeners(SWT.Selection, new Event());
 		
 		shell.pack();
 		shell.layout();
@@ -480,13 +522,17 @@ public class CommonExportDialog extends Dialog {
 			final Button e1 = new Button(metsComposite, SWT.CHECK);
 			final Button e2 = new Button(metsComposite, SWT.CHECK);
 			final Button e3 = new Button(metsComposite, SWT.CHECK);
+			final Button e4 = new Button(metsComposite, SWT.CHECK);
 			
 			e1.setSelection(true);
+			e3.setSelection(true);
+			setImgExport(true);
 			setPageExport(true);
 			
 			e1.setText("Export Page");
 			e2.setText("Export ALTO");
-			e3.setText("Standardized Filenames");
+			e3.setText("Export Image");
+			e4.setText("Standardized Filenames");
 			
 			e1.addSelectionListener(new SelectionAdapter() {
 			
@@ -497,13 +543,18 @@ public class CommonExportDialog extends Dialog {
 			        	setPageExport(true);
 			        }
 			        else{
-			        	//one export should always be selected - so if no alto export the page export cannot be deselected
-			        	if (!e2.getSelection()){
-			        		e1.setSelection(true);
-			        	}
-			        	else{
-			        		setPageExport(false);
-			        	}
+			        	setPageExport(false);
+			        	
+			        	/*
+			        	 * one export should always be selected - so if no alto export the page export cannot be deselected
+			        	 * not at the moment
+			        	 */
+//			        	if (!e2.getSelection()){
+//			        		e1.setSelection(true);
+//			        	}
+//			        	else{
+//			        		setPageExport(false);
+//			        	}
 			        }	
 			    }
 			});
@@ -517,12 +568,25 @@ public class CommonExportDialog extends Dialog {
 			        }
 			        else{
 			        	setAltoExport(false);
-			        	e1.setSelection(true);
+			        	//e1.setSelection(true);
 			        }
 			    }
 			});
 			
 			e3.addSelectionListener(new SelectionAdapter() {
+			    @Override
+			    public void widgetSelected(SelectionEvent event) {
+			        Button btn = (Button) event.getSource();
+			        if (btn.getSelection()){
+			        	setImgExport(true);
+			        }
+			        else{
+			        	setImgExport(false);
+			        }
+			    }
+			});
+			
+			e4.addSelectionListener(new SelectionAdapter() {
 			    @Override
 			    public void widgetSelected(SelectionEvent event) {
 			        Button btn = (Button) event.getSource();
@@ -915,6 +979,22 @@ public class CommonExportDialog extends Dialog {
 
 	public String getFileNamePattern() {
 		return fileNamePattern;
+	}
+
+	public boolean isImgExport() {
+		return imgExport;
+	}
+
+	public void setImgExport(boolean imgExport) {
+		this.imgExport = imgExport;
+	}
+
+	public boolean isZipExport() {
+		return zipExport;
+	}
+
+	public void setZipExport(boolean zipExport) {
+		this.zipExport = zipExport;
 	}
 
 
