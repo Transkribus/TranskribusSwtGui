@@ -337,7 +337,9 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		List<Point> newPts = new ArrayList<>();
 		
 		int cc=0;
-		if (!topOrLeft) cc = 1;
+		if (!topOrLeft && dir==SplitDirection.HORIZONAL) {
+			cc = 1;
+		}
 		
 		int pc=0;
 		for (int i=0; i<getNPoints(); ++i) {
@@ -379,11 +381,18 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 					++pc;
 				} else if (i == sp.getRight().index) {
 					logger.debug("cc5 = "+cc+" i = "+i);
-					// add last pt of right-horizontal split to front
-					newPts.add(0, sp.getRight().p);
-					newCorners[0] = 0;
-					for (int j=1; j<4; ++j) {
-						++newCorners[j];
+				
+					if (dir == SplitDirection.VERTICAL) {
+						newPts.add(sp.getRight().p);
+						newCorners[cc++] = pc;
+						++pc;
+					} else {
+						// add last pt of right-horizontal split to front
+						newPts.add(0, sp.getRight().p);
+						newCorners[0] = 0;
+						for (int j=1; j<4; ++j) {
+							++newCorners[j];
+						}
 					}
 					
 					++pc;

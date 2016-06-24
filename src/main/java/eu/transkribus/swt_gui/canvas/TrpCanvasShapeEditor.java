@@ -85,6 +85,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				List<TrpTableCellType> cells = table.getCells(j==0, i);
 				dir = j==0 ? SplitDirection.VERTICAL : SplitDirection.HORIZONAL;
 				
+				logger.debug("cells i = "+i+" first cell: "+cells.get(0));
+				
 				for (TrpTableCellType c : cells) {
 					CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
 					
@@ -105,8 +107,11 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				break;				
 			}
 		}
-
-		return Pair.of(dir, splittableCells);
+		
+		if (splittableCells == null)
+			return null;
+		else
+			return Pair.of(dir, splittableCells);
 	}
 	
 	private List<ShapeEditOperation> splitTrpTableType(int x1, int y1, int x2, int y2, TrpTableRegionType table) {	
@@ -118,6 +123,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 		
 		SplitDirection dir = splittableCells.getLeft();
+		logger.debug("n-splittableCells: "+splittableCells.getRight().size());
 		// FIXME??ß
 		
 		List<ShapeEditOperation> splitOps = new ArrayList<>();
@@ -152,6 +158,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 		
 		for (TableCellType tc : table.getTableCell()) {
+			logger.debug("tc: "+tc);
+			
 			if (dir == SplitDirection.HORIZONAL) {
 				if (tc.getCol() > insertIndex) {
 					tc.setCol(tc.getCol()+1);
@@ -162,7 +170,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			} else {
 				if (tc.getRow() > insertIndex) {
 					tc.setRow(tc.getRow()+1);
-				} else if (tc.getCol() == -1) {
+				} else if (tc.getRow() == -1) {
 					logger.debug("here2 "+insertIndex);
 					tc.setRow(insertIndex+1);
 				}	

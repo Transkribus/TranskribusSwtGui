@@ -85,11 +85,11 @@ public class TrpShapeElementFactory {
 		boolean hasBaseline = false;
 		double readingOrderSize = 0;
 				
-		if (trpShape.getChildren(false).size() > 0 && trpShape.getChildren(false).get(0) instanceof TrpBaselineType){
+		if (trpShape.getChildren(false).size() > 0 && trpShape.getChildren(false).get(0) instanceof TrpBaselineType) {
 			hasBaseline = true;
 		}
 		
-//		if (trpShape instanceof RegionType){
+//		if (trpShape instanceof RegionType) {
 //			for (ITrpShapeType currShape : trpShape.getChildren(false)){
 //				if (currShape instanceof TrpTextLineType){
 //					TrpTextLineType tl = (TrpTextLineType) currShape;
@@ -538,7 +538,6 @@ public class TrpShapeElementFactory {
 	 * @throws IllegalAccessException
 	 */
 	public static TrpRegionType createRegionType(ICanvasShape shape, TrpPageType parent, String type) throws InstantiationException, IllegalAccessException {
-		
 		if (!RegionTypeUtil.isSpecialRegion(type)) {
 			throw new UnsupportedOperationException("This is not a special region type: "+type);
 		}
