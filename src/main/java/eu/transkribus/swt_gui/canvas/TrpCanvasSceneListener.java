@@ -57,6 +57,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			CanvasMode mode = mw.getCanvas().getMode();
 			try {
 				ITrpShapeType el = mw.getShapeFactory().createJAXBElementFromShape(shape, mw.getCanvas().getMode(), mw.getCanvas().getFirstSelected());
+				logger.debug("created trp element: "+el);
 			} catch (NoParentRegionException | NoParentLineException ex) {
 				boolean noRegion = ex instanceof NoParentRegionException;
 				String parentType = noRegion ? "region" : "line";

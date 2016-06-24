@@ -217,6 +217,7 @@ public class TrpShapeElementFactory {
 		else if (m.equals(TrpCanvasAddMode.ADD_TABLEREGION)) {
 			logger.debug("creating table region...");
 			TrpPageType parent = Storage.getInstance().getTranscript().getPage();
+			logger.debug("parent = "+parent);
 			TrpTableRegionType tr = createPAGETableRegion(shape, parent);
 			trpShape = tr;
 		}
@@ -409,13 +410,18 @@ public class TrpShapeElementFactory {
 		TrpTableRegionType tr = new TrpTableRegionType(parent);
 		
 		tr.setId(TrpPageType.getUniqueId(tr.getName()));
+		tr.getObservable().setChangedAndNotifyObservers(new TrpConstructedWithParentEvent(tr));
+		//during creation set the ReadingOrder on the first position - sorting should than merge the shape according to the coordinates
+		tr.setReadingOrder(-1,  TrpShapeElementFactory.class);		
 		
 		CoordsType coords = new CoordsType();
 		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		tr.setCoords(coords);	
+	
+		parent.getTextRegionOrImageRegionOrLineDrawingRegion().add(tr);
+		parent.sortRegions();
 		
 		TrpMainWidget.getInstance().getScene().updateAllShapesParentInfo();
-		parent.sortRegions();
 		
 		return tr;
 	}

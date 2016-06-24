@@ -29,6 +29,21 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 		this.toolbar = toolbar;
 		this.canvas = canvas;
 	}
+	
+	@Override protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {
+		if (e.getSource().equals(toolbar.addSpecialRegion.ti)) {
+			logger.debug("getting mode for special region toolitem...");
+			if (e.detail != SWT.ARROW) {
+				CanvasMode mode = toolbar.getModeMap().get(toolbar.addSpecialRegion.getSelected());
+				return mode!=null ? mode : CanvasMode.SELECTION;
+			} else
+				return CanvasMode.SELECTION;
+		} else
+			return super.getModeForSelectionEvent(e);
+		
+//		CanvasMode mode = toolbar.getModeMap().get(e.getSource());
+//		return mode!=null ? mode : CanvasMode.SELECTION;
+	}
 
 
 	@Override

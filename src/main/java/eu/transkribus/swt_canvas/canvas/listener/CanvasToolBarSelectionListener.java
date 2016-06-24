@@ -146,25 +146,9 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		}
 	}
 	
-	private CanvasMode getModeForSelectionEvent(SelectionEvent e) {
+	protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {
 		CanvasMode mode = toolbar.getModeMap().get(e.getSource());
 		return mode!=null ? mode : CanvasMode.SELECTION;
-				
-//		if (e.getSource() == toolbar.getSelectionMode())
-//			return CanvasMode.SELECTION;
-//		if (e.getSource() == toolbar.getZoomSelection())
-//			return CanvasMode.ZOOM;
-//		if (e.getSource() == toolbar.getAddPoint())
-//			return CanvasMode.ADD_POINT;
-//		if (e.getSource() == toolbar.getRemovePoint())
-//			return CanvasMode.REMOVE_POINT;
-//		if (e.getSource() == toolbar.getAddShape())
-//			return CanvasMode.ADD_SHAPE;
-//		if (e.getSource() == toolbar.getSplitShape())
-//			return CanvasMode.SPLIT_SHAPE;
-//		
-//		// default mode is always selection:
-//		return CanvasMode.SELECTION;
 	}
 
 //public class DeaSWTCanvasSelectionAdapter extends SelectionAdapter {
