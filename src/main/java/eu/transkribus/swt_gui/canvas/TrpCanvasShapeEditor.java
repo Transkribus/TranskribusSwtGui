@@ -50,9 +50,10 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 //		logger.debug("Parent = "+selected.getParent()); // IS NULL...			
 //		scene.selectObject(selected.getParent(), false, false);
-		
+
+		List<ShapeEditOperation> splitOps = super.splitShape(selected, x1, y1, x2, y2, null, true);
+
 		// try to select first split of baseline:
-		List<ShapeEditOperation> splitOps = super.splitShape(selected, x1, y1, x2, y2, null);
 		logger.debug("trying to select left baseline split, nr of ops = "+splitOps.size());
 		if (splitOps != null) {
 			for (ShapeEditOperation o : splitOps) {
@@ -128,13 +129,17 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		List<ShapeEditOperation> splitOps = new ArrayList<>();
 		for (TrpTableCellType c : splittableCells.getRight()) {
-			List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), x1, y1, x2, y2, dir);
+			List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), x1, y1, x2, y2, dir, false);
 			for (ShapeEditOperation op : splitOps4Cell) {
 				op.data = dir;
 			}
 			
 			splitOps.addAll(splitOps4Cell);
 		}
+		
+		// add to undo stack:
+		if (!splitOps.isEmpty())
+			addToUndoStack(splitOps);
 		
 		// adjust indexes on table:
 		int insertIndex = dir==SplitDirection.HORIZONAL ? splittableCells.getRight().get(0).getCol() : splittableCells.getRight().get(0).getRow();
@@ -180,7 +185,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return splitOps;
 	}
 	
-	@Override public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, Object data) {		
+	@Override public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, Object data, boolean addToUndoStack) {		
 //		ICanvasShape selected = canvas.getFirstSelected();
 		if (shape == null) {
 			logger.warn("Cannot split - no shape selected!");
@@ -204,7 +209,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		
 		else { // not splitting a basline -> perform default split operation on base class
-			return super.splitShape(shape, x1, y1, x2, y2, null);
+			return super.splitShape(shape, x1, y1, x2, y2, null, addToUndoStack);
 		}
 	}
 	

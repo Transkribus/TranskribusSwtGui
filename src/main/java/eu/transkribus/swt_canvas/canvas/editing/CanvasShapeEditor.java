@@ -76,20 +76,20 @@ public class CanvasShapeEditor {
 		
 		if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_LINE) {
 			if (drawnPoints.size() == 1) {
-				splitShape(canvas.getFirstSelected(), drawnPoints.get(0).x, drawnPoints.get(0).y, invPt.x,invPt.y, null);
+				splitShape(canvas.getFirstSelected(), drawnPoints.get(0).x, drawnPoints.get(0).y, invPt.x,invPt.y, null, true);
 				drawnPoints.clear();
 			} else {
 				// actually add point:
 				drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));			
 			}
 		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_VERTICAL) {
-			splitShape(canvas.getFirstSelected(), -1, invPt.y, 1, invPt.y, null);
+			splitShape(canvas.getFirstSelected(), -1, invPt.y, 1, invPt.y, null, true);
 		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
-			splitShape(canvas.getFirstSelected(), invPt.x, -1, invPt.x, 1, null);
+			splitShape(canvas.getFirstSelected(), invPt.x, -1, invPt.x, 1, null, true);
 		}
 	}
 	
-	public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, Object data) {
+	public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, Object data, boolean addToUndoStack) {
 //		ICanvasShape selected = canvas.getFirstSelected();
 		if (shape == null) {
 			logger.warn("Cannot split - no shape selected!");
@@ -133,7 +133,8 @@ public class CanvasShapeEditor {
 		
 		scene.notifyOnAfterShapeSplitted(op);
 		
-		addToUndoStack(splitOps);
+		if (addToUndoStack && !splitOps.isEmpty())
+			addToUndoStack(splitOps);
 		
 		return splitOps;
 	}
