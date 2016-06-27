@@ -1,9 +1,12 @@
 package eu.transkribus.swt_gui.canvas;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.swt.graphics.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +16,11 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
+import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
 
 ///**
@@ -210,6 +215,204 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		else { // not splitting a basline -> perform default split operation on base class
 			return super.splitShape(shape, x1, y1, x2, y2, null, addToUndoStack);
+		}
+	}
+	
+	private void moveTableCellPoints(ICanvasShape selected, int selectedPoint, int mouseX, int mouseY, boolean firstMove) {
+		ICanvasShape selectedCopy = selected.copy();
+		
+		// 1st, move selected pt(s), then move affected points from neighbors too
+		List<ShapeEditOperation> ops = new ArrayList<>();
+		if (firstMove) {
+			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved point(s) of shape", selected);					
+			ops.add(op);
+		}
+		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
+		List<Integer> pts = selected.movePointAndSelected(selectedPoint, mousePtWoTr.x, mousePtWoTr.y);
+
+		TrpTableCellType c = (TrpTableCellType) selected.getData();
+		List<TrpTableCellType> neighbors = c.getNeighborCells();
+		logger.debug("n-neighbors: "+neighbors.size());
+		
+		for (TrpTableCellType n : neighbors) {
+			ICanvasShape ns = (ICanvasShape) n.getData();
+			for (int i : pts) {
+				java.awt.Point pOld = selectedCopy.getPoint(i);
+				java.awt.Point pNew = selected.getPoint(i);
+				logger.debug("pOld = "+pOld+" pNew = "+pNew);
+				
+				if (pOld != null && pOld != null) {
+					int j = ns.getPointIndex(pOld.x, pOld.y);
+					logger.debug("j = "+j);
+					if (j != -1) {
+						
+						if (firstMove) {
+							ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved point(s) of shape", ns);					
+							ops.add(op);
+						}							
+						
+						logger.debug("moved point "+j+" in cell "+n.print());
+						ns.movePoint(j, pNew.x, pNew.y);
+					}
+				}
+			}
+		}
+		
+		if (!ops.isEmpty())
+			addToUndoStack(ops);
+	}
+	
+	private int addPointToTableCell(ICanvasShape selected, int mouseX, int mouseY) {
+		logger.debug("adding pt to neighbor table cell!");
+		
+		CanvasQuadPolygon qp = (CanvasQuadPolygon) selected;
+		
+		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
+		
+		List<ShapeEditOperation> ops = new ArrayList<>();
+		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", selected);
+		ops.add(op);
+		
+		int ii = selected.insertPoint(mousePtWoTr.x, mousePtWoTr.y);
+		int ptIndex = selected.getPointIndex(mousePtWoTr.x, mousePtWoTr.y);
+		if (ptIndex == -1)
+			return -1;
+		
+		int side = qp.getPointSide(ptIndex);
+		int sideOpposite = (side+2) % 4; 
+		
+		logger.debug("add pt - side: "+side+" sideOpposite = "+sideOpposite);
+		
+		TrpTableCellType c = (TrpTableCellType) selected.getData();
+		
+		TrpTableCellType neighbor = c.getNeighborCell(side);
+		logger.debug("add pt, neighbor: "+neighbor);
+		
+		if (neighbor != null) {
+			CanvasQuadPolygon nc = (CanvasQuadPolygon) neighbor.getData();
+			
+			ShapeEditOperation opN = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", nc);
+			ops.add(opN);
+			
+			nc.insertPointOnSide(mousePtWoTr.x, mousePtWoTr.y, sideOpposite);
+		}
+				
+		if (!ops.isEmpty())
+			addToUndoStack(ops);
+		
+		return ii;
+	}
+	
+	private void removePointFromTableCell(ICanvasShape selected, int pointIndex) {
+		CanvasQuadPolygon qp = (CanvasQuadPolygon) selected;
+		int side = qp.getPointSide(pointIndex);
+		if (side == -1) {
+			logger.warn("Cannot find side of point to remove: "+pointIndex);
+			return;
+		}
+		
+		List<ShapeEditOperation> ops = new ArrayList<>();
+		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Removed point from shape", selected);
+		ops.add(op);
+		
+		java.awt.Point removedPt = selected.getPoint(pointIndex);
+		
+		if (!selected.removePoint(pointIndex)) {
+			logger.warn("Could not remove point "+pointIndex+" from shape!");
+			return;
+		}
+		
+		logger.debug("remove pt - side: "+side);
+		
+		TrpTableCellType c = (TrpTableCellType) selected.getData();
+		
+		TrpTableCellType neighbor = c.getNeighborCell(side);
+		logger.debug("remove pt, neighbor: "+neighbor);
+		
+		if (neighbor != null) {
+			CanvasQuadPolygon nc = (CanvasQuadPolygon) neighbor.getData();
+			
+			ShapeEditOperation opN = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Removed point from shape", nc);
+			ops.add(opN);
+			
+			int ri = nc.getPointIndex(removedPt.x, removedPt.y);
+			
+			if (ri != -1) {
+				if (nc.removePoint(ri)) {
+					ops.add(opN);
+				}
+			}
+		}
+		
+		if (!ops.isEmpty())
+			addToUndoStack(ops);
+		
+	}
+		
+	@Override public void resizeBoundingBoxFromSelected(RectDirection direction, int mouseTrX, int mouseTrY, boolean firstMove) {
+		ICanvasShape selected = canvas.getFirstSelected();
+		
+		if (selected!=null && selected.isEditable() && direction!=RectDirection.NONE) {
+			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
+				// PREVENT RESIZING BOUNDING BOX FOR TABLE CELLS
+			} 
+			else {
+				super.resizeBoundingBoxFromSelected(direction, mouseTrX, mouseTrY, firstMove);
+			}
+		}
+	}
+	
+	@Override public void moveSelected(int mouseTrX, int mouseTrY, boolean firstMove) {
+		ICanvasShape selected = canvas.getFirstSelected();
+		if (selected != null && selected.isEditable()) {
+			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
+				// PREVENT RESIZING BOUNDING BOX FOR TABLE CELLS
+			} 
+			else {
+				super.moveSelected(mouseTrX, mouseTrY, firstMove);
+			}
+		}
+	}
+	
+	@Override public void removePointFromSelected(int pointIndex) {
+		logger.debug("removing point "+pointIndex);
+		
+		ICanvasShape selected = canvas.getFirstSelected();
+		if (selected != null && selected.isEditable()) {
+			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
+				removePointFromTableCell(selected, pointIndex);
+			} 
+			else {
+				super.removePointFromSelected(pointIndex);
+			}
+		}
+	}
+	
+	@Override public int addPointToSelected(int mouseX, int mouseY) {
+		logger.debug("inserting point!");
+		
+		ICanvasShape selected = canvas.getFirstSelected();
+		if (selected != null && selected.isEditable()) {
+			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
+				return addPointToTableCell(selected, mouseX, mouseY);
+			} 
+			else {
+				return super.addPointToSelected(mouseX, mouseY);
+			}
+		}
+		return -1;
+	}
+	
+	@Override public void movePointsFromSelected(int selectedPoint, int mouseX, int mouseY, boolean firstMove) {
+		ICanvasShape selected = canvas.getFirstSelected();
+		
+		if (selected!=null && selected.isEditable() && selectedPoint != -1) {
+			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
+				moveTableCellPoints(selected, selectedPoint, mouseX, mouseY, firstMove);
+			}
+			else {
+				super.movePointsFromSelected(selectedPoint, mouseX, mouseY, firstMove);
+			}
 		}
 	}
 	

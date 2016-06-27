@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 
 /** A stack of {@link ShapeEditOperation} objects to undo edit operations */
@@ -138,6 +139,10 @@ public class UndoStack extends Observable {
 			ICanvasShape backupShape = op.getBackupShapes().get(i);
 			if (shape != null) {
 				shape.setPoints(backupShape.getPoints());
+				
+				if (shape instanceof CanvasQuadPolygon && backupShape instanceof CanvasQuadPolygon) {
+					((CanvasQuadPolygon) shape).setCornerPts(((CanvasQuadPolygon) backupShape).getCorners());
+				}
 			}
 			else {
 				logger.error("Error undoing edit operation: could not find edited shape by its content");

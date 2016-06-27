@@ -1,6 +1,7 @@
 package eu.transkribus.swt_canvas.canvas.shapes;
 
 import java.awt.Point;
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,11 +82,11 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		if (pts == null || pts.size()<4) {
 			throw new CanvasShapeException("Less than 4 pts given in setPoints method of CanvasQuadPolygon!");
 		}
-		// check if new pts comply with corner indices
-		for (int ptIndex : corners) {
-			if (ptIndex >= pts.size())
-				throw new CanvasShapeException("Existing corner point index "+ptIndex+" not inside new points range, N = "+pts.size());	
-		}
+//		// check if new pts comply with corner indices
+//		for (int ptIndex : corners) {
+//			if (ptIndex >= pts.size())
+//				throw new CanvasShapeException("Existing corner point index "+ptIndex+" not inside new points range, N = "+pts.size());	
+//		}
 		
 		java.awt.Polygon poly = new java.awt.Polygon();
 
@@ -147,7 +148,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		
 		return corners[index];
 	}
-	
+		
 	/**
 	 * Returns the corner point *position* of the given point index,
 	 * i.e. either 0,1,2 or 3 indicating left upper, left lower, right lower or right upper position.
@@ -158,6 +159,26 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 			if (corners[i] == ptIndex)
 				return i;
 		}
+		return -1;
+	}
+	
+	/**
+	 * Returns the side that the point with this index is on.<br/>
+	 * 0 -> left side
+	 * 1 -> bottom side
+	 * 2 -> right side
+	 * 3 -> top side
+	 * -1 -> no side
+	 */
+	public int getPointSide(int ptIndex) {
+		for (int i=0; i<4; ++i) {
+			int ci2 = i==3 ? getNPoints() : corners[i+1];
+			
+			if (corners[i] <= ptIndex && ptIndex < ci2) {
+				return i;
+			}
+		}
+		
 		return -1;
 	}
 	
@@ -223,6 +244,54 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		logger.debug("corners: "+ PointStrUtils.cornerPtsToString(corners));		
 	}
 	
+	public int[] getClosestLineIndices(int x, int y, int side) {
+		int sp, ep;
+		if (side == 0) {
+			sp = corners[0];
+			ep = corners[1];
+		} else if (side == 1) {
+			sp = corners[1];
+			ep = corners[2];			
+		} else if (side == 2) {
+			sp = corners[2];
+			ep = corners[3];
+		} else if (side == 3) {
+			sp = corners[3];
+			ep = getNPoints();
+		} else
+			throw new CanvasShapeException("getClosestLineIndices, invalid side specified: "+side);
+		
+		double minDist = Double.MAX_VALUE;
+		int[] iz = new int[2];
+		iz[0] = -1; iz[1] = -1;
+		
+//		final int N = isClosedShape() ? getNPoints() : getNPoints()-1;
+		for (int i=sp; i<ep; ++i) {
+			int index1 = i;
+			int index2 = (i+1) % getPoints().size();
+			
+			Line2D line = new Line2D.Double(getPoint(index1), getPoint(index2));
+			double d = line.ptSegDist(x, y);
+//			logger.debug("d = "+d+" minDist = "+minDist);
+			if (d < minDist) {
+				minDist = d;
+				iz[0] = index1;
+				iz[1] = index2;
+//				minLine = line;
+			}
+		}
+//		return minLine;
+		return iz;
+	}
+	
+	public int insertPointOnSide(int x, int y, int side) {
+		int[] iz = getClosestLineIndices(x, y, side);
+		int ii = iz[1];
+		
+		insertPointOnIndex(x, y, ii);
+		
+		return ii;
+	}
 
 	
 	@Override
@@ -230,6 +299,39 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 //		throw new CanvasShapeException("insertPoint operation not implemented yet for quad polygons!");
 		
 		int ii = getInsertIndex(x, y);
+//		if (ii == 0)
+//			ii = getNPoints();
+		
+		insertPointOnIndex(x, y, ii);
+		
+//		List<Point> newPts = new ArrayList<Point>();
+//		
+//		int i=0;
+//		for (Point pt : getPoints()) {
+//			if (ii == i++) {
+//				newPts.add(new Point(x, y));
+//			}
+//			newPts.add(pt);
+//		}
+//		if (ii == getNPoints()) {
+//			newPts.add(new Point(x,y));
+//		}
+//				
+//		setPoints(newPts);
+//		
+//		// adapt corner points:
+//		for (int j=1; j<4; ++j) {
+//			if (corners[j] >= ii)
+//				++corners[j];
+//		}
+		
+		printCorners();
+		
+		return ii;
+	}
+	
+	public void insertPointOnIndex(int x, int y, int ii) {
+//		int ii = getInsertIndex(x, y);
 		if (ii == 0)
 			ii = getNPoints();
 		
@@ -253,9 +355,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 			if (corners[j] >= ii)
 				++corners[j];
 		}
-		printCorners();
-		
-		return ii;
+//		printCorners();
 	}
 	
 	

@@ -200,12 +200,21 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 	}
 
 	@Override public void onSelectionChanged(final SceneEvent e) {
-		try {
+		try {			
 //			if (true) return;
 			
 			final boolean newFirstSelected = e.getFirstShape() == canvas.getFirstSelected();
 			int nSelected = canvas.getNSelected();
 			logger.debug("selected data size = "+nSelected+ " new first selected = "+newFirstSelected);
+			
+			// TEST: do sth. is table cell is selected
+			if (e.getFirstShape() != null && e.getFirstShape().getData() instanceof TrpTableCellType) {
+				TrpTableCellType tc = (TrpTableCellType) e.getFirstShape().getData();
+				for (int i=0; i<4; ++i) {
+					TrpTableCellType n = tc.getNeighborCell(i);
+					logger.debug("i = "+i+" neighbor = "+n);
+				}
+			}
 			
 //			ITrpShapeType st = TrpUtil.getTrpShape(e.getFirstShape());
 //			if (st!=null) {

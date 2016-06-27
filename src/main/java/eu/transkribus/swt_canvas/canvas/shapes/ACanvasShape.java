@@ -814,17 +814,24 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	}
 	
 	@Override
-	public void movePointAndSelected(int grabbedPtIndex, int x, int y) {
+	public List<Integer> movePointAndSelected(int grabbedPtIndex, int x, int y) {
+		List<Integer> movedPts = new ArrayList<>();
 		Point trans = movePoint(grabbedPtIndex, x, y);
 		
 		if (trans != null) {
+			movedPts.add(grabbedPtIndex);
+			
 			for (Integer i : selectedPoints) {
 				if (i!=null && hasPoint(i) && i!=grabbedPtIndex) {
+					movedPts.add(i);
+					
 					Point pt = getPoint(i);
 					movePoint(i, pt.x+trans.x, pt.y+trans.y);
 				}
 			}
 		}
+		
+		return movedPts;
 	}
 	
 	@Override

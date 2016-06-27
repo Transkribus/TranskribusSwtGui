@@ -93,7 +93,7 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	
 	Point movePoint(int index, int x, int y);
 	void movePoints(int x, int y, Integer... pts);
-	void movePointAndSelected(int grabbedPtIndex, int x, int y);
+	List<Integer> movePointAndSelected(int grabbedPtIndex, int x, int y);
 	
 	void moveBoundingBox(RectDirection direction, int newX, int newY);
 	int insertPoint(int x, int y);
