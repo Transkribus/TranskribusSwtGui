@@ -342,8 +342,13 @@ CHANGES AND BUGFIXES
 	-> createThumbs for local docs flag (configure via Menu -> File -> Create thumbs when opening local folder)
 	-> Export: Possibility to export all chosen export formats in a ZIP file
 	-> Docx export - consider soft breaks
+	-> PDF import
+	-> HTR based on RNN by Rostock integrated (alpha stage)
 	
-	
+0.8.5:
+	-> fixed a bug that occurred on duplicated documents with editorial declaration (collection-specific features)
+	-> fixed a bug in the date setting widget in document metadata
+	-> PAGE XML viewer can now edit XML and reload page from it
 	
 	
 	

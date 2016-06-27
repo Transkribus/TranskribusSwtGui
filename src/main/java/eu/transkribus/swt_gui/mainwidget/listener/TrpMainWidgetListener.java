@@ -1,15 +1,14 @@
 package eu.transkribus.swt_gui.mainwidget.listener;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.util.Locale;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,13 +17,11 @@ import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.xmlviewer.XmlViewer;
-import eu.transkribus.swt_gui.Msgs;
-import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.menubar.TrpMenuBar;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.util.DesktopApi;
@@ -266,7 +263,8 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 				
 				try {
 					if (true) {
-						XmlViewer xmlviewer = new XmlViewer(ui.getShell(), SWT.MODELESS);
+//						XmlViewer xmlviewer = new XmlViewer(ui.getShell(), SWT.MODELESS);
+						PAGEXmlViewer xmlviewer = new PAGEXmlViewer(ui.getShell(), SWT.MODELESS);
 						xmlviewer.open(url);
 					} else {
 						DesktopApi.browse(new URI(url.toString().replaceAll(" ", "%20")));		

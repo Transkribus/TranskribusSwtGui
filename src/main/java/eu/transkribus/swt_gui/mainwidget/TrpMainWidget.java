@@ -946,6 +946,8 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			onError("Saving Error", "Error while saving transcription", e);
 			return false;
+		} finally {
+			updatePageInfo();
 		}
 	}
 

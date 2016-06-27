@@ -136,7 +136,7 @@ public class SCSimpleDateTimeWidget extends Composite {
 	public Date getDate() {
 		Calendar cal = Calendar.getInstance();
 		logger.debug("y = "+getYear()+" m = "+getMonth()+" d = "+getDay());
-		cal.set(getYear(), getMonth(), getDay());
+		cal.set(getYear(), getMonth()-1, getDay());
 		
 		return cal.getTime();
 	}
