@@ -160,20 +160,19 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		mouseDownMap.put(button, new Point(e.x, e.y));
 		mouseMoveMap.put(button, new Point(e.x, e.y));
 		mouseUpMap.put(button, null);
-		
-		
+				
 		boolean isMovingShapePossible = canvas.isMovingShapePossible();
 
 		// set move image mode:
-		final boolean MOVE_IMG_ON_LEFT_BTN = true; // experimental
 		final boolean isMoveImgOnLeftBtnPossible = 
 				(canvas.getMode() == CanvasMode.SELECTION || canvas.getMode() == CanvasMode.LOUPE) && 
 				button == settings.getSelectMouseButton() 
-				&& !isMovingShapePossible && shapeBoundaryPt == null && mouseOverPoint == -1 && e.stateMask==0 && e.stateMask != CanvasKeys.SELECTION_RECTANGLE_REQUIRED_KEYS;
+				&& !isMovingShapePossible && shapeBoundaryPt == null 
+				&& mouseOverPoint == -1 && e.stateMask==0 && e.stateMask != CanvasKeys.SELECTION_RECTANGLE_REQUIRED_KEYS;
 		
-		if (button == settings.getTranslateMouseButton() || e.stateMask == CanvasKeys.MOVE_SCENE_REQUIRED_KEYS
-				|| (MOVE_IMG_ON_LEFT_BTN && isMoveImgOnLeftBtnPossible)
-				) {
+		if (button == settings.getTranslateMouseButton() 
+				/*|| e.stateMask == CanvasKeys.MOVE_SCENE_REQUIRED_KEYS*/
+				|| (isMoveImgOnLeftBtnPossible)) {
 			modeBackup = settings.getMode();
 			canvas.setMode(CanvasMode.MOVE);
 		}
@@ -272,7 +271,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				}
 			}	
 			
-			boolean isLagThesh = tdiff > MOVE_LAG;
+			boolean isLagThresh = tdiff > MOVE_LAG;
 			
 			// Perform translation of whole scene on move of translation button:
 			if (canvas.getMode()==CanvasMode.MOVE/*&& isMouseMove(settings.getTranslateMouseButton())*/) {
@@ -285,7 +284,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				}
 			}
 			// move shape:
-			else if (canvas.getMode()==CanvasMode.MOVE_SHAPE && isLagThesh) {
+			else if (canvas.getMode()==CanvasMode.MOVE_SHAPE && isLagThresh) {
 				Point trans = getTotalTranslation(mousePt, settings.getSelectMouseButton());
 				if (trans != null) {
 					canvas.getShapeEditor().moveSelected(trans.x, trans.y, firstMove);
@@ -295,7 +294,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				}
 			}
 			// move a point or the bounding box if selected:
-			else if (canvas.getMode()==CanvasMode.SELECTION && isMouseMove(settings.getSelectMouseButton()) && isLagThesh) {
+			else if (canvas.getMode()==CanvasMode.SELECTION && isMouseMove(settings.getSelectMouseButton()) && isLagThresh) {
 //				logger.debug("heeeeeeeeeeeeeeere, point: "+selectedPoint+" direction: "+selectedDirection);
 				
 				if (selectedPoint!=-1) 	{ // perform moving a point if point selected

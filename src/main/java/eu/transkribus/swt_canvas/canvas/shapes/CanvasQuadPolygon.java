@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
+import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.util.Colors;
 
 public class CanvasQuadPolygon extends CanvasPolygon {
@@ -359,7 +361,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	}
 	
 	
-	public List<Point> getPointsOfSegment(int cornerPtIndex) {
+	public List<Point> getPointsOfSegment(int cornerPtIndex, boolean includeFirstOfNext) {
 		List<Point> pts = new ArrayList<>();
 		if (cornerPtIndex<0 || cornerPtIndex>4)
 			return pts;
@@ -370,6 +372,10 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		int i=firstCornerPt;
 		while (i<secondCornerPt) {
 			pts.add(getPoint(i++));
+		}
+		
+		if (includeFirstOfNext) {
+			pts.add(getPoint(i == getNPoints() ? 0 : i));
 		}
 		
 		return pts;
@@ -428,6 +434,12 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	@Override
 	public void simplify(double eps) {
 		throw new CanvasShapeException("simplify operation not supported for quad polygons!");
+	}
+	
+	public void translatePointsOfSide(int side, int tx, int ty) {
+		for (java.awt.Point pt : getPointsOfSegment(side, true)) {		
+			movePoint(getPointIndex(pt.x, pt.y), pt.x+tx, pt.y+ty);
+		}
 	}
 	
 	private CanvasQuadPolygon computeSplitShape(SplitDirection dir, boolean topOrLeft, Pair<ShapePoint, ShapePoint> sp) {
@@ -567,10 +579,39 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		
 		return Pair.of(s1, s2);
 	}
+	
+	public int getMergeableSide(ICanvasShape shape) {
+		if (!(shape instanceof CanvasQuadPolygon))
+			return -1;
+		
+		CanvasQuadPolygon shapeQp = (CanvasQuadPolygon) shape;
+		
+		for (int i=0; i<4; ++i) {
+			Point p1 = getCornerPt(i);
+			Point p2 = getCornerPt((i+1) % 4);
+			
+			Point p1_ = shapeQp.getCornerPt(i);
+			Point p2_ = shapeQp.getCornerPt((i+1) % 4);
+			
+			if (p1 == null || p2 == null || p1_ == null || p2_==null) // should not happen, but u never know...
+				continue;
+			
+			if (p1.equals(p1_) && p2.equals(p2_))
+				return i;
+		}
+		
+		return -1;
+	}
 		
 	@Override
 	public ICanvasShape mergeShapes(ICanvasShape shape) {
-		throw new CanvasShapeException("mergeShapes operation not implemented yet for quad polygons!");
+//		throw new CanvasShapeException("mergeShapes operation not implemented yet for quad polygons!");
+		
+		int side = getMergeableSide(shape);
+		if (side == -1)
+			return null;
+		
+		
 	}
 	
 	@Override public void drawCornerPoints(SWTCanvas canvas, GC gc) {

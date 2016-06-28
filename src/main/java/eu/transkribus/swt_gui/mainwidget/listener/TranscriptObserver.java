@@ -179,7 +179,7 @@ public class TranscriptObserver implements Observer {
 		Object s = to.getSource();
 		if (s == null) return;
 		
-		logger.debug(e.description+" event in "+s.getClass().getSimpleName()+", who: "+e.who);
+		logger.trace(e.description+" event in "+s.getClass().getSimpleName()+", who: "+e.who);
 		if (e instanceof TrpCoordsChangedEvent) {
 			onCoordinatesChanged(s, (TrpCoordsChangedEvent)e);
 		}

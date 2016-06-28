@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import eu.transkribus.core.model.beans.pagecontent.TableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
 import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
@@ -88,7 +90,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			int N = j==0 ? nRows : nCols;
 			
 			for (int i=0; i<N; ++i) {
-				List<TrpTableCellType> cells = table.getCells(j==0, i);
+				List<TrpTableCellType> cells = table.getCells(j==0, true, i);
 				dir = j==0 ? SplitDirection.VERTICAL : SplitDirection.HORIZONAL;
 				
 				logger.debug("cells i = "+i+" first cell: "+cells.get(0));
@@ -218,10 +220,133 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 	}
 	
+	private void moveTableRowOrColumn(ICanvasShape selected, int selectedPoint, int mouseX, int mouseY, boolean firstMove, boolean rowwise) {
+		logger.debug("moveTableRowOrColumn, rowwise: "+rowwise);
+		
+		CanvasQuadPolygon qp = (CanvasQuadPolygon) selected;
+		TrpTableCellType tc = (TrpTableCellType) selected.getData();
+		
+		// determine side of quad poly where this point is on:
+		int side = qp.getPointSide(selectedPoint);
+		
+		// jump out if combination of side and rowwise flag is incompatible:
+		boolean isCornerPt = qp.isCornerPoint(selectedPoint);
+		if (!isCornerPt && side%2==0 && rowwise) { // if pt on left or right
+			logger.debug("cannot use non-corner-point from left or right side to move pts rowwise!");
+			return;
+		} else if (!isCornerPt && side%2==1 && !rowwise) {
+			logger.debug("cannot use non-corner-point from top or bottom side to move pts columnwise!");
+			return;
+		}
+		
+		// depending on the rowwise variable which determines the direction to move on,
+		// it can happen that the side we want to move is incorrect - correct that here:
+		if (rowwise && selectedPoint==qp.getCornerPtIndex(0))
+			side = 3;
+		else if (!rowwise && selectedPoint==qp.getCornerPtIndex(1))
+			side = 0;
+		else if (rowwise && selectedPoint==qp.getCornerPtIndex(2))
+			side = 1;
+		else if (!rowwise && selectedPoint==qp.getCornerPtIndex(3))
+			side = 2;
+		
+		int sideOpposite = (side+2) % 4;
+		
+		java.awt.Point selPt = qp.getPoint(selectedPoint);
+		if (side < 0 || selPt == null) {
+			logger.warn("Cannot find side of point to move row or column: "+selectedPoint);
+			return;
+		}
+		
+		// compute translation for each point:
+		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
+		java.awt.Point trans = new java.awt.Point(mousePtWoTr.x-selPt.x, mousePtWoTr.y-selPt.y);
+
+		// get all neighbor cells in this row / column and move their points according to the side
+		boolean startIndex = side==0 || side == 3;
+		int index;
+		if (rowwise) {
+			index = startIndex ? tc.getRow() : tc.getRowEnd();
+		} else {
+			index = startIndex ? tc.getCol() : tc.getColEnd();
+		}
+		
+		List<ShapeEditOperation> ops = new ArrayList<>();
+		List<TrpTableCellType> cells = tc.getTable().getCells(rowwise, startIndex, index);
+		for (TrpTableCellType c : cells) {
+			CanvasQuadPolygon s = (CanvasQuadPolygon) c.getData();
+			
+			if (firstMove) {
+				ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved table "+(rowwise?"row":"column")+" points", s);					
+				ops.add(op);
+			}
+			// move all points of that side
+			s.translatePointsOfSide(side, trans.x, trans.y);
+			
+			// now also move all points of the neighbor side
+			TrpTableCellType nc = c.getNeighborCell(side);
+			if (nc == null)
+				continue;
+			
+			CanvasQuadPolygon ns = (CanvasQuadPolygon) nc.getData();
+			if (firstMove) {
+				ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved table "+(rowwise?"row":"column")+" points", ns);					
+				ops.add(op);
+			}			
+			ns.translatePointsOfSide(sideOpposite, trans.x, trans.y);			
+		}
+
+		// C&P:
+		
+		// First move selected pt(s), then move affected points from neighbors too
+		
+//		if (firstMove) {
+//			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved table "+(rowwise?"row":"column")+" points", selected);					
+//			ops.add(op);
+//		}
+//		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
+//		List<Integer> pts = selected.movePointAndSelected(selectedPoint, mousePtWoTr.x, mousePtWoTr.y);
+
+//		TrpTableCellType c = (TrpTableCellType) selected.getData();
+//		List<TrpTableCellType> neighbors = c.getNeighborCells();
+//		logger.debug("n-neighbors: "+neighbors.size());
+//		
+//		for (TrpTableCellType n : neighbors) {
+//			ICanvasShape ns = (ICanvasShape) n.getData();
+//			for (int i : pts) {
+//				java.awt.Point pOld = selectedCopy.getPoint(i);
+//				java.awt.Point pNew = selected.getPoint(i);
+//				logger.debug("pOld = "+pOld+" pNew = "+pNew);
+//				
+//				if (pOld != null && pOld != null) {
+//					int j = ns.getPointIndex(pOld.x, pOld.y);
+//					logger.debug("j = "+j);
+//					if (j != -1) {
+//						
+//						if (firstMove) {
+//							ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved point(s) of shape", ns);					
+//							ops.add(op);
+//						}							
+//						
+//						logger.debug("moved point "+j+" in cell "+n.print());
+//						ns.movePoint(j, pNew.x, pNew.y);
+//					}
+//				}
+//			}
+//		}
+		////////////
+		
+		if (!ops.isEmpty())
+			addToUndoStack(ops);
+		
+		
+	}
+	
 	private void moveTableCellPoints(ICanvasShape selected, int selectedPoint, int mouseX, int mouseY, boolean firstMove) {
 		ICanvasShape selectedCopy = selected.copy();
 		
-		// 1st, move selected pt(s), then move affected points from neighbors too
+		// First move selected pt(s), then move affected points from neighbors too
+		
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		if (firstMove) {
 			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved point(s) of shape", selected);					
@@ -367,6 +492,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		if (selected != null && selected.isEditable()) {
 			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
 				// PREVENT RESIZING BOUNDING BOX FOR TABLE CELLS
+				// TODO? allow resizing on outside -> should trigger resize of whole table region!
 			} 
 			else {
 				super.moveSelected(mouseTrX, mouseTrY, firstMove);
@@ -408,7 +534,20 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		if (selected!=null && selected.isEditable() && selectedPoint != -1) {
 			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
-				moveTableCellPoints(selected, selectedPoint, mouseX, mouseY, firstMove);
+				
+				int sm = canvas.getMouseListener().getCurrentMoveStateMask();
+				boolean isCtrl = CanvasKeys.isKeyDown(sm, SWT.CTRL);
+				boolean isAlt = CanvasKeys.isKeyDown(sm, SWT.ALT);
+
+				logger.debug("isCtrl: "+isCtrl+" isAlt: "+isAlt);
+				
+				if (!isCtrl) {
+					moveTableCellPoints(selected, selectedPoint, mouseX, mouseY, firstMove);
+				} else {
+					moveTableRowOrColumn(selected, selectedPoint, mouseX, mouseY, firstMove, !isAlt);
+				}
+				
+				
 			}
 			else {
 				super.movePointsFromSelected(selectedPoint, mouseX, mouseY, firstMove);
