@@ -1,8 +1,9 @@
 package eu.transkribus.swt_gui.canvas;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -295,51 +296,9 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			}			
 			ns.translatePointsOfSide(sideOpposite, trans.x, trans.y);			
 		}
-
-		// C&P:
-		
-		// First move selected pt(s), then move affected points from neighbors too
-		
-//		if (firstMove) {
-//			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved table "+(rowwise?"row":"column")+" points", selected);					
-//			ops.add(op);
-//		}
-//		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
-//		List<Integer> pts = selected.movePointAndSelected(selectedPoint, mousePtWoTr.x, mousePtWoTr.y);
-
-//		TrpTableCellType c = (TrpTableCellType) selected.getData();
-//		List<TrpTableCellType> neighbors = c.getNeighborCells();
-//		logger.debug("n-neighbors: "+neighbors.size());
-//		
-//		for (TrpTableCellType n : neighbors) {
-//			ICanvasShape ns = (ICanvasShape) n.getData();
-//			for (int i : pts) {
-//				java.awt.Point pOld = selectedCopy.getPoint(i);
-//				java.awt.Point pNew = selected.getPoint(i);
-//				logger.debug("pOld = "+pOld+" pNew = "+pNew);
-//				
-//				if (pOld != null && pOld != null) {
-//					int j = ns.getPointIndex(pOld.x, pOld.y);
-//					logger.debug("j = "+j);
-//					if (j != -1) {
-//						
-//						if (firstMove) {
-//							ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved point(s) of shape", ns);					
-//							ops.add(op);
-//						}							
-//						
-//						logger.debug("moved point "+j+" in cell "+n.print());
-//						ns.movePoint(j, pNew.x, pNew.y);
-//					}
-//				}
-//			}
-//		}
-		////////////
 		
 		if (!ops.isEmpty())
-			addToUndoStack(ops);
-		
-		
+			addToUndoStack(ops);		
 	}
 	
 	private void moveTableCellPoints(ICanvasShape selected, int selectedPoint, int mouseX, int mouseY, boolean firstMove) {
@@ -553,6 +512,127 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				super.movePointsFromSelected(selectedPoint, mouseX, mouseY, firstMove);
 			}
 		}
+	}
+	
+	
+	private static Pair<CanvasQuadPolygon, CanvasQuadPolygon> getMergeableCells(List<CanvasQuadPolygon> toMerge) {
+		for (int i=0; i<toMerge.size(); ++i) {
+			for (int j=i+1; j<toMerge.size(); ++j) {
+				if (toMerge.get(i).getMergeableSide(toMerge.get(j))!=-1) {
+					return Pair.of(toMerge.get(i), toMerge.get(j));
+				}
+			}
+		}
+		return null;
+	}
+	
+	public ShapeEditOperation mergeSelectedTableCells(boolean sendSignal) {
+		List<ICanvasShape> selectedShapes = scene.getSelectedAsNewArray();
+		if (selectedShapes.size() < 2)
+			return null;
+		
+		logger.debug("merging "+selectedShapes.size()+" table cells!");
+				
+		if (sendSignal) {
+			if (scene.notifyOnBeforeShapesMerged(selectedShapes))
+				return null;
+		}
+						
+		scene.clearSelected();
+		
+//		ICanvasShape merged = selectedShapes.get(0).copy();
+	
+		List<CanvasQuadPolygon> toMerge = new ArrayList<>();
+		for (ICanvasShape s : selectedShapes) {
+			toMerge.add((CanvasQuadPolygon) s.copy());
+		}
+		
+		while (toMerge.size() > 1) {
+			Pair<CanvasQuadPolygon, CanvasQuadPolygon> mergeable = getMergeableCells(toMerge);
+			if (mergeable == null) {
+				break;
+			}
+			
+			toMerge.remove(mergeable.getLeft());
+			toMerge.remove(mergeable.getRight());
+			
+			CanvasQuadPolygon m = (CanvasQuadPolygon) mergeable.getLeft().mergeShapes(mergeable.getRight());
+			toMerge.add(0, m);
+		};
+		
+		if (toMerge.size() > 1) {
+			logger.debug("cannot merge shapes, merged.size() = "+toMerge.size());
+			return null;
+		}
+		
+		for (ICanvasShape s : selectedShapes) {
+			scene.removeShape(s, false, false);
+			for (ICanvasShape child : s.getChildren(false)) {
+				toMerge.get(0).addChild(child);
+			}
+		}
+		
+//		
+//		for (int i=1; i<selectedShapes.size(); ++i) {
+//			merged = merged.mergeShapes(selectedShapes.get(i));
+//			logger.debug("merged = "+merged);
+//			if (merged == null)
+//				return null;
+//			
+//			removeShape(selectedShapes.get(i), false, false);
+//			for (ICanvasShape child : selectedShapes.get(i).getChildren(false)) {
+//				merged.addChild(child);
+//			}
+//		}
+//		
+//		removeShape(selectedShapes.get(0), false, false);
+		
+		ShapeEditOperation opa = scene.addShape(toMerge.get(0), null, false);
+//		logger.debug("merge added: "+opa);
+		
+		if (opa == null) {
+			// TODO: should add removed shapes again here...
+			logger.warn("unable to add merged shape: "+toMerge);
+			return null;
+		}
+		
+		ShapeEditOperation op = 
+				new ShapeEditOperation(canvas, ShapeEditType.MERGE, selectedShapes.size()+" cells merged", selectedShapes);
+		op.addNewShape(toMerge.get(0));
+		
+		if (sendSignal) {
+			scene.notifyOnShapesMerged(op);
+		}
+		
+		canvas.redraw();
+		
+		if (op!=null) {
+			addToUndoStack(op);	
+		}
+		
+		return op;
+	}
+	
+	
+	@Override public void mergeSelected() {
+		logger.debug("mergeSelected, TrpCanvasShapeEditor");
+		
+		List<ICanvasShape> selected = scene.getSelectedAsNewArray();
+
+		boolean isMergeTableCells=true;
+		for (ICanvasShape s : selected) {
+			if (!(s instanceof CanvasQuadPolygon) || !(s.getData() instanceof TrpTableCellType)) {
+				isMergeTableCells = false;
+				break;
+			}
+		}
+		
+		if (isMergeTableCells) {
+			mergeSelectedTableCells(true);
+		} else {
+			super.mergeSelected();
+		}
+				
 	}
 	
 }

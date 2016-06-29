@@ -48,26 +48,30 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 
 	@Override
 	public void widgetSelected(SelectionEvent e) {
-		logger.debug("toolbar item selected: "+e);
-		
-		super.widgetSelected(e);
-		
-		if (canvas.getMode() == TrpCanvasAddMode.ADD_OTHERREGION) {
-			TrpCanvasAddMode.ADD_OTHERREGION.data = canvas.getMainWidget().getCanvasWidget().getToolBar().getSelectedSpecialRegionType(); 
-		}
+		try {
+			logger.debug("toolbar item selected: "+e);
 			
-		Object s = e.getSource();
-		
-		if (s == toolbar.getViewSettingsMenuItem()) {
-			canvas.getMainWidget().getUi().openViewSetsDialog();
-		}
-		else if (s == toolbar.getImageVersionItem().ti && e.detail != SWT.ARROW) {
-			TrpMainWidget.getInstance().reloadCurrentImage();
-		}
-		else if (s == toolbar.getImgEnhanceItem()) {
-			// TODO: open enhance dialog
-			ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
-			d.open();
+			super.widgetSelected(e);
+			
+			if (canvas.getMode() == TrpCanvasAddMode.ADD_OTHERREGION) {
+				TrpCanvasAddMode.ADD_OTHERREGION.data = canvas.getMainWidget().getCanvasWidget().getToolBar().getSelectedSpecialRegionType(); 
+			}
+				
+			Object s = e.getSource();
+			
+			if (s == toolbar.getViewSettingsMenuItem()) {
+				canvas.getMainWidget().getUi().openViewSetsDialog();
+			}
+			else if (s == toolbar.getImageVersionItem().ti && e.detail != SWT.ARROW) {
+				TrpMainWidget.getInstance().reloadCurrentImage();
+			}
+			else if (s == toolbar.getImgEnhanceItem()) {
+				// TODO: open enhance dialog
+				ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
+				d.open();
+			}
+		} catch (Exception ex) {
+			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
 		}
 	}
 

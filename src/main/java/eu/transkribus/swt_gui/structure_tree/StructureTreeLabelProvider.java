@@ -75,7 +75,7 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 			if (element instanceof TrpTableCellType) {
 				TrpTableCellType tc = (TrpTableCellType) element;
 				text = tc.getCornerPts();
-				text += " ("+tc.getRow()+","+tc.getCol()+")";
+				text += " ("+tc.getRow()+","+tc.getCol()+")"+" ("+tc.getRowSpan()+","+tc.getColSpan()+")";
 			}
 			
 //			if (element instanceof TrpTextRegionType) {

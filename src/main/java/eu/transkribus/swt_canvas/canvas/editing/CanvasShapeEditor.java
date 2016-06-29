@@ -269,7 +269,7 @@ public class CanvasShapeEditor {
 		canvas.redraw();
 	}
 	
-	public void mergeSelected() {		
+	public void mergeSelected() {	
 		List<ICanvasShape> selected = scene.getSelectedAsNewArray();
 		logger.debug("merging selected: "+selected.size());
 		if (selected.size() < 2)

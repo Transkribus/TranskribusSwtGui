@@ -241,10 +241,10 @@ public class CanvasScene {
 		 				
 		clearSelected();
 		ICanvasShape merged = selectedShapes.get(0).copy();
-		removeShape(selectedShapes.get(0), false, false);
 		
 		for (int i=1; i<selectedShapes.size(); ++i) {
 			merged = merged.mergeShapes(selectedShapes.get(i));
+			logger.debug("merged = "+merged);
 			if (merged == null)
 				return null;
 			
@@ -253,8 +253,16 @@ public class CanvasScene {
 				merged.addChild(child);
 			}
 		}
+		
+		removeShape(selectedShapes.get(0), false, false);
 		ShapeEditOperation opa = addShape(merged, null, false);
 //		logger.debug("merge added: "+opa);
+		
+		if (opa == null) {
+			addShape(selectedShapes.get(0), null, false);
+			logger.warn("unable to add merged shape: "+merged);
+			return null;
+		}
 		
 		ShapeEditOperation op = 
 				new ShapeEditOperation(canvas, ShapeEditType.MERGE, selectedShapes.size()+" shapes merged", selectedShapes);

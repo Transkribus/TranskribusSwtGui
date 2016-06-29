@@ -433,7 +433,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	
 	@Override
 	public void simplify(double eps) {
-		throw new CanvasShapeException("simplify operation not supported for quad polygons!");
+		throw new CanvasShapeException("simplify operation not supported for this shape!");
 	}
 	
 	public void translatePointsOfSide(int side, int tx, int ty) {
@@ -590,8 +590,11 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 			Point p1 = getCornerPt(i);
 			Point p2 = getCornerPt((i+1) % 4);
 			
-			Point p1_ = shapeQp.getCornerPt(i);
-			Point p2_ = shapeQp.getCornerPt((i+1) % 4);
+			Point p1_ = shapeQp.getCornerPt((i+3) % 4);
+			Point p2_ = shapeQp.getCornerPt((i+2) % 4);
+			
+			logger.trace("p1 = "+p1+" p1_ = "+p1_);
+			logger.trace("p2 = "+p2+" p2_ = "+p2_);
 			
 			if (p1 == null || p2 == null || p1_ == null || p2_==null) // should not happen, but u never know...
 				continue;
@@ -602,16 +605,147 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		
 		return -1;
 	}
+	
+	public ICanvasShape mergeOnLeftSide(ICanvasShape shape) {
+		CanvasQuadPolygon qp = (CanvasQuadPolygon) shape;
+		
+		List<Point> pts = new ArrayList<>();
+		int corners[] = { 0, 0, 0, 0 };
+		
+		int c=0;
+		for (Point p : qp.getPointsOfSegment(0, false)) {
+			pts.add(p);
+			++c;
+		}
+		
+		corners[1] = c;
+		for (Point p : qp.getPointsOfSegment(1, false)) {
+			pts.add(p);
+			++c;
+		}
+		
+		for (Point p : this.getPointsOfSegment(1, false)) {
+			pts.add(p);
+			++c;			
+		}
+		corners[2] = c;
+		
+
+		for (Point p : this.getPointsOfSegment(2, false)) {
+			pts.add(p);
+			++c;			
+		}
+		corners[3] = c;
+		
+		for (Point p : this.getPointsOfSegment(3, false)) {
+			pts.add(p);
+			++c;			
+		}
+		
+		for (Point p : qp.getPointsOfSegment(3, false)) {
+			pts.add(p);
+			++c;		
+		}
+		
+		CanvasQuadPolygon merged = this.copy();
+		
+		merged.setPoints(pts);
+		merged.setCornerPts(corners);
+		
+		return merged;
+	}
+	
+	public ICanvasShape mergeOnBottomSide(ICanvasShape shape) {
+		CanvasQuadPolygon qp = (CanvasQuadPolygon) shape;
+		
+		List<Point> pts = new ArrayList<>();
+		int corners[] = { 0, 0, 0, 0 };
+		
+		int c=0;
+		for (Point p : this.getPointsOfSegment(0, false)) {
+			pts.add(p);
+			++c;
+		}
+		
+		for (Point p : qp.getPointsOfSegment(0, false)) {
+			pts.add(p);
+			++c;
+		}
+		corners[1] = c;
+		
+		for (Point p : qp.getPointsOfSegment(1, false)) {
+			pts.add(p);
+			++c;			
+		}
+		corners[2] = c;
+		
+		for (Point p : qp.getPointsOfSegment(2, false)) {
+			pts.add(p);
+			++c;			
+		}
+		
+		for (Point p : this.getPointsOfSegment(2, false)) {
+			pts.add(p);
+			++c;			
+		}
+		corners[3] = c;
+		
+		for (Point p : this.getPointsOfSegment(3, false)) {
+			pts.add(p);
+			++c;		
+		}
+		
+		CanvasQuadPolygon merged = this.copy();
+		
+		merged.setPoints(pts);
+		merged.setCornerPts(corners);
+		
+		return merged;
+	}
+	
+	public ICanvasShape mergeOnRightSide(ICanvasShape shape) {
+		return ((CanvasQuadPolygon)shape).mergeOnLeftSide(this);
+	}
+	
+	public ICanvasShape mergeOnTopSide(ICanvasShape shape) {
+		return ((CanvasQuadPolygon)shape).mergeOnBottomSide(this);
+	}
+	
+//	public ICanvasShape mergeOnSide(ICanvasShape shape, int side) {
+//		if (side==0)
+//			return mergeOnLeftSide(shape);
+//		else if (side==1)
+//			return mergeOnBottomSide(shape);
+//		else if (side==2)
+//			return mergeOnRightSide(shape);
+//		else if (side==3)
+//			return mergeOnTopSide(shape);
+//		
+//		return null;
+//	}
 		
 	@Override
 	public ICanvasShape mergeShapes(ICanvasShape shape) {
+		logger.debug("merging quad polygon shapes!");
 //		throw new CanvasShapeException("mergeShapes operation not implemented yet for quad polygons!");
 		
 		int side = getMergeableSide(shape);
-		if (side == -1)
+		logger.debug("mergeable side: "+side);
+		if (side == -1) {
+			logger.debug("shaped not mergeable!");
 			return null;
+		}
 		
+		if (side==0)
+			return mergeOnLeftSide(shape);
+		else if (side==1)
+			return mergeOnBottomSide(shape);
+		else if (side==2)
+			return mergeOnRightSide(shape);
+		else if (side==3)
+			return mergeOnTopSide(shape);
 		
+		return null;
 	}
 	
 	@Override public void drawCornerPoints(SWTCanvas canvas, GC gc) {
