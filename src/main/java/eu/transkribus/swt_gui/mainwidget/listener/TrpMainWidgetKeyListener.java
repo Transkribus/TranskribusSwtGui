@@ -1,21 +1,23 @@
 package eu.transkribus.swt_gui.mainwidget.listener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.client.connection.TrpServerConn;
-import eu.transkribus.swt_canvas.canvas.CanvasKeys;
-import eu.transkribus.swt_canvas.canvas.CanvasMode;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-
-import org.apache.commons.exec.OS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
+import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
+import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
+import eu.transkribus.swt_gui.util.TableUtils;
+import eu.transkribus.swt_gui.util.TableUtils.TrpTableCellsMissingException;
 
 public class TrpMainWidgetKeyListener implements Listener {
 	private final static Logger logger = LoggerFactory.getLogger(TrpMainWidgetKeyListener.class);
@@ -90,6 +92,23 @@ public class TrpMainWidgetKeyListener implements Listener {
 		// TEST:
 		if (isCtrlOrCommand && kc == 'c') {
 			mw.getCanvas().setMode(TrpCanvasAddMode.ADD_TABLECELL);
+		} else if (isCtrlOrCommand && kc == 'x') {
+			ICanvasShape s = mw.getCanvas().getFirstSelected();
+			if (s!=null && s.getData() instanceof TrpTableRegionType) {
+				TrpTableRegionType t = (TrpTableRegionType) s.getData();
+				try {
+					TableUtils.checkTable(t);
+					DialogUtil.showInfoMessageBox(mw.getShell(), "Success", "Everything ok with table cells!");
+				} catch (Exception e) {
+					DialogUtil.showErrorMessageBox(mw.getShell(), "Something's wrong with the table", e.getMessage());
+				}
+				
+			}
+			
+		} else if (isCtrlOrCommand && kc == 'y') {
+			mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected());
+			
+			
 		}
 		
 		lastTime = time;

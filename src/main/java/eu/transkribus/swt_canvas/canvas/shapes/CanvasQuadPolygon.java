@@ -433,7 +433,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	
 	@Override
 	public void simplify(double eps) {
-		throw new CanvasShapeException("simplify operation not supported for this shape!");
+		throw new CanvasShapeException("Simplify operation not supported for this shape!");
 	}
 	
 	public void translatePointsOfSide(int side, int tx, int ty) {

@@ -427,5 +427,9 @@ public class TrpSWTCanvas extends SWTCanvas {
 	}
 	
 	public LineEditor getLineEditor() { return lineEditor; }
+	
+	@Override public TrpCanvasShapeEditor getShapeEditor() {
+		return (TrpCanvasShapeEditor) shapeEditor;
+	}
 
 }

@@ -1,14 +1,12 @@
 package eu.transkribus.swt_gui.canvas;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Queue;
-import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +23,8 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import math.geom2d.Vector2D;
 
 ///**
 // * @deprecated not used currently
@@ -80,10 +80,10 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 	}
 	
 	private Pair<SplitDirection, List<TrpTableCellType>> getSplittableCells(int x1, int y1, int x2, int y2, TrpTableRegionType table) {
-		Pair<Integer, Integer> maxRowCol = table.getMaxRowCol();
+		Pair<Integer, Integer> dims = table.getDimensions();
 		
-		int nRows = maxRowCol.getLeft() + 1;
-		int nCols = maxRowCol.getRight() + 1;
+		int nRows = dims.getLeft();
+		int nCols = dims.getRight();
 		
 		List<TrpTableCellType> splittableCells=null;
 		SplitDirection dir = null;
@@ -538,8 +538,6 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				return null;
 		}
 						
-		scene.clearSelected();
-		
 //		ICanvasShape merged = selectedShapes.get(0).copy();
 	
 		List<CanvasQuadPolygon> toMerge = new ArrayList<>();
@@ -558,12 +556,15 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			
 			CanvasQuadPolygon m = (CanvasQuadPolygon) mergeable.getLeft().mergeShapes(mergeable.getRight());
 			toMerge.add(0, m);
-		};
+		}
 		
 		if (toMerge.size() > 1) {
+			DialogUtil.showErrorMessageBox(canvas.getShell(), "Error merging cells", "Cannot merge cells - resulting cell must be rectangular!");
 			logger.debug("cannot merge shapes, merged.size() = "+toMerge.size());
 			return null;
 		}
+		
+		scene.clearSelected();
 		
 		for (ICanvasShape s : selectedShapes) {
 			scene.removeShape(s, false, false);
@@ -633,6 +634,128 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			super.mergeSelected();
 		}
 				
+	}
+	
+	public static boolean isTableCell(ICanvasShape shape) {
+		return shape!=null && shape instanceof CanvasQuadPolygon && shape.getData() instanceof TrpTableCellType;
+	}
+	
+	public void splitMergedTableCell(ICanvasShape shape) {
+		logger.debug("splitting merged table cell!");
+		
+		if (!isTableCell(shape)) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error splitting merged cell", "No table cell selected!");
+			return;
+		}
+		
+		TrpTableCellType c = (TrpTableCellType) shape.getData();
+		CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
+		java.awt.Point p0 = qp.getCornerPt(0);
+		java.awt.Point p1 = qp.getCornerPt(1);
+		java.awt.Point p2 = qp.getCornerPt(2);
+		java.awt.Point p3 = qp.getCornerPt(3);
+		
+		Vector2D v01 = new Vector2D(p1.x-p0.x, p1.y-p0.y);
+		Vector2D v32 = new Vector2D(p2.x-p3.x, p2.y-p3.y);
+		
+		Vector2D v03 = new Vector2D(p3.x-p0.x, p3.y-p0.y);
+		Vector2D v12 = new Vector2D(p2.x-p1.x, p2.y-p1.y);
+		
+		// TEST -> comment out 
+//		if (c.getRowSpan() <= 1 && c.getColSpan() <= 1) {
+//			DialogUtil.showErrorMessageBox(getShell(), "Error splitting merged cell", "This is not a merged table cell!");
+//			return;
+//		}
+		
+		List<ShapeEditOperation> ops = new ArrayList<>();
+		
+//		int iStart = c.getRow();
+//		int iEnd = c.getRowEnd();
+//		int jStart = c.getCol();
+//		int jEnd = c.getColEnd();
+		
+		int iStart = 0; // TEST VALUES
+		int iEnd = 5;
+		int jStart = 0;
+		int jEnd = 5;		
+		
+		int iSpan = iEnd-iStart;
+		int jSpan = jEnd-jStart;
+		
+		// FIXME:
+		FIXME
+		for (int i=iStart; i<iEnd; ++i) {
+			for (int j=jStart; j<jEnd; ++j) {
+//				TrpTableCellType sc = new TrpTableCellType(src);
+				
+				double iRat = (double)(i-iStart) / (double)iSpan;
+				double jRat = (double)(j-jStart) / (double)jSpan;
+				
+				double iRatP = (double)(i+1-iStart) / (double)iSpan;
+				double jRatP = (double)(j+1-jStart) / (double)jSpan;
+				
+//				Vector2D vj = new Vector2D(p0.x, p0.y);
+				
+				double f = 1.0d;
+				
+//				Vector2D vj = v03.times(jRat).times(1-iRat).plus(v12.times(jRat).times(iRat)).times(0.5d);
+//				Vector2D vi = v01.times(iRat).times(1-jRat).plus(v32.times(iRat).times(jRat)).times(0.5d);
+//				
+//				Vector2D vjp = v03.times(jRatP).times(1-iRatP).plus(v12.times(jRatP).times(iRatP)).times(0.5d);
+//				Vector2D vip = v01.times(iRatP).times(1-jRatP).plus(v32.times(iRatP).times(jRatP)).times(0.5d);
+				
+				Vector2D vj = v03.times(jRat).times(1-iRat).plus(v12.times(jRat).times(iRat));
+				Vector2D vi = v01.times(iRat).times(1-jRat).plus(v32.times(iRat).times(jRat));
+				
+				Vector2D vjp = v03.times(jRatP).times(1-iRatP).plus(v12.times(jRatP).times(iRatP));
+				Vector2D vip = v01.times(iRatP).times(1-jRatP).plus(v32.times(iRatP).times(jRatP));				
+				
+				java.awt.Point p0_ = new java.awt.Point(p0);				
+				p0_.x += vj.x()+vi.x();
+				p0_.y += vj.y()+vi.y();
+				
+				java.awt.Point p1_ = new java.awt.Point(p0);				
+				p1_.x += vj.x()+vip.x();
+				p1_.y += vj.y()+vip.y();
+				
+				java.awt.Point p2_ = new java.awt.Point(p0);				
+				p2_.x += vjp.x()+vip.x();
+				p2_.y += vjp.y()+vip.y();
+				
+				java.awt.Point p3_ = new java.awt.Point(p0);				
+				p3_.x += vjp.x()+vi.x();
+				p3_.y += vjp.y()+vi.y();				
+				
+				
+				List<java.awt.Point> pts = new ArrayList<>();
+				pts.add(p0_);
+				pts.add(p1_);
+				pts.add(p2_);
+				pts.add(p3_);
+				
+				canvas.setMode(TrpCanvasAddMode.ADD_TABLECELL);
+				
+				CanvasQuadPolygon qpn = new CanvasQuadPolygon(pts);
+				
+				logger.debug("new cell: "+qpn);
+				
+				addShapeToCanvas(qpn);
+				
+//				p0_.x += (int)((1-iRat)*jRat*v03.x +iRat*jRat*v12.x);
+//				p0_.y += (int)((1-jRat)*iRat*v03.y +jRat*iRat*v12.y);
+				
+//				java.awt.Point p0_ = new java.awt.Point((int)(p0.x + jRat*v03.x), (int)(p0.y + iRat*v01.y));
+			}
+		}
+		canvas.setMode(TrpCanvasAddMode.SELECTION);
+		removeShapeFromCanvas(qp);
+
+		
+		addToUndoStack(ops);
+	}
+	
+	public Shell getShell() {
+		return canvas.getShell();
 	}
 	
 }

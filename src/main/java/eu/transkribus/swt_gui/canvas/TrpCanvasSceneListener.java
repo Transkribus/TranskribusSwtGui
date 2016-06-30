@@ -535,7 +535,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				}
 				if (st.getParent() != stC.getParent()) {
 					throw new Exception("Cannot merge elements with different parent shape!");
-				}				
+				}
 			}			
 		} catch (Throwable th) {
 			e.stop = true;

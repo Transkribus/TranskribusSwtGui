@@ -298,11 +298,13 @@ public class CanvasShapeEditor {
 	}	
 	
 	public void addToUndoStack(ShapeEditOperation op) {
-		canvas.getUndoStack().addToUndoStack(op);
+		if (op != null)
+			canvas.getUndoStack().addToUndoStack(op);
 	}
 	
 	public void addToUndoStack(List<ShapeEditOperation> ops) {
-		canvas.getUndoStack().addToUndoStack(ops);
+		if (!ops.isEmpty())
+			canvas.getUndoStack().addToUndoStack(ops);
 	}	
 
 	/** Sets the type of shape that is currently drawn */
