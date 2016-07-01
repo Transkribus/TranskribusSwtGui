@@ -2241,6 +2241,10 @@ public class TrpMainWidget {
 			return;
 
 		try {
+			//during deleting a page we don't care if it was edited before
+			if (storage.isTranscriptEdited()){
+				storage.getTranscript().getPage().setEdited(false);
+			}
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {

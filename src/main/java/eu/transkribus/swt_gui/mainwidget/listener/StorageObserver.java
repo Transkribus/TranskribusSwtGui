@@ -100,7 +100,7 @@ public class StorageObserver extends AStorageObserver {
 		SWTUtil.setEnabled(mw.getUi().getExportDocumentButton(), dle.doc!=null);
 		
 		SWTUtil.setEnabled(mw.getUi().getReplacePageImgButton(), dle.doc!=null && dle.doc.isRemoteDoc());
-		SWTUtil.setEnabled(mw.getUi().getDeletePageButton(), dle.doc!=null && dle.doc.isRemoteDoc());
+		//SWTUtil.setEnabled(mw.getUi().getDeletePageButton(), dle.doc!=null && dle.doc.isRemoteDoc());
 		
 		SWTUtil.setEnabled(mw.getUi().getExportPdfButton(), dle.doc!=null);
 		SWTUtil.setEnabled(mw.getUi().getExportTeiButton(), dle.doc!=null);

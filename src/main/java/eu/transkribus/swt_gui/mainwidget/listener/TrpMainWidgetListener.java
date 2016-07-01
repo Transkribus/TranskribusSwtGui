@@ -58,6 +58,8 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		menuBar.getTipsOfTheDayMenuItem().addSelectionListener(this);
 		menuBar.getAnalyzeStructureItem().addSelectionListener(this);
 		
+		menuBar.getDeletePageMenuItem().addSelectionListener(this);
+		
 		// update IDs of segmentation:
 		ui.getStructureTreeWidget().getUpdateIDsItem().addSelectionListener(this);
 		ui.getStructureTreeWidget().getClearPageItem().addSelectionListener(this);
@@ -68,7 +70,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		SWTUtil.addToolItemSelectionListener(ui.getReloadDocumentButton(), this);
 		SWTUtil.addToolItemSelectionListener(ui.getExportDocumentButton(), this);
 		SWTUtil.addToolItemSelectionListener(ui.getReplacePageImgButton(), this);
-		SWTUtil.addToolItemSelectionListener(ui.getDeletePageButton(), this);
+		//SWTUtil.addToolItemSelectionListener(ui.getDeletePageButton(), this);
 		
 		SWTUtil.addToolItemSelectionListener(ui.getExportPdfButton(), this);
 		SWTUtil.addToolItemSelectionListener(ui.getExportTeiButton(), this);
@@ -113,6 +115,9 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		else if (s == menuBar.getOpenLocalPageFileItem()) {
 			mainWidget.loadLocalPageXmlFile();
 		}
+		else if (s == menuBar.getDeletePageMenuItem()){
+			mainWidget.deletePage();
+		}
 		else if (s == menuBar.getUploadImagesFromPdfFileItem()) {
 			mainWidget.uploadDocuments();
 		}
@@ -123,6 +128,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		else if (s == ui.getCloseDocBtn()) {
 			mainWidget.closeCurrentDocument(false);
 		}
+		
 	
 //		else if (s == ui.getShowReadingOrderToolItem().ti && e.detail != SWT.ARROW && e.detail == DropDownToolItem.IS_DROP_DOWN_ITEM_DETAIL) {
 //			logger.debug("tool item choice is: " + ui.getShowReadingOrderToolItem().getLastSelectedIndex());
@@ -219,9 +225,9 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		else if (s == ui.getReplacePageImgButton()) {
 			mainWidget.replacePageImg();
 		}
-		else if (s == ui.getDeletePageButton()) {
-			mainWidget.deletePage();
-		}
+//		else if (s == ui.getDeletePageButton()) {
+//			mainWidget.deletePage();
+//		}
 		else if (s == ui.getExportDocumentButton()) {
 			//mainWidget.exportDocument();
 			mainWidget.unifiedExport();

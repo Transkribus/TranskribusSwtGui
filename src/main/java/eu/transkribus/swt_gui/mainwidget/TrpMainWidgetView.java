@@ -113,7 +113,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	// ##### Toolbar stuff: #####
 	ToolItem menuButton, loginToggle, reloadDocumentButton, exportDocumentButton, exportPdfButton, exportTeiButton, exportRtfButton, openLocalFolderButton, closeDocBtn;
-	ToolItem saveTranscriptButton, saveTranscriptWithMessageButton, saveTranscriptAlwaysButton, deletePageButton, replacePageImgButton;
+	ToolItem saveTranscriptButton, saveTranscriptWithMessageButton, saveTranscriptAlwaysButton, replacePageImgButton;//deletePageButton, 
 //	DropDownToolItem saveDropItem;
 //	DropDownToolItem languageDropDown;
 	
@@ -733,11 +733,14 @@ public class TrpMainWidgetView extends Composite {
 		exportDocumentButton.setToolTipText("Export document");
 		exportDocumentButton.setImage(Images.getOrLoad("/icons/folder_go.png"));
 		exportDocumentButton.setEnabled(false);
-		
-		deletePageButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		deletePageButton.setToolTipText("Delete page on server");
-		deletePageButton.setImage(Images.IMAGE_DELETE);
-		deletePageButton.setEnabled(false);
+	
+		/*
+		 * moved to Main Menu
+		 */
+//		deletePageButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
+//		deletePageButton.setToolTipText("Delete page on server");
+//		deletePageButton.setImage(Images.IMAGE_DELETE);
+//		deletePageButton.setEnabled(false);
 		
 		replacePageImgButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		replacePageImgButton.setToolTipText("Replace page image on server");
@@ -1131,7 +1134,7 @@ public class TrpMainWidgetView extends Composite {
 	public ToolItem getReloadDocumentButton() { return reloadDocumentButton; }
 	public ToolItem getExportDocumentButton() { return exportDocumentButton; }
 	public ToolItem getReplacePageImgButton() { return replacePageImgButton; }
-	public ToolItem getDeletePageButton() { return deletePageButton; }
+	//public ToolItem getDeletePageButton() { return deletePageButton; }
 	public ToolItem getExportPdfButton() { return exportPdfButton; }
 	public ToolItem getExportTeiButton() { return exportTeiButton; }
 	public ToolItem getExportRtfButton() { return exportRtfButton; }
