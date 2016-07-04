@@ -127,8 +127,10 @@ public class TrpMainWidgetView extends Composite {
 	ToolItem showPrintSpaceToggle, showRegionsToggle, showLinesToggle, showBaselinesToggle, showWordsToggle;
 	ToolItem renderBlackeningsToggle;
 	
-	DropDownToolItem showReadingOrderToolItem;
-	MenuItem showReadingOrderRegionsItem, showReadingOrderLinesItem, showReadingOrderWordsItem;
+//	DropDownToolItem showReadingOrderToolItem;
+//	MenuItem showReadingOrderRegionsItem, showReadingOrderLinesItem, showReadingOrderWordsItem;
+	
+	ToolItem showReadingOrderRegionsItem, showReadingOrderLinesItem, showReadingOrderWordsItem;
 	DropDownToolItem profilesToolItem;
 	
 	ToolItem showLineEditorToggle;
@@ -792,21 +794,34 @@ public class TrpMainWidgetView extends Composite {
 		
 		renderBlackeningsToggle = new ToolItem(toolBar, SWT.CHECK);
 		renderBlackeningsToggle.setToolTipText("If toggled, blackening regions are rendered with opaque background");
-		renderBlackeningsToggle.setText("Render blackenings");
+		//renderBlackeningsToggle.setText("Render blackenings");
+		renderBlackeningsToggle.setImage(Images.getOrLoad("/icons/rabbit-silhouette.png"));
+		
 //		showWordsToggle.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
 		
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		
-		showReadingOrderToolItem = new DropDownToolItem(toolBar, false, false, SWT.CHECK);
+		//showReadingOrderToolItem = new DropDownToolItem(toolBar, false, false, SWT.CHECK);
 
-//		showReadingOrderToolItem.addItem("Show reading order of regions", Images.getOrLoad("/icons/reading_order_r.png"), "Show the reading order of all text or image or graphics regions", SWT.NONE);
+		showReadingOrderRegionsItem = new ToolItem(toolBar, SWT.CHECK);
+		showReadingOrderRegionsItem.setToolTipText("Show reading order of regions");
+		showReadingOrderRegionsItem.setImage(Images.getOrLoad("/icons/reading_order_r.png"));
+		
+		showReadingOrderLinesItem = new ToolItem(toolBar, SWT.CHECK);
+		showReadingOrderLinesItem.setToolTipText("Show reading order of lines");
+		showReadingOrderLinesItem.setImage(Images.getOrLoad("/icons/reading_order_l.png"));
+		
+		showReadingOrderWordsItem = new ToolItem(toolBar, SWT.CHECK);
+		showReadingOrderWordsItem.setToolTipText("Show reading order of words");
+		showReadingOrderWordsItem.setImage(Images.getOrLoad("/icons/reading_order_w.png"));
+		
 //		showReadingOrderToolItem.addItem("Show reading order of lines", Images.getOrLoad( "/icons/reading_order_l.png"), "Show the reading order of all lines on this page", SWT.NONE);
 //		showReadingOrderToolItem.addItem("Show reading order of words", Images.getOrLoad("/icons/reading_order_w.png"), "Show the reading order of all words on this page", SWT.NONE);
-		showReadingOrderRegionsItem = showReadingOrderToolItem.addItem("Show reading order of regions", Images.getOrLoad("/icons/reading_order_r.png"), "Show the reading order of all text or image or graphics regions");
-		showReadingOrderLinesItem = showReadingOrderToolItem.addItem("Show reading order of lines", Images.getOrLoad( "/icons/reading_order_l.png"), "Show the reading order of all lines on this page");
-		showReadingOrderWordsItem = showReadingOrderToolItem.addItem("Show reading order of words", Images.getOrLoad("/icons/reading_order_w.png"), "Show the reading order of all words on this page");
+//		showReadingOrderRegionsItem = showReadingOrderToolItem.addItem("Show reading order of regions", Images.getOrLoad("/icons/reading_order_r.png"), "Show the reading order of all text or image or graphics regions");
+//		showReadingOrderLinesItem = showReadingOrderToolItem.addItem("Show reading order of lines", Images.getOrLoad( "/icons/reading_order_l.png"), "Show the reading order of all lines on this page");
+//		showReadingOrderWordsItem = showReadingOrderToolItem.addItem("Show reading order of words", Images.getOrLoad("/icons/reading_order_w.png"), "Show the reading order of all words on this page");
 		
-		showReadingOrderToolItem.ti.setImage( Images.getOrLoad("/icons/readingOrder.png"));
+		//showReadingOrderToolItem.ti.setImage( Images.getOrLoad("/icons/readingOrder.png"));
 		
 		//showReadingOrderToolItem.addItem("Show reading order of all shapes", Images.getOrLoad("/icons/readingOrder.png"), "Show the reading order of all shapes on this page", SWT.NONE);
 				
@@ -967,9 +982,9 @@ public class TrpMainWidgetView extends Composite {
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, canvasWidget.getToolBar().getSelectNewlyCreatedShapeItem());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, showReadingOrderRegionsItem);
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, showReadingOrderLinesItem);
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, showReadingOrderWordsItem);
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, showReadingOrderRegionsItem);
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, showReadingOrderLinesItem);
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, showReadingOrderWordsItem);
 				
 //		db.bindBeanToWidgetSelection(TrpSettings.ENABLE_INDEXED_STYLES, trpSets, metadataWidget.getTextStyleWidget().getEnableIndexedStylesBtn());
 		
@@ -1234,9 +1249,9 @@ public class TrpMainWidgetView extends Composite {
 		return commentsWidget;
 	}
 
-	public DropDownToolItem getShowReadingOrderToolItem() {
-		return showReadingOrderToolItem;
-	}
+//	public DropDownToolItem getShowReadingOrderToolItem() {
+//		return showReadingOrderToolItem;
+//	}
 	
 	public DropDownToolItem getProfilesToolItem() {
 		return profilesToolItem;

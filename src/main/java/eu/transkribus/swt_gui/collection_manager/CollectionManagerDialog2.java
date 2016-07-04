@@ -75,7 +75,9 @@ public class CollectionManagerDialog2 extends Dialog {
 	
 //	Button showUploadedDocsCheck;
 	Button addUserToColBtn, removeUserFromColBtn/*, editUserFromColBtn*/;
-	Button addDocumentToCollBtn, removeDocumentFromCollBtn, deleteDocumentBtn, duplicatedDocumentBtn;
+	Button addDocumentToCollBtn, removeDocumentFromCollBtn;
+	Button deleteDocumentBtn;
+	Button duplicatedDocumentBtn;
 	Button searchBtn, closeBtn;
 //	Button reloadCollectionsBtn;
 	Combo role;
@@ -172,7 +174,7 @@ public class CollectionManagerDialog2 extends Dialog {
 		
 		updateCollections();
 		updateUsersForSelectedCollection();
-		updateDocumentsTable(true);
+		updateDocumentsTable(docOverviewWidget.getSelectedDocument(), true);
 //		shell.pack();
 		
 		((SashForm) container).setWeights(new int[] { 60, 40 });
@@ -239,7 +241,7 @@ public class CollectionManagerDialog2 extends Dialog {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
 				
 				updateUsersForSelectedCollection();
-				updateDocumentsTable(true);
+				updateDocumentsTable(docOverviewWidget.getSelectedDocument(), true);
 			}
 		});
 		
@@ -795,11 +797,11 @@ public class CollectionManagerDialog2 extends Dialog {
 		}
 	}
 	
-	public void updateDocumentsTable(boolean resetToFirstPage) {
+	public void updateDocumentsTable(TrpDocMetadata docMd, boolean resetToFirstPage) {
 		logger.debug("updating documents...");
 		TrpCollection c = getSelectedCollection();
 		
-		docOverviewWidget.getSelectedDocument();
+		//docOverviewWidget.getSelectedDocument();
 		
 		if (c!=null && store.isLoggedIn()) {
 			if(resetToFirstPage){
@@ -807,7 +809,7 @@ public class CollectionManagerDialog2 extends Dialog {
 			}
 
 				
-				TrpDocMetadata docMd = docOverviewWidget.getSelectedDocument();
+				//TrpDocMetadata docMd = docOverviewWidget.getSelectedDocument();
 				if (docMd != null){
 					docsTableWidget.loadPage("docId", docMd.getDocId(), false);
 				}
@@ -844,7 +846,7 @@ public class CollectionManagerDialog2 extends Dialog {
 		selectCurrentCollection();
 		
 		updateUsersForSelectedCollection();
-		updateDocumentsTable(true);
+		updateDocumentsTable(docOverviewWidget.getSelectedDocument(), true);
 	}
 	
 	public void selectCurrentCollection() {
