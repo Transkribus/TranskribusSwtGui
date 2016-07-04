@@ -701,8 +701,19 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				CanvasQuadPolygon qpn = (CanvasQuadPolygon) n.getData();
 				
 				List<java.awt.Point> segPts = qpn.getPointsOfSegment(so, false);
-				for ( int j=(rot?ns.size()-1:0); j!=(rot?-1:ns.size()); j+=(rot?-1:1) ) {
-					
+				
+				int N = s%2==0 ? n.getRowSpan() : n.getColSpan();
+				
+				for ( int j=(!rot?segPts.size()-1:0); j!=(!rot?-1:segPts.size()); j+=(!rot?-1:1) ) {
+					if (N > 1) {
+						
+						
+						
+					} else {
+						
+						
+						
+					}
 					
 					
 					
