@@ -211,8 +211,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			if (e.getFirstShape() != null && e.getFirstShape().getData() instanceof TrpTableCellType) {
 				TrpTableCellType tc = (TrpTableCellType) e.getFirstShape().getData();
 				for (int i=0; i<4; ++i) {
-					TrpTableCellType n = tc.getNeighborCell(i);
-					logger.debug("i = "+i+" neighbor = "+n);
+					for (TrpTableCellType n : tc.getNeighborCells(i)) {
+						logger.debug("i = "+i+" neighbor = "+n);	
+					}
 				}
 			}
 			

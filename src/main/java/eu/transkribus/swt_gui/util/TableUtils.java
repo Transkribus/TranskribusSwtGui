@@ -9,6 +9,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.exceptions.NotImplementedException;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
@@ -65,7 +66,7 @@ public class TableUtils {
 	
 	public static void checkTable(TrpTableRegionType table) throws TrpTableCellsMissingException,  TrpTablePointsInconsistentException {
 		checkForMissingCells(table);
-		checkForPointConsistency(table);
+//		checkForPointConsistency(table);
 	}
 	
 	public static void checkForMissingCells(TrpTableRegionType table) throws TrpTableCellsMissingException {
@@ -107,7 +108,11 @@ public class TableUtils {
 		}
 	}
 
+	/*
 	public static void checkForPointConsistency(TrpTableRegionType table) throws TrpTablePointsInconsistentException {
+		throw new NotImplementedException("FIXME: multiple neighbor cells!");
+		
+		
 		logger.debug("checking table for point consistency");
 		List<String> checked = new ArrayList<>();
 
@@ -116,7 +121,7 @@ public class TableUtils {
 		// for each cell: check if points from neighbor cell match
 		for (TrpTableCellType c : table.getTrpTableCell()) {
 			for (int i = 0; i < 4; ++i) {
-				TrpTableCellType nc = c.getNeighborCell(i);
+				TrpTableCellType nc = c.getNeighborCells(i);
 				if (nc == null)
 					continue;
 
@@ -157,5 +162,6 @@ public class TableUtils {
 		if (!invalid.isEmpty())
 			throw new TrpTablePointsInconsistentException("Table has inconsistent points!", invalid);
 	}
+	*/
 
 }
