@@ -303,7 +303,7 @@ public class CanvasShapeEditor {
 	}
 	
 	public void addToUndoStack(List<ShapeEditOperation> ops) {
-		if (!ops.isEmpty())
+		if (ops!=null && !ops.isEmpty())
 			canvas.getUndoStack().addToUndoStack(ops);
 	}	
 
@@ -351,6 +351,15 @@ public class CanvasShapeEditor {
 			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.DELETE, removedShapes.size()+" shapes removed", removedShapes);
 			addToUndoStack(op);
 		}
+	}
+	
+	protected ShapeEditOperation insertPointIntoShape(ICanvasShape shape, int x, int y) {
+		if (shape != null) {
+			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", shape);
+			shape.insertPoint(x, y);
+			return op;
+		} else
+			return null;
 	}
 
 	public int addPointToSelected(int mouseX, int mouseY) {

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
@@ -26,9 +27,9 @@ import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
 import eu.transkribus.swt_canvas.util.DialogUtil;
+import math.geom2d.Point2D;
 import math.geom2d.Vector2D;
 import math.geom2d.line.Line2D;
-import math.utils.Matrix;
 
 ///**
 // * @deprecated not used currently
@@ -671,69 +672,279 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return shape!=null && shape instanceof CanvasQuadPolygon && shape.getData() instanceof TrpTableCellType;
 	}
 	
+
+	
 	public void splitMergedTableCell(ICanvasShape shape) {
+		// warning: code below is hell on earth
+		
 		logger.debug("splitting merged table cell 2!");
 		
 		if (!isTableCell(shape)) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error splitting merged cell", "No table cell selected!");
 			return;
-		}		
+		}
 		
-		TrpTableCellType c = (TrpTableCellType) shape.getData();
-		CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
+		List<ShapeEditOperation> ops = new ArrayList<>();
 		
-		java.awt.Point[][] pts = new java.awt.Point[c.getRowSpan()][c.getColSpan()];
+		TrpTableCellType tc = (TrpTableCellType) shape.getData();
+		CanvasQuadPolygon qp = (CanvasQuadPolygon) tc.getData();
 		
-		int rSpan = c.getRowSpan();
-		int cSpan = c.getColSpan();
+		class Pt {
+			List<java.awt.Point> p = new ArrayList<>();
+			java.awt.Point f() { return p.isEmpty()?null:p.get(0); }
+			void a(java.awt.Point pA) { p.add(pA); }
+			void a(double x, double y) { p.add(new java.awt.Point((int)x, (int)y)); }
+			void a(Point2D pA) { p.add(new java.awt.Point((int)pA.x(), (int)pA.y())); }
+			
+			String pStr() { return StringUtils.join(p, " "); }
+		}
 		
+//		java.awt.Point[][] pts = new java.awt.Point[c.getRowSpan()][c.getColSpan()];
+		Pt[][] pts = new Pt[tc.getRowSpan()+1][tc.getColSpan()+1];
+//		ArrayList<java.awt.Point>[][] pts = new ArrayList<java.awt.Point>[c.getRowSpan()][c.getColSpan()];
+				
+		// go around borders and calculate border points
 		for (int s=0; s<4; ++s) {
-			List<TrpTableCellType> ns = c.getNeighborCells(s);
+			List<TrpTableCellType> ns = tc.getNeighborCells(s);
+			
+			logger.debug("ns.size() = "+ns.size());
 			
 			int count=0;
 			boolean rot = s>1;
+//			boolean lor = s==0 || s==2;
 			
-			int so = (s+2)%4;
-			
-			for ( int i=(rot?ns.size()-1:0); i!=(rot?-1:ns.size()); i+=(rot?-1:1) ) {
-				TrpTableCellType n = ns.get(i);
+			if (!ns.isEmpty()) {
+				int so = (s+2)%4;
+				for ( int i=(rot?ns.size()-1:0); i!=(rot?-1:ns.size()); i+=(rot?-1:1) ) {
+					TrpTableCellType n = ns.get(i);
+					
+					CanvasQuadPolygon qpn = (CanvasQuadPolygon) n.getData();
+					
+					List<java.awt.Point> segPts = qpn.getPointsOfSegment(so, true);
+					Collections.reverse(segPts);
+					
+					int N = s%2==0 ? n.getRowSpan() : n.getColSpan(); // nr of rows / cols this cells spans
+					
+					// construct points in between if necessary:
+					Point2D p1 = new Point2D(segPts.get(0).x, segPts.get(0).y);
+					Point2D p2 = new Point2D(segPts.get(segPts.size()-1).x, segPts.get(segPts.size()-1).y);
+					Vector2D v = new Vector2D(p1, p2);
+					
+					List<java.awt.Point> insertedPts = new ArrayList<>();
+					for (int x=1; x<N; ++x) {
+						Point2D np = p1.plus(v.times((double)x/(double)N));
+						java.awt.Point ip = new java.awt.Point((int) np.x(), (int) np.y());
+						insertedPts.add(ip);
+						
+						// insert new point into the shape:
+						// insert new point into the shape:
+						ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", qpn);
+						qp.insertPointOnSide(ip.x, ip.y, so);	
+						ops.add(op);					
+					}
+					logger.debug("insertedPts.size() = "+insertedPts.size());
+					
+					segPts = qpn.getPointsOfSegment(so, true);
+					Collections.reverse(segPts);
+					
+					for (int x=0; x<N; ++x) {
+						Pt p = new Pt();
+						int start=0;
+						if (x > 0) {
+							start = segPts.indexOf(insertedPts.get(x-1));
+						}
+						int end=segPts.size()-1;
+						if (x+1 < N) {
+							end = segPts.indexOf(insertedPts.get(x));
+						}
+						
+						logger.debug("start = "+start+" end = "+end);
+						
+						for ( int j=start; j<end; ++j ) {
+							java.awt.Point segPt = segPts.get(j);
+							p.a(segPt);
+						}
+						
+						int r=0, c=0;
+						if (s==0) {
+							r = count;
+							c = 0;
+						} else if (s==1) {
+							r = tc.getRowSpan();
+							c = count;
+						} else if (s==2) {
+							r = tc.getRowSpan()-count;
+							c = tc.getColSpan();
+						} else if (s==3) {
+							r = 0;
+							c = tc.getColSpan()-count;					
+						}
+						logger.debug("r x c = "+r+" x "+c);
+						
+						pts[r][c] = p;
+						
+						
+						++count;
+					} // end for x
+				} // end for all neighbor cells
+			}
+			else { // no neighbor cells!
+				logger.debug("no neighbor cells!");
 				
-				CanvasQuadPolygon qpn = (CanvasQuadPolygon) n.getData();
+				List<java.awt.Point> segPts = qp.getPointsOfSegment(s, true);
+				int N = s%2==0 ? tc.getRowSpan() : tc.getColSpan(); // nr of rows / cols this cells spans
 				
-				List<java.awt.Point> segPts = qpn.getPointsOfSegment(so, false);
+				// construct points in between if necessary:
+				Point2D p1 = new Point2D(segPts.get(0).x, segPts.get(0).y);
+				Point2D p2 = new Point2D(segPts.get(segPts.size()-1).x, segPts.get(segPts.size()-1).y);
+				Vector2D v = new Vector2D(p1, p2);
 				
-				int N = s%2==0 ? n.getRowSpan() : n.getColSpan();
+				List<java.awt.Point> insertedPts = new ArrayList<>();
+				for (int x=1; x<N; ++x) {
+					Point2D np = p1.plus(v.times((double)x/(double)N));
+					java.awt.Point ip = new java.awt.Point((int) np.x(), (int) np.y());
+					insertedPts.add(ip);
+					
+					// insert new point into the shape:
+					ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", qp);
+					qp.insertPointOnSide(ip.x, ip.y, s);	
+					ops.add(op);
+				}
+				logger.debug("insertedPts.size() = "+insertedPts.size());
 				
-				for ( int j=(!rot?segPts.size()-1:0); j!=(!rot?-1:segPts.size()); j+=(!rot?-1:1) ) {
-					if (N > 1) {
-						
-						
-						
-					} else {
-						
-						
-						
+				segPts = qp.getPointsOfSegment(s, true);
+				for (int x=0; x<N; ++x) {
+					Pt p = new Pt();
+					int start=0;
+					if (x > 0) {
+						start = segPts.indexOf(insertedPts.get(x-1));
+					}
+					int end=segPts.size()-1;
+					if (x+1 < N) {
+						end = segPts.indexOf(insertedPts.get(x));
 					}
 					
+					logger.debug("start = "+start+" end = "+end);
+					
+					for ( int j=start; j<end; ++j ) {
+						java.awt.Point segPt = segPts.get(j);
+						p.a(segPt);
+					}
+					
+					int r=0, c=0;
+					if (s==0) {
+						r = count;
+						c = 0;
+					} else if (s==1) {
+						r = tc.getRowSpan();
+						c = count;
+					} else if (s==2) {
+						r = tc.getRowSpan()-count;
+						c = tc.getColSpan();
+					} else if (s==3) {
+						r = 0;
+						c = tc.getColSpan()-count;					
+					}
+					
+					logger.debug("r x c = "+r+" x "+c);
 					
 					
-				}
-				
-				
-				
+					pts[r][c] = p;
+					++count;
+				}				
 				
 				
 			}
+		} // end calculate points of borders
+		
+		// calculate points in the middle
+		for (int i=1; i<tc.getRowSpan(); ++i) {
+			Point2D pr1 = new Point2D(pts[i][0].f().x, pts[i][0].f().y);
+			Point2D pr2 = new Point2D(pts[i][tc.getColSpan()].f().x, pts[i][tc.getColSpan()].f().y);
+			Line2D lr = new Line2D(pr1, pr2);
 			
-						
-			
+			for (int j=1; j<tc.getColSpan(); ++j) {
+				Point2D pc1 = new Point2D(pts[0][j].f().x, pts[0][j].f().y);
+				Point2D pc2 = new Point2D(pts[tc.getRowSpan()][j].f().x, pts[tc.getRowSpan()][j].f().y);				
+				Line2D lc = new Line2D(pc1, pc2);
+				
+				Point2D ip = lr.intersection(lc);
+				if (ip != null) {
+					pts[i][j] = new Pt();
+					pts[i][j].a(ip);
+				} else {
+					throw new RuntimeException("No intersection found between lines: "+lr+" - "+lc);
+				}
+			}
 		}
 		
-		// left side:
+		// print pts:
+		for (int i=0; i<tc.getRowSpan()+1; ++i) {
+			for (int j=0; j<tc.getColSpan()+1; ++j) {
+				Pt pt = pts[i][j];
+				if (pt != null) {
+					logger.debug("i="+i+", j="+j+" pt = "+pt.f()+" N-pts = "+pt.p.size());
+				} else {
+					logger.debug("i="+i+", j="+j+" is null!!!");
+				}
+			}
+		}
+		
+		for (int i=0; i<tc.getRowSpan(); ++i) {
+			for (int j=0; j<tc.getColSpan(); ++j) {
+				
+				int c=0;
+				int[] corners = { 0, 0, 0, 0 };
+				List<java.awt.Point> newPts = new ArrayList<>();
+				for (int x=0; x<4; ++x) {
+					Pt pt = null;
+					if (x==0)
+						pt = pts[i][j];
+					else if (x==1)
+						pt = pts[i+1][j];
+					else if (x==2)
+						pt = pts[i+1][j+1];
+					else
+						pt = pts[i][j+1];
+					
+					corners[x] = c;
+					
+//					newPts.addAll(pt.p);
+//					c += pt.p.size();
+					
+					if (i==0 && x==3 || i+1==tc.getRowSpan() && x==1 || j==0 && x==0 || j+1==tc.getColSpan() && x==2) {
+						newPts.addAll(pt.p);
+						c += pt.p.size();						
+					} else {
+						newPts.add(pt.f());
+						++c;
+					}
+					
 
+				}
+				
+				canvas.setMode(TrpCanvasAddMode.ADD_TABLECELL);
+				
+				CanvasQuadPolygon newQuadCell = new CanvasQuadPolygon(newPts, corners);
+				
+				logger.debug("new cell: "+newQuadCell);
+				
+				newQuadCell.setEditable(true);
+				ShapeEditOperation op = scene.addShape(newQuadCell, null, true);
+				if (op!=null) {
+					ops.add(op);
+				}
+			}
+		}	
+
+		if (scene.removeShape(qp, false, false)) {
+			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.DELETE, "Merged cell shape removed", qp);
+			ops.add(op);
+		}
 		
+		canvas.setMode(TrpCanvasAddMode.SELECTION);
 		
-		
+		addToUndoStack(ops);
 	}
 	
 	public void splitMergedTableCell2(ICanvasShape shape) {

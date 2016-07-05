@@ -106,9 +106,11 @@ public class TrpMainWidgetKeyListener implements Listener {
 			}
 			
 		} else if (isCtrlOrCommand && kc == 'y') {
-			mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected());
-			
-			
+			try {
+				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected());
+			} catch (Throwable e) {
+				mw.onError("Error", e.getMessage(), e);
+			}
 		}
 		
 		lastTime = time;
