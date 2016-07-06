@@ -58,7 +58,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		menuBar.getTipsOfTheDayMenuItem().addSelectionListener(this);
 		menuBar.getAnalyzeStructureItem().addSelectionListener(this);
 		
-		menuBar.getDeletePageMenuItem().addSelectionListener(this);
+//		menuBar.getDeletePageMenuItem().addSelectionListener(this);
 		
 		// update IDs of segmentation:
 		ui.getStructureTreeWidget().getUpdateIDsItem().addSelectionListener(this);
@@ -115,9 +115,9 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		else if (s == menuBar.getOpenLocalPageFileItem()) {
 			mainWidget.loadLocalPageXmlFile();
 		}
-		else if (s == menuBar.getDeletePageMenuItem()){
-			mainWidget.deletePage();
-		}
+//		else if (s == menuBar.getDeletePageMenuItem()){
+//			mainWidget.deletePage();
+//		}
 		else if (s == menuBar.getUploadImagesFromPdfFileItem()) {
 			mainWidget.uploadDocuments();
 		}
