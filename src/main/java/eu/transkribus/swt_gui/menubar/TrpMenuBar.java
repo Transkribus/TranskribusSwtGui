@@ -32,7 +32,7 @@ public class TrpMenuBar {
 	MenuItem proxySettingsMenuItem;
 	MenuItem createThumbsMenuItem;
 	
-//	MenuItem deletePageMenuItem;
+	MenuItem deletePageMenuItem;
 	
 //	Menu testMenu;
 	MenuItem testMenuItem;
@@ -127,9 +127,9 @@ public class TrpMenuBar {
 		openLocalPageFileItem.setImage(null);
 		openLocalPageFileItem.setText("Open local page file for current page");
 		
-//		deletePageMenuItem = new MenuItem(fileMenu, 0);
-//		deletePageMenuItem.setImage(null);
-//		deletePageMenuItem.setText("Delete current page from server");
+		deletePageMenuItem = new MenuItem(fileMenu, 0);
+		deletePageMenuItem.setImage(null);
+		deletePageMenuItem.setText("Delete current page from server");
 		
 		createThumbsMenuItem = new MenuItem(fileMenu, SWT.CHECK);
 		createThumbsMenuItem.setImage(null);
@@ -373,13 +373,13 @@ public class TrpMenuBar {
 		return loadTestsetMenuItem;
 	}
 
-//	public MenuItem getDeletePageMenuItem() {
-//		return deletePageMenuItem;
-//	}
-//
-//	public void setDeletePageMenuItem(MenuItem deletePageMenuItem) {
-//		this.deletePageMenuItem = deletePageMenuItem;
-//	}
+	public MenuItem getDeletePageMenuItem() {
+		return deletePageMenuItem;
+	}
+
+	public void setDeletePageMenuItem(MenuItem deletePageMenuItem) {
+		this.deletePageMenuItem = deletePageMenuItem;
+	}
 
 //	public void showAll(boolean value) {
 //		this.viewSets.setShowAll(value);
