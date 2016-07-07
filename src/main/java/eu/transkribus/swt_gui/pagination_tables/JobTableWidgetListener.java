@@ -61,7 +61,7 @@ public class JobTableWidgetListener extends SelectionAdapter implements Observer
 			try {
 				List<TrpDocMetadata> docList = 
 						store.getConnection().findDocuments(0, jobStatus.getDocId(), "", "", "", "", true, false, 0, 0, null, null);
-				if (docList != null){
+				if (docList != null && docList.size() > 0){
 					col = docList.get(0).getColList().get(0).getColId();
 				}
 						

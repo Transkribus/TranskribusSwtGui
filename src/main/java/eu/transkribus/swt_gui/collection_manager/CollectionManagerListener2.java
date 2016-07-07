@@ -481,29 +481,42 @@ public class CollectionManagerListener2 extends AStorageObserver implements Sele
 				DialogUtil.showErrorMessageBox(shell, "Select a document", "Please select a document you wish to delete!");
 				return;
 			}
+			else if (selected.size() > 1){
+				if (DialogUtil.showYesNoDialog(shell, "Delete Documents", "Do you really want to delete " + selected.size() + " selected document ")!=SWT.YES) {
+					return;
+				}
+			}
+			else{
+				if (DialogUtil.showYesNoDialog(shell, "Delete Document", "Do you really want to delete document "+selected.get(0).getTitle())!=SWT.YES) {
+					return;
+				}
+			}
 			
 			TrpUserLogin user = store.getUser();
 			
 			//TrpDocMetadata md = selected.get(0);
 			
+			int count = 0;
 			for (TrpDocMetadata md : selected){
+				count++;
 				if(!isAdminOrUploader(user, md)) {
-					DialogUtil.showErrorMessageBox(shell, "Unauthorized", "You are not the owner of this document.");
+					DialogUtil.showErrorMessageBox(shell, "Unauthorized", "You are not the owner of this document. " + md.getTitle());
 					return;
 				}
-				
-				if (DialogUtil.showYesNoDialog(shell, "Delete Document", "Do you really want to delete document "+md.getTitle())!=SWT.YES) {
-					return;
-				}
-		        
+
 				try {
 					store.deleteDocument(md.getColList().get(0).getColId(), md.getDocId());
 				} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
 					mw.onError("Error deleting document", e.getMessage(), e);
 				}
 				
-				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted document "+md.getTitle());
-				
+				if (selected.size() == 1){
+					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted document "+md.getTitle());
+				}
+				else if(count == selected.size()){
+					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted "+selected.size()+" documents");
+				}
+
 				cmw.docsTableWidget.refreshList(cmw.getSelectedCollectionId(), false);
 				cmw.updateDocumentsTable(md, false);
 				cmw.getCurrentDocTableWidgetPagination().getPageableTable().refreshPage();

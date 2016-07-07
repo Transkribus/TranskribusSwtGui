@@ -2494,7 +2494,7 @@ public class TrpMainWidget {
 				if (exportDiag.isTeiExport())
 					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag);
 				if (exportDiag.isDocxExport())
-					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, selectedTags, createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isPreserveLinebreaks());
+					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, selectedTags, createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(), exportDiag.isPreserveLinebreaks());
 				if (exportDiag.isXlsxExport())
 					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(), selectedTags);
 				
@@ -2560,7 +2560,7 @@ public class TrpMainWidget {
 
 			if (doDocxExport) {
 
-				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, selectedTags, createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isPreserveLinebreaks());
+				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, selectedTags, createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(), exportDiag.isPreserveLinebreaks());
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -2771,7 +2771,7 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public void exportDocx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening, final Set<String> selectedTags, final boolean createTitle, final boolean markUnclearWords, final boolean expandAbbrevs, final boolean preserveLineBreaks)
+	public void exportDocx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening, final Set<String> selectedTags, final boolean createTitle, final boolean markUnclearWords, final boolean expandAbbrevs, final boolean substituteAbbrevs, final boolean preserveLineBreaks)
 			throws Throwable {
 		try {
 
@@ -2785,7 +2785,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Docx document...");
-						DocxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor, selectedTags, createTitle, markUnclearWords, expandAbbrevs, preserveLineBreaks);
+						DocxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor, selectedTags, createTitle, markUnclearWords, expandAbbrevs, substituteAbbrevs, preserveLineBreaks);
 						monitor.done();
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
