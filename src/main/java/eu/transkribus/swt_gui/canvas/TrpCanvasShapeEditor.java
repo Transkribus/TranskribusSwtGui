@@ -15,18 +15,25 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.TableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
+import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.IntRange;
+import eu.transkribus.swt_canvas.canvas.CanvasException;
 import eu.transkribus.swt_canvas.canvas.CanvasKeys;
 import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
+import eu.transkribus.swt_canvas.canvas.shapes.ACanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
 import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.util.TableUtils;
 import math.geom2d.Point2D;
 import math.geom2d.Vector2D;
 import math.geom2d.line.Line2D;
@@ -36,9 +43,13 @@ import math.geom2d.line.Line2D;
 // */
 public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 	private final static Logger logger = LoggerFactory.getLogger(TrpCanvasShapeEditor.class);
+	
+	TrpMainWidget mw;
 
 	public TrpCanvasShapeEditor(TrpSWTCanvas canvas) {
 		super(canvas);
+		
+		mw = canvas.getMainWidget();
 	}
 	
 	@Override protected ICanvasShape constructShapeFromPoints(List<java.awt.Point> pts, CanvasShapeType shapeType) {
@@ -143,11 +154,13 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		List<ShapeEditOperation> splitOps = new ArrayList<>();
 		for (TrpTableCellType c : splittableCells.getRight()) {
 			List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), x1, y1, x2, y2, dir, false);
-			for (ShapeEditOperation op : splitOps4Cell) {
-				op.data = dir;
+			if (splitOps4Cell != null) {
+				for (ShapeEditOperation op : splitOps4Cell) {
+					op.data = dir;
+				}
+				
+				splitOps.addAll(splitOps4Cell);
 			}
-			
-			splitOps.addAll(splitOps4Cell);
 		}
 		
 		// add to undo stack:
@@ -194,35 +207,37 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				}	
 			}
 		}
+		
+		TableUtils.checkTableConsistency(table);
 
 		return splitOps;
 	}
 	
-	@Override public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, Object data, boolean addToUndoStack) {		
-//		ICanvasShape selected = canvas.getFirstSelected();
-		if (shape == null) {
-			logger.warn("Cannot split - no shape selected!");
+	@Override public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, Object data, boolean addToUndoStack) {
+		try {
+	//		ICanvasShape selected = canvas.getFirstSelected();
+			if (shape == null) {
+				logger.warn("Cannot split - no shape selected!");
+				return null;
+			}
+			
+			// if this is a baseline, select parent line and split it, s.t. undlerying baseline gets splits too
+			// next, try to select the first baseline split
+			if (shape.getData() instanceof TrpBaselineType) {
+				return splitTrpBaselineType(x1, y1, x2, y2, shape, (TrpBaselineType) shape.getData());
+			}
+			else if (shape.getData() instanceof TrpTableCellType || shape.getData() instanceof TrpTableRegionType) {
+				TrpTableRegionType table = (shape.getData() instanceof TrpTableCellType) ? 
+						((TrpTableCellType) shape.getData()).getTable() : (TrpTableRegionType) shape.getData();
+						
+				return splitTrpTableType(x1, y1, x2, y2, table);
+			}
+			else { // not splitting a basline -> perform default split operation on base class
+				return super.splitShape(shape, x1, y1, x2, y2, null, addToUndoStack);
+			}
+		} catch (Exception e) {
+			mw.onError("Error splitting", e.getMessage(), e);
 			return null;
-		}
-		
-		// if this is a baseline, select parent line and split it, s.t. undlerying baseline gets splits too
-		// next, try to select the first baseline split
-		if (shape.getData() instanceof TrpBaselineType) {
-			return splitTrpBaselineType(x1, y1, x2, y2, shape, (TrpBaselineType) shape.getData());
-		}
-		else if (shape.getData() instanceof TrpTableCellType || shape.getData() instanceof TrpTableRegionType) {
-			TrpTableRegionType table = null;
-			if (shape.getData() instanceof TrpTableCellType)
-				table = ((TrpTableCellType) shape.getData()).getTable();
-			else
-				table = (TrpTableRegionType) shape.getData();
-
-			return splitTrpTableType(x1, y1, x2, y2, table);
-		}
-		
-		
-		else { // not splitting a basline -> perform default split operation on base class
-			return super.splitShape(shape, x1, y1, x2, y2, null, addToUndoStack);
 		}
 	}
 	
@@ -391,9 +406,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			}
 		});
 		
-		logger.debug("add pt, nearest neighbor: "+neighbors.get(0));
-		
 		if (!neighbors.isEmpty()) {
+			logger.debug("add pt, nearest neighbor: "+neighbors.get(0));
 			CanvasQuadPolygon nc = (CanvasQuadPolygon) neighbors.get(0).getData();
 
 			ShapeEditOperation opN = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", nc);
@@ -599,7 +613,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		scene.clearSelected();
 		
 		for (ICanvasShape s : selectedShapes) {
-			scene.removeShape(s, false, false);
+			scene.removeShape(s, true, true);
 			for (ICanvasShape child : s.getChildren(false)) {
 				toMerge.get(0).addChild(child);
 			}
@@ -643,6 +657,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			addToUndoStack(op);	
 		}
 		
+		TableUtils.checkTableConsistency(((TrpTableCellType)selectedShapes.get(0).getData()).getTable());
+		
 		return op;
 	}
 	
@@ -675,9 +691,9 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 
 	
 	public void splitMergedTableCell(ICanvasShape shape) {
-		// warning: code below is hell on earth
+		// warning: code below is hell on earth - don't fuck it up!
 		
-		logger.debug("splitting merged table cell 2!");
+		logger.debug("splitting merged table cell!");
 		
 		if (!isTableCell(shape)) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error splitting merged cell", "No table cell selected!");
@@ -699,9 +715,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			String pStr() { return StringUtils.join(p, " "); }
 		}
 		
-//		java.awt.Point[][] pts = new java.awt.Point[c.getRowSpan()][c.getColSpan()];
 		Pt[][] pts = new Pt[tc.getRowSpan()+1][tc.getColSpan()+1];
-//		ArrayList<java.awt.Point>[][] pts = new ArrayList<java.awt.Point>[c.getRowSpan()][c.getColSpan()];
 				
 		// go around borders and calculate border points
 		for (int s=0; s<4; ++s) {
@@ -711,7 +725,6 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			
 			int count=0;
 			boolean rot = s>1;
-//			boolean lor = s==0 || s==2;
 			
 			if (!ns.isEmpty()) {
 				int so = (s+2)%4;
@@ -720,10 +733,19 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 					
 					CanvasQuadPolygon qpn = (CanvasQuadPolygon) n.getData();
 					
+					List<java.awt.Point> segPtsBase = qp.getPointsOfSegment(s, true);
+					
 					List<java.awt.Point> segPts = qpn.getPointsOfSegment(so, true);
 					Collections.reverse(segPts);
 					
-					int N = s%2==0 ? n.getRowSpan() : n.getColSpan(); // nr of rows / cols this cells spans
+					segPts = CoreUtils.getFirstCommonSequence(segPtsBase, segPts);
+					if (segPts.size() < 2)
+						throw new CanvasException("less than 2 common points on border to cell: "+n.print());
+					
+					int N = IntRange.getOverlapLength(n.getPos()[s%2], n.getSpan()[s%2], tc.getPos()[s%2], tc.getSpan()[s%2]);
+					logger.debug("N overlapping rows/cols = "+N);
+					
+//					int N = s%2==0 ? n.getRowSpan() : n.getColSpan(); // nr of rows / cols this cells spans
 					
 					// construct points in between if necessary:
 					Point2D p1 = new Point2D(segPts.get(0).x, segPts.get(0).y);
@@ -736,16 +758,20 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 						java.awt.Point ip = new java.awt.Point((int) np.x(), (int) np.y());
 						insertedPts.add(ip);
 						
-						// insert new point into the shape:
+						int[] iz = ACanvasShape.getClosestLineIndices(ip.x, ip.y, segPts, false);
+						int insertIndex = iz[1];
+						int insertIndex4Shape = qpn.getPointIndex(segPts.get(iz[0]).x, segPts.get(iz[0]).y);
+						
+						logger.debug("1 insertIndex = "+insertIndex+" segPts.size() = "+segPts.size()+" insertIndex4Shape = "+insertIndex4Shape);
+						segPts.add(insertIndex, ip);
+
 						// insert new point into the shape:
 						ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", qpn);
-						qp.insertPointOnSide(ip.x, ip.y, so);	
+//						qpn.insertPointOnSide(ip.x, ip.y, so);
+						qpn.insertPointOnIndex(ip.x, ip.y, insertIndex4Shape);
 						ops.add(op);					
 					}
 					logger.debug("insertedPts.size() = "+insertedPts.size());
-					
-					segPts = qpn.getPointsOfSegment(so, true);
-					Collections.reverse(segPts);
 					
 					for (int x=0; x<N; ++x) {
 						Pt p = new Pt();
@@ -805,14 +831,21 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 					java.awt.Point ip = new java.awt.Point((int) np.x(), (int) np.y());
 					insertedPts.add(ip);
 					
-					// insert new point into the shape:
-					ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", qp);
-					qp.insertPointOnSide(ip.x, ip.y, s);	
-					ops.add(op);
+					int[] iz = ACanvasShape.getClosestLineIndices(ip.x, ip.y, segPts, false);
+					int insertIndex = iz[1];
+					logger.debug("insertIndex = "+insertIndex+" segPts.size() = "+segPts.size());
+					
+					segPts.add(insertIndex, ip);
+
+//					// insert new point into the shape:
+//					ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", qp);
+//					qp.insertPointOnSide(ip.x, ip.y, s);	
+//					ops.add(op);
 				}
 				logger.debug("insertedPts.size() = "+insertedPts.size());
 				
-				segPts = qp.getPointsOfSegment(s, true);
+//				segPts = qp.getPointsOfSegment(s, true);
+				
 				for (int x=0; x<N; ++x) {
 					Pt p = new Pt();
 					int start=0;
@@ -855,15 +888,18 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				
 				
 			}
-		} // end calculate points of borders
+		} // end calculate border points
 		
 		// calculate points in the middle
 		for (int i=1; i<tc.getRowSpan(); ++i) {
+			logger.debug("i = "+i);
+			
 			Point2D pr1 = new Point2D(pts[i][0].f().x, pts[i][0].f().y);
 			Point2D pr2 = new Point2D(pts[i][tc.getColSpan()].f().x, pts[i][tc.getColSpan()].f().y);
 			Line2D lr = new Line2D(pr1, pr2);
 			
 			for (int j=1; j<tc.getColSpan(); ++j) {
+				logger.debug("j = "+j);
 				Point2D pc1 = new Point2D(pts[0][j].f().x, pts[0][j].f().y);
 				Point2D pc2 = new Point2D(pts[tc.getRowSpan()][j].f().x, pts[tc.getRowSpan()][j].f().y);				
 				Line2D lc = new Line2D(pc1, pc2);
@@ -919,8 +955,6 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 						newPts.add(pt.f());
 						++c;
 					}
-					
-
 				}
 				
 				canvas.setMode(TrpCanvasAddMode.ADD_TABLECELL);
@@ -934,140 +968,30 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				if (op!=null) {
 					ops.add(op);
 				}
+				
+				// set new row/col values for shape:
+				TrpTableCellType nc = (TrpTableCellType) newQuadCell.getData();
+				if (nc != null) {
+					nc.setRow(tc.getRow()+i);
+					nc.setCol(tc.getCol()+j);
+					nc.setRowSpan(1);
+					nc.setColSpan(1);
+				}
 			}
 		}	
 
-		if (scene.removeShape(qp, false, false)) {
+		if (scene.removeShape(qp, true, true)) {
 			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.DELETE, "Merged cell shape removed", qp);
 			ops.add(op);
 		}
 		
 		canvas.setMode(TrpCanvasAddMode.SELECTION);
-		
-		addToUndoStack(ops);
-	}
-	
-	public void splitMergedTableCell2(ICanvasShape shape) {
-		logger.debug("splitting merged table cell!");
-		
-		if (!isTableCell(shape)) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error splitting merged cell", "No table cell selected!");
-			return;
-		}
-		
-		TrpTableCellType c = (TrpTableCellType) shape.getData();
-		CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
-		java.awt.Point p0 = qp.getCornerPt(0);
-		java.awt.Point p1 = qp.getCornerPt(1);
-		java.awt.Point p2 = qp.getCornerPt(2);
-		java.awt.Point p3 = qp.getCornerPt(3);
-		
-		Vector2D v01 = new Vector2D(p1.x-p0.x, p1.y-p0.y);
-		Vector2D v32 = new Vector2D(p2.x-p3.x, p2.y-p3.y);
 
-		Vector2D v03 = new Vector2D(p3.x-p0.x, p3.y-p0.y);
-		Vector2D v12 = new Vector2D(p2.x-p1.x, p2.y-p1.y);
-		
-		
-//		c.getNeighborCell(position)
-		
-		// TEST -> comment out 
-//		if (c.getRowSpan() <= 1 && c.getColSpan() <= 1) {
-//			DialogUtil.showErrorMessageBox(getShell(), "Error splitting merged cell", "This is not a merged table cell!");
-//			return;
-//		}
-		
-		List<ShapeEditOperation> ops = new ArrayList<>();
-		
-//		int iStart = c.getRow();
-//		int iEnd = c.getRowEnd();
-//		int jStart = c.getCol();
-//		int jEnd = c.getColEnd();
-		
-		int iStart = 0; // TEST VALUES
-		int iEnd = 5;
-		int jStart = 0;
-		int jEnd = 5;		
-		
-		int iSpan = iEnd-iStart;
-		int jSpan = jEnd-jStart;
-		
-		// FIXME:
-//		FIXME
-		for (int i=iStart; i<iEnd; ++i) {
-			for (int j=jStart; j<jEnd; ++j) {
-//				TrpTableCellType sc = new TrpTableCellType(src);
-				
-				double iRat = (double)(i-iStart) / (double)iSpan;
-				double jRat = (double)(j-jStart) / (double)jSpan;
-				
-				double iRatP = (double)(i+1-iStart) / (double)iSpan;
-				double jRatP = (double)(j+1-jStart) / (double)jSpan;
-				
-//				Vector2D vj = new Vector2D(p0.x, p0.y);
-				
-				double f = 1.0d;
-				
-//				Vector2D vj = v03.times(jRat).times(1-iRat).plus(v12.times(jRat).times(iRat)).times(0.5d);
-//				Vector2D vi = v01.times(iRat).times(1-jRat).plus(v32.times(iRat).times(jRat)).times(0.5d);
-//				
-//				Vector2D vjp = v03.times(jRatP).times(1-iRatP).plus(v12.times(jRatP).times(iRatP)).times(0.5d);
-//				Vector2D vip = v01.times(iRatP).times(1-jRatP).plus(v32.times(iRatP).times(jRatP)).times(0.5d);
-				
-				Vector2D vj = v03.times(jRat).times(1-iRat).plus(v12.times(jRat).times(iRat));
-				Vector2D vi = v01.times(iRat).times(1-jRat).plus(v32.times(iRat).times(jRat));
-				
-				Vector2D vjp = v03.times(jRatP).times(1-iRatP).plus(v12.times(jRatP).times(iRatP));
-				Vector2D vip = v01.times(iRatP).times(1-jRatP).plus(v32.times(iRatP).times(jRatP));				
-				
-				java.awt.Point p0_ = new java.awt.Point(p0);				
-				p0_.x += vj.x()+vi.x();
-				p0_.y += vj.y()+vi.y();
-				
-				java.awt.Point p1_ = new java.awt.Point(p0);				
-//				p1_.x += vj.x()+vip.x();
-//				p1_.y += vj.y()+vip.y();
-				p1_.x += vj.x()+vi.x();
-				p1_.y += vjp.y()+vip.y();
-				
-				java.awt.Point p2_ = new java.awt.Point(p0);				
-//				p2_.x += vjp.x()+vip.x();
-//				p2_.y += vjp.y()+vip.y();
-				p2_.x += vjp.x()+vip.x();
-				p2_.y += vjp.y()+vip.y();
-				
-				java.awt.Point p3_ = new java.awt.Point(p0);				
-//				p3_.x += vjp.x()+vi.x();
-//				p3_.y += vjp.y()+vi.y();
-				p3_.x += vjp.x()+vip.x();
-				p3_.y += vj.y()+vi.y();				
-				
-				
-				List<java.awt.Point> pts = new ArrayList<>();
-				pts.add(p0_);
-				pts.add(p1_);
-				pts.add(p2_);
-				pts.add(p3_);
-				
-				canvas.setMode(TrpCanvasAddMode.ADD_TABLECELL);
-				
-				CanvasQuadPolygon qpn = new CanvasQuadPolygon(pts);
-				
-				logger.debug("new cell: "+qpn);
-				
-				addShapeToCanvas(qpn);
-				
-//				p0_.x += (int)((1-iRat)*jRat*v03.x +iRat*jRat*v12.x);
-//				p0_.y += (int)((1-jRat)*iRat*v03.y +jRat*iRat*v12.y);
-				
-//				java.awt.Point p0_ = new java.awt.Point((int)(p0.x + jRat*v03.x), (int)(p0.y + iRat*v01.y));
-			}
-		}
-		canvas.setMode(TrpCanvasAddMode.SELECTION);
-//		removeShapeFromCanvas(qp);
-
-		
 		addToUndoStack(ops);
+		
+		TrpMainWidget.getInstance().refreshStructureView();
+		
+		TableUtils.checkTableConsistency(tc.getTable());
 	}
 	
 	public Shell getShell() {

@@ -5,7 +5,7 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
-public class TableUtils {
+public class TableViewerUtils {
 
 	public static TableColumn createTableColumn(Table table, int style, String text, int width) {
 //		TableViewerColumn tvc = new TableViewerColumn(viewer, style);

@@ -64,7 +64,7 @@ import eu.transkribus.swt_canvas.util.CustomTagPropertyTable;
 import eu.transkribus.swt_canvas.util.Fonts;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.util.TableUtils;
+import eu.transkribus.swt_canvas.util.TableViewerUtils;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -485,8 +485,8 @@ public class TaggingWidget extends Composite implements Observer {
 //		t.setLayoutData(gd);
 		t.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		TableViewerColumn tagCol = TableUtils.createTableViewerColumn(selectedTagsTableViewer, SWT.LEFT, "Tags under cursor", 200);
-		TableViewerColumn deleteTagCol = TableUtils.createTableViewerColumn(selectedTagsTableViewer, SWT.LEFT, "", 50);
+		TableViewerColumn tagCol = TableViewerUtils.createTableViewerColumn(selectedTagsTableViewer, SWT.LEFT, "Tags under cursor", 200);
+		TableViewerColumn deleteTagCol = TableViewerUtils.createTableViewerColumn(selectedTagsTableViewer, SWT.LEFT, "", 50);
 		
 		tagCol.setLabelProvider(new CellLabelProvider() {
 			@Override public void update(ViewerCell cell) {

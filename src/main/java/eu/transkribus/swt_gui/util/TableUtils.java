@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.util;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -57,16 +58,20 @@ public class TableUtils {
 		@Override public String getMessage() {
 			String s = super.getMessage() + " - invalid point combinations:\n";
 			for (Pair<TrpTableCellType, TrpTableCellType> p : invalidPts) {
-				s += p.getLeft().print() + " - " + p.getRight().print() + "\n";
+				if (p.getLeft().getId().equals(p.getRight().getId())) {
+					s += "not enough neigbhor pts: "+p.getLeft().print()+"\n";
+				} else {
+					s += "pts not matching: "+p.getLeft().print() + " - " + p.getRight().print() + "\n";	
+				}
 			}
 			return s;
 		}
 
 	}
 	
-	public static void checkTable(TrpTableRegionType table) throws TrpTableCellsMissingException,  TrpTablePointsInconsistentException {
+	public static void checkTableConsistency(TrpTableRegionType table) throws TrpTableCellsMissingException,  TrpTablePointsInconsistentException {
 		checkForMissingCells(table);
-//		checkForPointConsistency(table);
+		checkForPointConsistency(table);
 	}
 	
 	public static void checkForMissingCells(TrpTableRegionType table) throws TrpTableCellsMissingException {
@@ -108,11 +113,8 @@ public class TableUtils {
 		}
 	}
 
-	/*
+	
 	public static void checkForPointConsistency(TrpTableRegionType table) throws TrpTablePointsInconsistentException {
-		throw new NotImplementedException("FIXME: multiple neighbor cells!");
-		
-		
 		logger.debug("checking table for point consistency");
 		List<String> checked = new ArrayList<>();
 
@@ -120,48 +122,103 @@ public class TableUtils {
 
 		// for each cell: check if points from neighbor cell match
 		for (TrpTableCellType c : table.getTrpTableCell()) {
-			for (int i = 0; i < 4; ++i) {
-				TrpTableCellType nc = c.getNeighborCells(i);
-				if (nc == null)
+			for (int s = 0; s < 4; ++s) {
+				List<TrpTableCellType> ns = c.getNeighborCells(s);
+				logger.debug("s = "+s+" ns.size() = "+ns.size());
+				
+				if (ns.isEmpty())
 					continue;
-
-				String combinedId = c.getId() + "-" + nc.getId();
-
-				// if already checked this combination of cells -> continue with next
-				if (checked.contains(combinedId))
-					continue;
-
-				int ni = (i + 2) % 4; // the opposite side of the neighbor cell
-
+				
 				CanvasQuadPolygon qp1 = (CanvasQuadPolygon) c.getData();
-				CanvasQuadPolygon qp2 = (CanvasQuadPolygon) nc.getData();
-
-				List<Point> pt1 = qp1.getPointsOfSegment(i, true);
-				List<Point> pt2 = qp2.getPointsOfSegment(ni, true);
 				
-				checked.add(combinedId);
+				List<Point> segPts = qp1.getPointsOfSegment(s, true);
+				logger.debug("s = "+s+" segPts.size() = "+segPts.size());
 				
-				logger.trace("pt1.size = "+pt1.size()+" pt2.size = "+pt2.size());
-
-				// pts must have equals size
-				if (pt1.size() != pt2.size()) {
-					invalid.add(Pair.of(c, nc));
-					continue;
+				for (Point p : segPts) {
+					boolean found = false;
+					for (TrpTableCellType nc : ns) {
+						CanvasQuadPolygon qpn = (CanvasQuadPolygon) nc.getData();						
+						if (qpn.getPoints().contains(p)) {
+							logger.debug("found: "+p+ " s = "+s+" id = "+c.getId());
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						logger.debug("not found: "+p+" s = "+s+" id = "+c.getId());
+						invalid.add(Pair.of(c, c));
+					}
 				}
 				
+				
+				
+				/*
+				List<Point> pt1 = qp1.getPointsOfSegment(s, true);
+				List<Pair<Point, TrpTableCellType>> pt2 = new ArrayList<>();
+				
+				boolean rot = s>1;
+				
+				int so = (s + 2) % 4; // the opposite side of the neighbor cell
+				
+				// accumulate points of all neighbors on this side, in right order!
+				for ( int i=(rot?ns.size()-1:0); i!=(rot?-1:ns.size()); i+=(rot?-1:1) ) {
+					TrpTableCellType nc = ns.get(i);
+					
+					String combinedId = c.getId() + "-" + nc.getId();
+					// if already checked this combination of cells -> continue with next
+					if (checked.contains(combinedId))
+						continue;									
+					
+					CanvasQuadPolygon qpn = (CanvasQuadPolygon) nc.getData();
+					List<Point> ptn = qpn.getPointsOfSegment(so, true);
+					
+					Collections.reverse(ptn);
+					
+					// remove last point if this is not the last of the neighbor cells
+					if ( (!rot && i!=ns.size()-1) || (rot && i!=0) ) {
+						ptn.remove(ptn.size()-1);
+					}
+					
+					for (Point p : ptn) {
+						pt2.add(Pair.of(p, nc));
+					}
+
+					checked.add(combinedId);
+				}
+
+//				CanvasQuadPolygon qp1 = (CanvasQuadPolygon) c.getData();
+//				CanvasQuadPolygon qp2 = (CanvasQuadPolygon) nc.getData();
+
+//				List<Point> pt1 = qp1.getPointsOfSegment(s, true);
+//				List<Point> pt2 = qp2.getPointsOfSegment(so, true);
+
+				logger.debug("pt1.size = "+pt1.size()+" pt2.size = "+pt2.size());
+
+				// pts must have equals size
+//				if (pt1.size() != pt2.size()) {
+//					invalid.add(Pair.of(c, c));
+//					continue;
+//				}
+				
 				// pts must be equal
-				for (int j = 0; j < pt1.size(); ++j) {
-					if (!pt1.get(j).equals(pt2.get(pt1.size() - j - 1))) {
-						invalid.add(Pair.of(c, nc));
+				int N = pt1.size();
+				
+				for (int j = 0; j < N; ++j) {
+					Point p1 = pt1.get(j);
+					Point p2 = pt2.get(j).getLeft();
+//					logger.debug("p1 = "+p1+" p2 = "+p2);
+					
+					if (!p1.equals(p2)) {
+						invalid.add(Pair.of(c, pt2.get(pt1.size() - j - 1).getRight()));
 						continue;
 					}
 				}
+				*/
 			}
 		}
 
 		if (!invalid.isEmpty())
 			throw new TrpTablePointsInconsistentException("Table has inconsistent points!", invalid);
 	}
-	*/
 
 }

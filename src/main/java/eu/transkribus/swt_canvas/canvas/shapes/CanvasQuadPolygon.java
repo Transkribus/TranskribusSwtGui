@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
-import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
-import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.util.Colors;
 
 public class CanvasQuadPolygon extends CanvasPolygon {
@@ -363,7 +361,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	
 	public List<Point> getPointsOfSegment(int cornerPtIndex, boolean includeFirstOfNext) {
 		List<Point> pts = new ArrayList<>();
-		if (cornerPtIndex<0 || cornerPtIndex>4)
+		if (cornerPtIndex<0 || cornerPtIndex>3)
 			return pts;
 					
 		int firstCornerPt = corners[cornerPtIndex];
@@ -386,7 +384,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	 */
 	public List<ShapePoint> intersectionPoints(int x1, int y1, int x2, int y2, boolean extendLine, int cornerPtIndex) {
 		List<ShapePoint> ipts = new ArrayList<>();
-		if (cornerPtIndex<0 || cornerPtIndex>4)
+		if (cornerPtIndex<0 || cornerPtIndex>3)
 			return ipts;
 					
 		math.geom2d.line.LinearElement2D lGiven = null;

@@ -1,6 +1,6 @@
 package eu.transkribus.swt_canvas.canvas;
 
-public class CanvasException extends Exception {
+public class CanvasException extends RuntimeException {
 	private static final long serialVersionUID = 3367790045463712845L;
 	
 	public CanvasException() {}

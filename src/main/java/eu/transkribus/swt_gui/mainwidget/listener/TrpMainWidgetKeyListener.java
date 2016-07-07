@@ -97,9 +97,10 @@ public class TrpMainWidgetKeyListener implements Listener {
 			if (s!=null && s.getData() instanceof TrpTableRegionType) {
 				TrpTableRegionType t = (TrpTableRegionType) s.getData();
 				try {
-					TableUtils.checkTable(t);
+					TableUtils.checkTableConsistency(t);
 					DialogUtil.showInfoMessageBox(mw.getShell(), "Success", "Everything ok with table cells!");
 				} catch (Exception e) {
+					logger.debug(e.getMessage(), e);
 					DialogUtil.showErrorMessageBox(mw.getShell(), "Something's wrong with the table", e.getMessage());
 				}
 				

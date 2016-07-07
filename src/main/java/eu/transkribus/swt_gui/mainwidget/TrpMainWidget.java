@@ -306,7 +306,9 @@ public class TrpMainWidget {
 			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
 		}
 		
-		if (getTrpSets().isAutoLogin()) {
+		boolean TESTTABLES=true;
+		
+		if (getTrpSets().isAutoLogin() && !TESTTABLES) {
 			Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
 			if (lastLogin != null) {
 				// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
@@ -316,6 +318,10 @@ public class TrpMainWidget {
 
 		if (getTrpSets().isShowTipOfTheDay()) {
 			showTipsOfTheDay();
+		}
+		
+		if (TESTTABLES) {
+			loadLocalTestset();
 		}
 		
 //		SWTUtil.mask2(ui.getStructureTreeWidget()); // TESt

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.util.TableUtils;
+import eu.transkribus.swt_canvas.util.TableViewerUtils;
 import eu.transkribus.swt_canvas.util.TableViewerSorter;
 
 public class MyTableViewer extends TableViewer {
@@ -81,7 +81,7 @@ public class MyTableViewer extends TableViewer {
 			String text, int width, 
 			boolean setSorting, int sortDirection, TableViewerSorter sorter) {
 		
-		TableColumn col = TableUtils.createTableColumn(viewer.getTable(), style, text, width);
+		TableColumn col = TableViewerUtils.createTableColumn(viewer.getTable(), style, text, width);
 	
 		if (sorter == null)
 			sorter = new DefaultTableColumnViewerSorter(viewer, col);

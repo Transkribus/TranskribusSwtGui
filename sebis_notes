@@ -1,0 +1,24 @@
+table stuff:
+--------------------
+
+-> delete row / col
+	get affected cells
+	if N==1 -> remove
+	alle Zellen drüber / links "runterschieben"
+	fehlende Punkte generieren
+	
+-> bug: move row / col points -> punkte von überlappenden Zellen werden nicht mitverschoben
+
+-> undo split -> row / col Werte müssen angepaßt werden
+
+-> add text-lines to cells
+
+-> add table -> add table cell with that size
+
+-> transcription widget for tables
+
+-> Seperatoren kennzeichnen (unsichtbar / sichtbar)
+
+-> Zelle als Label taggen
+
+-> 

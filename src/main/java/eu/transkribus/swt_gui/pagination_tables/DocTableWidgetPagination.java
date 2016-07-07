@@ -24,7 +24,7 @@ import eu.transkribus.swt_canvas.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt_canvas.pagination_table.RemotePageLoader;
 import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.TableUtils;
+import eu.transkribus.swt_canvas.util.TableViewerUtils;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -105,27 +105,27 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
         	}
 		}
 		
-		TableViewerColumn col = TableUtils.createTableViewerColumn(tv, 0, DOC_ID_COL, 50);
+		TableViewerColumn col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_ID_COL, 50);
 		col.setLabelProvider(new DocTableColumnLabelProvider("docId"));
 		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("docId"));
 		
-		col = TableUtils.createTableViewerColumn(tv, 0, DOCS_TITLE_COL, 150);
+		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOCS_TITLE_COL, 150);
 		col.setLabelProvider(new DocTableColumnLabelProvider("title"));
 		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("title"));
 		
-		col = TableUtils.createTableViewerColumn(tv, 0, DOC_NPAGES_COL, 100);
+		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_NPAGES_COL, 100);
 		col.setLabelProvider(new DocTableColumnLabelProvider("nrOfPages"));
 //		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("nrOfPages"));
 
-		col = TableUtils.createTableViewerColumn(tv, 0, DOC_UPLOADER_COL, 100);
+		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_UPLOADER_COL, 100);
 		col.setLabelProvider(new DocTableColumnLabelProvider("uploader"));
 		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("uploader"));
 		
-		col = TableUtils.createTableViewerColumn(tv, 0, DOC_UPLOADED_COL, 100);
+		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_UPLOADED_COL, 100);
 		col.setLabelProvider(new DocTableColumnLabelProvider("uploadTime"));
 		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("uploadTimestamp"));		
 		
-		col = TableUtils.createTableViewerColumn(tv, 0, DOC_COLLECTIONS_COL, 100);	
+		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_COLLECTIONS_COL, 100);	
 		col.setLabelProvider(new DocTableColumnLabelProvider("colString"));
 //		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("colString"));
 
