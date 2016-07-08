@@ -49,6 +49,8 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		try {
+			TrpMainWidget mw = TrpMainWidget.getInstance();
+			
 			logger.debug("toolbar item selected: "+e);
 			
 			super.widgetSelected(e);
@@ -70,7 +72,22 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 				ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
 				d.open();
 			}
-		} catch (Exception ex) {
+			
+			// TABLE STUFF:
+			else if (s == toolbar.getDeleteRowItem()) {
+				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), true);
+			}
+			else if (s == toolbar.getDeleteColumnItem()) {
+				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), false);
+			}
+			else if (s == toolbar.getSplitMergedCell()) {
+//				try {
+					mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected());
+//				} catch (Throwable e) {
+//					mw.onError("Error", e.getMessage(), e);
+//				}
+			}
+		} catch (Throwable ex) {
 			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
 		}
 	}

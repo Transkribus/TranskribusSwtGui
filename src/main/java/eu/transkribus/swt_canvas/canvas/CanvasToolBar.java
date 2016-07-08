@@ -392,7 +392,7 @@ public class CanvasToolBar extends ToolBar {
 //		return;
 //	}
 	
-	public void addAddButtonsSelectionListener(SelectionListener listener) {
+	public void addSelectionListener(SelectionListener listener) {
 		SWTUtil.addToolItemSelectionListener(selectionMode, listener);
 		SWTUtil.addToolItemSelectionListener(zoomSelection, listener);
 		SWTUtil.addToolItemSelectionListener(zoomIn, listener);

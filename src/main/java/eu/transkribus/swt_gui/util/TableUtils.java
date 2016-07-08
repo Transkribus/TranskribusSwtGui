@@ -14,6 +14,7 @@ import eu.transkribus.core.exceptions.NotImplementedException;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 
 public class TableUtils {
 	private final static Logger logger = LoggerFactory.getLogger(TableUtils.class);
@@ -68,6 +69,27 @@ public class TableUtils {
 		}
 
 	}
+	
+	public static TrpTableCellType getTableCell(ICanvasShape shape) {
+		if (shape!=null && shape instanceof CanvasQuadPolygon && shape.getData() instanceof TrpTableCellType) {
+			return (TrpTableCellType) shape.getData();
+		}
+		
+		return null;
+	}
+	
+	public static TrpTableRegionType getTable(ICanvasShape shape) {
+		TrpTableCellType tc = getTableCell(shape);
+		if (tc != null) {
+			return tc.getTable();
+		}
+		
+		if (shape!=null && shape.getData() instanceof TrpTableRegionType) {
+			return (TrpTableRegionType) shape.getData();
+		}
+		
+		return null;
+	}	
 	
 	public static void checkTableConsistency(TrpTableRegionType table) throws TrpTableCellsMissingException,  TrpTablePointsInconsistentException {
 		checkForMissingCells(table);

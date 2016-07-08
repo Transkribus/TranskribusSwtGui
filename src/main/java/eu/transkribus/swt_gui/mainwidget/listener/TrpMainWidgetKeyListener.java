@@ -89,10 +89,10 @@ public class TrpMainWidgetKeyListener implements Listener {
 			mw.loadLocalFolder();
 		}
 		
-		// TEST:
-		if (isCtrlOrCommand && kc == 'c') {
+		// SOME TEST HOOKS FOR TABLES:
+		if (isCtrlOrCommand && kc == 'c') { // create table cell
 			mw.getCanvas().setMode(TrpCanvasAddMode.ADD_TABLECELL);
-		} else if (isCtrlOrCommand && kc == 'x') {
+		} else if (isCtrlOrCommand && kc == 'x') { // check table consistency
 			ICanvasShape s = mw.getCanvas().getFirstSelected();
 			if (s!=null && s.getData() instanceof TrpTableRegionType) {
 				TrpTableRegionType t = (TrpTableRegionType) s.getData();
@@ -106,7 +106,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 				
 			}
 			
-		} else if (isCtrlOrCommand && kc == 'y') {
+		} else if (isCtrlOrCommand && kc == 'y') { // split merged table cells
 			try {
 				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected());
 			} catch (Throwable e) {

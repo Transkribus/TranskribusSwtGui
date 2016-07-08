@@ -51,23 +51,10 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	CanvasWidget canvasWidget;
 	
 	DropDownToolItem imageVersionItem;
-		
-//	static Class[] REGION_TYPES = {
-//			 SeparatorRegionType.class,
-//			 ChartRegionType.class,
-//			 AdvertRegionType.class,
-//			 UnknownRegionType.class,
-//			 MathsRegionType.class,
-//			 TableRegionType.class,
-//			 MusicRegionType.class,
-//			 NoiseRegionType.class,
-//			 GraphicRegionType.class,
-//			 ChemRegionType.class,
-//			 TextRegionType.class,
-//			 ImageRegionType.class,
-//			 LineDrawingRegionType.class
-//	};
 	
+	DropDownToolItem tableItem;
+	MenuItem deleteRowItem, deleteColumnItem, splitMergedCell; 
+
 	private TrpMainWidget mainWidget;
 
 	public TrpCanvasToolBar(CanvasWidget parent, TrpMainWidget mainWidget, int style) {
@@ -168,6 +155,12 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.getOrLoad("/icons/wrench.png"), "");
 		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.getOrLoad("/icons/wrench.png"), "");
 		
+		tableItem = new DropDownToolItem(this, false, true, SWT.PUSH, ++i);
+		tableItem.ti.setImage(Images.getOrLoad("/icons/table_edit.png"));
+		deleteRowItem = tableItem.addItem("Delete row of selected cell", Images.getOrLoad("/icons/table_edit.png"), "");
+		deleteColumnItem = tableItem.addItem("Delete column of selected cell", Images.getOrLoad("/icons/table_edit.png"), "");
+		splitMergedCell = tableItem.addItem("Split up formerly merged cell", Images.getOrLoad("/icons/table_edit.png"), "");
+		
 //		new ToolItem(this, SWT.SEPARATOR, ++i);
 		
 //		shapeAddRectMode = new ToolItem(this, SWT.CHECK, ++i);
@@ -218,8 +211,8 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		return (si != null) ? si.getText() : "";
 	}
 	
-	@Override public void addAddButtonsSelectionListener(SelectionListener listener) {
-		super.addAddButtonsSelectionListener((CanvasToolBarSelectionListener)listener);
+	@Override public void addSelectionListener(SelectionListener listener) {
+		super.addSelectionListener((CanvasToolBarSelectionListener)listener);
 
 		SWTUtil.addToolItemSelectionListener(imageVersionItem.ti, listener);
 		
@@ -234,6 +227,11 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		SWTUtil.addToolItemSelectionListener(viewSettingsMenuItem, listener);
 		
 		SWTUtil.addToolItemSelectionListener(imgEnhanceItem, listener);
+		
+		// table stuff
+		SWTUtil.addMenuItemSelectionListener(deleteRowItem, listener);
+		SWTUtil.addMenuItemSelectionListener(deleteColumnItem, listener);
+		SWTUtil.addMenuItemSelectionListener(splitMergedCell, listener);
 		
 //		for (Class c : REGION_TYPES) {
 //			CanvasMode m = TrpCanvasAddMode.ADD_OTHERREGION;
@@ -335,6 +333,18 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	
 	public DropDownToolItem getAddSpecialRegion() {
 		return addSpecialRegion;
+	}
+
+	public MenuItem getDeleteRowItem() {
+		return deleteRowItem;
+	}
+
+	public MenuItem getDeleteColumnItem() {
+		return deleteColumnItem;
+	}
+
+	public MenuItem getSplitMergedCell() {
+		return splitMergedCell;
 	}
 
 //	public ToolItem getLinkShapes() {

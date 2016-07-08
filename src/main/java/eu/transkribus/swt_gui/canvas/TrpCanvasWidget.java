@@ -62,7 +62,7 @@ public class TrpCanvasWidget extends CanvasWidget {
 		// selection listener for toolbar:
 		trpCanvasToolBarSelectionListener = new TrpCanvasToolBarSelectionListener((TrpCanvasToolBar)toolBar, (TrpSWTCanvas) canvas);
 		super.addListener();
-		toolBar.addAddButtonsSelectionListener(trpCanvasToolBarSelectionListener);
+		toolBar.addSelectionListener(trpCanvasToolBarSelectionListener);
 		// selection listener on canvas:
 //		canvas.getScene().addCanvasSceneListener(new CanvasSceneListener() {
 //			@Override

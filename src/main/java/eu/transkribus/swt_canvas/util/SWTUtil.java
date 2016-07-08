@@ -39,7 +39,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Region;
-import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -51,6 +50,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
@@ -603,6 +603,11 @@ public class SWTUtil {
 		dummyShell.setLayout(new GridLayout());
 		dummyMenu.setVisible(false);
 	}
+	
+	public static void addMenuItemSelectionListener(MenuItem ti, SelectionListener listener) {
+		if (ti!=null && !ti.isDisposed())
+			ti.addSelectionListener(listener);	
+	}	
 	
 	public static void addToolItemSelectionListener(ToolItem ti, SelectionListener listener) {
 		if (ti!=null && !ti.isDisposed())
