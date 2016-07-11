@@ -75,14 +75,14 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 			
 			// TABLE STUFF:
 			else if (s == toolbar.getDeleteRowItem()) {
-				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), true);
+				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), true, true);
 			}
 			else if (s == toolbar.getDeleteColumnItem()) {
-				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), false);
+				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), false, true);
 			}
 			else if (s == toolbar.getSplitMergedCell()) {
 //				try {
-					mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected());
+					mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
 //				} catch (Throwable e) {
 //					mw.onError("Error", e.getMessage(), e);
 //				}

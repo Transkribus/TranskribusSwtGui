@@ -153,7 +153,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 
 				if (removeParentLine) { // remove parent line!
 					logger.debug("removing parent line!");
-					canvas.getShapeEditor().removeShapeFromCanvas(s.getParent());
+					canvas.getShapeEditor().removeShapeFromCanvas(s.getParent(), true);
 					e.stop = true;
 				}
 			}
@@ -551,8 +551,8 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			ICanvasShape newShape = e.op.getNewShapes().get(0);
 			logger.debug("merged shape: "+newShape);
 			
-			boolean isTableCellMerge = (newShape instanceof CanvasQuadPolygon && newShape.getData() instanceof TrpTableCellType);
-			logger.debug("isTableCellMerge = "+isTableCellMerge);
+//			boolean isTableCellMerge = (newShape instanceof CanvasQuadPolygon && newShape.getData() instanceof TrpTableCellType);
+//			logger.debug("isTableCellMerge = "+isTableCellMerge);
 						
 			String text = "";
 			
@@ -560,26 +560,11 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			List<ITrpShapeType> trpMergedShapes = new ArrayList<>();
 			
 			int minIndex= 10000000;
-			
-			int min[] = {(int)1e36, (int)1e36};
-			int max[] = {0, 0};
 			for (ICanvasShape s : e.op.getShapes()) {
 				ITrpShapeType st = GuiUtil.getTrpShape(s);
 				if (st==null)
 					throw new Exception("Could not extract the data from a merged shape - should not happen!");
-				
-				if (isTableCellMerge) {
-					TrpTableCellType c = (TrpTableCellType) st;
-					if (c.getRow() < min[0])
-						min[0] = c.getRow();
-					if (c.getCol() < min[1])
-						min[1] = c.getCol();
-					if (c.getRowEnd() > max[0])
-						max[0] = c.getRowEnd();
-					if (c.getColEnd() > max[1])
-						max[1] = c.getColEnd();
-				}
-				
+								
 				Integer oldReadingOrder = -1;
 				if (st != null){
 					oldReadingOrder = st.getReadingOrder();
@@ -641,18 +626,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			}
 			if (baselineToRemove!=null)
 				mw.getScene().removeShape(baselineToRemove, false, false);
-			
-			// correct values for merged table cell:
-			if (isTableCellMerge) {
-				TrpTableCellType c = (TrpTableCellType) mergedSt;
-				c.setRow(min[0]);
-				c.setCol(min[1]);
-				c.setRowSpan(max[0]-min[0]);
-				c.setColSpan(max[1]-min[1]);
-				
-				logger.debug("merged cell: "+c.print());
-			}			
-			
+						
 			// update ui stuff
 			mw.getScene().updateAllShapesParentInfo();
 			mw.refreshStructureView();

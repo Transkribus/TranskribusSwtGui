@@ -255,7 +255,7 @@ public class CanvasShapeEditor {
 	
 	public void removeAll() {
 		logger.debug("removing all shapes: "+scene.getNSelected());
-		removeShapesFromCanvas(new ArrayList<ICanvasShape>(scene.getShapes()));
+		removeShapesFromCanvas(new ArrayList<ICanvasShape>(scene.getShapes()), true);
 		canvas.redraw();
 	}
 		
@@ -264,7 +264,7 @@ public class CanvasShapeEditor {
 		
 		logger.debug("removing selected: "+selected.size()+ " / "+scene.nShapes());
 		
-		removeShapesFromCanvas(selected);
+		removeShapesFromCanvas(selected, true);
 				
 		canvas.redraw();
 	}
@@ -328,29 +328,35 @@ public class CanvasShapeEditor {
 		return false;
 	}
 	
-	public void removeShapeFromCanvas(ICanvasShape shapesToRemove) {
+	public ShapeEditOperation removeShapeFromCanvas(ICanvasShape shapesToRemove, boolean addToUndoStack) {
 		List<ICanvasShape> sl = new ArrayList<>();
 		sl.add(shapesToRemove);
-		removeShapesFromCanvas(sl);
+		return removeShapesFromCanvas(sl, addToUndoStack);
 	}
 
-	public void removeShapesFromCanvas(List<ICanvasShape> shapesToRemove) {
-		if (shapesToRemove!=null) {
-			Collections.sort(shapesToRemove);			
-			logger.debug("removing shapes: "+shapesToRemove.size());	
-			
-			// remove shapes - add actually removed shapes to new list - it is possible that some shapes are not removed, if its parent element gets removed first!
-			List<ICanvasShape> removedShapes = new ArrayList<ICanvasShape>();
-			for (ICanvasShape s : shapesToRemove) {
-				if (scene.removeShape(s, true, true)) {
-					removedShapes.add(s);
-				}
+	public ShapeEditOperation removeShapesFromCanvas(List<ICanvasShape> shapesToRemove, boolean addToUndoStack) {
+		if (shapesToRemove==null || shapesToRemove.isEmpty())
+			return null;
+		
+		Collections.sort(shapesToRemove);			
+		logger.debug("removing shapes: "+shapesToRemove.size());
+		
+		// remove shapes - add actually removed shapes to new list - it is possible that some shapes are not removed, if its parent element gets removed first!
+		List<ICanvasShape> removedShapes = new ArrayList<ICanvasShape>();
+		for (ICanvasShape s : shapesToRemove) {
+			if (scene.removeShape(s, true, true)) {
+				removedShapes.add(s);
 			}
-			logger.debug("actually removed shapes: "+removedShapes.size());
-			
-			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.DELETE, removedShapes.size()+" shapes removed", removedShapes);
-			addToUndoStack(op);
 		}
+		logger.debug("actually removed shapes: "+removedShapes.size());
+		
+		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.DELETE, removedShapes.size()+" shapes removed", removedShapes);
+		
+		if (addToUndoStack)
+			addToUndoStack(op);
+		
+		return op;
+
 	}
 	
 	protected ShapeEditOperation insertPointIntoShape(ICanvasShape shape, int x, int y) {

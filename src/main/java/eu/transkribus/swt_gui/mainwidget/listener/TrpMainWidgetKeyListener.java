@@ -108,7 +108,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 			
 		} else if (isCtrlOrCommand && kc == 'y') { // split merged table cells
 			try {
-				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected());
+				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
 			} catch (Throwable e) {
 				mw.onError("Error", e.getMessage(), e);
 			}

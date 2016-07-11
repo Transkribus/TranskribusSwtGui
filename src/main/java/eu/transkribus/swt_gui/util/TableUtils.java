@@ -70,6 +70,15 @@ public class TableUtils {
 
 	}
 	
+	public static boolean isTableCells(List<ICanvasShape> shapes) {
+		for (ICanvasShape s : shapes) {
+			if (getTableCell(s) == null)
+				return false;
+		}
+		return true;
+	}
+	
+	
 	public static TrpTableCellType getTableCell(ICanvasShape shape) {
 		if (shape!=null && shape instanceof CanvasQuadPolygon && shape.getData() instanceof TrpTableCellType) {
 			return (TrpTableCellType) shape.getData();

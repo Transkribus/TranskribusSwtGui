@@ -14,8 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.TableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType.GetCellsType;
@@ -573,23 +573,40 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return null;
 	}
 	
-	public ShapeEditOperation mergeSelectedTableCells(boolean sendSignal) {
-		List<ICanvasShape> selectedShapes = scene.getSelectedAsNewArray();
-		if (selectedShapes.size() < 2)
+	public ShapeEditOperation mergeSelectedTableCells(List<ICanvasShape> shapes, boolean sendSignal, boolean addToUndoStack) {
+//		List<ICanvasShape> selectedShapes = scene.getSelectedAsNewArray();
+		if (shapes.size() < 2)
 			return null;
 		
-		logger.debug("merging "+selectedShapes.size()+" table cells!");
+		if (!TableUtils.isTableCells(shapes)) {
+			return null;
+		}
+		
+		logger.debug("merging "+shapes.size()+" table cells!");
 				
 		if (sendSignal) {
-			if (scene.notifyOnBeforeShapesMerged(selectedShapes))
+			if (scene.notifyOnBeforeShapesMerged(shapes))
 				return null;
 		}
 						
 //		ICanvasShape merged = selectedShapes.get(0).copy();
 	
 		List<CanvasQuadPolygon> toMerge = new ArrayList<>();
-		for (ICanvasShape s : selectedShapes) {
+		
+		int min[] = {(int)1e36, (int)1e36};
+		int max[] = {0, 0};
+		for (ICanvasShape s : shapes) {
 			toMerge.add((CanvasQuadPolygon) s.copy());
+			
+			TrpTableCellType c = (TrpTableCellType) s.getData();
+			if (c.getRow() < min[0])
+				min[0] = c.getRow();
+			if (c.getCol() < min[1])
+				min[1] = c.getCol();
+			if (c.getRowEnd() > max[0])
+				max[0] = c.getRowEnd();
+			if (c.getColEnd() > max[1])
+				max[1] = c.getColEnd();
 		}
 		
 		while (toMerge.size() > 1) {
@@ -611,12 +628,14 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			return null;
 		}
 		
+		ICanvasShape mergedShape = toMerge.get(0);
+		
 		scene.clearSelected();
 		
-		for (ICanvasShape s : selectedShapes) {
+		for (ICanvasShape s : shapes) {
 			scene.removeShape(s, true, true);
 			for (ICanvasShape child : s.getChildren(false)) {
-				toMerge.get(0).addChild(child);
+				mergedShape.addChild(child);
 			}
 		}
 		
@@ -635,7 +654,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 //		
 //		removeShape(selectedShapes.get(0), false, false);
 		
-		ShapeEditOperation opa = scene.addShape(toMerge.get(0), null, false);
+		ShapeEditOperation opa = scene.addShape(mergedShape, null, false);
 //		logger.debug("merge added: "+opa);
 		
 		if (opa == null) {
@@ -645,20 +664,28 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 		
 		ShapeEditOperation op = 
-				new ShapeEditOperation(canvas, ShapeEditType.MERGE, selectedShapes.size()+" cells merged", selectedShapes);
-		op.addNewShape(toMerge.get(0));
+				new ShapeEditOperation(canvas, ShapeEditType.MERGE, shapes.size()+" cells merged", shapes);
+		op.addNewShape(mergedShape);
 		
+		// correct values for merged table cell:
+		TrpTableCellType c = (TrpTableCellType) mergedShape.getData();
+		c.setRow(min[0]);
+		c.setCol(min[1]);
+		c.setRowSpan(max[0]-min[0]);
+		c.setColSpan(max[1]-min[1]);
+		logger.debug("merged cell: "+c.print());
+				
 		if (sendSignal) {
 			scene.notifyOnShapesMerged(op);
 		}
 		
 		canvas.redraw();
 		
-		if (op!=null) {
+		if (addToUndoStack) {
 			addToUndoStack(op);	
 		}
 		
-		TableUtils.checkTableConsistency(((TrpTableCellType)selectedShapes.get(0).getData()).getTable());
+		TableUtils.checkTableConsistency(TableUtils.getTable(mergedShape));
 		
 		return op;
 	}
@@ -669,16 +696,10 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		List<ICanvasShape> selected = scene.getSelectedAsNewArray();
 
-		boolean isMergeTableCells=true;
-		for (ICanvasShape s : selected) {
-			if (!(s instanceof CanvasQuadPolygon) || !(s.getData() instanceof TrpTableCellType)) {
-				isMergeTableCells = false;
-				break;
-			}
-		}
+		boolean isMergeTableCells = TableUtils.isTableCells(selected);
 		
 		if (isMergeTableCells) {
-			mergeSelectedTableCells(true);
+			mergeSelectedTableCells(selected, true, true);
 		} else {
 			super.mergeSelected();
 		}
@@ -689,7 +710,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 //		return shape!=null && shape instanceof CanvasQuadPolygon && shape.getData() instanceof TrpTableCellType;
 //	}
 	
-	public void deleteTableRowOrColumn(ICanvasShape shape, boolean row) {
+	public void deleteTableRowOrColumn(ICanvasShape shape, boolean row, boolean addToUndoStack) {
 		String entityName = row ? "row" : "column";
 		TrpTableCellType tc = TableUtils.getTableCell(shape);
 		
@@ -698,56 +719,94 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			DialogUtil.showErrorMessageBox(getShell(), "Error removing "+entityName, "No table cell selected!");
 			return;
 		}
+		TrpTableRegionType table = tc.getTable();
 		
 		int[] pos = tc.getPos();
 		
 		int di = row ? 0 : 1;
-		int delIndex = pos[di];
+		
+		int ni = row ? 3 : 0;
+		
+		int posIndex = pos[di];
 		
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		
 		// TODO
-		List<TrpTableCellType> cells = tc.getTable().getCells(di==0, GetCellsType.OVERLAP, delIndex);
+		List<TrpTableCellType> cells = table.getCells(di==0, GetCellsType.OVERLAP, posIndex);
 		
 		for (TrpTableCellType c : cells) {
 			CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
-			if (c.getSpan()[di] <= 1) { // cell with range of 1
-				// remove cell
-				if (scene.removeShape(qp, true, true)) {
-					ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.DELETE, "Deleted cell from "+entityName, qp);
-					ops.add(op);
-				}
-				
-				scene.re
-				
-				
-				
-				
-				
-				
-				
+			if (c.getSpan()[di] > 1) {
+				List<ShapeEditOperation> splitOps = splitMergedTableCell(qp, false);
+				if (splitOps != null)
+					ops.addAll(splitOps);
 			}
-			else if (c.getPos()[di] == delIndex) {
-				
-				
-				
-				
-			}
-			
-			
-			
-			
-			
-			
-			
 		}
 		
+		cells = table.getCells(di==0, GetCellsType.OVERLAP, posIndex);
 		
+		List<ICanvasShape> mergedCells=new ArrayList<>();
+		for (TrpTableCellType c : cells) {
+//			CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
+			if (c.getSpan()[di] > 1) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "Multi span cell: "+c);
+			}
+			
+			List<TrpTableCellType> nc = c.getNeighborCells(ni);
+			if (nc.size() > 1) {
+				throw new CanvasException("More than one neighbor in row / column deletion - should not be possible: \n"+c);
+			}
+			if (nc.isEmpty())
+				continue;
+			
+			List<ICanvasShape> toMerge = new ArrayList<>();
+			toMerge.add((ICanvasShape) c.getData());
+			toMerge.add((ICanvasShape) nc.get(0).getData());
+			
+			ShapeEditOperation op = mergeSelectedTableCells(toMerge, true, false);
+			if (op == null)
+				throw new CanvasException("Could not merge with neighbor cell on row / column deletion: \n"+c);
+			
+			ops.add(op);
+			
+			mergedCells.add(op.getNewShapes().get(0));
+			
+			// correct span of merged cell
+			if (false) {
+			ICanvasShape mergedShape = op.getNewShapes().get(0);
+			TrpTableCellType mc = TableUtils.getTableCell(mergedShape); 
+			mc.setSpan(di, mc.getSpan()[di]-1);
+			}
+			
+//			ShapeEditOperation op = removeShapeFromCanvas(qp, false);
+//			if (op != null)
+//				ops.add(op);
+		}
 		
+		// correct span of merged cell
+		for (ICanvasShape s : mergedCells) {
+			TrpTableCellType mc = TableUtils.getTableCell(s); 
+			mc.setSpan(di, mc.getSpan()[di]-1);
+		}
+		
+		// correct row / col pos values for cells below / left of deleted row / col
+		if (true) {
+		for (TrpTableCellType c : table.getTrpTableCell()) {
+			int i = c.getPos()[di];
+			if (i > posIndex) {
+				c.setPos(di, c.getPos()[di]-1);
+			}
+		}
+		}
+		
+		if (addToUndoStack)
+			addToUndoStack(ops);
+		
+		TableUtils.checkTableConsistency(table);
 	}
 	
 	
-	public void splitMergedTableCell(ICanvasShape shape) {
+	public List<ShapeEditOperation> splitMergedTableCell(ICanvasShape shape, boolean addToUndoStack) {
 		// warning: code below is hell on earth - don't fuck it up!
 		TrpTableCellType tc = TableUtils.getTableCell(shape);
 		
@@ -755,7 +814,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		if (tc==null) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error splitting merged cell", "No table cell selected!");
-			return;
+			return null;
 		}
 		
 		// This class holds a list of points representing the points 
@@ -1044,10 +1103,15 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 		
 		canvas.setMode(TrpCanvasAddMode.SELECTION);
-		addToUndoStack(ops);
+		
+		if (addToUndoStack)
+			addToUndoStack(ops);
+		
 		TrpMainWidget.getInstance().refreshStructureView();
 		
 		TableUtils.checkTableConsistency(tc.getTable());
+		
+		return ops;
 	}
 	
 	public Shell getShell() {
