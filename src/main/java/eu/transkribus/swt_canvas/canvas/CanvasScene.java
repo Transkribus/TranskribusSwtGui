@@ -1,37 +1,24 @@
 package eu.transkribus.swt_canvas.canvas;
 
-import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent.RegionType;
-import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
-import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener.SceneEvent;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener.SceneEventType;
-import eu.transkribus.swt_canvas.canvas.shapes.ACanvasShape;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasRect;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeFactory;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
 
@@ -265,7 +252,7 @@ public class CanvasScene {
 		}
 		
 		ShapeEditOperation op = 
-				new ShapeEditOperation(canvas, ShapeEditType.MERGE, selectedShapes.size()+" shapes merged", selectedShapes);
+				new ShapeEditOperation(ShapeEditType.MERGE, selectedShapes.size()+" shapes merged", selectedShapes);
 		op.addNewShape(merged);
 		
 		if (sendSignal) {
@@ -292,7 +279,7 @@ public class CanvasScene {
 			return null;
 		
 		logger.debug("splitting shape "+shape);
-		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.SPLIT, "Shape splitted", shape);
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.SPLIT, "Shape splitted", shape);
 		op.setFollowUp(isFollowUp);
 		op.data = data;
 		
@@ -387,7 +374,7 @@ public class CanvasScene {
 				notifyOnShapeAdded(newShape);
 			}
 
-			return new ShapeEditOperation(canvas, ShapeEditType.ADD, "Shape added", newShape);
+			return new ShapeEditOperation(ShapeEditType.ADD, "Shape added", newShape);
 		} else {
 			logger.warn("Could not add shape: " + newShape);
 			return null;			

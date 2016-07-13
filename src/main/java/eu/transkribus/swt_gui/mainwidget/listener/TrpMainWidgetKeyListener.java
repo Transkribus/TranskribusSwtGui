@@ -16,8 +16,8 @@ import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-import eu.transkribus.swt_gui.util.TableUtils;
-import eu.transkribus.swt_gui.util.TableUtils.TrpTableCellsMissingException;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
+import eu.transkribus.swt_gui.table_editor.TableUtils.TrpTableCellsMissingException;
 
 public class TrpMainWidgetKeyListener implements Listener {
 	private final static Logger logger = LoggerFactory.getLogger(TrpMainWidgetKeyListener.class);
@@ -93,9 +93,8 @@ public class TrpMainWidgetKeyListener implements Listener {
 		if (isCtrlOrCommand && kc == 'c') { // create table cell
 			mw.getCanvas().setMode(TrpCanvasAddMode.ADD_TABLECELL);
 		} else if (isCtrlOrCommand && kc == 'x') { // check table consistency
-			ICanvasShape s = mw.getCanvas().getFirstSelected();
-			if (s!=null && s.getData() instanceof TrpTableRegionType) {
-				TrpTableRegionType t = (TrpTableRegionType) s.getData();
+			TrpTableRegionType t = TableUtils.getTable(mw.getCanvas().getFirstSelected());			
+			if (t != null) {
 				try {
 					TableUtils.checkTableConsistency(t);
 					DialogUtil.showInfoMessageBox(mw.getShell(), "Success", "Everything ok with table cells!");
@@ -103,9 +102,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 					logger.debug(e.getMessage(), e);
 					DialogUtil.showErrorMessageBox(mw.getShell(), "Something's wrong with the table", e.getMessage());
 				}
-				
 			}
-			
 		} else if (isCtrlOrCommand && kc == 'y') { // split merged table cells
 			try {
 				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);

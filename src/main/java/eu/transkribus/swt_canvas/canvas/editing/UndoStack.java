@@ -126,7 +126,13 @@ public class UndoStack extends Observable {
 		case MERGE:
 			undoMerge(op);
 			break;
+		case CUSTOM:
+			break;
+		default:
+			break;
 		}
+		
+		op.customUndoOperation();
 	}
 	
 	protected void undoEdit(ShapeEditOperation op) {

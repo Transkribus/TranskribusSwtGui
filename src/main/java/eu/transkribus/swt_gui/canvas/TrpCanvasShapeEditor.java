@@ -3,7 +3,9 @@ package eu.transkribus.swt_gui.canvas;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -13,8 +15,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent.TableCellType;
-import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
@@ -34,7 +34,8 @@ import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.util.TableUtils;
+import eu.transkribus.swt_gui.table_editor.TableCellUndoData;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 import math.geom2d.Point2D;
 import math.geom2d.Vector2D;
 import math.geom2d.line.Line2D;
@@ -140,7 +141,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			return Pair.of(dir, splittableCells);
 	}
 	
-	private List<ShapeEditOperation> splitTrpTableType(int x1, int y1, int x2, int y2, TrpTableRegionType table) {	
+	private List<ShapeEditOperation> splitTrpTableType(int x1, int y1, int x2, int y2, TrpTableRegionType table, boolean addToUndoStack) {	
 		// search for row / col cells to split:
 		Pair<SplitDirection, List<TrpTableCellType>> splittableCells = getSplittableCells(x1, y1, x2, y2, table);
 		if (splittableCells == null) {
@@ -149,6 +150,9 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 		
 		SplitDirection dir = splittableCells.getLeft();
+		String entityName = dir==SplitDirection.HORIZONAL?"column":"row";
+		
+		
 		logger.debug("n-splittableCells: "+splittableCells.getRight().size());
 		// FIXME??ß
 		
@@ -163,22 +167,19 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				splitOps.addAll(splitOps4Cell);
 			}
 		}
-		
-		// add to undo stack:
-		if (!splitOps.isEmpty())
-			addToUndoStack(splitOps);
-		
+				
 		// adjust indexes on table:
+		final List<TableCellUndoData> backup = new ArrayList<>();
 		int insertIndex = dir==SplitDirection.HORIZONAL ? splittableCells.getRight().get(0).getCol() : splittableCells.getRight().get(0).getRow();
 //		boolean isRowInserted = dir==SplitDirection.VERTICAL;
 		
 //		table.adjustCellIndexesOnRowOrColInsert(insertIndex, isRowInserted);
-				
 		for (ShapeEditOperation op : splitOps) {
 			logger.debug("t-op = "+op);
 //			op.getFirstShape();
 //			TrpTableCellType tc1 = (TrpTableCellType) op.getNewShapes().get(0).getData();
 			TrpTableCellType tc2 = (TrpTableCellType) op.getNewShapes().get(1).getData();
+			backup.add(new TableCellUndoData(tc2));
 			logger.debug("tc2 = "+tc2);
 			
 			if (dir == SplitDirection.HORIZONAL) {
@@ -187,27 +188,42 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				tc2.setRow(-1);
 			}
 //			op.data = splittableCells.getLeft();
+			
+			
 		}
 		
-		for (TableCellType tc : table.getTableCell()) {
-			logger.debug("tc: "+tc);
+		for (TrpTableCellType tc : table.getTrpTableCell()) {
+			logger.trace("tc: "+tc);
+			backup.add(new TableCellUndoData(tc));
 			
 			if (dir == SplitDirection.HORIZONAL) {
 				if (tc.getCol() > insertIndex) {
 					tc.setCol(tc.getCol()+1);
 				} else if (tc.getCol() == -1) {
-					logger.debug("here1 "+insertIndex);
+					logger.trace("here1 "+insertIndex);
 					tc.setCol(insertIndex+1);
 				}
 			} else {
 				if (tc.getRow() > insertIndex) {
 					tc.setRow(tc.getRow()+1);
 				} else if (tc.getRow() == -1) {
-					logger.debug("here2 "+insertIndex);
+					logger.trace("here2 "+insertIndex);
 					tc.setRow(insertIndex+1);
 				}	
 			}
 		}
+		
+		// create custom edit operation to recover cell location values
+		ShapeEditOperation opC = new ShapeEditOperation(ShapeEditType.CUSTOM, "Added a new table "+entityName) {
+			@Override protected void customUndoOperation() {
+				TableUtils.recoverTableCellValues(backup);
+			}
+		};
+		splitOps.add(0, opC); // add operation to front, s.t. undo will be performed at last
+		
+		// add to undo stack:
+		if (!splitOps.isEmpty() && addToUndoStack)
+			addToUndoStack(splitOps);
 		
 		TableUtils.checkTableConsistency(table);
 
@@ -230,7 +246,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				return splitTrpBaselineType(x1, y1, x2, y2, shape, (TrpBaselineType) shape.getData());
 			}
 			else if (table != null) {
-				return splitTrpTableType(x1, y1, x2, y2, table);
+				return splitTrpTableType(x1, y1, x2, y2, table, addToUndoStack);
 			}
 			else { // perform default split operation on base class
 				return super.splitShape(shape, x1, y1, x2, y2, null, addToUndoStack);
@@ -292,29 +308,47 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			index = startIndex ? tc.getCol() : tc.getColEnd();
 		}
 		
+		String entityName = rowwise?"row":"column";
+		
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		List<TrpTableCellType> cells = tc.getTable().getCells(rowwise, startIndex?GetCellsType.START_INDEX:GetCellsType.END_INDEX, index);
+//		List<TrpTableCellType> cells = tc.getTable().getCells(rowwise, GetCellsType.OVERLAP, index);
 		for (TrpTableCellType c : cells) {
 			CanvasQuadPolygon s = (CanvasQuadPolygon) c.getData();
 			
+			// first, move all common points of neighbors too
+			for (TrpTableCellType n : c.getNeighborCells()) {
+				CanvasQuadPolygon ns = (CanvasQuadPolygon) n.getData();
+				
+				for (java.awt.Point pt : s.getPointsOfSegment(side, true)) {
+					int i = ns.getPointIndex(pt.x, pt.y);
+					if (i != -1) {
+						if (firstMove) {
+							ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved table "+entityName+" points", ns);					
+							ops.add(op);
+						}
+						ns.movePoint(i, pt.x+trans.x, pt.y+trans.y);
+					}
+				}
+			}
+			
 			if (firstMove) {
-				ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved table "+(rowwise?"row":"column")+" points", s);					
+				ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved table "+entityName+" points", s);					
 				ops.add(op);
 			}
 			// move all points of that side
 			s.translatePointsOfSide(side, trans.x, trans.y);
 			
-			// now also move all points of the neighbor side
-			List<TrpTableCellType> neighbors = c.getNeighborCells(side);
-
-			for (TrpTableCellType neighbor : neighbors) {			
-				CanvasQuadPolygon ns = (CanvasQuadPolygon) neighbor.getData();
-				if (firstMove) {
-					ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved table "+(rowwise?"row":"column")+" points", ns);					
-					ops.add(op);
-				}			
-				ns.translatePointsOfSide(sideOpposite, trans.x, trans.y);
-			}
+//			// now also move all points of the neighbor side
+//			if (false)
+//			for (TrpTableCellType neighbor : c.getNeighborCells(side)) {			
+//				CanvasQuadPolygon ns = (CanvasQuadPolygon) neighbor.getData();
+//				if (firstMove) {
+//					ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved table "+entityName+" points", ns);					
+//					ops.add(op);
+//				}			
+//				ns.translatePointsOfSide(sideOpposite, trans.x, trans.y);
+//			}
 		}
 		
 		if (!ops.isEmpty())
@@ -328,7 +362,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		if (firstMove) {
-			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved point(s) of shape", cellShape);					
+			ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved point(s) of table cell", cellShape);					
 			ops.add(op);
 		}
 		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
@@ -351,7 +385,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 					if (j != -1) {
 						
 						if (firstMove) {
-							ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved point(s) of shape", ns);					
+							ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved point(s) of table cell", ns);					
 							ops.add(op);
 						}							
 						
@@ -374,7 +408,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		final Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
 		
 		List<ShapeEditOperation> ops = new ArrayList<>();
-		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", selected);
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", selected);
 		ops.add(op);
 		
 		int ii = selected.insertPoint(mousePtWoTr.x, mousePtWoTr.y);
@@ -410,7 +444,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			logger.debug("add pt, nearest neighbor: "+neighbors.get(0));
 			CanvasQuadPolygon nc = (CanvasQuadPolygon) neighbors.get(0).getData();
 
-			ShapeEditOperation opN = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", nc);
+			ShapeEditOperation opN = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", nc);
 			ops.add(opN);
 			
 			nc.insertPointOnSide(mousePtWoTr.x, mousePtWoTr.y, sideOpposite);
@@ -452,7 +486,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		// remove point from main shape:
 		List<ShapeEditOperation> ops = new ArrayList<>();
-		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Removed point from shape", cellShape);
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Removed point from shape", cellShape);
 		ops.add(op);
 		
 		if (!cellShape.removePoint(pointIndex)) {
@@ -466,7 +500,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 
 			int ri = nc.getPointIndex(pt2Remove.x, pt2Remove.y);
 			if (ri != -1) {
-				ShapeEditOperation opN = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Removed point from shape", nc);
+				ShapeEditOperation opN = new ShapeEditOperation(ShapeEditType.EDIT, "Removed point from shape", nc);
 				ops.add(opN);
 				if (nc.removePoint(ri)) {
 					ops.add(opN);
@@ -574,6 +608,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 	}
 	
 	public ShapeEditOperation mergeSelectedTableCells(List<ICanvasShape> shapes, boolean sendSignal, boolean addToUndoStack) {
+		final List<TableCellUndoData> backupCells = new ArrayList<>();
 //		List<ICanvasShape> selectedShapes = scene.getSelectedAsNewArray();
 		if (shapes.size() < 2)
 			return null;
@@ -596,6 +631,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		int min[] = {(int)1e36, (int)1e36};
 		int max[] = {0, 0};
 		for (ICanvasShape s : shapes) {
+			backupCells.add(new TableCellUndoData((TrpTableCellType) s.getData()));
+			
 			toMerge.add((CanvasQuadPolygon) s.copy());
 			
 			TrpTableCellType c = (TrpTableCellType) s.getData();
@@ -664,7 +701,12 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 		
 		ShapeEditOperation op = 
-				new ShapeEditOperation(canvas, ShapeEditType.MERGE, shapes.size()+" cells merged", shapes);
+				new ShapeEditOperation(ShapeEditType.MERGE, shapes.size()+" cells merged", shapes) {
+			@Override protected void customUndoOperation() {
+				logger.debug("custom undo!!");
+				TableUtils.recoverTableCellValues(backupCells);
+			}
+		};
 		op.addNewShape(mergedShape);
 		
 		// correct values for merged table cell:
@@ -729,24 +771,34 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		int posIndex = pos[di];
 		
+		if (posIndex == 0) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error removing "+entityName, "Cannot remove first "+entityName);
+			return;
+		}
+		
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		
-		// TODO
+		// FIRST: split up all merged cells that are "in the way"
 		List<TrpTableCellType> cells = table.getCells(di==0, GetCellsType.OVERLAP, posIndex);
-		
 		for (TrpTableCellType c : cells) {
 			CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
 			if (c.getSpan()[di] > 1) {
 				List<ShapeEditOperation> splitOps = splitMergedTableCell(qp, false);
-				if (splitOps != null)
+				if (splitOps != null) {
 					ops.addAll(splitOps);
+				}
 			}
 		}
 		
+		// SECOND: merge with next row or column for all cells of this row or column
 		cells = table.getCells(di==0, GetCellsType.OVERLAP, posIndex);
 		
-		List<ICanvasShape> mergedCells=new ArrayList<>();
+		List<ICanvasShape> mergedCells = new ArrayList<>(); // the list of merged cells
+		Set<String> done = new HashSet<>(); // a set of cell id's that were already merged
 		for (TrpTableCellType c : cells) {
+			if (done.contains(c.getId()))
+				continue;
+			
 //			CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
 			if (c.getSpan()[di] > 1) {
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "Multi span cell: "+c);
@@ -759,10 +811,15 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			if (nc.isEmpty())
 				continue;
 			
+			// determine list of shapes to merge -> get neighbor cell, then get cells from opposite side of that neighbor to determine which cells of the deleted row / column have to be merged with that neighbor
 			List<ICanvasShape> toMerge = new ArrayList<>();
-			toMerge.add((ICanvasShape) c.getData());
 			toMerge.add((ICanvasShape) nc.get(0).getData());
 			
+			for (TrpTableCellType c1 : nc.get(0).getNeighborCells((ni+2)%4)) {
+				toMerge.add((ICanvasShape) c1.getData());
+				done.add(c1.getId());
+			}
+						
 			ShapeEditOperation op = mergeSelectedTableCells(toMerge, true, false);
 			if (op == null)
 				throw new CanvasException("Could not merge with neighbor cell on row / column deletion: \n"+c);
@@ -770,34 +827,40 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			ops.add(op);
 			
 			mergedCells.add(op.getNewShapes().get(0));
-			
-			// correct span of merged cell
-			if (false) {
-			ICanvasShape mergedShape = op.getNewShapes().get(0);
-			TrpTableCellType mc = TableUtils.getTableCell(mergedShape); 
-			mc.setSpan(di, mc.getSpan()[di]-1);
-			}
-			
+
 //			ShapeEditOperation op = removeShapeFromCanvas(qp, false);
 //			if (op != null)
 //				ops.add(op);
 		}
 		
-		// correct span of merged cell
+		final List<TableCellUndoData> backup = new ArrayList<>();
+		
+		// correct span of merged cells
+		if (true)
 		for (ICanvasShape s : mergedCells) {
-			TrpTableCellType mc = TableUtils.getTableCell(s); 
+			TrpTableCellType mc = TableUtils.getTableCell(s);
+			backup.add(new TableCellUndoData(mc));
 			mc.setSpan(di, mc.getSpan()[di]-1);
 		}
 		
-		// correct row / col pos values for cells below / left of deleted row / col
+		// correct row / col pos values for cells after deleted row / col
 		if (true) {
 		for (TrpTableCellType c : table.getTrpTableCell()) {
+			backup.add(new TableCellUndoData(c));
 			int i = c.getPos()[di];
 			if (i > posIndex) {
 				c.setPos(di, c.getPos()[di]-1);
 			}
 		}
 		}
+		
+		// create custom edit operation to recover cell location values
+		ShapeEditOperation opC = new ShapeEditOperation(ShapeEditType.CUSTOM, "Deleted a table "+entityName) {
+			@Override protected void customUndoOperation() {
+				TableUtils.recoverTableCellValues(backup);
+			}
+		};
+		ops.add(0, opC); // add operation to front, s.t. undo will be performed at last
 		
 		if (addToUndoStack)
 			addToUndoStack(ops);
@@ -807,9 +870,9 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 	
 	
 	public List<ShapeEditOperation> splitMergedTableCell(ICanvasShape shape, boolean addToUndoStack) {
-		// warning: code below is hell on earth - don't fuck it up!
-		TrpTableCellType tc = TableUtils.getTableCell(shape);
+		// code below is hell on earth - don't fuck it up or the devil will haunt you!
 		
+		TrpTableCellType tc = TableUtils.getTableCell(shape);
 		logger.debug("splitting merged table cell!");
 		
 		if (tc==null) {
@@ -884,7 +947,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 						segPts.add(insertIndex, ip);
 
 						// insert new point into the shape:
-						ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", qpn);
+						ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", qpn);
 //						qpn.insertPointOnSide(ip.x, ip.y, so);
 						qpn.insertPointOnIndex(ip.x, ip.y, insertIndex4Shape);
 						ops.add(op);					
@@ -1027,12 +1090,13 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 					pts[i][j] = new Pt();
 					pts[i][j].a(ip);
 				} else {
-					throw new RuntimeException("No intersection found between lines: "+lr+" - "+lc);
+					throw new CanvasException("No intersection found between lines: "+lr+" - "+lc);
 				}
 			}
 		}
 		
 		// print pts:
+		if (false)
 		for (int i=0; i<tc.getRowSpan()+1; ++i) {
 			for (int j=0; j<tc.getColSpan()+1; ++j) {
 				Pt pt = pts[i][j];
@@ -1098,11 +1162,15 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 
 		// now remove the old cell
 		if (scene.removeShape(qp, true, true)) {
-			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.DELETE, "Merged cell shape removed", qp);
+			ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.DELETE, "Merged cell shape removed", qp);
 			ops.add(op);
 		}
 		
 		canvas.setMode(TrpCanvasAddMode.SELECTION);
+		
+		// create custom edit operation to display description correctly
+		ShapeEditOperation opC = new ShapeEditOperation(ShapeEditType.CUSTOM, "Splitted merged cell");
+		ops.add(0, opC); // add operation to front, s.t. undo will be performed at last
 		
 		if (addToUndoStack)
 			addToUndoStack(ops);

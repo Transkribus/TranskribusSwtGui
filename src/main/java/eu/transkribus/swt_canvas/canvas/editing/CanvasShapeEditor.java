@@ -284,7 +284,7 @@ public class CanvasShapeEditor {
 	}
 	
 	public void simplifySelected(double perc) {
-		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Polygon simplification", canvas.getScene().getSelectedAsNewArray());
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Polygon simplification", canvas.getScene().getSelectedAsNewArray());
 		
 		for (ICanvasShape s : op.getShapes()) {			
 			double d = s.getPoint(0).distance(s.getPoint(2));
@@ -350,7 +350,7 @@ public class CanvasShapeEditor {
 		}
 		logger.debug("actually removed shapes: "+removedShapes.size());
 		
-		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.DELETE, removedShapes.size()+" shapes removed", removedShapes);
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.DELETE, removedShapes.size()+" shapes removed", removedShapes);
 		
 		if (addToUndoStack)
 			addToUndoStack(op);
@@ -361,7 +361,7 @@ public class CanvasShapeEditor {
 	
 	protected ShapeEditOperation insertPointIntoShape(ICanvasShape shape, int x, int y) {
 		if (shape != null) {
-			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", shape);
+			ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", shape);
 			shape.insertPoint(x, y);
 			return op;
 		} else
@@ -374,7 +374,7 @@ public class CanvasShapeEditor {
 		ICanvasShape selected = canvas.getFirstSelected();
 		if (selected != null && selected.isEditable()) {
 			
-			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Added point to shape", selected);
+			ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", selected);
 			addToUndoStack(op);
 			return selected.insertPoint(mousePtWoTr.x, mousePtWoTr.y);
 		}
@@ -386,7 +386,7 @@ public class CanvasShapeEditor {
 		ICanvasShape selected = canvas.getFirstSelected();
 		if (selected!=null && selected.isEditable()) {
 			
-			ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Removed point from shape", selected);
+			ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Removed point from shape", selected);
 			addToUndoStack(op);
 			
 			if (!selected.removePoint(pointIndex)) {
@@ -402,7 +402,7 @@ public class CanvasShapeEditor {
 			Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
 			
 			if (firstMove) {
-				ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved point(s) of shape", selected);
+				ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved point(s) of shape", selected);
 				addToUndoStack(op);
 			}
 			
@@ -420,7 +420,7 @@ public class CanvasShapeEditor {
 			
 			logger.trace("moving bounding box trans: "+transWoTr.x+" x "+transWoTr.y);	
 			if (firstMove) {
-				currentMoveOp = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved bounding box of shape", selected);
+				currentMoveOp = new ShapeEditOperation(ShapeEditType.EDIT, "Moved bounding box of shape", selected);
 				addToUndoStack(currentMoveOp);
 			}
 			
@@ -456,7 +456,7 @@ public class CanvasShapeEditor {
 				logger.debug("moving subshapes!");
 				shapesToMove.addAll(selected.getChildren(true));
 			}
-			currentMoveOp = new ShapeEditOperation(canvas, ShapeEditType.EDIT, "Moved shape(s)", shapesToMove);
+			currentMoveOp = new ShapeEditOperation(ShapeEditType.EDIT, "Moved shape(s)", shapesToMove);
 		}
 		
 		// now move all shapes for the current move operation:

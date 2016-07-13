@@ -303,7 +303,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		
 		if (canvas.getScene().removeShape(selShape, true, true)) {
 			ShapeEditOperation opDel 
-				= new ShapeEditOperation(canvas, ShapeEditType.DELETE, "", selShape);
+				= new ShapeEditOperation(ShapeEditType.DELETE, "", selShape);
 			ops.add(opDel);
 		}
 		canvas.getShapeEditor().addToUndoStack(ops);

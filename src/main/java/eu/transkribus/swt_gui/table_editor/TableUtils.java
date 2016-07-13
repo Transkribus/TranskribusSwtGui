@@ -1,8 +1,7 @@
-package eu.transkribus.swt_gui.util;
+package eu.transkribus.swt_gui.table_editor;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -10,7 +9,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.exceptions.NotImplementedException;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
@@ -70,6 +68,33 @@ public class TableUtils {
 
 	}
 	
+	public static void recoverTableCellValues(TrpTableCellType cell, TableCellUndoData backup) {
+		cell.setRow(backup.row);
+		cell.setCol(backup.col);
+		cell.setRowSpan(backup.rowSpan);
+		cell.setColSpan(backup.colSpan);
+	}
+	
+	public static void recoverTableCellValues(/*TrpTableRegionType table, */List<TableCellUndoData> backup) {
+		logger.debug("backup = "+backup.size());
+		// TODO
+		if (backup==null || backup.isEmpty())
+			return;
+		
+		TrpTableRegionType table = backup.get(0).cell.getTable();
+		
+		for (TableCellUndoData b : backup) {
+			for (TrpTableCellType c : table.getTrpTableCell()) {
+				if (b.matches(c)) {
+//					logger.debug("match: "+c+" - "+b);
+					recoverTableCellValues(c, b);
+					
+					break;
+				}		
+			}
+		}
+	}
+		
 	public static boolean isTableCells(List<ICanvasShape> shapes) {
 		for (ICanvasShape s : shapes) {
 			if (getTableCell(s) == null)
