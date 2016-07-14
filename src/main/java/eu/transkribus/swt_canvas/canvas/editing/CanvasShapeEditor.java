@@ -76,20 +76,20 @@ public class CanvasShapeEditor {
 		
 		if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_LINE) {
 			if (drawnPoints.size() == 1) {
-				splitShape(canvas.getFirstSelected(), drawnPoints.get(0).x, drawnPoints.get(0).y, invPt.x,invPt.y, null, true);
+				splitShape(canvas.getFirstSelected(), drawnPoints.get(0).x, drawnPoints.get(0).y, invPt.x,invPt.y, true);
 				drawnPoints.clear();
 			} else {
 				// actually add point:
 				drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));			
 			}
 		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_VERTICAL) {
-			splitShape(canvas.getFirstSelected(), -1, invPt.y, 1, invPt.y, null, true);
+			splitShape(canvas.getFirstSelected(), -1, invPt.y, 1, invPt.y, true);
 		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
-			splitShape(canvas.getFirstSelected(), invPt.x, -1, invPt.x, 1, null, true);
+			splitShape(canvas.getFirstSelected(), invPt.x, -1, invPt.x, 1, true);
 		}
 	}
 	
-	public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, Object data, boolean addToUndoStack) {
+	public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, boolean addToUndoStack) {
 //		ICanvasShape selected = canvas.getFirstSelected();
 		if (shape == null) {
 			logger.warn("Cannot split - no shape selected!");
@@ -99,7 +99,7 @@ public class CanvasShapeEditor {
 		List<ICanvasShape> children = shape.getChildren(true); // get all children (recursively)!
 		List<ShapeEditOperation> splitOps = new ArrayList<>();
 				
-		ShapeEditOperation op = scene.splitShape(shape, x1, y1, x2, y2, true, null, null, false, data);
+		ShapeEditOperation op = scene.splitShape(shape, x1, y1, x2, y2, true, null, null, false);
 		if (op!=null) {
 			splitOps.add(op);
 		}
@@ -120,7 +120,7 @@ public class CanvasShapeEditor {
 			
 			// Try to split child shape using the parents that were just determined:
 			logger.debug("p1 / p2 = "+p1+" / "+p2);
-			ShapeEditOperation opChild = scene.splitShape(child, x1, y1, x2, y2, true, p1, p2, true, data);
+			ShapeEditOperation opChild = scene.splitShape(child, x1, y1, x2, y2, true, p1, p2, true);
 			if (opChild!=null) {
 				splitOps.add(opChild);
 			}

@@ -6,7 +6,6 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.part.EditorActionBarContributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,19 +14,19 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
-import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.CanvasTransform;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.transcription.LineEditor;
-import eu.transkribus.swt_gui.transcription.WordTagEditor;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.MathUtil;
 
@@ -308,23 +307,27 @@ public class TrpSWTCanvas extends SWTCanvas {
 		if (sel==null || (!force && !sel.isVisible())) {
 			return;
 		}
-		java.awt.Rectangle awtR = sel.getBounds();
+		java.awt.Rectangle focusBounds = sel.getBounds();
 		int offsetX = scene.getBounds().width / 15;
 		int offsetY = scene.getBounds().height / 15;
 		
 		// set some offset depending on focused shape:
-		if (sel.getData() instanceof RegionType) {
-			logger.debug("focus on region");
-			offsetX = 10;
-			offsetY = 10;
-		} else if (sel.getData() instanceof TrpTextLineType || sel.getData() instanceof TrpBaselineType) {
+		if (sel.getData() instanceof TrpTableCellType) { // focus on parent table for cells
+			if (sel.getParent() != null) {
+				offsetX = 10;
+				offsetY = 10;
+				focusBounds = sel.getParent().getBounds();
+			}
+		}
+		else if (sel.getData() instanceof TrpTextLineType || sel.getData() instanceof TrpBaselineType) {
 			logger.debug("focus on line/baseline");
 //			offsetX = 40;
 			offsetY = scene.getBounds().height / 15;
-		} else if (sel.getData() instanceof TrpWordType) {
+		}
+		else if (sel.getData() instanceof TrpWordType) {
 			logger.debug("focus on word");
 			if (sel.getParent()!=null) { // focus on parent (= line) if its there (which it should be)
-				awtR = sel.getParent().getBounds();
+				focusBounds = sel.getParent().getBounds();
 				offsetX = 10;
 				offsetY = scene.getBounds().height / 15;				
 			} else {
@@ -332,6 +335,11 @@ public class TrpSWTCanvas extends SWTCanvas {
 				offsetY = scene.getBounds().height / 15;
 			}
 		}
+		else if (sel.getData() instanceof RegionType) {
+			logger.debug("focus on region");
+			offsetX = 10;
+			offsetY = 10;
+		} 
 		
 		// correct angle:	
 		float angle = computeAngleOfLine(sel); // compute correction angle
@@ -340,7 +348,7 @@ public class TrpSWTCanvas extends SWTCanvas {
 			angle = 0.0f;
 		}
 			
-		Rectangle br = new Rectangle(awtR.x-offsetX, awtR.y-offsetY, awtR.width+2*offsetX, awtR.height+2*offsetY);	
+		Rectangle br = new Rectangle(focusBounds.x-offsetX, focusBounds.y-offsetY, focusBounds.width+2*offsetX, focusBounds.height+2*offsetY);	
 		focusBounds(br, true, settings.isDoTransition(), -(float)MathUtil.radToDeg(angle), settings.isLockZoomOnFocus());
 	}
 	

@@ -11,7 +11,7 @@ import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 
 public abstract class CanvasSceneListener implements EventListener {
-	static public enum SceneEventType {
+	public static enum SceneEventType {
 		BEFORE_UNDO, UNDO, BEFORE_ADD, ADD, BEFORE_REMOVE, REMOVE, BEFORE_MOVE, MOVE, SELECTION_CHANGED,
 		BEFORE_SPLIT, AFTER_SPLIT, SPLIT, BEFORE_MERGE, MERGE, READING_ORDER_CHANGED
 	}

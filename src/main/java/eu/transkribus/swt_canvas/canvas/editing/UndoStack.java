@@ -3,8 +3,10 @@ package eu.transkribus.swt_canvas.canvas.editing;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,14 +73,9 @@ public class UndoStack extends Observable {
 			
 			logger.debug("nr of ops to undo: "+opsToUndo.size());
 			for (int i=opsToUndo.size()-1; i>=0; --i) { // undo all operations in reverse order!
-//				ShapeEditOperation op = undoStack.pop();
 				ShapeEditOperation op = opsToUndo.get(i);
-			
-				this.setChanged();
-				this.notifyObservers(BEFORE_UNDO);
 				undo(op);
-				this.setChanged();
-				this.notifyObservers(AFTER_UNDO);
+
 				logger.debug("Undone operation, stack size: "+undoStack.size());				
 			}
 		}
@@ -110,29 +107,39 @@ public class UndoStack extends Observable {
 	}
 	
 	protected void undo(ShapeEditOperation op) {
+		
+		// TESTING: first, undo nested operations
+		Iterator<ShapeEditOperation> itNested = op.getNestedOpsDescendingIterator();
+		while (itNested.hasNext()) {
+			undo(itNested.next());
+		}
+
+		setChangedAndNotifyObservers(BEFORE_UNDO);				
 		switch (op.getType()) {
-		case EDIT:
-			undoEdit(op);
-			break;
-		case ADD:
-			undoAdd(op);
-			break;
-		case DELETE:
-			undoDelete(op);
-			break;
-		case SPLIT:
-			undoSplit(op);
-			break;
-		case MERGE:
-			undoMerge(op);
-			break;
-		case CUSTOM:
-			break;
-		default:
-			break;
+			case EDIT:
+				undoEdit(op);
+				break;
+			case ADD:
+				undoAdd(op);
+				break;
+			case DELETE:
+				undoDelete(op);
+				break;
+			case SPLIT:
+				undoSplit(op);
+				break;
+			case MERGE:
+				undoMerge(op);
+				break;
+			case CUSTOM:
+				break;
+			default:
+				break;
 		}
 		
-		op.customUndoOperation();
+		op.customUndoOperation(); // always perform custom undo method at the end
+		
+		setChangedAndNotifyObservers(AFTER_UNDO);
 	}
 	
 	protected void undoEdit(ShapeEditOperation op) {
@@ -278,11 +285,11 @@ public class UndoStack extends Observable {
 		canvas.getScene().notifyOnUndo(op);
 		canvas.redraw();
 	}
-
 	
-	
-	
-	
+	protected void setChangedAndNotifyObservers(Object arg) {
+		this.setChanged();
+		this.notifyObservers(arg);
+	}
 	
 
 }

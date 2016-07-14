@@ -17,12 +17,12 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComp
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
+import eu.transkribus.swt_canvas.canvas.CanvasException;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
@@ -51,7 +51,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		ICanvasShape shape = e.getFirstShape();
 		try {
 			if (shape==null)
-				throw new Exception("No shape to add - should not happen...");
+				throw new CanvasException("Shape is null in onBeforeShapeAdded method - should not happen...");
 							
 			// add element to JAXB:
 			CanvasMode mode = mw.getCanvas().getMode();
@@ -343,7 +343,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				childSt.setParent(origSt);
 				mw.getCanvasShapeObserver().addShapeToObserve(s);
 				childSt.reInsertIntoParent();
-				mw.getScene().updateParentInfo(s, false);	
+//				mw.getScene().updateParentInfo(s, false);	
 			}
 			
 //			mainWidget.getScene().updateAllShapesParentInfo();
@@ -380,7 +380,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				//preserve the old reading order
 				Integer ro = st.getReadingOrder();
 				st.reInsertIntoParent(ro==null ? -1 : ro);
-				mw.getScene().updateParentInfo(s, false);	
+//				mw.getScene().updateParentInfo(s, false);	
 			}
 			
 			mw.getScene().updateAllShapesParentInfo();

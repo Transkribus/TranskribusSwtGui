@@ -11,8 +11,10 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType.GetCellsType;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
 
 public class TableUtils {
 	private final static Logger logger = LoggerFactory.getLogger(TableUtils.class);
@@ -68,33 +70,6 @@ public class TableUtils {
 
 	}
 	
-	public static void recoverTableCellValues(TrpTableCellType cell, TableCellUndoData backup) {
-		cell.setRow(backup.row);
-		cell.setCol(backup.col);
-		cell.setRowSpan(backup.rowSpan);
-		cell.setColSpan(backup.colSpan);
-	}
-	
-	public static void recoverTableCellValues(/*TrpTableRegionType table, */List<TableCellUndoData> backup) {
-		logger.debug("backup = "+backup.size());
-		// TODO
-		if (backup==null || backup.isEmpty())
-			return;
-		
-		TrpTableRegionType table = backup.get(0).cell.getTable();
-		
-		for (TableCellUndoData b : backup) {
-			for (TrpTableCellType c : table.getTrpTableCell()) {
-				if (b.matches(c)) {
-//					logger.debug("match: "+c+" - "+b);
-					recoverTableCellValues(c, b);
-					
-					break;
-				}		
-			}
-		}
-	}
-		
 	public static boolean isTableCells(List<ICanvasShape> shapes) {
 		for (ICanvasShape s : shapes) {
 			if (getTableCell(s) == null)
@@ -167,6 +142,53 @@ public class TableUtils {
 		if (!missing.isEmpty() || !overlapping.isEmpty()) {
 			throw new TrpTableCellsMissingException("Table cells not consistent!", missing, overlapping);
 		}
+	}
+	
+	public static Pair<SplitDirection, List<TrpTableCellType>> getSplittableCells(int x1, int y1, int x2, int y2, TrpTableRegionType table) {
+		if (table == null)
+			return null;
+		
+		Pair<Integer, Integer> dims = table.getDimensions();
+		
+		int nRows = dims.getLeft();
+		int nCols = dims.getRight();
+		
+		List<TrpTableCellType> splittableCells=null;
+		SplitDirection dir = null;
+		for (int j=0; j<2; ++j) {
+			int N = j==0 ? nRows : nCols;
+			
+			for (int i=0; i<N; ++i) {
+				List<TrpTableCellType> cells = table.getCells(j==0, GetCellsType.START_INDEX, i);
+				dir = j==0 ? SplitDirection.VERTICAL : SplitDirection.HORIZONAL;
+				
+				logger.debug("cells i = "+i+" first cell: "+cells.get(0));
+				
+				for (TrpTableCellType c : cells) {
+					CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
+					
+					if (qp.computeSplitPoints(x1, y1, x2, y2, true, dir) == null) {
+						logger.debug("cells not splittable in dir = "+dir);
+						cells = null;
+						break;
+					}
+				}
+				
+				if (cells != null) {
+					splittableCells = cells;
+					break;				
+				}
+			}
+			
+			if (splittableCells != null) {
+				break;				
+			}
+		}
+		
+		if (splittableCells == null)
+			return null;
+		else
+			return Pair.of(dir, splittableCells);
 	}
 
 	

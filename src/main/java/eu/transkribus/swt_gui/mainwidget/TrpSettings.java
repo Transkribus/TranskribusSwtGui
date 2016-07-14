@@ -134,7 +134,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	private Color colorTables = Colors.getSystemColor(SWT.COLOR_DARK_YELLOW);
 	public static final String COLOR_TABLES_PROPERTY = "colorTables";
 	
-	private Color colorTableCells = Colors.getSystemColor(SWT.COLOR_CYAN);
+	private Color colorTableCells = Colors.getSystemColor(SWT.COLOR_DARK_GREEN);
 	public static final String COLOR_TABLE_CELLS_PROPERTY = "colorTableCells";
 	
 	// font in transcription window:
@@ -600,10 +600,13 @@ public class TrpSettings extends APropertyChangeSupport {
 	}
 
 	public static Color determineColor(TrpSettings sets, Object wrappedData) {
+		if (wrappedData instanceof TableCellType) {
+			return sets.colorTableCells;
+		}
 		if (wrappedData instanceof PrintSpaceType) {
 			return sets.colorPrintSpace;
 		}
-		else if (wrappedData instanceof RegionType) {
+		if (wrappedData instanceof RegionType) {
 			if (wrappedData instanceof TrpTextRegionType)
 				return sets.colorTextRegions;
 			else if (wrappedData instanceof TableRegionType)
@@ -617,21 +620,17 @@ public class TrpSettings extends APropertyChangeSupport {
 				return Colors.getSystemColor(SWT.COLOR_DARK_CYAN);				
 			}
 		}
-		else if (wrappedData instanceof TextLineType) {
+		if (wrappedData instanceof TextLineType) {
 			return sets.colorLines;
 		}
-		else if (wrappedData instanceof BaselineType) {
+		if (wrappedData instanceof BaselineType) {
 			return sets.colorBaselines;
 		}
-		else if (wrappedData instanceof WordType) {
+		if (wrappedData instanceof WordType) {
 			return sets.colorWords;
 		}
-		else if (wrappedData instanceof TableCellType) {
-			return sets.colorTableCells;
-		}
-		else
-			return Colors.getSystemColor(SWT.COLOR_BLACK);	
 		
+		return Colors.getSystemColor(SWT.COLOR_BLACK);	
 	}
 
 	public int getImageCacheSize() {
