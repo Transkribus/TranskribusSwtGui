@@ -37,7 +37,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.TableCellUndoData;
 import eu.transkribus.swt_gui.table_editor.TableShapeEditOperation;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
-import javassist.bytecode.Descriptor.Iterator;
+import eu.transkribus.swt_gui.table_editor.TableUtils.SplittableCellsStruct;
 import math.geom2d.Point2D;
 import math.geom2d.Vector2D;
 import math.geom2d.line.Line2D;
@@ -101,39 +101,49 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 
 	private List<ShapeEditOperation> splitTrpTableType(int x1, int y1, int x2, int y2, TrpTableRegionType table, boolean addToUndoStack) {
 		// search for row / col cells to split:
-		Pair<SplitDirection, List<TrpTableCellType>> splittableCells = TableUtils.getSplittableCells(x1, y1, x2, y2, table);
+//		Pair<SplitDirection, List<TrpTableCellType>> splittableCells = TableUtils.getSplittableCells(x1, y1, x2, y2, table);
+		SplittableCellsStruct splittableCells = TableUtils.getSplittableCells(x1, y1, x2, y2, table);
 		if (splittableCells == null) {
 			logger.debug("cells not splittable in this direction!");
 			return null;
 		}
 		
-		SplitDirection dir = splittableCells.getLeft();
+		SplitDirection dir = splittableCells.dir;
+		int pi = dir==SplitDirection.VERTICAL?0:1;
 		String entityName = dir==SplitDirection.HORIZONAL?"column":"row";
 
 		TableShapeEditOperation splitOp = new TableShapeEditOperation("Added a new table "+entityName);
 		
-		logger.debug("n-splittableCells: "+splittableCells.getRight().size());
+		logger.debug("n-splittableCells: "+splittableCells.cells.size());
 		// FIXME??ß
 		
 //		List<ShapeEditOperation> splitOps = new ArrayList<>();
 		
-		for (TrpTableCellType c : splittableCells.getRight()) {
+//		List<TrpTableCellType> multiSpanCells = new ArrayList<>();
+		for (TrpTableCellType c : splittableCells.cells) {
+//			if (c.getSpan()[pi]>1) {
+//				c.setSpan(pi, c.getSpan()[pi]+1);
+//			} 
+//			else {
+//				List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), x1, y1, x2, y2, false);
+//				splitOp.addNestedOps(splitOps4Cell);
+//			}
+			
 			List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), x1, y1, x2, y2, false);
 			splitOp.addNestedOps(splitOps4Cell);
 			splitOp.addCellBackup(c);
-			
 //			splitOps.addAll(splitOps4Cell);
 		}
 				
 		// adjust indexes on table:
 //		final List<TableCellUndoData> backup = new ArrayList<>();
-		int insertIndex = dir==SplitDirection.HORIZONAL ? splittableCells.getRight().get(0).getCol() : splittableCells.getRight().get(0).getRow();
+//		int insertIndex = dir==SplitDirection.HORIZONAL ? splittableCells.getRight().get(0).getCol() : splittableCells.getRight().get(0).getRow();
+		int insertIndex = splittableCells.index;
 //		boolean isRowInserted = dir==SplitDirection.VERTICAL;
 		
 //		table.adjustCellIndexesOnRowOrColInsert(insertIndex, isRowInserted);
 		
 		java.util.Iterator<ShapeEditOperation> it = splitOp.getNestedOpsDescendingIterator();
-		int pi = dir==SplitDirection.VERTICAL?0:1;
 		
 		while (it.hasNext()) {
 //		for (ShapeEditOperation op : splitOp.getNestedOpsDescendingIterator()) {
@@ -149,10 +159,15 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			TrpTableCellType tc2 = (TrpTableCellType) op.getNewShapes().get(1).getData();
 			
 			// set span to 1 for left / upper part of splitted cell:
-			tc1.setSpan(pi, 1);
+			int diff = 0;
+			if (tc1.getPos()[pi] < insertIndex)
+				diff = insertIndex-tc1.getPos()[pi];
+			
+			tc1.setSpan(pi, 1+diff);
 			
 			// set position to -1 for right / lower part of splitted cell (to correct it below!)
 			tc2.setPos(pi, -1);
+			tc2.setSpan(pi, tc2.getSpan()[pi]-diff);
 			
 //			splitOp.addCellBackup(tc2);
 			logger.trace("tc2 = "+tc2);
@@ -165,6 +180,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 //			op.data = splittableCells.getLeft();
 		}
 		
+		// correct position values 
 		for (TrpTableCellType tc : table.getTrpTableCell()) {
 			logger.trace("tc: "+tc);
 			
@@ -290,32 +306,52 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		List<TrpTableCellType> cells = tc.getTable().getCells(rowwise, startIndex?GetCellsType.START_INDEX:GetCellsType.END_INDEX, index);
 //		List<TrpTableCellType> cells = tc.getTable().getCells(rowwise, GetCellsType.OVERLAP, index);
+		
+		Set<String> done = new HashSet<>(); // stores cell/pt combinations already moved
 		for (TrpTableCellType c : cells) {
 			CanvasQuadPolygon s = (CanvasQuadPolygon) c.getData();
-			
+
 			// first, move all common points of neighbors too
 			for (TrpTableCellType n : c.getNeighborCells()) {
 				CanvasQuadPolygon ns = (CanvasQuadPolygon) n.getData();
 				
+				ShapeEditOperation op = null;
+				if (firstMove) {
+					op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved table "+entityName+" points", ns);
+				}			
+				
+				int ptsMovedCounter=0;
 				for (java.awt.Point pt : s.getPointsOfSegment(side, true)) {
 					int i = ns.getPointIndex(pt.x, pt.y);
 					if (i != -1) {
-						if (firstMove) {
-							ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved table "+entityName+" points", ns);					
-							ops.add(op);
+						if (done.add(n.getId()+"_"+i)) {
+							ns.movePoint(i, pt.x+trans.x, pt.y+trans.y);
+							++ptsMovedCounter;
 						}
-						ns.movePoint(i, pt.x+trans.x, pt.y+trans.y);
 					}
+				}
+				
+				if (firstMove && op!=null && ptsMovedCounter>0) {
+					ops.add(op);
 				}
 			}
 			
+			// now, move all points of that side (if not already moved!)
 			if (firstMove) {
 				ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved table "+entityName+" points", s);					
 				ops.add(op);
 			}
-			// move all points of that side
-			s.translatePointsOfSide(side, trans.x, trans.y);
+
+			for (java.awt.Point pt : s.getPointsOfSegment(side, true)) {
+				int i = s.getPointIndex(pt.x, pt.y);
+				if (i != -1) {
+					if (done.add(c.getId()+"_"+i)) {
+						s.movePoint(s.getPointIndex(pt.x, pt.y), pt.x+trans.x, pt.y+trans.y);
+					}
+				}
+			}
 			
+			// OLD AND DEPRECATED:
 //			// now also move all points of the neighbor side
 //			if (false)
 //			for (TrpTableCellType neighbor : c.getNeighborCells(side)) {			

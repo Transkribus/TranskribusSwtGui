@@ -144,22 +144,30 @@ public class TableUtils {
 		}
 	}
 	
-	public static Pair<SplitDirection, List<TrpTableCellType>> getSplittableCells(int x1, int y1, int x2, int y2, TrpTableRegionType table) {
+	public static class SplittableCellsStruct {
+		public SplitDirection dir=null;
+		public int index=-1;
+		public List<TrpTableCellType> cells=null;
+	}
+	
+	public static SplittableCellsStruct getSplittableCells(int x1, int y1, int x2, int y2, TrpTableRegionType table) {
 		if (table == null)
 			return null;
+		
+		SplittableCellsStruct res = new SplittableCellsStruct();
 		
 		Pair<Integer, Integer> dims = table.getDimensions();
 		
 		int nRows = dims.getLeft();
 		int nCols = dims.getRight();
 		
-		List<TrpTableCellType> splittableCells=null;
-		SplitDirection dir = null;
-		for (int j=0; j<2; ++j) {
+//		List<TrpTableCellType> splittableCells=null;
+		SplitDirection dir = null;		
+		for (int j=0; j<2 && res.index==-1; ++j) {
 			int N = j==0 ? nRows : nCols;
 			
 			for (int i=0; i<N; ++i) {
-				List<TrpTableCellType> cells = table.getCells(j==0, GetCellsType.START_INDEX, i);
+				List<TrpTableCellType> cells = table.getCells(j==0, GetCellsType.OVERLAP, i);
 				dir = j==0 ? SplitDirection.VERTICAL : SplitDirection.HORIZONAL;
 				
 				logger.debug("cells i = "+i+" first cell: "+cells.get(0));
@@ -174,21 +182,23 @@ public class TableUtils {
 					}
 				}
 				
-				if (cells != null) {
-					splittableCells = cells;
-					break;				
+				if (cells != null) {				
+					res.index = i;
+					res.cells = cells;
+					res.dir = dir;
+					
+					break;	
 				}
-			}
-			
-			if (splittableCells != null) {
-				break;				
 			}
 		}
 		
-		if (splittableCells == null)
+		if (res.index == -1)
 			return null;
-		else
-			return Pair.of(dir, splittableCells);
+		else {
+			return res;
+//			return Pair.of(dir, splittableCells);
+		}
+			
 	}
 
 	

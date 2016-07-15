@@ -133,7 +133,7 @@ public class CanvasShapeEditor {
 		
 		scene.notifyOnAfterShapeSplitted(op);
 		
-		if (addToUndoStack && !splitOps.isEmpty())
+		if (addToUndoStack)
 			addToUndoStack(splitOps);
 		
 		return splitOps;
