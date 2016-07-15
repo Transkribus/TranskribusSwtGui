@@ -682,8 +682,9 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		scene.clearSelected();
 		
 		for (ICanvasShape s : shapes) {
-			scene.removeShape(s, true, true);
+			scene.removeShape(s, false, false);
 			for (ICanvasShape child : s.getChildren(false)) {
+				logger.debug("adding child: "+child);
 				mergedShape.addChild(child);
 			}
 		}
