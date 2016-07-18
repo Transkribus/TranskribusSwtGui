@@ -287,7 +287,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 			else if (canvas.getMode()==CanvasMode.MOVE_SHAPE && isLagThresh) {
 				Point trans = getTotalTranslation(mousePt, settings.getSelectMouseButton());
 				if (trans != null) {
-					canvas.getShapeEditor().moveSelected(trans.x, trans.y, firstMove);
+					canvas.getShapeEditor().moveShape(canvas.getFirstSelected(), trans.x, trans.y, firstMove, true);
 					if (firstMove)
 						firstMove = false;
 					hasMouseMoved=true;

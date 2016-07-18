@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -32,6 +33,7 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
+import eu.transkribus.swt_canvas.util.CanvasTransform;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.TableCellUndoData;
@@ -539,15 +541,87 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 	}
 	
-	@Override public void moveSelected(int mouseTrX, int mouseTrY, boolean firstMove) {
-		ICanvasShape selected = canvas.getFirstSelected();
-		if (selected != null && selected.isEditable()) {
-			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
+	private void moveTableCell(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove) {
+		
+		// invert transform:
+		CanvasTransform tr = canvas.getTransformCopy();
+		tr.setTranslation(0, 0);
+		tr.invert();
+		Point transWoTr = tr.transform(new Point(mouseTrX, mouseTrY));
+		tr.dispose();
+		
+		logger.debug("t = "+transWoTr);
+		
+		TrpTableCellType cell = TableUtils.getTableCell(shape);
+		if (cell == null)
+			return;
+		
+		CanvasQuadPolygon qp = (CanvasQuadPolygon) cell.getData();
+		
+		List<ShapeEditOperation> ops = new ArrayList<>();
+		
+		if (firstMove) {
+			for (java.awt.Point p : qp.getPoints()) {
+				List<Pair<Integer, TrpTableCellType>> pon = cell.getPointsOnNeighborCells(p.x, p.y);
+//				logger.debug("pon.size() = "+pon.size());
+				
+				for (Pair<Integer, TrpTableCellType> ponc : pon) {
+					CanvasQuadPolygon qpn = (CanvasQuadPolygon) ponc.getRight().getData();
+					
+					java.awt.Point origPt = null;
+					if (firstMove) {
+						origPt = qpn.getPoint(ponc.getLeft());
+					} else {
+						
+						
+					}
+					
+					// TODO: move this point too
+					
+					qpn.movePoint(ponc.getLeft(), p.x+transWoTr.x, p.y+transWoTr.y);
+					
+					ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "moved neighbor points", qpn);
+					ops.add(op);
+				}
+			}
+		}
+		else {
+			Iterator<ShapeEditOperation> it = currentMoveOp.getNestedOpsDescendingIterator();
+			while (it.hasNext()) {
+				CanvasQuadPolygon qpn = (CanvasQuadPolygon) it.next().getShapes().get(0);
+				
+				java.awt.Point bp = qpn.
+				
+				qpn.movePoint(index, x, y)
+				
+				
+			}
+			
+			
+			
+		}		
+		
+		
+		super.moveShape(shape, mouseTrX, mouseTrY, firstMove, false);
+		if (firstMove) {
+			currentMoveOp.addNestedOps(ops);
+		}
+		
+
+			
+	}
+	
+	@Override public void moveShape(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove, boolean addToUndoStack) {
+//		ICanvasShape selected = canvas.getFirstSelected();
+		if (shape != null && shape.isEditable()) {
+			if (shape.getData() instanceof TrpTableCellType && shape instanceof CanvasQuadPolygon) {
 				// PREVENT RESIZING BOUNDING BOX FOR TABLE CELLS
 				// TODO? allow resizing on outside -> should trigger resize of whole table region!
+//				super.moveSelected(mouseTrX, mouseTrY, firstMove);
+				moveTableCell(shape, mouseTrX, mouseTrY, firstMove);
 			} 
 			else {
-				super.moveSelected(mouseTrX, mouseTrY, firstMove);
+				super.moveShape(shape, mouseTrX, mouseTrY, firstMove, addToUndoStack);
 			}
 		}
 	}

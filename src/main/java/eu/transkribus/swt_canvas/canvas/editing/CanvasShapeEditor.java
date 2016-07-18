@@ -39,11 +39,11 @@ public class CanvasShapeEditor {
 	protected List<ICanvasShape> drawnShapes = new ArrayList<>();
 	protected List<java.awt.Point> drawnPoints = new ArrayList<>();
 	
-	ShapeEditOperation currentMoveOp = null;
+	protected ShapeEditOperation currentMoveOp = null;
 	
-	ICanvasShape backupShape;
+	protected ICanvasShape backupShape;
 
-	private boolean stopPostProcess=false;
+	protected boolean stopPostProcess=false;
 	
 	public CanvasShapeEditor(SWTCanvas canvas) {
 		Assert.assertNotNull(canvas);
@@ -435,9 +435,9 @@ public class CanvasShapeEditor {
 	/** Translate the selection object by the given coordinates. The translation is always given as the \emph{total}
 	 * translation for a current move operation so that rounding errors are minimized! 
 	 * **/
-	public void moveSelected(int mouseTrX, int mouseTrY, boolean firstMove) {
-		ICanvasShape selected = canvas.getFirstSelected();
-		if (selected == null)
+	public void moveShape(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove, boolean addToUndoStack) {
+//		ICanvasShape selected = canvas.getFirstSelected();
+		if (shape == null)
 			return;
 
 		// invert transform:
@@ -450,11 +450,11 @@ public class CanvasShapeEditor {
 		// if first move --> determine shapes to move
 		if (firstMove || currentMoveOp==null) {
 			List<ICanvasShape> shapesToMove = new ArrayList<>();
-			shapesToMove.add(selected);
+			shapesToMove.add(shape);
 			// move subshapes if required key down:
 			if (CanvasKeys.isKeyDown(canvas.getKeyListener().getCurrentStateMask(), CanvasKeys.MOVE_SUBSHAPES_REQUIRED_KEY)) {
 				logger.debug("moving subshapes!");
-				shapesToMove.addAll(selected.getChildren(true));
+				shapesToMove.addAll(shape.getChildren(true));
 			}
 			currentMoveOp = new ShapeEditOperation(ShapeEditType.EDIT, "Moved shape(s)", shapesToMove);
 		}
@@ -478,7 +478,7 @@ public class CanvasShapeEditor {
 			}
 		}
 		
-		if (movedFirst && firstMove && currentMoveOp!=null) {
+		if (addToUndoStack && movedFirst && firstMove && currentMoveOp!=null) {
 			addToUndoStack(currentMoveOp);
 		}
 	}
