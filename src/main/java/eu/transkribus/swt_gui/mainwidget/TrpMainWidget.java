@@ -2490,7 +2490,7 @@ public class TrpMainWidget {
 				if (exportDiag.isMetsExport())
 					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), fileNamePattern);
 				if (exportDiag.isPdfExport())
-					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
+					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
 				if (exportDiag.isTeiExport())
 					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag);
 				if (exportDiag.isDocxExport())
@@ -2540,7 +2540,7 @@ public class TrpMainWidget {
 
 			if (doPdfExport) {
 
-				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
+				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -2877,7 +2877,7 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	public void exportPdf(final File dir, final Set<Integer> pageIndices, final boolean extraTextPages, final Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle) throws Throwable {
+	public void exportPdf(final File dir, final Set<Integer> pageIndices, final boolean extraTextPages, final boolean imagesOnly, final Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle) throws Throwable {
 		try {
 			if (dir == null)
 				return;
@@ -2892,7 +2892,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating PDF document...");
-						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, selectedTags, highlightTags, wordBased, doBlackening, createTitle);
+						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, selectedTags, highlightTags, wordBased, doBlackening, createTitle);
 						monitor.done();
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());

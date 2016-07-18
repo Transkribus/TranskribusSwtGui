@@ -82,6 +82,10 @@ public class CommonExportDialog extends Dialog {
 	String fileNamePattern = "${filename}";
 	Button addExtraTextPagesBtn;
 	boolean addExtraTextPages2PDF;
+	Button imagesOnlyBtn;
+	boolean exportImagesOnly;
+	Button imagesPlusTextBtn;
+	boolean exportImagesPlusText;
 	Button highlightTagsBtn;
 	boolean highlightTags;
 	CTabFolder tabFolder;
@@ -612,11 +616,50 @@ public class CommonExportDialog extends Dialog {
 		pdfComposite.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, true, 1, 1));
 		pdfComposite.setLayout(new GridLayout(1, true));
 		
+	    imagesPlusTextBtn = new Button(pdfComposite, SWT.CHECK);
+	    imagesPlusTextBtn.setText("Images plus text layer");
+	    imagesPlusTextBtn.setToolTipText("The transcribed text will be added to the PDF under each image");
+	    imagesPlusTextBtn.setSelection(true);
+	    setExportImagesPlusText(true);
+	    imagesPlusTextBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setExportImagesPlusText(imagesPlusTextBtn.getSelection());
+				if (imagesPlusTextBtn.getSelection()){
+					setExportImagesOnly(false);
+					imagesOnlyBtn.setSelection(false);
+				}
+				else {
+					setExportImagesPlusText(true);
+					imagesPlusTextBtn.setSelection(true);
+				}
+			}
+			
+		});
+	    
+	    imagesOnlyBtn = new Button(pdfComposite, SWT.CHECK);
+	    imagesOnlyBtn.setText("Images only");
+	    imagesOnlyBtn.setToolTipText("Only the images get exported to PDF");
+	    //imagesOnlyBtn.setSelection(true);
+	    imagesOnlyBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setExportImagesOnly(imagesOnlyBtn.getSelection());
+				if (imagesOnlyBtn.getSelection()){
+					setExportImagesPlusText(false);
+					imagesPlusTextBtn.setSelection(false);
+				}
+				else{
+					if (!isExportImagesPlusText()){
+						setExportImagesPlusText(true);
+						imagesPlusTextBtn.setSelection(true);
+					}
+				}
+			}
+		});
+	    
 	    addExtraTextPagesBtn = new Button(pdfComposite, SWT.CHECK);
-	    addExtraTextPagesBtn.setText("PDF: extra text pages");
+	    addExtraTextPagesBtn.setText("Extra text pages");
 	    addExtraTextPagesBtn.setToolTipText("The transcribed text will be added to the PDF as extra page after each image");
-	    addExtraTextPagesBtn.setSelection(true);
-	    setAddExtraTextPages2PDF(true);
+	    //addExtraTextPagesBtn.setSelection(true);
 	    addExtraTextPagesBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				setAddExtraTextPages2PDF(addExtraTextPagesBtn.getSelection());
@@ -754,13 +797,18 @@ public class CommonExportDialog extends Dialog {
 
 		keepAbbrevBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				setExpandAbbrevs(keepAbbrevBtn.getSelection());
+				setKeepAbbreviations(keepAbbrevBtn.getSelection());
 				//only one of the abbreviation possibilities can be chosen
 				if (keepAbbrevBtn.getSelection()){
 					setSubstituteAbbreviations(false);
 					substituteAbbrevBtn.setSelection(false);
 					setExpandAbbrevs(false);
 					expandAbbrevBtn.setSelection(false);
+				}
+				//keep abbrevs as they are as default if no other option is selected
+				else if (!substituteAbbrevBtn.getSelection() && !expandAbbrevBtn.getSelection()){
+					setKeepAbbreviations(true);
+					keepAbbrevBtn.setSelection(true);
 				}
 			}
 		});
@@ -1078,6 +1126,22 @@ public class CommonExportDialog extends Dialog {
 
 	public void setKeepAbbreviations(boolean keepAbbreviations) {
 		this.keepAbbreviations = keepAbbreviations;
+	}
+
+	public boolean isExportImagesOnly() {
+		return exportImagesOnly;
+	}
+
+	public void setExportImagesOnly(boolean exportImagesOnly) {
+		this.exportImagesOnly = exportImagesOnly;
+	}
+
+	public boolean isExportImagesPlusText() {
+		return exportImagesPlusText;
+	}
+
+	public void setExportImagesPlusText(boolean exportImagesPlusText) {
+		this.exportImagesPlusText = exportImagesPlusText;
 	}
 
 
