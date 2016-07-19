@@ -1544,7 +1544,7 @@ public class Storage extends Observable {
 		return path;
 	}
 
-	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle) throws MalformedURLException, DocumentException,
+	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, final boolean imagesOnly, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle) throws MalformedURLException, DocumentException,
 			IOException, JAXBException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
@@ -1583,7 +1583,7 @@ public class Storage extends Observable {
 		pdfExp.addObserver(o);
 		
 		
-		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, extraTextPages, selectedTags, highlightTags, wordBased, doBlackening, createTitle);
+		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, extraTextPages, imagesOnly, selectedTags, highlightTags, wordBased, doBlackening, createTitle);
 
 		return pdf.getAbsolutePath();
 	}

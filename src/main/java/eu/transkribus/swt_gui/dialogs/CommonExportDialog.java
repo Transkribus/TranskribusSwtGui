@@ -61,8 +61,12 @@ public class CommonExportDialog extends Dialog {
 	boolean preserveLinebreaks = false;
 	Button markUnclearWordsBtn;
 	boolean markUnclearWords = false;
+	Button keepAbbrevBtn;
+	boolean keepAbbreviations = false;
 	Button expandAbbrevBtn;
 	boolean expandAbbreviations = false;
+	Button substituteAbbrevBtn;
+	boolean substituteAbbreviations = false;
 	
 	Button noZonesRadio;
 	Button zonePerParRadio;
@@ -78,6 +82,10 @@ public class CommonExportDialog extends Dialog {
 	String fileNamePattern = "${filename}";
 	Button addExtraTextPagesBtn;
 	boolean addExtraTextPages2PDF;
+	Button imagesOnlyBtn;
+	boolean exportImagesOnly;
+	Button imagesPlusTextBtn;
+	boolean exportImagesPlusText;
 	Button highlightTagsBtn;
 	boolean highlightTags;
 	CTabFolder tabFolder;
@@ -608,11 +616,50 @@ public class CommonExportDialog extends Dialog {
 		pdfComposite.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, true, 1, 1));
 		pdfComposite.setLayout(new GridLayout(1, true));
 		
+	    imagesPlusTextBtn = new Button(pdfComposite, SWT.CHECK);
+	    imagesPlusTextBtn.setText("Images plus text layer");
+	    imagesPlusTextBtn.setToolTipText("The transcribed text will be added to the PDF under each image");
+	    imagesPlusTextBtn.setSelection(true);
+	    setExportImagesPlusText(true);
+	    imagesPlusTextBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setExportImagesPlusText(imagesPlusTextBtn.getSelection());
+				if (imagesPlusTextBtn.getSelection()){
+					setExportImagesOnly(false);
+					imagesOnlyBtn.setSelection(false);
+				}
+				else {
+					setExportImagesPlusText(true);
+					imagesPlusTextBtn.setSelection(true);
+				}
+			}
+			
+		});
+	    
+	    imagesOnlyBtn = new Button(pdfComposite, SWT.CHECK);
+	    imagesOnlyBtn.setText("Images only");
+	    imagesOnlyBtn.setToolTipText("Only the images get exported to PDF");
+	    //imagesOnlyBtn.setSelection(true);
+	    imagesOnlyBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setExportImagesOnly(imagesOnlyBtn.getSelection());
+				if (imagesOnlyBtn.getSelection()){
+					setExportImagesPlusText(false);
+					imagesPlusTextBtn.setSelection(false);
+				}
+				else{
+					if (!isExportImagesPlusText()){
+						setExportImagesPlusText(true);
+						imagesPlusTextBtn.setSelection(true);
+					}
+				}
+			}
+		});
+	    
 	    addExtraTextPagesBtn = new Button(pdfComposite, SWT.CHECK);
-	    addExtraTextPagesBtn.setText("PDF: extra text pages");
+	    addExtraTextPagesBtn.setText("Extra text pages");
 	    addExtraTextPagesBtn.setToolTipText("The transcribed text will be added to the PDF as extra page after each image");
-	    addExtraTextPagesBtn.setSelection(true);
-	    setAddExtraTextPages2PDF(true);
+	    //addExtraTextPagesBtn.setSelection(true);
 	    addExtraTextPagesBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				setAddExtraTextPages2PDF(addExtraTextPagesBtn.getSelection());
@@ -705,7 +752,7 @@ public class CommonExportDialog extends Dialog {
 //		});
 		
 		exportTagsBtn = new Button(docxComposite, SWT.CHECK);
-		exportTagsBtn.setText("Export Tags");
+		exportTagsBtn.setText("Export selected Tags");
 		exportTagsBtn.setToolTipText("If checked, all tags will be listed at the end of the export doc");
 		exportTagsBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
 
@@ -737,7 +784,36 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 		
-		expandAbbrevBtn = new Button(docxComposite, SWT.CHECK);
+		Group abbrevGroup = new Group(docxComposite, 0);
+		abbrevGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
+		abbrevGroup.setLayout(new GridLayout(1, true));
+		abbrevGroup.setText("Abbreviation Settings");
+		
+		keepAbbrevBtn = new Button(abbrevGroup, SWT.CHECK);
+		keepAbbrevBtn.setText("Keep abbreviations");
+		keepAbbrevBtn.setToolTipText("If checked, all abbreviations are shown as they are. Tag export must be choosen too!");
+		keepAbbrevBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
+		keepAbbrevBtn.setSelection(true);
+
+		keepAbbrevBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setKeepAbbreviations(keepAbbrevBtn.getSelection());
+				//only one of the abbreviation possibilities can be chosen
+				if (keepAbbrevBtn.getSelection()){
+					setSubstituteAbbreviations(false);
+					substituteAbbrevBtn.setSelection(false);
+					setExpandAbbrevs(false);
+					expandAbbrevBtn.setSelection(false);
+				}
+				//keep abbrevs as they are as default if no other option is selected
+				else if (!substituteAbbrevBtn.getSelection() && !expandAbbrevBtn.getSelection()){
+					setKeepAbbreviations(true);
+					keepAbbrevBtn.setSelection(true);
+				}
+			}
+		});
+		
+		expandAbbrevBtn = new Button(abbrevGroup, SWT.CHECK);
 		expandAbbrevBtn.setText("Expand abbreviations");
 		expandAbbrevBtn.setToolTipText("If checked, all abbreviations are followed by their expansion. Tag export must be choosen too!");
 		expandAbbrevBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
@@ -745,6 +821,45 @@ public class CommonExportDialog extends Dialog {
 		expandAbbrevBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				setExpandAbbrevs(expandAbbrevBtn.getSelection());
+				//only one of the abbreviation possibilities can be chosen
+				if (expandAbbrevBtn.getSelection()){
+					setSubstituteAbbreviations(false);
+					substituteAbbrevBtn.setSelection(false);
+					setKeepAbbreviations(false);
+					keepAbbrevBtn.setSelection(false);
+				}
+				else{
+					//at this point no abbrevBtn is selected -> keep abbrevs as they are as default
+					if (!substituteAbbrevBtn.getSelection()){
+						setKeepAbbreviations(true);
+						keepAbbrevBtn.setSelection(true);
+					}
+				}
+			}
+		});
+		
+		substituteAbbrevBtn = new Button(abbrevGroup, SWT.CHECK);
+		substituteAbbrevBtn.setText("Substitute abbreviations");
+		substituteAbbrevBtn.setToolTipText("If checked, all abbreviations get replaced by their expansion. Tag export must be choosen too!");
+		substituteAbbrevBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
+
+		substituteAbbrevBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setSubstituteAbbreviations(substituteAbbrevBtn.getSelection());
+				//only one of the abbreviation possibilities can be chosen
+				if (substituteAbbrevBtn.getSelection()){
+					setExpandAbbrevs(false);
+					expandAbbrevBtn.setSelection(false);
+					setKeepAbbreviations(false);
+					keepAbbrevBtn.setSelection(false);
+				}
+				else{
+					//at this point no abbrevBtn is selected -> keep abbrevs as they are as default
+					if (!expandAbbrevBtn.getSelection()){
+						setKeepAbbreviations(true);
+						keepAbbrevBtn.setSelection(true);
+					}
+				}
 			}
 		});
 		
@@ -995,6 +1110,38 @@ public class CommonExportDialog extends Dialog {
 
 	public void setZipExport(boolean zipExport) {
 		this.zipExport = zipExport;
+	}
+
+	public boolean isSubstituteAbbreviations() {
+		return substituteAbbreviations;
+	}
+
+	public void setSubstituteAbbreviations(boolean substituteAbbreviations) {
+		this.substituteAbbreviations = substituteAbbreviations;
+	}
+
+	public boolean isKeepAbbreviations() {
+		return keepAbbreviations;
+	}
+
+	public void setKeepAbbreviations(boolean keepAbbreviations) {
+		this.keepAbbreviations = keepAbbreviations;
+	}
+
+	public boolean isExportImagesOnly() {
+		return exportImagesOnly;
+	}
+
+	public void setExportImagesOnly(boolean exportImagesOnly) {
+		this.exportImagesOnly = exportImagesOnly;
+	}
+
+	public boolean isExportImagesPlusText() {
+		return exportImagesPlusText;
+	}
+
+	public void setExportImagesPlusText(boolean exportImagesPlusText) {
+		this.exportImagesPlusText = exportImagesPlusText;
 	}
 
 

@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.bcel.generic.GETSTATIC;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IInputValidator;
@@ -471,33 +472,57 @@ public class CollectionManagerListener2 extends AStorageObserver implements Sele
 	private void deleteDocument() {
 		if (store.isLoggedIn()) {
 			List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
-			if (selected.isEmpty() || selected.size() > 1) {
-				DialogUtil.showErrorMessageBox(shell, "Select a single document", "Please select a single document!");
+//			if (selected.isEmpty() || selected.size() > 1) {
+//				DialogUtil.showErrorMessageBox(shell, "Select a single document", "Please select a single document!");
+//				return;
+//			}
+			
+			if (selected.isEmpty()) {
+				DialogUtil.showErrorMessageBox(shell, "Select a document", "Please select a document you wish to delete!");
 				return;
 			}
-			
-			TrpDocMetadata md = selected.get(0);
+			else if (selected.size() > 1){
+				if (DialogUtil.showYesNoDialog(shell, "Delete Documents", "Do you really want to delete " + selected.size() + " selected document ")!=SWT.YES) {
+					return;
+				}
+			}
+			else{
+				if (DialogUtil.showYesNoDialog(shell, "Delete Document", "Do you really want to delete document "+selected.get(0).getTitle())!=SWT.YES) {
+					return;
+				}
+			}
 			
 			TrpUserLogin user = store.getUser();
 			
-			if(!isAdminOrUploader(user, md)) {
-				DialogUtil.showErrorMessageBox(shell, "Unauthorized", "You are not the owner of this document.");
-				return;
-			}
+			//TrpDocMetadata md = selected.get(0);
 			
-			if (DialogUtil.showYesNoDialog(shell, "Delete Document", "Do you really want to delete document "+md.getTitle())!=SWT.YES) {
-				return;
+			int count = 0;
+			for (TrpDocMetadata md : selected){
+				count++;
+				if(!isAdminOrUploader(user, md)) {
+					DialogUtil.showErrorMessageBox(shell, "Unauthorized", "You are not the owner of this document. " + md.getTitle());
+					return;
+				}
+
+				try {
+					store.deleteDocument(md.getColList().get(0).getColId(), md.getDocId());
+				} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
+					mw.onError("Error deleting document", e.getMessage(), e);
+				}
+				
+				if (selected.size() == 1){
+					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted document "+md.getTitle());
+				}
+				else if(count == selected.size()){
+					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted "+selected.size()+" documents");
+				}
+
+				cmw.docsTableWidget.refreshList(cmw.getSelectedCollectionId(), false);
+				cmw.updateDocumentsTable(md, false);
+				cmw.getCurrentDocTableWidgetPagination().getPageableTable().refreshPage();
 			}
-	        
-			try {
-				store.deleteDocument(md.getColList().get(0).getColId(), md.getDocId());
-			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
-				mw.onError("Error deleting document", e.getMessage(), e);
-			}
+
 			
-			DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted document "+md.getTitle());
-	          
-			cmw.updateDocumentsTable(false);
 		}
 	}
 
