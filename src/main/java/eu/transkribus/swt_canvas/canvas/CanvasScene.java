@@ -414,7 +414,7 @@ public class CanvasScene {
 				return false;
 		}
 
-		shape.move(tx, ty);
+		shape.translate(tx, ty);
 
 		if (sendSignal)
 			notifyOnShapeMoved(shape, tx, ty);

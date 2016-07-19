@@ -81,11 +81,10 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), false, true);
 			}
 			else if (s == toolbar.getSplitMergedCell()) {
-//				try {
-					mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
-//				} catch (Throwable e) {
-//					mw.onError("Error", e.getMessage(), e);
-//				}
+				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
+			}
+			else if (s == toolbar.getRemoveNonCornerPtsItem()) {
+				mw.getCanvas().getShapeEditor().removeNonCornerPointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
 			}
 		} catch (Throwable ex) {
 			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);

@@ -53,7 +53,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	DropDownToolItem imageVersionItem;
 	
 	DropDownToolItem tableItem;
-	MenuItem deleteRowItem, deleteColumnItem, splitMergedCell; 
+	MenuItem deleteRowItem, deleteColumnItem, splitMergedCell, removeNonCornerPtsItem; 
 
 	private TrpMainWidget mainWidget;
 
@@ -157,9 +157,10 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		
 		tableItem = new DropDownToolItem(this, false, true, SWT.PUSH, ++i);
 		tableItem.ti.setImage(Images.getOrLoad("/icons/table_edit.png"));
-		deleteRowItem = tableItem.addItem("Delete row of selected cell", Images.getOrLoad("/icons/table_edit.png"), "");
-		deleteColumnItem = tableItem.addItem("Delete column of selected cell", Images.getOrLoad("/icons/table_edit.png"), "");
-		splitMergedCell = tableItem.addItem("Split up formerly merged cell", Images.getOrLoad("/icons/table_edit.png"), "");
+		deleteRowItem = tableItem.addItem("Delete row of selected cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
+		deleteColumnItem = tableItem.addItem("Delete column of selected cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
+		splitMergedCell = tableItem.addItem("Split up formerly merged cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
+		removeNonCornerPtsItem = tableItem.addItem("Remove non-corner points of cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
 		
 //		new ToolItem(this, SWT.SEPARATOR, ++i);
 		
@@ -232,6 +233,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		SWTUtil.addMenuItemSelectionListener(deleteRowItem, listener);
 		SWTUtil.addMenuItemSelectionListener(deleteColumnItem, listener);
 		SWTUtil.addMenuItemSelectionListener(splitMergedCell, listener);
+		SWTUtil.addMenuItemSelectionListener(removeNonCornerPtsItem, listener);
 		
 //		for (Class c : REGION_TYPES) {
 //			CanvasMode m = TrpCanvasAddMode.ADD_OTHERREGION;
@@ -345,6 +347,10 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 
 	public MenuItem getSplitMergedCell() {
 		return splitMergedCell;
+	}
+	
+	public MenuItem getRemoveNonCornerPtsItem() {
+		return removeNonCornerPtsItem;
 	}
 
 //	public ToolItem getLinkShapes() {

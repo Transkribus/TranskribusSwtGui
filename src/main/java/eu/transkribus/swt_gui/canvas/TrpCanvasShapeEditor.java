@@ -471,12 +471,12 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return ii;
 	}
 	
-	private void removePointFromTableCell(ICanvasShape cellShape, int pointIndex) {
+	private ShapeEditOperation removePointFromTableCell(ICanvasShape cellShape, int pointIndex, boolean addToUndoStack) {
 		CanvasQuadPolygon qp = (CanvasQuadPolygon) cellShape;
 		int side = qp.getPointSide(pointIndex);
 		if (side == -1) {
 			logger.warn("Cannot find side of point to remove: "+pointIndex);
-			return;
+			return null;
 		}
 		
 		TrpTableCellType c = (TrpTableCellType) cellShape.getData();
@@ -487,7 +487,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		java.awt.Point pt2Remove = cellShape.getPoint(pointIndex);
 		if (pt2Remove == null) {
 			logger.warn("Cannot find point to remove for pointIndex = "+pointIndex);
-			return;			
+			return null;			
 		}
 
 		// check point can be removed from neighbor, jump out if not
@@ -495,18 +495,18 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			CanvasQuadPolygon nc = (CanvasQuadPolygon) neighbor.getData();			
 			int ri = nc.getPointIndex(pt2Remove.x, pt2Remove.y);
 			if (ri != -1 && !nc.isPointRemovePossible(ri)) {
-				return;
+				return null;
 			}
 		}
 		
 		// remove point from main shape:
-		List<ShapeEditOperation> ops = new ArrayList<>();
+//		List<ShapeEditOperation> ops = new ArrayList<>();
 		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Removed point from shape", cellShape);
-		ops.add(op);
+//		ops.add(op);
 		
 		if (!cellShape.removePoint(pointIndex)) {
 			logger.warn("Could not remove point "+pointIndex+" from shape!");
-			return;
+			return null;
 		}
 
 		// remove point from neighbor cells
@@ -516,16 +516,19 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			int ri = nc.getPointIndex(pt2Remove.x, pt2Remove.y);
 			if (ri != -1) {
 				ShapeEditOperation opN = new ShapeEditOperation(ShapeEditType.EDIT, "Removed point from shape", nc);
-				ops.add(opN);
+//				ops.add(opN);
 				if (nc.removePoint(ri)) {
-					ops.add(opN);
+					op.addNestedOp(opN);
+					
+//					ops.add(opN);
 				}
 			}
 		}
 		
-		if (!ops.isEmpty())
-			addToUndoStack(ops);
+		if (addToUndoStack)
+			addToUndoStack(op);
 		
+		return op;
 	}
 		
 	@Override public void resizeBoundingBoxFromSelected(RectDirection direction, int mouseTrX, int mouseTrY, boolean firstMove) {
@@ -541,8 +544,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 	}
 	
-	private void moveTableCell(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove) {
-		
+	private boolean moveTableCell(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove, boolean addToUndoStack) {
 		// invert transform:
 		CanvasTransform tr = canvas.getTransformCopy();
 		tr.setTranslation(0, 0);
@@ -554,76 +556,64 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		TrpTableCellType cell = TableUtils.getTableCell(shape);
 		if (cell == null)
-			return;
+			return false;
 		
 		CanvasQuadPolygon qp = (CanvasQuadPolygon) cell.getData();
 		
+		
+		List<java.awt.Point> oldPts = new ArrayList<>();
+		for (java.awt.Point p : qp.getPoints())
+			oldPts.add(new java.awt.Point(p.x, p.y));
+		
+		if (!super.moveShape(shape, mouseTrX, mouseTrY, firstMove, false)) {
+			return false;
+		}
+		
+//		CanvasQuadPolygon qp = (CanvasQuadPolygon) currentMoveOp.getShapes().get(0);
+//		CanvasQuadPolygon qpb = (CanvasQuadPolygon) currentMoveOp.getBackupShapes().get(0);
+
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		
-		if (firstMove) {
-			for (java.awt.Point p : qp.getPoints()) {
-				List<Pair<Integer, TrpTableCellType>> pon = cell.getPointsOnNeighborCells(p.x, p.y);
-//				logger.debug("pon.size() = "+pon.size());
+		for (int i=0; i<oldPts.size(); ++i) {
+//			java.awt.Point p = qpb.getPoint(i);
+			java.awt.Point p = oldPts.get(i);
+//		for (java.awt.Point p : qpb.getPoints()) {
+			List<Pair<Integer, TrpTableCellType>> pon = cell.getCommonPointsOnNeighborCells(p.x, p.y);
+//			logger.debug("pon.size() = "+pon.size());
+			
+			for (Pair<Integer, TrpTableCellType> ponc : pon) {
+				CanvasQuadPolygon qpn = (CanvasQuadPolygon) ponc.getRight().getData();
+								
+				ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved point", qpn);
+				ops.add(op);
 				
-				for (Pair<Integer, TrpTableCellType> ponc : pon) {
-					CanvasQuadPolygon qpn = (CanvasQuadPolygon) ponc.getRight().getData();
-					
-					java.awt.Point origPt = null;
-					if (firstMove) {
-						origPt = qpn.getPoint(ponc.getLeft());
-					} else {
-						
-						
-					}
-					
-					// TODO: move this point too
-					
-					qpn.movePoint(ponc.getLeft(), p.x+transWoTr.x, p.y+transWoTr.y);
-					
-					ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "moved neighbor points", qpn);
-					ops.add(op);
-				}
+				java.awt.Point newPt = qp.getPoint(i);		
+				qpn.movePoint(ponc.getLeft(), newPt.x, newPt.y);
 			}
 		}
-		else {
-			Iterator<ShapeEditOperation> it = currentMoveOp.getNestedOpsDescendingIterator();
-			while (it.hasNext()) {
-				CanvasQuadPolygon qpn = (CanvasQuadPolygon) it.next().getShapes().get(0);
-				
-//				java.awt.Point bp = qpn.
-//				
-//				qpn.movePoint(index, x, y)
-				
-				
-			}
-			
-			
-			
-		}		
-		
-		
-		super.moveShape(shape, mouseTrX, mouseTrY, firstMove, false);
-		if (firstMove) {
-			currentMoveOp.addNestedOps(ops);
-		}
-		
 
-			
+		if (firstMove && addToUndoStack) {
+			currentMoveOp.addNestedOps(ops);
+			addToUndoStack(currentMoveOp);
+		}
+		
+		return true;
 	}
 	
-	@Override public void moveShape(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove, boolean addToUndoStack) {
+	@Override public boolean moveShape(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove, boolean addToUndoStack) {
 //		ICanvasShape selected = canvas.getFirstSelected();
 		if (shape != null && shape.isEditable()) {
 			if (shape.getData() instanceof TrpTableCellType && shape instanceof CanvasQuadPolygon) {
 				// PREVENT RESIZING BOUNDING BOX FOR TABLE CELLS
 				// TODO? allow resizing on outside -> should trigger resize of whole table region!
 //				super.moveSelected(mouseTrX, mouseTrY, firstMove);
-				moveTableCell(shape, mouseTrX, mouseTrY, firstMove);
+				return moveTableCell(shape, mouseTrX, mouseTrY, firstMove, addToUndoStack);
 			} 
 			else {
-				super.moveShape(shape, mouseTrX, mouseTrY, firstMove, addToUndoStack);
+				return super.moveShape(shape, mouseTrX, mouseTrY, firstMove, addToUndoStack);
 			}
 		}
+		return false;
 	}
 	
 	@Override public void removePointFromSelected(int pointIndex) {
@@ -632,7 +622,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		ICanvasShape selected = canvas.getFirstSelected();
 		if (selected != null && selected.isEditable()) {
 			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
-				removePointFromTableCell(selected, pointIndex);
+				removePointFromTableCell(selected, pointIndex, true);
 			} 
 			else {
 				super.removePointFromSelected(pointIndex);
@@ -836,6 +826,34 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 //		return shape!=null && shape instanceof CanvasQuadPolygon && shape.getData() instanceof TrpTableCellType;
 //	}
 	
+	public void removeNonCornerPointsOfTableCell(ICanvasShape shape, boolean addToUndoStack) {
+		TrpTableCellType cell = TableUtils.getTableCell(shape);
+		if (cell == null)
+			return;
+		
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.CUSTOM, "Removed non corner points of table cell");
+		
+		CanvasQuadPolygon qp = (CanvasQuadPolygon) cell.getData();
+		
+		List<java.awt.Point> pts = new ArrayList<>(qp.getPoints());
+		for (java.awt.Point p : pts) {
+			int i = qp.getPointIndex(p.x, p.y);
+			if (i != -1) {
+				ShapeEditOperation opr = removePointFromTableCell(qp, i, false);
+				if (op != null) {
+					op.addNestedOp(opr);
+				}
+			}
+		}
+		
+		
+		if (addToUndoStack && op.hasNestedOps()) {
+			addToUndoStack(op);
+		}
+		
+		TableUtils.checkTableConsistency(cell.getTable());
+	}
+	
 	public void deleteTableRowOrColumn(ICanvasShape shape, boolean row, boolean addToUndoStack) {
 		
 		String entityName = row ? "row" : "column";
@@ -867,7 +885,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		List<TrpTableCellType> cells = table.getCells(di==0, GetCellsType.OVERLAP, posIndex);
 		for (TrpTableCellType c : cells) {
 			CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
-			if (c.getSpan()[di] > 1) {
+//			if (c.getSpan()[di] > 1) {
+			if (c.isMergedCell()) {
 				List<ShapeEditOperation> splitOps = splitMergedTableCell(qp, false);
 				tableOp.addNestedOps(splitOps);
 			}

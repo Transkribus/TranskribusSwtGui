@@ -109,6 +109,15 @@ public class TrpMainWidgetKeyListener implements Listener {
 			} catch (Throwable e) {
 				mw.onError("Error", e.getMessage(), e);
 			}
+		} 
+		else if (isCtrlOrCommand && kc == 'b') {
+			try {
+				mw.getCanvas().getShapeEditor().removeNonCornerPointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
+			} catch (Throwable e) {
+				mw.onError("Error", e.getMessage(), e);
+			}
+			
+			
 		}
 		
 		lastTime = time;

@@ -172,7 +172,7 @@ public class CanvasRect extends ACanvasShape<java.awt.Rectangle> {
 	}
 	
 	@Override
-	public boolean move(int tx, int ty) {
+	public boolean translate(int tx, int ty) {
 		setRectValues(getX()+tx, getY()+ty, getWidth(), getHeight());
 		return true;
 	}

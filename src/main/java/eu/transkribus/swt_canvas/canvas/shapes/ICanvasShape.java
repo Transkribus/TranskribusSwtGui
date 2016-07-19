@@ -89,7 +89,7 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	boolean setPoints(List<Point> pts);
 	boolean setPoints2D(Collection<Point2D> ptsIn);
 	/** Moves the shape by the given translation **/
-	boolean move(int tx, int ty);
+	boolean translate(int tx, int ty);
 	
 	Point movePoint(int index, int x, int y);
 	void movePoints(int x, int y, Integer... pts);

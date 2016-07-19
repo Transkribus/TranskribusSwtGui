@@ -349,7 +349,7 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	}
 	
 	@Override
-	public boolean move(int tx, int ty) {
+	public boolean translate(int tx, int ty) {
 		awtShape.translate(tx, ty);
 		
 //		for (int i=0; i<awtShape.npoints; ++i) {

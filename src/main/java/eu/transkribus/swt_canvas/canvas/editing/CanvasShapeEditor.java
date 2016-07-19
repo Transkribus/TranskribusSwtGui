@@ -435,10 +435,10 @@ public class CanvasShapeEditor {
 	/** Translate the selection object by the given coordinates. The translation is always given as the \emph{total}
 	 * translation for a current move operation so that rounding errors are minimized! 
 	 * **/
-	public void moveShape(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove, boolean addToUndoStack) {
+	public boolean moveShape(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove, boolean addToUndoStack) {
 //		ICanvasShape selected = canvas.getFirstSelected();
 		if (shape == null)
-			return;
+			return false;
 
 		// invert transform:
 		CanvasTransform tr = canvas.getTransformCopy();
@@ -460,7 +460,7 @@ public class CanvasShapeEditor {
 		}
 		
 		// now move all shapes for the current move operation:
-		boolean movedFirst = true;
+//		boolean movedFirst = true;
 		for (int i=0; i<currentMoveOp.getShapes().size(); ++i) {
 			ICanvasShape s = currentMoveOp.getShapes().get(i);
 			
@@ -473,14 +473,17 @@ public class CanvasShapeEditor {
 			boolean moved = scene.moveShape(s, transWoTr.x, transWoTr.y, true); 
 			
 			if (i == 0 && !moved) { // if first shape (i.e. parent shape) was not moved, jump out
-				movedFirst = false;
-				break;
+				return false;
+//				movedFirst = false;
+//				break;
 			}
 		}
 		
-		if (addToUndoStack && movedFirst && firstMove && currentMoveOp!=null) {
+		if (addToUndoStack /*&& movedFirst*/ && firstMove && currentMoveOp!=null) {
 			addToUndoStack(currentMoveOp);
 		}
+		
+		return true;
 	}
 
 	public SWTCanvas getCanvas() {
