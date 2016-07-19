@@ -1,20 +1,25 @@
 package eu.transkribus.swt_gui.transcription.listener;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
 
-public abstract class ATranscriptionWidgetListener implements Listener {
+public abstract class ATranscriptionWidgetListener implements Listener, KeyListener {
+	private final static Logger logger = LoggerFactory.getLogger(ATranscriptionWidgetListener.class);
 	
 	TrpMainWidget mainWidget;
 	ATranscriptionWidget transcriptionWidget;	
@@ -27,6 +32,9 @@ public abstract class ATranscriptionWidgetListener implements Listener {
 		transcriptionWidget.addListener(SWT.Selection, this);
 		transcriptionWidget.addListener(SWT.DefaultSelection, this);
 		transcriptionWidget.addListener(SWT.Modify, this);
+		
+//		transcriptionWidget.addListener(SWT.KeyDown, listener);
+		transcriptionWidget.getText().addKeyListener(this);
 		
 		DataBinder db = DataBinder.get();
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, 
@@ -45,6 +53,20 @@ public abstract class ATranscriptionWidgetListener implements Listener {
 		
 	}
 	
+	@Override public void keyPressed(KeyEvent e) {
+		logger.debug("key pressed: "+e);
+		
+		if ( CanvasKeys.isAltKeyDown(e.stateMask) && (e.keyCode == SWT.ARROW_RIGHT || e.keyCode == SWT.ARROW_LEFT) ) {			
+			if (e.keyCode == SWT.ARROW_LEFT)
+				mainWidget.jumpToPreviousRegion();
+			else
+				mainWidget.jumpToNextRegion();
+		}
+	}
+	
+	@Override public void keyReleased(KeyEvent e) {
+	}
+		
 	@Override
 	public void handleEvent(Event event) {
 		if (event.type == SWT.FocusIn) {

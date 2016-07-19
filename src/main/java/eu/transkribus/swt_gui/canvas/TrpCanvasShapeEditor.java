@@ -590,9 +590,9 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			while (it.hasNext()) {
 				CanvasQuadPolygon qpn = (CanvasQuadPolygon) it.next().getShapes().get(0);
 				
-				java.awt.Point bp = qpn.
-				
-				qpn.movePoint(index, x, y)
+//				java.awt.Point bp = qpn.
+//				
+//				qpn.movePoint(index, x, y)
 				
 				
 			}

@@ -12,6 +12,7 @@ import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Event;
 
 public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListener {
