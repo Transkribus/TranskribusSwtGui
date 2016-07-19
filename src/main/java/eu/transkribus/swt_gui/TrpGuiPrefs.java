@@ -20,6 +20,8 @@ import org.apache.commons.net.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.enums.OAuthProvider;
+
 /**
  * In linux prefs are stored in: (by default - can be changed by setting java.util.prefs.userRoot property!)
  * 	${user.home}/.java/.userPrefs/org/dea/transcript/trp/gui/creds
@@ -35,12 +37,16 @@ public class TrpGuiPrefs {
 	final static String wtf = "PMpCIaf8HUUjbNMW1DvpmE";
 	
 	public static final String CREDS_NODE = "creds";
+	public static final String OAUTH_NODE = "oauth";
+	
+	private static final String OAUTH_UN_KEY = "_un";
 	
 	public static final String LAST_USER_KEY = "lastUser";
 	public static final String UN_KEY = "trpUn";
 	public static final String PW_KEY = "trpPw";
 	
 	static Preferences pref = Preferences.userNodeForPackage(TrpGui.class).node(CREDS_NODE);
+	static Preferences oAuthPrefs = Preferences.userNodeForPackage(TrpGui.class).node(OAUTH_NODE);
 	
 	public static String encryptAes(String key, String strToEncrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -85,6 +91,10 @@ public class TrpGuiPrefs {
 		pref.clear();
 	}
 	
+	public static void clearCredentials(String username) throws Exception {
+		pref.remove(username);
+	}
+	
 	public static void storeCredentials(String username, String pw) throws Exception {
 		logger.debug("storing credentials for user: "+username);
 		
@@ -122,6 +132,52 @@ public class TrpGuiPrefs {
 		}
 	}
 	
+	public static void storeOAuthToken(final OAuthProvider prov, final String userName, final String refreshToken) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		logger.debug("storing refreshToken for OAuth Provider "+ prov.toString());
+		oAuthPrefs.put(prov.toString() + OAUTH_UN_KEY, userName);
+		oAuthPrefs.put(prov.toString(), encryptAes(wtf, refreshToken));
+	}
+
+	/**
+	 * Retrieves stored refreshToken for the given OauthProvider if it exists, returns null elsewise.
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws InvalidKeyException 
+	 */
+	public static Pair<String, String> getOAuthToken(OAuthProvider prov) {
+		
+		if (prov == null) {
+			throw new IllegalArgumentException("OAuthProvider is null!");
+		}
+		
+		String tokenEnc = oAuthPrefs.get(prov.toString(), null);
+		if (tokenEnc == null) { // no credentials stored for this provider
+			logger.debug("Did not find token for OAuth Provider: "+ prov);
+			return null;
+		} else {
+			logger.debug("Found token for OAuth Provider: "+ prov);
+		}
+		String tokenClear;
+		try {
+			tokenClear = decryptAes(wtf, tokenEnc);
+		} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException
+				| NoSuchPaddingException e) {
+			logger.error("Could not decrypt token for OAuthProvider: " + prov, e);
+			return null;
+		}
+		
+		String userName = oAuthPrefs.get(prov.toString() + OAUTH_UN_KEY, null);
+		
+		return Pair.of(userName, tokenClear);
+	}
+	
+	public static void clearOAuthToken(OAuthProvider prov) {
+		oAuthPrefs.remove(prov.toString());
+		oAuthPrefs.remove(prov.toString()+ OAUTH_UN_KEY);
+	}
+	
 	public static void testPreferences() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		
 //		byte[] key = generateAesKey();
@@ -148,5 +204,4 @@ public class TrpGuiPrefs {
 	public static void main(String[] args) throws Exception {
 		testPreferences();
 	}
-
 }
