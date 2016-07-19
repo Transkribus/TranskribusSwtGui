@@ -350,6 +350,11 @@ CHANGES AND BUGFIXES
 	-> fixed a bug in the date setting widget in document metadata
 	-> PAGE XML viewer can now edit XML and reload page from it
 	
+0.8.6:
+	-> extended docx export settings for abbreviations
+	-> PDF: images only export
+	-> PDF: unique! tag values at end of PDF plus expansion for abbrevs
+	
 	
 	
 
