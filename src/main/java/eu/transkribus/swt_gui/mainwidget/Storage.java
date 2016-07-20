@@ -1545,7 +1545,7 @@ public class Storage extends Observable {
 	}
 
 	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, final boolean imagesOnly, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle) throws MalformedURLException, DocumentException,
-			IOException, JAXBException, Exception {
+			IOException, JAXBException, InterruptedException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
 		if (pdf.isDirectory()) {
@@ -1566,7 +1566,7 @@ public class Storage extends Observable {
 			@Override public void update(Observable o, Object arg) {
 				if (monitor != null && monitor.isCanceled()) {
 					pdfExp.cancel = true;
-					return;
+//					return;
 				}
 				
 				if (arg instanceof Integer) {
