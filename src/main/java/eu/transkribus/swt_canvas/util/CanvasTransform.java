@@ -160,6 +160,20 @@ public class CanvasTransform extends Transform {
 		return new CanvasPolygon(newPts);
 	}
 	
+	public java.awt.Point inverseTransformWithoutTranslation(java.awt.Point p) {
+		return inverseTransformWithoutTranslation(p.x, p.y);
+	}
+	
+	public java.awt.Point inverseTransformWithoutTranslation(int x, int y) {
+		CanvasTransform tr = new CanvasTransform(this);
+		tr.setTranslation(0, 0);
+		tr.invert();
+		Point tp = tr.transform(new Point(x, y));
+		tr.dispose();
+		
+		return new java.awt.Point(tp.x, tp.y);
+	}
+
 	public java.awt.Point transform(java.awt.Point p) {
 		Point swtPt = transform(new Point(p.x, p.y));
 		return new java.awt.Point(swtPt.x, swtPt.y);

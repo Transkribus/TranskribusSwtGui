@@ -9,6 +9,7 @@ import eu.transkribus.swt_canvas.canvas.CanvasKeys;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.util.MouseButtons;
@@ -48,6 +49,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	
 	boolean wasPointSelected=false;
 	boolean firstMove=false;
+	ShapeEditOperation currentMoveOp = null;
 	CanvasMode modeBackup=CanvasMode.SELECTION;
 	int currentMoveStateMask=0; // mouse move mask also masks mouse down positions!!
 	long timeDown=0;
@@ -80,6 +82,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		
 		wasPointSelected=false;
 		firstMove=false;
+		currentMoveOp = null;
 		modeBackup=CanvasMode.SELECTION;
 		currentMoveStateMask=0;
 		timeDown=0;
@@ -287,7 +290,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 			else if (canvas.getMode()==CanvasMode.MOVE_SHAPE && isLagThresh) {
 				Point trans = getTotalTranslation(mousePt, settings.getSelectMouseButton());
 				if (trans != null) {
-					canvas.getShapeEditor().moveShape(canvas.getFirstSelected(), trans.x, trans.y, firstMove, true);
+					currentMoveOp = canvas.getShapeEditor().moveShape(canvas.getFirstSelected(), trans.x, trans.y, currentMoveOp, true);
 					if (firstMove)
 						firstMove = false;
 					hasMouseMoved=true;
@@ -388,6 +391,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		
 		hasMouseMoved = false;
 		firstMove = false;
+		currentMoveOp = null;
 		mousePt = new Point(e.x, e.y);
 		logger.trace("mouse pt = "+mousePt+ "button = "+e.button);
 		mousePtWoTr = canvas.inverseTransform(mousePt.x, mousePt.y);

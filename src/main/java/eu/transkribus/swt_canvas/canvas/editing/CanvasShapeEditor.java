@@ -435,20 +435,17 @@ public class CanvasShapeEditor {
 	/** Translate the selection object by the given coordinates. The translation is always given as the \emph{total}
 	 * translation for a current move operation so that rounding errors are minimized! 
 	 * **/
-	public boolean moveShape(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean firstMove, boolean addToUndoStack) {
+	public ShapeEditOperation moveShape(ICanvasShape shape, int mouseTrX, int mouseTrY, ShapeEditOperation currentMoveOp, boolean addToUndoStack) {
 //		ICanvasShape selected = canvas.getFirstSelected();
 		if (shape == null)
-			return false;
+			return null;
 
 		// invert transform:
-		CanvasTransform tr = canvas.getTransformCopy();
-		tr.setTranslation(0, 0);
-		tr.invert();
-		Point transWoTr = tr.transform(new Point(mouseTrX, mouseTrY));
-		tr.dispose();
-		
+		java.awt.Point transWoTr = canvas.getPersistentTransform().inverseTransformWithoutTranslation(mouseTrX, mouseTrY);
+		logger.trace("t = "+transWoTr);
+				
 		// if first move --> determine shapes to move
-		if (firstMove || currentMoveOp==null) {
+		if (currentMoveOp==null) {
 			List<ICanvasShape> shapesToMove = new ArrayList<>();
 			shapesToMove.add(shape);
 			// move subshapes if required key down:
@@ -457,6 +454,9 @@ public class CanvasShapeEditor {
 				shapesToMove.addAll(shape.getChildren(true));
 			}
 			currentMoveOp = new ShapeEditOperation(ShapeEditType.EDIT, "Moved shape(s)", shapesToMove);
+			if (addToUndoStack) {
+				addToUndoStack(currentMoveOp);
+			}
 		}
 		
 		// now move all shapes for the current move operation:
@@ -465,25 +465,25 @@ public class CanvasShapeEditor {
 			ICanvasShape s = currentMoveOp.getShapes().get(i);
 			
 			// reset points if this isnt the first move (translation is always specified global for one move to prevent rounding errors!)
-			if (!firstMove) {
+//			if (!firstMove) {
 				ICanvasShape bs = currentMoveOp.getBackupShapes().get(i);
 				s.setPoints(bs.getPoints());
-			}
+//			}
 						
 			boolean moved = scene.moveShape(s, transWoTr.x, transWoTr.y, true); 
 			
 			if (i == 0 && !moved) { // if first shape (i.e. parent shape) was not moved, jump out
-				return false;
+				return null;
 //				movedFirst = false;
 //				break;
 			}
 		}
 		
-		if (addToUndoStack /*&& movedFirst*/ && firstMove && currentMoveOp!=null) {
-			addToUndoStack(currentMoveOp);
-		}
+//		if (addToUndoStack /*&& movedFirst*/ && firstMove && currentMoveOp!=null) {
+//			addToUndoStack(currentMoveOp);
+//		}
 		
-		return true;
+		return currentMoveOp;
 	}
 
 	public SWTCanvas getCanvas() {
