@@ -51,8 +51,8 @@ public class ToolsWidgetListener implements SelectionListener {
 		tw.blockSegBtn.addSelectionListener(this);
 //		blockSegWPsBtn.addSelectionListener(this);
 		tw.lineSegBtn.addSelectionListener(this);
-		tw.wordSegBtn.addSelectionListener(this);
-		tw.baselineBtn.addSelectionListener(this);
+//		tw.wordSegBtn.addSelectionListener(this);
+//		tw.baselineBtn.addSelectionListener(this);
 		tw.structAnalysisPageBtn.addSelectionListener(this);
 		tw.startRecogBtn.addSelectionListener(this);
 		tw.computeWerBtn.addSelectionListener(this);
