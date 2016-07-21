@@ -90,6 +90,14 @@ public class ShapeEditOperation {
 		}
 	}
 	
+	public ShapeEditOperation findNestedOp(ICanvasShape s) {
+		for (ShapeEditOperation op : nestedOps) {
+			if (op.getFirstShape().equals(s))
+				return op;
+		}
+		return null;
+	}
+	
 	public void addNestedOps(List<ShapeEditOperation> ops) {
 		if (ops != null) {
 			for (ShapeEditOperation op : ops) {

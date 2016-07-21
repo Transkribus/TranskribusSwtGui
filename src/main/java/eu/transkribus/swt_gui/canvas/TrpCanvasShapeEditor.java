@@ -550,30 +550,37 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		String entityName = row ? "row" : "column";
 		
 		boolean firstMove = currentMoveOp==null;
-		
-		currentMoveOp = new ShapeEditOperation(ShapeEditType.CUSTOM, "Move table "+entityName+" cells");
-		
+		int pi = row ? 0 : 1;
 		TrpTableRegionType table = selectedCell.getTable();
 		
-		int pi = row ? 0 : 1;
-		List<TrpTableCellType> cells = table.getCells(row, GetCellsType.OVERLAP, selectedCell.getPos()[pi]);
+		if (firstMove) {
+			List<TrpTableCellType> cells = table.getCells(row, GetCellsType.OVERLAP, selectedCell.getPos()[pi]);
+			currentMoveOp = new ShapeEditOperation(ShapeEditType.CUSTOM, "Move table "+entityName+" cells");
+			currentMoveOp.data = cells;
+		}
 		
+		List<TrpTableCellType> cells = (List<TrpTableCellType>) currentMoveOp.data;
 		Set<String> doneNeighborPts = new HashSet<>();
+		
 		for (TrpTableCellType c : cells) {
 			CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
 			
 			List<java.awt.Point> oldPts = qp.getPoints();
-			 
-			ShapeEditOperation moveOp = super.moveShape((ICanvasShape) c.getData(), mouseTrX, mouseTrY, null, false);
+			
+			ShapeEditOperation moveOp = currentMoveOp.findNestedOp(qp);
+			moveOp = super.moveShape(qp, mouseTrX, mouseTrY, moveOp, false);
 			if (moveOp == null)
 				return null;
 			
 			List<ShapeEditOperation> movePtsOps = new ArrayList<>();
 			for (int i=0; i<oldPts.size(); ++i) {
 				java.awt.Point p = oldPts.get(i);
-				List<Pair<Integer, TrpTableCellType>> pon = c.getCommonPointsOnNeighborCells(p.x, p.y);		
+				List<Pair<Integer, TrpTableCellType>> pon = c.getCommonPointsOnNeighborCells(p.x, p.y);
+				
 				for (Pair<Integer, TrpTableCellType> ponc : pon) {
-					if (doneNeighborPts.contains(ponc.getLeft()+"_"+ponc.getRight().getId()))
+					if (cells.contains(ponc.getRight())) // do not move pts of cells that get moved anyway
+						continue;
+					if (doneNeighborPts.contains(ponc.getLeft()+"_"+ponc.getRight().getId())) // do not move any pts twice
 						continue;
 					
 					doneNeighborPts.add(ponc.getLeft()+"_"+ponc.getRight().getId());
@@ -588,9 +595,10 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				}
 			}
 			
-			moveOp.addNestedOps(movePtsOps);
-
-			currentMoveOp.addNestedOp(moveOp);
+			if (firstMove) {
+				moveOp.addNestedOps(movePtsOps);
+				currentMoveOp.addNestedOp(moveOp);
+			}
 		}
 		
 		if (firstMove && addToUndoStack) {
@@ -607,6 +615,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			return null;
 		
 		CanvasQuadPolygon qp = (CanvasQuadPolygon) cell.getData();
+		List<java.awt.Point> oldPts = qp.getPoints();
 		
 		boolean firstMove = currentMoveOp == null;
 
@@ -618,12 +627,11 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 //		CanvasQuadPolygon qpb = (CanvasQuadPolygon) currentMoveOp.getBackupShapes().get(0);
 
 		// move pts of neighboring cells:
-		List<java.awt.Point> oldPts = qp.getPoints();
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		for (int i=0; i<oldPts.size(); ++i) {
 			java.awt.Point p = oldPts.get(i);
 			List<Pair<Integer, TrpTableCellType>> pon = cell.getCommonPointsOnNeighborCells(p.x, p.y);
-			logger.debug("pon.size() = "+pon.size());
+			logger.trace("pon.size() = "+pon.size());
 			for (Pair<Integer, TrpTableCellType> ponc : pon) {
 				CanvasQuadPolygon qpn = (CanvasQuadPolygon) ponc.getRight().getData();
 								
