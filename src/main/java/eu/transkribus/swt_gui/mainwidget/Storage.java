@@ -1477,6 +1477,11 @@ public class Storage extends Observable {
 		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
 	}
 	
+	public String analyzeLayout(int colId, int docId, String pageStr, boolean doBlockSeg, boolean doLineSeg) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.analyzeLayoutBatch(colId, docId, pageStr, doBlockSeg, doLineSeg);
+	}
+	
 	public String runOcr(int colId, int docId) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
 		return conn.runOcr(colId, docId);
@@ -1574,7 +1579,7 @@ public class Storage extends Observable {
 	}
 
 	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, final boolean imagesOnly, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle) throws MalformedURLException, DocumentException,
-			IOException, JAXBException, Exception {
+			IOException, JAXBException, InterruptedException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
 		if (pdf.isDirectory()) {
@@ -1595,7 +1600,7 @@ public class Storage extends Observable {
 			@Override public void update(Observable o, Object arg) {
 				if (monitor != null && monitor.isCanceled()) {
 					pdfExp.cancel = true;
-					return;
+//					return;
 				}
 				
 				if (arg instanceof Integer) {
