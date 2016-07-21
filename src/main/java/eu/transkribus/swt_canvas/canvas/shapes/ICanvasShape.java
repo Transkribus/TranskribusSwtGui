@@ -119,6 +119,18 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	boolean contains(org.eclipse.swt.graphics.Point p);
 	
 	java.awt.Point computeCenter();
+
+//	default java.awt.Point computeCenter() {
+//		Point ct = new Point(0, 0);
+//		for (Point pt : getPoints()) {
+//			ct.x += pt.x;
+//			ct.y += pt.y;
+//		}
+//		ct.x /= getNPoints();
+//		ct.y /= getNPoints();
+//		
+//		return ct;
+//	}
 	
 	/** Returns the nesting level of this shape. Is also used for comparing shapes. */
 	int getLevel();
