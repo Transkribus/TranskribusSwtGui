@@ -108,6 +108,7 @@ import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
+import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
 import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
 import eu.transkribus.swt_gui.canvas.TrpCanvasScene;
@@ -689,13 +690,12 @@ public class TrpMainWidget {
 					switch (accType){
 					case "Google":
 						final String state = "test";
-						Pair<String, String> creds = TrpGuiPrefs.getOAuthToken(OAuthProvider.Google);
+						OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(OAuthProvider.Google);
 						if(creds == null) {
 							success = false;
 						} else {
-							final String token = creds.getRight();
 							try {
-								success = loginOAuth(server, token, state, OAuthProvider.Google);
+								success = loginOAuth(server, creds.getRefreshToken(), state, OAuthProvider.Google);
 							} catch (OAuthTokenRevokedException oau) {
 								// get new consent
 								TrpGuiPrefs.clearOAuthToken(OAuthProvider.Google);
@@ -716,41 +716,6 @@ public class TrpMainWidget {
 						success = login(server, user, String.valueOf(pw), rememberCreds);
 						break;
 					}
-//					
-//					String code;
-//					String grantType;
-//
-//					Pair<String, String> creds = TrpGuiPrefs.getOAuthToken(OAuthProvider.Google);
-//					if(creds == null) {
-//						code = getUserConsent(state, OAuthProvider.Google);
-//						grantType = "authorization_code";
-//					} else {
-//						final String token = creds.getRight();
-//						grantType = "refresh_token";
-//						code = token;
-//					}
-//					boolean success = false;
-//					try {
-//						success = loginOAuth(server, code, state, grantType, OAuthProvider.Google);
-//					} catch (OAuthTokenRevokedException oau) {
-//						// get new consent
-//						TrpGuiPrefs.clearOAuthToken(OAuthProvider.Google);
-//						code = getUserConsent(state, OAuthProvider.Google);
-//						grantType = "authorization_code";
-//						try {
-//							success = loginOAuth(server, code, state, grantType, OAuthProvider.Google);
-//						} catch (OAuthTokenRevokedException e1) {}
-//					}
-//					
-//		            if (success) {
-//						close();
-//					} else {
-//						throw new IOException("Could not login at Transkribus Server!");
-//					}
-//		            
-//				} catch (IOException ioe) {
-//					setInfo("Login failed!");
-//				}
 					
 					if (success) {
 						close();
@@ -773,49 +738,6 @@ public class TrpMainWidget {
 							}
 						}
 					});
-					
-//					loginViaGoogleBtn.addSelectionListener(new SelectionAdapter() {
-//						@Override public void widgetSelected(SelectionEvent e) {
-//							final String server = getServerCombo().getText();
-//							try{
-//					            
-//								final String state = "test";
-//								String code;
-//								String grantType;
-//
-//								Pair<String, String> creds = TrpGuiPrefs.getOAuthToken(OAuthProvider.Google);
-//								if(creds == null) {
-//									code = getUserConsent(state, OAuthProvider.Google);
-//									grantType = "authorization_code";
-//								} else {
-//									final String token = creds.getRight();
-//									grantType = "refresh_token";
-//									code = token;
-//								}
-//								boolean success = false;
-//								try {
-//									success = loginOAuth(server, code, state, grantType, OAuthProvider.Google);
-//								} catch (OAuthTokenRevokedException oau) {
-//									// get new consent
-//									TrpGuiPrefs.clearOAuthToken(OAuthProvider.Google);
-//									code = getUserConsent(state, OAuthProvider.Google);
-//									grantType = "authorization_code";
-//									try {
-//										success = loginOAuth(server, code, state, grantType, OAuthProvider.Google);
-//									} catch (OAuthTokenRevokedException e1) {}
-//								}
-//								
-//					            if (success) {
-//									close();
-//								} else {
-//									throw new IOException("Could not login at Transkribus Server!");
-//								}
-//					            
-//							} catch (IOException ioe) {
-//								setInfo("Login failed!");
-//							}
-//						}
-//					});
 				}
 			};
 			loginDialog.open();

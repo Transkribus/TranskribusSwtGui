@@ -9,6 +9,14 @@ import java.net.Socket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.ClientErrorException;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,6 +92,28 @@ public class OAuthUtil {
 			return false;
 		} finally {
 			TrpMainWidget.getInstance().logout(true, false);
+		}
+	}
+	
+	public static void revokeOAuthToken(final String refreshToken, final OAuthProvider prov) throws IOException{
+		
+		final String uriStr;
+		switch (prov) {
+		case Google:
+			uriStr = "https://accounts.google.com/o/oauth2/revoke?token=";
+			break;
+		default:
+			throw new IOException("Unknown OAuth Provider: " + prov);
+		}
+		
+		CloseableHttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();		
+		HttpGet get = new HttpGet(uriStr + refreshToken);
+		HttpResponse response = client.execute(get);
+		final int status = response.getStatusLine().getStatusCode();		
+		if (status != 200) {
+			String reason = response.getStatusLine().getReasonPhrase();
+			logger.error(reason);
+			throw new ClientErrorException(reason, status);
 		}
 	}
 }

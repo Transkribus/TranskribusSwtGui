@@ -1,13 +1,15 @@
 package eu.transkribus.swt_canvas.util;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.fieldassist.TextContentAdapter;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.FocusEvent;
@@ -16,6 +18,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -32,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
+import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
 import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
 import eu.transkribus.swt_gui.util.OAuthUtil;
 
@@ -91,7 +95,7 @@ public class LoginDialog extends Dialog {
 		accountCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 		
 		grpCreds = new Group(container, SWT.NONE);
-		grpCreds.setLayout(new GridLayout(2, false));
+		grpCreds.setLayout(new GridLayout(4, false));
 		grpCreds.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1));
 		
 		initAccountCombo();
@@ -146,30 +150,33 @@ public class LoginDialog extends Dialog {
 		});
 	}
 	
-	private void setAccountType(final String prov){
-		
-		clearGrpCreds();
-		
-		switch(prov){
-		case "Google":
-			initGoogleAccountFields();
-			break;
-		default:
+	private void setAccountType(final String provStr){
+		OAuthProvider prov;
+		try {
+			prov = OAuthProvider.valueOf(provStr);
+		} catch(Exception e){
+			prov = null;
+		}
+		if(prov != null) {
+			initOAuthAccountFields(prov);
+		} else {
 			initTranskribusAccountFields();
-			break;
 		}
 		
 		grpCreds.layout();
 	}
 	
 	private void initTranskribusAccountFields() {
+		
+		clearGrpCreds(2);
+		
 		Label lblUser = new Label(grpCreds, SWT.NONE);
 		lblUser.setText("User:");
 	
 		txtUser = new Text(grpCreds, SWT.BORDER);
 		txtUser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		txtUser.setText("");
-	
+		
 		Label lblPassword = new Label(grpCreds, SWT.NONE);
 		GridData gd_lblNewLabel = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_lblNewLabel.horizontalIndent = 1;
@@ -210,29 +217,44 @@ public class LoginDialog extends Dialog {
 		}
 	}
 
-	private void initGoogleAccountFields(){
-		clearGrpCreds();
-		Label unLabel = new Label(grpCreds, SWT.FLAT);
-		unLabel.setText("User:");
-//		loginViaGoogleBtn = new Button(grpCreds, SWT.PUSH);
-		Pair<String, String> creds = TrpGuiPrefs.getOAuthToken(OAuthProvider.Google);
+	private void initOAuthAccountFields(OAuthProvider prov){
+		clearGrpCreds(4);
+		Label userLabel = new Label(grpCreds, SWT.FLAT);
+		OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(prov);
 		if (creds == null) {
+			userLabel.setText("User:");
 			Button btnConnect = new Button(grpCreds, SWT.PUSH);
-			btnConnect.setText("Connect to Google Account");
-			initConnectOAuthAccountButton(btnConnect, OAuthProvider.Google);
+			btnConnect.setText("Connect to " + prov.toString() + " Account");
+			initConnectOAuthAccountBtn(btnConnect, prov);
 		} else {
-			Label accLabel = new Label(grpCreds, SWT.FLAT);
-			accLabel.setText(creds.getLeft());
+			userLabel.setText("User: ");
+			final String url = creds.getProfilePicUrl();
+			if(url != null && !url.isEmpty()) {
+				Label picLabel = new Label(grpCreds, SWT.FLAT);
+				Image image;
+				try {
+					image = ImageDescriptor.createFromURL(new URL(url)).createImage();
+					image = Images.resize(image, 20, 20);
+					picLabel.setImage(image);
+				} catch (MalformedURLException e) {
+					logger.debug("profile pic could not be loaded!");
+				}
+			}
+			Label usernameLbl = new Label(grpCreds, SWT.FLAT);
+			usernameLbl.setText(creds.getUserName());
+			Button btnDisconnect = new Button(grpCreds, SWT.PUSH);
+			btnDisconnect.setText("Disconnect");
+			initDisconnectOAuthAccountBtn(btnDisconnect, prov);
 		}
 		lbl1 = new Label(grpCreds, SWT.FLAT);
 		lbl2 = new Label(grpCreds, SWT.FLAT);
 	}
 	
-	private void initConnectOAuthAccountButton(Button btnConnect, final OAuthProvider prov) {
+	private void initConnectOAuthAccountBtn(Button btnConnect, final OAuthProvider prov) {
 		btnConnect.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				final String server = getServerCombo().getText();
-				lbl2.setText("Awaiting input...");
+//				lbl2.setText("Awaiting input...");
 //	            Runnable r = new Runnable() {
 //					@Override
 //					public void run() {
@@ -241,24 +263,41 @@ public class LoginDialog extends Dialog {
 							final String state = "test";
 							final String code = OAuthUtil.getUserConsent(state, prov);
 							boolean success = OAuthUtil.authorizeOAuth(server, code, state, prov);
-				            initGoogleAccountFields();
+				            initOAuthAccountFields(prov);
 						} catch (IOException ioe) {
 							setInfo("Login failed!");
 						}
+						grpCreds.layout();
 //					}
 //				};
 //		        Thread t = new Thread(r);   
 //		        t.start();
-				lbl2.setText("");
+//				lbl2.setText("");
 			}
 		});
 	}
 
-	private void clearGrpCreds() {
+	private void initDisconnectOAuthAccountBtn(Button btnConnect, final OAuthProvider prov) {
+		btnConnect.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				String token = TrpGuiPrefs.getOAuthCreds(prov).getRefreshToken();
+				try {
+					OAuthUtil.revokeOAuthToken(token, prov);
+					TrpGuiPrefs.clearOAuthToken(prov);
+		            initOAuthAccountFields(prov);
+				} catch (IOException ioe) {
+					setInfo("Login failed!");
+				}
+				grpCreds.layout();
+			}
+		});
+	}
+	
+	private void clearGrpCreds(int numColsToInit) {
 		for(Control c : grpCreds.getChildren()){
 			c.dispose();
 		}
-		grpCreds.setLayout(new GridLayout(2, false));
+		grpCreds.setLayout(new GridLayout(numColsToInit, false));
 		grpCreds.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1));
 	}
 

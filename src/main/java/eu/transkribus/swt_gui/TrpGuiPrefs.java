@@ -40,6 +40,7 @@ public class TrpGuiPrefs {
 	public static final String OAUTH_NODE = "oauth";
 	
 	private static final String OAUTH_UN_KEY = "_un";
+	private static final String OAUTH_PIC_KEY = "_pic";
 	
 	public static final String LAST_USER_KEY = "lastUser";
 	public static final String UN_KEY = "trpUn";
@@ -132,9 +133,12 @@ public class TrpGuiPrefs {
 		}
 	}
 	
-	public static void storeOAuthToken(final OAuthProvider prov, final String userName, final String refreshToken) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public static void storeOAuthCreds(final OAuthProvider prov, final String userName, final String profilePicUrl, final String refreshToken) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		logger.debug("storing refreshToken for OAuth Provider "+ prov.toString());
 		oAuthPrefs.put(prov.toString() + OAUTH_UN_KEY, userName);
+		if(profilePicUrl != null){
+			oAuthPrefs.put(prov.toString() + OAUTH_PIC_KEY, profilePicUrl);
+		}
 		oAuthPrefs.put(prov.toString(), encryptAes(wtf, refreshToken));
 	}
 
@@ -146,7 +150,7 @@ public class TrpGuiPrefs {
 	 * @throws IllegalBlockSizeException 
 	 * @throws InvalidKeyException 
 	 */
-	public static Pair<String, String> getOAuthToken(OAuthProvider prov) {
+	public static OAuthCreds getOAuthCreds(OAuthProvider prov) {
 		
 		if (prov == null) {
 			throw new IllegalArgumentException("OAuthProvider is null!");
@@ -168,14 +172,21 @@ public class TrpGuiPrefs {
 			return null;
 		}
 		
-		String userName = oAuthPrefs.get(prov.toString() + OAUTH_UN_KEY, null);
+		final String userName = oAuthPrefs.get(prov.toString() + OAUTH_UN_KEY, null);
+		final String profilePicUrl = oAuthPrefs.get(prov.toString() + OAUTH_PIC_KEY, null);
 		
-		return Pair.of(userName, tokenClear);
+		OAuthCreds creds = new OAuthCreds(prov);
+		creds.setProfilePicUrl(profilePicUrl);
+		creds.setUserName(userName);
+		creds.setRefreshToken(tokenClear);
+		
+		return creds;
 	}
 	
 	public static void clearOAuthToken(OAuthProvider prov) {
 		oAuthPrefs.remove(prov.toString());
 		oAuthPrefs.remove(prov.toString()+ OAUTH_UN_KEY);
+		oAuthPrefs.remove(prov.toString()+ OAUTH_PIC_KEY);
 	}
 	
 	public static void testPreferences() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
@@ -203,5 +214,41 @@ public class TrpGuiPrefs {
 	
 	public static void main(String[] args) throws Exception {
 		testPreferences();
+	}
+	
+	public static class OAuthCreds {
+		private OAuthProvider prov;
+		private String refreshToken;
+		private String userName;
+		private String profilePicUrl;
+		public OAuthCreds(OAuthProvider prov){
+			this.prov = prov;
+		}
+		public OAuthProvider getProvider(){
+			return prov;
+		}
+		public String getRefreshToken() {
+			return refreshToken;
+		}
+		public void setRefreshToken(String refreshToken) {
+			this.refreshToken = refreshToken;
+		}
+		public String getUserName() {
+			return userName;
+		}
+		public void setUserName(String userName) {
+			this.userName = userName;
+		}
+		public String getProfilePicUrl() {
+			return profilePicUrl;
+		}
+		public void setProfilePicUrl(String profilePicUrl) {
+			this.profilePicUrl = profilePicUrl;
+		}
+		@Override
+		public String toString() {
+			return "OAuthCreds [refreshToken=" + refreshToken + ", userName=" + userName + ", profilePicUrl="
+					+ profilePicUrl + "]";
+		}
 	}
 }

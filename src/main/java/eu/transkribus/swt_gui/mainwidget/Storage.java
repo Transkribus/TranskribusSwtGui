@@ -870,7 +870,7 @@ public class Storage extends Observable {
 			}
 //			logger.debug("THE TOKEN: " + token);
 			try {
-				TrpGuiPrefs.storeOAuthToken(prov, user.getEmail(), token);
+				TrpGuiPrefs.storeOAuthCreds(prov, user.getEmail(), user.getProfilePicUrl(), token);
 			} catch (Exception e) {
 				logger.error("Could not store OAuth refresh token!", e);
 			}
