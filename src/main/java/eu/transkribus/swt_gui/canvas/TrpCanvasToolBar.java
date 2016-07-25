@@ -53,7 +53,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	DropDownToolItem imageVersionItem;
 	
 	DropDownToolItem tableItem;
-	MenuItem deleteRowItem, deleteColumnItem, splitMergedCell, removeNonCornerPtsItem; 
+	MenuItem deleteRowItem, deleteColumnItem, splitMergedCell, removeIntermediatePtsItem; 
 
 	private TrpMainWidget mainWidget;
 
@@ -160,7 +160,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		deleteRowItem = tableItem.addItem("Delete row of selected cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
 		deleteColumnItem = tableItem.addItem("Delete column of selected cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
 		splitMergedCell = tableItem.addItem("Split up formerly merged cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
-		removeNonCornerPtsItem = tableItem.addItem("Remove non-corner points of cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
+		removeIntermediatePtsItem = tableItem.addItem("Remove intermediate points of cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
 		
 //		new ToolItem(this, SWT.SEPARATOR, ++i);
 		
@@ -233,7 +233,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		SWTUtil.addMenuItemSelectionListener(deleteRowItem, listener);
 		SWTUtil.addMenuItemSelectionListener(deleteColumnItem, listener);
 		SWTUtil.addMenuItemSelectionListener(splitMergedCell, listener);
-		SWTUtil.addMenuItemSelectionListener(removeNonCornerPtsItem, listener);
+		SWTUtil.addMenuItemSelectionListener(removeIntermediatePtsItem, listener);
 		
 //		for (Class c : REGION_TYPES) {
 //			CanvasMode m = TrpCanvasAddMode.ADD_OTHERREGION;
@@ -349,8 +349,8 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		return splitMergedCell;
 	}
 	
-	public MenuItem getRemoveNonCornerPtsItem() {
-		return removeNonCornerPtsItem;
+	public MenuItem getRemoveIntermediatePtsItem() {
+		return removeIntermediatePtsItem;
 	}
 
 //	public ToolItem getLinkShapes() {

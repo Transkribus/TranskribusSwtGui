@@ -71,15 +71,22 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 	}
 	
-	private List<ShapeEditOperation> splitTrpBaselineType(int x1, int y1, int x2, int y2, ICanvasShape selected, TrpBaselineType bl) {
-//		TrpBaselineType bl = (TrpBaselineType) selected.getData();
+	/**
+	 * If shape is a baseline, select parent line and split it, s.t. undlerying baseline gets splits too
+	 * and then try to select the first baseline split
+	 */
+	private List<ShapeEditOperation> splitTrpBaselineType(ICanvasShape shape, int x1, int y1, int x2, int y2) {
+		if (shape == null || !(shape.getData() instanceof TrpBaselineType))
+			return null;
+		
+		TrpBaselineType bl = (TrpBaselineType) shape.getData();
 		scene.selectObjectWithData(bl.getLine(), false, false);
-		logger.debug("selected = "+canvas.getFirstSelected());
+		logger.debug("selected line = "+canvas.getFirstSelected());
 		
 //		logger.debug("Parent = "+selected.getParent()); // IS NULL...			
 //		scene.selectObject(selected.getParent(), false, false);
 
-		List<ShapeEditOperation> splitOps = super.splitShape(selected, x1, y1, x2, y2, true);
+		List<ShapeEditOperation> splitOps = super.splitShape(shape, x1, y1, x2, y2, true);
 
 		// try to select first split of baseline:
 		logger.debug("trying to select left baseline split, nr of ops = "+splitOps.size());
@@ -99,7 +106,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return splitOps;
 	}
 
-	private List<ShapeEditOperation> splitTrpTableType(int x1, int y1, int x2, int y2, TrpTableRegionType table, boolean addToUndoStack) {
+	private List<ShapeEditOperation> splitTrpTableType(TrpTableRegionType table, int x1, int y1, int x2, int y2, boolean addToUndoStack) {
 		// search for row / col cells to split:
 //		Pair<SplitDirection, List<TrpTableCellType>> splittableCells = TableUtils.getSplittableCells(x1, y1, x2, y2, table);
 		SplittableCellsStruct splittableCells = TableUtils.getSplittableCells(x1, y1, x2, y2, table);
@@ -232,13 +239,11 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			
 			TrpTableRegionType table = TableUtils.getTable(shape);
 			
-			// if this is a baseline, select parent line and split it, s.t. undlerying baseline gets splits too
-			// next, try to select the first baseline split
 			if (shape.getData() instanceof TrpBaselineType) {
-				return splitTrpBaselineType(x1, y1, x2, y2, shape, (TrpBaselineType) shape.getData());
+				return splitTrpBaselineType(shape, x1, y1, x2, y2);
 			}
 			else if (table != null) {
-				return splitTrpTableType(x1, y1, x2, y2, table, addToUndoStack);
+				return splitTrpTableType(table, x1, y1, x2, y2, addToUndoStack);
 			}
 			else { // perform default split operation on base class
 				return super.splitShape(shape, x1, y1, x2, y2, addToUndoStack);
@@ -542,7 +547,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 	}
 	
-	private ShapeEditOperation moveTableRowOrColumnCells(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean row, ShapeEditOperation currentMoveOp, boolean addToUndoStack) {
+	public ShapeEditOperation moveTableRowOrColumnCells(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean row, ShapeEditOperation currentMoveOp, boolean addToUndoStack) {
 		TrpTableCellType selectedCell = TableUtils.getTableCell(shape);
 		if (selectedCell == null)
 			return null;
@@ -554,7 +559,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		TrpTableRegionType table = selectedCell.getTable();
 		
 		if (firstMove) {
-			List<TrpTableCellType> cells = table.getCells(row, GetCellsType.OVERLAP, selectedCell.getPos()[pi]);
+//			List<TrpTableCellType> cells = table.getCells(row, GetCellsType.OVERLAP, selectedCell.getPos()[pi]);
+			List<TrpTableCellType> cells = table.getCells(row, GetCellsType.OVERLAP, selectedCell.getPos()[pi], selectedCell.getSpan()[pi]);
 			currentMoveOp = new ShapeEditOperation(ShapeEditType.CUSTOM, "Move table "+entityName+" cells");
 			currentMoveOp.data = cells;
 		}
@@ -886,12 +892,12 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 //		return shape!=null && shape instanceof CanvasQuadPolygon && shape.getData() instanceof TrpTableCellType;
 //	}
 	
-	public void removeNonCornerPointsOfTableCell(ICanvasShape shape, boolean addToUndoStack) {
+	public ShapeEditOperation removeIntermediatePointsOfTableCell(ICanvasShape shape, boolean addToUndoStack) {
 		TrpTableCellType cell = TableUtils.getTableCell(shape);
 		if (cell == null)
-			return;
+			return null;
 		
-		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.CUSTOM, "Removed non corner points of table cell");
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.CUSTOM, "Removed intermediate points of table cell");
 		
 		CanvasQuadPolygon qp = (CanvasQuadPolygon) cell.getData();
 		
@@ -906,12 +912,13 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			}
 		}
 		
-		
 		if (addToUndoStack && op.hasNestedOps()) {
 			addToUndoStack(op);
 		}
 		
 		TableUtils.checkTableConsistency(cell.getTable());
+		
+		return op;
 	}
 	
 	public void deleteTableRowOrColumn(ICanvasShape shape, boolean row, boolean addToUndoStack) {
@@ -947,8 +954,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
 //			if (c.getSpan()[di] > 1) {
 			if (c.isMergedCell()) {
-				List<ShapeEditOperation> splitOps = splitMergedTableCell(qp, false);
-				tableOp.addNestedOps(splitOps);
+				ShapeEditOperation splitOp = splitMergedTableCell(qp, false);
+				tableOp.addNestedOp(splitOp);
 			}
 		}
 		
@@ -1020,14 +1027,19 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		TableUtils.checkTableConsistency(table);
 	}
 	
-	public List<ShapeEditOperation> splitMergedTableCell(ICanvasShape shape, boolean addToUndoStack) {
+	public ShapeEditOperation splitMergedTableCell(ICanvasShape shape, boolean addToUndoStack) {
 		// code below is hell on earth - don't fuck it up or the devil will haunt you!
 		
 		TrpTableCellType tc = TableUtils.getTableCell(shape);
 		logger.debug("splitting merged table cell!");
-		
+				
 		if (tc==null) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error splitting merged cell", "No table cell selected!");
+			return null;
+		}
+		
+		if (!tc.isMergedCell()) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error splitting merged cell", "This is not a merged cell!");
 			return null;
 		}
 		
@@ -1045,7 +1057,9 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		// the matrix of lists of points that will constitute the splitted cells 
 		Pt[][] pts = new Pt[tc.getRowSpan()+1][tc.getColSpan()+1];
 		
-		List<ShapeEditOperation> ops = new ArrayList<>();
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.CUSTOM, "Splitted merged cell");
+		
+//		List<ShapeEditOperation> ops = new ArrayList<>();
 		
 		CanvasQuadPolygon qp = (CanvasQuadPolygon) tc.getData();
 		
@@ -1098,10 +1112,10 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 						segPts.add(insertIndex, ip);
 
 						// insert new point into the shape:
-						ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", qpn);
+						ShapeEditOperation opA = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", qpn);
 //						qpn.insertPointOnSide(ip.x, ip.y, so);
 						qpn.insertPointOnIndex(ip.x, ip.y, insertIndex4Shape);
-						ops.add(op);					
+						op.addNestedOp(opA);					
 					}
 					logger.debug("insertedPts.size() = "+insertedPts.size());
 					
@@ -1295,9 +1309,9 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				logger.debug("new cell: "+newQuadCell);
 				
 				newQuadCell.setEditable(true);
-				ShapeEditOperation op = scene.addShape(newQuadCell, null, true);
-				if (op!=null) {
-					ops.add(op);
+				ShapeEditOperation opA = scene.addShape(newQuadCell, null, true);
+				if (opA!=null) {
+					op.addNestedOp(opA);
 				}
 				
 				// set new row/col values for cell:
@@ -1313,24 +1327,20 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 
 		// now remove the old cell
 		if (scene.removeShape(qp, true, true)) {
-			ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.DELETE, "Merged cell shape removed", qp);
-			ops.add(op);
+			ShapeEditOperation opR = new ShapeEditOperation(ShapeEditType.DELETE, "Merged cell shape removed", qp);
+			op.addNestedOp(opR);
 		}
 		
 		canvas.setMode(TrpCanvasAddMode.SELECTION);
-		
-		// create custom edit operation to display description correctly
-		ShapeEditOperation opC = new ShapeEditOperation(ShapeEditType.CUSTOM, "Splitted merged cell");
-		ops.add(0, opC); // add operation to front, s.t. undo will be performed at last
-		
+				
 		if (addToUndoStack)
-			addToUndoStack(ops);
+			addToUndoStack(op);
 		
 		TrpMainWidget.getInstance().refreshStructureView();
 		
 		TableUtils.checkTableConsistency(tc.getTable());
 		
-		return ops;
+		return op;
 	}
 	
 	public Shell getShell() {

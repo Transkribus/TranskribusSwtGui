@@ -83,8 +83,8 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 			else if (s == toolbar.getSplitMergedCell()) {
 				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
 			}
-			else if (s == toolbar.getRemoveNonCornerPtsItem()) {
-				mw.getCanvas().getShapeEditor().removeNonCornerPointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
+			else if (s == toolbar.getRemoveIntermediatePtsItem()) {
+				mw.getCanvas().getShapeEditor().removeIntermediatePointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
 			}
 		} catch (Throwable ex) {
 			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);

@@ -103,7 +103,8 @@ public class TrpMainWidgetKeyListener implements Listener {
 					DialogUtil.showErrorMessageBox(mw.getShell(), "Something's wrong with the table", e.getMessage());
 				}
 			}
-		} else if (isCtrlOrCommand && kc == 'y') { // split merged table cells
+		} 
+		else if (isCtrlOrCommand && kc == 'y') { // split merged table cells
 			try {
 				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
 			} catch (Throwable e) {
@@ -112,7 +113,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 		} 
 		else if (isCtrlOrCommand && kc == 'b') {
 			try {
-				mw.getCanvas().getShapeEditor().removeNonCornerPointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
+				mw.getCanvas().getShapeEditor().removeIntermediatePointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
 			} catch (Throwable e) {
 				mw.onError("Error", e.getMessage(), e);
 			}
