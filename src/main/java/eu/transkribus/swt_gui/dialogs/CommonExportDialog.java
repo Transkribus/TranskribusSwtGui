@@ -948,7 +948,7 @@ public class CommonExportDialog extends Dialog {
 	}
 	
 	public boolean isTagableExportChosen(){
-		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport()) && (isHighlightTags() || isTagExport());
+		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport()) && (isHighlightTags() || isTagExport() || isXlsxExport());
 	}
 	
 	private void updateTeiExportMode() {

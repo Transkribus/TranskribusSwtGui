@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -1094,6 +1095,15 @@ public class TrpMainWidget {
 				reloadCurrentTranscript(false, true);
 			}
 		}
+	}
+	
+	
+	public void jumpToNextRegion() {
+		jumpToRegion(Storage.getInstance().getCurrentRegion() + 1);
+	}
+
+	public void jumpToPreviousRegion() {
+		jumpToRegion(Storage.getInstance().getCurrentRegion() - 1);
 	}
 
 	public void jumpToRegion(int index) {
@@ -2483,7 +2493,7 @@ public class TrpMainWidget {
 			
 			
 			
-			if (exportDiag.isTagableExportChosen() || doXlsxExport) {
+			if (exportDiag.isTagableExportChosen()) {
 							
 				selectedTags = exportDiag.getSelectedTagsList();
 				
@@ -2496,7 +2506,7 @@ public class TrpMainWidget {
 						try {
 							//logger.debug("loading transcripts...");
 							monitor.beginTask("Loading tags...", copyOfPageIndices.size());
-							ExportUtils.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), copyOfPageIndices, monitor);
+							ExportUtils.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), copyOfPageIndices, monitor, exportDiag.isDoBlackening());
 							if (copyOfSelectedTags == null) {
 								DialogUtil.showErrorMessageBox(getShell(), "Error while reading selected tag names", "Error while reading selected tag names");
 								return;
@@ -2560,13 +2570,13 @@ public class TrpMainWidget {
 				
 				lastExportFolder = dir.getParentFile().getAbsolutePath();
 				logger.debug("last export folder: " + lastExportFolder);
+
+				//delete the temp folder for making the ZIP
+				FileDeleteStrategy.FORCE.delete(tempZipDirParentFile);
 				
 				if (exportFormats != "") {
 					displaySuccessMessage("Sucessfully written " + exportFormats + " to " + exportFileOrDir);
 				}
-				
-				//delete the temp folder for making the ZIP
-				FileDeleteStrategy.FORCE.delete(tempZipDirParentFile);
 				
 				//export was done via ZIP and is completed now
 				return;
@@ -2692,20 +2702,33 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	private void createZipFromFolder(String srcFolder, String destZipFile) throws Exception {
+	private void createZipFromFolder(String srcFolder, String destZipFile) throws IOException{
 	    ZipOutputStream zip = null;
 	    FileOutputStream fileWriter = null;
 
-	    fileWriter = new FileOutputStream(destZipFile);
+	    try {
+			fileWriter = new FileOutputStream(destZipFile);
+
 	    zip = new ZipOutputStream(fileWriter);
 
 	    addFolderToZip("", srcFolder, zip);
 	    zip.flush();
 	    zip.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			throw e;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw e;
+		}finally{
+        if (zip != null) {
+            zip.close();
+        }
+    }
 	  } 
 	
-	  static private void addFileToZip(String path, String srcFile, ZipOutputStream zip)
-	      throws Exception {
+	  static private void addFileToZip(String path, String srcFile, ZipOutputStream zip) throws IOException
+	     {
 
 	    File folder = new File(srcFile);
 	    if (folder.isDirectory()) {
@@ -2718,11 +2741,12 @@ public class TrpMainWidget {
 	      while ((len = in.read(buf)) > 0) {
 	        zip.write(buf, 0, len);
 	      }
+	      in.close();
 	    }
 	  }
 
-	  static private void addFolderToZip(String path, String srcFolder, ZipOutputStream zip)
-	      throws Exception {
+	  static private void addFolderToZip(String path, String srcFolder, ZipOutputStream zip) throws IOException
+	     {
 	    File folder = new File(srcFolder);
 
 	    for (String fileName : folder.list()) {
