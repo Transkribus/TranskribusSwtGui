@@ -1448,6 +1448,11 @@ public class Storage extends Observable {
 		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
 	}
 	
+	public String analyzeLayout(int colId, int docId, String pageStr, boolean doBlockSeg, boolean doLineSeg) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.analyzeLayoutBatch(colId, docId, pageStr, doBlockSeg, doLineSeg);
+	}
+	
 	public String runOcr(int colId, int docId) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
 		return conn.runOcr(colId, docId);

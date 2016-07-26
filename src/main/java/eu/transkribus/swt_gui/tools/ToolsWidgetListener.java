@@ -24,6 +24,7 @@ import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.HtrRecMode;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.RecMode;
@@ -48,9 +49,10 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 	
 	private void addListener() {
-		tw.blockSegBtn.addSelectionListener(this);
+		tw.laBtn.addSelectionListener(this);
+//		tw.blockSegBtn.addSelectionListener(this);
 //		blockSegWPsBtn.addSelectionListener(this);
-		tw.lineSegBtn.addSelectionListener(this);
+//		tw.lineSegBtn.addSelectionListener(this);
 //		tw.wordSegBtn.addSelectionListener(this);
 //		tw.baselineBtn.addSelectionListener(this);
 		tw.structAnalysisPageBtn.addSelectionListener(this);
@@ -80,7 +82,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	
 	
 	boolean isLayoutAnalysis(Object s) {
-		return (s == tw.getBlocksBtn() || s == tw.getBlocksInPsBtn() || s == tw.getLinesBtn() || s == tw.getBaselineBtn());
+		return (s == tw.getLaBtn() || s == tw.getBlocksBtn() || s == tw.getBlocksInPsBtn() || s == tw.getLinesBtn() || s == tw.getBaselineBtn());
 	}
 	
 	boolean needsRegions(Object s) {
@@ -127,26 +129,36 @@ public class ToolsWidgetListener implements SelectionListener {
 				mw.saveTranscription(false);
 			
 			// layout analysis:
-			if (s == tw.getBlocksBtn()) {
-				logger.info("Get new block seg.");
-				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, false);
-			} else if(s == tw.getBlocksInPsBtn()) {
-				logger.info("Get new block seg. in PS");
-				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
-			} else if(s == tw.getLinesBtn()) {
-				logger.info("Get new line seg.");
-				List<String> rids = getSelectedRegionIds();
-				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-			} 
-			else if(s == tw.getWordsBtn()) {
-				logger.info("Get new word seg.");
-				List<String> rids = getSelectedRegionIds();
-				jobId = store.analyzeWords(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-			} 
-			else if(s == tw.getBaselineBtn()) {
-				logger.info("Get new Baselines.");
-				List<String> rids = getSelectedRegionIds();
-				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+//			if (s == tw.getBlocksBtn()) {
+//				logger.info("Get new block seg.");
+//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, false);
+//			} else if(s == tw.getBlocksInPsBtn()) {
+//				logger.info("Get new block seg. in PS");
+//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
+//			} else if(s == tw.getLinesBtn()) {
+//				logger.info("Get new line seg.");
+//				List<String> rids = getSelectedRegionIds();
+//				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+//			} 
+//			else if(s == tw.getWordsBtn()) {
+//				logger.info("Get new word seg.");
+//				List<String> rids = getSelectedRegionIds();
+//				jobId = store.analyzeWords(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+//			} 
+//			else if(s == tw.getBaselineBtn()) {
+//				logger.info("Get new Baselines.");
+//				List<String> rids = getSelectedRegionIds();
+//				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+//			}
+			if(s == tw.getLaBtn()) {
+				SimpleLaDialog laD = new SimpleLaDialog(mw.getShell());
+				int ret = laD.open();
+				if (ret == IDialogConstants.OK_ID) {
+					final String pageStr = laD.getPages();
+					final boolean doBlockSeg = laD.isDoBlockSeg();
+					final boolean doLineSeg = laD.isDoLineSeg();
+					jobId = store.analyzeLayout(colId, docId, pageStr, doBlockSeg, doLineSeg);
+				}
 			}
 			
 			// struct analysis:
