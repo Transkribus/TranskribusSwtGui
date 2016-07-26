@@ -1058,6 +1058,15 @@ public class TrpMainWidget {
 			}
 		}
 	}
+	
+	
+	public void jumpToNextRegion() {
+		jumpToRegion(Storage.getInstance().getCurrentRegion() + 1);
+	}
+
+	public void jumpToPreviousRegion() {
+		jumpToRegion(Storage.getInstance().getCurrentRegion() - 1);
+	}
 
 	public void jumpToRegion(int index) {
 		if (storage.jumpToRegion(index)) {
