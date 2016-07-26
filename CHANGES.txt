@@ -354,6 +354,8 @@ CHANGES AND BUGFIXES
 	-> extended docx export settings for abbreviations
 	-> PDF: images only export
 	-> PDF: unique! tag values at end of PDF plus expansion for abbrevs
+	-> export: choose current page and choose versions with their status
+	-> docx index creation for tags (press F9 to create list in Word), export settings are shown in title page
 	
 	
 	
