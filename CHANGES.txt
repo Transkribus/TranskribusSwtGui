@@ -350,6 +350,15 @@ CHANGES AND BUGFIXES
 	-> fixed a bug in the date setting widget in document metadata
 	-> PAGE XML viewer can now edit XML and reload page from it
 	
+0.8.6:
+	-> extended docx export settings for abbreviations
+	-> PDF: images only export
+	-> PDF: unique! tag values at end of PDF plus expansion for abbrevs
+	-> export: choose current page and choose versions with their status
+	-> docx index creation for tags (press F9 to create list in Word), export settings are shown in title page
+	-> change to next/previous region in transcription widget with alt+left/right key
+	-> batch layout analysis dialog
+	
 	
 	
 

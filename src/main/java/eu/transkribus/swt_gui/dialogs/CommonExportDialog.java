@@ -13,11 +13,13 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Dialog;
@@ -25,17 +27,24 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiExportMode;
 import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiLinebreakMode;
+import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.DropDownToolItem;
+import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 import eu.transkribus.swt_gui.util.TagsSelector;
 
@@ -107,6 +116,10 @@ public class CommonExportDialog extends Dialog {
 	
 	Set<Integer> selectedPages = new HashSet<Integer>(); 
 	
+	Button currentPageBtn;
+
+	String versionStatus;
+	
 	public CommonExportDialog(Shell parent, int style, String lastExportFolder, String docName, List<TrpPage> pages) {
 		super(parent, style |= SWT.DIALOG_TRIM);
 		this.lastExportFolder = lastExportFolder;
@@ -161,8 +174,7 @@ public class CommonExportDialog extends Dialog {
 	    separator2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	    //----------
 	    Button b6 = new Button(group1, SWT.CHECK);
-	    b6.setText("Export Selected as ZIP");
-	    
+	    b6.setText("Export Selected as ZIP");  
 	    
 	    Composite optionsComposite = new Composite(choiceComposite, SWT.NONE);
 	    optionsComposite.setLayout(new GridLayout(1, false));
@@ -170,6 +182,7 @@ public class CommonExportDialog extends Dialog {
 	    //gridData.heightHint = 0;
 	    gridData.horizontalAlignment = SWT.RIGHT;
 	    gridData.verticalAlignment = SWT.FILL;
+	    gridData.verticalSpan = 2;
 	    optionsComposite.setLayoutData(gridData);
 	    
 	    Label label = new Label(optionsComposite, SWT.NONE);
@@ -214,10 +227,52 @@ public class CommonExportDialog extends Dialog {
 	    docPagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 	    docPagesSelector.setVisible(false);
 	    
+	    currentPageBtn = new Button(optionsComposite, SWT.PUSH);
+	    currentPageBtn.setText("Export Current Page");
+	    currentPageBtn.setToolTipText("Press this button if you want to export the current page only");
+	    currentPageBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				String currentPageNr = Integer.toString(Storage.getInstance().getPageIndex()+1);
+				docPagesSelector.getPagesText().setText(currentPageNr);				
+			}
+		});
+	    
 		tagsSelector = new TagsSelector(optionsComposite, SWT.NONE, getSelectedTagsList());
 		tagsSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tagsSelector.setVisible(false);
-			    
+		
+	    // Create the first Group
+	    Group group2 = new Group(choiceComposite, SWT.SHADOW_IN);
+	    group2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
+	    group2.setText("Choose version status");
+	    group2.setLayout(new GridLayout(1, false));
+	    
+	    final Combo statusCombo = new Combo(group2, SWT.DROP_DOWN | SWT.READ_ONLY);
+
+	    int size = EnumUtils.stringsArray(EditStatus.class).length + 2;
+	    
+	    String items[] = new String[size];
+	    
+	    items[0] = "Latest version";
+	    setVersionStatus(items[0]);
+	    items[1] = "Loaded version (for current page)";
+	    int a = 2;
+
+	    for (String s : EnumUtils.stringsArray(EditStatus.class)){
+	    	items[a++] = s;
+	    	//logger.debug("editStatus " + s);
+	    }
+	    
+		statusCombo.setItems(items);
+		statusCombo.select(0);
+		
+		statusCombo.addSelectionListener(new SelectionAdapter() {
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	        	setVersionStatus(statusCombo.getText());
+	        }
+		});
+
 	    b0.addSelectionListener(new SelectionAdapter() {
 	        @Override
 	        public void widgetSelected(SelectionEvent event) {
@@ -877,6 +932,7 @@ public class CommonExportDialog extends Dialog {
 	
 	private void showPageChoice() {
 		docPagesSelector.setVisible(isPageableExport());
+		currentPageBtn.setVisible(isPageableExport());
 	}
 	
 	private void showTagChoice() {
@@ -886,9 +942,13 @@ public class CommonExportDialog extends Dialog {
 	public boolean isPageableExport() {
 		return isMetsExport() || isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport();
 	}
+		
+	public boolean isTagableExport(){
+		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport());
+	}
 	
-	public boolean isTagableExport() {
-		return isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport();
+	public boolean isTagableExportChosen(){
+		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport()) && (isHighlightTags() || isTagExport() || isXlsxExport());
 	}
 	
 	private void updateTeiExportMode() {
@@ -1142,6 +1202,14 @@ public class CommonExportDialog extends Dialog {
 
 	public void setExportImagesPlusText(boolean exportImagesPlusText) {
 		this.exportImagesPlusText = exportImagesPlusText;
+	}
+
+	public String getVersionStatus() {
+		return versionStatus;
+	}
+
+	public void setVersionStatus(String versionStatus) {
+		this.versionStatus = versionStatus;
 	}
 
 
