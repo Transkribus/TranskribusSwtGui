@@ -1009,25 +1009,17 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	}
 	
 	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
-		int nIntersections = intersectionPoints(x1, y1, x2, y2, true).size();
-		logger.debug("nr of intersections: "+nIntersections);
+	public Pair<ICanvasShape, ICanvasShape> splitShape(CanvasPolyline pl) {
+		int nIntersections = intersectionPoints(pl, true).size();
 		
 		// for a closed shape, the nr of intersections shall be 2, otherwise more than two split shapes will be created!
 		// for an open shape (e.g. a polyline) the nr of intersections must be 1
 		if ( (this.isClosed() && nIntersections!=2) || (!this.isClosed() && nIntersections !=1) ) 
 			return null;
 		
-		List<Point> pts = new ArrayList<Point>();
-		pts.add(new Point(x1, y1));
-		pts.add(new Point(x2, y2));
-		CanvasPolyline pl  = new CanvasPolyline(pts);
-		
 		final int extDist = (int)1e6;
-		pl.extendAtEnds(extDist);
-		
-		CanvasPolygon pUp = pl.getPolyRectangle(extDist, extDist, 1);
-		CanvasPolygon pDown = pl.getPolyRectangle(extDist, extDist, 2);
+		CanvasPolygon pUp = pl.extendAtEnds(extDist).getPolyRectangle(extDist, extDist, 1);
+		CanvasPolygon pDown = pl.extendAtEnds(extDist).getPolyRectangle(extDist, extDist, 2);
 		
 //		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 //		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
@@ -1052,6 +1044,56 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 						
 		return Pair.of(s1, s2);
 	}
+	
+	@Override
+	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
+		return splitShape(new CanvasPolyline(new Point(x1, y1), new Point(x2, y2)));
+	}
+	
+//	@Override
+//	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
+//		int nIntersections = intersectionPoints(x1, y1, x2, y2, true).size();
+//		logger.debug("nr of intersections: "+nIntersections);
+//		
+//		// for a closed shape, the nr of intersections shall be 2, otherwise more than two split shapes will be created!
+//		// for an open shape (e.g. a polyline) the nr of intersections must be 1
+//		if ( (this.isClosed() && nIntersections!=2) || (!this.isClosed() && nIntersections !=1) ) 
+//			return null;
+//		
+//		List<Point> pts = new ArrayList<Point>();
+//		pts.add(new Point(x1, y1));
+//		pts.add(new Point(x2, y2));
+//		CanvasPolyline pl  = new CanvasPolyline(pts);
+//		
+//		final int extDist = (int)1e6;
+//		pl = pl.extendAtEnds(extDist);
+//		
+//		CanvasPolygon pUp = pl.getPolyRectangle(extDist, extDist, 1);
+//		CanvasPolygon pDown = pl.getPolyRectangle(extDist, extDist, 2);
+//		
+////		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+////		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+//		
+//		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+//		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+//		
+//		ICanvasShape s1 = this.copy();
+//		s1.setPoints2D(pI1.vertices());
+//		
+//		ICanvasShape s2 = this.copy();
+//		s2.setPoints2D(pI2.vertices());
+//		
+//	
+//		/*
+//		 * compare the newly created shapes to have the proper reading order later on 
+//		 * ordering (or better s1, s2) differs for horizontal and vertical splits and hence we correct this here
+//		 */ 
+//		if (s1.compareByLevelAndYXCoordinates(s2) > 0){
+//			return Pair.of(s2, s1);
+//		}
+//						
+//		return Pair.of(s1, s2);
+//	}
 	
 	@Override
 	public ICanvasShape mergeShapes(ICanvasShape shape) {
@@ -1091,6 +1133,26 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 			if (pt!=null) {
 				ipts.add(pt.getAsInt());
 			}
+		}
+		
+		return ipts;
+	}
+	
+	@Override
+	public List<java.awt.Point> intersectionPoints(CanvasPolyline pl, boolean extendLine) {
+		
+		CanvasPolyline ipl = pl;
+		if (extendLine) {
+			final int extDist = (int) 1e6;
+			ipl = pl.extendAtEnds(extDist);
+		}
+		
+		List<java.awt.Point> ipts = new ArrayList<>();
+		for (int i=0; i<ipl.getNPoints()-1; ++i) {
+			Point p1 = ipl.getPoint(i);
+			Point p2 = ipl.getPoint(i+1);
+			
+			ipts.addAll(intersectionPoints(p1.x, p1.y, p2.x, p2.y, false));
 		}
 		
 		return ipts;

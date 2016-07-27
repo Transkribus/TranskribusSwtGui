@@ -101,6 +101,10 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		else if (button == settings.getEditMouseButton() && canvas.getMode().isAddOperation()) { 
 			canvas.getShapeEditor().finishCurrentShape(true);
 		}
+		// split shape:
+		else if (button == settings.getEditMouseButton() && canvas.getMode().equals(CanvasMode.SPLIT_SHAPE_LINE)) {			
+			canvas.getShapeEditor().finishSplitByLine();
+		}
 	}
 	
 	private void doMouseDownShapeEditOperations(MouseButtons button, Point moustPt, int stateMask) {

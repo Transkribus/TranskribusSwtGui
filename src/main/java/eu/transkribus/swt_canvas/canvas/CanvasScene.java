@@ -19,6 +19,7 @@ import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener.SceneEvent;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener.SceneEventType;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
 
@@ -274,7 +275,7 @@ public class CanvasScene {
 	 * @param isFollowUp Indicates that this is a follow-up split, i.e. a split occuring from splitting a parent shape!
 	 * @return A ShapeEditOperation object that contains information on the performed split or null if there was some error
 	 */
-	public ShapeEditOperation splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, boolean sendSignal, ICanvasShape p1, ICanvasShape p2, boolean isFollowUp) {
+	public ShapeEditOperation splitShape(ICanvasShape shape, CanvasPolyline pl, boolean sendSignal, ICanvasShape p1, ICanvasShape p2, boolean isFollowUp) {
 		if (shape == null)
 			return null;
 		
@@ -287,7 +288,7 @@ public class CanvasScene {
 				return null;
 		}
 		
-		Pair<ICanvasShape, ICanvasShape> splits = shape.splitShape(x1, y1, x2, y2);
+		Pair<ICanvasShape, ICanvasShape> splits = shape.splitShape(pl);
 		logger.debug("splits "+splits);
 		if (splits == null)
 			return null;

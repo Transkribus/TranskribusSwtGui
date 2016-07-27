@@ -276,6 +276,7 @@ public class TrpMainWidget {
 			tip.addTip("No tip found... check your configuration!");
 
 		tip.setStyle(TipStyle.TWO_COLUMNS);
+		
 		tip.open(getShell());
 
 		getTrpSets().setShowTipOfTheDay(tip.isShowOnStartup());

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType.GetCellsType;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
@@ -150,7 +151,7 @@ public class TableUtils {
 		public List<TrpTableCellType> cells=null;
 	}
 	
-	public static SplittableCellsStruct getSplittableCells(int x1, int y1, int x2, int y2, TrpTableRegionType table) {
+	public static SplittableCellsStruct getSplittableCells(CanvasPolyline pl, TrpTableRegionType table) {
 		if (table == null)
 			return null;
 		
@@ -175,7 +176,7 @@ public class TableUtils {
 				for (TrpTableCellType c : cells) {
 					CanvasQuadPolygon qp = (CanvasQuadPolygon) c.getData();
 					
-					if (qp.computeSplitPoints(x1, y1, x2, y2, true, dir) == null) {
+					if (qp.computeSplitPoints(pl, true, dir) == null) {
 						logger.debug("cells not splittable in dir = "+dir);
 						cells = null;
 						break;

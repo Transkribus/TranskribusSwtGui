@@ -323,7 +323,7 @@ public class TrpShapeElementFactory {
 			shape = new CanvasPolyline(points);
 		}
 		else if (trpShape instanceof TrpTableCellType) {
-			logger.debug("adding table cell as CanvasQuadPolygon shape");
+			logger.trace("adding table cell as CanvasQuadPolygon shape");
 			shape = new CanvasQuadPolygon(points);
 			TrpTableCellType tc = (TrpTableCellType) trpShape;
 			

@@ -27,6 +27,7 @@ import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.shapes.ACanvasShape;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
@@ -75,7 +76,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 	 * If shape is a baseline, select parent line and split it, s.t. undlerying baseline gets splits too
 	 * and then try to select the first baseline split
 	 */
-	private List<ShapeEditOperation> splitTrpBaselineType(ICanvasShape shape, int x1, int y1, int x2, int y2) {
+	private List<ShapeEditOperation> splitTrpBaselineType(ICanvasShape shape, CanvasPolyline pl) {
 		if (shape == null || !(shape.getData() instanceof TrpBaselineType))
 			return null;
 		
@@ -86,7 +87,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 //		logger.debug("Parent = "+selected.getParent()); // IS NULL...			
 //		scene.selectObject(selected.getParent(), false, false);
 
-		List<ShapeEditOperation> splitOps = super.splitShape(shape, x1, y1, x2, y2, true);
+		List<ShapeEditOperation> splitOps = super.splitShape(shape, pl, true);
 
 		// try to select first split of baseline:
 		logger.debug("trying to select left baseline split, nr of ops = "+splitOps.size());
@@ -106,10 +107,10 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return splitOps;
 	}
 
-	private List<ShapeEditOperation> splitTrpTableType(TrpTableRegionType table, int x1, int y1, int x2, int y2, boolean addToUndoStack) {
+	private List<ShapeEditOperation> splitTrpTableType(TrpTableRegionType table, CanvasPolyline pl, boolean addToUndoStack) {
 		// search for row / col cells to split:
 //		Pair<SplitDirection, List<TrpTableCellType>> splittableCells = TableUtils.getSplittableCells(x1, y1, x2, y2, table);
-		SplittableCellsStruct splittableCells = TableUtils.getSplittableCells(x1, y1, x2, y2, table);
+		SplittableCellsStruct splittableCells = TableUtils.getSplittableCells(pl, table);
 		if (splittableCells == null) {
 			logger.debug("cells not splittable in this direction!");
 			return null;
@@ -136,7 +137,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 //				splitOp.addNestedOps(splitOps4Cell);
 //			}
 			
-			List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), x1, y1, x2, y2, false);
+			List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), pl, false);
 			splitOp.addNestedOps(splitOps4Cell);
 			splitOp.addCellBackup(c);
 //			splitOps.addAll(splitOps4Cell);
@@ -229,7 +230,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return ops;
 	}
 	
-	@Override public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, boolean addToUndoStack) {
+//	@Override public List<ShapeEditOperation> splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, boolean addToUndoStack) {
+	@Override public List<ShapeEditOperation> splitShape(ICanvasShape shape, CanvasPolyline pl, boolean addToUndoStack) {
 		try {
 	//		ICanvasShape selected = canvas.getFirstSelected();
 			if (shape == null) {
@@ -240,13 +242,13 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			TrpTableRegionType table = TableUtils.getTable(shape);
 			
 			if (shape.getData() instanceof TrpBaselineType) {
-				return splitTrpBaselineType(shape, x1, y1, x2, y2);
+				return splitTrpBaselineType(shape, pl);
 			}
 			else if (table != null) {
-				return splitTrpTableType(table, x1, y1, x2, y2, addToUndoStack);
+				return splitTrpTableType(table, pl, addToUndoStack);
 			}
 			else { // perform default split operation on base class
-				return super.splitShape(shape, x1, y1, x2, y2, addToUndoStack);
+				return super.splitShape(shape, pl, addToUndoStack);
 			}
 		} catch (Exception e) {
 //			logger.debug("error", e);

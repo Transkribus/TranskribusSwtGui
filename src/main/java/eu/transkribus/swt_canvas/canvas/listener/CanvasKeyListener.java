@@ -44,6 +44,8 @@ public class CanvasKeyListener implements KeyListener {
 //			canvas.getSettings().setMultiselect(true);
 		}
 		
+		CanvasMode mode = canvas.getMode();
+		
 		final boolean hasKeysDown = CanvasKeys.hasRequiredKeysDown(e);
 		if (!hasKeysDown)
 			return;
@@ -80,9 +82,12 @@ public class CanvasKeyListener implements KeyListener {
 		}
 		
 		// EDIT OPERATIONS:
-		else if (CanvasKeys.containsKey(CanvasKeys.FINISH_SHAPE, e.keyCode)) {
+		else if (CanvasKeys.containsKey(CanvasKeys.FINISH_SHAPE, e.keyCode) && mode.isAddOperation()) {
 			canvas.getShapeEditor().finishCurrentShape(true);
-		}		
+		}
+		else if (CanvasKeys.containsKey(CanvasKeys.FINISH_SHAPE, e.keyCode) && mode.equals(CanvasMode.SPLIT_SHAPE_LINE)) {
+			canvas.getShapeEditor().finishSplitByLine();
+		}
 		else if (CanvasKeys.containsKey(CanvasKeys.DELETE_SHAPE, e.keyCode)) {
 //			logger.debug("delete button pressed - removing selected!");
 			canvas.getShapeEditor().removeSelected();

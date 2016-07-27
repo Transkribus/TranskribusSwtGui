@@ -140,6 +140,9 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	List<math.geom2d.Point2D> getPoints2D();
 	double intersectionArea(ICanvasShape shape);
 	List<java.awt.Point> intersectionPoints(int x1, int y1, int x2, int y2, boolean extendLine);
+	List<java.awt.Point> intersectionPoints(CanvasPolyline pl, boolean extendLine);
+	
+	Pair<ICanvasShape, ICanvasShape> splitShape(CanvasPolyline pl);
 	Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2);
 	Pair<ICanvasShape, ICanvasShape> splitShapeHorizontal(int x);
 	Pair<ICanvasShape, ICanvasShape> splitShapeVertical(int y);

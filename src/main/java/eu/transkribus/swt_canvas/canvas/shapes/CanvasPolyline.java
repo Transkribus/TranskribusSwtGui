@@ -40,6 +40,13 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		super(src);
 	}
 	
+	public CanvasPolyline(Point p1, Point p2) {
+		List<Point> pts = new ArrayList<>();
+		pts.add(p1);
+		pts.add(p2);
+		setPoints(pts);
+	}
+
 	public CanvasPolyline copy() {
 		return new CanvasPolyline(this);
 	}
@@ -131,9 +138,10 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		return null;
 	}
 	
-	public void extendAtEnds(final double dist) {
-		if (getNPoints() < 2)
-			return;
+	public CanvasPolyline extendAtEnds(final double dist) {
+		CanvasPolyline extended = new CanvasPolyline(this);
+		if (extended.getNPoints() < 2)
+			return extended;
 		
 		List<java.awt.Point> pts = getPoints();
 		List<java.awt.Point> extendedPts = new ArrayList<>();
@@ -157,8 +165,9 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		v1 = v1.normalize();
 		newFirstPt = new Vector2D(p2.x, p2.y).plus(v1.times(dist));
 		extendedPts.add(new java.awt.Point((int)newFirstPt.x(), (int)newFirstPt.y()));
-		
-		this.setPoints(extendedPts);		
+
+		extended.setPoints(extendedPts);
+		return extended;	
 	}
 		
 	@Override

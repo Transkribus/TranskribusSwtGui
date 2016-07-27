@@ -558,10 +558,18 @@ public class SWTCanvas extends Canvas {
 			// draw shape:
 			// logger.debug("mousept = "+mP+" mode = "+m);
 			if (m == CanvasMode.SPLIT_SHAPE_LINE && drawnPoints.size() >= 1) {
-				// logger.debug("mousept = "+mP);
+				CanvasPolyline poly = new CanvasPolyline(drawnPoints);
 				if (mP != null)
-					SWTUtil.drawLineExtended(gc, drawnPoints.get(0).x,
-							drawnPoints.get(0).y, mP.x, mP.y);
+					poly.addPoint(mP.x, mP.y);
+				
+				poly = poly.extendAtEnds(500);
+				gc.drawPolyline(poly.getPointArray());
+				
+				// logger.debug("mousept = "+mP);
+//				if (mP != null)
+//					SWTUtil.drawLineExtended(gc, drawnPoints.get(0).x,
+//							drawnPoints.get(0).y, mP.x, mP.y);
+				
 			} else if (m == CanvasMode.SPLIT_SHAPE_VERTICAL) {
 				if (mP != null)
 					SWTUtil.drawLineExtended(gc, -1, mP.y, 1, mP.y);
