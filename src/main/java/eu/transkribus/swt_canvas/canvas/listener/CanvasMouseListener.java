@@ -2,6 +2,17 @@ package eu.transkribus.swt_canvas.canvas.listener;
 
 import java.util.HashMap;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.MouseTrackListener;
+import org.eclipse.swt.events.MouseWheelListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,16 +25,6 @@ import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.util.MouseButtons;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.events.MouseTrackListener;
-import org.eclipse.swt.events.MouseWheelListener;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 
 public class CanvasMouseListener implements MouseListener, MouseMoveListener, MouseWheelListener, MouseTrackListener {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasMouseListener.class);
@@ -94,7 +95,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		MouseButtons button = MouseButtons.fromInt(e.button);
 		
 		// focus selected shape on double-click 
-		if (button == settings.getSelectMouseButton() && canvas.getMode() == CanvasMode.SELECTION) {
+		if (button == settings.getSelectMouseButton() && canvas.getMode() == CanvasMode.SELECTION && e.stateMask==0) {
 			canvas.focusShape(canvas.getScene().getLastSelected());
 		}
 		// finish current shape on double-click
@@ -109,7 +110,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	
 	private void doMouseDownShapeEditOperations(MouseButtons button, Point moustPt, int stateMask) {
 		// add point:
-		final boolean ADD_POINT_ON_BOUNDARY_CLICK = true;
+		final boolean ADD_POINT_ON_BOUNDARY_CLICK = false;
 		
 		if (ADD_POINT_ON_BOUNDARY_CLICK)
 		if (button == settings.getEditMouseButton()
@@ -121,14 +122,14 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				&& canvas.getMode() == CanvasMode.SELECTION
 				) {
 			Point shapePtWTr = canvas.transform(shapeBoundaryPt); // have to transform, since shape point is without transformation!
-			canvas.getShapeEditor().addPointToSelected(shapePtWTr.x, shapePtWTr.y);
+			canvas.getShapeEditor().addPointToShape(canvas.getFirstSelected(), shapePtWTr.x, shapePtWTr.y, true);
 		}
 	}
 	
 	private void doMouseUpShapeEditOperations(MouseButtons button, Point mousePt) {
 		// add point:
 		if (button == settings.getEditMouseButton() && canvas.getMode() == CanvasMode.ADD_POINT) {
-			canvas.getShapeEditor().addPointToSelected(mousePt.x, mousePt.y);
+			canvas.getShapeEditor().addPointToShape(canvas.getFirstSelected(), mousePt.x, mousePt.y, true);
 		}
 		// remove point:
 		else if (button == settings.getEditMouseButton() && canvas.getMode() == CanvasMode.REMOVE_POINT) {
@@ -169,7 +170,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		mouseUpMap.put(button, null);
 				
 		boolean isMovingShapePossible = canvas.isMovingShapePossible();
-
+		
 		// set move image mode:
 		final boolean isMoveImgOnLeftBtnPossible = 
 				(canvas.getMode() == CanvasMode.SELECTION || canvas.getMode() == CanvasMode.LOUPE) && 
@@ -391,6 +392,11 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				logger.debug("selecting object on: "+e.x+"x"+e.y);
 				canvas.selectObject(new Point(e.x, e.y), true, isMultiselect);
 			}
+		}
+		// open up context menu
+		else if (button == MouseButtons.BUTTON_RIGHT && !hasMouseMoved) {
+			Point p = canvas.toDisplay(e.x, e.y);
+			canvas.getContextMenu().show(p.x, p.y);
 		}
 		
 		hasMouseMoved = false;

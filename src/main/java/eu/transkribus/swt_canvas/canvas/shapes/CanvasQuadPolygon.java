@@ -440,18 +440,19 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 			
 			Point p1 = pts.get(i);
 			Point p2 = pts.get(iNext);
-			CanvasPolyline plLine = new CanvasPolyline(p1, p2);
 			
 //			math.geom2d.line.Line2D l = new math.geom2d.line.Line2D((int)pts.get(i).getX(), (int)pts.get(i).getY(),
 //					(int)pts.get(iNext).getX(), (int)pts.get(iNext).getY());
 		
-			List<Point> seg = ipl.intersectionPoints(plLine, false);
+			List<ShapePoint> seg = ipl.intersectionPoints(p1.x, p1.y, p2.x, p2.y, false);
+//			ipts.addAll(seg);
+						
+//			math.geom2d.Point2D pt = lGiven.intersection(l);
 			
-			for (Point p : seg) {
-				ipts.add(new ShapePoint(p, i));
+			for (ShapePoint p : seg) {
+				ipts.add(new ShapePoint(p.p, i));
 			}
 			
-//			math.geom2d.Point2D pt = lGiven.intersection(l);
 //			if (pt!=null) {
 //				ipts.add(new ShapePoint(pt.getAsInt(), i));
 //			}
@@ -460,25 +461,25 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		return ipts;
 	}
 	
-	public Pair<ShapePoint, ShapePoint> computeSplitPoints(int x1, int y1, int x2, int y2, boolean extendLine, SplitDirection dir) {
-		Point p1 = new Point(x1, y1);
-		Point p2 = new Point(x2, y2);
-		CanvasPolyline pl = new CanvasPolyline(p1, p2);
-		
-		return computeSplitPoints(pl, extendLine, dir);
-//		List<ShapePoint> ipts1 = intersectionPoints(x1, y1, x2, y2, extendLine, cp1);//		if (ipts1.size() != 1)
-//			return null;
+//	public Pair<ShapePoint, ShapePoint> computeSplitPoints(int x1, int y1, int x2, int y2, boolean extendLine, TableDimension dir) {
+//		Point p1 = new Point(x1, y1);
+//		Point p2 = new Point(x2, y2);
+//		CanvasPolyline pl = new CanvasPolyline(p1, p2);
 //		
-//		List<ShapePoint> ipts2 = intersectionPoints(x1, y1, x2, y2, extendLine, cp2);
-//		if (ipts2.size() != 1)
-//			return null;
-//		
-//		return Pair.of(ipts1.get(0), ipts2.get(0));
-	}
+//		return computeSplitPoints(pl, extendLine, dir);
+////		List<ShapePoint> ipts1 = intersectionPoints(x1, y1, x2, y2, extendLine, cp1);//		if (ipts1.size() != 1)
+////			return null;
+////		
+////		List<ShapePoint> ipts2 = intersectionPoints(x1, y1, x2, y2, extendLine, cp2);
+////		if (ipts2.size() != 1)
+////			return null;
+////		
+////		return Pair.of(ipts1.get(0), ipts2.get(0));
+//	}
 	
-	public Pair<ShapePoint, ShapePoint> computeSplitPoints(CanvasPolyline pl, boolean extendLine, SplitDirection dir) {
-		int cp1 = dir==SplitDirection.HORIZONAL ? 1 : 0;
-		int cp2 = dir==SplitDirection.HORIZONAL ? 3 : 2;
+	public Pair<ShapePoint, ShapePoint> computeSplitPoints(CanvasPolyline pl, boolean extendLine, TableDimension dir) {		
+		int cp1 = dir==TableDimension.COLUMN ? 1 : 0;
+		int cp2 = dir==TableDimension.COLUMN ? 3 : 2;
 		
 		List<ShapePoint> ipts1 = intersectionPoints(pl, extendLine, cp1);
 		if (ipts1.size() != 1)
@@ -502,14 +503,14 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		}
 	}
 	
-	private CanvasQuadPolygon computeSplitShape(SplitDirection dir, boolean topOrLeft, Pair<ShapePoint, ShapePoint> sp) {
+	private CanvasQuadPolygon computeSplitShape(TableDimension dir, boolean topOrLeft, Pair<ShapePoint, ShapePoint> sp) {
 		logger.debug("computeSplitShape, topOrLeft = "+topOrLeft+" sp = "+sp+" dir = "+dir);
 		
 		int[] newCorners = { 0, 0, 0, 0 };
 		List<Point> newPts = new ArrayList<>();
 		
 		int cc=0;
-		if (!topOrLeft && dir==SplitDirection.HORIZONAL) {
+		if (!topOrLeft && dir==TableDimension.COLUMN) {
 			cc = 1;
 		}
 		
@@ -554,7 +555,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 				} else if (i == sp.getRight().index) {
 					logger.debug("cc5 = "+cc+" i = "+i);
 				
-					if (dir == SplitDirection.VERTICAL) {
+					if (dir == TableDimension.ROW) {
 						newPts.add(sp.getRight().p);
 						newCorners[cc++] = pc;
 						++pc;
@@ -619,17 +620,16 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 //	}	
 	
 	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShape(CanvasPolyline pl) {
-		//TODO use intersectionPoints method in both directions to determine split points and their index, then construct the two
-		// splits using them -> Polygons2D.intersection not needed here!!
-		
+	public Pair<ICanvasShape, ICanvasShape> splitByPolyline(CanvasPolyline pl) {
 		// try to find horizontal or vertical split points:
-		SplitDirection dir = SplitDirection.HORIZONAL;
+		TableDimension dir = TableDimension.COLUMN;
+		
 		Pair<ShapePoint, ShapePoint> sp = this.computeSplitPoints(pl, true, dir);
 		if (sp == null) {
-			dir = SplitDirection.VERTICAL;
+			dir = TableDimension.ROW;
 			sp = this.computeSplitPoints(pl, true, dir);
 		}
+		
 		// no split points found -> no split possible -> return null
 		if (sp == null)
 			return null;
@@ -807,7 +807,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 //	}
 		
 	@Override
-	public ICanvasShape mergeShapes(ICanvasShape shape) {
+	public ICanvasShape merge(ICanvasShape shape) {
 		logger.debug("merging quad polygon shapes!");
 //		throw new CanvasShapeException("mergeShapes operation not implemented yet for quad polygons!");
 		

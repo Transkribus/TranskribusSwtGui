@@ -68,6 +68,7 @@ public class SWTCanvas extends Canvas {
 	 **/
 	protected CanvasShapeEditor shapeEditor;
 	protected UndoStack undoStack;
+	protected CanvasContextMenu contextMenu;
 	// protected CanvasSettingsPropertyChangeListener
 	// settingsPropertyChangeListener;
 
@@ -101,9 +102,14 @@ public class SWTCanvas extends Canvas {
 		initCanvasScene();
 		initShapeEditor();
 		initUndoStack();
+		initContextMenu();
 
 		initListener();
 		setFocus();
+	}
+
+	protected void initContextMenu() {
+		contextMenu = new CanvasContextMenu(this);
 	}
 
 	protected void initSettings() {
@@ -570,10 +576,10 @@ public class SWTCanvas extends Canvas {
 //					SWTUtil.drawLineExtended(gc, drawnPoints.get(0).x,
 //							drawnPoints.get(0).y, mP.x, mP.y);
 				
-			} else if (m == CanvasMode.SPLIT_SHAPE_VERTICAL) {
+			} else if (m == CanvasMode.SPLIT_SHAPE_BY_HORIZONTAL_LINE) {
 				if (mP != null)
 					SWTUtil.drawLineExtended(gc, -1, mP.y, 1, mP.y);
-			} else if (m == CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
+			} else if (m == CanvasMode.SPLIT_SHAPE_BY_VERTICAL_LINE) {
 				if (mP != null)
 					SWTUtil.drawLineExtended(gc, mP.x, -1, mP.x, 1);
 			} else if (drawnPoints.size() >= 1
@@ -1207,6 +1213,10 @@ public class SWTCanvas extends Canvas {
 
 	public CanvasShapeEditor getShapeEditor() {
 		return shapeEditor;
+	}
+	
+	public CanvasContextMenu getContextMenu() {
+		return contextMenu;
 	}
 
 	public UndoStack getUndoStack() {

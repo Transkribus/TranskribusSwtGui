@@ -32,7 +32,7 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
-import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
+import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.TableCellUndoData;
@@ -76,7 +76,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 	 * If shape is a baseline, select parent line and split it, s.t. undlerying baseline gets splits too
 	 * and then try to select the first baseline split
 	 */
-	private List<ShapeEditOperation> splitTrpBaselineType(ICanvasShape shape, CanvasPolyline pl) {
+	private List<ShapeEditOperation> splitBaseline(ICanvasShape shape, CanvasPolyline pl) {
 		if (shape == null || !(shape.getData() instanceof TrpBaselineType))
 			return null;
 		
@@ -107,64 +107,44 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return splitOps;
 	}
 
-	private List<ShapeEditOperation> splitTrpTableType(TrpTableRegionType table, CanvasPolyline pl, boolean addToUndoStack) {
-		// search for row / col cells to split:
+	private List<ShapeEditOperation> splitTable(TrpTableRegionType table, CanvasPolyline pl, boolean addToUndoStack) {
+		// search for row / col cells to split according to given polyline:
 //		Pair<SplitDirection, List<TrpTableCellType>> splittableCells = TableUtils.getSplittableCells(x1, y1, x2, y2, table);
 		SplittableCellsStruct splittableCells = TableUtils.getSplittableCells(pl, table);
 		if (splittableCells == null) {
-			logger.debug("cells not splittable in this direction!");
+			logger.debug("cells not splittable with this polyline!");
 			return null;
 		}
 		
-		SplitDirection dir = splittableCells.dir;
-		int pi = dir==SplitDirection.VERTICAL?0:1;
-		String entityName = dir==SplitDirection.HORIZONAL?"column":"row";
+		TableDimension dir = splittableCells.dir;
+		int pi = dir.val;
+		String entityName = dir==TableDimension.COLUMN?"column":"row";
 
 		TableShapeEditOperation splitOp = new TableShapeEditOperation("Added a new table "+entityName);
 		
 		logger.debug("n-splittableCells: "+splittableCells.cells.size());
-		// FIXME??ß
 		
-//		List<ShapeEditOperation> splitOps = new ArrayList<>();
-		
-//		List<TrpTableCellType> multiSpanCells = new ArrayList<>();
 		for (TrpTableCellType c : splittableCells.cells) {
-//			if (c.getSpan()[pi]>1) {
-//				c.setSpan(pi, c.getSpan()[pi]+1);
-//			} 
-//			else {
-//				List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), x1, y1, x2, y2, false);
-//				splitOp.addNestedOps(splitOps4Cell);
-//			}
-			
 			List<ShapeEditOperation> splitOps4Cell = super.splitShape((ICanvasShape) c.getData(), pl, false);
 			splitOp.addNestedOps(splitOps4Cell);
 			splitOp.addCellBackup(c);
-//			splitOps.addAll(splitOps4Cell);
 		}
-				
-		// adjust indexes on table:
-//		final List<TableCellUndoData> backup = new ArrayList<>();
-//		int insertIndex = dir==SplitDirection.HORIZONAL ? splittableCells.getRight().get(0).getCol() : splittableCells.getRight().get(0).getRow();
-		int insertIndex = splittableCells.index;
-//		boolean isRowInserted = dir==SplitDirection.VERTICAL;
-		
-//		table.adjustCellIndexesOnRowOrColInsert(insertIndex, isRowInserted);
-		
-		java.util.Iterator<ShapeEditOperation> it = splitOp.getNestedOpsDescendingIterator();
-		
-		while (it.hasNext()) {
-//		for (ShapeEditOperation op : splitOp.getNestedOpsDescendingIterator()) {
-			ShapeEditOperation op = it.next();
 			
-			if (!(op.getNewShapes().get(0).getData() instanceof TrpTableCellType))
+		// adjust indexes on table:
+		int insertIndex = splittableCells.index;		
+		java.util.Iterator<ShapeEditOperation> it = splitOp.getNestedOpsDescendingIterator();
+		while (it.hasNext()) {
+			ShapeEditOperation op = it.next();
+			ICanvasShape s1 = op.getNewShapes().get(0);
+			ICanvasShape s2 = op.getNewShapes().get(1);
+			
+			if (!(s1.getData() instanceof TrpTableCellType))
 				continue;
 			
 			logger.trace("t-op = "+op);
-//			op.getFirstShape();
 			
-			TrpTableCellType tc1 = (TrpTableCellType) op.getNewShapes().get(0).getData();
-			TrpTableCellType tc2 = (TrpTableCellType) op.getNewShapes().get(1).getData();
+			TrpTableCellType tc1 = (TrpTableCellType) s1.getData();
+			TrpTableCellType tc2 = (TrpTableCellType) s2.getData();
 			
 			// set span to 1 for left / upper part of splitted cell:
 			int diff = 0;
@@ -192,7 +172,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		for (TrpTableCellType tc : table.getTrpTableCell()) {
 			logger.trace("tc: "+tc);
 			
-			if (dir == SplitDirection.HORIZONAL) {
+			if (dir == TableDimension.COLUMN) {
 				if (tc.getCol() > insertIndex) {
 					splitOp.addCellBackup(tc);
 					tc.setCol(tc.getCol()+1);
@@ -226,6 +206,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		ops.add(splitOp);
+	
+		TableUtils.selectCells((TrpSWTCanvas) canvas, table, insertIndex, dir);
 
 		return ops;
 	}
@@ -242,10 +224,10 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			TrpTableRegionType table = TableUtils.getTable(shape);
 			
 			if (shape.getData() instanceof TrpBaselineType) {
-				return splitTrpBaselineType(shape, pl);
+				return splitBaseline(shape, pl);
 			}
 			else if (table != null) {
-				return splitTrpTableType(table, pl, addToUndoStack);
+				return splitTable(table, pl, addToUndoStack);
 			}
 			else { // perform default split operation on base class
 				return super.splitShape(shape, pl, addToUndoStack);
@@ -420,28 +402,28 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			addToUndoStack(ops);
 	}
 	
-	private int addPointToTableCell(ICanvasShape selected, int mouseX, int mouseY) {
+	private ShapeEditOperation addPointToTableCell(ICanvasShape shape, int mouseX, int mouseY, boolean addToUndoStack) {
 		logger.debug("adding pt to neighbor table cell!");
 		
-		final CanvasQuadPolygon qp = (CanvasQuadPolygon) selected;
+		final CanvasQuadPolygon qp = (CanvasQuadPolygon) shape;
 		
 		final Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
 		
-		List<ShapeEditOperation> ops = new ArrayList<>();
-		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", selected);
-		ops.add(op);
+//		List<ShapeEditOperation> ops = new ArrayList<>();
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", shape);
+//		ops.add(op);
 		
-		int ii = selected.insertPoint(mousePtWoTr.x, mousePtWoTr.y);
-		int ptIndex = selected.getPointIndex(mousePtWoTr.x, mousePtWoTr.y);
+		int ii = shape.insertPoint(mousePtWoTr.x, mousePtWoTr.y);
+		int ptIndex = shape.getPointIndex(mousePtWoTr.x, mousePtWoTr.y);
 		if (ptIndex == -1)
-			return -1;
+			return null;
 		
 		int side = qp.getPointSide(ptIndex);
 		int sideOpposite = (side+2) % 4; 
 		
 		logger.debug("add pt, side: "+side+" sideOpposite = "+sideOpposite);
 		
-		TrpTableCellType c = (TrpTableCellType) selected.getData();
+		TrpTableCellType c = (TrpTableCellType) shape.getData();
 		
 		// determine nearest neighbor:
 		List<TrpTableCellType> neighbors = c.getNeighborCells(side);
@@ -465,15 +447,18 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			CanvasQuadPolygon nc = (CanvasQuadPolygon) neighbors.get(0).getData();
 
 			ShapeEditOperation opN = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", nc);
-			ops.add(opN);
+			op.addNestedOp(opN);
+//			ops.add(opN);
 			
 			nc.insertPointOnSide(mousePtWoTr.x, mousePtWoTr.y, sideOpposite);
 		}
-				
-		if (!ops.isEmpty())
-			addToUndoStack(ops);
 		
-		return ii;
+		op.data = ii;
+				
+		if (addToUndoStack)
+			addToUndoStack(op);
+		
+		return op;
 	}
 	
 	private ShapeEditOperation removePointFromTableCell(ICanvasShape cellShape, int pointIndex, boolean addToUndoStack) {
@@ -698,19 +683,18 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 	}
 	
-	@Override public int addPointToSelected(int mouseX, int mouseY) {
-		logger.debug("inserting point!");
+	@Override public ShapeEditOperation addPointToShape(ICanvasShape shape, int mouseX, int mouseY, boolean addToUndoStack) {
+		logger.debug("adding point!");
 		
-		ICanvasShape selected = canvas.getFirstSelected();
-		if (selected != null && selected.isEditable()) {
-			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
-				return addPointToTableCell(selected, mouseX, mouseY);
+		if (shape != null && shape.isEditable()) {
+			if (shape.getData() instanceof TrpTableCellType && shape instanceof CanvasQuadPolygon) {
+				return addPointToTableCell(shape, mouseX, mouseY, addToUndoStack);
 			} 
 			else {
-				return super.addPointToSelected(mouseX, mouseY);
+				return super.addPointToShape(shape, mouseX, mouseY, addToUndoStack);
 			}
 		}
-		return -1;
+		return null;
 	}
 	
 	@Override public void movePointsFromSelected(int selectedPoint, int mouseX, int mouseY, boolean firstMove) {
@@ -799,7 +783,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 			toMerge.remove(mergeable.getLeft());
 			toMerge.remove(mergeable.getRight());
 			
-			CanvasQuadPolygon m = (CanvasQuadPolygon) mergeable.getLeft().mergeShapes(mergeable.getRight());
+			CanvasQuadPolygon m = (CanvasQuadPolygon) mergeable.getLeft().merge(mergeable.getRight());
 			toMerge.add(0, m);
 		}
 		

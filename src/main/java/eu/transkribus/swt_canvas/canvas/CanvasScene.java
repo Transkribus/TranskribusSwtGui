@@ -231,7 +231,7 @@ public class CanvasScene {
 		ICanvasShape merged = selectedShapes.get(0).copy();
 		
 		for (int i=1; i<selectedShapes.size(); ++i) {
-			merged = merged.mergeShapes(selectedShapes.get(i));
+			merged = merged.merge(selectedShapes.get(i));
 			logger.debug("merged = "+merged);
 			if (merged == null)
 				return null;
@@ -288,7 +288,7 @@ public class CanvasScene {
 				return null;
 		}
 		
-		Pair<ICanvasShape, ICanvasShape> splits = shape.splitShape(pl);
+		Pair<ICanvasShape, ICanvasShape> splits = shape.splitByPolyline(pl);
 		logger.debug("splits "+splits);
 		if (splits == null)
 			return null;

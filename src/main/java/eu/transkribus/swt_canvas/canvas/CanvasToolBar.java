@@ -63,8 +63,8 @@ public class CanvasToolBar extends ToolBar {
 	protected ToolItem mergeShapes;
 	protected ToolItem splitShapeLine;
 	private static final boolean ENABLE_SPLIT_SHAPE_LINE=true;
-	protected ToolItem splitShapeHorizontal;
-	protected ToolItem splitShapeVertical;
+	protected ToolItem splitShapeWithVerticalLine;
+	protected ToolItem splitShapeWithHorizontalLine;
 	
 //	protected DropDownToolItem splitTypeItem;
 //	protected ToolItem simplifyShape;
@@ -226,24 +226,24 @@ public class CanvasToolBar extends ToolBar {
 		removePoint.setToolTipText("Remove point from selected polygon");
 		removePoint.setImage(Images.getOrLoad("/icons/vector_delete.png"));
 		modeMap.put(removePoint, CanvasMode.REMOVE_POINT);
-				
-		splitShapeHorizontal = new ToolItem(this, SWT.RADIO);
-		splitShapeHorizontal.setToolTipText("Splits a shape horizontally");
-//		splitShapeHorizontal.setImage(Images.getOrLoad("/icons/scissor_h.png"));
-		splitShapeHorizontal.setImage(Images.getOrLoad("/icons/scissor.png"));
-		splitShapeHorizontal.setText("H");
-		modeMap.put(splitShapeHorizontal, CanvasMode.SPLIT_SHAPE_HORIZONTAL);
-		
-		splitShapeVertical = new ToolItem(this, SWT.RADIO);
-		splitShapeVertical.setToolTipText("Splits a shape vertically");
+						
+		splitShapeWithHorizontalLine = new ToolItem(this, SWT.RADIO);
+		splitShapeWithHorizontalLine.setToolTipText("Splits a shape with a horizontal line");
 //		splitShapeVertical.setImage(Images.getOrLoad("/icons/scissor_v.png"));
-		splitShapeVertical.setImage(Images.getOrLoad("/icons/scissor.png"));
-		splitShapeVertical.setText("V");
-		modeMap.put(splitShapeVertical, CanvasMode.SPLIT_SHAPE_VERTICAL);
+		splitShapeWithHorizontalLine.setImage(Images.getOrLoad("/icons/scissor.png"));
+		splitShapeWithHorizontalLine.setText("H");
+		modeMap.put(splitShapeWithHorizontalLine, CanvasMode.SPLIT_SHAPE_BY_HORIZONTAL_LINE);
+		
+		splitShapeWithVerticalLine = new ToolItem(this, SWT.RADIO);
+		splitShapeWithVerticalLine.setToolTipText("Splits a shape with a vertical line");
+//		splitShapeHorizontal.setImage(Images.getOrLoad("/icons/scissor_h.png"));
+		splitShapeWithVerticalLine.setImage(Images.getOrLoad("/icons/scissor.png"));
+		splitShapeWithVerticalLine.setText("V");
+		modeMap.put(splitShapeWithVerticalLine, CanvasMode.SPLIT_SHAPE_BY_VERTICAL_LINE);		
 		
 		if (ENABLE_SPLIT_SHAPE_LINE) {
 		splitShapeLine = new ToolItem(this, SWT.RADIO);
-		splitShapeLine.setToolTipText("Splits a shape using a custom line");
+		splitShapeLine.setToolTipText("Splits a shape with a custom polyline");
 //		splitShapeLine.setImage(Images.getOrLoad("/icons/scissor_l.png"));
 		splitShapeLine.setImage(Images.getOrLoad("/icons/scissor.png"));
 		splitShapeLine.setText("L");
@@ -413,8 +413,8 @@ public class CanvasToolBar extends ToolBar {
 		SWTUtil.addToolItemSelectionListener(undo, listener);
 		if (splitShapeLine!=null)
 			SWTUtil.addToolItemSelectionListener(splitShapeLine, listener);
-		SWTUtil.addToolItemSelectionListener(splitShapeHorizontal, listener);
-		SWTUtil.addToolItemSelectionListener(splitShapeVertical, listener);
+		SWTUtil.addToolItemSelectionListener(splitShapeWithVerticalLine, listener);
+		SWTUtil.addToolItemSelectionListener(splitShapeWithHorizontalLine, listener);
 		SWTUtil.addToolItemSelectionListener(mergeShapes, listener);
 	}
 
@@ -554,8 +554,8 @@ public class CanvasToolBar extends ToolBar {
 		SWTUtil.setEnabled(addShape, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(removeShape, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(splitShapeLine, isEditingEnabled && notNullAndEditable);
-		SWTUtil.setEnabled(splitShapeHorizontal, isEditingEnabled && notNullAndEditable);
-		SWTUtil.setEnabled(splitShapeVertical, isEditingEnabled && notNullAndEditable);
+		SWTUtil.setEnabled(splitShapeWithVerticalLine, isEditingEnabled && notNullAndEditable);
+		SWTUtil.setEnabled(splitShapeWithHorizontalLine, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(mergeShapes, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getNSelected()>=2);
 		SWTUtil.setEnabled(simplifyEpsItem.ti, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(undo, isEditingEnabled);

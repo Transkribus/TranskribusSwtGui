@@ -98,14 +98,14 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	public void setAwtShape(S awtShape) { this.awtShape = awtShape; }
 	public Shape getAwtShape() { return awtShape; }
 		
-	@Override
-	public boolean setPoints2D(Collection<math.geom2d.Point2D> ptsIn) {
-		List<java.awt.Point> pts = new ArrayList<>();
-		for (math.geom2d.Point2D p : ptsIn)
-			pts.add(new Point((int)p.x(), (int)p.y()));
-		
-		return setPoints(pts);
-	}	
+//	@Override
+//	public boolean setPoints2D(Collection<math.geom2d.Point2D> ptsIn) {
+//		List<java.awt.Point> pts = new ArrayList<>();
+//		for (math.geom2d.Point2D p : ptsIn)
+//			pts.add(new Point((int)p.x(), (int)p.y()));
+//		
+//		return setPoints(pts);
+//	}	
 
 	@Override
 	public int getPointIndex(int x, int y, int threshold) {
@@ -998,18 +998,23 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		return c1.distance(c2);
 	}
 	
-	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShapeHorizontal(int x) {
-		return splitShape(x, -1, x, 1); // split along vertical line (ie horizontal splitting)
-	}
+//	@Override
+//	public Pair<ICanvasShape, ICanvasShape> splitShapeHorizontal(int x) {
+//		return splitShape(x, -1, x, 1); // split along vertical line (ie horizontal splitting)
+//	}
+	
+//	@Override
+//	public Pair<ICanvasShape, ICanvasShape> splitShapeByHorizontalLine(int y) {
+//		return splitShape(-1, y, 1, y); // split along horizontal line (ie vertical splitting)
+//	}
+//	
+//	@Override
+//	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
+//		return splitShape(new CanvasPolyline(new Point(x1, y1), new Point(x2, y2)));
+//	}
 	
 	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShapeVertical(int y) {
-		return splitShape(-1, y, 1, y); // split along horizontal line (ie vertical splitting)
-	}
-	
-	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShape(CanvasPolyline pl) {
+	public Pair<ICanvasShape, ICanvasShape> splitByPolyline(CanvasPolyline pl) {
 		int nIntersections = intersectionPoints(pl, true).size();
 		
 		// for a closed shape, the nr of intersections shall be 2, otherwise more than two split shapes will be created!
@@ -1043,11 +1048,6 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		}
 						
 		return Pair.of(s1, s2);
-	}
-	
-	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
-		return splitShape(new CanvasPolyline(new Point(x1, y1), new Point(x2, y2)));
 	}
 	
 //	@Override
@@ -1096,7 +1096,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 //	}
 	
 	@Override
-	public ICanvasShape mergeShapes(ICanvasShape shape) {
+	public ICanvasShape merge(ICanvasShape shape) {
 		ConvexHull2D ch = new JarvisMarch2D();
 		
 		List<math.geom2d.Point2D> pts = new ArrayList<>();
@@ -1111,52 +1111,52 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		return merged;
 	}
 	
-	@Override
-	public List<java.awt.Point> intersectionPoints(int x1, int y1, int x2, int y2, boolean extendLine) {
-		List<Point> pts = getPoints();
-		
-		math.geom2d.line.LinearElement2D lGiven = null;
-		if (!extendLine)
-			lGiven = new math.geom2d.line.LineSegment2D(x1, y1, x2, y2);
-		else
-			lGiven = new math.geom2d.line.StraightLine2D(x1, y1, x2-x1, y2-y1);
-		
-		List<Point> ipts = new ArrayList<>();
-		
-		int N = isClosedShape() ? pts.size() : pts.size()-1;
-		for (int i=0; i<N; ++i) {
-			int iNext = (i+1) % pts.size();
-			math.geom2d.line.Line2D l = new math.geom2d.line.Line2D((int)pts.get(i).getX(), (int)pts.get(i).getY(),
-					(int)pts.get(iNext).getX(), (int)pts.get(iNext).getY());
-			
-			math.geom2d.Point2D pt = lGiven.intersection(l);
-			if (pt!=null) {
-				ipts.add(pt.getAsInt());
-			}
-		}
-		
-		return ipts;
-	}
+//	@Override
+//	public List<ShapePoint> intersectionPoints(int x1, int y1, int x2, int y2, boolean extendLine) {
+//		List<Point> pts = getPoints();
+//		
+//		math.geom2d.line.LinearElement2D lGiven = null;
+//		if (!extendLine)
+//			lGiven = new math.geom2d.line.LineSegment2D(x1, y1, x2, y2);
+//		else
+//			lGiven = new math.geom2d.line.StraightLine2D(x1, y1, x2-x1, y2-y1);
+//		
+//		List<ShapePoint> ipts = new ArrayList<>();
+//		
+//		int N = isClosedShape() ? pts.size() : pts.size()-1;
+//		for (int i=0; i<N; ++i) {
+//			int iNext = (i+1) % pts.size();
+//			math.geom2d.line.Line2D l = new math.geom2d.line.Line2D((int)pts.get(i).getX(), (int)pts.get(i).getY(),
+//					(int)pts.get(iNext).getX(), (int)pts.get(iNext).getY());
+//			
+//			math.geom2d.Point2D pt = lGiven.intersection(l);
+//			if (pt!=null) {
+//				ipts.add(new ShapePoint(pt.getAsInt(), i));
+//			}
+//		}
+//		
+//		return ipts;
+//	}
 	
-	@Override
-	public List<java.awt.Point> intersectionPoints(CanvasPolyline pl, boolean extendLine) {
-		
-		CanvasPolyline ipl = pl;
-		if (extendLine) {
-			final int extDist = (int) 1e6;
-			ipl = pl.extendAtEnds(extDist);
-		}
-		
-		List<java.awt.Point> ipts = new ArrayList<>();
-		for (int i=0; i<ipl.getNPoints()-1; ++i) {
-			Point p1 = ipl.getPoint(i);
-			Point p2 = ipl.getPoint(i+1);
-			
-			ipts.addAll(intersectionPoints(p1.x, p1.y, p2.x, p2.y, false));
-		}
-		
-		return ipts;
-	}
+//	@Override
+//	public List<ShapePoint> intersectionPoints(CanvasPolyline pl, boolean extendLine) {
+//		
+//		CanvasPolyline ipl = pl;
+//		if (extendLine) {
+//			final int extDist = (int) 1e6;
+//			ipl = pl.extendAtEnds(extDist);
+//		}
+//		
+//		List<ShapePoint> ipts = new ArrayList<>();
+//		for (int i=0; i<ipl.getNPoints()-1; ++i) {
+//			Point p1 = ipl.getPoint(i);
+//			Point p2 = ipl.getPoint(i+1);
+//			
+//			ipts.addAll(intersectionPoints(p1.x, p1.y, p2.x, p2.y, false));
+//		}
+//		
+//		return ipts;
+//	}
 	
 	public void selectPoints(Rectangle rect, boolean sendSignal, boolean multiselect) {
 		for (int i=0; i<getNPoints(); ++i) {

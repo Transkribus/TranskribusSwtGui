@@ -15,7 +15,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType.GetCel
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.canvas.shapes.SplitDirection;
+import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
+import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 
 public class TableUtils {
 	private final static Logger logger = LoggerFactory.getLogger(TableUtils.class);
@@ -146,11 +147,17 @@ public class TableUtils {
 	}
 	
 	public static class SplittableCellsStruct {
-		public SplitDirection dir=null;
+		public TableDimension dir=null;
 		public int index=-1;
 		public List<TrpTableCellType> cells=null;
 	}
 	
+	/**
+	 * Tries to split the given table using the given polyline in either row or column direction.<br>
+	 * Returns a structure containing the splittable cells according to a certain direction (row or column)
+	 * and the row / column index of the cells that are splitted.<br>
+	 * Returns null if no splitting can be achieved in row or column direction using the polyline.
+	 */
 	public static SplittableCellsStruct getSplittableCells(CanvasPolyline pl, TrpTableRegionType table) {
 		if (table == null)
 			return null;
@@ -163,13 +170,13 @@ public class TableUtils {
 		int nCols = dims.getRight();
 		
 //		List<TrpTableCellType> splittableCells=null;
-		SplitDirection dir = null;		
+		TableDimension dir = null;		
 		for (int j=0; j<2 && res.index==-1; ++j) {
 			int N = j==0 ? nRows : nCols;
 			
 			for (int i=0; i<N; ++i) {
 				List<TrpTableCellType> cells = table.getCells(j==0, GetCellsType.OVERLAP, i);
-				dir = j==0 ? SplitDirection.VERTICAL : SplitDirection.HORIZONAL;
+				dir = j==0 ? TableDimension.ROW : TableDimension.COLUMN;
 				
 				logger.debug("cells i = "+i+" first cell: "+cells.get(0));
 				
@@ -308,6 +315,18 @@ public class TableUtils {
 
 		if (!invalid.isEmpty())
 			throw new TrpTablePointsInconsistentException("Table has inconsistent points!", invalid);
+	}
+	
+	public static void selectCells(TrpSWTCanvas canvas, TrpTableRegionType table, int index, TableDimension dim) {
+		List<TrpTableCellType> cells = table.getCells(dim==TableDimension.ROW, GetCellsType.OVERLAP, index);
+		
+		canvas.getScene().clearSelected();
+		for (int i=0; i<cells.size(); ++i) {
+			TrpTableCellType c = cells.get(i);
+			if (c.getData() instanceof ICanvasShape) {
+				canvas.getScene().selectObject((ICanvasShape) c.getData(), i==cells.size()-1, true);
+			}
+		}
 	}
 
 }

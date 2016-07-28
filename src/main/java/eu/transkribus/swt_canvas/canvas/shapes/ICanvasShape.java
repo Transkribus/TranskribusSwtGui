@@ -5,11 +5,10 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import math.geom2d.Point2D;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.graphics.Color;
@@ -87,7 +86,14 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	
 	// edit operations:
 	boolean setPoints(List<Point> pts);
-	boolean setPoints2D(Collection<Point2D> ptsIn);
+	default boolean setPoints2D(Collection<math.geom2d.Point2D> ptsIn) {
+		List<java.awt.Point> pts = new ArrayList<>();
+		for (math.geom2d.Point2D p : ptsIn)
+			pts.add(new Point((int)p.x(), (int)p.y()));
+		
+		return setPoints(pts);
+	}
+	
 	/** Moves the shape by the given translation **/
 	boolean translate(int tx, int ty);
 	
@@ -139,14 +145,70 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	double area();
 	List<math.geom2d.Point2D> getPoints2D();
 	double intersectionArea(ICanvasShape shape);
-	List<java.awt.Point> intersectionPoints(int x1, int y1, int x2, int y2, boolean extendLine);
-	List<java.awt.Point> intersectionPoints(CanvasPolyline pl, boolean extendLine);
 	
-	Pair<ICanvasShape, ICanvasShape> splitShape(CanvasPolyline pl);
-	Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2);
-	Pair<ICanvasShape, ICanvasShape> splitShapeHorizontal(int x);
-	Pair<ICanvasShape, ICanvasShape> splitShapeVertical(int y);
-	ICanvasShape mergeShapes(ICanvasShape shape);
+	default List<ShapePoint> intersectionPoints(Point p1, Point p2, boolean extendLine) {
+		return intersectionPoints(p1.x, p1.y, p2.x, p2.y, extendLine);
+	}
+	
+	default List<ShapePoint> intersectionPoints(int x1, int y1, int x2, int y2, boolean extendLine) {
+		List<Point> pts = getPoints();
+		
+		math.geom2d.line.LinearElement2D lGiven = null;
+		if (!extendLine)
+			lGiven = new math.geom2d.line.LineSegment2D(x1, y1, x2, y2);
+		else
+			lGiven = new math.geom2d.line.StraightLine2D(x1, y1, x2-x1, y2-y1);
+		
+		List<ShapePoint> ipts = new ArrayList<>();
+		
+		int N = isClosedShape() ? pts.size() : pts.size()-1;
+		for (int i=0; i<N; ++i) {
+			int iNext = (i+1) % pts.size();
+			math.geom2d.line.Line2D l = new math.geom2d.line.Line2D((int)pts.get(i).getX(), (int)pts.get(i).getY(),
+					(int)pts.get(iNext).getX(), (int)pts.get(iNext).getY());
+			
+			math.geom2d.Point2D pt = lGiven.intersection(l);
+			if (pt!=null) {
+				ipts.add(new ShapePoint(pt.getAsInt(), i));
+			}
+		}
+		
+		return ipts;
+	}
+	
+	default List<ShapePoint> intersectionPoints(CanvasPolyline pl, boolean extendLine) {
+		CanvasPolyline ipl = pl;
+		if (extendLine) {
+			final int extDist = (int) 1e6;
+			ipl = pl.extendAtEnds(extDist);
+		}
+		
+		List<ShapePoint> ipts = new ArrayList<>();
+		for (int i=0; i<ipl.getNPoints()-1; ++i) {
+			Point p1 = ipl.getPoint(i);
+			Point p2 = ipl.getPoint(i+1);
+			
+			ipts.addAll(intersectionPoints(p1.x, p1.y, p2.x, p2.y, false));
+		}
+		
+		return ipts;
+	}
+	
+	Pair<ICanvasShape, ICanvasShape> splitByPolyline(CanvasPolyline pl);
+	
+	default Pair<ICanvasShape, ICanvasShape> splitByVerticalLine(int x) {
+		return splitByLine(x, -1, x, 1); // split along vertical line (i.e. horizontal splitting)
+	}
+	
+	default Pair<ICanvasShape, ICanvasShape> splitByHorizontalLine(int y) {
+		return splitByLine(-1, y, 1, y); // split along horizontal line (i.e. vertical splitting)
+	}
+	
+	default Pair<ICanvasShape, ICanvasShape> splitByLine(int x1, int y1, int x2, int y2) {
+		return splitByPolyline(new CanvasPolyline(new Point(x1, y1), new Point(x2, y2)));
+	}
+	
+	ICanvasShape merge(ICanvasShape shape);
 
 	int compareByLevelAndYXCoordinates(ICanvasShape arg0);
 	

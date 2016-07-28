@@ -20,8 +20,9 @@ public class CanvasMode {
 //	public final static CanvasMode SPLIT_SHAPE = new CanvasMode(true, false, false, false, "SPLIT_SHAPE");
 	
 	public final static CanvasMode SPLIT_SHAPE_LINE = new CanvasMode(true, false, false, false, "SPLIT_SHAPE_LINE");
-	public final static CanvasMode SPLIT_SHAPE_HORIZONTAL = new CanvasMode(true, false, false, false, "SPLIT_SHAPE_HORIZTONAL");
-	public final static CanvasMode SPLIT_SHAPE_VERTICAL = new CanvasMode(true, false, false, false, "SPLIT_SHAPE_VERTICAL");
+	
+	public final static CanvasMode SPLIT_SHAPE_BY_VERTICAL_LINE = new CanvasMode(true, false, false, false, "SPLIT_SHAPE_BY_VERTICAL_LINE");
+	public final static CanvasMode SPLIT_SHAPE_BY_HORIZONTAL_LINE = new CanvasMode(true, false, false, false, "SPLIT_SHAPE_BY_HORIZONTAL_LINE");
 		
 	public final static CanvasMode ADD_SHAPE = new CanvasMode(true, false, false, true, "ADD_SHAPE");
 	
@@ -41,7 +42,7 @@ public class CanvasMode {
 	}
 	
 	public boolean isSplitOperation() {
-		return this.equals(SPLIT_SHAPE_LINE) || this.equals(SPLIT_SHAPE_HORIZONTAL) || this.equals(SPLIT_SHAPE_VERTICAL);
+		return this.equals(SPLIT_SHAPE_LINE) || this.equals(SPLIT_SHAPE_BY_VERTICAL_LINE) || this.equals(SPLIT_SHAPE_BY_HORIZONTAL_LINE);
 	}
 	
 	public boolean isEditOperation() {

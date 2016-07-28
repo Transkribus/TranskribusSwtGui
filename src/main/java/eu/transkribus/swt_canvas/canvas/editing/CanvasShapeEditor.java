@@ -83,9 +83,9 @@ public class CanvasShapeEditor {
 //				drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));			
 //			}
 			drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));
-		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_VERTICAL) {
+		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_BY_HORIZONTAL_LINE) {
 			splitShape(canvas.getFirstSelected(), -1, invPt.y, 1, invPt.y, true);
-		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
+		} else if (canvas.getMode() == CanvasMode.SPLIT_SHAPE_BY_VERTICAL_LINE) {
 			splitShape(canvas.getFirstSelected(), invPt.x, -1, invPt.x, 1, true);
 		}
 	}
@@ -387,17 +387,21 @@ public class CanvasShapeEditor {
 			return null;
 	}
 
-	public int addPointToSelected(int mouseX, int mouseY) {
+	public ShapeEditOperation addPointToShape(ICanvasShape shape, int mouseX, int mouseY, boolean addToUndoStack) {
 		logger.debug("inserting point!");
 		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
-		ICanvasShape selected = canvas.getFirstSelected();
-		if (selected != null && selected.isEditable()) {
+		
+		if (shape != null && shape.isEditable()) {
+			ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Inserted point to shape", shape);
+			if (addToUndoStack)
+				addToUndoStack(op);
 			
-			ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Added point to shape", selected);
-			addToUndoStack(op);
-			return selected.insertPoint(mousePtWoTr.x, mousePtWoTr.y);
+			int index = shape.insertPoint(mousePtWoTr.x, mousePtWoTr.y);
+			op.data = index;
+			
+			return op;
 		}
-		return -1;
+		return null;
 	}
 	
 	public void removePointFromSelected(int pointIndex) {
