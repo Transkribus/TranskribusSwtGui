@@ -72,6 +72,10 @@ public class TrpSWTCanvas extends SWTCanvas {
 		scene = new TrpCanvasScene(this);
 	}
 	
+	@Override protected void initContextMenu() {
+		contextMenu = new TrpCanvasContextMenu(this);
+	}
+	
 	@Override public TrpCanvasScene getScene() { return (TrpCanvasScene) scene; }
 //	@Override public TrpUndoStack getUndoStack() { return (TrpUndoStack) undoStack; }
 	

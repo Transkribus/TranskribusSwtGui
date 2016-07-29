@@ -7,6 +7,7 @@ import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
+import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
 import eu.transkribus.swt_gui.dialogs.ImageEnhanceDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -75,10 +76,10 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 			
 			// TABLE STUFF:
 			else if (s == toolbar.getDeleteRowItem()) {
-				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), true, true);
+				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.ROW, true);
 			}
 			else if (s == toolbar.getDeleteColumnItem()) {
-				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), false, true);
+				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.COLUMN, true);
 			}
 			else if (s == toolbar.getSplitMergedCell()) {
 				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);

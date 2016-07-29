@@ -683,6 +683,15 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		}
 	}
 	
+	@Override public ShapeEditOperation removeShapesFromCanvas(List<ICanvasShape> shapesToRemove, boolean addToUndoStack) {
+		// filter out table cells:
+		shapesToRemove.removeIf((x) -> {
+			return TableUtils.getTableCell(x)!=null;
+		});
+	
+		return super.removeShapesFromCanvas(shapesToRemove, addToUndoStack);
+	}
+	
 	@Override public ShapeEditOperation addPointToShape(ICanvasShape shape, int mouseX, int mouseY, boolean addToUndoStack) {
 		logger.debug("adding point!");
 		
@@ -907,9 +916,8 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return op;
 	}
 	
-	public void deleteTableRowOrColumn(ICanvasShape shape, boolean row, boolean addToUndoStack) {
-		
-		String entityName = row ? "row" : "column";
+	public void deleteTableRowOrColumn(ICanvasShape shape, TableDimension dim, boolean addToUndoStack) {
+		String entityName = dim==TableDimension.ROW ? "row" : "column";
 		TrpTableCellType tc = TableUtils.getTableCell(shape);
 		
 		TableShapeEditOperation tableOp = new TableShapeEditOperation("Deleted a table "+entityName);
@@ -923,9 +931,9 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		int[] pos = tc.getPos();
 		
-		int di = row ? 0 : 1;
+		int di = dim==TableDimension.ROW ? 0 : 1;
 		
-		int ni = row ? 3 : 0;
+		int ni = dim==TableDimension.ROW ? 3 : 0;
 		
 		int posIndex = pos[di];
 		

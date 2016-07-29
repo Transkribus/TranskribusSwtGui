@@ -1,6 +1,7 @@
 package eu.transkribus.swt_canvas.canvas.shapes;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,16 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	 * The fourth value is the index of the upper right corner.</br>
 	 */
 	private final int [] corners = { 0, 1, 2, 3 };
+	
+	public CanvasQuadPolygon(Rectangle r) {
+		List<Point> pts = new ArrayList<>();
+		pts.add(new Point(r.x, r.y));
+		pts.add(new Point(r.x, r.y+r.height));
+		pts.add(new Point(r.x+r.width, r.y+r.height));
+		pts.add(new Point(r.x+r.width, r.y));
+		
+		setPoints(pts);
+	}
 
 	public CanvasQuadPolygon(List<Point> pts) {
 		setPoints(pts);

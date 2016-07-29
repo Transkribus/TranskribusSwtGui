@@ -928,6 +928,11 @@ public class SWTUtil {
         
         throw new IOException("Unknown colour model: "+bufferedImage.getColorModel().getClass().getCanonicalName());
     }
+    
+    public static void dispose(Item i) {
+    	if (i != null && !i.isDisposed())
+    		i.dispose();
+    }
         
     public static void dispose(Image img) {
     	if (img != null && !img.isDisposed())

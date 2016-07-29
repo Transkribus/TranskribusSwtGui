@@ -3,6 +3,7 @@ package eu.transkribus.swt_canvas.canvas.editing;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,7 +23,6 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
-import eu.transkribus.swt_canvas.util.CanvasTransform;
 
 /**
  * This class is resonsible for editing and drawing new shapes according to interactive points drawn by the user.
@@ -216,7 +216,7 @@ public class CanvasShapeEditor {
 		if (m.isAddOperation()) {
 			stopPostProcess=false;
 			for (ICanvasShape s : drawnShapes) {
-				addShapeToCanvas(s);
+				addShapeToCanvas(s, true);
 				if (stopPostProcess==true)
 					break;
 			}
@@ -335,16 +335,16 @@ public class CanvasShapeEditor {
 	
 	// THOSE ARE THE ACTUAL EDIT OPERATIONS:
 	
-	public boolean addShapeToCanvas(ICanvasShape newShape) {
-		if (newShape!=null) {
-			newShape.setEditable(true);
-			ShapeEditOperation op = scene.addShape(newShape, null, true);
-			if (op!=null) {
-				addToUndoStack(op);
-				return true;
-			}
+	public ShapeEditOperation addShapeToCanvas(ICanvasShape newShape, boolean addToUndoStack) {
+		if (newShape == null)
+			return null;
+			
+		newShape.setEditable(true);
+		ShapeEditOperation op = scene.addShape(newShape, null, true);
+		if (op!=null && addToUndoStack) {
+			addToUndoStack(op);
 		}
-		return false;
+		return op;	
 	}
 	
 	public ShapeEditOperation removeShapeFromCanvas(ICanvasShape shapesToRemove, boolean addToUndoStack) {

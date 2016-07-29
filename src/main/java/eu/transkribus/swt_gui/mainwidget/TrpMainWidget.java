@@ -113,6 +113,7 @@ import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
+import eu.transkribus.swt_gui.canvas.TrpCanvasContextMenuListener;
 import eu.transkribus.swt_gui.canvas.TrpCanvasScene;
 import eu.transkribus.swt_gui.canvas.TrpCanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.TrpCanvasWidget;
@@ -185,6 +186,7 @@ public class TrpMainWidget {
 	StructureTreeListener structTreeListener;
 	DocOverviewListener docOverviewListener;
 	TrpMainWidgetListener mainWidgetListener;
+	TrpCanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
 	CanvasShapeObserver canvasShapeObserver;
 	PageMetadataWidgetListener metadataWidgetListener;
@@ -602,6 +604,7 @@ public class TrpMainWidget {
 			}
 		});
 		mainWidgetListener = new TrpMainWidgetListener(this);
+		canvasContextMenuListener = new TrpCanvasContextMenuListener(this);
 
 		// pages paging toolbar listener:
 		pagesPagingToolBarListener = new PagesPagingToolBarListener(ui.getPagesPagingToolBar(), this);

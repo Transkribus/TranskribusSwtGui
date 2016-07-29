@@ -40,6 +40,7 @@ import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
 /**
@@ -290,7 +291,13 @@ public class TrpShapeElementFactory {
 		else if (m.equals(TrpCanvasAddMode.ADD_TABLECELL)) {
 			logger.debug("creating tablecell");
 			String errorMsg="";
-			parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTableRegionType.class);
+			
+			TrpTableRegionType table = TableUtils.getTable(selectedParentShape);
+			if (table != null) // if a table has been given as parent shape, set it as parent shape
+				parentShape = selectedParentShape;
+			else // else: find overlapping parent table
+				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTableRegionType.class);
+			
 			logger.debug("parentShape = "+parentShape);
 			if (parentShape == null)
 				throw new NoParentRegionException(errorMsg);

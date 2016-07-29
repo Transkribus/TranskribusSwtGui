@@ -317,6 +317,10 @@ public class TableUtils {
 			throw new TrpTablePointsInconsistentException("Table has inconsistent points!", invalid);
 	}
 	
+	public static void selectCells(TrpSWTCanvas canvas, TrpTableCellType cell, TableDimension dim) {
+		selectCells(canvas, cell.getTable(), cell.getPos()[dim.val], dim);
+	}
+	
 	public static void selectCells(TrpSWTCanvas canvas, TrpTableRegionType table, int index, TableDimension dim) {
 		List<TrpTableCellType> cells = table.getCells(dim==TableDimension.ROW, GetCellsType.OVERLAP, index);
 		
@@ -327,6 +331,8 @@ public class TableUtils {
 				canvas.getScene().selectObject((ICanvasShape) c.getData(), i==cells.size()-1, true);
 			}
 		}
+		
+		canvas.redraw();
 	}
 
 }

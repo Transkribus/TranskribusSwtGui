@@ -747,24 +747,30 @@ public class SWTCanvas extends Canvas {
 
 	private void drawMouseOverBoundaryPoint(GC gc, ICanvasShape selected) {
 		Point pt = mouseListener.getShapeBoundaryPt();
-
-		if (selected != null && mouseListener.getMouseOverPoint() == -1
-				&& selected.isEditable() && pt != null
-				&& settings.getMode().isHighlightPointsRequired()
-				&& !isMovingBoundingBoxPossible()) {
+		
+		if (mouseListener.isAddingPointOnBoundaryClickPossible()) {
 			gc.setBackground(settings.getSelectedPointColor());
 			int radius = getSettings().getSelectedPointRadius();
-
 			gc.fillOval(pt.x - radius, pt.y - radius, radius * 2, radius * 2);
-
-			// draw surrounding circle of size 4 times the given radius:
-			if (false) {
-				int rr = radius + 3;
-				gc.setForeground(settings.getSelectedPointColor());
-				gc.drawOval(pt.x - rr, pt.y - rr, rr * 2, rr * 2);
-				// gc.drawRectangle(p.x - rr, p.y - rr, rr*2, rr*2);
-			}
 		}
+
+//		if (selected != null && mouseListener.getMouseOverPoint() == -1
+//				&& selected.isEditable() && pt != null
+//				&& settings.getMode().isHighlightPointsRequired()
+//				&& !isMovingBoundingBoxPossible()) {
+//			gc.setBackground(settings.getSelectedPointColor());
+//			int radius = getSettings().getSelectedPointRadius();
+//
+//			gc.fillOval(pt.x - radius, pt.y - radius, radius * 2, radius * 2);
+//
+//			// draw surrounding circle of size 4 times the given radius:
+//			if (false) {
+//				int rr = radius + 3;
+//				gc.setForeground(settings.getSelectedPointColor());
+//				gc.drawOval(pt.x - rr, pt.y - rr, rr * 2, rr * 2);
+//				// gc.drawRectangle(p.x - rr, p.y - rr, rr*2, rr*2);
+//			}
+//		}
 	}
 
 	/**
@@ -1023,8 +1029,8 @@ public class SWTCanvas extends Canvas {
 	public boolean isMovingBoundingBoxPossible() {
 		ICanvasShape selected = getFirstSelected();
 
-		RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? mouseListener
-				.getMouseOverDirection() : mouseListener.getSelectedDirection();
+		RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? 
+				mouseListener.getMouseOverDirection() : mouseListener.getSelectedDirection();
 		// logger.debug("dir = "+dir);
 		org.eclipse.swt.graphics.Point p = getMouseListener().getMousePtWoTr();
 		return (p != null && selected != null && dir != RectDirection.NONE
@@ -1038,9 +1044,8 @@ public class SWTCanvas extends Canvas {
 		// if a shape is resized along its bounding box --> draw corresponding
 		// cursor
 		if (isMovingBoundingBoxPossible()) {
-			RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? mouseListener
-					.getMouseOverDirection() : mouseListener
-					.getSelectedDirection();
+			RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? 
+				mouseListener.getMouseOverDirection() : mouseListener.getSelectedDirection();
 			setCursor(getDisplay().getSystemCursor(dir.getCursorType()));
 		} else {
 			// else: set cursor depending on mode:

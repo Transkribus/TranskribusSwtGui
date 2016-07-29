@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.canvas;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
 import eu.transkribus.swt_canvas.canvas.CanvasException;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
@@ -23,12 +25,14 @@ import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
 public class TrpCanvasSceneListener extends CanvasSceneListener {
@@ -58,6 +62,20 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 			try {
 				ITrpShapeType el = mw.getShapeFactory().createJAXBElementFromShape(shape, mw.getCanvas().getMode(), mw.getCanvas().getFirstSelected());
 				logger.debug("created trp element: "+el);
+				
+				TrpTableRegionType table = TableUtils.getTable(shape);
+				if (table != null) { // create table cell for table!
+					logger.debug("creating table cell for table!");
+					CanvasQuadPolygon qp = new CanvasQuadPolygon(shape.getBounds());
+					qp.setEditable(true);
+					
+					ITrpShapeType cellEl = mw.getShapeFactory().createJAXBElementFromShape(qp, TrpCanvasAddMode.ADD_TABLECELL, shape);
+					ShapeEditOperation op = canvas.getScene().addShape(qp, shape, false);
+					if (op == null) {
+						e.stop = true;
+					}
+					logger.debug("created cell element: "+cellEl);
+				}
 			} catch (NoParentRegionException | NoParentLineException ex) {
 				boolean noRegion = ex instanceof NoParentRegionException;
 				String parentType = noRegion ? "region" : "line";
@@ -96,9 +114,9 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 						CanvasMode modeBackup = canvas.getMode();
 						canvas.setMode(noRegion ? TrpCanvasAddMode.ADD_TEXTREGION : TrpCanvasAddMode.ADD_LINE);
 						// try to add parent region:
-						boolean success = canvas.getShapeEditor().addShapeToCanvas(shapeOfParent);
+						ShapeEditOperation op = canvas.getShapeEditor().addShapeToCanvas(shapeOfParent, true);
 						canvas.setMode(modeBackup);
-						if (!success) { // if not successfully added parent shape, abort this operation!
+						if (op == null) { // if not successfully added parent shape, abort this operation!
 							e.stop = true;
 						} else { // if successfully added parent shape, once again try to add original shape
 							ITrpShapeType el = mw.getShapeFactory().createJAXBElementFromShape(shape, mw.getCanvas().getMode(), shapeOfParent);
@@ -120,7 +138,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		}
 	}
 
-	@Override public void onShapeAdded(SceneEvent e) {
+	@Override public void onShapeAdded(SceneEvent e) {		
 		mw.getScene().updateAllShapesParentInfo();
 		mw.getCanvasShapeObserver().addShapeToObserve(e.getFirstShape());
 		mw.refreshStructureView();

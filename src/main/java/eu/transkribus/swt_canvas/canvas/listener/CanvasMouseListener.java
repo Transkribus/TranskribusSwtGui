@@ -30,6 +30,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	private final static Logger logger = LoggerFactory.getLogger(CanvasMouseListener.class);
 	
 	public final static int MOVE_LAG = 200; // nr of ms between mouse moves to actually move a shape
+	final boolean ADD_POINT_ON_BOUNDARY_CLICK = false;
 	
 	HashMap<MouseButtons, Point> mouseDownMap = new HashMap<MouseButtons, Point>();
 	HashMap<MouseButtons, Point> mouseMoveMap = new HashMap<MouseButtons, Point>();
@@ -110,20 +111,29 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	
 	private void doMouseDownShapeEditOperations(MouseButtons button, Point moustPt, int stateMask) {
 		// add point:
-		final boolean ADD_POINT_ON_BOUNDARY_CLICK = false;
-		
-		if (ADD_POINT_ON_BOUNDARY_CLICK)
 		if (button == settings.getEditMouseButton()
-				&& CanvasKeys.isCtrlOrCommandKeyDown(stateMask)
-				&& shapeBoundaryPt != null
-				&& mouseOverPoint == -1
-				&& ( mouseOverDirection == RectDirection.NONE
-				|| !CanvasKeys.isKeyDown(stateMask, CanvasKeys.RESIZE_BOUNDING_BOX_REQUIRED_KEY) )
-				&& canvas.getMode() == CanvasMode.SELECTION
+				&& isAddingPointOnBoundaryClickPossible()
+//				&& ADD_POINT_ON_BOUNDARY_CLICK
+//				&& CanvasKeys.isCtrlOrCommandKeyDown(stateMask)
+//				&& shapeBoundaryPt != null
+//				&& mouseOverPoint == -1
+//				&& ( mouseOverDirection == RectDirection.NONE
+//				|| !CanvasKeys.isKeyDown(stateMask, CanvasKeys.RESIZE_BOUNDING_BOX_REQUIRED_KEY) )
+//				&& canvas.getMode() == CanvasMode.SELECTION
 				) {
 			Point shapePtWTr = canvas.transform(shapeBoundaryPt); // have to transform, since shape point is without transformation!
 			canvas.getShapeEditor().addPointToShape(canvas.getFirstSelected(), shapePtWTr.x, shapePtWTr.y, true);
 		}
+	}
+	
+	public boolean isAddingPointOnBoundaryClickPossible() {
+		return (ADD_POINT_ON_BOUNDARY_CLICK
+				&& CanvasKeys.isCtrlOrCommandKeyDown(currentMoveStateMask)
+				&& shapeBoundaryPt != null
+				&& mouseOverPoint == -1
+				&& ( mouseOverDirection == RectDirection.NONE
+				|| !CanvasKeys.isKeyDown(currentMoveStateMask, CanvasKeys.RESIZE_BOUNDING_BOX_REQUIRED_KEY) )
+				&& canvas.getMode() == CanvasMode.SELECTION);
 	}
 	
 	private void doMouseUpShapeEditOperations(MouseButtons button, Point mousePt) {
@@ -396,7 +406,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		// open up context menu
 		else if (button == MouseButtons.BUTTON_RIGHT && !hasMouseMoved) {
 			Point p = canvas.toDisplay(e.x, e.y);
-			canvas.getContextMenu().show(p.x, p.y);
+			canvas.getContextMenu().show(canvas.getFirstSelected(), p.x, p.y);
 		}
 		
 		hasMouseMoved = false;
