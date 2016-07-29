@@ -10,8 +10,13 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +39,8 @@ public class VersionsWidget extends Composite {
 	TrpTranscriptMetadata selected;
 	
 	Button reloadBtn, deleteBtn;
+	
+	Menu contextMenu;
 	
 	public static final String DATE_COL = "Date";
 	public static final String STATUS_COL = "Status";
@@ -129,6 +136,13 @@ public class VersionsWidget extends Composite {
 		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		// table.setSize(table.computeSize(SWT.DEFAULT, SWT.DEFAULT).x, 300);
 		// table.setItemCount(10);
+		
+	    contextMenu = new Menu(table);
+	    table.setMenu(contextMenu);
+	    MenuItem mItem1 = new MenuItem(contextMenu, SWT.None);
+	    mItem1.setText("Menu Item Test.");
+
+
 
 //		createColumn(tableViewer, USER_ID_COL, 100);
 //		createColumn(tableViewer, STATUS_COL, 100);
@@ -217,6 +231,21 @@ public class VersionsWidget extends Composite {
 	public void addListener(TranscriptsTableWidgetListener listener) {
 		tableViewer.getTable().addSelectionListener(listener);
 		tableViewer.addDoubleClickListener(listener);
+		
+		tableViewer.getTable().addListener(SWT.MouseDown, new Listener(){
+
+	        @Override
+	        public void handleEvent(Event event) {
+	        	logger.debug("handle mouse down " + tableViewer.getTable().getSelection());
+	        	logger.debug("event.button == 3 " + (event.button == 3));
+	            TableItem[] selection = tableViewer.getTable().getSelection();
+	            if(selection.length!=0 && (event.button == 3)){
+	                contextMenu.setVisible(true);
+	            }
+
+	        }
+
+	    });
 	}
 	
 	public void removeListener(TranscriptsTableWidgetListener listener) {
