@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 
 import javax.ws.rs.ClientErrorException;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -34,9 +33,16 @@ public class OAuthUtil {
 		final String codePattern;
 		switch (prov) {
 		case Google:
-			clientId = "660348649554-q57qcde5rln0l40g06n3u2tt2h6l068a.apps.googleusercontent.com";
+			//transkribusSwtGui
+//			clientId = "660348649554-nch5pp6ptq5gmq901fn1le7659q4g2qj.apps.googleusercontent.com";
+			// if this is used, then do not set access type to offline (at least it is not needed)
+			
+			//transkribusServer
+			clientId = "660348649554-85q3k21p65e09pr91je1qnuej0mlk78d.apps.googleusercontent.com";
+			
 			uriStr = "https://accounts.google.com/o/oauth2/v2/auth?" + "scope=email%20profile" + "&state=" + state
-					+ "&redirect_uri=http://127.0.0.1:" + 8999 + "&response_type=code" + "&client_id=" + clientId;
+					+ "&redirect_uri=http://127.0.0.1:" + 8999 + "&response_type=code" + "&client_id=" + clientId
+					+ "&access_type=offline"; //access_type=offline if google credentials are for web apps
 			codePattern = ".*\\?state=" + state + "&code=(.*)\\s.*";
 			break;
 		default:
