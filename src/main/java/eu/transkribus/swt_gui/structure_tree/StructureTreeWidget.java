@@ -622,7 +622,10 @@ public class StructureTreeWidget extends Composite {
 						} else {
 							try {
 								int ro = Integer.parseInt(valueStr);
-								s.setReadingOrder(ro, StructureTreeWidget.this);
+								logger.debug("++++++++++++reInsertIntoParent(ro) " + (ro-1));
+								s.removeFromParent();
+								s.reInsertIntoParent(ro-1);
+								//s.setReadingOrder(ro, StructureTreeWidget.this);
 							} catch (NumberFormatException ne) {
 								logger.debug("not a valid number: "+valueStr);
 							}

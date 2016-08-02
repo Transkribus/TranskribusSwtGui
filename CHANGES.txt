@@ -358,6 +358,7 @@ CHANGES AND BUGFIXES
 	-> docx index creation for tags (press F9 to create list in Word), export settings are shown in title page
 	-> change to next/previous region in transcription widget with alt+left/right key
 	-> batch layout analysis dialog
+	-> right click behavior added for versions and transcripts (texts) 
 	
 	
 	

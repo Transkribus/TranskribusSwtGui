@@ -71,7 +71,8 @@ public class JobTableWidgetListener extends SelectionAdapter implements Observer
 				e.printStackTrace();
 			}
 			
-			mainWidget.loadRemoteDoc(jobStatus.getDocId(), col);
+			int pageNr = (jobStatus.getPageNr() != -1 ? jobStatus.getPageNr() : 0);
+			mainWidget.loadRemoteDoc(jobStatus.getDocId(), col, pageNr-1);
 		}		
 	}
 	
