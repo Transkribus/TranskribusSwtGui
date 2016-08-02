@@ -47,7 +47,7 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 	public static final String STARTED_COL = "Started";
 	public static final String FINISHED_COL = "Finished";
 	public static final String DOC_ID_COL = "Doc-Id";
-	public static final String PAGE_COL = "Page";
+	public static final String PAGE_COL = "Pages";
 	public static final String DESCRIPTION_COL = "Description";
 	public static final String USER_NAME_COL = "Username";
 	
@@ -233,7 +233,7 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 		createColumn(STATE_COL, 75, "state", new CollectionsTableColumnLabelProvider("state"));
 		
 		createDefaultColumn(DOC_ID_COL, 50, "docId", true);
-		createDefaultColumn(PAGE_COL, 50, "pageNr", true);
+		createDefaultColumn(PAGE_COL, 50, "pages", true);
 		createDefaultColumn(USER_NAME_COL, 100, "userName", true);
 		createDefaultColumn(DESCRIPTION_COL, 100, "description", true);
 		
