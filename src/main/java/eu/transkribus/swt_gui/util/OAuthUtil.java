@@ -26,6 +26,9 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 public class OAuthUtil {
 	private static final Logger logger = LoggerFactory.getLogger(OAuthUtil.class);
 
+	private static final int PORT = 8999;
+	public static final String REDIRECT_URI = "http://127.0.0.1:" + PORT;
+	
 	public static String getUserConsent(final String state, final OAuthProvider prov) throws IOException {
 		String code = null;
 		final String clientId;
@@ -41,7 +44,7 @@ public class OAuthUtil {
 			clientId = "660348649554-85q3k21p65e09pr91je1qnuej0mlk78d.apps.googleusercontent.com";
 			
 			uriStr = "https://accounts.google.com/o/oauth2/v2/auth?" + "scope=email%20profile" + "&state=" + state
-					+ "&redirect_uri=http://127.0.0.1:" + 8999 + "&response_type=code" + "&client_id=" + clientId
+					+ "&redirect_uri=" + REDIRECT_URI + "&response_type=code" + "&client_id=" + clientId
 					+ "&access_type=offline"; //access_type=offline if google credentials are for web apps
 			codePattern = ".*\\?state=" + state + "&code=(.*)\\s.*";
 			break;
@@ -51,7 +54,7 @@ public class OAuthUtil {
 
 		org.eclipse.swt.program.Program.launch(uriStr);
 
-		try (ServerSocket serverSocket = new ServerSocket(8999);
+		try (ServerSocket serverSocket = new ServerSocket(PORT);
 				Socket clientSocket = serverSocket.accept();
 				PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 				BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));) {
@@ -91,7 +94,7 @@ public class OAuthUtil {
 			final OAuthProvider prov) {
 		final String grantType = "authorization_code";
 		try {
-			Storage.getInstance().loginOAuth(server, code, state, grantType, prov);
+			Storage.getInstance().loginOAuth(server, code, state, grantType, REDIRECT_URI, prov);
 			return true;
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

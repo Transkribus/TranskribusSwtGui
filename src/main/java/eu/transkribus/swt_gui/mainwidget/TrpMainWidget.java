@@ -696,7 +696,7 @@ public class TrpMainWidget {
 							success = false;
 						} else {
 							try {
-								success = loginOAuth(server, creds.getRefreshToken(), state, OAuthProvider.Google);
+								success = loginOAuth(server, creds.getRefreshToken(), state, OAuthUtil.REDIRECT_URI, OAuthProvider.Google);
 							} catch (OAuthTokenRevokedException oau) {
 								// get new consent
 								TrpGuiPrefs.clearOAuthToken(OAuthProvider.Google);
@@ -793,13 +793,13 @@ public class TrpMainWidget {
 		// }
 	}
 	
-	public boolean loginOAuth(final String server, final String refreshToken, final String state, final OAuthProvider prov) throws OAuthTokenRevokedException {
+	public boolean loginOAuth(final String server, final String refreshToken, final String state, final String redirectUri, final OAuthProvider prov) throws OAuthTokenRevokedException {
 		final String grantType = "refresh_token";
 		try {
 			if (!getTrpSets().isServerSideActivated()) {
 				throw new NotSupportedException("Connecting to the server not supported yet!");
 			}
-			storage.loginOAuth(server, refreshToken, state, grantType, prov);
+			storage.loginOAuth(server, refreshToken, state, grantType, redirectUri, prov);
 			
 			storage.reloadCollections();
 

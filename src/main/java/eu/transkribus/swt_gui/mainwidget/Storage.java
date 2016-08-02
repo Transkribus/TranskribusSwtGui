@@ -852,14 +852,14 @@ public class Storage extends Observable {
 		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
 	}
 	
-	public void loginOAuth(final String serverUri, final String code, final String state, final String grantType, final OAuthProvider prov) throws LoginException, OAuthTokenRevokedException {
+	public void loginOAuth(final String serverUri, final String code, final String state, final String grantType, final String redirectUri, final OAuthProvider prov) throws LoginException, OAuthTokenRevokedException {
 		logger.debug("Logging in via OAuth at: " + prov.toString());
 		if (conn != null)
 			conn.close();
 
 		conn = new TrpServerConn(serverUri);
 
-		user = conn.loginOAuth(code, state, grantType, prov);
+		user = conn.loginOAuth(code, state, grantType, redirectUri, prov);
 		
 		logger.debug("Logged in as user: " + user + " connection: " + conn);
 		
