@@ -150,7 +150,7 @@ import eu.transkribus.swt_gui.transcription.listener.WordTranscriptionWidgetList
 import eu.transkribus.swt_gui.upload.UploadDialog;
 import eu.transkribus.swt_gui.upload.UploadDialogUltimate;
 import eu.transkribus.swt_gui.util.GuiUtil;
-import eu.transkribus.swt_gui.util.OAuthUtil;
+import eu.transkribus.swt_gui.util.OAuthGuiUtil;
 
 public class TrpMainWidget {
 	private final static boolean USE_SPLASH = true;
@@ -696,14 +696,14 @@ public class TrpMainWidget {
 							success = false;
 						} else {
 							try {
-								success = loginOAuth(server, creds.getRefreshToken(), state, OAuthUtil.REDIRECT_URI, OAuthProvider.Google);
+								success = loginOAuth(server, creds.getRefreshToken(), state, OAuthGuiUtil.REDIRECT_URI, OAuthProvider.Google);
 							} catch (OAuthTokenRevokedException oau) {
 								// get new consent
 								TrpGuiPrefs.clearOAuthToken(OAuthProvider.Google);
 								String code;
 								try {
-									code = OAuthUtil.getUserConsent(state, OAuthProvider.Google);
-									success = OAuthUtil.authorizeOAuth(server, code, state, OAuthProvider.Google);
+									code = OAuthGuiUtil.getUserConsent(state, OAuthProvider.Google);
+									success = OAuthGuiUtil.authorizeOAuth(server, code, state, OAuthProvider.Google);
 								} catch (IOException e) {
 									success = false;
 								}

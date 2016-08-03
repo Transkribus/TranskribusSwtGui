@@ -37,7 +37,7 @@ import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
 import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
-import eu.transkribus.swt_gui.util.OAuthUtil;
+import eu.transkribus.swt_gui.util.OAuthGuiUtil;
 
 public class LoginDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(LoginDialog.class);
@@ -103,17 +103,6 @@ public class LoginDialog extends Dialog {
 		if (serverProposals != null)
 			initServerCombo(container);
 
-		rememberCredentials = new Button(container, SWT.CHECK);
-		rememberCredentials.setText("Remember credentials");
-		rememberCredentials.setToolTipText("If login is successful those credentials will be stored");
-		// rememberCredentials.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
-		// true,
-		// true, 2, 2));
-
-		clearStoredCredentials = new Button(container, SWT.PUSH);
-		clearStoredCredentials.setText("Clear stored credentials");
-		clearStoredCredentials.setToolTipText("Clears previously stored credentials from harddisk");
-
 		autoLogin = new Button(container, SWT.CHECK);
 		autoLogin.setText("Auto login");
 		autoLogin.setToolTipText("Auto login with last remembered credentials on next startup");
@@ -140,6 +129,8 @@ public class LoginDialog extends Dialog {
 		for(OAuthProvider o : OAuthProvider.values()){
 			accountCombo.add(o.toString());
 		}
+		
+		//TODO select last choice
 		accountCombo.select(0);
 		setAccountType("Transkribus");
 		
@@ -193,6 +184,18 @@ public class LoginDialog extends Dialog {
 		autocomplete.getAdapter().setPropagateKeys(true);
 		
 
+		rememberCredentials = new Button(grpCreds, SWT.CHECK);
+		rememberCredentials.setText("Remember credentials");
+		rememberCredentials.setToolTipText("If login is successful those credentials will be stored");
+		// rememberCredentials.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
+		// true,
+		// true, 2, 2));
+
+		clearStoredCredentials = new Button(grpCreds, SWT.PUSH);
+		clearStoredCredentials.setText("Clear stored credentials");
+		clearStoredCredentials.setToolTipText("Clears previously stored credentials from harddisk");
+
+		
 		txtUser.addModifyListener(new ModifyListener() {
 			@Override public void modifyText(ModifyEvent e) {
 				updateCredentialsOnTypedUser();
@@ -259,10 +262,9 @@ public class LoginDialog extends Dialog {
 //					@Override
 //					public void run() {
 						try {
-							logger.debug("starting thread!");
 							final String state = "test";
-							final String code = OAuthUtil.getUserConsent(state, prov);
-							boolean success = OAuthUtil.authorizeOAuth(server, code, state, prov);
+							final String code = OAuthGuiUtil.getUserConsent(state, prov);
+							boolean success = OAuthGuiUtil.authorizeOAuth(server, code, state, prov);
 				            initOAuthAccountFields(prov);
 						} catch (IOException ioe) {
 							setInfo("Login failed!");
@@ -282,7 +284,7 @@ public class LoginDialog extends Dialog {
 			@Override public void widgetSelected(SelectionEvent e) {
 				String token = TrpGuiPrefs.getOAuthCreds(prov).getRefreshToken();
 				try {
-					OAuthUtil.revokeOAuthToken(token, prov);
+					OAuthGuiUtil.revokeOAuthToken(token, prov);
 					TrpGuiPrefs.clearOAuthToken(prov);
 		            initOAuthAccountFields(prov);
 				} catch (IOException ioe) {

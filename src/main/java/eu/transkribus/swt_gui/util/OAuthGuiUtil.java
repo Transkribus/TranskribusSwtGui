@@ -23,8 +23,8 @@ import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
-public class OAuthUtil {
-	private static final Logger logger = LoggerFactory.getLogger(OAuthUtil.class);
+public class OAuthGuiUtil {
+	private static final Logger logger = LoggerFactory.getLogger(OAuthGuiUtil.class);
 
 	private static final int PORT = 8999;
 	public static final String REDIRECT_URI = "http://127.0.0.1:" + PORT;
@@ -51,9 +51,24 @@ public class OAuthUtil {
 		default:
 			throw new IOException("Unknown OAuth Provider: " + prov);
 		}
-
+		
+//		ServerSocketRunnable r = new ServerSocketRunnable(codePattern);
+//			
+//		Thread t = new Thread(r);
+//		t.start();
+		
+		// ===================== OLD
 		org.eclipse.swt.program.Program.launch(uriStr);
 
+//		try {
+//			t.join();
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		r.getCode();
+		
 		try (ServerSocket serverSocket = new ServerSocket(PORT);
 				Socket clientSocket = serverSocket.accept();
 				PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
@@ -86,6 +101,9 @@ public class OAuthUtil {
 			out.write(result);
 			out.flush();
 		}
+		
+		//====================== END OLD
+		
 
 		return code;
 	}
@@ -125,4 +143,55 @@ public class OAuthUtil {
 			throw new ClientErrorException(reason, status);
 		}
 	}
+	
+//	private static class ServerSocketRunnable extends Observable implements Runnable  {
+//		String codePattern; 
+//		String code;
+//		
+//		public ServerSocketRunnable(String codePattern) {
+//			this.codePattern = codePattern;
+//		}
+//
+//		@Override
+//		public void run() {
+//			try (ServerSocket serverSocket = new ServerSocket(PORT);
+//					Socket clientSocket = serverSocket.accept();
+//					PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+//					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));) {
+//
+//				String inputLine;
+//				String text = "";
+//
+//				Pattern p = Pattern.compile(codePattern);
+//				while ((inputLine = in.readLine()) != null) {
+//					text += inputLine;
+//					Matcher m = p.matcher(inputLine);
+//					if (m.find()) {
+//						code = m.group(1);
+//						break;
+//					}
+//					if (inputLine.isEmpty()) {
+//						break;
+//					}
+//				}
+//
+//				logger.debug(text);
+//				// System.out.println(code);
+//
+//				final String doc = "<!doctype html><html><head>"
+//						+ "</head><body>You can now close the tab and return to Transkribus</body></html>";
+//				String response = "HTTP/1.1 200 OK\r\n" + "Server: Server\r\n" + "Content-Type: text/html\r\n"
+//						+ "Content-Length: " + doc.length() + "\r\n" + "Connection: close\r\n\r\n";
+//				String result = response + doc;
+//				out.write(result);
+//				out.flush();
+//				setChanged();
+//				notifyObservers(code);
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//		
+//	}
 }
