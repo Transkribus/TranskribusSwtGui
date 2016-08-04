@@ -1,13 +1,7 @@
 package eu.transkribus.swt_gui.util;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.ws.rs.ClientErrorException;
 
@@ -16,10 +10,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
+import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -29,7 +27,7 @@ public class OAuthGuiUtil {
 	private static final int PORT = 8999;
 	public static final String REDIRECT_URI = "http://127.0.0.1:" + PORT;
 	
-	public static String getUserConsent(final String state, final OAuthProvider prov) throws IOException {
+	public static String getUserConsent(final Shell sh, final String state, final OAuthProvider prov) throws IOException {
 		String code = null;
 		final String clientId;
 		final String uriStr;
@@ -52,59 +50,17 @@ public class OAuthGuiUtil {
 			throw new IOException("Unknown OAuth Provider: " + prov);
 		}
 		
-//		ServerSocketRunnable r = new ServerSocketRunnable(codePattern);
-//			
-//		Thread t = new Thread(r);
-//		t.start();
-		
-		// ===================== OLD
 		org.eclipse.swt.program.Program.launch(uriStr);
-
-//		try {
-//			t.join();
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//		r.getCode();
 		
-		try (ServerSocket serverSocket = new ServerSocket(PORT);
-				Socket clientSocket = serverSocket.accept();
-				PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-				BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));) {
-
-			String inputLine;
-			String text = "";
-
-			Pattern p = Pattern.compile(codePattern);
-			while ((inputLine = in.readLine()) != null) {
-				text += inputLine;
-				Matcher m = p.matcher(inputLine);
-				if (m.find()) {
-					code = m.group(1);
-					break;
-				}
-				if (inputLine.isEmpty()) {
-					break;
-				}
-			}
-
-			logger.debug(text);
-			// System.out.println(code);
-
-			final String doc = "<!doctype html><html><head>"
-					+ "</head><body>You can now close the tab and return to Transkribus</body></html>";
-			String response = "HTTP/1.1 200 OK\r\n" + "Server: Server\r\n" + "Content-Type: text/html\r\n"
-					+ "Content-Length: " + doc.length() + "\r\n" + "Connection: close\r\n\r\n";
-			String result = response + doc;
-			out.write(result);
-			out.flush();
-		}
+//		OAuthCallbackServerSocket sock = new OAuthCallbackServerSocket(PORT);		
+//		code = sock.accept(codePattern); //blocks!!
 		
-		//====================== END OLD
+		ServerSocketRunnable ssr = new ServerSocketRunnable(codePattern);
+		try {
+			ProgressBarDialog.open(sh, ssr, "Waiting for Connection..." , true);
+			code = ssr.getCode();
+		} catch (Throwable e) {}
 		
-
 		return code;
 	}
 
@@ -144,54 +100,58 @@ public class OAuthGuiUtil {
 		}
 	}
 	
-//	private static class ServerSocketRunnable extends Observable implements Runnable  {
-//		String codePattern; 
-//		String code;
-//		
-//		public ServerSocketRunnable(String codePattern) {
-//			this.codePattern = codePattern;
-//		}
-//
-//		@Override
-//		public void run() {
-//			try (ServerSocket serverSocket = new ServerSocket(PORT);
-//					Socket clientSocket = serverSocket.accept();
-//					PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-//					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));) {
-//
-//				String inputLine;
-//				String text = "";
-//
-//				Pattern p = Pattern.compile(codePattern);
-//				while ((inputLine = in.readLine()) != null) {
-//					text += inputLine;
-//					Matcher m = p.matcher(inputLine);
-//					if (m.find()) {
-//						code = m.group(1);
-//						break;
-//					}
-//					if (inputLine.isEmpty()) {
-//						break;
-//					}
-//				}
-//
-//				logger.debug(text);
-//				// System.out.println(code);
-//
-//				final String doc = "<!doctype html><html><head>"
-//						+ "</head><body>You can now close the tab and return to Transkribus</body></html>";
-//				String response = "HTTP/1.1 200 OK\r\n" + "Server: Server\r\n" + "Content-Type: text/html\r\n"
-//						+ "Content-Length: " + doc.length() + "\r\n" + "Connection: close\r\n\r\n";
-//				String result = response + doc;
-//				out.write(result);
-//				out.flush();
-//				setChanged();
-//				notifyObservers(code);
-//			} catch (IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
-//		
-//	}
+	private static class ServerSocketRunnable implements IRunnableWithProgress {
+		String codePattern; 
+		String code = null;
+		
+		public ServerSocketRunnable(String codePattern) {
+			this.codePattern = codePattern;
+		}
+
+		@Override
+		public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+			
+			final OAuthCallbackServerSocket s;
+			try {
+				s = new OAuthCallbackServerSocket(PORT);
+			
+				monitor.beginTask("Waiting for connection...", 2);
+				
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						try {
+							s.accept(codePattern);
+						} catch (IOException e) {}				
+					}
+					
+				};
+				Thread t = new Thread(r);
+				t.start();
+				
+				while(s.getCode() == null ){
+					monitor.worked(1);
+					if(monitor.isCanceled()) {
+						s.close();
+						return;
+					}
+					if(!t.isAlive()) {
+						//user did not give consent
+						return;
+					}
+					Thread.sleep(1000);
+				}
+				
+				this.code = s.getCode();
+				monitor.done();
+				
+			} catch (IOException e) {}
+			
+		}
+		
+		
+		public String getCode() {
+			return code;
+		}
+	}
 }

@@ -257,24 +257,20 @@ public class LoginDialog extends Dialog {
 		btnConnect.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				final String server = getServerCombo().getText();
-//				lbl2.setText("Awaiting input...");
-//	            Runnable r = new Runnable() {
-//					@Override
-//					public void run() {
-						try {
-							final String state = "test";
-							final String code = OAuthGuiUtil.getUserConsent(state, prov);
-							boolean success = OAuthGuiUtil.authorizeOAuth(server, code, state, prov);
-				            initOAuthAccountFields(prov);
-						} catch (IOException ioe) {
-							setInfo("Login failed!");
-						}
-						grpCreds.layout();
-//					}
-//				};
-//		        Thread t = new Thread(r);   
-//		        t.start();
-//				lbl2.setText("");
+
+				try {
+					final String state = "test";
+					final String code = OAuthGuiUtil.getUserConsent(getShell(), state, prov);
+					if(code != null) { //if user did not accept consent
+						boolean success = OAuthGuiUtil.authorizeOAuth(server, code, state, prov);
+			            initOAuthAccountFields(prov);
+					} else {
+						throw new IOException("User did not accept consent!");
+					}
+				} catch (IOException ioe) {
+					setInfo("Login failed!");
+				}
+				grpCreds.layout();
 			}
 		});
 	}

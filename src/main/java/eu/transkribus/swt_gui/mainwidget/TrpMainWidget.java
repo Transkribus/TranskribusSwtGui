@@ -702,8 +702,12 @@ public class TrpMainWidget {
 								TrpGuiPrefs.clearOAuthToken(OAuthProvider.Google);
 								String code;
 								try {
-									code = OAuthGuiUtil.getUserConsent(state, OAuthProvider.Google);
-									success = OAuthGuiUtil.authorizeOAuth(server, code, state, OAuthProvider.Google);
+									code = OAuthGuiUtil.getUserConsent(this.getShell(), state, OAuthProvider.Google);
+									if(code == null) {
+										success = false;
+									} else {
+										success = OAuthGuiUtil.authorizeOAuth(server, code, state, OAuthProvider.Google);
+									}
 								} catch (IOException e) {
 									success = false;
 								}
