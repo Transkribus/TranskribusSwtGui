@@ -16,7 +16,9 @@ import org.eclipse.swt.graphics.GC;
 
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 
-public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode<ICanvasShape> {
+public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode<ICanvasShape> {	
+	static final int MOVE_LINE_THRESH = 5;
+	
 	ICanvasShape copy();
 	
 	String getType();
@@ -40,8 +42,17 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	/** Returns the index of the given point with some threshold, -1 if there is no such point. **/
 	int getPointIndex(int x, int y, int threshold);
 	
+	default int[] whichLine(int x, int y) {
+		Pair<int[], Double> p = CanvasShapeUtil.getClosestLineIndices(x, y, getPoints(), isClosed());
+		if (p.getRight() <= MOVE_LINE_THRESH) {
+			return p.getLeft();
+		}
+		return null;
+	}
+
 	/** Determines which corner of the bounding box this point belongs to. Returns RectCorner.NONE if none. **/
 	RectDirection whichDirection(int x, int y, int threshold);
+	
 	Point getCornerPoint(RectDirection rc);
 	
 	List<java.awt.Point> getPoints();
@@ -98,6 +109,16 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	boolean translate(int tx, int ty);
 	
 	Point movePoint(int index, int x, int y);
+	
+	default boolean translatePoint(int index, int tx, int ty) {
+		Point p = getPoint(index);
+		if (p == null)
+			return false;
+		
+		movePoint(index, p.x+tx, p.y+ty);
+		return true;
+	}
+	
 	void movePoints(int x, int y, Integer... pts);
 	List<Integer> movePointAndSelected(int grabbedPtIndex, int x, int y);
 	

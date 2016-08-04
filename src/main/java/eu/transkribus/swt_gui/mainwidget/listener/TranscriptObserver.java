@@ -20,7 +20,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEven
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpTagsChangedEvent;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpTextChangedEvent;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpTextStyleChangedEvent;
-import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.LineEditor;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
@@ -51,13 +50,16 @@ public class TranscriptObserver implements Observer {
 	public boolean isActive() { return active; }
 	
 	private void onReadingOrderChanged(Object source, TrpReadingOrderChangedEvent e) {
-		logger.debug("Reading order changed: "+e);
-		if (mainWidget.getStorage().hasTranscript())
-			mainWidget.getStorage().getTranscript().getPage().sortContent();
-
-		mainWidget.updateTranscriptionWidgetsData();
-		mainWidget.refreshStructureView();
-		mainWidget.redrawCanvas();
+		logger.trace("Reading order changed: "+e);
+		
+		if (false) { // inefficient... 
+			if (mainWidget.getStorage().hasTranscript())
+				mainWidget.getStorage().getTranscript().getPage().sortContent();
+	
+			mainWidget.updateTranscriptionWidgetsData();
+			mainWidget.refreshStructureView();
+			mainWidget.redrawCanvas();
+		}
 	}
 	
 	private void onCoordinatesChanged(Object source, TrpCoordsChangedEvent e) {
@@ -85,7 +87,7 @@ public class TranscriptObserver implements Observer {
 		if (source instanceof TrpTextRegionType) {
 		}
 		else if (source instanceof TrpTextLineType) {
-			logger.debug("a line has changed, who: "+e.who);
+			logger.trace("a line has changed, who: "+e.who);
 			// update line transcription widget:
 //			mainWidget.updateTranscriptionWidgetsData();
 			if (e.who != lineTranscriptionWidget) {
@@ -116,6 +118,8 @@ public class TranscriptObserver implements Observer {
 	}
 	
 	private void onTagsChanged(Object source, TrpTagsChangedEvent e) {
+		logger.trace("tags changed, source = "+source+" e = "+e);
+		
 //		if (!(source instanceof TrpTextLineType)) {
 //			return;
 //		}
@@ -137,13 +141,15 @@ public class TranscriptObserver implements Observer {
 		
 //		mainWidget.updatePageRelatedMetadata(); // CAN SKIP THIS AS METADATA GETS UPDATED BY SELECTION CHANGED LISTENER!
 		
+		if (false) { // inefficient... keep out if possible!
 		if (source instanceof TrpTextLineType) {
 			lineTranscriptionWidget.redrawText(true);
 			lineEditor.redraw();
 		}
 		else if (source instanceof TrpWordType) {
 			wordTranscriptionWidget.redrawText(true);
-		}		
+		}
+		}
 	}
 	
 	private void onStylesChanged(Object source, TrpTextStyleChangedEvent e) {
@@ -152,12 +158,14 @@ public class TranscriptObserver implements Observer {
 		
 //		logger.debug("styles have changed, source = "+source+", who = "+e.who);
 		
+		if (false) { // inefficient
 		if (source instanceof TrpTextLineType) {
 			lineTranscriptionWidget.redrawText(true);
 			lineEditor.redraw();
 		}
 		else if (source instanceof TrpWordType) {
 			wordTranscriptionWidget.redrawText(true);
+		}
 		}
 	}
 

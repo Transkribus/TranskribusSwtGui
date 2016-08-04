@@ -1653,7 +1653,8 @@ public class TrpMainWidget {
 			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
 		}
 		else {
-			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
+//			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
+			localTestdoc = System.getProperty( "user.home" )+"/testdocmanybl";
 		}
 		
 		File f = new File(localTestdoc);

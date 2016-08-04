@@ -2,14 +2,18 @@ package eu.transkribus.swt_canvas.canvas;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -19,7 +23,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.editing.UndoStack;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasGlobalEventsFilter;
@@ -30,12 +33,14 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
+import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
 import eu.transkribus.swt_canvas.util.CanvasTransform;
 import eu.transkribus.swt_canvas.util.CanvasTransformTransition;
 import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.GeomUtils;
 import eu.transkribus.swt_canvas.util.Resources;
 import eu.transkribus.swt_canvas.util.SWTUtil;
+import math.geom2d.Point2D;
 
 public class SWTCanvas extends Canvas {
 	private final static Logger logger = LoggerFactory
@@ -1025,7 +1030,51 @@ public class SWTCanvas extends Canvas {
 	// public void setTransform(CanvasTransform transform) {
 	// this.transform = transform;
 	// }
+	
+	
+	public boolean isMovingShapeLinePossible() {
+		return getCursorTypeForMovingShapeLine() != -1;
+	}
+	
+	public int getCursorTypeForMovingShapeLine() {
+		ICanvasShape selected = getFirstSelected();
+		Point mp = getMouseListener().getMousePtWoTr();
+		
+		
+		if (selected == null || mp == null || !settings.isEditingEnabled() || mouseListener.getMouseOverPoint()!=-1)
+			return -1;
+		
+		int[] line = mouseListener.getMouseOverLine() != null ? 
+				mouseListener.getMouseOverLine() : mouseListener.getSelectedLine();
 
+		if (line != null) {
+//			if (true)
+//				return SWT.CURSOR_SIZENESW;
+			java.awt.Point p1 = selected.getPoint(line[0]);
+			java.awt.Point p2 = selected.getPoint(line[1]);
+			
+			java.awt.Point p1r = GeomUtils.invertRotation(p1.x, p1.y, transform.getAngleRad());
+			java.awt.Point p2r = GeomUtils.invertRotation(p2.x, p2.y, transform.getAngleRad());
+
+//			double angle = GeomUtils.angleWithHorizontalLineRotated(p1, p2, transform.getAngleRad());		
+			double angle = Math.abs(Math.atan2(-p1r.y+p2r.y, -p1r.x+p2r.x));
+			if (angle > Math.PI/2) {
+				angle = Math.abs(angle-Math.PI);
+			}
+			
+			logger.debug("angle = "+angle);
+						
+//			double angle = GeomUtils.angleWithHorizontalLine(p1, p2);
+			if (angle < Math.PI/4) {
+				return SWT.CURSOR_SIZENS;
+			} else {
+				return SWT.CURSOR_SIZEWE;
+			}
+		}
+			
+		return -1;
+	}
+	
 	public boolean isMovingBoundingBoxPossible() {
 		ICanvasShape selected = getFirstSelected();
 
@@ -1040,34 +1089,44 @@ public class SWTCanvas extends Canvas {
 	}
 
 	public void setCursor(ICanvasShape selected) {
-		// logger.debug("setCursor, isMovingBoundingBoxPossible: "+isMovingBoundingBoxPossible());
-		// if a shape is resized along its bounding box --> draw corresponding
-		// cursor
-		if (isMovingBoundingBoxPossible()) {
-			RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? 
-				mouseListener.getMouseOverDirection() : mouseListener.getSelectedDirection();
-			setCursor(getDisplay().getSystemCursor(dir.getCursorType()));
-		} else {
-			// else: set cursor depending on mode:
-			setCursorForMode(settings.getMode());
+		int cursorType = -1;
+		Point mp = mouseListener.getMousePtWoTr();
+		
+		if (selected != null && mp != null) {
+			if (isMovingBoundingBoxPossible()) {
+				RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? 
+					mouseListener.getMouseOverDirection() : mouseListener.getSelectedDirection();
+				setCursor(getDisplay().getSystemCursor(dir.getCursorType()));
+				return;
+			} else {
+				isMovingShapeLinePossible();
+				
+				cursorType = getCursorTypeForMovingShapeLine();
+				if (cursorType != -1) {
+					setCursor(getDisplay().getSystemCursor(cursorType));
+					return;
+				}				
+			}
 		}
+		
+		setCursor(getCursorForMode(settings.getMode()));
 	}
 
-	public void setCursorForMode(CanvasMode mode) {
+	public Cursor getCursorForMode(CanvasMode mode) {
 		if (mode.isEditOperation()) {
-			setCursor(getDisplay().getSystemCursor(SWT.CURSOR_CROSS));
 			if (settings.getMode() == CanvasMode.MOVE_SHAPE) {
-				setCursor(getDisplay().getSystemCursor(SWT.CURSOR_SIZEALL));
-			}
+				return getDisplay().getSystemCursor(SWT.CURSOR_SIZEALL);
+			} else
+				return getDisplay().getSystemCursor(SWT.CURSOR_CROSS);
 		} else if (mode == CanvasMode.ZOOM || mode == CanvasMode.LOUPE) {
-			setCursor(Resources.CURSOR_ZOOM);
+			return Resources.CURSOR_ZOOM;
 			// setCursor(getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
 		} else if (mode == CanvasMode.MOVE) {
-			setCursor(getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+			return getDisplay().getSystemCursor(SWT.CURSOR_HAND);
 			// setCursor(Cursors.cursorHandDrag);
 		} else {
 			// if (settings.getMode() == CanvasMode.SELECTION) {
-			setCursor(getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
+			return getDisplay().getSystemCursor(SWT.CURSOR_ARROW);
 			// }
 		}
 	}
@@ -1077,7 +1136,9 @@ public class SWTCanvas extends Canvas {
 		Point mPt = mouseListener.getMousePtWoTr();
 		ICanvasShape selected = getFirstSelected();
 
-		return (selectedPoint == -1 && selected != null
+		return (selectedPoint == -1 && mouseListener.getSelectedDirection()==RectDirection.NONE
+				&& mouseListener.getSelectedLine()==null &&
+				selected != null
 				&& selected.isEditable() && mPt != null
 				&& selected.contains(mPt) && getMode() == CanvasMode.SELECTION);
 	}
@@ -1284,5 +1345,5 @@ public class SWTCanvas extends Canvas {
 
 		return transWoTr;
 	}
-
+	
 }

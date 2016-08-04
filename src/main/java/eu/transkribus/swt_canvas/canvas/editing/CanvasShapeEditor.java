@@ -417,22 +417,62 @@ public class CanvasShapeEditor {
 			}
 		}
 	}
-
-	public void movePointsFromSelected(int selectedPoint, int mouseX, int mouseY, boolean firstMove) {
-		ICanvasShape selected = canvas.getFirstSelected();
-		logger.debug("moving points, selected: "+selectedPoint);
-		if (selected!=null && selected.isEditable() && selectedPoint != -1) {
-			Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
-			
-			if (firstMove) {
-				ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved point(s) of shape", selected);
-				addToUndoStack(op);
-			}
-			
-			selected.movePointAndSelected(selectedPoint, mousePtWoTr.x, mousePtWoTr.y);
-//			selected.movePoint(selectedPoint, mousePtWoTr.x, mousePtWoTr.y);
-		}
+	
+	public static boolean isEditable(ICanvasShape s) {
+		return s!=null && s.isEditable();
 	}
+	
+	public ShapeEditOperation movePointAndSelected(ICanvasShape shape, int selectedPoint, int mouseX, int mouseY, boolean addToUndoStack) {
+		if (!isEditable(shape))
+			return null;
+		
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved point(s) of shape", shape);
+		
+		logger.debug("moving points, shape: "+shape+" point: "+selectedPoint);
+		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
+		List<Integer> movedPts = shape.movePointAndSelected(selectedPoint, mousePtWoTr.x, mousePtWoTr.y);
+		if (movedPts.isEmpty())
+			return null;
+		
+//		selected.movePoint(selectedPoint, mousePtWoTr.x, mousePtWoTr.y);
+
+		if (addToUndoStack)
+			addToUndoStack(op);
+		
+		return op;
+	}
+	
+	public ShapeEditOperation translatePoints(ICanvasShape shape, int tx, int ty, boolean addToUndoStack, int ...indices) {
+		if (shape == null)
+			return null;
+		
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Altered point(s) of shape", shape);
+		for (int index : indices) {			
+			if (!shape.translatePoint(index, tx, ty)) {
+				return null;
+			}
+		}
+		
+		if (addToUndoStack)
+			addToUndoStack(op);
+		
+		return op;
+	}
+	
+//	public ShapeEditOperation translatePoints(ICanvasShape shape, int index, int tx, int ty, /*boolean firstMove,*/ boolean addToUndoStack) {
+//		if (shape == null)
+//			return null;
+//						
+//		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Altered point(s) of shape", shape);
+//		if (addToUndoStack)
+//			addToUndoStack(op);
+//		
+//		if (!shape.translatePoint(index, tx, ty)) {
+//			return null;
+//		}
+//		
+//		return op;
+//	}
 	
 	public void resizeBoundingBoxFromSelected(RectDirection direction, int mouseTrX, int mouseTrY, boolean firstMove) {
 		ICanvasShape selected = canvas.getFirstSelected();

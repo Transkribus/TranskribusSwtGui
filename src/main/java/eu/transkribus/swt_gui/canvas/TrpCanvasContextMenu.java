@@ -59,7 +59,7 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 	private void createTableItems(ICanvasShape s) {
 		SWTUtil.dispose(deleteTableItem);
 		
-		TrpTableRegionType t = TableUtils.getTable(s);
+		TrpTableRegionType t = TableUtils.getTable(s, true);
 		if (t == null)
 			return;
 		
@@ -81,12 +81,12 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 			return;
 		
 		selectTableRowCellsItem = new MenuItem(popupMenu, SWT.NONE);
-		selectTableRowCellsItem.setText("Select cells of row "+cell.getPos()[0]);
+		selectTableRowCellsItem.setText("Select row cells");
 		selectTableRowCellsItem.setData(SELECT_TABLE_ROW_CELLS_EVENT);
 		selectTableRowCellsItem.addSelectionListener(itemSelListener);
 		
 		selectTableColumnCellsItem = new MenuItem(popupMenu, SWT.NONE);
-		selectTableColumnCellsItem.setText("Select cells of column "+cell.getPos()[1]);
+		selectTableColumnCellsItem.setText("Select columns cells");
 		selectTableColumnCellsItem.setData(SELECT_TABLE_COLUMN_CELLS_EVENT);
 		selectTableColumnCellsItem.addSelectionListener(itemSelListener);
 				

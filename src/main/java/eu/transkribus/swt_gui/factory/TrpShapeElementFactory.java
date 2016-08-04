@@ -8,9 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.BaselineType;
-import eu.transkribus.core.model.beans.pagecontent.CellCoordsType;
 import eu.transkribus.core.model.beans.pagecontent.CoordsType;
-import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextEquivType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
@@ -40,7 +38,6 @@ import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
-import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
 /**
@@ -289,11 +286,11 @@ public class TrpShapeElementFactory {
 			trpShape = word;
 		}
 		else if (m.equals(TrpCanvasAddMode.ADD_TABLECELL)) {
-			logger.debug("creating tablecell");
+			logger.debug("1 creating tablecell");
 			String errorMsg="";
-			
-			TrpTableRegionType table = TableUtils.getTable(selectedParentShape);
-			if (table != null) // if a table has been given as parent shape, set it as parent shape
+						
+			// if selected parent shape is a table, set is a as parent shape
+			if (selectedParentShape!=null && selectedParentShape.getData() instanceof TrpTableRegionType)
 				parentShape = selectedParentShape;
 			else // else: find overlapping parent table
 				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTableRegionType.class);
@@ -464,14 +461,16 @@ public class TrpShapeElementFactory {
 			parent.getTextLine().add(tl);
 		}
 
-		for (int i = 0; i<parent.getTextLine().size(); i++){
-		logger.debug(i + "-th line in text " + parent.getTextLine().get(i).getId());	
+		if (false)
+		for (int i = 0; i<parent.getTextLine().size(); i++) {
+			logger.debug(i + "-th line in text " + parent.getTextLine().get(i).getId());	
 		}
 		
 		parent.applyTextFromLines();
 		
 		TrpMainWidget.getInstance().getScene().updateAllShapesParentInfo();
-		parent.getPage().sortContent();
+		parent.sortLines();
+//		parent.getPage().sortContent();
 		
 //		parent.getTextLine().add(tl);
 		//parent.sortLines();
@@ -517,17 +516,18 @@ public class TrpShapeElementFactory {
 		if (!(shape instanceof CanvasQuadPolygon))
 			throw new RuntimeException("table cell shape is not a quad polygon: "+shape);
 		
+		CanvasQuadPolygon qp = ((CanvasQuadPolygon) shape);
+		logger.debug("corners: "+qp.getCorners());
+		
+		
 		TrpTableCellType tc = new TrpTableCellType(parent);
 		
 		tc.setId(TrpPageType.getUniqueId(tc.getName()));
 		
 		// TODO: set reading order ???? -> maybe r.o. for table cells is rowwise from left to right...
 		
-		CellCoordsType coords = new CellCoordsType();
-		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
-		String cornersStr = PointStrUtils.cornerPtsToString(((CanvasQuadPolygon) shape).getCorners());
-		coords.setCornerPts( cornersStr );
-		tc.setCoords(coords);
+		tc.setCoordinates(PointStrUtils.pointsToString(shape.getPoints()), TrpShapeElementFactory.class);
+		tc.setCornerPts(PointStrUtils.cornerPtsToString(qp.getCorners()));
 		
 		parent.getTableCell().add(tc);
 		// TODO: sort table cells??? (most probably not...)

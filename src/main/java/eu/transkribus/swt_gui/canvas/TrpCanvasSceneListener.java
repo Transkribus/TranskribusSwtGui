@@ -63,7 +63,7 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 				ITrpShapeType el = mw.getShapeFactory().createJAXBElementFromShape(shape, mw.getCanvas().getMode(), mw.getCanvas().getFirstSelected());
 				logger.debug("created trp element: "+el);
 				
-				TrpTableRegionType table = TableUtils.getTable(shape);
+				TrpTableRegionType table = TableUtils.getTable(shape, false);
 				if (table != null) { // create table cell for table!
 					logger.debug("creating table cell for table!");
 					CanvasQuadPolygon qp = new CanvasQuadPolygon(shape.getBounds());
@@ -135,6 +135,11 @@ public class TrpCanvasSceneListener extends CanvasSceneListener {
 		catch (Throwable ex) {
 			mw.onError("Error adding element", "Error adding element", ex);
 			e.stop = true;
+		}
+		finally {
+			mw.updateTranscriptionWidgetsData();
+			mw.refreshStructureView();
+			mw.redrawCanvas();
 		}
 	}
 

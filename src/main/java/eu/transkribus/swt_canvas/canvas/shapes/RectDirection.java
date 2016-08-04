@@ -23,7 +23,7 @@ public enum RectDirection {
 	boolean corner=false;
 	final static Logger logger = LoggerFactory.getLogger(RectDirection.class);
 	
-	RectDirection(int cursorType, boolean corner) {
+	RectDirection(int cursorType, boolean corner) {		
 		this.corner = corner;
 		this.cursorType = cursorType;
 	}

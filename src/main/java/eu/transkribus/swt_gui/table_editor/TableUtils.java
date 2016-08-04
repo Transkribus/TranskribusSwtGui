@@ -89,10 +89,15 @@ public class TableUtils {
 		return null;
 	}
 	
-	public static TrpTableRegionType getTable(ICanvasShape shape) {
-		TrpTableCellType tc = getTableCell(shape);
-		if (tc != null) {
-			return tc.getTable();
+
+	
+	public static TrpTableRegionType getTable(ICanvasShape shape, boolean includeCellShapes) {
+		
+		if (includeCellShapes) {
+			TrpTableCellType tc = getTableCell(shape);
+			if (tc != null) {
+				return tc.getTable();
+			}
 		}
 		
 		if (shape!=null && shape.getData() instanceof TrpTableRegionType) {

@@ -46,7 +46,7 @@ public class TrpCanvasContextMenuListener implements Observer {
 			}
 		}
 		else if (arg.equals(TrpCanvasContextMenu.DELETE_TABLE_EVENT)) {
-			TrpTableRegionType t = TableUtils.getTable(canvas.getFirstSelected());
+			TrpTableRegionType t = TableUtils.getTable(canvas.getFirstSelected(), true);
 			logger.debug("deleting table, t = "+t);
 			if (t != null) {
 				canvas.getShapeEditor().removeShapeFromCanvas((ICanvasShape) t.getData(), true);

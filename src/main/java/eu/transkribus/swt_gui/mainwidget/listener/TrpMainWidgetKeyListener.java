@@ -93,7 +93,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 		if (isCtrlOrCommand && kc == 'c') { // create table cell
 			mw.getCanvas().setMode(TrpCanvasAddMode.ADD_TABLECELL);
 		} else if (isCtrlOrCommand && kc == 'x') { // check table consistency
-			TrpTableRegionType t = TableUtils.getTable(mw.getCanvas().getFirstSelected());			
+			TrpTableRegionType t = TableUtils.getTable(mw.getCanvas().getFirstSelected(), true);			
 			if (t != null) {
 				try {
 					TableUtils.checkTableConsistency(t);
