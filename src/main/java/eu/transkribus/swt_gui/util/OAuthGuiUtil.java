@@ -55,7 +55,7 @@ public class OAuthGuiUtil {
 //		OAuthCallbackServerSocket sock = new OAuthCallbackServerSocket(PORT);		
 //		code = sock.accept(codePattern); //blocks!!
 		
-		ServerSocketRunnable ssr = new ServerSocketRunnable(codePattern);
+		OAuthCallbackRunnable ssr = new OAuthCallbackRunnable(codePattern, prov);
 		try {
 			ProgressBarDialog.open(sh, ssr, "Waiting for Connection..." , true);
 			code = ssr.getCode();
@@ -100,12 +100,14 @@ public class OAuthGuiUtil {
 		}
 	}
 	
-	private static class ServerSocketRunnable implements IRunnableWithProgress {
-		String codePattern; 
-		String code = null;
+	private static class OAuthCallbackRunnable implements IRunnableWithProgress {
+		private String codePattern; 
+		private String code = null;
+		private OAuthProvider provider;
 		
-		public ServerSocketRunnable(String codePattern) {
+		public OAuthCallbackRunnable(String codePattern, OAuthProvider prov) {
 			this.codePattern = codePattern;
+			this.provider = prov;
 		}
 
 		@Override
@@ -114,15 +116,17 @@ public class OAuthGuiUtil {
 			final OAuthCallbackServerSocket s;
 			try {
 				s = new OAuthCallbackServerSocket(PORT);
-			
-				monitor.beginTask("Waiting for connection...", 2);
+				
+				monitor.beginTask("Connecting to " + provider.toString() + " account...", 2);
 				
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
 						try {
 							s.accept(codePattern);
-						} catch (IOException e) {}				
+						} catch (IOException e) {
+							logger.error("OAuth Callback Socket accept threw an exception: ", e);
+						}				
 					}
 					
 				};
@@ -145,7 +149,9 @@ public class OAuthGuiUtil {
 				this.code = s.getCode();
 				monitor.done();
 				
-			} catch (IOException e) {}
+			} catch (IOException e) {
+				logger.error("OAuth Callback task threw an exception: ", e);
+			}
 			
 		}
 		

@@ -6,13 +6,14 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Observable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OAuthCallbackServerSocket {
+public class OAuthCallbackServerSocket extends Observable {
 	private static final Logger logger = LoggerFactory.getLogger(OAuthCallbackServerSocket.class);
 
 	ServerSocket serverSocket;
@@ -63,6 +64,8 @@ public class OAuthCallbackServerSocket {
 		} finally {
 			close();
 		}
+		super.setChanged();
+		super.notifyObservers(code);
 		return code;
 	}
 
