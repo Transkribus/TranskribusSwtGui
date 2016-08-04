@@ -308,10 +308,32 @@ public class TrpMainWidget {
 		}
 		
 		if (getTrpSets().isAutoLogin()) {
-			Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
-			if (lastLogin != null) {
-				// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
-				login(TrpServerConn.PROD_SERVER_URI, lastLogin.getLeft(), lastLogin.getRight(), true);
+			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
+			
+			if(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE.equals(lastAccount)) {
+				Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
+				if (lastLogin != null) {
+					// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
+					login(TrpServerConn.PROD_SERVER_URI, lastLogin.getLeft(), lastLogin.getRight(), true);
+				}
+			} else {
+				OAuthProvider prov;
+				try {
+					prov = OAuthProvider.valueOf(lastAccount);
+				} catch(Exception e){
+					prov = null;
+				}
+				if(prov != null) {
+					//TODO get state token from server
+					final String state = "test";
+					OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(prov);
+					try {
+						loginOAuth(TrpServerConn.PROD_SERVER_URI, creds.getRefreshToken(), 
+								state, OAuthGuiUtil.REDIRECT_URI, prov);
+					} catch (OAuthTokenRevokedException e) {
+						logger.error("OAuth token was revoked!", e);
+					}
+				}
 			}
 		}
 
@@ -734,15 +756,6 @@ public class TrpMainWidget {
 					
 					db.bindBeanToWidgetSelection(TrpSettings.AUTO_LOGIN_PROPERTY, getTrpSets(), autoLogin);
 					
-					clearStoredCredentials.addSelectionListener(new SelectionAdapter() {
-						@Override public void widgetSelected(SelectionEvent e) {
-							try {
-								TrpGuiPrefs.clearCredentials();
-							} catch (Exception e1) {
-								logger.error(e1.getMessage());
-							}
-						}
-					});
 				}
 			};
 			loginDialog.open();
@@ -766,6 +779,7 @@ public class TrpMainWidget {
 				TrpGuiPrefs.storeCredentials(user, pw);
 			}
 			TrpGuiPrefs.storeLastLogin(user);
+			TrpGuiPrefs.storeLastAccountType(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
 
 			storage.reloadCollections();
 			userCache.add(user);
@@ -804,6 +818,7 @@ public class TrpMainWidget {
 				throw new NotSupportedException("Connecting to the server not supported yet!");
 			}
 			storage.loginOAuth(server, refreshToken, state, grantType, redirectUri, prov);
+			TrpGuiPrefs.storeLastAccountType(prov.toString());
 			
 			storage.reloadCollections();
 

@@ -125,14 +125,24 @@ public class LoginDialog extends Dialog {
 	}
 
 	private void initAccountCombo() {
-		accountCombo.add("Transkribus");
-		for(OAuthProvider o : OAuthProvider.values()){
+		final String accType = TrpGuiPrefs.getLastLoginAccountType();
+		// 0 -> Transkribus Account
+		int selectionIndex = 0;
+		
+		accountCombo.add(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
+		for(int i = 0; i < OAuthProvider.values().length; i++) {
+			OAuthProvider o = OAuthProvider.values()[i];
+			
+			//check if this provider is last choice and set index in case
+			if(o.toString().equals(accType)){
+				selectionIndex = i+1;
+			}
+			
 			accountCombo.add(o.toString());
 		}
 		
-		//TODO select last choice
-		accountCombo.select(0);
-		setAccountType("Transkribus");
+		accountCombo.select(selectionIndex);
+		setAccountType(accType);
 		
 		accountCombo.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -208,6 +218,16 @@ public class LoginDialog extends Dialog {
 
 			@Override public void focusGained(FocusEvent e) {
 				updateCredentialsOnTypedUser();
+			}
+		});
+		
+		clearStoredCredentials.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				try {
+					TrpGuiPrefs.clearCredentials();
+				} catch (Exception e1) {
+					logger.error(e1.getMessage());
+				}
 			}
 		});
 

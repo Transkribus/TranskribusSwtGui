@@ -26,6 +26,8 @@ public class OAuthGuiUtil {
 
 	private static final int PORT = 8999;
 	public static final String REDIRECT_URI = "http://127.0.0.1:" + PORT;
+
+	public static final String TRANSKRIBUS_ACCOUNT_TYPE = "Transkribus";
 	
 	public static String getUserConsent(final Shell sh, final String state, final OAuthProvider prov) throws IOException {
 		String code = null;

@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
+import eu.transkribus.swt_gui.util.OAuthGuiUtil;
 
 /**
  * In linux prefs are stored in: (by default - can be changed by setting java.util.prefs.userRoot property!)
@@ -38,6 +39,7 @@ public class TrpGuiPrefs {
 	
 	public static final String CREDS_NODE = "creds";
 	public static final String OAUTH_NODE = "oauth";
+	public static final String ACCOUNT_NODE = "acc";
 	
 	private static final String OAUTH_UN_KEY = "_un";
 	private static final String OAUTH_PIC_KEY = "_pic";
@@ -46,8 +48,11 @@ public class TrpGuiPrefs {
 	public static final String UN_KEY = "trpUn";
 	public static final String PW_KEY = "trpPw";
 	
+	private static final String LAST_ACCOUNT_TYPE_KEY = "accType";
+	
 	static Preferences pref = Preferences.userNodeForPackage(TrpGui.class).node(CREDS_NODE);
 	static Preferences oAuthPrefs = Preferences.userNodeForPackage(TrpGui.class).node(OAUTH_NODE);
+	static Preferences accountPrefs = Preferences.userNodeForPackage(TrpGui.class).node(ACCOUNT_NODE);
 	
 	public static String encryptAes(String key, String strToEncrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -131,6 +136,14 @@ public class TrpGuiPrefs {
 			logger.error("Could not retrieve stored creds: "+e.getMessage());
 			return null;
 		}
+	}
+	
+	public static void storeLastAccountType(String accType) throws Exception {
+		accountPrefs.put(LAST_ACCOUNT_TYPE_KEY, accType);
+	}
+	
+	public static String getLastLoginAccountType() {
+		return accountPrefs.get(LAST_ACCOUNT_TYPE_KEY, OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
 	}
 	
 	public static void storeOAuthCreds(final OAuthProvider prov, final String userName, final String profilePicUrl, final String refreshToken) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
