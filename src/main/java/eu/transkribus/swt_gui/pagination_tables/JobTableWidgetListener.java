@@ -58,11 +58,13 @@ public class JobTableWidgetListener extends SelectionAdapter implements Observer
 		if (jobStatus!=null) {
 			logger.debug("Loading doc: " + jobStatus.getDocId());
 			int col = 0;
+			TrpDocMetadata el = null;
 			try {
 				List<TrpDocMetadata> docList = 
 						store.getConnection().findDocuments(0, jobStatus.getDocId(), "", "", "", "", true, false, 0, 0, null, null);
 				if (docList != null && docList.size() > 0){
 					col = docList.get(0).getColList().get(0).getColId();
+					el = docList.get(0);
 				}
 						
 			} catch (SessionExpiredException | ServerErrorException
@@ -70,9 +72,12 @@ public class JobTableWidgetListener extends SelectionAdapter implements Observer
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			int pageNr = (jobStatus.getPageNr() != -1 ? jobStatus.getPageNr() : 0);
+			String pages = jobStatus.getPages();
+			int pageNr = ( (pages.equals("") || pages.contains("-") || pages == null) ? 0 : Integer.parseInt(pages));
 			mainWidget.loadRemoteDoc(jobStatus.getDocId(), col, pageNr-1);
+			mainWidget.getUi().getDocOverviewWidget().setSelectedCollection(col, true);
+			mainWidget.getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", jobStatus.getDocId(), true);
+			
 		}		
 	}
 	
