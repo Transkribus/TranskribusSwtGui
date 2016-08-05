@@ -52,9 +52,6 @@ public class LoginDialog extends Dialog {
 	protected Button clearStoredCredentials;
 	protected Button autoLogin;
 
-	Label lbl1;
-	Label lbl2;
-
 	protected String message;
 	protected String[] userProposals;
 
@@ -269,8 +266,10 @@ public class LoginDialog extends Dialog {
 			btnDisconnect.setText("Disconnect");
 			initDisconnectOAuthAccountBtn(btnDisconnect, prov);
 		}
-		lbl1 = new Label(grpCreds, SWT.FLAT);
-		lbl2 = new Label(grpCreds, SWT.FLAT);
+		for(int i = 0; i < 12; i++) {
+			Label l = new Label(grpCreds, SWT.FLAT);
+//			l.setText(""+i);
+		}
 	}
 	
 	private void initConnectOAuthAccountBtn(Button btnConnect, final OAuthProvider prov) {
