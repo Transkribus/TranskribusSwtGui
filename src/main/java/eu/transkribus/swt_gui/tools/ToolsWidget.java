@@ -136,7 +136,7 @@ public class ToolsWidget extends Composite {
 		
 		initLayoutAnalysisTools();
 		initRecogTools();
-//		initStructureTools();
+		initStructureTools();
 		initWerGroup();
 //		initOCRTools();
 //		initHTRTools();

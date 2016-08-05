@@ -119,7 +119,7 @@ public class OAuthGuiUtil {
 			try {
 				s = new OAuthCallbackServerSocket(PORT);
 				
-				monitor.beginTask("Connecting to " + provider.toString() + " account...", 2);
+				monitor.beginTask("Connecting to " + provider.toString() + " account...", IProgressMonitor.UNKNOWN);
 				
 				Runnable r = new Runnable() {
 					@Override
@@ -136,7 +136,6 @@ public class OAuthGuiUtil {
 				t.start();
 				
 				while(s.getCode() == null ){
-					monitor.worked(1);
 					if(monitor.isCanceled()) {
 						s.close();
 						return;
