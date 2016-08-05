@@ -457,6 +457,8 @@ public class UploadDialogUltimate extends Dialog {
 	                	
 	                	DialogUtil.showMessageBox(getShell(), "Could not find FTP client", INFO_MSG, SWT.NONE);
 	                }
+	            } else {
+	            	org.eclipse.swt.program.Program.launch(e.text);
 	            }
 	        	
 //	        	try {

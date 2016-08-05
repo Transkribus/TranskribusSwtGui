@@ -36,6 +36,7 @@ import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
+import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.DocExporter;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocWriter;
@@ -56,6 +57,7 @@ import eu.transkribus.core.model.beans.TrpWordgraph;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
@@ -75,6 +77,7 @@ import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasImage;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -846,6 +849,32 @@ public class Storage extends Observable {
 		user = conn.login(username, password);
 		logger.debug("Logged in as user: " + user + " connection: " + conn);
 
+		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
+	}
+	
+	public void loginOAuth(final String serverUri, final String code, final String state, final String grantType, final String redirectUri, final OAuthProvider prov) throws LoginException, OAuthTokenRevokedException {
+		logger.debug("Logging in via OAuth at: " + prov.toString());
+		if (conn != null)
+			conn.close();
+
+		conn = new TrpServerConn(serverUri);
+
+		user = conn.loginOAuth(code, state, grantType, redirectUri, prov);
+		
+		logger.debug("Logged in as user: " + user + " connection: " + conn);
+		
+		if("authorization_code".equals(grantType)){
+			final String token = user.getRefreshToken();
+			if(token == null){
+				throw new LoginException("No token was returned!");
+			}
+//			logger.debug("THE TOKEN: " + token);
+			try {
+				TrpGuiPrefs.storeOAuthCreds(prov, user.getEmail(), user.getProfilePicUrl(), token);
+			} catch (Exception e) {
+				logger.error("Could not store OAuth refresh token!", e);
+			}
+		}
 		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
 	}
 

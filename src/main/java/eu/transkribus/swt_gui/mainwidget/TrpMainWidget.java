@@ -44,10 +44,6 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
@@ -64,6 +60,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.util.ImgFileFilter;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
@@ -77,6 +74,7 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
+import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
@@ -111,6 +109,7 @@ import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
+import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
 import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
 import eu.transkribus.swt_gui.canvas.TrpCanvasScene;
@@ -151,6 +150,7 @@ import eu.transkribus.swt_gui.transcription.listener.WordTranscriptionWidgetList
 import eu.transkribus.swt_gui.upload.UploadDialog;
 import eu.transkribus.swt_gui.upload.UploadDialogUltimate;
 import eu.transkribus.swt_gui.util.GuiUtil;
+import eu.transkribus.swt_gui.util.OAuthGuiUtil;
 
 public class TrpMainWidget {
 	private final static boolean USE_SPLASH = true;
@@ -308,10 +308,32 @@ public class TrpMainWidget {
 		}
 		
 		if (getTrpSets().isAutoLogin()) {
-			Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
-			if (lastLogin != null) {
-				// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
-				login(TrpServerConn.PROD_SERVER_URI, lastLogin.getLeft(), lastLogin.getRight(), true);
+			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
+			
+			if(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE.equals(lastAccount)) {
+				Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
+				if (lastLogin != null) {
+					// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
+					login(TrpServerConn.PROD_SERVER_URI, lastLogin.getLeft(), lastLogin.getRight(), true);
+				}
+			} else {
+				OAuthProvider prov;
+				try {
+					prov = OAuthProvider.valueOf(lastAccount);
+				} catch(Exception e){
+					prov = null;
+				}
+				if(prov != null) {
+					//TODO get state token from server
+					final String state = "test";
+					OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(prov);
+					try {
+						loginOAuth(TrpServerConn.PROD_SERVER_URI, creds.getRefreshToken(), 
+								state, OAuthGuiUtil.REDIRECT_URI, prov);
+					} catch (OAuthTokenRevokedException e) {
+						logger.error("OAuth token was revoked!", e);
+					}
+				}
 			}
 		}
 
@@ -684,24 +706,48 @@ public class TrpMainWidget {
 
 			loginDialog = new LoginDialog(getShell(), message, storedUsers.toArray(new String[0]), TrpServerConn.SERVER_URIS, TrpServerConn.DEFAULT_URI_INDEX) {
 				@Override protected void okPressed() {
-					String user = getUser();
-					char[] pw = getPassword();
 					String server = getServerCombo().getText();
-					boolean rememberCreds = isRememberCredentials();
-
-					if (login(server, user, String.valueOf(pw), rememberCreds)) {
+					String accType = getAccountType();
+					
+					boolean success;
+					switch (accType){
+					case "Google":
+						final String state = "test";
+						OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(OAuthProvider.Google);
+						if(creds == null) {
+							success = false;
+						} else {
+							try {
+								success = loginOAuth(server, creds.getRefreshToken(), state, OAuthGuiUtil.REDIRECT_URI, OAuthProvider.Google);
+							} catch (OAuthTokenRevokedException oau) {
+								// get new consent
+								TrpGuiPrefs.clearOAuthToken(OAuthProvider.Google);
+								String code;
+								try {
+									code = OAuthGuiUtil.getUserConsent(this.getShell(), state, OAuthProvider.Google);
+									if(code == null) {
+										success = false;
+									} else {
+										success = OAuthGuiUtil.authorizeOAuth(server, code, state, OAuthProvider.Google);
+									}
+								} catch (IOException e) {
+									success = false;
+								}
+							}
+						}
+						break;
+					default: //Transkribus
+						String user = getUser();
+						char[] pw = getPassword();
+						boolean rememberCreds = isRememberCredentials();
+						success = login(server, user, String.valueOf(pw), rememberCreds);
+						break;
+					}
+					
+					if (success) {
 						close();
 					} else {
 						setInfo("Login failed!");
-					}
-				}
-
-				void updateCredentialsOnTypedUser() {
-					Pair<String, String> storedCreds = TrpGuiPrefs.getStoredCredentials(getUser());
-					if (storedCreds != null) {
-						setPassword(storedCreds.getRight());
-					} else {
-						setPassword("");
 					}
 				}
 
@@ -710,38 +756,6 @@ public class TrpMainWidget {
 					
 					db.bindBeanToWidgetSelection(TrpSettings.AUTO_LOGIN_PROPERTY, getTrpSets(), autoLogin);
 					
-					clearStoredCredentials.addSelectionListener(new SelectionAdapter() {
-						@Override public void widgetSelected(SelectionEvent e) {
-							try {
-								TrpGuiPrefs.clearCredentials();
-							} catch (Exception e1) {
-								logger.error(e1.getMessage());
-							}
-						}
-					});
-
-					txtUser.addModifyListener(new ModifyListener() {
-						@Override public void modifyText(ModifyEvent e) {
-							updateCredentialsOnTypedUser();
-						}
-					});
-
-					txtPassword.addFocusListener(new FocusListener() {
-						@Override public void focusLost(FocusEvent e) {
-						}
-
-						@Override public void focusGained(FocusEvent e) {
-							updateCredentialsOnTypedUser();
-						}
-					});
-
-					// update credentials for default user if any:
-					Pair<String, String> storedCreds = TrpGuiPrefs.getStoredCredentials(null);
-					if (storedCreds != null) {
-						logger.debug("found stored creds for user: " + storedCreds.getLeft());
-						setUsername(storedCreds.getLeft());
-						setPassword(storedCreds.getRight());
-					}
 				}
 			};
 			loginDialog.open();
@@ -765,6 +779,7 @@ public class TrpMainWidget {
 				TrpGuiPrefs.storeCredentials(user, pw);
 			}
 			TrpGuiPrefs.storeLastLogin(user);
+			TrpGuiPrefs.storeLastAccountType(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
 
 			storage.reloadCollections();
 			userCache.add(user);
@@ -780,6 +795,48 @@ public class TrpMainWidget {
 			sessionExpired = false;
 			lastLoginServer = server;
 			return true;
+		} catch (LoginException e) {
+			logout(true, false);
+			logger.error(e.getMessage(), e);
+			return false;
+		} catch (Exception e) {
+			logout(true, false);
+			logger.error(e.getMessage(), e);
+			return false;
+		}
+
+		// finally {
+		// ui.updateLoginInfo(storage.isLoggedIn(), getCurrentUserName(),
+		// storage.getCurrentServer());
+		// }
+	}
+	
+	public boolean loginOAuth(final String server, final String refreshToken, final String state, final String redirectUri, final OAuthProvider prov) throws OAuthTokenRevokedException {
+		final String grantType = "refresh_token";
+		try {
+			if (!getTrpSets().isServerSideActivated()) {
+				throw new NotSupportedException("Connecting to the server not supported yet!");
+			}
+			storage.loginOAuth(server, refreshToken, state, grantType, redirectUri, prov);
+			TrpGuiPrefs.storeLastAccountType(prov.toString());
+			
+			storage.reloadCollections();
+
+			if (sessionExpired && !lastLoginServer.equals(server)) {
+				closeCurrentDocument(true);
+			}
+
+			reloadJobList();
+//			reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
+//			reloadHtrModels();
+			// reloadJobListForDocument();
+			sessionExpired = false;
+			lastLoginServer = server;
+			return true;
+		} catch(OAuthTokenRevokedException oau){
+			logout(true, false);
+			logger.error("The OAuth token seems to have been revoked!");
+			throw oau;
 		} catch (LoginException e) {
 			logout(true, false);
 			logger.error(e.getMessage(), e);
@@ -3528,6 +3585,5 @@ public class TrpMainWidget {
 			onError("Error saving profile!", e.getMessage(), e, true, false);
 		}
 		
-	}
-
+	}	
 }

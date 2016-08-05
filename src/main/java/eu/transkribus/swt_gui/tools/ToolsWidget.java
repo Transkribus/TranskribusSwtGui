@@ -136,7 +136,7 @@ public class ToolsWidget extends Composite {
 		
 		initLayoutAnalysisTools();
 		initRecogTools();
-//		initStructureTools();
+		initStructureTools();
 		initWerGroup();
 //		initOCRTools();
 //		initHTRTools();
@@ -374,7 +374,8 @@ public class ToolsWidget extends Composite {
 						+ "Provider\n"
 						+ "\t-ABBYY FineReader for OCR\n"
 						+ "\t-Universidad Politecnica de Valencia for HTR\n"
-						+ "\t-University Innsbruck, Digitisation and Digital Preservation group";
+						+ "\t-University of Rostock, Institute of Mathematics, CITlab for HTR"
+						+ "\t-University of Innsbruck, Digitisation and Digital Preservation group";
 				
 				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
 			}

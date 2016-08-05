@@ -359,7 +359,7 @@ CHANGES AND BUGFIXES
 	-> change to next/previous region in transcription widget with alt+left/right key
 	-> batch layout analysis dialog
 	-> right click behavior added for versions and transcripts (texts) 
-	
+	-> Login via OAuth2: Google
 	
 	
 

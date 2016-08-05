@@ -1,7 +1,10 @@
 package eu.transkribus.swt_canvas.util;
 
+import java.awt.Color;
 import java.util.HashMap;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
@@ -17,49 +20,69 @@ public class Images {
 	public static final Image ERROR_IMG = Images.getOrLoad("/icons/broken_image.png");
 	public static final Image COMMENT = Images.getOrLoad("/icons/comment.png");
 	public static final Image CONTROL_EQUALIZER = Images.getOrLoad("/icons/control_equalizer.png");
-	
+
 	public static final Image IMAGE_EDIT = Images.getOrLoad("/icons/image_edit.png");
 	public static final Image IMAGE_DELETE = Images.getOrLoad("/icons/image_delete.png");
-	
+
 	public static final Image CONTRAST = Images.getOrLoad("/icons/contrast.png");
-	
+
 	public static final Image APPLICATION_SIDE_CONTRACT = getOrLoad("/icons/application_side_contract.png");
 	public static final Image APPLICATION_SIDE_EXPAND = getOrLoad("/icons/application_side_expand.png");
 	public static final Image APPLICATION_SIDE_PUT = getOrLoad("/icons/application_put.png");
 	public static final Image REFRESH = getOrLoad("/icons/refresh.png");
-	
+
 	public static final Image ARROW_UP = getOrLoad("/icons/arrow_up.png");
 	public static final Image ARROW_DOWN = getOrLoad("/icons/arrow_down.png");
 	public static final Image ARROW_LEFT = getOrLoad("/icons/arrow_left.png");
 	public static final Image ARROW_UNDO = getOrLoad("/icons/arrow_undo.png");
 	public static final Image ARROW_REDO = getOrLoad("/icons/arrow_redo.png");
-	
+
 	public static final Image TICK = getOrLoad("/icons/tick.png");
 	public static final Image FIND = getOrLoad("/icons/find.png");
-	
+
 	public static final Image DISK = getOrLoad("/icons/disk.png");
 	public static final Image PAGE_NEXT = getOrLoad("/icons/page-next.gif");
 	public static final Image PAGE_PREV = getOrLoad("/icons/page-prev.gif");
-	
+
 	public static final Image PENCIL = getOrLoad("/icons/pencil.png");
-	
+
 	public static final Image GROUP = getOrLoad("/icons/group.png");
 
 	static HashMap<String, Image> imageMap;
-	
+
 	public static Image getSystemImage(int swtSysImg) {
 		return Display.getDefault().getSystemImage(swtSysImg);
 	}
-	
+
 	public static Image getOrLoad(String path) {
-		if (imageMap==null)
+		if (imageMap == null)
 			imageMap = new HashMap<String, Image>();
-		
+
 		Image img = imageMap.get(path);
 		if (img == null) {
 			img = SWTResourceManager.getImage(Images.class, path);
 			imageMap.put(path, img);
 		}
 		return img;
+	}
+
+	public static Image resize(Image image, int width, int height) {
+		Image scaled = new Image(Display.getDefault(), width, height);
+		GC gc = new GC(scaled);
+		gc.setAntialias(SWT.ON);
+		gc.setInterpolation(SWT.HIGH);
+		int origX = image.getBounds().width;
+		int origY = image.getBounds().height;
+		
+		double xScale = (double)width/origX;
+        double yScale = (double)height/origY;
+        double scale = Math.min(xScale, yScale);
+		
+        int destX = new Double(origX*scale).intValue();
+        int destY = new Double(origY*scale).intValue();
+		gc.drawImage(image, 0, 0, origX, origY, 0, 0, destX, destY);
+		gc.dispose();
+		image.dispose();
+		return scaled;
 	}
 }
