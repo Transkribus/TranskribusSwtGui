@@ -404,18 +404,21 @@ public class CanvasShapeEditor {
 		return null;
 	}
 	
-	public void removePointFromSelected(int pointIndex) {
-		logger.debug("removing point "+pointIndex);
-		ICanvasShape selected = canvas.getFirstSelected();
-		if (selected!=null && selected.isEditable()) {
-			
-			ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Removed point from shape", selected);
-			addToUndoStack(op);
-			
-			if (!selected.removePoint(pointIndex)) {
-				logger.warn("Could not remove point "+pointIndex+" from shape!");
-			}
+	public ShapeEditOperation removePointFromSelected(ICanvasShape shape, int pointIndex, boolean addToUndoStack) {
+		if (!isEditable(shape)) {
+			return null;
 		}
+		
+		logger.debug("removing point "+pointIndex);			
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Removed point from shape", shape);
+		
+		if (!shape.removePoint(pointIndex)) {
+			logger.warn("Could not remove point "+pointIndex+" from shape!");
+		} else if (addToUndoStack) {
+			addToUndoStack(op);
+		}
+		
+		return op;
 	}
 	
 	public static boolean isEditable(ICanvasShape s) {

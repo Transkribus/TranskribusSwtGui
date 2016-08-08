@@ -36,7 +36,7 @@ fi
 if ! [ -z $LOCAL_JAVA ] && (isValidJava $LOCAL_JAVA); then
 	echo "Found java executable in program directory"
 	_java=$LOCAL_JAVA
-elif ! [ -z $JAVA_HOME2 ]; then
+elif ! [ -z $JAVA_HOME2 ] && (isValidJava $JAVA_HOME2/bin/java); then
 	echo "Found suitable java with /usr/libexec/java_home"
 	_java="$JAVA_HOME2/bin/java"
 elif [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then

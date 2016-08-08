@@ -49,6 +49,8 @@ import math.geom2d.polygon.convhull.JarvisMarch2D;
 public abstract class ACanvasShape<S extends Shape> extends Observable implements ICanvasShape {
 	private static Logger logger = LoggerFactory.getLogger(ACanvasShape.class);
 	
+//	public static String COORDS_CHANGED_EVENT = "COORDS_CHANGED_EVENT";
+	
 	protected long selectedTime=-1;
 	protected S awtShape;
 	protected boolean editable=false;
@@ -89,7 +91,21 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		
 		this.parent = src.parent;
 		this.children = new ArrayList<ICanvasShape>(src.children);		
-	}	
+	}
+	
+//	protected void sendCoordsChangedEvent() {
+//		setChangedAndNotifyObservers(COORDS_CHANGED_EVENT);
+//	}
+	
+	protected void setChangedAndNotifyObservers() {
+		setChanged();
+		notifyObservers();
+	}
+	
+	protected void setChangedAndNotifyObservers(Object arg) {
+		setChanged();
+		notifyObservers(arg);
+	}
 		
 //	public ACanvasShape(S awtShape) {
 //		setAwtShape(awtShape);

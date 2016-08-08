@@ -151,7 +151,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		}
 		// remove point:
 		else if (button == settings.getEditMouseButton() && canvas.getMode() == CanvasMode.REMOVE_POINT) {
-			canvas.getShapeEditor().removePointFromSelected(mouseOverPoint);
+			canvas.getShapeEditor().removePointFromSelected(canvas.getFirstSelected(), mouseOverPoint, true);
 		}
 		// add shape:
 		else if (button == settings.getEditMouseButton() && canvas.getMode().isAddOperation()) {

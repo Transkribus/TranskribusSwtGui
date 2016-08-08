@@ -106,8 +106,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		}
 		setAwtShape(poly);
 
-		setChanged();
-		notifyObservers();
+		setChangedAndNotifyObservers();
 
 		return true;
 	}
@@ -118,9 +117,12 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	}
 	
 	public void setDefaultCornerPts() {
-		for (int i=0; i<4; ++i) {
-			corners[i] = i;
-		}
+		setCornerPts(new int[] {0, 1, 2, 3});
+		
+//		for (int i=0; i<4; ++i) {
+//			corners[i] = i;
+//		}
+//		setChangedAndNotifyObservers();
 	}
 	
 	public void setCornerPts(int[] corners) throws CanvasShapeException {
@@ -128,11 +130,13 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 			throw new CanvasShapeException("Invalid corner pts given - must be array of length 4!");
 		
 		for (int posIndex=0; posIndex<4; ++posIndex) {
-			setCornerPt(posIndex, corners[posIndex]);
+			setCornerPt(posIndex, corners[posIndex], false);
 		}
+		
+		setChangedAndNotifyObservers();
 	}
 	
-	public void setCornerPt(int posIndex, int ptIndex) throws CanvasShapeException {
+	private void setCornerPt(int posIndex, int ptIndex, boolean notifyObservers) throws CanvasShapeException {
 		if (posIndex<0 || posIndex > 3) {
 			throw new CanvasShapeException("Invalid posIndex in setCornerPt: "+posIndex);
 		}
@@ -145,8 +149,11 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 //		}
 		
 		corners[posIndex] = ptIndex;
+		
+		if (notifyObservers)
+			setChangedAndNotifyObservers();
 	}
-
+	
 	/**
 	 * Returns the index of the point 
 	 * @param index
@@ -231,24 +238,18 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		if (!isPointRemovePossible(i))
 			return false;
 		
-//		try {
-			List<Point> newPts = getPoints();
-			newPts.remove(i);			
-			setPoints(newPts);
-			
-			// adapt corner points: FIXME - what if corner pt --> fix = corner pt removal not allowed!!
-			for (int j=0; j<4; ++j) {
-				if (corners[j] > i /*&& (j==0 || corners[j]-1>corners[j-1])*/)
-					--corners[j];
-			}
-			printCorners();
-			
-			return true;
-//		}
-//		catch (Exception e) {
-//			logger.error("Error while removing point "+i+" from shape "+this+": "+e.getMessage());
-//			return false;
-//		}
+		// adapt corner points: FIXME - what if corner pt --> fix = corner pt removal not allowed!!
+		for (int j=0; j<4; ++j) {
+			if (corners[j] > i /*&& (j==0 || corners[j]-1>corners[j-1])*/)
+				--corners[j];
+		}
+		printCorners();		
+	
+		List<Point> newPts = getPoints();
+		newPts.remove(i);			
+		setPoints(newPts);
+		
+		return true;
 	}
 	
 	private void printCorners() {
@@ -358,15 +359,15 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		if (ii == getNPoints()) {
 			newPts.add(new Point(x,y));
 		}
-				
-		setPoints(newPts);
-		
+
 		// adapt corner points:
 		for (int j=1; j<4; ++j) {
 			if (corners[j] >= ii)
 				++corners[j];
 		}
 //		printCorners();
+		
+		setPoints(newPts);
 	}
 	
 	
@@ -505,7 +506,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 	
 	@Override
 	public void simplify(double eps) {
-		throw new CanvasShapeException("Simplify operation not supported for this shape!");
+		throw new CanvasShapeException("Simplify operation is not supported for this shape!");
 	}
 	
 	public void translatePointsOfSide(int side, int tx, int ty) {

@@ -160,6 +160,19 @@ public class CanvasTransform extends Transform {
 		return new CanvasPolygon(newPts);
 	}
 	
+	public java.awt.Point invertRotation(java.awt.Point p) {
+//		logger.debug("rot: "+getAngleDeg());
+		CanvasTransform tr = new CanvasTransform(getDevice());
+//		tr.setTranslation(-getTranslateX(), -getTranslateY());
+		tr.rotate(-getAngleDeg());
+//		tr.scale(getScaleX(), getScaleY());
+		
+		Point tp = tr.transform(new Point(p.x, p.y));
+		tr.dispose();
+		
+		return new java.awt.Point(tp.x, tp.y);
+	}
+	
 	public java.awt.Point inverseTransformWithoutTranslation(java.awt.Point p) {
 		return inverseTransformWithoutTranslation(p.x, p.y);
 	}

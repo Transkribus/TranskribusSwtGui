@@ -50,10 +50,12 @@ import math.geom2d.line.Line2D;
 public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 	private final static Logger logger = LoggerFactory.getLogger(TrpCanvasShapeEditor.class);
 	
-//	TrpMainWidget mw;
+	TrpMainWidget mw;
 
 	public TrpCanvasShapeEditor(TrpSWTCanvas canvas) {
 		super(canvas);
+		
+		mw = canvas.getMainWidget();
 		
 //		mw = canvas.getMainWidget();
 	}
@@ -814,18 +816,24 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return null;
 	}
 	
-	@Override public void removePointFromSelected(int pointIndex) {
+	@Override public ShapeEditOperation removePointFromSelected(ICanvasShape shape, int pointIndex, boolean addToUndoStack) {
 		logger.debug("removing point "+pointIndex);
 		
-		ICanvasShape selected = canvas.getFirstSelected();
-		if (selected != null && selected.isEditable()) {
-			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
-				removePointFromTableCell(selected, pointIndex, true);
-			} 
-			else {
-				super.removePointFromSelected(pointIndex);
-			}
+		if (!isEditable(shape))
+			return null;
+		
+		TrpTableCellType c = TableUtils.getTableCell(shape);
+		ShapeEditOperation op;
+		if (c != null) {
+			op = removePointFromTableCell(shape, pointIndex, addToUndoStack);
+		} 
+		else {
+			op = super.removePointFromSelected(shape, pointIndex, addToUndoStack);
 		}
+		
+		TrpMainWidget.getInstance().refreshStructureView();
+		
+		return op;
 	}
 	
 	@Override public ShapeEditOperation removeShapesFromCanvas(List<ICanvasShape> shapesToRemove, boolean addToUndoStack) {

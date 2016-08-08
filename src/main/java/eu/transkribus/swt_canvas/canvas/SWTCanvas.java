@@ -2,12 +2,10 @@ package eu.transkribus.swt_canvas.canvas;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -33,14 +31,12 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
-import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
 import eu.transkribus.swt_canvas.util.CanvasTransform;
 import eu.transkribus.swt_canvas.util.CanvasTransformTransition;
 import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.GeomUtils;
 import eu.transkribus.swt_canvas.util.Resources;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import math.geom2d.Point2D;
 
 public class SWTCanvas extends Canvas {
 	private final static Logger logger = LoggerFactory
@@ -610,11 +606,46 @@ public class SWTCanvas extends Canvas {
 					&& drawnPoints.size() == 1) {
 				// if (drawnPoints.size()!=1)
 				// return;
+				
+				if (mP!=null) {
+					logger.debug("here11");
+					
+					java.awt.Point pt1 = drawnPoints.get(0);
+					int w = mP.x - pt1.x;
+					int h = mP.y - pt1.y;
+					
+					List<java.awt.Point> pts = new ArrayList<>();
+					pts.add(pt1);
+					pts.add(new java.awt.Point(pt1.x+w, pt1.y));
+					pts.add(new java.awt.Point(pt1.x+w, pt1.y+h));
+					pts.add(new java.awt.Point(pt1.x, pt1.y+h));
+					
+					List<java.awt.Point> ptsR = new ArrayList<>();
+					for (java.awt.Point p : pts) {
+//						transform.inverseTransform(pt)
+						
+						java.awt.Point pr = transform.invertRotation(p);
+//						java.awt.Point pr = transform.inverseTransform(p);
+						logger.debug("p = "+p+" pr = "+p);
+						ptsR.add(pr);
+					}
+					
+					CanvasPolygon poly = new CanvasPolygon(ptsR);
+					gc.drawPolygon(poly.getPointArray());
+					
+//				logger.debug("here!!!");
+				
+//				pt1 = transform.invertRotation(pt1);
+				
+//				Rectangle r = new Rectangle(pt1.x, pt1.y, mP.x - pt1.x, mP.y - pt1.y);
+//				transform.inverseTransformWithoutTranslation(p)
 
-				java.awt.Point pt1 = drawnPoints.get(0);
-				if (mP != null)
-					gc.drawRectangle(pt1.x, pt1.y, mP.x - pt1.x, mP.y - pt1.y);
+				
+//				if (mP != null)
+//					gc.drawRectngle(pt1.x, pt1.y, mP.x - pt1.x, mP.y - pt1.y);
+				}
 			}
+			
 			// draw points:
 			for (int i = 0; i < drawnPoints.size(); ++i) {
 				java.awt.Point pt = drawnPoints.get(i);
@@ -1062,8 +1093,7 @@ public class SWTCanvas extends Canvas {
 				angle = Math.abs(angle-Math.PI);
 			}
 			
-			logger.debug("angle = "+angle);
-						
+//			logger.debug("angle = "+angle);
 //			double angle = GeomUtils.angleWithHorizontalLine(p1, p2);
 			if (angle < Math.PI/4) {
 				return SWT.CURSOR_SIZENS;
