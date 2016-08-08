@@ -73,7 +73,7 @@ public class JobTableWidgetListener extends SelectionAdapter implements Observer
 				e.printStackTrace();
 			}
 			String pages = jobStatus.getPages();
-			int pageNr = ( (pages.equals("") || pages.contains("-") || pages == null) ? 0 : Integer.parseInt(pages));
+			int pageNr = ( (pages == null || pages.equals("") || pages.contains("-") ) ? 0 : Integer.parseInt(pages));
 			mainWidget.loadRemoteDoc(jobStatus.getDocId(), col, pageNr-1);
 			mainWidget.getUi().getDocOverviewWidget().setSelectedCollection(col, true);
 			mainWidget.getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", jobStatus.getDocId(), true);
