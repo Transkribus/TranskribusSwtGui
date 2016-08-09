@@ -77,7 +77,7 @@ public class JobOverviewLabelProvider implements ITableLabelProvider, ITableColo
 			} else if (ct.equals(JobOverviewWidget.DOC_ID_COL)) {
 				return ""+job.getDocId();
 			} else if (ct.equals(JobOverviewWidget.PAGE_COL)) {
-				return ""+job.getPageNr();
+				return job.getPages();
 			} else if (ct.equals(JobOverviewWidget.DESCRIPTION_COL)) {
 				return job.getDescription();
 			} else if (ct.equals(JobOverviewWidget.USER_NAME_COL)) {

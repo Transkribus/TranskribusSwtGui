@@ -13,6 +13,9 @@ import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.swt_canvas.canvas.CanvasScene;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.SWTUtil;
@@ -154,10 +157,30 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 					String name = (String) ui.getProfilesToolItem().getSelected().getData();
 					logger.info("selecting profile: "+name);
 					mainWidget.selectProfile(name);
+					
+					//select the first shape if nothing is selected
+//					if(canvas.getNSelected() == 0){
+//						TrpTextRegionType ttrt = Storage.getInstance().getCurrentRegionObject();
+//						if (ttrt == null){
+//							logger.info("current region object is null");
+//							ttrt = Storage.getInstance().getTextRegions().get(0);
+//							mainWidget.getScene().selectObject((ICanvasShape) ttrt.getData(), true, false);
+//							logger.info("current regions length " + Storage.getInstance().getTextRegions().size());
+//						}
+//						
+//						if (ttrt != null){
+//							if (!ttrt.getChildren(false).isEmpty())
+//								mainWidget.getScene().selectObject((ICanvasShape) ttrt.getChildren(false).get(0).getData(), true, false);
+//						}
+//					}
+					
+					boolean mode = (name.equals("Transcription")? true : false);
+					canvas.getScene().setTranscriptionMode(mode);
 				}
 			} else if (i == ui.getProfilesToolItem().getItemCount()-1) {
 				logger.info("opening save profile dialog...");
 				mainWidget.saveNewProfile();
+				canvas.getScene().setTranscriptionMode(false);
 			}
 		}
 		else if (s == menuBar.getSyncWordsWithLinesMenuItem()) {

@@ -485,6 +485,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		gc.setForeground(color);
 		gc.setLineStyle(canvas.getSettings().getLineStyle());		
 		
+		//text if the shape is closed (rect and polgone are closed, polyline not)
 		if (isClosed()) {
 			if (isSel) { // fill polygon if selected
 				gc.setAlpha(sets.getBackgroundAlpha());

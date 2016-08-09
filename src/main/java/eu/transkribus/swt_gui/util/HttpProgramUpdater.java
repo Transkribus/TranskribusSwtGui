@@ -75,8 +75,11 @@ public class HttpProgramUpdater extends ProgramUpdater<HttpProgramPackageFile> {
 //				logger.debug("progress: oldread: "+oldBytesRead+" newread: "+bytesRead+" total: "+totalBytes);
 				int percent = (int) (( (float) bytesRead / (float) totalBytes) * 100.0f);
 				
+				long readMB = bytesRead / (1048576);
+				long totalMB = totalBytes / (1048576);
+				
 				monitor.worked(percent);
-				monitor.subTask(percent+"% ("+bytesRead+"/"+totalBytes+" bytes)");											
+				monitor.subTask(percent+"% ("+readMB+"/"+totalMB+" MB)");											
 				if (monitor.isCanceled()) {
 					// TODO: cancel download??
 					abort();

@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.dialogs;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -16,13 +17,16 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 
 public class SimpleLaDialog extends Dialog {
-
+	private static final Logger logger = LoggerFactory.getLogger(SimpleLaDialog.class);
 	private Storage store = Storage.getInstance();
 	private DocPagesSelector dps;
 	private Button doBlockSegBtn, doLineSegBtn, currPageBtn;
@@ -46,10 +50,10 @@ public class SimpleLaDialog extends Dialog {
 		checkGrp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 2));
 		doBlockSegBtn = new Button(checkGrp, SWT.CHECK);
 		Label dbsLbl = new Label(checkGrp, SWT.FLAT);
-		dbsLbl.setText("Find Text Blocks");
+		dbsLbl.setText("Find Text Regions");
 		doLineSegBtn = new Button(checkGrp, SWT.CHECK);
 		Label dlsLbl = new Label(checkGrp, SWT.FLAT);
-		dlsLbl.setText("Find Lines");
+		dlsLbl.setText("Find Lines in Text Regions");
 		
 		dps = new DocPagesSelector(mainContainer, SWT.NONE, store.getDoc().getPages());
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
@@ -124,13 +128,31 @@ public class SimpleLaDialog extends Dialog {
 		} else if (!doLineSeg && !doBlockSeg) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select at least one analysis step.");
 		} else {
-			int goOn = SWT.YES;
-			if(doLineSeg && !doBlockSeg){
-				goOn = DialogUtil.showYesNoDialog(super.getShell(), "Info", "Lines can only be found if text blocks already are defined! Are you sure you want to proceed?");
-			}
-			if(goOn == SWT.YES) {		
+//			int goOn = SWT.YES;
+//		
+//			boolean dontShowWarning = false;
+//			if(doLineSeg && !doBlockSeg && !dontShowWarning){
+//		//				goOn = DialogUtil.showYesNoDialog(super.getShell(), "Info", "Lines can only be found if text blocks already are defined! Are you sure you want to proceed?");
+//				String[] btnArr = new String[]{"Yes", "No"};
+//				Pair<Integer, Boolean> result = DialogUtil.showMessageDialogWithToggle(super.getShell(), 
+//						"Info", 
+//						"Lines can only be found if text blocks already are defined! Are you sure you want to proceed?",
+//						"Do not show this message again", 
+//						false, 
+//						SWT.CHECK, 
+//						btnArr);
+//				if(result.getLeft() == 1) {
+//					logger.debug("User clicked NO");
+//					goOn = SWT.NO;
+//				}
+//				if(result.getRight() == true) {
+//					//store stuff
+//				}
+//				
+//			}
+//			if(goOn == SWT.YES) {		
 				super.okPressed();
-			}
+//			}
 		}
 	}
 

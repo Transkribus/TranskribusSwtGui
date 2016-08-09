@@ -50,7 +50,7 @@ public class JobOverviewWidget extends Composite {
 	public static final String STATE_COL = "State";
 	public static final String CREATION_COL = "Created";
 	public static final String DOC_ID_COL = "Doc-Id";
-	public static final String PAGE_COL = "Page";
+	public static final String PAGE_COL = "Pages";
 	public static final String DESCRIPTION_COL = "Description";
 	public static final String USER_NAME_COL = "Username";
 	

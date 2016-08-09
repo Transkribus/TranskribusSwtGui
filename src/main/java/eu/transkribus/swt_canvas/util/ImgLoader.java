@@ -40,7 +40,7 @@ public class ImgLoader {
 
 		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST && !(isLocal && LOAD_LOCAL_IMAGES_WITH_JAI)) {
 			try {
-				logger.debug("loading image with jface");
+				logger.trace("loading image with jface");
 				return loadWithSWTDownloadFirst(url);
 			} catch (Exception e) {
 				logger.warn("Error loading image with JFace - now trying to load with JAI (slower due to the awt->swt-image conversion process!, url: "+url);

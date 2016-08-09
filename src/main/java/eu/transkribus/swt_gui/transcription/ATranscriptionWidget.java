@@ -5,18 +5,24 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.ServerErrorException;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.bindings.keys.KeyStroke;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.text.JFaceTextUtil;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.Bullet;
 import org.eclipse.swt.custom.CaretEvent;
@@ -33,6 +39,7 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -61,15 +68,30 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.primaresearch.dla.page.layout.logical.ReadingOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
+import eu.transkribus.core.model.beans.customtags.AbbrevTag;
+import eu.transkribus.core.model.beans.customtags.BlackeningTag;
 import eu.transkribus.core.model.beans.customtags.CommentTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
+import eu.transkribus.core.model.beans.customtags.DateTag;
+import eu.transkribus.core.model.beans.customtags.GapTag;
+import eu.transkribus.core.model.beans.customtags.PersonTag;
+import eu.transkribus.core.model.beans.customtags.PlaceTag;
+import eu.transkribus.core.model.beans.customtags.ReadingOrderTag;
+import eu.transkribus.core.model.beans.customtags.RegionTypeTag;
+import eu.transkribus.core.model.beans.customtags.SicTag;
+import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
+import eu.transkribus.core.model.beans.customtags.UnclearTag;
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TaggedWord;
@@ -77,10 +99,12 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.swt_canvas.canvas.CanvasKeys;
 import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.Fonts;
 import eu.transkribus.swt_canvas.util.Images;
@@ -88,6 +112,7 @@ import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.UndoRedoImpl;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidget;
@@ -307,6 +332,8 @@ public abstract class ATranscriptionWidget extends Composite {
 		undoRedo = new UndoRedoImpl(text);
 		
 		updateData(null, null, null);
+		
+		initContextMenu();
 	}
 	
 	protected void updateWritingOrientation() {
@@ -1416,26 +1443,25 @@ public abstract class ATranscriptionWidget extends Composite {
 		}	
 	}
 	
-//	protected void initContextMenu() {
-//		contextMenu = new Menu(text);
-//		
-//		final MenuItem tagItem = new MenuItem(contextMenu, SWT.CASCADE);
-//		tagItem.setText("Tags");
-//		
+	protected void initContextMenu() {
+		contextMenu = new Menu(text);
+		
+		addTagItems();
+				
 //		final Menu tagMenu = new Menu(contextMenu);
 //		tagItem.setMenu(tagMenu);
-//		
-//		// used to store location of right-click of menu:
-//		text.addMouseListener(new MouseAdapter() {
-//			@Override public void mouseDown(MouseEvent e) {
-//				if (e.button == 3) {
-//					logger.debug("right mouse down: "+e.x+"/"+e.y);
-//					contextMenuPoint = new Point(e.x, e.y);
-//				}
-//			}
-//		});
-//		
-//		text.setMenu(contextMenu);		
+		
+		// used to store location of right-click of menu:
+		text.addMouseListener(new MouseAdapter() {
+			@Override public void mouseDown(MouseEvent e) {
+				if (e.button == 3) {
+					logger.debug("right mouse down: "+e.x+"/"+e.y);
+					contextMenuPoint = new Point(e.x, e.y);
+				}
+			}
+		});
+		
+		text.setMenu(contextMenu);		
 //		contextMenu.addMenuListener(new MenuListener() {
 //			@Override public void menuShown(MenuEvent e) {
 //				for (MenuItem mi : tagMenu.getItems())
@@ -1497,7 +1523,107 @@ public abstract class ATranscriptionWidget extends Composite {
 //				logger.debug("tags item selected");
 //			}
 //		});
-//	}
+	}
+
+	/*
+	 * add a tag item menu to choose tags on a mouse right click
+	 */
+	private void addTagItems() {
+
+		ArrayList<String> tagnamesRest = new ArrayList<String>();
+		
+		MenuItem tagItem1;
+		MenuItem tagItem2;
+//		tagItem.setMenu(tagMenu);
+		for (String tmp : CustomTagFactory.getRegisteredTagNamesSorted()){
+			
+			if (tmp.equals(AbbrevTag.TAG_NAME) || tmp.equals(PersonTag.TAG_NAME) || tmp.equals(PlaceTag.TAG_NAME) || 
+					tmp.equals(DateTag.TAG_NAME) || tmp.equals(BlackeningTag.TAG_NAME) || tmp.equals(UnclearTag.TAG_NAME) || tmp.equals(CommentTag.TAG_NAME)){
+				tagItem1 = new MenuItem(contextMenu, SWT.NONE);
+				tagItem1.setText(tmp);
+				tagItem1.addSelectionListener(new MenuItemListener());
+			}
+			else{
+
+				tagnamesRest.add(tmp);
+			}
+
+		}
+
+		final MenuItem tagItem = new MenuItem(contextMenu, SWT.CASCADE);
+		tagItem.setText("Further Tags");
+		
+		final Menu tagMenu = new Menu(tagItem);
+		tagItem.setMenu(tagMenu);
+		
+		for (String rest : tagnamesRest){
+			if(!rest.equals(ReadingOrderTag.TAG_NAME) && !rest.equals(RegionTypeTag.TAG_NAME) && !rest.equals(StructureTag.TAG_NAME)
+					&& !rest.equals(TextStyleTag.TAG_NAME)){
+				tagItem2 = new MenuItem(tagMenu, SWT.NONE);
+				tagItem2.setText(rest);
+				tagItem2.addSelectionListener(new MenuItemListener());
+			}
+		}
+	}
+	
+	/*
+	 * right click listener for the transcript table
+	 * for the latest transcript the new status can be set with the right click button and by choosing the new status
+	 */
+	class MenuItemListener extends SelectionAdapter {
+	    public void widgetSelected(SelectionEvent event) {
+	    	System.out.println("You selected " + ((MenuItem) event.widget).getText());
+	    	
+	    	String tagname = ((MenuItem) event.widget).getText();
+	    	try {
+
+	    		TrpMainWidget mw = TrpMainWidget.getInstance();
+	    		
+	    		boolean isTextSelectedInTranscriptionWidget = mw.isTextSelectedInTranscriptionWidget();
+	    		if (!isTextSelectedInTranscriptionWidget && !tagname.equals(GapTag.TAG_NAME)) {
+	    			DialogUtil.showErrorMessageBox(getShell(), "Error", "No text seleceted in transcription widget!");
+	    			return;
+	    		}
+	    		
+	    		if (tagname.equals(CommentTag.TAG_NAME)){
+	    			
+	    			String commentText = null;
+			
+    				InputDialog id = new InputDialog(getShell(), "Comment", "Please enter a comment: ", "", null);
+    				id.setBlockOnOpen(true);
+    				if (id.open() != Window.OK) {
+    					return;
+    				}
+    				
+    				commentText = id.getValue();
+
+	    			if (commentText.isEmpty()) {
+	    				DialogUtil.showErrorMessageBox(getShell(), "Error", "Cannot add an empty comment!");
+	    				return;
+	    			}
+	    				    			
+	    			Map<String, Object> atts = new HashMap<>();
+	    			atts.put(CommentTag.COMMENT_PROPERTY_NAME, commentText);
+	    			mw.getTaggingWidgetListener().addTagForSelection(CommentTag.TAG_NAME, atts);
+	    			mw.getUi().getCommentsWidget().reloadComments();
+	    		}
+	    		else{
+	    			mw.getTaggingWidgetListener().addTagForSelection(tagname, null);
+	    		}
+	
+			} catch (ServerErrorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    	
+	    }
+	}
 
 	protected void initLocalGuiListenerAndBindings() {
 		textAlignmentSelectionAdapter = new SelectionAdapter() {

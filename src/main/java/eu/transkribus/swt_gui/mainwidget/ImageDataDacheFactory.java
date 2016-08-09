@@ -1,7 +1,9 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import java.io.File;
 import java.net.URL;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,10 @@ public class ImageDataDacheFactory extends DataCacheFactory<URL, CanvasImage> {
 //		return buf.toString();
 //	}
 	
+	private static boolean isFile(String urlStr) {
+		return StringUtils.startsWith(urlStr, "file:") || new File(urlStr).exists();
+	}
+	
 	@Override public CanvasImage createFromKey(URL key, Object opts) throws Exception {		
 //		String fileType = "view";
 //		if (opts instanceof String) {
@@ -44,18 +50,21 @@ public class ImageDataDacheFactory extends DataCacheFactory<URL, CanvasImage> {
 		
 		try {
 //			if (true)
-//				throw new Exception("TEST");
+//				throw new Exception("TEST!");
 			
-//			return new CanvasImage(key);
 			return new CanvasImage(new URL(urlStr));
 		} catch (Exception e) {
-			// if a fimagestore viewing file could not be loaded, try to load original image:
+			if (isFile(urlStr))
+				throw e;
 			
+			logger.error("Error loading image from url: "+urlStr, e);
+
+			// if a fimagestore viewing file could not be loaded, try to load original image:
 			urlStr = CoreUtils.removeFileTypeFromUrl(key.toString());
 			urlStr+= "&fileType=orig";
-			logger.debug("error displaying url - showing orig img at url: "+urlStr);
-			return new CanvasImage(new URL(urlStr));
-			
+			logger.debug("trying to load original image filetype - urlStr = "+urlStr);
+
+			return new CanvasImage(new URL(urlStr));			
 //			if (key.toString().endsWith("&fileType=view")) {
 //					URL origUrl = new URL(key.toString().replace("&fileType=view", ""));
 //					

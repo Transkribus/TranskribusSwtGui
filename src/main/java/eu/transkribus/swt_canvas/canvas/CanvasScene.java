@@ -51,6 +51,10 @@ public class CanvasScene {
 	boolean linesRO = false;
 	boolean wordsRO = false;
 	
+	boolean transcriptionMode = false;
+	
+
+
 	protected ArrayList<CanvasSceneListener> sceneListener = new ArrayList<CanvasSceneListener>();
 	
 	public CanvasScene(SWTCanvas canvas) {
@@ -127,6 +131,13 @@ public class CanvasScene {
 //			else if(trpShape instanceof TrpWordType && isWordsRO()){
 //				s.setShowReadingOrder(true);
 //			}
+			
+			//during transcription only the selected shape is drawn
+			if (isTranscriptionMode()){
+				ITrpShapeType trpShape = (ITrpShapeType) s.getData();
+				if (!(trpShape instanceof TrpTextRegionType))
+					continue;
+			}
 			
 			if (s.isVisible() && !selected.contains(s)){
 				s.draw(canvas, gc);
@@ -809,6 +820,14 @@ public class CanvasScene {
 
 		selectObject(minShape, sendSignal, multiselect);
 		return minShape;
+	}
+	
+	public boolean isTranscriptionMode() {
+		return transcriptionMode;
+	}
+
+	public void setTranscriptionMode(boolean transcriptionMode) {
+		this.transcriptionMode = transcriptionMode;
 	}
 
 	public void setAllEditable(boolean val) {
