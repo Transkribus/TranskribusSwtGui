@@ -14,6 +14,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
