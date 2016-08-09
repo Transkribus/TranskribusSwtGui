@@ -361,6 +361,10 @@ CHANGES AND BUGFIXES
 	-> right click behavior added for versions and transcripts (texts) 
 	-> Login via OAuth2: Google
 	
+0.8.7:
+	-> bugfixes for local doc reader & thumbnail widget deadlock
+	
+	
 	
 
 	
