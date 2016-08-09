@@ -378,7 +378,16 @@ public class TrpShapeElementFactory {
 		return ps;
 	}
 	
-	private static TrpTextRegionType createPAGETextRegion(ICanvasShape shape, TrpPageType parent) {		
+	private static void assertNotNull(Object o, String objDesc) throws CanvasException {
+		if (o == null) {
+			throw new CanvasException(objDesc+" cannot be null!");
+		}
+	}
+	
+	private static TrpTextRegionType createPAGETextRegion(ICanvasShape shape, TrpPageType parent) {
+		assertNotNull(shape, "Shape");
+		assertNotNull(parent, "Parent page");
+		
 		TrpTextRegionType tr = new TrpTextRegionType(parent);
 		
 		tr.setId(TrpPageType.getUniqueId("region"));
@@ -387,7 +396,7 @@ public class TrpShapeElementFactory {
 		CoordsType coords = new CoordsType();
 		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		tr.setCoords(coords);	
-		
+				
 		//TODO: add index according to coordinates		int idxOfNewLine = parent.getIndexAccordingToCoordinates(tl);
 		int idxOfNewTextRegion = parent.getIndexAccordingToCoordinates(tr);
 		logger.debug("idxOfNewTextRegion " + idxOfNewTextRegion);
