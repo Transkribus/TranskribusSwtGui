@@ -49,6 +49,9 @@ public class ImageDataDacheFactory extends DataCacheFactory<URL, CanvasImage> {
 //		urlStr += "&fileType="+fileType;
 		
 		try {
+//			if (true)
+//				throw new Exception("TEST!");
+			
 			return new CanvasImage(new URL(urlStr));
 		} catch (Exception e) {
 			if (isFile(urlStr))
