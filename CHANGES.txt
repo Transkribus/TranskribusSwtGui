@@ -363,7 +363,8 @@ CHANGES AND BUGFIXES
 	
 0.8.7:
 	-> bugfixes for local doc reader & thumbnail widget deadlock
-	
+	-> local RGBA imgs bugfix
+	 
 	
 	
 
