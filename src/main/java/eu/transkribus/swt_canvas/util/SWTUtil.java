@@ -1,5 +1,6 @@
 package eu.transkribus.swt_canvas.util;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
@@ -912,16 +913,33 @@ public class SWTUtil {
 
             //This is valid because we are using a 3-byte Data model with no transparent pixels
             data.transparentPixel = -1;
-
-            WritableRaster raster = bufferedImage.getRaster();
-            int[] pixelArray = new int[3];
+            
             for (int y = 0; y < data.height; y++) {
                 for (int x = 0; x < data.width; x++) {
-                    raster.getPixel(x, y, pixelArray);
-                    int pixel = palette.getPixel(new RGB(pixelArray[0], pixelArray[1], pixelArray[2]));
-                    data.setPixel(x, y, pixel);
+                	int rgb = bufferedImage.getRGB(x, y);
+                	data.setPixel(x, y, rgb);
+                	
+//                	Color c = new Color(rgb);
+//                	int red = c.getRed();
+//                	int green = c.getGreen();
+//                	int blue = c.getBlue();
+//                	
+//                    int pixel = palette.getPixel(new RGB(red, green, blue));
+//                    data.setPixel(x, y, pixel);
                 }
-            }
+            }            
+
+            // THIS CODE FAILS WHEN THE BUFFERED IMAGE IS RGBA
+//          WritableRaster raster = bufferedImage.getRaster();            
+//            int[] pixelArray = new int[3];
+//            for (int y = 0; y < data.height; y++) {
+//                for (int x = 0; x < data.width; x++) {
+//                	logger.debug("(x,y) = ("+x+","+y+")");
+//                    raster.getPixel(x, y, pixelArray);
+//                    int pixel = palette.getPixel(new RGB(pixelArray[0], pixelArray[1], pixelArray[2]));
+//                    data.setPixel(x, y, pixel);
+//                }
+//            }
             return data;
         }
         
