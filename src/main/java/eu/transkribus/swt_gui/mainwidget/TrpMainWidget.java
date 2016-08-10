@@ -344,7 +344,8 @@ public class TrpMainWidget {
 			}
 		}
 
-		if (getTrpSets().isShowTipOfTheDay()) {
+		final boolean DISABLE_TIPS_OF_THE_DAY = true;
+		if (getTrpSets().isShowTipOfTheDay() && !DISABLE_TIPS_OF_THE_DAY) {
 			showTipsOfTheDay();
 		}
 		
