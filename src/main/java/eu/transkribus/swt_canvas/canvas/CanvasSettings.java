@@ -418,4 +418,22 @@ public class CanvasSettings extends APropertyChangeSupport  {
 			return DO_NOT_SAVE_THOSE_PROPERTIES;
 		}
 
+		@Override public String toString() {
+			return "CanvasSettings [mode=" + mode + ", translationFactor=" + translationFactor + ", scalingFactor=" + scalingFactor + ", rotationFactor="
+					+ rotationFactor + ", translateMouseButton=" + translateMouseButton + ", selectMouseButton=" + selectMouseButton + ", editMouseButton="
+					+ editMouseButton + ", drawColor=" + drawColor + ", newDrawColor=" + newDrawColor + ", newDrawLineWidth=" + newDrawLineWidth
+					+ ", readingOrderBackgroundColor=" + readingOrderBackgroundColor + ", boundingBoxColor=" + boundingBoxColor + ", fillColor=" + fillColor
+					+ ", selectedColor=" + selectedColor + ", selectedPointColor=" + selectedPointColor + ", mouseOverPointColor=" + mouseOverPointColor
+					+ ", resManager=" + resManager + ", fontTahoma16=" + fontTahoma16 + ", fontTahoma22=" + fontTahoma22 + ", fontTahoma30=" + fontTahoma30
+					+ ", fontTahoma50=" + fontTahoma50 + ", fontArial10=" + fontArial10 + ", drawLineWidth=" + drawLineWidth + ", selectedLineWidth="
+					+ selectedLineWidth + ", selectedPointRadius=" + selectedPointRadius + ", drawSelectedCornerNumbers=" + drawSelectedCornerNumbers
+					+ ", drawPolylineArcs=" + drawPolylineArcs + ", backgroundAlpha=" + backgroundAlpha + ", foregroundAlpha=" + foregroundAlpha
+					+ ", readingOrderCircleWidth=" + readingOrderCircleWidth + ", lineStyle=" + lineStyle + ", newLineStyle=" + newLineStyle
+					+ ", boundingBoxLineStyle=" + boundingBoxLineStyle + ", scaleAroundCenter=" + scaleAroundCenter + ", rotateAroundCenter="
+					+ rotateAroundCenter + ", translateWoScalingAndRotation=" + translateWoScalingAndRotation + ", editingEnabled=" + editingEnabled
+					+ ", focusFirstSelected=" + focusFirstSelected + ", doTransition=" + doTransition + ", lockZoomOnFocus=" + lockZoomOnFocus + "]";
+		}
+		
+		
+
 	}

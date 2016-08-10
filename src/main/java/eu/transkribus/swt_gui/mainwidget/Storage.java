@@ -990,14 +990,24 @@ public class Storage extends Observable {
 			return;
 		
 		String urlStr = page.getUrl().toString();
-			
-		if (!doc.isLocalDoc())
-			urlStr = UriBuilder.fromUri(urlStr).replaceQueryParam("fileType", fileType).toString();
+		UriBuilder ub = UriBuilder.fromUri(urlStr);
 		
-		logger.debug("Loading image: " + urlStr);
+		ub = ub.replaceQueryParam("fileType", null); // remove existing fileType par
+		
+		logger.debug("img uri: "+ub.toString());
+		
+		if (ub.toString().startsWith("file:") || new File(ub.toString()).exists()) {
+			logger.debug("this is a local image file!");
+			urlStr = ub.toString();
+		} else {
+			logger.debug("this is a remove image file - adding fileType parameter for fileType="+fileType);
+			urlStr = UriBuilder.fromUri(urlStr).replaceQueryParam("fileType", fileType).toString();
+		}
+					
+		logger.debug("Loading image from url: " + urlStr);
 		final boolean FORCE_RELOAD = false;
 		currentImg = imCache.getOrPut(new URL(urlStr), true, fileType, FORCE_RELOAD);
-		logger.debug("loaded image: " + currentImg);
+		logger.trace("loaded image!");
 		
 		setCurrentImageMetadata();
 		

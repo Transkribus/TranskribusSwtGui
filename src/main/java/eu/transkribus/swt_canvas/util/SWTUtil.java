@@ -1,5 +1,6 @@
 package eu.transkribus.swt_canvas.util;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
@@ -39,7 +40,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Region;
-import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -51,6 +51,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
@@ -604,6 +605,11 @@ public class SWTUtil {
 		dummyMenu.setVisible(false);
 	}
 	
+	public static void addMenuItemSelectionListener(MenuItem ti, SelectionListener listener) {
+		if (ti!=null && !ti.isDisposed())
+			ti.addSelectionListener(listener);	
+	}	
+	
 	public static void addToolItemSelectionListener(ToolItem ti, SelectionListener listener) {
 		if (ti!=null && !ti.isDisposed())
 			ti.addSelectionListener(listener);	
@@ -907,21 +913,43 @@ public class SWTUtil {
 
             //This is valid because we are using a 3-byte Data model with no transparent pixels
             data.transparentPixel = -1;
-
-            WritableRaster raster = bufferedImage.getRaster();
-            int[] pixelArray = new int[3];
+            
             for (int y = 0; y < data.height; y++) {
                 for (int x = 0; x < data.width; x++) {
-                    raster.getPixel(x, y, pixelArray);
-                    int pixel = palette.getPixel(new RGB(pixelArray[0], pixelArray[1], pixelArray[2]));
+                	int rgb = bufferedImage.getRGB(x, y);
+                	
+                	Color c = new Color(rgb);
+                	int red = c.getRed();
+                	int green = c.getGreen();
+                	int blue = c.getBlue();
+                	
+                    int pixel = palette.getPixel(new RGB(red, green, blue));
                     data.setPixel(x, y, pixel);
                 }
-            }
+            }            
+
+            // THIS CODE FAILS WHEN THE BUFFERED IMAGE IS RGBA
+//          WritableRaster raster = bufferedImage.getRaster();            
+//            int[] pixelArray = new int[3];
+//            for (int y = 0; y < data.height; y++) {
+//                for (int x = 0; x < data.width; x++) {
+//                	logger.debug("(x,y) = ("+x+","+y+")");
+//                    raster.getPixel(x, y, pixelArray);
+//                    int pixel = palette.getPixel(new RGB(pixelArray[0], pixelArray[1], pixelArray[2]));
+//                    data.setPixel(x, y, pixel);
+//                }
+//            }
+            
             return data;
         }
         
         
         throw new IOException("Unknown colour model: "+bufferedImage.getColorModel().getClass().getCanonicalName());
+    }
+    
+    public static void dispose(Item i) {
+    	if (i != null && !i.isDisposed())
+    		i.dispose();
     }
         
     public static void dispose(Image img) {

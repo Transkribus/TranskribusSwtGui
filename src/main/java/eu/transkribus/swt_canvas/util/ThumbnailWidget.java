@@ -208,7 +208,7 @@ public class ThumbnailWidget extends Composite {
 				});	
 			}
 			
-			logger.debug("thumbnail now thread REALLY STOPPED!");
+			logger.debug("thumbnail thread finished!");
 		}
 	} // end ThmbImgLoadThread
 	
@@ -354,15 +354,18 @@ public class ThumbnailWidget extends Composite {
 		}
 	}
 	
-	private void stopActiveThread() {
+	private void stopActiveThread() {		
 		if (loadThread!=null && loadThread.isAlive()) {			
-			logger.debug("before waiting: "+Thread.currentThread().getName());
+			logger.debug("stopping thumbnail thread from thread: "+Thread.currentThread().getName());
 			loadThread.cancel = true;
 			try {
-				loadThread.join();
-			} catch (InterruptedException e) {
+//				loadThread.join(); // leads to deadlock... don't know why
+				loadThread.interrupt(); // works!
+			}
+			catch (Exception e) {
 				logger.error(e.getMessage(), e);
-			} finally {
+			}
+			finally {
 				logger.debug("thumbnail thread stopped!");
 			}
 		}
