@@ -2,6 +2,7 @@ package eu.transkribus.util;
 
 import java.awt.Point;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -19,8 +20,10 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.configuration.Configuration;
 import org.docx4j.model.datastorage.XPathEnhancerParser.main_return;
+import org.eclipse.persistence.descriptors.partitioning.HashPartitioningPolicy;
 import org.eclipse.swt.graphics.RGB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,7 @@ import difflib.DiffUtils;
 import difflib.Patch;
 import eu.transkribus.core.i18n.I18nUtils;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.portal.PortalWidget.Docking;
 import eu.transkribus.swt_canvas.util.Colors;
 
@@ -261,6 +265,10 @@ public class Utils {
 			if (e.getKey() instanceof String && beanmap.containsKey(e.getKey())) {
 				String key = (String) e.getKey();
 				String value = e.getValue().toString().trim();
+				Class<?> type = beanmap.getType(key);
+				if (type == null) // no such property!
+					continue;
+				
 				logger.debug("setting property '"+key+"' of bean '"+bean.getClass().getSimpleName()+"' to '"+value+"'"+ " type = "+beanmap.getType(key));
 				
 				try {
@@ -282,7 +290,11 @@ public class Utils {
 		while (it.hasNext()) {
 			String key = it.next();
 			String value = config.getProperty(key).toString().trim();
-			logger.debug("setting property '"+key+"' of bean '"+bean.getClass().getSimpleName()+"' to '"+value+"'"+ " type = "+beanmap.getType(key));
+			Class<?> type = beanmap.getType(key);
+			if (type == null) // no such property!
+				continue;
+			
+			logger.debug("setting property '"+key+"' of bean '"+bean.getClass().getSimpleName()+"' to '"+value+"'"+ " type = "+type);
 			
 			try {
 				Object valueObject = getValue(beanmap.getType(key), value);
@@ -316,6 +328,10 @@ public class Utils {
 		return valueStr;
 	}
 	
+	public static boolean propertyExists(Object bean, String property) {
+		return PropertyUtils.isReadable(bean, property) && PropertyUtils.isWriteable(bean, property);
+	}
+	
 	public static void testDiffUtils() {
 		
 		String str1="hello world";
@@ -341,6 +357,27 @@ public class Utils {
 
 	
 	public static void main(String [] args) {		
+		CanvasSettings cs = new CanvasSettings();
+		
+//		Object valueObject = getValue(beanmap.getType(key), value);
+		Object valueObject = null;
+		try {
+			System.out.println(propertyExists(cs, "whatsoever"));
+			System.out.println(propertyExists(cs, "scalingFactor"));
+			
+			BeanUtils.setProperty(cs, "whatsoever", valueObject);
+			
+//			BeanUtils.getProp
+			BeanUtils.setProperty(cs, "scalingFactor", 1.0f);
+		} catch (IllegalAccessException | InvocationTargetException e1) {
+			e1.printStackTrace();
+		}
+		
+		
+		System.out.println("I AM DONE");
+		System.out.println(cs);
+		
+		
 //		testDiffUtils();
 		
 		if (true) return;
