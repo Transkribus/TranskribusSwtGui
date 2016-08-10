@@ -51,6 +51,7 @@ public class TrpConfig {
 	public final static String DEFAULT_PROFILE_NAME = "default";
 	public final static String SEGMENTATION_PROFILE_NAME = "Segmentation";
 	public final static String TRANSCRIPTION_PROFILE_NAME = "Transcription";
+	public final static String TRANSCRIPTION_INVISIBLETABS_PROFILE_NAME = "Transcription_InvisibleTabs";
 	
 	public final static List<String> PREDEFINED_PROFILES = new ArrayList<String>();
 	
@@ -89,6 +90,7 @@ public class TrpConfig {
 		PREDEFINED_PROFILES.add(DEFAULT_PROFILE_NAME);
 		PREDEFINED_PROFILES.add(SEGMENTATION_PROFILE_NAME);
 		PREDEFINED_PROFILES.add(TRANSCRIPTION_PROFILE_NAME);
+		PREDEFINED_PROFILES.add(TRANSCRIPTION_INVISIBLETABS_PROFILE_NAME);
 	}
 	
 	public static void init() {

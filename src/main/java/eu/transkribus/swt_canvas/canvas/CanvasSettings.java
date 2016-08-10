@@ -42,7 +42,7 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		private Color drawColor = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
 		public static final String DRAW_COLOR_PROPERTY = "drawColor";
 		
-		private Color newDrawColor = Display.getDefault().getSystemColor(SWT.COLOR_DARK_RED);
+		private Color newDrawColor = Display.getDefault().getSystemColor(SWT.COLOR_RED);
 		public static final String NEW_DRAW_COLOR_PROPERTY = "newDrawColor";
 		
 		private int newDrawLineWidth = 3;

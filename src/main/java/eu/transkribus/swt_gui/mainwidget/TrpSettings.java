@@ -126,7 +126,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	public static final String COLOR_LINES_PROPERTY = "colorLines";
 	private Color colorBaselines = Colors.getSystemColor(SWT.COLOR_DARK_MAGENTA);
 	public static final String COLOR_BASELINES_PROPERTY = "colorBaselines";
-	private Color colorWords = Colors.getSystemColor(SWT.COLOR_RED);
+	private Color colorWords = Colors.getSystemColor(SWT.COLOR_GREEN);
 	public static final String COLOR_WORDS_PROPERTY = "colorWords";
 	
 	// font in transcription window:
@@ -230,7 +230,6 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	public boolean createThumbs = true;
 	public static final String CREATE_THUMBS_PROPERTY = "createThumbs";
-			
 	
 	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};

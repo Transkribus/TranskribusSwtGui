@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -144,10 +145,10 @@ public class CanvasScene {
 //				s.setShowReadingOrder(true);
 //			}
 			
-			//during transcription only the selected shape is drawn
+			//during transcription only the selected baseline is drawn, lines and regions are always drawn if visible
 			if (isTranscriptionMode()){
 				ITrpShapeType trpShape = (ITrpShapeType) s.getData();
-				if (!(trpShape instanceof TrpTextRegionType))
+				if (!(trpShape instanceof TrpRegionType) && !(trpShape instanceof TrpTextLineType))
 					continue;
 			}
 			

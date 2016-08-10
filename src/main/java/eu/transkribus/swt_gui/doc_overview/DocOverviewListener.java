@@ -89,6 +89,7 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		dow.searchBtn.addSelectionListener(this);
 //		docOverviewWidget.getDeleteItem().addSelectionListener(this);
 		dow.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
+		dow.recentDocsComboViewerWidget.lastDocsCombo.addSelectionListener(this);
 //		dow.collectionComboViewerWidget.reloadCollectionsBtn.addSelectionListener(this);
 		dow.manageCollectionsBtn.addSelectionListener(this);
 		dow.showActivityWidgetBtn.addSelectionListener(this);
@@ -154,6 +155,11 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 //		}
 		else if (s == dow.collectionComboViewerWidget.collectionCombo) {
 			mainWidget.reloadDocList(dow.getSelectedCollection());
+		}
+		else if (s == dow.recentDocsComboViewerWidget.lastDocsCombo){
+			String docToLoad = dow.getSelectedRecentDoc();
+			mainWidget.loadRecentDoc(docToLoad);
+
 		}
 //		else if (s == dow.collectionComboViewerWidget.reloadCollectionsBtn) {
 //			mainWidget.reloadCollections();
