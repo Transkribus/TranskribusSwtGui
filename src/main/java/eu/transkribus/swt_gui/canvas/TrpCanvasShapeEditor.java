@@ -251,31 +251,6 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 		if (side < 0 || side >= 4)
 			return null;
-		
-//		CanvasQuadPolygon qp = (CanvasQuadPolygon) selected;
-				
-//		// depending on the rowwise variable which determines the direction to move on,
-//		// it can happen that the side we want to move is incorrect - correct that here:
-//		if (rowwise && selectedPoint==qp.getCornerPtIndex(0))
-//			side = 3;
-//		else if (!rowwise && selectedPoint==qp.getCornerPtIndex(1))
-//			side = 0;
-//		else if (rowwise && selectedPoint==qp.getCornerPtIndex(2))
-//			side = 1;
-//		else if (!rowwise && selectedPoint==qp.getCornerPtIndex(3))
-//			side = 2;
-		
-//		int sideOpposite = (side+2) % 4;
-		
-//		java.awt.Point selPt = qp.getPoint(selectedPoint);
-//		if (side < 0 || selPt == null) {
-//			logger.warn("Cannot find side of point to move row or column: "+selectedPoint);
-//			return null;
-//		}
-		
-		// compute translation for each point:
-//		Point mousePtWoTr = canvas.inverseTransform(mouseX, mouseY);
-//		java.awt.Point trans = new java.awt.Point(mousePtWoTr.x-selPt.x, mousePtWoTr.y-selPt.y);
 
 		// get all neighbor cells in this row / column and move their points according to the side
 		boolean rowwise = side==1 || side == 3;
@@ -411,7 +386,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		for (TrpTableCellType c : cells) {
 			CanvasQuadPolygon s = (CanvasQuadPolygon) c.getData();
 
-			// first, move all common points of neighbors too
+			// first, move all common points of neighbors
 			for (TrpTableCellType n : c.getNeighborCells()) {
 				CanvasQuadPolygon ns = (CanvasQuadPolygon) n.getData();
 				
@@ -433,7 +408,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 				}
 			}
 			
-			// now, move all points of that side (if not already moved!)
+			// now, move all points of that side of that shape (if not already moved!)
 			ShapeEditOperation opM = new ShapeEditOperation(ShapeEditType.EDIT, "Moved table "+entityName+" points", s);					
 			op.addNestedOp(opM);
 			
@@ -445,18 +420,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 					}
 				}
 			}
-			
-			// OLD AND DEPRECATED:
-//			// now also move all points of the neighbor side
-//			if (false)
-//			for (TrpTableCellType neighbor : c.getNeighborCells(side)) {			
-//				CanvasQuadPolygon ns = (CanvasQuadPolygon) neighbor.getData();
-//				if (firstMove) {
-//					ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved table "+entityName+" points", ns);					
-//					ops.add(op);
-//				}			
-//				ns.translatePointsOfSide(sideOpposite, trans.x, trans.y);
-//			}
+
 		}
 		
 		if (addToUndoStack)
@@ -837,12 +801,16 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 	}
 	
 	@Override public ShapeEditOperation removeShapesFromCanvas(List<ICanvasShape> shapesToRemove, boolean addToUndoStack) {
-		// filter out table cells:
-		shapesToRemove.removeIf((x) -> {
-			return TableUtils.getTableCell(x)!=null;
-		});
+		// remove table if attempted to remove table cell:		
+		List<ICanvasShape> str2 = new ArrayList<>();
+		for (ICanvasShape s : shapesToRemove) {
+			if (TableUtils.getTableCell(s)!=null)
+				str2.add(s.getParent());
+			else
+				str2.add(s);
+		}
 	
-		return super.removeShapesFromCanvas(shapesToRemove, addToUndoStack);
+		return super.removeShapesFromCanvas(str2, addToUndoStack);
 	}
 	
 	@Override public ShapeEditOperation addPointToShape(ICanvasShape shape, int mouseX, int mouseY, boolean addToUndoStack) {

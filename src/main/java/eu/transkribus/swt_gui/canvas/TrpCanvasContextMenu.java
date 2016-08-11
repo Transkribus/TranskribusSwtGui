@@ -15,11 +15,13 @@ import eu.transkribus.swt_gui.table_editor.TableUtils;
 public class TrpCanvasContextMenu extends CanvasContextMenu {
 	public static final String SELECT_TABLE_ROW_CELLS_EVENT = "SELECT_TABLE_ROW_CELLS_EVENT";
 	public static final String SELECT_TABLE_COLUMN_CELLS_EVENT = "SELECT_TABLE_COLUMN_CELLS_EVENT";
+	public static final String SELECT_TABLE_CELLS_EVENT = "SELECT_TABLE_CELLS_EVENT";
 	
 	public static final String DELETE_TABLE_EVENT = "DELETE_TABLE_EVENT";
 	public static final String DELETE_TABLE_ROW_EVENT = "DELETE_TABLE_COLUMN_CELLS_EVENT";
 	public static final String DELETE_TABLE_COLUMN_EVENT = "DELETE_TABLE_COLUMN_CELLS_EVENT";
 	
+	MenuItem selectTableCellsItem;
 	MenuItem selectTableRowCellsItem;
 	MenuItem selectTableColumnCellsItem;
 	MenuItem deleteTableRowItem;
@@ -29,33 +31,7 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 	public TrpCanvasContextMenu(SWTCanvas canvas) {
 		super(canvas);
 	}
-	
-//	@Override protected Object notifyObservers(MenuItem item) {
-//		Object evt = super.notifyObservers(item);
-//		if (evt != null)
-//			return evt;
-//				
-//		if (item.equals(selectTableRowCellsItem)) {
-//			evt = SELECT_TABLE_ROW_CELLS_EVENT;
-//		}
-//		else if (item.equals(selectTableColumnCellsItem)) {
-//			evt = SELECT_TABLE_COLUMN_CELLS_EVENT;
-//		}
-//		else if (item.equals(deleteTableRowItem)) {
-//			evt = DELETE_TABLE_ROW_EVENT;
-//		}
-//		else if (item.equals(deleteTableColumnItem)) {
-//			evt = DELETE_TABLE_COLUMN_EVENT;
-//		}
-//		
-//		if (evt != null) {
-//			setChanged();
-//			notifyObservers(evt);
-//		}
-//		
-//		return evt;
-//	}
-	
+
 	private void createTableItems(ICanvasShape s) {
 		SWTUtil.dispose(deleteTableItem);
 		
@@ -71,6 +47,7 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 	}
 	
 	private void createTableCellItems(ICanvasShape s) {
+		SWTUtil.dispose(selectTableCellsItem);
 		SWTUtil.dispose(selectTableRowCellsItem);
 		SWTUtil.dispose(selectTableColumnCellsItem);
 		SWTUtil.dispose(deleteTableRowItem);
@@ -79,6 +56,11 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 		TrpTableCellType cell = TableUtils.getTableCell(s);
 		if (cell == null)
 			return;
+		
+		selectTableCellsItem = new MenuItem(popupMenu, SWT.NONE);
+		selectTableCellsItem.setText("Select cells");
+		selectTableCellsItem.setData(SELECT_TABLE_CELLS_EVENT);
+		selectTableCellsItem.addSelectionListener(itemSelListener);
 		
 		selectTableRowCellsItem = new MenuItem(popupMenu, SWT.NONE);
 		selectTableRowCellsItem.setText("Select row cells");

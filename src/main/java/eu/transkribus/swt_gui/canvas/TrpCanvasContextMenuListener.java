@@ -30,12 +30,17 @@ public class TrpCanvasContextMenuListener implements Observer {
 		if (arg.equals(TrpCanvasContextMenu.DELETE_ITEM_EVENT)) {
 			canvas.getShapeEditor().removeShapesFromCanvas(canvas.getScene().getSelectedAsNewArray(), true);
 			
-		} 
-		else if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_ROW_CELLS_EVENT) || arg.equals(TrpCanvasContextMenu.SELECT_TABLE_COLUMN_CELLS_EVENT)) {
+		}
+		else if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_ROW_CELLS_EVENT) || arg.equals(TrpCanvasContextMenu.SELECT_TABLE_COLUMN_CELLS_EVENT) || arg.equals(TrpCanvasContextMenu.SELECT_TABLE_CELLS_EVENT)) {
 			TrpTableCellType cell = TableUtils.getTableCell(canvas.getFirstSelected());
 			if (cell != null) {
-				TableDimension dim = arg.equals(TrpCanvasContextMenu.SELECT_TABLE_ROW_CELLS_EVENT) ? TableDimension.ROW : TableDimension.COLUMN;
-				TableUtils.selectCells(canvas, cell, dim);	
+				TableDimension dim = null;
+				if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_ROW_CELLS_EVENT))
+					dim = TableDimension.ROW;
+				else if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_COLUMN_CELLS_EVENT))
+					dim = TableDimension.COLUMN;
+				
+				TableUtils.selectCells(canvas, cell, dim);
 			}
 		} 
 		else if (arg.equals(TrpCanvasContextMenu.DELETE_TABLE_ROW_EVENT) || arg.equals(TrpCanvasContextMenu.DELETE_TABLE_COLUMN_EVENT)) {

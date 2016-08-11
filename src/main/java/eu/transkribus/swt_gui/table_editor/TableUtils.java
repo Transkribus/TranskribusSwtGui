@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.table_editor;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -9,6 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent.TableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType.GetCellsType;
@@ -323,12 +325,19 @@ public class TableUtils {
 	}
 	
 	public static void selectCells(TrpSWTCanvas canvas, TrpTableCellType cell, TableDimension dim) {
-		selectCells(canvas, cell.getTable(), cell.getPos()[dim.val], dim);
+		int index = dim==null ? -1 : dim.val;
+		
+		selectCells(canvas, cell.getTable(), index, dim);
 	}
 	
 	public static void selectCells(TrpSWTCanvas canvas, TrpTableRegionType table, int index, TableDimension dim) {
-		List<TrpTableCellType> cells = table.getCells(dim==TableDimension.ROW, GetCellsType.OVERLAP, index);
-		
+		List<TrpTableCellType> cells = null;
+		if (dim == null) {
+			cells = table.getTrpTableCell();
+		} else {
+			cells = table.getCells(dim==TableDimension.ROW, GetCellsType.OVERLAP, index);	
+		}
+
 		canvas.getScene().clearSelected();
 		for (int i=0; i<cells.size(); ++i) {
 			TrpTableCellType c = cells.get(i);
@@ -339,5 +348,5 @@ public class TableUtils {
 		
 		canvas.redraw();
 	}
-
+	
 }

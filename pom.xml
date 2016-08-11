@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>0.8.7</version>
+	<version>0.8.8.1-SNAPSHOT</version>
 	<!-- <version>0.4.6</version> -->
 	<name>Transkribus</name>
 
@@ -15,6 +15,7 @@
 		<!-- <dependency-dir>${project.build.finalName}-lib</dependency-dir> -->
 		<dependency-dir>libs</dependency-dir>
 		<swt-lib-name>swt-${swt.version}.jar</swt-lib-name>
+
 
 		<maven.build.timestamp.format>dd_MM_yyyy_HH:mm</maven.build.timestamp.format>
 		<timestamp>${maven.build.timestamp}</timestamp> <!-- For external filtering as maven.build.timestamp does not get propagated 
