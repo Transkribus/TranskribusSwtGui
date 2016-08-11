@@ -917,15 +917,14 @@ public class SWTUtil {
             for (int y = 0; y < data.height; y++) {
                 for (int x = 0; x < data.width; x++) {
                 	int rgb = bufferedImage.getRGB(x, y);
-                	data.setPixel(x, y, rgb);
+
+                	Color c = new Color(rgb);
+                	int red = c.getRed();
+                	int green = c.getGreen();
+                	int blue = c.getBlue();
                 	
-//                	Color c = new Color(rgb);
-//                	int red = c.getRed();
-//                	int green = c.getGreen();
-//                	int blue = c.getBlue();
-//                	
-//                    int pixel = palette.getPixel(new RGB(red, green, blue));
-//                    data.setPixel(x, y, pixel);
+                    int pixel = palette.getPixel(new RGB(red, green, blue));
+                    data.setPixel(x, y, pixel);
                 }
             }            
 
@@ -940,6 +939,7 @@ public class SWTUtil {
 //                    data.setPixel(x, y, pixel);
 //                }
 //            }
+
             return data;
         }
         

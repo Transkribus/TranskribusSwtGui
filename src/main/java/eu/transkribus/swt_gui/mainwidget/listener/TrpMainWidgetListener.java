@@ -174,7 +174,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 //						}
 //					}
 					
-					boolean mode = (name.equals("Transcription")? true : false);
+					boolean mode = (name.contains("Transcription")? true : false);
 					canvas.getScene().setTranscriptionMode(mode);
 				}
 			} else if (i == ui.getProfilesToolItem().getItemCount()-1) {

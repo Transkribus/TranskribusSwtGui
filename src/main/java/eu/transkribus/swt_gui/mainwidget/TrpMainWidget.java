@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
+import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -150,6 +151,7 @@ import eu.transkribus.swt_gui.upload.UploadDialog;
 import eu.transkribus.swt_gui.upload.UploadDialogUltimate;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.swt_gui.util.OAuthGuiUtil;
+import eu.transkribus.util.RecentDocsPreferences;
 
 public class TrpMainWidget {
 	private final static boolean USE_SPLASH = true;
@@ -164,6 +166,9 @@ public class TrpMainWidget {
 	LoginDialog loginDialog;
 	// LineTranscriptionWidget transcriptionWidget;
 	HashSet<String> userCache = new HashSet<String>();
+	
+//	static Preferences prefNode = Preferences.userRoot().node( "/trp/recent_docs" );
+//	private RecentDocsPreferences userPrefs = new RecentDocsPreferences(5, prefNode);
 
 	public ProgramInfo info;
 	public final String VERSION;
@@ -244,6 +249,8 @@ public class TrpMainWidget {
 		addListener();
 		enableAutocomplete();
 		updateToolBars();
+		
+		RecentDocsPreferences.init();
 	}
 
 	public static TrpMainWidget getInstance() {
@@ -339,7 +346,8 @@ public class TrpMainWidget {
 			}
 		}
 
-		if (getTrpSets().isShowTipOfTheDay()) {
+		final boolean DISABLE_TIPS_OF_THE_DAY = true;
+		if (getTrpSets().isShowTipOfTheDay() && !DISABLE_TIPS_OF_THE_DAY) {
 			showTipsOfTheDay();
 		}
 		
@@ -789,12 +797,37 @@ public class TrpMainWidget {
 			TrpGuiPrefs.storeLastAccountType(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
 
 			storage.reloadCollections();
+			
 			userCache.add(user);
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
 			}
-
+			
+			/*
+			 * during login we want to load the last loaded doc from the previous logout
+			 */
+			//getTrpSets().getLastDocId();
+//			if (getTrpSets().getLastDocId() != -1 && getTrpSets().getLastColId() != -1){
+//				int colId = getTrpSets().getLastColId();
+//				int docId = getTrpSets().getLastDocId();
+//				loadRemoteDoc(docId, colId, 0);
+//				getUi().getDocOverviewWidget().setSelectedCollection(colId, true);
+//				getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docId, true);
+//			}
+			
+			//section to load the last used document for each user - either local or remote doc
+			if (!RecentDocsPreferences.getItems().isEmpty()){
+				String docToLoad = RecentDocsPreferences.getItems().get(0);
+				loadRecentDoc(docToLoad);
+			}
+			else{
+				//if no recent docs are available -> load the example doc
+				loadRemoteDoc(5014, 4);
+				getUi().getDocOverviewWidget().setSelectedCollection(4, true);
+				getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", 5014, true);
+			}
+			
 			reloadJobList();
 //			reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
 //			reloadHtrModels();
@@ -818,6 +851,25 @@ public class TrpMainWidget {
 		// }
 	}
 	
+	public void loadRecentDoc(String docToLoad) {
+		String[] tmp = docToLoad.split(";;;");
+		if (tmp.length == 1){
+			loadLocalDoc(tmp[0]);
+		}
+		else if (tmp.length == 3){
+//			for (int i = 0; i < tmp.length; i++){
+//				logger.debug(" split : " + tmp[i]);
+//			}
+			int docid = Integer.valueOf(tmp[1]);
+			int colid = Integer.valueOf(tmp[2]); 
+			loadRemoteDoc(docid, colid);
+			getUi().getDocOverviewWidget().setSelectedCollection(colid, true);
+			getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docid, true);
+		}
+		
+		
+	}
+
 	public boolean loginOAuth(final String server, final String refreshToken, final String state, final String redirectUri, final OAuthProvider prov) throws OAuthTokenRevokedException {
 		final String grantType = "refresh_token";
 		try {
@@ -1748,6 +1800,10 @@ public class TrpMainWidget {
 			storage.setCurrentPage(pageIndex);
 			reloadCurrentPage(true);
 			
+			//store the path for the local doc
+			RecentDocsPreferences.push(folder);
+			ui.getDocOverviewWidget().updateRecentDocs();
+			
 			updateThumbs();
 			getCanvas().fitWidth();
 			return true;
@@ -1825,6 +1881,10 @@ public class TrpMainWidget {
 			storage.setCurrentPage(pageIndex);
 			reloadCurrentPage(true);
 			
+			//store the recent doc info to the preferences
+			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);
+			ui.getDocOverviewWidget().updateRecentDocs();
+				
 			updateThumbs();
 			getCanvas().fitWidth();
 			tmpCount++;

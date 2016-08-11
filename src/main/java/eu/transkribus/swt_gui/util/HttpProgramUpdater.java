@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.util;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -75,11 +76,13 @@ public class HttpProgramUpdater extends ProgramUpdater<HttpProgramPackageFile> {
 //				logger.debug("progress: oldread: "+oldBytesRead+" newread: "+bytesRead+" total: "+totalBytes);
 				int percent = (int) (( (float) bytesRead / (float) totalBytes) * 100.0f);
 				
-				long readMB = bytesRead / (1048576);
-				long totalMB = totalBytes / (1048576);
+				double readMB = bytesRead / (1048576.0d);
+				double totalMB = totalBytes / (1048576.0d);
 				
+				DecimalFormat df = new DecimalFormat("#.##");
+								
 				monitor.worked(percent);
-				monitor.subTask(percent+"% ("+readMB+"/"+totalMB+" MB)");											
+				monitor.subTask(percent+"% ("+df.format(readMB)+"/"+df.format(totalMB)+" MB)");											
 				if (monitor.isCanceled()) {
 					// TODO: cancel download??
 					abort();

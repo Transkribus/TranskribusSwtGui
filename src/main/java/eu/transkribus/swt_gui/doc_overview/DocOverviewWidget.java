@@ -35,6 +35,7 @@ import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.Storage.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
+import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
 public class DocOverviewWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocOverviewWidget.class);
@@ -48,6 +49,7 @@ public class DocOverviewWidget extends Composite {
 	Button uploadDocsItem;
 
 	CollectionComboViewerWidget collectionComboViewerWidget;
+	RecentDocsComboViewerWidget recentDocsComboViewerWidget;
 	
 	Button manageCollectionsBtn;
 	Button showActivityWidgetBtn;
@@ -64,8 +66,12 @@ public class DocOverviewWidget extends Composite {
 	DocMetadataEditor docMetadataEditor;
 	Storage store = Storage.getInstance();
 	
+	
+	//RecentDocsPreferences prefs = new RecentDocsPreferences(5, prefNode);
+	
 	ExpandableComposite docMdExp;
 	ExpandableComposite adminAreaExp;
+	ExpandableComposite lastDocsAreaExp;
 	ExpandableComposite remotedocsgroupExp;
 	Composite container;
 	
@@ -186,7 +192,7 @@ public class DocOverviewWidget extends Composite {
 		serverLabel = new Label(c1, SWT.NONE);
 		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		configExpandable(docMdExp, c1, "Document metadata", this);
+		configExpandable(docMdExp, c1, "Document description", this, false);
 		docMdExp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 		
 		container = new Composite(this, SWT.NONE);
@@ -233,10 +239,23 @@ public class DocOverviewWidget extends Composite {
 		batchReplaceImgsBtn = new Button(adminAreaComp, SWT.PUSH);
 		batchReplaceImgsBtn.setText("Batch replace images");
 		
-		configExpandable(adminAreaExp, adminAreaComp, "Admin area", container);
+		configExpandable(adminAreaExp, adminAreaComp, "Admin area", container, false);
 		adminAreaExp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
-		adminAreaExp.setExpanded(false);
 		/////////////////		
+		lastDocsAreaExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
+		Fonts.setBoldFont(lastDocsAreaExp);
+		Composite lastDocsAreaComp = new Composite(lastDocsAreaExp, SWT.SHADOW_ETCHED_IN);
+		lastDocsAreaComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		lastDocsAreaComp.setLayout(new GridLayout(1, false));
+		
+		recentDocsComboViewerWidget = new RecentDocsComboViewerWidget(lastDocsAreaComp, 0);
+		recentDocsComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		
+		configExpandable(lastDocsAreaExp, lastDocsAreaComp, "Recent Documents", container, true);
+		lastDocsAreaExp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+		
+		////////////////
 		remotedocsgroupExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		Fonts.setBoldFont(remotedocsgroupExp);
 //		Composite remotedocsgroup = new Group(remotedocsgroupExp, SWT.SHADOW_ETCHED_IN); // orig-parent = container
@@ -246,8 +265,8 @@ public class DocOverviewWidget extends Composite {
 		remotedocsgroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 //		remotedocsgroup.setText("Remote docs");
 		remotedocsgroup.setLayout(new GridLayout(1, false));
-		
-		configExpandable(remotedocsgroupExp, remotedocsgroup, "Server documents", container);
+			
+		configExpandable(remotedocsgroupExp, remotedocsgroup, "Server documents", container, true);
 		remotedocsgroupExp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 		///////////////
@@ -374,7 +393,7 @@ public class DocOverviewWidget extends Composite {
 		container.layout();
 	}
 	
-	private void configExpandable(ExpandableComposite exp, Composite client, String text, final Composite container) {
+	private void configExpandable(ExpandableComposite exp, Composite client, String text, final Composite container, boolean expand) {
 		exp.setClient(client);
 		exp.setText(text);
 		exp.addExpansionListener(new ExpansionAdapter() {
@@ -382,7 +401,7 @@ public class DocOverviewWidget extends Composite {
 		    	  container.layout();		    	  
 		      }
 		    });
-		exp.setExpanded(true);
+		exp.setExpanded(expand);
 //		exp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 //		exp.setLayoutData(new GridData(SWT.TOP, SWT.TOP, true, false, 2, 1));
 	}
@@ -526,6 +545,10 @@ public class DocOverviewWidget extends Composite {
 		return collectionComboViewerWidget.getSelectedCollection();
 	}
 	
+	public String getSelectedRecentDoc(){
+		return recentDocsComboViewerWidget.getSelectedDoc();
+	}
+	
 	public void setSelectedCollection(int colId, boolean fireSelectionEvent) {
 		collectionComboViewerWidget.setSelectedCollection(colId, fireSelectionEvent);
 	}
@@ -588,6 +611,11 @@ public class DocOverviewWidget extends Composite {
 			ad = new ActivityDialog(getShell());
 		}
 		ad.open();
+		
+	}
+
+	public void updateRecentDocs() {
+		recentDocsComboViewerWidget.updateDocs(false);
 		
 	}
 	
