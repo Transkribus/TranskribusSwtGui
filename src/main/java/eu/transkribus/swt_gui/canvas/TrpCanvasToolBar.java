@@ -17,7 +17,6 @@ import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class TrpCanvasToolBar extends CanvasToolBar {
@@ -93,6 +92,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		addToRadioGroup(addPrintspace);
 		}
 		
+		if (false) {
 		addTextRegion = new ToolItem(this, SWT.RADIO, ++i);
 		addTextRegion.setText("TR");
 		addTextRegion.setToolTipText("Add a text region");
@@ -120,18 +120,34 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		addWord.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
 		modeMap.put(addWord, TrpCanvasAddMode.ADD_WORD);
 		addToRadioGroup(addWord);
+		}
 				
-		if (true) { // TODO: add "special" regions
+		if (true) {
 			addSpecialRegion = new DropDownToolItem(this, true, true, SWT.RADIO, ++i);
 			
-			MenuItem miTr = addSpecialRegion.addItem(RegionTypeUtil.TABLE_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass("Table"));
-			modeMap.put(miTr, TrpCanvasAddMode.ADD_TABLEREGION);
+			MenuItem mi = null;
 			
-			MenuItem miPs = addSpecialRegion.addItem(RegionTypeUtil.PRINTSPACE_TYPE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass("Printspace"));
-			modeMap.put(miPs, TrpCanvasAddMode.ADD_PRINTSPACE);
+			mi = addSpecialRegion.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_TEXTREGION);
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.LINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.LINE));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_LINE);
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.BASELINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.BASELINE));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_BASELINE);
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.WORD, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.WORD));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_WORD);		
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.TABLE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TABLE));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_TABLEREGION);
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.PRINTSPACE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.PRINTSPACE));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_PRINTSPACE);
+			
 			for (String name : RegionTypeUtil.SPECIAL_REGIONS) {
 //				mode.data = c;
-				MenuItem mi = addSpecialRegion.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
+				mi = addSpecialRegion.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
 				modeMap.put(mi, TrpCanvasAddMode.ADD_OTHERREGION);	
 			}
 			
@@ -269,21 +285,21 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 //		return addPrintspace;
 //	}
 
-	public ToolItem getAddTextRegion() {
-		return addTextRegion;
-	}
-
-	public ToolItem getAddLine() {
-		return addLine;
-	}
-
-	public ToolItem getAddBaseLine() {
-		return addBaseLine;
-	}
-
-	public ToolItem getAddWord() {
-		return addWord;
-	}
+//	public ToolItem getAddTextRegion() {
+//		return addTextRegion;
+//	}
+//
+//	public ToolItem getAddLine() {
+//		return addLine;
+//	}
+//
+//	public ToolItem getAddBaseLine() {
+//		return addBaseLine;
+//	}
+//
+//	public ToolItem getAddWord() {
+//		return addWord;
+//	}
 	
 //	public ToolItem getShapeAddRectMode() {
 //		return shapeAddRectMode;

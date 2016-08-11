@@ -256,7 +256,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 			return;
 		}
 		
-		if (newShapeType.equals(RegionTypeUtil.BASELINE_TYPE) || oldShapeType.equals(RegionTypeUtil.BASELINE_TYPE)) {
+		if (newShapeType.equals(RegionTypeUtil.BASELINE) || oldShapeType.equals(RegionTypeUtil.BASELINE)) {
 			throw new IOException("Cannot convert to or from baselines!");
 		}
 		

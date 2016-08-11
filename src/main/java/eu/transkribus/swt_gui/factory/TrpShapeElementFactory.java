@@ -199,7 +199,7 @@ public class TrpShapeElementFactory {
 		String specialRegionType = (m.data != null && m.data instanceof String) ? (String) m.data : "";
 //		String specialRegionType = mainWidget.getCanvasWidget().getToolBar().getSelectedSpecialRegionType();
 
-		if (m.equals(TrpCanvasAddMode.ADD_PRINTSPACE) || specialRegionType.equals(RegionTypeUtil.PRINTSPACE_TYPE)) {
+		if (m.equals(TrpCanvasAddMode.ADD_PRINTSPACE) || specialRegionType.equals(RegionTypeUtil.PRINTSPACE)) {
 			TrpPageType parent = Storage.getInstance().getTranscript().getPage();
 			if (parent.getPrintSpace()!=null)
 				throw new CanvasException("Printspace already exists!");
