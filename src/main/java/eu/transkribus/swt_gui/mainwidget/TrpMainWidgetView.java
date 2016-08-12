@@ -19,6 +19,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -113,6 +114,9 @@ public class TrpMainWidgetView extends Composite {
 	
 	// ##### Toolbar stuff: #####
 	ToolItem menuButton, loginToggle, reloadDocumentButton, exportDocumentButton, exportPdfButton, exportTeiButton, exportRtfButton, openLocalFolderButton, closeDocBtn;
+	ToolItem uploadDocsItem, searchBtn;
+
+
 	ToolItem saveTranscriptButton, saveTranscriptWithMessageButton, saveTranscriptAlwaysButton, replacePageImgButton;//deletePageButton, 
 //	DropDownToolItem saveDropItem;
 //	DropDownToolItem languageDropDown;
@@ -700,7 +704,12 @@ public class TrpMainWidgetView extends Composite {
 		profilesToolItem.ti.setToolTipText("Profiles");
 		updateProfiles();
 		
-		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);		
+		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);	
+		
+		uploadDocsItem = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
+		uploadDocsItem.setToolTipText("Ingest or upload documents");
+//		uploadFromPrivateFtpItem.setImage(Images.getOrLoad("/icons/weather_clouds.png"));
+		uploadDocsItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
 		
 		openLocalFolderButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		openLocalFolderButton.setToolTipText("Open local folder");
@@ -748,6 +757,12 @@ public class TrpMainWidgetView extends Composite {
 		replacePageImgButton.setToolTipText("Replace page image on server");
 		replacePageImgButton.setImage(Images.IMAGE_EDIT);
 		replacePageImgButton.setEnabled(false);
+		
+		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
+		
+		searchBtn = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
+		searchBtn.setToolTipText("Search for documents, keywords... tbc");
+		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
 		
 		if (false) {
 		exportPdfButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
@@ -1161,7 +1176,9 @@ public class TrpMainWidgetView extends Composite {
 	public ToolItem getSaveTranscriptAlwaysButton() { return saveTranscriptAlwaysButton; }
 	public ToolItem getLoadTranscriptInTextEditor() { return loadTranscriptInTextEditor; }
 	public ToolItem getSendBugReportButton() { return sendBugReportButton; }
-//	public ToolItem 
+	
+	public ToolItem getSearchBtn() { return searchBtn; }
+	public ToolItem getUploadDocsItem() { return uploadDocsItem; }
 	
 	@Override
 	protected void checkSubclass() {
@@ -1227,6 +1244,8 @@ public class TrpMainWidgetView extends Composite {
 		docOverviewWidget.getUsernameLabel().pack();
 		docOverviewWidget.getServerLabel().pack();
 		
+		uploadDocsItem.setEnabled(loggedIn);
+		searchBtn.setEnabled(loggedIn);
 		
 		loginToggle.setSelection(loggedIn);
 	}

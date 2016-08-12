@@ -25,6 +25,8 @@ public class TrpMenuBar {
 	MenuItem saveTranscriptionToNewFileMenuItem;
 	MenuItem saveTranscriptionMenuItem;
 	MenuItem openMenuItem;
+	MenuItem uploadServerDocsItem;
+
 	MenuItem openLocalPageFileItem;
 	MenuItem uploadImagesFromPdfFileItem;
 	MenuItem manageCollectionsMenuItem;
@@ -118,6 +120,10 @@ public class TrpMenuBar {
 		saveTranscriptionMenuItem = new MenuItem(fileMenu, SWT.NONE);
 		saveTranscriptionMenuItem.setImage(Images.getOrLoad("/icons/disk.png"));
 		saveTranscriptionMenuItem.setText("&Save transcription");
+		
+		uploadServerDocsItem = new MenuItem(fileMenu, SWT.NONE);
+		uploadServerDocsItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
+		uploadServerDocsItem.setText("Upload documents");
 		
 		openMenuItem = new MenuItem(fileMenu, SWT.NONE);
 		openMenuItem.setImage(Images.getOrLoad("/icons/folder.png"));
@@ -316,6 +322,10 @@ public class TrpMenuBar {
 
 	public MenuItem getOpenMenuItem() {
 		return openMenuItem;
+	}
+	
+	public MenuItem getUploadServerDocsItem() {
+		return uploadServerDocsItem;
 	}
 	
 	public MenuItem getOpenLocalPageFileItem() {

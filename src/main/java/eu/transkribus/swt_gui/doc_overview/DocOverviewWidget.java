@@ -106,8 +106,8 @@ public class DocOverviewWidget extends Composite {
 		boolean isLoggedIn = store.isLoggedIn();
 
 //		uploadSingleDocItem.setEnabled(isLoggedIn);
-		uploadDocsItem.setEnabled(isLoggedIn);
-		searchBtn.setEnabled(isLoggedIn);
+//		uploadDocsItem.setEnabled(isLoggedIn);
+//		searchBtn.setEnabled(isLoggedIn);
 		
 //		boolean canDelete = getSelectedCollection().getRole()==null || getSelectedCollection().getRole().canDelete();
 //		deleteItem.setEnabled(isLoggedIn);
@@ -295,22 +295,22 @@ public class DocOverviewWidget extends Composite {
 //		btns.setLayout(new RowLayout());
 //		btns.setLayout(new FillLayout());
 		
-		Label docLabel = new Label(btns, SWT.CENTER);
-		docLabel.setText("Documents:");
+//		Label docLabel = new Label(btns, SWT.CENTER);
+//		docLabel.setText("Documents:");
 
 //		uploadSingleDocItem = new Button(btns, SWT.NONE);
 //		uploadSingleDocItem.setToolTipText("Upload a document to the current collection");
 //		uploadSingleDocItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
 //		uploadSingleDocItem.setVisible(false);
 		
-		uploadDocsItem = new Button(btns, SWT.NONE);
-		uploadDocsItem.setToolTipText("Ingest or upload documents");
-//		uploadFromPrivateFtpItem.setImage(Images.getOrLoad("/icons/weather_clouds.png"));
-		uploadDocsItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
-		
-		searchBtn = new Button(btns, 0);
-		searchBtn.setToolTipText("Search for documents, keywords... tbc");
-		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
+//		uploadDocsItem = new Button(btns, SWT.NONE);
+//		uploadDocsItem.setToolTipText("Ingest or upload documents");
+////		uploadFromPrivateFtpItem.setImage(Images.getOrLoad("/icons/weather_clouds.png"));
+//		uploadDocsItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
+//		
+//		searchBtn = new Button(btns, 0);
+//		searchBtn.setToolTipText("Search for documents, keywords... tbc");
+//		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
 		
 //		Label l = new Label(btns, 0);
 //		l.setText("Quick load by ID: ");

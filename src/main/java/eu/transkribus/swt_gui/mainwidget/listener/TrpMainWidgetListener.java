@@ -49,6 +49,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 	private void addListener() {
 		menuBar.getLoadTestsetMenuItem().addSelectionListener(this);
 		menuBar.getOpenMenuItem().addSelectionListener(this);
+		menuBar.getUploadServerDocsItem().addSelectionListener(this);
 		menuBar.getOpenLocalPageFileItem().addSelectionListener(this);
 		menuBar.getUploadImagesFromPdfFileItem().addSelectionListener(this);
 		menuBar.getManageCollectionsMenuItem().addSelectionListener(this);
@@ -86,6 +87,9 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		ui.getLoadTranscriptInTextEditor().addSelectionListener(this);
 		ui.getSendBugReportButton().addSelectionListener(this);
 		ui.getLoginToggle().addSelectionListener(this);
+		
+		ui.getUploadDocsItem().addSelectionListener(this);
+		ui.getSearchBtn().addSelectionListener(this);
 		
 		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addKeySelectionListener(this);
 		
@@ -130,6 +134,12 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		}
 		else if (s == ui.getCloseDocBtn()) {
 			mainWidget.closeCurrentDocument(false);
+		}
+		else if (s == ui.getUploadDocsItem() || s == menuBar.getUploadServerDocsItem()) {
+			mainWidget.uploadDocuments();
+		} 
+		else if (s == ui.getSearchBtn()) {
+			mainWidget.openSearchDialog();
 		}
 		
 	

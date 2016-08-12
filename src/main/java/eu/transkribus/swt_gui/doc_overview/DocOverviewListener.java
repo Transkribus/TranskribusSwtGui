@@ -85,8 +85,8 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		dow.getOpenMetadataEditorBtn().addSelectionListener(this);
 		dow.getOpenEditDeclManagerBtn().addSelectionListener(this);
 //		dow.uploadSingleDocItem.addSelectionListener(this);
-		dow.uploadDocsItem.addSelectionListener(this);
-		dow.searchBtn.addSelectionListener(this);
+//		dow.uploadDocsItem.addSelectionListener(this);
+//		dow.searchBtn.addSelectionListener(this);
 //		docOverviewWidget.getDeleteItem().addSelectionListener(this);
 		dow.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
 		dow.recentDocsComboViewerWidget.lastDocsCombo.addSelectionListener(this);
@@ -136,15 +136,15 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 //		if (s == dow.uploadSingleDocItem) {
 //			mainWidget.uploadSingleDocument();
 //		} 
-		if (s == dow.uploadDocsItem) {
-			mainWidget.uploadDocuments();
-		} else if (s == dow.searchBtn) {
-			mainWidget.openSearchDialog();
-		}
+//		if (s == dow.uploadDocsItem) {
+//			mainWidget.uploadDocuments();
+//		} else if (s == dow.searchBtn) {
+//			mainWidget.openSearchDialog();
+//		}
 //		else if (s == docOverviewWidget.getDocMetadataEditor().getApplyBtn()) {
 //			mainWidget.applyMetadata();
 //		} 
-		else if (s == dow.getOpenMetadataEditorBtn()) {
+		if (s == dow.getOpenMetadataEditorBtn()) {
 			createMetadataEditor();
 		}
 		else if (s == dow.getOpenEditDeclManagerBtn()) {
