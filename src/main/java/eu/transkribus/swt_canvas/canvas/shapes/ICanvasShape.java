@@ -57,8 +57,8 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	boolean isVisible();
 	void setVisible(boolean visible);
 	
-//	boolean isShowReadingOrder();
-//	void setShowReadingOrder(boolean showReadingOrder);
+	boolean isBaselineVisible();
+	void setBaselineVisibiliy(boolean showReadingOrder);
 	
 	boolean isSelected();
 	void setSelected(boolean selected);

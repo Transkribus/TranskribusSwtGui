@@ -57,7 +57,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	protected boolean RoSelected=false;
 	protected boolean selected=false;
 	protected boolean selectable=true;
-//	protected boolean showReadingOrder=false;
+	protected boolean baselinesVisible=false;
 	protected Color color = CanvasSettings.DEFAULT.getDrawColor();
 	protected int level=0;
 	
@@ -623,6 +623,12 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		if (!visible) {
 			setSelected(false);
 		}
+	}
+	
+	public boolean isBaselineVisible() {return baselinesVisible;}
+	
+	public void setBaselineVisibiliy(boolean visibleBaseline){
+		this.baselinesVisible = visibleBaseline;
 	}
 	
 	@Override

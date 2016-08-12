@@ -46,6 +46,7 @@ public class TrpCanvasScene extends CanvasScene {
 			}
 			if (s.hasDataType(TrpBaselineType.class)) {
 				s.setVisible(sets.isShowBaselines());
+				s.setBaselineVisibiliy(!sets.isShowOnlySelectedBaseline());
 			}
 			if (s.hasDataType(TrpWordType.class)) {
 				s.setVisible(sets.isShowWords());

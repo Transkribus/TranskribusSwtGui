@@ -117,6 +117,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean showReadingOrderWords=false;
 	public static final String SHOW_READING_ORDER_WORDS_PROPERTY = "showReadingOrderWords";
 	
+	private boolean showOnlySelectedBaseline=false;
+	public static final String SHOW_ONLY_SELECTED_BASELINE_PROPERTY = "showOnlySelectedBaseline";
+	
 	// segmentation colors:
 	private Color colorPrintSpace = Colors.getSystemColor(SWT.COLOR_MAGENTA);
 	public static final String COLOR_PS_PROPERTY = "colorPrintSpace";
@@ -314,6 +317,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setShowBaselines(boolean showBaselines) {
 		this.showBaselines = showBaselines;
 		firePropertyChange(SHOW_BASELINES_PROPERTY, !this.showBaselines, this.showBaselines);
+	}
+	
+	public boolean isShowOnlySelectedBaseline() {
+		return showOnlySelectedBaseline;
+	}
+
+	public void setShowOnlySelectedBaseline(boolean showOnlySelectedBaseline) {
+		this.showOnlySelectedBaseline = showOnlySelectedBaseline;
+		firePropertyChange(SHOW_ONLY_SELECTED_BASELINE_PROPERTY, !this.showOnlySelectedBaseline, this.showOnlySelectedBaseline);
 	}
 
 	public boolean isShowWords() {

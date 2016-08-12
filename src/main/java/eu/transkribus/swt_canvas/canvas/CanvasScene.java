@@ -15,12 +15,14 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.omg.CosNaming.IstringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
@@ -35,6 +37,8 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasRect;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeFactory;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
+import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 
 /**
  * The scene contains all objects to be drawn, i.e. the main image, sub images
@@ -120,36 +124,15 @@ public class CanvasScene {
 		for (Image image : subimages) {
 			gc.drawImage(image, 0, 0);
 		}
-		
-		
-
 		// Draw shapes:
 
 		// first draw non-selected shapes:
 		for (ICanvasShape s : shapes) {
-//			s.setShowReadingOrder(false);
-//			ITrpShapeType trpShape = (ITrpShapeType) s.getData();
-//			if (trpShape instanceof RegionType && isRegionsRO()){
-//				s.setShowReadingOrder(true);
-//				
-////				java.awt.Rectangle boundingRect = s.getBounds(); 
-////				CanvasRect cr = new CanvasRect(boundingRect.x-30, boundingRect.y, 20, 20);
-////				if (!readingOrderShapes.contains(cr)){
-////					readingOrderShapes.add(cr);
-////				}
-//			}
-//			else if(trpShape instanceof TrpTextLineType && isLinesRO()){
-//				s.setShowReadingOrder(true);
-//			}
-//			else if(trpShape instanceof TrpWordType && isWordsRO()){
-//				s.setShowReadingOrder(true);
-//			}
 			
-			//during transcription only the selected baseline is drawn, lines and regions are always drawn if visible
-			if (isTranscriptionMode()){
-				ITrpShapeType trpShape = (ITrpShapeType) s.getData();
-				if (!(trpShape instanceof TrpRegionType) && !(trpShape instanceof TrpTextLineType))
-					continue;
+			//during transcription only the selected baseline is drawn, all other baselines not
+			ITrpShapeType trpShape = (ITrpShapeType) s.getData();
+			if (trpShape instanceof TrpBaselineType && !s.isBaselineVisible()){
+				continue;
 			}
 			
 			if (s.isVisible() && !selected.contains(s)){
@@ -163,39 +146,10 @@ public class CanvasScene {
 			if (s.isVisible())
 				s.draw(canvas, gc);
 		}
-		
-//		for (ICanvasShape s : readingOrderShapes) {
-//			//if (s.isVisible())
-//				s.draw(canvas, gc);
-//		}
-		
+				
 		
 	}
 	
-//	public void setShowReadingOrderForShapes(){
-//		for (ICanvasShape s : shapes) {
-//			s.setShowReadingOrder(false);
-//			ITrpShapeType trpShape = (ITrpShapeType) s.getData();
-//			if (trpShape instanceof RegionType && isRegionsRO()){
-//				s.setShowReadingOrder(true);
-//				logger.debug("reading order true for region ");
-//				
-////				java.awt.Rectangle boundingRect = s.getBounds(); 
-////				CanvasRect cr = new CanvasRect(boundingRect.x-30, boundingRect.y, 20, 20);
-////				if (!readingOrderShapes.contains(cr)){
-////					readingOrderShapes.add(cr);
-////				}
-//			}
-//			else if(trpShape instanceof TrpTextLineType && isLinesRO()){
-//				s.setShowReadingOrder(true);
-//			}
-//			else if(trpShape instanceof TrpWordType && isWordsRO()){
-//				s.setShowReadingOrder(true);
-//			}
-//			canvas.redraw();
-//		}
-//		
-//	}
 
 	/**
 	 * Returns the bounds of the <em>original</em> image, i.e. not the bounds of
