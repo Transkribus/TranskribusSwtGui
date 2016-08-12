@@ -605,6 +605,18 @@ public class SWTUtil {
 		dummyMenu.setVisible(false);
 	}
 	
+//	public static void disposeMenuItems(Menu m, boolean recursive) {
+//		if (m == null)
+//			return;
+//
+//		for (MenuItem mi : m.getItems()) {
+//			if (mi!=null && mi.getMenu()!=null)
+//				disposeMenuItems(mi.getMenu(), true);
+//			
+//			SWTUtil.dispose(mi);
+//		}
+//	}
+	
 	public static void addMenuItemSelectionListener(MenuItem ti, SelectionListener listener) {
 		if (ti!=null && !ti.isDisposed())
 			ti.addSelectionListener(listener);	

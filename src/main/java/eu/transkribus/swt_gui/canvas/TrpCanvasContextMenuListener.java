@@ -27,35 +27,48 @@ public class TrpCanvasContextMenuListener implements Observer {
 	}
 
 	@Override public void update(Observable o, Object arg) {
-		if (arg.equals(TrpCanvasContextMenu.DELETE_ITEM_EVENT)) {
-			canvas.getShapeEditor().removeShapesFromCanvas(canvas.getScene().getSelectedAsNewArray(), true);
+		try {
+			ICanvasShape s = canvas.getFirstSelected();
 			
-		}
-		else if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_ROW_CELLS_EVENT) || arg.equals(TrpCanvasContextMenu.SELECT_TABLE_COLUMN_CELLS_EVENT) || arg.equals(TrpCanvasContextMenu.SELECT_TABLE_CELLS_EVENT)) {
-			TrpTableCellType cell = TableUtils.getTableCell(canvas.getFirstSelected());
-			if (cell != null) {
-				TableDimension dim = null;
-				if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_ROW_CELLS_EVENT))
-					dim = TableDimension.ROW;
-				else if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_COLUMN_CELLS_EVENT))
-					dim = TableDimension.COLUMN;
+			if (arg.equals(TrpCanvasContextMenu.DELETE_ITEM_EVENT)) {
+				canvas.getShapeEditor().removeShapesFromCanvas(canvas.getScene().getSelectedAsNewArray(), true);
 				
-				TableUtils.selectCells(canvas, cell, dim);
 			}
-		} 
-		else if (arg.equals(TrpCanvasContextMenu.DELETE_TABLE_ROW_EVENT) || arg.equals(TrpCanvasContextMenu.DELETE_TABLE_COLUMN_EVENT)) {
-			TrpTableCellType cell = TableUtils.getTableCell(canvas.getFirstSelected());
-			if (cell != null) {
-				TableDimension dim = arg.equals(TrpCanvasContextMenu.DELETE_TABLE_ROW_EVENT) ? TableDimension.ROW : TableDimension.COLUMN;
-				canvas.getShapeEditor().deleteTableRowOrColumn(canvas.getFirstSelected(), dim, true);	
+			else if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_ROW_CELLS_EVENT) || arg.equals(TrpCanvasContextMenu.SELECT_TABLE_COLUMN_CELLS_EVENT) || arg.equals(TrpCanvasContextMenu.SELECT_TABLE_CELLS_EVENT)) {
+				TrpTableCellType cell = TableUtils.getTableCell(s);
+				if (cell != null) {
+					TableDimension dim = null;
+					if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_ROW_CELLS_EVENT))
+						dim = TableDimension.ROW;
+					else if (arg.equals(TrpCanvasContextMenu.SELECT_TABLE_COLUMN_CELLS_EVENT))
+						dim = TableDimension.COLUMN;
+					
+					TableUtils.selectCells(canvas, cell, dim);
+				}
+			} 
+			else if (arg.equals(TrpCanvasContextMenu.DELETE_TABLE_ROW_EVENT) || arg.equals(TrpCanvasContextMenu.DELETE_TABLE_COLUMN_EVENT)) {
+				TrpTableCellType cell = TableUtils.getTableCell(s);
+				if (cell != null) {
+					TableDimension dim = arg.equals(TrpCanvasContextMenu.DELETE_TABLE_ROW_EVENT) ? TableDimension.ROW : TableDimension.COLUMN;
+					logger.debug("deleting table "+dim);
+					canvas.getShapeEditor().deleteTableRowOrColumn(s, dim, true);	
+				}
 			}
-		}
-		else if (arg.equals(TrpCanvasContextMenu.DELETE_TABLE_EVENT)) {
-			TrpTableRegionType t = TableUtils.getTable(canvas.getFirstSelected(), true);
-			logger.debug("deleting table, t = "+t);
-			if (t != null) {
-				canvas.getShapeEditor().removeShapeFromCanvas((ICanvasShape) t.getData(), true);
+			else if (arg.equals(TrpCanvasContextMenu.DELETE_TABLE_EVENT)) {
+				TrpTableRegionType t = TableUtils.getTable(s, true);
+				logger.debug("deleting table, t = "+t);
+				if (t != null) {
+					canvas.getShapeEditor().removeShapeFromCanvas((ICanvasShape) t.getData(), true);
+				}
 			}
+			else if (arg.equals(TrpCanvasContextMenu.SPLIT_MERGED_CELL_EVENT)) {
+				canvas.getShapeEditor().splitMergedTableCell(s, true);
+			}
+			else if (arg.equals(TrpCanvasContextMenu.REMOVE_INTERMEDIATE_TABLECELL_POINTS_EVENT)) {
+				canvas.getShapeEditor().removeIntermediatePointsOfTableCell(s, true);
+			}
+		} catch (Throwable ex) {
+			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
 		}
 	}
 }

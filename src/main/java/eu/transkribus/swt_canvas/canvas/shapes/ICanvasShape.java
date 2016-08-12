@@ -134,8 +134,28 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	
 	/** True if some point of the given shape o is inside lies inside this shape. */
 	boolean isSomePointInside(ICanvasShape o);
+	
 	/** Returns the bounding box as a CanvasPolygon object. */
-	CanvasPolygon getBoundsPolygon();
+	default CanvasPolygon getBoundsPolygon() {
+		return new CanvasPolygon(getBoundsPoints());
+	}
+	
+	/** Returns the points of the boundary rectangle, starting from upper left corner in counter clockwise orientation */
+	default List<Point> getBoundsPoints() {
+		Rectangle r = getBounds();
+		List<Point> pts = new ArrayList<>();
+		pts.add(new Point(r.x, r.y));
+		pts.add(new Point(r.x, r.y+r.height));
+		pts.add(new Point(r.x+r.width, r.y+r.height));
+		pts.add(new Point(r.x+r.width, r.y));
+		return pts;
+	}
+	
+	default void simplifyToBounds() {
+		List<Point> pts = getBoundsPoints();
+		setPoints(pts);
+	}
+	
 //	Rectangle getBounds();
 	
 	/** Simplifies this shape with the given epsilon parameter using the Ramer-Douglas-Peucker algorithm */

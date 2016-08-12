@@ -2,9 +2,11 @@ package eu.transkribus.swt_canvas.canvas;
 
 import java.util.Observable;
 
+import org.eclipse.persistence.tools.schemaframework.PopulationManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
@@ -31,9 +33,7 @@ public class CanvasContextMenu extends Observable {
 		init();
 	}
 	
-	private void init() {
-		popupMenu = new Menu(canvas);
-	    	    
+	private void init() {	    
 	    itemSelListener = new SelectionListener() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				if (e.getSource() instanceof MenuItem) {
@@ -61,17 +61,46 @@ public class CanvasContextMenu extends Observable {
 //		return null;
 //	}
 	
-	private void createDeleteItem(ICanvasShape s) {
-		SWTUtil.dispose(deleteItem);
+//	private void disposeMenuItems(Menu m) {
+//		for (MenuItem mi : popupMenu.getItems()) {
+//			SWTUtil.dispose(mi);
+//		}		
+//	}
+//	
+//	private void disposeMenuItems() {
+//		for (MenuItem mi : popupMenu.getItems()) {
+//			if (mi != null && mi.getMenu()!=null)
+//			
+//			SWTUtil.dispose(mi);
+//		}
+//	}
+
+	private void createDeleteItem(ICanvasShape s) {			
+//		SWTUtil.dispose(deleteItem);
 		
 		if (s==null || TableUtils.getTableCell(s)!=null)
 			return;
 		
-		deleteItem = new MenuItem(popupMenu, SWT.NONE);
-		deleteItem.setText("Delete");
-		deleteItem.setImage(Images.DELETE);
-		deleteItem.setData(DELETE_ITEM_EVENT);
-		deleteItem.addSelectionListener(itemSelListener);
+		deleteItem = createMenuItem("Delete", Images.DELETE, DELETE_ITEM_EVENT);
+	}
+	
+	protected MenuItem createMenuItem(String txt, Image img, Object data) {
+		return createMenuItem(txt, img, data, popupMenu, itemSelListener);
+	}
+	
+	protected MenuItem createMenuItem(String txt, Image img, Object data, Menu menu) {
+		return createMenuItem(txt, img, data, menu, itemSelListener);
+	}
+		
+	protected MenuItem createMenuItem(String txt, Image img, Object data, Menu menu, SelectionListener listener) {
+		MenuItem item = new MenuItem(menu, SWT.NONE);
+		item.setText(txt);
+		if (img != null)
+			item.setImage(Images.DELETE);
+		item.setData(data);
+		item.addSelectionListener(listener);
+		
+		return item;
 	}
 		
 	protected void initItems(ICanvasShape s) {
@@ -79,6 +108,11 @@ public class CanvasContextMenu extends Observable {
 	}
 	
 	public void show(ICanvasShape s, int x, int y) {
+		if (popupMenu!=null && !popupMenu.isDisposed())
+			popupMenu.dispose();
+				
+		popupMenu = new Menu(canvas);		
+		
 		initItems(s);
 		
 		popupMenu.setLocation(x, y);

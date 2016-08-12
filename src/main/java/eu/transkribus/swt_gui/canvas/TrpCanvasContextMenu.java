@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.canvas;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
@@ -20,6 +21,17 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 	public static final String DELETE_TABLE_EVENT = "DELETE_TABLE_EVENT";
 	public static final String DELETE_TABLE_ROW_EVENT = "DELETE_TABLE_COLUMN_CELLS_EVENT";
 	public static final String DELETE_TABLE_COLUMN_EVENT = "DELETE_TABLE_COLUMN_CELLS_EVENT";
+	public static final String SPLIT_MERGED_CELL_EVENT = "SPLIT_MERGED_CELL_EVENT";
+	
+	public static final String DELETE_ROW_EVENT = "DELETE_ROW_EVENT";
+	public static final String DELETE_COLUMN_EVENT = "DELETE_COLUMN_EVENT";
+	
+	public static final String REMOVE_INTERMEDIATE_TABLECELL_POINTS_EVENT = "REMOVE_INTERMEDIATE_TABLECELL_POINTS_EVENT";
+	
+	
+	
+	Menu tableMenu;
+	MenuItem tableMenuItem;
 	
 	MenuItem selectTableCellsItem;
 	MenuItem selectTableRowCellsItem;
@@ -27,7 +39,7 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 	MenuItem deleteTableRowItem;
 	MenuItem deleteTableColumnItem;
 	MenuItem deleteTableItem;
-
+	
 	public TrpCanvasContextMenu(SWTCanvas canvas) {
 		super(canvas);
 	}
@@ -39,52 +51,27 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 		if (t == null)
 			return;
 		
-		deleteTableItem = new MenuItem(popupMenu, SWT.NONE);
-		deleteTableItem.setText("Delete table");
-		deleteTableItem.setImage(Images.DELETE);
-		deleteTableItem.setData(DELETE_TABLE_EVENT);
-		deleteTableItem.addSelectionListener(itemSelListener);	
+		deleteTableItem = createMenuItem("Delete Table", Images.DELETE, DELETE_TABLE_EVENT);
 	}
 	
 	private void createTableCellItems(ICanvasShape s) {
-		SWTUtil.dispose(selectTableCellsItem);
-		SWTUtil.dispose(selectTableRowCellsItem);
-		SWTUtil.dispose(selectTableColumnCellsItem);
-		SWTUtil.dispose(deleteTableRowItem);
-		SWTUtil.dispose(deleteTableColumnItem);
-		
 		TrpTableCellType cell = TableUtils.getTableCell(s);
 		if (cell == null)
 			return;
 		
-		selectTableCellsItem = new MenuItem(popupMenu, SWT.NONE);
-		selectTableCellsItem.setText("Select cells");
-		selectTableCellsItem.setData(SELECT_TABLE_CELLS_EVENT);
-		selectTableCellsItem.addSelectionListener(itemSelListener);
+		selectTableCellsItem = createMenuItem("Select cells", null, SELECT_TABLE_CELLS_EVENT);
+		selectTableRowCellsItem = createMenuItem("Select row cells", null, SELECT_TABLE_ROW_CELLS_EVENT);
+		selectTableColumnCellsItem = createMenuItem("Select columns cells", null, SELECT_TABLE_COLUMN_CELLS_EVENT);
+		deleteTableRowItem = createMenuItem("Delete row", Images.DELETE, DELETE_TABLE_ROW_EVENT);
+		deleteTableColumnItem = createMenuItem("Delete column", Images.DELETE, DELETE_TABLE_COLUMN_EVENT);
 		
-		selectTableRowCellsItem = new MenuItem(popupMenu, SWT.NONE);
-		selectTableRowCellsItem.setText("Select row cells");
-		selectTableRowCellsItem.setData(SELECT_TABLE_ROW_CELLS_EVENT);
-		selectTableRowCellsItem.addSelectionListener(itemSelListener);
+		if (cell.isMergedCell())
+			createMenuItem("Split merged cell", null, SPLIT_MERGED_CELL_EVENT);
 		
-		selectTableColumnCellsItem = new MenuItem(popupMenu, SWT.NONE);
-		selectTableColumnCellsItem.setText("Select columns cells");
-		selectTableColumnCellsItem.setData(SELECT_TABLE_COLUMN_CELLS_EVENT);
-		selectTableColumnCellsItem.addSelectionListener(itemSelListener);
-				
-		deleteTableRowItem = new MenuItem(popupMenu, SWT.NONE);
-		deleteTableRowItem.setText("Delete row");
-		deleteTableRowItem.setImage(Images.DELETE);
-		deleteTableRowItem.setData(DELETE_TABLE_ROW_EVENT);
-		deleteTableRowItem.addSelectionListener(itemSelListener);
-		
-		deleteTableColumnItem = new MenuItem(popupMenu, SWT.NONE);
-		deleteTableColumnItem.setText("Delete column");
-		deleteTableColumnItem.setImage(Images.DELETE);
-		deleteTableColumnItem.setData(DELETE_TABLE_COLUMN_EVENT);
-		deleteTableColumnItem.addSelectionListener(itemSelListener);		
+		if (s.getNPoints() > 4) // TODO: better check if there are intermediate points -> have to check also if a point is corner point of neighbor!!
+			createMenuItem("Remove intermediate points", null, REMOVE_INTERMEDIATE_TABLECELL_POINTS_EVENT);
 	}
-	
+		
 	protected void initItems(ICanvasShape s) {
 		super.initItems(s);
 		createTableItems(s);

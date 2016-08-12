@@ -515,6 +515,10 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 		}
 	}
 	
+	@Override public void simplifyToBounds() {
+		// NOT YET IMPLEMENTED FOR CANVAS QUAD POLYS
+	}
+	
 	private CanvasQuadPolygon computeSplitShape(TableDimension dir, boolean topOrLeft, Pair<ShapePoint, ShapePoint> sp) {
 		logger.debug("computeSplitShape, topOrLeft = "+topOrLeft+" sp = "+sp+" dir = "+dir);
 		

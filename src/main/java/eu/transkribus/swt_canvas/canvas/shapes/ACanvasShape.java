@@ -813,17 +813,17 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		return awtShape.getBounds2D();
 	}
 	
-	@Override
-	public CanvasPolygon getBoundsPolygon() {
-		Rectangle r = getBounds();
-		List<Point> pts = new ArrayList<>();
-		pts.add(new Point(r.x, r.y));
-		pts.add(new Point(r.x+r.width, r.y));
-		pts.add(new Point(r.x+r.width, r.y+r.height));
-		pts.add(new Point(r.x, r.y+r.height));
-		
-		return new CanvasPolygon(pts);
-	}
+//	@Override
+//	public CanvasPolygon getBoundsPolygon() {
+//		Rectangle r = getBounds();
+//		List<Point> pts = new ArrayList<>();
+//		pts.add(new Point(r.x, r.y));
+//		pts.add(new Point(r.x+r.width, r.y));
+//		pts.add(new Point(r.x+r.width, r.y+r.height));
+//		pts.add(new Point(r.x, r.y+r.height));
+//		
+//		return new CanvasPolygon(pts);
+//	}
 
 	@Override
 	public PathIterator getPathIterator(AffineTransform arg0) {
