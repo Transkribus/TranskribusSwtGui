@@ -366,6 +366,9 @@ CHANGES AND BUGFIXES
 	-> local RGBA imgs bugfix
 	-> select and load recently used documents from doc tab
 	-> load last used document after login
+	
+0.8.8:
+	-> move doc upload and search button from left document tab to the main menu bar
 	 
 	
 	
