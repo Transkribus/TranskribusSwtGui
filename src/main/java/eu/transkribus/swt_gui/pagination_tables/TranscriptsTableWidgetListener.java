@@ -121,10 +121,14 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 		
         TableItem[] selection = tv.getTable().getSelection();
         
+        boolean isCurrentTranscript = false;
+        if(vw.getFirstSelected() != null) {
+        	isCurrentTranscript = (vw.getFirstSelected().getTime().getTime() == Storage.getInstance().getTranscriptMetadata().getTime().getTime());
+        }
         /*
          * only the current loaded transcript can be set to a new status with right click (only  for this transcipt the menu gets visible)
          */
-        if(selection.length==1 && (vw.getFirstSelected().getTime().getTime() == Storage.getInstance().getTranscriptMetadata().getTime().getTime()) && (e.button == 3)){
+        if(selection.length==1 && isCurrentTranscript && (e.button == 3)){
         	logger.debug("show content menu");
         	//vw.setContextMenuVisible(true);
         	vw.enableContextMenu();
