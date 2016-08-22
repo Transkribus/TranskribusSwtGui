@@ -33,7 +33,7 @@ public class ToolsWidget extends Composite {
 	Composite mdGroup;
 	SWTEventListener listener=null;
 	Button blockSegBtn, blockSegWPsBtn, lineSegBtn, wordSegBtn, baselineBtn;
-	Button laBtn;
+	Button batchLaBtn;
 	
 	Button structAnalysisPageBtn, saInfoBtn;
 	Button detectPageNumbers, detectRunningTitles, detectFootnotesCheck;
@@ -161,23 +161,28 @@ public class ToolsWidget extends Composite {
 		Composite laToolsGroup = new Composite(laToolsExp, SWT.SHADOW_ETCHED_IN);
 		laToolsGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 //		metadatagroup.setText("Document metadata");
-		laToolsGroup.setLayout(new GridLayout(3, false));
+		laToolsGroup.setLayout(new GridLayout(2, false));
+				
+//		dps = new DocPagesSelector(laToolsGroup, SWT.NONE, Storage.getInstance().getDoc().getPages());
+//		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 2, 1));
+//		currPageBtn = new Button(laToolsGroup, SWT.PUSH);
+//		currPageBtn.setText("Current Page");
 		
-		laBtn = new Button(laToolsGroup, SWT.PUSH);
-		laBtn.setText("Analyze layout...");
-		laBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Button aboutLaBtn = new Button(laToolsGroup, SWT.PUSH);
-		aboutLaBtn.setImage(Images.getOrLoad("/icons/information.png"));
-		aboutLaBtn.addSelectionListener(new SelectionAdapter() {
+		blockSegBtn = new Button(laToolsGroup, SWT.PUSH);
+		blockSegBtn.setText("Detect regions");
+		blockSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		blockSegBtn.setToolTipText("Detects regions in the current page - warning: all current regions will be removed!");
+		Button aboutBlockSegBtn = new Button(laToolsGroup, SWT.PUSH);
+		aboutBlockSegBtn.setImage(Images.getOrLoad("/icons/information.png"));
+		aboutBlockSegBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				String title = "About: Analyze Layout";
+				String title = "About: Detect regions";
 				String msg = "Status\n"
 						+ "\t-Experimental\n"
 						+ "\t-Needs enhancement\n"
 						+ "Behaviour\n"
-						+ "\t-Text regions and lines are detected\n"
-						+ "\t-Already available text regions and/or lines are deleted\n"
+						+ "\t-Text regions are detected at single pages\n"
+						+ "\t-Already available text regions are deleted\n"
 						+ "Background\n"
 						+ "\t-HTR processing needs correctly detected text regions and baselines\n"
 						+ "\t-In the future it is planned to have integrated solutions available where\n"
@@ -192,71 +197,37 @@ public class ToolsWidget extends Composite {
 			}
 		});
 		
-//		dps = new DocPagesSelector(laToolsGroup, SWT.NONE, Storage.getInstance().getDoc().getPages());
-//		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 2, 1));
-//		currPageBtn = new Button(laToolsGroup, SWT.PUSH);
-//		currPageBtn.setText("Current Page");
 		
-//		blockSegBtn = new Button(laToolsGroup, SWT.PUSH);
-//		blockSegBtn.setText("Detect regions");
-//		blockSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-//		blockSegBtn.setToolTipText("Detects regions in the current page - warning: all current regions will be removed!");
-//		Button aboutBlockSegBtn = new Button(laToolsGroup, SWT.PUSH);
-//		aboutBlockSegBtn.setImage(Images.getOrLoad("/icons/information.png"));
-//		aboutBlockSegBtn.addSelectionListener(new SelectionAdapter() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//				String title = "About: Detect regions";
-//				String msg = "Status\n"
-//						+ "\t-Experimental\n"
-//						+ "\t-Needs enhancement\n"
-//						+ "Behaviour\n"
-//						+ "\t-Text regions are detected at single pages\n"
-//						+ "\t-Already available text regions are deleted\n"
-//						+ "Background\n"
-//						+ "\t-HTR processing needs correctly detected text regions and baselines\n"
-//						+ "\t-In the future it is planned to have integrated solutions available where\n"
-//						+ "\t text regions and baselines are detected in one process"
-//						+ "Provider\n"
-//						+ "\t-National Centre for Scientific Research (NCSR) – Demokritos in\n"
-//						+ "\t Greece/Athens.\n"
-//						+ "Contact\n"
-//						+ "\t https://www.iit.demokritos.gr/cil";
-//				
-//				DialogUtil.showMessageDialog(getShell(), title, msg, null, ncsrIcon, new String[] { "Close" }, 0);
-//			}
-//		});
-		
-		
-//		lineSegBtn = new Button(laToolsGroup, SWT.PUSH);
-//		lineSegBtn.setText("Detect lines and baselines");
-//		lineSegBtn.setToolTipText("Detects lines and baselines in all selected regions (or in all regions if no region is selected) - warning: current lines and baselines in selected regions will be lost!");
-//		lineSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-//		Button aboutLineSegBtn = new Button(laToolsGroup, SWT.PUSH);
-//		aboutLineSegBtn.setImage(Images.getOrLoad("/icons/information.png"));
-//		aboutLineSegBtn.addSelectionListener(new SelectionAdapter() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//				String title = "About: Detect Lines and Baselines";
-//				String msg = "Status\n"
-//						+ "\t-Beta version\n"
-//						+ "\t-Can be used for productive work\n"
-//						+ "Behaviour\n"
-//						+ "\t-Detects line regions and baselines in text regions.\n"
-//						+ "\t-Note: For HTR purposes only baselines are necessary, therefore no need\n"
-//						+ "\t to correct line regions.\n"
-//						+ "Background\n"
-//						+ "\t-The PAGE format which is used internally in TRANSKRIBUS requires that\n"
-//						+ "\t each baseline is part of a line region. Therefore the tool needs to produce\n"
-//						+ "\t line regions although the line regions are not used for further processing\n"
-//						+ "\t (and can therefore be ignored in the correction process).\n"
-//						+ "Provider\n"
-//						+ "\t-National Centre for Scientific Research (NCSR) – Demokritos in\n\tGreece/Athens.\n"
-//						+ "Contact\n"
-//						+ "\t https://www.iit.demokritos.gr/cil/";
-//				
-//				DialogUtil.showMessageDialog(getShell(), title, msg, null, ncsrIcon, new String[] { "Close" }, 0);
-//			}
-//		});		
-		
+		lineSegBtn = new Button(laToolsGroup, SWT.PUSH);
+		lineSegBtn.setText("Detect lines and baselines");
+		lineSegBtn.setToolTipText("Detects lines and baselines in all selected regions (or in all regions if no region is selected) - warning: current lines and baselines in selected regions will be lost!");
+		lineSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		Button aboutLineSegBtn = new Button(laToolsGroup, SWT.PUSH);
+		aboutLineSegBtn.setImage(Images.getOrLoad("/icons/information.png"));
+		aboutLineSegBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				String title = "About: Detect Lines and Baselines";
+				String msg = "Status\n"
+						+ "\t-Beta version\n"
+						+ "\t-Can be used for productive work\n"
+						+ "Behaviour\n"
+						+ "\t-Detects lines and baselines in text regions.\n"
+						+ "\t-Note: For HTR purposes only baselines are necessary, therefore no need\n"
+						+ "\t to correct lines.\n"
+						+ "Background\n"
+						+ "\t-The PAGE format which is used internally in TRANSKRIBUS requires that\n"
+						+ "\t each baseline is part of a line region. Therefore the tool needs to produce\n"
+						+ "\t line regions although the line regions are not used for further processing\n"
+						+ "\t (and can therefore be ignored in the correction process).\n"
+						+ "Provider\n"
+						+ "\t-National Centre for Scientific Research (NCSR) – Demokritos in\n\tGreece/Athens.\n"
+						+ "Contact\n"
+						+ "\t https://www.iit.demokritos.gr/cil/";
+				
+				DialogUtil.showMessageDialog(getShell(), title, msg, null, ncsrIcon, new String[] { "Close" }, 0);
+			}
+		});		
+				
 //		baselineBtn = new Button(laToolsGroup, SWT.PUSH);
 //		baselineBtn.setText("Detect baselines");
 //		baselineBtn.setToolTipText("Detects baselines in all lines of the selected regions (or of all regions if no region is selected) - warning: current baselines of affected lines will be lost!");
@@ -336,6 +307,36 @@ public class ToolsWidget extends Composite {
 //				s.open();
 //			}
 //		});
+		
+		batchLaBtn = new Button(laToolsGroup, SWT.PUSH);
+		batchLaBtn.setText("Batch job...");
+		batchLaBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		batchLaBtn.setToolTipText("Configure and start a batch job for layout analysis");
+		
+		Button aboutLaBtn = new Button(laToolsGroup, SWT.PUSH);
+		aboutLaBtn.setImage(Images.getOrLoad("/icons/information.png"));
+		aboutLaBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				String title = "About: Analyze Layout";
+				String msg = "Status\n"
+						+ "\t-Experimental\n"
+						+ "\t-Needs enhancement\n"
+						+ "Behaviour\n"
+						+ "\t-Text regions and lines are detected\n"
+						+ "\t-Already available text regions and/or lines are deleted\n"
+						+ "Background\n"
+						+ "\t-HTR processing needs correctly detected text regions and baselines\n"
+						+ "\t-In the future it is planned to have integrated solutions available where\n"
+						+ "\t text regions and baselines are detected in one process"
+						+ "Provider\n"
+						+ "\t-National Centre for Scientific Research (NCSR) – Demokritos in\n"
+						+ "\t Greece/Athens.\n"
+						+ "Contact\n"
+						+ "\t https://www.iit.demokritos.gr/cil";
+				
+				DialogUtil.showMessageDialog(getShell(), title, msg, null, ncsrIcon, new String[] { "Close" }, 0);
+			}
+		});		
 		
 		laToolsExp.setClient(laToolsGroup);
 		laToolsExp.setText("Layout Analysis");
@@ -500,12 +501,12 @@ public class ToolsWidget extends Composite {
 		});
 	}
 
-	public Button getBlocksBtn() { return blockSegBtn; }
-	public Button getBlocksInPsBtn() { return blockSegWPsBtn; }
-	public Button getLinesBtn() { return lineSegBtn; }
-	public Button getWordsBtn() { return wordSegBtn; }
-	public Button getBaselineBtn() { return baselineBtn; }
-	public Button getLaBtn() { return laBtn; }
+//	public Button getBlocksBtn() { return blockSegBtn; }
+//	public Button getBlocksInPsBtn() { return blockSegWPsBtn; }
+//	public Button getLinesBtn() { return lineSegBtn; }
+//	public Button getWordsBtn() { return wordSegBtn; }
+//	public Button getBaselineBtn() { return baselineBtn; }
+//	public Button getLaBtn() { return batchLaBtn; }
 
 	
 	public static String getTranscriptLabel(TrpTranscriptMetadata t) {

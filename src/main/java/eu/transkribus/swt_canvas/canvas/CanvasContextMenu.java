@@ -2,7 +2,6 @@ package eu.transkribus.swt_canvas.canvas;
 
 import java.util.Observable;
 
-import org.eclipse.persistence.tools.schemaframework.PopulationManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 
 public class CanvasContextMenu extends Observable {

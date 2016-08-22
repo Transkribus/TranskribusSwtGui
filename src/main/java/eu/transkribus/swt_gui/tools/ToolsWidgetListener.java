@@ -23,6 +23,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
@@ -49,16 +50,19 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 	
 	private void addListener() {
-		tw.laBtn.addSelectionListener(this);
-//		tw.blockSegBtn.addSelectionListener(this);
-//		blockSegWPsBtn.addSelectionListener(this);
-//		tw.lineSegBtn.addSelectionListener(this);
-//		tw.wordSegBtn.addSelectionListener(this);
-//		tw.baselineBtn.addSelectionListener(this);
-		tw.structAnalysisPageBtn.addSelectionListener(this);
-		tw.startRecogBtn.addSelectionListener(this);
-		tw.computeWerBtn.addSelectionListener(this);
+		// use utiliy method from SWTUtil class to avoid nullpointer exceptions!
+		SWTUtil.addSelectionListener(tw.batchLaBtn, this);
+		SWTUtil.addSelectionListener(tw.blockSegBtn, this);
+		SWTUtil.addSelectionListener(tw.lineSegBtn, this);
+		SWTUtil.addSelectionListener(tw.wordSegBtn, this);
 		
+//		blockSegWPsBtn.addSelectionListener(this);
+//		tw.baselineBtn.addSelectionListener(this);
+		
+		SWTUtil.addSelectionListener(tw.structAnalysisPageBtn, this);
+		SWTUtil.addSelectionListener(tw.startRecogBtn, this);
+		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
+				
 		//OLD
 //		tw.startOcrBtn.addSelectionListener(this);
 //		tw.startOcrPageBtn.addSelectionListener(this);
@@ -82,11 +86,11 @@ public class ToolsWidgetListener implements SelectionListener {
 	
 	
 	boolean isLayoutAnalysis(Object s) {
-		return (s == tw.getLaBtn() || s == tw.getBlocksBtn() || s == tw.getBlocksInPsBtn() || s == tw.getLinesBtn() || s == tw.getBaselineBtn());
+		return (s == tw.batchLaBtn || s == tw.blockSegBtn || s == tw.blockSegWPsBtn || s == tw.lineSegBtn || s == tw.baselineBtn);
 	}
 	
 	boolean needsRegions(Object s) {
-		return s == tw.getBaselineBtn() || s == tw.getLinesBtn();
+		return s == tw.baselineBtn || s == tw.lineSegBtn;
 	}
 		
 	@Override
@@ -129,28 +133,30 @@ public class ToolsWidgetListener implements SelectionListener {
 				mw.saveTranscription(false);
 			
 			// layout analysis:
-//			if (s == tw.getBlocksBtn()) {
-//				logger.info("Get new block seg.");
-//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, false);
-//			} else if(s == tw.getBlocksInPsBtn()) {
-//				logger.info("Get new block seg. in PS");
-//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
-//			} else if(s == tw.getLinesBtn()) {
-//				logger.info("Get new line seg.");
-//				List<String> rids = getSelectedRegionIds();
-//				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-//			} 
-//			else if(s == tw.getWordsBtn()) {
-//				logger.info("Get new word seg.");
-//				List<String> rids = getSelectedRegionIds();
-//				jobId = store.analyzeWords(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-//			} 
-//			else if(s == tw.getBaselineBtn()) {
-//				logger.info("Get new Baselines.");
-//				List<String> rids = getSelectedRegionIds();
-//				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-//			}
-			if(s == tw.getLaBtn()) {
+			if (s == tw.blockSegBtn) {
+				logger.info("Get new block seg.");
+				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, false);
+			} 
+			else if(s == tw.blockSegWPsBtn) {
+				logger.info("Get new block seg. in PS");
+				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
+			}
+			else if(s == tw.lineSegBtn) {
+				logger.info("Get new line seg.");
+				List<String> rids = getSelectedRegionIds();
+				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+			}
+			else if(s == tw.wordSegBtn) {
+				logger.info("Get new word seg.");
+				List<String> rids = getSelectedRegionIds();
+				jobId = store.analyzeWords(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+			}
+			else if(s == tw.baselineBtn) {
+				logger.info("Get new Baselines.");
+				List<String> rids = getSelectedRegionIds();
+				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+			}
+			if(s == tw.batchLaBtn) {
 				SimpleLaDialog laD = new SimpleLaDialog(mw.getShell());
 				int ret = laD.open();
 				if (ret == IDialogConstants.OK_ID) {

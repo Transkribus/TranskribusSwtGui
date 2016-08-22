@@ -233,25 +233,25 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	@Override public void addSelectionListener(SelectionListener listener) {
 		super.addSelectionListener((CanvasToolBarSelectionListener)listener);
 
-		SWTUtil.addToolItemSelectionListener(imageVersionItem.ti, listener);
+		SWTUtil.addSelectionListener(imageVersionItem.ti, listener);
 		
-		SWTUtil.addToolItemSelectionListener(addPrintspace, listener);
-		SWTUtil.addToolItemSelectionListener(addTextRegion, listener);
-		SWTUtil.addToolItemSelectionListener(addLine, listener);
-		SWTUtil.addToolItemSelectionListener(addBaseLine, listener);
-		SWTUtil.addToolItemSelectionListener(addWord, listener);
+		SWTUtil.addSelectionListener(addPrintspace, listener);
+		SWTUtil.addSelectionListener(addTextRegion, listener);
+		SWTUtil.addSelectionListener(addLine, listener);
+		SWTUtil.addSelectionListener(addBaseLine, listener);
+		SWTUtil.addSelectionListener(addWord, listener);
 		
-		SWTUtil.addToolItemSelectionListener(addSpecialRegion.ti, listener);
+		SWTUtil.addSelectionListener(addSpecialRegion.ti, listener);
 
-		SWTUtil.addToolItemSelectionListener(viewSettingsMenuItem, listener);
+		SWTUtil.addSelectionListener(viewSettingsMenuItem, listener);
 		
-		SWTUtil.addToolItemSelectionListener(imgEnhanceItem, listener);
+		SWTUtil.addSelectionListener(imgEnhanceItem, listener);
 		
 		// table stuff
-		SWTUtil.addMenuItemSelectionListener(deleteRowItem, listener);
-		SWTUtil.addMenuItemSelectionListener(deleteColumnItem, listener);
-		SWTUtil.addMenuItemSelectionListener(splitMergedCell, listener);
-		SWTUtil.addMenuItemSelectionListener(removeIntermediatePtsItem, listener);
+		SWTUtil.addSelectionListener(deleteRowItem, listener);
+		SWTUtil.addSelectionListener(deleteColumnItem, listener);
+		SWTUtil.addSelectionListener(splitMergedCell, listener);
+		SWTUtil.addSelectionListener(removeIntermediatePtsItem, listener);
 		
 //		for (Class c : REGION_TYPES) {
 //			CanvasMode m = TrpCanvasAddMode.ADD_OTHERREGION;

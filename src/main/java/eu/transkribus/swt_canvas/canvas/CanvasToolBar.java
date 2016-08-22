@@ -399,29 +399,29 @@ public class CanvasToolBar extends ToolBar {
 //	}
 	
 	public void addSelectionListener(SelectionListener listener) {
-		SWTUtil.addToolItemSelectionListener(selectionMode, listener);
-		SWTUtil.addToolItemSelectionListener(zoomSelection, listener);
-		SWTUtil.addToolItemSelectionListener(zoomIn, listener);
-		SWTUtil.addToolItemSelectionListener(zoomOut, listener);
-		SWTUtil.addToolItemSelectionListener(loupe, listener);
+		SWTUtil.addSelectionListener(selectionMode, listener);
+		SWTUtil.addSelectionListener(zoomSelection, listener);
+		SWTUtil.addSelectionListener(zoomIn, listener);
+		SWTUtil.addSelectionListener(zoomOut, listener);
+		SWTUtil.addSelectionListener(loupe, listener);
 //		SWTUtil.addToolItemSelectionListener(rotateLeft, listener);
 //		SWTUtil.addToolItemSelectionListener(rotateRight, listener);
-		SWTUtil.addToolItemSelectionListener(fitItem.ti, listener);
-		SWTUtil.addToolItemSelectionListener(rotateItem.ti, listener);
+		SWTUtil.addSelectionListener(fitItem.ti, listener);
+		SWTUtil.addSelectionListener(rotateItem.ti, listener);
 //		SWTUtil.addToolItemSelectionListener(translateItem.ti, listener);
 		
-		SWTUtil.addToolItemSelectionListener(focus, listener);
-		SWTUtil.addToolItemSelectionListener(addPoint, listener);
-		SWTUtil.addToolItemSelectionListener(removePoint, listener);
-		SWTUtil.addToolItemSelectionListener(addShape, listener);
-		SWTUtil.addToolItemSelectionListener(removeShape, listener);
-		SWTUtil.addToolItemSelectionListener(simplifyEpsItem.ti, listener);
-		SWTUtil.addToolItemSelectionListener(undo, listener);
+		SWTUtil.addSelectionListener(focus, listener);
+		SWTUtil.addSelectionListener(addPoint, listener);
+		SWTUtil.addSelectionListener(removePoint, listener);
+		SWTUtil.addSelectionListener(addShape, listener);
+		SWTUtil.addSelectionListener(removeShape, listener);
+		SWTUtil.addSelectionListener(simplifyEpsItem.ti, listener);
+		SWTUtil.addSelectionListener(undo, listener);
 		if (splitShapeLine!=null)
-			SWTUtil.addToolItemSelectionListener(splitShapeLine, listener);
-		SWTUtil.addToolItemSelectionListener(splitShapeWithVerticalLine, listener);
-		SWTUtil.addToolItemSelectionListener(splitShapeWithHorizontalLine, listener);
-		SWTUtil.addToolItemSelectionListener(mergeShapes, listener);
+			SWTUtil.addSelectionListener(splitShapeLine, listener);
+		SWTUtil.addSelectionListener(splitShapeWithVerticalLine, listener);
+		SWTUtil.addSelectionListener(splitShapeWithHorizontalLine, listener);
+		SWTUtil.addSelectionListener(mergeShapes, listener);
 	}
 
 	public ToolItem getZoomIn() {

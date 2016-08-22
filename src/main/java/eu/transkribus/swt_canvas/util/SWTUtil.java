@@ -617,14 +617,28 @@ public class SWTUtil {
 //		}
 //	}
 	
-	public static void addMenuItemSelectionListener(MenuItem ti, SelectionListener listener) {
-		if (ti!=null && !ti.isDisposed())
-			ti.addSelectionListener(listener);	
+	public static boolean addSelectionListener(MenuItem mi, SelectionListener l) {
+		if (isDisposed(mi))
+			return false;
+		
+		mi.addSelectionListener(l);
+		return true;
 	}	
 	
-	public static void addToolItemSelectionListener(ToolItem ti, SelectionListener listener) {
-		if (ti!=null && !ti.isDisposed())
-			ti.addSelectionListener(listener);	
+	public static boolean addSelectionListener(ToolItem ti, SelectionListener l) {
+		if (isDisposed(ti))
+			return false;
+		
+		ti.addSelectionListener(l);
+		return true;
+	}
+	
+	public static boolean addSelectionListener(Button btn, SelectionListener l) {
+		if (isDisposed(btn))
+			return false;
+					
+		btn.addSelectionListener(l);
+		return true;
 	}
 	
 	public static void setEnabled(ToolItem item, boolean enabled) {

@@ -315,7 +315,7 @@ public class TrpMainWidget {
 			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
 		}
 		
-		boolean TESTTABLES=true;
+		boolean TESTTABLES=false; // test-hook for sebi's table editor
 		if (getTrpSets().isAutoLogin() && !TESTTABLES) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
 			
@@ -1927,7 +1927,7 @@ public class TrpMainWidget {
 	/**
 	 * Prints an error message and the stack trace of the given throwable to the
 	 * error log and pops up an error message box. Also, resets data in some
-	 * listeners to recover from error.
+	 * listeners to recover from the error.
 	 */
 	public void onError(String title, String message, Throwable th) {
 		onError(title, message, th, true, false);
