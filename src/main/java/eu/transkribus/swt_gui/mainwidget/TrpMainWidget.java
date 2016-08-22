@@ -24,6 +24,7 @@ import java.util.zip.ZipOutputStream;
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
+import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.io.FileDeleteStrategy;
 import org.apache.commons.io.FileExistsException;
@@ -847,7 +848,12 @@ public class TrpMainWidget {
 	public void loadRecentDoc(String docToLoad) {
 		String[] tmp = docToLoad.split(";;;");
 		if (tmp.length == 1){
-			loadLocalDoc(tmp[0]);
+			if (new File(tmp[0]).exists()){
+				loadLocalDoc(tmp[0]);
+			}
+			else{
+				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Local folder does not exist anymore", 2, true);
+			}
 		}
 		else if (tmp.length == 3){
 //			for (int i = 0; i < tmp.length; i++){
@@ -855,9 +861,21 @@ public class TrpMainWidget {
 //			}
 			int docid = Integer.valueOf(tmp[1]);
 			int colid = Integer.valueOf(tmp[2]); 
-			loadRemoteDoc(docid, colid);
-			getUi().getDocOverviewWidget().setSelectedCollection(colid, true);
-			getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docid, true);
+			
+			List<TrpDocMetadata> docList;
+			try {
+				docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
+				if (docList != null && docList.size() > 0){
+					if (loadRemoteDoc(docid, colid)){
+						getUi().getDocOverviewWidget().setSelectedCollection(colid, true);
+						getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docid, true);
+					}
+				}
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+					| IllegalArgumentException e) {
+				// DO NOTHING - could be that doc is not at current server and hence we can not load the doc
+			}
+
 		}
 		
 		
