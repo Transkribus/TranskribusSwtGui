@@ -871,9 +871,12 @@ public class TrpMainWidget {
 						getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docid, true);
 					}
 				}
+				else{
+					//DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Last used document is not on this server", 2, true);
+				}
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 					| IllegalArgumentException e) {
-				// DO NOTHING - could be that doc is not at current server and hence we can not load the doc
+				// DO NOTHING
 			}
 
 		}
@@ -2249,6 +2252,9 @@ public class TrpMainWidget {
 					throw new Exception("DocDir list is empty!");
 				}
 				
+				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "FTP Upload", "The FTP upload runs as background process and last for some time.\n"
+					+ "Look into Jobs tab!\nReloading the collection shows the already uploaded documents.", 2, true);
+							
 				for(final TrpDocDir d : dirs) {
 //					String docTitle = d.getMetadata()==null ? d.getName() : d.getMetadata().getTitle();
 					try {
@@ -2261,7 +2267,10 @@ public class TrpMainWidget {
 							}
 						}
 					}
-				}				
+				}
+				
+				ui.selectJobListTab();
+				ui.getJobOverviewWidget().refreshPage(false);
 
 //				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 //					@Override public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
