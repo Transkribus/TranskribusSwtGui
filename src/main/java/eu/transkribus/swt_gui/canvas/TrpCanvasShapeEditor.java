@@ -1213,16 +1213,29 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		for (int s=0; s<4; ++s) {
 			List<TrpTableCellType> ns = tc.getNeighborCells(s);
 			
-			logger.debug("ns.size() = "+ns.size());
+			// must ensure that cells are sorted in row or column direction depending on the side we are working on:
+			if (s==0 || s==2) // sort rowwise
+				Collections.sort(ns, TrpTableCellType.TABLE_CELL_ROW_COMPARATOR);
+			else // sort columnwise
+				Collections.sort(ns, TrpTableCellType.TABLE_CELL_COLUMN_COMPARATOR);
+			
+			logger.trace("ns.size() = "+ns.size());
+			for (TrpTableCellType n : ns) {
+				logger.trace("n: "+n);
+			}
 			
 			int count=0;
-			boolean rot = s>1;
+			
+			boolean isRightOrTopSide = s>1;
+			if (isRightOrTopSide) // for right or top side we have step trough neighbor cells in the opposite direction
+				Collections.reverse(ns);
 			
 			if (!ns.isEmpty()) {
 				int so = (s+2)%4;
-				for ( int i=(rot?ns.size()-1:0); i!=(rot?-1:ns.size()); i+=(rot?-1:1) ) {
-					TrpTableCellType n = ns.get(i);
-					
+//				for ( int asdf=(rot?ns.size()-1:0); i!=(rot?-1:ns.size()); i+=(rot?-1:1) ) {
+//					TrpTableCellType n = ns.get(i);
+				for (TrpTableCellType n : ns) {
+//					
 					CanvasQuadPolygon qpn = (CanvasQuadPolygon) n.getData();
 					
 					List<java.awt.Point> segPtsBase = qp.getPointsOfSegment(s, true);
@@ -1434,7 +1447,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 						pt = pts[i+1][j];
 					else if (x==2)
 						pt = pts[i+1][j+1];
-					else
+					else if (x==3)
 						pt = pts[i][j+1];
 					
 					corners[x] = c;
