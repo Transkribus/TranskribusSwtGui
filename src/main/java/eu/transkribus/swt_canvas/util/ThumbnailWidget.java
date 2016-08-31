@@ -5,6 +5,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;
 import org.eclipse.nebula.widgets.gallery.GalleryItem;
@@ -14,6 +16,7 @@ import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -30,7 +33,15 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
+import eu.transkribus.core.model.beans.pagecontent.TextLineType;
+import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
+import eu.transkribus.core.model.beans.pagecontent.WordType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class ThumbnailWidget extends Composite {
@@ -54,6 +65,7 @@ public class ThumbnailWidget extends Composite {
 	
 	protected Label statisticLabel;
 	protected Label pageNrLabel;
+	protected Label totalTranscriptsLabel;
 	
 	protected GalleryItem group;
 	
@@ -66,20 +78,32 @@ public class ThumbnailWidget extends Composite {
 	
 	protected List<TrpTranscriptMetadata> transcripts;
 	
+	protected List<Integer> nrTranscribedLines;
+	
 //	protected NoGroupRenderer groupRenderer;
 	protected AbstractGridGroupRenderer groupRenderer;
 	
 	static int thread_counter=0;
 	
+	static final Color lightGreen = new Color(Display.getCurrent(), 200, 255, 200);
+	static final Color lightYellow = new Color(Display.getCurrent(), 255, 255, 200);
+	static final Color lightRed = new Color(Display.getCurrent(), 252, 204, 188);
+	private int totalLinesTranscribed = 0;
+	
+	private int maxWidth = 0;
+	
 	public static class ThmbImg {		
 		Image image = null;
 		URL url;
+		TrpTranscriptMetadata transcript;
 		boolean isError=false;
 		int index;
+		int transcribedLines;
 		
-		public ThmbImg(int index, URL url) {
+		public ThmbImg(int index, URL url, TrpTranscriptMetadata transcript) {
 			this.index = index;
 			this.url = url;
+			this.transcript = transcript;
 			load();
 		}
 		
@@ -111,6 +135,7 @@ public class ThumbnailWidget extends Composite {
 			try {
 				isError = false;
 				image = ImgLoader.load(url);
+				transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
 //				if (image.getBounds().height > THUMB_HEIGHT) {
 //					Image scaled = scaleImageToHeight(image, THUMB_HEIGHT);
 //					image.dispose();
@@ -175,12 +200,13 @@ public class ThumbnailWidget extends Composite {
 		@Override
 		public void run() {
 			cancel = false;
+			totalLinesTranscribed = 0;
 			
 			for (int i=0; i<urls.size() && !cancel; ++i) {
 				if (cancel)
 					break;
 				
-				thumbs.add(new ThmbImg(i, urls.get(i)) {
+				thumbs.add(new ThmbImg(i, urls.get(i), transcripts.get(i)) {
 					@Override
 					protected void onSuccess() {
 						if (cancel || index >= group.getItemCount() || index <0)
@@ -192,7 +218,13 @@ public class ThumbnailWidget extends Composite {
 //						logger.trace("item: "+group.getItem(index));
 						group.getItem(index).setImage(image);
 						group.getItem(index).setData("doNotScaleImage", null);
-						//just a try
+						
+						//text and background according to the nr of transcribed lines
+						setItemTextAndBackgroung(group.getItem(index), index, transcribedLines);
+
+						totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
+						groupComposite.layout(true, true);
+						labelComposite.redraw();
 						groupComposite.redraw();
 						gallery.redraw();
 					}
@@ -315,7 +347,7 @@ public class ThumbnailWidget extends Composite {
 	
 	private void updateGalleryItemNames() {
 		for (int i=0; i<group.getItemCount(); ++i) {
-			setItemText(group.getItems()[i], i);
+			setItemText(group.getItems()[i], i, "");
 		}
 	}
 
@@ -327,18 +359,92 @@ public class ThumbnailWidget extends Composite {
 //			reload();
 	}
 	
-	private void createGalleryItems() {
+	private void createGalleryItems(){
 		//add text
-		
+
 		for (int i=0; i<urls.size(); ++i) {
 			final GalleryItem item = new GalleryItem(group, SWT.MULTI);
 //			item.setText(0, "String 0\nString2");
 //			item.setText(1, "String 1");
 			item.setExpanded(true);
-			setItemText(item, i);
+			
 			item.setImage(Images.LOADING_IMG);
 			item.setData("doNotScaleImage", new Object());
+			
+//			String transcribedLinesText = "";
+//			//here we could set background color regarding to if transcribed text exists
+//			try {
+//				/*
+//				 * get number or transcribed lines: 0: no lines available, -1: lines but no text, n lines with text
+//				 */
+//				int transcribedLines = countTranscribedLines(transcripts.get(i).unmarshallTranscript());
+//				
+//				if (transcribedLines == 0){
+//					transcribedLinesText = "\nNo lines segmented";
+//				}
+//				else{
+//					transcribedLinesText = (transcribedLines > 0 ? "\nTranscribed lines: "+transcribedLines : "\nTranscribed lines: 0");
+//				}
+//				
+//				if (transcribedLines > 0){
+//					totalLinesTranscribed += transcribedLines;
+////					String text = item.getText();
+////					String tlText = "\nTranscribed lines: "+transcribedLines;
+////									
+////					
+////					text += "\nTranscribed lines: "+transcribedLines;
+//
+//					item.setBackground(lightGreen);
+//				}
+//				else if(transcribedLines <0){
+//					item.setBackground(lightYellow);
+//				}
+//				else{
+//					item.setBackground(lightRed);
+//				}
+////				if (checkIfTranscribed(transcripts.get(i).unmarshallTranscript())){
+////					//item.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_GREEN));
+////					item.setBackground(lightGreen);
+////				}
+////				else{
+////					item.setBackground(lightRed);
+////				}
+//			} catch (NullValueException | JAXBException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			setItemText(item, i, transcribedLinesText);
+			
 		}
+	}
+	
+	
+	/***
+	 * 
+	 * @param pc
+	 * @return number or transcribed lines: if 0: no lines available, -1: lines but no text, >0 lines with text
+	 */
+	private static int countTranscribedLines(PcGtsType pc){
+		int counter = 0;
+		for( TextRegionType tr : PageXmlUtils.getTextRegions(pc)){			//Check all textregions of page
+			for(TextLineType tl : tr.getTextLine()){						//Check all textlines of textregion
+					TrpTextLineType ttl = (TrpTextLineType) tl;
+					if(!ttl.getUnicodeText().isEmpty()){					//Check if textline is empty
+						counter++;						
+					}
+			}
+		}
+		
+		//no line contains text - check if there are lines
+		if(counter == 0){
+			for( TextRegionType tr : PageXmlUtils.getTextRegions(pc)){
+				if(tr.getTextLine().size() > 0){
+					counter = -1;
+				}
+			}
+		}
+		
+		return counter;
 	}
 	
 	private void disposeOldData() {
@@ -403,22 +509,33 @@ public class ThumbnailWidget extends Composite {
 		if (!storage.isDocLoaded())
 			return;
 		
-		if (storage.getDoc() != null){
-			if(pageNrLabel != null && !pageNrLabel.isDisposed()){
-				pageNrLabel.dispose();
-			}
-			pageNrLabel = new Label(labelComposite, SWT.NONE);
-			pageNrLabel.setText("Nr of pages: " + storage.getDoc().getNPages());
-			groupComposite.layout(true, true);
-		}
-
 		// set url and page data:
 		setUrls(storage.getDoc().getThumbUrls(), storage.getDoc().getPageImgNames());
 		
 		setTranscripts(storage.getDoc().getTranscripts());
 		
+		//setImageTexts();
+		
 		// create new gallery items:
 		createGalleryItems();
+		
+		if (storage.getDoc() != null){
+			if(pageNrLabel != null && !pageNrLabel.isDisposed()){
+				pageNrLabel.dispose();
+			}
+			if(totalTranscriptsLabel != null && !totalTranscriptsLabel.isDisposed()){
+				totalTranscriptsLabel.dispose();
+			}
+			pageNrLabel = new Label(labelComposite, SWT.NONE);
+			pageNrLabel.setText("Nr of pages: " + storage.getDoc().getNPages());
+			
+			totalTranscriptsLabel = new Label(labelComposite, SWT.None);
+			totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
+
+			groupComposite.layout(true, true);
+		}
+
+
 		
 		// create a new thread and start it:
 		loadThread = new ThmbImgLoadThread();
@@ -432,6 +549,8 @@ public class ThumbnailWidget extends Composite {
 			loadThread.run(); // sequential version -> just call run() method
 		}
 		
+
+		
 		// select item previously selected:
 		logger.debug("previously selected index = "+selectedIndex+ " n-items = "+group.getItemCount());
 		if (selectedIndex >= 0 && selectedIndex<group.getItemCount()) {
@@ -444,33 +563,86 @@ public class ThumbnailWidget extends Composite {
 		}	
 	}
 	
+	private void setItemTextAndBackgroung(GalleryItem galleryItem, int index, int transcribedLines) {
+		String transcribedLinesText = "";
+		
+		//int transcribedLines;
+
+				//transcribedLines = countTranscribedLines(transcripts.get(index).unmarshallTranscript());
+	
+			//here we could set background color regarding to if transcribed text exists
+	
+			/*
+			 * get number or transcribed lines: 0: no lines available, -1: lines but no text, n lines with text
+			 */
+			//int transcribedLines = nrTranscribedLines.get(index);
+			
+			if (transcribedLines == 0){
+				transcribedLinesText = "\nNo lines segmented";
+			}
+			else{
+				transcribedLinesText = (transcribedLines > 0 ? "\nTranscribed lines: "+transcribedLines : "\nTranscribed lines: 0");
+			}
+			
+			if (transcribedLines > 0){
+				totalLinesTranscribed += transcribedLines;
+	//				String text = item.getText();
+	//				String tlText = "\nTranscribed lines: "+transcribedLines;
+	//								
+	//				
+	//				text += "\nTranscribed lines: "+transcribedLines;
+	
+				galleryItem.setBackground(lightGreen);
+			}
+			else if(transcribedLines <0){
+				galleryItem.setBackground(lightYellow);
+			}
+			else{
+				galleryItem.setBackground(lightRed);
+			}
+			
+			setItemText(galleryItem, index, transcribedLinesText);
+		
+
+		
+	}
+	
 	private void setTranscripts(List<TrpTranscriptMetadata> transcripts2) {
 		this.transcripts = transcripts2;
 	}
 
-	private void setItemText(GalleryItem item, int i) {
+	private void setItemText(GalleryItem item, int i, String transcribedLinesText) {
 		String text=""+(i+1);
 		
-		int maxWidth = 0;
+		
 		GC gc = new GC(item.getParent());
 		
 		if (/*showOrigFn.getSelection() && */names!=null && i>=0 && i<names.size() && !names.get(i).isEmpty()) {
-			text+=": "+names.get(i);
+			//this shows the filename but is not really necessary in the thumbnail view
+			//text+=": "+names.get(i);
+			text+=": ";
 			int tmp = gc.textExtent(text).x + 10;
 			maxWidth = Math.max(maxWidth, tmp);
 //			logger.debug("/////user id" + transcripts.get(i).getUserName());
 //			logger.debug("/////status" + transcripts.get(i).getStatus());
+			text+= (transcripts.get(i)!= null ? transcripts.get(i).getStatus().getStr() : "");
+			if (transcripts.get(i)!= null){
+				//tmp = gc.textExtent(transcripts.get(i).getStatus().getStr()).x + 10;
+				tmp = gc.textExtent(text).x + 10;
+				maxWidth = Math.max(maxWidth, tmp);
+				//logger.debug("curr maxWidth " + maxWidth);
+			}
+			
 			text+= (transcripts.get(i)!= null ? "\n"+transcripts.get(i).getUserName() : "");
 			if (transcripts.get(i)!= null){
 				tmp = gc.textExtent(transcripts.get(i).getUserName()).x + 10;
 				maxWidth = Math.max(maxWidth, tmp);
 			}
-				
-			text+= (transcripts.get(i)!= null ? "\n"+transcripts.get(i).getStatus() : "");
-			if (transcripts.get(i)!= null){
-				tmp = gc.textExtent(transcripts.get(i).getStatus().getStr()).x + 10;
+			
+			if (!transcribedLinesText.equals("")){
+				text+=transcribedLinesText;
+				tmp = gc.textExtent(transcribedLinesText).x + 10;
 				maxWidth = Math.max(maxWidth, tmp);
-				//logger.debug("curr maxWidth " + maxWidth);
 			}
 				
 		}

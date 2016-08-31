@@ -428,6 +428,9 @@ public class TrpMainWidgetView extends Composite {
 			idx = 0;
 		}
 		leftTabFolder.setSelection(idx);
+		if (leftTabFolder.getSelection().equals(thumbnailItem)){
+			thumbnailWidget.reload();
+		}
 	}
 	
 	public void selectRightTab(int idx){
