@@ -369,7 +369,9 @@ CHANGES AND BUGFIXES
 	
 0.8.8:
 	-> move doc upload and search button from left document tab to the main menu bar
-	 
+	-> colored background in thumbnail overview: light green=transcribed lines are there, 
+		light yellow=now transcription (but lines segmented), light red=no line segmentation
+	-> thumbnail overview also shows number of transcribed lines (per page and per document)
 	
 	
 
