@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.canvas;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,6 +9,7 @@ import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -124,5 +127,12 @@ public class TrpCanvasScene extends CanvasScene {
 		}
 	}
 	
-
+	public List<TrpTableCellType> getSelectedTableCells() {
+		return getSelectedData(TrpTableCellType.class);
+	}
+	
+	public List<ICanvasShape> getSelectedTableCellShapes() {
+		return getSelectedShapesWithData(TrpTableCellType.class);
+	}
+	
 }

@@ -90,11 +90,11 @@ public class CanvasContextMenu extends Observable {
 		return createMenuItem(txt, img, data, menu, itemSelListener);
 	}
 		
-	protected MenuItem createMenuItem(String txt, Image img, Object data, Menu menu, SelectionListener listener) {
+	protected static MenuItem createMenuItem(String txt, Image img, Object data, Menu menu, SelectionListener listener) {
 		MenuItem item = new MenuItem(menu, SWT.NONE);
 		item.setText(txt);
 		if (img != null)
-			item.setImage(Images.DELETE);
+			item.setImage(img);
 		item.setData(data);
 		item.addSelectionListener(listener);
 		

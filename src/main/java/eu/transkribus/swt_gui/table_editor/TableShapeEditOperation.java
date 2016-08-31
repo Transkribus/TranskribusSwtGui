@@ -36,6 +36,11 @@ public class TableShapeEditOperation extends ShapeEditOperation {
 		cell.setCol(backup.col);
 		cell.setRowSpan(backup.rowSpan);
 		cell.setColSpan(backup.colSpan);
+		
+		cell.setLeftBorderVisible(backup.leftBorder);
+		cell.setRightBorderVisible(backup.rightBorder);
+		cell.setBottomBorderVisible(backup.bottomBorder);
+		cell.setTopBorderVisible(backup.topBorder);
 	}
 	
 	public static void recoverTableCellValues(/*TrpTableRegionType table, */List<TableCellUndoData> backup) {

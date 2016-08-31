@@ -10,6 +10,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
+import eu.transkribus.swt_gui.canvas.TrpCanvasShapeEditor.BorderFlags;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 
@@ -66,6 +67,14 @@ public class TrpCanvasContextMenuListener implements Observer {
 			}
 			else if (arg.equals(TrpCanvasContextMenu.REMOVE_INTERMEDIATE_TABLECELL_POINTS_EVENT)) {
 				canvas.getShapeEditor().removeIntermediatePointsOfTableCell(s, true);
+			}
+			else if (TrpCanvasContextMenu.isBorderEvent(arg)) {
+				BorderFlags bf = TrpCanvasContextMenu.getBorderFlags(arg);
+				if (bf == null)
+					return;
+				
+				canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), bf, true);
+				canvas.redraw();
 			}
 		} catch (Throwable ex) {
 			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);

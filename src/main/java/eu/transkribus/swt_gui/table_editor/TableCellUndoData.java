@@ -6,6 +6,7 @@ public class TableCellUndoData {
 	
 	public TrpTableCellType cell;
 	public int row, col, rowSpan, colSpan;
+	public boolean leftBorder, rightBorder, bottomBorder, topBorder;
 	
 	public TableCellUndoData(TrpTableCellType cell) {
 		this.cell = cell;
@@ -14,6 +15,11 @@ public class TableCellUndoData {
 		this.col = cell.getCol();
 		this.rowSpan = cell.getRowSpan();
 		this.colSpan = cell.getColSpan();
+		
+		this.leftBorder = cell.isLeftBorderVisible();
+		this.rightBorder = cell.isRightBorderVisible();
+		this.bottomBorder = cell.isBottomBorderVisible();
+		this.topBorder = cell.isTopBorderVisible();
 	}
 	
 	public boolean matches(TrpTableCellType cell) {

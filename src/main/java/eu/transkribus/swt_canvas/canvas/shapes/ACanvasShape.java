@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.util.Colors;
@@ -433,13 +434,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	
 	@Override
 	public int [] getPointArray() {
-		List<Point> pts = getPoints();
-		int [] pointArray = new int[pts.size()*2];
-		for (int i=0; i<pts.size(); ++i) {
-			pointArray[i*2] = pts.get(i).x;
-			pointArray[i*2+1] = pts.get(i).y;
-		}
-		return pointArray;
+		return CoreUtils.getPointArray(getPoints());
 	}
 
 	@Override

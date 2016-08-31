@@ -405,7 +405,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		
 		if (!isTextSelectedInTranscriptionWidget) {
 			logger.debug("applying this text style to all selected in canvas: "+ts);
-			List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedWithData(ITrpShapeType.class);
+			List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedData(ITrpShapeType.class);
 			logger.debug("nr selected: "+selData.size());
 			for (ITrpShapeType sel : selData) {
 				sel.setTextStyle(ts, recursive, mw);

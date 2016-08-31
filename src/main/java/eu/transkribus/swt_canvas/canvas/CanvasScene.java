@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -16,15 +17,20 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener.SceneEvent;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener.SceneEventType;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 
 /**
  * The scene contains all objects to be drawn, i.e. the main image, sub images
@@ -145,14 +151,52 @@ public class CanvasScene {
 			if (s.isVisible() && !selected.contains(s)){
 				s.draw(canvas, gc);
 			}
-
 		}
+		
 		// then draw selected shape over them (to make borders visible for
 		// overlapping regions!):
 		for (ICanvasShape s : selected) {
 			if (s.isVisible())
 				s.draw(canvas, gc);
 		}
+		
+		// TEST - draw border types of table cells
+		for (ICanvasShape s : shapes) {
+			TrpTableCellType c = TableUtils.getTableCell(s);
+			if (c != null) {
+				CanvasQuadPolygon qp = (CanvasQuadPolygon) s;
+				CanvasSettings sets = canvas.getSettings();
+				
+				for (int i=0; i<4; ++i) {
+					List<java.awt.Point> pts = qp.getPointsOfSegment(i, true);
+					int[] ptArr = CoreUtils.getPointArray(pts);
+
+					if (i == 0 && c.isLeftBorderVisible() || i == 1 && c.isBottomBorderVisible() || i == 2 && c.isRightBorderVisible()
+							|| i == 3 && c.isTopBorderVisible()) {
+						gc.setAlpha(sets.getForegroundAlpha());
+						if (s.isSelected()) { // if selected:
+							gc.setLineWidth(sets.getSelectedLineWidth() + 4); // set selected line with
+							gc.setBackground(s.getColor()); // set background color
+						} else {
+							gc.setLineWidth(sets.getDrawLineWidth() + 4);
+							gc.setBackground(s.getColor());
+						}
+						gc.setForeground(s.getColor());
+						
+						// TEST
+//						gc.setBackground(Colors.getSystemColor(SWT.COLOR_MAGENTA));
+//						gc.setForeground(Colors.getSystemColor(SWT.COLOR_MAGENTA));
+						
+						gc.setLineStyle(canvas.getSettings().getLineStyle());
+	
+						gc.setAlpha(sets.getForegroundAlpha());
+						gc.drawPolyline(ptArr);
+	
+					}
+				}
+			}
+		}
+		// END OF TEST
 		
 //		for (ICanvasShape s : readingOrderShapes) {
 //			//if (s.isVisible())
@@ -512,7 +556,7 @@ public class CanvasScene {
 		return sd;
 	}
 	
-	public <T> List<T> getSelectedWithData(Class<T> clazz) {
+	public <T> List<T> getSelectedData(Class<T> clazz) {
 		List<T> sd = new ArrayList<>();
 		for (Object o : getSelectedData()) {
 			if (clazz.isAssignableFrom(o.getClass()))
@@ -521,6 +565,17 @@ public class CanvasScene {
 		}
 		return sd;
 	}
+	
+	public <T> List<ICanvasShape> getSelectedShapesWithData(Class<T> clazz) {
+		List<ICanvasShape> sd = new ArrayList<>();
+		for (ICanvasShape s : getSelectedAsNewArray()) {
+			if (s.getData()!=null && clazz.isAssignableFrom(s.getData().getClass()))
+				sd.add(s);
+		}
+		return sd;
+	}
+	
+	
 
 	/**
 	 * Iterates through all shapes and returns the list of selected objects

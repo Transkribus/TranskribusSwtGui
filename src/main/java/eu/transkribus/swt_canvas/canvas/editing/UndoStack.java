@@ -78,6 +78,8 @@ public class UndoStack extends Observable {
 
 				logger.debug("Undone operation, stack size: "+undoStack.size());				
 			}
+			
+			canvas.redraw();
 		}
 		else
 			logger.debug("Cannot undo anymore - stack is empty!");

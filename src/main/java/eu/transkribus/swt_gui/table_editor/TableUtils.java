@@ -349,4 +349,48 @@ public class TableUtils {
 		canvas.redraw();
 	}
 	
+	public static boolean hasLeftNeighbor(TrpTableCellType c, List<ICanvasShape> tableCellShapes) {
+		return tableCellShapes.stream().anyMatch(s -> {
+			if (s.getData() instanceof TrpTableCellType) {
+				TrpTableCellType n = (TrpTableCellType) s.getData();
+				if (n.getColEnd()==c.getCol())
+					return true;
+			}
+			return false;
+		});
+	}
+	
+	public static boolean hasRightNeighbor(TrpTableCellType c, List<ICanvasShape> tableCellShapes) {
+		return tableCellShapes.stream().anyMatch(s -> {
+			if (s.getData() instanceof TrpTableCellType) {
+				TrpTableCellType n = (TrpTableCellType) s.getData();
+				if (c.getColEnd()==n.getCol())
+					return true;
+			}
+			return false;
+		});
+	}
+
+	public static boolean hasBottomNeighbor(TrpTableCellType c, List<ICanvasShape> tableCellShapes) {
+		return tableCellShapes.stream().anyMatch(s -> {
+			if (s.getData() instanceof TrpTableCellType) {
+				TrpTableCellType n = (TrpTableCellType) s.getData();
+				if (c.getRowEnd()==n.getRow())
+					return true;
+			}
+			return false;
+		});
+	}
+	
+	public static boolean hasTopNeighbor(TrpTableCellType c, List<ICanvasShape> tableCellShapes) {
+		return tableCellShapes.stream().anyMatch(s -> {
+			if (s.getData() instanceof TrpTableCellType) {
+				TrpTableCellType n = (TrpTableCellType) s.getData();
+				if (n.getRowEnd()==c.getRow())
+					return true;
+			}
+			return false;
+		});
+	}	
+	
 }

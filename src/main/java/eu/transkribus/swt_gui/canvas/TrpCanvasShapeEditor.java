@@ -897,6 +897,83 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		return null;
 	}
 	
+	public static class BorderFlags {
+		public BorderFlags() {}
+		public BorderFlags(boolean vertLeft, boolean vertRight, boolean vertInner, boolean horBottom, boolean horTop, boolean horInner) {
+			super();
+			this.vertLeft = vertLeft;
+			this.vertRight = vertRight;
+			this.vertInner = vertInner;
+			this.horBottom = horBottom;
+			this.horTop = horTop;
+			this.horInner = horInner;
+		}
+		
+		public void setAll(boolean val) {
+			this.vertLeft = this.vertRight = this.vertInner = this.horBottom = this.horTop = this.horInner = val;
+		}
+
+		public boolean vertLeft=false;
+		public boolean vertRight=false;
+		public boolean vertInner=false;
+		
+		public boolean horBottom=false;
+		public boolean horTop=false;
+		public boolean horInner=false;
+		
+		@Override public String toString() {
+			return "BorderFlags [vertLeft=" + vertLeft + ", vertRight=" + vertRight + ", vertInner=" + vertInner + ", horBottom=" + horBottom + ", horTop="
+					+ horTop + ", horInner=" + horInner + "]";
+		}
+
+	}
+	
+	public ShapeEditOperation applyBorderToSelectedTableCells(List<ICanvasShape> shapes, BorderFlags bf, boolean addToUndoStack) {
+		if (!TableUtils.isTableCells(shapes)) {
+			return null;
+		}
+		logger.debug("changing border type for table "+shapes.size()+", bf: "+bf);
+		
+		TableShapeEditOperation op = new TableShapeEditOperation("Changed border type for "+shapes.size()+" table cells");
+						
+		for (ICanvasShape s : shapes) {
+			TrpTableCellType c = (TrpTableCellType) s.getData();
+			op.addCellBackup(c);
+			
+			if (!TableUtils.hasLeftNeighbor(c, shapes)) {
+				c.setLeftBorderVisible(bf.vertLeft);
+			} else {
+				c.setLeftBorderVisible(bf.vertInner);
+			}
+			
+			if (!TableUtils.hasRightNeighbor(c, shapes)) {
+				c.setRightBorderVisible(bf.vertRight);
+			}
+			else {
+				c.setRightBorderVisible(bf.vertInner);
+			}
+			
+			if (!TableUtils.hasBottomNeighbor(c, shapes)) {
+				c.setBottomBorderVisible(bf.horBottom);
+			}
+			else {
+				c.setBottomBorderVisible(bf.horInner);
+			}
+			
+			if (!TableUtils.hasTopNeighbor(c, shapes)) {
+				c.setTopBorderVisible(bf.horTop);
+			}
+			else {
+				c.setTopBorderVisible(bf.horInner);
+			}
+		}
+		
+		if (addToUndoStack)
+			addToUndoStack(op);
+		
+		return op;
+	}
+	
 	public ShapeEditOperation mergeSelectedTableCells(List<ICanvasShape> shapes, boolean sendSignal, boolean addToUndoStack) {
 		if (shapes.size() < 2)
 			return null;
