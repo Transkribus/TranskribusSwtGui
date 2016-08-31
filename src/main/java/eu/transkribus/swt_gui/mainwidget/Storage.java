@@ -58,6 +58,7 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
+import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
@@ -66,6 +67,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.builder.alto.AltoExporter;
 import eu.transkribus.core.model.builder.pdf.PdfExporter;
 import eu.transkribus.core.model.builder.tei.ATeiBuilder;
@@ -1937,7 +1939,11 @@ public class Storage extends Observable {
 		this.doc.getPages().set(getPageIndex(), newPage);
 		this.page = newPage;
 	}
-
+	
+	public FulltextSearchResult searchFulltext(String query, SearchType type, Integer start, Integer rows, List<String> filters) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		checkConnection(true);
+		return conn.searchFulltext(query, type, start, rows, filters);
+	}
 
 	public List<TrpDocDir> listDocDirsOnFtp() throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
