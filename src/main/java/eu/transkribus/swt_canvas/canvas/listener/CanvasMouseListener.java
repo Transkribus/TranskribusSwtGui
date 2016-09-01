@@ -599,7 +599,9 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	public int[] getMouseOverLine() { return mouseOverLine; }
 	public int[] getSelectedLine() { return selectedLine; }
 
-
+	public boolean isKeyDown(int key) {
+		return CanvasKeys.isKeyDown(getCurrentMoveStateMask(), SWT.CTRL);		
+	}
 	
 	
 

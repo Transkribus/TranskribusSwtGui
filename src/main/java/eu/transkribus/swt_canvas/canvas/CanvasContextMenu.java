@@ -21,7 +21,7 @@ public class CanvasContextMenu extends Observable {
 	public static final String DELETE_ITEM_EVENT = "DELETE_EVENT";
 
 	protected SWTCanvas canvas;
-	protected Menu popupMenu;
+	protected Menu menu;
 	protected MenuItem deleteItem;
 	protected SelectionListener itemSelListener;
 	
@@ -83,7 +83,7 @@ public class CanvasContextMenu extends Observable {
 	}
 	
 	protected MenuItem createMenuItem(String txt, Image img, Object data) {
-		return createMenuItem(txt, img, data, popupMenu, itemSelListener);
+		return createMenuItem(txt, img, data, menu, itemSelListener);
 	}
 	
 	protected MenuItem createMenuItem(String txt, Image img, Object data, Menu menu) {
@@ -106,19 +106,19 @@ public class CanvasContextMenu extends Observable {
 	}
 	
 	public void show(ICanvasShape s, int x, int y) {
-		if (popupMenu!=null && !popupMenu.isDisposed())
-			popupMenu.dispose();
+		if (menu!=null && !menu.isDisposed())
+			menu.dispose();
 				
-		popupMenu = new Menu(canvas);		
+		menu = new Menu(canvas);		
 		
 		initItems(s);
 		
-		popupMenu.setLocation(x, y);
-		popupMenu.setVisible(true);	
+		menu.setLocation(x, y);
+		menu.setVisible(true);	
 	}
 	
 	public void hide() {
-		popupMenu.setVisible(false);
+		menu.setVisible(false);
 	}	
 
 }

@@ -436,13 +436,52 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	public int [] getPointArray() {
 		return CoreUtils.getPointArray(getPoints());
 	}
+	
+	/**
+	 * Sets color, alpha etc. for the shape to draw
+	 */
+	protected void setStyles(SWTCanvas canvas, GC gc) {
+		CanvasSettings sets = canvas.getSettings();
 
-	@Override
-	public void draw(SWTCanvas canvas, GC gc) {
+		gc.setAlpha(sets.getForegroundAlpha());
+		if (isSelected()) { // if selected:
+			if (canvas.getScene().isEditFocused(this))
+				drawBoundingBox(canvas, gc); // draw bounding box
+			gc.setLineWidth(sets.getSelectedLineWidth()); // set selected line with
+			gc.setBackground(color); // set background color
+		}
+		else {
+			gc.setLineWidth(sets.getDrawLineWidth());
+			gc.setBackground(color);
+		}
+		gc.setForeground(color);
+		gc.setLineStyle(canvas.getSettings().getLineStyle());
+	}
+	
+	public void drawOutline(SWTCanvas canvas, GC gc) {
+		CanvasSettings sets = canvas.getSettings();
+		
+		//text if the shape is closed (rect and polgone are closed, polyline not)
+		int [] pointArray = getPointArray();
+		if (isClosed()) {
+			if (isSelected()) { // fill polygon if selected
+				gc.setAlpha(sets.getBackgroundAlpha());
+				gc.fillPolygon(pointArray);
+			}
+			
+			gc.setAlpha(sets.getForegroundAlpha());
+			gc.drawPolygon(pointArray);
+		}
+		else {
+			gc.setAlpha(sets.getForegroundAlpha());
+			gc.drawPolyline(pointArray);
+		}
+	}
+
+	@Override public void draw(SWTCanvas canvas, GC gc) {
 		CanvasSettings sets = canvas.getSettings();
 //		setDrawingColor(canvas, gc);
-		final boolean isSel = isSelected();
-				
+		
 		// TEST: draw normals
 		if (false) {
 			List<Point> pts = getPoints();
@@ -465,36 +504,9 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		}
 		// END TEST: draw normals
 		
-		int [] pointArray = getPointArray();
-		gc.setAlpha(sets.getForegroundAlpha());
-		if (isSel) { // if selected:
-			if (canvas.getScene().isEditFocused(this))
-				drawBoundingBox(canvas, gc); // draw bounding box
-			gc.setLineWidth(sets.getSelectedLineWidth()); // set selected line with
-			gc.setBackground(color); // set background color
-		}
-		else {
-			gc.setLineWidth(sets.getDrawLineWidth());
-			gc.setBackground(color);
-		}
-		gc.setForeground(color);
-		gc.setLineStyle(canvas.getSettings().getLineStyle());		
-		
-		//text if the shape is closed (rect and polgone are closed, polyline not)
-		if (isClosed()) {
-			if (isSel) { // fill polygon if selected
-				gc.setAlpha(sets.getBackgroundAlpha());
-				gc.fillPolygon(pointArray);
-			}
-			
-			gc.setAlpha(sets.getForegroundAlpha());
-			gc.drawPolygon(pointArray);
-		}
-		else {
-			gc.setAlpha(sets.getForegroundAlpha());
-			gc.drawPolyline(pointArray);
-		}
-		
+		setStyles(canvas, gc);
+		drawOutline(canvas, gc);
+
 		if (canvas.getScene().isEditFocused(this)) { // draw corner points if focused
 //		if (isSel) {
 			gc.setAlpha(sets.getForegroundAlpha());

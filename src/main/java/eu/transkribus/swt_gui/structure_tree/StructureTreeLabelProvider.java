@@ -44,7 +44,7 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 	}
 	
 	public static String getTextForElement(Object element, int columnIndex) {
-		String name="", id="", coords="", text="", regionType="", readingOrder="";
+		String name="", id="", coords="", text="", regionType="", readingOrder="", other="";
 		
 		if (element instanceof TrpPageType) {
 			name = "Page";
@@ -74,8 +74,13 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 			
 			if (element instanceof TrpTableCellType) {
 				TrpTableCellType tc = (TrpTableCellType) element;
-				text = tc.getCornerPts();
-				text += " ("+tc.getRow()+","+tc.getCol()+")"+" ("+tc.getRowSpan()+","+tc.getColSpan()+")";
+				
+				other = tc.toString();
+				
+				text = tc.toString();
+				
+//				other = tc.getCornerPts();
+//				other += " ("+tc.getRow()+","+tc.getCol()+")"+" ("+tc.getRowSpan()+","+tc.getColSpan()+")";
 			}
 			
 //			if (element instanceof TrpTextRegionType) {
@@ -90,22 +95,28 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 				logger.error(th.getMessage(), th);
 			}
 		}
+		
+		ColConfig col = StructureTreeWidget.COLUMNS[columnIndex];
 
 		if (columnIndex < 0 || columnIndex >= StructureTreeWidget.COLUMNS.length)
 			return "wrong col index";
 		
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.TYPE_COL)
+		else if (col == StructureTreeWidget.TYPE_COL)
 			return name;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.ID_COL)
+		else if (col == StructureTreeWidget.ID_COL)
 			return id;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.TEXT_COL)
+		else if (col == StructureTreeWidget.TEXT_COL)
 			return text;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.COORDS_COL)
+		else if (col == StructureTreeWidget.COORDS_COL)
 			return coords;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.STRUCTURE_TYPE)
+		else if (col == StructureTreeWidget.STRUCTURE_TYPE_COL)
 			return regionType;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.READING_ORDER_TYPE)
+		else if (col == StructureTreeWidget.READING_ORDER_COL)
 			return readingOrder;
+		else if (col == StructureTreeWidget.READING_ORDER_COL)
+			return readingOrder;
+		else if (col == StructureTreeWidget.OTHER_COL)
+			return other;
 		
 		return "i am error!";
 		

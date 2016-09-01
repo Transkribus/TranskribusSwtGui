@@ -163,16 +163,16 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 		if (cell == null)
 			return;
 		
-		selectTableCellsItem = createMenuItem("Select cells", null, SELECT_TABLE_CELLS_EVENT);
+		selectTableCellsItem = createMenuItem("Select all cells", null, SELECT_TABLE_CELLS_EVENT);
 		selectTableRowCellsItem = createMenuItem("Select row cells", null, SELECT_TABLE_ROW_CELLS_EVENT);
 		selectTableColumnCellsItem = createMenuItem("Select columns cells", null, SELECT_TABLE_COLUMN_CELLS_EVENT);
 		deleteTableRowItem = createMenuItem("Delete row", Images.DELETE, DELETE_TABLE_ROW_EVENT);
 		deleteTableColumnItem = createMenuItem("Delete column", Images.DELETE, DELETE_TABLE_COLUMN_EVENT);
 		
-		borderMenuItem = new MenuItem(popupMenu, SWT.CASCADE);
+		borderMenuItem = new MenuItem(menu, SWT.CASCADE);
 		borderMenuItem.setText("Border");
 		
-		borderMenu = new Menu(popupMenu);
+		borderMenu = new Menu(menu);
 		borderMenuItem.setMenu(borderMenu);
 		
 		createMenuItem("None", Images.BORDER_NONE, BORDER_NONE_EVENT, borderMenu);
@@ -192,7 +192,7 @@ public class TrpCanvasContextMenu extends CanvasContextMenu {
 		
 		createMenuItem("Vertically closed", Images.BORDER_VERTICAL_CLOSED, BORDER_VERTICAL_CLOSED_EVENT, borderMenu);
 		createMenuItem("Vertically open", Images.BORDER_VERTICAL_OPEN, BORDER_VERTICAL_OPEN_EVENT, borderMenu);
-		
+				
 		if (cell.isMergedCell())
 			createMenuItem("Split merged cell", null, SPLIT_MERGED_CELL_EVENT);
 		

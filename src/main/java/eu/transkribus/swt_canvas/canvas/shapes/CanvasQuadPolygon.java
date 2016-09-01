@@ -12,10 +12,14 @@ import org.eclipse.swt.graphics.GC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 
 public class CanvasQuadPolygon extends CanvasPolygon {
 	
@@ -844,6 +848,57 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 			return mergeOnTopSide(shape);
 		
 		return null;
+	}
+	
+	@Override public void drawOutline(SWTCanvas canvas, GC gc) {
+		CanvasSettings sets = canvas.getSettings();
+		
+		TrpTableCellType c = TableUtils.getTableCell(this);
+		if (c != null) {
+			CanvasQuadPolygon qp = (CanvasQuadPolygon) this;
+			
+			if (isSelected()) { // fill polygon if selected
+				int[] ptArr = CoreUtils.getPointArray(getPoints());
+				gc.setAlpha(sets.getBackgroundAlpha());
+				gc.fillPolygon(ptArr);
+			}
+			
+			for (int i=0; i<4; ++i) {
+				List<java.awt.Point> pts = qp.getPointsOfSegment(i, true);
+				int[] sidePtArr = CoreUtils.getPointArray(pts);
+				
+				boolean hasBorder = i == 0 && c.isLeftBorderVisible() || i == 1 && c.isBottomBorderVisible() || i == 2 && c.isRightBorderVisible()
+						|| i == 3 && c.isTopBorderVisible();
+				
+				gc.setAlpha(sets.getForegroundAlpha());
+				if (isSelected()) { // if selected:
+					gc.setLineWidth(sets.getSelectedLineWidth()); // set selected line with
+					gc.setBackground(getColor()); // set background color
+				} else {
+					gc.setLineWidth(sets.getDrawLineWidth());
+					gc.setBackground(getColor());
+				}
+				gc.setForeground(getColor());
+				gc.setLineStyle(canvas.getSettings().getLineStyle());
+				
+				if (hasBorder) {
+					// TEST
+					gc.setBackground(Colors.getSystemColor(SWT.COLOR_BLACK));
+					gc.setForeground(Colors.getSystemColor(SWT.COLOR_BLACK));
+
+					gc.drawPolyline(sidePtArr);
+				} else {
+//					if (isSelected()) { // fill polygon if selected
+//						gc.setAlpha(sets.getBackgroundAlpha());
+//						gc.fillPolygon(sidePtArr);
+//					}
+					
+					gc.drawPolyline(sidePtArr);
+				}
+			}
+		} else {
+			super.drawOutline(canvas, gc);
+		}
 	}
 	
 	@Override public void drawCornerPoints(SWTCanvas canvas, GC gc) {

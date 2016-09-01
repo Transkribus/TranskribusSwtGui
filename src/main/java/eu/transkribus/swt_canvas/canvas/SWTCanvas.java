@@ -1264,6 +1264,10 @@ public class SWTCanvas extends Canvas {
 	public ICanvasShape getFirstSelected() {
 		return scene.getFirstSelected();
 	}
+	
+	public ICanvasShape getLastSelected() {
+		return scene.getLastSelected();
+	}	
 
 	public int getNSelected() {
 		return scene.getNSelected();

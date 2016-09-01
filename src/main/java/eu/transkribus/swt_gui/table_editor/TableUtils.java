@@ -324,13 +324,19 @@ public class TableUtils {
 			throw new TrpTablePointsInconsistentException("Table has inconsistent points!", invalid);
 	}
 	
-	public static void selectCells(TrpSWTCanvas canvas, TrpTableCellType cell, TableDimension dim) {
-		int index = dim==null ? -1 : dim.val;
+	public static void selectCells(TrpSWTCanvas canvas, TrpTableCellType cell, TableDimension dim, boolean multiSelect) {
+		int index = -1;
+		if (dim == TableDimension.ROW) {
+			index = cell.getRow();
+		}
+		else if (dim == TableDimension.COLUMN) {
+			index = cell.getCol();
+		}
 		
-		selectCells(canvas, cell.getTable(), index, dim);
+		selectCells(canvas, cell.getTable(), index, dim, multiSelect);
 	}
 	
-	public static void selectCells(TrpSWTCanvas canvas, TrpTableRegionType table, int index, TableDimension dim) {
+	public static void selectCells(TrpSWTCanvas canvas, TrpTableRegionType table, int index, TableDimension dim, boolean multiSelect) {
 		List<TrpTableCellType> cells = null;
 		if (dim == null) {
 			cells = table.getTrpTableCell();
@@ -338,10 +344,14 @@ public class TableUtils {
 			cells = table.getCells(dim==TableDimension.ROW, GetCellsType.OVERLAP, index);	
 		}
 
-		canvas.getScene().clearSelected();
+		if (!multiSelect)
+			canvas.getScene().clearSelected();
 		for (int i=0; i<cells.size(); ++i) {
 			TrpTableCellType c = cells.get(i);
 			if (c.getData() instanceof ICanvasShape) {
+				ICanvasShape s = (ICanvasShape) c.getData();
+				s.setSelected(false);
+				
 				canvas.getScene().selectObject((ICanvasShape) c.getData(), i==cells.size()-1, true);
 			}
 		}

@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.canvas;
 
 import java.util.List;
 
+import org.eclipse.swt.SWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,12 +14,17 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasScene;
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
 public class TrpCanvasScene extends CanvasScene {
@@ -26,6 +32,48 @@ public class TrpCanvasScene extends CanvasScene {
 
 	public TrpCanvasScene(TrpSWTCanvas canvas) {
 		super(canvas);
+	}
+	
+	@Override public void paint(org.eclipse.swt.graphics.GC gc) {
+		super.paint(gc);
+		
+		// TEST - draw border types of table cells
+		for (ICanvasShape s : shapes) {
+			TrpTableCellType c = TableUtils.getTableCell(s);
+			if (c != null) {
+				CanvasQuadPolygon qp = (CanvasQuadPolygon) s;
+				CanvasSettings sets = canvas.getSettings();
+				
+				for (int i=0; i<4; ++i) {
+					List<java.awt.Point> pts = qp.getPointsOfSegment(i, true);
+					int[] ptArr = CoreUtils.getPointArray(pts);
+
+					if (i == 0 && c.isLeftBorderVisible() || i == 1 && c.isBottomBorderVisible() || i == 2 && c.isRightBorderVisible()
+							|| i == 3 && c.isTopBorderVisible()) {
+						gc.setAlpha(sets.getForegroundAlpha());
+						if (s.isSelected()) { // if selected:
+							gc.setLineWidth(sets.getSelectedLineWidth() + 4); // set selected line with
+							gc.setBackground(s.getColor()); // set background color
+						} else {
+							gc.setLineWidth(sets.getDrawLineWidth() + 4);
+							gc.setBackground(s.getColor());
+						}
+						gc.setForeground(s.getColor());
+						
+						// TEST
+						gc.setBackground(Colors.getSystemColor(SWT.COLOR_BLACK));
+						gc.setForeground(Colors.getSystemColor(SWT.COLOR_BLACK));
+						
+						gc.setLineStyle(canvas.getSettings().getLineStyle());
+	
+						gc.setAlpha(sets.getForegroundAlpha());
+						gc.drawPolyline(ptArr);
+	
+					}
+				}
+			}
+		}
+		// END OF TEST
 	}
 	
 	public void updateSegmentationViewSettings() {

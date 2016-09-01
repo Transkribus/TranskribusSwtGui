@@ -116,8 +116,6 @@ public class CanvasScene {
 		for (Image image : subimages) {
 			gc.drawImage(image, 0, 0);
 		}
-		
-		
 
 		// Draw shapes:
 
@@ -142,7 +140,7 @@ public class CanvasScene {
 //			}
 			
 			//during transcription only the selected baseline is drawn, lines and regions are always drawn if visible
-			if (isTranscriptionMode()){
+			if (isTranscriptionMode()) {
 				ITrpShapeType trpShape = (ITrpShapeType) s.getData();
 				if (!(trpShape instanceof TrpRegionType) && !(trpShape instanceof TrpTextLineType))
 					continue;
@@ -159,45 +157,7 @@ public class CanvasScene {
 			if (s.isVisible())
 				s.draw(canvas, gc);
 		}
-		
-		// TEST - draw border types of table cells
-		for (ICanvasShape s : shapes) {
-			TrpTableCellType c = TableUtils.getTableCell(s);
-			if (c != null) {
-				CanvasQuadPolygon qp = (CanvasQuadPolygon) s;
-				CanvasSettings sets = canvas.getSettings();
 				
-				for (int i=0; i<4; ++i) {
-					List<java.awt.Point> pts = qp.getPointsOfSegment(i, true);
-					int[] ptArr = CoreUtils.getPointArray(pts);
-
-					if (i == 0 && c.isLeftBorderVisible() || i == 1 && c.isBottomBorderVisible() || i == 2 && c.isRightBorderVisible()
-							|| i == 3 && c.isTopBorderVisible()) {
-						gc.setAlpha(sets.getForegroundAlpha());
-						if (s.isSelected()) { // if selected:
-							gc.setLineWidth(sets.getSelectedLineWidth() + 4); // set selected line with
-							gc.setBackground(s.getColor()); // set background color
-						} else {
-							gc.setLineWidth(sets.getDrawLineWidth() + 4);
-							gc.setBackground(s.getColor());
-						}
-						gc.setForeground(s.getColor());
-						
-						// TEST
-//						gc.setBackground(Colors.getSystemColor(SWT.COLOR_MAGENTA));
-//						gc.setForeground(Colors.getSystemColor(SWT.COLOR_MAGENTA));
-						
-						gc.setLineStyle(canvas.getSettings().getLineStyle());
-	
-						gc.setAlpha(sets.getForegroundAlpha());
-						gc.drawPolyline(ptArr);
-	
-					}
-				}
-			}
-		}
-		// END OF TEST
-		
 //		for (ICanvasShape s : readingOrderShapes) {
 //			//if (s.isVisible())
 //				s.draw(canvas, gc);

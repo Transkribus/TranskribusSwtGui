@@ -210,7 +210,7 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		List<ShapeEditOperation> ops = new ArrayList<>();
 		ops.add(splitOp);
 	
-		TableUtils.selectCells((TrpSWTCanvas) canvas, table, insertIndex, dir);
+		TableUtils.selectCells((TrpSWTCanvas) canvas, table, insertIndex, dir, false);
 
 		return ops;
 	}
