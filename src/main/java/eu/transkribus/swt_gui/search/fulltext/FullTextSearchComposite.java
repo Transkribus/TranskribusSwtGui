@@ -1,7 +1,9 @@
 package eu.transkribus.swt_gui.search.fulltext;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -119,7 +121,7 @@ public class FullTextSearchComposite extends Composite{
 		facetsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		facetsGroup.setLayout(new GridLayout(2, false));
-		facetsGroup.setText("Solr search currently supports specific text (\"... ...\") and wildcards (*) ");
+		facetsGroup.setText("Solr search currently supports standard word search, exact phrasing (\"...\") and wildcards (*) ");
 		
 		TraverseListener findTagsOnEnterListener = new TraverseListener() {
 			@Override public void keyTraversed(TraverseEvent e) {
@@ -328,6 +330,21 @@ public class FullTextSearchComposite extends Composite{
             }
 
         });
+        
+        column = new TableColumn(viewer.getTable(), SWT.NONE);
+        column.setText("Pixel Coords");
+        column.setWidth(150);
+        TableViewerColumn pixelCol = new TableViewerColumn(viewer, column);
+        pixelCol.setLabelProvider(new ColumnLabelProvider(){
+
+            @Override
+            public String getText(Object element) {
+                Hit hit = (Hit)element;
+
+                return hit.getPixelCoords();
+            }
+
+        });
 
 		
 	}
@@ -402,19 +419,60 @@ public class FullTextSearchComposite extends Composite{
 //		}
 //		resultsTable.redraw();		
      
+		numPageHits = (int) fullTextSearchResult.getNumResults();
+		int max = (start+rows) > numPageHits ? numPageHits : (start+rows);
+		resultsLabel.setText("Showing Pagehits "+(start)+" to "+(max)+" of "+(numPageHits));
+		
         ArrayList<Hit> hits = new ArrayList<Hit>();
         
         for (PageHit pHit : fullTextSearchResult.getPageHits()){
         	int numTags = 0;
+        	Map<String,Integer> foundWords = new HashMap<String,Integer>();
+        	
+        	
+        	
         	for(String hlString : pHit.getHighlights()){
         		
         		ArrayList<String> tags = getTagValues(hlString);
-        		String wCoords = pHit.getWordCoords().get(numTags);
+        		
+        		for(String tag : tags){
+        			boolean contained = false;
+        			for(String word : foundWords.keySet()){
+        				if(word.equals(tag)){
+        					contained = true;
+        					foundWords.replace(word, foundWords.get(word)+1);
+        				}
+        			}
+        			if(contained == false){
+        				foundWords.put(tag, 0);
+        			}
+        		}
+        		
+        		ArrayList<String> matchedCoords = new ArrayList<>();
+        		for(String word : pHit.getWordCoords()){
+        			if(word.split(":")[0].equals(tags.get(0))){
+        				matchedCoords.add(word);
+        			}
+        		}
+        		
+        		
+        		String wCoords;
+        		if(matchedCoords.size() > foundWords.get(tags.get(0))){
+        			wCoords = matchedCoords.get(foundWords.get(tags.get(0)));
+        		}else if(!matchedCoords.isEmpty()){
+        			wCoords = matchedCoords.get(0);
+        		}else if(!pHit.getWordCoords().isEmpty()){
+        			wCoords = pHit.getWordCoords().get(0);
+        		}else{
+        			break;
+        		}
+
         		String regId = wCoords.split(":")[1].split("/")[0];
         		String linId = wCoords.split(":")[1].split("/")[1];
         		String worId = wCoords.split(":")[1].split("/")[2];
+        		String pxCoords = wCoords.split(":")[2];
         		
-        		Hit hit = new Hit(hlString, (int)pHit.getDocId(), (int)pHit.getPageNr(), regId, linId, worId);
+        		Hit hit = new Hit(hlString, (int)pHit.getDocId(), (int)pHit.getPageNr(), regId, linId, worId, pxCoords);
         		hits.add(hit);
         		numTags += tags.size();
         	}
@@ -430,16 +488,18 @@ public class FullTextSearchComposite extends Composite{
 	  {
 	    String highlightText;
 	    String regionId, lineId, wordId;
+	    private String pixelCoords;
 
 		int docId, pageNr;
 		      
-	    Hit(String hl, int doc, int page, String region, String line, String word){
+	    Hit(String hl, int doc, int page, String region, String line, String word, String coords){
 	    	highlightText = hl;
 	    	docId = doc;
 	    	pageNr = page;
 	    	regionId = region;
 	    	lineId = line;
-	    	wordId = word;	    	
+	    	wordId = word;	  
+	    	pixelCoords = coords;
 	    }
 	    
 	    Hit(String hl, int doc, int page){
@@ -494,6 +554,14 @@ public class FullTextSearchComposite extends Composite{
 
 		public void setRegionId(String regionId) {
 			this.regionId = regionId;
+		}
+
+		public String getPixelCoords() {
+			return pixelCoords;
+		}
+
+		public void setPixelCoords(String pixelCoords) {
+			this.pixelCoords = pixelCoords;
 		}
 		
 	  }
