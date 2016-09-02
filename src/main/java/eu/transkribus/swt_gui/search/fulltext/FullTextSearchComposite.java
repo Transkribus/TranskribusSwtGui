@@ -12,7 +12,10 @@ import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ILazyContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -42,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.enums.SearchType;
@@ -56,6 +60,7 @@ import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LabeledText;
 import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.search.text_and_tags.TextSearchComposite;
 
 
@@ -345,6 +350,52 @@ public class FullTextSearchComposite extends Composite{
             }
 
         });
+        
+        
+		viewer.addDoubleClickListener(new IDoubleClickListener() {	
+			@Override public void doubleClick(DoubleClickEvent event) {
+				IStructuredSelection sel = (IStructuredSelection) event.getSelection();
+				if (!sel.isEmpty()) {
+					logger.debug("Clicked! Doc: "+ ((Hit)sel.getFirstElement()).getDocId()+ " Page: "+((Hit)sel.getFirstElement()).getPageNr());
+					Hit clHit = (Hit)sel.getFirstElement();
+					Storage s = Storage.getInstance();					
+					
+					
+					
+					ArrayList<Integer> userCols = new ArrayList<>();
+					for(TrpCollection userCol : s.getCollections()){
+						userCols.add(userCol.getColId());
+						logger.debug("User collection: " + userCol.getColId());
+					}
+					logger.debug("Hit collections: " + clHit.getCollectionIds());
+					int col = -1;
+					for(Integer userColId : userCols){
+						for(Integer hitColId : clHit.getCollectionIds()){
+							
+							if(userColId.equals(hitColId)){
+								col = userColId;
+							}
+						}
+					}
+					logger.debug("Col: " + col);
+					if(col != -1){
+						int docId = clHit.getDocId();
+						int pageNr = clHit.getPageNr();
+						TrpLocation l = new TrpLocation();
+						
+						l.collectionId = col;
+						l.docId = docId;
+						l.pageNr = pageNr;		
+						l.shapeId=clHit.getLineId();
+
+						
+	
+						TrpMainWidget.getInstance().showLocation(l);
+					}
+				}
+				
+			}
+		});
 
 		
 	}
@@ -472,7 +523,11 @@ public class FullTextSearchComposite extends Composite{
         		String worId = wCoords.split(":")[1].split("/")[2];
         		String pxCoords = wCoords.split(":")[2];
         		
+        		ArrayList<Integer> colIds = pHit.getCollectionIds();        		
+        		
+        		
         		Hit hit = new Hit(hlString, (int)pHit.getDocId(), (int)pHit.getPageNr(), regId, linId, worId, pxCoords);
+        		hit.setCollectionIds(colIds);
         		hits.add(hit);
         		numTags += tags.size();
         	}
@@ -489,6 +544,7 @@ public class FullTextSearchComposite extends Composite{
 	    String highlightText;
 	    String regionId, lineId, wordId;
 	    private String pixelCoords;
+	    private ArrayList<Integer> collectionIds;
 
 		int docId, pageNr;
 		      
@@ -562,6 +618,14 @@ public class FullTextSearchComposite extends Composite{
 
 		public void setPixelCoords(String pixelCoords) {
 			this.pixelCoords = pixelCoords;
+		}
+
+		public ArrayList<Integer> getCollectionIds() {
+			return collectionIds;
+		}
+
+		public void setCollectionIds(ArrayList<Integer> collectionIds) {
+			this.collectionIds = collectionIds;
 		}
 		
 	  }
