@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.search.fulltext;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +11,8 @@ import java.util.regex.Pattern;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
+import org.dea.fimgstoreclient.FimgStoreGetClient;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -29,14 +32,20 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageLoader;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -46,30 +55,22 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.PageHit;
-import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
-import eu.transkribus.swt_canvas.mytableviewer.MyTableLabelProvider;
-import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
 import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LabeledText;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.search.text_and_tags.TextSearchComposite;
-
-
 
 public class FullTextSearchComposite extends Composite{
 	private final static Logger logger = LoggerFactory.getLogger(FullTextSearchComposite.class);
 	Group facetsGroup;
 	LabeledText inputText;
-	Button wholeWordCheck, caseSensitiveCheck;
+	Button wholeWordCheck, caseSensitiveCheck, previewCheck;
 	Button searchBtn, searchPrevBtn, searchNextBtn;
 	Composite parameters;
 	Button[] textTypeBtn;
@@ -79,6 +80,12 @@ public class FullTextSearchComposite extends Composite{
 	TableViewer viewer;
 	SashForm resultsSf;
 	Label resultsLabel;
+	String lastHoverCoords;
+	Shell shell;
+	//Image img;
+	FimgStoreGetClient imgStoreClient;
+	
+	boolean enableHover;
 	
 	private int rows = 10;
 	private int start = 0;
@@ -86,30 +93,19 @@ public class FullTextSearchComposite extends Composite{
 	private int numPageHits;
 	private static final String BAD_SYMBOLS = "[+-:=]";
 	private SearchType type;
-	
-	public static final String DOC_COL = "Doc";
-	public static final String TITLE_COL = "Title";
-	public static final String PAGE_COL = "Page";
-	public static final String REGION_COL = "Region";
-	public static final String LINE_COL = "Line";
-	public static final String WORD_COL = "Word";
-//	public static final String TAG_COL = "Tag";
-	public static final String CONTEXT_COL = "Context";
-	public static final ColumnConfig[] RESULT_COLS = new ColumnConfig[] {
-			new ColumnConfig(CONTEXT_COL, 500, false, DefaultTableColumnViewerSorter.ASC),
-			new ColumnConfig(DOC_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
-//			new ColumnConfig(TITLE_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
-			new ColumnConfig(PAGE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
-			new ColumnConfig(REGION_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
-			new ColumnConfig(LINE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
-			new ColumnConfig(WORD_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
-//			new ColumnConfig(TAG_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
-		};
-	
-	
+
 	public FullTextSearchComposite(Composite parent, int style){
 		super(parent, style);
+		shell = parent.getShell();	
+		try {
+			imgStoreClient = new FimgStoreGetClient(new URL("https://dbis-thure.uibk.ac.at/f/"));
+		} catch (Exception e) {
+			logger.error("Could not create connection to FimgStore" + e);
+			e.printStackTrace();
+		}
+
 		createContents();
+		
 	}
 	
 	
@@ -123,8 +119,7 @@ public class FullTextSearchComposite extends Composite{
 		sf.setLayout(new GridLayout(1, false));
 		
 		facetsGroup = new Group(sf, SWT.NONE);
-		facetsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
+		facetsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));		
 		facetsGroup.setLayout(new GridLayout(2, false));
 		facetsGroup.setText("Solr search currently supports standard word search, exact phrasing (\"...\") and wildcards (*) ");
 		
@@ -153,7 +148,10 @@ public class FullTextSearchComposite extends Composite{
 		textTypeBtn[0].setText("Word-based text");
 		textTypeBtn[1] = new Button(parameters, SWT.RADIO);
 		textTypeBtn[1].setSelection(false);
-		textTypeBtn[1].setText("Line-based text");
+		textTypeBtn[1].setText("Line-based text");		
+		
+		previewCheck = new Button(parameters, SWT.CHECK);
+		previewCheck.setText("Show word preview");
 		
 		Composite btnsComp = new Composite(facetsGroup, 0);
 		btnsComp.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -173,7 +171,6 @@ public class FullTextSearchComposite extends Composite{
 		searchPrevBtn = new Button(btnsComp, SWT.PUSH);
 		searchPrevBtn.setImage(Images.PAGE_PREV);
 		searchPrevBtn.setText("Previous page");
-
 		searchPrevBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 					if(start > 0){
@@ -186,7 +183,6 @@ public class FullTextSearchComposite extends Composite{
 		searchNextBtn = new Button(btnsComp, SWT.PUSH);
 		searchNextBtn.setImage(Images.PAGE_NEXT);
 		searchNextBtn.setText("Next page");
-
 		searchNextBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				if(fullTextSearchResult != null){
@@ -197,8 +193,7 @@ public class FullTextSearchComposite extends Composite{
 				}
 				
 			}
-		});
-		
+		});		
 		
 		initResultsTable(sf);
 		
@@ -232,6 +227,7 @@ public class FullTextSearchComposite extends Composite{
         column.setText("Context");
         column.setWidth(600);
         TableViewerColumn contextCol = new TableViewerColumn(viewer, column);
+        
         contextCol.setLabelProvider(new StyledCellLabelProvider(){
 
         	  @Override
@@ -250,14 +246,7 @@ public class FullTextSearchComposite extends Composite{
         	    StyleRange[] range = { myStyledRange };
         	    cell.setStyleRanges(range);
         	    super.update(cell);
-        	  }
-        	
-//            @Override
-//            public String getText(Object element) {
-//                Hit hit = (Hit)element;
-//
-//                return hit.getHighlightText();
-//            }
+        	  }  
 
         });
         
@@ -265,12 +254,12 @@ public class FullTextSearchComposite extends Composite{
         column.setText("DocId");
         column.setWidth(50);
         TableViewerColumn docCol = new TableViewerColumn(viewer, column);
+        
         docCol.setLabelProvider(new ColumnLabelProvider(){
 
             @Override
             public String getText(Object element) {
                 Hit hit = (Hit)element;
-
                 return Integer.toString(hit.getDocId());
             }
 
@@ -280,12 +269,12 @@ public class FullTextSearchComposite extends Composite{
         column.setText("Page");
         column.setWidth(50);
         TableViewerColumn pageCol = new TableViewerColumn(viewer, column);
+        
         pageCol.setLabelProvider(new ColumnLabelProvider(){
 
             @Override
             public String getText(Object element) {
                 Hit hit = (Hit)element;
-
                 return Integer.toString(hit.getPageNr());
             }
 
@@ -295,12 +284,12 @@ public class FullTextSearchComposite extends Composite{
         column.setText("Region");
         column.setWidth(50);
         TableViewerColumn regCol = new TableViewerColumn(viewer, column);
+        
         regCol.setLabelProvider(new ColumnLabelProvider(){
 
             @Override
             public String getText(Object element) {
                 Hit hit = (Hit)element;
-
                 return hit.getRegionId();
             }
 
@@ -310,12 +299,12 @@ public class FullTextSearchComposite extends Composite{
         column.setText("Line");
         column.setWidth(50);
         TableViewerColumn lineCol = new TableViewerColumn(viewer, column);
+        
         lineCol.setLabelProvider(new ColumnLabelProvider(){
 
             @Override
             public String getText(Object element) {
                 Hit hit = (Hit)element;
-
                 return hit.getLineId();
             }
 
@@ -325,15 +314,15 @@ public class FullTextSearchComposite extends Composite{
         column.setText("Word");
         column.setWidth(50);
         TableViewerColumn worCol = new TableViewerColumn(viewer, column);
+        
         worCol.setLabelProvider(new ColumnLabelProvider(){
-
+        	
             @Override
             public String getText(Object element) {
                 Hit hit = (Hit)element;
-
                 return hit.getWordId();
             }
-
+            
         });
         
         column = new TableColumn(viewer.getTable(), SWT.NONE);
@@ -351,16 +340,13 @@ public class FullTextSearchComposite extends Composite{
 
         });
         
-        
 		viewer.addDoubleClickListener(new IDoubleClickListener() {	
 			@Override public void doubleClick(DoubleClickEvent event) {
 				IStructuredSelection sel = (IStructuredSelection) event.getSelection();
 				if (!sel.isEmpty()) {
 					logger.debug("Clicked! Doc: "+ ((Hit)sel.getFirstElement()).getDocId()+ " Page: "+((Hit)sel.getFirstElement()).getPageNr());
 					Hit clHit = (Hit)sel.getFirstElement();
-					Storage s = Storage.getInstance();					
-					
-					
+					Storage s = Storage.getInstance();		
 					
 					ArrayList<Integer> userCols = new ArrayList<>();
 					for(TrpCollection userCol : s.getCollections()){
@@ -387,8 +373,6 @@ public class FullTextSearchComposite extends Composite{
 						l.docId = docId;
 						l.pageNr = pageNr;		
 						l.shapeId=clHit.getLineId();
-
-						
 	
 						TrpMainWidget.getInstance().showLocation(l);
 					}
@@ -397,6 +381,99 @@ public class FullTextSearchComposite extends Composite{
 			}
 		});
 
+		resultsTable = viewer.getTable();
+		final HoverShell hShell = new HoverShell(shell);
+		enableHover = true;
+		resultsTable.addListener(SWT.MouseEnter, new Listener(){
+			public void handleEvent(Event e){
+				//enableHover = true;
+//				hShell.hoverShell.setVisible(true);
+//				logger.debug("Mouse inside table");
+			}		
+		});
+		
+		resultsTable.addListener(SWT.MouseExit, new Listener(){
+			public void handleEvent(Event e){
+				//enableHover = false;
+				hShell.hoverShell.setVisible(false);
+//				logger.debug("Mouse outside table");
+			}
+		});
+		
+		
+		
+		resultsTable.addListener(SWT.MouseMove, new Listener(){
+			public void handleEvent(Event e){
+				if(enableHover == true && previewCheck.getSelection()){
+
+					Point p = new Point(e.x,e.y);
+					
+					TableItem hoverItem = resultsTable.getItem(p);
+					if(hoverItem != null){						
+						
+						String coords = ((Hit)hoverItem.getData()).getPixelCoords();
+						Point mousePos = Display.getCurrent().getCursorLocation();							
+						if(coords != lastHoverCoords){
+						
+							//hShell.imgLabel.setImage(Images.LOADING_IMG);
+							String imgKey = ((Hit)hoverItem.getData()).getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
+							imgKey = imgKey.replace("&fileType=view", "");
+//							logger.debug(imgKey);							
+							
+							try {
+								
+								String[] singleCoords = coords.split(" ");
+								Integer xPosTL = Integer.parseInt(singleCoords[3].split(",")[0]);
+								Integer yPosTL = Integer.parseInt(singleCoords[3].split(",")[1]);
+								
+								Integer xPosBR = Integer.parseInt(singleCoords[1].split(",")[0]);
+								Integer yPosBR = Integer.parseInt(singleCoords[1].split(",")[1]);
+								
+								int width = Math.abs(xPosTL - xPosBR);
+								int height = Math.abs(yPosTL - yPosBR);
+								
+								width = (int)(width*1.5f);
+								height = (int)(height*1.5f);
+								
+								xPosTL-=(int)(width*0.25f);
+								yPosTL-=(int)(height*0.25f);
+								
+
+								
+								URL url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, xPosTL, yPosTL, width, height).toURL();								
+								//Image img = new Image(hShell.hoverShell.getDisplay(), url.openStream());
+								Image img = ImageDescriptor.createFromURL(url).createImage();
+								
+								
+								logger.debug(url.toString());
+								//hShell.wordPrev = img;
+								//hShell.hoverShell.setImage(img);
+//								hShell.label.setImage(img);
+								hShell.imgLabel.setImage(img);
+								hShell.hoverShell.setVisible(true);
+								
+							} catch (Exception ex) {								
+								ex.printStackTrace();
+								hShell.imgLabel.setText("Could not load preview image");
+							}						
+							
+						}
+							hShell.hoverShell.setLocation(mousePos.x + 20 , mousePos.y - 20);
+							
+							
+							
+							hShell.hoverShell.pack();
+							hShell.hoverShell.redraw();
+							logger.debug("Obj:"+((Hit)hoverItem.getData()).getPixelCoords());
+							lastHoverCoords = coords;							
+					
+
+					}else{
+						hShell.hoverShell.setVisible(false);
+					}
+				}
+			}
+		});
 		
 	}
 	
@@ -452,23 +529,6 @@ public class FullTextSearchComposite extends Composite{
 
 
 	private void updateResultsTable() {
-		
-//		numPageHits = (int) fullTextSearchResult.getNumResults();
-//		int max = (start+rows) > numPageHits ? numPageHits : (start+rows);
-//
-//		resultsLabel.setText("Showing Pagehits "+(start+1)+" to "+(max)+" of "+(numPageHits));
-//			
-//		resultsTable.removeAll();
-//		for(PageHit hit : fullTextSearchResult.getPageHits()){
-//			TableItem pItem = new TableItem(resultsTable, 1);
-//			pItem.setText("Doc: " + hit.getDocId() + " p: " + hit.getPageNr());
-//			for(String hl : hit.getHighlights()){
-//				TableItem hlItem = new TableItem(resultsTable, 1);
-//				hlItem.setText("      " + hl.toString());
-//				
-//			}
-//		}
-//		resultsTable.redraw();		
      
 		numPageHits = (int) fullTextSearchResult.getNumResults();
 		int max = (start+rows) > numPageHits ? numPageHits : (start+rows);
@@ -525,8 +585,8 @@ public class FullTextSearchComposite extends Composite{
         		
         		ArrayList<Integer> colIds = pHit.getCollectionIds();        		
         		
-        		
-        		Hit hit = new Hit(hlString, (int)pHit.getDocId(), (int)pHit.getPageNr(), regId, linId, worId, pxCoords);
+        		String pUrl = pHit.getPageUrl();
+        		Hit hit = new Hit(hlString, (int)pHit.getDocId(), (int)pHit.getPageNr(), regId, linId, worId, pxCoords, pUrl);
         		hit.setCollectionIds(colIds);
         		hits.add(hit);
         		numTags += tags.size();
@@ -542,13 +602,15 @@ public class FullTextSearchComposite extends Composite{
 	  private static class Hit
 	  {
 	    String highlightText;
-	    String regionId, lineId, wordId;
+	    String imgUrl;
+
+		String regionId, lineId, wordId;
 	    private String pixelCoords;
 	    private ArrayList<Integer> collectionIds;
 
 		int docId, pageNr;
 		      
-	    Hit(String hl, int doc, int page, String region, String line, String word, String coords){
+	    Hit(String hl, int doc, int page, String region, String line, String word, String coords, String url){
 	    	highlightText = hl;
 	    	docId = doc;
 	    	pageNr = page;
@@ -556,6 +618,7 @@ public class FullTextSearchComposite extends Composite{
 	    	lineId = line;
 	    	wordId = word;	  
 	    	pixelCoords = coords;
+	    	imgUrl = url;
 	    }
 	    
 	    Hit(String hl, int doc, int page){
@@ -563,8 +626,16 @@ public class FullTextSearchComposite extends Composite{
 	    	docId = doc;
 	    	pageNr = page;	    	
 	    }
+	    
+	    public String getImgUrl() {
+			return imgUrl;
+		}
+
+		public void setImgUrl(String imgUrl) {
+			this.imgUrl = imgUrl;
+		}
 		      
-	      public String getHighlightText() {
+	     public String getHighlightText() {
 			return highlightText;
 		}
 
@@ -639,5 +710,19 @@ public class FullTextSearchComposite extends Composite{
 			}
 			return tagValues;
 		}
+	  
+	  private class HoverShell{
+		  Shell hoverShell;
+		  Label imgLabel;
+		  Image wordPrev;
+		  public HoverShell(Shell shell){
+		   hoverShell = new Shell(shell, SWT.ON_TOP | SWT.TOOL);
+		   hoverShell.setLayout(new FillLayout());
+		   imgLabel = new Label(hoverShell, SWT.NONE);	
+		   imgLabel.setImage(wordPrev);
+		   
+		  }
+
+		 } 
 
 }
