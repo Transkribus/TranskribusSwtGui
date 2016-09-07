@@ -82,7 +82,10 @@ public class FullTextSearchComposite extends Composite{
 	Label resultsLabel;
 	String lastHoverCoords;
 	Shell shell;
-	//Image img;
+	
+	Thread imgLoaderThread;
+	volatile HashMap<String,Image> prevImages;
+	
 	FimgStoreGetClient imgStoreClient;
 	
 	boolean enableHover;
@@ -146,12 +149,16 @@ public class FullTextSearchComposite extends Composite{
 		textTypeBtn[0] = new Button(parameters, SWT.RADIO);
 		textTypeBtn[0].setSelection(true);
 		textTypeBtn[0].setText("Word-based text");
+		textTypeBtn[0].setToolTipText("Search documents transcribed word by word");
 		textTypeBtn[1] = new Button(parameters, SWT.RADIO);
 		textTypeBtn[1].setSelection(false);
-		textTypeBtn[1].setText("Line-based text");		
+		textTypeBtn[1].setText("Line-based text");	
+		textTypeBtn[1].setToolTipText("Search documents transcribed line by line");
 		
 		previewCheck = new Button(parameters, SWT.CHECK);
 		previewCheck.setText("Show word preview");
+		previewCheck.setSelection(true);
+		previewCheck.setToolTipText("Automatic loading of preview word image. Works better with word-based text. Guesses word coordinates for line-based text.");
 		
 		Composite btnsComp = new Composite(facetsGroup, 0);
 		btnsComp.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -211,12 +218,6 @@ public class FullTextSearchComposite extends Composite{
 		resultsSf = new SashForm(resultsGroup, SWT.HORIZONTAL);
 		resultsSf.setLayout(new GridLayout(1, false));
 		resultsSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
-//		resultsTable = new MyTableViewer(resultsSf, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
-//		resultsTable.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		resultsTable.getTable().setHeaderVisible(true);
-		
-//		resultsTable= new Table(resultsSf, 1);
 		
         viewer = new TableViewer(resultsSf);
         viewer.getTable().setHeaderVisible(true);
@@ -398,8 +399,7 @@ public class FullTextSearchComposite extends Composite{
 				hShell.hoverShell.setVisible(false);
 //				logger.debug("Mouse outside table");
 			}
-		});
-		
+		});		
 		
 		
 		resultsTable.addListener(SWT.MouseMove, new Listener(){
@@ -420,35 +420,22 @@ public class FullTextSearchComposite extends Composite{
 							imgKey = imgKey.replace("&fileType=view", "");
 //							logger.debug(imgKey);							
 							
-							try {
+							try {						
 								
-								String[] singleCoords = coords.split(" ");
-								Integer xPosTL = Integer.parseInt(singleCoords[3].split(",")[0]);
-								Integer yPosTL = Integer.parseInt(singleCoords[3].split(",")[1]);
 								
-								Integer xPosBR = Integer.parseInt(singleCoords[1].split(",")[0]);
-								Integer yPosBR = Integer.parseInt(singleCoords[1].split(",")[1]);
+								Image img;							
+								int[] cropValues = getCropValues(coords);
 								
-								int width = Math.abs(xPosTL - xPosBR);
-								int height = Math.abs(yPosTL - yPosBR);
-								
-								width = (int)(width*1.5f);
-								height = (int)(height*1.5f);
-								
-								xPosTL-=(int)(width*0.25f);
-								yPosTL-=(int)(height*0.25f);
-								
+								if(prevImages.keySet().contains(coords)){
+									img = prevImages.get(coords);
+								}else{
+									URL url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
+									img = ImageDescriptor.createFromURL(url).createImage();	
+									logger.debug("Forced loading of img coords:"+coords);
+									prevImages.put(coords, img);
+									
+								}
 
-								
-								URL url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, xPosTL, yPosTL, width, height).toURL();								
-								//Image img = new Image(hShell.hoverShell.getDisplay(), url.openStream());
-								Image img = ImageDescriptor.createFromURL(url).createImage();
-								
-								
-								logger.debug(url.toString());
-								//hShell.wordPrev = img;
-								//hShell.hoverShell.setImage(img);
-//								hShell.label.setImage(img);
 								hShell.imgLabel.setImage(img);
 								hShell.hoverShell.setVisible(true);
 								
@@ -457,16 +444,12 @@ public class FullTextSearchComposite extends Composite{
 								hShell.imgLabel.setText("Could not load preview image");
 							}						
 							
-						}
+						}						
 							hShell.hoverShell.setLocation(mousePos.x + 20 , mousePos.y - 20);
-							
-							
-							
 							hShell.hoverShell.pack();
 							hShell.hoverShell.redraw();
-							logger.debug("Obj:"+((Hit)hoverItem.getData()).getPixelCoords());
-							lastHoverCoords = coords;							
-					
+//							logger.debug("Obj:"+((Hit)hoverItem.getData()).getPixelCoords());
+							lastHoverCoords = coords;		
 
 					}else{
 						hShell.hoverShell.setVisible(false);
@@ -477,7 +460,62 @@ public class FullTextSearchComposite extends Composite{
 		
 	}
 	
-	void findText(){		
+	int[] getCropValues(String coords){
+		int[] values = new int[4];
+		
+		String[] singleCoords = coords.split(" ");
+		
+		ArrayList<Integer> xPts = new ArrayList<Integer>();
+		ArrayList<Integer> yPts = new ArrayList<Integer>();	
+		
+		for(String s: singleCoords){
+			String[] PtCoords = s.split(",");
+			xPts.add(Integer.parseInt(PtCoords[0]));					//All X coords
+			yPts.add(Integer.parseInt(PtCoords[1]));					//All Y coords
+		}
+		
+		int CoordX1 = xPts.get(0);
+		int CoordX2 = xPts.get(0);
+		int CoordY1 = yPts.get(0);
+		int CoordY2 = yPts.get(0);
+		
+		//find outlining points
+		for(int x : xPts){
+			if(CoordX1>x){
+				CoordX1 = x;
+			}
+			if(CoordX2<x){
+				CoordX2 = x;
+			}
+		}
+		for(int y : yPts){
+			if(CoordY1>y){
+				CoordY1 = y;
+			}
+			if(CoordY2<y){
+				CoordY2 = y;
+			}
+		}			
+	
+		int width = Math.abs(CoordX2-CoordX1);
+		int height = Math.abs(CoordY2-CoordY1);
+		
+		width = (int)(width*2f);
+		height = (int)(height*2f);
+		CoordX1-=(int)(width*0.25f);
+		CoordY1-=(int)(height*0.25f);
+		
+		values[0]=CoordX1;
+		values[1]=CoordY1;
+		values[2]=width;
+		values[3]=height;		
+		
+		return values;
+	}
+	
+	void findText(){	
+		
+		prevImages = new HashMap<String,Image>();
 		
 		String searchText = inputText.getText().replaceAll(BAD_SYMBOLS, "");
 		
@@ -511,20 +549,21 @@ public class FullTextSearchComposite extends Composite{
 			}
 			
 		} catch (SessionExpiredException e) {
-			logger.error("Error when trying to search: Session expired!");
+			logger.error("Error when trying to search: Session expired!"+e);
 			e.printStackTrace();
 		} catch (ServerErrorException e) {
-			logger.error("Error when trying to search: ServerError!");
+			logger.error("Error when trying to search: ServerError!"+e);
 			e.printStackTrace();
 		} catch (ClientErrorException e) {
-			logger.error("Error when trying to search: ClientError!");
+			logger.error("Error when trying to search: ClientError!"+e);
 			e.printStackTrace();
 		} catch (NoConnectionException e) {
-			logger.error("Error when trying to search: No connection!");
+			logger.error("Error when trying to search: No connection!"+e);
 			e.printStackTrace();
-		}
+		}		
 		
 		lastSearchText = searchText;
+		
 	}
 
 
@@ -534,7 +573,7 @@ public class FullTextSearchComposite extends Composite{
 		int max = (start+rows) > numPageHits ? numPageHits : (start+rows);
 		resultsLabel.setText("Showing Pagehits "+(start)+" to "+(max)+" of "+(numPageHits));
 		
-        ArrayList<Hit> hits = new ArrayList<Hit>();
+        final ArrayList<Hit> hits = new ArrayList<Hit>();
         
         for (PageHit pHit : fullTextSearchResult.getPageHits()){
         	int numTags = 0;
@@ -595,6 +634,41 @@ public class FullTextSearchComposite extends Composite{
         }
 
         viewer.setInput(hits);
+        
+        Runnable loadPrevImg = new Runnable(){
+        	public void run() {
+        		for(Hit hit : hits){
+        			String coords = hit.getPixelCoords();
+					String imgKey = hit.getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
+					imgKey = imgKey.replace("&fileType=view", "");
+					try {						
+						Image img;							
+						int[] cropValues = getCropValues(coords);
+						
+						if(prevImages.keySet().contains(coords)){
+							//Do Nothing
+						}else{
+							URL url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
+							img = ImageDescriptor.createFromURL(url).createImage();		
+							prevImages.put(coords, img);
+							logger.debug("Background | Loaded img coords: "+coords);
+						}
+						
+					} catch (Exception ex) {								
+						ex.printStackTrace();
+					}	
+        			
+        		}
+        	}
+        };
+        
+        imgLoaderThread = new Thread(loadPrevImg);
+        imgLoaderThread.setPriority(Thread.MIN_PRIORITY);
+        imgLoaderThread.start();
+        
+        logger.debug("Image loading thread started.");
+        //loadPrevImg.run();
+        
 
 		
 	}
@@ -703,24 +777,23 @@ public class FullTextSearchComposite extends Composite{
 	  
 	  private static final Pattern TAG_REGEX = Pattern.compile("<em>(.+?)</em>");
 	  public static ArrayList<String> getTagValues(final String str) {
-			ArrayList<String> tagValues = new ArrayList<String>();
-			Matcher matcher = TAG_REGEX.matcher(str);
-			while (matcher.find()) {
-				tagValues.add(matcher.group(1));
-			}
-			return tagValues;
-		}
+		  ArrayList<String> tagValues = new ArrayList<String>();
+		  Matcher matcher = TAG_REGEX.matcher(str);
+		  while (matcher.find()) {
+			  tagValues.add(matcher.group(1));
+			  }
+		  return tagValues;
+	  	}
 	  
-	  private class HoverShell{
+	  private class HoverShell{		  
 		  Shell hoverShell;
 		  Label imgLabel;
 		  Image wordPrev;
 		  public HoverShell(Shell shell){
-		   hoverShell = new Shell(shell, SWT.ON_TOP | SWT.TOOL);
-		   hoverShell.setLayout(new FillLayout());
-		   imgLabel = new Label(hoverShell, SWT.NONE);	
-		   imgLabel.setImage(wordPrev);
-		   
+		  hoverShell = new Shell(shell, SWT.ON_TOP | SWT.TOOL);
+		  hoverShell.setLayout(new FillLayout());
+		  imgLabel = new Label(hoverShell, SWT.NONE);	
+		  imgLabel.setImage(wordPrev);
 		  }
 
 		 } 
