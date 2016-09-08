@@ -83,6 +83,8 @@ public class FullTextSearchComposite extends Composite{
 	String lastHoverCoords;
 	Shell shell;
 	
+	volatile ArrayList<Hit> hits;
+	
 	Thread imgLoaderThread;
 	volatile HashMap<String,Image> prevImages;
 	
@@ -94,7 +96,7 @@ public class FullTextSearchComposite extends Composite{
 	private int start = 0;
 	private String lastSearchText;
 	private int numPageHits;
-	private static final String BAD_SYMBOLS = "[+-:=]";
+	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],)";
 	private SearchType type;
 
 	public FullTextSearchComposite(Composite parent, int style){
@@ -124,7 +126,7 @@ public class FullTextSearchComposite extends Composite{
 		facetsGroup = new Group(sf, SWT.NONE);
 		facetsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));		
 		facetsGroup.setLayout(new GridLayout(2, false));
-		facetsGroup.setText("Solr search currently supports standard word search, exact phrasing (\"...\") and wildcards (*) ");
+		facetsGroup.setText("Solr search currently supports standard word search, exact phrasing (\"...\") and wildcards (* or ?) ");
 		
 		TraverseListener findTagsOnEnterListener = new TraverseListener() {
 			@Override public void keyTraversed(TraverseEvent e) {
@@ -517,7 +519,11 @@ public class FullTextSearchComposite extends Composite{
 		
 		prevImages = new HashMap<String,Image>();
 		
-		String searchText = inputText.getText().replaceAll(BAD_SYMBOLS, "");
+		String searchText = inputText.getText().toString();
+		
+		for(String c : BAD_SYMBOLS.split(",")){
+			searchText = searchText.replaceAll("\\"+c, "");
+		}
 		
 		if(searchText.isEmpty()) return;
 		
@@ -543,6 +549,8 @@ public class FullTextSearchComposite extends Composite{
 			fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, null);;
 			
 			logger.debug("Searching for: " + searchText + ", Start: "+start+" rows: "+rows);
+			
+			logger.debug("Query: " + fullTextSearchResult.getParams());
 			logger.debug("Num. Results: " + fullTextSearchResult.getNumResults());			
 			if(fullTextSearchResult != null){
 				updateResultsTable();
@@ -573,13 +581,11 @@ public class FullTextSearchComposite extends Composite{
 		int max = (start+rows) > numPageHits ? numPageHits : (start+rows);
 		resultsLabel.setText("Showing Pagehits "+(start)+" to "+(max)+" of "+(numPageHits));
 		
-        final ArrayList<Hit> hits = new ArrayList<Hit>();
+        hits = new ArrayList<Hit>();
         
         for (PageHit pHit : fullTextSearchResult.getPageHits()){
         	int numTags = 0;
-        	Map<String,Integer> foundWords = new HashMap<String,Integer>();
-        	
-        	
+        	Map<String,Integer> foundWords = new HashMap<String,Integer>();	
         	
         	for(String hlString : pHit.getHighlights()){
         		
@@ -636,40 +642,66 @@ public class FullTextSearchComposite extends Composite{
         viewer.setInput(hits);
         
         Runnable loadPrevImg = new Runnable(){
+        	
+        	public boolean stopFlag = false;
+        	
         	public void run() {
-        		for(Hit hit : hits){
-        			String coords = hit.getPixelCoords();
-					String imgKey = hit.getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
-					imgKey = imgKey.replace("&fileType=view", "");
-					try {						
-						Image img;							
-						int[] cropValues = getCropValues(coords);
-						
-						if(prevImages.keySet().contains(coords)){
-							//Do Nothing
-						}else{
-							URL url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
-							img = ImageDescriptor.createFromURL(url).createImage();		
-							prevImages.put(coords, img);
-							logger.debug("Background | Loaded img coords: "+coords);
-						}
-						
-					} catch (Exception ex) {								
-						ex.printStackTrace();
-					}	
-        			
-        		}
+        		try{
+
+	        		for(Hit hit : hits){
+	        			
+	        			if(Thread.currentThread().isInterrupted()) stopFlag = true;
+	        			if (stopFlag) return;
+	        			String coords = hit.getPixelCoords();
+						String imgKey = hit.getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
+						imgKey = imgKey.replace("&fileType=view", "");
+						try {						
+							Image img;							
+							int[] cropValues = getCropValues(coords);
+							
+							if(prevImages.keySet().contains(coords)){
+								//Do Nothing
+							}else{
+								URL url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
+								img = ImageDescriptor.createFromURL(url).createImage();		
+								prevImages.put(coords, img);
+								logger.debug("Background | Loaded img coords: "+coords);
+							}
+							
+						} catch (Exception ex) {								
+							ex.printStackTrace();
+						}	
+		        			
+        			}
+	        		}catch(Exception iEx){
+	        			logger.debug("Exception"+iEx);
+	        		}   	
         	}
         };
         
-        imgLoaderThread = new Thread(loadPrevImg);
+        if(imgLoaderThread == null){
+        	imgLoaderThread = new Thread(loadPrevImg);        	
+        }
+//        else{
+//        	try{
+//	        	imgLoaderThread.interrupt(); 
+//	        	logger.debug("Thread interrupted");
+//	        	imgLoaderThread = new Thread(loadPrevImg);
+//        	}catch(Exception e){
+//        		
+//        	}
+//        }
+        if(imgLoaderThread.isAlive()){
+        	imgLoaderThread.interrupt();
+        	logger.debug("Thread interrupted");
+        	imgLoaderThread = new Thread(loadPrevImg);
+        }     
+               
         imgLoaderThread.setPriority(Thread.MIN_PRIORITY);
         imgLoaderThread.start();
+        logger.debug("Image loading thread started. Nr of imgages: "+hits.size());       
         
-        logger.debug("Image loading thread started.");
         //loadPrevImg.run();
-        
-
 		
 	}
 	
