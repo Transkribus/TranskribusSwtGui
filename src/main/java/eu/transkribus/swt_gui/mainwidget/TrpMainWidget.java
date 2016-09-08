@@ -2475,6 +2475,7 @@ public class TrpMainWidget {
 	}
 	
 	public void unifiedExport() {
+		File dir = null;
 		try {
 
 			if (!storage.isDocLoaded()) {
@@ -2492,7 +2493,7 @@ public class TrpMainWidget {
 				
 			final CommonExportDialog exportDiag = new CommonExportDialog(getShell(), SWT.NONE, lastExportFolder, adjTitle, storage.getDoc().getPages());
 
-			final File dir = exportDiag.open();
+			dir = exportDiag.open();
 			if (dir == null)
 				return;
 			
@@ -2751,8 +2752,6 @@ public class TrpMainWidget {
 			if (exportFormats != "") {
 				displaySuccessMessage("Sucessfully written " + exportFormats + " to " + exportFileOrDir);
 			}
-			
-			lastExportFolder = dir.getParentFile().getAbsolutePath();
 
 		} catch (Throwable e) {
 			if (e instanceof InterruptedException){
@@ -2762,6 +2761,11 @@ public class TrpMainWidget {
 				logger.error(e.getMessage(), e);
 			}
 			// onError("Export error", "Error during export of document", e);
+		}
+		finally{
+			if(dir != null){
+				lastExportFolder = dir.getParentFile().getAbsolutePath();
+			}
 		}
 
 	}
