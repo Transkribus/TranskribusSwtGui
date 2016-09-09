@@ -675,15 +675,21 @@ public class FullTextSearchComposite extends Composite{
 						}	
 		        			
         			}
+	        		logger.debug("Background word thumbnail loading complete");
 	        		}catch(Exception iEx){
 	        			logger.debug("Exception"+iEx);
 	        		}   	
         	}
         };
         
-        if(imgLoaderThread == null){
-        	imgLoaderThread = new Thread(loadPrevImg);        	
+        if(imgLoaderThread != null){
+        	imgLoaderThread.interrupt();
+        	logger.debug("Thread interrupted");
         }
+    	imgLoaderThread = new Thread(loadPrevImg,"WordThmbLoaderThread");
+    	imgLoaderThread.start();
+        imgLoaderThread.setPriority(Thread.MIN_PRIORITY);        
+        logger.debug("Image loading thread started. Nr of imgages: "+hits.size());   
 //        else{
 //        	try{
 //	        	imgLoaderThread.interrupt(); 
@@ -693,15 +699,9 @@ public class FullTextSearchComposite extends Composite{
 //        		
 //        	}
 //        }
-        if(imgLoaderThread.isAlive()){
-        	imgLoaderThread.interrupt();
-        	logger.debug("Thread interrupted");
-        	imgLoaderThread = new Thread(loadPrevImg);
-        	imgLoaderThread.start();
-        }     
+    
                
-        imgLoaderThread.setPriority(Thread.MIN_PRIORITY);        
-        logger.debug("Image loading thread started. Nr of imgages: "+hits.size());       
+    
         
         //loadPrevImg.run();
 		
