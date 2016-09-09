@@ -123,7 +123,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		}
 				
 		if (true) {
-			addSpecialRegion = new DropDownToolItem(this, true, true, SWT.RADIO, ++i);
+			addSpecialRegion = new DropDownToolItem(this, true, true, SWT.PUSH, ++i);
 			
 			MenuItem mi = null;
 			
