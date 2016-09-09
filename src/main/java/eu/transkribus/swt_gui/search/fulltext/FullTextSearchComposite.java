@@ -650,9 +650,6 @@ public class FullTextSearchComposite extends Composite{
         	
         	public void run() {
         		try{
-        			if(hits.isEmpty()){
-        				return;
-        			}
 	        		for(Hit hit : hits){
 	        			
 	        			if(Thread.currentThread().isInterrupted()) stopFlag = true;
@@ -700,10 +697,10 @@ public class FullTextSearchComposite extends Composite{
         	imgLoaderThread.interrupt();
         	logger.debug("Thread interrupted");
         	imgLoaderThread = new Thread(loadPrevImg);
+        	imgLoaderThread.start();
         }     
                
-        imgLoaderThread.setPriority(Thread.MIN_PRIORITY);
-        imgLoaderThread.start();
+        imgLoaderThread.setPriority(Thread.MIN_PRIORITY);        
         logger.debug("Image loading thread started. Nr of imgages: "+hits.size());       
         
         //loadPrevImg.run();
