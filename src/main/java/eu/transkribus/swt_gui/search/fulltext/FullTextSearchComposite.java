@@ -609,8 +609,7 @@ public class FullTextSearchComposite extends Composite{
         			if(word.split(":")[0].equals(tags.get(0))){
         				matchedCoords.add(word);
         			}
-        		}
-        		
+        		}        		
         		
         		String wCoords;
         		if(matchedCoords.size() > foundWords.get(tags.get(0))){
