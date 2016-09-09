@@ -83,6 +83,8 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 	//		headerComposite.setLayout(new GridLayout(3, false));
 			RowLayout layout = new RowLayout();
 		    layout.center = true;
+		    layout.marginLeft = 0;
+		    layout.marginRight = 0;
 			headerComposite.setLayout(layout);
 			
 			collectionLabel = new Label(headerComposite, SWT.NONE);

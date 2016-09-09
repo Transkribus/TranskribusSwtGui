@@ -289,9 +289,9 @@ public class DocOverviewWidget extends Composite {
 		docsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 		docsContainer.setLayout(new GridLayout(2, false));		
 		
-		Composite btns = new Composite(docsContainer, SWT.NONE);
-		btns.setLayout(new GridLayout(4, false));
-		btns.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+//		Composite btns = new Composite(docsContainer, SWT.NONE);
+//		btns.setLayout(new GridLayout(4, false));
+//		btns.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
 //		btns.setLayout(new RowLayout());
 //		btns.setLayout(new FillLayout());
 		
