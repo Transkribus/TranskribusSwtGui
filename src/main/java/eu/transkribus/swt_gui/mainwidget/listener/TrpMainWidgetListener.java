@@ -71,14 +71,14 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		ui.getStructureTreeWidget().getSetReadingOrderRegions().addSelectionListener(this);
 //		ui.getStructureTreeWidget().getDeleteReadingOrderRegions().addSelectionListener(this);
 		
-		SWTUtil.addToolItemSelectionListener(ui.getReloadDocumentButton(), this);
-		SWTUtil.addToolItemSelectionListener(ui.getExportDocumentButton(), this);
-		SWTUtil.addToolItemSelectionListener(ui.getReplacePageImgButton(), this);
+		SWTUtil.addSelectionListener(ui.getReloadDocumentButton(), this);
+		SWTUtil.addSelectionListener(ui.getExportDocumentButton(), this);
+		SWTUtil.addSelectionListener(ui.getReplacePageImgButton(), this);
 		//SWTUtil.addToolItemSelectionListener(ui.getDeletePageButton(), this);
 		
-		SWTUtil.addToolItemSelectionListener(ui.getExportPdfButton(), this);
-		SWTUtil.addToolItemSelectionListener(ui.getExportTeiButton(), this);
-		SWTUtil.addToolItemSelectionListener(ui.getExportRtfButton(), this);
+		SWTUtil.addSelectionListener(ui.getExportPdfButton(), this);
+		SWTUtil.addSelectionListener(ui.getExportTeiButton(), this);
+		SWTUtil.addSelectionListener(ui.getExportRtfButton(), this);
 		
 		ui.getSaveTranscriptButton().addSelectionListener(this);
 		ui.getSaveTranscriptWithMessageButton().addSelectionListener(this);
@@ -94,7 +94,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addKeySelectionListener(this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
-		SWTUtil.addToolItemSelectionListener(ui.getProfilesToolItem().ti, this);
+		SWTUtil.addSelectionListener(ui.getProfilesToolItem().ti, this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getLanguageDropDown().ti, this);
 		

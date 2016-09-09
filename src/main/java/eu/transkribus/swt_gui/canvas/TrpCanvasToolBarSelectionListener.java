@@ -7,6 +7,7 @@ import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
+import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
 import eu.transkribus.swt_gui.dialogs.ImageEnhanceDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -29,30 +30,65 @@ public class TrpCanvasToolBarSelectionListener extends CanvasToolBarSelectionLis
 		this.toolbar = toolbar;
 		this.canvas = canvas;
 	}
+	
+	@Override protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {
+		if (e.getSource().equals(toolbar.addSpecialRegion.ti)) {
+			logger.debug("getting mode for special region toolitem...");
+			if (e.detail != SWT.ARROW) {
+				CanvasMode mode = toolbar.getModeMap().get(toolbar.addSpecialRegion.getSelected());
+				return mode!=null ? mode : CanvasMode.SELECTION;
+			} else
+				return CanvasMode.SELECTION;
+		} else
+			return super.getModeForSelectionEvent(e);
+		
+//		CanvasMode mode = toolbar.getModeMap().get(e.getSource());
+//		return mode!=null ? mode : CanvasMode.SELECTION;
+	}
 
 
 	@Override
 	public void widgetSelected(SelectionEvent e) {
-		logger.debug("toolbar item selected: "+e);
-		
-		super.widgetSelected(e);
-		
-		if (canvas.getMode() == TrpCanvasAddMode.ADD_OTHERREGION) {
-			TrpCanvasAddMode.ADD_OTHERREGION.data = canvas.getMainWidget().getCanvasWidget().getToolBar().getSelectedSpecialRegionType(); 
-		}
+		try {
+			TrpMainWidget mw = TrpMainWidget.getInstance();
 			
-		Object s = e.getSource();
-		
-		if (s == toolbar.getViewSettingsMenuItem()) {
-			canvas.getMainWidget().getUi().openViewSetsDialog();
-		}
-		else if (s == toolbar.getImageVersionItem().ti && e.detail != SWT.ARROW) {
-			TrpMainWidget.getInstance().reloadCurrentImage();
-		}
-		else if (s == toolbar.getImgEnhanceItem()) {
-			// TODO: open enhance dialog
-			ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
-			d.open();
+			logger.debug("toolbar item selected: "+e);
+			
+			super.widgetSelected(e);
+			
+			if (canvas.getMode() == TrpCanvasAddMode.ADD_OTHERREGION) {
+				TrpCanvasAddMode.ADD_OTHERREGION.data = canvas.getMainWidget().getCanvasWidget().getToolBar().getSelectedSpecialRegionType(); 
+			}
+				
+			Object s = e.getSource();
+			
+			if (s == toolbar.getViewSettingsMenuItem()) {
+				canvas.getMainWidget().getUi().openViewSetsDialog();
+			}
+			else if (s == toolbar.getImageVersionItem().ti && e.detail != SWT.ARROW) {
+				TrpMainWidget.getInstance().reloadCurrentImage();
+			}
+			else if (s == toolbar.getImgEnhanceItem()) {
+				// TODO: open enhance dialog
+				ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
+				d.open();
+			}
+			
+			// TABLE STUFF:
+			else if (s == toolbar.getDeleteRowItem()) {
+				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.ROW, true);
+			}
+			else if (s == toolbar.getDeleteColumnItem()) {
+				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.COLUMN, true);
+			}
+			else if (s == toolbar.getSplitMergedCell()) {
+				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
+			}
+			else if (s == toolbar.getRemoveIntermediatePtsItem()) {
+				mw.getCanvas().getShapeEditor().removeIntermediatePointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
+			}
+		} catch (Throwable ex) {
+			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
 		}
 	}
 

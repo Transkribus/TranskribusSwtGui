@@ -605,14 +605,40 @@ public class SWTUtil {
 		dummyMenu.setVisible(false);
 	}
 	
-	public static void addMenuItemSelectionListener(MenuItem ti, SelectionListener listener) {
-		if (ti!=null && !ti.isDisposed())
-			ti.addSelectionListener(listener);	
+//	public static void disposeMenuItems(Menu m, boolean recursive) {
+//		if (m == null)
+//			return;
+//
+//		for (MenuItem mi : m.getItems()) {
+//			if (mi!=null && mi.getMenu()!=null)
+//				disposeMenuItems(mi.getMenu(), true);
+//			
+//			SWTUtil.dispose(mi);
+//		}
+//	}
+	
+	public static boolean addSelectionListener(MenuItem mi, SelectionListener l) {
+		if (isDisposed(mi))
+			return false;
+		
+		mi.addSelectionListener(l);
+		return true;
 	}	
 	
-	public static void addToolItemSelectionListener(ToolItem ti, SelectionListener listener) {
-		if (ti!=null && !ti.isDisposed())
-			ti.addSelectionListener(listener);	
+	public static boolean addSelectionListener(ToolItem ti, SelectionListener l) {
+		if (isDisposed(ti))
+			return false;
+		
+		ti.addSelectionListener(l);
+		return true;
+	}
+	
+	public static boolean addSelectionListener(Button btn, SelectionListener l) {
+		if (isDisposed(btn))
+			return false;
+					
+		btn.addSelectionListener(l);
+		return true;
 	}
 	
 	public static void setEnabled(ToolItem item, boolean enabled) {
@@ -917,7 +943,7 @@ public class SWTUtil {
             for (int y = 0; y < data.height; y++) {
                 for (int x = 0; x < data.width; x++) {
                 	int rgb = bufferedImage.getRGB(x, y);
-                	
+
                 	Color c = new Color(rgb);
                 	int red = c.getRed();
                 	int green = c.getGreen();
@@ -939,7 +965,7 @@ public class SWTUtil {
 //                    data.setPixel(x, y, pixel);
 //                }
 //            }
-            
+
             return data;
         }
         

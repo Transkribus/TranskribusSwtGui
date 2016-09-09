@@ -1,14 +1,14 @@
 package eu.transkribus.swt_canvas.canvas.listener;
 
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt_canvas.canvas.CanvasKeys;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys.KeyAction;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
-
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
 
 public class CanvasKeyListener implements KeyListener {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasKeyListener.class);
@@ -44,25 +44,32 @@ public class CanvasKeyListener implements KeyListener {
 //			canvas.getSettings().setMultiselect(true);
 		}
 		
-		final boolean hasKeysDown = CanvasKeys.hasRequiredKeysDown(e);
+		CanvasMode mode = canvas.getMode();
+		
+		KeyAction ka = CanvasKeys.getKeyAction(e);
+		if (ka == null) {
+			logger.debug("cannot find key action for key event: "+e);
+			return;
+		}
+				
+		final boolean hasKeysDown = ka.hasRequiredKeysDown(e.stateMask);
 		if (!hasKeysDown)
 			return;
 		
-		boolean isEditingEnabled = canvas.getSettings().isEditingEnabled();
-		if (CanvasKeys.isEditOperation(e) && !isEditingEnabled) {
+		if (ka.isEditOperation() && !canvas.getSettings().isEditingEnabled()) {
 			logger.debug("Preventing edit operation for key="+e.keyCode);
 			return;
 		}
 		
-		if (CanvasKeys.containsKey(CanvasKeys.FIT_TO_PAGE, e.keyCode)) {
-			canvas.fitToPage();
-		}
-		else if (CanvasKeys.containsKey(CanvasKeys.FIT_TO_WIDTH, e.keyCode)) {
+		if (CanvasKeys.containsKey(CanvasKeys.FIT_TO_WIDTH, e.keyCode)) {
 			canvas.fitWidth();
 		}
 		else if (CanvasKeys.containsKey(CanvasKeys.FIT_TO_HEIGHT, e.keyCode)) {
 			canvas.fitHeight();
 		}
+//		else if (ka.equals(CanvasKeys.FIT_TO_PAGE)) {
+//			canvas.fitToPage();
+//		}
 		else if (CanvasKeys.containsKey(CanvasKeys.SET_SELECTION_MODE, e.keyCode)) {
 			canvas.setMode(CanvasMode.SELECTION);
 		}
@@ -80,9 +87,12 @@ public class CanvasKeyListener implements KeyListener {
 		}
 		
 		// EDIT OPERATIONS:
-		else if (CanvasKeys.containsKey(CanvasKeys.FINISH_SHAPE, e.keyCode)) {
+		else if (CanvasKeys.containsKey(CanvasKeys.FINISH_SHAPE, e.keyCode) && mode.isAddOperation()) {
 			canvas.getShapeEditor().finishCurrentShape(true);
-		}		
+		}
+		else if (CanvasKeys.containsKey(CanvasKeys.FINISH_SHAPE, e.keyCode) && mode.equals(CanvasMode.SPLIT_SHAPE_LINE)) {
+			canvas.getShapeEditor().finishSplitByLine();
+		}
 		else if (CanvasKeys.containsKey(CanvasKeys.DELETE_SHAPE, e.keyCode)) {
 //			logger.debug("delete button pressed - removing selected!");
 			canvas.getShapeEditor().removeSelected();
@@ -90,6 +100,9 @@ public class CanvasKeyListener implements KeyListener {
 		else if (CanvasKeys.containsKey(CanvasKeys.UNDO, e.keyCode)) {
 //			logger.debug("delete button pressed - removing selected!");
 			canvas.getUndoStack().undo();
+		}
+		else if (ka == CanvasKeys.ADD_POINT) {
+			canvas.setMode(CanvasMode.ADD_POINT);
 		}
 //		else if (CanvasKeys.containsKey(CanvasKeys.ADD_SHAPE, e.keyCode)) {
 //			if (canvas.getSettings().isEditingEnabled())
@@ -112,7 +125,6 @@ public class CanvasKeyListener implements KeyListener {
 //			canvas.translateDown();
 //		}
 		
-		logger.debug("redrawing!!");
 		canvas.redraw();
 		}
 		catch(Throwable th) {

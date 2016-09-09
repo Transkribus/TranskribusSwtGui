@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +32,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -43,6 +46,7 @@ import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.listener.AStorageObserver;
+import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class CollectionComboViewerWidget extends Composite implements Observer {
 	private final static Logger logger = LoggerFactory.getLogger(CollectionComboViewerWidget.class);
@@ -106,16 +110,16 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 			collectionFilterText.setToolTipText("Collection name filter");
 			collectionFilterText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			collectionFilterText.addModifyListener(new ModifyListener() {
+				DelayedTask dt = new DelayedTask(() -> { refreshCombo(true); }, true);
 				@Override public void modifyText(ModifyEvent e) {
-					collectionComboViewer.refresh();
-					//show all filtered results in the combo viewer during typing in the filter text
-					collectionComboViewer.getCombo().setListVisible(true);
+					dt.start();
 				}
 			});
+			
 			collectionFilterText.addTraverseListener(new TraverseListener() {
 				@Override public void keyTraversed(TraverseEvent e) {
 					if (e.detail == SWT.TRAVERSE_RETURN)
-						collectionComboViewer.refresh();
+						refreshCombo(true);
 				}
 			});
 		}
@@ -164,9 +168,16 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 		updateCollections();
 	}
 	
+	public void refreshCombo(boolean setListVisible) {
+		collectionComboViewer.refresh();
+		if (setListVisible) {
+			collectionComboViewer.getCombo().setListVisible(true);
+		}
+	}
+	
 	public void clearFilter() {
 		collectionFilterText.setText("");
-		collectionComboViewer.refresh();
+		refreshCombo(false);
 	}
 	
 	void addListener() {

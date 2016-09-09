@@ -2,18 +2,6 @@ package eu.transkribus.swt_canvas.canvas.listener;
 
 import java.util.HashMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.swt_canvas.canvas.CanvasKeys;
-import eu.transkribus.swt_canvas.canvas.CanvasMode;
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
-import eu.transkribus.swt_canvas.canvas.SWTCanvas;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
-import eu.transkribus.swt_canvas.util.MouseButtons;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
@@ -23,11 +11,26 @@ import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
+import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.CanvasSettings;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
+import eu.transkribus.swt_canvas.util.MouseButtons;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 
 public class CanvasMouseListener implements MouseListener, MouseMoveListener, MouseWheelListener, MouseTrackListener {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasMouseListener.class);
 	
 	public final static int MOVE_LAG = 200; // nr of ms between mouse moves to actually move a shape
+	final boolean ADD_POINT_ON_BOUNDARY_CLICK = false;
 	
 	HashMap<MouseButtons, Point> mouseDownMap = new HashMap<MouseButtons, Point>();
 	HashMap<MouseButtons, Point> mouseMoveMap = new HashMap<MouseButtons, Point>();
@@ -46,8 +49,12 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	RectDirection mouseOverDirection=RectDirection.NONE;
 	RectDirection selectedDirection=RectDirection.NONE;
 	
+	int[] mouseOverLine=null;
+	int[] selectedLine=null;
+	
 	boolean wasPointSelected=false;
 	boolean firstMove=false;
+	ShapeEditOperation currentMoveOp = null;
 	CanvasMode modeBackup=CanvasMode.SELECTION;
 	int currentMoveStateMask=0; // mouse move mask also masks mouse down positions!!
 	long timeDown=0;
@@ -78,8 +85,12 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		mouseOverDirection=RectDirection.NONE;
 		selectedDirection=RectDirection.NONE;
 		
+		mouseOverLine = null;
+		selectedLine = null;
+		
 		wasPointSelected=false;
 		firstMove=false;
+		currentMoveOp = null;
 		modeBackup=CanvasMode.SELECTION;
 		currentMoveStateMask=0;
 		timeDown=0;
@@ -91,41 +102,56 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		MouseButtons button = MouseButtons.fromInt(e.button);
 		
 		// focus selected shape on double-click 
-		if (button == settings.getSelectMouseButton() && canvas.getMode() == CanvasMode.SELECTION) {
+		if (button == settings.getSelectMouseButton() && canvas.getMode() == CanvasMode.SELECTION && e.stateMask==0) {
 			canvas.focusShape(canvas.getScene().getLastSelected());
 		}
 		// finish current shape on double-click
 		else if (button == settings.getEditMouseButton() && canvas.getMode().isAddOperation()) { 
 			canvas.getShapeEditor().finishCurrentShape(true);
 		}
+		// split shape:
+		else if (button == settings.getEditMouseButton() && canvas.getMode().equals(CanvasMode.SPLIT_SHAPE_LINE)) {			
+			canvas.getShapeEditor().finishSplitByLine();
+		}
 	}
 	
 	private void doMouseDownShapeEditOperations(MouseButtons button, Point moustPt, int stateMask) {
 		// add point:
-		final boolean ADD_POINT_ON_BOUNDARY_CLICK = true;
-		
-		if (ADD_POINT_ON_BOUNDARY_CLICK)
 		if (button == settings.getEditMouseButton()
-				&& CanvasKeys.isCtrlOrCommandKeyDown(stateMask)
+				&& isAddingPointOnBoundaryClickPossible()
+//				&& ADD_POINT_ON_BOUNDARY_CLICK
+//				&& CanvasKeys.isCtrlOrCommandKeyDown(stateMask)
+//				&& shapeBoundaryPt != null
+//				&& mouseOverPoint == -1
+//				&& ( mouseOverDirection == RectDirection.NONE
+//				|| !CanvasKeys.isKeyDown(stateMask, CanvasKeys.RESIZE_BOUNDING_BOX_REQUIRED_KEY) )
+//				&& canvas.getMode() == CanvasMode.SELECTION
+				) {
+			Point shapePtWTr = canvas.transform(shapeBoundaryPt); // have to transform, since shape point is without transformation!
+			canvas.getShapeEditor().addPointToShape(canvas.getFirstSelected(), shapePtWTr.x, shapePtWTr.y, true);
+		}
+	}
+	
+	public boolean isAddingPointOnBoundaryClickPossible() {
+		return (ADD_POINT_ON_BOUNDARY_CLICK
+				&& CanvasKeys.isCtrlOrCommandKeyDown(currentMoveStateMask)
 				&& shapeBoundaryPt != null
 				&& mouseOverPoint == -1
 				&& ( mouseOverDirection == RectDirection.NONE
-				|| !CanvasKeys.isKeyDown(stateMask, CanvasKeys.RESIZE_BOUNDING_BOX_REQUIRED_KEY) )
+				|| !CanvasKeys.isKeyDown(currentMoveStateMask, CanvasKeys.RESIZE_BOUNDING_BOX_REQUIRED_KEY) )
 				&& canvas.getMode() == CanvasMode.SELECTION
-				) {
-			Point shapePtWTr = canvas.transform(shapeBoundaryPt); // have to transform, since shape point is without transformation!
-			canvas.getShapeEditor().addPointToSelected(shapePtWTr.x, shapePtWTr.y);
-		}
+				&& mouseOverLine == null
+				);
 	}
 	
 	private void doMouseUpShapeEditOperations(MouseButtons button, Point mousePt) {
 		// add point:
 		if (button == settings.getEditMouseButton() && canvas.getMode() == CanvasMode.ADD_POINT) {
-			canvas.getShapeEditor().addPointToSelected(mousePt.x, mousePt.y);
+			canvas.getShapeEditor().addPointToShape(canvas.getFirstSelected(), mousePt.x, mousePt.y, true);
 		}
 		// remove point:
 		else if (button == settings.getEditMouseButton() && canvas.getMode() == CanvasMode.REMOVE_POINT) {
-			canvas.getShapeEditor().removePointFromSelected(mouseOverPoint);
+			canvas.getShapeEditor().removePointFromSelected(canvas.getFirstSelected(), mouseOverPoint, true);
 		}
 		// add shape:
 		else if (button == settings.getEditMouseButton() && canvas.getMode().isAddOperation()) {
@@ -160,20 +186,19 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		mouseDownMap.put(button, new Point(e.x, e.y));
 		mouseMoveMap.put(button, new Point(e.x, e.y));
 		mouseUpMap.put(button, null);
-		
-		
+				
 		boolean isMovingShapePossible = canvas.isMovingShapePossible();
-
+		
 		// set move image mode:
-		final boolean MOVE_IMG_ON_LEFT_BTN = true; // experimental
 		final boolean isMoveImgOnLeftBtnPossible = 
 				(canvas.getMode() == CanvasMode.SELECTION || canvas.getMode() == CanvasMode.LOUPE) && 
 				button == settings.getSelectMouseButton() 
-				&& !isMovingShapePossible && shapeBoundaryPt == null && mouseOverPoint == -1 && e.stateMask==0 && e.stateMask != CanvasKeys.SELECTION_RECTANGLE_REQUIRED_KEYS;
+				&& !isMovingShapePossible && shapeBoundaryPt == null 
+				&& mouseOverPoint == -1 && e.stateMask==0 && e.stateMask != CanvasKeys.SELECTION_RECTANGLE_REQUIRED_KEYS;
 		
-		if (button == settings.getTranslateMouseButton() || e.stateMask == CanvasKeys.MOVE_SCENE_REQUIRED_KEYS
-				|| (MOVE_IMG_ON_LEFT_BTN && isMoveImgOnLeftBtnPossible)
-				) {
+		if (button == settings.getTranslateMouseButton() 
+				/*|| e.stateMask == CanvasKeys.MOVE_SCENE_REQUIRED_KEYS*/
+				|| (isMoveImgOnLeftBtnPossible)) {
 			modeBackup = settings.getMode();
 			canvas.setMode(CanvasMode.MOVE);
 		}
@@ -193,11 +218,17 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 					selected.selectPoint(selectedPoint, true, isMultiselect /*canvas.getSettings().isMultiselect()*/);
 				}
 				
+				if (selectedPoint == -1) {
+					selectedLine = selected.whichLine(mousePtWoTr.x, mousePtWoTr.y);
+				}
+				
 				if (CanvasKeys.isKeyDown(e.stateMask, CanvasKeys.RESIZE_BOUNDING_BOX_REQUIRED_KEY)) {
 					selectedDirection = selected.whichDirection(mousePtWoTr.x, mousePtWoTr.y, settings.getSelectedPointRadius());
 					selectedPoint = -1;
+					selectedLine = null;
 				}
-				logger.debug("selected point: "+selectedPoint + " selected direction: "+selectedDirection);
+								
+				logger.debug("selected point: "+selectedPoint + " selected direction: "+selectedDirection+" sel-line: "+selectedLine);
 			}
 //			if (selectedPoint == -1 && selectedDirection == RectDirection.NONE) {
 //				logger.debug("selecting object on: "+e.x+"x"+e.y);
@@ -235,6 +266,8 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 			// update some data:
 			long tdiff = (System.currentTimeMillis() - timeDown);
 			currentMoveStateMask = e.stateMask;
+			
+			updateTranslation(e.x, e.y);
 			mousePt = new Point(e.x, e.y);
 			mousePtWoTr = canvas.inverseTransform(mousePt.x, mousePt.y);
 //			Point oldMovePt = getMouseMove(settings.getTranslateMouseButton());
@@ -244,9 +277,11 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 			
 			// calculate mouse over point of selected shape:
 			mouseOverPoint = -1;
+			mouseOverLine = null;
 			if (selected != null) {
 				mouseOverPoint = selected.getPointIndex(mousePtWoTr.x, mousePtWoTr.y, settings.getSelectedPointRadius());
 				mouseOverDirection = selected.whichDirection(mousePtWoTr.x, mousePtWoTr.y, settings.getSelectedPointRadius());
+				mouseOverLine = selected.whichLine(mousePtWoTr.x, mousePtWoTr.y);
 			}
 			
 			// calc point on boundary of selected shape:
@@ -272,7 +307,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				}
 			}	
 			
-			boolean isLagThesh = tdiff > MOVE_LAG;
+			boolean isLagThresh = tdiff > MOVE_LAG;
 			
 			// Perform translation of whole scene on move of translation button:
 			if (canvas.getMode()==CanvasMode.MOVE/*&& isMouseMove(settings.getTranslateMouseButton())*/) {
@@ -285,25 +320,40 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				}
 			}
 			// move shape:
-			else if (canvas.getMode()==CanvasMode.MOVE_SHAPE && isLagThesh) {
+			else if (canvas.getMode()==CanvasMode.MOVE_SHAPE && isLagThresh) {
 				Point trans = getTotalTranslation(mousePt, settings.getSelectMouseButton());
 				if (trans != null) {
-					canvas.getShapeEditor().moveSelected(trans.x, trans.y, firstMove);
+					currentMoveOp = canvas.getShapeEditor().moveShape(canvas.getFirstSelected(), trans.x, trans.y, currentMoveOp, true);
 					if (firstMove)
 						firstMove = false;
 					hasMouseMoved=true;
 				}
 			}
 			// move a point or the bounding box if selected:
-			else if (canvas.getMode()==CanvasMode.SELECTION && isMouseMove(settings.getSelectMouseButton()) && isLagThesh) {
+			else if (canvas.getMode()==CanvasMode.SELECTION && isMouseMove(settings.getSelectMouseButton()) && isLagThresh) {
 //				logger.debug("heeeeeeeeeeeeeeere, point: "+selectedPoint+" direction: "+selectedDirection);
 				
 				if (selectedPoint!=-1) 	{ // perform moving a point if point selected
-					canvas.getShapeEditor().movePointsFromSelected(selectedPoint, mousePt.x, mousePt.y, firstMove);
+					canvas.getShapeEditor().movePointAndSelected(canvas.getFirstSelected(), selectedPoint, mousePt.x, mousePt.y, firstMove);
 					
 					if (firstMove) firstMove = false;
 					hasMouseMoved=true;
-				} else if (selectedDirection!=RectDirection.NONE) {
+				} 
+				else if (selectedLine != null) {
+//					Point trans = getTotalTranslation(mousePt, settings.getSelectMouseButton());
+					java.awt.Point tWTr = canvas.getTransformCopy().inverseTransformWithoutTranslation(translation.x, translation.y);
+					if (tWTr != null) {
+						logger.debug("moving pts of line "+selectedLine+" by "+tWTr+" translation = "+translation);
+						int tx = tWTr.x;
+						int ty = tWTr.y;
+						canvas.getShapeEditor().translatePoints(canvas.getFirstSelected(), tx, ty, firstMove, selectedLine[0], selectedLine[1]);
+						
+						if (firstMove) firstMove = false;
+						hasMouseMoved=true;
+//						canvas.getFirstSelected().movePoints(x, y, pts);						
+					}
+				}
+				else if (selectedDirection!=RectDirection.NONE) {
 					Point trans = getTotalTranslation(mousePt, settings.getSelectMouseButton());
 					if (trans != null) {
 						canvas.getShapeEditor().resizeBoundingBoxFromSelected(selectedDirection, trans.x, trans.y, firstMove);
@@ -318,6 +368,13 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		catch (Exception ex) {
 			logger.error("Fatal error in mouse move: "+ex.getMessage(), ex);
 		}
+	}
+	
+	private void updateTranslation(int x, int y) {
+		if (mousePt == null)
+			translation = new Point(0, 0);
+		else
+			translation = new Point(x-mousePt.x, y-mousePt.y);
 	}
 	
 	private Point getTotalTranslation(Point mousePt, MouseButtons mb) {
@@ -381,14 +438,20 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 			}
 //			logger.debug("H2");
 			// TEST:
-			if (selectedPoint == -1 && selectedDirection == RectDirection.NONE) {
+			if (selectedPoint == -1 && selectedDirection == RectDirection.NONE && selectedLine == null) {
 				logger.debug("selecting object on: "+e.x+"x"+e.y);
 				canvas.selectObject(new Point(e.x, e.y), true, isMultiselect);
 			}
 		}
+		// open up context menu
+		else if (button == MouseButtons.BUTTON_RIGHT && !hasMouseMoved) {
+			Point p = canvas.toDisplay(e.x, e.y);
+			canvas.getContextMenu().show(canvas.getFirstSelected(), p.x, p.y);
+		}
 		
 		hasMouseMoved = false;
 		firstMove = false;
+		currentMoveOp = null;
 		mousePt = new Point(e.x, e.y);
 		logger.trace("mouse pt = "+mousePt+ "button = "+e.button);
 		mousePtWoTr = canvas.inverseTransform(mousePt.x, mousePt.y);
@@ -396,6 +459,8 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		logger.debug("selection rectangle drawn: "+selRect);
 		selectedPoint = -1;
 		selectedDirection = RectDirection.NONE;
+		mouseOverLine = null;
+		selectedLine = null;
 		
 		doMouseUpShapeEditOperations(button, mousePt);
 		
@@ -506,6 +571,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		if (	settings.getMode() == CanvasMode.ZOOM || settings.getMode() == CanvasMode.SELECTION 
 				&& selectedPoint == -1
 				&& selectedDirection == RectDirection.NONE
+				&& selectedLine == null
 				&& (currentMoveStateMask & CanvasKeys.SELECTION_RECTANGLE_REQUIRED_KEYS) == CanvasKeys.SELECTION_RECTANGLE_REQUIRED_KEYS
 				) {
 			return drawnRects.get(settings.getSelectMouseButton());
@@ -530,8 +596,12 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	
 	public RectDirection getMouseOverDirection() { return mouseOverDirection; }
 	public RectDirection getSelectedDirection() { return selectedDirection; }
+	public int[] getMouseOverLine() { return mouseOverLine; }
+	public int[] getSelectedLine() { return selectedLine; }
 
-
+	public boolean isKeyDown(int key) {
+		return CanvasKeys.isKeyDown(getCurrentMoveStateMask(), SWT.CTRL);		
+	}
 	
 	
 

@@ -3,9 +3,7 @@ package eu.transkribus.swt_canvas.canvas.shapes;
 import java.awt.Point;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -15,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.PointStrUtils;
+import eu.transkribus.core.util.PointStrUtils.PointParseException;
 import math.geom2d.Vector2D;
 
 //public class CanvasPolyline extends ACanvasShape<java.awt.geom.GeneralPath> {
@@ -33,12 +32,23 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		setPoints(pts);
 	}
 	
-	public CanvasPolyline(String points) throws Exception {
+	public CanvasPolyline(String points) throws PointParseException {
 		setPoints(PointStrUtils.parsePoints(points));
 	}
 	
 	public CanvasPolyline(CanvasPolyline src) {
 		super(src);
+	}
+	
+	public CanvasPolyline(Point p1, Point p2) {
+		List<Point> pts = new ArrayList<>();
+		pts.add(p1);
+		pts.add(p2);
+		setPoints(pts);
+	}
+
+	public CanvasPolyline copy() {
+		return new CanvasPolyline(this);
 	}
 
 //	@Override
@@ -48,9 +58,9 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 //	}
 	
 	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
+//	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
+	public Pair<ICanvasShape, ICanvasShape> splitByPolyline(CanvasPolyline pl) {
 		List<Point> pts = getPoints();
-		math.geom2d.line.LinearElement2D lGiven = new math.geom2d.line.StraightLine2D(x1, y1, x2-x1, y2-y1);
 		
 		List<Point> pts1 = new ArrayList<>();
 		List<Point> pts2 = new ArrayList<>();
@@ -69,14 +79,19 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 			// if no intersection has been found yet, try to find one with the current line segment and add the intersection point if found:
 			if (!intersected) {
 				int iNext = (i+1) % pts.size();
-				math.geom2d.line.Line2D l = new math.geom2d.line.Line2D((int)pts.get(i).getX(), (int)pts.get(i).getY(),
-						(int)pts.get(iNext).getX(), (int)pts.get(iNext).getY());				
-				math.geom2d.Point2D pt = lGiven.intersection(l);
-				if (pt!=null) { // intersection point found!
-					intersected=true;
-					pts1.add(new Point((int)pt.x(), (int)pt.y()));
-					pts2.add(new Point((int)pt.x(), (int)pt.y()));
-				}
+				
+				Point p1 = pts.get(i);
+				Point p2 = pts.get(iNext);
+
+				List<ShapePoint> ipts = pl.extendAtEnds(1e4).intersectionPoints(p1, p2, false);
+				if (ipts.isEmpty())
+					continue;
+				else if (ipts.size() > 1) // more than one intersection point with a line segment -> no split possible!
+					return null;				
+
+				intersected=true;
+				pts1.add(new Point(ipts.get(0).p));
+				pts2.add(new Point(ipts.get(0).p));		
 			}
 		}
 		pts2.add(pts.get(N));
@@ -84,9 +99,9 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		if (!intersected)
 			return null;
 		
-		ICanvasShape s1 = CanvasShapeFactory.copyShape(this);		
+		ICanvasShape s1 = this.copy();
 		s1.setPoints(pts1);
-		ICanvasShape s2 = CanvasShapeFactory.copyShape(this);
+		ICanvasShape s2 = this.copy();
 		s2.setPoints(pts2);
 						
 		return Pair.of(s1, s2);
@@ -123,14 +138,15 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	}
 	
 	@Override
-	public ICanvasShape mergeShapes(ICanvasShape shape) {
+	public ICanvasShape merge(ICanvasShape shape) {
 		logger.warn("Merging not allowed for polylines - returning null!");
 		return null;
 	}
 	
-	public void extendAtEnds(final double dist) {
-		if (getNPoints() < 2)
-			return;
+	public CanvasPolyline extendAtEnds(final double dist) {
+		CanvasPolyline extended = new CanvasPolyline(this);
+		if (extended.getNPoints() < 2)
+			return extended;
 		
 		List<java.awt.Point> pts = getPoints();
 		List<java.awt.Point> extendedPts = new ArrayList<>();
@@ -154,8 +170,9 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		v1 = v1.normalize();
 		newFirstPt = new Vector2D(p2.x, p2.y).plus(v1.times(dist));
 		extendedPts.add(new java.awt.Point((int)newFirstPt.x(), (int)newFirstPt.y()));
-		
-		this.setPoints(extendedPts);		
+
+		extended.setPoints(extendedPts);
+		return extended;	
 	}
 		
 	@Override
@@ -346,7 +363,7 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	}
 	
 	@Override
-	public boolean move(int tx, int ty) {
+	public boolean translate(int tx, int ty) {
 		awtShape.translate(tx, ty);
 		
 //		for (int i=0; i<awtShape.npoints; ++i) {

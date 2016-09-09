@@ -32,12 +32,11 @@ public class PAGEXmlViewer extends XmlViewer {
 	}
 	
 	@Override protected void createContents() {
-		logger.debug("yeah!");
 		super.createContents();
 		
 		reloadBtn = new Button(topRightBtns, SWT.PUSH);
 		reloadBtn.setImage(Images.REFRESH);
-		reloadBtn.setToolTipText("Reload page from edited file in canvas");
+		reloadBtn.setToolTipText("Reload page from (edited) file");
 		
 		reloadBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
@@ -55,7 +54,7 @@ public class PAGEXmlViewer extends XmlViewer {
 	}
 	
 	void reloadTranscriptFromModifiedText() {
-		logger.debug("reloading transcript from modiefied text, textChanged = "+textChanged);
+		logger.debug("reloading transcript from modified xml text, textChanged = "+textChanged);
 		
 		if (!textChanged)
 			return;

@@ -31,7 +31,7 @@ import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.TableUtils;
+import eu.transkribus.swt_canvas.util.TableViewerUtils;
 
 public abstract class ATableWidgetPagination<T> extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(ATableWidgetPagination.class);
@@ -329,7 +329,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	protected abstract void createColumns();
 
 	protected TableViewerColumn createColumn(String columnName, int colSize, String sortPropertyName, CellLabelProvider lp) {
-		TableViewerColumn col = TableUtils.createTableViewerColumn(tv, 0, columnName, colSize);
+		TableViewerColumn col = TableViewerUtils.createTableViewerColumn(tv, 0, columnName, colSize);
 		col.setLabelProvider(lp);
 		if (sortPropertyName != null)
 			col.getColumn().addSelectionListener(new SortTableColumnSelectionListener(sortPropertyName));

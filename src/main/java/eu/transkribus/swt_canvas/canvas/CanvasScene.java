@@ -1,44 +1,30 @@
 package eu.transkribus.swt_canvas.canvas;
 
-import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.omg.CosNaming.IstringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent.RegionType;
-import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener.SceneEvent;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener.SceneEventType;
-import eu.transkribus.swt_canvas.canvas.shapes.ACanvasShape;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasRect;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeFactory;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 
 /**
  * The scene contains all objects to be drawn, i.e. the main image, sub images
@@ -124,29 +110,34 @@ public class CanvasScene {
 		for (Image image : subimages) {
 			gc.drawImage(image, 0, 0);
 		}
-		// Draw shapes:
 
+		// Draw shapes:
 		// first draw non-selected shapes:
 		for (ICanvasShape s : shapes) {
 			
-			//during transcription only the selected baseline is drawn, all other baselines not
-			ITrpShapeType trpShape = (ITrpShapeType) s.getData();
-			if (trpShape instanceof TrpBaselineType && !s.isBaselineVisible()){
-				continue;
+			//during transcription only the selected baseline is drawn, lines and regions are always drawn if visible
+			if (isTranscriptionMode()) {
+				ITrpShapeType trpShape = (ITrpShapeType) s.getData();
+				if (!(trpShape instanceof TrpRegionType) && !(trpShape instanceof TrpTextLineType))
+					continue;
 			}
 			
 			if (s.isVisible() && !selected.contains(s)){
 				s.draw(canvas, gc);
 			}
-
 		}
+		
 		// then draw selected shape over them (to make borders visible for
 		// overlapping regions!):
 		for (ICanvasShape s : selected) {
 			if (s.isVisible())
 				s.draw(canvas, gc);
 		}
-				
+
+//		for (ICanvasShape s : readingOrderShapes) {
+//			//if (s.isVisible())
+//				s.draw(canvas, gc);
+//		}
 		
 	}
 	
@@ -206,11 +197,11 @@ public class CanvasScene {
 		}
 		 				
 		clearSelected();
-		ICanvasShape merged = CanvasShapeFactory.copyShape(selectedShapes.get(0));
-		removeShape(selectedShapes.get(0), false, false);
+		ICanvasShape merged = selectedShapes.get(0).copy();
 		
 		for (int i=1; i<selectedShapes.size(); ++i) {
-			merged = merged.mergeShapes(selectedShapes.get(i));
+			merged = merged.merge(selectedShapes.get(i));
+			logger.debug("merged = "+merged);
 			if (merged == null)
 				return null;
 			
@@ -219,11 +210,19 @@ public class CanvasScene {
 				merged.addChild(child);
 			}
 		}
+		
+		removeShape(selectedShapes.get(0), false, false);
 		ShapeEditOperation opa = addShape(merged, null, false);
 //		logger.debug("merge added: "+opa);
 		
+		if (opa == null) {
+			addShape(selectedShapes.get(0), null, false);
+			logger.warn("unable to add merged shape: "+merged);
+			return null;
+		}
+		
 		ShapeEditOperation op = 
-				new ShapeEditOperation(canvas, ShapeEditType.MERGE, selectedShapes.size()+" shapes merged", selectedShapes);
+				new ShapeEditOperation(ShapeEditType.MERGE, selectedShapes.size()+" shapes merged", selectedShapes);
 		op.addNewShape(merged);
 		
 		if (sendSignal) {
@@ -245,12 +244,12 @@ public class CanvasScene {
 	 * @param isFollowUp Indicates that this is a follow-up split, i.e. a split occuring from splitting a parent shape!
 	 * @return A ShapeEditOperation object that contains information on the performed split or null if there was some error
 	 */
-	public ShapeEditOperation splitShape(ICanvasShape shape, int x1, int y1, int x2, int y2, boolean sendSignal, ICanvasShape p1, ICanvasShape p2, boolean isFollowUp) {
+	public ShapeEditOperation splitShape(ICanvasShape shape, CanvasPolyline pl, boolean sendSignal, ICanvasShape p1, ICanvasShape p2, boolean isFollowUp) {
 		if (shape == null)
 			return null;
 		
 		logger.debug("splitting shape "+shape);
-		ShapeEditOperation op = new ShapeEditOperation(canvas, ShapeEditType.SPLIT, "Shape splitted", shape);
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.SPLIT, "Shape splitted", shape);
 		op.setFollowUp(isFollowUp);
 		
 		if (sendSignal) {
@@ -258,7 +257,7 @@ public class CanvasScene {
 				return null;
 		}
 		
-		Pair<ICanvasShape, ICanvasShape> splits = shape.splitShape(x1, y1, x2, y2);
+		Pair<ICanvasShape, ICanvasShape> splits = shape.splitByPolyline(pl);
 		logger.debug("splits "+splits);
 		if (splits == null)
 			return null;
@@ -320,14 +319,6 @@ public class CanvasScene {
 		return op;
 	}
 	
-	/** update the parent-child info for this shape. To be implemented in subclasses. */
-	public void updateParentInfo(ICanvasShape shape, boolean recursive) {
-	}
-	
-	/** Update the parent-child info for all shapes. To be implemented in subclasses. */
-	public void updateAllShapesParentInfo() {
-	}
-
 	public ShapeEditOperation addShape(ICanvasShape newShape, ICanvasShape parentShape, boolean sendSignal) {
 		if (sendSignal) {
 			if (notifyOnBeforeShapeAdded(newShape))
@@ -344,7 +335,7 @@ public class CanvasScene {
 				notifyOnShapeAdded(newShape);
 			}
 
-			return new ShapeEditOperation(canvas, ShapeEditType.ADD, "Shape added", newShape);
+			return new ShapeEditOperation(ShapeEditType.ADD, "Shape added", newShape);
 		} else {
 			logger.warn("Could not add shape: " + newShape);
 			return null;			
@@ -393,7 +384,7 @@ public class CanvasScene {
 				return false;
 		}
 
-		shape.move(tx, ty);
+		shape.translate(tx, ty);
 
 		if (sendSignal)
 			notifyOnShapeMoved(shape, tx, ty);
@@ -476,7 +467,7 @@ public class CanvasScene {
 		return sd;
 	}
 	
-	public <T> List<T> getSelectedWithData(Class<T> clazz) {
+	public <T> List<T> getSelectedData(Class<T> clazz) {
 		List<T> sd = new ArrayList<>();
 		for (Object o : getSelectedData()) {
 			if (clazz.isAssignableFrom(o.getClass()))
@@ -485,6 +476,17 @@ public class CanvasScene {
 		}
 		return sd;
 	}
+	
+	public <T> List<ICanvasShape> getSelectedShapesWithData(Class<T> clazz) {
+		List<ICanvasShape> sd = new ArrayList<>();
+		for (ICanvasShape s : getSelectedAsNewArray()) {
+			if (s.getData()!=null && clazz.isAssignableFrom(s.getData().getClass()))
+				sd.add(s);
+		}
+		return sd;
+	}
+	
+	
 
 	/**
 	 * Iterates through all shapes and returns the list of selected objects

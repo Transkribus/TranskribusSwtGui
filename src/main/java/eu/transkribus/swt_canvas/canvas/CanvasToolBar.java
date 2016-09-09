@@ -63,8 +63,8 @@ public class CanvasToolBar extends ToolBar {
 	protected ToolItem mergeShapes;
 	protected ToolItem splitShapeLine;
 	private static final boolean ENABLE_SPLIT_SHAPE_LINE=true;
-	protected ToolItem splitShapeHorizontal;
-	protected ToolItem splitShapeVertical;
+	protected ToolItem splitShapeWithVerticalLine;
+	protected ToolItem splitShapeWithHorizontalLine;
 	
 //	protected DropDownToolItem splitTypeItem;
 //	protected ToolItem simplifyShape;
@@ -173,12 +173,18 @@ public class CanvasToolBar extends ToolBar {
 		rotateItem.addItem("Rotate right", Images.getOrLoad("/icons/arrow_turn_right.png"), "Rotate right");
 		rotateItem.addItem("Rotate left 90 degress", Images.getOrLoad("/icons/arrow_turn_left_90.png"), "Rotate left 90 degress");
 		rotateItem.addItem("Rotate right 90 degrees", Images.getOrLoad("/icons/arrow_turn_right_90.png"), "Rotate right 90 degrees");
+		rotateItem.addItem("Translate left", Images.getOrLoad("/icons/arrow_left.png"), "Translate left");
+		rotateItem.addItem("Translate right", Images.getOrLoad("/icons/arrow_right.png"), "Translate right");
+		rotateItem.addItem("Translate up", Images.getOrLoad("/icons/arrow_up.png"), "Translate up");
+		rotateItem.addItem("Translate down", Images.getOrLoad("/icons/arrow_down.png"), "Translate down");		
 		
+		if (false) {
 		translateItem = new DropDownToolItem(this, false, true, SWT.NONE);
 		translateItem.addItem("Translate left", Images.getOrLoad("/icons/arrow_left.png"), "Translate left");
 		translateItem.addItem("Translate right", Images.getOrLoad("/icons/arrow_right.png"), "Translate right");
 		translateItem.addItem("Translate up", Images.getOrLoad("/icons/arrow_up.png"), "Translate up");
 		translateItem.addItem("Translate down", Images.getOrLoad("/icons/arrow_down.png"), "Translate down");
+		}
 
 //		translateLeft = new ToolItem(this, SWT.PUSH);
 //		translateLeft.setToolTipText("Translate left");
@@ -218,32 +224,32 @@ public class CanvasToolBar extends ToolBar {
 		removeShape.setImage(Images.getOrLoad("/icons/delete.png"));
 		
 		addPoint = new ToolItem(this, SWT.RADIO);
-		addPoint.setToolTipText("Add point to selected polygon");
+		addPoint.setToolTipText("Add point to selected shape");
 		addPoint.setImage(Images.getOrLoad("/icons/vector_add.png"));
 		modeMap.put(addPoint, CanvasMode.ADD_POINT);
 		
 		removePoint = new ToolItem(this, SWT.RADIO);
-		removePoint.setToolTipText("Remove point from selected polygon");
+		removePoint.setToolTipText("Remove point from selected shape");
 		removePoint.setImage(Images.getOrLoad("/icons/vector_delete.png"));
 		modeMap.put(removePoint, CanvasMode.REMOVE_POINT);
-				
-		splitShapeHorizontal = new ToolItem(this, SWT.RADIO);
-		splitShapeHorizontal.setToolTipText("Splits a shape horizontally");
-//		splitShapeHorizontal.setImage(Images.getOrLoad("/icons/scissor_h.png"));
-		splitShapeHorizontal.setImage(Images.getOrLoad("/icons/scissor.png"));
-		splitShapeHorizontal.setText("H");
-		modeMap.put(splitShapeHorizontal, CanvasMode.SPLIT_SHAPE_HORIZONTAL);
-		
-		splitShapeVertical = new ToolItem(this, SWT.RADIO);
-		splitShapeVertical.setToolTipText("Splits a shape vertically");
+						
+		splitShapeWithHorizontalLine = new ToolItem(this, SWT.RADIO);
+		splitShapeWithHorizontalLine.setToolTipText("Splits a shape with a horizontal line");
 //		splitShapeVertical.setImage(Images.getOrLoad("/icons/scissor_v.png"));
-		splitShapeVertical.setImage(Images.getOrLoad("/icons/scissor.png"));
-		splitShapeVertical.setText("V");
-		modeMap.put(splitShapeVertical, CanvasMode.SPLIT_SHAPE_VERTICAL);
+		splitShapeWithHorizontalLine.setImage(Images.getOrLoad("/icons/scissor.png"));
+		splitShapeWithHorizontalLine.setText("H");
+		modeMap.put(splitShapeWithHorizontalLine, CanvasMode.SPLIT_SHAPE_BY_HORIZONTAL_LINE);
+		
+		splitShapeWithVerticalLine = new ToolItem(this, SWT.RADIO);
+		splitShapeWithVerticalLine.setToolTipText("Splits a shape with a vertical line");
+//		splitShapeHorizontal.setImage(Images.getOrLoad("/icons/scissor_h.png"));
+		splitShapeWithVerticalLine.setImage(Images.getOrLoad("/icons/scissor.png"));
+		splitShapeWithVerticalLine.setText("V");
+		modeMap.put(splitShapeWithVerticalLine, CanvasMode.SPLIT_SHAPE_BY_VERTICAL_LINE);		
 		
 		if (ENABLE_SPLIT_SHAPE_LINE) {
 		splitShapeLine = new ToolItem(this, SWT.RADIO);
-		splitShapeLine.setToolTipText("Splits a shape using a custom line");
+		splitShapeLine.setToolTipText("Splits a shape with a custom polyline");
 //		splitShapeLine.setImage(Images.getOrLoad("/icons/scissor_l.png"));
 		splitShapeLine.setImage(Images.getOrLoad("/icons/scissor.png"));
 		splitShapeLine.setText("L");
@@ -263,7 +269,7 @@ public class CanvasToolBar extends ToolBar {
 			simplifyEpsItem.addItem(""+i, Images.getOrLoad("/icons/vector.png"), "");
 		simplifyEpsItem.selectItem(14, false);
 		simplifyEpsItem.ti.setToolTipText(
-				"Simplify the selected polygon using the Ramer-Douglas-Peucker algorithm\n"
+				"Simplify the selected shape using the Ramer-Douglas-Peucker algorithm\n"
 				+ "The value determines the strength of polygon simplification - the higher the value, the more points are removed. "
 				+ "\n (i.e. Epsilon is set as the given percentage of the diameter of the bounding box of the shape)");
 		
@@ -392,30 +398,30 @@ public class CanvasToolBar extends ToolBar {
 //		return;
 //	}
 	
-	public void addAddButtonsSelectionListener(SelectionListener listener) {
-		SWTUtil.addToolItemSelectionListener(selectionMode, listener);
-		SWTUtil.addToolItemSelectionListener(zoomSelection, listener);
-		SWTUtil.addToolItemSelectionListener(zoomIn, listener);
-		SWTUtil.addToolItemSelectionListener(zoomOut, listener);
-		SWTUtil.addToolItemSelectionListener(loupe, listener);
+	public void addSelectionListener(SelectionListener listener) {
+		SWTUtil.addSelectionListener(selectionMode, listener);
+		SWTUtil.addSelectionListener(zoomSelection, listener);
+		SWTUtil.addSelectionListener(zoomIn, listener);
+		SWTUtil.addSelectionListener(zoomOut, listener);
+		SWTUtil.addSelectionListener(loupe, listener);
 //		SWTUtil.addToolItemSelectionListener(rotateLeft, listener);
 //		SWTUtil.addToolItemSelectionListener(rotateRight, listener);
-		SWTUtil.addToolItemSelectionListener(fitItem.ti, listener);
-		SWTUtil.addToolItemSelectionListener(rotateItem.ti, listener);
-		SWTUtil.addToolItemSelectionListener(translateItem.ti, listener);
+		SWTUtil.addSelectionListener(fitItem.ti, listener);
+		SWTUtil.addSelectionListener(rotateItem.ti, listener);
+//		SWTUtil.addToolItemSelectionListener(translateItem.ti, listener);
 		
-		SWTUtil.addToolItemSelectionListener(focus, listener);
-		SWTUtil.addToolItemSelectionListener(addPoint, listener);
-		SWTUtil.addToolItemSelectionListener(removePoint, listener);
-		SWTUtil.addToolItemSelectionListener(addShape, listener);
-		SWTUtil.addToolItemSelectionListener(removeShape, listener);
-		SWTUtil.addToolItemSelectionListener(simplifyEpsItem.ti, listener);
-		SWTUtil.addToolItemSelectionListener(undo, listener);
+		SWTUtil.addSelectionListener(focus, listener);
+		SWTUtil.addSelectionListener(addPoint, listener);
+		SWTUtil.addSelectionListener(removePoint, listener);
+		SWTUtil.addSelectionListener(addShape, listener);
+		SWTUtil.addSelectionListener(removeShape, listener);
+		SWTUtil.addSelectionListener(simplifyEpsItem.ti, listener);
+		SWTUtil.addSelectionListener(undo, listener);
 		if (splitShapeLine!=null)
-			SWTUtil.addToolItemSelectionListener(splitShapeLine, listener);
-		SWTUtil.addToolItemSelectionListener(splitShapeHorizontal, listener);
-		SWTUtil.addToolItemSelectionListener(splitShapeVertical, listener);
-		SWTUtil.addToolItemSelectionListener(mergeShapes, listener);
+			SWTUtil.addSelectionListener(splitShapeLine, listener);
+		SWTUtil.addSelectionListener(splitShapeWithVerticalLine, listener);
+		SWTUtil.addSelectionListener(splitShapeWithHorizontalLine, listener);
+		SWTUtil.addSelectionListener(mergeShapes, listener);
 	}
 
 	public ToolItem getZoomIn() {
@@ -554,8 +560,8 @@ public class CanvasToolBar extends ToolBar {
 		SWTUtil.setEnabled(addShape, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(removeShape, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(splitShapeLine, isEditingEnabled && notNullAndEditable);
-		SWTUtil.setEnabled(splitShapeHorizontal, isEditingEnabled && notNullAndEditable);
-		SWTUtil.setEnabled(splitShapeVertical, isEditingEnabled && notNullAndEditable);
+		SWTUtil.setEnabled(splitShapeWithVerticalLine, isEditingEnabled && notNullAndEditable);
+		SWTUtil.setEnabled(splitShapeWithHorizontalLine, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(mergeShapes, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getNSelected()>=2);
 		SWTUtil.setEnabled(simplifyEpsItem.ti, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(undo, isEditingEnabled);

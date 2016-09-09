@@ -11,11 +11,10 @@ import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 
 public abstract class CanvasSceneListener implements EventListener {
-	static public enum SceneEventType {
+	public static enum SceneEventType {
 		BEFORE_UNDO, UNDO, BEFORE_ADD, ADD, BEFORE_REMOVE, REMOVE, BEFORE_MOVE, MOVE, SELECTION_CHANGED,
 		BEFORE_SPLIT, AFTER_SPLIT, SPLIT, BEFORE_MERGE, MERGE, READING_ORDER_CHANGED
 	}
-	
 	
 	@SuppressWarnings({"serial"})
 	static public class SceneEvent extends EventObject {
@@ -53,83 +52,6 @@ public abstract class CanvasSceneListener implements EventListener {
 		public CanvasScene getSource() { return (CanvasScene) source; }
 	}
 	
-//	@SuppressWarnings({"serial"})
-//	static public class BeforeUndoEvent extends SceneEvent {
-//		ShapeEditOperation op;
-//		
-//		public BeforeUndoEvent(CanvasScene scene, ShapeEditOperation op) {
-//			super(scene, op.getFirstShape());
-//			this.op = op;
-//		}
-//		
-//		public ShapeEditOperation getOp() { return op; }
-//	}
-//	
-//	@SuppressWarnings({"serial"})
-//	static public class UndoEvent extends SceneEvent {
-//		ShapeEditOperation op;
-//		
-//		public UndoEvent(CanvasScene scene, ShapeEditOperation op) {
-//			super(scene, op.getFirstShape());
-//			this.op = op;
-//		}
-//		
-//		public ShapeEditOperation getOp() { return op; }
-//	}	
-//	
-//	@SuppressWarnings({"serial"})
-//	static public class BeforeAddShapeEvent extends SceneEvent {		
-//		public BeforeAddShapeEvent(CanvasScene scene, ICanvasShape shape) {
-//			super(scene, shape);
-//		}
-//	}
-//	
-//	@SuppressWarnings({"serial"})
-//	static public class AddShapeEvent extends SceneEvent {		
-//		public AddShapeEvent(CanvasScene scene, ICanvasShape shape) {
-//			super(scene, shape);
-//		}
-//	}
-//	
-//	@SuppressWarnings({"serial"})
-//	static public class BeforeRemoveShapeEvent extends SceneEvent {		
-//		public BeforeRemoveShapeEvent(CanvasScene scene, ICanvasShape shape) {
-//			super(scene, shape);
-//		}
-//	}	
-//	
-//	@SuppressWarnings({"serial"})
-//	static public class RemoveShapeEvent extends SceneEvent {
-//		public RemoveShapeEvent(CanvasScene scene, ICanvasShape shape) {
-//			super(scene, shape);
-//		}
-//	}
-//	
-//	@SuppressWarnings({"serial"})
-//	static public class BeforeMoveShapeEvent extends SceneEvent {
-//		public int tx, ty;
-//		public BeforeMoveShapeEvent(CanvasScene scene, ICanvasShape shape, int tx, int ty) {
-//			super(scene, shape);
-//			this.tx = tx; this.ty = ty;
-//		}
-//	}	
-//	
-//	@SuppressWarnings({"serial"})
-//	static public class MoveShapeEvent extends SceneEvent {
-//		public int tx, ty;
-//		public MoveShapeEvent(CanvasScene scene, ICanvasShape shape, int tx, int ty) {
-//			super(scene, shape);
-//			this.tx = tx; this.ty = ty;
-//		}
-//	}
-//		
-//	@SuppressWarnings({"serial"})
-//	static public class SelectionChangedEvent extends SceneEvent {
-//		public SelectionChangedEvent(CanvasScene scene, ICanvasShape shape) {
-//			super(scene, shape);
-//		}
-//	}
-
 	public CanvasSceneListener() {
 	}
 	

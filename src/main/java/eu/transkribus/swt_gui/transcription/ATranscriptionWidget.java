@@ -95,6 +95,7 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TaggedWord;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -170,7 +171,9 @@ public abstract class ATranscriptionWidget extends Composite {
 
 	protected StyledText text;
 	protected int textAlignment = SWT.LEFT;
+	
 	protected TrpTextRegionType currentRegionObject=null;
+//	protected TrpRegionType currentRegionObject=null;
 	protected TrpTextLineType currentLineObject=null;
 	protected TrpWordType currentWordObject=null;
 	protected TrpAutoCompleteField autocomplete;
@@ -326,8 +329,8 @@ public abstract class ATranscriptionWidget extends Composite {
 		
 		setWordGraphEditorVisibility(false);
 		
-		// TEST:
 		undoRedo = new UndoRedoImpl(text);
+		
 		updateData(null, null, null);
 		
 		initContextMenu();
@@ -1976,7 +1979,9 @@ public abstract class ATranscriptionWidget extends Composite {
 		
 		detachTextListener();
 		
-		boolean enable = currentRegionObject!=null && !currentRegionObject.getTextLine().isEmpty();		
+//		boolean enable = currentRegionObject!=null && !currentRegionObject.getTextLine().isEmpty();
+		boolean enable = currentRegionObject!=null;
+		
 		setEnabled(enable);
 		if (!enable) {
 			currentRegionObject = null;
@@ -2008,6 +2013,11 @@ public abstract class ATranscriptionWidget extends Composite {
 		
 		// update toolbar:
 		regionsPagingToolBar.setValues(region.getIndex()+1, Storage.getInstance().getNTextRegions());
+		
+//		if (currentRegionObject.getTextLine().isEmpty()) {
+		text.setEditable(!currentRegionObject.getTextLine().isEmpty());
+//		}
+		
 		attachTextListener();
 		
 //		text.setFocus();

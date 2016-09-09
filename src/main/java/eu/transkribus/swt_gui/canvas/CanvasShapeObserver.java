@@ -7,8 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt_canvas.canvas.shapes.ACanvasShape;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -43,6 +45,14 @@ public class CanvasShapeObserver implements Observer {
 		if (shape.getData() instanceof ITrpShapeType) {
 			((ITrpShapeType)shape.getData()).setCoordinates(ptsStr, this);
 		}
+
+		if (shape.getData() instanceof TrpTableCellType && shape instanceof CanvasQuadPolygon) {			
+			CanvasQuadPolygon qp = (CanvasQuadPolygon) shape;
+			TrpTableCellType tc = (TrpTableCellType) shape.getData();
+			String cornersStr = PointStrUtils.cornerPtsToString(qp.getCorners());
+			tc.setCornerPts(cornersStr, this);
+		}
+		
 	}
 
 	@Override

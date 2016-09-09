@@ -54,8 +54,8 @@ public class CustomTagPropertyTable extends Composite {
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
 		
-		nameCol = TableUtils.createTableViewerColumn(tv, SWT.LEFT, "Property", 100);
-		valueCol = TableUtils.createTableViewerColumn(tv, SWT.LEFT, "Value", 100);
+		nameCol = TableViewerUtils.createTableViewerColumn(tv, SWT.LEFT, "Property", 100);
+		valueCol = TableViewerUtils.createTableViewerColumn(tv, SWT.LEFT, "Value", 100);
 		
 		// LABEL PROVIDERS:
 		nameCol.setLabelProvider(new CellLabelProvider() {

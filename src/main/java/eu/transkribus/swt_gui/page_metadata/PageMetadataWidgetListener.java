@@ -31,6 +31,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -227,6 +228,8 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 			return TrpCanvasAddMode.ADD_WORD;
 		else if (convertClazz.equals(TrpPrintSpaceType.class))
 			return TrpCanvasAddMode.ADD_PRINTSPACE;
+		else if (convertClazz.equals(TrpTableRegionType.class))
+			return TrpCanvasAddMode.ADD_TABLEREGION;
 		
 		else if (RegionType.class.isAssignableFrom(convertClazz))
 			return TrpCanvasAddMode.ADD_OTHERREGION;
@@ -253,7 +256,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 			return;
 		}
 		
-		if (newShapeType.equals(RegionTypeUtil.BASELINE_TYPE) || oldShapeType.equals(RegionTypeUtil.BASELINE_TYPE)) {
+		if (newShapeType.equals(RegionTypeUtil.BASELINE) || oldShapeType.equals(RegionTypeUtil.BASELINE)) {
 			throw new IOException("Cannot convert to or from baselines!");
 		}
 		
@@ -300,7 +303,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		
 		if (canvas.getScene().removeShape(selShape, true, true)) {
 			ShapeEditOperation opDel 
-				= new ShapeEditOperation(canvas, ShapeEditType.DELETE, "", selShape);
+				= new ShapeEditOperation(ShapeEditType.DELETE, "", selShape);
 			ops.add(opDel);
 		}
 		canvas.getShapeEditor().addToUndoStack(ops);
@@ -402,7 +405,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		
 		if (!isTextSelectedInTranscriptionWidget) {
 			logger.debug("applying this text style to all selected in canvas: "+ts);
-			List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedWithData(ITrpShapeType.class);
+			List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedData(ITrpShapeType.class);
 			logger.debug("nr selected: "+selData.size());
 			for (ITrpShapeType sel : selData) {
 				sel.setTextStyle(ts, recursive, mw);

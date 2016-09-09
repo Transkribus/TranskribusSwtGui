@@ -12,8 +12,10 @@ import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
+import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -27,6 +29,8 @@ import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -88,10 +92,11 @@ public class StructureTreeWidget extends Composite {
 	public final static ColConfig ID_COL = new ColConfig("ID", 65);
 	public final static ColConfig TEXT_COL = new ColConfig("Text", 100);
 	public final static ColConfig COORDS_COL = new ColConfig("Coords", 200);
-	public final static ColConfig STRUCTURE_TYPE = new ColConfig("Structure", 100);
-	public final static ColConfig READING_ORDER_TYPE = new ColConfig("Reading Order", 50);
+	public final static ColConfig STRUCTURE_TYPE_COL = new ColConfig("Structure", 100);
+	public final static ColConfig READING_ORDER_COL = new ColConfig("Reading Order", 50);
+	public final static ColConfig OTHER_COL = new ColConfig("Other", 100);
 
-	public final static ColConfig[] COLUMNS = new ColConfig[] { TYPE_COL, TEXT_COL, STRUCTURE_TYPE, READING_ORDER_TYPE, ID_COL, COORDS_COL };
+	public final static ColConfig[] COLUMNS = new ColConfig[] { TYPE_COL, TEXT_COL, STRUCTURE_TYPE_COL, READING_ORDER_COL, ID_COL, COORDS_COL, OTHER_COL };
 	
 	static final int UP = 0;
 	static final int DOWN = 1;
@@ -573,7 +578,7 @@ public class StructureTreeWidget extends Composite {
 			column.getColumn().setWidth(cf.colSize);
 			column.setLabelProvider(new StructureTreeLabelProvider());
 
-			if (cf.equals(STRUCTURE_TYPE)) {
+			if (cf.equals(STRUCTURE_TYPE_COL)) {
 				column.setEditingSupport(new EditingSupport(treeViewer) {
 					@Override protected void setValue(Object element, Object value) {
 						ITrpShapeType s = (ITrpShapeType) element;
@@ -609,7 +614,7 @@ public class StructureTreeWidget extends Composite {
 				});
 			}
 			
-			if (cf.equals(READING_ORDER_TYPE)) {
+			if (cf.equals(READING_ORDER_COL)) {
 				column.setEditingSupport(new EditingSupport(treeViewer) {
 					@Override protected void setValue(Object element, Object value) {
 						ITrpShapeType s = (ITrpShapeType) element;

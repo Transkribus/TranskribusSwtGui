@@ -36,6 +36,25 @@ public class Images {
 	public static final Image ARROW_LEFT = getOrLoad("/icons/arrow_left.png");
 	public static final Image ARROW_UNDO = getOrLoad("/icons/arrow_undo.png");
 	public static final Image ARROW_REDO = getOrLoad("/icons/arrow_redo.png");
+	
+	public static final Image BORDER_NONE = getOrLoad("/icons/border_none.png");
+	public static final Image BORDER_ALL = getOrLoad("/icons/border_all.png");
+	public static final Image BORDER_CLOSED = getOrLoad("/icons/border_closed.png");
+	
+	public static final Image BORDER_LEFT = getOrLoad("/icons/border_left.png");
+	public static final Image BORDER_RIGHT = getOrLoad("/icons/border_right.png");
+	public static final Image BORDER_LEFT_RIGHT = getOrLoad("/icons/border_left_right.png");
+	
+	public static final Image BORDER_BOTTOM = getOrLoad("/icons/border_bottom.png");
+	public static final Image BORDER_TOP = getOrLoad("/icons/border_top.png");
+	public static final Image BORDER_BOTTOM_TOP = getOrLoad("/icons/border_bottom_top.png");
+	
+	public static final Image BORDER_HORIZONTAL_CLOSED = getOrLoad("/icons/border_horizontal_closed.png");
+	public static final Image BORDER_HORIZONTAL_OPEN = getOrLoad("/icons/border_horizontal_open.png");
+	
+	public static final Image BORDER_VERTICAL_CLOSED = getOrLoad("/icons/border_vertical_closed.png");
+	public static final Image BORDER_VERTICAL_OPEN = getOrLoad("/icons/border_vertical_open.png");
+
 
 	public static final Image TICK = getOrLoad("/icons/tick.png");
 	public static final Image FIND = getOrLoad("/icons/find.png");

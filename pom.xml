@@ -16,6 +16,7 @@
 		<dependency-dir>libs</dependency-dir>
 		<swt-lib-name>swt-${swt.version}.jar</swt-lib-name>
 
+
 		<maven.build.timestamp.format>dd_MM_yyyy_HH:mm</maven.build.timestamp.format>
 		<timestamp>${maven.build.timestamp}</timestamp> <!-- For external filtering as maven.build.timestamp does not get propagated 
 			due to a bug -->
@@ -74,8 +75,10 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+<!-- 					<source>1.7</source> -->
+<!-- 					<target>1.7</target> -->
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			
@@ -211,7 +214,7 @@
 							</classPath>
 							<icon>src/main/resources/icons/pencil.ico</icon>
 							<jre>
-								<minVersion>1.7.0</minVersion>
+								<minVersion>1.8.0</minVersion>
 								<jdkPreference>preferJre</jdkPreference>
 							</jre>
 							<!-- <versionInfo> -->

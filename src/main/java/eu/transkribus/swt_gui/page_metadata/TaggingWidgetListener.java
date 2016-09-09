@@ -92,7 +92,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 		
 		if (!isTextSelectedInTranscriptionWidget && !canBeEmpty) {
 			logger.debug("applying tag to all selected in canvas: "+tagName);
-			List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedWithData(ITrpShapeType.class);
+			List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedData(ITrpShapeType.class);
 			logger.debug("selData = "+selData.size());
 			for (ITrpShapeType sel : selData) {
 				if (sel instanceof TrpTextLineType || sel instanceof TrpWordType) { // tags only for words and lines!

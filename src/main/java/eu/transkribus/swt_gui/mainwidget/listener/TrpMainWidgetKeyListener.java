@@ -1,20 +1,23 @@
 package eu.transkribus.swt_gui.mainwidget.listener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.client.connection.TrpServerConn;
-import eu.transkribus.swt_canvas.canvas.CanvasKeys;
-import eu.transkribus.swt_canvas.canvas.CanvasMode;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-
-import org.apache.commons.exec.OS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
+import eu.transkribus.swt_canvas.canvas.CanvasKeys;
+import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
+import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
+import eu.transkribus.swt_gui.table_editor.TableUtils.TrpTableCellsMissingException;
 
 public class TrpMainWidgetKeyListener implements Listener {
 	private final static Logger logger = LoggerFactory.getLogger(TrpMainWidgetKeyListener.class);
@@ -84,6 +87,38 @@ public class TrpMainWidgetKeyListener implements Listener {
 		else if (isCtrlOrCommand && kc == 'o') {
 			logger.debug("open local folder!");
 			mw.loadLocalFolder();
+		}
+		
+		// SOME TEST HOOKS FOR TABLES:
+		if (isCtrlOrCommand && kc == 'c') { // create table cell
+			mw.getCanvas().setMode(TrpCanvasAddMode.ADD_TABLECELL);
+		} else if (isCtrlOrCommand && kc == 'x') { // check table consistency
+			TrpTableRegionType t = TableUtils.getTable(mw.getCanvas().getFirstSelected(), true);			
+			if (t != null) {
+				try {
+					TableUtils.checkTableConsistency(t);
+					DialogUtil.showInfoMessageBox(mw.getShell(), "Success", "Everything ok with table cells!");
+				} catch (Exception e) {
+					logger.debug(e.getMessage(), e);
+					DialogUtil.showErrorMessageBox(mw.getShell(), "Something's wrong with the table", e.getMessage());
+				}
+			}
+		} 
+		else if (isCtrlOrCommand && kc == 'y') { // split merged table cells
+			try {
+				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
+			} catch (Throwable e) {
+				mw.onError("Error", e.getMessage(), e);
+			}
+		} 
+		else if (isCtrlOrCommand && kc == 'b') {
+			try {
+				mw.getCanvas().getShapeEditor().removeIntermediatePointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
+			} catch (Throwable e) {
+				mw.onError("Error", e.getMessage(), e);
+			}
+			
+			
 		}
 		
 		lastTime = time;

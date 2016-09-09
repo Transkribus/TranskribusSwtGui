@@ -1,21 +1,22 @@
 package eu.transkribus.swt_canvas.canvas.editing;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.canvas.SWTCanvas;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeFactory;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 
 public class ShapeEditOperation {
 	private static Logger logger = LoggerFactory.getLogger(ShapeEditOperation.class);
 	
 	public static enum ShapeEditType {
-		EDIT, ADD, DELETE, SPLIT, MERGE;
+		EDIT, ADD, DELETE, SPLIT, MERGE, CUSTOM;
 		
 		public boolean doBackup() {
 //			return this.equals(EDIT) || this.equals(SPLIT) || this.equals(MERGE);
@@ -23,7 +24,7 @@ public class ShapeEditOperation {
 		}
 	}
 	
-	SWTCanvas canvas;
+//	SWTCanvas canvas;
 //	String description;
 	
 	List<ICanvasShape> shapes = new ArrayList<>();
@@ -35,24 +36,39 @@ public class ShapeEditOperation {
 	String description;
 	boolean isFollowUp=false; // specifies if this operation is a follow-up operation, e.g. for splitting the split of a child shape!
 	
-	public int code = -1; // user defined code for edit operation
 	public Object data = null; // user defined data
 	
-	public ShapeEditOperation(SWTCanvas canvas, ShapeEditType type, String description, ICanvasShape affectedShape) {
-		this.canvas = canvas;
+	Deque<ShapeEditOperation> nestedOps = new ArrayDeque<>();
+//	boolean nested=false;
+	int nesting=0;
+	
+	public ShapeEditOperation(ShapeEditType type, String description, ICanvasShape affectedShape) {
+//		this.canvas = canvas;
 		this.type = type;
 		this.description = description;
 		
 		this.shapes = new ArrayList<ICanvasShape>();
-		this.shapes.add(affectedShape);
+		if (affectedShape != null)
+			this.shapes.add(affectedShape);
 		
 		if (type.doBackup()) {
 			backupShapes();	
 		}
 	}
 	
-	public ShapeEditOperation(SWTCanvas canvas, ShapeEditType type, String description, Collection<ICanvasShape> affectedShapes) {
-		this.canvas = canvas;
+	public ShapeEditOperation(ShapeEditType type, String description) {
+//		this.canvas = canvas;
+		this.type = type;
+		this.description = description;
+		
+		this.shapes = new ArrayList<ICanvasShape>();
+		
+		if (type.doBackup()) {
+			backupShapes();	
+		}
+	}
+	
+	public ShapeEditOperation(ShapeEditType type, String description, Collection<ICanvasShape> affectedShapes) {
 		this.type = type;
 		this.description = description;
 		
@@ -65,12 +81,51 @@ public class ShapeEditOperation {
 		if (type.doBackup()) {
 			backupShapes();	
 		}
-	}	
+	}
 	
+	public void addNestedOp(ShapeEditOperation op) {
+		if (op != null) {
+			op.nesting = this.nesting+1; // increment nesting level
+			nestedOps.add(op);
+		}
+	}
+	
+	public ShapeEditOperation findNestedOp(ICanvasShape s) {
+		for (ShapeEditOperation op : nestedOps) {
+			if (op.getFirstShape().equals(s))
+				return op;
+		}
+		return null;
+	}
+	
+	public void addNestedOps(List<ShapeEditOperation> ops) {
+		if (ops != null) {
+			for (ShapeEditOperation op : ops) {
+				addNestedOp(op);
+			}
+		}
+	}
+	
+	public Iterator<ShapeEditOperation> getNestedOpsDescendingIterator() {
+		return nestedOps.descendingIterator();
+	}
+	
+//	public Deque<ShapeEditOperation> getNestedOps() {
+//		return nestedOps;
+//	}
+	
+	public boolean hasNestedOps() {
+		return !nestedOps.isEmpty();
+	}
+	
+	public int getNesting() { 
+		return nesting;
+	}
+
 	public boolean isFollowUp() {
 		return isFollowUp;
 	}
-
+	
 	public void setFollowUp(boolean isFollowUp) {
 		this.isFollowUp = isFollowUp;
 	}
@@ -93,8 +148,15 @@ public class ShapeEditOperation {
 	private void backupShapes() {
 		backupShapes = new ArrayList<>();
 		for (ICanvasShape s : shapes) {
-			backupShapes.add(CanvasShapeFactory.copyShape(s));
+			backupShapes.add(s.copy());
+//			backupShapes.add(CanvasShapeFactory.copyShape(s));
 		}
+	}
+	
+	/**
+	 * This function will get called on every undo as its last operation - overwrite to customize undo of operation!
+	 */
+	protected void customUndoOperation() {
 	}
 	
 	public ShapeEditType getType() { return type; }
@@ -106,17 +168,17 @@ public class ShapeEditOperation {
 	public List<ICanvasShape> getBackupShapes() { return backupShapes; }
 	public List<ICanvasShape> getNewShapes() { return newShapes; }
 	
-	public void undoEdit() {
-
-	}
-	
-	public void undoAdd() {
-
-	}
-	
-	public void undoDelete() {
-
-	}
+//	public void undoEdit() {
+//
+//	}
+//	
+//	public void undoAdd() {
+//
+//	}
+//	
+//	public void undoDelete() {
+//
+//	}
 
 	public void setDescription(String description) {
 		this.description = description;

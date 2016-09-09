@@ -17,7 +17,6 @@ import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class TrpCanvasToolBar extends CanvasToolBar {
@@ -27,7 +26,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	protected ToolItem addLine;
 	protected ToolItem addBaseLine;
 	protected ToolItem addWord;
-		
+			
 	protected ToolItem addPrintspace;
 	protected DropDownToolItem addSpecialRegion;
 	protected DropDownToolItem optionsItem;
@@ -51,23 +50,10 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	CanvasWidget canvasWidget;
 	
 	DropDownToolItem imageVersionItem;
-		
-//	static Class[] REGION_TYPES = {
-//			 SeparatorRegionType.class,
-//			 ChartRegionType.class,
-//			 AdvertRegionType.class,
-//			 UnknownRegionType.class,
-//			 MathsRegionType.class,
-//			 TableRegionType.class,
-//			 MusicRegionType.class,
-//			 NoiseRegionType.class,
-//			 GraphicRegionType.class,
-//			 ChemRegionType.class,
-//			 TextRegionType.class,
-//			 ImageRegionType.class,
-//			 LineDrawingRegionType.class
-//	};
 	
+	DropDownToolItem tableItem;
+	MenuItem deleteRowItem, deleteColumnItem, splitMergedCell, removeIntermediatePtsItem; 
+
 	private TrpMainWidget mainWidget;
 
 	public TrpCanvasToolBar(CanvasWidget parent, TrpMainWidget mainWidget, int style) {
@@ -106,6 +92,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		addToRadioGroup(addPrintspace);
 		}
 		
+		if (false) {
 		addTextRegion = new ToolItem(this, SWT.RADIO, ++i);
 		addTextRegion.setText("TR");
 		addTextRegion.setToolTipText("Add a text region");
@@ -133,18 +120,39 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		addWord.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
 		modeMap.put(addWord, TrpCanvasAddMode.ADD_WORD);
 		addToRadioGroup(addWord);
-		
-		if (true) { // TODO: add "special" regions
+		}
+				
+		if (true) {
 			addSpecialRegion = new DropDownToolItem(this, true, true, SWT.RADIO, ++i);
 			
-			MenuItem mi = addSpecialRegion.addItem(RegionTypeUtil.PRINTSPACE_TYPE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass("Printspace"));
+			MenuItem mi = null;
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_TEXTREGION);
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.LINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.LINE));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_LINE);
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.BASELINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.BASELINE));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_BASELINE);
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.WORD, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.WORD));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_WORD);		
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.TABLE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TABLE));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_TABLEREGION);
+			
+			mi = addSpecialRegion.addItem(RegionTypeUtil.PRINTSPACE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.PRINTSPACE));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_PRINTSPACE);
+			
 			for (String name : RegionTypeUtil.SPECIAL_REGIONS) {
 //				mode.data = c;
 				mi = addSpecialRegion.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
+				modeMap.put(mi, TrpCanvasAddMode.ADD_OTHERREGION);	
 			}
 			
 //			CanvasMode mode = TrpCanvasAddMode.ADD_OTHERREGION;
-			modeMap.put(addSpecialRegion.ti, TrpCanvasAddMode.ADD_OTHERREGION);
+//			modeMap.put(addSpecialRegion.ti, TrpCanvasAddMode.ADD_OTHERREGION);
 			
 //			for (RegionType rt : specialRegions) {
 //				addSpecialRegion.addItem(rt.getClass().getSimpleName(), Images.getOrLoad("/icons/shape_square_add.png"), "");	
@@ -162,6 +170,15 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.getOrLoad("/icons/wrench.png"), "");
 		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.getOrLoad("/icons/wrench.png"), "");
 		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.getOrLoad("/icons/wrench.png"), "");
+
+		if (false) {
+		tableItem = new DropDownToolItem(this, false, true, SWT.PUSH, ++i);
+		tableItem.ti.setImage(Images.getOrLoad("/icons/table_edit.png"));
+		deleteRowItem = tableItem.addItem("Delete row of selected cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
+		deleteColumnItem = tableItem.addItem("Delete column of selected cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
+		splitMergedCell = tableItem.addItem("Split up formerly merged cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
+		removeIntermediatePtsItem = tableItem.addItem("Remove intermediate points of cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
+		}
 		
 //		new ToolItem(this, SWT.SEPARATOR, ++i);
 		
@@ -213,22 +230,28 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		return (si != null) ? si.getText() : "";
 	}
 	
-	@Override public void addAddButtonsSelectionListener(SelectionListener listener) {
-		super.addAddButtonsSelectionListener((CanvasToolBarSelectionListener)listener);
+	@Override public void addSelectionListener(SelectionListener listener) {
+		super.addSelectionListener((CanvasToolBarSelectionListener)listener);
 
-		SWTUtil.addToolItemSelectionListener(imageVersionItem.ti, listener);
+		SWTUtil.addSelectionListener(imageVersionItem.ti, listener);
 		
-		SWTUtil.addToolItemSelectionListener(addPrintspace, listener);
-		SWTUtil.addToolItemSelectionListener(addTextRegion, listener);
-		SWTUtil.addToolItemSelectionListener(addLine, listener);
-		SWTUtil.addToolItemSelectionListener(addBaseLine, listener);
-		SWTUtil.addToolItemSelectionListener(addWord, listener);
+		SWTUtil.addSelectionListener(addPrintspace, listener);
+		SWTUtil.addSelectionListener(addTextRegion, listener);
+		SWTUtil.addSelectionListener(addLine, listener);
+		SWTUtil.addSelectionListener(addBaseLine, listener);
+		SWTUtil.addSelectionListener(addWord, listener);
 		
-		SWTUtil.addToolItemSelectionListener(addSpecialRegion.ti, listener);
+		SWTUtil.addSelectionListener(addSpecialRegion.ti, listener);
 
-		SWTUtil.addToolItemSelectionListener(viewSettingsMenuItem, listener);
+		SWTUtil.addSelectionListener(viewSettingsMenuItem, listener);
 		
-		SWTUtil.addToolItemSelectionListener(imgEnhanceItem, listener);
+		SWTUtil.addSelectionListener(imgEnhanceItem, listener);
+		
+		// table stuff
+		SWTUtil.addSelectionListener(deleteRowItem, listener);
+		SWTUtil.addSelectionListener(deleteColumnItem, listener);
+		SWTUtil.addSelectionListener(splitMergedCell, listener);
+		SWTUtil.addSelectionListener(removeIntermediatePtsItem, listener);
 		
 //		for (Class c : REGION_TYPES) {
 //			CanvasMode m = TrpCanvasAddMode.ADD_OTHERREGION;
@@ -264,21 +287,21 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 //		return addPrintspace;
 //	}
 
-	public ToolItem getAddTextRegion() {
-		return addTextRegion;
-	}
-
-	public ToolItem getAddLine() {
-		return addLine;
-	}
-
-	public ToolItem getAddBaseLine() {
-		return addBaseLine;
-	}
-
-	public ToolItem getAddWord() {
-		return addWord;
-	}
+//	public ToolItem getAddTextRegion() {
+//		return addTextRegion;
+//	}
+//
+//	public ToolItem getAddLine() {
+//		return addLine;
+//	}
+//
+//	public ToolItem getAddBaseLine() {
+//		return addBaseLine;
+//	}
+//
+//	public ToolItem getAddWord() {
+//		return addWord;
+//	}
 	
 //	public ToolItem getShapeAddRectMode() {
 //		return shapeAddRectMode;
@@ -330,6 +353,22 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	
 	public DropDownToolItem getAddSpecialRegion() {
 		return addSpecialRegion;
+	}
+
+	public MenuItem getDeleteRowItem() {
+		return deleteRowItem;
+	}
+
+	public MenuItem getDeleteColumnItem() {
+		return deleteColumnItem;
+	}
+
+	public MenuItem getSplitMergedCell() {
+		return splitMergedCell;
+	}
+	
+	public MenuItem getRemoveIntermediatePtsItem() {
+		return removeIntermediatePtsItem;
 	}
 
 //	public ToolItem getLinkShapes() {

@@ -1,14 +1,30 @@
 package eu.transkribus.swt_canvas.util;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.swt.graphics.Rectangle;
 
+import ch.qos.logback.classic.Logger;
+import math.geom2d.AffineTransform2D;
+import math.geom2d.Point2D;
 import math.geom2d.line.Line2D;
 
 public class GeomUtils {
+	
+	public static Rectangle extend(Rectangle r, int ext) {
+		return new Rectangle(r.x-ext, r.y-ext, r.width+ext, r.height+ext);
+	}
+	
+	public static boolean isInside(int x, int y, Rectangle b, int thresh) {
+		return extend(b, thresh).contains(x, y);
+	}
+	
+	public static double angleWithHorizontalLine(Point p1, Point p2) {
+		return (float) Math.atan2(-p1.y+p2.y, -p1.x+p2.x);
+//		return (float) Math.atan(-p1.y+p2.y, -p1.x+p2.x);
+	}
 	
 	public static int bound(int v, int min, int max) {
 		if (v < min)
@@ -148,6 +164,30 @@ public class GeomUtils {
 				/ d;
 
 		return new Point(xi, yi);
+	}
+	
+	public static double vecAngle(double x1, double y1, double x2, double y2) {
+		return Math.acos( (x1*x2+y1*y2) / (Math.sqrt(x1*x1+y1*y1)+Math.sqrt(x2*x2+y2*y2)) );
+	}
+	
+	public static Point2D rotate(double x, double y, double angle) {
+		return AffineTransform2D.createRotation(angle).transform(new Point2D(x, y));
+//		System.out.println(mp);
+//		
+//		return new Point((int) mp.x(), (int) mp.y());
+	}
+	
+	public static double angleWithHorizontalLineRotated(Point p1, Point p2, double angle) {		
+		Point2D v1 = new Point2D(p2.x-p1.x, p2.y-p1.y);
+		Point2D v2 = GeomUtils.rotate(1, 0, angle);
+		
+		System.out.println(v1+" - "+v2);
+		
+		return GeomUtils.vecAngle(v1.x(), v1.y(), v2.x(), v2.y());
+	}
+	
+	public static Point invertRotation(double x, double y, double angleRad) {
+		return AffineTransform2D.createRotation(angleRad).invert().transform(new Point2D(x, y)).getAsInt();
 	}
 
 }

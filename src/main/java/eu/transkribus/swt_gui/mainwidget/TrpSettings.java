@@ -14,6 +14,8 @@ import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.model.beans.pagecontent.BaselineType;
 import eu.transkribus.core.model.beans.pagecontent.PrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
+import eu.transkribus.core.model.beans.pagecontent.TableCellType;
+import eu.transkribus.core.model.beans.pagecontent.TableRegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.WordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
@@ -131,6 +133,12 @@ public class TrpSettings extends APropertyChangeSupport {
 	public static final String COLOR_BASELINES_PROPERTY = "colorBaselines";
 	private Color colorWords = Colors.getSystemColor(SWT.COLOR_GREEN);
 	public static final String COLOR_WORDS_PROPERTY = "colorWords";
+	
+	private Color colorTables = Colors.getSystemColor(SWT.COLOR_DARK_YELLOW);
+	public static final String COLOR_TABLES_PROPERTY = "colorTables";
+	
+	private Color colorTableCells = Colors.getSystemColor(SWT.COLOR_DARK_GREEN);
+	public static final String COLOR_TABLE_CELLS_PROPERTY = "colorTableCells";
 	
 	// font in transcription window:
 	private int transcriptionFontSize=20;
@@ -396,6 +404,26 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(COLOR_WORDS_PROPERTY, old, this.colorWords);
 	}
 	
+	public Color getColorTables() {
+		return colorTables;
+	}
+
+	public void setColorTables(Color colorTables) {
+		Color old = this.colorTables;
+		this.colorTables = colorTables;
+		firePropertyChange(COLOR_TABLES_PROPERTY, old, this.colorTables);
+	}
+	
+	public Color getColorTableCells() {
+		return colorTableCells;
+	}
+	
+	public void setColorTableCells(Color colorTableCells) {
+		Color old = this.colorTableCells;
+		this.colorTableCells = colorTableCells;
+		firePropertyChange(COLOR_TABLE_CELLS_PROPERTY, old, this.colorTableCells);
+	}
+	
 
 //	public boolean isShowLeftView() {
 //		return showLeftView;
@@ -583,12 +611,17 @@ public class TrpSettings extends APropertyChangeSupport {
 	}
 
 	public static Color determineColor(TrpSettings sets, Object wrappedData) {
+		if (wrappedData instanceof TableCellType) {
+			return sets.colorTableCells;
+		}
 		if (wrappedData instanceof PrintSpaceType) {
 			return sets.colorPrintSpace;
 		}
-		else if (wrappedData instanceof RegionType) {
+		if (wrappedData instanceof RegionType) {
 			if (wrappedData instanceof TrpTextRegionType)
 				return sets.colorTextRegions;
+			else if (wrappedData instanceof TableRegionType)
+				return sets.colorTables;
 			else {
 				String rt = RegionTypeUtil.getRegionType((TrpRegionType)wrappedData);
 				if (rt.equals(RegionTypeUtil.BLACKENING_REGION)) {
@@ -598,18 +631,17 @@ public class TrpSettings extends APropertyChangeSupport {
 				return Colors.getSystemColor(SWT.COLOR_DARK_CYAN);				
 			}
 		}
-		else if (wrappedData instanceof TextLineType) {
+		if (wrappedData instanceof TextLineType) {
 			return sets.colorLines;
 		}
-		else if (wrappedData instanceof BaselineType) {
+		if (wrappedData instanceof BaselineType) {
 			return sets.colorBaselines;
 		}
-		else if (wrappedData instanceof WordType) {
+		if (wrappedData instanceof WordType) {
 			return sets.colorWords;
 		}
-		else
-			return Colors.getSystemColor(SWT.COLOR_BLACK);	
 		
+		return Colors.getSystemColor(SWT.COLOR_BLACK);	
 	}
 
 	public int getImageCacheSize() {

@@ -46,8 +46,6 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -114,6 +112,7 @@ import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
 import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
+import eu.transkribus.swt_gui.canvas.TrpCanvasContextMenuListener;
 import eu.transkribus.swt_gui.canvas.TrpCanvasScene;
 import eu.transkribus.swt_gui.canvas.TrpCanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.TrpCanvasWidget;
@@ -191,6 +190,7 @@ public class TrpMainWidget {
 	StructureTreeListener structTreeListener;
 	DocOverviewListener docOverviewListener;
 	TrpMainWidgetListener mainWidgetListener;
+	TrpCanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
 	CanvasShapeObserver canvasShapeObserver;
 	PageMetadataWidgetListener metadataWidgetListener;
@@ -284,6 +284,7 @@ public class TrpMainWidget {
 			tip.addTip("No tip found... check your configuration!");
 
 		tip.setStyle(TipStyle.TWO_COLUMNS);
+		
 		tip.open(getShell());
 
 		getTrpSets().setShowTipOfTheDay(tip.isShowOnStartup());
@@ -315,7 +316,8 @@ public class TrpMainWidget {
 			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
 		}
 		
-		if (getTrpSets().isAutoLogin()) {
+		boolean TESTTABLES=false; // test-hook for sebi's table editor
+		if (getTrpSets().isAutoLogin() && !TESTTABLES) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
 			
 			if(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE.equals(lastAccount)) {
@@ -348,6 +350,10 @@ public class TrpMainWidget {
 		final boolean DISABLE_TIPS_OF_THE_DAY = true;
 		if (getTrpSets().isShowTipOfTheDay() && !DISABLE_TIPS_OF_THE_DAY) {
 			showTipsOfTheDay();
+		}
+		
+		if (TESTTABLES) {
+			loadLocalTestset();
 		}
 		
 //		SWTUtil.mask2(ui.getStructureTreeWidget()); // TESt
@@ -626,6 +632,7 @@ public class TrpMainWidget {
 			}
 		});
 		mainWidgetListener = new TrpMainWidgetListener(this);
+		canvasContextMenuListener = new TrpCanvasContextMenuListener(this);
 
 		// pages paging toolbar listener:
 		pagesPagingToolBarListener = new PagesPagingToolBarListener(ui.getPagesPagingToolBar(), this);
@@ -1189,7 +1196,7 @@ public class TrpMainWidget {
 		}
 	}
 	
-	
+
 	public void jumpToNextRegion() {
 		jumpToRegion(Storage.getInstance().getCurrentRegion() + 1);
 	}
@@ -1773,7 +1780,9 @@ public class TrpMainWidget {
 			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
 		}
 		else {
-			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
+//			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
+			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";
+//			localTestdoc = System.getProperty( "user.home" )+"/testdocmanybl";
 		}
 		
 		File f = new File(localTestdoc);
@@ -1940,7 +1949,7 @@ public class TrpMainWidget {
 	/**
 	 * Prints an error message and the stack trace of the given throwable to the
 	 * error log and pops up an error message box. Also, resets data in some
-	 * listeners to recover from error.
+	 * listeners to recover from the error.
 	 */
 	public void onError(String title, String message, Throwable th) {
 		onError(title, message, th, true, false);

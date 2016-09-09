@@ -3,6 +3,9 @@ package eu.transkribus.swt_canvas.canvas.shapes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @deprecated not used anymore - implement ICanvasShape.copy() method instead! 
+ */
 public class CanvasShapeFactory {
 	static Logger logger = LoggerFactory.getLogger(CanvasShapeFactory.class);
 	

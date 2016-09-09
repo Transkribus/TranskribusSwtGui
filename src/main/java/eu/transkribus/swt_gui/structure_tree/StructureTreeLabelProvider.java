@@ -6,9 +6,9 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget.ColConfig;
 
@@ -44,7 +44,7 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 	}
 	
 	public static String getTextForElement(Object element, int columnIndex) {
-		String name="", id="", coords="", text="", regionType="", readingOrder="";
+		String name="", id="", coords="", text="", regionType="", readingOrder="", other="";
 		
 		if (element instanceof TrpPageType) {
 			name = "Page";
@@ -60,6 +60,7 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 //				name = RegionTypeUtil.getRegionType(s);
 			
 			coords = s.getCoordinates();
+			
 			id = s.getId();
 			regionType = s.getStructure()!=null ? s.getStructure() : "";
 			
@@ -69,6 +70,17 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 			//show reading order for lines, words as well as for all regions
 			if (element instanceof TrpTextLineType || element instanceof TrpWordType || element instanceof TrpRegionType) {
 				readingOrder = s.getReadingOrder()!=null ? ""+(s.getReadingOrder()+1) : "";
+			}
+			
+			if (element instanceof TrpTableCellType) {
+				TrpTableCellType tc = (TrpTableCellType) element;
+				
+				other = tc.toString();
+				
+				text = tc.toString();
+				
+//				other = tc.getCornerPts();
+//				other += " ("+tc.getRow()+","+tc.getCol()+")"+" ("+tc.getRowSpan()+","+tc.getColSpan()+")";
 			}
 			
 //			if (element instanceof TrpTextRegionType) {
@@ -83,22 +95,28 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 				logger.error(th.getMessage(), th);
 			}
 		}
+		
+		ColConfig col = StructureTreeWidget.COLUMNS[columnIndex];
 
 		if (columnIndex < 0 || columnIndex >= StructureTreeWidget.COLUMNS.length)
 			return "wrong col index";
 		
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.TYPE_COL)
+		else if (col == StructureTreeWidget.TYPE_COL)
 			return name;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.ID_COL)
+		else if (col == StructureTreeWidget.ID_COL)
 			return id;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.TEXT_COL)
+		else if (col == StructureTreeWidget.TEXT_COL)
 			return text;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.COORDS_COL)
+		else if (col == StructureTreeWidget.COORDS_COL)
 			return coords;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.STRUCTURE_TYPE)
+		else if (col == StructureTreeWidget.STRUCTURE_TYPE_COL)
 			return regionType;
-		else if (StructureTreeWidget.COLUMNS[columnIndex] == StructureTreeWidget.READING_ORDER_TYPE)
+		else if (col == StructureTreeWidget.READING_ORDER_COL)
 			return readingOrder;
+		else if (col == StructureTreeWidget.READING_ORDER_COL)
+			return readingOrder;
+		else if (col == StructureTreeWidget.OTHER_COL)
+			return other;
 		
 		return "i am error!";
 		

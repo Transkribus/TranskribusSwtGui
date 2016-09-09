@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.util.Colors;
@@ -48,6 +49,8 @@ import math.geom2d.polygon.convhull.JarvisMarch2D;
  */
 public abstract class ACanvasShape<S extends Shape> extends Observable implements ICanvasShape {
 	private static Logger logger = LoggerFactory.getLogger(ACanvasShape.class);
+	
+//	public static String COORDS_CHANGED_EVENT = "COORDS_CHANGED_EVENT";
 	
 	protected long selectedTime=-1;
 	protected S awtShape;
@@ -89,7 +92,21 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		
 		this.parent = src.parent;
 		this.children = new ArrayList<ICanvasShape>(src.children);		
-	}	
+	}
+	
+//	protected void sendCoordsChangedEvent() {
+//		setChangedAndNotifyObservers(COORDS_CHANGED_EVENT);
+//	}
+	
+	protected void setChangedAndNotifyObservers() {
+		setChanged();
+		notifyObservers();
+	}
+	
+	protected void setChangedAndNotifyObservers(Object arg) {
+		setChanged();
+		notifyObservers(arg);
+	}
 		
 //	public ACanvasShape(S awtShape) {
 //		setAwtShape(awtShape);
@@ -98,14 +115,14 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	public void setAwtShape(S awtShape) { this.awtShape = awtShape; }
 	public Shape getAwtShape() { return awtShape; }
 		
-	@Override
-	public boolean setPoints2D(Collection<math.geom2d.Point2D> ptsIn) {
-		List<java.awt.Point> pts = new ArrayList<>();
-		for (math.geom2d.Point2D p : ptsIn)
-			pts.add(new Point((int)p.x(), (int)p.y()));
-		
-		return setPoints(pts);
-	}	
+//	@Override
+//	public boolean setPoints2D(Collection<math.geom2d.Point2D> ptsIn) {
+//		List<java.awt.Point> pts = new ArrayList<>();
+//		for (math.geom2d.Point2D p : ptsIn)
+//			pts.add(new Point((int)p.x(), (int)p.y()));
+//		
+//		return setPoints(pts);
+//	}	
 
 	@Override
 	public int getPointIndex(int x, int y, int threshold) {
@@ -213,29 +230,55 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		return new Line2D.Double(getPoint(iz[0]), getPoint(iz[1]));
 	}
 	
+//	public static Pair<int[], Double> getClosestLineIndices(int x, int y, List<Point> pts, boolean wrap) {
+//		double minDist = Double.MAX_VALUE;
+//		int[] iz = new int[2];
+//		iz[0] = -1; iz[1] = -1;
+//		
+//		final int N = wrap ? pts.size() : pts.size()-1;
+//		for (int i=0; i<N; ++i) {
+//			int index1 = i;
+//			int index2 = (i+1) % pts.size();
+//			
+//			Line2D line = new Line2D.Double(pts.get(index1), pts.get(index2));
+//			double d = line.ptSegDist(x, y);
+////			logger.debug("d = "+d+" minDist = "+minDist);
+//			if (d < minDist) {
+//				minDist = d;
+//				iz[0] = index1;
+//				iz[1] = index2;
+////				minLine = line;
+//			}
+//		}
+////		return minLine;
+//		return Pair.of(iz, minDist);
+//	}
+	
 	@Override
 	public int[] getClosestLineIndices(int x, int y) {
-		double minDist = Double.MAX_VALUE;
-		int[] iz = new int[2];
-		iz[0] = -1; iz[1] = -1;
+		return CanvasShapeUtil.getClosestLineIndices(x, y, getPoints(), isClosedShape()).getLeft();
 		
-		final int N = isClosedShape() ? getNPoints() : getNPoints()-1;
-		for (int i=0; i<N; ++i) {
-			int index1 = i;
-			int index2 = (i+1) % getPoints().size();
-			
-			Line2D line = new Line2D.Double(getPoint(index1), getPoint(index2));
-			double d = line.ptSegDist(x, y);
-//			logger.debug("d = "+d+" minDist = "+minDist);
-			if (d < minDist) {
-				minDist = d;
-				iz[0] = index1;
-				iz[1] = index2;
-//				minLine = line;
-			}
-		}
-//		return minLine;
-		return iz;
+//		double minDist = Double.MAX_VALUE;
+//		int[] iz = new int[2];
+//		iz[0] = -1; iz[1] = -1;
+//		
+//		final int N = isClosedShape() ? getNPoints() : getNPoints()-1;
+//		for (int i=0; i<N; ++i) {
+//			int index1 = i;
+//			int index2 = (i+1) % getPoints().size();
+//			
+//			Line2D line = new Line2D.Double(getPoint(index1), getPoint(index2));
+//			double d = line.ptSegDist(x, y);
+////			logger.debug("d = "+d+" minDist = "+minDist);
+//			if (d < minDist) {
+//				minDist = d;
+//				iz[0] = index1;
+//				iz[1] = index2;
+////				minLine = line;
+//			}
+//		}
+////		return minLine;
+//		return iz;
 	}	
 	
 //	@Override
@@ -255,11 +298,6 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 //		}
 //		return minLine;
 //	}	
-	
-	@Override 
-	public int getPointIndex(Point pt) {
-		return getPointIndex(pt.x, pt.y);
-	}
 	
 	@Override
 	public int getPointIndex(int x, int y) {
@@ -396,21 +434,54 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	
 	@Override
 	public int [] getPointArray() {
-		List<Point> pts = getPoints();
-		int [] pointArray = new int[pts.size()*2];
-		for (int i=0; i<pts.size(); ++i) {
-			pointArray[i*2] = pts.get(i).x;
-			pointArray[i*2+1] = pts.get(i).y;
+		return CoreUtils.getPointArray(getPoints());
+	}
+	
+	/**
+	 * Sets color, alpha etc. for the shape to draw
+	 */
+	protected void setStyles(SWTCanvas canvas, GC gc) {
+		CanvasSettings sets = canvas.getSettings();
+
+		gc.setAlpha(sets.getForegroundAlpha());
+		if (isSelected()) { // if selected:
+			if (canvas.getScene().isEditFocused(this))
+				drawBoundingBox(canvas, gc); // draw bounding box
+			gc.setLineWidth(sets.getSelectedLineWidth()); // set selected line with
+			gc.setBackground(color); // set background color
 		}
-		return pointArray;
+		else {
+			gc.setLineWidth(sets.getDrawLineWidth());
+			gc.setBackground(color);
+		}
+		gc.setForeground(color);
+		gc.setLineStyle(canvas.getSettings().getLineStyle());
+	}
+	
+	public void drawOutline(SWTCanvas canvas, GC gc) {
+		CanvasSettings sets = canvas.getSettings();
+		
+		//text if the shape is closed (rect and polgone are closed, polyline not)
+		int [] pointArray = getPointArray();
+		if (isClosed()) {
+			if (isSelected()) { // fill polygon if selected
+				gc.setAlpha(sets.getBackgroundAlpha());
+				gc.fillPolygon(pointArray);
+			}
+			
+			gc.setAlpha(sets.getForegroundAlpha());
+			gc.drawPolygon(pointArray);
+		}
+		else {
+			gc.setAlpha(sets.getForegroundAlpha());
+			gc.drawPolyline(pointArray);
+		}
 	}
 
-	@Override
-	public void draw(SWTCanvas canvas, GC gc) {
+	@Override public void draw(SWTCanvas canvas, GC gc) {
 		CanvasSettings sets = canvas.getSettings();
 //		setDrawingColor(canvas, gc);
-		final boolean isSel = isSelected();
-				
+		
 		// TEST: draw normals
 		if (false) {
 			List<Point> pts = getPoints();
@@ -433,36 +504,9 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		}
 		// END TEST: draw normals
 		
-		int [] pointArray = getPointArray();
-		gc.setAlpha(sets.getForegroundAlpha());
-		if (isSel) { // if selected:
-			if (canvas.getScene().isEditFocused(this))
-				drawBoundingBox(canvas, gc); // draw bounding box
-			gc.setLineWidth(sets.getSelectedLineWidth()); // set selected line with
-			gc.setBackground(color); // set background color
-		}
-		else {
-			gc.setLineWidth(sets.getDrawLineWidth());
-			gc.setBackground(color);
-		}
-		gc.setForeground(color);
-		gc.setLineStyle(canvas.getSettings().getLineStyle());		
-		
-		//text if the shape is closed (rect and polgone are closed, polyline not)
-		if (isClosed()) {
-			if (isSel) { // fill polygon if selected
-				gc.setAlpha(sets.getBackgroundAlpha());
-				gc.fillPolygon(pointArray);
-			}
-			
-			gc.setAlpha(sets.getForegroundAlpha());
-			gc.drawPolygon(pointArray);
-		}
-		else {
-			gc.setAlpha(sets.getForegroundAlpha());
-			gc.drawPolyline(pointArray);
-		}
-		
+		setStyles(canvas, gc);
+		drawOutline(canvas, gc);
+
 		if (canvas.getScene().isEditFocused(this)) { // draw corner points if focused
 //		if (isSel) {
 			gc.setAlpha(sets.getForegroundAlpha());
@@ -472,7 +516,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 			if (sets.isDrawSelectedCornerNumbers()) {
 				drawCornerPointNumbers(canvas, gc);
 			}
-			if (!isClosedShape() && sets.isDrawPolylineArcs()) {
+			if ( (!isClosedShape() || this instanceof CanvasQuadPolygon) && sets.isDrawPolylineArcs()) {
 				drawDirectionArrows(canvas, gc);
 			}
 		}
@@ -782,17 +826,17 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		return awtShape.getBounds2D();
 	}
 	
-	@Override
-	public CanvasPolygon getBoundsPolygon() {
-		Rectangle r = getBounds();
-		List<Point> pts = new ArrayList<>();
-		pts.add(new Point(r.x, r.y));
-		pts.add(new Point(r.x+r.width, r.y));
-		pts.add(new Point(r.x+r.width, r.y+r.height));
-		pts.add(new Point(r.x, r.y+r.height));
-		
-		return new CanvasPolygon(pts);
-	}
+//	@Override
+//	public CanvasPolygon getBoundsPolygon() {
+//		Rectangle r = getBounds();
+//		List<Point> pts = new ArrayList<>();
+//		pts.add(new Point(r.x, r.y));
+//		pts.add(new Point(r.x+r.width, r.y));
+//		pts.add(new Point(r.x+r.width, r.y+r.height));
+//		pts.add(new Point(r.x, r.y+r.height));
+//		
+//		return new CanvasPolygon(pts);
+//	}
 
 	@Override
 	public PathIterator getPathIterator(AffineTransform arg0) {
@@ -826,17 +870,24 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	}
 	
 	@Override
-	public void movePointAndSelected(int grabbedPtIndex, int x, int y) {
+	public List<Integer> movePointAndSelected(int grabbedPtIndex, int x, int y) {
+		List<Integer> movedPts = new ArrayList<>();
 		Point trans = movePoint(grabbedPtIndex, x, y);
 		
 		if (trans != null) {
+			movedPts.add(grabbedPtIndex);
+			
 			for (Integer i : selectedPoints) {
 				if (i!=null && hasPoint(i) && i!=grabbedPtIndex) {
+					movedPts.add(i);
+					
 					Point pt = getPoint(i);
 					movePoint(i, pt.x+trans.x, pt.y+trans.y);
 				}
 			}
 		}
+		
+		return movedPts;
 	}
 	
 	@Override
@@ -977,36 +1028,33 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		return c1.distance(c2);
 	}
 	
-	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShapeHorizontal(int x) {
-		return splitShape(x, -1, x, 1); // split along vertical line (ie horizontal splitting)
-	}
+//	@Override
+//	public Pair<ICanvasShape, ICanvasShape> splitShapeHorizontal(int x) {
+//		return splitShape(x, -1, x, 1); // split along vertical line (ie horizontal splitting)
+//	}
+	
+//	@Override
+//	public Pair<ICanvasShape, ICanvasShape> splitShapeByHorizontalLine(int y) {
+//		return splitShape(-1, y, 1, y); // split along horizontal line (ie vertical splitting)
+//	}
+//	
+//	@Override
+//	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
+//		return splitShape(new CanvasPolyline(new Point(x1, y1), new Point(x2, y2)));
+//	}
 	
 	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShapeVertical(int y) {
-		return splitShape(-1, y, 1, y); // split along horizontal line (ie vertical splitting)
-	}
-	
-	@Override
-	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
-		int nIntersections = intersectionPoints(x1, y1, x2, y2, true).size();
-		logger.debug("nr of intersections: "+nIntersections);
+	public Pair<ICanvasShape, ICanvasShape> splitByPolyline(CanvasPolyline pl) {
+		int nIntersections = intersectionPoints(pl, true).size();
 		
 		// for a closed shape, the nr of intersections shall be 2, otherwise more than two split shapes will be created!
 		// for an open shape (e.g. a polyline) the nr of intersections must be 1
 		if ( (this.isClosed() && nIntersections!=2) || (!this.isClosed() && nIntersections !=1) ) 
 			return null;
 		
-		List<Point> pts = new ArrayList<Point>();
-		pts.add(new Point(x1, y1));
-		pts.add(new Point(x2, y2));
-		CanvasPolyline pl  = new CanvasPolyline(pts);
-		
 		final int extDist = (int)1e6;
-		pl.extendAtEnds(extDist);
-		
-		CanvasPolygon pUp = pl.getPolyRectangle(extDist, extDist, 1);
-		CanvasPolygon pDown = pl.getPolyRectangle(extDist, extDist, 2);
+		CanvasPolygon pUp = pl.extendAtEnds(extDist).getPolyRectangle(extDist, extDist, 1);
+		CanvasPolygon pDown = pl.extendAtEnds(extDist).getPolyRectangle(extDist, extDist, 2);
 		
 //		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 //		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
@@ -1014,10 +1062,10 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 		
-		ICanvasShape s1 = CanvasShapeFactory.copyShape(this);		
+		ICanvasShape s1 = this.copy();
 		s1.setPoints2D(pI1.vertices());
 		
-		ICanvasShape s2 = CanvasShapeFactory.copyShape(this);
+		ICanvasShape s2 = this.copy();
 		s2.setPoints2D(pI2.vertices());
 		
 	
@@ -1032,8 +1080,53 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		return Pair.of(s1, s2);
 	}
 	
+//	@Override
+//	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
+//		int nIntersections = intersectionPoints(x1, y1, x2, y2, true).size();
+//		logger.debug("nr of intersections: "+nIntersections);
+//		
+//		// for a closed shape, the nr of intersections shall be 2, otherwise more than two split shapes will be created!
+//		// for an open shape (e.g. a polyline) the nr of intersections must be 1
+//		if ( (this.isClosed() && nIntersections!=2) || (!this.isClosed() && nIntersections !=1) ) 
+//			return null;
+//		
+//		List<Point> pts = new ArrayList<Point>();
+//		pts.add(new Point(x1, y1));
+//		pts.add(new Point(x2, y2));
+//		CanvasPolyline pl  = new CanvasPolyline(pts);
+//		
+//		final int extDist = (int)1e6;
+//		pl = pl.extendAtEnds(extDist);
+//		
+//		CanvasPolygon pUp = pl.getPolyRectangle(extDist, extDist, 1);
+//		CanvasPolygon pDown = pl.getPolyRectangle(extDist, extDist, 2);
+//		
+////		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+////		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+//		
+//		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+//		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
+//		
+//		ICanvasShape s1 = this.copy();
+//		s1.setPoints2D(pI1.vertices());
+//		
+//		ICanvasShape s2 = this.copy();
+//		s2.setPoints2D(pI2.vertices());
+//		
+//	
+//		/*
+//		 * compare the newly created shapes to have the proper reading order later on 
+//		 * ordering (or better s1, s2) differs for horizontal and vertical splits and hence we correct this here
+//		 */ 
+//		if (s1.compareByLevelAndYXCoordinates(s2) > 0){
+//			return Pair.of(s2, s1);
+//		}
+//						
+//		return Pair.of(s1, s2);
+//	}
+	
 	@Override
-	public ICanvasShape mergeShapes(ICanvasShape shape) {
+	public ICanvasShape merge(ICanvasShape shape) {
 		ConvexHull2D ch = new JarvisMarch2D();
 		
 		List<math.geom2d.Point2D> pts = new ArrayList<>();
@@ -1042,38 +1135,58 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		
 		Polygon2D mergedPoly2D =ch.convexHull(pts);
 		
-		ICanvasShape merged = CanvasShapeFactory.copyShape(this);
+		ICanvasShape merged = this.copy();
 		merged.setPoints2D(mergedPoly2D.vertices());
 		
 		return merged;
 	}
 	
-	@Override
-	public List<java.awt.Point> intersectionPoints(int x1, int y1, int x2, int y2, boolean extendLine) {
-		List<Point> pts = getPoints();
-		
-		math.geom2d.line.LinearElement2D lGiven = null;
-		if (!extendLine)
-			lGiven = new math.geom2d.line.LineSegment2D(x1, y1, x2, y2);
-		else
-			lGiven = new math.geom2d.line.StraightLine2D(x1, y1, x2-x1, y2-y1);
-		
-		List<Point> ipts = new ArrayList<>();
-		
-		int N = isClosedShape() ? pts.size() : pts.size()-1;
-		for (int i=0; i<N; ++i) {
-			int iNext = (i+1) % pts.size();
-			math.geom2d.line.Line2D l = new math.geom2d.line.Line2D((int)pts.get(i).getX(), (int)pts.get(i).getY(),
-					(int)pts.get(iNext).getX(), (int)pts.get(iNext).getY());
-			
-			math.geom2d.Point2D pt = lGiven.intersection(l);
-			if (pt!=null) {
-				ipts.add(pt.getAsInt());
-			}
-		}
-		
-		return ipts;
-	}
+//	@Override
+//	public List<ShapePoint> intersectionPoints(int x1, int y1, int x2, int y2, boolean extendLine) {
+//		List<Point> pts = getPoints();
+//		
+//		math.geom2d.line.LinearElement2D lGiven = null;
+//		if (!extendLine)
+//			lGiven = new math.geom2d.line.LineSegment2D(x1, y1, x2, y2);
+//		else
+//			lGiven = new math.geom2d.line.StraightLine2D(x1, y1, x2-x1, y2-y1);
+//		
+//		List<ShapePoint> ipts = new ArrayList<>();
+//		
+//		int N = isClosedShape() ? pts.size() : pts.size()-1;
+//		for (int i=0; i<N; ++i) {
+//			int iNext = (i+1) % pts.size();
+//			math.geom2d.line.Line2D l = new math.geom2d.line.Line2D((int)pts.get(i).getX(), (int)pts.get(i).getY(),
+//					(int)pts.get(iNext).getX(), (int)pts.get(iNext).getY());
+//			
+//			math.geom2d.Point2D pt = lGiven.intersection(l);
+//			if (pt!=null) {
+//				ipts.add(new ShapePoint(pt.getAsInt(), i));
+//			}
+//		}
+//		
+//		return ipts;
+//	}
+	
+//	@Override
+//	public List<ShapePoint> intersectionPoints(CanvasPolyline pl, boolean extendLine) {
+//		
+//		CanvasPolyline ipl = pl;
+//		if (extendLine) {
+//			final int extDist = (int) 1e6;
+//			ipl = pl.extendAtEnds(extDist);
+//		}
+//		
+//		List<ShapePoint> ipts = new ArrayList<>();
+//		for (int i=0; i<ipl.getNPoints()-1; ++i) {
+//			Point p1 = ipl.getPoint(i);
+//			Point p2 = ipl.getPoint(i+1);
+//			
+//			ipts.addAll(intersectionPoints(p1.x, p1.y, p2.x, p2.y, false));
+//		}
+//		
+//		return ipts;
+//	}
 	
 	public void selectPoints(Rectangle rect, boolean sendSignal, boolean multiselect) {
 		for (int i=0; i<getNPoints(); ++i) {

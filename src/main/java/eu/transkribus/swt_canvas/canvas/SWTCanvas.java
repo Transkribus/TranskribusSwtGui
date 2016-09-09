@@ -2,6 +2,7 @@ package eu.transkribus.swt_canvas.canvas;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -10,6 +11,7 @@ import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -19,7 +21,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor;
 import eu.transkribus.swt_canvas.canvas.editing.UndoStack;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasGlobalEventsFilter;
@@ -68,6 +69,7 @@ public class SWTCanvas extends Canvas {
 	 **/
 	protected CanvasShapeEditor shapeEditor;
 	protected UndoStack undoStack;
+	protected CanvasContextMenu contextMenu;
 	// protected CanvasSettingsPropertyChangeListener
 	// settingsPropertyChangeListener;
 
@@ -101,9 +103,14 @@ public class SWTCanvas extends Canvas {
 		initCanvasScene();
 		initShapeEditor();
 		initUndoStack();
+		initContextMenu();
 
 		initListener();
 		setFocus();
+	}
+
+	protected void initContextMenu() {
+		contextMenu = new CanvasContextMenu(this);
 	}
 
 	protected void initSettings() {
@@ -558,14 +565,22 @@ public class SWTCanvas extends Canvas {
 			// draw shape:
 			// logger.debug("mousept = "+mP+" mode = "+m);
 			if (m == CanvasMode.SPLIT_SHAPE_LINE && drawnPoints.size() >= 1) {
-				// logger.debug("mousept = "+mP);
+				CanvasPolyline poly = new CanvasPolyline(drawnPoints);
 				if (mP != null)
-					SWTUtil.drawLineExtended(gc, drawnPoints.get(0).x,
-							drawnPoints.get(0).y, mP.x, mP.y);
-			} else if (m == CanvasMode.SPLIT_SHAPE_VERTICAL) {
+					poly.addPoint(mP.x, mP.y);
+				
+				poly = poly.extendAtEnds(500);
+				gc.drawPolyline(poly.getPointArray());
+				
+				// logger.debug("mousept = "+mP);
+//				if (mP != null)
+//					SWTUtil.drawLineExtended(gc, drawnPoints.get(0).x,
+//							drawnPoints.get(0).y, mP.x, mP.y);
+				
+			} else if (m == CanvasMode.SPLIT_SHAPE_BY_HORIZONTAL_LINE) {
 				if (mP != null)
 					SWTUtil.drawLineExtended(gc, -1, mP.y, 1, mP.y);
-			} else if (m == CanvasMode.SPLIT_SHAPE_HORIZONTAL) {
+			} else if (m == CanvasMode.SPLIT_SHAPE_BY_VERTICAL_LINE) {
 				if (mP != null)
 					SWTUtil.drawLineExtended(gc, mP.x, -1, mP.x, 1);
 			} else if (drawnPoints.size() >= 1
@@ -591,11 +606,46 @@ public class SWTCanvas extends Canvas {
 					&& drawnPoints.size() == 1) {
 				// if (drawnPoints.size()!=1)
 				// return;
+				
+				if (mP!=null) {
+					logger.debug("here11");
+					
+					java.awt.Point pt1 = drawnPoints.get(0);
+					int w = mP.x - pt1.x;
+					int h = mP.y - pt1.y;
+					
+					List<java.awt.Point> pts = new ArrayList<>();
+					pts.add(pt1);
+					pts.add(new java.awt.Point(pt1.x+w, pt1.y));
+					pts.add(new java.awt.Point(pt1.x+w, pt1.y+h));
+					pts.add(new java.awt.Point(pt1.x, pt1.y+h));
+					
+					List<java.awt.Point> ptsR = new ArrayList<>();
+					for (java.awt.Point p : pts) {
+//						transform.inverseTransform(pt)
+						
+						java.awt.Point pr = transform.invertRotation(p);
+//						java.awt.Point pr = transform.inverseTransform(p);
+						logger.debug("p = "+p+" pr = "+p);
+						ptsR.add(pr);
+					}
+					
+					CanvasPolygon poly = new CanvasPolygon(ptsR);
+					gc.drawPolygon(poly.getPointArray());
+					
+//				logger.debug("here!!!");
+				
+//				pt1 = transform.invertRotation(pt1);
+				
+//				Rectangle r = new Rectangle(pt1.x, pt1.y, mP.x - pt1.x, mP.y - pt1.y);
+//				transform.inverseTransformWithoutTranslation(p)
 
-				java.awt.Point pt1 = drawnPoints.get(0);
-				if (mP != null)
-					gc.drawRectangle(pt1.x, pt1.y, mP.x - pt1.x, mP.y - pt1.y);
+				
+//				if (mP != null)
+//					gc.drawRectngle(pt1.x, pt1.y, mP.x - pt1.x, mP.y - pt1.y);
+				}
 			}
+			
 			// draw points:
 			for (int i = 0; i < drawnPoints.size(); ++i) {
 				java.awt.Point pt = drawnPoints.get(i);
@@ -733,24 +783,30 @@ public class SWTCanvas extends Canvas {
 
 	private void drawMouseOverBoundaryPoint(GC gc, ICanvasShape selected) {
 		Point pt = mouseListener.getShapeBoundaryPt();
-
-		if (selected != null && mouseListener.getMouseOverPoint() == -1
-				&& selected.isEditable() && pt != null
-				&& settings.getMode().isHighlightPointsRequired()
-				&& !isMovingBoundingBoxPossible()) {
+		
+		if (mouseListener.isAddingPointOnBoundaryClickPossible()) {
 			gc.setBackground(settings.getSelectedPointColor());
 			int radius = getSettings().getSelectedPointRadius();
-
 			gc.fillOval(pt.x - radius, pt.y - radius, radius * 2, radius * 2);
-
-			// draw surrounding circle of size 4 times the given radius:
-			if (false) {
-				int rr = radius + 3;
-				gc.setForeground(settings.getSelectedPointColor());
-				gc.drawOval(pt.x - rr, pt.y - rr, rr * 2, rr * 2);
-				// gc.drawRectangle(p.x - rr, p.y - rr, rr*2, rr*2);
-			}
 		}
+
+//		if (selected != null && mouseListener.getMouseOverPoint() == -1
+//				&& selected.isEditable() && pt != null
+//				&& settings.getMode().isHighlightPointsRequired()
+//				&& !isMovingBoundingBoxPossible()) {
+//			gc.setBackground(settings.getSelectedPointColor());
+//			int radius = getSettings().getSelectedPointRadius();
+//
+//			gc.fillOval(pt.x - radius, pt.y - radius, radius * 2, radius * 2);
+//
+//			// draw surrounding circle of size 4 times the given radius:
+//			if (false) {
+//				int rr = radius + 3;
+//				gc.setForeground(settings.getSelectedPointColor());
+//				gc.drawOval(pt.x - rr, pt.y - rr, rr * 2, rr * 2);
+//				// gc.drawRectangle(p.x - rr, p.y - rr, rr*2, rr*2);
+//			}
+//		}
 	}
 
 	/**
@@ -1005,12 +1061,55 @@ public class SWTCanvas extends Canvas {
 	// public void setTransform(CanvasTransform transform) {
 	// this.transform = transform;
 	// }
+	
+	
+	public boolean isMovingShapeLinePossible() {
+		return getCursorTypeForMovingShapeLine() != -1;
+	}
+	
+	public int getCursorTypeForMovingShapeLine() {
+		ICanvasShape selected = getFirstSelected();
+		Point mp = getMouseListener().getMousePtWoTr();
+		
+		
+		if (selected == null || mp == null || !settings.isEditingEnabled() || mouseListener.getMouseOverPoint()!=-1)
+			return -1;
+		
+		int[] line = mouseListener.getMouseOverLine() != null ? 
+				mouseListener.getMouseOverLine() : mouseListener.getSelectedLine();
 
+		if (line != null) {
+//			if (true)
+//				return SWT.CURSOR_SIZENESW;
+			java.awt.Point p1 = selected.getPoint(line[0]);
+			java.awt.Point p2 = selected.getPoint(line[1]);
+			
+			java.awt.Point p1r = GeomUtils.invertRotation(p1.x, p1.y, transform.getAngleRad());
+			java.awt.Point p2r = GeomUtils.invertRotation(p2.x, p2.y, transform.getAngleRad());
+
+//			double angle = GeomUtils.angleWithHorizontalLineRotated(p1, p2, transform.getAngleRad());		
+			double angle = Math.abs(Math.atan2(-p1r.y+p2r.y, -p1r.x+p2r.x));
+			if (angle > Math.PI/2) {
+				angle = Math.abs(angle-Math.PI);
+			}
+			
+//			logger.debug("angle = "+angle);
+//			double angle = GeomUtils.angleWithHorizontalLine(p1, p2);
+			if (angle < Math.PI/4) {
+				return SWT.CURSOR_SIZENS;
+			} else {
+				return SWT.CURSOR_SIZEWE;
+			}
+		}
+			
+		return -1;
+	}
+	
 	public boolean isMovingBoundingBoxPossible() {
 		ICanvasShape selected = getFirstSelected();
 
-		RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? mouseListener
-				.getMouseOverDirection() : mouseListener.getSelectedDirection();
+		RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? 
+				mouseListener.getMouseOverDirection() : mouseListener.getSelectedDirection();
 		// logger.debug("dir = "+dir);
 		org.eclipse.swt.graphics.Point p = getMouseListener().getMousePtWoTr();
 		return (p != null && selected != null && dir != RectDirection.NONE
@@ -1020,35 +1119,44 @@ public class SWTCanvas extends Canvas {
 	}
 
 	public void setCursor(ICanvasShape selected) {
-		// logger.debug("setCursor, isMovingBoundingBoxPossible: "+isMovingBoundingBoxPossible());
-		// if a shape is resized along its bounding box --> draw corresponding
-		// cursor
-		if (isMovingBoundingBoxPossible()) {
-			RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? mouseListener
-					.getMouseOverDirection() : mouseListener
-					.getSelectedDirection();
-			setCursor(getDisplay().getSystemCursor(dir.getCursorType()));
-		} else {
-			// else: set cursor depending on mode:
-			setCursorForMode(settings.getMode());
+		int cursorType = -1;
+		Point mp = mouseListener.getMousePtWoTr();
+		
+		if (selected != null && mp != null) {
+			if (isMovingBoundingBoxPossible()) {
+				RectDirection dir = mouseListener.getMouseOverDirection() != RectDirection.NONE ? 
+					mouseListener.getMouseOverDirection() : mouseListener.getSelectedDirection();
+				setCursor(getDisplay().getSystemCursor(dir.getCursorType()));
+				return;
+			} else {
+				isMovingShapeLinePossible();
+				
+				cursorType = getCursorTypeForMovingShapeLine();
+				if (cursorType != -1) {
+					setCursor(getDisplay().getSystemCursor(cursorType));
+					return;
+				}				
+			}
 		}
+		
+		setCursor(getCursorForMode(settings.getMode()));
 	}
 
-	public void setCursorForMode(CanvasMode mode) {
+	public Cursor getCursorForMode(CanvasMode mode) {
 		if (mode.isEditOperation()) {
-			setCursor(getDisplay().getSystemCursor(SWT.CURSOR_CROSS));
 			if (settings.getMode() == CanvasMode.MOVE_SHAPE) {
-				setCursor(getDisplay().getSystemCursor(SWT.CURSOR_SIZEALL));
-			}
+				return getDisplay().getSystemCursor(SWT.CURSOR_SIZEALL);
+			} else
+				return getDisplay().getSystemCursor(SWT.CURSOR_CROSS);
 		} else if (mode == CanvasMode.ZOOM || mode == CanvasMode.LOUPE) {
-			setCursor(Resources.CURSOR_ZOOM);
+			return Resources.CURSOR_ZOOM;
 			// setCursor(getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
 		} else if (mode == CanvasMode.MOVE) {
-			setCursor(getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+			return getDisplay().getSystemCursor(SWT.CURSOR_HAND);
 			// setCursor(Cursors.cursorHandDrag);
 		} else {
 			// if (settings.getMode() == CanvasMode.SELECTION) {
-			setCursor(getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
+			return getDisplay().getSystemCursor(SWT.CURSOR_ARROW);
 			// }
 		}
 	}
@@ -1058,7 +1166,9 @@ public class SWTCanvas extends Canvas {
 		Point mPt = mouseListener.getMousePtWoTr();
 		ICanvasShape selected = getFirstSelected();
 
-		return (selectedPoint == -1 && selected != null
+		return (selectedPoint == -1 && mouseListener.getSelectedDirection()==RectDirection.NONE
+				&& mouseListener.getSelectedLine()==null &&
+				selected != null
 				&& selected.isEditable() && mPt != null
 				&& selected.contains(mPt) && getMode() == CanvasMode.SELECTION);
 	}
@@ -1154,6 +1264,10 @@ public class SWTCanvas extends Canvas {
 	public ICanvasShape getFirstSelected() {
 		return scene.getFirstSelected();
 	}
+	
+	public ICanvasShape getLastSelected() {
+		return scene.getLastSelected();
+	}	
 
 	public int getNSelected() {
 		return scene.getNSelected();
@@ -1199,6 +1313,10 @@ public class SWTCanvas extends Canvas {
 
 	public CanvasShapeEditor getShapeEditor() {
 		return shapeEditor;
+	}
+	
+	public CanvasContextMenu getContextMenu() {
+		return contextMenu;
 	}
 
 	public UndoStack getUndoStack() {
@@ -1261,5 +1379,5 @@ public class SWTCanvas extends Canvas {
 
 		return transWoTr;
 	}
-
+	
 }

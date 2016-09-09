@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.BaselineType;
 import eu.transkribus.core.model.beans.pagecontent.CoordsType;
-import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextEquivType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
@@ -17,15 +16,19 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpConstructedWithParentEvent;
 import eu.transkribus.core.util.PointStrUtils;
+import eu.transkribus.swt_canvas.canvas.CanvasException;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
@@ -81,11 +84,11 @@ public class TrpShapeElementFactory {
 		boolean hasBaseline = false;
 		double readingOrderSize = 0;
 				
-		if (trpShape.getChildren(false).size() > 0 && trpShape.getChildren(false).get(0) instanceof TrpBaselineType){
+		if (trpShape.getChildren(false).size() > 0 && trpShape.getChildren(false).get(0) instanceof TrpBaselineType) {
 			hasBaseline = true;
 		}
 		
-//		if (trpShape instanceof RegionType){
+//		if (trpShape instanceof RegionType) {
 //			for (ITrpShapeType currShape : trpShape.getChildren(false)){
 //				if (currShape instanceof TrpTextLineType){
 //					TrpTextLineType tl = (TrpTextLineType) currShape;
@@ -165,21 +168,26 @@ public class TrpShapeElementFactory {
 		// set coordinates:
 		copyTrpShape.setCoordinates(PointStrUtils.pointsToString(shape.getPoints()), this);
 		
+		// set corner pts if this is a TrpTableCellType and shape is a CanvasQuadPolygon:
+		if (copyTrpShape instanceof TrpTableCellType && shape instanceof CanvasQuadPolygon) {
+			String cornerPts = PointStrUtils.cornerPtsToString( ((CanvasQuadPolygon) shape).getCorners());
+			((TrpTableCellType) copyTrpShape).setCornerPts(cornerPts, this);
+		}
+		
 		copyTrpShape.reInsertIntoParent(index);				
 			
 		// sync canvas shape and trp shape info:
 		syncCanvasShapeAndTrpShape(shape, copyTrpShape);
 		
 		return copyTrpShape;		
-	}	
-	
+	}
+		
 	/** Creates a new ITrpShapeType element from the given shape that was created in the canvas. The CanvasMode m determines
-	 * the type of shape that shall be created.
-	 * @param selSt 
+	 * the type of shape that shall be created. 
 	 */
-	public ITrpShapeType createJAXBElementFromShape(ICanvasShape shape, CanvasMode m, ICanvasShape selectedParentShape) throws NoParentRegionException, NoParentLineException, BaselineExistsException, Exception {
+	public ITrpShapeType createJAXBElementFromShape(ICanvasShape shape, CanvasMode m, ICanvasShape selectedParentShape) throws NoParentRegionException, NoParentLineException, BaselineExistsException, CanvasException {
 		if (Storage.getInstance().getTranscript()==null)
-			throw new Exception("No transcript loaded - should not happen!");
+			throw new CanvasException("No transcript loaded - should not happen!");
 		
 		ITrpShapeType trpShape=null;
 		ICanvasShape parentShape = null;
@@ -191,10 +199,10 @@ public class TrpShapeElementFactory {
 		String specialRegionType = (m.data != null && m.data instanceof String) ? (String) m.data : "";
 //		String specialRegionType = mainWidget.getCanvasWidget().getToolBar().getSelectedSpecialRegionType();
 
-		if (m.equals(TrpCanvasAddMode.ADD_PRINTSPACE) || specialRegionType.equals(RegionTypeUtil.PRINTSPACE_TYPE)) {
+		if (m.equals(TrpCanvasAddMode.ADD_PRINTSPACE) || specialRegionType.equals(RegionTypeUtil.PRINTSPACE)) {
 			TrpPageType parent = Storage.getInstance().getTranscript().getPage();
 			if (parent.getPrintSpace()!=null)
-				throw new Exception("Printspace already exists!");
+				throw new CanvasException("Printspace already exists!");
 			TrpPrintSpaceType ps = createPAGEPrintSpace(shape, parent);
 			trpShape = ps;
 		}
@@ -204,6 +212,13 @@ public class TrpShapeElementFactory {
 			TrpTextRegionType tr = createPAGETextRegion(shape, parent);
 			trpShape = tr;
 		}
+		else if (m.equals(TrpCanvasAddMode.ADD_TABLEREGION)) {
+			logger.debug("creating table region...");
+			TrpPageType parent = Storage.getInstance().getTranscript().getPage();
+			logger.debug("parent = "+parent);
+			TrpTableRegionType tr = createPAGETableRegion(shape, parent);
+			trpShape = tr;
+		}
 		else if (m.equals(TrpCanvasAddMode.ADD_OTHERREGION)) {
 			logger.debug("adding special region, type  = "+specialRegionType);
 			if (!specialRegionType.isEmpty()) {
@@ -211,7 +226,7 @@ public class TrpShapeElementFactory {
 				TrpRegionType rt = createRegionType(shape, parent, specialRegionType);
 				trpShape = rt;
 			} else
-				throw new Exception("Invalid special region type: "+specialRegionType+" - should not happen!");			
+				throw new CanvasException("Invalid special region type: "+specialRegionType+" - should not happen!");			
 		}
 		else if (m.equals(TrpCanvasAddMode.ADD_LINE)) {
 			String errorMsg = "";
@@ -270,8 +285,28 @@ public class TrpShapeElementFactory {
 			TrpWordType word = createPAGEWord(shape, parent);
 			trpShape = word;
 		}
+		else if (m.equals(TrpCanvasAddMode.ADD_TABLECELL)) {
+			logger.debug("1 creating tablecell");
+			String errorMsg="";
+						
+			// if selected parent shape is a table, set is a as parent shape
+			if (selectedParentShape!=null && selectedParentShape.getData() instanceof TrpTableRegionType)
+				parentShape = selectedParentShape;
+			else // else: find overlapping parent table
+				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTableRegionType.class);
+			
+			logger.debug("parentShape = "+parentShape);
+			if (parentShape == null)
+				throw new NoParentRegionException(errorMsg);
+			
+			TrpTableRegionType parent = (TrpTableRegionType) parentShape.getData();
+			logger.debug("parent = "+parent);
+			
+			TrpTableCellType tc = createPAGETableCell(shape, parent);
+			trpShape = tc;
+		}
 		else {
-			throw new Exception("No add valid operation specified (should not happen...)");
+			throw new CanvasException("No add valid operation specified (should not happen...)");
 		}
 		
 		// sync canvas shape and trp shape info:
@@ -290,6 +325,15 @@ public class TrpShapeElementFactory {
 		ICanvasShape shape = null;
 		if (trpShape instanceof BaselineType) {
 			shape = new CanvasPolyline(points);
+		}
+		else if (trpShape instanceof TrpTableCellType) {
+			logger.trace("adding table cell as CanvasQuadPolygon shape");
+			shape = new CanvasQuadPolygon(points);
+			TrpTableCellType tc = (TrpTableCellType) trpShape;
+			
+//			int[] corners = PointStrUtils.parseCornerPts(tc.getCoords().getCornerPts());
+			int[] corners = PointStrUtils.parseCornerPts(tc.getCornerPts());
+			((CanvasQuadPolygon) shape).setCornerPts(corners);
 		}
 		else {
 			shape = new CanvasPolygon(points);
@@ -334,7 +378,16 @@ public class TrpShapeElementFactory {
 		return ps;
 	}
 	
-	private static TrpTextRegionType createPAGETextRegion(ICanvasShape shape, TrpPageType parent) {		
+	private static void assertNotNull(Object o, String objDesc) throws CanvasException {
+		if (o == null) {
+			throw new CanvasException(objDesc+" cannot be null!");
+		}
+	}
+	
+	private static TrpTextRegionType createPAGETextRegion(ICanvasShape shape, TrpPageType parent) {
+		assertNotNull(shape, "Shape");
+		assertNotNull(parent, "Parent page");
+		
 		TrpTextRegionType tr = new TrpTextRegionType(parent);
 		
 		tr.setId(TrpPageType.getUniqueId("region"));
@@ -343,7 +396,7 @@ public class TrpShapeElementFactory {
 		CoordsType coords = new CoordsType();
 		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		tr.setCoords(coords);	
-		
+				
 		//TODO: add index according to coordinates		int idxOfNewLine = parent.getIndexAccordingToCoordinates(tl);
 		int idxOfNewTextRegion = parent.getIndexAccordingToCoordinates(tr);
 		logger.debug("idxOfNewTextRegion " + idxOfNewTextRegion);
@@ -363,6 +416,26 @@ public class TrpShapeElementFactory {
 		
 		TrpMainWidget.getInstance().getScene().updateAllShapesParentInfo();
 		parent.sortRegions();
+		
+		return tr;
+	}
+	
+	private static TrpTableRegionType createPAGETableRegion(ICanvasShape shape, TrpPageType parent) {		
+		TrpTableRegionType tr = new TrpTableRegionType(parent);
+		
+		tr.setId(TrpPageType.getUniqueId(tr.getName()));
+		tr.getObservable().setChangedAndNotifyObservers(new TrpConstructedWithParentEvent(tr));
+		//during creation set the ReadingOrder on the first position - sorting should than merge the shape according to the coordinates
+		tr.setReadingOrder(-1,  TrpShapeElementFactory.class);		
+		
+		CoordsType coords = new CoordsType();
+		coords.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
+		tr.setCoords(coords);	
+	
+		parent.getTextRegionOrImageRegionOrLineDrawingRegion().add(tr);
+		parent.sortRegions();
+		
+		TrpMainWidget.getInstance().getScene().updateAllShapesParentInfo();
 		
 		return tr;
 	}
@@ -397,14 +470,16 @@ public class TrpShapeElementFactory {
 			parent.getTextLine().add(tl);
 		}
 
-		for (int i = 0; i<parent.getTextLine().size(); i++){
-		logger.debug(i + "-th line in text " + parent.getTextLine().get(i).getId());	
+		if (false)
+		for (int i = 0; i<parent.getTextLine().size(); i++) {
+			logger.debug(i + "-th line in text " + parent.getTextLine().get(i).getId());	
 		}
 		
 		parent.applyTextFromLines();
 		
 		TrpMainWidget.getInstance().getScene().updateAllShapesParentInfo();
-		parent.getPage().sortContent();
+		parent.sortLines();
+//		parent.getPage().sortContent();
 		
 //		parent.getTextLine().add(tl);
 		//parent.sortLines();
@@ -446,6 +521,29 @@ public class TrpShapeElementFactory {
 		return word;
 	}
 	
+	private static TrpTableCellType createPAGETableCell(ICanvasShape shape, TrpTableRegionType parent) {
+		if (!(shape instanceof CanvasQuadPolygon))
+			throw new RuntimeException("table cell shape is not a quad polygon: "+shape);
+		
+		CanvasQuadPolygon qp = ((CanvasQuadPolygon) shape);
+		logger.debug("corners: "+qp.getCorners());
+		
+		
+		TrpTableCellType tc = new TrpTableCellType(parent);
+		
+		tc.setId(TrpPageType.getUniqueId(tc.getName()));
+		
+		// TODO: set reading order ???? -> maybe r.o. for table cells is rowwise from left to right...
+		
+		tc.setCoordinates(PointStrUtils.pointsToString(shape.getPoints()), TrpShapeElementFactory.class);
+		tc.setCornerPts(PointStrUtils.cornerPtsToString(qp.getCorners()));
+		
+		parent.getTableCell().add(tc);
+		// TODO: sort table cells??? (most probably not...)
+		
+		return tc;
+	}
+	
 	/**
 	 * Creates a generic region of the given type. Valid types are contained in the field {@link #REGIONS}.<br>
 	 * NOTE: currently under testing
@@ -456,18 +554,22 @@ public class TrpShapeElementFactory {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	public static TrpRegionType createRegionType(ICanvasShape shape, TrpPageType parent, String type) throws InstantiationException, IllegalAccessException {
-		
+	public static TrpRegionType createRegionType(ICanvasShape shape, TrpPageType parent, String type) throws CanvasException {
 		if (!RegionTypeUtil.isSpecialRegion(type)) {
-			throw new UnsupportedOperationException("This is not a special region type: "+type);
+			throw new CanvasException("This is not a special region type: "+type);
 		}
 		
 		Class<? extends ITrpShapeType> clazz = RegionTypeUtil.getRegionClass(type);
 		if (clazz == null) {
-			throw new UnsupportedOperationException("Could not create region of type: "+type);
+			throw new CanvasException("Could not create region of type: "+type);
 		}
 		
-		TrpRegionType rt = (TrpRegionType) clazz.newInstance();
+		TrpRegionType rt;
+		try {
+			rt = (TrpRegionType) clazz.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new CanvasException("Could not instantiate region type: "+type, e);
+		}
 		
 		rt.setParent(parent);
 		rt.getObservable().setChangedAndNotifyObservers(new TrpConstructedWithParentEvent(rt));

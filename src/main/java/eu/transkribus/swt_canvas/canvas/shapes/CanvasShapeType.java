@@ -5,6 +5,7 @@ public enum CanvasShapeType {
 	POLYGON("Polygon"),
 	POLYLINE("Polyline"),
 	RECTANGLE("Rectangle");
+//	QUADPOLYGON("QuadPolygon");
 	
 	String desc;
 	
