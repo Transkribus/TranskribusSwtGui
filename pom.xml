@@ -672,6 +672,7 @@
 			<groupId>org.eclipse.nebula.widgets</groupId>
 			<artifactId>gallery</artifactId>
 			<version>0.6.0.201403182228</version>
+<!-- 			<version>1.0.0</version> -->
 		</dependency>
 
 		<dependency>

@@ -42,6 +42,7 @@ import eu.transkribus.core.model.beans.pagecontent.WordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class ThumbnailWidget extends Composite {
@@ -134,8 +135,17 @@ public class ThumbnailWidget extends Composite {
 		private void load() {
 			try {
 				isError = false;
+				
+				SebisStopWatch sw = new SebisStopWatch();
+				
+				sw.start();
 				image = ImgLoader.load(url);
+				sw.stop(true, "loading img time: ");
+				
+				sw.start();
 				transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
+				sw.stop(true, "loading lines time: ");
+				
 //				if (image.getBounds().height > THUMB_HEIGHT) {
 //					Image scaled = scaleImageToHeight(image, THUMB_HEIGHT);
 //					image.dispose();
@@ -256,8 +266,7 @@ public class ThumbnailWidget extends Composite {
 		reload.setToolTipText("Reload");
 		reload.setImage(Images.getOrLoad("/icons/refresh.gif"));
 		reload.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
+			@Override public void widgetSelected(SelectionEvent e) {
 				logger.debug("reloading thumbwidget...");
 				reload();
 			}
