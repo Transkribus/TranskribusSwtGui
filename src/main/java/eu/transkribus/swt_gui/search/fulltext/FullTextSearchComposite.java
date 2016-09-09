@@ -525,7 +525,11 @@ public class FullTextSearchComposite extends Composite{
 			searchText = searchText.replaceAll("\\"+c, "");
 		}
 		
-		if(searchText.isEmpty()) return;
+		searchText = searchText.trim();
+		
+		if(searchText.isEmpty()) {
+			return;
+		}
 		
 		if(!searchText.equals(lastSearchText)) start = 0;
 		
@@ -646,7 +650,9 @@ public class FullTextSearchComposite extends Composite{
         	
         	public void run() {
         		try{
-
+        			if(hits.isEmpty()){
+        				return;
+        			}
 	        		for(Hit hit : hits){
 	        			
 	        			if(Thread.currentThread().isInterrupted()) stopFlag = true;
