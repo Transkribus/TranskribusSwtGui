@@ -753,10 +753,6 @@ public class CanvasScene {
 		boolean found = false;
 		for (ICanvasShape s : shapes) {
 			
-			if (!s.isVisible() || !s.isSelectable())
-				continue;
-			
-			
 			if (s.isReadingOrderVisible() && s.getReadingOrderCircle().contains(x, y) && !found){
 				//logger.debug("reading order selected is true for mouse point " + x + " , " + y );
 				//Display display = canvas.getDisplay();
@@ -769,6 +765,9 @@ public class CanvasScene {
 				}
 				found = true;
 			}
+			
+			if (!s.isVisible() || !s.isSelectable())
+				continue;
 
 			double dist = s.distance(x, y, true);
 

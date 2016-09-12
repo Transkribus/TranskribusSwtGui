@@ -372,6 +372,7 @@ CHANGES AND BUGFIXES
 	-> colored background in thumbnail overview: light green=transcribed lines are there, 
 		light yellow=now transcription (but lines segmented), light red=no line segmentation
 	-> thumbnail overview also shows number of transcribed lines (per page and per document)
+	-> automatic right to left text export for arabic, hebrew and so on
 	-> included context menu in canvas (especially for tables)
 	-> collapsed buttons to add elements to one dropdown button
 	-> more strict version numbering (major version is first number, minor version is second number, hotfixes are third number; snapshot versions of any of those versions are identified by an additional fourth number and a '-SNAPSHOT' suffix)
