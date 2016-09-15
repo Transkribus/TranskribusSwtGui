@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
@@ -59,6 +60,30 @@ public class TrpCanvasShapeEditor extends CanvasShapeEditor {
 		
 //		mw = canvas.getMainWidget();
 	}
+	
+	public void removeShapesWithData(List<ITrpShapeType> shapes, boolean addToUndoStack) {
+		List<ICanvasShape> css = new ArrayList<>();
+		for (ITrpShapeType s : shapes) {
+			ICanvasShape cs = canvas.getScene().findShapeWithData(s);
+			if (cs != null) {
+				css.add(cs);		
+			}
+		}
+		
+		removeShapesFromCanvas(css, addToUndoStack);
+	}
+	
+//	public void removeShapesWithData(List<ITrpShapeType> shapes, boolean addToUndoStack) {
+//		List<ICanvasShape> css = new ArrayList<>();
+//		for (ITrpShapeType s : shapes) {
+//			ICanvasShape cs = canvas.getScene().findShapeWithData(s);
+//			if (cs != null) {
+//				css.add(cs);		
+//			}
+//		}
+//		
+//		removeShapesFromCanvas(css, addToUndoStack);
+//	}
 	
 	@Override protected ICanvasShape constructShapeFromPoints(List<java.awt.Point> pts, CanvasShapeType shapeType) {
 		if (canvas.getMode() == TrpCanvasAddMode.ADD_TABLECELL) {

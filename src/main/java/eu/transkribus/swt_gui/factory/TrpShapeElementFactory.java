@@ -318,7 +318,7 @@ public class TrpShapeElementFactory {
 	/**
 	 * Creates a canvas shape for the given jaxb shape element
 	 */
-	private ICanvasShape addCanvasShape(ITrpShapeType trpShape) throws Exception {
+	public ICanvasShape addCanvasShape(ITrpShapeType trpShape) throws Exception {
 		String points = trpShape.getCoordinates();
 				
 		// create polygon and set wrapped data and color:

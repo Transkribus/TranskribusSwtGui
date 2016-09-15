@@ -28,8 +28,11 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.catti.CattiRequest;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.LabeledText;
@@ -37,8 +40,11 @@ import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
+import eu.transkribus.util.IndexTextUtils;
 
 public class DebuggerDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(DebuggerDialog.class);
@@ -64,7 +70,8 @@ public class DebuggerDialog extends Dialog {
 	
 	public Button lineToWordSegBtn;
 	
-
+	ITranscriptionWidgetListener twl;
+	
 	/**
 	 * Create the dialog.
 	 * @param parent
@@ -205,9 +212,59 @@ public class DebuggerDialog extends Dialog {
 			}
 		});
 		
-		mw.getUi().getLineTranscriptionWidget().addListener(new ITranscriptionWidgetListener() {
+		twl = new ITranscriptionWidgetListener() {
 			@Override public void onCattiMessage(CattiRequest r, String message) {
-				debugText.append(message+"\n");
+				logger.debug("catti message: "+message);
+				if (!SWTUtil.isDisposed(debugText)) {
+					Display.getDefault().asyncExec(() -> debugText.append(message+"\n"));
+				}
+			}
+		};
+		
+		mw.getUi().getLineTranscriptionWidget().addListener(twl);
+		
+		// line2word seg
+		lineToWordSegBtn.addSelectionListener(new SelectionAdapter() {
+			
+			@Override public void widgetSelected(SelectionEvent e) {
+				ATranscriptionWidget tw = mw.getUi().getSelectedTranscriptionWidget();
+				if (tw instanceof LineTranscriptionWidget) {
+					LineTranscriptionWidget lw = (LineTranscriptionWidget) tw;
+					TrpTextLineType tl = (TrpTextLineType) lw.getTranscriptionUnit();
+					if (tl != null) {
+						SebisStopWatch.SW.start();
+						List<TrpWordType> words = IndexTextUtils.getWordsFromLine(tl);
+						SebisStopWatch.SW.stop(true, "performed line 2 word seg", logger);
+						
+						List<TrpWordType> oldWords = new ArrayList<TrpWordType>();
+						oldWords.addAll(tl.getTrpWord());
+						
+						for (TrpWordType w : oldWords) {
+							ICanvasShape cs = canvas.getScene().findShapeWithData(w);
+							if (cs != null) {
+								mw.getCanvas().getShapeEditor().removeShapeFromCanvas(cs, false);
+							}
+						}
+						
+						
+						for (TrpWordType w : words) {
+							w.setLine(tl);
+							try {
+								mw.getShapeFactory().addCanvasShape(w);
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}	
+						}
+						
+						canvas.redraw();
+						
+//						tl.getWord().clear();
+//						tl.getWord().addAll(words);
+//						tl.getPage().setEdited(true);
+						
+//						lw.r
+					}
+				}
 			}
 		});
 	}
@@ -270,6 +327,9 @@ public class DebuggerDialog extends Dialog {
 				display.sleep();
 			}
 		}
+		
+		mw.getUi().getLineTranscriptionWidget().removeListener(twl);
+		
 		return result;
 	}
 

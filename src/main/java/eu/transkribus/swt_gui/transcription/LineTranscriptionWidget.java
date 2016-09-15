@@ -513,10 +513,12 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				}
 				
 				// on ctlr-arrowdown, call reject suffix method
-				if (isCtrl && e.keyCode == SWT.ARROW_DOWN) {
-					callCattiMethod(CattiMethod.REJECT_SUFFIX, 0, 0, null);
-				} else if (isCmd && e.keyCode =='n') {
-					callCattiMethod(CattiMethod.REJECT_SUFFIX, 0, 0, null);
+				if (isCattiMode()) {
+					if (isCtrl && e.keyCode == SWT.ARROW_DOWN) {
+						callCattiMethod(CattiMethod.REJECT_SUFFIX, 0, 0, null);
+					} else if (isCmd && e.keyCode =='n') {
+						callCattiMethod(CattiMethod.REJECT_SUFFIX, 0, 0, null);
+					}
 				}
 				
 				// VERY OLD SHIT:

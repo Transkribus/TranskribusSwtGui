@@ -216,7 +216,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	public static final boolean USE_AUTOCOMPLETE_FROM_PAGE=true;
 	
-	List<ITranscriptionWidgetListener> listener; // custom event listeners
+	List<ITranscriptionWidgetListener> listener = new ArrayList<>(); // custom event listener
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT"; 
 	
@@ -333,8 +333,6 @@ public abstract class ATranscriptionWidget extends Composite{
 		updateData(null, null, null);
 		
 		initContextMenu();
-		
-//		observable = new MyObservable();
 	}
 	
 	public void addListener(ITranscriptionWidgetListener l) {

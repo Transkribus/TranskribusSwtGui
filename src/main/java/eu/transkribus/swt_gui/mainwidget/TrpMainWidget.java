@@ -3346,6 +3346,7 @@ public class TrpMainWidget {
 	public DebuggerDialog showDebugDialog() {
 		DebuggerDialog debugDiag = new DebuggerDialog(getShell(), 0);
 		debugDiag.open();
+		
 		return debugDiag;
 		
 //		logger.debug("showing debug dialog!");
