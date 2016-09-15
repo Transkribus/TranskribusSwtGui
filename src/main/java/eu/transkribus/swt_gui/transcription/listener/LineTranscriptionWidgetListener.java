@@ -1,8 +1,10 @@
 package eu.transkribus.swt_gui.transcription.listener;
 
+import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.catti.CattiRequest;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
@@ -11,9 +13,6 @@ import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
-
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.widgets.Event;
 
 public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListener {
 	private final static Logger logger = LoggerFactory.getLogger(LineTranscriptionWidgetListener.class);
@@ -70,7 +69,7 @@ public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListene
 			mainWidget.onError("Error updating selection", msg, th);
 		}
 	}
-	
+		
 	/**
 	 * Depending on the data the given textline contains, returns the actual shape that is going to be selected: either the line
 	 * itself or the baseline, if no line exists (nr of points <= 2) or lines are not visible!

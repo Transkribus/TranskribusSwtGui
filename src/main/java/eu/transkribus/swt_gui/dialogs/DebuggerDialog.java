@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.catti.CattiRequest;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
@@ -36,6 +37,7 @@ import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
 
 public class DebuggerDialog extends Dialog {
@@ -59,6 +61,8 @@ public class DebuggerDialog extends Dialog {
 	public Button sortBaselinePts;
 	public LabeledText sortXText, sortYText;
 	public Button sortBaselineAllRegionsBtn;
+	
+	public Button lineToWordSegBtn;
 	
 
 	/**
@@ -101,6 +105,9 @@ public class DebuggerDialog extends Dialog {
 		
 		sortBaselinePts = new Button(sortBaselinePtsGroup, SWT.PUSH);
 		sortBaselinePts.setText("Sort!");
+		
+		lineToWordSegBtn = new Button(shell, SWT.PUSH);
+		lineToWordSegBtn.setText("Line2Word Seg");
 		
 //		new Label(shell, SWT.NONE);
 		
@@ -195,6 +202,12 @@ public class DebuggerDialog extends Dialog {
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
+			}
+		});
+		
+		mw.getUi().getLineTranscriptionWidget().addListener(new ITranscriptionWidgetListener() {
+			@Override public void onCattiMessage(CattiRequest r, String message) {
+				debugText.append(message+"\n");
 			}
 		});
 	}
