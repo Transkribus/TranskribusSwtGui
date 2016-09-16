@@ -228,42 +228,36 @@ public class DebuggerDialog extends Dialog {
 			
 			@Override public void widgetSelected(SelectionEvent e) {
 				ATranscriptionWidget tw = mw.getUi().getSelectedTranscriptionWidget();
-				if (tw instanceof LineTranscriptionWidget) {
-					LineTranscriptionWidget lw = (LineTranscriptionWidget) tw;
-					TrpTextLineType tl = (TrpTextLineType) lw.getTranscriptionUnit();
-					if (tl != null) {
-						SebisStopWatch.SW.start();
-						List<TrpWordType> words = IndexTextUtils.getWordsFromLine(tl);
-						SebisStopWatch.SW.stop(true, "performed line 2 word seg", logger);
-						
-						List<TrpWordType> oldWords = new ArrayList<TrpWordType>();
-						oldWords.addAll(tl.getTrpWord());
-						
-						for (TrpWordType w : oldWords) {
-							ICanvasShape cs = canvas.getScene().findShapeWithData(w);
-							if (cs != null) {
-								mw.getCanvas().getShapeEditor().removeShapeFromCanvas(cs, false);
-							}
+				if (tw!=null && tw.getCurrentLineObject()!=null) {
+					TrpTextLineType tl = tw.getCurrentLineObject();
+			
+					List<TrpWordType> segmentedWords = IndexTextUtils.getWordsFromLine(tl);
+					logger.debug("performed line 2 word seg");
+					
+					// remove old words:
+					List<TrpWordType> oldWords = new ArrayList<TrpWordType>();
+					oldWords.addAll(tl.getTrpWord());
+					for (TrpWordType w : oldWords) {
+						ICanvasShape cs = canvas.getScene().findShapeWithData(w);
+						if (cs != null) {
+							mw.getCanvas().getShapeEditor().removeShapeFromCanvas(cs, false);
 						}
-						
-						
-						for (TrpWordType w : words) {
-							w.setLine(tl);
-							try {
-								mw.getShapeFactory().addCanvasShape(w);
-							} catch (Exception e1) {
-								e1.printStackTrace();
-							}	
-						}
-						
-						canvas.redraw();
-						
-//						tl.getWord().clear();
-//						tl.getWord().addAll(words);
-//						tl.getPage().setEdited(true);
-						
-//						lw.r
 					}
+					
+					// add new words:
+					int i=0;
+					for (TrpWordType w : segmentedWords) {
+						w.setLine(tl);
+						w.reInsertIntoParent(i++);
+						
+						try {
+							mw.getShapeFactory().addCanvasShape(w);
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}	
+					}
+					
+					canvas.redraw();
 				}
 			}
 		});

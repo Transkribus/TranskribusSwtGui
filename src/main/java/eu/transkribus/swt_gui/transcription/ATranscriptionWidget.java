@@ -2174,5 +2174,19 @@ public abstract class ATranscriptionWidget extends Composite{
 	public ToolItem getNotSign() {
 		return notSign;
 	}
+
+	public TrpTextRegionType getCurrentRegionObject() {
+		return currentRegionObject;
+	}
+
+	public TrpTextLineType getCurrentLineObject() {
+		return currentLineObject;
+	}
+
+	public TrpWordType getCurrentWordObject() {
+		return currentWordObject;
+	}
+	
+	
 		
 }

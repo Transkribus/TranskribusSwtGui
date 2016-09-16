@@ -101,6 +101,7 @@ public class IndexTextUtils {
 				trpWord.setUnicodeText(outputWord, trpWord);
 				trpWord.setCoordinates(outputCoords, trpWord);
 				trpWord.setLine(line);
+				
 				trpWords.add(trpWord);
 			}
 
