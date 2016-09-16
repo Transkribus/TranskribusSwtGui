@@ -22,6 +22,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.TreeViewerRow;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
@@ -45,10 +47,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +62,7 @@ import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
+import eu.transkribus.core.model.beans.searchresult.Facet;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.PageHit;
 import eu.transkribus.swt_canvas.util.Colors;
@@ -73,11 +79,13 @@ public class FullTextSearchComposite extends Composite{
 	Button wholeWordCheck, caseSensitiveCheck, previewCheck;
 	Button searchBtn, searchPrevBtn, searchNextBtn;
 	Composite parameters;
+	Composite facetComp;
 	Button[] textTypeBtn;
 	FulltextSearchResult fullTextSearchResult;
-	
+	Tree facetTree;
 	Table resultsTable;
 	TableViewer viewer;
+	TreeViewer facetViewer;
 	SashForm resultsSf;
 	Label resultsLabel;
 	String lastHoverCoords;
@@ -94,6 +102,7 @@ public class FullTextSearchComposite extends Composite{
 	
 	private int rows = 10;
 	private int start = 0;
+	String searchText;
 	private String lastSearchText;
 	private int numPageHits;
 	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],)";
@@ -202,12 +211,31 @@ public class FullTextSearchComposite extends Composite{
 				}
 				
 			}
-		});		
+		});			
+
 		
+//		initFacetsTree(sf);
 		initResultsTable(sf);
 		
-	}
+	}	
+
+
+
 	
+	
+	private void initFacetsTree(SashForm sf) {
+		facetComp = new Composite(facetsGroup, 0);
+		facetComp.setLayout(new FillLayout(SWT.HORIZONTAL));
+		facetComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		facetTree = new Tree (facetComp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);	
+		
+		facetViewer = new TreeViewer(facetComp);
+		
+		
+		
+	}
+
+
 	void initResultsTable(Composite container){
 		Group resultsGroup = new Group(container, SWT.NONE);
 		resultsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -519,7 +547,7 @@ public class FullTextSearchComposite extends Composite{
 		
 		prevImages = new HashMap<String,Image>();
 		
-		String searchText = inputText.getText().toString();
+		searchText = inputText.getText().toString();
 		
 		for(String c : BAD_SYMBOLS.split(",")){
 			searchText = searchText.replaceAll("\\"+c, "");
@@ -558,6 +586,7 @@ public class FullTextSearchComposite extends Composite{
 			logger.debug("Num. Results: " + fullTextSearchResult.getNumResults());			
 			if(fullTextSearchResult != null){
 				updateResultsTable();
+//				updateFacetTree();
 			}
 			
 		} catch (SessionExpiredException e) {
@@ -576,6 +605,21 @@ public class FullTextSearchComposite extends Composite{
 		
 		lastSearchText = searchText;
 		
+	}
+
+
+	private void updateFacetTree() {
+//		if(searchText.equals(lastSearchText)) return;
+		facetTree.removeAll();
+		for(Facet facet : fullTextSearchResult.getFacets() ){
+			TreeItem facetItem = new TreeItem(facetTree, 0);
+			facetItem.setText(facet.getName());
+			for(String facetKey : facet.getFacetMap().keySet()){
+				TreeItem subItem = new TreeItem(facetItem,0);
+				subItem.setText(facetKey + " ("+ facet.getFacetMap().get(facetKey).toString()+")");
+
+			}
+		}			
 	}
 
 
