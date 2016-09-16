@@ -93,6 +93,8 @@ public class ThumbnailWidget extends Composite {
 	
 	private int maxWidth = 0;
 	
+	private static final boolean DISABLE_TRANSCRIBED_LINES=true;
+	
 	public static class ThmbImg {		
 		Image image = null;
 		URL url;
@@ -138,13 +140,15 @@ public class ThumbnailWidget extends Composite {
 				
 				SebisStopWatch sw = new SebisStopWatch();
 				
-				sw.start();
+//				sw.start();
 				image = ImgLoader.load(url);
-				sw.stop(true, "loading img time: ");
+//				sw.stop(true, "loading img time: ");
 				
-				sw.start();
-				transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
-				sw.stop(true, "loading lines time: ");
+				if (!DISABLE_TRANSCRIBED_LINES) {
+					sw.start();
+					transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
+					sw.stop(true, "loading lines time: ");
+				}
 				
 //				if (image.getBounds().height > THUMB_HEIGHT) {
 //					Image scaled = scaleImageToHeight(image, THUMB_HEIGHT);
@@ -585,7 +589,7 @@ public class ThumbnailWidget extends Composite {
 			 * get number or transcribed lines: 0: no lines available, -1: lines but no text, n lines with text
 			 */
 			//int transcribedLines = nrTranscribedLines.get(index);
-			
+					
 			if (transcribedLines == 0){
 				transcribedLinesText = "\nNo lines segmented";
 			}
@@ -648,7 +652,7 @@ public class ThumbnailWidget extends Composite {
 				maxWidth = Math.max(maxWidth, tmp);
 			}
 			
-			if (!transcribedLinesText.equals("")){
+			if (!DISABLE_TRANSCRIBED_LINES && !transcribedLinesText.equals("")){
 				text+=transcribedLinesText;
 				tmp = gc.textExtent(transcribedLinesText).x + 10;
 				maxWidth = Math.max(maxWidth, tmp);

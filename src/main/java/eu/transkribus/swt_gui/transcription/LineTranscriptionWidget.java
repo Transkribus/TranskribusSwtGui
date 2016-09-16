@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import junit.framework.Assert;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.text.JFaceTextUtil;
@@ -44,8 +42,10 @@ import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.Utils;
+import junit.framework.Assert;
 
 public class LineTranscriptionWidget extends ATranscriptionWidget {
 	private final static Logger logger = LoggerFactory.getLogger(LineTranscriptionWidget.class);
@@ -289,8 +289,12 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 								});
 							}
 							logger.debug("message = "+msg);
-							logger.debug("is debug open: "+mw.isDebugDialogOpen());
-							mw.appendDebugLog(msg);
+//							mw.appendDebugLog(msg);
+							
+							for (ITranscriptionWidgetListener l : listener)
+								l.onCattiMessage(request, msg);
+							
+//							setChangedAndNotifyObservers(new CattiMessageEvent(request));
 						}
 					});
 				} else {
@@ -509,10 +513,12 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				}
 				
 				// on ctlr-arrowdown, call reject suffix method
-				if (isCtrl && e.keyCode == SWT.ARROW_DOWN) {
-					callCattiMethod(CattiMethod.REJECT_SUFFIX, 0, 0, null);
-				} else if (isCmd && e.keyCode =='n') {
-					callCattiMethod(CattiMethod.REJECT_SUFFIX, 0, 0, null);
+				if (isCattiMode()) {
+					if (isCtrl && e.keyCode == SWT.ARROW_DOWN) {
+						callCattiMethod(CattiMethod.REJECT_SUFFIX, 0, 0, null);
+					} else if (isCmd && e.keyCode =='n') {
+						callCattiMethod(CattiMethod.REJECT_SUFFIX, 0, 0, null);
+					}
 				}
 				
 				// VERY OLD SHIT:

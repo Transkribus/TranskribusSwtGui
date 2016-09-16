@@ -47,6 +47,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
@@ -140,6 +141,14 @@ public class SWTUtil {
 			}
 		}, 0, 500);
 		
+	}
+	
+	public static boolean isOpen(Dialog d) {
+		return d != null && d.getParent() != null && !d.getParent().isDisposed();
+	}
+	
+	public static boolean isOpen(org.eclipse.jface.dialogs.Dialog d) {
+		return d != null && d.getShell() != null && !d.getShell().isDisposed();
 	}
 	
 	public static void mask(final Composite c) {

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt_canvas.util.LabeledCombo;
 import eu.transkribus.swt_canvas.util.LabeledText;
 import eu.transkribus.swt_gui.search.documents.DocSearchComposite;
+import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.search.kws.KeywordSpottingComposite;
 import eu.transkribus.swt_gui.search.text_and_tags.TagSearchComposite;
 import eu.transkribus.swt_gui.search.text_and_tags.TextSearchComposite;
@@ -26,12 +27,13 @@ public class SearchDialog extends Dialog {
 	
 	DocSearchComposite docSearchComposite;
 	KeywordSpottingComposite kwsComposite;
+	FullTextSearchComposite fullTextSearchComposite;
 
 	LabeledText kwsDocId;
 	LabeledCombo kwsCollection;
 	
 	CTabFolder tabFolder;
-	CTabItem docSearchTabItem, kwsTabItem, textAndTagsItem;
+	CTabItem docSearchTabItem, kwsTabItem, textAndTagsItem, fullTextSearchItem;
 
 	/**
 	 * Create the dialog.
@@ -84,6 +86,10 @@ public class SearchDialog extends Dialog {
 		kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
 		kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS (Demo)");
+		
+		fullTextSearchComposite = new FullTextSearchComposite(tabFolder, 0);
+		fullTextSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+		fullTextSearchItem = createCTabItem(tabFolder, fullTextSearchComposite, "Solr Fulltext (Experimental)");
 
 		return c;
 	}
