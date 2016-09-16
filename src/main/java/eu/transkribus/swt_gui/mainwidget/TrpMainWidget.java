@@ -237,6 +237,7 @@ public class TrpMainWidget {
 		Display.setAppVersion(VERSION);
 		
 		// String time = info.getTimestampString();
+		RecentDocsPreferences.init();
 		
 		// Display display = Display.getDefault();
 		// canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, this);
@@ -250,8 +251,7 @@ public class TrpMainWidget {
 		addListener();
 		enableAutocomplete();
 		updateToolBars();
-		
-		RecentDocsPreferences.init();
+
 	}
 
 	public static TrpMainWidget getInstance() {
@@ -819,8 +819,10 @@ public class TrpMainWidget {
 			
 			//section to load the last used document for each user - either local or remote doc
 			if (!RecentDocsPreferences.getItems().isEmpty()){
-				String docToLoad = RecentDocsPreferences.getItems().get(0);
-				loadRecentDoc(docToLoad);
+				if (RecentDocsPreferences.isShowOnStartup()){
+					String docToLoad = RecentDocsPreferences.getItems().get(0);
+					loadRecentDoc(docToLoad);
+				}
 			}
 			else{
 				//if no recent docs are available -> load the example doc
