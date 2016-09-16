@@ -17,7 +17,9 @@ import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 
 public class TrpCanvasToolBar extends CanvasToolBar {
 	private final static Logger logger = LoggerFactory.getLogger(TrpCanvasToolBar.class);
@@ -53,6 +55,8 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	
 	DropDownToolItem tableItem;
 	MenuItem deleteRowItem, deleteColumnItem, splitMergedCell, removeIntermediatePtsItem; 
+	
+	ToolItem renderBlackeningsToggle;
 
 	private TrpMainWidget mainWidget;
 
@@ -215,16 +219,30 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		
 		new ToolItem(this, SWT.SEPARATOR, i);
 		
+		renderBlackeningsToggle = new ToolItem(this, SWT.CHECK, ++i);
+		renderBlackeningsToggle.setToolTipText("If toggled, blackening regions are rendered with opaque background");
+		//renderBlackeningsToggle.setText("Render blackenings");
+		renderBlackeningsToggle.setImage(Images.getOrLoad("/icons/rabbit-silhouette.png"));
+				
+		new ToolItem(this, SWT.SEPARATOR, ++i);
+		
 		viewSettingsMenuItem = new ToolItem(this, SWT.PUSH, ++i);
 		viewSettingsMenuItem.setToolTipText("Change &viewing settings...");
 		viewSettingsMenuItem.setImage(Images.getOrLoad("/icons/palette.png"));
 		
 		new ToolItem(this, SWT.SEPARATOR);
-		
+
 		this.pack();
+		
 		
 	}
 	
+	public void addBindings(TrpSettings trpSets) {
+
+		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsToggle);
+		
+	}
+
 	public String getSelectedSpecialRegionType() {
 		MenuItem si = addSpecialRegion.getSelected();
 		return (si != null) ? si.getText() : "";

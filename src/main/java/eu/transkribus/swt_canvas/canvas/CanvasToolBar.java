@@ -12,6 +12,7 @@ import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -286,7 +287,7 @@ public class CanvasToolBar extends ToolBar {
 //		DropDownToolItem test = new DropDownToolItem(this);
 //		for (int i=5; i<=100; i+=5)
 //			test.addItem(""+i, null);
-		
+			
 		
 		new ToolItem(this, SWT.SEPARATOR);
 		undo = new ToolItem(this, SWT.PUSH);
