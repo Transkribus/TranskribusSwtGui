@@ -158,11 +158,11 @@ public class FullTextSearchComposite extends Composite{
 		
 		textTypeBtn = new Button[2];
 		textTypeBtn[0] = new Button(parameters, SWT.RADIO);
-		textTypeBtn[0].setSelection(true);
+		textTypeBtn[0].setSelection(false);
 		textTypeBtn[0].setText("Word-based text");
 		textTypeBtn[0].setToolTipText("Search documents transcribed word by word");
 		textTypeBtn[1] = new Button(parameters, SWT.RADIO);
-		textTypeBtn[1].setSelection(false);
+		textTypeBtn[1].setSelection(true);
 		textTypeBtn[1].setText("Line-based text");	
 		textTypeBtn[1].setToolTipText("Search documents transcribed line by line");
 		
@@ -218,10 +218,6 @@ public class FullTextSearchComposite extends Composite{
 		initResultsTable(sf);
 		
 	}	
-
-
-
-	
 	
 	private void initFacetsTree(SashForm sf) {
 		facetComp = new Composite(facetsGroup, 0);
@@ -230,8 +226,6 @@ public class FullTextSearchComposite extends Composite{
 		facetTree = new Tree (facetComp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);	
 		
 		facetViewer = new TreeViewer(facetComp);
-		
-		
 		
 	}
 
@@ -382,9 +376,9 @@ public class FullTextSearchComposite extends Composite{
 					ArrayList<Integer> userCols = new ArrayList<>();
 					for(TrpCollection userCol : s.getCollections()){
 						userCols.add(userCol.getColId());
-						logger.debug("User collection: " + userCol.getColId());
+//						logger.debug("User collection: " + userCol.getColId());
 					}
-					logger.debug("Hit collections: " + clHit.getCollectionIds());
+//					logger.debug("Hit collections: " + clHit.getCollectionIds());
 					int col = -1;
 					for(Integer userColId : userCols){
 						for(Integer hitColId : clHit.getCollectionIds()){
