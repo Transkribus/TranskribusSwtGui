@@ -139,7 +139,7 @@ public class UploadDialogUltimate extends Dialog {
 		ftpButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		
 		singleDocButton = new Button(container, SWT.RADIO);
-		singleDocButton.setText("Upload single document (only small docs)");
+		singleDocButton.setText("Upload single document (up to 500 MB)");
 		singleDocButton.setSelection(true);
 		singleDocButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 		

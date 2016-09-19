@@ -378,7 +378,7 @@ CHANGES AND BUGFIXES
 	-> more strict version numbering (major version is first number, minor version is second number, hotfixes are third number; snapshot versions of any of those versions are identified by an additional fourth number and a '-SNAPSHOT' suffix)
 	-> change to java 8
 	-> first draft of table editor included (saving only works on local documents for now - until the server accepts the new PAGE format)
-	
+	-> removed obsolete writing orientation button
 	
 	
 

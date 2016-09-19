@@ -10,8 +10,18 @@ public class RecentDocsPreferences {
 	    
 	    static Preferences prefNode = Preferences.userRoot().node( "/trp/recent_docs" );
 	    private static int	nrDocs = 5;
+	    
+	    public static boolean showOnStartup = false;
 
-	    private static List<String> values = new ArrayList<String>();
+	    public static boolean isShowOnStartup() {
+			return showOnStartup;
+		}
+
+		public static void setShowOnStartup(boolean showOnStartup) {
+			RecentDocsPreferences.showOnStartup = showOnStartup;
+		}
+
+		private static List<String> values = new ArrayList<String>();
 	    
 //	    public RecentDocsPreferences(int maxDocs, Preferences pref)
 //	    {

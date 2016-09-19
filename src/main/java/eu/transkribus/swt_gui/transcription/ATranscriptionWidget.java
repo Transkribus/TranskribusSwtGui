@@ -39,7 +39,6 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -68,11 +67,9 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.primaresearch.dla.page.layout.logical.ReadingOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.customtags.AbbrevTag;
 import eu.transkribus.core.model.beans.customtags.BlackeningTag;
@@ -87,20 +84,17 @@ import eu.transkribus.core.model.beans.customtags.PersonTag;
 import eu.transkribus.core.model.beans.customtags.PlaceTag;
 import eu.transkribus.core.model.beans.customtags.ReadingOrderTag;
 import eu.transkribus.core.model.beans.customtags.RegionTypeTag;
-import eu.transkribus.core.model.beans.customtags.SicTag;
 import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.customtags.UnclearTag;
-import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TaggedWord;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
-import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.IntRange;
+import eu.transkribus.core.util.MyObservable;
 import eu.transkribus.swt_canvas.canvas.CanvasKeys;
 import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt_canvas.util.Colors;
@@ -120,9 +114,10 @@ import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
 import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
+import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
 import eu.transkribus.util.Utils;
 
-public abstract class ATranscriptionWidget extends Composite {
+public abstract class ATranscriptionWidget extends Composite{
 	public static enum Type {
 //		REGION_BASED,
 		LINE_BASED,
@@ -220,6 +215,10 @@ public abstract class ATranscriptionWidget extends Composite {
 	public static final int SPACE_BETWEEN_TAG_LINES = 1;
 	
 	public static final boolean USE_AUTOCOMPLETE_FROM_PAGE=true;
+	
+	List<ITranscriptionWidgetListener> listener = new ArrayList<>(); // custom event listener
+	
+	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT"; 
 	
 	private class ReloadWgRunnable implements Runnable {
 		Storage store;
@@ -336,7 +335,22 @@ public abstract class ATranscriptionWidget extends Composite {
 		initContextMenu();
 	}
 	
+	public void addListener(ITranscriptionWidgetListener l) {
+		listener.add(l);
+	}
+	
+	public boolean removeListener(ITranscriptionWidgetListener l) {
+		return listener.remove(l);
+	}
+	
+	public List<ITranscriptionWidgetListener> getListener() {
+		return listener;
+	}
+	
 	protected void updateWritingOrientation() {
+		if (writingOrientationItem == null)
+			return;
+		
 		logger.debug("updating writing orientation: "+writingOrientationItem.getSelection());
 		
 		if (getWritingOrientation() == WritingOrientation.LEFT_TO_RIGHT) {
@@ -358,7 +372,7 @@ public abstract class ATranscriptionWidget extends Composite {
 	}
 	
 	protected WritingOrientation getWritingOrientation() {
-		return writingOrientationItem.getSelection() ? WritingOrientation.RIGHT_TO_LEFT : WritingOrientation.LEFT_TO_RIGHT;
+		return writingOrientationItem!=null && writingOrientationItem.getSelection() ? WritingOrientation.RIGHT_TO_LEFT : WritingOrientation.LEFT_TO_RIGHT;
 	}
 	
 	public abstract Type getType();
@@ -546,6 +560,7 @@ public abstract class ATranscriptionWidget extends Composite {
 		rightAlignmentItem.setSelection(textAlignment == SWT.RIGHT);
 		additionalToolItems.add(rightAlignmentItem);
 		
+		if (false) { // obsolete button -> remove in later version!
 		writingOrientationItem = new ToolItem(regionsToolbar, SWT.CHECK);
 //		writingOrientationItem.setImage(Images.getOrLoad("/icons/text_align_right.png"));
 		writingOrientationItem.setImage(Images.ARROW_LEFT);
@@ -553,6 +568,7 @@ public abstract class ATranscriptionWidget extends Composite {
 //		writingOrientationItem.setSelection(writingOrientation == WritingOrientation.RIGHT_TO_LEFT);
 		writingOrientationItem.setSelection(false);
 		additionalToolItems.add(writingOrientationItem);
+		}
 		
 		centerCurrentLineItem = new ToolItem(regionsToolbar, SWT.CHECK);
 		centerCurrentLineItem.setImage(Images.getOrLoad("/icons/arrow_up_down.png"));
@@ -692,7 +708,8 @@ public abstract class ATranscriptionWidget extends Composite {
 //		if (text.isFocCusControl()) {
 		text.setFocus();
 			text.insert(textToInsert);
-			if (getWritingOrientation()==WritingOrientation.LEFT_TO_RIGHT && 
+			
+			if (/*getWritingOrientation()==WritingOrientation.LEFT_TO_RIGHT &&*/ 
 					( getType() == ATranscriptionWidget.Type.LINE_BASED
 				|| ( getType() == ATranscriptionWidget.Type.WORD_BASED && !getTranscriptionUnitText().isEmpty() ) ) ) {
 //				this.setFocus();
@@ -1636,11 +1653,13 @@ public abstract class ATranscriptionWidget extends Composite {
 		centerAlignmentItem.addSelectionListener(textAlignmentSelectionAdapter);
 		rightAlignmentItem.addSelectionListener(textAlignmentSelectionAdapter);
 		
-		writingOrientationItem.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				updateWritingOrientation();
-			}		
-		});
+		if (writingOrientationItem != null) {
+			writingOrientationItem.addSelectionListener(new SelectionAdapter() {
+				@Override public void widgetSelected(SelectionEvent e) {
+					updateWritingOrientation();
+				}		
+			});
+		}
 		
 		fontItem.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -2155,5 +2174,19 @@ public abstract class ATranscriptionWidget extends Composite {
 	public ToolItem getNotSign() {
 		return notSign;
 	}
+
+	public TrpTextRegionType getCurrentRegionObject() {
+		return currentRegionObject;
+	}
+
+	public TrpTextLineType getCurrentLineObject() {
+		return currentLineObject;
+	}
+
+	public TrpWordType getCurrentWordObject() {
+		return currentWordObject;
+	}
+	
+	
 		
 }

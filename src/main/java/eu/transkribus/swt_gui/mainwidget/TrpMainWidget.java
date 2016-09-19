@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
-import java.util.prefs.Preferences;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -217,7 +216,7 @@ public class TrpMainWidget {
 
 	static int tmpCount = 0;
 	
-	DebuggerDialog debugDiag;
+//	DebuggerDialog debugDiag;
 	public static DocMetadataEditor docMetadataEditor;
 	
 	private Runnable updateThumbsRunnable = new Runnable() {
@@ -237,6 +236,7 @@ public class TrpMainWidget {
 		Display.setAppVersion(VERSION);
 		
 		// String time = info.getTimestampString();
+		RecentDocsPreferences.init();
 		
 		// Display display = Display.getDefault();
 		// canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, this);
@@ -250,8 +250,7 @@ public class TrpMainWidget {
 		addListener();
 		enableAutocomplete();
 		updateToolBars();
-		
-		RecentDocsPreferences.init();
+
 	}
 
 	public static TrpMainWidget getInstance() {
@@ -819,8 +818,10 @@ public class TrpMainWidget {
 			
 			//section to load the last used document for each user - either local or remote doc
 			if (!RecentDocsPreferences.getItems().isEmpty()){
-				String docToLoad = RecentDocsPreferences.getItems().get(0);
-				loadRecentDoc(docToLoad);
+				if (RecentDocsPreferences.isShowOnStartup()){
+					String docToLoad = RecentDocsPreferences.getItems().get(0);
+					loadRecentDoc(docToLoad);
+				}
 			}
 			else{
 				//if no recent docs are available -> load the example doc
@@ -3345,35 +3346,32 @@ public class TrpMainWidget {
 	}
 
 	public DebuggerDialog showDebugDialog() {
-		logger.debug("showing debug dialog!");
-		if (debugDiag == null || debugDiag.shell == null || debugDiag.shell.isDisposed()) {
-			debugDiag = new DebuggerDialog(getShell(), 0);
-			debugDiag.open();
-		} else
-			debugDiag.shell.setActive();
+		DebuggerDialog debugDiag = new DebuggerDialog(getShell(), 0);
+		debugDiag.open();
 		
 		return debugDiag;
+		
+//		logger.debug("showing debug dialog!");
+//		if (debugDiag == null || debugDiag.shell == null || debugDiag.shell.isDisposed()) {
+//			debugDiag = new DebuggerDialog(getShell(), 0);
+//			debugDiag.open();
+//		} else
+//			debugDiag.shell.setActive();
+//		
+//		return debugDiag;
 	}
 	
-	public void appendDebugLog(final String text) {
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override public void run() {
-				if (isDebugDialogOpen()) {
-					debugDiag.debugText.append(text+"\n");
-				}
-				
-			}
-		});
-	}
-	
-	public boolean isDebugDialogOpen() {
-		return debugDiag != null && debugDiag.shell != null && !debugDiag.shell.isDisposed();
-	}
-	
-	public DebuggerDialog getDebugDialog() {
-		return debugDiag;
-	}
-
+//	public void appendDebugLog(final String text) {
+//		Display.getDefault().asyncExec(new Runnable() {
+//			@Override public void run() {
+//				if (SWTUtil.isOpen(debugDiag)) {
+//					debugDiag.debugText.append(text+"\n");
+//				}
+//				
+//			}
+//		});
+//	}
+		
 	public void reloadCollections() {
 		try {
 			logger.debug("reloading collections!");

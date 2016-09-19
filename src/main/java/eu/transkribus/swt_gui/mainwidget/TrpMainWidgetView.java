@@ -129,7 +129,7 @@ public class TrpMainWidgetView extends Composite {
 	ToolItem bottomViewVisibleToggle;
 	
 	ToolItem showPrintSpaceToggle, showRegionsToggle, showLinesToggle, showBaselinesToggle, showWordsToggle;
-	ToolItem renderBlackeningsToggle;
+	//ToolItem renderBlackeningsToggle;
 	
 //	DropDownToolItem showReadingOrderToolItem;
 //	MenuItem showReadingOrderRegionsItem, showReadingOrderLinesItem, showReadingOrderWordsItem;
@@ -339,6 +339,7 @@ public class TrpMainWidgetView extends Composite {
 		
 		addInternalListener();
 		addBindings();
+		canvasWidget.getToolBar().addBindings(getTrpSets());
 		updateLoginInfo(false, "", "");
 		
 		pack();
@@ -808,12 +809,12 @@ public class TrpMainWidgetView extends Composite {
 		showWordsToggle.setToolTipText("Show words (F5)");
 		showWordsToggle.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
 		
-		new ToolItem(toolBar, SWT.SEPARATOR);
-		
-		renderBlackeningsToggle = new ToolItem(toolBar, SWT.CHECK);
-		renderBlackeningsToggle.setToolTipText("If toggled, blackening regions are rendered with opaque background");
-		//renderBlackeningsToggle.setText("Render blackenings");
-		renderBlackeningsToggle.setImage(Images.getOrLoad("/icons/rabbit-silhouette.png"));
+//		new ToolItem(toolBar, SWT.SEPARATOR);
+//		
+//		renderBlackeningsToggle = new ToolItem(toolBar, SWT.CHECK);
+//		renderBlackeningsToggle.setToolTipText("If toggled, blackening regions are rendered with opaque background");
+//		//renderBlackeningsToggle.setText("Render blackenings");
+//		renderBlackeningsToggle.setImage(Images.getOrLoad("/icons/rabbit-silhouette.png"));
 		
 //		showWordsToggle.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
 		
@@ -970,7 +971,7 @@ public class TrpMainWidgetView extends Composite {
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, showLinesToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, showBaselinesToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, showWordsToggle);
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsToggle);
+		//db.bindBoolBeanValueToToolItemSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsToggle);
 		
 		//db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_PROPERTY, trpSets, showReadingOrderToolItem);
 		

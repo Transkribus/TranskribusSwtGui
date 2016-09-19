@@ -26,9 +26,13 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.catti.CattiRequest;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.LabeledText;
@@ -36,7 +40,11 @@ import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
+import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
+import eu.transkribus.util.IndexTextUtils;
 
 public class DebuggerDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(DebuggerDialog.class);
@@ -60,7 +68,10 @@ public class DebuggerDialog extends Dialog {
 	public LabeledText sortXText, sortYText;
 	public Button sortBaselineAllRegionsBtn;
 	
-
+	public Button lineToWordSegBtn;
+	
+	ITranscriptionWidgetListener twl;
+	
 	/**
 	 * Create the dialog.
 	 * @param parent
@@ -101,6 +112,9 @@ public class DebuggerDialog extends Dialog {
 		
 		sortBaselinePts = new Button(sortBaselinePtsGroup, SWT.PUSH);
 		sortBaselinePts.setText("Sort!");
+		
+		lineToWordSegBtn = new Button(shell, SWT.PUSH);
+		lineToWordSegBtn.setText("Line2Word Seg");
 		
 //		new Label(shell, SWT.NONE);
 		
@@ -197,6 +211,56 @@ public class DebuggerDialog extends Dialog {
 				}
 			}
 		});
+		
+		twl = new ITranscriptionWidgetListener() {
+			@Override public void onCattiMessage(CattiRequest r, String message) {
+				logger.debug("catti message: "+message);
+				if (!SWTUtil.isDisposed(debugText)) {
+					Display.getDefault().asyncExec(() -> debugText.append(message+"\n"));
+				}
+			}
+		};
+		
+		mw.getUi().getLineTranscriptionWidget().addListener(twl);
+		
+		// line2word seg
+		lineToWordSegBtn.addSelectionListener(new SelectionAdapter() {
+			
+			@Override public void widgetSelected(SelectionEvent e) {
+				ATranscriptionWidget tw = mw.getUi().getSelectedTranscriptionWidget();
+				if (tw!=null && tw.getCurrentLineObject()!=null) {
+					TrpTextLineType tl = tw.getCurrentLineObject();
+			
+					List<TrpWordType> segmentedWords = IndexTextUtils.getWordsFromLine(tl);
+					logger.debug("performed line 2 word seg");
+					
+					// remove old words:
+					List<TrpWordType> oldWords = new ArrayList<TrpWordType>();
+					oldWords.addAll(tl.getTrpWord());
+					for (TrpWordType w : oldWords) {
+						ICanvasShape cs = canvas.getScene().findShapeWithData(w);
+						if (cs != null) {
+							mw.getCanvas().getShapeEditor().removeShapeFromCanvas(cs, false);
+						}
+					}
+					
+					// add new words:
+					int i=0;
+					for (TrpWordType w : segmentedWords) {
+						w.setLine(tl);
+						w.reInsertIntoParent(i++);
+						
+						try {
+							mw.getShapeFactory().addCanvasShape(w);
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}	
+					}
+					
+					canvas.redraw();
+				}
+			}
+		});
 	}
 	
 	void sortBaselinePts() {
@@ -257,6 +321,9 @@ public class DebuggerDialog extends Dialog {
 				display.sleep();
 			}
 		}
+		
+		mw.getUi().getLineTranscriptionWidget().removeListener(twl);
+		
 		return result;
 	}
 
