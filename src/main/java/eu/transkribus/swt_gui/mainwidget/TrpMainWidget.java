@@ -788,6 +788,8 @@ public class TrpMainWidget {
 	 * It's a verbose method name, I know ;-)
 	 */
 	protected void onSuccessfullLoginAndDialogIsClosed() {
+		logger.debug("onSuccessfullLoginAndDialogIsClosed");
+		
 		/*
 		 * during login we want to load the last loaded doc from the previous logout
 		 */
