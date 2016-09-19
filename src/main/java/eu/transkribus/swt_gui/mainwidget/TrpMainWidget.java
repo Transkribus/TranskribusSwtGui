@@ -761,6 +761,7 @@ public class TrpMainWidget {
 					
 					if (success) {
 						close();
+						onSuccessfullLoginAndDialogIsClosed();
 					} else {
 						setInfo("Login failed!");
 					}
@@ -780,6 +781,43 @@ public class TrpMainWidget {
 			onError("Error during login", "Unable to login to server", e);
 			ui.updateLoginInfo(false, "", "");
 		}
+	}
+
+	/**
+	 * Gets called when the login dialog is closed by a successful login attempt.<br>
+	 * It's a verbose method name, I know ;-)
+	 */
+	protected void onSuccessfullLoginAndDialogIsClosed() {
+		/*
+		 * during login we want to load the last loaded doc from the previous logout
+		 */
+		//getTrpSets().getLastDocId();
+//		if (getTrpSets().getLastDocId() != -1 && getTrpSets().getLastColId() != -1){
+//			int colId = getTrpSets().getLastColId();
+//			int docId = getTrpSets().getLastDocId();
+//			loadRemoteDoc(docId, colId, 0);
+//			getUi().getDocOverviewWidget().setSelectedCollection(colId, true);
+//			getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docId, true);
+//		}
+		
+		//section to load the last used document for each user - either local or remote doc
+		if (!RecentDocsPreferences.getItems().isEmpty()){
+			if (RecentDocsPreferences.isShowOnStartup()){
+				String docToLoad = RecentDocsPreferences.getItems().get(0);
+				loadRecentDoc(docToLoad);
+			}
+		}
+		else{
+			//if no recent docs are available -> load the example doc
+			loadRemoteDoc(5014, 4);
+			getUi().getDocOverviewWidget().setSelectedCollection(4, true);
+			getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", 5014, true);
+		}
+		
+		reloadJobList();
+//		reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
+//		reloadHtrModels();
+		// reloadJobListForDocument();
 	}
 
 	public boolean login(String server, String user, String pw, boolean rememberCredentials) {
@@ -803,37 +841,7 @@ public class TrpMainWidget {
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
 			}
-			
-			/*
-			 * during login we want to load the last loaded doc from the previous logout
-			 */
-			//getTrpSets().getLastDocId();
-//			if (getTrpSets().getLastDocId() != -1 && getTrpSets().getLastColId() != -1){
-//				int colId = getTrpSets().getLastColId();
-//				int docId = getTrpSets().getLastDocId();
-//				loadRemoteDoc(docId, colId, 0);
-//				getUi().getDocOverviewWidget().setSelectedCollection(colId, true);
-//				getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docId, true);
-//			}
-			
-			//section to load the last used document for each user - either local or remote doc
-			if (!RecentDocsPreferences.getItems().isEmpty()){
-				if (RecentDocsPreferences.isShowOnStartup()){
-					String docToLoad = RecentDocsPreferences.getItems().get(0);
-					loadRecentDoc(docToLoad);
-				}
-			}
-			else{
-				//if no recent docs are available -> load the example doc
-				loadRemoteDoc(5014, 4);
-				getUi().getDocOverviewWidget().setSelectedCollection(4, true);
-				getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", 5014, true);
-			}
-			
-			reloadJobList();
-//			reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
-//			reloadHtrModels();
-			// reloadJobListForDocument();
+						
 			sessionExpired = false;
 			lastLoginServer = server;
 			return true;
