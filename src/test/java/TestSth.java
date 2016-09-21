@@ -32,6 +32,24 @@ import eu.transkribus.util.DesktopApi;
 public class TestSth {
 	private final static Logger logger = LoggerFactory.getLogger(TestSth.class);
 	
+	public static void createTestDoc() throws IOException {
+		String imgLoc = "/Users/hansm/Documents/testDocs/Bentham_box_002/002_080_001.jpg";
+		
+		String newDocLoc = "/Users/hansm/Documents/testDocs/many_pages";
+		
+		File f = new File(imgLoc);
+		for (int i=0; i<2000; ++i) {
+			File nf = new File(newDocLoc+"/"+(i+1)+".jpg");
+			System.out.println(nf.getAbsolutePath());
+			
+			FileUtils.copyFile(f, nf);
+			
+			
+		}
+		
+		
+	}
+	
 	public static void testPCABaselineCorrection() {
 		Matrix trainingData = new Matrix(new double[][] {
 //            {1, 2, 3, 4, 5, 6},
@@ -243,7 +261,9 @@ public class TestSth {
 			
 	public static void main(String [] args) {
 		try {
-			testPCABaselineCorrection();
+//			testPCABaselineCorrection();
+			
+			createTestDoc();
 			
 //			System.setProperty("java.library.path", "whatever");
 			

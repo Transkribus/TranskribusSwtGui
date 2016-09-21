@@ -98,12 +98,15 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getLanguageDropDown().ti, this);
 		
+		ui.getThumbnailWidget().getCreateThumbs().addSelectionListener(this);
+		
 		// listener for tagging:
 	}
 	
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
+		Storage storage = Storage.getInstance();
 				
 		// MENU BUTTONS:
 		if (s == ui.getLoginToggle()) {
@@ -317,6 +320,9 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 //		else if (s == ui.getLanguageDropDown().ti && e.detail != SWT.ARROW) {
 //			mainWidget.setLocale((Locale) ui.getLanguageDropDown().getSelected().getData());
 //		}
+		else if (s == ui.getThumbnailWidget().getCreateThumbs()) {
+			mainWidget.createThumbs(storage.getDoc());
+		}
 	}
 
 	@Override

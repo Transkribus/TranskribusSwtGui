@@ -103,6 +103,7 @@ import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LoginDialog;
 import eu.transkribus.swt_canvas.util.SWTLog;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.SplashWindow;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
@@ -219,7 +220,7 @@ public class TrpMainWidget {
 //	DebuggerDialog debugDiag;
 	public static DocMetadataEditor docMetadataEditor;
 	
-	private Runnable updateThumbsRunnable = new Runnable() {
+	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
 			ui.thumbnailWidget.reload();
 		}
@@ -1530,14 +1531,14 @@ public class TrpMainWidget {
 	public void createThumbForCurrentPage() {
 		// generate thumb for loaded page if local doc:
 		if (storage.isLocalDoc() && storage.getPage() != null && storage.getCurrentImage() != null) {
-			CreateThumbsService.createThumbs(storage.getPage(), storage.getCurrentImage().img, false, updateThumbsRunnable);
+			CreateThumbsService.createThumbForPage(storage.getPage(), storage.getCurrentImage().img, false, null);
 		}
 	}
 
 	public void updateThumbs() {
 		logger.trace("updating thumbs");
 		
-		Display.getDefault().asyncExec(updateThumbsRunnable); // asyncExec needed??
+		Display.getDefault().asyncExec(updateThumbsWidgetRunnable); // asyncExec needed??
 
 		// try {
 		// ui.thumbnailWidget.setUrls(storage.getDoc().getThumbUrls(),
@@ -1788,7 +1789,8 @@ public class TrpMainWidget {
 			localTestdoc = "C:/Schauplatz_small";
 		}
 		else if (SysUtils.isOsx()) {
-			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
+//			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
+			localTestdoc = "/Users/hansm/Documents/testDocs/many_pages/";
 		}
 		else {
 //			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
@@ -1826,8 +1828,9 @@ public class TrpMainWidget {
 		try {
 			storage.loadLocalDoc(folder);
 
-			if (getTrpSets().isCreateThumbs()) {
-				CreateThumbsService.createThumbs(storage.getDoc(), false, updateThumbsRunnable);
+			final boolean DISABLE_THUMB_CREATION_ON_LOAD=true;
+			if (!DISABLE_THUMB_CREATION_ON_LOAD && getTrpSets().isCreateThumbs()) {
+				CreateThumbsService.createThumbForDoc(storage.getDoc(), false, updateThumbsWidgetRunnable);
 			}
 
 			storage.setCurrentPage(pageIndex);
@@ -3472,7 +3475,7 @@ public class TrpMainWidget {
 			logger.debug("syncing with local doc!");
 
 			if (!storage.isLoggedIn() || !storage.isRemoteDoc())
-				throw new IOException("No remote document loaded!");
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "No remote document loaded!");
 
 			String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and page files", lastLocalDocFolder);
 			if (fn == null)
@@ -3480,7 +3483,7 @@ public class TrpMainWidget {
 
 			TrpDoc localDoc = LocalDocReader.load(fn);
 			// create thumbs for this doc:			
-			CreateThumbsService.createThumbs(localDoc, false, updateThumbsRunnable);
+			CreateThumbsService.createThumbForDoc(localDoc, false, updateThumbsWidgetRunnable);
 
 			final DocSyncDialog d = new DocSyncDialog(getShell(), storage.getDoc(), localDoc);
 			if (d.open() != Dialog.OK) {
@@ -3692,6 +3695,52 @@ public class TrpMainWidget {
 		} catch (Exception e) {
 			onError("Error saving profile!", e.getMessage(), e, true, false);
 		}
+		
+	}
+
+	public void createThumbs(TrpDoc doc) {
+		// TODO Auto-generated method stub
+		
+		try {
+			logger.debug("creating thumbnails for document: "+doc);
+			if (doc == null) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "No document given");
+				return;
+			}
+			
+			if (!doc.isLocalDoc()) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "This is not a local document");
+				return;
+			}
+
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						/*
+						int N = 1000;
+						monitor.beginTask("task!", N);
+						for (int i=0; i<N; ++i) {
+							monitor.worked(i+1);
+							monitor.subTask("done: "+(i+1)+"/"+N);
+							if (monitor.isCanceled())
+								return;
+						}
+						*/
+						
+						//CreateThumbsService.createThumbForDoc(doc, true, null);
+						
+						SWTUtil.createThumbsForDoc(doc, false, monitor);
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Creating thumbs for local document", true);
+
+
+		} catch (Throwable e) {
+			onError("Error", "Error during batch replace of images", e);
+		}	
+		
 		
 	}	
 }

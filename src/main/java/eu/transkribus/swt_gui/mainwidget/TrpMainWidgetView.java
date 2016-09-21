@@ -104,7 +104,7 @@ public class TrpMainWidgetView extends Composite {
 //	AnalyticsWidget analyticsWidget;
 	ThumbnailWidget thumbnailWidget;
 //	Label currentUserLabel; // currently unused
-	
+
 	TrpSettings trpSets;
 	PortalWidget portalWidget;
 	Label status;
@@ -1287,4 +1287,9 @@ public class TrpMainWidgetView extends Composite {
 //	public DropDownToolItem getLanguageDropDown() {
 //		return languageDropDown;
 //	}
+	
+	public ThumbnailWidget getThumbnailWidget() {
+		return thumbnailWidget;
+	}
+
 }
