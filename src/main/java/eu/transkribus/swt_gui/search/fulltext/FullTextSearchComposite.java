@@ -48,10 +48,13 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
@@ -67,6 +70,7 @@ import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.PageHit;
 import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_canvas.util.DropdownSelectionListener;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LabeledText;
 import eu.transkribus.swt_gui.mainwidget.Storage;
@@ -90,6 +94,19 @@ public class FullTextSearchComposite extends Composite{
 	Label resultsLabel;
 	String lastHoverCoords;
 	Shell shell;
+	
+	Label facetLabel;
+	ToolBar facetToolBar;
+	ToolItem colItem;
+	ToolItem docItem;
+	ToolItem authorItem;
+	ToolItem uploaderItem;
+	MultiSelectionCombo collCombo;
+	MultiSelectionCombo docCombo;
+	MultiSelectionCombo authCombo;
+	MultiSelectionCombo uplCombo;
+	
+	List<String> filters;
 	
 	volatile ArrayList<Hit> hits;
 	
@@ -121,8 +138,7 @@ public class FullTextSearchComposite extends Composite{
 		createContents();
 		
 	}
-	
-	
+		
 	protected void createContents(){
 		
 		this.setLayout(new FillLayout());
@@ -130,10 +146,10 @@ public class FullTextSearchComposite extends Composite{
 		c.setLayout(new FillLayout());
 				
 		SashForm sf = new SashForm(c, SWT.VERTICAL);
-		sf.setLayout(new GridLayout(1, false));
+		sf.setLayout(new GridLayout(1, false));		
 		
 		facetsGroup = new Group(sf, SWT.NONE);
-		facetsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));		
+		facetsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));	
 		facetsGroup.setLayout(new GridLayout(2, false));
 		facetsGroup.setText("Solr search currently supports standard word search, exact phrasing (\"...\") and wildcards (* or ?) ");
 		
@@ -146,15 +162,20 @@ public class FullTextSearchComposite extends Composite{
 		};
 		
 		inputText = new LabeledText(facetsGroup, "Search for:");
-		inputText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		inputText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 		inputText.text.addTraverseListener(findTagsOnEnterListener);
 		
 		parameters = new Composite(facetsGroup, 0);
-		parameters.setLayout(new GridLayout(3, false));
-		parameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		parameters.setLayout(new GridLayout(4, false));
+		parameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
 		
 		caseSensitiveCheck = new Button(parameters, SWT.CHECK);
 		caseSensitiveCheck.setText("Case sensitive");
+		
+		previewCheck = new Button(parameters, SWT.CHECK);
+		previewCheck.setText("Show word preview");
+		previewCheck.setSelection(true);
+		previewCheck.setToolTipText("Automatic loading of preview word image. Works better with word-based text. Guesses word coordinates for line-based text.");
 		
 		textTypeBtn = new Button[2];
 		textTypeBtn[0] = new Button(parameters, SWT.RADIO);
@@ -165,15 +186,10 @@ public class FullTextSearchComposite extends Composite{
 		textTypeBtn[1].setSelection(true);
 		textTypeBtn[1].setText("Line-based text");	
 		textTypeBtn[1].setToolTipText("Search documents transcribed line by line");
-		
-		previewCheck = new Button(parameters, SWT.CHECK);
-		previewCheck.setText("Show word preview");
-		previewCheck.setSelection(true);
-		previewCheck.setToolTipText("Automatic loading of preview word image. Works better with word-based text. Guesses word coordinates for line-based text.");
-		
+						
 		Composite btnsComp = new Composite(facetsGroup, 0);
 		btnsComp.setLayout(new FillLayout(SWT.HORIZONTAL));
-		btnsComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		btnsComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 		
 		searchBtn = new Button(btnsComp, SWT.PUSH);
 		searchBtn.setImage(Images.FIND);
@@ -198,6 +214,7 @@ public class FullTextSearchComposite extends Composite{
 				
 			}
 		});
+		
 		searchNextBtn = new Button(btnsComp, SWT.PUSH);
 		searchNextBtn.setImage(Images.PAGE_NEXT);
 		searchNextBtn.setText("Next page");
@@ -213,23 +230,15 @@ public class FullTextSearchComposite extends Composite{
 			}
 		});			
 
-		
-//		initFacetsTree(sf);
+//		Composite filters;
+//		filters = new Composite(facetsGroup, 0);
+//		filters.setLayout(new GridLayout(3, false));
+//		filters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));		
+
 		initResultsTable(sf);
-		
+		sf.setWeights(new int[] { 20, 80 } );		
 	}	
 	
-	private void initFacetsTree(SashForm sf) {
-		facetComp = new Composite(facetsGroup, 0);
-		facetComp.setLayout(new FillLayout(SWT.HORIZONTAL));
-		facetComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		facetTree = new Tree (facetComp, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL);	
-		
-		facetViewer = new TreeViewer(facetComp);
-		
-	}
-
-
 	void initResultsTable(Composite container){
 		Group resultsGroup = new Group(container, SWT.NONE);
 		resultsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -237,8 +246,10 @@ public class FullTextSearchComposite extends Composite{
 		resultsGroup.setLayout(new GridLayout(1, false));
 		
 		resultsLabel = new Label(resultsGroup, 0);
-		resultsLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		
+		resultsLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));		
+
+		initFacetSf(resultsGroup);
+        
 		resultsSf = new SashForm(resultsGroup, SWT.HORIZONTAL);
 		resultsSf.setLayout(new GridLayout(1, false));
 		resultsSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -423,8 +434,7 @@ public class FullTextSearchComposite extends Composite{
 				hShell.hoverShell.setVisible(false);
 //				logger.debug("Mouse outside table");
 			}
-		});		
-		
+		});			
 		
 		resultsTable.addListener(SWT.MouseMove, new Listener(){
 			public void handleEvent(Event e){
@@ -455,7 +465,7 @@ public class FullTextSearchComposite extends Composite{
 								}else{
 									URL url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
 									img = ImageDescriptor.createFromURL(url).createImage();	
-									logger.debug("Forced loading of img coords:"+coords);
+//									logger.debug("Forced loading of img coords:"+coords);
 									prevImages.put(coords, img);
 									
 								}
@@ -484,6 +494,132 @@ public class FullTextSearchComposite extends Composite{
 		
 	}
 	
+	private void initFacetSf(Group resultsGroup) {
+		int noOfFacets = 4;
+		SashForm facetSf = new SashForm(resultsGroup, SWT.VERTICAL);
+		facetSf.setLayout(new GridLayout(1, false));
+		facetSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 2));
+		
+		SashForm facetLabelSf = new SashForm(facetSf, SWT.HORIZONTAL);
+		facetLabelSf.setLayout(new GridLayout(1, false));
+		facetLabelSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));
+		
+		SashForm facetSelectSf = new SashForm(facetSf, SWT.HORIZONTAL);
+		facetSf.setLayout(new GridLayout(1, false));
+		facetSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));		
+		
+		
+		//initFacetToolBar(resultsGroup);  
+		String[] startItems = new String[] { "All" };
+        int[] selection = new int[] { 0 };
+
+        // Create MultiSelectCombo box
+        Label collFacet = new Label(facetLabelSf,0);
+        collFacet.setText("Collections");
+        collFacet = new Label(facetLabelSf,0);
+        collFacet.setText("Documents");
+        collFacet = new Label(facetLabelSf,0);
+        collFacet.setText("Authors");
+        collFacet = new Label(facetLabelSf,0);
+        collFacet.setText("Uploaders");
+        
+        
+        
+        collCombo = new MultiSelectionCombo(facetSelectSf, startItems, selection, SWT.NONE, this);
+        docCombo = new MultiSelectionCombo(facetSelectSf, startItems, selection, SWT.NONE, this);
+        authCombo = new MultiSelectionCombo(facetSelectSf, startItems, selection, SWT.NONE, this);
+        uplCombo = new MultiSelectionCombo(facetSelectSf, startItems, selection, SWT.NONE, this);
+		
+	}
+	
+	private void updateFacets(){
+		
+		int i;
+		for(Facet facet : fullTextSearchResult.getFacets()){
+			
+						
+			if(facet.getName().equals("f_collectionName")){
+
+				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
+				facetItems[0] = "All";
+				i = 1;
+
+				for(String key : facet.getFacetMap().keySet()){
+					facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
+					i++;					
+				}
+				if(facetItems != null){
+					collCombo.textItems = facetItems;
+				}
+			}			
+			else if(facet.getName().equals("f_author")){
+
+				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
+				facetItems[0] = "All";
+				i = 1;
+
+				for(String key : facet.getFacetMap().keySet()){
+					facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
+					i++;					
+				}
+				if(facetItems != null){
+					authCombo.textItems = facetItems;
+				}
+			}
+			else if(facet.getName().equals("f_uploader")){
+
+				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
+				facetItems[0] = "All";
+				i = 1;
+
+				for(String key : facet.getFacetMap().keySet()){
+					facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
+					i++;					
+				}
+				if(facetItems != null){
+					uplCombo.textItems = facetItems;
+				}
+			}
+			else if(facet.getName().equals("f_title")){
+
+				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
+				facetItems[0] = "All";
+				i = 1;
+
+				for(String key : facet.getFacetMap().keySet()){
+					facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
+					i++;					
+				}
+				if(facetItems != null){
+					docCombo.textItems = facetItems;
+				}
+			}
+
+
+		}
+		
+		
+		
+	}
+
+	private void initFacetToolBar(Composite parent) {
+	    facetToolBar = new ToolBar(parent, SWT.HORIZONTAL);
+	    facetToolBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
+	    
+	    colItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
+	    colItem.setText("Collections");
+	    
+	    docItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
+	    docItem.setText("Documents");
+	    
+	    authorItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
+	    authorItem.setText("Authors");
+	    
+	    uploaderItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
+	    uploaderItem.setText("Uploaders");	    
+	    
+	}
+
 	int[] getCropValues(String coords){
 		int[] values = new int[4];
 		
@@ -571,16 +707,32 @@ public class FullTextSearchComposite extends Composite{
 		
 		final Storage storage = Storage.getInstance();
 		
-		try {			
-			fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, null);;
+		generateFilters();
+		
+
+		
+		try {	
+			if(!filters.isEmpty()){
+				fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, filters);
+			}else{
+				fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, null);
+			}
+			
 			
 			logger.debug("Searching for: " + searchText + ", Start: "+start+" rows: "+rows);
 			
 			logger.debug("Query: " + fullTextSearchResult.getParams());
-			logger.debug("Num. Results: " + fullTextSearchResult.getNumResults());			
+			logger.debug("Num. Results: " + fullTextSearchResult.getNumResults());	
+
+			if(!searchText.equals(lastSearchText))	{
+				updateFacets();
+			}
+			
 			if(fullTextSearchResult != null){
 				updateResultsTable();
+				
 //				updateFacetTree();
+//				updateFacetToolbar();
 			}
 			
 		} catch (SessionExpiredException e) {
@@ -601,21 +753,93 @@ public class FullTextSearchComposite extends Composite{
 		
 	}
 
+//	private void updateFacetToolbar() {
+//		for(Facet facet : fullTextSearchResult.getFacets() ){
+//			System.out.println(facet.getName());
+//			if(facet.getName().equals("f_author")){				
+//			    DropdownSelectionListener listener = new DropdownSelectionListener(authorItem);
+//			    for(String key : facet.getFacetMap().keySet()){
+//			    	listener.add(key + " (" + facet.getFacetMap().get(key)+")");
+//			    }			    
+//			    authorItem.addSelectionListener(listener);
+//			}
+//
+//		}
+//		
+//	}
 
-	private void updateFacetTree() {
-//		if(searchText.equals(lastSearchText)) return;
-		facetTree.removeAll();
-		for(Facet facet : fullTextSearchResult.getFacets() ){
-			TreeItem facetItem = new TreeItem(facetTree, 0);
-			facetItem.setText(facet.getName());
-			for(String facetKey : facet.getFacetMap().keySet()){
-				TreeItem subItem = new TreeItem(facetItem,0);
-				subItem.setText(facetKey + " ("+ facet.getFacetMap().get(facetKey).toString()+")");
+//	private void updateFacetTree() {
+////		if(searchText.equals(lastSearchText)) return;
+//		facetTree.removeAll();
+//		for(Facet facet : fullTextSearchResult.getFacets() ){
+//			TreeItem facetItem = new TreeItem(facetTree, 0);
+//			facetItem.setText(facet.getName());
+//			for(String facetKey : facet.getFacetMap().keySet()){
+//				TreeItem subItem = new TreeItem(facetItem,0);
+//				subItem.setText(facetKey + " ("+ facet.getFacetMap().get(facetKey).toString()+")");
+//
+//			}
+//		}			
+//	}
 
+	private void generateFilters() {
+		filters = new ArrayList<String>();
+		
+		for(int i : collCombo.getSelections()){
+			
+			if(i>=collCombo.textItems.length) {
+				return;
 			}
-		}			
-	}
 
+			//Remove number of hits and only use facet name
+			String filterString = collCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
+			if(!filterString.equals("All")){
+				filters.add("collectionName:\""+filterString+"\""); 
+			}				
+		}
+		
+		for(int i : authCombo.getSelections()){
+			
+			if(i>=authCombo.textItems.length) {
+				return;
+			}
+
+			//Remove number of hits and only use facet name
+			String filterString = authCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
+			if(!filterString.equals("All")){
+				filters.add("author:\""+filterString+"\""); 
+			}				
+		}
+		
+		for(int i : uplCombo.getSelections()){
+			
+			if(i>=uplCombo.textItems.length) {
+				return;
+			}
+
+			//Remove number of hits and only use facet name
+			String filterString = uplCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
+			if(!filterString.equals("All")){
+				filters.add("uploader:\""+filterString+"\""); 
+			}				
+		}
+		
+		for(int i : docCombo.getSelections()){
+			
+
+			//Remove number of hits and only use facet name
+			String filterString = docCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
+			if(!filterString.equals("All")){
+				filters.add("title:\""+filterString+"\""); 
+			}				
+		}
+
+		
+
+		
+		logger.debug("filters:"+filters);
+		
+	}
 
 	private void updateResultsTable() {
      
@@ -705,7 +929,7 @@ public class FullTextSearchComposite extends Composite{
 								URL url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
 								img = ImageDescriptor.createFromURL(url).createImage();		
 								prevImages.put(coords, img);
-								logger.debug("Background | Loaded img coords: "+coords);
+//								logger.debug("Background | Loaded img coords: "+coords);
 							}
 							
 						} catch (Exception ex) {								
