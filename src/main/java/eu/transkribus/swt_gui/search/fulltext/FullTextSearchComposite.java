@@ -496,39 +496,34 @@ public class FullTextSearchComposite extends Composite{
 	
 	private void initFacetSf(Group resultsGroup) {
 		int noOfFacets = 4;
-		SashForm facetSf = new SashForm(resultsGroup, SWT.VERTICAL);
+		SashForm facetSf = new SashForm(resultsGroup, SWT.HORIZONTAL);
 		facetSf.setLayout(new GridLayout(1, false));
-		facetSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 2));
+		facetSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));
 		
-		SashForm facetLabelSf = new SashForm(facetSf, SWT.HORIZONTAL);
-		facetLabelSf.setLayout(new GridLayout(1, false));
-		facetLabelSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));
-		
-		SashForm facetSelectSf = new SashForm(facetSf, SWT.HORIZONTAL);
-		facetSf.setLayout(new GridLayout(1, false));
-		facetSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));		
+//		SashForm facetLabelSf = new SashForm(facetSf, SWT.HORIZONTAL);
+//		facetLabelSf.setLayout(new GridLayout(1, false));
+//		facetLabelSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));
+//		
+//		SashForm facetSelectSf = new SashForm(facetSf, SWT.HORIZONTAL);
+//		facetSf.setLayout(new GridLayout(1, false));
+//		facetSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));		
 		
 		
 		//initFacetToolBar(resultsGroup);  
-		String[] startItems = new String[] { "All" };
+		
         int[] selection = new int[] { 0 };
 
-        // Create MultiSelectCombo box
-        Label collFacet = new Label(facetLabelSf,0);
-        collFacet.setText("Collections");
-        collFacet = new Label(facetLabelSf,0);
-        collFacet.setText("Documents");
-        collFacet = new Label(facetLabelSf,0);
-        collFacet.setText("Authors");
-        collFacet = new Label(facetLabelSf,0);
-        collFacet.setText("Uploaders");
+
         
         
-        
-        collCombo = new MultiSelectionCombo(facetSelectSf, startItems, selection, SWT.NONE, this);
-        docCombo = new MultiSelectionCombo(facetSelectSf, startItems, selection, SWT.NONE, this);
-        authCombo = new MultiSelectionCombo(facetSelectSf, startItems, selection, SWT.NONE, this);
-        uplCombo = new MultiSelectionCombo(facetSelectSf, startItems, selection, SWT.NONE, this);
+        String[] startItems = new String[] { "All collections" };
+        collCombo = new MultiSelectionCombo(facetSf, startItems, selection, SWT.NONE, this);
+        startItems = new String[] { "All documents" };
+        docCombo = new MultiSelectionCombo(facetSf, startItems, selection, SWT.NONE, this);
+        startItems = new String[] { "All authors" };
+        authCombo = new MultiSelectionCombo(facetSf, startItems, selection, SWT.NONE, this);
+        startItems = new String[] { "All uploaders" };
+        uplCombo = new MultiSelectionCombo(facetSf, startItems, selection, SWT.NONE, this);
 		
 	}
 	
@@ -541,7 +536,7 @@ public class FullTextSearchComposite extends Composite{
 			if(facet.getName().equals("f_collectionName")){
 
 				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
-				facetItems[0] = "All";
+				facetItems[0] = "All collections";
 				i = 1;
 
 				for(String key : facet.getFacetMap().keySet()){
@@ -555,7 +550,7 @@ public class FullTextSearchComposite extends Composite{
 			else if(facet.getName().equals("f_author")){
 
 				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
-				facetItems[0] = "All";
+				facetItems[0] = "All authors";
 				i = 1;
 
 				for(String key : facet.getFacetMap().keySet()){
@@ -569,7 +564,7 @@ public class FullTextSearchComposite extends Composite{
 			else if(facet.getName().equals("f_uploader")){
 
 				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
-				facetItems[0] = "All";
+				facetItems[0] = "All uploaders";
 				i = 1;
 
 				for(String key : facet.getFacetMap().keySet()){
@@ -583,7 +578,7 @@ public class FullTextSearchComposite extends Composite{
 			else if(facet.getName().equals("f_title")){
 
 				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
-				facetItems[0] = "All";
+				facetItems[0] = "All documents";
 				i = 1;
 
 				for(String key : facet.getFacetMap().keySet()){
@@ -793,7 +788,7 @@ public class FullTextSearchComposite extends Composite{
 
 			//Remove number of hits and only use facet name
 			String filterString = collCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
-			if(!filterString.equals("All")){
+			if(!filterString.equals("All collections")){
 				filters.add("collectionName:\""+filterString+"\""); 
 			}				
 		}
@@ -806,7 +801,7 @@ public class FullTextSearchComposite extends Composite{
 
 			//Remove number of hits and only use facet name
 			String filterString = authCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
-			if(!filterString.equals("All")){
+			if(!filterString.equals("All authors")){
 				filters.add("author:\""+filterString+"\""); 
 			}				
 		}
@@ -819,7 +814,7 @@ public class FullTextSearchComposite extends Composite{
 
 			//Remove number of hits and only use facet name
 			String filterString = uplCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
-			if(!filterString.equals("All")){
+			if(!filterString.equals("All uploaders")){
 				filters.add("uploader:\""+filterString+"\""); 
 			}				
 		}
@@ -829,7 +824,7 @@ public class FullTextSearchComposite extends Composite{
 
 			//Remove number of hits and only use facet name
 			String filterString = docCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
-			if(!filterString.equals("All")){
+			if(!filterString.equals("All documents")){
 				filters.add("title:\""+filterString+"\""); 
 			}				
 		}
