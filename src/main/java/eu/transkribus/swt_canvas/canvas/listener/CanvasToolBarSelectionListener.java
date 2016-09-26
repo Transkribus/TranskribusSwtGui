@@ -1,43 +1,39 @@
 package eu.transkribus.swt_canvas.canvas.listener;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
+import eu.transkribus.swt_canvas.canvas.CanvasWidget;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.dialogs.SettingsDialog;
-
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
+import eu.transkribus.swt_gui.dialogs.ImageEnhanceDialog;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class CanvasToolBarSelectionListener extends SelectionAdapter {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasToolBarSelectionListener.class);
 	
-	CanvasToolBar toolbar;
-	SWTCanvas canvas;
+	CanvasWidget canvasWidget;
 
-	public CanvasToolBarSelectionListener(CanvasToolBar toolbar, SWTCanvas canvas) {
-		this.toolbar = toolbar;
-		this.canvas = canvas;
+	public CanvasToolBarSelectionListener(CanvasWidget canvasWidget) {
+		this.canvasWidget = canvasWidget;
 	}
 	
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		SWTCanvas canvas = canvasWidget.getCanvas();
+		CanvasToolBar toolbar = canvasWidget.getToolbar();
 		
 		canvas.setMode(getModeForSelectionEvent(e));
 		logger.debug("mode = "+canvas.getMode());
-		
-//		logger.debug("source = "+s);
-//		if (s == toolbar.getSelectionMode()) {
-//			canvas.getSettings().mode = CanvasMode.SELECTION;
-//		}
-//		else if (s == toolbar.getZoomSelection()) {
-//			canvas.getSettings().mode = CanvasMode.ZOOM;
-//		}
 		
 		if (s == toolbar.getZoomIn()) {
 			canvas.zoomIn();
@@ -45,21 +41,6 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.getZoomOut()) {
 			canvas.zoomOut();
 		}		
-//		else if (s == toolbar.getRotateLeft()) {
-//			canvas.rotateLeft();
-//		}
-//		else if (s == toolbar.getRotateRight()) {
-//			canvas.rotateRight();
-//		}
-//		else if (s == toolbar.getFitToPage()) {
-//			canvas.fitToPage();
-//		}
-//		else if (s == toolbar.getFitWidth()) {
-//			canvas.fitWidth();
-//		}
-//		else if (s == toolbar.getFitHeight()) {
-//			canvas.fitHeight();
-//		}
 		else if (s == toolbar.getOriginalSize()) {
 			canvas.resetTransformation();
 		}
@@ -127,19 +108,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 				break;				
 			}
 		}		
-		
-//		else if (s == toolbar.getTranslateLeft()) {
-//			canvas.translateLeft();
-//		}
-//		else if (s == toolbar.getTranslateRight()) {
-//			canvas.translateRight();
-//		}
-//		else if (s == toolbar.getTranslateUp()) {
-//			canvas.translateUp();
-//		}
-//		else if (s == toolbar.getTranslateDown()) {
-//			canvas.translateDown();
-//		}
+
 		else if (s == toolbar.getFocus()) {
 			canvas.focusFirstSelected();
 		}
@@ -156,64 +125,104 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.getMergeShapes()) {
 			canvas.getShapeEditor().mergeSelected();
 		}
-		else if (s == toolbar.getViewSettingsMenuItem()) {
+		
+		
+		if (s == toolbar.getViewSettingsMenuItem()) {
 //			SettingsDialog sd = new SettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getCanvas().getSettings(), getTrpSets());		
 //			sd.open();
+		}		
+		else if (canvas.getMode() == TrpCanvasAddMode.ADD_OTHERREGION) {
+			TrpCanvasAddMode.ADD_OTHERREGION.data = toolbar.getSelectedSpecialRegionType(); 
 		}
+
+		
+		if (s == toolbar.getViewSettingsMenuItem()) {
+			mw.getUi().openViewSetsDialog();
+		}
+		else if (s == toolbar.getImageVersionItem().ti && e.detail != SWT.ARROW) {
+			TrpMainWidget.getInstance().reloadCurrentImage();
+		}
+		else if (s == toolbar.getImgEnhanceItem()) {
+			// TODO: open enhance dialog
+			ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
+			d.open();
+		}
+		
+		// TABLE STUFF:
+		else if (s == toolbar.getDeleteRowItem()) {
+			mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.ROW, true);
+		}
+		else if (s == toolbar.getDeleteColumnItem()) {
+			mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.COLUMN, true);
+		}
+		else if (s == toolbar.getSplitMergedCell()) {
+			mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
+		}
+		else if (s == toolbar.getRemoveIntermediatePtsItem()) {
+			mw.getCanvas().getShapeEditor().removeIntermediatePointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
+		}
+
 	}
 	
 	protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {
-		CanvasMode mode = toolbar.getModeMap().get(e.getSource());
-		return mode!=null ? mode : CanvasMode.SELECTION;
+		CanvasToolBar toolbar = canvasWidget.getToolbar();
+		
+		if (e.getSource().equals(toolbar.getAddSpecialRegion().ti)) {
+			logger.debug("getting mode for special region toolitem...");
+			if (e.detail != SWT.ARROW) {
+				CanvasMode mode = toolbar.getModeMap().get(toolbar.getAddSpecialRegion().getSelected());
+				return mode!=null ? mode : CanvasMode.SELECTION;
+			} else
+				return CanvasMode.SELECTION;
+		} else {
+			CanvasMode mode = toolbar.getModeMap().get(e.getSource());
+			return mode!=null ? mode : CanvasMode.SELECTION;
+		}
 	}
 
-//public class DeaSWTCanvasSelectionAdapter extends SelectionAdapter {
-//	DeaSWTCanvasWidget view;
-//	DeaSWTCanvas canvas;
-//
-//	public DeaSWTCanvasSelectionAdapter(DeaSWTCanvasWidget view) {
-//		this.view = view;
-//		this.canvas = view.getCanvas();
-//	}
-//	
 //	@Override
 //	public void widgetSelected(SelectionEvent e) {
-//		if (e.getSource() == view.getSelectionMode()) {
-//			canvas.getSettings().mode = DeaSWTCanvasMode.SELECTION;
+//		try {
+//			TrpMainWidget mw = TrpMainWidget.getInstance();
+//			
+//			logger.debug("toolbar item selected: "+e);
+//			
+//			super.widgetSelected(e);
+//			
+//			if (canvas.getMode() == TrpCanvasAddMode.ADD_OTHERREGION) {
+//				TrpCanvasAddMode.ADD_OTHERREGION.data = canvas.getMainWidget().getCanvasWidget().getToolBar().getSelectedSpecialRegionType(); 
+//			}
+//				
+//			Object s = e.getSource();
+//			
+//			if (s == toolbar.getViewSettingsMenuItem()) {
+//				canvas.getMainWidget().getUi().openViewSetsDialog();
+//			}
+//			else if (s == toolbar.getImageVersionItem().ti && e.detail != SWT.ARROW) {
+//				TrpMainWidget.getInstance().reloadCurrentImage();
+//			}
+//			else if (s == toolbar.getImgEnhanceItem()) {
+//				// TODO: open enhance dialog
+//				ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
+//				d.open();
+//			}
+//			
+//			// TABLE STUFF:
+//			else if (s == toolbar.getDeleteRowItem()) {
+//				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.ROW, true);
+//			}
+//			else if (s == toolbar.getDeleteColumnItem()) {
+//				mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.COLUMN, true);
+//			}
+//			else if (s == toolbar.getSplitMergedCell()) {
+//				mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
+//			}
+//			else if (s == toolbar.getRemoveIntermediatePtsItem()) {
+//				mw.getCanvas().getShapeEditor().removeIntermediatePointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
+//			}
+//		} catch (Throwable ex) {
+//			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
 //		}
-//		else if (e.getSource() == view.getZoomSelection()) {
-//			canvas.getSettings().mode = DeaSWTCanvasMode.ZOOM;
-//		}
-//		else if (e.getSource() == view.getZoomIn()) {
-//			canvas.zoomIn();
-//		}
-//		else if (e.getSource() == view.getZoomOut()) {
-//			canvas.zoomOut();
-//		}		
-//		else if (e.getSource() == view.getRotateLeft()) {
-//			canvas.rotateLeft();
-//		}
-//		else if (e.getSource() == view.getRotateRight()) {
-//			canvas.rotateRight();
-//		}
-//		else if (e.getSource() == view.getFitToPage()) {
-//			canvas.fitToPage();
-//		}
-//		else if (e.getSource() == view.getOriginalSize()) {
-//			canvas.resetTransformation();
-//		}
-//		else if (e.getSource() == view.getTranslateLeft()) {
-//			canvas.translateLeft();
-//		}
-//		else if (e.getSource() == view.getTranslateRight()) {
-//			canvas.translateRight();
-//		}
-//		else if (e.getSource() == view.getTranslateUp()) {
-//			canvas.translateUp();
-//		}
-//		else if (e.getSource() == view.getTranslateDown()) {
-//			canvas.translateDown();
-//		}		
-//		
-//	}
+//	}	
+
 }

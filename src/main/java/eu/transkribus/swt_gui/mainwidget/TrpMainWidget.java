@@ -95,7 +95,11 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.CanvasScene;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
+import eu.transkribus.swt_canvas.canvas.CanvasWidget;
+import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
+import eu.transkribus.swt_canvas.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
 import eu.transkribus.swt_canvas.util.CreateThumbsService;
@@ -110,12 +114,9 @@ import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
+import eu.transkribus.swt_gui.canvas.CanvasContextMenuListener;
 import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
-import eu.transkribus.swt_gui.canvas.TrpCanvasContextMenuListener;
-import eu.transkribus.swt_gui.canvas.TrpCanvasScene;
-import eu.transkribus.swt_gui.canvas.TrpCanvasSceneListener;
-import eu.transkribus.swt_gui.canvas.TrpCanvasWidget;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerListener;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
@@ -182,7 +183,7 @@ public class TrpMainWidget {
 	RegionsPagingToolBarListener lineTrRegionsPagingToolBarListener;
 	RegionsPagingToolBarListener wordTrRegionsPagingToolBarListener;
 	// TranscriptsPagingToolBarListener transcriptsPagingToolBarListener;
-	TrpCanvasSceneListener canvasSceneListener;
+	ICanvasSceneListener canvasSceneListener;
 	LineTranscriptionWidgetListener lineTranscriptionWidgetListener;
 	WordTranscriptionWidgetListener wordTranscriptionWidgetListener;
 	TrpShapeElementFactory shapeFactory;
@@ -190,7 +191,7 @@ public class TrpMainWidget {
 	StructureTreeListener structTreeListener;
 	DocOverviewListener docOverviewListener;
 	TrpMainWidgetListener mainWidgetListener;
-	TrpCanvasContextMenuListener canvasContextMenuListener;
+	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
 	CanvasShapeObserver canvasShapeObserver;
 	PageMetadataWidgetListener metadataWidgetListener;
@@ -633,7 +634,7 @@ public class TrpMainWidget {
 			}
 		});
 		mainWidgetListener = new TrpMainWidgetListener(this);
-		canvasContextMenuListener = new TrpCanvasContextMenuListener(this);
+		canvasContextMenuListener = new CanvasContextMenuListener(this);
 
 		// pages paging toolbar listener:
 		pagesPagingToolBarListener = new PagesPagingToolBarListener(ui.getPagesPagingToolBar(), this);
@@ -642,7 +643,7 @@ public class TrpMainWidget {
 		// TranscriptsPagingToolBarListener(ui.getTranscriptsPagingToolBar(),
 		// this);
 		// CanvasSceneListener acts on add / remove shape and selection change:
-		canvasSceneListener = new TrpCanvasSceneListener(this);
+		canvasSceneListener = new CanvasSceneListener(this);
 		// add toolbar listener for transcription widgets:
 		lineTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getLineTranscriptionWidget().getRegionsPagingToolBar(), this);
 		wordTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getWordTranscriptionWidget().getRegionsPagingToolBar(), this);
@@ -1284,7 +1285,7 @@ public class TrpMainWidget {
 		if (storage.isPageLocked() != isPageLocked) { // page locking changed
 			isPageLocked = storage.isPageLocked();
 
-			ui.getCanvasWidget().getToolBar().getEditingEnabledToolItem().setEnabled(!isPageLocked);
+			ui.getCanvasWidget().getToolbar().getEditingEnabledToolItem().setEnabled(!isPageLocked);
 			TrpConfig.getCanvasSettings().setEditingEnabled(!isPageLocked);
 			ui.getTranscriptionComposite().setEnabled(!isPageLocked);
 			ui.getRightTabFolder().setEnabled(!isPageLocked);
@@ -1746,7 +1747,7 @@ public class TrpMainWidget {
 		return canvasShapeObserver;
 	}
 
-	public TrpCanvasWidget getCanvasWidget() {
+	public CanvasWidget getCanvasWidget() {
 		return ui.getCanvasWidget();
 	}
 
@@ -1754,7 +1755,7 @@ public class TrpMainWidget {
 		return canvas;
 	}
 
-	public TrpCanvasScene getScene() {
+	public CanvasScene getScene() {
 		return ui.getCanvas().getScene();
 	}
 	
@@ -3409,7 +3410,7 @@ public class TrpMainWidget {
 	}
 	
 	public String getSelectedImageFileType() {
-		String fileType = getCanvasWidget().getToolBar().getImageVersionItem().ti.getText();
+		String fileType = getCanvasWidget().getToolbar().getImageVersionItem().ti.getText();
 		if (!fileType.equals("orig") && fileType.equals("view") && !fileType.equals("bin"))
 			return "view";
 		else

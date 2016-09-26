@@ -5,19 +5,20 @@ import java.beans.PropertyChangeListener;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.swt_canvas.canvas.editing.UndoStack;
-import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
-import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.swt_canvas.canvas.editing.UndoStack;
+import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
+import eu.transkribus.swt_canvas.canvas.listener.ICanvasSceneListener;
+import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 
 /**
@@ -26,15 +27,18 @@ import org.eclipse.swt.widgets.ToolItem;
 public class CanvasWidget extends Composite {
 	static Logger logger = LoggerFactory.getLogger(CanvasWidget.class);
 	
-	protected SWTCanvas canvas;
-	protected CanvasToolBar toolBar;
+	protected TrpSWTCanvas canvas;
+	protected CanvasToolBar toolbar;
 	protected CanvasToolBarSelectionListener canvasToolBarSelectionListener;
+	
+	TrpMainWidget mainWidget;
 
 	/**
 	 * @wbp.parser.constructor
 	 */
-	public CanvasWidget(Composite parent, int style) {
+	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style) {
 		super(parent, style);
+		this.mainWidget = mainWidget;
 								
 		init(null, null);
 	}
@@ -42,7 +46,7 @@ public class CanvasWidget extends Composite {
 	/**
 	 * Wraps the DeaSWTCanvas widget into a widget containing a toolbar for the most common operations such as scaling, rotation, translation etc.
 	 */
-	public CanvasWidget(Composite parent, int style, SWTCanvas canvas) {
+	public CanvasWidget(Composite parent, int style, TrpSWTCanvas canvas) {
 		super(parent, style);
 
 		init(canvas, null);
@@ -51,13 +55,13 @@ public class CanvasWidget extends Composite {
 	/**
 	 * Wraps the DeaSWTCanvas widget into a widget containing a toolbar for the most common operations such as scaling, rotation, translation etc.
 	 */
-	public CanvasWidget(Composite parent, int style, SWTCanvas canvas, CanvasToolBar toolBar) {
+	public CanvasWidget(Composite parent, int style, TrpSWTCanvas canvas, CanvasToolBar toolBar) {
 		super(parent, style);
 					
 		init(canvas, toolBar);
 	}
 	
-	protected void init(SWTCanvas canvas, CanvasToolBar toolBar) {
+	protected void init(TrpSWTCanvas canvas, CanvasToolBar toolBar) {
 		setLayout(new GridLayout(1, false));
 		
 		if (this.canvas != null && !this.canvas.isDisposed())
@@ -67,20 +71,20 @@ public class CanvasWidget extends Composite {
 			this.canvas = canvas;
 		}
 		else {
-			this.canvas = new SWTCanvas(SWTUtil.dummyShell, SWT.NONE);
+			this.canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, mainWidget);
 		}
 		this.canvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		if (this.toolBar != null && !this.toolBar.isDisposed())
-			this.toolBar.dispose();
+		if (this.toolbar != null && !this.toolbar.isDisposed())
+			this.toolbar.dispose();
 		
 		if (toolBar!=null) {
-			this.toolBar = toolBar;
-			this.toolBar.setParent(this);
+			this.toolbar = toolBar;
+			this.toolbar.setParent(this);
 		} else {
-			this.toolBar = new CanvasToolBar(this, SWT.FLAT | SWT.WRAP);
+			this.toolbar = new CanvasToolBar(this, SWT.FLAT | SWT.WRAP);
 		}
-		this.toolBar.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
+		this.toolbar.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
 		
 		this.canvas.setParent(this);
 		
@@ -90,18 +94,20 @@ public class CanvasWidget extends Composite {
 		// selection listener for toolbar:
 		//canvasToolBarSelectionListener = new CanvasToolBarSelectionListener(toolBar, canvas);
 		//toolBar.addAddButtonsSelectionListener(canvasToolBarSelectionListener);
+		
 		// selection listener on canvas:
-		canvas.getScene().addCanvasSceneListener(new CanvasSceneListener() {
+		canvas.getScene().addCanvasSceneListener(new ICanvasSceneListener() {
 			@Override
 			public void onSelectionChanged(SceneEvent e) {
-				toolBar.updateButtonVisibility();
+				toolbar.updateButtonVisibility();
 			}
 		});
+		
 		// update buttons on changes in canvas settings:
 		canvas.getSettings().addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
-				toolBar.updateButtonVisibility();
+				toolbar.updateButtonVisibility();
 				canvas.redraw();
 			}
 		});
@@ -117,24 +123,24 @@ public class CanvasWidget extends Composite {
 		});
 	}
 
-	public SWTCanvas getCanvas() {
+	public TrpSWTCanvas getCanvas() {
 		return canvas;
 	}
 
-	public CanvasToolBar getToolBar() {
-		return toolBar;
+	public CanvasToolBar getToolbar() {
+		return toolbar;
 	}
 
 	public ToolItem getZoomIn() {
-		return toolBar.getZoomIn();
+		return toolbar.getZoomIn();
 	}
 
 	public ToolItem getZoomOut() {
-		return toolBar.getZoomOut();
+		return toolbar.getZoomOut();
 	}
 
 	public ToolItem getZoomSelection() {
-		return toolBar.getZoomSelection();
+		return toolbar.getZoomSelection();
 	}
 
 //	public ToolItem getRotateRight() {
@@ -158,7 +164,7 @@ public class CanvasWidget extends Composite {
 //	}
 
 	public ToolItem getSelectionMode() {
-		return toolBar.getSelectionMode();
+		return toolbar.getSelectionMode();
 	}
 
 //	public ToolItem getTranslateDown() {
@@ -170,7 +176,7 @@ public class CanvasWidget extends Composite {
 //	}
 
 	public ToolItem getOriginalSize() {
-		return toolBar.getOriginalSize();
+		return toolbar.getOriginalSize();
 	}
 
 	@Override
@@ -180,17 +186,17 @@ public class CanvasWidget extends Composite {
 	
 	public void updateUiStuff() {
 		updateUndoButton();
-		toolBar.updateButtonVisibility();
+		toolbar.updateButtonVisibility();
 	}
 	
 	public void updateUndoButton() {
 		if (canvas.getUndoStack().getSize()!=0) {
-			toolBar.getUndo().setEnabled(true);
-			toolBar.getUndo().setToolTipText("Undo ("+canvas.getUndoStack().getSize()+"): "+canvas.getUndoStack().getLastOperationDescription());
+			toolbar.getUndo().setEnabled(true);
+			toolbar.getUndo().setToolTipText("Undo ("+canvas.getUndoStack().getSize()+"): "+canvas.getUndoStack().getLastOperationDescription());
 		}
 		else {
-			toolBar.getUndo().setEnabled(false);
-			toolBar.getUndo().setToolTipText("Undo: Nothing do undo...");
+			toolbar.getUndo().setEnabled(false);
+			toolbar.getUndo().setToolTipText("Undo: Nothing do undo...");
 		}
 	}
 }

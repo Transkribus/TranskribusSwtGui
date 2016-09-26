@@ -35,6 +35,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
+import eu.transkribus.swt_canvas.canvas.CanvasWidget;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt_canvas.portal.PortalWidget;
@@ -49,7 +51,6 @@ import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
-import eu.transkribus.swt_gui.canvas.TrpCanvasWidget;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
@@ -77,7 +78,7 @@ public class TrpMainWidgetView extends Composite {
 	final static boolean ADD_STATUS_LABEL = false;
 
 	// ##### Widgets and other stuff: #####
-	TrpCanvasWidget canvasWidget;
+	CanvasWidget canvasWidget;
 	PagingToolBar pagesPagingToolBar;
 	GridData toolBarGridData;
 	LineTranscriptionWidget lineTranscriptionWidget;
@@ -229,7 +230,7 @@ public class TrpMainWidgetView extends Composite {
 		}
 		
 		// center widget (canvas):
-		canvasWidget = new TrpCanvasWidget(SWTUtil.dummyShell, SWT.NONE, mainWidget);
+		canvasWidget = new CanvasWidget(SWTUtil.dummyShell, mainWidget, SWT.NONE);
 		
 		// current user label:
 //		if (true) {
@@ -350,16 +351,16 @@ public class TrpMainWidgetView extends Composite {
 		
 		addInternalListener();
 		addBindings();
-		canvasWidget.getToolBar().addBindings(getTrpSets());
+		canvasWidget.getToolbar().addBindings(getTrpSets());
 		updateLoginInfo(false, "", "");
 		updateDockingStateButtons();
 		
-		canvasWidget.getToolBar().setParent(this);
+//		canvasWidget.getToolbar().setParent(this);
 		
-		for (ToolItem ti : canvasWidget.getToolBar().getItems()) {
+//		for (ToolItem ti : canvasWidget.getToolbar().getItems()) {
 //			ti.set
 			
-		}
+//		}
 		
 //		canvasWidget.getToolBar().setParent(parent)
 		
@@ -1119,18 +1120,18 @@ public class TrpMainWidgetView extends Composite {
 //		db.bindBoolBeanValueToToolItemSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, canvasWidget.getToolBar().getShapeAddRectMode());
 //		db.bindBoolBeanValueToToolItemSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, canvasWidget.getToolBar().getAutoCreateParent());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, canvasWidget.getToolBar().getRectangleModeItem());
-		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, canvasWidget.getToolBar().getAutoCreateParentItem());
+		db.bindBeanToWidgetSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, canvasWidget.getToolbar().getRectangleModeItem());
+		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, canvasWidget.getToolbar().getAutoCreateParentItem());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, trpSets, canvasWidget.getToolBar().getAddLineToOverlappingRegionItem());
-		db.bindBeanToWidgetSelection(TrpSettings.ADD_BASELINES_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolBar().getAddBaselineToOverlappingLineItem());
-		db.bindBeanToWidgetSelection(TrpSettings.ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolBar().getAddWordsToOverlappingLineItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, trpSets, canvasWidget.getToolbar().getAddLineToOverlappingRegionItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_BASELINES_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolbar().getAddBaselineToOverlappingLineItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolbar().getAddWordsToOverlappingLineItem());
 		
-		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), canvasWidget.getToolBar().getLockZoomOnFocusItem());
+		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), canvasWidget.getToolbar().getLockZoomOnFocusItem());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.DELETE_LINE_IF_BASELINE_DELETED_PROPERTY, trpSets, canvasWidget.getToolBar().getDeleteLineIfBaselineDeletedItem());
+		db.bindBeanToWidgetSelection(TrpSettings.DELETE_LINE_IF_BASELINE_DELETED_PROPERTY, trpSets, canvasWidget.getToolbar().getDeleteLineIfBaselineDeletedItem());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, canvasWidget.getToolBar().getSelectNewlyCreatedShapeItem());
+		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, canvasWidget.getToolbar().getSelectNewlyCreatedShapeItem());
 		
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, showReadingOrderRegionsItem);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, showReadingOrderLinesItem);
@@ -1283,9 +1284,12 @@ public class TrpMainWidgetView extends Composite {
 	public JobTableWidgetPagination getJobOverviewWidget() { return jobOverviewWidget; }
 	public TranscriptsTableWidgetPagination getVersionsWidget() { return versionsWidget; };
 	
-	public TrpCanvasWidget getCanvasWidget() { return canvasWidget; }
-	public CanvasToolBar getCanvasToolBar() { return canvasWidget.getToolBar(); }
-	public TrpSWTCanvas getCanvas() { 
+	public CanvasWidget getCanvasWidget() { return canvasWidget; }
+	public CanvasToolBar getCanvasToolBar() { return canvasWidget.getToolbar(); }
+	
+	public TrpSWTCanvas getCanvas() {
+//		return canvasWidget.getCanvas();
+		
 		if (canvasWidget != null && canvasWidget.getCanvas()!=null)
 			return canvasWidget.getCanvas();
 		else

@@ -37,6 +37,7 @@ import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.GeomUtils;
 import eu.transkribus.swt_canvas.util.Resources;
 import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class SWTCanvas extends Canvas {
 	private final static Logger logger = LoggerFactory
@@ -78,6 +79,8 @@ public class SWTCanvas extends Canvas {
 	protected CanvasMouseListener mouseListener;
 	protected CanvasKeyListener keyListener;
 	protected CanvasGlobalEventsFilter globalEventsListener;
+	
+//	protected TrpMainWidget mainWidget;
 
 	// private boolean scrollBarsVisible = false;
 
@@ -1379,5 +1382,5 @@ public class SWTCanvas extends Canvas {
 
 		return transWoTr;
 	}
-	
+		
 }

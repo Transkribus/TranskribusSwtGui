@@ -189,8 +189,8 @@ public class ImgLoader {
 				final Shell shell = new Shell(Display.getCurrent());
 				shell.setLayout(new FillLayout());
 				
-				CanvasWidget cw = new CanvasWidget(shell, 0);
-				cw.getCanvas().getScene().setMainImage(img);		
+//				CanvasWidget cw = new CanvasWidget(shell, 0);
+//				cw.getCanvas().getScene().setMainImage(img);		
 				shell.open();
 			
 				
