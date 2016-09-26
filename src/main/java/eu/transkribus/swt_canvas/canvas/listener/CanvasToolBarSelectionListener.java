@@ -167,6 +167,8 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 	protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {
 		CanvasToolBar toolbar = canvasWidget.getToolbar();
 		
+		logger.debug("source = "+e.getSource());
+		
 		if (e.getSource().equals(toolbar.getAddSpecialRegion().ti)) {
 			logger.debug("getting mode for special region toolitem...");
 			if (e.detail != SWT.ARROW) {

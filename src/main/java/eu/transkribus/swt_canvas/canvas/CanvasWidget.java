@@ -82,7 +82,7 @@ public class CanvasWidget extends Composite {
 			this.toolbar = toolBar;
 			this.toolbar.setParent(this);
 		} else {
-			this.toolbar = new CanvasToolBar(this, SWT.FLAT | SWT.WRAP);
+			this.toolbar = new CanvasToolBar(this, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
 		}
 		this.toolbar.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
 		
@@ -121,6 +121,8 @@ public class CanvasWidget extends Composite {
 				}
 			}
 		});
+		
+		toolbar.addSelectionListener(new CanvasToolBarSelectionListener(this));
 	}
 
 	public TrpSWTCanvas getCanvas() {

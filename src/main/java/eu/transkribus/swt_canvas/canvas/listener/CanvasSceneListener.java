@@ -86,6 +86,9 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 	
 	public CanvasSceneListener(TrpMainWidget mw) {
 		this.mw = mw;
+		this.canvas = mw.getCanvas();
+		this.shell = mw.getShell();
+		
 		mw.getScene().addCanvasSceneListener(this);
 	}
 		
