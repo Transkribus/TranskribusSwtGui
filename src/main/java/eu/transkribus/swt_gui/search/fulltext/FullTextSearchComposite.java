@@ -107,6 +107,7 @@ public class FullTextSearchComposite extends Composite{
 	MultiSelectionCombo uplCombo;
 	
 	List<String> filters;
+	Storage storage;
 	
 	volatile ArrayList<Hit> hits;
 	
@@ -529,19 +530,28 @@ public class FullTextSearchComposite extends Composite{
 	
 	private void updateFacets(){
 		
+		List<String> colNames = new ArrayList<String>();
+		for(TrpCollection coll : storage.getCollections()){
+			colNames.add(coll.getColName());
+		}
+		
 		int i;
 		for(Facet facet : fullTextSearchResult.getFacets()){
-			
+			logger.debug(""+facet.getFacetMap().keySet().contains(colNames.get(0)));
 						
 			if(facet.getName().equals("f_collectionName")){
 
-				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
+//				String[] facetItems = new String[facet.getFacetMap().keySet().size()+1];
+				String[] facetItems = new String[colNames.size()+1];
 				facetItems[0] = "All collections";
 				i = 1;
 
-				for(String key : facet.getFacetMap().keySet()){
-					facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
-					i++;					
+				for(String key : facet.getFacetMap().keySet()){						
+					if(colNames.contains(key)){
+						facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
+						i++;
+					}
+
 				}
 				if(facetItems != null){
 					collCombo.textItems = facetItems;
@@ -554,9 +564,12 @@ public class FullTextSearchComposite extends Composite{
 				i = 1;
 
 				for(String key : facet.getFacetMap().keySet()){
+					
 					facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
+					logger.debug("author facet: "+ facetItems[i]);					
 					i++;					
 				}
+				logger.debug("author keyset: " + facet.getFacetMap().keySet());
 				if(facetItems != null){
 					authCombo.textItems = facetItems;
 				}
@@ -569,8 +582,10 @@ public class FullTextSearchComposite extends Composite{
 
 				for(String key : facet.getFacetMap().keySet()){
 					facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
+					logger.debug("uploader facet: "+ facetItems[i]);
 					i++;					
 				}
+				logger.debug("uploader keyset: " + facet.getFacetMap().keySet());
 				if(facetItems != null){
 					uplCombo.textItems = facetItems;
 				}
@@ -594,6 +609,7 @@ public class FullTextSearchComposite extends Composite{
 		}
 		
 		
+
 		
 	}
 
@@ -700,7 +716,7 @@ public class FullTextSearchComposite extends Composite{
 			}
 		}
 		
-		final Storage storage = Storage.getInstance();
+		storage = Storage.getInstance();
 		
 		generateFilters();
 		
@@ -719,15 +735,15 @@ public class FullTextSearchComposite extends Composite{
 			logger.debug("Query: " + fullTextSearchResult.getParams());
 			logger.debug("Num. Results: " + fullTextSearchResult.getNumResults());	
 
-			if(!searchText.equals(lastSearchText))	{
-				updateFacets();
-			}
+
 			
-			if(fullTextSearchResult != null){
+			if(fullTextSearchResult != null){				
 				updateResultsTable();
-				
-//				updateFacetTree();
-//				updateFacetToolbar();
+//				updateFacets();
+				if(!searchText.equals(lastSearchText))	{
+					updateFacets();
+				}
+
 			}
 			
 		} catch (SessionExpiredException e) {
@@ -748,37 +764,11 @@ public class FullTextSearchComposite extends Composite{
 		
 	}
 
-//	private void updateFacetToolbar() {
-//		for(Facet facet : fullTextSearchResult.getFacets() ){
-//			System.out.println(facet.getName());
-//			if(facet.getName().equals("f_author")){				
-//			    DropdownSelectionListener listener = new DropdownSelectionListener(authorItem);
-//			    for(String key : facet.getFacetMap().keySet()){
-//			    	listener.add(key + " (" + facet.getFacetMap().get(key)+")");
-//			    }			    
-//			    authorItem.addSelectionListener(listener);
-//			}
-//
-//		}
-//		
-//	}
 
-//	private void updateFacetTree() {
-////		if(searchText.equals(lastSearchText)) return;
-//		facetTree.removeAll();
-//		for(Facet facet : fullTextSearchResult.getFacets() ){
-//			TreeItem facetItem = new TreeItem(facetTree, 0);
-//			facetItem.setText(facet.getName());
-//			for(String facetKey : facet.getFacetMap().keySet()){
-//				TreeItem subItem = new TreeItem(facetItem,0);
-//				subItem.setText(facetKey + " ("+ facet.getFacetMap().get(facetKey).toString()+")");
-//
-//			}
-//		}			
-//	}
-
+	//Clean up some day
 	private void generateFilters() {
 		filters = new ArrayList<String>();
+		String subFilters = "";
 		
 		for(int i : collCombo.getSelections()){
 			
@@ -788,10 +778,19 @@ public class FullTextSearchComposite extends Composite{
 
 			//Remove number of hits and only use facet name
 			String filterString = collCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
-			if(!filterString.equals("All collections")){
-				filters.add("collectionName:\""+filterString+"\""); 
-			}				
+			if(!filterString.equals("All collections") && subFilters.isEmpty()){
+				subFilters+="(collectionName:\""+filterString+"\""; 
+			}else if(!filterString.equals("All collections") && !subFilters.isEmpty()){
+				subFilters+=" OR collectionName:\""+filterString+"\""; 
+			}
 		}
+		
+		if(!subFilters.isEmpty()){
+			subFilters+=")";
+			filters.add(subFilters);
+			subFilters="";
+		}
+
 		
 		for(int i : authCombo.getSelections()){
 			
@@ -799,11 +798,19 @@ public class FullTextSearchComposite extends Composite{
 				return;
 			}
 
-			//Remove number of hits and only use facet name
+			
 			String filterString = authCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
-			if(!filterString.equals("All authors")){
-				filters.add("author:\""+filterString+"\""); 
+			if(!filterString.equals("All authors") && subFilters.isEmpty()){
+				subFilters+="(f_author:\""+filterString+"\""; 
+			}else if(!filterString.equals("All collections") && !subFilters.isEmpty()){
+				subFilters+=" OR f_author:\""+filterString+"\""; 
 			}				
+		}
+		
+		if(!subFilters.isEmpty()){
+			subFilters+=")";
+			filters.add(subFilters);
+			subFilters="";
 		}
 		
 		for(int i : uplCombo.getSelections()){
@@ -812,24 +819,39 @@ public class FullTextSearchComposite extends Composite{
 				return;
 			}
 
-			//Remove number of hits and only use facet name
 			String filterString = uplCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
-			if(!filterString.equals("All uploaders")){
-				filters.add("uploader:\""+filterString+"\""); 
-			}				
+			if(!filterString.equals("All uploaders") && subFilters.isEmpty()){
+				subFilters+="(uploader:\""+filterString+"\""; 
+			}else if(!filterString.equals("All uploaders") && !subFilters.isEmpty()){			
+				subFilters+=" OR uploader:\""+filterString+"\"";
+			}
+		}
+		
+		if(!subFilters.isEmpty()){
+			subFilters+=")";
+			filters.add(subFilters);
+			subFilters="";
 		}
 		
 		for(int i : docCombo.getSelections()){
 			
+			if(i>=docCombo.textItems.length) {
+				return;
+			}
 
-			//Remove number of hits and only use facet name
 			String filterString = docCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
-			if(!filterString.equals("All documents")){
-				filters.add("title:\""+filterString+"\""); 
+			if(!filterString.equals("All documents") && subFilters.isEmpty()){
+				subFilters+="(title:\""+filterString+"\""; 
+			}else if(!filterString.equals("All documents") && !subFilters.isEmpty()){			
+				subFilters+=" OR title:\""+filterString+"\"";
 			}				
 		}
 
-		
+		if(!subFilters.isEmpty()){
+			subFilters+=")";
+			filters.add(subFilters);
+			subFilters="";
+		}
 
 		
 		logger.debug("filters:"+filters);
