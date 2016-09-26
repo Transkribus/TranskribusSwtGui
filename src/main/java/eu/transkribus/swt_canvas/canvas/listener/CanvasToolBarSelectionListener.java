@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 
 import org.eclipse.swt.SWT;
@@ -145,7 +146,8 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.getRemoveShape()) {
 			canvas.getShapeEditor().removeSelected();
 		}
-		else if (s == toolbar.getSimplifyEpsItem().ti && e.detail != SWT.ARROW) {
+		else if (SWTUtil.isSubItemSelected(s, toolbar.getSimplifyEpsItem(), e.detail)) {
+//		else if (s == toolbar.getSimplifyEpsItem().ti && e.detail != SWT.ARROW) {
 			canvas.getShapeEditor().simplifySelected(Double.valueOf(toolbar.getSimplifyEpsItem().getSelected().getText()));
 		}
 		else if (s == toolbar.getUndo()) {

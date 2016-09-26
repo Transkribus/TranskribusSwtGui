@@ -1768,16 +1768,18 @@ public class TrpMainWidget {
 
 		ui.getPagesPagingToolBar().setToolbarEnabled(nNPages > 0);
 		ui.getPagesPagingToolBar().setValues(storage.getPageIndex() + 1, nNPages);
-		if (ui.getPagesPagingToolBar().getLabelItem() != null) {
+		
+		if (!SWTUtil.isDisposed(ui.getPagesPagingToolBar().getLabelItem())) {
 			ui.getPagesPagingToolBar().getLabelItem().setImage(isPageLocked ? Images.LOCK : null);
 			ui.getPagesPagingToolBar().getLabelItem().setToolTipText(isPageLocked ? "Page locked" : "");
 		}
-
-		ui.getCloseDocBtn().setEnabled(isDocLoaded);
-		ui.getSaveTranscriptButton().setEnabled(isDocLoaded);
-		ui.getSaveTranscriptWithMessageButton().setEnabled(isDocLoaded);
-		ui.getReloadDocumentButton().setEnabled(isDocLoaded);
-		ui.getLoadTranscriptInTextEditor().setEnabled(isDocLoaded);
+		
+		SWTUtil.setEnabled(ui.getCloseDocBtn(), isDocLoaded);
+		SWTUtil.setEnabled(ui.getSaveTranscriptButton(), isDocLoaded);
+		SWTUtil.setEnabled(ui.getSaveTranscriptWithMessageButton(), isDocLoaded);
+		
+		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
+		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);
 
 		ui.updateToolBarSize();
 	}
@@ -1794,7 +1796,8 @@ public class TrpMainWidget {
 		}
 		else {
 //			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
-			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";
+//			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";
+			localTestdoc = "/home/sebastian/Documents/transkribus_testdocs/many_pages/";
 //			localTestdoc = System.getProperty( "user.home" )+"/testdocmanybl";
 		}
 		

@@ -1,6 +1,5 @@
 package eu.transkribus.swt_canvas.util;
 
-import java.awt.Color;
 import java.util.HashMap;
 
 import org.eclipse.swt.SWT;
@@ -10,6 +9,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 public class Images {
+	public static final Image EYE = Images.getOrLoad("/icons/eye.png");
 	public static final Image LOCK = getOrLoad("/icons/lock.png");
 	public static final Image LOCK_OPEN = getOrLoad("/icons/lock_open.png");
 	public static final Image DELETE = getOrLoad("/icons/delete.png");

@@ -217,20 +217,24 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 		i = indexOf(mergeShapes);
 		i += 2;
 		
-		new ToolItem(this, SWT.SEPARATOR, i);
+//		new ToolItem(this, SWT.SEPARATOR, i);
 		
+		if (false) {
 		renderBlackeningsToggle = new ToolItem(this, SWT.CHECK, ++i);
 		renderBlackeningsToggle.setToolTipText("If toggled, blackening regions are rendered with opaque background");
 		//renderBlackeningsToggle.setText("Render blackenings");
 		renderBlackeningsToggle.setImage(Images.getOrLoad("/icons/rabbit-silhouette.png"));
 				
 		new ToolItem(this, SWT.SEPARATOR, ++i);
+		}
+		
+		i = indexOf(undo);
 		
 		viewSettingsMenuItem = new ToolItem(this, SWT.PUSH, ++i);
 		viewSettingsMenuItem.setToolTipText("Change &viewing settings...");
 		viewSettingsMenuItem.setImage(Images.getOrLoad("/icons/palette.png"));
 		
-		new ToolItem(this, SWT.SEPARATOR);
+//		new ToolItem(this, SWT.SEPARATOR);
 
 		this.pack();
 		
@@ -238,9 +242,7 @@ public class TrpCanvasToolBar extends CanvasToolBar {
 	}
 	
 	public void addBindings(TrpSettings trpSets) {
-
 		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsToggle);
-		
 	}
 
 	public String getSelectedSpecialRegionType() {

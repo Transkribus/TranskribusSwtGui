@@ -508,7 +508,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	protected void initToolBar() {
-		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, this, SWT.FLAT);
+		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, false, this, SWT.FLAT);
 		regionsPagingToolBar.removeReloadButton();
 		regionsPagingToolBar.removeDoubleButtons();
 		regionsToolbar = regionsPagingToolBar.getToolBar();

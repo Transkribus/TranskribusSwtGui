@@ -32,6 +32,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -72,6 +73,13 @@ import math.geom2d.Vector2D;
 
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
+	
+	public static boolean isSubItemSelected(Object s, DropDownToolItem i, int eventDetail) {
+		if (i==null || i.isDisposed() || i.ti==null || i.ti.isDisposed())
+			return false;
+		
+		return s==i.ti && eventDetail != SWT.ARROW;
+	}
 	
 	public static void mask2(final Composite c) {
 		c.setEnabled(false);
@@ -640,13 +648,29 @@ public class SWTUtil {
 //		}
 //	}
 	
+	public static boolean addSelectionListener(DropDownToolItem i, SelectionListener l) {
+		if (isDisposed(i))
+			return false;
+		
+		i.ti.addSelectionListener(l);
+		return true;
+	}
+	
 	public static boolean addSelectionListener(MenuItem mi, SelectionListener l) {
 		if (isDisposed(mi))
 			return false;
 		
 		mi.addSelectionListener(l);
 		return true;
-	}	
+	}
+	
+	public static boolean addTraverseListener(Text ti, TraverseListener l) {
+		if (isDisposed(ti))
+			return false;
+		
+		ti.addTraverseListener(l);
+		return true;
+	}
 	
 	public static boolean addSelectionListener(ToolItem ti, SelectionListener l) {
 		if (isDisposed(ti))
@@ -662,6 +686,11 @@ public class SWTUtil {
 					
 		btn.addSelectionListener(l);
 		return true;
+	}
+	
+	public static void setEnabled(DropDownToolItem item, boolean enabled) {
+		if (!isDisposed(item) && item.ti.getEnabled()!=enabled) 
+			item.ti.setEnabled(enabled);
 	}
 	
 	public static void setEnabled(ToolItem item, boolean enabled) {
@@ -1041,6 +1070,10 @@ public class SWTUtil {
     	} else {
     		gc.drawPolygon(pts);
     	}
+    }
+    
+    public static boolean isDisposed(DropDownToolItem i) {
+    	return (i==null || i.isDisposed() || isDisposed(i.ti));    	
     }
     
 	public static boolean isDisposed(Control x) {

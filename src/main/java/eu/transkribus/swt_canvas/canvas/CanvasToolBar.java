@@ -203,9 +203,11 @@ public class CanvasToolBar extends ToolBar {
 //		translateDown.setToolTipText("Translate right");
 //		translateDown.setImage(Images.getOrLoad("/icons/arrow_down.png"));
 
+		if (false) {
 		focus = new ToolItem(this, SWT.PUSH);
 		focus.setToolTipText("Focus selected object");
 		focus.setImage(Images.getOrLoad("/icons/focus16.png"));
+		}
 		
 		// EDIT BUTTONS:
 		ToolItem sep2 = new ToolItem(this, SWT.SEPARATOR);
@@ -265,6 +267,7 @@ public class CanvasToolBar extends ToolBar {
 //		simplifyShape.setToolTipText("Simplify the selected polygon using the Ramer-Douglas-Peucker algorithm");
 //		simplifyShape.setImage(Images.getOrLoad("/icons/vector.png"));
 		
+		if (false) {
 		simplifyEpsItem = new DropDownToolItem(this, false, true, SWT.RADIO);
 		for (int i=5; i<=100; i+=5)
 			simplifyEpsItem.addItem(""+i, Images.getOrLoad("/icons/vector.png"), "");
@@ -273,6 +276,7 @@ public class CanvasToolBar extends ToolBar {
 				"Simplify the selected shape using the Ramer-Douglas-Peucker algorithm\n"
 				+ "The value determines the strength of polygon simplification - the higher the value, the more points are removed. "
 				+ "\n (i.e. Epsilon is set as the given percentage of the diameter of the bounding box of the shape)");
+		}
 		
 //		simplifyEpsItem.addSelectionListener(new SelectionAdapter() {
 //			@Override
@@ -289,7 +293,7 @@ public class CanvasToolBar extends ToolBar {
 //			test.addItem(""+i, null);
 			
 		
-		new ToolItem(this, SWT.SEPARATOR);
+//		new ToolItem(this, SWT.SEPARATOR);
 		undo = new ToolItem(this, SWT.PUSH);
 		undo.setToolTipText("Undo last edit step");
 		undo.setImage(Images.ARROW_UNDO);
@@ -416,7 +420,7 @@ public class CanvasToolBar extends ToolBar {
 		SWTUtil.addSelectionListener(removePoint, listener);
 		SWTUtil.addSelectionListener(addShape, listener);
 		SWTUtil.addSelectionListener(removeShape, listener);
-		SWTUtil.addSelectionListener(simplifyEpsItem.ti, listener);
+		SWTUtil.addSelectionListener(simplifyEpsItem, listener);
 		SWTUtil.addSelectionListener(undo, listener);
 		if (splitShapeLine!=null)
 			SWTUtil.addSelectionListener(splitShapeLine, listener);
@@ -564,7 +568,7 @@ public class CanvasToolBar extends ToolBar {
 		SWTUtil.setEnabled(splitShapeWithVerticalLine, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(splitShapeWithHorizontalLine, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(mergeShapes, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getNSelected()>=2);
-		SWTUtil.setEnabled(simplifyEpsItem.ti, isEditingEnabled && notNullAndEditable);
+		SWTUtil.setEnabled(simplifyEpsItem, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(undo, isEditingEnabled);
 	}
 

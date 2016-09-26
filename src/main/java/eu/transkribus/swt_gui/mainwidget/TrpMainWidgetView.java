@@ -1,16 +1,11 @@
 package eu.transkribus.swt_gui.mainwidget;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.HashMap;
-import java.util.Locale;
 
 import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabFolder2Listener;
-import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -19,7 +14,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -36,7 +30,6 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
@@ -68,10 +61,9 @@ import eu.transkribus.swt_gui.pagination_tables.TranscriptsTableWidgetPagination
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget;
 import eu.transkribus.swt_gui.tools.ToolsWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
-import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
-import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsTabWidget;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsWidget;
 
 public class TrpMainWidgetView extends Composite {
@@ -162,6 +154,19 @@ public class TrpMainWidgetView extends Composite {
 	
 //	CoolBar cb;
 //	CoolItem cbItem;
+	
+	DropDownToolItem visibilityItem;
+	MenuItem showRegionsItem;
+	MenuItem showLinesItem;
+	MenuItem showBaselinesItem;
+	MenuItem showWordsItem;
+	MenuItem showPrintspaceItem;
+	MenuItem renderBlackeningsItem;
+	MenuItem showReadingOrderRegionsMenuItem;
+	MenuItem showReadingOrderLinesMenuItem;
+	MenuItem showReadingOrderWordsMenuItem;
+	
+	static boolean DISABLE_EXPLICIT_VISIBILITY_BTNS = true;
 		
 	public TrpMainWidgetView(Composite parent, TrpMainWidget mainWidget) {
 		super(parent, SWT.NONE);
@@ -740,9 +745,11 @@ public class TrpMainWidgetView extends Composite {
 //		saveTranscriptAlwaysButton.setImage(Images.getOrLoad("/icons/disk_multiple.png"));
 //		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
+		if (false) {
 		reloadDocumentButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		reloadDocumentButton.setToolTipText("Reload document");
 		reloadDocumentButton.setImage(Images.getOrLoad("/icons/refresh.gif"));
+		}
 		
 		exportDocumentButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		exportDocumentButton.setToolTipText("Export document");
@@ -789,6 +796,7 @@ public class TrpMainWidgetView extends Composite {
 		
 		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
+		if (!DISABLE_EXPLICIT_VISIBILITY_BTNS) {
 		showPrintSpaceToggle = new ToolItem(toolBar, SWT.CHECK);
 		showPrintSpaceToggle.setToolTipText("Show printspace (F1)");
 		showPrintSpaceToggle.setImage(Images.getOrLoad("/icons/show_ps_shape.png"));
@@ -808,6 +816,20 @@ public class TrpMainWidgetView extends Composite {
 		showWordsToggle= new ToolItem(toolBar, SWT.CHECK);
 		showWordsToggle.setToolTipText("Show words (F5)");
 		showWordsToggle.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
+		}
+		
+		// NEW view item:
+		visibilityItem = new DropDownToolItem(toolBar, false, true, SWT.CHECK);
+		visibilityItem.ti.setImage(Images.EYE);
+		showRegionsItem = visibilityItem.addItem("Show Regions", Images.EYE, "");
+		showLinesItem = visibilityItem.addItem("Show Lines", Images.EYE, "");
+		showBaselinesItem = visibilityItem.addItem("Show Baselines", Images.EYE, "");
+		showWordsItem = visibilityItem.addItem("Show Words", Images.EYE, "");
+		showPrintspaceItem = visibilityItem.addItem("Show Printspace", Images.EYE, "");
+		renderBlackeningsItem = visibilityItem.addItem("Render Blackenings", Images.EYE, "");
+		showReadingOrderRegionsMenuItem = visibilityItem.addItem("Show regions reading order", Images.EYE, "");
+		showReadingOrderLinesMenuItem = visibilityItem.addItem("Show lines reading order", Images.EYE, "");
+		showReadingOrderWordsMenuItem = visibilityItem.addItem("Show words reading order", Images.EYE, "");
 		
 //		new ToolItem(toolBar, SWT.SEPARATOR);
 //		
@@ -818,10 +840,12 @@ public class TrpMainWidgetView extends Composite {
 		
 //		showWordsToggle.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
 		
+		if (false) {
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		
 		//showReadingOrderToolItem = new DropDownToolItem(toolBar, false, false, SWT.CHECK);
 
+		
 		showReadingOrderRegionsItem = new ToolItem(toolBar, SWT.CHECK);
 		showReadingOrderRegionsItem.setToolTipText("Show reading order of regions");
 		showReadingOrderRegionsItem.setImage(Images.getOrLoad("/icons/reading_order_r.png"));
@@ -843,6 +867,7 @@ public class TrpMainWidgetView extends Composite {
 		//showReadingOrderToolItem.ti.setImage( Images.getOrLoad("/icons/readingOrder.png"));
 		
 		//showReadingOrderToolItem.addItem("Show reading order of all shapes", Images.getOrLoad("/icons/readingOrder.png"), "Show the reading order of all shapes on this page", SWT.NONE);
+		}
 				
 		if (TrpSettings.ENABLE_LINE_EDITOR) {
 			new ToolItem(toolBar, SWT.SEPARATOR);			
@@ -966,11 +991,21 @@ public class TrpMainWidgetView extends Composite {
 		db.bindBeanPropertyToObservableValue(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
 				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.BOTTOM));
 		
+		if (!DISABLE_EXPLICIT_VISIBILITY_BTNS) {
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, showPrintSpaceToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, showRegionsToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, showLinesToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, showBaselinesToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, showWordsToggle);
+		}
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, showPrintspaceItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, showRegionsItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, showLinesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, showBaselinesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, showWordsItem);
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsItem);	
+		
 		//db.bindBoolBeanValueToToolItemSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsToggle);
 		
 		//db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_PROPERTY, trpSets, showReadingOrderToolItem);
@@ -1004,6 +1039,10 @@ public class TrpMainWidgetView extends Composite {
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, showReadingOrderRegionsItem);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, showReadingOrderLinesItem);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, showReadingOrderWordsItem);
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, showReadingOrderRegionsMenuItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, showReadingOrderLinesMenuItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, showReadingOrderWordsMenuItem);		
 				
 //		db.bindBeanToWidgetSelection(TrpSettings.ENABLE_INDEXED_STYLES, trpSets, metadataWidget.getTextStyleWidget().getEnableIndexedStylesBtn());
 		

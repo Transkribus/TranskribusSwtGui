@@ -43,11 +43,17 @@ public class PagingToolBar /*extends Composite*/ {
 	
 	private final int MIN_CURRENT_PAGE_WIDTH = 35;
 	private boolean withDoubleButtons=true;
-
+	private boolean withFirstLastButtons=false;
+	
 	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, Composite parent, int style) {
+		this(labelText, withLabel, withDoubleButtons, false, parent, style);
+	}
+
+	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, boolean withFirstLastButtons, Composite parent, int style) {
 //		super(parent, style);
 //		setLayout(new FillLayout());
 		this.withDoubleButtons = withDoubleButtons;
+		this.withFirstLastButtons = withFirstLastButtons;
 		
 		toolbar = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
 
@@ -82,10 +88,11 @@ public class PagingToolBar /*extends Composite*/ {
 //		label.setBounds(r.x, r.y+20, r.width, r.height);
 		
 		
-		
+		if (withFirstLastButtons) {
 		pageFirstBtn = new ToolItem(toolbar, SWT.PUSH);
 		pageFirstBtn.setImage(Images.getOrLoad("/icons/page-first.gif"));
 		pagingItems.add(pageFirstBtn);
+		}
 		
 		if (withDoubleButtons) {
 		pagePrevDoubleBtn = new ToolItem(toolbar, SWT.PUSH);
@@ -120,9 +127,11 @@ public class PagingToolBar /*extends Composite*/ {
 		pagingItems.add(pageNextDoubleBtn);
 		}
 		
+		if (withFirstLastButtons) {
 		pageLastBtn = new ToolItem(toolbar, SWT.PUSH);
 		pageLastBtn.setImage(Images.getOrLoad("/icons/page-last.gif"));
 		pagingItems.add(pageLastBtn);
+		}
 		
 		reloadBtn = new ToolItem(toolbar, SWT.PUSH);
 		reloadBtn.setImage(Images.getOrLoad("/icons/refresh.gif"));

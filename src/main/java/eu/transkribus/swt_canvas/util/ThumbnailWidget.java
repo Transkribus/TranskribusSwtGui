@@ -5,8 +5,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
-
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;
 import org.eclipse.nebula.widgets.gallery.GalleryItem;
@@ -27,20 +25,16 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
-import eu.transkribus.core.model.beans.pagecontent.WordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.mainwidget.Storage;

@@ -11,6 +11,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 
 public class PagingToolBarNavigationRenderer extends AbstractPageControllerComposite implements SelectionListener, TraverseListener {
 	
@@ -76,12 +77,12 @@ public class PagingToolBarNavigationRenderer extends AbstractPageControllerCompo
 		tb = new PagingToolBar("", true, false, this, SWT.NONE);
 		tb.removeReloadButton();
 		
-		tb.getPageFirstBtn().addSelectionListener(this);
-		tb.getPageLastBtn().addSelectionListener(this);
-		tb.getPageNextBtn().addSelectionListener(this);
-		tb.getPagePrevBtn().addSelectionListener(this);
+		SWTUtil.addSelectionListener(tb.getPageFirstBtn(), this);
+		SWTUtil.addSelectionListener(tb.getPageLastBtn(), this);
+		SWTUtil.addSelectionListener(tb.getPageNextBtn(), this);
+		SWTUtil.addSelectionListener(tb.getPagePrevBtn(), this);
 		
-		tb.getCurrentPageText().addTraverseListener(this);
+		SWTUtil.addTraverseListener(tb.getCurrentPageText(), this);
 	}
 
 	@Override public void keyTraversed(TraverseEvent e) {
