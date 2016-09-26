@@ -10,6 +10,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -19,8 +20,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.LabelToolItem;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.TabFolder;
@@ -30,6 +31,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
@@ -38,6 +40,7 @@ import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt_canvas.portal.PortalWidget;
 import eu.transkribus.swt_canvas.portal.PortalWidget.Docking;
 import eu.transkribus.swt_canvas.portal.PortalWidget.Position;
+import eu.transkribus.swt_canvas.portal.PortalWidget.PositionDocking;
 import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
@@ -108,14 +111,18 @@ public class TrpMainWidgetView extends Composite {
 	ToolItem menuButton, loginToggle, reloadDocumentButton, exportDocumentButton, exportPdfButton, exportTeiButton, exportRtfButton, openLocalFolderButton, closeDocBtn;
 	ToolItem uploadDocsItem, searchBtn;
 
-
-	ToolItem saveTranscriptButton, saveTranscriptWithMessageButton, saveTranscriptAlwaysButton, replacePageImgButton;//deletePageButton, 
-//	DropDownToolItem saveDropItem;
-//	DropDownToolItem languageDropDown;
+	DropDownToolItem saveDrowDown;
+	MenuItem saveTranscriptButton, saveTranscriptWithMessageButton;
+	ToolItem replacePageImgButton;
 	
+	// old dock state buttons:
 	DropDownToolItem leftViewDockingDropItem, rightViewDockingDropItem, bottomViewDockingDropItem;
 	HashMap<Position, DropDownToolItem> dockingToolItems = new HashMap<>();
 	
+	// new dock state buttons:
+	DropDownToolItem viewDockingDropItem;
+	HashMap<PositionDocking, MenuItem>  dockingMenuItems = new HashMap<>();
+
 	ToolItem leftViewVisibleToggle;
 	ToolItem rightViewVisibleToggle;
 	ToolItem bottomViewVisibleToggle;
@@ -166,7 +173,8 @@ public class TrpMainWidgetView extends Composite {
 	MenuItem showReadingOrderLinesMenuItem;
 	MenuItem showReadingOrderWordsMenuItem;
 	
-	static boolean DISABLE_EXPLICIT_VISIBILITY_BTNS = true;
+	private final static boolean DISABLE_EXPLICIT_VISIBILITY_BTNS = true;
+	private final static boolean DISABLE_OLD_DOCK_STATE_BTNS = true;
 		
 	public TrpMainWidgetView(Composite parent, TrpMainWidget mainWidget) {
 		super(parent, SWT.NONE);
@@ -263,7 +271,7 @@ public class TrpMainWidgetView extends Composite {
 		thumbnailWidget = new ThumbnailWidget(leftTabFolder, SWT.NONE);
 		
 		docoverviewItem = createCTabItem(leftTabFolder, docOverviewWidget, Msgs.get2("documents"));
-		structureItem = createCTabItem(leftTabFolder, structureTreeWidget, Msgs.get2("structure"));
+		structureItem = createCTabItem(leftTabFolder, structureTreeWidget, Msgs.get2("layout_tab_title"));
 		jobOverviewItem = createCTabItem(leftTabFolder, jobOverviewWidget, Msgs.get2("jobs"));
 		versionsItem = createCTabItem(leftTabFolder, versionsWidget, Msgs.get2("versions"));
 		thumbnailItem = createCTabItem(leftTabFolder, thumbnailWidget, Msgs.get2("pages"));
@@ -331,9 +339,7 @@ public class TrpMainWidgetView extends Composite {
 		portalWidget.setMinWidth(Position.CENTER, 400);
 		portalWidget.setMinWidth(Position.BOTTOM, 400);
 		portalWidget.setMinWidth(Position.RIGHT, 300);
-		
-		
-		
+
 		portalWidget.setMinHeight(Position.RIGHT, rightTabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		
 		logger.debug("left view docking state: "+getTrpSets().getLeftViewDockingState());
@@ -346,10 +352,29 @@ public class TrpMainWidgetView extends Composite {
 		addBindings();
 		canvasWidget.getToolBar().addBindings(getTrpSets());
 		updateLoginInfo(false, "", "");
+		updateDockingStateButtons();
+		
+		canvasWidget.getToolBar().setParent(this);
+		
+		for (ToolItem ti : canvasWidget.getToolBar().getItems()) {
+//			ti.set
+			
+		}
+		
+//		canvasWidget.getToolBar().setParent(parent)
 		
 		pack();
 	}
 	
+	private void updateDockingStateButtons() {
+		logger.debug("updateDockingStateButtons");
+		for (MenuItem mi : dockingMenuItems.values()) {
+			PositionDocking pd = (PositionDocking) mi.getData();
+			
+			Docking currentDocking = portalWidget.getDocking(pd.pos);
+			mi.setSelection(pd.docking.equals(currentDocking)); // set selection depending on docking state!
+		}
+	}
 	
 	public void changeToTranscriptionWidget(ATranscriptionWidget.Type type) {
 		logger.debug("changing to tr-widget: "+type);
@@ -583,19 +608,28 @@ public class TrpMainWidgetView extends Composite {
 //		pagesPagingToolBar.setDoublePageButtonsVisible(false);
 //		transcriptsPagingToolBar = new PagingToolBar("Transcripts: ", false, this, SWT.NONE);
 		
-		final ToolBar toolBar = pagesPagingToolBar.getToolBar();
+		// retrieve toolbar from pagesPagingToolBar -> this will be the main toolbar where all other items are prepended / appended
+		ToolBar toolBar = pagesPagingToolBar.getToolBar();
+		
+		saveDrowDown = new DropDownToolItem(toolBar, false, true, SWT.CHECK);
+		
+		saveTranscriptButton = saveDrowDown.addItem(RegionTypeUtil.TEXT_REGION, Images.DISK, "", true);
+		saveTranscriptButton.setText("Save");
+		
+		saveTranscriptWithMessageButton = saveDrowDown.addItem(RegionTypeUtil.TEXT_REGION, Images.DISK_MESSAGE, "", false);
+		saveTranscriptWithMessageButton.setText("Save with message");
+		
+		replacePageImgButton = new ToolItem(toolBar, SWT.PUSH);
+		replacePageImgButton.setToolTipText("Replace page image on server");
+		replacePageImgButton.setImage(Images.IMAGE_EDIT);
+		replacePageImgButton.setEnabled(false);		
 		
 		loadTranscriptInTextEditor = new ToolItem(toolBar, SWT.PUSH);
 		loadTranscriptInTextEditor.setToolTipText("Open transcript source");
 		loadTranscriptInTextEditor.setImage(Images.getOrLoad("/icons/script.png"));
-		
-		ToolItem sep1 = new ToolItem(toolBar, SWT.SEPARATOR);
-		
-		if (false) {
-		LabelToolItem trLabelItem = new LabelToolItem(toolBar, SWT.NONE);
-		trLabelItem.setText("Versions: ");
-		}
-						
+
+		new ToolItem(toolBar, SWT.SEPARATOR);
+				
 		int preInsertIndex=0;
 		
 		// open menu button:
@@ -632,7 +666,7 @@ public class TrpMainWidgetView extends Composite {
 //		languageDropDown.selectItem(i, false);
 		
 		
-		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
+//		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
 		loginToggle = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		loginToggle.setToolTipText("Login");
@@ -669,6 +703,58 @@ public class TrpMainWidgetView extends Composite {
 //				}
 //			};
 			
+			viewDockingDropItem = new DropDownToolItem(toolBar, false, true, SWT.CASCADE, preInsertIndex++);
+
+//			MenuItem lvMi = viewDockingDropItem.addItem("Left view", Images.APPLICATION, "Change docking states of the different views");
+//			MenuItem rvMi = viewDockingDropItem.addItem("Right view", Images.APPLICATION, "Change docking states of the different views");
+//			MenuItem bvMi = viewDockingDropItem.addItem("Bottom view", Images.APPLICATION, "Change docking states of the different views");
+			
+			
+			SelectionListener dockingStateSl = new SelectionAdapter() {
+				@Override public void widgetSelected(SelectionEvent e) {
+					if (!(e.getSource() instanceof MenuItem))
+						return;
+					
+					MenuItem mi = (MenuItem) e.getSource();
+					if (!(mi.getData() instanceof PositionDocking))
+						return;
+					
+					portalWidget.setWidgetDockingType((PositionDocking) mi.getData());
+				}
+			};
+			
+			Position[] positions = { Position.LEFT, Position.RIGHT, Position.BOTTOM };
+			Docking[] dockings = { Docking.DOCKED, Docking.UNDOCKED, Docking.INVISIBLE };
+			String[] cascadeLabels = { "Left view", "Right view", "Bottom view" };
+			String[] dockingsLabels = { "Docked", "Undocked", "Invisible" };	
+
+			// for all positions
+			int i=0;
+			for (Position p : positions) {
+				// create the cascade menu
+				MenuItem cmi = viewDockingDropItem.addItem(cascadeLabels[i], Images.APPLICATION, "Change docking states of the different views");
+				
+				// create sub-menu and attach it
+				Menu cmiMenu = new Menu(viewDockingDropItem.getMenu());
+				cmi.setMenu(cmiMenu);
+				
+				// create sub-menu items
+				int j=0;
+				for (Docking d : dockings) {
+					MenuItem dockItem = new MenuItem(cmiMenu, SWT.RADIO);
+					PositionDocking pd = new PositionDocking(p, d);
+					dockItem.setData(new PositionDocking(p, d));
+					dockItem.setText(dockingsLabels[j]);
+					dockItem.addSelectionListener(dockingStateSl);
+					
+					dockingMenuItems.put(pd, dockItem);
+					++j;
+				}
+
+				++i;
+			}
+
+			if (!DISABLE_OLD_DOCK_STATE_BTNS) {
 			leftViewDockingDropItem = new DropDownToolItem(toolBar, false, true, SWT.RADIO, preInsertIndex++);
 			leftViewDockingDropItem.addItem("Docked", Images.APPLICATION_SIDE_CONTRACT, "Left view docking state: docked", false, Docking.DOCKED);
 			leftViewDockingDropItem.addItem("Undocked", Images.APPLICATION_SIDE_CONTRACT, "Left view docking state: undocked", false, Docking.UNDOCKED);
@@ -692,6 +778,7 @@ public class TrpMainWidgetView extends Composite {
 			dockingToolItems.put(Position.BOTTOM, bottomViewDockingDropItem);
 			bottomViewDockingDropItem.selectItem(0, false);
 //			bottomViewDockingDropItem.ti.addSelectionListener(new DockingSl(bottomViewDockingDropItem, Position.BOTTOM));
+			}
 		}
 		
 		else {
@@ -713,29 +800,28 @@ public class TrpMainWidgetView extends Composite {
 		profilesToolItem.ti.setToolTipText("Profiles");
 		updateProfiles();
 		
-		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);	
-		
-		uploadDocsItem = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		uploadDocsItem.setToolTipText("Ingest or upload documents");
-//		uploadFromPrivateFtpItem.setImage(Images.getOrLoad("/icons/weather_clouds.png"));
-		uploadDocsItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
+		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
 		openLocalFolderButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		openLocalFolderButton.setToolTipText("Open local folder");
+		openLocalFolderButton.setToolTipText("Open local document");
 		openLocalFolderButton.setImage(Images.getOrLoad("/icons/folder.png"));
 		
+		uploadDocsItem = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
+		uploadDocsItem.setToolTipText("Import document(s)");
+//		uploadFromPrivateFtpItem.setImage(Images.getOrLoad("/icons/weather_clouds.png"));
+		uploadDocsItem.setImage(Images.getOrLoad("/icons/folder_import.png"));
+		
+		exportDocumentButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
+		exportDocumentButton.setToolTipText("Export document");
+		exportDocumentButton.setImage(Images.getOrLoad("/icons/folder_go.png"));
+		exportDocumentButton.setEnabled(false);		
+		
+		if (false) {
 		closeDocBtn = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		closeDocBtn.setToolTipText("Close document");
 		closeDocBtn.setImage(Images.getOrLoad("/icons/cancel.png"));
-		
-		saveTranscriptButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		saveTranscriptButton.setToolTipText("Save page");
-		saveTranscriptButton.setImage(Images.getOrLoad("/icons/disk.png"));
-		
-		saveTranscriptWithMessageButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		saveTranscriptWithMessageButton.setToolTipText("Save page with commit message");
-		saveTranscriptWithMessageButton.setImage(Images.getOrLoad("/icons/disk_message.png"));
-		
+		}
+				
 //		saveDropItem = new DropDownToolItem(toolBar, false, true, SWT.RADIO, preInsertIndex++);
 //		saveDropItem.addItem("Save page", Images.getOrLoad("/icons/disk.png"), "");
 //		saveDropItem.addItem("Save page with commit message", Images.getOrLoad("/icons/disk_message.png"), "");
@@ -751,11 +837,6 @@ public class TrpMainWidgetView extends Composite {
 		reloadDocumentButton.setImage(Images.getOrLoad("/icons/refresh.gif"));
 		}
 		
-		exportDocumentButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		exportDocumentButton.setToolTipText("Export document");
-		exportDocumentButton.setImage(Images.getOrLoad("/icons/folder_go.png"));
-		exportDocumentButton.setEnabled(false);
-	
 		/*
 		 * moved to Main Menu
 		 */
@@ -764,12 +845,7 @@ public class TrpMainWidgetView extends Composite {
 //		deletePageButton.setImage(Images.IMAGE_DELETE);
 //		deletePageButton.setEnabled(false);
 		
-		replacePageImgButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		replacePageImgButton.setToolTipText("Replace page image on server");
-		replacePageImgButton.setImage(Images.IMAGE_EDIT);
-		replacePageImgButton.setEnabled(false);
-		
-		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
+//		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
 		searchBtn = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		searchBtn.setToolTipText("Search for documents, keywords... tbc");
@@ -930,17 +1006,36 @@ public class TrpMainWidgetView extends Composite {
 		// segmentation menu listener:
 		menuListener = new MenuListener(this);
 		
+		if (!DISABLE_OLD_DOCK_STATE_BTNS) {
 		// if 'selection' event in PortalWidget, then some dock status has changed -> adjust button selection!
 		portalWidget.addListener(SWT.Selection, new Listener() {
 			@Override public void handleEvent(Event event) {
 				Position pos = (Position) event.data;
 				Docking docking = portalWidget.getDocking(pos);
+				logger.debug("selection event in PortalWidget, pos = "+pos+" docking = "+docking);
+				
 				MenuItem mi = dockingToolItems.get(pos).getItemWithData(docking);
 				if (mi!=null)
 					dockingToolItems.get(pos).selectItem(mi, false);
+				
+//				MenuItem mi2 = dockingMenuItems.get(new PositionDocking(pos, docking));
+//				logger.debug("mi2 = "+mi2);
+//				
+//				if (mi2 != null) {
+//					mi2.setSelection(true);
+//				}
+			}
+		});
+		}
+
+		// if 'selection' event in PortalWidget, then some dock status has changed -> adjust button selection!
+		portalWidget.addListener(SWT.Selection, new Listener() {
+			@Override public void handleEvent(Event event) {
+				updateDockingStateButtons();
 			}
 		});
 		
+		if (!DISABLE_OLD_DOCK_STATE_BTNS) {
 		// set docking state in PortalWidget according to button selections:
 		class DockingItemSelectionListener extends SelectionAdapter {
 			Position pos;
@@ -961,6 +1056,7 @@ public class TrpMainWidgetView extends Composite {
 		leftViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(leftViewDockingDropItem, PortalWidget.Position.LEFT));
 		rightViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(rightViewDockingDropItem, PortalWidget.Position.RIGHT));
 		bottomViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(bottomViewDockingDropItem, PortalWidget.Position.BOTTOM));
+		}
 
 //		trpSets.addPropertyChangeListener(new PropertyChangeListener() {
 //			@Override
@@ -1211,12 +1307,12 @@ public class TrpMainWidgetView extends Composite {
 	public ToolItem getExportPdfButton() { return exportPdfButton; }
 	public ToolItem getExportTeiButton() { return exportTeiButton; }
 	public ToolItem getExportRtfButton() { return exportRtfButton; }
-	public ToolItem getSaveTranscriptButton() { return saveTranscriptButton; }
-	public ToolItem getSaveTranscriptWithMessageButton() { return saveTranscriptWithMessageButton; }
+	public MenuItem getSaveTranscriptButton() { return saveTranscriptButton; }
+	public MenuItem getSaveTranscriptWithMessageButton() { return saveTranscriptWithMessageButton; }
 //	public DropDownToolItem getSaveDropItem() { return saveDropItem; }
 	public ToolItem getOpenLocalFolderButton() { return openLocalFolderButton; }
 	public ToolItem getCloseDocBtn() { return closeDocBtn; }
-	public ToolItem getSaveTranscriptAlwaysButton() { return saveTranscriptAlwaysButton; }
+//	public ToolItem getSaveTranscriptAlwaysButton() { return saveTranscriptAlwaysButton; }
 	public ToolItem getLoadTranscriptInTextEditor() { return loadTranscriptInTextEditor; }
 	public ToolItem getSendBugReportButton() { return sendBugReportButton; }
 	
@@ -1329,6 +1425,10 @@ public class TrpMainWidgetView extends Composite {
 	
 	public ThumbnailWidget getThumbnailWidget() {
 		return thumbnailWidget;
+	}
+
+	public DropDownToolItem getSaveDropDown() {
+		return saveDrowDown;
 	}
 
 }

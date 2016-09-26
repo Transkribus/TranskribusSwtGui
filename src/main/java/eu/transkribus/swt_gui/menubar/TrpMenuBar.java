@@ -217,6 +217,7 @@ public class TrpMenuBar {
 		proxySettingsMenuItem.setText("&Proxy settings...");
 		proxySettingsMenuItem.setImage(Images.getOrLoad("/icons/server_connect.png"));
 		
+		if (false) {
 		languageMenuItem = new MenuItem(menuBar, SWT.CASCADE);
 		languageMenuItem.setText("&Language (todo...)");
 		languageMenuItem.setImage(Images.getOrLoad("/icons/server_connect.png"));
@@ -230,6 +231,7 @@ public class TrpMenuBar {
 			li.setData(l);
 			if (l.equals(TrpConfig.getTrpSettings().getLocale()))
 				li.setSelection(true);
+		}
 		}
 		
 		manageCollectionsMenuItem = new MenuItem(menuBar, SWT.NONE);

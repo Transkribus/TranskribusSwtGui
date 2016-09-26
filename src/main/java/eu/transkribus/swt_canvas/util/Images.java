@@ -20,12 +20,15 @@ public class Images {
 	public static final Image ERROR_IMG = Images.getOrLoad("/icons/broken_image.png");
 	public static final Image COMMENT = Images.getOrLoad("/icons/comment.png");
 	public static final Image CONTROL_EQUALIZER = Images.getOrLoad("/icons/control_equalizer.png");
+	
+	public static final Image DISK1 = Images.getOrLoad("/icons/disk.png");
 
 	public static final Image IMAGE_EDIT = Images.getOrLoad("/icons/image_edit.png");
 	public static final Image IMAGE_DELETE = Images.getOrLoad("/icons/image_delete.png");
 
 	public static final Image CONTRAST = Images.getOrLoad("/icons/contrast.png");
 
+	public static final Image APPLICATION = getOrLoad("/icons/application.png");
 	public static final Image APPLICATION_SIDE_CONTRACT = getOrLoad("/icons/application_side_contract.png");
 	public static final Image APPLICATION_SIDE_EXPAND = getOrLoad("/icons/application_side_expand.png");
 	public static final Image APPLICATION_SIDE_PUT = getOrLoad("/icons/application_put.png");
@@ -60,6 +63,8 @@ public class Images {
 	public static final Image FIND = getOrLoad("/icons/find.png");
 
 	public static final Image DISK = getOrLoad("/icons/disk.png");
+	public static final Image DISK_MESSAGE = getOrLoad("/icons/disk_message.png");
+	
 	public static final Image PAGE_NEXT = getOrLoad("/icons/page-next.gif");
 	public static final Image PAGE_PREV = getOrLoad("/icons/page-prev.gif");
 

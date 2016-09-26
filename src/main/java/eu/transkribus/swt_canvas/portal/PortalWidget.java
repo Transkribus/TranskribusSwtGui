@@ -28,6 +28,18 @@ import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import junit.framework.Assert;
 
 public class PortalWidget extends Composite {
+	
+	public static class PositionDocking {
+		public PositionDocking(Position pos, Docking docking) {
+			super();
+			this.pos = pos;
+			this.docking = docking;
+		}
+		
+		public Position pos;
+		public Docking docking;
+	}
+	
 	public static enum Position {		
 		TOP(true), BOTTOM(false), LEFT(true), RIGHT(false), CENTER(false);
 		
@@ -405,6 +417,11 @@ public class PortalWidget extends Composite {
 		
 		return shell;
 	}
+	
+	public void setWidgetDockingType(PositionDocking posDock) {
+		setWidgetDockingType(posDock.pos, posDock.docking);
+	}
+	
 	// TEST
 	public void setWidgetDockingType(Position pos, Docking docking) {
 		Assert.assertNotNull(pos);

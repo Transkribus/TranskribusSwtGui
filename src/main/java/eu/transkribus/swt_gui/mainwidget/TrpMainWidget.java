@@ -317,7 +317,8 @@ public class TrpMainWidget {
 		}
 		
 		boolean TESTTABLES=false; // test-hook for sebi's table editor
-		if (getTrpSets().isAutoLogin() && !TESTTABLES) {
+		boolean DO_AUTO_LOGIN = false;
+		if (DO_AUTO_LOGIN && getTrpSets().isAutoLogin() && !TESTTABLES) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
 			
 			if(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE.equals(lastAccount)) {
@@ -1775,8 +1776,7 @@ public class TrpMainWidget {
 		}
 		
 		SWTUtil.setEnabled(ui.getCloseDocBtn(), isDocLoaded);
-		SWTUtil.setEnabled(ui.getSaveTranscriptButton(), isDocLoaded);
-		SWTUtil.setEnabled(ui.getSaveTranscriptWithMessageButton(), isDocLoaded);
+		SWTUtil.setEnabled(ui.getSaveDropDown(), isDocLoaded);
 		
 		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);

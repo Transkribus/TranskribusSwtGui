@@ -338,6 +338,10 @@ public class DropDownToolItem extends Widget {
 		
 	}
 
+	public Menu getMenu() {
+		return listener.menu;
+	}
+
 	
 //	public void addSelectionListener(SelectionListener l) {
 //		selListener.add(l);

@@ -80,27 +80,26 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		SWTUtil.addSelectionListener(ui.getExportTeiButton(), this);
 		SWTUtil.addSelectionListener(ui.getExportRtfButton(), this);
 		
-		ui.getSaveTranscriptButton().addSelectionListener(this);
-		ui.getSaveTranscriptWithMessageButton().addSelectionListener(this);
-		ui.getOpenLocalFolderButton().addSelectionListener(this);
-		ui.getCloseDocBtn().addSelectionListener(this);
-		ui.getLoadTranscriptInTextEditor().addSelectionListener(this);
-		ui.getSendBugReportButton().addSelectionListener(this);
-		ui.getLoginToggle().addSelectionListener(this);
+		SWTUtil.addSelectionListener(ui.getSaveTranscriptButton(), this);
+		SWTUtil.addSelectionListener(ui.getSaveTranscriptWithMessageButton(), this);
 		
-		ui.getUploadDocsItem().addSelectionListener(this);
-		ui.getSearchBtn().addSelectionListener(this);
+		SWTUtil.addSelectionListener(ui.getCloseDocBtn(), this);
 		
+		SWTUtil.addSelectionListener(ui.getOpenLocalFolderButton(), this);
+		SWTUtil.addSelectionListener(ui.getLoadTranscriptInTextEditor(), this);
+		SWTUtil.addSelectionListener(ui.getSendBugReportButton(), this);
+		SWTUtil.addSelectionListener(ui.getLoginToggle(), this);
+		
+		SWTUtil.addSelectionListener(ui.getUploadDocsItem(), this);
+		SWTUtil.addSelectionListener(ui.getSearchBtn(), this);
+						
 		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addKeySelectionListener(this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
 		SWTUtil.addSelectionListener(ui.getProfilesToolItem().ti, this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getLanguageDropDown().ti, this);
-		
-		ui.getThumbnailWidget().getCreateThumbs().addSelectionListener(this);
-		
-		// listener for tagging:
+		SWTUtil.addSelectionListener(ui.getThumbnailWidget().getCreateThumbs(), this);
 	}
 	
 	@Override
@@ -212,10 +211,18 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		else if (s == menuBar.getSaveTranscriptionToNewFileMenuItem()) {
 			mainWidget.saveTranscriptionToNewFile();
 		}
+		
+//		else if (s == menuBar.getSaveTranscriptionMenuItem() || s == ui.getSaveTranscriptButton()) {
+//			mainWidget.saveTranscription(false);
+//		}
+		
 		else if (s == menuBar.getSaveTranscriptionMenuItem() || s == ui.getSaveTranscriptButton()) {
+			logger.debug("here!");
 			mainWidget.saveTranscription(false);
-		}
+		}	
+		
 		else if (s == ui.getSaveTranscriptWithMessageButton()) {
+			logger.debug("here2!");
 			mainWidget.saveTranscription(true);
 		}
 		else if (s == menuBar.getUpdateMenuItem()) {
