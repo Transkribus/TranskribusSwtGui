@@ -272,7 +272,13 @@ public abstract class ATranscriptionWidget extends Composite{
 	public ATranscriptionWidget(Composite parent, int style, TrpSettings settings, TrpMainWidgetView view) {
 		super(parent, style);
 		this.view = view;
-		setLayout(new GridLayout(1, true));
+		
+		GridLayout l = new GridLayout(1, true);
+		l.marginTop = 0;
+		l.marginBottom = 0;
+		
+		setLayout(l);
+
 //		setLayout(new FillLayout());
 //		FillLayout f = new FillLayout();
 //		f.type = SWT.VERTICAL;
@@ -280,8 +286,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		this.settings = settings;
 				
-		initToolBar();
-		regionsToolbar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+//		initToolBar();
+//		regionsToolbar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		
 		container = new SashForm(this, SWT.VERTICAL);
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -307,6 +313,9 @@ public abstract class ATranscriptionWidget extends Composite{
 				KeyStroke.getInstance(SWT.CTRL, SWT.SPACE), null
 				);
 		autocomplete.getAdapter().setEnabled(false);
+		
+		initToolBar();
+		regionsToolbar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 
 		initListener();
 		
@@ -324,6 +333,8 @@ public abstract class ATranscriptionWidget extends Composite{
 //				text.setCaretOffset(event.start);
 //			}
 //		});
+		
+
 		////////////////////////
 		
 		setWordGraphEditorVisibility(false);
@@ -508,7 +519,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	protected void initToolBar() {
-		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, false, this, SWT.FLAT);
+		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, false, this, SWT.FLAT | SWT.BOTTOM);
 		regionsPagingToolBar.removeReloadButton();
 		regionsPagingToolBar.removeDoubleButtons();
 		regionsToolbar = regionsPagingToolBar.getToolBar();

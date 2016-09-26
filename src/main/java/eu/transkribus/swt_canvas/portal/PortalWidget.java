@@ -2,12 +2,8 @@ package eu.transkribus.swt_canvas.portal;
 
 import java.util.HashMap;
 
-import org.apache.batik.dom.GenericEntityReference;
-import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.core.databinding.observable.map.IObservableMap;
 import org.eclipse.core.databinding.observable.map.WritableMap;
-import org.eclipse.core.databinding.observable.value.IObservableValue;
-import org.eclipse.core.databinding.property.Properties;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -22,9 +18,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import junit.framework.Assert;
 
 public class PortalWidget extends Composite {
@@ -77,7 +70,7 @@ public class PortalWidget extends Composite {
 	
 	private final static Logger logger = LoggerFactory.getLogger(PortalWidget.class);
 	
-	public static final int DEFAULT_SASH_WIDTH = 5;
+	public static final int DEFAULT_SASH_WIDTH = 3;
 	
 	private static int[] DEFAULT_WEIGHTS_HORIZONTAL_TOP_LEVEL = new int[] { 800, 220};
 	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 350, 1000};

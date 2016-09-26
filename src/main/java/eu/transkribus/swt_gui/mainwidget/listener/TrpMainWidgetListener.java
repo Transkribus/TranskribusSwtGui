@@ -80,6 +80,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		SWTUtil.addSelectionListener(ui.getExportTeiButton(), this);
 		SWTUtil.addSelectionListener(ui.getExportRtfButton(), this);
 		
+		SWTUtil.addSelectionListener(ui.getSaveDropDown().ti, this);
 		SWTUtil.addSelectionListener(ui.getSaveTranscriptButton(), this);
 		SWTUtil.addSelectionListener(ui.getSaveTranscriptWithMessageButton(), this);
 		
@@ -106,6 +107,8 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
 		Storage storage = Storage.getInstance();
+		
+		logger.debug("source = "+s);
 				
 		// MENU BUTTONS:
 		if (s == ui.getLoginToggle()) {
@@ -216,15 +219,22 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 //			mainWidget.saveTranscription(false);
 //		}
 		
+		
 		else if (s == menuBar.getSaveTranscriptionMenuItem() || s == ui.getSaveTranscriptButton()) {
 			logger.debug("here!");
 			mainWidget.saveTranscription(false);
-		}	
-		
+		}
 		else if (s == ui.getSaveTranscriptWithMessageButton()) {
 			logger.debug("here2!");
 			mainWidget.saveTranscription(true);
 		}
+		
+//		else if (s == ui.getSaveDropDown().ti && e.detail != SWT.ARROW) {
+//			boolean withCommitMessage = ui.getSaveDropDown().getSelected() == ui.getSaveTranscriptWithMessageButton();
+//			mainWidget.saveTranscription(withCommitMessage);
+//		}
+		
+		
 		else if (s == menuBar.getUpdateMenuItem()) {
 			mainWidget.checkForUpdates();
 		}

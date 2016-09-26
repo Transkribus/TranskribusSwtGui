@@ -62,7 +62,12 @@ public class CanvasWidget extends Composite {
 	}
 	
 	protected void init(TrpSWTCanvas canvas, CanvasToolBar toolBar) {
-		setLayout(new GridLayout(1, false));
+		
+		GridLayout l = new GridLayout(1, false);
+		l.marginTop = 0;
+		l.marginBottom = 0;
+		
+		setLayout(l);
 		
 		if (this.canvas != null && !this.canvas.isDisposed())
 			this.canvas.dispose();
@@ -88,6 +93,7 @@ public class CanvasWidget extends Composite {
 		
 		this.canvas.setParent(this);
 		
+		addListener();
 	}
 	
 	protected void addListener() {

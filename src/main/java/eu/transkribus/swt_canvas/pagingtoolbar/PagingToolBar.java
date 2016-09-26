@@ -55,7 +55,7 @@ public class PagingToolBar /*extends Composite*/ {
 		this.withDoubleButtons = withDoubleButtons;
 		this.withFirstLastButtons = withFirstLastButtons;
 		
-		toolbar = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
+		toolbar = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT | style);
 
 //		toolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 //		toolbar.setLayout(new GridLayout());

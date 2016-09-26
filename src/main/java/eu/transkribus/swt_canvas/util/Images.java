@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 public class Images {
+	public static final Image BURGER = Images.getOrLoad("/icons/burger_16.png");
 	public static final Image EYE = Images.getOrLoad("/icons/eye.png");
 	public static final Image LOCK = getOrLoad("/icons/lock.png");
 	public static final Image LOCK_OPEN = getOrLoad("/icons/lock_open.png");

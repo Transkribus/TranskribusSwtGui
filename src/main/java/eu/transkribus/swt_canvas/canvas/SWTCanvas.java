@@ -37,7 +37,6 @@ import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.GeomUtils;
 import eu.transkribus.swt_canvas.util.Resources;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class SWTCanvas extends Canvas {
 	private final static Logger logger = LoggerFactory
@@ -45,7 +44,8 @@ public class SWTCanvas extends Canvas {
 
 	// --------------------- PUBLIC STATIC FINAL CONSTANTS:
 	// ---------------------
-	public final static int STYLE_BITS = SWT.BORDER
+	public final static int STYLE_BITS = 0
+			| SWT.BORDER
 	// | SWT.NO_BACKGROUND
 			| SWT.DOUBLE_BUFFERED;
 	// --------------------- PROTECTED MEMBERS: ---------------------
@@ -87,6 +87,7 @@ public class SWTCanvas extends Canvas {
 	public SWTCanvas(final Composite parent, int style) {
 		super(parent, style | STYLE_BITS);
 		// setLayout(new GridLayout(1, false));
+	
 		setLayout(null); // absolute layout
 
 		// parent.setBackground(getDisplay().getSystemColor(SWT.COLOR_BLUE));

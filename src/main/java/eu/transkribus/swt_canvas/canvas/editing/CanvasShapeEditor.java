@@ -679,6 +679,54 @@ public class CanvasShapeEditor {
 		}		
 	}
 	
+	private ShapeEditOperation moveShapeDefault(ICanvasShape shape, int mouseTrX, int mouseTrY, ShapeEditOperation currentMoveOp, boolean addToUndoStack) {
+		// invert transform:
+		java.awt.Point transWoTr = canvas.getPersistentTransform().inverseTransformWithoutTranslation(mouseTrX, mouseTrY);
+		logger.trace("t = "+transWoTr);
+				
+		// if first move --> determine shapes to move
+		if (currentMoveOp==null) {
+			List<ICanvasShape> shapesToMove = new ArrayList<>();
+			shapesToMove.add(shape);
+			// move subshapes if required key down:
+			if (CanvasKeys.isKeyDown(canvas.getKeyListener().getCurrentStateMask(), CanvasKeys.MOVE_SUBSHAPES_REQUIRED_KEY)) {
+				logger.debug("moving subshapes!");
+				shapesToMove.addAll(shape.getChildren(true));
+			}
+			currentMoveOp = new ShapeEditOperation(ShapeEditType.EDIT, "Moved shape(s)", shapesToMove);
+			if (addToUndoStack) {
+				addToUndoStack(currentMoveOp);
+			}
+		}
+		
+		// now move all shapes for the current move operation:
+//		boolean movedFirst = true;
+		for (int i=0; i<currentMoveOp.getShapes().size(); ++i) {
+			ICanvasShape s = currentMoveOp.getShapes().get(i);
+			
+			// reset points if this isnt the first move (translation is always specified global for one move to prevent rounding errors!)
+//			if (!firstMove) {
+				ICanvasShape bs = currentMoveOp.getBackupShapes().get(i);
+				s.setPoints(bs.getPoints());
+//			}
+						
+			boolean moved = scene.moveShape(s, transWoTr.x, transWoTr.y, true); 
+			
+			if (i == 0 && !moved) { // if first shape (i.e. parent shape) was not moved, jump out
+				return null;
+//				movedFirst = false;
+//				break;
+			}
+		}
+		
+//		if (addToUndoStack /*&& movedFirst*/ && firstMove && currentMoveOp!=null) {
+//			addToUndoStack(currentMoveOp);
+//		}
+		
+		return currentMoveOp;
+		
+	}
+	
 	/** Translate the selection object by the given coordinates. The translation is always given as the \emph{total}
 	 * translation for a current move operation so that rounding errors are minimized! 
 	 * **/
@@ -702,50 +750,51 @@ public class CanvasShapeEditor {
 			} else
 				return moveTableCell(shape, mouseTrX, mouseTrY, currentMoveOp, addToUndoStack);
 		} else {
-			// invert transform:
-			java.awt.Point transWoTr = canvas.getPersistentTransform().inverseTransformWithoutTranslation(mouseTrX, mouseTrY);
-			logger.trace("t = "+transWoTr);
-					
-			// if first move --> determine shapes to move
-			if (currentMoveOp==null) {
-				List<ICanvasShape> shapesToMove = new ArrayList<>();
-				shapesToMove.add(shape);
-				// move subshapes if required key down:
-				if (CanvasKeys.isKeyDown(canvas.getKeyListener().getCurrentStateMask(), CanvasKeys.MOVE_SUBSHAPES_REQUIRED_KEY)) {
-					logger.debug("moving subshapes!");
-					shapesToMove.addAll(shape.getChildren(true));
-				}
-				currentMoveOp = new ShapeEditOperation(ShapeEditType.EDIT, "Moved shape(s)", shapesToMove);
-				if (addToUndoStack) {
-					addToUndoStack(currentMoveOp);
-				}
-			}
-			
-			// now move all shapes for the current move operation:
-	//		boolean movedFirst = true;
-			for (int i=0; i<currentMoveOp.getShapes().size(); ++i) {
-				ICanvasShape s = currentMoveOp.getShapes().get(i);
-				
-				// reset points if this isnt the first move (translation is always specified global for one move to prevent rounding errors!)
-	//			if (!firstMove) {
-					ICanvasShape bs = currentMoveOp.getBackupShapes().get(i);
-					s.setPoints(bs.getPoints());
-	//			}
-							
-				boolean moved = scene.moveShape(s, transWoTr.x, transWoTr.y, true); 
-				
-				if (i == 0 && !moved) { // if first shape (i.e. parent shape) was not moved, jump out
-					return null;
-	//				movedFirst = false;
-	//				break;
-				}
-			}
-			
-	//		if (addToUndoStack /*&& movedFirst*/ && firstMove && currentMoveOp!=null) {
-	//			addToUndoStack(currentMoveOp);
-	//		}
-			
-			return currentMoveOp;
+			return moveShapeDefault(shape, mouseTrX, mouseTrY, currentMoveOp, addToUndoStack);
+//			// invert transform:
+//			java.awt.Point transWoTr = canvas.getPersistentTransform().inverseTransformWithoutTranslation(mouseTrX, mouseTrY);
+//			logger.trace("t = "+transWoTr);
+//					
+//			// if first move --> determine shapes to move
+//			if (currentMoveOp==null) {
+//				List<ICanvasShape> shapesToMove = new ArrayList<>();
+//				shapesToMove.add(shape);
+//				// move subshapes if required key down:
+//				if (CanvasKeys.isKeyDown(canvas.getKeyListener().getCurrentStateMask(), CanvasKeys.MOVE_SUBSHAPES_REQUIRED_KEY)) {
+//					logger.debug("moving subshapes!");
+//					shapesToMove.addAll(shape.getChildren(true));
+//				}
+//				currentMoveOp = new ShapeEditOperation(ShapeEditType.EDIT, "Moved shape(s)", shapesToMove);
+//				if (addToUndoStack) {
+//					addToUndoStack(currentMoveOp);
+//				}
+//			}
+//			
+//			// now move all shapes for the current move operation:
+//	//		boolean movedFirst = true;
+//			for (int i=0; i<currentMoveOp.getShapes().size(); ++i) {
+//				ICanvasShape s = currentMoveOp.getShapes().get(i);
+//				
+//				// reset points if this isnt the first move (translation is always specified global for one move to prevent rounding errors!)
+//	//			if (!firstMove) {
+//					ICanvasShape bs = currentMoveOp.getBackupShapes().get(i);
+//					s.setPoints(bs.getPoints());
+//	//			}
+//							
+//				boolean moved = scene.moveShape(s, transWoTr.x, transWoTr.y, true); 
+//				
+//				if (i == 0 && !moved) { // if first shape (i.e. parent shape) was not moved, jump out
+//					return null;
+//	//				movedFirst = false;
+//	//				break;
+//				}
+//			}
+//			
+//	//		if (addToUndoStack /*&& movedFirst*/ && firstMove && currentMoveOp!=null) {
+//	//			addToUndoStack(currentMoveOp);
+//	//		}
+//			
+//			return currentMoveOp;
 		}
 	}
 
@@ -833,7 +882,7 @@ public class CanvasShapeEditor {
 	//		logger.debug("Parent = "+selected.getParent()); // IS NULL...			
 	//		scene.selectObject(selected.getParent(), false, false);
 	
-			List<ShapeEditOperation> splitOps = this.splitShape(shape, pl, true);
+			List<ShapeEditOperation> splitOps = splitShapeDefault(shape, pl, true);
 	
 			// try to select first split of baseline:
 			logger.debug("trying to select left baseline split, nr of ops = "+splitOps.size());
@@ -871,7 +920,7 @@ public class CanvasShapeEditor {
 			logger.debug("n-splittableCells: "+splittableCells.cells.size());
 			
 			for (TrpTableCellType c : splittableCells.cells) {
-				List<ShapeEditOperation> splitOps4Cell = this.splitShape((ICanvasShape) c.getData(), pl, false);
+				List<ShapeEditOperation> splitOps4Cell = splitShapeDefault((ICanvasShape) c.getData(), pl, false);
 				splitOp.addNestedOps(splitOps4Cell);
 				splitOp.addCellBackup(c);
 			}
@@ -957,79 +1006,134 @@ public class CanvasShapeEditor {
 	
 			return ops;
 		}
-
-	public List<ShapeEditOperation> splitShape(ICanvasShape shape, CanvasPolyline pl, boolean addToUndoStack) {
-			try {
-		//		ICanvasShape selected = canvas.getFirstSelected();
-				if (shape == null) {
-					logger.warn("Cannot split - no shape selected!");
-					return null;
-				}
+	
+	private List<ShapeEditOperation> splitShapeDefault(ICanvasShape shape, CanvasPolyline pl, boolean addToUndoStack) {
+	//		ICanvasShape selected = canvas.getFirstSelected();
+		if (shape == null) {
+			logger.warn("Cannot split - no shape selected!");
+			return null;
+		}
+		
+		List<ICanvasShape> children = shape.getChildren(true); // get all children (recursively)!
+		List<ShapeEditOperation> splitOps = new ArrayList<>();
 				
-				TrpTableRegionType table = TableUtils.getTable(shape, true);
-				
-				if (shape.getData() instanceof TrpBaselineType) {
-					return splitBaseline(shape, pl);
+		ShapeEditOperation op = scene.splitShape(shape, pl, true, null, null, false);
+		if (op!=null) {
+			splitOps.add(op);
+		}
+		
+		// Split all child shapes
+		for (ICanvasShape child : children) {
+			// Determine the parent shapes of the child shape that shall be splitted by iterating through the edit operations that were done so far
+			ICanvasShape p1=null, p2=null;
+			for (ShapeEditOperation opParent : splitOps) {
+				if (opParent.getNewShapes().get(0).equals(child.getParent()) 
+						|| opParent.getNewShapes().get(1).equals(child.getParent())) {
+					p1 = opParent.getNewShapes().get(0);
+					p2 = opParent.getNewShapes().get(1);
+	//					logger.debug("readjusting child elements - parents: "+p1+"/"+p2);
+					break;
 				}
-				else if (table != null) {
-					return splitTable(table, pl, addToUndoStack);
-				}
-				else { // perform default split operation on base class
-//					ICanvasShape selected = canvas.getFirstSelected();
-					if (shape == null) {
-						logger.warn("Cannot split - no shape selected!");
-						return null;
-					}
-					
-					List<ICanvasShape> children = shape.getChildren(true); // get all children (recursively)!
-					List<ShapeEditOperation> splitOps = new ArrayList<>();
-							
-					ShapeEditOperation op = scene.splitShape(shape, pl, true, null, null, false);
-					if (op!=null) {
-						splitOps.add(op);
-					}
-					
-					// Split all child shapes
-					for (ICanvasShape child : children) {
-						// Determine the parent shapes of the child shape that shall be splitted by iterating through the edit operations that were done so far
-						ICanvasShape p1=null, p2=null;
-						for (ShapeEditOperation opParent : splitOps) {
-							if (opParent.getNewShapes().get(0).equals(child.getParent()) 
-									|| opParent.getNewShapes().get(1).equals(child.getParent())) {
-								p1 = opParent.getNewShapes().get(0);
-								p2 = opParent.getNewShapes().get(1);
-//								logger.debug("readjusting child elements - parents: "+p1+"/"+p2);
-								break;
-							}
-						}
-						
-						// Try to split child shape using the parents that were just determined:
-						logger.debug("p1 / p2 = "+p1+" / "+p2);
-						ShapeEditOperation opChild = scene.splitShape(child, pl, true, p1, p2, true);
-						if (opChild!=null) {
-							splitOps.add(opChild);
-						}
-					}
-					
-					if (splitOps.isEmpty()) {
-						logger.warn("Cannot split - no shapes actually splitted by line!");
-						return null;
-					}
-					
-					scene.notifyOnAfterShapeSplitted(op);
-					
-					if (addToUndoStack)
-						addToUndoStack(splitOps);
-					
-					return splitOps;
-//					return super.splitShape(shape, pl, addToUndoStack);
-				}
-			} catch (Exception e) {
-	//			logger.debug("error", e);
-				TrpMainWidget.getInstance().onError("Error splitting", e.getMessage(), e);
-				return null;
+			}
+			
+			// Try to split child shape using the parents that were just determined:
+			logger.debug("p1 / p2 = "+p1+" / "+p2);
+			ShapeEditOperation opChild = scene.splitShape(child, pl, true, p1, p2, true);
+			if (opChild!=null) {
+				splitOps.add(opChild);
 			}
 		}
+		
+		if (splitOps.isEmpty()) {
+			logger.warn("Cannot split - no shapes actually splitted by line!");
+			return null;
+		}
+		
+		scene.notifyOnAfterShapeSplitted(op);
+		
+		if (addToUndoStack)
+			addToUndoStack(splitOps);
+		
+		return splitOps;
+	//		return super.splitShape(shape, pl, addToUndoStack);
+		
+	}
+
+	public List<ShapeEditOperation> splitShape(ICanvasShape shape, CanvasPolyline pl, boolean addToUndoStack) {
+		try {
+	//		ICanvasShape selected = canvas.getFirstSelected();
+			if (shape == null) {
+				logger.warn("Cannot split - no shape selected!");
+				return null;
+			}
+			
+			TrpTableRegionType table = TableUtils.getTable(shape, true);
+			
+			if (shape.getData() instanceof TrpBaselineType) {
+				return splitBaseline(shape, pl);
+			}
+			else if (table != null) {
+				return splitTable(table, pl, addToUndoStack);
+			}
+			else {
+				return splitShapeDefault(shape, pl, addToUndoStack);
+				
+//				// perform default split operation on base class
+////					ICanvasShape selected = canvas.getFirstSelected();
+//				if (shape == null) {
+//					logger.warn("Cannot split - no shape selected!");
+//					return null;
+//				}
+//				
+//				List<ICanvasShape> children = shape.getChildren(true); // get all children (recursively)!
+//				List<ShapeEditOperation> splitOps = new ArrayList<>();
+//						
+//				ShapeEditOperation op = scene.splitShape(shape, pl, true, null, null, false);
+//				if (op!=null) {
+//					splitOps.add(op);
+//				}
+//				
+//				// Split all child shapes
+//				for (ICanvasShape child : children) {
+//					// Determine the parent shapes of the child shape that shall be splitted by iterating through the edit operations that were done so far
+//					ICanvasShape p1=null, p2=null;
+//					for (ShapeEditOperation opParent : splitOps) {
+//						if (opParent.getNewShapes().get(0).equals(child.getParent()) 
+//								|| opParent.getNewShapes().get(1).equals(child.getParent())) {
+//							p1 = opParent.getNewShapes().get(0);
+//							p2 = opParent.getNewShapes().get(1);
+////								logger.debug("readjusting child elements - parents: "+p1+"/"+p2);
+//							break;
+//						}
+//					}
+//					
+//					// Try to split child shape using the parents that were just determined:
+//					logger.debug("p1 / p2 = "+p1+" / "+p2);
+//					ShapeEditOperation opChild = scene.splitShape(child, pl, true, p1, p2, true);
+//					if (opChild!=null) {
+//						splitOps.add(opChild);
+//					}
+//				}
+//				
+//				if (splitOps.isEmpty()) {
+//					logger.warn("Cannot split - no shapes actually splitted by line!");
+//					return null;
+//				}
+//				
+//				scene.notifyOnAfterShapeSplitted(op);
+//				
+//				if (addToUndoStack)
+//					addToUndoStack(splitOps);
+//				
+//				return splitOps;
+////					return super.splitShape(shape, pl, addToUndoStack);
+			}
+		} catch (Exception e) {
+//			logger.debug("error", e);
+			TrpMainWidget.getInstance().onError("Error splitting", e.getMessage(), e);
+			return null;
+		}
+	}
 
 	public ShapeEditOperation translateTableRowOrColumnPoints(ICanvasShape selected, int side, int tx, int ty, boolean addToUndoStack) {
 			logger.debug("moveTableRowOrColumn, side: "+side);
@@ -1461,7 +1565,7 @@ public class CanvasShapeEditor {
 				List<java.awt.Point> oldPts = qp.getPoints();
 				
 				ShapeEditOperation moveOp = currentMoveOp.findNestedOp(qp);
-				moveOp = this.moveShape(qp, mouseTrX, mouseTrY, moveOp, false);
+				moveOp = moveShapeDefault(qp, mouseTrX, mouseTrY, moveOp, false);
 				if (moveOp == null)
 					return null;
 				
@@ -1512,7 +1616,7 @@ public class CanvasShapeEditor {
 			
 			boolean firstMove = currentMoveOp == null;
 	
-			currentMoveOp = this.moveShape(shape, mouseTrX, mouseTrY, currentMoveOp, false);
+			currentMoveOp = moveShapeDefault(shape, mouseTrX, mouseTrY, currentMoveOp, false);
 			if (currentMoveOp == null)
 				return null;
 					

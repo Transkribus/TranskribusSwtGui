@@ -612,7 +612,7 @@ public class TrpMainWidgetView extends Composite {
 		// retrieve toolbar from pagesPagingToolBar -> this will be the main toolbar where all other items are prepended / appended
 		ToolBar toolBar = pagesPagingToolBar.getToolBar();
 		
-		saveDrowDown = new DropDownToolItem(toolBar, false, true, SWT.CHECK);
+		saveDrowDown = new DropDownToolItem(toolBar, false, true, SWT.RADIO);
 		
 		saveTranscriptButton = saveDrowDown.addItem(RegionTypeUtil.TEXT_REGION, Images.DISK, "", true);
 		saveTranscriptButton.setText("Save");
@@ -635,7 +635,8 @@ public class TrpMainWidgetView extends Composite {
 		
 		// open menu button:
 		menuButton = new ToolItem(toolBar, SWT.CHECK, preInsertIndex++);
-		menuButton.setImage(Images.getOrLoad("/icons/house.png"));
+//		menuButton.setImage(Images.getOrLoad("/icons/house.png"));
+		menuButton.setImage(Images.BURGER);
 		menuButton.setText("");
 		menuButton.setToolTipText("Main Menu");
 		menuButton.addSelectionListener(new SelectionAdapter() {
@@ -871,7 +872,7 @@ public class TrpMainWidgetView extends Composite {
 				
 //		new ToolItem(toolBar, SWT.SEPARATOR, 3);
 		
-		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
+//		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
 		if (!DISABLE_EXPLICIT_VISIBILITY_BTNS) {
 		showPrintSpaceToggle = new ToolItem(toolBar, SWT.CHECK);
