@@ -143,8 +143,11 @@ public class TrpMainWidgetView extends Composite {
 	// ##########
 	
 	// ##### Tab folders stuff: #####
-	CTabFolder leftTabFolder;
-	CTabFolder rightTabFolder;
+//	CTabFolder leftTabFolder;
+//	CTabFolder rightTabFolder;
+	
+	TrpTabWidget tabWidget;
+	
 //	TabFolder transcriptionTabFolder;
 	Composite transcriptionWidgetContainer;
 	
@@ -187,7 +190,7 @@ public class TrpMainWidgetView extends Composite {
 		initSize();
 	}
 	
-	public CTabFolder getRightTabFolder() { return rightTabFolder; }
+//	public CTabFolder getRightTabFolder() { return rightTabFolder; }
 	
 	private void initSize() {
 		Rectangle b = getShell().getDisplay().getPrimaryMonitor().getBounds();
@@ -239,10 +242,26 @@ public class TrpMainWidgetView extends Composite {
 //		currentUserLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 //		}
 		
+		// NEW: only one tab widget
+		tabWidget = new TrpTabWidget(this, 0);
+		
+		docOverviewWidget = new DocOverviewWidget(tabWidget.tf);
+		tabWidget.serverItem.setControl(docOverviewWidget);
+		
+		structureTreeWidget = new StructureTreeWidget(tabWidget.documentTf);
+		tabWidget.structureItem.setControl(structureTreeWidget);
+		
+		versionsWidget = new TranscriptsTableWidgetPagination(tabWidget.documentTf, SWT.NONE, 25);
+		tabWidget.versionsItem.setControl(versionsWidget);
+		
+		thumbnailWidget = new ThumbnailWidget(tabWidget.documentTf, SWT.NONE);
+		tabWidget.thumbnailItem.setControl(thumbnailWidget);
+		
+		
 		// ####### LEFT TAB FOLDER: #######
 		if (true) {
-		leftTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.BORDER | SWT.FLAT);
-		leftTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		leftTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.BORDER | SWT.FLAT);
+//		leftTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 //		leftTabFolder.setMinimizeVisible(true);
 //		leftTabFolder.addCTabFolder2Listener(new CTabFolder2Listener() {
 //			
@@ -263,51 +282,62 @@ public class TrpMainWidgetView extends Composite {
 //			}
 //		});
 		
-		docOverviewWidget = new DocOverviewWidget(leftTabFolder);
-		structureTreeWidget = new StructureTreeWidget(leftTabFolder);
-//		jobOverviewWidget = new JobOverviewWidget(leftTabFolder, SWT.NONE);
-		jobOverviewWidget = new JobTableWidgetPagination(leftTabFolder, SWT.NONE, 50);
-//		versionsWidget = new VersionsWidget(leftTabFolder, SWT.NONE);
-		versionsWidget = new TranscriptsTableWidgetPagination(leftTabFolder, SWT.NONE, 25);
-		thumbnailWidget = new ThumbnailWidget(leftTabFolder, SWT.NONE);
+//		docOverviewWidget = new DocOverviewWidget(leftTabFolder);
+//		structureTreeWidget = new StructureTreeWidget(leftTabFolder);
+		jobOverviewWidget = new JobTableWidgetPagination(tabWidget.toolsTf, SWT.NONE, 50);
+		tabWidget.jobsItem.setControl(jobOverviewWidget);
 		
-		docoverviewItem = createCTabItem(leftTabFolder, docOverviewWidget, Msgs.get2("documents"));
-		structureItem = createCTabItem(leftTabFolder, structureTreeWidget, Msgs.get2("layout_tab_title"));
-		jobOverviewItem = createCTabItem(leftTabFolder, jobOverviewWidget, Msgs.get2("jobs"));
-		versionsItem = createCTabItem(leftTabFolder, versionsWidget, Msgs.get2("versions"));
-		thumbnailItem = createCTabItem(leftTabFolder, thumbnailWidget, Msgs.get2("pages"));
 		
-		selectStructureTab();
+		
+//		versionsWidget = new TranscriptsTableWidgetPagination(leftTabFolder, SWT.NONE, 25);
+//		thumbnailWidget = new ThumbnailWidget(leftTabFolder, SWT.NONE);
+		
+//		docoverviewItem = createCTabItem(leftTabFolder, docOverviewWidget, Msgs.get2("documents"));
+//		structureItem = createCTabItem(leftTabFolder, structureTreeWidget, Msgs.get2("layout_tab_title"));
+//		jobOverviewItem = createCTabItem(leftTabFolder, jobOverviewWidget, Msgs.get2("jobs"));
+//		versionsItem = createCTabItem(leftTabFolder, versionsWidget, Msgs.get2("versions"));
+//		thumbnailItem = createCTabItem(leftTabFolder, thumbnailWidget, Msgs.get2("pages"));
+		
+//		selectStructureTab();
 		}
 		
 		// the right widget (page metadata, virtual keyboard):
 		if (true) {
-			rightTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.TOP | SWT.BORDER | SWT.FLAT );
-			rightTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//			rightTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.TOP | SWT.BORDER | SWT.FLAT );
+//			rightTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			
-			metadataWidget = new PageMetadataWidget(rightTabFolder, SWT.TOP);
-			vkeyboards = new TrpVirtualKeyboardsWidget(rightTabFolder, SWT.TOP | SWT.BORDER | SWT.FLAT );
-			toolsWidget = new ToolsWidget(rightTabFolder, SWT.TOP);
+			metadataWidget = new PageMetadataWidget(tabWidget.metadataTf, SWT.TOP);
+			tabWidget.structuralMdItem.setControl(metadataWidget);
+			
+			vkeyboards = new TrpVirtualKeyboardsWidget(tabWidget.toolsTf, SWT.TOP | SWT.BORDER | SWT.FLAT );
+			tabWidget.vkItem.setControl(vkeyboards);
+			
+			toolsWidget = new ToolsWidget(tabWidget.toolsTf, SWT.TOP);
 			toolsWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			tabWidget.remoteToolsItem.setControl(toolsWidget);
 			
 			if (SHOW_NEW_TW) {
-				taggingWidget = new TaggingWidget(rightTabFolder, SWT.TOP, 2, true);
+				taggingWidget = new TaggingWidget(tabWidget.metadataTf, SWT.TOP, 2, true);
 				taggingWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+				tabWidget.textTaggingItem.setControl(taggingWidget);
 				
 //				analyticsWidget = new AnalyticsWidget(rightTabFolder, SWT.TOP);
 			}
 
-			metadataItem = createCTabItem(rightTabFolder, metadataWidget, Msgs.get2("metadata"));
-			laItem = createCTabItem(rightTabFolder, toolsWidget, Msgs.get2("tools"));
-			vkeyboardsItem = createCTabItem(rightTabFolder, vkeyboards, Msgs.get2("virt_keyboards"));
+//			metadataItem = createCTabItem(rightTabFolder, metadataWidget, Msgs.get2("metadata"));
+//			laItem = createCTabItem(rightTabFolder, toolsWidget, Msgs.get2("tools"));
+//			vkeyboardsItem = createCTabItem(rightTabFolder, vkeyboards, Msgs.get2("virt_keyboards"));
 			
-			if (SHOW_NEW_TW) {
-				CTabItem twItem = createCTabItem(rightTabFolder, taggingWidget, Msgs.get2("tagging"));
-//				CTabItem analyticsItem = createCTabItem(rightTabFolder, analyticsWidget, "Analytics");
-			}
+//			if (SHOW_NEW_TW) {
+//				CTabItem twItem = createCTabItem(rightTabFolder, taggingWidget, Msgs.get2("tagging"));
+////				CTabItem analyticsItem = createCTabItem(rightTabFolder, analyticsWidget, "Analytics");
+//			}
 			
-			commentsWidget = new CommentsWidget(rightTabFolder, SWT.TOP);
-			CTabItem commentsItem = createCTabItem(rightTabFolder, commentsWidget, Msgs.get2("comments"));
+			commentsWidget = new CommentsWidget(tabWidget.metadataTf, SWT.TOP);
+			tabWidget.commentsItem.setControl(commentsWidget);
+			
+			
+//			CTabItem commentsItem = createCTabItem(rightTabFolder, commentsWidget, Msgs.get2("comments"));
 		}
 
 		// the bottom widget (transcription):
@@ -335,13 +365,14 @@ public class TrpMainWidgetView extends Composite {
 //	    new Button(child, SWT.PUSH).setText("Two");
 				
 		// init portal widget:
-		portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, leftTabFolder, transcriptionWidgetContainer, rightTabFolder);
+//		portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, tabWidget, transcriptionWidgetContainer, rightTabFolder);
+		portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, tabWidget, transcriptionWidgetContainer, null);
 		portalWidget.setMinWidth(Position.LEFT, 200);
 		portalWidget.setMinWidth(Position.CENTER, 400);
 		portalWidget.setMinWidth(Position.BOTTOM, 400);
-		portalWidget.setMinWidth(Position.RIGHT, 300);
+//		portalWidget.setMinWidth(Position.RIGHT, 300);
 
-		portalWidget.setMinHeight(Position.RIGHT, rightTabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+//		portalWidget.setMinHeight(Position.RIGHT, rightTabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		
 		logger.debug("left view docking state: "+getTrpSets().getLeftViewDockingState());
 		
@@ -421,56 +452,70 @@ public class TrpMainWidgetView extends Composite {
 		Storage.getInstance().updateProxySettings();
 	}
 	
-	private TabItem createTabItem(TabFolder tabFolder, Control control, String Text) {
-		TabItem ti = new TabItem(tabFolder, SWT.NONE);
-		ti.setText(Text);
-		ti.setControl(control);
-		return ti;
-	}
-	
-	private CTabItem createCTabItem(CTabFolder tabFolder, Control control, String Text) {
-		CTabItem ti = new CTabItem(tabFolder, SWT.NONE);
-		ti.setText(Text);
-		ti.setControl(control);
-		return ti;
-	}
+	// TABBING STUFF:
+//	private TabItem createTabItem(TabFolder tabFolder, Control control, String Text) {
+//		TabItem ti = new TabItem(tabFolder, SWT.NONE);
+//		ti.setText(Text);
+//		ti.setControl(control);
+//		return ti;
+//	}
+//	
+//	private CTabItem createCTabItem(CTabFolder tabFolder, Control control, String Text) {
+//		CTabItem ti = new CTabItem(tabFolder, SWT.NONE);
+//		ti.setText(Text);
+//		ti.setControl(control);
+//		return ti;
+//	}
 	
 	public void selectDocListTab() {
-		leftTabFolder.setSelection(docoverviewItem);
+		tabWidget.tf.setSelection(tabWidget.serverItem);
+//		tabWidget.documentTf.setSelection(tabWidget.serverItem);
+		tabWidget.updateAllSelectedTabs();
+		
+//		leftTabFolder.setSelection(docoverviewItem);
 	}
 	
-	public void selectStructureTab() {
-		leftTabFolder.setSelection(structureItem);
-	}
+//	public void selectStructureTab() {
+//		tabWidget.tf.setSelection(tabWidget.documentItem);
+//		tabWidget.documentTf.setSelection(tabWidget.structureItem);
+//		tabWidget.updateAllSelectedTabs();
+//	}
 	
 	public void selectJobListTab() {
-		leftTabFolder.setSelection(jobOverviewItem);
+		tabWidget.tf.setSelection(tabWidget.toolsItem);
+		tabWidget.toolsTf.setSelection(tabWidget.jobsItem);
+		tabWidget.updateAllSelectedTabs();		
 	}
 	
-	public void selectMetadataTab(){
-		rightTabFolder.setSelection(metadataItem);
-	}
+//	public void selectMetadataTab() {
+//		tabWidget.tf.setSelection(tabWidget.metadataItem);
+//		tabWidget.metadataTf.setSelection(tabWidget.structuralMdItem);
+//		tabWidget.updateAllSelectedTabs();		
+//	}
 	
-	public void selectToolsTab() {
-		rightTabFolder.setSelection(laItem);
-	}
+//	public void selectToolsTab() {
+//		tabWidget.tf.setSelection(tabWidget.toolsItem);
+//		tabWidget.toolsTf.setSelection(tabWidget.remoteToolsItem);
+//		tabWidget.updateAllSelectedTabs();		
+//	}
 	
-	public void selectLeftTab(int idx){
-		if (idx < 0 || idx >= leftTabFolder.getItemCount()){
-			idx = 0;
-		}
-		leftTabFolder.setSelection(idx);
-		if (leftTabFolder.getSelection().equals(thumbnailItem)){
-			thumbnailWidget.reload();
-		}
+	public void selectLeftTab(int idx) {
+//		if (idx < 0 || idx >= leftTabFolder.getItemCount()){
+//			idx = 0;
+//		}
+//		leftTabFolder.setSelection(idx);
+//		if (leftTabFolder.getSelection().equals(thumbnailItem)){
+//			thumbnailWidget.reload();
+//		}
 	}
-	
+
 	public void selectRightTab(int idx){
-		if (idx < 0 || idx >= rightTabFolder.getItemCount()){
-			idx = 0;
-		}
-		rightTabFolder.setSelection(idx);
+//		if (idx < 0 || idx >= rightTabFolder.getItemCount()){
+//			idx = 0;
+//		}
+//		rightTabFolder.setSelection(idx);
 	}
+	// END OF TABBING STUFF
 	
 	public void setStatusMessage(String text, int time) {
 		if (status==null)

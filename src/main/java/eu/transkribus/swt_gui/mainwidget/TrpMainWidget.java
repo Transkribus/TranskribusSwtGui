@@ -1288,7 +1288,7 @@ public class TrpMainWidget {
 			ui.getCanvasWidget().getToolbar().getEditingEnabledToolItem().setEnabled(!isPageLocked);
 			TrpConfig.getCanvasSettings().setEditingEnabled(!isPageLocked);
 			ui.getTranscriptionComposite().setEnabled(!isPageLocked);
-			ui.getRightTabFolder().setEnabled(!isPageLocked);
+//			ui.getRightTabFolder().setEnabled(!isPageLocked);
 			ui.getSaveTranscriptButton().setEnabled(!isPageLocked);
 			ui.getSaveTranscriptWithMessageButton().setEnabled(!isPageLocked);
 
@@ -2347,7 +2347,7 @@ public class TrpMainWidget {
 	public void enable(boolean value) {
 		canvas.setEnabled(value);
 		ui.getTranscriptionComposite().setEnabled(value);
-		ui.getRightTabFolder().setEnabled(value);
+//		ui.getRightTabFolder().setEnabled(value);
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -3330,7 +3330,7 @@ public class TrpMainWidget {
 			reloadCurrentTranscript(true, true);
 			storage.getTranscript().getPage().setEdited(true);
 
-			ui.selectStructureTab();
+//			ui.selectStructureTab();
 			updatePageInfo();
 		} catch (Throwable e) {
 			onError("Analyze Page Structure", e.getMessage(), e);

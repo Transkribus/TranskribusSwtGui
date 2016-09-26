@@ -171,8 +171,23 @@ public class Fonts {
 		return null;
 	}
 	
+	public static Font createNormalFont(Font f) {
+		if (f.getFontData().length > 0) {
+			FontData fd = f.getFontData()[0];
+			fd.setStyle(SWT.NORMAL);
+			return createFont(fd);
+		}
+		return null;
+	}
+	
 	public static Font setBoldFont(Control ctrl) {
 		Font f = createBoldFont(ctrl.getFont());
+		ctrl.setFont(f);
+		return f;
+	}
+	
+	public static Font setNormalFont(Control ctrl) {
+		Font f = createNormalFont(ctrl.getFont());
 		ctrl.setFont(f);
 		return f;
 	}
