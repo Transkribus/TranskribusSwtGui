@@ -1189,7 +1189,6 @@ public class SWTUtil {
 			return;
 		
 		tf.setSelection(item);
-	}
-	
+	}	
 
 }

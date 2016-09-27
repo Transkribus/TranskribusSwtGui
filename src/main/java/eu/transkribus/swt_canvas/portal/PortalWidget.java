@@ -70,7 +70,7 @@ public class PortalWidget extends Composite {
 	
 	private final static Logger logger = LoggerFactory.getLogger(PortalWidget.class);
 	
-	public static final int DEFAULT_SASH_WIDTH = 2;
+	public static final int DEFAULT_SASH_WIDTH = 3;
 	
 	private static int[] DEFAULT_WEIGHTS_HORIZONTAL_TOP_LEVEL = new int[] { 800, 220};
 	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 350, 1000};

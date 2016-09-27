@@ -24,7 +24,6 @@ import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 
 //public class CanvasToolBar extends ToolBar {
 public class CanvasToolBar {
@@ -32,109 +31,67 @@ public class CanvasToolBar {
 
 	public ToolBar tb;
 	
-	// private ToolBar topToolBar;
-	protected ToolItem zoomIn;
-	protected ToolItem zoomOut;
-	protected ToolItem zoomSelection;
-	protected ToolItem loupe;
-	
-	protected DropDownToolItem rotateItem;
-	
-//	protected ToolItem rotateRight;
-//	protected ToolItem rotateLeft;
-	
-	protected DropDownToolItem fitItem;
-//	protected ToolItem fitToPage;
-//	protected ToolItem fitWidth;
-//	protected ToolItem fitHeight;
-	
-	protected ToolItem originalSize;
-	
-	protected ToolItem selectionMode;
-	
-	//protected DropDownToolItem translateItem;	
-	
-	protected ToolItem focus;
+	ToolItem zoomIn;
+	ToolItem zoomOut;
+	ToolItem zoomSelection;
+	ToolItem loupe;
+
+	DropDownToolItem rotateItem;
+	DropDownToolItem fitItem;
+
+	ToolItem originalSize;
+
+	ToolItem selectionMode;
+
+	ToolItem focus;
+
 	// EDIT ITEMS:
-	protected ToolItem addPoint;	
-	protected ToolItem removePoint;
-//	protected ToolItem addShape;
-	protected ToolItem removeShape;
-	protected ToolItem mergeShapes;
-	protected ToolItem splitShapeLine;
-	private static final boolean ENABLE_SPLIT_SHAPE_LINE=true;
-	protected ToolItem splitShapeWithVerticalLine;
-	protected ToolItem splitShapeWithHorizontalLine;
+	ToolItem addPoint;
+	ToolItem removePoint;
+	ToolItem removeShape;
+	ToolItem mergeShapes;
 	
-//	protected DropDownToolItem splitTypeItem;
-//	protected ToolItem simplifyShape;
-	protected DropDownToolItem simplifyEpsItem;
-	protected ToolItem undo;
-	protected ToolItem editingEnabledToolItem;	
+	DropDownToolItem splitDropdown;
+	MenuItem splitHorizontalItem, splitVerticalItem, splitLineItem;
 	
-	protected ToolItem viewSettingsMenuItem;
-	
-//	protected HashMap<ToolItem, CanvasMode> modeMap = new HashMap<>();
-	protected HashMap<Item, CanvasMode> modeMap = new HashMap<>();
-	
-	
-	
-	protected SelectionAdapter radioGroupSelectionAdapter;
+	ToolItem splitShapeLine;
+	ToolItem splitShapeWithVerticalLine;
+	ToolItem splitShapeWithHorizontalLine;
 
-//	protected ToolItem addTextRegion;
-//
-//	protected ToolItem addLine;
-//
-//	protected ToolItem addBaseLine;
-//
-//	protected ToolItem addWord;
-//
-//	protected ToolItem addPrintspace;
+	DropDownToolItem simplifyEpsItem;
+	ToolItem undo;
+	ToolItem editingEnabledToolItem;
 
-	protected DropDownToolItem addSpecialRegion;
-
-	protected DropDownToolItem optionsItem;
-
-	protected ToolItem imgEnhanceItem;
-
+	ToolItem viewSettingsMenuItem;
+	HashMap<Item, CanvasMode> modeMap = new HashMap<>();
+	SelectionAdapter radioGroupSelectionAdapter;
+	DropDownToolItem addElementDropdown;
+	DropDownToolItem optionsItem;
+	ToolItem imgEnhanceItem;
 	MenuItem rectangleModeItem;
-
 	MenuItem autoCreateParentItem;
-
 	MenuItem addLineToOverlappingRegionItem;
-
 	MenuItem addBaselineToOverlappingLineItem;
-
 	MenuItem addWordsToOverlappingLineItem;
-
 	MenuItem lockZoomOnFocusItem;
-
 	MenuItem deleteLineIfBaselineDeletedItem;
-
 	MenuItem selectNewlyCreatedShapeItem;
-
 	List<ToolItem> addItems;
-
-	protected CanvasWidget canvasWidget;
-
-	DropDownToolItem imageVersionItem;
-
+	CanvasWidget canvasWidget;
+	DropDownToolItem imageVersionDropdown;
 	DropDownToolItem tableItem;
-
-	MenuItem deleteRowItem;
-
-	MenuItem deleteColumnItem;
-
-	MenuItem splitMergedCell;
-
-	MenuItem removeIntermediatePtsItem;
-
-	ToolItem renderBlackeningsToggle;
+	
+//	MenuItem deleteRowItem;
+//	MenuItem deleteColumnItem;
+//	MenuItem splitMergedCell;
+//	MenuItem removeIntermediatePtsItem;
+//	
+//	ToolItem renderBlackeningsToggle;
 
 	public CanvasToolBar(CanvasWidget parent, ToolBar tb, int style) {
-//		super(parent, style);
 		this.canvasWidget = parent;
 
+		// init toolbar if not given:
 		if (tb == null) {
 			this.tb = new ToolBar(canvasWidget, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
 			tb = this.tb;
@@ -144,21 +101,11 @@ public class CanvasToolBar {
 		
 		this.tb.setLayout(new GridLayout(1, false));
 
-		// topToolBar = new ToolBar(this, SWT.FLAT | SWT.RIGHT);
-		// topToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false,
-		// false, 1, 1));
-
 		selectionMode = new ToolItem(this.tb, SWT.RADIO);
 		selectionMode.setToolTipText("Selection mode");
 		selectionMode.setSelection(true);
 		selectionMode.setImage(Images.getOrLoad("/icons/cursor.png"));
 		modeMap.put(selectionMode, CanvasMode.SELECTION);
-
-		// translationMode = new ToolItem(this, SWT.RADIO);
-		// translationMode.setToolTipText("Translation mode");
-		// translationMode.setSelection(false);
-		// translationMode.setImage(Images.getOrLoad(CanvasWidget.class,
-		// "/icons/cursor_hand.png"));
 
 		zoomSelection = new ToolItem(this.tb, SWT.RADIO);
 		zoomSelection.setToolTipText("Zoom selection mode");
@@ -198,13 +145,13 @@ public class CanvasToolBar {
 		rotateItem.addItem("Translate up", Images.getOrLoad("/icons/arrow_up.png"), "Translate up");
 		rotateItem.addItem("Translate down", Images.getOrLoad("/icons/arrow_down.png"), "Translate down");
 		
-		imageVersionItem = new DropDownToolItem(this.tb, true, false, SWT.RADIO);
+		imageVersionDropdown = new DropDownToolItem(this.tb, true, false, SWT.RADIO);
 		
 		String versText = "Image file type displayed\n\torig: original image\n\tview: compressed viewing file\n\tbin: binarized image";
-		imageVersionItem.addItem("orig", null, versText, false);
-		imageVersionItem.addItem("view", null, versText, true);
-		imageVersionItem.addItem("bin", null, versText, false);
-		imageVersionItem.selectItem(1, false);
+		imageVersionDropdown.addItem("orig", null, versText, false);
+		imageVersionDropdown.addItem("view", null, versText, true);
+		imageVersionDropdown.addItem("bin", null, versText, false);
+		imageVersionDropdown.selectItem(1, false);
 		
 		imgEnhanceItem = new ToolItem(this.tb, SWT.PUSH);
 		imgEnhanceItem.setImage(Images.CONTRAST);
@@ -212,16 +159,40 @@ public class CanvasToolBar {
 		// EDIT BUTTONS:
 		new ToolItem(this.tb, SWT.SEPARATOR);
 		
+		if (false) {
 		editingEnabledToolItem = new ToolItem(this.tb, SWT.CHECK);
 		editingEnabledToolItem.setToolTipText("Enable shape editing");
 		editingEnabledToolItem.setImage(Images.getOrLoad("/icons/shape_square_edit.png"));
 		editingEnabledToolItem.setSelection(canvasWidget.getCanvas().getSettings().isEditingEnabled());
+		}
 		
-//		addShape = new ToolItem(this.tb, SWT.RADIO);
-//		addShape.setToolTipText("Add a shape");
-//		addShape.setImage(Images.getOrLoad("/icons/add.png"));
-//		modeMap.put(addShape, CanvasMode.ADD_SHAPE);
+		addElementDropdown = new DropDownToolItem(this.tb, true, true, SWT.PUSH);
 		
+		MenuItem mi = null;
+		mi = addElementDropdown.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));
+		modeMap.put(mi, TrpCanvasAddMode.ADD_TEXTREGION);
+		
+		mi = addElementDropdown.addItem(RegionTypeUtil.LINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.LINE));
+		modeMap.put(mi, TrpCanvasAddMode.ADD_LINE);
+		
+		mi = addElementDropdown.addItem(RegionTypeUtil.BASELINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.BASELINE));
+		modeMap.put(mi, TrpCanvasAddMode.ADD_BASELINE);
+		
+		mi = addElementDropdown.addItem(RegionTypeUtil.WORD, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.WORD));
+		modeMap.put(mi, TrpCanvasAddMode.ADD_WORD);		
+		
+		mi = addElementDropdown.addItem(RegionTypeUtil.TABLE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TABLE));
+		modeMap.put(mi, TrpCanvasAddMode.ADD_TABLEREGION);
+		
+		mi = addElementDropdown.addItem(RegionTypeUtil.PRINTSPACE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.PRINTSPACE));
+		modeMap.put(mi, TrpCanvasAddMode.ADD_PRINTSPACE);
+		
+		for (String name : RegionTypeUtil.SPECIAL_REGIONS) {
+//				mode.data = c;
+			mi = addElementDropdown.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
+			modeMap.put(mi, TrpCanvasAddMode.ADD_OTHERREGION);	
+		}		
+				
 		removeShape = new ToolItem(this.tb, SWT.PUSH);
 		removeShape.setToolTipText("Remove a shape");
 		removeShape.setImage(Images.getOrLoad("/icons/delete.png"));
@@ -235,25 +206,44 @@ public class CanvasToolBar {
 		removePoint.setToolTipText("Remove point from selected shape");
 		removePoint.setImage(Images.getOrLoad("/icons/vector_delete.png"));
 		modeMap.put(removePoint, CanvasMode.REMOVE_POINT);
-						
+		
+		splitDropdown = new DropDownToolItem(this.tb, true, false, SWT.PUSH);
+		
+//		splitHorizontalItem = splitDropdown.addItem("Split by horizontal line", Images.getOrLoad("/icons/scissor_h.png"), "Split a shape", true);
+		String stt = "Split a shape";
+		splitHorizontalItem = splitDropdown.addItem("Split by horizontal line", Images.SCISSOR, stt, true);
+		splitHorizontalItem.setData(DropDownToolItem.ALT_TXT_KEY, "H");
+		modeMap.put(splitHorizontalItem, CanvasMode.SPLIT_SHAPE_BY_HORIZONTAL_LINE);
+		
+//		splitVerticalItem = splitDropdown.addItem("Split by vertical line", Images.getOrLoad("/icons/scissor_v.png"), "Split a shape", false);
+		splitVerticalItem = splitDropdown.addItem("Split by vertical line", Images.SCISSOR, stt, false);
+		splitVerticalItem.setData(DropDownToolItem.ALT_TXT_KEY, "V");
+		modeMap.put(splitVerticalItem, CanvasMode.SPLIT_SHAPE_BY_VERTICAL_LINE);
+		
+//		splitLineItem = splitDropdown.addItem("Split by custom line", Images.getOrLoad("/icons/scissor_l.png"), "Split a shape", false);
+		splitLineItem = splitDropdown.addItem("Split by custom line", Images.SCISSOR, stt, false);
+		splitLineItem.setData(DropDownToolItem.ALT_TXT_KEY, "L");
+		modeMap.put(splitLineItem, CanvasMode.SPLIT_SHAPE_LINE);
+		
+		splitDropdown.ti.setImage(Images.SCISSOR);
+		splitDropdown.ti.setText("H");
+		splitDropdown.selectItem(0, false);
+		
+		if (false) {
 		splitShapeWithHorizontalLine = new ToolItem(this.tb, SWT.RADIO);
 		splitShapeWithHorizontalLine.setToolTipText("Splits a shape with a horizontal line");
-//		splitShapeVertical.setImage(Images.getOrLoad("/icons/scissor_v.png"));
 		splitShapeWithHorizontalLine.setImage(Images.getOrLoad("/icons/scissor.png"));
 		splitShapeWithHorizontalLine.setText("H");
 		modeMap.put(splitShapeWithHorizontalLine, CanvasMode.SPLIT_SHAPE_BY_HORIZONTAL_LINE);
 		
 		splitShapeWithVerticalLine = new ToolItem(this.tb, SWT.RADIO);
 		splitShapeWithVerticalLine.setToolTipText("Splits a shape with a vertical line");
-//		splitShapeHorizontal.setImage(Images.getOrLoad("/icons/scissor_h.png"));
 		splitShapeWithVerticalLine.setImage(Images.getOrLoad("/icons/scissor.png"));
 		splitShapeWithVerticalLine.setText("V");
-		modeMap.put(splitShapeWithVerticalLine, CanvasMode.SPLIT_SHAPE_BY_VERTICAL_LINE);		
+		modeMap.put(splitShapeWithVerticalLine, CanvasMode.SPLIT_SHAPE_BY_VERTICAL_LINE);	
 		
-		if (ENABLE_SPLIT_SHAPE_LINE) {
 		splitShapeLine = new ToolItem(this.tb, SWT.RADIO);
 		splitShapeLine.setToolTipText("Splits a shape with a custom polyline");
-//		splitShapeLine.setImage(Images.getOrLoad("/icons/scissor_l.png"));
 		splitShapeLine.setImage(Images.getOrLoad("/icons/scissor.png"));
 		splitShapeLine.setText("L");
 		modeMap.put(splitShapeLine, CanvasMode.SPLIT_SHAPE_LINE);
@@ -262,10 +252,6 @@ public class CanvasToolBar {
 		mergeShapes = new ToolItem(this.tb, SWT.PUSH);
 		mergeShapes.setToolTipText("Merges the selected shapes");
 		mergeShapes.setImage(Images.getOrLoad("/icons/merge.png"));
-		
-//		simplifyShape = new ToolItem(this, SWT.PUSH | SWT.RIGHT);
-//		simplifyShape.setToolTipText("Simplify the selected polygon using the Ramer-Douglas-Peucker algorithm");
-//		simplifyShape.setImage(Images.getOrLoad("/icons/vector.png"));
 		
 		if (false) {
 		simplifyEpsItem = new DropDownToolItem(this.tb, false, true, SWT.RADIO);
@@ -276,121 +262,9 @@ public class CanvasToolBar {
 				"Simplify the selected shape using the Ramer-Douglas-Peucker algorithm\n"
 				+ "The value determines the strength of polygon simplification - the higher the value, the more points are removed. "
 				+ "\n (i.e. Epsilon is set as the given percentage of the diameter of the bounding box of the shape)");
-		}
+		}		
 		
-//		simplifyEpsItem.addSelectionListener(new SelectionAdapter() {
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				if (e.detail == SWT.ARROW) {
-//				} else{
-//					logger.debug("selected item from dropdown: "+simplifyEpsItem.getSelectedItem());
-//				}
-//			}
-//		});
-		
-//		DropDownToolItem test = new DropDownToolItem(this);
-//		for (int i=5; i<=100; i+=5)
-//			test.addItem(""+i, null);
-			
-		
-//		new ToolItem(this, SWT.SEPARATOR);
-		undo = new ToolItem(this.tb, SWT.PUSH);
-		undo.setToolTipText("Undo last edit step");
-		undo.setImage(Images.ARROW_UNDO);
-		
-		
-//		ToolItem item = new ToolItem(this, SWT.DROP_DOWN);
-//	    item.setText("One");
-//
-//	    DropdownSelectionListener listenerOne = new DropdownSelectionListener(item);
-//	    listenerOne.add("Option One for One");
-//	    listenerOne.add("Option Two for One");
-//	    listenerOne.add("Option Three for One");
-//	    item.addSelectionListener(listenerOne);
-		
-		// TRP TOOLBAR STUFF:
-		
-		int i = this.tb.indexOf(editingEnabledToolItem);
-		logger.debug("index = "+i);
-		
-//		if (false) {
-//		addPrintspace = new ToolItem(this, SWT.RADIO, ++i);
-//		addPrintspace.setText("PS");
-//		addPrintspace.setToolTipText("Add a printspace");
-//		addPrintspace.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
-//		modeMap.put(addPrintspace, TrpCanvasAddMode.ADD_PRINTSPACE);
-//		addToRadioGroup(addPrintspace);
-//		}
-//		
-//		if (false) {
-//		addTextRegion = new ToolItem(this, SWT.RADIO, ++i);
-//		addTextRegion.setText("TR");
-//		addTextRegion.setToolTipText("Add a text region");
-//		addTextRegion.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
-//		modeMap.put(addTextRegion, TrpCanvasAddMode.ADD_TEXTREGION);
-//		addToRadioGroup(addTextRegion);
-//		
-//		addLine = new ToolItem(this, SWT.RADIO, ++i);
-//		addLine.setText("L");
-//		addLine.setToolTipText("Add a line");
-//		addLine.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
-//		modeMap.put(addLine, TrpCanvasAddMode.ADD_LINE);
-//		addToRadioGroup(addLine);
-//		
-//		addBaseLine = new ToolItem(this, SWT.RADIO, ++i);
-//		addBaseLine.setText("BL");
-//		addBaseLine.setToolTipText("Add a baseline");
-//		addBaseLine.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
-//		modeMap.put(addBaseLine, TrpCanvasAddMode.ADD_BASELINE);
-//		addToRadioGroup(addBaseLine);
-//
-//		addWord = new ToolItem(this, SWT.RADIO, ++i);
-//		addWord.setText("W");
-//		addWord.setToolTipText("Add a word");
-//		addWord.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
-//		modeMap.put(addWord, TrpCanvasAddMode.ADD_WORD);
-//		addToRadioGroup(addWord);
-//		}
-				
-		if (true) {
-			addSpecialRegion = new DropDownToolItem(this.tb, true, true, SWT.PUSH, ++i);
-			
-			MenuItem mi = null;
-			
-			mi = addSpecialRegion.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));
-			modeMap.put(mi, TrpCanvasAddMode.ADD_TEXTREGION);
-			
-			mi = addSpecialRegion.addItem(RegionTypeUtil.LINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.LINE));
-			modeMap.put(mi, TrpCanvasAddMode.ADD_LINE);
-			
-			mi = addSpecialRegion.addItem(RegionTypeUtil.BASELINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.BASELINE));
-			modeMap.put(mi, TrpCanvasAddMode.ADD_BASELINE);
-			
-			mi = addSpecialRegion.addItem(RegionTypeUtil.WORD, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.WORD));
-			modeMap.put(mi, TrpCanvasAddMode.ADD_WORD);		
-			
-			mi = addSpecialRegion.addItem(RegionTypeUtil.TABLE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TABLE));
-			modeMap.put(mi, TrpCanvasAddMode.ADD_TABLEREGION);
-			
-			mi = addSpecialRegion.addItem(RegionTypeUtil.PRINTSPACE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.PRINTSPACE));
-			modeMap.put(mi, TrpCanvasAddMode.ADD_PRINTSPACE);
-			
-			for (String name : RegionTypeUtil.SPECIAL_REGIONS) {
-//				mode.data = c;
-				mi = addSpecialRegion.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
-				modeMap.put(mi, TrpCanvasAddMode.ADD_OTHERREGION);	
-			}
-			
-//			CanvasMode mode = TrpCanvasAddMode.ADD_OTHERREGION;
-//			modeMap.put(addSpecialRegion.ti, TrpCanvasAddMode.ADD_OTHERREGION);
-			
-//			for (RegionType rt : specialRegions) {
-//				addSpecialRegion.addItem(rt.getClass().getSimpleName(), Images.getOrLoad("/icons/shape_square_add.png"), "");	
-//			}
-		}
-		
-		
-		optionsItem = new DropDownToolItem(this.tb, false, true, SWT.CHECK, ++i);
+		optionsItem = new DropDownToolItem(this.tb, false, true, SWT.CHECK);
 		optionsItem.ti.setImage(Images.getOrLoad("/icons/wrench.png"));
 		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.getOrLoad("/icons/wrench.png"), "");
 		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.getOrLoad("/icons/wrench.png"), "");
@@ -401,66 +275,15 @@ public class CanvasToolBar {
 		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.getOrLoad("/icons/wrench.png"), "");
 		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.getOrLoad("/icons/wrench.png"), "");
 
-		if (false) {
-		tableItem = new DropDownToolItem(this.tb, false, true, SWT.PUSH, ++i);
-		tableItem.ti.setImage(Images.getOrLoad("/icons/table_edit.png"));
-		deleteRowItem = tableItem.addItem("Delete row of selected cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
-		deleteColumnItem = tableItem.addItem("Delete column of selected cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
-		splitMergedCell = tableItem.addItem("Split up formerly merged cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
-		removeIntermediatePtsItem = tableItem.addItem("Remove intermediate points of cell", Images.getOrLoad("/icons/table_edit.png"), "Table tools");
-		}
+//		new ToolItem(this, SWT.SEPARATOR);
+		undo = new ToolItem(this.tb, SWT.PUSH);
+		undo.setToolTipText("Undo last edit step");
+		undo.setImage(Images.ARROW_UNDO);
 		
-//		new ToolItem(this, SWT.SEPARATOR, ++i);
-		
-//		shapeAddRectMode = new ToolItem(this, SWT.CHECK, ++i);
-//		shapeAddRectMode.setImage(Images.getOrLoad("/icons/shape_square.png"));
-//		shapeAddRectMode.setToolTipText("Toggles rectangle mode: if enabled, all shapes (except baselines) are added as rectangles instead of polygons - additional points can be added later however!");
-		
-//		autoCreateParent = new ToolItem(this, SWT.CHECK, ++i);
-//		autoCreateParent.setImage(Images.getOrLoad("/icons/shape_square_add.png"));
-//		autoCreateParent.setToolTipText("If enabled, missing parent shapes (i.e. text regions or lines) are automatically created if they are not found!");
-		
-//		new ToolItem(this, SWT.SEPARATOR, ++i);
-		
-		
-//		linkShapes = new ToolItem(this, SWT.PUSH, ++i);
-//		linkShapes.setImage(Images.getOrLoad("/icons/link.png"));
-//		linkShapes.setToolTipText("Links two shapes, e.g. a footnote and a link to it");
-		
-//		linkBreakShapes = new ToolItem(this, SWT.PUSH, ++i);
-//		linkBreakShapes.setImage(Images.getOrLoad("/icons/link_break.png"));
-//		linkBreakShapes.setToolTipText("Removes an existing link");
-		
-//		addItems = new ArrayList<>();
-//		addItems.add(addPrintspace);
-//		addItems.add(addTextRegion);
-//		addItems.add(addLine);
-//		addItems.add(addBaseLine);
-//		addItems.add(addWord);
-
-//		addItems.add(shapeAddRectMode);
-
-		i = this.tb.indexOf(mergeShapes);
-		i += 2;
-		
-//		new ToolItem(this, SWT.SEPARATOR, i);
-		
-		if (false) {
-		renderBlackeningsToggle = new ToolItem(this.tb, SWT.CHECK, ++i);
-		renderBlackeningsToggle.setToolTipText("If toggled, blackening regions are rendered with opaque background");
-		//renderBlackeningsToggle.setText("Render blackenings");
-		renderBlackeningsToggle.setImage(Images.getOrLoad("/icons/rabbit-silhouette.png"));
-				
-		new ToolItem(this.tb, SWT.SEPARATOR, ++i);
-		}
-		
-		i = this.tb.indexOf(undo);
-		
-		viewSettingsMenuItem = new ToolItem(this.tb, SWT.PUSH, ++i);
+		viewSettingsMenuItem = new ToolItem(this.tb, SWT.PUSH);
 		viewSettingsMenuItem.setToolTipText("Change &viewing settings...");
 		viewSettingsMenuItem.setImage(Images.getOrLoad("/icons/palette.png"));
 		
-
 		this.tb.pack();
 		
 		addListeners();
@@ -469,7 +292,6 @@ public class CanvasToolBar {
 	
 	protected void addToRadioGroup(Item item) {
 		addItemSelectionListener(item, radioGroupSelectionAdapter);
-//		item.addSelectionListener(radioGroupSelectionAdapter);
 	}
 	
 	private void selectItem(Item i, boolean selected) {
@@ -515,7 +337,8 @@ public class CanvasToolBar {
 			}
 		});
 		
-		DataBinder.get().bindBoolBeanValueToToolItemSelection("editingEnabled", canvasWidget.getCanvas().getSettings(), editingEnabledToolItem);
+		if (editingEnabledToolItem != null)
+			DataBinder.get().bindBoolBeanValueToToolItemSelection("editingEnabled", canvasWidget.getCanvas().getSettings(), editingEnabledToolItem);
 		
 //		editingEnabledToolItem.addSelectionListener(new SelectionAdapter() {
 //			@Override
@@ -538,8 +361,8 @@ public class CanvasToolBar {
 		SWTUtil.addSelectionListener(loupe, listener);
 //		SWTUtil.addToolItemSelectionListener(rotateLeft, listener);
 //		SWTUtil.addToolItemSelectionListener(rotateRight, listener);
-		SWTUtil.addSelectionListener(fitItem.ti, listener);
-		SWTUtil.addSelectionListener(rotateItem.ti, listener);
+		SWTUtil.addSelectionListener(fitItem, listener);
+		SWTUtil.addSelectionListener(rotateItem, listener);
 //		SWTUtil.addToolItemSelectionListener(translateItem.ti, listener);
 		
 		SWTUtil.addSelectionListener(focus, listener);
@@ -549,12 +372,18 @@ public class CanvasToolBar {
 		SWTUtil.addSelectionListener(removeShape, listener);
 		SWTUtil.addSelectionListener(simplifyEpsItem, listener);
 		SWTUtil.addSelectionListener(undo, listener);
+		
+		SWTUtil.addSelectionListener(splitHorizontalItem, listener);
+		SWTUtil.addSelectionListener(splitVerticalItem, listener);
+		SWTUtil.addSelectionListener(splitLineItem, listener);
+		
 		SWTUtil.addSelectionListener(splitShapeLine, listener);
 		SWTUtil.addSelectionListener(splitShapeWithVerticalLine, listener);
 		SWTUtil.addSelectionListener(splitShapeWithHorizontalLine, listener);
+		
 		SWTUtil.addSelectionListener(mergeShapes, listener);
 	
-		SWTUtil.addSelectionListener(imageVersionItem.ti, listener);
+		SWTUtil.addSelectionListener(imageVersionDropdown, listener);
 		
 //		SWTUtil.addSelectionListener(addPrintspace, listener);
 //		SWTUtil.addSelectionListener(addTextRegion, listener);
@@ -562,17 +391,18 @@ public class CanvasToolBar {
 //		SWTUtil.addSelectionListener(addBaseLine, listener);
 //		SWTUtil.addSelectionListener(addWord, listener);
 		
-		SWTUtil.addSelectionListener(addSpecialRegion.ti, listener);
+		SWTUtil.addSelectionListener(addElementDropdown, listener);
+		SWTUtil.addSelectionListener(splitDropdown, listener);
 
 		SWTUtil.addSelectionListener(viewSettingsMenuItem, listener);
 		
 		SWTUtil.addSelectionListener(imgEnhanceItem, listener);
 		
 		// table stuff
-		SWTUtil.addSelectionListener(deleteRowItem, listener);
-		SWTUtil.addSelectionListener(deleteColumnItem, listener);
-		SWTUtil.addSelectionListener(splitMergedCell, listener);
-		SWTUtil.addSelectionListener(removeIntermediatePtsItem, listener);
+//		SWTUtil.addSelectionListener(deleteRowItem, listener);
+//		SWTUtil.addSelectionListener(deleteColumnItem, listener);
+//		SWTUtil.addSelectionListener(splitMergedCell, listener);
+//		SWTUtil.addSelectionListener(removeIntermediatePtsItem, listener);
 	}
 
 	public ToolItem getZoomIn() {
@@ -713,9 +543,13 @@ public class CanvasToolBar {
 		SWTUtil.setEnabled(removePoint, isEditingEnabled && notNullAndEditable && selected.canRemove());
 //		SWTUtil.setEnabled(addShape, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(removeShape, isEditingEnabled && notNullAndEditable);
+		
+		SWTUtil.setEnabled(splitDropdown, isEditingEnabled && notNullAndEditable);
+		
 		SWTUtil.setEnabled(splitShapeLine, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(splitShapeWithVerticalLine, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(splitShapeWithHorizontalLine, isEditingEnabled && notNullAndEditable);
+		
 		SWTUtil.setEnabled(mergeShapes, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getNSelected() >= 2);
 		SWTUtil.setEnabled(simplifyEpsItem, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(undo, isEditingEnabled);
@@ -899,17 +733,17 @@ public class CanvasToolBar {
 //			
 //		}
 
-	public void addBindings(TrpSettings trpSets) {
-		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsToggle);
-	}
+//	public void addBindings(TrpSettings trpSets) {
+//		DataBinder.get().bindBoolBeanValueToToolItemSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsToggle);
+//	}
 
-	public String getSelectedSpecialRegionType() {
-		MenuItem si = addSpecialRegion.getSelected();
+	public String getSelectedAddElementType() {
+		MenuItem si = addElementDropdown.getSelected();
 		return (si != null) ? si.getText() : "";
 	}
 
-	public DropDownToolItem getImageVersionItem() {
-		return imageVersionItem;
+	public DropDownToolItem getImageVersionDropdown() {
+		return imageVersionDropdown;
 	}
 
 	public ToolItem getImgEnhanceItem() { 
@@ -948,25 +782,25 @@ public class CanvasToolBar {
 		return selectNewlyCreatedShapeItem;
 	}
 
-	public DropDownToolItem getAddSpecialRegion() {
-		return addSpecialRegion;
+	public DropDownToolItem getAddElementDropDown() {
+		return addElementDropdown;
 	}
 
-	public MenuItem getDeleteRowItem() {
-		return deleteRowItem;
-	}
+//	public MenuItem getDeleteRowItem() {
+//		return deleteRowItem;
+//	}
+//
+//	public MenuItem getDeleteColumnItem() {
+//		return deleteColumnItem;
+//	}
 
-	public MenuItem getDeleteColumnItem() {
-		return deleteColumnItem;
-	}
-
-	public MenuItem getSplitMergedCell() {
-		return splitMergedCell;
-	}
-
-	public MenuItem getRemoveIntermediatePtsItem() {
-		return removeIntermediatePtsItem;
-	}
+//	public MenuItem getSplitMergedCell() {
+//		return splitMergedCell;
+//	}
+//
+//	public MenuItem getRemoveIntermediatePtsItem() {
+//		return removeIntermediatePtsItem;
+//	}
 	
 	public ToolBar getTb() {
 		return tb;
@@ -978,6 +812,10 @@ public class CanvasToolBar {
 	
 	public ToolBar getToolbar() {
 		return tb;
+	}
+
+	public DropDownToolItem getSplitDropdown() {
+		return splitDropdown;
 	}
 
 }

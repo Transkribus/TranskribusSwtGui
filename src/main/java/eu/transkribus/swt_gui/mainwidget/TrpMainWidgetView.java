@@ -48,6 +48,7 @@ import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
+import eu.transkribus.swt_gui.doc_overview.DocMetadataWidget;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewWidget;
 import eu.transkribus.swt_gui.menubar.MenuListener;
 import eu.transkribus.swt_gui.menubar.TrpMenuBar;
@@ -77,6 +78,8 @@ public class TrpMainWidgetView extends Composite {
 	WordTranscriptionWidget wordTranscriptionWidget;
 	StructureTreeWidget structureTreeWidget;
 	DocOverviewWidget docOverviewWidget;
+	DocMetadataWidget docMetadataWidget;
+	
 //	JobOverviewWidget jobOverviewWidget;
 	JobTableWidgetPagination jobOverviewWidget;
 //	VersionsWidget versionsWidget;
@@ -222,6 +225,9 @@ public class TrpMainWidgetView extends Composite {
 		docOverviewWidget = new DocOverviewWidget(tabWidget.serverTf);
 		tabWidget.docListItem.setControl(docOverviewWidget);
 		
+		docMetadataWidget = new DocMetadataWidget(tabWidget.documentTf, 0);
+		tabWidget.docoverviewItem.setControl(docMetadataWidget);
+		
 		structureTreeWidget = new StructureTreeWidget(tabWidget.documentTf);
 		tabWidget.structureItem.setControl(structureTreeWidget);
 		
@@ -361,7 +367,7 @@ public class TrpMainWidgetView extends Composite {
 		
 		addInternalListener();
 		addBindings();
-		canvasWidget.getToolbar().addBindings(getTrpSets());
+//		canvasWidget.getToolbar().addBindings(getTrpSets());
 		updateLoginInfo(false, "", "");
 		updateDockingStateButtons();
 		
@@ -1338,6 +1344,10 @@ public class TrpMainWidgetView extends Composite {
 
 	public DropDownToolItem getSaveDropDown() {
 		return saveDrowDown;
+	}
+
+	public DocMetadataWidget getDocMetadataWidget() {
+		return docMetadataWidget;
 	}
 
 }

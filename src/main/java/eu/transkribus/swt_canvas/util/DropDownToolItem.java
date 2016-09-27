@@ -34,6 +34,8 @@ public class DropDownToolItem extends Widget {
 	public static final int IS_DROP_DOWN_ITEM_DETAIL = 1;
 	
 	List<SelectionListener> selListener=new ArrayList<>();
+	
+	public static final String ALT_TXT_KEY="altTxt";
 
 //	boolean highlightSelected=false;
 
@@ -123,8 +125,14 @@ public class DropDownToolItem extends Widget {
 			Assert.assertNotNull(item);
 
 			selected = item;
-			if (renderTextInMainItem)
-				dropdown.setText(item.getText());
+			if (renderTextInMainItem) {
+				Object altText = item.getData(ALT_TXT_KEY);
+				if (altText != null) {
+					dropdown.setText((String) altText);	
+				} else {
+					dropdown.setText(item.getText());	
+				}
+			}
 			
 			if ( (itemStyle & SWT.RADIO) == SWT.RADIO) {
 				for (MenuItem mi : menu.getItems()) {

@@ -178,8 +178,7 @@ public class TrpTabWidget extends Composite {
 		// TODO: create widgets
 		Composite c = new Composite(documentTf, 0);
 		
-//		docoverviewItem = createCTabItem(documentTf, c, Msgs.get2("documents")); // TODO
-		
+		docoverviewItem = createCTabItem(documentTf, c, "Overview", secondRowItems); // TODO
 		structureItem = createCTabItem(documentTf, c, Msgs.get2("layout_tab_title"), secondRowItems);
 //		jobOverviewItem = createCTabItem(leftTabFolder, jobOverviewWidget, Msgs.get2("jobs"));
 		versionsItem = createCTabItem(documentTf, c, Msgs.get2("versions"), secondRowItems);

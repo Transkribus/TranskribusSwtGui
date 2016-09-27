@@ -132,14 +132,14 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 //			sd.open();
 		}		
 		else if (canvas.getMode() == TrpCanvasAddMode.ADD_OTHERREGION) {
-			TrpCanvasAddMode.ADD_OTHERREGION.data = toolbar.getSelectedSpecialRegionType(); 
+			TrpCanvasAddMode.ADD_OTHERREGION.data = toolbar.getSelectedAddElementType(); 
 		}
 
 		
 		if (s == toolbar.getViewSettingsMenuItem()) {
 			mw.getUi().openViewSetsDialog();
 		}
-		else if (s == toolbar.getImageVersionItem().ti && e.detail != SWT.ARROW) {
+		else if (s == toolbar.getImageVersionDropdown().ti && e.detail != SWT.ARROW) {
 			TrpMainWidget.getInstance().reloadCurrentImage();
 		}
 		else if (s == toolbar.getImgEnhanceItem()) {
@@ -149,34 +149,43 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		}
 		
 		// TABLE STUFF:
-		else if (s == toolbar.getDeleteRowItem()) {
-			mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.ROW, true);
-		}
-		else if (s == toolbar.getDeleteColumnItem()) {
-			mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.COLUMN, true);
-		}
-		else if (s == toolbar.getSplitMergedCell()) {
-			mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
-		}
-		else if (s == toolbar.getRemoveIntermediatePtsItem()) {
-			mw.getCanvas().getShapeEditor().removeIntermediatePointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
-		}
+//		else if (s == toolbar.getDeleteRowItem()) {
+//			mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.ROW, true);
+//		}
+//		else if (s == toolbar.getDeleteColumnItem()) {
+//			mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.COLUMN, true);
+//		}
+//		else if (s == toolbar.getSplitMergedCell()) {
+//			mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
+//		}
+//		else if (s == toolbar.getRemoveIntermediatePtsItem()) {
+//			mw.getCanvas().getShapeEditor().removeIntermediatePointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
+//		}
 
 	}
 	
 	protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {
 		CanvasToolBar toolbar = canvasWidget.getToolbar();
+		Object s = e.getSource();
 		
 		logger.debug("source = "+e.getSource());
 		
-		if (e.getSource().equals(toolbar.getAddSpecialRegion().ti)) {
-			logger.debug("getting mode for special region toolitem...");
+		if (s.equals(toolbar.getAddElementDropDown().ti)) {
+			logger.debug("getting mode for adding element...");
 			if (e.detail != SWT.ARROW) {
-				CanvasMode mode = toolbar.getModeMap().get(toolbar.getAddSpecialRegion().getSelected());
+				CanvasMode mode = toolbar.getModeMap().get(toolbar.getAddElementDropDown().getSelected());
 				return mode!=null ? mode : CanvasMode.SELECTION;
 			} else
 				return CanvasMode.SELECTION;
-		} else {
+		}
+		else if (s.equals(toolbar.getSplitDropdown().ti)) {
+			if (e.detail != SWT.ARROW) {
+				CanvasMode mode = toolbar.getModeMap().get(toolbar.getSplitDropdown().getSelected());
+				return mode!=null ? mode : CanvasMode.SELECTION;
+			} else
+				return CanvasMode.SELECTION;
+		}
+		else {
 			CanvasMode mode = toolbar.getModeMap().get(e.getSource());
 			return mode!=null ? mode : CanvasMode.SELECTION;
 		}

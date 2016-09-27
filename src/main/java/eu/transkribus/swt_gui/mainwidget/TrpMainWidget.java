@@ -127,7 +127,7 @@ import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
-import eu.transkribus.swt_gui.doc_overview.DocMetadataEditor;
+import eu.transkribus.swt_gui.doc_overview.DocMetadadataWidgetListener;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
@@ -190,6 +190,7 @@ public class TrpMainWidget {
 	LineEditorListener lineEditorListener;
 	StructureTreeListener structTreeListener;
 	DocOverviewListener docOverviewListener;
+	DocMetadadataWidgetListener docMetadataWidgetListener;
 	TrpMainWidgetListener mainWidgetListener;
 	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
@@ -217,9 +218,6 @@ public class TrpMainWidget {
 	static TrpMainWidget mw;
 
 	static int tmpCount = 0;
-	
-//	DebuggerDialog debugDiag;
-	public static DocMetadataEditor docMetadataEditor;
 	
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
@@ -513,8 +511,8 @@ public class TrpMainWidget {
 		}
 
 		ui.getDocOverviewWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
-		ui.getDocOverviewWidget().getLoadedDocText().setText(loadedDocStr);
-		ui.getDocOverviewWidget().getCurrentCollectionText().setText(currentCollectionStr);
+		ui.getDocMetadataWidget().getLoadedDocText().setText(loadedDocStr);
+		ui.getDocMetadataWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 
 //		ui.toolsWidget.updateParameter(st, language);
@@ -591,14 +589,11 @@ public class TrpMainWidget {
 			
 		}
 
-		ui.getDocOverviewWidget().getLoadedDocText().setText(loadedDocStr);
-		// if (pageNr != -1) {
-		ui.getDocOverviewWidget().getLoadedPageText().setText(fn);
-//		ui.getDocOverviewWidget().getLoadedPageKey().setText(key);
-		ui.getDocOverviewWidget().getLoadedImageUrl().setText(imgUrl);
-		ui.getDocOverviewWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
+		ui.getDocMetadataWidget().getLoadedDocText().setText(loadedDocStr);
+		ui.getDocMetadataWidget().getLoadedPageText().setText(fn);
+		ui.getDocMetadataWidget().getLoadedImageUrl().setText(imgUrl);
+		ui.getDocMetadataWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
 		
-		// }
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 		ui.getShell().setText(title);
 		// updateDocMetadata();
@@ -657,6 +652,7 @@ public class TrpMainWidget {
 		structTreeListener = new StructureTreeListener(this);
 		// doc overview listener:
 		docOverviewListener = new DocOverviewListener(this);
+		docMetadataWidgetListener = new DocMetadadataWidgetListener(ui.getDocMetadataWidget());
 		// transcription observer:
 		transcriptObserver = new TranscriptObserver(this);
 		// shape observer:
@@ -1283,14 +1279,12 @@ public class TrpMainWidget {
 	public void updatePageLock() {
 		if (storage.isPageLocked() != isPageLocked) { // page locking changed
 			isPageLocked = storage.isPageLocked();
-
-			ui.getCanvasWidget().getToolbar().getEditingEnabledToolItem().setEnabled(!isPageLocked);
 			TrpConfig.getCanvasSettings().setEditingEnabled(!isPageLocked);
-			ui.getTranscriptionComposite().setEnabled(!isPageLocked);
-//			ui.getRightTabFolder().setEnabled(!isPageLocked);
-			ui.getSaveTranscriptButton().setEnabled(!isPageLocked);
-			ui.getSaveTranscriptWithMessageButton().setEnabled(!isPageLocked);
 
+			SWTUtil.setEnabled(ui.getCanvasWidget().getToolbar().getEditingEnabledToolItem(), !isPageLocked);
+			SWTUtil.setEnabled(ui.getTranscriptionComposite(), !isPageLocked);
+			SWTUtil.setEnabled(ui.getSaveDropDown(), !isPageLocked);
+						
 			updatePageInfo();
 			updateToolBars();
 		}
@@ -3409,7 +3403,7 @@ public class TrpMainWidget {
 	}
 	
 	public String getSelectedImageFileType() {
-		String fileType = getCanvasWidget().getToolbar().getImageVersionItem().ti.getText();
+		String fileType = getCanvasWidget().getToolbar().getImageVersionDropdown().ti.getText();
 		if (!fileType.equals("orig") && fileType.equals("view") && !fileType.equals("bin"))
 			return "view";
 		else
