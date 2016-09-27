@@ -1,5 +1,8 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -21,12 +24,15 @@ import eu.transkribus.swt_gui.Msgs;
 public class TrpTabWidget extends Composite {
 	
 	CTabFolder tf;
-//	CTabFolder serverTf;
+	CTabFolder serverTf;
 	CTabFolder documentTf;
 	CTabFolder metadataTf;
 	CTabFolder toolsTf;
 	
 	CTabItem serverItem, documentItem, metadataItem, toolsItem;
+	
+	// server items:
+	CTabItem docListItem;
 		
 	// items for document tf:
 	CTabItem docoverviewItem, structureItem, versionsItem, thumbnailItem;
@@ -35,6 +41,9 @@ public class TrpTabWidget extends Composite {
 	CTabItem structuralMdItem, textTaggingItem, commentsItem;
 	
 	CTabItem remoteToolsItem, jobsItem, vkItem;
+	
+	List<CTabItem> firstRow = new ArrayList<>();
+	List<CTabItem> secondRow = new ArrayList<>();
 	
 	public TrpTabWidget(Composite parent, int style) {
 		super(parent, style);
@@ -51,11 +60,11 @@ public class TrpTabWidget extends Composite {
 	}
 	
 	void initMainTfs() {
-//		serverTf = createTabFolder(tf);
+		serverTf = createTabFolder(tf);
 //		serverTf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 //		serverTf.setLayout(new FillLayout());
-		serverItem = createCTabItem(tf, new Composite(tf, 0), "Server");
+		serverItem = createCTabItem(tf, serverTf, "Server");
 		initServerTf();
 				
 		documentTf = createTabFolder(tf);//		documentTf.setLayout(new FillLayout());
@@ -70,15 +79,28 @@ public class TrpTabWidget extends Composite {
 		toolsItem = createCTabItem(tf, toolsTf, "Tools");
 		initToolsTf();
 		
+		firstRow.add(serverItem);
+		firstRow.add(documentItem);
+		firstRow.add(metadataItem);
+		firstRow.add(toolsItem);
+		
 		// set default selection:
 		tf.setSelection(serverItem);
 		documentTf.setSelection(structureItem);
 		metadataTf.setSelection(structuralMdItem);
 		toolsTf.setSelection(remoteToolsItem);
 		
+		updateColors();
+		
 		addSelectionFontBold();
 		
 		updateAllSelectedTabs();
+	}
+	
+	void updateColors() {
+		for (CTabItem i : firstRow) {
+			i.setFont(Fonts.addStyleBit(i.getFont(), SWT.ITALIC));
+		}
 	}
 	
 	void updateAllSelectedTabs() {
@@ -91,10 +113,13 @@ public class TrpTabWidget extends Composite {
 	void updateSelectedOnTabFolder(CTabFolder tf) {
 		for (CTabItem i : tf.getItems()) {
 			if (i == tf.getSelection()) {
-				i.setFont(Fonts.createBoldFont(i.getFont()));
+				i.setFont(Fonts.addStyleBit(i.getFont(), SWT.BOLD));
+				//i.setFont(Fonts.removeStyleBit(i.getFont(), SWT.NORMAL));
 			} else {
-				i.setFont(Fonts.createNormalFont(i.getFont()));
+				i.setFont(Fonts.removeStyleBit(i.getFont(), SWT.BOLD));
+				i.setFont(Fonts.addStyleBit(i.getFont(), SWT.NORMAL));			
 			}
+			
 		}
 	}
 	
@@ -118,6 +143,11 @@ public class TrpTabWidget extends Composite {
 	}
 	
 	void initServerTf() {
+		Composite c = new Composite(serverTf, 0);
+		
+		docListItem = createCTabItem(serverTf, c, "Doclist");
+		remoteToolsItem = createCTabItem(serverTf, c, "Tools");
+		jobsItem = createCTabItem(serverTf, c, "Jobs");
 	}
 	
 	void initDocumentTf() {
@@ -144,8 +174,6 @@ public class TrpTabWidget extends Composite {
 	void initToolsTf() {
 		Composite c = new Composite(toolsTf, 0);
 		
-		remoteToolsItem = createCTabItem(toolsTf, c, "Server Tools");
-		jobsItem = createCTabItem(toolsTf, c, "Jobs");
 		vkItem = createCTabItem(toolsTf, c, "Virtual Keyboards");
 	}
 	

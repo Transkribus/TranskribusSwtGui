@@ -245,8 +245,8 @@ public class TrpMainWidgetView extends Composite {
 		// NEW: only one tab widget
 		tabWidget = new TrpTabWidget(this, 0);
 		
-		docOverviewWidget = new DocOverviewWidget(tabWidget.tf);
-		tabWidget.serverItem.setControl(docOverviewWidget);
+		docOverviewWidget = new DocOverviewWidget(tabWidget.serverTf);
+		tabWidget.docListItem.setControl(docOverviewWidget);
 		
 		structureTreeWidget = new StructureTreeWidget(tabWidget.documentTf);
 		tabWidget.structureItem.setControl(structureTreeWidget);
@@ -284,7 +284,7 @@ public class TrpMainWidgetView extends Composite {
 		
 //		docOverviewWidget = new DocOverviewWidget(leftTabFolder);
 //		structureTreeWidget = new StructureTreeWidget(leftTabFolder);
-		jobOverviewWidget = new JobTableWidgetPagination(tabWidget.toolsTf, SWT.NONE, 50);
+		jobOverviewWidget = new JobTableWidgetPagination(tabWidget.serverTf, SWT.NONE, 50);
 		tabWidget.jobsItem.setControl(jobOverviewWidget);
 		
 		
@@ -312,7 +312,7 @@ public class TrpMainWidgetView extends Composite {
 			vkeyboards = new TrpVirtualKeyboardsWidget(tabWidget.toolsTf, SWT.TOP | SWT.BORDER | SWT.FLAT );
 			tabWidget.vkItem.setControl(vkeyboards);
 			
-			toolsWidget = new ToolsWidget(tabWidget.toolsTf, SWT.TOP);
+			toolsWidget = new ToolsWidget(tabWidget.serverTf, SWT.TOP);
 			toolsWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			tabWidget.remoteToolsItem.setControl(toolsWidget);
 			

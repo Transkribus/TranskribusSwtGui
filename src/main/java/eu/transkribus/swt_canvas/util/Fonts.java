@@ -201,6 +201,39 @@ public class Fonts {
 //		return null;
 //	}
 	
+	public static Font changeStyleBit(Font f, int style, boolean add) {
+		if (f.getFontData().length  == 0)
+			return null;
+		
+		FontData fd = f.getFontData()[0];
+		if (add)
+			fd.setStyle(fd.getStyle() | style);
+		else
+			fd.setStyle(fd.getStyle()  ^ style);
+
+		return createFont(fd);
+	}
+	
+	public static Font addStyleBit(Font f, int style) {
+		if (f.getFontData().length == 0)
+			return null;
+		
+		FontData fd = f.getFontData()[0];
+		fd.setStyle(fd.getStyle() | style);
+		
+		return createFont(fd);
+	}
+	
+	public static Font removeStyleBit(Font f, int style) {
+		if (f.getFontData().length == 0)
+			return null;
+		
+		FontData fd = f.getFontData()[0];
+		fd.setStyle(fd.getStyle() ^ style);
+		
+		return createFont(fd);
+	}
+		
 	public static Font createItalicFont(Font f) {
 		if (f.getFontData().length > 0) {
 			FontData fd = f.getFontData()[0];
