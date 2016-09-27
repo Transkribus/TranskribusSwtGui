@@ -259,7 +259,7 @@ public class ThumbnailWidget extends Composite {
 					}
 					
 					@Override protected void onDone() {
-						setItemTextAndBackgroung(group.getItem(index), index, transcribedLines);
+						setItemTextAndBackground(group.getItem(index), index, transcribedLines);
 						//groupComposite.layout(true, true);
 						//labelComposite.redraw();
 						//groupComposite.redraw();
@@ -594,7 +594,10 @@ public class ThumbnailWidget extends Composite {
 		}	
 	}
 	
-	private void setItemTextAndBackgroung(GalleryItem galleryItem, int index, int transcribedLines) {
+	private void setItemTextAndBackground(GalleryItem galleryItem, int index, int transcribedLines) {
+		if (SWTUtil.isDisposed(galleryItem))
+			return;
+		
 		String transcribedLinesText = "";
 		
 		//int transcribedLines;
