@@ -7,20 +7,14 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
-import eu.transkribus.swt_canvas.canvas.CanvasScene;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.xmlviewer.XmlViewer;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -35,7 +29,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
 	TrpMenuBar menuBar;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	
 	public TrpMainWidgetListener(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;

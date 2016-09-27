@@ -1,5 +1,8 @@
 package eu.transkribus.swt_gui.canvas;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,22 +11,19 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-
 public final class CanvasKeyListener extends KeyAdapter {
 	private static final Logger logger = LoggerFactory.getLogger(CanvasKeyListener.class);
 	
-	private TrpSWTCanvas canvas;
+	private SWTCanvas canvas;
 //	private TrpMainWidget mainWidget;
 
-	public CanvasKeyListener(TrpSWTCanvas canvas) {
+	public CanvasKeyListener(SWTCanvas canvas) {
 		this.canvas = canvas;
 //		this.mainWidget = canvas.getMainWidget();
 	}

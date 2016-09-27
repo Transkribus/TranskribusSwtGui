@@ -98,6 +98,7 @@ import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasScene;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.CanvasWidget;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
@@ -117,7 +118,6 @@ import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
 import eu.transkribus.swt_gui.canvas.CanvasContextMenuListener;
 import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerListener;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
@@ -163,7 +163,7 @@ public class TrpMainWidget {
 	// Ui stuff:
 	// Display display = Display.getDefault();
 	static Display display;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	TrpMainWidgetView ui;
 	LoginDialog loginDialog;
 	// LineTranscriptionWidget transcriptionWidget;
@@ -1744,7 +1744,7 @@ public class TrpMainWidget {
 		return ui.getCanvasWidget();
 	}
 
-	public TrpSWTCanvas getCanvas() {
+	public SWTCanvas getCanvas() {
 		return canvas;
 	}
 

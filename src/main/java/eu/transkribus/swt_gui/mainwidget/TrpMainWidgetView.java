@@ -31,6 +31,7 @@ import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
 import eu.transkribus.swt_canvas.canvas.CanvasWidget;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt_canvas.portal.PortalWidget;
@@ -43,7 +44,6 @@ import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.ThumbnailWidget;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
@@ -1197,7 +1197,7 @@ public class TrpMainWidgetView extends Composite {
 	public CanvasWidget getCanvasWidget() { return canvasWidget; }
 	public CanvasToolBar getCanvasToolBar() { return canvasWidget.getToolbar(); }
 	
-	public TrpSWTCanvas getCanvas() {
+	public SWTCanvas getCanvas() {
 //		return canvasWidget.getCanvas();
 		
 		if (canvasWidget != null && canvasWidget.getCanvas()!=null)

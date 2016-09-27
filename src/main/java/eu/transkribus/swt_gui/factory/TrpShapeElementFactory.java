@@ -30,7 +30,6 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.exceptions.BaselineExistsException;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
@@ -46,7 +45,7 @@ public class TrpShapeElementFactory {
 	private final static Logger logger = LoggerFactory.getLogger(TrpShapeElementFactory.class);
 	
 	TrpMainWidget mainWidget;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 
 	public TrpShapeElementFactory(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;

@@ -28,20 +28,17 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.catti.CattiRequest;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
-import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.LabeledText;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
-import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
 import eu.transkribus.util.IndexTextUtils;
@@ -55,7 +52,7 @@ public class DebuggerDialog extends Dialog {
 	public Button invalidateSessionBtn;
 	
 	public TrpMainWidget mw = TrpMainWidget.getInstance();
-	public TrpSWTCanvas canvas = mw.getCanvas();
+	public SWTCanvas canvas = mw.getCanvas();
 	
 	public Storage storage = Storage.getInstance();
 	public Button processUploadedZipFileBtn;

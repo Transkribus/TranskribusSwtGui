@@ -1,13 +1,5 @@
 package eu.transkribus.swt_gui.transcription;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.core.model.beans.pagecontent_trp.TaggedWord;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
-
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -17,6 +9,13 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.model.beans.pagecontent_trp.TaggedWord;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 
 @Deprecated
 public class WordTagEditor extends CanvasShapeAttachWidget<TrpWordType> {
@@ -25,7 +24,7 @@ public class WordTagEditor extends CanvasShapeAttachWidget<TrpWordType> {
 	Combo tagCombo;
 	ComboViewer comboViewer;	
 
-	public WordTagEditor(final TrpSWTCanvas canvas, int style) {
+	public WordTagEditor(final SWTCanvas canvas, int style) {
 		super(canvas, style, TrpWordType.class, 300, 35);
 		
 		comboViewer = new ComboViewer(this, SWT.READ_ONLY | SWT.DROP_DOWN);

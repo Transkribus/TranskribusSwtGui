@@ -21,13 +21,13 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
 import eu.transkribus.swt_canvas.canvas.CanvasException;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -80,7 +80,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 //	}
 
 	protected TrpMainWidget mw;
-	protected TrpSWTCanvas canvas;
+	protected SWTCanvas canvas;
 	protected Shell shell;
 	
 	public CanvasSceneListener(TrpMainWidget mw) {

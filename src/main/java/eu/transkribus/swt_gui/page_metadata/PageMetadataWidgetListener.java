@@ -37,13 +37,13 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
@@ -57,7 +57,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 	TrpMainWidgetView ui;
 	PageMetadataWidget mw;
 	TextStyleTypeWidget tw;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	TrpSettings settings;
 		
 	public PageMetadataWidgetListener(TrpMainWidget mainWidget) {

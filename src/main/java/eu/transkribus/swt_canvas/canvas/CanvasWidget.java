@@ -18,13 +18,12 @@ import eu.transkribus.swt_canvas.canvas.editing.UndoStack;
 import eu.transkribus.swt_canvas.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_canvas.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class CanvasWidget extends Composite {
 	static Logger logger = LoggerFactory.getLogger(CanvasWidget.class);
 	
-	protected TrpSWTCanvas canvas;
+	protected SWTCanvas canvas;
 	protected CanvasToolBar toolbar;
 	protected CanvasToolBarSelectionListener canvasToolBarSelectionListener;
 	
@@ -46,7 +45,7 @@ public class CanvasWidget extends Composite {
 		
 		setLayout(l);
 
-		this.canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, mainWidget);
+		this.canvas = new SWTCanvas(SWTUtil.dummyShell, SWT.NONE, mainWidget);
 		this.canvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		this.toolbar = new CanvasToolBar(this, tb, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
@@ -92,7 +91,7 @@ public class CanvasWidget extends Composite {
 		toolbar.addSelectionListener(new CanvasToolBarSelectionListener(this));
 	}
 
-	public TrpSWTCanvas getCanvas() {
+	public SWTCanvas getCanvas() {
 		return canvas;
 	}
 

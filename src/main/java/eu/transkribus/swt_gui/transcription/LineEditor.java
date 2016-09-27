@@ -3,15 +3,6 @@ package eu.transkribus.swt_gui.transcription;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
-import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
-import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
-
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.LineStyleEvent;
@@ -20,6 +11,14 @@ import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Listener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
+import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
 
 /**
  * A line editor for transcription. Note that the editor is invisible at first (i.e. added to a dummy shell). <br>
@@ -34,7 +33,7 @@ public class LineEditor extends CanvasShapeAttachWidget<TrpTextLineType> {
 	StyledText textField;
 	TrpAutoCompleteField autocomplete;
 	
-	public LineEditor(final TrpSWTCanvas canvas, int style) {
+	public LineEditor(final SWTCanvas canvas, int style) {
 		super(canvas, style, TrpTextLineType.class);
 		
 		textField = new StyledText(SWTUtil.dummyShell, SWT.SINGLE | SWT.BORDER);

@@ -41,7 +41,6 @@ import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
 import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.TableCellUndoData;
 import eu.transkribus.swt_gui.table_editor.TableShapeEditOperation;
@@ -1001,7 +1000,7 @@ public class CanvasShapeEditor {
 			List<ShapeEditOperation> ops = new ArrayList<>();
 			ops.add(splitOp);
 		
-			TableUtils.selectCells((TrpSWTCanvas) canvas, table, insertIndex, dir, false);
+			TableUtils.selectCells(canvas, table, insertIndex, dir, false);
 	
 			return ops;
 		}

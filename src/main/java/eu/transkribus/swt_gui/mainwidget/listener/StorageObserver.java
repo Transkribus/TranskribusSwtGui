@@ -6,9 +6,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.Storage.DocLoadEvent;
@@ -28,7 +28,7 @@ public class StorageObserver extends AStorageObserver {
 	Storage storage = Storage.getInstance();
 	TrpMainWidget mw;
 	TrpMainWidgetView ui;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	
 	public StorageObserver(TrpMainWidget mainWidget) {
 		this.mw = mainWidget;

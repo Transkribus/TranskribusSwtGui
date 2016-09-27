@@ -16,8 +16,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
+import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
@@ -30,7 +30,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 	TrpMainWidgetView ui;
 	PageMetadataWidget mw;
 	TextStyleTypeWidget tw;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	TrpSettings settings;
 	
 	public TaggingWidgetListener(TrpMainWidget mainWidget) {
