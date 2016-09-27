@@ -41,6 +41,8 @@ public class CanvasWidget extends Composite {
 		GridLayout l = new GridLayout(1, false);
 		l.marginTop = 0;
 		l.marginBottom = 0;
+		l.marginHeight = 0;
+		l.marginWidth = 0;
 		
 		setLayout(l);
 

@@ -167,7 +167,7 @@ public class TrpTabWidget extends Composite {
 	void initServerTf() {
 		Composite c = new Composite(serverTf, 0);
 		
-		docListItem = createCTabItem(serverTf, c, "Doclist", secondRowItems);
+		docListItem = createCTabItem(serverTf, c, "Documents", secondRowItems);
 		remoteToolsItem = createCTabItem(serverTf, c, "Tools", secondRowItems);
 		jobsItem = createCTabItem(serverTf, c, "Jobs", secondRowItems);
 		

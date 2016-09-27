@@ -318,11 +318,16 @@ public class TrpMainWidgetView extends Composite {
 		if (true) {
 //			transcriptionWidgetContainer = new TabFolder(SWTUtil.dummyShell, SWT.NONE);
 		transcriptionWidgetContainer = new Composite(SWTUtil.dummyShell, SWT.NONE);
-		transcriptionWidgetContainer.setLayout(new GridLayout(1, true));
-		transcriptionWidgetContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		GridLayout gl = new GridLayout(1, true);
+		gl.marginWidth = 0;
+		gl.marginHeight = 0;
+		transcriptionWidgetContainer.setLayout(gl);
+		
+//		transcriptionWidgetContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		lineTranscriptionWidget = new LineTranscriptionWidget(SWTUtil.dummyShell, SWT.NONE, trpSets, this);
 		lineTranscriptionWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
 		wordTranscriptionWidget = new WordTranscriptionWidget(SWTUtil.dummyShell, SWT.NONE, trpSets, this);
 		wordTranscriptionWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				
@@ -622,9 +627,9 @@ public class TrpMainWidgetView extends Composite {
 				}
 			};
 			
-			Position[] positions = { Position.LEFT, Position.RIGHT, Position.BOTTOM };
+			Position[] positions = { Position.LEFT, /*Position.RIGHT,*/ Position.BOTTOM };
 			Docking[] dockings = { Docking.DOCKED, Docking.UNDOCKED, Docking.INVISIBLE };
-			String[] cascadeLabels = { "Left view", "Right view", "Bottom view" };
+			String[] cascadeLabels = { "Left view", /*"Right view",*/ "Bottom view" };
 			String[] dockingsLabels = { "Docked", "Undocked", "Invisible" };	
 
 			// for all positions
