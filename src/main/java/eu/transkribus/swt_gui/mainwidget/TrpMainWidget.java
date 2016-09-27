@@ -804,17 +804,21 @@ public class TrpMainWidget {
 //		}
 		
 		//section to load the last used document for each user - either local or remote doc
+		if (false) {
 		if (!RecentDocsPreferences.getItems().isEmpty()){
 			if (RecentDocsPreferences.isShowOnStartup()){
 				String docToLoad = RecentDocsPreferences.getItems().get(0);
 				loadRecentDoc(docToLoad);
 			}
 		}
-		else{
+		else {
 			//if no recent docs are available -> load the example doc
+			if (false) {
 			loadRemoteDoc(5014, 4);
 			getUi().getDocOverviewWidget().setSelectedCollection(4, true);
 			getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", 5014, true);
+			}
+		}
 		}
 		
 		reloadJobList();
