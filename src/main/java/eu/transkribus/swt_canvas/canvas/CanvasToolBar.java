@@ -23,7 +23,6 @@ import eu.transkribus.swt_canvas.util.DropDownToolItem;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 
 //public class CanvasToolBar extends ToolBar {
 public class CanvasToolBar {
@@ -170,27 +169,27 @@ public class CanvasToolBar {
 		
 		MenuItem mi = null;
 		mi = addElementDropdown.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));
-		modeMap.put(mi, TrpCanvasAddMode.ADD_TEXTREGION);
+		modeMap.put(mi, CanvasMode.ADD_TEXTREGION);
 		
 		mi = addElementDropdown.addItem(RegionTypeUtil.LINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.LINE));
-		modeMap.put(mi, TrpCanvasAddMode.ADD_LINE);
+		modeMap.put(mi, CanvasMode.ADD_LINE);
 		
 		mi = addElementDropdown.addItem(RegionTypeUtil.BASELINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.BASELINE));
-		modeMap.put(mi, TrpCanvasAddMode.ADD_BASELINE);
+		modeMap.put(mi, CanvasMode.ADD_BASELINE);
 		
 		mi = addElementDropdown.addItem(RegionTypeUtil.WORD, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.WORD));
-		modeMap.put(mi, TrpCanvasAddMode.ADD_WORD);		
+		modeMap.put(mi, CanvasMode.ADD_WORD);		
 		
 		mi = addElementDropdown.addItem(RegionTypeUtil.TABLE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TABLE));
-		modeMap.put(mi, TrpCanvasAddMode.ADD_TABLEREGION);
+		modeMap.put(mi, CanvasMode.ADD_TABLEREGION);
 		
 		mi = addElementDropdown.addItem(RegionTypeUtil.PRINTSPACE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.PRINTSPACE));
-		modeMap.put(mi, TrpCanvasAddMode.ADD_PRINTSPACE);
+		modeMap.put(mi, CanvasMode.ADD_PRINTSPACE);
 		
 		for (String name : RegionTypeUtil.SPECIAL_REGIONS) {
 //				mode.data = c;
 			mi = addElementDropdown.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
-			modeMap.put(mi, TrpCanvasAddMode.ADD_OTHERREGION);	
+			modeMap.put(mi, CanvasMode.ADD_OTHERREGION);	
 		}		
 				
 		removeShape = new ToolItem(this.tb, SWT.PUSH);

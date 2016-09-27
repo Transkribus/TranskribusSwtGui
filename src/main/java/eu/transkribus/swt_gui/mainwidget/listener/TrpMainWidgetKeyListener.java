@@ -12,7 +12,6 @@ import eu.transkribus.swt_canvas.canvas.CanvasKeys;
 import eu.transkribus.swt_canvas.canvas.CanvasMode;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
@@ -91,7 +90,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 		
 		// SOME TEST HOOKS FOR TABLES:
 		if (isCtrlOrCommand && kc == 'c') { // create table cell
-			mw.getCanvas().setMode(TrpCanvasAddMode.ADD_TABLECELL);
+			mw.getCanvas().setMode(CanvasMode.ADD_TABLECELL);
 		} else if (isCtrlOrCommand && kc == 'x') { // check table consistency
 			TrpTableRegionType t = TableUtils.getTable(mw.getCanvas().getFirstSelected(), true);			
 			if (t != null) {

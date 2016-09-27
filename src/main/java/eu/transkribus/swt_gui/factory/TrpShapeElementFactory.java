@@ -30,7 +30,6 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.exceptions.BaselineExistsException;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
@@ -199,27 +198,27 @@ public class TrpShapeElementFactory {
 		String specialRegionType = (m.data != null && m.data instanceof String) ? (String) m.data : "";
 //		String specialRegionType = mainWidget.getCanvasWidget().getToolBar().getSelectedSpecialRegionType();
 
-		if (m.equals(TrpCanvasAddMode.ADD_PRINTSPACE) || specialRegionType.equals(RegionTypeUtil.PRINTSPACE)) {
+		if (m.equals(CanvasMode.ADD_PRINTSPACE) || specialRegionType.equals(RegionTypeUtil.PRINTSPACE)) {
 			TrpPageType parent = Storage.getInstance().getTranscript().getPage();
 			if (parent.getPrintSpace()!=null)
 				throw new CanvasException("Printspace already exists!");
 			TrpPrintSpaceType ps = createPAGEPrintSpace(shape, parent);
 			trpShape = ps;
 		}
-		else if (m.equals(TrpCanvasAddMode.ADD_TEXTREGION)) {
+		else if (m.equals(CanvasMode.ADD_TEXTREGION)) {
 			// create text region and add it to the shape:
 			TrpPageType parent = Storage.getInstance().getTranscript().getPage();
 			TrpTextRegionType tr = createPAGETextRegion(shape, parent);
 			trpShape = tr;
 		}
-		else if (m.equals(TrpCanvasAddMode.ADD_TABLEREGION)) {
+		else if (m.equals(CanvasMode.ADD_TABLEREGION)) {
 			logger.debug("creating table region...");
 			TrpPageType parent = Storage.getInstance().getTranscript().getPage();
 			logger.debug("parent = "+parent);
 			TrpTableRegionType tr = createPAGETableRegion(shape, parent);
 			trpShape = tr;
 		}
-		else if (m.equals(TrpCanvasAddMode.ADD_OTHERREGION)) {
+		else if (m.equals(CanvasMode.ADD_OTHERREGION)) {
 			logger.debug("adding special region, type  = "+specialRegionType);
 			if (!specialRegionType.isEmpty()) {
 				TrpPageType parent = Storage.getInstance().getTranscript().getPage();
@@ -228,7 +227,7 @@ public class TrpShapeElementFactory {
 			} else
 				throw new CanvasException("Invalid special region type: "+specialRegionType+" - should not happen!");			
 		}
-		else if (m.equals(TrpCanvasAddMode.ADD_LINE)) {
+		else if (m.equals(CanvasMode.ADD_LINE)) {
 			String errorMsg = "";
 			if (setts.isAddLinesToOverlappingRegions()) {
 				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTextRegionType.class);
@@ -246,7 +245,7 @@ public class TrpShapeElementFactory {
 			TrpTextLineType tl = createPAGETextLine(shape, parent);
 			trpShape = tl;
 		}
-		else if (m.equals(TrpCanvasAddMode.ADD_BASELINE)) {
+		else if (m.equals(CanvasMode.ADD_BASELINE)) {
 			String errorMsg = "";
 			if (setts.isAddBaselinesToOverlappingLines()) {
 				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTextLineType.class);
@@ -267,7 +266,7 @@ public class TrpShapeElementFactory {
 			TrpBaselineType bl = createPAGEBaseline(shape, parent);
 			trpShape = bl;
 		}
-		else if (m.equals(TrpCanvasAddMode.ADD_WORD)) {
+		else if (m.equals(CanvasMode.ADD_WORD)) {
 			String errorMsg = "";
 			if (setts.isAddWordsToOverlappingLines()) {
 				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTextLineType.class);
@@ -285,7 +284,7 @@ public class TrpShapeElementFactory {
 			TrpWordType word = createPAGEWord(shape, parent);
 			trpShape = word;
 		}
-		else if (m.equals(TrpCanvasAddMode.ADD_TABLECELL)) {
+		else if (m.equals(CanvasMode.ADD_TABLECELL)) {
 			logger.debug("1 creating tablecell");
 			String errorMsg="";
 						

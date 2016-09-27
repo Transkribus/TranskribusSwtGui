@@ -27,7 +27,6 @@ import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
@@ -112,7 +111,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 						CanvasQuadPolygon qp = new CanvasQuadPolygon(shape.getBounds());
 						qp.setEditable(true);
 						
-						ITrpShapeType cellEl = mw.getShapeFactory().createJAXBElementFromShape(qp, TrpCanvasAddMode.ADD_TABLECELL, shape);
+						ITrpShapeType cellEl = mw.getShapeFactory().createJAXBElementFromShape(qp, CanvasMode.ADD_TABLECELL, shape);
 						ShapeEditOperation op = canvas.getScene().addShape(qp, shape, false);
 						if (op == null) {
 							e.stop = true;
@@ -125,7 +124,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					
 					// create parent shape if none existed!
 					final boolean CREATE_PARENT_SHAPE_IF_NONE_EXISTS = true;
-					boolean askForParentCreation = mode != TrpCanvasAddMode.ADD_TABLECELL;
+					boolean askForParentCreation = mode != CanvasMode.ADD_TABLECELL;
 					
 					if (CREATE_PARENT_SHAPE_IF_NONE_EXISTS && askForParentCreation) {
 						boolean doCreateParentRegion = TrpMainWidget.getTrpSettings().isAutoCreateParent();
@@ -147,7 +146,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 							logger.debug("Adding parent "+parentType);
 							// determine parent shape:
 							ICanvasShape shapeOfParent = null;
-							if (mode == TrpCanvasAddMode.ADD_BASELINE) { // for a baseline add a parent line that is extended beyond the bounding box
+							if (mode == CanvasMode.ADD_BASELINE) { // for a baseline add a parent line that is extended beyond the bounding box
 								CanvasPolyline baselineShape = (CanvasPolyline) shape;
 								shapeOfParent = baselineShape.getDefaultPolyRectangle();
 							} else  { // for a word or line add parent shape that is almost the same as the shape to add
@@ -155,7 +154,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 							}
 							// backup and set correct mode:
 							CanvasMode modeBackup = canvas.getMode();
-							canvas.setMode(noRegion ? TrpCanvasAddMode.ADD_TEXTREGION : TrpCanvasAddMode.ADD_LINE);
+							canvas.setMode(noRegion ? CanvasMode.ADD_TEXTREGION : CanvasMode.ADD_LINE);
 							// try to add parent region:
 							ShapeEditOperation op = canvas.getShapeEditor().addShapeToCanvas(shapeOfParent, true);
 							canvas.setMode(modeBackup);

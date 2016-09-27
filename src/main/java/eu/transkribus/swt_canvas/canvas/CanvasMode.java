@@ -20,11 +20,19 @@ public class CanvasMode {
 //	public final static CanvasMode SPLIT_SHAPE = new CanvasMode(true, false, false, false, "SPLIT_SHAPE");
 	
 	public final static CanvasMode SPLIT_SHAPE_LINE = new CanvasMode(true, false, false, false, "SPLIT_SHAPE_LINE");
-	
 	public final static CanvasMode SPLIT_SHAPE_BY_VERTICAL_LINE = new CanvasMode(true, false, false, false, "SPLIT_SHAPE_BY_VERTICAL_LINE");
 	public final static CanvasMode SPLIT_SHAPE_BY_HORIZONTAL_LINE = new CanvasMode(true, false, false, false, "SPLIT_SHAPE_BY_HORIZONTAL_LINE");
 		
-	public final static CanvasMode ADD_SHAPE = new CanvasMode(true, false, false, true, "ADD_SHAPE");
+//	public final static CanvasMode ADD_SHAPE = new CanvasMode(true, false, false, true, "ADD_SHAPE");
+	
+	public static final CanvasMode ADD_PRINTSPACE = new CanvasMode(true, false, false, true, "Printspace");
+	public static final CanvasMode ADD_TEXTREGION = new CanvasMode(true, false, false, true, "TextRegion");
+	public static final CanvasMode ADD_LINE = new CanvasMode(true, false, false, true, "Line");
+	public static final CanvasMode ADD_BASELINE = new CanvasMode(true, false, false, true, "Baseline");
+	public static final CanvasMode ADD_WORD = new CanvasMode(true, false, false, true, "Word");
+	public static final CanvasMode ADD_TABLEREGION = new CanvasMode(true, false, false, true, "TableRegion");
+	public static final CanvasMode ADD_OTHERREGION = new CanvasMode(true, false, false, true, "Region");
+	public static final CanvasMode ADD_TABLECELL = new CanvasMode(true, false, false, true, "TableCell");
 	
 	boolean isAddOperation;
 	boolean isEditOperation;

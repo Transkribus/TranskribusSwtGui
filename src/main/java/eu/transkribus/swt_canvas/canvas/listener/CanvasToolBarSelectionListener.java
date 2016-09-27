@@ -12,7 +12,6 @@ import eu.transkribus.swt_canvas.canvas.CanvasWidget;
 import eu.transkribus.swt_canvas.canvas.SWTCanvas;
 import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
 import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.dialogs.ImageEnhanceDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -131,8 +130,8 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 //			SettingsDialog sd = new SettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getCanvas().getSettings(), getTrpSets());		
 //			sd.open();
 		}		
-		else if (canvas.getMode() == TrpCanvasAddMode.ADD_OTHERREGION) {
-			TrpCanvasAddMode.ADD_OTHERREGION.data = toolbar.getSelectedAddElementType(); 
+		else if (canvas.getMode() == CanvasMode.ADD_OTHERREGION) {
+			CanvasMode.ADD_OTHERREGION.data = toolbar.getSelectedAddElementType(); 
 		}
 
 		

@@ -43,7 +43,6 @@ import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.ThumbnailWidget;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
@@ -1143,7 +1142,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	public CanvasShapeType getShapeTypeToDraw() {
 		CanvasMode m = getCanvas().getSettings().getMode();
-		if (m != TrpCanvasAddMode.ADD_BASELINE) {
+		if (m != CanvasMode.ADD_BASELINE) {
 			if (trpSets.getRectMode())
 				return CanvasShapeType.RECTANGLE;
 			else

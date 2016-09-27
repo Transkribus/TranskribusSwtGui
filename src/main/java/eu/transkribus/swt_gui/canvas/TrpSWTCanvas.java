@@ -61,7 +61,7 @@ public class TrpSWTCanvas extends SWTCanvas {
 	}
 	
 	private void initTrpCanvasListener() {
-		this.addKeyListener(new TrpCanvasKeyListener(this));
+		this.addKeyListener(new CanvasKeyListener(this));
 	}
 					
 	public void updateShapeColors() {

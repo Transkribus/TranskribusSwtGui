@@ -41,7 +41,6 @@ import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_canvas.canvas.shapes.RectDirection;
 import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
 import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.TableCellUndoData;
@@ -297,7 +296,7 @@ public class CanvasShapeEditor {
 	}
 	
 	protected ICanvasShape constructShapeFromPoints(List<java.awt.Point> pts, CanvasShapeType shapeType) {
-		if (canvas.getMode() == TrpCanvasAddMode.ADD_TABLECELL) {
+		if (canvas.getMode() == CanvasMode.ADD_TABLECELL) {
 			// assume table cell is drawn as rectangle
 			List<java.awt.Point> polyPts = new ArrayList<>();
 			polyPts.add(pts.get(0));
@@ -2393,7 +2392,7 @@ public class CanvasShapeEditor {
 						}
 					}
 					
-					canvas.setMode(TrpCanvasAddMode.ADD_TABLECELL);
+					canvas.setMode(CanvasMode.ADD_TABLECELL);
 					
 					CanvasQuadPolygon newQuadCell = new CanvasQuadPolygon(newPts, corners);
 					
@@ -2422,7 +2421,7 @@ public class CanvasShapeEditor {
 				op.addNestedOp(opR);
 			}
 			
-			canvas.setMode(TrpCanvasAddMode.SELECTION);
+			canvas.setMode(CanvasMode.SELECTION);
 					
 			if (addToUndoStack)
 				addToUndoStack(op);

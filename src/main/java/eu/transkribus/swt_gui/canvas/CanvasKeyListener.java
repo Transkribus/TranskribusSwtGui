@@ -17,13 +17,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 
-public final class TrpCanvasKeyListener extends KeyAdapter {
-	private static final Logger logger = LoggerFactory.getLogger(TrpCanvasKeyListener.class);
+public final class CanvasKeyListener extends KeyAdapter {
+	private static final Logger logger = LoggerFactory.getLogger(CanvasKeyListener.class);
 	
 	private TrpSWTCanvas canvas;
 //	private TrpMainWidget mainWidget;
 
-	public TrpCanvasKeyListener(TrpSWTCanvas canvas) {
+	public CanvasKeyListener(TrpSWTCanvas canvas) {
 		this.canvas = canvas;
 //		this.mainWidget = canvas.getMainWidget();
 	}
