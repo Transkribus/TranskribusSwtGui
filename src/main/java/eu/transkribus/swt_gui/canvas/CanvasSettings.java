@@ -12,7 +12,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Display;
 
-import eu.transkribus.swt_canvas.util.MouseButtons;
+import eu.transkribus.swt.util.MouseButtons;
 import eu.transkribus.util.APropertyChangeSupport;
 
 public class CanvasSettings extends APropertyChangeSupport  {	

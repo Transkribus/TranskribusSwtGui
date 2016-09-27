@@ -6,7 +6,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.CanvasToolBar;
 import eu.transkribus.swt_gui.canvas.CanvasWidget;

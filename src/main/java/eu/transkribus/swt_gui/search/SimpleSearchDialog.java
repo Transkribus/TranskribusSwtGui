@@ -14,8 +14,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.LabeledCombo;
-import eu.transkribus.swt_canvas.util.LabeledText;
+import eu.transkribus.swt.util.LabeledCombo;
+import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog2;
 import eu.transkribus.swt_gui.search.documents.DocSearchComposite;
 import eu.transkribus.swt_gui.search.documents.SimpleDocSearchComposite;

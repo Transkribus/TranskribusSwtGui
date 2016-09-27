@@ -41,8 +41,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.Colors;
-import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.util.Utils;
 
 public class WordGraphEditor extends Composite {

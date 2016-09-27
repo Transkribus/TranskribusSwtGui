@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiExportMode;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.SWTUtil;
 
 public class TeiExportDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(TeiExportDialog.class);

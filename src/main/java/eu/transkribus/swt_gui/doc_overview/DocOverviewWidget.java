@@ -23,9 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog2;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;

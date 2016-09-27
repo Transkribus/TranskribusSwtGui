@@ -8,7 +8,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
 import eu.transkribus.client.connection.TrpServerConn;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
 

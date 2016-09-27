@@ -11,9 +11,9 @@ import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.CanvasTransform;
-import eu.transkribus.swt_canvas.util.ImgLoader;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.CanvasTransform;
+import eu.transkribus.swt.util.ImgLoader;
+import eu.transkribus.swt.util.SWTUtil;
 
 final public class CanvasImage {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasImage.class);

@@ -17,9 +17,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import eu.transkribus.swt_canvas.util.Colors;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.Msgs;
 
 public class TrpTabWidget extends Composite {

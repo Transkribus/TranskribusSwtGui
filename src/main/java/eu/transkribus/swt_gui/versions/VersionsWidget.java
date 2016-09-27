@@ -22,11 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
-import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
-import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.TableViewerSorter;
+import eu.transkribus.swt.mytableviewer.ColumnConfig;
+import eu.transkribus.swt.mytableviewer.MyTableViewer;
+import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.TableViewerSorter;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsTableWidgetListener;
 
 public class VersionsWidget extends Composite {

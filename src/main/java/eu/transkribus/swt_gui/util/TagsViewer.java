@@ -41,13 +41,13 @@ import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
-import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
-import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.ImgLoader;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.mytableviewer.ColumnConfig;
+import eu.transkribus.swt.mytableviewer.MyTableViewer;
+import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.ImgLoader;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class TagsViewer extends Composite {

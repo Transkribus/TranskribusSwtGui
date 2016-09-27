@@ -41,10 +41,10 @@ import com.thoughtworks.xstream.XStream;
 import eu.transkribus.core.model.beans.pagecontent.ColourSimpleType;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.util.EnumUtils;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.ExclusiveButtonSelectionGroup;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.ExclusiveButtonSelectionGroup;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.util.GuiUtil;
 

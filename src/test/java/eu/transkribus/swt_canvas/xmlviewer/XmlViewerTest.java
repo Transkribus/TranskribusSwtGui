@@ -15,7 +15,8 @@ import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.xmlviewer.XmlViewer;
 import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 
 public class XmlViewerTest {

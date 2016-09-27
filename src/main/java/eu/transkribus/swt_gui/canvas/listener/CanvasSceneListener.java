@@ -19,7 +19,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
-import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;

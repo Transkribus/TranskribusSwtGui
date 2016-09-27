@@ -25,7 +25,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType.GetCellsType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
-import eu.transkribus.swt_canvas.util.DialogUtil;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.canvas.CanvasMode;

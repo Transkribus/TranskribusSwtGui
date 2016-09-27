@@ -18,10 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
-import eu.transkribus.swt_canvas.util.DropDownToolItem;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.util.databinding.DataBinder;
+import eu.transkribus.swt.util.DropDownToolItem;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 
 //public class CanvasToolBar extends ToolBar {

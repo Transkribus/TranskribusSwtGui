@@ -26,7 +26,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.TextStyleTypeUtils;
-import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;

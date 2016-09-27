@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.UnicodeList;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.Images;
 
 public class VirtualKeyboard extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(VirtualKeyboard.class);

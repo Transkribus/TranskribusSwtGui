@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.util.RegexPattern;
-import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt.util.Colors;
 
 @Deprecated
 public class AddTagAttributeDialog extends Dialog {

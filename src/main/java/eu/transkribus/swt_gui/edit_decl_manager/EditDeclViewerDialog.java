@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.EdFeature;
-import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
-import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
-import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.mytableviewer.ColumnConfig;
+import eu.transkribus.swt.mytableviewer.MyTableViewer;
+import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 //public class CollectionManagerWidget extends Composite {

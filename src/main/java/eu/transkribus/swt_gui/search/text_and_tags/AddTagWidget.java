@@ -19,9 +19,9 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
-import eu.transkribus.swt_canvas.util.CustomTagPropertyTable;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.LabeledCombo;
+import eu.transkribus.swt.util.CustomTagPropertyTable;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.LabeledCombo;
 
 public class AddTagWidget extends Composite /*implements Observer*/ {
 	private final static Logger logger = LoggerFactory.getLogger(AddTagWidget.class);

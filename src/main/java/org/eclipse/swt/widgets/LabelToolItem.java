@@ -5,7 +5,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 
-import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt.util.Fonts;
 
 public class LabelToolItem extends ACustomToolItem {
 	

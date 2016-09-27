@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.editing.UndoStack;
 import eu.transkribus.swt_gui.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;

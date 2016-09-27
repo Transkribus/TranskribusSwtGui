@@ -6,8 +6,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.databinding.DataBinder;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;

@@ -65,10 +65,10 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.searchresult.Facet;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.PageHit;
-import eu.transkribus.swt_canvas.util.Colors;
-import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.LabeledText;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

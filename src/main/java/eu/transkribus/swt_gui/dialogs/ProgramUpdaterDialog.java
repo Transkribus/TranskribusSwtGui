@@ -34,9 +34,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.progress.ProgressBarDialog;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGui;
 import eu.transkribus.swt_gui.mainwidget.ProgramInfo;

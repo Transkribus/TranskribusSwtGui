@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Spinner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.SWTUtil;
 
 public class RtfExportDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(PdfExportDialog.class);

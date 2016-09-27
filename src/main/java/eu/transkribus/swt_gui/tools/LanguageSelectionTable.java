@@ -22,7 +22,7 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt.util.Colors;
 
 public class LanguageSelectionTable extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(LanguageSelectionTable.class);

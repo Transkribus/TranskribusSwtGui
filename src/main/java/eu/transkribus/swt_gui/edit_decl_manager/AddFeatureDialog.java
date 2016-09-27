@@ -21,7 +21,7 @@ import org.eclipse.ui.internal.dnd.SwtUtil;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.EdFeature;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class AddFeatureDialog extends Dialog {
