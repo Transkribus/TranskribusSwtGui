@@ -61,8 +61,9 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		menuBar.getInstallMenuItem().addSelectionListener(this);
 		menuBar.getTipsOfTheDayMenuItem().addSelectionListener(this);
 		menuBar.getAnalyzeStructureItem().addSelectionListener(this);
-		
 		menuBar.getDeletePageMenuItem().addSelectionListener(this);
+		
+		SWTUtil.addSelectionListener(menuBar.getBugReportItem(), this);
 		
 		// update IDs of segmentation:
 		ui.getStructureTreeWidget().getUpdateIDsItem().addSelectionListener(this);
@@ -88,7 +89,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		
 		SWTUtil.addSelectionListener(ui.getOpenLocalFolderButton(), this);
 		SWTUtil.addSelectionListener(ui.getLoadTranscriptInTextEditor(), this);
-		SWTUtil.addSelectionListener(ui.getSendBugReportButton(), this);
+//		SWTUtil.addSelectionListener(ui.getSendBugReportButton(), this);
 		SWTUtil.addSelectionListener(ui.getLoginToggle(), this);
 		
 		SWTUtil.addSelectionListener(ui.getUploadDocsItem(), this);
@@ -253,7 +254,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 			int res = DialogUtil.showMessageDialog(mainWidget.getShell(), ui.APP_NAME, ui.HELP_TEXT, null, MessageDialog.INFORMATION, 
 					new String[] {"OK", "Report bug / feature request"}, 0);
 			if (res == 1) {
-				ui.getSendBugReportButton().notifyListeners(SWT.Selection, new Event());
+				menuBar.getBugReportItem().notifyListeners(SWT.Selection, new Event());
 			}
 		}
 		// UI BUTTONS:
@@ -294,7 +295,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 //		else if (s == ui.getExportTeiButton()) {
 //			mainWidget.exportTei();
 //		}
-		else if (s == ui.getSendBugReportButton()) {
+		else if (s == menuBar.getBugReportItem()) {
 			mainWidget.sendBugReport();
 		}
 //		else if (s == ui.getReloadTranscriptsButton()) {

@@ -77,6 +77,7 @@ public class TrpMenuBar {
 	MenuItem analyzeStructureItem;
 	MenuItem installMenuItem;
 	MenuItem tipsOfTheDayMenuItem;
+	MenuItem bugReportItem;
 
 	
 
@@ -248,6 +249,10 @@ public class TrpMenuBar {
 		installMenuItem.setText("&Install a specific version...");
 		installMenuItem.setImage(Images.getOrLoad("/icons/install_wiz.gif"));
 		
+		bugReportItem = new MenuItem(menuBar, SWT.NONE);
+		bugReportItem.setText("Send a bug report or feature request");
+		bugReportItem.setImage(Images.BUG);
+		
 		aboutMenuIItem = new MenuItem(menuBar, SWT.NONE);
 		aboutMenuIItem.setText("&About");
 		aboutMenuIItem.setImage(Images.getOrLoad("/icons/information.png"));
@@ -380,6 +385,7 @@ public class TrpMenuBar {
 	public MenuItem getUpdateMenuItem() { return updateMenuItem; }
 	public MenuItem getInstallMenuItem() { return installMenuItem; }
 	public MenuItem getTipsOfTheDayMenuItem() { return tipsOfTheDayMenuItem; }
+	public MenuItem getBugReportItem() { return bugReportItem; }
 
 	public MenuItem getLoadTestsetMenuItem() {
 		return loadTestsetMenuItem;

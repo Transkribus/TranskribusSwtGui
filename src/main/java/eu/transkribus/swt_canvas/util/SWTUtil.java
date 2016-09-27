@@ -29,6 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionListener;
@@ -1180,6 +1182,13 @@ public class SWTUtil {
 //		SebisStopWatch.SW.start();
 //		ImageData id = SWTUtil.convertToSWT(bi);
 //		SebisStopWatch.SW.stop();
+	}
+
+	public static void setSelection(CTabFolder tf, CTabItem item) {
+		if (isDisposed(tf) || isDisposed(item))
+			return;
+		
+		tf.setSelection(item);
 	}
 	
 

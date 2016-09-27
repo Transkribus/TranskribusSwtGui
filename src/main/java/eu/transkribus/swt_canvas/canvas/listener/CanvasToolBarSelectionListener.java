@@ -45,22 +45,22 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			canvas.resetTransformation();
 		}
 		
-		else if (toolbar.getTranslateItem()!= null && s == toolbar.getTranslateItem().ti && e.detail != SWT.ARROW) {
-			switch (toolbar.getTranslateItem().getLastSelectedIndex()) {
-			case 0:
-				canvas.translateLeft();
-				break;
-			case 1:
-				canvas.translateRight();
-				break;
-			case 2:
-				canvas.translateUp();
-				break;
-			case 3:
-				canvas.translateDown();
-				break;
-			}
-		}
+//		else if (toolbar.getTranslateItem()!= null && s == toolbar.getTranslateItem().ti && e.detail != SWT.ARROW) {
+//			switch (toolbar.getTranslateItem().getLastSelectedIndex()) {
+//			case 0:
+//				canvas.translateLeft();
+//				break;
+//			case 1:
+//				canvas.translateRight();
+//				break;
+//			case 2:
+//				canvas.translateUp();
+//				break;
+//			case 3:
+//				canvas.translateDown();
+//				break;
+//			}
+//		}
 		
 		else if (s == toolbar.getRotateItem().ti && e.detail != SWT.ARROW) {
 			switch (toolbar.getRotateItem().getLastSelectedIndex()) {

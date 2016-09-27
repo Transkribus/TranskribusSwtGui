@@ -1091,7 +1091,6 @@ public class TrpMainWidget {
 			}, "Saving", false);
 
 //			reloadCurrentTranscript(true, true);
-			ui.setStatusMessage("Successfully saved data!", 5000);
 			updateToolBars();
 //			updateSelectedTranscription();
 			return true;

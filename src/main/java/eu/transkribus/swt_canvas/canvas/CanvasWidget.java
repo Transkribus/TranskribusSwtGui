@@ -9,6 +9,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +21,6 @@ import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
-
-/**
- * Widget class that wraps an SWTCanvas and a corresponding toolbar into a Composite.
- */
 public class CanvasWidget extends Composite {
 	static Logger logger = LoggerFactory.getLogger(CanvasWidget.class);
 	
@@ -33,63 +30,25 @@ public class CanvasWidget extends Composite {
 	
 	TrpMainWidget mainWidget;
 
-	/**
-	 * @wbp.parser.constructor
-	 */
 	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style) {
+		this(parent, mainWidget, style, null);
+	}
+	
+	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style, ToolBar tb) {
 		super(parent, style);
 		this.mainWidget = mainWidget;
-								
-		init(null, null);
-	}
-	
-	/**
-	 * Wraps the DeaSWTCanvas widget into a widget containing a toolbar for the most common operations such as scaling, rotation, translation etc.
-	 */
-	public CanvasWidget(Composite parent, int style, TrpSWTCanvas canvas) {
-		super(parent, style);
-
-		init(canvas, null);
-	}
-
-	/**
-	 * Wraps the DeaSWTCanvas widget into a widget containing a toolbar for the most common operations such as scaling, rotation, translation etc.
-	 */
-	public CanvasWidget(Composite parent, int style, TrpSWTCanvas canvas, CanvasToolBar toolBar) {
-		super(parent, style);
-					
-		init(canvas, toolBar);
-	}
-	
-	protected void init(TrpSWTCanvas canvas, CanvasToolBar toolBar) {
-		
+										
 		GridLayout l = new GridLayout(1, false);
 		l.marginTop = 0;
 		l.marginBottom = 0;
 		
 		setLayout(l);
-		
-		if (this.canvas != null && !this.canvas.isDisposed())
-			this.canvas.dispose();
-		
-		if (canvas != null) {
-			this.canvas = canvas;
-		}
-		else {
-			this.canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, mainWidget);
-		}
+
+		this.canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, mainWidget);
 		this.canvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		if (this.toolbar != null && !this.toolbar.isDisposed())
-			this.toolbar.dispose();
-		
-		if (toolBar!=null) {
-			this.toolbar = toolBar;
-			this.toolbar.setParent(this);
-		} else {
-			this.toolbar = new CanvasToolBar(this, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		}
-		this.toolbar.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
+
+		this.toolbar = new CanvasToolBar(this, tb, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
+		this.toolbar.tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
 		
 		this.canvas.setParent(this);
 		

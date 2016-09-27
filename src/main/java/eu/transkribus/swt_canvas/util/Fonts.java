@@ -229,7 +229,7 @@ public class Fonts {
 			return null;
 		
 		FontData fd = f.getFontData()[0];
-		fd.setStyle(fd.getStyle() ^ style);
+		fd.setStyle(fd.getStyle() & ~style);
 		
 		return createFont(fd);
 	}
