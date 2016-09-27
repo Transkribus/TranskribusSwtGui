@@ -39,13 +39,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt_canvas.canvas.CanvasKeys;
 import eu.transkribus.swt_canvas.util.Colors;
 import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Fonts;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.UndoRedoImpl;
+import eu.transkribus.swt_gui.canvas.CanvasKeys;
 
 public class XmlViewer extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(XmlViewer.class);

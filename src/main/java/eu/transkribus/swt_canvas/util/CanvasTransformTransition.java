@@ -5,7 +5,7 @@ import java.util.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
 
 /**
  * This class performs a smooth transition between two given affine transformations

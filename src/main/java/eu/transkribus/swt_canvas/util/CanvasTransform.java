@@ -6,7 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.util.MathUtil;
 
 import org.eclipse.swt.graphics.Device;

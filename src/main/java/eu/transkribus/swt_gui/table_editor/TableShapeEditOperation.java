@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
-import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
+import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 
 public class TableShapeEditOperation extends ShapeEditOperation {
 	private final static Logger logger = LoggerFactory.getLogger(TableShapeEditOperation.class);

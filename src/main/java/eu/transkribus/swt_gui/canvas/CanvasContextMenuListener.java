@@ -8,12 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
-import eu.transkribus.swt_canvas.canvas.CanvasContextMenu;
-import eu.transkribus.swt_canvas.canvas.CanvasKeys;
-import eu.transkribus.swt_canvas.canvas.SWTCanvas;
-import eu.transkribus.swt_canvas.canvas.editing.CanvasShapeEditor.BorderFlags;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
+import eu.transkribus.swt_gui.canvas.editing.CanvasShapeEditor.BorderFlags;
+import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 

@@ -12,11 +12,11 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType.GetCellsType;
-import eu.transkribus.swt_canvas.canvas.SWTCanvas;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
 
 public class TableUtils {
 	private final static Logger logger = LoggerFactory.getLogger(TableUtils.class);

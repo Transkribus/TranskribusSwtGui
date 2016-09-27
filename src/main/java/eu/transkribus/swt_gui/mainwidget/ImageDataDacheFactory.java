@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt_canvas.canvas.CanvasImage;
+import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.util.DataCacheFactory;
 
 public class ImageDataDacheFactory extends DataCacheFactory<URL, CanvasImage> {

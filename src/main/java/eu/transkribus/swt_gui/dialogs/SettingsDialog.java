@@ -14,9 +14,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 
 public class SettingsDialog extends Dialog {
