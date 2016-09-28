@@ -316,7 +316,7 @@ public class TrpMainWidget {
 		}
 		
 		boolean TESTTABLES=false; // test-hook for sebi's table editor
-		boolean DO_AUTO_LOGIN = false;
+		boolean DO_AUTO_LOGIN = true;
 		if (DO_AUTO_LOGIN && getTrpSets().isAutoLogin() && !TESTTABLES) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
 			
