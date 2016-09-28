@@ -338,6 +338,7 @@ public class ProgramUpdaterDialog {
 		
 		public static void checkForUpdatesDialog(Shell parent, String version, Date timestamp, boolean withSnapshots, boolean downloadAll) {
 			final Pair<ProgramPackageFile, Date> f;
+			logger.debug("check for update dialog!");
 			
 //			final File downloadFile = new File("./update.zip");
 			try {
@@ -383,6 +384,11 @@ public class ProgramUpdaterDialog {
 			}
 			catch (InterruptedException ie) {
 				logger.debug("Interrupted: "+ie.getMessage());
+			}
+			catch (IOException e) {
+				if (!e.getMessage().equals("stream is closed")) {
+					TrpMainWidget.getInstance().onError("IO-Error during update", "Error during update: \n\n"+e.getMessage(), e);	
+				}	
 			}
 			catch (Throwable e) {
 				TrpMainWidget.getInstance().onError("Error during update", "Error during update: \n\n"+e.getMessage(), e);

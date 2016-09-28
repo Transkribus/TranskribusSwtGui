@@ -3288,7 +3288,13 @@ public class TrpMainWidget {
 				ProgramUpdaterDialog.downloadAndInstall(ui.getShell(), f, isNewVersion, keepConfigFiles, downloadAll);
 			} catch (InterruptedException ie) {
 				logger.debug("Interrupted: " + ie.getMessage());
-			} catch (Throwable e) {
+			} 
+			catch (IOException e) {
+				if (!e.getMessage().equals("stream is closed")) {
+					TrpMainWidget.getInstance().onError("IO-Error during update", "Error during update: \n\n"+e.getMessage(), e);	
+				}	
+			}
+			catch (Throwable e) {
 				TrpMainWidget.getInstance().onError("Error during update", "Error during update: \n\n" + e.getMessage(), e);
 			} finally {
 				if (!ProgramUpdaterDialog.TEST_ONLY_DOWNLOAD)
