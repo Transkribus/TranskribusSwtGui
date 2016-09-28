@@ -361,7 +361,7 @@ public class TrpMainWidgetView extends Composite {
 		logger.debug("left view docking state: "+getTrpSets().getLeftViewDockingState());
 		
 		portalWidget.setWidgetDockingType(Position.LEFT, getTrpSets().getLeftViewDockingState());
-		portalWidget.setWidgetDockingType(Position.RIGHT, getTrpSets().getRightViewDockingState());
+//		portalWidget.setWidgetDockingType(Position.RIGHT, getTrpSets().getRightViewDockingState());
 		portalWidget.setWidgetDockingType(Position.BOTTOM, getTrpSets().getBottomViewDockingState());
 		
 		addInternalListener();
@@ -965,7 +965,7 @@ public class TrpMainWidgetView extends Composite {
 			}
 		};
 		leftViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(leftViewDockingDropItem, PortalWidget.Position.LEFT));
-		rightViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(rightViewDockingDropItem, PortalWidget.Position.RIGHT));
+//		rightViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(rightViewDockingDropItem, PortalWidget.Position.RIGHT));
 		bottomViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(bottomViewDockingDropItem, PortalWidget.Position.BOTTOM));
 		}
 
@@ -993,8 +993,8 @@ public class TrpMainWidgetView extends Composite {
 				
 		db.bindBeanPropertyToObservableValue(TrpSettings.LEFT_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
 				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.LEFT));
-		db.bindBeanPropertyToObservableValue(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY, trpSets,
-				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.RIGHT));
+//		db.bindBeanPropertyToObservableValue(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY, trpSets,
+//				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.RIGHT));
 		db.bindBeanPropertyToObservableValue(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
 				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.BOTTOM));
 		

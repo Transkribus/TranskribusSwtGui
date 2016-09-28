@@ -50,10 +50,10 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 			ui.getPortalWidget().setWidgetDockingType(Position.LEFT, (Docking) evt.getNewValue());
 			canvas.redraw();
 		}
-		else if (pn.equals(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY)) {
-			ui.getPortalWidget().setWidgetDockingType(Position.RIGHT, (Docking) evt.getNewValue());
-			canvas.redraw();
-		}
+//		else if (pn.equals(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY)) {
+//			ui.getPortalWidget().setWidgetDockingType(Position.RIGHT, (Docking) evt.getNewValue());
+//			canvas.redraw();
+//		}
 		else if (pn.equals(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY)) {
 			ui.getPortalWidget().setWidgetDockingType(Position.BOTTOM, (Docking) evt.getNewValue());
 			canvas.redraw();

@@ -1990,8 +1990,7 @@ public class TrpMainWidget {
 
 			final Shell shell = new Shell(display, SWT.SHELL_TRIM);
 			setMainShell(shell);
-			// final Shell shell = new Shell(display, SWT.NO_TRIM | SWT.ON_TOP);
-
+			
 			Realm.runWithDefault(SWTObservables.getRealm(display), new Runnable() {
 				@Override public void run() {
 					if (USE_SPLASH) {
@@ -2001,6 +2000,7 @@ public class TrpMainWidget {
 								sw.setProgress(10);
 								shell.setLayout(new FillLayout());
 								mw = new TrpMainWidget(shell);
+								shell.setMaximized(true);
 								shell.open();
 								shell.layout();
 								sw.setProgress(50);
@@ -2020,6 +2020,7 @@ public class TrpMainWidget {
 
 						// shell.setSize(1400, 1000);
 						// mw.center();
+						shell.setMaximized(true);
 						shell.open();
 						shell.layout();
 						mw.postInit();
