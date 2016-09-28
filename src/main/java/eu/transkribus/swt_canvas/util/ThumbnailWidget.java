@@ -71,7 +71,7 @@ public class ThumbnailWidget extends Composite {
 	protected GalleryItem group;
 	
 
-	protected ToolItem reload, showOrigFn;
+	protected ToolItem reload, showOrigFn, createThumbs;
 //	protected TextToolItem infoTi;
 
 	protected List<URL> urls;
@@ -173,6 +173,13 @@ public class ThumbnailWidget extends Composite {
 						onError();
 					}
 				});
+			} finally {
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						onDone();
+					}
+				});
 			}
 		}
 		
@@ -180,6 +187,9 @@ public class ThumbnailWidget extends Composite {
 		}
 		
 		protected void onError() {	
+		}
+		
+		protected void onDone() {			
 		}
 		
 		public void dispose() {
@@ -234,12 +244,14 @@ public class ThumbnailWidget extends Composite {
 						group.getItem(index).setData("doNotScaleImage", null);
 						
 						//text and background according to the nr of transcribed lines
-						setItemTextAndBackgroung(group.getItem(index), index, transcribedLines);
+						//setItemTextAndBackgroung(group.getItem(index), index, transcribedLines);
 
-						totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
+						//totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
+						/*
 						groupComposite.layout(true, true);
 						labelComposite.redraw();
 						groupComposite.redraw();
+						*/
 						gallery.redraw();
 					}
 					@Override
@@ -249,6 +261,14 @@ public class ThumbnailWidget extends Composite {
 						
 						group.getItem(index).setImage(Images.ERROR_IMG);
 						group.getItem(index).setData("doNotScaleImage", new Object());
+						gallery.redraw();
+					}
+					
+					@Override protected void onDone() {
+						setItemTextAndBackgroung(group.getItem(index), index, transcribedLines);
+						//groupComposite.layout(true, true);
+						//labelComposite.redraw();
+						//groupComposite.redraw();
 						gallery.redraw();
 					}
 				});	
@@ -275,6 +295,10 @@ public class ThumbnailWidget extends Composite {
 				reload();
 			}
 		});
+		
+		createThumbs = new ToolItem(tb, SWT.PUSH);
+		createThumbs.setToolTipText("Create thumbnails for this local document");
+		createThumbs.setText("Create thumbs");
 		
 //		infoTi = new TextToolItem(tb, SWT.FILL | SWT.READ_ONLY);
 		
@@ -485,7 +509,7 @@ public class ThumbnailWidget extends Composite {
 				logger.error(e.getMessage(), e);
 			}
 			finally {
-				logger.debug("thumbnail thread stopped!");
+				logger.debug("thumbnail thread stopped: "+!loadThread.isAlive());
 			}
 		}
 	}
@@ -702,6 +726,8 @@ public class ThumbnailWidget extends Composite {
 //		tv.setInput(thumbImages);
 //	}
 	
-	
+	public ToolItem getCreateThumbs() {
+		return createThumbs;
+	}
 
 }

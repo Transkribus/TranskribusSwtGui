@@ -26,6 +26,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -420,11 +421,11 @@ public class SWTUtil {
 				throw new IOException("Could not write thumb file - no appropriate writer found!");
 		}
 		
-	    logger.debug("created thumb file: "+thumbsFile.getAbsolutePath()+" time = "+(System.currentTimeMillis()-st));
+	    logger.trace("created thumb file: "+thumbsFile.getAbsolutePath()+" time = "+(System.currentTimeMillis()-st));
 	    return true;
 	}
 			
-	public static void createThumbsForDoc(TrpDoc doc, boolean overwrite) throws Exception {
+	public static void createThumbsForDoc(TrpDoc doc, boolean overwrite, IProgressMonitor monitor) throws Exception {
 		if (doc.getMd()==null || doc.getMd().getLocalFolder()==null)
 			throw new Exception("No local folder!");
 		
@@ -433,13 +434,26 @@ public class SWTUtil {
 		File thmbsDir = new File(doc.getMd().getLocalFolder().getAbsolutePath() + File.separator + LocalDocConst.THUMBS_FILE_SUB_FOLDER);
 		FileUtils.forceMkdir(thmbsDir);
 		
+		if (monitor != null)
+			monitor.beginTask("Creating thumbs", doc.getNPages());
+				
+		int i=0;
 		for (TrpPage p : doc.getPages()) {
+			/*
 			if (Thread.currentThread().isInterrupted()) {
 				logger.info("interrupted - stopping thumbs creation for doc");
 				return;
 			}
-			
+			*/
 			createThumbForPage(p, null, overwrite);
+			
+			if (monitor != null) {
+				monitor.worked(++i);
+				monitor.subTask(i+"/"+doc.getNPages());
+				logger.debug("is canceled: "+monitor.isCanceled());
+				if (monitor.isCanceled())
+					return;
+			}
 		}
 	}
 	

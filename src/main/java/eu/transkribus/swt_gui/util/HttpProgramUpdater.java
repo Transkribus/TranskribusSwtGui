@@ -71,6 +71,7 @@ public class HttpProgramUpdater extends ProgramUpdater<HttpProgramPackageFile> {
 //		logger.debug("reduced nr of libs = "+libs.size());
 		
 //		conn.downloadClientFile(f.isReleaseVersion(), f.getName(), downloadFile, downloadAll ? null : libs, new ProgressInputStreamListener() {
+		
 		conn.downloadClientFileNew(f.isReleaseVersion(), f.getName(), downloadFile, downloadAll ? null : libs, new ProgressInputStreamListener() {
 			@Override public void progress(long oldBytesRead, long bytesRead, long totalBytes) {
 //				logger.debug("progress: oldread: "+oldBytesRead+" newread: "+bytesRead+" total: "+totalBytes);

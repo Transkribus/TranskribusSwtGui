@@ -103,6 +103,7 @@ import eu.transkribus.swt_canvas.util.DialogUtil;
 import eu.transkribus.swt_canvas.util.Images;
 import eu.transkribus.swt_canvas.util.LoginDialog;
 import eu.transkribus.swt_canvas.util.SWTLog;
+import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_canvas.util.SplashWindow;
 import eu.transkribus.swt_canvas.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
@@ -219,7 +220,7 @@ public class TrpMainWidget {
 //	DebuggerDialog debugDiag;
 	public static DocMetadataEditor docMetadataEditor;
 	
-	private Runnable updateThumbsRunnable = new Runnable() {
+	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
 			ui.thumbnailWidget.reload();
 		}
@@ -761,6 +762,7 @@ public class TrpMainWidget {
 					
 					if (success) {
 						close();
+						onSuccessfullLoginAndDialogIsClosed();
 					} else {
 						setInfo("Login failed!");
 					}
@@ -780,6 +782,49 @@ public class TrpMainWidget {
 			onError("Error during login", "Unable to login to server", e);
 			ui.updateLoginInfo(false, "", "");
 		}
+	}
+
+	/**
+	 * Gets called when the login dialog is closed by a successful login attempt.<br>
+	 * It's a verbose method name, I know ;-)
+	 */
+	protected void onSuccessfullLoginAndDialogIsClosed() {
+		logger.debug("onSuccessfullLoginAndDialogIsClosed");
+		
+		/*
+		 * during login we want to load the last loaded doc from the previous logout
+		 */
+		//getTrpSets().getLastDocId();
+//		if (getTrpSets().getLastDocId() != -1 && getTrpSets().getLastColId() != -1){
+//			int colId = getTrpSets().getLastColId();
+//			int docId = getTrpSets().getLastDocId();
+//			loadRemoteDoc(docId, colId, 0);
+//			getUi().getDocOverviewWidget().setSelectedCollection(colId, true);
+//			getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docId, true);
+//		}
+		
+		//section to load the last used document for each user - either local or remote doc
+		if (false) {
+		if (!RecentDocsPreferences.getItems().isEmpty()){
+			if (RecentDocsPreferences.isShowOnStartup()){
+				String docToLoad = RecentDocsPreferences.getItems().get(0);
+				loadRecentDoc(docToLoad);
+			}
+		}
+		else {
+			//if no recent docs are available -> load the example doc
+			if (false) {
+			loadRemoteDoc(5014, 4);
+			getUi().getDocOverviewWidget().setSelectedCollection(4, true);
+			getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", 5014, true);
+			}
+		}
+		}
+		
+		reloadJobList();
+//		reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
+//		reloadHtrModels();
+		// reloadJobListForDocument();
 	}
 
 	public boolean login(String server, String user, String pw, boolean rememberCredentials) {
@@ -803,37 +848,7 @@ public class TrpMainWidget {
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
 			}
-			
-			/*
-			 * during login we want to load the last loaded doc from the previous logout
-			 */
-			//getTrpSets().getLastDocId();
-//			if (getTrpSets().getLastDocId() != -1 && getTrpSets().getLastColId() != -1){
-//				int colId = getTrpSets().getLastColId();
-//				int docId = getTrpSets().getLastDocId();
-//				loadRemoteDoc(docId, colId, 0);
-//				getUi().getDocOverviewWidget().setSelectedCollection(colId, true);
-//				getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docId, true);
-//			}
-			
-			//section to load the last used document for each user - either local or remote doc
-			if (!RecentDocsPreferences.getItems().isEmpty()){
-				if (RecentDocsPreferences.isShowOnStartup()){
-					String docToLoad = RecentDocsPreferences.getItems().get(0);
-					loadRecentDoc(docToLoad);
-				}
-			}
-			else{
-				//if no recent docs are available -> load the example doc
-				loadRemoteDoc(5014, 4);
-				getUi().getDocOverviewWidget().setSelectedCollection(4, true);
-				getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", 5014, true);
-			}
-			
-			reloadJobList();
-//			reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
-//			reloadHtrModels();
-			// reloadJobListForDocument();
+						
 			sessionExpired = false;
 			lastLoginServer = server;
 			return true;
@@ -1520,14 +1535,14 @@ public class TrpMainWidget {
 	public void createThumbForCurrentPage() {
 		// generate thumb for loaded page if local doc:
 		if (storage.isLocalDoc() && storage.getPage() != null && storage.getCurrentImage() != null) {
-			CreateThumbsService.createThumbs(storage.getPage(), storage.getCurrentImage().img, false, updateThumbsRunnable);
+			CreateThumbsService.createThumbForPage(storage.getPage(), storage.getCurrentImage().img, false, null);
 		}
 	}
 
 	public void updateThumbs() {
 		logger.trace("updating thumbs");
 		
-		Display.getDefault().asyncExec(updateThumbsRunnable); // asyncExec needed??
+		Display.getDefault().asyncExec(updateThumbsWidgetRunnable); // asyncExec needed??
 
 		// try {
 		// ui.thumbnailWidget.setUrls(storage.getDoc().getThumbUrls(),
@@ -1778,7 +1793,8 @@ public class TrpMainWidget {
 			localTestdoc = "C:/Schauplatz_small";
 		}
 		else if (SysUtils.isOsx()) {
-			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
+//			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
+			localTestdoc = "/Users/hansm/Documents/testDocs/many_pages/";
 		}
 		else {
 //			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
@@ -1816,8 +1832,9 @@ public class TrpMainWidget {
 		try {
 			storage.loadLocalDoc(folder);
 
-			if (getTrpSets().isCreateThumbs()) {
-				CreateThumbsService.createThumbs(storage.getDoc(), false, updateThumbsRunnable);
+			final boolean DISABLE_THUMB_CREATION_ON_LOAD=true;
+			if (!DISABLE_THUMB_CREATION_ON_LOAD && getTrpSets().isCreateThumbs()) {
+				CreateThumbsService.createThumbForDoc(storage.getDoc(), false, updateThumbsWidgetRunnable);
 			}
 
 			storage.setCurrentPage(pageIndex);
@@ -3271,7 +3288,13 @@ public class TrpMainWidget {
 				ProgramUpdaterDialog.downloadAndInstall(ui.getShell(), f, isNewVersion, keepConfigFiles, downloadAll);
 			} catch (InterruptedException ie) {
 				logger.debug("Interrupted: " + ie.getMessage());
-			} catch (Throwable e) {
+			} 
+			catch (IOException e) {
+				if (!e.getMessage().equals("stream is closed")) {
+					TrpMainWidget.getInstance().onError("IO-Error during update", "Error during update: \n\n"+e.getMessage(), e);	
+				}	
+			}
+			catch (Throwable e) {
 				TrpMainWidget.getInstance().onError("Error during update", "Error during update: \n\n" + e.getMessage(), e);
 			} finally {
 				if (!ProgramUpdaterDialog.TEST_ONLY_DOWNLOAD)
@@ -3462,7 +3485,7 @@ public class TrpMainWidget {
 			logger.debug("syncing with local doc!");
 
 			if (!storage.isLoggedIn() || !storage.isRemoteDoc())
-				throw new IOException("No remote document loaded!");
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "No remote document loaded!");
 
 			String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and page files", lastLocalDocFolder);
 			if (fn == null)
@@ -3470,7 +3493,7 @@ public class TrpMainWidget {
 
 			TrpDoc localDoc = LocalDocReader.load(fn);
 			// create thumbs for this doc:			
-			CreateThumbsService.createThumbs(localDoc, false, updateThumbsRunnable);
+			CreateThumbsService.createThumbForDoc(localDoc, false, updateThumbsWidgetRunnable);
 
 			final DocSyncDialog d = new DocSyncDialog(getShell(), storage.getDoc(), localDoc);
 			if (d.open() != Dialog.OK) {
@@ -3682,6 +3705,52 @@ public class TrpMainWidget {
 		} catch (Exception e) {
 			onError("Error saving profile!", e.getMessage(), e, true, false);
 		}
+		
+	}
+
+	public void createThumbs(TrpDoc doc) {
+		// TODO Auto-generated method stub
+		
+		try {
+			logger.debug("creating thumbnails for document: "+doc);
+			if (doc == null) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "No document given");
+				return;
+			}
+			
+			if (!doc.isLocalDoc()) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "This is not a local document");
+				return;
+			}
+
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						/*
+						int N = 1000;
+						monitor.beginTask("task!", N);
+						for (int i=0; i<N; ++i) {
+							monitor.worked(i+1);
+							monitor.subTask("done: "+(i+1)+"/"+N);
+							if (monitor.isCanceled())
+								return;
+						}
+						*/
+						
+						//CreateThumbsService.createThumbForDoc(doc, true, null);
+						
+						SWTUtil.createThumbsForDoc(doc, false, monitor);
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Creating thumbs for local document", true);
+
+
+		} catch (Throwable e) {
+			onError("Error", "Error during batch replace of images", e);
+		}	
+		
 		
 	}	
 }

@@ -125,7 +125,7 @@ public class InstallSpecificVersionDialog extends Dialog {
 		update.setToolTipText("Updates the application with the selected version above");
 		update.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				saveFileAndClose(replace.getSelection() ? 1 : 0);
+				updateAndClose(replace.getSelection() ? 1 : 0);
 			}
 		});
 		
@@ -174,7 +174,7 @@ public class InstallSpecificVersionDialog extends Dialog {
 		}
 	}
 	
-	private void saveFileAndClose(int result) {
+	private void updateAndClose(int result) {
 		this.result = result;
 		
 		isDownloadAll = downloadAll.getSelection();

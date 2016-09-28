@@ -132,10 +132,7 @@ public class ProgramUpdaterDialog {
 			logger.info("program not started from jar - skipping deletion of unused jar files!");
 			return;
 		}
-		
-//		if (true)
-//			return;
-		
+				
 		for (File f : jarFiles) {
 			if (!f.getName().equals(currentJarName)) {
 				logger.info("removing old jar file: "+f.getName());
@@ -143,15 +140,7 @@ public class ProgramUpdaterDialog {
 			}
 		}
 	}
-	
-//	@Deprecated
-//	public static void removeCurrentJarFile() throws URISyntaxException {
-//		final File currentJar = getCurrentJar();
-//		logger.debug("removing current jar file: "+currentJar.getName());
-//		if (!currentJar.delete())
-//			currentJar.deleteOnExit();
-//	}
-	
+		
 	public static String getStartScriptName() throws URISyntaxException {
 		String base="Transkribus.";
 		if (OS.isFamilyWindows()) {
@@ -243,7 +232,7 @@ public class ProgramUpdaterDialog {
 		}
 	
 		public static void showTrayNotificationOnAvailableUpdateAsync(final Shell shell, final String version, final Date timestamp) {
-			logger.info("Checking for updates on " + FTPProgramUpdater.ftpServer + ", current version: " + version + ", timestamp: " + timestamp);
+			logger.info("Checking for updates, current version: " + version + ", timestamp: " + timestamp);
 	
 			final Rectangle b = shell.getBounds();
 	
@@ -252,15 +241,16 @@ public class ProgramUpdaterDialog {
 				@Override public void run() {
 					try {
 						String newV = null;
-						boolean test = false;
+						
+						final boolean TEST = false;
 						Pair<ProgramPackageFile, Date> f = PROGRAM_UPDATER.checkForUpdates(version, timestamp, false);
 						if (f != null) {
-							String fn = test ? "TrpGui-0.4.8-package.zip" : f.getLeft().getName();
+							String fn = TEST ? "TrpGui-0.4.8-package.zip" : f.getLeft().getName();
 							newV = ProgramPackageFile.stripVersion(fn);
 						}
 						logger.info("newest version on server: " + newV);
 	
-						if (test || newV != null) {
+						if (TEST || newV != null) {
 							final String newV2 = newV;
 							Display.getDefault().asyncExec(new Runnable() {
 								@Override public void run() {
@@ -348,6 +338,7 @@ public class ProgramUpdaterDialog {
 		
 		public static void checkForUpdatesDialog(Shell parent, String version, Date timestamp, boolean withSnapshots, boolean downloadAll) {
 			final Pair<ProgramPackageFile, Date> f;
+			logger.debug("check for update dialog!");
 			
 //			final File downloadFile = new File("./update.zip");
 			try {
@@ -377,39 +368,27 @@ public class ProgramUpdaterDialog {
 					
 					String msg = "New version: "+versionPlusTimestamp;
 					msg += " - download and install?";
-//					msg += "\n(Update: updates the application with the new version keeping your customized configuration files";
-//					msg += "\n Replace: updates the application and overwrites all configuration files";
-//					msg += "\n Cancel: cancel the operation)";
 					
-					if (true) { // the new shit
-						ProgramUpdateDialog pud = new ProgramUpdateDialog(parent, 0, msg);
-						int res = pud.open();
+					ProgramUpdateDialog pud = new ProgramUpdateDialog(parent, 0, msg);
+					int res = pud.open();
 //						logger.debug("result = "+res+" download all: "+pud.isDownloadAll()+ " replace config files: "+pud.isReplaceConfigFiles());
-						if (res > 0) {
-							boolean keepConfigFiles = !pud.isReplaceConfigFiles();
-							downloadAll = pud.isDownloadAll();
-							
-							boolean isNewVersion = !newV.equals(version);
-							logger.debug("now downloading and installing new version: isNewVersion = "+isNewVersion+" keepConfigFiles = "+keepConfigFiles+" downloadAll = "+downloadAll);
-							downloadAndInstall(parent, f.getLeft(), isNewVersion, keepConfigFiles, downloadAll);
-						}
-					} else {
-					
-//					int answer = DialogUtil.showYesNoDialog(parent, "New version found", msg);
-					int answer = DialogUtil.showMessageDialog(parent, "New version found", msg, null, MessageDialog.QUESTION, new String[] { "Update", "Replace", "Cancel"}, 0);
-					logger.debug("answer: "+answer);
-					
-					if (answer == 0 || answer == 1) {
-						boolean keepConfigFiles = answer==0;
-						boolean isNewVersion = !newV.equals(version);
+					if (res > 0) {
+						boolean keepConfigFiles = !pud.isReplaceConfigFiles();
+						downloadAll = pud.isDownloadAll();
 						
+						boolean isNewVersion = !newV.equals(version);
+						logger.debug("now downloading and installing new version: isNewVersion = "+isNewVersion+" keepConfigFiles = "+keepConfigFiles+" downloadAll = "+downloadAll);
 						downloadAndInstall(parent, f.getLeft(), isNewVersion, keepConfigFiles, downloadAll);
-					}
 					}
 				}
 			}
 			catch (InterruptedException ie) {
 				logger.debug("Interrupted: "+ie.getMessage());
+			}
+			catch (IOException e) {
+				if (!e.getMessage().equals("stream is closed")) {
+					TrpMainWidget.getInstance().onError("IO-Error during update", "Error during update: \n\n"+e.getMessage(), e);	
+				}	
 			}
 			catch (Throwable e) {
 				TrpMainWidget.getInstance().onError("Error during update", "Error during update: \n\n"+e.getMessage(), e);
@@ -423,6 +402,11 @@ public class ProgramUpdaterDialog {
 //			if (true)
 //				return;
 			
+			if (!isNewVersion) {
+				DialogUtil.showErrorMessageBox(shell, "Error updating", "Cannot update to the same version - please choose another version!");
+				return;
+			}
+			
 			boolean canceled = downloadUpdate(shell, f, downloadAll);
 			logger.debug("downloaded update file, canceled = "+canceled);
 				
@@ -431,9 +415,10 @@ public class ProgramUpdaterDialog {
 								
 			installZipFile(shell, UPDATE_ZIP_FN, ".", keepConfigFiles);
 			removeUpdateZip();
-			if (isNewVersion) { // if it is a new version (and not only a newer version with the same version string!), then remove old jar file!
+			
+//			if (isNewVersion) { // if it is a new version (and not only a newer version with the same version string!), then remove old jar file!
 //				removeCurrentJarFile();
-			}
+//			}
 			
 			if (DialogUtil.showYesNoDialog(shell, "Restart?", 
 					"Program restart required for update to take effect") == SWT.YES) {

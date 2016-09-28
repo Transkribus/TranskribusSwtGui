@@ -155,8 +155,8 @@ public class ToolsWidgetListener implements SelectionListener {
 				logger.info("Get new Baselines.");
 				List<String> rids = getSelectedRegionIds();
 				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-			}
-			if(s == tw.batchLaBtn) {
+			} 
+			else if(s == tw.batchLaBtn) {
 				SimpleLaDialog laD = new SimpleLaDialog(mw.getShell());
 				int ret = laD.open();
 				if (ret == IDialogConstants.OK_ID) {
@@ -261,10 +261,11 @@ public class ToolsWidgetListener implements SelectionListener {
 //					logger.info("starting HTR for doc " + docId + " on page " + pageNr + " with model = " + model);
 //					jobId = store.runHtrOnPage(colId, docId, pageNr, model);
 //				} 
-			} else {
-				mw.onError("Error", "Unknown event!", null);
-				return;
 			}
+//			else {
+//				mw.onError("Error", "Unknown event!", null);
+//				return;
+//			}
 			
 			logger.debug("started job with id = "+jobId);
 						

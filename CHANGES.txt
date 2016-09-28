@@ -367,6 +367,11 @@ CHANGES AND BUGFIXES
 	-> select and load recently used documents from doc tab
 	-> load last used document after login
 	
+0.8.8:
+	-> removed auto-load of last used doc
+	-> RNN HTR activated
+	-> prevent install of same version which breaks application on windows 
+	
 0.9.0:
 	-> move doc upload and search button from left document tab to the main menu bar
 	-> colored background in thumbnail overview: light green=transcribed lines are there, 
@@ -379,7 +384,7 @@ CHANGES AND BUGFIXES
 	-> change to java 8
 	-> first draft of table editor included (saving only works on local documents for now - until the server accepts the new PAGE format)
 	-> removed obsolete writing orientation button
-	
+
 	
 
 	
