@@ -83,7 +83,10 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
 
       list = new List(shell, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
       for (String value: textItems) {
-         list.add(value);
+    	  if(value!=null){
+    		  list.add(value);
+    	  }	 
+         
       }
 
       list.setSelection(currentSelection);

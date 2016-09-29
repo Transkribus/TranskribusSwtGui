@@ -535,9 +535,15 @@ public class FullTextSearchComposite extends Composite{
 			colNames.add(coll.getColName());
 		}
 		
+
+		collCombo.currentSelection = new int[] { 0 };
+		docCombo.currentSelection = new int[] { 0 };
+		authCombo.currentSelection = new int[] { 0 };
+		uplCombo.currentSelection = new int[] { 0 };
+		
 		int i;
 		for(Facet facet : fullTextSearchResult.getFacets()){
-			logger.debug(""+facet.getFacetMap().keySet().contains(colNames.get(0)));
+			//logger.debug(""+facet.getFacetMap().keySet().contains(colNames.get(0)));
 						
 			if(facet.getName().equals("f_collectionName")){
 
@@ -569,7 +575,7 @@ public class FullTextSearchComposite extends Composite{
 					logger.debug("author facet: "+ facetItems[i]);					
 					i++;					
 				}
-				logger.debug("author keyset: " + facet.getFacetMap().keySet());
+//				logger.debug("author keyset: " + facet.getFacetMap().keySet());
 				if(facetItems != null){
 					authCombo.textItems = facetItems;
 				}
@@ -582,7 +588,7 @@ public class FullTextSearchComposite extends Composite{
 
 				for(String key : facet.getFacetMap().keySet()){
 					facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
-					logger.debug("uploader facet: "+ facetItems[i]);
+//					logger.debug("uploader facet: "+ facetItems[i]);
 					i++;					
 				}
 				logger.debug("uploader keyset: " + facet.getFacetMap().keySet());
