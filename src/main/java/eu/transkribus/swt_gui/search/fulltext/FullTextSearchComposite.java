@@ -785,9 +785,9 @@ public class FullTextSearchComposite extends Composite{
 			//Remove number of hits and only use facet name
 			String filterString = collCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
 			if(!filterString.equals("All collections") && subFilters.isEmpty()){
-				subFilters+="(collectionName:\""+filterString+"\""; 
+				subFilters+="(f_collectionName:\""+filterString+"\""; 
 			}else if(!filterString.equals("All collections") && !subFilters.isEmpty()){
-				subFilters+=" OR collectionName:\""+filterString+"\""; 
+				subFilters+=" OR f_collectionName:\""+filterString+"\""; 
 			}
 		}
 		
@@ -827,9 +827,9 @@ public class FullTextSearchComposite extends Composite{
 
 			String filterString = uplCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
 			if(!filterString.equals("All uploaders") && subFilters.isEmpty()){
-				subFilters+="(uploader:\""+filterString+"\""; 
+				subFilters+="(f_uploader:\""+filterString+"\""; 
 			}else if(!filterString.equals("All uploaders") && !subFilters.isEmpty()){			
-				subFilters+=" OR uploader:\""+filterString+"\"";
+				subFilters+=" OR f_uploader:\""+filterString+"\"";
 			}
 		}
 		
@@ -847,9 +847,9 @@ public class FullTextSearchComposite extends Composite{
 
 			String filterString = docCombo.textItems[i].replaceAll("\\(.*\\)", "").trim();
 			if(!filterString.equals("All documents") && subFilters.isEmpty()){
-				subFilters+="(title:\""+filterString+"\""; 
+				subFilters+="(f_title:\""+filterString+"\""; 
 			}else if(!filterString.equals("All documents") && !subFilters.isEmpty()){			
-				subFilters+=" OR title:\""+filterString+"\"";
+				subFilters+=" OR f_title:\""+filterString+"\"";
 			}				
 		}
 
