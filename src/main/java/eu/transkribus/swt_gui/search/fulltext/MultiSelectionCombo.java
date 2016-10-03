@@ -118,7 +118,8 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
             currentSelection = list.getSelectionIndices();            
             if ((event.stateMask & SWT.CTRL) == 0) {
                displayText();
-               parentComp.findText();
+               parentComp.start = 0;
+               parentComp.findText();               
                shell.dispose();
                
             }
@@ -131,6 +132,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
             if (shell != null && !shell.isDisposed()) {
                currentSelection = list.getSelectionIndices();
                displayText();
+               parentComp.start = 0;
                parentComp.findText();
                shell.dispose();
             }

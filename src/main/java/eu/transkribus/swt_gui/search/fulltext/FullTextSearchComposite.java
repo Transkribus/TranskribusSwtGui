@@ -109,8 +109,8 @@ public class FullTextSearchComposite extends Composite{
 	
 	boolean enableHover;
 	
-	private int rows = 10;
-	private int start = 0;
+	int rows = 10;
+	int start = 0;
 	String searchText;
 	private String lastSearchText;
 	private int numPageHits;
@@ -515,10 +515,10 @@ public class FullTextSearchComposite extends Composite{
 		}
 		
 
-		collCombo.currentSelection = new int[] { 0 };
-		docCombo.currentSelection = new int[] { 0 };
-		authCombo.currentSelection = new int[] { 0 };
-		uplCombo.currentSelection = new int[] { 0 };
+//		collCombo.currentSelection = new int[] { 0 };
+//		docCombo.currentSelection = new int[] { 0 };
+//		authCombo.currentSelection = new int[] { 0 };
+//		uplCombo.currentSelection = new int[] { 0 };
 		
 		int i;
 		for(Facet facet : fullTextSearchResult.getFacets()){
@@ -723,11 +723,10 @@ public class FullTextSearchComposite extends Composite{
 
 			
 			if(fullTextSearchResult != null){				
-				updateResultsTable();
-//				updateFacets();
-//				if(!searchText.equals(lastSearchText))	{
+				
 				updateFacets();
-//				}
+				updateResultsTable();
+
 
 			}
 			
