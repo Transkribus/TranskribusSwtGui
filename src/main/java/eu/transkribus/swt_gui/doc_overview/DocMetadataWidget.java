@@ -85,9 +85,11 @@ public class DocMetadataWidget extends Composite {
 		openMetadataEditorBtn = new Button(c1, SWT.PUSH);
 		openMetadataEditorBtn.setText("Document metadata...");
 		openMetadataEditorBtn.setToolTipText("Edit document metadata");
+		openMetadataEditorBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 		
 		openEditDeclManagerBtn = new Button(c1, SWT.PUSH);
 		openEditDeclManagerBtn.setText("Editorial Declaration...");
+		openEditDeclManagerBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 		//TODO activate this
 //		openEditDeclManagerBtn.setVisible(false);		
 		
@@ -121,7 +123,7 @@ public class DocMetadataWidget extends Composite {
 			return;
 		
 		if(docMetadataEditor == null || docMetadataEditor.isDisposed()){
-			final Shell s = new Shell();
+			final Shell s = new Shell(SWT.SHELL_TRIM | SWT.RESIZE);
 			s.setLayout(new FillLayout());
 			docMetadataEditor = new DocMetadataEditor(s, SWT.NONE, message);
 			
@@ -133,7 +135,7 @@ public class DocMetadataWidget extends Composite {
 					s.close();
 				}
 			});
-			s.setSize(500, 800);
+			s.setSize(700, 600);
 			s.setText("Document metadata");
 			SWTUtil.centerShell(s);
 			s.open();
