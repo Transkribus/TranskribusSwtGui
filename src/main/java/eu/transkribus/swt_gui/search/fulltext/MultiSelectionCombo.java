@@ -60,7 +60,20 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
          @Override
          public void mouseDown(MouseEvent event) {
             super.mouseDown(event);
-            initFloatShell();
+            parentComp.checkMultiCombos();
+            if(shell != null)
+            {
+            	if(shell.isDisposed() && parentComp.noMultiCombos){
+            		initFloatShell();
+            		parentComp.noMultiCombos = false;
+            	}
+            }else if(parentComp.noMultiCombos){
+            	initFloatShell();
+            	parentComp.noMultiCombos = false;
+            }
+            
+            	
+
          }
 
       });
@@ -94,7 +107,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
       GridData gd = new GridData(GridData.FILL_BOTH);
       list.setLayoutData(gd);
 
-      shell.setSize(shellRect.width, 100);
+      shell.setSize(shellRect.width, 200);
       shell.setLocation(shellRect.x, shellRect.y);
 
       list.addMouseListener(new MouseAdapter() {
@@ -104,9 +117,10 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
             super.mouseUp(event);
             currentSelection = list.getSelectionIndices();            
             if ((event.stateMask & SWT.CTRL) == 0) {
-               shell.dispose();
                displayText();
                parentComp.findText();
+               shell.dispose();
+               
             }
          }
       });
@@ -117,12 +131,13 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
             if (shell != null && !shell.isDisposed()) {
                currentSelection = list.getSelectionIndices();
                displayText();
-               shell.dispose();
                parentComp.findText();
+               shell.dispose();
             }
          }
-      });
+      });      
       shell.open();
+      
    }
 
    private void displayText() {

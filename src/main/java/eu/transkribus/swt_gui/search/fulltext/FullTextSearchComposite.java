@@ -84,6 +84,8 @@ public class FullTextSearchComposite extends Composite{
 	String lastHoverCoords;
 	Shell shell;
 	
+	boolean noMultiCombos = true;
+	
 	Label facetLabel;
 	ToolBar facetToolBar;
 	ToolItem colItem;
@@ -489,22 +491,10 @@ public class FullTextSearchComposite extends Composite{
 		SashForm facetSf = new SashForm(resultsGroup, SWT.HORIZONTAL);
 		facetSf.setLayout(new GridLayout(1, false));
 		facetSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));
-		
-//		SashForm facetLabelSf = new SashForm(facetSf, SWT.HORIZONTAL);
-//		facetLabelSf.setLayout(new GridLayout(1, false));
-//		facetLabelSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));
-//		
-//		SashForm facetSelectSf = new SashForm(facetSf, SWT.HORIZONTAL);
-//		facetSf.setLayout(new GridLayout(1, false));
-//		facetSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, noOfFacets, 1));		
-		
-		
-		//initFacetToolBar(resultsGroup);  
-		
+				
         int[] selection = new int[] { 0 };
-
-
         
+        noMultiCombos = true;
         
         String[] startItems = new String[] { "All collections" };
         collCombo = new MultiSelectionCombo(facetSf, startItems, selection, SWT.NONE, this);
@@ -608,23 +598,23 @@ public class FullTextSearchComposite extends Composite{
 		
 	}
 
-	private void initFacetToolBar(Composite parent) {
-	    facetToolBar = new ToolBar(parent, SWT.HORIZONTAL);
-	    facetToolBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
-	    
-	    colItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
-	    colItem.setText("Collections");
-	    
-	    docItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
-	    docItem.setText("Documents");
-	    
-	    authorItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
-	    authorItem.setText("Authors");
-	    
-	    uploaderItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
-	    uploaderItem.setText("Uploaders");	    
-	    
-	}
+//	private void initFacetToolBar(Composite parent) {
+//	    facetToolBar = new ToolBar(parent, SWT.HORIZONTAL);
+//	    facetToolBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
+//	    
+//	    colItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
+//	    colItem.setText("Collections");
+//	    
+//	    docItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
+//	    docItem.setText("Documents");
+//	    
+//	    authorItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
+//	    authorItem.setText("Authors");
+//	    
+//	    uploaderItem = new ToolItem(facetToolBar, SWT.DROP_DOWN);
+//	    uploaderItem.setText("Uploaders");	    
+//	    
+//	}
 
 	int[] getCropValues(String coords){
 		int[] values = new int[4];
@@ -735,9 +725,9 @@ public class FullTextSearchComposite extends Composite{
 			if(fullTextSearchResult != null){				
 				updateResultsTable();
 //				updateFacets();
-				if(!searchText.equals(lastSearchText))	{
-					updateFacets();
-				}
+//				if(!searchText.equals(lastSearchText))	{
+				updateFacets();
+//				}
 
 			}
 			
@@ -1104,6 +1094,28 @@ public class FullTextSearchComposite extends Composite{
 		  imgLabel.setImage(wordPrev);
 		  }
 
-		 } 
+		 }
+
+	public void checkMultiCombos() {
+		
+		MultiSelectionCombo[] combos = {authCombo, docCombo, uplCombo, collCombo};
+		
+		boolean comboOpen = false;
+		for (MultiSelectionCombo multiCombo : combos){
+			if(multiCombo.shell != null){
+				if(!multiCombo.shell.isDisposed()){
+					comboOpen = true;
+				}
+			}
+			
+		}		
+		if(comboOpen){
+			noMultiCombos = false;
+		}else{
+			noMultiCombos = true;
+		}
+
+		
+	} 
 
 }
