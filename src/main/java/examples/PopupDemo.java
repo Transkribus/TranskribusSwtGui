@@ -7,7 +7,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
-import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt.util.Images;
 
 
 

@@ -12,11 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.swt_canvas.pagination_table.ATableWidgetPagination;
-import eu.transkribus.swt_canvas.pagination_table.IPageLoadMethods;
-import eu.transkribus.swt_canvas.pagination_table.RemotePageLoader;
-import eu.transkribus.swt_canvas.pagination_table.TableColumnBeanLabelProvider;
-import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
+import eu.transkribus.swt.pagination_table.IPageLoadMethods;
+import eu.transkribus.swt.pagination_table.RemotePageLoader;
+import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

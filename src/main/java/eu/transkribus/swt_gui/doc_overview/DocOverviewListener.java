@@ -1,43 +1,28 @@
 package eu.transkribus.swt_gui.doc_overview;
 
-import java.lang.reflect.InvocationTargetException;
-
-import org.apache.commons.beanutils.BeanUtils;
-import org.eclipse.jface.viewers.CellLabelProvider;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.ViewerCell;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class DocOverviewListener extends SelectionAdapter implements ISelectionChangedListener, IDoubleClickListener, KeyListener, MouseTrackListener {
 	private final static Logger logger = LoggerFactory.getLogger(DocOverviewListener.class);
 	
-	static TrpMainWidget mainWidget;
+	TrpMainWidget mainWidget;
 	DocOverviewWidget dow;
 	TableViewer docTableViewer;
 	
@@ -48,8 +33,6 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		this.dow = mainWidget.getUi().getDocOverviewWidget();
 		this.docTableViewer = dow.getTableViewer();
 		
-		
-
 		attach();
 	}
 	
@@ -58,15 +41,9 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		docTableViewer.removeDoubleClickListener(this);
 		docTableViewer.getTable().removeMouseTrackListener(this);
 		docTableViewer.getTable().removeKeyListener(this);
-//		docOverviewWidget.getDocMetadataEditor().getApplyBtn().removeSelectionListener(this);
-		dow.getOpenMetadataEditorBtn().removeSelectionListener(this);
-		dow.getOpenEditDeclManagerBtn().removeSelectionListener(this);
-//		dow.uploadSingleDocItem.removeSelectionListener(this);
 		dow.uploadDocsItem.removeSelectionListener(this);
 		dow.searchBtn.removeSelectionListener(this);
-//		docOverviewWidget.getDeleteItem().removeSelectionListener(this);
 		dow.collectionComboViewerWidget.collectionCombo.removeSelectionListener(this);
-//		dow.collectionComboViewerWidget.reloadCollectionsBtn.removeSelectionListener(this);
 		dow.manageCollectionsBtn.removeSelectionListener(this);
 		dow.syncWithLocalDocBtn.removeSelectionListener(this);
 		dow.showActivityWidgetBtn.removeSelectionListener(this);
@@ -82,8 +59,6 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		docTableViewer.getTable().addMouseTrackListener(this);
 		docTableViewer.getTable().addKeyListener(this);
 //		docOverviewWidget.getDocMetadataEditor().getApplyBtn().addSelectionListener(this);
-		dow.getOpenMetadataEditorBtn().addSelectionListener(this);
-		dow.getOpenEditDeclManagerBtn().addSelectionListener(this);
 //		dow.uploadSingleDocItem.addSelectionListener(this);
 //		dow.uploadDocsItem.addSelectionListener(this);
 //		dow.searchBtn.addSelectionListener(this);
@@ -133,27 +108,7 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
 
-//		if (s == dow.uploadSingleDocItem) {
-//			mainWidget.uploadSingleDocument();
-//		} 
-//		if (s == dow.uploadDocsItem) {
-//			mainWidget.uploadDocuments();
-//		} else if (s == dow.searchBtn) {
-//			mainWidget.openSearchDialog();
-//		}
-//		else if (s == docOverviewWidget.getDocMetadataEditor().getApplyBtn()) {
-//			mainWidget.applyMetadata();
-//		} 
-		if (s == dow.getOpenMetadataEditorBtn()) {
-			createMetadataEditor();
-		}
-		else if (s == dow.getOpenEditDeclManagerBtn()) {
-			dow.openEditDeclManagerWidget();
-		}
-//		else if (s == docOverviewWidget.getDeleteItem()) {
-//			mainWidget.deleteSelectedDocument();
-//		}
-		else if (s == dow.collectionComboViewerWidget.collectionCombo) {
+		if (s == dow.collectionComboViewerWidget.collectionCombo) {
 			mainWidget.reloadDocList(dow.getSelectedCollection());
 		}
 		else if (s == dow.recentDocsComboViewerWidget.lastDocsCombo){
@@ -161,9 +116,6 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 			mainWidget.loadRecentDoc(docToLoad);
 
 		}
-//		else if (s == dow.collectionComboViewerWidget.reloadCollectionsBtn) {
-//			mainWidget.reloadCollections();
-//		}
 		else if (s == dow.manageCollectionsBtn) {
 			dow.openCollectionsManagerWidget();
 		}
@@ -179,38 +131,6 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		else if (s == dow.batchReplaceImgsBtn) {
 			mainWidget.batchReplaceImagesForDoc();
 		}		
-	}
-		
-	public static void createMetadataEditor() {
-		createMetadataEditor(null);
-	}
-	
-	public static void createMetadataEditor(final String message) {
-		final Storage store = Storage.getInstance();
-		if (!store.isDocLoaded())
-			return;
-		
-		if(TrpMainWidget.docMetadataEditor == null || TrpMainWidget.docMetadataEditor.isDisposed()){
-			final Shell s = new Shell();
-			s.setLayout(new FillLayout());
-			TrpMainWidget.docMetadataEditor = new DocMetadataEditor(s, SWT.NONE, message);
-			
-			TrpMainWidget.docMetadataEditor.setMetadata(store.getDoc().getMd());
-			TrpMainWidget.docMetadataEditor.getApplyBtn().addSelectionListener(new SelectionAdapter() {
-				@Override public void widgetSelected(SelectionEvent e) {
-					TrpMainWidget.docMetadataEditor.applyMetadataFromGui(store.getDoc().getMd());
-					mainWidget.saveDocMetadata();
-					s.close();
-				}
-			});
-			s.setSize(500, 800);
-			s.setText("Document metadata");
-			SWTUtil.centerShell(s);
-			s.open();
-		} else {
-			TrpMainWidget.docMetadataEditor.setVisible(true);
-			TrpMainWidget.docMetadataEditor.forceFocus();
-		}
 	}
 
 	@Override

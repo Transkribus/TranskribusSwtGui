@@ -33,9 +33,10 @@ public class TestSth {
 	private final static Logger logger = LoggerFactory.getLogger(TestSth.class);
 	
 	public static void createTestDoc() throws IOException {
-		String imgLoc = "/Users/hansm/Documents/testDocs/Bentham_box_002/002_080_001.jpg";
+//		String imgLoc = "/Users/hansm/Documents/testDocs/Bentham_box_002/002_080_001.jpg";
+		String imgLoc = "/home/sebastian/Transkribus_TestDoc/035_320_001.jpg";
 		
-		String newDocLoc = "/Users/hansm/Documents/testDocs/many_pages";
+		String newDocLoc = "/home/sebastian/Documents/transkribus_testdocs/many_pages/";
 		
 		File f = new File(imgLoc);
 		for (int i=0; i<2000; ++i) {

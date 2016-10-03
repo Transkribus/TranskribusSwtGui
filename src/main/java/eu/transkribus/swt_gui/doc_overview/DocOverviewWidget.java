@@ -23,15 +23,12 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.auth.TrpRole;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog2;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
-import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
-import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.Storage.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
@@ -39,12 +36,8 @@ import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
 public class DocOverviewWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocOverviewWidget.class);
-	
+
 	Label usernameLabel, serverLabel;
-	Label loadedDocLabel;
-	Text loadedDocText, currentCollectionText;
-	
-	Text loadedPageText, loadedImageUrl, loadedTranscriptUrl;
 	DocTableWidgetPagination docTableWidget;
 	Button uploadDocsItem;
 
@@ -55,21 +48,16 @@ public class DocOverviewWidget extends Composite {
 	Button showActivityWidgetBtn;
 	Button searchBtn;
 	Text quickLoadByID;
-	
-	Button openMetadataEditorBtn;
-	Button openEditDeclManagerBtn;
-	
+		
 	CollectionManagerDialog2 cm;
-	EditDeclManagerDialog edm;
 	ActivityDialog ad;
 	
 	DocMetadataEditor docMetadataEditor;
 	Storage store = Storage.getInstance();
-	
-	
+
 	//RecentDocsPreferences prefs = new RecentDocsPreferences(5, prefNode);
 	
-	ExpandableComposite docMdExp;
+//	ExpandableComposite docMdExp;
 	ExpandableComposite adminAreaExp;
 	ExpandableComposite lastDocsAreaExp;
 	ExpandableComposite remotedocsgroupExp;
@@ -125,81 +113,21 @@ public class DocOverviewWidget extends Composite {
 		
 	private void init() {
 		this.setLayout(new GridLayout());
-		
-		docMdExp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
-		Fonts.setBoldFont(docMdExp);
-		
-		Composite c1 = new Composite(docMdExp, SWT.NONE);
-		c1.setLayout(new GridLayout(2, false));
-		c1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 				
-		loadedDocLabel = new Label(c1, SWT.NONE);
-		loadedDocLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		loadedDocLabel.setText("Loaded doc: ");
-		
-		loadedDocText = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
-		loadedDocText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Label l0 = new Label(c1, 0);
-		l0.setText("Current collection: ");
-		
-		currentCollectionText = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
-		currentCollectionText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Label loadedPageLabel = new Label(c1, SWT.NONE);
-		loadedPageLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		loadedPageLabel.setText("Current filename: ");
-		
-		loadedPageText = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
-		loadedPageText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-//		Label loadedPageKeyLabel = new Label(c1, SWT.NONE);
-//		loadedPageKeyLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-//		loadedPageKeyLabel.setText("Key: ");
-//		
-//		loadedPageKey = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
-//		loadedPageKey.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Label loadedImageUrlLabel = new Label(c1, SWT.NONE);
-		loadedImageUrlLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		loadedImageUrlLabel.setText("Current image URL: ");
-		
-		loadedImageUrl = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
-		loadedImageUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		Label loadedTranscriptUrlLabel = new Label(c1, SWT.NONE);
-		loadedTranscriptUrlLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		loadedTranscriptUrlLabel.setText("Current transcript URL: ");
-		
-		loadedTranscriptUrl = new Text(c1, SWT.BORDER | SWT.READ_ONLY);
-		loadedTranscriptUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-//		ExpandBar container = new ExpandBar (this, SWT.V_SCROLL);
-		
-		openMetadataEditorBtn = new Button(c1, SWT.PUSH);
-		openMetadataEditorBtn.setText("Document metadata...");
-		openMetadataEditorBtn.setToolTipText("Edit document metadata");
-		
-		openEditDeclManagerBtn = new Button(c1, SWT.PUSH);
-		openEditDeclManagerBtn.setText("Editorial Declaration...");
-		//TODO activate this
-//		openEditDeclManagerBtn.setVisible(false);
-		
-		usernameLabel = new Label(c1, SWT.NONE);
-		usernameLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		Fonts.setBoldFont(usernameLabel);
-		
-		serverLabel = new Label(c1, SWT.NONE);
-		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		
-		configExpandable(docMdExp, c1, "Document description", this, false);
-		docMdExp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
-		
 		container = new Composite(this, SWT.NONE);
 //		final SashForm container = new SashForm(this, SWT.VERTICAL);
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		container.setLayout(new GridLayout());
+		GridLayout l = new GridLayout();
+		l.marginWidth = l.marginHeight = 0;
+		container.setLayout(l);
 //		container.setBackground(container.getDisplay().getSystemColor(SWT.COLOR_GRAY));
+		
+		usernameLabel = new Label(container, SWT.NONE);
+		usernameLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		Fonts.setBoldFont(usernameLabel);
+		
+		serverLabel = new Label(container, SWT.NONE);
+		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));		
 		
 		if (false) {
 		final ExpandableComposite metadatagroupExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
@@ -464,71 +392,10 @@ public class DocOverviewWidget extends Composite {
 	
 	public DocTableWidgetPagination getDocTableWidget() { return docTableWidget; }
 	
-//	public void setInput(List<TrpDocMetadata> trpDocs) {
-//		docTableWidget.refreshList(getSelectedCollectionId());
-//	}
-	
 	public TableViewer getTableViewer() { return docTableWidget.getTableViewer(); }
-//	public DocMetadataEditor getDocMetadataEditor() { 
-//		return docMetadataEditor;
-//	}
-//	public Tree getTree() { return tree; }
-//	public Label getLoadedDocLabel() { return loadedDocLabel; }
-	public Text getLoadedDocText() { return loadedDocText; }
-	public Text getCurrentCollectionText() { return currentCollectionText; }
-	
-	
-	
-//	public void setCurrentCollection(String currentCollection) {
-//		currentCollectionText.setText(currentCollection);
-//		int i = collectionComboViewer.getCombo().indexOf(currentCollection);
-//		if (i != -1) {
-//			collectionComboViewer.getCombo().select(i);
-//		}
-//	}
-	
-	public Text getLoadedImageUrl() {
-		return loadedImageUrl;
-	}
-
-	public Text getLoadedTranscriptUrl() {
-		return loadedTranscriptUrl;
-	}
-
-	public Text getLoadedPageText() { return loadedPageText; }
-//	public Text getLoadedPageKey() { return loadedPageKey; }
 	public Label getServerLabel() { return serverLabel; }
 	public Label getUsernameLabel() { return usernameLabel; }
 		
-//	public void updateTreeColumnSize() {
-//		int [] maxColSize = new int[table.getColumnCount()];
-//		for (int i=0; i<table.getColumnCount(); ++i) {
-//			maxColSize[i] = 0;
-//		}
-//				
-//		GC gc = new GC(table);
-//		if (table.getItems() != null)
-//		for (TableItem child : table.getItems()) {
-//			for (int i=0; i<table.getColumnCount(); ++i) {
-//				int te = gc.textExtent(child.getText(i)).x;
-//				if (te > maxColSize[i])
-//					maxColSize[i] = te;	
-//			}				
-//		}
-//		gc.dispose();
-//		
-//		// update size of cols depending on max size of text inside:
-//		for (int i=0; i<table.getColumnCount(); ++i) {			
-//			logger.debug("maxcolsize["+i+"]: "+maxColSize[i]);
-//			
-//			if (i==0) {
-//				this.table.getColumn(i).setWidth(maxColSize[i]+60);	
-//			}
-//			else
-//				this.table.getColumn(i).setWidth(maxColSize[i]+10);
-//		}
-//	}
-
 	public TrpDocMetadata getSelectedDocument() {
 		return docTableWidget.getFirstSelected();
 	}
@@ -557,33 +424,9 @@ public class DocOverviewWidget extends Composite {
 		collectionComboViewerWidget.clearFilter();
 	}
 	
-	public Button getOpenMetadataEditorBtn() { return openMetadataEditorBtn; }
-	public Button getOpenEditDeclManagerBtn() { return openEditDeclManagerBtn; }
-	
-	public void openEditDeclManagerWidget() {
-		if(!store.isDocLoaded()) {
-			return;
-		}
-		if (!isEditDeclManagerOpen()) {
-			if(store.getRoleOfUserInCurrentCollection().getValue() < TrpRole.Editor.getValue()){
-				edm = new EditDeclViewerDialog(getShell(), SWT.NONE);
-			} else {
-				edm = new EditDeclManagerDialog(getShell(), SWT.NONE);
-			}
-			edm.open();
-		} else {
-			edm.getShell().setVisible(true);
-		}
-	}
-	
 	public CollectionManagerDialog2 getCollectionManagerDialog() {
 		return cm;
 	}
-	
-	public boolean isEditDeclManagerOpen() {
-		return edm != null && edm.getShell() != null && !edm.getShell().isDisposed();
-	}
-	
 	
 	public boolean isCollectionManagerOpen() {
 		return cm != null && cm.getShell() != null && !cm.getShell().isDisposed();

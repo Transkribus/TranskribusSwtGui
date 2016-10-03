@@ -18,7 +18,7 @@ import org.eclipse.swt.widgets.Slider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.canvas.CanvasImage;
+import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class ImageEnhanceDialog extends Dialog {

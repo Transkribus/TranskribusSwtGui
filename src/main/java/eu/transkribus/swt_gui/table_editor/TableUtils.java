@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.table_editor;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -10,15 +9,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent.TableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType.GetCellsType;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.canvas.shapes.TableDimension;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
 
 public class TableUtils {
 	private final static Logger logger = LoggerFactory.getLogger(TableUtils.class);
@@ -324,7 +322,7 @@ public class TableUtils {
 			throw new TrpTablePointsInconsistentException("Table has inconsistent points!", invalid);
 	}
 	
-	public static void selectCells(TrpSWTCanvas canvas, TrpTableCellType cell, TableDimension dim, boolean multiSelect) {
+	public static void selectCells(SWTCanvas canvas, TrpTableCellType cell, TableDimension dim, boolean multiSelect) {
 		int index = -1;
 		if (dim == TableDimension.ROW) {
 			index = cell.getRow();
@@ -336,7 +334,7 @@ public class TableUtils {
 		selectCells(canvas, cell.getTable(), index, dim, multiSelect);
 	}
 	
-	public static void selectCells(TrpSWTCanvas canvas, TrpTableRegionType table, int index, TableDimension dim, boolean multiSelect) {
+	public static void selectCells(SWTCanvas canvas, TrpTableRegionType table, int index, TableDimension dim, boolean multiSelect) {
 		List<TrpTableCellType> cells = null;
 		if (dim == null) {
 			cells = table.getTrpTableCell();

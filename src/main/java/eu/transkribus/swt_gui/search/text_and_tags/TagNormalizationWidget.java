@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
-import eu.transkribus.swt_canvas.util.CustomTagPropertyTable;
+import eu.transkribus.swt.progress.ProgressBarDialog;
+import eu.transkribus.swt.util.CustomTagPropertyTable;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

@@ -49,15 +49,15 @@ import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.customtags.search.CustomTagSearchFacets;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
-import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
-import eu.transkribus.swt_canvas.mytableviewer.MyTableLabelProvider;
-import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
-import eu.transkribus.swt_canvas.util.Colors;
-import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.MapContentProvider;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.util.TableLabelProvider;
+import eu.transkribus.swt.mytableviewer.ColumnConfig;
+import eu.transkribus.swt.mytableviewer.MyTableLabelProvider;
+import eu.transkribus.swt.mytableviewer.MyTableViewer;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.MapContentProvider;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.TableLabelProvider;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class TagSearchComposite extends ATextAndSearchComposite {

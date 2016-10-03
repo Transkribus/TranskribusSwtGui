@@ -33,9 +33,9 @@ import difflib.DiffUtils;
 import difflib.Patch;
 import eu.transkribus.core.i18n.I18nUtils;
 import eu.transkribus.core.util.SysUtils;
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
-import eu.transkribus.swt_canvas.portal.PortalWidget.Docking;
-import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt.portal.PortalWidget.Docking;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt_gui.canvas.CanvasSettings;
 
 public class Utils {
 	private final static Logger logger = LoggerFactory.getLogger(Utils.class);

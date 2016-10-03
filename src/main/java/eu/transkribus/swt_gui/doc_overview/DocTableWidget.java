@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
-import eu.transkribus.swt_canvas.mytableviewer.MyTableViewer;
-import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.mytableviewer.ColumnConfig;
+import eu.transkribus.swt.mytableviewer.MyTableViewer;
+import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 
 public class DocTableWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocTableWidget.class);

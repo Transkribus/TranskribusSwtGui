@@ -6,10 +6,7 @@ import java.beans.PropertyChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.canvas.CanvasMode;
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
-import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
@@ -18,7 +15,7 @@ public class CanvasSettingsPropertyChangeListener implements PropertyChangeListe
 	
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	
 	public static boolean SAVE_PROPS_ON_CHANGE = true;
 	

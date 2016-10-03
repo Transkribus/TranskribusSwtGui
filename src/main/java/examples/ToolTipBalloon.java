@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 
-import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt.util.Images;
 
 public class ToolTipBalloon {
 

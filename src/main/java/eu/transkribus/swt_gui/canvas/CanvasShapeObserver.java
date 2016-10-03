@@ -9,9 +9,9 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.util.PointStrUtils;
-import eu.transkribus.swt_canvas.canvas.shapes.ACanvasShape;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasQuadPolygon;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.canvas.shapes.ACanvasShape;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 /**

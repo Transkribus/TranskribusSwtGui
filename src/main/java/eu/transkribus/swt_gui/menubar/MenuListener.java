@@ -7,7 +7,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MenuItem;
 
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
+import eu.transkribus.swt_gui.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
@@ -28,13 +28,14 @@ public class MenuListener implements SelectionListener {
 		menuBar.hideAllMenuItem.addSelectionListener(this);
 		menuBar.viewSettingsMenuItem.addSelectionListener(this);
 		menuBar.proxySettingsMenuItem.addSelectionListener(this);
+		
+		if (menuBar.languageMenu!=null)
 		for (MenuItem mi : menuBar.languageMenu.getItems()) {
 			mi.addSelectionListener(this);
 		}
 	}
 
-	@Override
-	public void widgetSelected(SelectionEvent e) {
+	@Override public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
 		if (s == menuBar.showAllMenuItem) {
 			viewSets.setShowAll(true);
@@ -54,8 +55,7 @@ public class MenuListener implements SelectionListener {
 		}
 	}
 
-	@Override
-	public void widgetDefaultSelected(SelectionEvent e) {
+	@Override public void widgetDefaultSelected(SelectionEvent e) {
 	}
 
 }

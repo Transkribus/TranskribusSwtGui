@@ -23,7 +23,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
 
-import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt.util.Fonts;
 
 
 /**

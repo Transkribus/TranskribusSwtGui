@@ -6,7 +6,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
-import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt.util.Images;
 
 public class TagAddRemoveComposite extends Composite {
 	

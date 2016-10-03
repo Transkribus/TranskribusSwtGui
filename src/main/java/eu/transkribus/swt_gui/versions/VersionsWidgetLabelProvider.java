@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt.util.Fonts;
 
 public class VersionsWidgetLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	private final static Logger logger = LoggerFactory.getLogger(VersionsWidgetLabelProvider.class);

@@ -6,9 +6,9 @@ import java.beans.PropertyChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_canvas.portal.PortalWidget.Docking;
-import eu.transkribus.swt_canvas.portal.PortalWidget.Position;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt.portal.PortalWidget.Docking;
+import eu.transkribus.swt.portal.PortalWidget.Position;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
@@ -18,7 +18,7 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 	
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 		
 	public TrpSettingsPropertyChangeListener(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;
@@ -50,10 +50,10 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 			ui.getPortalWidget().setWidgetDockingType(Position.LEFT, (Docking) evt.getNewValue());
 			canvas.redraw();
 		}
-		else if (pn.equals(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY)) {
-			ui.getPortalWidget().setWidgetDockingType(Position.RIGHT, (Docking) evt.getNewValue());
-			canvas.redraw();
-		}
+//		else if (pn.equals(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY)) {
+//			ui.getPortalWidget().setWidgetDockingType(Position.RIGHT, (Docking) evt.getNewValue());
+//			canvas.redraw();
+//		}
 		else if (pn.equals(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY)) {
 			ui.getPortalWidget().setWidgetDockingType(Position.BOTTOM, (Docking) evt.getNewValue());
 			canvas.redraw();

@@ -21,10 +21,10 @@ import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.PageXmlUtils;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.HtrRecMode;
@@ -38,7 +38,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	
 	TrpMainWidget mw;
 	ToolsWidget tw;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	Storage store = Storage.getInstance();
 		
 	public ToolsWidgetListener(TrpMainWidget mainWidget) {

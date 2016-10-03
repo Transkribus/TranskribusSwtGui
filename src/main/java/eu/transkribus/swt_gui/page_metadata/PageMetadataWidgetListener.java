@@ -36,15 +36,14 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.EnumUtils;
-import eu.transkribus.swt_canvas.canvas.CanvasMode;
-import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation;
-import eu.transkribus.swt_canvas.canvas.editing.ShapeEditOperation.ShapeEditType;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolyline;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt_gui.canvas.CanvasMode;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
+import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
@@ -58,7 +57,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 	TrpMainWidgetView ui;
 	PageMetadataWidget mw;
 	TextStyleTypeWidget tw;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	TrpSettings settings;
 		
 	public PageMetadataWidgetListener(TrpMainWidget mainWidget) {
@@ -219,20 +218,20 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 	////////////////// CODE FOR CONVERTING SHAPES:
 	public static CanvasMode getMode(Class<? extends ITrpShapeType> convertClazz) {
 		if (convertClazz.equals(TrpTextRegionType.class))
-			return TrpCanvasAddMode.ADD_TEXTREGION;
+			return CanvasMode.ADD_TEXTREGION;
 		else if (convertClazz.equals(TrpTextLineType.class))
-			return TrpCanvasAddMode.ADD_LINE;
+			return CanvasMode.ADD_LINE;
 		else if (convertClazz.equals(TrpBaselineType.class))
-			return TrpCanvasAddMode.ADD_BASELINE;
+			return CanvasMode.ADD_BASELINE;
 		else if (convertClazz.equals(TrpWordType.class))
-			return TrpCanvasAddMode.ADD_WORD;
+			return CanvasMode.ADD_WORD;
 		else if (convertClazz.equals(TrpPrintSpaceType.class))
-			return TrpCanvasAddMode.ADD_PRINTSPACE;
+			return CanvasMode.ADD_PRINTSPACE;
 		else if (convertClazz.equals(TrpTableRegionType.class))
-			return TrpCanvasAddMode.ADD_TABLEREGION;
+			return CanvasMode.ADD_TABLEREGION;
 		
 		else if (RegionType.class.isAssignableFrom(convertClazz))
-			return TrpCanvasAddMode.ADD_OTHERREGION;
+			return CanvasMode.ADD_OTHERREGION;
 		
 		return null;
 //		return null;
@@ -288,7 +287,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 			return;
 		}
 		canvas.setMode(newMode);
-		if (newMode == TrpCanvasAddMode.ADD_OTHERREGION) {
+		if (newMode == CanvasMode.ADD_OTHERREGION) {
 			newMode.data = newShapeType;
 		}
 		

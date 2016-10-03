@@ -17,11 +17,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasPolygon;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 
 /**
  * A widget that attaches to the bounding box of a canvas shape or can be moved around freely. 
@@ -43,16 +43,16 @@ public abstract class CanvasShapeAttachWidget<S extends ITrpShapeType> extends C
 	Point startPt=null;
 	
 	Button upDownBtn;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	private Button moveButton;
 	S shape;
 	Class<S> clazz;
 	
-	public CanvasShapeAttachWidget(final TrpSWTCanvas canvas, int style, Class<S> clazz) {
+	public CanvasShapeAttachWidget(final SWTCanvas canvas, int style, Class<S> clazz) {
 		this(canvas, style, clazz, DEFAULT_MIN_WIDTH, DEFAULT_HEIGHT);
 	}
 	
-	public CanvasShapeAttachWidget(final TrpSWTCanvas canvas, int style, Class<S> clazz, int minWidth, int height) {
+	public CanvasShapeAttachWidget(final SWTCanvas canvas, int style, Class<S> clazz, int minWidth, int height) {
 		super(SWTUtil.dummyShell, style);
 		this.canvas = canvas;
 		this.clazz = clazz;

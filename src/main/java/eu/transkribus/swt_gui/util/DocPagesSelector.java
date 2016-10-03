@@ -26,8 +26,8 @@ import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.util.Utils;
 
 public class DocPagesSelector extends Composite {

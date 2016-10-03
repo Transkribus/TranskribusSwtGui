@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.swt_canvas.util.ImgUrlListViewer;
+import eu.transkribus.swt.util.ImgUrlListViewer;
 import eu.transkribus.swt_gui.util.DocPageViewer;
 
 public class BatchImageReplaceDialog extends Dialog {

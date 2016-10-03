@@ -14,8 +14,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt_canvas.util.LabeledText;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.LabeledText;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 
 public class AffineTransformDialog extends Dialog {

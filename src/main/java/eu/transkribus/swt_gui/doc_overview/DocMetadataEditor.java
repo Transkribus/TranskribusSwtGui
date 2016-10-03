@@ -21,8 +21,8 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.SCSimpleDateTimeWidget;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SCSimpleDateTimeWidget;
 import eu.transkribus.swt_gui.tools.LanguageSelectionTable;
 
 public class DocMetadataEditor extends Composite {

@@ -21,9 +21,9 @@ import eu.transkribus.core.model.beans.pagecontent.WordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
-import eu.transkribus.swt_canvas.portal.PortalWidget.Docking;
-import eu.transkribus.swt_canvas.util.Colors;
-import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt.portal.PortalWidget.Docking;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.util.APropertyChangeSupport;
 

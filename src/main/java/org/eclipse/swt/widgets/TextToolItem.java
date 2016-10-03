@@ -4,9 +4,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 
-import eu.transkribus.swt_canvas.util.Colors;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.SWTUtil;
 
 public class TextToolItem extends ACustomToolItem {
 	

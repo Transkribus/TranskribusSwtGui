@@ -95,16 +95,16 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.MyObservable;
-import eu.transkribus.swt_canvas.canvas.CanvasKeys;
-import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
-import eu.transkribus.swt_canvas.util.Colors;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.DropDownToolItem;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.util.UndoRedoImpl;
-import eu.transkribus.swt_canvas.util.databinding.DataBinder;
+import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.DropDownToolItem;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.UndoRedoImpl;
+import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
@@ -272,7 +272,17 @@ public abstract class ATranscriptionWidget extends Composite{
 	public ATranscriptionWidget(Composite parent, int style, TrpSettings settings, TrpMainWidgetView view) {
 		super(parent, style);
 		this.view = view;
-		setLayout(new GridLayout(1, true));
+		
+		GridLayout l = new GridLayout(1, true);
+		l.marginTop = 0;
+		l.marginBottom = 0;
+		l.marginLeft = 0;
+		l.marginRight = 0;
+		l.marginHeight = 0;
+		l.marginWidth = 0;
+		
+		setLayout(l);
+
 //		setLayout(new FillLayout());
 //		FillLayout f = new FillLayout();
 //		f.type = SWT.VERTICAL;
@@ -280,8 +290,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		this.settings = settings;
 				
-		initToolBar();
-		regionsToolbar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+//		initToolBar();
+//		regionsToolbar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		
 		container = new SashForm(this, SWT.VERTICAL);
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -307,6 +317,9 @@ public abstract class ATranscriptionWidget extends Composite{
 				KeyStroke.getInstance(SWT.CTRL, SWT.SPACE), null
 				);
 		autocomplete.getAdapter().setEnabled(false);
+		
+		initToolBar();
+		regionsToolbar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 
 		initListener();
 		
@@ -324,6 +337,8 @@ public abstract class ATranscriptionWidget extends Composite{
 //				text.setCaretOffset(event.start);
 //			}
 //		});
+		
+
 		////////////////////////
 		
 		setWordGraphEditorVisibility(false);
@@ -508,7 +523,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	protected void initToolBar() {
-		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, this, SWT.FLAT);
+		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, false, this, SWT.FLAT | SWT.BOTTOM);
 		regionsPagingToolBar.removeReloadButton();
 		regionsPagingToolBar.removeDoubleButtons();
 		regionsToolbar = regionsPagingToolBar.getToolBar();

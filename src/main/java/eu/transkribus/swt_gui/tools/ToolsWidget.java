@@ -19,9 +19,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;

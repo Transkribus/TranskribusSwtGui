@@ -1,63 +1,53 @@
 package eu.transkribus.swt_gui.mainwidget;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.HashMap;
-import java.util.Locale;
 
 import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabFolder2Listener;
-import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.LabelToolItem;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Monitor;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
-import eu.transkribus.swt_canvas.canvas.CanvasMode;
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
-import eu.transkribus.swt_canvas.canvas.CanvasToolBar;
-import eu.transkribus.swt_canvas.canvas.shapes.CanvasShapeType;
-import eu.transkribus.swt_canvas.pagingtoolbar.PagingToolBar;
-import eu.transkribus.swt_canvas.portal.PortalWidget;
-import eu.transkribus.swt_canvas.portal.PortalWidget.Docking;
-import eu.transkribus.swt_canvas.portal.PortalWidget.Position;
-import eu.transkribus.swt_canvas.util.DropDownToolItem;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.util.ThumbnailWidget;
-import eu.transkribus.swt_canvas.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.Msgs;
+import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
+import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
+import eu.transkribus.swt.portal.PortalWidget;
+import eu.transkribus.swt.portal.PortalWidget.Docking;
+import eu.transkribus.swt.portal.PortalWidget.Position;
+import eu.transkribus.swt.portal.PortalWidget.PositionDocking;
+import eu.transkribus.swt.util.DropDownToolItem;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.ThumbnailWidget;
+import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.canvas.TrpCanvasAddMode;
-import eu.transkribus.swt_gui.canvas.TrpCanvasWidget;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt_gui.canvas.CanvasMode;
+import eu.transkribus.swt_gui.canvas.CanvasSettings;
+import eu.transkribus.swt_gui.canvas.CanvasToolBar;
+import eu.transkribus.swt_gui.canvas.CanvasWidget;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
+import eu.transkribus.swt_gui.doc_overview.DocMetadataWidget;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewWidget;
 import eu.transkribus.swt_gui.menubar.MenuListener;
 import eu.transkribus.swt_gui.menubar.TrpMenuBar;
@@ -68,10 +58,9 @@ import eu.transkribus.swt_gui.pagination_tables.TranscriptsTableWidgetPagination
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget;
 import eu.transkribus.swt_gui.tools.ToolsWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
-import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
-import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsTabWidget;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsWidget;
 
 public class TrpMainWidgetView extends Composite {
@@ -79,16 +68,17 @@ public class TrpMainWidgetView extends Composite {
 		
 	public final String APP_NAME;
 	public final String HELP_TEXT;
-	final static boolean ADD_STATUS_LABEL = false;
 
 	// ##### Widgets and other stuff: #####
-	TrpCanvasWidget canvasWidget;
+	CanvasWidget canvasWidget;
 	PagingToolBar pagesPagingToolBar;
 	GridData toolBarGridData;
 	LineTranscriptionWidget lineTranscriptionWidget;
 	WordTranscriptionWidget wordTranscriptionWidget;
 	StructureTreeWidget structureTreeWidget;
 	DocOverviewWidget docOverviewWidget;
+	DocMetadataWidget docMetadataWidget;
+	
 //	JobOverviewWidget jobOverviewWidget;
 	JobTableWidgetPagination jobOverviewWidget;
 //	VersionsWidget versionsWidget;
@@ -107,7 +97,6 @@ public class TrpMainWidgetView extends Composite {
 
 	TrpSettings trpSets;
 	PortalWidget portalWidget;
-	Label status;
 	TrpMenuBar menu;
 	MenuListener menuListener;	
 	// ##########
@@ -116,14 +105,18 @@ public class TrpMainWidgetView extends Composite {
 	ToolItem menuButton, loginToggle, reloadDocumentButton, exportDocumentButton, exportPdfButton, exportTeiButton, exportRtfButton, openLocalFolderButton, closeDocBtn;
 	ToolItem uploadDocsItem, searchBtn;
 
-
-	ToolItem saveTranscriptButton, saveTranscriptWithMessageButton, saveTranscriptAlwaysButton, replacePageImgButton;//deletePageButton, 
-//	DropDownToolItem saveDropItem;
-//	DropDownToolItem languageDropDown;
+	DropDownToolItem saveDrowDown;
+	MenuItem saveTranscriptButton, saveTranscriptWithMessageButton;
+	ToolItem replacePageImgButton;
 	
+	// old dock state buttons:
 	DropDownToolItem leftViewDockingDropItem, rightViewDockingDropItem, bottomViewDockingDropItem;
 	HashMap<Position, DropDownToolItem> dockingToolItems = new HashMap<>();
 	
+	// new dock state buttons:
+	DropDownToolItem viewDockingDropItem;
+	HashMap<PositionDocking, MenuItem>  dockingMenuItems = new HashMap<>();
+
 	ToolItem leftViewVisibleToggle;
 	ToolItem rightViewVisibleToggle;
 	ToolItem bottomViewVisibleToggle;
@@ -139,12 +132,15 @@ public class TrpMainWidgetView extends Composite {
 	
 	ToolItem showLineEditorToggle;
 	ToolItem loadTranscriptInTextEditor;
-	ToolItem sendBugReportButton;
+//	ToolItem sendBugReportButton;
 	// ##########
 	
 	// ##### Tab folders stuff: #####
-	CTabFolder leftTabFolder;
-	CTabFolder rightTabFolder;
+//	CTabFolder leftTabFolder;
+//	CTabFolder rightTabFolder;
+	
+	TrpTabWidget tabWidget;
+	
 //	TabFolder transcriptionTabFolder;
 	Composite transcriptionWidgetContainer;
 	
@@ -162,6 +158,20 @@ public class TrpMainWidgetView extends Composite {
 	
 //	CoolBar cb;
 //	CoolItem cbItem;
+	
+	DropDownToolItem visibilityItem;
+	MenuItem showRegionsItem;
+	MenuItem showLinesItem;
+	MenuItem showBaselinesItem;
+	MenuItem showWordsItem;
+	MenuItem showPrintspaceItem;
+	MenuItem renderBlackeningsItem;
+	MenuItem showReadingOrderRegionsMenuItem;
+	MenuItem showReadingOrderLinesMenuItem;
+	MenuItem showReadingOrderWordsMenuItem;
+	
+	private final static boolean DISABLE_EXPLICIT_VISIBILITY_BTNS = true;
+	private final static boolean DISABLE_OLD_DOCK_STATE_BTNS = true;
 		
 	public TrpMainWidgetView(Composite parent, TrpMainWidget mainWidget) {
 		super(parent, SWT.NONE);
@@ -173,7 +183,7 @@ public class TrpMainWidgetView extends Composite {
 		initSize();
 	}
 	
-	public CTabFolder getRightTabFolder() { return rightTabFolder; }
+//	public CTabFolder getRightTabFolder() { return rightTabFolder; }
 	
 	private void initSize() {
 		Rectangle b = getShell().getDisplay().getPrimaryMonitor().getBounds();
@@ -201,34 +211,36 @@ public class TrpMainWidgetView extends Composite {
 		
 //		setBackground(Colors.getSystemColor(SWT.COLOR_BLUE));
 		
-		// menu:
-		menu = new TrpMenuBar(this);
+		menu = new TrpMenuBar(this); // currently used when clicked on "burger button"
 //		getShell().setMenuBar(menu.getMenuBar());		
 
-		// toolbar:
 		initToolBar();
 
-		if (ADD_STATUS_LABEL) {
-		status = new Label(this, /*SWT.BORDER |*/ SWT.RIGHT);
-		status.setImage(null);
-		status.setLayoutData(new GridData(SWT.RIGHT, SWT.BOTTOM, true, false, 1, 1));
-		setStatusMessage("Welcome to "+APP_NAME+"!", 5000);
-		}
+		canvasWidget = new CanvasWidget(SWTUtil.dummyShell, mainWidget, SWT.NONE, getPagesPagingToolBar().getToolBar());
+
+		// NEW: only one tab widget
+		tabWidget = new TrpTabWidget(this, 0);
 		
-		// center widget (canvas):
-		canvasWidget = new TrpCanvasWidget(SWTUtil.dummyShell, SWT.NONE, mainWidget);
+		docOverviewWidget = new DocOverviewWidget(tabWidget.serverTf);
+		tabWidget.docListItem.setControl(docOverviewWidget);
 		
-		// current user label:
-//		if (true) {
-//		currentUserLabel = new Label(SWTUtil.dummyShell, SWT.TOP);
-//		currentUserLabel.setText("");
-//		currentUserLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-//		}
+		docMetadataWidget = new DocMetadataWidget(tabWidget.documentTf, 0);
+		tabWidget.docoverviewItem.setControl(docMetadataWidget);
+		
+		structureTreeWidget = new StructureTreeWidget(tabWidget.documentTf);
+		tabWidget.structureItem.setControl(structureTreeWidget);
+		
+		versionsWidget = new TranscriptsTableWidgetPagination(tabWidget.documentTf, SWT.NONE, 25);
+		tabWidget.versionsItem.setControl(versionsWidget);
+		
+		thumbnailWidget = new ThumbnailWidget(tabWidget.documentTf, SWT.NONE);
+		tabWidget.thumbnailItem.setControl(thumbnailWidget);
+		
 		
 		// ####### LEFT TAB FOLDER: #######
 		if (true) {
-		leftTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.BORDER | SWT.FLAT);
-		leftTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		leftTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.BORDER | SWT.FLAT);
+//		leftTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 //		leftTabFolder.setMinimizeVisible(true);
 //		leftTabFolder.addCTabFolder2Listener(new CTabFolder2Listener() {
 //			
@@ -249,62 +261,78 @@ public class TrpMainWidgetView extends Composite {
 //			}
 //		});
 		
-		docOverviewWidget = new DocOverviewWidget(leftTabFolder);
-		structureTreeWidget = new StructureTreeWidget(leftTabFolder);
-//		jobOverviewWidget = new JobOverviewWidget(leftTabFolder, SWT.NONE);
-		jobOverviewWidget = new JobTableWidgetPagination(leftTabFolder, SWT.NONE, 50);
-//		versionsWidget = new VersionsWidget(leftTabFolder, SWT.NONE);
-		versionsWidget = new TranscriptsTableWidgetPagination(leftTabFolder, SWT.NONE, 25);
-		thumbnailWidget = new ThumbnailWidget(leftTabFolder, SWT.NONE);
+//		docOverviewWidget = new DocOverviewWidget(leftTabFolder);
+//		structureTreeWidget = new StructureTreeWidget(leftTabFolder);
+		jobOverviewWidget = new JobTableWidgetPagination(tabWidget.serverTf, SWT.NONE, 50);
+		tabWidget.jobsItem.setControl(jobOverviewWidget);
 		
-		docoverviewItem = createCTabItem(leftTabFolder, docOverviewWidget, Msgs.get2("documents"));
-		structureItem = createCTabItem(leftTabFolder, structureTreeWidget, Msgs.get2("structure"));
-		jobOverviewItem = createCTabItem(leftTabFolder, jobOverviewWidget, Msgs.get2("jobs"));
-		versionsItem = createCTabItem(leftTabFolder, versionsWidget, Msgs.get2("versions"));
-		thumbnailItem = createCTabItem(leftTabFolder, thumbnailWidget, Msgs.get2("pages"));
 		
-		selectStructureTab();
+		
+//		versionsWidget = new TranscriptsTableWidgetPagination(leftTabFolder, SWT.NONE, 25);
+//		thumbnailWidget = new ThumbnailWidget(leftTabFolder, SWT.NONE);
+		
+//		docoverviewItem = createCTabItem(leftTabFolder, docOverviewWidget, Msgs.get2("documents"));
+//		structureItem = createCTabItem(leftTabFolder, structureTreeWidget, Msgs.get2("layout_tab_title"));
+//		jobOverviewItem = createCTabItem(leftTabFolder, jobOverviewWidget, Msgs.get2("jobs"));
+//		versionsItem = createCTabItem(leftTabFolder, versionsWidget, Msgs.get2("versions"));
+//		thumbnailItem = createCTabItem(leftTabFolder, thumbnailWidget, Msgs.get2("pages"));
+		
+//		selectStructureTab();
 		}
 		
 		// the right widget (page metadata, virtual keyboard):
 		if (true) {
-			rightTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.TOP | SWT.BORDER | SWT.FLAT );
-			rightTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//			rightTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.TOP | SWT.BORDER | SWT.FLAT );
+//			rightTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			
-			metadataWidget = new PageMetadataWidget(rightTabFolder, SWT.TOP);
-			vkeyboards = new TrpVirtualKeyboardsWidget(rightTabFolder, SWT.TOP | SWT.BORDER | SWT.FLAT );
-			toolsWidget = new ToolsWidget(rightTabFolder, SWT.TOP);
+			metadataWidget = new PageMetadataWidget(tabWidget.metadataTf, SWT.TOP);
+			tabWidget.structuralMdItem.setControl(metadataWidget);
+			
+			vkeyboards = new TrpVirtualKeyboardsWidget(tabWidget.tf, SWT.TOP | SWT.BORDER | SWT.FLAT );
+			tabWidget.vkItem.setControl(vkeyboards);
+			
+			toolsWidget = new ToolsWidget(tabWidget.serverTf, SWT.TOP);
 			toolsWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			tabWidget.remoteToolsItem.setControl(toolsWidget);
 			
 			if (SHOW_NEW_TW) {
-				taggingWidget = new TaggingWidget(rightTabFolder, SWT.TOP, 2, true);
+				taggingWidget = new TaggingWidget(tabWidget.metadataTf, SWT.TOP, 2, true);
 				taggingWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+				tabWidget.textTaggingItem.setControl(taggingWidget);
 				
 //				analyticsWidget = new AnalyticsWidget(rightTabFolder, SWT.TOP);
 			}
 
-			metadataItem = createCTabItem(rightTabFolder, metadataWidget, Msgs.get2("metadata"));
-			laItem = createCTabItem(rightTabFolder, toolsWidget, Msgs.get2("tools"));
-			vkeyboardsItem = createCTabItem(rightTabFolder, vkeyboards, Msgs.get2("virt_keyboards"));
+//			metadataItem = createCTabItem(rightTabFolder, metadataWidget, Msgs.get2("metadata"));
+//			laItem = createCTabItem(rightTabFolder, toolsWidget, Msgs.get2("tools"));
+//			vkeyboardsItem = createCTabItem(rightTabFolder, vkeyboards, Msgs.get2("virt_keyboards"));
 			
-			if (SHOW_NEW_TW) {
-				CTabItem twItem = createCTabItem(rightTabFolder, taggingWidget, Msgs.get2("tagging"));
-//				CTabItem analyticsItem = createCTabItem(rightTabFolder, analyticsWidget, "Analytics");
-			}
+//			if (SHOW_NEW_TW) {
+//				CTabItem twItem = createCTabItem(rightTabFolder, taggingWidget, Msgs.get2("tagging"));
+////				CTabItem analyticsItem = createCTabItem(rightTabFolder, analyticsWidget, "Analytics");
+//			}
 			
-			commentsWidget = new CommentsWidget(rightTabFolder, SWT.TOP);
-			CTabItem commentsItem = createCTabItem(rightTabFolder, commentsWidget, Msgs.get2("comments"));
+			commentsWidget = new CommentsWidget(tabWidget.metadataTf, SWT.TOP);
+			tabWidget.commentsItem.setControl(commentsWidget);
+			
+			
+//			CTabItem commentsItem = createCTabItem(rightTabFolder, commentsWidget, Msgs.get2("comments"));
 		}
 
 		// the bottom widget (transcription):
 		if (true) {
 //			transcriptionWidgetContainer = new TabFolder(SWTUtil.dummyShell, SWT.NONE);
 		transcriptionWidgetContainer = new Composite(SWTUtil.dummyShell, SWT.NONE);
-		transcriptionWidgetContainer.setLayout(new GridLayout(1, true));
-		transcriptionWidgetContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		GridLayout gl = new GridLayout(1, true);
+		gl.marginWidth = 0;
+		gl.marginHeight = 0;
+		transcriptionWidgetContainer.setLayout(gl);
+		
+//		transcriptionWidgetContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		lineTranscriptionWidget = new LineTranscriptionWidget(SWTUtil.dummyShell, SWT.NONE, trpSets, this);
 		lineTranscriptionWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
 		wordTranscriptionWidget = new WordTranscriptionWidget(SWTUtil.dummyShell, SWT.NONE, trpSets, this);
 		wordTranscriptionWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				
@@ -321,30 +349,48 @@ public class TrpMainWidgetView extends Composite {
 //	    new Button(child, SWT.PUSH).setText("Two");
 				
 		// init portal widget:
-		portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, leftTabFolder, transcriptionWidgetContainer, rightTabFolder);
+//		portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, tabWidget, transcriptionWidgetContainer, rightTabFolder);
+		portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, tabWidget, transcriptionWidgetContainer, null);
 		portalWidget.setMinWidth(Position.LEFT, 200);
 		portalWidget.setMinWidth(Position.CENTER, 400);
 		portalWidget.setMinWidth(Position.BOTTOM, 400);
-		portalWidget.setMinWidth(Position.RIGHT, 300);
-		
-		
-		
-		portalWidget.setMinHeight(Position.RIGHT, rightTabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+//		portalWidget.setMinWidth(Position.RIGHT, 300);
+
+//		portalWidget.setMinHeight(Position.RIGHT, rightTabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		
 		logger.debug("left view docking state: "+getTrpSets().getLeftViewDockingState());
 		
 		portalWidget.setWidgetDockingType(Position.LEFT, getTrpSets().getLeftViewDockingState());
-		portalWidget.setWidgetDockingType(Position.RIGHT, getTrpSets().getRightViewDockingState());
+//		portalWidget.setWidgetDockingType(Position.RIGHT, getTrpSets().getRightViewDockingState());
 		portalWidget.setWidgetDockingType(Position.BOTTOM, getTrpSets().getBottomViewDockingState());
 		
 		addInternalListener();
 		addBindings();
-		canvasWidget.getToolBar().addBindings(getTrpSets());
+//		canvasWidget.getToolbar().addBindings(getTrpSets());
 		updateLoginInfo(false, "", "");
+		updateDockingStateButtons();
+		
+//		canvasWidget.getToolbar().setParent(this);
+		
+//		for (ToolItem ti : canvasWidget.getToolbar().getItems()) {
+//			ti.set
+			
+//		}
+		
+//		canvasWidget.getToolBar().setParent(parent)
 		
 		pack();
 	}
 	
+	private void updateDockingStateButtons() {
+		logger.debug("updateDockingStateButtons");
+		for (MenuItem mi : dockingMenuItems.values()) {
+			PositionDocking pd = (PositionDocking) mi.getData();
+			
+			Docking currentDocking = portalWidget.getDocking(pd.pos);
+			mi.setSelection(pd.docking.equals(currentDocking)); // set selection depending on docking state!
+		}
+	}
 	
 	public void changeToTranscriptionWidget(ATranscriptionWidget.Type type) {
 		logger.debug("changing to tr-widget: "+type);
@@ -390,178 +436,70 @@ public class TrpMainWidgetView extends Composite {
 		Storage.getInstance().updateProxySettings();
 	}
 	
-	private TabItem createTabItem(TabFolder tabFolder, Control control, String Text) {
-		TabItem ti = new TabItem(tabFolder, SWT.NONE);
-		ti.setText(Text);
-		ti.setControl(control);
-		return ti;
-	}
-	
-	private CTabItem createCTabItem(CTabFolder tabFolder, Control control, String Text) {
-		CTabItem ti = new CTabItem(tabFolder, SWT.NONE);
-		ti.setText(Text);
-		ti.setControl(control);
-		return ti;
-	}
-	
-	public void selectDocListTab() {
-		leftTabFolder.setSelection(docoverviewItem);
-	}
-	
-	public void selectStructureTab() {
-		leftTabFolder.setSelection(structureItem);
-	}
-	
-	public void selectJobListTab() {
-		leftTabFolder.setSelection(jobOverviewItem);
-	}
-	
-	public void selectMetadataTab(){
-		rightTabFolder.setSelection(metadataItem);
-	}
-	
-	public void selectToolsTab() {
-		rightTabFolder.setSelection(laItem);
-	}
-	
-	public void selectLeftTab(int idx){
-		if (idx < 0 || idx >= leftTabFolder.getItemCount()){
-			idx = 0;
-		}
-		leftTabFolder.setSelection(idx);
-		if (leftTabFolder.getSelection().equals(thumbnailItem)){
-			thumbnailWidget.reload();
-		}
-	}
-	
-	public void selectRightTab(int idx){
-		if (idx < 0 || idx >= rightTabFolder.getItemCount()){
-			idx = 0;
-		}
-		rightTabFolder.setSelection(idx);
-	}
-	
-	public void setStatusMessage(String text, int time) {
-		if (status==null)
-			return;
-		
-		status.setText(text);
-		status.pack();
-		status.setSize(status.computeSize(SWT.DEFAULT, SWT.DEFAULT).x, 20);
-		pagesPagingToolBar.getToolBar().pack();
-	
-		if (time <= 0) return;
-		
-		Display.getCurrent().timerExec(time, new Runnable() {
-			@Override
-			public void run() {
-				logger.debug("deleting statusbar message!");
-				status.setText("");
-			}
-		});
-		
-		
-		
-	}
-	
-//	private void updateStatusBarText(String text) {
-//		if (text == null || text.isEmpty()) {
-//			logger.debug("setting statusbar empty!");
-//			status.setText(text);
-//			status.setSize(0, 0);
-////			status.setBounds(0, 0, 0, 0);
-//			this.layout();
-//		} else {
-//			status.setText(text);
-//			status.pack();
-//			status.setSize(status.computeSize(SWT.DEFAULT, SWT.DEFAULT).x, 10);
-//		}
-//		
-//		
+	// TABBING STUFF:
+//	private TabItem createTabItem(TabFolder tabFolder, Control control, String Text) {
+//		TabItem ti = new TabItem(tabFolder, SWT.NONE);
+//		ti.setText(Text);
+//		ti.setControl(control);
+//		return ti;
+//	}
+//	
+//	private CTabItem createCTabItem(CTabFolder tabFolder, Control control, String Text) {
+//		CTabItem ti = new CTabItem(tabFolder, SWT.NONE);
+//		ti.setText(Text);
+//		ti.setControl(control);
+//		return ti;
 //	}
 	
+	public void selectDocListTab() {
+		tabWidget.selectDocListTab();
+	}
+	
+//	public void selectStructureTab() {
+//		tabWidget.tf.setSelection(tabWidget.documentItem);
+//		tabWidget.documentTf.setSelection(tabWidget.structureItem);
+//		tabWidget.updateAllSelectedTabs();
+//	}
+	
+	public void selectJobListTab() {
+		tabWidget.selectJobListTab();		
+	}
+	
+//	public void selectMetadataTab() {
+//		tabWidget.tf.setSelection(tabWidget.metadataItem);
+//		tabWidget.metadataTf.setSelection(tabWidget.structuralMdItem);
+//		tabWidget.updateAllSelectedTabs();		
+//	}
+	
+//	public void selectToolsTab() {
+//		tabWidget.tf.setSelection(tabWidget.toolsItem);
+//		tabWidget.toolsTf.setSelection(tabWidget.remoteToolsItem);
+//		tabWidget.updateAllSelectedTabs();		
+//	}
+	
+	public void selectLeftTab(int idx) {
+//		if (idx < 0 || idx >= leftTabFolder.getItemCount()){
+//			idx = 0;
+//		}
+//		leftTabFolder.setSelection(idx);
+//		if (leftTabFolder.getSelection().equals(thumbnailItem)){
+//			thumbnailWidget.reload();
+//		}
+	}
+
+	public void selectRightTab(int idx){
+//		if (idx < 0 || idx >= rightTabFolder.getItemCount()){
+//			idx = 0;
+//		}
+//		rightTabFolder.setSelection(idx);
+	}
+	// END OF TABBING STUFF
+
 	private void initSettings() {
 		trpSets = new TrpSettings();
 		TrpConfig.registerBean(trpSets, true);
 	}
-	
-//	private void init(TrpSWTCanvas canvas) {
-//		setToolTipText("An interactive adaptive transcription platform");
-//		setText(APP_NAME);
-//		setImage(Images.getOrLoad("/icons/pencil.png"));
-////		setSize(1200, 850);
-//		
-//		setLayout(new GridLayout(2, false));
-//		
-//		// init canvas and canvas widget (first with dummyshell as parent -> is changed later)
-////		canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE);
-//		this.canvas = canvas;
-//		canvasWidget = new CanvasWidget(SWTUtil.dummyShell, SWT.NONE, canvas);
-//		initAddShapeActionStuff();
-//		
-//		initToolBar();
-//		
-//		// INIT OTHER STUFF:		
-//		sashForm = new SashForm(this, SWT.HORIZONTAL);
-//		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-//		sashForm.setSashWidth(5);
-//		
-//		leftTabFolder = new TabFolder(sashForm, SWT.NONE);
-////		leftTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//		docoverviewTreeItem = new TabItem(leftTabFolder, SWT.NONE);
-//		docoverviewTreeItem.setText("Documents");
-//		docOverviewWidget = new DocOverviewWidget(leftTabFolder);	
-//		docoverviewTreeItem.setControl(docOverviewWidget);
-//		
-//		metadataTreeItem = new TabItem(leftTabFolder, SWT.NONE);
-//		metadataTreeItem.setText("Metadata");
-//		metadataEditor = new TrpDocMetadataEditor(leftTabFolder, SWT.NONE);
-//		metadataTreeItem.setControl(metadataEditor);
-//		
-//		structureTreeItem = new TabItem(leftTabFolder, SWT.NONE);
-//		structureTreeItem.setText("Structure");
-//		structureTreeWidget = new StructureTreeWidget(leftTabFolder);
-//		structureTreeItem.setControl(structureTreeWidget);
-//
-//				
-//		sashForm_1 = new SashForm(sashForm, SWT.VERTICAL);
-//		sashForm_1.setSashWidth(5);		
-//		
-////		ScrolledComposite sc = new ScrolledComposite(sashForm_1, SWT.H_SCROLL | SWT.V_SCROLL);
-////		sc.setMinSize(0, 0);
-////		sc.setExpandHorizontal(true);
-////		sc.setExpandVertical(true);
-//////		canvasWidget.setLayout(new FillLayout());
-////		canvasWidget.setParent(sc);
-////		sc.setContent(canvasWidget);
-//		
-//		canvasWidget.setParent(sashForm_1);
-//		
-//		transcriptionTabFolder = new TabFolder(sashForm_1, SWT.NONE);
-//		
-//		textTranscriptionItem = new TabItem(transcriptionTabFolder, SWT.NONE);
-//		textTranscriptionItem.setText("Transcription");
-//		
-//		trpTranscriptionWidget = new TrpTextTranscriptionWidget(transcriptionTabFolder, SWT.BORDER);
-//		textTranscriptionItem.setControl(trpTranscriptionWidget);
-//		
-//		wordGraphEditorItem = new TabItem(transcriptionTabFolder, SWT.NONE);
-//		wordGraphEditorItem.setText("Word Graph Editor");
-//		
-//		wordGraphEditor = new WordGraphEditor(transcriptionTabFolder, SWT.NONE);
-//		wordGraphEditorItem.setControl(wordGraphEditor);
-//		
-//		sashForm_1.setWeights(DEFAULT_WEIGHTS_VERTICAL);
-//		sashForm.setWeights(DEFAULT_WEIGHTS_HORIZONTAL);
-//		
-//		menu = new TrpMainWidgetMenuBar(this);
-//		this.setMenuBar(menu.getMenuBar());
-//		addInternalListener();
-//		addBindings();
-//		
-//		setLeftViewVisible(viewSets.isShowLeftTabView());
-//	}
-	
+
 	private void initToolBar() {
 //		cb = new CoolBar(this, SWT.NONE);
 //		cbItem = new CoolItem(cb, SWT.NONE);
@@ -578,24 +516,34 @@ public class TrpMainWidgetView extends Composite {
 //		pagesPagingToolBar.setDoublePageButtonsVisible(false);
 //		transcriptsPagingToolBar = new PagingToolBar("Transcripts: ", false, this, SWT.NONE);
 		
-		final ToolBar toolBar = pagesPagingToolBar.getToolBar();
+		// retrieve toolbar from pagesPagingToolBar -> this will be the main toolbar where all other items are prepended / appended
+		ToolBar toolBar = pagesPagingToolBar.getToolBar();
+		
+		saveDrowDown = new DropDownToolItem(toolBar, false, true, SWT.RADIO);
+		
+		saveTranscriptButton = saveDrowDown.addItem(RegionTypeUtil.TEXT_REGION, Images.DISK, "", true);
+		saveTranscriptButton.setText("Save");
+		
+		saveTranscriptWithMessageButton = saveDrowDown.addItem(RegionTypeUtil.TEXT_REGION, Images.DISK_MESSAGE, "", false);
+		saveTranscriptWithMessageButton.setText("Save with message");
+		
+		replacePageImgButton = new ToolItem(toolBar, SWT.PUSH);
+		replacePageImgButton.setToolTipText("Replace page image on server");
+		replacePageImgButton.setImage(Images.IMAGE_EDIT);
+		replacePageImgButton.setEnabled(false);		
 		
 		loadTranscriptInTextEditor = new ToolItem(toolBar, SWT.PUSH);
 		loadTranscriptInTextEditor.setToolTipText("Open transcript source");
 		loadTranscriptInTextEditor.setImage(Images.getOrLoad("/icons/script.png"));
-		
-		ToolItem sep1 = new ToolItem(toolBar, SWT.SEPARATOR);
-		
-		if (false) {
-		LabelToolItem trLabelItem = new LabelToolItem(toolBar, SWT.NONE);
-		trLabelItem.setText("Versions: ");
-		}
-						
+
+		new ToolItem(toolBar, SWT.SEPARATOR);
+				
 		int preInsertIndex=0;
 		
 		// open menu button:
 		menuButton = new ToolItem(toolBar, SWT.CHECK, preInsertIndex++);
-		menuButton.setImage(Images.getOrLoad("/icons/house.png"));
+//		menuButton.setImage(Images.getOrLoad("/icons/house.png"));
+		menuButton.setImage(Images.BURGER);
 		menuButton.setText("");
 		menuButton.setToolTipText("Main Menu");
 		menuButton.addSelectionListener(new SelectionAdapter() {
@@ -627,7 +575,7 @@ public class TrpMainWidgetView extends Composite {
 //		languageDropDown.selectItem(i, false);
 		
 		
-		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
+//		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
 		loginToggle = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		loginToggle.setToolTipText("Login");
@@ -664,6 +612,58 @@ public class TrpMainWidgetView extends Composite {
 //				}
 //			};
 			
+			viewDockingDropItem = new DropDownToolItem(toolBar, false, true, SWT.CASCADE, preInsertIndex++);
+
+//			MenuItem lvMi = viewDockingDropItem.addItem("Left view", Images.APPLICATION, "Change docking states of the different views");
+//			MenuItem rvMi = viewDockingDropItem.addItem("Right view", Images.APPLICATION, "Change docking states of the different views");
+//			MenuItem bvMi = viewDockingDropItem.addItem("Bottom view", Images.APPLICATION, "Change docking states of the different views");
+			
+			
+			SelectionListener dockingStateSl = new SelectionAdapter() {
+				@Override public void widgetSelected(SelectionEvent e) {
+					if (!(e.getSource() instanceof MenuItem))
+						return;
+					
+					MenuItem mi = (MenuItem) e.getSource();
+					if (!(mi.getData() instanceof PositionDocking))
+						return;
+					
+					portalWidget.setWidgetDockingType((PositionDocking) mi.getData());
+				}
+			};
+			
+			Position[] positions = { Position.LEFT, /*Position.RIGHT,*/ Position.BOTTOM };
+			Docking[] dockings = { Docking.DOCKED, Docking.UNDOCKED, Docking.INVISIBLE };
+			String[] cascadeLabels = { "Left view", /*"Right view",*/ "Bottom view" };
+			String[] dockingsLabels = { "Docked", "Undocked", "Invisible" };	
+
+			// for all positions
+			int i=0;
+			for (Position p : positions) {
+				// create the cascade menu
+				MenuItem cmi = viewDockingDropItem.addItem(cascadeLabels[i], Images.APPLICATION, "Change docking states of the different views");
+				
+				// create sub-menu and attach it
+				Menu cmiMenu = new Menu(viewDockingDropItem.getMenu());
+				cmi.setMenu(cmiMenu);
+				
+				// create sub-menu items
+				int j=0;
+				for (Docking d : dockings) {
+					MenuItem dockItem = new MenuItem(cmiMenu, SWT.RADIO);
+					PositionDocking pd = new PositionDocking(p, d);
+					dockItem.setData(new PositionDocking(p, d));
+					dockItem.setText(dockingsLabels[j]);
+					dockItem.addSelectionListener(dockingStateSl);
+					
+					dockingMenuItems.put(pd, dockItem);
+					++j;
+				}
+
+				++i;
+			}
+
+			if (!DISABLE_OLD_DOCK_STATE_BTNS) {
 			leftViewDockingDropItem = new DropDownToolItem(toolBar, false, true, SWT.RADIO, preInsertIndex++);
 			leftViewDockingDropItem.addItem("Docked", Images.APPLICATION_SIDE_CONTRACT, "Left view docking state: docked", false, Docking.DOCKED);
 			leftViewDockingDropItem.addItem("Undocked", Images.APPLICATION_SIDE_CONTRACT, "Left view docking state: undocked", false, Docking.UNDOCKED);
@@ -687,6 +687,7 @@ public class TrpMainWidgetView extends Composite {
 			dockingToolItems.put(Position.BOTTOM, bottomViewDockingDropItem);
 			bottomViewDockingDropItem.selectItem(0, false);
 //			bottomViewDockingDropItem.ti.addSelectionListener(new DockingSl(bottomViewDockingDropItem, Position.BOTTOM));
+			}
 		}
 		
 		else {
@@ -708,29 +709,28 @@ public class TrpMainWidgetView extends Composite {
 		profilesToolItem.ti.setToolTipText("Profiles");
 		updateProfiles();
 		
-		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);	
-		
-		uploadDocsItem = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		uploadDocsItem.setToolTipText("Ingest or upload documents");
-//		uploadFromPrivateFtpItem.setImage(Images.getOrLoad("/icons/weather_clouds.png"));
-		uploadDocsItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
+		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
 		openLocalFolderButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		openLocalFolderButton.setToolTipText("Open local folder");
+		openLocalFolderButton.setToolTipText("Open local document");
 		openLocalFolderButton.setImage(Images.getOrLoad("/icons/folder.png"));
 		
+		uploadDocsItem = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
+		uploadDocsItem.setToolTipText("Import document(s)");
+//		uploadFromPrivateFtpItem.setImage(Images.getOrLoad("/icons/weather_clouds.png"));
+		uploadDocsItem.setImage(Images.getOrLoad("/icons/folder_import.png"));
+		
+		exportDocumentButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
+		exportDocumentButton.setToolTipText("Export document");
+		exportDocumentButton.setImage(Images.getOrLoad("/icons/folder_go.png"));
+		exportDocumentButton.setEnabled(false);		
+		
+		if (false) {
 		closeDocBtn = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		closeDocBtn.setToolTipText("Close document");
 		closeDocBtn.setImage(Images.getOrLoad("/icons/cancel.png"));
-		
-		saveTranscriptButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		saveTranscriptButton.setToolTipText("Save page");
-		saveTranscriptButton.setImage(Images.getOrLoad("/icons/disk.png"));
-		
-		saveTranscriptWithMessageButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		saveTranscriptWithMessageButton.setToolTipText("Save page with commit message");
-		saveTranscriptWithMessageButton.setImage(Images.getOrLoad("/icons/disk_message.png"));
-		
+		}
+				
 //		saveDropItem = new DropDownToolItem(toolBar, false, true, SWT.RADIO, preInsertIndex++);
 //		saveDropItem.addItem("Save page", Images.getOrLoad("/icons/disk.png"), "");
 //		saveDropItem.addItem("Save page with commit message", Images.getOrLoad("/icons/disk_message.png"), "");
@@ -740,15 +740,12 @@ public class TrpMainWidgetView extends Composite {
 //		saveTranscriptAlwaysButton.setImage(Images.getOrLoad("/icons/disk_multiple.png"));
 //		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
+		if (false) {
 		reloadDocumentButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		reloadDocumentButton.setToolTipText("Reload document");
 		reloadDocumentButton.setImage(Images.getOrLoad("/icons/refresh.gif"));
+		}
 		
-		exportDocumentButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		exportDocumentButton.setToolTipText("Export document");
-		exportDocumentButton.setImage(Images.getOrLoad("/icons/folder_go.png"));
-		exportDocumentButton.setEnabled(false);
-	
 		/*
 		 * moved to Main Menu
 		 */
@@ -757,12 +754,7 @@ public class TrpMainWidgetView extends Composite {
 //		deletePageButton.setImage(Images.IMAGE_DELETE);
 //		deletePageButton.setEnabled(false);
 		
-		replacePageImgButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		replacePageImgButton.setToolTipText("Replace page image on server");
-		replacePageImgButton.setImage(Images.IMAGE_EDIT);
-		replacePageImgButton.setEnabled(false);
-		
-		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
+//		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
 		searchBtn = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		searchBtn.setToolTipText("Search for documents, keywords... tbc");
@@ -787,8 +779,9 @@ public class TrpMainWidgetView extends Composite {
 				
 //		new ToolItem(toolBar, SWT.SEPARATOR, 3);
 		
-		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
+//		new ToolItem(toolBar, SWT.SEPARATOR, preInsertIndex++);
 		
+		if (!DISABLE_EXPLICIT_VISIBILITY_BTNS) {
 		showPrintSpaceToggle = new ToolItem(toolBar, SWT.CHECK);
 		showPrintSpaceToggle.setToolTipText("Show printspace (F1)");
 		showPrintSpaceToggle.setImage(Images.getOrLoad("/icons/show_ps_shape.png"));
@@ -808,6 +801,22 @@ public class TrpMainWidgetView extends Composite {
 		showWordsToggle= new ToolItem(toolBar, SWT.CHECK);
 		showWordsToggle.setToolTipText("Show words (F5)");
 		showWordsToggle.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
+		}
+		
+		// NEW view item:
+		visibilityItem = new DropDownToolItem(toolBar, false, true, SWT.CHECK);
+		visibilityItem.ti.setImage(Images.EYE);
+		String vtt = "Visibility of items on canvas"; 
+		
+		showRegionsItem = visibilityItem.addItem("Show Regions", Images.EYE, vtt);
+		showLinesItem = visibilityItem.addItem("Show Lines", Images.EYE, vtt);
+		showBaselinesItem = visibilityItem.addItem("Show Baselines", Images.EYE, vtt);
+		showWordsItem = visibilityItem.addItem("Show Words", Images.EYE, vtt);
+		showPrintspaceItem = visibilityItem.addItem("Show Printspace", Images.EYE, vtt);
+		renderBlackeningsItem = visibilityItem.addItem("Render Blackenings", Images.EYE, vtt);
+		showReadingOrderRegionsMenuItem = visibilityItem.addItem("Show regions reading order", Images.EYE, vtt);
+		showReadingOrderLinesMenuItem = visibilityItem.addItem("Show lines reading order", Images.EYE, vtt);
+		showReadingOrderWordsMenuItem = visibilityItem.addItem("Show words reading order", Images.EYE, vtt);
 		
 //		new ToolItem(toolBar, SWT.SEPARATOR);
 //		
@@ -818,10 +827,12 @@ public class TrpMainWidgetView extends Composite {
 		
 //		showWordsToggle.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
 		
+		if (false) {
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		
 		//showReadingOrderToolItem = new DropDownToolItem(toolBar, false, false, SWT.CHECK);
 
+		
 		showReadingOrderRegionsItem = new ToolItem(toolBar, SWT.CHECK);
 		showReadingOrderRegionsItem.setToolTipText("Show reading order of regions");
 		showReadingOrderRegionsItem.setImage(Images.getOrLoad("/icons/reading_order_r.png"));
@@ -843,6 +854,7 @@ public class TrpMainWidgetView extends Composite {
 		//showReadingOrderToolItem.ti.setImage( Images.getOrLoad("/icons/readingOrder.png"));
 		
 		//showReadingOrderToolItem.addItem("Show reading order of all shapes", Images.getOrLoad("/icons/readingOrder.png"), "Show the reading order of all shapes on this page", SWT.NONE);
+		}
 				
 		if (TrpSettings.ENABLE_LINE_EDITOR) {
 			new ToolItem(toolBar, SWT.SEPARATOR);			
@@ -851,10 +863,10 @@ public class TrpMainWidgetView extends Composite {
 			showLineEditorToggle.setToolTipText("Show line transcription editor");
 		}
 		
-		new ToolItem(toolBar, SWT.SEPARATOR);
-		sendBugReportButton = new ToolItem(toolBar, SWT.PUSH);
-		sendBugReportButton.setImage(Images.getOrLoad("/icons/bug.png"));
-		sendBugReportButton.setToolTipText("Send a bug report / feature request");
+//		new ToolItem(toolBar, SWT.SEPARATOR);
+//		sendBugReportButton = new ToolItem(toolBar, SWT.PUSH);
+//		sendBugReportButton.setImage(Images.BUG);
+//		sendBugReportButton.setToolTipText("Send a bug report / feature request");
 		
 		toolBar.pack();
 		
@@ -905,17 +917,36 @@ public class TrpMainWidgetView extends Composite {
 		// segmentation menu listener:
 		menuListener = new MenuListener(this);
 		
+		if (!DISABLE_OLD_DOCK_STATE_BTNS) {
 		// if 'selection' event in PortalWidget, then some dock status has changed -> adjust button selection!
 		portalWidget.addListener(SWT.Selection, new Listener() {
 			@Override public void handleEvent(Event event) {
 				Position pos = (Position) event.data;
 				Docking docking = portalWidget.getDocking(pos);
+				logger.debug("selection event in PortalWidget, pos = "+pos+" docking = "+docking);
+				
 				MenuItem mi = dockingToolItems.get(pos).getItemWithData(docking);
 				if (mi!=null)
 					dockingToolItems.get(pos).selectItem(mi, false);
+				
+//				MenuItem mi2 = dockingMenuItems.get(new PositionDocking(pos, docking));
+//				logger.debug("mi2 = "+mi2);
+//				
+//				if (mi2 != null) {
+//					mi2.setSelection(true);
+//				}
+			}
+		});
+		}
+
+		// if 'selection' event in PortalWidget, then some dock status has changed -> adjust button selection!
+		portalWidget.addListener(SWT.Selection, new Listener() {
+			@Override public void handleEvent(Event event) {
+				updateDockingStateButtons();
 			}
 		});
 		
+		if (!DISABLE_OLD_DOCK_STATE_BTNS) {
 		// set docking state in PortalWidget according to button selections:
 		class DockingItemSelectionListener extends SelectionAdapter {
 			Position pos;
@@ -934,8 +965,9 @@ public class TrpMainWidgetView extends Composite {
 			}
 		};
 		leftViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(leftViewDockingDropItem, PortalWidget.Position.LEFT));
-		rightViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(rightViewDockingDropItem, PortalWidget.Position.RIGHT));
+//		rightViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(rightViewDockingDropItem, PortalWidget.Position.RIGHT));
 		bottomViewDockingDropItem.ti.addSelectionListener(new DockingItemSelectionListener(bottomViewDockingDropItem, PortalWidget.Position.BOTTOM));
+		}
 
 //		trpSets.addPropertyChangeListener(new PropertyChangeListener() {
 //			@Override
@@ -961,16 +993,26 @@ public class TrpMainWidgetView extends Composite {
 				
 		db.bindBeanPropertyToObservableValue(TrpSettings.LEFT_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
 				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.LEFT));
-		db.bindBeanPropertyToObservableValue(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY, trpSets,
-				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.RIGHT));
+//		db.bindBeanPropertyToObservableValue(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY, trpSets,
+//				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.RIGHT));
 		db.bindBeanPropertyToObservableValue(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
 				Observables.observeMapEntry(portalWidget.getDockingMap(), Position.BOTTOM));
 		
+		if (!DISABLE_EXPLICIT_VISIBILITY_BTNS) {
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, showPrintSpaceToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, showRegionsToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, showLinesToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, showBaselinesToggle);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, showWordsToggle);
+		}
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, showPrintspaceItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, showRegionsItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, showLinesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, showBaselinesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, showWordsItem);
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsItem);	
+		
 		//db.bindBoolBeanValueToToolItemSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, renderBlackeningsToggle);
 		
 		//db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_PROPERTY, trpSets, showReadingOrderToolItem);
@@ -988,22 +1030,26 @@ public class TrpMainWidgetView extends Composite {
 //		db.bindBoolBeanValueToToolItemSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, canvasWidget.getToolBar().getShapeAddRectMode());
 //		db.bindBoolBeanValueToToolItemSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, canvasWidget.getToolBar().getAutoCreateParent());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, canvasWidget.getToolBar().getRectangleModeItem());
-		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, canvasWidget.getToolBar().getAutoCreateParentItem());
+		db.bindBeanToWidgetSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, canvasWidget.getToolbar().getRectangleModeItem());
+		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, canvasWidget.getToolbar().getAutoCreateParentItem());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, trpSets, canvasWidget.getToolBar().getAddLineToOverlappingRegionItem());
-		db.bindBeanToWidgetSelection(TrpSettings.ADD_BASELINES_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolBar().getAddBaselineToOverlappingLineItem());
-		db.bindBeanToWidgetSelection(TrpSettings.ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolBar().getAddWordsToOverlappingLineItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, trpSets, canvasWidget.getToolbar().getAddLineToOverlappingRegionItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_BASELINES_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolbar().getAddBaselineToOverlappingLineItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, trpSets, canvasWidget.getToolbar().getAddWordsToOverlappingLineItem());
 		
-		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), canvasWidget.getToolBar().getLockZoomOnFocusItem());
+		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), canvasWidget.getToolbar().getLockZoomOnFocusItem());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.DELETE_LINE_IF_BASELINE_DELETED_PROPERTY, trpSets, canvasWidget.getToolBar().getDeleteLineIfBaselineDeletedItem());
+		db.bindBeanToWidgetSelection(TrpSettings.DELETE_LINE_IF_BASELINE_DELETED_PROPERTY, trpSets, canvasWidget.getToolbar().getDeleteLineIfBaselineDeletedItem());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, canvasWidget.getToolBar().getSelectNewlyCreatedShapeItem());
+		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, canvasWidget.getToolbar().getSelectNewlyCreatedShapeItem());
 		
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, showReadingOrderRegionsItem);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, showReadingOrderLinesItem);
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, showReadingOrderWordsItem);
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, showReadingOrderRegionsMenuItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, showReadingOrderLinesMenuItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, showReadingOrderWordsMenuItem);		
 				
 //		db.bindBeanToWidgetSelection(TrpSettings.ENABLE_INDEXED_STYLES, trpSets, metadataWidget.getTextStyleWidget().getEnableIndexedStylesBtn());
 		
@@ -1096,7 +1142,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	public CanvasShapeType getShapeTypeToDraw() {
 		CanvasMode m = getCanvas().getSettings().getMode();
-		if (m != TrpCanvasAddMode.ADD_BASELINE) {
+		if (m != CanvasMode.ADD_BASELINE) {
 			if (trpSets.getRectMode())
 				return CanvasShapeType.RECTANGLE;
 			else
@@ -1148,9 +1194,12 @@ public class TrpMainWidgetView extends Composite {
 	public JobTableWidgetPagination getJobOverviewWidget() { return jobOverviewWidget; }
 	public TranscriptsTableWidgetPagination getVersionsWidget() { return versionsWidget; };
 	
-	public TrpCanvasWidget getCanvasWidget() { return canvasWidget; }
-	public CanvasToolBar getCanvasToolBar() { return canvasWidget.getToolBar(); }
-	public TrpSWTCanvas getCanvas() { 
+	public CanvasWidget getCanvasWidget() { return canvasWidget; }
+	public CanvasToolBar getCanvasToolBar() { return canvasWidget.getToolbar(); }
+	
+	public SWTCanvas getCanvas() {
+//		return canvasWidget.getCanvas();
+		
 		if (canvasWidget != null && canvasWidget.getCanvas()!=null)
 			return canvasWidget.getCanvas();
 		else
@@ -1172,14 +1221,14 @@ public class TrpMainWidgetView extends Composite {
 	public ToolItem getExportPdfButton() { return exportPdfButton; }
 	public ToolItem getExportTeiButton() { return exportTeiButton; }
 	public ToolItem getExportRtfButton() { return exportRtfButton; }
-	public ToolItem getSaveTranscriptButton() { return saveTranscriptButton; }
-	public ToolItem getSaveTranscriptWithMessageButton() { return saveTranscriptWithMessageButton; }
+	public MenuItem getSaveTranscriptButton() { return saveTranscriptButton; }
+	public MenuItem getSaveTranscriptWithMessageButton() { return saveTranscriptWithMessageButton; }
 //	public DropDownToolItem getSaveDropItem() { return saveDropItem; }
 	public ToolItem getOpenLocalFolderButton() { return openLocalFolderButton; }
 	public ToolItem getCloseDocBtn() { return closeDocBtn; }
-	public ToolItem getSaveTranscriptAlwaysButton() { return saveTranscriptAlwaysButton; }
+//	public ToolItem getSaveTranscriptAlwaysButton() { return saveTranscriptAlwaysButton; }
 	public ToolItem getLoadTranscriptInTextEditor() { return loadTranscriptInTextEditor; }
-	public ToolItem getSendBugReportButton() { return sendBugReportButton; }
+//	public ToolItem getSendBugReportButton() { return sendBugReportButton; }
 	
 	public ToolItem getSearchBtn() { return searchBtn; }
 	public ToolItem getUploadDocsItem() { return uploadDocsItem; }
@@ -1290,6 +1339,14 @@ public class TrpMainWidgetView extends Composite {
 	
 	public ThumbnailWidget getThumbnailWidget() {
 		return thumbnailWidget;
+	}
+
+	public DropDownToolItem getSaveDropDown() {
+		return saveDrowDown;
+	}
+
+	public DocMetadataWidget getDocMetadataWidget() {
+		return docMetadataWidget;
 	}
 
 }

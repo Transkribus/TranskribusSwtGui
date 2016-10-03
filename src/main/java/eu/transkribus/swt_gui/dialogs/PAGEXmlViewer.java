@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.util.PageXmlUtils;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.xmlviewer.XmlViewer;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.xmlviewer.XmlViewer;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

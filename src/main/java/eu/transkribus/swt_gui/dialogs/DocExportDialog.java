@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.util.SWTUtil;
 
 public class DocExportDialog extends Dialog {
 

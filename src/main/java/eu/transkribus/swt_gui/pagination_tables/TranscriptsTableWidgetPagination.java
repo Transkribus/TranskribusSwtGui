@@ -19,12 +19,12 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.EnumUtils;
-import eu.transkribus.swt_canvas.pagination_table.ATableWidgetPagination;
-import eu.transkribus.swt_canvas.pagination_table.IPageLoadMethods;
-import eu.transkribus.swt_canvas.pagination_table.RemotePageLoader;
-import eu.transkribus.swt_canvas.pagination_table.TableColumnBeanLabelProvider;
-import eu.transkribus.swt_canvas.util.Fonts;
-import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
+import eu.transkribus.swt.pagination_table.IPageLoadMethods;
+import eu.transkribus.swt.pagination_table.RemotePageLoader;
+import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

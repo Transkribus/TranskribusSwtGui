@@ -94,29 +94,30 @@ import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
-import eu.transkribus.swt_canvas.canvas.CanvasMode;
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.progress.ProgressBarDialog;
-import eu.transkribus.swt_canvas.util.CreateThumbsService;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.LoginDialog;
-import eu.transkribus.swt_canvas.util.SWTLog;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.util.SplashWindow;
-import eu.transkribus.swt_canvas.util.databinding.DataBinder;
+import eu.transkribus.swt.progress.ProgressBarDialog;
+import eu.transkribus.swt.util.CreateThumbsService;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.LoginDialog;
+import eu.transkribus.swt.util.SWTLog;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.SplashWindow;
+import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
+import eu.transkribus.swt_gui.canvas.CanvasContextMenuListener;
+import eu.transkribus.swt_gui.canvas.CanvasMode;
+import eu.transkribus.swt_gui.canvas.CanvasScene;
+import eu.transkribus.swt_gui.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
-import eu.transkribus.swt_gui.canvas.TrpCanvasContextMenuListener;
-import eu.transkribus.swt_gui.canvas.TrpCanvasScene;
-import eu.transkribus.swt_gui.canvas.TrpCanvasSceneListener;
-import eu.transkribus.swt_gui.canvas.TrpCanvasWidget;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt_gui.canvas.CanvasWidget;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
+import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
+import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerListener;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
@@ -126,7 +127,7 @@ import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
-import eu.transkribus.swt_gui.doc_overview.DocMetadataEditor;
+import eu.transkribus.swt_gui.doc_overview.DocMetadadataWidgetListener;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
@@ -162,7 +163,7 @@ public class TrpMainWidget {
 	// Ui stuff:
 	// Display display = Display.getDefault();
 	static Display display;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	TrpMainWidgetView ui;
 	LoginDialog loginDialog;
 	// LineTranscriptionWidget transcriptionWidget;
@@ -182,15 +183,16 @@ public class TrpMainWidget {
 	RegionsPagingToolBarListener lineTrRegionsPagingToolBarListener;
 	RegionsPagingToolBarListener wordTrRegionsPagingToolBarListener;
 	// TranscriptsPagingToolBarListener transcriptsPagingToolBarListener;
-	TrpCanvasSceneListener canvasSceneListener;
+	ICanvasSceneListener canvasSceneListener;
 	LineTranscriptionWidgetListener lineTranscriptionWidgetListener;
 	WordTranscriptionWidgetListener wordTranscriptionWidgetListener;
 	TrpShapeElementFactory shapeFactory;
 	LineEditorListener lineEditorListener;
 	StructureTreeListener structTreeListener;
 	DocOverviewListener docOverviewListener;
+	DocMetadadataWidgetListener docMetadataWidgetListener;
 	TrpMainWidgetListener mainWidgetListener;
-	TrpCanvasContextMenuListener canvasContextMenuListener;
+	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
 	CanvasShapeObserver canvasShapeObserver;
 	PageMetadataWidgetListener metadataWidgetListener;
@@ -216,9 +218,6 @@ public class TrpMainWidget {
 	static TrpMainWidget mw;
 
 	static int tmpCount = 0;
-	
-//	DebuggerDialog debugDiag;
-	public static DocMetadataEditor docMetadataEditor;
 	
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
@@ -317,7 +316,8 @@ public class TrpMainWidget {
 		}
 		
 		boolean TESTTABLES=false; // test-hook for sebi's table editor
-		if (getTrpSets().isAutoLogin() && !TESTTABLES) {
+		boolean DO_AUTO_LOGIN = true;
+		if (DO_AUTO_LOGIN && getTrpSets().isAutoLogin() && !TESTTABLES) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
 			
 			if(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE.equals(lastAccount)) {
@@ -511,8 +511,8 @@ public class TrpMainWidget {
 		}
 
 		ui.getDocOverviewWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
-		ui.getDocOverviewWidget().getLoadedDocText().setText(loadedDocStr);
-		ui.getDocOverviewWidget().getCurrentCollectionText().setText(currentCollectionStr);
+		ui.getDocMetadataWidget().getLoadedDocText().setText(loadedDocStr);
+		ui.getDocMetadataWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 
 //		ui.toolsWidget.updateParameter(st, language);
@@ -589,14 +589,11 @@ public class TrpMainWidget {
 			
 		}
 
-		ui.getDocOverviewWidget().getLoadedDocText().setText(loadedDocStr);
-		// if (pageNr != -1) {
-		ui.getDocOverviewWidget().getLoadedPageText().setText(fn);
-//		ui.getDocOverviewWidget().getLoadedPageKey().setText(key);
-		ui.getDocOverviewWidget().getLoadedImageUrl().setText(imgUrl);
-		ui.getDocOverviewWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
+		ui.getDocMetadataWidget().getLoadedDocText().setText(loadedDocStr);
+		ui.getDocMetadataWidget().getLoadedPageText().setText(fn);
+		ui.getDocMetadataWidget().getLoadedImageUrl().setText(imgUrl);
+		ui.getDocMetadataWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
 		
-		// }
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 		ui.getShell().setText(title);
 		// updateDocMetadata();
@@ -632,7 +629,7 @@ public class TrpMainWidget {
 			}
 		});
 		mainWidgetListener = new TrpMainWidgetListener(this);
-		canvasContextMenuListener = new TrpCanvasContextMenuListener(this);
+		canvasContextMenuListener = new CanvasContextMenuListener(this);
 
 		// pages paging toolbar listener:
 		pagesPagingToolBarListener = new PagesPagingToolBarListener(ui.getPagesPagingToolBar(), this);
@@ -641,7 +638,7 @@ public class TrpMainWidget {
 		// TranscriptsPagingToolBarListener(ui.getTranscriptsPagingToolBar(),
 		// this);
 		// CanvasSceneListener acts on add / remove shape and selection change:
-		canvasSceneListener = new TrpCanvasSceneListener(this);
+		canvasSceneListener = new CanvasSceneListener(this);
 		// add toolbar listener for transcription widgets:
 		lineTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getLineTranscriptionWidget().getRegionsPagingToolBar(), this);
 		wordTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getWordTranscriptionWidget().getRegionsPagingToolBar(), this);
@@ -655,6 +652,7 @@ public class TrpMainWidget {
 		structTreeListener = new StructureTreeListener(this);
 		// doc overview listener:
 		docOverviewListener = new DocOverviewListener(this);
+		docMetadataWidgetListener = new DocMetadadataWidgetListener(ui.getDocMetadataWidget());
 		// transcription observer:
 		transcriptObserver = new TranscriptObserver(this);
 		// shape observer:
@@ -1093,7 +1091,6 @@ public class TrpMainWidget {
 			}, "Saving", false);
 
 //			reloadCurrentTranscript(true, true);
-			ui.setStatusMessage("Successfully saved data!", 5000);
 			updateToolBars();
 //			updateSelectedTranscription();
 			return true;
@@ -1286,14 +1283,12 @@ public class TrpMainWidget {
 	public void updatePageLock() {
 		if (storage.isPageLocked() != isPageLocked) { // page locking changed
 			isPageLocked = storage.isPageLocked();
-
-			ui.getCanvasWidget().getToolBar().getEditingEnabledToolItem().setEnabled(!isPageLocked);
 			TrpConfig.getCanvasSettings().setEditingEnabled(!isPageLocked);
-			ui.getTranscriptionComposite().setEnabled(!isPageLocked);
-			ui.getRightTabFolder().setEnabled(!isPageLocked);
-			ui.getSaveTranscriptButton().setEnabled(!isPageLocked);
-			ui.getSaveTranscriptWithMessageButton().setEnabled(!isPageLocked);
 
+			SWTUtil.setEnabled(ui.getCanvasWidget().getToolbar().getEditingEnabledToolItem(), !isPageLocked);
+			SWTUtil.setEnabled(ui.getTranscriptionComposite(), !isPageLocked);
+			SWTUtil.setEnabled(ui.getSaveDropDown(), !isPageLocked);
+						
 			updatePageInfo();
 			updateToolBars();
 		}
@@ -1749,15 +1744,15 @@ public class TrpMainWidget {
 		return canvasShapeObserver;
 	}
 
-	public TrpCanvasWidget getCanvasWidget() {
+	public CanvasWidget getCanvasWidget() {
 		return ui.getCanvasWidget();
 	}
 
-	public TrpSWTCanvas getCanvas() {
+	public SWTCanvas getCanvas() {
 		return canvas;
 	}
 
-	public TrpCanvasScene getScene() {
+	public CanvasScene getScene() {
 		return ui.getCanvas().getScene();
 	}
 	
@@ -1772,16 +1767,17 @@ public class TrpMainWidget {
 
 		ui.getPagesPagingToolBar().setToolbarEnabled(nNPages > 0);
 		ui.getPagesPagingToolBar().setValues(storage.getPageIndex() + 1, nNPages);
-		if (ui.getPagesPagingToolBar().getLabelItem() != null) {
+		
+		if (!SWTUtil.isDisposed(ui.getPagesPagingToolBar().getLabelItem())) {
 			ui.getPagesPagingToolBar().getLabelItem().setImage(isPageLocked ? Images.LOCK : null);
 			ui.getPagesPagingToolBar().getLabelItem().setToolTipText(isPageLocked ? "Page locked" : "");
 		}
-
-		ui.getCloseDocBtn().setEnabled(isDocLoaded);
-		ui.getSaveTranscriptButton().setEnabled(isDocLoaded);
-		ui.getSaveTranscriptWithMessageButton().setEnabled(isDocLoaded);
-		ui.getReloadDocumentButton().setEnabled(isDocLoaded);
-		ui.getLoadTranscriptInTextEditor().setEnabled(isDocLoaded);
+		
+		SWTUtil.setEnabled(ui.getCloseDocBtn(), isDocLoaded);
+		SWTUtil.setEnabled(ui.getSaveDropDown(), isDocLoaded);
+		
+		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
+		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);
 
 		ui.updateToolBarSize();
 	}
@@ -1798,7 +1794,8 @@ public class TrpMainWidget {
 		}
 		else {
 //			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
-			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";
+//			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";
+			localTestdoc = "/home/sebastian/Documents/transkribus_testdocs/many_pages/";
 //			localTestdoc = System.getProperty( "user.home" )+"/testdocmanybl";
 		}
 		
@@ -1997,8 +1994,7 @@ public class TrpMainWidget {
 
 			final Shell shell = new Shell(display, SWT.SHELL_TRIM);
 			setMainShell(shell);
-			// final Shell shell = new Shell(display, SWT.NO_TRIM | SWT.ON_TOP);
-
+			
 			Realm.runWithDefault(SWTObservables.getRealm(display), new Runnable() {
 				@Override public void run() {
 					if (USE_SPLASH) {
@@ -2008,6 +2004,7 @@ public class TrpMainWidget {
 								sw.setProgress(10);
 								shell.setLayout(new FillLayout());
 								mw = new TrpMainWidget(shell);
+								shell.setMaximized(true);
 								shell.open();
 								shell.layout();
 								sw.setProgress(50);
@@ -2027,6 +2024,7 @@ public class TrpMainWidget {
 
 						// shell.setSize(1400, 1000);
 						// mw.center();
+						shell.setMaximized(true);
 						shell.open();
 						shell.layout();
 						mw.postInit();
@@ -2347,7 +2345,7 @@ public class TrpMainWidget {
 	public void enable(boolean value) {
 		canvas.setEnabled(value);
 		ui.getTranscriptionComposite().setEnabled(value);
-		ui.getRightTabFolder().setEnabled(value);
+//		ui.getRightTabFolder().setEnabled(value);
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -3336,7 +3334,7 @@ public class TrpMainWidget {
 			reloadCurrentTranscript(true, true);
 			storage.getTranscript().getPage().setEdited(true);
 
-			ui.selectStructureTab();
+//			ui.selectStructureTab();
 			updatePageInfo();
 		} catch (Throwable e) {
 			onError("Analyze Page Structure", e.getMessage(), e);
@@ -3416,7 +3414,7 @@ public class TrpMainWidget {
 	}
 	
 	public String getSelectedImageFileType() {
-		String fileType = getCanvasWidget().getToolBar().getImageVersionItem().ti.getText();
+		String fileType = getCanvasWidget().getToolbar().getImageVersionDropdown().ti.getText();
 		if (!fileType.equals("orig") && fileType.equals("view") && !fileType.equals("bin"))
 			return "view";
 		else

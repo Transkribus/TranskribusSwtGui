@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.util.RegexPattern;
-import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt.util.Colors;
 
 public class CreateTagNameDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(CreateTagNameDialog.class);

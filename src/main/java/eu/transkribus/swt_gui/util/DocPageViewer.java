@@ -11,10 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.swt_canvas.mytableviewer.ColumnConfig;
-import eu.transkribus.swt_canvas.util.APreviewListViewer;
-import eu.transkribus.swt_canvas.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_canvas.util.ImgLoader;
+import eu.transkribus.swt.mytableviewer.ColumnConfig;
+import eu.transkribus.swt.util.APreviewListViewer;
+import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.util.ImgLoader;
 
 public class DocPageViewer extends APreviewListViewer<TrpPage> {
 	private final static Logger logger = LoggerFactory.getLogger(DocPageViewer.class);

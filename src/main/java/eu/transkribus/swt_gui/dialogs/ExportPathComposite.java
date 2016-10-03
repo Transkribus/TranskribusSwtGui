@@ -17,8 +17,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.Images;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
 
 public class ExportPathComposite extends Composite {
 	

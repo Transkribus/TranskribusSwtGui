@@ -4,7 +4,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
 
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
+import eu.transkribus.swt_gui.canvas.CanvasSettings;
 
 public abstract class APropertyChangeSupport implements IPropertyChangeSupport {
 	private PropertyChangeSupport changes = new PropertyChangeSupport(this);

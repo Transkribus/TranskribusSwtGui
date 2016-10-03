@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.swt_canvas.util.Fonts;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class DocTableLabelProvider implements ITableLabelProvider, ITableFontProvider {

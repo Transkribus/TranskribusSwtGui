@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
-import eu.transkribus.swt_canvas.util.Colors;
+import eu.transkribus.swt.util.Colors;
 
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableColorProvider;

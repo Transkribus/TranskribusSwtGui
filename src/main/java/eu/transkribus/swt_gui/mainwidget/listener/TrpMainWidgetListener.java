@@ -7,20 +7,14 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
-import eu.transkribus.swt_canvas.canvas.CanvasScene;
-import eu.transkribus.swt_canvas.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.DropDownToolItem;
-import eu.transkribus.swt_canvas.util.SWTUtil;
-import eu.transkribus.swt_canvas.xmlviewer.XmlViewer;
-import eu.transkribus.swt_gui.canvas.TrpSWTCanvas;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.DropDownToolItem;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -35,7 +29,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
 	TrpMenuBar menuBar;
-	TrpSWTCanvas canvas;
+	SWTCanvas canvas;
 	
 	public TrpMainWidgetListener(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;
@@ -61,8 +55,9 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		menuBar.getInstallMenuItem().addSelectionListener(this);
 		menuBar.getTipsOfTheDayMenuItem().addSelectionListener(this);
 		menuBar.getAnalyzeStructureItem().addSelectionListener(this);
-		
 		menuBar.getDeletePageMenuItem().addSelectionListener(this);
+		
+		SWTUtil.addSelectionListener(menuBar.getBugReportItem(), this);
 		
 		// update IDs of segmentation:
 		ui.getStructureTreeWidget().getUpdateIDsItem().addSelectionListener(this);
@@ -80,33 +75,35 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		SWTUtil.addSelectionListener(ui.getExportTeiButton(), this);
 		SWTUtil.addSelectionListener(ui.getExportRtfButton(), this);
 		
-		ui.getSaveTranscriptButton().addSelectionListener(this);
-		ui.getSaveTranscriptWithMessageButton().addSelectionListener(this);
-		ui.getOpenLocalFolderButton().addSelectionListener(this);
-		ui.getCloseDocBtn().addSelectionListener(this);
-		ui.getLoadTranscriptInTextEditor().addSelectionListener(this);
-		ui.getSendBugReportButton().addSelectionListener(this);
-		ui.getLoginToggle().addSelectionListener(this);
+		SWTUtil.addSelectionListener(ui.getSaveDropDown().ti, this);
+		SWTUtil.addSelectionListener(ui.getSaveTranscriptButton(), this);
+		SWTUtil.addSelectionListener(ui.getSaveTranscriptWithMessageButton(), this);
 		
-		ui.getUploadDocsItem().addSelectionListener(this);
-		ui.getSearchBtn().addSelectionListener(this);
+		SWTUtil.addSelectionListener(ui.getCloseDocBtn(), this);
 		
+		SWTUtil.addSelectionListener(ui.getOpenLocalFolderButton(), this);
+		SWTUtil.addSelectionListener(ui.getLoadTranscriptInTextEditor(), this);
+//		SWTUtil.addSelectionListener(ui.getSendBugReportButton(), this);
+		SWTUtil.addSelectionListener(ui.getLoginToggle(), this);
+		
+		SWTUtil.addSelectionListener(ui.getUploadDocsItem(), this);
+		SWTUtil.addSelectionListener(ui.getSearchBtn(), this);
+						
 		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addKeySelectionListener(this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
 		SWTUtil.addSelectionListener(ui.getProfilesToolItem().ti, this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getLanguageDropDown().ti, this);
-		
-		ui.getThumbnailWidget().getCreateThumbs().addSelectionListener(this);
-		
-		// listener for tagging:
+		SWTUtil.addSelectionListener(ui.getThumbnailWidget().getCreateThumbs(), this);
 	}
 	
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
 		Storage storage = Storage.getInstance();
+		
+		logger.debug("source = "+s);
 				
 		// MENU BUTTONS:
 		if (s == ui.getLoginToggle()) {
@@ -212,12 +209,27 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		else if (s == menuBar.getSaveTranscriptionToNewFileMenuItem()) {
 			mainWidget.saveTranscriptionToNewFile();
 		}
+		
+//		else if (s == menuBar.getSaveTranscriptionMenuItem() || s == ui.getSaveTranscriptButton()) {
+//			mainWidget.saveTranscription(false);
+//		}
+		
+		
 		else if (s == menuBar.getSaveTranscriptionMenuItem() || s == ui.getSaveTranscriptButton()) {
+			logger.debug("here!");
 			mainWidget.saveTranscription(false);
 		}
 		else if (s == ui.getSaveTranscriptWithMessageButton()) {
+			logger.debug("here2!");
 			mainWidget.saveTranscription(true);
 		}
+		
+//		else if (s == ui.getSaveDropDown().ti && e.detail != SWT.ARROW) {
+//			boolean withCommitMessage = ui.getSaveDropDown().getSelected() == ui.getSaveTranscriptWithMessageButton();
+//			mainWidget.saveTranscription(withCommitMessage);
+//		}
+		
+		
 		else if (s == menuBar.getUpdateMenuItem()) {
 			mainWidget.checkForUpdates();
 		}
@@ -236,7 +248,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 			int res = DialogUtil.showMessageDialog(mainWidget.getShell(), ui.APP_NAME, ui.HELP_TEXT, null, MessageDialog.INFORMATION, 
 					new String[] {"OK", "Report bug / feature request"}, 0);
 			if (res == 1) {
-				ui.getSendBugReportButton().notifyListeners(SWT.Selection, new Event());
+				menuBar.getBugReportItem().notifyListeners(SWT.Selection, new Event());
 			}
 		}
 		// UI BUTTONS:
@@ -277,7 +289,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 //		else if (s == ui.getExportTeiButton()) {
 //			mainWidget.exportTei();
 //		}
-		else if (s == ui.getSendBugReportButton()) {
+		else if (s == menuBar.getBugReportItem()) {
 			mainWidget.sendBugReport();
 		}
 //		else if (s == ui.getReloadTranscriptsButton()) {

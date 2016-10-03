@@ -32,9 +32,9 @@ import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NotImplementedException;
 import eu.transkribus.core.model.beans.PageLock;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.swt_canvas.pagination_table.ATableWidgetPagination;
-import eu.transkribus.swt_canvas.util.DialogUtil;
-import eu.transkribus.swt_canvas.util.SWTUtil;
+import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 

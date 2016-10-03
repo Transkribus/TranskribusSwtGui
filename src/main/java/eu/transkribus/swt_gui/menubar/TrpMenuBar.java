@@ -6,11 +6,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 
-import eu.transkribus.swt_canvas.canvas.CanvasSettings;
-import eu.transkribus.swt_canvas.util.Images;
-import eu.transkribus.swt_canvas.util.databinding.DataBinder;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 
@@ -77,6 +77,7 @@ public class TrpMenuBar {
 	MenuItem analyzeStructureItem;
 	MenuItem installMenuItem;
 	MenuItem tipsOfTheDayMenuItem;
+	MenuItem bugReportItem;
 
 	
 
@@ -217,6 +218,7 @@ public class TrpMenuBar {
 		proxySettingsMenuItem.setText("&Proxy settings...");
 		proxySettingsMenuItem.setImage(Images.getOrLoad("/icons/server_connect.png"));
 		
+		if (false) {
 		languageMenuItem = new MenuItem(menuBar, SWT.CASCADE);
 		languageMenuItem.setText("&Language (todo...)");
 		languageMenuItem.setImage(Images.getOrLoad("/icons/server_connect.png"));
@@ -230,6 +232,7 @@ public class TrpMenuBar {
 			li.setData(l);
 			if (l.equals(TrpConfig.getTrpSettings().getLocale()))
 				li.setSelection(true);
+		}
 		}
 		
 		manageCollectionsMenuItem = new MenuItem(menuBar, SWT.NONE);
@@ -245,6 +248,10 @@ public class TrpMenuBar {
 		installMenuItem = new MenuItem(menuBar, SWT.NONE);
 		installMenuItem.setText("&Install a specific version...");
 		installMenuItem.setImage(Images.getOrLoad("/icons/install_wiz.gif"));
+		
+		bugReportItem = new MenuItem(menuBar, SWT.NONE);
+		bugReportItem.setText("Send a bug report or feature request");
+		bugReportItem.setImage(Images.BUG);
 		
 		aboutMenuIItem = new MenuItem(menuBar, SWT.NONE);
 		aboutMenuIItem.setText("&About");
@@ -378,6 +385,7 @@ public class TrpMenuBar {
 	public MenuItem getUpdateMenuItem() { return updateMenuItem; }
 	public MenuItem getInstallMenuItem() { return installMenuItem; }
 	public MenuItem getTipsOfTheDayMenuItem() { return tipsOfTheDayMenuItem; }
+	public MenuItem getBugReportItem() { return bugReportItem; }
 
 	public MenuItem getLoadTestsetMenuItem() {
 		return loadTestsetMenuItem;
