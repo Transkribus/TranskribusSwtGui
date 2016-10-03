@@ -74,7 +74,6 @@ public class TrpMenuBar {
 	TrpSettings viewSets;
 	CanvasSettings canvasSets;
 
-	MenuItem analyzeStructureItem;
 	MenuItem installMenuItem;
 	MenuItem tipsOfTheDayMenuItem;
 	MenuItem bugReportItem;
@@ -207,9 +206,6 @@ public class TrpMenuBar {
 //		helpMenu = new Menu(mntmhelp);
 //		mntmhelp.setMenu(helpMenu);
 		
-		analyzeStructureItem = new MenuItem(menuBar, SWT.PUSH);
-		analyzeStructureItem.setText("Analyze structure for this page");
-		
 		viewSettingsMenuItem = new MenuItem(menuBar, SWT.PUSH);
 		viewSettingsMenuItem.setText("Change &viewing settings...");
 		viewSettingsMenuItem.setImage(Images.getOrLoad("/icons/palette.png"));
@@ -303,14 +299,6 @@ public class TrpMenuBar {
 
 	public MenuItem getViewMenuItem() {
 		return viewMenuItem;
-	}
-	
-//	public MenuItem getViewSettingsMenuItem() {
-//		return this.viewSettingsMenuItem;
-//	}
-	
-	public MenuItem getAnalyzeStructureItem() {
-		return analyzeStructureItem;
 	}
 		
 	public Menu getMenuBar() { return menuBar; }

@@ -54,7 +54,6 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		menuBar.getUpdateMenuItem().addSelectionListener(this);
 		menuBar.getInstallMenuItem().addSelectionListener(this);
 		menuBar.getTipsOfTheDayMenuItem().addSelectionListener(this);
-		menuBar.getAnalyzeStructureItem().addSelectionListener(this);
 		menuBar.getDeletePageMenuItem().addSelectionListener(this);
 		
 		SWTUtil.addSelectionListener(menuBar.getBugReportItem(), this);
@@ -238,9 +237,6 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		}
 		else if (s == menuBar.getTipsOfTheDayMenuItem()) {
 			mainWidget.showTipsOfTheDay();
-		}
-		else if (s == menuBar.getAnalyzeStructureItem()) {
-			mainWidget.analyzePageStructure(true, true, true);
 		}
 		else if (s == menuBar.getAboutMenuItem()) {
 //			DialogUtil.showInfoMessageBox(mainWidget.getShell(), ui.APP_NAME
