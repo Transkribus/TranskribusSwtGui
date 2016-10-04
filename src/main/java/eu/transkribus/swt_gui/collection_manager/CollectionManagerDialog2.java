@@ -51,7 +51,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.doc_overview.DocOverviewWidget;
+import eu.transkribus.swt_gui.doc_overview.ServerDocsWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination;
@@ -88,7 +88,7 @@ public class CollectionManagerDialog2 extends Dialog {
 	
 	CollectionManagerListener2 cml;
 	
-	static DocOverviewWidget docOverviewWidget;
+	static ServerDocsWidget docOverviewWidget;
 	
 	CTabFolder docTabFolder;
 	
@@ -101,7 +101,7 @@ public class CollectionManagerDialog2 extends Dialog {
 	
 	static final Storage store = Storage.getInstance();
 
-	public CollectionManagerDialog2(Shell parent, int style, DocOverviewWidget docOverviewWidget) {
+	public CollectionManagerDialog2(Shell parent, int style, ServerDocsWidget docOverviewWidget) {
 		super(parent, style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
 //		this.setSize(800, 800);
 		this.setText("Collection Manager");

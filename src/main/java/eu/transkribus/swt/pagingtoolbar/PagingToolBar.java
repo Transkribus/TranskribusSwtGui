@@ -46,7 +46,7 @@ public class PagingToolBar /*extends Composite*/ {
 	private boolean withFirstLastButtons=false;
 	
 	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, Composite parent, int style) {
-		this(labelText, withLabel, withDoubleButtons, false, parent, style);
+		this(labelText, withLabel, withDoubleButtons, true, parent, style);
 	}
 
 	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, boolean withFirstLastButtons, Composite parent, int style) {
@@ -88,13 +88,13 @@ public class PagingToolBar /*extends Composite*/ {
 //		label.setBounds(r.x, r.y+20, r.width, r.height);
 		
 		
-		if (withFirstLastButtons) {
+		if (this.withFirstLastButtons) {
 		pageFirstBtn = new ToolItem(toolbar, SWT.PUSH);
 		pageFirstBtn.setImage(Images.getOrLoad("/icons/page-first.gif"));
 		pagingItems.add(pageFirstBtn);
 		}
 		
-		if (withDoubleButtons) {
+		if (this.withDoubleButtons) {
 		pagePrevDoubleBtn = new ToolItem(toolbar, SWT.PUSH);
 		pagePrevDoubleBtn.setImage(Images.getOrLoad("/icons/page-prev-double.gif"));
 		pagingItems.add(pagePrevDoubleBtn);
@@ -121,13 +121,13 @@ public class PagingToolBar /*extends Composite*/ {
 		pageNextBtn.setImage(Images.getOrLoad("/icons/page-next.gif"));
 		pagingItems.add(pageNextBtn);
 		
-		if (withDoubleButtons) {
+		if (this.withDoubleButtons) {
 		pageNextDoubleBtn = new ToolItem(toolbar, SWT.PUSH);
 		pageNextDoubleBtn.setImage(Images.getOrLoad("/icons/page-next-double.gif"));
 		pagingItems.add(pageNextDoubleBtn);
 		}
 		
-		if (withFirstLastButtons) {
+		if (this.withFirstLastButtons) {
 		pageLastBtn = new ToolItem(toolbar, SWT.PUSH);
 		pageLastBtn.setImage(Images.getOrLoad("/icons/page-last.gif"));
 		pagingItems.add(pageLastBtn);
@@ -280,6 +280,10 @@ public class PagingToolBar /*extends Composite*/ {
 	
 	public boolean isWithDoubleButtons() {
 		return withDoubleButtons;
+	}
+	
+	public boolean isWithFirstLastButton() {
+		return withFirstLastButtons;
 	}
 
 

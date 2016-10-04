@@ -23,7 +23,7 @@ import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_gui.doc_overview.DocOverviewWidget;
+import eu.transkribus.swt_gui.doc_overview.ServerDocsWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 //public class CollectionManagerWidget extends Composite {

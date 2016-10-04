@@ -16,7 +16,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
@@ -27,7 +26,7 @@ import eu.transkribus.swt.util.Colors;
 public class LanguageSelectionTable extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(LanguageSelectionTable.class);
 	
-	 CheckboxTableViewer tv;
+	CheckboxTableViewer tv;
 	String[] languages;
 	Text currentLanguages;
 	

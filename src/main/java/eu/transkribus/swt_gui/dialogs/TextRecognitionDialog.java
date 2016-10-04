@@ -113,7 +113,6 @@ public class TextRecognitionDialog extends Dialog {
 		
 		dme = new DocMetadataEditor(mainContainer, SWT.NONE);
 		dme.setMetadata(store.getDoc().getMd());
-		dme.getApplyBtn().setVisible(false);
 		
 		Composite container = (Composite) super.createDialogArea(mainContainer);
 		GridLayout gridLayout = (GridLayout)container.getLayout();
@@ -367,7 +366,7 @@ public class TextRecognitionDialog extends Dialog {
 		selRnn = getSelectedRnn();
 		selDict = getSelectedDict();
 		
-		dme.applyMetadataFromGui(store.getDoc().getMd());
+		dme.updateData(store.getDoc().getMd());
 		mw.saveDocMetadata();
 		if(selPagesStr == null || selPagesStr.isEmpty()) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select pages to be recognized.");

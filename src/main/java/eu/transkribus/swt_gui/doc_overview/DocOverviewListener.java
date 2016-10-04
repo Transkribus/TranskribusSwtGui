@@ -23,7 +23,7 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 	private final static Logger logger = LoggerFactory.getLogger(DocOverviewListener.class);
 	
 	TrpMainWidget mainWidget;
-	DocOverviewWidget dow;
+	ServerDocsWidget dow;
 	TableViewer docTableViewer;
 	
 	Storage storage = Storage.getInstance();

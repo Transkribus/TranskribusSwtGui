@@ -42,7 +42,7 @@ import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.doc_overview.DocOverviewWidget;
+import eu.transkribus.swt_gui.doc_overview.ServerDocsWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination;
@@ -72,7 +72,7 @@ public class CollectionManagerDialog extends Dialog {
 	FindUsersWidget findUsersWidget;
 	
 	CollectionManagerListener cml;
-	DocOverviewWidget docOverviewWidget;
+	ServerDocsWidget docOverviewWidget;
 	
 	Shell shell;
 	
@@ -113,7 +113,7 @@ public class CollectionManagerDialog extends Dialog {
 		new ColumnConfig(DOC_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 	};
 
-	public CollectionManagerDialog(Shell parent, int style, DocOverviewWidget docOverviewWidget) {
+	public CollectionManagerDialog(Shell parent, int style, ServerDocsWidget docOverviewWidget) {
 		super(parent, style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
 //		this.setSize(800, 800);
 		this.setText("Collection Manager");
