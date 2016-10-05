@@ -40,6 +40,7 @@ public class TrpGuiPrefs {
 	public static final String CREDS_NODE = "creds";
 	public static final String OAUTH_NODE = "oauth";
 	public static final String ACCOUNT_NODE = "acc";
+	public static final String EXPORT_NODE = "export";
 	
 	private static final String OAUTH_UN_KEY = "_un";
 	private static final String OAUTH_PIC_KEY = "_pic";
@@ -50,9 +51,13 @@ public class TrpGuiPrefs {
 	
 	private static final String LAST_ACCOUNT_TYPE_KEY = "accType";
 	
+	public static final String LAST_EXPORT_FOLDER_KEY = "lastExportFolder";
+	
 	static Preferences pref = Preferences.userNodeForPackage(TrpGui.class).node(CREDS_NODE);
 	static Preferences oAuthPrefs = Preferences.userNodeForPackage(TrpGui.class).node(OAUTH_NODE);
 	static Preferences accountPrefs = Preferences.userNodeForPackage(TrpGui.class).node(ACCOUNT_NODE);
+	
+	static Preferences exportPrefs = Preferences.userNodeForPackage(TrpGui.class).node(EXPORT_NODE);
 	
 	public static String encryptAes(String key, String strToEncrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -105,6 +110,17 @@ public class TrpGuiPrefs {
 		logger.debug("storing credentials for user: "+username);
 		
 		pref.put(username, encryptAes(wtf, pw));
+	}
+	
+	public static void storeLastExportFolder(String foldername){
+		logger.debug("storing export folder "+foldername);		
+		exportPrefs.put(LAST_EXPORT_FOLDER_KEY, foldername);
+	}
+	
+	public static String getLastExportFolder() throws Exception {
+	
+		return exportPrefs.get(LAST_EXPORT_FOLDER_KEY, null);
+		
 	}
 	
 	public static void storeLastLogin(String username) throws Exception {

@@ -2516,6 +2516,10 @@ public class TrpMainWidget {
 
 			saveTranscriptDialogOrAutosave();
 				
+			String lastExportFolderTmp = TrpGuiPrefs.getLastExportFolder();
+			if (lastExportFolderTmp != null && !lastExportFolderTmp.equals("")){
+				lastExportFolder = lastExportFolderTmp;
+			}
 			final CommonExportDialog exportDiag = new CommonExportDialog(getShell(), SWT.NONE, lastExportFolder, adjTitle, storage.getDoc().getPages());
 
 			dir = exportDiag.open();
@@ -2702,6 +2706,8 @@ public class TrpMainWidget {
 				
 				lastExportFolder = dir.getParentFile().getAbsolutePath();
 				logger.debug("last export folder: " + lastExportFolder);
+				
+				TrpGuiPrefs.storeLastExportFolder(lastExportFolder);
 
 				//delete the temp folder for making the ZIP
 				FileDeleteStrategy.FORCE.delete(tempZipDirParentFile);
@@ -2790,6 +2796,7 @@ public class TrpMainWidget {
 		finally{
 			if(dir != null){
 				lastExportFolder = dir.getParentFile().getAbsolutePath();
+				TrpGuiPrefs.storeLastExportFolder(lastExportFolder);
 			}
 		}
 
