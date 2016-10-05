@@ -1,4 +1,5 @@
 package eu.transkribus.swt_gui.search.fulltext;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
@@ -117,7 +118,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
             super.mouseUp(event);
             currentSelection = list.getSelectionIndices();            
             if ((event.stateMask & SWT.CTRL) == 0) {
-               displayText();
+//               displayText();
                parentComp.start = 0;
                parentComp.findText();               
                shell.dispose();
@@ -131,7 +132,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
          public void shellDeactivated(ShellEvent arg0) {
             if (shell != null && !shell.isDisposed()) {
                currentSelection = list.getSelectionIndices();
-               displayText();
+//               displayText();
                parentComp.start = 0;
                parentComp.findText();
                shell.dispose();
@@ -142,7 +143,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
       
    }
 
-   private void displayText() {
+   void displayText() {
       if (currentSelection != null && currentSelection.length > 0) {
          StringBuffer sb = new StringBuffer();
          for (int i = 0; i < currentSelection.length; i++) {
@@ -153,12 +154,48 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
          txtCurrentSelection.setText(sb.toString());
       }
       else {
-         txtCurrentSelection.setText("");
+         txtCurrentSelection.setText(textItems[0]);
       }
    }
 
    public int[] getSelections() {
       return this.currentSelection;
+   }
+   
+   public void setTextItems(String[] newTextItems){
+	   ArrayList<String> oldSelectionsT = new ArrayList<>();
+	   ArrayList<Integer> newSelectionsI = new ArrayList<>();
+
+	   for(int i : currentSelection){
+		   oldSelectionsT.add(textItems[i].replaceAll("\\(.*\\)", "").trim());
+	   }
+	   int j=0;
+	   for(String s : newTextItems){
+		   if(s!=null){
+			   String newText = s.replaceAll("\\(.*\\)", "").trim();
+
+			   if(oldSelectionsT.contains(newText)){
+				   newSelectionsI.add(j);			  
+				   
+			   }
+			   j++;
+		   }
+
+	   }
+
+	   
+	   int[] newSelectionsIArr = new int[newSelectionsI.size()];
+	   for(int i = 0; i<newSelectionsI.size(); i++){
+		   newSelectionsIArr[i] = newSelectionsI.get(i);
+	   }
+	   
+
+	   textItems = newTextItems;
+	   currentSelection = newSelectionsIArr;
+	   
+	   displayText();
+
+	   
    }
 
 
