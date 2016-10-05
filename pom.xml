@@ -344,11 +344,11 @@
 										<if>
 										  <available file="@{dir}${deploySubDir}" type="dir" />
 										  <then>
-										    <echo message="Directory @{dir}${deploySubDir} exists - now copying zip and BUILD.txt file to it" />
+										    <echo message="Directory @{dir}${deploySubDir} exists - now copying zip file to it" />
 											<copy todir="@{dir}${deploySubDir}">
-												<fileset dir="${project.build.directory}/classes">
-													<include name="BUILD.txt" />
-												</fileset>
+<!-- 												<fileset dir="${project.build.directory}/classes"> -->
+<!-- 													<include name="BUILD.txt" /> -->
+<!-- 												</fileset> -->
 												<fileset dir="${project.build.directory}">
 													<include name="*.zip" />
 												</fileset>
