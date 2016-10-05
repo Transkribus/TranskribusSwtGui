@@ -103,7 +103,12 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
          
       }
 
-      list.setSelection(currentSelection);
+      if(currentSelection.length > 0){
+    	  if(currentSelection[0]!=0){
+    		  list.setSelection(currentSelection);
+    	  }
+      }
+      
 
       GridData gd = new GridData(GridData.FILL_BOTH);
       list.setLayoutData(gd);
@@ -116,7 +121,12 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
          @Override
          public void mouseUp(MouseEvent event) {
             super.mouseUp(event);
-            currentSelection = list.getSelectionIndices();            
+            if(list.getSelectionIndices().length > 0){
+            	currentSelection = list.getSelectionIndices(); 
+            } else {
+            	currentSelection = new int[] { 0 };
+            }
+                       
             if ((event.stateMask & SWT.CTRL) == 0) {
 //               displayText();
                parentComp.start = 0;
@@ -131,7 +141,11 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
 
          public void shellDeactivated(ShellEvent arg0) {
             if (shell != null && !shell.isDisposed()) {
-               currentSelection = list.getSelectionIndices();
+               if(list.getSelectionIndices().length > 0){
+            	   currentSelection = list.getSelectionIndices(); 
+               } else {
+            	   currentSelection = new int[] { 0 };
+               }
 //               displayText();
                parentComp.start = 0;
                parentComp.findText();
