@@ -127,7 +127,7 @@ import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
-import eu.transkribus.swt_gui.doc_overview.DocMetadadataWidgetListener;
+import eu.transkribus.swt_gui.doc_overview.DocInfoWidgetListener;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
@@ -190,7 +190,7 @@ public class TrpMainWidget {
 	LineEditorListener lineEditorListener;
 	StructureTreeListener structTreeListener;
 	DocOverviewListener docOverviewListener;
-	DocMetadadataWidgetListener docMetadataWidgetListener;
+	DocInfoWidgetListener docMetadataWidgetListener;
 	TrpMainWidgetListener mainWidgetListener;
 	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
@@ -511,8 +511,8 @@ public class TrpMainWidget {
 		}
 
 		ui.getDocOverviewWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
-		ui.getDocMetadataWidget().getLoadedDocText().setText(loadedDocStr);
-		ui.getDocMetadataWidget().getCurrentCollectionText().setText(currentCollectionStr);
+		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
+		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 
 //		ui.toolsWidget.updateParameter(st, language);
@@ -589,10 +589,10 @@ public class TrpMainWidget {
 			
 		}
 
-		ui.getDocMetadataWidget().getLoadedDocText().setText(loadedDocStr);
-		ui.getDocMetadataWidget().getLoadedPageText().setText(fn);
-		ui.getDocMetadataWidget().getLoadedImageUrl().setText(imgUrl);
-		ui.getDocMetadataWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
+		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
+		ui.getDocInfoWidget().getLoadedPageText().setText(fn);
+		ui.getDocInfoWidget().getLoadedImageUrl().setText(imgUrl);
+		ui.getDocInfoWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
 		
 		ui.getDocOverviewWidget().updateHighlightedRow(docId);
 		ui.getShell().setText(title);
@@ -652,7 +652,7 @@ public class TrpMainWidget {
 		structTreeListener = new StructureTreeListener(this);
 		// doc overview listener:
 		docOverviewListener = new DocOverviewListener(this);
-		docMetadataWidgetListener = new DocMetadadataWidgetListener(ui.getDocMetadataWidget());
+		docMetadataWidgetListener = new DocInfoWidgetListener(ui.getDocInfoWidget());
 		// transcription observer:
 		transcriptObserver = new TranscriptObserver(this);
 		// shape observer:

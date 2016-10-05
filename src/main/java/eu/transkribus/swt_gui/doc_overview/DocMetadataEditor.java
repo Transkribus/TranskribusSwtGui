@@ -21,8 +21,10 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SCSimpleDateTimeWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.tools.LanguageSelectionTable;
 
 public class DocMetadataEditor extends Composite {
@@ -33,7 +35,7 @@ public class DocMetadataEditor extends Composite {
 	private Label uploadedLabel;
 	private Text genreText;
 	private Text writerText;
-	private Button applyBtn;
+	private Button saveBtn;
 	private Text descriptionText;
 //	private Combo langCombo;
 	private Combo scriptTypeCombo, scriptTypeCombo2;
@@ -66,7 +68,8 @@ public class DocMetadataEditor extends Composite {
 		
 		titleText = new Text(this, SWT.BORDER);
 		GridData gd_titleText = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-		gd_titleText.widthHint = 366;
+//		gd_titleText.widthHint = 366;
+//		gd_titleText.widthHint = 200;
 		titleText.setLayoutData(gd_titleText);
 		
 		Label lblAuthor = new Label(this, SWT.NONE);
@@ -134,7 +137,7 @@ public class DocMetadataEditor extends Composite {
 		
 		Composite dateComposite = new Composite(this, SWT.NONE);
 		dateComposite.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 4, 1));
-		dateComposite.setLayout(new GridLayout(4, false));
+		dateComposite.setLayout(new GridLayout(2, false));
 		
 		enableCreatedFromBtn = new Button(dateComposite, SWT.CHECK);
 		enableCreatedFromBtn.setSelection(false);
@@ -176,12 +179,32 @@ public class DocMetadataEditor extends Composite {
 		
 //		descriptionText.setLayoutData(GridData.FILL_BOTH);
 		
-		applyBtn = new Button(this, SWT.NONE);
-		applyBtn.setImage(Images.getOrLoad("/icons/accept.png"));
-		applyBtn.setText("Apply metadata");
+		saveBtn = new Button(this, SWT.NONE);
+		saveBtn.setImage(Images.DISK);
+		saveBtn.setText("Save");
+		
+		addListener();
 	}
 	
-	public void applyMetadataFromGui(TrpDocMetadata md) {		
+	void addListener() {
+		saveBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				saveMd();
+			}
+		});
+	}
+	
+	private void saveMd() {
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		if (mw != null) {
+			mw.saveDocMetadata();
+		} else {
+			DialogUtil.showErrorMessageBox(getShell(), "Fatal error", "No main widget found!");
+			logger.error("No main widget found!");
+		}
+	}
+	
+	public void updateData(TrpDocMetadata md) {		
 		md.setTitle(titleText.getText());
 		md.setAuthor(authorText.getText());
 		md.setGenre(genreText.getText());
@@ -303,9 +326,9 @@ public class DocMetadataEditor extends Composite {
 		return writerText;
 	}
 	
-	public Button getApplyBtn() {
-		return applyBtn;
-	}
+//	public Button getApplyBtn() {
+//		return saveBtn;
+//	}
 
 	public Text getDescriptionText() {
 		return descriptionText;

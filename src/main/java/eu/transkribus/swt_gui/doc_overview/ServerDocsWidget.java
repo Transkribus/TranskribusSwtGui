@@ -34,8 +34,8 @@ import eu.transkribus.swt_gui.mainwidget.Storage.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
-public class DocOverviewWidget extends Composite {
-	private final static Logger logger = LoggerFactory.getLogger(DocOverviewWidget.class);
+public class ServerDocsWidget extends Composite {
+	private final static Logger logger = LoggerFactory.getLogger(ServerDocsWidget.class);
 
 	Label usernameLabel, serverLabel;
 	DocTableWidgetPagination docTableWidget;
@@ -72,7 +72,7 @@ public class DocOverviewWidget extends Composite {
 //	private List<TrpCollection> collections;
 //	TrpCollection selectedCollection=null;
 		
-	public DocOverviewWidget(Composite parent) {
+	public ServerDocsWidget(Composite parent) {
 		super(parent, SWT.NONE);
 				
 		init();

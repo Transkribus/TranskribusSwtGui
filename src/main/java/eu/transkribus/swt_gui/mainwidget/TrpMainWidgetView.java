@@ -47,8 +47,8 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
-import eu.transkribus.swt_gui.doc_overview.DocMetadataWidget;
-import eu.transkribus.swt_gui.doc_overview.DocOverviewWidget;
+import eu.transkribus.swt_gui.doc_overview.DocInfoWidget;
+import eu.transkribus.swt_gui.doc_overview.ServerDocsWidget;
 import eu.transkribus.swt_gui.menubar.MenuListener;
 import eu.transkribus.swt_gui.menubar.TrpMenuBar;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidget;
@@ -76,8 +76,8 @@ public class TrpMainWidgetView extends Composite {
 	LineTranscriptionWidget lineTranscriptionWidget;
 	WordTranscriptionWidget wordTranscriptionWidget;
 	StructureTreeWidget structureTreeWidget;
-	DocOverviewWidget docOverviewWidget;
-	DocMetadataWidget docMetadataWidget;
+	ServerDocsWidget serverDocsWidget;
+	DocInfoWidget docInfoWidget;
 	
 //	JobOverviewWidget jobOverviewWidget;
 	JobTableWidgetPagination jobOverviewWidget;
@@ -221,11 +221,11 @@ public class TrpMainWidgetView extends Composite {
 		// NEW: only one tab widget
 		tabWidget = new TrpTabWidget(this, 0);
 		
-		docOverviewWidget = new DocOverviewWidget(tabWidget.serverTf);
-		tabWidget.docListItem.setControl(docOverviewWidget);
+		serverDocsWidget = new ServerDocsWidget(tabWidget.serverTf);
+		tabWidget.docListItem.setControl(serverDocsWidget);
 		
-		docMetadataWidget = new DocMetadataWidget(tabWidget.documentTf, 0);
-		tabWidget.docoverviewItem.setControl(docMetadataWidget);
+		docInfoWidget = new DocInfoWidget(tabWidget.documentTf, 0);
+		tabWidget.docoverviewItem.setControl(docInfoWidget);
 		
 		structureTreeWidget = new StructureTreeWidget(tabWidget.documentTf);
 		tabWidget.structureItem.setControl(structureTreeWidget);
@@ -1190,7 +1190,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	public TrpMenuBar getTrpMenuBar() { return menu; }
 	public StructureTreeWidget getStructureTreeWidget() { return structureTreeWidget; }
-	public DocOverviewWidget getDocOverviewWidget() { return docOverviewWidget; }
+	public ServerDocsWidget getDocOverviewWidget() { return serverDocsWidget; }
 	public JobTableWidgetPagination getJobOverviewWidget() { return jobOverviewWidget; }
 	public TranscriptsTableWidgetPagination getVersionsWidget() { return versionsWidget; };
 	
@@ -1280,22 +1280,22 @@ public class TrpMainWidgetView extends Composite {
 		
 	public void updateLoginInfo(boolean loggedIn, String username, String server) {
 		if (loggedIn) {
-			docOverviewWidget.getUsernameLabel().setText("Logged in as: "+username);
-			docOverviewWidget.getServerLabel().setText("Server: "+server);
+			serverDocsWidget.getUsernameLabel().setText("Logged in as: "+username);
+			serverDocsWidget.getServerLabel().setText("Server: "+server);
 
 			loginToggle.setToolTipText("Logout "+username);
 //			loginToggle.setSelection(true);
 			loginToggle.setImage(Images.getOrLoad("/icons/connect.png"));
 		} else {
-			docOverviewWidget.getUsernameLabel().setText("Not logged in");
-			docOverviewWidget.getServerLabel().setText("");
+			serverDocsWidget.getUsernameLabel().setText("Not logged in");
+			serverDocsWidget.getServerLabel().setText("");
 			loginToggle.setToolTipText("Login");
 //			loginToggle.setSelection(false);
 			loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
 		}
 		
-		docOverviewWidget.getUsernameLabel().pack();
-		docOverviewWidget.getServerLabel().pack();
+		serverDocsWidget.getUsernameLabel().pack();
+		serverDocsWidget.getServerLabel().pack();
 		
 		uploadDocsItem.setEnabled(loggedIn);
 		searchBtn.setEnabled(loggedIn);
@@ -1345,8 +1345,8 @@ public class TrpMainWidgetView extends Composite {
 		return saveDrowDown;
 	}
 
-	public DocMetadataWidget getDocMetadataWidget() {
-		return docMetadataWidget;
+	public DocInfoWidget getDocInfoWidget() {
+		return docInfoWidget;
 	}
 
 }

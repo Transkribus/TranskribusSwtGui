@@ -1,7 +1,5 @@
 package eu.transkribus.swt_gui.dialogs;
 
-import java.io.IOException;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,12 +18,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.program_updater.FTPProgramPackageFile;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.util.FTPProgramUpdater;
-import eu.transkribus.swt_gui.util.ProgramUpdater;
 
 public class InstallSpecificVersionDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(InstallSpecificVersionDialog.class);
@@ -179,9 +174,9 @@ public class InstallSpecificVersionDialog extends Dialog {
 		
 		isDownloadAll = downloadAll.getSelection();
 		if (snapshotsRadio.getSelection()) {
-			selected = (ProgramPackageFile) snapshots.get(snapshotsCombo.getSelectionIndex());
+			selected = snapshots.get(snapshotsCombo.getSelectionIndex());
 		} else {
-			selected = (ProgramPackageFile) releases.get(releasesCombo.getSelectionIndex());
+			selected = releases.get(releasesCombo.getSelectionIndex());
 		}
 		logger.debug("Selected file: "+selected.getName()+" version: "+selected.getName());
 		
@@ -190,18 +185,33 @@ public class InstallSpecificVersionDialog extends Dialog {
 	
 	private void fillCombo(List<ProgramPackageFile> files, Combo combo) {
 		List<String> versions = new ArrayList<>();
+		
+//		for (int i=files.size()-1; i>=0; --i) {
+//			ProgramPackageFile f = files.get(i);
 		for (ProgramPackageFile f : files) {
 			logger.debug("name = "+f.getName()+" f = "+f.toString());
 			versions.add(ProgramPackageFile.stripVersion(f.getName()));
 		}
 		combo.setItems(versions.toArray(new String[0]));
-		combo.select(versions.size()-1);
+//		combo.select(versions.size()-1);
+		combo.select(0);
+	}
+	
+	private static <T> List<T> reverseCopy(List<T> l) {
+		List<T> nl = new ArrayList<>();
+		for (int i=l.size()-1; i>=0; --i) {
+			nl.add(l.get(i));
+		}
+		
+		return nl;
 	}
 	
 	private void initData() throws Exception {
-		releases = ProgramUpdaterDialog.PROGRAM_UPDATER.getAllReleases();
+		releases = reverseCopy(ProgramUpdaterDialog.PROGRAM_UPDATER.getAllReleases());
+//		releases = ProgramUpdaterDialog.PROGRAM_UPDATER.getAllReleases();
 		fillCombo(releases, releasesCombo);
-		snapshots = ProgramUpdaterDialog.PROGRAM_UPDATER.getAllSnapshots();
+		snapshots = reverseCopy(ProgramUpdaterDialog.PROGRAM_UPDATER.getAllSnapshots());
+//		snapshots = ProgramUpdaterDialog.PROGRAM_UPDATER.getAllSnapshots();
 		fillCombo(snapshots, snapshotsCombo);
 		updateTimestamps();
 	}
@@ -210,8 +220,8 @@ public class InstallSpecificVersionDialog extends Dialog {
 		int ri = releasesCombo.getSelectionIndex();
 		int si = snapshotsCombo.getSelectionIndex();
 		
-		timestampRelease.setText("Built: "+((ProgramPackageFile) (releases.get(ri))).getTimestamp());
-		timestampSnapshots.setText("Built: "+((ProgramPackageFile) (snapshots.get(si))).getTimestamp());
+		timestampRelease.setText("Built: "+(releases.get(ri)).getTimestamp());
+		timestampSnapshots.setText("Built: "+(snapshots.get(si)).getTimestamp());
 		shell.pack();
 	}
 	

@@ -3,8 +3,6 @@ package eu.transkribus.swt.util;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.VerifyEvent;
@@ -12,6 +10,8 @@ import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SCSimpleDateTimeWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(SCSimpleDateTimeWidget.class);
@@ -21,8 +21,6 @@ public class SCSimpleDateTimeWidget extends Composite {
 
 	public SCSimpleDateTimeWidget(Composite parent, int style) {
 		super(parent, style);
-		
-		
 		init();
 	}
 	
@@ -35,6 +33,7 @@ public class SCSimpleDateTimeWidget extends Composite {
 	}
 	
 	void init() {
+//		this.setLayout(new GridLayout(2, false));
 		this.setLayout(new FillLayout());
 		
 		day = new Combo(this, SWT.READ_ONLY);
@@ -42,28 +41,26 @@ public class SCSimpleDateTimeWidget extends Composite {
 			day.add(""+i);
 		day.select(0);
 		day.pack();
-		
-//		Label l1 = new Label(this, SWT.NONE);
-//		l1.setText("-");
-//		l1.pack();
+//		day.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		month = new Combo(this, SWT.READ_ONLY);
 		for (int i=1; i<=12; ++i)
 			month.add(""+i);
 		month.select(0);
 		month.pack();
-		
-//		Label l2 = new Label(this, SWT.NONE);
-//		l2.setText("-");
-//		l2.pack();
-		
-		
-//		logger.debug("initing year");
-//		List<String> yearList = new ArrayList<>(10000);
+//		month.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		year = new StyledText(this, SWT.SINGLE | SWT.CENTER | SWT.LEFT | SWT.BORDER);
-		year.addVerifyListener(new VerifyListener() {
-			
+		year.setText("2000");
+//		year.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		this.pack();
+		
+		addListener();
+	}
+	
+	void addListener() {
+		VerifyListener verifyYearListener = new VerifyListener() {
 			@Override public void verifyText(VerifyEvent e) {
 				String newText = year.getText().substring(0, e.start)+e.text+year.getText().substring(e.end);
 				
@@ -78,23 +75,11 @@ public class SCSimpleDateTimeWidget extends Composite {
 				if (year < 0 || year > 9999)
 					e.doit = false;	
 			}
-		});
-		year.setText("2000");
-//		year.setLineAlignment(0, 1, SWT.CENTER);
+		};
 		
-//		year.addVerifyListener(new VerifyListener() {
-//			@Override public void verifyText(VerifyEvent e) {
-//			}
-//		});
+		year.addVerifyListener(verifyYearListener);
 		
-//		year = new Combo(this, SWT.READ_ONLY);
-//		for (int i=0; i<=9999; ++i)
-//			yearList.add(""+i);
-//		year.setItems(yearList.toArray(new String[yearList.size()]));
 		
-//		logger.debug("done!!!!");
-		
-		this.pack();
 	}
 	
 	public int getDay() {
