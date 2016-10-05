@@ -676,7 +676,8 @@
 		<dependency>
 			<groupId>org.eclipse.nebula.widgets</groupId>
 			<artifactId>pagination</artifactId>
-			<version>1.0.0.201410030017</version>
+<!-- 			<version>1.0.0.201410030017</version> -->			
+			<version>1.0.0.201609281642</version>
 		</dependency>
 
 		<dependency>

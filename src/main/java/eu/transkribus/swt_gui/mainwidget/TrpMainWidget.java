@@ -118,7 +118,6 @@ import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.collection_manager.CollectionManagerListener;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
 import eu.transkribus.swt_gui.dialogs.BugDialog;
@@ -200,7 +199,7 @@ public class TrpMainWidget {
 	ToolsWidgetListener laWidgetListener;
 	JobTableWidgetListener jobOverviewWidgetListener;
 	TranscriptsTableWidgetListener versionsWidgetListener;
-	CollectionManagerListener collectionsManagerListener;
+//	CollectionManagerListener collectionsManagerListener;
 
 	Storage storage; // the data
 	boolean isPageLocked = false;

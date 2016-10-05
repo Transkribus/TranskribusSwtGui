@@ -86,7 +86,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	
 	public PageableTable getPageableTable() { return pageableTable; }
 	
-	public static <T> T findItem(List<T> items, String propertyName, Object value) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	private static <T> T findItem(List<T> items, String propertyName, Object value) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		for (T i : items) {
 			Object v = PropertyUtils.getProperty(i, propertyName);
 			
@@ -98,6 +98,9 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		return null;
 	}
 	
+	/**
+	 * Loads the page that contains the specified values
+	 */
 	public void loadPage(String propertyName, Object value, boolean refreshFirst) {
 		if (propertyName == null || value == null) {
 			logger.error("propertyName or value is null - doin' nothin'!");
@@ -112,7 +115,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		logger.debug("loading page, propertyName = "+propertyName+" value = "+value+" currentPage = "+c.getCurrentPage());
 
 		try {
-			// 1st: check if object is present at locallly loaded dataset:
+			// 1st: check if object is present at locally loaded dataset:
 			List<T> items = (List<T>) pageableTable.getViewer().getInput();
 			T item = findItem(items, propertyName, value);
 			if (item != null) {
@@ -137,6 +140,28 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 
 					c1.setCurrentPage(i);
 					PageResult<T> res = (PageResult<T>) pageableTable.getPageLoader().loadPage(c1);
+					
+//					Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
+//					    public void uncaughtException(Thread th, Throwable ex) {
+//					        System.out.println("Uncaught exception: " + ex);
+//					        ex.printStackTrace();
+//					    }
+//					};
+//					Thread t = new Thread() {
+//					    public void run() {
+//					        System.out.println("Sleeping ...");
+//					        try {
+//					            Thread.sleep(1000);
+//					        } catch (InterruptedException e) {
+//					            System.out.println("Interrupted.");
+//					        }
+//					        System.out.println("Throwing exception ...");
+//					        throw new RuntimeException();
+//					    }
+//					};
+//					t.setUncaughtExceptionHandler(h);
+//					t.start();
+
 					
 //					PageResult<T> res = PagingUtils.loadPage(methods, c);
 					

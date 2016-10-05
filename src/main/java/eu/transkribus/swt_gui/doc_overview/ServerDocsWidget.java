@@ -27,7 +27,7 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
-import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog2;
+import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.Storage.LoginOrLogoutEvent;
@@ -49,10 +49,9 @@ public class ServerDocsWidget extends Composite {
 	Button searchBtn;
 	Text quickLoadByID;
 		
-	CollectionManagerDialog2 cm;
+	CollectionManagerDialog cm;
 	ActivityDialog ad;
 	
-	DocMetadataEditor docMetadataEditor;
 	Storage store = Storage.getInstance();
 
 	//RecentDocsPreferences prefs = new RecentDocsPreferences(5, prefNode);
@@ -128,29 +127,7 @@ public class ServerDocsWidget extends Composite {
 		
 		serverLabel = new Label(container, SWT.NONE);
 		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));		
-		
-		if (false) {
-		final ExpandableComposite metadatagroupExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
-//		Group metadatagroup = new Group(container, SWT.SHADOW_ETCHED_IN);
-		Composite metadatagroup = new Composite(metadatagroupExp, SWT.SHADOW_ETCHED_IN);
-		metadatagroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-//		metadatagroup.setText("Document metadata");
-		metadatagroup.setLayout(new GridLayout(1, false));
-		
-		metadatagroupExp.setClient(metadatagroup);
-		metadatagroupExp.setText("Document metadata");
-		docMetadataEditor = new DocMetadataEditor(metadatagroup, SWT.NONE);
-//		metadataEditor.pack();
-		docMetadataEditor.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		metadatagroupExp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		metadatagroupExp.setExpanded(true);
-		metadatagroupExp.addExpansionListener(new ExpansionAdapter() {
-			public void expansionStateChanged(ExpansionEvent e) {
-				container.layout();
-			}
-		});
-		}
-		
+				
 		// admin area:
 		adminAreaExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		Fonts.setBoldFont(adminAreaExp);
@@ -424,7 +401,7 @@ public class ServerDocsWidget extends Composite {
 		collectionComboViewerWidget.clearFilter();
 	}
 	
-	public CollectionManagerDialog2 getCollectionManagerDialog() {
+	public CollectionManagerDialog getCollectionManagerDialog() {
 		return cm;
 	}
 	
@@ -435,7 +412,7 @@ public class ServerDocsWidget extends Composite {
 	public void openCollectionsManagerWidget() {
 		if (!isCollectionManagerOpen()) {
 			logger.debug("creating NEW CM Dialog!!");
-			cm = new CollectionManagerDialog2(getShell(), SWT.NONE, this);
+			cm = new CollectionManagerDialog(getShell(), SWT.NONE, this);
 			cm.open();
 		} else
 			cm.getShell().setVisible(true);

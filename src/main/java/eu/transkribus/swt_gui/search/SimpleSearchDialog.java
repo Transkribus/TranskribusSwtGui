@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
-import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog2;
+import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.search.documents.DocSearchComposite;
 import eu.transkribus.swt_gui.search.documents.SimpleDocSearchComposite;
 import eu.transkribus.swt_gui.search.kws.KeywordSpottingComposite;
