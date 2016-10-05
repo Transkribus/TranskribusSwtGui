@@ -2678,7 +2678,7 @@ public class TrpMainWidget {
 				FileUtils.forceMkdir(tempZipFileDir);
 				
 				if (exportDiag.isMetsExport())
-					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), fileNamePattern);
+					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), exportDiag.isSplitUpWords(), fileNamePattern);
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
 				if (exportDiag.isTeiExport())
@@ -2717,7 +2717,7 @@ public class TrpMainWidget {
 
 			if (doMetsExport) {
 
-				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), fileNamePattern);
+				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), exportDiag.isSplitUpWords(), fileNamePattern);
 				if (exportDiag.isPageExport()) {
 					if (exportFormats != "") {
 						exportFormats += " and ";
@@ -2893,7 +2893,7 @@ public class TrpMainWidget {
 	    }
 	  }
 
-	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto, final String fileNamePattern) throws Throwable {
+	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto, final boolean splitIntoWordsInAlto, final String fileNamePattern) throws Throwable {
 		try {
 
 			if (dir == null)
@@ -2905,7 +2905,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("exporting document...");
-						final String path = storage.exportDocument(dir, pageIndices, exportImg, exportPage, exportAlto, fileNamePattern, monitor);
+						final String path = storage.exportDocument(dir, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern, monitor);
 						monitor.done();
 						// displaySuccessMessage("Written export to "+path);
 					} catch (Exception e) {

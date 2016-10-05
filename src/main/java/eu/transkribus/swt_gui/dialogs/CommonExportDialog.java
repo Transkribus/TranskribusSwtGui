@@ -87,7 +87,7 @@ public class CommonExportDialog extends Dialog {
 	TeiExportMode teiExportMode;
 	TeiLinebreakMode teiLinebreakMode;
 	
-	boolean docxExport, pdfExport, teiExport, altoExport, imgExport, metsExport, pageExport, xlsxExport, zipExport;
+	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, xlsxExport, zipExport;
 	String fileNamePattern = "${filename}";
 	Button addExtraTextPagesBtn;
 	boolean addExtraTextPages2PDF;
@@ -154,7 +154,7 @@ public class CommonExportDialog extends Dialog {
 	    group1.setLayout(new GridLayout(1, false));
 	    
 	    final Button b0 = new Button(group1, SWT.CHECK);
-	    b0.setText("TRP Document");
+	    b0.setText("Transkribus Document");
 	    final Button b1 = new Button(group1, SWT.CHECK); 
 	    b1.setText("PDF");
 	    final Button b2 = new Button(group1, SWT.CHECK);
@@ -584,6 +584,7 @@ public class CommonExportDialog extends Dialog {
 			
 			final Button e1 = new Button(metsComposite, SWT.CHECK);
 			final Button e2 = new Button(metsComposite, SWT.CHECK);
+			final Button e21 = new Button(metsComposite, SWT.CHECK);
 			final Button e3 = new Button(metsComposite, SWT.CHECK);
 			final Button e4 = new Button(metsComposite, SWT.CHECK);
 			
@@ -593,7 +594,9 @@ public class CommonExportDialog extends Dialog {
 			setPageExport(true);
 			
 			e1.setText("Export Page");
-			e2.setText("Export ALTO");
+			e2.setText("Export ALTO (Line Level)");
+			e21.setText("Export ALTO (Word Level)");
+			e21.setToolTipText("Words get determined from the lines with some degree of fuzziness");
 			e3.setText("Export Image");
 			e4.setText("Standardized Filenames");
 			
@@ -627,10 +630,26 @@ public class CommonExportDialog extends Dialog {
 			    public void widgetSelected(SelectionEvent event) {
 			        Button btn = (Button) event.getSource();
 			        if (btn.getSelection()){
-			        	setAltoExport(true);
+			        	setAltoExport(true, false);
+			        	e21.setSelection(false);
 			        }
 			        else{
-			        	setAltoExport(false);
+			        	setAltoExport(false, false);
+			        	//e1.setSelection(true);
+			        }
+			    }
+			});
+			
+			e21.addSelectionListener(new SelectionAdapter() {
+			    @Override
+			    public void widgetSelected(SelectionEvent event) {
+			        Button btn = (Button) event.getSource();
+			        if (btn.getSelection()){
+			        	setAltoExport(true, true);
+			        	e2.setSelection(false);
+			        }
+			        else{
+			        	setAltoExport(false, false);
 			        	//e1.setSelection(true);
 			        }
 			    }
@@ -1055,9 +1074,14 @@ public class CommonExportDialog extends Dialog {
 	public boolean isAltoExport() {
 		return altoExport;
 	}
+	
+	public boolean isSplitUpWords() {
+		return splitUpWords;
+	}
 
-	public void setAltoExport(boolean altoExport) {
+	public void setAltoExport(boolean altoExport, boolean wordLevel) {
 		this.altoExport = altoExport;
+		this.splitUpWords = wordLevel;
 	}
 	
 	public void setFileNamePattern(final String fileNamePattern) {
