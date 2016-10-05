@@ -25,11 +25,15 @@ public class Msgs {
 	static ResourceBundle messages; //ResourceBundle.getBundle(LOCALES_BASENAME, TrpConfig.getTrpSettings().getLocale());
 	static final UTF8Control utf8Control = new UTF8Control();
 	
-	
 	static {
 		Locale.setDefault(DEFAULT_LOCALE);
 		
-		setLocale(TrpConfig.getTrpSettings().getLocale());
+		if (TrpConfig.getTrpSettings()!=null) {
+			setLocale(TrpConfig.getTrpSettings().getLocale());
+		} 
+		else {
+			setLocale(EN_LOCALE);
+		}
 //		setLocale(DE_LOCALE);
 	}
 	

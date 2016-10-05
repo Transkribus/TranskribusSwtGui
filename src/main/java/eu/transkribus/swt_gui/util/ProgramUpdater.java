@@ -38,6 +38,7 @@ public abstract class ProgramUpdater<T extends ProgramPackageFile> {
 		
 	public abstract List<T> getAllSnapshots() throws Exception;
 	public abstract List<T> getAllReleases() throws Exception;
+		
 //	public abstract Pair<T, Date> checkForUpdates(String currentVersion, Date localTimestamp, boolean withSnapshots) throws Exception;
 	public abstract void downloadUpdate(File downloadFile, T f, IProgressMonitor monitor, boolean downloadAll) throws Exception;
 	
