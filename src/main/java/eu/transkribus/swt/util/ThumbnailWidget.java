@@ -87,7 +87,7 @@ public class ThumbnailWidget extends Composite {
 	
 	private int maxWidth = 0;
 	
-	private static final boolean DISABLE_TRANSCRIBED_LINES=true;
+	private static final boolean DISABLE_TRANSCRIBED_LINES=false;
 	
 	public static class ThmbImg {		
 		Image image = null;
@@ -140,7 +140,8 @@ public class ThumbnailWidget extends Composite {
 				
 				if (!DISABLE_TRANSCRIBED_LINES) {
 					sw.start();
-					transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
+					//transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
+					transcribedLines = transcript.getNrOfTranscribedLines();
 					sw.stop(true, "loading lines time: ");
 				}
 				
@@ -402,49 +403,47 @@ public class ThumbnailWidget extends Composite {
 			item.setImage(Images.LOADING_IMG);
 			item.setData("doNotScaleImage", new Object());
 			
-//			String transcribedLinesText = "";
-//			//here we could set background color regarding to if transcribed text exists
-//			try {
-//				/*
-//				 * get number or transcribed lines: 0: no lines available, -1: lines but no text, n lines with text
-//				 */
-//				int transcribedLines = countTranscribedLines(transcripts.get(i).unmarshallTranscript());
-//				
-//				if (transcribedLines == 0){
-//					transcribedLinesText = "\nNo lines segmented";
-//				}
-//				else{
-//					transcribedLinesText = (transcribedLines > 0 ? "\nTranscribed lines: "+transcribedLines : "\nTranscribed lines: 0");
-//				}
-//				
-//				if (transcribedLines > 0){
-//					totalLinesTranscribed += transcribedLines;
-////					String text = item.getText();
-////					String tlText = "\nTranscribed lines: "+transcribedLines;
-////									
-////					
-////					text += "\nTranscribed lines: "+transcribedLines;
-//
+			String transcribedLinesText = "";
+			//here we could set background color regarding to if transcribed text exists
+			
+			/*
+			 * get number or transcribed lines: 0: no lines available, -1: lines but no text, n lines with text
+			 */
+
+			int transcribedLines = transcripts.get(i).getNrOfTranscribedLines();
+			
+			if (transcribedLines == 0){
+				transcribedLinesText = "\nNo lines segmented";
+			}
+			else{
+				transcribedLinesText = (transcribedLines > 0 ? "\nTranscribed lines: "+transcribedLines : "\nTranscribed lines: 0");
+			}
+			
+			if (transcribedLines > 0){
+				totalLinesTranscribed += transcribedLines;
+//					String text = item.getText();
+//					String tlText = "\nTranscribed lines: "+transcribedLines;
+//									
+//					
+//					text += "\nTranscribed lines: "+transcribedLines;
+
+				item.setBackground(lightGreen);
+			}
+			else if(transcribedLines <0){
+				item.setBackground(lightYellow);
+			}
+			else{
+				item.setBackground(lightRed);
+			}
+//				if (checkIfTranscribed(transcripts.get(i).unmarshallTranscript())){
+//					//item.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_GREEN));
 //					item.setBackground(lightGreen);
-//				}
-//				else if(transcribedLines <0){
-//					item.setBackground(lightYellow);
 //				}
 //				else{
 //					item.setBackground(lightRed);
 //				}
-////				if (checkIfTranscribed(transcripts.get(i).unmarshallTranscript())){
-////					//item.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_GREEN));
-////					item.setBackground(lightGreen);
-////				}
-////				else{
-////					item.setBackground(lightRed);
-////				}
-//			} catch (NullValueException | JAXBException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//			setItemText(item, i, transcribedLinesText);
+
+			setItemText(item, i, transcribedLinesText);
 			
 		}
 	}
