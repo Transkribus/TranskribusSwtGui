@@ -53,7 +53,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
       setLayout(new GridLayout());
       txtCurrentSelection = new Text(this, SWT.BORDER | SWT.READ_ONLY);
       txtCurrentSelection.setLayoutData(new GridData(GridData.FILL_BOTH));
-
+      txtCurrentSelection.setToolTipText("Click to see available filters");
       displayText();
 
       txtCurrentSelection.addMouseListener(new MouseAdapter() {
@@ -85,7 +85,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
       Point size = txtCurrentSelection.getSize();
       Rectangle shellRect = new Rectangle(p.x, p.y + size.y, size.x, 0);
       shell = new Shell(MultiSelectionCombo.this.getShell(), SWT.NO_TRIM);
-
+      
       GridLayout gl = new GridLayout();
       gl.marginBottom = 2;
       gl.marginTop = 2;
@@ -96,6 +96,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
       shell.setLayout(gl);
 
       list = new List(shell, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+      list.setToolTipText("Click and hold or use Ctrl to select multiple items");
       for (String value: textItems) {
     	  if(value!=null){
     		  list.add(value);

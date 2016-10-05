@@ -167,7 +167,7 @@ public class FullTextSearchComposite extends Composite{
 		previewCheck = new Button(parameters, SWT.CHECK);
 		previewCheck.setText("Show word preview");
 		previewCheck.setSelection(true);
-		previewCheck.setToolTipText("Automatic loading of preview word image. Works better with word-based text. Guesses word coordinates for line-based text.");
+		previewCheck.setToolTipText("Automatic loading of word image preview. Works better with word-based text. Guesses word coordinates for line-based text.");
 		
 		textTypeBtn = new Button[2];
 		textTypeBtn[0] = new Button(parameters, SWT.RADIO);
