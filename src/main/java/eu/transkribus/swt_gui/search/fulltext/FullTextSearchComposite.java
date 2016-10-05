@@ -167,7 +167,7 @@ public class FullTextSearchComposite extends Composite{
 		previewCheck = new Button(parameters, SWT.CHECK);
 		previewCheck.setText("Show word preview");
 		previewCheck.setSelection(true);
-		previewCheck.setToolTipText("Automatic loading of preview word image. Works better with word-based text. Guesses word coordinates for line-based text.");
+		previewCheck.setToolTipText("Automatic loading of word image preview. Works better with word-based text. Guesses word coordinates for line-based text.");
 		
 		textTypeBtn = new Button[2];
 		textTypeBtn[0] = new Button(parameters, SWT.RADIO);
@@ -507,7 +507,7 @@ public class FullTextSearchComposite extends Composite{
 		
 	}
 	
-	private void updateFacets(){
+	void updateFacets(){
 		
 		List<String> colNames = new ArrayList<String>();
 		for(TrpCollection coll : storage.getCollections()){
@@ -519,6 +519,7 @@ public class FullTextSearchComposite extends Composite{
 //		docCombo.currentSelection = new int[] { 0 };
 //		authCombo.currentSelection = new int[] { 0 };
 //		uplCombo.currentSelection = new int[] { 0 };
+
 		
 		int i;
 		for(Facet facet : fullTextSearchResult.getFacets()){
@@ -533,13 +534,16 @@ public class FullTextSearchComposite extends Composite{
 
 				for(String key : facet.getFacetMap().keySet()){						
 					if(colNames.contains(key)){
+						
 						facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
 						i++;
 					}
 
 				}
 				if(facetItems != null){
-					collCombo.textItems = facetItems;
+//					collCombo.textItems = facetItems;
+					collCombo.setTextItems(facetItems);
+
 				}
 			}			
 			else if(facet.getName().equals("f_author")){
@@ -551,12 +555,12 @@ public class FullTextSearchComposite extends Composite{
 				for(String key : facet.getFacetMap().keySet()){
 					
 					facetItems[i] = key + " ("+facet.getFacetMap().get(key)+")";
-					logger.debug("author facet: "+ facetItems[i]);					
+//					logger.debug("author facet: "+ facetItems[i]);					
 					i++;					
 				}
 //				logger.debug("author keyset: " + facet.getFacetMap().keySet());
 				if(facetItems != null){
-					authCombo.textItems = facetItems;
+					authCombo.setTextItems(facetItems);
 				}
 			}
 			else if(facet.getName().equals("f_uploader")){
@@ -570,9 +574,9 @@ public class FullTextSearchComposite extends Composite{
 //					logger.debug("uploader facet: "+ facetItems[i]);
 					i++;					
 				}
-				logger.debug("uploader keyset: " + facet.getFacetMap().keySet());
+//				logger.debug("uploader keyset: " + facet.getFacetMap().keySet());
 				if(facetItems != null){
-					uplCombo.textItems = facetItems;
+					uplCombo.setTextItems(facetItems);
 				}
 			}
 			else if(facet.getName().equals("f_title")){
@@ -586,7 +590,7 @@ public class FullTextSearchComposite extends Composite{
 					i++;					
 				}
 				if(facetItems != null){
-					docCombo.textItems = facetItems;
+					docCombo.setTextItems(facetItems);
 				}
 			}
 
@@ -671,6 +675,8 @@ public class FullTextSearchComposite extends Composite{
 	
 	void findText(){	
 		
+		
+		
 		prevImages = new HashMap<String,Image>();
 		
 		searchText = inputText.getText().toString();
@@ -704,8 +710,6 @@ public class FullTextSearchComposite extends Composite{
 		storage = Storage.getInstance();
 		
 		generateFilters();
-		
-
 		
 		try {	
 			if(!filters.isEmpty()){
@@ -750,7 +754,7 @@ public class FullTextSearchComposite extends Composite{
 
 
 	//Clean up some day
-	private void generateFilters() {
+	void generateFilters() {
 		filters = new ArrayList<String>();
 		String subFilters = "";
 		

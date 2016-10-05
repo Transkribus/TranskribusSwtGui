@@ -1,4 +1,5 @@
 package eu.transkribus.swt_gui.search.fulltext;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
@@ -52,7 +53,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
       setLayout(new GridLayout());
       txtCurrentSelection = new Text(this, SWT.BORDER | SWT.READ_ONLY);
       txtCurrentSelection.setLayoutData(new GridData(GridData.FILL_BOTH));
-
+      txtCurrentSelection.setToolTipText("Click to see available filters");
       displayText();
 
       txtCurrentSelection.addMouseListener(new MouseAdapter() {
@@ -84,7 +85,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
       Point size = txtCurrentSelection.getSize();
       Rectangle shellRect = new Rectangle(p.x, p.y + size.y, size.x, 0);
       shell = new Shell(MultiSelectionCombo.this.getShell(), SWT.NO_TRIM);
-
+      
       GridLayout gl = new GridLayout();
       gl.marginBottom = 2;
       gl.marginTop = 2;
@@ -95,6 +96,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
       shell.setLayout(gl);
 
       list = new List(shell, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+      list.setToolTipText("Click and hold or use Ctrl to select multiple items");
       for (String value: textItems) {
     	  if(value!=null){
     		  list.add(value);
@@ -102,7 +104,12 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
          
       }
 
-      list.setSelection(currentSelection);
+      if(currentSelection.length > 0){
+    	  if(currentSelection[0]!=0){
+    		  list.setSelection(currentSelection);
+    	  }
+      }
+      
 
       GridData gd = new GridData(GridData.FILL_BOTH);
       list.setLayoutData(gd);
@@ -115,9 +122,14 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
          @Override
          public void mouseUp(MouseEvent event) {
             super.mouseUp(event);
-            currentSelection = list.getSelectionIndices();            
+            if(list.getSelectionIndices().length > 0){
+            	currentSelection = list.getSelectionIndices(); 
+            } else {
+            	currentSelection = new int[] { 0 };
+            }
+                       
             if ((event.stateMask & SWT.CTRL) == 0) {
-               displayText();
+//               displayText();
                parentComp.start = 0;
                parentComp.findText();               
                shell.dispose();
@@ -130,8 +142,12 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
 
          public void shellDeactivated(ShellEvent arg0) {
             if (shell != null && !shell.isDisposed()) {
-               currentSelection = list.getSelectionIndices();
-               displayText();
+               if(list.getSelectionIndices().length > 0){
+            	   currentSelection = list.getSelectionIndices(); 
+               } else {
+            	   currentSelection = new int[] { 0 };
+               }
+//               displayText();
                parentComp.start = 0;
                parentComp.findText();
                shell.dispose();
@@ -142,7 +158,7 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
       
    }
 
-   private void displayText() {
+   void displayText() {
       if (currentSelection != null && currentSelection.length > 0) {
          StringBuffer sb = new StringBuffer();
          for (int i = 0; i < currentSelection.length; i++) {
@@ -153,12 +169,48 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
          txtCurrentSelection.setText(sb.toString());
       }
       else {
-         txtCurrentSelection.setText("");
+         txtCurrentSelection.setText(textItems[0]);
       }
    }
 
    public int[] getSelections() {
       return this.currentSelection;
+   }
+   
+   public void setTextItems(String[] newTextItems){
+	   ArrayList<String> oldSelectionsT = new ArrayList<>();
+	   ArrayList<Integer> newSelectionsI = new ArrayList<>();
+
+	   for(int i : currentSelection){
+		   oldSelectionsT.add(textItems[i].replaceAll("\\(.*\\)", "").trim());
+	   }
+	   int j=0;
+	   for(String s : newTextItems){
+		   if(s!=null){
+			   String newText = s.replaceAll("\\(.*\\)", "").trim();
+
+			   if(oldSelectionsT.contains(newText)){
+				   newSelectionsI.add(j);			  
+				   
+			   }
+			   j++;
+		   }
+
+	   }
+
+	   
+	   int[] newSelectionsIArr = new int[newSelectionsI.size()];
+	   for(int i = 0; i<newSelectionsI.size(); i++){
+		   newSelectionsIArr[i] = newSelectionsI.get(i);
+	   }
+	   
+
+	   textItems = newTextItems;
+	   currentSelection = newSelectionsIArr;
+	   
+	   displayText();
+
+	   
    }
 
 
