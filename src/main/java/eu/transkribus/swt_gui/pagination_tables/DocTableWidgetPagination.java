@@ -9,22 +9,22 @@ import javax.ws.rs.ServerErrorException;
 import org.apache.commons.beanutils.BeanUtils;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
 import org.eclipse.nebula.widgets.pagination.table.SortTableColumnSelectionListener;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
+import org.mozilla.javascript.GeneratedClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.pagination_table.RemotePageLoader;
-import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.TableViewerUtils;
+import eu.transkribus.swt_gui.doc_overview.DocMetadataEditor;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -38,6 +38,8 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	public static final String DOC_UPLOADER_COL = "Uploader";
 	public static final String DOC_UPLOADED_COL = "Uploaded";
 	public static final String DOC_COLLECTIONS_COL = "Collections";
+	
+	public static final boolean LOAD_ALL_DOCS_ONCE = true;
 	
 //	public static final ColumnConfig[] DOCS_COLS = new ColumnConfig[] {
 //		new ColumnConfig(DOC_NR_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
@@ -68,6 +70,21 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		
 		refreshPage(resetPage);
 	}
+	
+//	public void refreshList(List<TrpDocMetadata> docs, boolean resetPage) {
+//		
+//		if (getPageableTable().getPageLoader() instanceof PageResultLoaderList) {
+//			PageResultLoaderList<TrpDocMetadata> pl = (PageResultLoaderList<TrpDocMetadata>) getPageableTable().getPageLoader();
+//			pl.setItems(docs);
+//		}
+//		
+//		if (USE_LIST_LOADER && listLoader!=null) {
+//			listLoader.setItems(docs);
+//		}
+//		
+//		refreshPage(true);
+//		
+//	}
 	
 	protected void createColumns() {
 		// generic label provider constructed with the bean property used for this column

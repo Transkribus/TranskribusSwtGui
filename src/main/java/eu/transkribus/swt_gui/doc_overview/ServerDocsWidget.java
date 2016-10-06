@@ -7,6 +7,9 @@ import java.util.Observer;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.window.ToolTip;
+import org.eclipse.nebula.widgets.pagination.IPageLoader;
+import org.eclipse.nebula.widgets.pagination.collections.PageResult;
+import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
@@ -262,7 +265,16 @@ public class ServerDocsWidget extends Composite {
 //		filterCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
 //		docTableWidget = new DocTableWidget(remotedocsgroup, 0);
-		docTableWidget = new DocTableWidgetPagination(docsContainer, 0, 25);
+		docTableWidget = new DocTableWidgetPagination(docsContainer, 0, 25) {
+			@Override protected void setPageLoader() {
+				logger.debug("setting list page loader!");
+				
+				List<TrpDocMetadata> docs = Storage.getInstance().getRemoteDocList();
+				IPageLoader<PageResult<TrpDocMetadata>> listLoader = new PageResultLoaderList<>(docs);
+				
+				pageableTable.setPageLoader(listLoader);
+			}
+		};
 		docTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 		ColumnViewerToolTipSupport.enableFor(docTableWidget.getPageableTable().getViewer(), ToolTip.NO_RECREATE);

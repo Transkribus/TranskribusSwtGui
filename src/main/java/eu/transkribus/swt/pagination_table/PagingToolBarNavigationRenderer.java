@@ -9,6 +9,7 @@ import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.util.SWTUtil;
@@ -62,14 +63,25 @@ public class PagingToolBarNavigationRenderer extends AbstractPageControllerCompo
 	}
 	
 	void updateUI() {
-		PageableController c = getController();
+		Display.getDefault().asyncExec(() -> {
+			PageableController c = getController();
+			
+			int nStart = c.getPageOffset()+1;
+			int nEnd = (int) Math.min(c.getPageOffset()+1+c.getPageSize(), c.getTotalElements());
+			
+			tb.getLabelItem().setText(""+nStart+"-"+nEnd+" / "+c.getTotalElements()+" ");
+			tb.setCurrentPageValue((c.getCurrentPage()+1)+"");
+			tb.setNPagesValue(c.getTotalPages()+"");
+		});
 		
-		int nStart = c.getPageOffset()+1;
-		int nEnd = (int) Math.min(c.getPageOffset()+1+c.getPageSize(), c.getTotalElements());
-		
-		tb.getLabelItem().setText(""+nStart+"-"+nEnd+" / "+c.getTotalElements()+" ");
-		tb.setCurrentPageValue((c.getCurrentPage()+1)+"");
-		tb.setNPagesValue(c.getTotalPages()+"");
+//		PageableController c = getController();
+//		
+//		int nStart = c.getPageOffset()+1;
+//		int nEnd = (int) Math.min(c.getPageOffset()+1+c.getPageSize(), c.getTotalElements());
+//		
+//		tb.getLabelItem().setText(""+nStart+"-"+nEnd+" / "+c.getTotalElements()+" ");
+//		tb.setCurrentPageValue((c.getCurrentPage()+1)+"");
+//		tb.setNPagesValue(c.getTotalPages()+"");
 	}
 
 	@Override protected void createUI(Composite arg0) {

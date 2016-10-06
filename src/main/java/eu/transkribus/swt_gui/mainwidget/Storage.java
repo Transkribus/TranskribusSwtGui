@@ -224,7 +224,7 @@ public class Storage extends Observable {
 
 	// private int currentTranscriptIndex = 0;
 
-//	private List<TrpDocMetadata> remoteDocList = new ArrayList<>();
+	private List<TrpDocMetadata> remoteDocList = Collections.synchronizedList(new ArrayList());
 //	private List<TrpJobStatus> jobs = new ArrayList<>();
 	
 	private List<String> htrModelList = new ArrayList<>(0);
@@ -410,12 +410,6 @@ public class Storage extends Observable {
 		} else
 			return new ArrayList<>();
 	}
-
-//	public void clearDocList() {
-//		if (remoteDocList != null) {
-//			remoteDocList.clear();
-//		}
-//	}
 
 //	public List<TrpJobStatus> getJobs() {
 //		return jobs;
@@ -673,10 +667,6 @@ public class Storage extends Observable {
 		return transcript.getMd();
 	}
 
-//	public boolean hasRemoteDoc(int index) {
-//		return (remoteDocList != null && index >= 0 && index < remoteDocList.size());
-//	}
-
 	public int getCurrentRegion() {
 		if (regionObject != null)
 			return regionObject.getIndex();
@@ -759,10 +749,6 @@ public class Storage extends Observable {
 	public TrpWordType getCurrentWordObject() {
 		return wordObject;
 	}
-
-//	public List<TrpDocMetadata> getRemoteDocList() {
-//		return remoteDocList;
-//	}
 	
 	public String getServerUri() {
 		return conn==null ? "" : conn.getServerUri();
@@ -787,11 +773,9 @@ public class Storage extends Observable {
 			setChanged();
 			notifyObservers(event);
 		} else {
-			Display.getDefault().asyncExec(new Runnable() {
-				@Override public void run() {
-					setChanged();
-					notifyObservers(event);
-				}
+			Display.getDefault().asyncExec(() -> {
+				setChanged();
+				notifyObservers(event);
 			});
 		}
 
@@ -824,18 +808,40 @@ public class Storage extends Observable {
 //			return 0;
 	}
 
-//	public List<TrpDocMetadata> reloadDocList(int colId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
-//		checkConnection(true);
-//		if (colId == -1)
-//			return remoteDocList;
-//
-//		logger.debug("reloading doclist for collection: "+colId);
-//		remoteDocList = conn.getAllDocs(colId);
-//		
-////		this.currentColId = colId;
-//		
-//		return remoteDocList;
-//	}
+	public List<TrpDocMetadata> reloadDocList(int colId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		if (colId == -1)
+			return remoteDocList;
+
+		logger.debug("reloading doclist for collection: "+colId);
+		
+		if (true) {
+			remoteDocList.clear();
+			remoteDocList.addAll(conn.getAllDocs(colId));
+		} else {
+			remoteDocList = conn.getAllDocs(colId);
+		}
+		
+		logger.debug("loaded "+remoteDocList.size()+" nr of docs");
+		
+//		this.currentColId = colId;
+		
+		return remoteDocList;
+	}
+	
+	public void clearDocList() {
+		if (remoteDocList != null) {
+			remoteDocList.clear();
+		}
+	}
+	
+	public boolean hasRemoteDoc(int index) {
+		return (remoteDocList != null && index >= 0 && index < remoteDocList.size());
+	}
+	
+	public List<TrpDocMetadata> getRemoteDocList() {
+		return remoteDocList;
+	}
 
 	public void invalidateSession() throws SessionExpiredException, ServerErrorException, Exception {
 		checkConnection(true);

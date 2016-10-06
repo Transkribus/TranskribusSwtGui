@@ -80,6 +80,15 @@
 				</configuration>
 			</plugin>
 			
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <configuration>
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>true</downloadJavadocs>
+                </configuration>
+            </plugin>
+			
 			<!-- Compute checksums: -->
 <!-- 			<plugin> -->
 <!--         <groupId>net.ju-n.maven.plugins</groupId> -->
@@ -678,6 +687,14 @@
 			<artifactId>pagination</artifactId>
 <!-- 			<version>1.0.0.201410030017</version> -->			
 			<version>1.0.0.201609281642</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.eclipse.nebula.widgets</groupId>
+		    <artifactId>pagination</artifactId>
+		    <version>1.0.0.201609281642</version>
+		    <classifier>sources</classifier>
+		    <scope>compile</scope>
 		</dependency>
 
 		<dependency>

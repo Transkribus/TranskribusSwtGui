@@ -399,6 +399,9 @@ public class TrpMainWidget {
 																// progress
 																// dialog
 			
+			if (coll != null)
+				storage.reloadDocList(coll.getColId());
+			
 			getUi().getDocOverviewWidget().refreshDocList();
 			
 //			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
