@@ -271,6 +271,8 @@ public class ToolsWidgetListener implements SelectionListener {
 						
 			mw.reloadJobList();
 			mw.updatePageLock();
+			
+			DialogUtil.showInfoMessageBox(tw.getShell(), "Job started", "Started job with id = "+jobId);
 
 //			if (jobId != null) {
 //				mw.getUi().selectJobListTab();

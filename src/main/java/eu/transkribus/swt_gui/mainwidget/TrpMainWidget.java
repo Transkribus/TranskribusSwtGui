@@ -43,6 +43,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Point;
@@ -3810,15 +3812,15 @@ public class TrpMainWidget {
 
 					return container;
 				}
+				
+				@Override public boolean close() {
+					ui.getVersionsWidget().setParent(SWTUtil.dummyShell);
+					return super.close();
+				}
 
 				@Override protected void configureShell(Shell newShell) {
 					super.configureShell(newShell);
 					newShell.setText("Jobs on server");
-					newShell.addDisposeListener(new DisposeListener() {
-						@Override public void widgetDisposed(DisposeEvent e) {
-							ui.getJobOverviewWidget().setParent(SWTUtil.dummyShell);
-						}
-					});
 				}
 
 				@Override protected Point getInitialSize() { return new Point(1000, 800); }
@@ -3851,15 +3853,15 @@ public class TrpMainWidget {
 
 					return container;
 				}
+				
+				@Override public boolean close() {
+					ui.getVersionsWidget().setParent(SWTUtil.dummyShell);
+					return super.close();
+				}
 
 				@Override protected void configureShell(Shell newShell) {
 					super.configureShell(newShell);
 					newShell.setText("Versions");
-					newShell.addDisposeListener(new DisposeListener() {
-						@Override public void widgetDisposed(DisposeEvent e) {
-							ui.getVersionsWidget().setParent(SWTUtil.dummyShell);
-						}
-					});
 				}
 
 				@Override protected Point getInitialSize() { return new Point(1000, 800); }
