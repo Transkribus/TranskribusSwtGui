@@ -913,6 +913,8 @@ public class Storage extends Observable {
 	public TrpJobStatus loadJob(String jobId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		// FIXME: direct access to job table not "clean" here...
 		List<TrpJobStatus> jobs = (List<TrpJobStatus>) TrpMainWidget.getInstance().getUi().getJobOverviewWidget().getTableViewer().getInput();
+		if (jobs == null) // should not happen!
+			return null;
 		
 		synchronized (jobs) {
 			checkConnection(true);
