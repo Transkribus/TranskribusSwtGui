@@ -48,7 +48,8 @@ import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.doc_overview.DocInfoWidget;
-import eu.transkribus.swt_gui.doc_overview.ServerDocsWidget;
+import eu.transkribus.swt_gui.doc_overview.DocMetadataEditor;
+import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.menubar.MenuListener;
 import eu.transkribus.swt_gui.menubar.TrpMenuBar;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidget;
@@ -76,19 +77,20 @@ public class TrpMainWidgetView extends Composite {
 	LineTranscriptionWidget lineTranscriptionWidget;
 	WordTranscriptionWidget wordTranscriptionWidget;
 	StructureTreeWidget structureTreeWidget;
-	ServerDocsWidget serverDocsWidget;
+	ServerWidget serverWidget;
 	DocInfoWidget docInfoWidget;
+	DocMetadataEditor docMetadataEditor;
 	
 //	JobOverviewWidget jobOverviewWidget;
 	JobTableWidgetPagination jobOverviewWidget;
 //	VersionsWidget versionsWidget;
 	TranscriptsTableWidgetPagination versionsWidget;
 //	JobsAndVersionsView jobsAndVersionView;
-	PageMetadataWidget metadataWidget;
+	PageMetadataWidget structuralMdWidget;
 	
 	public static boolean SHOW_NEW_TW = true;
 	TaggingWidget taggingWidget;
-	TrpVirtualKeyboardsWidget vkeyboards;
+//	TrpVirtualKeyboardsWidget vkeyboards;
 	ToolsWidget toolsWidget;
 	CommentsWidget commentsWidget;
 //	AnalyticsWidget analyticsWidget;
@@ -107,7 +109,8 @@ public class TrpMainWidgetView extends Composite {
 
 	DropDownToolItem saveDrowDown;
 	MenuItem saveTranscriptButton, saveTranscriptWithMessageButton;
-	ToolItem replacePageImgButton;
+//	ToolItem replacePageImgButton;
+	ToolItem versionsButton;
 	
 	// old dock state buttons:
 	DropDownToolItem leftViewDockingDropItem, rightViewDockingDropItem, bottomViewDockingDropItem;
@@ -221,104 +224,50 @@ public class TrpMainWidgetView extends Composite {
 		// NEW: only one tab widget
 		tabWidget = new TrpTabWidget(this, 0);
 		
-		serverDocsWidget = new ServerDocsWidget(tabWidget.serverTf);
-		tabWidget.docListItem.setControl(serverDocsWidget);
+//		serverDocsWidget = new ServerDocsWidget(tabWidget.serverTf);
+//		tabWidget.docListItem.setControl(serverDocsWidget);
 		
-		docInfoWidget = new DocInfoWidget(tabWidget.documentTf, 0);
-		tabWidget.docoverviewItem.setControl(docInfoWidget);
+		serverWidget = new ServerWidget(tabWidget.mainTf);
+		tabWidget.serverItem.setControl(serverWidget);
 		
-		structureTreeWidget = new StructureTreeWidget(tabWidget.documentTf);
+//		docInfoWidget = new DocInfoWidget(tabWidget.documentTf, 0);
+//		tabWidget.docoverviewItem.setControl(docInfoWidget);
+		docInfoWidget = new DocInfoWidget(tabWidget.mainTf, 0);
+		tabWidget.documentItem.setControl(docInfoWidget);
+		
+		structureTreeWidget = new StructureTreeWidget(tabWidget.mainTf);
 		tabWidget.structureItem.setControl(structureTreeWidget);
 		
-		versionsWidget = new TranscriptsTableWidgetPagination(tabWidget.documentTf, SWT.NONE, 25);
-		tabWidget.versionsItem.setControl(versionsWidget);
+//		versionsWidget = new TranscriptsTableWidgetPagination(tabWidget.documentTf, SWT.NONE, 25);
+//		tabWidget.versionsItem.setControl(versionsWidget);
+		versionsWidget = new TranscriptsTableWidgetPagination(SWTUtil.dummyShell, SWT.NONE, 25);
+//		tabWidget.versionsItem.setControl(versionsWidget);		
 		
-		thumbnailWidget = new ThumbnailWidget(tabWidget.documentTf, SWT.NONE);
-		tabWidget.thumbnailItem.setControl(thumbnailWidget);
+//		thumbnailWidget = new ThumbnailWidget(tabWidget.documentTf, SWT.NONE);
+//		tabWidget.thumbnailItem.setControl(thumbnailWidget);
+					
+//		jobOverviewWidget = new JobTableWidgetPagination(tabWidget.serverTf, SWT.NONE, 50);
+//		tabWidget.jobsItem.setControl(jobOverviewWidget);
+		jobOverviewWidget = new JobTableWidgetPagination(SWTUtil.dummyShell, SWT.NONE, 50);
+//		tabWidget.jobsItem.setControl(jobOverviewWidget);
 		
-		
-		// ####### LEFT TAB FOLDER: #######
-		if (true) {
-//		leftTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.BORDER | SWT.FLAT);
-//		leftTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		leftTabFolder.setMinimizeVisible(true);
-//		leftTabFolder.addCTabFolder2Listener(new CTabFolder2Listener() {
-//			
-//			@Override public void showList(CTabFolderEvent event) {
-//			}
-//			
-//			@Override public void restore(CTabFolderEvent event) {
-//			}
-//			
-//			@Override public void minimize(CTabFolderEvent event) {
-//				leftTabFolder.setMinimized(true);
-//			}
-//			
-//			@Override public void maximize(CTabFolderEvent event) {
-//			}
-//			
-//			@Override public void close(CTabFolderEvent event) {
-//			}
-//		});
-		
-//		docOverviewWidget = new DocOverviewWidget(leftTabFolder);
-//		structureTreeWidget = new StructureTreeWidget(leftTabFolder);
-		jobOverviewWidget = new JobTableWidgetPagination(tabWidget.serverTf, SWT.NONE, 50);
-		tabWidget.jobsItem.setControl(jobOverviewWidget);
-		
-		
-		
-//		versionsWidget = new TranscriptsTableWidgetPagination(leftTabFolder, SWT.NONE, 25);
-//		thumbnailWidget = new ThumbnailWidget(leftTabFolder, SWT.NONE);
-		
-//		docoverviewItem = createCTabItem(leftTabFolder, docOverviewWidget, Msgs.get2("documents"));
-//		structureItem = createCTabItem(leftTabFolder, structureTreeWidget, Msgs.get2("layout_tab_title"));
-//		jobOverviewItem = createCTabItem(leftTabFolder, jobOverviewWidget, Msgs.get2("jobs"));
-//		versionsItem = createCTabItem(leftTabFolder, versionsWidget, Msgs.get2("versions"));
-//		thumbnailItem = createCTabItem(leftTabFolder, thumbnailWidget, Msgs.get2("pages"));
-		
-//		selectStructureTab();
-		}
-		
-		// the right widget (page metadata, virtual keyboard):
-		if (true) {
-//			rightTabFolder = new CTabFolder(SWTUtil.dummyShell, SWT.TOP | SWT.BORDER | SWT.FLAT );
-//			rightTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-			
-			metadataWidget = new PageMetadataWidget(tabWidget.metadataTf, SWT.TOP);
-			tabWidget.structuralMdItem.setControl(metadataWidget);
-			
-			vkeyboards = new TrpVirtualKeyboardsWidget(tabWidget.tf, SWT.TOP | SWT.BORDER | SWT.FLAT );
-			tabWidget.vkItem.setControl(vkeyboards);
-			
-			toolsWidget = new ToolsWidget(tabWidget.serverTf, SWT.TOP);
-			toolsWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-			tabWidget.remoteToolsItem.setControl(toolsWidget);
-			
-			if (SHOW_NEW_TW) {
-				taggingWidget = new TaggingWidget(tabWidget.metadataTf, SWT.TOP, 2, true);
-				taggingWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				tabWidget.textTaggingItem.setControl(taggingWidget);
-				
-//				analyticsWidget = new AnalyticsWidget(rightTabFolder, SWT.TOP);
-			}
+		docMetadataEditor = new DocMetadataEditor(tabWidget.metadataTf, 0);
+		tabWidget.docMdItem.setControl(docMetadataEditor);
 
-//			metadataItem = createCTabItem(rightTabFolder, metadataWidget, Msgs.get2("metadata"));
-//			laItem = createCTabItem(rightTabFolder, toolsWidget, Msgs.get2("tools"));
-//			vkeyboardsItem = createCTabItem(rightTabFolder, vkeyboards, Msgs.get2("virt_keyboards"));
+		structuralMdWidget = new PageMetadataWidget(tabWidget.metadataTf, SWT.TOP);
+		tabWidget.structuralMdItem.setControl(structuralMdWidget);
+		
+		taggingWidget = new TaggingWidget(tabWidget.metadataTf, SWT.TOP, 2, true);
+		taggingWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tabWidget.textTaggingItem.setControl(taggingWidget);
+		
+		commentsWidget = new CommentsWidget(tabWidget.metadataTf, SWT.TOP);
+		tabWidget.commentsItem.setControl(commentsWidget);
+		
+		toolsWidget = new ToolsWidget(tabWidget.mainTf, SWT.TOP);
+		toolsWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tabWidget.toolsItem.setControl(toolsWidget);
 			
-//			if (SHOW_NEW_TW) {
-//				CTabItem twItem = createCTabItem(rightTabFolder, taggingWidget, Msgs.get2("tagging"));
-////				CTabItem analyticsItem = createCTabItem(rightTabFolder, analyticsWidget, "Analytics");
-//			}
-			
-			commentsWidget = new CommentsWidget(tabWidget.metadataTf, SWT.TOP);
-			tabWidget.commentsItem.setControl(commentsWidget);
-			
-			
-//			CTabItem commentsItem = createCTabItem(rightTabFolder, commentsWidget, Msgs.get2("comments"));
-		}
-
 		// the bottom widget (transcription):
 		if (true) {
 //			transcriptionWidgetContainer = new TabFolder(SWTUtil.dummyShell, SWT.NONE);
@@ -461,9 +410,9 @@ public class TrpMainWidgetView extends Composite {
 //		tabWidget.updateAllSelectedTabs();
 //	}
 	
-	public void selectJobListTab() {
-		tabWidget.selectJobListTab();		
-	}
+//	public void selectJobListTab() {
+//		tabWidget.selectJobListTab();		
+//	}
 	
 //	public void selectMetadataTab() {
 //		tabWidget.tf.setSelection(tabWidget.metadataItem);
@@ -526,11 +475,11 @@ public class TrpMainWidgetView extends Composite {
 		
 		saveTranscriptWithMessageButton = saveDrowDown.addItem(RegionTypeUtil.TEXT_REGION, Images.DISK_MESSAGE, "", false);
 		saveTranscriptWithMessageButton.setText("Save with message");
-		
-		replacePageImgButton = new ToolItem(toolBar, SWT.PUSH);
-		replacePageImgButton.setToolTipText("Replace page image on server");
-		replacePageImgButton.setImage(Images.IMAGE_EDIT);
-		replacePageImgButton.setEnabled(false);		
+				
+		versionsButton = new ToolItem(toolBar, SWT.PUSH);
+		versionsButton.setToolTipText("Show versions");
+		versionsButton.setImage(Images.PAGE_WHITE_STACK);
+		versionsButton.setEnabled(false);
 		
 		loadTranscriptInTextEditor = new ToolItem(toolBar, SWT.PUSH);
 		loadTranscriptInTextEditor.setToolTipText("Open transcript source");
@@ -1190,7 +1139,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	public TrpMenuBar getTrpMenuBar() { return menu; }
 	public StructureTreeWidget getStructureTreeWidget() { return structureTreeWidget; }
-	public ServerDocsWidget getDocOverviewWidget() { return serverDocsWidget; }
+	public ServerWidget getServerWidget() { return serverWidget; }
 	public JobTableWidgetPagination getJobOverviewWidget() { return jobOverviewWidget; }
 	public TranscriptsTableWidgetPagination getVersionsWidget() { return versionsWidget; };
 	
@@ -1216,8 +1165,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	public ToolItem getReloadDocumentButton() { return reloadDocumentButton; }
 	public ToolItem getExportDocumentButton() { return exportDocumentButton; }
-	public ToolItem getReplacePageImgButton() { return replacePageImgButton; }
-	//public ToolItem getDeletePageButton() { return deletePageButton; }
+	public ToolItem getVersionsButton() { return versionsButton; }
 	public ToolItem getExportPdfButton() { return exportPdfButton; }
 	public ToolItem getExportTeiButton() { return exportTeiButton; }
 	public ToolItem getExportRtfButton() { return exportRtfButton; }
@@ -1273,29 +1221,29 @@ public class TrpMainWidgetView extends Composite {
 	
 	public ToolItem getLoginToggle() { return loginToggle; }
 	
-	public PageMetadataWidget getMetadataWidget() { return metadataWidget; }
-	public TrpVirtualKeyboardsWidget getVkeyboards() { return vkeyboards; }
+	public PageMetadataWidget getStructuralMetadataWidget() { return structuralMdWidget; }
+//	public TrpVirtualKeyboardsWidget getVkeyboards() { return vkeyboards; }
 	public ToolsWidget getToolsWidget() { return toolsWidget; }
 //	public AnalyticsWidget getAnalyticsWidget() { return analyticsWidget; }
 		
 	public void updateLoginInfo(boolean loggedIn, String username, String server) {
 		if (loggedIn) {
-			serverDocsWidget.getUsernameLabel().setText("Logged in as: "+username);
-			serverDocsWidget.getServerLabel().setText("Server: "+server);
+			serverWidget.getUsernameLabel().setText("Logged in as: "+username);
+			serverWidget.getServerLabel().setText("Server: "+server);
 
 			loginToggle.setToolTipText("Logout "+username);
 //			loginToggle.setSelection(true);
 			loginToggle.setImage(Images.getOrLoad("/icons/connect.png"));
 		} else {
-			serverDocsWidget.getUsernameLabel().setText("Not logged in");
-			serverDocsWidget.getServerLabel().setText("");
+			serverWidget.getUsernameLabel().setText("Not logged in");
+			serverWidget.getServerLabel().setText("");
 			loginToggle.setToolTipText("Login");
 //			loginToggle.setSelection(false);
 			loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
 		}
 		
-		serverDocsWidget.getUsernameLabel().pack();
-		serverDocsWidget.getServerLabel().pack();
+		serverWidget.getUsernameLabel().pack();
+		serverWidget.getServerLabel().pack();
 		
 		uploadDocsItem.setEnabled(loggedIn);
 		searchBtn.setEnabled(loggedIn);
@@ -1338,7 +1286,8 @@ public class TrpMainWidgetView extends Composite {
 //	}
 	
 	public ThumbnailWidget getThumbnailWidget() {
-		return thumbnailWidget;
+//		return thumbnailWidget;
+		return docInfoWidget.getThumbnailWidget();
 	}
 
 	public DropDownToolItem getSaveDropDown() {

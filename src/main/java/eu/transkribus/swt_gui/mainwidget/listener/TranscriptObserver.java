@@ -198,7 +198,7 @@ public class TranscriptObserver implements Observer {
 			onTagsChanged(s, (TrpTagsChangedEvent) e);
 		}
 		else if (e instanceof TrpStructureChangedEvent || e instanceof TrpTextStyleChangedEvent) {
-			if (e.who != mainWidget.getUi().getMetadataWidget())
+			if (e.who != mainWidget.getUi().getStructuralMetadataWidget())
 				mainWidget.updatePageRelatedMetadata();
 			if (e instanceof TrpTextStyleChangedEvent) {
 				onStylesChanged(s, (TrpTextStyleChangedEvent) e);

@@ -55,6 +55,7 @@ import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Monitor;
@@ -62,6 +63,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Widget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -671,6 +673,14 @@ public class SWTUtil {
 			return false;
 		
 		ti.addTraverseListener(l);
+		return true;
+	}
+	
+	public static boolean addListener(Composite c, int eventType, Listener l) {
+		if (isDisposed(c))
+			return false;
+		
+		c.addListener(eventType, l);
 		return true;
 	}
 	

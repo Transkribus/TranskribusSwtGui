@@ -115,7 +115,7 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
         		if (element instanceof TrpCollection) {
         			TrpCollection c = (TrpCollection) element;
         			
-        			if (c.getColId() == TrpMainWidget.getInstance().getUi().getDocOverviewWidget().getSelectedCollectionId())
+        			if (c.getColId() == TrpMainWidget.getInstance().getUi().getServerWidget().getSelectedCollectionId())
         				return boldFont;
         		}
         		

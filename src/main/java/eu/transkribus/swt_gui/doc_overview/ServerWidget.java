@@ -9,6 +9,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -34,8 +36,8 @@ import eu.transkribus.swt_gui.mainwidget.Storage.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
-public class ServerDocsWidget extends Composite {
-	private final static Logger logger = LoggerFactory.getLogger(ServerDocsWidget.class);
+public class ServerWidget extends Composite {
+	private final static Logger logger = LoggerFactory.getLogger(ServerWidget.class);
 
 	Label usernameLabel, serverLabel;
 	DocTableWidgetPagination docTableWidget;
@@ -46,7 +48,7 @@ public class ServerDocsWidget extends Composite {
 	
 	Button manageCollectionsBtn;
 	Button showActivityWidgetBtn;
-	Button searchBtn;
+//	Button searchBtn;
 	Text quickLoadByID;
 		
 	CollectionManagerDialog cm;
@@ -67,11 +69,14 @@ public class ServerDocsWidget extends Composite {
 //	List<TrpDocMetadata> docs=new ArrayList<>();
 	
 	int selectedId=-1;
+	
+	Button showJobsBtn;
+//	Button versionsBtn;
 
 //	private List<TrpCollection> collections;
 //	TrpCollection selectedCollection=null;
 		
-	public ServerDocsWidget(Composite parent) {
+	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
 				
 		init();
@@ -126,7 +131,15 @@ public class ServerDocsWidget extends Composite {
 		Fonts.setBoldFont(usernameLabel);
 		
 		serverLabel = new Label(container, SWT.NONE);
-		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));		
+		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));	
+		
+		showJobsBtn = new Button(container, 0);
+		showJobsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		showJobsBtn.setText("Jobs on server...");
+
+//		versionsBtn = new Button(container, 0);
+//		versionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		versionsBtn.setText("Page versions...");
 				
 		// admin area:
 		adminAreaExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
@@ -435,8 +448,9 @@ public class ServerDocsWidget extends Composite {
 	}
 
 	public void updateRecentDocs() {
-		recentDocsComboViewerWidget.updateDocs(false);
-		
+		recentDocsComboViewerWidget.updateDocs(false);	
 	}
+	
+	public Button getShowJobsBtn() { return showJobsBtn; }
 	
 }

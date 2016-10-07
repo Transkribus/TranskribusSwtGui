@@ -18,12 +18,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SCSimpleDateTimeWidget;
+import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
+import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
+import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.tools.LanguageSelectionTable;
 
@@ -43,6 +47,8 @@ public class DocMetadataEditor extends Composite {
 //	private TrpDateTime createdFrom, createdTo;
 	private SCSimpleDateTimeWidget createdFrom, createdTo;
 	private Button enableCreatedFromBtn, enableCreatedToBtn;
+	private Button openEditDeclManagerBtn;
+	EditDeclManagerDialog edm;
 	
 	public static final String PRINT_META_SCRIPTTYPE = "Printed";
 	
@@ -163,12 +169,16 @@ public class DocMetadataEditor extends Composite {
 		createdTo = new SCSimpleDateTimeWidget(dateComposite, SWT.NONE);
 		createdTo.setEnabled(false);
 		
+		openEditDeclManagerBtn = new Button(this, SWT.PUSH);
+		openEditDeclManagerBtn.setText("Editorial Declaration...");
+		openEditDeclManagerBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));		
+		
 		Label lblDescription = new Label(this, SWT.None);
 		lblDescription.setText("Description: ");
 		lblDescription.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
 		
 //		lblDescription.setLayoutData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-		
+				
 		descriptionText = new Text(this, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
 		GridData descTextGridData = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
 		final int nVisibleLines = 5;
@@ -180,6 +190,7 @@ public class DocMetadataEditor extends Composite {
 //		descriptionText.setLayoutData(GridData.FILL_BOTH);
 		
 		saveBtn = new Button(this, SWT.NONE);
+		saveBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 		saveBtn.setImage(Images.DISK);
 		saveBtn.setText("Save");
 		
@@ -190,6 +201,12 @@ public class DocMetadataEditor extends Composite {
 		saveBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				saveMd();
+			}
+		});
+		
+		openEditDeclManagerBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				openEditDeclManagerWidget();
 			}
 		});
 	}
@@ -372,5 +389,27 @@ public class DocMetadataEditor extends Composite {
 	
 	public boolean isCreatedToEnabled(){
 		return enableCreatedToBtn.getSelection();
+	}
+	
+	public void openEditDeclManagerWidget() {
+		Storage store = Storage.getInstance();
+		
+		if(!store.isDocLoaded()) {
+			return;
+		}
+		if (!isEditDeclManagerOpen()) {
+			if(store.getRoleOfUserInCurrentCollection().getValue() < TrpRole.Editor.getValue()){
+				edm = new EditDeclViewerDialog(getShell(), SWT.NONE);
+			} else {
+				edm = new EditDeclManagerDialog(getShell(), SWT.NONE);
+			}
+			edm.open();
+		} else {
+			edm.getShell().setVisible(true);
+		}
+	}
+	
+	public boolean isEditDeclManagerOpen() {
+		return edm != null && edm.getShell() != null && !edm.getShell().isDisposed();
 	}
 }

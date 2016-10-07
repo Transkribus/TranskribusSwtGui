@@ -1281,7 +1281,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void paintTagsFromCustomTagList(PaintEvent e, CustomTagList ctl, int offset) {
 		Set<String> tagNames = ctl.getIndexedTagNames();
 		
-		if (!view.getMetadataWidget().getTextStyleWidget().underlineTextStylesBtn.getSelection()) {
+		if (!view.getStructuralMetadataWidget().getTextStyleWidget().underlineTextStylesBtn.getSelection()) {
 			tagNames.remove(TextStyleTag.TAG_NAME); // do not underline  TextStyleTags, as they are
 												// rendered into the bloody text anyway
 		}

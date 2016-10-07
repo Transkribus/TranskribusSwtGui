@@ -315,11 +315,11 @@ public class DocSearchComposite extends Composite {
 			// select collection in DocOverviewWidget
 //			mw.getUi().getDocOverviewWidget().
 			
-			mw.getUi().getDocOverviewWidget().clearCollectionFilter();
-			mw.getUi().getDocOverviewWidget().setSelectedCollection(colId, true);
+			mw.getUi().getServerWidget().clearCollectionFilter();
+			mw.getUi().getServerWidget().setSelectedCollection(colId, true);
 			
 			// select page of document in doc-table:
-			mw.getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docId, false);
+			mw.getUi().getServerWidget().getDocTableWidget().loadPage("docId", docId, false);
 
 			TrpMainWidget.getInstance().loadRemoteDoc(docId, colId);
 		}

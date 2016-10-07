@@ -45,9 +45,13 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -126,7 +130,6 @@ import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
-import eu.transkribus.swt_gui.doc_overview.DocInfoWidgetListener;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
@@ -192,7 +195,6 @@ public class TrpMainWidget {
 	LineEditorListener lineEditorListener;
 	StructureTreeListener structTreeListener;
 	DocOverviewListener docOverviewListener;
-	DocInfoWidgetListener docMetadataWidgetListener;
 	TrpMainWidgetListener mainWidgetListener;
 	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
@@ -203,6 +205,9 @@ public class TrpMainWidget {
 	JobTableWidgetListener jobOverviewWidgetListener;
 	TranscriptsTableWidgetListener versionsWidgetListener;
 //	CollectionManagerListener collectionsManagerListener;
+	
+	TrpVirtualKeyboardsDialog vkDiag;
+	Dialog jobsDiag, versionsDiag;
 
 	Storage storage; // the data
 	boolean isPageLocked = false;
@@ -223,7 +228,7 @@ public class TrpMainWidget {
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
-			ui.thumbnailWidget.reload();
+			ui.getThumbnailWidget().reload();
 		}
 	};
 
@@ -401,7 +406,7 @@ public class TrpMainWidget {
 																// progress
 																// dialog
 
-			getUi().getDocOverviewWidget().refreshDocList();
+			getUi().getServerWidget().refreshDocList();
 
 //			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 //				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -422,8 +427,8 @@ public class TrpMainWidget {
 			ui.selectDocListTab();
 			updatePageInfo();
 
-			if (ui.getDocOverviewWidget().isCollectionManagerOpen())
-				ui.getDocOverviewWidget().getCollectionManagerDialog().updateCollections();
+			if (ui.getServerWidget().isCollectionManagerOpen())
+				ui.getServerWidget().getCollectionManagerDialog().updateCollections();
 
 //			if (storage.getRemoteDocList() != null) {
 //				getUi().getDocOverviewWidget().setInput(storage.getRemoteDocList());
@@ -469,7 +474,7 @@ public class TrpMainWidget {
 	public void clearDocList() {
 		String title = ui.APP_NAME;
 
-		getUi().getDocOverviewWidget().clearDocList();
+		getUi().getServerWidget().clearDocList();
 	}
 
 //	public void reloadHtrModels() {
@@ -511,10 +516,10 @@ public class TrpMainWidget {
 			}
 		}
 
-		ui.getDocOverviewWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
+		ui.getServerWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
-		ui.getDocOverviewWidget().updateHighlightedRow(docId);
+		ui.getServerWidget().updateHighlightedRow(docId);
 
 //		ui.toolsWidget.updateParameter(st, language);
 
@@ -593,7 +598,7 @@ public class TrpMainWidget {
 		ui.getDocInfoWidget().getLoadedImageUrl().setText(imgUrl);
 		ui.getDocInfoWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
 
-		ui.getDocOverviewWidget().updateHighlightedRow(docId);
+		ui.getServerWidget().updateHighlightedRow(docId);
 		ui.getShell().setText(title);
 		// updateDocMetadata();
 	}
@@ -651,7 +656,6 @@ public class TrpMainWidget {
 		structTreeListener = new StructureTreeListener(this);
 		// doc overview listener:
 		docOverviewListener = new DocOverviewListener(this);
-		docMetadataWidgetListener = new DocInfoWidgetListener(ui.getDocInfoWidget());
 		// transcription observer:
 		transcriptObserver = new TranscriptObserver(this);
 		// shape observer:
@@ -670,7 +674,7 @@ public class TrpMainWidget {
 			}
 		});
 
-		ui.thumbnailWidget.addListener(SWT.Selection, new Listener() {
+		ui.getThumbnailWidget().addListener(SWT.Selection, new Listener() {
 			@Override public void handleEvent(Event event) {
 				logger.debug("loading page " + event.index);
 				jumpToPage(event.index);
@@ -687,8 +691,15 @@ public class TrpMainWidget {
 
 		// storage observer:
 		storage.addObserver(new StorageObserver(this));
+		
+//		ui.getServerWidget().getShowJobsBtn().addSelectionListener(new SelectionListener() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				openJobsDialog();
+//			}
+//			@Override public void widgetDefaultSelected(SelectionEvent e) {}
+//		});
 	}
-
+	
 	public TaggingWidgetListener getTaggingWidgetListener() {
 		return taggingWidgetListener;
 	}
@@ -814,8 +825,8 @@ public class TrpMainWidget {
 				//if no recent docs are available -> load the example doc
 				if (false) {
 					loadRemoteDoc(5014, 4);
-					getUi().getDocOverviewWidget().setSelectedCollection(4, true);
-					getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", 5014, true);
+					getUi().getServerWidget().setSelectedCollection(4, true);
+					getUi().getServerWidget().getDocTableWidget().loadPage("docId", 5014, true);
 				}
 			}
 		}
@@ -887,8 +898,8 @@ public class TrpMainWidget {
 				docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
 				if (docList != null && docList.size() > 0) {
 					if (loadRemoteDoc(docid, colid)) {
-						getUi().getDocOverviewWidget().setSelectedCollection(colid, true);
-						getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docid, true);
+						getUi().getServerWidget().setSelectedCollection(colid, true);
+						getUi().getServerWidget().getDocTableWidget().loadPage("docId", docid, true);
 					}
 				} else {
 					//DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Last used document is not on this server", 2, true);
@@ -1354,7 +1365,7 @@ public class TrpMainWidget {
 
 		if (!storage.hasTranscript()) {
 			ui.taggingWidget.setSelectedTags(null);
-			ui.getMetadataWidget().updateData(null, null, nSel, null, null, new ArrayList<CustomTag>());
+			ui.getStructuralMetadataWidget().updateData(null, null, nSel, null, null, new ArrayList<CustomTag>());
 			return;
 		}
 
@@ -1415,7 +1426,7 @@ public class TrpMainWidget {
 		}
 
 		ui.taggingWidget.setSelectedTags(selectedTags);
-		ui.getMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, textStyle, selectedTags);
+		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, textStyle, selectedTags);
 
 	}
 
@@ -1832,7 +1843,7 @@ public class TrpMainWidget {
 
 			//store the path for the local doc
 			RecentDocsPreferences.push(folder);
-			ui.getDocOverviewWidget().updateRecentDocs();
+			ui.getServerWidget().updateRecentDocs();
 
 			updateThumbs();
 			getCanvas().fitWidth();
@@ -1891,7 +1902,7 @@ public class TrpMainWidget {
 																// dialog
 
 			if (colId <= 0) {
-				colId = ui.getDocOverviewWidget().getSelectedCollectionId();
+				colId = ui.getServerWidget().getSelectedCollectionId();
 				if (colId <= 0)
 					throw new Exception("No collection specified to load document!");
 			}
@@ -1916,7 +1927,7 @@ public class TrpMainWidget {
 
 			//store the recent doc info to the preferences
 			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);
-			ui.getDocOverviewWidget().updateRecentDocs();
+			ui.getServerWidget().updateRecentDocs();
 
 			updateThumbs();
 			getCanvas().fitWidth();
@@ -2145,7 +2156,7 @@ public class TrpMainWidget {
 				return;
 			}
 
-			final UploadDialog ud = new UploadDialog(getShell(), ui.getDocOverviewWidget().getSelectedCollection());
+			final UploadDialog ud = new UploadDialog(getShell(), ui.getServerWidget().getSelectedCollection());
 			int ret = ud.open();
 
 			if (ret == IDialogConstants.OK_ID) {
@@ -2190,8 +2201,8 @@ public class TrpMainWidget {
 				return;
 			}
 
-//			final UploadFromFtpDialog ud = new UploadFromFtpDialog(getShell(), ui.getDocOverviewWidget().getSelectedCollection());
-			final UploadDialogUltimate ud = new UploadDialogUltimate(getShell(), ui.getDocOverviewWidget().getSelectedCollection());
+//			final UploadFromFtpDialog ud = new UploadFromFtpDialog(getShell(), ui.getServerWidget().getSelectedCollection());
+			final UploadDialogUltimate ud = new UploadDialogUltimate(getShell(), ui.getServerWidget().getSelectedCollection());
 			if (ud.open() != IDialogConstants.OK_ID)
 				return;
 
@@ -2294,7 +2305,7 @@ public class TrpMainWidget {
 					}
 				}
 
-				ui.selectJobListTab();
+//				ui.selectJobListTab();
 				ui.getJobOverviewWidget().refreshPage(false);
 
 //				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
@@ -2359,7 +2370,7 @@ public class TrpMainWidget {
 	}
 
 	@Deprecated public void deleteSelectedDocument() {
-		final TrpDocMetadata doc = ui.getDocOverviewWidget().getSelectedDocument();
+		final TrpDocMetadata doc = ui.getServerWidget().getSelectedDocument();
 		try {
 			if (doc == null || !storage.isLoggedIn()) {
 				return;
@@ -2391,7 +2402,7 @@ public class TrpMainWidget {
 				}
 			}, "Exporting", false);
 
-			reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
+			reloadDocList(ui.getServerWidget().getSelectedCollection());
 		} catch (Throwable e) {
 			onError("Error deleting document", "Could not delete document " + doc.getDocId(), e);
 		}
@@ -3756,20 +3767,7 @@ public class TrpMainWidget {
 			onError("Error", "Error during batch replace of images", e);
 		}
 	}
-
-	public void openVkDialog() {
-		TrpVirtualKeyboardsDialog d = new TrpVirtualKeyboardsDialog(getShell());
-		d.create();
-		d.getVkTabWidget().addListener(new ITrpVirtualKeyboardsTabWidgetListener() {
-			@Override public void onVirtualKeyPressed(TrpVirtualKeyboardsTabWidget w, char c, String description) {
-//						logger.debug("HELLO!");
-				TrpMainWidget.this.insertTextOnSelectedTranscriptionWidget(c);
-			}
-		});
-
-		d.open();
-	}
-
+	
 	public void insertTextOnSelectedTranscriptionWidget(Character c) {
 		if (c == null)
 			return;
@@ -3780,4 +3778,105 @@ public class TrpMainWidget {
 
 		tw.insertTextIfFocused("" + c);
 	}
+	
+	public void openVkDialog() {
+		if (SWTUtil.isOpen(vkDiag)) {
+			vkDiag.getShell().setVisible(true);
+		} else {
+			vkDiag = new TrpVirtualKeyboardsDialog(getShell());
+			vkDiag.create();		
+			vkDiag.getVkTabWidget().addListener(new ITrpVirtualKeyboardsTabWidgetListener() {
+				@Override public void onVirtualKeyPressed(TrpVirtualKeyboardsTabWidget w, char c, String description) {
+					TrpMainWidget.this.insertTextOnSelectedTranscriptionWidget(c);
+				}
+			});			
+			vkDiag.open();
+		}
+	}
+	
+	public void openJobsDialog() {
+		if (SWTUtil.isOpen(jobsDiag)) {
+			jobsDiag.getShell().setVisible(true);
+		} else {
+			jobsDiag = new Dialog(getShell()) {
+				@Override protected Control createDialogArea(Composite parent) {
+					Composite container = (Composite) super.createDialogArea(parent);
+					container.setLayout(new GridLayout(1, true));
+					
+					ui.getJobOverviewWidget().setParent(container);
+					ui.getJobOverviewWidget().setLayoutData(new GridData(GridData.FILL_BOTH));
+
+					container.pack();
+
+					return container;
+				}
+
+				@Override protected void configureShell(Shell newShell) {
+					super.configureShell(newShell);
+					newShell.setText("Jobs on server");
+					newShell.addDisposeListener(new DisposeListener() {
+						@Override public void widgetDisposed(DisposeEvent e) {
+							ui.getJobOverviewWidget().setParent(SWTUtil.dummyShell);
+						}
+					});
+				}
+
+				@Override protected Point getInitialSize() { return new Point(1000, 800); }
+				@Override protected boolean isResizable() { return true; }
+				@Override protected void createButtonsForButtonBar(Composite parent) {}
+
+				@Override protected void setShellStyle(int newShellStyle) {
+					super.setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
+					setBlockOnOpen(false);
+				}
+			};
+			jobsDiag.open();
+		}
+
+	}
+	
+	public void openVersionsDialog() {
+		if (SWTUtil.isOpen(versionsDiag)) {
+			versionsDiag.getShell().setVisible(true);
+		} else {
+			versionsDiag = new Dialog(getShell()) {
+				@Override protected Control createDialogArea(Composite parent) {
+					Composite container = (Composite) super.createDialogArea(parent);
+					container.setLayout(new GridLayout(1, true));
+					
+					ui.getVersionsWidget().setParent(container);
+					ui.getVersionsWidget().setLayoutData(new GridData(GridData.FILL_BOTH));
+
+					container.pack();
+
+					return container;
+				}
+
+				@Override protected void configureShell(Shell newShell) {
+					super.configureShell(newShell);
+					newShell.setText("Versions");
+					newShell.addDisposeListener(new DisposeListener() {
+						@Override public void widgetDisposed(DisposeEvent e) {
+							ui.getVersionsWidget().setParent(SWTUtil.dummyShell);
+						}
+					});
+				}
+
+				@Override protected Point getInitialSize() { return new Point(1000, 800); }
+				@Override protected boolean isResizable() { return true; }
+				@Override protected void createButtonsForButtonBar(Composite parent) {}
+
+				@Override protected void setShellStyle(int newShellStyle) {
+					super.setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
+					setBlockOnOpen(false);
+				}
+			};
+			versionsDiag.open();
+		}
+		
+	}
+
+
+
+
 }

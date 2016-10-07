@@ -272,9 +272,9 @@ public class ToolsWidgetListener implements SelectionListener {
 			mw.reloadJobList();
 			mw.updatePageLock();
 
-			if (jobId != null) {
-				mw.getUi().selectJobListTab();
-			}
+//			if (jobId != null) {
+//				mw.getUi().selectJobListTab();
+//			}
 			
 			
 			

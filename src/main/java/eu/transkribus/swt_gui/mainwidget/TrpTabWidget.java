@@ -38,30 +38,45 @@ public class TrpTabWidget extends Composite {
 		public List<CTabItem> children; 
 	}
 	
-	CTabFolder tf;
+	CTabFolder mainTf;
+	
 	CTabFolder serverTf;
 	CTabFolder documentTf;
+	CTabFolder structureTf;
 	CTabFolder metadataTf;
 	CTabFolder toolsTf;
 	
-	CTabItem serverItem, documentItem, metadataItem, toolsItem;
+	CTabItem serverItem;
+	CTabItem documentItem;
+	CTabItem metadataItem;
+	CTabItem toolsItem;
 	
 	// server items:
 	CTabItem docListItem;
 		
 	// items for document tf:
-	CTabItem docoverviewItem, structureItem, versionsItem, thumbnailItem;
+//	CTabItem docoverviewItem;
+	CTabItem structureItem;
+	CTabItem versionsItem;
+//	CTabItem thumbnailItem;
 	
 	// items for metadata tf:
-	CTabItem structuralMdItem, textTaggingItem, commentsItem;
+	CTabItem docMdItem;
+	CTabItem structuralMdItem;
+	CTabItem textTaggingItem;
+	CTabItem commentsItem;
 	
-	CTabItem remoteToolsItem, jobsItem, vkItem;
+	CTabItem remoteToolsItem;
+	CTabItem jobsItem;
+	CTabItem vkItem;
 	
 	List<CTabItem> firstRowItems = new ArrayList<>();
 	List<CTabItem> secondRowItems = new ArrayList<>();
 	List<CTabItem> allItems = new ArrayList<>();
 	
 	List<CTabFolder> tabfolder = new ArrayList<>();
+
+	
 		
 	public TrpTabWidget(Composite parent, int style) {
 		super(parent, style);
@@ -72,31 +87,26 @@ public class TrpTabWidget extends Composite {
 	}
 	
 	void init() {
-		tf = createTabFolder(this);		
+		mainTf = createTabFolder(this);		
 		
-		serverTf = createTabFolder(tf);
-//		serverTf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		serverTf = createTabFolder(mainTf);
+		serverItem = createCTabItem(mainTf, serverTf, "Server", firstRowItems);
+//		initServerTf();
 		
-//		serverTf.setLayout(new FillLayout());
-		serverItem = createCTabItem(tf, serverTf, "Server", firstRowItems);
-		initServerTf();
-				
-		documentTf = createTabFolder(tf);//		documentTf.setLayout(new FillLayout());
-		documentItem = createCTabItem(tf, documentTf, "Document", firstRowItems);
-		initDocumentTf();
+		documentTf = createTabFolder(mainTf);//		documentTf.setLayout(new FillLayout());
+		documentItem = createCTabItem(mainTf, documentTf, "Overview", firstRowItems);
+//		initDocumentTf();
 		
-		metadataTf = createTabFolder(tf);
-		metadataItem = createCTabItem(tf, metadataTf, "Metadata", firstRowItems);
+		structureTf = createTabFolder(mainTf);
+		structureItem = createCTabItem(mainTf, structureTf, Msgs.get2("layout_tab_title"), firstRowItems);
+		
+		metadataTf = createTabFolder(mainTf);
+		metadataItem = createCTabItem(mainTf, metadataTf, "Metadata", firstRowItems);
 		initMetadataTf();
-		
-		if (false) {
-		toolsTf = createTabFolder(tf);
-		toolsItem = createCTabItem(tf, toolsTf, "Tools", firstRowItems);
-		initToolsTf();
-		}
-		
-		Composite c = new Composite(tf, 0);
-		vkItem = createCTabItem(tf, c, "Virtual Keyboards", firstRowItems);
+				
+		Composite c = new Composite(mainTf, 0);
+		toolsItem = createCTabItem(mainTf, c, "Tools", firstRowItems);
+//		vkItem = createCTabItem(mainTf, c, "Virtual Keyboards", firstRowItems);
 		
 		allItems.addAll(firstRowItems);
 		allItems.addAll(secondRowItems);
@@ -108,7 +118,7 @@ public class TrpTabWidget extends Composite {
 	}
 	
 	void setDefaultSelection() {
-		SWTUtil.setSelection(tf, serverItem);
+		SWTUtil.setSelection(mainTf, serverItem);
 		SWTUtil.setSelection(serverTf, docListItem);
 		SWTUtil.setSelection(documentTf, structureItem);
 		SWTUtil.setSelection(metadataTf, structuralMdItem);
@@ -170,24 +180,23 @@ public class TrpTabWidget extends Composite {
 		docListItem = createCTabItem(serverTf, c, "Documents", secondRowItems);
 		remoteToolsItem = createCTabItem(serverTf, c, "Tools", secondRowItems);
 		jobsItem = createCTabItem(serverTf, c, "Jobs", secondRowItems);
-		
-		
 	}
 	
 	void initDocumentTf() {
 		// TODO: create widgets
 		Composite c = new Composite(documentTf, 0);
 		
-		docoverviewItem = createCTabItem(documentTf, c, "Overview", secondRowItems); // TODO
-		structureItem = createCTabItem(documentTf, c, Msgs.get2("layout_tab_title"), secondRowItems);
+//		docoverviewItem = createCTabItem(documentTf, c, "Overview", secondRowItems); // TODO
+//		structureItem = createCTabItem(documentTf, c, Msgs.get2("layout_tab_title"), secondRowItems);
 //		jobOverviewItem = createCTabItem(leftTabFolder, jobOverviewWidget, Msgs.get2("jobs"));
-		versionsItem = createCTabItem(documentTf, c, Msgs.get2("versions"), secondRowItems);
-		thumbnailItem = createCTabItem(documentTf, c, Msgs.get2("pages"), secondRowItems);
+//		versionsItem = createCTabItem(documentTf, c, Msgs.get2("versions"), secondRowItems);
+//		thumbnailItem = createCTabItem(documentTf, c, Msgs.get2("pages"), secondRowItems);
 	}
 	
 	void initMetadataTf() {
 		Composite c = new Composite(metadataTf, 0);
 		
+		docMdItem = createCTabItem(metadataTf, c, "Document", secondRowItems);
 		structuralMdItem = createCTabItem(metadataTf, c, "Structural", secondRowItems);
 		textTaggingItem = createCTabItem(metadataTf, c, "Tagging", secondRowItems);
 		commentsItem = createCTabItem(metadataTf, c, "Comments", secondRowItems);
@@ -227,7 +236,7 @@ public class TrpTabWidget extends Composite {
 	}
 	
 	public void selectServerTab() {
-		tf.setSelection(serverItem);
+		mainTf.setSelection(serverItem);
 	}
 
 	  public static void run() {
@@ -251,17 +260,17 @@ public class TrpTabWidget extends Composite {
 		  }
 
 	public void selectDocListTab() {
-		tf.setSelection(serverItem);
-		serverTf.setSelection(docListItem);
+		mainTf.setSelection(serverItem);
+//		serverTf.setSelection(docListItem);
 		
 		updateTabItemStyles();
 	}
 
-	public void selectJobListTab() {
-		tf.setSelection(serverItem);
-		serverTf.setSelection(jobsItem);
-		updateTabItemStyles();
-	}
+//	public void selectJobListTab() {
+//		mainTf.setSelection(serverItem);
+////		serverTf.setSelection(jobsItem);
+//		updateTabItemStyles();
+//	}
 	
 	
 

@@ -37,7 +37,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 		this.mainWidget = mainWidget;
 		this.ui = mainWidget.getUi();
 		this.canvas = mainWidget.getCanvas();
-		this.mw = mainWidget.getUi().getMetadataWidget();
+		this.mw = mainWidget.getUi().getStructuralMetadataWidget();
 		this.tw = mw.getTextStyleWidget();
 		this.settings = mainWidget.getTrpSets();
 		

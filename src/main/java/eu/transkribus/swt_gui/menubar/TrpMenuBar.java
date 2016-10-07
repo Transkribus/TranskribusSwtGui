@@ -26,6 +26,7 @@ public class TrpMenuBar {
 	MenuItem saveTranscriptionMenuItem;
 	MenuItem openMenuItem;
 	MenuItem uploadServerDocsItem;
+	MenuItem replaceImageItem;
 
 	MenuItem openLocalPageFileItem;
 	MenuItem uploadImagesFromPdfFileItem;
@@ -120,6 +121,10 @@ public class TrpMenuBar {
 		saveTranscriptionMenuItem = new MenuItem(fileMenu, SWT.NONE);
 		saveTranscriptionMenuItem.setImage(Images.getOrLoad("/icons/disk.png"));
 		saveTranscriptionMenuItem.setText("&Save transcription");
+		
+		replaceImageItem = new MenuItem(fileMenu, SWT.NONE);
+		replaceImageItem.setImage(Images.IMAGE_EDIT);
+		replaceImageItem.setText("Replace image of current page on server");
 		
 		uploadServerDocsItem = new MenuItem(fileMenu, SWT.NONE);
 		uploadServerDocsItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
@@ -385,6 +390,10 @@ public class TrpMenuBar {
 
 	public void setDeletePageMenuItem(MenuItem deletePageMenuItem) {
 		this.deletePageMenuItem = deletePageMenuItem;
+	}
+
+	public MenuItem getReplaceImageItem() {
+		return replaceImageItem;
 	}
 
 //	public void showAll(boolean value) {

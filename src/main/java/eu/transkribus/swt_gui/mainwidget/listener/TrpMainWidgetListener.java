@@ -57,6 +57,7 @@ public class TrpMainWidgetListener extends SelectionAdapter implements ITrpVirtu
 		menuBar.getInstallMenuItem().addSelectionListener(this);
 		menuBar.getTipsOfTheDayMenuItem().addSelectionListener(this);
 		menuBar.getDeletePageMenuItem().addSelectionListener(this);
+		menuBar.getReplaceImageItem().addSelectionListener(this);
 		
 		SWTUtil.addSelectionListener(menuBar.getBugReportItem(), this);
 		
@@ -69,7 +70,7 @@ public class TrpMainWidgetListener extends SelectionAdapter implements ITrpVirtu
 		
 		SWTUtil.addSelectionListener(ui.getReloadDocumentButton(), this);
 		SWTUtil.addSelectionListener(ui.getExportDocumentButton(), this);
-		SWTUtil.addSelectionListener(ui.getReplacePageImgButton(), this);
+		SWTUtil.addSelectionListener(ui.getVersionsButton(), this);
 		//SWTUtil.addToolItemSelectionListener(ui.getDeletePageButton(), this);
 		
 		SWTUtil.addSelectionListener(ui.getExportPdfButton(), this);
@@ -91,13 +92,17 @@ public class TrpMainWidgetListener extends SelectionAdapter implements ITrpVirtu
 		SWTUtil.addSelectionListener(ui.getSearchBtn(), this);
 						
 //		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addKeySelectionListener(this);
-		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addListener(this);
+		
+//		if (ui.getVkeyboards()!=null)		
+//			ui.getVkeyboards().getVirtualKeyboardsTabWidget().addListener(this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
 		SWTUtil.addSelectionListener(ui.getProfilesToolItem().ti, this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getLanguageDropDown().ti, this);
 		SWTUtil.addSelectionListener(ui.getThumbnailWidget().getCreateThumbs(), this);
+		
+		SWTUtil.addSelectionListener(ui.getServerWidget().getShowJobsBtn(), this);
 	}
 	
 	@Override
@@ -132,7 +137,7 @@ public class TrpMainWidgetListener extends SelectionAdapter implements ITrpVirtu
 		}
 		
 		else if (s == menuBar.getManageCollectionsMenuItem()) {
-			mainWidget.getUi().getDocOverviewWidget().openCollectionsManagerWidget();
+			mainWidget.getUi().getServerWidget().openCollectionsManagerWidget();
 		}
 		else if (s == ui.getCloseDocBtn()) {
 			mainWidget.closeCurrentDocument(false);
@@ -269,8 +274,14 @@ public class TrpMainWidgetListener extends SelectionAdapter implements ITrpVirtu
 		else if (s == ui.getReloadDocumentButton()) {
 			mainWidget.reloadCurrentDocument();
 		}
-		else if (s == ui.getReplacePageImgButton()) {
+		else if (s == menuBar.getReplaceImageItem()) {
 			mainWidget.replacePageImg();
+		}
+		else if (s == ui.getVersionsButton()) {
+			mainWidget.openVersionsDialog();
+		}
+		else if (s == ui.getServerWidget().getShowJobsBtn()) {
+			mainWidget.openJobsDialog();
 		}
 //		else if (s == ui.getDeletePageButton()) {
 //			mainWidget.deletePage();
@@ -298,13 +309,12 @@ public class TrpMainWidgetListener extends SelectionAdapter implements ITrpVirtu
 //			mainWidget.updateAddShapeActionButton();
 //		}
 		
-		// VISUAL KEYBOARD:
-		else if (s == ui.getVkeyboards().getVirtualKeyboardsTabWidget()) {
-			Character c = (char) e.detail;
-			logger.debug("key pressed: "+c+", name: "+e.text);
-			
-			mainWidget.insertTextOnSelectedTranscriptionWidget(c);
-		}
+//		else if (s == ui.getVkeyboards().getVirtualKeyboardsTabWidget()) {
+//			Character c = (char) e.detail;
+//			logger.debug("key pressed: "+c+", name: "+e.text);
+//			
+//			mainWidget.insertTextOnSelectedTranscriptionWidget(c);
+//		}
 		
 		else if (s == ui.getLoadTranscriptInTextEditor()) {
 			logger.debug("loading transcript source");

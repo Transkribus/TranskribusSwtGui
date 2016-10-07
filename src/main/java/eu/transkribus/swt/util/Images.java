@@ -9,6 +9,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 public class Images {
+	public static final Image IMAGES = Images.getOrLoad("/icons/images.png");
+	public static final Image PAGE_WHITE_STACK = Images.getOrLoad("/icons/page_white_stack.png");
 	public static final Image KEYBOARD = Images.getOrLoad("/icons/keyboard.png");
 	public static final Image SCISSOR = Images.getOrLoad("/icons/scissor.png");
 	public static final Image BUG = Images.getOrLoad("/icons/bug.png");
