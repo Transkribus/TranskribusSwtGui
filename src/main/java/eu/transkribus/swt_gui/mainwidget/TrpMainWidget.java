@@ -3814,7 +3814,7 @@ public class TrpMainWidget {
 				}
 				
 				@Override public boolean close() {
-					ui.getVersionsWidget().setParent(SWTUtil.dummyShell);
+					ui.getJobOverviewWidget().setParent(SWTUtil.dummyShell);
 					return super.close();
 				}
 
