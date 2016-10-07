@@ -132,17 +132,17 @@ public class ThumbnailWidget extends Composite {
 			try {
 				isError = false;
 				
-				SebisStopWatch sw = new SebisStopWatch();
+//				SebisStopWatch sw = new SebisStopWatch();
 				
 //				sw.start();
 				image = ImgLoader.load(url);
 //				sw.stop(true, "loading img time: ");
 				
 				if (!DISABLE_TRANSCRIBED_LINES) {
-					sw.start();
+//					sw.start();
 					//transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
 					transcribedLines = transcript.getNrOfTranscribedLines();
-					sw.stop(true, "loading lines time: ");
+//					sw.stop(true, "loading lines time: ");
 				}
 				
 //				if (image.getBounds().height > THUMB_HEIGHT) {

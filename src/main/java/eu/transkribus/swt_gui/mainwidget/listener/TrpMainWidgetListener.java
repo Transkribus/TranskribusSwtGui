@@ -21,9 +21,11 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.menubar.TrpMenuBar;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.swt_gui.vkeyboards.ITrpVirtualKeyboardsTabWidgetListener;
+import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsTabWidget;
 import eu.transkribus.util.DesktopApi;
 
-public class TrpMainWidgetListener extends SelectionAdapter {
+public class TrpMainWidgetListener extends SelectionAdapter implements ITrpVirtualKeyboardsTabWidgetListener {
 	private final static Logger logger = LoggerFactory.getLogger(TrpMainWidgetListener.class);
 	
 	TrpMainWidget mainWidget;
@@ -88,7 +90,8 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 		SWTUtil.addSelectionListener(ui.getUploadDocsItem(), this);
 		SWTUtil.addSelectionListener(ui.getSearchBtn(), this);
 						
-		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addKeySelectionListener(this);
+//		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addKeySelectionListener(this);
+		ui.getVkeyboards().getVirtualKeyboardsTabWidget().addListener(this);
 		
 //		SWTUtil.addToolItemSelectionListener(ui.getShowReadingOrderToolItem().ti, this);
 		SWTUtil.addSelectionListener(ui.getProfilesToolItem().ti, this);
@@ -300,10 +303,7 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 			Character c = (char) e.detail;
 			logger.debug("key pressed: "+c+", name: "+e.text);
 			
-			ATranscriptionWidget tw = ui.getSelectedTranscriptionWidget();
-			if (tw != null) {
-				tw.insertTextIfFocused(""+c);
-			}
+			mainWidget.insertTextOnSelectedTranscriptionWidget(c);
 		}
 		
 		else if (s == ui.getLoadTranscriptInTextEditor()) {
@@ -336,6 +336,10 @@ public class TrpMainWidgetListener extends SelectionAdapter {
 	@Override
 	public void widgetDefaultSelected(SelectionEvent e) {
 		
+	}
+
+	@Override public void onVirtualKeyPressed(TrpVirtualKeyboardsTabWidget w, char c, String description) {
+		mainWidget.insertTextOnSelectedTranscriptionWidget(c);
 	}
 	
 }

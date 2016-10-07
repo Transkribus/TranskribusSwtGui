@@ -36,6 +36,8 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 //		transcriptionWidget.addListener(SWT.KeyDown, listener);
 		transcriptionWidget.getText().addKeyListener(this);
 		
+		transcriptionWidget.getVkItem().addListener(SWT.Selection, this);
+		
 		DataBinder db = DataBinder.get();
 		db.bindBoolBeanValueToToolItemSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, 
 				TrpMainWidget.getTrpSettings(), transcriptionWidget.getAutocompleteToggle());
@@ -73,8 +75,11 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 			handleFocus(event);
 		}
 		else if (event.type == SWT.Selection) {
-			
-			handleSelectionChanged(event);
+			if (event.widget == transcriptionWidget.getVkItem()) {
+				mainWidget.openVkDialog();
+			} else {
+				handleSelectionChanged(event);	
+			}
 		}
 		else if (event.type == SWT.DefaultSelection) {
 			handleDefaultSelectionChanged(event);
