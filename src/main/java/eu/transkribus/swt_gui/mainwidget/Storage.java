@@ -782,7 +782,6 @@ public class Storage extends Observable {
 	}
 
 	private void sendEvent(final Event event) {
-
 		if (Thread.currentThread() == Display.getDefault().getThread()) {
 			setChanged();
 			notifyObservers(event);
@@ -1400,11 +1399,11 @@ public class Storage extends Observable {
 		}
 	}
 
-	public void updateDocMd(int colId) throws SessionExpiredException, IllegalArgumentException, Exception {
+	public void saveDocMd(int colId) throws SessionExpiredException, IllegalArgumentException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document loaded");
-
-		logger.debug("saving metadata for doc " + doc.getMd().getDocId());
+	
+		logger.debug("saving metadata for doc " + doc.getMd());
 		if (isLocalDoc()) {
 			LocalDocWriter.updateTrpDocMetadata(doc);
 		} else {
@@ -1413,7 +1412,6 @@ public class Storage extends Observable {
 
 			conn.updateDocMd(colId, doc.getMd().getDocId(), doc.getMd());
 		}
-		logger.debug("New metadata: " + doc.getMd().toString());
 		sendEvent(new DocMetadataUpdateEvent(this, doc, doc.getMd()));
 	}
 

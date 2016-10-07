@@ -995,7 +995,7 @@ public class TrpMainWidget {
 
 		final int colId = storage.getCurrentDocumentCollectionId();
 		try {
-			storage.updateDocMd(colId);
+			storage.saveDocMd(colId);
 			// DialogUtil.createAndShowBalloonToolTip(getShell(),
 			// SWT.ICON_ERROR, "Success saving doc-metadata", "", 2, true);
 		} catch (Exception e) {

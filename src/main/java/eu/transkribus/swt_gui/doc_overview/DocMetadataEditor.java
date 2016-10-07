@@ -1,6 +1,8 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.Date;
+import java.util.Observable;
+import java.util.Observer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -28,6 +30,7 @@ import eu.transkribus.swt.util.SCSimpleDateTimeWidget;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.Storage.DocLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.tools.LanguageSelectionTable;
 
@@ -209,19 +212,30 @@ public class DocMetadataEditor extends Composite {
 				openEditDeclManagerWidget();
 			}
 		});
+		
+		Storage.getInstance().addObserver(new Observer() {
+			@Override public void update(Observable o, Object arg) {
+				if (arg instanceof DocLoadEvent) {
+					DocLoadEvent dle = (DocLoadEvent) arg;
+					setMetadataToGui(dle.doc.getMd());
+				}
+			}
+		});
 	}
 	
 	private void saveMd() {
 		TrpMainWidget mw = TrpMainWidget.getInstance();
-		if (mw != null) {
-			mw.saveDocMetadata();
-		} else {
-			DialogUtil.showErrorMessageBox(getShell(), "Fatal error", "No main widget found!");
-			logger.error("No main widget found!");
-		}
+		if (mw == null)
+			return;
+		
+		
+		updateMetadataFromGui(Storage.getInstance().getDoc().getMd());
+		mw.saveDocMetadata();
 	}
 	
-	public void updateData(TrpDocMetadata md) {		
+	public void updateMetadataFromGui(TrpDocMetadata md) {		
+		logger.debug("updating metadata: "+md);
+		
 		md.setTitle(titleText.getText());
 		md.setAuthor(authorText.getText());
 		md.setGenre(genreText.getText());
@@ -254,7 +268,7 @@ public class DocMetadataEditor extends Composite {
 		}
 	}
 	
-	public void setMetadata(TrpDocMetadata md) {
+	public void setMetadataToGui(TrpDocMetadata md) {
 		if (md == null) {
 			titleText.setText("");
 			authorText.setText("");
