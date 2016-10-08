@@ -43,8 +43,8 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 		
 		ui.getTaggingWidgetNew().addListener(this);
 		
-		if (TrpMainWidgetView.SHOW_NEW_TW)
-			ui.getTaggingWidgetNew().addListener(this);
+//		if (TrpMainWidgetView.SHOW_NEW_TW)
+//			ui.getTaggingWidgetNew().addListener(this);
 	}
 	
 	@Override public void createNewTag(String tagName) {

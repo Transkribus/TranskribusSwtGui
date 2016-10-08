@@ -1084,6 +1084,10 @@ public class SWTUtil {
     	}
     }
     
+    public static boolean isDisposed(Widget i) {
+    	return i==null || i.isDisposed();
+    }
+    
     public static boolean isDisposed(DropDownToolItem i) {
     	return (i==null || i.isDisposed() || isDisposed(i.ti));    	
     }

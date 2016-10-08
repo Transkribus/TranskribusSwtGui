@@ -31,6 +31,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
+import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.databinding.swt.SWTObservables;
@@ -38,13 +39,12 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Point;
@@ -100,6 +100,7 @@ import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CreateThumbsService;
 import eu.transkribus.swt.util.DialogUtil;
@@ -131,7 +132,10 @@ import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
+import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
+import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
+import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
@@ -139,7 +143,7 @@ import eu.transkribus.swt_gui.mainwidget.listener.RegionsPagingToolBarListener;
 import eu.transkribus.swt_gui.mainwidget.listener.StorageObserver;
 import eu.transkribus.swt_gui.mainwidget.listener.TranscriptObserver;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetKeyListener;
-import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetListener;
+import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetViewListener;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
@@ -197,7 +201,7 @@ public class TrpMainWidget {
 	LineEditorListener lineEditorListener;
 	StructureTreeListener structTreeListener;
 	DocOverviewListener docOverviewListener;
-	TrpMainWidgetListener mainWidgetListener;
+	TrpMainWidgetViewListener mainWidgetViewListener;
 	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
 	CanvasShapeObserver canvasShapeObserver;
@@ -207,6 +211,7 @@ public class TrpMainWidget {
 	JobTableWidgetListener jobOverviewWidgetListener;
 	TranscriptsTableWidgetListener versionsWidgetListener;
 //	CollectionManagerListener collectionsManagerListener;
+	TrpMenuBarListener menuListener;
 	
 	TrpVirtualKeyboardsDialog vkDiag;
 	Dialog jobsDiag, versionsDiag;
@@ -257,9 +262,10 @@ public class TrpMainWidget {
 		storage = Storage.getInstance();
 
 		addListener();
+		addUiBindings();
+		
 		enableAutocomplete();
 		updateToolBars();
-
 	}
 
 	public static TrpMainWidget getInstance() {
@@ -426,7 +432,7 @@ public class TrpMainWidget {
 //			}, "Updating documents", false);
 
 			// update ui:
-			ui.selectDocListTab();
+			ui.getTabWidget().selectServerTab();
 			updatePageInfo();
 
 			if (ui.getServerWidget().isCollectionManagerOpen())
@@ -634,7 +640,9 @@ public class TrpMainWidget {
 				getUi().getDisplay().removeFilter(SWT.KeyDown, keyListener);
 			}
 		});
-		mainWidgetListener = new TrpMainWidgetListener(this);
+		mainWidgetViewListener = new TrpMainWidgetViewListener(this);
+		menuListener = new TrpMenuBarListener(this);
+		
 		canvasContextMenuListener = new CanvasContextMenuListener(this);
 
 		// pages paging toolbar listener:
@@ -700,6 +708,43 @@ public class TrpMainWidget {
 //			}
 //			@Override public void widgetDefaultSelected(SelectionEvent e) {}
 //		});
+	}
+	
+	private void addUiBindings() {
+		DataBinder db = DataBinder.get();
+		TrpSettings trpSets = getTrpSets();
+				
+		db.bindBeanPropertyToObservableValue(TrpSettings.LEFT_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.LEFT));
+		db.bindBeanPropertyToObservableValue(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.BOTTOM));
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, ui.showPrintspaceItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, ui.showRegionsItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, ui.showLinesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, ui.showBaselinesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, ui.showWordsItem);
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, ui.renderBlackeningsItem);	
+		
+		if (TrpSettings.ENABLE_LINE_EDITOR)
+			db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINE_EDITOR_PROPERTY, trpSets, ui.showLineEditorToggle);
+		
+		db.bindBeanToWidgetSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getRectangleModeItem());
+		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAutoCreateParentItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAddLineToOverlappingRegionItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_BASELINES_TO_OVERLAPPING_LINES_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAddBaselineToOverlappingLineItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAddWordsToOverlappingLineItem());
+		
+		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), ui.canvasWidget.getToolbar().getLockZoomOnFocusItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.DELETE_LINE_IF_BASELINE_DELETED_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getDeleteLineIfBaselineDeletedItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getSelectNewlyCreatedShapeItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, ui.showReadingOrderRegionsMenuItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, ui.showReadingOrderLinesMenuItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, ui.showReadingOrderWordsMenuItem);			
 	}
 	
 	public TaggingWidgetListener getTaggingWidgetListener() {
@@ -998,32 +1043,11 @@ public class TrpMainWidget {
 			storage.saveDocMd(colId);
 			// DialogUtil.createAndShowBalloonToolTip(getShell(),
 			// SWT.ICON_ERROR, "Success saving doc-metadata", "", 2, true);
+//			DialogUtil.showInfoMessageBox(shell, "Success", message);
+			DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "Saved document metadata!", "Success", 2, true);
 		} catch (Exception e) {
 			onError("Error saving doc-metadata", e.getMessage(), e, true, true);
-			// DialogUtil.createAndShowBalloonToolTip(getShell(),
-			// SWT.ICON_ERROR, "Error saving doc-metadata", e.getMessage(), 2,
-			// true);
 		}
-
-		// // update doc metadata on doc and reload doc list:
-		// try {
-		// final int colId = storage.getCurrentCollectionId();
-		// ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-		// @Override public void run(IProgressMonitor monitor) throws
-		// InvocationTargetException, InterruptedException {
-		// monitor.beginTask("Saving metadata", IProgressMonitor.UNKNOWN);
-		// logger.debug("applying metadata...");
-		// try {
-		// storage.updateDocMd(colId);
-		// } catch (Exception e) {
-		// throw new InvocationTargetException(e, e.getMessage());
-		// }
-		// }
-		// }, "Saving metadata", false);
-		// reloadDocList(ui.getDocOverviewWidget().getSelectedCollectionIndex());
-		// } catch (Throwable e) {
-		// onError("Saving Error", "Error while storing metadata on server", e);
-		// }
 	}
 
 	/** Reassigns unique id's to the current page file */
@@ -3877,8 +3901,39 @@ public class TrpMainWidget {
 		}
 		
 	}
+	
+	public void openViewSetsDialog() {
+		SettingsDialog sd = new SettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getCanvas().getSettings(), getTrpSets());		
+		sd.open();
+	}
+	
+	public void openProxySetsDialog() {
+		ProxySettingsDialog psd = new ProxySettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getTrpSets());		
+		psd.open();
+		Storage.getInstance().updateProxySettings();
+	}
 
+	public void showAboutDialog() {
+		int res = DialogUtil.showMessageDialog(getShell(), ui.APP_NAME, ui.HELP_TEXT, null, MessageDialog.INFORMATION, 
+				new String[] {"OK", "Report bug / feature request"}, 0);
+		
+		if (res == 1) {
+			ui.getTrpMenuBar().getBugReportItem().notifyListeners(SWT.Selection, new Event());
+		}		
+	}
 
+	public void openPAGEXmlViewer() {
+		try {
+			logger.debug("loading transcript source");
+			if (storage.isPageLoaded() && storage.getTranscriptMetadata() != null) {
+				URL url = Storage.getInstance().getTranscriptMetadata().getUrl();
 
+				PAGEXmlViewer xmlviewer = new PAGEXmlViewer(ui.getShell(), SWT.MODELESS);
+				xmlviewer.open(url);
+			}
+		} catch (Exception e1) {
+			onError("Could not open XML", "Could not open XML", e1);
+		}			
+	}
 
 }

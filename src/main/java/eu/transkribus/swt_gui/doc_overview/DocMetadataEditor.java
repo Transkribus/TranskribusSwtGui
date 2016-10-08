@@ -228,7 +228,6 @@ public class DocMetadataEditor extends Composite {
 		if (mw == null)
 			return;
 		
-		
 		updateMetadataFromGui(Storage.getInstance().getDoc().getMd());
 		mw.saveDocMetadata();
 	}

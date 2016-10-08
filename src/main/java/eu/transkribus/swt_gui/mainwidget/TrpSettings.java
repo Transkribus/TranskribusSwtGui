@@ -131,7 +131,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	public static final String COLOR_LINES_PROPERTY = "colorLines";
 	private Color colorBaselines = Colors.getSystemColor(SWT.COLOR_DARK_MAGENTA);
 	public static final String COLOR_BASELINES_PROPERTY = "colorBaselines";
-	private Color colorWords = Colors.getSystemColor(SWT.COLOR_GREEN);
+	private Color colorWords = Colors.getSystemColor(SWT.COLOR_RED);
 	public static final String COLOR_WORDS_PROPERTY = "colorWords";
 	
 	private Color colorTables = Colors.getSystemColor(SWT.COLOR_DARK_YELLOW);
@@ -617,6 +617,15 @@ public class TrpSettings extends APropertyChangeSupport {
 		if (wrappedData instanceof PrintSpaceType) {
 			return sets.colorPrintSpace;
 		}
+		if (wrappedData instanceof TextLineType) {
+			return sets.colorLines;
+		}
+		if (wrappedData instanceof BaselineType) {
+			return sets.colorBaselines;
+		}
+		if (wrappedData instanceof WordType) {
+			return sets.colorWords;
+		}		
 		if (wrappedData instanceof RegionType) {
 			if (wrappedData instanceof TrpTextRegionType)
 				return sets.colorTextRegions;
@@ -630,15 +639,6 @@ public class TrpSettings extends APropertyChangeSupport {
 				
 				return Colors.getSystemColor(SWT.COLOR_DARK_CYAN);				
 			}
-		}
-		if (wrappedData instanceof TextLineType) {
-			return sets.colorLines;
-		}
-		if (wrappedData instanceof BaselineType) {
-			return sets.colorBaselines;
-		}
-		if (wrappedData instanceof WordType) {
-			return sets.colorWords;
 		}
 		
 		return Colors.getSystemColor(SWT.COLOR_BLACK);	
