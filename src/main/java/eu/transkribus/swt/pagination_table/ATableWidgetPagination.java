@@ -248,7 +248,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 				loadingComposite = new LoadingComposite(bottom);
 				loadingComposite.reload.addSelectionListener(new SelectionAdapter() {
 					@Override public void widgetSelected(SelectionEvent e) {
-						pageableTable.refreshPage();
+						onReloadButtonPressed();
 					}
 				});
 				loadingComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -324,6 +324,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 			}
 		});		
 		}
+	}
+	
+	protected void onReloadButtonPressed() {
+		pageableTable.refreshPage();
 	}
 	
 	protected abstract void setPageLoader();

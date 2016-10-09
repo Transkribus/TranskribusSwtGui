@@ -98,13 +98,12 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 		}
 	}
 	
+	@Override protected void onReloadButtonPressed() {
+		super.onReloadButtonPressed();
+		refreshLocks();
+	}
+	
 	void addListener() {
-		getReloadButton().addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				refreshLocks();
-			}
-		});
-		
 		if (showAllLocksBtn != null) {
 			showAllLocksBtn.addSelectionListener(new SelectionAdapter() {
 				@Override public void widgetSelected(SelectionEvent e) {

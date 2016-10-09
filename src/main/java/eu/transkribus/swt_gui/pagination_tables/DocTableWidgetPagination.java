@@ -77,16 +77,24 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		this.collectionId = collectionId;
 	}
 	
+	@Override protected void onReloadButtonPressed() {
+		refreshList(this.collectionId, false, true);
+	}
+	
 	public void refreshList(int collectionId, boolean resetPage) {
+		this.refreshList(collectionId, resetPage, false);
+	}
+	
+	public void refreshList(int collectionId, boolean resetPage, boolean forceReload) {
 		logger.debug("old coll-id: "+this.collectionId+" new coll-id: "+collectionId);
 		
 		boolean hasChanged = this.collectionId != collectionId;
 		setCollectionId(collectionId);
 		
 		logger.debug("refreshing doc table, collectionId="+collectionId+" resetPage="+resetPage+" hasChanged="+hasChanged);
-		if (hasChanged) {
+		if (hasChanged || forceReload) {
 			logger.debug("reloading docs from server...");
-			reloadDocs(resetPage);
+			reloadDocs(resetPage, forceReload);
 		} else {
 			refreshPage(resetPage);
 		}
@@ -111,10 +119,10 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		}
 	}
 	
-	private void reloadDocs(boolean resetPage) {
+	private void reloadDocs(boolean resetPage, boolean forceReload) {
 		Storage store = Storage.getInstance();
 
-		if (collectionId != store.getCollId()) { // have to reload doclist
+		if (forceReload || collectionId != store.getCollId()) { // have to reload doclist
 			store.getConnection().getAllDocsAsync(collectionId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
 				@Override public void failed(Throwable throwable) {
 					DialogUtil.showBallonToolTip(DocTableWidgetPagination.this, SWT.ICON_ERROR, "Error loading documents", throwable.getMessage());
