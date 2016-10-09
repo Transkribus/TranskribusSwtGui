@@ -1,15 +1,14 @@
 package eu.transkribus.swt.pagination_table;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellLabelProvider;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -31,6 +30,7 @@ import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.TableViewerUtils;
 
 public abstract class ATableWidgetPagination<T> extends Composite {
@@ -87,6 +87,9 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	public PageableTable getPageableTable() { return pageableTable; }
 	
 	private static <T> T findItem(List<T> items, String propertyName, Object value) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		if (items == null)
+			return null;
+		
 		for (T i : items) {
 			Object v = PropertyUtils.getProperty(i, propertyName);
 			
@@ -101,7 +104,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	/**
 	 * Loads the page that contains the specified values
 	 */
-	public void loadPage(String propertyName, Object value, boolean refreshFirst) {
+	public synchronized void loadPage(String propertyName, Object value, boolean refreshFirst) {
 		if (propertyName == null || value == null) {
 			logger.error("propertyName or value is null - doin' nothin'!");
 			return;
@@ -114,10 +117,12 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		
 		logger.debug("loading page, propertyName = "+propertyName+" value = "+value+" currentPage = "+c.getCurrentPage());
 
-		try {
+		try {			
 			// 1st: check if object is present at locally loaded dataset:
 			List<T> items = (List<T>) pageableTable.getViewer().getInput();
-			T item = findItem(items, propertyName, value);
+			List<T> itemsCopy = CoreUtils.copyList(items);
+					
+			T item = findItem(itemsCopy, propertyName, value);
 			if (item != null) {
 				logger.debug("found item in current page!");
 				selectElement(item);
@@ -167,11 +172,12 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 					
 					c.setCurrentPage(i);
 					items = (List<T>) pageableTable.getViewer().getInput();
+					itemsCopy = CoreUtils.copyList(items);
 					
 					//items = res.getContent();
 					//
 
-					item = findItem(items, propertyName, value);
+					item = findItem(itemsCopy, propertyName, value);
 					
 					if (item != null) {
 						logger.debug("found item in page "+i);
@@ -295,7 +301,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 				
 				time = System.currentTimeMillis();
 				String text = "Loading...";
-				logger.debug(text);
+				logger.trace(text);
 				loadingComposite.setText(text);
 			}
 
@@ -303,9 +309,9 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 					PageableController controller, Throwable e) {
 //				logger.debug("onAfterPageLoad");
 				long diff = System.currentTimeMillis() - time;
-				logger.debug("after page reload: "+diff);
+				logger.trace("after page reload: "+diff);
 				String text = "Loaded in "+ diff + "(ms) ";
-				logger.debug(text);
+				logger.trace(text);
 				loadingComposite.setText(text);
 				
 //				if (itemToSelect != null) {

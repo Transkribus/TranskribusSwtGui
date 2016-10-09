@@ -35,14 +35,17 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 	
 	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<TrpCollection> methods, boolean singleSelection) {
 		super(parent, style, initialPageSize, methods, singleSelection);
-	}	
+	}
 	
 	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize) {
 		super(parent, style, initialPageSize);
 	}
 	
-	public void refreshList(List<TrpCollection> collections) {
-		this.collections = collections;
+	public synchronized void refreshList(List<TrpCollection> collections) {
+//		this.collections = collections;
+		
+		this.collections = new ArrayList<>();
+		this.collections.addAll(collections);
 		
 		if (USE_LIST_LOADER && listLoader!=null) {
 			listLoader.setItems(this.collections);

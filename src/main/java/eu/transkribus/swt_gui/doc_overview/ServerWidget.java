@@ -1,16 +1,12 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -32,7 +28,8 @@ import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.Storage.LoginOrLogoutEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
@@ -85,11 +82,9 @@ public class ServerWidget extends Composite {
 	}
 	
 	private void addListener() {
-		Storage.getInstance().addObserver(new Observer() {
-			@Override public void update(Observable arg0, Object arg1) {
-				if (arg1 instanceof LoginOrLogoutEvent) {
-					updateLoggedIn();
-				}
+		Storage.getInstance().addListener(new IStorageListener() {
+			@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+				updateLoggedIn();
 			}
 		});
 	}

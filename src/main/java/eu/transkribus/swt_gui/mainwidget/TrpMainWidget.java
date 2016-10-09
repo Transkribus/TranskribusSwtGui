@@ -140,7 +140,7 @@ import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
 import eu.transkribus.swt_gui.mainwidget.listener.RegionsPagingToolBarListener;
-import eu.transkribus.swt_gui.mainwidget.listener.StorageObserver;
+import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetStorageListener;
 import eu.transkribus.swt_gui.mainwidget.listener.TranscriptObserver;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetKeyListener;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetViewListener;
@@ -210,6 +210,7 @@ public class TrpMainWidget {
 	ToolsWidgetListener laWidgetListener;
 	JobTableWidgetListener jobOverviewWidgetListener;
 	TranscriptsTableWidgetListener versionsWidgetListener;
+	TrpMainWidgetStorageListener mainWidgetStorageListener;
 //	CollectionManagerListener collectionsManagerListener;
 	TrpMenuBarListener menuListener;
 	
@@ -701,8 +702,8 @@ public class TrpMainWidget {
 		versionsWidgetListener = new TranscriptsTableWidgetListener(this);
 
 		// storage observer:
-		storage.addObserver(new StorageObserver(this));
-		
+		mainWidgetStorageListener = new TrpMainWidgetStorageListener(this);
+
 //		ui.getServerWidget().getShowJobsBtn().addSelectionListener(new SelectionListener() {
 //			@Override public void widgetSelected(SelectionEvent e) {
 //				openJobsDialog();

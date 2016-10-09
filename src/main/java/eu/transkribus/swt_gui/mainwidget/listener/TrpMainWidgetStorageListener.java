@@ -10,40 +10,33 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.Storage.DocLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.Storage.DocMetadataUpdateEvent;
-import eu.transkribus.swt_gui.mainwidget.Storage.JobUpdateEvent;
-import eu.transkribus.swt_gui.mainwidget.Storage.LoginOrLogoutEvent;
-import eu.transkribus.swt_gui.mainwidget.Storage.MainImageLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.Storage.PageLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.Storage.TranscriptListLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.Storage.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
-public class StorageObserver extends AStorageObserver {
-	private static final Logger logger = LoggerFactory.getLogger(StorageObserver.class);
+public class TrpMainWidgetStorageListener implements IStorageListener {
+	private static final Logger logger = LoggerFactory.getLogger(TrpMainWidgetStorageListener.class);
 	
 	Storage storage = Storage.getInstance();
 	TrpMainWidget mw;
 	TrpMainWidgetView ui;
 	SWTCanvas canvas;
 	
-	public StorageObserver(TrpMainWidget mainWidget) {
+	public TrpMainWidgetStorageListener(TrpMainWidget mainWidget) {
 		this.mw = mainWidget;
 		this.ui = mw.getUi();
 		this.canvas = ui.getCanvas();
+		
+		storage.addListener(this);
 	}
 	
-	@Override protected void handleMainImageLoadEvent(MainImageLoadEvent mile) {
+	@Override public void handleMainImageLoadEvent(MainImageLoadEvent mile) {
 		if (storage.isPageLoaded() && storage.getCurrentImage() != null) {
 			canvas.getScene().setMainImage(storage.getCurrentImage());
 			canvas.redraw();
 		}
 	}
 	
-	@Override protected void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
+	@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
 		
 		
 		// OLD stuff - update of available collections and reloading doc list now gets handled via CollectionComboViewer!
@@ -55,7 +48,7 @@ public class StorageObserver extends AStorageObserver {
 //			mw.reloadDocList(cle.collections.get(0));
 	}
 	
-	@Override protected void handleJobUpdate(JobUpdateEvent jue) {
+	@Override public void handleJobUpdate(JobUpdateEvent jue) {
 		TrpJobStatus job = jue.job;
 		
 		boolean isThisDocOpen = true;
@@ -94,7 +87,7 @@ public class StorageObserver extends AStorageObserver {
 		mw.updatePageLock();
 	}
 	
-	@Override protected void handleDocLoadEvent(DocLoadEvent dle) {
+	@Override public void handleDocLoadEvent(DocLoadEvent dle) {
 		logger.debug("document loaded event: "+dle.doc);
 		canvas.setMode(CanvasMode.SELECTION);
 		SWTUtil.setEnabled(mw.getUi().getExportDocumentButton(), dle.doc!=null);
@@ -110,14 +103,14 @@ public class StorageObserver extends AStorageObserver {
 		mw.updateDocumentInfo();
 	}
 	
-	@Override protected void handleTranscriptListLoadEvent(TranscriptListLoadEvent arg) {
+	@Override public void handleTranscriptListLoadEvent(TranscriptListLoadEvent arg) {
 		logger.debug("setting transcripts list: "+arg.transcripts);
 		ui.getVersionsWidget().refreshPage(true);
 		
 //		ui.getToolsWidget().updateVersions(arg.transcripts);
 	}
 
-	@Override protected void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+	@Override public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
 		canvas.setMode(CanvasMode.SELECTION);
 		mw.updatePageLock();
 		ui.getVersionsWidget().getPageableTable().getViewer().refresh();
@@ -132,7 +125,7 @@ public class StorageObserver extends AStorageObserver {
 		ui.getCommentsWidget().reloadComments();
 	}
 	
-	@Override protected void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
 		logger.debug("handling login event: "+arg);
 		canvas.setMode(CanvasMode.SELECTION);
 		if (arg.login) {
@@ -144,14 +137,14 @@ public class StorageObserver extends AStorageObserver {
 		}
 	}
 
-	@Override protected void handlePageLoadEvent(PageLoadEvent arg) {
+	@Override public void handlePageLoadEvent(PageLoadEvent arg) {
 		canvas.setMode(CanvasMode.SELECTION);
 		
 		// generate thumb for loaded page if local doc:
 		mw.createThumbForCurrentPage();
 	}
 	
-	@Override protected void handleDocMetadataUpdateEvent(DocMetadataUpdateEvent e) {
+	@Override public void handleDocMetadataUpdateEvent(DocMetadataUpdateEvent e) {
 		mw.updateDocumentInfo();
 	}
 

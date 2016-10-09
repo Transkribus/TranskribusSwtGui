@@ -1,8 +1,6 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.Date;
-import java.util.Observable;
-import java.util.Observer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -24,14 +22,13 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
-import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SCSimpleDateTimeWidget;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.Storage.DocLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
 import eu.transkribus.swt_gui.tools.LanguageSelectionTable;
 
 public class DocMetadataEditor extends Composite {
@@ -213,10 +210,9 @@ public class DocMetadataEditor extends Composite {
 			}
 		});
 		
-		Storage.getInstance().addObserver(new Observer() {
-			@Override public void update(Observable o, Object arg) {
-				if (arg instanceof DocLoadEvent) {
-					DocLoadEvent dle = (DocLoadEvent) arg;
+		Storage.getInstance().addListener(new IStorageListener() {
+			@Override public void handleDocLoadEvent(DocLoadEvent dle) {
+				if (dle.doc != null) {
 					setMetadataToGui(dle.doc.getMd());
 				}
 			}

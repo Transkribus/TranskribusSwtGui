@@ -2,8 +2,6 @@ package eu.transkribus.swt_gui.upload;
 
 import java.util.List;
 
-import javax.ws.rs.ServerErrorException;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.window.ApplicationWindow;
@@ -26,16 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.io.TrpDocUploadZipHttp;
-import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.listener.AStorageObserver;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
 
 public class UploadDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(UploadDialog.class);
@@ -140,8 +135,8 @@ public class UploadDialog extends Dialog {
 	}
 		
 	private void addListener() {
-		store.addObserver(new AStorageObserver() {
-			@Override protected void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
+		store.addListener(new IStorageListener() {
+			@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
 				if (getShell() != null && !getShell().isDisposed())
 					updateCollections();
 			}

@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Set;
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBException;
 
@@ -80,139 +82,26 @@ import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.CollectionsLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.DocListLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.DocLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.DocMetadataUpdateEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.JobUpdateEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.LoginOrLogoutEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.MainImageLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.PageLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.TranscriptListLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.TranscriptLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.TranscriptSaveEvent;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
 import eu.transkribus.util.Utils;
 
 /** Singleton class that contains all data related to loading a transcription */
-public class Storage extends Observable {
+public class Storage {
 	private final static Logger logger = LoggerFactory.getLogger(Storage.class);	
-
-	@SuppressWarnings("serial")
-	public static class LoginOrLogoutEvent extends Event {
-		public final boolean login;
-		public TrpUserLogin user;
-		public String serverUri;
-
-		public LoginOrLogoutEvent(Object source, boolean login, TrpUserLogin user, String serverUri) {
-			super(source, login ? "Login" : "Logout");
-			this.login = login;
-			this.user = user;
-			this.serverUri = serverUri;
-		}
-	}
-
-	@SuppressWarnings("serial")
-	public static class JobUpdateEvent extends Event {
-		public final TrpJobStatus job;
-//		public boolean allJobsUpdated = false;
-
-		public JobUpdateEvent(Object source, TrpJobStatus job) {
-			super(source, "Job update");
-			this.job = job;
-		}
-	}
-
-	@SuppressWarnings("serial")
-	public static class DocLoadEvent extends Event {
-		public final TrpDoc doc;
-
-		public DocLoadEvent(Object source, TrpDoc doc) {
-			super(source, "Document loaded");
-			this.doc = doc;
-		}
-	}
-	
-	@SuppressWarnings("serial")
-	public static class MainImageLoadEvent extends Event {
-		public final CanvasImage image;
-
-		public MainImageLoadEvent(Object source, CanvasImage image) {
-			super(source, "Main image loaded");
-			this.image = image;
-		}
-	}
-
-	@SuppressWarnings("serial")
-	public static class PageLoadEvent extends Event {
-		public final TrpDoc doc;
-		public final TrpPage page;
-
-		public PageLoadEvent(Object source, TrpDoc doc, TrpPage page) {
-			super(source, "Page loaded");
-			this.doc = doc;
-			this.page = page;
-		}
-	}
-	
-	@SuppressWarnings("serial")
-	public static class TranscriptSaveEvent extends Event {
-		public final int colId;
-		public final TrpTranscriptMetadata md;
-
-		public TranscriptSaveEvent(Object source, int colId, TrpTranscriptMetadata md) {
-			super(source, "Transcript saved");
-			this.colId = colId;
-			this.md = md;
-		}
-	}
-
-	@SuppressWarnings("serial")
-	public static class TranscriptListLoadEvent extends Event {
-		public final TrpDoc doc;
-		public final TrpPage page;
-		public final List<TrpTranscriptMetadata> transcripts;
-
-		public TranscriptListLoadEvent(Object source, TrpDoc doc, TrpPage page, List<TrpTranscriptMetadata> transcripts) {
-			super(source, "Transcript list loaded");
-			this.doc = doc;
-			this.page = page;
-
-			if (transcripts != null)
-				this.transcripts = new ArrayList<>(transcripts);
-			else
-				this.transcripts = null;
-		}
-	}
-	
-	@SuppressWarnings("serial")
-	public static class DocMetadataUpdateEvent extends Event {
-		public final TrpDoc doc;
-		public final TrpDocMetadata md;
-
-		public DocMetadataUpdateEvent(Object source, TrpDoc doc, TrpDocMetadata md) {
-			super(source, "Doc metadata updated");
-			this.doc = doc;
-			this.md = md;
-		}
-	}
-
-	@SuppressWarnings("serial")
-	public static class TranscriptLoadEvent extends Event {
-		public final TrpDoc doc;
-		public final TrpPage page;
-		public final JAXBPageTranscript transcript;
-
-		public TranscriptLoadEvent(Object source, TrpDoc doc, TrpPage page, JAXBPageTranscript transcript) {
-			super(source, "Transcript loaded");
-			this.doc = doc;
-			this.page = page;
-			this.transcript = transcript;
-		}
-	}
-	
-	@SuppressWarnings("serial")
-	public static class CollectionsLoadEvent extends Event {
-		public final TrpUserLogin user;
-		public final List<TrpCollection> collections;
-
-		public CollectionsLoadEvent(Object source, TrpUserLogin user, List<TrpCollection> collections) {
-			super(source, "Collections loaded");
-			this.user = user;
-			this.collections = collections;
-		}
-	}
 
 	final int N_IMAGES_TO_PRELOAD_PREVIOUS = 1;
 	final int N_IMAGES_TO_PRELOAD_NEXT = 1;
@@ -224,9 +113,11 @@ public class Storage extends Observable {
 
 	// private int currentTranscriptIndex = 0;
 
-	private List<TrpDocMetadata> remoteDocList = Collections.synchronizedList(new ArrayList());
-//	private List<TrpJobStatus> jobs = new ArrayList<>();
+	private List<TrpDocMetadata> docList = Collections.synchronizedList(new ArrayList<>());
+	private List<TrpDocMetadata> userDocList = Collections.synchronizedList(new ArrayList<>());
 	
+	private int collId;
+		
 	private List<String> htrModelList = new ArrayList<>(0);
 
 	private TrpDoc doc = null;
@@ -249,7 +140,7 @@ public class Storage extends Observable {
 	private TrpServerConn conn = null;
 	private TrpUserLogin user = null;
 	
-	private List<TrpCollection> collections = new ArrayList<>();
+	private List<TrpCollection> collections = Collections.synchronizedList(new ArrayList<>());
 
 	private static DocJobUpdater docUpdater;
 	private DataCache<URL, CanvasImage> imCache;
@@ -260,10 +151,21 @@ public class Storage extends Observable {
 	FimgStoreImgMd imgMd;
 	
 //	private int currentColId = -1;
+	
+	Set<IStorageListener> listener = new HashSet<>();
 
 	private Storage() {
 		initImCache();
 		initTranscriptCache();
+		addInternalListener();
+	}
+	
+	private void addInternalListener() {
+		addListener(new IStorageListener() {
+			@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+				reloadUserDocs();
+			}
+		});
 	}
 	
 	public TrpPageType getOrBuildPage(TrpTranscriptMetadata md, boolean keepAlways) throws Exception {
@@ -472,22 +374,6 @@ public class Storage extends Observable {
 	// }
 	// return false;
 	// }
-
-	public void logout() {
-		try {
-			if (conn != null)
-				conn.close();
-		} catch (Throwable th) {
-			logger.error("Error logging out: " + th.getMessage(), th);
-		} finally {
-			clearCollections();
-			conn = null;
-			user = null;
-//			clearDocList();
-//			jobs = new ArrayList<>();
-			sendEvent(new LoginOrLogoutEvent(this, false, null, null));
-		}
-	}
 
 	public TrpUserLogin getUser() {
 		return user;
@@ -766,15 +652,25 @@ public class Storage extends Observable {
 	public CanvasImage getCurrentImg() {
 		return currentImg;
 	}
+	
+	public boolean addListener(IStorageListener l) {
+		return listener.add(l);
+	}
+	
+	public boolean removeListener(IStorageListener l) {
+		return listener.remove(l);
+	}	
 
 	private void sendEvent(final Event event) {
 		if (Thread.currentThread() == Display.getDefault().getThread()) {
-			setChanged();
-			notifyObservers(event);
+			for (IStorageListener l : listener) {
+				l.handleEvent(event);
+			}
 		} else {
 			Display.getDefault().asyncExec(() -> {
-				setChanged();
-				notifyObservers(event);
+				for (IStorageListener l : listener) {
+					l.handleEvent(event);
+				}
 			});
 		}
 
@@ -806,40 +702,75 @@ public class Storage extends Observable {
 //		else
 //			return 0;
 	}
+		
+	public void reloadUserDocs() {
+		logger.debug("reloading docs by user!");
+		
+		if (user != null) {
+			conn.getAllDocsByUserAsync(0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+				@Override public void failed(Throwable throwable) {
+					logger.error("Error loading documents by user "+user+" - "+throwable.getMessage(), throwable);
+				}
+				
+				@Override public void completed(List<TrpDocMetadata> response) {
+					logger.debug("loaded docs by user "+user+" - "+response.size()+" thread: "+Thread.currentThread().getName());
+					synchronized (this) {
+						userDocList.clear();
+						userDocList.addAll(response);
+						
+						sendEvent(new DocListLoadEvent(this, userDocList, true));
+					}
+				}
+			});
+		} else {
+			synchronized (this) {
+				userDocList.clear();				
+				sendEvent(new DocListLoadEvent(this, userDocList, true));
+			}
+		}
+	}
+	
+	public List<TrpDocMetadata> getUserDocList() {
+		return userDocList;
+	}
 
 	public List<TrpDocMetadata> reloadDocList(int colId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		if (colId == -1)
-			return remoteDocList;
+			return docList;
 
 		logger.debug("reloading doclist for collection: "+colId);
-		
+
 		if (true) {
-			remoteDocList.clear();
-			remoteDocList.addAll(conn.getAllDocs(colId));
+			synchronized (this) {
+				docList.clear();
+				docList.addAll(conn.getAllDocs(colId));
+			}
 		} else {
-			remoteDocList = conn.getAllDocs(colId);
+			docList = conn.getAllDocs(colId);
 		}
 		
-		logger.debug("loaded "+remoteDocList.size()+" nr of docs");
+		this.collId = colId;
+		
+		logger.debug("loaded "+docList.size()+" nr of docs of collection "+collId);
 		
 //		this.currentColId = colId;
 		
-		return remoteDocList;
+		sendEvent(new DocListLoadEvent(this, docList, false));
+		
+		return docList;
 	}
 	
-	public void clearDocList() {
-		if (remoteDocList != null) {
-			remoteDocList.clear();
-		}
+	public int getCollId() {
+		return collId;
 	}
-	
+		
 	public boolean hasRemoteDoc(int index) {
-		return (remoteDocList != null && index >= 0 && index < remoteDocList.size());
+		return (docList != null && index >= 0 && index < docList.size());
 	}
 	
-	public List<TrpDocMetadata> getRemoteDocList() {
-		return remoteDocList;
+	public List<TrpDocMetadata> getDocList() {
+		return docList;
 	}
 
 	public void invalidateSession() throws SessionExpiredException, ServerErrorException, Exception {
@@ -883,6 +814,22 @@ public class Storage extends Observable {
 			}
 		}
 		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
+	}
+	
+	public void logout() {
+		try {
+			if (conn != null)
+				conn.close();
+		} catch (Throwable th) {
+			logger.error("Error logging out: " + th.getMessage(), th);
+		} finally {
+			clearCollections();
+			conn = null;
+			user = null;
+//			clearDocList();
+//			jobs = new ArrayList<>();
+			sendEvent(new LoginOrLogoutEvent(this, false, null, null));
+		}
 	}
 
 //	public void reloadJobs(boolean filterByUser) throws SessionExpiredException, ServerErrorException, IllegalArgumentException {
@@ -1706,7 +1653,7 @@ public class Storage extends Observable {
 		return ccm;
 	}
 	
-	public void clearCollections() {
+	public synchronized void clearCollections() {
 		collections.clear();
 		sendEvent(new CollectionsLoadEvent(this, user, collections));
 	}

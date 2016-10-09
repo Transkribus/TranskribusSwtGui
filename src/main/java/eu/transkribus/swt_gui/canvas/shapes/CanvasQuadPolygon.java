@@ -663,7 +663,7 @@ public class CanvasQuadPolygon extends CanvasPolygon {
 //	@Override
 //	public Pair<ICanvasShape, ICanvasShape> splitShape(int x1, int y1, int x2, int y2) {
 //		//TODO use intersectionPoints method in both directions to determine split points and their index, then construct the two
-//		// splits using them -> Polygons2D.intersection not needed here!!
+//		// splits using them -> Polygons2D.intersection not needed here
 //		
 //		// try to find horizontal or vertical split points:
 //		SplitDirection dir = SplitDirection.HORIZONAL;

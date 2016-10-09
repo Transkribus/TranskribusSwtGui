@@ -9,7 +9,6 @@ import java.util.List;
 
 import javax.ws.rs.ServerErrorException;
 
-import org.apache.bcel.generic.GETSTATIC;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IInputValidator;
@@ -38,10 +37,10 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.listener.AStorageObserver;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.CollectionsLoadEvent;
 
-public class CollectionManagerListener extends AStorageObserver implements SelectionListener, DragSourceListener  {
+public class CollectionManagerListener implements IStorageListener, SelectionListener, DragSourceListener  {
 	private final static Logger logger = LoggerFactory.getLogger(CollectionManagerListener.class);
 	
 	CollectionManagerDialog cmw;
@@ -70,8 +69,7 @@ public class CollectionManagerListener extends AStorageObserver implements Selec
 		cmw.modifyCollectionBtn.addSelectionListener(this);
 		cmw.deleteDocumentBtn.addSelectionListener(this);
 		cmw.duplicatedDocumentBtn.addSelectionListener(this);
-		
-		store.addObserver(this);
+		store.addListener(this);
 	}
 	
 	public void detach() {
@@ -87,8 +85,7 @@ public class CollectionManagerListener extends AStorageObserver implements Selec
 		cmw.modifyCollectionBtn.removeSelectionListener(this);
 		cmw.deleteDocumentBtn.removeSelectionListener(this);
 		cmw.duplicatedDocumentBtn.removeSelectionListener(this);
-		
-		store.deleteObserver(this);
+		store.removeListener(this);
 	}
 
 	@Override public void widgetSelected(SelectionEvent e) {
@@ -126,7 +123,7 @@ public class CollectionManagerListener extends AStorageObserver implements Selec
 		}
 	}
 	
-	@Override protected void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
+	@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
 		cmw.collectionsTv.refreshList(cle.collections);
 	}
 	

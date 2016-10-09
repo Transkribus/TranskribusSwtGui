@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -20,19 +18,14 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -44,8 +37,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.listener.AStorageObserver;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
 import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class CollectionComboViewerWidget extends Composite implements Observer {
@@ -203,8 +195,8 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 			});
 		}
 		
-		storage.addObserver(new AStorageObserver() {
-			@Override protected void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
+		storage.addListener(new IStorageListener() {
+			@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
 				if (!isDisposed() && getShell() != null && !getShell().isDisposed())
 					updateCollections();
 			}

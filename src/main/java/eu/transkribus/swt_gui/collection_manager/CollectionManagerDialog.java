@@ -1,11 +1,8 @@
 package eu.transkribus.swt_gui.collection_manager;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 
 import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.client.InvocationCallback;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -13,6 +10,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.nebula.widgets.pagination.IPageLoader;
+import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -38,20 +37,18 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpUserCollection;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
-import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
 import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.UserTableWidgetPagination;
@@ -261,6 +258,23 @@ public class CollectionManagerDialog extends Dialog {
 			}
 		});
 		
+		Storage.getInstance().addListener(new IStorageListener() {
+			@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
+				if (e.isDocsByUser) {
+					Display.getDefault().asyncExec(() -> {
+						
+						IPageLoader pl = myDocsTableWidget.getPageableTable().getPageLoader();
+						if (pl instanceof PageResultLoaderList) {
+							PageResultLoaderList<TrpDocMetadata> pll = (PageResultLoaderList<TrpDocMetadata>) pl;
+							
+							pll.setItems(Storage.getInstance().getUserDocList());
+						}
+						
+						myDocsTableWidget.refreshPage(true);
+					});
+				}
+			}
+		});
 	}
 	
 	private void createFindUsersWidget(Composite container) {
@@ -430,59 +444,65 @@ public class CollectionManagerDialog extends Dialog {
 			}
 		});
 		
-
+		myDocsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25) {
+			@Override protected void setPageLoader() {
+				PageResultLoaderList<TrpDocMetadata> listLoader = new PageResultLoaderList<>(Storage.getInstance().getUserDocList());
+				pageableTable.setPageLoader(listLoader);
+			}
+		};
 		
-		myDocsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25, new IPageLoadMethods<TrpDocMetadata>() {
-			Storage store = Storage.getInstance();
-			
-			@Override public int loadTotalSize() {			
-				int N = 0;
-				
-				if (store.isLoggedIn()) {
-					try {
-						N = store.getConnection().countMyDocs();
-						logger.debug("n-docs = "+N);
-					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
-						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-					}
-				}
-				
-				return N;
-			}
-			
-			@Override public List<TrpDocMetadata> loadPage(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {
-				List<TrpDocMetadata> docs = new ArrayList<>();
-				
-				if (store.isLoggedIn()) {
-					try {
-						Future fut = store.getConnection().getAllDocsByUserAsync(0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
-
-							@Override public void completed(List<TrpDocMetadata> docs) {
-								logger.info("SUCCCCESSSS");
-								logger.info("response = "+docs);
-							}
-
-							@Override public void failed(Throwable throwable) {
-								logger.info("ERRRROOORr");
-								logger.error("error getting my docs: "+throwable.getMessage(), throwable);
-							}
-							
-						});	
-						fut.get();
-						
-						/*
-						docs = store.getConnection().getAllDocsByUser(fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
-						logger.debug("docs pagesize = "+docs.size());
-						*/
-						
-					} catch (Exception e) {
-						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-					}
-				}
-				
-				return docs;
-			}
-		});		
+//		myDocsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25, new IPageLoadMethods<TrpDocMetadata>() {
+//			Storage store = Storage.getInstance();
+//						
+//			@Override public int loadTotalSize() {	
+//				int N = 0;
+//				
+//				if (store.isLoggedIn()) {
+//					try {
+//						N = store.getConnection().countMyDocs();
+//						logger.debug("n-docs = "+N);
+//					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
+//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
+//					}
+//				}
+//				
+//				return N;
+//			}
+//			
+//			@Override public List<TrpDocMetadata> loadPage(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {
+//				List<TrpDocMetadata> docs = new ArrayList<>();
+//				
+//				if (store.isLoggedIn()) {
+//					try {
+//						Future fut = store.getConnection().getAllDocsByUserAsync(0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+//
+//							@Override public void completed(List<TrpDocMetadata> docs) {
+//								logger.info("SUCCCCESSSS");
+//								logger.info("response = "+docs);
+//							}
+//
+//							@Override public void failed(Throwable throwable) {
+//								logger.info("ERRRROOORr");
+//								logger.error("error getting my docs: "+throwable.getMessage(), throwable);
+//							}
+//							
+//						});
+////						fut.get();
+//						
+//						/*
+//						docs = store.getConnection().getAllDocsByUser(fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+//						logger.debug("docs pagesize = "+docs.size());
+//						*/
+//						
+//					} catch (Exception e) {
+//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
+//					}
+//				}
+//				
+//				return docs;
+//			}
+//		});	
+		
 		myDocsTableWidget.refreshPage(true);
 		myDocsTableWidget.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
@@ -852,6 +872,7 @@ public class CollectionManagerDialog extends Dialog {
 		if (c == null)
 			return;
 		
+		logger.debug("loading collection with id: "+c.getColId());
 		collectionsTv.loadPage("colId", c.getColId(), false);
 	}
 	
