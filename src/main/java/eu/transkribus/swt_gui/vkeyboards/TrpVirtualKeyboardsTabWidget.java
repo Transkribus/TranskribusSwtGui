@@ -34,8 +34,11 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 	
 	public static final File VK_XML = new File("virtualKeyboards.xml");
 	
-	Set<SelectionListener> selListener = new HashSet<>();
+
 	XMLPropertiesConfiguration conf;
+	
+	Set<ITrpVirtualKeyboardsTabWidgetListener> listener = new HashSet<>();
+//	Set<SelectionListener> selListener = new HashSet<>();
 		
 	public TrpVirtualKeyboardsTabWidget(Composite parent, int style) {
 		super(parent, style);
@@ -127,20 +130,22 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 
 		return unicodeLists;
 	}
-	
-
 
 	@Override
 	public void checkSubclass() {}	
 	
 	
-	public void addKeySelectionListener(SelectionListener l) {
-		selListener.add(l);
+	public void addListener(ITrpVirtualKeyboardsTabWidgetListener l) {
+		listener.add(l);
 	}
 	
-	public void removeKeySelectionListener(SelectionListener l) {
-		selListener.remove(l);
-	}
+//	public void addKeySelectionListener(SelectionListener l) {
+//		selListener.add(l);
+//	}
+//	
+//	public void removeKeySelectionListener(SelectionListener l) {
+//		selListener.remove(l);
+//	}
 	
 	public VirtualKeyboard getSelected() {
 		if (getSelection()!=null) {
@@ -162,15 +167,20 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 		VirtualKeyboard vk = new VirtualKeyboard(this, SWT.NONE, ul);
 		vk.addKeySelectionListener(new SelectionListener() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				for (SelectionListener l : TrpVirtualKeyboardsTabWidget.this.selListener) {
-					Event e1 = new Event();
-					e1.widget = TrpVirtualKeyboardsTabWidget.this;
-
-					e1.detail = e.detail;
-					e1.text = e.text;
-					
-					l.widgetSelected(new SelectionEvent(e1));
+				
+				for (ITrpVirtualKeyboardsTabWidgetListener l : TrpVirtualKeyboardsTabWidget.this.listener) {
+					l.onVirtualKeyPressed(TrpVirtualKeyboardsTabWidget.this, (char) e.detail, e.text);
 				}
+				
+//				for (SelectionListener l : TrpVirtualKeyboardsTabWidget.this.selListener) {
+//					Event e1 = new Event();
+//					e1.widget = TrpVirtualKeyboardsTabWidget.this;
+//
+//					e1.detail = e.detail;
+//					e1.text = e.text;
+//					
+//					l.widgetSelected(new SelectionEvent(e1));
+//				}
 			}
 			
 			@Override public void widgetDefaultSelected(SelectionEvent e) {
@@ -206,27 +216,38 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 		shell.setLayout(new FillLayout());
 		
 		final TrpVirtualKeyboardsTabWidget vk = new TrpVirtualKeyboardsTabWidget(shell, 0);
-//		if (false)
-		vk.addKeySelectionListener(new SelectionListener() {
-			
-			@Override public void widgetSelected(SelectionEvent e) {
-				if (e.getSource() == vk) {
-					logger.info("event = "+e);
-					Character c = (char) e.detail;
-					logger.info("key pressed: "+c+" detail = "+e.detail+", name: "+e.text);
-					logger.info("name =" +e.text);
-					logger.info("e.detail =" +e.detail);
-					
-//					ATranscriptionWidget tw = ui.getSelectedTranscriptionWidget();
-//					if (tw != null) {
-//						tw.insertTextIfFocused(""+c);
-//					}
-				}
-			}
-			
-			@Override public void widgetDefaultSelected(SelectionEvent e) {
+		
+		vk.addListener(new ITrpVirtualKeyboardsTabWidgetListener() {
+			@Override public void onVirtualKeyPressed(TrpVirtualKeyboardsTabWidget w, char c, String description) {
+				logger.info("widget: "+vk);
+				logger.info("c = "+c);
+				logger.info("description = "+description);
+				
+				
 			}
 		});
+
+//		if (false)
+//		vk.addKeySelectionListener(new SelectionListener() {
+//			
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				if (e.getSource() == vk) {
+//					logger.info("event = "+e);
+//					Character c = (char) e.detail;
+//					logger.info("key pressed: "+c+" detail = "+e.detail+", name: "+e.text);
+//					logger.info("name =" +e.text);
+//					logger.info("e.detail =" +e.detail);
+//					
+////					ATranscriptionWidget tw = ui.getSelectedTranscriptionWidget();
+////					if (tw != null) {
+////						tw.insertTextIfFocused(""+c);
+////					}
+//				}
+//			}
+//			
+//			@Override public void widgetDefaultSelected(SelectionEvent e) {
+//			}
+//		});
 
 		shell.setSize(400, 800);
 		

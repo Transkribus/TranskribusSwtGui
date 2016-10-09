@@ -65,12 +65,12 @@ public class SimpleDocSearchComposite extends Composite {
 	int colId;
 	int colIdToSearch;
 
-	public SimpleDocSearchComposite(Composite parent, int style, int collectiondId) {
+	public SimpleDocSearchComposite(Composite parent, int style, int collectiondId, CollectionManagerDialog colDialog) {
 		super(parent, style);
 			try{
 			
 			colId = collectiondId;
-			colDialog = CollectionManagerDialog.getInstance();
+			this.colDialog = colDialog;
 			userDocs = store.getConnection().getAllDocsByUser(0, -1, null, null);
 			createContents();
 			//updateCollections();

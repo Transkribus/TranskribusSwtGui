@@ -168,7 +168,7 @@ public abstract class ATextAndSearchComposite extends Composite {
 		
 		try {
 			if (scope.equals(SCOPE_COLL)) {
-				final TrpCollection currCol =  mw.getUi().getDocOverviewWidget().getSelectedCollection();
+				final TrpCollection currCol =  mw.getUi().getServerWidget().getSelectedCollection();
 				final int currentCollID = currCol == null ? -1 : currCol.getColId();
 
 				if (currCol == null) {

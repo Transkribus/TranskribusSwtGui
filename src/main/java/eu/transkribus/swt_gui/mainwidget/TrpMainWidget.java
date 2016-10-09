@@ -31,6 +31,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
+import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.databinding.swt.SWTObservables;
@@ -38,6 +39,7 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -45,9 +47,13 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -94,6 +100,7 @@ import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CreateThumbsService;
 import eu.transkribus.swt.util.DialogUtil;
@@ -125,8 +132,10 @@ import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
+import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
-import eu.transkribus.swt_gui.doc_overview.DocInfoWidgetListener;
+import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
+import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
@@ -134,7 +143,7 @@ import eu.transkribus.swt_gui.mainwidget.listener.RegionsPagingToolBarListener;
 import eu.transkribus.swt_gui.mainwidget.listener.StorageObserver;
 import eu.transkribus.swt_gui.mainwidget.listener.TranscriptObserver;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetKeyListener;
-import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetListener;
+import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetViewListener;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
@@ -152,6 +161,9 @@ import eu.transkribus.swt_gui.upload.UploadDialog;
 import eu.transkribus.swt_gui.upload.UploadDialogUltimate;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.swt_gui.util.OAuthGuiUtil;
+import eu.transkribus.swt_gui.vkeyboards.ITrpVirtualKeyboardsTabWidgetListener;
+import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsDialog;
+import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsTabWidget;
 import eu.transkribus.util.RecentDocsPreferences;
 
 public class TrpMainWidget {
@@ -167,7 +179,7 @@ public class TrpMainWidget {
 	LoginDialog loginDialog;
 	// LineTranscriptionWidget transcriptionWidget;
 	HashSet<String> userCache = new HashSet<String>();
-	
+
 //	static Preferences prefNode = Preferences.userRoot().node( "/trp/recent_docs" );
 //	private RecentDocsPreferences userPrefs = new RecentDocsPreferences(5, prefNode);
 
@@ -189,8 +201,7 @@ public class TrpMainWidget {
 	LineEditorListener lineEditorListener;
 	StructureTreeListener structTreeListener;
 	DocOverviewListener docOverviewListener;
-	DocInfoWidgetListener docMetadataWidgetListener;
-	TrpMainWidgetListener mainWidgetListener;
+	TrpMainWidgetViewListener mainWidgetViewListener;
 	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
 	CanvasShapeObserver canvasShapeObserver;
@@ -200,6 +211,10 @@ public class TrpMainWidget {
 	JobTableWidgetListener jobOverviewWidgetListener;
 	TranscriptsTableWidgetListener versionsWidgetListener;
 //	CollectionManagerListener collectionsManagerListener;
+	TrpMenuBarListener menuListener;
+	
+	TrpVirtualKeyboardsDialog vkDiag;
+	Dialog jobsDiag, versionsDiag;
 
 	Storage storage; // the data
 	boolean isPageLocked = false;
@@ -217,26 +232,26 @@ public class TrpMainWidget {
 	static TrpMainWidget mw;
 
 	static int tmpCount = 0;
-	
+
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
-			ui.thumbnailWidget.reload();
+			ui.getThumbnailWidget().reload();
 		}
 	};
-	
+
 	private TrpMainWidget(Composite parent) {
 		// GlobalResourceManager.init();
 
 		info = new ProgramInfo();
 		VERSION = info.getVersion();
 		NAME = info.getName();
-		
-		Display.setAppName(NAME+"asdf");
+
+		Display.setAppName(NAME + "asdf");
 		Display.setAppVersion(VERSION);
-		
+
 		// String time = info.getTimestampString();
 		RecentDocsPreferences.init();
-		
+
 		// Display display = Display.getDefault();
 		// canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, this);
 		ui = new TrpMainWidgetView(parent, this);
@@ -247,9 +262,10 @@ public class TrpMainWidget {
 		storage = Storage.getInstance();
 
 		addListener();
+		addUiBindings();
+		
 		enableAutocomplete();
 		updateToolBars();
-
 	}
 
 	public static TrpMainWidget getInstance() {
@@ -282,7 +298,7 @@ public class TrpMainWidget {
 			tip.addTip("No tip found... check your configuration!");
 
 		tip.setStyle(TipStyle.TWO_COLUMNS);
-		
+
 		tip.open(getShell());
 
 		getTrpSets().setShowTipOfTheDay(tip.isShowOnStartup());
@@ -300,7 +316,7 @@ public class TrpMainWidget {
 		} catch (Exception e) {
 			logger.error("Error removing old jar files: " + e.getMessage());
 		}
-		
+
 		//read and set proxy settings
 		storage.updateProxySettings();
 
@@ -308,18 +324,18 @@ public class TrpMainWidget {
 		String tagNamesProp = TrpConfig.getTrpSettings().getTagNames();
 		if (tagNamesProp != null)
 			CustomTagFactory.addCustomDefinedTagsToRegistry(tagNamesProp);
-		
+
 		// check for updates:
 		if (getTrpSets().isCheckForUpdates()) {
 			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
 		}
-		
-		boolean TESTTABLES=false; // test-hook for sebi's table editor
+
+		boolean TESTTABLES = false; // test-hook for sebi's table editor
 		boolean DO_AUTO_LOGIN = true;
 		if (DO_AUTO_LOGIN && getTrpSets().isAutoLogin() && !TESTTABLES) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
-			
-			if(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE.equals(lastAccount)) {
+
+			if (OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE.equals(lastAccount)) {
 				Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
 				if (lastLogin != null) {
 					// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
@@ -329,16 +345,15 @@ public class TrpMainWidget {
 				OAuthProvider prov;
 				try {
 					prov = OAuthProvider.valueOf(lastAccount);
-				} catch(Exception e){
+				} catch (Exception e) {
 					prov = null;
 				}
-				if(prov != null) {
+				if (prov != null) {
 					//TODO get state token from server
 					final String state = "test";
 					OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(prov);
 					try {
-						loginOAuth(TrpServerConn.PROD_SERVER_URI, creds.getRefreshToken(), 
-								state, OAuthGuiUtil.REDIRECT_URI, prov);
+						loginOAuth(TrpServerConn.PROD_SERVER_URI, creds.getRefreshToken(), state, OAuthGuiUtil.REDIRECT_URI, prov);
 					} catch (OAuthTokenRevokedException e) {
 						logger.error("OAuth token was revoked!", e);
 					}
@@ -350,11 +365,11 @@ public class TrpMainWidget {
 		if (getTrpSets().isShowTipOfTheDay() && !DISABLE_TIPS_OF_THE_DAY) {
 			showTipsOfTheDay();
 		}
-		
+
 		if (TESTTABLES) {
 			loadLocalTestset();
 		}
-		
+
 //		SWTUtil.mask2(ui.getStructureTreeWidget()); // TESt
 //		MyInfiniteProgressPanel p = MyInfiniteProgressPanel.getInfiniteProgressPanelFor(ui.getStructureTreeWidget());
 //		p.start();
@@ -398,12 +413,10 @@ public class TrpMainWidget {
 																// to freeze of
 																// progress
 																// dialog
-			
 			if (coll != null)
 				storage.reloadDocList(coll.getColId());
 			
-			getUi().getDocOverviewWidget().refreshDocList();
-			
+			getUi().getServerWidget().refreshDocList();
 //			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 //				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 //					monitor.beginTask("Reloading doclist", IProgressMonitor.UNKNOWN);
@@ -420,12 +433,12 @@ public class TrpMainWidget {
 //			}, "Updating documents", false);
 
 			// update ui:
-			ui.selectDocListTab();
+			ui.getTabWidget().selectServerTab();
 			updatePageInfo();
-			
-			if (ui.getDocOverviewWidget().isCollectionManagerOpen())
-				ui.getDocOverviewWidget().getCollectionManagerDialog().updateCollections();
-			
+
+			if (ui.getServerWidget().isCollectionManagerOpen())
+				ui.getServerWidget().getCollectionManagerDialog().updateCollections();
+
 //			if (storage.getRemoteDocList() != null) {
 //				getUi().getDocOverviewWidget().setInput(storage.getRemoteDocList());
 //				ui.selectDocListTab();
@@ -438,7 +451,7 @@ public class TrpMainWidget {
 			onError("Cannot load document list", "Could not connect to " + ui.getTrpSets().getTrpServer(), e);
 		}
 	}
-	
+
 //	public int getSelectedCollectionId() {
 //		return ui.getDocOverviewWidget().getSelectedCollectionId();
 //	}
@@ -447,13 +460,13 @@ public class TrpMainWidget {
 		try {
 			ui.getJobOverviewWidget().refreshPage(true);
 			storage.startOrResumeJobThread();
-			
+
 //			storage.reloadJobs(!ui.getJobOverviewWidget().getShowAllJobsBtn().getSelection()); // should
-																								// trigger
-																								// event
-																								// that
-																								// updates
-																								// gui!
+			// trigger
+			// event
+			// that
+			// updates
+			// gui!
 		} catch (Exception ex) {
 			onError("Error", "Error during update of jobs", ex);
 		}
@@ -470,7 +483,7 @@ public class TrpMainWidget {
 	public void clearDocList() {
 		String title = ui.APP_NAME;
 
-		getUi().getDocOverviewWidget().clearDocList();
+		getUi().getServerWidget().clearDocList();
 	}
 
 //	public void reloadHtrModels() {
@@ -508,14 +521,14 @@ public class TrpMainWidget {
 
 				c = storage.getDoc().getCollection();
 				if (c != null)
-					currentCollectionStr = c.getColName()+", ID: "+c.getColId();
+					currentCollectionStr = c.getColName() + ", ID: " + c.getColId();
 			}
 		}
 
-		ui.getDocOverviewWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
+		ui.getServerWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
-		ui.getDocOverviewWidget().updateHighlightedRow(docId);
+		ui.getServerWidget().updateHighlightedRow(docId);
 
 //		ui.toolsWidget.updateParameter(st, language);
 
@@ -532,7 +545,7 @@ public class TrpMainWidget {
 		String fn = "";
 		String key = "";
 		int pageNr = -1;
-		String imgUrl="", transcriptUrl="";
+		String imgUrl = "", transcriptUrl = "";
 
 		int docId = -1;
 
@@ -542,14 +555,14 @@ public class TrpMainWidget {
 			if (storage.getPage() != null) {
 				fn = storage.getPage().getImgFileName() != null ? storage.getPage().getImgFileName() : "";
 				key = storage.getPage().getKey() != null ? storage.getPage().getKey() : "";
-				
+
 //				imgUrl = CoreUtils.urlToString(storage.getPage().getUrl());
-				if (storage.getCurrentImage()!=null)
+				if (storage.getCurrentImage() != null)
 					imgUrl = CoreUtils.urlToString(storage.getCurrentImage().url);
 
 				pageNr = storage.getPage().getPageNr();
-				
-				if (storage.getTranscriptMetadata() != null && storage.getTranscriptMetadata().getUrl()!=null) {
+
+				if (storage.getTranscriptMetadata() != null && storage.getTranscriptMetadata().getUrl() != null) {
 					transcriptUrl = CoreUtils.urlToString(storage.getTranscriptMetadata().getUrl());
 				}
 
@@ -562,7 +575,7 @@ public class TrpMainWidget {
 			title += ", Loaded doc: " + loadedDocStr + ", " + loadedPageStr;
 			if (storage.isTranscriptEdited())
 				title += "*";
-			
+
 //			if (shellInfoText.contains("Img Meta Info")){
 //				shellInfoText = shellInfoText.substring(0, shellInfoText.indexOf("Img Meta Info")).concat("Img Meta Info: ("+ storage.getImageMetadata().getXResolution() +")");
 //			}
@@ -570,33 +583,31 @@ public class TrpMainWidget {
 			if (storage.getDoc().isRemoteDoc()) {
 				FimgStoreImgMd imgMd = storage.getCurrentImageMetadata();
 				if (imgMd != null)
-					title += " [Image Meta Info: (Resolution:"+ imgMd.getXResolution() +", w*h: " + imgMd.getWidth() + " * " + imgMd.getHeight() + ") ]";
+					title += " [Image Meta Info: (Resolution:" + imgMd.getXResolution() + ", w*h: " + imgMd.getWidth() + " * " + imgMd.getHeight() + ") ]";
 			}
-			
+
 			TrpTextRegionType currRegion = storage.getCurrentRegionObject();
 			TrpTextLineType currLine = storage.getCurrentLineObject();
 			TrpWordType currWord = storage.getCurrentWordObject();
-			if (currWord != null){
+			if (currWord != null) {
 				java.awt.Rectangle boundingRect = PageXmlUtils.buildPolygon(currWord.getCoords().getPoints()).getBounds();
 				title += " [ current word: w*h: " + boundingRect.width + " * " + boundingRect.height + " ]";
-			}
-			else if (currLine != null){
+			} else if (currLine != null) {
 				java.awt.Rectangle boundingRect = PageXmlUtils.buildPolygon(currLine.getCoords().getPoints()).getBounds();
 				title += " [ current line: w*h: " + boundingRect.width + " * " + boundingRect.height + " ]";
-			}
-			else if (currRegion != null){
+			} else if (currRegion != null) {
 				java.awt.Rectangle boundingRect = PageXmlUtils.buildPolygon(currRegion.getCoords().getPoints()).getBounds();
 				title += " [ current region: w*h: " + boundingRect.width + " * " + boundingRect.height + " ]";
 			}
-			
+
 		}
 
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getLoadedPageText().setText(fn);
 		ui.getDocInfoWidget().getLoadedImageUrl().setText(imgUrl);
 		ui.getDocInfoWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
-		
-		ui.getDocOverviewWidget().updateHighlightedRow(docId);
+
+		ui.getServerWidget().updateHighlightedRow(docId);
 		ui.getShell().setText(title);
 		// updateDocMetadata();
 	}
@@ -609,10 +620,10 @@ public class TrpMainWidget {
 					event.doit = false;
 					return;
 				}
-				
+
 				logger.debug("stopping CreateThumbsService");
 				CreateThumbsService.stop(true);
-				
+
 				System.exit(0);
 //				storage.finalize();
 			}
@@ -630,7 +641,9 @@ public class TrpMainWidget {
 				getUi().getDisplay().removeFilter(SWT.KeyDown, keyListener);
 			}
 		});
-		mainWidgetListener = new TrpMainWidgetListener(this);
+		mainWidgetViewListener = new TrpMainWidgetViewListener(this);
+		menuListener = new TrpMenuBarListener(this);
+		
 		canvasContextMenuListener = new CanvasContextMenuListener(this);
 
 		// pages paging toolbar listener:
@@ -654,7 +667,6 @@ public class TrpMainWidget {
 		structTreeListener = new StructureTreeListener(this);
 		// doc overview listener:
 		docOverviewListener = new DocOverviewListener(this);
-		docMetadataWidgetListener = new DocInfoWidgetListener(ui.getDocInfoWidget());
 		// transcription observer:
 		transcriptObserver = new TranscriptObserver(this);
 		// shape observer:
@@ -673,7 +685,7 @@ public class TrpMainWidget {
 			}
 		});
 
-		ui.thumbnailWidget.addListener(SWT.Selection, new Listener() {
+		ui.getThumbnailWidget().addListener(SWT.Selection, new Listener() {
 			@Override public void handleEvent(Event event) {
 				logger.debug("loading page " + event.index);
 				jumpToPage(event.index);
@@ -690,9 +702,55 @@ public class TrpMainWidget {
 
 		// storage observer:
 		storage.addObserver(new StorageObserver(this));
+		
+//		ui.getServerWidget().getShowJobsBtn().addSelectionListener(new SelectionListener() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				openJobsDialog();
+//			}
+//			@Override public void widgetDefaultSelected(SelectionEvent e) {}
+//		});
 	}
 	
-	public TaggingWidgetListener getTaggingWidgetListener() { return taggingWidgetListener; }
+	private void addUiBindings() {
+		DataBinder db = DataBinder.get();
+		TrpSettings trpSets = getTrpSets();
+				
+		db.bindBeanPropertyToObservableValue(TrpSettings.LEFT_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.LEFT));
+		db.bindBeanPropertyToObservableValue(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.BOTTOM));
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, ui.showPrintspaceItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, ui.showRegionsItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, ui.showLinesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, ui.showBaselinesItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, ui.showWordsItem);
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, ui.renderBlackeningsItem);	
+		
+		if (TrpSettings.ENABLE_LINE_EDITOR)
+			db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINE_EDITOR_PROPERTY, trpSets, ui.showLineEditorToggle);
+		
+		db.bindBeanToWidgetSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getRectangleModeItem());
+		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAutoCreateParentItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAddLineToOverlappingRegionItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_BASELINES_TO_OVERLAPPING_LINES_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAddBaselineToOverlappingLineItem());
+		db.bindBeanToWidgetSelection(TrpSettings.ADD_WORDS_TO_OVERLAPPING_LINES_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAddWordsToOverlappingLineItem());
+		
+		db.bindBeanToWidgetSelection(CanvasSettings.LOCK_ZOOM_ON_FOCUS_PROPERTY, TrpConfig.getCanvasSettings(), ui.canvasWidget.getToolbar().getLockZoomOnFocusItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.DELETE_LINE_IF_BASELINE_DELETED_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getDeleteLineIfBaselineDeletedItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getSelectNewlyCreatedShapeItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, ui.showReadingOrderRegionsMenuItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, ui.showReadingOrderLinesMenuItem);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, ui.showReadingOrderWordsMenuItem);			
+	}
+	
+	public TaggingWidgetListener getTaggingWidgetListener() {
+		return taggingWidgetListener;
+	}
 
 	// boolean isThisDocOpen(TrpJobStatus job) {
 	// return storage.isDocLoaded() && storage.getDoc().getId()==job.getDocId();
@@ -724,13 +782,13 @@ public class TrpMainWidget {
 				@Override protected void okPressed() {
 					String server = getServerCombo().getText();
 					String accType = getAccountType();
-					
+
 					boolean success;
-					switch (accType){
+					switch (accType) {
 					case "Google":
 						final String state = "test";
 						OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(OAuthProvider.Google);
-						if(creds == null) {
+						if (creds == null) {
 							success = false;
 						} else {
 							try {
@@ -741,7 +799,7 @@ public class TrpMainWidget {
 								String code;
 								try {
 									code = OAuthGuiUtil.getUserConsent(this.getShell(), state, OAuthProvider.Google);
-									if(code == null) {
+									if (code == null) {
 										success = false;
 									} else {
 										success = OAuthGuiUtil.authorizeOAuth(server, code, state, OAuthProvider.Google);
@@ -759,7 +817,7 @@ public class TrpMainWidget {
 						success = login(server, user, String.valueOf(pw), rememberCreds);
 						break;
 					}
-					
+
 					if (success) {
 						close();
 						onSuccessfullLoginAndDialogIsClosed();
@@ -770,9 +828,9 @@ public class TrpMainWidget {
 
 				@Override protected void postInit() {
 					DataBinder db = DataBinder.get();
-					
+
 					db.bindBeanToWidgetSelection(TrpSettings.AUTO_LOGIN_PROPERTY, getTrpSets(), autoLogin);
-					
+
 				}
 			};
 			loginDialog.open();
@@ -785,12 +843,13 @@ public class TrpMainWidget {
 	}
 
 	/**
-	 * Gets called when the login dialog is closed by a successful login attempt.<br>
+	 * Gets called when the login dialog is closed by a successful login
+	 * attempt.<br>
 	 * It's a verbose method name, I know ;-)
 	 */
 	protected void onSuccessfullLoginAndDialogIsClosed() {
 		logger.debug("onSuccessfullLoginAndDialogIsClosed");
-		
+
 		/*
 		 * during login we want to load the last loaded doc from the previous logout
 		 */
@@ -802,25 +861,24 @@ public class TrpMainWidget {
 //			getUi().getDocOverviewWidget().setSelectedCollection(colId, true);
 //			getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docId, true);
 //		}
-		
+
 		//section to load the last used document for each user - either local or remote doc
 		if (false) {
-		if (!RecentDocsPreferences.getItems().isEmpty()){
-			if (RecentDocsPreferences.isShowOnStartup()){
-				String docToLoad = RecentDocsPreferences.getItems().get(0);
-				loadRecentDoc(docToLoad);
+			if (!RecentDocsPreferences.getItems().isEmpty()) {
+				if (RecentDocsPreferences.isShowOnStartup()) {
+					String docToLoad = RecentDocsPreferences.getItems().get(0);
+					loadRecentDoc(docToLoad);
+				}
+			} else {
+				//if no recent docs are available -> load the example doc
+				if (false) {
+					loadRemoteDoc(5014, 4);
+					getUi().getServerWidget().setSelectedCollection(4, true);
+					getUi().getServerWidget().getDocTableWidget().loadPage("docId", 5014, true);
+				}
 			}
 		}
-		else {
-			//if no recent docs are available -> load the example doc
-			if (false) {
-			loadRemoteDoc(5014, 4);
-			getUi().getDocOverviewWidget().setSelectedCollection(4, true);
-			getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", 5014, true);
-			}
-		}
-		}
-		
+
 		reloadJobList();
 //		reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
 //		reloadHtrModels();
@@ -842,13 +900,13 @@ public class TrpMainWidget {
 			TrpGuiPrefs.storeLastAccountType(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
 
 			storage.reloadCollections();
-			
+
 			userCache.add(user);
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
 			}
-						
+
 			sessionExpired = false;
 			lastLoginServer = server;
 			return true;
@@ -867,47 +925,43 @@ public class TrpMainWidget {
 		// storage.getCurrentServer());
 		// }
 	}
-	
+
 	public void loadRecentDoc(String docToLoad) {
 		String[] tmp = docToLoad.split(";;;");
-		if (tmp.length == 1){
-			if (new File(tmp[0]).exists()){
+		if (tmp.length == 1) {
+			if (new File(tmp[0]).exists()) {
 				loadLocalDoc(tmp[0]);
-			}
-			else{
+			} else {
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Local folder does not exist anymore", 2, true);
 			}
-		}
-		else if (tmp.length == 3){
+		} else if (tmp.length == 3) {
 //			for (int i = 0; i < tmp.length; i++){
 //				logger.debug(" split : " + tmp[i]);
 //			}
 			int docid = Integer.valueOf(tmp[1]);
-			int colid = Integer.valueOf(tmp[2]); 
-			
+			int colid = Integer.valueOf(tmp[2]);
+
 			List<TrpDocMetadata> docList;
 			try {
 				docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
-				if (docList != null && docList.size() > 0){
-					if (loadRemoteDoc(docid, colid)){
-						getUi().getDocOverviewWidget().setSelectedCollection(colid, true);
-						getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docid, true);
+				if (docList != null && docList.size() > 0) {
+					if (loadRemoteDoc(docid, colid)) {
+						getUi().getServerWidget().setSelectedCollection(colid, true);
+						getUi().getServerWidget().getDocTableWidget().loadPage("docId", docid, true);
 					}
-				}
-				else{
+				} else {
 					//DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Last used document is not on this server", 2, true);
 				}
-			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-					| IllegalArgumentException e) {
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
 				// DO NOTHING
 			}
 
 		}
-		
-		
+
 	}
 
-	public boolean loginOAuth(final String server, final String refreshToken, final String state, final String redirectUri, final OAuthProvider prov) throws OAuthTokenRevokedException {
+	public boolean loginOAuth(final String server, final String refreshToken, final String state, final String redirectUri, final OAuthProvider prov)
+			throws OAuthTokenRevokedException {
 		final String grantType = "refresh_token";
 		try {
 			if (!getTrpSets().isServerSideActivated()) {
@@ -915,7 +969,7 @@ public class TrpMainWidget {
 			}
 			storage.loginOAuth(server, refreshToken, state, grantType, redirectUri, prov);
 			TrpGuiPrefs.storeLastAccountType(prov.toString());
-			
+
 			storage.reloadCollections();
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
@@ -929,7 +983,7 @@ public class TrpMainWidget {
 			sessionExpired = false;
 			lastLoginServer = server;
 			return true;
-		} catch(OAuthTokenRevokedException oau){
+		} catch (OAuthTokenRevokedException oau) {
 			logout(true, false);
 			logger.error("The OAuth token seems to have been revoked!");
 			throw oau;
@@ -948,7 +1002,7 @@ public class TrpMainWidget {
 		// storage.getCurrentServer());
 		// }
 	}
-	
+
 //	public int getSelectedCollectionIndex() {
 //		return ui.getDocOverviewWidget().getSelectedCollectionIndex();
 //	}
@@ -960,7 +1014,7 @@ public class TrpMainWidget {
 		logger.debug("Logging out " + storage.getUser());
 		storage.logout();
 
-		if (closeOpenDoc && !storage.isLocalDoc()) {	
+		if (closeOpenDoc && !storage.isLocalDoc()) {
 			closeCurrentDocument(true);
 		}
 
@@ -969,7 +1023,7 @@ public class TrpMainWidget {
 		ui.getVersionsWidget().refreshPage(true);
 		ui.getJobOverviewWidget().refreshPage(true);
 		updateThumbs();
-		
+
 		// reloadJobListForDocument();
 		// ui.updateLoginInfo(false, getCurrentUserName(), "");
 	}
@@ -987,35 +1041,14 @@ public class TrpMainWidget {
 
 		final int colId = storage.getCurrentDocumentCollectionId();
 		try {
-			storage.updateDocMd(colId);
+			storage.saveDocMd(colId);
 			// DialogUtil.createAndShowBalloonToolTip(getShell(),
 			// SWT.ICON_ERROR, "Success saving doc-metadata", "", 2, true);
+//			DialogUtil.showInfoMessageBox(shell, "Success", message);
+			DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "Saved document metadata!", "Success", 2, true);
 		} catch (Exception e) {
 			onError("Error saving doc-metadata", e.getMessage(), e, true, true);
-			// DialogUtil.createAndShowBalloonToolTip(getShell(),
-			// SWT.ICON_ERROR, "Error saving doc-metadata", e.getMessage(), 2,
-			// true);
 		}
-
-		// // update doc metadata on doc and reload doc list:
-		// try {
-		// final int colId = storage.getCurrentCollectionId();
-		// ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-		// @Override public void run(IProgressMonitor monitor) throws
-		// InvocationTargetException, InterruptedException {
-		// monitor.beginTask("Saving metadata", IProgressMonitor.UNKNOWN);
-		// logger.debug("applying metadata...");
-		// try {
-		// storage.updateDocMd(colId);
-		// } catch (Exception e) {
-		// throw new InvocationTargetException(e, e.getMessage());
-		// }
-		// }
-		// }, "Saving metadata", false);
-		// reloadDocList(ui.getDocOverviewWidget().getSelectedCollectionIndex());
-		// } catch (Throwable e) {
-		// onError("Saving Error", "Error while storing metadata on server", e);
-		// }
 	}
 
 	/** Reassigns unique id's to the current page file */
@@ -1059,9 +1092,9 @@ public class TrpMainWidget {
 				DialogUtil.showErrorMessageBox(getShell(), "Saving page", "No page loaded!");
 				return false;
 			}
-			
+
 			String commitMessageTmp = null;
-			if (isCommit) {				
+			if (isCommit) {
 				InputDialog id = new InputDialog(getShell(), "Commit message", "Please enter a commit message: ", "", null);
 				id.setBlockOnOpen(true);
 				if (id.open() != Window.OK) {
@@ -1070,7 +1103,7 @@ public class TrpMainWidget {
 				commitMessageTmp = id.getValue();
 			}
 			final String commitMessage = commitMessageTmp;
-			logger.debug("commitMessage = "+commitMessage);
+			logger.debug("commitMessage = " + commitMessage);
 
 			final int colId = storage.getCurrentDocumentCollectionId();
 			// canvas.getScene().selectObject(null, true, false); // security
@@ -1079,7 +1112,7 @@ public class TrpMainWidget {
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						logger.debug("saving transcription, commitMessage = "+commitMessage);
+						logger.debug("saving transcription, commitMessage = " + commitMessage);
 						monitor.beginTask("Saving transcription", IProgressMonitor.UNKNOWN);
 						storage.saveTranscript(colId, commitMessage);
 						// set new transcription list and reload locally:
@@ -1210,7 +1243,6 @@ public class TrpMainWidget {
 			}
 		}
 	}
-	
 
 	public void jumpToNextRegion() {
 		jumpToRegion(Storage.getInstance().getCurrentRegion() + 1);
@@ -1290,7 +1322,7 @@ public class TrpMainWidget {
 			SWTUtil.setEnabled(ui.getCanvasWidget().getToolbar().getEditingEnabledToolItem(), !isPageLocked);
 			SWTUtil.setEnabled(ui.getTranscriptionComposite(), !isPageLocked);
 			SWTUtil.setEnabled(ui.getSaveDropDown(), !isPageLocked);
-						
+
 			updatePageInfo();
 			updateToolBars();
 		}
@@ -1360,7 +1392,7 @@ public class TrpMainWidget {
 
 		if (!storage.hasTranscript()) {
 			ui.taggingWidget.setSelectedTags(null);
-			ui.getMetadataWidget().updateData(null, null, nSel, null, null, new ArrayList<CustomTag>());
+			ui.getStructuralMetadataWidget().updateData(null, null, nSel, null, null, new ArrayList<CustomTag>());
 			return;
 		}
 
@@ -1421,8 +1453,7 @@ public class TrpMainWidget {
 		}
 
 		ui.taggingWidget.setSelectedTags(selectedTags);
-		ui.getMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, textStyle, selectedTags);
-		
+		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, textStyle, selectedTags);
 
 	}
 
@@ -1433,10 +1464,10 @@ public class TrpMainWidget {
 		}
 
 		List<Object> selData = canvas.getScene().getSelectedData();
-		
+
 		// select lines for baselines in struct view if lines not visible: 
 		if (!getTrpSets().isShowLines()) {
-			for (int i=0; i<selData.size(); ++i) {
+			for (int i = 0; i < selData.size(); ++i) {
 				Object o = selData.get(i);
 				if (o instanceof TrpBaselineType) {
 					TrpBaselineType bl = (TrpBaselineType) o;
@@ -1466,7 +1497,7 @@ public class TrpMainWidget {
 	// else
 	// ui.getDocMetadataEditor().setMetadata(null);
 	// }
-	
+
 	public void reloadCurrentImage() {
 		try {
 			Storage.getInstance().reloadCurrentImage(TrpMainWidget.getInstance().getSelectedImageFileType());
@@ -1475,7 +1506,7 @@ public class TrpMainWidget {
 			onError("Image load error", "Error loading main image", e);
 		}
 	}
-	
+
 	public boolean reloadCurrentPage(boolean force) {
 		return reloadCurrentPage(force, true);
 	}
@@ -1485,13 +1516,13 @@ public class TrpMainWidget {
 			return false;
 
 		try {
-			logger.info("loading page: "+storage.getPage());
+			logger.info("loading page: " + storage.getPage());
 			clearCurrentPage();
 
 			final int colId = storage.getCurrentDocumentCollectionId();
 			final String fileType = mw.getSelectedImageFileType();
-			logger.debug("selected img filetype = "+fileType);
-			
+			logger.debug("selected img filetype = " + fileType);
+
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
@@ -1528,7 +1559,7 @@ public class TrpMainWidget {
 			updatePageInfo();
 		}
 	}
-	
+
 	public void createThumbForCurrentPage() {
 		// generate thumb for loaded page if local doc:
 		if (storage.isLocalDoc() && storage.getPage() != null && storage.getCurrentImage() != null) {
@@ -1538,7 +1569,7 @@ public class TrpMainWidget {
 
 	public void updateThumbs() {
 		logger.trace("updating thumbs");
-		
+
 		Display.getDefault().asyncExec(updateThumbsWidgetRunnable); // asyncExec needed??
 
 		// try {
@@ -1581,7 +1612,7 @@ public class TrpMainWidget {
 		}
 
 		// LOAD STRUCT ELEMENTS FROM TRANSCRIPTS
-		try {			
+		try {
 			// save transcript if edited:
 			// clearTranscriptFromView();
 			logger.info("loading transcript: " + storage.getTranscript().getMd() + " tryLocalReload: " + tryLocalReload);
@@ -1621,7 +1652,7 @@ public class TrpMainWidget {
 			clearTranscriptFromView();
 		}
 	}
-	
+
 	public void showLocation(CustomTag t) {
 		showLocation(new TrpLocation(t));
 	}
@@ -1641,9 +1672,9 @@ public class TrpMainWidget {
 			logger.info("location has no doc specified!");
 			return;
 		}
-		int pageIndex = l.hasPage() ? l.pageNr -1 : 0;
+		int pageIndex = l.hasPage() ? l.pageNr - 1 : 0;
 
-		boolean wasDocLoaded=false;
+		boolean wasDocLoaded = false;
 		if (!storage.isThisDocLoaded(l.docId, l.localFolder)) {
 			wasDocLoaded = true;
 			if (l.docId == -1) {
@@ -1654,7 +1685,7 @@ public class TrpMainWidget {
 					return;
 			}
 		}
-		
+
 		// 2nd: load page if not loaded by doc anyway:
 		if (!l.hasPage()) {
 			logger.info("location has no page specified!");
@@ -1667,7 +1698,7 @@ public class TrpMainWidget {
 			if (!reloadCurrentPage(true))
 				return;
 		}
-		
+
 		// 3rd: select region / line / word:
 		logger.debug("loading shape region: " + l.shapeId);
 		if (l.shapeId == null) {
@@ -1675,10 +1706,10 @@ public class TrpMainWidget {
 			return;
 		}
 		ICanvasShape s = canvas.getScene().selectObjectWithId(l.shapeId, true, false);
-		
+
 		if (s == null)
 			return;
-		
+
 		canvas.focusShape(s);
 
 		// 4th: select tag in transcription widget; TODO: select word!?
@@ -1757,7 +1788,7 @@ public class TrpMainWidget {
 	public CanvasScene getScene() {
 		return ui.getCanvas().getScene();
 	}
-	
+
 //	public void updateSelectedTranscription() {
 //		ui.versionsWidget.updateSelectedVersion(storage.getTranscriptMetadata());
 //	}
@@ -1769,15 +1800,15 @@ public class TrpMainWidget {
 
 		ui.getPagesPagingToolBar().setToolbarEnabled(nNPages > 0);
 		ui.getPagesPagingToolBar().setValues(storage.getPageIndex() + 1, nNPages);
-		
+
 		if (!SWTUtil.isDisposed(ui.getPagesPagingToolBar().getLabelItem())) {
 			ui.getPagesPagingToolBar().getLabelItem().setImage(isPageLocked ? Images.LOCK : null);
 			ui.getPagesPagingToolBar().getLabelItem().setToolTipText(isPageLocked ? "Page locked" : "");
 		}
-		
+
 		SWTUtil.setEnabled(ui.getCloseDocBtn(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getSaveDropDown(), isDocLoaded);
-		
+
 		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);
 
@@ -1786,39 +1817,37 @@ public class TrpMainWidget {
 
 	public void loadLocalTestset() {
 		String localTestdoc = "";
-		
+
 		if (SysUtils.isWin()) {
 			localTestdoc = "C:/Schauplatz_small";
-		}
-		else if (SysUtils.isOsx()) {
+		} else if (SysUtils.isOsx()) {
 //			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
 			localTestdoc = "/Users/hansm/Documents/testDocs/many_pages/";
-		}
-		else {
+		} else {
 //			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
 //			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";
 			localTestdoc = "/home/sebastian/Documents/transkribus_testdocs/many_pages/";
 //			localTestdoc = System.getProperty( "user.home" )+"/testdocmanybl";
 		}
-		
+
 		File f = new File(localTestdoc);
 		if (!f.isDirectory()) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error loading local testset", "The local testset directory does not exist:\n "+f.getAbsolutePath());
+			DialogUtil.showErrorMessageBox(getShell(), "Error loading local testset", "The local testset directory does not exist:\n " + f.getAbsolutePath());
 			return;
 		}
 
 		loadLocalDoc(localTestdoc, 0);
 	}
-	
+
 	public void loadRemoteTestset() {
 		// TODO
-		
+
 	}
 
 	public void loginAsTestUser() {
 
 	}
-	
+
 	public boolean loadLocalDoc(String folder) {
 		return loadLocalDoc(folder, 0);
 	}
@@ -1831,18 +1860,18 @@ public class TrpMainWidget {
 		try {
 			storage.loadLocalDoc(folder);
 
-			final boolean DISABLE_THUMB_CREATION_ON_LOAD=true;
+			final boolean DISABLE_THUMB_CREATION_ON_LOAD = true;
 			if (!DISABLE_THUMB_CREATION_ON_LOAD && getTrpSets().isCreateThumbs()) {
 				CreateThumbsService.createThumbForDoc(storage.getDoc(), false, updateThumbsWidgetRunnable);
 			}
 
 			storage.setCurrentPage(pageIndex);
 			reloadCurrentPage(true);
-			
+
 			//store the path for the local doc
 			RecentDocsPreferences.push(folder);
-			ui.getDocOverviewWidget().updateRecentDocs();
-			
+			ui.getServerWidget().updateRecentDocs();
+
 			updateThumbs();
 			getCanvas().fitWidth();
 			return true;
@@ -1869,16 +1898,20 @@ public class TrpMainWidget {
 //	public boolean loadRemoteDoc(final int docId) {
 //		return loadRemoteDoc(docId, 0);
 //	}
-	
+
 	public boolean loadRemoteDoc(final int docId, int colId) {
 		return loadRemoteDoc(docId, colId, 0);
 	}
 
 	/**
 	 * Loads a document from the remote server
-	 * @param docId The id of the document to load
-	 * @param colId The id of the collection to load the document from. 
-	 * A colId <= 0 means, the currently selected collection from the DocOverViewWidget is taken (if one is selected!)
+	 * 
+	 * @param docId
+	 *            The id of the document to load
+	 * @param colId
+	 *            The id of the collection to load the document from.
+	 *            A colId <= 0 means, the currently selected collection from the
+	 *            DocOverViewWidget is taken (if one is selected!)
 	 * @return True for success, false otherwise
 	 */
 	public boolean loadRemoteDoc(final int docId, int colId, int pageIndex) {
@@ -1894,14 +1927,13 @@ public class TrpMainWidget {
 																// to freeze of
 																// progress
 																// dialog
-			
-			
+
 			if (colId <= 0) {
-				colId = ui.getDocOverviewWidget().getSelectedCollectionId();
+				colId = ui.getServerWidget().getSelectedCollectionId();
 				if (colId <= 0)
 					throw new Exception("No collection specified to load document!");
 			}
-			
+
 			final int colIdFinal = colId;
 
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
@@ -1919,11 +1951,11 @@ public class TrpMainWidget {
 
 			storage.setCurrentPage(pageIndex);
 			reloadCurrentPage(true);
-			
+
 			//store the recent doc info to the preferences
 			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);
-			ui.getDocOverviewWidget().updateRecentDocs();
-				
+			ui.getServerWidget().updateRecentDocs();
+
 			updateThumbs();
 			getCanvas().fitWidth();
 			tmpCount++;
@@ -1971,7 +2003,7 @@ public class TrpMainWidget {
 	public void onError(String title, String message, Throwable th) {
 		onError(title, message, th, true, false);
 	}
-	
+
 	public void onInterruption(String title, String message, Throwable th) {
 		onError(title, message, th, true, true);
 	}
@@ -1980,7 +2012,7 @@ public class TrpMainWidget {
 		ProgramInfo info = new ProgramInfo();
 		Display.setAppName(info.getName());
 		Display.setAppVersion(info.getVersion());
-		
+
 		show(null);
 	}
 
@@ -1996,7 +2028,7 @@ public class TrpMainWidget {
 
 			final Shell shell = new Shell(display, SWT.SHELL_TRIM);
 			setMainShell(shell);
-			
+
 			Realm.runWithDefault(SWTObservables.getRealm(display), new Runnable() {
 				@Override public void run() {
 					if (USE_SPLASH) {
@@ -2090,7 +2122,7 @@ public class TrpMainWidget {
 
 	private static void setMainShell(Shell shell) {
 		mainShell = shell;
-		
+
 	}
 
 	public TrpMainWidgetView getUi() {
@@ -2100,7 +2132,6 @@ public class TrpMainWidget {
 	public Shell getShell() {
 		return ui.getShell();
 	}
-
 
 	public CanvasSettings getCanvasSettings() {
 		return ui.getCanvas().getSettings();
@@ -2142,20 +2173,18 @@ public class TrpMainWidget {
 		// trpTranscriptionWidget.getAutoComplete().getAdapter().setEnabled(selection);
 	}
 
-	/** 
+	/**
 	 * replaced by {@link #uploadDocuments()}
 	 */
-	@Deprecated
-	public void uploadSingleDocument() {
+	@Deprecated public void uploadSingleDocument() {
 		try {
 			if (!storage.isLoggedIn()) {
 				DialogUtil.showErrorMessageBox(getShell(), "Not logged in!", "You have to be logged in to upload a document!");
 				return;
 			}
 
-			final UploadDialog ud = new UploadDialog(getShell(), ui.getDocOverviewWidget().getSelectedCollection());
+			final UploadDialog ud = new UploadDialog(getShell(), ui.getServerWidget().getSelectedCollection());
 			int ret = ud.open();
-			
 
 			if (ret == IDialogConstants.OK_ID) {
 				final TrpCollection c = ud.getCollection();
@@ -2164,7 +2193,8 @@ public class TrpMainWidget {
 					throw new Exception("Cannot upload to specified collection: " + cId);
 				}
 
-				logger.debug("uploading to directory: " + ud.getFolder() + ", title: '" + ud.getTitle() + " collection: " + cId+" viaFtp: "+ud.isUploadViaFtp());
+				logger.debug(
+						"uploading to directory: " + ud.getFolder() + ", title: '" + ud.getTitle() + " collection: " + cId + " viaFtp: " + ud.isUploadViaFtp());
 				String type = ud.isUploadViaFtp() ? "FTP" : "HTTP";
 
 				// final int colId =
@@ -2175,21 +2205,22 @@ public class TrpMainWidget {
 							// storage.uploadDocument(4, ud.getFolder(),
 							// ud.getTitle(), monitor);// TEST
 							boolean uploadViaFTP = ud.isUploadViaFtp();
-							logger.debug("uploadViaFTP = "+uploadViaFTP);
+							logger.debug("uploadViaFTP = " + uploadViaFTP);
 							storage.uploadDocument(cId, ud.getFolder(), ud.getTitle(), monitor);
 							if (!monitor.isCanceled())
-								displaySuccessMessage("Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
+								displaySuccessMessage(
+										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
 						} catch (Exception e) {
 							throw new InvocationTargetException(e);
 						}
 					}
-				}, "Uploading via "+type, true);
+				}, "Uploading via " + type, true);
 			}
 		} catch (Throwable e) {
 			onError("Error loading uploading document", "Could not upload document", e);
 		}
 	}
-	
+
 	public void uploadDocuments() {
 		try {
 			if (!storage.isLoggedIn()) {
@@ -2197,8 +2228,8 @@ public class TrpMainWidget {
 				return;
 			}
 
-//			final UploadFromFtpDialog ud = new UploadFromFtpDialog(getShell(), ui.getDocOverviewWidget().getSelectedCollection());
-			final UploadDialogUltimate ud = new UploadDialogUltimate(getShell(), ui.getDocOverviewWidget().getSelectedCollection());
+//			final UploadFromFtpDialog ud = new UploadFromFtpDialog(getShell(), ui.getServerWidget().getSelectedCollection());
+			final UploadDialogUltimate ud = new UploadDialogUltimate(getShell(), ui.getServerWidget().getSelectedCollection());
 			if (ud.open() != IDialogConstants.OK_ID)
 				return;
 
@@ -2207,9 +2238,10 @@ public class TrpMainWidget {
 			if (c == null || (c.getRole() != null && !c.getRole().canManage())) {
 				throw new Exception("Cannot upload to specified collection: " + cId);
 			}
-			
+
 			if (ud.isSingleDocUpload()) { // single doc upload
-				logger.debug("uploading to directory: " + ud.getFolder() + ", title: '" + ud.getTitle() + " collection: " + cId+" viaFtp: "+ud.isSingleUploadViaFtp());
+				logger.debug("uploading to directory: " + ud.getFolder() + ", title: '" + ud.getTitle() + " collection: " + cId + " viaFtp: "
+						+ ud.isSingleUploadViaFtp());
 				String type = ud.isSingleUploadViaFtp() ? "FTP" : "HTTP";
 
 				// final int colId =
@@ -2220,38 +2252,39 @@ public class TrpMainWidget {
 							// storage.uploadDocument(4, ud.getFolder(),
 							// ud.getTitle(), monitor);// TEST
 							boolean uploadViaFTP = ud.isSingleUploadViaFtp();
-							logger.debug("uploadViaFTP = "+uploadViaFTP);
+							logger.debug("uploadViaFTP = " + uploadViaFTP);
 							storage.uploadDocument(cId, ud.getFolder(), ud.getTitle(), monitor);
 							if (!monitor.isCanceled())
-								displaySuccessMessage("Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
+								displaySuccessMessage(
+										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
 						} catch (Exception e) {
 							throw new InvocationTargetException(e);
 						}
 					}
-				}, "Uploading via "+type, true);
-			} else if (ud.isMetsUrlUpload()){
-				logger.debug("uploading title: " + ud.getTitle() + " to collection: " +cId);
+				}, "Uploading via " + type, true);
+			} else if (ud.isMetsUrlUpload()) {
+				logger.debug("uploading title: " + ud.getTitle() + " to collection: " + cId);
 				//test url: http://rosdok.uni-rostock.de/file/rosdok_document_0000007322/rosdok_derivate_0000026952/ppn778418405.dv.mets.xml
-				int h = DialogUtil.showInfoMessageBox(getShell(), "Upload Information", "Upload document!\nNote: the document will be ready after document processing on the server is finished - this takes a while - reload the document list occasionally");
+				int h = DialogUtil.showInfoMessageBox(getShell(), "Upload Information",
+						"Upload document!\nNote: the document will be ready after document processing on the server is finished - this takes a while - reload the document list occasionally");
 				try {
 					storage.uploadDocumentFromMetsUrl(cId, ud.getMetsUrl());
-				}catch (ClientErrorException e){
-					if(e.getMessage().contains("DFG-Viewer Standard")){
+				} catch (ClientErrorException e) {
+					if (e.getMessage().contains("DFG-Viewer Standard")) {
 						onError("Error during uploading from Mets URL - reason: ", e.getMessage(), e);
-					}
-					else{
+					} else {
 						throw e;
 					}
-				
-				} 
+
+				}
 //				catch (SessionExpiredException | ServerErrorException eo) {
 //				// TODO Auto-generated catch block
 //				throw eo;
 //			}
-			// extract images from pdf and upload extracted images
+				// extract images from pdf and upload extracted images
 			} else if (ud.isUploadFromPdf()) {
 				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + ud.getPdfFolder());
-				logger.debug("ingest into collection: " + cId+" viaFtp: "+ud.isSingleUploadViaFtp());
+				logger.debug("ingest into collection: " + cId + " viaFtp: " + ud.isSingleUploadViaFtp());
 				String type = ud.isSingleUploadViaFtp() ? "FTP" : "HTTP";
 
 				// final int colId =
@@ -2262,41 +2295,44 @@ public class TrpMainWidget {
 							// storage.uploadDocument(4, ud.getFolder(),
 							// ud.getTitle(), monitor);// TEST
 							boolean uploadViaFTP = ud.isSingleUploadViaFtp();
-							logger.debug("uploadViaFTP = "+uploadViaFTP);
+							logger.debug("uploadViaFTP = " + uploadViaFTP);
 							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getPdfFolder(), monitor);
 							if (!monitor.isCanceled())
-								displaySuccessMessage("Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
+								displaySuccessMessage(
+										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
 						} catch (Exception e) {
 							throw new InvocationTargetException(e);
 						}
 					}
-				}, "Uploading via "+type, true);
-				
+				}, "Uploading via " + type, true);
+
 			} else { // private ftp ingest
 				final List<TrpDocDir> dirs = ud.getDocDirs();
-				if(dirs == null || dirs.isEmpty()){
+				if (dirs == null || dirs.isEmpty()) {
 					//should not happen. check is already done in Dialog...
 					throw new Exception("DocDir list is empty!");
 				}
-				
-				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "FTP Upload", "The FTP upload runs as background process and last for some time.\n"
-					+ "Look into Jobs tab!\nReloading the collection shows the already uploaded documents.", 2, true);
-							
-				for(final TrpDocDir d : dirs) {
+
+				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "FTP Upload",
+						"The FTP upload runs as background process and last for some time.\n"
+								+ "Look into Jobs tab!\nReloading the collection shows the already uploaded documents.",
+						2, true);
+
+				for (final TrpDocDir d : dirs) {
 //					String docTitle = d.getMetadata()==null ? d.getName() : d.getMetadata().getTitle();
 					try {
 						storage.uploadDocumentFromPrivateFtp(cId, d.getName(), true);
 					} catch (final ClientErrorException ie) {
-						
+
 						if (ie.getResponse().getStatus() == 409) { // conflict! (= duplicate name)
-							if (DialogUtil.showYesNoDialog(getShell(), "Duplicate title", ie.getMessage()+"\n\nIngest anyway?") == SWT.YES) {
+							if (DialogUtil.showYesNoDialog(getShell(), "Duplicate title", ie.getMessage() + "\n\nIngest anyway?") == SWT.YES) {
 								storage.uploadDocumentFromPrivateFtp(cId, d.getName(), false);
 							}
 						}
 					}
 				}
-				
-				ui.selectJobListTab();
+
+//				ui.selectJobListTab();
 				ui.getJobOverviewWidget().refreshPage(false);
 
 //				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
@@ -2361,7 +2397,7 @@ public class TrpMainWidget {
 	}
 
 	@Deprecated public void deleteSelectedDocument() {
-		final TrpDocMetadata doc = ui.getDocOverviewWidget().getSelectedDocument();
+		final TrpDocMetadata doc = ui.getServerWidget().getSelectedDocument();
 		try {
 			if (doc == null || !storage.isLoggedIn()) {
 				return;
@@ -2393,7 +2429,7 @@ public class TrpMainWidget {
 				}
 			}, "Exporting", false);
 
-			reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
+			reloadDocList(ui.getServerWidget().getSelectedCollection());
 		} catch (Throwable e) {
 			onError("Error deleting document", "Could not delete document " + doc.getDocId(), e);
 		}
@@ -2406,7 +2442,7 @@ public class TrpMainWidget {
 			}
 		});
 	}
-	
+
 	public void displayCancelMessage(final String message) {
 		display.syncExec(new Runnable() {
 			@Override public void run() {
@@ -2414,32 +2450,32 @@ public class TrpMainWidget {
 			}
 		});
 	}
-	
+
 	public void deletePage() {
 		logger.debug("Open Dialog for deleting page");
 		if (!storage.isPageLoaded() || !storage.isRemoteDoc()) {
 			DialogUtil.showErrorMessageBox(getShell(), "No remote page loaded", "No remote page loaded");
 			return;
 		}
-		
+
 		if (DialogUtil.showYesNoDialog(getShell(), "", "Do you really want to delete the current page?") != SWT.YES)
 			return;
 
 		try {
 			//during deleting a page we don't care if it was edited before
-			if (storage.isTranscriptEdited()){
+			if (storage.isTranscriptEdited()) {
 				storage.getTranscript().getPage().setEdited(false);
 			}
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("Delete page: " + storage.getPage().getPageNr());
-						
-						monitor.beginTask("Deleting page "+storage.getPage().getPageNr(), 1);
-						
+
+						monitor.beginTask("Deleting page " + storage.getPage().getPageNr(), 1);
+
 						//replace on server
 						storage.deleteCurrentPage();
-						
+
 						monitor.worked(1);
 						monitor.done();
 					} catch (Exception e) {
@@ -2452,8 +2488,7 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			onError("Error replacing page image", e.getMessage(), e);
 		}
-		
-		
+
 	}
 
 	public void replacePageImg() {
@@ -2462,9 +2497,9 @@ public class TrpMainWidget {
 			DialogUtil.showErrorMessageBox(getShell(), "No document loaded", "No document loaded!");
 			return;
 		}
-		
+
 		//FIXME where to handle which file extensions are allowed?
-		final String[] extArr = new String[] { "*.jpg", "*.jpeg", "*.tiff", "*.tif", "*.TIF", "*.TIFF", "*.png"};
+		final String[] extArr = new String[] { "*.jpg", "*.jpeg", "*.tiff", "*.tif", "*.TIF", "*.TIFF", "*.png" };
 		final String fn = DialogUtil.showOpenFileDialog(getShell(), "Select image file", null, extArr);
 		if (fn == null)
 			return;
@@ -2472,10 +2507,9 @@ public class TrpMainWidget {
 		try {
 			//check img file
 			final File imgFile = new File(fn);
-			if(!imgFile.canRead())
+			if (!imgFile.canRead())
 				throw new Exception("Can't read file at: " + fn);
-			
-			
+
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
@@ -2484,9 +2518,9 @@ public class TrpMainWidget {
 						//replace on server
 						storage.replacePageImgFile(imgFile, monitor);
 
-						for(int i = 1; i <= 2; i++){
+						for (int i = 1; i <= 2; i++) {
 							Thread.sleep(1000);
-							monitor.worked(100+(i*10));
+							monitor.worked(100 + (i * 10));
 						}
 						monitor.done();
 					} catch (Exception e) {
@@ -2500,7 +2534,7 @@ public class TrpMainWidget {
 			onError("Error replacing page image", e.getMessage(), e);
 		}
 	}
-	
+
 	public void unifiedExport() {
 		File dir = null;
 		try {
@@ -2517,9 +2551,9 @@ public class TrpMainWidget {
 			String adjTitle = getAdjustedDocTitle();
 
 			saveTranscriptDialogOrAutosave();
-				
+
 			String lastExportFolderTmp = TrpGuiPrefs.getLastExportFolder();
-			if (lastExportFolderTmp != null && !lastExportFolderTmp.equals("")){
+			if (lastExportFolderTmp != null && !lastExportFolderTmp.equals("")) {
 				lastExportFolder = lastExportFolderTmp;
 			}
 			final CommonExportDialog exportDiag = new CommonExportDialog(getShell(), SWT.NONE, lastExportFolder, adjTitle, storage.getDoc().getPages());
@@ -2527,68 +2561,68 @@ public class TrpMainWidget {
 			dir = exportDiag.open();
 			if (dir == null)
 				return;
-			
-			if (!dir.exists()){
+
+			if (!dir.exists()) {
 				dir.mkdir();
 			}
-			
+
 			String exportFormats = "";
 			String exportFileOrDir = dir.getAbsolutePath();
 			Set<Integer> pageIndices = null;
-			
+
 			boolean doZipExport = false;
-			
+
 			boolean doMetsExport = false;
 			boolean doPdfExport = false;
 			boolean doDocxExport = false;
 			boolean doTeiExport = false;
 			boolean doXlsxExport = false;
-			
+
 			String tempDir = null;
 
 			String metsExportDirString = dir.getAbsolutePath() + "/" + dir.getName();
 			File metsExportDir = new File(metsExportDirString);
-			
+
 			String pdfExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".pdf";
-			File pdfExportFile = new File(pdfExportFileOrDir);	
-			
+			File pdfExportFile = new File(pdfExportFileOrDir);
+
 			String teiExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + "_tei.xml";
 			File teiExportFile = new File(teiExportFileOrDir);
-			
+
 			String docxExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".docx";
 			File docxExportFile = new File(docxExportFileOrDir);
-			
+
 			String xlsxExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".xlsx";
 			File xlsxExportFile = new File(xlsxExportFileOrDir);
-			
+
 			String zipExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".zip";
 			File zipExportFile = new File(zipExportFileOrDir);
-			
+
 			/*
 			 * only check export path if it is not ZIP because than we check just the ZIP location
 			 */
-			if (!exportDiag.isZipExport()){
+			if (!exportDiag.isZipExport()) {
 				doMetsExport = (exportDiag.isMetsExport() && exportDiag.getExportPathComp().checkExportFile(metsExportDir, null, getShell()));
-			
-				doPdfExport = (exportDiag.isPdfExport() && exportDiag.getExportPathComp().checkExportFile(pdfExportFile, ".pdf", getShell()));	
-			
+
+				doPdfExport = (exportDiag.isPdfExport() && exportDiag.getExportPathComp().checkExportFile(pdfExportFile, ".pdf", getShell()));
+
 				doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
 
 				doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
 
 				doXlsxExport = (exportDiag.isXlsxExport() && exportDiag.getExportPathComp().checkExportFile(xlsxExportFile, ".xlsx", getShell()));
 			}
-			
+
 			doZipExport = (exportDiag.isZipExport() && exportDiag.getExportPathComp().checkExportFile(zipExportFile, ".zip", getShell()));
-			
-			if (doZipExport){
+
+			if (doZipExport) {
 				tempDir = System.getProperty("java.io.tmpdir");
 				//logger.debug("temp dir is ..." + tempDir);
 			}
-			
+
 			final String fileNamePattern = exportDiag.getFileNamePattern();
-			
-			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doXlsxExport && !doZipExport){
+
+			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doXlsxExport && !doZipExport) {
 				/*
 				 * if the export file exists and the user wants not to overwrite it then the 
 				 * export dialog shows up again with the possibility to choose another location
@@ -2597,7 +2631,6 @@ public class TrpMainWidget {
 				unifiedExport();
 				return;
 			}
-			
 
 			if (exportDiag.isPageableExport()) {
 				pageIndices = exportDiag.getSelectedPages();
@@ -2606,19 +2639,20 @@ public class TrpMainWidget {
 					return;
 				}
 			}
-			
+
 			final Set<Integer> copyOfPageIndices = pageIndices;
 			Set<String> selectedTags = null;
-			
+
 			logger.debug("loading transcripts..." + copyOfPageIndices.size());
-			
+
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						//logger.debug("loading transcripts...");
 						monitor.beginTask("Loading transcripts...", copyOfPageIndices.size());
 						//unmarshal the page transcript only once
-						ExportUtils.storePageTranscripts4Export(storage.getDoc(), copyOfPageIndices, monitor, exportDiag.getVersionStatus(), storage.getPageIndex(), storage.getTranscript().getMd());
+						ExportUtils.storePageTranscripts4Export(storage.getDoc(), copyOfPageIndices, monitor, exportDiag.getVersionStatus(),
+								storage.getPageIndex(), storage.getTranscript().getMd());
 
 						monitor.done();
 					} catch (Exception e) {
@@ -2626,17 +2660,15 @@ public class TrpMainWidget {
 					}
 				}
 			}, "Loading of transcripts: ", true);
-			
+
 			logger.debug("transcripts loaded");
-			
-			
-			
+
 			if (exportDiag.isTagableExportChosen()) {
-							
+
 				selectedTags = exportDiag.getSelectedTagsList();
-				
+
 				logger.debug("loading tags..." + selectedTags.size());
-				
+
 				final Set<String> copyOfSelectedTags = selectedTags;
 
 				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
@@ -2644,7 +2676,8 @@ public class TrpMainWidget {
 						try {
 							//logger.debug("loading transcripts...");
 							monitor.beginTask("Loading tags...", copyOfPageIndices.size());
-							ExportUtils.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), copyOfPageIndices, monitor, exportDiag.isDoBlackening());
+							ExportUtils.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), copyOfPageIndices, monitor,
+									exportDiag.isDoBlackening());
 							if (copyOfSelectedTags == null) {
 								DialogUtil.showErrorMessageBox(getShell(), "Error while reading selected tag names", "Error while reading selected tag names");
 								return;
@@ -2655,77 +2688,83 @@ public class TrpMainWidget {
 						}
 					}
 				}, "Loading of tags: ", true);
-				
+
 				logger.debug("tags loaded");
-				
+
 			}
-			
+
 			boolean wordBased = exportDiag.isWordBased();
 			boolean doBlackening = exportDiag.isDoBlackening();
 			boolean createTitle = exportDiag.isCreateTitlePage();
-			
-			if (doZipExport){
-				
+
+			if (doZipExport) {
+
 				if (tempDir == null)
 					return;
-				
+
 				String tempZipDirParent = tempDir + "/" + dir.getName();
 				File tempZipDirParentFile = new File(tempZipDirParent);
-				
-				if (tempZipDirParentFile.exists()){
-				    Random randomGenerator = new Random();
-				    int randomInt = randomGenerator.nextInt(1000);
-				    tempZipDirParent = tempZipDirParent.concat(Integer.toString(randomInt));
+
+				if (tempZipDirParentFile.exists()) {
+					Random randomGenerator = new Random();
+					int randomInt = randomGenerator.nextInt(1000);
+					tempZipDirParent = tempZipDirParent.concat(Integer.toString(randomInt));
 					tempZipDirParentFile = new File(tempZipDirParent);
 				}
-				
+
 				String tempZipDir = tempZipDirParent + "/" + dir.getName();
 				File tempZipFileDir = new File(tempZipDir);
 				FileUtils.forceMkdir(tempZipFileDir);
-				
+
 				if (exportDiag.isMetsExport())
-					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), exportDiag.isSplitUpWords(), fileNamePattern);
+					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
+							exportDiag.isSplitUpWords(), fileNamePattern);
 				if (exportDiag.isPdfExport())
-					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
+					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
+							exportDiag.isExportImagesOnly(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
 				if (exportDiag.isTeiExport())
 					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag);
 				if (exportDiag.isDocxExport())
-					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, selectedTags, createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(), exportDiag.isPreserveLinebreaks());
+					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isTagExport(), doBlackening,
+							selectedTags, createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
+							exportDiag.isPreserveLinebreaks());
 				if (exportDiag.isXlsxExport())
-					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(), selectedTags);
-				
+					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(),
+							selectedTags);
+
 				//createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".zip");
 				createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), zipExportFile.getAbsolutePath());
-				
+
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
 				exportFormats += "ZIP";
-				
-				for (File f : tempZipDirParentFile.listFiles()){
+
+				for (File f : tempZipDirParentFile.listFiles()) {
 					f.delete();
 				}
-				
+
 				lastExportFolder = dir.getParentFile().getAbsolutePath();
 				logger.debug("last export folder: " + lastExportFolder);
-				
+
 				TrpGuiPrefs.storeLastExportFolder(lastExportFolder);
 
 				//delete the temp folder for making the ZIP
 				FileDeleteStrategy.FORCE.delete(tempZipDirParentFile);
-				
+
 				if (exportFormats != "") {
 					displaySuccessMessage("Sucessfully written " + exportFormats + " to " + exportFileOrDir);
 				}
-				
+
 				//export was done via ZIP and is completed now
 				return;
-				
+
 			}
 
 			if (doMetsExport) {
 
-				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), exportDiag.isSplitUpWords(), fileNamePattern);
+				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
+						exportDiag.isSplitUpWords(), fileNamePattern);
 				if (exportDiag.isPageExport()) {
 					if (exportFormats != "") {
 						exportFormats += " and ";
@@ -2739,47 +2778,50 @@ public class TrpMainWidget {
 					}
 					exportFormats += "METS/ALTO";
 				}
-				
+
 			}
 
 			if (doPdfExport) {
 
-				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
+				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), selectedTags,
+						exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
 				exportFormats += "PDF";
-				
+
 			}
 
 			if (doTeiExport) {
-				
+
 				exportTei(teiExportFile, exportDiag);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
 				exportFormats += "TEI";
-				
+
 			}
 
 			if (doDocxExport) {
 
-				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, selectedTags, createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(), exportDiag.isPreserveLinebreaks());
+				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, selectedTags, createTitle,
+						exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
+						exportDiag.isPreserveLinebreaks());
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
 				exportFormats += "DOCX";
-				
+
 			}
 
 			if (doXlsxExport) {
-				
+
 				exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(), selectedTags);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
 				exportFormats += "Xlsx";
-				
+
 			}
 
 			if (exportFormats != "") {
@@ -2787,16 +2829,14 @@ public class TrpMainWidget {
 			}
 
 		} catch (Throwable e) {
-			if (e instanceof InterruptedException){
+			if (e instanceof InterruptedException) {
 				DialogUtil.showInfoMessageBox(getShell(), "Export canceled", "Export was canceled");
-			}
-			else{
+			} else {
 				logger.error(e.getMessage(), e);
 			}
 			// onError("Export error", "Error during export of document", e);
-		}
-		finally{
-			if(dir != null){
+		} finally {
+			if (dir != null) {
 				lastExportFolder = dir.getParentFile().getAbsolutePath();
 				TrpGuiPrefs.storeLastExportFolder(lastExportFolder);
 			}
@@ -2846,63 +2886,62 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	private void createZipFromFolder(String srcFolder, String destZipFile) throws IOException{
-	    ZipOutputStream zip = null;
-	    FileOutputStream fileWriter = null;
+	private void createZipFromFolder(String srcFolder, String destZipFile) throws IOException {
+		ZipOutputStream zip = null;
+		FileOutputStream fileWriter = null;
 
-	    try {
+		try {
 			fileWriter = new FileOutputStream(destZipFile);
 
-	    zip = new ZipOutputStream(fileWriter);
+			zip = new ZipOutputStream(fileWriter);
 
-	    addFolderToZip("", srcFolder, zip);
-	    zip.flush();
-	    zip.close();
+			addFolderToZip("", srcFolder, zip);
+			zip.flush();
+			zip.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			throw e;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			throw e;
-		}finally{
-        if (zip != null) {
-            zip.close();
-        }
-    }
-	  } 
-	
-	  static private void addFileToZip(String path, String srcFile, ZipOutputStream zip) throws IOException
-	     {
+		} finally {
+			if (zip != null) {
+				zip.close();
+			}
+		}
+	}
 
-	    File folder = new File(srcFile);
-	    if (folder.isDirectory()) {
-	      addFolderToZip(path, srcFile, zip);
-	    } else {
-	      byte[] buf = new byte[1024];
-	      int len;
-	      FileInputStream in = new FileInputStream(srcFile);
-	      zip.putNextEntry(new ZipEntry(path + "/" + folder.getName()));
-	      while ((len = in.read(buf)) > 0) {
-	        zip.write(buf, 0, len);
-	      }
-	      in.close();
-	    }
-	  }
+	static private void addFileToZip(String path, String srcFile, ZipOutputStream zip) throws IOException {
 
-	  static private void addFolderToZip(String path, String srcFolder, ZipOutputStream zip) throws IOException
-	     {
-	    File folder = new File(srcFolder);
+		File folder = new File(srcFile);
+		if (folder.isDirectory()) {
+			addFolderToZip(path, srcFile, zip);
+		} else {
+			byte[] buf = new byte[1024];
+			int len;
+			FileInputStream in = new FileInputStream(srcFile);
+			zip.putNextEntry(new ZipEntry(path + "/" + folder.getName()));
+			while ((len = in.read(buf)) > 0) {
+				zip.write(buf, 0, len);
+			}
+			in.close();
+		}
+	}
 
-	    for (String fileName : folder.list()) {
-	      if (path.equals("")) {
-	        addFileToZip(folder.getName(), srcFolder + "/" + fileName, zip);
-	      } else {
-	        addFileToZip(path + "/" + folder.getName(), srcFolder + "/" + fileName, zip);
-	      }
-	    }
-	  }
+	static private void addFolderToZip(String path, String srcFolder, ZipOutputStream zip) throws IOException {
+		File folder = new File(srcFolder);
 
-	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto, final boolean splitIntoWordsInAlto, final String fileNamePattern) throws Throwable {
+		for (String fileName : folder.list()) {
+			if (path.equals("")) {
+				addFileToZip(folder.getName(), srcFolder + "/" + fileName, zip);
+			} else {
+				addFileToZip(path + "/" + folder.getName(), srcFolder + "/" + fileName, zip);
+			}
+		}
+	}
+
+	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto,
+			final boolean splitIntoWordsInAlto, final String fileNamePattern) throws Throwable {
 		try {
 
 			if (dir == null)
@@ -2914,7 +2953,8 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("exporting document...");
-						final String path = storage.exportDocument(dir, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern, monitor);
+						final String path = storage.exportDocument(dir, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern,
+								monitor);
 						monitor.done();
 						// displaySuccessMessage("Written export to "+path);
 					} catch (Exception e) {
@@ -2973,8 +3013,8 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	public void exportRtf(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening, final Set<String> selectedTags)
-			throws Throwable {
+	public void exportRtf(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening,
+			final Set<String> selectedTags) throws Throwable {
 		try {
 
 			if (file == null)
@@ -2999,9 +3039,10 @@ public class TrpMainWidget {
 			throw e;
 		}
 	}
-	
-	public void exportDocx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening, final Set<String> selectedTags, final boolean createTitle, final boolean markUnclearWords, final boolean expandAbbrevs, final boolean substituteAbbrevs, final boolean preserveLineBreaks)
-			throws Throwable {
+
+	public void exportDocx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening,
+			final Set<String> selectedTags, final boolean createTitle, final boolean markUnclearWords, final boolean expandAbbrevs,
+			final boolean substituteAbbrevs, final boolean preserveLineBreaks) throws Throwable {
 		try {
 
 			if (file == null)
@@ -3014,29 +3055,29 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Docx document...");
-						DocxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor, selectedTags, createTitle, markUnclearWords, expandAbbrevs, substituteAbbrevs, preserveLineBreaks);
+						DocxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor, selectedTags,
+								createTitle, markUnclearWords, expandAbbrevs, substituteAbbrevs, preserveLineBreaks);
 						monitor.done();
-					} catch (InterruptedException ie){
+					} catch (InterruptedException ie) {
 						throw ie;
-					}
-					catch (Exception e) {
+					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
 					}
 				}
 			}, "Exporting", true);
 		} catch (Throwable e) {
-			if (!(e instanceof InterruptedException)){
+			if (!(e instanceof InterruptedException)) {
 				onError("Export error", "Error during Docx export of document", e);
 			}
 			throw e;
 		}
 	}
 
-	public void exportXlsx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final Set<String> selectedTags)
-			throws Throwable {
+	public void exportXlsx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport,
+			final Set<String> selectedTags) throws Throwable {
 		try {
-			
-			if (ExportUtils.getCustomTagMapForDoc().isEmpty()){
+
+			if (ExportUtils.getCustomTagMapForDoc().isEmpty()) {
 				logger.info("No tags to store -> Xlsx export cancelled");
 				displayCancelMessage("No custom tags in document to store -> Xlsx export cancelled");
 				throw new Exception("No tags to store -> Xlsx export cancelled");
@@ -3056,7 +3097,7 @@ public class TrpMainWidget {
 						logger.debug("creating Excel document...");
 						TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, isTagExport, file, pageIndices, monitor, selectedTags);
 						monitor.done();
-					} catch (InterruptedException ie){
+					} catch (InterruptedException ie) {
 						throw ie;
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
@@ -3064,7 +3105,7 @@ public class TrpMainWidget {
 				}
 			}, "Exporting", true);
 		} catch (Throwable e) {
-			if(!(e instanceof InterruptedException))
+			if (!(e instanceof InterruptedException))
 				onError("Export error", "Error during Xlsx export of document", e);
 			throw e;
 		}
@@ -3114,7 +3155,9 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	public void exportPdf(final File dir, final Set<Integer> pageIndices, final boolean extraTextPages, final boolean imagesOnly, final Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle) throws Throwable {
+	public void exportPdf(final File dir, final Set<Integer> pageIndices, final boolean extraTextPages, final boolean imagesOnly,
+			final Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle)
+			throws Throwable {
 		try {
 			if (dir == null)
 				return;
@@ -3130,18 +3173,18 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating PDF document...");
-						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, selectedTags, highlightTags, wordBased, doBlackening, createTitle);
+						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, selectedTags, highlightTags, wordBased, doBlackening,
+								createTitle);
 						monitor.done();
-					} catch (InterruptedException ie){
-							throw ie;
-					}
-					catch (Exception e) {
+					} catch (InterruptedException ie) {
+						throw ie;
+					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
 					}
 				}
 			}, "Exporting", true);
 		} catch (Throwable e) {
-			if(!(e instanceof InterruptedException))
+			if (!(e instanceof InterruptedException))
 				onError("Export error", "Error during export of document", e);
 			throw e;
 		}
@@ -3190,7 +3233,7 @@ public class TrpMainWidget {
 
 	public void exportTei(final File file, final CommonExportDialog exportDiag) throws Throwable {
 		try {
-			
+
 			final TeiExportPars pars = new TeiExportPars();
 			pars.mode = exportDiag.getTeiExportMode();
 			pars.linebreakMode = exportDiag.getTeiLinebreakMode();
@@ -3208,19 +3251,19 @@ public class TrpMainWidget {
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						logger.debug("creating TEI document, pars: "+pars);
+						logger.debug("creating TEI document, pars: " + pars);
 
 						storage.exportTei(file, pars, monitor);
 						monitor.done();
-					} catch (InterruptedException ie){
+					} catch (InterruptedException ie) {
 						throw ie;
 					} catch (Exception e) {
-							throw new InvocationTargetException(e, e.getMessage());
-						}
+						throw new InvocationTargetException(e, e.getMessage());
+					}
 				}
 			}, "Exporting", true);
 		} catch (Throwable e) {
-			if(!(e instanceof InterruptedException))
+			if (!(e instanceof InterruptedException))
 				onError("Export error", "Error during export of TEI", e);
 			throw e;
 		}
@@ -3295,13 +3338,11 @@ public class TrpMainWidget {
 				ProgramUpdaterDialog.downloadAndInstall(ui.getShell(), f, isNewVersion, keepConfigFiles, downloadAll);
 			} catch (InterruptedException ie) {
 				logger.debug("Interrupted: " + ie.getMessage());
-			} 
-			catch (IOException e) {
+			} catch (IOException e) {
 				if (!e.getMessage().equals("stream is closed")) {
-					TrpMainWidget.getInstance().onError("IO-Error during update", "Error during update: \n\n"+e.getMessage(), e);	
-				}	
-			}
-			catch (Throwable e) {
+					TrpMainWidget.getInstance().onError("IO-Error during update", "Error during update: \n\n" + e.getMessage(), e);
+				}
+			} catch (Throwable e) {
 				TrpMainWidget.getInstance().onError("Error during update", "Error during update: \n\n" + e.getMessage(), e);
 			} finally {
 				if (!ProgramUpdaterDialog.TEST_ONLY_DOWNLOAD)
@@ -3363,8 +3404,8 @@ public class TrpMainWidget {
 		while (it.hasNext()) {
 			Object o = it.next();
 			if (o instanceof TrpPageType) {
-				TrpShapeTypeUtils
-						.applyReadingOrderFromCoordinates(((TrpPageType) o).getTextRegionOrImageRegionOrLineDrawingRegion(), false, deleteReadingOrder);
+				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpPageType) o).getTextRegionOrImageRegionOrLineDrawingRegion(), false,
+						deleteReadingOrder);
 			} else if (o instanceof TrpTextRegionType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextRegionType) o).getTextLine(), false, deleteReadingOrder);
 			} else if (o instanceof TrpTextLineType) {
@@ -3378,9 +3419,9 @@ public class TrpMainWidget {
 	public DebuggerDialog showDebugDialog() {
 		DebuggerDialog debugDiag = new DebuggerDialog(getShell(), 0);
 		debugDiag.open();
-		
+
 		return debugDiag;
-		
+
 //		logger.debug("showing debug dialog!");
 //		if (debugDiag == null || debugDiag.shell == null || debugDiag.shell.isDisposed()) {
 //			debugDiag = new DebuggerDialog(getShell(), 0);
@@ -3390,7 +3431,7 @@ public class TrpMainWidget {
 //		
 //		return debugDiag;
 	}
-	
+
 //	public void appendDebugLog(final String text) {
 //		Display.getDefault().asyncExec(new Runnable() {
 //			@Override public void run() {
@@ -3401,7 +3442,7 @@ public class TrpMainWidget {
 //			}
 //		});
 //	}
-		
+
 	public void reloadCollections() {
 		try {
 			logger.debug("reloading collections!");
@@ -3421,14 +3462,14 @@ public class TrpMainWidget {
 		String title = storage.getDoc().getMd().getTitle();
 		return (title.replaceAll("([/\\?%*:| \"<>. ])", "_"));
 	}
-	
+
 	public String getSelectedImageFileType() {
 		String fileType = getCanvasWidget().getToolbar().getImageVersionDropdown().ti.getText();
 		if (!fileType.equals("orig") && fileType.equals("view") && !fileType.equals("bin"))
 			return "view";
 		else
 			return fileType;
-		
+
 //		return getCanvasWidget().getToolBar().getImageVersionItem().ti.getText();
 	}
 
@@ -3549,19 +3590,17 @@ public class TrpMainWidget {
 	public void showEventMessages() {
 		try {
 			List<TrpEvent> events = storage.getEvents();
-			for(TrpEvent ev : events){
-				final String msg = CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(ev.getDate()) +  ": " 
-						+ ev.getTitle() + "\n\n" + ev.getMessage();					
-				Pair<Integer, Boolean> ret = DialogUtil.showMessageDialogWithToggle(getShell(), 
-					"Notification", msg, 
-					"Do not show this message again", false, SWT.NONE, "OK");
+			for (TrpEvent ev : events) {
+				final String msg = CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(ev.getDate()) + ": " + ev.getTitle() + "\n\n" + ev.getMessage();
+				Pair<Integer, Boolean> ret = DialogUtil.showMessageDialogWithToggle(getShell(), "Notification", msg, "Do not show this message again", false,
+						SWT.NONE, "OK");
 				boolean doNotShowAgain = ret.getRight();
 				logger.debug("Do not show again = " + doNotShowAgain);
-				if(doNotShowAgain) {
+				if (doNotShowAgain) {
 					storage.markEventAsRead(ev.getId());
 				}
 			}
-		} catch(IOException ioe){
+		} catch (IOException ioe) {
 			logger.info("Could not write events.txt file!", ioe);
 		} catch (Exception e) {
 			logger.info("Could not load events from server!", e);
@@ -3571,19 +3610,19 @@ public class TrpMainWidget {
 	public void applyAffineTransformToDoc() {
 		try {
 			logger.debug("applying affine transformation!");
-			
+
 			if (!storage.isDocLoaded())
 				throw new IOException("No document loaded!");
-			
+
 			final AffineTransformDialog d = new AffineTransformDialog(getShell(), storage.getDoc().getPages());
 			if (d.open() != Dialog.OK) {
 				logger.debug("cancelled");
 				return;
 			}
-			
+
 			if (!d.hasTransform()) {
 				logger.debug("no transform specified");
-				return;				
+				return;
 			}
 
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
@@ -3602,21 +3641,20 @@ public class TrpMainWidget {
 			}
 		} catch (Throwable e) {
 			onError("Affine transformation error", "Error during affine transformation of document", e);
-		}		
+		}
 	}
-	
+
 	public void setLocale(Locale l) {
-		logger.debug("setting new locale: "+l);
-		
-		if (l==null || Msgs.getLocale().equals(l))
+		logger.debug("setting new locale: " + l);
+
+		if (l == null || Msgs.getLocale().equals(l))
 			return;
-		
+
 		Msgs.setLocale(l);
 		TrpConfig.getTrpSettings().setLocale(l);
 //		TrpConfig.save(TrpSettings.LOCALE_PROPERTY);
-		
-		DialogUtil.showInfoMessageBox(ui.getShell(), 
-				 Msgs.get2("language_changed")+": "+l.getDisplayName(), Msgs.get2("restart"));
+
+		DialogUtil.showInfoMessageBox(ui.getShell(), Msgs.get2("language_changed") + ": " + l.getDisplayName(), Msgs.get2("restart"));
 	}
 
 	public void batchReplaceImagesForDoc() {
@@ -3629,7 +3667,7 @@ public class TrpMainWidget {
 			String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with image files", lastLocalDocFolder);
 			if (fn == null)
 				return;
-			
+
 			File inputDir = new File(fn);
 			List<File> imgFiles = Arrays.asList(inputDir.listFiles(new ImgFileFilter()));
 			Collections.sort(imgFiles);
@@ -3638,16 +3676,16 @@ public class TrpMainWidget {
 			if (d.open() != Dialog.OK) {
 				return;
 			}
-			
+
 			logger.debug("checked pages: ");
 			for (TrpPage p : d.getCheckedPages()) {
-				logger.debug(""+p);
+				logger.debug("" + p);
 			}
 			logger.debug("checkesd urls: ");
 			for (URL u : d.getCheckedUrls()) {
-				logger.debug(""+u);
+				logger.debug("" + u);
 			}
-			
+
 			if (d.getCheckedPages().size() != d.getCheckedUrls().size()) {
 				throw new Exception("The nr. of checked pages must equals nr. of checked images!");
 			}
@@ -3668,7 +3706,7 @@ public class TrpMainWidget {
 
 		} catch (Throwable e) {
 			onError("Error", "Error during batch replace of images", e);
-		}		
+		}
 	}
 
 	public void selectProfile(String name) {
@@ -3679,52 +3717,52 @@ public class TrpMainWidget {
 			onError("Error loading profile!", e.getMessage(), e, true, false);
 		}
 	}
-	
+
 	public void saveNewProfile() {
-		
+
 		try {
 			InputDialog dlg = new InputDialog(getShell(), "Save current settings as profile", "Profile name: ", "", new IInputValidator() {
 				@Override public String isValid(String newText) {
 					if (StringUtils.isEmpty(newText) || !newText.matches(TrpConfig.PROFILE_NAME_REGEX))
 						return "Invalid profile name - only alphanumeric characters and underscores allowed!";
-					
+
 					return null;
 				}
 			});
 			if (dlg.open() != Window.OK)
 				return;
-			
+
 			String profileName = dlg.getValue();
-			logger.debug("profileName = "+profileName);
-			
-			File profileFile=null;
+			logger.debug("profileName = " + profileName);
+
+			File profileFile = null;
 			try {
-				profileFile=TrpConfig.saveProfile(profileName, false);
+				profileFile = TrpConfig.saveProfile(profileName, false);
 				ui.updateProfiles();
-			} catch (FileExistsException e ) {
+			} catch (FileExistsException e) {
 				if (DialogUtil.showYesNoDialog(getShell(), "Profile already exists!", "Do want to overwrite the existing one?") == SWT.YES) {
-					profileFile=TrpConfig.saveProfile(profileName, true);
-				}				
+					profileFile = TrpConfig.saveProfile(profileName, true);
+				}
 			}
-			if (profileFile!=null)
-				DialogUtil.showMessageBox(getShell(), "Success", "Written profile to: \n\n"+profileFile.getAbsolutePath(), SWT.ICON_INFORMATION);
-			
+			if (profileFile != null)
+				DialogUtil.showMessageBox(getShell(), "Success", "Written profile to: \n\n" + profileFile.getAbsolutePath(), SWT.ICON_INFORMATION);
+
 		} catch (Exception e) {
 			onError("Error saving profile!", e.getMessage(), e, true, false);
 		}
-		
+
 	}
 
 	public void createThumbs(TrpDoc doc) {
 		// TODO Auto-generated method stub
-		
+
 		try {
-			logger.debug("creating thumbnails for document: "+doc);
+			logger.debug("creating thumbnails for document: " + doc);
 			if (doc == null) {
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "No document given");
 				return;
 			}
-			
+
 			if (!doc.isLocalDoc()) {
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "This is not a local document");
 				return;
@@ -3743,21 +3781,160 @@ public class TrpMainWidget {
 								return;
 						}
 						*/
-						
+
 						//CreateThumbsService.createThumbForDoc(doc, true, null);
-						
+
 						SWTUtil.createThumbsForDoc(doc, false, monitor);
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
 					}
 				}
 			}, "Creating thumbs for local document", true);
-
-
 		} catch (Throwable e) {
 			onError("Error", "Error during batch replace of images", e);
-		}	
+		}
+	}
+	
+	public void insertTextOnSelectedTranscriptionWidget(Character c) {
+		if (c == null)
+			return;
+
+		ATranscriptionWidget tw = ui.getSelectedTranscriptionWidget();
+		if (tw == null)
+			return;
+
+		tw.insertTextIfFocused("" + c);
+	}
+	
+	public void openVkDialog() {
+		if (SWTUtil.isOpen(vkDiag)) {
+			vkDiag.getShell().setVisible(true);
+		} else {
+			vkDiag = new TrpVirtualKeyboardsDialog(getShell());
+			vkDiag.create();		
+			vkDiag.getVkTabWidget().addListener(new ITrpVirtualKeyboardsTabWidgetListener() {
+				@Override public void onVirtualKeyPressed(TrpVirtualKeyboardsTabWidget w, char c, String description) {
+					TrpMainWidget.this.insertTextOnSelectedTranscriptionWidget(c);
+				}
+			});			
+			vkDiag.open();
+		}
+	}
+	
+	public void openJobsDialog() {
+		if (SWTUtil.isOpen(jobsDiag)) {
+			jobsDiag.getShell().setVisible(true);
+		} else {
+			jobsDiag = new Dialog(getShell()) {
+				@Override protected Control createDialogArea(Composite parent) {
+					Composite container = (Composite) super.createDialogArea(parent);
+					container.setLayout(new GridLayout(1, true));
+					
+					ui.getJobOverviewWidget().setParent(container);
+					ui.getJobOverviewWidget().setLayoutData(new GridData(GridData.FILL_BOTH));
+
+					container.pack();
+
+					return container;
+				}
+				
+				@Override public boolean close() {
+					ui.getJobOverviewWidget().setParent(SWTUtil.dummyShell);
+					return super.close();
+				}
+
+				@Override protected void configureShell(Shell newShell) {
+					super.configureShell(newShell);
+					newShell.setText("Jobs on server");
+				}
+
+				@Override protected Point getInitialSize() { return new Point(1000, 800); }
+				@Override protected boolean isResizable() { return true; }
+				@Override protected void createButtonsForButtonBar(Composite parent) {}
+
+				@Override protected void setShellStyle(int newShellStyle) {
+					super.setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
+					setBlockOnOpen(false);
+				}
+			};
+			jobsDiag.open();
+		}
+
+	}
+	
+	public void openVersionsDialog() {
+		if (SWTUtil.isOpen(versionsDiag)) {
+			versionsDiag.getShell().setVisible(true);
+		} else {
+			versionsDiag = new Dialog(getShell()) {
+				@Override protected Control createDialogArea(Composite parent) {
+					Composite container = (Composite) super.createDialogArea(parent);
+					container.setLayout(new GridLayout(1, true));
+					
+					ui.getVersionsWidget().setParent(container);
+					ui.getVersionsWidget().setLayoutData(new GridData(GridData.FILL_BOTH));
+
+					container.pack();
+
+					return container;
+				}
+				
+				@Override public boolean close() {
+					ui.getVersionsWidget().setParent(SWTUtil.dummyShell);
+					return super.close();
+				}
+
+				@Override protected void configureShell(Shell newShell) {
+					super.configureShell(newShell);
+					newShell.setText("Versions");
+				}
+
+				@Override protected Point getInitialSize() { return new Point(1000, 800); }
+				@Override protected boolean isResizable() { return true; }
+				@Override protected void createButtonsForButtonBar(Composite parent) {}
+
+				@Override protected void setShellStyle(int newShellStyle) {
+					super.setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
+					setBlockOnOpen(false);
+				}
+			};
+			versionsDiag.open();
+		}
 		
+	}
+	
+	public void openViewSetsDialog() {
+		SettingsDialog sd = new SettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getCanvas().getSettings(), getTrpSets());		
+		sd.open();
+	}
+	
+	public void openProxySetsDialog() {
+		ProxySettingsDialog psd = new ProxySettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getTrpSets());		
+		psd.open();
+		Storage.getInstance().updateProxySettings();
+	}
+
+	public void showAboutDialog() {
+		int res = DialogUtil.showMessageDialog(getShell(), ui.APP_NAME, ui.HELP_TEXT, null, MessageDialog.INFORMATION, 
+				new String[] {"OK", "Report bug / feature request"}, 0);
 		
-	}	
+		if (res == 1) {
+			ui.getTrpMenuBar().getBugReportItem().notifyListeners(SWT.Selection, new Event());
+		}		
+	}
+
+	public void openPAGEXmlViewer() {
+		try {
+			logger.debug("loading transcript source");
+			if (storage.isPageLoaded() && storage.getTranscriptMetadata() != null) {
+				URL url = Storage.getInstance().getTranscriptMetadata().getUrl();
+
+				PAGEXmlViewer xmlviewer = new PAGEXmlViewer(ui.getShell(), SWT.MODELESS);
+				xmlviewer.open(url);
+			}
+		} catch (Exception e1) {
+			onError("Could not open XML", "Could not open XML", e1);
+		}			
+	}
+
 }

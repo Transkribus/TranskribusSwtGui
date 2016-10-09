@@ -75,8 +75,8 @@ public class JobTableWidgetListener extends SelectionAdapter implements Observer
 			String pages = jobStatus.getPages();
 			int pageNr = ( (pages == null || pages.equals("") || pages.contains("-") ) ? 0 : Integer.parseInt(pages));
 			mainWidget.loadRemoteDoc(jobStatus.getDocId(), col, pageNr-1);
-			mainWidget.getUi().getDocOverviewWidget().setSelectedCollection(col, true);
-			mainWidget.getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", jobStatus.getDocId(), true);
+			mainWidget.getUi().getServerWidget().setSelectedCollection(col, true);
+			mainWidget.getUi().getServerWidget().getDocTableWidget().loadPage("docId", jobStatus.getDocId(), true);
 			
 		}		
 	}

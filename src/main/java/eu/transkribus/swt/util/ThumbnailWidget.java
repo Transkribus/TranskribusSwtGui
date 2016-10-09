@@ -20,13 +20,13 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +36,6 @@ import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.PageXmlUtils;
-import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class ThumbnailWidget extends Composite {
@@ -65,7 +64,7 @@ public class ThumbnailWidget extends Composite {
 	protected GalleryItem group;
 	
 
-	protected ToolItem reload, showOrigFn, createThumbs;
+	protected Button reload, showOrigFn, createThumbs;
 //	protected TextToolItem infoTi;
 
 	protected List<URL> urls;
@@ -131,18 +130,11 @@ public class ThumbnailWidget extends Composite {
 		private void load() {
 			try {
 				isError = false;
-				
-				
-//				SebisStopWatch sw = new SebisStopWatch();
-//				sw.start();
 				image = ImgLoader.load(url);
-//				sw.stop(true, "loading img time: ");
 				
 				if (!DISABLE_TRANSCRIBED_LINES) {
-//					sw.start();
 					//transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
 					transcribedLines = transcript.getNrOfTranscribedLines();
-//					sw.stop(true, "loading lines time: ");
 				}
 				
 //				if (image.getBounds().height > THUMB_HEIGHT) {
@@ -277,39 +269,7 @@ public class ThumbnailWidget extends Composite {
 		super(parent, style);
 
 		setLayout(new GridLayout());
-		
-		final ToolBar tb = new ToolBar(this, SWT.FLAT);
-		tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
-		
-		reload = new ToolItem(tb, SWT.PUSH);
-		reload.setToolTipText("Reload");
-		reload.setImage(Images.getOrLoad("/icons/refresh.gif"));
-		reload.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				logger.debug("reloading thumbwidget...");
-				reload();
-			}
-		});
-		
-		createThumbs = new ToolItem(tb, SWT.PUSH);
-		createThumbs.setToolTipText("Create thumbnails for this local document");
-		createThumbs.setText("Create thumbs");
-		
-//		infoTi = new TextToolItem(tb, SWT.FILL | SWT.READ_ONLY);
-		
-		
-//		showOrigFn = new ToolItem(tb, SWT.CHECK);
-//		showOrigFn.setToolTipText("Shows the original filenames when checked");
-//		showOrigFn.setText("Original filenames");
-//		showOrigFn.setImage(Images.getOrLoad(TrpMainWidgetView.class, "/icons/refresh.gif"));
-//		
-//		showOrigFn.addSelectionListener(new SelectionAdapter() {
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				updateGalleryItemNames();
-//			}
-//		});
-		
+				
 		groupComposite = new Composite(this, SWT.FILL);
 		GridLayout gl = new GridLayout(1, false);
 		groupComposite.setLayout(gl);
@@ -323,6 +283,25 @@ public class ThumbnailWidget extends Composite {
 		statisticLabel = new Label(labelComposite, SWT.TOP);
 		statisticLabel.setText("Statistic: ");
 		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		Composite btns = new Composite(this, 0);
+		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		btns.setLayout(new RowLayout(SWT.HORIZONTAL));
+		
+		reload = new Button(btns, SWT.PUSH);
+		reload.setToolTipText("Reload thumbs");
+		reload.setImage(Images.REFRESH);
+		reload.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				logger.debug("reloading thumbwidget...");
+				reload();
+			}
+		});
+		
+		createThumbs = new Button(btns, SWT.PUSH);
+		createThumbs.setImage(Images.IMAGES);
+//		createThumbs.setToolTipText("Create thumbnails for this local document");
+		createThumbs.setText("Create thumbs for local doc");		
 					
 		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.SINGLE);
 		gallery.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -366,7 +345,7 @@ public class ThumbnailWidget extends Composite {
 //						} else 
 //							infoTi.setText(""+e.index);
 //						infoTi.setWidth(100);
-						tb.pack();
+						btns.pack();
 						
 						notifyListeners(SWT.Selection, e);
 					}
@@ -722,7 +701,7 @@ public class ThumbnailWidget extends Composite {
 //		tv.setInput(thumbImages);
 //	}
 	
-	public ToolItem getCreateThumbs() {
+	public Button getCreateThumbs() {
 		return createThumbs;
 	}
 

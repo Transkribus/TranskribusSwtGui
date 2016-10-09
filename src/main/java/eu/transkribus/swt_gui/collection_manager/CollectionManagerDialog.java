@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.collection_manager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import javax.ws.rs.ServerErrorException;
@@ -16,8 +15,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabFolder2Listener;
-import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
@@ -52,13 +49,12 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.doc_overview.ServerDocsWidget;
+import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.UserTableWidgetPagination;
-import eu.transkribus.swt_gui.search.SearchDialog;
 import eu.transkribus.swt_gui.search.SimpleSearchDialog;
 
 //public class CollectionManagerWidget extends Composite {
@@ -89,7 +85,7 @@ public class CollectionManagerDialog extends Dialog {
 	
 	CollectionManagerListener cml;
 	
-	static ServerDocsWidget docOverviewWidget;
+	ServerWidget serverWidget;
 	
 	CTabFolder docTabFolder;
 	
@@ -101,13 +97,13 @@ public class CollectionManagerDialog extends Dialog {
 	public static final String COLL_ROLE = "Role";
 	
 	static final Storage store = Storage.getInstance();
-
-	public CollectionManagerDialog(Shell parent, int style, ServerDocsWidget docOverviewWidget) {
+	
+	public CollectionManagerDialog(Shell parent, int style, ServerWidget serverWidget) {
 		super(parent, style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
 //		this.setSize(800, 800);
 		this.setText("Collection Manager");
 		
-		this.docOverviewWidget = docOverviewWidget;
+		this.serverWidget = serverWidget;
 	}
 	
 	/**
@@ -175,7 +171,7 @@ public class CollectionManagerDialog extends Dialog {
 		
 		updateCollections();
 		updateUsersForSelectedCollection();
-		updateDocumentsTable(docOverviewWidget.getSelectedDocument(), true);
+		updateDocumentsTable(serverWidget.getSelectedDocument(), true);
 //		shell.pack();
 		
 		((SashForm) container).setWeights(new int[] { 60, 40 });
@@ -242,7 +238,7 @@ public class CollectionManagerDialog extends Dialog {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
 				
 				updateUsersForSelectedCollection();
-				updateDocumentsTable(docOverviewWidget.getSelectedDocument(), true);
+				updateDocumentsTable(serverWidget.getSelectedDocument(), true);
 			}
 		});
 		
@@ -307,7 +303,7 @@ public class CollectionManagerDialog extends Dialog {
 					return;
 				
 				TrpCollection col = (TrpCollection) sel.getFirstElement();
-				docOverviewWidget.setSelectedCollection(col.getColId(), true);
+				serverWidget.setSelectedCollection(col.getColId(), true);
 			}
 		};		
 		collectionsTv.getTableViewer().addDoubleClickListener(openSelectedColListener);
@@ -848,11 +844,11 @@ public class CollectionManagerDialog extends Dialog {
 		selectCurrentCollection();
 		
 		updateUsersForSelectedCollection();
-		updateDocumentsTable(docOverviewWidget.getSelectedDocument(), true);
+		updateDocumentsTable(serverWidget.getSelectedDocument(), true);
 	}
 	
 	public void selectCurrentCollection() {
-		TrpCollection c = docOverviewWidget.getSelectedCollection();
+		TrpCollection c = serverWidget.getSelectedCollection();
 		if (c == null)
 			return;
 		
@@ -863,7 +859,7 @@ public class CollectionManagerDialog extends Dialog {
 		TrpCollection c = getSelectedCollection();
 		if (c == null)
 			return;
-		SimpleSearchDialog d = new SimpleSearchDialog(shell, c.getColId());
+		SimpleSearchDialog d = new SimpleSearchDialog(shell, c.getColId(), this);
 		d.open();
 		
 	}
@@ -877,13 +873,7 @@ public class CollectionManagerDialog extends Dialog {
 		}
 	}
 
-	public static CollectionManagerDialog getInstance() {
-		// TODO Auto-generated method stub
-		return docOverviewWidget.getCollectionManagerDialog();
-	}
-
 	public CTabFolder getDocTabFolder() {
-		// TODO Auto-generated method stub
 		return docTabFolder;
 	}
 				

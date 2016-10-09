@@ -42,25 +42,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		}		
 		else if (s == toolbar.getOriginalSize()) {
 			canvas.resetTransformation();
-		}
-		
-//		else if (toolbar.getTranslateItem()!= null && s == toolbar.getTranslateItem().ti && e.detail != SWT.ARROW) {
-//			switch (toolbar.getTranslateItem().getLastSelectedIndex()) {
-//			case 0:
-//				canvas.translateLeft();
-//				break;
-//			case 1:
-//				canvas.translateRight();
-//				break;
-//			case 2:
-//				canvas.translateUp();
-//				break;
-//			case 3:
-//				canvas.translateDown();
-//				break;
-//			}
-//		}
-		
+		}		
 		else if (s == toolbar.getRotateItem().ti && e.detail != SWT.ARROW) {
 			switch (toolbar.getRotateItem().getLastSelectedIndex()) {
 			case 0:
@@ -106,8 +88,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 				canvas.fitHeight();
 				break;				
 			}
-		}		
-
+		}
 		else if (s == toolbar.getFocus()) {
 			canvas.focusFirstSelected();
 		}
@@ -124,8 +105,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.getMergeShapes()) {
 			canvas.getShapeEditor().mergeSelected();
 		}
-		
-		
+
 		if (s == toolbar.getViewSettingsMenuItem()) {
 //			SettingsDialog sd = new SettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getCanvas().getSettings(), getTrpSets());		
 //			sd.open();
@@ -133,10 +113,9 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (canvas.getMode() == CanvasMode.ADD_OTHERREGION) {
 			CanvasMode.ADD_OTHERREGION.data = toolbar.getSelectedAddElementType(); 
 		}
-
 		
 		if (s == toolbar.getViewSettingsMenuItem()) {
-			mw.getUi().openViewSetsDialog();
+			mw.getUi().getTabWidget().selectServerTab();
 		}
 		else if (s == toolbar.getImageVersionDropdown().ti && e.detail != SWT.ARROW) {
 			TrpMainWidget.getInstance().reloadCurrentImage();
@@ -146,21 +125,6 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
 			d.open();
 		}
-		
-		// TABLE STUFF:
-//		else if (s == toolbar.getDeleteRowItem()) {
-//			mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.ROW, true);
-//		}
-//		else if (s == toolbar.getDeleteColumnItem()) {
-//			mw.getCanvas().getShapeEditor().deleteTableRowOrColumn(mw.getCanvas().getFirstSelected(), TableDimension.COLUMN, true);
-//		}
-//		else if (s == toolbar.getSplitMergedCell()) {
-//			mw.getCanvas().getShapeEditor().splitMergedTableCell(mw.getCanvas().getFirstSelected(), true);
-//		}
-//		else if (s == toolbar.getRemoveIntermediatePtsItem()) {
-//			mw.getCanvas().getShapeEditor().removeIntermediatePointsOfTableCell(mw.getCanvas().getFirstSelected(), true);
-//		}
-
 	}
 	
 	protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {

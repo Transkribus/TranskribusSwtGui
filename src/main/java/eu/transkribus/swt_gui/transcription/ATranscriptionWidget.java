@@ -47,6 +47,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
@@ -94,7 +95,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
-import eu.transkribus.core.util.MyObservable;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
@@ -136,9 +136,9 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected ToolBar regionsToolbar;
 	protected ToolItem fontItem;
 	protected ToolItem showLineBulletsItem;
-	protected ToolItem leftAlignmentItem;
-	protected ToolItem centerAlignmentItem;
-	protected ToolItem rightAlignmentItem;
+	protected MenuItem leftAlignmentItem;
+	protected MenuItem centerAlignmentItem;
+	protected MenuItem rightAlignmentItem;
 	
 	protected ToolItem writingOrientationItem;
 	protected ToolItem showControlSignsItem;
@@ -149,10 +149,10 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	protected ToolItem focusShapeOnDoubleClickInTranscriptionWidgetItem;
 	
-	
-	protected ToolItem deleteRegionTextItem;
-	protected ToolItem deleteLineTextItem;
-	protected ToolItem deleteWordTextItem;
+	private DropDownToolItem deleteTextDropDown;
+	protected MenuItem deleteRegionTextItem;
+	protected MenuItem deleteLineTextItem;
+	protected MenuItem deleteWordTextItem;
 	
 	protected ToolItem undoItem, redoItem;
 	
@@ -208,6 +208,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //	protected WritingOrientation writingOrientation = WritingOrientation.LEFT_TO_RIGHT;
 	protected ExtendedModifyListener rightToLeftModifyListener;
 	protected ToolItem addParagraphItem;
+	protected ToolItem vkItem;
 		
 	// some consts:
 	public static final int DEFAULT_LINE_SPACING=6;
@@ -217,8 +218,10 @@ public abstract class ATranscriptionWidget extends Composite{
 	public static final boolean USE_AUTOCOMPLETE_FROM_PAGE=true;
 	
 	List<ITranscriptionWidgetListener> listener = new ArrayList<>(); // custom event listener
+	private DropDownToolItem alignmentDropDown;
 	
-	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT"; 
+	
+	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
 	
 	private class ReloadWgRunnable implements Runnable {
 		Storage store;
@@ -557,23 +560,31 @@ public abstract class ATranscriptionWidget extends Composite{
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
 		textAlignment = SWT.LEFT;
-		leftAlignmentItem = new ToolItem(regionsToolbar, SWT.RADIO);
-		leftAlignmentItem.setImage(Images.getOrLoad("/icons/text_align_left.png"));
-		leftAlignmentItem.setToolTipText("Left align text");
-		leftAlignmentItem.setSelection(textAlignment == SWT.LEFT);
-		additionalToolItems.add(leftAlignmentItem);
 		
-		centerAlignmentItem = new ToolItem(regionsToolbar, SWT.RADIO);
-		centerAlignmentItem.setImage(Images.getOrLoad("/icons/text_align_center.png"));
-		centerAlignmentItem.setToolTipText("Center text");
-		centerAlignmentItem.setSelection(textAlignment == SWT.CENTER);
-		additionalToolItems.add(centerAlignmentItem);
+		alignmentDropDown = new DropDownToolItem(regionsToolbar, false, true, SWT.RADIO);
+		additionalToolItems.add(alignmentDropDown.ti);
 		
-		rightAlignmentItem = new ToolItem(regionsToolbar, SWT.RADIO);
-		rightAlignmentItem.setImage(Images.getOrLoad("/icons/text_align_right.png"));
-		rightAlignmentItem.setToolTipText("Right align text");
-		rightAlignmentItem.setSelection(textAlignment == SWT.RIGHT);
-		additionalToolItems.add(rightAlignmentItem);
+		leftAlignmentItem = alignmentDropDown.addItem("Left", Images.getOrLoad("/icons/text_align_left.png"), "Text alignment", true);
+		centerAlignmentItem = alignmentDropDown.addItem("Center", Images.getOrLoad("/icons/text_align_center.png"), "Text alignment", false);
+		rightAlignmentItem = alignmentDropDown.addItem("Right", Images.getOrLoad("/icons/text_align_right.png"), "Text alignment", false);
+		
+//		leftAlignmentItem = new ToolItem(regionsToolbar, SWT.RADIO);
+//		leftAlignmentItem.setImage(Images.getOrLoad("/icons/text_align_left.png"));
+//		leftAlignmentItem.setToolTipText("Left align text");
+//		leftAlignmentItem.setSelection(textAlignment == SWT.LEFT);
+//		additionalToolItems.add(leftAlignmentItem);
+//		
+//		centerAlignmentItem = new ToolItem(regionsToolbar, SWT.RADIO);
+//		centerAlignmentItem.setImage(Images.getOrLoad("/icons/text_align_center.png"));
+//		centerAlignmentItem.setToolTipText("Center text");
+//		centerAlignmentItem.setSelection(textAlignment == SWT.CENTER);
+//		additionalToolItems.add(centerAlignmentItem);
+//		
+//		rightAlignmentItem = new ToolItem(regionsToolbar, SWT.RADIO);
+//		rightAlignmentItem.setImage(Images.getOrLoad("/icons/text_align_right.png"));
+//		rightAlignmentItem.setToolTipText("Right align text");
+//		rightAlignmentItem.setSelection(textAlignment == SWT.RIGHT);
+//		additionalToolItems.add(rightAlignmentItem);
 		
 		if (false) { // obsolete button -> remove in later version!
 		writingOrientationItem = new ToolItem(regionsToolbar, SWT.CHECK);
@@ -630,27 +641,15 @@ public abstract class ATranscriptionWidget extends Composite{
 //			}
 //		});
 		
-		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+//		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
-		deleteRegionTextItem = new ToolItem(regionsToolbar, SWT.PUSH);
-		deleteRegionTextItem.setImage(Images.getOrLoad("/icons/delete.png"));
-		deleteRegionTextItem.setText("R");
-		deleteRegionTextItem.setToolTipText("Delete text of region");
-		additionalToolItems.add(deleteRegionTextItem);
-		
-		deleteLineTextItem = new ToolItem(regionsToolbar, SWT.PUSH);
-		deleteLineTextItem.setImage(Images.getOrLoad("/icons/delete.png"));
-		deleteLineTextItem.setText("L");
-		deleteLineTextItem.setToolTipText("Delete text of current line");
-		additionalToolItems.add(deleteLineTextItem);
-		
-		deleteWordTextItem = new ToolItem(regionsToolbar, SWT.PUSH);
-		deleteWordTextItem.setImage(Images.getOrLoad("/icons/delete.png"));
-		deleteWordTextItem.setText("W");
-		deleteWordTextItem.setToolTipText("Delete text of current word");
-		additionalToolItems.add(deleteWordTextItem);
-		
-		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+		deleteTextDropDown = new DropDownToolItem(regionsToolbar, false, true, SWT.PUSH);
+		deleteRegionTextItem = deleteTextDropDown.addItem("Region", Images.DELETE, "Delete text of region, line or word");
+		deleteLineTextItem = deleteTextDropDown.addItem("Line", Images.DELETE, "Delete text of region, line or word");
+		deleteWordTextItem = deleteTextDropDown.addItem("Word", Images.DELETE, "Delete text of region, line or word");
+		additionalToolItems.add(deleteTextDropDown.ti);
+			
+//		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
 		autocompleteToggle = new ToolItem(regionsToolbar, SWT.CHECK);
 		autocompleteToggle.setImage(Images.getOrLoad("/icons/autocomplete.png"));
@@ -673,6 +672,17 @@ public abstract class ATranscriptionWidget extends Composite{
 		addParagraphItem.setText("+ \u00B6");
 		addParagraphItem.setToolTipText("Toggle paragraph on selected line");
 		additionalToolItems.add(addParagraphItem);
+		
+		vkItem = new ToolItem(regionsToolbar, SWT.PUSH);
+//		vkItem.setText("Virtual keyboards");
+		vkItem.setImage(Images.KEYBOARD);
+		vkItem.setToolTipText("Virtual keyboards");
+		vkItem.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				for (ITranscriptionWidgetListener l : listener)
+					l.onVkItemPressed();
+			}
+		});
 		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
@@ -709,6 +719,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 	}
 	
+	public ToolItem getVkItem() {
+		return vkItem;
+	}
+
 	public ToolItem getAutocompleteToggle() { return autocompleteToggle; }
 	public DropDownToolItem getTranscriptionTypeItem() { return transcriptionTypeItem; }
 	
@@ -819,6 +833,7 @@ public abstract class ATranscriptionWidget extends Composite{
 
 			}
 		};
+
 		deleteRegionTextItem.addSelectionListener(deleteSelection);
 		deleteLineTextItem.addSelectionListener(deleteSelection);
 		deleteWordTextItem.addSelectionListener(deleteSelection);
@@ -1266,7 +1281,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void paintTagsFromCustomTagList(PaintEvent e, CustomTagList ctl, int offset) {
 		Set<String> tagNames = ctl.getIndexedTagNames();
 		
-		if (!view.getMetadataWidget().getTextStyleWidget().underlineTextStylesBtn.getSelection()) {
+		if (!view.getStructuralMetadataWidget().getTextStyleWidget().underlineTextStylesBtn.getSelection()) {
 			tagNames.remove(TextStyleTag.TAG_NAME); // do not underline  TextStyleTags, as they are
 												// rendered into the bloody text anyway
 		}
