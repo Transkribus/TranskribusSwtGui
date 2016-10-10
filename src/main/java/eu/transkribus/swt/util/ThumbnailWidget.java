@@ -38,6 +38,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt.util.ThumbnailManager;
 
 public class ThumbnailWidget extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidget.class);
@@ -65,7 +66,7 @@ public class ThumbnailWidget extends Composite {
 	protected GalleryItem group;
 	
 
-	protected ToolItem reload, showOrigFn, createThumbs;
+	protected ToolItem reload, showOrigFn, createThumbs, showPageManager;
 //	protected TextToolItem infoTi;
 
 	protected List<URL> urls;
@@ -95,6 +96,7 @@ public class ThumbnailWidget extends Composite {
 		TrpTranscriptMetadata transcript;
 		boolean isError=false;
 		int index;
+		int segmentedLines;                        
 		int transcribedLines;
 		
 		public ThmbImg(int index, URL url, TrpTranscriptMetadata transcript) {
@@ -139,10 +141,11 @@ public class ThumbnailWidget extends Composite {
 //				sw.stop(true, "loading img time: ");
 				
 				if (!DISABLE_TRANSCRIBED_LINES) {
-					sw.start();
+					//sw.start();
 					//transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
 					transcribedLines = transcript.getNrOfTranscribedLines();
-					sw.stop(true, "loading lines time: ");
+					segmentedLines = transcript.getNrOfLines();
+					//sw.stop(true, "loading lines time: ");
 				}
 				
 //				if (image.getBounds().height > THUMB_HEIGHT) {
@@ -260,7 +263,7 @@ public class ThumbnailWidget extends Composite {
 					}
 					
 					@Override protected void onDone() {
-						setItemTextAndBackground(group.getItem(index), index, transcribedLines);
+						setItemTextAndBackground(group.getItem(index), index, transcribedLines, segmentedLines);
 						//groupComposite.layout(true, true);
 						//labelComposite.redraw();
 						//groupComposite.redraw();
@@ -294,6 +297,16 @@ public class ThumbnailWidget extends Composite {
 		createThumbs = new ToolItem(tb, SWT.PUSH);
 		createThumbs.setToolTipText("Create thumbnails for this local document");
 		createThumbs.setText("Create thumbs");
+		
+		showPageManager = new ToolItem(tb, SWT.PUSH);
+		showPageManager.setText("Page Overview");
+		
+		showPageManager.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				showPageManager();
+			}
+		});
 		
 //		infoTi = new TextToolItem(tb, SWT.FILL | SWT.READ_ONLY);
 		
@@ -377,6 +390,11 @@ public class ThumbnailWidget extends Composite {
 		this.pack();
 	}
 	
+	protected void showPageManager() {
+		ThumbnailManager tm = new ThumbnailManager(getShell(), SWT.NONE);
+		
+	}
+
 	private void updateGalleryItemNames() {
 		for (int i=0; i<group.getItemCount(); ++i) {
 			setItemText(group.getItems()[i], i, "");
@@ -411,8 +429,9 @@ public class ThumbnailWidget extends Composite {
 			 */
 
 			int transcribedLines = transcripts.get(i).getNrOfTranscribedLines();
+			int segmentedLines = transcripts.get(i).getNrOfLines();
 			
-			if (transcribedLines == 0){
+			if (segmentedLines == 0){
 				transcribedLinesText = "\nNo lines segmented";
 			}
 			else{
@@ -429,7 +448,7 @@ public class ThumbnailWidget extends Composite {
 
 				item.setBackground(lightGreen);
 			}
-			else if(transcribedLines <0){
+			else if(transcribedLines == 0){
 				item.setBackground(lightYellow);
 			}
 			else{
@@ -593,7 +612,7 @@ public class ThumbnailWidget extends Composite {
 		}	
 	}
 	
-	private void setItemTextAndBackground(GalleryItem galleryItem, int index, int transcribedLines) {
+	private void setItemTextAndBackground(GalleryItem galleryItem, int index, int transcribedLines, int segmentedLines) {
 		if (SWTUtil.isDisposed(galleryItem))
 			return;
 		
@@ -610,7 +629,7 @@ public class ThumbnailWidget extends Composite {
 			 */
 			//int transcribedLines = nrTranscribedLines.get(index);
 					
-			if (transcribedLines == 0){
+			if (segmentedLines == 0){
 				transcribedLinesText = "\nNo lines segmented";
 			}
 			else{
@@ -627,7 +646,7 @@ public class ThumbnailWidget extends Composite {
 	
 				galleryItem.setBackground(lightGreen);
 			}
-			else if(transcribedLines <0){
+			else if(transcribedLines == 0){
 				galleryItem.setBackground(lightYellow);
 			}
 			else{

@@ -91,6 +91,10 @@ public class SimpleLaDialog extends Dialog {
 		dps.getPagesText().setText(""+store.getPage().getPageNr());
 	}
 	
+	public void setPageSelectionToSelectedPages(String pages){
+		dps.getPagesText().setText(pages);
+	}
+	
 	public Button getDoBlockSegBtn() {
 		return doBlockSegBtn;
 	}

@@ -106,7 +106,7 @@ public class CollectionManagerDialog2 extends Dialog {
 //		this.setSize(800, 800);
 		this.setText("Collection Manager");
 		
-		this.docOverviewWidget = docOverviewWidget;
+		CollectionManagerDialog2.docOverviewWidget = docOverviewWidget;
 	}
 	
 	/**
