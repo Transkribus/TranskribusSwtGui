@@ -107,8 +107,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		}
 
 		if (s == toolbar.getViewSettingsMenuItem()) {
-//			SettingsDialog sd = new SettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getCanvas().getSettings(), getTrpSets());		
-//			sd.open();
+			mw.openViewSetsDialog();
 		}		
 		else if (canvas.getMode() == CanvasMode.ADD_OTHERREGION) {
 			CanvasMode.ADD_OTHERREGION.data = toolbar.getSelectedAddElementType(); 
