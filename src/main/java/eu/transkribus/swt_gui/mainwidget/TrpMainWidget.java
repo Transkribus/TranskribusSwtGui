@@ -944,19 +944,15 @@ public class TrpMainWidget {
 
 			List<TrpDocMetadata> docList;
 			try {
-				if (storage.getConnection() != null){
-					docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
-					if (docList != null && docList.size() > 0){
-						if (loadRemoteDoc(docid, colid)){
-							getUi().getDocOverviewWidget().setSelectedCollection(colid, true);
-							getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", docid, true);
-						}
+				docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
+				if (docList != null && docList.size() > 0) {
+					if (loadRemoteDoc(docid, colid)) {
+						getUi().getServerWidget().setSelectedCollection(colid, true);
+						getUi().getServerWidget().getDocTableWidget().loadPage("docId", docid, true);
 					}
-					else{
-						//DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Last used document is not on this server", 2, true);
-					}
+				} else {
+					//DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Last used document is not on this server", 2, true);
 				}
-
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
 				// DO NOTHING
 			}

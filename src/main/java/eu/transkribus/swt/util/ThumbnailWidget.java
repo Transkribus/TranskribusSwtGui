@@ -20,13 +20,13 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +36,7 @@ import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.PageXmlUtils;
-import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt.util.ThumbnailManager;
 
 public class ThumbnailWidget extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidget.class);
@@ -66,7 +64,7 @@ public class ThumbnailWidget extends Composite {
 	protected GalleryItem group;
 	
 
-	protected ToolItem reload, showOrigFn, createThumbs, showPageManager;
+	protected Button reload, showOrigFn, createThumbs;
 //	protected TextToolItem infoTi;
 
 	protected List<URL> urls;
@@ -96,7 +94,6 @@ public class ThumbnailWidget extends Composite {
 		TrpTranscriptMetadata transcript;
 		boolean isError=false;
 		int index;
-		int segmentedLines;                        
 		int transcribedLines;
 		
 		public ThmbImg(int index, URL url, TrpTranscriptMetadata transcript) {
@@ -138,7 +135,6 @@ public class ThumbnailWidget extends Composite {
 				if (!DISABLE_TRANSCRIBED_LINES) {
 					//transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
 					transcribedLines = transcript.getNrOfTranscribedLines();
-					segmentedLines = transcript.getNrOfLines();
 				}
 				
 //				if (image.getBounds().height > THUMB_HEIGHT) {
@@ -256,7 +252,7 @@ public class ThumbnailWidget extends Composite {
 					}
 					
 					@Override protected void onDone() {
-						setItemTextAndBackground(group.getItem(index), index, transcribedLines, segmentedLines);
+						setItemTextAndBackground(group.getItem(index), index, transcribedLines);
 						//groupComposite.layout(true, true);
 						//labelComposite.redraw();
 						//groupComposite.redraw();
@@ -268,7 +264,7 @@ public class ThumbnailWidget extends Composite {
 			logger.debug("thumbnail thread finished!");
 		}
 	} // end ThmbImgLoadThread
-
+	
 	public ThumbnailWidget(Composite parent, int style) {
 		super(parent, style);
 
@@ -306,17 +302,7 @@ public class ThumbnailWidget extends Composite {
 		createThumbs.setImage(Images.IMAGES);
 //		createThumbs.setToolTipText("Create thumbnails for this local document");
 		createThumbs.setText("Create thumbs for local doc");		
-				
-		showPageManager = new ToolItem(tb, SWT.PUSH);
-		showPageManager.setText("Page Overview");
-		
-		showPageManager.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				showPageManager();
-			}
-		});
-			
+					
 		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.SINGLE);
 		gallery.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
@@ -370,11 +356,6 @@ public class ThumbnailWidget extends Composite {
 		this.pack();
 	}
 	
-	protected void showPageManager() {
-		ThumbnailManager tm = new ThumbnailManager(getShell(), SWT.NONE);
-		
-	}
-
 	private void updateGalleryItemNames() {
 		for (int i=0; i<group.getItemCount(); ++i) {
 			setItemText(group.getItems()[i], i, "");
@@ -409,9 +390,8 @@ public class ThumbnailWidget extends Composite {
 			 */
 
 			int transcribedLines = transcripts.get(i).getNrOfTranscribedLines();
-			int segmentedLines = transcripts.get(i).getNrOfLines();
 			
-			if (segmentedLines == 0){
+			if (transcribedLines == 0){
 				transcribedLinesText = "\nNo lines segmented";
 			}
 			else{
@@ -428,7 +408,7 @@ public class ThumbnailWidget extends Composite {
 
 				item.setBackground(lightGreen);
 			}
-			else if(transcribedLines == 0){
+			else if(transcribedLines <0){
 				item.setBackground(lightYellow);
 			}
 			else{
@@ -592,7 +572,7 @@ public class ThumbnailWidget extends Composite {
 		}	
 	}
 	
-	private void setItemTextAndBackground(GalleryItem galleryItem, int index, int transcribedLines, int segmentedLines) {
+	private void setItemTextAndBackground(GalleryItem galleryItem, int index, int transcribedLines) {
 		if (SWTUtil.isDisposed(galleryItem))
 			return;
 		
@@ -609,7 +589,7 @@ public class ThumbnailWidget extends Composite {
 			 */
 			//int transcribedLines = nrTranscribedLines.get(index);
 					
-			if (segmentedLines == 0){
+			if (transcribedLines == 0){
 				transcribedLinesText = "\nNo lines segmented";
 			}
 			else{
@@ -626,7 +606,7 @@ public class ThumbnailWidget extends Composite {
 	
 				galleryItem.setBackground(lightGreen);
 			}
-			else if(transcribedLines == 0){
+			else if(transcribedLines <0){
 				galleryItem.setBackground(lightYellow);
 			}
 			else{
@@ -721,7 +701,7 @@ public class ThumbnailWidget extends Composite {
 //		tv.setInput(thumbImages);
 //	}
 	
-	public ToolItem getCreateThumbs() {
+	public Button getCreateThumbs() {
 		return createThumbs;
 	}
 
