@@ -64,7 +64,7 @@ public class ThumbnailWidget extends Composite {
 	protected GalleryItem group;
 	
 
-	protected Button reload, showOrigFn, createThumbs;
+	protected Button reload, showOrigFn, createThumbs, showPageManager;
 //	protected TextToolItem infoTi;
 
 	protected List<URL> urls;
@@ -301,7 +301,17 @@ public class ThumbnailWidget extends Composite {
 		createThumbs = new Button(btns, SWT.PUSH);
 		createThumbs.setImage(Images.IMAGES);
 //		createThumbs.setToolTipText("Create thumbnails for this local document");
-		createThumbs.setText("Create thumbs for local doc");		
+		createThumbs.setText("Create thumbs for local doc");	
+		
+		showPageManager = new Button(btns, SWT.PUSH);
+		showPageManager.setText("Page Overview");
+		
+		showPageManager.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				showPageManager();
+			}
+		});
 					
 		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.SINGLE);
 		gallery.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -354,6 +364,10 @@ public class ThumbnailWidget extends Composite {
 		});
 		
 		this.pack();
+	}
+	
+	protected void showPageManager() {
+		ThumbnailManager tm = new ThumbnailManager(getShell(), SWT.NONE);
 	}
 	
 	private void updateGalleryItemNames() {
