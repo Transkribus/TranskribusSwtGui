@@ -73,8 +73,8 @@ public class TrpMainWidgetView extends Composite {
 	DocInfoWidget docInfoWidget;
 	DocMetadataEditor docMetadataEditor;
 	
-	JobTableWidgetPagination jobOverviewWidget;
-	TranscriptsTableWidgetPagination versionsWidget;
+//	JobTableWidgetPagination jobOverviewWidget;
+//	TranscriptsTableWidgetPagination versionsWidget;
 	PageMetadataWidget structuralMdWidget;
 	
 //	public static boolean SHOW_NEW_TW = true;
@@ -185,7 +185,7 @@ public class TrpMainWidgetView extends Composite {
 		
 //		versionsWidget = new TranscriptsTableWidgetPagination(tabWidget.documentTf, SWT.NONE, 25);
 //		tabWidget.versionsItem.setControl(versionsWidget);
-		versionsWidget = new TranscriptsTableWidgetPagination(SWTUtil.dummyShell, SWT.NONE, 25);
+//		versionsWidget = new TranscriptsTableWidgetPagination(SWTUtil.dummyShell, SWT.NONE, 25);
 //		tabWidget.versionsItem.setControl(versionsWidget);		
 		
 //		thumbnailWidget = new ThumbnailWidget(tabWidget.documentTf, SWT.NONE);
@@ -193,7 +193,7 @@ public class TrpMainWidgetView extends Composite {
 					
 //		jobOverviewWidget = new JobTableWidgetPagination(tabWidget.serverTf, SWT.NONE, 50);
 //		tabWidget.jobsItem.setControl(jobOverviewWidget);
-		jobOverviewWidget = new JobTableWidgetPagination(SWTUtil.dummyShell, SWT.NONE, 50);
+//		jobOverviewWidget = new JobTableWidgetPagination(SWTUtil.dummyShell, SWT.NONE, 50);
 //		tabWidget.jobsItem.setControl(jobOverviewWidget);
 		
 		docMetadataEditor = new DocMetadataEditor(tabWidget.metadataTf, 0);
@@ -558,8 +558,9 @@ public class TrpMainWidgetView extends Composite {
 	public TrpMenuBar getTrpMenuBar() { return menu; }
 	public StructureTreeWidget getStructureTreeWidget() { return structureTreeWidget; }
 	public ServerWidget getServerWidget() { return serverWidget; }
-	public JobTableWidgetPagination getJobOverviewWidget() { return jobOverviewWidget; }
-	public TranscriptsTableWidgetPagination getVersionsWidget() { return versionsWidget; };
+//	public JobTableWidgetPagination getJobOverviewWidget() { return jobOverviewWidget; }
+	
+//	public TranscriptsTableWidgetPagination getVersionsWidget() { return versionsWidget; };
 	
 	public CanvasWidget getCanvasWidget() { return canvasWidget; }
 	public CanvasToolBar getCanvasToolBar() { return canvasWidget.getToolbar(); }

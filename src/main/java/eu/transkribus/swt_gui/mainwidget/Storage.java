@@ -142,7 +142,7 @@ public class Storage {
 	
 	private List<TrpCollection> collections = Collections.synchronizedList(new ArrayList<>());
 
-	private static DocJobUpdater docUpdater;
+//	private static DocJobUpdater docUpdater;
 	private DataCache<URL, CanvasImage> imCache;
 	
 	public static final boolean USE_TRANSCRIPT_CACHE = false;
@@ -208,27 +208,31 @@ public class Storage {
 		imCache = new DataCache<URL, CanvasImage>(imCacheSize, new ImageDataDacheFactory());
 	}
 
-	private static void initDocUpdater() {
-		docUpdater = new DocJobUpdater() {
-			@Override public void onUpdate(final TrpJobStatus job) {
-				// Display.getDefault().asyncExec(new Runnable() {
-				// @Override public void run() {
-				storage.sendEvent(new JobUpdateEvent(this, job));
-				// }
-				// });
-			}
-		};
-	}
-
-	@Override public void finalize() {
-		logger.debug("Storage finalize - stopping job update thread!");
-		docUpdater.stopJobThread();
-	}
+//	private static void initDocUpdater() {
+//		docUpdater = new DocJobUpdater() {
+//			@Override public void onUpdate(final TrpJobStatus job) {
+//				// Display.getDefault().asyncExec(new Runnable() {
+//				// @Override public void run() {
+//				storage.sendEvent(new JobUpdateEvent(this, job));
+//				// }
+//				// });
+//			}
+//		};
+//	}
+//	
+//	public void startOrResumeJobThread() {
+//		docUpdater.startOrResumeJobThread();
+//	}
+//
+//	@Override public void finalize() {
+//		logger.debug("Storage finalize - stopping job update thread!");
+//		docUpdater.stopJobThread();
+//	}
 
 	public static Storage getInstance() {
 		if (storage == null) {
 			storage = new Storage();
-			initDocUpdater();
+//			initDocUpdater();
 		}
 		return storage;
 	}
@@ -659,9 +663,17 @@ public class Storage {
 	
 	public boolean removeListener(IStorageListener l) {
 		return listener.remove(l);
+	}
+	
+	public void sendJobListUpdateEvent() {
+		sendEvent(new JobUpdateEvent(this, null));
+	}
+	
+	public void sendJobUpdateEvent(TrpJobStatus job) {
+		sendEvent(new JobUpdateEvent(this, job));
 	}	
 
-	private void sendEvent(final Event event) {
+	public void sendEvent(final Event event) {
 		if (Thread.currentThread() == Display.getDefault().getThread()) {
 			for (IStorageListener l : listener) {
 				l.handleEvent(event);
@@ -852,41 +864,37 @@ public class Storage {
 //		sendEvent(new JobUpdateEvent(this, null));
 //	}
 	
-	public void startOrResumeJobThread() {
-		docUpdater.startOrResumeJobThread();
-	}
-
 	public void cancelJob(String jobId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		if (conn != null && jobId != null) {
 			conn.killJob(jobId);
 		}
 	}
 
-	public TrpJobStatus loadJob(String jobId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
-		// FIXME: direct access to job table not "clean" here...
-		List<TrpJobStatus> jobs = (List<TrpJobStatus>) TrpMainWidget.getInstance().getUi().getJobOverviewWidget().getTableViewer().getInput();
-		if (jobs == null) // should not happen!
-			return null;
-		
-		synchronized (jobs) {
-			checkConnection(true);
-			TrpJobStatus job = conn.getJob(jobId);
-			// update job in jobs array if there
-			for (int i = 0; i < jobs.size(); ++i) {
-				if (jobs.get(i).getJobId().equals(job.getJobId())) {
-					//logger.debug("UPDATING JOB: "+job.getJobId()+" new status: "+job.getState());
-					jobs.get(i).copy(job); // do not set new instance, s.t. table-viewer does not get confused!
-					
-					return jobs.get(i);
-					
-//					jobs.set(i, job);
-//					break;
-				}
-			}
-//			return null; // orig
-			return job; // return "original" job from connection here if not found in table (can be possible since introduction of paginated widgets!!)
-		}
-	}
+//	public TrpJobStatus loadJob(String jobId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+//		// FIXME: direct access to job table not "clean" here...
+//		List<TrpJobStatus> jobs = (List<TrpJobStatus>) TrpMainWidget.getInstance().getUi().getJobOverviewWidget().getTableViewer().getInput();
+//		if (jobs == null) // should not happen!
+//			return null;
+//		
+//		synchronized (jobs) {
+//			checkConnection(true);
+//			TrpJobStatus job = conn.getJob(jobId);
+//			// update job in jobs array if there
+//			for (int i = 0; i < jobs.size(); ++i) {
+//				if (jobs.get(i).getJobId().equals(job.getJobId())) {
+//					//logger.debug("UPDATING JOB: "+job.getJobId()+" new status: "+job.getState());
+//					jobs.get(i).copy(job); // do not set new instance, s.t. table-viewer does not get confused!
+//					
+//					return jobs.get(i);
+//					
+////					jobs.set(i, job);
+////					break;
+//				}
+//			}
+////			return null; // orig
+//			return job; // return "original" job from connection here if not found in table (can be possible since introduction of paginated widgets!!)
+//		}
+//	}
 
 	public void reloadCurrentDocument(int colId) throws SessionExpiredException, IllegalArgumentException, NoConnectionException, UnsupportedFormatException,
 			IOException, NullValueException {

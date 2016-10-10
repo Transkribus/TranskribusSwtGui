@@ -7,6 +7,8 @@ import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.TraverseEvent;
@@ -26,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
@@ -34,8 +37,10 @@ import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_gui.mainwidget.DocJobUpdater;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.JobUpdateEvent;
 
 public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatus> {
 	private final static Logger logger = LoggerFactory.getLogger(JobTableWidgetPagination.class);
@@ -67,6 +72,9 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 	Button showAllJobsBtn, cancelBtn;
 	Combo stateCombo;
 	Text docIdText;
+	
+	DocJobUpdater docUpdater;
+	static Storage store = Storage.getInstance();
 	
 	public JobTableWidgetPagination(Composite parent, int style, int initialPageSize) {
 		super(parent, style, initialPageSize);
@@ -144,6 +152,17 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 		
 //		pageableTable.sortChanged("",  "createTimeFormatted", 0, SWT.UP, pageableTable.getController());
 //		pageableTable.refreshPage();
+		
+		addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				logger.debug("doc table widget disposed - stopping job update thread!");
+				docUpdater.stopJobThread();
+			}
+		});
+		
+		initDocUpdater();
+		
+		reloadJobList();
 	}
 	
 	private String getState() {
@@ -175,10 +194,14 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 			methods = new IPageLoadMethods<TrpJobStatus>() {
 				Storage store = Storage.getInstance();
 				
-				@Override public int loadTotalSize() {					
+				@Override public int loadTotalSize() {
 					int N = 0;
+					if (store == null || showAllJobsBtn == null)
+						return 0;
+					
 					if (store.isLoggedIn()) {
 						try {
+							logger.debug("store: "+store+" showAllJobsBtn: "+showAllJobsBtn);
 							N = store.getConnection().countJobs(!showAllJobsBtn.getSelection(), getState(), getDocId());
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 							TrpMainWidget.getInstance().onError("Error loading jobs", e.getMessage(), e);
@@ -189,6 +212,9 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 	
 				@Override public List<TrpJobStatus> loadPage(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {			
 					List<TrpJobStatus> jobs = new ArrayList<>();
+					if (store == null || showAllJobsBtn == null)
+						return jobs;					
+					
 					if (store.isLoggedIn()) {
 						try {
 							jobs = store.getConnection().getJobs(!showAllJobsBtn.getSelection(), getState(), getDocId(), fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
@@ -248,8 +274,56 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 //		pageableTable.getViewer().getTable().setSortDirection(SWT.UP);
 	}
 
-//	public void refreshList() {
-//		refreshPage(true);
+	public void reloadJobList() {
+		try {
+			refreshPage(true);
+			startOrResumeJobThread();
+		} catch (Exception ex) {
+			TrpMainWidget.getInstance().onError("Error", "Error during update of jobs", ex);
+		}
+	}
+	
+	
+	private void initDocUpdater() {
+		docUpdater = new DocJobUpdater(this) {
+			@Override public void onUpdate(final TrpJobStatus job) {
+				Storage.getInstance().sendJobUpdateEvent(job);
+			}
+		};
+	}
+	
+	public void startOrResumeJobThread() {
+		docUpdater.startOrResumeJobThread();
+	}
+
+//	@Override public void finalize() {
+//		logger.debug("Storage finalize - stopping job update thread!");
+//		docUpdater.stopJobThread();
 //	}
 	
+	public TrpJobStatus loadJob(String jobId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+		// FIXME: direct access to job table not "clean" here...
+		List<TrpJobStatus> jobs = (List<TrpJobStatus>) tv.getInput();
+		if (jobs == null) // should not happen!
+			return null;
+		
+		synchronized (jobs) {
+			store.checkConnection(true);
+			TrpJobStatus job = store.getConnection().getJob(jobId);
+			// update job in jobs array if there
+			for (int i = 0; i < jobs.size(); ++i) {
+				if (jobs.get(i).getJobId().equals(job.getJobId())) {
+					//logger.debug("UPDATING JOB: "+job.getJobId()+" new status: "+job.getState());
+					jobs.get(i).copy(job); // do not set new instance, s.t. table-viewer does not get confused!
+					
+					return jobs.get(i);
+					
+//					jobs.set(i, job);
+//					break;
+				}
+			}
+//			return null; // orig
+			return job; // return "original" job from connection here if not found in table (can be possible since introduction of paginated widgets!!)
+		}
+	}
 }

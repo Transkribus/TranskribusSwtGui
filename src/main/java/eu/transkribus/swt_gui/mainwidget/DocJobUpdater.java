@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
 
 public abstract class DocJobUpdater {
 	private final static Logger logger = LoggerFactory.getLogger(DocJobUpdater.class);
@@ -33,7 +34,11 @@ public abstract class DocJobUpdater {
 	
 	int nExc=0;
 	
-	public DocJobUpdater() {
+	JobTableWidgetPagination jw;
+		
+	public DocJobUpdater(JobTableWidgetPagination jw) {
+		this.jw = jw;
+		
 		r = new Runnable() {
 			@Override public void run() {
 				started = true;
@@ -115,7 +120,7 @@ public abstract class DocJobUpdater {
 	private void updateJob(final TrpJobStatus job) throws Exception {
 		logger.trace("Updating job: "+job);
 		
-		final TrpJobStatus jobUpdated = store.loadJob(job.getJobId());
+		final TrpJobStatus jobUpdated = jw.loadJob(job.getJobId());
 		if (jobUpdated==null) {
 			logger.error("Could not update job with id = "+job.getJobId()+" - the return value was null! Check your code!");
 			return;

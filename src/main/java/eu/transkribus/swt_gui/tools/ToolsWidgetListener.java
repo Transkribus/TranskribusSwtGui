@@ -269,7 +269,7 @@ public class ToolsWidgetListener implements SelectionListener {
 			
 			logger.debug("started job with id = "+jobId);
 						
-			mw.reloadJobList();
+			store.sendJobListUpdateEvent();
 			mw.updatePageLock();
 			
 			DialogUtil.showInfoMessageBox(tw.getShell(), "Job started", "Started job with id = "+jobId);

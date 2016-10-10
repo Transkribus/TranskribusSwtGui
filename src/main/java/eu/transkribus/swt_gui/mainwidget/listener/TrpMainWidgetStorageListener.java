@@ -48,44 +48,44 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 //			mw.reloadDocList(cle.collections.get(0));
 	}
 	
-	@Override public void handleJobUpdate(JobUpdateEvent jue) {
-		TrpJobStatus job = jue.job;
-		
-		boolean isThisDocOpen = true;
-		if (job != null) { // specific job was updated
-			logger.debug("specific job update: "+job);
-//			ISelection sel = mw.getUi().getJobOverviewWidget().getJobTableViewer().getSelection();
-//			mw.getUi().getJobOverviewWidget().getJobTableViewer().refresh(true);
-//			mw.getUi().getJobOverviewWidget().getJobTableViewer().setSelection(sel);
-			
-			mw.getUi().getJobOverviewWidget().getTableViewer().update(job, null);
-//			mw.getUi().getJobOverviewWidget().getJobTableViewer().update(null, null);
-
-			isThisDocOpen = storage.isDocLoaded() && storage.getDoc().getId()==job.getDocId();	
-			
-			// reload current page if page job for this page is finished:
-			// TODO: only ask question to reload page!!
-			if (isThisDocOpen && job.isFinished()) {
-				if (!job.isSuccess()) {
-					logger.error("a job for the current page failed: "+job);
-					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
-				} 
-				else if (storage.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
-					// reload page if doc and page is open:					
-					if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?") == SWT.YES) {
-						logger.debug("reloading page!");
-						mw.reloadCurrentPage(true);						
-					}
-				}
-			}
-		} else {
-//			logger.debug("got "+storage.getJobs().size()+" jobs, thread = "+Thread.currentThread().getName());
-//			mw.getUi().getJobOverviewWidget().setInput(new ArrayList<>(storage.getJobs()));
-			mw.getUi().getJobOverviewWidget().refreshPage(false);
-		}
-		
-		mw.updatePageLock();
-	}
+//	@Override public void handleJobUpdate(JobUpdateEvent jue) {
+//		TrpJobStatus job = jue.job;
+//		
+//		boolean isThisDocOpen = true;
+//		if (job != null) { // specific job was updated
+//			logger.debug("specific job update: "+job);
+////			ISelection sel = mw.getUi().getJobOverviewWidget().getJobTableViewer().getSelection();
+////			mw.getUi().getJobOverviewWidget().getJobTableViewer().refresh(true);
+////			mw.getUi().getJobOverviewWidget().getJobTableViewer().setSelection(sel);
+//			
+//			mw.getUi().getJobOverviewWidget().getTableViewer().update(job, null);
+////			mw.getUi().getJobOverviewWidget().getJobTableViewer().update(null, null);
+//
+//			isThisDocOpen = storage.isDocLoaded() && storage.getDoc().getId()==job.getDocId();	
+//			
+//			// reload current page if page job for this page is finished:
+//			// TODO: only ask question to reload page!!
+//			if (isThisDocOpen && job.isFinished()) {
+//				if (!job.isSuccess()) {
+//					logger.error("a job for the current page failed: "+job);
+//					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
+//				} 
+//				else if (storage.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
+//					// reload page if doc and page is open:					
+//					if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?") == SWT.YES) {
+//						logger.debug("reloading page!");
+//						mw.reloadCurrentPage(true);						
+//					}
+//				}
+//			}
+//		} else {
+////			logger.debug("got "+storage.getJobs().size()+" jobs, thread = "+Thread.currentThread().getName());
+////			mw.getUi().getJobOverviewWidget().setInput(new ArrayList<>(storage.getJobs()));
+//			mw.getUi().getJobOverviewWidget().refreshPage(false);
+//		}
+//		
+//		mw.updatePageLock();
+//	}
 	
 	@Override public void handleDocLoadEvent(DocLoadEvent dle) {
 		logger.debug("document loaded event: "+dle.doc);
@@ -103,18 +103,9 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		mw.updateDocumentInfo();
 	}
 	
-	@Override public void handleTranscriptListLoadEvent(TranscriptListLoadEvent arg) {
-		logger.debug("setting transcripts list: "+arg.transcripts);
-		ui.getVersionsWidget().refreshPage(true);
-		
-//		ui.getToolsWidget().updateVersions(arg.transcripts);
-	}
-
 	@Override public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
 		canvas.setMode(CanvasMode.SELECTION);
 		mw.updatePageLock();
-		ui.getVersionsWidget().getPageableTable().getViewer().refresh();
-//		ui.getVersionsWidget().updateSelectedVersion(arg.transcript==null ? null : arg.transcript.getMd());
 		
 		ui.getLineTranscriptionWidget().clearAutocompleteProposals();
 		ui.getLineTranscriptionWidget().addAutocompleteProposals(arg.transcript);
