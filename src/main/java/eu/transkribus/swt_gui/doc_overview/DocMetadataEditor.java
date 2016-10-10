@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.Date;
 
+import org.eclipse.nebula.widgets.datechooser.DateChooserCombo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -23,7 +24,6 @@ import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.SCSimpleDateTimeWidget;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
@@ -34,20 +34,19 @@ import eu.transkribus.swt_gui.tools.LanguageSelectionTable;
 public class DocMetadataEditor extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocMetadataEditor.class);
 	
-	private Text titleText;
-	private Text authorText;
-	private Label uploadedLabel;
-	private Text genreText;
-	private Text writerText;
-	private Button saveBtn;
-	private Text descriptionText;
-//	private Combo langCombo;
-	private Combo scriptTypeCombo, scriptTypeCombo2;
-	private LanguageSelectionTable langTable;
-//	private TrpDateTime createdFrom, createdTo;
-	private SCSimpleDateTimeWidget createdFrom, createdTo;
-	private Button enableCreatedFromBtn, enableCreatedToBtn;
-	private Button openEditDeclManagerBtn;
+	Text titleText;
+	Text authorText;
+	Label uploadedLabel;
+	Text genreText;
+	Text writerText;
+	Button saveBtn;
+	Text descriptionText;
+	Combo scriptTypeCombo, scriptTypeCombo2;
+	LanguageSelectionTable langTable;
+	
+	DateChooserCombo createdFrom, createdTo;
+	
+	Button enableCreatedFromBtn, enableCreatedToBtn, openEditDeclManagerBtn;
 	EditDeclManagerDialog edm;
 	
 	public static final String PRINT_META_SCRIPTTYPE = "Printed";
@@ -153,8 +152,8 @@ public class DocMetadataEditor extends Composite {
 			}
 		});
 		enableCreatedFromBtn.setText("From:");		
-//		createdFrom = new TrpDateTime (dateComposite, SWT.DROP_DOWN);
-		createdFrom = new SCSimpleDateTimeWidget(dateComposite, SWT.NONE); 
+//		createdFrom = new SCSimpleDateTimeWidget(dateComposite, SWT.NONE);
+		createdFrom = new DateChooserCombo(dateComposite, SWT.NONE);
 		createdFrom.setEnabled(false);
 
 		enableCreatedToBtn = new Button(dateComposite, SWT.CHECK);
@@ -165,8 +164,7 @@ public class DocMetadataEditor extends Composite {
 			}
 		});
 		enableCreatedToBtn.setText("To:");
-//		createdTo = new TrpDateTime (dateComposite, SWT.DROP_DOWN);
-		createdTo = new SCSimpleDateTimeWidget(dateComposite, SWT.NONE);
+		createdTo = new DateChooserCombo(dateComposite, SWT.NONE);
 		createdTo.setEnabled(false);
 		
 		openEditDeclManagerBtn = new Button(this, SWT.PUSH);
@@ -195,6 +193,8 @@ public class DocMetadataEditor extends Composite {
 		saveBtn.setText("Save");
 		
 		addListener();
+		
+		setMetadataToGui(null);
 	}
 	
 	void addListener() {
@@ -224,12 +224,14 @@ public class DocMetadataEditor extends Composite {
 		if (mw == null)
 			return;
 		
-		updateMetadataFromGui(Storage.getInstance().getDoc().getMd());
+		updateMetadataObjectFromGui(Storage.getInstance().getDoc().getMd());
 		mw.saveDocMetadata();
 	}
 	
-	public void updateMetadataFromGui(TrpDocMetadata md) {		
-		logger.debug("updating metadata: "+md);
+	public void updateMetadataObjectFromGui(TrpDocMetadata md) {		
+		logger.debug("updating doc-metadata object: "+md);
+		if (md == null)
+			return;
 		
 		md.setTitle(titleText.getText());
 		md.setAuthor(authorText.getText());
@@ -248,67 +250,37 @@ public class DocMetadataEditor extends Composite {
 		logger.debug("script type1: "+st);
 		md.setScriptType(st);
 		if(isCreatedFromEnabled()){
-			logger.debug("from date: "+getCreatedFrom().getDate());
-//			md.setCreatedFromDate(dmEd.getCreatedFrom().getTime());
-			md.setCreatedFromDate(getCreatedFrom().getDate());
+			logger.debug("from date: "+getCreatedFromDate());
+			md.setCreatedFromDate(getCreatedFromDate());
 		} else {
 			md.setCreatedFromDate(null);
 		}
 		if(isCreatedToEnabled()){
-			logger.debug("to date: "+getCreatedTo().getDate());
-//			md.setCreatedToDate(dmEd.getCreatedTo().getTime());
-			md.setCreatedToDate(getCreatedTo().getDate());
+			logger.debug("to date: "+getCreatedToDate());
+			md.setCreatedToDate(getCreatedToDate());
 		} else {
 			md.setCreatedToDate(null);
 		}
+		logger.debug("doc-metadata object after update: "+md);
 	}
 	
 	public void setMetadataToGui(TrpDocMetadata md) {
-		if (md == null) {
-			titleText.setText("");
-			authorText.setText("");
-			uploadedLabel.setText("");
-			genreText.setText("");
-			writerText.setText("");
-			descriptionText.setText("");
-//			langCombo.setText("");
-			langTable.setSelectedLanguages("");
-			scriptTypeCombo.select(-1);
-			scriptTypeCombo2.select(-1);
-			createdFrom.setEnabled(false);
-			createdTo.setEnabled(false);
-		}
-		else {
-			titleText.setText(md.getTitle()!=null ? md.getTitle() : "");
-			authorText.setText(md.getAuthor()!=null ? md.getAuthor() : "");
-			uploadedLabel.setText(md.getUploadTime()!=null&&md.getDocId()!=-1 ? md.getUploadTime().toString() : "NA");
-			genreText.setText(md.getGenre()!=null ? md.getGenre() : "");
-			writerText.setText(md.getWriter() != null ? md.getWriter() : "");
-			descriptionText.setText(md.getDesc() != null ? md.getDesc() : "");
-//			langCombo.setText(md.getLanguage() != null ? md.getLanguage() : "");
-			langTable.setSelectedLanguages(md.getLanguage());
-//			scriptTypeCombo.select(EnumUtils.indexOf(md.getScriptType()));
-			initScriptTypeCombos(md.getScriptType());
-			
-			if(md.getCreatedFromTimestamp() != null){
-//				createdFrom.setDate(md.getCreatedFromTimestamp());
-				createdFrom.setDate(new Date(md.getCreatedFromTimestamp()));
-				createdFrom.setEnabled(true);
-				enableCreatedFromBtn.setSelection(true);
-			} else {
-				createdFrom.setEnabled(false);
-				enableCreatedFromBtn.setSelection(false);
-			}
-			if(md.getCreatedToTimestamp() != null){
-//				createdTo.setDate(md.getCreatedToTimestamp());
-				createdTo.setDate(new Date(md.getCreatedToTimestamp()));
-				createdTo.setEnabled(true);
-				enableCreatedToBtn.setSelection(true);
-			} else {
-				createdTo.setEnabled(false);
-				enableCreatedToBtn.setSelection(false);
-			}
-		}
+		titleText.setText(md!=null && md.getTitle()!=null ? md.getTitle() : "");
+		authorText.setText(md!=null && md.getAuthor()!=null ? md.getAuthor() : "");
+		uploadedLabel.setText(md!=null && md.getUploadTime()!=null&&md.getDocId()!=-1 ? md.getUploadTime().toString() : "NA");
+		genreText.setText(md!=null && md.getGenre()!=null ? md.getGenre() : "");
+		writerText.setText(md!=null && md.getWriter() != null ? md.getWriter() : "");
+		descriptionText.setText(md!=null && md.getDesc() != null ? md.getDesc() : "");
+		langTable.setSelectedLanguages(md!=null ? md.getLanguage() : "");
+		initScriptTypeCombos(md!=null ? md.getScriptType() : null);
+		updateDateChooser(enableCreatedFromBtn, createdFrom, md != null ? md.getCreatedFromDate() : null);
+		updateDateChooser(enableCreatedToBtn, createdTo, md != null ? md.getCreatedToDate() : null);
+	}
+	
+	private void updateDateChooser(Button b, DateChooserCombo c, Date date) {
+		c.setValue(date!=null ? date : new Date());
+		c.setEnabled(date!=null);
+		b.setSelection(date!=null);
 	}
 	
 	private void initScriptTypeCombos(ScriptType st) {
@@ -325,13 +297,11 @@ public class DocMetadataEditor extends Composite {
 			scriptTypeCombo2.select(scriptTypeCombo2.indexOf(st.getStr()));
 			scriptTypeCombo2.setEnabled(true);
 		}
-		
 	}
 
 	public Text getTitleText() {
 		return titleText;
 	}
-
 
 	public Text getAuthorText() {
 		return authorText;
@@ -342,27 +312,17 @@ public class DocMetadataEditor extends Composite {
 		return uploadedLabel;
 	}
 
-
 	public Text getGenreText() {
 		return genreText;
 	}
-
 
 	public Text getWriterText() {
 		return writerText;
 	}
 	
-//	public Button getApplyBtn() {
-//		return saveBtn;
-//	}
-
 	public Text getDescriptionText() {
 		return descriptionText;
 	}
-	
-//	public Combo getLangCombo(){
-//		return langCombo;
-//	}
 	
 	public Combo getScriptTypeCombo() { 
 		return scriptTypeCombo;
@@ -376,24 +336,16 @@ public class DocMetadataEditor extends Composite {
 		return langTable;
 	}
 	
-//	public TrpDateTime getCreatedFrom(){
-//		return createdFrom;
-//	}
-	
-	public SCSimpleDateTimeWidget getCreatedFrom(){
-		return createdFrom;
+	public Date getCreatedFromDate() {
+		return createdFrom.getValue();
 	}
-	
+		
 	public boolean isCreatedFromEnabled(){
 		return enableCreatedFromBtn.getSelection();
 	}
 	
-//	public TrpDateTime getCreatedTo(){
-//		return createdTo;
-//	}
-	
-	public SCSimpleDateTimeWidget getCreatedTo(){
-		return createdTo;
+	public Date getCreatedToDate() {
+		return createdTo.getValue();
 	}
 	
 	public boolean isCreatedToEnabled(){

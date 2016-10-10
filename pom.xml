@@ -801,13 +801,25 @@
 			<artifactId>org.eclipse.core.commands</artifactId>
 			<version>3.6.0.I20110111-0800</version>
 		</dependency>
-		
+
+
+		<dependency>
+			<groupId>com.mkobos</groupId>
+			<artifactId>pca_transform</artifactId>
+			<version>1.0.2</version>
+		</dependency>		
 		
 		<dependency>
-    <groupId>com.mkobos</groupId>
-    <artifactId>pca_transform</artifactId>
-    <version>1.0.2</version>
-</dependency>
+		    <groupId>org.eclipse.nebula.widgets</groupId>
+		    <artifactId>datechooser</artifactId>
+		    <version>1.0.0.201609281642</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.eclipse.nebula.widgets</groupId>
+		    <artifactId>formattedtext</artifactId>
+		    <version>1.0.0.201609281642</version>
+		</dependency>		
 		
 	</dependencies>
 
