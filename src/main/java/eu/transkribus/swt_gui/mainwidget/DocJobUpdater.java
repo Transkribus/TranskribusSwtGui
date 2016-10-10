@@ -123,7 +123,7 @@ public abstract class DocJobUpdater {
 		
 		// merge that also into the unfinished jobs:
 		TrpJobStatus existing = unfinished.get(jobUpdated.getJobId());
-		if (existing != null) { // should always be != null here!!
+		if (existing != null) { // should always be != null here
 			existing.setState(jobUpdated.getState());
 		}
 		

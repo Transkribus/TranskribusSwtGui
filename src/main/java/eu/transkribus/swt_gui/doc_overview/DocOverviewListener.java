@@ -23,14 +23,14 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 	private final static Logger logger = LoggerFactory.getLogger(DocOverviewListener.class);
 	
 	TrpMainWidget mainWidget;
-	ServerDocsWidget dow;
+	ServerWidget dow;
 	TableViewer docTableViewer;
 	
 	Storage storage = Storage.getInstance();
 	
 	public DocOverviewListener(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;
-		this.dow = mainWidget.getUi().getDocOverviewWidget();
+		this.dow = mainWidget.getUi().getServerWidget();
 		this.docTableViewer = dow.getTableViewer();
 		
 		attach();
@@ -42,7 +42,7 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		docTableViewer.getTable().removeMouseTrackListener(this);
 		docTableViewer.getTable().removeKeyListener(this);
 		dow.uploadDocsItem.removeSelectionListener(this);
-		dow.searchBtn.removeSelectionListener(this);
+//		dow.searchBtn.removeSelectionListener(this);
 		dow.collectionComboViewerWidget.collectionCombo.removeSelectionListener(this);
 		dow.manageCollectionsBtn.removeSelectionListener(this);
 		dow.syncWithLocalDocBtn.removeSelectionListener(this);

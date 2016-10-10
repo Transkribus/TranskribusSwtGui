@@ -32,4 +32,17 @@ public class RemotePageLoader<T> implements IPageLoader<PageResult<T>> {
 			return new PageResult<T>(new ArrayList<T>(), 0);
 		}
 	}
+	
+//	public PageResult<T> loadPageAsync(PageableController controller) {
+//		logger.debug("loading page, pageIndex = "+controller.getPageOffset()+" pageSize = "+controller.getPageSize());
+//		
+//		try {
+//			return PagingUtils.loadPage(methods, controller);
+//		} catch (Exception e) {
+//			logger.debug("error loading page: "+e.getMessage(), e);
+//			return new PageResult<T>(new ArrayList<T>(), 0);
+//		}
+//	}	
+	
+	
 }

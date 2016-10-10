@@ -5,6 +5,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
+
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;
 import org.eclipse.nebula.widgets.gallery.GalleryItem;
@@ -12,36 +16,49 @@ import org.eclipse.nebula.widgets.gallery.ListItemRenderer;
 import org.eclipse.nebula.widgets.gallery.MyDefaultGalleryItemRenderer;
 import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt.util.ThumbnailManager;
 
-public class ThumbnailWidget extends Composite {
-	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidget.class);
+public class ThumbnailManager extends Dialog {
+	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailManager.class);
 	
 	static final int TEXT_TO_THUMB_OFFSET = 5;
 	
@@ -90,6 +107,11 @@ public class ThumbnailWidget extends Composite {
 	
 	private static final boolean DISABLE_TRANSCRIBED_LINES=false;
 	
+	Shell shell;
+	TrpDocMetadata docMd;
+
+	private boolean GalleryItem;
+	
 	public static class ThmbImg {		
 		Image image = null;
 		URL url;
@@ -133,12 +155,19 @@ public class ThumbnailWidget extends Composite {
 		private void load() {
 			try {
 				isError = false;
+				
+				SebisStopWatch sw = new SebisStopWatch();
+				
+//				sw.start();
 				image = ImgLoader.load(url);
+//				sw.stop(true, "loading img time: ");
 				
 				if (!DISABLE_TRANSCRIBED_LINES) {
+					//sw.start();
 					//transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
 					transcribedLines = transcript.getNrOfTranscribedLines();
 					segmentedLines = transcript.getNrOfLines();
+					//sw.stop(true, "loading lines time: ");
 				}
 				
 //				if (image.getBounds().height > THUMB_HEIGHT) {
@@ -268,33 +297,53 @@ public class ThumbnailWidget extends Composite {
 			logger.debug("thumbnail thread finished!");
 		}
 	} // end ThmbImgLoadThread
+	
+	/**
+	 * Open the dialog.
+	 * @return the result
+	 */
+	public Object open() {
 
-	public ThumbnailWidget(Composite parent, int style) {
-		super(parent, style);
-
-		setLayout(new GridLayout());
+		shell.setSize(1100, 800);
+		SWTUtil.centerShell(shell);
 				
-		groupComposite = new Composite(this, SWT.FILL);
-		GridLayout gl = new GridLayout(1, false);
-		groupComposite.setLayout(gl);
-		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true, true);
-		groupComposite.setLayoutData(gridData);
+		shell.open();
+		shell.layout();
 		
-		labelComposite = new Composite(groupComposite, SWT.NONE);
-		labelComposite.setLayout(new GridLayout(1, true));
-		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		reload();
 		
-		statisticLabel = new Label(labelComposite, SWT.TOP);
-		statisticLabel.setText("Statistic: ");
-		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		Display display = getParent().getDisplay();
+		while (!shell.isDisposed()) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+		return null;
+	}
+	
+	public ThumbnailManager(Composite parent, int style) {
+		super(parent.getShell(), style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
+
+		shell = new Shell(getParent(), style);
+		shell.setText("Document Manager");
 		
-		Composite btns = new Composite(this, 0);
-		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		btns.setLayout(new RowLayout(SWT.HORIZONTAL));
+		docMd = Storage.getInstance().getDoc().getMd();
 		
-		reload = new Button(btns, SWT.PUSH);
-		reload.setToolTipText("Reload thumbs");
-		reload.setImage(Images.REFRESH);
+		FillLayout l = new FillLayout();
+		l.marginHeight = 5;
+		l.marginWidth = 5;
+		shell.setLayout(l);
+		
+		Composite container = new Composite(shell, SWT.NONE);
+		GridLayout layout = new GridLayout(1, false);
+		container.setLayout(layout);
+		
+		final ToolBar tb = new ToolBar(container, SWT.FLAT);
+		tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false));
+		
+		reload = new ToolItem(tb, SWT.PUSH);
+		reload.setToolTipText("Reload");
+		reload.setImage(Images.getOrLoad("/icons/refresh.gif"));
 		reload.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				logger.debug("reloading thumbwidget...");
@@ -302,22 +351,25 @@ public class ThumbnailWidget extends Composite {
 			}
 		});
 		
-		createThumbs = new Button(btns, SWT.PUSH);
-		createThumbs.setImage(Images.IMAGES);
-//		createThumbs.setToolTipText("Create thumbnails for this local document");
-		createThumbs.setText("Create thumbs for local doc");		
+		createThumbs = new ToolItem(tb, SWT.PUSH);
+		createThumbs.setToolTipText("Create thumbnails for this local document");
+		createThumbs.setText("Create thumbs");
 				
-		showPageManager = new ToolItem(tb, SWT.PUSH);
-		showPageManager.setText("Page Overview");
+		groupComposite = new Composite(container, SWT.FILL);
+		GridLayout gl = new GridLayout(1, false);
+		groupComposite.setLayout(gl);
+		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		groupComposite.setLayoutData(gridData);
 		
-		showPageManager.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				showPageManager();
-			}
-		});
-			
-		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.SINGLE);
+		labelComposite = new Composite(groupComposite, SWT.NONE);
+		labelComposite.setLayout(new GridLayout(1, true));
+		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+
+		statisticLabel = new Label(labelComposite, SWT.TOP);
+		statisticLabel.setText("Document Overview of: " + docMd.getTitle());
+		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+					
+		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.MULTI);
 		gallery.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		group = new GalleryItem(gallery, SWT.NONE);
@@ -359,22 +411,187 @@ public class ThumbnailWidget extends Composite {
 //						} else 
 //							infoTi.setText(""+e.index);
 //						infoTi.setWidth(100);
-						btns.pack();
+						tb.pack();
 						
-						notifyListeners(SWT.Selection, e);
+						//notifyListeners(SWT.Selection, e);
 					}
 				
 			}
 		});
+				
+	    final Menu contextMenu = new Menu(gallery);
+	    gallery.setMenu(contextMenu);
+	    
+	    addMenuItems(contextMenu, EnumUtils.stringsArray(EditStatus.class));
+	    
+//	    contextMenu.addMenuListener(new MenuAdapter()
+//	    {
+//	        public void menuShown(MenuEvent e)
+//	        {
+//	            MenuItem[] items = contextMenu.getItems();
+//	            for (int i = 0; i < items.length; i++)
+//	            {
+//	                items[i].dispose();
+//	            }
+//	            MenuItem newItem = new MenuItem(contextMenu, SWT.NONE);
+//	            newItem.setText("Menu for " + gallery.getSelection()[0].getText());
+//	        }
+//	    });
 		
-		this.pack();
+		shell.pack();
+		
+		open();
 	}
 	
-	protected void showPageManager() {
-		ThumbnailManager tm = new ThumbnailManager(getShell(), SWT.NONE);
+	protected void setup_layout_recognition(String pages) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		SimpleLaDialog laD = new SimpleLaDialog(shell);
 		
+		laD.create();
+		//all selected pages are shown as default and are taken for segmentation
+		laD.setPageSelectionToSelectedPages(pages);
+		
+		int ret = laD.open();
+
+		if (ret == IDialogConstants.OK_ID) {
+			final String pageStr = laD.getPages();
+			final boolean doBlockSeg = laD.isDoBlockSeg();
+			final boolean doLineSeg = laD.isDoLineSeg();
+			logger.debug("collID " + Storage.getInstance().getCurrentDocumentCollectionId());
+			logger.debug("docMd.getDocId() " + docMd.getDocId());
+			logger.debug("pageStr " + pageStr);
+			String jobId = Storage.getInstance().analyzeLayout(Storage.getInstance().getCurrentDocumentCollectionId(), docMd.getDocId(), pageStr, doBlockSeg, doLineSeg);
+		}
 	}
 
+	private void addMenuItems(Menu contextMenu, String[] editStatusArray) {
+		MenuItem tmp;
+		
+		Menu statusMenu = new Menu(contextMenu);
+		MenuItem statusMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+		statusMenuItem.setText("Edit Status");
+		statusMenuItem.setMenu(statusMenu);
+		
+		Menu labelMenu = new Menu(contextMenu);
+		MenuItem labelMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+		labelMenuItem.setText("Edit Label");
+		labelMenuItem.setMenu(labelMenu);
+		
+		Menu layoutMenu = new Menu(contextMenu);
+		MenuItem layoutMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+		layoutMenuItem.setText("Layout Analysis");
+		layoutMenuItem.setMenu(layoutMenu);
+		
+		for (String editStatus : editStatusArray){
+			tmp = new MenuItem(statusMenu, SWT.None);
+			tmp.setText(editStatus);
+			tmp.addSelectionListener(new EditStatusMenuItemListener());
+		}
+		
+		//just dummy labels for testing
+		tmp = new MenuItem(labelMenu, SWT.None);
+		tmp.setText("GT");
+		tmp.addSelectionListener(new EditLabelMenuItemListener());
+		
+		tmp = new MenuItem(labelMenu, SWT.None);
+		tmp.setText("eLearning");
+		tmp.addSelectionListener(new EditLabelMenuItemListener());
+		
+		tmp = new MenuItem(layoutMenu, SWT.None);
+		tmp.setText("Setting Up");
+		
+		tmp.addListener(SWT.Selection, event-> {
+			String pages = getPagesString();
+            try {
+				setup_layout_recognition(pages);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        });
+		
+		
+		
+	}
+	
+	private String getPagesString() {
+		String pages = "";
+		if (gallery.getSelectionCount() > 0) {
+			for(GalleryItem si : gallery.getSelection()){
+				int selectedPageNr = gallery.indexOf(si) + 1;
+				String tmp = Integer.toString(selectedPageNr);
+				pages += (pages.equals("")? tmp : ",".concat(tmp));
+			}			
+		}
+		logger.debug("pages String " + pages);
+		return pages;
+	}
+
+	/*
+	 * right click listener for the transcript table
+	 * for the latest transcript the new status can be set with the right click button and by choosing the new status
+	 */
+	class EditStatusMenuItemListener extends SelectionAdapter {
+	    public void widgetSelected(SelectionEvent event) {
+//	    	System.out.println("You selected " + ((MenuItem) event.widget).getText());
+//	    	System.out.println("You selected cont.1 " + EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
+//	    	System.out.println("You selected cont.2 " + EnumUtils.indexOf(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText())));
+
+	    	Storage.getInstance().getTranscriptMetadata().setStatus(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
+	    	try {
+//				Storage.getInstance().saveTranscript(Storage.getInstance().getCurrentDocumentCollectionId(), null);
+//				Storage.getInstance().setLatestTranscriptAsCurrent();
+				gallery.redraw();
+				gallery.deselectAll();
+//			} catch (SessionExpiredException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+			} catch (ServerErrorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    	
+	    }
+	}
+	
+	/*
+	 * right click listener for the transcript table
+	 * for the latest transcript the new status can be set with the right click button and by choosing the new status
+	 */
+	class EditLabelMenuItemListener extends SelectionAdapter {
+	    public void widgetSelected(SelectionEvent event) {
+//	    	System.out.println("You selected " + ((MenuItem) event.widget).getText());
+//	    	System.out.println("You selected cont.1 " + EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
+//	    	System.out.println("You selected cont.2 " + EnumUtils.indexOf(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText())));
+
+//	    	Storage.getInstance().getTranscriptMetadata().setStatus(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
+//	    	try {
+////				Storage.getInstance().saveTranscript(Storage.getInstance().getCurrentDocumentCollectionId(), null);
+////				Storage.getInstance().setLatestTranscriptAsCurrent();
+//				gallery.redraw();
+//				gallery.deselectAll();
+////			} catch (SessionExpiredException e) {
+////				// TODO Auto-generated catch block
+////				e.printStackTrace();
+//			} catch (ServerErrorException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} catch (IllegalArgumentException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} catch (Exception e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+	    	
+	    }
+	}
+	
 	private void updateGalleryItemNames() {
 		for (int i=0; i<group.getItemCount(); ++i) {
 			setItemText(group.getItems()[i], i, "");
@@ -489,7 +706,8 @@ public class ThumbnailWidget extends Composite {
 		}
 	}
 	
-	private void stopActiveThread() {		
+	private void stopActiveThread() {	
+		
 		if (loadThread!=null && loadThread.isAlive()) {			
 			logger.debug("stopping thumbnail thread from thread: "+Thread.currentThread().getName());
 			loadThread.cancel = true;

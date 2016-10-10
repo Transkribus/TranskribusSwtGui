@@ -37,14 +37,14 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 		this.mainWidget = mainWidget;
 		this.ui = mainWidget.getUi();
 		this.canvas = mainWidget.getCanvas();
-		this.mw = mainWidget.getUi().getMetadataWidget();
+		this.mw = mainWidget.getUi().getStructuralMetadataWidget();
 		this.tw = mw.getTextStyleWidget();
 		this.settings = mainWidget.getTrpSets();
 		
 		ui.getTaggingWidgetNew().addListener(this);
 		
-		if (TrpMainWidgetView.SHOW_NEW_TW)
-			ui.getTaggingWidgetNew().addListener(this);
+//		if (TrpMainWidgetView.SHOW_NEW_TW)
+//			ui.getTaggingWidgetNew().addListener(this);
 	}
 	
 	@Override public void createNewTag(String tagName) {

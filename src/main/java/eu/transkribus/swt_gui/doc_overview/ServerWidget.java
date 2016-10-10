@@ -1,8 +1,6 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.TableViewer;
@@ -27,15 +25,16 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
-import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog2;
+import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.Storage.LoginOrLogoutEvent;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
-public class ServerDocsWidget extends Composite {
-	private final static Logger logger = LoggerFactory.getLogger(ServerDocsWidget.class);
+public class ServerWidget extends Composite {
+	private final static Logger logger = LoggerFactory.getLogger(ServerWidget.class);
 
 	Label usernameLabel, serverLabel;
 	DocTableWidgetPagination docTableWidget;
@@ -46,13 +45,12 @@ public class ServerDocsWidget extends Composite {
 	
 	Button manageCollectionsBtn;
 	Button showActivityWidgetBtn;
-	Button searchBtn;
+//	Button searchBtn;
 	Text quickLoadByID;
 		
-	CollectionManagerDialog2 cm;
+	CollectionManagerDialog cm;
 	ActivityDialog ad;
 	
-	DocMetadataEditor docMetadataEditor;
 	Storage store = Storage.getInstance();
 
 	//RecentDocsPreferences prefs = new RecentDocsPreferences(5, prefNode);
@@ -68,11 +66,14 @@ public class ServerDocsWidget extends Composite {
 //	List<TrpDocMetadata> docs=new ArrayList<>();
 	
 	int selectedId=-1;
+	
+	Button showJobsBtn;
+//	Button versionsBtn;
 
 //	private List<TrpCollection> collections;
 //	TrpCollection selectedCollection=null;
 		
-	public ServerDocsWidget(Composite parent) {
+	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
 				
 		init();
@@ -81,11 +82,9 @@ public class ServerDocsWidget extends Composite {
 	}
 	
 	private void addListener() {
-		Storage.getInstance().addObserver(new Observer() {
-			@Override public void update(Observable arg0, Object arg1) {
-				if (arg1 instanceof LoginOrLogoutEvent) {
-					updateLoggedIn();
-				}
+		Storage.getInstance().addListener(new IStorageListener() {
+			@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+				updateLoggedIn();
 			}
 		});
 	}
@@ -127,30 +126,16 @@ public class ServerDocsWidget extends Composite {
 		Fonts.setBoldFont(usernameLabel);
 		
 		serverLabel = new Label(container, SWT.NONE);
-		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));		
+		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));	
 		
-		if (false) {
-		final ExpandableComposite metadatagroupExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
-//		Group metadatagroup = new Group(container, SWT.SHADOW_ETCHED_IN);
-		Composite metadatagroup = new Composite(metadatagroupExp, SWT.SHADOW_ETCHED_IN);
-		metadatagroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-//		metadatagroup.setText("Document metadata");
-		metadatagroup.setLayout(new GridLayout(1, false));
-		
-		metadatagroupExp.setClient(metadatagroup);
-		metadatagroupExp.setText("Document metadata");
-		docMetadataEditor = new DocMetadataEditor(metadatagroup, SWT.NONE);
-//		metadataEditor.pack();
-		docMetadataEditor.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		metadatagroupExp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		metadatagroupExp.setExpanded(true);
-		metadatagroupExp.addExpansionListener(new ExpansionAdapter() {
-			public void expansionStateChanged(ExpansionEvent e) {
-				container.layout();
-			}
-		});
-		}
-		
+		showJobsBtn = new Button(container, 0);
+		showJobsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		showJobsBtn.setText("Jobs on server...");
+
+//		versionsBtn = new Button(container, 0);
+//		versionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		versionsBtn.setText("Page versions...");
+				
 		// admin area:
 		adminAreaExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		Fonts.setBoldFont(adminAreaExp);
@@ -424,7 +409,7 @@ public class ServerDocsWidget extends Composite {
 		collectionComboViewerWidget.clearFilter();
 	}
 	
-	public CollectionManagerDialog2 getCollectionManagerDialog() {
+	public CollectionManagerDialog getCollectionManagerDialog() {
 		return cm;
 	}
 	
@@ -435,7 +420,7 @@ public class ServerDocsWidget extends Composite {
 	public void openCollectionsManagerWidget() {
 		if (!isCollectionManagerOpen()) {
 			logger.debug("creating NEW CM Dialog!!");
-			cm = new CollectionManagerDialog2(getShell(), SWT.NONE, this);
+			cm = new CollectionManagerDialog(getShell(), SWT.NONE, this);
 			cm.open();
 		} else
 			cm.getShell().setVisible(true);
@@ -458,8 +443,9 @@ public class ServerDocsWidget extends Composite {
 	}
 
 	public void updateRecentDocs() {
-		recentDocsComboViewerWidget.updateDocs(false);
-		
+		recentDocsComboViewerWidget.updateDocs(false);	
 	}
+	
+	public Button getShowJobsBtn() { return showJobsBtn; }
 	
 }

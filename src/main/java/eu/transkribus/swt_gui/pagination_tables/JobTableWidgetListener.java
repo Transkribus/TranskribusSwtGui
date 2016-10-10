@@ -1,33 +1,26 @@
 package eu.transkribus.swt_gui.pagination_tables;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.core.model.beans.job.TrpJobStatus;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.Storage.LoginOrLogoutEvent;
-
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.itextpdf.text.DocListener;
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
 
-public class JobTableWidgetListener extends SelectionAdapter implements Observer, IDoubleClickListener {
+public class JobTableWidgetListener extends SelectionAdapter implements IStorageListener, IDoubleClickListener {
 	private final static Logger logger = LoggerFactory.getLogger(JobTableWidgetListener.class);
 	
 	TrpMainWidget mainWidget;
@@ -47,8 +40,7 @@ public class JobTableWidgetListener extends SelectionAdapter implements Observer
 		this.tv = jobOverviewWidget.getPageableTable().getViewer();
 		
 		tv.addDoubleClickListener(this);
-		
-		Storage.getInstance().addObserver(this);
+		Storage.getInstance().addListener(this);
 	}
 	
 	@Override public void doubleClick(DoubleClickEvent event) {
@@ -75,8 +67,8 @@ public class JobTableWidgetListener extends SelectionAdapter implements Observer
 			String pages = jobStatus.getPages();
 			int pageNr = ( (pages == null || pages.equals("") || pages.contains("-") ) ? 0 : Integer.parseInt(pages));
 			mainWidget.loadRemoteDoc(jobStatus.getDocId(), col, pageNr-1);
-			mainWidget.getUi().getDocOverviewWidget().setSelectedCollection(col, true);
-			mainWidget.getUi().getDocOverviewWidget().getDocTableWidget().loadPage("docId", jobStatus.getDocId(), true);
+			mainWidget.getUi().getServerWidget().setSelectedCollection(col, true);
+			mainWidget.getUi().getServerWidget().getDocTableWidget().loadPage("docId", jobStatus.getDocId(), true);
 			
 		}		
 	}
@@ -96,11 +88,9 @@ public class JobTableWidgetListener extends SelectionAdapter implements Observer
 		}
 	}
 
-	@Override public void update(Observable o, Object arg) {
-		if (arg instanceof LoginOrLogoutEvent) {
-			boolean visible = Storage.getInstance().isLoggedIn() && Storage.getInstance().getUser().isAdmin();
-			jobOverviewWidget.getShowAllJobsBtn().setVisible(visible);
-		}
+	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+		boolean visible = Storage.getInstance().isLoggedIn() && Storage.getInstance().getUser().isAdmin();
+		jobOverviewWidget.getShowAllJobsBtn().setVisible(visible);				
 	}
 	
 	

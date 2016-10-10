@@ -8,6 +8,7 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.nebula.widgets.pagination.collections.PageResultContentProvider;
 import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
 import org.eclipse.nebula.widgets.pagination.table.PageableTable;
 import org.eclipse.nebula.widgets.pagination.table.SortTableColumnSelectionListener;
@@ -18,6 +19,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+
+import eu.transkribus.swt.pagination_table.PagingToolBarNavigationRendererFactory;
 
 /**
  * This sample display a list of model {@link Person} in a SWT Table with
@@ -40,8 +43,21 @@ public class ModelSortPageableTableExample {
 		// 1) Create pageable table with 10 items per page
 		// This SWT Component create internally a SWT Table+JFace TreeViewer
 		int pageSize = 10;
-		PageableTable pageableTable = new PageableTable(shell, SWT.BORDER,
-				SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL, pageSize);
+//		PageableTable pageableTable = new PageableTable(shell, SWT.BORDER,
+//				SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL, pageSize);
+		
+		PageableTable pageableTable = new PageableTable(shell, SWT.BORDER, SWT.BORDER | SWT.MULTI /*| SWT.H_SCROLL | SWT.V_SCROLL*/, pageSize
+				, PageResultContentProvider.getInstance(),
+				PagingToolBarNavigationRendererFactory.getFactory(),
+				PageableTable.getDefaultPageRendererBottomFactory()
+				);
+
+//		pageablteTable.		
+		
+//		PagingToolBarNavigationRendererFactory.getFactory(),
+//		PageableTable.getDefaultPageRendererBottomFactory()
+		
+		
 		pageableTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		// 2) Initialize the table viewer + SWT Table
@@ -52,6 +68,7 @@ public class ModelSortPageableTableExample {
 		Table table = viewer.getTable();
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
+		table.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		// 3) Create Table columns with sort of paginated list.
 		createColumns(viewer);

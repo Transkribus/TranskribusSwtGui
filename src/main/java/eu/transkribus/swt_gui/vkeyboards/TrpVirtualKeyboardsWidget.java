@@ -13,9 +13,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,27 +114,13 @@ public class TrpVirtualKeyboardsWidget extends Composite {
 		shell.setLayout(new FillLayout());
 		
 		final TrpVirtualKeyboardsWidget vk = new TrpVirtualKeyboardsWidget(shell, 0);
-		vk.getVirtualKeyboardsTabWidget().addKeySelectionListener(new SelectionListener() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				logger.info("e  = "+e.getSource());
-				if (e.getSource() == vk.getVirtualKeyboardsTabWidget()) {
-					logger.info("event = "+e);
-					Character c = (char) e.detail;
-					logger.info("key pressed: "+c+" detail = "+e.detail+", name: "+e.text);
-					logger.info("name =" +e.text);
-					logger.info("e.detail =" +e.detail);
-					
-//					ATranscriptionWidget tw = ui.getSelectedTranscriptionWidget();
-//					if (tw != null) {
-//						tw.insertTextIfFocused(""+c);
-//					}
-				}
-			}
-			
-			@Override public void widgetDefaultSelected(SelectionEvent e) {
+		
+		vk.getVirtualKeyboardsTabWidget().addListener(new ITrpVirtualKeyboardsTabWidgetListener() {
+			@Override public void onVirtualKeyPressed(TrpVirtualKeyboardsTabWidget w, char c, String description) {
+					logger.info("key pressed: "+c+" description = "+description);
 			}
 		});
-
+		
 		shell.setSize(400, 800);
 		
 //		shell.pack();

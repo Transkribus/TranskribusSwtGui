@@ -47,9 +47,8 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.Storage.CollectionsLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.listener.AStorageObserver;
+import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
 
 public class UploadDialogUltimate extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(UploadDialogUltimate.class);
@@ -434,8 +433,8 @@ public class UploadDialogUltimate extends Dialog {
 			}
 		});
 		
-		store.addObserver(new AStorageObserver() {
-			@Override protected void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
+		store.addListener(new IStorageListener() {
+			@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
 				if (getShell() != null && !getShell().isDisposed())
 					updateCollections();
 			}

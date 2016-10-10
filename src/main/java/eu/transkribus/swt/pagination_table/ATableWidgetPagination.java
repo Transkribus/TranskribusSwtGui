@@ -1,15 +1,14 @@
 package eu.transkribus.swt.pagination_table;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellLabelProvider;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -31,6 +30,7 @@ import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.TableViewerUtils;
 
 public abstract class ATableWidgetPagination<T> extends Composite {
@@ -86,7 +86,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	
 	public PageableTable getPageableTable() { return pageableTable; }
 	
-	public static <T> T findItem(List<T> items, String propertyName, Object value) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	private static <T> T findItem(List<T> items, String propertyName, Object value) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		if (items == null)
+			return null;
+		
 		for (T i : items) {
 			Object v = PropertyUtils.getProperty(i, propertyName);
 			
@@ -98,7 +101,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		return null;
 	}
 	
-	public void loadPage(String propertyName, Object value, boolean refreshFirst) {
+	/**
+	 * Loads the page that contains the specified values
+	 */
+	public synchronized void loadPage(String propertyName, Object value, boolean refreshFirst) {
 		if (propertyName == null || value == null) {
 			logger.error("propertyName or value is null - doin' nothin'!");
 			return;
@@ -111,10 +117,12 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		
 		logger.debug("loading page, propertyName = "+propertyName+" value = "+value+" currentPage = "+c.getCurrentPage());
 
-		try {
-			// 1st: check if object is present at locallly loaded dataset:
+		try {			
+			// 1st: check if object is present at locally loaded dataset:
 			List<T> items = (List<T>) pageableTable.getViewer().getInput();
-			T item = findItem(items, propertyName, value);
+			List<T> itemsCopy = CoreUtils.copyList(items);
+					
+			T item = findItem(itemsCopy, propertyName, value);
 			if (item != null) {
 				logger.debug("found item in current page!");
 				selectElement(item);
@@ -138,15 +146,38 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 					c1.setCurrentPage(i);
 					PageResult<T> res = (PageResult<T>) pageableTable.getPageLoader().loadPage(c1);
 					
+//					Thread.UncaughtExceptionHandler h = new Thread.UncaughtExceptionHandler() {
+//					    public void uncaughtException(Thread th, Throwable ex) {
+//					        System.out.println("Uncaught exception: " + ex);
+//					        ex.printStackTrace();
+//					    }
+//					};
+//					Thread t = new Thread() {
+//					    public void run() {
+//					        System.out.println("Sleeping ...");
+//					        try {
+//					            Thread.sleep(1000);
+//					        } catch (InterruptedException e) {
+//					            System.out.println("Interrupted.");
+//					        }
+//					        System.out.println("Throwing exception ...");
+//					        throw new RuntimeException();
+//					    }
+//					};
+//					t.setUncaughtExceptionHandler(h);
+//					t.start();
+
+					
 //					PageResult<T> res = PagingUtils.loadPage(methods, c);
 					
 					c.setCurrentPage(i);
 					items = (List<T>) pageableTable.getViewer().getInput();
+					itemsCopy = CoreUtils.copyList(items);
 					
 					//items = res.getContent();
 					//
 
-					item = findItem(items, propertyName, value);
+					item = findItem(itemsCopy, propertyName, value);
 					
 					if (item != null) {
 						logger.debug("found item in page "+i);
@@ -217,7 +248,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 				loadingComposite = new LoadingComposite(bottom);
 				loadingComposite.reload.addSelectionListener(new SelectionAdapter() {
 					@Override public void widgetSelected(SelectionEvent e) {
-						pageableTable.refreshPage();
+						onReloadButtonPressed();
 					}
 				});
 				loadingComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -270,7 +301,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 				
 				time = System.currentTimeMillis();
 				String text = "Loading...";
-				logger.debug(text);
+				logger.trace(text);
 				loadingComposite.setText(text);
 			}
 
@@ -278,9 +309,9 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 					PageableController controller, Throwable e) {
 //				logger.debug("onAfterPageLoad");
 				long diff = System.currentTimeMillis() - time;
-				logger.debug("after page reload: "+diff);
+				logger.trace("after page reload: "+diff);
 				String text = "Loaded in "+ diff + "(ms) ";
-				logger.debug(text);
+				logger.trace(text);
 				loadingComposite.setText(text);
 				
 //				if (itemToSelect != null) {
@@ -293,6 +324,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 			}
 		});		
 		}
+	}
+	
+	protected void onReloadButtonPressed() {
+		pageableTable.refreshPage();
 	}
 	
 	protected abstract void setPageLoader();

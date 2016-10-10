@@ -190,7 +190,7 @@ public class DebuggerDialog extends Dialog {
 					String zipFn = processZipFileText.getText().trim();
 					logger.debug("trying to process zip file: "+zipFn);
 					try {
-						int colId = mw.getUi().getDocOverviewWidget().getSelectedCollectionId();
+						int colId = mw.getUi().getServerWidget().getSelectedCollectionId();
 						storage.getConnection().processTrpDocFromFtp(colId, zipFn);
 					} catch (Exception e1) {
 						mw.onError("An error occured", e1.getMessage(), e1);

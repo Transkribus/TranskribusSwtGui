@@ -9,17 +9,37 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
-import eu.transkribus.core.model.beans.TrpUserCollection;
-import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
 
-public class UsersTableLabelProvider implements ITableLabelProvider, ITableColorProvider {
+public class FindUsersWidgetLabelProvider implements ITableLabelProvider, ITableColorProvider {
 	TableViewer tv;
 	Table table;
 	
-	public UsersTableLabelProvider(TableViewer tv) {
+	public FindUsersWidgetLabelProvider(TableViewer tv) {
 		this.tv = tv;
 		this.table = tv.getTable();
+	}
+	
+	@Override public String getColumnText(Object element, int columnIndex) {
+		if (element instanceof TrpUser) {
+			TrpUser user = (TrpUser) element;
+			
+			TableColumn column = table.getColumn(columnIndex);
+			String ct = column.getText();
+					
+			if (ct.equals(FindUsersWidget.USER_USERNAME_COL)) {
+				return user.getUserName();
+			} else if (ct.equals(FindUsersWidget.USER_FULLNAME_COL)) {
+				return user.getFirstname()+" "+user.getLastname();
+			}
+//			else if (ct.equals(CollectionManagerDialog.USER_ROLE_COL)) {
+//				TrpUserCollection uc = user.getUserCollection();
+//				TrpRole r = uc == null ? TrpRole.None : (uc.getRole() == null ? TrpRole.None : uc.getRole());
+//				return r.toString();
+//			}
+		}
+
+		return "i am error";
 	}
 
 	@Override public void addListener(ILabelProviderListener listener) {
@@ -46,28 +66,5 @@ public class UsersTableLabelProvider implements ITableLabelProvider, ITableColor
 	@Override public Image getColumnImage(Object element, int columnIndex) {
 		return null;
 	}
-
-	@Override public String getColumnText(Object element, int columnIndex) {
-		if (element instanceof TrpUser) {
-			TrpUser user = (TrpUser) element;
-			
-			TableColumn column = table.getColumn(columnIndex);
-			String ct = column.getText();
-					
-			if (ct.equals(CollectionManagerDialog.USER_USERNAME_COL)) {
-				return user.getUserName();
-			} else if (ct.equals(CollectionManagerDialog.USER_FULLNAME_COL)) {
-				return user.getFirstname()+" "+user.getLastname();
-			} else if (ct.equals(CollectionManagerDialog.USER_ROLE_COL)) {
-				TrpUserCollection uc = user.getUserCollection();
-				TrpRole r = uc == null ? TrpRole.None : (uc.getRole() == null ? TrpRole.None : uc.getRole());
-				return r.toString();
-			}
-		}
-
-		return "i am error";
-	}
-
-	
 
 }

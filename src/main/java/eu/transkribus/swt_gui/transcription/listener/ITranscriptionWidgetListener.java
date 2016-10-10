@@ -11,6 +11,7 @@ import eu.transkribus.core.catti.CattiRequest;
  */
 public interface ITranscriptionWidgetListener {
 	
-	void onCattiMessage(CattiRequest r, String message);
+	default void onCattiMessage(CattiRequest r, String message) {}
+	default void onVkItemPressed() {}
 
 }

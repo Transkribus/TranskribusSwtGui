@@ -5,10 +5,7 @@ import java.util.List;
 import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -16,11 +13,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +30,7 @@ import eu.transkribus.swt_gui.mainwidget.Storage;
 
 public class FindUsersWidget extends Composite {
 	
-	private final static Logger logger = LoggerFactory.getLogger(CollectionManagerDialog.class);
+	private final static Logger logger = LoggerFactory.getLogger(FindUsersWidget.class);
 	MyTableViewer usersTv;
 	Text userNameText;
 	Text firstNameText;
@@ -151,7 +146,7 @@ public class FindUsersWidget extends Composite {
 		
 		usersTv = new MyTableViewer(this, SWT.MULTI | SWT.FULL_SELECTION);
 		usersTv.setContentProvider(new ArrayContentProvider());
-		usersTv.setLabelProvider(new UsersTableLabelProvider(usersTv));
+		usersTv.setLabelProvider(new FindUsersWidgetLabelProvider(usersTv));
 		
 		Table table = usersTv.getTable();
 		table.setHeaderVisible(true);

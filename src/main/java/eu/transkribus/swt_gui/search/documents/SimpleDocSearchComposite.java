@@ -35,7 +35,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
-import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog2;
+import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.doc_overview.DocTableWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -55,7 +55,7 @@ public class SimpleDocSearchComposite extends Composite {
 	Button findBtn;
 	Label infoLabel;
 	
-	CollectionManagerDialog2 colDialog;
+	CollectionManagerDialog colDialog;
 	
 	List<TrpDocMetadata> resultList;
 	List<TrpDocMetadata> userDocs;
@@ -65,12 +65,12 @@ public class SimpleDocSearchComposite extends Composite {
 	int colId;
 	int colIdToSearch;
 
-	public SimpleDocSearchComposite(Composite parent, int style, int collectiondId) {
+	public SimpleDocSearchComposite(Composite parent, int style, int collectiondId, CollectionManagerDialog colDialog) {
 		super(parent, style);
 			try{
 			
 			colId = collectiondId;
-			colDialog = CollectionManagerDialog2.getInstance();
+			this.colDialog = colDialog;
 			userDocs = store.getConnection().getAllDocsByUser(0, -1, null, null);
 			createContents();
 			//updateCollections();

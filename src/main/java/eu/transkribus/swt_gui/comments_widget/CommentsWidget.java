@@ -213,7 +213,7 @@ public class CommentsWidget extends Composite {
 		if (c != null) {
 			c.setComment(commentText.getText());
 			for (CustomTag ct : c.continuations) {
-				if (ct instanceof CommentTag) // should always be true here!!
+				if (ct instanceof CommentTag) // should always be true here
 					((CommentTag)ct).setComment(commentText.getText());
 			}
 			
