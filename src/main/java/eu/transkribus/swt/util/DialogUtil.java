@@ -70,14 +70,18 @@ public class DialogUtil {
 		return shell;
 	}
 	
-	public static int showYesNoDialog(Shell shell, String title, String message) {
-		MessageBox messageBox = new MessageBox(shell, SWT.ICON_QUESTION
+	public static int showYesNoDialog(Shell shell, String title, String message, final int SWT_ICON) {
+		MessageBox messageBox = new MessageBox(shell, SWT_ICON
 	            | SWT.YES | SWT.NO);
 	        messageBox.setMessage(message);
 	        messageBox.setText(title);
 	        
 	        int response = messageBox.open();
 	        return response;		
+	}	
+	
+	public static int showYesNoDialog(Shell shell, String title, String message) {
+		return showYesNoDialog(shell, title, message, SWT.ICON_QUESTION);		
 	}	
 	
 	public static int showYesNoCancelDialog(Shell shell, String title, String message) {
