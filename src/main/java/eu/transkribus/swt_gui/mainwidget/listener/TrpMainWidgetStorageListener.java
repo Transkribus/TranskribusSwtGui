@@ -90,15 +90,10 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 	@Override public void handleDocLoadEvent(DocLoadEvent dle) {
 		logger.debug("document loaded event: "+dle.doc);
 		canvas.setMode(CanvasMode.SELECTION);
+		
 		SWTUtil.setEnabled(mw.getUi().getExportDocumentButton(), dle.doc!=null);
-		
-//		SWTUtil.setEnabled(mw.getUi().getReplacePageImgButton(), dle.doc!=null && dle.doc.isRemoteDoc());
-		//SWTUtil.setEnabled(mw.getUi().getDeletePageButton(), dle.doc!=null && dle.doc.isRemoteDoc());
-		
 		SWTUtil.setEnabled(mw.getUi().getVersionsButton(), dle.doc!=null);
-		SWTUtil.setEnabled(mw.getUi().getExportPdfButton(), dle.doc!=null);
-		SWTUtil.setEnabled(mw.getUi().getExportTeiButton(), dle.doc!=null);
-		SWTUtil.setEnabled(mw.getUi().getExportRtfButton(), dle.doc!=null);
+		SWTUtil.setEnabled(mw.getUi().getLoadTranscriptInTextEditor(), dle.doc!=null);
 		
 		mw.updateDocumentInfo();
 	}

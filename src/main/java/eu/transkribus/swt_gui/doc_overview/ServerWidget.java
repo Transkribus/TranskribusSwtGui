@@ -67,7 +67,7 @@ public class ServerWidget extends Composite {
 	
 	int selectedId=-1;
 	
-	Button showJobsBtn;
+	Button showJobsBtn, showVersionsBtn;
 //	Button versionsBtn;
 
 //	private List<TrpCollection> collections;
@@ -131,6 +131,12 @@ public class ServerWidget extends Composite {
 		showJobsBtn = new Button(container, 0);
 		showJobsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		showJobsBtn.setText("Jobs on server...");
+		showJobsBtn.setImage(Images.CUP);
+		
+		showVersionsBtn = new Button(container, 0);
+		showVersionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		showVersionsBtn.setText("Versions of current page...");
+		showVersionsBtn.setImage(Images.PAGE_WHITE_STACK);
 
 //		versionsBtn = new Button(container, 0);
 //		versionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -447,5 +453,6 @@ public class ServerWidget extends Composite {
 	}
 	
 	public Button getShowJobsBtn() { return showJobsBtn; }
+	public Button getShowVersionsBtn() { return showVersionsBtn; }
 	
 }

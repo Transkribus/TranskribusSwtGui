@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -25,7 +24,6 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.portal.PortalWidget;
 import eu.transkribus.swt.portal.PortalWidget.Docking;
@@ -47,8 +45,6 @@ import eu.transkribus.swt_gui.doc_overview.DocMetadataEditor;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidget;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidget;
-import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
-import eu.transkribus.swt_gui.pagination_tables.TranscriptsTableWidgetPagination;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget;
 import eu.transkribus.swt_gui.tools.ToolsWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
@@ -89,7 +85,7 @@ public class TrpMainWidgetView extends Composite {
 	// ##########
 	
 	// ##### Toolbar stuff: #####
-	ToolItem menuButton, loginToggle, reloadDocumentButton, exportDocumentButton, exportPdfButton, exportTeiButton, exportRtfButton, openLocalFolderButton, closeDocBtn;
+	ToolItem menuButton, loginToggle, reloadDocumentButton, exportDocumentButton, openLocalFolderButton, closeDocBtn;
 	ToolItem uploadDocsItem, searchBtn;
 
 	DropDownToolItem saveDrowDown;
@@ -573,9 +569,6 @@ public class TrpMainWidgetView extends Composite {
 	public ToolItem getReloadDocumentButton() { return reloadDocumentButton; }
 	public ToolItem getExportDocumentButton() { return exportDocumentButton; }
 	public ToolItem getVersionsButton() { return versionsButton; }
-	public ToolItem getExportPdfButton() { return exportPdfButton; }
-	public ToolItem getExportTeiButton() { return exportTeiButton; }
-	public ToolItem getExportRtfButton() { return exportRtfButton; }
 	public MenuItem getSaveTranscriptButton() { return saveTranscriptButton; }
 	public MenuItem getSaveTranscriptWithMessageButton() { return saveTranscriptWithMessageButton; }
 	public ToolItem getOpenLocalFolderButton() { return openLocalFolderButton; }
