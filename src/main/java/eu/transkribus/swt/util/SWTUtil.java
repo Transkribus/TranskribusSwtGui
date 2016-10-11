@@ -78,6 +78,13 @@ import math.geom2d.Vector2D;
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
 	
+	public static GridLayout createGridLayout(int numColumns, boolean makeColumnsEqualWidth, int marginWidth, int marginHeight) {
+		GridLayout l = new GridLayout(numColumns, makeColumnsEqualWidth);
+		l.marginWidth = marginWidth;
+		l.marginHeight = marginHeight;
+		return l;
+	}
+
 	public static boolean isSubItemSelected(Object s, DropDownToolItem i, int eventDetail) {
 		if (i==null || i.isDisposed() || i.ti==null || i.ti.isDisposed())
 			return false;

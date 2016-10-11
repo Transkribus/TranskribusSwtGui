@@ -107,9 +107,7 @@ public class ServerWidget extends Composite {
 		container = new Composite(this, SWT.NONE);
 //		final SashForm container = new SashForm(this, SWT.VERTICAL);
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		GridLayout l = new GridLayout();
-		l.marginWidth = l.marginHeight = 0;
-		container.setLayout(l);
+		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 //		container.setBackground(container.getDisplay().getSystemColor(SWT.COLOR_GRAY));
 		
 		usernameLabel = new Label(container, SWT.NONE);
@@ -190,13 +188,11 @@ public class ServerWidget extends Composite {
 		////////////////
 		remotedocsgroupExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		Fonts.setBoldFont(remotedocsgroupExp);
-//		Composite remotedocsgroup = new Group(remotedocsgroupExp, SWT.SHADOW_ETCHED_IN); // orig-parent = container
-//		Composite remotedocsgroup = new SashForm(remotedocsgroupExp, SWT.VERTICAL); // orig-parent = container
 		Composite remotedocsgroup = new Composite(remotedocsgroupExp, 0); // orig-parent = container
 		
 		remotedocsgroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		remotedocsgroup.setText("Remote docs");
-		remotedocsgroup.setLayout(new GridLayout(1, false));
+//		remotedocsgroup.setLayout(new GridLayout(1, false));
+		remotedocsgroup.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 			
 		configExpandable(remotedocsgroupExp, remotedocsgroup, "Server documents", container, true);
 		remotedocsgroupExp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -217,77 +213,13 @@ public class ServerWidget extends Composite {
 		
 		Composite docsContainer = new Composite(remotedocsgroup, 0);
 		docsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
-		docsContainer.setLayout(new GridLayout(2, false));		
-		
-//		Composite btns = new Composite(docsContainer, SWT.NONE);
-//		btns.setLayout(new GridLayout(4, false));
-//		btns.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
-//		btns.setLayout(new RowLayout());
-//		btns.setLayout(new FillLayout());
-		
-//		Label docLabel = new Label(btns, SWT.CENTER);
-//		docLabel.setText("Documents:");
+		docsContainer.setLayout(new GridLayout(2, false));
+		docsContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 
-//		uploadSingleDocItem = new Button(btns, SWT.NONE);
-//		uploadSingleDocItem.setToolTipText("Upload a document to the current collection");
-//		uploadSingleDocItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
-//		uploadSingleDocItem.setVisible(false);
-		
-//		uploadDocsItem = new Button(btns, SWT.NONE);
-//		uploadDocsItem.setToolTipText("Ingest or upload documents");
-////		uploadFromPrivateFtpItem.setImage(Images.getOrLoad("/icons/weather_clouds.png"));
-//		uploadDocsItem.setImage(Images.getOrLoad("/icons/folder_add.png"));
-//		
-//		searchBtn = new Button(btns, 0);
-//		searchBtn.setToolTipText("Search for documents, keywords... tbc");
-//		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
-		
-//		Label l = new Label(btns, 0);
-//		l.setText("Quick load by ID: ");
-//		
-//		quickLoadByID = new Text(btns, SWT.BORDER | SWT.SINGLE);
-//		quickLoadByID.setToolTipText("ID of the doc - press enter to load");
-//		quickLoadByID.addTraverseListener(new TraverseListener() {
-//			@Override public void keyTraversed(TraverseEvent e) {
-//				if (e.detail == SWT.TRAVERSE_RETURN) {
-//					try {				
-//						int docid = Integer.parseInt(quickLoadByID.getText());
-//						TrpMainWidget.getInstance().loadRemoteDoc(docid);
-//					} catch (NumberFormatException ex) {
-//						logger.warn("cannot parse docid : "+quickLoadByID.getText());
-//					}
-//				}
-//			}
-//		});
-
-//		deleteItem = new Button(btns, SWT.NONE);
-//		deleteItem.setToolTipText("Delete selected document from the server - only allowed for admins!");
-//		deleteItem.setImage(Images.getOrLoad("/icons/delete.png"));
-		
-//		showFreeForAllBtn = new Button(remotedocsgroup, SWT.CHECK);
-//		showFreeForAllBtn.setText("Show public documents");
-//		showFreeForAllBtn.setSelection(true);
-//		showFreeForAllBtn.addSelectionListener(new SelectionAdapter() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//				setInput(docs);
-//			}
-//		});
-		
-//		Label filterLabel = new Label(remotedocsgroup, SWT.NONE);
-//		filterLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-//		filterLabel.setText("Filter: ");
-//		filterCombo = new Combo(remotedocsgroup, SWT.READ_ONLY);
-//		filterCombo.setItems(visibilityLabels);
-//		filterCombo.select(0);
-//		filterCombo.addSelectionListener(new SelectionAdapter() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//				setInput(docs);
-//			}
-//		});
-//		filterCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-		
-//		docTableWidget = new DocTableWidget(remotedocsgroup, 0);
 		docTableWidget = new DocTableWidgetPagination(docsContainer, 0, 25);
+//		docTableWidget.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+				
+//		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
 		docTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 		ColumnViewerToolTipSupport.enableFor(docTableWidget.getPageableTable().getViewer(), ToolTip.NO_RECREATE);
