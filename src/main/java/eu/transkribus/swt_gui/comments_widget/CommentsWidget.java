@@ -184,7 +184,7 @@ public class CommentsWidget extends Composite {
 		CommentTag c = getSelectedComment();
 		if (c != null) {
 			logger.debug("showing comment: "+c);
-			TrpMainWidget.getInstance().showLocation(c);
+			TrpMainWidget.getInstance().showLocation(new TrpLocation(c));
 		}
 	}
 

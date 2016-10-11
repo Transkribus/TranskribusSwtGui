@@ -109,7 +109,7 @@ public class DocOverviewListener extends SelectionAdapter implements ISelectionC
 		Object s = e.getSource();
 
 		if (s == dow.collectionComboViewerWidget.collectionCombo) {
-			mainWidget.reloadDocList(dow.getSelectedCollection());
+			mainWidget.reloadDocList(dow.getSelectedCollectionId());
 		}
 		else if (s == dow.recentDocsComboViewerWidget.lastDocsCombo){
 			String docToLoad = dow.getSelectedRecentDoc();

@@ -334,9 +334,9 @@ public class ServerWidget extends Composite {
 		return docTableWidget.getFirstSelected();
 	}
 	
-	public void setAvailableCollections(List<TrpCollection> collections) {
-		collectionComboViewerWidget.setAvailableCollections(collections);
-	}
+//	public void setAvailableCollections(List<TrpCollection> collections) {
+//		collectionComboViewerWidget.setAvailableCollections(collections);
+//	}
 	
 	public int getSelectedCollectionId() {
 		return collectionComboViewerWidget.getSelectedCollectionId();
@@ -350,13 +350,18 @@ public class ServerWidget extends Composite {
 		return recentDocsComboViewerWidget.getSelectedDoc();
 	}
 	
-	public void setSelectedCollection(int colId, boolean fireSelectionEvent) {
-		collectionComboViewerWidget.setSelectedCollection(colId, fireSelectionEvent);
+//	public void setSelectedCollection(int colId, boolean fireSelectionEvent) {
+//		collectionComboViewerWidget.setSelectedCollection(colId, fireSelectionEvent);
+//	}
+	
+	public void setSelectedCollection(int colId) {
+		collectionComboViewerWidget.clearFilter();
+		collectionComboViewerWidget.setSelectedCollection(colId, false);
 	}
 	
-	public void clearCollectionFilter() {
-		collectionComboViewerWidget.clearFilter();
-	}
+//	public void clearCollectionFilter() {
+//		collectionComboViewerWidget.clearFilter();
+//	}
 	
 	public CollectionManagerDialog getCollectionManagerDialog() {
 		return cm;

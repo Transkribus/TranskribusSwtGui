@@ -48,6 +48,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
 import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
@@ -317,7 +318,8 @@ public class CollectionManagerDialog extends Dialog {
 					return;
 				
 				TrpCollection col = (TrpCollection) sel.getFirstElement();
-				serverWidget.setSelectedCollection(col.getColId(), true);
+				if (col != null)
+					TrpMainWidget.getInstance().reloadDocList(col.getColId());
 			}
 		};		
 		collectionsTv.getTableViewer().addDoubleClickListener(openSelectedColListener);

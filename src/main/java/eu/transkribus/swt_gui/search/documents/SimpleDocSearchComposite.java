@@ -401,7 +401,6 @@ public class SimpleDocSearchComposite extends Composite {
 //			logger.debug("loading from collection id: "+colId);
 
 			colDialog.getCurrentDocTableWidgetPagination().loadPage("docId", docId, true);
-
 		}
 		
 	}

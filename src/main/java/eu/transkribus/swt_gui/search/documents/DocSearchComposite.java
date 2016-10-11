@@ -269,60 +269,43 @@ public class DocSearchComposite extends Composite {
 	}
 	
 	void openDocument(TrpDocMetadata md) {
-		
-//		TrpDocMetadata md = docWidgetPaged.getFirstSelected();
-		
-//		TrpDocMetadata md = docWidget.getSelectedDocument();
-		
-		if (md!=null) {
-			logger.debug("md = "+md);
-			
-			int docId = md.getDocId();
-			logger.debug("Loading doc with id: "+docId);
-			
-			int colId = 0;
-			if (md.getColList().isEmpty()) {
-				DialogUtil.showMessageBox(getShell(), "Error loading document", 
-						"Collection list is empty - should not happen here!", SWT.ICON_ERROR);
-				
-				logger.error("Collection list is empty - should not happen here!");
-				return;
-			}
-			if (md.getColList().size() == 1)
-				colId = md.getColList().get(0).getColId();
-			else {
-				List<String> items = new ArrayList<>();
-				for (TrpCollection c : md.getColList()) {
-					items.add(c.getColName());
-				}
-				
-				ComboInputDialog cd = 
-						new ComboInputDialog(getShell(), "Select collection to load document from: ", items.toArray(new String[0]));
-				
-				if (cd.open() != IDialogConstants.OK_ID) {
-					return;
-				}
+		logger.debug("openDocument: "+md);
+		if (md == null)
+			return;
 
-				logger.debug("selected index: "+cd.getSelectedIndex());
-				
-				TrpCollection coll = md.getColList().get(cd.getSelectedIndex());
-				colId = coll.getColId();
-			}
+		int docId = md.getDocId();		
+		int colId = 0;
+		if (md.getColList().isEmpty()) {
+			DialogUtil.showMessageBox(getShell(), "Error loading document", 
+					"Collection list is empty - should not happen here!", SWT.ICON_ERROR);
 			
-			logger.debug("loading from collection id: "+colId);
-			
-			TrpMainWidget mw = TrpMainWidget.getInstance(); 
-			// select collection in DocOverviewWidget
-//			mw.getUi().getDocOverviewWidget().
-			
-			mw.getUi().getServerWidget().clearCollectionFilter();
-			mw.getUi().getServerWidget().setSelectedCollection(colId, true);
-			
-			// select page of document in doc-table:
-			mw.getUi().getServerWidget().getDocTableWidget().loadPage("docId", docId, false);
-
-			TrpMainWidget.getInstance().loadRemoteDoc(docId, colId);
+			logger.error("Collection list is empty - should not happen here!");
+			return;
 		}
 		
+		if (md.getColList().size() == 1)
+			colId = md.getColList().get(0).getColId();
+		else {
+			List<String> items = new ArrayList<>();
+			for (TrpCollection c : md.getColList()) {
+				items.add(c.getColName());
+			}
+			
+			ComboInputDialog cd = 
+					new ComboInputDialog(getShell(), "Select collection to load document from: ", items.toArray(new String[0]));
+			
+			if (cd.open() != IDialogConstants.OK_ID) {
+				return;
+			}
+
+			logger.debug("selected index: "+cd.getSelectedIndex());
+			
+			TrpCollection coll = md.getColList().get(cd.getSelectedIndex());
+			colId = coll.getColId();
+		}
+		
+		logger.debug("loading from collection id: "+colId);
+		
+		TrpMainWidget.getInstance().loadRemoteDoc(docId, colId);
 	}
 }

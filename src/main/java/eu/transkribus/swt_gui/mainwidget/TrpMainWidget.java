@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -400,24 +401,24 @@ public class TrpMainWidget {
 		}
 	}
 
-	public void reloadDocList(final TrpCollection coll) {
+	public Future<List<TrpDocMetadata>> reloadDocList(int colId) {
 		try {
-			if (!storage.isLoggedIn())
-				return;
-
-			canvas.getScene().selectObject(null, true, false); // security
-																// measure due
-																// to mysterious
-																// bug leading
-																// to freeze of
-																// progress
-																// dialog
-			if (coll != null)
-				storage.reloadDocList(coll.getColId());
+			if (colId == 0)
+				return null;
 			
-			updatePageInfo();
+			if (!storage.isLoggedIn())
+				return null;
+
+			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
+
+			ui.getServerWidget().setSelectedCollection(colId);
+			
+			return storage.reloadDocList(colId);
+			
+//			updatePageInfo();
 		} catch (Throwable e) {
 			onError("Cannot load document list", "Could not connect to " + ui.getTrpSets().getTrpServer(), e);
+			return null;
 		}
 	}
 
@@ -844,8 +845,8 @@ public class TrpMainWidget {
 				//if no recent docs are available -> load the example doc
 				if (false) {
 					loadRemoteDoc(5014, 4);
-					getUi().getServerWidget().setSelectedCollection(4, true);
-					getUi().getServerWidget().getDocTableWidget().loadPage("docId", 5014, true);
+//					getUi().getServerWidget().setSelectedCollection(4, true);
+//					getUi().getServerWidget().getDocTableWidget().loadPage("docId", 5014, true);
 				}
 			}
 		}
@@ -916,8 +917,8 @@ public class TrpMainWidget {
 				docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
 				if (docList != null && docList.size() > 0) {
 					if (loadRemoteDoc(docid, colid)) {
-						getUi().getServerWidget().setSelectedCollection(colid, true);
-						getUi().getServerWidget().getDocTableWidget().loadPage("docId", docid, true);
+//						getUi().getServerWidget().setSelectedCollection(colid, true);
+//						getUi().getServerWidget().getDocTableWidget().loadPage("docId", docid, true);
 					}
 				} else {
 					//DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Last used document is not on this server", 2, true);
@@ -1621,10 +1622,6 @@ public class TrpMainWidget {
 		}
 	}
 
-	public void showLocation(CustomTag t) {
-		showLocation(new TrpLocation(t));
-	}
-
 	public void showLocation(TrpLocation l) {
 		// if (l.md == null) {
 		// DialogUtil.showErrorMessageBox(getShell(),
@@ -1888,13 +1885,16 @@ public class TrpMainWidget {
 		}
 
 		try {
-			canvas.getScene().selectObject(null, true, false); // security
-																// measure due
-																// to mysterios
-																// bug leading
-																// to freeze of
-																// progress
-																// dialog
+			boolean collectionChanged = colId != ui.serverWidget.getSelectedCollectionId();
+			if (collectionChanged) {
+				Future<List<TrpDocMetadata>> fut = reloadDocList(colId);
+				if (fut == null)
+					return false;
+				
+				fut.get(); // wait for doclist to be loaded!
+			}
+			
+			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
 
 			if (colId <= 0) {
 				colId = ui.getServerWidget().getSelectedCollectionId();
@@ -1923,6 +1923,9 @@ public class TrpMainWidget {
 			//store the recent doc info to the preferences
 			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);
 			ui.getServerWidget().updateRecentDocs();
+									
+//			getUi().getServerWidget().setSelectedCollection(colId);
+			getUi().getServerWidget().getDocTableWidget().loadPage("docId", docId, true);
 
 			updateThumbs();
 			getCanvas().fitWidth();

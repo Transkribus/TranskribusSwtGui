@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
@@ -104,8 +105,11 @@ import eu.transkribus.util.Utils;
 public class Storage {
 	private final static Logger logger = LoggerFactory.getLogger(Storage.class);	
 
-	final int N_IMAGES_TO_PRELOAD_PREVIOUS = 1;
-	final int N_IMAGES_TO_PRELOAD_NEXT = 1;
+	final int N_IMAGES_TO_PRELOAD_PREVIOUS = 0;
+	final int N_IMAGES_TO_PRELOAD_NEXT = 0;
+	
+//	final int N_IMAGES_TO_PRELOAD_PREVIOUS = 1;
+//	final int N_IMAGES_TO_PRELOAD_NEXT = 1;	
 
 	// public final static String LOGIN_OR_LOGOUT_EVENT =
 	// "LOGIN_OR_LOGOUT_EVENT";
@@ -747,16 +751,16 @@ public class Storage {
 		return userDocList;
 	}
 
-	public /*List<TrpDocMetadata>*/void reloadDocList(int colId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+	public Future<List<TrpDocMetadata>> reloadDocList(int colId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		if (colId == 0)
-			return;
+			return null;
 
 		logger.debug("reloading doclist for collection: "+colId);
 		
 		SebisStopWatch.SW.start();
 		
-		conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+		Future<List<TrpDocMetadata>> fut = conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
 			@Override
 			public void completed(List<TrpDocMetadata> docs) {
 				synchronized (this) {
@@ -777,22 +781,8 @@ public class Storage {
 				
 			}
 		});
-
-//		synchronized (this) {
-//			docList.clear();
-//			docList.addAll(conn.getAllDocs(colId));
-//		}
-//		
-//		this.collId = colId;
-//		
-//		logger.debug("loaded "+docList.size()+" nr of docs of collection "+collId);
-//		SebisStopWatch.SW.stop(true, "load time: ", logger);
-//		
-////		this.currentColId = colId;
-//		
-//		sendEvent(new DocListLoadEvent(this, docList, false));
-//		
-//		return docList;
+		
+		return fut;
 	}
 	
 	public int getCollId() {
