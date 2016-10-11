@@ -364,11 +364,9 @@ public class ServerWidget extends Composite {
 		
 	public void openCollectionsManagerWidget() {
 		if (!SWTUtil.isOpen(cm)) {
-			cm = new CollectionManagerDialog(getShell(), SWT.NONE, this);
-			cm.open();
-		} else {
-			cm.getShell().setVisible(true);
+			cm = new CollectionManagerDialog(getShell(), SWT.NONE, this);	
 		}
+		cm.open();
 	}
 	
 	public void openActivityDialog() {
