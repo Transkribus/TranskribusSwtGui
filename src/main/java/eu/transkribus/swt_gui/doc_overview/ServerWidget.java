@@ -11,6 +11,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
@@ -29,7 +30,6 @@ import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
@@ -67,7 +67,7 @@ public class ServerWidget extends Composite {
 	
 	int selectedId=-1;
 	
-	Button showJobsBtn;
+	Button showJobsBtn, showVersionsBtn;
 //	Button versionsBtn;
 
 //	private List<TrpCollection> collections;
@@ -91,24 +91,15 @@ public class ServerWidget extends Composite {
 	
 	private void updateLoggedIn() {
 		boolean isLoggedIn = store.isLoggedIn();
-
-//		uploadSingleDocItem.setEnabled(isLoggedIn);
-//		uploadDocsItem.setEnabled(isLoggedIn);
-//		searchBtn.setEnabled(isLoggedIn);
 		
-//		boolean canDelete = getSelectedCollection().getRole()==null || getSelectedCollection().getRole().canDelete();
-//		deleteItem.setEnabled(isLoggedIn);
+		for (Control c : this.getChildren()) {
+			c.setEnabled(isLoggedIn);
+		}
 		
-		collectionComboViewerWidget.setEnabled(isLoggedIn);
-		
-//		reloadCollectionsBtn.setEnabled(isLoggedIn);
-		manageCollectionsBtn.setEnabled(isLoggedIn);
-		showActivityWidgetBtn.setEnabled(isLoggedIn);
+//		collectionComboViewerWidget.setEnabled(isLoggedIn);
+//		manageCollectionsBtn.setEnabled(isLoggedIn);
+//		showActivityWidgetBtn.setEnabled(isLoggedIn);
 	}
-
-//	public Button getReloadCollectionsBtn() { return reloadCollectionsBtn; }
-//	public Button getCreateCollectionBtn() { return createCollectionBtn; }
-//	public Button getManageCollectionsBtn() { return manageCollectionsBtn; }
 		
 	private void init() {
 		this.setLayout(new GridLayout());
@@ -126,11 +117,39 @@ public class ServerWidget extends Composite {
 		Fonts.setBoldFont(usernameLabel);
 		
 		serverLabel = new Label(container, SWT.NONE);
-		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));	
+		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		showJobsBtn = new Button(container, 0);
-		showJobsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Composite btns1 = new Composite(container, 0);
+		btns1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		btns1.setLayout(new GridLayout(2, true));
+		
+		showJobsBtn = new Button(btns1, 0);
+		showJobsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		showJobsBtn.setText("Jobs on server...");
+		showJobsBtn.setImage(Images.CUP);
+		
+		showVersionsBtn = new Button(btns1, 0);
+		showVersionsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		showVersionsBtn.setText("Versions of page...");
+		showVersionsBtn.setImage(Images.PAGE_WHITE_STACK);
+
+//		Composite btns2 = new Composite(container, 0);
+//		btns2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		btns2.setLayout(new GridLayout(2, true));
+		
+		manageCollectionsBtn = new Button(btns1, SWT.PUSH);
+		manageCollectionsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		manageCollectionsBtn.setText("...");
+		manageCollectionsBtn.setImage(Images.getOrLoad("/icons/user_edit.png"));
+		manageCollectionsBtn.setText("Manage collections...");
+//		manageCollectionsBtn.setToolTipText("Manage collections...");
+//		manageCollectionsBtn.pack();
+		
+		showActivityWidgetBtn = new Button(btns1, SWT.PUSH);
+		showActivityWidgetBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		showActivityWidgetBtn.setImage(Images.GROUP);
+//		showActivityWidgetBtn.setToolTipText("Show user activity");
+		showActivityWidgetBtn.setText("User activity...");
 
 //		versionsBtn = new Button(container, 0);
 //		versionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -186,15 +205,13 @@ public class ServerWidget extends Composite {
 		collectionComboViewerWidget = new CollectionComboViewerWidget(remotedocsgroup, 0);
 		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 
-		manageCollectionsBtn = new Button(collectionComboViewerWidget.headerComposite, SWT.PUSH);
-//		manageCollectionsBtn.setText("...");
-		manageCollectionsBtn.setImage(Images.getOrLoad("/icons/user_edit.png"));
-		manageCollectionsBtn.setToolTipText("Manage collections...");
-//		manageCollectionsBtn.pack();
-		
-		showActivityWidgetBtn = new Button(collectionComboViewerWidget.headerComposite, SWT.PUSH);
-		showActivityWidgetBtn.setImage(Images.GROUP);
-		showActivityWidgetBtn.setToolTipText("Show user activity");
+//		manageCollectionsBtn = new Button(collectionComboViewerWidget.headerComposite, SWT.PUSH);
+//		manageCollectionsBtn.setImage(Images.getOrLoad("/icons/user_edit.png"));
+//		manageCollectionsBtn.setToolTipText("Manage collections...");
+//		
+//		showActivityWidgetBtn = new Button(collectionComboViewerWidget.headerComposite, SWT.PUSH);
+//		showActivityWidgetBtn.setImage(Images.GROUP);
+//		showActivityWidgetBtn.setToolTipText("Show user activity");
 
 		///////////////		
 		
@@ -412,34 +429,21 @@ public class ServerWidget extends Composite {
 	public CollectionManagerDialog getCollectionManagerDialog() {
 		return cm;
 	}
-	
-	public boolean isCollectionManagerOpen() {
-		return cm != null && cm.getShell() != null && !cm.getShell().isDisposed();
-	}
-	
+		
 	public void openCollectionsManagerWidget() {
-		if (!isCollectionManagerOpen()) {
-			logger.debug("creating NEW CM Dialog!!");
+		if (!SWTUtil.isOpen(cm)) {
 			cm = new CollectionManagerDialog(getShell(), SWT.NONE, this);
 			cm.open();
-		} else
+		} else {
 			cm.getShell().setVisible(true);
-		
-//		SWTUtil.centerShell(cm.getShell());
+		}
 	}
 	
-	public boolean isActivitiyDialogOpen() {
-		return ad != null && ad.getShell() != null && !ad.getShell().isDisposed();
-	}
-	
-
 	public void openActivityDialog() {
-		logger.debug("opening activity dialog...");
-		if (!isActivitiyDialogOpen()) {
+		if (!SWTUtil.isOpen(ad)) {
 			ad = new ActivityDialog(getShell());
 		}
 		ad.open();
-		
 	}
 
 	public void updateRecentDocs() {
@@ -447,5 +451,6 @@ public class ServerWidget extends Composite {
 	}
 	
 	public Button getShowJobsBtn() { return showJobsBtn; }
+	public Button getShowVersionsBtn() { return showVersionsBtn; }
 	
 }

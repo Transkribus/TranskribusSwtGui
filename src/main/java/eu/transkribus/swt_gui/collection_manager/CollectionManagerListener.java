@@ -127,6 +127,10 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		cmw.collectionsTv.refreshList(cle.collections);
 	}
 	
+	@Override public void handleDocListLoadEvent(DocListLoadEvent dle) {
+		cmw.updateCollections();
+	}
+	
 	boolean checkUploaderOrCollectionOwnerRights(TrpUserLogin user, TrpDocMetadata ...docs) {
 		for (TrpDocMetadata d : docs) {
 			if(!user.isAdmin() && !isUploader(user, d) && !isOwnerOfCurrentCollection()) {
@@ -251,9 +255,11 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 				return;
 			}
 			
-			if (DialogUtil.showYesNoDialog(shell, "Are you sure?", "Do you really want to delete this collection?\n\n"
+			if (DialogUtil.showYesNoDialog(shell, "Are you sure?", "Do you really want to delete the collection \"" 
+					+ c.getColName() + "\"?\n\n"
 					+ "Note: documents are not deleted, only their reference to the collection is removed - "
-					+ "use the delete document button to completely remove documents from the server!")!=SWT.YES) {
+					+ "use the delete document button to completely remove documents from the server!",
+					SWT.ICON_WARNING)!=SWT.YES) {
 				return;
 			}
 			

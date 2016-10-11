@@ -652,6 +652,19 @@ public class SWTUtil {
 //		}
 //	}
 	
+	public static void addSelectionListener(Widget w, SelectionListener l) {
+		if (w instanceof MenuItem)
+			addSelectionListener((MenuItem) w, l);
+		else if (w instanceof ToolItem)
+			addSelectionListener((ToolItem) w, l);
+		else if (w instanceof Button)
+			addSelectionListener((Button) w, l);
+		else if (w instanceof DropDownToolItem) {
+			addSelectionListener((DropDownToolItem) w, l);
+		} else
+			throw new RuntimeException("Widget type not supported for selection events: " + w);
+	}
+	
 	public static boolean addSelectionListener(DropDownToolItem i, SelectionListener l) {
 		if (isDisposed(i))
 			return false;

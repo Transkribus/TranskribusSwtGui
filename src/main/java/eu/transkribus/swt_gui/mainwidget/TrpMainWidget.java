@@ -47,13 +47,9 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -140,15 +136,16 @@ import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
 import eu.transkribus.swt_gui.mainwidget.listener.RegionsPagingToolBarListener;
-import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetStorageListener;
 import eu.transkribus.swt_gui.mainwidget.listener.TranscriptObserver;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetKeyListener;
+import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetStorageListener;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetViewListener;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
-import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetListener;
-import eu.transkribus.swt_gui.pagination_tables.TranscriptsTableWidgetListener;
+import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
+import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
+import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
 import eu.transkribus.swt_gui.tools.ToolsWidgetListener;
@@ -208,14 +205,15 @@ public class TrpMainWidget {
 	PageMetadataWidgetListener metadataWidgetListener;
 	TaggingWidgetListener taggingWidgetListener;
 	ToolsWidgetListener laWidgetListener;
-	JobTableWidgetListener jobOverviewWidgetListener;
-	TranscriptsTableWidgetListener versionsWidgetListener;
+//	JobTableWidgetListener jobOverviewWidgetListener;
+//	TranscriptsTableWidgetListener versionsWidgetListener;
 	TrpMainWidgetStorageListener mainWidgetStorageListener;
 //	CollectionManagerListener collectionsManagerListener;
 	TrpMenuBarListener menuListener;
 	
 	TrpVirtualKeyboardsDialog vkDiag;
-	Dialog jobsDiag, versionsDiag;
+	TranscriptsDialog versionsDiag;
+	JobsDialog jobsDiag;
 
 	Storage storage; // the data
 	boolean isPageLocked = false;
@@ -417,37 +415,7 @@ public class TrpMainWidget {
 			if (coll != null)
 				storage.reloadDocList(coll.getColId());
 			
-			getUi().getServerWidget().refreshDocList();
-//			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-//				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-//					monitor.beginTask("Reloading doclist", IProgressMonitor.UNKNOWN);
-//					try {
-////						int colId = storage.getCollectionId(collectionIndex);
-////						if (colId == -1)
-////							return;
-//						logger.debug("reloading doclist for collection "+coll.getColId());
-//						storage.reloadDocList(coll.getColId());
-//					} catch (Throwable e) {
-//						throw new InvocationTargetException(e, e.getMessage());
-//					}
-//				}
-//			}, "Updating documents", false);
-
-			// update ui:
-			ui.getTabWidget().selectServerTab();
 			updatePageInfo();
-
-			if (ui.getServerWidget().isCollectionManagerOpen())
-				ui.getServerWidget().getCollectionManagerDialog().updateCollections();
-
-//			if (storage.getRemoteDocList() != null) {
-//				getUi().getDocOverviewWidget().setInput(storage.getRemoteDocList());
-//				ui.selectDocListTab();
-//				logger.debug("Loaded " + storage.getRemoteDocList().size() + " docs from " + storage.getServerUri());
-//				updatePageInfo();
-//			} else {
-//				logger.debug("Failed to load doc list");
-//			}
 		} catch (Throwable e) {
 			onError("Cannot load document list", "Could not connect to " + ui.getTrpSets().getTrpServer(), e);
 		}
@@ -457,21 +425,21 @@ public class TrpMainWidget {
 //		return ui.getDocOverviewWidget().getSelectedCollectionId();
 //	}
 
-	public void reloadJobList() {
-		try {
-			ui.getJobOverviewWidget().refreshPage(true);
-			storage.startOrResumeJobThread();
-
-//			storage.reloadJobs(!ui.getJobOverviewWidget().getShowAllJobsBtn().getSelection()); // should
-			// trigger
-			// event
-			// that
-			// updates
-			// gui!
-		} catch (Exception ex) {
-			onError("Error", "Error during update of jobs", ex);
-		}
-	}
+//	public void reloadJobList() {
+//		try {
+//			ui.getJobOverviewWidget().refreshPage(true);
+//			storage.startOrResumeJobThread();
+//
+////			storage.reloadJobs(!ui.getJobOverviewWidget().getShowAllJobsBtn().getSelection()); // should
+//			// trigger
+//			// event
+//			// that
+//			// updates
+//			// gui!
+//		} catch (Exception ex) {
+//			onError("Error", "Error during update of jobs", ex);
+//		}
+//	}
 
 	public void cancelJob(final String jobId) {
 		try {
@@ -614,7 +582,7 @@ public class TrpMainWidget {
 	}
 
 	private void addListener() {
-		ui.getShell().addListener(SWT.Close, new Listener() {
+		Listener closeListener = new Listener() {
 			@Override public void handleEvent(Event event) {
 				logger.debug("close event!");
 				if (!saveTranscriptDialogOrAutosave()) {
@@ -628,7 +596,8 @@ public class TrpMainWidget {
 				System.exit(0);
 //				storage.finalize();
 			}
-		});
+		};
+		ui.getShell().addListener(SWT.Close, closeListener);
 
 		// add global filter for key listening:
 		keyListener = new TrpMainWidgetKeyListener(this);
@@ -698,8 +667,9 @@ public class TrpMainWidget {
 		taggingWidgetListener = new TaggingWidgetListener(this);
 
 		laWidgetListener = new ToolsWidgetListener(this);
-		jobOverviewWidgetListener = new JobTableWidgetListener(this);
-		versionsWidgetListener = new TranscriptsTableWidgetListener(this);
+		
+//		jobOverviewWidgetListener = new JobTableWidgetListener(this);
+//		versionsWidgetListener = new TranscriptsTableWidgetListener(this);
 
 		// storage observer:
 		mainWidgetStorageListener = new TrpMainWidgetStorageListener(this);
@@ -880,7 +850,6 @@ public class TrpMainWidget {
 			}
 		}
 
-		reloadJobList();
 //		reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
 //		reloadHtrModels();
 		// reloadJobListForDocument();
@@ -977,7 +946,6 @@ public class TrpMainWidget {
 				closeCurrentDocument(true);
 			}
 
-			reloadJobList();
 //			reloadDocList(ui.getDocOverviewWidget().getSelectedCollection());
 //			reloadHtrModels();
 			// reloadJobListForDocument();
@@ -1021,8 +989,7 @@ public class TrpMainWidget {
 
 		clearDocList();
 //		clearHtrModelList();
-		ui.getVersionsWidget().refreshPage(true);
-		ui.getJobOverviewWidget().refreshPage(true);
+//		ui.getJobOverviewWidget().refreshPage(true);
 		updateThumbs();
 
 		// reloadJobListForDocument();
@@ -1973,7 +1940,7 @@ public class TrpMainWidget {
 	public void center() {
 		ui.center();
 	}
-
+	
 	public void onError(String title, String message, Throwable th, boolean logStackTrace, boolean showBalloonTooltip) {
 		canvas.getMouseListener().reset();
 		canvas.setMode(CanvasMode.SELECTION);
@@ -2333,8 +2300,9 @@ public class TrpMainWidget {
 					}
 				}
 
+				storage.sendJobListUpdateEvent();
+				
 //				ui.selectJobListTab();
-				ui.getJobOverviewWidget().refreshPage(false);
 
 //				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 //					@Override public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -2397,44 +2365,44 @@ public class TrpMainWidget {
 		// TrpMainWidget mainWidget = new TrpMainWidget();
 	}
 
-	@Deprecated public void deleteSelectedDocument() {
-		final TrpDocMetadata doc = ui.getServerWidget().getSelectedDocument();
-		try {
-			if (doc == null || !storage.isLoggedIn()) {
-				return;
-			}
-
-			if (DialogUtil.showYesNoDialog(getShell(), "Are you sure?", "Do you really want to delete document " + doc.getDocId()) != SWT.YES) {
-				return;
-			}
-
-			canvas.getScene().selectObject(null, true, false); // security
-																// measure due
-																// to mysterios
-																// bug leading
-																// to freeze of
-																// progress
-																// dialog
-			final int colId = storage.getCurrentDocumentCollectionId();
-			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						logger.debug("deleting document...");
-						monitor.beginTask("Deleting document ", IProgressMonitor.UNKNOWN);
-						logger.debug("Deleting selected document: " + doc);
-						storage.deleteDocument(colId, doc.getDocId());
-						displaySuccessMessage("Deleted document " + doc.getDocId());
-					} catch (Exception e) {
-						throw new InvocationTargetException(e, e.getMessage());
-					}
-				}
-			}, "Exporting", false);
-
-			reloadDocList(ui.getServerWidget().getSelectedCollection());
-		} catch (Throwable e) {
-			onError("Error deleting document", "Could not delete document " + doc.getDocId(), e);
-		}
-	}
+//	@Deprecated public void deleteSelectedDocument() {
+//		final TrpDocMetadata doc = ui.getServerWidget().getSelectedDocument();
+//		try {
+//			if (doc == null || !storage.isLoggedIn()) {
+//				return;
+//			}
+//
+//			if (DialogUtil.showYesNoDialog(getShell(), "Are you sure?", "Do you really want to delete document " + doc.getDocId()) != SWT.YES) {
+//				return;
+//			}
+//
+//			canvas.getScene().selectObject(null, true, false); // security
+//																// measure due
+//																// to mysterios
+//																// bug leading
+//																// to freeze of
+//																// progress
+//																// dialog
+//			final int colId = storage.getCurrentDocumentCollectionId();
+//			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+//				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+//					try {
+//						logger.debug("deleting document...");
+//						monitor.beginTask("Deleting document ", IProgressMonitor.UNKNOWN);
+//						logger.debug("Deleting selected document: " + doc);
+//						storage.deleteDocument(colId, doc.getDocId());
+//						displaySuccessMessage("Deleted document " + doc.getDocId());
+//					} catch (Exception e) {
+//						throw new InvocationTargetException(e, e.getMessage());
+//					}
+//				}
+//			}, "Exporting", false);
+//
+//			reloadDocList(ui.getServerWidget().getSelectedCollection());
+//		} catch (Throwable e) {
+//			onError("Error deleting document", "Could not delete document " + doc.getDocId(), e);
+//		}
+//	}
 
 	public void displaySuccessMessage(final String message) {
 		display.syncExec(new Runnable() {
@@ -3812,7 +3780,7 @@ public class TrpMainWidget {
 			vkDiag.getShell().setVisible(true);
 		} else {
 			vkDiag = new TrpVirtualKeyboardsDialog(getShell());
-			vkDiag.create();		
+			vkDiag.create();
 			vkDiag.getVkTabWidget().addListener(new ITrpVirtualKeyboardsTabWidgetListener() {
 				@Override public void onVirtualKeyPressed(TrpVirtualKeyboardsTabWidget w, char c, String description) {
 					TrpMainWidget.this.insertTextOnSelectedTranscriptionWidget(c);
@@ -3826,82 +3794,29 @@ public class TrpMainWidget {
 		if (SWTUtil.isOpen(jobsDiag)) {
 			jobsDiag.getShell().setVisible(true);
 		} else {
-			jobsDiag = new Dialog(getShell()) {
-				@Override protected Control createDialogArea(Composite parent) {
-					Composite container = (Composite) super.createDialogArea(parent);
-					container.setLayout(new GridLayout(1, true));
-					
-					ui.getJobOverviewWidget().setParent(container);
-					ui.getJobOverviewWidget().setLayoutData(new GridData(GridData.FILL_BOTH));
-
-					container.pack();
-
-					return container;
-				}
-				
-				@Override public boolean close() {
-					ui.getJobOverviewWidget().setParent(SWTUtil.dummyShell);
-					return super.close();
-				}
-
-				@Override protected void configureShell(Shell newShell) {
-					super.configureShell(newShell);
-					newShell.setText("Jobs on server");
-				}
-
-				@Override protected Point getInitialSize() { return new Point(1000, 800); }
-				@Override protected boolean isResizable() { return true; }
-				@Override protected void createButtonsForButtonBar(Composite parent) {}
-
-				@Override protected void setShellStyle(int newShellStyle) {
-					super.setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
-					setBlockOnOpen(false);
-				}
-			};
+			jobsDiag = new JobsDialog(getShell());
+			jobsDiag.create();
+			SWTUtil.centerShell(jobsDiag.getShell());
 			jobsDiag.open();
 		}
-
+	}
+	
+	public JobTableWidgetPagination getJobOverviewWidget2() {
+		if (!SWTUtil.isOpen(jobsDiag)) {
+			return jobsDiag.jw;
+		}
+		return null;
 	}
 	
 	public void openVersionsDialog() {
 		if (SWTUtil.isOpen(versionsDiag)) {
 			versionsDiag.getShell().setVisible(true);
 		} else {
-			versionsDiag = new Dialog(getShell()) {
-				@Override protected Control createDialogArea(Composite parent) {
-					Composite container = (Composite) super.createDialogArea(parent);
-					container.setLayout(new GridLayout(1, true));
-					
-					ui.getVersionsWidget().setParent(container);
-					ui.getVersionsWidget().setLayoutData(new GridData(GridData.FILL_BOTH));
-
-					container.pack();
-
-					return container;
-				}
-				
-				@Override public boolean close() {
-					ui.getVersionsWidget().setParent(SWTUtil.dummyShell);
-					return super.close();
-				}
-
-				@Override protected void configureShell(Shell newShell) {
-					super.configureShell(newShell);
-					newShell.setText("Versions");
-				}
-
-				@Override protected Point getInitialSize() { return new Point(1000, 800); }
-				@Override protected boolean isResizable() { return true; }
-				@Override protected void createButtonsForButtonBar(Composite parent) {}
-
-				@Override protected void setShellStyle(int newShellStyle) {
-					super.setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
-					setBlockOnOpen(false);
-				}
-			};
+			versionsDiag = new TranscriptsDialog(getShell());
+			versionsDiag.create();
+			SWTUtil.centerShell(versionsDiag.getShell());
 			versionsDiag.open();
 		}
-		
 	}
 	
 	public void openViewSetsDialog() {
@@ -3936,6 +3851,26 @@ public class TrpMainWidget {
 		} catch (Exception e1) {
 			onError("Could not open XML", "Could not open XML", e1);
 		}			
+	}
+
+	public void changeProfileFromUi() {
+		int i = ui.getProfilesToolItem().getLastSelectedIndex();
+		logger.debug("changing profile from ui, selected index = "+i);
+		
+		if (i>=0 && i < ui.getProfilesToolItem().getItemCount()-1) { // profile selected
+			if (!SWTUtil.isDisposed(ui.getProfilesToolItem().getSelected()) && ui.getProfilesToolItem().getSelected().getData() instanceof String) {				
+				String name = (String) ui.getProfilesToolItem().getSelected().getData();
+				logger.info("selecting profile: "+name);
+				mw.selectProfile(name);
+									
+				boolean mode = (name.contains("Transcription")? true : false);
+				canvas.getScene().setTranscriptionMode(mode);
+			}
+		} else if (i == ui.getProfilesToolItem().getItemCount()-1) {
+			logger.info("opening save profile dialog...");
+			mw.saveNewProfile();
+			canvas.getScene().setTranscriptionMode(false);
+		}
 	}
 
 }

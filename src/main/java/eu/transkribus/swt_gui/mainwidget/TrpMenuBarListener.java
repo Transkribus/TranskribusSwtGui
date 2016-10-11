@@ -35,59 +35,57 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		if (mb.languageMenu != null) {
 			for (MenuItem mi : mb.languageMenu.m.getItems()) {
-				db.runOnSelection(mi, () -> {
+				db.runOnSelection(mi, (e) -> {
 					Locale l = (Locale) mi.getData();
 					TrpMainWidget.getInstance().setLocale(l); 
 				});
 			}
 		}
 		
-		db.runOnSelection(mb.showAllMenuItem, () -> { trpSets.setShowAll(true); });
+		db.runOnSelection(mb.showAllMenuItem, (e) -> { trpSets.setShowAll(true); });
 		
-		db.runOnSelection(mb.hideAllMenuItem, () -> { trpSets.setShowAll(false); });
+		db.runOnSelection(mb.hideAllMenuItem, (e) -> { trpSets.setShowAll(false); });
 		
-		db.runOnSelection(mb.viewSettingsMenuItem, () -> { mw.openViewSetsDialog(); });
+		db.runOnSelection(mb.viewSettingsMenuItem, (e) -> { mw.openViewSetsDialog(); });
 		
-		db.runOnSelection(mb.proxySettingsMenuItem, () -> { mw.openProxySetsDialog(); });
+		db.runOnSelection(mb.proxySettingsMenuItem, (e) -> { mw.openProxySetsDialog(); });
 			
-		db.runOnSelection(mb.openLocalDocItem, () -> { mw.loadLocalFolder(); });
+		db.runOnSelection(mb.openLocalDocItem, (e) -> { mw.loadLocalFolder(); });
 		
-		db.runOnSelection(mb.openLocalPageFileItem, () -> { mw.loadLocalPageXmlFile(); });
+		db.runOnSelection(mb.openLocalPageFileItem, (e) -> { mw.loadLocalPageXmlFile(); });
 		
-		db.runOnSelection(mb.deletePageMenuItem, () -> { mw.deletePage(); });
+		db.runOnSelection(mb.deletePageMenuItem, (e) -> { mw.deletePage(); });
 		
-		db.runOnSelection(mb.manageCollectionsItem, () -> { mw.getUi().getServerWidget().openCollectionsManagerWidget(); });
+		db.runOnSelection(mb.manageCollectionsItem, (e) -> { mw.getUi().getServerWidget().openCollectionsManagerWidget(); });
 		
-		db.runOnSelection(mb.userActivityItem, () -> { mw.getUi().getServerWidget().openActivityDialog(); });
+		db.runOnSelection(mb.userActivityItem, (e) -> { mw.getUi().getServerWidget().openActivityDialog(); });
 		
-		db.runOnSelection(mb.uploadItem, () -> { mw.uploadDocuments(); });
+		db.runOnSelection(mb.uploadItem, (e) -> { mw.uploadDocuments(); });
 		
-		db.runOnSelection(mb.exportItem, () -> { mw.unifiedExport(); });
+		db.runOnSelection(mb.exportItem, (e) -> { mw.unifiedExport(); });
 		
-		db.runOnSelection(mb.syncWordsWithLinesMenuItem, () -> { mw.syncTextOfDocFromWordsToLinesAndRegions(); });
+		db.runOnSelection(mb.syncWordsWithLinesMenuItem, (e) -> { mw.syncTextOfDocFromWordsToLinesAndRegions(); });
 		
-		db.runOnSelection(mb.saveTranscriptionToNewFileMenuItem, () -> { mw.saveTranscriptionToNewFile(); });
+		db.runOnSelection(mb.saveTranscriptionToNewFileMenuItem, (e) -> { mw.saveTranscriptionToNewFile(); });
 		
-		db.runOnSelection(mb.saveTranscriptionMenuItem, () -> { mw.saveTranscription(false); });
+		db.runOnSelection(mb.saveTranscriptionMenuItem, (e) -> { mw.saveTranscription(false); });
 		
-		db.runOnSelection(mb.updateMenuItem, () -> { mw.checkForUpdates(); });
+		db.runOnSelection(mb.updateMenuItem, (e) -> { mw.checkForUpdates(); });
 		
-		db.runOnSelection(mb.installMenuItem, () -> { mw.installSpecificVersion(); });
+		db.runOnSelection(mb.installMenuItem, (e) -> { mw.installSpecificVersion(); });
 		
-		db.runOnSelection(mb.tipsOfTheDayMenuItem, () -> { mw.showTipsOfTheDay(); });
+		db.runOnSelection(mb.tipsOfTheDayMenuItem, (e) -> { mw.showTipsOfTheDay(); });
 		
-		db.runOnSelection(mb.aboutMenuIItem, () -> { mw.showAboutDialog(); });
+		db.runOnSelection(mb.aboutMenuIItem, (e) -> { mw.showAboutDialog(); });
 		
-		db.runOnSelection(mb.replaceImageItem, () -> { mw.replacePageImg(); });
+		db.runOnSelection(mb.replaceImageItem, (e) -> { mw.replacePageImg(); });
 		
-		db.runOnSelection(mb.bugReportItem, () -> { mw.sendBugReport(); });
+		db.runOnSelection(mb.bugReportItem, (e) -> { mw.sendBugReport(); });
 		
-		db.runOnSelection(mb.exitItem, () -> { mw.getShell().close(); });	
+		db.runOnSelection(mb.exitItem, (e) -> { mw.getShell().close(); });	
 	}
 
 	@Override public void widgetSelected(SelectionEvent e) {
-//		Object s = e.getSource();
-
 	}
 
 	@Override public void widgetDefaultSelected(SelectionEvent e) {
