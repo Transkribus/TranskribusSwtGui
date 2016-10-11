@@ -28,6 +28,8 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
@@ -82,8 +84,8 @@ public class ThumbnailManager extends Dialog {
 	
 	protected GalleryItem group;
 	
-
-	protected ToolItem reload, showOrigFn, createThumbs, showPageManager;
+	protected Button reload, showOrigFn, createThumbs, showPageManager;
+	//protected ToolItem reload, showOrigFn, createThumbs, showPageManager;
 //	protected TextToolItem infoTi;
 
 	protected List<URL> urls;
@@ -95,6 +97,8 @@ public class ThumbnailManager extends Dialog {
 	
 //	protected NoGroupRenderer groupRenderer;
 	protected AbstractGridGroupRenderer groupRenderer;
+	
+	ThumbnailWidget thumbsWidget;
 	
 	static int thread_counter=0;
 	
@@ -108,9 +112,11 @@ public class ThumbnailManager extends Dialog {
 	private static final boolean DISABLE_TRANSCRIBED_LINES=false;
 	
 	Shell shell;
-	TrpDocMetadata docMd;
+	public Shell getShell() {
+		return shell;
+	}
 
-	private boolean GalleryItem;
+	TrpDocMetadata docMd;
 	
 	public static class ThmbImg {		
 		Image image = null;
@@ -155,27 +161,8 @@ public class ThumbnailManager extends Dialog {
 		private void load() {
 			try {
 				isError = false;
-				
-				SebisStopWatch sw = new SebisStopWatch();
-				
-//				sw.start();
 				image = ImgLoader.load(url);
-//				sw.stop(true, "loading img time: ");
-				
-				if (!DISABLE_TRANSCRIBED_LINES) {
-					//sw.start();
-					//transcribedLines = countTranscribedLines(transcript.unmarshallTranscript());
-					transcribedLines = transcript.getNrOfTranscribedLines();
-					segmentedLines = transcript.getNrOfLines();
-					//sw.stop(true, "loading lines time: ");
-				}
-				
-//				if (image.getBounds().height > THUMB_HEIGHT) {
-//					Image scaled = scaleImageToHeight(image, THUMB_HEIGHT);
-//					image.dispose();
-//					image = scaled;
-//				}
-				
+
 				Display.getDefault().asyncExec(new Runnable() {
 					@Override
 					public void run() {
@@ -256,22 +243,9 @@ public class ThumbnailManager extends Dialog {
 						if (cancel || index >= group.getItemCount() || index <0)
 							return;
 						
-//						logger.trace("thread: "+ThmbImgLoadThread.this.getName());
-//						logger.trace("group size: "+group.getItemCount());
-//						logger.trace("index: "+index);
-//						logger.trace("item: "+group.getItem(index));
 						group.getItem(index).setImage(image);
 						group.getItem(index).setData("doNotScaleImage", null);
 						
-						//text and background according to the nr of transcribed lines
-						//setItemTextAndBackgroung(group.getItem(index), index, transcribedLines);
-
-						//totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
-						/*
-						groupComposite.layout(true, true);
-						labelComposite.redraw();
-						groupComposite.redraw();
-						*/
 						gallery.redraw();
 					}
 					@Override
@@ -285,10 +259,7 @@ public class ThumbnailManager extends Dialog {
 					}
 					
 					@Override protected void onDone() {
-						setItemTextAndBackground(group.getItem(index), index, transcribedLines, segmentedLines);
-						//groupComposite.layout(true, true);
-						//labelComposite.redraw();
-						//groupComposite.redraw();
+						setItemTextAndBackground(group.getItem(index), index);
 						gallery.redraw();
 					}
 				});	
@@ -318,17 +289,26 @@ public class ThumbnailManager extends Dialog {
 				display.sleep();
 			}
 		}
+		
 		return null;
 	}
 	
-	public ThumbnailManager(Composite parent, int style) {
+	public ThumbnailManager(Composite parent, int style, ThumbnailWidget thumbnailWidget) {
 		super(parent.getShell(), style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
+		
+		thumbsWidget = thumbnailWidget;
+		
+		if (Storage.getInstance().getDoc() == null){
+			return;
+		}
 
+		if (Storage.getInstance().getDoc() != null){
+			docMd = Storage.getInstance().getDoc().getMd();
+		}
+		
 		shell = new Shell(getParent(), style);
 		shell.setText("Document Manager");
-		
-		docMd = Storage.getInstance().getDoc().getMd();
-		
+	
 		FillLayout l = new FillLayout();
 		l.marginHeight = 5;
 		l.marginWidth = 5;
@@ -338,12 +318,27 @@ public class ThumbnailManager extends Dialog {
 		GridLayout layout = new GridLayout(1, false);
 		container.setLayout(layout);
 		
-		final ToolBar tb = new ToolBar(container, SWT.FLAT);
-		tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false));
+		groupComposite = new Composite(container, SWT.NONE);
+		GridLayout gl = new GridLayout(1, false);
+		groupComposite.setLayout(gl);
+		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true, true);
+		groupComposite.setLayoutData(gridData);
 		
-		reload = new ToolItem(tb, SWT.PUSH);
-		reload.setToolTipText("Reload");
-		reload.setImage(Images.getOrLoad("/icons/refresh.gif"));
+		labelComposite = new Composite(groupComposite, SWT.NONE);
+		labelComposite.setLayout(new GridLayout(1, true));
+		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		statisticLabel = new Label(labelComposite, SWT.TOP);
+		statisticLabel.setText("Loaded Document is " + docMd.getTitle());
+		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		Composite btns = new Composite(container, 0);
+		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		btns.setLayout(new RowLayout(SWT.HORIZONTAL));
+		
+		reload = new Button(btns, SWT.PUSH);
+		reload.setToolTipText("Reload thumbs");
+		reload.setImage(Images.REFRESH);
 		reload.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				logger.debug("reloading thumbwidget...");
@@ -351,25 +346,12 @@ public class ThumbnailManager extends Dialog {
 			}
 		});
 		
-		createThumbs = new ToolItem(tb, SWT.PUSH);
-		createThumbs.setToolTipText("Create thumbnails for this local document");
-		createThumbs.setText("Create thumbs");
-				
-		groupComposite = new Composite(container, SWT.FILL);
-		GridLayout gl = new GridLayout(1, false);
-		groupComposite.setLayout(gl);
-		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-		groupComposite.setLayoutData(gridData);
-		
-		labelComposite = new Composite(groupComposite, SWT.NONE);
-		labelComposite.setLayout(new GridLayout(1, true));
-		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-		statisticLabel = new Label(labelComposite, SWT.TOP);
-		statisticLabel.setText("Document Overview of: " + docMd.getTitle());
-		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-					
-		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.MULTI);
+//		createThumbs = new Button(btns, SWT.PUSH);
+//		createThumbs.setImage(Images.IMAGES);
+////		createThumbs.setToolTipText("Create thumbnails for this local document");
+//		createThumbs.setText("Create thumbs for local doc");	
+							
+		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.SINGLE);
 		gallery.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		group = new GalleryItem(gallery, SWT.NONE);
@@ -411,14 +393,14 @@ public class ThumbnailManager extends Dialog {
 //						} else 
 //							infoTi.setText(""+e.index);
 //						infoTi.setWidth(100);
-						tb.pack();
+						btns.pack();
 						
-						//notifyListeners(SWT.Selection, e);
+						thumbsWidget.notifyListeners(SWT.Selection, e);
 					}
 				
 			}
 		});
-				
+		
 	    final Menu contextMenu = new Menu(gallery);
 	    gallery.setMenu(contextMenu);
 	    
@@ -441,6 +423,115 @@ public class ThumbnailManager extends Dialog {
 		shell.pack();
 		
 		open();
+		
+		
+//		Composite container = new Composite(shell, SWT.NONE);
+//		GridLayout layout = new GridLayout(1, false);
+//		container.setLayout(layout);
+//		
+//		final ToolBar tb = new ToolBar(container, SWT.FLAT);
+//		tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false));
+//		
+//		reload = new ToolItem(tb, SWT.PUSH);
+//		reload.setToolTipText("Reload");
+//		reload.setImage(Images.getOrLoad("/icons/refresh.gif"));
+//		reload.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				logger.debug("reloading thumbwidget...");
+//				reload();
+//			}
+//		});
+//		
+//		createThumbs = new ToolItem(tb, SWT.PUSH);
+//		createThumbs.setToolTipText("Create thumbnails for this local document");
+//		createThumbs.setText("Create thumbs");
+//				
+//		groupComposite = new Composite(container, SWT.FILL);
+//		GridLayout gl = new GridLayout(1, false);
+//		groupComposite.setLayout(gl);
+//		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+//		groupComposite.setLayoutData(gridData);
+//		
+//		labelComposite = new Composite(groupComposite, SWT.NONE);
+//		labelComposite.setLayout(new GridLayout(1, true));
+//		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+//
+//		statisticLabel = new Label(labelComposite, SWT.TOP);
+//		statisticLabel.setText("Document Overview of: " + docMd.getTitle());
+//		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+//					
+//		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.MULTI);
+//		gallery.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//
+//		group = new GalleryItem(gallery, SWT.NONE);
+//		
+//		groupRenderer = new NoGroupRenderer();
+//		//groupRenderer = new DefaultGalleryGroupRenderer();
+//		
+//		groupRenderer.setMinMargin(2);
+//		groupRenderer.setItemHeight(THUMB_HEIGHT);
+//		groupRenderer.setItemWidth(THUMB_WIDTH);
+//		groupRenderer.setAutoMargin(true);
+//		groupRenderer.setAlwaysExpanded(true);
+//
+//		gallery.setGroupRenderer(groupRenderer);
+//		//gallery.setVirtualGroups(true);
+//
+//		if (true) {
+//			MyDefaultGalleryItemRenderer ir = new MyDefaultGalleryItemRenderer();
+////			DefaultGalleryItemRenderer ir = new DefaultGalleryItemRenderer();
+//			ir.setShowLabels(true);
+//			gallery.setItemRenderer(ir);
+//
+//		} else {
+//			ListItemRenderer ir = new ListItemRenderer();
+//			ir.setShowLabels(true);
+//			gallery.setItemRenderer(ir);
+//		}
+//		
+//		gallery.addListener(SWT.MouseDoubleClick, new Listener() {
+//
+//			@Override
+//			public void handleEvent(Event event) {					
+//					if (gallery.getSelectionCount()>=1) {
+//						Event e = new Event();
+//						e.index = group.indexOf(gallery.getSelection()[0]);
+//						
+////						if (names != null && names.size()>e.index) {
+////							infoTi.setText(names.get(e.index));
+////						} else 
+////							infoTi.setText(""+e.index);
+////						infoTi.setWidth(100);
+//						tb.pack();
+//						
+//						//notifyListeners(SWT.Selection, e);
+//					}
+//				
+//			}
+//		});
+//				
+//	    final Menu contextMenu = new Menu(gallery);
+//	    gallery.setMenu(contextMenu);
+//	    
+//	    addMenuItems(contextMenu, EnumUtils.stringsArray(EditStatus.class));
+//	    
+////	    contextMenu.addMenuListener(new MenuAdapter()
+////	    {
+////	        public void menuShown(MenuEvent e)
+////	        {
+////	            MenuItem[] items = contextMenu.getItems();
+////	            for (int i = 0; i < items.length; i++)
+////	            {
+////	                items[i].dispose();
+////	            }
+////	            MenuItem newItem = new MenuItem(contextMenu, SWT.NONE);
+////	            newItem.setText("Menu for " + gallery.getSelection()[0].getText());
+////	        }
+////	    });
+//		
+//		shell.pack();
+//		
+//		open();
 	}
 	
 	protected void setup_layout_recognition(String pages) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
@@ -488,6 +579,10 @@ public class ThumbnailManager extends Dialog {
 		}
 		
 		//just dummy labels for testing
+		tmp = new MenuItem(labelMenu, SWT.None);
+		tmp.setText("Upcoming feature - cannot be set at at the moment");
+		tmp.addSelectionListener(new EditLabelMenuItemListener());
+		
 		tmp = new MenuItem(labelMenu, SWT.None);
 		tmp.setText("GT");
 		tmp.addSelectionListener(new EditLabelMenuItemListener());
@@ -592,12 +687,6 @@ public class ThumbnailManager extends Dialog {
 	    }
 	}
 	
-	private void updateGalleryItemNames() {
-		for (int i=0; i<group.getItemCount(); ++i) {
-			setItemText(group.getItems()[i], i, "");
-		}
-	}
-
 	private void setUrls(List<URL> urls, List<String> names) {
 		this.urls = urls;
 		this.names = names;
@@ -618,79 +707,13 @@ public class ThumbnailManager extends Dialog {
 			item.setImage(Images.LOADING_IMG);
 			item.setData("doNotScaleImage", new Object());
 			
-			String transcribedLinesText = "";
-			//here we could set background color regarding to if transcribed text exists
+			String transcribedLinesText = thumbsWidget.determineItemColor(item, transcripts.get(i));
 			
-			/*
-			 * get number or transcribed lines: 0: no lines available, -1: lines but no text, n lines with text
-			 */
-
-			int transcribedLines = transcripts.get(i).getNrOfTranscribedLines();
-			int segmentedLines = transcripts.get(i).getNrOfLines();
+			totalLinesTranscribed += transcripts.get(i).getNrOfTranscribedLines();
 			
-			if (segmentedLines == 0){
-				transcribedLinesText = "\nNo lines segmented";
-			}
-			else{
-				transcribedLinesText = (transcribedLines > 0 ? "\nTranscribed lines: "+transcribedLines : "\nTranscribed lines: 0");
-			}
-			
-			if (transcribedLines > 0){
-				totalLinesTranscribed += transcribedLines;
-//					String text = item.getText();
-//					String tlText = "\nTranscribed lines: "+transcribedLines;
-//									
-//					
-//					text += "\nTranscribed lines: "+transcribedLines;
-
-				item.setBackground(lightGreen);
-			}
-			else if(transcribedLines == 0){
-				item.setBackground(lightYellow);
-			}
-			else{
-				item.setBackground(lightRed);
-			}
-//				if (checkIfTranscribed(transcripts.get(i).unmarshallTranscript())){
-//					//item.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_GREEN));
-//					item.setBackground(lightGreen);
-//				}
-//				else{
-//					item.setBackground(lightRed);
-//				}
-
 			setItemText(item, i, transcribedLinesText);
 			
 		}
-	}
-	
-	
-	/***
-	 * 
-	 * @param pc
-	 * @return number or transcribed lines: if 0: no lines available, -1: lines but no text, >0 lines with text
-	 */
-	private static int countTranscribedLines(PcGtsType pc){
-		int counter = 0;
-		for( TextRegionType tr : PageXmlUtils.getTextRegions(pc)){			//Check all textregions of page
-			for(TextLineType tl : tr.getTextLine()){						//Check all textlines of textregion
-					TrpTextLineType ttl = (TrpTextLineType) tl;
-					if(!ttl.getUnicodeText().isEmpty()){					//Check if textline is empty
-						counter++;						
-					}
-			}
-		}
-		
-		//no line contains text - check if there are lines
-		if(counter == 0){
-			for( TextRegionType tr : PageXmlUtils.getTextRegions(pc)){
-				if(tr.getTextLine().size() > 0){
-					counter = -1;
-				}
-			}
-		}
-		
-		return counter;
 	}
 	
 	private void disposeOldData() {
@@ -810,48 +833,13 @@ public class ThumbnailManager extends Dialog {
 		}	
 	}
 	
-	private void setItemTextAndBackground(GalleryItem galleryItem, int index, int transcribedLines, int segmentedLines) {
+	private void setItemTextAndBackground(GalleryItem galleryItem, int index) {
 		if (SWTUtil.isDisposed(galleryItem))
 			return;
 		
-		String transcribedLinesText = "";
+		String transcribedLinesText = thumbsWidget.determineItemColor(galleryItem, transcripts.get(index));			
 		
-		//int transcribedLines;
-
-				//transcribedLines = countTranscribedLines(transcripts.get(index).unmarshallTranscript());
-	
-			//here we could set background color regarding to if transcribed text exists
-	
-			/*
-			 * get number or transcribed lines: 0: no lines available, -1: lines but no text, n lines with text
-			 */
-			//int transcribedLines = nrTranscribedLines.get(index);
-					
-			if (segmentedLines == 0){
-				transcribedLinesText = "\nNo lines segmented";
-			}
-			else{
-				transcribedLinesText = (transcribedLines > 0 ? "\nTranscribed lines: "+transcribedLines : "\nTranscribed lines: 0");
-			}
-			
-			if (transcribedLines > 0){
-				totalLinesTranscribed += transcribedLines;
-	//				String text = item.getText();
-	//				String tlText = "\nTranscribed lines: "+transcribedLines;
-	//								
-	//				
-	//				text += "\nTranscribed lines: "+transcribedLines;
-	
-				galleryItem.setBackground(lightGreen);
-			}
-			else if(transcribedLines == 0){
-				galleryItem.setBackground(lightYellow);
-			}
-			else{
-				galleryItem.setBackground(lightRed);
-			}
-			
-			setItemText(galleryItem, index, transcribedLinesText);
+		setItemText(galleryItem, index, transcribedLinesText);
 		
 
 		
@@ -939,7 +927,7 @@ public class ThumbnailManager extends Dialog {
 //		tv.setInput(thumbImages);
 //	}
 	
-	public ToolItem getCreateThumbs() {
+	public Button getCreateThumbs() {
 		return createThumbs;
 	}
 
