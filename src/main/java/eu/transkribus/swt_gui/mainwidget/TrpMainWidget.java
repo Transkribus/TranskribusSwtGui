@@ -3884,4 +3884,24 @@ public class TrpMainWidget {
 		}			
 	}
 
+	public void changeProfileFromUi() {
+		int i = ui.getProfilesToolItem().getLastSelectedIndex();
+		logger.debug("changing profile from ui, selected index = "+i);
+		
+		if (i>=0 && i < ui.getProfilesToolItem().getItemCount()-1) { // profile selected
+			if (!SWTUtil.isDisposed(ui.getProfilesToolItem().getSelected()) && ui.getProfilesToolItem().getSelected().getData() instanceof String) {				
+				String name = (String) ui.getProfilesToolItem().getSelected().getData();
+				logger.info("selecting profile: "+name);
+				mw.selectProfile(name);
+									
+				boolean mode = (name.contains("Transcription")? true : false);
+				canvas.getScene().setTranscriptionMode(mode);
+			}
+		} else if (i == ui.getProfilesToolItem().getItemCount()-1) {
+			logger.info("opening save profile dialog...");
+			mw.saveNewProfile();
+			canvas.getScene().setTranscriptionMode(false);
+		}
+	}
+
 }

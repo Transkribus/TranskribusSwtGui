@@ -2,6 +2,7 @@ package eu.transkribus.swt.util.databinding;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.eclipse.core.databinding.Binding;
 import org.eclipse.core.databinding.DataBindingContext;
@@ -40,22 +41,15 @@ public class DataBinder {
 		}
 		return binder;
 	}
-
-	/**
-	 * Runs the given Runnable r when a selection event occurs on the given widget w<br>
-	 * Currently only MenuItem, ToolItem and Button widgets are suppored.<br>
-	 * Add others widgets to the if clause if needed.
-	 */
-	public void runOnSelection(Widget w, Runnable r) {
-		if (SWTUtil.isDisposed(w) || r == null)
-			return;
 		
+	public void runOnSelection(Widget w, Consumer<SelectionEvent> c) {
 		SelectionAdapter l = new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				r.run();
+				c.accept(e);
 			}
 		};
-
+		
+		
 		if (w instanceof MenuItem)
 			((MenuItem) w).addSelectionListener(l);
 		else if (w instanceof ToolItem)
@@ -65,6 +59,31 @@ public class DataBinder {
 		else
 			throw new RuntimeException("Widget type not supported: "+w);
 	}
+
+	/**
+	 * Runs the given Runnable r when a selection event occurs on the given widget w<br>
+	 * Currently only MenuItem, ToolItem and Button widgets are suppored.<br>
+	 * Add others widgets to the if clause if needed.
+	 */
+//	public void runOnSelection(Widget w, Runnable r) {
+//		if (SWTUtil.isDisposed(w) || r == null)
+//			return;
+//		
+//		SelectionAdapter l = new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				r.run();
+//			}
+//		};
+//
+//		if (w instanceof MenuItem)
+//			((MenuItem) w).addSelectionListener(l);
+//		else if (w instanceof ToolItem)
+//			((ToolItem) w).addSelectionListener(l);
+//		else if (w instanceof Button)
+//			((Button) w).addSelectionListener(l);
+//		else
+//			throw new RuntimeException("Widget type not supported: "+w);
+//	}
 
 	public void bindWidgetSelection(Widget src, Widget target) {
 		selectionListener.add(new BindSelectionListener(src, target));
