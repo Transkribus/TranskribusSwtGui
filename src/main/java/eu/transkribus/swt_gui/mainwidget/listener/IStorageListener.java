@@ -113,13 +113,15 @@ public interface IStorageListener {
 	
 	@SuppressWarnings("serial")
 	public static class DocListLoadEvent extends Event {
+		public final int collId;
 		public final List<TrpDocMetadata> docs;
 //		public final int collId;
 //		public final TrpUserLogin user;
 		public final boolean isDocsByUser;
 
-		public DocListLoadEvent(Object source, List<TrpDocMetadata> docs,  boolean isDocsByUser) {
-			super(source, "Documents loaded: "+docs.size());
+		public DocListLoadEvent(Object source, int collId, List<TrpDocMetadata> docs,  boolean isDocsByUser) {
+			super(source, docs.size()+" documents loaded from collection "+collId);
+			this.collId = collId;
 			this.docs = docs;
 			this.isDocsByUser = isDocsByUser;
 		}

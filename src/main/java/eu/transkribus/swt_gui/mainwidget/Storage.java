@@ -78,6 +78,7 @@ import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
@@ -730,14 +731,14 @@ public class Storage {
 						userDocList.clear();
 						userDocList.addAll(response);
 						
-						sendEvent(new DocListLoadEvent(this, userDocList, true));
+						sendEvent(new DocListLoadEvent(this, 0, userDocList, true));
 					}
 				}
 			});
 		} else {
 			synchronized (this) {
 				userDocList.clear();				
-				sendEvent(new DocListLoadEvent(this, userDocList, true));
+				sendEvent(new DocListLoadEvent(this, 0, userDocList, true));
 			}
 		}
 	}
@@ -746,31 +747,52 @@ public class Storage {
 		return userDocList;
 	}
 
-	public List<TrpDocMetadata> reloadDocList(int colId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+	public /*List<TrpDocMetadata>*/void reloadDocList(int colId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
-		if (colId == -1)
-			return docList;
+		if (colId == 0)
+			return;
 
 		logger.debug("reloading doclist for collection: "+colId);
-
-		if (true) {
-			synchronized (this) {
-				docList.clear();
-				docList.addAll(conn.getAllDocs(colId));
+		
+		SebisStopWatch.SW.start();
+		
+		conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+			@Override
+			public void completed(List<TrpDocMetadata> docs) {
+				synchronized (this) {
+					docList.clear();
+					docList.addAll(docs);
+				}
+				
+				Storage.this.collId = colId;
+				
+				logger.debug("async loaded "+docList.size()+" nr of docs of collection "+collId+" thread: "+Thread.currentThread().getName());
+				SebisStopWatch.SW.stop(true, "load time: ", logger);
+				
+				sendEvent(new DocListLoadEvent(this, colId, docList, false));
 			}
-		} else {
-			docList = conn.getAllDocs(colId);
-		}
-		
-		this.collId = colId;
-		
-		logger.debug("loaded "+docList.size()+" nr of docs of collection "+collId);
-		
-//		this.currentColId = colId;
-		
-		sendEvent(new DocListLoadEvent(this, docList, false));
-		
-		return docList;
+
+			@Override public void failed(Throwable throwable) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+
+//		synchronized (this) {
+//			docList.clear();
+//			docList.addAll(conn.getAllDocs(colId));
+//		}
+//		
+//		this.collId = colId;
+//		
+//		logger.debug("loaded "+docList.size()+" nr of docs of collection "+collId);
+//		SebisStopWatch.SW.stop(true, "load time: ", logger);
+//		
+////		this.currentColId = colId;
+//		
+//		sendEvent(new DocListLoadEvent(this, docList, false));
+//		
+//		return docList;
 	}
 	
 	public int getCollId() {

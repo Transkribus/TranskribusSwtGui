@@ -143,7 +143,6 @@ import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetViewListener;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
-import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
@@ -416,37 +415,7 @@ public class TrpMainWidget {
 			if (coll != null)
 				storage.reloadDocList(coll.getColId());
 			
-			getUi().getServerWidget().refreshDocList();
-//			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-//				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-//					monitor.beginTask("Reloading doclist", IProgressMonitor.UNKNOWN);
-//					try {
-////						int colId = storage.getCollectionId(collectionIndex);
-////						if (colId == -1)
-////							return;
-//						logger.debug("reloading doclist for collection "+coll.getColId());
-//						storage.reloadDocList(coll.getColId());
-//					} catch (Throwable e) {
-//						throw new InvocationTargetException(e, e.getMessage());
-//					}
-//				}
-//			}, "Updating documents", false);
-
-			// update ui:
-			ui.getTabWidget().selectServerTab();
 			updatePageInfo();
-
-			if (ui.getServerWidget().isCollectionManagerOpen())
-				ui.getServerWidget().getCollectionManagerDialog().updateCollections();
-
-//			if (storage.getRemoteDocList() != null) {
-//				getUi().getDocOverviewWidget().setInput(storage.getRemoteDocList());
-//				ui.selectDocListTab();
-//				logger.debug("Loaded " + storage.getRemoteDocList().size() + " docs from " + storage.getServerUri());
-//				updatePageInfo();
-//			} else {
-//				logger.debug("Failed to load doc list");
-//			}
 		} catch (Throwable e) {
 			onError("Cannot load document list", "Could not connect to " + ui.getTrpSets().getTrpServer(), e);
 		}
@@ -2396,44 +2365,44 @@ public class TrpMainWidget {
 		// TrpMainWidget mainWidget = new TrpMainWidget();
 	}
 
-	@Deprecated public void deleteSelectedDocument() {
-		final TrpDocMetadata doc = ui.getServerWidget().getSelectedDocument();
-		try {
-			if (doc == null || !storage.isLoggedIn()) {
-				return;
-			}
-
-			if (DialogUtil.showYesNoDialog(getShell(), "Are you sure?", "Do you really want to delete document " + doc.getDocId()) != SWT.YES) {
-				return;
-			}
-
-			canvas.getScene().selectObject(null, true, false); // security
-																// measure due
-																// to mysterios
-																// bug leading
-																// to freeze of
-																// progress
-																// dialog
-			final int colId = storage.getCurrentDocumentCollectionId();
-			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						logger.debug("deleting document...");
-						monitor.beginTask("Deleting document ", IProgressMonitor.UNKNOWN);
-						logger.debug("Deleting selected document: " + doc);
-						storage.deleteDocument(colId, doc.getDocId());
-						displaySuccessMessage("Deleted document " + doc.getDocId());
-					} catch (Exception e) {
-						throw new InvocationTargetException(e, e.getMessage());
-					}
-				}
-			}, "Exporting", false);
-
-			reloadDocList(ui.getServerWidget().getSelectedCollection());
-		} catch (Throwable e) {
-			onError("Error deleting document", "Could not delete document " + doc.getDocId(), e);
-		}
-	}
+//	@Deprecated public void deleteSelectedDocument() {
+//		final TrpDocMetadata doc = ui.getServerWidget().getSelectedDocument();
+//		try {
+//			if (doc == null || !storage.isLoggedIn()) {
+//				return;
+//			}
+//
+//			if (DialogUtil.showYesNoDialog(getShell(), "Are you sure?", "Do you really want to delete document " + doc.getDocId()) != SWT.YES) {
+//				return;
+//			}
+//
+//			canvas.getScene().selectObject(null, true, false); // security
+//																// measure due
+//																// to mysterios
+//																// bug leading
+//																// to freeze of
+//																// progress
+//																// dialog
+//			final int colId = storage.getCurrentDocumentCollectionId();
+//			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+//				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+//					try {
+//						logger.debug("deleting document...");
+//						monitor.beginTask("Deleting document ", IProgressMonitor.UNKNOWN);
+//						logger.debug("Deleting selected document: " + doc);
+//						storage.deleteDocument(colId, doc.getDocId());
+//						displaySuccessMessage("Deleted document " + doc.getDocId());
+//					} catch (Exception e) {
+//						throw new InvocationTargetException(e, e.getMessage());
+//					}
+//				}
+//			}, "Exporting", false);
+//
+//			reloadDocList(ui.getServerWidget().getSelectedCollection());
+//		} catch (Throwable e) {
+//			onError("Error deleting document", "Could not delete document " + doc.getDocId(), e);
+//		}
+//	}
 
 	public void displaySuccessMessage(final String message) {
 		display.syncExec(new Runnable() {

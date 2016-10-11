@@ -2,10 +2,8 @@ package eu.transkribus.swt_gui.pagination_tables;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.InvocationCallback;
 
@@ -22,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
@@ -85,16 +82,16 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		this.refreshList(collectionId, resetPage, false);
 	}
 	
-	public void refreshList(int collectionId, boolean resetPage, boolean forceReload) {
+	public void refreshList(int collectionId, boolean resetPage, boolean forceServerReload) {
 		logger.debug("old coll-id: "+this.collectionId+" new coll-id: "+collectionId);
 		
 		boolean hasChanged = this.collectionId != collectionId;
 		setCollectionId(collectionId);
 		
 		logger.debug("refreshing doc table, collectionId="+collectionId+" resetPage="+resetPage+" hasChanged="+hasChanged);
-		if (hasChanged || forceReload) {
+		if (hasChanged || forceServerReload) {
 			logger.debug("reloading docs from server...");
-			reloadDocs(resetPage, forceReload);
+			reloadDocs(resetPage, forceServerReload);
 		} else {
 			refreshPage(resetPage);
 		}
@@ -120,8 +117,12 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	}
 	
 	private void reloadDocs(boolean resetPage, boolean forceReload) {
-		Storage store = Storage.getInstance();
+		if (collectionId == 0) {
+			setDocList(new ArrayList<>(), resetPage);
+			return;
+		}
 
+		Storage store = Storage.getInstance();
 		if (forceReload || collectionId != store.getCollId()) { // have to reload doclist
 			store.getConnection().getAllDocsAsync(collectionId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
 				@Override public void failed(Throwable throwable) {

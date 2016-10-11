@@ -127,6 +127,10 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		cmw.collectionsTv.refreshList(cle.collections);
 	}
 	
+	@Override public void handleDocListLoadEvent(DocListLoadEvent dle) {
+		cmw.updateCollections();
+	}
+	
 	boolean checkUploaderOrCollectionOwnerRights(TrpUserLogin user, TrpDocMetadata ...docs) {
 		for (TrpDocMetadata d : docs) {
 			if(!user.isAdmin() && !isUploader(user, d) && !isOwnerOfCurrentCollection()) {

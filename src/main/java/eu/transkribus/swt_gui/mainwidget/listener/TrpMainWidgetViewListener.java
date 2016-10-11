@@ -17,7 +17,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.vkeyboards.ITrpVirtualKeyboardsTabWidgetListener;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsTabWidget;
 
-public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpVirtualKeyboardsTabWidgetListener {
+public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpVirtualKeyboardsTabWidgetListener, IStorageListener {
 	private final static Logger logger = LoggerFactory.getLogger(TrpMainWidgetViewListener.class);
 	
 	TrpMainWidget mw;
@@ -32,11 +32,10 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		addListener();
 	}
 
-	private void addListener() {	
-		
+	private void addListener() {
 		DataBinder db = DataBinder.get();
 		Storage storage = Storage.getInstance();
-		
+				
 		db.runOnSelection(ui.getStructureTreeWidget().getUpdateIDsItem(), (e) -> { mw.updateIDs(); } );
 		
 		db.runOnSelection(ui.getStructureTreeWidget().getClearPageItem(), (e) -> { 			
@@ -50,7 +49,7 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 			canvas.redraw();
 		} );
 		
-		db.runOnSelection(ui.getReloadDocumentButton(), (e) -> { mw.reloadCurrentDocument(); } );
+//		db.runOnSelection(ui.getReloadDocumentButton(), (e) -> { mw.reloadCurrentDocument(); } );
 		
 		db.runOnSelection(ui.getExportDocumentButton(), (e) -> { mw.unifiedExport(); } );
 						
