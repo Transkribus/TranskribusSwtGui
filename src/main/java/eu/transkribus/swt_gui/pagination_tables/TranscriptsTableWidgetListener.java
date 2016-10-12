@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.pagination_tables;
 
+import java.util.List;
+
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TableViewer;
@@ -10,10 +12,13 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.ui.internal.dnd.SwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTDialog;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -71,10 +76,19 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 	@Override public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
 		if(s == tw.deleteBtn){
-			TrpTranscriptMetadata md = tw.getFirstSelected();
-			if (md!=null) {
-				deleteTranscript(md);
+			List<TrpTranscriptMetadata> selectedVersions = tw.getSelected();
+			if (DialogUtil.showYesNoDialog(tw.getShell(), "Delete Version(s)", "Do you really want to delete " + selectedVersions.size() + " selected versions ")!=SWT.YES) {
+				return;
 			}
+			for (TrpTranscriptMetadata md : selectedVersions){
+				if (md!=null) {
+					deleteTranscript(md);
+				}
+			}
+//			TrpTranscriptMetadata md = tw.getFirstSelected();
+//			if (md!=null) {
+//				deleteTranscript(md);
+//			}
 		}
 	}
 
