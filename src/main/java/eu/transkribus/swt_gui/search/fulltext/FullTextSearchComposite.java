@@ -114,7 +114,7 @@ public class FullTextSearchComposite extends Composite{
 	String searchText;
 	private String lastSearchText;
 	private int numPageHits;
-	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],)";
+	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],),~,#";
 	private SearchType type;
 
 	public FullTextSearchComposite(Composite parent, int style){
