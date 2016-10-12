@@ -379,29 +379,13 @@ public class ThumbnailWidget extends Composite {
 			return;
 		}
 		
-		//if (SWTUtil.isOpen(tm)) {
+		//if shell is open {
 		if(tm != null && tm.getShell() != null && !tm.getShell().isDisposed()){
-			logger.debug("shell is open !!!!!!!!!!!!!");
 			tm.getShell().setVisible(true);
 		} else {
-			if (tm != null){
-				logger.debug("shell is not open !!!!!!!!!!!!! disposed?" + tm.getShell());
-				logger.debug("shell is not open !!!!!!!!!!!!! disposed?" + tm.getShell().isDisposed());
-			}
-			else
-				logger.debug("shell is not open and tm is null!!!!!!!!!!!!!");
 			tm = new ThumbnailManager(getShell(), SWT.NONE, this);
+			tm.open();
 		}
-
-//		if (tm == null){
-//			tm = new ThumbnailManager(getShell(), SWT.NONE, this);
-//		}
-//		else {
-//			//logger.debug("tm shell is disposed " + tm.getShell().isDisposed());
-//			if (tm.getShell() != null && tm.getShell().isDisposed()){
-//				tm = new ThumbnailManager(getShell(), SWT.NONE, this);
-//			}			
-//		}
 
 	}
 	

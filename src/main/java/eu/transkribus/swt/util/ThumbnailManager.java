@@ -423,7 +423,7 @@ public class ThumbnailManager extends Dialog {
 		
 		shell.pack();
 		
-		open();
+
 		
 		
 //		Composite container = new Composite(shell, SWT.NONE);
