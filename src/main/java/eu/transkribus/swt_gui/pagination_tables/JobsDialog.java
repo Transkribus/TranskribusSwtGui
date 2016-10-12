@@ -9,6 +9,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
+import eu.transkribus.swt.util.SWTUtil;
+
 public class JobsDialog extends Dialog {
 	
 	public JobTableWidgetPagination jw;
@@ -31,9 +33,10 @@ public class JobsDialog extends Dialog {
 		return container;
 	}
 	
-	@Override protected void configureShell(Shell newShell) {
-		super.configureShell(newShell);
-		newShell.setText("Jobs on server");
+	@Override protected void configureShell(Shell shell) {
+		super.configureShell(shell);
+		SWTUtil.centerShell(shell);
+		shell.setText("Jobs on server");
 	}
 
 	@Override protected Point getInitialSize() { return new Point(1000, 800); }

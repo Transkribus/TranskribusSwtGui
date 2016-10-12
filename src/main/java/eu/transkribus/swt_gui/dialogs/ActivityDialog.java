@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
 
 public class ActivityDialog extends Dialog {
@@ -26,6 +27,7 @@ public class ActivityDialog extends Dialog {
 	@Override protected void configureShell(Shell shell) {
 	      super.configureShell(shell);
 	      shell.setText("User Avtivity");
+	      SWTUtil.centerShell(shell);
 	}
 	
 	@Override protected boolean isResizable() {

@@ -9,6 +9,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
+import eu.transkribus.swt.util.SWTUtil;
+
 public class TranscriptsDialog extends Dialog {
 	
 	TranscriptsTableWidgetPagination transcriptsWidget;
@@ -16,6 +18,13 @@ public class TranscriptsDialog extends Dialog {
 	
 	public TranscriptsDialog(Shell parentShell) {
 		super(parentShell);
+	}
+	
+	@Override protected void configureShell(Shell shell) {
+	      super.configureShell(shell);
+	      shell.setSize(1000, 800);
+	      SWTUtil.centerShell(shell);
+	      shell.setText("Versions");
 	}
 
 	@Override protected Control createDialogArea(Composite parent) {
@@ -25,15 +34,10 @@ public class TranscriptsDialog extends Dialog {
 		transcriptsWidget = new TranscriptsTableWidgetPagination(container, 0, 50);
 		transcriptsWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
 		transcriptsWidgetListener = new TranscriptsTableWidgetListener(transcriptsWidget);
-		
+			
 		container.pack();
 
 		return container;
-	}
-	
-	@Override protected void configureShell(Shell newShell) {
-		super.configureShell(newShell);
-		newShell.setText("Versions");
 	}
 
 	@Override protected Point getInitialSize() { return new Point(1000, 800); }

@@ -57,9 +57,9 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		SWTUtil.onSelectionEvent(mb.deletePageMenuItem, (e) -> { mw.deletePage(); });
 		
-		SWTUtil.onSelectionEvent(mb.manageCollectionsItem, (e) -> { mw.getUi().getServerWidget().openCollectionsManagerWidget(); });
+		SWTUtil.onSelectionEvent(mb.manageCollectionsItem, (e) -> { mw.openCollectionManagerDialog(); });
 		
-		SWTUtil.onSelectionEvent(mb.userActivityItem, (e) -> { mw.getUi().getServerWidget().openActivityDialog(); });
+		SWTUtil.onSelectionEvent(mb.userActivityItem, (e) -> { mw.openActivityDialog(); });
 		
 		SWTUtil.onSelectionEvent(mb.uploadItem, (e) -> { mw.uploadDocuments(); });
 		

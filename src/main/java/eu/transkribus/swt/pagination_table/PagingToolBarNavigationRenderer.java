@@ -64,6 +64,9 @@ public class PagingToolBarNavigationRenderer extends AbstractPageControllerCompo
 	
 	void updateUI() {
 		Display.getDefault().asyncExec(() -> {
+			if (SWTUtil.isDisposed(tb.getToolBar()))
+				return;
+			
 			PageableController c = getController();
 			
 			int nStart = c.getPageOffset()+1;

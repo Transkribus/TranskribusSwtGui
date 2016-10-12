@@ -6,26 +6,22 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.ui.internal.dnd.SwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.SWTDialog;
-import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.LoginOrLogoutEvent;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.TranscriptListLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.TranscriptLoadEvent;
 
 public class TranscriptsTableWidgetListener implements SelectionListener, IDoubleClickListener, MouseListener, IStorageListener {
 	private final static Logger logger = LoggerFactory.getLogger(TranscriptsTableWidgetListener.class);
@@ -37,28 +33,34 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 		this.tw = tw;
 		this.tv = tw.getPageableTable().getViewer();
 		
-//		tv.getTable().addListener(SWT.MouseDown, new Listener(){
-//
-//	        @Override
-//	        public void handleEvent(Event event) {
-//	        	logger.debug("handle mouse down " + tv.getTable().getSelection());
-//	        	logger.debug("event.button == 3 " + (event.button == 3));
-//	            TableItem[] selection = tv.getTable().getSelection();
-//	            if(selection.length!=0 && (event.button == 3)){
-//	                contextMenu.setVisible(true);
-//	            }
-//
-//	        }
-//
-//	    });
+		tw.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				detach();
+			}
+		});
 		
+		attach();
+	}
+	
+	public void attach() {
 		tv.getTable().addMouseListener(this);
 		tv.addDoubleClickListener(this);
 		tv.getTable().addSelectionListener(this);
 		Storage.getInstance().addListener(this);
 		
 		if (tw.deleteBtn != null)
-			tw.deleteBtn.addSelectionListener(this);
+			tw.deleteBtn.addSelectionListener(this);		
+	}
+	
+	public void detach() {
+		tv.getTable().removeMouseListener(this);
+		tv.removeDoubleClickListener(this);
+		tv.getTable().removeSelectionListener(this);
+		Storage.getInstance().removeListener(this);
+		
+		if (tw.deleteBtn != null)
+			tw.deleteBtn.removeSelectionListener(this);
+		
 	}
 	
 	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {

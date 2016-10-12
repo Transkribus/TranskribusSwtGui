@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.Bullet;
 import org.eclipse.swt.custom.LineStyleEvent;
@@ -16,8 +17,10 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GlyphMetrics;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Dialog;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -45,9 +48,6 @@ import eu.transkribus.util.IndexTextUtils;
 
 public class DebuggerDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(DebuggerDialog.class);
-
-	public Object result;
-	public Shell shell;
 	
 	public Button invalidateSessionBtn;
 	
@@ -64,36 +64,70 @@ public class DebuggerDialog extends Dialog {
 	public Button sortBaselinePts;
 	public LabeledText sortXText, sortYText;
 	public Button sortBaselineAllRegionsBtn;
+	Button syncWithLocalDocBtn;
+	Button applyAffineTransformBtn;
+	Button batchReplaceImgsBtn;
 	
 	public Button lineToWordSegBtn;
 	
 	ITranscriptionWidgetListener twl;
 	
-	/**
-	 * Create the dialog.
-	 * @param parent
-	 * @param style
-	 */
-	public DebuggerDialog(Shell parent, int style) {
-		super(parent, style |= (SWT.DIALOG_TRIM | SWT.RESIZE) );
-		setText("Debugging Dialog");
+	public DebuggerDialog(Shell parent) {
+		super(parent);
 	}
 	
-	/**
-	 * Create contents of the dialog.
-	 */
-	private void createContents() {
-		shell = new Shell(getParent(), getStyle());
-		shell.setSize(600, 600);
-		shell.setText(getText());
-		shell.setLayout(new GridLayout(2, false));
+	@Override protected void configureShell(Shell shell) {
+		super.configureShell(shell);
+		shell.setSize(800, 800);
+		SWTUtil.centerShell(shell);
+		shell.setText("Debugging Dialog");
+	}
+	
+	@Override protected void setShellStyle(int newShellStyle) {
+		super.setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
+		setBlockOnOpen(false);
+	}
+	
+	@Override protected Control createDialogArea(Composite parent) {
+		Composite container = (Composite) super.createDialogArea(parent);
+		container.setLayout(new GridLayout(1, true));
+		
+		Composite btns = new Composite(container, 0);
+		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		btns.setLayout(new RowLayout(SWT.HORIZONTAL));
 
-		invalidateSessionBtn = new Button(shell, SWT.PUSH);
+		invalidateSessionBtn = new Button(btns, SWT.PUSH);
 		invalidateSessionBtn.setText("Invalidate session");
 		
-		new Label(shell, 0);
+		lineToWordSegBtn = new Button(btns, SWT.PUSH);
+		lineToWordSegBtn.setText("Line2Word Seg");
+		lineToWordSegBtn.setToolTipText("Perform line to word segmentation on current line - WARNING: EXPERIMENTAL!");
 		
-		Group sortBaselinePtsGroup = new Group(shell, 0);
+		syncWithLocalDocBtn = new Button(btns, SWT.PUSH);
+		syncWithLocalDocBtn.setText("Sync with local doc");
+		
+		applyAffineTransformBtn = new Button(btns, SWT.PUSH);
+		applyAffineTransformBtn.setText("Apply affine transformation");
+		
+		batchReplaceImgsBtn = new Button(btns, SWT.PUSH);
+		batchReplaceImgsBtn.setText("Batch replace images");	
+		
+//		new Label(shell, SWT.NONE);
+		
+		if (false) {
+		processUploadedZipFileBtn = new Button(container, SWT.NONE);
+		processUploadedZipFileBtn.setText("Process uploaded zip file");
+		
+		processZipFileText = new Text(container, SWT.BORDER);
+		processZipFileText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		}
+		
+		listLibsBtn = new Button(container, 0);
+		listLibsBtn.setText("List libs");		
+		
+//		new Label(container, 0);
+		
+		Group sortBaselinePtsGroup = new Group(container, 0);
 		sortBaselinePtsGroup.setText("Sort baseline pts");
 		
 		sortBaselinePtsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
@@ -109,26 +143,10 @@ public class DebuggerDialog extends Dialog {
 		
 		sortBaselinePts = new Button(sortBaselinePtsGroup, SWT.PUSH);
 		sortBaselinePts.setText("Sort!");
-		
-		lineToWordSegBtn = new Button(shell, SWT.PUSH);
-		lineToWordSegBtn.setText("Line2Word Seg");
-		
-//		new Label(shell, SWT.NONE);
-		
-		if (false) {
-		processUploadedZipFileBtn = new Button(shell, SWT.NONE);
-		processUploadedZipFileBtn.setText("Process uploaded zip file");
-		
-		processZipFileText = new Text(shell, SWT.BORDER);
-		processZipFileText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		}
-		
-		listLibsBtn = new Button(shell, 0);
-		listLibsBtn.setText("List libs");
-		
+				
 //		new Label(shell, 0); // spacer label
 		
-		clearDebugText = new Button(shell, SWT.PUSH);
+		clearDebugText = new Button(container, SWT.PUSH);
 		clearDebugText.setText("Clear log");
 		clearDebugText.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
@@ -136,7 +154,7 @@ public class DebuggerDialog extends Dialog {
 			}
 		});
 		
-		debugText = new StyledText(shell, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+		debugText = new StyledText(container, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		debugText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		debugText.addLineStyleListener(new LineStyleListener() {
 			public void lineGetStyle(LineStyleEvent e) {
@@ -153,16 +171,8 @@ public class DebuggerDialog extends Dialog {
 		});	
 		
 		addListener();
-		
-		// prevent closing:
-//		shell.addListener(SWT.Close, new Listener() {
-//			@Override public void handleEvent(Event event) {
-//				logger.debug("I WONT QUIT!");
-//				event.doit = false;
-//				shell.setVisible(false);
-//			}
-//		});
-//		shell.pack();
+				
+		return container;
 	}
 	
 	private void addListener() {
@@ -184,6 +194,10 @@ public class DebuggerDialog extends Dialog {
 		invalidateSessionBtn.addSelectionListener(selectionAdapter);
 		sortBaselinePts.addSelectionListener(selectionAdapter);
 		
+		SWTUtil.onSelectionEvent(syncWithLocalDocBtn, (e) -> {mw.syncWithLocalDoc();} );
+		SWTUtil.onSelectionEvent(applyAffineTransformBtn, (e) -> {mw.applyAffineTransformToDoc();} );
+		SWTUtil.onSelectionEvent(batchReplaceImgsBtn, (e) -> {mw.batchReplaceImagesForDoc();} );
+				
 		if (processUploadedZipFileBtn != null) {
 			processUploadedZipFileBtn.addSelectionListener(new SelectionAdapter() {		
 				@Override public void widgetSelected(SelectionEvent e) {
@@ -300,34 +314,4 @@ public class DebuggerDialog extends Dialog {
 		}
 		mw.getCanvas().redraw();
 	}
-
-	/**
-	 * Open the dialog.
-	 * @return the result
-	 */
-	public Object open() {
-		createContents();
-		
-		SWTUtil.centerShell(shell);
-		shell.open();
-		shell.layout();
-
-		Display display = getParent().getDisplay();
-		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
-			}
-		}
-		
-		mw.getUi().getLineTranscriptionWidget().removeListener(twl);
-		
-		return result;
-	}
-
-	public Shell getShell() {
-		return shell;
-	}
-
-
-
 }

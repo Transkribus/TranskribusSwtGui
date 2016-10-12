@@ -15,6 +15,8 @@ import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Shell;
@@ -38,7 +40,6 @@ import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.CollectionsLoadEvent;
 
 public class CollectionManagerListener implements IStorageListener, SelectionListener, DragSourceListener  {
 	private final static Logger logger = LoggerFactory.getLogger(CollectionManagerListener.class);
@@ -53,19 +54,23 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		shell = cmw.getShell();
 		this.mw = TrpMainWidget.getInstance();
 		
+		cmw.getShell().addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				detach();
+			}
+		});
+		
 		attach();
 	}
 	
 	public void attach() {
 		cmw.addUserToColBtn.addSelectionListener(this);
 		cmw.removeUserFromColBtn.addSelectionListener(this);
-//		cmw.editUserFromColBtn.addSelectionListener(this);
 		cmw.role.addSelectionListener(this);
 		cmw.addCollectionBtn.addSelectionListener(this);
 		cmw.deleteCollectionBtn.addSelectionListener(this);
 		cmw.addDocumentToCollBtn.addSelectionListener(this);
 		cmw.removeDocumentFromCollBtn.addSelectionListener(this);
-//		cmw.reloadCollectionsBtn.addSelectionListener(this);
 		cmw.modifyCollectionBtn.addSelectionListener(this);
 		cmw.deleteDocumentBtn.addSelectionListener(this);
 		cmw.duplicatedDocumentBtn.addSelectionListener(this);
@@ -75,13 +80,11 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 	public void detach() {
 		cmw.addUserToColBtn.removeSelectionListener(this);
 		cmw.removeUserFromColBtn.removeSelectionListener(this);
-//		cmw.editUserFromColBtn.removeSelectionListener(this);
 		cmw.role.removeSelectionListener(this);
 		cmw.addCollectionBtn.removeSelectionListener(this);
 		cmw.deleteCollectionBtn.removeSelectionListener(this);
 		cmw.addDocumentToCollBtn.removeSelectionListener(this);
 		cmw.removeDocumentFromCollBtn.removeSelectionListener(this);
-//		cmw.reloadCollectionsBtn.removeSelectionListener(this);
 		cmw.modifyCollectionBtn.removeSelectionListener(this);
 		cmw.deleteDocumentBtn.removeSelectionListener(this);
 		cmw.duplicatedDocumentBtn.removeSelectionListener(this);

@@ -122,6 +122,8 @@ import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
+import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
 import eu.transkribus.swt_gui.dialogs.BugDialog;
@@ -133,7 +135,6 @@ import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
-import eu.transkribus.swt_gui.doc_overview.DocOverviewListener;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
 import eu.transkribus.swt_gui.mainwidget.listener.RegionsPagingToolBarListener;
@@ -144,7 +145,6 @@ import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetViewListener;
 import eu.transkribus.swt_gui.mainwidget.listener.TrpSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
-import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
@@ -198,7 +198,6 @@ public class TrpMainWidget {
 	TrpShapeElementFactory shapeFactory;
 	LineEditorListener lineEditorListener;
 	StructureTreeListener structTreeListener;
-	DocOverviewListener docOverviewListener;
 	TrpMainWidgetViewListener mainWidgetViewListener;
 	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
@@ -214,7 +213,13 @@ public class TrpMainWidget {
 	
 	TrpVirtualKeyboardsDialog vkDiag;
 	TranscriptsDialog versionsDiag;
+	SettingsDialog viewSetsDiag;
+	ProxySettingsDialog proxyDiag;
+	DebuggerDialog debugDiag;
+	
 	JobsDialog jobsDiag;
+	CollectionManagerDialog cm;
+	ActivityDialog ad;
 
 	Storage storage; // the data
 	boolean isPageLocked = false;
@@ -636,8 +641,6 @@ public class TrpMainWidget {
 		// lineEditorListener = new LineEditorListener(this);
 		// struct tree listener:
 		structTreeListener = new StructureTreeListener(this);
-		// doc overview listener:
-		docOverviewListener = new DocOverviewListener(this);
 		// transcription observer:
 		transcriptObserver = new TranscriptObserver(this);
 		// shape observer:
@@ -3388,33 +3391,6 @@ public class TrpMainWidget {
 		ui.getStructureTreeViewer().refresh();
 	}
 
-	public DebuggerDialog showDebugDialog() {
-		DebuggerDialog debugDiag = new DebuggerDialog(getShell(), 0);
-		debugDiag.open();
-
-		return debugDiag;
-
-//		logger.debug("showing debug dialog!");
-//		if (debugDiag == null || debugDiag.shell == null || debugDiag.shell.isDisposed()) {
-//			debugDiag = new DebuggerDialog(getShell(), 0);
-//			debugDiag.open();
-//		} else
-//			debugDiag.shell.setActive();
-//		
-//		return debugDiag;
-	}
-
-//	public void appendDebugLog(final String text) {
-//		Display.getDefault().asyncExec(new Runnable() {
-//			@Override public void run() {
-//				if (SWTUtil.isOpen(debugDiag)) {
-//					debugDiag.debugText.append(text+"\n");
-//				}
-//				
-//			}
-//		});
-//	}
-
 	public void reloadCollections() {
 		try {
 			logger.debug("reloading collections!");
@@ -3779,6 +3755,8 @@ public class TrpMainWidget {
 	}
 	
 	public void openVkDialog() {
+		logger.debug("opening vk dialog");
+		
 		if (SWTUtil.isOpen(vkDiag)) {
 			vkDiag.getShell().setVisible(true);
 		} else {
@@ -3794,43 +3772,76 @@ public class TrpMainWidget {
 	}
 	
 	public void openJobsDialog() {
+		logger.debug("opening jobs dialog");
 		if (SWTUtil.isOpen(jobsDiag)) {
 			jobsDiag.getShell().setVisible(true);
 		} else {
 			jobsDiag = new JobsDialog(getShell());
-			jobsDiag.create();
-			SWTUtil.centerShell(jobsDiag.getShell());
 			jobsDiag.open();
 		}
 	}
-	
-	public JobTableWidgetPagination getJobOverviewWidget2() {
-		if (!SWTUtil.isOpen(jobsDiag)) {
-			return jobsDiag.jw;
+		
+	public void openActivityDialog() {
+		logger.debug("opening cm dialog");
+		if (SWTUtil.isOpen(ad)) {
+			ad.getShell().setVisible(true);
+		} else {
+			ad = new ActivityDialog(getShell());
+			ad.open();
 		}
-		return null;
 	}
 	
+	public void openCollectionManagerDialog() {
+		logger.debug("opening cm dialog");
+		
+		if (cm!=null && !SWTUtil.isDisposed(cm.getShell())) {
+			cm.getShell().setVisible(true);
+		} else {
+			cm = new CollectionManagerDialog(getShell(), SWT.NONE, ui.getServerWidget());
+			cm.open();
+		}
+	}
+	
+	public void openDebugDialog() {
+		logger.debug("opening debug dialog");
+		if (SWTUtil.isOpen(debugDiag)) {
+			debugDiag.getShell().setVisible(true);
+		} else {
+			debugDiag = new DebuggerDialog(getShell());
+			debugDiag.open();
+		}
+	}
+		
 	public void openVersionsDialog() {
+		logger.debug("opening versions dialog");
 		if (SWTUtil.isOpen(versionsDiag)) {
 			versionsDiag.getShell().setVisible(true);
 		} else {
 			versionsDiag = new TranscriptsDialog(getShell());
-			versionsDiag.create();
-			SWTUtil.centerShell(versionsDiag.getShell());
 			versionsDiag.open();
 		}
 	}
 	
 	public void openViewSetsDialog() {
-		SettingsDialog sd = new SettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getCanvas().getSettings(), getTrpSets());		
-		sd.open();
+		
+		logger.debug("opening view sets dialog");
+		if (viewSetsDiag!=null && !SWTUtil.isDisposed(viewSetsDiag.getShell())) {
+			viewSetsDiag.getShell().setVisible(true);
+		} else {
+			viewSetsDiag = new SettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getCanvas().getSettings(), getTrpSets());
+			viewSetsDiag.open();
+		}
 	}
 	
 	public void openProxySetsDialog() {
-		ProxySettingsDialog psd = new ProxySettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getTrpSets());		
-		psd.open();
-		Storage.getInstance().updateProxySettings();
+		logger.debug("opening proxy sets dialog");
+		if (proxyDiag!=null && !SWTUtil.isDisposed(proxyDiag.getShell())) {
+			proxyDiag.getShell().setVisible(true);
+		} else {
+			proxyDiag = new ProxySettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getTrpSets());
+			proxyDiag.open();
+			Storage.getInstance().updateProxySettings();
+		}
 	}
 
 	public void showAboutDialog() {

@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpSettings;
@@ -48,6 +49,10 @@ public class ProxySettingsDialog extends Dialog {
 		
 		this.trpSets = trpSets;
 	}
+	
+	public Shell getShell() {
+		return shell;
+	}
 
 	/**
 	 * Open the dialog.
@@ -56,6 +61,8 @@ public class ProxySettingsDialog extends Dialog {
 	public Object open() {
 		createContents();
 		addBindings();
+		
+		SWTUtil.centerShell(shell);
 		shell.open();
 		shell.layout();
 		Display display = getParent().getDisplay();

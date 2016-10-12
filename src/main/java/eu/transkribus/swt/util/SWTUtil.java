@@ -14,6 +14,8 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +69,7 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,6 +79,7 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.ImgUtils;
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import math.geom2d.Vector2D;
 
 public class SWTUtil {
@@ -166,10 +170,29 @@ public class SWTUtil {
 		
 	}
 	
-	public static boolean isOpen(Dialog d) {
-		return d != null && d.getParent() != null && !d.getParent().isDisposed();
-	}
+//	public static <T extends org.eclipse.jface.dialogs.Dialog> T openOrShow(T d, Class<? extends org.eclipse.jface.dialogs.Dialog> clazz, Shell parentShell) {
+//		Assert.assertNotNull("clazz cannot be null", clazz);
+//		Assert.assertNotNull("parentShell cannot be null", parentShell);
+//		
+//		if (SWTUtil.isOpen(d)) {
+//			d.getShell().setVisible(true);
+//		} else {
+//			try {
+//				d = (T) clazz.getConstructor(Shell.class).newInstance(parentShell);
+//				d.open();
+//			} catch (Throwable e) {
+//				logger.error(e.getMessage(), e);
+//				throw new RuntimeException(e);
+//			}
+//		}
+//		
+//		return d;
+//	}
 	
+//	public static boolean isOpen(Dialog d, Shell s) {
+//		return d != null && !isDisposed(s);
+//	}
+		
 	public static boolean isOpen(org.eclipse.jface.dialogs.Dialog d) {
 		return d != null && d.getShell() != null && !d.getShell().isDisposed();
 	}
@@ -1128,6 +1151,10 @@ public class SWTUtil {
 		return i==null || i.isDisposed();
 	}	
 	
+	public static boolean isDisposed(Shell s) {
+		return s==null || s.isDisposed();
+	}
+		
 	/**
 	 * Multiplies all pixels of the given ImageData with the given scalar factor
 	 * and returns a new image data

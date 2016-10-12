@@ -63,7 +63,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 		
 		// enable debug mode on ctrl-d-d-d:
 		if (isCtrlOrCommand && kc == 'd' && count == 3) {
-			mw.showDebugDialog();
+			mw.openDebugDialog();
 		}
 		
 		// load local testset on crtl-t-t-t:
