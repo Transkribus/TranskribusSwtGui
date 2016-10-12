@@ -50,6 +50,7 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 	public Button reloadCollectionsBtn;
 	public Label collectionLabel;
 	public Composite headerComposite;
+	ModifyListener filterModifyListener;
 	
 	private List<TrpCollection> collections = new ArrayList<>();
 	
@@ -101,12 +102,13 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 			collectionFilterText = new Text(this, SWT.BORDER);
 			collectionFilterText.setToolTipText("Collection name filter");
 			collectionFilterText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-			collectionFilterText.addModifyListener(new ModifyListener() {
+			filterModifyListener = new ModifyListener() {
 				DelayedTask dt = new DelayedTask(() -> { refreshCombo(true); }, true);
 				@Override public void modifyText(ModifyEvent e) {
 					dt.start();
 				}
-			});
+			};
+			collectionFilterText.addModifyListener(filterModifyListener);
 			
 			collectionFilterText.addTraverseListener(new TraverseListener() {
 				@Override public void keyTraversed(TraverseEvent e) {
@@ -168,7 +170,9 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 	}
 	
 	public void clearFilter() {
+		collectionFilterText.removeModifyListener(filterModifyListener);
 		collectionFilterText.setText("");
+		collectionFilterText.addModifyListener(filterModifyListener);
 		refreshCombo(false);
 	}
 	

@@ -73,9 +73,6 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 			String pages = jobStatus.getPages();
 			int pageNr = ( (pages == null || pages.equals("") || pages.contains("-") ) ? 0 : Integer.parseInt(pages));
 			mw.loadRemoteDoc(jobStatus.getDocId(), col, pageNr-1);
-			mw.getUi().getServerWidget().setSelectedCollection(col, true);
-			mw.getUi().getServerWidget().getDocTableWidget().loadPage("docId", jobStatus.getDocId(), true);
-			
 		}		
 	}
 	
