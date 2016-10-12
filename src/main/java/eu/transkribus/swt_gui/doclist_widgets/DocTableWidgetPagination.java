@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.pagination_tables;
+package eu.transkribus.swt_gui.doclist_widgets;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;

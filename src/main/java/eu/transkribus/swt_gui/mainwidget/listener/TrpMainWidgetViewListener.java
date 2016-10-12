@@ -36,62 +36,62 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		DataBinder db = DataBinder.get();
 		Storage storage = Storage.getInstance();
 				
-		db.runOnSelection(ui.getStructureTreeWidget().getUpdateIDsItem(), (e) -> { mw.updateIDs(); } );
+		SWTUtil.onSelectionEvent(ui.getStructureTreeWidget().getUpdateIDsItem(), (e) -> { mw.updateIDs(); } );
 		
-		db.runOnSelection(ui.getStructureTreeWidget().getClearPageItem(), (e) -> { 			
+		SWTUtil.onSelectionEvent(ui.getStructureTreeWidget().getClearPageItem(), (e) -> { 			
 			if (DialogUtil.showYesNoDialog(ui.getShell(), "Really?", "Do you really want to clear the whole page content?")==SWT.YES) {
 			ui.getCanvas().getShapeEditor().removeAll();
 			} 
 		});
 		
-		db.runOnSelection(ui.getStructureTreeWidget().getSetReadingOrderRegions(), (e) -> { 
+		SWTUtil.onSelectionEvent(ui.getStructureTreeWidget().getSetReadingOrderRegions(), (e) -> { 
 			mw.updateReadingOrderAccordingToCoordinates(false);
 			canvas.redraw();
 		} );
 		
 //		db.runOnSelection(ui.getReloadDocumentButton(), (e) -> { mw.reloadCurrentDocument(); } );
 		
-		db.runOnSelection(ui.getExportDocumentButton(), (e) -> { mw.unifiedExport(); } );
+		SWTUtil.onSelectionEvent(ui.getExportDocumentButton(), (e) -> { mw.unifiedExport(); } );
 						
-		db.runOnSelection(ui.getVersionsButton(), (e) -> { mw.openVersionsDialog(); } );
+		SWTUtil.onSelectionEvent(ui.getVersionsButton(), (e) -> { mw.openVersionsDialog(); } );
 				
-		db.runOnSelection(ui.getSaveDropDown(), (e) -> {
+		SWTUtil.onSelectionEvent(ui.getSaveDropDown(), (e) -> {
 			boolean withMessage = ui.getSaveDropDown().getSelected()==ui.getSaveTranscriptWithMessageButton();
 			mw.saveTranscription(withMessage);
 		});
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptButton(), this);
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptWithMessageButton(), this);
 		
-		db.runOnSelection(ui.getCloseDocBtn(), (e) -> { mw.closeCurrentDocument(false); } );
+		SWTUtil.onSelectionEvent(ui.getCloseDocBtn(), (e) -> { mw.closeCurrentDocument(false); } );
 		
-		db.runOnSelection(ui.getOpenLocalFolderButton(), (e) -> { mw.loadLocalFolder(); } );
+		SWTUtil.onSelectionEvent(ui.getOpenLocalFolderButton(), (e) -> { mw.loadLocalFolder(); } );
 				
-		db.runOnSelection(ui.getLoadTranscriptInTextEditor(), (e) -> { mw.openPAGEXmlViewer(); } );
+		SWTUtil.onSelectionEvent(ui.getLoadTranscriptInTextEditor(), (e) -> { mw.openPAGEXmlViewer(); } );
 		
-		db.runOnSelection(ui.getLoginToggle(), (e) -> {
+		SWTUtil.onSelectionEvent(ui.getLoginToggle(), (e) -> {
 			if (!mw.getStorage().isLoggedIn())
 				mw.loginDialog("Please enter email and password!");
 			else
 				mw.logout(false, true);
 		});
 		
-		db.runOnSelection(ui.getUploadDocsItem(), (e) -> { mw.uploadDocuments(); } );
+		SWTUtil.onSelectionEvent(ui.getUploadDocsItem(), (e) -> { mw.uploadDocuments(); } );
 		
-		db.runOnSelection(ui.getSearchBtn(), (e) -> { mw.openSearchDialog(); } );
+		SWTUtil.onSelectionEvent(ui.getSearchBtn(), (e) -> { mw.openSearchDialog(); } );
 								
 		SWTUtil.addSelectionListener(ui.getProfilesToolItem().ti, this);
 		
-		db.runOnSelection(ui.getProfilesToolItem().ti, (e) -> {
+		SWTUtil.onSelectionEvent(ui.getProfilesToolItem().ti, (e) -> {
 			if (e.detail != SWT.ARROW && e.detail == DropDownToolItem.IS_DROP_DOWN_ITEM_DETAIL) {
 				mw.changeProfileFromUi();
 			}
 		});
 				
-		db.runOnSelection(ui.getThumbnailWidget().getCreateThumbs(), (e) -> { mw.createThumbs(storage.getDoc()); } );
+		SWTUtil.onSelectionEvent(ui.getThumbnailWidget().getCreateThumbs(), (e) -> { mw.createThumbs(storage.getDoc()); } );
 				
-		db.runOnSelection(ui.getServerWidget().getShowJobsBtn(), (e) -> { mw.openJobsDialog(); } );
+		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowJobsBtn(), (e) -> { mw.openJobsDialog(); } );
 		
-		db.runOnSelection(ui.getServerWidget().getShowVersionsBtn(), (e) -> { mw.openVersionsDialog(); } );
+		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowVersionsBtn(), (e) -> { mw.openVersionsDialog(); } );
 	}
 	
 	@Override

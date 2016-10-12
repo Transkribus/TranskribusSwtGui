@@ -6,6 +6,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MenuItem;
 
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import junit.framework.Assert;
 
@@ -35,54 +36,54 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		if (mb.languageMenu != null) {
 			for (MenuItem mi : mb.languageMenu.m.getItems()) {
-				db.runOnSelection(mi, (e) -> {
+				SWTUtil.onSelectionEvent(mi, (e) -> {
 					Locale l = (Locale) mi.getData();
 					TrpMainWidget.getInstance().setLocale(l); 
 				});
 			}
 		}
 		
-		db.runOnSelection(mb.showAllMenuItem, (e) -> { trpSets.setShowAll(true); });
+		SWTUtil.onSelectionEvent(mb.showAllMenuItem, (e) -> { trpSets.setShowAll(true); });
 		
-		db.runOnSelection(mb.hideAllMenuItem, (e) -> { trpSets.setShowAll(false); });
+		SWTUtil.onSelectionEvent(mb.hideAllMenuItem, (e) -> { trpSets.setShowAll(false); });
 		
-		db.runOnSelection(mb.viewSettingsMenuItem, (e) -> { mw.openViewSetsDialog(); });
+		SWTUtil.onSelectionEvent(mb.viewSettingsMenuItem, (e) -> { mw.openViewSetsDialog(); });
 		
-		db.runOnSelection(mb.proxySettingsMenuItem, (e) -> { mw.openProxySetsDialog(); });
+		SWTUtil.onSelectionEvent(mb.proxySettingsMenuItem, (e) -> { mw.openProxySetsDialog(); });
 			
-		db.runOnSelection(mb.openLocalDocItem, (e) -> { mw.loadLocalFolder(); });
+		SWTUtil.onSelectionEvent(mb.openLocalDocItem, (e) -> { mw.loadLocalFolder(); });
 		
-		db.runOnSelection(mb.openLocalPageFileItem, (e) -> { mw.loadLocalPageXmlFile(); });
+		SWTUtil.onSelectionEvent(mb.openLocalPageFileItem, (e) -> { mw.loadLocalPageXmlFile(); });
 		
-		db.runOnSelection(mb.deletePageMenuItem, (e) -> { mw.deletePage(); });
+		SWTUtil.onSelectionEvent(mb.deletePageMenuItem, (e) -> { mw.deletePage(); });
 		
-		db.runOnSelection(mb.manageCollectionsItem, (e) -> { mw.getUi().getServerWidget().openCollectionsManagerWidget(); });
+		SWTUtil.onSelectionEvent(mb.manageCollectionsItem, (e) -> { mw.getUi().getServerWidget().openCollectionsManagerWidget(); });
 		
-		db.runOnSelection(mb.userActivityItem, (e) -> { mw.getUi().getServerWidget().openActivityDialog(); });
+		SWTUtil.onSelectionEvent(mb.userActivityItem, (e) -> { mw.getUi().getServerWidget().openActivityDialog(); });
 		
-		db.runOnSelection(mb.uploadItem, (e) -> { mw.uploadDocuments(); });
+		SWTUtil.onSelectionEvent(mb.uploadItem, (e) -> { mw.uploadDocuments(); });
 		
-		db.runOnSelection(mb.exportItem, (e) -> { mw.unifiedExport(); });
+		SWTUtil.onSelectionEvent(mb.exportItem, (e) -> { mw.unifiedExport(); });
 		
-		db.runOnSelection(mb.syncWordsWithLinesMenuItem, (e) -> { mw.syncTextOfDocFromWordsToLinesAndRegions(); });
+		SWTUtil.onSelectionEvent(mb.syncWordsWithLinesMenuItem, (e) -> { mw.syncTextOfDocFromWordsToLinesAndRegions(); });
 		
-		db.runOnSelection(mb.saveTranscriptionToNewFileMenuItem, (e) -> { mw.saveTranscriptionToNewFile(); });
+		SWTUtil.onSelectionEvent(mb.saveTranscriptionToNewFileMenuItem, (e) -> { mw.saveTranscriptionToNewFile(); });
 		
-		db.runOnSelection(mb.saveTranscriptionMenuItem, (e) -> { mw.saveTranscription(false); });
+		SWTUtil.onSelectionEvent(mb.saveTranscriptionMenuItem, (e) -> { mw.saveTranscription(false); });
 		
-		db.runOnSelection(mb.updateMenuItem, (e) -> { mw.checkForUpdates(); });
+		SWTUtil.onSelectionEvent(mb.updateMenuItem, (e) -> { mw.checkForUpdates(); });
 		
-		db.runOnSelection(mb.installMenuItem, (e) -> { mw.installSpecificVersion(); });
+		SWTUtil.onSelectionEvent(mb.installMenuItem, (e) -> { mw.installSpecificVersion(); });
 		
-		db.runOnSelection(mb.tipsOfTheDayMenuItem, (e) -> { mw.showTipsOfTheDay(); });
+		SWTUtil.onSelectionEvent(mb.tipsOfTheDayMenuItem, (e) -> { mw.showTipsOfTheDay(); });
 		
-		db.runOnSelection(mb.aboutMenuIItem, (e) -> { mw.showAboutDialog(); });
+		SWTUtil.onSelectionEvent(mb.aboutMenuIItem, (e) -> { mw.showAboutDialog(); });
 		
-		db.runOnSelection(mb.replaceImageItem, (e) -> { mw.replacePageImg(); });
+		SWTUtil.onSelectionEvent(mb.replaceImageItem, (e) -> { mw.replacePageImg(); });
 		
-		db.runOnSelection(mb.bugReportItem, (e) -> { mw.sendBugReport(); });
+		SWTUtil.onSelectionEvent(mb.bugReportItem, (e) -> { mw.sendBugReport(); });
 		
-		db.runOnSelection(mb.exitItem, (e) -> { mw.getShell().close(); });	
+		SWTUtil.onSelectionEvent(mb.exitItem, (e) -> { mw.getShell().close(); });	
 	}
 
 	@Override public void widgetSelected(SelectionEvent e) {

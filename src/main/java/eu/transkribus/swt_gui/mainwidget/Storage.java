@@ -158,6 +158,9 @@ public class Storage {
 //	private int currentColId = -1;
 	
 	Set<IStorageListener> listener = new HashSet<>();
+	
+	// just for debugging purposes:
+	private static int reloadDocListCounter=0; 
 
 	private Storage() {
 		initImCache();
@@ -756,7 +759,7 @@ public class Storage {
 		if (colId == 0)
 			return null;
 
-		logger.debug("reloading doclist for collection: "+colId);
+		logger.debug("reloading doclist for collection: "+colId+" reloadDocListCounter = "+(++reloadDocListCounter));
 		
 		SebisStopWatch.SW.start();
 		
@@ -777,8 +780,10 @@ public class Storage {
 			}
 
 			@Override public void failed(Throwable throwable) {
-				// TODO Auto-generated method stub
 				
+				
+				
+//				TrpMainWidget.getInstance().onError(title, message, th);
 			}
 		});
 		

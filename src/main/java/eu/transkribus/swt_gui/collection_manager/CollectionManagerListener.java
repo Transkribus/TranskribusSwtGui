@@ -343,7 +343,7 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		
 		TrpCollection collection = cmw.getSelectedCollection();
 		if (store.isLoggedIn() && collection!=null) {
-			if (cmw.isUploadedDocTabOpen()) {
+			if (cmw.isMyDocsTabOpen()) {
 				DialogUtil.showErrorMessageBox(shell, "Error", "Cannot determine the collection for an uploaded document");
 				
 				return;

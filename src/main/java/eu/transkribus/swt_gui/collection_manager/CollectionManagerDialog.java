@@ -10,8 +10,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.nebula.widgets.pagination.IPageLoader;
-import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -47,15 +45,14 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
+import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
+import eu.transkribus.swt_gui.doclist_widgets.MyDocsTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
 import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination;
-import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.UserTableWidgetPagination;
 import eu.transkribus.swt_gui.search.SimpleSearchDialog;
 
-//public class CollectionManagerWidget extends Composite {
 public class CollectionManagerDialog extends Dialog {
 	
 	private final static Logger logger = LoggerFactory.getLogger(CollectionManagerDialog.class);
@@ -63,7 +60,7 @@ public class CollectionManagerDialog extends Dialog {
 	CollectionsTableWidgetPagination collectionsTv;
 	UserTableWidgetPagination collectionUsersTv;
 	DocTableWidgetPagination docsTableWidget; 
-	DocTableWidgetPagination myDocsTableWidget;
+	MyDocsTableWidgetPagination myDocsTableWidget;
 	
 	Button addCollectionBtn, deleteCollectionBtn, modifyCollectionBtn;
 //	Text newCollNameText;
@@ -151,26 +148,14 @@ public class CollectionManagerDialog extends Dialog {
 		second.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		second.setLayout(new GridLayout(1, false));
 		
-//		Composite c1 = new SashForm(container, SWT.VERTICAL);
-//		c1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		c1.setLayout(new GridLayout(1, false));
-			
 		createCollectionUsersTable(second);
 		createFindUsersWidget(second);
-	
-//		Composite c2 = new SashForm(container, SWT.VERTICAL);
-//		c2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		c2.setLayout(new GridLayout(1, false));
 		
-//		createMyDocsTable(c2);
-		
-//		addTableEditors();
 		addListener();
 		
 		updateCollections();
 		updateUsersForSelectedCollection();
 		updateDocumentsTable(serverWidget.getSelectedDocument(), true);
-//		shell.pack();
 		
 		((SashForm) container).setWeights(new int[] { 60, 40 });
 	}
@@ -187,47 +172,6 @@ public class CollectionManagerDialog extends Dialog {
 //		}
 	
 	}
-	
-	
-//	private void addTableEditors() {
-//		final TableEditor cnEditor = new TableEditor(collectionsTv.getTable());
-//		cnEditor.horizontalAlignment = SWT.LEFT;
-//		cnEditor.grabHorizontal = true;
-//		final int EDITABLECOLUMN = 1; // edit 2nd column
-//		final Table table = collectionsTv.getTable();
-//
-//		collectionsTv.getTable().addMouseListener(new MouseListener() {
-//			
-//			@Override public void mouseUp(MouseEvent e) {
-//			}
-//			
-//			@Override public void mouseDown(MouseEvent e) {
-//			}
-//			
-//			@Override public void mouseDoubleClick(MouseEvent e) {
-//                // Clean up any previous editor control
-//                Control oldEditor = cnEditor.getEditor();
-//                if (oldEditor != null) oldEditor.dispose();
-//
-//                // Identify the selected row
-//                TableItem item = collectionsTv.getTable().getItem(new Point(e.x, e.y));
-//                if (item == null) return;
-//
-//                // The control that will be the editor must be a child of the Table
-//                Text newEditor = new Text(table, SWT.NONE);
-//                newEditor.setText(item.getText(EDITABLECOLUMN));
-//                newEditor.addModifyListener(new ModifyListener() {
-//                        public void modifyText(ModifyEvent e) {
-//                                Text text = (Text)cnEditor.getEditor();
-//                                cnEditor.getItem().setText(EDITABLECOLUMN, text.getText());
-//                        }
-//                });
-//                newEditor.selectAll();
-//                newEditor.setFocus();
-//                cnEditor.setEditor(newEditor, item, EDITABLECOLUMN);
-//			}
-//			});
-//	}
 	
 	void addListener() {
 		cml = new CollectionManagerListener(this);
@@ -256,24 +200,6 @@ public class CollectionManagerDialog extends Dialog {
 		shell.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
 				cml.detach();
-			}
-		});
-		
-		Storage.getInstance().addListener(new IStorageListener() {
-			@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
-				if (e.isDocsByUser) {
-					Display.getDefault().asyncExec(() -> {
-						
-						IPageLoader pl = myDocsTableWidget.getPageableTable().getPageLoader();
-						if (pl instanceof PageResultLoaderList) {
-							PageResultLoaderList<TrpDocMetadata> pll = (PageResultLoaderList<TrpDocMetadata>) pl;
-							
-							pll.setItems(Storage.getInstance().getUserDocList());
-						}
-						
-						myDocsTableWidget.refreshPage(true);
-					});
-				}
 			}
 		});
 	}
@@ -325,13 +251,8 @@ public class CollectionManagerDialog extends Dialog {
 		collectionsTv.getTableViewer().addDoubleClickListener(openSelectedColListener);
 		
 		Composite btns = new Composite(group, 0);
-//		btns.setLayout(new RowLayout(SWT.HORIZONTAL));
 		btns.setLayout(new GridLayout(6, false));
 		btns.setLayoutData(new GridData(SWT.TOP, SWT.FILL, true, false, 1, 1));
-		
-//		reloadCollectionsBtn = new Button(btns, SWT.PUSH);
-//		reloadCollectionsBtn.setImage(Images.getOrLoad("/icons/refresh.png"));
-//		reloadCollectionsBtn.setToolTipText("(Re)load currently selected collection from main widget");
 		
 		addCollectionBtn = new Button(btns, SWT.PUSH);
 		addCollectionBtn.setText("Create collection...");
@@ -345,15 +266,6 @@ public class CollectionManagerDialog extends Dialog {
 		deleteCollectionBtn.setToolTipText("Delete a new collection (only possible for collection owners!)");
 		deleteCollectionBtn.pack();
 		
-//		Text l = new Text(btns, SWT.SINGLE | SWT.READ_ONLY
-//			    | SWT.BORDER | SWT.CENTER);
-//		l.setText("New name: ");
-//		Label l = new Label(btns, SWT.CENTER);
-//		l.setText("New name: ");
-//		
-//		newCollNameText = new Text(btns, SWT.SINGLE | SWT.BORDER);
-//		newCollNameText.setToolTipText("The new name of the selected collection");
-		
 		modifyCollectionBtn = new Button(btns, SWT.PUSH);
 		modifyCollectionBtn.setText("Modify collection...");
 		modifyCollectionBtn.setImage(Images.getOrLoad("/icons/pencil.png"));
@@ -362,17 +274,9 @@ public class CollectionManagerDialog extends Dialog {
 		group.pack();
 	}
 	
-	String getSelectedCollectionName() {
+	public String getSelectedCollectionName() {
 		return getSelectedCollection()!=null ? getSelectedCollection().getColName() : "";
 	}
-	
-//	void updateDocsTableTitle() {
-//		if (showUploadedDocsCheck.getSelection()) {
-//			docGroup.setText("Documents (uploaded)");
-//		} else {
-//			docGroup.setText("Documents ("+getSelectedCollectionName()+")");
-//		}
-//	}
 	
 	private CTabItem createCTabItem(CTabFolder tabFolder, Control control, String Text) {
 		CTabItem ti = new CTabItem(tabFolder, SWT.NONE);
@@ -391,120 +295,14 @@ public class CollectionManagerDialog extends Dialog {
 		docTabFolder = new CTabFolder(docGroup, /*SWT.BORDER |*/ SWT.FLAT);
 		docTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		docsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25);
-				
-//		docsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25, new IPageLoadMethods<TrpDocMetadata>() {
-//			Storage store = Storage.getInstance();
-//			
-//			@Override public int loadTotalSize() {			
-//				int N = 0;
-//				TrpCollection c = getSelectedCollection();
-//				
-//				if (store.isLoggedIn()) {
-//					try {
-//						if (!showUploadedDocsCheck.getSelection()) {
-//							if (c!=null)
-//								N = store.getConnection().countDocs(c.getColId());
-//						} else {
-//							N = store.getConnection().countMyDocs();
-//						}
-//						logger.trace("n-docs = "+N);
-//					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
-//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-//					}
-//				}
-//				
-//				return N;
-//			}
-//			
-//			@Override public List<TrpDocMetadata> loadPage(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {
-//				List<TrpDocMetadata> docs = new ArrayList<>();
-//				TrpCollection c = getSelectedCollection();
-//				
-//				if (store.isLoggedIn()) {
-//					try {
-//						if (!showUploadedDocsCheck.getSelection()) {
-//							if (c!=null)
-//								docs = store.getConnection().getAllDocs(c.getColId(), fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
-//						} else {
-//							docs = store.getConnection().getAllDocsByUser(fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
-//						}						
-//						
-//						logger.trace("docs pagesize = "+docs.size());
-//					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
-//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-//					}
-//				}
-//				
-//				return docs;
-//			}
-//		});
-		
+		docsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25);		
 		docsTableWidget.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
 				updateBtnVisibility();
 			}
 		});
 		
-		myDocsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25) {
-			@Override protected void setPageLoader() {
-				PageResultLoaderList<TrpDocMetadata> listLoader = new PageResultLoaderList<>(Storage.getInstance().getUserDocList());
-				pageableTable.setPageLoader(listLoader);
-			}
-		};
-		
-//		myDocsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25, new IPageLoadMethods<TrpDocMetadata>() {
-//			Storage store = Storage.getInstance();
-//						
-//			@Override public int loadTotalSize() {	
-//				int N = 0;
-//				
-//				if (store.isLoggedIn()) {
-//					try {
-//						N = store.getConnection().countMyDocs();
-//						logger.debug("n-docs = "+N);
-//					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
-//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-//					}
-//				}
-//				
-//				return N;
-//			}
-//			
-//			@Override public List<TrpDocMetadata> loadPage(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {
-//				List<TrpDocMetadata> docs = new ArrayList<>();
-//				
-//				if (store.isLoggedIn()) {
-//					try {
-//						Future fut = store.getConnection().getAllDocsByUserAsync(0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
-//
-//							@Override public void completed(List<TrpDocMetadata> docs) {
-//								logger.info("SUCCCCESSSS");
-//								logger.info("response = "+docs);
-//							}
-//
-//							@Override public void failed(Throwable throwable) {
-//								logger.info("ERRRROOORr");
-//								logger.error("error getting my docs: "+throwable.getMessage(), throwable);
-//							}
-//							
-//						});
-////						fut.get();
-//						
-//						/*
-//						docs = store.getConnection().getAllDocsByUser(fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
-//						logger.debug("docs pagesize = "+docs.size());
-//						*/
-//						
-//					} catch (Exception e) {
-//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-//					}
-//				}
-//				
-//				return docs;
-//			}
-//		});	
-		
+		myDocsTableWidget = new MyDocsTableWidgetPagination(docTabFolder, 0, 25);		
 		myDocsTableWidget.refreshPage(true);
 		myDocsTableWidget.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
@@ -524,25 +322,9 @@ public class CollectionManagerDialog extends Dialog {
 			}
 		});
 
-//		docsTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
-		
-//		Composite btns = new Composite(group, 0);
-//		btns.setLayout(new RowLayout(SWT.HORIZONTAL));
-//		btns.setLayoutData(new GridData(SWT.TOP, SWT.FILL, true, false, 1, 1));
-		
 		Composite btns = new Composite(docGroup, 0);
 		btns.setLayout(new GridLayout(4, false));
-		btns.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, false, 4, 1));
-
-//		showUploadedDocsCheck = new Button(btns, SWT.CHECK);
-//		showUploadedDocsCheck.setText("Show my uploaded documents");
-//		showUploadedDocsCheck.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
-//		showUploadedDocsCheck.setToolTipText("Check to show the documents you uploaded in the table");
-//		showUploadedDocsCheck.addSelectionListener(new SelectionAdapter() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//				updateDocumentsTable(true);
-//			}
-//		});		
+		btns.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, false, 4, 1));	
 						
 		addDocumentToCollBtn = new Button(btns, SWT.PUSH);
 		addDocumentToCollBtn.setText("Add to collection...");
@@ -574,93 +356,8 @@ public class CollectionManagerDialog extends Dialog {
 		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
 		searchBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		searchBtn.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				openSimpleSearchDialog();
-				
-			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
+		SWTUtil.onSelectionEvent(searchBtn, (e) -> { openSimpleSearchDialog(); });
 	}
-	
-//	private void createMyDocsTable(Composite container) {
-//		Group group = new Group(container, SWT.SHADOW_ETCHED_IN);
-//		group.setText("My documents");
-//		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-//		group.setLayout(new GridLayout(1, false));
-//		
-//		myDocsTableWidget = new DocTableWidgetPagination(group, 0, 25, new IPageLoadMethods<TrpDocMetadata>() {
-//			Storage store = Storage.getInstance();
-//			
-//			@Override public int loadTotalSize() {
-//				int N = 0;
-//				
-//				if (store.isLoggedIn()) {
-//					try {
-//						N = store.getConnection().countMyDocs();
-//						logger.debug("N MYDOCS = "+N);
-//					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
-//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-//					}
-//				}
-//				
-//				return N;
-//			}
-//			
-//			@Override public List<TrpDocMetadata> loadPage(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {
-//				List<TrpDocMetadata> docs = new ArrayList<>();
-//				
-//				if (store.isLoggedIn()) {
-//					try {
-//						docs = store.getConnection().getAllDocsByUser(fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
-//						logger.debug("MYDOCS pagesize = "+docs.size());
-//					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
-//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-//					}
-//				}
-//				
-//				return docs;
-//			}
-//		});
-//		
-//		myDocsTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		
-////		MyTableViewer documentsTv = new MyTableViewer(group, SWT.MULTI);
-////		documentsTv.setContentProvider(new ArrayContentProvider());
-////		documentsTv.setLabelProvider(new DocTableLabelProvider(this));
-////		Table table = collectionUsersTv.getTable();
-////		table.setHeaderVisible(true);
-////		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		
-//		Composite btns = new Composite(group, 0);
-//		btns.setLayout(new RowLayout(SWT.HORIZONTAL));
-//		btns.setLayoutData(new GridData(SWT.TOP, SWT.FILL, true, false, 4, 1));
-//		
-//		reloadMyDocsBtn = new Button(btns, SWT.PUSH);
-//		reloadMyDocsBtn.setImage(Images.getOrLoad("/icons/refresh.png"));
-//		
-//		addDocumentToCollBtn = new Button(btns, SWT.PUSH);
-//		addDocumentToCollBtn.setText("Add to collection");
-//		addDocumentToCollBtn.setImage(Images.getOrLoad("/icons/add.png"));
-//		addDocumentToCollBtn.setToolTipText("Add document to selected collection");
-//		
-//		delDocumentBtn = new Button(btns, SWT.PUSH);
-//		delDocumentBtn.setText("Delete document");
-//		delDocumentBtn.setImage(Images.getOrLoad("/icons/delete.png"));
-//		delDocumentBtn.setToolTipText("Delete document from server");
-//		
-//		duplicateBtn = new Button(btns, SWT.PUSH);
-//		duplicateBtn.setText("Duplicate document");
-//		duplicateBtn.setImage(Images.getOrLoad("/icons/page_copy.png"));
-//		duplicateBtn.setToolTipText("Duplicate document from server");
-//	}
 	
 	private void createCollectionUsersTable(Composite container) {
 		Group group = new Group(container, SWT.SHADOW_ETCHED_IN);
@@ -753,23 +450,15 @@ public class CollectionManagerDialog extends Dialog {
 
 	
 	public TrpCollection getSelectedCollection() {
-		return collectionsTv.getFirstSelected();
-//		IStructuredSelection sel = (IStructuredSelection) collectionsTv.getTableViewer().getSelection();
-//		return (TrpCollection) sel.getFirstElement();		
+		return collectionsTv.getFirstSelected();		
 	}
 	
-	public boolean isUploadedDocTabOpen() {
+	public boolean isMyDocsTabOpen() {
 		return docTabFolder.getSelectionIndex()==1;
 	}
 		
 	public List<TrpDocMetadata> getSelectedDocuments() {
-		IStructuredSelection sel = null;
-		if (!isUploadedDocTabOpen())
-			sel = (IStructuredSelection) docsTableWidget.getTableViewer().getSelection();
-		else
-			sel = (IStructuredSelection) myDocsTableWidget.getTableViewer().getSelection();
-		
-		return sel.toList();
+		return ((IStructuredSelection) getCurrentDocTableWidgetPagination().getTableViewer().getSelection()).toList();
 	}
 	
 	public List<TrpUser> getSelectedUsersInCollection() {
@@ -797,7 +486,7 @@ public class CollectionManagerDialog extends Dialog {
 		 
 //		editUserFromColBtn.setEnabled(isOwner && hasCollectionUsersSelected);
 		
-		removeDocumentFromCollBtn.setEnabled(hasDocsSelected && !isUploadedDocTabOpen());
+		removeDocumentFromCollBtn.setEnabled(hasDocsSelected && !isMyDocsTabOpen());
 		duplicatedDocumentBtn.setEnabled(hasDocsSelected);
 		addDocumentToCollBtn.setEnabled(hasDocsSelected);
 		deleteDocumentBtn.setEnabled(hasDocsSelected);
@@ -820,24 +509,14 @@ public class CollectionManagerDialog extends Dialog {
 	public void updateDocumentsTable(TrpDocMetadata docMd, boolean resetToFirstPage) {
 		logger.debug("updating documents...");
 		TrpCollection c = getSelectedCollection();
-		
-		//docOverviewWidget.getSelectedDocument();
-		
+
 		if (c!=null && store.isLoggedIn()) {
 			if(resetToFirstPage){
 				docsTableWidget.refreshList(c.getColId(), resetToFirstPage);
 			}
-
-				
-				//TrpDocMetadata docMd = docOverviewWidget.getSelectedDocument();
-				if (docMd != null){
-					docsTableWidget.loadPage("docId", docMd.getDocId(), false);
-				}
-				
-				//docsTableWidget.selectElement(docMd);
-				
-			
-			//updateDocsTableTitle();			
+			if (docMd != null){
+				docsTableWidget.loadPage("docId", docMd.getDocId(), false);
+			}
 		}
 	}
 		
@@ -887,7 +566,7 @@ public class CollectionManagerDialog extends Dialog {
 		
 	}
 	
-	public DocTableWidgetPagination getCurrentDocTableWidgetPagination(){
+	public DocTableWidgetPagination getCurrentDocTableWidgetPagination() {
 		if (docTabFolder.getSelectionIndex() == 0){
 			return docsTableWidget;
 		}
@@ -900,12 +579,4 @@ public class CollectionManagerDialog extends Dialog {
 		return docTabFolder;
 	}
 				
-//	public void setCollectionsUsers(List<TrpUser> users) {
-//		collectionUsersTv.refreshList(users);
-//	}
-	
-//	public boolean isShowUploadedDocs() {
-//		return showUploadedDocsCheck.getSelection();
-//	}
-	
 }

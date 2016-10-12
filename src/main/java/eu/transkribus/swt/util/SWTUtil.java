@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 
@@ -33,6 +34,8 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.GC;
@@ -1224,6 +1227,23 @@ public class SWTUtil {
 			return;
 		
 		tf.setSelection(item);
+	}
+
+	/**
+	 * Runs the accept method of the Consumer c when a selection event occurs on the widget w<br>
+	 * Currently MenuItem, ToolItem, Button and DropDownToolItem widgets are supported.<br>
+	 */
+	public static void onSelectionEvent(Widget w, Consumer<SelectionEvent> c) {
+		if (w == null || c == null)
+			return;
+		
+		SelectionAdapter l = new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				c.accept(e);
+			}
+		};
+		
+		addSelectionListener(w, l);
 	}	
 
 }

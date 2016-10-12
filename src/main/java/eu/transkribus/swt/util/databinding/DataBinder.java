@@ -2,7 +2,6 @@ package eu.transkribus.swt.util.databinding;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.eclipse.core.databinding.Binding;
 import org.eclipse.core.databinding.DataBindingContext;
@@ -10,8 +9,6 @@ import org.eclipse.core.databinding.beans.BeanProperties;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MenuItem;
@@ -21,7 +18,6 @@ import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.internal.dnd.SwtUtil;
 
 import eu.transkribus.swt.util.DropDownToolItem;
-import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.util.IPropertyChangeSupport;
 
 public class DataBinder {
@@ -43,23 +39,6 @@ public class DataBinder {
 		return binder;
 	}
 	
-	/**
-	 * Runs the accept method of the Consumer c when a selection event occurs on the widget w<br>
-	 * Currently MenuItem, ToolItem, Button and DropDownToolItem widgets are supported.<br>
-	 */
-	public void runOnSelection(Widget w, Consumer<SelectionEvent> c) {
-		if (w == null || c == null)
-			return;
-		
-		SelectionAdapter l = new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				c.accept(e);
-			}
-		};
-		
-		SWTUtil.addSelectionListener(w, l);
-	}
-
 	public void bindWidgetSelection(Widget src, Widget target) {
 		selectionListener.add(new BindSelectionListener(src, target));
 	}

@@ -28,9 +28,9 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
+import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
-import eu.transkribus.swt_gui.pagination_tables.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
 public class ServerWidget extends Composite {
