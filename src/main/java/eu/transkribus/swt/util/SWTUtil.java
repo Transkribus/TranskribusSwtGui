@@ -171,6 +171,7 @@ public class SWTUtil {
 		return d != null && d.getShell() != null && !d.getShell().isDisposed();
 	}
 	
+	
 	public static void mask(final Composite c) {
 		
 		

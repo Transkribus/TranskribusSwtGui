@@ -23,6 +23,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -37,6 +39,7 @@ import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 
 public class ThumbnailWidget extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidget.class);
@@ -74,7 +77,7 @@ public class ThumbnailWidget extends Composite {
 //	protected NoGroupRenderer groupRenderer;
 	protected AbstractGridGroupRenderer groupRenderer;
 	
-	static ThumbnailManager tm = null;
+	static ThumbnailManager tm;
 	
 	static int thread_counter=0;
 	
@@ -370,18 +373,36 @@ public class ThumbnailWidget extends Composite {
 	}
 	
 	protected void showPageManager() {
-
-		if (tm == null){
+		
+		if (Storage.getInstance().getDoc() == null) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded");
+			return;
+		}
+		
+		//if (SWTUtil.isOpen(tm)) {
+		if(tm != null && tm.getShell() != null && !tm.getShell().isDisposed()){
+			logger.debug("shell is open !!!!!!!!!!!!!");
+			tm.getShell().setVisible(true);
+		} else {
+			if (tm != null){
+				logger.debug("shell is not open !!!!!!!!!!!!! disposed?" + tm.getShell());
+				logger.debug("shell is not open !!!!!!!!!!!!! disposed?" + tm.getShell().isDisposed());
+			}
+			else
+				logger.debug("shell is not open and tm is null!!!!!!!!!!!!!");
 			tm = new ThumbnailManager(getShell(), SWT.NONE, this);
 		}
-		else {
-			logger.debug("tm shell is disposed " + tm.getShell().isDisposed());
-			if (tm.getShell().isDisposed()){
-				tm = new ThumbnailManager(getShell(), SWT.NONE, this);
-			}
-		
-			
-		}
+
+//		if (tm == null){
+//			tm = new ThumbnailManager(getShell(), SWT.NONE, this);
+//		}
+//		else {
+//			//logger.debug("tm shell is disposed " + tm.getShell().isDisposed());
+//			if (tm.getShell() != null && tm.getShell().isDisposed()){
+//				tm = new ThumbnailManager(getShell(), SWT.NONE, this);
+//			}			
+//		}
+
 	}
 	
 	private void updateGalleryItemNames() {

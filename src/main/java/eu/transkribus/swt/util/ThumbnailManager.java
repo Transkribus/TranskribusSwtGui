@@ -283,7 +283,7 @@ public class ThumbnailManager extends Dialog {
 		
 		reload();
 		
-		Display display = getParent().getDisplay();
+		Display display = shell.getDisplay();
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
@@ -295,6 +295,7 @@ public class ThumbnailManager extends Dialog {
 	
 	public ThumbnailManager(Composite parent, int style, ThumbnailWidget thumbnailWidget) {
 		super(parent.getShell(), style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
+		//super.setShellStyle(style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
 		
 		thumbsWidget = thumbnailWidget;
 		
@@ -306,7 +307,7 @@ public class ThumbnailManager extends Dialog {
 			docMd = Storage.getInstance().getDoc().getMd();
 		}
 		
-		shell = new Shell(getParent(), style);
+		shell = new Shell((Shell)parent, style);
 		shell.setText("Document Manager");
 	
 		FillLayout l = new FillLayout();
@@ -350,8 +351,8 @@ public class ThumbnailManager extends Dialog {
 //		createThumbs.setImage(Images.IMAGES);
 ////		createThumbs.setToolTipText("Create thumbnails for this local document");
 //		createThumbs.setText("Create thumbs for local doc");	
-							
-		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.SINGLE);
+
+		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.MULTI);
 		gallery.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		group = new GalleryItem(gallery, SWT.NONE);
