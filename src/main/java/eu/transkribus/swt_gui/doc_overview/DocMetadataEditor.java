@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.enums.ScriptType;
@@ -218,10 +219,11 @@ public class DocMetadataEditor extends Composite {
 			@Override
 			public void run() {
 				TrpMainWidget mw = TrpMainWidget.getInstance();
-				if (mw == null || Storage.getInstance().getDoc() == null )
+				TrpDoc doc = Storage.getInstance().getDoc();
+				if (mw == null || doc == null )
 					return;
 				
-				updateMetadataObjectFromGui(Storage.getInstance().getDoc().getMd());
+				updateMetadataObjectFromGui(doc.getMd());
 				mw.saveDocMetadata();				
 			}	
 			

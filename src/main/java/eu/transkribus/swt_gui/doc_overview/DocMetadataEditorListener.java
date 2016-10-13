@@ -49,8 +49,7 @@ public class DocMetadataEditorListener implements SelectionListener,
 		dme.scriptTypeCombo.addSelectionListener(this);
 		dme.scriptTypeCombo2.addSelectionListener(this);
 		dme.createdFrom.addFocusListener(this);
-		dme.createdTo.addFocusListener(this);
-				
+		dme.createdTo.addFocusListener(this);				
 		dme.addTraverseListener(this);
 		Storage.getInstance().addListener(this);		
 	}
@@ -69,6 +68,7 @@ public class DocMetadataEditorListener implements SelectionListener,
 		dme.scriptTypeCombo2.removeSelectionListener(this);
 		dme.createdFrom.removeFocusListener(this);
 		dme.createdTo.removeFocusListener(this);
+		dme.removeTraverseListener(this);
 		Storage.getInstance().removeListener(this);		
 	}
 	
