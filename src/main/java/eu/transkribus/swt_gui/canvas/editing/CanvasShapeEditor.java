@@ -42,6 +42,7 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.shapes.RectDirection;
 import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableCellUndoData;
 import eu.transkribus.swt_gui.table_editor.TableShapeEditOperation;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
@@ -55,37 +56,6 @@ import math.geom2d.line.Line2D;
  * Currently supported shapes are: Polygon, Polyline, Rectangle
  */
 public class CanvasShapeEditor {
-	public static class BorderFlags {
-		public BorderFlags() {}
-		public BorderFlags(boolean vertLeft, boolean vertRight, boolean vertInner, boolean horBottom, boolean horTop, boolean horInner) {
-			super();
-			this.vertLeft = vertLeft;
-			this.vertRight = vertRight;
-			this.vertInner = vertInner;
-			this.horBottom = horBottom;
-			this.horTop = horTop;
-			this.horInner = horInner;
-		}
-		
-		public void setAll(boolean val) {
-			this.vertLeft = this.vertRight = this.vertInner = this.horBottom = this.horTop = this.horInner = val;
-		}
-	
-		public boolean vertLeft=false;
-		public boolean vertRight=false;
-		public boolean vertInner=false;
-		
-		public boolean horBottom=false;
-		public boolean horTop=false;
-		public boolean horInner=false;
-		
-		@Override public String toString() {
-			return "BorderFlags [vertLeft=" + vertLeft + ", vertRight=" + vertRight + ", vertInner=" + vertInner + ", horBottom=" + horBottom + ", horTop="
-					+ horTop + ", horInner=" + horInner + "]";
-		}
-	
-	}
-
 	static Logger logger = LoggerFactory.getLogger(CanvasShapeEditor.class);
 	
 	protected SWTCanvas canvas;
