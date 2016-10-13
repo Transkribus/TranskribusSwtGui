@@ -73,6 +73,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
@@ -135,6 +136,8 @@ import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
+import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
+import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
 import eu.transkribus.swt_gui.mainwidget.listener.RegionsPagingToolBarListener;
@@ -219,6 +222,7 @@ public class TrpMainWidget {
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
+	EditDeclManagerDialog edDiag;
 	ActivityDialog ad;
 
 	Storage storage; // the data
@@ -3801,6 +3805,27 @@ public class TrpMainWidget {
 			cm.open();
 		}
 	}
+	
+	public void openEditDeclManagerDialog() {
+		if(!storage.isDocLoaded()) {
+			return;
+		}
+		
+		if (edDiag!=null && !SWTUtil.isDisposed(edDiag.getShell())) {
+			edDiag.getShell().setVisible(true);
+		} else {
+			if(storage.getRoleOfUserInCurrentCollection().getValue() < TrpRole.Editor.getValue()){
+				edDiag = new EditDeclViewerDialog(getShell(), SWT.NONE);
+			} else {
+				edDiag = new EditDeclManagerDialog(getShell(), SWT.NONE);
+			}
+			edDiag.open();
+		}
+	}
+	
+//	public boolean isEditDeclManagerOpen() {
+//		return edm != null && edm.getShell() != null && !edm.getShell().isDisposed();
+//	}
 	
 	public void openDebugDialog() {
 		logger.debug("opening debug dialog");

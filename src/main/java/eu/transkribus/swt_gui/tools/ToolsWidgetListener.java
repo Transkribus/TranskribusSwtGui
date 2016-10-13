@@ -267,22 +267,14 @@ public class ToolsWidgetListener implements SelectionListener {
 //				return;
 //			}
 			
-			logger.debug("started job with id = "+jobId);
-						
-			store.sendJobListUpdateEvent();
-			mw.updatePageLock();
-			
-			DialogUtil.showInfoMessageBox(tw.getShell(), "Job started", "Started job with id = "+jobId);
-
-//			if (jobId != null) {
-//				mw.getUi().selectJobListTab();
-//			}
-			
-			
-			
-			// updates widget on job status:
-//			LayoutJobUpdater ju = new LayoutJobUpdater(mainWidget, jobId);
-//			ju.startJobThread();
+			if (jobId != null) {
+				logger.debug("started job with id = "+jobId);
+							
+				store.sendJobListUpdateEvent();
+				mw.updatePageLock();
+				
+				DialogUtil.showInfoMessageBox(tw.getShell(), "Job started", "Started job with id = "+jobId);
+			}
 		} catch (ClientErrorException cee) {
 			final int status = cee.getResponse().getStatus();
 			if(status == 400) {

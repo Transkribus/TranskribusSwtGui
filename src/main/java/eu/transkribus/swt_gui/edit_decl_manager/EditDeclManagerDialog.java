@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,6 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.Storage;
@@ -52,24 +50,24 @@ public class EditDeclManagerDialog extends Dialog {
 	
 	private final static Logger logger = LoggerFactory.getLogger(EditDeclManagerDialog.class);
 		
-	private Shell shlEditorialDeclaration;
-	private Table featTable;
-	private MyTableViewer featTv;
-	private Table optTable;
-	private MyTableViewer optTv;
-	private Table editDeclTable;
-	private MyTableViewer editDeclTv;
+	Shell shlEditorialDeclaration;
+	Table featTable;
+	MyTableViewer featTv;
+	Table optTable;
+	MyTableViewer optTv;
+	Table editDeclTable;
+	MyTableViewer editDeclTv;
 	
-	private Button createFeatBtn, delFeatBtn, edtFeatBtn;
-	private Button createOptBtn, delOptBtn, edtOptBtn;
-	private Button addFeatBtn, removeFeatBtn;
-	private Button saveBtn; 
-	private Button copyBtn;
-	private DocTableWidgetPagination docTable;
+	Button createFeatBtn, delFeatBtn, edtFeatBtn;
+	Button createOptBtn, delOptBtn, edtOptBtn;
+	Button addFeatBtn, removeFeatBtn;
+	Button saveBtn; 
+	Button copyBtn;
+	DocTableWidgetPagination docTable;
 
-	private EditFeaturesListener efl;
+	EditFeaturesListener efl;
 
-	private List<EdFeature> editDecl;
+	List<EdFeature> editDecl;
 	
 	public static final String FEAT_ID_COL = "ID";
 	public static final String FEAT_TITLE_COL = "Title";

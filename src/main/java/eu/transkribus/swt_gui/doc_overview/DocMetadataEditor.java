@@ -4,6 +4,8 @@ import java.util.Date;
 
 import org.eclipse.nebula.widgets.datechooser.DateChooserCombo;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
@@ -24,6 +26,7 @@ import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
@@ -48,6 +51,8 @@ public class DocMetadataEditor extends Composite {
 	
 	Button enableCreatedFromBtn, enableCreatedToBtn, openEditDeclManagerBtn;
 	EditDeclManagerDialog edm;
+	
+	DocMetadataEditorListener listener;
 	
 	public static final String PRINT_META_SCRIPTTYPE = "Printed";
 	
@@ -198,28 +203,10 @@ public class DocMetadataEditor extends Composite {
 	}
 	
 	void addListener() {
-		saveBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				saveMd();
-			}
-		});
-		
-		openEditDeclManagerBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				openEditDeclManagerWidget();
-			}
-		});
-		
-		Storage.getInstance().addListener(new IStorageListener() {
-			@Override public void handleDocLoadEvent(DocLoadEvent dle) {
-				if (dle.doc != null) {
-					setMetadataToGui(dle.doc.getMd());
-				}
-			}
-		});
+		listener = new DocMetadataEditorListener(this);
 	}
-	
-	private void saveMd() {
+		
+	void saveMd() {
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 		if (mw == null)
 			return;
@@ -350,27 +337,5 @@ public class DocMetadataEditor extends Composite {
 	
 	public boolean isCreatedToEnabled(){
 		return enableCreatedToBtn.getSelection();
-	}
-	
-	public void openEditDeclManagerWidget() {
-		Storage store = Storage.getInstance();
-		
-		if(!store.isDocLoaded()) {
-			return;
-		}
-		if (!isEditDeclManagerOpen()) {
-			if(store.getRoleOfUserInCurrentCollection().getValue() < TrpRole.Editor.getValue()){
-				edm = new EditDeclViewerDialog(getShell(), SWT.NONE);
-			} else {
-				edm = new EditDeclManagerDialog(getShell(), SWT.NONE);
-			}
-			edm.open();
-		} else {
-			edm.getShell().setVisible(true);
-		}
-	}
-	
-	public boolean isEditDeclManagerOpen() {
-		return edm != null && edm.getShell() != null && !edm.getShell().isDisposed();
 	}
 }
