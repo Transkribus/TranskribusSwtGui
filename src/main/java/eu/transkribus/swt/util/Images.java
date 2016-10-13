@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 public class Images {
+	public static final Image HELP = Images.getOrLoad("/icons/help.png");
 	public static final Image FOLDER_IMPORT = Images.getOrLoad("/icons/folder_import.png");
 	public static final Image FOLDER_GO = Images.getOrLoad("/icons/folder_go.png");
 	

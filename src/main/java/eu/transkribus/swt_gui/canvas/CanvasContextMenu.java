@@ -239,7 +239,7 @@ public class CanvasContextMenu extends Observable {
 			createMenuItem("Remove intermediate points", null, new RemoveIntermediatePointsTableEvent(this), menu);
 		
 		// about:
-		createMenuItem("Table shortcuts", null, new TableHelpEvent(this), menu);
+		createMenuItem("Table help", Images.HELP, new TableHelpEvent(this), menu);
 	}
 
 	protected void initItems(ICanvasShape s) {
