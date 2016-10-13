@@ -40,7 +40,7 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 				+ "ctrl + alt + moving table cell -> move table column\n"
 				+ "ctrl + move table cell border -> move table row / cell border \n";
 				
-		DialogUtil.showMessageDialog(mw.getShell(), "title", shortCuts, Images.HELP, MessageDialog.INFORMATION, 
+		DialogUtil.showMessageDialog(mw.getShell(), "Table help", shortCuts, Images.HELP, MessageDialog.INFORMATION, 
 				new String[] {"OK"}, 0);
 	}
 
