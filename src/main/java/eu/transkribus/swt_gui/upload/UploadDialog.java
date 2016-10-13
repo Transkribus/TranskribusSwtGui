@@ -137,8 +137,10 @@ public class UploadDialog extends Dialog {
 	private void addListener() {
 		store.addListener(new IStorageListener() {
 			@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
-				if (getShell() != null && !getShell().isDisposed())
-					updateCollections();
+				if (SWTUtil.isDisposed(getShell()))
+					return;
+				
+				updateCollections();
 			}
 		});
 		

@@ -1,18 +1,16 @@
 package eu.transkribus.swt_gui.mainwidget.listener;
 
-import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.job.TrpJobStatus;
-import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.DocListLoadEvent;
 
 public class TrpMainWidgetStorageListener implements IStorageListener {
 	private static final Logger logger = LoggerFactory.getLogger(TrpMainWidgetStorageListener.class);
@@ -27,7 +25,21 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		this.ui = mw.getUi();
 		this.canvas = ui.getCanvas();
 		
+		attach();
+		
+		this.ui.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				detach();
+			}
+		});
+	}
+	
+	void attach() {
 		storage.addListener(this);
+	}
+	
+	void detach() {
+		storage.removeListener(this);
 	}
 	
 	@Override public void handleMainImageLoadEvent(MainImageLoadEvent mile) {

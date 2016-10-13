@@ -201,8 +201,10 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 		
 		storage.addListener(new IStorageListener() {
 			@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
-				if (!isDisposed() && getShell() != null && !getShell().isDisposed())
-					updateCollections();
+				if (SWTUtil.isDisposed(CollectionComboViewerWidget.this) || SWTUtil.isDisposed(getShell()))
+						return;
+				
+				updateCollections();
 			}
 		});
 	}

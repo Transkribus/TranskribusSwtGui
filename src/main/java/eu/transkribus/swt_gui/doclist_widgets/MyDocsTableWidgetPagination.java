@@ -1,16 +1,31 @@
 package eu.transkribus.swt_gui.doclist_widgets;
 
 import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
 
 public class MyDocsTableWidgetPagination extends DocTableWidgetPagination {
+	IStorageListener storageListener;
+	
 	public MyDocsTableWidgetPagination(Composite parent, int style, int initialPageSize) {
 		super(parent, style, initialPageSize);
+		
+		addListener();
+		
+		addDisposeListener(new DisposeListener() {
+			
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				removeListener();
+			}
+		});
 	}
 
 	@Override protected void setPageLoader() {
@@ -19,18 +34,27 @@ public class MyDocsTableWidgetPagination extends DocTableWidgetPagination {
 	}
 	
 	void addListener() {
-		Storage.getInstance().addListener(new IStorageListener() {
+		storageListener = new IStorageListener() {
 			@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
 				if (!e.isDocsByUser)
 					return;
 				
 				Display.getDefault().asyncExec(() -> {
+					if (SWTUtil.isDisposed(MyDocsTableWidgetPagination.this))
+						return;
+					
 					PageResultLoaderList<TrpDocMetadata> pll = (PageResultLoaderList<TrpDocMetadata>) getPageableTable().getPageLoader();
 					pll.setItems(Storage.getInstance().getUserDocList());
 					refreshPage(true);
 				});
 			}
-		});
+		};
+		
+		Storage.getInstance().addListener(storageListener);
+	}
+	
+	void removeListener() {
+		Storage.getInstance().removeListener(storageListener);
 	}
 	
 }

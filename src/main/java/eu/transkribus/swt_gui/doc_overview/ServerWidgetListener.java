@@ -43,6 +43,24 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		
 		attach();
 	}
+		
+	public void attach() {
+		dtv.addSelectionChangedListener(this);
+		dtv.addDoubleClickListener(this);
+		dtv.getTable().addMouseTrackListener(this);
+		dtv.getTable().addKeyListener(this);
+
+		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
+		sw.recentDocsComboViewerWidget.lastDocsCombo.addSelectionListener(this);
+		sw.manageCollectionsBtn.addSelectionListener(this);
+		sw.showActivityWidgetBtn.addSelectionListener(this);
+		
+		sw.syncWithLocalDocBtn.addSelectionListener(this);
+		sw.applyAffineTransformBtn.addSelectionListener(this);
+		sw.batchReplaceImgsBtn.addSelectionListener(this);
+		
+		Storage.getInstance().addListener(this);
+	}
 	
 	public void detach() {
 		dtv.removeSelectionChangedListener(this);
@@ -60,24 +78,6 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		sw.batchReplaceImgsBtn.removeSelectionListener(this);
 		
 		Storage.getInstance().removeListener(this);
-	}
-	
-	public void attach() {
-		dtv.addSelectionChangedListener(this);
-		dtv.addDoubleClickListener(this);
-		dtv.getTable().addMouseTrackListener(this);
-		dtv.getTable().addKeyListener(this);
-
-		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
-		sw.recentDocsComboViewerWidget.lastDocsCombo.addSelectionListener(this);
-		sw.manageCollectionsBtn.addSelectionListener(this);
-		sw.showActivityWidgetBtn.addSelectionListener(this);
-		
-		sw.syncWithLocalDocBtn.addSelectionListener(this);
-		sw.applyAffineTransformBtn.addSelectionListener(this);
-		sw.batchReplaceImgsBtn.addSelectionListener(this);
-		
-		Storage.getInstance().addListener(this);
 	}
 	
 	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
