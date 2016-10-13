@@ -508,21 +508,7 @@ public class CanvasShapeEditor {
 		ShapeEditOperation op=null;
 		
 		if (tc != null) {
-			if (true) {
-				return moveTableCellPoints(shape, selectedPoint, mouseX, mouseY, addToUndoStack);
-			} else {
-				int sm = canvas.getMouseListener().getCurrentMoveStateMask();
-				boolean isCtrl = CanvasKeys.isKeyDown(sm, SWT.CTRL);
-				boolean isAlt = CanvasKeys.isKeyDown(sm, SWT.ALT);
-	
-				logger.debug("isCtrl: "+isCtrl+" isAlt: "+isAlt);
-							
-				if (!isCtrl) {
-					return moveTableCellPoints(shape, selectedPoint, mouseX, mouseY, addToUndoStack);
-				} else {
-					return moveTableRowOrColumnPoints(shape, selectedPoint, mouseX, mouseY, addToUndoStack, !isAlt);
-				}
-			}
+			return moveTableCellPoints(shape, selectedPoint, mouseX, mouseY, addToUndoStack);
 		} else {
 			op = new ShapeEditOperation(ShapeEditType.EDIT, "Moved point(s) of shape", shape);
 			
@@ -573,53 +559,8 @@ public class CanvasShapeEditor {
 				addToUndoStack(op);
 		}
 
-//		--
-//		if (!isEditable(shape))
-//			return null;
-//				
-//		TrpTableCellType tc = TableUtils.getTableCell(shape);
-//		
-//		ShapeEditOperation op = null;
-//		
-//		SebisStopWatch.SW.start();
-//		if (tc != null) {
-//			int sm = canvas.getMouseListener().getCurrentMoveStateMask();
-//			boolean isCtrl = CanvasKeys.isKeyDown(sm, SWT.CTRL);
-////			boolean isAlt = CanvasKeys.isKeyDown(sm, SWT.ALT);
-//
-//			if (isCtrl && indices.length == 2) {
-//				CanvasQuadPolygon qp = (CanvasQuadPolygon) shape;
-//				qp.getPointSide(indices[0]);
-//				
-//				op = translateTableRowOrColumnPoints(shape, qp.getPointSide(indices[0]), tx, ty, addToUndoStack);
-//			} else {
-//				op = translateTableCellPoints(shape, tx, ty, addToUndoStack, indices);	
-//			}
-//		} else {
-//			op = super.translatePoints(shape, tx, ty, addToUndoStack, indices);
-//			
-//		}
-//		SebisStopWatch.SW.stop(true);
-//		
-//		return op;
-		
 		return op;
 	}
-	
-//	public ShapeEditOperation translatePoints(ICanvasShape shape, int index, int tx, int ty, /*boolean firstMove,*/ boolean addToUndoStack) {
-//		if (shape == null)
-//			return null;
-//						
-//		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Altered point(s) of shape", shape);
-//		if (addToUndoStack)
-//			addToUndoStack(op);
-//		
-//		if (!shape.translatePoint(index, tx, ty)) {
-//			return null;
-//		}
-//		
-//		return op;
-//	}
 	
 	public void resizeBoundingBoxFromSelected(RectDirection direction, int mouseTrX, int mouseTrY, boolean firstMove) {
 		ICanvasShape selected = canvas.getFirstSelected();
@@ -719,50 +660,6 @@ public class CanvasShapeEditor {
 				return moveTableCell(shape, mouseTrX, mouseTrY, currentMoveOp, addToUndoStack);
 		} else {
 			return moveShapeDefault(shape, mouseTrX, mouseTrY, currentMoveOp, addToUndoStack);
-//			// invert transform:
-//			java.awt.Point transWoTr = canvas.getPersistentTransform().inverseTransformWithoutTranslation(mouseTrX, mouseTrY);
-//			logger.trace("t = "+transWoTr);
-//					
-//			// if first move --> determine shapes to move
-//			if (currentMoveOp==null) {
-//				List<ICanvasShape> shapesToMove = new ArrayList<>();
-//				shapesToMove.add(shape);
-//				// move subshapes if required key down:
-//				if (CanvasKeys.isKeyDown(canvas.getKeyListener().getCurrentStateMask(), CanvasKeys.MOVE_SUBSHAPES_REQUIRED_KEY)) {
-//					logger.debug("moving subshapes!");
-//					shapesToMove.addAll(shape.getChildren(true));
-//				}
-//				currentMoveOp = new ShapeEditOperation(ShapeEditType.EDIT, "Moved shape(s)", shapesToMove);
-//				if (addToUndoStack) {
-//					addToUndoStack(currentMoveOp);
-//				}
-//			}
-//			
-//			// now move all shapes for the current move operation:
-//	//		boolean movedFirst = true;
-//			for (int i=0; i<currentMoveOp.getShapes().size(); ++i) {
-//				ICanvasShape s = currentMoveOp.getShapes().get(i);
-//				
-//				// reset points if this isnt the first move (translation is always specified global for one move to prevent rounding errors!)
-//	//			if (!firstMove) {
-//					ICanvasShape bs = currentMoveOp.getBackupShapes().get(i);
-//					s.setPoints(bs.getPoints());
-//	//			}
-//							
-//				boolean moved = scene.moveShape(s, transWoTr.x, transWoTr.y, true); 
-//				
-//				if (i == 0 && !moved) { // if first shape (i.e. parent shape) was not moved, jump out
-//					return null;
-//	//				movedFirst = false;
-//	//				break;
-//				}
-//			}
-//			
-//	//		if (addToUndoStack /*&& movedFirst*/ && firstMove && currentMoveOp!=null) {
-//	//			addToUndoStack(currentMoveOp);
-//	//		}
-//			
-//			return currentMoveOp;
 		}
 	}
 
@@ -778,36 +675,6 @@ public class CanvasShapeEditor {
 		return drawnPoints;
 	}
 	
-//	public List<java.awt.Point> getDrawnPointsExtended() {
-//		final double extensionFactor = 1000;
-//		
-//		List<java.awt.Point> extendedPts = new ArrayList<>();
-//		
-//		if (drawnPoints.size() >= 2) {
-//			java.awt.Point p1 = drawnPoints.get(1);
-//			java.awt.Point p2 = drawnPoints.get(0);
-//			Vector2D v1 = new Vector2D(p2.x - p1.x, p2.y - p1.y);
-//			v1 = v1.normalize();
-//			Vector2D newFirstPt = new Vector2D(p2.x, p2.y).plus(v1.times(extensionFactor));
-//			extendedPts.add(new java.awt.Point((int)newFirstPt.x(), (int)newFirstPt.y()));
-//		}
-//		
-//		for (java.awt.Point p : drawnPoints) {
-//			extendedPts.add(new java.awt.Point(p.x, p.y));
-//		}
-//		
-//		if (drawnPoints.size() >= 2) {
-//			java.awt.Point p1 = drawnPoints.get(drawnPoints.size()-2);
-//			java.awt.Point p2 = drawnPoints.get(drawnPoints.size()-1);
-//			Vector2D v1 = new Vector2D(p2.x - p1.x, p2.y - p1.y);
-//			v1 = v1.normalize();
-//			Vector2D newFirstPt = new Vector2D(p2.x, p2.y).plus(v1.times(extensionFactor));
-//			extendedPts.add(new java.awt.Point((int)newFirstPt.x(), (int)newFirstPt.y()));
-//		}
-//		
-//		return extendedPts;
-//	}
-
 	public void removeShapesWithData(List<ITrpShapeType> shapes, boolean addToUndoStack) {
 		List<ICanvasShape> css = new ArrayList<>();
 		for (ITrpShapeType s : shapes) {
@@ -819,21 +686,6 @@ public class CanvasShapeEditor {
 		
 		removeShapesFromCanvas(css, addToUndoStack);
 	}
-
-//	@Override protected ICanvasShape constructShapeFromPoints(List<java.awt.Point> pts, CanvasShapeType shapeType) {
-//		if (canvas.getMode() == TrpCanvasAddMode.ADD_TABLECELL) {
-//			// assume table cell is drawn as rectangle
-//			List<java.awt.Point> polyPts = new ArrayList<>();
-//			polyPts.add(pts.get(0));
-//			polyPts.add(new java.awt.Point(pts.get(0).x, pts.get(1).y));
-//			polyPts.add(pts.get(1));
-//			polyPts.add(new java.awt.Point(pts.get(1).x, pts.get(0).y));
-//				
-//			return new CanvasQuadPolygon(polyPts);
-//		} else {
-//			return super.constructShapeFromPoints(pts, shapeType);
-//		}
-//	}
 
 	/**
 	 * If shape is a baseline, select parent line and split it, s.t. undlerying baseline gets splits too
@@ -1045,56 +897,6 @@ public class CanvasShapeEditor {
 			}
 			else {
 				return splitShapeDefault(shape, pl, addToUndoStack);
-				
-//				// perform default split operation on base class
-////					ICanvasShape selected = canvas.getFirstSelected();
-//				if (shape == null) {
-//					logger.warn("Cannot split - no shape selected!");
-//					return null;
-//				}
-//				
-//				List<ICanvasShape> children = shape.getChildren(true); // get all children (recursively)!
-//				List<ShapeEditOperation> splitOps = new ArrayList<>();
-//						
-//				ShapeEditOperation op = scene.splitShape(shape, pl, true, null, null, false);
-//				if (op!=null) {
-//					splitOps.add(op);
-//				}
-//				
-//				// Split all child shapes
-//				for (ICanvasShape child : children) {
-//					// Determine the parent shapes of the child shape that shall be splitted by iterating through the edit operations that were done so far
-//					ICanvasShape p1=null, p2=null;
-//					for (ShapeEditOperation opParent : splitOps) {
-//						if (opParent.getNewShapes().get(0).equals(child.getParent()) 
-//								|| opParent.getNewShapes().get(1).equals(child.getParent())) {
-//							p1 = opParent.getNewShapes().get(0);
-//							p2 = opParent.getNewShapes().get(1);
-////								logger.debug("readjusting child elements - parents: "+p1+"/"+p2);
-//							break;
-//						}
-//					}
-//					
-//					// Try to split child shape using the parents that were just determined:
-//					logger.debug("p1 / p2 = "+p1+" / "+p2);
-//					ShapeEditOperation opChild = scene.splitShape(child, pl, true, p1, p2, true);
-//					if (opChild!=null) {
-//						splitOps.add(opChild);
-//					}
-//				}
-//				
-//				if (splitOps.isEmpty()) {
-//					logger.warn("Cannot split - no shapes actually splitted by line!");
-//					return null;
-//				}
-//				
-//				scene.notifyOnAfterShapeSplitted(op);
-//				
-//				if (addToUndoStack)
-//					addToUndoStack(splitOps);
-//				
-//				return splitOps;
-////					return super.splitShape(shape, pl, addToUndoStack);
 			}
 		} catch (Exception e) {
 //			logger.debug("error", e);
@@ -1492,20 +1294,7 @@ public class CanvasShapeEditor {
 			
 			return op;
 		}
-
-//	@Override public void resizeBoundingBoxFromSelected(RectDirection direction, int mouseTrX, int mouseTrY, boolean firstMove) {
-//		ICanvasShape selected = canvas.getFirstSelected();
-//		
-//		if (selected!=null && selected.isEditable() && direction!=RectDirection.NONE) {
-//			if (selected.getData() instanceof TrpTableCellType && selected instanceof CanvasQuadPolygon) {
-//				// PREVENT RESIZING BOUNDING BOX FOR TABLE CELLS
-//			} 
-//			else {
-//				super.resizeBoundingBoxFromSelected(direction, mouseTrX, mouseTrY, firstMove);
-//			}
-//		}
-//	}
-
+	
 	public ShapeEditOperation moveTableRowOrColumnCells(ICanvasShape shape, int mouseTrX, int mouseTrY, boolean row, ShapeEditOperation currentMoveOp, boolean addToUndoStack) {
 			TrpTableCellType selectedCell = TableUtils.getTableCell(shape);
 			if (selectedCell == null)
@@ -1617,135 +1406,6 @@ public class CanvasShapeEditor {
 			
 			return currentMoveOp;
 		}
-
-//	@Override public ShapeEditOperation moveShape(ICanvasShape shape, int mouseTrX, int mouseTrY, ShapeEditOperation currentMoveOp, boolean addToUndoStack) {
-//	//		ICanvasShape selected = canvas.getFirstSelected();
-//			if (shape != null && shape.isEditable()) {
-//				if (shape.getData() instanceof TrpTableCellType && shape instanceof CanvasQuadPolygon) {
-//					// PREVENT RESIZING BOUNDING BOX FOR TABLE CELLS
-//					// TODO? allow resizing on outside -> should trigger resize of whole table region!
-//	//				super.moveSelected(mouseTrX, mouseTrY, firstMove);
-//					
-//					int sm = canvas.getMouseListener().getCurrentMoveStateMask();
-//					boolean isCtrl = CanvasKeys.isKeyDown(sm, SWT.CTRL);
-//					boolean isAlt = CanvasKeys.isKeyDown(sm, SWT.ALT);
-//					if (isCtrl) {
-//						return moveTableRowOrColumnCells(shape, mouseTrX, mouseTrY, !isAlt, currentMoveOp, addToUndoStack);
-//					} else
-//						return moveTableCell(shape, mouseTrX, mouseTrY, currentMoveOp, addToUndoStack);
-//				} 
-//				else {
-//					return super.moveShape(shape, mouseTrX, mouseTrY, currentMoveOp, addToUndoStack);
-//				}
-//			}
-//			return null;
-//		}
-
-//	@Override public ShapeEditOperation removePointFromSelected(ICanvasShape shape, int pointIndex, boolean addToUndoStack) {
-//		logger.debug("removing point "+pointIndex);
-//		
-//		if (!isEditable(shape))
-//			return null;
-//		
-//		TrpTableCellType c = TableUtils.getTableCell(shape);
-//		ShapeEditOperation op;
-//		if (c != null) {
-//			op = removePointFromTableCell(shape, pointIndex, addToUndoStack);
-//		} 
-//		else {
-//			op = super.removePointFromSelected(shape, pointIndex, addToUndoStack);
-//		}
-//		
-//		TrpMainWidget.getInstance().refreshStructureView();
-//		
-//		return op;
-//	}
-
-//	@Override public ShapeEditOperation removeShapesFromCanvas(List<ICanvasShape> shapesToRemove, boolean addToUndoStack) {
-//		// remove table if attempted to remove table cell:		
-//		List<ICanvasShape> str2 = new ArrayList<>();
-//		for (ICanvasShape s : shapesToRemove) {
-//			if (TableUtils.getTableCell(s)!=null)
-//				str2.add(s.getParent());
-//			else
-//				str2.add(s);
-//		}
-//	
-//		return super.removeShapesFromCanvas(str2, addToUndoStack);
-//	}
-
-//	@Override public ShapeEditOperation addPointToShape(ICanvasShape shape, int mouseX, int mouseY, boolean addToUndoStack) {
-//		logger.debug("adding point!");
-//		
-//		if (shape != null && shape.isEditable()) {
-//			if (shape.getData() instanceof TrpTableCellType && shape instanceof CanvasQuadPolygon) {
-//				return addPointToTableCell(shape, mouseX, mouseY, addToUndoStack);
-//			} 
-//			else {
-//				return super.addPointToShape(shape, mouseX, mouseY, addToUndoStack);
-//			}
-//		}
-//		return null;
-//	}
-
-//	@Override public ShapeEditOperation movePointAndSelected(ICanvasShape shape, int selectedPoint, int mouseX, int mouseY, boolean addToUndoStack) {
-//		if (!isEditable(shape) || selectedPoint == -1)
-//			return null;
-//				
-//		TrpTableCellType tc = TableUtils.getTableCell(shape);
-//		if (tc != null) {
-//			if (true) {
-//				return moveTableCellPoints(shape, selectedPoint, mouseX, mouseY, addToUndoStack);
-//			} else {
-//				int sm = canvas.getMouseListener().getCurrentMoveStateMask();
-//				boolean isCtrl = CanvasKeys.isKeyDown(sm, SWT.CTRL);
-//				boolean isAlt = CanvasKeys.isKeyDown(sm, SWT.ALT);
-//	
-//				logger.debug("isCtrl: "+isCtrl+" isAlt: "+isAlt);
-//							
-//				if (!isCtrl) {
-//					return moveTableCellPoints(shape, selectedPoint, mouseX, mouseY, addToUndoStack);
-//				} else {
-//					return moveTableRowOrColumnPoints(shape, selectedPoint, mouseX, mouseY, addToUndoStack, !isAlt);
-//				}
-//				
-//			}
-//		}
-//		else {
-//			return super.movePointAndSelected(shape, selectedPoint, mouseX, mouseY, addToUndoStack);
-//		}
-//	}
-
-//	@Override public ShapeEditOperation translatePoints(ICanvasShape shape, int tx, int ty, boolean addToUndoStack, int ...indices) {
-//			if (!isEditable(shape))
-//				return null;
-//					
-//			TrpTableCellType tc = TableUtils.getTableCell(shape);
-//			
-//			ShapeEditOperation op = null;
-//			
-//			SebisStopWatch.SW.start();
-//			if (tc != null) {
-//				int sm = canvas.getMouseListener().getCurrentMoveStateMask();
-//				boolean isCtrl = CanvasKeys.isKeyDown(sm, SWT.CTRL);
-//	//			boolean isAlt = CanvasKeys.isKeyDown(sm, SWT.ALT);
-//	
-//				if (isCtrl && indices.length == 2) {
-//					CanvasQuadPolygon qp = (CanvasQuadPolygon) shape;
-//					qp.getPointSide(indices[0]);
-//					
-//					op = translateTableRowOrColumnPoints(shape, qp.getPointSide(indices[0]), tx, ty, addToUndoStack);
-//				} else {
-//					op = translateTableCellPoints(shape, tx, ty, addToUndoStack, indices);	
-//				}
-//			} else {
-//				op = super.translatePoints(shape, tx, ty, addToUndoStack, indices);
-//				
-//			}
-//			SebisStopWatch.SW.stop(true);
-//			
-//			return op;
-//		}
 
 	public ShapeEditOperation getCurrentMoveOp() {
 		return currentMoveOp;
@@ -2405,12 +2065,5 @@ public class CanvasShapeEditor {
 	public Shell getShell() {
 		return canvas.getShell();
 	}	
-	
-
-
-
-
-	
-	
 
 }

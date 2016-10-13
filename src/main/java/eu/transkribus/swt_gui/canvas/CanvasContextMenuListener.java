@@ -1,9 +1,12 @@
 package eu.transkribus.swt_gui.canvas;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
@@ -30,7 +33,15 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 	}
 	
 	public void handleTableHelpEvent(TableHelpEvent event) {
-		
+		String shortCuts = ""
+				+ "To add new rows or columns use the split tool\n"
+				+ "To merge table cells select them and click on the merge tool\n"
+				+ "ctrl + move table cell -> move table row\n"
+				+ "ctrl + alt + moving table cell -> move table column\n"
+				+ "ctrl + move table cell border -> move table row / cell border \n";
+				
+		DialogUtil.showMessageDialog(mw.getShell(), "title", shortCuts, Images.HELP, MessageDialog.INFORMATION, 
+				new String[] {"OK"}, 0);
 	}
 
 	public void handleTableBorderEditEvent(TableBorderEditEvent event) {
