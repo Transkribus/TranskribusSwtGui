@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.Date;
+import java.util.concurrent.FutureTask;
 
 import org.eclipse.nebula.widgets.datechooser.DateChooserCombo;
 import org.eclipse.swt.SWT;
@@ -53,6 +54,8 @@ public class DocMetadataEditor extends Composite {
 	EditDeclManagerDialog edm;
 	
 	DocMetadataEditorListener listener;
+	
+	FutureTask futureSaveTask;
 	
 	public static final String PRINT_META_SCRIPTTYPE = "Printed";
 	
@@ -206,13 +209,32 @@ public class DocMetadataEditor extends Composite {
 		listener = new DocMetadataEditorListener(this);
 	}
 		
+	
+	
 	void saveMd() {
-		TrpMainWidget mw = TrpMainWidget.getInstance();
-		if (mw == null)
-			return;
 		
-		updateMetadataObjectFromGui(Storage.getInstance().getDoc().getMd());
-		mw.saveDocMetadata();
+		Runnable saveTask = new Runnable(){
+			
+			@Override
+			public void run() {
+				TrpMainWidget mw = TrpMainWidget.getInstance();
+				if (mw == null || Storage.getInstance().getDoc() == null )
+					return;
+				
+				updateMetadataObjectFromGui(Storage.getInstance().getDoc().getMd());
+				mw.saveDocMetadata();				
+			}	
+			
+		};
+		
+		if(futureSaveTask != null){
+			futureSaveTask.cancel(true);
+		}
+		futureSaveTask = new FutureTask<Object>(saveTask, null);
+		futureSaveTask.run();
+		
+		
+
 	}
 	
 	public void updateMetadataObjectFromGui(TrpDocMetadata md) {		
