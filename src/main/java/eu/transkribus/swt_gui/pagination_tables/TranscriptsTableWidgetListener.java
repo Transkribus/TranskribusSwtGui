@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
@@ -64,14 +65,23 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 	}
 	
 	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+		if (SWTUtil.isDisposed(tw))
+			return;
+			
 		tw.refreshPage(true);
 	}
 	
 	@Override public void handleTranscriptListLoadEvent(TranscriptListLoadEvent arg) {
+		if (SWTUtil.isDisposed(tw))
+			return;		
+		
 		tw.refreshPage(true);
 	}
 
 	@Override public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+		if (SWTUtil.isDisposed(tw))
+			return;		
+		
 		tv.refresh();
 	}	
 

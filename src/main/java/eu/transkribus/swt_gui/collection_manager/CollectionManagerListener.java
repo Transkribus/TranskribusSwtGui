@@ -36,6 +36,7 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.UserInputChecker;
 import eu.transkribus.swt.util.ComboInputDialog;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -127,10 +128,16 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 	}
 	
 	@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
+		if (SWTUtil.isDisposed(shell))
+			return;
+		
 		cmw.collectionsTv.refreshList(cle.collections);
 	}
 	
 	@Override public void handleDocListLoadEvent(DocListLoadEvent dle) {
+		if (SWTUtil.isDisposed(shell))
+			return;		
+		
 		cmw.updateCollections();
 	}
 	

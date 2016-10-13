@@ -9,6 +9,8 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.junit.Assert;
@@ -19,6 +21,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
@@ -34,17 +37,31 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 	public JobTableWidgetListener(JobTableWidgetPagination jw) {
 		Assert.assertNotNull("JobTablWidgetPagination cannot be null!", jw);
 		
-		this.jw = jw;
-		
-//		jobOverviewWidget.reloadBtn.addSelectionListener(this);
-		jw.getShowAllJobsBtn().addSelectionListener(this);
-		jw.getCancelBtn().addSelectionListener(this);
-		
+		this.jw = jw;		
 		this.tv = jw.getPageableTable().getViewer();
 		
-		tv.addDoubleClickListener(this);
+		jw.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				detach();
+			}
+		});
 		
+		attach();
+	}
+	
+	void attach() {
+		jw.getShowAllJobsBtn().addSelectionListener(this);
+		jw.getCancelBtn().addSelectionListener(this);
+		tv.addDoubleClickListener(this);
 		Storage.getInstance().addListener(this);
+	}
+	
+	void detach() {
+		jw.getShowAllJobsBtn().removeSelectionListener(this);
+		jw.getCancelBtn().removeSelectionListener(this);
+		tv.removeDoubleClickListener(this);
+		Storage.getInstance().removeListener(this);		
 	}
 	
 	@Override public void doubleClick(DoubleClickEvent event) {
@@ -94,12 +111,18 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 	}
 
 	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+		if (SWTUtil.isDisposed(jw))
+			return;
+		
 		boolean visible = Storage.getInstance().isLoggedIn() && Storage.getInstance().getUser().isAdmin();
 		jw.getShowAllJobsBtn().setVisible(visible);
 		jw.refreshPage(true);
 	}
 	
 	@Override public void handleJobUpdate(JobUpdateEvent jue) {
+		if (SWTUtil.isDisposed(jw))
+			return;		
+		
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 		
 		TrpJobStatus job = jue.job;
