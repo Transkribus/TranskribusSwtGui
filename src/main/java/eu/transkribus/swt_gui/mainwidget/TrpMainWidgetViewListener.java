@@ -67,9 +67,9 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 				
 		SWTUtil.onSelectionEvent(ui.getLoadTranscriptInTextEditor(), (e) -> { mw.openPAGEXmlViewer(); } );
 		
-		SWTUtil.onSelectionEvent(ui.getLoginToggle(), (e) -> {
+		SWTUtil.onSelectionEvent(ui.getServerWidget().getLoginBtn(), (e) -> {
 			if (!mw.getStorage().isLoggedIn())
-				mw.loginDialog("Please enter email and password!");
+				mw.loginDialog("Enter your email and password");
 			else
 				mw.logout(false, true);
 		});

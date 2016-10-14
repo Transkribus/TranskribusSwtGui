@@ -87,7 +87,7 @@ public class TrpMainWidgetView extends Composite {
 	// ##########
 	
 	// ##### Toolbar stuff: #####
-	ToolItem menuButton, loginToggle, reloadDocumentButton, exportDocumentButton, openLocalFolderButton, closeDocBtn;
+	ToolItem menuButton, /*loginToggle,*/ reloadDocumentButton, exportDocumentButton, openLocalFolderButton, closeDocBtn;
 	ToolItem uploadDocsItem, searchBtn;
 
 	DropDownToolItem saveDrowDown;
@@ -401,9 +401,11 @@ public class TrpMainWidgetView extends Composite {
 //			}
 //		});
 		
+		/*
 		loginToggle = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		loginToggle.setToolTipText("Login");
 		loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
+		*/
 
 		viewDockingDropItem = new DropDownToolItem(toolBar, false, true, SWT.CASCADE, preInsertIndex++);
 
@@ -617,34 +619,39 @@ public class TrpMainWidgetView extends Composite {
 		return trpSets;
 	}
 	
-	public ToolItem getLoginToggle() { return loginToggle; }
+	//public ToolItem getLoginToggle() { return loginToggle; }
 	
 	public PageMetadataWidget getStructuralMetadataWidget() { return structuralMdWidget; }
 	public ToolsWidget getToolsWidget() { return toolsWidget; }
 		
 	public void updateLoginInfo(boolean loggedIn, String username, String server) {
 		if (loggedIn) {
-			serverWidget.getUsernameLabel().setText("Logged in as: "+username);
+			//serverWidget.getUsernameLabel().setText("Logged in as: "+username);
 			serverWidget.getServerLabel().setText("Server: "+server);
+			serverWidget.getLoginBtn().setText("Logout "+username);
+			serverWidget.getLoginBtn().setImage(Images.CONNECT);
 
-			loginToggle.setToolTipText("Logout "+username);
+			//loginToggle.setToolTipText("Logout "+username);
 //			loginToggle.setSelection(true);
-			loginToggle.setImage(Images.getOrLoad("/icons/connect.png"));
+//			loginToggle.setImage(Images.CONNECT);
 		} else {
-			serverWidget.getUsernameLabel().setText("Not logged in");
+			//serverWidget.getUsernameLabel().setText("Not logged in");
 			serverWidget.getServerLabel().setText("");
-			loginToggle.setToolTipText("Login");
+			serverWidget.getLoginBtn().setText("Login");
+			serverWidget.getLoginBtn().setImage(Images.DISCONNECT);
+		
+//			loginToggle.setToolTipText("Login");
 //			loginToggle.setSelection(false);
-			loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
+//			loginToggle.setImage(Images.DISCONNECT);
 		}
 		
-		serverWidget.getUsernameLabel().pack();
+		//serverWidget.getUsernameLabel().pack();
 		serverWidget.getServerLabel().pack();
 		
 		uploadDocsItem.setEnabled(loggedIn);
 		searchBtn.setEnabled(loggedIn);
 		
-		loginToggle.setSelection(loggedIn);
+//		loginToggle.setSelection(loggedIn);
 	}
 
 	public void center() {

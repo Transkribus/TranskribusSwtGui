@@ -1,5 +1,8 @@
 package eu.transkribus.swt_gui.doc_overview;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.window.ToolTip;
@@ -49,12 +52,15 @@ public class ServerWidget extends Composite {
 	Composite container;
 	
 	Button syncWithLocalDocBtn, applyAffineTransformBtn, batchReplaceImgsBtn;
+	Button loginBtn;
 		
 	int selectedId=-1;
 	
 	Button showJobsBtn, showVersionsBtn;
 	
 	ServerWidgetListener serverWidgetListener;
+	
+	List<Control> userControls = new ArrayList<>();
 		
 	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
@@ -71,7 +77,7 @@ public class ServerWidget extends Composite {
 	void updateLoggedIn() {
 		boolean isLoggedIn = store.isLoggedIn();
 		
-		for (Control c : this.getChildren()) {
+		for (Control c : userControls) {			
 			c.setEnabled(isLoggedIn);
 		}
 	}
@@ -83,9 +89,16 @@ public class ServerWidget extends Composite {
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
+		loginBtn = new Button(container, 0);
+		loginBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		loginBtn.setImage(Images.DISCONNECT);
+		Fonts.setBoldFont(loginBtn);
+		
+		/*
 		usernameLabel = new Label(container, SWT.NONE);
-		usernameLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		usernameLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		Fonts.setBoldFont(usernameLabel);
+		*/
 		
 		serverLabel = new Label(container, SWT.NONE);
 		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -98,21 +111,25 @@ public class ServerWidget extends Composite {
 		showJobsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		showJobsBtn.setText("Jobs on server...");
 		showJobsBtn.setImage(Images.CUP);
+		userControls.add(showJobsBtn);
 		
 		showVersionsBtn = new Button(btns1, 0);
 		showVersionsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		showVersionsBtn.setText("Versions of page...");
 		showVersionsBtn.setImage(Images.PAGE_WHITE_STACK);
+		userControls.add(showVersionsBtn);
 
 		manageCollectionsBtn = new Button(btns1, SWT.PUSH);
 		manageCollectionsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		manageCollectionsBtn.setImage(Images.getOrLoad("/icons/user_edit.png"));
 		manageCollectionsBtn.setText("Manage collections...");
+		userControls.add(manageCollectionsBtn);
 		
 		showActivityWidgetBtn = new Button(btns1, SWT.PUSH);
 		showActivityWidgetBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		showActivityWidgetBtn.setImage(Images.GROUP);
 		showActivityWidgetBtn.setText("User activity...");
+		userControls.add(showActivityWidgetBtn);
 				
 		// admin area:
 		adminAreaExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
@@ -123,12 +140,15 @@ public class ServerWidget extends Composite {
 		adminAreaComp.setLayout(new GridLayout(1, false));
 		syncWithLocalDocBtn = new Button(adminAreaComp, SWT.PUSH);
 		syncWithLocalDocBtn.setText("Sync with local doc");
+		userControls.add(syncWithLocalDocBtn);
 		
 		applyAffineTransformBtn = new Button(adminAreaComp, SWT.PUSH);
 		applyAffineTransformBtn.setText("Apply affine transformation");
+		userControls.add(applyAffineTransformBtn);
 		
 		batchReplaceImgsBtn = new Button(adminAreaComp, SWT.PUSH);
 		batchReplaceImgsBtn.setText("Batch replace images");
+		userControls.add(batchReplaceImgsBtn);
 		
 		configExpandable(adminAreaExp, adminAreaComp, "Admin area", container, false);
 		adminAreaExp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
@@ -142,6 +162,7 @@ public class ServerWidget extends Composite {
 		
 		recentDocsComboViewerWidget = new RecentDocsComboViewerWidget(lastDocsAreaComp, 0);
 		recentDocsComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		userControls.add(recentDocsComboViewerWidget);
 		
 		configExpandable(lastDocsAreaExp, lastDocsAreaComp, "Recent Documents", container, true);
 		lastDocsAreaExp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
@@ -159,6 +180,7 @@ public class ServerWidget extends Composite {
 		
 		collectionComboViewerWidget = new CollectionComboViewerWidget(remotedocsgroup, 0);
 		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		userControls.add(collectionComboViewerWidget);
 		
 		Composite docsContainer = new Composite(remotedocsgroup, 0);
 		docsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -167,6 +189,7 @@ public class ServerWidget extends Composite {
 
 		docTableWidget = new DocTableWidgetPagination(docsContainer, 0, 25);
 		docTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		userControls.add(docTableWidget);
 		
 		ColumnViewerToolTipSupport.enableFor(docTableWidget.getPageableTable().getViewer(), ToolTip.NO_RECREATE);
 		docTableWidget.getPageableTable().setToolTipText("");
@@ -214,6 +237,7 @@ public class ServerWidget extends Composite {
 	public TableViewer getTableViewer() { return docTableWidget.getTableViewer(); }
 	public Label getServerLabel() { return serverLabel; }
 	public Label getUsernameLabel() { return usernameLabel; }
+	public Button getLoginBtn() { return loginBtn; }
 		
 	public TrpDocMetadata getSelectedDocument() {
 		return docTableWidget.getFirstSelected();
