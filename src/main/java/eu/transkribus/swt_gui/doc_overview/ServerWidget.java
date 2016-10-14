@@ -25,7 +25,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
 import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
 public class ServerWidget extends Composite {

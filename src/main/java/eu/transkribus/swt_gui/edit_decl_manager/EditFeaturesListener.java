@@ -26,8 +26,8 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 //
 public class EditFeaturesListener implements SelectionListener, DragSourceListener {
 	private final static Logger logger = LoggerFactory.getLogger(EditFeaturesListener.class);

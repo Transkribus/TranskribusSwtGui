@@ -42,8 +42,8 @@ import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 //public class CollectionManagerWidget extends Composite {
 public class EditDeclManagerDialog extends Dialog {

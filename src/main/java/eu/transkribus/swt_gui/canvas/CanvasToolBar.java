@@ -78,7 +78,8 @@ public class CanvasToolBar {
 	List<ToolItem> addItems;
 	CanvasWidget canvasWidget;
 	DropDownToolItem imageVersionDropdown;
-	DropDownToolItem tableItem;
+//	DropDownToolItem tableItem;
+	ToolItem helpItem;
 	
 //	MenuItem deleteRowItem;
 //	MenuItem deleteColumnItem;
@@ -283,6 +284,10 @@ public class CanvasToolBar {
 		viewSettingsMenuItem.setToolTipText("Change &viewing settings...");
 		viewSettingsMenuItem.setImage(Images.getOrLoad("/icons/palette.png"));
 		
+		helpItem = new ToolItem(this.tb, SWT.PUSH);
+		helpItem.setToolTipText("Canvas shortcuts");
+		helpItem.setImage(Images.HELP);
+		
 		this.tb.pack();
 		
 		addListeners();
@@ -396,6 +401,8 @@ public class CanvasToolBar {
 		SWTUtil.addSelectionListener(viewSettingsMenuItem, listener);
 		
 		SWTUtil.addSelectionListener(imgEnhanceItem, listener);
+		
+		SWTUtil.addSelectionListener(helpItem, listener);
 		
 		// table stuff
 //		SWTUtil.addSelectionListener(deleteRowItem, listener);
@@ -815,6 +822,10 @@ public class CanvasToolBar {
 
 	public DropDownToolItem getSplitDropdown() {
 		return splitDropdown;
+	}
+	
+	public ToolItem getHelpItem() {
+		return helpItem;
 	}
 
 }

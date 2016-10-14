@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Text;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.EdOption;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class EditOptionDialog extends Dialog {
     private Text textField;

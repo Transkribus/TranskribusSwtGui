@@ -14,7 +14,7 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.swt.util.ThumbnailWidget;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DocInfoWidget extends Composite {
 	

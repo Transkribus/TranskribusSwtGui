@@ -62,8 +62,8 @@ import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.PageHit;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class FullTextSearchComposite extends Composite{
 	private final static Logger logger = LoggerFactory.getLogger(FullTextSearchComposite.class);

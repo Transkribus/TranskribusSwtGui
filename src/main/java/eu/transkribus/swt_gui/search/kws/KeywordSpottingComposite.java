@@ -40,8 +40,8 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget.ColConfig;
 
 public class KeywordSpottingComposite extends Composite {

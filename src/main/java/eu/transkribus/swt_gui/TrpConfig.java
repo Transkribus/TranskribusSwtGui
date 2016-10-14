@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.util.APropertyChangeSupport;
 import eu.transkribus.util.Utils;
 

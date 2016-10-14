@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.mainwidget;
+package eu.transkribus.swt_gui.mainwidget.menubar;
 
 import java.util.Locale;
 
@@ -8,6 +8,8 @@ import org.eclipse.swt.widgets.MenuItem;
 
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import junit.framework.Assert;
 
 public class TrpMenuBarListener implements SelectionListener {
@@ -77,7 +79,7 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		SWTUtil.onSelectionEvent(mb.tipsOfTheDayMenuItem, (e) -> { mw.showTipsOfTheDay(); });
 		
-		SWTUtil.onSelectionEvent(mb.aboutMenuIItem, (e) -> { mw.showAboutDialog(); });
+		SWTUtil.onSelectionEvent(mb.aboutMenuIItem, (e) -> { mw.openAboutDialog(); });
 		
 		SWTUtil.onSelectionEvent(mb.replaceImageItem, (e) -> { mw.replacePageImg(); });
 		

@@ -18,8 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.swt.progress.ProgressBarDialog;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class OAuthGuiUtil {
 	private static final Logger logger = LoggerFactory.getLogger(OAuthGuiUtil.class);

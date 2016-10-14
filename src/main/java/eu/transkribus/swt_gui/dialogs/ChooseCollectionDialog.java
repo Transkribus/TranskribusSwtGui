@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ChooseCollectionDialog extends Dialog {
 		

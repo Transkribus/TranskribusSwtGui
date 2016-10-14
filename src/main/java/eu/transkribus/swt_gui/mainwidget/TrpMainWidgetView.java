@@ -43,6 +43,8 @@ import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.doc_overview.DocInfoWidget;
 import eu.transkribus.swt_gui.doc_overview.DocMetadataEditor;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
+import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBar;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidget;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidget;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget;
@@ -111,6 +113,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	ToolItem showLineEditorToggle;
 	ToolItem loadTranscriptInTextEditor;
+	ToolItem helpItem;
 	// ##########
 		
 	TrpTabWidget tabWidget;
@@ -389,14 +392,14 @@ public class TrpMainWidgetView extends Composite {
 	                menu.getMenuBar().setVisible(true);
 	        }
 		});
-		menu.getMenuBar().addMenuListener(new org.eclipse.swt.events.MenuListener() {
-			@Override public void menuShown(MenuEvent e) {
-				menuButton.setSelection(true);
-			}
-			@Override public void menuHidden(MenuEvent e) {
-				menuButton.setSelection(false);
-			}
-		});
+//		menu.getMenuBar().addMenuListener(new org.eclipse.swt.events.MenuListener() {
+//			@Override public void menuShown(MenuEvent e) {
+//				menuButton.setSelection(true);
+//			}
+//			@Override public void menuHidden(MenuEvent e) {
+//				menuButton.setSelection(false);
+//			}
+//		});
 		
 		loginToggle = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		loginToggle.setToolTipText("Login");
@@ -422,7 +425,6 @@ public class TrpMainWidgetView extends Composite {
 		String[] cascadeLabels = { "Left view", /*"Right view",*/ "Bottom view" };
 		String[] dockingsLabels = { "Docked", "Undocked", "Invisible" };	
 
-		// for all positions
 		int i=0;
 		for (Position p : positions) {
 			// create the cascade menu

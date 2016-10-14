@@ -57,7 +57,7 @@ import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ThumbnailManager extends Dialog {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailManager.class);

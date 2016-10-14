@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
 import examples.Person;
 

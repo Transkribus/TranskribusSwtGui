@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.mainwidget.listener;
+package eu.transkribus.swt_gui.mainwidget;
 
 import java.util.Observable;
 import java.util.Observer;
@@ -20,7 +20,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEven
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpTagsChangedEvent;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpTextChangedEvent;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpTextStyleChangedEvent;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.LineEditor;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
@@ -119,27 +118,6 @@ public class TranscriptObserver implements Observer {
 	
 	private void onTagsChanged(Object source, TrpTagsChangedEvent e) {
 		logger.trace("tags changed, source = "+source+" e = "+e);
-		
-//		if (!(source instanceof TrpTextLineType)) {
-//			return;
-//		}
-		
-//		logger.debug("tags have changed in: "+source);
-		// update transcription widget:
-//		if (e.who != mainWidget.getUi().getTrpTranscriptionWidget()) {
-//			lineTranscriptionWidget.getText().redraw();
-//		}
-		// update text in lineeditor:
-//		if (e.who != lineEditor) {
-//			lineEditor.getTextField().redraw();
-//		}
-		// update word tag editor:
-//		mainWidget.getCanvas().getWordTagEditor().updateData();
-		
-		// update tree:
-//		mainWidget.getUi().getStructureTreeWidget().updateLabels(source);
-		
-//		mainWidget.updatePageRelatedMetadata(); // CAN SKIP THIS AS METADATA GETS UPDATED BY SELECTION CHANGED LISTENER!
 		
 		if (false) { // inefficient... keep out if possible!
 		if (source instanceof TrpTextLineType) {

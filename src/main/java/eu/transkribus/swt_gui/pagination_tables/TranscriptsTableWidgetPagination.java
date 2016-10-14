@@ -25,8 +25,8 @@ import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TranscriptsTableWidgetPagination extends ATableWidgetPagination<TrpTranscriptMetadata> {
 	

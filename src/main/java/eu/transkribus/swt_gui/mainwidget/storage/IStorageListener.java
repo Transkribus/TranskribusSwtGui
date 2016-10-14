@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.mainwidget.listener;
+package eu.transkribus.swt_gui.mainwidget.storage;
 
 import java.util.ArrayList;
 import java.util.List;

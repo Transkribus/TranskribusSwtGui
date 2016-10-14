@@ -38,9 +38,9 @@ import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_gui.mainwidget.DocJobUpdater;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener.JobUpdateEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 
 public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatus> {
 	private final static Logger logger = LoggerFactory.getLogger(JobTableWidgetPagination.class);
