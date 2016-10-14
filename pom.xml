@@ -223,6 +223,11 @@
 							<jre>
 								<minVersion>1.8.0</minVersion>
 								<jdkPreference>preferJre</jdkPreference>
+<!-- 								<maxHeapSize>2048</maxHeapSize> -->
+<!-- 								<initialHeapSize>MB</initialHeapSize> -->
+								<initialHeapPercent>15</initialHeapPercent>
+<!-- 								<maxHeapSize>MB</maxHeapSize> -->
+								<maxHeapPercent>50</maxHeapPercent>			
 							</jre>
 							<!-- <versionInfo> -->
 							<!-- <fileVersion>1.0.0.0</fileVersion> -->
