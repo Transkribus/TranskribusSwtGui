@@ -3,12 +3,14 @@ package eu.transkribus.swt.util;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;
 import org.eclipse.nebula.widgets.gallery.GalleryItem;
@@ -21,6 +23,7 @@ import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -30,6 +33,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
@@ -41,6 +45,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.ISelectionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,10 +61,12 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.swt.util.ThumbnailWidget.ThmbImg;
+import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
 import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.mainwidget.Storage;
 
-public class ThumbnailManager extends Dialog {
+public class ThumbnailManager extends Dialog{
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailManager.class);
 	
 	static final int TEXT_TO_THUMB_OFFSET = 5;
@@ -78,13 +85,17 @@ public class ThumbnailManager extends Dialog {
 	protected Composite groupComposite;
 	protected Composite labelComposite;
 	
+	Combo labelCombo, statusCombo;
+
+	Composite editCombos;
+	
 	protected Label statisticLabel;
 	protected Label pageNrLabel;
 	protected Label totalTranscriptsLabel;
 	
 	protected GalleryItem group;
 	
-	protected Button reload, showOrigFn, createThumbs, showPageManager;
+	protected Button reload, showOrigFn, createThumbs, startLA;
 	//protected ToolItem reload, showOrigFn, createThumbs, showPageManager;
 //	protected TextToolItem infoTi;
 
@@ -117,158 +128,7 @@ public class ThumbnailManager extends Dialog {
 	}
 
 	TrpDocMetadata docMd;
-	
-	public static class ThmbImg {		
-		Image image = null;
-		URL url;
-		TrpTranscriptMetadata transcript;
-		boolean isError=false;
-		int index;
-		int segmentedLines;                        
-		int transcribedLines;
 		
-		public ThmbImg(int index, URL url, TrpTranscriptMetadata transcript) {
-			this.index = index;
-			this.url = url;
-			this.transcript = transcript;
-			load();
-		}
-		
-		public static Image scaleImageToHeight(Image im, int newHeight) {
-			Rectangle b = im.getBounds();
-			
-			double sf = (double)newHeight/(double)b.height;
-			int newWidth = (int)(b.width * sf);
-			logger.debug("scaling to :"+newWidth + " x "+newHeight);
-			
-			Image scaled =
-				new Image(Display.getCurrent(), im.getImageData().scaledTo(newWidth, newHeight));
-			return scaled;
-		}
-		
-		public static Image scaleImageToWidth(Image im, int newWidth) {
-			Rectangle b = im.getBounds();
-			
-			double sf = (double)newWidth/(double)b.width;
-			int newHeight = (int)(b.height * sf);
-			logger.debug("scaling to :"+newWidth + " x "+newHeight);
-			
-			Image scaled =
-				new Image(Display.getCurrent(), im.getImageData().scaledTo(newWidth, newHeight));
-			return scaled;
-		}		
-		
-		private void load() {
-			try {
-				isError = false;
-				image = ImgLoader.load(url);
-
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						onSuccess();
-					}
-				});
-				
-			} catch (Exception e) {
-//				logger.error(e.getMessage(), e);
-				logger.debug(e.getMessage());
-				isError = true;
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						onError();
-					}
-				});
-			} finally {
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						onDone();
-					}
-				});
-			}
-		}
-		
-		protected void onSuccess() {
-		}
-		
-		protected void onError() {	
-		}
-		
-		protected void onDone() {			
-		}
-		
-		public void dispose() {
-			if (image != null && !image.isDisposed()) {
-				image.dispose();
-				image = null;
-			}
-		}
-		
-		public Image getDisplayImage() {
-			if (isError)
-				return Images.ERROR_IMG;
-			else if (image == null)
-				return Images.LOADING_IMG;
-			
-			else return image;
-		}
-	}
-	
-	public interface ThreadCompleteListener {
-		void notifyOfThreadComplete(final Thread thread);
-		void notifyImageLoaded(final int i);
-	}
-	
-	class ThmbImgLoadThread extends Thread {		
-		public boolean cancel=false;
-
-		public ThmbImgLoadThread() {
-			this.setName("ThmbImgLoadThread_"+(++thread_counter));
-		}
-		
-		@Override
-		public void run() {
-			cancel = false;
-			totalLinesTranscribed = 0;
-			
-			for (int i=0; i<urls.size() && !cancel; ++i) {
-				if (cancel)
-					break;
-				
-				thumbs.add(new ThmbImg(i, urls.get(i), transcripts.get(i)) {
-					@Override
-					protected void onSuccess() {
-						if (cancel || index >= group.getItemCount() || index <0)
-							return;
-						
-						group.getItem(index).setImage(image);
-						group.getItem(index).setData("doNotScaleImage", null);
-						
-						gallery.redraw();
-					}
-					@Override
-					protected void onError() {
-						if (cancel || index >= group.getItemCount() || index <0)
-							return;						
-						
-						group.getItem(index).setImage(Images.ERROR_IMG);
-						group.getItem(index).setData("doNotScaleImage", new Object());
-						gallery.redraw();
-					}
-					
-					@Override protected void onDone() {
-						setItemTextAndBackground(group.getItem(index), index);
-						gallery.redraw();
-					}
-				});	
-			}
-			
-			logger.debug("thumbnail thread finished!");
-		}
-	} // end ThmbImgLoadThread
-	
 	/**
 	 * Open the dialog.
 	 * @return the result
@@ -281,7 +141,9 @@ public class ThumbnailManager extends Dialog {
 		shell.open();
 		shell.layout();
 		
-		reload();
+		//take the thumbs from the widget to show in the manager
+		thumbsWidget.loadThumbsIntoManager();
+		addStatisticalNumbers();
 		
 		Display display = shell.getDisplay();
 		while (!shell.isDisposed()) {
@@ -295,7 +157,6 @@ public class ThumbnailManager extends Dialog {
 	
 	public ThumbnailManager(Composite parent, int style, ThumbnailWidget thumbnailWidget) {
 		super(parent.getShell(), style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
-		//super.setShellStyle(style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
 		
 		thumbsWidget = thumbnailWidget;
 		
@@ -320,18 +181,37 @@ public class ThumbnailManager extends Dialog {
 		container.setLayout(layout);
 		
 		groupComposite = new Composite(container, SWT.NONE);
-		GridLayout gl = new GridLayout(1, false);
+		GridLayout gl = new GridLayout(2, false);
+		gl.makeColumnsEqualWidth = true;
 		groupComposite.setLayout(gl);
 		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true, true);
 		groupComposite.setLayoutData(gridData);
 		
 		labelComposite = new Composite(groupComposite, SWT.NONE);
 		labelComposite.setLayout(new GridLayout(1, true));
-		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
 		statisticLabel = new Label(labelComposite, SWT.TOP);
-		statisticLabel.setText("Loaded Document is " + docMd.getTitle());
+		statisticLabel.setText("Loaded Document is " + docMd.getTitle() + " with ID " + docMd.getDocId());
 		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		editCombos = new Composite(groupComposite, SWT.NONE);
+		editCombos.setLayout(new GridLayout(2, true));
+		editCombos.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		
+		statusCombo = initComboWithLabel(editCombos, "Edit status: ", SWT.DROP_DOWN | SWT.READ_ONLY);
+		statusCombo.setItems(EnumUtils.stringsArray(EditStatus.class));
+		statusCombo.setEnabled(false);
+		
+		labelCombo = initComboWithLabel(editCombos, "Edit label: ", SWT.DROP_DOWN | SWT.READ_ONLY);
+		labelCombo.setItems(EnumUtils.stringsArray(EditStatus.class));
+		labelCombo.setEnabled(false);
+		
+		Label la = new Label(editCombos, SWT.CENTER);
+		la.setText("Layout Analysis");
+		startLA = new Button(editCombos, SWT.PUSH);
+		startLA.setText("Setting up");
+		startLA.setEnabled(false);
 		
 		Composite btns = new Composite(container, 0);
 		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -346,14 +226,9 @@ public class ThumbnailManager extends Dialog {
 				reload();
 			}
 		});
-		
-//		createThumbs = new Button(btns, SWT.PUSH);
-//		createThumbs.setImage(Images.IMAGES);
-////		createThumbs.setToolTipText("Create thumbnails for this local document");
-//		createThumbs.setText("Create thumbs for local doc");	
 
 		gallery = new Gallery(groupComposite, SWT.V_SCROLL | SWT.MULTI);
-		gallery.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		gallery.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 
 		group = new GalleryItem(gallery, SWT.NONE);
 		
@@ -389,11 +264,6 @@ public class ThumbnailManager extends Dialog {
 						Event e = new Event();
 						e.index = group.indexOf(gallery.getSelection()[0]);
 						
-//						if (names != null && names.size()>e.index) {
-//							infoTi.setText(names.get(e.index));
-//						} else 
-//							infoTi.setText(""+e.index);
-//						infoTi.setWidth(100);
 						btns.pack();
 						
 						thumbsWidget.notifyListeners(SWT.Selection, e);
@@ -402,8 +272,24 @@ public class ThumbnailManager extends Dialog {
 			}
 		});
 		
+		gallery.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	if (gallery.getSelectionCount()>=1){
+            		enableEdits(true);
+            	}
+            	else{
+            		enableEdits(false);
+            	}            	
+            }
+
+
+		});
+		
 	    final Menu contextMenu = new Menu(gallery);
 	    gallery.setMenu(contextMenu);
+	    //at the moment not enabled because not the total functionality to edit status, label is available
+	    contextMenu.setEnabled(false);
 	    
 	    addMenuItems(contextMenu, EnumUtils.stringsArray(EditStatus.class));
 	    
@@ -535,6 +421,19 @@ public class ThumbnailManager extends Dialog {
 //		open();
 	}
 	
+
+	private static Combo initComboWithLabel(Composite parent, String label, int comboStyle) {
+		
+		Label l = new Label(parent, SWT.LEFT);
+		l.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		l.setText(label);
+		
+		Combo combo = new Combo(parent, comboStyle);
+		combo.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+				
+		return combo;
+	}
+	
 	protected void setup_layout_recognition(String pages) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		SimpleLaDialog laD = new SimpleLaDialog(shell);
 		
@@ -548,9 +447,9 @@ public class ThumbnailManager extends Dialog {
 			final String pageStr = laD.getPages();
 			final boolean doBlockSeg = laD.isDoBlockSeg();
 			final boolean doLineSeg = laD.isDoLineSeg();
-			logger.debug("collID " + Storage.getInstance().getCurrentDocumentCollectionId());
-			logger.debug("docMd.getDocId() " + docMd.getDocId());
-			logger.debug("pageStr " + pageStr);
+//			logger.debug("collID " + Storage.getInstance().getCurrentDocumentCollectionId());
+//			logger.debug("docMd.getDocId() " + docMd.getDocId());
+//			logger.debug("pageStr " + pageStr);
 			String jobId = Storage.getInstance().analyzeLayout(Storage.getInstance().getCurrentDocumentCollectionId(), docMd.getDocId(), pageStr, doBlockSeg, doLineSeg);
 		}
 	}
@@ -562,6 +461,7 @@ public class ThumbnailManager extends Dialog {
 		MenuItem statusMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
 		statusMenuItem.setText("Edit Status");
 		statusMenuItem.setMenu(statusMenu);
+		//statusMenuItem.setEnabled(false);
 		
 		Menu labelMenu = new Menu(contextMenu);
 		MenuItem labelMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
@@ -577,23 +477,28 @@ public class ThumbnailManager extends Dialog {
 			tmp = new MenuItem(statusMenu, SWT.None);
 			tmp.setText(editStatus);
 			tmp.addSelectionListener(new EditStatusMenuItemListener());
+			tmp.setEnabled(false);
 		}
 		
 		//just dummy labels for testing
 		tmp = new MenuItem(labelMenu, SWT.None);
 		tmp.setText("Upcoming feature - cannot be set at at the moment");
 		tmp.addSelectionListener(new EditLabelMenuItemListener());
+		tmp.setEnabled(false);
 		
 		tmp = new MenuItem(labelMenu, SWT.None);
 		tmp.setText("GT");
 		tmp.addSelectionListener(new EditLabelMenuItemListener());
+		tmp.setEnabled(false);
 		
 		tmp = new MenuItem(labelMenu, SWT.None);
 		tmp.setText("eLearning");
 		tmp.addSelectionListener(new EditLabelMenuItemListener());
+		tmp.setEnabled(false);
 		
 		tmp = new MenuItem(layoutMenu, SWT.None);
 		tmp.setText("Setting Up");
+		tmp.setEnabled(false);
 		
 		tmp.addListener(SWT.Selection, event-> {
 			String pages = getPagesString();
@@ -604,9 +509,7 @@ public class ThumbnailManager extends Dialog {
 				e.printStackTrace();
 			}
         });
-		
-		
-		
+
 	}
 	
 	private String getPagesString() {
@@ -618,7 +521,7 @@ public class ThumbnailManager extends Dialog {
 				pages += (pages.equals("")? tmp : ",".concat(tmp));
 			}			
 		}
-		logger.debug("pages String " + pages);
+		//logger.debug("pages String " + pages);
 		return pages;
 	}
 
@@ -687,17 +590,13 @@ public class ThumbnailManager extends Dialog {
 	    	
 	    }
 	}
-	
-	private void setUrls(List<URL> urls, List<String> names) {
-		this.urls = urls;
-		this.names = names;
 		
-//		if (urls != null)
-//			reload();
-	}
-	
-	private void createGalleryItems(){
+	public void createGalleryItems(){
 		//add text
+		
+		if(group.getItemCount() > 0){
+			return;
+		}
 
 		for (int i=0; i<urls.size(); ++i) {
 			final GalleryItem item = new GalleryItem(group, SWT.MULTI);
@@ -717,7 +616,16 @@ public class ThumbnailManager extends Dialog {
 		}
 	}
 	
-	private void disposeOldData() {
+	public void setUrls(List<URL> urls, List<String> names) {
+		this.urls = urls;
+		this.names = names;
+	}
+	
+	public void setTranscripts(List<TrpTranscriptMetadata> transcripts2) {
+		this.transcripts = transcripts2;
+	}
+	
+	public void disposeOldData() {
 		// dispose images:
 		for (ThmbImg th : thumbs) {
 			th.dispose();
@@ -729,67 +637,88 @@ public class ThumbnailManager extends Dialog {
 			item.dispose();
 		}
 	}
-	
-	private void stopActiveThread() {	
-		
-		if (loadThread!=null && loadThread.isAlive()) {			
-			logger.debug("stopping thumbnail thread from thread: "+Thread.currentThread().getName());
-			loadThread.cancel = true;
-			try {
-//				loadThread.join(); // leads to deadlock... don't know why
-				loadThread.interrupt(); // works!
-			}
-			catch (Exception e) {
-				logger.error(e.getMessage(), e);
-			}
-			finally {
-				logger.debug("thumbnail thread stopped: "+!loadThread.isAlive());
-			}
-		}
-	}
-		
+			
 	public void reload() {
-		Storage storage = Storage.getInstance();
+		thumbsWidget.reload();
 		
-		int N = !storage.isDocLoaded() ? 0 : storage.getDoc().getThumbUrls().size();
-		
-		/*
-		 * TODO: 
-		 * load transcripts
-		 * show info later on in thumbnail widget
-		 * 
-		 */
-		
-		logger.debug("reloading thumbs, nr of thumbs = "+ N);
-		
-		// remember index of selected item:
-		int selectedIndex=-1;
-		if (gallery.getSelectionCount() > 0) {
-			GalleryItem si = gallery.getSelection()[0];
-//			logger.debug("si = "+si);
-			selectedIndex = gallery.indexOf(si);
-		}
+		addStatisticalNumbers();
 
-		// first: stop old thread
-		stopActiveThread();
 		
-		// dispose old images:
-		disposeOldData();		
 		
-//		logger.debug("reloading thumbs, is doc loaded: "+storage.isDocLoaded());
-		if (!storage.isDocLoaded())
-			return;
+//		
+//		
+//		int N = !storage.isDocLoaded() ? 0 : storage.getDoc().getThumbUrls().size();
+//		
+//		/*
+//		 * TODO: 
+//		 * load transcripts
+//		 * show info later on in thumbnail widget
+//		 * 
+//		 */
+//		
+//		logger.debug("reloading thumbs, nr of thumbs = "+ N);
+//		
+//		// remember index of selected item:
+//		int selectedIndex=-1;
+//		if (gallery.getSelectionCount() > 0) {
+//			GalleryItem si = gallery.getSelection()[0];
+////			logger.debug("si = "+si);
+//			selectedIndex = gallery.indexOf(si);
+//		}
+//
+//		// first: stop old thread
+//		//stopActiveThread();
+//		
+//		// dispose old images:
+//		disposeOldData();		
+//		
+////		logger.debug("reloading thumbs, is doc loaded: "+storage.isDocLoaded());
+//		if (!storage.isDocLoaded())
+//			return;
+//		
+//		// set url and page data:
+//		setUrls(storage.getDoc().getThumbUrls(), storage.getDoc().getPageImgNames());
+//		
+//		setTranscripts(storage.getDoc().getTranscripts());
+//		
+//		//setImageTexts();
+//		
+//		// create new gallery items:
+//		createGalleryItems();
+//		
+
+//
+//
+//		
+//		// create a new thread and start it:
+//		loadThread = thumbsWidget.loadThread;
+//		boolean DO_THREADING = true;
+//		if (DO_THREADING) {
+//			logger.debug("starting thumbnail thread!");
+//			loadThread.start();
+//		}
+//		else {
+//			logger.debug("running thumbnail reload method");
+//			loadThread.run(); // sequential version -> just call run() method
+//		}
+//		
+//
+//		
+//		// select item previously selected:
+//		logger.debug("previously selected index = "+selectedIndex+ " n-items = "+group.getItemCount());
+//		if (selectedIndex >= 0 && selectedIndex<group.getItemCount()) {
+//			GalleryItem it = group.getItem(selectedIndex);
+//			logger.trace("it = "+it);
+//			if (it != null) {
+//				it.setExpanded(true);
+//				gallery.setSelection( new GalleryItem[]{it} );
+//			}
+//		}	
+	}
+	
+	private void addStatisticalNumbers() {
 		
-		// set url and page data:
-		setUrls(storage.getDoc().getThumbUrls(), storage.getDoc().getPageImgNames());
-		
-		setTranscripts(storage.getDoc().getTranscripts());
-		
-		//setImageTexts();
-		
-		// create new gallery items:
-		createGalleryItems();
-		
+		Storage storage = Storage.getInstance();
 		if (storage.getDoc() != null){
 			if(pageNrLabel != null && !pageNrLabel.isDisposed()){
 				pageNrLabel.dispose();
@@ -802,39 +731,15 @@ public class ThumbnailManager extends Dialog {
 			
 			totalTranscriptsLabel = new Label(labelComposite, SWT.None);
 			totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
-
-			groupComposite.layout(true, true);
-		}
-
-
-		
-		// create a new thread and start it:
-		loadThread = new ThmbImgLoadThread();
-		boolean DO_THREADING = true;
-		if (DO_THREADING) {
-			logger.debug("starting thumbnail thread!");
-			loadThread.start();
-		}
-		else {
-			logger.debug("running thumbnail reload method");
-			loadThread.run(); // sequential version -> just call run() method
-		}
-		
-
-		
-		// select item previously selected:
-		logger.debug("previously selected index = "+selectedIndex+ " n-items = "+group.getItemCount());
-		if (selectedIndex >= 0 && selectedIndex<group.getItemCount()) {
-			GalleryItem it = group.getItem(selectedIndex);
-			logger.trace("it = "+it);
-			if (it != null) {
-				it.setExpanded(true);
-				gallery.setSelection( new GalleryItem[]{it} );
-			}
-		}	
-	}
 	
-	private void setItemTextAndBackground(GalleryItem galleryItem, int index) {
+			groupComposite.layout(true, true);
+			
+			//gallery.redraw();
+		}
+		
+	}
+
+	public void setItemTextAndBackground(GalleryItem galleryItem, int index) {
 		if (SWTUtil.isDisposed(galleryItem))
 			return;
 		
@@ -846,10 +751,6 @@ public class ThumbnailManager extends Dialog {
 		
 	}
 	
-	private void setTranscripts(List<TrpTranscriptMetadata> transcripts2) {
-		this.transcripts = transcripts2;
-	}
-
 	private void setItemText(GalleryItem item, int i, String transcribedLinesText) {
 		String text=""+(i+1);
 		
@@ -927,6 +828,13 @@ public class ThumbnailManager extends Dialog {
 //	public void setImages(List<Image> thumbImages) {
 //		tv.setInput(thumbImages);
 //	}
+	
+	private void enableEdits(boolean enable) {
+		statusCombo.setEnabled(enable);
+		labelCombo.setEnabled(enable);
+		startLA.setEnabled(enable);
+		
+	}
 	
 	public Button getCreateThumbs() {
 		return createThumbs;

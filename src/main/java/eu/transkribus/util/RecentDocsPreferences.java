@@ -9,7 +9,7 @@ public class RecentDocsPreferences {
 	    public final static String RECENT_DOC_STRING = "LAST_DOC_";
 	    
 	    static Preferences prefNode = Preferences.userRoot().node( "/trp/recent_docs" );
-	    private static int	nrDocs = 5;
+	    private static int	nrDocs = 10;
 	    
 	    public static boolean showOnStartup = false;
 

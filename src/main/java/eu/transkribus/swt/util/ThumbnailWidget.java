@@ -213,44 +213,64 @@ public class ThumbnailWidget extends Composite {
 				if (cancel)
 					break;
 				
-				thumbs.add(new ThmbImg(i, urls.get(i), transcripts.get(i)) {
-					@Override
-					protected void onSuccess() {
-						if (cancel || index >= group.getItemCount() || index <0)
-							return;
+				if(thumbs.size() == i){
+						thumbs.add(new ThmbImg(i, urls.get(i), transcripts.get(i)) {
+						@Override
+						protected void onSuccess() {
+							if (cancel || index >= group.getItemCount() || index <0)
+								return;
+							
+	//						logger.trace("thread: "+ThmbImgLoadThread.this.getName());
+	//						logger.trace("group size: "+group.getItemCount());
+	//						logger.trace("index: "+index);
+	//						logger.trace("item: "+group.getItem(index));
+							group.getItem(index).setImage(image);
+							group.getItem(index).setData("doNotScaleImage", null);
+							
+							
+							/*
+							groupComposite.layout(true, true);
+							labelComposite.redraw();
+							groupComposite.redraw();
+							*/
+							gallery.redraw();
+							
+							if (isManagerOpen(tm)){
+								tm.group.getItem(index).setImage(image);
+								tm.group.getItem(index).setData("doNotScaleImage", null);
+								tm.gallery.redraw();
+							}
+						}
+						@Override
+						protected void onError() {
+							if (cancel || index >= group.getItemCount() || index <0)
+								return;						
+							
+							group.getItem(index).setImage(Images.ERROR_IMG);
+							group.getItem(index).setData("doNotScaleImage", new Object());
+							gallery.redraw();
+							
+							if(isManagerOpen(tm)){
+								tm.group.getItem(index).setImage(Images.ERROR_IMG);
+								tm.group.getItem(index).setData("doNotScaleImage", new Object());
+								tm.gallery.redraw();
+							}
+						}
 						
-//						logger.trace("thread: "+ThmbImgLoadThread.this.getName());
-//						logger.trace("group size: "+group.getItemCount());
-//						logger.trace("index: "+index);
-//						logger.trace("item: "+group.getItem(index));
-						group.getItem(index).setImage(image);
-						group.getItem(index).setData("doNotScaleImage", null);
-						
-						/*
-						groupComposite.layout(true, true);
-						labelComposite.redraw();
-						groupComposite.redraw();
-						*/
-						gallery.redraw();
-					}
-					@Override
-					protected void onError() {
-						if (cancel || index >= group.getItemCount() || index <0)
-							return;						
-						
-						group.getItem(index).setImage(Images.ERROR_IMG);
-						group.getItem(index).setData("doNotScaleImage", new Object());
-						gallery.redraw();
-					}
-					
-					@Override protected void onDone() {
-						setItemTextAndBackground(group.getItem(index), index);
-						//groupComposite.layout(true, true);
-						//labelComposite.redraw();
-						//groupComposite.redraw();
-						gallery.redraw();
-					}
-				});	
+						@Override protected void onDone() {
+							setItemTextAndBackground(group.getItem(index), index);
+							//groupComposite.layout(true, true);
+							//labelComposite.redraw();
+							//groupComposite.redraw();
+							gallery.redraw();
+							if(isManagerOpen(tm)){
+								tm.setItemTextAndBackground(group.getItem(index), index);
+								tm.gallery.redraw();
+							}
+						}
+					});	
+				}
+
 			}
 			
 			logger.debug("thumbnail thread finished!");
@@ -380,13 +400,20 @@ public class ThumbnailWidget extends Composite {
 		}
 		
 		//if shell is open {
-		if(tm != null && tm.getShell() != null && !tm.getShell().isDisposed()){
+		if(isManagerOpen(tm)){
 			tm.getShell().setVisible(true);
 		} else {
 			tm = new ThumbnailManager(getShell(), SWT.NONE, this);
 			tm.open();
 		}
 
+	}
+	
+	private boolean isManagerOpen(ThumbnailManager tm){
+		if(tm != null && tm.getShell() != null && !tm.getShell().isDisposed()){
+			return true;
+		}
+		return false;
 	}
 	
 	private void updateGalleryItemNames() {
@@ -405,6 +432,10 @@ public class ThumbnailWidget extends Composite {
 	
 	private void createGalleryItems(){
 		//add text
+		
+		if(group.getItemCount() > 0){
+			return;
+		}
 
 		for (int i=0; i<urls.size(); ++i) {
 			final GalleryItem item = new GalleryItem(group, SWT.MULTI);
@@ -512,6 +543,19 @@ public class ThumbnailWidget extends Composite {
 			}
 		}
 	}
+	
+	public void loadThumbsIntoManager() {
+		tm.setUrls(urls, names);
+		tm.setTranscripts(transcripts);
+		tm.createGalleryItems();
+		for (ThmbImg thumb : thumbs){
+			if (tm != null){
+				tm.group.getItem(thumb.index).setImage(thumb.image);
+				tm.group.getItem(thumb.index).setData("doNotScaleImage", null);
+				tm.gallery.redraw();
+			}
+		}
+	}
 		
 	public void reload() {
 		Storage storage = Storage.getInstance();
@@ -539,7 +583,12 @@ public class ThumbnailWidget extends Composite {
 		stopActiveThread();
 		
 		// dispose old images:
-		disposeOldData();		
+
+		disposeOldData();
+		if(isManagerOpen(tm)){
+			tm.disposeOldData();
+		}
+		
 		
 //		logger.debug("reloading thumbs, is doc loaded: "+storage.isDocLoaded());
 		if (!storage.isDocLoaded())
@@ -554,22 +603,28 @@ public class ThumbnailWidget extends Composite {
 		
 		// create new gallery items:
 		createGalleryItems();
-		
-		if (storage.getDoc() != null && false){
-			if(pageNrLabel != null && !pageNrLabel.isDisposed()){
-				pageNrLabel.dispose();
-			}
-			if(totalTranscriptsLabel != null && !totalTranscriptsLabel.isDisposed()){
-				totalTranscriptsLabel.dispose();
-			}
-			pageNrLabel = new Label(labelComposite, SWT.NONE);
-			pageNrLabel.setText("Nr of pages: " + storage.getDoc().getNPages());
-			
-			totalTranscriptsLabel = new Label(labelComposite, SWT.None);
-			totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
-
-			groupComposite.layout(true, true);
+		if(isManagerOpen(tm)){
+			tm.setUrls(urls, names);
+			tm.setTranscripts(transcripts);
+			tm.createGalleryItems();
 		}
+		
+//		if (storage.getDoc() != null){
+//			tm.createGalleryItems();
+//			if(pageNrLabel != null && !pageNrLabel.isDisposed()){
+//				pageNrLabel.dispose();
+//			}
+//			if(totalTranscriptsLabel != null && !totalTranscriptsLabel.isDisposed()){
+//				totalTranscriptsLabel.dispose();
+//			}
+//			pageNrLabel = new Label(labelComposite, SWT.NONE);
+//			pageNrLabel.setText("Nr of pages: " + storage.getDoc().getNPages());
+//			
+//			totalTranscriptsLabel = new Label(labelComposite, SWT.None);
+//			totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
+//
+//			groupComposite.layout(true, true);
+//		}
 
 
 		
