@@ -29,8 +29,8 @@ import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.HtrRecMode;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.RecMode;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
 public class ToolsWidgetListener implements SelectionListener {

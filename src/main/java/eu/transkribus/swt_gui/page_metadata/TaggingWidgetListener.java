@@ -20,7 +20,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TaggingWidgetListener implements ITaggingWidgetListener {

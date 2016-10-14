@@ -36,7 +36,7 @@ import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 	private final static Logger logger = LoggerFactory.getLogger(PageLockTablePagination.class);

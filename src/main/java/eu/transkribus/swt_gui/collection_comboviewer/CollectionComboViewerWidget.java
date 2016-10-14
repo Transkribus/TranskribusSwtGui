@@ -36,8 +36,8 @@ import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class CollectionComboViewerWidget extends Composite implements Observer {

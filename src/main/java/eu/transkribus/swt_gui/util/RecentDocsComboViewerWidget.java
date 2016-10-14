@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.util.RecentDocsPreferences;
 
 public class RecentDocsComboViewerWidget extends Composite implements Observer {

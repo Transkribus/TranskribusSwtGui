@@ -1,12 +1,11 @@
-package eu.transkribus.swt_gui.mainwidget.listener;
+package eu.transkribus.swt_gui.mainwidget;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBarListener;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class RegionsPagingToolBarListener extends PagingToolBarListener {
 	private final static Logger logger = LoggerFactory.getLogger(RegionsPagingToolBarListener.class);

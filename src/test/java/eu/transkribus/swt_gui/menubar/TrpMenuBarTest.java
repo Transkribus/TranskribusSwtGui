@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
-import eu.transkribus.swt_gui.mainwidget.TrpMenuBar;
+import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBar;
 
 public class TrpMenuBarTest {
 

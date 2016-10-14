@@ -31,7 +31,7 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 

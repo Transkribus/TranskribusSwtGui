@@ -17,8 +17,8 @@ import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Fonts;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CollectionsTableWidgetPagination extends ATableWidgetPagination<TrpCollection> {
 	private final static Logger logger = LoggerFactory.getLogger(CollectionsTableWidgetPagination.class);

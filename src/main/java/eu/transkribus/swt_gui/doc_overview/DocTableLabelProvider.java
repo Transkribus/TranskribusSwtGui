@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.util.Fonts;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DocTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	private final static Logger logger = LoggerFactory.getLogger(DocTableLabelProvider.class);

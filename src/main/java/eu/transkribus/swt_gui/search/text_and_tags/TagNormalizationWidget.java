@@ -24,8 +24,8 @@ import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CustomTagPropertyTable;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 class TagNormalizationWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TagNormalizationWidget.class);

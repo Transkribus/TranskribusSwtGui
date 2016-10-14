@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.mainwidget;
+package eu.transkribus.swt_gui.mainwidget.menubar;
 
 import java.util.Locale;
 
@@ -23,7 +23,7 @@ public class TrpMenuBar {
 		public MenuItem mi;
 	}
 	
-	TrpMainWidget mw;
+//	TrpMainWidget mw;
 	
 	Menu menuBar;
 	

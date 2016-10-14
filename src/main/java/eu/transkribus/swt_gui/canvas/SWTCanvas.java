@@ -49,7 +49,7 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.shapes.RectDirection;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.transcription.LineEditor;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.MathUtil;

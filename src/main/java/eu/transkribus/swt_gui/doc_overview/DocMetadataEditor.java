@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.Date;
+import java.util.concurrent.FutureTask;
 
 import org.eclipse.nebula.widgets.datechooser.DateChooserCombo;
 import org.eclipse.swt.SWT;
@@ -20,18 +21,20 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.enums.ScriptType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.tools.LanguageSelectionTable;
 
 public class DocMetadataEditor extends Composite {
@@ -53,6 +56,8 @@ public class DocMetadataEditor extends Composite {
 	EditDeclManagerDialog edm;
 	
 	DocMetadataEditorListener listener;
+	
+	FutureTask futureSaveTask;
 	
 	public static final String PRINT_META_SCRIPTTYPE = "Printed";
 	
@@ -206,27 +211,100 @@ public class DocMetadataEditor extends Composite {
 		listener = new DocMetadataEditorListener(this);
 	}
 		
+	
+	
 	void saveMd() {
-		TrpMainWidget mw = TrpMainWidget.getInstance();
-		if (mw == null)
-			return;
 		
-		updateMetadataObjectFromGui(Storage.getInstance().getDoc().getMd());
-		mw.saveDocMetadata();
+		Runnable saveTask = new Runnable() {
+			
+			@Override public void run() {
+				TrpMainWidget mw = TrpMainWidget.getInstance();
+				TrpDoc doc = Storage.getInstance().getDoc();
+				
+				if (mw == null || doc == null )
+					return;
+				
+				if (updateMetadataObjectFromGui(doc.getMd())) {
+					mw.saveDocMetadata();	
+				} else {
+					logger.debug("doc-md has not changed - not saving!");
+				}
+			}
+		};
+		
+		if(futureSaveTask != null){
+			futureSaveTask.cancel(true);
+		}
+		futureSaveTask = new FutureTask<Object>(saveTask, null);
+		futureSaveTask.run();
 	}
 	
-	public void updateMetadataObjectFromGui(TrpDocMetadata md) {		
-		logger.debug("updating doc-metadata object: "+md);
+	public boolean hasChanged(TrpDocMetadata md) {
 		if (md == null)
-			return;
+			return false;		
 		
+		if (!titleText.getText().equals(md.getTitle()))
+			return true;
+		if (!authorText.getText().equals(md.getAuthor()))
+			return true;
+		if (!genreText.getText().equals(md.getGenre()))
+			return true;
+		if (!writerText.getText().equals(md.getWriter()))
+			return true;
+		if (!descriptionText.getText().equals(md.getDesc()))
+			return true;
+		if (!langTable.getSelectedLanguagesString().equals(md.getLanguage()))
+			return true;
+		
+		if (!CoreUtils.equalsObjects(getSelectedScriptType(), md.getScriptType()))
+			return true;
+		
+		if (!CoreUtils.equalsObjects(getSelectedCreatedFromDate(), md.getCreatedFromDate()))
+			return true;
+		if (!CoreUtils.equalsObjects(getSelectedCreatedToDate(), md.getCreatedToDate()))
+			return true;
+		
+		return false;
+	}
+	
+	public boolean updateMetadataObjectFromGui(TrpDocMetadata md) {	
+		if (!hasChanged(md))
+			return false;
+		
+		logger.debug("updating doc-metadata object: "+md);
+				
 		md.setTitle(titleText.getText());
 		md.setAuthor(authorText.getText());
 		md.setGenre(genreText.getText());
 		md.setWriter(writerText.getText());
 		md.setDesc(descriptionText.getText());
 		md.setLanguage(langTable.getSelectedLanguagesString());
+		md.setScriptType(getSelectedScriptType());
+
+		md.setCreatedFromDate(getSelectedCreatedFromDate());
+		md.setCreatedToDate(getSelectedCreatedToDate());
 		
+		logger.debug("doc-metadata object after update: "+md);
+		return true;
+	}
+	
+	Date getSelectedCreatedFromDate() {
+		if(isCreatedFromEnabled()){
+			return getCreatedFromDate();
+		} else {
+			return null;
+		}
+	}
+	
+	Date getSelectedCreatedToDate() {
+		if(isCreatedFromEnabled()){
+			return getCreatedToDate();
+		} else {
+			return null;
+		}
+	}	
+	
+	ScriptType getSelectedScriptType() {
 		final String stStr = getScriptTypeCombo().getText();
 		ScriptType st;
 		if(PRINT_META_SCRIPTTYPE.equals(stStr)){
@@ -234,22 +312,9 @@ public class DocMetadataEditor extends Composite {
 		} else {
 			st = EnumUtils.fromString(ScriptType.class, getScriptTypeCombo().getText());
 		}
-		logger.debug("script type1: "+st);
-		md.setScriptType(st);
-		if(isCreatedFromEnabled()){
-			logger.debug("from date: "+getCreatedFromDate());
-			md.setCreatedFromDate(getCreatedFromDate());
-		} else {
-			md.setCreatedFromDate(null);
-		}
-		if(isCreatedToEnabled()){
-			logger.debug("to date: "+getCreatedToDate());
-			md.setCreatedToDate(getCreatedToDate());
-		} else {
-			md.setCreatedToDate(null);
-		}
-		logger.debug("doc-metadata object after update: "+md);
-	}
+		logger.trace("script type1: "+st);
+		return st;
+	};
 	
 	public void setMetadataToGui(TrpDocMetadata md) {
 		titleText.setText(md!=null && md.getTitle()!=null ? md.getTitle() : "");

@@ -24,7 +24,7 @@ import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 //public class CollectionManagerWidget extends Composite {
 public class OldEditDeclManagerDialog extends Dialog {

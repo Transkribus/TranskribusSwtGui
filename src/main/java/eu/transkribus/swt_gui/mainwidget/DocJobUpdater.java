@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
 
 public abstract class DocJobUpdater {

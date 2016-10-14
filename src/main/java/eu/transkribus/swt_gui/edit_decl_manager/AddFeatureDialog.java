@@ -22,7 +22,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.EdFeature;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class AddFeatureDialog extends Dialog {
     private Text titleField;

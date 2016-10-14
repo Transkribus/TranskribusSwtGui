@@ -1,9 +1,8 @@
-package eu.transkribus.swt_gui.mainwidget.listener;
+package eu.transkribus.swt_gui.mainwidget;
 
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBarListener;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class PagesPagingToolBarListener extends PagingToolBarListener {
 	TrpMainWidget widget;

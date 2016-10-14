@@ -22,7 +22,7 @@ import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.util.Utils;
 
 public class GuiUtil {

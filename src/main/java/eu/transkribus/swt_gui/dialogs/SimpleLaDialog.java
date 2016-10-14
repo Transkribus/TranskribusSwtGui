@@ -21,8 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 
 public class SimpleLaDialog extends Dialog {

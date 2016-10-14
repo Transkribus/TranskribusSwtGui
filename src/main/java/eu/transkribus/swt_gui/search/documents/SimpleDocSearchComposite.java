@@ -38,8 +38,8 @@ import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.doc_overview.DocTableWidget;
 import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class SimpleDocSearchComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(SimpleDocSearchComposite.class);

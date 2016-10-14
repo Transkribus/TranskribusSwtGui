@@ -26,7 +26,7 @@ import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class FindUsersWidget extends Composite {
 	

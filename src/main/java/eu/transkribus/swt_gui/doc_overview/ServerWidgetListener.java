@@ -18,9 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ServerWidgetListener extends SelectionAdapter implements ISelectionChangedListener, IDoubleClickListener, KeyListener, MouseTrackListener, IStorageListener {
 	private final static Logger logger = LoggerFactory.getLogger(ServerWidgetListener.class);

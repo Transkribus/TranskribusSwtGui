@@ -38,9 +38,9 @@ import eu.transkribus.swt.util.ComboInputDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.listener.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CollectionManagerListener implements IStorageListener, SelectionListener, DragSourceListener  {
 	private final static Logger logger = LoggerFactory.getLogger(CollectionManagerListener.class);

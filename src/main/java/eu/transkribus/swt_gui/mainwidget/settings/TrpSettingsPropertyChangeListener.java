@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.mainwidget.listener;
+package eu.transkribus.swt_gui.mainwidget.settings;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -11,7 +11,6 @@ import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
 
 public class TrpSettingsPropertyChangeListener implements PropertyChangeListener {
 	private final static Logger logger = LoggerFactory.getLogger(TrpSettingsPropertyChangeListener.class);

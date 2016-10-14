@@ -23,7 +23,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.Utils;
 

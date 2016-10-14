@@ -48,7 +48,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TagsViewer extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TagsViewer.class);

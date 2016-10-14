@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.mainwidget.listener;
+package eu.transkribus.swt_gui.mainwidget;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -12,9 +12,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.table_editor.TableUtils.TrpTableCellsMissingException;
 

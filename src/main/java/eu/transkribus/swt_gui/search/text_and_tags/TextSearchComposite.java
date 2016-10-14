@@ -56,8 +56,8 @@ import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidget;
 
 public class TextSearchComposite extends ATextAndSearchComposite {

@@ -11,7 +11,6 @@ import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.CanvasToolBar;
 import eu.transkribus.swt_gui.canvas.CanvasWidget;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
-import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
 import eu.transkribus.swt_gui.dialogs.ImageEnhanceDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -123,6 +122,9 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			// TODO: open enhance dialog
 			ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
 			d.open();
+		}
+		else if (s == toolbar.getHelpItem()) {
+			mw.openCanvasHelpDialog();
 		}
 	}
 	

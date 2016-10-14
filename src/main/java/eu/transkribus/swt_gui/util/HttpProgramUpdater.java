@@ -15,7 +15,7 @@ import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.exceptions.NotLoggedInException;
 import eu.transkribus.core.program_updater.HttpProgramPackageFile;
 import eu.transkribus.core.util.ProgressInputStream.ProgressInputStreamListener;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class HttpProgramUpdater extends ProgramUpdater<HttpProgramPackageFile> {
 	

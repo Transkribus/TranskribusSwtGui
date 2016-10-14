@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.mainwidget.listener;
+package eu.transkribus.swt_gui.mainwidget;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -11,9 +11,8 @@ import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
-import eu.transkribus.swt_gui.mainwidget.Storage;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.vkeyboards.ITrpVirtualKeyboardsTabWidgetListener;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsTabWidget;
 
@@ -92,6 +91,8 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowJobsBtn(), (e) -> { mw.openJobsDialog(); } );
 		
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowVersionsBtn(), (e) -> { mw.openVersionsDialog(); } );
+		
+		SWTUtil.onSelectionEvent(ui.helpItem, (e) -> { mw.openCanvasHelpDialog(); } );
 	}
 	
 	@Override

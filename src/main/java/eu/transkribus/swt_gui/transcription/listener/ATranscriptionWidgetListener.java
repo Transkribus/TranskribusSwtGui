@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
 

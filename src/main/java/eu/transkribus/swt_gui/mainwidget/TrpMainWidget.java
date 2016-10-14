@@ -139,13 +139,10 @@ import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
-import eu.transkribus.swt_gui.mainwidget.listener.PagesPagingToolBarListener;
-import eu.transkribus.swt_gui.mainwidget.listener.RegionsPagingToolBarListener;
-import eu.transkribus.swt_gui.mainwidget.listener.TranscriptObserver;
-import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetKeyListener;
-import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetStorageListener;
-import eu.transkribus.swt_gui.mainwidget.listener.TrpMainWidgetViewListener;
-import eu.transkribus.swt_gui.mainwidget.listener.TrpSettingsPropertyChangeListener;
+import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBarListener;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListener;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
@@ -1018,10 +1015,13 @@ public class TrpMainWidget {
 		final int colId = storage.getCurrentDocumentCollectionId();
 		try {
 			storage.saveDocMd(colId);
+			logger.debug("saved doc-md to collection "+colId);
+
 			// DialogUtil.createAndShowBalloonToolTip(getShell(),
 			// SWT.ICON_ERROR, "Success saving doc-metadata", "", 2, true);
 //			DialogUtil.showInfoMessageBox(shell, "Success", message);
-			DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "Saved document metadata!", "Success", 2, true);
+			
+//			DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "Saved document metadata!", "Success", 2, true);
 		} catch (Exception e) {
 			onError("Error saving doc-metadata", e.getMessage(), e, true, true);
 		}
@@ -3869,7 +3869,7 @@ public class TrpMainWidget {
 		}
 	}
 
-	public void showAboutDialog() {
+	public void openAboutDialog() {
 		int res = DialogUtil.showMessageDialog(getShell(), ui.APP_NAME, ui.HELP_TEXT, null, MessageDialog.INFORMATION, 
 				new String[] {"OK", "Report bug / feature request"}, 0);
 		
@@ -3910,6 +3910,19 @@ public class TrpMainWidget {
 			mw.saveNewProfile();
 			canvas.getScene().setTranscriptionMode(false);
 		}
+	}
+
+	public void openCanvasHelpDialog() {
+		String ht = ""
+//				+ "Canvas shortcut operations:\n"
+				+ "- esc -> set selection mode\n"
+				+ "- shift + drag-on-bounding-box -> resize shape on bounding box\n"
+				+ "- right click on a shape to get a context menu with additional operations "
+				+ "(note: on mac touchpads, right-clicks are performed using two fingers simultaneously)"
+				;
+		
+		int res = DialogUtil.showMessageDialog(getShell(), "Canvas shortcut operations", ht, null, MessageDialog.INFORMATION, 
+				new String[] {"OK"}, 0);
 	}
 
 }

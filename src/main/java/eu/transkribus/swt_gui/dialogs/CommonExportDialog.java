@@ -44,7 +44,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 import eu.transkribus.swt_gui.util.TagsSelector;
 

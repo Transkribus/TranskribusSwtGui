@@ -36,8 +36,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CommentsWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(CommentsWidget.class);

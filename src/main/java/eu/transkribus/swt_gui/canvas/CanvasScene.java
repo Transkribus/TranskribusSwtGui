@@ -36,9 +36,9 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 

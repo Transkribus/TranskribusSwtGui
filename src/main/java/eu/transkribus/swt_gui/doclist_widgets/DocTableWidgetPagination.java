@@ -27,8 +27,8 @@ import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.TableViewerUtils;
-import eu.transkribus.swt_gui.mainwidget.Storage;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetadata> {
 	private final static Logger logger = LoggerFactory.getLogger(DocTableWidgetPagination.class);
