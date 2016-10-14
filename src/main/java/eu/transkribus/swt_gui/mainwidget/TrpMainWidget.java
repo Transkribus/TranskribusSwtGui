@@ -1015,10 +1015,13 @@ public class TrpMainWidget {
 		final int colId = storage.getCurrentDocumentCollectionId();
 		try {
 			storage.saveDocMd(colId);
+			logger.debug("saved doc-md to collection "+colId);
+
 			// DialogUtil.createAndShowBalloonToolTip(getShell(),
 			// SWT.ICON_ERROR, "Success saving doc-metadata", "", 2, true);
 //			DialogUtil.showInfoMessageBox(shell, "Success", message);
-			DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "Saved document metadata!", "Success", 2, true);
+			
+//			DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "Saved document metadata!", "Success", 2, true);
 		} catch (Exception e) {
 			onError("Error saving doc-metadata", e.getMessage(), e, true, true);
 		}

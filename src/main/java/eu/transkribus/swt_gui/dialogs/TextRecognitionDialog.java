@@ -366,8 +366,10 @@ public class TextRecognitionDialog extends Dialog {
 		selRnn = getSelectedRnn();
 		selDict = getSelectedDict();
 		
-		dme.updateMetadataObjectFromGui(store.getDoc().getMd());
-		mw.saveDocMetadata();
+//		if (dme.updateMetadataObjectFromGui(store.getDoc().getMd())){ // not needed anymore, since md is automatically updated
+//			mw.saveDocMetadata();	
+//		}
+		
 		if(selPagesStr == null || selPagesStr.isEmpty()) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select pages to be recognized.");
 		} else if(tabFolder.getSelection().equals(htrItem) && selHtrMode.equals(HtrRecMode.HMM) 
