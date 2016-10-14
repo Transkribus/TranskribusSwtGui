@@ -204,7 +204,8 @@ public class ThumbnailManager extends Dialog{
 		statusCombo.setEnabled(false);
 		
 		labelCombo = initComboWithLabel(editCombos, "Edit label: ", SWT.DROP_DOWN | SWT.READ_ONLY);
-		labelCombo.setItems(EnumUtils.stringsArray(EditStatus.class));
+		String[] tmps = {"Upcoming feature - cannot be set at at the moment", "GT", "eLearning"};
+		labelCombo.setItems(tmps);
 		labelCombo.setEnabled(false);
 		
 		Label la = new Label(editCombos, SWT.CENTER);
@@ -276,7 +277,8 @@ public class ThumbnailManager extends Dialog{
             @Override
             public void widgetSelected(SelectionEvent e) {
             	if (gallery.getSelectionCount()>=1){
-            		enableEdits(true);
+            		//set to true if edits are allowed
+            		enableEdits(false);
             	}
             	else{
             		enableEdits(false);
@@ -535,7 +537,7 @@ public class ThumbnailManager extends Dialog{
 //	    	System.out.println("You selected cont.1 " + EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
 //	    	System.out.println("You selected cont.2 " + EnumUtils.indexOf(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText())));
 
-	    	Storage.getInstance().getTranscriptMetadata().setStatus(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
+	    	//Storage.getInstance().getTranscriptMetadata().setStatus(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
 	    	try {
 //				Storage.getInstance().saveTranscript(Storage.getInstance().getCurrentDocumentCollectionId(), null);
 //				Storage.getInstance().setLatestTranscriptAsCurrent();
