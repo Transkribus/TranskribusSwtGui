@@ -626,32 +626,17 @@ public class TrpMainWidgetView extends Composite {
 		
 	public void updateLoginInfo(boolean loggedIn, String username, String server) {
 		if (loggedIn) {
-			//serverWidget.getUsernameLabel().setText("Logged in as: "+username);
-			serverWidget.getServerLabel().setText("Server: "+server);
 			serverWidget.getLoginBtn().setText("Logout "+username);
 			serverWidget.getLoginBtn().setImage(Images.CONNECT);
-
-			//loginToggle.setToolTipText("Logout "+username);
-//			loginToggle.setSelection(true);
-//			loginToggle.setImage(Images.CONNECT);
+			serverWidget.getLoginBtn().setToolTipText("Server: "+server);
 		} else {
-			//serverWidget.getUsernameLabel().setText("Not logged in");
-			serverWidget.getServerLabel().setText("");
 			serverWidget.getLoginBtn().setText("Login");
 			serverWidget.getLoginBtn().setImage(Images.DISCONNECT);
-		
-//			loginToggle.setToolTipText("Login");
-//			loginToggle.setSelection(false);
-//			loginToggle.setImage(Images.DISCONNECT);
+			serverWidget.getLoginBtn().setToolTipText("");
 		}
-		
-		//serverWidget.getUsernameLabel().pack();
-		serverWidget.getServerLabel().pack();
 		
 		uploadDocsItem.setEnabled(loggedIn);
 		searchBtn.setEnabled(loggedIn);
-		
-//		loginToggle.setSelection(loggedIn);
 	}
 
 	public void center() {

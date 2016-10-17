@@ -55,9 +55,9 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		sw.manageCollectionsBtn.addSelectionListener(this);
 		sw.showActivityWidgetBtn.addSelectionListener(this);
 		
-		sw.syncWithLocalDocBtn.addSelectionListener(this);
-		sw.applyAffineTransformBtn.addSelectionListener(this);
-		sw.batchReplaceImgsBtn.addSelectionListener(this);
+//		sw.syncWithLocalDocBtn.addSelectionListener(this);
+//		sw.applyAffineTransformBtn.addSelectionListener(this);
+//		sw.batchReplaceImgsBtn.addSelectionListener(this);
 		
 		Storage.getInstance().addListener(this);
 	}
@@ -73,9 +73,9 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		sw.manageCollectionsBtn.removeSelectionListener(this);
 		sw.showActivityWidgetBtn.removeSelectionListener(this);
 		
-		sw.syncWithLocalDocBtn.removeSelectionListener(this);
-		sw.applyAffineTransformBtn.removeSelectionListener(this);
-		sw.batchReplaceImgsBtn.removeSelectionListener(this);
+//		sw.syncWithLocalDocBtn.removeSelectionListener(this);
+//		sw.applyAffineTransformBtn.removeSelectionListener(this);
+//		sw.batchReplaceImgsBtn.removeSelectionListener(this);
 		
 		Storage.getInstance().removeListener(this);
 	}
@@ -114,8 +114,9 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		}
 		else if (s == sw.recentDocsComboViewerWidget.lastDocsCombo){
 			String docToLoad = sw.getSelectedRecentDoc();
-			mw.loadRecentDoc(docToLoad);
-
+			if (docToLoad != null) {
+				mw.loadRecentDoc(docToLoad);
+			}
 		}
 		else if (s == sw.manageCollectionsBtn) {
 			mw.openCollectionManagerDialog();
@@ -124,15 +125,15 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 			mw.openActivityDialog();
 		}
 		
-		else if (s == sw.syncWithLocalDocBtn) {
-			mw.syncWithLocalDoc();
-		}
-		else if (s == sw.applyAffineTransformBtn) {
-			mw.applyAffineTransformToDoc();
-		}
-		else if (s == sw.batchReplaceImgsBtn) {
-			mw.batchReplaceImagesForDoc();
-		}		
+//		else if (s == sw.syncWithLocalDocBtn) {
+//			mw.syncWithLocalDoc();
+//		}
+//		else if (s == sw.applyAffineTransformBtn) {
+//			mw.applyAffineTransformToDoc();
+//		}
+//		else if (s == sw.batchReplaceImgsBtn) {
+//			mw.batchReplaceImagesForDoc();
+//		}		
 	}
 
 	@Override

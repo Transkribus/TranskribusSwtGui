@@ -501,7 +501,7 @@ public class TrpMainWidget {
 			}
 		}
 
-		ui.getServerWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
+//		ui.getServerWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		ui.getServerWidget().updateHighlightedRow(docId);
@@ -902,6 +902,9 @@ public class TrpMainWidget {
 	}
 
 	public void loadRecentDoc(String docToLoad) {
+		if (docToLoad == null)
+			return;
+		
 		String[] tmp = docToLoad.split(";;;");
 		if (tmp.length == 1) {
 			if (new File(tmp[0]).exists()) {
