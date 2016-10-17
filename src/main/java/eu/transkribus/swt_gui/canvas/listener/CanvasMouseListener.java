@@ -341,7 +341,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				} 
 				else if (selectedLine != null) {
 //					Point trans = getTotalTranslation(mousePt, settings.getSelectMouseButton());
-					java.awt.Point tWTr = canvas.getTransformCopy().inverseTransformWithoutTranslation(translation.x, translation.y);
+					java.awt.Point tWTr = canvas.inverseTransformWithoutTranslation(translation.x, translation.y);
 					if (tWTr != null) {
 						logger.debug("moving pts of line "+selectedLine+" by "+tWTr+" translation = "+translation);
 						int tx = tWTr.x;

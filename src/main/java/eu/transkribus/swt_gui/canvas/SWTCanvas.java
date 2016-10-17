@@ -1446,6 +1446,19 @@ public class SWTCanvas extends Canvas {
 	public void setUndoStack(UndoStack undoStack) {
 		this.undoStack = undoStack;
 	}
+	
+	public java.awt.Point inverseTransformWithoutTranslation(int x, int y) {
+		
+		return transform.inverseTransformWithoutTranslation(x, y);
+		
+//		CanvasTransform tr = new CanvasTransform(this);
+//		tr.setTranslation(0, 0);
+//		tr.invert();
+//		Point tp = tr.transform(new Point(x, y));
+//		tr.dispose();
+//		
+//		return new java.awt.Point(tp.x, tp.y);
+	}
 
 	public Point inverseTransform(int x, int y) {
 		return transform.inverseTransform(new Point(x, y));
@@ -1539,6 +1552,7 @@ public class SWTCanvas extends Canvas {
 		
 		CanvasTransform tmpTransform = new CanvasTransform(getDisplay());
 		gc.getTransform(tmpTransform);
+		tmpTransform.dispose();
 		
 		//Graphics2D g2D = (Graphics2D) gc;
 		
