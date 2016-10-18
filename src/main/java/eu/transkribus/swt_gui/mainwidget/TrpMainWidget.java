@@ -1070,7 +1070,7 @@ public class TrpMainWidget {
 	public boolean saveTranscriptionSilent() {
 		try {
 			if (!storage.isPageLoaded()) {
-				DialogUtil.showErrorMessageBox(getShell(), "Saving page", "No page loaded!");
+//				DialogUtil.showErrorMessageBox(getShell(), "Saving page", "No page loaded!");
 				return false;
 			}
 

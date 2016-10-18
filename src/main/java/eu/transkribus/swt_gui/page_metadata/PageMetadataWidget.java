@@ -440,7 +440,7 @@ public class PageMetadataWidget extends Composite {
 	}
 	
 	public void savePage(){
-		TrpMainWidget.getInstance().saveTranscriptionSilent();
+		//TrpMainWidget.getInstance().saveTranscriptionSilent();
 	}
 	
 //	public void updateData(boolean hasPageType, PageTypeSimpleType pageType, boolean hasTextType, TextTypeSimpleType regionType, boolean hasTextStyle, TextStyleType textType) {

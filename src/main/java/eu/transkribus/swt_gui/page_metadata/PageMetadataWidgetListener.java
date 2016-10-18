@@ -223,9 +223,8 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 				DialogUtil.showErrorMessageBox(canvas.getShell(), "Error while converting shape", e1.getMessage());
 				mainWidget.updatePageRelatedMetadata();
 			}
-		}
-		
-//		TrpMainWidget.getInstance().saveTranscriptionSilent();
+		}		
+
 		return;
 	}
 	
