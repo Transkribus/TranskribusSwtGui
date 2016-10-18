@@ -472,6 +472,11 @@ public class TrpMainWidgetView extends Composite {
 		exportDocumentButton.setToolTipText("Export document");
 		exportDocumentButton.setImage(Images.FOLDER_GO);
 		exportDocumentButton.setEnabled(false);
+		
+		reloadDocumentButton = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
+		reloadDocumentButton.setToolTipText("Reload document");
+		reloadDocumentButton.setImage(Images.REFRESH);
+		reloadDocumentButton.setEnabled(false);
 								
 		searchBtn = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
 		searchBtn.setToolTipText("Search for documents, keywords etc.");

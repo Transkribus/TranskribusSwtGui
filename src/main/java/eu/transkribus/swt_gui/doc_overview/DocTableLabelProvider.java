@@ -127,14 +127,7 @@ public class DocTableLabelProvider implements ITableLabelProvider, ITableFontPro
 			} else if (ct.equals(DocTableWidget.DOC_OWNER_COL)) {
 				return ""+doc.getUploader();
 			} else if (ct.equals(DocTableWidget.DOC_COLLECTIONS_COL)) {
-				String colsStr = "";
-				if (doc.getColList() != null) {
-					for (TrpCollection c : doc.getColList())
-						colsStr += "("+c.getColName()+","+c.getColId()+") ";
-				}
-				colsStr = colsStr.trim();
-				
-				return colsStr;
+				return doc.getColString();
 			}
 		}
 		

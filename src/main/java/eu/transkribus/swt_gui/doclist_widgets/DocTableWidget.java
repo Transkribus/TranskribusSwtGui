@@ -8,8 +8,12 @@ import javax.ws.rs.client.InvocationCallback;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ILazyContentProvider;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.nebula.widgets.pagination.table.SortTableColumnSelectionListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
@@ -24,6 +28,10 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.TableViewerUtils;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
+///**
+// * @deprecated
+// *
+// */
 public class DocTableWidget /*extends ATableWidgetPagination<TrpDocMetadata>*/ extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocTableWidget.class);
 	
@@ -60,6 +68,27 @@ public class DocTableWidget /*extends ATableWidgetPagination<TrpDocMetadata>*/ e
 		
 		tv = new TableViewer(this, 0);
 		createColumns();
+		
+		class ContentProvider implements ILazyContentProvider, IStructuredContentProvider {
+			@Override public Object[] getElements(Object inputElement) {
+		        return docs.toArray();
+		    }
+		
+		    @Override public void dispose() {
+		
+		    }
+		
+		    @Override public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+		        System.out.println("inputChanged");
+//		        this.model = (Model) newInput;
+		    }
+		
+		    @Override public void updateElement(int index) {
+		        Object row = docs.get(index);
+//		        row[2] = row[0] + " " + row[1];
+		        tv.replace(row, index);
+		    }
+		}
 	}
 	
 	private void setCollectionId(int collectionId) {
