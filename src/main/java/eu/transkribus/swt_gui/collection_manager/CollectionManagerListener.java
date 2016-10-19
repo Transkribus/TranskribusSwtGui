@@ -38,6 +38,7 @@ import eu.transkribus.swt.util.ComboInputDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
+import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -495,7 +496,7 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 				return;
 			}
 			else if (selected.size() > 1){
-				if (DialogUtil.showYesNoDialog(shell, "Delete Documents", "Do you really want to delete " + selected.size() + " selected document ")!=SWT.YES) {
+				if (DialogUtil.showYesNoDialog(shell, "Delete Documents", "Do you really want to delete " + selected.size() + " selected documents ")!=SWT.YES) {
 					return;
 				}
 			}
@@ -529,10 +530,11 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 				else if(count == selected.size()){
 					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted "+selected.size()+" documents");
 				}
+				
+				cmw.serverWidget.getDocTableWidget().reloadDocs(false, true);
+				cmw.docsTableWidget.reloadDocs(false, true);
 
-				cmw.docsTableWidget.refreshList(cmw.getSelectedCollectionId(), false);
-				cmw.updateDocumentsTable(md, false);
-				cmw.getCurrentDocTableWidgetPagination().getPageableTable().refreshPage();
+				//cmw.getCurrentDocTableWidgetPagination().getPageableTable().refreshPage();
 			}
 
 			

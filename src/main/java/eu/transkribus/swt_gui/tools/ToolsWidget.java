@@ -56,6 +56,7 @@ public class ToolsWidget extends Composite {
 	TranscriptVersionChooser refVersionChooser, hypVersionChooser;
 	
 	Button computeWerBtn;
+	Button compareVersionsBtn;
 	Composite werGroup;
 	ExpandableComposite werExp;
 	
@@ -470,11 +471,11 @@ public class ToolsWidget extends Composite {
 //		metadatagroup.setText("Document metadata");
 		werGroup.setLayout(new GridLayout(2, false));
 		
-		refVersionChooser = new TranscriptVersionChooser("Reference: ", werGroup, 0);
-		refVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		refVersionChooser = new TranscriptVersionChooser("Reference:\n(Correct Text) ", werGroup, 0);
+		refVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 		
-		hypVersionChooser = new TranscriptVersionChooser("Hypothesis: ", werGroup, 0);
-		hypVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));		
+		hypVersionChooser = new TranscriptVersionChooser("Hypothesis:\n(HTR Text) ", werGroup, 0);
+		hypVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));		
 		
 //		Label refLabel = new Label(werGroup, 0);
 //		refLabel.setText("Reference:");
@@ -487,9 +488,14 @@ public class ToolsWidget extends Composite {
 		Label emptyLabel = new Label(werGroup,0);
 		computeWerBtn = new Button(werGroup, SWT.PUSH);
 		computeWerBtn.setText("Compare");
-		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
 		computeWerBtn.setToolTipText("Compares the two selected transcripts and computes word error rate and character error rate.");
 //		computeWerBtn.pack();
+		
+		compareVersionsBtn = new Button(werGroup, SWT.PUSH);
+		compareVersionsBtn.setText("Compare Versions in Textfile");
+		compareVersionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
+		compareVersionsBtn.setToolTipText("Shows the difference of the two selected versions");
 		
 		werExp.setClient(werGroup);
 		werExp.setText("Compute Accuracy");
@@ -509,6 +515,10 @@ public class ToolsWidget extends Composite {
 //	public Button getLaBtn() { return batchLaBtn; }
 
 	
+	public Button getCompareVersionsBtn() {
+		return compareVersionsBtn;
+	}
+
 	public static String getTranscriptLabel(TrpTranscriptMetadata t) {
 		final String labelStr = CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(t.getTime()) 
 				+ " - " + t.getUserName() 

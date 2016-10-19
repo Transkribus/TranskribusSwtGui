@@ -18,7 +18,11 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
+import eu.transkribus.core.model.beans.pagecontent.TextLineType;
+import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.util.DialogUtil;
@@ -62,6 +66,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.structAnalysisPageBtn, this);
 		SWTUtil.addSelectionListener(tw.startRecogBtn, this);
 		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
+		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
 				
 		//OLD
 //		tw.startOcrBtn.addSelectionListener(this);
@@ -202,7 +207,40 @@ public class ToolsWidgetListener implements SelectionListener {
 //					mb.open();
 //				}
 				
-			} else if (s == tw.startRecogBtn) {
+			}else if (s == tw.compareVersionsBtn) {
+				
+				TrpTranscriptMetadata ref = (TrpTranscriptMetadata)tw.refVersionChooser.selectedMd;
+				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata)tw.hypVersionChooser.selectedMd;
+				
+				ArrayList<String> refText = new ArrayList<String>(); 
+				ArrayList<String> hypText = new ArrayList<String>();
+				
+				if (ref != null && hyp != null) {
+
+					for (TrpRegionType region : ref.unmarshallTranscript().getPage().getTextRegionOrImageRegionOrLineDrawingRegion()){
+						if (region instanceof TrpTextRegionType){
+							for (TextLineType line : ((TrpTextRegionType) region).getTextLine()){
+								refText.add(((TrpTextLineType) line).getUnicodeText());
+								//refText = refText.concat(region.getUnicodeText());
+							}
+						}
+					}
+					for (TrpRegionType region : hyp.unmarshallTranscript().getPage().getTextRegionOrImageRegionOrLineDrawingRegion()){
+						if (region instanceof TrpTextRegionType){
+							for (TextLineType line : ((TrpTextRegionType) region).getTextLine()){
+								hypText.add(((TrpTextLineType) line).getUnicodeText());
+							//hypText = hypText.concat(region.getUnicodeText());
+							}
+						}
+					}
+
+				
+					DiffCompareTool diff = new DiffCompareTool(mw.getShell().getDisplay(), hypText, refText);
+					
+					mw.openVersionsCompareDialog(diff.getResult());
+				}					
+			
+			}else if (s == tw.startRecogBtn) {
 				TextRecognitionDialog trD = new TextRecognitionDialog(mw.getShell());
 				int ret = trD.open();
 				final String pageStr = trD.getSelectedPages();

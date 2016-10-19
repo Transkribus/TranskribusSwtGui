@@ -81,6 +81,10 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	public void refreshList(int collectionId, boolean resetPage) {
 		this.refreshList(collectionId, resetPage, false);
 	}
+		
+	public void refreshList(boolean resetPage) {
+		this.refreshList(this.collectionId, resetPage, false);
+	}
 	
 	public void refreshList(int collectionId, boolean resetPage, boolean forceServerReload) {
 		logger.debug("old coll-id: "+this.collectionId+" new coll-id: "+collectionId);
@@ -116,7 +120,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		}
 	}
 	
-	private void reloadDocs(boolean resetPage, boolean forceReload) {
+	public void reloadDocs(boolean resetPage, boolean forceReload) {
 		if (collectionId == 0) {
 			setDocList(new ArrayList<>(), resetPage);
 			return;

@@ -46,6 +46,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Rectangle;
@@ -127,6 +128,7 @@ import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
+import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.dialogs.BugDialog;
 import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
@@ -216,6 +218,7 @@ public class TrpMainWidget {
 	SettingsDialog viewSetsDiag;
 	ProxySettingsDialog proxyDiag;
 	DebuggerDialog debugDiag;
+	VersionsDiffBrowserDialog browserDiag;
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
@@ -3834,6 +3837,16 @@ public class TrpMainWidget {
 		} else {
 			debugDiag = new DebuggerDialog(getShell());
 			debugDiag.open();
+		}
+	}
+	
+	public void openVersionsCompareDialog(String diffText) {
+		logger.debug("opening compare dialog");
+		if (SWTUtil.isOpen(browserDiag)) {
+			browserDiag.getShell().setVisible(true);
+		} else {
+			browserDiag = new VersionsDiffBrowserDialog(getShell(), diffText);
+			browserDiag.open();
 		}
 	}
 		

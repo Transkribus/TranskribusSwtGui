@@ -91,7 +91,7 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowJobsBtn(), (e) -> { mw.openJobsDialog(); } );
 		
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowVersionsBtn(), (e) -> { mw.openVersionsDialog(); } );
-		
+				
 		SWTUtil.onSelectionEvent(ui.helpItem, (e) -> { mw.openCanvasHelpDialog(); } );
 	}
 	
