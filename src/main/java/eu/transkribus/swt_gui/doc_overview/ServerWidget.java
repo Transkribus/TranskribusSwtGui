@@ -34,7 +34,7 @@ import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 public class ServerWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(ServerWidget.class);
 
-	Label usernameLabel, serverLabel;
+	Label usernameLabel;
 	DocTableWidgetPagination docTableWidget;
 
 	CollectionComboViewerWidget collectionComboViewerWidget;
@@ -45,13 +45,9 @@ public class ServerWidget extends Composite {
 	Text quickLoadByID;
 			
 	Storage store = Storage.getInstance();
-	
-	ExpandableComposite adminAreaExp;
-	ExpandableComposite lastDocsAreaExp;
-	ExpandableComposite remotedocsgroupExp;
+	Composite remoteDocsGroup;
 	Composite container;
 	
-	Button syncWithLocalDocBtn, applyAffineTransformBtn, batchReplaceImgsBtn;
 	Button loginBtn;
 		
 	int selectedId=-1;
@@ -94,18 +90,9 @@ public class ServerWidget extends Composite {
 		loginBtn.setImage(Images.DISCONNECT);
 		Fonts.setBoldFont(loginBtn);
 		
-		/*
-		usernameLabel = new Label(container, SWT.NONE);
-		usernameLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		Fonts.setBoldFont(usernameLabel);
-		*/
-		
-		serverLabel = new Label(container, SWT.NONE);
-		serverLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		
 		Composite btns1 = new Composite(container, 0);
 		btns1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		btns1.setLayout(new GridLayout(2, true));
+		btns1.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
 		showJobsBtn = new Button(btns1, 0);
 		showJobsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -131,82 +118,38 @@ public class ServerWidget extends Composite {
 		showActivityWidgetBtn.setText("User activity...");
 		userControls.add(showActivityWidgetBtn);
 				
-		// admin area:
-		adminAreaExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
-		Fonts.setBoldFont(adminAreaExp);
-		Composite adminAreaComp = new Composite(adminAreaExp, SWT.SHADOW_ETCHED_IN);
-		adminAreaComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		adminAreaComp.setLayout(new GridLayout(1, false));
-		syncWithLocalDocBtn = new Button(adminAreaComp, SWT.PUSH);
-		syncWithLocalDocBtn.setText("Sync with local doc");
-		userControls.add(syncWithLocalDocBtn);
-		
-		applyAffineTransformBtn = new Button(adminAreaComp, SWT.PUSH);
-		applyAffineTransformBtn.setText("Apply affine transformation");
-		userControls.add(applyAffineTransformBtn);
-		
-		batchReplaceImgsBtn = new Button(adminAreaComp, SWT.PUSH);
-		batchReplaceImgsBtn.setText("Batch replace images");
-		userControls.add(batchReplaceImgsBtn);
-		
-		configExpandable(adminAreaExp, adminAreaComp, "Admin area", container, false);
-		adminAreaExp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
-		/////////////////		
-		lastDocsAreaExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
-		Fonts.setBoldFont(lastDocsAreaExp);
-		Composite lastDocsAreaComp = new Composite(lastDocsAreaExp, SWT.SHADOW_ETCHED_IN);
-		lastDocsAreaComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		lastDocsAreaComp.setLayout(new GridLayout(1, false));
-		
-		recentDocsComboViewerWidget = new RecentDocsComboViewerWidget(lastDocsAreaComp, 0);
+		recentDocsComboViewerWidget = new RecentDocsComboViewerWidget(container, 0);
 		recentDocsComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		userControls.add(recentDocsComboViewerWidget);
 		
-		configExpandable(lastDocsAreaExp, lastDocsAreaComp, "Recent Documents", container, true);
-		lastDocsAreaExp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
-		
 		////////////////
-		remotedocsgroupExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
-		Fonts.setBoldFont(remotedocsgroupExp);
-		Composite remotedocsgroup = new Composite(remotedocsgroupExp, 0); // orig-parent = container
+		remoteDocsGroup = new Composite(container, 0); // orig-parent = container
 		
-		remotedocsgroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		remotedocsgroup.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
-			
-		configExpandable(remotedocsgroupExp, remotedocsgroup, "Server documents", container, true);
-		remotedocsgroupExp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-		
-		collectionComboViewerWidget = new CollectionComboViewerWidget(remotedocsgroup, 0);
+		remoteDocsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		remoteDocsGroup.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+
+		collectionComboViewerWidget = new CollectionComboViewerWidget(remoteDocsGroup, 0, true, true, false);
 		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		collectionComboViewerWidget.getCollectionFilterLabel().setText("Collections ");
 		userControls.add(collectionComboViewerWidget);
 		
-		Composite docsContainer = new Composite(remotedocsgroup, 0);
+		Composite docsContainer = new Composite(remoteDocsGroup, 0);
 		docsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 		docsContainer.setLayout(new GridLayout(2, false));
 		docsContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 
-		docTableWidget = new DocTableWidgetPagination(docsContainer, 0, 25);
+		docTableWidget = new DocTableWidgetPagination(docsContainer, 0, 100);
 		docTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		userControls.add(docTableWidget);
 		
 		ColumnViewerToolTipSupport.enableFor(docTableWidget.getPageableTable().getViewer(), ToolTip.NO_RECREATE);
 		docTableWidget.getPageableTable().setToolTipText("");
 		
-		if (remotedocsgroup instanceof SashForm) {
-			((SashForm)remotedocsgroup).setWeights(new int[]{50, 50});
+		if (remoteDocsGroup instanceof SashForm) {
+			((SashForm)remoteDocsGroup).setWeights(new int[]{50, 50});
 		}
 		
 		updateHighlightedRow(-1);
-		
-		setAdminAreaVisible(false);
-	}
-	
-	public void setAdminAreaVisible(boolean visible) {
-		adminAreaExp.setParent(visible ? container : SWTUtil.dummyShell);
-		adminAreaExp.moveAbove(remotedocsgroupExp);
-		container.layout();
 	}
 	
 	private void configExpandable(ExpandableComposite exp, Composite client, String text, final Composite container, boolean expand) {
@@ -235,7 +178,6 @@ public class ServerWidget extends Composite {
 	public DocTableWidgetPagination getDocTableWidget() { return docTableWidget; }
 	
 	public TableViewer getTableViewer() { return docTableWidget.getTableViewer(); }
-	public Label getServerLabel() { return serverLabel; }
 	public Label getUsernameLabel() { return usernameLabel; }
 	public Button getLoginBtn() { return loginBtn; }
 		
@@ -261,7 +203,7 @@ public class ServerWidget extends Composite {
 	}
 				
 	public void updateRecentDocs() {
-		recentDocsComboViewerWidget.updateDocs(false);	
+		recentDocsComboViewerWidget.setRecentDocs(false);	
 	}
 	
 	public Button getShowJobsBtn() { return showJobsBtn; }

@@ -39,6 +39,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class PageMetadataWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(PageMetadataWidget.class);
@@ -436,6 +437,10 @@ public class PageMetadataWidget extends Composite {
 		}
 		
 		attachListener();
+	}
+	
+	public void savePage(){
+		//TrpMainWidget.getInstance().saveTranscriptionSilent();
 	}
 	
 //	public void updateData(boolean hasPageType, PageTypeSimpleType pageType, boolean hasTextType, TextTypeSimpleType regionType, boolean hasTextStyle, TextStyleType textType) {

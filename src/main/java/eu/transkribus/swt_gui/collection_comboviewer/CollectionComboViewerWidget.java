@@ -20,6 +20,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -50,6 +51,9 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 	public Button reloadCollectionsBtn;
 	public Label collectionLabel;
 	public Composite headerComposite;
+	public Composite filterComposite;
+	public Composite collComposite;
+	
 	ModifyListener filterModifyListener;
 	
 	private List<TrpCollection> collections = new ArrayList<>();
@@ -58,9 +62,9 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 	
 	boolean withFilter, withReloadButton;
 	
-	public CollectionComboViewerWidget(Composite parent, int style) {
-		this(parent, style, true, true, true);
-	}
+//	public CollectionComboViewerWidget(Composite parent, int style) {
+//		this(parent, style, true, true, true);
+//	}
 	
 	public CollectionComboViewerWidget(Composite parent, int style, boolean withFilter, boolean withReloadButton, boolean withHeader) {
 		super(parent, style);
@@ -74,34 +78,35 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 //		collsContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		this.setLayout(new GridLayout(2, false));
 		
+		RowLayout rl = new RowLayout();
+		rl.center = true;
+		rl.marginLeft = 0;
+		rl.marginRight = 0;
+		
 		if (withHeader) {
 			headerComposite = new Composite(this, SWT.NONE);
 			headerComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 	//		headerComposite.setLayout(new GridLayout(3, false));
-			RowLayout layout = new RowLayout();
-		    layout.center = true;
-		    layout.marginLeft = 0;
-		    layout.marginRight = 0;
-			headerComposite.setLayout(layout);
+			headerComposite.setLayout(rl);
 			
 			collectionLabel = new Label(headerComposite, SWT.NONE);
 			collectionLabel.setText("Collections: ");
 		}
-		
-		if (withReloadButton) {
-			reloadCollectionsBtn = new Button(headerComposite, SWT.PUSH);
-			reloadCollectionsBtn.setImage(Images.getOrLoad("/icons/refresh.gif"));
-			reloadCollectionsBtn.setToolTipText("Reload list of available collections!");
-//			reloadCollectionsBtn.pack();
-		}
-		
+				
 		if (withFilter) {
-			collectionFilterLabel = new Label(this, 0);
-			collectionFilterLabel.setText("Filter: ");
+			filterComposite = new Composite(this, SWT.NONE);
+			filterComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+			filterComposite.setLayout(new GridLayout(2, false));
+//			filterComposite.setLayout(new FillLayout());
 			
-			collectionFilterText = new Text(this, SWT.BORDER);
+			collectionFilterLabel = new Label(filterComposite, 0);
+			collectionFilterLabel.setText("Filter: ");
+//			collectionFilterLabel.setLayoutData(new GridData(GridData.BEGINNING));
+			
+			collectionFilterText = new Text(filterComposite, SWT.BORDER);
 			collectionFilterText.setToolTipText("Collection name filter");
-			collectionFilterText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//			collectionFilterText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			collectionFilterText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			filterModifyListener = new ModifyListener() {
 				DelayedTask dt = new DelayedTask(() -> { refreshCombo(true); }, true);
 				@Override public void modifyText(ModifyEvent e) {
@@ -117,10 +122,26 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 				}
 			});
 		}
+		
+		collComposite = new Composite(this, 0);
+		collComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		collComposite.setLayout(new GridLayout(2, false));
+		
+		int colSize = withReloadButton ? 1 : 2;
 				
-		collectionCombo = new Combo(this, SWT.READ_ONLY | SWT.DROP_DOWN);
-		collectionCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		collectionCombo = new Combo(collComposite, SWT.READ_ONLY | SWT.DROP_DOWN);
+		collectionCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
+//		collectionCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		collectionComboViewer = new ComboViewer(collectionCombo);
+		
+		if (withReloadButton) {
+			reloadCollectionsBtn = new Button(collComposite, SWT.PUSH);
+//			reloadCollectionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
+//			reloadCollectionsBtn.setLayoutData(new GridData(GridData.END));
+			reloadCollectionsBtn.setImage(Images.getOrLoad("/icons/refresh.gif"));
+			reloadCollectionsBtn.setToolTipText("Reload list of available collections!");
+//			reloadCollectionsBtn.pack();
+		}
 				
 		collectionComboViewer.setLabelProvider(new LabelProvider() {
 			@Override public String getText(Object element) {

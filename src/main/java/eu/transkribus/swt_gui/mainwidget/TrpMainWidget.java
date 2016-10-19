@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -241,6 +242,8 @@ public class TrpMainWidget {
 	static TrpMainWidget mw;
 
 	static int tmpCount = 0;
+	
+	static Thread asyncSaveThread;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
@@ -504,7 +507,7 @@ public class TrpMainWidget {
 			}
 		}
 
-		ui.getServerWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
+//		ui.getServerWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
 		ui.getServerWidget().updateHighlightedRow(docId);
@@ -905,6 +908,9 @@ public class TrpMainWidget {
 	}
 
 	public void loadRecentDoc(String docToLoad) {
+		if (docToLoad == null)
+			return;
+		
 		String[] tmp = docToLoad.split(";;;");
 		if (tmp.length == 1) {
 			if (new File(tmp[0]).exists()) {
@@ -1061,6 +1067,50 @@ public class TrpMainWidget {
 			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
 		}
 		logger.debug("finished writing xml output to " + f.getAbsolutePath());
+	}
+	
+	
+	public boolean saveTranscriptionSilent() {
+		try {
+			if (!storage.isPageLoaded()) {
+//				DialogUtil.showErrorMessageBox(getShell(), "Saving page", "No page loaded!");
+				return false;
+			}
+
+			final String commitMessage = "";
+			logger.debug("commitMessage = " + commitMessage);
+
+			final int colId = storage.getCurrentDocumentCollectionId();
+
+			Runnable saveTask = new Runnable() {
+				
+				@Override public void run() {
+					try {
+						storage.saveTranscript(colId, commitMessage);					
+
+						storage.setLatestTranscriptAsCurrent();
+					} catch (Exception e) {
+						//throw new InvocationTargetException(e, e.getMessage());
+					}
+					logger.debug("Async save completed.");
+				}
+			};
+			if(asyncSaveThread != null){
+				if(asyncSaveThread.isAlive()){
+					asyncSaveThread.interrupt();
+				}
+			}
+			asyncSaveThread = new Thread(saveTask, "Async Save Thread");
+			asyncSaveThread.start();
+			updateToolBars();
+			return true;
+			
+		} catch (Throwable e) {
+			onError("Saving Error", "Error while saving transcription", e);
+			return false;
+		} finally {
+			updatePageInfo();
+		}
 	}
 
 	public boolean saveTranscription(boolean isCommit) {

@@ -99,6 +99,8 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		TrpPageType page = getPage();
 		TrpTranscriptMetadata md = getTranscript().getMd();
 		
+
+		
 		Object s = e.getSource();
 		Widget w = null;
 		if (s instanceof Widget)
@@ -108,10 +110,12 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		if (s == mw.pageStyleCombo) {
 			logger.debug("pagestyle changed: "+mw.getPageStyleCombo().getText()+" value = "+EnumUtils.fromValue(PageTypeSimpleType.class, mw.getPageStyleCombo().getText()));
 			page.setType(EnumUtils.fromValue(PageTypeSimpleType.class, mw.pageStyleCombo.getText()));
+			mw.savePage();
 		}
 		else if (s == mw.statusCombo) {
 			logger.debug("setting new status: "+mw.statusCombo.getText());
 			md.setStatus(EnumUtils.fromString(EditStatus.class, mw.statusCombo.getText()));
+			mw.savePage();
 		}
 		// update structure:
 //		else if (s == mw.getRegionTypeCombo() && getNSelected() == 1) {
@@ -119,14 +123,17 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 //		}
 		else if (mw.getStructureRadios().contains(s) /*&& getNSelected() == 1*/) {
 			applyStructureTypeToAllSelected(((Button) s).getText(), false);
+			mw.savePage();
 		}
 		else if (s == mw.getApplyStructBtn()) {
 			applyStructureTypeToAllSelected(mw.structureText.getText(), false);
 //			applyTextStyleToAllSelected(false);
+			mw.savePage();
 		}
 		else if (s == mw.getApplyStructRecBtn()) {
 			applyStructureTypeToAllSelected(mw.structureText.getText(), true);
 //			applyTextStyleToAllSelected(true);
+			mw.savePage();
 		}
 		
 		// update text style:
@@ -135,14 +142,17 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 			logger.debug("property name: "+propertyName);
 			
 			applyTextStyleToAllSelected(propertyName, false);
+			mw.savePage();
 		}
 		else if (s == tw.getApplyBtn()) {
 //			applyStructureTypeToAllSelected(false);
 			applyTextStyleToAllSelected(null, false);
+			mw.savePage();
 		}
 		else if (s == tw.getApplyRecursiveBtn()) {
 //			applyStructureTypeToAllSelected(true);
 			applyTextStyleToAllSelected(null, true);
+			mw.savePage();
 		}
 		// update tags:
 //		else if (s == mw.getTaggingWidget()) {
@@ -190,6 +200,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 					}
 				}
 			}
+			mw.savePage();
 		} else if (s ==  mw.linkBtn) {
 			if (canvas.getScene().getNSelected()==2) {
 				logger.debug("linking shapes!");
@@ -201,16 +212,19 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 					mainWidget.updatePageRelatedMetadata();
 				}
 			}
+			mw.savePage();
 		}
 		else if (s == mw.shapeTypeCombo) {
 			try {
 				convertSelectedShape(mw.shapeTypeCombo.getText());
+				mw.savePage();
+				logger.debug("11");
 			} catch (IOException e1) {
 				DialogUtil.showErrorMessageBox(canvas.getShell(), "Error while converting shape", e1.getMessage());
 				mainWidget.updatePageRelatedMetadata();
 			}
-		}
-		
+		}		
+
 		return;
 	}
 	

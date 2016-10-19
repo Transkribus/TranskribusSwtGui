@@ -385,6 +385,10 @@ CHANGES AND BUGFIXES
 	-> first draft of table editor included (saving only works on local documents for now - until the server accepts the new PAGE format)
 	-> removed obsolete writing orientation button
 	-> redesigned tabs (no more right tab view)
+	
+0.9.1:
+	-> save btn fix
+	-> no more handles (transform) fix
 
 	
 

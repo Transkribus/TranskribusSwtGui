@@ -17,6 +17,9 @@ import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 
+/**
+ * @deprecated not yet finished - needed??
+ */
 public class DocTableWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocTableWidget.class);
 	

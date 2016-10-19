@@ -74,12 +74,13 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 			showAllLocksBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 		}
 		
-		collectionsViewer = new CollectionComboViewerWidget(btns, SWT.READ_ONLY | SWT.DROP_DOWN, false, false, false);
+		collectionsViewer = new CollectionComboViewerWidget(btns, SWT.READ_ONLY | SWT.DROP_DOWN, false, true, true);
 		collectionsViewer.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
-		Label l1 = new Label(collectionsViewer, 0);
-		l1.setText("Collection: ");
-		l1.moveAbove(collectionsViewer.collectionCombo);
-		collectionsViewer.layout();
+//		collectionsViewer.getCollectionLabel().setText("Collection:");
+//		Label l1 = new Label(collectionsViewer, 0);
+//		l1.setText("Collection: ");
+//		l1.moveAbove(collectionsViewer.collectionCombo);
+//		collectionsViewer.layout();
 		
 		Label l0 = new Label(btns, 0);
 		l0.setText("Doc-Id: ");

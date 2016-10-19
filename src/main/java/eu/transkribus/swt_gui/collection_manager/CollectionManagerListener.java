@@ -524,7 +524,7 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 					mw.onError("Error deleting document", e.getMessage(), e);
 				}
 				
-				if (selected.size() == 1){
+				if (selected.size() == 1) {
 					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted document "+md.getTitle());
 				}
 				else if(count == selected.size()){
