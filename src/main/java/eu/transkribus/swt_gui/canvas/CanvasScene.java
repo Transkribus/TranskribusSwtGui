@@ -256,6 +256,9 @@ public class CanvasScene {
 	}
 	
 	public void sortShapes() {
+		if (true)
+			return;
+		
 		Collections.sort(shapes);
 //		logger.debug("sorted shapes: ");
 //		for (ICanvasShape s : shapes) {

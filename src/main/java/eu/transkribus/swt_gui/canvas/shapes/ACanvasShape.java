@@ -729,10 +729,15 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		
 		// then by y-coordinate:
 		int yCompare = Integer.compare(getY(), arg0.getY());
+		logger.debug("x: " + getY());
+		logger.debug("arg0.getY(): " + arg0.getY());
+		logger.debug("yCompare: " + yCompare);
 		if (yCompare != 0)
 			return yCompare;
 		
 		// then by x-coordinate:
+		logger.debug("x: " + getX());
+		logger.debug("arg0.getX(): " + arg0.getX());
 		return Integer.compare(getX(), arg0.getX());
 	}
 		
@@ -1047,6 +1052,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	public Pair<ICanvasShape, ICanvasShape> splitByPolyline(CanvasPolyline pl) {
 		int nIntersections = intersectionPoints(pl, true).size();
 		
+		logger.debug("split by polyline");
 		// for a closed shape, the nr of intersections shall be 2, otherwise more than two split shapes will be created!
 		// for an open shape (e.g. a polyline) the nr of intersections must be 1
 		if ( (this.isClosed() && nIntersections!=2) || (!this.isClosed() && nIntersections !=1) ) 
@@ -1055,6 +1061,9 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		final int extDist = (int)1e6;
 		CanvasPolygon pUp = pl.extendAtEnds(extDist).getPolyRectangle(extDist, extDist, 1);
 		CanvasPolygon pDown = pl.extendAtEnds(extDist).getPolyRectangle(extDist, extDist, 2);
+		
+		double angle = GeomUtils.angleWithHorizontalLine(pl.getPoint(0), pl.getPoint(pl.getNPoints()-1));
+		boolean isSplittedByHorizontalLine = angle >= -Math.PI/2 && angle <= Math.PI/2;
 		
 //		Polygon2D pI1 = Polygons2D.intersection(SimplePolygon2D.create(pUp.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
 //		Polygon2D pI2 = Polygons2D.intersection(SimplePolygon2D.create(pDown.getPoints2D()), SimplePolygon2D.create(this.getPoints2D()));
@@ -1072,12 +1081,15 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		/*
 		 * compare the newly created shapes to have the proper reading order later on 
 		 * ordering (or better s1, s2) differs for horizontal and vertical splits and hence we correct this here
-		 */ 
-		if (s1.compareByLevelAndYXCoordinates(s2) > 0){
+		 */
+		int compare = isSplittedByHorizontalLine ? Integer.compare(s1.getY(), s2.getY()) 
+				: Integer.compare(s1.getX(), s2.getX());
+		
+		if (compare > 0) {
 			return Pair.of(s2, s1);
+		} else {
+			return Pair.of(s1, s2);
 		}
-						
-		return Pair.of(s1, s2);
 	}
 	
 //	@Override

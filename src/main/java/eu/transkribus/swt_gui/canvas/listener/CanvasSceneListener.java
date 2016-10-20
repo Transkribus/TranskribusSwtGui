@@ -18,6 +18,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComp
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
@@ -489,7 +490,6 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 	public void onSplit(SceneEvent e) {
 			try {
 				mw.getTranscriptObserver().setActive(false);
-				logger.debug("transcript observer active: "+mw.getTranscriptObserver().isActive());
 				
 				logger.debug("on split, op = "+e.op);
 				ICanvasShape origShape = e.op.getFirstShape();
@@ -504,11 +504,18 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				
 				
 				int indexOfOrigShape = -1;
-				if (origShapeData.getParentShape() != null)
-					indexOfOrigShape = origShapeData.getParentShape().getChildren(false).indexOf(origShapeData);
+				if (origShapeData.getParentShape() != null){
+					//get only words of a line to determine its index because the contained baseline otherwise destroys the word index
+					if (origShapeData.getParentShape() instanceof TrpTextLineType){
+						indexOfOrigShape = ((TrpTextLineType) origShapeData.getParentShape()).getWord().indexOf(origShapeData);
+					}
+					else{
+						indexOfOrigShape = origShapeData.getParentShape().getChildren(false).indexOf(origShapeData);
+					}
+					
+				}				
 				
-				
-				//for region types: otherwise the splitted elements got inserted at the end of the regions becuase they have not parent shape
+				//for region types: otherwise the splitted elements got inserted at the end of the regions because they have not parent shape
 				if (indexOfOrigShape == -1 && oldReadingOrder != null) {
 					indexOfOrigShape = oldReadingOrder;
 				}
