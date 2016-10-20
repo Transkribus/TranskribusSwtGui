@@ -30,6 +30,8 @@ public class CanvasWidget extends Composite {
 	
 	TrpMainWidget mainWidget;
 
+	public ToolBar bar1, bar2; // TEST
+	
 	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style) {
 		this(parent, mainWidget, style, null);
 	}
@@ -38,7 +40,7 @@ public class CanvasWidget extends Composite {
 		super(parent, style);
 		this.mainWidget = mainWidget;
 										
-		GridLayout l = new GridLayout(2, false);
+		GridLayout l = new GridLayout(3, false);
 		l.marginTop = 0;
 		l.marginBottom = 0;
 		l.marginHeight = 0;
@@ -46,7 +48,22 @@ public class CanvasWidget extends Composite {
 		
 		setLayout(l);
 		
-//		final ToolBar bar = new ToolBar(this, SWT.BORDER | SWT.VERTICAL | SWT.FLAT | SWT.WRAP);
+		bar1 = new ToolBar(this, SWT.BORDER | SWT.VERTICAL | SWT.FLAT );
+		bar1.setData(0);
+		for (int i=0; i<3; ++i) {
+			ToolItem i1 = new ToolItem(bar1, 0);
+			i1.setImage(Images.APPLICATION);
+		}
+		bar1.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, true, 1, 1));
+		
+		bar2 = new ToolBar(this, SWT.BORDER | SWT.VERTICAL | SWT.FLAT );
+		bar2.setData(1);
+		for (int i=0; i<100; ++i) {
+			ToolItem i1 = new ToolItem(bar2, 0);
+			i1.setImage(Images.REFRESH);
+		}
+		bar2.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, true, 1, 1));
+		
 
 		this.canvas = new SWTCanvas(this, SWT.NONE, mainWidget);
 		this.canvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -57,6 +74,27 @@ public class CanvasWidget extends Composite {
 				
 		addListener();
 	}
+	
+	// TEST	
+	public void toggleToolbarVisiblity(ToolBar tb) {
+		if (tb != bar1 && tb != bar2)
+			return;
+		
+		if (tb.getParent() instanceof CanvasWidget) {
+			tb.setParent(SWTUtil.dummyShell);
+		} else {
+			tb.setParent(this);
+		}
+		
+		if (tb == bar1) {
+			tb.moveAbove(null);
+		} else {
+			tb.moveAbove(canvas);
+		}
+		
+		pack();
+	}
+	// END TEST
 	
 	protected void addListener() {
 		// selection listener for toolbar:

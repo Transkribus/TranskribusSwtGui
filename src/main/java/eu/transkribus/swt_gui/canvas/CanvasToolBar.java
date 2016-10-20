@@ -129,13 +129,13 @@ public class CanvasToolBar {
 		zoomOut.setToolTipText("Zoom out");
 		zoomOut.setImage(Images.getOrLoad("/icons/zoom_out.png"));
 				
-		fitItem = new DropDownToolItem(this.tb, false, true, SWT.NONE);
+		fitItem = new DropDownToolItem(this.tb, false, true, false, SWT.NONE);
 		fitItem.addItem("Fit to page", Images.getOrLoad("/icons/arrow_in.png"), "Fit to page");
 		fitItem.addItem("Original size", Images.getOrLoad( "/icons/arrow_out.png"), "Original size");
 		fitItem.addItem("Fit to width", Images.getOrLoad("/icons/arrow_left_right.png"), "Fit to width");
 		fitItem.addItem("Fit to height", Images.getOrLoad("/icons/arrow_up_down.png"), "Fit to height");
 		
-		rotateItem = new DropDownToolItem(this.tb, false, true, SWT.NONE);
+		rotateItem = new DropDownToolItem(this.tb, false, true, false, SWT.NONE);
 		rotateItem.addItem("Rotate left", Images.getOrLoad("/icons/arrow_turn_left.png"), "Rotate left");
 		rotateItem.addItem("Rotate right", Images.getOrLoad("/icons/arrow_turn_right.png"), "Rotate right");
 		rotateItem.addItem("Rotate left 90 degress", Images.getOrLoad("/icons/arrow_turn_left_90.png"), "Rotate left 90 degress");
@@ -145,7 +145,7 @@ public class CanvasToolBar {
 		rotateItem.addItem("Translate up", Images.getOrLoad("/icons/arrow_up.png"), "Translate up");
 		rotateItem.addItem("Translate down", Images.getOrLoad("/icons/arrow_down.png"), "Translate down");
 		
-		imageVersionDropdown = new DropDownToolItem(this.tb, true, false, SWT.RADIO);
+		imageVersionDropdown = new DropDownToolItem(this.tb, true, false, true, SWT.RADIO);
 		
 		String versText = "Image file type displayed\n\torig: original image\n\tview: compressed viewing file\n\tbin: binarized image";
 		imageVersionDropdown.addItem("orig", null, versText, false);
@@ -167,7 +167,7 @@ public class CanvasToolBar {
 		}
 		
 //		addElementDropdown = new DropDownToolItem(this.tb, true, true, SWT.PUSH);
-		addElementDropdown = new DropDownToolItem(this.tb, false, true, SWT.PUSH);
+		addElementDropdown = new DropDownToolItem(this.tb, false, true, false, SWT.PUSH);
 		
 		MenuItem mi = null;
 		mi = addElementDropdown.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));
@@ -208,7 +208,7 @@ public class CanvasToolBar {
 		removePoint.setImage(Images.getOrLoad("/icons/vector_delete.png"));
 		modeMap.put(removePoint, CanvasMode.REMOVE_POINT);
 		
-		splitDropdown = new DropDownToolItem(this.tb, true, false, SWT.PUSH);
+		splitDropdown = new DropDownToolItem(this.tb, true, false, false, SWT.PUSH);
 		
 //		splitHorizontalItem = splitDropdown.addItem("Split by horizontal line", Images.getOrLoad("/icons/scissor_h.png"), "Split a shape", true);
 		String stt = "Split a shape";
@@ -255,7 +255,7 @@ public class CanvasToolBar {
 		mergeShapes.setImage(Images.getOrLoad("/icons/merge.png"));
 		
 		if (false) {
-		simplifyEpsItem = new DropDownToolItem(this.tb, false, true, SWT.RADIO);
+		simplifyEpsItem = new DropDownToolItem(this.tb, false, true, false, SWT.RADIO);
 		for (int i=5; i<=100; i+=5)
 			simplifyEpsItem.addItem(""+i, Images.getOrLoad("/icons/vector.png"), "");
 		simplifyEpsItem.selectItem(14, false);
@@ -265,7 +265,7 @@ public class CanvasToolBar {
 				+ "\n (i.e. Epsilon is set as the given percentage of the diameter of the bounding box of the shape)");
 		}		
 		
-		optionsItem = new DropDownToolItem(this.tb, false, true, SWT.CHECK);
+		optionsItem = new DropDownToolItem(this.tb, false, true, true, SWT.CHECK);
 		optionsItem.ti.setImage(Images.getOrLoad("/icons/wrench.png"));
 		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.getOrLoad("/icons/wrench.png"), "");
 		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.getOrLoad("/icons/wrench.png"), "");

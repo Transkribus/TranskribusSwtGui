@@ -360,7 +360,7 @@ public class TrpMainWidgetView extends Composite {
 		// retrieve toolbar from pagesPagingToolBar -> this will be the main toolbar where all other items are prepended / appended
 		ToolBar toolBar = pagesPagingToolBar.getToolBar();
 		
-		saveDrowDown = new DropDownToolItem(toolBar, false, true, SWT.RADIO);
+		saveDrowDown = new DropDownToolItem(toolBar, false, true, false, SWT.RADIO);
 		
 		saveTranscriptButton = saveDrowDown.addItem("Save", Images.DISK, "", true);
 		saveTranscriptWithMessageButton = saveDrowDown.addItem("Save with message", Images.DISK_MESSAGE, "", false);
@@ -407,7 +407,7 @@ public class TrpMainWidgetView extends Composite {
 		loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
 		*/
 
-		viewDockingDropItem = new DropDownToolItem(toolBar, false, true, SWT.CASCADE, preInsertIndex++);
+		viewDockingDropItem = new DropDownToolItem(toolBar, false, true, true, SWT.CASCADE, preInsertIndex++);
 
 		SelectionListener dockingStateSl = new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
@@ -452,7 +452,7 @@ public class TrpMainWidgetView extends Composite {
 			++i;
 		}
 
-		profilesToolItem = new DropDownToolItem(toolBar, false, false, SWT.NONE, preInsertIndex++);
+		profilesToolItem = new DropDownToolItem(toolBar, false, false, true, SWT.NONE, preInsertIndex++);
 		profilesToolItem.ti.setImage(Images.CONTROL_EQUALIZER);
 		profilesToolItem.ti.setToolTipText("Profiles");
 		updateProfiles();
@@ -483,7 +483,7 @@ public class TrpMainWidgetView extends Composite {
 		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
 	
 		// view item:
-		visibilityItem = new DropDownToolItem(toolBar, false, true, SWT.CHECK);
+		visibilityItem = new DropDownToolItem(toolBar, false, true, true, SWT.CHECK);		
 		visibilityItem.ti.setImage(Images.EYE);
 		String vtt = "Visibility of items on canvas"; 
 		

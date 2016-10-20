@@ -31,6 +31,8 @@ public class DropDownToolItem extends Widget {
 	boolean renderTextInMainItem=false;
 	boolean renderImageInMainItem=true;
 	
+	boolean showMenuOnItemClick=false;
+	
 	public static final int IS_DROP_DOWN_ITEM_DETAIL = 1;
 	
 	List<SelectionListener> selListener=new ArrayList<>();
@@ -172,7 +174,7 @@ public class DropDownToolItem extends Widget {
 		@Override
 		public void widgetSelected(SelectionEvent event) {
 			ToolItem item = (ToolItem) event.widget;
-			if (event.detail == SWT.ARROW) {
+			if (event.detail == SWT.ARROW || isShowMenuOnItemClick()) {
 				Rectangle rect = item.getBounds();
 				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
 				menu.setLocation(pt.x, pt.y + rect.height);
@@ -207,14 +209,14 @@ public class DropDownToolItem extends Widget {
 //	public DropDownToolItem(ToolBar parent) {
 //		init(parent, false, false);
 //	}
-	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, int itemStyle) {
-		this(parent, renderTextInMainItem, renderImageInMainItem, itemStyle, -1);
+	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle) {
+		this(parent, renderTextInMainItem, renderImageInMainItem, showMenuOnItemClick, itemStyle, -1);
 	}
 
 	/**
 	 * Item style: SWT.NONE, SWT.RADIO, SWT.CHECK
 	 */
-	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, int itemStyle, int index) {
+	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle, int index) {
 		super(parent, itemStyle);
 		
 		if (index >= 0)
@@ -239,6 +241,8 @@ public class DropDownToolItem extends Widget {
 		
 		this.renderTextInMainItem = renderTextInMainItem;
 		this.renderImageInMainItem = renderImageInMainItem;
+		this.showMenuOnItemClick = showMenuOnItemClick;
+		
 		this.itemStyle = itemStyle;
 //		this.highlightSelected = highlightSelected;
 //		if (highlightSelected)
@@ -348,6 +352,14 @@ public class DropDownToolItem extends Widget {
 
 	public Menu getMenu() {
 		return listener.menu;
+	}
+	
+	public boolean isShowMenuOnItemClick() {
+		return showMenuOnItemClick;
+	}
+
+	public void setShowMenuOnItemClick(boolean showMenuOnItemClick) {
+		this.showMenuOnItemClick = showMenuOnItemClick;
 	}
 
 	
