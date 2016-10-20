@@ -1861,8 +1861,8 @@ public class TrpMainWidget {
 		if (SysUtils.isWin()) {
 			localTestdoc = "C:/Schauplatz_small";
 		} else if (SysUtils.isOsx()) {
-//			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
-			localTestdoc = "/Users/hansm/Documents/testDocs/many_pages/";
+			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
+//			localTestdoc = "/Users/hansm/Documents/testDocs/many_pages/";
 		} else {
 //			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
 			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";

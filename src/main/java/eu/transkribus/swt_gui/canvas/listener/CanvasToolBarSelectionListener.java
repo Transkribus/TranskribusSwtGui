@@ -143,13 +143,13 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 //			} else
 //				return CanvasMode.SELECTION;
 //		}
-		else if (s.equals(toolbar.getSplitDropdown().ti)) {
-			if (e.detail != SWT.ARROW) {
-				CanvasMode mode = toolbar.getModeMap().get(toolbar.getSplitDropdown().getSelected());
-				return mode!=null ? mode : CanvasMode.SELECTION;
-			} else
-				return CanvasMode.SELECTION;
-		}
+//		else if (s.equals(toolbar.getSplitDropdown().ti)) {
+//			if (e.detail != SWT.ARROW) {
+//				CanvasMode mode = toolbar.getModeMap().get(toolbar.getSplitDropdown().getSelected());
+//				return mode!=null ? mode : CanvasMode.SELECTION;
+//			} else
+//				return CanvasMode.SELECTION;
+//		}
 		else {
 			CanvasMode mode = toolbar.getModeMap().get(e.getSource());
 			return mode!=null ? mode : CanvasMode.SELECTION;
