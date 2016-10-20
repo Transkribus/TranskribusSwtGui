@@ -118,14 +118,14 @@ public class TrpMainWidgetKeyListener implements Listener {
 		}
 		
 		// TEST
-		else if (isCtrlOrCommand && kc == '1') {
-			mw.getCanvasWidget().toggleToolbarVisiblity(mw.getCanvasWidget().bar1); 
-			
-		}
-		else if (isCtrlOrCommand && kc == '2') {
-			mw.getCanvasWidget().toggleToolbarVisiblity(mw.getCanvasWidget().bar2);
-			
-		}		
+//		else if (isCtrlOrCommand && kc == '1') {
+//			mw.getCanvasWidget().toggleToolbarVisiblity(mw.getCanvasWidget().bar1); 
+//			
+//		}
+//		else if (isCtrlOrCommand && kc == '2') {
+//			mw.getCanvasWidget().toggleToolbarVisiblity(mw.getCanvasWidget().bar2);
+//			
+//		}		
 		
 		lastTime = time;
 		lastKc = kc;

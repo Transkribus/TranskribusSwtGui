@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,10 +26,17 @@ import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 
 //public class CanvasToolBar extends ToolBar {
-public class CanvasToolBar {
-	private final static Logger logger = LoggerFactory.getLogger(CanvasToolBar.class);
+public class CanvasToolBarNew {
+	private final static Logger logger = LoggerFactory.getLogger(CanvasToolBarNew.class);
 
-	public ToolBar tb;
+//	public ToolBar tb;
+	
+	public ToolBar mainTb, viewTb, editTb;
+	
+	ToolItem showRegionsToolItem;
+	ToolItem showLinesToolItem;
+	ToolItem showBaselinesToolItem;
+	ToolItem showWordsToolItem;
 	
 	DropDownToolItem visibilityItem;
 	MenuItem showRegionsItem;
@@ -70,11 +78,20 @@ public class CanvasToolBar {
 
 	DropDownToolItem simplifyEpsItem;
 	ToolItem undo;
+	
+	ToolItem viewTbEnabledToolItem;
 	ToolItem editingEnabledToolItem;
 
 	ToolItem viewSettingsMenuItem;
 	HashMap<Item, CanvasMode> modeMap = new HashMap<>();
 	SelectionAdapter radioGroupSelectionAdapter;
+	
+	
+	ToolItem addTextRegionItem;
+	ToolItem addLineItem;
+	ToolItem addBaselineItem;
+	ToolItem addWordItem;
+	
 	DropDownToolItem addElementDropdown;
 	DropDownToolItem optionsItem;
 	ToolItem imgEnhanceItem;
@@ -98,35 +115,67 @@ public class CanvasToolBar {
 //	MenuItem removeIntermediatePtsItem;
 //	
 //	ToolItem renderBlackeningsToggle;
-	
-	public CanvasToolBar() {} // DO NOT USE
 
-	public CanvasToolBar(CanvasWidget parent, ToolBar tb, int style) {
+	public CanvasToolBarNew(CanvasWidget parent, ToolBar mainTb, ToolBar viewTb, ToolBar editTb, int style) {
+		Assert.assertNotNull("mainTb must be given!", mainTb);
+		Assert.assertNotNull("viewTb must be given!", viewTb);
+		Assert.assertNotNull("editTb must be given!", editTb);
+		
+		this.mainTb = mainTb;
+		this.viewTb = viewTb;
+		this.editTb = editTb;
+		
 		this.canvasWidget = parent;
-
-		// init toolbar if not given:
-		if (tb == null) {
-			tb = new ToolBar(canvasWidget, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		}
 		
-		this.tb = tb;
-		
-		tb.setLayout(new GridLayout(1, false));
-		
-		createViewItems(tb);
-				
-		// EDIT BUTTONS:
-		new ToolItem(this.tb, SWT.SEPARATOR);
-		
-		createEditItems(tb);
-		
-		tb.pack();
+//		initMainTb(mainTb);
+		createViewItems(viewTb);
+		createEditItems(editTb);
 		
 		addListeners();
 		updateButtonVisibility();
 	}
 	
+	void initMainTb(ToolBar tb) {
+		if (tb == null) { // never happens
+			tb = new ToolBar(canvasWidget, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
+		}
+		tb.setLayout(new GridLayout(1, false));
+	
+//		viewTbEnabledToolItem = new ToolItem(tb, SWT.CHECK);
+//		viewTbEnabledToolItem.setToolTipText("Show view canvas toolbar");
+//		viewTbEnabledToolItem.setImage(Images.getOrLoad("/icons/shape_square_edit.png"));
+//		viewTbEnabledToolItem.setSelection(canvasWidget.getCanvas().getSettings().isEditingEnabled());
+		
+		if (false) {
+		editingEnabledToolItem = new ToolItem(tb, SWT.CHECK);
+		editingEnabledToolItem.setToolTipText("Show edit canvas toolbar");
+		editingEnabledToolItem.setImage(Images.getOrLoad("/icons/shape_square_edit.png"));
+		editingEnabledToolItem.setSelection(canvasWidget.getCanvas().getSettings().isEditingEnabled());
+		}
+	}
+	
+	void intiViewTb(ToolBar tb) {
+		
+		
+	}
+	
 	public void createViewItems(ToolBar tb) {
+		showRegionsToolItem = new ToolItem(tb, SWT.CHECK);
+		showRegionsToolItem.setToolTipText("Show regions");
+		showRegionsToolItem.setImage(Images.getOrLoad("/icons/show_regions_shape.png"));
+		
+		showLinesToolItem = new ToolItem(tb, SWT.CHECK);
+		showLinesToolItem.setToolTipText("Show lines");
+		showLinesToolItem.setImage(Images.getOrLoad("/icons/show_lines_shape.png"));
+		
+		showBaselinesToolItem = new ToolItem(tb, SWT.CHECK);
+		showBaselinesToolItem.setToolTipText("Show baselines");
+		showBaselinesToolItem.setImage(Images.getOrLoad("/icons/show_baselines_shape.png"));
+		
+		showWordsToolItem = new ToolItem(tb, SWT.CHECK);
+		showWordsToolItem.setToolTipText("Show regions");
+		showWordsToolItem.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
+		
 		visibilityItem = new DropDownToolItem(tb, false, true, true, SWT.CHECK);		
 		visibilityItem.ti.setImage(Images.EYE);
 		String vtt = "Visibility of items on canvas"; 
@@ -185,13 +234,17 @@ public class CanvasToolBar {
 		rotateItem.addItem("Translate up", Images.getOrLoad("/icons/arrow_up.png"), "Translate up");
 		rotateItem.addItem("Translate down", Images.getOrLoad("/icons/arrow_down.png"), "Translate down");
 		
-		imageVersionDropdown = new DropDownToolItem(tb, true, false, true, SWT.RADIO);
+		
+//		imageVersionDropdown = new DropDownToolItem(tb, true, false, true, SWT.RADIO);
+		imageVersionDropdown = new DropDownToolItem(tb, false, true, true, SWT.RADIO);
+		imageVersionDropdown.ti.setImage(Images.IMAGE);
 		
 		String versText = "Image file type displayed\n\torig: original image\n\tview: compressed viewing file\n\tbin: binarized image";
-		imageVersionDropdown.addItem("orig", null, versText, false);
-		imageVersionDropdown.addItem("view", null, versText, true);
-		imageVersionDropdown.addItem("bin", null, versText, false);
+		imageVersionDropdown.addItem("orig", Images.IMAGE, versText, false);
+		imageVersionDropdown.addItem("view", Images.IMAGE, versText, true);
+		imageVersionDropdown.addItem("bin", Images.IMAGE, versText, false);
 		imageVersionDropdown.selectItem(1, false);
+		
 		
 		imgEnhanceItem = new ToolItem(tb, SWT.PUSH);
 		imgEnhanceItem.setImage(Images.CONTRAST);
@@ -199,6 +252,26 @@ public class CanvasToolBar {
 		viewSettingsMenuItem = new ToolItem(tb, SWT.PUSH);
 		viewSettingsMenuItem.setToolTipText("Change &viewing settings...");
 		viewSettingsMenuItem.setImage(Images.getOrLoad("/icons/palette.png"));
+				
+		helpItem = new ToolItem(tb, SWT.PUSH);
+		helpItem.setToolTipText("Canvas shortcuts");
+		helpItem.setImage(Images.HELP);
+		
+		if (true) {
+		new ToolItem(tb, SWT.SEPARATOR);
+		editingEnabledToolItem = new ToolItem(tb, SWT.CHECK);
+		editingEnabledToolItem.setToolTipText("Show edit canvas toolbar");
+		editingEnabledToolItem.setImage(Images.getOrLoad("/icons/shape_square_edit.png"));
+		editingEnabledToolItem.setSelection(canvasWidget.getCanvas().getSettings().isEditingEnabled());
+		editingEnabledToolItem.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				canvasWidget.toggleToolbarVisiblity(editTb, editingEnabledToolItem.getSelection());
+			}
+		});
+		}
+		
+		tb.pack();
 	}
 	
 	public void createEditItems(ToolBar tb) {
@@ -210,9 +283,40 @@ public class CanvasToolBar {
 		editingEnabledToolItem.setSelection(canvasWidget.getCanvas().getSettings().isEditingEnabled());
 		}
 		
-		addElementDropdown = new DropDownToolItem(tb, true, true, false, SWT.PUSH);
-//		addElementDropdown = new DropDownToolItem(tb, false, true, false, SWT.PUSH);
 		
+		if (true) {
+		addTextRegionItem = new ToolItem(tb, SWT.PUSH);
+		addTextRegionItem.setToolTipText("Add a text region");
+		addTextRegionItem.setImage(Images.ADD);
+		addTextRegionItem.setText("TR");
+		modeMap.put(addTextRegionItem, CanvasMode.ADD_TEXTREGION);
+		
+		addLineItem = new ToolItem(tb, SWT.PUSH);
+		addLineItem.setToolTipText("Add a line");
+		addLineItem.setImage(Images.ADD);
+		addLineItem.setText("L");
+		modeMap.put(addLineItem, CanvasMode.ADD_LINE);
+		
+		addBaselineItem = new ToolItem(tb, SWT.PUSH);
+		addBaselineItem.setToolTipText("Add a baseline");
+		addBaselineItem.setImage(Images.ADD);
+		addBaselineItem.setText("BL");
+		modeMap.put(addBaselineItem, CanvasMode.ADD_BASELINE);
+		
+		addWordItem = new ToolItem(tb, SWT.PUSH);
+		addWordItem.setToolTipText("Add a word");
+		addWordItem.setImage(Images.ADD);
+		addWordItem.setText("W");
+		modeMap.put(addWordItem, CanvasMode.ADD_WORD);
+		}
+		
+//		addElementDropdown = new DropDownToolItem(tb, true, true, false, SWT.PUSH); // ORIG
+//		addElementDropdown = new DropDownToolItem(tb, false, true, true, SWT.PUSH); // TEST
+		addElementDropdown = new DropDownToolItem(tb, false, false, true, SWT.PUSH); // TEST
+		addElementDropdown.ti.setImage(Images.ADD);
+		addElementDropdown.ti.setText("O");
+		addElementDropdown.ti.setToolTipText("Add other item...");
+				
 		MenuItem mi = null;
 		mi = addElementDropdown.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));
 		modeMap.put(mi, CanvasMode.ADD_TEXTREGION);
@@ -236,22 +340,26 @@ public class CanvasToolBar {
 //				mode.data = c;
 			mi = addElementDropdown.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
 			modeMap.put(mi, CanvasMode.ADD_OTHERREGION);	
-		}		
+		}	
 				
 		removeShape = new ToolItem(tb, SWT.PUSH);
 		removeShape.setToolTipText("Remove a shape");
-		removeShape.setImage(Images.getOrLoad("/icons/delete.png"));
+//		removeShape.setImage(Images.getOrLoad("/icons/delete.png"));
+		removeShape.setImage(Images.DELETE);
 		
 		addPoint = new ToolItem(tb, SWT.RADIO);
+//		addPoint = new ToolItem(tb, SWT.PUSH);
 		addPoint.setToolTipText("Add point to selected shape");
 		addPoint.setImage(Images.getOrLoad("/icons/vector_add.png"));
 		modeMap.put(addPoint, CanvasMode.ADD_POINT);
 		
 		removePoint = new ToolItem(tb, SWT.RADIO);
+//		removePoint = new ToolItem(tb, SWT.PUSH);
 		removePoint.setToolTipText("Remove point from selected shape");
 		removePoint.setImage(Images.getOrLoad("/icons/vector_delete.png"));
 		modeMap.put(removePoint, CanvasMode.REMOVE_POINT);
 		
+		if (false) {
 		splitDropdown = new DropDownToolItem(tb, true, false, false, SWT.PUSH);
 		
 //		splitHorizontalItem = splitDropdown.addItem("Split by horizontal line", Images.getOrLoad("/icons/scissor_h.png"), "Split a shape", true);
@@ -273,8 +381,9 @@ public class CanvasToolBar {
 		splitDropdown.ti.setImage(Images.SCISSOR);
 		splitDropdown.ti.setText("H");
 		splitDropdown.selectItem(0, false);
+		}
 		
-		if (false) {
+		if (true) {
 		splitShapeWithHorizontalLine = new ToolItem(tb, SWT.RADIO);
 		splitShapeWithHorizontalLine.setToolTipText("Splits a shape with a horizontal line");
 		splitShapeWithHorizontalLine.setImage(Images.getOrLoad("/icons/scissor.png"));
@@ -324,10 +433,8 @@ public class CanvasToolBar {
 		undo = new ToolItem(tb, SWT.PUSH);
 		undo.setToolTipText("Undo last edit step");
 		undo.setImage(Images.ARROW_UNDO);
-				
-		helpItem = new ToolItem(tb, SWT.PUSH);
-		helpItem.setToolTipText("Canvas shortcuts");
-		helpItem.setImage(Images.HELP);
+		
+		tb.layout();
 	}
 	
 	protected void addToRadioGroup(Item item) {
@@ -430,6 +537,11 @@ public class CanvasToolBar {
 //		SWTUtil.addSelectionListener(addLine, listener);
 //		SWTUtil.addSelectionListener(addBaseLine, listener);
 //		SWTUtil.addSelectionListener(addWord, listener);
+		
+		SWTUtil.addSelectionListener(addTextRegionItem, listener);
+		SWTUtil.addSelectionListener(addLineItem, listener);
+		SWTUtil.addSelectionListener(addBaselineItem, listener);
+		SWTUtil.addSelectionListener(addWordItem, listener);
 		
 		SWTUtil.addSelectionListener(addElementDropdown, listener);
 		SWTUtil.addSelectionListener(splitDropdown, listener);
@@ -547,9 +659,9 @@ public class CanvasToolBar {
 //		return simplifyShape;
 //	}
 	
-	public ToolItem getEditingEnabledToolItem() { 
-		return editingEnabledToolItem;
-	}
+//	public ToolItem getEditingEnabledToolItem() { 
+//		return editingEnabledToolItem;
+//	}
 	
 	public HashMap<Item, CanvasMode> getModeMap() {
 		return modeMap;

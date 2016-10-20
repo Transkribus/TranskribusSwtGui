@@ -212,17 +212,24 @@ public class DropDownToolItem extends Widget {
 	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle) {
 		this(parent, renderTextInMainItem, renderImageInMainItem, showMenuOnItemClick, itemStyle, -1);
 	}
+	
+	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle, int index) {
+		this(parent, true, renderTextInMainItem, renderImageInMainItem, showMenuOnItemClick, itemStyle, index);
+	}
 
 	/**
 	 * Item style: SWT.NONE, SWT.RADIO, SWT.CHECK
 	 */
-	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle, int index) {
+	public DropDownToolItem(ToolBar parent, boolean showDropDownArrow, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle, int index) {
 		super(parent, itemStyle);
 		
+//		int tiItemStyle = showDropDownArrow ? SWT.DROP_DOWN : SWT.PUSH;
+		int tiItemStyle = showDropDownArrow && !showMenuOnItemClick ? SWT.DROP_DOWN : SWT.PUSH;
+		
 		if (index >= 0)
-			ti = new ToolItem(parent, SWT.DROP_DOWN, index);
+			ti = new ToolItem(parent, tiItemStyle, index);
 		else
-			ti = new ToolItem(parent, SWT.DROP_DOWN);
+			ti = new ToolItem(parent, tiItemStyle);
 		
 		// TEST - set style of toolitem to check and drop_down - did not work...
 //		try {

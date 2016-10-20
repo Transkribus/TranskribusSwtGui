@@ -696,18 +696,32 @@ public class TrpMainWidget {
 	private void addUiBindings() {
 		DataBinder db = DataBinder.get();
 		TrpSettings trpSets = getTrpSets();
+		
+		CanvasWidget cw = ui.canvasWidget;
+		
+		logger.debug("cw = "+cw);
+		
+		CanvasSettings canvasSet = cw.getCanvas().getSettings();
 				
 		db.bindBeanPropertyToObservableValue(TrpSettings.LEFT_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
 												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.LEFT));
 		db.bindBeanPropertyToObservableValue(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
 												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.BOTTOM));
 		
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, ui.showPrintspaceItem);
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, ui.showRegionsItem);
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, ui.showLinesItem);
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, ui.showBaselinesItem);
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, ui.showWordsItem);
-		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, ui.renderBlackeningsItem);	
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, cw.getShowPrintspaceItem());
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, cw.getShowRegionsItem());
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, cw.getShowLinesItem());
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, cw.getShowBaselinesItem());
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, cw.getShowWordsItem());
+		
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, cw.getShowRegionsToolItem());
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, cw.getShowLinesToolItem());
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, cw.getShowBaselinesToolItem());
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, cw.getShowWordsToolItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, cw.getRenderBlackeningsItem());
+		
+//		DataBinder.get().bindBoolBeanValueToToolItemSelection("editingEnabled", canvasSet, cw.getEditingEnabledToolItem());
 		
 		if (TrpSettings.ENABLE_LINE_EDITOR)
 			db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINE_EDITOR_PROPERTY, trpSets, ui.showLineEditorToggle);
@@ -725,9 +739,9 @@ public class TrpMainWidget {
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getSelectNewlyCreatedShapeItem());
 		
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, ui.showReadingOrderRegionsMenuItem);
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, ui.showReadingOrderLinesMenuItem);
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, ui.showReadingOrderWordsMenuItem);			
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, cw.getShowReadingOrderRegionsMenuItem());
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, cw.getShowReadingOrderLinesMenuItem());
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, cw.getShowReadingOrderWordsMenuItem());	
 	}
 	
 	public TaggingWidgetListener getTaggingWidgetListener() {
@@ -1348,7 +1362,8 @@ public class TrpMainWidget {
 			isPageLocked = storage.isPageLocked();
 			TrpConfig.getCanvasSettings().setEditingEnabled(!isPageLocked);
 
-			SWTUtil.setEnabled(ui.getCanvasWidget().getToolbar().getEditingEnabledToolItem(), !isPageLocked);
+			SWTUtil.setEnabled(ui.getCanvasWidget().getEditingEnabledToolItem(), !isPageLocked);
+			
 			SWTUtil.setEnabled(ui.getTranscriptionComposite(), !isPageLocked);
 			SWTUtil.setEnabled(ui.getSaveDropDown(), !isPageLocked);
 
@@ -1850,8 +1865,8 @@ public class TrpMainWidget {
 			localTestdoc = "/Users/hansm/Documents/testDocs/many_pages/";
 		} else {
 //			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
-//			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";
-			localTestdoc = "/home/sebastian/Documents/transkribus_testdocs/many_pages/";
+			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";
+//			localTestdoc = "/home/sebastian/Documents/transkribus_testdocs/many_pages/";
 //			localTestdoc = System.getProperty( "user.home" )+"/testdocmanybl";
 		}
 
@@ -3980,6 +3995,7 @@ public class TrpMainWidget {
 //				+ "Canvas shortcut operations:\n"
 				+ "- esc -> set selection mode\n"
 				+ "- shift + drag-on-bounding-box -> resize shape on bounding box\n"
+				+ "- shift + drag shape -> move shape including all its child shapes\n"
 				+ "- right click on a shape to get a context menu with additional operations "
 				+ "(note: on mac touchpads, right-clicks are performed using two fingers simultaneously)"
 				;

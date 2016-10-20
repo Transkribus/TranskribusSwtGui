@@ -9,6 +9,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
@@ -25,7 +26,8 @@ public class CanvasWidget extends Composite {
 	static Logger logger = LoggerFactory.getLogger(CanvasWidget.class);
 	
 	protected SWTCanvas canvas;
-	protected CanvasToolBar toolbar;
+//	protected CanvasToolBar toolbar;
+	protected CanvasToolBarNew toolbar;
 	protected CanvasToolBarSelectionListener canvasToolBarSelectionListener;
 	
 	TrpMainWidget mainWidget;
@@ -48,20 +50,22 @@ public class CanvasWidget extends Composite {
 		
 		setLayout(l);
 		
-		bar1 = new ToolBar(this, SWT.BORDER | SWT.VERTICAL | SWT.FLAT );
-		bar1.setData(0);
-		for (int i=0; i<3; ++i) {
-			ToolItem i1 = new ToolItem(bar1, 0);
-			i1.setImage(Images.APPLICATION);
-		}
+		int barStyle = /*SWT.FLAT |*/ SWT.RIGHT;
+		
+		bar1 = new ToolBar(this, SWT.VERTICAL | barStyle );
+//		bar1.setData(0);
+//		for (int i=0; i<3; ++i) {
+//			ToolItem i1 = new ToolItem(bar1, 0);
+//			i1.setImage(Images.APPLICATION);
+//		}
 		bar1.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, true, 1, 1));
 		
-		bar2 = new ToolBar(this, SWT.BORDER | SWT.VERTICAL | SWT.FLAT );
-		bar2.setData(1);
-		for (int i=0; i<100; ++i) {
-			ToolItem i1 = new ToolItem(bar2, 0);
-			i1.setImage(Images.REFRESH);
-		}
+		bar2 = new ToolBar(this, SWT.VERTICAL | barStyle  );
+//		bar2.setData(1);
+//		for (int i=0; i<100; ++i) {
+//			ToolItem i1 = new ToolItem(bar2, 0);
+//			i1.setImage(Images.REFRESH);
+//		}
 		bar2.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, true, 1, 1));
 		
 
@@ -69,18 +73,19 @@ public class CanvasWidget extends Composite {
 		this.canvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				
 //		this.toolbar = new CanvasToolBar(this, bar, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		this.toolbar = new CanvasToolBar(this, tb, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		this.toolbar.tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
+//		this.toolbar = new CanvasToolBar(this, tb, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
+		this.toolbar = new CanvasToolBarNew(this, tb, bar1, bar2, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
+		tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
 				
 		addListener();
 	}
 	
 	// TEST	
-	public void toggleToolbarVisiblity(ToolBar tb) {
+	public void toggleToolbarVisiblity(ToolBar tb, boolean show) {
 		if (tb != bar1 && tb != bar2)
 			return;
 		
-		if (tb.getParent() instanceof CanvasWidget) {
+		if (!show) {
 			tb.setParent(SWTUtil.dummyShell);
 		} else {
 			tb.setParent(this);
@@ -135,7 +140,7 @@ public class CanvasWidget extends Composite {
 		return canvas;
 	}
 
-	public CanvasToolBar getToolbar() {
+	public CanvasToolBarNew getToolbar() {
 		return toolbar;
 	}
 
@@ -206,5 +211,61 @@ public class CanvasWidget extends Composite {
 			toolbar.getUndo().setEnabled(false);
 			toolbar.getUndo().setToolTipText("Undo: Nothing do undo...");
 		}
+	}
+	
+	public ToolItem getShowRegionsToolItem() {
+		return toolbar.showRegionsToolItem;
+	}
+	
+	public ToolItem getShowLinesToolItem() {
+		return toolbar.showLinesToolItem;
+	}
+	
+	public ToolItem getShowBaselinesToolItem() {
+		return toolbar.showBaselinesToolItem;
+	}
+	
+	public ToolItem getShowWordsToolItem() {
+		return toolbar.showWordsToolItem;
+	}
+		
+	public MenuItem getShowRegionsItem() {
+		return toolbar.showRegionsItem;
+	}	
+	
+	public MenuItem getShowLinesItem() {
+		return toolbar.showLinesItem;
+	}
+	
+	public MenuItem getShowBaselinesItem() {
+		return toolbar.showBaselinesItem;
+	}
+	
+	public MenuItem getShowWordsItem() {
+		return toolbar.showWordsItem;
+	}
+	
+	public MenuItem getShowPrintspaceItem() {
+		return toolbar.showPrintspaceItem;
+	}
+	
+	public MenuItem getShowReadingOrderRegionsMenuItem() {
+		return toolbar.showReadingOrderRegionsMenuItem;
+	}
+	
+	public MenuItem getShowReadingOrderLinesMenuItem() {
+		return toolbar.showReadingOrderLinesMenuItem;
+	}
+	
+	public MenuItem getShowReadingOrderWordsMenuItem() {
+		return toolbar.showReadingOrderWordsMenuItem;
+	}
+	
+	public MenuItem getRenderBlackeningsItem() {
+		return toolbar.renderBlackeningsItem;
+	}
+
+	public ToolItem getEditingEnabledToolItem() {
+		return toolbar.editingEnabledToolItem;
 	}
 }

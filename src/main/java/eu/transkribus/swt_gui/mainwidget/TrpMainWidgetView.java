@@ -94,16 +94,16 @@ public class TrpMainWidgetView extends Composite {
 	MenuItem saveTranscriptButton, saveTranscriptWithMessageButton;
 	ToolItem versionsButton;
 	
-	DropDownToolItem visibilityItem;
-	MenuItem showRegionsItem;
-	MenuItem showLinesItem;
-	MenuItem showBaselinesItem;
-	MenuItem showWordsItem;
-	MenuItem showPrintspaceItem;
-	MenuItem renderBlackeningsItem;
-	MenuItem showReadingOrderRegionsMenuItem;
-	MenuItem showReadingOrderLinesMenuItem;
-	MenuItem showReadingOrderWordsMenuItem;	
+//	DropDownToolItem visibilityItem;
+//	MenuItem showRegionsItem;
+//	MenuItem showLinesItem;
+//	MenuItem showBaselinesItem;
+//	MenuItem showWordsItem;
+//	MenuItem showPrintspaceItem;
+//	MenuItem renderBlackeningsItem;
+//	MenuItem showReadingOrderRegionsMenuItem;
+//	MenuItem showReadingOrderLinesMenuItem;
+//	MenuItem showReadingOrderWordsMenuItem;	
 		
 	// dock state buttons
 	DropDownToolItem viewDockingDropItem;
@@ -407,7 +407,7 @@ public class TrpMainWidgetView extends Composite {
 		loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
 		*/
 
-		viewDockingDropItem = new DropDownToolItem(toolBar, false, true, true, SWT.CASCADE, preInsertIndex++);
+		viewDockingDropItem = new DropDownToolItem(toolBar, false, false, true, true, SWT.CASCADE, preInsertIndex++);
 
 		SelectionListener dockingStateSl = new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
@@ -452,7 +452,7 @@ public class TrpMainWidgetView extends Composite {
 			++i;
 		}
 
-		profilesToolItem = new DropDownToolItem(toolBar, false, false, true, SWT.NONE, preInsertIndex++);
+		profilesToolItem = new DropDownToolItem(toolBar, false, false, false, true, SWT.NONE, preInsertIndex++);
 		profilesToolItem.ti.setImage(Images.CONTROL_EQUALIZER);
 		profilesToolItem.ti.setToolTipText("Profiles");
 		updateProfiles();
@@ -483,19 +483,19 @@ public class TrpMainWidgetView extends Composite {
 		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
 	
 		// view item:
-		visibilityItem = new DropDownToolItem(toolBar, false, true, true, SWT.CHECK);		
-		visibilityItem.ti.setImage(Images.EYE);
-		String vtt = "Visibility of items on canvas"; 
-		
-		showRegionsItem = visibilityItem.addItem("Show Regions", Images.EYE, vtt);
-		showLinesItem = visibilityItem.addItem("Show Lines", Images.EYE, vtt);
-		showBaselinesItem = visibilityItem.addItem("Show Baselines", Images.EYE, vtt);
-		showWordsItem = visibilityItem.addItem("Show Words", Images.EYE, vtt);
-		showPrintspaceItem = visibilityItem.addItem("Show Printspace", Images.EYE, vtt);
-		renderBlackeningsItem = visibilityItem.addItem("Render Blackenings", Images.EYE, vtt);
-		showReadingOrderRegionsMenuItem = visibilityItem.addItem("Show regions reading order", Images.EYE, vtt);
-		showReadingOrderLinesMenuItem = visibilityItem.addItem("Show lines reading order", Images.EYE, vtt);
-		showReadingOrderWordsMenuItem = visibilityItem.addItem("Show words reading order", Images.EYE, vtt);
+//		visibilityItem = new DropDownToolItem(toolBar, false, true, true, SWT.CHECK);		
+//		visibilityItem.ti.setImage(Images.EYE);
+//		String vtt = "Visibility of items on canvas"; 
+//		
+//		showRegionsItem = visibilityItem.addItem("Show Regions", Images.EYE, vtt);
+//		showLinesItem = visibilityItem.addItem("Show Lines", Images.EYE, vtt);
+//		showBaselinesItem = visibilityItem.addItem("Show Baselines", Images.EYE, vtt);
+//		showWordsItem = visibilityItem.addItem("Show Words", Images.EYE, vtt);
+//		showPrintspaceItem = visibilityItem.addItem("Show Printspace", Images.EYE, vtt);
+//		renderBlackeningsItem = visibilityItem.addItem("Render Blackenings", Images.EYE, vtt);
+//		showReadingOrderRegionsMenuItem = visibilityItem.addItem("Show regions reading order", Images.EYE, vtt);
+//		showReadingOrderLinesMenuItem = visibilityItem.addItem("Show lines reading order", Images.EYE, vtt);
+//		showReadingOrderWordsMenuItem = visibilityItem.addItem("Show words reading order", Images.EYE, vtt);
 		
 		if (TrpSettings.ENABLE_LINE_EDITOR) {
 			new ToolItem(toolBar, SWT.SEPARATOR);			
@@ -568,7 +568,7 @@ public class TrpMainWidgetView extends Composite {
 //	public TranscriptsTableWidgetPagination getVersionsWidget() { return versionsWidget; };
 	
 	public CanvasWidget getCanvasWidget() { return canvasWidget; }
-	public CanvasToolBar getCanvasToolBar() { return canvasWidget.getToolbar(); }
+//	public CanvasToolBar getCanvasToolBar() { return canvasWidget.getToolbar(); }
 	
 	public SWTCanvas getCanvas() {
 		return (canvasWidget != null && canvasWidget.getCanvas()!=null) ? canvasWidget.getCanvas() : null;
