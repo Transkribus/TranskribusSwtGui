@@ -703,10 +703,10 @@ public class CanvasShapeEditor {
 	//		scene.selectObject(selected.getParent(), false, false);
 	
 			List<ShapeEditOperation> splitOps = splitShapeDefault(shape, pl, true);
-	
+			
 			// try to select first split of baseline:
-			logger.debug("trying to select left baseline split, nr of ops = "+splitOps.size());
 			if (splitOps != null) {
+				logger.debug("trying to select left baseline split, nr of ops = "+splitOps.size());
 				for (ShapeEditOperation o : splitOps) {
 					if (!o.getShapes().isEmpty() && o.getShapes().get(0).getData() instanceof TrpBaselineType) {
 						if (!o.getNewShapes().isEmpty()) {

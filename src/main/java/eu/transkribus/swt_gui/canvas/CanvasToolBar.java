@@ -166,7 +166,8 @@ public class CanvasToolBar {
 		editingEnabledToolItem.setSelection(canvasWidget.getCanvas().getSettings().isEditingEnabled());
 		}
 		
-		addElementDropdown = new DropDownToolItem(this.tb, true, true, SWT.PUSH);
+//		addElementDropdown = new DropDownToolItem(this.tb, true, true, SWT.PUSH);
+		addElementDropdown = new DropDownToolItem(this.tb, false, true, SWT.PUSH);
 		
 		MenuItem mi = null;
 		mi = addElementDropdown.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));

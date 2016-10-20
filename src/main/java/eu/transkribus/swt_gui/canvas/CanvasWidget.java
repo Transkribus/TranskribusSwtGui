@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.editing.UndoStack;
 import eu.transkribus.swt_gui.canvas.listener.CanvasToolBarSelectionListener;
@@ -37,22 +38,23 @@ public class CanvasWidget extends Composite {
 		super(parent, style);
 		this.mainWidget = mainWidget;
 										
-		GridLayout l = new GridLayout(1, false);
+		GridLayout l = new GridLayout(2, false);
 		l.marginTop = 0;
 		l.marginBottom = 0;
 		l.marginHeight = 0;
 		l.marginWidth = 0;
 		
 		setLayout(l);
+		
+//		final ToolBar bar = new ToolBar(this, SWT.BORDER | SWT.VERTICAL | SWT.FLAT | SWT.WRAP);
 
-		this.canvas = new SWTCanvas(SWTUtil.dummyShell, SWT.NONE, mainWidget);
+		this.canvas = new SWTCanvas(this, SWT.NONE, mainWidget);
 		this.canvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
+				
+//		this.toolbar = new CanvasToolBar(this, bar, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
 		this.toolbar = new CanvasToolBar(this, tb, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
 		this.toolbar.tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
-		
-		this.canvas.setParent(this);
-		
+				
 		addListener();
 	}
 	
