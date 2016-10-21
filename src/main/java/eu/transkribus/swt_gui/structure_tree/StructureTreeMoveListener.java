@@ -33,6 +33,6 @@ public class StructureTreeMoveListener implements Listener {
 			treeWidget.moveDownItem();
 		}
 		
-
+		treeWidget.treeViewer.refresh(true);
 	}
 }

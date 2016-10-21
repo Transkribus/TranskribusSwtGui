@@ -741,6 +741,10 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 			
 			//to store the reading order durable
 			st.getObservable().setChangedAndNotifyObservers(new TrpReadingOrderChangedEvent(this));
+			canvas.setFocus();
+			canvas.redraw();
+			canvas.update();
+			
 	
 			
 		} catch (Throwable th) {

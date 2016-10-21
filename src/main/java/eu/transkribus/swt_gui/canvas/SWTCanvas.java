@@ -1563,14 +1563,14 @@ public class SWTCanvas extends Canvas {
 		boolean isRegion = trpShape instanceof TrpRegionType;
 		boolean isLine = trpShape instanceof TrpTextLineType;
 		boolean isWord = trpShape instanceof TrpWordType;
+				
+		boolean isSel = s.isSelected();
 		
 		TrpSettings trpSets = mainWidget.getTrpSets();
 		
 		boolean showRo = (isRegion && trpSets.isShowReadingOrderRegions()) || (isLine && trpSets.isShowReadingOrderLines())
 				|| (isWord && trpSets.isShowReadingOrderWords());
-		
-		boolean isSel = s.isSelected();
-		
+
 		if (showRo) {
 			
 			s.updateReadingOrderShapeWidth(sets.getReadingOrderCircleWidth());
@@ -1640,7 +1640,8 @@ public class SWTCanvas extends Canvas {
 						arcWidth = gc.getFontMetrics().getHeight();
 					}
 					
-					if (isSel){
+					//2nd check is to highlight the reading order either the baseline and not only the line is selected
+					if (isSel || (isLine && s.getChild(0) != null && s.getChild(0).isSelected())){
 						gc.setLineWidth(CanvasSettings.DEFAULT.getSelectedLineWidth());
 						//arcWidth = (int) (1.5*arcWidth);
 						gc.setAlpha(255);
@@ -1654,8 +1655,7 @@ public class SWTCanvas extends Canvas {
 					}
 					
 					//gc.setBackground(CanvasSettings.DEFAULT.getReadingOrderBackgroundColor());
-					
-
+				
 					gc.fillArc((int) s.getReadingOrderCircle().getX(), (int) s.getReadingOrderCircle().getY(), arcWidth, arcWidth, 0, 360);
 					//gc.setForeground(CanvasSettings.DEFAULT.getDrawColor());
 					//gc.drawArc(xLocation, yLocation, textSize.x+5, textSize.x+5, 0, 360);

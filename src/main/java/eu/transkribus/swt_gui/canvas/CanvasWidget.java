@@ -77,6 +77,7 @@ public class CanvasWidget extends Composite {
 			public void propertyChange(PropertyChangeEvent evt) {
 				toolbar.updateButtonVisibility();
 				canvas.redraw();
+				canvas.update();
 			}
 		});
 		// update undo button on changes in undo stack:

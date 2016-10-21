@@ -796,6 +796,10 @@ public class StructureTreeWidget extends Composite {
 				currShape.swap(UP);
 			}
 		}
+		
+		//refresh the canvas
+		TrpMainWidget.getInstance().getCanvas().redraw();
+		TrpMainWidget.getInstance().getCanvas().update();
 
 	}
 	
@@ -817,7 +821,11 @@ public class StructureTreeWidget extends Composite {
 				ITrpShapeType currShape = (ITrpShapeType) o;
 				currShape.swap(DOWN);
 			}
-		}		
+		}	
+		
+		TrpMainWidget.getInstance().getCanvas().redraw();
+		TrpMainWidget.getInstance().getCanvas().update();
+
 		
 //		Iterator<?> it = sel.iterator();
 //		while (it.hasNext()) {
