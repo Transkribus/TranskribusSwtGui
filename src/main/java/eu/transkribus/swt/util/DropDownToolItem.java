@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -32,11 +34,15 @@ public class DropDownToolItem extends Widget {
 	boolean renderImageInMainItem=true;
 	
 	boolean showMenuOnItemClick=false;
+	boolean showDropDownArrow=true;
+	boolean isDropDown=true;
 	
+	boolean keepMenuOpenOnClick=false;
+
 	public static final int IS_DROP_DOWN_ITEM_DETAIL = 1;
 	
 	List<SelectionListener> selListener=new ArrayList<>();
-	
+
 	public static final String ALT_TXT_KEY="altTxt";
 
 //	boolean highlightSelected=false;
@@ -49,11 +55,28 @@ public class DropDownToolItem extends Widget {
 			this.dropdown = dropdown;
 			menu = new Menu(dropdown.getParent().getShell());
 			
-			menu.addListener(SWT.Hide, new Listener() {
+//			menu.addListener(SWT.Hide, new Listener() {
+//				@Override
+//				public void handleEvent(Event event) {
+//					logger.debug("hiding menu!");
+//					event.doit = false;
+//				}
+//			});
+			
+//			menu.addListener(SWT.Hide, listener);
+
+			menu.addMenuListener(new MenuListener() {
 				@Override
-				public void handleEvent(Event event) {
+				public void menuShown(MenuEvent e) {
+					ti.setSelection(true);
+				}
+				
+				@Override
+				public void menuHidden(MenuEvent e) {
+					ti.setSelection(false);
 				}
 			});
+
 		}
 
 		public MenuItem add(String item, Image image, String toolTipText, int itemStyle, boolean isSelected, Object data) {
@@ -224,7 +247,8 @@ public class DropDownToolItem extends Widget {
 		super(parent, itemStyle);
 		
 //		int tiItemStyle = showDropDownArrow ? SWT.DROP_DOWN : SWT.PUSH;
-		int tiItemStyle = showDropDownArrow && !showMenuOnItemClick ? SWT.DROP_DOWN : SWT.PUSH;
+		isDropDown = showDropDownArrow && !showMenuOnItemClick;
+		int tiItemStyle = isDropDown ? SWT.DROP_DOWN : SWT.CHECK;
 		
 		if (index >= 0)
 			ti = new ToolItem(parent, tiItemStyle, index);
@@ -249,6 +273,7 @@ public class DropDownToolItem extends Widget {
 		this.renderTextInMainItem = renderTextInMainItem;
 		this.renderImageInMainItem = renderImageInMainItem;
 		this.showMenuOnItemClick = showMenuOnItemClick;
+		this.showDropDownArrow = showDropDownArrow;
 		
 		this.itemStyle = itemStyle;
 //		this.highlightSelected = highlightSelected;
@@ -349,13 +374,12 @@ public class DropDownToolItem extends Widget {
 		return listener.menu.isVisible();
 	}
 
-	public void exchangeToolItemImage(Image newImage) {
-		if (ti.getImage() != null){
-			ti.getImage().dispose();
-		}
-		ti.setImage(newImage);
-		
-	}
+//	public void exchangeToolItemImage(Image newImage) {
+//		if (ti.getImage() != null){
+//			ti.getImage().dispose();
+//		}
+//		ti.setImage(newImage);
+//	}
 
 	public Menu getMenu() {
 		return listener.menu;
@@ -368,7 +392,14 @@ public class DropDownToolItem extends Widget {
 	public void setShowMenuOnItemClick(boolean showMenuOnItemClick) {
 		this.showMenuOnItemClick = showMenuOnItemClick;
 	}
+	
+	public boolean isKeepMenuOpenOnClick() {
+		return keepMenuOpenOnClick;
+	}
 
+	public void setKeepMenuOpenOnClick(boolean keepMenuOpenOnClick) {
+		this.keepMenuOpenOnClick = keepMenuOpenOnClick;
+	}
 	
 //	public void addSelectionListener(SelectionListener l) {
 //		selListener.add(l);

@@ -260,7 +260,7 @@ public class CanvasToolBarNew {
 		if (true) {
 		new ToolItem(tb, SWT.SEPARATOR);
 		editingEnabledToolItem = new ToolItem(tb, SWT.CHECK);
-		editingEnabledToolItem.setToolTipText("Show edit canvas toolbar");
+		editingEnabledToolItem.setToolTipText("Show edit toolbar");
 		editingEnabledToolItem.setImage(Images.getOrLoad("/icons/shape_square_edit.png"));
 		editingEnabledToolItem.setSelection(canvasWidget.getCanvas().getSettings().isEditingEnabled());
 		editingEnabledToolItem.addSelectionListener(new SelectionAdapter() {

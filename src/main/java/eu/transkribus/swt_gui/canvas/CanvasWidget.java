@@ -6,9 +6,13 @@ import java.util.Observable;
 import java.util.Observer;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -50,7 +54,7 @@ public class CanvasWidget extends Composite {
 		
 		setLayout(l);
 		
-		int barStyle = /*SWT.FLAT |*/ SWT.RIGHT;
+		int barStyle = /*SWT.FLAT |*/ SWT.RIGHT | SWT.WRAP;
 		
 		bar1 = new ToolBar(this, SWT.VERTICAL | barStyle );
 //		bar1.setData(0);
@@ -74,10 +78,32 @@ public class CanvasWidget extends Composite {
 				
 //		this.toolbar = new CanvasToolBar(this, bar, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
 //		this.toolbar = new CanvasToolBar(this, tb, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		this.toolbar = new CanvasToolBarNew(this, tb, bar1, bar2, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
+		this.toolbar = new CanvasToolBarNew(this, tb, bar1, bar2, 0);
 		tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
 				
 		addListener();
+		
+		updateToolbarSizes();
+		canvas.addListener(SWT.Resize, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				updateToolbarSizes();
+			}
+		});
+	}
+	
+	public void updateToolbarSizes() {
+		Rectangle r = getClientArea();
+//		logger.debug("r = "+r);
+		
+		updateToolbarSize(bar1, r);
+		updateToolbarSize(bar2, r);
+	}
+	
+	public static void updateToolbarSize(ToolBar tb, Rectangle clientArea) {
+		Point size = tb.computeSize(SWT.DEFAULT, clientArea.height);
+//		logger.debug("tb1 size: "+size);
+		tb.setSize(size);
 	}
 	
 	// TEST	

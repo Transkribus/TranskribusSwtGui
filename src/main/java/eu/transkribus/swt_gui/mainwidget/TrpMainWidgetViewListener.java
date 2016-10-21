@@ -50,18 +50,23 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		
 //		db.runOnSelection(ui.getReloadDocumentButton(), (e) -> { mw.reloadCurrentDocument(); } );
 		
-		SWTUtil.onSelectionEvent(ui.getExportDocumentButton(), (e) -> { mw.unifiedExport(); } );
+		SWTUtil.onSelectionEvent(ui.exportDocumentButton, (e) -> { mw.unifiedExport(); } );
 		
 		SWTUtil.onSelectionEvent(ui.reloadDocumentButton, (e) -> { mw.reloadCurrentDocument(); } );
 						
-		SWTUtil.onSelectionEvent(ui.getVersionsButton(), (e) -> { mw.openVersionsDialog(); } );
+		SWTUtil.onSelectionEvent(ui.versionsButton, (e) -> { mw.openVersionsDialog(); } );
 				
-		SWTUtil.onSelectionEvent(ui.getSaveDropDown(), (e) -> {
+		SWTUtil.onSelectionEvent(ui.saveDrowDown, (e) -> {
 			if (e.detail != SWT.ARROW) {
-				boolean withMessage = ui.getSaveDropDown().getSelected()==ui.getSaveTranscriptWithMessageButton();
+				boolean withMessage = ui.saveDrowDown.getSelected()==ui.saveTranscriptWithMessageMenuItem;
 				mw.saveTranscription(withMessage);
 			}
 		});
+		
+		SWTUtil.onSelectionEvent(ui.saveTranscriptToolItem, (e) -> { mw.saveTranscription(false); } );
+		SWTUtil.onSelectionEvent(ui.saveTranscriptWithMessageToolItem, (e) -> { mw.saveTranscription(true); } );
+		
+		
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptButton(), this);
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptWithMessageButton(), this);
 		
@@ -96,7 +101,9 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowVersionsBtn(), (e) -> { mw.openVersionsDialog(); } );
 				
-		SWTUtil.onSelectionEvent(ui.helpItem, (e) -> { mw.openCanvasHelpDialog(); } );
+//		SWTUtil.onSelectionEvent(ui.helpItem, (e) -> { mw.openCanvasHelpDialog(); } );
+		
+		SWTUtil.onSelectionEvent(ui.bugReportItem, (e) -> { mw.sendBugReport(); } );
 	}
 	
 	@Override
