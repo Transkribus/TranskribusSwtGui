@@ -10,6 +10,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
@@ -22,8 +23,9 @@ import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 //public class CanvasToolBar extends ToolBar {
 public class CanvasToolBarNew {
@@ -46,6 +48,8 @@ public class CanvasToolBarNew {
 	MenuItem showWordsItem;
 	MenuItem showPrintspaceItem;
 	MenuItem renderBlackeningsItem;
+	
+	public Button showRegionsButton, showLinesButton, showBaselinesButton, showWordsButton, renderBlackeningsButton; 
 	
 	DropDownToolItem readingOrderVisibilityItem;
 
@@ -188,9 +192,24 @@ public class CanvasToolBarNew {
 		showWordsToolItem.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
 		}
 		
+		if (true) {
+		ToolItem visItem = new ToolItem(tb, SWT.CHECK);
+		visItem.setToolTipText("Shape visibility...");
+		visItem.setImage(Images.EYE);
+			
+		ToolBox visBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true);
+		visBox.addTriggerWidget(visItem);
+		showRegionsButton = visBox.addButton("Show regions", Images.getOrLoad("/icons/show_regions_shape.png"), SWT.CHECK);
+		showLinesButton = visBox.addButton("Show lines", Images.getOrLoad("/icons/show_lines_shape.png"), SWT.CHECK);
+		showBaselinesButton = visBox.addButton("Show baselines", Images.getOrLoad("/icons/show_baselines_shape.png"), SWT.CHECK);
+		showWordsButton = visBox.addButton("Show words", Images.getOrLoad("/icons/show_word_shape.png"), SWT.CHECK);
+		renderBlackeningsButton = visBox.addButton("Render blackenings", Images.getOrLoad("/icons/rabbit-silhouette.png"), SWT.CHECK);
+		}
+		else {
 		visibilityItem = new DropDownToolItem(tb, false, false, true, SWT.CHECK);
 		visibilityItem.ti.setImage(Images.EYE);
 		visibilityItem.ti.setToolTipText("Shape visibility...");
+				
 //		visibilityItem.setKeepMenuOpenOnClick(true);
 		
 //		String vtt = "Visibility of items on canvas";
@@ -202,16 +221,16 @@ public class CanvasToolBarNew {
 		showWordsItem = visibilityItem.addItem("Show Words", Images.EYE, vtt);
 //		showPrintspaceItem = visibilityItem.addItem("Show Printspace", Images.EYE, vtt);
 		renderBlackeningsItem = visibilityItem.addItem("Render blackenings", Images.EYE, vtt);
+		}
 		
-		readingOrderVisibilityItem = new DropDownToolItem(tb, false, false, true, SWT.CHECK);		
+		readingOrderVisibilityItem = new DropDownToolItem(tb, false, false, true, SWT.CHECK);	
 		readingOrderVisibilityItem.ti.setImage(Images.READING_ORDER);
 		readingOrderVisibilityItem.ti.setToolTipText("Show reading order...");
 //		readingOrderVisibilityItem.setKeepMenuOpenOnClick(true);
-		vtt = "Show reading order...";
-		
-		showReadingOrderRegionsMenuItem = readingOrderVisibilityItem.addItem("Show regions reading order", Images.READING_ORDER, vtt);
-		showReadingOrderLinesMenuItem = readingOrderVisibilityItem.addItem("Show lines reading order", Images.READING_ORDER, vtt);
-		showReadingOrderWordsMenuItem = readingOrderVisibilityItem.addItem("Show words reading order", Images.READING_ORDER, vtt);		
+		String rtt = "Show reading order...";
+		showReadingOrderRegionsMenuItem = readingOrderVisibilityItem.addItem("Show regions reading order", Images.READING_ORDER, rtt);
+		showReadingOrderLinesMenuItem = readingOrderVisibilityItem.addItem("Show lines reading order", Images.READING_ORDER, rtt);
+		showReadingOrderWordsMenuItem = readingOrderVisibilityItem.addItem("Show words reading order", Images.READING_ORDER, rtt);		
 
 		zoomSelection = new ToolItem(tb, SWT.RADIO);
 		zoomSelection.setToolTipText("Zoom selection mode");

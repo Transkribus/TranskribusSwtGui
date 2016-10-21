@@ -182,7 +182,7 @@ public class TrpMainWidgetView extends Composite {
 
 		initToolBar();
 
-		canvasWidget = new CanvasWidget(SWTUtil.dummyShell, mainWidget, SWT.NONE, getPagesPagingToolBar().getToolBar());
+		canvasWidget = new CanvasWidget(SWTUtil.dummyShell, SWT.NONE, getPagesPagingToolBar().getToolBar(), this);
 
 		// NEW: only one tab widget
 		tabWidget = new TrpTabWidget(this, 0);

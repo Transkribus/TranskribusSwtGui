@@ -714,13 +714,12 @@ public class TrpMainWidget {
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, cw.getShowBaselinesItem());
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, cw.getShowWordsItem());
 		
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, cw.getShowRegionsToolItem());
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, cw.getShowLinesToolItem());
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, cw.getShowBaselinesToolItem());
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, cw.getShowWordsToolItem());
-		
-		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, cw.getRenderBlackeningsItem());
-		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, cw.getToolbar().showRegionsButton);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, cw.getToolbar().showLinesButton);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, cw.getToolbar().showBaselinesButton);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, cw.getToolbar().showWordsButton);	
+		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, cw.getToolbar().renderBlackeningsButton);
+				
 //		DataBinder.get().bindBoolBeanValueToToolItemSelection("editingEnabled", canvasSet, cw.getEditingEnabledToolItem());
 		
 		if (TrpSettings.ENABLE_LINE_EDITOR)

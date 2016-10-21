@@ -25,6 +25,7 @@ import eu.transkribus.swt_gui.canvas.editing.UndoStack;
 import eu.transkribus.swt_gui.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
 public class CanvasWidget extends Composite {
 	static Logger logger = LoggerFactory.getLogger(CanvasWidget.class);
@@ -35,16 +36,18 @@ public class CanvasWidget extends Composite {
 	protected CanvasToolBarSelectionListener canvasToolBarSelectionListener;
 	
 	TrpMainWidget mainWidget;
+	TrpMainWidgetView mainWidgetUi;
 
 	public ToolBar bar1, bar2; // TEST
 	
-	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style) {
-		this(parent, mainWidget, style, null);
-	}
+//	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style) {
+//		this(parent, mainWidget, style, null);
+//	}
 	
-	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style, ToolBar tb) {
+	public CanvasWidget(Composite parent, /*TrpMainWidget mainWidget, */ int style, ToolBar tb, TrpMainWidgetView ui) {
 		super(parent, style);
-		this.mainWidget = mainWidget;
+//		this.mainWidget = mainWidget;
+		this.mainWidgetUi = ui;
 										
 		GridLayout l = new GridLayout(3, false);
 		l.marginTop = 0;

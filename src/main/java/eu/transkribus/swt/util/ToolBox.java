@@ -6,7 +6,6 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
@@ -20,9 +19,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -30,23 +26,15 @@ import org.eclipse.swt.widgets.Widget;
 import org.junit.Assert;
 
 public class ToolBox {
-	
 	Shell shell;
-	
 	Map<Widget, TriggerWidgetListener> triggerWidgets = new HashMap<>();
-	
-//	Listener triggerWidgetListener;
-	
+		
 	class TriggerWidgetListener implements SelectionListener {
 		Widget triggerWidget;
 		
 		public TriggerWidgetListener(Widget triggerWidget) {
 			Assert.assertTrue("Only Button or ToolItem object supported!", triggerWidget instanceof Button || triggerWidget instanceof ToolItem);
-			
-//			if (triggerWidget != null) {
-//				triggerWidget.removeListener(SWT.Selection, triggerWidgetListener);
-//			}
-			
+
 			this.triggerWidget = triggerWidget;
 			
 			if (triggerWidget instanceof Button) {
@@ -103,14 +91,9 @@ public class ToolBox {
 			if (!hasTriggerWidget())
 				return;
 			
-			System.out.println(isSelected());
-			
-			
 			if (!isSelected()) {
-//				System.out.println("hide!!");
 				hide();
 			} else {	
-//				System.out.println("show!!");
 				Rectangle rect = getTriggerWidgetBounds();
 				Composite c = getTriggerWidgetParent();
 				
@@ -126,15 +109,9 @@ public class ToolBox {
 	}
 	
 	public ToolBox(Shell parent, boolean vertical) {
-//		shell = new Shell(parent, SWT.NO_TRIM);
-//		shell = new Shell(parent, SWT.CLOSE);
-		shell = new Shell(parent, SWT.MODELESS | SWT.RESIZE | SWT.CLOSE);
-		
-//		 * <dd>BORDER, CLOSE, MIN, MAX, NO_TRIM, RESIZE, TITLE, ON_TOP, TOOL, SHEET</dd>
-//		 * <dd>APPLICATION_MODAL, MODELESS, PRIMARY_MODAL, SYSTEM_MODAL</dd>
-		
-		shell.setLayout(new RowLayout(vertical ? SWT.VERTICAL : SWT.HORIZONTAL));
-		
+		shell = new Shell(parent, SWT.RESIZE | SWT.CLOSE | SWT.MODELESS);
+
+		shell.setLayout(new RowLayout(vertical ? SWT.VERTICAL : SWT.HORIZONTAL));		
 		shell.addShellListener(new ShellListener() {
 			
 			@Override
@@ -160,57 +137,17 @@ public class ToolBox {
 			}
 		});
 		
-		shell.addListener(SWT.Traverse, new Listener() {
-		      public void handleEvent(Event event) {
-		        switch (event.detail) {
-		        case SWT.TRAVERSE_ESCAPE:
-		          shell.close();
-		          event.detail = SWT.TRAVERSE_NONE;
-		          event.doit = false;
-		          break;
-		        }
-		      }
-		    });
-		
-		if (false) {
-			ToolBar tb = new ToolBar(shell, SWT.FLAT);
-			
-			
-//		Composite tc = new Composite(shell, 0);
-		tb.setLayout(new FillLayout());
-		
-		ToolItem ti = new ToolItem(tb, SWT.SEPARATOR_FILL);
-		
-//		Label l = new Label(tc, SWT.FLAT | SWT.RIGHT);
-//		l.setText("  ");
-		
-		ToolItem closeBtn = new ToolItem(tb, SWT.FLAT);
-		closeBtn.setImage(Images.getOrLoad("/icons/cross.png"));
-		closeBtn.setToolTipText("Close");
-		closeBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				hide();
-			}
-		});		
-		}
-		
-		
-//		triggerWidgetListener = new Listener() {
-//			Widget triggerWidget;
-//			
-//			
-//			
-//			@Override public void handleEvent(Event event) {
-//				if (!hasTriggerWidget())
-//					return;
-//				
-//				Rectangle rect = getTriggerWidgetBounds();
-//				Composite c = getTriggerWidgetParent();
-//				
-//				Point pt = c.toDisplay(new Point(rect.x, rect.y));
-//				showAt(pt.x + rect.width, pt.y + rect.height);
-//			}
-//		};
+//		shell.addListener(SWT.Traverse, new Listener() {
+//		      public void handleEvent(Event event) {
+//		        switch (event.detail) {
+//		        case SWT.TRAVERSE_ESCAPE:
+//		          shell.close();
+//		          event.detail = SWT.TRAVERSE_NONE;
+//		          event.doit = false;
+//		          break;
+//		        }
+//		      }
+//		    });
 	}
 	
 	public void addTriggerWidget(Widget w) {
@@ -249,7 +186,7 @@ public class ToolBox {
 	public void showAt(int x, int y) {
 		shell.setLocation(x, y);
 		shell.setVisible(true);
-		
+				
 		for (Widget w : triggerWidgets.keySet()) {
 			SWTUtil.setSelection(w, true);	
 		}
@@ -297,11 +234,20 @@ public class ToolBox {
 				box.addTriggerWidget(b);
 				box.addTriggerWidget(ti);
 				
-//				box.openOnSelection(b);
-//				box.openOnSelection(ti);
-				
-//				tb.shell.setVisible(true);
-//				SWTUtil.centerShell(box.shell);
+				b.addSelectionListener(new SelectionListener() {
+					
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						DialogUtil.createCustomMessageDialog(getShell(), "asdfad", null, null, 0, null, 0, b);
+						
+					}
+					
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
 
 				return parent;
 			}
