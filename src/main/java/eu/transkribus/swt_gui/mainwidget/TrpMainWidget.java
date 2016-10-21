@@ -278,6 +278,7 @@ public class TrpMainWidget {
 		
 		enableAutocomplete();
 		updateToolBars();
+		beginAutoSaveThread();
 	}
 
 	public static TrpMainWidget getInstance() {
@@ -1067,6 +1068,57 @@ public class TrpMainWidget {
 			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
 		}
 		logger.debug("finished writing xml output to " + f.getAbsolutePath());
+	}
+	
+	
+	
+	public void beginAutoSaveThread(){			
+
+
+		Runnable saveTask = new Runnable(){			
+			
+			@Override
+			public void run() {
+				while(true){
+					try{	
+						Thread.sleep(60000);
+						localAutoSave();
+						
+					}catch(Exception e){
+						logger.error("Exception " + e);
+					}
+				}
+			}
+		};
+		
+		Thread autoSaveThread = new Thread(saveTask, "AutoSaveThread");
+		autoSaveThread.start();
+	}
+	
+
+	boolean localAutosaveEnabled = true;
+	
+	public void localAutoSave(){
+		if(!storage.isPageLoaded()){
+			return;
+		}
+		if(!localAutosaveEnabled){
+			return;
+		}
+		PcGtsType currentPage = storage.getTranscript().getPageData();
+		String tempDir = System.getProperty("java.io.tmpdir")+ File.separator + "Transkribus" + File.separator + "autoSave";
+		tempDir += File.separator + "p" + storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
+		File f = new File(tempDir);
+		byte[] bytes;
+		try {
+			
+			bytes = PageXmlUtils.marshalToBytes(currentPage);
+//			PageXmlUtils.marshalToFile(storage.getTranscript().getPageData(), f);
+			FileUtils.writeByteArrayToFile(f, bytes);
+			logger.debug("Auto-saved current transcript to " + f.getAbsolutePath());
+		} catch (Exception e1) {
+			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
+		}
 	}
 	
 	
@@ -1978,8 +2030,8 @@ public class TrpMainWidget {
 			}, "Loading document from server", false);
 
 			storage.setCurrentPage(pageIndex);
-			reloadCurrentPage(true);
-
+			reloadCurrentPage(true);			
+			
 			//store the recent doc info to the preferences
 			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);
 			ui.getServerWidget().updateRecentDocs();
@@ -2425,6 +2477,7 @@ public class TrpMainWidget {
 		// Dynamically load the correct swt jar depending on OS:
 
 		TrpMainWidget.show();
+		
 		// TrpMainWidget mainWidget = new TrpMainWidget();
 	}
 

@@ -180,10 +180,15 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
    public void setTextItems(String[] newTextItems){
 	   ArrayList<String> oldSelectionsT = new ArrayList<>();
 	   ArrayList<Integer> newSelectionsI = new ArrayList<>();
+	   
+
 
 	   for(int i : currentSelection){
 		   oldSelectionsT.add(textItems[i].replaceAll("\\(.*\\)", "").trim());
 	   }
+	   
+	   
+	   
 	   int j=0;
 	   for(String s : newTextItems){
 		   if(s!=null){
@@ -196,6 +201,14 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
 			   j++;
 		   }
 
+	   }
+	   
+	   if(parentComp.fullTextSearchResult.getNumResults() == 0){
+		   for(int i : currentSelection){
+			   textItems[i] = textItems[i].replaceAll("\\(.*\\)", "(0)").trim();			   		   
+		   }
+		   displayText();	
+		   return;
 	   }
 
 	   
