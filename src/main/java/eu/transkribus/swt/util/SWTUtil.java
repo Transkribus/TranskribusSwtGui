@@ -1255,6 +1255,35 @@ public class SWTUtil {
 		
 		tf.setSelection(item);
 	}
+	
+	public static void setSelection(Widget w, boolean selection) {
+		if (isDisposed(w))
+			return;
+		
+		if (w instanceof Button) {
+			((Button) w).setSelection(selection);
+		}
+		else if (w instanceof ToolItem) {
+			((ToolItem) w).setSelection(selection);
+		}
+		else if (w instanceof MenuItem) {
+			((MenuItem) w).setSelection(selection);
+		}
+	}
+	
+	public static void setSelection(Button b, boolean selection) {
+		if (isDisposed(b))
+			return;
+		
+		b.setSelection(selection);
+	}
+	
+	public static void setSelection(ToolItem ti, boolean selection) {
+		if (isDisposed(ti))
+			return;
+		
+		ti.setSelection(selection);
+	}
 
 	/**
 	 * Runs the accept method of the Consumer c when a selection event occurs on the widget w<br>
