@@ -570,20 +570,10 @@ public class TrpMainWidgetView extends Composite {
 	}
 	
 	void updateToolBarSize() {
-//		getPagesPagingToolBar().pack(true);
 		Rectangle rect = getShell().getClientArea();
-		logger.debug("client area width: "+rect.width);
 		toolBarGridData.widthHint = rect.width;
 		Point size = pagesPagingToolBar.getToolBar().computeSize(rect.width, SWT.DEFAULT);
-//		Point size = pagesPagingToolBar.getToolBar().computeSize(rect.width, 50);
-		
-//		Point size = pagesPagingToolBar.getToolBar().computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		logger.debug("tb size: "+size);
 		pagesPagingToolBar.getToolBar().setSize(size);
-//		pagesPagingToolBar.getToolBar().pack();
-		
-//		pagesPagingToolBar.getToolBar().pack();
-//		cbItem.setSize(size);
 	}
 	
 	public CanvasShapeType getShapeTypeToDraw() {

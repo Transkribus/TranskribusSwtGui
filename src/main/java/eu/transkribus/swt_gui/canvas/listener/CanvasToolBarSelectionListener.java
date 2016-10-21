@@ -135,14 +135,14 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		
 		logger.debug("source = "+e.getSource());
 		if (false) { return CanvasMode.SELECTION; }
-//		else if (s.equals(toolbar.getAddElementDropDown().ti)) {
-//			logger.debug("getting mode for adding element...");
-//			if (e.detail != SWT.ARROW) {
-//				CanvasMode mode = toolbar.getModeMap().get(toolbar.getAddElementDropDown().getSelected());
-//				return mode!=null ? mode : CanvasMode.SELECTION;
-//			} else
-//				return CanvasMode.SELECTION;
-//		}
+		else if (toolbar.getAddElementDropDown()!=null && s.equals(toolbar.getAddElementDropDown().ti)) {
+			logger.debug("getting mode for adding element...");
+			if (e.detail != SWT.ARROW) {
+				CanvasMode mode = toolbar.getModeMap().get(toolbar.getAddElementDropDown().getSelected());
+				return mode!=null ? mode : CanvasMode.SELECTION;
+			} else
+				return CanvasMode.SELECTION;
+		}
 //		else if (s.equals(toolbar.getSplitDropdown().ti)) {
 //			if (e.detail != SWT.ARROW) {
 //				CanvasMode mode = toolbar.getModeMap().get(toolbar.getSplitDropdown().getSelected());

@@ -975,10 +975,12 @@ public class CanvasScene {
 	public void updateSegmentationViewSettings() {
 		TrpSettings sets = TrpMainWidget.getInstance().getTrpSets();
 		logger.trace("trpsets: " + sets.toString());
+		
+		final boolean SHOW_PS_ON_SHOW_REGIONS = true;
 	
 		for (ICanvasShape s : getShapes()) {
 			if (s.hasDataType(TrpPrintSpaceType.class)) {
-				s.setVisible(sets.isShowPrintSpace());
+				s.setVisible(sets.isShowPrintSpace() || (SHOW_PS_ON_SHOW_REGIONS && sets.isShowTextRegions()));				
 			}
 			if (s.hasDataType(TrpTextRegionType.class)) {
 				s.setVisible(sets.isShowTextRegions());

@@ -3993,11 +3993,11 @@ public class TrpMainWidget {
 	public void openCanvasHelpDialog() {
 		String ht = ""
 //				+ "Canvas shortcut operations:\n"
-				+ "- esc -> set selection mode\n"
-				+ "- shift + drag-on-bounding-box -> resize shape on bounding box\n"
-				+ "- shift + drag shape -> move shape including all its child shapes\n"
-				+ "- right click on a shape to get a context menu with additional operations "
-				+ "(note: on mac touchpads, right-clicks are performed using two fingers simultaneously)"
+				+ "- esc: set selection mode\n"
+				+ "- shift + drag-on-bounding-box: resize shape on bounding box\n"
+				+ "- shift + drag shape: move shape including all its child shapes\n"
+				+ "- right click on a shape: context menu with additional operations\n"
+				+ "  (note: on mac touchpads, right-clicks are performed using two fingers simultaneously)"
 				;
 		
 		int res = DialogUtil.showMessageDialog(getShell(), "Canvas shortcut operations", ht, null, MessageDialog.INFORMATION, 

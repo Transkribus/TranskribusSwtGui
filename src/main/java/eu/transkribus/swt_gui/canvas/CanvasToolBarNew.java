@@ -39,12 +39,16 @@ public class CanvasToolBarNew {
 	ToolItem showWordsToolItem;
 	
 	DropDownToolItem visibilityItem;
+	
 	MenuItem showRegionsItem;
 	MenuItem showLinesItem;
 	MenuItem showBaselinesItem;
 	MenuItem showWordsItem;
 	MenuItem showPrintspaceItem;
 	MenuItem renderBlackeningsItem;
+	
+	DropDownToolItem readingOrderVisibilityItem;
+
 	MenuItem showReadingOrderRegionsMenuItem;
 	MenuItem showReadingOrderLinesMenuItem;
 	MenuItem showReadingOrderWordsMenuItem;	
@@ -160,6 +164,13 @@ public class CanvasToolBarNew {
 	}
 	
 	public void createViewItems(ToolBar tb) {
+		selectionMode = new ToolItem(tb, SWT.RADIO);
+		selectionMode.setToolTipText("Selection mode");
+		selectionMode.setSelection(true);
+		selectionMode.setImage(Images.getOrLoad("/icons/cursor.png"));
+		modeMap.put(selectionMode, CanvasMode.SELECTION);
+		
+		if (false) {
 		showRegionsToolItem = new ToolItem(tb, SWT.CHECK);
 		showRegionsToolItem.setToolTipText("Show regions");
 		showRegionsToolItem.setImage(Images.getOrLoad("/icons/show_regions_shape.png"));
@@ -173,28 +184,34 @@ public class CanvasToolBarNew {
 		showBaselinesToolItem.setImage(Images.getOrLoad("/icons/show_baselines_shape.png"));
 		
 		showWordsToolItem = new ToolItem(tb, SWT.CHECK);
-		showWordsToolItem.setToolTipText("Show regions");
+		showWordsToolItem.setToolTipText("Show words");
 		showWordsToolItem.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
+		}
 		
-		visibilityItem = new DropDownToolItem(tb, false, true, true, SWT.CHECK);		
+		visibilityItem = new DropDownToolItem(tb, false, false, true, SWT.CHECK);
 		visibilityItem.ti.setImage(Images.EYE);
-		String vtt = "Visibility of items on canvas"; 
+		visibilityItem.ti.setToolTipText("Shape visibility...");
+//		visibilityItem.setKeepMenuOpenOnClick(true);
+		
+//		String vtt = "Visibility of items on canvas";
+		String vtt = "Shape visibility...";
 		
 		showRegionsItem = visibilityItem.addItem("Show Regions", Images.EYE, vtt);
 		showLinesItem = visibilityItem.addItem("Show Lines", Images.EYE, vtt);
 		showBaselinesItem = visibilityItem.addItem("Show Baselines", Images.EYE, vtt);
 		showWordsItem = visibilityItem.addItem("Show Words", Images.EYE, vtt);
-		showPrintspaceItem = visibilityItem.addItem("Show Printspace", Images.EYE, vtt);
-		renderBlackeningsItem = visibilityItem.addItem("Render Blackenings", Images.EYE, vtt);
-		showReadingOrderRegionsMenuItem = visibilityItem.addItem("Show regions reading order", Images.EYE, vtt);
-		showReadingOrderLinesMenuItem = visibilityItem.addItem("Show lines reading order", Images.EYE, vtt);
-		showReadingOrderWordsMenuItem = visibilityItem.addItem("Show words reading order", Images.EYE, vtt);		
-
-		selectionMode = new ToolItem(tb, SWT.RADIO);
-		selectionMode.setToolTipText("Selection mode");
-		selectionMode.setSelection(true);
-		selectionMode.setImage(Images.getOrLoad("/icons/cursor.png"));
-		modeMap.put(selectionMode, CanvasMode.SELECTION);
+//		showPrintspaceItem = visibilityItem.addItem("Show Printspace", Images.EYE, vtt);
+		renderBlackeningsItem = visibilityItem.addItem("Render blackenings", Images.EYE, vtt);
+		
+		readingOrderVisibilityItem = new DropDownToolItem(tb, false, false, true, SWT.CHECK);		
+		readingOrderVisibilityItem.ti.setImage(Images.READING_ORDER);
+		readingOrderVisibilityItem.ti.setToolTipText("Show reading order...");
+//		readingOrderVisibilityItem.setKeepMenuOpenOnClick(true);
+		vtt = "Show reading order...";
+		
+		showReadingOrderRegionsMenuItem = readingOrderVisibilityItem.addItem("Show regions reading order", Images.READING_ORDER, vtt);
+		showReadingOrderLinesMenuItem = readingOrderVisibilityItem.addItem("Show lines reading order", Images.READING_ORDER, vtt);
+		showReadingOrderWordsMenuItem = readingOrderVisibilityItem.addItem("Show words reading order", Images.READING_ORDER, vtt);		
 
 		zoomSelection = new ToolItem(tb, SWT.RADIO);
 		zoomSelection.setToolTipText("Zoom selection mode");
@@ -283,7 +300,6 @@ public class CanvasToolBarNew {
 		editingEnabledToolItem.setSelection(canvasWidget.getCanvas().getSettings().isEditingEnabled());
 		}
 		
-		
 		if (true) {
 		addTextRegionItem = new ToolItem(tb, SWT.PUSH);
 		addTextRegionItem.setToolTipText("Add a text region");
@@ -314,31 +330,36 @@ public class CanvasToolBarNew {
 //		addElementDropdown = new DropDownToolItem(tb, false, true, true, SWT.PUSH); // TEST
 		addElementDropdown = new DropDownToolItem(tb, false, false, true, SWT.PUSH); // TEST
 		addElementDropdown.ti.setImage(Images.ADD);
-		addElementDropdown.ti.setText("O");
+		addElementDropdown.ti.setText("...");
 		addElementDropdown.ti.setToolTipText("Add other item...");
+		
+		String tt = "Add other item...";
 				
 		MenuItem mi = null;
-		mi = addElementDropdown.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));
+		
+		if (false) {
+		mi = addElementDropdown.addItem(RegionTypeUtil.TEXT_REGION, Images.getOrLoad("/icons/shape_square_add.png"), tt, false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TEXT_REGION));
 		modeMap.put(mi, CanvasMode.ADD_TEXTREGION);
 		
-		mi = addElementDropdown.addItem(RegionTypeUtil.LINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.LINE));
+		mi = addElementDropdown.addItem(RegionTypeUtil.LINE, Images.getOrLoad("/icons/shape_square_add.png"), tt, false, RegionTypeUtil.getRegionClass(RegionTypeUtil.LINE));
 		modeMap.put(mi, CanvasMode.ADD_LINE);
 		
-		mi = addElementDropdown.addItem(RegionTypeUtil.BASELINE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.BASELINE));
+		mi = addElementDropdown.addItem(RegionTypeUtil.BASELINE, Images.getOrLoad("/icons/shape_square_add.png"), tt, false, RegionTypeUtil.getRegionClass(RegionTypeUtil.BASELINE));
 		modeMap.put(mi, CanvasMode.ADD_BASELINE);
 		
-		mi = addElementDropdown.addItem(RegionTypeUtil.WORD, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.WORD));
-		modeMap.put(mi, CanvasMode.ADD_WORD);		
+		mi = addElementDropdown.addItem(RegionTypeUtil.WORD, Images.getOrLoad("/icons/shape_square_add.png"), tt, false, RegionTypeUtil.getRegionClass(RegionTypeUtil.WORD));
+		modeMap.put(mi, CanvasMode.ADD_WORD);
+		}
 		
-		mi = addElementDropdown.addItem(RegionTypeUtil.TABLE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TABLE));
+		mi = addElementDropdown.addItem(RegionTypeUtil.TABLE, Images.getOrLoad("/icons/shape_square_add.png"), tt, false, RegionTypeUtil.getRegionClass(RegionTypeUtil.TABLE));
 		modeMap.put(mi, CanvasMode.ADD_TABLEREGION);
 		
-		mi = addElementDropdown.addItem(RegionTypeUtil.PRINTSPACE, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(RegionTypeUtil.PRINTSPACE));
+		mi = addElementDropdown.addItem(RegionTypeUtil.PRINTSPACE, Images.getOrLoad("/icons/shape_square_add.png"), tt, false, RegionTypeUtil.getRegionClass(RegionTypeUtil.PRINTSPACE));
 		modeMap.put(mi, CanvasMode.ADD_PRINTSPACE);
 		
 		for (String name : RegionTypeUtil.SPECIAL_REGIONS) {
 //				mode.data = c;
-			mi = addElementDropdown.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), "", false, RegionTypeUtil.getRegionClass(name));
+			mi = addElementDropdown.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), tt, false, RegionTypeUtil.getRegionClass(name));
 			modeMap.put(mi, CanvasMode.ADD_OTHERREGION);	
 		}	
 				
@@ -420,14 +441,18 @@ public class CanvasToolBarNew {
 		
 		optionsItem = new DropDownToolItem(tb, false, true, true, SWT.CHECK);
 		optionsItem.ti.setImage(Images.getOrLoad("/icons/wrench.png"));
-		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.getOrLoad("/icons/wrench.png"), "");
-		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.getOrLoad("/icons/wrench.png"), "");
-		addLineToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: use the selected region as parent)", Images.getOrLoad("/icons/wrench.png"), "");
-		addBaselineToOverlappingLineItem = optionsItem.addItem("Add baselines to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), "");
-		addWordsToOverlappingLineItem = optionsItem.addItem("Add words to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), "");
-		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.getOrLoad("/icons/wrench.png"), "");
+//		optionsItem.setKeepMenuOpenOnClick(true);
+		
+		String ott = "Canvas options...";
+		
+		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.getOrLoad("/icons/wrench.png"), ott);
+		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.getOrLoad("/icons/wrench.png"), ott);
+		addLineToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: use the selected region as parent)", Images.getOrLoad("/icons/wrench.png"), ott);
+		addBaselineToOverlappingLineItem = optionsItem.addItem("Add baselines to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), ott);
+		addWordsToOverlappingLineItem = optionsItem.addItem("Add words to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), ott);
+		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.getOrLoad("/icons/wrench.png"), ott);
 		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.getOrLoad("/icons/wrench.png"), "");
-		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.getOrLoad("/icons/wrench.png"), "");
+		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.getOrLoad("/icons/wrench.png"), ott);
 
 //		new ToolItem(this, SWT.SEPARATOR);
 		undo = new ToolItem(tb, SWT.PUSH);
@@ -459,12 +484,12 @@ public class CanvasToolBarNew {
 	
 	private void addListeners() {
 		// enforces that only one of the modeGroup elements is enabled at once!
-		radioGroupSelectionAdapter = new SelectionAdapter(){
+		radioGroupSelectionAdapter = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				logger.debug("modeMap size: "+modeMap.keySet().size());
+				logger.trace("modeMap size: "+modeMap.keySet().size());
 				for (Item i : modeMap.keySet()) {
-					logger.debug("toolitem, mode: "+modeMap.get(i));
+					logger.trace("toolitem, mode: "+modeMap.get(i));
 					selectItem(i, i == e.getSource());
 				}
 			}

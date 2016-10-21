@@ -1,9 +1,13 @@
 package eu.transkribus.swt.util;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ArmEvent;
+import org.eclipse.swt.events.ArmListener;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -12,6 +16,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -46,6 +51,18 @@ public class DropDownToolItem extends Widget {
 	public static final String ALT_TXT_KEY="altTxt";
 
 //	boolean highlightSelected=false;
+	
+//	public static int getMenuHeight(Menu parent) {
+//		try {
+//			Method m = Menu.class.getDeclaredMethod("getBounds", null);
+//			m.setAccessible(true);
+//			Rectangle r = (Rectangle) m.invoke(parent, null);
+//			return r.height;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return 0;
+//		}
+//	}
 
 	class DropdownSelectionListener extends SelectionAdapter {
 		ToolItem dropdown;
@@ -54,6 +71,23 @@ public class DropDownToolItem extends Widget {
 		public DropdownSelectionListener(ToolItem dropdown) {
 			this.dropdown = dropdown;
 			menu = new Menu(dropdown.getParent().getShell());
+			
+			menu.addMenuListener(new MenuListener() {
+				@Override
+				public void menuHidden(MenuEvent event) {
+					try {
+						Field field = Menu.class.getDeclaredField("hasLocation");
+						field.setAccessible(true);
+						field.set(menu, false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
+				@Override
+				public void menuShown(MenuEvent event) {
+				}
+			});
 			
 //			menu.addListener(SWT.Hide, new Listener() {
 //				@Override
@@ -64,6 +98,8 @@ public class DropDownToolItem extends Widget {
 //			});
 			
 //			menu.addListener(SWT.Hide, listener);
+			
+//			menu.
 
 			menu.addMenuListener(new MenuListener() {
 				@Override
@@ -74,6 +110,16 @@ public class DropDownToolItem extends Widget {
 				@Override
 				public void menuHidden(MenuEvent e) {
 					ti.setSelection(false);
+					
+					if (isKeepMenuOpenOnClick()) {
+						try {
+							Field field = Menu.class.getDeclaredField("hasLocation");
+							field.setAccessible(true);							
+							field.set(menu, false);
+						} catch (Exception ex) {
+							logger.error(ex.getMessage(), ex);
+						}
+					}
 				}
 			});
 
@@ -81,6 +127,7 @@ public class DropDownToolItem extends Widget {
 
 		public MenuItem add(String item, Image image, String toolTipText, int itemStyle, boolean isSelected, Object data) {
 			MenuItem menuItem = new MenuItem(menu, itemStyle);
+						
 //			MenuItem menuItem = new MenuItem(menu, SWT.CHECK);
 			menuItem.setData("tooltip", toolTipText);
 			menuItem.setText(item);
@@ -94,13 +141,20 @@ public class DropDownToolItem extends Widget {
 			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent event) {
+					if (isKeepMenuOpenOnClick()) {
+						Display.getDefault().asyncExec(() -> { showMenu(); });
+					}
+					
 					MenuItem selected = (MenuItem) event.widget;
 					logger.debug("menuitem selected: "+selected.getData()+" source = "+event.getSource()+ " isselected: "+selected.getSelection());
 					
-					if ( ( (selected.getStyle() & SWT.RADIO) != SWT.RADIO) || selected.getSelection() ) // only one selection event for radio menuitem's!!
+					if ( ( (selected.getStyle() & SWT.RADIO) != SWT.RADIO) || selected.getSelection() ) { // only one selection event for radio menuitem's!!
 						selectItem(selected, true);
+					}
 				}
 			});
+			
+			
 
 			if (selected == null) {
 				selectItem(menuItem, false);
@@ -108,7 +162,19 @@ public class DropDownToolItem extends Widget {
 			
 			return menuItem;
 		}
-
+		
+		void showMenu() {
+			Rectangle rect = ti.getBounds();
+			Point pt = ti.getParent().toDisplay(new Point(rect.x, rect.y));
+			
+			menu.setLocation(pt.x + rect.width, pt.y + rect.height);
+			menu.setVisible(true);
+		}
+		
+		void hideMenu() {
+			menu.setVisible(false);
+		}
+		
 		private int findItemIndex(MenuItem toFind) {
 			int i = 0;
 			for (MenuItem mi : menu.getItems()) {
@@ -196,12 +262,14 @@ public class DropDownToolItem extends Widget {
 		
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			ToolItem item = (ToolItem) event.widget;
+//			ToolItem item = (ToolItem) event.widget;
 			if (event.detail == SWT.ARROW || isShowMenuOnItemClick()) {
-				Rectangle rect = item.getBounds();
-				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
-				menu.setLocation(pt.x, pt.y + rect.height);
-				menu.setVisible(true);
+				showMenu();
+				
+//				Rectangle rect = item.getBounds();
+//				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+//				menu.setLocation(pt.x, pt.y + rect.height);
+//				menu.setVisible(true);
 				
 //				for (MenuItem m : menu.getItems()) {
 //					String text = m.getText();
@@ -245,6 +313,10 @@ public class DropDownToolItem extends Widget {
 	 */
 	public DropDownToolItem(ToolBar parent, boolean showDropDownArrow, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle, int index) {
 		super(parent, itemStyle);
+		
+		if ( (itemStyle & SWT.CHECK) == SWT.CHECK ) {
+			setKeepMenuOpenOnClick(true);
+		}
 		
 //		int tiItemStyle = showDropDownArrow ? SWT.DROP_DOWN : SWT.PUSH;
 		isDropDown = showDropDownArrow && !showMenuOnItemClick;
@@ -310,7 +382,8 @@ public class DropDownToolItem extends Widget {
 	}
 	
 	public MenuItem addItem(String text, Image image, String toolTipText, boolean isSelected, Object data) {
-		return listener.add(text, image, toolTipText, itemStyle, isSelected, data);
+//		return listener.add(text, image, toolTipText, itemStyle, isSelected, data);
+		return addItem(text, image, toolTipText, itemStyle, isSelected, data);
 	}
 	
 	public MenuItem addItem(String text, Image image, String toolTipText, int itemStyle, boolean isSelected, Object data) {
