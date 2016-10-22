@@ -198,18 +198,25 @@ public class ToolBox {
 		
 		return b;
 	}
-
+	
+	int posX=0, posY=0;
+	
 	public void showAt(int x, int y) {
-		shell.setLocation(x, y);
+		posX=x;
+		posY=y;
+		
+		shell.pack();
 		shell.setVisible(true);
+		shell.setLocation(x, y);
 		shell.setActive();
-				
+
 		for (Widget w : triggerWidgets.keySet()) {
 			SWTUtil.setSelection(w, true);	
 		}
 	}
 	
 	public void hide() {
+		shell.setLocation(posX, posY);
 		shell.setVisible(false);
 		
 		for (Widget w : triggerWidgets.keySet()) {
