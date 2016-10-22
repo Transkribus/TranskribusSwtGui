@@ -110,8 +110,9 @@ public class ToolBox {
 		
 	}
 	
-	public ToolBox(Shell parent, boolean vertical) {
+	public ToolBox(Shell parent, boolean vertical, String title) {
 		shell = new Shell(parent, SWT.RESIZE | SWT.CLOSE | SWT.MODELESS);
+		shell.setText(title);
 
 		shell.setLayout(new RowLayout(vertical ? SWT.VERTICAL : SWT.HORIZONTAL));		
 		shell.addShellListener(new ShellListener() {
@@ -245,7 +246,7 @@ public class ToolBox {
 				Button b = new Button(getShell(), SWT.CHECK);
 				b.setText("Press Me!");
 				
-				ToolBox box = new ToolBox(parent.getShell(), true);
+				ToolBox box = new ToolBox(parent.getShell(), true, "toolbox...");
 				
 //				box.addButton("hello", Images.REFRESH, 0);
 //				box.addButton(null, Images.APPLICATION, 0);

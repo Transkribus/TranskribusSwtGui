@@ -43,7 +43,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.getOriginalSize()) {
 			canvas.resetTransformation();
 		}		
-		else if (s == toolbar.getRotateItem().ti && e.detail != SWT.ARROW) {
+		else if (toolbar.getRotateItem()!=null && s == toolbar.getRotateItem().ti && e.detail != SWT.ARROW) {
 			switch (toolbar.getRotateItem().getLastSelectedIndex()) {
 			case 0:
 				canvas.rotateLeft();
@@ -72,8 +72,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 				break;
 			}
 		}		
-		
-		else if (s == toolbar.getFitItem().ti && e.detail != SWT.ARROW) {
+		else if (toolbar.getFitItem()!=null && s == toolbar.getFitItem().ti && e.detail != SWT.ARROW) {
 			switch (toolbar.getFitItem().getLastSelectedIndex()) {
 			case 0:
 				canvas.fitToPage();

@@ -49,7 +49,10 @@ public class CanvasToolBarNew {
 	MenuItem showPrintspaceItem;
 	MenuItem renderBlackeningsItem;
 	
-	public Button showRegionsButton, showLinesButton, showBaselinesButton, showWordsButton, renderBlackeningsButton; 
+	public Button showRegionsButton, showLinesButton, showBaselinesButton, showWordsButton, renderBlackeningsButton;
+	public Button showReadingOrderRegionsButton, showReadingOrderLinesButton, showReadingOrderWordsButton;
+	public Button rotateLeftBtn, rotateRightBtn, rotateLeft90Btn, rotateRight90Btn, translateLeftBtn, translateRightBtn, translateUpBtn, translateDownBtn;
+	public ToolItem fitPageItem, fitWidthItem, origSizeItem;
 	
 	DropDownToolItem readingOrderVisibilityItem;
 
@@ -197,13 +200,16 @@ public class CanvasToolBarNew {
 		visItem.setToolTipText("Shape visibility...");
 		visItem.setImage(Images.EYE);
 			
-		ToolBox visBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true);
+		ToolBox visBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Item visibility");
 		visBox.addTriggerWidget(visItem);
 		showRegionsButton = visBox.addButton("Show regions", Images.getOrLoad("/icons/show_regions_shape.png"), SWT.CHECK);
 		showLinesButton = visBox.addButton("Show lines", Images.getOrLoad("/icons/show_lines_shape.png"), SWT.CHECK);
 		showBaselinesButton = visBox.addButton("Show baselines", Images.getOrLoad("/icons/show_baselines_shape.png"), SWT.CHECK);
 		showWordsButton = visBox.addButton("Show words", Images.getOrLoad("/icons/show_word_shape.png"), SWT.CHECK);
 		renderBlackeningsButton = visBox.addButton("Render blackenings", Images.getOrLoad("/icons/rabbit-silhouette.png"), SWT.CHECK);
+		showReadingOrderRegionsButton = visBox.addButton("Show regions reading order", Images.READING_ORDER_REGIONS, SWT.CHECK);
+		showReadingOrderLinesButton = visBox.addButton("Show lines reading order", Images.READING_ORDER_LINES, SWT.CHECK);
+		showReadingOrderWordsButton = visBox.addButton("Show words reading order", Images.READING_ORDER_WORDS, SWT.CHECK);
 		}
 		else {
 		visibilityItem = new DropDownToolItem(tb, false, false, true, SWT.CHECK);
@@ -223,6 +229,7 @@ public class CanvasToolBarNew {
 		renderBlackeningsItem = visibilityItem.addItem("Render blackenings", Images.EYE, vtt);
 		}
 		
+		if (false) {
 		readingOrderVisibilityItem = new DropDownToolItem(tb, false, false, true, SWT.CHECK);	
 		readingOrderVisibilityItem.ti.setImage(Images.READING_ORDER);
 		readingOrderVisibilityItem.ti.setToolTipText("Show reading order...");
@@ -230,7 +237,8 @@ public class CanvasToolBarNew {
 		String rtt = "Show reading order...";
 		showReadingOrderRegionsMenuItem = readingOrderVisibilityItem.addItem("Show regions reading order", Images.READING_ORDER, rtt);
 		showReadingOrderLinesMenuItem = readingOrderVisibilityItem.addItem("Show lines reading order", Images.READING_ORDER, rtt);
-		showReadingOrderWordsMenuItem = readingOrderVisibilityItem.addItem("Show words reading order", Images.READING_ORDER, rtt);		
+		showReadingOrderWordsMenuItem = readingOrderVisibilityItem.addItem("Show words reading order", Images.READING_ORDER, rtt);
+		}
 
 		zoomSelection = new ToolItem(tb, SWT.RADIO);
 		zoomSelection.setToolTipText("Zoom selection mode");
@@ -254,6 +262,7 @@ public class CanvasToolBarNew {
 		zoomOut.setToolTipText("Zoom out");
 		zoomOut.setImage(Images.getOrLoad("/icons/zoom_out.png"));
 				
+		if (false) {
 		fitItem = new DropDownToolItem(tb, false, true, false, SWT.NONE);
 		fitItem.addItem("Fit to page", Images.getOrLoad("/icons/arrow_in.png"), "Fit to page");
 		fitItem.addItem("Original size", Images.getOrLoad( "/icons/arrow_out.png"), "Original size");
@@ -269,6 +278,39 @@ public class CanvasToolBarNew {
 		rotateItem.addItem("Translate right", Images.getOrLoad("/icons/arrow_right.png"), "Translate right");
 		rotateItem.addItem("Translate up", Images.getOrLoad("/icons/arrow_up.png"), "Translate up");
 		rotateItem.addItem("Translate down", Images.getOrLoad("/icons/arrow_down.png"), "Translate down");
+		}
+		else {
+			new ToolItem(tb, SWT.SEPARATOR);
+		fitPageItem = new ToolItem(tb, SWT.PUSH);
+		fitPageItem.setImage(Images.getOrLoad("/icons/arrow_in.png"));
+		fitPageItem.setToolTipText("Fit to page");
+		
+		fitWidthItem = new ToolItem(tb, SWT.PUSH);
+		fitWidthItem.setImage(Images.getOrLoad("/icons/arrow_left_right.png"));
+		fitWidthItem.setToolTipText("Fit to width");
+		
+		origSizeItem = new ToolItem(tb, SWT.PUSH);
+		origSizeItem.setImage(Images.getOrLoad("/icons/arrow_out.png"));
+		origSizeItem.setToolTipText("Original size");			
+			
+		ToolItem moveItem = new ToolItem(tb, SWT.CHECK);
+//		moveItem.setImage(Images.getOrLoad("/icons/arrow_inout.png"));
+		moveItem.setText("...");
+		moveItem.setToolTipText("Other image transformations...");
+		
+		ToolBox visBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Image transformations");
+		visBox.addTriggerWidget(moveItem);
+		rotateLeftBtn = visBox.addButton("Rotate left", Images.getOrLoad("/icons/arrow_turn_left.png"), SWT.PUSH);
+		rotateRightBtn = visBox.addButton("Rotate right", Images.getOrLoad("/icons/arrow_turn_right.png"), SWT.PUSH);
+		rotateLeft90Btn = visBox.addButton("Rotate left 90 degrees", Images.getOrLoad("/icons/arrow_turn_left_90.png"), SWT.PUSH);
+		rotateRight90Btn = visBox.addButton("Rotate right 90 degrees", Images.getOrLoad("/icons/arrow_turn_right_90.png"), SWT.PUSH);
+		
+		translateLeftBtn = visBox.addButton("Translate left", Images.getOrLoad("/icons/arrow_left.png"), SWT.PUSH);
+		translateRightBtn = visBox.addButton("Translate right", Images.getOrLoad("/icons/arrow_right.png"), SWT.PUSH);
+		translateUpBtn = visBox.addButton("Translate up", Images.getOrLoad("/icons/arrow_up.png"), SWT.PUSH);
+		translateDownBtn = visBox.addButton("Translate down", Images.getOrLoad("/icons/arrow_down.png"), SWT.PUSH);
+			new ToolItem(tb, SWT.SEPARATOR);
+		}
 		
 		
 //		imageVersionDropdown = new DropDownToolItem(tb, true, false, true, SWT.RADIO);

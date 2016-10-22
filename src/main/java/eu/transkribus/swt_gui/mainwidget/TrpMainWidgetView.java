@@ -513,9 +513,11 @@ public class TrpMainWidgetView extends Composite {
 		} else {
 			saveTranscriptToolItem = new ToolItem(toolBar, SWT.PUSH);
 			saveTranscriptToolItem.setImage(Images.DISK);
+			saveTranscriptToolItem.setToolTipText("Save");
 			
 			saveTranscriptWithMessageToolItem = new ToolItem(toolBar, SWT.PUSH);
 			saveTranscriptWithMessageToolItem.setImage(Images.DISK_MESSAGE);
+			saveTranscriptWithMessageToolItem.setToolTipText("Save with commit message");
 		}
 
 		versionsButton = new ToolItem(toolBar, SWT.PUSH);

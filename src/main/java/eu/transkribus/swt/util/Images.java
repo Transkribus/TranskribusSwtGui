@@ -11,6 +11,10 @@ import org.eclipse.wb.swt.SWTResourceManager;
 public class Images {
 	
 	public static final Image READING_ORDER = Images.getOrLoad("/icons/readingOrder.png");
+	public static final Image READING_ORDER_REGIONS = Images.getOrLoad("/icons/reading_order_r.png");
+	public static final Image READING_ORDER_LINES = Images.getOrLoad("/icons/reading_order_l.png");
+	public static final Image READING_ORDER_WORDS = Images.getOrLoad("/icons/reading_order_w.png");
+	
 	public static final Image DISCONNECT = Images.getOrLoad("/icons/disconnect.png");
 	public static final Image CONNECT = Images.getOrLoad("/icons/connect.png");
 	public static final Image HELP = Images.getOrLoad("/icons/help.png");

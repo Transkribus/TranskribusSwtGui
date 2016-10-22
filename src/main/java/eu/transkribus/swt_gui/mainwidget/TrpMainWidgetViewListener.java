@@ -10,6 +10,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.canvas.CanvasToolBarNew;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -104,6 +105,22 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 //		SWTUtil.onSelectionEvent(ui.helpItem, (e) -> { mw.openCanvasHelpDialog(); } );
 		
 		SWTUtil.onSelectionEvent(ui.bugReportItem, (e) -> { mw.sendBugReport(); } );
+		
+		CanvasToolBarNew tb = ui.getCanvasWidget().getToolbar();
+		
+		SWTUtil.onSelectionEvent(tb.rotateLeftBtn, (e) -> { canvas.rotateLeft(); });
+		SWTUtil.onSelectionEvent(tb.rotateRightBtn, (e) -> { canvas.rotateRight(); });
+		SWTUtil.onSelectionEvent(tb.rotateLeft90Btn, (e) -> { canvas.rotate90Left(); });
+		SWTUtil.onSelectionEvent(tb.rotateRight90Btn, (e) -> { canvas.rotate90Right(); });
+		
+		SWTUtil.onSelectionEvent(tb.translateLeftBtn, (e) -> { canvas.translateLeft(); });
+		SWTUtil.onSelectionEvent(tb.translateRightBtn, (e) -> { canvas.translateRight(); });
+		SWTUtil.onSelectionEvent(tb.translateUpBtn, (e) -> { canvas.translateUp(); });
+		SWTUtil.onSelectionEvent(tb.translateDownBtn, (e) -> { canvas.translateDown(); });
+		
+		SWTUtil.onSelectionEvent(tb.fitPageItem, (e) -> { canvas.fitToPage(); });
+		SWTUtil.onSelectionEvent(tb.fitWidthItem, (e) -> { canvas.fitWidth();; });
+		SWTUtil.onSelectionEvent(tb.origSizeItem, (e) -> { canvas.resetTransformation(); });
 	}
 	
 	@Override

@@ -719,6 +719,8 @@ public class TrpMainWidget {
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, cw.getToolbar().showBaselinesButton);
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, cw.getToolbar().showWordsButton);	
 		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, cw.getToolbar().renderBlackeningsButton);
+		
+		
 				
 //		DataBinder.get().bindBoolBeanValueToToolItemSelection("editingEnabled", canvasSet, cw.getEditingEnabledToolItem());
 		
@@ -740,7 +742,11 @@ public class TrpMainWidget {
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, cw.getShowReadingOrderRegionsMenuItem());
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, cw.getShowReadingOrderLinesMenuItem());
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, cw.getShowReadingOrderWordsMenuItem());	
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, cw.getShowReadingOrderWordsMenuItem());
+		
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, cw.getToolbar().showReadingOrderRegionsButton);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, cw.getToolbar().showReadingOrderLinesButton);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, cw.getToolbar().showReadingOrderWordsButton);
 	}
 	
 	public TaggingWidgetListener getTaggingWidgetListener() {
