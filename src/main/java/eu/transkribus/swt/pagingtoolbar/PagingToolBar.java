@@ -45,17 +45,25 @@ public class PagingToolBar /*extends Composite*/ {
 	private boolean withDoubleButtons=true;
 	private boolean withFirstLastButtons=false;
 	
-	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, Composite parent, int style) {
-		this(labelText, withLabel, withDoubleButtons, true, parent, style);
-	}
+//	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, Composite parent, int style) {
+//		this(labelText, withLabel, withDoubleButtons, true, parent, style);
+//	
+//	}
 
 	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, boolean withFirstLastButtons, Composite parent, int style) {
+		this(labelText, withLabel, withDoubleButtons, withFirstLastButtons, parent, style, null);
+	}
+
+	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, boolean withFirstLastButtons, Composite parent, int style, ToolBar toolBar) {
 //		super(parent, style);
 //		setLayout(new FillLayout());
 		this.withDoubleButtons = withDoubleButtons;
 		this.withFirstLastButtons = withFirstLastButtons;
 		
-		toolbar = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT | style);
+		if (toolBar == null)		
+			toolbar = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT | style);
+		else
+			this.toolbar = toolBar;
 
 //		toolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 //		toolbar.setLayout(new GridLayout());

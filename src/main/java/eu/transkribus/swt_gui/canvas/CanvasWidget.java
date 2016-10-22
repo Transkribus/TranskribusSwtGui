@@ -6,39 +6,41 @@ import java.util.Observable;
 import java.util.Observer;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.editing.UndoStack;
 import eu.transkribus.swt_gui.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
 public class CanvasWidget extends Composite {
 	static Logger logger = LoggerFactory.getLogger(CanvasWidget.class);
 	
 	protected SWTCanvas canvas;
-	protected CanvasToolBar toolbar;
+	protected CanvasToolBarNew toolbar;
 	protected CanvasToolBarSelectionListener canvasToolBarSelectionListener;
 	
-	TrpMainWidget mainWidget;
+	TrpMainWidgetView mainWidgetUi;
 
-	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style) {
-		this(parent, mainWidget, style, null);
-	}
-	
-	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style, ToolBar tb) {
+	public ToolBar bar1, bar2; // TEST
+		
+	public CanvasWidget(Composite parent, /*TrpMainWidget mainWidget, */ int style, ToolBar tb, TrpMainWidgetView ui) {
 		super(parent, style);
-		this.mainWidget = mainWidget;
+		this.mainWidgetUi = ui;
 										
-		GridLayout l = new GridLayout(2, false);
+		GridLayout l = new GridLayout(3, false);
 		l.marginTop = 0;
 		l.marginBottom = 0;
 		l.marginHeight = 0;
@@ -46,17 +48,78 @@ public class CanvasWidget extends Composite {
 		
 		setLayout(l);
 		
-//		final ToolBar bar = new ToolBar(this, SWT.BORDER | SWT.VERTICAL | SWT.FLAT | SWT.WRAP);
+		int barStyle = /*SWT.FLAT |*/ SWT.RIGHT | SWT.WRAP;
+		
+		bar1 = new ToolBar(this, SWT.VERTICAL | barStyle );
+//		bar1.setData(0);
+//		for (int i=0; i<3; ++i) {
+//			ToolItem i1 = new ToolItem(bar1, 0);
+//			i1.setImage(Images.APPLICATION);
+//		}
+		bar1.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, true, 1, 1));
+		
+		bar2 = new ToolBar(this, SWT.VERTICAL | barStyle  );
+//		bar2.setData(1);
+//		for (int i=0; i<100; ++i) {
+//			ToolItem i1 = new ToolItem(bar2, 0);
+//			i1.setImage(Images.REFRESH);
+//		}
+		bar2.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, true, 1, 1));
+		
 
-		this.canvas = new SWTCanvas(this, SWT.NONE, mainWidget);
+		this.canvas = new SWTCanvas(this, SWT.NONE);
 		this.canvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				
 //		this.toolbar = new CanvasToolBar(this, bar, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		this.toolbar = new CanvasToolBar(this, tb, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		this.toolbar.tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
+//		this.toolbar = new CanvasToolBar(this, tb, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
+		this.toolbar = new CanvasToolBarNew(this, tb, bar1, bar2, 0);
+		tb.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
 				
 		addListener();
+		
+		updateToolbarSizes();
+		canvas.addListener(SWT.Resize, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				updateToolbarSizes();
+			}
+		});
 	}
+	
+	public void updateToolbarSizes() {
+		Rectangle r = getClientArea();
+//		logger.debug("r = "+r);
+		
+		updateToolbarSize(bar1, r);
+		updateToolbarSize(bar2, r);
+	}
+	
+	public static void updateToolbarSize(ToolBar tb, Rectangle clientArea) {
+		Point size = tb.computeSize(SWT.DEFAULT, clientArea.height);
+//		logger.debug("tb1 size: "+size);
+		tb.setSize(size);
+	}
+	
+	// TEST	
+	public void toggleToolbarVisiblity(ToolBar tb, boolean show) {
+		if (tb != bar1 && tb != bar2)
+			return;
+		
+		if (!show) {
+			tb.setParent(SWTUtil.dummyShell);
+		} else {
+			tb.setParent(this);
+		}
+		
+		if (tb == bar1) {
+			tb.moveAbove(null);
+		} else {
+			tb.moveAbove(canvas);
+		}
+		
+		pack();
+	}
+	// END TEST
 	
 	protected void addListener() {
 		// selection listener for toolbar:
@@ -98,7 +161,7 @@ public class CanvasWidget extends Composite {
 		return canvas;
 	}
 
-	public CanvasToolBar getToolbar() {
+	public CanvasToolBarNew getToolbar() {
 		return toolbar;
 	}
 
@@ -169,5 +232,61 @@ public class CanvasWidget extends Composite {
 			toolbar.getUndo().setEnabled(false);
 			toolbar.getUndo().setToolTipText("Undo: Nothing do undo...");
 		}
+	}
+	
+	public ToolItem getShowRegionsToolItem() {
+		return toolbar.showRegionsToolItem;
+	}
+	
+	public ToolItem getShowLinesToolItem() {
+		return toolbar.showLinesToolItem;
+	}
+	
+	public ToolItem getShowBaselinesToolItem() {
+		return toolbar.showBaselinesToolItem;
+	}
+	
+	public ToolItem getShowWordsToolItem() {
+		return toolbar.showWordsToolItem;
+	}
+		
+	public MenuItem getShowRegionsItem() {
+		return toolbar.showRegionsItem;
+	}	
+	
+	public MenuItem getShowLinesItem() {
+		return toolbar.showLinesItem;
+	}
+	
+	public MenuItem getShowBaselinesItem() {
+		return toolbar.showBaselinesItem;
+	}
+	
+	public MenuItem getShowWordsItem() {
+		return toolbar.showWordsItem;
+	}
+	
+	public MenuItem getShowPrintspaceItem() {
+		return toolbar.showPrintspaceItem;
+	}
+	
+	public MenuItem getShowReadingOrderRegionsMenuItem() {
+		return toolbar.showReadingOrderRegionsMenuItem;
+	}
+	
+	public MenuItem getShowReadingOrderLinesMenuItem() {
+		return toolbar.showReadingOrderLinesMenuItem;
+	}
+	
+	public MenuItem getShowReadingOrderWordsMenuItem() {
+		return toolbar.showReadingOrderWordsMenuItem;
+	}
+	
+	public MenuItem getRenderBlackeningsItem() {
+		return toolbar.renderBlackeningsItem;
+	}
+
+	public ToolItem getEditingEnabledToolItem() {
+		return toolbar.editingEnabledToolItem;
 	}
 }

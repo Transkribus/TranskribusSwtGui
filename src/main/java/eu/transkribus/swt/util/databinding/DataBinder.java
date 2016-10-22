@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.internal.dnd.SwtUtil;
 
 import eu.transkribus.swt.util.DropDownToolItem;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.util.IPropertyChangeSupport;
 
 public class DataBinder {
@@ -61,6 +62,9 @@ public class DataBinder {
 	}
 
 	public Binding bindBeanToWidgetSelection(String property, Object bean, Widget w) {
+		if (SWTUtil.isDisposed(w) || bean == null || property == null)
+			return null;
+		
 		IObservableValue v1 = BeanProperties.value(property).observe(bean);
 		IObservableValue v2 = SWTObservables.observeSelection(w);
 

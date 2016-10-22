@@ -10,6 +10,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.canvas.CanvasToolBarNew;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -50,18 +51,23 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		
 //		db.runOnSelection(ui.getReloadDocumentButton(), (e) -> { mw.reloadCurrentDocument(); } );
 		
-		SWTUtil.onSelectionEvent(ui.getExportDocumentButton(), (e) -> { mw.unifiedExport(); } );
+		SWTUtil.onSelectionEvent(ui.exportDocumentButton, (e) -> { mw.unifiedExport(); } );
 		
 		SWTUtil.onSelectionEvent(ui.reloadDocumentButton, (e) -> { mw.reloadCurrentDocument(); } );
 						
-		SWTUtil.onSelectionEvent(ui.getVersionsButton(), (e) -> { mw.openVersionsDialog(); } );
+		SWTUtil.onSelectionEvent(ui.versionsButton, (e) -> { mw.openVersionsDialog(); } );
 				
-		SWTUtil.onSelectionEvent(ui.getSaveDropDown(), (e) -> {
+		SWTUtil.onSelectionEvent(ui.saveDrowDown, (e) -> {
 			if (e.detail != SWT.ARROW) {
-				boolean withMessage = ui.getSaveDropDown().getSelected()==ui.getSaveTranscriptWithMessageButton();
+				boolean withMessage = ui.saveDrowDown.getSelected()==ui.saveTranscriptWithMessageMenuItem;
 				mw.saveTranscription(withMessage);
 			}
 		});
+		
+		SWTUtil.onSelectionEvent(ui.saveTranscriptToolItem, (e) -> { mw.saveTranscription(false); } );
+		SWTUtil.onSelectionEvent(ui.saveTranscriptWithMessageToolItem, (e) -> { mw.saveTranscription(true); } );
+		
+		
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptButton(), this);
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptWithMessageButton(), this);
 		
@@ -96,7 +102,25 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowVersionsBtn(), (e) -> { mw.openVersionsDialog(); } );
 				
-		SWTUtil.onSelectionEvent(ui.helpItem, (e) -> { mw.openCanvasHelpDialog(); } );
+//		SWTUtil.onSelectionEvent(ui.helpItem, (e) -> { mw.openCanvasHelpDialog(); } );
+		
+		SWTUtil.onSelectionEvent(ui.bugReportItem, (e) -> { mw.sendBugReport(); } );
+		
+		CanvasToolBarNew tb = ui.getCanvasWidget().getToolbar();
+		
+		SWTUtil.onSelectionEvent(tb.rotateLeftBtn, (e) -> { canvas.rotateLeft(); });
+		SWTUtil.onSelectionEvent(tb.rotateRightBtn, (e) -> { canvas.rotateRight(); });
+		SWTUtil.onSelectionEvent(tb.rotateLeft90Btn, (e) -> { canvas.rotate90Left(); });
+		SWTUtil.onSelectionEvent(tb.rotateRight90Btn, (e) -> { canvas.rotate90Right(); });
+		
+		SWTUtil.onSelectionEvent(tb.translateLeftBtn, (e) -> { canvas.translateLeft(); });
+		SWTUtil.onSelectionEvent(tb.translateRightBtn, (e) -> { canvas.translateRight(); });
+		SWTUtil.onSelectionEvent(tb.translateUpBtn, (e) -> { canvas.translateUp(); });
+		SWTUtil.onSelectionEvent(tb.translateDownBtn, (e) -> { canvas.translateDown(); });
+		
+		SWTUtil.onSelectionEvent(tb.fitPageItem, (e) -> { canvas.fitToPage(); });
+		SWTUtil.onSelectionEvent(tb.fitWidthItem, (e) -> { canvas.fitWidth();; });
+		SWTUtil.onSelectionEvent(tb.origSizeItem, (e) -> { canvas.resetTransformation(); });
 	}
 	
 	@Override
