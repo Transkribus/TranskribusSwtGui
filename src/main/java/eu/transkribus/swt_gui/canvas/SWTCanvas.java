@@ -101,20 +101,16 @@ public class SWTCanvas extends Canvas {
 	protected CanvasKeyListener keyListener;
 	protected CanvasGlobalEventsFilter globalEventsListener;
 	
-//	protected TrpMainWidget mainWidget;
-
 	// private boolean scrollBarsVisible = false;
 	
-	TrpMainWidget mainWidget;
 	LineEditor lineEditor;	
 
-	public SWTCanvas(final Composite parent, int style, TrpMainWidget mainWidget) {
+	public SWTCanvas(final Composite parent, int style) {
 		super(parent, style | STYLE_BITS);
 		// setLayout(new GridLayout(1, false));
 
 		setLayout(null); // absolute layout
 		
-		this.mainWidget = mainWidget;
 		lineEditor = new LineEditor(this, SWT.BORDER);
 
 		// parent.setBackground(getDisplay().getSystemColor(SWT.COLOR_BLUE));
@@ -140,8 +136,8 @@ public class SWTCanvas extends Canvas {
 		setFocus();
 	}
 	
-	public TrpMainWidget getMainWidget() { return mainWidget; }
-	public void setMainWidget(TrpMainWidget mainWidget) { this.mainWidget = mainWidget; }
+	//public TrpMainWidget getMainWidget() { return mainWidget; }
+	//public void setMainWidget(TrpMainWidget mainWidget) { this.mainWidget = mainWidget; }
 
 	protected void initContextMenu() {
 		contextMenu = new CanvasContextMenu(this);
@@ -707,6 +703,8 @@ public class SWTCanvas extends Canvas {
 	}
 
 	protected void onAfterPaintScene(final GC gc) {
+		TrpMainWidget mainWidget = TrpMainWidget.getInstance();
+		
 		boolean renderBlackenings = mainWidget.getTrpSets().isRenderBlackenings();
 		
 		ICanvasShape selected = null;
@@ -730,7 +728,11 @@ public class SWTCanvas extends Canvas {
 	}
 
 	protected void onBeforePaintScene(final GC gc) {
-		// set reading order visibility:
+		// set reading order visibility:		
+		TrpMainWidget mainWidget = TrpMainWidget.getInstance();
+		if (mainWidget == null)
+			return;
+		
 		boolean isShowR = mainWidget.getTrpSets().isShowReadingOrderRegions();
 		boolean isShowL = mainWidget.getTrpSets().isShowReadingOrderLines();
 		boolean isShowW = mainWidget.getTrpSets().isShowReadingOrderWords();
@@ -1516,6 +1518,10 @@ public class SWTCanvas extends Canvas {
 	
 	// INSERTED:
 	public void updateShapeColors() {
+		TrpMainWidget mainWidget = TrpMainWidget.getInstance();
+		if (mainWidget == null)
+			return;
+		
 		for (ICanvasShape s : scene.getShapes()) {
 			s.setColor(TrpSettings.determineColor(mainWidget.getTrpSets(), s.getData()));
 		}
@@ -1525,9 +1531,7 @@ public class SWTCanvas extends Canvas {
 
 	private void drawBlackening(GC gc, ICanvasShape s) {
 		CanvasSettings sets = getSettings();
-		
-		
-		
+	
 		ITrpShapeType trpShape = (ITrpShapeType) s.getData();
 		if (trpShape == null) // should not happen...
 			return;
@@ -1563,6 +1567,10 @@ public class SWTCanvas extends Canvas {
 		boolean isRegion = trpShape instanceof TrpRegionType;
 		boolean isLine = trpShape instanceof TrpTextLineType;
 		boolean isWord = trpShape instanceof TrpWordType;
+		
+		TrpMainWidget mainWidget = TrpMainWidget.getInstance();
+		if (mainWidget == null)
+			return;
 		
 		TrpSettings trpSets = mainWidget.getTrpSets();
 		

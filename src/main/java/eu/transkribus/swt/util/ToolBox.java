@@ -6,6 +6,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
@@ -137,6 +139,22 @@ public class ToolBox {
 			}
 		});
 		
+		shell.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.keyCode == SWT.ESC) {
+					hide();
+				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
 //		shell.addListener(SWT.Traverse, new Listener() {
 //		      public void handleEvent(Event event) {
 //		        switch (event.detail) {
@@ -180,12 +198,11 @@ public class ToolBox {
 		
 		return b;
 	}
-	
 
-	
 	public void showAt(int x, int y) {
 		shell.setLocation(x, y);
 		shell.setVisible(true);
+		shell.setActive();
 				
 		for (Widget w : triggerWidgets.keySet()) {
 			SWTUtil.setSelection(w, true);	

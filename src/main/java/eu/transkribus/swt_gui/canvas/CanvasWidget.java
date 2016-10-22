@@ -19,34 +19,25 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.editing.UndoStack;
 import eu.transkribus.swt_gui.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
 public class CanvasWidget extends Composite {
 	static Logger logger = LoggerFactory.getLogger(CanvasWidget.class);
 	
 	protected SWTCanvas canvas;
-//	protected CanvasToolBar toolbar;
 	protected CanvasToolBarNew toolbar;
 	protected CanvasToolBarSelectionListener canvasToolBarSelectionListener;
 	
-	TrpMainWidget mainWidget;
 	TrpMainWidgetView mainWidgetUi;
 
 	public ToolBar bar1, bar2; // TEST
-	
-//	public CanvasWidget(Composite parent, TrpMainWidget mainWidget, int style) {
-//		this(parent, mainWidget, style, null);
-//	}
-	
+		
 	public CanvasWidget(Composite parent, /*TrpMainWidget mainWidget, */ int style, ToolBar tb, TrpMainWidgetView ui) {
 		super(parent, style);
-//		this.mainWidget = mainWidget;
 		this.mainWidgetUi = ui;
 										
 		GridLayout l = new GridLayout(3, false);
@@ -76,7 +67,7 @@ public class CanvasWidget extends Composite {
 		bar2.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, true, 1, 1));
 		
 
-		this.canvas = new SWTCanvas(this, SWT.NONE, mainWidget);
+		this.canvas = new SWTCanvas(this, SWT.NONE);
 		this.canvas.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				
 //		this.toolbar = new CanvasToolBar(this, bar, SWT.FLAT | SWT.WRAP | SWT.RIGHT);

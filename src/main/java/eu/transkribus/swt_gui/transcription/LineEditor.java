@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
 import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
 
@@ -63,7 +64,7 @@ public class LineEditor extends CanvasShapeAttachWidget<TrpTextLineType> {
 	
 	@Override
 	public boolean showThisEditor() {
-		return canvas.getMainWidget().getTrpSets().isShowLineEditor();
+		return TrpMainWidget.getInstance().getTrpSets().isShowLineEditor();
 	}
 	
 	public TrpAutoCompleteField getAutoComplete() { return autocomplete; }

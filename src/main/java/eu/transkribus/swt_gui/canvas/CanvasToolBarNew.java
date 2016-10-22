@@ -136,7 +136,7 @@ public class CanvasToolBarNew {
 		this.canvasWidget = parent;
 		
 //		initMainTb(mainTb);
-		createViewItems(viewTb);
+		createViewItems(mainTb);
 		createEditItems(editTb);
 		
 		addListeners();

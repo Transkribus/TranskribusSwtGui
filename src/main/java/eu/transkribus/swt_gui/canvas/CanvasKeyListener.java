@@ -52,7 +52,7 @@ public final class CanvasKeyListener extends KeyAdapter {
 	
 	@Override
 	public void keyPressed(KeyEvent e) {
-		TrpMainWidget mainWidget = canvas.getMainWidget();
+		TrpMainWidget mainWidget = TrpMainWidget.getInstance();
 //		logger.debug("trp canvas key listener, key pressed: "+e.keyCode);
 		
 //		if (!canvas.isFocusControl())
