@@ -88,7 +88,7 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 			
 			TrpTableCellType cell = TableUtils.getTableCell(ls);
 			if (cell != null) {
-				boolean isMultiselect = canvas.getMouseListener().isKeyDown(CanvasKeys.MULTISELECTION_REQUIRED_KEY);
+				boolean isMultiselect = CanvasKeys.isCtrlOrCommandKeyDown(canvas.getMouseListener().getCurrentMoveStateMask());
 				TableUtils.selectCells(canvas, cell, event.dim, isMultiselect);
 			}
 		} catch (Throwable ex) {

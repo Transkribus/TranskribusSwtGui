@@ -56,6 +56,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.mihalis.opal.tipOfTheDay.TipOfTheDay;
 import org.mihalis.opal.tipOfTheDay.TipOfTheDay.TipStyle;
@@ -3542,13 +3543,13 @@ public class TrpMainWidget {
 	}
 
 	public String getSelectedImageFileType() {
-		String fileType = getCanvasWidget().getToolbar().getImageVersionDropdown().ti.getText();
-		if (!fileType.equals("orig") && fileType.equals("view") && !fileType.equals("bin"))
-			return "view";
-		else
-			return fileType;
-
-//		return getCanvasWidget().getToolBar().getImageVersionItem().ti.getText();
+		String fileType = "view";
+		MenuItem mi = getCanvasWidget().getToolbar().getImageVersionDropdown().getSelected();
+		if (mi != null) {
+			fileType = (String) mi.getData();
+		}
+		
+		return fileType;
 	}
 
 	private boolean checkExportFile(File file, String extension) {

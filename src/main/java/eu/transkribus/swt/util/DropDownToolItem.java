@@ -267,7 +267,8 @@ public class DropDownToolItem extends Widget {
 			if (isDropDown && event.detail == SWT.ARROW || (isShowMenuOnItemClick() && event.detail!=IS_DROP_DOWN_ITEM_DETAIL)) {
 				showMenu();
 			} else {
-				ti.setSelection(true);
+				
+				//ti.setSelection(true);
 
 				// logger.debug("setting selection event...");
 				// MenuItem si = getSelectedItem();

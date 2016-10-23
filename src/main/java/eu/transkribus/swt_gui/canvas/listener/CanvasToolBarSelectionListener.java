@@ -6,6 +6,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.CanvasToolBar;
@@ -115,7 +116,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		if (s == toolbar.getViewSettingsMenuItem()) {
 			mw.getUi().getTabWidget().selectServerTab();
 		}
-		else if (s == toolbar.getImageVersionDropdown().ti && e.detail != SWT.ARROW) {
+		else if (s == toolbar.getImageVersionDropdown().ti && e.detail == DropDownToolItem.IS_DROP_DOWN_ITEM_DETAIL) {
 			TrpMainWidget.getInstance().reloadCurrentImage();
 		}
 		else if (s == toolbar.getImgEnhanceItem()) {

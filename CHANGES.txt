@@ -395,8 +395,8 @@ CHANGES AND BUGFIXES
 	-> fixed split reading order bug
 	
 0.10.0:
-	-> vertical canvas toolbars, divided into view and edit toolbars
-
+	-> vertical canvas edit toolbar
+	-> removed all dropdown tool items and partially replaced by new toolboxes
 	
 
 	

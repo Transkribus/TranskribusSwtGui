@@ -37,13 +37,7 @@ public class CanvasKeyListener implements KeyListener {
 		
 		logger.debug("key pressed: "+e.keyCode+ " mask: "+e.stateMask);
 		
-		// set modes depending on key press:
-		if (e.keyCode == CanvasKeys.MULTISELECTION_REQUIRED_KEY) {
-			logger.debug("ctrl pressed - activating multiselect");
-//			canvas.getSettings().setMultiselect(canvas.getSettings().isEditingEnabled());
-//			canvas.getSettings().setMultiselect(true);
-		}
-		
+		// set modes depending on key press:		
 		CanvasMode mode = canvas.getMode();
 		
 		KeyAction ka = CanvasKeys.getKeyAction(e);
