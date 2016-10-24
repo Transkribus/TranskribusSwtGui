@@ -28,6 +28,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Image;
@@ -55,11 +56,13 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.searchresult.Facet;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.PageHit;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -69,7 +72,7 @@ public class FullTextSearchComposite extends Composite{
 	private final static Logger logger = LoggerFactory.getLogger(FullTextSearchComposite.class);
 	Group facetsGroup;
 	LabeledText inputText;
-	Button wholeWordCheck, caseSensitiveCheck, previewCheck;
+	Button currentDocCheck, wholeWordCheck, caseSensitiveCheck, previewCheck;
 	Button searchBtn, searchPrevBtn, searchNextBtn;
 	Composite parameters;
 	Composite facetComp;
@@ -158,8 +161,61 @@ public class FullTextSearchComposite extends Composite{
 		inputText.text.addTraverseListener(findTagsOnEnterListener);
 		
 		parameters = new Composite(facetsGroup, 0);
-		parameters.setLayout(new GridLayout(4, false));
+		parameters.setLayout(new GridLayout(5, false));
 		parameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
+				
+		storage = Storage.getInstance();
+		
+		currentDocCheck = new Button(parameters, SWT.CHECK);
+		currentDocCheck.setText("Current document");
+		currentDocCheck.addSelectionListener(new SelectionListener(){
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				if(currentDocCheck.getSelection()){
+					if(storage.getDoc() == null){
+						DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded.");
+						currentDocCheck.setSelection(false);
+					}
+					else{
+						TrpDoc currentDoc = storage.getDoc();	
+						String currentTitle = currentDoc.getMd().getTitle();
+						collCombo.txtCurrentSelection.setEnabled(false);
+						docCombo.txtCurrentSelection.setEnabled(false);
+						authCombo.txtCurrentSelection.setEnabled(false);
+						uplCombo.txtCurrentSelection.setEnabled(false);
+						
+						filters = new ArrayList<String>();
+						filters.add("(f_title:\""+currentTitle+"\")");
+						
+						collCombo.txtCurrentSelection.setText("");
+						docCombo.txtCurrentSelection.setText("");
+						authCombo.txtCurrentSelection.setText("");
+						uplCombo.txtCurrentSelection.setText("");
+					}
+				}else{
+					collCombo.txtCurrentSelection.setEnabled(true);
+					docCombo.txtCurrentSelection.setEnabled(true);
+					authCombo.txtCurrentSelection.setEnabled(true);
+					uplCombo.txtCurrentSelection.setEnabled(true);
+					
+					filters = null;
+					
+					collCombo.txtCurrentSelection.setText("All collections");
+					docCombo.txtCurrentSelection.setText("All documents");
+					authCombo.txtCurrentSelection.setText("All authors");
+					uplCombo.txtCurrentSelection.setText("All uploaders");					
+				}
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
 		
 		caseSensitiveCheck = new Button(parameters, SWT.CHECK);
 		caseSensitiveCheck.setText("Case sensitive");
@@ -709,7 +765,10 @@ public class FullTextSearchComposite extends Composite{
 		
 		storage = Storage.getInstance();
 		
-		generateFilters();
+		if(!currentDocCheck.getSelection()){
+			generateFilters();
+		}
+		
 		
 		try {	
 			if(!filters.isEmpty()){
@@ -727,11 +786,10 @@ public class FullTextSearchComposite extends Composite{
 
 			
 			if(fullTextSearchResult != null){				
-				
-				updateFacets();
+				if(!currentDocCheck.getSelection()){
+					updateFacets();
+				}				
 				updateResultsTable();
-
-
 			}
 			
 		} catch (SessionExpiredException e) {
