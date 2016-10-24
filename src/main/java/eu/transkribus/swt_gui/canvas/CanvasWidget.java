@@ -50,6 +50,7 @@ public class CanvasWidget extends Composite {
 		
 		int barStyle = /*SWT.FLAT |*/ SWT.RIGHT | SWT.WRAP;
 		
+		if (false) {
 		bar1 = new ToolBar(this, SWT.VERTICAL | barStyle );
 //		bar1.setData(0);
 //		for (int i=0; i<3; ++i) {
@@ -57,6 +58,7 @@ public class CanvasWidget extends Composite {
 //			i1.setImage(Images.APPLICATION);
 //		}
 		bar1.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, true, 1, 1));
+		}
 		
 		bar2 = new ToolBar(this, SWT.VERTICAL | barStyle  );
 //		bar2.setData(1);
@@ -95,6 +97,9 @@ public class CanvasWidget extends Composite {
 	}
 	
 	public static void updateToolbarSize(ToolBar tb, Rectangle clientArea) {
+		if (tb == null)
+			return;
+		
 		Point size = tb.computeSize(SWT.DEFAULT, clientArea.height);
 //		logger.debug("tb1 size: "+size);
 		tb.setSize(size);
