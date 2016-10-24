@@ -129,7 +129,7 @@ public class CanvasToolBarNew {
 
 	public CanvasToolBarNew(CanvasWidget parent, ToolBar mainTb, ToolBar viewTb, ToolBar editTb, int style) {
 		Assert.assertNotNull("mainTb must be given!", mainTb);
-		Assert.assertNotNull("viewTb must be given!", viewTb);
+//		Assert.assertNotNull("viewTb must be given!", viewTb);
 		Assert.assertNotNull("editTb must be given!", editTb);
 		
 		this.mainTb = mainTb;
