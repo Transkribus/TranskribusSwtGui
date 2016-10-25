@@ -88,9 +88,11 @@ public class TrpMainWidgetKeyListener implements Listener {
 		}
 		
 		// SOME TEST HOOKS FOR TABLES:
-		if (isCtrlOrCommand && kc == 'c') { // create table cell
+		if (false) {
+		if (isCtrlOrCommand && kc == 'n') { // create table cell
 			mw.getCanvas().setMode(CanvasMode.ADD_TABLECELL);
-		} else if (isCtrlOrCommand && kc == 'x') { // check table consistency
+		} 
+		else if (isCtrlOrCommand && kc == 'x') { // check table consistency
 			TrpTableRegionType t = TableUtils.getTable(mw.getCanvas().getFirstSelected(), true);			
 			if (t != null) {
 				try {
@@ -115,6 +117,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 			} catch (Throwable e) {
 				mw.onError("Error", e.getMessage(), e);
 			}
+		}
 		}
 		
 		// TEST
