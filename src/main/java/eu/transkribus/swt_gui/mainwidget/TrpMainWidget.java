@@ -1135,7 +1135,7 @@ public class TrpMainWidget {
 			bytes = PageXmlUtils.marshalToBytes(currentPage);
 //			PageXmlUtils.marshalToFile(storage.getTranscript().getPageData(), f);
 			FileUtils.writeByteArrayToFile(f, bytes);
-			logger.debug("Auto-saved current transcript to " + f.getAbsolutePath());
+			logger.trace("Auto-saved current transcript to " + f.getAbsolutePath());
 		} catch (Exception e1) {
 			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
 		}
