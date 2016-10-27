@@ -84,7 +84,7 @@ public final class CanvasKeys {
 	
 	// EDIT OPERATIONS
 	public final static KeyAction FINISH_SHAPE = new KeyAction("Finish shape", new int[]{SWT.CR , SWT.KEYPAD_CR }, true);
-	public final static KeyAction DELETE_SHAPE = new KeyAction("Delete shape", new int[]{SWT.DEL }, true);
+	public final static KeyAction DELETE_SHAPE = new KeyAction("Delete shape", new int[]{SWT.DEL, SWT.BS }, true);
 	public final static KeyAction ADD_POINT = new KeyAction("Add point", new int[]{ 'a' }, new int[]{SWT.CTRL}, true);
 //	public final static KeyAction ADD_SHAPE = new KeyAction("Add shape", new int[]{ 'a' }, true);
 //	public final static KeyAction SPLIT_SHAPE = new KeyAction("Split shape", new int[]{ 's' }, true);

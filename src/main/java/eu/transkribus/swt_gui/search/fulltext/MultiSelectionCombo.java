@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 public class MultiSelectionCombo extends Composite {
 private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo.class);
 
+
+
    Shell    shell               = null;
    List     list                = null;
    FullTextSearchComposite parentComp;
@@ -72,14 +74,11 @@ private final static Logger logger = LoggerFactory.getLogger(MultiSelectionCombo
             	initFloatShell();
             	parentComp.noMultiCombos = false;
             }
-            
-            	
-
          }
 
       });
    }
-
+   
    private void initFloatShell() {
       Point p = txtCurrentSelection.getParent().toDisplay(txtCurrentSelection.getLocation());
       Point size = txtCurrentSelection.getSize();

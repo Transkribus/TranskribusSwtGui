@@ -526,13 +526,14 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	protected void initToolBar() {
-		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, true, this, SWT.FLAT | SWT.BOTTOM);
+//		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, true, this, SWT.FLAT | SWT.BOTTOM);
+		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, true, this, /*SWT.FLAT |*/ SWT.BOTTOM);
 		regionsPagingToolBar.removeReloadButton();
 		regionsPagingToolBar.removeDoubleButtons();
 		regionsToolbar = regionsPagingToolBar.getToolBar();
 		
 		// TEST:
-		transcriptionTypeItem = new DropDownToolItem(regionsToolbar, true, true, SWT.RADIO | SWT.BOLD, 0);
+		transcriptionTypeItem = new DropDownToolItem(regionsToolbar, true, true, true, SWT.RADIO | SWT.BOLD, 0);
 //		transcriptionTypeItem.addItem("Region based", null, "", true, Type.REGION_BASED);
 		transcriptionTypeItem.addItem("Line based", null, "", true, Type.LINE_BASED);
 		transcriptionTypeItem.addItem("Word based", null, "", false, Type.WORD_BASED);
@@ -561,7 +562,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		textAlignment = SWT.LEFT;
 		
-		alignmentDropDown = new DropDownToolItem(regionsToolbar, false, true, SWT.RADIO);
+		alignmentDropDown = new DropDownToolItem(regionsToolbar, false, true, true, SWT.RADIO);
 		additionalToolItems.add(alignmentDropDown.ti);
 		
 		leftAlignmentItem = alignmentDropDown.addItem("Left", Images.getOrLoad("/icons/text_align_left.png"), "Text alignment", true);
@@ -602,7 +603,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		centerCurrentLineItem.setSelection(settings.isCenterCurrentTranscriptionLine());
 		additionalToolItems.add(centerCurrentLineItem);
 
-		textStyleDisplayOptions = new DropDownToolItem(regionsToolbar, false, true, SWT.CHECK);
+		textStyleDisplayOptions = new DropDownToolItem(regionsToolbar, false, true, true, SWT.CHECK);
 		String tt = "Determines which styles are rendered in the transcription widget";
 		textStyleDisplayOptions.ti.setToolTipText(tt);
 		renderFontStyleTypeItem = textStyleDisplayOptions.addItem("Font type styles: serif, monospace, letter spaced (will override default font!)", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderFontStyles());
@@ -643,7 +644,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
-		deleteTextDropDown = new DropDownToolItem(regionsToolbar, false, true, SWT.PUSH);
+		deleteTextDropDown = new DropDownToolItem(regionsToolbar, false, true, false, SWT.PUSH);
 		deleteRegionTextItem = deleteTextDropDown.addItem("Region", Images.DELETE, "Delete text of region, line or word");
 		deleteLineTextItem = deleteTextDropDown.addItem("Line", Images.DELETE, "Delete text of region, line or word");
 		deleteWordTextItem = deleteTextDropDown.addItem("Word", Images.DELETE, "Delete text of region, line or word");

@@ -28,7 +28,7 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 		try {
 			canvas.getShapeEditor().removeShapesFromCanvas(canvas.getScene().getSelectedAsNewArray(), true);
 		} catch (Throwable ex) {
-			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
 		}
 	}
 	
@@ -49,7 +49,7 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 			canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, true);
 			canvas.redraw();
 		} catch (Throwable ex) {
-			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
 		}
 	}
 
@@ -62,7 +62,7 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 				canvas.getShapeEditor().deleteTableRowOrColumn(fs, event.dim, true);	
 			}
 		} catch (Throwable ex) {
-			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
 		}
 	}
 
@@ -70,7 +70,7 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 		try {
 			canvas.getShapeEditor().removeIntermediatePointsOfTableCell(canvas.getFirstSelected(), true);
 		} catch (Throwable ex) {
-			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
 		}
 	}
 
@@ -78,7 +78,7 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 		try {
 			canvas.getShapeEditor().splitMergedTableCell(canvas.getFirstSelected(), true);
 		} catch (Throwable ex) {
-			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
 		}
 	}
 
@@ -88,11 +88,11 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 			
 			TrpTableCellType cell = TableUtils.getTableCell(ls);
 			if (cell != null) {
-				boolean isMultiselect = canvas.getMouseListener().isKeyDown(CanvasKeys.MULTISELECTION_REQUIRED_KEY);
+				boolean isMultiselect = CanvasKeys.isCtrlOrCommandKeyDown(canvas.getMouseListener().getCurrentMoveStateMask());
 				TableUtils.selectCells(canvas, cell, event.dim, isMultiselect);
 			}
 		} catch (Throwable ex) {
-			canvas.getMainWidget().onError("Error", ex.getMessage(), ex);
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
 		}
 	}
 }

@@ -1,15 +1,22 @@
 package eu.transkribus.swt.util;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ArmEvent;
+import org.eclipse.swt.events.ArmListener;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -31,13 +38,31 @@ public class DropDownToolItem extends Widget {
 	boolean renderTextInMainItem=false;
 	boolean renderImageInMainItem=true;
 	
+	boolean showMenuOnItemClick=false;
+	boolean showDropDownArrow=true;
+	boolean isDropDown=true;
+	
+	boolean keepMenuOpenOnClick=false;
+
 	public static final int IS_DROP_DOWN_ITEM_DETAIL = 1;
 	
 	List<SelectionListener> selListener=new ArrayList<>();
-	
+
 	public static final String ALT_TXT_KEY="altTxt";
 
 //	boolean highlightSelected=false;
+	
+//	public static int getMenuHeight(Menu parent) {
+//		try {
+//			Method m = Menu.class.getDeclaredMethod("getBounds", null);
+//			m.setAccessible(true);
+//			Rectangle r = (Rectangle) m.invoke(parent, null);
+//			return r.height;
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return 0;
+//		}
+//	}
 
 	class DropdownSelectionListener extends SelectionAdapter {
 		ToolItem dropdown;
@@ -47,15 +72,62 @@ public class DropDownToolItem extends Widget {
 			this.dropdown = dropdown;
 			menu = new Menu(dropdown.getParent().getShell());
 			
-			menu.addListener(SWT.Hide, new Listener() {
+			menu.addMenuListener(new MenuListener() {
 				@Override
-				public void handleEvent(Event event) {
+				public void menuHidden(MenuEvent event) {
+					try {
+						Field field = Menu.class.getDeclaredField("hasLocation");
+						field.setAccessible(true);
+						field.set(menu, false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
+				@Override
+				public void menuShown(MenuEvent event) {
 				}
 			});
+			
+//			menu.addListener(SWT.Hide, new Listener() {
+//				@Override
+//				public void handleEvent(Event event) {
+//					logger.debug("hiding menu!");
+//					event.doit = false;
+//				}
+//			});
+			
+//			menu.addListener(SWT.Hide, listener);
+			
+//			menu.
+
+			menu.addMenuListener(new MenuListener() {
+				@Override
+				public void menuShown(MenuEvent e) {
+					ti.setSelection(true);
+				}
+				
+				@Override
+				public void menuHidden(MenuEvent e) {
+					ti.setSelection(false);
+					
+					if (isKeepMenuOpenOnClick()) {
+						try {
+							Field field = Menu.class.getDeclaredField("hasLocation");
+							field.setAccessible(true);							
+							field.set(menu, false);
+						} catch (Exception ex) {
+							logger.error(ex.getMessage(), ex);
+						}
+					}
+				}
+			});
+
 		}
 
 		public MenuItem add(String item, Image image, String toolTipText, int itemStyle, boolean isSelected, Object data) {
 			MenuItem menuItem = new MenuItem(menu, itemStyle);
+						
 //			MenuItem menuItem = new MenuItem(menu, SWT.CHECK);
 			menuItem.setData("tooltip", toolTipText);
 			menuItem.setText(item);
@@ -69,13 +141,20 @@ public class DropDownToolItem extends Widget {
 			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent event) {
+					if (isKeepMenuOpenOnClick()) {
+						Display.getDefault().asyncExec(() -> { showMenu(); });
+					}
+					
 					MenuItem selected = (MenuItem) event.widget;
 					logger.debug("menuitem selected: "+selected.getData()+" source = "+event.getSource()+ " isselected: "+selected.getSelection());
 					
-					if ( ( (selected.getStyle() & SWT.RADIO) != SWT.RADIO) || selected.getSelection() ) // only one selection event for radio menuitem's!!
+					if ( ( (selected.getStyle() & SWT.RADIO) != SWT.RADIO) || selected.getSelection() ) { // only one selection event for radio menuitem's!!
 						selectItem(selected, true);
+					}
 				}
 			});
+			
+			
 
 			if (selected == null) {
 				selectItem(menuItem, false);
@@ -83,7 +162,19 @@ public class DropDownToolItem extends Widget {
 			
 			return menuItem;
 		}
-
+		
+		void showMenu() {
+			Rectangle rect = ti.getBounds();
+			Point pt = ti.getParent().toDisplay(new Point(rect.x, rect.y));
+			
+			menu.setLocation(pt.x + rect.width, pt.y + rect.height);
+			menu.setVisible(true);
+		}
+		
+		void hideMenu() {
+			menu.setVisible(false);
+		}
+		
 		private int findItemIndex(MenuItem toFind) {
 			int i = 0;
 			for (MenuItem mi : menu.getItems()) {
@@ -171,21 +262,13 @@ public class DropDownToolItem extends Widget {
 		
 		@Override
 		public void widgetSelected(SelectionEvent event) {
-			ToolItem item = (ToolItem) event.widget;
-			if (event.detail == SWT.ARROW) {
-				Rectangle rect = item.getBounds();
-				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
-				menu.setLocation(pt.x, pt.y + rect.height);
-				menu.setVisible(true);
-				
-//				for (MenuItem m : menu.getItems()) {
-//					String text = m.getText();
-//					if (highlightSelected && m == getSelected() && text!=null && !text.isEmpty()) {
-//						m.
-//					}
-//				}
+			logger.debug("dropdown toolitem selected: "+event);
+			
+			if (isDropDown && event.detail == SWT.ARROW || (isShowMenuOnItemClick() && event.detail!=IS_DROP_DOWN_ITEM_DETAIL)) {
+				showMenu();
 			} else {
-				ti.setSelection(true);
+				
+				//ti.setSelection(true);
 
 				// logger.debug("setting selection event...");
 				// MenuItem si = getSelectedItem();
@@ -207,20 +290,32 @@ public class DropDownToolItem extends Widget {
 //	public DropDownToolItem(ToolBar parent) {
 //		init(parent, false, false);
 //	}
-	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, int itemStyle) {
-		this(parent, renderTextInMainItem, renderImageInMainItem, itemStyle, -1);
+	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle) {
+		this(parent, renderTextInMainItem, renderImageInMainItem, showMenuOnItemClick, itemStyle, -1);
+	}
+	
+	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle, int index) {
+		this(parent, true, renderTextInMainItem, renderImageInMainItem, showMenuOnItemClick, itemStyle, index);
 	}
 
 	/**
 	 * Item style: SWT.NONE, SWT.RADIO, SWT.CHECK
 	 */
-	public DropDownToolItem(ToolBar parent, boolean renderTextInMainItem, boolean renderImageInMainItem, int itemStyle, int index) {
+	public DropDownToolItem(ToolBar parent, boolean showDropDownArrow, boolean renderTextInMainItem, boolean renderImageInMainItem, boolean showMenuOnItemClick, int itemStyle, int index) {
 		super(parent, itemStyle);
 		
+		if ( false && (itemStyle & SWT.CHECK) == SWT.CHECK ) {
+			setKeepMenuOpenOnClick(true);
+		}
+		
+//		int tiItemStyle = showDropDownArrow ? SWT.DROP_DOWN : SWT.PUSH;
+		isDropDown = showDropDownArrow && !showMenuOnItemClick;
+		int tiItemStyle = isDropDown ? SWT.DROP_DOWN : SWT.CHECK;
+		
 		if (index >= 0)
-			ti = new ToolItem(parent, SWT.DROP_DOWN, index);
+			ti = new ToolItem(parent, tiItemStyle, index);
 		else
-			ti = new ToolItem(parent, SWT.DROP_DOWN);
+			ti = new ToolItem(parent, tiItemStyle);
 		
 		// TEST - set style of toolitem to check and drop_down - did not work...
 //		try {
@@ -239,6 +334,9 @@ public class DropDownToolItem extends Widget {
 		
 		this.renderTextInMainItem = renderTextInMainItem;
 		this.renderImageInMainItem = renderImageInMainItem;
+		this.showMenuOnItemClick = showMenuOnItemClick;
+		this.showDropDownArrow = showDropDownArrow;
+		
 		this.itemStyle = itemStyle;
 //		this.highlightSelected = highlightSelected;
 //		if (highlightSelected)
@@ -274,7 +372,8 @@ public class DropDownToolItem extends Widget {
 	}
 	
 	public MenuItem addItem(String text, Image image, String toolTipText, boolean isSelected, Object data) {
-		return listener.add(text, image, toolTipText, itemStyle, isSelected, data);
+//		return listener.add(text, image, toolTipText, itemStyle, isSelected, data);
+		return addItem(text, image, toolTipText, itemStyle, isSelected, data);
 	}
 	
 	public MenuItem addItem(String text, Image image, String toolTipText, int itemStyle, boolean isSelected, Object data) {
@@ -338,18 +437,32 @@ public class DropDownToolItem extends Widget {
 		return listener.menu.isVisible();
 	}
 
-	public void exchangeToolItemImage(Image newImage) {
-		if (ti.getImage() != null){
-			ti.getImage().dispose();
-		}
-		ti.setImage(newImage);
-		
-	}
+//	public void exchangeToolItemImage(Image newImage) {
+//		if (ti.getImage() != null){
+//			ti.getImage().dispose();
+//		}
+//		ti.setImage(newImage);
+//	}
 
 	public Menu getMenu() {
 		return listener.menu;
 	}
+	
+	public boolean isShowMenuOnItemClick() {
+		return showMenuOnItemClick;
+	}
 
+	public void setShowMenuOnItemClick(boolean showMenuOnItemClick) {
+		this.showMenuOnItemClick = showMenuOnItemClick;
+	}
+	
+	public boolean isKeepMenuOpenOnClick() {
+		return keepMenuOpenOnClick;
+	}
+
+	public void setKeepMenuOpenOnClick(boolean keepMenuOpenOnClick) {
+		this.keepMenuOpenOnClick = keepMenuOpenOnClick;
+	}
 	
 //	public void addSelectionListener(SelectionListener l) {
 //		selListener.add(l);

@@ -9,6 +9,14 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 public class Images {
+	
+	
+	
+	public static final Image READING_ORDER = Images.getOrLoad("/icons/readingOrder.png");
+	public static final Image READING_ORDER_REGIONS = Images.getOrLoad("/icons/reading_order_r.png");
+	public static final Image READING_ORDER_LINES = Images.getOrLoad("/icons/reading_order_l.png");
+	public static final Image READING_ORDER_WORDS = Images.getOrLoad("/icons/reading_order_w.png");
+	
 	public static final Image DISCONNECT = Images.getOrLoad("/icons/disconnect.png");
 	public static final Image CONNECT = Images.getOrLoad("/icons/connect.png");
 	public static final Image HELP = Images.getOrLoad("/icons/help.png");
@@ -17,6 +25,8 @@ public class Images {
 	
 	public static final Image FOLDER = Images.getOrLoad("/icons/folder.png");
 	public static final Image IMAGES = Images.getOrLoad("/icons/images.png");
+	public static final Image IMAGE = Images.getOrLoad("/icons/image.png");
+	
 	public static final Image PAGE_WHITE_STACK = Images.getOrLoad("/icons/page_white_stack.png");
 	public static final Image CUP = Images.getOrLoad("/icons/cup.png");
 	public static final Image KEYBOARD = Images.getOrLoad("/icons/keyboard.png");

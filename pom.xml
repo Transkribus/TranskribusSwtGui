@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>0.9.1</version>
+	<version>0.10.0</version>
 	<!-- <version>0.4.6</version> -->
 	<name>Transkribus</name>
 
@@ -70,6 +70,30 @@
 		</extensions>
 
 		<plugins>
+			<!-- to execute the main class from console using mvn exec:java ... -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.5.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				
+								
+				<configuration>
+<!-- 					<mainClass>eu.transkribus.swt_gui.mainwidget.TrpMainWidget</mainClass> -->
+					<mainClass>${mainClassName}</mainClass>
+					
+					<arguments>
+						<argument>-classpath</argument>
+					</arguments>
+				</configuration>
+			</plugin>
+		
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -683,8 +707,8 @@
 		<dependency>
 			<groupId>org.eclipse.nebula.widgets</groupId>
 			<artifactId>gallery</artifactId>
-			<version>0.6.0.201403182228</version>
-<!-- 			<version>1.0.0</version> -->
+<!-- 			<version>0.6.0.201403182228</version> -->
+			<version>1.0.0</version>
 		</dependency>
 
 		<dependency>

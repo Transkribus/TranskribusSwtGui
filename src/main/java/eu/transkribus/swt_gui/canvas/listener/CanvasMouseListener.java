@@ -168,7 +168,9 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	public void mouseDown(MouseEvent e) {
 		timeDown = System.currentTimeMillis();
 		
-		boolean isMultiselect = CanvasKeys.isKeyDown(e.stateMask, CanvasKeys.MULTISELECTION_REQUIRED_KEY);
+		//boolean isMultiselect = CanvasKeys.isKeyDown(e.stateMask, CanvasKeys.MULTISELECTION_REQUIRED_KEY);
+		boolean isMultiselect = CanvasKeys.isCtrlOrCommandKeyDown(e.stateMask);
+		
 		logger.debug("mouse down: "+e+" mode = "+canvas.getMode().toString()+" isMultiselect: "+isMultiselect);
 		canvas.setFocus();
 		
@@ -406,7 +408,8 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	
 	@Override
 	public void mouseUp(MouseEvent e) {
-		boolean isMultiselect = CanvasKeys.isKeyDown(e.stateMask, CanvasKeys.MULTISELECTION_REQUIRED_KEY);
+//		boolean isMultiselect = CanvasKeys.isKeyDown(e.stateMask, CanvasKeys.MULTISELECTION_REQUIRED_KEY);
+		boolean isMultiselect = CanvasKeys.isCtrlOrCommandKeyDown(e.stateMask);
 		logger.debug("mouse up: "+e+" hasMouseMoved: "+hasMouseMoved+" isMultiselect: "+isMultiselect);
 		
 		if  (e.count == 2) // doubleclick --> handled in mouseDoubleClick method
@@ -600,7 +603,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	public int[] getSelectedLine() { return selectedLine; }
 
 	public boolean isKeyDown(int key) {
-		return CanvasKeys.isKeyDown(getCurrentMoveStateMask(), SWT.CTRL);		
+		return CanvasKeys.isKeyDown(getCurrentMoveStateMask(), key);		
 	}
 	
 	

@@ -393,7 +393,10 @@ CHANGES AND BUGFIXES
 0.9.2:
 	-> reload doc btn reintegrated
 	-> fixed split reading order bug
-
+	
+0.10.0:
+	-> vertical canvas edit toolbar
+	-> removed all dropdown tool items and partially replaced by new toolboxes
 	
 
 	

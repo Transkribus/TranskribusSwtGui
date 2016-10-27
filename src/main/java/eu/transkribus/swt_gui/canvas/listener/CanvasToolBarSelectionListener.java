@@ -6,9 +6,11 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.CanvasToolBar;
+import eu.transkribus.swt_gui.canvas.CanvasToolBarNew;
 import eu.transkribus.swt_gui.canvas.CanvasWidget;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.dialogs.ImageEnhanceDialog;
@@ -28,7 +30,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		Object s = e.getSource();
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 		SWTCanvas canvas = canvasWidget.getCanvas();
-		CanvasToolBar toolbar = canvasWidget.getToolbar();
+		CanvasToolBarNew toolbar = canvasWidget.getToolbar();
 		
 		canvas.setMode(getModeForSelectionEvent(e));
 		logger.debug("mode = "+canvas.getMode());
@@ -42,7 +44,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.getOriginalSize()) {
 			canvas.resetTransformation();
 		}		
-		else if (s == toolbar.getRotateItem().ti && e.detail != SWT.ARROW) {
+		else if (toolbar.getRotateItem()!=null && s == toolbar.getRotateItem().ti && e.detail != SWT.ARROW) {
 			switch (toolbar.getRotateItem().getLastSelectedIndex()) {
 			case 0:
 				canvas.rotateLeft();
@@ -71,8 +73,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 				break;
 			}
 		}		
-		
-		else if (s == toolbar.getFitItem().ti && e.detail != SWT.ARROW) {
+		else if (toolbar.getFitItem()!=null && s == toolbar.getFitItem().ti && e.detail != SWT.ARROW) {
 			switch (toolbar.getFitItem().getLastSelectedIndex()) {
 			case 0:
 				canvas.fitToPage();
@@ -115,7 +116,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		if (s == toolbar.getViewSettingsMenuItem()) {
 			mw.getUi().getTabWidget().selectServerTab();
 		}
-		else if (s == toolbar.getImageVersionDropdown().ti && e.detail != SWT.ARROW) {
+		else if (s == toolbar.getImageVersionDropdown().ti && e.detail == DropDownToolItem.IS_DROP_DOWN_ITEM_DETAIL) {
 			TrpMainWidget.getInstance().reloadCurrentImage();
 		}
 		else if (s == toolbar.getImgEnhanceItem()) {
@@ -129,12 +130,12 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 	}
 	
 	protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {
-		CanvasToolBar toolbar = canvasWidget.getToolbar();
+		CanvasToolBarNew toolbar = canvasWidget.getToolbar();
 		Object s = e.getSource();
 		
 		logger.debug("source = "+e.getSource());
-		
-		if (s.equals(toolbar.getAddElementDropDown().ti)) {
+		if (false) { return CanvasMode.SELECTION; }
+		else if (toolbar.getAddElementDropDown()!=null && s.equals(toolbar.getAddElementDropDown().ti)) {
 			logger.debug("getting mode for adding element...");
 			if (e.detail != SWT.ARROW) {
 				CanvasMode mode = toolbar.getModeMap().get(toolbar.getAddElementDropDown().getSelected());
@@ -142,13 +143,13 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			} else
 				return CanvasMode.SELECTION;
 		}
-		else if (s.equals(toolbar.getSplitDropdown().ti)) {
-			if (e.detail != SWT.ARROW) {
-				CanvasMode mode = toolbar.getModeMap().get(toolbar.getSplitDropdown().getSelected());
-				return mode!=null ? mode : CanvasMode.SELECTION;
-			} else
-				return CanvasMode.SELECTION;
-		}
+//		else if (s.equals(toolbar.getSplitDropdown().ti)) {
+//			if (e.detail != SWT.ARROW) {
+//				CanvasMode mode = toolbar.getModeMap().get(toolbar.getSplitDropdown().getSelected());
+//				return mode!=null ? mode : CanvasMode.SELECTION;
+//			} else
+//				return CanvasMode.SELECTION;
+//		}
 		else {
 			CanvasMode mode = toolbar.getModeMap().get(e.getSource());
 			return mode!=null ? mode : CanvasMode.SELECTION;
