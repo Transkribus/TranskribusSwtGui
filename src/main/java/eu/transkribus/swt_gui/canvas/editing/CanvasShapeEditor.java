@@ -696,13 +696,14 @@ public class CanvasShapeEditor {
 				return null;
 			
 			TrpBaselineType bl = (TrpBaselineType) shape.getData();
+			
+			scene.clearSelected();
 			scene.selectObjectWithData(bl.getLine(), false, false);
-			logger.debug("selected line = "+canvas.getFirstSelected());
 			
 	//		logger.debug("Parent = "+selected.getParent()); // IS NULL...			
 	//		scene.selectObject(selected.getParent(), false, false);
 	
-			List<ShapeEditOperation> splitOps = splitShapeDefault(shape, pl, true);
+			List<ShapeEditOperation> splitOps = splitShapeDefault(canvas.getFirstSelected(), pl, true);
 			
 			// try to select first split of baseline:
 			if (splitOps != null) {
@@ -714,6 +715,52 @@ public class CanvasShapeEditor {
 	//						scene.selectObjectWithData(o.getNewShapes().get(0), true, false);
 							scene.selectObject(o.getNewShapes().get(0), true, false);
 							break;
+						}
+					}
+				}
+			}
+			//if splitOps == null: 
+			else{
+				/*
+				 * line was not intersected by split line but baseline is
+				 * hence delete the parent line and add a poly rectangle line for the selected baseline and
+				 * than restart the baseline/line split
+				 */
+				if (shape.intersectionPoints(pl, true).size() > 0){
+					//First step: remove parent shape (=line),
+					scene.clearSelected();
+					canvas.getScene().removeShape(shape.getParent(), false, true);
+					//Second step: add parent as a poly rectangle
+					CanvasMode rememberMode = canvas.getMode();
+					canvas.setMode(CanvasMode.ADD_LINE); 
+					CanvasPolyline baselineShape = (CanvasPolyline) shape;
+					ICanvasShape shapeOfParent = baselineShape.getDefaultPolyRectangle();
+					ShapeEditOperation op = canvas.getShapeEditor().addShapeToCanvas(shapeOfParent, true);
+					if (op != null){
+						shape.setParentAndAddAsChild(shapeOfParent);
+						((TrpBaselineType)shape.getData()).reInsertIntoParent();
+					}
+	
+					//mw.getShapeFactory().syncCanvasShapeAndTrpShape(shapeOfParent, parent);
+					canvas.setMode(rememberMode);
+					canvas.getScene().selectObject(shapeOfParent, true, false);
+					shapeOfParent.setSelected(true);
+
+					//After that the normal line split can be called
+					List<ShapeEditOperation> splitOps2 = splitShapeDefault(canvas.getFirstSelected(), pl, true);
+					
+					// try to select first split of baseline:
+					if (splitOps2 != null) {
+						logger.debug("trying to select left baseline split, nr of ops = "+splitOps2.size());
+						for (ShapeEditOperation o : splitOps2) {
+							if (!o.getShapes().isEmpty() && o.getShapes().get(0).getData() instanceof TrpBaselineType) {
+								if (!o.getNewShapes().isEmpty()) {
+									logger.debug("found left baseline split - selecting: "+o.getNewShapes().get(0));
+			//						scene.selectObjectWithData(o.getNewShapes().get(0), true, false);
+									scene.selectObject(o.getNewShapes().get(0), true, false);
+									break;
+								}
+							}
 						}
 					}
 				}
@@ -841,9 +888,15 @@ public class CanvasShapeEditor {
 		if (op!=null) {
 			splitOps.add(op);
 		}
+		else{
+			//means that parent was not able to be split and hence also no childs should be splitted
+			return null;
+			
+		}
 		
 		// Split all child shapes
 		for (ICanvasShape child : children) {
+			logger.debug("split ALL childs: " + child.getType());
 			// Determine the parent shapes of the child shape that shall be splitted by iterating through the edit operations that were done so far
 			ICanvasShape p1=null, p2=null;
 			for (ShapeEditOperation opParent : splitOps) {
@@ -851,7 +904,7 @@ public class CanvasShapeEditor {
 						|| opParent.getNewShapes().get(1).equals(child.getParent())) {
 					p1 = opParent.getNewShapes().get(0);
 					p2 = opParent.getNewShapes().get(1);
-	//					logger.debug("readjusting child elements - parents: "+p1+"/"+p2);
+						logger.debug("readjusting child elements - parents: "+p1+"/"+p2);
 					break;
 				}
 			}

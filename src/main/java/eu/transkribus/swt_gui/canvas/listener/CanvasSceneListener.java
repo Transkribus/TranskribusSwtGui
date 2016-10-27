@@ -29,8 +29,10 @@ import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.exceptions.BaselineExistsException;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
+import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
@@ -470,11 +472,41 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 	@Override
 	public void onBeforeSplit(SceneEvent e) {
 		try {
+			
 			logger.debug("before splitting, isFollowUp: "+e.op.isFollowUp()+" shape = "+e.op.getFirstShape());
 			
 			// this case should never happen, since direct splitting of baselines gets prevented in TrpCanvasScene.splitShape function!
 			if (!e.op.isFollowUp() && e.op.getFirstShape().getData() instanceof TrpBaselineType) {
-				throw new Exception("Cannot directly split a baseline!");
+				//bthrow new Exception("Cannot directly split a baseline!");
+//				ICanvasShape shape = e.op.getFirstShape();
+//				ICanvasShape parentShape = shape.getParent();
+//				TrpTextLineType parent = (TrpTextLineType)parentShape.getData();
+//				//First step: remove parent shape (=line)
+//				canvas.getScene().removeShape(parentShape, false, true);
+//				//Second step: add parent as a poly rectangle
+//				CanvasMode rememberMode = mw.getCanvas().getMode();
+//				mw.getCanvas().setMode(CanvasMode.ADD_LINE); 
+//				CanvasPolyline baselineShape = (CanvasPolyline) shape;
+//				ICanvasShape shapeOfParent = baselineShape.getDefaultPolyRectangle();
+//				ShapeEditOperation op = canvas.getShapeEditor().addShapeToCanvas(shapeOfParent, true);
+//				if (op != null){
+//					logger.debug("!op not null!");
+//					//mw.getShapeFactory().createJAXBElementFromShape(shape, mw.getCanvas().getMode(), shapeOfParent);
+//					shape.setParentAndAddAsChild(shapeOfParent);
+//					((TrpBaselineType)shape.getData()).reInsertIntoParent();
+//				}
+//				else{
+//					logger.debug("!op is null!");
+//				}
+//
+//				mw.getShapeFactory().syncCanvasShapeAndTrpShape(shapeOfParent, parent);
+//				mw.getCanvas().setMode(rememberMode);
+//				
+////				e.op.getShapes().clear();
+////				e.op.getShapes().add(shapeOfParent);
+//				mw.getScene().selectObject(shapeOfParent, true, false);
+//				shapeOfParent.setSelected(true);
+				//After that the normal line split can be called
 			}
 			
 			if (e.op.getFirstShape().getData() instanceof TrpPrintSpaceType) {
@@ -486,14 +518,29 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 		}
 	}
 
+
+	private void checkLineAndBaselineFit(ITrpShapeType baseline, ITrpShapeType line) {
+		line.getCoordinates();
+		
+	}
+
 	@Override
 	public void onSplit(SceneEvent e) {
 			try {
 				mw.getTranscriptObserver().setActive(false);
 				
 				logger.debug("on split, op = "+e.op);
+				logger.debug("follow up, op = "+e.op.isFollowUp());
 				ICanvasShape origShape = e.op.getFirstShape();
 				ITrpShapeType origShapeData = (ITrpShapeType) origShape.getData();
+				
+				if(!e.op.isFollowUp() && origShapeData instanceof TrpBaselineType){
+					//split the parent line and baseline even the line is not visible in the canvas
+					//go on with parent line -> baseline is splittet as child later on
+					logger.debug("SHOULD BE LINE");
+//					origShape = origShape.getParent();
+//					origShapeData = (ITrpShapeType) origShape.getData();
+				}
 				
 	//			e.op.data
 				

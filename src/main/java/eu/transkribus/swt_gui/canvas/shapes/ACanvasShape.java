@@ -1052,11 +1052,12 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	public Pair<ICanvasShape, ICanvasShape> splitByPolyline(CanvasPolyline pl) {
 		int nIntersections = intersectionPoints(pl, true).size();
 		
-		logger.debug("split by polyline");
 		// for a closed shape, the nr of intersections shall be 2, otherwise more than two split shapes will be created!
 		// for an open shape (e.g. a polyline) the nr of intersections must be 1
-		if ( (this.isClosed() && nIntersections!=2) || (!this.isClosed() && nIntersections !=1) ) 
+		if ( (this.isClosed() && nIntersections!=2) || (!this.isClosed() && nIntersections !=1) ) {
+			logger.debug("nIntersections (should be 1 or 2 to be valid) " + nIntersections);
 			return null;
+		}
 		
 		final int extDist = (int)1e6;
 		CanvasPolygon pUp = pl.extendAtEnds(extDist).getPolyRectangle(extDist, extDist, 1);

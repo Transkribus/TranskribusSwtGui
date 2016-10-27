@@ -13,11 +13,15 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 
 public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode<ICanvasShape> {	
 	static final int MOVE_LINE_THRESH = 5;
+	
+	static Logger logger = LoggerFactory.getLogger(ICanvasShape.class);
 	
 	ICanvasShape copy();
 	
@@ -204,13 +208,32 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 		
 		int N = isClosedShape() ? pts.size() : pts.size()-1;
 		for (int i=0; i<N; ++i) {
+			
 			int iNext = (i+1) % pts.size();
 			math.geom2d.line.Line2D l = new math.geom2d.line.Line2D((int)pts.get(i).getX(), (int)pts.get(i).getY(),
 					(int)pts.get(iNext).getX(), (int)pts.get(iNext).getY());
 			
 			math.geom2d.Point2D pt = lGiven.intersection(l);
 			if (pt!=null) {
-				ipts.add(new ShapePoint(pt.getAsInt(), i));
+				
+				boolean contained=false;
+				for (ShapePoint sp : ipts) {
+					if (sp.getP().equals(pt.getAsInt())) {
+						contained=true;
+						break;
+					}
+				}
+				
+				if (contained) {
+					logger.debug("skipping point "+pt+" as already added to intersection points!");
+				} else {
+					ipts.add(new ShapePoint(pt.getAsInt(), i));
+//					logger.debug(" i = " + i);
+//					logger.debug("pts.get(i).getAsInt() " + (int)pts.get(i).getX() + " (int)pts.get(iNext).getX() " + (int)pts.get(iNext).getX());
+//					logger.debug(" pt.getAsInt() " + pt.getAsInt());
+//					logger.debug(" lgiven x1 " + x1 + " lgiven y1 " + y1 + " lgiven x2 " + x2 + " lgiven y2 " + y2);
+				}
+							
 			}
 		}
 		

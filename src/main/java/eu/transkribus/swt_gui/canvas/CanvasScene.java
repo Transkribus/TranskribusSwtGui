@@ -332,6 +332,7 @@ public class CanvasScene {
 			return null;
 		
 		logger.debug("splitting shape "+shape);
+
 		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.SPLIT, "Shape splitted", shape);
 		op.setFollowUp(isFollowUp);
 		
@@ -381,11 +382,7 @@ public class CanvasScene {
 				}
 			}
 		}
-				
-		logger.debug("splitted, shape n-children: "+shape.getChildren(false).size());
-		logger.debug("splitted, s1 n-children: "+s1.getChildren(false).size());
-		logger.debug("splitted, s2 n-children: "+s2.getChildren(false).size());
-		
+						
 		op.addNewShape(s1);
 		op.addNewShape(s2);
 				
@@ -656,8 +653,10 @@ public class CanvasScene {
 	 */
 	public ICanvasShape findShapeWithData(Object data) {
 		for (ICanvasShape shape : getShapes()) {
-			if (shape.getData() == data)
+			if (shape.getData() == data){
+				logger.debug("shape found " + shape);
 				return shape;
+			}
 		}
 		return null;
 	}
@@ -688,8 +687,10 @@ public class CanvasScene {
 	}
 
 	public ICanvasShape selectObjectWithData(Object data, boolean sendSignal, boolean multiselect) {
+		//data is TrpTextlineType
 		ICanvasShape shape = findShapeWithData(data);
 		if (shape != null) {
+			logger.debug("shape is not null");
 			selectObject(shape, sendSignal, multiselect);
 		}
 		return shape;
@@ -727,11 +728,12 @@ public class CanvasScene {
 			logger.debug("selecting, sendSignal: "+sendSignal+", multiselect: " + multiselect+", isSelected: "+shape.isSelected());
 			shape.setSelected(!shape.isSelected());
 			if (shape.isSelected()){
+				logger.debug("shape is selected !!!");
 				selected.add(shape);
 				
 			}
 			else{
-				
+				logger.debug("remove shape from selected !!!");
 				selected.remove(shape);
 			}
 		}

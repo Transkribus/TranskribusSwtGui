@@ -73,7 +73,7 @@ public class TrpShapeElementFactory {
 	
 	/** Synchronizes parent/child and data info between a CanvasShape and a ITrpShapeType. Also sets the color of the shape
 	 * according to the ITrpShapeType. Returns the parent shape of the given ICanvasShape */
-	private ICanvasShape syncCanvasShapeAndTrpShape(ICanvasShape shape, ITrpShapeType trpShape) {
+	public ICanvasShape syncCanvasShapeAndTrpShape(ICanvasShape shape, ITrpShapeType trpShape) {
 		TrpSettings sets = mainWidget.getTrpSets();
 		// update info in shape:
 		shape.setColor(TrpSettings.determineColor(sets, trpShape));
