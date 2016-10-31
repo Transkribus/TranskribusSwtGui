@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.dialogs;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -57,6 +59,14 @@ public class AutoSaveDialog extends Dialog{
 		GridData gd  = new GridData(GridData.FILL_HORIZONTAL);
 		shell.setLocation(getParent().getSize().x/2, getParent().getSize().y/3);
 		
+		
+	    Button enableAutoSaveButton = new Button(shell, SWT.CHECK);
+	    enableAutoSaveButton.setText("Enable Autosave");
+	    enableAutoSaveButton.setSelection(trpSets.getAutoSaveEnabled());
+		Label two = new Label(shell, SWT.NONE);
+		Label three = new Label(shell, SWT.NONE);
+
+		
 		Label autoSaveFolderLabel = new Label(shell, SWT.NONE);
 		autoSaveFolderLabel.setText("AutoSave Folder");
 		
@@ -101,10 +111,8 @@ public class AutoSaveDialog extends Dialog{
 	    timeSecCombo.select(secIndex);
 	    timeMinCombo.select(minIndex);
 		
-	    Button enableAutoSaveButton = new Button(shell, SWT.CHECK);
-	    enableAutoSaveButton.setText("Enable Autosave");
-	    enableAutoSaveButton.setSelection(trpSets.getAutoSaveEnabled());
-	    
+
+	    Label lastOne = new Label(shell, SWT.NONE);
 	    
 		Button applyButton = new Button(shell, SWT.PUSH);
 		applyButton.addSelectionListener(new SelectionAdapter(){
@@ -120,6 +128,25 @@ public class AutoSaveDialog extends Dialog{
 		        }
 		});
 	    applyButton.setText("Apply");
+	    applyButton.setLayoutData(gd);
+	    
+	    Button resetButton = new Button(shell, SWT.PUSH);
+	    resetButton.addSelectionListener(new SelectionAdapter(){
+	    	public void widgetSelected(SelectionEvent e){
+	    		String defaultDir = System.getProperty("java.io.tmpdir")+ "Transkribus" + File.separator + "autoSave";
+	    		int defaultInterval = 60;
+		    	trpSets.setAutoSaveFolder(defaultDir);
+		    	trpSets.setAutoSaveInterval(defaultInterval);
+		    	trpSets.setAutoSaveEnabled(true);
+		    	autoSaveFolderTxt.setText(defaultDir);
+		    	timeSecCombo.select(0);
+		    	timeMinCombo.select(1);
+		    	enableAutoSaveButton.setSelection(true);
+	    		
+	    	}
+	    });
+	    resetButton.setText("Reset");
+	    resetButton.setLayoutData(gd);
 		
 		shell.pack();
 	}
