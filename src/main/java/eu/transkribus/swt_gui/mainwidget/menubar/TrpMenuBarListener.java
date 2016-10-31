@@ -52,6 +52,8 @@ public class TrpMenuBarListener implements SelectionListener {
 		SWTUtil.onSelectionEvent(mb.viewSettingsMenuItem, (e) -> { mw.openViewSetsDialog(); });
 		
 		SWTUtil.onSelectionEvent(mb.proxySettingsMenuItem, (e) -> { mw.openProxySetsDialog(); });
+		
+		SWTUtil.onSelectionEvent(mb.autoSaveSettingsMenuItem, (e) -> { mw.openAutoSaveSetsDialog(); });
 			
 		SWTUtil.onSelectionEvent(mb.openLocalDocItem, (e) -> { mw.loadLocalFolder(); });
 		

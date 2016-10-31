@@ -129,6 +129,7 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
+import eu.transkribus.swt_gui.dialogs.AutoSaveDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.dialogs.BugDialog;
@@ -219,6 +220,7 @@ public class TrpMainWidget {
 	TranscriptsDialog versionsDiag;
 	SettingsDialog viewSetsDiag;
 	ProxySettingsDialog proxyDiag;
+	AutoSaveDialog autoSaveDiag;
 	DebuggerDialog debugDiag;
 	VersionsDiffBrowserDialog browserDiag;
 	
@@ -279,7 +281,12 @@ public class TrpMainWidget {
 		
 		enableAutocomplete();
 		updateToolBars();
+		if(getTrpSets().autoSaveFolder.trim().isEmpty()){
+			String tempDir = System.getProperty("java.io.tmpdir")+ "Transkribus" + File.separator + "autoSave";
+			getTrpSets().setAutoSaveFolder(tempDir);
+		}
 		beginAutoSaveThread();
+		
 	}
 
 	public static TrpMainWidget getInstance() {
@@ -1091,34 +1098,50 @@ public class TrpMainWidget {
 	}
 	
 	
+
+	Thread autoSaveThread;
 	
-	public void beginAutoSaveThread(){			
-
-
-		Runnable saveTask = new Runnable(){			
-			
-			@Override
-			public void run() {
-				while(true){
-					try{	
-						Thread.sleep(60000);
-						localAutoSave();
-						
-					}catch(Exception e){
-						logger.error("Exception " + e);
-					}
+	Runnable saveTask = new Runnable(){			
+		int autoSaveInterval;
+		String autoSavePath;
+		
+		@Override
+		public void run() {
+			while(true){
+				try{	
+					autoSaveInterval = getTrpSets().getAutoSaveInterval();
+					Thread.sleep(autoSaveInterval * 1000);					
+					autoSavePath = getTrpSets().getAutoSaveFolder();
+					localAutoSave(autoSavePath);
+					
+				}catch(Exception e){
+					logger.error("Exception " + e);
 				}
 			}
-		};
+		}
+	};
+	
+	public void beginAutoSaveThread(){
 		
-		Thread autoSaveThread = new Thread(saveTask, "AutoSaveThread");
-		autoSaveThread.start();
+		if(autoSaveThread != null){
+			if(autoSaveThread.isAlive()){
+				autoSaveThread.interrupt();
+				logger.debug("AutoSave Thread interrupted");
+			}
+		}		
+		if(getTrpSets().autoSaveEnabled){
+			autoSaveThread = new Thread(saveTask, "AutoSaveThread");
+			autoSaveThread.start();
+			logger.debug("AutoSave Thread started");
+		}
 	}
+
+	
 	
 
-	boolean localAutosaveEnabled = true;
+	public boolean localAutosaveEnabled = true;
 	
-	public void localAutoSave(){
+	public void localAutoSave(String path){
 		if(!storage.isPageLoaded()){
 			return;
 		}
@@ -1126,7 +1149,7 @@ public class TrpMainWidget {
 			return;
 		}
 		PcGtsType currentPage = storage.getTranscript().getPageData();
-		String tempDir = System.getProperty("java.io.tmpdir")+ File.separator + "Transkribus" + File.separator + "autoSave";
+		String tempDir = path;
 		tempDir += File.separator + "p" + storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
 		File f = new File(tempDir);
 		byte[] bytes;
@@ -4003,6 +4026,16 @@ public class TrpMainWidget {
 			proxyDiag = new ProxySettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getTrpSets());
 			proxyDiag.open();
 			Storage.getInstance().updateProxySettings();
+		}
+	}
+	
+	public void openAutoSaveSetsDialog() {
+		logger.debug("opening autosave sets dialog");
+		if (autoSaveDiag!=null && !SWTUtil.isDisposed(autoSaveDiag.getShell())) {
+			autoSaveDiag.getShell().setVisible(true);
+		} else {
+			autoSaveDiag = new AutoSaveDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getTrpSets());
+			autoSaveDiag.open();
 		}
 	}
 
