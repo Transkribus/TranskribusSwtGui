@@ -71,9 +71,15 @@ public class SearchDialog extends Dialog {
 		docSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		docSearchTabItem = createCTabItem(tabFolder, docSearchComposite, "Documents");
 		
+		fullTextSearchComposite = new FullTextSearchComposite(tabFolder, 0);
+		fullTextSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+		fullTextSearchItem = createCTabItem(tabFolder, fullTextSearchComposite, "Fulltext (Solr)");
+		
+		if (false) {
 		TextSearchComposite textSearchComp = new TextSearchComposite(tabFolder, 0);
 		textSearchComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		textAndTagsItem = createCTabItem(tabFolder, textSearchComp, "Text");
+		}
 		
 		TagSearchComposite tagSearchComp = new TagSearchComposite(tabFolder, 0);
 		tagSearchComp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -87,10 +93,6 @@ public class SearchDialog extends Dialog {
 		kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS (Demo)");
 		
-		fullTextSearchComposite = new FullTextSearchComposite(tabFolder, 0);
-		fullTextSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-		fullTextSearchItem = createCTabItem(tabFolder, fullTextSearchComposite, "Solr Fulltext (Experimental)");
-
 		return c;
 	}
 	
