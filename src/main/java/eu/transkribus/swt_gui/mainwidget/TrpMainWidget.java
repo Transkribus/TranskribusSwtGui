@@ -282,8 +282,7 @@ public class TrpMainWidget {
 		enableAutocomplete();
 		updateToolBars();
 		if(getTrpSets().autoSaveFolder.trim().isEmpty()){
-			String tempDir = System.getProperty("java.io.tmpdir")+ "Transkribus" + File.separator + "autoSave";
-			getTrpSets().setAutoSaveFolder(tempDir);
+			getTrpSets().setAutoSaveFolder(TrpSettings.getDefaultAutoSaveFolder());
 		}
 		beginAutoSaveThread();
 		
@@ -1112,10 +1111,13 @@ public class TrpMainWidget {
 					autoSaveInterval = getTrpSets().getAutoSaveInterval();
 					Thread.sleep(autoSaveInterval * 1000);					
 					autoSavePath = getTrpSets().getAutoSaveFolder();
-					localAutoSave(autoSavePath);
 					
-				}catch(Exception e){
-					logger.error("Exception " + e);
+					Display.getDefault().asyncExec(() -> {
+						localAutoSave(autoSavePath);	
+					});
+
+				} catch(Exception e){
+					logger.error("Exception " + e, e);
 				}
 			}
 		}
@@ -1148,19 +1150,22 @@ public class TrpMainWidget {
 		if(!localAutosaveEnabled){
 			return;
 		}
-		PcGtsType currentPage = storage.getTranscript().getPageData();
-		String tempDir = path;
-		tempDir += File.separator + "p" + storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
-		File f = new File(tempDir);
-		byte[] bytes;
+		
+		File f = null;
 		try {
+			PcGtsType currentPage = storage.getTranscript().getPageData();
+			String tempDir = path;
+			tempDir += File.separator + "p" + storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
+			f = new File(tempDir);
 			
-			bytes = PageXmlUtils.marshalToBytes(currentPage);
+			byte[] bytes = PageXmlUtils.marshalToBytes(currentPage);
 //			PageXmlUtils.marshalToFile(storage.getTranscript().getPageData(), f);
 			FileUtils.writeByteArrayToFile(f, bytes);
 			logger.trace("Auto-saved current transcript to " + f.getAbsolutePath());
 		} catch (Exception e1) {
-			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
+//			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
+			String fn = f==null ? "NA" : f.getAbsolutePath();
+			logger.error("Error while autosaving transcription to " + fn, e1);
 		}
 	}
 	

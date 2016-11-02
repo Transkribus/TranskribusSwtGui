@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.mainwidget.settings;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -241,6 +242,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	public boolean createThumbs = true;
 	public static final String CREATE_THUMBS_PROPERTY = "createThumbs";
+	
+	public boolean loadThumbs = true;
+	public static final String LOAD_THUMBS_PROPERTY = "loadThumbs";
 	
 	public String autoSaveFolder = "";
 	public static final String AUTOSAVE_FOLDER_PROPERTY = "autoSaveFolder";
@@ -920,7 +924,16 @@ public class TrpSettings extends APropertyChangeSupport {
 		this.createThumbs = createThumbs;
 		firePropertyChange(CREATE_THUMBS_PROPERTY, !this.createThumbs, this.createThumbs);
 	}
-	
+
+	public boolean isLoadThumbs() {
+		return loadThumbs;
+	}
+
+	public void setLoadThumbs(boolean loadThumbs) {
+		this.loadThumbs = loadThumbs;
+		firePropertyChange(LOAD_THUMBS_PROPERTY, !this.loadThumbs, this.loadThumbs);
+	}
+
 	public String getAutoSaveFolder() {
 		return autoSaveFolder;
 	}
@@ -929,6 +942,10 @@ public class TrpSettings extends APropertyChangeSupport {
 		String old = this.autoSaveFolder;
 		this.autoSaveFolder = autoSaveFolder;
 		firePropertyChange(AUTOSAVE_FOLDER_PROPERTY, old, this.autoSaveFolder);
+	}
+	
+	public static String getDefaultAutoSaveFolder() {
+		return System.getProperty("java.io.tmpdir") + File.separator + "Transkribus" + File.separator + "autoSave";
 	}
 	
 	public int getAutoSaveInterval(){

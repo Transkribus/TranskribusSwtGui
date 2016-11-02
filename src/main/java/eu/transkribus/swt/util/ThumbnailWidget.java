@@ -38,6 +38,8 @@ import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 
@@ -66,7 +68,8 @@ public class ThumbnailWidget extends Composite {
 	
 	protected GalleryItem group;
 	
-	protected Button reload, showOrigFn, createThumbs, showPageManager;
+	protected Button reload, showOrigFn, createThumbs, loadThumbs, showPageManager;
+		
 //	protected TextToolItem infoTi;
 
 	protected List<URL> urls;
@@ -90,7 +93,7 @@ public class ThumbnailWidget extends Composite {
 	
 	private static final boolean DISABLE_TRANSCRIBED_LINES=false;
 	
-	public static class ThmbImg {		
+	public /*static*/ class ThmbImg {		
 		Image image = null;
 		URL url;
 		TrpTranscriptMetadata transcript;
@@ -104,7 +107,7 @@ public class ThumbnailWidget extends Composite {
 			load();
 		}
 		
-		public static Image scaleImageToHeight(Image im, int newHeight) {
+		public /*static*/ Image scaleImageToHeight(Image im, int newHeight) {
 			Rectangle b = im.getBounds();
 			
 			double sf = (double)newHeight/(double)b.height;
@@ -116,7 +119,7 @@ public class ThumbnailWidget extends Composite {
 			return scaled;
 		}
 		
-		public static Image scaleImageToWidth(Image im, int newWidth) {
+		public /*static*/ Image scaleImageToWidth(Image im, int newWidth) {
 			Rectangle b = im.getBounds();
 			
 			double sf = (double)newWidth/(double)b.width;
@@ -131,7 +134,14 @@ public class ThumbnailWidget extends Composite {
 		private void load() {
 			try {
 				isError = false;
-				image = ImgLoader.load(url);
+				
+				TrpSettings set = TrpMainWidget.getTrpSettings();
+				if (set!=null && !set.isLoadThumbs()) {
+					logger.trace("disabled thumbnail loading - setting ");
+					image = Images.LOADING_IMG;
+				} else {
+					image = ImgLoader.load(url);
+				}
 								
 //				if (image.getBounds().height > THUMB_HEIGHT) {
 //					Image scaled = scaleImageToHeight(image, THUMB_HEIGHT);
@@ -176,7 +186,7 @@ public class ThumbnailWidget extends Composite {
 		}
 		
 		public void dispose() {
-			if (image != null && !image.isDisposed()) {
+			if (image != null && !image.isDisposed() && image!=Images.LOADING_IMG && image!=Images.ERROR_IMG) {
 				image.dispose();
 				image = null;
 			}
@@ -328,6 +338,10 @@ public class ThumbnailWidget extends Composite {
 		createThumbs.setImage(Images.IMAGES);
 //		createThumbs.setToolTipText("Create thumbnails for this local document");
 		createThumbs.setText("Create thumbs for local doc");	
+		
+		loadThumbs = new Button(btns, SWT.CHECK);
+		loadThumbs.setText("Load thumbs");
+		loadThumbs.setToolTipText("Uncheck to *not* load thumbnail images in this widget\nWas introduced to prevent the nasty 'no more handles' issue");
 		
 //		showPageManager = new Button(btns, SWT.PUSH);
 //		showPageManager.setText("Document Overview");
@@ -558,6 +572,12 @@ public class ThumbnailWidget extends Composite {
 	}
 		
 	public void reload() {
+//		TrpSettings sets = TrpMainWidget.getTrpSettings();
+//		if (sets != null && !sets.isLoadThumbs()) {
+//			logger.debug("disabled thumbnail loading!");
+//			return;
+//		}
+		
 		Storage storage = Storage.getInstance();
 		
 		int N = !storage.isDocLoaded() ? 0 : storage.getDoc().getThumbUrls().size();
@@ -755,6 +775,14 @@ public class ThumbnailWidget extends Composite {
 	
 	public Button getCreateThumbs() {
 		return createThumbs;
+	}
+	
+	public Button getLoadThumbs() {
+		return loadThumbs;
+	}
+	
+	public boolean isLoadThumbs() {
+		return loadThumbs.getSelection();
 	}
 
 }

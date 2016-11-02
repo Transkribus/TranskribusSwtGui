@@ -133,7 +133,7 @@ public class AutoSaveDialog extends Dialog{
 	    Button resetButton = new Button(shell, SWT.PUSH);
 	    resetButton.addSelectionListener(new SelectionAdapter(){
 	    	public void widgetSelected(SelectionEvent e){
-	    		String defaultDir = System.getProperty("java.io.tmpdir")+ "Transkribus" + File.separator + "autoSave";
+	    		String defaultDir = TrpSettings.getDefaultAutoSaveFolder();
 	    		int defaultInterval = 60;
 		    	trpSets.setAutoSaveFolder(defaultDir);
 		    	trpSets.setAutoSaveInterval(defaultInterval);
