@@ -98,9 +98,7 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		});
 				
 		SWTUtil.onSelectionEvent(ui.getThumbnailWidget().getCreateThumbs(), (e) -> { mw.createThumbs(storage.getDoc()); } );
-		
-		SWTUtil.onSelectionEvent(ui.getThumbnailWidget().getLoadThumbs(), (e) -> { mw.createThumbs(storage.getDoc()); } );
-				
+						
 		db.bindBeanToWidgetSelection(TrpSettings.LOAD_THUMBS_PROPERTY, mw.getTrpSets(), ui.getThumbnailWidget().getLoadThumbs());
 			
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowJobsBtn(), (e) -> { mw.openJobsDialog(); } );
