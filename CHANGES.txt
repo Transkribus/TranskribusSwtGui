@@ -401,4 +401,6 @@ CHANGES AND BUGFIXES
 0.10.1:
 	-> "loadThumbs" property determines whether thumbnails are loaded (to prevent 'no more handles' issue)
 	-> first version of local autosave
+	-> pagination pagesize index out of bounds bug fixed
+	
 	
