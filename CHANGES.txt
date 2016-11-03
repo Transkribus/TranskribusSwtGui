@@ -402,5 +402,6 @@ CHANGES AND BUGFIXES
 	-> "loadThumbs" property determines whether thumbnails are loaded (to prevent 'no more handles' issue)
 	-> first version of local autosave
 	-> pagination pagesize index out of bounds bug fixed
+	-> setting heap space in windows starters (.exe & .bat) reversed due to "no more handles" bug
 	
 	
