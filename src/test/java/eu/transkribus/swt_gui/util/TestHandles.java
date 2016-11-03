@@ -28,7 +28,7 @@ public class TestHandles {
 		         {
 		        	
 		        	try {
-						SWTUtil.testHandleLimit();
+						SWTUtil.testHandleLimit((int)1e6);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

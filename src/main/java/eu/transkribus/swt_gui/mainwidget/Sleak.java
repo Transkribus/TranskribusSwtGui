@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.mainwidget;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
@@ -156,9 +157,8 @@ public class Sleak {
 
 	protected void testHandleMax() {
 		try {
-			int nrOfObjectsGenerated = SWTUtil.testHandleLimit();
-			DialogUtil.showInfoMessageBox(start.getShell(), "Handle Test", "Nr of generated resources was: "+nrOfObjectsGenerated);
-			
+			Pair<Integer, Integer> p = SWTUtil.testHandleLimit((int)1e6);
+			DialogUtil.showInfoMessageBox(start.getShell(), "Handle Test", "Nr of generated resources: "+p.getLeft()+", nr of total objects: "+p.getRight());			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

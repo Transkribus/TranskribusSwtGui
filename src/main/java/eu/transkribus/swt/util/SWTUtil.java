@@ -29,6 +29,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.swt.SWT;
@@ -40,6 +41,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -1205,47 +1207,51 @@ public class SWTUtil {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
-		}
-
-		   		
+		}   		
 	}
 	
-	public static int testHandleLimit() throws Exception {
+	public static Pair<Integer, Integer> testHandleLimit(int N) throws Exception {
 		if (Display.getCurrent()==null)
 			throw new Exception("No current display found!");
 		if (!Display.getCurrent().getDeviceData().tracking)
 			throw new Exception("Display not tracking!");
 		
-		int N = (int) 1e6; // nr of object that are tried to be created
+//		int N = (int) 1e6; // nr of object that are tried to be created
 		Object[] objs = new Object[N];
-		boolean stopOnFirstError = true;
 		
 		int i=0;
 		int firstHandleErrorIndex=-1;
+		int nObjectsTillNoMoreHandles=-1;
 		
 		for (i=0; i<N; ++i) {
-			System.out.println("i = "+(i+1)+" / "+N);
+			logger.debug("i = "+(i+1)+" / "+N);
 			
 			try {
 //				objs[i] = Images.getOrLoad("src/main/resources/NCSR_icon.png");
 				objs[i] = Fonts.createFont("Segoe UI", (i+1), SWT.NORMAL); // create fonts with different sizes, s.t. every time a new font gets stored!
 				
 //				System.out.println("current display: "+Display.getCurrent().getDeviceData().tracking);
-				
 			} catch (Throwable e) {
-				e.printStackTrace();
-				if (stopOnFirstError) {
-					firstHandleErrorIndex = i+1;
-					break;
+				firstHandleErrorIndex = i+1;
+				nObjectsTillNoMoreHandles = Display.getCurrent().getDeviceData().objects.length;
+				logger.error("firstHandleErrorIndex = "+firstHandleErrorIndex+", nObjectsTillNoMoreHandles = "+nObjectsTillNoMoreHandles+" - "+e.getMessage(), e);
+				
+				// dispose all fonts
+				for (Object o : objs) {
+					if (o instanceof Font) {
+						((Font) o).dispose();
+					}
 				}
+				
+				break;
 			}
 			
 			if (Display.getCurrent().getDeviceData().objects != null)
-				System.out.println("nr of objects: "+Display.getCurrent().getDeviceData().objects.length);
+				logger.debug("nr of objects: "+Display.getCurrent().getDeviceData().objects.length);
 		}
-		System.out.println("firstHandleErrorIndex = "+i);
+		logger.info("firstHandleErrorIndex = "+firstHandleErrorIndex+", nObjectsTillNoMoreHandles = "+nObjectsTillNoMoreHandles);
 		
-		return firstHandleErrorIndex;
+		return Pair.of(firstHandleErrorIndex, nObjectsTillNoMoreHandles);
 	}
 	
 	public static void main(String[] args) throws Exception {
