@@ -67,11 +67,9 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 		// draw label "artificially"
 		lastDocsCombo.addPaintListener(new PaintListener() {
 			@Override
-			public void paintControl(PaintEvent e) {				
+			public void paintControl(PaintEvent e) {			
 				Rectangle r = lastDocsCombo.getBounds();
-				
-				e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-				e.gc.drawString(label, r.x, r.y);
+				e.gc.drawString(label, r.x, r.y, true);
 			}
 		});
 
