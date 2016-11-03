@@ -1210,6 +1210,44 @@ public class SWTUtil {
 		   		
 	}
 	
+	public static int testHandleLimit() throws Exception {
+		if (Display.getCurrent()==null)
+			throw new Exception("No current display found!");
+		if (!Display.getCurrent().getDeviceData().tracking)
+			throw new Exception("Display not tracking!");
+		
+		int N = (int) 1e6; // nr of object that are tried to be created
+		Object[] objs = new Object[N];
+		boolean stopOnFirstError = true;
+		
+		int i=0;
+		int firstHandleErrorIndex=-1;
+		
+		for (i=0; i<N; ++i) {
+			System.out.println("i = "+(i+1)+" / "+N);
+			
+			try {
+//				objs[i] = Images.getOrLoad("src/main/resources/NCSR_icon.png");
+				objs[i] = Fonts.createFont("Segoe UI", (i+1), SWT.NORMAL); // create fonts with different sizes, s.t. every time a new font gets stored!
+				
+//				System.out.println("current display: "+Display.getCurrent().getDeviceData().tracking);
+				
+			} catch (Throwable e) {
+				e.printStackTrace();
+				if (stopOnFirstError) {
+					firstHandleErrorIndex = i+1;
+					break;
+				}
+			}
+			
+			if (Display.getCurrent().getDeviceData().objects != null)
+				System.out.println("nr of objects: "+Display.getCurrent().getDeviceData().objects.length);
+		}
+		System.out.println("firstHandleErrorIndex = "+i);
+		
+		return firstHandleErrorIndex;
+	}
+	
 	public static void main(String[] args) throws Exception {
 		
 //		BufferedImage img = ImageIO.read(new URL("https://dbis-thure.uibk.ac.at/f/Get?id=XXJYXABIYBIAFUXHPXUQQYMY&fileType=bin"));

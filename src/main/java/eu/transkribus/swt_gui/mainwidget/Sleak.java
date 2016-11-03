@@ -1,12 +1,38 @@
 package eu.transkribus.swt_gui.mainwidget;
 
-import org.eclipse.swt.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.*;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
-import eu.transkribus.swt_gui.util.DocPageViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.DeviceData;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Path;
+import org.eclipse.swt.graphics.Pattern;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Region;
+import org.eclipse.swt.graphics.TextLayout;
+import org.eclipse.swt.graphics.Transform;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 
-import java.io.*;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 
 /**
  * Instructions on how to use the Sleak tool with a standlaone SWT example:
@@ -17,7 +43,7 @@ import java.io.*;
 public class Sleak {
 	List list;
 	Canvas canvas;
-	Button start, stop, check;
+	Button start, stop, check, test;
 	Text text;
 	Label label;
 
@@ -25,6 +51,7 @@ public class Sleak {
 	Error[] oldErrors = new Error[0];
 	Object[] objects = new Object[0];
 	Error[] errors = new Error[0];
+	private Composite parent;
 
 	public static void main(String[] args) throws Exception {
 		DeviceData data = new DeviceData();
@@ -59,13 +86,20 @@ public class Sleak {
 		// display.dispose ();
 	}
 
+	Composite btns;
+	
 	public void create(Composite parent) {
+		this.parent = parent;
+		
+//		parent.setLayout(new GridLayout(1, true));
+		
 		list = new List(parent, SWT.BORDER | SWT.V_SCROLL);
 		list.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				refreshObject();
 			}
 		});
+		
 		text = new Text(parent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		canvas = new Canvas(parent, SWT.BORDER);
 		canvas.addListener(SWT.Paint, new Listener() {
@@ -80,6 +114,7 @@ public class Sleak {
 				toggleStackTrace();
 			}
 		});
+				
 		start = new Button(parent, SWT.PUSH);
 		start.setText("Snap");
 		start.addListener(SWT.Selection, new Listener() {
@@ -87,13 +122,26 @@ public class Sleak {
 				refreshAll();
 			}
 		});
-		stop = new Button(parent, SWT.PUSH);
+		
+		btns = new Composite(parent, 0);
+		btns.setLayout(new FillLayout());
+		
+		stop = new Button(btns, SWT.PUSH);
 		stop.setText("Diff");
 		stop.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				refreshDifference();
 			}
 		});
+		
+		test = new Button(btns, SWT.PUSH);
+		test.setText("Test");
+		test.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				testHandleMax();
+			}
+		});
+		
 		label = new Label(parent, SWT.BORDER);
 		label.setText("0 object(s)");
 		parent.addListener(SWT.Resize, new Listener() {
@@ -104,6 +152,18 @@ public class Sleak {
 		check.setSelection(false);
 		text.setVisible(false);
 		layout();
+	}
+
+	protected void testHandleMax() {
+		try {
+			int nrOfObjectsGenerated = SWTUtil.testHandleLimit();
+			DialogUtil.showInfoMessageBox(start.getShell(), "Handle Test", "Nr of generated resources was: "+nrOfObjectsGenerated);
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	void refreshLabel() {
@@ -321,6 +381,11 @@ public class Sleak {
 	}
 
 	void layout() {
+//		if (true) {
+//			parent.layout();
+//			return;
+//		}
+		
 		Composite parent = canvas.getParent();
 		Rectangle rect = parent.getClientArea();
 		int width = 0;
@@ -331,14 +396,19 @@ public class Sleak {
 		}
 		gc.dispose();
 		Point size1 = start.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		Point size2 = stop.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		Point size2 = btns.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+//		Point size2a = test.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		Point size3 = check.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		Point size4 = label.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		width = Math.max(size1.x, Math.max(size2.x, Math.max(size3.x, width)));
 		width = Math.max(64, Math.max(size4.x, list.computeSize(width, SWT.DEFAULT).x));
 		start.setBounds(0, 0, width, size1.y);
-		stop.setBounds(0, size1.y, width, size2.y);
+		
+//		stop.setBounds(0, size1.y, width, size2.y);
+		btns.setBounds(0, size1.y, width, size2.y);
+				
 		check.setBounds(0, size1.y + size2.y, width, size3.y);
+		
 		label.setBounds(0, rect.height - size4.y, width, size4.y);
 		int height = size1.y + size2.y + size3.y;
 		list.setBounds(0, height, width, rect.height - height - size4.y);

@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -2142,13 +2143,38 @@ public class TrpMainWidget {
 	public void onInterruption(String title, String message, Throwable th) {
 		onError(title, message, th, true, true);
 	}
+	
+	private static boolean shouldITrack() {
+		
+		try {
+			try (FileInputStream fis = new FileInputStream(new File("config.properties"))) {
+				Properties p = new Properties();
+				p.load(fis);
+				
+				Object tracking = p.get("tracking");
+				if (tracking!=null && ((String)tracking).equals("true"))
+					return true;
+			}
+		} catch (Exception e) {
+			logger.warn("Could not determine tracking property: "+e.getMessage());
+		}
+		return false;
+		
+	}
 
 	public static void show() {
 		ProgramInfo info = new ProgramInfo();
 		Display.setAppName(info.getName());
 		Display.setAppVersion(info.getVersion());
+		
+		DeviceData data = new DeviceData();
 
-		show(null);
+		data.tracking = shouldITrack();
+		logger.info("resource tracking = "+data.tracking);
+		
+		Display display = new Display(data);
+
+		show(display);
 	}
 
 	public static void show(Display givenDisplay) {
@@ -4108,22 +4134,22 @@ public class TrpMainWidget {
 	 * Sleak is a memory tracking utility for SWT
 	 */
 	public void openSleak() {
-		if (true) // FIXME
-			return;
+//		if (true) // FIXME
+//			return;
 		
 		logger.debug("opening sleak...");
 
 		if (!SWTUtil.isDisposed(sleakDiag)) {
-			jobsDiag.getShell().setVisible(true);
+			sleakDiag.getShell().setVisible(true);
 		} else {
 //			DeviceData data = new DeviceData();
 //			data.tracking = true;
 //			Display display = new Display(data);
 //			
-			display.getDeviceData().tracking = true;
+//			display.getDeviceData().tracking = true;
 			
 			Sleak sleak = new Sleak();
-			sleakDiag = new Shell(display, 0);
+			sleakDiag = new Shell(getShell(), SWT.RESIZE | SWT.CLOSE | SWT.MODELESS);
 			sleakDiag.setText("S-Leak");
 			Point size = sleakDiag.getSize();
 			sleakDiag.setSize(size.x / 2, size.y / 2);
