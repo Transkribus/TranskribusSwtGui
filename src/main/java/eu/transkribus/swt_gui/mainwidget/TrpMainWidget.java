@@ -50,6 +50,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.DeviceData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -228,6 +230,7 @@ public class TrpMainWidget {
 	CollectionManagerDialog cm;
 	EditDeclManagerDialog edDiag;
 	ActivityDialog ad;
+	Shell sleakDiag;
 
 	Storage storage; // the data
 	boolean isPageLocked = false;
@@ -4099,6 +4102,34 @@ public class TrpMainWidget {
 		
 		int res = DialogUtil.showMessageDialog(getShell(), "Canvas shortcut operations", ht, null, MessageDialog.INFORMATION, 
 				new String[] {"OK"}, 0);
+	}
+	
+	/**
+	 * Sleak is a memory tracking utility for SWT
+	 */
+	public void openSleak() {
+		if (true) // FIXME
+			return;
+		
+		logger.debug("opening sleak...");
+
+		if (!SWTUtil.isDisposed(sleakDiag)) {
+			jobsDiag.getShell().setVisible(true);
+		} else {
+//			DeviceData data = new DeviceData();
+//			data.tracking = true;
+//			Display display = new Display(data);
+//			
+			display.getDeviceData().tracking = true;
+			
+			Sleak sleak = new Sleak();
+			sleakDiag = new Shell(display, 0);
+			sleakDiag.setText("S-Leak");
+			Point size = sleakDiag.getSize();
+			sleakDiag.setSize(size.x / 2, size.y / 2);
+			sleak.create(sleakDiag);
+			sleakDiag.open();
+		}
 	}
 
 }

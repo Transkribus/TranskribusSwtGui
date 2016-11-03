@@ -65,6 +65,10 @@ public class TrpMainWidgetKeyListener implements Listener {
 			mw.openDebugDialog();
 		}
 		
+//		else if (isCtrlOrCommand && kc == 'm' && count == 3) {
+//			mw.openSleak();
+//		}
+		
 		// load local testset on crtl-t-t-t:
 		else if (isCtrlOrCommand && kc == 't' && count == 3) {
 			logger.debug("loading local testset!");
