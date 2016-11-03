@@ -12,6 +12,11 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -20,6 +25,7 @@ import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.util.RecentDocsPreferences;
 
 public class RecentDocsComboViewerWidget extends Composite implements Observer {
@@ -30,7 +36,7 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 	
 //	Storage storage = Storage.getInstance();
 	
-	public final String label = "Recents documents...";  
+	public final String label = "Recent documents...";
 		
 	public RecentDocsComboViewerWidget(Composite parent, int style) {
 		super(parent, style);
@@ -39,8 +45,11 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 //		collsContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		this.setLayout(new GridLayout(2, false));
 		
-				
-		lastDocsCombo = new Combo(this, /*SWT.READ_ONLY |*/ SWT.DROP_DOWN);
+//		lastDocsCombo = new Combo(this, /*SWT.READ_ONLY |*/ SWT.DROP_DOWN);
+		lastDocsCombo = new Combo(this, SWT.READ_ONLY | SWT.DROP_DOWN);
+		
+//		lastDocsCombo.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+		
 		lastDocsCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		lastDocsCombo.addKeyListener(new KeyListener() {
 			
@@ -55,6 +64,17 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 			}
 		});
 		
+		// draw label "artificially"
+		lastDocsCombo.addPaintListener(new PaintListener() {
+			@Override
+			public void paintControl(PaintEvent e) {				
+				Rectangle r = lastDocsCombo.getBounds();
+				
+				e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+				e.gc.drawString(label, r.x, r.y);
+			}
+		});
+
 		lastDocsComboViewer = new ComboViewer(lastDocsCombo);
 				
 		lastDocsComboViewer.setLabelProvider(new LabelProvider() {
@@ -71,7 +91,7 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 		setRecentDocs(true);
 	}
 	
-	public String getSelectedDoc() {
+	public String getSelectedDoc() {		
 		IStructuredSelection sel = (IStructuredSelection) lastDocsComboViewer.getSelection();
 		if (!sel.isEmpty())
 			return (String) sel.getFirstElement();
@@ -82,18 +102,13 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 	public void setRecentDocs(boolean sendSelectionEvent) {
 		lastDocsComboViewer.refresh();
 		
-
-		List<String> rd = RecentDocsPreferences.getItems();
-		if (rd == null) // should not happen...
-			rd = new ArrayList<>();
-
+		List<String> items = new ArrayList<>();
+		items.addAll(RecentDocsPreferences.getItems());
 		
-		lastDocsComboViewer.setInput(rd);
+		lastDocsComboViewer.setInput(items);
 		lastDocsComboViewer.refresh(true);
 		lastDocsComboViewer.getCombo().setText(label);
-		
-//		lastDocsComboViewer.getCombo().redraw();
-		
+				
 		if (sendSelectionEvent)
 			sendComboSelectionEvent();
 	}	
