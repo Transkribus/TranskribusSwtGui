@@ -340,7 +340,7 @@ public class CanvasShapeEditor {
 			logger.debug("merging selected: "+selected.size());
 			if (selected.size() < 2)
 				return;
-			
+
 			ShapeEditOperation op = scene.mergeSelected(true);
 			if (op!=null) {
 				addToUndoStack(op);	

@@ -268,28 +268,59 @@ public class CanvasScene {
 	}
 	
 	public ShapeEditOperation mergeSelected(boolean sendSignal) {
-		List<ICanvasShape> selectedShapes = getSelectedAsNewArray();
-		if (selectedShapes.size() < 2)
+		List<ICanvasShape> initSelectedShapes = getSelectedAsNewArray();
+		if (initSelectedShapes.size() < 2)
 			return null;
 		
-		logger.debug("merging "+selectedShapes.size()+" shapes");
+		logger.debug("merging "+initSelectedShapes.size()+" shapes");
 		
+		/*
+		 * this leads to the effect that baselines and lines are handled equivalent during a merge
+		 */
+		List<ICanvasShape> selectedShapes = new ArrayList<ICanvasShape>();
+		for (ICanvasShape shape : initSelectedShapes){
+			ITrpShapeType trpShape = (ITrpShapeType) shape.getData();
+			
+			if (trpShape instanceof TrpBaselineType){
+				//insert according to reading order to ease the join of baselines in proper order later on
+				
+				if (selectedShapes.size() == 0){	
+					selectedShapes.add(shape.getParent());
+				}
+				else{
+					insertAccordingToReadingOrder(new ArrayList<ICanvasShape>(selectedShapes), selectedShapes, shape.getParent());
+				}
+			}
+			else{
+				if (selectedShapes.size() == 0){	
+					selectedShapes.add(shape);
+				}
+				else{
+					insertAccordingToReadingOrder(new ArrayList<ICanvasShape>(selectedShapes), selectedShapes, shape);
+				}
+				
+			}
+		}
+				
 		if (sendSignal) {
 			if (notifyOnBeforeShapesMerged(selectedShapes))
 				return null;
 		}
-		 				
+			
 		clearSelected();
 		ICanvasShape merged = selectedShapes.get(0).copy();
-		
+
 		for (int i=1; i<selectedShapes.size(); ++i) {
 			merged = merged.merge(selectedShapes.get(i));
-			logger.debug("merged = "+merged);
+			//logger.debug("merged = "+merged);
 			if (merged == null)
 				return null;
-			
+						
+			//logger.debug("remove shape = "+ selectedShapes.get(i));
 			removeShape(selectedShapes.get(i), false, false);
 			for (ICanvasShape child : selectedShapes.get(i).getChildren(false)) {
+				
+				//logger.debug("merge child with min x = " + child.getBounds().getMinX());
 				merged.addChild(child);
 			}
 		}
@@ -304,6 +335,7 @@ public class CanvasScene {
 			return null;
 		}
 		
+		logger.debug(selectedShapes.size()+" shapes merged");
 		ShapeEditOperation op = 
 				new ShapeEditOperation(ShapeEditType.MERGE, selectedShapes.size()+" shapes merged", selectedShapes);
 		op.addNewShape(merged);
@@ -318,6 +350,19 @@ public class CanvasScene {
 		
 	}
 	
+	private void insertAccordingToReadingOrder(List<ICanvasShape> selectedShapes, List<ICanvasShape> selectedShapesOrig, ICanvasShape shape2Add) {
+		ITrpShapeType trpShape2Add = (ITrpShapeType) shape2Add.getData();
+		
+		for (ICanvasShape shape : selectedShapes){
+			ITrpShapeType currShape = (ITrpShapeType) shape.getData();
+			logger.debug("ttttttttttttthhhhhheeeeeeee reading order: " + currShape.getReadingOrder());
+			if (currShape.getReadingOrder() > trpShape2Add.getReadingOrder() ){
+				selectedShapesOrig.add(selectedShapes.indexOf(shape), shape2Add);
+			}
+		}
+		
+	}
+
 	/**
 	 * Splits the given shape by the line running through [x1,y1], [x1, y2]
 	 * @param shape The shape to split
@@ -384,6 +429,7 @@ public class CanvasScene {
 		}
 						
 		op.addNewShape(s1);
+		
 		op.addNewShape(s2);
 				
 		// add the new shapes to the canvas:

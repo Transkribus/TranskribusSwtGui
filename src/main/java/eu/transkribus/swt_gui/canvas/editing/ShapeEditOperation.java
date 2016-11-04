@@ -20,7 +20,7 @@ public class ShapeEditOperation {
 		
 		public boolean doBackup() {
 //			return this.equals(EDIT) || this.equals(SPLIT) || this.equals(MERGE);
-			return this.equals(EDIT) /*|| this.equals(SPLIT) || this.equals(MERGE)*/;
+			return this.equals(EDIT) || this.equals(MERGE) /*|| this.equals(SPLIT) || this.equals(MERGE)*/;
 		}
 	}
 	

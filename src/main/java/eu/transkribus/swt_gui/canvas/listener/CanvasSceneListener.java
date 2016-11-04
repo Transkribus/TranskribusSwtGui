@@ -1,8 +1,11 @@
 package eu.transkribus.swt_gui.canvas.listener;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +40,9 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
+import math.geom2d.Point2D;
+import math.geom2d.polygon.Polygon2D;
+import math.geom2d.polygon.SimplePolygon2D;
 
 public class CanvasSceneListener implements EventListener, ICanvasSceneListener {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasSceneListener.class);
@@ -361,12 +367,20 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 		try {
 			mw.getTranscriptObserver().setActive(false);
 			
+			ITrpShapeType mergedShape = GuiUtil.getTrpShape(op.getNewShapes().get(0));
+				
 			// reinsert data objects of all formerly removed shapes into the jaxb again: 
-			for (ICanvasShape s : op.getShapes()) {
+			// seems that it needs the backup shapes to get the former baselines
+			for (ICanvasShape s : op.getBackupShapes()) {
+						
 				ITrpShapeType st = GuiUtil.getTrpShape(s);
 				
+				st.removeFromParent();
+				st.setParent(mergedShape.getParent());
+								
 				Integer ro = st.getReadingOrder();
 				st.reInsertIntoParent(ro==null ? -1 : ro-1);
+				
 				for (ICanvasShape c : s.getChildren(false)) {
 					ITrpShapeType cSt = GuiUtil.getTrpShape(c);
 					cSt.setParent(st);
@@ -374,20 +388,26 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					ro = st.getReadingOrder();
 					cSt.reInsertIntoParent(ro==null ? -1 : ro-1);
 				}
+				
+				mw.getShapeFactory().syncCanvasShapeAndTrpShape(s, st);
 			}
 			// note: the jaxb element from the merged shape has already been removed by the remove method in canvasscene
 	
 			mw.getScene().updateAllShapesParentInfo();
+			mw.getCanvasShapeObserver().updateObserverForAllShapes();
 			mw.getScene().updateSegmentationViewSettings();
 			mw.refreshStructureView();
 			mw.getScene().selectObject(null, true, false);
 			mw.updateTranscriptionWidgetsData();
+			
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			mw.onError("Error undoing", "Could not undo merge operation "+op.getDescription(), e);
 		} finally {
 			mw.getTranscriptObserver().setActive(true);
+			mw.redrawCanvas();
 		}
+
 	}
 
 	private void processUndoSplit(ShapeEditOperation op) {
@@ -662,7 +682,8 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 			
 			for (ICanvasShape s : e.shapes) {
 				ITrpShapeType stC = GuiUtil.getTrpShape(s);
-				if (st.getClass() != stC.getClass()) {
+				//&& stC instanceof TrpBaselineType
+				if (st.getClass() != stC.getClass() ) {
 					throw new Exception("Cannot merge elements of different type!");
 				}
 				if (st.getParent() != stC.getParent()) {
@@ -738,32 +759,82 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				// assign children
 				boolean baselineSet=false;
 				ICanvasShape baselineToRemove = null;
+				ICanvasShape mainBaselineShape = null;
+				ICanvasShape copyOfBaseline = null;
+				TrpBaselineType mainBaseline = null;
+				
+				logger.debug(" child number is : " + newShape.getChildren(false).size());
+				
 				for (ICanvasShape childShape : newShape.getChildren(false)) {
 					ITrpShapeType st = (ITrpShapeType) childShape.getData();
 					
-					st.removeFromParent();
+					//st.removeFromParent();
 					
 					if ((st instanceof TrpBaselineType)) {
+						logger.debug("+++++++++++++child is A baseline");
 						if (!baselineSet) {
-							st.setParent(mergedSt);
-							st.reInsertIntoParent();
+//							st.setParent(mergedSt);
+//							st.reInsertIntoParent();
+							mainBaseline = (TrpBaselineType) st;
+							mainBaselineShape = childShape;
+							copyOfBaseline = mainBaselineShape.copy();
 							baselineSet = true;
 						} else {
+							//combine baselines if they are in series
+							logger.debug("+++++++++++++mainBaselineShape.getBounds().getMaxX() " +mainBaselineShape.getBounds().getMaxX());
+							logger.debug("+++++++++++++childShape.getBounds().getMinX() " +childShape.getBounds().getMinX());
+							if(copyOfBaseline.getBounds().getMaxX() <= childShape.getBounds().getMinX()){							
+								
+								HashSet<Point> pts = new LinkedHashSet<>();
+								
+								pts.addAll(mainBaselineShape.getPoints());
+								pts.addAll(childShape.getPoints());
+								
+								List<Point> pts1 = new ArrayList<>();
+								for (Point point : pts){
+									pts1.add(point);
+								}
+								
+								copyOfBaseline.setPoints(pts1);
+								ITrpShapeType el2 = mw.getShapeFactory().copyJAXBElementFromShapeAndData(copyOfBaseline, -1);
+								copyOfBaseline.setData(el2);
+								
+								mainBaseline = (TrpBaselineType) copyOfBaseline.getData();
+
+								logger.debug(" copyOfBaseline get points- ------ " + copyOfBaseline.getPoints());
+								mw.getScene().removeShape(mainBaselineShape, false, false);								
+							}
+							
 							baselineToRemove = childShape;
+							mw.getScene().removeShape(baselineToRemove, false, false);
 						}
 					} else {
+						logger.debug("-----------child is no baseline");
 						st.setParent(mergedSt);
 						st.reInsertIntoParent();					
 					}
 				}
-				if (baselineToRemove!=null)
-					mw.getScene().removeShape(baselineToRemove, false, false);
+				
+//				if (baselineToRemove!=null){
+//					mw.getScene().removeShape(baselineToRemove, false, false);
+//				}
+				
+				if (baselineSet){
+
+					mainBaseline.setParent(mergedSt);
+					mainBaseline.reInsertIntoParent();
+					if (copyOfBaseline != null)
+						mw.getScene().addShape(copyOfBaseline, newShape, false);
+					
+				}
 							
 				// update ui stuff
 				mw.getScene().updateAllShapesParentInfo();
+				((ITrpShapeType) mergedSt.getParent()).sortChildren(true);
 				mw.refreshStructureView();
 				mw.getScene().selectObject(newShape, true, false);
 				mw.updateTranscriptionWidgetsData();
+				canvas.redraw();
 			} catch (Throwable th) {
 				e.stop = true;
 				mw.onError("Error merging elements", "Could not merge elements", th);

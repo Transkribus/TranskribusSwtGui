@@ -221,7 +221,7 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		for (int i=0; i<pts.size()-1; ++i) {
 //			Point p1 = pts.get(i);
 //			Point p2 = pts.get(i+1);
-			
+						
 			Line2D line = new Line2D.Double(pts.get(i).x, pts.get(i).y, pts.get(i+1).x, pts.get(i+1).y);
 			
 			Vector2D pt = new Vector2D(pts.get(i).x, pts.get(i).y);

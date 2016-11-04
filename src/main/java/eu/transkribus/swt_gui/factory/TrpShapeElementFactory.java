@@ -76,6 +76,8 @@ public class TrpShapeElementFactory {
 	public ICanvasShape syncCanvasShapeAndTrpShape(ICanvasShape shape, ITrpShapeType trpShape) {
 		TrpSettings sets = mainWidget.getTrpSets();
 		// update info in shape:
+		logger.debug("ssssssssssssssshape : " + shape);
+		logger.debug("tttttttttttttttttttrpShape : " + trpShape);
 		shape.setColor(TrpSettings.determineColor(sets, trpShape));
 		shape.setLevel(trpShape.getLevel());
 		

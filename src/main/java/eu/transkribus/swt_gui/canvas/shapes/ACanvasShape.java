@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.GeomUtils;
@@ -524,6 +525,8 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 
 		// draw "tube" around polylines
 		if (this instanceof CanvasPolyline) {
+			TrpBaselineType base = (TrpBaselineType) this.getData();
+			//logger.debug("Line : " + ((TrpTextLineType) base.getParent()).getId());
 			CanvasPolygon bp = ((CanvasPolyline) this).getDefaultPolyRectangle4Baseline();
 			
 			gc.setAlpha(isSelected() ? sets.getBackgroundAlpha() : 25);

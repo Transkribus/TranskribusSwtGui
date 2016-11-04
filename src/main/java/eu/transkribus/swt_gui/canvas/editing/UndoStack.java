@@ -278,9 +278,13 @@ public class UndoStack extends Observable {
 		canvas.getScene().notifyOnBeforeUndo(op);
 		
 		// remove the merged shape:
-		canvas.getScene().removeShape(op.getNewShapes().get(0), false, true);
+		canvas.getScene().removeShape(op.getNewShapes().get(0), true, true);
 		// add the formerly removed shapes:
-		for (ICanvasShape s : op.getShapes()) {
+		for (ICanvasShape s : op.getBackupShapes()) {
+			for (ICanvasShape c : s.getChildren(false)) {
+				canvas.getScene().addShape(c, s, false);
+			}
+			
 			canvas.getScene().addShape(s, s.getParent(), false);	
 		}
 		
