@@ -12,6 +12,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.CanvasToolBarNew;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.vkeyboards.ITrpVirtualKeyboardsTabWidgetListener;
@@ -97,7 +98,9 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		});
 				
 		SWTUtil.onSelectionEvent(ui.getThumbnailWidget().getCreateThumbs(), (e) -> { mw.createThumbs(storage.getDoc()); } );
-				
+						
+		db.bindBeanToWidgetSelection(TrpSettings.LOAD_THUMBS_PROPERTY, mw.getTrpSets(), ui.getThumbnailWidget().getLoadThumbs());
+			
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowJobsBtn(), (e) -> { mw.openJobsDialog(); } );
 		
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowVersionsBtn(), (e) -> { mw.openVersionsDialog(); } );

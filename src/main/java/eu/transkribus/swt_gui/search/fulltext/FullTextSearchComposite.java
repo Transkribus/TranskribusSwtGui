@@ -57,6 +57,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
+import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.searchresult.Facet;
@@ -307,9 +308,11 @@ public class FullTextSearchComposite extends Composite{
         viewer.getTable().setLinesVisible(true);
         viewer.setContentProvider(new ArrayContentProvider());
         
+        List<TrpDocMetadata> docList = storage.getDocList();
+        
         TableColumn column = new TableColumn(viewer.getTable(), SWT.NONE);
         column.setText("Context");
-        column.setWidth(600);
+        column.setWidth(650);
         TableViewerColumn contextCol = new TableViewerColumn(viewer, column);
         
         contextCol.setLabelProvider(new StyledCellLabelProvider(){
@@ -335,8 +338,8 @@ public class FullTextSearchComposite extends Composite{
         });
         
         column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("DocId");
-        column.setWidth(50);
+        column.setText("Document");
+        column.setWidth(200);
         TableViewerColumn docCol = new TableViewerColumn(viewer, column);
         
         docCol.setLabelProvider(new ColumnLabelProvider(){
@@ -344,7 +347,9 @@ public class FullTextSearchComposite extends Composite{
             @Override
             public String getText(Object element) {
                 Hit hit = (Hit)element;
-                return Integer.toString(hit.getDocId());
+                String docTitle = "";
+//                return Integer.toString(hit.getDocId());                
+                return hit.getDocTitle();
             }
 
         });
@@ -364,65 +369,70 @@ public class FullTextSearchComposite extends Composite{
 
         });
         
-        column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("Region");
-        column.setWidth(50);
-        TableViewerColumn regCol = new TableViewerColumn(viewer, column);
         
-        regCol.setLabelProvider(new ColumnLabelProvider(){
-
-            @Override
-            public String getText(Object element) {
-                Hit hit = (Hit)element;
-                return hit.getRegionId();
-            }
-
-        });
         
-        column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("Line");
-        column.setWidth(50);
-        TableViewerColumn lineCol = new TableViewerColumn(viewer, column);
-        
-        lineCol.setLabelProvider(new ColumnLabelProvider(){
-
-            @Override
-            public String getText(Object element) {
-                Hit hit = (Hit)element;
-                return hit.getLineId();
-            }
-
-        });
-        
-        column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("Word");
-        column.setWidth(50);
-        TableViewerColumn worCol = new TableViewerColumn(viewer, column);
-        
-        worCol.setLabelProvider(new ColumnLabelProvider(){
-        	
-            @Override
-            public String getText(Object element) {
-                Hit hit = (Hit)element;
-                return hit.getWordId();
-            }
-            
-        });
-        
-        column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("Pixel Coords");
-        column.setWidth(150);
-        TableViewerColumn pixelCol = new TableViewerColumn(viewer, column);
-        pixelCol.setLabelProvider(new ColumnLabelProvider(){
-
-            @Override
-            public String getText(Object element) {
-                Hit hit = (Hit)element;
-
-                return hit.getPixelCoords();
-            }
-
-        });
+//        ############################################################
+//        Additional columns showing debug search result information
+//        ############################################################
+//        column = new TableColumn(viewer.getTable(), SWT.NONE);
+//        column.setText("Region");
+//        column.setWidth(50);
+//        TableViewerColumn regCol = new TableViewerColumn(viewer, column);
+//        
+//        regCol.setLabelProvider(new ColumnLabelProvider(){
+//
+//            @Override
+//            public String getText(Object element) {
+//                Hit hit = (Hit)element;
+//                return hit.getRegionId();
+//            }
+//
+//        });
+//        
+//        column = new TableColumn(viewer.getTable(), SWT.NONE);
+//        column.setText("Line");
+//        column.setWidth(50);
+//        TableViewerColumn lineCol = new TableViewerColumn(viewer, column);
+//        
+//        lineCol.setLabelProvider(new ColumnLabelProvider(){
+//
+//            @Override
+//            public String getText(Object element) {
+//                Hit hit = (Hit)element;
+//                return hit.getLineId();
+//            }
+//
+//        });
+//        
+//        column = new TableColumn(viewer.getTable(), SWT.NONE);
+//        column.setText("Word");
+//        column.setWidth(50);
+//        TableViewerColumn worCol = new TableViewerColumn(viewer, column);
+//        
+//        worCol.setLabelProvider(new ColumnLabelProvider(){
+//        	
+//            @Override
+//            public String getText(Object element) {
+//                Hit hit = (Hit)element;
+//                return hit.getWordId();
+//            }
+//            
+//        });
+//        
+//        column = new TableColumn(viewer.getTable(), SWT.NONE);
+//        column.setText("Pixel Coords");
+//        column.setWidth(150);
+//        TableViewerColumn pixelCol = new TableViewerColumn(viewer, column);
+//        pixelCol.setLabelProvider(new ColumnLabelProvider(){
+//
+//            @Override
+//            public String getText(Object element) {
+//                Hit hit = (Hit)element;
+//
+//                return hit.getPixelCoords();
+//            }
+//
+//        });
         
 		viewer.addDoubleClickListener(new IDoubleClickListener() {	
 			@Override public void doubleClick(DoubleClickEvent event) {
@@ -730,9 +740,6 @@ public class FullTextSearchComposite extends Composite{
 	}
 	
 	void findText(){	
-		
-		
-		
 		prevImages = new HashMap<String,Image>();
 		
 		searchText = inputText.getText().toString();
@@ -775,15 +782,12 @@ public class FullTextSearchComposite extends Composite{
 				fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, filters);
 			}else{
 				fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, null);
-			}
-			
+			}			
 			
 			logger.debug("Searching for: " + searchText + ", Start: "+start+" rows: "+rows);
 			
 			logger.debug("Query: " + fullTextSearchResult.getParams());
 			logger.debug("Num. Results: " + fullTextSearchResult.getNumResults());	
-
-
 			
 			if(fullTextSearchResult != null){				
 				if(!currentDocCheck.getSelection()){
@@ -959,7 +963,7 @@ public class FullTextSearchComposite extends Composite{
         		ArrayList<Integer> colIds = pHit.getCollectionIds();        		
         		
         		String pUrl = pHit.getPageUrl();
-        		Hit hit = new Hit(hlString, (int)pHit.getDocId(), (int)pHit.getPageNr(), regId, linId, worId, pxCoords, pUrl);
+        		Hit hit = new Hit(hlString, (int)pHit.getDocId(), pHit.getDocTitle(), (int)pHit.getPageNr(), regId, linId, worId, pxCoords, pUrl);
         		hit.setCollectionIds(colIds);
         		hits.add(hit);
         		numTags += tags.size();
@@ -1037,15 +1041,16 @@ public class FullTextSearchComposite extends Composite{
 	    String highlightText;
 	    String imgUrl;
 
-		String regionId, lineId, wordId;
+		String regionId, lineId, wordId, title;
 	    private String pixelCoords;
 	    private ArrayList<Integer> collectionIds;
 
 		int docId, pageNr;
 		      
-	    Hit(String hl, int doc, int page, String region, String line, String word, String coords, String url){
+	    Hit(String hl, int doc, String docTitle, int page, String region, String line, String word, String coords, String url){
 	    	highlightText = hl;
 	    	docId = doc;
+	    	title = docTitle;
 	    	pageNr = page;
 	    	regionId = region;
 	    	lineId = line;
@@ -1074,6 +1079,14 @@ public class FullTextSearchComposite extends Composite{
 
 		public void setHighlightText(String highlightText) {
 			this.highlightText = highlightText;
+		}
+		
+		public String getDocTitle(){
+			return title;
+		}
+		
+		public void setDocTitle(String title){
+			this.title = title;
 		}
 
 		public int getDocId() {

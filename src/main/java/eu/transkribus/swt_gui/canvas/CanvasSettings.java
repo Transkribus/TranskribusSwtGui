@@ -353,7 +353,7 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		public void setBackgroundAlpha(int backgroundAlpha) {
 			int old = this.backgroundAlpha;
 			this.backgroundAlpha = backgroundAlpha;
-			firePropertyChange( DO_TRANSITION_PROPERTY, old, this.backgroundAlpha );
+			firePropertyChange( BACKGROUND_ALPHA_PROPERTY, old, this.backgroundAlpha );
 		}
 
 		public int getForegroundAlpha() {

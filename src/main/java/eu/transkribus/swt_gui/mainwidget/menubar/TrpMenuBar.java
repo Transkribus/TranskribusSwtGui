@@ -51,6 +51,7 @@ public class TrpMenuBar {
 	MenuItem syncWordsWithLinesMenuItem;
 	
 	MenuItem proxySettingsMenuItem;
+	MenuItem autoSaveSettingsMenuItem;
 	MenuItem createThumbsMenuItem;
 	MenuItem deletePageMenuItem;
 	
@@ -162,6 +163,8 @@ public class TrpMenuBar {
 //		mntmhelp.setMenu(helpMenu);
 
 		proxySettingsMenuItem = createItem(menuBar, SWT.PUSH, Images.getOrLoad("/icons/server_connect.png"), "Proxy settings...");
+		
+		autoSaveSettingsMenuItem = createItem(menuBar, SWT.NONE, Images.DISK, "Autosave settings");
 		
 		if (false) {
 		languageMenu = createCascadeMenu(menuBar, null, "Language (todo)");		

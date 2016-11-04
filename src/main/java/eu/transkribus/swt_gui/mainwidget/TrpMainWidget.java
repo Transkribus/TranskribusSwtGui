@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -50,6 +51,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.DeviceData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -129,6 +132,7 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
+import eu.transkribus.swt_gui.dialogs.AutoSaveDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.dialogs.BugDialog;
@@ -219,6 +223,7 @@ public class TrpMainWidget {
 	TranscriptsDialog versionsDiag;
 	SettingsDialog viewSetsDiag;
 	ProxySettingsDialog proxyDiag;
+	AutoSaveDialog autoSaveDiag;
 	DebuggerDialog debugDiag;
 	VersionsDiffBrowserDialog browserDiag;
 	
@@ -226,6 +231,7 @@ public class TrpMainWidget {
 	CollectionManagerDialog cm;
 	EditDeclManagerDialog edDiag;
 	ActivityDialog ad;
+	Shell sleakDiag;
 
 	Storage storage; // the data
 	boolean isPageLocked = false;
@@ -279,7 +285,11 @@ public class TrpMainWidget {
 		
 		enableAutocomplete();
 		updateToolBars();
+		if(getTrpSets().autoSaveFolder.trim().isEmpty()){
+			getTrpSets().setAutoSaveFolder(TrpSettings.getDefaultAutoSaveFolder());
+		}
 		beginAutoSaveThread();
+		
 	}
 
 	public static TrpMainWidget getInstance() {
@@ -1091,53 +1101,75 @@ public class TrpMainWidget {
 	}
 	
 	
+
+	Thread autoSaveThread;
 	
-	public void beginAutoSaveThread(){			
+	Runnable saveTask = new Runnable(){			
+		int autoSaveInterval;
+		String autoSavePath;
+		
+		@Override
+		public void run() {
+			while(true){
+				try{	
+					autoSaveInterval = getTrpSets().getAutoSaveInterval();
+					Thread.sleep(autoSaveInterval * 1000);					
+					autoSavePath = getTrpSets().getAutoSaveFolder();
+					
+					Display.getDefault().asyncExec(() -> {
+						localAutoSave(autoSavePath);	
+					});
 
-
-		Runnable saveTask = new Runnable(){			
-			
-			@Override
-			public void run() {
-				while(true){
-					try{	
-						Thread.sleep(60000);
-						localAutoSave();
-						
-					}catch(Exception e){
-						logger.error("Exception " + e);
-					}
+				} catch(Exception e){
+					logger.error("Exception " + e, e);
 				}
 			}
-		};
+		}
+	};
+	
+	public void beginAutoSaveThread(){
 		
-		Thread autoSaveThread = new Thread(saveTask, "AutoSaveThread");
-		autoSaveThread.start();
+		if(autoSaveThread != null){
+			if(autoSaveThread.isAlive()){
+				autoSaveThread.interrupt();
+				logger.debug("AutoSave Thread interrupted");
+			}
+		}		
+		if(getTrpSets().autoSaveEnabled){
+			autoSaveThread = new Thread(saveTask, "AutoSaveThread");
+			autoSaveThread.start();
+			logger.debug("AutoSave Thread started");
+		}
 	}
+
+	
 	
 
-	boolean localAutosaveEnabled = true;
+	public boolean localAutosaveEnabled = true;
 	
-	public void localAutoSave(){
+	public void localAutoSave(String path){
 		if(!storage.isPageLoaded()){
 			return;
 		}
 		if(!localAutosaveEnabled){
 			return;
 		}
-		PcGtsType currentPage = storage.getTranscript().getPageData();
-		String tempDir = System.getProperty("java.io.tmpdir")+ File.separator + "Transkribus" + File.separator + "autoSave";
-		tempDir += File.separator + "p" + storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
-		File f = new File(tempDir);
-		byte[] bytes;
+		
+		File f = null;
 		try {
+			PcGtsType currentPage = storage.getTranscript().getPageData();
+			String tempDir = path;
+			tempDir += File.separator + "p" + storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
+			f = new File(tempDir);
 			
-			bytes = PageXmlUtils.marshalToBytes(currentPage);
+			byte[] bytes = PageXmlUtils.marshalToBytes(currentPage);
 //			PageXmlUtils.marshalToFile(storage.getTranscript().getPageData(), f);
 			FileUtils.writeByteArrayToFile(f, bytes);
 			logger.trace("Auto-saved current transcript to " + f.getAbsolutePath());
 		} catch (Exception e1) {
-			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
+//			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
+			String fn = f==null ? "NA" : f.getAbsolutePath();
+			logger.error("Error while autosaving transcription to " + fn, e1);
 		}
 	}
 	
@@ -2111,13 +2143,38 @@ public class TrpMainWidget {
 	public void onInterruption(String title, String message, Throwable th) {
 		onError(title, message, th, true, true);
 	}
+	
+	private static boolean shouldITrack() {
+		
+		try {
+			try (FileInputStream fis = new FileInputStream(new File("config.properties"))) {
+				Properties p = new Properties();
+				p.load(fis);
+				
+				Object tracking = p.get("tracking");
+				if (tracking!=null && ((String)tracking).equals("true"))
+					return true;
+			}
+		} catch (Exception e) {
+			logger.warn("Could not determine tracking property: "+e.getMessage());
+		}
+		return false;
+		
+	}
 
 	public static void show() {
 		ProgramInfo info = new ProgramInfo();
 		Display.setAppName(info.getName());
 		Display.setAppVersion(info.getVersion());
+		
+		DeviceData data = new DeviceData();
 
-		show(null);
+		data.tracking = shouldITrack();
+		logger.info("resource tracking = "+data.tracking);
+		
+		Display display = new Display(data);
+
+		show(display);
 	}
 
 	public static void show(Display givenDisplay) {
@@ -4005,6 +4062,16 @@ public class TrpMainWidget {
 			Storage.getInstance().updateProxySettings();
 		}
 	}
+	
+	public void openAutoSaveSetsDialog() {
+		logger.debug("opening autosave sets dialog");
+		if (autoSaveDiag!=null && !SWTUtil.isDisposed(autoSaveDiag.getShell())) {
+			autoSaveDiag.getShell().setVisible(true);
+		} else {
+			autoSaveDiag = new AutoSaveDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getTrpSets());
+			autoSaveDiag.open();
+		}
+	}
 
 	public void openAboutDialog() {
 		int res = DialogUtil.showMessageDialog(getShell(), ui.APP_NAME, ui.HELP_TEXT, null, MessageDialog.INFORMATION, 
@@ -4061,6 +4128,34 @@ public class TrpMainWidget {
 		
 		int res = DialogUtil.showMessageDialog(getShell(), "Canvas shortcut operations", ht, null, MessageDialog.INFORMATION, 
 				new String[] {"OK"}, 0);
+	}
+	
+	/**
+	 * Sleak is a memory tracking utility for SWT
+	 */
+	public void openSleak() {
+//		if (true) // FIXME
+//			return;
+		
+		logger.debug("opening sleak...");
+
+		if (!SWTUtil.isDisposed(sleakDiag)) {
+			sleakDiag.getShell().setVisible(true);
+		} else {
+//			DeviceData data = new DeviceData();
+//			data.tracking = true;
+//			Display display = new Display(data);
+//			
+//			display.getDeviceData().tracking = true;
+			
+			Sleak sleak = new Sleak();
+			sleakDiag = new Shell(getShell(), SWT.RESIZE | SWT.CLOSE | SWT.MODELESS);
+			sleakDiag.setText("S-Leak");
+			Point size = sleakDiag.getSize();
+			sleakDiag.setSize(size.x / 2, size.y / 2);
+			sleak.create(sleakDiag);
+			sleakDiag.open();
+		}
 	}
 
 }

@@ -67,6 +67,7 @@ public class DebuggerDialog extends Dialog {
 	Button syncWithLocalDocBtn;
 	Button applyAffineTransformBtn;
 	Button batchReplaceImgsBtn;
+	Button openSleakBtn;
 	
 	public Button lineToWordSegBtn;
 	
@@ -111,6 +112,9 @@ public class DebuggerDialog extends Dialog {
 		
 		batchReplaceImgsBtn = new Button(btns, SWT.PUSH);
 		batchReplaceImgsBtn.setText("Batch replace images");	
+		
+		openSleakBtn = new Button(btns, SWT.PUSH);
+		openSleakBtn.setText("Open Sleak");
 		
 //		new Label(shell, SWT.NONE);
 		
@@ -197,6 +201,7 @@ public class DebuggerDialog extends Dialog {
 		SWTUtil.onSelectionEvent(syncWithLocalDocBtn, (e) -> {mw.syncWithLocalDoc();} );
 		SWTUtil.onSelectionEvent(applyAffineTransformBtn, (e) -> {mw.applyAffineTransformToDoc();} );
 		SWTUtil.onSelectionEvent(batchReplaceImgsBtn, (e) -> {mw.batchReplaceImagesForDoc();} );
+		SWTUtil.onSelectionEvent(openSleakBtn, (e) -> { mw.openSleak(); } );
 				
 		if (processUploadedZipFileBtn != null) {
 			processUploadedZipFileBtn.addSelectionListener(new SelectionAdapter() {		

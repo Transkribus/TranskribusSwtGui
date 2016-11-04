@@ -4,7 +4,8 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>0.10.0</version>
+<!-- 	<version>0.10.0</version> -->
+	<version>0.10.1</version>
 	<!-- <version>0.4.6</version> -->
 	<name>Transkribus</name>
 
@@ -249,9 +250,9 @@
 								<jdkPreference>preferJre</jdkPreference>
 <!-- 								<maxHeapSize>2048</maxHeapSize> -->
 <!-- 								<initialHeapSize>MB</initialHeapSize> -->
-								<initialHeapPercent>15</initialHeapPercent>
+<!-- 								<initialHeapPercent>15</initialHeapPercent> -->
 <!-- 								<maxHeapSize>MB</maxHeapSize> -->
-								<maxHeapPercent>50</maxHeapPercent>			
+<!-- 								<maxHeapPercent>50</maxHeapPercent>			 -->
 							</jre>
 							<!-- <versionInfo> -->
 							<!-- <fileVersion>1.0.0.0</fileVersion> -->

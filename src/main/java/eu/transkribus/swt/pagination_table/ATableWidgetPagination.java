@@ -236,10 +236,11 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 				PageSizeComboRenderer pageSizeComboDecorator = new PageSizeComboRenderer(
 						bottom, SWT.NONE, getController(), new Integer[] { 5, 10, 25, 50, 75, 100, 200 }) {
 					
-					public void widgetSelected(SelectionEvent e) {
+					public void widgetSelected(SelectionEvent e) {						
+						pageableTable.refreshPage(true); // needed to refresh pagination control -> bug in original code!						
 						super.widgetSelected(e);
+
 //						pageableTable.setCurrentPage(0);
-						pageableTable.refreshPage(true); // needed to refresh pagination control -> bug in original code!
 					}
 				};
 				pageSizeComboDecorator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

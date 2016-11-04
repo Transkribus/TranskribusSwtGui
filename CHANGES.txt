@@ -398,5 +398,10 @@ CHANGES AND BUGFIXES
 	-> vertical canvas edit toolbar
 	-> removed all dropdown tool items and partially replaced by new toolboxes
 	
-
+0.10.1:
+	-> "loadThumbs" property determines whether thumbnails are loaded (to prevent 'no more handles' issue)
+	-> first version of local autosave
+	-> pagination pagesize index out of bounds bug fixed
+	-> setting heap space in windows starters (.exe & .bat) reversed due to "no more handles" bug
+	
 	

@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.mainwidget.settings;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -241,6 +242,18 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	public boolean createThumbs = true;
 	public static final String CREATE_THUMBS_PROPERTY = "createThumbs";
+	
+	public boolean loadThumbs = true;
+	public static final String LOAD_THUMBS_PROPERTY = "loadThumbs";
+	
+	public String autoSaveFolder = "";
+	public static final String AUTOSAVE_FOLDER_PROPERTY = "autoSaveFolder";
+	
+	public int autoSaveInterval = 60;
+	public static final String AUTOSAVE_INTERVAL_PROPERTY = "autoSaveInterval";
+	
+	public boolean autoSaveEnabled = true;
+	public static final String AUTOSAVE_ENABLED = "autoSaveEnabled";
 	
 	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
@@ -901,7 +914,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setAutoLogin(boolean autoLogin) {
 		this.autoLogin = autoLogin;
 		firePropertyChange(AUTO_LOGIN_PROPERTY, !this.autoLogin, this.autoLogin);
-	}
+	}	
 
 	public boolean isCreateThumbs() {
 		return createThumbs;
@@ -910,6 +923,48 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setCreateThumbs(boolean createThumbs) {
 		this.createThumbs = createThumbs;
 		firePropertyChange(CREATE_THUMBS_PROPERTY, !this.createThumbs, this.createThumbs);
+	}
+
+	public boolean isLoadThumbs() {
+		return loadThumbs;
+	}
+
+	public void setLoadThumbs(boolean loadThumbs) {
+		this.loadThumbs = loadThumbs;
+		firePropertyChange(LOAD_THUMBS_PROPERTY, !this.loadThumbs, this.loadThumbs);
+	}
+
+	public String getAutoSaveFolder() {
+		return autoSaveFolder;
+	}
+
+	public void setAutoSaveFolder(String autoSaveFolder) {
+		String old = this.autoSaveFolder;
+		this.autoSaveFolder = autoSaveFolder;
+		firePropertyChange(AUTOSAVE_FOLDER_PROPERTY, old, this.autoSaveFolder);
+	}
+	
+	public static String getDefaultAutoSaveFolder() {
+		return System.getProperty("java.io.tmpdir") + File.separator + "Transkribus" + File.separator + "autoSave";
+	}
+	
+	public int getAutoSaveInterval(){
+		return autoSaveInterval;
+	}
+	
+	public void setAutoSaveInterval(int seconds) {
+		int old = this.autoSaveInterval;
+		this.autoSaveInterval = seconds;
+		firePropertyChange(AUTOSAVE_INTERVAL_PROPERTY, old, this.autoSaveInterval);
+	}
+	
+	public boolean getAutoSaveEnabled(){
+		return autoSaveEnabled;
+	}
+	
+	public void setAutoSaveEnabled(boolean enabled){
+		this.autoSaveEnabled = enabled;
+		firePropertyChange(AUTOSAVE_ENABLED, !this.autoSaveEnabled, this.autoSaveEnabled);
 	}
 
 	@Override public List<String> getPropertiesToNotSave() {
