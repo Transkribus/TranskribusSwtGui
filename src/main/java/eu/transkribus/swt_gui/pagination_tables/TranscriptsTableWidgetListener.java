@@ -89,12 +89,16 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 		Object s = e.getSource();
 		if(s == tw.deleteBtn){
 			List<TrpTranscriptMetadata> selectedVersions = tw.getSelected();
-			if (DialogUtil.showYesNoDialog(tw.getShell(), "Delete Version(s)", "Do you really want to delete " + selectedVersions.size() + " selected versions ")!=SWT.YES) {
+			int nrOfVersions2Delete = selectedVersions.size();
+			if (DialogUtil.showYesNoDialog(tw.getShell(), "Delete Version(s)", "Do you really want to delete " + nrOfVersions2Delete + " selected versions ")!=SWT.YES) {
 				return;
 			}
 			for (TrpTranscriptMetadata md : selectedVersions){
+				nrOfVersions2Delete--;
+				//to load only the new version in the canvas after deleting the 
+				boolean lastVersion2Delete = (nrOfVersions2Delete == 0 ? true : false);
 				if (md!=null) {
-					deleteTranscript(md);
+					deleteTranscript(md, lastVersion2Delete);
 				}
 			}
 //			TrpTranscriptMetadata md = tw.getFirstSelected();
@@ -117,7 +121,7 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 		}		
 	}
 	
-	private void deleteTranscript(TrpTranscriptMetadata tMd) {
+	private void deleteTranscript(TrpTranscriptMetadata tMd, boolean lastVersion2Delete) {
 		logger.info("delete transcript: " + tMd.getKey());
 		
 		int itemCount = (int) tw.getPageableTable().getController().getTotalElements();
@@ -138,10 +142,16 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 				
 				// reload page if current transcript was deleted:
 				if (currentTranscript!=null && currentTranscript.equals(tMd)) {
-					TrpMainWidget.getInstance().reloadCurrentPage(false);
+					//TrpMainWidget.getInstance().reloadCurrentPage(false);
+					store.setLatestTranscriptAsCurrent();
 				} else {
 					store.reloadTranscriptsList(store.getCurrentDocumentCollectionId());
 				}
+				
+				if (lastVersion2Delete){
+					TrpMainWidget.getInstance().reloadCurrentPage(false);
+				}
+				
 			} catch (Exception e1) {
 				MessageBox messageBox = new MessageBox(tw.getShell(), SWT.ICON_ERROR
 			            | SWT.OK);
