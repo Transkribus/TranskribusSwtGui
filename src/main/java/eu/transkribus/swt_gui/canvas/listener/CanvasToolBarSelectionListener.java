@@ -127,6 +127,14 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.getHelpItem()) {
 			mw.openCanvasHelpDialog();
 		}
+		
+		else if (s == toolbar.getSearchButton()){
+			logger.debug("button");
+		}
+		
+		else if (s == toolbar.getSearchText()){
+			logger.debug("text");
+		}
 	}
 	
 	protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {

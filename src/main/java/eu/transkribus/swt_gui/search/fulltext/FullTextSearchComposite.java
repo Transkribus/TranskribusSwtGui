@@ -96,10 +96,10 @@ public class FullTextSearchComposite extends Composite{
 	ToolItem docItem;
 	ToolItem authorItem;
 	ToolItem uploaderItem;
-	MultiSelectionCombo collCombo;
+	public MultiSelectionCombo collCombo;
 	MultiSelectionCombo docCombo;
 	MultiSelectionCombo authCombo;
-	MultiSelectionCombo uplCombo;
+	public MultiSelectionCombo uplCombo;
 	
 	List<String> filters;
 	Storage storage;
@@ -180,20 +180,21 @@ public class FullTextSearchComposite extends Composite{
 						currentDocCheck.setSelection(false);
 					}
 					else{
-						TrpDoc currentDoc = storage.getDoc();	
-						String currentTitle = currentDoc.getMd().getTitle();
-						collCombo.txtCurrentSelection.setEnabled(false);
-						docCombo.txtCurrentSelection.setEnabled(false);
-						authCombo.txtCurrentSelection.setEnabled(false);
-						uplCombo.txtCurrentSelection.setEnabled(false);
-						
-						filters = new ArrayList<String>();
-						filters.add("(f_title:\""+currentTitle+"\")");
-						
-						collCombo.txtCurrentSelection.setText("");
-						docCombo.txtCurrentSelection.setText("");
-						authCombo.txtCurrentSelection.setText("");
-						uplCombo.txtCurrentSelection.setText("");
+//						TrpDoc currentDoc = storage.getDoc();	
+//						String currentTitle = currentDoc.getMd().getTitle();
+//						collCombo.txtCurrentSelection.setEnabled(false);
+//						docCombo.txtCurrentSelection.setEnabled(false);
+//						authCombo.txtCurrentSelection.setEnabled(false);
+//						uplCombo.txtCurrentSelection.setEnabled(false);
+//						
+//						filters = new ArrayList<String>();
+//						filters.add("(f_title:\""+currentTitle+"\")");
+//						
+//						collCombo.txtCurrentSelection.setText("");
+//						docCombo.txtCurrentSelection.setText("");
+//						authCombo.txtCurrentSelection.setText("");
+//						uplCombo.txtCurrentSelection.setText("");
+						setCurrentDoc();
 					}
 				}else{
 					collCombo.txtCurrentSelection.setEnabled(true);
@@ -209,7 +210,7 @@ public class FullTextSearchComposite extends Composite{
 					uplCombo.txtCurrentSelection.setText("All uploaders");					
 				}
 			}
-
+			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
@@ -739,7 +740,7 @@ public class FullTextSearchComposite extends Composite{
 		return values;
 	}
 	
-	void findText(){	
+	public void findText(){	
 		prevImages = new HashMap<String,Image>();
 		
 		searchText = inputText.getText().toString();
@@ -1191,5 +1192,33 @@ public class FullTextSearchComposite extends Composite{
 
 		
 	} 
+	
+	public void setCurrentDoc(){
+		TrpDoc currentDoc = storage.getDoc();	
+		String currentTitle = currentDoc.getMd().getTitle();
+		collCombo.txtCurrentSelection.setEnabled(false);
+		docCombo.txtCurrentSelection.setEnabled(false);
+		authCombo.txtCurrentSelection.setEnabled(false);
+		uplCombo.txtCurrentSelection.setEnabled(false);
+		
+		filters = new ArrayList<String>();
+		filters.add("(f_title:\""+currentTitle+"\")");
+		
+		collCombo.txtCurrentSelection.setText("");
+		docCombo.txtCurrentSelection.setText("");
+		authCombo.txtCurrentSelection.setText("");
+		uplCombo.txtCurrentSelection.setText("");
+	}
+	
+	public void setSearchText(String text){
+		inputText.setText(text);
+	}	
+
+	
+	public void searchCurrentDoc(boolean bool){
+		currentDocCheck.setSelection(bool);	
+		setCurrentDoc();
+		
+	}
 
 }

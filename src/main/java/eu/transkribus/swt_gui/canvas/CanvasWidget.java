@@ -159,7 +159,9 @@ public class CanvasWidget extends Composite {
 			}
 		});
 		
-		toolbar.addSelectionListener(new CanvasToolBarSelectionListener(this));
+		toolbar.addSelectionListener(new CanvasToolBarSelectionListener(this));	
+		
+		
 	}
 
 	public SWTCanvas getCanvas() {

@@ -219,6 +219,7 @@ public class TrpMainWidget {
 //	CollectionManagerListener collectionsManagerListener;
 	TrpMenuBarListener menuListener;
 	
+	SearchDialog searchDiag;
 	TrpVirtualKeyboardsDialog vkDiag;
 	TranscriptsDialog versionsDiag;
 	SettingsDialog viewSetsDiag;
@@ -3702,8 +3703,26 @@ public class TrpMainWidget {
 	}
 
 	public void openSearchDialog() {
-		SearchDialog d = new SearchDialog(getShell());
-		d.open();
+		if(searchDiag != null){
+			if(searchDiag.getShell() != null ){
+
+				if(searchDiag.getShell().getMinimized()){
+					searchDiag.getShell().setMinimized(false);
+					searchDiag.getShell().forceActive();
+				}else{
+					searchDiag.getShell().forceActive();
+				}
+			}else{
+				searchDiag.open();
+			}
+		}else{		
+		searchDiag = new SearchDialog(getShell());
+		searchDiag.open();
+		}
+	}
+	
+	public SearchDialog getSearchDialog(){
+		return searchDiag;
 	}
 
 //	//update visibility of reading order

@@ -96,6 +96,17 @@ public class SearchDialog extends Dialog {
 		return c;
 	}
 	
+	public CTabFolder getTabFolder(){
+		return tabFolder;
+	}
+	
+	public CTabItem getFulltextTabItem(){
+		return fullTextSearchItem;
+	}
+	
+	public FullTextSearchComposite getFulltextComposite(){
+		return fullTextSearchComposite;
+	}
 	
 	/**
 	 * Create contents of the button bar.
