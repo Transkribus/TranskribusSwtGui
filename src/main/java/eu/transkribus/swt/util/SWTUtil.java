@@ -14,8 +14,6 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +56,8 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -71,7 +69,6 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +78,6 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.ImgUtils;
 import eu.transkribus.core.util.SebisStopWatch;
-import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import math.geom2d.Vector2D;
 
 public class SWTUtil {
@@ -687,6 +683,12 @@ public class SWTUtil {
 //			SWTUtil.dispose(mi);
 //		}
 //	}
+	
+	public static void addListener(Widget w, int eventType, Listener l) {		
+		if (w != null) {
+			w.addListener(eventType, l);
+		}
+	}
 	
 	public static void addSelectionListener(Widget w, SelectionListener l) {
 		if (w instanceof MenuItem)
@@ -1345,5 +1347,18 @@ public class SWTUtil {
 		
 		addSelectionListener(w, l);
 	}	
+	
+	public static void onEvent(Widget w, int eventType, Consumer<Event> c) {
+		if (w == null || c == null)
+			return;
+		
+		Listener l = new Listener() {
+			@Override public void handleEvent(Event event) {
+				c.accept(event);
+			}
+		};
+		
+		addListener(w, SWT.Traverse, l);
+	}
 
 }

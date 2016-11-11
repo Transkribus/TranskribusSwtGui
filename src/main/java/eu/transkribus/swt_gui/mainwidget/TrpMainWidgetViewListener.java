@@ -88,6 +88,16 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		SWTUtil.onSelectionEvent(ui.getUploadDocsItem(), (e) -> { mw.uploadDocuments(); } );
 		
 		SWTUtil.onSelectionEvent(ui.getSearchBtn(), (e) -> { mw.openSearchDialog(); } );
+		
+		SWTUtil.onSelectionEvent(ui.getQuickSearchButton(), (e) -> {
+			mw.searchCurrentDoc();
+		});
+		
+		SWTUtil.onEvent(ui.getQuickSearchText().getTextControl(),  SWT.Traverse,  (e) -> {
+			if (e.detail == SWT.TRAVERSE_RETURN) {					
+				mw.searchCurrentDoc();		
+			}
+		});
 								
 		SWTUtil.addSelectionListener(ui.getProfilesToolItem().ti, this);
 		

@@ -156,6 +156,7 @@ import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
+import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
 import eu.transkribus.swt_gui.tools.ToolsWidgetListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
@@ -4175,6 +4176,21 @@ public class TrpMainWidget {
 			sleak.create(sleakDiag);
 			sleakDiag.open();
 		}
+	}
+	
+	public void searchCurrentDoc(){		
+		if(Storage.getInstance().getDoc() == null){
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "No document loaded.");
+			return;
+		}
+		
+		openSearchDialog();		
+		getSearchDialog().getTabFolder().setSelection(getSearchDialog().getFulltextTabItem());		
+		
+		FullTextSearchComposite ftComp = getSearchDialog().getFulltextComposite();		
+		ftComp.searchCurrentDoc(true);							
+		ftComp.setSearchText(ui.getQuickSearchText().getText());			
+		ftComp.findText();
 	}
 
 }

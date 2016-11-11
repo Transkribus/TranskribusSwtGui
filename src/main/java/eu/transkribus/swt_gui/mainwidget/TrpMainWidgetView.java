@@ -4,11 +4,15 @@ import java.util.HashMap;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -20,6 +24,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Monitor;
+import org.eclipse.swt.widgets.TextToolItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
@@ -120,6 +125,12 @@ public class TrpMainWidgetView extends Composite {
 	ToolItem loadTranscriptInTextEditor;
 //	ToolItem helpItem;
 	ToolItem bugReportItem;
+	
+//	****Search integration stuff****
+	ToolItem quickSearchButton;
+	TextToolItem quickSearchText;
+//	********************************
+	
 	// ##########
 		
 	TrpTabWidget tabWidget;
@@ -183,6 +194,8 @@ public class TrpMainWidgetView extends Composite {
 		initToolBar();
 
 		canvasWidget = new CanvasWidget(SWTUtil.dummyShell, SWT.NONE, getPagesPagingToolBar().getToolBar(), this);
+		
+		initToolBar2();
 
 		// NEW: only one tab widget
 		tabWidget = new TrpTabWidget(this, 0);
@@ -369,6 +382,9 @@ public class TrpMainWidgetView extends Composite {
 		TrpConfig.registerBean(trpSets, true);
 	}
 
+	/**
+	 * Initialize toolbar and add toolbar buttons that come *before* the canvas toolbar
+	 */
 	private void initToolBar() {
 		toolBar = new ToolBar(this, /*SWT.FLAT |*/ SWT.WRAP | SWT.RIGHT);
 		toolBarGridData = new GridData(SWT.FILL, SWT.TOP, true, true);
@@ -499,6 +515,38 @@ public class TrpMainWidgetView extends Composite {
 		searchBtn.setToolTipText("Search for documents, keywords etc.");
 		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
 		
+		// *** quicksearch
+		ToolItem offset = new ToolItem(toolBar, SWT.SEPARATOR);
+		//offset.setWidth(20);
+		
+		quickSearchText = new TextToolItem(toolBar, SWT.NONE);
+		String searchItemText = "Search current document...";
+		quickSearchText.setText(searchItemText);
+		int defaultSearchItemWidth = quickSearchText.getWidth();
+		quickSearchText.setWidth(defaultSearchItemWidth);	
+		quickSearchText.getTextControl().addFocusListener(new FocusListener(){
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				if(quickSearchText.getText().equals(searchItemText)){
+					quickSearchText.setText("");
+					quickSearchText.setWidth(defaultSearchItemWidth);
+				}				
+			}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if(quickSearchText.getText().trim().isEmpty()){
+					quickSearchText.setText(searchItemText);
+				}				
+			}
+			
+		});
+		
+		quickSearchButton = new ToolItem(toolBar, SWT.NONE);
+		quickSearchButton.setImage(Images.getOrLoad("/icons/quickfind.png"));
+		// ****
+		
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		
 		pagesPagingToolBar = new PagingToolBar("Page: ", false, false, true, this, SWT.NONE, toolBar);
@@ -530,13 +578,7 @@ public class TrpMainWidgetView extends Composite {
 		loadTranscriptInTextEditor.setImage(Images.getOrLoad("/icons/script.png"));
 		
 		new ToolItem(toolBar, SWT.SEPARATOR);
-		
-		bugReportItem = new ToolItem(toolBar, SWT.PUSH);
-		bugReportItem.setToolTipText("Send a bug report or feature request");
-		bugReportItem.setImage(Images.BUG);
-		
-		new ToolItem(toolBar, SWT.SEPARATOR);
-						
+								
 		if (TrpSettings.ENABLE_LINE_EDITOR) {
 			new ToolItem(toolBar, SWT.SEPARATOR);			
 			showLineEditorToggle = new ToolItem(toolBar, SWT.CHECK);
@@ -552,6 +594,23 @@ public class TrpMainWidgetView extends Composite {
 			}
 		});
 		
+		//updateToolBarSize();
+	}
+	
+	/**
+	 * add all toolbar buttons that come *after* the canvas toolbar
+	 */
+	private void initToolBar2() {
+		
+		new ToolItem(toolBar, SWT.SEPARATOR);
+		
+		bugReportItem = new ToolItem(toolBar, SWT.PUSH);
+		bugReportItem.setToolTipText("Send a bug report or feature request");
+		bugReportItem.setImage(Images.BUG);
+		
+		//new ToolItem(toolBar, SWT.SEPARATOR);
+		
+		toolBar.pack();
 		updateToolBarSize();
 	}
 	
@@ -722,6 +781,14 @@ public class TrpMainWidgetView extends Composite {
 
 	public DocInfoWidget getDocInfoWidget() {
 		return docInfoWidget;
+	}
+	
+	public ToolItem getQuickSearchButton() {
+		return quickSearchButton;
+	}
+	
+	public TextToolItem getQuickSearchText() {
+		return quickSearchText;
 	}
 
 }
