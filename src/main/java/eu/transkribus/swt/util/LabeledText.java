@@ -28,6 +28,8 @@ public class LabeledText extends Composite {
 	
 	public String getText() { return txt(); }
 	
+	public void setText(String txt) {text.setText(txt);}
+	
 	public Integer toIntVal() {
 		try {
 			return Integer.parseInt(text.getText());

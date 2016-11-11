@@ -1,18 +1,39 @@
 package eu.transkribus.swt_gui.canvas;
 
+import java.awt.MouseInfo;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TextToolItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.junit.Assert;
@@ -20,12 +41,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 
 //public class CanvasToolBar extends ToolBar {
 public class CanvasToolBarNew {
@@ -39,6 +63,11 @@ public class CanvasToolBarNew {
 	ToolItem showLinesToolItem;
 	ToolItem showBaselinesToolItem;
 	ToolItem showWordsToolItem;
+	
+//	****Search integration stuff****
+	ToolItem searchButton;
+	TextToolItem searchItem;
+//	********************************
 	
 	DropDownToolItem visibilityItem;
 	
@@ -347,9 +376,73 @@ public class CanvasToolBarNew {
 				canvasWidget.toggleToolbarVisiblity(editTb, editingEnabledToolItem.getSelection());
 			}
 		});
-		}
+		}		
+		
+		ToolItem offset = new ToolItem(tb, SWT.SEPARATOR);
+		offset.setWidth(20);
+		
+		searchItem = new TextToolItem(tb, SWT.NONE);
+		String searchItemText = "Search current document...";
+		searchItem.setText(searchItemText);
+		int defaultSearchItemWidth = searchItem.getWidth();
+		searchItem.setWidth(defaultSearchItemWidth);	
+		searchItem.getTextControl().addFocusListener(new FocusListener(){
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				if(searchItem.getText().equals(searchItemText)){
+					searchItem.setText("");
+					searchItem.setWidth(defaultSearchItemWidth);
+				}				
+			}
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if(searchItem.getText().trim().isEmpty()){
+					searchItem.setText(searchItemText);
+				}				
+			}
+			
+		});
+		
+		searchItem.getTextControl().addTraverseListener(new TraverseListener() {
+			@Override public void keyTraversed(TraverseEvent e) {
+				if (e.detail == SWT.TRAVERSE_RETURN) {					
+					searchCurrentDoc();		
+				}
+			}
+		});
+		searchButton = new ToolItem(tb, SWT.NONE);
+		searchButton.setImage(Images.getOrLoad("/icons/quickfind.png"));
+		
+		searchButton.addSelectionListener(new SelectionAdapter(){
+			@Override
+			public void widgetSelected(SelectionEvent e){
+				searchCurrentDoc();
+			}
+		});
+		
+
 		
 		tb.pack();
+	}
+	
+	public void searchCurrentDoc(){
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		
+		if(Storage.getInstance().getDoc() == null){
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "No document loaded.");
+			return;
+		}
+		
+		mw.openSearchDialog();		
+		mw.getSearchDialog().getTabFolder().setSelection(
+				mw.getSearchDialog().getFulltextTabItem());		
+		
+		FullTextSearchComposite ftComp = mw.getSearchDialog().getFulltextComposite();		
+		ftComp.searchCurrentDoc(true);							
+		ftComp.setSearchText(searchItem.getText());			
+		ftComp.findText();
 	}
 	
 	public void createEditItems(ToolBar tb) {
@@ -637,6 +730,8 @@ public class CanvasToolBarNew {
 		SWTUtil.addSelectionListener(imgEnhanceItem, listener);
 		
 		SWTUtil.addSelectionListener(helpItem, listener);
+		SWTUtil.addSelectionListener(searchItem, listener);
+		SWTUtil.addSelectionListener(searchButton, listener);
 		
 		// table stuff
 //		SWTUtil.addSelectionListener(deleteRowItem, listener);
@@ -760,6 +855,14 @@ public class CanvasToolBarNew {
 	}	
 	
 	public DropDownToolItem getSimplifyEpsItem() { return simplifyEpsItem; }
+	
+	public ToolItem getSearchButton() {
+		return searchButton;
+	}
+	
+	public TextToolItem getSearchText() {
+		return searchItem;
+	}
 	
 //	public DropDownToolItem getSplitTypeItem() { return splitTypeItem; }
 	
