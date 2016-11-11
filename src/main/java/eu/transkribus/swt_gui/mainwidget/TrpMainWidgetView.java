@@ -531,11 +531,11 @@ public class TrpMainWidgetView extends Composite {
 		
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		
-		if (false) {
 		bugReportItem = new ToolItem(toolBar, SWT.PUSH);
 		bugReportItem.setToolTipText("Send a bug report or feature request");
 		bugReportItem.setImage(Images.BUG);
-		}
+		
+		new ToolItem(toolBar, SWT.SEPARATOR);
 						
 		if (TrpSettings.ENABLE_LINE_EDITOR) {
 			new ToolItem(toolBar, SWT.SEPARATOR);			
