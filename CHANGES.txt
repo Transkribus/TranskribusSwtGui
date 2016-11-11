@@ -403,5 +403,7 @@ CHANGES AND BUGFIXES
 	-> first version of local autosave
 	-> pagination pagesize index out of bounds bug fixed
 	-> setting heap space in windows starters (.exe & .bat) reversed due to "no more handles" bug
+	-> Compare and show text differences of two versions in a text file (Tools - Compare)
+	-> split/merge baselines is done for lines too; bugs fixed for undoing those actions
 	
 	
