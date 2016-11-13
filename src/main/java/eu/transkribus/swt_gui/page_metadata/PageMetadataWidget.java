@@ -121,7 +121,8 @@ public class PageMetadataWidget extends Composite {
 				setStructureType(structureText.getText());
 			}
 		};
-		structureText.addModifyListener(structModifyListener);		
+		structureText.addModifyListener(structModifyListener);
+		
 		for (final TextTypeSimpleType t : TextTypeSimpleType.values()) {
 			final Button btn = createButton(structureGroup, SWT.RADIO, t.value(), 1, false);
 			btn.addSelectionListener(new SelectionAdapter() {
@@ -344,7 +345,10 @@ public class PageMetadataWidget extends Composite {
 	
 	public void setStructureType(String structureType) {
 		structureText.removeModifyListener(structModifyListener);
-		structureText.setText(structureType==null ? "" : structureType);
+		
+		if (!structureText.getText().equals(structureType))
+			structureText.setText(structureType==null ? "" : structureType);
+
 		for (Button b : structureRadios) {
 			b.setSelection(structureType!=null && b.getText().equals(structureType));
 		}
