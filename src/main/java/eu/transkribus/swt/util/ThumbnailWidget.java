@@ -605,9 +605,9 @@ public class ThumbnailWidget extends Composite {
 		// dispose old images:
 
 		disposeOldData();
-		if(isManagerOpen(tm)){
-			tm.disposeOldData();
-		}
+//		if(isManagerOpen(tm)){
+//			tm.disposeOldData();
+//		}
 		
 		
 //		logger.debug("reloading thumbs, is doc loaded: "+storage.isDocLoaded());

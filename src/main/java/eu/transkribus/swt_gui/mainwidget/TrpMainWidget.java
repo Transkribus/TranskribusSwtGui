@@ -68,6 +68,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.util.ImgFileFilter;
@@ -943,6 +944,13 @@ public class TrpMainWidget {
 		if (docToLoad == null)
 			return;
 		
+		try {
+			storage.checkConnection(true);
+		} catch (NoConnectionException e1) {
+			// TODO Auto-generated catch block
+			loginDialog("Session expired!");
+		}
+				
 		String[] tmp = docToLoad.split(";;;");
 		if (tmp.length == 1) {
 			if (new File(tmp[0]).exists()) {

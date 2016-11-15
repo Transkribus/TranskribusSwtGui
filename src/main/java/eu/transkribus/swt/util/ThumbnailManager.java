@@ -74,7 +74,7 @@ public class ThumbnailManager extends Dialog{
 	public static final int THUMB_WIDTH = 80;
 	public static final int THUMB_HEIGHT = 120;
 	
-	protected List<ThmbImg> thumbs = new ArrayList<>();
+	//protected List<ThmbImg> thumbs = new ArrayList<>();
 	
 	protected ThmbImgLoadThread loadThread;
 	
@@ -627,18 +627,18 @@ public class ThumbnailManager extends Dialog{
 		this.transcripts = transcripts2;
 	}
 	
-	public void disposeOldData() {
-		// dispose images:
-		for (ThmbImg th : thumbs) {
-			th.dispose();
-		}
-		thumbs.clear();
-		// dispose galler items:
-		for (GalleryItem item : group.getItems() ) {
-			item.clear();
-			item.dispose();
-		}
-	}
+//	public void disposeOldData() {
+//		// dispose images:
+//		for (ThmbImg th : thumbs) {
+//			th.dispose();
+//		}
+//		thumbs.clear();
+//		// dispose galler items:
+//		for (GalleryItem item : group.getItems() ) {
+//			item.clear();
+//			item.dispose();
+//		}
+//	}
 			
 	public void reload() {
 		thumbsWidget.reload();
