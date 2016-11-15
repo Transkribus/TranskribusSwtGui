@@ -1202,6 +1202,11 @@ public class Storage {
 		logger.info("loaded remote document, docId = " + doc.getId() + ", title = " + doc.getMd().getTitle() + ", nPages = " + doc.getPages().size());
 	}
 
+	public TrpDoc getRemoteDoc(int colId, int docId, int nrOfTranscripts) throws SessionExpiredException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.getTrpDoc(colId, docId, nrOfTranscripts);
+	}
+	
 	public void saveTranscript(int colId, String commitMessage) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
 		if (!isLocalDoc() && !isLoggedIn())
 			throw new Exception("No connection");

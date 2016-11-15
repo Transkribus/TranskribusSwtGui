@@ -63,12 +63,7 @@ public class CanvasToolBarNew {
 	ToolItem showLinesToolItem;
 	ToolItem showBaselinesToolItem;
 	ToolItem showWordsToolItem;
-	
-//	****Search integration stuff****
-	ToolItem searchButton;
-	TextToolItem searchItem;
-//	********************************
-	
+		
 	DropDownToolItem visibilityItem;
 	
 	MenuItem showRegionsItem;
@@ -377,74 +372,10 @@ public class CanvasToolBarNew {
 			}
 		});
 		}		
-		
-		ToolItem offset = new ToolItem(tb, SWT.SEPARATOR);
-		offset.setWidth(20);
-		
-		searchItem = new TextToolItem(tb, SWT.NONE);
-		String searchItemText = "Search current document...";
-		searchItem.setText(searchItemText);
-		int defaultSearchItemWidth = searchItem.getWidth();
-		searchItem.setWidth(defaultSearchItemWidth);	
-		searchItem.getTextControl().addFocusListener(new FocusListener(){
-
-			@Override
-			public void focusGained(FocusEvent e) {
-				if(searchItem.getText().equals(searchItemText)){
-					searchItem.setText("");
-					searchItem.setWidth(defaultSearchItemWidth);
-				}				
-			}
-
-			@Override
-			public void focusLost(FocusEvent e) {
-				if(searchItem.getText().trim().isEmpty()){
-					searchItem.setText(searchItemText);
-				}				
-			}
-			
-		});
-		
-		searchItem.getTextControl().addTraverseListener(new TraverseListener() {
-			@Override public void keyTraversed(TraverseEvent e) {
-				if (e.detail == SWT.TRAVERSE_RETURN) {					
-					searchCurrentDoc();		
-				}
-			}
-		});
-		searchButton = new ToolItem(tb, SWT.NONE);
-		searchButton.setImage(Images.getOrLoad("/icons/quickfind.png"));
-		
-		searchButton.addSelectionListener(new SelectionAdapter(){
-			@Override
-			public void widgetSelected(SelectionEvent e){
-				searchCurrentDoc();
-			}
-		});
-		
-
-		
+				
 		tb.pack();
 	}
-	
-	public void searchCurrentDoc(){
-		TrpMainWidget mw = TrpMainWidget.getInstance();
 		
-		if(Storage.getInstance().getDoc() == null){
-			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "No document loaded.");
-			return;
-		}
-		
-		mw.openSearchDialog();		
-		mw.getSearchDialog().getTabFolder().setSelection(
-				mw.getSearchDialog().getFulltextTabItem());		
-		
-		FullTextSearchComposite ftComp = mw.getSearchDialog().getFulltextComposite();		
-		ftComp.searchCurrentDoc(true);							
-		ftComp.setSearchText(searchItem.getText());			
-		ftComp.findText();
-	}
-	
 	public void createEditItems(ToolBar tb) {
 		
 		if (false) {
@@ -730,9 +661,7 @@ public class CanvasToolBarNew {
 		SWTUtil.addSelectionListener(imgEnhanceItem, listener);
 		
 		SWTUtil.addSelectionListener(helpItem, listener);
-		SWTUtil.addSelectionListener(searchItem, listener);
-		SWTUtil.addSelectionListener(searchButton, listener);
-		
+				
 		// table stuff
 //		SWTUtil.addSelectionListener(deleteRowItem, listener);
 //		SWTUtil.addSelectionListener(deleteColumnItem, listener);
@@ -855,15 +784,7 @@ public class CanvasToolBarNew {
 	}	
 	
 	public DropDownToolItem getSimplifyEpsItem() { return simplifyEpsItem; }
-	
-	public ToolItem getSearchButton() {
-		return searchButton;
-	}
-	
-	public TextToolItem getSearchText() {
-		return searchItem;
-	}
-	
+		
 //	public DropDownToolItem getSplitTypeItem() { return splitTypeItem; }
 	
 //	@Override
