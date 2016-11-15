@@ -1,8 +1,8 @@
 package eu.transkribus.swt.util;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
@@ -13,22 +13,22 @@ import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.TrpDoc;
+import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ThumbnailWidgetVirtualMinimal extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidgetVirtualMinimal.class);
@@ -66,11 +66,14 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 
 	private int maxWidth = 0;
 
-	private static final boolean DISABLE_TRANSCRIBED_LINES = false;
+	private final boolean ENABLE_TRANSCRIBED_LINES;
+	
+	private boolean useGtVersions = false;
 
-	public ThumbnailWidgetVirtualMinimal(Composite parent, int style) {
+	public ThumbnailWidgetVirtualMinimal(Composite parent, final boolean displayTranscribedLines, int style) {
 		super(parent, style);
-
+		ENABLE_TRANSCRIBED_LINES = displayTranscribedLines;
+		
 		setLayout(new GridLayout());
 
 		groupComposite = new Composite(this, SWT.NONE);
@@ -99,36 +102,38 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		ir.setShowLabels(true);
 		gallery.setItemRenderer(ir);
 
-		gallery.addListener(SWT.MouseDoubleClick, new Listener() {
-
-			@Override
-			public void handleEvent(Event event) {
-				if (gallery.getSelectionCount() >= 1) {
-					Event e = new Event();
-					e.index = group.indexOf(gallery.getSelection()[0]);
-
-					// if (names != null && names.size()>e.index) {
-					// infoTi.setText(names.get(e.index));
-					// } else
-					// infoTi.setText(""+e.index);
-					// infoTi.setWidth(100);
-					// btns.pack();
-					//
-					notifyListeners(SWT.Selection, e);
-				}
-
-			}
-		});
+		
+		// TODO add listeners elsewhere... use getGallery()
+//		gallery.addListener(SWT.MouseDoubleClick, new Listener() {
+//
+//			@Override
+//			public void handleEvent(Event event) {
+//				if (gallery.getSelectionCount() >= 1) {
+//					Event e = new Event();
+//					e.index = group.indexOf(gallery.getSelection()[0]);
+//
+//					// if (names != null && names.size()>e.index) {
+//					// infoTi.setText(names.get(e.index));
+//					// } else
+//					// infoTi.setText(""+e.index);
+//					// infoTi.setWidth(100);
+//					// btns.pack();
+//					//
+//					notifyListeners(SWT.Selection, e);
+//				}
+//
+//			}
+//		});
 
 		// virtual table stuff:
 		gallery.setVirtualGroups(true);
 		gallery.addListener(SWT.SetData, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				System.out.println("setting data: " + event);
-				System.out.println("item: " + event.item);
+				logger.debug("setting data: " + event);
+				logger.debug("item: " + event.item);
 
-				GalleryItem item = (GalleryItem) event.item;
+				final GalleryItem item = (GalleryItem) event.item;
 				int index;
 				if (item.getParentItem() != null) { // if this is a leaft item
 													// -> set nr of items to 0!
@@ -139,7 +144,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 					item.setItemCount(doc.getThumbUrls().size());
 				}
 
-				System.out.println("setData index " + index); //$NON-NLS-1$
+				logger.debug("setData index " + index); //$NON-NLS-1$
 				
 				item.setExpanded(true);
 
@@ -150,7 +155,21 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 					e.printStackTrace();
 				}
 				
-//				item.setImage(Images.LOADING_IMG);
+				
+//				item.setImage(Images.LOADING_IMG);				
+//				Thread t = new Thread(new Runnable(){
+//
+//					@Override
+//					public void run() {
+//						try {
+//							GalleryItem item = gallery.getItem(index);
+//							item.setImage(ImgLoader.load(doc.getPages().get(index).getThumbUrl()));
+//						} catch (IOException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+//					}});
+//				t.start();
 				
 				item.setData("doNotScaleImage", new Object());
 
@@ -163,9 +182,59 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		this.pack();
 	}
 
-	public void setDoc(TrpDoc doc) {
+	public void setDoc(TrpDoc doc, boolean useGtVersions) {
 		this.doc = doc;
-		reload();
+		this.useGtVersions = useGtVersions;
+		reload(doc.getId() == this.doc.getId());
+	}
+	
+	public TrpDoc getDoc() {
+		return this.doc;
+	}
+	
+	public Gallery getGallery() {
+		return this.gallery;
+	}
+	
+	public int getTotalTranscribedLines () {
+		return this.totalLinesTranscribed;
+	}
+	
+	public void setUseGtVersions(boolean useGtVersions) {
+		this.useGtVersions = useGtVersions;
+		reload(true);
+	}
+	
+	public DocumentSelectionDescriptor getSelection() {
+		if (gallery.getSelectionCount() < 1) {
+			return null;
+		}
+		DocumentSelectionDescriptor dsd = new DocumentSelectionDescriptor();
+		dsd.setDocId(doc.getId());
+		GalleryItem[] selection = gallery.getSelection();
+		for(GalleryItem item : selection) {
+			final int index = gallery.indexOf(item);
+			
+			TrpPage p = doc.getPages().get(index);
+			
+			PageDescriptor pd = new PageDescriptor();
+			pd.setPageId(p.getPageId());
+			//TODO determine which transcript should be chosen
+			if(useGtVersions) {
+				int tsId = p.getCurrentTranscript().getTsId();
+				for(TrpTranscriptMetadata tmd : p.getTranscripts()) {
+					if(tmd.getStatus().equals(EditStatus.GT)) {
+						tsId = tmd.getTsId();
+						break;
+					}
+				}
+				pd.setTsId(tsId);
+			} else {
+				pd.setTsId(p.getCurrentTranscript().getTsId());
+			}
+			dsd.getPages().add(pd);
+		}
+		return dsd;
 	}
 
 	private void disposeOldData() {
@@ -198,61 +267,46 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 //		}
 //	}
 
-	private void reload() {
+	private void reload(boolean rememberSelection) {
 		if(doc == null) {
 			return;
 		}
 		
+		List<Integer> selection = new LinkedList<>();
+		if(rememberSelection) {
+			// remember index of selected item:
+			if (gallery.getSelectionCount() > 0) {
+				for(GalleryItem si : gallery.getSelection()) {
+					// logger.debug("si = "+si);
+					selection.add(gallery.indexOf(si));
+				}
+			}		
+		}
 		disposeOldData();
 		group.clearAll();
 		gallery.clearAll();
 		
 		group.setItemCount(doc.getNPages());
 		
+		//hack for reloading the display
 		GC gc = new GC(this);
 		groupRenderer.layout(gc, group);
 		gc.dispose();
-		
-		
-		
-		// remember index of selected item:
-		int selectedIndex = -1;
-		if (gallery.getSelectionCount() > 0) {
-			GalleryItem si = gallery.getSelection()[0];
-			// logger.debug("si = "+si);
-			selectedIndex = gallery.indexOf(si);
-		}
-
-		// first: stop old thread
-//		stopActiveThread();
-
-		// dispose old images:
-
-		
-
-		// create a new thread and start it:
-//		loadThread = new ThmbImgLoadThread();
-//		boolean DO_THREADING = true;
-//		if (DO_THREADING) {
-//			logger.debug("starting thumbnail thread!");
-//			loadThread.start();
-//		}
-//		else {
-//			logger.debug("running thumbnail reload method");
-//			loadThread.run(); // sequential version -> just call run() method
-//		}
-				
-
 
 		// select item previously selected:
-		logger.debug("previously selected index = " + selectedIndex + " n-items = " + group.getItemCount());
-		if (selectedIndex >= 0 && selectedIndex < group.getItemCount()) {
-			GalleryItem it = group.getItem(selectedIndex);
-			logger.trace("it = " + it);
-			if (it != null) {
-				it.setExpanded(true);
-				gallery.setSelection(new GalleryItem[] { it });
+		if (!selection.isEmpty()) { //&& selectedIndex < group.getItemCount()) {
+			ArrayList<GalleryItem> giList = new ArrayList<>(selection.size());
+			for(Integer si : selection) {
+				if(si < group.getItemCount()) {
+					GalleryItem it = group.getItem(si);
+					logger.trace("it = " + it);
+					if (it != null) {
+						it.setExpanded(true);
+						giList.add(it);
+					}
+				}
 			}
+			gallery.setSelection(giList.toArray(new GalleryItem[giList.size()]));
 		}
 		
 		
@@ -264,8 +318,19 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 			return;
 		}
 			
-		TrpTranscriptMetadata tmd = doc.getTranscripts().get(index);
-
+		TrpTranscriptMetadata tmd;
+		tmd = doc.getTranscripts().get(index);
+		
+		if(useGtVersions) {
+			List<TrpTranscriptMetadata> tList = doc.getPages().get(index).getTranscripts();
+			for(TrpTranscriptMetadata t : tList) {
+				if(t.getStatus().equals(EditStatus.GT)) {
+					tmd = t;
+					break;
+				}
+			}
+		}
+		
 		String transcribedLinesText = "";
 
 		int transcribedLines = tmd.getNrOfTranscribedLines();
@@ -318,7 +383,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 				// logger.debug("curr maxWidth " + maxWidth);
 			}
 
-			if (!DISABLE_TRANSCRIBED_LINES && !transcribedLinesText.equals("")) {
+			if (ENABLE_TRANSCRIBED_LINES && !transcribedLinesText.equals("")) {
 				text += transcribedLinesText;
 				tmp = gc.textExtent(transcribedLinesText).x + 10;
 				maxWidth = Math.max(maxWidth, tmp);
