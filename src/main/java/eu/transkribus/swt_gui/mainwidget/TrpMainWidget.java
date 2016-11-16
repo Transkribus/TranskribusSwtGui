@@ -99,6 +99,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.docx.DocxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
+import eu.transkribus.core.model.builder.ms.TrpXlsxTableBuilder;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
@@ -947,10 +948,13 @@ public class TrpMainWidget {
 		
 		try {
 			storage.checkConnection(true);
-		} catch (NoConnectionException e1) {
+			storage.getConnection().invalidate();
+		} catch (NoConnectionException | SessionExpiredException | ServerErrorException | ClientErrorException e1) {
 			// TODO Auto-generated catch block
-			loginDialog("Session expired!");
+			loginDialog("No conection to server!");
 		}
+		
+		logger.debug("user is logged in");
 				
 		String[] tmp = docToLoad.split(";;;");
 		if (tmp.length == 1) {
@@ -968,7 +972,11 @@ public class TrpMainWidget {
 
 			List<TrpDocMetadata> docList;
 			try {
+				if (storage.getConnection() == null){
+					logger.debug("conn is null");
+				}
 				docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
+				logger.debug("doclist " + docList.get(0).getDocId());
 				if (docList != null && docList.size() > 0) {
 					if (loadRemoteDoc(docid, colid)) {
 //						getUi().getServerWidget().setSelectedCollection(colid, true);
@@ -978,6 +986,7 @@ public class TrpMainWidget {
 					//DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Last used document is not on this server", 2, true);
 				}
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+				logger.debug(" exception message " + e.toString() +  " -> " + e.getMessage());
 				// DO NOTHING
 			}
 
@@ -3268,7 +3277,8 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Excel document...");
-						TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, isTagExport, file, pageIndices, monitor, selectedTags);
+						TrpXlsxTableBuilder.writeXlsxForTables(storage.getDoc(), isWordBased, file, pageIndices, monitor);
+						//TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, isTagExport, file, pageIndices, monitor, selectedTags);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
