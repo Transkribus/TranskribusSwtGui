@@ -1,8 +1,6 @@
 package eu.transkribus.swt.util;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
@@ -155,22 +153,6 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 					e.printStackTrace();
 				}
 				
-				
-//				item.setImage(Images.LOADING_IMG);				
-//				Thread t = new Thread(new Runnable(){
-//
-//					@Override
-//					public void run() {
-//						try {
-//							GalleryItem item = gallery.getItem(index);
-//							item.setImage(ImgLoader.load(doc.getPages().get(index).getThumbUrl()));
-//						} catch (IOException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-//					}});
-//				t.start();
-				
 				item.setData("doNotScaleImage", new Object());
 
 				setItemTextAndBackground(item, index);
@@ -185,7 +167,8 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 	public void setDoc(TrpDoc doc, boolean useGtVersions) {
 		this.doc = doc;
 		this.useGtVersions = useGtVersions;
-		reload(doc.getId() == this.doc.getId());
+//		reload(doc.getId() == this.doc.getId());
+		reload();
 	}
 	
 	public TrpDoc getDoc() {
@@ -202,7 +185,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 	
 	public void setUseGtVersions(boolean useGtVersions) {
 		this.useGtVersions = useGtVersions;
-		reload(true);
+		reload();
 	}
 	
 	public DocumentSelectionDescriptor getSelection() {
@@ -267,21 +250,23 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 //		}
 //	}
 
-	private void reload(boolean rememberSelection) {
+	private void reload() {
 		if(doc == null) {
 			return;
 		}
 		
-		List<Integer> selection = new LinkedList<>();
-		if(rememberSelection) {
-			// remember index of selected item:
-			if (gallery.getSelectionCount() > 0) {
-				for(GalleryItem si : gallery.getSelection()) {
-					// logger.debug("si = "+si);
-					selection.add(gallery.indexOf(si));
-				}
-			}		
-		}
+		//FIXME restoring previously selected items leads to ArithmeticException with SWT.Virtual
+//		List<Integer> selection = new LinkedList<>();
+//		if(rememberSelection) {
+//			// remember index of selected item:
+//			if (gallery.getSelectionCount() > 0) {
+//				for(GalleryItem si : gallery.getSelection()) {
+//					logger.debug("si = "+si);
+//					selection.add(gallery.indexOf(si));
+//				}
+//			}	
+//			logger.debug("Selected Items: " + selection.size());
+//		}
 		disposeOldData();
 		group.clearAll();
 		gallery.clearAll();
@@ -289,27 +274,26 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		group.setItemCount(doc.getNPages());
 		
 		//hack for reloading the display
-		GC gc = new GC(this);
-		groupRenderer.layout(gc, group);
-		gc.dispose();
+//		GC gc = new GC(this);
+//		groupRenderer.layout(gc, group);
+//		gc.dispose();
 
 		// select item previously selected:
-		if (!selection.isEmpty()) { //&& selectedIndex < group.getItemCount()) {
-			ArrayList<GalleryItem> giList = new ArrayList<>(selection.size());
-			for(Integer si : selection) {
-				if(si < group.getItemCount()) {
-					GalleryItem it = group.getItem(si);
-					logger.trace("it = " + it);
-					if (it != null) {
-						it.setExpanded(true);
-						giList.add(it);
-					}
-				}
-			}
-			gallery.setSelection(giList.toArray(new GalleryItem[giList.size()]));
-		}
-		
-		
+//		if (!selection.isEmpty()) { //&& selectedIndex < group.getItemCount()) {
+//			ArrayList<GalleryItem> giList = new ArrayList<>(selection.size());
+//			for(Integer si : selection) {
+//				if(si < group.getItemCount()) {
+//					GalleryItem it = group.getItem(si);
+//					logger.trace("it = " + it);
+//					if (it != null) {
+//						it.setExpanded(true);
+//						giList.add(it);
+//					}
+//				}
+//			}
+//			logger.debug("Restoring selection: " + giList.size());
+//			gallery.setSelection(giList.toArray(new GalleryItem[giList.size()]));
+//		}
 	}
 
 	private void setItemTextAndBackground(GalleryItem item, int index) {
