@@ -952,8 +952,6 @@ public class TrpMainWidget {
 			// TODO Auto-generated catch block
 			loginDialog("No conection to server!");
 		}
-		
-		logger.debug("user is logged in");
 				
 		String[] tmp = docToLoad.split(";;;");
 		if (tmp.length == 1) {
@@ -971,9 +969,6 @@ public class TrpMainWidget {
 
 			List<TrpDocMetadata> docList;
 			try {
-				if (storage.getConnection() == null){
-					logger.debug("conn is null");
-				}
 				docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
 				logger.debug("doclist " + docList.get(0).getDocId());
 				if (docList != null && docList.size() > 0) {
@@ -985,8 +980,13 @@ public class TrpMainWidget {
 					//DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Last used document is not on this server", 2, true);
 				}
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
-				logger.debug(" exception message " + e.toString() +  " -> " + e.getMessage());
-				// DO NOTHING
+				//logger.debug(" exception message " + e.toString() +  " -> " + e.getMessage());
+				if(e instanceof SessionExpiredException){
+					logger.debug("Exception message " + e.toString() +  " -> " + e.getMessage());
+					loginDialog("Session Expired!");
+					//retry
+					loadRecentDoc(docToLoad);
+				}
 			}
 
 		}
