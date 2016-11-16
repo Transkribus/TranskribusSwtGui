@@ -948,8 +948,7 @@ public class TrpMainWidget {
 		
 		try {
 			storage.checkConnection(true);
-			storage.getConnection().invalidate();
-		} catch (NoConnectionException | SessionExpiredException | ServerErrorException | ClientErrorException e1) {
+		} catch (NoConnectionException e1) {
 			// TODO Auto-generated catch block
 			loginDialog("No conection to server!");
 		}
