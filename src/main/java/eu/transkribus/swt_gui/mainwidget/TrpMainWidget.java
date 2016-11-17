@@ -2758,6 +2758,7 @@ public class TrpMainWidget {
 			boolean doDocxExport = false;
 			boolean doTeiExport = false;
 			boolean doXlsxExport = false;
+			boolean doTableExport = false;
 
 			String tempDir = null;
 
@@ -2775,6 +2776,9 @@ public class TrpMainWidget {
 
 			String xlsxExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".xlsx";
 			File xlsxExportFile = new File(xlsxExportFileOrDir);
+			
+			String tableExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + "_tables.xlsx";
+			File tableExportFile = new File(tableExportFileOrDir);
 
 			String zipExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".zip";
 			File zipExportFile = new File(zipExportFileOrDir);
@@ -2792,6 +2796,8 @@ public class TrpMainWidget {
 				doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
 
 				doXlsxExport = (exportDiag.isXlsxExport() && exportDiag.getExportPathComp().checkExportFile(xlsxExportFile, ".xlsx", getShell()));
+				
+				doTableExport = (exportDiag.isTableExport() && exportDiag.getExportPathComp().checkExportFile(tableExportFile, ".xlsx", getShell()));
 			}
 
 			doZipExport = (exportDiag.isZipExport() && exportDiag.getExportPathComp().checkExportFile(zipExportFile, ".zip", getShell()));
@@ -2803,7 +2809,7 @@ public class TrpMainWidget {
 
 			final String fileNamePattern = exportDiag.getFileNamePattern();
 
-			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doXlsxExport && !doZipExport) {
+			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doXlsxExport && !doZipExport && !doTableExport) {
 				/*
 				 * if the export file exists and the user wants not to overwrite it then the 
 				 * export dialog shows up again with the possibility to choose another location
@@ -2912,6 +2918,8 @@ public class TrpMainWidget {
 				if (exportDiag.isXlsxExport())
 					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(),
 							selectedTags);
+				if (exportDiag.isTableExport())
+					exportTableXlsx(new File(tempZipDirParent + "/" + dir.getName() + "_tables.xlsx"), pageIndices, selectedTags);
 
 				//createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".zip");
 				createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), zipExportFile.getAbsolutePath());
@@ -2997,11 +3005,22 @@ public class TrpMainWidget {
 
 			if (doXlsxExport) {
 
-				exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(), selectedTags);
+				if (exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(), selectedTags)){
+					if (exportFormats != "") {
+						exportFormats += " and ";
+					}
+					exportFormats += "XLSX";
+				}
+
+			}
+			
+			if (doTableExport) {
+
+				exportTableXlsx(tableExportFile, pageIndices, selectedTags);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
-				exportFormats += "Xlsx";
+				exportFormats += "TABLES_XLSX";
 
 			}
 
@@ -3254,20 +3273,23 @@ public class TrpMainWidget {
 		}
 	}
 
-	public void exportXlsx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport,
+	public boolean exportXlsx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport,
 			final Set<String> selectedTags) throws Throwable {
 		try {
 
 			if (ExportUtils.getCustomTagMapForDoc().isEmpty()) {
 				logger.info("No tags to store -> Xlsx export cancelled");
 				displayCancelMessage("No custom tags in document to store -> Xlsx export cancelled");
-				throw new Exception("No tags to store -> Xlsx export cancelled");
+				return false;
+				//throw new Exception("No tags to store -> Xlsx export cancelled");
 			}
-
+			
+			logger.debug("tags " + ExportUtils.getCustomTagMapForDoc().size());
+			
 			//logger.debug("lastExportXlsxFn = " + lastExportXlsxFn);
 
 			if (file == null)
-				return;
+				return false;
 
 			logger.info("Excel export. pages " + pageIndices + ", isWordBased: " + isWordBased);
 
@@ -3276,8 +3298,37 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Excel document...");
-						TrpXlsxTableBuilder.writeXlsxForTables(storage.getDoc(), isWordBased, file, pageIndices, monitor);
-						//TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, isTagExport, file, pageIndices, monitor, selectedTags);
+						TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, isTagExport, file, pageIndices, monitor, selectedTags);
+						monitor.done();
+					} catch (InterruptedException ie) {
+						throw ie;
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Exporting", true);
+		} catch (Throwable e) {
+			if (!(e instanceof InterruptedException))
+				onError("Export error", "Error during Xlsx export of document", e);
+			throw e;
+		}
+		return true;
+	}
+	
+	public void exportTableXlsx(final File file, final Set<Integer> pageIndices, final Set<String> selectedTags) throws Throwable {
+		try {
+
+			if (file == null)
+				return;
+
+			logger.info("Excel table export. pages " + pageIndices);
+
+			lastExportFolder = file.getParentFile().getAbsolutePath();
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						logger.debug("creating Excel document...");
+						TrpXlsxTableBuilder.writeXlsxForTables(storage.getDoc(), file, pageIndices, monitor);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;

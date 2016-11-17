@@ -87,7 +87,8 @@ public class CommonExportDialog extends Dialog {
 	TeiExportMode teiExportMode;
 	TeiLinebreakMode teiLinebreakMode;
 	
-	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, xlsxExport, zipExport;
+	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, xlsxExport, tableExport, zipExport;
+
 	String fileNamePattern = "${filename}";
 	Button addExtraTextPagesBtn;
 	boolean addExtraTextPages2PDF;
@@ -163,6 +164,8 @@ public class CommonExportDialog extends Dialog {
 	    b3.setText("DOCX");
 	    final Button b4 = new Button(group1, SWT.CHECK);
 	    b4.setText("Tag Export (Excel)");
+	    final Button b41 = new Button(group1, SWT.CHECK);
+	    b41.setText("Table Export into Excel");
 	    // Create a horizontal separator
 	    Label separator = new Label(group1, SWT.HORIZONTAL | SWT.SEPARATOR);
 	    separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -378,6 +381,19 @@ public class CommonExportDialog extends Dialog {
 	            
 	        }
 	    });
+	    
+	    b41.addSelectionListener(new SelectionAdapter() {
+
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	            Button btn = (Button) event.getSource();
+            	setTableExport(btn.getSelection());
+	            showPageChoice();
+	            showTagChoice();
+	            shell.layout();
+	            
+	        }
+	    });
 
 	    b5.addSelectionListener(new SelectionAdapter() {
 	        @Override
@@ -393,6 +409,8 @@ public class CommonExportDialog extends Dialog {
 	            b3.notifyListeners(SWT.Selection, new Event());
 	            b4.setSelection(btn.getSelection());
 	            b4.notifyListeners(SWT.Selection, new Event());
+	            b41.setSelection(btn.getSelection());
+	            b41.notifyListeners(SWT.Selection, new Event());
 
 	        }
 	    });
@@ -419,7 +437,7 @@ public class CommonExportDialog extends Dialog {
 				updateTeiExportMode();
 				updateLineBreakMode();
 				
-				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isXlsxExport()){
+				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isXlsxExport()&& !isTableExport()){
 					DialogUtil.showInfoMessageBox(shell, "Missing export format", "Please choose an export format to continue");
 				}
 				else {
@@ -959,7 +977,7 @@ public class CommonExportDialog extends Dialog {
 	}
 	
 	public boolean isPageableExport() {
-		return isMetsExport() || isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport();
+		return isMetsExport() || isPdfExport() || isDocxExport() || isXlsxExport() || isTableExport() || isTeiExport();
 	}
 		
 	public boolean isTagableExport(){
@@ -1157,6 +1175,14 @@ public class CommonExportDialog extends Dialog {
 
 	public void setXlsxExport(boolean xlsxExport) {
 		this.xlsxExport = xlsxExport;
+	}
+	
+	public boolean isTableExport() {
+		return tableExport;
+	}
+
+	public void setTableExport(boolean tableExport) {
+		this.tableExport = tableExport;
 	}
 
 	public void setAddExtraTextPages2PDF(boolean addExtraTextPages2PDF) {
