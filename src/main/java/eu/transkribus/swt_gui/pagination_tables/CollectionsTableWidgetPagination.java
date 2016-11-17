@@ -27,6 +27,7 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 	static String NAME_COL = "Name";
 	static String ROLE_COL = "Role";
 	static String DESC_COL = "Description";
+	static String LABEL_COL = "Label";
 	
 	static final boolean USE_LIST_LOADER = true;
 	
@@ -144,6 +145,7 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 		createColumn(NAME_COL, 200, "colName", new CollectionsTableColumnLabelProvider("colName"));
 		createColumn(ROLE_COL, 80, "colName", new CollectionsTableColumnLabelProvider("role"));
 		createColumn(DESC_COL, 100, "description", new CollectionsTableColumnLabelProvider("description"));
+		createColumn(LABEL_COL, 100, "label", new CollectionsTableColumnLabelProvider("label"));
 	}
 
 }
