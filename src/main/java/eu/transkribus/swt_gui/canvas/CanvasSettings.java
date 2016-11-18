@@ -88,7 +88,7 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		private int foregroundAlpha = 255;
 		public final static String FOREGROUND_ALPHA_PROPERY = "foregroundAlpha";
 		
-		private int readingOrderCircleWidth = 100;
+		private int readingOrderCircleWidth = 90;
 		public final static String READING_ORDER_PROPERTY = "readingOrderCircleWidth";
 		
 		private int lineStyle = SWT.LINE_SOLID;

@@ -279,6 +279,7 @@ public class TrpMainWidget {
 		// canvas = new TrpSWTCanvas(SWTUtil.dummyShell, SWT.NONE, this);
 		ui = new TrpMainWidgetView(parent, this);
 		canvas = ui.getCanvas();
+	
 		// transcriptionWidget = ui.getLineTranscriptionWidget();
 		shapeFactory = new TrpShapeElementFactory(this);
 
@@ -2019,7 +2020,7 @@ public class TrpMainWidget {
 			//store the path for the local doc
 			RecentDocsPreferences.push(folder);
 			ui.getServerWidget().updateRecentDocs();
-
+			
 			updateThumbs();
 			getCanvas().fitWidth();
 			return true;
@@ -2112,6 +2113,21 @@ public class TrpMainWidget {
 
 			updateThumbs();
 			getCanvas().fitWidth();
+			
+			//change reading order circle width according to image resolution
+			FimgStoreImgMd imgMd = storage.getCurrentImageMetadata();
+			if (imgMd != null){
+				int oldWidth = canvas.getSettings().getReadingOrderCircleWidth();
+				double resizeFactor = 1.0;
+				if (imgMd.getXResolution() < 210){
+					resizeFactor = 0.5;
+				}
+				else if(imgMd.getXResolution() > 210 && imgMd.getXResolution() < 390){
+					resizeFactor = 0.75;
+				}
+				canvas.getSettings().setReadingOrderCircleWidth((int) (oldWidth*resizeFactor));
+			}			
+			
 			tmpCount++;
 			return true;
 		} catch (Throwable e) {

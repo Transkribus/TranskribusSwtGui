@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
@@ -1342,7 +1343,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
     	CanvasSettings sets = canvas.getSettings();
     	
     	java.awt.Rectangle rec = this.getBounds();
-    	
+       	
     	int arcWidth = sets.getReadingOrderCircleWidth();
 	
 		if (isRegion){

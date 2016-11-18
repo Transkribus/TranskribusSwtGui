@@ -882,8 +882,13 @@ public class CanvasScene {
 		ICanvasShape minShape = null;
 		double minDist = Double.MAX_VALUE;	
 		boolean found = false;
-		for (ICanvasShape s : shapes) {
-			
+		
+		//go from last shape backwards to select always the highest reading order circle (is drawn over the lower ones) during changing reading order
+		List<ICanvasShape> tmpShapes = new ArrayList<ICanvasShape>();
+		tmpShapes.addAll(shapes);
+		Collections.reverse(tmpShapes);
+				
+		for (ICanvasShape s : tmpShapes) {
 			if (s.isReadingOrderVisible() && s.getReadingOrderCircle().contains(x, y) && !found){
 				//logger.debug("reading order selected is true for mouse point " + x + " , " + y );
 				//Display display = canvas.getDisplay();
