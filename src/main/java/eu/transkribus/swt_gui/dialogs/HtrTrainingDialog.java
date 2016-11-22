@@ -1,11 +1,16 @@
 package eu.transkribus.swt_gui.dialogs;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
@@ -30,11 +35,10 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.UroHtrTrainConfig;
-import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -50,10 +54,12 @@ public class HtrTrainingDialog extends Dialog {
 	
 	private Button useTrainGtVersionChk, useTestGtVersionChk; 
 	
+	//keep references of all ThumbnailWidgets for gathering selection results
 	private List<ThumbnailWidgetVirtualMinimal> trainTwList, testTwList;
 	
 	private Text modelNameTxt, descTxt, langTxt, trainSizeTxt;
-	private Combo baseModelCmb, noiseCmb;	
+	private Combo baseModelCmb, noiseCmb;
+	private ComboViewer baseModelCmbViewer;
 	
 	private Text numEpochsTxt, learningRateTxt;
 	
@@ -141,6 +147,19 @@ public class HtrTrainingDialog extends Dialog {
 		baseModelCmb = new Combo(uroParamCont, SWT.READ_ONLY);
 		baseModelCmb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		baseModelCmb.setItems(new String[] {"", "bla", "blubb"});
+		
+		baseModelCmbViewer = new ComboViewer(baseModelCmb);
+		baseModelCmbViewer.setLabelProvider(new LabelProvider() {
+			@Override public String getText(Object element) {
+				if (element instanceof TrpHtr) {
+					return ((TrpHtr) element).getName();
+				}
+				else return "i am error";
+			}
+		});
+		baseModelCmbViewer.setContentProvider(new ArrayContentProvider());
+		
+		updateHtrs();
 		
 		setUroDefaults();
 		
@@ -277,12 +296,23 @@ public class HtrTrainingDialog extends Dialog {
 		return cont;
 	}
 
+	private void updateHtrs() {
+		List<TrpHtr> uroHtrs = new ArrayList<>(0);
+		try {
+			uroHtrs = store.listHtrs("CITlab");
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e1) {
+			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Could not load HTR model list!");
+		}
+		
+		baseModelCmbViewer.setInput(uroHtrs);
+	}
+
 	private void setUroDefaults() {
 		numEpochsTxt.setText("" + NUM_EPOCHS_DEFAULT);
 		learningRateTxt.setText(LEARNING_RATE_DEFAULT);
 		noiseCmb.select(NOISE_DEFAULT_CHOICE);
 		trainSizeTxt.setText(""+ TRAIN_SIZE_DEFAULT);
-		baseModelCmb.select(0);
+//		baseModelCmb.select(0);
 	}
 
 	private Composite createDocOverviewCont(List<ThumbnailWidgetVirtualMinimal> twList, boolean useGtVersions, CTabFolder parent, TrpDoc doc) {
@@ -380,12 +410,6 @@ public class HtrTrainingDialog extends Dialog {
 			return;
 		}
 		
-		try {
-			System.out.println(JaxbUtils.marshalToString(conf, DocumentSelectionDescriptor.class, PageDescriptor.class));
-		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		super.okPressed();
 	}
 
@@ -449,5 +473,9 @@ public class HtrTrainingDialog extends Dialog {
 			return false;
 		}
 		return true;
+	}
+	
+	public UroHtrTrainConfig getConfig() {
+		return conf;
 	}
 }

@@ -39,7 +39,7 @@ public class ToolsWidget extends Composite {
 	Button detectPageNumbers, detectRunningTitles, detectFootnotesCheck;
 	
 	
-	Button startRecogBtn;
+	Button startRecogBtn, htrTrainBtn;
 	
 	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
 	Label ncsrIconL;
@@ -382,7 +382,12 @@ public class ToolsWidget extends Composite {
 				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
 			}
 		});		
-	
+		
+		htrTrainBtn = new Button(c, SWT.PUSH);
+		htrTrainBtn.setText("Train HTR...");
+		htrTrainBtn.setToolTipText("EXPERIMENTAL");
+		htrTrainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		
 		exp.setClient(c);
 		exp.setText("Text Recognition");
 		exp.setExpanded(true);

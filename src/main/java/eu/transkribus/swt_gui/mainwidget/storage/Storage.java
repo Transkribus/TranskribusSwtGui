@@ -54,9 +54,11 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpEvent;
+import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpWordgraph;
+import eu.transkribus.core.model.beans.UroHtrTrainConfig;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.enums.EditStatus;
@@ -1799,11 +1801,25 @@ public class Storage {
 		return htrModelList.toArray(new String[htrModelList.size()]);
 	}
 	
+	public List<TrpHtr> listHtrs(String provider) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		checkConnection(true);
+		logger.debug("Listing HTRs: " + this.getCollId() + " - " + provider);
+		return conn.getHtrs(this.getCollId(), provider);		
+	}
+	
 	public String runRnnHtr(int colId, int docId, String pageStr, String netName, String dictName) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.runRnnHtr(colId, docId, pageStr, netName, dictName);
 	}
 	
+	public String runHtrTraining(UroHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		if(config == null) {
+			throw new IllegalArgumentException("Config is null!");
+		}
+		return conn.runUroHtrTraining(config);
+	}
+	
+	@Deprecated
 	public List<String> getHtrNets() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
 		checkConnection(true);
 		return conn.getHtrRnnListText();

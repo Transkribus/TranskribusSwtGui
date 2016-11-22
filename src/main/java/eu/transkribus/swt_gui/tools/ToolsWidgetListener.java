@@ -13,22 +13,27 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.HtrModel;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.UroHtrTrainConfig;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
-import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.dialogs.HtrTrainingDialog;
 import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.HtrRecMode;
@@ -44,6 +49,10 @@ public class ToolsWidgetListener implements SelectionListener {
 	ToolsWidget tw;
 	SWTCanvas canvas;
 	Storage store = Storage.getInstance();
+	
+	ThumbnailManager tm;
+	HtrTrainingDialog htd;
+//	TextRecognitionDialog trD;
 		
 	public ToolsWidgetListener(TrpMainWidget mainWidget) {
 		this.mw = mainWidget;
@@ -65,6 +74,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		
 		SWTUtil.addSelectionListener(tw.structAnalysisPageBtn, this);
 		SWTUtil.addSelectionListener(tw.startRecogBtn, this);
+		SWTUtil.addSelectionListener(tw.htrTrainBtn, this);
 		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
 				
@@ -299,6 +309,51 @@ public class ToolsWidgetListener implements SelectionListener {
 //					logger.info("starting HTR for doc " + docId + " on page " + pageNr + " with model = " + model);
 //					jobId = store.runHtrOnPage(colId, docId, pageNr, model);
 //				} 
+			} else if(s==tw.htrTrainBtn) {
+				if(!store.isAdminLoggedIn()) {
+					DialogUtil.showInfoMessageBox(mw.getShell(), "Not Available", "HTR Training is currently under development and only available to Admins.\n"
+							+ "In case you want to request a data set to be trained, please contact us at email@transkribus.eu.");
+				} else {
+					HtrTrainingDialog htd = new HtrTrainingDialog(mw.getShell());
+					if(htd.open() == IDialogConstants.OK_ID) {
+						UroHtrTrainConfig config = htd.getConfig();
+						jobId = store.runHtrTraining(config);
+					}
+
+//					//if shell is open {
+//					if(tm != null && tm.getShell() != null && !tm.getShell().isDisposed()){
+//						tm.getShell().setVisible(true);
+//					} else {
+//						tm = new ThumbnailManager(mw.getShell(), SWT.NONE, this);
+//						tm.open();
+//					}
+
+					
+					
+//				HtrTrainingDialog trD = new HtrTrainingDialog(mw.getShell());
+//				int ret = trD.open();
+//				final String pageStr = trD.getSelectedPages();
+//				if (ret == IDialogConstants.OK_ID) {
+//					if(trD.getRecMode().equals(RecMode.OCR)){
+//						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
+//						jobId = store.runOcr(colId, docId, pageStr);
+//					} else { //HTR
+//						store.saveTranscript(colId, null);
+//						store.setLatestTranscriptAsCurrent();
+//						if(trD.getHtrRecMode().equals(HtrRecMode.HMM)) {
+//							final HtrModel model = trD.getSelectedHtrModel();
+//							logger.info("starting HMM HTR for doc " + docId + " on pages " + pageStr + " with model = " + model.getModelName());
+//							jobId = store.runHtr(colId, docId, pageStr, model.getModelName());
+//						} else if(trD.getHtrRecMode().equals(HtrRecMode.RNN)){
+//							final String netName = trD.getRnnName();
+//							final String dictName = trD.getDictName();
+//							logger.info("starting RNN HTR for doc " + docId + " on pages " + pageStr + " with net = " + netName + " | dict = " + dictName);
+//							jobId = store.runRnnHtr(colId, docId, pageStr, netName, dictName);
+//						} else {
+//							DialogUtil.showErrorMessageBox(TrpMainWidget.getInstance().getShell(), "Info", "Result: 42");
+//						}
+//					}
+				}
 			}
 //			else {
 //				mw.onError("Error", "Unknown event!", null);
