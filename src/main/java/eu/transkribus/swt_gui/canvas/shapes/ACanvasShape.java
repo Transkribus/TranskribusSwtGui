@@ -1338,35 +1338,41 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
     	children.clear();
     }
     
-    public void createReadingOrderShape(SWTCanvas canvas, boolean isRegion, boolean isLine, boolean isWord, boolean hasBaseline){
+    public void createReadingOrderShape(SWTCanvas canvas, boolean isRegion, boolean isLine, boolean isWord, boolean hasBaseline, double blX, double blY){
     	
     	CanvasSettings sets = canvas.getSettings();
     	
     	java.awt.Rectangle rec = this.getBounds();
        	
-    	int arcWidth = sets.getReadingOrderCircleWidth();
+    	double arcWidth = sets.getReadingOrderCircleWidth();
+    	//logger.debug("init width of ro circle " + arcWidth);
 	
 		if (isRegion){
-			arcWidth = (int) (arcWidth*.9);
+			arcWidth = arcWidth*.9;
 		}
 		else if (isLine){
-			arcWidth = (int) (arcWidth*.6);
+			arcWidth = arcWidth*.6;
+			//logger.debug("setting width of ro circle " + arcWidth);
 
 		}
 		else if (isWord){
-			arcWidth = (int) (arcWidth*.5);
+			arcWidth = arcWidth*.5;
 
 		}
 		else{
 			return;
 		}
 		
-    	
 		double xLocation = (rec.x+rec.width/2) - arcWidth/2;
-		if (isLine && hasBaseline){
-				xLocation = this.getX();						
-		}
 		double yLocation = (rec.y+rec.height/2) - arcWidth/2;
+		
+		//place reading order according to baseline start
+		if (isLine && hasBaseline){
+			xLocation = this.getX();
+//			logger.debug("y location of ro circle " + blY);
+//			logger.debug("width of ro circle " + arcWidth);
+			yLocation = (blY-arcWidth);
+		}	
 		
 		readingOrderCircle = new Ellipse2D.Double(xLocation, yLocation, arcWidth, arcWidth);
 		

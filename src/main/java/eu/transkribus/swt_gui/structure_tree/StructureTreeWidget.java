@@ -397,7 +397,10 @@ public class StructureTreeWidget extends Composite {
 				TrpMainWidget.getInstance().getScene().updateAllShapesParentInfo();
 				targetSt.getPage().sortContent();
 				
-//				treeViewer.refresh();
+				TrpMainWidget.getInstance().getCanvas().redraw();
+				TrpMainWidget.getInstance().getCanvas().update();
+				
+				treeViewer.refresh();
 //				if (targetSt!=null)
 //					treeViewer.refresh(targetSt.getParent(), true);
 //				getViewer().refresh();
@@ -627,7 +630,7 @@ public class StructureTreeWidget extends Composite {
 						} else {
 							try {
 								int ro = Integer.parseInt(valueStr);
-								logger.debug("++++++++++++reInsertIntoParent(ro) " + (ro-1));
+								//logger.debug("++++++++++++reInsertIntoParent(ro) " + (ro-1));
 								s.removeFromParent();
 								s.reInsertIntoParent(ro-1);
 								//s.setReadingOrder(ro, StructureTreeWidget.this);

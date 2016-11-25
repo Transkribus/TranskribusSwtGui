@@ -106,6 +106,7 @@ import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CreateThumbsService;
@@ -195,6 +196,8 @@ public class TrpMainWidget {
 	public ProgramInfo info;
 	public final String VERSION;
 	public final String NAME;
+	
+	private final double readingOrderCircleInitWidth = 90;
 
 	// Listener:
 	// CanvasGlobalEventsFilter globalEventsListener;
@@ -432,8 +435,16 @@ public class TrpMainWidget {
 
 	public Future<List<TrpDocMetadata>> reloadDocList(int colId) {
 		try {
+			
 			if (colId == 0)
 				return null;
+			
+			try {
+				storage.checkConnection(true);
+			} catch (NoConnectionException e1) {
+				// TODO Auto-generated catch block
+				loginDialog("No conection to server!");
+			}
 			
 			if (!storage.isLoggedIn())
 				return null;
@@ -2117,7 +2128,9 @@ public class TrpMainWidget {
 			//change reading order circle width according to image resolution
 			FimgStoreImgMd imgMd = storage.getCurrentImageMetadata();
 			if (imgMd != null){
-				int oldWidth = canvas.getSettings().getReadingOrderCircleWidth();
+				double initWidth = readingOrderCircleInitWidth;
+				logger.debug("initWidth " + initWidth);
+				
 				double resizeFactor = 1.0;
 				if (imgMd.getXResolution() < 210){
 					resizeFactor = 0.5;
@@ -2125,7 +2138,10 @@ public class TrpMainWidget {
 				else if(imgMd.getXResolution() > 210 && imgMd.getXResolution() < 390){
 					resizeFactor = 0.75;
 				}
-				canvas.getSettings().setReadingOrderCircleWidth((int) (oldWidth*resizeFactor));
+				double tmpWith = initWidth*resizeFactor;
+				logger.debug("set ro in settings " + tmpWith);
+				
+				canvas.getSettings().setReadingOrderCircleWidth((int) tmpWith);
 			}			
 			
 			tmpCount++;
@@ -2745,7 +2761,7 @@ public class TrpMainWidget {
 			 * preselect document title for export folder name filter out all
 			 * unwanted chars
 			 */
-			String adjTitle = getAdjustedDocTitle();
+			String adjTitle = ExportUtils.getAdjustedDocTitle(storage.getDoc().getMd().getTitle());
 
 			saveTranscriptDialogOrAutosave();
 
@@ -2869,6 +2885,7 @@ public class TrpMainWidget {
 			if (exportDiag.isTagableExportChosen()) {
 
 				selectedTags = exportDiag.getSelectedTagsList();
+				ExportUtils.setSelectedTags(selectedTags);
 
 				logger.debug("loading tags..." + selectedTags.size());
 
@@ -2929,16 +2946,15 @@ public class TrpMainWidget {
 					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag);
 				if (exportDiag.isDocxExport())
 					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isTagExport(), doBlackening,
-							selectedTags, createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
+							createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 							exportDiag.isPreserveLinebreaks());
 				if (exportDiag.isXlsxExport())
-					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(),
-							selectedTags);
+					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport());
 				if (exportDiag.isTableExport())
 					exportTableXlsx(new File(tempZipDirParent + "/" + dir.getName() + "_tables.xlsx"), pageIndices, selectedTags);
 
 				//createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".zip");
-				createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), zipExportFile.getAbsolutePath());
+				ZipUtils.createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), zipExportFile.getAbsolutePath());
 
 				if (exportFormats != "") {
 					exportFormats += " and ";
@@ -3009,7 +3025,7 @@ public class TrpMainWidget {
 
 			if (doDocxExport) {
 
-				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, selectedTags, createTitle,
+				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, createTitle,
 						exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 						exportDiag.isPreserveLinebreaks());
 				if (exportFormats != "") {
@@ -3021,7 +3037,7 @@ public class TrpMainWidget {
 
 			if (doXlsxExport) {
 
-				if (exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport(), selectedTags)){
+				if (exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport())){
 					if (exportFormats != "") {
 						exportFormats += " and ";
 					}
@@ -3102,59 +3118,7 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	private void createZipFromFolder(String srcFolder, String destZipFile) throws IOException {
-		ZipOutputStream zip = null;
-		FileOutputStream fileWriter = null;
 
-		try {
-			fileWriter = new FileOutputStream(destZipFile);
-
-			zip = new ZipOutputStream(fileWriter);
-
-			addFolderToZip("", srcFolder, zip);
-			zip.flush();
-			zip.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			throw e;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			throw e;
-		} finally {
-			if (zip != null) {
-				zip.close();
-			}
-		}
-	}
-
-	static private void addFileToZip(String path, String srcFile, ZipOutputStream zip) throws IOException {
-
-		File folder = new File(srcFile);
-		if (folder.isDirectory()) {
-			addFolderToZip(path, srcFile, zip);
-		} else {
-			byte[] buf = new byte[1024];
-			int len;
-			FileInputStream in = new FileInputStream(srcFile);
-			zip.putNextEntry(new ZipEntry(path + "/" + folder.getName()));
-			while ((len = in.read(buf)) > 0) {
-				zip.write(buf, 0, len);
-			}
-			in.close();
-		}
-	}
-
-	static private void addFolderToZip(String path, String srcFolder, ZipOutputStream zip) throws IOException {
-		File folder = new File(srcFolder);
-
-		for (String fileName : folder.list()) {
-			if (path.equals("")) {
-				addFileToZip(folder.getName(), srcFolder + "/" + fileName, zip);
-			} else {
-				addFileToZip(path + "/" + folder.getName(), srcFolder + "/" + fileName, zip);
-			}
-		}
-	}
 
 	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto,
 			final boolean splitIntoWordsInAlto, final String fileNamePattern) throws Throwable {
@@ -3257,7 +3221,7 @@ public class TrpMainWidget {
 	}
 
 	public void exportDocx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening,
-			final Set<String> selectedTags, final boolean createTitle, final boolean markUnclearWords, final boolean expandAbbrevs,
+			final boolean createTitle, final boolean markUnclearWords, final boolean expandAbbrevs,
 			final boolean substituteAbbrevs, final boolean preserveLineBreaks) throws Throwable {
 		try {
 
@@ -3271,7 +3235,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Docx document...");
-						DocxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor, selectedTags,
+						DocxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor,
 								createTitle, markUnclearWords, expandAbbrevs, substituteAbbrevs, preserveLineBreaks);
 						monitor.done();
 					} catch (InterruptedException ie) {
@@ -3289,8 +3253,7 @@ public class TrpMainWidget {
 		}
 	}
 
-	public boolean exportXlsx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport,
-			final Set<String> selectedTags) throws Throwable {
+	public boolean exportXlsx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport) throws Throwable {
 		try {
 
 			if (ExportUtils.getCustomTagMapForDoc().isEmpty()) {
@@ -3314,7 +3277,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Excel document...");
-						TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, isTagExport, file, pageIndices, monitor, selectedTags);
+						TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, file, pageIndices, monitor);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
@@ -3678,11 +3641,6 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			onError("Error", "Error reload of collections: " + e.getMessage(), e);
 		}
-	}
-
-	private String getAdjustedDocTitle() {
-		String title = storage.getDoc().getMd().getTitle();
-		return (title.replaceAll("([/\\?%*:| \"<>. ])", "_"));
 	}
 
 	public String getSelectedImageFileType() {

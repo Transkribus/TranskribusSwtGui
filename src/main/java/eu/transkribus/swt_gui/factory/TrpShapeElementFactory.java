@@ -82,8 +82,22 @@ public class TrpShapeElementFactory {
 		boolean hasBaseline = false;
 		double readingOrderSize = 0;
 				
+		double baselineY = -1;
+		double baselineX = -1;
 		if (trpShape.getChildren(false).size() > 0 && trpShape.getChildren(false).get(0) instanceof TrpBaselineType) {
 			hasBaseline = true;
+			TrpBaselineType baseline = (TrpBaselineType) trpShape.getChildren(false).get(0);
+			if (baseline != null){
+				String coords1 = baseline.getCoordinates();
+				
+				List<java.awt.Point> pts1 = PointStrUtils.parsePoints(coords1);
+				
+				if (pts1.size() > 0){
+					baselineX = (int) pts1.get(0).getX();
+					baselineY = (int) pts1.get(0).getY();
+				}
+			}
+			//logger.debug("baselineY" + baselineY);
 		}
 		
 //		if (trpShape instanceof RegionType) {
@@ -113,7 +127,7 @@ public class TrpShapeElementFactory {
 //		}
 		
 		//create reading Order shape for canvas shape
-		shape.createReadingOrderShape((SWTCanvas) canvas, trpShape instanceof TrpTextRegionType, trpShape instanceof TrpTextLineType, trpShape instanceof TrpWordType, hasBaseline);
+		shape.createReadingOrderShape((SWTCanvas) canvas, trpShape instanceof TrpTextRegionType, trpShape instanceof TrpTextLineType, trpShape instanceof TrpWordType, hasBaseline, baselineX, baselineY);
 		
 		// needed? also done in onBeforeDrawScene
 		if (trpShape instanceof TrpTextRegionType){

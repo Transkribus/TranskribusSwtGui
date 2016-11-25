@@ -1613,7 +1613,7 @@ public class Storage {
 		pdfExp.addObserver(o);
 		
 		
-		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, extraTextPages, imagesOnly, selectedTags, highlightTags, wordBased, doBlackening, createTitle);
+		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, extraTextPages, imagesOnly, highlightTags, wordBased, doBlackening, createTitle);
 
 		return pdf.getAbsolutePath();
 	}
