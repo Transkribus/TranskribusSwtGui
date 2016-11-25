@@ -1615,7 +1615,7 @@ public class Storage {
 		pdfExp.addObserver(o);
 		
 		
-		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, extraTextPages, imagesOnly, selectedTags, highlightTags, wordBased, doBlackening, createTitle);
+		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, extraTextPages, imagesOnly, highlightTags, wordBased, doBlackening, createTitle);
 
 		return pdf.getAbsolutePath();
 	}
@@ -2072,5 +2072,15 @@ public class Storage {
 		logger.debug("ProxyPort = " + System.getProperty("http.proxyPort"));
 		logger.debug("ProxyUser = " + System.getProperty("http.proxyUser"));
 		logger.debug("ProxyPassword = " + System.getProperty("http.proxyPassword"));
+	}
+
+	public TrpDoc getTestSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.getHtrTestDoc(collId, htr.getHtrId(), 1);
+	}
+	
+	public TrpDoc getTrainSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.getHtrTrainDoc(collId, htr.getHtrId(), 1);
 	}
 }
