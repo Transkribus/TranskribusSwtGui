@@ -288,7 +288,7 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	/** Adds a point to the end of the list */
 	void addPoint(int x, int y);
 
-	void createReadingOrderShape(SWTCanvas canvas, boolean r, boolean l, boolean w, boolean hasBaseline);
+	void createReadingOrderShape(SWTCanvas canvas, boolean r, boolean l, boolean w, boolean hasBaseline, double blX, double blY);
 	void updateReadingOrderShapeWidth(int newWidth);
 	
 	Ellipse2D getReadingOrderCircle();

@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
+import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
@@ -31,6 +32,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt.util.CanvasTransform;
 import eu.transkribus.swt.util.CanvasTransformTransition;
 import eu.transkribus.swt.util.Colors;
@@ -1588,14 +1590,28 @@ public class SWTCanvas extends Canvas {
 			int arcWidth;
 			if (s.getReadingOrderCircle() == null){
 				boolean hasBaseline = false;
+				double baselineY = -1;
+				double baselineX = -1;
 				if (trpShape.getChildren(false).size() > 0 && trpShape.getChildren(false).get(0) instanceof TrpBaselineType){
 					hasBaseline = true;
+					TrpBaselineType baseline = (TrpBaselineType) trpShape.getChildren(false).get(0);
+					if (baseline != null){
+						String coords1 = baseline.getCoordinates();
+						
+						List<java.awt.Point> pts1 = PointStrUtils.parsePoints(coords1);
+						
+						if (pts1.size() > 0){
+							baselineX = (int) pts1.get(0).getX();
+							baselineY = (int) pts1.get(0).getY();
+						}
+					}
+					//logger.debug("baselineY" + baselineY);
 				}
-				s.createReadingOrderShape(this, isRegion, isLine, isWord, hasBaseline);
+				s.createReadingOrderShape(this, isRegion, isLine, isWord, hasBaseline, baselineX, baselineY);
 			}
 			
 			arcWidth = (int) s.getReadingOrderCircle().getWidth();
-			
+						
 			gc.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
 			gc.setLineStyle(CanvasSettings.DEFAULT.getLineStyle());	
 			gc.setFont(sets.getFontTahoma16());
@@ -1644,8 +1660,13 @@ public class SWTCanvas extends Canvas {
 
 				if (true){										
 					
+					//if width changes we must correct the y starting point too
+					int yCorrection = 0;
 					if (arcWidth < gc.getFontMetrics().getHeight()){
+						int oldArcWidth = arcWidth;
 						arcWidth = gc.getFontMetrics().getHeight();
+						s.updateReadingOrderShapeWidth(arcWidth);
+						yCorrection = arcWidth - oldArcWidth;
 					}
 					
 					//2nd check is to highlight the reading order either the baseline and not only the line is selected
@@ -1664,10 +1685,10 @@ public class SWTCanvas extends Canvas {
 					
 					//gc.setBackground(CanvasSettings.DEFAULT.getReadingOrderBackgroundColor());
 				
-					gc.fillArc((int) s.getReadingOrderCircle().getX(), (int) s.getReadingOrderCircle().getY(), arcWidth, arcWidth, 0, 360);
+					gc.fillArc((int) s.getReadingOrderCircle().getX(), (int) s.getReadingOrderCircle().getY()-yCorrection, arcWidth, arcWidth, 0, 360);
 					//gc.setForeground(CanvasSettings.DEFAULT.getDrawColor());
 					//gc.drawArc(xLocation, yLocation, textSize.x+5, textSize.x+5, 0, 360);
-					gc.drawArc((int) s.getReadingOrderCircle().getX(), (int) s.getReadingOrderCircle().getY(), arcWidth, arcWidth, 0, 360);
+					gc.drawArc((int) s.getReadingOrderCircle().getX(), (int) s.getReadingOrderCircle().getY()-yCorrection, arcWidth, arcWidth, 0, 360);
 
 	//				else if (readingOrder>=10 && readingOrder<1000 )
 	//				{
@@ -1682,7 +1703,7 @@ public class SWTCanvas extends Canvas {
 					//gc.drawString(Integer.toString(trpShape.getReadingOrder()), getX(), getY());
 					gc.setAlpha(255);
 					
-					gc.drawString(roString2Show, (int) s.getReadingOrderCircle().getX()+xOffset, (int) s.getReadingOrderCircle().getY()+yOffset, true);
+					gc.drawString(roString2Show, (int) s.getReadingOrderCircle().getX()+xOffset, (int) s.getReadingOrderCircle().getY()-yCorrection+yOffset, true);
 									
 				}
 

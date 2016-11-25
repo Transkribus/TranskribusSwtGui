@@ -890,7 +890,7 @@ public class CanvasScene {
 				
 		for (ICanvasShape s : tmpShapes) {
 			if (s.isReadingOrderVisible() && s.getReadingOrderCircle().contains(x, y) && !found){
-				//logger.debug("reading order selected is true for mouse point " + x + " , " + y );
+				logger.debug("reading order selected is true for mouse point " + x + " , " + y );
 				//Display display = canvas.getDisplay();
 				Shell shell = canvas.getShell();
 				ChangeReadingOrderDialog diag = new ChangeReadingOrderDialog(shell);

@@ -392,7 +392,7 @@ CHANGES AND BUGFIXES
 	
 0.9.2:
 	-> reload doc btn reintegrated
-	-> fixed split reading order bug
+	-> fixed reading order bug during split
 	
 0.10.0:
 	-> vertical canvas edit toolbar
@@ -405,5 +405,12 @@ CHANGES AND BUGFIXES
 	-> setting heap space in windows starters (.exe & .bat) reversed due to "no more handles" bug
 	-> Compare and show text differences of two versions in a text file (Tools - Compare)
 	-> split/merge baselines is done for lines too; bugs fixed for undoing those actions
+	
+0.10.2:
+	-> Deleting versions optimized
+	-> Session expired check during recent doc load
+	-> Change reading order optimized
+	-> Refine reading order circles appearance
+	-> Export tables into Docx and Excel (in excel tables only)
 	
 	
