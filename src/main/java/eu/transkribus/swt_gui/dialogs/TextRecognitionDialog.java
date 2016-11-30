@@ -106,6 +106,12 @@ public class TextRecognitionDialog extends Dialog {
 		setShellStyle(SWT.SHELL_TRIM | SWT.MODELESS | SWT.BORDER | SWT.TITLE);
 	}
 	
+	public void setVisible() {
+		if(super.getShell() != null && !super.getShell().isDisposed()) {
+			super.getShell().setVisible(true);
+		}
+	}
+	
 	@Override protected Control createDialogArea(Composite parent) {
 		Composite mainContainer = (Composite) super.createDialogArea(parent);
 		GridLayout g = (GridLayout)mainContainer.getLayout();

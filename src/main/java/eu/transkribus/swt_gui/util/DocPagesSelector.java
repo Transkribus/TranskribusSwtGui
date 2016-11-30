@@ -41,6 +41,10 @@ public class DocPagesSelector extends Composite {
 	static final boolean TEST=false;
 
 	public DocPagesSelector(Composite parent, int style, final List<TrpPage> pages) {
+		this(parent, style, true, pages);
+	}
+	
+	public DocPagesSelector(Composite parent, int style, boolean showLabel, final List<TrpPage> pages) {
 		super(parent, style);
 		this.setLayout(new GridLayout(3, false));
 		
@@ -48,9 +52,11 @@ public class DocPagesSelector extends Composite {
 		
 		this.pages = pages;
 		
-		Label l = new Label(this, 0);
-		l.setText("Pages ("+pages.size()+"): ");
-		l.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		if(showLabel) {
+			Label l = new Label(this, 0);
+			l.setText("Pages ("+pages.size()+"): ");
+			l.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		}
 		
 		pagesText = new Text(this, SWT.SINGLE | SWT.BORDER);
 		pagesText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -107,5 +113,10 @@ public class DocPagesSelector extends Composite {
 	
 	public Text getPagesText(){
 		return pagesText;
+	}
+
+	public void setEnabled(boolean enabled) {
+		pagesText.setEnabled(enabled);
+		selectPagesBtn.setEnabled(enabled);
 	}
 }

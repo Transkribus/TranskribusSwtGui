@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.dialogs;
 
 import java.io.IOException;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -21,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 
@@ -38,6 +36,12 @@ public class SimpleLaDialog extends Dialog {
 		super(parentShell);
 		
 		setShellStyle(SWT.SHELL_TRIM | SWT.MODELESS | SWT.BORDER | SWT.TITLE);
+	}
+	
+	public void setVisible() {
+		if(super.getShell() != null && !super.getShell().isDisposed()) {
+			super.getShell().setVisible(true);
+		}
 	}
 	
 	@Override protected Control createDialogArea(Composite parent) {
