@@ -77,6 +77,9 @@ public class CommonExportDialog extends Dialog {
 	Button substituteAbbrevBtn;
 	boolean substituteAbbreviations = false;
 	
+	Button serverExportBtn;
+	boolean doServerExport = false;
+	
 	Button noZonesRadio;
 	Button zonePerParRadio;
 	Button zonePerLineRadio;
@@ -274,6 +277,18 @@ public class CommonExportDialog extends Dialog {
 	        public void widgetSelected(SelectionEvent event) {
 	        	setVersionStatus(statusCombo.getText());
 	        }
+		});
+		
+		serverExportBtn = new Button(choiceComposite, SWT.CHECK);
+		serverExportBtn.setText("Do server export");
+		serverExportBtn.setToolTipText("If checked, the export is started on the server and can be downloaded after export is finished");
+		serverExportBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
+		
+		serverExportBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+	            Button btn = (Button) e.getSource();
+            	setDoServerExport(btn.getSelection());
+			}
 		});
 
 	    b0.addSelectionListener(new SelectionAdapter() {
@@ -1260,6 +1275,14 @@ public class CommonExportDialog extends Dialog {
 
 	public void setVersionStatus(String versionStatus) {
 		this.versionStatus = versionStatus;
+	}
+	
+	public boolean isDoServerExport() {
+		return doServerExport;
+	}
+
+	public void setDoServerExport(boolean doServerExport) {
+		this.doServerExport = doServerExport;
 	}
 
 

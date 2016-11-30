@@ -102,6 +102,8 @@ import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxTableBuilder;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
+import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiExportMode;
+import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiLinebreakMode;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
@@ -452,8 +454,21 @@ public class TrpMainWidget {
 			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
 
 			ui.getServerWidget().setSelectedCollection(colId);
+
+			Future<List<TrpDocMetadata>> doclist;
+			try {
+				doclist = storage.reloadDocList(colId);
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				if(e instanceof SessionExpiredException){
+					mw.loginDialog("Session Expired!");
+					//retry
+					storage.reloadDocList(colId);
+				}
+				throw e;
+			}
 			
-			return storage.reloadDocList(colId);
+			return doclist;
 			
 //			updatePageInfo();
 		} catch (Throwable e) {
@@ -962,7 +977,7 @@ public class TrpMainWidget {
 			storage.checkConnection(true);
 		} catch (NoConnectionException e1) {
 			// TODO Auto-generated catch block
-			loginDialog("No conection to server!");
+			loginDialog("No connection to server!");
 		}
 				
 		String[] tmp = docToLoad.split(";;;");
@@ -982,7 +997,6 @@ public class TrpMainWidget {
 			List<TrpDocMetadata> docList;
 			try {
 				docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
-				logger.debug("doclist " + docList.get(0).getDocId());
 				if (docList != null && docList.size() > 0) {
 					if (loadRemoteDoc(docid, colid)) {
 //						getUi().getServerWidget().setSelectedCollection(colid, true);
@@ -2770,10 +2784,38 @@ public class TrpMainWidget {
 				lastExportFolder = lastExportFolderTmp;
 			}
 			final CommonExportDialog exportDiag = new CommonExportDialog(getShell(), SWT.NONE, lastExportFolder, adjTitle, storage.getDoc().getPages());
-
+			
 			dir = exportDiag.open();
-			if (dir == null)
+			if (dir == null){
 				return;
+			}
+			
+			if (exportDiag.isDoServerExport()){
+				String pages = "";
+				for (Integer currInt : exportDiag.getSelectedPages()){
+					int tmpInt = currInt+1;
+					pages = pages.concat(Integer.toString(tmpInt)).concat(",");
+					logger.debug("pages dfd " + pages);
+				}
+				pages = pages.substring(0, pages.length()-1);
+				
+				logger.debug("server export - is page export " + exportDiag.isPageExport());
+				storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), pages,
+						exportDiag.isMetsExport(), exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), 
+						exportDiag.isSplitUpWords(), exportDiag.isPdfExport(), exportDiag.isTeiExport(), exportDiag.isDocxExport(),
+						exportDiag.isXlsxExport(), exportDiag.isTableExport(), exportDiag.isExportImagesOnly(),
+						exportDiag.isExportImagesPlusText(), exportDiag.isAddExtraTextPages2PDF(), exportDiag.isHighlightTags(),
+						(exportDiag.getTeiExportMode() == TeiExportMode.SIMPLE), (exportDiag.getTeiExportMode() == TeiExportMode.ZONE_PER_PAR), 
+						(exportDiag.getTeiExportMode() == TeiExportMode.ZONE_PER_LINE), (exportDiag.getTeiExportMode() == TeiExportMode.ZONE_PER_WORD),
+						(exportDiag.getTeiLinebreakMode() == TeiLinebreakMode.LINE_TAG), (exportDiag.getTeiLinebreakMode() == TeiLinebreakMode.LINE_BREAKS),
+						exportDiag.isTagExport(), exportDiag.isPreserveLinebreaks(), exportDiag.isMarkUnclearWords(),
+						exportDiag.isKeepAbbreviations(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
+						exportDiag.isWordBased(), exportDiag.isDoBlackening(), exportDiag.isCreateTitlePage(), 
+						exportDiag.getVersionStatus());
+				return;
+			}
+			
+			logger.debug("after server export");
 
 			if (!dir.exists()) {
 				dir.mkdir();
@@ -2847,6 +2889,7 @@ public class TrpMainWidget {
 				 * export dialog shows up again with the possibility to choose another location
 				 * --> comment out if export should close instead
 				 */
+				logger.debug("why here ?? after server export");
 				unifiedExport();
 				return;
 			}
@@ -2916,7 +2959,7 @@ public class TrpMainWidget {
 			boolean wordBased = exportDiag.isWordBased();
 			boolean doBlackening = exportDiag.isDoBlackening();
 			boolean createTitle = exportDiag.isCreateTitlePage();
-
+			
 			if (doZipExport) {
 
 				if (tempDir == null)

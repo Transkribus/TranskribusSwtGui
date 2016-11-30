@@ -757,10 +757,14 @@ public class Storage {
 		return userDocList;
 	}
 
-	public Future<List<TrpDocMetadata>> reloadDocList(int colId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+	public Future<List<TrpDocMetadata>> reloadDocList(int colId) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
 		checkConnection(true);
 		if (colId == 0)
 			return null;
+		
+
+		//Just as a work around to get SessionExpiredException, which is catched and the login dialog can be called 
+		getConnection().findUsers("just to", "check open session", "", true, true);
 
 		logger.debug("reloading doclist for collection: "+colId+" reloadDocListCounter = "+(++reloadDocListCounter));
 		
