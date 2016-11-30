@@ -2077,4 +2077,14 @@ public class Storage {
 		logger.debug("ProxyUser = " + System.getProperty("http.proxyUser"));
 		logger.debug("ProxyPassword = " + System.getProperty("http.proxyPassword"));
 	}
+
+	public TrpDoc getTestSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.getHtrTestDoc(collId, htr.getHtrId(), 1);
+	}
+	
+	public TrpDoc getTrainSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.getHtrTrainDoc(collId, htr.getHtrId(), 1);
+	}
 }
