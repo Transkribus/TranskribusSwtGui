@@ -79,7 +79,13 @@ public class HtrTrainingDialog extends Dialog {
 		trainTwList = new LinkedList<>();
 		testTwList = new LinkedList<>();
 	}
-
+    
+	public void setVisible() {
+		if(super.getShell() != null && !super.getShell().isDisposed()) {
+			super.getShell().setVisible(true);
+		}
+	}
+	
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite cont = (Composite) super.createDialogArea(parent);
@@ -232,11 +238,11 @@ public class HtrTrainingDialog extends Dialog {
 
 		docTabFolder.setSelection(0);
 		
-		docTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
-			public void close(CTabFolderEvent event) {
-				System.out.println("GONE");
-			}
-		});
+//		docTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
+//			public void close(CTabFolderEvent event) {
+//				
+//			}
+//		});
 
 		Composite testDocCont = new Composite(docSash, SWT.NONE);
 		testDocCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -280,11 +286,11 @@ public class HtrTrainingDialog extends Dialog {
 
 		testDocTabFolder.setSelection(0);
 		
-		testDocTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
-			public void close(CTabFolderEvent event) {
-				System.out.println("GONE");
-			}
-		});
+//		testDocTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
+//			public void close(CTabFolderEvent event) {
+//				System.out.println("GONE");
+//			}
+//		});
 		
 		docSash.setWeights(new int[] {50, 50});
 		testDocCont.pack();

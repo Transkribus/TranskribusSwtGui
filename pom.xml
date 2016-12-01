@@ -445,6 +445,7 @@
 							</exclusion>
 						</exclusions>
 					</dependency>
+					
 				</dependencies>
 			</plugin>
 			<plugin>
@@ -851,6 +852,11 @@
 		    <version>1.0.0.201609281642</version>
 		</dependency>		
 		
+		<dependency>
+		  <groupId>org.swtchart</groupId>
+		  <artifactId>swtchart</artifactId>
+		  <version>0.10.0</version>
+		</dependency>
 	</dependencies>
 
 	<repositories>
