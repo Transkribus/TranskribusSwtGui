@@ -130,15 +130,15 @@ public class TrpShapeElementFactory {
 		shape.createReadingOrderShape((SWTCanvas) canvas, trpShape instanceof TrpTextRegionType, trpShape instanceof TrpTextLineType, trpShape instanceof TrpWordType, hasBaseline, baselineX, baselineY);
 		
 		// needed? also done in onBeforeDrawScene
-		if (trpShape instanceof TrpTextRegionType){
-			shape.showReadingOrder(mainWidget.getTrpSets().isShowReadingOrderRegions());
-		}
-		else if (trpShape instanceof TrpTextLineType){
-			shape.showReadingOrder(mainWidget.getTrpSets().isShowReadingOrderLines());
-		}
-		else if (trpShape instanceof TrpWordType){
-			shape.showReadingOrder(mainWidget.getTrpSets().isShowReadingOrderWords());
-		}
+//		if (trpShape instanceof TrpTextRegionType && !(trpShape instanceof TrpTableCellType)){
+//			shape.showReadingOrder(mainWidget.getTrpSets().isShowReadingOrderRegions());
+//		}
+//		else if (trpShape instanceof TrpTextLineType){
+//			shape.showReadingOrder(mainWidget.getTrpSets().isShowReadingOrderLines());
+//		}
+//		else if (trpShape instanceof TrpWordType){
+//			shape.showReadingOrder(mainWidget.getTrpSets().isShowReadingOrderWords());
+//		}
 
 		
 		// update parent info for shape:

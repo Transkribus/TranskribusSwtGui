@@ -24,12 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
+import eu.transkribus.core.model.beans.pagecontent.TableRegionType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.PointStrUtils;
@@ -741,7 +743,7 @@ public class SWTCanvas extends Canvas {
 		for (ICanvasShape s : getScene().getShapes()) {
 			
 			//change to TrpTextRegionType if only text regions should be editable in the canvas
-			if (s.hasDataType(TrpRegionType.class)) {
+			if (s.hasDataType(TrpRegionType.class) && !(s.hasDataType(TrpTableCellType.class))) {
 				s.showReadingOrder(isShowR);
 			}
 			if (s.hasDataType(TrpTextLineType.class)) {

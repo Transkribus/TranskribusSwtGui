@@ -764,7 +764,7 @@ public class Storage {
 		
 
 		//Just as a work around to get SessionExpiredException, which is catched and the login dialog can be called 
-		getConnection().findUsers("just to", "check open session", "", true, true);
+		getConnection().findUsers("just_to", "check_open_session", "", true, true);
 
 		logger.debug("reloading doclist for collection: "+colId+" reloadDocListCounter = "+(++reloadDocListCounter));
 		

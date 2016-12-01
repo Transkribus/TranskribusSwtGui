@@ -412,5 +412,6 @@ CHANGES AND BUGFIXES
 	-> Change reading order optimized
 	-> Refine reading order circles appearance
 	-> Export tables into Docx and Excel (in excel tables only)
+	-> Export as a rest service
 	
 	

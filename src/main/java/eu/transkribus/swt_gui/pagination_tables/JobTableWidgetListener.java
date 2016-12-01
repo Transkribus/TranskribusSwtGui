@@ -122,16 +122,14 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 	@Override public void handleJobUpdate(JobUpdateEvent jue) {
 //		if (SWTUtil.isDisposed(jw))
 //			return;		
-		
-		logger.debug(" hey iam here in job update");
-		
+				
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 		
 		TrpJobStatus job = jue.job;
 		
 		boolean isThisDocOpen = true;
 		if (job != null) { // specific job was updated
-			logger.debug("specific job update: "+job);
+			//logger.debug("specific job update: "+job);
 			
 			tv.update(job, null);
 			

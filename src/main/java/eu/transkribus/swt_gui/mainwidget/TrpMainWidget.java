@@ -461,9 +461,10 @@ public class TrpMainWidget {
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
 				// TODO Auto-generated catch block
 				if(e instanceof SessionExpiredException){
-					mw.loginDialog("Session Expired!");
+					loginDialog("Session Expired!");
 					//retry
-					storage.reloadDocList(colId);
+					ui.getServerWidget().setSelectedCollection(colId);
+					doclist = storage.reloadDocList(colId);
 				}
 				throw e;
 			}
@@ -2795,9 +2796,14 @@ public class TrpMainWidget {
 				for (Integer currInt : exportDiag.getSelectedPages()){
 					int tmpInt = currInt+1;
 					pages = pages.concat(Integer.toString(tmpInt)).concat(",");
-					logger.debug("pages dfd " + pages);
 				}
-				pages = pages.substring(0, pages.length()-1);
+				if (pages.length()==1 && pages.contentEquals("0")){
+					DialogUtil.showErrorMessageBox(getShell(), "Wrong ", "Select valid page numbers for export!");
+					return;
+				}
+				if (pages.length()>0){
+					pages = pages.substring(0, pages.length()-1);
+				}
 				
 				logger.debug("server export - is page export " + exportDiag.isPageExport());
 				storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), pages,
