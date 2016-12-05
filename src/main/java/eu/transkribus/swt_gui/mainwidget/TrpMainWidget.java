@@ -2765,6 +2765,8 @@ public class TrpMainWidget {
 
 	public void unifiedExport() {
 		File dir = null;
+		String exportFileOrDir = "";
+		String exportFormats = "";
 		try {
 
 			if (!storage.isDocLoaded()) {
@@ -2827,8 +2829,8 @@ public class TrpMainWidget {
 				dir.mkdir();
 			}
 
-			String exportFormats = "";
-			String exportFileOrDir = dir.getAbsolutePath();
+			
+			exportFileOrDir = dir.getAbsolutePath();
 			Set<Integer> pageIndices = null;
 
 			boolean doZipExport = false;
@@ -3105,9 +3107,7 @@ public class TrpMainWidget {
 
 			}
 
-			if (exportFormats != "") {
-				displaySuccessMessage("Sucessfully written " + exportFormats + " to " + exportFileOrDir);
-			}
+
 
 		} catch (Throwable e) {
 			if (e instanceof InterruptedException) {
@@ -3117,6 +3117,11 @@ public class TrpMainWidget {
 			}
 			// onError("Export error", "Error during export of document", e);
 		} finally {
+			
+			if (exportFormats != "") {
+				displaySuccessMessage("Sucessfully written " + exportFormats + " to " + exportFileOrDir);
+			}
+						
 			if (dir != null) {
 				lastExportFolder = dir.getParentFile().getAbsolutePath();
 				TrpGuiPrefs.storeLastExportFolder(lastExportFolder);
