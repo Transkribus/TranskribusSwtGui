@@ -1,12 +1,11 @@
 package eu.transkribus.swt_gui.mainwidget;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +13,14 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.pagination_tables.JobTableWidgetPagination;
 
-public abstract class DocJobUpdater {
+/**
+ * Starts a thread that periodically updates jobs registered via the {@link DocJobUpdater#registerJobToUpdate(String)} method
+ * @author sebastian
+ */
+public class DocJobUpdater {
 	private final static Logger logger = LoggerFactory.getLogger(DocJobUpdater.class);
 	
 	Runnable r;
@@ -28,143 +31,91 @@ public abstract class DocJobUpdater {
 	
 	final public int UPDATE_TIME_MS = 3000;
 	
-//	Object monitor = new Object();
-	private final ReentrantLock lock = new ReentrantLock();
-	final Condition condition = lock.newCondition();
-	Map<String, TrpJobStatus> unfinished = new HashMap<>();
-	
 	int nExc=0;
 	
-	JobTableWidgetPagination jw;
+	Set<String> jobsToUpdate = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());	
+	TrpMainWidget mw;
 		
-	public DocJobUpdater(JobTableWidgetPagination jw) {
-		this.jw = jw;
-		
-		r = new Runnable() {
-			@Override public void run() {
-				started = true;
+	public DocJobUpdater(TrpMainWidget mw) {
+		this.mw = mw;
 				
-//				synchronized (monitor) {
-					lock.lock();
+		r = new Runnable() {
+			@Override
+			public void run() {
+				started = true;
+				logger.debug("starting DocJobUpdater");
+
+				while (true) {
 					try {
-					while(true) {
-//						TrpMainWidget mw = TrpMainWidget.getInstance();
-												
-						try {
-							Thread.sleep(UPDATE_TIME_MS);
-
-							if (stop) {
-								logger.info("Doc update thread stopped");
-								break;
-							}
-							
-							// remove finished jobs from unfinished map:
-							for (Iterator<Map.Entry<String, TrpJobStatus>> it = unfinished.entrySet().iterator(); it.hasNext();) {
-								Map.Entry<String, TrpJobStatus> entry = it.next();
-								if (entry.getValue().isFinished())
-									unfinished.remove(entry.getKey());
-							}
-
-							// get new unfinished jobs from database and merge them into the unfinished map:
-							List<TrpJobStatus> newUnfinishedJobs = store.getUnfinishedJobs(true);
-							for (TrpJobStatus j : newUnfinishedJobs) {
-								TrpJobStatus existing = unfinished.get(j.getJobId());
-								if (existing != null) {
-									existing.setState(j.getState());
-								} else {
-									unfinished.put(j.getJobId(), j);
-								}
-							}
-
-							// update unfinished jobs (that may also include some finished jobs at this time!)
-							logger.debug("n unfinished jobs 1: "+unfinished.size());
-							for (TrpJobStatus j : unfinished.values()) {
-								updateJob(j);
-							}
-							
-							// check if unfinished map is empty and send thread to sleep if so:
-							if (unfinished.size() == 0) {
-								logger.debug("sending thread to sleep");
-								condition.await();
-								logger.debug("DocJobUpdater just woke up");
-							}
-							
-							nExc=0;
+						Thread.sleep(UPDATE_TIME_MS);
+						
+						if (stop) {
+							logger.debug("stopping DocJobUpdater");
+							break;
 						}
-						catch (SessionExpiredException | NoConnectionException ex) {
-							logger.warn("Session expired or no connection - stopping job update thread!");
-							stopJobThread();
+
+						if (jobsToUpdate.isEmpty())
+							continue;
+
+						logger.debug("jobs to update: " + jobsToUpdate.size());
+
+						store.checkConnection(true);
+
+						// update jobs and remove from list if necessary:
+						for (Iterator<String> it = jobsToUpdate.iterator(); it.hasNext();) {
+							String jobId = it.next();
+							TrpJobStatus job = store.getConnection().getJob(jobId);
+
+							store.sendJobUpdateEvent(job);
+
+							if (job.isFinished()) {
+								logger.debug("removing finished job " + jobId + ", nr of unfinished jobs: "
+										+ jobsToUpdate.size());
+								jobsToUpdate.remove(jobId);
+								checkIfFinishedJobAffectsOpenedPage(job);
+							}
 						}
-						catch(Exception ex) {
-							logger.error(ex.getMessage(), ex);
-							nExc++;
-							logger.debug("nr of subsequent exceptions: "+nExc);
-//							if (nExc > 3) {
-//								stopJobThread();
-//							}
-						}
-//					}
-				}
-					} finally {
-						lock.unlock();
+
+						nExc = 0;
+					} catch (SessionExpiredException | NoConnectionException ex) {
+						logger.debug("Session expired or no connection - skipping job update");
+					} catch (Exception ex) {
+						logger.error(ex.getMessage(), ex);
+						nExc++;
+						logger.debug("nr of subsequent exceptions: " + nExc);
 					}
+				}
 			}
 		};
 		
 		t = new Thread(r);
+		t.start();
 	}
 	
-	public boolean isThisDocOpen(TrpJobStatus job) {
-		return store.isDocLoaded() && store.getDoc().getId()==job.getDocId();
-	}
-	
-	private void updateJob(final TrpJobStatus job) throws Exception {
-		logger.trace("Updating job: "+job);
+	private void checkIfFinishedJobAffectsOpenedPage(TrpJobStatus job) {
 		
-		final TrpJobStatus jobUpdated = jw.loadJob(job.getJobId());
-		if (jobUpdated==null) {
-			logger.error("Could not update job with id = "+job.getJobId()+" - the return value was null! Check your code!");
-			return;
-		}
-		
-		// merge that also into the unfinished jobs:
-		TrpJobStatus existing = unfinished.get(jobUpdated.getJobId());
-		if (existing != null) { // should always be != null here
-			existing.setState(jobUpdated.getState());
-		}
-		
-		if (jobUpdated != null)
-		Display.getDefault().asyncExec(new Runnable() {
-			@Override public void run() {
-				onUpdate(jobUpdated);
-			}
-		});
-	}
-	
-	public synchronized void startOrResumeJobThread() throws IllegalMonitorStateException {
-		if (!started) {
-			t.start();
-		} else {
-			if (lock.isLocked()) // thread already running
-				return;
-			else { // thread is sleeping -> wake up!
-				lock.lock();
-				try {
-					condition.signalAll();
-				} finally {
-					lock.unlock();
+		boolean isThisDocOpen = store.isDocLoaded() && store.getDoc().getId()==job.getDocId();
+		// reload current page if page job for this page is finished:
+		// (only ask question to reload page!!)
+		if (isThisDocOpen && job.isFinished()) {
+			Display.getDefault().asyncExec(() -> {
+				if (!job.isSuccess()) {
+					logger.error("a job for the current page failed: "+job);
+					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
 				}
-			}
+				else if (store.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
+					// reload page if doc and page is open:					
+					if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?") == SWT.YES) {
+						logger.debug("reloading page!");
+						mw.reloadCurrentPage(true);						
+					}
+				}
+			});
 		}
 	}
 	
-	public synchronized void stopJobThread() throws IllegalMonitorStateException {
-		stop = true;
-		if (started) {
-			startOrResumeJobThread();
-		}
+	public void registerJobToUpdate(String jobId) {
+		jobsToUpdate.add(jobId);
 	}
-	
-//	public abstract void onFinished(TrpJobStatus job);
-	public abstract void onUpdate(TrpJobStatus job);
+
 }

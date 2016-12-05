@@ -3,8 +3,6 @@ package eu.transkribus.swt_gui.mainwidget.storage;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jface.text.templates.GlobalTemplateVariables.User;
-
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;

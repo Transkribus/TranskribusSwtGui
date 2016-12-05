@@ -102,5 +102,5 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 	@Override public void handleDocMetadataUpdateEvent(DocMetadataUpdateEvent e) {
 		mw.updateDocumentInfo();
 	}
-
+	
 }
