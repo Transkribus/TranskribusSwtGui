@@ -86,6 +86,7 @@ import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
@@ -260,6 +261,7 @@ public class TrpMainWidget {
 	static int tmpCount = 0;
 	
 	static Thread asyncSaveThread;
+	static DocJobUpdater docJobUpdater;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
@@ -300,10 +302,15 @@ public class TrpMainWidget {
 		}
 		beginAutoSaveThread();
 		
+		docJobUpdater = new DocJobUpdater(this);
 	}
 
 	public static TrpMainWidget getInstance() {
 		return mw;
+	}
+	
+	public void registerJobToUpdate(String jobId) {
+		docJobUpdater.registerJobToUpdate(jobId);
 	}
 
 	public Storage getStorage() {
@@ -646,6 +653,7 @@ public class TrpMainWidget {
 					event.doit = false;
 					return;
 				}
+				docJobUpdater.stop = true;
 
 				logger.debug("stopping CreateThumbsService");
 				CreateThumbsService.stop(true);

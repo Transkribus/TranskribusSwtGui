@@ -127,29 +127,13 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 		
 		TrpJobStatus job = jue.job;
 		
-		boolean isThisDocOpen = true;
+		logger.debug("handleJobUpdate, job = "+job);
 		if (job != null) { // specific job was updated
-			//logger.debug("specific job update: "+job);
+			logger.debug("specific job update: "+job);
 			
-			tv.update(job, null);
-			
-			isThisDocOpen = storage.isDocLoaded() && storage.getDoc().getId()==job.getDocId();	
-			
-			// reload current page if page job for this page is finished:
-			// TODO: only ask question to reload page!!
-			if (isThisDocOpen && job.isFinished()) {
-				if (!job.isSuccess()) {
-					logger.error("a job for the current page failed: "+job);
-					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
-				} 
-				else if (storage.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
-					// reload page if doc and page is open:					
-					if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?") == SWT.YES) {
-						logger.debug("reloading page!");
-						mw.reloadCurrentPage(true);						
-					}
-				}
-			}
+			jw.updateJobInTable(job);
+//			tv.update(job, null);
+//			jw.getPageableTable().refreshPage();
 		} else {
 //			logger.debug("got "+storage.getJobs().size()+" jobs, thread = "+Thread.currentThread().getName());
 //			jw.setInput(new ArrayList<>(storage.getJobs()));

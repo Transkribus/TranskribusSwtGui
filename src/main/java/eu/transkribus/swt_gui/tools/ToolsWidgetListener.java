@@ -363,6 +363,8 @@ public class ToolsWidgetListener implements SelectionListener {
 			if (jobId != null) {
 				logger.debug("started job with id = "+jobId);
 							
+				mw.registerJobToUpdate(jobId);
+				
 				store.sendJobListUpdateEvent();
 				mw.updatePageLock();
 				
