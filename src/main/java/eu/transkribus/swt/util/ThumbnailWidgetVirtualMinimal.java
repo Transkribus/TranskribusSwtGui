@@ -1,6 +1,7 @@
 package eu.transkribus.swt.util;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
@@ -188,7 +189,24 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		reload();
 	}
 	
-	public DocumentSelectionDescriptor getSelection() {
+	public List<TrpPage> getSelection() {
+		List<TrpPage> sList = new LinkedList<>();
+		if (gallery.getSelectionCount() < 1) {
+			return sList;
+		}
+		
+		GalleryItem[] selection = gallery.getSelection();
+		for(GalleryItem item : selection) {
+			final int index = gallery.indexOf(item);
+			
+			TrpPage p = doc.getPages().get(index);
+			sList.add(p);
+		}
+		
+		return sList;
+	}
+	
+	public DocumentSelectionDescriptor getSelectionDescriptor() {
 		if (gallery.getSelectionCount() < 1) {
 			return null;
 		}

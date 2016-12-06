@@ -389,7 +389,7 @@ public class HtrTrainingDialog extends Dialog {
 		conf.setColId(store.getCollId());
 		
 		for(ThumbnailWidgetVirtualMinimal tw : trainTwList) {
-			DocumentSelectionDescriptor dsd = tw.getSelection();
+			DocumentSelectionDescriptor dsd = tw.getSelectionDescriptor();
 			
 			if(dsd != null) {
 				conf.getTrain().add(dsd);
@@ -397,7 +397,7 @@ public class HtrTrainingDialog extends Dialog {
 		}
 		
 		for(ThumbnailWidgetVirtualMinimal tw : testTwList) {
-			DocumentSelectionDescriptor dsd = tw.getSelection();
+			DocumentSelectionDescriptor dsd = tw.getSelectionDescriptor();
 			
 			if(dsd != null) {
 				conf.getTest().add(dsd);
