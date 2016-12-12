@@ -32,6 +32,18 @@ import eu.transkribus.util.DesktopApi;
 public class TestSth {
 	private final static Logger logger = LoggerFactory.getLogger(TestSth.class);
 	
+	public static class A {
+		String s = "hello";
+		
+		public A() {
+			
+		}
+		
+		public A(A other) {
+			this.s = other.s;
+		}
+	}
+		
 	public static void createTestDoc() throws IOException {
 //		String imgLoc = "/Users/hansm/Documents/testDocs/Bentham_box_002/002_080_001.jpg";
 		String imgLoc = "/home/sebastian/Transkribus_TestDoc/035_320_001.jpg";
@@ -262,9 +274,21 @@ public class TestSth {
 			
 	public static void main(String [] args) {
 		try {
+			
+			A a = new A();
+			A b = new A(a);
+			
+			b.s = "new";
+			
+//			b.s.s
+			
+			System.out.println( a.s );
+			System.out.println( b.s );
+			
+			
 //			testPCABaselineCorrection();
 			
-			createTestDoc();
+//			createTestDoc();
 			
 //			System.setProperty("java.library.path", "whatever");
 			

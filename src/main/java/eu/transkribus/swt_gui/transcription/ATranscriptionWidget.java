@@ -1796,16 +1796,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //		if (true) return;
 		
     	if (!onlyIfChanged || !oldTextSelection.equals(text.getSelection())) {
-    		logger.debug("TEXT SELECTION CHANGED: "+text.getSelection()+ ", before: "+oldTextSelection);
-    		
-    		logger.trace("--- multiple selection changed, selection-range="+text.getSelectionRange());
-    		int i=1;
-    		for (Pair<ITrpShapeType, IntRange> p : getSelectedShapesAndRanges()) {
-    			String text = p.getLeft().getUnicodeText();
-    			String selText = text.substring(p.getRight().offset, p.getRight().offset+p.getRight().length);
-    			logger.trace((i++)+" selected: "+p.getLeft().getId()+", range: "+p.getRight()+" selected text: "+selText);
-    		}
-    		logger.trace("-------------------------------------");		
+    		logger.trace("sendDefaultSelectionChangedSignal, selection = "+text.getSelection()+ ", oldTextSelection = "+oldTextSelection);
     		
     		// update buttons:
     		updateButtonsOnSelectionChanged();
