@@ -22,7 +22,6 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.connection.ATrpServerConn;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -171,8 +170,8 @@ public class BugDialog extends Dialog {
 //				subjectPrefix += "[FEATURE] ";	
 			}
 			
-			if (subjectText.getText().isEmpty() || messageText.getText().isEmpty() || emailText.getText().isEmpty()) {
-				throw new Exception("The subject, message or email cannot be empty");
+			if (subjectText.getText().isEmpty() /*|| messageText.getText().isEmpty()*/ || emailText.getText().isEmpty()) {
+				throw new Exception("Subject or email cannot be empty");
 			}
 			
 			try {
