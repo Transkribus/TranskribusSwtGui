@@ -413,5 +413,7 @@ CHANGES AND BUGFIXES
 	-> Refine reading order circles appearance
 	-> Export tables into Docx and Excel (in excel tables only)
 	-> Export as a rest service
+	-> reading order behavior during region split
+	-> show download link after server export to the user
 	
 	

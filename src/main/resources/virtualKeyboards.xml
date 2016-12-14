@@ -9,11 +9,12 @@
     	into one keyboard by seperating the values with a whitespace!
     The keyboards are sorted by their name in the GUI - add leading numbers to enforce a special order!
 </comment>
-<entry key="Custom">— ¬  ̄</entry>
+<entry key="Custom">— ¬  ̄ U+00AD</entry>
 <entry key="Greek/Coptic">0370-03FF</entry>
 <entry key="Latin-1 Supp.">00A0-00FF</entry> <!-- 0080-009F are control characters... -->
 <entry key="Latin-1 Extended-A.">0100-017F</entry>
 <entry key="Latin-1 Extended-B.">0180-024F</entry>
+<entry key="Latin-1 Extended-D.">A720-A7FF</entry>
 <entry key="Hebrew">0590-05FF</entry>
 <entry key="General Punctuation">2000-206F</entry>
 </properties>
