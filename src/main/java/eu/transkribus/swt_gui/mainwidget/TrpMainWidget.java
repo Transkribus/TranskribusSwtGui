@@ -2816,7 +2816,7 @@ public class TrpMainWidget {
 				}
 				
 				logger.debug("server export - is page export " + exportDiag.isPageExport());
-				storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), pages,
+				String jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), pages,
 						exportDiag.isMetsExport(), exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), 
 						exportDiag.isSplitUpWords(), exportDiag.isPdfExport(), exportDiag.isTeiExport(), exportDiag.isDocxExport(),
 						exportDiag.isXlsxExport(), exportDiag.isTableExport(), exportDiag.isExportImagesOnly(),
@@ -2828,6 +2828,16 @@ public class TrpMainWidget {
 						exportDiag.isKeepAbbreviations(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 						exportDiag.isWordBased(), exportDiag.isDoBlackening(), exportDiag.isCreateTitlePage(), 
 						exportDiag.getVersionStatus());
+				if (jobId != null) {
+					logger.debug("started job with id = "+jobId);
+								
+					mw.registerJobToUpdate(jobId);
+					
+					storage.sendJobListUpdateEvent();
+					mw.updatePageLock();
+					
+					DialogUtil.showInfoMessageBox(mw.getShell(), "Export Job started", "Started export job with id = "+jobId+"/n After finishing you will get a link for download");
+				}
 				return;
 			}
 			
@@ -2905,7 +2915,6 @@ public class TrpMainWidget {
 				 * export dialog shows up again with the possibility to choose another location
 				 * --> comment out if export should close instead
 				 */
-				logger.debug("why here ?? after server export");
 				unifiedExport();
 				return;
 			}

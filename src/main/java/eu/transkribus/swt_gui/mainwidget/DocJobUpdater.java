@@ -1,19 +1,27 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import java.awt.Desktop;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Link;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.FtpConsts;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt_gui.dialogs.ActivityDialog;
+import eu.transkribus.swt_gui.dialogs.ShowServerExportLinkDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 /**
@@ -104,8 +112,14 @@ public class DocJobUpdater {
 					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
 				}
 				else if (store.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
+					if (job.getJobImpl().getClassName().equals("ExportDocumentJob")){
+						ShowServerExportLinkDialog linkDiag = new ShowServerExportLinkDialog(mw.getShell(), job.getResult());
+						linkDiag.open();
+						//DialogUtil.showDownloadLinkDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?"); 
+						return;
+					}
 					// reload page if doc and page is open:					
-					if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?") == SWT.YES) {
+					else if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?") == SWT.YES) {
 						logger.debug("reloading page!");
 						mw.reloadCurrentPage(true);						
 					}
