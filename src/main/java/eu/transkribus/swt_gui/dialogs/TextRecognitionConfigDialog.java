@@ -1,7 +1,10 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -63,6 +66,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private Integer trainSetId, testSetId;
 	
 	private DocImgViewerDialog trainDocViewer, testDocViewer = null;
+	private CharSetViewerDialog charSetViewer = null;
 	
 	Combo htrDictCombo, ocrLangCombo;
 	
@@ -183,7 +187,34 @@ public class TextRecognitionConfigDialog extends Dialog {
 		
 		showCharSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				DialogUtil.showMessageDialog(getShell(), charSetTitle, charSet, null, null, new String[] { "Close" }, 0);				
+				List<String> charList = parseCitLabCharSet(charSet);
+				if(charSetViewer != null) {
+					charSetViewer.setVisible();
+				} else {
+					try {
+						charSetViewer = new CharSetViewerDialog(getParentShell(), "Character Set", charList);
+						charSetViewer.open();
+					} catch (ClientErrorException | IllegalArgumentException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					
+					charSetViewer = null;
+				}				
+			}
+			
+			/** TODO put this into some HtrUtils class as static method
+			 * @param charSet
+			 * @return
+			 */
+			private List<String> parseCitLabCharSet(String charSet) {
+				Pattern p = Pattern.compile("(.)=[0-9]+");
+				Matcher m = p.matcher(charSet);
+				List<String> result = new LinkedList<>();
+				while(m.find()) {
+					result.add(m.group(1));
+				}
+				return result;
 			}
 		});	
 		
