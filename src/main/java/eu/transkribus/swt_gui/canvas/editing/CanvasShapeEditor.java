@@ -896,7 +896,7 @@ public class CanvasShapeEditor {
 		
 		// Split all child shapes
 		for (ICanvasShape child : children) {
-			logger.debug("split ALL childs: " + child.getType());
+			//logger.debug("split ALL childs: " + child.getType());
 			// Determine the parent shapes of the child shape that shall be splitted by iterating through the edit operations that were done so far
 			ICanvasShape p1=null, p2=null;
 			for (ShapeEditOperation opParent : splitOps) {
@@ -904,13 +904,13 @@ public class CanvasShapeEditor {
 						|| opParent.getNewShapes().get(1).equals(child.getParent())) {
 					p1 = opParent.getNewShapes().get(0);
 					p2 = opParent.getNewShapes().get(1);
-						logger.debug("readjusting child elements - parents: "+p1+"/"+p2);
+						//logger.debug("readjusting child elements - parents: "+p1+"/"+p2);
 					break;
 				}
 			}
 			
 			// Try to split child shape using the parents that were just determined:
-			logger.debug("p1 / p2 = "+p1+" / "+p2);
+			//logger.debug("p1 / p2 = "+p1+" / "+p2);
 			ShapeEditOperation opChild = scene.splitShape(child, pl, true, p1, p2, true);
 			if (opChild!=null) {
 				splitOps.add(opChild);

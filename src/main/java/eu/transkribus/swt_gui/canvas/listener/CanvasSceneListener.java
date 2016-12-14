@@ -26,6 +26,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEven
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
+import eu.transkribus.swt_gui.canvas.CanvasScene;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
@@ -601,6 +602,8 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				
 				logger.debug("INDEX OF ORIG SHAPE: "+ indexOfOrigShape);
 				
+				
+				
 				// add new elements to JAXB (first second, then first to ensure right order):
 				ITrpShapeType el2 = mw.getShapeFactory().copyJAXBElementFromShapeAndData(s2, indexOfOrigShape);
 				s2.setData(el2);
@@ -854,11 +857,14 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 			st.removeFromParent();
 			//decrease reading order with one to get proper index
 			int ro2Idx = Integer.valueOf(newRo)-1;
+			st.setReadingOrder(Integer.valueOf(ro2Idx), CanvasScene.class);
 			st.reInsertIntoParent(ro2Idx);
 			//logger.debug("after reinsert " + newRo);
 			
 			//to store the reading order durable
 			st.getObservable().setChangedAndNotifyObservers(new TrpReadingOrderChangedEvent(this));
+			
+			mw.getScene().updateAllShapesParentInfo();
 			canvas.setFocus();
 			canvas.redraw();
 			canvas.update();

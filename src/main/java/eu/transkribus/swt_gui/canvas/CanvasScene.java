@@ -897,6 +897,7 @@ public class CanvasScene {
 				String changedRo = diag.open(x, y);
 				if (changedRo != null && !changedRo.equals("")){
 					logger.debug(" new reading order is " + changedRo);
+					
 					notifyOnReadingOrderChanged(s, changedRo);
 				}
 				found = true;
