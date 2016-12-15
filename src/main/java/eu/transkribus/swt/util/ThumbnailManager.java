@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.ISelectionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +65,7 @@ import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImg;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
 import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ThumbnailManager extends Dialog{
@@ -85,9 +87,12 @@ public class ThumbnailManager extends Dialog{
 	protected Composite groupComposite;
 	protected Composite labelComposite;
 	
-	Combo labelCombo, statusCombo;
+	//Combo labelCombo; 
+	Combo statusCombo;
 
 	Composite editCombos;
+	
+	Menu contextMenu;
 	
 	protected Label statisticLabel;
 	protected Label pageNrLabel;
@@ -128,6 +133,7 @@ public class ThumbnailManager extends Dialog{
 	}
 
 	TrpDocMetadata docMd;
+	TrpMainWidget mw;
 		
 	/**
 	 * Open the dialog.
@@ -152,11 +158,16 @@ public class ThumbnailManager extends Dialog{
 			}
 		}
 		
+		while (display.readAndDispatch ());
+		shell.dispose();
+		
 		return null;
 	}
 	
-	public ThumbnailManager(Composite parent, int style, ThumbnailWidget thumbnailWidget) {
+	public ThumbnailManager(Composite parent, int style, ThumbnailWidget thumbnailWidget, TrpMainWidget mw) {
 		super(parent.getShell(), style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
+		
+		this.mw = mw;
 		
 		thumbsWidget = thumbnailWidget;
 		
@@ -202,17 +213,35 @@ public class ThumbnailManager extends Dialog{
 		statusCombo = initComboWithLabel(editCombos, "Edit status: ", SWT.DROP_DOWN | SWT.READ_ONLY);
 		statusCombo.setItems(EnumUtils.stringsArray(EditStatus.class));
 		statusCombo.setEnabled(false);
+		statusCombo.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				logger.debug(statusCombo.getText());
+		        changeVersionStatus(statusCombo.getText());
+			}
+
+
+		});
 		
-		labelCombo = initComboWithLabel(editCombos, "Edit label: ", SWT.DROP_DOWN | SWT.READ_ONLY);
-		String[] tmps = {"Upcoming feature - cannot be set at at the moment", "GT", "eLearning"};
-		labelCombo.setItems(tmps);
-		labelCombo.setEnabled(false);
+//		labelCombo = initComboWithLabel(editCombos, "Edit label: ", SWT.DROP_DOWN | SWT.READ_ONLY);
+//		String[] tmps = {"Upcoming feature - cannot be set at at the moment", "GT", "eLearning"};
+//		labelCombo.setItems(tmps);
+//		labelCombo.setEnabled(false);
 		
 		Label la = new Label(editCombos, SWT.CENTER);
 		la.setText("Layout Analysis");
 		startLA = new Button(editCombos, SWT.PUSH);
 		startLA.setText("Setting up");
 		startLA.setEnabled(false);
+		
+		startLA.addListener(SWT.Selection, event-> {
+			String pages = getPagesString();
+            try {
+				setup_layout_recognition(pages);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        });
 		
 		Composite btns = new Composite(container, 0);
 		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -278,7 +307,7 @@ public class ThumbnailManager extends Dialog{
             public void widgetSelected(SelectionEvent e) {
             	if (gallery.getSelectionCount()>=1){
             		//set to true if edits are allowed
-            		enableEdits(false);
+            		enableEdits(true);
             	}
             	else{
             		enableEdits(false);
@@ -288,7 +317,7 @@ public class ThumbnailManager extends Dialog{
 
 		});
 		
-	    final Menu contextMenu = new Menu(gallery);
+	    contextMenu = new Menu(gallery);
 	    gallery.setMenu(contextMenu);
 	    //at the moment not enabled because not the total functionality to edit status, label is available
 	    contextMenu.setEnabled(false);
@@ -424,6 +453,30 @@ public class ThumbnailManager extends Dialog{
 	}
 	
 
+	private void changeVersionStatus(String text){
+		Storage storage = Storage.getInstance();
+		String pages = getPagesString();
+		
+		String[] pageList = pages.split(",");
+		
+		if (!pages.equals("") && pageList.length >= 1){
+			
+			for (String page : pageList){
+				int pageNr = Integer.valueOf(page);
+				int colId = storage.getCurrentDocumentCollectionId();
+				int docId = storage.getDocId();
+				int transcriptId = storage.getPage().getCurrentTranscript().getTsId();
+				try {
+					storage.getConnection().updatePageStatus(colId, docId, pageNr, transcriptId, EditStatus.fromString(text), "test");
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+	
 	private static Combo initComboWithLabel(Composite parent, String label, int comboStyle) {
 		
 		Label l = new Label(parent, SWT.LEFT);
@@ -453,6 +506,16 @@ public class ThumbnailManager extends Dialog{
 //			logger.debug("docMd.getDocId() " + docMd.getDocId());
 //			logger.debug("pageStr " + pageStr);
 			String jobId = Storage.getInstance().analyzeLayout(Storage.getInstance().getCurrentDocumentCollectionId(), docMd.getDocId(), pageStr, doBlockSeg, doLineSeg);
+			if (jobId != null && mw != null) {
+				logger.debug("started job with id = "+jobId);
+							
+				mw.registerJobToUpdate(jobId);
+				
+				Storage.getInstance().sendJobListUpdateEvent();
+				mw.updatePageLock();
+				
+				DialogUtil.showInfoMessageBox(shell, "Job started", "Started job with id = "+jobId);
+			}
 		}
 	}
 
@@ -465,42 +528,43 @@ public class ThumbnailManager extends Dialog{
 		statusMenuItem.setMenu(statusMenu);
 		//statusMenuItem.setEnabled(false);
 		
-		Menu labelMenu = new Menu(contextMenu);
-		MenuItem labelMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
-		labelMenuItem.setText("Edit Label");
-		labelMenuItem.setMenu(labelMenu);
+		for (String editStatus : editStatusArray){
+			tmp = new MenuItem(statusMenu, SWT.PUSH);
+			tmp.setText(editStatus);
+			tmp.addSelectionListener(new EditStatusMenuItemListener());
+			//tmp.setEnabled(true);
+		}
+		
+//		Menu labelMenu = new Menu(contextMenu);
+//		MenuItem labelMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+//		labelMenuItem.setText("Edit Label");
+//		labelMenuItem.setMenu(labelMenu);
 		
 		Menu layoutMenu = new Menu(contextMenu);
 		MenuItem layoutMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
 		layoutMenuItem.setText("Layout Analysis");
 		layoutMenuItem.setMenu(layoutMenu);
-		
-		for (String editStatus : editStatusArray){
-			tmp = new MenuItem(statusMenu, SWT.None);
-			tmp.setText(editStatus);
-			tmp.addSelectionListener(new EditStatusMenuItemListener());
-			tmp.setEnabled(false);
-		}
+
 		
 		//just dummy labels for testing
-		tmp = new MenuItem(labelMenu, SWT.None);
-		tmp.setText("Upcoming feature - cannot be set at at the moment");
-		tmp.addSelectionListener(new EditLabelMenuItemListener());
-		tmp.setEnabled(false);
-		
-		tmp = new MenuItem(labelMenu, SWT.None);
-		tmp.setText("GT");
-		tmp.addSelectionListener(new EditLabelMenuItemListener());
-		tmp.setEnabled(false);
-		
-		tmp = new MenuItem(labelMenu, SWT.None);
-		tmp.setText("eLearning");
-		tmp.addSelectionListener(new EditLabelMenuItemListener());
-		tmp.setEnabled(false);
+//		tmp = new MenuItem(labelMenu, SWT.None);
+//		tmp.setText("Upcoming feature - cannot be set at at the moment");
+//		tmp.addSelectionListener(new EditLabelMenuItemListener());
+//		tmp.setEnabled(false);
+//		
+//		tmp = new MenuItem(labelMenu, SWT.None);
+//		tmp.setText("GT");
+//		tmp.addSelectionListener(new EditLabelMenuItemListener());
+//		tmp.setEnabled(false);
+//		
+//		tmp = new MenuItem(labelMenu, SWT.None);
+//		tmp.setText("eLearning");
+//		tmp.addSelectionListener(new EditLabelMenuItemListener());
+//		tmp.setEnabled(false);
 		
 		tmp = new MenuItem(layoutMenu, SWT.None);
 		tmp.setText("Setting Up");
-		tmp.setEnabled(false);
+		//tmp.setEnabled(false);
 		
 		tmp.addListener(SWT.Selection, event-> {
 			String pages = getPagesString();
@@ -526,37 +590,29 @@ public class ThumbnailManager extends Dialog{
 		//logger.debug("pages String " + pages);
 		return pages;
 	}
-
+	
 	/*
 	 * right click listener for the transcript table
 	 * for the latest transcript the new status can be set with the right click button and by choosing the new status
 	 */
-	class EditStatusMenuItemListener extends SelectionAdapter {
+	class EditStatusMenuItemListener extends SelectionAdapter {	
+		
 	    public void widgetSelected(SelectionEvent event) {
-//	    	System.out.println("You selected " + ((MenuItem) event.widget).getText());
-//	    	System.out.println("You selected cont.1 " + EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
+	    	System.out.println("You selected " + ((MenuItem) event.widget).getText());
+	    	System.out.println("You selected cont.1 " + EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
 //	    	System.out.println("You selected cont.2 " + EnumUtils.indexOf(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText())));
 
 	    	//Storage.getInstance().getTranscriptMetadata().setStatus(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
-	    	try {
 //				Storage.getInstance().saveTranscript(Storage.getInstance().getCurrentDocumentCollectionId(), null);
 //				Storage.getInstance().setLatestTranscriptAsCurrent();
-				gallery.redraw();
-				gallery.deselectAll();
-//			} catch (SessionExpiredException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-			} catch (ServerErrorException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	    	
+	    		/*
+	    		 * change status: 
+	    		 */
+    		String tmp = ((MenuItem) event.widget).getText();
+    		changeVersionStatus(tmp);   		
+    		
+			gallery.redraw();
+			gallery.deselectAll();	    	
 	    }
 	}
 	
@@ -833,8 +889,10 @@ public class ThumbnailManager extends Dialog{
 	
 	private void enableEdits(boolean enable) {
 		statusCombo.setEnabled(enable);
-		labelCombo.setEnabled(enable);
+		//labelCombo.setEnabled(enable);
 		startLA.setEnabled(enable);
+		contextMenu.setEnabled(enable);
+		
 		
 	}
 	

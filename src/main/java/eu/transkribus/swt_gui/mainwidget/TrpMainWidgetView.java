@@ -208,7 +208,7 @@ public class TrpMainWidgetView extends Composite {
 		
 //		docInfoWidget = new DocInfoWidget(tabWidget.documentTf, 0);
 //		tabWidget.docoverviewItem.setControl(docInfoWidget);
-		docInfoWidget = new DocInfoWidget(tabWidget.mainTf, 0);
+		docInfoWidget = new DocInfoWidget(tabWidget.mainTf, 0, mainWidget);
 		tabWidget.documentItem.setControl(docInfoWidget);
 		
 		structureTreeWidget = new StructureTreeWidget(tabWidget.mainTf);

@@ -16,7 +16,7 @@ public class DocInfoWidgetTest {
 //				parent.setLayout(new FillLayout());
 				getShell().setSize(400, 1000);
 				
-				DocInfoWidget w = new DocInfoWidget(parent, 0);
+				DocInfoWidget w = new DocInfoWidget(parent, 0, null);
 				
 				SWTUtil.centerShell(getShell());
 

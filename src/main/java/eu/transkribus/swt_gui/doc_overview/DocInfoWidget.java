@@ -14,6 +14,7 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.swt.util.ThumbnailWidget;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DocInfoWidget extends Composite {
@@ -26,7 +27,7 @@ public class DocInfoWidget extends Composite {
 //	DocMetadataEditor docMetadataEditor;
 //	EditDeclManagerDialog edm;
 
-	public DocInfoWidget(Composite parent, int style) {
+	public DocInfoWidget(Composite parent, int style, TrpMainWidget mw) {
 		super(parent, style);
 		
 		setLayout(new GridLayout(2, false));
@@ -83,7 +84,7 @@ public class DocInfoWidget extends Composite {
 //		docMdGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 //		docMdGroup.setLayout(new FillLayout());
 		
-		thumbnailWidget = new ThumbnailWidget(this, SWT.NONE);
+		thumbnailWidget = new ThumbnailWidget(this, SWT.NONE, mw);
 		thumbnailWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 //		docMetadataEditor = new DocMetadataEditor(docMdGroup, 0);

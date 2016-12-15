@@ -287,7 +287,7 @@ public class ThumbnailWidget extends Composite {
 		}
 	} // end ThmbImgLoadThread
 	
-	public ThumbnailWidget(Composite parent, int style) {
+	public ThumbnailWidget(Composite parent, int style, TrpMainWidget mw) {
 		super(parent, style);
 
 		setLayout(new GridLayout());
@@ -313,7 +313,7 @@ public class ThumbnailWidget extends Composite {
 		showPageManager.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				showPageManager();
+				showPageManager(mw);
 			}
 		});
 		
@@ -406,7 +406,7 @@ public class ThumbnailWidget extends Composite {
 		this.pack();
 	}
 	
-	protected void showPageManager() {
+	protected void showPageManager(TrpMainWidget mw) {
 		
 		if (Storage.getInstance().getDoc() == null) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded");
@@ -417,7 +417,7 @@ public class ThumbnailWidget extends Composite {
 		if(isManagerOpen(tm)){
 			tm.getShell().setVisible(true);
 		} else {
-			tm = new ThumbnailManager(getShell(), SWT.NONE, this);
+			tm = new ThumbnailManager(getShell(), SWT.NONE, this, mw);
 			tm.open();
 		}
 
