@@ -1,9 +1,9 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -11,34 +11,38 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.FinereaderUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
-import eu.transkribus.util.TextRecognitionConfig;
+import eu.transkribus.util.OcrConfig;
 
-public class TextRecognitionDialog2 extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(TextRecognitionDialog2.class);
-	
-	private TextRecognitionConfigDialog trcd = null;
+public class OcrDialog extends Dialog {
+	private static final Logger logger = LoggerFactory.getLogger(OcrDialog.class);
 	
 	private Button thisPageBtn, severalPagesBtn;
 	private DocPagesSelector dps;
+	private Combo typeFaceCombo;
+	private Table langTab;
 	
 	private Storage store = Storage.getInstance();
 	
-	private TextRecognitionConfig config;
+	private OcrConfig config;
 	private String pages;
 
 	
-	public TextRecognitionDialog2(Shell parent) {
+	public OcrDialog(Shell parent) {
 		super(parent);
 	}
     
@@ -73,41 +77,65 @@ public class TextRecognitionDialog2 extends Dialog {
 			}
 		});
 		
-		Text configTxt = new Text(cont, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER);
-		configTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 6));
-				
-		Button configBtn = new Button(cont, SWT.PUSH);
-		configBtn.setText("Configure...");
-		configBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
-		configBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(trcd == null) {
-					trcd = new TextRecognitionConfigDialog(parent.getShell(), config);
-					if(trcd.open() == IDialogConstants.OK_ID) {
-						logger.info("OK pressed");
-						config = trcd.getConfig();
-						configTxt.setText(config.toString());
-						store.saveTextRecognitionConfig(config);
-					}
-					trcd = null;
-				} else {
-					trcd.setVisible();
-				}
-			}
-		});
+		Label typeFaceLbl = new Label(cont, SWT.NONE);
+		typeFaceLbl.setText("Type Face:");
 		
-		config = store.loadTextRecognitionConfig();
-		logger.debug("" + config);
-		if(config != null) {
-			configTxt.setText(config.toString());
+		typeFaceCombo = new Combo(cont, SWT.READ_ONLY);
+		typeFaceCombo.setItems(new String[]{
+				ScriptType.COMBINED.getStr(),
+				ScriptType.GOTHIC.getStr(),
+				ScriptType.NORMAL.getStr(),
+				ScriptType.NORMAL_LONG_S.getStr()
+				});
+		typeFaceCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		typeFaceCombo.select(0);
+		
+		Label langLbl = new Label(cont, SWT.NONE);
+		langLbl.setText("Languages:");
+		langLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		
+		langTab = new Table(cont, SWT.MULTI);
+		langTab.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		langTab.setItemCount(FinereaderUtils.FINEREADER_LANGUAGES.length);
+		for(int i = 0; i < FinereaderUtils.FINEREADER_LANGUAGES.length; i++) {
+			langTab.getItem(i).setText(FinereaderUtils.FINEREADER_LANGUAGES[i]);
 		}
 		
+		config = store.loadOcrConfig();
+		if(config == null) {
+			config = new OcrConfig();
+		}
+		
+		applyConfig();
+				
 		return cont;
 	}
 
+	private void applyConfig() {
+		if(config == null) {
+			return;
+		}
+		ScriptType st = config.getTypeFace();
+		if(st != null) {
+			for(int i = 0; i < typeFaceCombo.getItems().length; i++) {
+				if(typeFaceCombo.getItem(i).equals(st.getStr())) {
+					typeFaceCombo.select(i);
+				}
+			}
+		}
+		List<String> langs = config.getLanguages();
+		logger.debug(config.getLanguageString());
 		
+		int[] indices = new int[langs.size()];
+		for(int i = 0; i < langs.size(); i++) {
+			indices[i] = FinereaderUtils.getLanguageIndex(langs.get(i));
+			logger.debug("Select item = " + langs.get(i));
+		}
+		
+		langTab.select(indices);
+	}
+	
 	@Override
 	protected void okPressed() {
 		if(thisPageBtn.getSelection()) {
@@ -127,6 +155,23 @@ public class TextRecognitionDialog2 extends Dialog {
 			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Page selection is invalid.");
 			return;
 		}
+		logger.debug("Type face = " + typeFaceCombo.getText());
+		config.setTypeFace(ScriptType.fromString(typeFaceCombo.getText()));
+		
+		int[] indices = langTab.getSelectionIndices();
+		
+		if(indices.length == 0) {
+			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "You have to select at least one language.");
+			return;
+		}
+		
+		for(int i = 0; i < indices.length; i++){
+			config.getLanguages().add(langTab.getItem(indices[i]).getText());
+		}
+		
+		logger.debug(config.getLanguageString());
+		
+		store.saveOcrConfig(config);
 		
 		super.okPressed();
 	}
@@ -134,13 +179,13 @@ public class TextRecognitionDialog2 extends Dialog {
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
-		newShell.setText("Text Recognition");
+		newShell.setText("Optical Character Recognition");
 		newShell.setMinimumSize(300, 400);
 	}
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(300, 400);
+		return new Point(400, 700);
 	}
 
 	@Override
@@ -149,7 +194,7 @@ public class TextRecognitionDialog2 extends Dialog {
 		// setBlockOnOpen(false);
 	}
 	
-	public TextRecognitionConfig getConfig() {
+	public OcrConfig getConfig() {
 		return this.config;
 	}
 	

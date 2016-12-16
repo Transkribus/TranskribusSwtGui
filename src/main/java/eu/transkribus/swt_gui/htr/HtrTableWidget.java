@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -12,6 +13,7 @@ import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.EdFeature;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
@@ -57,9 +59,9 @@ public class HtrTableWidget extends Composite {
 		return htrTv;
 	}
 
-	public TrpHtr getSelectedDocument() {
+	public TrpHtr getSelectedHtr() {
 		IStructuredSelection sel = (IStructuredSelection) htrTv.getSelection();
-		if (sel.getFirstElement() != null && sel.getFirstElement() instanceof TrpDocMetadata) {
+		if (sel.getFirstElement() != null && sel.getFirstElement() instanceof TrpHtr) {
 			return (TrpHtr) sel.getFirstElement();
 		} else
 			return null;
@@ -70,5 +72,18 @@ public class HtrTableWidget extends Composite {
 		logger.debug("setting documents: "+(htrs==null ? "null" : htrs.size()));
 		htrTv.setInput(htrs==null ? new ArrayList<>() : htrs);
 //		this.layout(true);
+	}
+
+	public void setSelection(int htrId) {
+		List<TrpHtr> htrs = (List<TrpHtr>)htrTv.getInput();
+		
+		TrpHtr htr = null;
+		for(int i = 0; i < htrs.size(); i++){
+			if(htrs.get(i).getHtrId() == htrId){
+				htr = (TrpHtr)htrTv.getElementAt(i);
+				break;
+			}
+		}
+		htrTv.setSelection(new StructuredSelection(htr), true);
 	}	
 }

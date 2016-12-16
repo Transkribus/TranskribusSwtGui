@@ -13,20 +13,16 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
-import eu.transkribus.core.model.beans.HtrModel;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.UroHtrTrainConfig;
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
-import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
@@ -34,13 +30,15 @@ import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.HtrTrainingDialog;
+import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
-import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.HtrRecMode;
-import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog.RecMode;
+import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog2;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.GuiUtil;
+import eu.transkribus.util.OcrConfig;
+import eu.transkribus.util.TextRecognitionConfig;
 
 public class ToolsWidgetListener implements SelectionListener {
 	private final static Logger logger = LoggerFactory.getLogger(ToolsWidgetListener.class);
@@ -52,7 +50,11 @@ public class ToolsWidgetListener implements SelectionListener {
 	
 	ThumbnailManager tm;
 	HtrTrainingDialog htd;
-//	TextRecognitionDialog trD;
+	@Deprecated
+	TextRecognitionDialog trd;
+	OcrDialog od;
+	TextRecognitionDialog2 trd2;
+	SimpleLaDialog sld;
 		
 	public ToolsWidgetListener(TrpMainWidget mainWidget) {
 		this.mw = mainWidget;
@@ -73,8 +75,9 @@ public class ToolsWidgetListener implements SelectionListener {
 //		tw.baselineBtn.addSelectionListener(this);
 		
 		SWTUtil.addSelectionListener(tw.structAnalysisPageBtn, this);
-		SWTUtil.addSelectionListener(tw.startRecogBtn, this);
+		SWTUtil.addSelectionListener(tw.ocrBtn, this);
 		SWTUtil.addSelectionListener(tw.htrTrainBtn, this);
+		SWTUtil.addSelectionListener(tw.recogBtn, this);
 		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
 				
@@ -172,13 +175,18 @@ public class ToolsWidgetListener implements SelectionListener {
 				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
 			} 
 			else if(s == tw.batchLaBtn) {
-				SimpleLaDialog laD = new SimpleLaDialog(mw.getShell());
-				int ret = laD.open();
-				if (ret == IDialogConstants.OK_ID) {
-					final String pageStr = laD.getPages();
-					final boolean doBlockSeg = laD.isDoBlockSeg();
-					final boolean doLineSeg = laD.isDoLineSeg();
-					jobId = store.analyzeLayout(colId, docId, pageStr, doBlockSeg, doLineSeg);
+				if(sld != null) {
+					sld.setVisible(); 
+				} else {
+					sld = new SimpleLaDialog(mw.getShell());
+					int ret = sld.open();
+					if (ret == IDialogConstants.OK_ID) {
+						final String pageStr = sld.getPages();
+						final boolean doBlockSeg = sld.isDoBlockSeg();
+						final boolean doLineSeg = sld.isDoLineSeg();
+						jobId = store.analyzeLayout(colId, docId, pageStr, doBlockSeg, doLineSeg);
+					}
+					sld = null;
 				}
 			}
 			
@@ -250,32 +258,51 @@ public class ToolsWidgetListener implements SelectionListener {
 					mw.openVersionsCompareDialog(diff.getResult());
 				}					
 			
-			}else if (s == tw.startRecogBtn) {
-				TextRecognitionDialog trD = new TextRecognitionDialog(mw.getShell());
-				int ret = trD.open();
-				final String pageStr = trD.getSelectedPages();
-				if (ret == IDialogConstants.OK_ID) {
-					if(trD.getRecMode().equals(RecMode.OCR)){
+			} else if (s == tw.ocrBtn) {
+				//OLD TEXT RECOGNITION DIALOG
+//				if(trd != null) {
+//					trd.setVisible();
+//				} else {
+//					trd = new TextRecognitionDialog(mw.getShell());
+//					int ret = trd.open();
+//					final String pageStr = trd.getSelectedPages();
+//					if (ret == IDialogConstants.OK_ID) {
+//						if(trd.getRecMode().equals(RecMode.OCR)){
+//							logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
+//							jobId = store.runOcr(colId, docId, pageStr);
+//						} else { //HTR
+//							store.saveTranscript(colId, null);
+//							store.setLatestTranscriptAsCurrent();
+//							if(trd.getHtrRecMode().equals(HtrRecMode.HMM)) {
+//								final HtrModel model = trd.getSelectedHtrModel();
+//								logger.info("starting HMM HTR for doc " + docId + " on pages " + pageStr + " with model = " + model.getModelName());
+//								jobId = store.runHtr(colId, docId, pageStr, model.getModelName());
+//							} else if(trd.getHtrRecMode().equals(HtrRecMode.RNN)){
+//								final String netName = trd.getRnnName();
+//								final String dictName = trd.getDictName();
+//								logger.info("starting RNN HTR for doc " + docId + " on pages " + pageStr + " with net = " + netName + " | dict = " + dictName);
+//								jobId = store.runRnnHtr(colId, docId, pageStr, netName, dictName);
+//							} else {
+//								DialogUtil.showErrorMessageBox(TrpMainWidget.getInstance().getShell(), "Info", "Result: 42");
+//							}
+//						}
+//					}
+//					trd = null;
+//				}
+				if(od != null) {
+					od.setVisible();
+				} else {
+					od = new OcrDialog(mw.getShell());
+					int ret = od.open();
+					
+					if (ret == IDialogConstants.OK_ID) {
+						final String pageStr = od.getPages();
+						final OcrConfig config = od.getConfig();
 						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
-						jobId = store.runOcr(colId, docId, pageStr);
-					} else { //HTR
-						store.saveTranscript(colId, null);
-						store.setLatestTranscriptAsCurrent();
-						if(trD.getHtrRecMode().equals(HtrRecMode.HMM)) {
-							final HtrModel model = trD.getSelectedHtrModel();
-							logger.info("starting HMM HTR for doc " + docId + " on pages " + pageStr + " with model = " + model.getModelName());
-							jobId = store.runHtr(colId, docId, pageStr, model.getModelName());
-						} else if(trD.getHtrRecMode().equals(HtrRecMode.RNN)){
-							final String netName = trD.getRnnName();
-							final String dictName = trD.getDictName();
-							logger.info("starting RNN HTR for doc " + docId + " on pages " + pageStr + " with net = " + netName + " | dict = " + dictName);
-							jobId = store.runRnnHtr(colId, docId, pageStr, netName, dictName);
-						} else {
-							DialogUtil.showErrorMessageBox(TrpMainWidget.getInstance().getShell(), "Info", "Result: 42");
-						}
+//						jobId = store.runOcr(colId, docId, pageStr, config);
 					}
+					od = null;
 				}
-				
 //			} else if (s == tw.languageCombo) {
 //				d.getMd().setLanguage(tw.languageCombo.getText());
 //				mw.saveDocMetadata();
@@ -314,45 +341,28 @@ public class ToolsWidgetListener implements SelectionListener {
 					DialogUtil.showInfoMessageBox(mw.getShell(), "Not Available", "HTR Training is currently under development and only available to Admins.\n"
 							+ "In case you want to request a data set to be trained, please contact us at email@transkribus.eu.");
 				} else {
-					HtrTrainingDialog htd = new HtrTrainingDialog(mw.getShell());
-					if(htd.open() == IDialogConstants.OK_ID) {
-						UroHtrTrainConfig config = htd.getConfig();
-						jobId = store.runHtrTraining(config);
+					if(htd != null) {
+						htd.setVisible();
+					} else {
+						htd = new HtrTrainingDialog(mw.getShell());
+						if(htd.open() == IDialogConstants.OK_ID) {
+							UroHtrTrainConfig config = htd.getConfig();
+							jobId = store.runHtrTraining(config);
+						}
+						htd = null;
 					}
-
-//					//if shell is open {
-//					if(tm != null && tm.getShell() != null && !tm.getShell().isDisposed()){
-//						tm.getShell().setVisible(true);
-//					} else {
-//						tm = new ThumbnailManager(mw.getShell(), SWT.NONE, this);
-//						tm.open();
-//					}
-
-					
-					
-//				HtrTrainingDialog trD = new HtrTrainingDialog(mw.getShell());
-//				int ret = trD.open();
-//				final String pageStr = trD.getSelectedPages();
-//				if (ret == IDialogConstants.OK_ID) {
-//					if(trD.getRecMode().equals(RecMode.OCR)){
-//						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
-//						jobId = store.runOcr(colId, docId, pageStr);
-//					} else { //HTR
-//						store.saveTranscript(colId, null);
-//						store.setLatestTranscriptAsCurrent();
-//						if(trD.getHtrRecMode().equals(HtrRecMode.HMM)) {
-//							final HtrModel model = trD.getSelectedHtrModel();
-//							logger.info("starting HMM HTR for doc " + docId + " on pages " + pageStr + " with model = " + model.getModelName());
-//							jobId = store.runHtr(colId, docId, pageStr, model.getModelName());
-//						} else if(trD.getHtrRecMode().equals(HtrRecMode.RNN)){
-//							final String netName = trD.getRnnName();
-//							final String dictName = trD.getDictName();
-//							logger.info("starting RNN HTR for doc " + docId + " on pages " + pageStr + " with net = " + netName + " | dict = " + dictName);
-//							jobId = store.runRnnHtr(colId, docId, pageStr, netName, dictName);
-//						} else {
-//							DialogUtil.showErrorMessageBox(TrpMainWidget.getInstance().getShell(), "Info", "Result: 42");
-//						}
-//					}
+				}
+			} else if(s==tw.recogBtn) {
+				if(trd2 != null) {
+					trd2.setVisible();
+				} else {
+					trd2 = new TextRecognitionDialog2(mw.getShell());
+					if(trd2.open() == IDialogConstants.OK_ID) {
+						TextRecognitionConfig config = trd2.getConfig();
+						final String pages = trd2.getPages();
+						jobId = store.runHtr(pages, config);
+					}
+					trd2 = null;
 				}
 			}
 //			else {
