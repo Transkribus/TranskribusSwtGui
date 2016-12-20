@@ -208,7 +208,6 @@ public class DocMetadataEditor extends Composite {
 	void addListener() {
 		listener = new DocMetadataEditorListener(this);
 	}
-		
 	
 //	ExecutorService executor = Executors.newFixedThreadPool(5);
 	

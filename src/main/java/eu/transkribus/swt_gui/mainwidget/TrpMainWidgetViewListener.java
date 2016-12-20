@@ -56,7 +56,7 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		
 		SWTUtil.onSelectionEvent(ui.exportDocumentButton, (e) -> { mw.unifiedExport(); } );
 		
-		SWTUtil.onSelectionEvent(ui.reloadDocumentButton, (e) -> { mw.reloadCurrentDocument(); } );
+		//SWTUtil.onSelectionEvent(ui.reloadDocumentButton, (e) -> { mw.reloadCurrentDocument(); } );
 						
 		SWTUtil.onSelectionEvent(ui.versionsButton, (e) -> { mw.openVersionsDialog(); } );
 				
@@ -111,7 +111,7 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 				
 		SWTUtil.onSelectionEvent(ui.getThumbnailWidget().getCreateThumbs(), (e) -> { mw.createThumbs(storage.getDoc()); } );
 						
-		db.bindBeanToWidgetSelection(TrpSettings.LOAD_THUMBS_PROPERTY, mw.getTrpSets(), ui.getThumbnailWidget().getLoadThumbs());
+		//db.bindBeanToWidgetSelection(TrpSettings.LOAD_THUMBS_PROPERTY, mw.getTrpSets(), ui.getThumbnailWidget().getLoadThumbs());
 			
 		SWTUtil.onSelectionEvent(ui.getServerWidget().getShowJobsBtn(), (e) -> { mw.openJobsDialog(); } );
 		

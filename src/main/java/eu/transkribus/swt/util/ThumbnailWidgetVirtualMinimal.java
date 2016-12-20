@@ -28,6 +28,7 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ThumbnailWidgetVirtualMinimal extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidgetVirtualMinimal.class);
@@ -37,19 +38,15 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 	public static final int THUMB_WIDTH = 80;
 	public static final int THUMB_HEIGHT = 120;
 
-//	protected List<ThmbImg> thumbs = new ArrayList<>();
-
-	protected ThmbImgLoadThread loadThread;
-
 	protected Gallery gallery;
 
 	protected Composite groupComposite;
 
-//	protected Label statisticLabel;
-//	protected Label pageNrLabel;
-//	protected Label totalTranscriptsLabel;
-
 	protected GalleryItem group;
+
+	public GalleryItem getGroup() {
+		return group;
+	}
 
 	protected TrpDoc doc;
 
@@ -62,8 +59,10 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 	static final Color lightYellow = new Color(Display.getCurrent(), 255, 255, 200);
 	static final Color lightRed = new Color(Display.getCurrent(), 252, 204, 188);
 	private int totalLinesTranscribed = 0;
+	private int totalWordsTranscribed = 0;
 
 	private int maxWidth = 0;
+	private int maxHeight = 0;
 
 	private final boolean ENABLE_TRANSCRIBED_LINES;
 	
@@ -100,29 +99,6 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		ir = new MyDefaultGalleryItemRenderer();
 		ir.setShowLabels(true);
 		gallery.setItemRenderer(ir);
-
-		
-		// TODO add listeners elsewhere... use getGallery()
-//		gallery.addListener(SWT.MouseDoubleClick, new Listener() {
-//
-//			@Override
-//			public void handleEvent(Event event) {
-//				if (gallery.getSelectionCount() >= 1) {
-//					Event e = new Event();
-//					e.index = group.indexOf(gallery.getSelection()[0]);
-//
-//					// if (names != null && names.size()>e.index) {
-//					// infoTi.setText(names.get(e.index));
-//					// } else
-//					// infoTi.setText(""+e.index);
-//					// infoTi.setWidth(100);
-//					// btns.pack();
-//					//
-//					notifyListeners(SWT.Selection, e);
-//				}
-//
-//			}
-//		});
 
 		// virtual table stuff:
 		gallery.setVirtualGroups(true);
@@ -179,11 +155,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 	public Gallery getGallery() {
 		return this.gallery;
 	}
-	
-	public int getTotalTranscribedLines () {
-		return this.totalLinesTranscribed;
-	}
-	
+		
 	public void setUseGtVersions(boolean useGtVersions) {
 		this.useGtVersions = useGtVersions;
 		reload();
@@ -253,25 +225,13 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		}
 	}
 
-//	private void stopActiveThread() {
-//		if (loadThread != null && loadThread.isAlive()) {
-//			logger.debug("stopping thumbnail thread from thread: " + Thread.currentThread().getName());
-//			loadThread.cancel = true;
-//			try {
-//				// loadThread.join(); // leads to deadlock... don't know why
-//				loadThread.interrupt(); // works!
-//			} catch (Exception e) {
-//				logger.error(e.getMessage(), e);
-//			} finally {
-//				logger.debug("thumbnail thread stopped: " + !loadThread.isAlive());
-//			}
-//		}
-//	}
 
-	private void reload() {
+	void reload() {
 		if(doc == null) {
 			return;
 		}
+		
+		
 		
 		//FIXME restoring previously selected items leads to ArithmeticException with SWT.Virtual
 //		List<Integer> selection = new LinkedList<>();
@@ -283,13 +243,20 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 //					selection.add(gallery.indexOf(si));
 //				}
 //			}	
-//			logger.debug("Selected Items: " + selection.size());
+			logger.debug("reload called ");
 //		}
 		disposeOldData();
 		group.clearAll();
 		gallery.clearAll();
 		
 		group.setItemCount(doc.getNPages());
+		
+		int index = 0;
+		for (GalleryItem item : gallery.getItems()) {
+			if (item != null) {
+				setItemTextAndBackground(item, index++);
+			}
+		}
 		
 		//hack for reloading the display
 //		GC gc = new GC(this);
@@ -334,8 +301,10 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		}
 		
 		String transcribedLinesText = "";
+		String transcribedWordsText = "";
 
 		int transcribedLines = tmd.getNrOfTranscribedLines();
+		int transcribedWords = tmd.getNrOfWordsInLines();
 		int segmentedLines = tmd.getNrOfLines();
 
 		// logger.debug("segmentedLines: " + segmentedLines);
@@ -347,6 +316,11 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 			transcribedLinesText = (transcribedLines > 0 ? "\nTranscribed lines: " + transcribedLines
 					: "\nTranscribed lines: 0");
 		}
+		
+		if(transcribedWords > 0){
+			transcribedWordsText = (transcribedWords > 0 ? "\nTranscribed words: " + transcribedWords
+					: "\nTranscribed words: 0");
+		}
 
 		if (transcribedLines > 0) {
 			totalLinesTranscribed += transcribedLines;
@@ -356,6 +330,10 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 			item.setBackground(lightYellow);
 		} else {
 			item.setBackground(lightRed);
+		}
+		
+		if (transcribedWords > 0){
+			totalWordsTranscribed += transcribedWords;
 		}
 
 		// set item text
@@ -371,8 +349,11 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 			// thumbnail view
 			// text+=": "+names.get(i);
 			text += ": ";
-			int tmp = gc.textExtent(text).x + 10;
-			maxWidth = Math.max(maxWidth, tmp);
+			int tmpWidth = gc.textExtent(text).x + 20;
+			int tmpHeight = gc.textExtent(text).y + 20;
+			
+			maxWidth = Math.max(maxWidth, tmpWidth);
+			maxHeight = Math.max(maxHeight, tmpHeight);
 			// logger.debug("/////user id" + transcripts.get(i).getUserName());
 			// logger.debug("/////status" + transcripts.get(i).getStatus());
 			text += (transcripts.get(index) != null ? transcripts.get(index).getStatus().getStr() : "");
@@ -380,24 +361,38 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 				// tmp =
 				// gc.textExtent(transcripts.get(i).getStatus().getStr()).x +
 				// 10;
-				tmp = gc.textExtent(text).x + 10;
-				maxWidth = Math.max(maxWidth, tmp);
+				tmpWidth = gc.textExtent(text).x + 20;
+				tmpHeight = gc.textExtent(text).y + 20;
+				
+				maxWidth = Math.max(maxWidth, tmpWidth);
+				
 				// logger.debug("curr maxWidth " + maxWidth);
 			}
 
 			if (ENABLE_TRANSCRIBED_LINES && !transcribedLinesText.equals("")) {
 				text += transcribedLinesText;
-				tmp = gc.textExtent(transcribedLinesText).x + 10;
-				maxWidth = Math.max(maxWidth, tmp);
+				tmpWidth = gc.textExtent(transcribedLinesText).x + 20;
+				tmpHeight = gc.textExtent(text).y + 20;
+				
+				maxWidth = Math.max(maxWidth, tmpWidth);
+			}
+			
+			if (ENABLE_TRANSCRIBED_LINES && !transcribedWordsText.equals("")) {
+				text += transcribedWordsText;
+				tmpWidth = gc.textExtent(transcribedWordsText).x + 20;
+				maxWidth = Math.max(maxWidth, tmpWidth);
 			}
 		}
 
 		int te = gc.textExtent(text).x + 10;
 		int ty = gc.textExtent(text).y + 10;
+		
+		int tmpHeight = gc.textExtent(text).y + 20;
+		maxHeight = Math.max(maxHeight, tmpHeight);
 		// groupRenderer.setItemWidth(Math.max(THUMB_WIDTH, te));
 
 		groupRenderer.setItemWidth(Math.max(THUMB_WIDTH, maxWidth));
-		groupRenderer.setItemHeight(THUMB_HEIGHT + ty);
+		groupRenderer.setItemHeight(THUMB_HEIGHT + maxHeight);
 		// logger.debug("thumbText " + text);
 		item.setText(text);
 
@@ -405,106 +400,12 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 
 	}
 
-//	public static class ThmbImg {
-//		Image image = Images.LOADING_IMG;
-//		URL url;
-//		TrpTranscriptMetadata transcript;
-//		boolean isError = false;
-//		int index;
-//
-//		public ThmbImg(int index, URL url, TrpTranscriptMetadata transcript) {
-//			this.index = index;
-//			this.url = url;
-//			this.transcript = transcript;
-//			load();
-//		}
-//
-//		public static Image scaleImageToHeight(Image im, int newHeight) {
-//			Rectangle b = im.getBounds();
-//
-//			double sf = (double) newHeight / (double) b.height;
-//			int newWidth = (int) (b.width * sf);
-//			logger.debug("scaling to :" + newWidth + " x " + newHeight);
-//
-//			Image scaled = new Image(Display.getCurrent(), im.getImageData().scaledTo(newWidth, newHeight));
-//			return scaled;
-//		}
-//
-//		public static Image scaleImageToWidth(Image im, int newWidth) {
-//			Rectangle b = im.getBounds();
-//
-//			double sf = (double) newWidth / (double) b.width;
-//			int newHeight = (int) (b.height * sf);
-//			logger.debug("scaling to :" + newWidth + " x " + newHeight);
-//
-//			Image scaled = new Image(Display.getCurrent(), im.getImageData().scaledTo(newWidth, newHeight));
-//			return scaled;
-//		}
-//
-//		private void load() {
-//			try {
-//				isError = false;
-//				image = ImgLoader.load(url);
-//			} catch (Exception e) {
-//				// logger.error(e.getMessage(), e);
-//				logger.debug(e.getMessage());
-//				isError = true;
-//				Display.getDefault().asyncExec(new Runnable() {
-//					@Override
-//					public void run() {
-//						onError();
-//					}
-//				});
-//			} finally {
-//				Display.getDefault().asyncExec(new Runnable() {
-//					@Override
-//					public void run() {
-//						onDone();
-//					}
-//				});
-//			}
-//		}
-//
-//		protected void onSuccess() {
-//		}
-//
-//		protected void onError() {
-//		}
-//
-//		protected void onDone() {
-//		}
-//
-//		public void dispose() {
-//			if (image != null && !image.isDisposed()) {
-//				image.dispose();
-//				image = null;
-//			}
-//		}
-//
-//		public Image getDisplayImage() {
-//			if (isError)
-//				return Images.ERROR_IMG;
-//			else if (image == null)
-//				return Images.LOADING_IMG;
-//
-//			else
-//				return image;
-//		}
-//	}
-//
-//	class ThmbImgLoadThread extends Thread {
-//		public boolean cancel = false;
-//
-//		public ThmbImgLoadThread() {
-//			this.setName("ThmbImgLoadThread_" + (++thread_counter));
-//		}
-//
-//		@Override
-//		public void run() {
-//			for(ThmbImg t : thumbs) {
-//				t.load();
-//			}
-//			logger.debug("thumbnail thread finished!");
-//		}
-//	} // end ThmbImgLoadThread
+	public int getTotalLinesTranscribed() {
+		return totalLinesTranscribed;
+	}
+
+	public int getTotalWordsTranscribed() {
+		return totalWordsTranscribed;
+	}
+
 }
