@@ -26,9 +26,14 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +51,8 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.htr.HtrTableWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.util.TextRecognitionConfig;
+import eu.transkribus.util.TextRecognitionConfig.Mode;
 
 public class TextRecognitionConfigDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(TextRecognitionConfigDialog.class);
@@ -53,7 +60,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private Storage store = Storage.getInstance();
 	
 	private CTabFolder folder;
-	private CTabItem uroTabItem, ocrItem;
+	private CTabItem citLabTabItem;
 	
 	private Group dictGrp;
 	
@@ -63,19 +70,22 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private Chart cerChart;
 	
 	private String charSetTitle, charSet;
-	private Integer trainSetId, testSetId;
+//	private Integer trainSetId, testSetId;
 	
 	private DocImgViewerDialog trainDocViewer, testDocViewer = null;
 	private CharSetViewerDialog charSetViewer = null;
 	
-	Combo htrDictCombo, ocrLangCombo;
+	Combo htrDictCombo, ocrLangCombo, typeFaceCombo;
 	
 	private TrpHtr htr;
 	
 	List<String> htrDicts;
 	
-	public TextRecognitionConfigDialog(Shell parent) {
+	private TextRecognitionConfig config;
+	
+	public TextRecognitionConfigDialog(Shell parent, TextRecognitionConfig config) {
 		super(parent);
+		this.config = config;
 	}
     
 	public void setVisible() {
@@ -88,19 +98,17 @@ public class TextRecognitionConfigDialog extends Dialog {
 	protected Control createDialogArea(Composite parent) {
 		Composite cont = (Composite) super.createDialogArea(parent);
 		
-		SashForm mainSash = new SashForm(cont, SWT.HORIZONTAL);
-		mainSash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		mainSash.setLayout(new GridLayout(2, false));
 		
-		folder = new CTabFolder(mainSash, SWT.BORDER | SWT.FLAT);
+		
+		folder = new CTabFolder(cont, SWT.BORDER | SWT.FLAT);
 		folder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 
-		uroTabItem = new CTabItem(folder, SWT.NONE);
-		uroTabItem.setText("CITlab RNN HTR");
+		citLabTabItem = new CTabItem(folder, SWT.NONE);
+		citLabTabItem.setText("CITlab RNN HTR");
 		
 		SashForm uroSash = new SashForm(folder, SWT.HORIZONTAL);
 		uroSash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		uroSash.setLayout(new GridLayout(2, false));
+		uroSash.setLayout(new GridLayout(3, false));
 //		sash.setWeights(new int[] {40, 60});
 		
 		htw = new HtrTableWidget(uroSash, SWT.BORDER);
@@ -110,6 +118,36 @@ public class TextRecognitionConfigDialog extends Dialog {
 				TrpHtr htr = (TrpHtr) sel.getFirstElement();		
 				updateDetails(htr);
 			}
+		});
+		
+		final Table t = htw.getTableViewer().getTable();
+		
+		Menu menu = new Menu(t);
+		t.setMenu(menu);
+		
+		MenuItem shareItem = new MenuItem(menu, SWT.NONE);
+		shareItem.setText("Share model...");
+		shareItem.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ChooseCollectionDialog ccd = new ChooseCollectionDialog(getParentShell());
+				int ret = ccd.open();
+				super.widgetSelected(e);
+			}
+		});
+		
+		MenuItem delItem = new MenuItem(menu, SWT.NONE);
+		delItem.setText("Remove model from collection");
+		
+		t.addListener(SWT.MenuDetect, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+				if (t.getSelectionCount() <= 0) {
+				      event.doit = false;
+				} 
+			}
+			
 		});
 		
 		Group detailGrp = new Group(uroSash, SWT.BORDER);
@@ -227,33 +265,54 @@ public class TextRecognitionConfigDialog extends Dialog {
 		cerChart.getAxisSet().getXAxis(0).getTitle().setText("Epochs");
 		cerChart.getAxisSet().getYAxis(0).getTitle().setText("CER");
 		
-		uroTabItem.setControl(uroSash);
-		
-		ocrItem = new CTabItem(folder, SWT.NONE);
-		ocrItem.setText("Abbyy Finereader OCR");
-		
-		dictGrp = new Group(mainSash, SWT.NONE);
+		dictGrp = new Group(uroSash, SWT.NONE);
 		dictGrp.setLayout(new GridLayout(1, false));
 		dictGrp.setText("Dictionary");
+		htrDictCombo = new Combo(dictGrp, SWT.READ_ONLY);
+		htrDictCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		folder.setSelection(uroTabItem); //FIXME
-		folder.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				updateDictGroup();
-				super.widgetSelected(e);
-			}
-		});
+		citLabTabItem.setControl(uroSash);
+
+		folder.setSelection(citLabTabItem);
 		
 		updateHtrs();
-		loadHtrDicts();
-		updateDictGroup();
 		
-		mainSash.setWeights(new int[]{80, 20});
+		loadHtrDicts();
+		htrDictCombo.setItems(this.htrDicts.toArray(new String[this.htrDicts.size()]));
+		htrDictCombo.select(0);
+				
+		
+//		updateDictGroup();
+		applyConfig();
+		
+		uroSash.setWeights(new int[]{20, 60, 20});
 		
 		return cont;
 	}
 	
+	private void applyConfig() {
+		if(config == null) {
+			return;
+		}
+		Mode mode = config.getMode();
+		switch(mode) {
+		case CITlab:
+			htw.setSelection(config.getHtrId());
+			for(int i = 0; i < htrDicts.size(); i++) {
+				if(config.getDictionary().equals(htrDicts.get(i))) {
+					htrDictCombo.select(i);
+					break;
+				}
+			}
+			break;
+		case UPVLC:
+			break;
+		default:
+			break;
+		
+		}
+	}
+
 	private void updateDetails(TrpHtr htr) {
 		nameTxt.setText(htr.getName());
 		langTxt.setText(htr.getLanguage());
@@ -308,23 +367,6 @@ public class TextRecognitionConfigDialog extends Dialog {
 		
 		htw.refreshList(uroHtrs);
 	}
-
-	private void updateDictGroup() {
-		for(Control c : dictGrp.getChildren()) {
-			c.dispose();
-		}
-		if(folder.getSelection() == null) {
-			return; 
-		} else if(folder.getSelection().equals(uroTabItem)) {
-			htrDictCombo = new Combo(dictGrp, SWT.READ_ONLY);
-			htrDictCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-			htrDictCombo.setItems(this.htrDicts.toArray(new String[this.htrDicts.size()]));
-			htrDictCombo.select(0); //FIXME
-		} else if (folder.getSelection().equals(ocrItem)) {
-			
-		}
-		dictGrp.layout();
-	}
 	
 	private void loadHtrDicts(){
 		try {
@@ -336,8 +378,29 @@ public class TextRecognitionConfigDialog extends Dialog {
 		}
 	}
 	
+	public TextRecognitionConfig getConfig() {
+		return config;
+	}
+	
 	@Override
 	protected void okPressed() {
+		
+		if(folder.getSelection().equals(citLabTabItem)) {
+			config = new TextRecognitionConfig(Mode.CITlab);
+			config.setDictionary(htrDicts.get(htrDictCombo.getSelectionIndex()));
+			TrpHtr htr = htw.getSelectedHtr();
+			if(htr == null) {
+				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");
+				return;
+			}
+			config.setHtrId(htr.getHtrId());
+			config.setHtrName(htr.getName());
+			config.setLanguage(htr.getLanguage());
+		} else {
+			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Bad configuration!");
+		}
+		
+		
 		super.okPressed();
 	}
 

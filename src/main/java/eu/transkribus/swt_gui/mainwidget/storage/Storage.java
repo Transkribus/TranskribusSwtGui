@@ -58,7 +58,7 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpWordgraph;
-import eu.transkribus.core.model.beans.UroHtrTrainConfig;
+import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.enums.EditStatus;
@@ -102,6 +102,9 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSave
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
+import eu.transkribus.util.OcrConfig;
+import eu.transkribus.util.RecognitionPreferences;
+import eu.transkribus.util.TextRecognitionConfig;
 import eu.transkribus.util.Utils;
 
 /** Singleton class that contains all data related to loading a transcription */
@@ -1484,19 +1487,9 @@ public class Storage {
 		return conn.analyzeLayoutBatch(colId, docId, pageStr, doBlockSeg, doLineSeg);
 	}
 	
-	public String runOcr(int colId, int docId) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
+	public String runOcr(int colId, int docId, String pageStr, OcrConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
-		return conn.runOcr(colId, docId);
-	}
-	
-	public String runOcr(int colId, int docId, int pageNr) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
-		checkConnection(true);
-		return conn.runOcr(colId, docId, pageNr);
-	}
-	
-	public String runOcr(int colId, int docId, String pageStr) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
-		checkConnection(true);
-		return conn.runOcr(colId, docId, pageStr);
+		return conn.runOcr(colId, docId, pageStr, config.getTypeFace(), config.getLanguageString());
 	}
 	
 	public String runHtrOnPage(int colId, int docId, int pageNr, String model) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
@@ -1787,70 +1780,6 @@ public class Storage {
 		checkConnection(true);
 		conn.postEditDecl(getCurrentDocumentCollectionId(), docId, feats);
 	}
-	
-	public List<HtrModel> getHtrModels() throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
-		checkConnection(true);
-		List<HtrModel> models = conn.getHtrModelList();
-		//remove models that are incompatible with HTR in Transkribus 
-		List<HtrModel> out = new LinkedList<>();
-		for(HtrModel m : models){
-			if(m.getIsUsableInTranskribus() == 1){
-				out.add(m);
-			}
-		}
-		return models;
-	}
-	
-	public String[] getHtrModelsStr() {
-		return htrModelList.toArray(new String[htrModelList.size()]);
-	}
-	
-	public List<TrpHtr> listHtrs(String provider) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
-		checkConnection(true);
-		logger.debug("Listing HTRs: " + this.getCollId() + " - " + provider);
-		return conn.getHtrs(this.getCollId(), provider);		
-	}
-	
-	public String runRnnHtr(int colId, int docId, String pageStr, String netName, String dictName) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.runRnnHtr(colId, docId, pageStr, netName, dictName);
-	}
-	
-	public String runHtrTraining(UroHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
-		if(config == null) {
-			throw new IllegalArgumentException("Config is null!");
-		}
-		return conn.runUroHtrTraining(config);
-	}
-	
-	@Deprecated
-	public List<String> getHtrNets() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
-		checkConnection(true);
-		return conn.getHtrRnnListText();
-	}
-	
-	public List<String> getHtrDicts() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
-		checkConnection(true);
-		return conn.getHtrDictListText();
-	}
-
-	public void reloadHtrModelsStr() throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		List<HtrModel> models = conn.getHtrModelList();
-		List<String> htrModelsStrArr = new ArrayList<>(models.size());
-		for(int i = 0; i < models.size(); i++){
-			final HtrModel m = models.get(i);
-			if(m.getIsUsableInTranskribus() == 1){
-				htrModelsStrArr.add(m.getModelName());
-			}
-		}
-		
-		htrModelList = htrModelsStrArr;		
-	}
-	
-	public void clearHtrModels(){
-		htrModelList = new ArrayList<>(0);
-	}
 
 	public void storeEdFeature(EdFeature feat, boolean isCollectionFeature) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
@@ -2077,7 +2006,37 @@ public class Storage {
 		logger.debug("ProxyUser = " + System.getProperty("http.proxyUser"));
 		logger.debug("ProxyPassword = " + System.getProperty("http.proxyPassword"));
 	}
-
+	
+	/*
+	 * HTR stuff
+	 */
+	
+	public List<TrpHtr> listHtrs(String provider) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		checkConnection(true);
+		logger.debug("Listing HTRs: " + this.getCollId() + " - " + provider);
+		return conn.getHtrs(this.getCollId(), provider);		
+	}
+	
+	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		checkConnection(true);
+		switch(config.getMode()) {
+		case CITlab:
+			return conn.runCitLabHtr(this.collId, this.doc.getId(), pages, 
+					config.getHtrId(), config.getDictionary());
+		case UPVLC:
+			return null;
+		default:
+			return null;
+		}
+	}
+	
+	public String runHtrTraining(CitLabHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		if(config == null) {
+			throw new IllegalArgumentException("Config is null!");
+		}
+		return conn.runCitLabHtrTraining(config);
+	}
+	
 	public TrpDoc getTestSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.getHtrTestDoc(collId, htr.getHtrId(), 1);
@@ -2087,4 +2046,77 @@ public class Storage {
 		checkConnection(true);
 		return conn.getHtrTrainDoc(collId, htr.getHtrId(), 1);
 	}
+
+	public void saveTextRecognitionConfig(TextRecognitionConfig config) {
+		RecognitionPreferences.save(collId, this.conn.getServerUri(), config);		
+	}
+	
+	public TextRecognitionConfig loadTextRecognitionConfig() {
+		return RecognitionPreferences.getHtrConfig(collId, this.conn.getServerUri());
+	}
+	
+	public OcrConfig loadOcrConfig() {
+		return RecognitionPreferences.getOcrConfig(collId,  this.conn.getServerUri());
+	}
+	
+	public void saveOcrConfig(OcrConfig config) {
+		RecognitionPreferences.save(collId,  this.conn.getServerUri(), config);
+	}
+	
+	/*
+	 * old HTR stuff
+	 */
+	
+	public List<HtrModel> getHtrModels() throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
+		checkConnection(true);
+		List<HtrModel> models = conn.getHtrModelList();
+		//remove models that are incompatible with HTR in Transkribus 
+		List<HtrModel> out = new LinkedList<>();
+		for(HtrModel m : models){
+			if(m.getIsUsableInTranskribus() == 1){
+				out.add(m);
+			}
+		}
+		return models;
+	}
+	
+	public String[] getHtrModelsStr() {
+		return htrModelList.toArray(new String[htrModelList.size()]);
+	}
+	
+	public String runRnnHtr(int colId, int docId, String pageStr, String netName, String dictName) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.runRnnHtr(colId, docId, pageStr, netName, dictName);
+	}
+	
+	@Deprecated
+	public List<String> getHtrNets() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
+		checkConnection(true);
+		return conn.getHtrRnnListText();
+	}
+	
+	public List<String> getHtrDicts() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
+		checkConnection(true);
+		return conn.getHtrDictListText();
+	}
+
+	public void reloadHtrModelsStr() throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		List<HtrModel> models = conn.getHtrModelList();
+		List<String> htrModelsStrArr = new ArrayList<>(models.size());
+		for(int i = 0; i < models.size(); i++){
+			final HtrModel m = models.get(i);
+			if(m.getIsUsableInTranskribus() == 1){
+				htrModelsStrArr.add(m.getModelName());
+			}
+		}
+		
+		htrModelList = htrModelsStrArr;		
+	}
+	
+	public void clearHtrModels(){
+		htrModelList = new ArrayList<>(0);
+	}
+
+
 }

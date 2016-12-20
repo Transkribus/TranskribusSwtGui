@@ -39,7 +39,7 @@ public class ToolsWidget extends Composite {
 	Button detectPageNumbers, detectRunningTitles, detectFootnotesCheck;
 	
 	
-	Button startRecogBtn, htrTrainBtn;
+	Button ocrBtn, htrTrainBtn, recogBtn;
 	
 	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
 	Label ncsrIconL;
@@ -356,15 +356,15 @@ public class ToolsWidget extends Composite {
 		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		c.setLayout(new GridLayout(3, false));
 		
-		startRecogBtn = new Button(c, SWT.PUSH);
-		startRecogBtn.setText("Run text recognition...");
-		startRecogBtn.setToolTipText("Starts the recognition process for the current book");
-		startRecogBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		ocrBtn = new Button(c, SWT.PUSH);
+		ocrBtn.setText("Run OCR...");
+		ocrBtn.setToolTipText("Starts the recognition process for the current book");
+		ocrBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		
-		Button aboutRecogBtn = new Button(c, SWT.PUSH);
-		aboutRecogBtn.setImage(Images.getOrLoad("/icons/information.png"));
-		aboutRecogBtn.addSelectionListener(new SelectionAdapter() {
+		Button aboutOcrBtn = new Button(c, SWT.PUSH);
+		aboutOcrBtn.setImage(Images.getOrLoad("/icons/information.png"));
+		aboutOcrBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				String title = "About: Text Recognition";
 				String msg = "Status\n"
@@ -384,9 +384,14 @@ public class ToolsWidget extends Composite {
 		});		
 		
 		htrTrainBtn = new Button(c, SWT.PUSH);
-		htrTrainBtn.setText("Train HTR...");
+		htrTrainBtn.setText("Train Text Recognition...");
 		htrTrainBtn.setToolTipText("EXPERIMENTAL");
 		htrTrainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		
+		recogBtn = new Button(c, SWT.PUSH);
+		recogBtn.setText("Run Text Recognition...");
+		recogBtn.setToolTipText("EXPERIMENTAL");
+		recogBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		exp.setClient(c);
 		exp.setText("Text Recognition");
