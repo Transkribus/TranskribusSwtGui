@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.core.model.beans.UroHtrTrainConfig;
+import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
@@ -299,7 +299,7 @@ public class ToolsWidgetListener implements SelectionListener {
 						final String pageStr = od.getPages();
 						final OcrConfig config = od.getConfig();
 						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
-//						jobId = store.runOcr(colId, docId, pageStr, config);
+						jobId = store.runOcr(colId, docId, pageStr, config);
 					}
 					od = null;
 				}
@@ -346,7 +346,7 @@ public class ToolsWidgetListener implements SelectionListener {
 					} else {
 						htd = new HtrTrainingDialog(mw.getShell());
 						if(htd.open() == IDialogConstants.OK_ID) {
-							UroHtrTrainConfig config = htd.getConfig();
+							CitLabHtrTrainConfig config = htd.getConfig();
 							jobId = store.runHtrTraining(config);
 						}
 						htd = null;

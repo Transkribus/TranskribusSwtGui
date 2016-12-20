@@ -40,7 +40,7 @@ public class HtrTableWidget extends Composite {
 		this.setLayout(new FillLayout());
 //		this.setLayout(new RowLayout(1, true));
 		
-		htrTv = new MyTableViewer(this, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+		htrTv = new MyTableViewer(this, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		htrTv.setContentProvider(new ArrayContentProvider());
 		htrTv.setLabelProvider(new HtrTableLabelProvider(htrTv));
 		

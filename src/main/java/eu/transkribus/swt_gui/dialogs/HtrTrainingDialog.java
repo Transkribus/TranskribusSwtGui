@@ -38,7 +38,7 @@ import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.UroHtrTrainConfig;
+import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -63,7 +63,7 @@ public class HtrTrainingDialog extends Dialog {
 	
 	private Text numEpochsTxt, learningRateTxt;
 	
-	private UroHtrTrainConfig conf;
+	private CitLabHtrTrainConfig conf;
 	
 	Storage store = Storage.getInstance();
 
@@ -373,7 +373,7 @@ public class HtrTrainingDialog extends Dialog {
 			return;
 		}
 		if(paramTabFolder.getSelection().equals(uroTabItem)) {
-			conf = new UroHtrTrainConfig();
+			conf = new CitLabHtrTrainConfig();
 			conf.setDescription(descTxt.getText());
 			conf.setModelName(modelNameTxt.getText());
 			conf.setLanguage(langTxt.getText());
@@ -481,7 +481,7 @@ public class HtrTrainingDialog extends Dialog {
 		return true;
 	}
 	
-	public UroHtrTrainConfig getConfig() {
+	public CitLabHtrTrainConfig getConfig() {
 		return conf;
 	}
 }

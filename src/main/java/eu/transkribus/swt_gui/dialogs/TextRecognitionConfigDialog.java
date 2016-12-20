@@ -26,9 +26,14 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +47,6 @@ import org.swtchart.internal.series.LineSeries;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.htr.HtrTableWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -114,6 +118,36 @@ public class TextRecognitionConfigDialog extends Dialog {
 				TrpHtr htr = (TrpHtr) sel.getFirstElement();		
 				updateDetails(htr);
 			}
+		});
+		
+		final Table t = htw.getTableViewer().getTable();
+		
+		Menu menu = new Menu(t);
+		t.setMenu(menu);
+		
+		MenuItem shareItem = new MenuItem(menu, SWT.NONE);
+		shareItem.setText("Share model...");
+		shareItem.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				ChooseCollectionDialog ccd = new ChooseCollectionDialog(getParentShell());
+				int ret = ccd.open();
+				super.widgetSelected(e);
+			}
+		});
+		
+		MenuItem delItem = new MenuItem(menu, SWT.NONE);
+		delItem.setText("Remove model from collection");
+		
+		t.addListener(SWT.MenuDetect, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+				if (t.getSelectionCount() <= 0) {
+				      event.doit = false;
+				} 
+			}
+			
 		});
 		
 		Group detailGrp = new Group(uroSash, SWT.BORDER);

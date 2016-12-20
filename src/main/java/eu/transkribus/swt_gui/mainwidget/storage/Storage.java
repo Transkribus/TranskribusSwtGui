@@ -58,7 +58,7 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpWordgraph;
-import eu.transkribus.core.model.beans.UroHtrTrainConfig;
+import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.enums.EditStatus;
@@ -2030,11 +2030,11 @@ public class Storage {
 		}
 	}
 	
-	public String runHtrTraining(UroHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+	public String runHtrTraining(CitLabHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
 		if(config == null) {
 			throw new IllegalArgumentException("Config is null!");
 		}
-		return conn.runUroHtrTraining(config);
+		return conn.runCitLabHtrTraining(config);
 	}
 	
 	public TrpDoc getTestSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
