@@ -1,12 +1,12 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
 import org.eclipse.nebula.widgets.datechooser.DateChooserCombo;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
@@ -23,17 +23,13 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
-import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.tools.LanguageSelectionTable;
 
@@ -57,7 +53,9 @@ public class DocMetadataEditor extends Composite {
 	
 	DocMetadataEditorListener listener;
 	
-	FutureTask futureSaveTask;
+//	FutureTask futureSaveTask;
+	
+	Thread saveThread;
 	
 	public static final String PRINT_META_SCRIPTTYPE = "Printed";
 	
@@ -212,31 +210,28 @@ public class DocMetadataEditor extends Composite {
 	}
 		
 	
+//	ExecutorService executor = Executors.newFixedThreadPool(5);
 	
 	void saveMd() {
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		TrpDoc doc = Storage.getInstance().getDoc();
 		
-		Runnable saveTask = new Runnable() {
-			
-			@Override public void run() {
-				TrpMainWidget mw = TrpMainWidget.getInstance();
-				TrpDoc doc = Storage.getInstance().getDoc();
-				
-				if (mw == null || doc == null )
-					return;
-				
-				if (updateMetadataObjectFromGui(doc.getMd())) {
-					mw.saveDocMetadata();	
-				} else {
-					logger.debug("doc-md has not changed - not saving!");
-				}
-			}
-		};
+		if (mw == null || doc == null)
+			return;
 		
-		if(futureSaveTask != null){
-			futureSaveTask.cancel(true);
+		boolean hasChanged = updateMetadataObjectFromGui(doc.getMd());
+		
+		if (!hasChanged)
+			return;
+		
+		logger.debug("doc-md has changed - saving in background!");
+
+		if (saveThread != null && saveThread.isAlive()) {
+			saveThread.interrupt();
 		}
-		futureSaveTask = new FutureTask<Object>(saveTask, null);
-		futureSaveTask.run();
+		
+		saveThread = new Thread(() -> { mw.saveDocMetadata(); } );
+		saveThread.start();
 	}
 	
 	public boolean hasChanged(TrpDocMetadata md) {
