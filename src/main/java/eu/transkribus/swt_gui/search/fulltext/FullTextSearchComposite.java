@@ -162,8 +162,9 @@ public class FullTextSearchComposite extends Composite{
 		inputText.text.addTraverseListener(findTagsOnEnterListener);
 		
 		parameters = new Composite(facetsGroup, 0);
-		parameters.setLayout(new GridLayout(5, false));
 		parameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
+		parameters.setLayout(new GridLayout(5, false));
+		
 				
 		storage = Storage.getInstance();
 		
@@ -286,7 +287,7 @@ public class FullTextSearchComposite extends Composite{
 //		filters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));		
 
 		initResultsTable(sf);
-		sf.setWeights(new int[] { 20, 80 } );		
+		sf.setWeights(new int[] { 25, 75 } );		
 	}	
 	
 	void initResultsTable(Composite container){
