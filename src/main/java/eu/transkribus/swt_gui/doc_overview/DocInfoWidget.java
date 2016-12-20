@@ -1,26 +1,19 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-
-import eu.transkribus.core.model.beans.auth.TrpRole;
-import eu.transkribus.swt.util.ThumbnailWidget;
-import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
-import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
+import eu.transkribus.swt.util.ThumbnailWidgetVirtual;
+import eu.transkribus.swt.util.ThumbnailManagerVirtual;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DocInfoWidget extends Composite {
 	
 	Text loadedDocText, currentCollectionText, loadedPageText, loadedImageUrl, loadedTranscriptUrl;
-	ThumbnailWidget thumbnailWidget;
+	ThumbnailWidgetVirtual thumbnailWidget;
 	
 //	Button openEditDeclManagerBtn;
 	
@@ -84,7 +77,7 @@ public class DocInfoWidget extends Composite {
 //		docMdGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 //		docMdGroup.setLayout(new FillLayout());
 		
-		thumbnailWidget = new ThumbnailWidget(this, SWT.NONE, mw);
+		thumbnailWidget = new ThumbnailWidgetVirtual(this, SWT.NONE, mw);
 		thumbnailWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 //		docMetadataEditor = new DocMetadataEditor(docMdGroup, 0);
@@ -99,5 +92,9 @@ public class DocInfoWidget extends Composite {
 	public Text getLoadedTranscriptUrl() { return loadedTranscriptUrl; }
 	public Text getLoadedPageText() { return loadedPageText; }
 	
-	public ThumbnailWidget getThumbnailWidget() { return thumbnailWidget; }
+	public ThumbnailWidgetVirtual getThumbnailWidget() { return thumbnailWidget; }
+
+	public ThumbnailManagerVirtual getThumbnailManager() {
+		return thumbnailWidget.getThumbnailManager();
+	}
 }

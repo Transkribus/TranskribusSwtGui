@@ -11,8 +11,6 @@ import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -38,7 +36,9 @@ import eu.transkribus.swt.portal.PortalWidget.PositionDocking;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.ThumbnailManagerVirtual;
 import eu.transkribus.swt.util.ThumbnailWidget;
+import eu.transkribus.swt.util.ThumbnailWidgetVirtual;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.CanvasWidget;
@@ -84,7 +84,7 @@ public class TrpMainWidgetView extends Composite {
 	TaggingWidget taggingWidget;
 	ToolsWidget toolsWidget;
 	CommentsWidget commentsWidget;
-	ThumbnailWidget thumbnailWidget;
+	//ThumbnailWidget thumbnailWidget;
 
 	TrpSettings trpSets;
 	PortalWidget portalWidget;
@@ -771,8 +771,12 @@ public class TrpMainWidgetView extends Composite {
 		return portalWidget;
 	}
 	
-	public ThumbnailWidget getThumbnailWidget() {
+	public ThumbnailWidgetVirtual getThumbnailWidget() {
 		return docInfoWidget.getThumbnailWidget();
+	}
+	
+	public ThumbnailManagerVirtual getThumbnailManager() {
+		return docInfoWidget.getThumbnailManager();
 	}
 
 	public DropDownToolItem getSaveDropDown() {

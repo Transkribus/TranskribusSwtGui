@@ -724,7 +724,7 @@ public class TrpMainWidget {
 				jumpToPage(event.index);
 			}
 		});
-
+		
 		metadataWidgetListener = new PageMetadataWidgetListener(this);
 
 		taggingWidgetListener = new TaggingWidgetListener(this);
@@ -2045,7 +2045,7 @@ public class TrpMainWidget {
 
 			final boolean DISABLE_THUMB_CREATION_ON_LOAD = true;
 			if (!DISABLE_THUMB_CREATION_ON_LOAD && getTrpSets().isCreateThumbs()) {
-				CreateThumbsService.createThumbForDoc(storage.getDoc(), false, updateThumbsWidgetRunnable);
+				//CreateThumbsService.createThumbForDoc(storage.getDoc(), false, updateThumbsWidgetRunnable);
 			}
 
 			storage.setCurrentPage(pageIndex);
