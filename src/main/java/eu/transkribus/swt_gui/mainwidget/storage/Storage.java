@@ -2118,5 +2118,15 @@ public class Storage {
 		htrModelList = new ArrayList<>(0);
 	}
 
+	public void addHtrToCollection(TrpHtr htr, TrpCollection col) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException {
+		checkConnection(true);
+		conn.addHtrToCollection(htr.getHtrId(), this.collId, col.getColId());		
+	}
+
+	public void removeHtrFromCollection(TrpHtr htr) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException {
+		checkConnection(true);
+		conn.removeHtrFromCollection(htr.getHtrId(), this.collId);		
+	}
+
 
 }

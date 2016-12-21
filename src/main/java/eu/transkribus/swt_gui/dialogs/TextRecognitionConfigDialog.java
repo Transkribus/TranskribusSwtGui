@@ -46,6 +46,7 @@ import org.swtchart.internal.series.LineSeries;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.htr.HtrTableWidget;
@@ -132,12 +133,43 @@ public class TextRecognitionConfigDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				ChooseCollectionDialog ccd = new ChooseCollectionDialog(getParentShell());
 				int ret = ccd.open();
+				TrpCollection col = ccd.getSelectedCollection();
+				TrpHtr htr = htw.getSelectedHtr();
+				
+				if(store.getCollId() == col.getColId()) {
+					DialogUtil.showInfoMessageBox(getParentShell(), "Info", 
+							"The selected HTR is already included in this collection.");
+					return;
+				}
+				try {
+					store.addHtrToCollection(htr, col);
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+						| NoConnectionException e1) {
+					logger.debug("Could not add HTR to collection!", e1);
+					DialogUtil.showErrorMessageBox(getParentShell(), "Error sharing HTR", 
+							"The selected HTR could not be added to this collection.");
+				}
 				super.widgetSelected(e);
 			}
 		});
 		
 		MenuItem delItem = new MenuItem(menu, SWT.NONE);
 		delItem.setText("Remove model from collection");
+		delItem.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				TrpHtr htr = htw.getSelectedHtr();
+				try {
+					store.removeHtrFromCollection(htr);
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+						| NoConnectionException e1) {
+					logger.debug("Could not remove HTR from collection!", e1);
+					DialogUtil.showErrorMessageBox(getParentShell(), "Error removing HTR", 
+							"The selected HTR could not be removed from this collection.");
+				}
+				super.widgetSelected(e);
+			}
+		});
 		
 		t.addListener(SWT.MenuDetect, new Listener() {
 
