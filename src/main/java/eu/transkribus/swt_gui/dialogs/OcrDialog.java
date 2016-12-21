@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ public class OcrDialog extends Dialog {
 	private DocPagesSelector dps;
 	private Combo typeFaceCombo;
 	private Table langTab;
+	private Label langStrLbl;
 	
 	private Storage store = Storage.getInstance();
 	
@@ -93,14 +95,30 @@ public class OcrDialog extends Dialog {
 		
 		Label langLbl = new Label(cont, SWT.NONE);
 		langLbl.setText("Languages:");
-		langLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		langLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		langTab = new Table(cont, SWT.MULTI);
+		langStrLbl = new Label(cont, SWT.NONE);
+		langStrLbl.setText("");
+		langStrLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		
+		
+		langTab = new Table(cont, SWT.CHECK);
 		langTab.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		langTab.setItemCount(FinereaderUtils.FINEREADER_LANGUAGES.length);
 		for(int i = 0; i < FinereaderUtils.FINEREADER_LANGUAGES.length; i++) {
 			langTab.getItem(i).setText(FinereaderUtils.FINEREADER_LANGUAGES[i]);
 		}
+		
+		langTab.addSelectionListener(new SelectionAdapter() {
+		    public void widgetSelected(SelectionEvent e) {
+//		        if( e.detail == SWT.CHECK ) {
+//		           
+//		        }
+		        TableItem item = ((TableItem)e.item);
+		        item.setChecked(true);
+		        updateLangStr();
+		    }
+		});
 		
 		config = store.loadOcrConfig();
 		if(config == null) {
@@ -108,7 +126,7 @@ public class OcrDialog extends Dialog {
 		}
 		
 		applyConfig();
-				
+		
 		return cont;
 	}
 
@@ -125,15 +143,25 @@ public class OcrDialog extends Dialog {
 			}
 		}
 		List<String> langs = config.getLanguages();
-		logger.debug(config.getLanguageString());
-		
-		int[] indices = new int[langs.size()];
+		logger.debug("Config.langStr: " + config.getLanguageString());
+
 		for(int i = 0; i < langs.size(); i++) {
-			indices[i] = FinereaderUtils.getLanguageIndex(langs.get(i));
+			int index = FinereaderUtils.getLanguageIndex(langs.get(i));
+			langTab.getItem(index).setChecked(true);
 			logger.debug("Select item = " + langs.get(i));
 		}
-		
-		langTab.select(indices);
+		updateLangStr();
+	}
+	
+	public void updateLangStr() {
+		config.getLanguages().clear();
+		for(int i = 0; i < langTab.getItemCount(); i++) {
+			if(langTab.getItem(i).getChecked()) {
+				config.getLanguages().add(langTab.getItem(i).getText());
+			}
+		}
+		logger.debug("Setting label text: " + config.getLanguageString());
+		langStrLbl.setText(config.getLanguageString());
 	}
 	
 	@Override
@@ -158,15 +186,9 @@ public class OcrDialog extends Dialog {
 		logger.debug("Type face = " + typeFaceCombo.getText());
 		config.setTypeFace(ScriptType.fromString(typeFaceCombo.getText()));
 		
-		int[] indices = langTab.getSelectionIndices();
-		
-		if(indices.length == 0) {
+		if(config.getLanguages().size() == 0) {
 			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "You have to select at least one language.");
 			return;
-		}
-		
-		for(int i = 0; i < indices.length; i++){
-			config.getLanguages().add(langTab.getItem(indices[i]).getText());
 		}
 		
 		logger.debug(config.getLanguageString());
