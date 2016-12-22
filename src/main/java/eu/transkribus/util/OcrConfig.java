@@ -40,7 +40,7 @@ public class OcrConfig {
 		if(langStr.contains(",")) {
 			String[] langs = langStr.split(",");
 			for(String l : langs) {
-				if(FinereaderUtils.isFinreaderLanguage(l)) {
+				if(!FinereaderUtils.isFinreaderLanguage(l)) {
 					continue;
 				}
 				languages.add(l);

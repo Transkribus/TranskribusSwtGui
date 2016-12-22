@@ -2,11 +2,15 @@ package eu.transkribus.util;
 
 import java.util.prefs.Preferences;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.util.TextRecognitionConfig.Mode;
 
 public class RecognitionPreferences {
-
+	private static final Logger logger = LoggerFactory.getLogger(RecognitionPreferences.class);
+	
 	private static Preferences pref = Preferences.userRoot().node("/trp/recognition");
 
 	private final static String HTR = "HTR";
@@ -71,6 +75,9 @@ public class RecognitionPreferences {
 		final String langStr = pref.get(buildKey(OCR, colId, serverUri, LANGUAGE), null);
 		final String typeFace = pref.get(buildKey(OCR, colId, serverUri, TYPE_FACE), null);
 		
+		logger.debug("Loading langStr: " + langStr);
+		logger.debug("Loading typeFace: " + typeFace);
+		
 		if(typeFace == null || langStr == null) {
 			return null;
 		}
@@ -85,7 +92,8 @@ public class RecognitionPreferences {
 			throw new IllegalArgumentException("Config is null!");
 		}
 		pref.put(buildKey(OCR, colId, serverUri, TYPE_FACE), config.getTypeFace().toString());
-		pref.put(buildKey(OCR, colId, serverUri, LANGUAGE), config.getLanguageString());		
+		pref.put(buildKey(OCR, colId, serverUri, LANGUAGE), config.getLanguageString());	
+		logger.debug("Saving langStr: " + config.getLanguageString());
 	}
 	
 	private static String buildKey(final String prefix, final int colId, final String serverUri, final String key) {

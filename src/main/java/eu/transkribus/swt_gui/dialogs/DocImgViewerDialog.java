@@ -142,6 +142,7 @@ public class DocImgViewerDialog extends Dialog {
 	private void loadImg(TrpPage p) {
 		try {
 			canvas.getScene().setMainImage(new CanvasImage(p.getUrl()));
+			currPageIndex = p.getPageNr() - 1;
 		} catch (Exception e1) {
 			logger.debug("Could not load image for page: " + p);
 			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error loading image", "Could not load image!");
