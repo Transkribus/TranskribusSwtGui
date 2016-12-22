@@ -2169,26 +2169,6 @@ public abstract class ATranscriptionWidget extends Composite{
 //			text.setBackground(this.getBackground());
 //	}
 	
-	public static List<StyleRange> getTagStylesForLine(TrpTextLineType lineObject, int lineOffset) {
-		List<StyleRange> styleList = new ArrayList<>();
-		for (TaggedWord tw : lineObject.getTaggedWords()) {
-			logger.debug(tw.toString());
-			
-			StyleRange twSr = new StyleRange();
-			twSr.start = lineOffset+tw.getStart();
-			twSr.length = tw.getWord().length();
-//			twSr.fontStyle = SWT.BOLD;
-			twSr.fontStyle = SWT.DEFAULT;
-			if (tw.getWordRegion()!=null)
-				twSr.foreground = Colors.getSystemColor(SWT.COLOR_DARK_GREEN);
-			else
-				twSr.foreground = Colors.getSystemColor(SWT.COLOR_DARK_RED);
-			
-			styleList.add(twSr);
-		}
-		return styleList;
-	}
-
 	public ToolItem getLongDash() {
 		return longDash;
 	}

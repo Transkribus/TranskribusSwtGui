@@ -46,8 +46,8 @@ public class LineEditor extends CanvasShapeAttachWidget<TrpTextLineType> {
 				if (shape==null)
 					return;
 				
-				List<StyleRange> styleList = ATranscriptionWidget.getTagStylesForLine(shape, event.lineOffset);
-				event.styles = (StyleRange[]) ArrayUtils.addAll(event.styles, styleList.toArray(new StyleRange[0]));
+//				List<StyleRange> styleList = ATranscriptionWidget.getTagStylesForLine(shape, event.lineOffset);
+//				event.styles = (StyleRange[]) ArrayUtils.addAll(event.styles, styleList.toArray(new StyleRange[0]));
 			}
 		});
 		addWidget(textField);
