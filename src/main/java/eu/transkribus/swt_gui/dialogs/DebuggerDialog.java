@@ -93,6 +93,12 @@ public class DebuggerDialog extends Dialog {
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(new GridLayout(1, true));
 		
+		Composite top = new Composite(container, 0);
+		top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		top.setLayout(new RowLayout(SWT.HORIZONTAL));
+		
+		
+		
 		Composite btns = new Composite(container, 0);
 		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		btns.setLayout(new RowLayout(SWT.HORIZONTAL));

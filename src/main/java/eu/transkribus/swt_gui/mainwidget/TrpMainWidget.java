@@ -578,8 +578,10 @@ public class TrpMainWidget {
 		String fn = "";
 		String key = "";
 		int pageNr = -1;
+		int pageId=-1, tsid=-1;
 		String imgUrl = "", transcriptUrl = "";
-
+		
+		int collId = storage.getCurrentDocumentCollectionId();
 		int docId = -1;
 
 		if (storage.getDoc() != null) {
@@ -594,9 +596,11 @@ public class TrpMainWidget {
 					imgUrl = CoreUtils.urlToString(storage.getCurrentImage().url);
 
 				pageNr = storage.getPage().getPageNr();
+				pageId = storage.getPage().getPageId();
 
 				if (storage.getTranscriptMetadata() != null && storage.getTranscriptMetadata().getUrl() != null) {
 					transcriptUrl = CoreUtils.urlToString(storage.getTranscriptMetadata().getUrl());
+					tsid = storage.getTranscriptMetadata().getTsId();
 				}
 
 				loadedPageStr = "Page " + pageNr + ", file: " + fn;
@@ -639,6 +643,11 @@ public class TrpMainWidget {
 		ui.getDocInfoWidget().getLoadedPageText().setText(fn);
 		ui.getDocInfoWidget().getLoadedImageUrl().setText(imgUrl);
 		ui.getDocInfoWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
+		
+		if (!storage.isDocLoaded() || storage.isLocalDoc())
+			ui.getDocInfoWidget().getIdsText().setText("NA");
+		else
+			ui.getDocInfoWidget().getIdsText().setText(pageId+"/"+tsid);
 
 		ui.getServerWidget().updateHighlightedRow(docId);
 		ui.getShell().setText(title);

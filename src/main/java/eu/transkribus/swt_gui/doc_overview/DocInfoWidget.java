@@ -12,7 +12,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class DocInfoWidget extends Composite {
 	
-	Text loadedDocText, currentCollectionText, loadedPageText, loadedImageUrl, loadedTranscriptUrl;
+	Text loadedDocText, currentCollectionText, loadedPageText, loadedImageUrl, loadedTranscriptUrl, idsText;
 	ThumbnailWidgetVirtual thumbnailWidget;
 	
 //	Button openEditDeclManagerBtn;
@@ -31,20 +31,20 @@ public class DocInfoWidget extends Composite {
 				
 		Label loadedDocLabel = new Label(this, SWT.NONE);
 		loadedDocLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		loadedDocLabel.setText("Loaded doc: ");
+		loadedDocLabel.setText("Document: ");
 		
 		loadedDocText = new Text(this, SWT.BORDER | SWT.READ_ONLY);
 		loadedDocText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Label collLabel = new Label(this, 0);
-		collLabel.setText("Current collection: ");
+		collLabel.setText("Collection: ");
 		
 		currentCollectionText = new Text(this, SWT.BORDER | SWT.READ_ONLY);
 		currentCollectionText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Label fnLabel = new Label(this, SWT.NONE);
 		fnLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		fnLabel.setText("Current filename: ");
+		fnLabel.setText("Filename: ");
 		
 		loadedPageText = new Text(this, SWT.BORDER | SWT.READ_ONLY);
 		loadedPageText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -58,17 +58,24 @@ public class DocInfoWidget extends Composite {
 		
 		Label imgUrlLabel = new Label(this, SWT.NONE);
 		imgUrlLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		imgUrlLabel.setText("Current image URL: ");
+		imgUrlLabel.setText("Image URL: ");
 		
 		loadedImageUrl = new Text(this, SWT.BORDER | SWT.READ_ONLY);
 		loadedImageUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Label transcriptUrlLabel = new Label(this, SWT.NONE);
 		transcriptUrlLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		transcriptUrlLabel.setText("Current transcript URL: ");
+		transcriptUrlLabel.setText("Transcript URL: ");
 		
 		loadedTranscriptUrl = new Text(this, SWT.BORDER | SWT.READ_ONLY);
 		loadedTranscriptUrl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label idsLabel = new Label(this, SWT.NONE);
+		idsLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		idsLabel.setText("Page/Transcript ID: ");
+		
+		idsText = new Text(this, SWT.BORDER | SWT.READ_ONLY);
+		idsText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 //		ExpandBar container = new ExpandBar (this, SWT.V_SCROLL);
 		
@@ -91,6 +98,7 @@ public class DocInfoWidget extends Composite {
 	public Text getLoadedImageUrl() { return loadedImageUrl; }
 	public Text getLoadedTranscriptUrl() { return loadedTranscriptUrl; }
 	public Text getLoadedPageText() { return loadedPageText; }
+	public Text getIdsText() { return idsText; }
 	
 	public ThumbnailWidgetVirtual getThumbnailWidget() { return thumbnailWidget; }
 
