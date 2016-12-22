@@ -3464,7 +3464,6 @@ public class TrpMainWidget {
 			ProgressBarDialog.open(shell, new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						logger.debug("creating PDF document...");
 						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, selectedTags, highlightTags, wordBased, doBlackening,
 								createTitle);
 						monitor.done();
