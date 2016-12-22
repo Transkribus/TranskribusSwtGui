@@ -128,6 +128,11 @@ public class TextRecognitionDialog2 extends Dialog {
 			return;
 		}
 		
+		if(config == null) {
+			DialogUtil.showErrorMessageBox(getShell(), "Bad Configuration", "Please define a configuration.");
+			return;
+		}
+		
 		super.okPressed();
 	}
 

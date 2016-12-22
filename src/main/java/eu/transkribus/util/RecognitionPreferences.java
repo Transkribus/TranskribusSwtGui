@@ -27,7 +27,7 @@ public class RecognitionPreferences {
 	
 	public static TextRecognitionConfig getHtrConfig(final int colId, final String serverUri) {
 
-		String modeString = pref.get(colId + MODE, null);
+		String modeString = pref.get(buildKey(HTR, colId, serverUri, MODE), null);
 		if(modeString == null || modeString.isEmpty()) {
 			return null;
 		}

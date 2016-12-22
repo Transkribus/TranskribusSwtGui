@@ -353,11 +353,12 @@ public class TextRecognitionConfigDialog extends Dialog {
 		charSetTitle = "Character Set of Model: " + htr.getName();
 		charSet = htr.getCharList() == null || htr.getCharList().isEmpty() ? "N/A" : htr.getCharList();
 		
+		showCharSetBtn.setEnabled(htr.getCharList() != null && !htr.getCharList().isEmpty());
+		
 		this.htr = htr;
 		
-		if(htr.getTestGtDocId() == 0) {
-			showTestSetBtn.setEnabled(false);
-		}
+		showTestSetBtn.setEnabled(htr.getTestGtDocId() != 0);
+		showTrainSetBtn.setEnabled(htr.getGtDocId() != 0);
 		
 		updateChart(htr.getCerString());
 	}
