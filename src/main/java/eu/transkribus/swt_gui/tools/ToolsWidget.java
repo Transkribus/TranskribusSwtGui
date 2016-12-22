@@ -359,25 +359,19 @@ public class ToolsWidget extends Composite {
 		ocrBtn = new Button(c, SWT.PUSH);
 		ocrBtn.setText("Run OCR...");
 		ocrBtn.setToolTipText("Starts the recognition process for the current book");
-		ocrBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		ocrBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		
 		Button aboutOcrBtn = new Button(c, SWT.PUSH);
 		aboutOcrBtn.setImage(Images.getOrLoad("/icons/information.png"));
 		aboutOcrBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				String title = "About: Text Recognition";
+				String title = "About: OCR";
 				String msg = "Status\n"
 						+ "\t-Productive\n"
 						+ "Behaviour\n"
 						+ "\t-All pages/images of the document are processed with\n"
-						+ "\tABBYY FineReader 11 SDK\n"
-						+ "\tor HTR Technology\n"
-						+ "Provider\n"
-						+ "\t-ABBYY FineReader for OCR\n"
-						+ "\t-Universidad Politecnica de Valencia for HTR\n"
-						+ "\t-University of Rostock, Institute of Mathematics, CITlab for HTR"
-						+ "\t-University of Innsbruck, Digitisation and Digital Preservation group";
+						+ "\tABBYY FineReader 11 SDK";
 				
 				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
 			}
@@ -388,10 +382,27 @@ public class ToolsWidget extends Composite {
 		htrTrainBtn.setToolTipText("EXPERIMENTAL");
 		htrTrainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
+		Button aboutHtrBtn = new Button(c, SWT.PUSH);
+		aboutHtrBtn.setImage(Images.getOrLoad("/icons/information.png"));
+		aboutHtrBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				String title = "About: Text Recognition";
+				String msg = "Status\n"
+						+ "\t-Productive\n"
+						+ "Behaviour\n"
+						+ "\t-All pages/images of the document are processed with\n"
+						+ "\tHTR Technology\n"
+						+ "Provider\n"
+						+ "\t-University of Rostock, Institute of Mathematics, CITlab for HTR";
+						
+				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
+			}
+		});
+		
 		recogBtn = new Button(c, SWT.PUSH);
 		recogBtn.setText("Run Text Recognition...");
 		recogBtn.setToolTipText("EXPERIMENTAL");
-		recogBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		recogBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
 		exp.setClient(c);
 		exp.setText("Text Recognition");
