@@ -81,16 +81,16 @@ public class WordTagEditor extends CanvasShapeAttachWidget<TrpWordType> {
 		if (shape==null)
 			return;
 		
-		TrpTextLineType line = shape.getLine();
-		comboViewer.setInput(line.getTaggedWords());
-			
-		int i = 0;
-		for (TaggedWord w : line.getTaggedWords()) {			
-			if (w.getWordRegion() == shape) { // the word region assigned to the TaggedWord corresponds with this word!
-				tagCombo.select(i);
-			}
-			++i;
-		}
+//		TrpTextLineType line = shape.getLine();
+//		comboViewer.setInput(line.getTaggedWords());
+//			
+//		int i = 0;
+//		for (TaggedWord w : line.getTaggedWords()) {			
+//			if (w.getWordRegion() == shape) { // the word region assigned to the TaggedWord corresponds with this word!
+//				tagCombo.select(i);
+//			}
+//			++i;
+//		}
 				
 		layout(true);
 		
