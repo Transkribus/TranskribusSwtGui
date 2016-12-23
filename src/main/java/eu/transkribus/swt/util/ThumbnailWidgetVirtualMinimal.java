@@ -12,6 +12,7 @@ import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -27,8 +28,6 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
-import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ThumbnailWidgetVirtualMinimal extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidgetVirtualMinimal.class);
@@ -105,8 +104,8 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		gallery.addListener(SWT.SetData, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				logger.debug("setting data: " + event);
-				logger.debug("item: " + event.item);
+//				logger.debug("setting data: " + event);
+//				logger.debug("item: " + event.item);
 
 				final GalleryItem item = (GalleryItem) event.item;
 				int index;
@@ -119,7 +118,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 					item.setItemCount(doc.getThumbUrls().size());
 				}
 
-				logger.debug("setData index " + index); //$NON-NLS-1$
+				//logger.debug("setData index " + index); //$NON-NLS-1$
 				
 				item.setExpanded(true);
 
@@ -135,6 +134,26 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 				setItemTextAndBackground(item, index);
 			}
 		});
+		
+		gallery.addListener(SWT.MouseHover, new Listener() {
+			
+			@Override
+			public void handleEvent(Event event) {
+				GalleryItem item = gallery.getItem (new Point(event.x, event.y));
+				if(item == null) {
+					return;
+				}
+				int index;
+				if (item.getParentItem() != null) { // if this is a leaft item
+													// -> set nr of items to 0!
+					index = item.getParentItem().indexOf(item);
+				} else {
+					index = gallery.indexOf(item);
+				}
+				gallery.setToolTipText(doc.getPages().get(index).getImgFileName());
+			}
+		});
+		
 		gallery.setItemCount(1);
 		// END virtual table stuff
 
