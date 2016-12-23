@@ -3138,7 +3138,14 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			if (e instanceof InterruptedException) {
 				DialogUtil.showInfoMessageBox(getShell(), "Export canceled", "Export was canceled");
-			} else {
+			}
+			else if (e instanceof SessionExpiredException) {
+				sessionExpired = true;
+				logout(true, false);
+				logger.warn("Session expired!");
+				loginDialog("Session expired!");
+				//unifiedExport();
+			}else {
 				logger.error(e.getMessage(), e);
 			}
 			// onError("Export error", "Error during export of document", e);

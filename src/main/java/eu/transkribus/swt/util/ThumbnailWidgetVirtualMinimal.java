@@ -105,8 +105,8 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		gallery.addListener(SWT.SetData, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				logger.debug("setting data: " + event);
-				logger.debug("item: " + event.item);
+//				logger.debug("setting data: " + event);
+//				logger.debug("item: " + event.item);
 
 				final GalleryItem item = (GalleryItem) event.item;
 				int index;
@@ -119,7 +119,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 					item.setItemCount(doc.getThumbUrls().size());
 				}
 
-				logger.debug("setData index " + index); //$NON-NLS-1$
+				//logger.debug("setData index " + index); //$NON-NLS-1$
 				
 				item.setExpanded(true);
 

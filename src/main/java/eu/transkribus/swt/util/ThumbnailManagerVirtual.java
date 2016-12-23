@@ -54,6 +54,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.io.UnsupportedFormatException;
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
@@ -542,7 +543,9 @@ public class ThumbnailManagerVirtual extends Dialog{
 	private void addStatisticalNumbers() {
 		
 		Storage storage = Storage.getInstance();
-		if (storage.getDoc() != null){
+		TrpDoc doc = storage.getDoc();
+		
+		if ( doc != null){
 			if(pageNrLabel != null && !pageNrLabel.isDisposed()){
 				pageNrLabel.dispose();
 			}
@@ -552,11 +555,23 @@ public class ThumbnailManagerVirtual extends Dialog{
 			pageNrLabel = new Label(labelComposite, SWT.NONE);
 			pageNrLabel.setText("Nr of pages: " + storage.getDoc().getNPages());
 			
+			int totalLinesTranscribed = 0;
+			int totalWordsTranscribed = 0;
+			
+			for (int i = 0; i < doc.getTranscripts().size(); i++){
+				TrpTranscriptMetadata tmd;
+				tmd = doc.getTranscripts().get(i);
+				
+				totalLinesTranscribed += tmd.getNrOfTranscribedLines();
+				totalWordsTranscribed += tmd.getNrOfWordsInLines();
+			}
+
+			
 			totalTranscriptsLabel = new Label(labelComposite, SWT.None);
-			totalTranscriptsLabel.setText("Nr. of lines trancribed: " + tw.getTotalLinesTranscribed());
+			totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
 			
 			totalWordTranscriptsLabel = new Label(labelComposite, SWT.None);
-			totalWordTranscriptsLabel.setText("Nr. of words trancribed: " + tw.getTotalWordsTranscribed());
+			totalWordTranscriptsLabel.setText("Nr. of words trancribed: " + totalWordsTranscribed);
 	
 			groupComposite.layout(true, true);
 			
