@@ -3826,22 +3826,31 @@ public class TrpMainWidget {
 	}
 
 	public void openSearchDialog() {
-		if(searchDiag != null){
-			if(searchDiag.getShell() != null ){
-
-				if(searchDiag.getShell().getMinimized()){
-					searchDiag.getShell().setMinimized(false);
-					searchDiag.getShell().forceActive();
-				}else{
-					searchDiag.getShell().forceActive();
-				}
-			}else{
-				searchDiag.open();
-			}
-		}else{		
-		searchDiag = new SearchDialog(getShell());
+		if (searchDiag!=null && searchDiag.getShell()!=null && !searchDiag.getShell().isDisposed())
+			searchDiag.close();
+		
+		SearchDialog searchDiag = new SearchDialog(getShell());
 		searchDiag.open();
-		}
+		
+		this.searchDiag = searchDiag;
+		
+		
+//		if(searchDiag != null){
+//			if(searchDiag.getShell() != null ){
+//
+//				if(searchDiag.getShell().getMinimized()){
+//					searchDiag.getShell().setMinimized(false);
+//					searchDiag.getShell().forceActive();
+//				}else{
+//					searchDiag.getShell().forceActive();
+//				}
+//			}else{
+//				searchDiag.open();
+//			}
+//		}else{		
+//		searchDiag = new SearchDialog(getShell());
+//		searchDiag.open();
+//		}
 	}
 	
 	public SearchDialog getSearchDialog(){

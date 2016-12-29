@@ -1,5 +1,6 @@
 package eu.transkribus.swt.util;
 
+import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -11,6 +12,8 @@ public class LabeledCombo extends Composite {
 	
 	public Label label; 
 	public Combo combo;
+	
+	public ComboViewer comboV;
 	
 	public LabeledCombo(Composite parent, String labelText) {
 		super(parent, 0);
