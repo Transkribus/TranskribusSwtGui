@@ -254,8 +254,10 @@ public class LoginDialog extends Dialog {
 				Image image;
 				try {
 					image = ImageDescriptor.createFromURL(new URL(url)).createImage();
-					image = Images.resize(image, 20, 20);
-					picLabel.setImage(image);
+					Image imageScaled = Images.resize(image, 20, 20);
+					image.dispose();
+					
+					picLabel.setImage(imageScaled);
 				} catch (MalformedURLException e) {
 					logger.debug("profile pic could not be loaded!");
 				}

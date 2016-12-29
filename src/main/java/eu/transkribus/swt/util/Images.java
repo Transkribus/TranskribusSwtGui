@@ -130,7 +130,6 @@ public class Images {
         int destY = new Double(origY*scale).intValue();
 		gc.drawImage(image, 0, 0, origX, origY, 0, 0, destX, destY);
 		gc.dispose();
-		image.dispose();
 		return scaled;
 	}
 }
