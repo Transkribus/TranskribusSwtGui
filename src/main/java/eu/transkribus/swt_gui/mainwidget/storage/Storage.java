@@ -1611,8 +1611,7 @@ public class Storage {
 		};
 		pdfExp.addObserver(o);
 		
-		
-		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, extraTextPages, imagesOnly, highlightTags, wordBased, doBlackening, createTitle);
+		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, wordBased, extraTextPages, imagesOnly, highlightTags, doBlackening, createTitle);
 
 		return pdf.getAbsolutePath();
 	}

@@ -63,13 +63,6 @@ public class ShowServerExportLinkDialog extends Dialog {
 	    link.setText("\nPress this link to get your server download " +
 	               "<a href=\"" +
 	               downloadLink + "\">Click me</a>");
-	    
-	    Text text = new Text(container, SWT.NONE);
-	    text.setText(
-	    	      "This book provides a comprehensive guide for \n"
-	    	        + "you to create Java user interfaces with SWT/JFace. ");
-	    
-
     
 		link.addSelectionListener(new SelectionAdapter(){
 	        @Override

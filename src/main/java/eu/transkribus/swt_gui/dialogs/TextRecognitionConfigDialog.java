@@ -35,13 +35,26 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.LogAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.experimental.chart.swt.ChartComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.swtchart.Chart;
+import org.swtchart.IAxis;
 import org.swtchart.IAxisSet;
+import org.swtchart.IAxisTick;
+import org.swtchart.ILineSeries.PlotSymbolType;
 import org.swtchart.ISeries;
 import org.swtchart.ISeries.SeriesType;
 import org.swtchart.ISeriesSet;
+import org.swtchart.Range;
 import org.swtchart.internal.series.LineSeries;
 
 import eu.transkribus.client.util.SessionExpiredException;
@@ -69,6 +82,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private Text nameTxt, langTxt, descTxt;
 	private Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
 	private Chart cerChart;
+	private org.jfree.experimental.chart.swt.ChartComposite jFreeChartComp;
 	
 	private String charSetTitle, charSet;
 //	private Integer trainSetId, testSetId;
@@ -291,11 +305,15 @@ public class TextRecognitionConfigDialog extends Dialog {
 		Label cerLbl = new Label(detailGrp, SWT.NONE);
 		cerLbl.setText("Train Curve:");
 		
-		cerChart = new Chart(detailGrp, SWT.BORDER);
-		cerChart.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
-		cerChart.getTitle().setVisible(false);
-		cerChart.getAxisSet().getXAxis(0).getTitle().setText("Epochs");
-		cerChart.getAxisSet().getYAxis(0).getTitle().setText("CER");
+//		cerChart = new Chart(detailGrp, SWT.BORDER);
+//		cerChart.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+//		cerChart.getTitle().setVisible(false);
+//		cerChart.getAxisSet().getXAxis(0).getTitle().setText("Epochs");
+//		cerChart.getAxisSet().getYAxis(0).getTitle().setText("CER");
+		
+		jFreeChartComp = new ChartComposite(detailGrp, SWT.BORDER);
+		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		
 		
 		dictGrp = new Group(uroSash, SWT.NONE);
 		dictGrp.setLayout(new GridLayout(1, false));
@@ -353,17 +371,18 @@ public class TextRecognitionConfigDialog extends Dialog {
 		charSetTitle = "Character Set of Model: " + htr.getName();
 		charSet = htr.getCharList() == null || htr.getCharList().isEmpty() ? "N/A" : htr.getCharList();
 		
+		showCharSetBtn.setEnabled(htr.getCharList() != null && !htr.getCharList().isEmpty());
+		
 		this.htr = htr;
 		
-		if(htr.getTestGtDocId() == 0) {
-			showTestSetBtn.setEnabled(false);
-		}
+		showTestSetBtn.setEnabled(htr.getTestGtDocId() != 0);
+		showTrainSetBtn.setEnabled(htr.getGtDocId() != 0);
 		
 		updateChart(htr.getCerString());
 	}
 
 	private void updateChart(String cerString) {
-		String[] cerStrs = cerString.split(" ");
+		String[] cerStrs = cerString.split("\\s");
 		double[] cerVals = new double[cerStrs.length];
 		for(int i = 0; i < cerStrs.length; i++) {
 			try {
@@ -373,19 +392,51 @@ public class TextRecognitionConfigDialog extends Dialog {
 			}
 		}
 		
-		ISeriesSet seriesSet = cerChart.getSeriesSet();
-		ISeries series = seriesSet.createSeries(SeriesType.LINE, "CER series");
-		series.setVisibleInLegend(false);
-		((LineSeries)series).setAntialias(SWT.ON);
-		series.setYSeries(cerVals);
-		
-		IAxisSet axisSet = cerChart.getAxisSet();
-		axisSet.getXAxis(0).getTitle().setText("Epochs");
-		axisSet.getYAxis(0).getTitle().setText("CER");
-		axisSet.adjustRange();
-		
-		cerChart.redraw();
-		cerChart.update();
+		if(cerChart != null) {
+			ISeriesSet seriesSet = cerChart.getSeriesSet();
+			ISeries series = seriesSet.createSeries(SeriesType.LINE, "CER series");
+			series.setVisibleInLegend(false);
+			((LineSeries)series).setAntialias(SWT.ON);
+			series.setYSeries(cerVals);
+			
+			((LineSeries)series).setSymbolType(PlotSymbolType.NONE);
+			
+			IAxisSet axisSet = cerChart.getAxisSet();
+			IAxis xAxis = axisSet.getXAxis(0);
+			xAxis.getTitle().setText("Epochs");
+			xAxis.setRange(new Range(0.0, cerVals.length + 1));
+			IAxis yAxis = axisSet.getYAxis(0);
+			yAxis.getTitle().setText("CER");
+			yAxis.setRange(new Range(0.0, 1.1));
+			yAxis.enableLogScale(true);
+	
+			IAxisTick tick = yAxis.getTick();
+			tick.setTickMarkStepHint(15);
+			
+	//		axisSet.adjustRange();
+	
+			cerChart.redraw();
+			cerChart.update();
+		} else {
+			
+			XYSeriesCollection dataset = new XYSeriesCollection();
+			XYSeries series = new XYSeries("CER");
+		    for(int i = 0; i < cerVals.length; i++) {
+		    	double val = cerVals[i];
+		    	series.add(i+1, val);
+		    }
+			dataset.addSeries(series);	
+		    
+			JFreeChart chart = ChartFactory.createXYLineChart(
+					"CER Series", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, false, true, false);
+
+			XYPlot plot = (XYPlot)chart.getPlot();
+			LogAxis logAxis = new LogAxis("CER");
+			logAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits());
+			plot.setRangeAxis(logAxis);
+
+			jFreeChartComp.setChart(chart);
+		}
 	}
 
 	private void updateHtrs() {

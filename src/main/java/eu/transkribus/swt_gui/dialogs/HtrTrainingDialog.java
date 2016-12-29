@@ -26,7 +26,9 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
@@ -73,6 +75,8 @@ public class HtrTrainingDialog extends Dialog {
 	private final static int NUM_EPOCHS_DEFAULT = 200;
 	private final static String LEARNING_RATE_DEFAULT = "2e-3";
 	private final static int TRAIN_SIZE_DEFAULT = 1000;
+	
+	private final static String TAB_NAME_PREFIX = "Document ";
 	
 	public HtrTrainingDialog(Shell parent) {
 		super(parent);
@@ -207,10 +211,11 @@ public class HtrTrainingDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				CTabItem item = new CTabItem(docTabFolder, SWT.CLOSE);
-				item.setText("Document " + docTabFolder.getItemCount());
 				Composite docOverviewCont = createDocOverviewCont(trainTwList, 
 						useTrainGtVersionChk.getSelection(), docTabFolder, store.getDoc());
-				item.setControl(docOverviewCont); 
+				item.setControl(docOverviewCont);
+				
+				renameTabs(null, docTabFolder);
 			}
 		});
 		
@@ -230,7 +235,7 @@ public class HtrTrainingDialog extends Dialog {
 		docTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 
 		CTabItem item = new CTabItem(docTabFolder, SWT.NONE);
-		item.setText("Document 1");
+		item.setText(TAB_NAME_PREFIX + 1);
 		
 		Composite docOverviewCont = createDocOverviewCont(trainTwList, useTrainGtVersionChk.getSelection(), 
 				docTabFolder, store.getDoc());
@@ -238,11 +243,11 @@ public class HtrTrainingDialog extends Dialog {
 
 		docTabFolder.setSelection(0);
 		
-//		docTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
-//			public void close(CTabFolderEvent event) {
-//				
-//			}
-//		});
+		docTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
+			public void close(CTabFolderEvent event) {
+				renameTabs((CTabItem)event.item, docTabFolder);
+			}
+		});
 
 		Composite testDocCont = new Composite(docSash, SWT.NONE);
 		testDocCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -255,10 +260,10 @@ public class HtrTrainingDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				CTabItem item = new CTabItem(testDocTabFolder, SWT.CLOSE);
-				item.setText("Document " + testDocTabFolder.getItemCount());
 				Composite testDocOverviewCont = createDocOverviewCont(testTwList, useTestGtVersionChk.getSelection(),
 						testDocTabFolder, store.getDoc());
-				item.setControl(testDocOverviewCont); 
+				item.setControl(testDocOverviewCont);
+				renameTabs(null, testDocTabFolder);
 			}
 		});
 		
@@ -278,19 +283,19 @@ public class HtrTrainingDialog extends Dialog {
 		testDocTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 
 		CTabItem testItem = new CTabItem(testDocTabFolder, SWT.NONE);
-		testItem.setText("Document 1");
+		testItem.setText(TAB_NAME_PREFIX + 1);
 		
 		Composite testDocOverviewCont = createDocOverviewCont(testTwList, useTestGtVersionChk.getSelection(),
 				testDocTabFolder, store.getDoc());
 		testItem.setControl(testDocOverviewCont); 
-
+		
 		testDocTabFolder.setSelection(0);
 		
-//		testDocTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
-//			public void close(CTabFolderEvent event) {
-//				System.out.println("GONE");
-//			}
-//		});
+		testDocTabFolder.addCTabFolder2Listener(new CTabFolder2Adapter() {
+			public void close(CTabFolderEvent event) {
+				renameTabs((CTabItem)event.item, testDocTabFolder);
+			}
+		});
 		
 		docSash.setWeights(new int[] {50, 50});
 		testDocCont.pack();
@@ -301,7 +306,20 @@ public class HtrTrainingDialog extends Dialog {
 		sash.setWeights(new int[] { 34, 66 });
 		return cont;
 	}
-
+	
+	private void renameTabs(CTabItem closedItem, CTabFolder folder) {
+		CTabItem[] items = folder.getItems();
+		int count = 1;
+		for(CTabItem item : items) {
+			if(closedItem != null && item.equals(closedItem)) {
+				continue;
+			}
+			logger.debug("Setting text: " + TAB_NAME_PREFIX + count);
+			item.setText(TAB_NAME_PREFIX + count);
+			count++;
+		}
+	}
+	
 	private void updateHtrs() {
 		List<TrpHtr> uroHtrs = new ArrayList<>(0);
 		try {

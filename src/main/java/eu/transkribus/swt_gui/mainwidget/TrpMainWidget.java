@@ -3138,7 +3138,14 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			if (e instanceof InterruptedException) {
 				DialogUtil.showInfoMessageBox(getShell(), "Export canceled", "Export was canceled");
-			} else {
+			}
+			else if (e instanceof SessionExpiredException) {
+				sessionExpired = true;
+				logout(true, false);
+				logger.warn("Session expired!");
+				loginDialog("Session expired!");
+				//unifiedExport();
+			}else {
 				logger.error(e.getMessage(), e);
 			}
 			// onError("Export error", "Error during export of document", e);
@@ -3464,7 +3471,6 @@ public class TrpMainWidget {
 			ProgressBarDialog.open(shell, new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						logger.debug("creating PDF document...");
 						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, selectedTags, highlightTags, wordBased, doBlackening,
 								createTitle);
 						monitor.done();
