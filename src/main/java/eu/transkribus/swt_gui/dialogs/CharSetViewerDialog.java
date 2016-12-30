@@ -39,7 +39,7 @@ public class CharSetViewerDialog extends Dialog {
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite cont = (Composite) super.createDialogArea(parent);
-		GridLayout gl = new GridLayout(15, true);
+		GridLayout gl = new GridLayout(15, false);
 		gl.horizontalSpacing = 15;
 		gl.verticalSpacing = 15;
 		cont.setLayout(gl);
