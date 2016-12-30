@@ -59,6 +59,7 @@ import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidget;
+import eu.transkribus.swt_gui.search.text_and_tags.ATextAndSearchComposite.SearchResult;
 
 public class TextSearchComposite extends ATextAndSearchComposite {
 	private final static Logger logger = LoggerFactory.getLogger(TextSearchComposite.class);
@@ -279,7 +280,12 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 				
 //		resultsTable.setContentProvider(new ArrayContentProvider());
 		resultsTable.setContentProvider(new ILazyContentProvider() {
-			@Override public void inputChanged(Viewer viewer, Object oldInput, Object newInput) { }
+			SearchResult searchResult;
+			
+			@Override public void inputChanged(Viewer viewer, Object oldInput, Object newInput) { 
+				this.searchResult = (SearchResult) newInput;
+			}
+			
 			@Override public void dispose() { }
 			@Override public void updateElement(int index) {
 				logger.trace("replacing element at index: "+index);
@@ -289,7 +295,7 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 			}
 		});
 		resultsTable.setUseHashlookup(true);
-		resultsTable.setItemCount(100);
+//		resultsTable.setItemCount(100);
 				
 		resultsTable.setLabelProvider(new StyledCellLabelProvider() {
 			public void update(ViewerCell cell) {
@@ -307,7 +313,7 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 			}
 		});
 
-		resultsTable.setInput(searchResult.foundTags);
+//		resultsTable.setInput(null);
 		
 		resultsTable.addDoubleClickListener(new IDoubleClickListener() {	
 			@Override public void doubleClick(DoubleClickEvent event) {
@@ -415,11 +421,14 @@ public class TextSearchComposite extends ATextAndSearchComposite {
 		}
 	}
 	
-	@Override public void updateResults() {
-		logger.debug("updating results table, N = "+searchResult.size());
-		resultsLabel.setText(searchResult.size()+" matches");
-		
-		resultsTable.setItemCount(searchResult.size());
+	@Override public void updateResults(SearchResult searchResult) {
+		int N = searchResult == null ? 0 : searchResult.size();
+
+		logger.debug("updating results table, N = "+N);
+		resultsLabel.setText(N+" matches");
+
+		resultsTable.setInput(searchResult);
+		resultsTable.setItemCount(N);
 		resultsTable.refresh();
 	}
 	

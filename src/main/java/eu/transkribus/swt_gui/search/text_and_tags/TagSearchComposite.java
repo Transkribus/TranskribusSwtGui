@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.TrpDbTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
@@ -59,6 +60,7 @@ import eu.transkribus.swt.util.MapContentProvider;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableLabelProvider;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.search.text_and_tags.ATextAndSearchComposite.SearchResult;
 
 public class TagSearchComposite extends ATextAndSearchComposite {
 	private final static Logger logger = LoggerFactory.getLogger(TagSearchComposite.class);
@@ -348,46 +350,84 @@ public class TagSearchComposite extends ATextAndSearchComposite {
 		
 		final MyTableLabelProvider mtlp = new MyTableLabelProvider() {
 			@Override public String getColumnText(String cn, Object element, Object data) {
-				CustomTag t = (CustomTag) element;
-				CustomTagList ctl = t.getCustomTagList();
-				TrpLocation l = new TrpLocation(t);				
 				
-				String txt = "";
-				if (cn.equals(DOC_COL)) {
-					if (l.md != null)
-						txt = l.md.getDocId() == -1 ? l.md.getLocalFolder().getAbsolutePath() : ""+l.md.getDocId();
+				if (element instanceof TrpDbTag) {
+					TrpDbTag t = (TrpDbTag) element;
+					
+					if (cn.equals(DOC_COL)) {
+						return ""+t.getDocid();
+					}
+	//				else if (cn.equals(TITLE_COL)) {
+	//				}
+					else if (cn.equals(PAGE_COL)) {
+						return ""+t.getPageid(); // TODO: retrieve pagenr from pageid!
+					}
+					else if (cn.equals(REGION_COL)) {
+						return t.getRegionid();
+					}
+					else if (cn.equals(LINE_COL)) {
+						return "";
+					}
+					else if (cn.equals(WORD_COL)) {
+						return "";
+					}		
+					else if (cn.equals(TAG_COL)) {
+						return t.getCustomTagCss();
+					}
+					else if (cn.equals(CONTEXT_COL)) {
+						return ""; // TODO: store context in DB!???
+					}
+					else if (cn.equals(TAG_VALUE_COL)) {
+						return t.getValue();
+					}
+					
+					return "";
 				}
-//				else if (cn.equals(TITLE_COL)) {
-//					if (md != null)
-//						txt = md.getDocId() == -1 ? md.getLocalFolder().getAbsolutePath() : ""+md.getDocId();
-//				}
-				else if (cn.equals(PAGE_COL)) {
-					if (l.md != null)
-						txt = ""+l.md.getPageNr();
-				}
-				else if (cn.equals(REGION_COL)) {
-					if (l.r != null)
-						txt = l.r.getId();
-				}
-				else if (cn.equals(LINE_COL)) {
-					if (l != null)
-						txt = l.l.getId();
-				}
-				else if (cn.equals(WORD_COL)) {
-					if (l.w != null)
-						txt = l.w.getId();
-				}		
-				else if (cn.equals(TAG_COL)) {
-					txt =  t.getCssStr();
-				}
-				else if (cn.equals(CONTEXT_COL)) {
-					txt = t.getTextOfShape();
-				}
-				else if (cn.equals(TAG_VALUE_COL)) {
-					txt = t.getContainedText();
-				}				
 				
-				return txt;
+				else if (element instanceof CustomTag) {
+					CustomTag t = (CustomTag) element;
+					CustomTagList ctl = t.getCustomTagList();
+					TrpLocation l = new TrpLocation(t);				
+					
+					String txt = "";
+					if (cn.equals(DOC_COL)) {
+						if (l.md != null)
+							txt = l.md.getDocId() == -1 ? l.md.getLocalFolder().getAbsolutePath() : ""+l.md.getDocId();
+					}
+	//				else if (cn.equals(TITLE_COL)) {
+	//					if (md != null)
+	//						txt = md.getDocId() == -1 ? md.getLocalFolder().getAbsolutePath() : ""+md.getDocId();
+	//				}
+					else if (cn.equals(PAGE_COL)) {
+						if (l.md != null)
+							txt = ""+l.md.getPageNr();
+					}
+					else if (cn.equals(REGION_COL)) {
+						if (l.r != null)
+							txt = l.r.getId();
+					}
+					else if (cn.equals(LINE_COL)) {
+						if (l != null)
+							txt = l.l.getId();
+					}
+					else if (cn.equals(WORD_COL)) {
+						if (l.w != null)
+							txt = l.w.getId();
+					}		
+					else if (cn.equals(TAG_COL)) {
+						txt =  t.getCssStr();
+					}
+					else if (cn.equals(CONTEXT_COL)) {
+						txt = t.getTextOfShape();
+					}
+					else if (cn.equals(TAG_VALUE_COL)) {
+						txt = t.getContainedText();
+					}				
+					
+					return txt;
+				}
+				
+				return "i am error";
 			}
 		};
 		
@@ -405,9 +445,14 @@ public class TagSearchComposite extends ATextAndSearchComposite {
 				
 //		resultsTable.setContentProvider(new ArrayContentProvider());
 		resultsTable.setContentProvider(new ILazyContentProvider() {
-			@Override public void inputChanged(Viewer viewer, Object oldInput, Object newInput) { }
+			SearchResult searchResult;
+			
+			@Override public void inputChanged(Viewer viewer, Object oldInput, Object newInput) { 
+				this.searchResult = (SearchResult) newInput;
+			}
+			
 			@Override public void dispose() { }
-			@Override public void updateElement(int index) {
+			@Override public void updateElement(int index) {				
 				logger.trace("replacing element at index: "+index);
 				if (index >= 0 && index < searchResult.size()) {
 					resultsTable.replace(searchResult.get(index), index);
@@ -415,7 +460,7 @@ public class TagSearchComposite extends ATextAndSearchComposite {
 			}
 		});
 		resultsTable.setUseHashlookup(true);
-		resultsTable.setItemCount(100);
+//		resultsTable.setItemCount(100);
 				
 		resultsTable.setLabelProvider(new StyledCellLabelProvider() {
 			public void update(ViewerCell cell) {
@@ -433,7 +478,7 @@ public class TagSearchComposite extends ATextAndSearchComposite {
 			}
 		});
 
-		resultsTable.setInput(searchResult.foundTags);
+//		resultsTable.setInput(null);
 		
 		resultsTable.addDoubleClickListener(new IDoubleClickListener() {	
 			@Override public void doubleClick(DoubleClickEvent event) {
@@ -533,11 +578,14 @@ public class TagSearchComposite extends ATextAndSearchComposite {
 //		
 //	}
 
-	@Override public void updateResults() {
-		logger.debug("updating results table, N = "+searchResult.size());
-		resultsLabel.setText(searchResult.size()+" matches");
-		
-		resultsTable.setItemCount(searchResult.size());
+	@Override public void updateResults(SearchResult searchResult) {
+		int N = searchResult == null ? 0 : searchResult.size();
+
+		logger.debug("updating results table, N = "+N);
+		resultsLabel.setText(N+" matches");
+
+		resultsTable.setInput(searchResult);
+		resultsTable.setItemCount(N);
 		resultsTable.refresh();
 	}
 	

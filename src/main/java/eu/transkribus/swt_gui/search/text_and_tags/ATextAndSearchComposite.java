@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.ServerErrorException;
 
@@ -19,11 +21,14 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpDbTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.search.CustomTagSearchFacets;
 import eu.transkribus.core.model.beans.customtags.search.SearchFacets;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -41,16 +46,17 @@ public abstract class ATextAndSearchComposite extends Composite {
 	
 	String[] SCOPES = new String[] { SCOPE_COLL, SCOPE_DOC, SCOPE_PAGE, SCOPE_REGION };
 	
-	public static class SearchResult {		
+	public static class SearchResult<T> {		
 		public int collId;
-		public List<CustomTag> foundTags;
+		
+		public List<T> foundTags;
 		
 		public SearchResult() {
 			clear();
 		}
 		
 		public int size() { return foundTags.size(); }
-		public CustomTag get(int index) { return foundTags.get(index); }
+		public T get(int index) { return foundTags.get(index); }
 		
 		public void clear() {
 			collId = -1;
@@ -58,7 +64,7 @@ public abstract class ATextAndSearchComposite extends Composite {
 		}
 	}
 	
-	protected SearchResult searchResult = new SearchResult();
+//	protected SearchResult searchResult = new SearchResult();
 		
 //	protected List<CustomTag> foundTags = new ArrayList<>();
 	
@@ -67,8 +73,9 @@ public abstract class ATextAndSearchComposite extends Composite {
 	}
 
 	public abstract String getScope();
-	public abstract void updateResults();
 	
+	public abstract void updateResults(SearchResult searchResult);
+		
 	public abstract SearchFacets getFacets() throws IOException;
 	
 	protected void findNextTagOnCurrentDocument(final boolean previous) {
@@ -90,7 +97,7 @@ public abstract class ATextAndSearchComposite extends Composite {
 				return;
 			}
 			
-			final SearchResult sr = new SearchResult();
+			final SearchResult<CustomTag> sr = new SearchResult<>();
 			sr.collId = s.getCurrentDocumentCollectionId();
 			
 //			final List<CustomTag> tag = new ArrayList<>();
@@ -147,91 +154,119 @@ public abstract class ATextAndSearchComposite extends Composite {
 		String scope = getScope();
 		logger.debug("searching on scope: "+scope);
 		
-		searchResult.clear();
+		boolean useDbSearch = scope.equals(SCOPE_COLL) || (scope.equals(SCOPE_DOC) && !s.isLocalDoc());
 				
-		updateResults();
-
-		ProgressBarDialog pd = new ProgressBarDialog(getShell()) {
-			@Override public void subTask(final String name) {
-				super.subTask(name);
-				Display.getDefault().syncExec(new Runnable() {
-					@Override public void run() {
-						Shell s = ATextAndSearchComposite.this.getShell();
-						if (!s.isDisposed()) {
-							updateResults();
-						}
-					}
-				});
-			}
-		};
-		
-		
 		try {
-			if (scope.equals(SCOPE_COLL)) {
-				final TrpCollection currCol =  mw.getUi().getServerWidget().getSelectedCollection();
-				final int currentCollID = currCol == null ? -1 : currCol.getColId();
+			if (useDbSearch) {
+				if (!s.isLoggedIn()) {
+					DialogUtil.showErrorMessageBox(getShell(), "Not logged in", "You need to connect to the server to search for tags in remote documents!");
+					return;
+				}
+				
+				Set<Integer> collIds = null;
+				Set<Integer> docIds = null;
+				if (scope.equals(SCOPE_COLL)) {
+					collIds = CoreUtils.createSet(s.getCurrentDocumentCollectionId());
+				} else {
+					docIds = CoreUtils.createSet(s.getDocId());
+				}
+				
+				CustomTagSearchFacets f = (CustomTagSearchFacets) facets;
+				
+				String regionType = "Line";
+				
 
-				if (currCol == null) {
-					DialogUtil.showErrorMessageBox(getShell(), "Error", "No collection selected!");
-					return;
-				}
+				List<TrpDbTag> tags = s.getConnection().searchTags(collIds, docIds, null, f.getTagName(false), f.getTagValue(false), regionType, f.isWholeWord(), f.isCaseSensitive(), f.getProps());
+				logger.debug("found "+tags.size()+" in DB!");
 				
-				searchResult.collId = currentCollID;
+				SearchResult<TrpDbTag> searchResult = new SearchResult<TrpDbTag>();
+				searchResult.foundTags.addAll(tags);
 				
-				pd.open(new IRunnableWithProgress() {
-					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						try {
-							CustomTagSearcher.searchOnCollection_WithoutIndex(currentCollID, searchResult, facets, monitor);
-							
-						} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
-							throw new InvocationTargetException(e);
-						}
+				updateResults(searchResult);
+			} else {
+				SearchResult<CustomTag> searchResult = new SearchResult<CustomTag>();
+				updateResults(searchResult);
+				
+				ProgressBarDialog pd = new ProgressBarDialog(getShell()) {
+					@Override public void subTask(final String name) {
+						super.subTask(name);
+						Display.getDefault().syncExec(new Runnable() {
+							@Override public void run() {
+								Shell s = ATextAndSearchComposite.this.getShell();
+								if (!s.isDisposed()) {
+									updateResults(searchResult);
+								}
+							}
+						});
 					}
-				}, "Searching in collection "+currCol.getColName(), true);
-			}
-			else if (scope.equals(SCOPE_DOC)) {
-				if (!s.isDocLoaded()) {
-					DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded!");
-					return;
-				}
-				String docTitle = s.getDoc().getMd() != null ? s.getDoc().getMd().getTitle() : "NA";
-				searchResult.collId = s.getCurrentDocumentCollectionId();
+				};	
 				
-				pd.open(new IRunnableWithProgress() {
-					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						CustomTagSearcher.searchOnDoc_WithoutIndex(searchResult, s.getCurrentDocumentCollectionId(), s.getDoc(), facets, 0, 0, 0, false, 0, false, monitor, false);
+				if (scope.equals(SCOPE_COLL)) {
+					final TrpCollection currCol =  mw.getUi().getServerWidget().getSelectedCollection();
+					final int currentCollID = currCol == null ? -1 : currCol.getColId();
+	
+					if (currCol == null) {
+						DialogUtil.showErrorMessageBox(getShell(), "Error", "No collection selected!");
+						return;
 					}
-				}, "Searching in document "+docTitle, true);
-			}
-			else if (scope.equals(SCOPE_PAGE)) {
-	//			if (s.getTranscript()==null || s.getTranscript().getPage() == null) {
-				if (!s.isPageLoaded() || s.getTranscript().getPageData() == null) {
-					DialogUtil.showErrorMessageBox(getShell(), "Error", "No page loaded!");
-					return;
-				}
-				TrpPageType p = s.getTranscript().getPage();
-				searchResult.collId = s.getCurrentDocumentCollectionId();
-				
-				CustomTagSearcher.searchOnPage(searchResult, s.getCurrentDocumentCollectionId(), p, facets, 0, 0, false, 0, false);
-			} else if (scope.equals(SCOPE_REGION)) {
-				TrpTextRegionType r = s.getCurrentRegionObject();
-				if (r==null) {
-					DialogUtil.showErrorMessageBox(getShell(), "Error", "No region selected!");
-					return;
-				}
-				searchResult.collId = s.getCurrentDocumentCollectionId();
 					
-				CustomTagSearcher.searchOnRegion(searchResult, s.getCurrentDocumentCollectionId(), r, facets, 0, false, 0, false);
+					searchResult.collId = currentCollID;
+					
+					pd.open(new IRunnableWithProgress() {
+						@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+							try {
+								CustomTagSearcher.searchOnCollection_WithoutIndex(currentCollID, searchResult, facets, monitor);
+								
+							} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
+								throw new InvocationTargetException(e);
+							}
+						}
+					}, "Searching in collection "+currCol.getColName(), true);
+					updateResults(searchResult);
+				}
+				else if (scope.equals(SCOPE_DOC)) {
+					if (!s.isDocLoaded()) {
+						DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded!");
+						return;
+					}
+					String docTitle = s.getDoc().getMd() != null ? s.getDoc().getMd().getTitle() : "NA";
+					searchResult.collId = s.getCurrentDocumentCollectionId();
+					
+					pd.open(new IRunnableWithProgress() {
+						@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+							CustomTagSearcher.searchOnDoc_WithoutIndex(searchResult, s.getCurrentDocumentCollectionId(), s.getDoc(), facets, 0, 0, 0, false, 0, false, monitor, false);
+						}
+					}, "Searching in document "+docTitle, true);
+					updateResults(searchResult);
+				}
+				else if (scope.equals(SCOPE_PAGE)) {
+		//			if (s.getTranscript()==null || s.getTranscript().getPage() == null) {
+					if (!s.isPageLoaded() || s.getTranscript().getPageData() == null) {
+						DialogUtil.showErrorMessageBox(getShell(), "Error", "No page loaded!");
+						return;
+					}
+					TrpPageType p = s.getTranscript().getPage();
+					searchResult.collId = s.getCurrentDocumentCollectionId();
+					
+					CustomTagSearcher.searchOnPage(searchResult, s.getCurrentDocumentCollectionId(), p, facets, 0, 0, false, 0, false);
+					updateResults(searchResult);
+				} else if (scope.equals(SCOPE_REGION)) {
+					TrpTextRegionType r = s.getCurrentRegionObject();
+					if (r==null) {
+						DialogUtil.showErrorMessageBox(getShell(), "Error", "No region selected!");
+						return;
+					}
+					searchResult.collId = s.getCurrentDocumentCollectionId();
+						
+					CustomTagSearcher.searchOnRegion(searchResult, s.getCurrentDocumentCollectionId(), r, facets, 0, false, 0, false);
+					updateResults(searchResult);
+				}
 			}
 		}
 		catch (Throwable e) {
 			mw.onError("Error in tag search", e.getMessage(), e);
 			return;
 		}
-		
-		logger.debug("setting item count to "+searchResult.foundTags.size());
-		
-		updateResults();
 	}
 	
 	protected static void saveAffectedPages(IProgressMonitor monitor, int collId, Collection<TrpPageType> affectedPages)

@@ -38,7 +38,7 @@ public class CustomTagSearcher {
 //		throw new NotImplementedException("searching on remote doc not implemented yet!");
 //	}
 	
-	public static void searchOnCollection_WithoutIndex(int collId, SearchResult result, SearchFacets facets, IProgressMonitor monitor) throws NoConnectionException, SessionExpiredException, IllegalArgumentException {		
+	public static void searchOnCollection_WithoutIndex(int collId, SearchResult<CustomTag> result, SearchFacets facets, IProgressMonitor monitor) throws NoConnectionException, SessionExpiredException, IllegalArgumentException {		
 		Storage s = Storage.getInstance();
 		s.checkConnection(true);
 		TrpServerConn conn = Storage.getInstance().getConnection();
@@ -71,7 +71,7 @@ public class CustomTagSearcher {
 	}
 	
 	// TODO: search on doc with index???
-	public static void searchOnDoc_WithoutIndex(SearchResult result, int collId, TrpDoc doc, SearchFacets facets, int startPageIndex, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous, IProgressMonitor monitor, boolean onlyMonitorSubTask) { 		
+	public static void searchOnDoc_WithoutIndex(SearchResult<CustomTag> result, int collId, TrpDoc doc, SearchFacets facets, int startPageIndex, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous, IProgressMonitor monitor, boolean onlyMonitorSubTask) { 		
 //		int nP = doc.getNPages()-startPageIndex;
 		int nP = previous ? startPageIndex+1 : doc.getNPages()-startPageIndex;
 
@@ -128,7 +128,7 @@ public class CustomTagSearcher {
 		}
 	}
 	
-	public static void searchOnPage(SearchResult result, int collId, TrpPageType p, SearchFacets facets, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
+	public static void searchOnPage(SearchResult<CustomTag> result, int collId, TrpPageType p, SearchFacets facets, int startRegionIndex, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
 		if (p==null)
 			return;
 		
@@ -156,7 +156,7 @@ public class CustomTagSearcher {
 		}
 	}
 	
-	public static void searchOnRegion(SearchResult result, int collId, TrpTextRegionType region, SearchFacets facets, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
+	public static void searchOnRegion(SearchResult<CustomTag> result, int collId, TrpTextRegionType region, SearchFacets facets, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
 		List<TextLineType> lines = region.getTextLine();
 //		if (startLineIndex<0 || startLineIndex>=lines.size())
 //			return;
