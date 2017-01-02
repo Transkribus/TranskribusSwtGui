@@ -416,4 +416,8 @@ CHANGES AND BUGFIXES
 	-> reading order behavior during region split
 	-> show download link after server export to the user
 	
+1.0:
+	-> included tag search
+	-> changed versioning scheme: only two numbers, now starting with 1.0; third number is for differentiating between snapshot versions for a specific release (i.e. 1.0.1-SNAPSHOT is the first snapshot for release 1.0)
+	
 	

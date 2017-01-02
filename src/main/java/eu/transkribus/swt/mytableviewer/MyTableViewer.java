@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableViewerSorter;
@@ -97,10 +98,12 @@ public class MyTableViewer extends TableViewer {
 		
 		return Pair.of(col, sorter);
 	}
+	
+	static SebisStopWatch sw = new SebisStopWatch();
 		
 	public <T> SelectionListener setCustomListSorterForColumn(final String cn, final Comparator<T> comp) {
 		TableColumn tc = getColumn(cn);
-		
+
 		if (tc == null) {
 			logger.warn("column not found: "+cn);
 			return null;
@@ -108,6 +111,9 @@ public class MyTableViewer extends TableViewer {
 		
 		SelectionListener sl = new SelectionListener() {
 			@Override public void widgetSelected(SelectionEvent e) {
+				if (getInput() == null)
+					return;
+
 				if (!(getInput() instanceof List<?>)) {
 					logger.warn("Input is not a list - custom sorting not possible!");
 					return;
@@ -117,17 +123,19 @@ public class MyTableViewer extends TableViewer {
 
 				List<T> inputList = (List<T>) getInput();
 				
+//				sw.start();
 				if (d == SWT.DOWN) {
-					logger.debug("sorting down!");
+					logger.trace("sorting down!");
 					Collections.sort(inputList, comp);
 				} else if (d == SWT.UP) {
-					logger.debug("sorting up!");
+					logger.trace("sorting up!");
 					Collections.sort(inputList, new Comparator<T>() {
 						@Override public int compare(T o1, T o2) {
 							return -1*comp.compare(o1, o2);
 						}
 					});
 				}
+//				sw.stop(true, "sorting time: ");
 			}
 
 			@Override public void widgetDefaultSelected(SelectionEvent e) {

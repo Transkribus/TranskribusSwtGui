@@ -46,7 +46,8 @@ public class DocSearchComposite extends Composite {
 	DocTableWidgetPagination docWidgetPaged;
 	
 	LabeledText documentId, title, description, author, writer;
-	LabeledCombo collection;
+//	LabeledCombo collection;
+	Button collectionCheck;
 	Button exactMatch, caseSensitive;
 	
 	Button findBtn;
@@ -55,7 +56,7 @@ public class DocSearchComposite extends Composite {
 	public DocSearchComposite(Composite parent, int style) {
 		super(parent, style);
 		createContents();
-		updateCollections();
+//		updateCollections();
 	}
 	
 	private void createContents() {
@@ -76,8 +77,12 @@ public class DocSearchComposite extends Composite {
 			}
 		};
 		
-		collection = new LabeledCombo(facetsC, "Restrict search to collection: ");
-		collection.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+//		collection = new LabeledCombo(facetsC, "Restrict search to collection: ");
+//		collection.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		
+		collectionCheck = new Button(facetsC, SWT.CHECK);
+		collectionCheck.setText("Search on selected collection");
+		collectionCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		documentId = new LabeledText(facetsC, "Doc-ID: ");
 		documentId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -192,23 +197,23 @@ public class DocSearchComposite extends Composite {
 		
 	}
 	
-	void updateCollections() {
-		Storage s = Storage.getInstance();
-		
-		List<String> items = new ArrayList<>();
-		
-		for (TrpCollection c : s.getCollections()) {
-			String key = c.getColId()+" - "+c.getColName();
-			collection.combo.setData(key, c);
-			items.add(key);
-		}
-		
-		items.add(0, "");
-		collection.combo.setData("", null);
-		
-		collection.combo.setItems(items.toArray(new String[0]));
-		collection.combo.select(0);		
-	}
+//	void updateCollections() {
+//		Storage s = Storage.getInstance();
+//		
+//		List<String> items = new ArrayList<>();
+//		
+//		for (TrpCollection c : s.getCollections()) {
+//			String key = c.getColId()+" - "+c.getColName();
+//			collection.combo.setData(key, c);
+//			items.add(key);
+//		}
+//		
+//		items.add(0, "");
+//		collection.combo.setData("", null);
+//		
+//		collection.combo.setItems(items.toArray(new String[0]));
+//		collection.combo.select(0);		
+//	}
 	
 	void searchDocuments() {
 		Storage s = Storage.getInstance();
@@ -252,11 +257,7 @@ public class DocSearchComposite extends Composite {
 	}
 	
 	int getColId() {
-		String key = collection.combo.getText();
-		Object d = collection.combo.getData(key);
-		int collId = d==null ? 0 : ((TrpCollection) d).getColId();
-		
-		return collId;
+		return collectionCheck.getSelection() ? TrpMainWidget.getInstance().getSelectedCollectionId() : 0;
 	}
 
 	Integer getDocId() {

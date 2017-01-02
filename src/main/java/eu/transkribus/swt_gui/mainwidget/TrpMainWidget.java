@@ -4271,6 +4271,10 @@ public class TrpMainWidget {
 			canvas.getScene().setTranscriptionMode(false);
 		}
 	}
+	
+	public int getSelectedCollectionId() {
+		return ui.getServerWidget().getSelectedCollectionId();
+	}
 
 	public void openCanvasHelpDialog() {
 		String ht = ""

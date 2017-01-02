@@ -48,7 +48,8 @@ public class KeywordSpottingComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(KeywordSpottingComposite.class);
 	
 	LabeledText kwsDocId;
-	LabeledCombo kwsCollection;
+//	LabeledCombo kwsCollection;
+	Button collectionCheck;
 	
 	TreeViewer treeViewer;
 	Tree tree;
@@ -74,7 +75,7 @@ public class KeywordSpottingComposite extends Composite {
 		super(parent, style);
 		
 		createContents();
-		updateCollections();
+//		updateCollections();
 	}
 	
 	private void createContents() {
@@ -91,8 +92,12 @@ public class KeywordSpottingComposite extends Composite {
 			}
 		};
 		
-		kwsCollection = new LabeledCombo(kwsC, "Restrict search to collection: ");
-		kwsCollection.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+//		kwsCollection = new LabeledCombo(kwsC, "Restrict search to collection: ");
+//		kwsCollection.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		
+		collectionCheck = new Button(kwsC, SWT.CHECK);
+		collectionCheck.setText("Search on selected collection");
+		collectionCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		kwsDocId = new LabeledText(kwsC, "Doc-ID: ");
 		kwsDocId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -192,21 +197,21 @@ public class KeywordSpottingComposite extends Composite {
 		}
 	}
 
-	void updateCollections() {
-		Storage s = Storage.getInstance();
-		
-		List<String> items = new ArrayList<>();
-		
-		for (TrpCollection c : s.getCollections()) {
-			String key = c.getColId()+" - "+c.getColName();
-			kwsCollection.combo.setData(key, c);
-			items.add(key);
-		}
-		kwsCollection.combo.setItems(items.toArray(new String[0]));
-		kwsCollection.combo.select(0);
-		
-		items.add(0, "");	
-	}
+//	void updateCollections() {
+//		Storage s = Storage.getInstance();
+//		
+//		List<String> items = new ArrayList<>();
+//		
+//		for (TrpCollection c : s.getCollections()) {
+//			String key = c.getColId()+" - "+c.getColName();
+//			kwsCollection.combo.setData(key, c);
+//			items.add(key);
+//		}
+//		kwsCollection.combo.setItems(items.toArray(new String[0]));
+//		kwsCollection.combo.select(0);
+//		
+//		items.add(0, "");	
+//	}
 	
 	void spotKeyWords() {
 		Storage s = Storage.getInstance();
@@ -263,11 +268,7 @@ public class KeywordSpottingComposite extends Composite {
 	}
 	
 	int getKwsColId() {
-		String key = kwsCollection.combo.getText();
-		Object d = kwsCollection.combo.getData(key);
-		int collId = d==null ? 0 : ((TrpCollection) d).getColId();
-		
-		return collId;
+		return collectionCheck.getSelection() ? TrpMainWidget.getInstance().getSelectedCollectionId() : 0;
 	}
 
 }
