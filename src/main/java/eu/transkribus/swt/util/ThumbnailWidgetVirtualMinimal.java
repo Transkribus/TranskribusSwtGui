@@ -355,7 +355,10 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 			totalWordsTranscribed += transcribedWords;
 		}
 
-		// set item text
+		/*
+		 * set either index or the filename as thumb title
+		 */
+		doc.getPages().get(index).getImgFileName();
 		String text = "" + (index + 1);
 
 		GC gc = new GC(item.getParent());
