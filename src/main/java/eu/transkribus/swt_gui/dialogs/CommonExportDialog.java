@@ -77,6 +77,11 @@ public class CommonExportDialog extends Dialog {
 	Button substituteAbbrevBtn;
 	boolean substituteAbbreviations = false;
 	
+	Button showSuppliedWithBracketsBtn;
+	boolean showSuppliedWithBrackets = false;
+	Button ignoreSuppliedBtn;
+	boolean ignoreSupplied = false;
+	
 	Button serverExportBtn;
 	boolean doServerExport = false;
 	
@@ -970,6 +975,43 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 		
+		Group suppliedGroup = new Group(docxComposite, 0);
+		suppliedGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
+		suppliedGroup.setLayout(new GridLayout(1, true));
+		suppliedGroup.setText("Supplied Tags Settings");
+				
+		ignoreSuppliedBtn = new Button(suppliedGroup, SWT.CHECK);
+		ignoreSuppliedBtn.setText("Ignore supplied tags");
+		ignoreSuppliedBtn.setToolTipText("If checked, all supplied tags gets ignored. Tag export must be choosen too!");
+		ignoreSuppliedBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
+
+		ignoreSuppliedBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setIgnoreSupplied(ignoreSuppliedBtn.getSelection());
+				//only one of the supplied possibilities can be chosen
+				if (ignoreSuppliedBtn.getSelection()){
+					setShowSuppliedWithBrackets(false);
+					showSuppliedWithBracketsBtn.setSelection(false);
+				}
+			}
+		});
+		
+		showSuppliedWithBracketsBtn = new Button(suppliedGroup, SWT.CHECK);
+		showSuppliedWithBracketsBtn.setText("[Show supplied tags inside brackets]");
+		showSuppliedWithBracketsBtn.setToolTipText("If checked, all supplied tags are shown inside brackets. Tag export must be choosen too!");
+		showSuppliedWithBracketsBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
+
+		showSuppliedWithBracketsBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setShowSuppliedWithBrackets(showSuppliedWithBracketsBtn.getSelection());
+				//only one of the abbreviation possibilities can be chosen
+				if (showSuppliedWithBracketsBtn.getSelection()){
+					setIgnoreSupplied(false);
+					ignoreSuppliedBtn.setSelection(false);
+				}
+			}
+		});
+		
 		
 		
 	    return docxComposite;
@@ -1176,14 +1218,6 @@ public class CommonExportDialog extends Dialog {
 		this.markUnclearWords = markUnclear;
 	}
 	
-	public boolean isExpandAbbrevs() {
-		return expandAbbreviations;
-	}
-
-	public void setExpandAbbrevs(boolean expandAbbrevs) {
-		this.expandAbbreviations = expandAbbrevs;
-	}
-
 	public boolean isXlsxExport() {
 		return xlsxExport;
 	}
@@ -1236,6 +1270,14 @@ public class CommonExportDialog extends Dialog {
 	public void setZipExport(boolean zipExport) {
 		this.zipExport = zipExport;
 	}
+	
+	public boolean isExpandAbbrevs() {
+		return expandAbbreviations;
+	}
+
+	public void setExpandAbbrevs(boolean expandAbbrevs) {
+		this.expandAbbreviations = expandAbbrevs;
+	}
 
 	public boolean isSubstituteAbbreviations() {
 		return substituteAbbreviations;
@@ -1251,6 +1293,22 @@ public class CommonExportDialog extends Dialog {
 
 	public void setKeepAbbreviations(boolean keepAbbreviations) {
 		this.keepAbbreviations = keepAbbreviations;
+	}
+	
+	public boolean isIgnoreSupplied() {
+		return ignoreSupplied;
+	}
+
+	public void setIgnoreSupplied(boolean ignore) {
+		this.ignoreSupplied = ignore;
+	}
+	
+	public boolean isShowSuppliedWithBrackets() {
+		return showSuppliedWithBrackets;
+	}
+
+	public void setShowSuppliedWithBrackets(boolean showWithBrackets) {
+		this.showSuppliedWithBrackets = showWithBrackets;
 	}
 
 	public boolean isExportImagesOnly() {
