@@ -406,7 +406,7 @@ CHANGES AND BUGFIXES
 	-> Compare and show text differences of two versions in a text file (Tools - Compare)
 	-> split/merge baselines is done for lines too; bugs fixed for undoing those actions
 	
-0.10.2:
+0.10.2(0.11.0):
 	-> Deleting versions optimized
 	-> Session expired check during recent doc load
 	-> Change reading order optimized
@@ -415,5 +415,7 @@ CHANGES AND BUGFIXES
 	-> Export as a rest service
 	-> reading order behavior during region split
 	-> show download link after server export to the user
+	-> supplied tag handling for docx export
+	-> option to show filename in thumbs manager
 	
 	

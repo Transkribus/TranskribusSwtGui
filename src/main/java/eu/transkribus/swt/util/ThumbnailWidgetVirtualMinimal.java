@@ -66,6 +66,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 	private final boolean ENABLE_TRANSCRIBED_LINES;
 	
 	private boolean useGtVersions = false;
+	private boolean showFilenames = false;
 
 	public ThumbnailWidgetVirtualMinimal(Composite parent, final boolean displayTranscribedLines, int style) {
 		super(parent, style);
@@ -301,10 +302,14 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 	}
 
 	private void setItemTextAndBackground(GalleryItem item, int index) {
+		
 		if (SWTUtil.isDisposed(item)) {
 			System.out.println("Item is disposed");
 			return;
 		}
+		
+		maxWidth = 0;
+		maxHeight = 0;
 			
 		TrpTranscriptMetadata tmd;
 		tmd = doc.getTranscripts().get(index);
@@ -358,8 +363,10 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		/*
 		 * set either index or the filename as thumb title
 		 */
-		doc.getPages().get(index).getImgFileName();
 		String text = "" + (index + 1);
+		if (showFilenames){
+			text = doc.getPages().get(index).getImgFileName();
+		}
 
 		GC gc = new GC(item.getParent());
 
@@ -428,6 +435,10 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 
 	public int getTotalWordsTranscribed() {
 		return totalWordsTranscribed;
+	}
+
+	public void setShowFilenames(boolean showFilenames) {
+		this.showFilenames = showFilenames;
 	}
 
 }
