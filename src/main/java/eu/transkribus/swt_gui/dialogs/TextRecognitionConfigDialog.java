@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.dialogs;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,7 +40,8 @@ import org.eclipse.swt.widgets.Text;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.LogAxis;
-import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.axis.TickUnits;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
@@ -375,7 +378,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 		
 		this.htr = htr;
 		
-		showTestSetBtn.setEnabled(htr.getTestGtDocId() != 0);
+		showTestSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
 		showTrainSetBtn.setEnabled(htr.getGtDocId() != 0);
 		
 		updateChart(htr.getCerString());
@@ -432,10 +435,13 @@ public class TextRecognitionConfigDialog extends Dialog {
 
 			XYPlot plot = (XYPlot)chart.getPlot();
 			LogAxis logAxis = new LogAxis("CER");
-			logAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits());
+			TickUnits tickUnits = new TickUnits();
+			tickUnits.add(new NumberTickUnit(0.1, NumberFormat.getPercentInstance()));
+			logAxis.setStandardTickUnits(tickUnits);//NumberAxis.createStandardTickUnits());
 			plot.setRangeAxis(logAxis);
 
 			jFreeChartComp.setChart(chart);
+			chart.fireChartChanged();
 		}
 	}
 
