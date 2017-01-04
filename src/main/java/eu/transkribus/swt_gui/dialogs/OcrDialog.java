@@ -115,7 +115,7 @@ public class OcrDialog extends Dialog {
 //		           
 //		        }
 		        TableItem item = ((TableItem)e.item);
-		        item.setChecked(true);
+		        item.setChecked(!item.getChecked());
 		        updateLangStr();
 		    }
 		});

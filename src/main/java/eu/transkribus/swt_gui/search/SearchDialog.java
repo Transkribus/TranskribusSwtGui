@@ -21,7 +21,6 @@ import eu.transkribus.swt_gui.search.documents.DocSearchComposite;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.search.kws.KeywordSpottingComposite;
 import eu.transkribus.swt_gui.search.text_and_tags.TagSearchComposite;
-import eu.transkribus.swt_gui.search.text_and_tags.TextSearchComposite;
 
 public class SearchDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(SearchDialog.class);
@@ -44,6 +43,7 @@ public class SearchDialog extends Dialog {
 	public SearchDialog(Shell parentShell) {
 		super(parentShell);
 		
+//		setShellStyle(SWT.SHELL_TRIM | SWT.MODELESS | SWT.BORDER | SWT.TITLE);
 		setShellStyle(SWT.SHELL_TRIM | SWT.MODELESS | SWT.BORDER | SWT.TITLE);
 		setBlockOnOpen(false);
 	}
@@ -68,43 +68,28 @@ public class SearchDialog extends Dialog {
 		
 		tabFolder = new CTabFolder(c, SWT.BORDER | SWT.FLAT);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
-		
-		SebisStopWatch.SW.start();
-				
+						
 		docSearchComposite = new DocSearchComposite(tabFolder, 0);
 		docSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		docSearchTabItem = createCTabItem(tabFolder, docSearchComposite, "Documents");
 		
-		SebisStopWatch.SW.stop(true, "h1: ");
-		SebisStopWatch.SW.start();
-		
 		fullTextSearchComposite = new FullTextSearchComposite(tabFolder, 0);
 		fullTextSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		fullTextSearchItem = createCTabItem(tabFolder, fullTextSearchComposite, "Fulltext (Solr)");
-		
-		SebisStopWatch.SW.stop(true, "h2: ");
-		SebisStopWatch.SW.start();
-		
-		if (false) {
-		TextSearchComposite textSearchComp = new TextSearchComposite(tabFolder, 0);
-		textSearchComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		textAndTagsItem = createCTabItem(tabFolder, textSearchComp, "Text");
-		}
-		
+				
 		TagSearchComposite tagSearchComp = new TagSearchComposite(tabFolder, 0);
 		tagSearchComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		textAndTagsItem = createCTabItem(tabFolder, tagSearchComp, "Tags");
-		
-		SebisStopWatch.SW.stop(true, "h3: ");
-		SebisStopWatch.SW.start();
 
 //		TextAndTagSearchComposite tsc = new TextAndTagSearchComposite(tabFolder, 0);
 //		tsc.setLayoutData(new GridData(GridData.FILL_BOTH));
 //		textAndTagsItem = createCTabItem(tabFolder, tsc, "Text / Tags");
 		
+		if (false) {
 		kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
 		kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS (Demo)");
+		}
 		
 		SebisStopWatch.SW.stop(true, "h4: ");
 		
