@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.search.documents.DocSearchComposite;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.search.kws.KeywordSpottingComposite;
@@ -55,6 +56,7 @@ public class SearchDialog extends Dialog {
 	@Override protected void configureShell(Shell shell) {
 		super.configureShell(shell);
 		shell.setText("Search for...");
+		SWTUtil.centerShell(shell);
 	}
 
 	/**

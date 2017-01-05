@@ -3832,14 +3832,6 @@ public class TrpMainWidget {
 	}
 
 	public void openSearchDialog() {
-//		if (searchDiag!=null && searchDiag.getShell()!=null && !searchDiag.getShell().isDisposed())
-//			searchDiag.close();
-//		
-//		SearchDialog searchDiag = new SearchDialog(getShell());
-//		searchDiag.open();
-//		
-//		this.searchDiag = searchDiag;
-
 		if(searchDiag != null){
 			if(searchDiag.getShell() != null ){
 

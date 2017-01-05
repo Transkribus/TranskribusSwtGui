@@ -700,7 +700,7 @@ public class CanvasScene {
 	public ICanvasShape findShapeWithData(Object data) {
 		for (ICanvasShape shape : getShapes()) {
 			if (shape.getData() == data){
-				logger.debug("shape found " + shape);
+				logger.trace("shape found " + shape);
 				return shape;
 			}
 		}

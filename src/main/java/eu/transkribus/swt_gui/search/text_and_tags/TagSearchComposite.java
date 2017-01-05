@@ -105,8 +105,8 @@ public class TagSearchComposite extends Composite {
 //	Future<?> tagSearchFut;
 	static long lastSearch=0; // time of last search, used for canceling existing search tasks
 	
-	static final String SEARCH_BTN_NOT_SEARCHING = "Search for tags";
-	static final String SEARCH_BTN_SEARCHING = "Cancel tag search";
+	static final String SEARCH_BTN_NOT_SEARCHING = "Search!";
+	static final String SEARCH_BTN_SEARCHING = "Cancel!";
 
 	protected static final String SCOPE_DOC = "Current document";
 	protected static final String SCOPE_PAGE = "Current page";
@@ -129,13 +129,13 @@ public class TagSearchComposite extends Composite {
 	public static final String LINE_COL = "Line";
 	public static final String WORD_COL = "Word";
 	public static final String TAG_COL = "Tag";
-	public static final String CONTEXT_COL = "Context";
+	public static final String CONTEXT_COL = "Text";
 	public static final String TAG_VALUE_COL = "Value";
 	
 	public static final ColumnConfig[] RESULT_COLS = new ColumnConfig[] {
-		new ColumnConfig(TAG_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(TAG_VALUE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(CONTEXT_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(TAG_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
+//		new ColumnConfig(TAG_VALUE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(CONTEXT_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(DOC_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(PAGE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(REGION_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
@@ -330,9 +330,10 @@ public class TagSearchComposite extends Composite {
 		
 		Composite btnsComp = new Composite(facetsGroup, 0);
 		btnsComp.setLayout(new FillLayout(SWT.HORIZONTAL));
-		btnsComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		btnsComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
 		
 		searchBtn = new Button(btnsComp, SWT.PUSH);
+		
 		toogleSearchBtn(false);		
 		searchBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
@@ -418,7 +419,7 @@ public class TagSearchComposite extends Composite {
 	//				else if (cn.equals(TITLE_COL)) {
 	//				}
 					else if (cn.equals(PAGE_COL)) {
-						return ""+t.getPageid(); // TODO: retrieve pagenr from pageid!
+						return ""+t.getPagenr();
 					}
 					else if (cn.equals(REGION_COL)) {
 						return t.getRegionid();
@@ -433,7 +434,10 @@ public class TagSearchComposite extends Composite {
 						return t.getCustomTagCss();
 					}
 					else if (cn.equals(CONTEXT_COL)) {
-						return ""; // TODO: store context in DB!???
+						String b = t.getContextBefore()==null ? "" : t.getContextBefore();
+						String a = t.getContextAfter()==null ? "" : t.getContextAfter();
+						
+						return b+t.getValue()+a; // TODO: store context in DB!???
 					}
 					else if (cn.equals(TAG_VALUE_COL)) {
 						return t.getValue();
@@ -480,9 +484,14 @@ public class TagSearchComposite extends Composite {
 					
 					String txt = mtlp.getColumnText(cn, cell.getElement(), null);
 					if (cn.equals(CONTEXT_COL)) {
-						StyleRange sr = new StyleRange(t.getOffset(), t.getLength(), cell.getForeground(), Colors.getSystemColor(SWT.COLOR_YELLOW));
-						cell.setStyleRanges(new StyleRange[] { sr } );
-					}			
+						int o=StringUtils.length(t.getContextBefore());
+						int l=StringUtils.length(t.getValue());
+						
+						if (CoreUtils.isInIndexRange(o, 0, txt.length()) && CoreUtils.isInIndexRange(o+l, 0, txt.length())) {
+							StyleRange sr = new StyleRange(o, l, cell.getForeground(), Colors.getSystemColor(SWT.COLOR_YELLOW));
+							cell.setStyleRanges(new StyleRange[] { sr } );
+						}
+					}
 
 					cell.setText(txt);
 				}
@@ -500,9 +509,11 @@ public class TagSearchComposite extends Composite {
 					TrpLocation l = new TrpLocation();
 					l.collectionId = t.getCollId();
 					l.docId = t.getDocid();
-					l.pageid = t.getPageid();
-					// TODO page-nr???
+//					l.pageid = t.getPageid();
+					l.pageNr = t.getPagenr();
 					l.shapeId = t.getRegionid();
+					
+//					logger.debug("collectionId = "+t.getCollId());
 					
 //					TrpLocation l = new TrpLocation(t);
 					
@@ -600,7 +611,11 @@ public class TagSearchComposite extends Composite {
 
 	protected void findTags() {
 		final CustomTagSearchFacets f = getFacets();
-				
+		if (StringUtils.length(f.getTagName(false)) < 3) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error searching for tags", "Please specify a valid tagname");
+			return;
+		}
+		
 		logger.debug("searching tags, facets: "+f);
 	
 		final Storage s = Storage.getInstance();
@@ -612,8 +627,8 @@ public class TagSearchComposite extends Composite {
 		boolean useDbSearch = scope.equals(SCOPE_COLL) || (scope.equals(SCOPE_DOC) && !s.isLocalDoc());
 		
 		final TrpCollection currCol =  mw.getUi().getServerWidget().getSelectedCollection();
-		final int collId = currCol == null ? -1 : currCol.getColId();
-				
+		int collId = currCol == null ? -1 : currCol.getColId();				
+		
 		try {
 			if (useDbSearch) {
 				if (!s.isLoggedIn()) {
@@ -623,8 +638,9 @@ public class TagSearchComposite extends Composite {
 
 				Set<Integer> collIds = null;
 				Set<Integer> docIds = null;
+				
 				if (scope.equals(SCOPE_COLL)) {
-					collIds = CoreUtils.createSet(s.getCurrentDocumentCollectionId());
+					collIds = CoreUtils.createSet(collId);
 				} else {
 					docIds = CoreUtils.createSet(s.getDocId());
 				}
