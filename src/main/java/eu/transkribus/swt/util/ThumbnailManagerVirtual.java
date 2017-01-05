@@ -205,6 +205,8 @@ public class ThumbnailManagerVirtual extends Dialog{
 		statisticLabel.setText("Loaded Document is " + docMd.getTitle() + " with ID " + docMd.getDocId());
 		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
+
+		
 		editCombos = new Composite(groupComposite, SWT.NONE);
 		editCombos.setLayout(new GridLayout(2, true));
 		editCombos.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
@@ -241,6 +243,17 @@ public class ThumbnailManagerVirtual extends Dialog{
 				e.printStackTrace();
 			}
         });
+		
+		Button showFn = new Button(editCombos, SWT.CHECK);
+		showFn.setText("Show filename in label");
+		showFn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		showFn.setSelection(false);
+		showFn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				tw.setShowFilenames(showFn.getSelection());
+				tw.reload();
+			}
+		});
 		
 		Composite btns = new Composite(container, 0);
 		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
