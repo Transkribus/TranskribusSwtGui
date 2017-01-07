@@ -13,6 +13,10 @@
 		<mainClassName>eu.transkribus.swt_gui.TrpGui</mainClassName>
 		<!-- <dependency-dir>${project.build.finalName}-lib</dependency-dir> -->
 		<dependency-dir>libs</dependency-dir>
+		<macapp-dir>/Transkribus.app/Contents/MacOS</macapp-dir>
+		<macapp-resources-dir>/Transkribus.app/Contents/Resources</macapp-resources-dir>
+		<macapp-contents-dir>/Transkribus.app/Contents</macapp-contents-dir>
+		
 		<swt-lib-name>swt-${swt.version}.jar</swt-lib-name>
 
 
@@ -217,7 +221,6 @@
 				</executions>
 			</plugin>
 			
-			
 			<!-- LAUNCH4J PLUGIN TO CREATE WINDOWS EXE FILE -->
 			<plugin>
 				<groupId>com.akathist.maven.plugins.launch4j</groupId>
@@ -225,8 +228,11 @@
 				<version>1.5.1</version>
 				<executions>
 					<execution>
-						<id>l4j-clui</id>
-						<phase>package</phase>
+						<!--<id>l4j-clui</id>
+						<phase>package</phase>-->
+						<id>asdf</id>
+						<phase>asdf</phase>
+						
 						<goals>
 							<goal>launch4j</goal>
 						</goals>
@@ -273,8 +279,11 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
-					<descriptor>src/assembly/dep.xml</descriptor>
-<!-- 					<appendAssemblyId>false</appendAssemblyId> -->
+					<descriptors>
+					<!-- <appendAssemblyId>false</appendAssemblyId> -->
+						<descriptor>src/assembly/dep.xml</descriptor>
+						<descriptor>src/assembly/dep_mac.xml</descriptor>
+					</descriptors>
 				</configuration>
 				<executions>
 					<execution>
@@ -328,16 +337,17 @@
 				
 					<!-- Change user permissions for startup scripts (because they are lost 
 						after copy-dependencies!!) -->
+					<!--  use 'mvn antrun:run@change_permissions_for_scripts' to run independently from console! -->
 					<execution>
 						<id>change_permissions_for_scripts</id>
 						<phase>package</phase>
 						<configuration>
 							<target>
 <!-- 								<copy file="${project.build.directory}/Transkribus.sh" tofile="${project.build.directory}/Transkribus.command" /> -->
-
 								<!-- Needed? Permissions also changed in assembly! Nevermind, it won't hurt... -->
 								<chmod file="${project.build.directory}/Transkribus.sh" perm="755" />
 								<chmod file="${project.build.directory}/Transkribus.command" perm="755" />
+								<chmod file="${project.build.directory}/Transkribus" perm="755" />
 <!-- 								<chmod file="target/TranskribusMac" perm="755" />							 -->
 							</target>
 						</configuration>
@@ -345,7 +355,7 @@
 							<goal>run</goal>
 						</goals>
 					</execution>
-					
+										
 					<!-- Upload assembly zip to wherever needed -->
 					<!-- 'mvn deploy' will install the package and upload the stuff -->
 					<!-- 'mvn antrun:run' will only try to upload an existing zip file -->
