@@ -9,6 +9,15 @@
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
+  	<!-- include a jre into the mac app package -->
+  	<fileSet>
+  		<directory>${project.build.directory}/${mac-jre}/jre</directory>
+  		<outputDirectory>${macapp-dir}/jre</outputDirectory>
+  		<fileMode>0755</fileMode>
+  		<includes>
+                <include>**/*</include>
+        </includes>
+  	</fileSet>
   
 	<!-- Files from the build directory -->
     <fileSet>
@@ -20,6 +29,7 @@
       </includes>
     </fileSet>
     
+    <!-- The app icon -->
     <fileSet>
        	<directory>src/main/resources/icons</directory>
     	<outputDirectory>${macapp-resources-dir}/</outputDirectory>
