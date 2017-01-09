@@ -248,10 +248,10 @@
 				<version>1.5.1</version>
 				<executions>
 					<execution>
-						<!--<id>l4j-clui</id>
-						<phase>package</phase>-->
-						<id>asdf</id>
-						<phase>asdf</phase>
+						<id>l4j-clui</id>
+						<phase>package</phase>
+<!-- 						<id>skip</id>
+						<phase>skip</phase> -->
 						
 						<goals>
 							<goal>launch4j</goal>
@@ -433,12 +433,31 @@
 <!-- 													<include name="BUILD.txt" /> -->
 <!-- 												</fileset> -->
 												<fileset dir="${project.build.directory}">
-													<include name="*.zip" />
+													<include name="${project.build.finalName}-package.zip" />
 												</fileset>
 											</copy>								    
 										  </then>
 										  <else>
 										    <echo message="Directory @{dir}${deploySubDir} does not exist - skipping" />
+										  </else>
+										</if>
+										
+										<!-- Deploy mac packge -->
+										<if>
+										  <available file="@{dir}${deploySubDir}/mac" type="dir" />
+										  <then>
+										    <echo message="Directory @{dir}${deploySubDir}/mac exists - now copying mac zip file to it" />
+											<copy todir="@{dir}${deploySubDir}/mac">
+<!-- 												<fileset dir="${project.build.directory}/classes"> -->
+<!-- 													<include name="BUILD.txt" /> -->
+<!-- 												</fileset> -->
+												<fileset dir="${project.build.directory}">
+													<include name="${project.build.finalName}-mac.zip" />
+												</fileset>
+											</copy>								    
+										  </then>
+										  <else>
+										    <echo message="Directory @{dir}${deploySubDir}/mac does not exist - skipping" />
 										  </else>
 										</if>
 								  </sequential>
