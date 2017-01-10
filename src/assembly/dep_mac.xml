@@ -1,0 +1,108 @@
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+  <id>mac</id>
+  <formats>
+<!--     <format>tar.gz</format> -->
+<!--     <format>tar.bz2</format> -->
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <fileSets>
+  	<!-- include a jre into the mac app package -->
+  	<fileSet>
+  		<directory>${project.build.directory}/${mac-jre}/jre</directory>
+  		<outputDirectory>${macapp-dir}/jre</outputDirectory>
+  		<fileMode>0755</fileMode>
+  		<includes>
+                <include>**/*</include>
+        </includes>
+  	</fileSet>
+  
+	<!-- Files from the build directory -->
+    <fileSet>
+      <directory>${project.build.directory}</directory>
+      <outputDirectory>${macapp-dir}/</outputDirectory>
+      <fileMode>0755</fileMode>
+      <includes>
+        <include>${project.build.finalName}.jar</include> <!-- The main jar -->
+      </includes>
+    </fileSet>
+    
+    <!-- The app icon -->
+    <fileSet>
+       	<directory>src/main/resources/icons</directory>
+    	<outputDirectory>${macapp-resources-dir}/</outputDirectory>
+    	<includes>
+        	<include>Transkribus.icns</include>
+        </includes>
+    </fileSet>
+    
+    <!--  Info.plist -->
+    <fileSet>
+       	<directory>${project.build.directory}/classes</directory>
+    	<outputDirectory>${macapp-contents-dir}/</outputDirectory>
+    	<includes>
+        	<include>Info.plist</include>
+        </includes>
+    </fileSet>
+    
+    <!-- Files from the base directory -->
+    <fileSet>
+       	<directory>.</directory>
+    	<outputDirectory>${macapp-dir}/</outputDirectory>
+    	<includes>
+        	<include>CHANGES.txt</include>
+        	<include>LICENSE</include>	
+        </includes>
+    </fileSet>    
+    
+    <!-- Scripts -->
+    <fileSet>
+       	<directory>${project.build.directory}/classes</directory>
+    	<outputDirectory>${macapp-dir}/</outputDirectory>
+    	<fileMode>0755</fileMode>
+    	<includes>
+        	<!-- <include>${project.name}.bat</include>
+        	<include>${project.name}.sh</include> -->
+        	<include>${project.name}</include>    	
+        </includes>
+    </fileSet>
+    
+    <!-- Files from the classes directory (i.e. the copied resources from src/main/resouces) -->
+    <fileSet>
+    	<directory>${project.build.directory}/classes</directory>
+    	<outputDirectory>${macapp-dir}/</outputDirectory>
+    	<includes>  	
+	    	<include>README.txt</include>
+	        <include>USAGE.txt</include>
+	        <include>CHANGES.txt</include>
+	        <include>BUILD.txt</include>
+	        <include>virtualKeyboards.xml</include>
+	        <include>How_to_use_TRANSKRIBUS-0.1.7.pdf</include>
+        	<include>logback.xml</include>
+<!--         <include>log4j.properties</include> -->
+        	<include>config.properties</include>
+        </includes>
+    </fileSet>
+    
+    <!-- i18n dir -->
+    <fileSet>
+    	<directory>${project.build.directory}/classes/i18n</directory>
+    	<outputDirectory>${macapp-dir}/i18n</outputDirectory>
+    </fileSet>
+    
+    <!-- profiles dir -->
+    <fileSet>
+    	<directory>${project.build.directory}/classes/profiles</directory>
+    	<outputDirectory>${macapp-dir}/profiles</outputDirectory>
+    </fileSet>
+    
+    <!-- libs dir  -->
+    <fileSet>
+      <directory>${project.build.directory}/${dependency-dir}</directory>
+      <outputDirectory>${macapp-dir}/${dependency-dir}</outputDirectory>
+    </fileSet>
+    
+  </fileSets>
+</assembly>

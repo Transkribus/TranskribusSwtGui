@@ -570,7 +570,7 @@ public class TaggingWidget extends Composite implements Observer {
 		
 		availableTagNames.clear();
 		for (CustomTag t : CustomTagFactory.getRegisteredTagObjects()) {
-			logger.debug("update of av. tags, tn = "+t.getTagName()+" showInTagWidget: "+t.showInTagWidget());
+			logger.trace("update of av. tags, tn = "+t.getTagName()+" showInTagWidget: "+t.showInTagWidget());
 			if (t.showInTagWidget()) {
 				availableTagNames.add(t.getTagName());
 			}

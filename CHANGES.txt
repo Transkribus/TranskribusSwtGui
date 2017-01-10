@@ -406,7 +406,7 @@ CHANGES AND BUGFIXES
 	-> Compare and show text differences of two versions in a text file (Tools - Compare)
 	-> split/merge baselines is done for lines too; bugs fixed for undoing those actions
 	
-0.10.2(0.11.0):
+1.0.0:
 	-> Deleting versions optimized
 	-> Session expired check during recent doc load
 	-> Change reading order optimized
@@ -417,9 +417,10 @@ CHANGES AND BUGFIXES
 	-> show download link after server export to the user
 	-> supplied tag handling for docx export
 	-> option to show filename in thumbs manager
-	
-1.0:
 	-> included tag search
-	-> changed versioning scheme: only two numbers, now starting with 1.0; third number is for differentiating between snapshot versions for a specific release (i.e. 1.0.1-SNAPSHOT is the first snapshot for release 1.0)
+	-> jump to version 1.0.0 
+		-> third number is for differentiating between snapshot versions for a specific release (i.e. 1.0.1-SNAPSHOT is the first snapshot for release 1.0)
+		-> second number of for urgent bugfixes
+		-> first number if the main release version
 	
 	
