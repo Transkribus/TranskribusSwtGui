@@ -93,13 +93,14 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		groupRenderer.setItemWidth(THUMB_WIDTH);
 		groupRenderer.setAutoMargin(true);
 		groupRenderer.setAlwaysExpanded(true);
+		
 
 		gallery.setGroupRenderer(groupRenderer);
 
 		ir = new MyDefaultGalleryItemRenderer();
 		ir.setShowLabels(true);
+		
 		gallery.setItemRenderer(ir);
-
 		// virtual table stuff:
 		gallery.setVirtualGroups(true);
 		gallery.addListener(SWT.SetData, new Listener() {
@@ -155,7 +156,15 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 			}
 		});
 		
-		gallery.setItemCount(1);
+		if (doc != null)
+			gallery.setItemCount(doc.getNPages());
+		else{
+			gallery.setItemCount(1);
+		}
+		
+		//should bring some improvement during image loading
+		gallery.setAntialias(SWT.OFF);
+		gallery.setInterpolation(SWT.LOW);
 		// END virtual table stuff
 
 		this.pack();
@@ -369,7 +378,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		}
 
 		GC gc = new GC(item.getParent());
-
+		
 		final List<TrpTranscriptMetadata> transcripts = doc.getTranscripts();
 		final List<String> names = doc.getPageImgNames();
 		if (/* showOrigFn.getSelection() && */names != null && index >= 0 && index < names.size()
@@ -439,6 +448,10 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 
 	public void setShowFilenames(boolean showFilenames) {
 		this.showFilenames = showFilenames;
+	}
+
+	public int getMaxWidth() {
+		return maxWidth;
 	}
 
 }

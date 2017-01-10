@@ -145,6 +145,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 	 */
 	public Object open() {
 
+		shell.setMinimumSize(800, 800);
 		shell.setSize(1100, 800);
 		SWTUtil.centerShell(shell);
 				
@@ -252,6 +253,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 			@Override public void widgetSelected(SelectionEvent e) {
 				tw.setShowFilenames(showFn.getSelection());
 				tw.reload();
+				//tw.setTHUMB_WIDTH(Math.max(tw.getMaxWidth(), shell.getSize().x/3));
 			}
 		});
 		
