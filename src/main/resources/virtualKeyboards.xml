@@ -9,7 +9,7 @@
     	into one keyboard by seperating the values with a whitespace!
     The keyboards are sorted by their name in the GUI - add leading numbers to enforce a special order!
 </comment>
-<entry key="Custom">— ¬  ̄ U+00AD</entry>
+<entry key="Custom">— ¬ ̄ U+00AD</entry>
 <entry key="Greek/Coptic">0370-03FF</entry>
 <entry key="Latin-1 Supp.">00A0-00FF</entry> <!-- 0080-009F are control characters... -->
 <entry key="Latin-1 Extended-A.">0100-017F</entry>
@@ -17,4 +17,6 @@
 <entry key="Latin-1 Extended-D.">A720-A7FF</entry>
 <entry key="Hebrew">0590-05FF</entry>
 <entry key="General Punctuation">2000-206F</entry>
+<entry key="X_Astronomical Symbols">U+263D-2653</entry>
+<entry key="X_Alchemical Symbols">U+1F700-1F77F</entry>
 </properties>

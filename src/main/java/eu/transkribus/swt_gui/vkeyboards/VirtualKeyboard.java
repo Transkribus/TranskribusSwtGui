@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -74,7 +75,7 @@ public class VirtualKeyboard extends Composite {
 				
 		initLayout();
 		        
-        initButtons(ul.getChars());
+        initButtons(ul.getUnicodes());
 //        initInternalListener();
 	}
 	
@@ -148,10 +149,6 @@ public class VirtualKeyboard extends Composite {
 		this(parent, style, new UnicodeList(name, unicodeStart, unicodeEnd));
 	}
 
-	public VirtualKeyboard(Composite parent, int style, String name, List<Character> chars) {
-		this(parent, style, new UnicodeList(name, chars));
-	}
-
 	private void initLayout() {
 		RowLayout rowLayout = new RowLayout();
         rowLayout.wrap = true;
@@ -168,9 +165,9 @@ public class VirtualKeyboard extends Composite {
 	
 	public void reload(String unicodeString) {
 		this.ul.initChars(unicodeString);
-		logger.info("got chars: "+ul.getChars().size());
+		logger.info("got chars: "+ul.getUnicodesAsStrings().size());
 		clearButtons();
-		initButtons(ul.getChars());
+		initButtons(ul.getUnicodes());
 	}
 	
 	private void clearButtons() {
@@ -181,19 +178,28 @@ public class VirtualKeyboard extends Composite {
 		charBtns.clear();
 	}
 	
-	private void initButtons(Collection<Character> unicode) {
+	private void initButtons(List<Pair<Integer, String>> list) {
 		String undefined = "";
-		for (Character i : unicode) {
-			if (!Character.isDefined(i)) {
-				undefined += (int) i+" ";
+		for (Pair<Integer, String> pair : list) {
+			
+			/*
+			 * only for Characters possible -> not for strings
+			 * So for String with 2 Unicode chars per symbol we take the first Character
+			 * maybe we can do something else?!
+			 */
+			
+			String i = pair.getRight();
+			
+			if (!Character.isDefined(i.toCharArray()[0])) {
+				undefined += (int) i.toCharArray()[0]+" ";
 				
 //				throw new RuntimeException("Undefined unicode character: "+(int)i);
 //				logger.warn("Undefined unicode value: "+(int)i);
 				continue;
 			}
 			
-			Button b = initButton(i);
-			
+			Button b = initButton(pair);
+
 			charBtns.add(b);
 		}
 		if (!undefined.isEmpty()) {
@@ -201,7 +207,7 @@ public class VirtualKeyboard extends Composite {
 		}
 	}
 	
-	private Button initButton(Character c) {
+	private Button initButton(Pair<Integer, String> c) {
 		Button b = new Button(this, SWT.PUSH);
 		
 		FontData[] fD = b.getFont().getFontData();
@@ -209,8 +215,15 @@ public class VirtualKeyboard extends Composite {
 //		b.setFont( new Font(getDisplay(), fD[0]));
 		b.setFont(Fonts.createFont(fD[0]));
 		
-		b.setText(Character.toString(c));
-		b.setToolTipText(Character.getName(c));
+		String text = c.getRight();
+		Integer code = c.getLeft();
+		
+//		b.setText(Character.toString(c));
+//		b.setToolTipText(Character.getName(c));
+		
+		//Character tmp = c.toCharArray()[0];
+		b.setText(text);
+		b.setToolTipText(Character.getName(code));
 		
 		b.addSelectionListener(btnSelectionListener);
 		
