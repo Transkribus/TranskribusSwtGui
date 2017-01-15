@@ -72,6 +72,7 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 	Button showAllJobsBtn, cancelBtn;
 	Combo stateCombo;
 	Text docIdText;
+	Text typeFilterTxt;
 	
 //	DocJobUpdater docUpdater;
 	static Storage store = Storage.getInstance();
@@ -120,9 +121,17 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 			}
 		});
 		
-		Label l1 = new Label(btns, 0);
-		l1.setText("Doc-Id: ");
+		TraverseListener refreshPageOnReturnListener = new TraverseListener() {
+			@Override public void keyTraversed(TraverseEvent e) {
+				if (e.detail == SWT.TRAVERSE_RETURN) {
+					logger.debug("docId = "+docIdText.getText());
+					refreshPage(true);
+				}
+			}
+		};
 		
+		Label docIdLabel = new Label(btns, 0);
+		docIdLabel.setText("Doc-Id: ");
 		docIdText = new Text(btns, SWT.BORDER);
 		docIdText.addVerifyListener(new VerifyListener() {
 			@Override public void verifyText(VerifyEvent e) {
@@ -140,14 +149,13 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 			}
 		});
 		docIdText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		docIdText.addTraverseListener(new TraverseListener() {
-			@Override public void keyTraversed(TraverseEvent e) {
-				if (e.detail == SWT.TRAVERSE_RETURN) {
-					logger.debug("docId = "+docIdText.getText());
-					refreshPage(true);
-				}
-			}
-		});
+		docIdText.addTraverseListener(refreshPageOnReturnListener);
+		
+		Label typeFilterLabel = new Label(btns, 0);
+		typeFilterLabel.setText("Type filter: ");
+		
+		typeFilterTxt = new Text(btns, SWT.BORDER);
+		typeFilterTxt.addTraverseListener(refreshPageOnReturnListener);
 		
 		
 //		pageableTable.sortChanged("",  "createTimeFormatted", 0, SWT.UP, pageableTable.getController());
