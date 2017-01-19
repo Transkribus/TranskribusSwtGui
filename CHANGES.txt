@@ -422,5 +422,10 @@ CHANGES AND BUGFIXES
 		-> third number is for differentiating between snapshot versions for a specific release (i.e. 1.0.1-SNAPSHOT is the first snapshot for release 1.0)
 		-> second number of for urgent bugfixes
 		-> first number if the main release version
+		
+1.1.0:
+	-> bugfix: NPE when empty description in HTR models
+	-> bugfix: when replacing image on server, returned TrpPage could not be unmarshalled due to java.sql.Timestamp fields
+	
 	
 	
