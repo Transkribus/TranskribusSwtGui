@@ -1876,6 +1876,11 @@ public class Storage {
 		checkConnection(true);
 		return conn.searchFulltext(query, type, start, rows, filters);
 	}
+	
+	public void movePage(final int colId, final int docId, final int pageNr, final int toPageNr) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException{
+		checkConnection(true);
+		conn.movePage(colId, docId, pageNr, toPageNr);
+	}
 
 	public List<TrpDocDir> listDocDirsOnFtp() throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);

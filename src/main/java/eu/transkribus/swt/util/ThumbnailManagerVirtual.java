@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.ISelectionListener;
@@ -72,6 +73,7 @@ import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
 import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import jersey.repackaged.com.google.common.collect.Lists;
 
 public class ThumbnailManagerVirtual extends Dialog{
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailManagerVirtual.class);
@@ -126,6 +128,9 @@ public class ThumbnailManagerVirtual extends Dialog{
 	static final Color lightRed = new Color(Display.getCurrent(), 252, 204, 188);
 	
 	private int maxWidth = 0;
+	
+	static GalleryItem[] draggedItem;
+	static int[] originalItemIndex;
 	
 	private static final boolean DISABLE_TRANSCRIBED_LINES=false;
 	
@@ -328,6 +333,9 @@ public class ThumbnailManagerVirtual extends Dialog{
 	    
 	    addMenuItems(contextMenu, EnumUtils.stringsArray(EditStatus.class));
 	    
+	    addPageMoveMenuItems(contextMenu);    
+	    
+	    
 //	    contextMenu.addMenuListener(new MenuAdapter()
 //	    {
 //	        public void menuShown(MenuEvent e)
@@ -346,6 +354,170 @@ public class ThumbnailManagerVirtual extends Dialog{
 
 	}
 	
+
+	private void addPageMoveMenuItems(Menu contextMenu) {
+	    MenuItem movePage = new MenuItem(contextMenu, SWT.CASCADE);
+	    movePage.setText("Move page to");
+	    
+	    Menu subMoveMenu = new Menu(contextMenu);
+	    movePage.setMenu(subMoveMenu);
+	    
+	    MenuItem moveFront = new MenuItem(subMoveMenu, SWT.NONE);
+	    moveFront.setText("Beginning");
+	    
+	    MenuItem moveBack = new MenuItem(subMoveMenu, SWT.NONE);
+	    moveBack.setText("End");
+	    
+	    MenuItem moveSpecific = new MenuItem(subMoveMenu, SWT.NONE);
+	    moveSpecific.setText("Select position");
+	    
+	    moveFront.addListener(SWT.Selection, new Listener(){
+
+			@Override
+			public void handleEvent(Event event) {							
+				
+				List<TrpPage> selection = tw.getSelection();	
+				
+				try {
+					int i = 0;
+//					for(TrpPage page : selection){
+//						movePage(page.getPageNr()+i,1);
+//						i++;
+//					}
+					movePages(selection,1);
+					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+					tw.setDoc(Storage.getInstance().getDoc(), false);
+					reload();
+					mw.getUi().getThumbnailWidget().reload();		    		
+					tw.getGallery().redraw();
+					
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}	   	    	
+	    });   
+	    
+	    moveBack.addListener(SWT.Selection, new Listener(){
+
+			@Override
+			public void handleEvent(Event event) {							
+				
+				List<TrpPage> selection = tw.getSelection();			
+				int NPages = tw.getDoc().getNPages();
+				int i = 0;
+				try {					
+//					for(TrpPage page : selection){
+//						movePage(page.getPageNr()-i, NPages);
+//						i++;						
+//					}
+					movePages(selection, NPages);
+					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+					tw.setDoc(Storage.getInstance().getDoc(), false);
+					reload();
+					mw.getUi().getThumbnailWidget().reload();		    		
+					tw.getGallery().redraw();
+					
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}	   	    	
+	    });
+	    
+	    moveSpecific.addListener(SWT.Selection, new Listener(){
+
+			@Override
+			public void handleEvent(Event event) {
+				Shell shell = new Shell(Display.getCurrent());
+				shell.setLayout(new GridLayout(2, false));
+				Text inputText = new Text(shell, SWT.BORDER);
+				inputText.setText("");
+				Button apply = new Button(shell, SWT.PUSH);
+				apply.setText("Apply");
+				shell.setLocation(Display.getCurrent().getCursorLocation());
+				shell.pack();
+				shell.open();
+				
+				apply.addListener(SWT.Selection, new Listener(){
+
+					@Override
+					public void handleEvent(Event event) {
+						if(inputText.getText().isEmpty()) return;
+						
+						int targetPage;
+						targetPage = Integer.parseInt(inputText.getText());
+						if(targetPage > tw.getDoc().getNPages() || targetPage < 1){
+							DialogUtil.showErrorMessageBox(getShell(), "Error", "Invalid position");
+						}
+						try {
+							movePages(tw.getSelection(), targetPage);
+							Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+							tw.setDoc(Storage.getInstance().getDoc(), false);
+							reload();
+							mw.getUi().getThumbnailWidget().reload();		    		
+							tw.getGallery().redraw();
+						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+								| IllegalArgumentException | NoConnectionException | IOException
+								| NullValueException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+					}
+					
+				});
+				
+			}
+	    	
+	    });
+	    
+	    
+	    
+
+	    
+		
+	}	
+	
+	private void movePage(int fromPageNr, int toPageNr) 
+			throws SessionExpiredException, ServerErrorException,
+					ClientErrorException, NoConnectionException,
+					IllegalArgumentException, UnsupportedFormatException,
+					IOException, NullValueException	{
+		Storage.getInstance().movePage(tw.getDoc().getCollection().getColId(), tw.getDoc().getId(), fromPageNr, toPageNr);
+		
+
+	}
+	
+	private void movePages(List<TrpPage> selection, int toPageNr) 
+			throws SessionExpiredException, ServerErrorException,
+					ClientErrorException, NoConnectionException,
+					IllegalArgumentException, UnsupportedFormatException,
+					IOException, NullValueException	{
+		
+		
+		
+		if(selection.get(0).getPageNr() > toPageNr){
+			selection = Lists.reverse(selection);
+			int i = 0;
+			for(TrpPage page : selection){
+				movePage(page.getPageNr()+i,1);
+				i++;
+		}
+
+		}else if(selection.get(0).getPageNr() < toPageNr){
+			int i = 0;
+			for(TrpPage page : selection){
+				movePage(page.getPageNr()-i, toPageNr);
+				i++;				
+			}
+		}
+		
+		
+
+	}
 
 	private void changeVersionStatus(String text){
 		Storage storage = Storage.getInstance();
