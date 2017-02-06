@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.0</version>
+	<version>1.0.1.1-SNAPSHOT</version>
 	<name>Transkribus</name>
 
 	<properties>
@@ -406,7 +406,7 @@
 							<taskdef resource="net/sf/antcontrib/antlib.xml"
 									classpathref="maven.plugin.classpath" />
 								<if>
-								  <matches pattern=".*-SNAPSHOT" string="${project.version}" />
+								  <matches pattern=".*-SNAPSHOT.*" string="${project.version}" />
 								  <then>
 								    <property name="deploySubDir" value="/snapshots/"/>	
 								    <echo>This is a snapshot build - subdir = ${deploySubDir}</echo>							    

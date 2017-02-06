@@ -324,6 +324,21 @@ public class ThumbnailManager extends Dialog{
 	    
 	    addMenuItems(contextMenu, EnumUtils.stringsArray(EditStatus.class));
 	    
+	    MenuItem movePage = new MenuItem(contextMenu, SWT.CASCADE);
+	    movePage.setText("Move page to");
+	    
+	    Menu moveMenu = new Menu(contextMenu);
+	    MenuItem moveFront = new MenuItem(moveMenu, SWT.NONE);
+	    moveFront.setText("Beginning");
+	    MenuItem moveEnd = new MenuItem(moveMenu, SWT.NONE);
+	    moveEnd.setText("End");
+	    MenuItem moveSpecific = new MenuItem(moveMenu, SWT.NONE);
+	    moveSpecific.setText("Select page");
+	    movePage.setMenu(moveMenu);
+	    
+	    
+
+	    
 //	    contextMenu.addMenuListener(new MenuAdapter()
 //	    {
 //	        public void menuShown(MenuEvent e)
@@ -744,7 +759,6 @@ public class ThumbnailManager extends Dialog{
 //		// create new gallery items:
 //		createGalleryItems();
 //		
-
 //
 //
 //		

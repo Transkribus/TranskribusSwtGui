@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.search.fulltext;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.regex.Pattern;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.client.InvocationCallback;
 
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -56,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpDbTag;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.enums.SearchType;
@@ -163,8 +166,7 @@ public class FullTextSearchComposite extends Composite{
 		
 		parameters = new Composite(facetsGroup, 0);
 		parameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
-		parameters.setLayout(new GridLayout(5, false));
-		
+		parameters.setLayout(new GridLayout(5, false));		
 				
 		storage = Storage.getInstance();
 		
@@ -779,24 +781,56 @@ public class FullTextSearchComposite extends Composite{
 		}
 		
 		
-		try {	
-			if(!filters.isEmpty()){
-				fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, filters);
-			}else{
-				fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, null);
-			}			
-			
-			logger.debug("Searching for: " + searchText + ", Start: "+start+" rows: "+rows);
-			
-			logger.debug("Query: " + fullTextSearchResult.getParams());
-			logger.debug("Num. Results: " + fullTextSearchResult.getNumResults());	
-			
-			if(fullTextSearchResult != null){				
-				if(!currentDocCheck.getSelection()){
-					updateFacets();
-				}				
-				updateResultsTable();
+		//Async search
+		InvocationCallback<FulltextSearchResult> callback = new InvocationCallback<FulltextSearchResult>() {
+
+			@Override
+			public void completed(FulltextSearchResult response) {
+				fullTextSearchResult = response;
+				if(fullTextSearchResult != null){	
+					Display.getDefault().asyncExec(()->{
+						updateFacets();
+						updateResultsTable();
+					}); 
+					
+				}
+				
 			}
+
+			@Override
+			public void failed(Throwable throwable) {
+				logger.error("Fulltext search failed."+ throwable);
+				Display.getDefault().asyncExec(() -> {
+					TrpMainWidget.getInstance().onError("Error searching fulltext", throwable.getMessage(), throwable);
+				});
+			}
+			
+		};
+		
+		try {	
+//			if(!filters.isEmpty()){
+//				fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, filters);
+//			}else{
+//				fullTextSearchResult = storage.searchFulltext(searchText, type, start, rows, null);
+//			}	
+			//Async search
+			if(!filters.isEmpty()){
+				storage.getConnection().searchFulltextAsync(searchText, type, start, rows, filters, callback);
+			}else{
+				storage.getConnection().searchFulltextAsync(searchText, type, start, rows, null, callback);
+			}	
+			
+//			logger.debug("Searching for: " + searchText + ", Start: "+start+" rows: "+rows);
+//			
+//			logger.debug("Query: " + fullTextSearchResult.getParams());
+//			logger.debug("Num. Results: " + fullTextSearchResult.getNumResults());	
+//			
+//			if(fullTextSearchResult != null){				
+//				if(!currentDocCheck.getSelection()){
+//					updateFacets();
+//				}				
+//				updateResultsTable();
+//			}
 			
 		} catch (SessionExpiredException e) {
 			logger.error("Error when trying to search: Session expired!"+e);
@@ -807,10 +841,15 @@ public class FullTextSearchComposite extends Composite{
 		} catch (ClientErrorException e) {
 			logger.error("Error when trying to search: ClientError!"+e);
 			e.printStackTrace();
-		} catch (NoConnectionException e) {
-			logger.error("Error when trying to search: No connection!"+e);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
+		}
+//		catch (NoConnectionException e) {
+//			logger.error("Error when trying to search: No connection!"+e);
+//			e.printStackTrace();
+//		}		
+		
 		
 		lastSearchText = searchText;
 		

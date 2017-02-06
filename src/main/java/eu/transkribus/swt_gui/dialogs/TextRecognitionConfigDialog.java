@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -64,6 +65,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.htr.HtrTableWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -367,9 +369,9 @@ public class TextRecognitionConfigDialog extends Dialog {
 	}
 
 	private void updateDetails(TrpHtr htr) {
-		nameTxt.setText(htr.getName());
-		langTxt.setText(htr.getLanguage());
-		descTxt.setText(htr.getDescription());
+		nameTxt.setText(StrUtil.get(htr.getName()));
+		langTxt.setText(StrUtil.get(htr.getLanguage()));
+		descTxt.setText(StrUtil.get(htr.getDescription()));
 		
 		charSetTitle = "Character Set of Model: " + htr.getName();
 		charSet = htr.getCharList() == null || htr.getCharList().isEmpty() ? "N/A" : htr.getCharList();
@@ -381,7 +383,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 		showTestSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
 		showTrainSetBtn.setEnabled(htr.getGtDocId() != 0);
 		
-		updateChart(htr.getCerString());
+		updateChart(StrUtil.get(htr.getCerString()));
 	}
 
 	private void updateChart(String cerString) {
