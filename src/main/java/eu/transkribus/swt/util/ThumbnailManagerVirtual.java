@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Comparator;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -438,6 +441,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 				Button apply = new Button(shell, SWT.PUSH);
 				apply.setText("Apply");
 				shell.setLocation(Display.getCurrent().getCursorLocation());
+				
 				shell.pack();
 				shell.open();
 				
@@ -473,21 +477,15 @@ public class ThumbnailManagerVirtual extends Dialog{
 			}
 	    	
 	    });
-	    
-	    
-	    
-
-	    
 		
 	}	
 	
-	private void movePage(int fromPageNr, int toPageNr) 
-			throws SessionExpiredException, ServerErrorException,
-					ClientErrorException, NoConnectionException,
-					IllegalArgumentException, UnsupportedFormatException,
-					IOException, NullValueException	{
-		Storage.getInstance().movePage(tw.getDoc().getCollection().getColId(), tw.getDoc().getId(), fromPageNr, toPageNr);
-		
+	private void movePage(int fromPageNr, int toPageNr) {
+		try {
+			Storage.getInstance().movePage(tw.getDoc().getCollection().getColId(), tw.getDoc().getId(), fromPageNr, toPageNr);
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e) {
+			logger.error(e.toString());
+		}
 
 	}
 	
@@ -495,17 +493,25 @@ public class ThumbnailManagerVirtual extends Dialog{
 			throws SessionExpiredException, ServerErrorException,
 					ClientErrorException, NoConnectionException,
 					IllegalArgumentException, UnsupportedFormatException,
-					IOException, NullValueException	{
+					IOException, NullValueException	{			
+
 		
-		
+		Collections.sort(selection, new Comparator<TrpPage>() {
+			@Override
+			public int compare(TrpPage o1, TrpPage o2) {
+				return o1.getPageNr()-o2.getPageNr();
+			}			
+			});
+
 		
 		if(selection.get(0).getPageNr() > toPageNr){
-			selection = Lists.reverse(selection);
-			int i = 0;
-			for(TrpPage page : selection){
-				movePage(page.getPageNr()+i,1);
-				i++;
-		}
+
+			int j=0;
+			for(int i = selection.size()-1; i>=0; i--){
+				movePage(selection.get(i).getPageNr()+j,toPageNr);
+				j++;
+				
+			}
 
 		}else if(selection.get(0).getPageNr() < toPageNr){
 			int i = 0;
@@ -513,9 +519,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 				movePage(page.getPageNr()-i, toPageNr);
 				i++;				
 			}
-		}
-		
-		
+		}		
 
 	}
 
