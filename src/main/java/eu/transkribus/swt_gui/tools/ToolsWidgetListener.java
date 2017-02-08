@@ -354,13 +354,18 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 			} else if(s==tw.recogBtn) {
 				if(trd2 != null) {
+					logger.debug("htr diag set visible");
 					trd2.setVisible();
 				} else {
 					trd2 = new TextRecognitionDialog2(mw.getShell());
 					if(trd2.open() == IDialogConstants.OK_ID) {
 						TextRecognitionConfig config = trd2.getConfig();
 						final String pages = trd2.getPages();
-						jobId = store.runHtr(pages, config);
+						try {
+							jobId = store.runHtr(pages, config);
+						} finally {
+							trd2 = null;
+						}
 					}
 					trd2 = null;
 				}
