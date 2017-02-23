@@ -19,6 +19,7 @@ import eu.transkribus.client.util.FtpConsts;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.ShowServerExportLinkDialog;
@@ -112,7 +113,7 @@ public class DocJobUpdater {
 					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
 				}
 				else if (store.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
-					if (job.getJobImpl().getClassName().equals("ExportDocumentJob")){
+					if (job.getJobImpl().equals(JobImpl.DocExportJob.toString())) {
 						ShowServerExportLinkDialog linkDiag = new ShowServerExportLinkDialog(mw.getShell(), job.getResult());
 						linkDiag.open();
 						//DialogUtil.showDownloadLinkDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?"); 
