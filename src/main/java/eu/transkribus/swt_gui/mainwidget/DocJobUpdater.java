@@ -66,7 +66,7 @@ public class DocJobUpdater {
 						if (jobsToUpdate.isEmpty())
 							continue;
 
-						logger.debug("jobs to update: " + jobsToUpdate.size());
+						logger.trace("jobs to update: " + jobsToUpdate.size());
 
 						store.checkConnection(true);
 

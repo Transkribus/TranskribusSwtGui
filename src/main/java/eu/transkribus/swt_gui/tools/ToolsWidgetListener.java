@@ -13,10 +13,12 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
@@ -31,9 +33,9 @@ import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.HtrTrainingDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
-import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog2;
+import eu.transkribus.swt_gui.dialogs.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.GuiUtil;
@@ -54,7 +56,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	TextRecognitionDialog trd;
 	OcrDialog od;
 	TextRecognitionDialog2 trd2;
-	SimpleLaDialog sld;
+	LayoutAnalysisDialog laDiag;
 		
 	public ToolsWidgetListener(TrpMainWidget mainWidget) {
 		this.mw = mainWidget;
@@ -140,6 +142,8 @@ public class ToolsWidgetListener implements SelectionListener {
 
 			PcGtsType pageData = store.getTranscript().getPageData();
 			String jobId = null;
+			List<String> jobIds=null;
+			
 			int colId = store.getCurrentDocumentCollectionId();
 			
 			if (needsRegions(s) && !PageXmlUtils.hasRegions(pageData)) {
@@ -175,18 +179,15 @@ public class ToolsWidgetListener implements SelectionListener {
 				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
 			} 
 			else if(s == tw.batchLaBtn) {
-				if(sld != null) {
-					sld.setVisible(); 
+				if(laDiag != null && SWTUtil.isDisposed(laDiag.getShell())) {
+					laDiag.setVisible();
 				} else {
-					sld = new SimpleLaDialog(mw.getShell());
-					int ret = sld.open();
+					laDiag = new LayoutAnalysisDialog(mw.getShell());
+					int ret = laDiag.open();
 					if (ret == IDialogConstants.OK_ID) {
-						final String pageStr = sld.getPages();
-						final boolean doBlockSeg = sld.isDoBlockSeg();
-						final boolean doLineSeg = sld.isDoLineSeg();
-						jobId = store.analyzeLayout(colId, docId, pageStr, doBlockSeg, doLineSeg);
+						jobIds = store.analyzeLayout(laDiag.getPages(),
+										laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), laDiag.getJobImpl(), null);
 					}
-					sld = null;
 				}
 			}
 			
@@ -375,7 +376,7 @@ public class ToolsWidgetListener implements SelectionListener {
 //				return;
 //			}
 			
-			if (jobId != null) {
+			if (jobId != null) { // single job started
 				logger.debug("started job with id = "+jobId);
 							
 				mw.registerJobToUpdate(jobId);
@@ -384,6 +385,13 @@ public class ToolsWidgetListener implements SelectionListener {
 				mw.updatePageLock();
 				
 				DialogUtil.showInfoMessageBox(tw.getShell(), "Job started", "Started job with id = "+jobId);
+			} else if (jobIds != null) { // multiple jobs started
+				logger.debug("started jobs: "+jobIds.size());
+				String jobIdsStr = mw.registerJobsToUpdate(jobIds);				
+				store.sendJobListUpdateEvent();
+				mw.updatePageLock();
+				
+				DialogUtil.showInfoMessageBox(tw.getShell(), jobIds.size()+ " jobs started", jobIds.size()+ " jobs started\nIDs:\n "+jobIdsStr);
 			}
 		} catch (ClientErrorException cee) {
 			final int status = cee.getResponse().getStatus();
@@ -395,6 +403,8 @@ public class ToolsWidgetListener implements SelectionListener {
 			}
 		} catch (Exception ex) {
 			mw.onError("Error", ex.getMessage(), ex);
+		} finally {
+			laDiag = null;
 		}
 		return;
 	}

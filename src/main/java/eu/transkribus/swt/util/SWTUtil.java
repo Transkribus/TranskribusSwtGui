@@ -1294,6 +1294,15 @@ public class SWTUtil {
 //		ImageData id = SWTUtil.convertToSWT(bi);
 //		SebisStopWatch.SW.stop();
 	}
+	
+	public static CTabItem createCTabItem(CTabFolder tf, Control control, int style, String text, String tooltip) {
+		CTabItem item = new CTabItem(tf, style);
+		item.setText(text);
+		item.setToolTipText(tooltip);
+		item.setControl(control);
+		
+		return item;
+	}
 
 	public static void setSelection(CTabFolder tf, CTabItem item) {
 		if (isDisposed(tf) || isDisposed(item))

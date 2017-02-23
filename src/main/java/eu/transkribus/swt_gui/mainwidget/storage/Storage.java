@@ -25,6 +25,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
@@ -59,12 +60,14 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpWordgraph;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
@@ -86,6 +89,7 @@ import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.dialogs.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.ImageDataDacheFactory;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.CollectionsLoadEvent;
@@ -1482,7 +1486,40 @@ public class Storage {
 		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
 	}
 	
-	public String analyzeLayout(int colId, int docId, String pageStr, boolean doBlockSeg, boolean doLineSeg) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+	/**
+	 * Wrapper method which takes a pages range string of the currently loaded document
+	 */
+	public List<String> analyzeLayout(String pageStr, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+		checkConnection(true);
+		
+		if (!isRemoteDoc()) {
+			throw new IOException("No remote doc loaded!");
+		}
+		int colId = getCurrentDocumentCollectionId();
+		
+		DocumentSelectionDescriptor dd = getDoc().getDocSelectionDescriptorForPagesString(pageStr);
+		List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+		dsds.add(dd);
+		
+		List<String> jobids = new ArrayList<>();
+		List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, jobImpl, pars);
+		for (TrpJobStatus j : jobs) {
+			jobids.add(j.getJobId());
+		}
+				
+		return jobids;
+	}
+	
+	public List<TrpJobStatus> analyzeLayout(int colId, List<DocumentSelectionDescriptor> dsds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		return conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, jobImpl, pars);
+	}
+	
+	/**
+	 * @deprecated old batch method
+	 */
+	@Deprecated
+	private String analyzeLayoutOld(int colId, int docId, String pageStr, boolean doBlockSeg, boolean doLineSeg) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.analyzeLayoutBatch(colId, docId, pageStr, doBlockSeg, doLineSeg);
 	}
