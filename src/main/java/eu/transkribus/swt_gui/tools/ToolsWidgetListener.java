@@ -25,6 +25,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
@@ -185,8 +186,19 @@ public class ToolsWidgetListener implements SelectionListener {
 					laDiag = new LayoutAnalysisDialog(mw.getShell());
 					int ret = laDiag.open();
 					if (ret == IDialogConstants.OK_ID) {
-						jobIds = store.analyzeLayout(laDiag.getPages(),
+						List<String> rids = getSelectedRegionIds();
+						logger.debug("selected regIds = "+CoreUtils.join(rids));
+						
+						// FIXME: if pageStr contains only current page nr, select currently selected transcript !?????						
+						if (!laDiag.isCurrentTranscript()) {
+							logger.debug("running la on pages: "+laDiag.getPages());
+							jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(laDiag.getPages(),
 										laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), laDiag.getJobImpl(), null);
+						} else {
+							logger.debug("running la on current transcript and selected rids: "+CoreUtils.join(rids));
+							jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
+									laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), laDiag.getJobImpl(), null);	
+						}
 					}
 				}
 			}
@@ -394,13 +406,16 @@ public class ToolsWidgetListener implements SelectionListener {
 				DialogUtil.showInfoMessageBox(tw.getShell(), jobIds.size()+ " jobs started", jobIds.size()+ " jobs started\nIDs:\n "+jobIdsStr);
 			}
 		} catch (ClientErrorException cee) {
-			final int status = cee.getResponse().getStatus();
-			if(status == 400) {
-				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", 
-						"A job of this type already exists for this page/document!");
-			} else {
-				mw.onError("Error", cee.getMessage(), cee);
-			}
+//			final int status = cee.getResponse().getStatus();
+//			if(status == 400) {
+//				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", 
+//						"A job of this type already exists for this page/document!");
+//			} 
+//			else {
+//				mw.onError("Error", cee.getMessage(), cee);
+//			}
+			
+			mw.onError("Error", cee.getMessage(), cee);
 		} catch (Exception ex) {
 			mw.onError("Error", ex.getMessage(), ex);
 		} finally {

@@ -515,7 +515,7 @@ public class ThumbnailManager extends Dialog{
 
 		if (ret == IDialogConstants.OK_ID) {
 			try {
-				List<String> jobIds = Storage.getInstance().analyzeLayout(laD.getPages(),
+				List<String> jobIds = Storage.getInstance().analyzeLayoutOnLatestTranscriptOfPages(laD.getPages(),
 						laD.isDoBlockSeg(), laD.isDoLineSeg(), laD.isDoWordSeg(), laD.getJobImpl(), null);
 				
 				if (jobIds != null && mw != null) {

@@ -61,6 +61,7 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpWordgraph;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.enums.EditStatus;
@@ -1486,10 +1487,38 @@ public class Storage {
 		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
 	}
 	
+	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+		checkConnection(true);
+		
+		if (!isRemoteDoc()) {
+			throw new IOException("No remote doc loaded!");
+		}
+		int colId = getCurrentDocumentCollectionId();
+		
+		DocumentSelectionDescriptor dd = new DocumentSelectionDescriptor(getDocId());
+		PageDescriptor pd = dd.addPage(getPage().getPageId());
+		if (regIds != null && !regIds.isEmpty()) {
+			pd.getRegionIds().addAll(regIds);
+		}
+		pd.setTsId(getTranscriptMetadata().getTsId());
+		
+		List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+		dsds.add(dd);
+		
+		List<String> jobids = new ArrayList<>();
+		List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, jobImpl, pars);
+		for (TrpJobStatus j : jobs) {
+			jobids.add(j.getJobId());
+		}
+				
+		return jobids;
+	}
+	
+	
 	/**
 	 * Wrapper method which takes a pages range string of the currently loaded document
 	 */
-	public List<String> analyzeLayout(String pageStr, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+	public List<String> analyzeLayoutOnLatestTranscriptOfPages(String pageStr, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
 		checkConnection(true);
 		
 		if (!isRemoteDoc()) {
