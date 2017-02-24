@@ -355,9 +355,13 @@ public class CanvasScene {
 		
 		for (ICanvasShape shape : selectedShapes){
 			ITrpShapeType currShape = (ITrpShapeType) shape.getData();
-			logger.debug("ttttttttttttthhhhhheeeeeeee reading order: " + currShape.getReadingOrder());
 			if (currShape.getReadingOrder() > trpShape2Add.getReadingOrder() ){
 				selectedShapesOrig.add(selectedShapes.indexOf(shape), shape2Add);
+			}
+			//added thus - otherwise merging is not working
+			else if (currShape.getReadingOrder() < trpShape2Add.getReadingOrder() ){
+				int index = selectedShapes.indexOf(shape)+1;
+				selectedShapesOrig.add(index, shape2Add);
 			}
 		}
 		

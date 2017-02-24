@@ -174,8 +174,18 @@ public class TrpShapeElementFactory {
 		// update parent info for trpShape:
 		logger.debug("setting new parent shape: "+GuiUtil.getTrpShape(shape.getParent())+ " shape: "+shape);
 		ITrpShapeType parentTrpShape = GuiUtil.getTrpShape(shape.getParent());
-		if (parentTrpShape!=null)
+		if (parentTrpShape!=null){
+			logger.debug("pareent ungleich null " ); 
 			copyTrpShape.setParent(parentTrpShape);
+		}
+		//in this case parent is the page
+		else if (trpShape instanceof TrpRegionType){
+			logger.debug("else if : instanceof TrpRegionType"  ); 
+			copyTrpShape.setParent(trpShape.getPage());
+		}
+		else{
+			logger.debug("else should not happen" ); 
+		}
 		
 		// set coordinates:
 		copyTrpShape.setCoordinates(PointStrUtils.pointsToString(shape.getPoints()), this);

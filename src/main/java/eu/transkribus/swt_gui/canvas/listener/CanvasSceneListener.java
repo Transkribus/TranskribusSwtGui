@@ -12,12 +12,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.swt.widgets.Shell;
+import org.hamcrest.core.IsInstanceOf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
@@ -774,7 +776,6 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					//st.removeFromParent();
 					
 					if ((st instanceof TrpBaselineType)) {
-						logger.debug("+++++++++++++child is A baseline");
 						if (!baselineSet) {
 //							st.setParent(mergedSt);
 //							st.reInsertIntoParent();
@@ -812,7 +813,6 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 							mw.getScene().removeShape(baselineToRemove, false, false);
 						}
 					} else {
-						logger.debug("-----------child is no baseline");
 						st.setParent(mergedSt);
 						st.reInsertIntoParent();					
 					}
@@ -833,7 +833,13 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 							
 				// update ui stuff
 				mw.getScene().updateAllShapesParentInfo();
-				((ITrpShapeType) mergedSt.getParent()).sortChildren(true);
+				if (mergedSt.getParent() instanceof TrpPageType){
+					((TrpPageType) mergedSt.getParent()).sortRegions();
+				}
+				else{
+					((ITrpShapeType) mergedSt.getParent()).sortChildren(true);
+				}
+				//((ITrpShapeType) mergedSt.getParent()).sortChildren(true);
 				mw.refreshStructureView();
 				mw.getScene().selectObject(newShape, true, false);
 				mw.updateTranscriptionWidgetsData();
