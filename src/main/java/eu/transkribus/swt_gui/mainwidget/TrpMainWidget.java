@@ -309,6 +309,16 @@ public class TrpMainWidget {
 		return mw;
 	}
 	
+	public String registerJobsToUpdate(List<String> jobIds) {
+		String jobIdsStr = "";
+		for (String jobId : jobIds) {
+			registerJobToUpdate(jobId);
+			jobIdsStr += jobId+"\n";
+		}
+		
+		return jobIdsStr;
+	}
+	
 	public void registerJobToUpdate(String jobId) {
 		docJobUpdater.registerJobToUpdate(jobId);
 	}

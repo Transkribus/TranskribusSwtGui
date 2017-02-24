@@ -64,7 +64,7 @@ import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImg;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
-import eu.transkribus.swt_gui.dialogs.SimpleLaDialog;
+import eu.transkribus.swt_gui.dialogs.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -505,7 +505,7 @@ public class ThumbnailManager extends Dialog{
 	}
 	
 	protected void setup_layout_recognition(String pages) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
-		SimpleLaDialog laD = new SimpleLaDialog(shell);
+		LayoutAnalysisDialog laD = new LayoutAnalysisDialog(shell);
 		
 		laD.create();
 		//all selected pages are shown as default and are taken for segmentation
@@ -514,22 +514,20 @@ public class ThumbnailManager extends Dialog{
 		int ret = laD.open();
 
 		if (ret == IDialogConstants.OK_ID) {
-			final String pageStr = laD.getPages();
-			final boolean doBlockSeg = laD.isDoBlockSeg();
-			final boolean doLineSeg = laD.isDoLineSeg();
-//			logger.debug("collID " + Storage.getInstance().getCurrentDocumentCollectionId());
-//			logger.debug("docMd.getDocId() " + docMd.getDocId());
-//			logger.debug("pageStr " + pageStr);
-			String jobId = Storage.getInstance().analyzeLayout(Storage.getInstance().getCurrentDocumentCollectionId(), docMd.getDocId(), pageStr, doBlockSeg, doLineSeg);
-			if (jobId != null && mw != null) {
-				logger.debug("started job with id = "+jobId);
-							
-				mw.registerJobToUpdate(jobId);
+			try {
+				List<String> jobIds = Storage.getInstance().analyzeLayout(laD.getPages(),
+						laD.isDoBlockSeg(), laD.isDoLineSeg(), laD.isDoWordSeg(), laD.getJobImpl(), null);
 				
-				Storage.getInstance().sendJobListUpdateEvent();
-				mw.updatePageLock();
-				
-				DialogUtil.showInfoMessageBox(shell, "Job started", "Started job with id = "+jobId);
+				if (jobIds != null && mw != null) {
+					logger.debug("started jobs: "+jobIds.size());
+					String jobIdsStr = mw.registerJobsToUpdate(jobIds);				
+					Storage.getInstance().sendJobListUpdateEvent();
+					mw.updatePageLock();
+					
+					DialogUtil.showInfoMessageBox(getShell(), jobIds.size()+ " jobs started", jobIds.size()+ " jobs started\nIDs:\n "+jobIdsStr);
+				}
+			} catch (Exception e) {
+				mw.onError("Error", e.getMessage(), e);
 			}
 		}
 	}
