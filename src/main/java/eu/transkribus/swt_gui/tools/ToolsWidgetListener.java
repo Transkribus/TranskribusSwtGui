@@ -70,7 +70,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	private void addListener() {
 		// use utiliy method from SWTUtil class to avoid nullpointer exceptions!
 		SWTUtil.addSelectionListener(tw.batchLaBtn, this);
-		SWTUtil.addSelectionListener(tw.blockSegBtn, this);
+		SWTUtil.addSelectionListener(tw.regAndLineSegBtn, this);
 		SWTUtil.addSelectionListener(tw.lineSegBtn, this);
 		SWTUtil.addSelectionListener(tw.wordSegBtn, this);
 		
@@ -106,7 +106,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 	
 	boolean isLayoutAnalysis(Object s) {
-		return (s == tw.batchLaBtn || s == tw.blockSegBtn || s == tw.blockSegWPsBtn || s == tw.lineSegBtn || s == tw.baselineBtn);
+		return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn || s == tw.baselineBtn);
 	}
 	
 	boolean needsRegions(Object s) {
@@ -154,19 +154,36 @@ public class ToolsWidgetListener implements SelectionListener {
 				mw.saveTranscription(false);
 			
 			// layout analysis:
-			if (s == tw.blockSegBtn) {
-				logger.info("Get new block seg.");
-				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, false);
-			} 
-			else if(s == tw.blockSegWPsBtn) {
-				logger.info("Get new block seg. in PS");
-				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
-			}
-			else if(s == tw.lineSegBtn) {
-				logger.info("Get new line seg.");
+//			if (s == tw.blockSegBtn) {
+//				logger.info("Get new block seg.");
+//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, false);
+//			} 
+//			else if(s == tw.blockSegWPsBtn) {
+//				logger.info("Get new block seg. in PS");
+//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
+//			}
+			else if(s == tw.regAndLineSegBtn || s == tw.lineSegBtn) {
+				boolean analRegions = s==tw.regAndLineSegBtn;
+				logger.info("Get regions, lines and baselines, analyRegions = "+analRegions);
+				
 				List<String> rids = getSelectedRegionIds();
-				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+				String jobImpl = LayoutAnalysisDialog.getJobImplForMethod(tw.getSelectedLaMethod());
+				logger.debug("jobImpl = "+jobImpl);
+				
+//				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+				jobIds = store.analyzeLayoutOnCurrentTranscript(rids,analRegions, true, false, jobImpl, null);			
 			}
+//			else if(s == tw.lineSegBtn) {
+//				logger.info("Get lines and baselines");
+//				List<String> rids = getSelectedRegionIds();
+////				boolean hasRegIds = CoreUtils.isEmpty(rids);
+//				
+//				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+//				
+//				jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
+//						false, true, false, laDiag.getJobImpl(), null);
+//				
+//			}
 			else if(s == tw.wordSegBtn) {
 				logger.info("Get new word seg.");
 				List<String> rids = getSelectedRegionIds();

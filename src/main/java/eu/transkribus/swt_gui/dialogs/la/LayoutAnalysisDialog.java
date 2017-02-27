@@ -35,7 +35,7 @@ public class LayoutAnalysisDialog extends Dialog {
 	
 	public static boolean TEST = false;
 	
-	private Storage store = TEST ? null : Storage.getInstance();
+	static private Storage store = TEST ? null : Storage.getInstance();
 	private DocPagesSelector dps;
 	private Button doBlockSegBtn, doLineSegBtn, doWordSegBtn, currPageBtn, currTranscriptBtn;
 	private LabeledCombo methodCombo;
@@ -45,11 +45,13 @@ public class LayoutAnalysisDialog extends Dialog {
 	private String jobImpl="";
 	private String pages;
 	
-	public static final String METHOD_NCSR_OLD = "NCSR (Old but stable)";
-	public static final String METHOD_NCSR = "NCSR (New and experimental)";
+	public static final String METHOD_NCSR_OLD = "NCSR Old";
+	public static final String METHOD_NCSR = "NCSR New (experimental)";
 	public static final String METHOD_CVL = "CVL (experimental)";
 	public static final String METHOD_CITLAB = "CITlab";
 	public static final String METHOD_CUSTOM = "Custom";
+	
+	public static final String[] LA_CITLAB_ALLOWED_USERS = { };
 
 	public LayoutAnalysisDialog(Shell parentShell) {
 		super(parentShell);
@@ -105,7 +107,7 @@ public class LayoutAnalysisDialog extends Dialog {
 		methodCombo = new LabeledCombo(mainContainer, "Method: ");
 		methodCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 //		methodCombo.combo.set
-		methodCombo.combo.setItems(getMethods().toArray(new String[0]));
+		methodCombo.combo.setItems(getMethods(true).toArray(new String[0]));
 		methodCombo.combo.select(0);
 
 		Group checkGrp = new Group(mainContainer,SWT.NONE);
@@ -157,16 +159,29 @@ public class LayoutAnalysisDialog extends Dialog {
 		return mainContainer;
 	}
 	
-	private List<String> getMethods() {
+	public static List<String> getCitlabLaAllowedUsers() {
+		List<String> users = new ArrayList<>();
+		// TODO
+		return users;
+	}
+		
+	public static boolean isUserAllowedCitlab() {
+		return TEST || store.isAdminLoggedIn() || getCitlabLaAllowedUsers().contains(store.getUserName());
+	}
+
+	public static List<String> getMethods(boolean withCustom) {
 		List<String> methods = new ArrayList<>();
 		
 		methods.add(METHOD_NCSR_OLD);
 		methods.add(METHOD_NCSR);
 		methods.add(METHOD_CVL);
 		methods.add(METHOD_CITLAB);
-		methods.add(METHOD_CUSTOM);
 		
-		if (!TEST && !store.getUser().isAdmin()) {
+		if (withCustom) {
+			methods.add(METHOD_CUSTOM);
+		}
+		
+		if (!isUserAllowedCitlab()) {
 			methods.remove(METHOD_CITLAB);
 			methods.remove(METHOD_CUSTOM);
 		}
@@ -240,27 +255,55 @@ public class LayoutAnalysisDialog extends Dialog {
 	}
 	
 	private String getSelectedMethod() {
-		return methodCombo.combo.getItems()[methodCombo.combo.getSelectionIndex()];
+		if (methodCombo.combo.getSelectionIndex()>=0 && methodCombo.combo.getSelectionIndex()<methodCombo.combo.getItemCount()) {
+			return methodCombo.combo.getItems()[methodCombo.combo.getSelectionIndex()];	
+		} else {
+			return "";
+		}
+//		return methodCombo.combo.getItems()[methodCombo.combo.getSelectionIndex()];
 	}
 	
-	private void setJobImpl() {
-		String selectedMethod = getSelectedMethod();
+	public static String getJobImplForMethod(String selectedMethod) {
 		if (selectedMethod.equals(METHOD_NCSR_OLD)) {
-			jobImpl = JobImpl.NcsrOldLaJob.toString();
+			return JobImpl.NcsrOldLaJob.toString();
 		}
 		if (selectedMethod.equals(METHOD_NCSR)) {
-			jobImpl = JobImpl.NcsrLaJob.toString();
+			return JobImpl.NcsrLaJob.toString();
 		}
 		else if (selectedMethod.equals(METHOD_CVL)) {
-			jobImpl = JobImpl.CvlLaJob.toString();
+			return JobImpl.CvlLaJob.toString();
 		}
 		else if (selectedMethod.equals(METHOD_CITLAB)) {
-			jobImpl = JobImpl.CITlabLaJob.toString();
+			return JobImpl.CITlabLaJob.toString();
 		}
-		else if (selectedMethod.equals(METHOD_CUSTOM)) {
+
+		return null;
+	}
+	
+	private void setJobImpl() {		
+		String selectedMethod = getSelectedMethod();
+		jobImpl = getJobImplForMethod(selectedMethod);
+		
+		if (jobImpl == null) {
 			jobImpl = customJobImplText.getText();
-			
 		}
+		
+//		if (selectedMethod.equals(METHOD_NCSR_OLD)) {
+//			jobImpl = JobImpl.NcsrOldLaJob.toString();
+//		}
+//		if (selectedMethod.equals(METHOD_NCSR)) {
+//			jobImpl = JobImpl.NcsrLaJob.toString();
+//		}
+//		else if (selectedMethod.equals(METHOD_CVL)) {
+//			jobImpl = JobImpl.CvlLaJob.toString();
+//		}
+//		else if (selectedMethod.equals(METHOD_CITLAB)) {
+//			jobImpl = JobImpl.CITlabLaJob.toString();
+//		}
+//		else if (selectedMethod.equals(METHOD_CUSTOM)) {
+//			jobImpl = customJobImplText.getText();
+//			
+//		}
 		
 	}
 

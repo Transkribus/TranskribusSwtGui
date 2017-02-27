@@ -397,6 +397,10 @@ public class Storage {
 	// }
 	// return false;
 	// }
+	
+	public String getUserName() {
+		return user == null ? null : user.getUserName();
+	}
 
 	public TrpUserLogin getUser() {
 		return user;
