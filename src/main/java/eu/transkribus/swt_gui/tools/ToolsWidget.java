@@ -24,7 +24,6 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.util.DocPagesSelector;
 
 public class ToolsWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(ToolsWidget.class);
@@ -32,17 +31,17 @@ public class ToolsWidget extends Composite {
 //	Group mdGroup;
 	Composite mdGroup;
 	SWTEventListener listener=null;
+	
 	Button blockSegBtn, blockSegWPsBtn, lineSegBtn, wordSegBtn, baselineBtn;
 	Button batchLaBtn;
 	
 	Button structAnalysisPageBtn, saInfoBtn;
 	Button detectPageNumbers, detectRunningTitles, detectFootnotesCheck;
 	
-	
 	Button ocrBtn, htrTrainBtn, recogBtn;
 	
 	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
-	Label ncsrIconL;
+	Label ncsrIconLbl;
 
 	/* Deprecated Elements */
 //	Button startOcrBtn, startOcrPageBtn;
@@ -132,7 +131,7 @@ public class ToolsWidget extends Composite {
 		super(parent, style);
 		this.setLayout(new GridLayout(1, false));
 				
-		ncsrIconL = new Label(SWTUtil.dummyShell, 0);
+		Label ncsrIconL = new Label(SWTUtil.dummyShell, 0);
 		ncsrIconL.setImage(ncsrIcon);
 		
 		initLayoutAnalysisTools();

@@ -822,7 +822,7 @@ public class Storage {
 		conn.invalidate();
 	}
 
-	public void login(String serverUri, String username, String password) throws LoginException {
+	public void login(String serverUri, String username, String password) throws ClientErrorException, LoginException {
 		logger.debug("Logging in as user: " + username);
 		if (conn != null)
 			conn.close();

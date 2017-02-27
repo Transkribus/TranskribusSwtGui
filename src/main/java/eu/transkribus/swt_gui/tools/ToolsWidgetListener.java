@@ -105,7 +105,6 @@ public class ToolsWidgetListener implements SelectionListener {
 		return rids;
 	}
 	
-	
 	boolean isLayoutAnalysis(Object s) {
 		return (s == tw.batchLaBtn || s == tw.blockSegBtn || s == tw.blockSegWPsBtn || s == tw.lineSegBtn || s == tw.baselineBtn);
 	}
@@ -117,29 +116,28 @@ public class ToolsWidgetListener implements SelectionListener {
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
-		TrpDoc d = store.getDoc();
-		if (d == null)
-			return;
-				
-		final TrpPage p = store.getPage();
-//		boolean isPar = (s == tw.scriptTypeCombo || s == tw.languagesTable);
 		
-//		if (!isPar) {
-			if (!store.isPageLoaded()) {
-				DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No page loaded!");
-				return;
-			} else if (!store.isLoggedIn()) {
-				DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "You are not logged in!");
-				return;
-			} else if (store.isLocalDoc()) {
-				DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "The tools are only available for remote documents!");
-				return;
-			}
-//		}
+		if (!store.isDocLoaded()) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No document loaded!");
+			return;
+		}
+				
+		if (!store.isPageLoaded()) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No page loaded!");
+			return;
+		} else if (!store.isLoggedIn()) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "You are not logged in!");
+			return;
+		} else if (store.isLocalDoc()) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "The tools are only available for remote documents!");
+			return;
+		}
 
 //		final TrpServerConn conn = store.getConnection();
 		try {
+			TrpDoc d = store.getDoc();
 			int docId = d.getMd().getDocId();
+			TrpPage p = store.getPage();
 
 			PcGtsType pageData = store.getTranscript().getPageData();
 			String jobId = null;

@@ -68,6 +68,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
@@ -150,6 +151,7 @@ import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
+import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
@@ -386,29 +388,32 @@ public class TrpMainWidget {
 		if (DO_AUTO_LOGIN && getTrpSets().isAutoLogin() && !TESTTABLES) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
 
-			if (OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE.equals(lastAccount)) {
-				Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
-				if (lastLogin != null) {
-					// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
-					login(TrpServerConn.PROD_SERVER_URI, lastLogin.getLeft(), lastLogin.getRight(), true);
-				}
-			} else {
-				OAuthProvider prov;
-				try {
-					prov = OAuthProvider.valueOf(lastAccount);
-				} catch (Exception e) {
-					prov = null;
-				}
-				if (prov != null) {
-					//TODO get state token from server
-					final String state = "test";
-					OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(prov);
+			try {
+				if (OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE.equals(lastAccount)) {
+					Pair<String, String> lastLogin = TrpGuiPrefs.getLastStoredCredentials();
+					if (lastLogin != null) {
+						// TODO: also remember server in TrpGuiPrefs, for now: logon to prod server
+						login(TrpServerConn.PROD_SERVER_URI, lastLogin.getLeft(), lastLogin.getRight(), true);
+					}
+				} else {
+					OAuthProvider prov;
 					try {
+						prov = OAuthProvider.valueOf(lastAccount);
+					} catch (Exception e) {
+						prov = null;
+					}
+					if (prov != null) {
+						//TODO get state token from server
+						final String state = "test";
+						OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(prov);
 						loginOAuth(TrpServerConn.PROD_SERVER_URI, creds.getRefreshToken(), state, OAuthGuiUtil.REDIRECT_URI, prov);
-					} catch (OAuthTokenRevokedException e) {
-						logger.error("OAuth token was revoked!", e);
 					}
 				}
+			
+			} catch (OAuthTokenRevokedException e) {
+				logger.error("OAuth token was revoked!", e);
+			} catch (Exception e) {
+				logger.error("Error during login in postInit: "+e.getMessage(), e);
 			}
 		}
 
@@ -849,62 +854,8 @@ public class TrpMainWidget {
 			}
 
 			List<String> storedUsers = TrpGuiPrefs.getUsers();
-
-			loginDialog = new LoginDialog(getShell(), message, storedUsers.toArray(new String[0]), TrpServerConn.SERVER_URIS, TrpServerConn.DEFAULT_URI_INDEX) {
-				@Override protected void okPressed() {
-					String server = getServerCombo().getText();
-					String accType = getAccountType();
-
-					boolean success;
-					switch (accType) {
-					case "Google":
-						final String state = "test";
-						OAuthCreds creds = TrpGuiPrefs.getOAuthCreds(OAuthProvider.Google);
-						if (creds == null) {
-							success = false;
-						} else {
-							try {
-								success = loginOAuth(server, creds.getRefreshToken(), state, OAuthGuiUtil.REDIRECT_URI, OAuthProvider.Google);
-							} catch (OAuthTokenRevokedException oau) {
-								// get new consent
-								TrpGuiPrefs.clearOAuthToken(OAuthProvider.Google);
-								String code;
-								try {
-									code = OAuthGuiUtil.getUserConsent(this.getShell(), state, OAuthProvider.Google);
-									if (code == null) {
-										success = false;
-									} else {
-										success = OAuthGuiUtil.authorizeOAuth(server, code, state, OAuthProvider.Google);
-									}
-								} catch (IOException e) {
-									success = false;
-								}
-							}
-						}
-						break;
-					default: //Transkribus
-						String user = getUser();
-						char[] pw = getPassword();
-						boolean rememberCreds = isRememberCredentials();
-						success = login(server, user, String.valueOf(pw), rememberCreds);
-						break;
-					}
-
-					if (success) {
-						close();
-						onSuccessfullLoginAndDialogIsClosed();
-					} else {
-						setInfo("Login failed!");
-					}
-				}
-
-				@Override protected void postInit() {
-					DataBinder db = DataBinder.get();
-
-					db.bindBeanToWidgetSelection(TrpSettings.AUTO_LOGIN_PROPERTY, getTrpSets(), autoLogin);
-
-				}
-			};
+			
+			loginDialog = new TrpLoginDialog(getShell(), this, message, storedUsers.toArray(new String[0]), TrpServerConn.SERVER_URIS, TrpServerConn.DEFAULT_URI_INDEX);
 			loginDialog.open();
 
 			// attachListener();
@@ -919,7 +870,7 @@ public class TrpMainWidget {
 	 * attempt.<br>
 	 * It's a verbose method name, I know ;-)
 	 */
-	protected void onSuccessfullLoginAndDialogIsClosed() {
+	public void onSuccessfullLoginAndDialogIsClosed() {
 		logger.debug("onSuccessfullLoginAndDialogIsClosed");
 
 		/*
@@ -956,8 +907,8 @@ public class TrpMainWidget {
 		// reloadJobListForDocument();
 	}
 
-	public boolean login(String server, String user, String pw, boolean rememberCredentials) {
-		try {
+	public boolean login(String server, String user, String pw, boolean rememberCredentials) throws ClientVersionNotSupportedException, LoginException, Exception {
+//		try {
 			if (!getTrpSets().isServerSideActivated()) {
 				throw new NotSupportedException("Connecting to the server not supported yet!");
 			}
@@ -981,15 +932,22 @@ public class TrpMainWidget {
 			sessionExpired = false;
 			lastLoginServer = server;
 			return true;
-		} catch (LoginException e) {
-			logout(true, false);
-			logger.error(e.getMessage(), e);
-			return false;
-		} catch (Exception e) {
-			logout(true, false);
-			logger.error(e.getMessage(), e);
-			return false;
-		}
+//		}
+//		catch (ClientVersionNotSupportedException e) {
+//			DialogUtil.showErrorMessageBox(getShell(), "Version not supported anymore!", e.getMessage());
+//			logger.error(e.getMessage(), e);
+//			return false;
+//		}
+//		catch (LoginException e) {
+//			logout(true, false);
+//			logger.error(e.getMessage(), e);
+//			return false;
+//		}
+//		catch (Exception e) {
+//			logout(true, false);
+//			logger.error(e.getMessage(), e);
+//			return false;
+//		}
 
 		// finally {
 		// ui.updateLoginInfo(storage.isLoggedIn(), getCurrentUserName(),
