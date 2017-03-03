@@ -1,27 +1,20 @@
 package eu.transkribus.swt_gui.mainwidget;
 
-import java.awt.Desktop;
-import java.net.URI;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Link;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.FtpConsts;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.ShowServerExportLinkDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -87,10 +80,10 @@ public class DocJobUpdater {
 
 						nExc = 0;
 					} catch (SessionExpiredException | NoConnectionException ex) {
-						logger.debug("Session expired or no connection - skipping job update");
+						logger.trace("Session expired or no connection - skipping job update");
 					} catch (Exception ex) {
 						logger.error(ex.getMessage(), ex);
-						nExc++;
+						++nExc;
 						logger.debug("nr of subsequent exceptions: " + nExc);
 					}
 				}
