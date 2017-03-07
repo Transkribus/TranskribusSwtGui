@@ -45,7 +45,7 @@ public class LayoutAnalysisDialog extends Dialog {
 	private String jobImpl="";
 	private String pages;
 	
-	public static final String METHOD_NCSR_OLD = "NCSR Old";
+	public static final String METHOD_NCSR_OLD = "NCSR";
 	public static final String METHOD_NCSR = "NCSR New (experimental)";
 	public static final String METHOD_CVL = "CVL (experimental)";
 	public static final String METHOD_CITLAB = "CITlab";
