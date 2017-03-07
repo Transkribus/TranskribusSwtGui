@@ -86,7 +86,6 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private HtrTableWidget htw;
 	private Text nameTxt, langTxt, descTxt;
 	private Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
-	private Chart cerChart;
 	private org.jfree.experimental.chart.swt.ChartComposite jFreeChartComp;
 	
 	private String charSetTitle, charSet;
@@ -102,6 +101,8 @@ public class TextRecognitionConfigDialog extends Dialog {
 	List<String> htrDicts;
 	
 	private TextRecognitionConfig config;
+	
+	public final static String NO_DICTIONARY = "No dictionary";
 	
 	public TextRecognitionConfigDialog(Shell parent, TextRecognitionConfig config) {
 		super(parent);
@@ -353,10 +354,16 @@ public class TextRecognitionConfigDialog extends Dialog {
 		switch(mode) {
 		case CITlab:
 			htw.setSelection(config.getHtrId());
-			for(int i = 0; i < htrDicts.size(); i++) {
-				if(config.getDictionary().equals(htrDicts.get(i))) {
-					htrDictCombo.select(i);
-					break;
+			
+			if(config.getDictionary() == null) {
+				htrDictCombo.select(0);
+			} else {
+				//set the dictionary according to config
+				for(int i = 0; i < htrDicts.size(); i++) {
+					if(config.getDictionary().equals(htrDicts.get(i))) {
+						htrDictCombo.select(i);
+						break;
+					}
 				}
 			}
 			break;
@@ -381,70 +388,43 @@ public class TextRecognitionConfigDialog extends Dialog {
 		this.htr = htr;
 		
 		showTestSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
-		showTrainSetBtn.setEnabled(htr.getGtDocId() != 0);
+		showTrainSetBtn.setEnabled(htr.getGtDocId() != null);
 		
 		updateChart(StrUtil.get(htr.getCerString()));
 	}
 
 	private void updateChart(String cerString) {
 		String[] cerStrs = cerString.split("\\s");
-		double[] cerVals = new double[cerStrs.length];
+		double[] cerTrainSetVals = new double[cerStrs.length];
+		double[] cerTestSetVals = new double[cerStrs.length];
 		for(int i = 0; i < cerStrs.length; i++) {
 			try {
-				cerVals[i] = Double.parseDouble(cerStrs[i].replace(',', '.'));
+				cerTrainSetVals[i] = Double.parseDouble(cerStrs[i].replace(',', '.'));
 			} catch(NumberFormatException e) {
 				logger.error("Could not parse CER String: " + cerStrs[i]);
 			}
 		}
 		
-		if(cerChart != null) {
-			ISeriesSet seriesSet = cerChart.getSeriesSet();
-			ISeries series = seriesSet.createSeries(SeriesType.LINE, "CER series");
-			series.setVisibleInLegend(false);
-			((LineSeries)series).setAntialias(SWT.ON);
-			series.setYSeries(cerVals);
-			
-			((LineSeries)series).setSymbolType(PlotSymbolType.NONE);
-			
-			IAxisSet axisSet = cerChart.getAxisSet();
-			IAxis xAxis = axisSet.getXAxis(0);
-			xAxis.getTitle().setText("Epochs");
-			xAxis.setRange(new Range(0.0, cerVals.length + 1));
-			IAxis yAxis = axisSet.getYAxis(0);
-			yAxis.getTitle().setText("CER");
-			yAxis.setRange(new Range(0.0, 1.1));
-			yAxis.enableLogScale(true);
-	
-			IAxisTick tick = yAxis.getTick();
-			tick.setTickMarkStepHint(15);
-			
-	//		axisSet.adjustRange();
-	
-			cerChart.redraw();
-			cerChart.update();
-		} else {
-			
-			XYSeriesCollection dataset = new XYSeriesCollection();
-			XYSeries series = new XYSeries("CER");
-		    for(int i = 0; i < cerVals.length; i++) {
-		    	double val = cerVals[i];
-		    	series.add(i+1, val);
-		    }
-			dataset.addSeries(series);	
-		    
-			JFreeChart chart = ChartFactory.createXYLineChart(
-					"CER Series", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, false, true, false);
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries series = new XYSeries("CER Train");
+	    for(int i = 0; i < cerTrainSetVals.length; i++) {
+	    	double val = cerTrainSetVals[i];
+	    	series.add(i+1, val);
+	    }
+		dataset.addSeries(series);	
+	    
+		JFreeChart chart = ChartFactory.createXYLineChart(
+				"CER Series", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, false, true, false);
 
-			XYPlot plot = (XYPlot)chart.getPlot();
-			LogAxis logAxis = new LogAxis("CER");
-			TickUnits tickUnits = new TickUnits();
-			tickUnits.add(new NumberTickUnit(0.1, NumberFormat.getPercentInstance()));
-			logAxis.setStandardTickUnits(tickUnits);//NumberAxis.createStandardTickUnits());
-			plot.setRangeAxis(logAxis);
+		XYPlot plot = (XYPlot)chart.getPlot();
+		LogAxis logAxis = new LogAxis("CER");
+		TickUnits tickUnits = new TickUnits();
+		tickUnits.add(new NumberTickUnit(0.1, NumberFormat.getPercentInstance()));
+		logAxis.setStandardTickUnits(tickUnits);//NumberAxis.createStandardTickUnits());
+		plot.setRangeAxis(logAxis);
 
-			jFreeChartComp.setChart(chart);
-			chart.fireChartChanged();
-		}
+		jFreeChartComp.setChart(chart);
+		chart.fireChartChanged();
 	}
 
 	private void updateHtrs() {
@@ -467,6 +447,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 			TrpMainWidget.getInstance().onError("Error", "Could not load HTR model list!", e);
 			htrDicts = new ArrayList<>(0);
 		}
+		htrDicts.add(0, NO_DICTIONARY);
 	}
 	
 	public TextRecognitionConfig getConfig() {
@@ -478,7 +459,9 @@ public class TextRecognitionConfigDialog extends Dialog {
 		
 		if(folder.getSelection().equals(citLabTabItem)) {
 			config = new TextRecognitionConfig(Mode.CITlab);
-			config.setDictionary(htrDicts.get(htrDictCombo.getSelectionIndex()));
+			
+			final String dictName = htrDicts.get(htrDictCombo.getSelectionIndex());
+			config.setDictionary(dictName == NO_DICTIONARY ? null : dictName);
 			TrpHtr htr = htw.getSelectedHtr();
 			if(htr == null) {
 				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");
