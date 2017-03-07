@@ -1,6 +1,7 @@
 package org.dea.transcript.trp.gui.pagination_tables;
 
 import javax.security.auth.login.LoginException;
+import javax.ws.rs.ClientErrorException;
 
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.widgets.Composite;
@@ -14,7 +15,7 @@ import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
 
 public class PageLockTablePaginationTest {
 
-	public static void main(String[] args) throws LoginException {
+	public static void main(String[] args) throws ClientErrorException, Exception {
 		Storage s = Storage.getInstance();
 		s.login(TrpServerConn.SERVER_URIS[0], args[0], args[1]);
 		

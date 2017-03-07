@@ -423,11 +423,13 @@ CHANGES AND BUGFIXES
 		-> second number of for urgent bugfixes
 		-> first number if the main release version
 		
-1.0.1:
+1.1.0:
 	-> bugfix: NPE when empty description in HTR models
 	-> bugfix: when replacing image on server, returned TrpPage could not be unmarshalled due to java.sql.Timestamp fields
 	-> bugfix: update of page when tool job finished
 	-> support for 'Supplementary Characters' (5 digits) in virtual keyboard
+	-> bugfix: merge regions and lines is working again
+	-> bugfix: seldom PDF export bug fixed
 	
 	
 	

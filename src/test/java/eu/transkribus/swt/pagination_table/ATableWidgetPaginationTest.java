@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.security.auth.login.LoginException;
+import javax.ws.rs.ClientErrorException;
 
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.widgets.Composite;
@@ -44,7 +45,7 @@ public class ATableWidgetPaginationTest {
 
 	}
 
-	public static void main(String[] args) throws LoginException {
+	public static void main(String[] args) throws ClientErrorException, Exception {
 		Storage s = Storage.getInstance();
 		s.login(TrpServerConn.SERVER_URIS[0], args[0], args[1]);
 		

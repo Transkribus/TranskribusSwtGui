@@ -25,6 +25,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
@@ -69,7 +70,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	private void addListener() {
 		// use utiliy method from SWTUtil class to avoid nullpointer exceptions!
 		SWTUtil.addSelectionListener(tw.batchLaBtn, this);
-		SWTUtil.addSelectionListener(tw.blockSegBtn, this);
+		SWTUtil.addSelectionListener(tw.regAndLineSegBtn, this);
 		SWTUtil.addSelectionListener(tw.lineSegBtn, this);
 		SWTUtil.addSelectionListener(tw.wordSegBtn, this);
 		
@@ -104,9 +105,8 @@ public class ToolsWidgetListener implements SelectionListener {
 		return rids;
 	}
 	
-	
 	boolean isLayoutAnalysis(Object s) {
-		return (s == tw.batchLaBtn || s == tw.blockSegBtn || s == tw.blockSegWPsBtn || s == tw.lineSegBtn || s == tw.baselineBtn);
+		return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn || s == tw.baselineBtn);
 	}
 	
 	boolean needsRegions(Object s) {
@@ -116,29 +116,28 @@ public class ToolsWidgetListener implements SelectionListener {
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
-		TrpDoc d = store.getDoc();
-		if (d == null)
-			return;
-				
-		final TrpPage p = store.getPage();
-//		boolean isPar = (s == tw.scriptTypeCombo || s == tw.languagesTable);
 		
-//		if (!isPar) {
-			if (!store.isPageLoaded()) {
-				DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No page loaded!");
-				return;
-			} else if (!store.isLoggedIn()) {
-				DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "You are not logged in!");
-				return;
-			} else if (store.isLocalDoc()) {
-				DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "The tools are only available for remote documents!");
-				return;
-			}
-//		}
+		if (!store.isDocLoaded()) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No document loaded!");
+			return;
+		}
+				
+		if (!store.isPageLoaded()) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No page loaded!");
+			return;
+		} else if (!store.isLoggedIn()) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "You are not logged in!");
+			return;
+		} else if (store.isLocalDoc()) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "The tools are only available for remote documents!");
+			return;
+		}
 
 //		final TrpServerConn conn = store.getConnection();
 		try {
+			TrpDoc d = store.getDoc();
 			int docId = d.getMd().getDocId();
+			TrpPage p = store.getPage();
 
 			PcGtsType pageData = store.getTranscript().getPageData();
 			String jobId = null;
@@ -155,19 +154,36 @@ public class ToolsWidgetListener implements SelectionListener {
 				mw.saveTranscription(false);
 			
 			// layout analysis:
-			if (s == tw.blockSegBtn) {
-				logger.info("Get new block seg.");
-				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, false);
-			} 
-			else if(s == tw.blockSegWPsBtn) {
-				logger.info("Get new block seg. in PS");
-				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
-			}
-			else if(s == tw.lineSegBtn) {
-				logger.info("Get new line seg.");
+//			if (s == tw.blockSegBtn) {
+//				logger.info("Get new block seg.");
+//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, false);
+//			} 
+//			else if(s == tw.blockSegWPsBtn) {
+//				logger.info("Get new block seg. in PS");
+//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
+//			}
+			else if(s == tw.regAndLineSegBtn || s == tw.lineSegBtn) {
+				boolean analRegions = s==tw.regAndLineSegBtn;
+				logger.info("Get regions, lines and baselines, analyRegions = "+analRegions);
+				
 				List<String> rids = getSelectedRegionIds();
-				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+				String jobImpl = LayoutAnalysisDialog.getJobImplForMethod(tw.getSelectedLaMethod());
+				logger.debug("jobImpl = "+jobImpl);
+				
+//				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+				jobIds = store.analyzeLayoutOnCurrentTranscript(rids,analRegions, true, false, jobImpl, null);			
 			}
+//			else if(s == tw.lineSegBtn) {
+//				logger.info("Get lines and baselines");
+//				List<String> rids = getSelectedRegionIds();
+////				boolean hasRegIds = CoreUtils.isEmpty(rids);
+//				
+//				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+//				
+//				jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
+//						false, true, false, laDiag.getJobImpl(), null);
+//				
+//			}
 			else if(s == tw.wordSegBtn) {
 				logger.info("Get new word seg.");
 				List<String> rids = getSelectedRegionIds();
@@ -185,8 +201,19 @@ public class ToolsWidgetListener implements SelectionListener {
 					laDiag = new LayoutAnalysisDialog(mw.getShell());
 					int ret = laDiag.open();
 					if (ret == IDialogConstants.OK_ID) {
-						jobIds = store.analyzeLayout(laDiag.getPages(),
+						List<String> rids = getSelectedRegionIds();
+						logger.debug("selected regIds = "+CoreUtils.join(rids));
+						
+						// FIXME: if pageStr contains only current page nr, select currently selected transcript !?????						
+						if (!laDiag.isCurrentTranscript()) {
+							logger.debug("running la on pages: "+laDiag.getPages());
+							jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(laDiag.getPages(),
 										laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), laDiag.getJobImpl(), null);
+						} else {
+							logger.debug("running la on current transcript and selected rids: "+CoreUtils.join(rids));
+							jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
+									laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), laDiag.getJobImpl(), null);	
+						}
 					}
 				}
 			}
@@ -394,13 +421,16 @@ public class ToolsWidgetListener implements SelectionListener {
 				DialogUtil.showInfoMessageBox(tw.getShell(), jobIds.size()+ " jobs started", jobIds.size()+ " jobs started\nIDs:\n "+jobIdsStr);
 			}
 		} catch (ClientErrorException cee) {
-			final int status = cee.getResponse().getStatus();
-			if(status == 400) {
-				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", 
-						"A job of this type already exists for this page/document!");
-			} else {
-				mw.onError("Error", cee.getMessage(), cee);
-			}
+//			final int status = cee.getResponse().getStatus();
+//			if(status == 400) {
+//				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", 
+//						"A job of this type already exists for this page/document!");
+//			} 
+//			else {
+//				mw.onError("Error", cee.getMessage(), cee);
+//			}
+			
+			mw.onError("Error", cee.getMessage(), cee);
 		} catch (Exception ex) {
 			mw.onError("Error", ex.getMessage(), ex);
 		} finally {

@@ -13,6 +13,7 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.InvocationCallback;
 
+import org.apache.commons.lang.StringUtils;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -325,17 +326,25 @@ public class FullTextSearchComposite extends Composite{
         	  public void update(ViewerCell cell) {
         		
         		String hlText = ((Hit)cell.getElement()).getHighlightText();
+        		
+        		//Word highlighting
         	    cell.setText( hlText.replaceAll("<em>", "").replaceAll("</em>", "") );
         	    
-        	    int hlStart = hlText.indexOf("<em>");
-        	    int hlEnd = hlText.indexOf("</em>");
-        	    int hlLen = hlEnd-hlStart-4;
+        	    int hlCount = StringUtils.countMatches(hlText, "</em>");
+        	    StyleRange[] myStyledRange = new StyleRange[hlCount];
         	    
-        	    StyleRange myStyledRange = 
-        	        new StyleRange(hlStart, hlLen, null, 
-        	            Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
-        	    StyleRange[] range = { myStyledRange };
-        	    cell.setStyleRanges(range);
+        	    for(int i = 0; i<hlCount; i++){
+            	    int hlStart = hlText.indexOf("<em>");
+            	    int hlEnd = hlText.indexOf("</em>");
+            	    int hlLen = hlEnd-hlStart-4;
+            	    hlText = hlText.replaceFirst("<em>", "");
+            	    hlText = hlText.replaceFirst("</em>", "");
+        	    	myStyledRange[i] = 
+                	        new StyleRange(hlStart, hlLen, null, 
+                	            Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
+        	    }
+        	    
+        	    cell.setStyleRanges(myStyledRange);        
         	    super.update(cell);
         	  }  
 
