@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
@@ -16,7 +17,9 @@ import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.dialogs.ShowServerExportLinkDialog;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 
 /**
  * Starts a thread that periodically updates jobs registered via the {@link DocJobUpdater#registerJobToUpdate(String)} method
@@ -32,7 +35,7 @@ public class DocJobUpdater {
 	boolean stop=false;
 	
 	final public int UPDATE_TIME_MS = 3000;
-	
+		
 	int nExc=0;
 	
 	Set<String> jobsToUpdate = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());	
@@ -40,6 +43,15 @@ public class DocJobUpdater {
 		
 	public DocJobUpdater(TrpMainWidget mw) {
 		this.mw = mw;
+		
+		store.addListener(new IStorageListener() {
+			public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+				if (!arg.login) { // on logout, clear all jobsToUpdate
+					logger.debug("logout -> clearing jobs to update!");
+					jobsToUpdate.clear();
+				}
+			}
+		});
 				
 		r = new Runnable() {
 			@Override
@@ -48,6 +60,7 @@ public class DocJobUpdater {
 				logger.debug("starting DocJobUpdater");
 
 				while (true) {
+					String jobId = "";
 					try {
 						Thread.sleep(UPDATE_TIME_MS);
 						
@@ -64,8 +77,9 @@ public class DocJobUpdater {
 						store.checkConnection(true);
 
 						// update jobs and remove from list if necessary:
-						for (Iterator<String> it = jobsToUpdate.iterator(); it.hasNext();) {
-							String jobId = it.next();
+						
+						for (Iterator<String> jobIt = jobsToUpdate.iterator(); jobIt.hasNext();) {
+							jobId = jobIt.next();
 							TrpJobStatus job = store.getConnection().getJob(jobId);
 
 							store.sendJobUpdateEvent(job);
@@ -80,11 +94,18 @@ public class DocJobUpdater {
 
 						nExc = 0;
 					} catch (SessionExpiredException | NoConnectionException ex) {
-						logger.trace("Session expired or no connection - skipping job update");
-					} catch (Exception ex) {
+						logger.debug("Session expired or no connection - clearing jobsToUpdate");
+						jobsToUpdate.clear();
+					}
+					catch (Exception ex) {
 						logger.error(ex.getMessage(), ex);
 						++nExc;
-						logger.debug("nr of subsequent exceptions: " + nExc);
+						logger.debug("nr of subsequent exceptions: " + nExc+" jobId: "+jobId);
+						if (nExc > 3 && !StringUtils.isEmpty(jobId)) {
+							logger.debug("removing job from jobsToUpdate: "+jobId);
+							jobsToUpdate.remove(jobId);
+							nExc = 0;
+						}
 					}
 				}
 			}
@@ -103,6 +124,8 @@ public class DocJobUpdater {
 			Display.getDefault().asyncExec(() -> {
 				if (!job.isSuccess()) {
 					logger.error("a job for the current page failed: "+job);
+					
+					// TODO: show stacktrace of error... job.getStackTrace()
 					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
 				}
 				else if (store.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
