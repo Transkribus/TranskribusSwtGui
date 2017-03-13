@@ -430,6 +430,7 @@ CHANGES AND BUGFIXES
 	-> support for 'Supplementary Characters' (5 digits) in virtual keyboard
 	-> bugfix: merge regions and lines is working again
 	-> bugfix: seldom PDF export bug fixed
+	-> included new la methods: ncsr (new), cvl & citlab (restricted accesss)
 	
 	
 	
