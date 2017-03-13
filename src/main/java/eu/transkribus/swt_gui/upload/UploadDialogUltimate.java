@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.upload;
 
 import java.awt.Desktop;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,8 +11,10 @@ import java.util.List;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.ApplicationWindow;
@@ -42,6 +45,7 @@ import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
+import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
@@ -104,13 +108,13 @@ public class UploadDialogUltimate extends Dialog {
 
 	public static final String DIRECTORY_COL = "Directory";
 	public static final String TITLE_COL = "Title";
-	public static final String NR_OF_IMGS_COL = "Nr. of Images";
+	public static final String NR_OF_FILES_COL = "Nr. of Files";
 	public static final String CREATE_DATE_COL = "Last modified";
 	
 	public static final ColumnConfig[] DOC_DIR_COLS = new ColumnConfig[] {
 		new ColumnConfig(DIRECTORY_COL, 180, true, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(TITLE_COL, 110, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(NR_OF_IMGS_COL, 110, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(NR_OF_FILES_COL, 110, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(CREATE_DATE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
 	};
 	
@@ -602,8 +606,56 @@ public class UploadDialogUltimate extends Dialog {
 		else if(isMetsUrlUpload && StringUtils.isEmpty(url)){
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please copy a valid url into the text field!");
 		}
-		else if((!isSingleDocUpload && !isMetsUrlUpload && !isPdfUpload) && (selDocDirs == null || selDocDirs.isEmpty())) {
-			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select directories for ingesting.");
+		else if(!isSingleDocUpload && !isMetsUrlUpload && !isPdfUpload) {
+			// this is Upload from private FTP
+			if(selDocDirs == null || selDocDirs.isEmpty()) {
+				DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select directories for ingesting.");
+			} else {	
+				ProgressBarDialog pbd = new ProgressBarDialog(getParentShell());
+				
+				IRunnableWithProgress r = new IRunnableWithProgress() {
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						monitor.beginTask("Checking remote files...", selDocDirs.size());
+						//check selected Dirs on server
+						int i = 0;
+						for(TrpDocDir d : selDocDirs) {
+							monitor.setTaskName("Checking dir: " + d.getName());
+							try {
+								if(!store.checkDocumentOnPrivateFtp(d.getName())) {
+									Runnable r = new Runnable() {
+										@Override
+										public void run() {
+											DialogUtil.showErrorMessageBox(mw.getShell(), "Error", 
+													"The selected directory \"" + d.getName() + "\" is not a valid Transkribus document!");
+										}
+									};
+									Display.getDefault().syncExec(r);
+									monitor.done();
+									return;
+								}
+								monitor.worked(++i);
+							} catch (Exception e) {
+								logger.error("Error in Runnable", e);
+								Runnable r = new Runnable() {
+									@Override
+									public void run() {
+										DialogUtil.showErrorMessageBox(new Shell(Display.getDefault()), "Error", e.getMessage());
+									}
+								};
+								Display.getDefault().syncExec(r);
+							}
+						}
+					}
+				};
+				
+				try {
+					pbd.open(r, "Checking remote directories...", true);
+				} catch (Throwable e) {
+					DialogUtil.showErrorMessageBox(getParentShell(), "Error", e.getMessage());
+					logger.error("Error in ProgressMonitorDialog", e);
+				}
+			}
 		} 
 //		else if (!isSingleDocUpload) {
 //			// check if name already exists!

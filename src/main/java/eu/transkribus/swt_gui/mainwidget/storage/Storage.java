@@ -1451,7 +1451,14 @@ public class Storage {
 
 		conn.postTrpDoc(colId, doc, monitor);
 	}
-
+	
+	public boolean checkDocumentOnPrivateFtp(String dirName) throws Exception {
+		if (!isLoggedIn())
+			throw new Exception("Not logged in!");
+		
+		return conn.checkDirOnFtp(dirName);
+	}
+	
 	public void uploadDocumentFromPrivateFtp(int cId, String dirName, boolean checkForDuplicateTitle) throws Exception {
 		if (!isLoggedIn())
 			throw new Exception("Not logged in!");

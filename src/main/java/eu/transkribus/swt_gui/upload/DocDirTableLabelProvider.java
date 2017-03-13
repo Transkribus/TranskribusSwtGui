@@ -1,7 +1,5 @@
 package eu.transkribus.swt_gui.upload;
 
-import java.util.List;
-
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableColorProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -13,7 +11,6 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.EdOption;
 import eu.transkribus.core.model.beans.TrpDocDir;
 
 public class DocDirTableLabelProvider implements ITableLabelProvider, ITableColorProvider {
@@ -58,14 +55,14 @@ public class DocDirTableLabelProvider implements ITableLabelProvider, ITableColo
 			TableColumn column = table.getColumn(columnIndex);
 			String ct = column.getText();
 
-			if (ct.equals(UploadFromFtpDialog.DIRECTORY_COL)) {
+			if (ct.equals(UploadDialogUltimate.DIRECTORY_COL)) {
 				return dir.getName();
-			} else if (ct.equals(UploadFromFtpDialog.TITLE_COL)) {
-				return dir.getMetadata()!=null ? dir.getMetadata().getTitle() : dir.getName();
+			} else if (ct.equals(UploadDialogUltimate.TITLE_COL)) {
+				return dir.getName();
 			}
-			else if (ct.equals(UploadFromFtpDialog.NR_OF_IMGS_COL)) {
-				return ""+dir.getNrOfImgs();
-			} else if (ct.equals(UploadFromFtpDialog.CREATE_DATE_COL)) {
+			else if (ct.equals(UploadDialogUltimate.NR_OF_FILES_COL)) {
+				return ""+dir.getNrOfFiles();
+			} else if (ct.equals(UploadDialogUltimate.CREATE_DATE_COL)) {
 				return ""+dir.getCreateDate().toString();
 			}
 		}
