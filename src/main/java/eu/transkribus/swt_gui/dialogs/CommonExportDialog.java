@@ -9,11 +9,11 @@ import java.util.Set;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -27,7 +27,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +34,11 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
-import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiExportMode;
 import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiLinebreakMode;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.DropDownToolItem;
-import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
@@ -149,6 +145,13 @@ public class CommonExportDialog extends Dialog {
 		shell.setText("Export document");
 		shell.setLayout(new GridLayout(1, false));
 		
+//		ScrolledComposite hotzenplotz = new ScrolledComposite(shell, SWT.V_SCROLL);
+
+		
+//		Composite mainComp = new Composite(shell, SWT.NONE);
+//		mainComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+//		mainComp.setLayout(new GridLayout(1, false));
+		
 		exportPathComp = new ExportPathComposite(shell, lastExportFolder, "File/Folder name: ", null, docName);
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
@@ -187,21 +190,24 @@ public class CommonExportDialog extends Dialog {
 	    Button b6 = new Button(group1, SWT.CHECK);
 	    b6.setText("Export Selected as ZIP");  
 	    
-	    Composite optionsComposite = new Composite(choiceComposite, SWT.NONE);
-	    optionsComposite.setLayout(new GridLayout(1, false));
+	    Group optionsGroup = new Group(choiceComposite, SWT.NONE);
+	    optionsGroup.setText("Export options:");
+	    optionsGroup.setLayout(new GridLayout(2, false));
 	    GridData gridData = new GridData();
 	    //gridData.heightHint = 0;
 	    gridData.horizontalAlignment = SWT.RIGHT;
 	    gridData.verticalAlignment = SWT.FILL;
 	    gridData.verticalSpan = 2;
-	    optionsComposite.setLayoutData(gridData);
+	    optionsGroup.setLayoutData(gridData);
 	    
-	    Label label = new Label(optionsComposite, SWT.NONE);
-	    label.setText("Export options:");
 	    
-	    createTabFolders(optionsComposite);
+	    createTabFolders(optionsGroup);
 	    
-		wordBasedBtn = new Button(optionsComposite, SWT.CHECK);
+	    Composite otherOptionsComp = new Composite(optionsGroup, SWT.NONE);
+	    otherOptionsComp.setLayout(new GridLayout(1, false));
+	    otherOptionsComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	    
+		wordBasedBtn = new Button(otherOptionsComp, SWT.CHECK);
 		wordBasedBtn.setText("Word based");
 		wordBasedBtn.setToolTipText("If checked, text from word based segmentation will be exported");
 		wordBasedBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
@@ -212,7 +218,7 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 		
-		blackeningBtn = new Button(optionsComposite, SWT.CHECK);
+		blackeningBtn = new Button(otherOptionsComp, SWT.CHECK);
 		blackeningBtn.setText("Do blackening");
 		blackeningBtn.setToolTipText("If checked, the blacked tagged words get considered");
 		blackeningBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
@@ -223,7 +229,7 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 		
-		createTitlePageBtn = new Button(optionsComposite, SWT.CHECK);
+		createTitlePageBtn = new Button(otherOptionsComp, SWT.CHECK);
 		createTitlePageBtn.setText("Create Title Page");
 		createTitlePageBtn.setToolTipText("Title page contains author, title and editorial declaration");
 		createTitlePageBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
@@ -234,11 +240,11 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 	    
-	    docPagesSelector = new DocPagesSelector(optionsComposite, SWT.NONE, pages);
-	    docPagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+	    docPagesSelector = new DocPagesSelector(otherOptionsComp, SWT.NONE, pages);
+	    docPagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 	    docPagesSelector.setVisible(false);
 	    
-	    currentPageBtn = new Button(optionsComposite, SWT.PUSH);
+	    currentPageBtn = new Button(otherOptionsComp, SWT.PUSH);
 	    currentPageBtn.setText("Export Current Page");
 	    currentPageBtn.setToolTipText("Press this button if you want to export the current page only");
 	    currentPageBtn.addSelectionListener(new SelectionAdapter() {
@@ -248,9 +254,21 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 	    
-		tagsSelector = new TagsSelector(optionsComposite, SWT.NONE, getSelectedTagsList());
+		tagsSelector = new TagsSelector(otherOptionsComp, SWT.FILL, getSelectedTagsList());
 		tagsSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tagsSelector.setVisible(false);
+		
+		serverExportBtn = new Button(otherOptionsComp, SWT.CHECK);
+		serverExportBtn.setText("Do server export");
+		serverExportBtn.setToolTipText("If checked, the export is started on the server and can be downloaded after export is finished");
+		serverExportBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
+		
+		serverExportBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+	            Button btn = (Button) e.getSource();
+            	setDoServerExport(btn.getSelection());
+			}
+		});
 		
 	    // Create the first Group
 	    Group group2 = new Group(choiceComposite, SWT.SHADOW_IN);
@@ -282,18 +300,6 @@ public class CommonExportDialog extends Dialog {
 	        public void widgetSelected(SelectionEvent event) {
 	        	setVersionStatus(statusCombo.getText());
 	        }
-		});
-		
-		serverExportBtn = new Button(choiceComposite, SWT.CHECK);
-		serverExportBtn.setText("Do server export");
-		serverExportBtn.setToolTipText("If checked, the export is started on the server and can be downloaded after export is finished");
-		serverExportBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
-		
-		serverExportBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-	            Button btn = (Button) e.getSource();
-            	setDoServerExport(btn.getSelection());
-			}
 		});
 
 	    b0.addSelectionListener(new SelectionAdapter() {
