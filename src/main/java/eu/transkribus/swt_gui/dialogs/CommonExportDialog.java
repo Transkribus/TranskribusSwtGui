@@ -139,7 +139,7 @@ public class CommonExportDialog extends Dialog {
 	 * Create contents of the dialog.
 	 */
 	private void createContents() {
-		shell = new Shell(getParent(), getStyle() | SWT.RESIZE);
+		shell = new Shell(getParent(), getStyle());
 //		shell.setSize(673, 420);
 		shell.setSize(300, 300);
 		shell.setText("Export document");
