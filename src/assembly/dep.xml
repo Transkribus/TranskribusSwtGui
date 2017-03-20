@@ -38,7 +38,8 @@
     	<includes>
         	<include>${project.name}.bat</include>
         	<include>${project.name}.sh</include>
-        	<include>${project.name}.command</include>    	
+        	<include>${project.name}.command</include>
+        	<include>${project.name}</include>  	
         </includes>
     </fileSet>
     
