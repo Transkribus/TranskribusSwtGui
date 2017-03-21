@@ -432,6 +432,7 @@ CHANGES AND BUGFIXES
 	-> bugfix: seldom PDF export bug fixed
 	-> included new la methods: ncsr (new), cvl & citlab (restricted accesss)
 	-> Upload from private FTP: validation of directories now happens separately instead of during read process on server 
+	-> new 'div' tag
 	
 	
 	

@@ -279,11 +279,13 @@ public class ProgramUpdaterDialog {
 					} catch (final Throwable e) {
 						Display.getDefault().asyncExec(new Runnable() {
 							@Override public void run() {
-								ToolTip tip = DialogUtil.createBallonToolTip(shell, SWT.ICON_INFORMATION, "Check your internet connection",
-										"Could not connect to update server", b.x + b.width, b.y);
-								tip.setAutoHide(true);
-								tip.setVisible(true);
-								logger.error(e.getMessage());
+								if (false) {
+									ToolTip tip = DialogUtil.createBallonToolTip(shell, SWT.ICON_INFORMATION, "Check your internet connection",
+											"Could not connect to update server", b.x + b.width, b.y);
+									tip.setAutoHide(true);
+									tip.setVisible(true);
+								}
+								logger.error("Could not connect to update server: "+e.getMessage());
 							}
 						});
 					}
