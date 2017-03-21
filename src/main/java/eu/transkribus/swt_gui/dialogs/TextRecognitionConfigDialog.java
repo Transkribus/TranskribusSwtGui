@@ -390,29 +390,31 @@ public class TextRecognitionConfigDialog extends Dialog {
 		showTestSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
 		showTrainSetBtn.setEnabled(htr.getGtDocId() != null);
 		
-		updateChart(StrUtil.get(htr.getCerString()));
+		updateChart(htr);
 	}
 
-	private void updateChart(String cerString) {
-		String[] cerStrs = cerString.split("\\s");
-		double[] cerTrainSetVals = new double[cerStrs.length];
-		double[] cerTestSetVals = new double[cerStrs.length];
-		for(int i = 0; i < cerStrs.length; i++) {
-			try {
-				cerTrainSetVals[i] = Double.parseDouble(cerStrs[i].replace(',', '.'));
-			} catch(NumberFormatException e) {
-				logger.error("Could not parse CER String: " + cerStrs[i]);
-			}
-		}
+	private void updateChart(TrpHtr htr) {
+		double[] cerTrainSetVals = parseCerString(htr.getCerString());
+		double[] cerTestSetVals = parseCerString(htr.getCerTestString());
 		
 		XYSeriesCollection dataset = new XYSeriesCollection();
+		
 		XYSeries series = new XYSeries("CER Train");
 	    for(int i = 0; i < cerTrainSetVals.length; i++) {
 	    	double val = cerTrainSetVals[i];
 	    	series.add(i+1, val);
 	    }
 		dataset.addSeries(series);	
-	    
+		
+		if(cerTestSetVals.length > 0) {
+			XYSeries testSeries = new XYSeries("CER Test");
+		    for(int i = 0; i < cerTestSetVals.length; i++) {
+		    	double val = cerTestSetVals[i];
+		    	testSeries.add(i+1, val);
+		    }
+			dataset.addSeries(testSeries);	
+		}
+		
 		JFreeChart chart = ChartFactory.createXYLineChart(
 				"CER Series", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, false, true, false);
 
@@ -425,6 +427,24 @@ public class TextRecognitionConfigDialog extends Dialog {
 
 		jFreeChartComp.setChart(chart);
 		chart.fireChartChanged();
+	}
+
+	private double[] parseCerString(String cerString) {
+		
+		if(cerString == null || cerString.isEmpty()) {
+			return new double[]{};
+		}
+		
+		String[] cerStrs = cerString.split("\\s");
+		double[] cerVals = new double[cerStrs.length];
+		for(int i = 0; i < cerStrs.length; i++) {
+			try {
+				cerVals[i] = Double.parseDouble(cerStrs[i].replace(',', '.'));
+			} catch(NumberFormatException e) {
+				logger.error("Could not parse CER String: " + cerStrs[i]);
+			}
+		}
+		return cerVals;
 	}
 
 	private void updateHtrs() {
