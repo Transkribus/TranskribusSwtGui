@@ -434,5 +434,8 @@ CHANGES AND BUGFIXES
 	-> Upload from private FTP: validation of directories now happens separately instead of during read process on server 
 	-> new 'div' tag
 	
+1.1.1:
+	-> determine CITlabLaJob availability in UI via server call
+	
 	
 	

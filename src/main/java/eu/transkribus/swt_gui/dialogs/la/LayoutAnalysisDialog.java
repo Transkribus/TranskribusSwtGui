@@ -159,14 +159,16 @@ public class LayoutAnalysisDialog extends Dialog {
 		return mainContainer;
 	}
 	
-	public static List<String> getCitlabLaAllowedUsers() {
-		List<String> users = new ArrayList<>();
-		// TODO
-		return users;
-	}
-		
 	public static boolean isUserAllowedCitlab() {
-		return TEST || store.isAdminLoggedIn() || getCitlabLaAllowedUsers().contains(store.getUserName());
+		if (TEST || store.isAdminLoggedIn())
+			return true;
+		
+		try {
+			return store.getConnection().isUserAllowedForJob(JobImpl.CITlabLaJob.toString());
+		} catch (Exception e) {
+			logger.error("Could not determine if user is allowed for CITlabLaJob: "+e.getMessage());
+			return false;
+		}
 	}
 
 	public static List<String> getMethods(boolean withCustom) {
