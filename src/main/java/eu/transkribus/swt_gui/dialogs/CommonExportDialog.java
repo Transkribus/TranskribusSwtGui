@@ -9,11 +9,11 @@ import java.util.Set;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -35,8 +35,8 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.builder.ExportUtils;
-import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiExportMode;
 import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiLinebreakMode;
+import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiZoneExportMode;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
@@ -85,10 +85,11 @@ public class CommonExportDialog extends Dialog {
 	Button zonePerParRadio;
 	Button zonePerLineRadio;
 	Button zonePerWordRadio;
+	Button zonesCoordsAsBoundingBoxChck;
 	
 	Button lineTagsRadio, lineBreaksRadio;
 	
-	TeiExportMode teiExportMode;
+	TeiZoneExportMode teiZoneExportMode;
 	TeiLinebreakMode teiLinebreakMode;
 	
 	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, xlsxExport, tableExport, zipExport;
@@ -460,7 +461,7 @@ public class CommonExportDialog extends Dialog {
 		exportButton.setText("OK");
 		exportButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				updateTeiExportMode();
+				updateTeiZoneExportMode();
 				updateLineBreakMode();
 				
 				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isXlsxExport()&& !isTableExport()){
@@ -816,24 +817,37 @@ public class CommonExportDialog extends Dialog {
 		zonesGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
 		zonesGroup.setLayout(new GridLayout(1, true));
 		zonesGroup.setText("Zones");
-		
-		noZonesRadio = new Button(zonesGroup, SWT.RADIO);
+				
+		noZonesRadio = new Button(zonesGroup, SWT.CHECK);
 		noZonesRadio.setText("No zones");
 		noZonesRadio.setToolTipText("Create no zones, just paragraphs");
+		noZonesRadio.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				zonePerParRadio.setEnabled(!noZonesRadio.getSelection());
+				zonePerLineRadio.setEnabled(!noZonesRadio.getSelection());
+				zonePerWordRadio.setEnabled(!noZonesRadio.getSelection());
+				
+			}
+		});
 		
-		zonePerParRadio = new Button(zonesGroup, SWT.RADIO);
+		zonePerParRadio = new Button(zonesGroup, SWT.CHECK);
 		zonePerParRadio.setText("Zone per region");
 		zonePerParRadio.setToolTipText("Create a zone element for each region");
-//		zonePerParRadio.setSelection(true);
+		zonePerParRadio.setSelection(true);
 		
-		zonePerLineRadio = new Button(zonesGroup, SWT.RADIO);
+		zonePerLineRadio = new Button(zonesGroup, SWT.CHECK);
 		zonePerLineRadio.setToolTipText("Create a zone element for each region and line");
 		zonePerLineRadio.setText("Zone per line");
 		zonePerLineRadio.setSelection(true);
 		
-		zonePerWordRadio = new Button(zonesGroup, SWT.RADIO);
+		zonePerWordRadio = new Button(zonesGroup, SWT.CHECK);
 		zonePerWordRadio.setToolTipText("Create a zone element for each region, line and word");
 		zonePerWordRadio.setText("Zone per word");
+		
+		zonesCoordsAsBoundingBoxChck = new Button(zonesGroup, SWT.CHECK);
+		zonesCoordsAsBoundingBoxChck.setToolTipText("By default all polygon coordinates are exported as 'points' attribute in the zone tag.\nWhen checked, coordinates are reduced to bounding boxes using 'ulx, uly, lrx, lry' attributes");
+		zonesCoordsAsBoundingBoxChck.setText("Use bounding box coordinates");
 		
 		Group linebreakTypeGroup = new Group(teiComposite, 0);
 		linebreakTypeGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
@@ -1051,20 +1065,15 @@ public class CommonExportDialog extends Dialog {
 		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport()) && (isHighlightTags() || isTagExport() || isXlsxExport());
 	}
 	
-	private void updateTeiExportMode() {
-		teiExportMode = TeiExportMode.ZONE_PER_PAR;
+	private void updateTeiZoneExportMode() {
+//		teiZoneExportMode = new TeiZoneExportMode();
 		
-		if (noZonesRadio.getSelection()) {
-			teiExportMode = TeiExportMode.SIMPLE;
-		} else if (zonePerParRadio.getSelection()) {
-			teiExportMode = TeiExportMode.ZONE_PER_PAR;
-		} else if (zonePerLineRadio.getSelection()) {
-			teiExportMode = TeiExportMode.ZONE_PER_LINE;
-		} else if (zonePerWordRadio.getSelection()) {
-			teiExportMode = TeiExportMode.ZONE_PER_WORD;
-		} else {
-			logger.error("No TEI export mode could be set - should never happen!");
-		}
+		boolean regions = noZonesRadio.getSelection() ? false : zonePerParRadio.getSelection();
+		boolean lines = noZonesRadio.getSelection() ? false : zonePerLineRadio.getSelection();
+		boolean words = noZonesRadio.getSelection() ? false : zonePerWordRadio.getSelection();
+		boolean boundingBoxCoords = zonesCoordsAsBoundingBoxChck.getSelection();
+		
+		teiZoneExportMode = new TeiZoneExportMode(regions, lines, words, boundingBoxCoords);
 	}
 	
 	private void updateLineBreakMode() {
@@ -1086,8 +1095,8 @@ public class CommonExportDialog extends Dialog {
 		//logger.debug("pages " + startPage + "-" + endPage);
 	}
 	
-	public TeiExportMode getTeiExportMode(){
-		return teiExportMode;
+	public TeiZoneExportMode getTeiZoneExportMode(){
+		return teiZoneExportMode;
 	}
 	
 	public TeiLinebreakMode getTeiLinebreakMode() {
