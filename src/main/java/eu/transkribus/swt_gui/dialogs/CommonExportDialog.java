@@ -126,7 +126,7 @@ public class CommonExportDialog extends Dialog {
 	String versionStatus;
 	
 	public CommonExportDialog(Shell parent, int style, String lastExportFolder, String docName, List<TrpPage> pages) {
-		super(parent, style |= SWT.DIALOG_TRIM);
+		super(parent, style |= SWT.DIALOG_TRIM | SWT.RESIZE);
 		this.lastExportFolder = lastExportFolder;
 		this.docName = docName;
 		this.pages = pages;
@@ -141,7 +141,7 @@ public class CommonExportDialog extends Dialog {
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle());
 //		shell.setSize(673, 420);
-		shell.setSize(300, 300);
+		shell.setSize(400, 400);
 		shell.setText("Export document");
 		shell.setLayout(new GridLayout(1, false));
 		
