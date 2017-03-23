@@ -13,7 +13,6 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -35,8 +34,7 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.builder.ExportUtils;
-import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiLinebreakMode;
-import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiZoneExportMode;
+import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
@@ -89,8 +87,7 @@ public class CommonExportDialog extends Dialog {
 	
 	Button lineTagsRadio, lineBreaksRadio;
 	
-	TeiZoneExportMode teiZoneExportMode;
-	TeiLinebreakMode teiLinebreakMode;
+	TeiExportPars teiPars;
 	
 	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, xlsxExport, tableExport, zipExport;
 
@@ -461,8 +458,9 @@ public class CommonExportDialog extends Dialog {
 		exportButton.setText("OK");
 		exportButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				updateTeiZoneExportMode();
-				updateLineBreakMode();
+//				updateTeiZoneExportMode();
+//				updateLineBreakMode();
+				updateTeiPars();
 				
 				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isXlsxExport()&& !isTableExport()){
 					DialogUtil.showInfoMessageBox(shell, "Missing export format", "Please choose an export format to continue");
@@ -1065,42 +1063,35 @@ public class CommonExportDialog extends Dialog {
 		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport()) && (isHighlightTags() || isTagExport() || isXlsxExport());
 	}
 	
-	private void updateTeiZoneExportMode() {
-//		teiZoneExportMode = new TeiZoneExportMode();
-		
+	private void updateTeiPars() {
 		boolean regions = noZonesRadio.getSelection() ? false : zonePerParRadio.getSelection();
 		boolean lines = noZonesRadio.getSelection() ? false : zonePerLineRadio.getSelection();
 		boolean words = noZonesRadio.getSelection() ? false : zonePerWordRadio.getSelection();
 		boolean boundingBoxCoords = zonesCoordsAsBoundingBoxChck.getSelection();
-		
-		teiZoneExportMode = new TeiZoneExportMode(regions, lines, words, boundingBoxCoords);
-	}
-	
-	private void updateLineBreakMode() {
-		teiLinebreakMode = TeiLinebreakMode.LINE_TAG;
-		
+		String linebreakType = TeiExportPars.LINE_BREAK_TYPE_LINE_TAG;
 		if (lineBreaksRadio.getSelection()) {
-			teiLinebreakMode = TeiLinebreakMode.LINE_BREAKS;
-		} else if (lineTagsRadio.getSelection()) {
-			teiLinebreakMode = TeiLinebreakMode.LINE_TAG;
-		} else {
-			logger.error("No TEI linebreak mode could be set - should never happen!");
+			linebreakType = TeiExportPars.LINE_BREAK_TYPE_LINE_BREAKS;
+		}
+		if (lineTagsRadio.getSelection()) {
+			linebreakType = TeiExportPars.LINE_BREAK_TYPE_LINE_TAG;
 		}
 		
+		teiPars = new TeiExportPars(regions, lines, words, boundingBoxCoords, linebreakType);
+		
+		teiPars.writeTextOnWordLevel = isWordBased();
+		teiPars.doBlackening = isDoBlackening();
+		teiPars.pageIndices = getSelectedPages();
+		teiPars.selectedTags = getSelectedTagsList();
 	}
-	
+		
 	private void updatePages() {
 //		startPage = startSpinner.getSelection();
 //		endPage = endSpinner.getSelection();
 		//logger.debug("pages " + startPage + "-" + endPage);
 	}
-	
-	public TeiZoneExportMode getTeiZoneExportMode(){
-		return teiZoneExportMode;
-	}
-	
-	public TeiLinebreakMode getTeiLinebreakMode() {
-		return teiLinebreakMode;
+		
+	public TeiExportPars getTeiExportPars() {
+		return teiPars;
 	}
 	
 	public boolean isWordBased() {

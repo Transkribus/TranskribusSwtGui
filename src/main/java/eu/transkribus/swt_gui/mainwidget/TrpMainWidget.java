@@ -97,7 +97,6 @@ import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxTableBuilder;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
-import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiLinebreakMode;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
@@ -2784,15 +2783,24 @@ public class TrpMainWidget {
 					pages = pages.substring(0, pages.length()-1);
 				}
 				
+				TeiExportPars pars =  exportDiag.getTeiExportPars();
+				
+				boolean doTeiWithNoZones = pars.hasZones();
+				boolean doTeiWithZonePerRegion = pars.regionZones;
+				boolean doTeiWithZonePerLine = pars.lineZones;
+				boolean doTeiWithZonePerWord = pars.wordZones;
+				boolean doTeiWithLineTags = pars.isLineTagType();
+				boolean doTeiWithLineBreaks = pars.isLineBreakType();
+				
 				logger.debug("server export - is page export " + exportDiag.isPageExport());
 				String jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), pages,
 						exportDiag.isMetsExport(), exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), 
 						exportDiag.isSplitUpWords(), exportDiag.isPdfExport(), exportDiag.isTeiExport(), exportDiag.isDocxExport(),
 						exportDiag.isXlsxExport(), exportDiag.isTableExport(), exportDiag.isExportImagesOnly(),
 						exportDiag.isExportImagesPlusText(), exportDiag.isAddExtraTextPages2PDF(), exportDiag.isHighlightTags(),
-						(exportDiag.getTeiExportMode() == TeiExportMode.SIMPLE), (exportDiag.getTeiExportMode() == TeiExportMode.ZONE_PER_PAR), 
-						(exportDiag.getTeiExportMode() == TeiExportMode.ZONE_PER_LINE), (exportDiag.getTeiExportMode() == TeiExportMode.ZONE_PER_WORD),
-						(exportDiag.getTeiLinebreakMode() == TeiLinebreakMode.LINE_TAG), (exportDiag.getTeiLinebreakMode() == TeiLinebreakMode.LINE_BREAKS),
+						doTeiWithNoZones, doTeiWithZonePerRegion, 
+						doTeiWithZonePerLine, doTeiWithZonePerWord,
+						doTeiWithLineTags, doTeiWithLineBreaks,
 						exportDiag.isTagExport(), exportDiag.isPreserveLinebreaks(), exportDiag.isMarkUnclearWords(),
 						exportDiag.isKeepAbbreviations(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 						exportDiag.isWordBased(), exportDiag.isDoBlackening(), exportDiag.isCreateTitlePage(), 
@@ -3491,19 +3499,12 @@ public class TrpMainWidget {
 
 	public void exportTei(final File file, final CommonExportDialog exportDiag) throws Throwable {
 		try {
-
-			final TeiExportPars pars = new TeiExportPars();
-			pars.mode = exportDiag.getTeiExportMode();
-			pars.linebreakMode = exportDiag.getTeiLinebreakMode();
-			pars.writeTextOnWordLevel = exportDiag.isWordBased();
-			pars.doBlackening = exportDiag.isDoBlackening();
-			pars.pageIndices = exportDiag.getSelectedPages();
-			pars.selectedTags = exportDiag.getSelectedTagsList();
+			final TeiExportPars pars = exportDiag.getTeiExportPars();
 
 			if (file == null)
 				return;
 
-			logger.info("TEI export. Mode = " + pars.mode);
+			logger.info("TEI export, pars = "+pars);
 
 			lastExportFolder = file.getParentFile().getAbsolutePath();
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
