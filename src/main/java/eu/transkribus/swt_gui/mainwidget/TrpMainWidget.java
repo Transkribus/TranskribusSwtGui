@@ -3573,6 +3573,7 @@ public class TrpMainWidget {
 			}else{
 				bugDialog.setActive();
 			}
+			
 
 		} catch (Throwable e) {
 			onError("Fatal bug report error", "Fatal error sending bug report / feature request", e);

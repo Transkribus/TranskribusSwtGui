@@ -221,7 +221,12 @@ public class BugDialog extends Dialog {
 	}
 
 	public void setActive() {
-		shell.setActive();	
-		shell.setFocus();
+
+		if(shell.isDisposed()){
+			open();
+		}else{
+			shell.setActive();	
+			shell.setFocus();
+		}
 	}	
 }
