@@ -6,10 +6,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -139,11 +143,15 @@ public class CommonExportDialog extends Dialog {
 	 * Create contents of the dialog.
 	 */
 	private void createContents() {
-		shell = new Shell(getParent(), getStyle());
+		shell = new Shell(getParent(), getStyle() | SWT.RESIZE);
+//		shell = new Shell(Display.getCurrent());
+		
 //		shell.setSize(673, 420);
-		shell.setSize(300, 300);
+		shell.setSize(700, 450);
 		shell.setText("Export document");
-		shell.setLayout(new GridLayout(1, false));
+//		shell.setLayout(new GridLayout(1, false));
+		shell.setLayout(new FillLayout(SWT.VERTICAL));
+
 		
 //		ScrolledComposite hotzenplotz = new ScrolledComposite(shell, SWT.V_SCROLL);
 
@@ -152,10 +160,22 @@ public class CommonExportDialog extends Dialog {
 //		mainComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 //		mainComp.setLayout(new GridLayout(1, false));
 		
-		exportPathComp = new ExportPathComposite(shell, lastExportFolder, "File/Folder name: ", null, docName);
+		
+		SashForm sf = new SashForm(shell, SWT.VERTICAL);
+		sf.setLayout(new GridLayout(1, false));		
+		
+	    ScrolledComposite sc = new ScrolledComposite(sf, SWT.H_SCROLL
+		        | SWT.V_SCROLL);
+	    
+
+	    
+	    Composite mainComp = new Composite(sc, SWT.NONE);
+	    mainComp.setLayout(new GridLayout(1,false));
+		
+		exportPathComp = new ExportPathComposite(mainComp, lastExportFolder, "File/Folder name: ", null, docName);
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
-		Composite choiceComposite = new Composite(shell, SWT.NONE);
+		Composite choiceComposite = new Composite(mainComp, SWT.NONE);
 		choiceComposite.setLayout(new GridLayout(2, false));
 		choiceComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
 		
@@ -452,9 +472,20 @@ public class CommonExportDialog extends Dialog {
 	        }
 	    });
 	    
-		Composite buttonComposite = new Composite(shell, SWT.NONE);
-		buttonComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+	    sc.setContent(mainComp);
+	    sc.setMinSize(600, 300);
+	    
+	    sc.setExpandHorizontal(true);
+	    sc.setExpandVertical(true);
+	    
+//	    Composite fixedButtons = new Composite(shell,SWT.NONE);
+//	    fixedButtons.setLayout(new GridLayout(1,false));
+//	    fixedButtons.setSize(300,200);
+	    
+		Composite buttonComposite = new Composite(sf, SWT.NONE);
 		buttonComposite.setLayout(new FillLayout());
+		buttonComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		GridDataFactory.fillDefaults().grab(true, false).span(SWT.FILL, SWT.DEFAULT).hint(SWT.DEFAULT, 200).applyTo(buttonComposite);
 		
 		Button exportButton = new Button(buttonComposite, SWT.NONE);
 		exportButton.setText("OK");
@@ -498,7 +529,9 @@ public class CommonExportDialog extends Dialog {
 	    b0.setSelection(true);
 	    b0.notifyListeners(SWT.Selection, new Event());
 		
-		shell.pack();
+	    sf.setWeights(new int[] { 90, 10 });
+
+//		shell.pack();
 		shell.layout();
 		
 		// save values when shell is disposed:
