@@ -175,7 +175,7 @@ public class LayoutAnalysisDialog extends Dialog {
 		List<String> methods = new ArrayList<>();
 		
 		methods.add(METHOD_NCSR_OLD);
-		methods.add(METHOD_NCSR);
+//		methods.add(METHOD_NCSR);
 		methods.add(METHOD_CVL);
 		methods.add(METHOD_CITLAB);
 		
