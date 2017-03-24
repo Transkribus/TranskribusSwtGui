@@ -64,7 +64,8 @@ public class BugDialog extends Dialog {
 	 * Open the dialog.
 	 * @return the result
 	 */
-	public Object open() {
+	public Object open() {		
+
 		createContents();
 		shell.open();
 		shell.layout();
@@ -81,6 +82,7 @@ public class BugDialog extends Dialog {
 	 * Create contents of the dialog.
 	 */
 	private void createContents() {
+
 		shell = new Shell(getParent(), getStyle());
 		shell.setSize(547, 333);
 		shell.setText(getText());
@@ -216,5 +218,10 @@ public class BugDialog extends Dialog {
 		} catch (Throwable e) {
 			TrpMainWidget.getInstance().onError("Error", "Error during bug report / feature request", e);
 		}
+	}
+
+	public void setActive() {
+		shell.setActive();	
+		shell.setFocus();
 	}	
 }
