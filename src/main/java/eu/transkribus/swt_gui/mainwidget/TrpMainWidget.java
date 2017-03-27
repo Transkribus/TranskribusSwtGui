@@ -1181,6 +1181,9 @@ public class TrpMainWidget {
 		if(!storage.isPageLoaded()){
 			return;
 		}
+		if (storage.getTranscript() == null || storage.getTranscript().getMd() == null)
+			return;
+		
 		if(!localAutosaveEnabled){
 			return;
 		}
