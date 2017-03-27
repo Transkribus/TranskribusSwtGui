@@ -436,6 +436,7 @@ CHANGES AND BUGFIXES
 	
 1.1.1:
 	-> determine CITlabLaJob availability in UI via server call
+	-> remove "new" (which was actually the old one) and buggy NCSR LA method
 	
 	
 	
