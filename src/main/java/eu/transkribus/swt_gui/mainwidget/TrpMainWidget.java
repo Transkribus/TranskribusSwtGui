@@ -229,6 +229,7 @@ public class TrpMainWidget {
 	AutoSaveDialog autoSaveDiag;
 	DebuggerDialog debugDiag;
 	VersionsDiffBrowserDialog browserDiag;
+	BugDialog bugDialog;
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
@@ -1172,6 +1173,9 @@ public class TrpMainWidget {
 		if(!storage.isPageLoaded()){
 			return;
 		}
+		if (storage.getTranscript() == null || storage.getTranscript().getMd() == null)
+			return;
+		
 		if(!localAutosaveEnabled){
 			return;
 		}
@@ -3558,8 +3562,15 @@ public class TrpMainWidget {
 
 	public void sendBugReport() {
 		try {
-			final BugDialog bugDialog = new BugDialog(getShell(), SWT.NONE);
-			bugDialog.open();
+
+			if(bugDialog == null){
+				bugDialog = new BugDialog(getShell(), SWT.NONE);
+				bugDialog.open();
+			}else{
+				bugDialog.setActive();
+			}
+			
+
 		} catch (Throwable e) {
 			onError("Fatal bug report error", "Fatal error sending bug report / feature request", e);
 		}
