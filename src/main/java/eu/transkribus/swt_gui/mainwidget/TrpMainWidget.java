@@ -2817,7 +2817,7 @@ public class TrpMainWidget {
 					storage.sendJobListUpdateEvent();
 					mw.updatePageLock();
 					
-					DialogUtil.showInfoMessageBox(mw.getShell(), "Export Job started", "Started export job with id = "+jobId+"/n After finishing you will get a link for download");
+					DialogUtil.showInfoMessageBox(mw.getShell(), "Export Job started", "Started export job with id = "+jobId+"\n After it is finished, you will receive a download link");
 				}
 				return;
 			}
