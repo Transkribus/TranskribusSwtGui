@@ -1,0 +1,445 @@
+CHANGES AND BUGFIXES
+------------------------------
+
+ 0.1 -> 0.2: (19.06.2014)
+
+-> Splitting now cuts through child elements, e.g. splitting a text region also splits parent lines and words
+-> foregroundAlpha and backgroundAlpha values can now be set in the View->Change viewing settings menu 
+	or via the config.properties file
+-> F1-F5 keys can be used to toggle the visibiliy of printspace/text regions/lines/baselines/words
+-> Virtual keyboards. Custom special characters can be added to the file "specialChars.txt"
+-> Page-type was not saved bug fixed
+-> Original filenames are shown in the titlebar and the "Documents" tab on the left
+-> Bug fixed: could not apply text styles to multiple selected elements
+-> MAC Support
+
+0.2.1:
+
+-> Some minor bugfixes and add-ons
+
+0.3: (11.07.2014)
+-> Update system (Help -> Check for updates)
+-> Duplicate ID Problem fixed (I hope so at least...)
+-> Transcript source can be opened via GUI (beside pages toolbar)
+-> Different versions of a transcript could not be loaded -> fixed
+-> Multiselect
+-> specialChars.txt replaced with virtualKeyboards.xml --> added functionality to add multiple custom virtual keyboards
+-> Rendering of different styles in transcription widgets can be turned toggled
+-> Global font style is stored in config file
+-> BUILD.txt specifies the current version and the build date and time
+
+0.3.2: (23.07.2014)
+-> Applying the font-styles now behaves different: font-size and kerning of 0 and an empty font-family  
+	are NOT applied to sub-elements to avoid erasing this information!
+ 	NOTE: boolean values (serif yes/no, monospace yes/no, bold yes/no etc.) are still applied
+ 	 to each level and thus the original information gets erased!
+-> Different apply buttons for structure and text-styles
+
+0.4:
+-> Indexed tagging and general custom tags
+
+0.4.1:
+-> Bugfixes
+-> Changed SWT version from 4.3 to 4.4
+
+0.4.2:
+-> Bugfixes
+-> Removed menu bar and moved it to "home" toolbar icon
+-> Introduced undockable left/right/bottom widgets 
+
+0.4.3:
+-> Bugfixes & update to new REST interface
+-> Minor changes in custom tag widget
+-> added version tab / restricted version combo to 5 items
+
+0.4.4:
+-> Introduced simple bug report / feature request system -> access via "bug" button at the very top-right
+-> Tagging of multiple different words selected in canvas
+-> Bugfixes, amongst others: no more handles crash
+
+0.4.5:
+-> Bugfixes: editing in transcription widgets (word and line based) was broken in some cases
+-> added text undo/redo in transcription widgets
+-> Integrated XML source file viewer now has search functionality
+
+0.4.6:
+-> Changes over multiple lines should now be possible in the line transcription widget and behave as such:
+	- if the number of lines inserted is greater than the number of affected lines (i.e. the marked lines), 
+		the excessive newline characters are replaced with whitespaces to guarentee insertion of the whole text 
+	- if the number of lines inserted is less than the number of affected lines, the remaining affected lines will be cleared
+-> Removed bug that selected parent region after any edit operation
+-> Fixed another memory leak problem
+-> Added login info (username & server) in doc-overview tab
+
+0.4.7:
+
+-> Some urgent bugfixes: 
+	* Deleting words in word transcription editor not possible
+	* Tagging / text style adding was buggy too
+	* concurrent modification exceptions in doc view
+-> Save dialog appears on exit if unsaved changes exist
+-> first version of PDF export feature (via acrobat button on top toolbar)
+-> Auto update search feature
+
+0.4.8:
+	-> Sorting functionality in doc overview
+	-> doc overview: do not show public documents
+	-> Program updater can overwrite config files
+	-> Install a specific version of the tool via Menu->Install a specific version...
+	
+0.4.9:
+	-> Reading order editing via the "Structure" view. 
+		* Note: Once a reading order is defined inside a page / region / line, the elements get sorted  by this reading order first and then the coordinates!
+		* You can auto-set the reading order according to the coordinates using the respective buttons in the "Structure" tab
+		* The reading order is implemented on shape level via a custom tag called "readingOrder" with an integer value that determines the order.
+		* If the reading order is equal for two shapes at a certain level, shapes are sorted by their coordinates.
+		* If a reading order is set for some shape and not set for the other, the shape with the reading order comes first.
+		* When saving the file a reading order on region level is also saved to the corresponding PAGE XML element ('ReadingOrder').
+		Reading orders on other levels (lines / words) are not saved in this way, since the file cannot be loaded with Alethia anymore. 
+		* Also, a reading order on region level set by the Alethia tool is synchronized with the custom tags on a page load.
+		
+	-> Adding of baselines, lines and words without their parent region -> if the parent region is not found, 
+	the user is asked if he wants to automatically add the corresponding parent region.
+	There is also a new toggle button (square shape with a plus) that when toggled disables this question.
+	The corresponding property in the config.properties file is 'autoCreateParent'.
+	
+	-> Drag-and-Drop support in the "Structure" tab: elements can be moved from one parent to another via drag and drop, 
+		i.e: lines can be moved to another region, words can be moved to another line.
+		The drop has to be performed *onto* a region / line
+		Note: it is not checked, whether the new parent region geometrically overlaps its new children -> use this option with care!
+		
+	-> Pasting multiple lines in the line transcription editor now fills up empty lines after the selection index if possible
+	
+0.5.0:
+	-> Bugfixes (as always...)
+	-> Finish a shape on doubleclick
+	-> Polyrectangles (instead of just rectangles) are automatically created as parent shapes for baselines
+	-> Choose to remember decision of auto-creating parent shapes in dialog
+	-> Can now toggle the auto-centering feature in transcription widget (property is: centerCurrentTranscriptionLine)
+	
+0.5.3:
+	-> TEI Export, 1st version
+	-> upload via FTP to fix upload of very large files
+	-> baseline extraction
+	-> removed a bug: when selecting multiple elements in canvas, text style was not displayed correctly
+	-> font family in text style editor is now a combobox with suggestions: Antiqua, Gothic, Normal
+	
+0.5.4:
+	-> Some minor bugfixes: font family could not be changed, page lock icon always appeared, document could not be closed
+	-> Other regions types from PAGE can now be displayed and its location changed: tables, images, graphics etc.
+	-> First version of wordgraph editor
+	
+0.5.5:
+	-> fixed bug report system: can now send bug reports from everywhere...
+	-> changed logging framework from log4j to logback
+	-> Can now add points on shapes by "dragging them away from the boundary"
+	-> Bugfix: tags were lost when saving on server
+	-> Some appearance modifications; most important: type of transcription (line or word based) is now changed via a combobox in the toolbar of the transcription widget
+	-> Server side: introduced collections
+	
+0.5.6:
+	-> introduced "tip of the day" widget
+	-> changed start script and package names to "Transkribus.*"
+	-> Transkribus.exe program file available for windows (using launch4j)
+	-> bugfix: splitting of text-regions was duplicating child line elements
+	-> splitting of a region, line or word now assigns all the text to the first element and none to the second -> no text duplication!
+	
+0.5.7:
+	-> auto set email for bug request for logged-in user
+	-> removed old starting scripts (TrpGui.sh, TrpGui.command)
+	-> bugfix: image files starting with a dot (e.g. .xyz.jpg) will now be ignored on local documents -> relevant for mac!
+	-> bugfix: structure types were not applied to multiple selection
+	-> bugfix: job overview widget lost focus when updated
+	-> first version of collection manager (create new collections, delete empty collections, find / add users to collections, add / remove documents in collections)
+	
+0.5.8:
+	-> no "my collection" is added on register automatically
+	-> on upload of document you can now specify the collection to upload to; if no collection with necessary rights exists, you can create one
+	-> changing name of collections possible
+	(-> resolved nasty "invisible top toolbar on window resize in windows when document loaded" bug - hopefully...)
+	-> The program updater now also works via https only (default) -> property 'useFtpProgramUpdater' in config.properties adjusts if program updates are done via ftp or https
+	
+0.5.9:
+	-> introudced options item in canvas toolbar (wrench symbol) -> summarizes all options for drawing new elements
+	-> new shapes are added to overlapping shapes by default -> to add a shape only to a selected shape by default turn on the corresponding option in the canvas menu or set the 'addToOverlappingParentLine', 'addToOverlappingParentLine' properties properly in config.properties
+	-> remodelled top menu bar to hopefully finally remove the invisible items bug
+	-> can move image with left mouse button: if no shape is selected or if mouse not over selected shape
+	-> multi-select with selection rectangle now only possible when holding *ctrl* button simultaneously
+	-> adjust if shape is selected after creation (property: selectNewlyCreatedShape, default=false)
+	
+0.6.0:
+	-> Remember credentials feature
+	-> Changed image loader from jface/swt to jai due to mysterious white pages when loading group4 compressed images
+	-> Minor bugfixes on shape selection behaviour
+	
+0.6.1:
+	-> Beta version of new tagging system including properties and basic search functionality
+	-> new pdf export
+	-> multiple bug fixes
+	
+0.6.2:
+	-> Bugfixes in tagging widget / search form
+	-> Fixed 'abbrev' tag added
+	-> added encoding for special chars in tag attributes
+	
+0.6.3:
+	-> Fixed bug that too many search results in tag search widget crashes app -> results are now loaded "lazily"
+	-> Introduced document search functionality
+	-> Export list of tags as xslx file
+	-> Change color of tags, save tag definitions to config.properties file
+
+0.6.4:
+	-> Search text (in same widget as tag search)
+	-> Search next / previous tag and text search functionality	
+	-> CATTI server integration. Tick "CATTI" checkbox in transcription widget to enable it. 
+		ctrl-arrowdown retrieves next best hypotheses (rejectSuffix), edits in text can lead to different endings of sentence (setPrefix)
+
+0.6.5:
+	-> Enhanced export features: 
+		- text pages in pdf
+		- tags highlighting in pdf
+		- rtf: tag overview page
+		- TEI export with tags
+		- excel export for tags
+	-> tag normalization (in tag search widget)
+	-> comparison between two versions
+	-> first version of editorial declaration
+	
+0.6.6:
+	-> Paging widgets
+	-> Server reconstruction: introduces page-ids
+	-> Page image replacement
+	-> Write from right-to-left in transcription widgets
+	-> support for empty tags (e.g. 'gap' tag)
+	-> adding comments
+	-> show different versions of image: orig, view, bin
+	-> ftp upload
+	-> blackenings
+	-> pdf export bug resolved
+	
+0.6.7:
+	-> bugfix: could not open local document images any more in windows
+	
+0.6.8:
+	-> bugfix: could not save after deleting a version ("no transcript loaded" error message)
+	-> setting file permissions in assembly plugin to 0755 -> starting scripts should now be executable by default
+	-> remodelled updater dialogs
+
+0.6.9:
+	-> bugfix: "widget is disposed" error message after closing collection manager dialog once and reloading list of collections
+	-> line bullet for current line in transcription widget is now bolded
+	-> fixed bug in CATTI server (overruling when deleting whitespace)
+	-> state and docId filter in jobs view
+	-> fixed minor security leak: only admin users can view all jobs
+	-> bugfix: nullpointerexception when exporting document with line that has no baseline
+
+0.7.0:
+	-> bugfix: editorial declaration dialog did not show any documents any more
+	-> fixed some CATTI issues
+	-> (re)introduced http upload of a single doc due to multiple 'connection timeout' problems when using apache wagon-ftp client - can now choose between http and ftp upload of single doc!
+	-> unified upload dialog
+	-> reading order improved
+	
+0.7.1:
+	-> several bug fixes
+	-> multiple java versions on mac problem solved in Transkribuc.command script: should now always take the newest one!
+	-> improved TEI export:
+		- word based TEI export: exporting zones and/or text on word level now possible
+		- can now respect blackenings
+		- includes all region types (graphic, images, blackening regions etc.) 
+	-> user can view how is currently browsing which page ("People" button beside collection manager button in doc overview)
+	-> recieve copy of bug report / feature request option
+ 	-> paged table in search docs
+ 	-> CATTI bug with puncuation marks fixed by using tokenization / detokenization of prefix / suffix
+ 	-> bugfix: could not save text styles over whole line
+ 	-> bugfix: could not delete gap tag (and any other empty tag) when selection area was starting from this tag onwards
+ 	
+ 0.7.2:
+ 	-> bugix: baselines were assigned to wrong parent element when splitted
+ 	-> new "text recognition" interface
+	-> bugfix: chnage of colors from config file were not applied after restart
+	-> event messages
+	-> bugfixes in PDF export
+	-> Loupe function
+	-> parent id of saved transcription gets stored 
+	
+0.7.3:
+	-> save transcript with commit message (save button with balloon or ctrl-c)
+	-> document copy functionality via collection manager (in my-documents table on bottom right)
+	-> bugfix: loupe did not work for images that were scaled internally (i.e. images with more than 15 million pixels)
+	-> render control characters (whitespace, tab, end of line) into the text (1st version...)
+	-> bugfix: button that determines which styles are rendered did not work properly
+	-> bugfix: dropdowntoolitem with radio style items fired selection event twice
+	
+0.7.4:
+	-> Bugfix: crash when opening and closing collection manager
+	-> new admin area functionality: apply affine transformations to doc; batch replace images for remote doc
+	
+0.7.5:
+	-> fixed severe tagging bug: characters from other alphabets not recovered on transcript reload
+	-> collection manager remodelled:
+		add to collection, remove from collection and duplicate document now also possible for collection owner
+		removed my-docs table and merged it with the documents table
+	-> rtf export replaced by docx export
+	
+0.7.6:
+	-> fixed minor bug in remember credentials functionality: last logged in user is remembered
+	-> deleting a page added
+	-> proxy settings
+	-> display status and user in thumbnail overview
+	
+0.7.7:
+	-> bugfix: could not load local document any more
+	
+0.7.8:
+	-> rotate image 90 degrees
+	-> bugfix: baseline focus with angle >180 degrees were displayed upside down
+	-> export bugs fixed
+	-> drawing direction arcs for baselines
+	
+0.7.9:
+	-> adding new points on boundary only possible when holding down ctrl/cmd key (prevents adding new points by accident)
+	-> bugfix: adding gap tag at the end of last line of region led to crash 
+	-> rendering of polyrectangle around baselines (and selection of the baselines within those)
+	-> locking zoom on focus possible (via wrench tool on canvas toolbar)
+	-> auto login feature
+	-> fixed catti bug (whitespace from recieved suffix removed)
+	-> catti server made reentrant (multiple users from different clients now possible)
+	-> adding paragraphs in textfield possible via shift+enter or dedicated button on transcription toolbar
+	
+0.8.0:
+	-> profiles
+	-> show complete img and transcript url in DocOverviewWidget
+
+0.8.1:
+	-> multiple bugfixes
+	-> bugfix: after tag was added, "Tags under cursor" and "Properties" were not updated
+	-> deleteLineIfBaselineDeleted property (configure via wrench tool)
+	-> virtual keyboard configurable in gui (1st version)
+	-> moved tag & text search to main search dialog in documents view
+	-> find text and tag it
+	
+0.8.2:
+	-> bugfixes: "no transcript loaded" when saving twice & virtual keyboards not working
+	
+0.8.3:
+	-> splitting regions bug fixed
+	-> swapped horizontal / vertical splitting semantic
+	-> split parent line too if splitting baselines
+	-> bugfix: group 4 compressed local images were displayed blank white
+	-> Collection manager usability: document search possibility, load collections with double click,...
+	-> Comments tool rearranged
+	-> Document Table: mouse over shows complete document info 
+	-> edit of virtual keyboard chars in gui saves back to virtualKeyboards.xml
+	-> tei tags for Person, Place and Organization changed to "persName", "placeName" and "orgName"
+	-> new tei tag "add" for addition
+	-> tei export option: tag lines via <l>...</l> or <lb/> tag
+
+0.8.4:
+	-> gamma correction
+	-> tif bug on windows fix
+	-> Transcription and Segmentation profiles added
+	-> createThumbs for local docs flag (configure via Menu -> File -> Create thumbs when opening local folder)
+	-> Export: Possibility to export all chosen export formats in a ZIP file
+	-> Docx export - consider soft breaks
+	-> PDF import
+	-> HTR based on RNN by Rostock integrated (alpha stage)
+	
+0.8.5:
+	-> fixed a bug that occurred on duplicated documents with editorial declaration (collection-specific features)
+	-> fixed a bug in the date setting widget in document metadata
+	-> PAGE XML viewer can now edit XML and reload page from it
+	
+0.8.6:
+	-> extended docx export settings for abbreviations
+	-> PDF: images only export
+	-> PDF: unique! tag values at end of PDF plus expansion for abbrevs
+	-> export: choose current page and choose versions with their status
+	-> docx index creation for tags (press F9 to create list in Word), export settings are shown in title page
+	-> change to next/previous region in transcription widget with alt+left/right key
+	-> batch layout analysis dialog
+	-> right click behavior added for versions and transcripts (texts) 
+	-> Login via OAuth2: Google
+	
+0.8.7:
+	-> bugfixes for local doc reader & thumbnail widget deadlock
+	-> local RGBA imgs bugfix
+	-> select and load recently used documents from doc tab
+	-> load last used document after login
+	
+0.8.8:
+	-> removed auto-load of last used doc
+	-> RNN HTR activated
+	-> prevent install of same version which breaks application on windows 
+	
+0.9.0:
+	-> move doc upload and search button from left document tab to the main menu bar
+	-> colored background in thumbnail overview: light green=transcribed lines are there, 
+		light yellow=now transcription (but lines segmented), light red=no line segmentation
+	-> thumbnail overview also shows number of transcribed lines (per page and per document)
+	-> automatic right to left text export for arabic, hebrew and so on
+	-> included context menu in canvas (especially for tables)
+	-> collapsed buttons to add elements to one dropdown button
+	-> more strict version numbering (major version is first number, minor version is second number, hotfixes are third number; snapshot versions of any of those versions are identified by an additional fourth number and a '-SNAPSHOT' suffix)
+	-> change to java 8
+	-> first draft of table editor included (saving only works on local documents for now - until the server accepts the new PAGE format)
+	-> removed obsolete writing orientation button
+	-> redesigned tabs (no more right tab view)
+	
+0.9.1:
+	-> save btn fix
+	-> no more handles (transform) fix
+	
+0.9.2:
+	-> reload doc btn reintegrated
+	-> fixed reading order bug during split
+	
+0.10.0:
+	-> vertical canvas edit toolbar
+	-> removed all dropdown tool items and partially replaced by new toolboxes
+	
+0.10.1:
+	-> "loadThumbs" property determines whether thumbnails are loaded (to prevent 'no more handles' issue)
+	-> first version of local autosave
+	-> pagination pagesize index out of bounds bug fixed
+	-> setting heap space in windows starters (.exe & .bat) reversed due to "no more handles" bug
+	-> Compare and show text differences of two versions in a text file (Tools - Compare)
+	-> split/merge baselines is done for lines too; bugs fixed for undoing those actions
+	
+1.0.0:
+	-> Deleting versions optimized
+	-> Session expired check during recent doc load
+	-> Change reading order optimized
+	-> Refine reading order circles appearance
+	-> Export tables into Docx and Excel (in excel tables only)
+	-> Export as a rest service
+	-> reading order behavior during region split
+	-> show download link after server export to the user
+	-> supplied tag handling for docx export
+	-> option to show filename in thumbs manager
+	-> included tag search
+	-> jump to version 1.0.0 
+		-> third number is for differentiating between snapshot versions for a specific release (i.e. 1.0.1-SNAPSHOT is the first snapshot for release 1.0)
+		-> second number of for urgent bugfixes
+		-> first number if the main release version
+		
+1.1.0:
+	-> bugfix: NPE when empty description in HTR models
+	-> bugfix: when replacing image on server, returned TrpPage could not be unmarshalled due to java.sql.Timestamp fields
+	-> bugfix: update of page when tool job finished
+	-> support for 'Supplementary Characters' (5 digits) in virtual keyboard
+	-> bugfix: merge regions and lines is working again
+	-> bugfix: seldom PDF export bug fixed
+	-> included new la methods: ncsr (new), cvl & citlab (restricted accesss)
+	-> Upload from private FTP: validation of directories now happens separately instead of during read process on server 
+	-> new 'div' tag
+	
+1.1.1:
+	-> determine CITlabLaJob availability in UI via server call
+	-> remove "new" (which was actually the old one) and buggy NCSR LA method
+
+1.1.2
+	-> private FTP upload bugfix
+	-> bugfix: preserve reading order during export
+	
+	
