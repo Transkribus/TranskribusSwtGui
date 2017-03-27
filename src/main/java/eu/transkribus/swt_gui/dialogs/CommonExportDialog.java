@@ -15,6 +15,7 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -28,7 +29,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.mihalis.opal.checkBoxGroup.CheckBoxGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +85,7 @@ public class CommonExportDialog extends Dialog {
 	boolean doServerExport = false;
 	
 	Button noZonesRadio;
+//	CheckBoxGroup zonesGroup;
 	Button zonePerParRadio;
 	Button zonePerLineRadio;
 	Button zonePerWordRadio;
@@ -141,7 +145,7 @@ public class CommonExportDialog extends Dialog {
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle() | SWT.RESIZE);
 		
-		shell.setSize(700, 450);
+		shell.setSize(750, 600);
 		shell.setText("Export document");
 //		shell.setLayout(new GridLayout(1, false));
 		shell.setLayout(new FillLayout(SWT.VERTICAL));
@@ -151,9 +155,7 @@ public class CommonExportDialog extends Dialog {
 		
 	    ScrolledComposite sc = new ScrolledComposite(sf, SWT.H_SCROLL
 		        | SWT.V_SCROLL);
-	    
 
-	    
 	    Composite mainComp = new Composite(sc, SWT.NONE);
 	    mainComp.setLayout(new GridLayout(1,false));
 		
@@ -458,7 +460,7 @@ public class CommonExportDialog extends Dialog {
 	    });
 	    
 	    sc.setContent(mainComp);
-	    sc.setMinSize(600, 300);
+	    sc.setMinSize(600, 200);
 	    
 	    sc.setExpandHorizontal(true);
 	    sc.setExpandVertical(true);
@@ -831,11 +833,23 @@ public class CommonExportDialog extends Dialog {
 //		Label modeLabel = new Label(modeComposite, SWT.NONE);
 //		modeLabel.setText("TEI Mode: ");
 		
-		Group zonesGroup = new Group(teiComposite, 0);
-		zonesGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
+//		zonesGroup = new CheckBoxGroup(teiComposite, 0);
+		Group zonesGroup = new Group(teiComposite, SWT.CHECK);
+		zonesGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		zonesGroup.setLayout(new GridLayout(1, true));
 		zonesGroup.setText("Zones");
-				
+//		zonesGroup.activate();
+		
+//		zonesGroup.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				System.out.println("selected!!");
+//				zonePerParRadio.setEnabled(zonesGroup.isActivated());
+//				zonePerLineRadio.setEnabled(zonesGroup.isActivated());
+//				zonePerWordRadio.setEnabled(zonesGroup.isActivated());
+//				zonesCoordsAsBoundingBoxChck.setEnabled(zonesGroup.isActivated());
+//			}
+//		});
+
 		noZonesRadio = new Button(zonesGroup, SWT.CHECK);
 		noZonesRadio.setText("No zones");
 		noZonesRadio.setToolTipText("Create no zones, just paragraphs");
@@ -845,7 +859,7 @@ public class CommonExportDialog extends Dialog {
 				zonePerParRadio.setEnabled(!noZonesRadio.getSelection());
 				zonePerLineRadio.setEnabled(!noZonesRadio.getSelection());
 				zonePerWordRadio.setEnabled(!noZonesRadio.getSelection());
-				
+				zonesCoordsAsBoundingBoxChck.setEnabled(!noZonesRadio.getSelection());
 			}
 		});
 		
@@ -866,6 +880,8 @@ public class CommonExportDialog extends Dialog {
 		zonesCoordsAsBoundingBoxChck = new Button(zonesGroup, SWT.CHECK);
 		zonesCoordsAsBoundingBoxChck.setToolTipText("By default all polygon coordinates are exported as 'points' attribute in the zone tag.\nWhen checked, coordinates are reduced to bounding boxes using 'ulx, uly, lrx, lry' attributes");
 		zonesCoordsAsBoundingBoxChck.setText("Use bounding box coordinates");
+		
+		
 		
 		Group linebreakTypeGroup = new Group(teiComposite, 0);
 		linebreakTypeGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
@@ -1084,9 +1100,10 @@ public class CommonExportDialog extends Dialog {
 	}
 	
 	private void updateTeiPars() {
-		boolean regions = noZonesRadio.getSelection() ? false : zonePerParRadio.getSelection();
-		boolean lines = noZonesRadio.getSelection() ? false : zonePerLineRadio.getSelection();
-		boolean words = noZonesRadio.getSelection() ? false : zonePerWordRadio.getSelection();
+		boolean noZones = noZonesRadio.getSelection();
+		boolean regions = noZones ? false : zonePerParRadio.getSelection();
+		boolean lines = noZones ? false : zonePerLineRadio.getSelection();
+		boolean words = noZones ? false : zonePerWordRadio.getSelection();
 		boolean boundingBoxCoords = zonesCoordsAsBoundingBoxChck.getSelection();
 		String linebreakType = TeiExportPars.LINE_BREAK_TYPE_LINE_TAG;
 		if (lineBreaksRadio.getSelection()) {
