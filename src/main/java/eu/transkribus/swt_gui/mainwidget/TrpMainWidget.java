@@ -91,6 +91,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.docx.DocxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
@@ -2790,9 +2791,9 @@ public class TrpMainWidget {
 				TeiExportPars pars =  exportDiag.getTeiExportPars();
 				
 				boolean doTeiWithNoZones = pars.hasZones();
-				boolean doTeiWithZonePerRegion = pars.regionZones;
-				boolean doTeiWithZonePerLine = pars.lineZones;
-				boolean doTeiWithZonePerWord = pars.wordZones;
+				boolean doTeiWithZonePerRegion = pars.isRegionZones();
+				boolean doTeiWithZonePerLine = pars.isLineZones();
+				boolean doTeiWithZonePerWord = pars.isWordZones();
 				boolean doTeiWithLineTags = pars.isLineTagType();
 				boolean doTeiWithLineBreaks = pars.isLineBreakType();
 				
@@ -3504,6 +3505,7 @@ public class TrpMainWidget {
 	public void exportTei(final File file, final CommonExportDialog exportDiag) throws Throwable {
 		try {
 			final TeiExportPars pars = exportDiag.getTeiExportPars();
+			final CommonExportPars commonPars = exportDiag.getCommonExportPars();
 
 			if (file == null)
 				return;
@@ -3516,7 +3518,7 @@ public class TrpMainWidget {
 					try {
 						logger.debug("creating TEI document, pars: " + pars);
 
-						storage.exportTei(file, pars, monitor);
+						storage.exportTei(file, commonPars, pars, monitor);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
