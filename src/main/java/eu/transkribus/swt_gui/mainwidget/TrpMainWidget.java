@@ -3509,7 +3509,7 @@ public class TrpMainWidget {
 			if (file == null)
 				return;
 
-			logger.info("TEI export, pars = "+pars);
+			logger.info("TEI export, pars = "+pars+" commonPars = "+commonPars);
 
 			lastExportFolder = file.getParentFile().getAbsolutePath();
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {

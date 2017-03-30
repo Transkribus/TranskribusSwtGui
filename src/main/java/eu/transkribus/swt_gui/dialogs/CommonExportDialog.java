@@ -480,6 +480,7 @@ public class CommonExportDialog extends Dialog {
 			@Override public void widgetSelected(SelectionEvent e) {
 //				updateTeiZoneExportMode();
 //				updateLineBreakMode();
+				
 				updateCommonPars();
 				updateTeiPars();
 				
@@ -526,13 +527,7 @@ public class CommonExportDialog extends Dialog {
 		// save values when shell is disposed:
 		shell.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
-				try {
-					selectedPages = docPagesSelector.getSelectedPageIndices();
-					
-				} catch (IOException e1) {
-					selectedPages = null;
-				}
-				logger.debug("selectedPages: "+selectedPages);
+				updateSelectedPages();
 			}
 		});
 	}
@@ -1102,7 +1097,19 @@ public class CommonExportDialog extends Dialog {
 		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport()) && (isHighlightTags() || isTagExport() || isXlsxExport());
 	}
 	
+	private void updateSelectedPages() {
+		try {
+			selectedPages = docPagesSelector.getSelectedPageIndices();
+			
+		} catch (IOException e1) {
+			selectedPages = null;
+		}
+		logger.debug("selectedPages: "+selectedPages);
+	}
+	
 	private void updateCommonPars() {
+		updateSelectedPages();
+		
 		commonPars = new CommonExportPars();
 		commonPars.setWriteTextOnWordLevel(isWordBased());
 		commonPars.setDoBlackening(isDoBlackening());
