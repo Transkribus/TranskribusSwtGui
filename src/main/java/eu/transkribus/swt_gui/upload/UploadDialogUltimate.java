@@ -646,11 +646,14 @@ public class UploadDialogUltimate extends Dialog {
 								Display.getDefault().syncExec(r);
 							}
 						}
+						logger.debug("Finished checking directories on server.");
 					}
 				};
 				
 				try {
 					pbd.open(r, "Checking remote directories...", true);
+					logger.debug("OK pressed.");
+					super.okPressed();
 				} catch (Throwable e) {
 					DialogUtil.showErrorMessageBox(getParentShell(), "Error", e.getMessage());
 					logger.error("Error in ProgressMonitorDialog", e);

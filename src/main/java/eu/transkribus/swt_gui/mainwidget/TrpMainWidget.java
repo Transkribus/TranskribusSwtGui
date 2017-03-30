@@ -2524,22 +2524,21 @@ public class TrpMainWidget {
 						"The FTP upload runs as background process and last for some time.\n"
 								+ "Look into Jobs tab!\nReloading the collection shows the already uploaded documents.",
 						2, true);
-//========== Commented for debuggin ======
-//				for (final TrpDocDir d : dirs) {
-//					try {
-//						storage.uploadDocumentFromPrivateFtp(cId, d.getName(), true);
-//					} catch (final ClientErrorException ie) {
-//
-//						if (ie.getResponse().getStatus() == 409) { // conflict! (= duplicate name)
-//							if (DialogUtil.showYesNoDialog(getShell(), "Duplicate title", ie.getMessage() + "\n\nIngest anyway?") == SWT.YES) {
-//								storage.uploadDocumentFromPrivateFtp(cId, d.getName(), false);
-//							}
-//						}
-//					}
-//				}
-//
-//				storage.sendJobListUpdateEvent();
-//==============================END
+				for (final TrpDocDir d : dirs) {
+					try {
+						storage.uploadDocumentFromPrivateFtp(cId, d.getName(), true);
+					} catch (final ClientErrorException ie) {
+
+						if (ie.getResponse().getStatus() == 409) { // conflict! (= duplicate name)
+							if (DialogUtil.showYesNoDialog(getShell(), "Duplicate title", ie.getMessage() + "\n\nIngest anyway?") == SWT.YES) {
+								storage.uploadDocumentFromPrivateFtp(cId, d.getName(), false);
+							}
+						}
+					}
+				}
+
+				storage.sendJobListUpdateEvent();
+
 				
 //				ui.selectJobListTab();
 

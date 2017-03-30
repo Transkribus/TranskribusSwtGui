@@ -23,3 +23,6 @@ gtk3, which is buggy for linux with SWT!
 ->  In Eclipse use the TrpMainWidget class to start the program, within the packaged application use the TrpGui class which 
 explicitely loads the correct SWT jar for the current platform (this won't work inside eclipse!)
 
+-> if mvn install fails on Ubuntu saying ".../windres -> file not found" (or something like that) you have to install the 32bit compatibility libs:
+	sudo apt-get install lib32ncurses5 lib32z1
+
