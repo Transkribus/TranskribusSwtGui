@@ -160,6 +160,16 @@ public class ImageEnhanceDialog extends Dialog {
 		return defaultGammaBtn;
 	}
 	
+	public void setActive() {
+
+		Shell shell = this.getShell();
+		if(shell == null || shell.isDisposed()){
+			open();
+		}else{
+			shell.setActive();	
+			shell.setFocus();
+		}
+	}
 	
 
 }
