@@ -22,6 +22,10 @@ public class CommonExportDialogTest {
 				SWTUtil.centerShell(getShell());
 				
 				List<TrpPage> pages = new ArrayList<>();
+				pages.add(null);
+				pages.add(null);
+				pages.add(null);
+				
 				CommonExportDialog ced = new CommonExportDialog(getShell(), 0, null, "docName", pages);
 				ced.open();
 
