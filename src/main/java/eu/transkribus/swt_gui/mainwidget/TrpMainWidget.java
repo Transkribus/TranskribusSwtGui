@@ -2,8 +2,6 @@ package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -19,9 +17,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
@@ -48,7 +43,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.DeviceData;
@@ -87,7 +81,6 @@ import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
-import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
@@ -98,14 +91,13 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.docx.DocxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxTableBuilder;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
-import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiExportMode;
-import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiLinebreakMode;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
@@ -141,7 +133,6 @@ import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.AutoSaveDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
-import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.dialogs.BugDialog;
 import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
@@ -152,6 +143,7 @@ import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
+import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
@@ -2795,15 +2787,24 @@ public class TrpMainWidget {
 					pages = pages.substring(0, pages.length()-1);
 				}
 				
+				TeiExportPars pars =  exportDiag.getTeiExportPars();
+				
+				boolean doTeiWithNoZones = pars.hasZones();
+				boolean doTeiWithZonePerRegion = pars.isRegionZones();
+				boolean doTeiWithZonePerLine = pars.isLineZones();
+				boolean doTeiWithZonePerWord = pars.isWordZones();
+				boolean doTeiWithLineTags = pars.isLineTagType();
+				boolean doTeiWithLineBreaks = pars.isLineBreakType();
+				
 				logger.debug("server export - is page export " + exportDiag.isPageExport());
 				String jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), pages,
 						exportDiag.isMetsExport(), exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), 
 						exportDiag.isSplitUpWords(), exportDiag.isPdfExport(), exportDiag.isTeiExport(), exportDiag.isDocxExport(),
 						exportDiag.isXlsxExport(), exportDiag.isTableExport(), exportDiag.isExportImagesOnly(),
 						exportDiag.isExportImagesPlusText(), exportDiag.isAddExtraTextPages2PDF(), exportDiag.isHighlightTags(),
-						(exportDiag.getTeiExportMode() == TeiExportMode.SIMPLE), (exportDiag.getTeiExportMode() == TeiExportMode.ZONE_PER_PAR), 
-						(exportDiag.getTeiExportMode() == TeiExportMode.ZONE_PER_LINE), (exportDiag.getTeiExportMode() == TeiExportMode.ZONE_PER_WORD),
-						(exportDiag.getTeiLinebreakMode() == TeiLinebreakMode.LINE_TAG), (exportDiag.getTeiLinebreakMode() == TeiLinebreakMode.LINE_BREAKS),
+						doTeiWithNoZones, doTeiWithZonePerRegion, 
+						doTeiWithZonePerLine, doTeiWithZonePerWord,
+						doTeiWithLineTags, doTeiWithLineBreaks,
 						exportDiag.isTagExport(), exportDiag.isPreserveLinebreaks(), exportDiag.isMarkUnclearWords(),
 						exportDiag.isKeepAbbreviations(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 						exportDiag.isWordBased(), exportDiag.isDoBlackening(), exportDiag.isCreateTitlePage(), 
@@ -2816,7 +2817,7 @@ public class TrpMainWidget {
 					storage.sendJobListUpdateEvent();
 					mw.updatePageLock();
 					
-					DialogUtil.showInfoMessageBox(mw.getShell(), "Export Job started", "Started export job with id = "+jobId+"/n After finishing you will get a link for download");
+					DialogUtil.showInfoMessageBox(mw.getShell(), "Export Job started", "Started export job with id = "+jobId+"\n After it is finished, you will receive a download link");
 				}
 				return;
 			}
@@ -3502,19 +3503,13 @@ public class TrpMainWidget {
 
 	public void exportTei(final File file, final CommonExportDialog exportDiag) throws Throwable {
 		try {
-
-			final TeiExportPars pars = new TeiExportPars();
-			pars.mode = exportDiag.getTeiExportMode();
-			pars.linebreakMode = exportDiag.getTeiLinebreakMode();
-			pars.writeTextOnWordLevel = exportDiag.isWordBased();
-			pars.doBlackening = exportDiag.isDoBlackening();
-			pars.pageIndices = exportDiag.getSelectedPages();
-			pars.selectedTags = exportDiag.getSelectedTagsList();
+			final TeiExportPars pars = exportDiag.getTeiExportPars();
+			final CommonExportPars commonPars = exportDiag.getCommonExportPars();
 
 			if (file == null)
 				return;
 
-			logger.info("TEI export. Mode = " + pars.mode);
+			logger.info("TEI export, pars = "+pars+" commonPars = "+commonPars);
 
 			lastExportFolder = file.getParentFile().getAbsolutePath();
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
@@ -3522,7 +3517,7 @@ public class TrpMainWidget {
 					try {
 						logger.debug("creating TEI document, pars: " + pars);
 
-						storage.exportTei(file, pars, monitor);
+						storage.exportTei(file, commonPars, pars, monitor);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;

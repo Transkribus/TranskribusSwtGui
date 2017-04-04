@@ -129,14 +129,13 @@ public class DocJobUpdater {
 					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
 				}
 				else if (store.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
-					if (job.getJobImpl().equals(JobImpl.DocExportJob.toString())) {
-						ShowServerExportLinkDialog linkDiag = new ShowServerExportLinkDialog(mw.getShell(), job.getResult());
-						linkDiag.open();
-						//DialogUtil.showDownloadLinkDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?"); 
-						return;
-					}
+//					if (job.getJobImpl().equals(JobImpl.DocExportJob.toString())) {
+//						ShowServerExportLinkDialog linkDiag = new ShowServerExportLinkDialog(mw.getShell(), job.getResult());
+//						linkDiag.open();
+//						return;
+//					}
 					// reload page if doc and page is open:					
-					else if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?") == SWT.YES) {
+					if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?") == SWT.YES) {
 						logger.debug("reloading page!");
 						mw.reloadCurrentPage(true);						
 					}

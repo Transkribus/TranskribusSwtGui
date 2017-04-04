@@ -25,7 +25,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.NotImplementedException;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
@@ -45,6 +44,9 @@ import eu.transkribus.core.io.DocExporter;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocWriter;
 import eu.transkribus.core.io.UnsupportedFormatException;
+import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.EdFeature;
 import eu.transkribus.core.model.beans.EdOption;
 import eu.transkribus.core.model.beans.HtrModel;
@@ -59,16 +61,12 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpWordgraph;
-import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
-import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
@@ -77,6 +75,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
+import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.alto.AltoExporter;
 import eu.transkribus.core.model.builder.pdf.PdfExporter;
 import eu.transkribus.core.model.builder.tei.ATeiBuilder;
@@ -90,7 +89,6 @@ import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.dialogs.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.ImageDataDacheFactory;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.CollectionsLoadEvent;
@@ -1693,7 +1691,7 @@ public class Storage {
 		return pdf.getAbsolutePath();
 	}
 
-	public String exportTei(File tei, TeiExportPars pars, IProgressMonitor monitor) throws IOException, Exception {
+	public String exportTei(File tei, CommonExportPars commonPars, TeiExportPars pars, IProgressMonitor monitor) throws IOException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
 		if (tei.isDirectory()) {
@@ -1706,7 +1704,7 @@ public class Storage {
 		logger.debug("Trying to export TEI XML file to " + tei.getAbsolutePath());
 		
 //		TrpTeiDomBuilder builder = new TrpTeiDomBuilder(doc, mode, monitor, pageIndices);
-		ATeiBuilder builder = new TrpTeiStringBuilder(doc, pars, monitor);
+		ATeiBuilder builder = new TrpTeiStringBuilder(doc, commonPars, pars, monitor);
 		builder.buildTei();
 		
 		if (monitor != null)

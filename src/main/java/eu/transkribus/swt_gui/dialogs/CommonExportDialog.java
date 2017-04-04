@@ -6,14 +6,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -38,9 +35,9 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportUtils;
-import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiExportMode;
-import eu.transkribus.core.model.builder.tei.TeiExportPars.TeiLinebreakMode;
+import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
@@ -86,14 +83,17 @@ public class CommonExportDialog extends Dialog {
 	boolean doServerExport = false;
 	
 	Button noZonesRadio;
+//	CheckBoxGroup zonesGroup;
 	Button zonePerParRadio;
 	Button zonePerLineRadio;
 	Button zonePerWordRadio;
+	Button zonesCoordsAsBoundingBoxChck;
+	Button pbImageNameXmlIdChck;
 	
 	Button lineTagsRadio, lineBreaksRadio;
 	
-	TeiExportMode teiExportMode;
-	TeiLinebreakMode teiLinebreakMode;
+	CommonExportPars commonPars;
+	TeiExportPars teiPars;
 	
 	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, xlsxExport, tableExport, zipExport;
 
@@ -130,7 +130,7 @@ public class CommonExportDialog extends Dialog {
 	String versionStatus;
 	
 	public CommonExportDialog(Shell parent, int style, String lastExportFolder, String docName, List<TrpPage> pages) {
-		super(parent, style |= SWT.DIALOG_TRIM);
+		super(parent, style |= SWT.DIALOG_TRIM | SWT.RESIZE);
 		this.lastExportFolder = lastExportFolder;
 		this.docName = docName;
 		this.pages = pages;
@@ -144,38 +144,26 @@ public class CommonExportDialog extends Dialog {
 	 */
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle() | SWT.RESIZE);
-//		shell = new Shell(Display.getCurrent());
 		
-//		shell.setSize(673, 420);
-		shell.setSize(700, 450);
+		shell.setSize(750, 600);
 		shell.setText("Export document");
 //		shell.setLayout(new GridLayout(1, false));
 		shell.setLayout(new FillLayout(SWT.VERTICAL));
-
-		
-//		ScrolledComposite hotzenplotz = new ScrolledComposite(shell, SWT.V_SCROLL);
-
-		
-//		Composite mainComp = new Composite(shell, SWT.NONE);
-//		mainComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//		mainComp.setLayout(new GridLayout(1, false));
-		
 		
 		SashForm sf = new SashForm(shell, SWT.VERTICAL);
 		sf.setLayout(new GridLayout(1, false));		
 		
 	    ScrolledComposite sc = new ScrolledComposite(sf, SWT.H_SCROLL
 		        | SWT.V_SCROLL);
-	    
 
-	    
 	    Composite mainComp = new Composite(sc, SWT.NONE);
 	    mainComp.setLayout(new GridLayout(1,false));
 		
 		exportPathComp = new ExportPathComposite(mainComp, lastExportFolder, "File/Folder name: ", null, docName);
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
-		Composite choiceComposite = new Composite(mainComp, SWT.NONE);
+		SashForm choiceComposite = new SashForm(mainComp, SWT.HORIZONTAL);
+//		Composite choiceComposite = new Composite(mainComp, SWT.NONE);
 		choiceComposite.setLayout(new GridLayout(2, false));
 		choiceComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
 		
@@ -226,6 +214,8 @@ public class CommonExportDialog extends Dialog {
 	    Composite otherOptionsComp = new Composite(optionsGroup, SWT.NONE);
 	    otherOptionsComp.setLayout(new GridLayout(1, false));
 	    otherOptionsComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	    
+	    createChooseVersionGroup(otherOptionsComp);	    
 	    
 		wordBasedBtn = new Button(otherOptionsComp, SWT.CHECK);
 		wordBasedBtn.setText("Word based");
@@ -290,37 +280,7 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 		
-	    // Create the first Group
-	    Group group2 = new Group(choiceComposite, SWT.SHADOW_IN);
-	    group2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
-	    group2.setText("Choose version status");
-	    group2.setLayout(new GridLayout(1, false));
-	    
-	    final Combo statusCombo = new Combo(group2, SWT.DROP_DOWN | SWT.READ_ONLY);
-
-	    int size = EnumUtils.stringsArray(EditStatus.class).length + 2;
-	    
-	    String items[] = new String[size];
-	    
-	    items[0] = "Latest version";
-	    setVersionStatus(items[0]);
-	    items[1] = "Loaded version (for current page)";
-	    int a = 2;
-
-	    for (String s : EnumUtils.stringsArray(EditStatus.class)){
-	    	items[a++] = s;
-	    	//logger.debug("editStatus " + s);
-	    }
-	    
-		statusCombo.setItems(items);
-		statusCombo.select(0);
-		
-		statusCombo.addSelectionListener(new SelectionAdapter() {
-	        @Override
-	        public void widgetSelected(SelectionEvent event) {
-	        	setVersionStatus(statusCombo.getText());
-	        }
-		});
+		choiceComposite.setWeights(new int[]{25, 75});
 
 	    b0.addSelectionListener(new SelectionAdapter() {
 	        @Override
@@ -473,7 +433,7 @@ public class CommonExportDialog extends Dialog {
 	    });
 	    
 	    sc.setContent(mainComp);
-	    sc.setMinSize(600, 300);
+	    sc.setMinSize(600, 200);
 	    
 	    sc.setExpandHorizontal(true);
 	    sc.setExpandVertical(true);
@@ -491,8 +451,11 @@ public class CommonExportDialog extends Dialog {
 		exportButton.setText("OK");
 		exportButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				updateTeiExportMode();
-				updateLineBreakMode();
+//				updateTeiZoneExportMode();
+//				updateLineBreakMode();
+				
+				updateCommonPars();
+				updateTeiPars();
 				
 				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isXlsxExport()&& !isTableExport()){
 					DialogUtil.showInfoMessageBox(shell, "Missing export format", "Please choose an export format to continue");
@@ -537,14 +500,42 @@ public class CommonExportDialog extends Dialog {
 		// save values when shell is disposed:
 		shell.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
-				try {
-					selectedPages = docPagesSelector.getSelectedPageIndices();
-					
-				} catch (IOException e1) {
-					selectedPages = null;
-				}
-				logger.debug("selectedPages: "+selectedPages);
+				updateSelectedPages();
 			}
+		});
+	}
+	
+	private void createChooseVersionGroup(Composite parent) {
+	    // Create the first Group
+	    Group group2 = new Group(parent, SWT.SHADOW_IN);
+	    group2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
+	    group2.setText("Version status");
+	    group2.setLayout(new GridLayout(1, false));
+	    
+	    final Combo statusCombo = new Combo(group2, SWT.DROP_DOWN | SWT.READ_ONLY);
+
+	    int size = EnumUtils.stringsArray(EditStatus.class).length + 2;
+	    
+	    String items[] = new String[size];
+	    
+	    items[0] = "Latest version";
+	    setVersionStatus(items[0]);
+	    items[1] = "Loaded version (for current page)";
+	    int a = 2;
+
+	    for (String s : EnumUtils.stringsArray(EditStatus.class)){
+	    	items[a++] = s;
+	    	//logger.debug("editStatus " + s);
+	    }
+	    
+		statusCombo.setItems(items);
+		statusCombo.select(0);
+		
+		statusCombo.addSelectionListener(new SelectionAdapter() {
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	        	setVersionStatus(statusCombo.getText());
+	        }
 		});
 	}
 	
@@ -845,28 +836,57 @@ public class CommonExportDialog extends Dialog {
 //		Label modeLabel = new Label(modeComposite, SWT.NONE);
 //		modeLabel.setText("TEI Mode: ");
 		
-		Group zonesGroup = new Group(teiComposite, 0);
-		zonesGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
+//		zonesGroup = new CheckBoxGroup(teiComposite, 0);
+		Group zonesGroup = new Group(teiComposite, SWT.CHECK);
+		zonesGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		zonesGroup.setLayout(new GridLayout(1, true));
 		zonesGroup.setText("Zones");
+//		zonesGroup.activate();
 		
-		noZonesRadio = new Button(zonesGroup, SWT.RADIO);
+//		zonesGroup.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				System.out.println("selected!!");
+//				zonePerParRadio.setEnabled(zonesGroup.isActivated());
+//				zonePerLineRadio.setEnabled(zonesGroup.isActivated());
+//				zonePerWordRadio.setEnabled(zonesGroup.isActivated());
+//				zonesCoordsAsBoundingBoxChck.setEnabled(zonesGroup.isActivated());
+//			}
+//		});
+
+		noZonesRadio = new Button(zonesGroup, SWT.CHECK);
 		noZonesRadio.setText("No zones");
 		noZonesRadio.setToolTipText("Create no zones, just paragraphs");
+		noZonesRadio.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				zonePerParRadio.setEnabled(!noZonesRadio.getSelection());
+				zonePerLineRadio.setEnabled(!noZonesRadio.getSelection());
+				zonePerWordRadio.setEnabled(!noZonesRadio.getSelection());
+				zonesCoordsAsBoundingBoxChck.setEnabled(!noZonesRadio.getSelection());
+			}
+		});
 		
-		zonePerParRadio = new Button(zonesGroup, SWT.RADIO);
+		zonePerParRadio = new Button(zonesGroup, SWT.CHECK);
 		zonePerParRadio.setText("Zone per region");
 		zonePerParRadio.setToolTipText("Create a zone element for each region");
-//		zonePerParRadio.setSelection(true);
+		zonePerParRadio.setSelection(true);
 		
-		zonePerLineRadio = new Button(zonesGroup, SWT.RADIO);
+		zonePerLineRadio = new Button(zonesGroup, SWT.CHECK);
 		zonePerLineRadio.setToolTipText("Create a zone element for each region and line");
 		zonePerLineRadio.setText("Zone per line");
 		zonePerLineRadio.setSelection(true);
 		
-		zonePerWordRadio = new Button(zonesGroup, SWT.RADIO);
+		zonePerWordRadio = new Button(zonesGroup, SWT.CHECK);
 		zonePerWordRadio.setToolTipText("Create a zone element for each region, line and word");
 		zonePerWordRadio.setText("Zone per word");
+		
+		zonesCoordsAsBoundingBoxChck = new Button(zonesGroup, SWT.CHECK);
+		zonesCoordsAsBoundingBoxChck.setToolTipText("By default all polygon coordinates are exported as 'points' attribute in the zone tag.\nWhen checked, coordinates are reduced to bounding boxes using 'ulx, uly, lrx, lry' attributes");
+		zonesCoordsAsBoundingBoxChck.setText("Use bounding box coordinates");
+		
+		pbImageNameXmlIdChck = new Button(zonesGroup, SWT.CHECK);
+		pbImageNameXmlIdChck.setToolTipText("Use the image name as xml:id attribute for page break (pb) elements\nWarning: xml:id's starting with a number are not valid!");
+		pbImageNameXmlIdChck.setText("Image name as <pb> xml:id"); 
 		
 		Group linebreakTypeGroup = new Group(teiComposite, 0);
 		linebreakTypeGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
@@ -1084,47 +1104,56 @@ public class CommonExportDialog extends Dialog {
 		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport()) && (isHighlightTags() || isTagExport() || isXlsxExport());
 	}
 	
-	private void updateTeiExportMode() {
-		teiExportMode = TeiExportMode.ZONE_PER_PAR;
-		
-		if (noZonesRadio.getSelection()) {
-			teiExportMode = TeiExportMode.SIMPLE;
-		} else if (zonePerParRadio.getSelection()) {
-			teiExportMode = TeiExportMode.ZONE_PER_PAR;
-		} else if (zonePerLineRadio.getSelection()) {
-			teiExportMode = TeiExportMode.ZONE_PER_LINE;
-		} else if (zonePerWordRadio.getSelection()) {
-			teiExportMode = TeiExportMode.ZONE_PER_WORD;
-		} else {
-			logger.error("No TEI export mode could be set - should never happen!");
+	private void updateSelectedPages() {
+		try {
+			selectedPages = docPagesSelector.getSelectedPageIndices();
+			
+		} catch (IOException e1) {
+			selectedPages = null;
 		}
+		logger.debug("selectedPages: "+selectedPages);
 	}
 	
-	private void updateLineBreakMode() {
-		teiLinebreakMode = TeiLinebreakMode.LINE_TAG;
+	private void updateCommonPars() {
+		updateSelectedPages();
 		
+		commonPars = new CommonExportPars();
+		commonPars.setWriteTextOnWordLevel(isWordBased());
+		commonPars.setDoBlackening(isDoBlackening());
+		commonPars.setPageIndices(getSelectedPages());
+		commonPars.setSelectedTags(getSelectedTagsList());
+	}
+	
+	public CommonExportPars getCommonExportPars() {
+		return commonPars;
+	}
+	
+	private void updateTeiPars() {
+		boolean noZones = noZonesRadio.getSelection();
+		boolean regions = noZones ? false : zonePerParRadio.getSelection();
+		boolean lines = noZones ? false : zonePerLineRadio.getSelection();
+		boolean words = noZones ? false : zonePerWordRadio.getSelection();
+		boolean boundingBoxCoords = zonesCoordsAsBoundingBoxChck.getSelection();
+		String linebreakType = TeiExportPars.LINE_BREAK_TYPE_LINE_TAG;
 		if (lineBreaksRadio.getSelection()) {
-			teiLinebreakMode = TeiLinebreakMode.LINE_BREAKS;
-		} else if (lineTagsRadio.getSelection()) {
-			teiLinebreakMode = TeiLinebreakMode.LINE_TAG;
-		} else {
-			logger.error("No TEI linebreak mode could be set - should never happen!");
+			linebreakType = TeiExportPars.LINE_BREAK_TYPE_LINE_BREAKS;
+		}
+		if (lineTagsRadio.getSelection()) {
+			linebreakType = TeiExportPars.LINE_BREAK_TYPE_LINE_TAG;
 		}
 		
+		teiPars = new TeiExportPars(regions, lines, words, boundingBoxCoords, linebreakType);
+		teiPars.setPbImageNameAsXmlId(pbImageNameXmlIdChck.getSelection());
 	}
-	
+		
 	private void updatePages() {
 //		startPage = startSpinner.getSelection();
 //		endPage = endSpinner.getSelection();
 		//logger.debug("pages " + startPage + "-" + endPage);
 	}
-	
-	public TeiExportMode getTeiExportMode(){
-		return teiExportMode;
-	}
-	
-	public TeiLinebreakMode getTeiLinebreakMode() {
-		return teiLinebreakMode;
+		
+	public TeiExportPars getTeiExportPars() {
+		return teiPars;
 	}
 	
 	public boolean isWordBased() {
