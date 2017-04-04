@@ -387,7 +387,9 @@ public class TextRecognitionConfigDialog extends Dialog {
 		
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		
-		XYSeries series = new XYSeries("CER Train");
+		final String cerTrainKey = "CER Train";
+		XYSeries series = new XYSeries(cerTrainKey);
+		series.setDescription(cerTrainKey);
 	    for(int i = 0; i < cerTrainSetVals.length; i++) {
 	    	double val = cerTrainSetVals[i];
 	    	series.add(i+1, val);
@@ -395,7 +397,9 @@ public class TextRecognitionConfigDialog extends Dialog {
 		dataset.addSeries(series);	
 		
 		if(cerTestSetVals.length > 0) {
-			XYSeries testSeries = new XYSeries("CER Test");
+			final String cerTestKey = "CER Test";
+			XYSeries testSeries = new XYSeries(cerTestKey);
+			testSeries.setDescription(cerTestKey);
 		    for(int i = 0; i < cerTestSetVals.length; i++) {
 		    	double val = cerTestSetVals[i];
 		    	testSeries.add(i+1, val);
@@ -404,7 +408,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 		}
 		
 		JFreeChart chart = ChartFactory.createXYLineChart(
-				"CER Series", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, false, true, false);
+				"CER Series", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, true, true, false);
 
 		XYPlot plot = (XYPlot)chart.getPlot();
 		LogAxis logAxis = new LogAxis("CER");
