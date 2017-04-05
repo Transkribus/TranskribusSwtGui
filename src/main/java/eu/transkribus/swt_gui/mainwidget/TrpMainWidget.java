@@ -2678,7 +2678,12 @@ public class TrpMainWidget {
 		
 		String filePath = DialogUtil.showOpenFileDialog(mw.getShell(), "Add page", null, extArr);
 		logger.debug("Uploading new page from: " + filePath);
+		if(filePath == null){
+			logger.error("ERROR: Bad filepath");
+			return;
+		}
 		File imgFile = new File(filePath);
+		
 		logger.debug(Long.toString(imgFile.length()));
 		//Set new pageNr
 		int pageNr = storage.getNPages() + 1;
