@@ -93,9 +93,12 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportUtils;
+import eu.transkribus.core.model.builder.alto.AltoExportPars;
 import eu.transkribus.core.model.builder.docx.DocxBuilder;
+import eu.transkribus.core.model.builder.docx.DocxExportPars;
 import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxTableBuilder;
+import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
@@ -2775,23 +2778,18 @@ public class TrpMainWidget {
 			
 			String pages = exportDiag.getPagesStr();
 			Set<Integer> pageIndices = exportDiag.getPageIndices();
+			
 			CommonExportPars commonPars = exportDiag.getCommonExportPars();
 			TeiExportPars teiPars =  exportDiag.getTeiExportPars();
+			PdfExportPars pdfPars = exportDiag.getPdfPars();
+			DocxExportPars docxPars = exportDiag.getDocxPars();
+			AltoExportPars altoPars = exportDiag.getAltoPars();
 
-			if (exportDiag.isDoServerExport()) {				
-				logger.debug("server export - is page export " + exportDiag.isPageExport());
-				String jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), pages,
-						exportDiag.isMetsExport(), exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), 
-						exportDiag.isSplitUpWords(), exportDiag.isPdfExport(), exportDiag.isTeiExport(), exportDiag.isDocxExport(),
-						exportDiag.isXlsxExport(), exportDiag.isTableExport(), exportDiag.isExportImagesOnly(),
-						exportDiag.isExportImagesPlusText(), exportDiag.isAddExtraTextPages2PDF(), exportDiag.isHighlightTags(),
-						teiPars.hasZones(), teiPars.isRegionZones(), 
-						teiPars.isLineZones(), teiPars.isWordZones(),
-						teiPars.isLineTagType(), teiPars.isLineBreakType(),
-						exportDiag.isTagExport(), exportDiag.isPreserveLinebreaks(), exportDiag.isMarkUnclearWords(),
-						exportDiag.isKeepAbbreviations(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
-						commonPars.isWriteTextOnWordLevel(), commonPars.isDoBlackening(), exportDiag.isCreateTitlePage(), 
-						exportDiag.getVersionStatus());
+			if (exportDiag.isDoServerExport()) {			
+				logger.debug("server export, commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
+				String jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), 
+											commonPars, altoPars, pdfPars, teiPars, docxPars);
+				
 				if (jobId != null) {
 					logger.debug("started job with id = "+jobId);
 								
@@ -2856,9 +2854,9 @@ public class TrpMainWidget {
 
 				doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
 
-				doXlsxExport = (exportDiag.isXlsxExport() && exportDiag.getExportPathComp().checkExportFile(xlsxExportFile, ".xlsx", getShell()));
+				doXlsxExport = (exportDiag.isTagXlsxExport() && exportDiag.getExportPathComp().checkExportFile(xlsxExportFile, ".xlsx", getShell()));
 				
-				doTableExport = (exportDiag.isTableExport() && exportDiag.getExportPathComp().checkExportFile(tableExportFile, ".xlsx", getShell()));
+				doTableExport = (exportDiag.isTableXlsxExport() && exportDiag.getExportPathComp().checkExportFile(tableExportFile, ".xlsx", getShell()));
 			}
 
 			doZipExport = (exportDiag.isZipExport() && exportDiag.getExportPathComp().checkExportFile(zipExportFile, ".zip", getShell()));
@@ -2967,12 +2965,12 @@ public class TrpMainWidget {
 				if (exportDiag.isTeiExport())
 					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag);
 				if (exportDiag.isDocxExport())
-					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isTagExport(), doBlackening,
+					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isDocxTagExport(), doBlackening,
 							createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 							exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied());
-				if (exportDiag.isXlsxExport())
-					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport());
-				if (exportDiag.isTableExport())
+				if (exportDiag.isTagXlsxExport())
+					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport());
+				if (exportDiag.isTableXlsxExport())
 					exportTableXlsx(new File(tempZipDirParent + "/" + dir.getName() + "_tables.xlsx"), pageIndices, selectedTags);
 
 				//createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".zip");
@@ -3047,7 +3045,7 @@ public class TrpMainWidget {
 
 			if (doDocxExport) {
 
-				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, createTitle,
+				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isDocxTagExport(), doBlackening, createTitle,
 						exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 						exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied());
 				if (exportFormats != "") {
@@ -3059,7 +3057,7 @@ public class TrpMainWidget {
 
 			if (doXlsxExport) {
 
-				if (exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport())){
+				if (exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport())){
 					if (exportFormats != "") {
 						exportFormats += " and ";
 					}

@@ -1,20 +1,15 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.util.StringUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -39,8 +34,10 @@ import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportUtils;
+import eu.transkribus.core.model.builder.alto.AltoExportPars;
+import eu.transkribus.core.model.builder.docx.DocxExportPars;
+import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
-import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
@@ -62,7 +59,7 @@ public class CommonExportDialog extends Dialog {
 	Button blackeningBtn;
 	Button createTitlePageBtn;
 	boolean wordBased=false;
-	boolean tagExport=false;
+	boolean docxTagExport=false;
 	boolean doBlackening = false;
 	boolean createTitlePage = false;
 	
@@ -97,8 +94,11 @@ public class CommonExportDialog extends Dialog {
 	
 	CommonExportPars commonPars;
 	TeiExportPars teiPars;
-	
-	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, xlsxExport, tableExport, zipExport;
+	AltoExportPars altoPars;
+	PdfExportPars pdfPars;
+	DocxExportPars docxPars;
+
+	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, tagXlsxExport, tableXlsxExport, zipExport;
 
 	String fileNamePattern = "${filename}";
 	Button addExtraTextPagesBtn;
@@ -384,7 +384,7 @@ public class CommonExportDialog extends Dialog {
 	        @Override
 	        public void widgetSelected(SelectionEvent event) {
 	            Button btn = (Button) event.getSource();
-            	setXlsxExport(btn.getSelection());
+            	setTagXlsxExport(btn.getSelection());
 	            showPageChoice();
 	            showTagChoice();
 	            shell.layout();
@@ -397,7 +397,7 @@ public class CommonExportDialog extends Dialog {
 	        @Override
 	        public void widgetSelected(SelectionEvent event) {
 	            Button btn = (Button) event.getSource();
-            	setTableExport(btn.getSelection());
+            	setTableXlsxExport(btn.getSelection());
 	            showPageChoice();
 	            showTagChoice();
 	            shell.layout();
@@ -458,7 +458,7 @@ public class CommonExportDialog extends Dialog {
 				
 				updateParameters();
 				
-				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isXlsxExport()&& !isTableExport()){
+				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isTagXlsxExport()&& !isTableXlsxExport()){
 					DialogUtil.showErrorMessageBox(shell, "Missing export format", "Please choose an export format to continue");
 					return;
 				}
@@ -929,7 +929,7 @@ public class CommonExportDialog extends Dialog {
 
 		exportTagsBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				setTagExport(exportTagsBtn.getSelection());
+				setDocxTagExport(exportTagsBtn.getSelection());
 			}
 		});
 		
@@ -1086,15 +1086,15 @@ public class CommonExportDialog extends Dialog {
 	}
 	
 	public boolean isPageableExport() {
-		return isMetsExport() || isPdfExport() || isDocxExport() || isXlsxExport() || isTableExport() || isTeiExport();
+		return isMetsExport() || isPdfExport() || isDocxExport() || isTagXlsxExport() || isTableXlsxExport() || isTeiExport();
 	}
 		
 	public boolean isTagableExport(){
-		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport());
+		return (isPdfExport() || isDocxExport() || isTagXlsxExport() || isTeiExport());
 	}
 	
 	public boolean isTagableExportChosen(){
-		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport()) && (isHighlightTags() || isTagExport() || isXlsxExport());
+		return (isPdfExport() || isDocxExport() || isTagXlsxExport() || isTeiExport()) && (isHighlightTags() || isDocxTagExport() || isTagXlsxExport());
 	}
 	
 	private void updateSelectedPages() {
@@ -1120,17 +1120,19 @@ public class CommonExportDialog extends Dialog {
 		
 		if(isTagableExport()) { // needed here?
 			setSelectedTagsList(tagsSelector.getCheckedTagnames());
-			setTagExport(isTagExport());
+			setDocxTagExport(isDocxTagExport());
 		}				
 
 		updateCommonPars();
+		updateAltoPars();
 		updateTeiPars();
-		
+		updatePdfPars();
+		updateDocxPars();
 	}
 		
 	private void updateCommonPars() {
 		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, 
-				pdfExport, teiExport, docxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList());
+				pdfExport, teiExport, docxExport, tagXlsxExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList());
 	}
 	
 	public CommonExportPars getCommonExportPars() {
@@ -1154,9 +1156,34 @@ public class CommonExportDialog extends Dialog {
 		teiPars = new TeiExportPars(regions, lines, words, boundingBoxCoords, linebreakType);
 		teiPars.setPbImageNameAsXmlId(pbImageNameXmlIdChck.getSelection());
 	}
-		
+	
 	public TeiExportPars getTeiExportPars() {
 		return teiPars;
+	}
+	
+	private void updateAltoPars() {
+		altoPars = new AltoExportPars(splitUpWords);
+	}
+	
+	public AltoExportPars getAltoPars() {
+		return altoPars;
+	}
+	
+	private void updatePdfPars() {		
+		pdfPars = new PdfExportPars(exportImagesOnly, exportImagesPlusText, addExtraTextPages2PDF, highlightTags);
+	}
+	
+	public PdfExportPars getPdfPars() {
+		return pdfPars;
+	}
+	
+	private void updateDocxPars() {
+		docxPars = new DocxExportPars(docxTagExport, preserveLinebreaks, markUnclearWords, 
+				keepAbbreviations, expandAbbreviations, substituteAbbreviations);
+	}
+	
+	public DocxExportPars getDocxPars() {
+		return docxPars;
 	}
 	
 	public boolean isWordBased() {
@@ -1263,16 +1290,15 @@ public class CommonExportDialog extends Dialog {
 		this.selectedTagsList = set;
 	}
 
-	public boolean isTagExport() {
-		return tagExport;
+	public boolean isDocxTagExport() {
+		return docxTagExport;
 	}
 
-	public void setTagExport(boolean tagExport) {
-		this.tagExport = tagExport;
+	public void setDocxTagExport(boolean docxTagExport) {
+		this.docxTagExport = docxTagExport;
 	}
 	
 	public boolean isPreserveLinebreaks() {
-		// TODO Auto-generated method stub
 		return preserveLinebreaks;
 	}
 	
@@ -1289,20 +1315,20 @@ public class CommonExportDialog extends Dialog {
 		this.markUnclearWords = markUnclear;
 	}
 	
-	public boolean isXlsxExport() {
-		return xlsxExport;
+	public boolean isTagXlsxExport() {
+		return tagXlsxExport;
 	}
 
-	public void setXlsxExport(boolean xlsxExport) {
-		this.xlsxExport = xlsxExport;
+	public void setTagXlsxExport(boolean tagXlsxExport) {
+		this.tagXlsxExport = tagXlsxExport;
 	}
 	
-	public boolean isTableExport() {
-		return tableExport;
+	public boolean isTableXlsxExport() {
+		return tableXlsxExport;
 	}
 
-	public void setTableExport(boolean tableExport) {
-		this.tableExport = tableExport;
+	public void setTableXlsxExport(boolean tableExport) {
+		this.tableXlsxExport = tableExport;
 	}
 
 	public void setAddExtraTextPages2PDF(boolean addExtraTextPages2PDF) {
@@ -1310,7 +1336,6 @@ public class CommonExportDialog extends Dialog {
 	}
 
 	public boolean isHighlightTags() {
-		// TODO Auto-generated method stub
 		return highlightTags;
 	}
 
