@@ -1598,9 +1598,13 @@ public class Storage {
 	}
 	
 	public void deletePage(int colId, int docId, int pageNr) throws NoConnectionException, SessionExpiredException, IllegalArgumentException {
-		checkConnection(true);
-		
+		checkConnection(true);		
 		conn.deletePage(colId, docId, pageNr);
+	}
+	
+	public void addPage(final int colId, final int docId, final int pageNr, File imgFile, IProgressMonitor monitor) throws NoConnectionException{
+		checkConnection(true);
+		conn.addPage(colId, docId, pageNr, imgFile, monitor);
 	}
 
 	public String exportDocument(File dir, Set<Integer> pageIndices, boolean exportImg, boolean exportPage, boolean exportAlto, boolean splitIntoWordsInAlto, final String fileNamePattern, final IProgressMonitor monitor) throws SessionExpiredException, ServerErrorException, IllegalArgumentException,
