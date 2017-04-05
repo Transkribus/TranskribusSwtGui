@@ -336,8 +336,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 	    
 	    addMenuItems(contextMenu, EnumUtils.stringsArray(EditStatus.class));
 	    
-	    addPageMoveMenuItems(contextMenu);    
-	    
+	    addPageMoveMenuItems(contextMenu);    	    
 	    
 //	    contextMenu.addMenuListener(new MenuAdapter()
 //	    {
@@ -373,6 +372,39 @@ public class ThumbnailManagerVirtual extends Dialog{
 	    
 	    MenuItem moveSpecific = new MenuItem(subMoveMenu, SWT.NONE);
 	    moveSpecific.setText("Select position");
+	    
+	    MenuItem deletePage = new MenuItem(contextMenu, SWT.NONE);
+	    deletePage.setText("Delete page");
+	    
+	    deletePage.addListener(SWT.Selection, new Listener(){
+
+			@Override
+			public void handleEvent(Event event) {
+				int response = DialogUtil.showYesNoCancelDialog(
+										mw.getShell(),
+										"Delete page from server",
+										"Are you sure you want to delete the selected page(s)? \nThis action cannot be undone.");
+				if(response == SWT.YES){
+					tw.getSelection();
+					List<TrpPage> selection = tw.getSelection();
+					deletePages(selection);
+					try {
+						Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+						tw.setDoc(Storage.getInstance().getDoc(), false);
+						reload();
+						mw.getUi().getThumbnailWidget().reload();
+					} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException
+							| NullValueException e) {
+						e.printStackTrace();
+					}
+					
+				}
+				
+			}
+
+	    	
+	    });
+	    
 	    
 	    moveFront.addListener(SWT.Selection, new Listener(){
 
@@ -487,6 +519,21 @@ public class ThumbnailManagerVirtual extends Dialog{
 			logger.error(e.toString());
 		}
 
+	}
+	
+	private void deletePage(TrpPage page){
+		try {
+			Storage.getInstance().deletePage(tw.getDoc().getCollection().getColId(), page.getDocId(), page.getPageNr());
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e) {
+			logger.error(e.toString());
+		}
+	}
+	
+	private void deletePages(List<TrpPage> selection){
+		for(TrpPage page : selection){
+			deletePage(page);
+		}
+		
 	}
 	
 	private void movePages(List<TrpPage> selection, int toPageNr) 
