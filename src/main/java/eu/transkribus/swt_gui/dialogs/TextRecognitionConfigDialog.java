@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.dialogs;
 
+import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.StrUtil;
@@ -72,7 +74,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private Group dictGrp;
 	
 	private HtrTableWidget htw;
-	private Text nameTxt, langTxt, descTxt;
+	private Text nameTxt, langTxt, descTxt;//, paramTxt;
 	private Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
 	private org.jfree.experimental.chart.swt.ChartComposite jFreeChartComp;
 	
@@ -209,6 +211,11 @@ public class TextRecognitionConfigDialog extends Dialog {
 		descLbl.setText("Description:");
 		descTxt = new Text(detailGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
 		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		
+//		Label paramLbl = new Label(detailGrp, SWT.NONE);
+//		paramLbl.setText("Parameters:");
+//		paramTxt = new Text(detailGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
+//		paramTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		
 		new Label(detailGrp, SWT.NONE);
 		showTrainSetBtn = new Button(detailGrp, SWT.PUSH);
@@ -367,6 +374,9 @@ public class TextRecognitionConfigDialog extends Dialog {
 		nameTxt.setText(StrUtil.get(htr.getName()));
 		langTxt.setText(StrUtil.get(htr.getLanguage()));
 		descTxt.setText(StrUtil.get(htr.getDescription()));
+//		paramTxt.setText(StrUtil.get(htr.getParams()));
+		
+		logger.debug(htr.getParams());
 		
 		charSetTitle = "Character Set of Model: " + htr.getName();
 		charSet = htr.getCharList() == null || htr.getCharList().isEmpty() ? "N/A" : htr.getCharList();
@@ -387,7 +397,9 @@ public class TextRecognitionConfigDialog extends Dialog {
 		
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		
-		XYSeries series = new XYSeries("CER Train");
+		final String cerTrainKey = "CER Train";
+		XYSeries series = new XYSeries(cerTrainKey);
+		series.setDescription(cerTrainKey);
 	    for(int i = 0; i < cerTrainSetVals.length; i++) {
 	    	double val = cerTrainSetVals[i];
 	    	series.add(i+1, val);
@@ -395,16 +407,18 @@ public class TextRecognitionConfigDialog extends Dialog {
 		dataset.addSeries(series);	
 		
 		if(cerTestSetVals.length > 0) {
-			XYSeries testSeries = new XYSeries("CER Test");
+			final String cerTestKey = "CER Test";
+			XYSeries testSeries = new XYSeries(cerTestKey);
+			testSeries.setDescription(cerTestKey);
 		    for(int i = 0; i < cerTestSetVals.length; i++) {
 		    	double val = cerTestSetVals[i];
 		    	testSeries.add(i+1, val);
 		    }
 			dataset.addSeries(testSeries);	
 		}
-		
+
 		JFreeChart chart = ChartFactory.createXYLineChart(
-				"CER Series", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, false, true, false);
+				"CER Series", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, true, true, false);
 
 		XYPlot plot = (XYPlot)chart.getPlot();
 		LogAxis logAxis = new LogAxis("CER");
@@ -412,7 +426,8 @@ public class TextRecognitionConfigDialog extends Dialog {
 		tickUnits.add(new NumberTickUnit(0.1, NumberFormat.getPercentInstance()));
 		logAxis.setStandardTickUnits(tickUnits);//NumberAxis.createStandardTickUnits());
 		plot.setRangeAxis(logAxis);
-
+		plot.getRenderer().setSeriesPaint(0, Color.BLUE);
+		plot.getRenderer().setSeriesPaint(1, Color.RED);
 		jFreeChartComp.setChart(chart);
 		chart.fireChartChanged();
 	}

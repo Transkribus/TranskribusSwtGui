@@ -1,10 +1,16 @@
 package eu.transkribus.swt.util;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.dea.fimgstoreclient.FimgStoreGetClient;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;
 import org.eclipse.nebula.widgets.gallery.GalleryItem;
@@ -13,6 +19,7 @@ import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -29,6 +36,7 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ThumbnailWidgetVirtualMinimal extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidgetVirtualMinimal.class);
@@ -128,8 +136,19 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 				try {
 					item.setImage(ImgLoader.load(doc.getPages().get(index).getThumbUrl()));
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+//					Most likely happens because thumbnail image is not yet available!
+//					e.printStackTrace();
+					try {
+//						---->Try to generate thumbnail on the fly from actual page image.
+						FimgStoreGetClient imgStoreClient;
+						imgStoreClient = new FimgStoreGetClient(doc.getPages().get(index).getUrl());						
+						URL url = imgStoreClient.getImgXyScaled(doc.getPages().get(index).getKey(), 82, 120, false).getUri().toURL();
+						item.setImage(ImageDescriptor.createFromURL(url).createImage());							
+					} catch (IOException e1) {
+//						If everything fails display an error thumbnail
+						item.setImage(Images.ERROR_IMG);
+						e1.printStackTrace();
+					}
 				}
 				
 				item.setData("doNotScaleImage", new Object());
@@ -153,7 +172,10 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 				} else {
 					index = gallery.indexOf(item);
 				}
-				gallery.setToolTipText(doc.getPages().get(index).getImgFileName());
+				String tooltipText = doc.getPages().get(index).getImgFileName() 
+						+ "\nStatus: " 
+						+ doc.getPages().get(index).getCurrentTranscript().getStatus().getStr();
+				gallery.setToolTipText(tooltipText);
 			}
 		});
 		

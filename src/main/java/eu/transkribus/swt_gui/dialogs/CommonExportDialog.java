@@ -162,7 +162,8 @@ public class CommonExportDialog extends Dialog {
 		exportPathComp = new ExportPathComposite(mainComp, lastExportFolder, "File/Folder name: ", null, docName);
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
-		Composite choiceComposite = new Composite(mainComp, SWT.NONE);
+		SashForm choiceComposite = new SashForm(mainComp, SWT.HORIZONTAL);
+//		Composite choiceComposite = new Composite(mainComp, SWT.NONE);
 		choiceComposite.setLayout(new GridLayout(2, false));
 		choiceComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
 		
@@ -213,6 +214,8 @@ public class CommonExportDialog extends Dialog {
 	    Composite otherOptionsComp = new Composite(optionsGroup, SWT.NONE);
 	    otherOptionsComp.setLayout(new GridLayout(1, false));
 	    otherOptionsComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	    
+	    createChooseVersionGroup(otherOptionsComp);	    
 	    
 		wordBasedBtn = new Button(otherOptionsComp, SWT.CHECK);
 		wordBasedBtn.setText("Word based");
@@ -277,37 +280,7 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 		
-	    // Create the first Group
-	    Group group2 = new Group(choiceComposite, SWT.SHADOW_IN);
-	    group2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
-	    group2.setText("Choose version status");
-	    group2.setLayout(new GridLayout(1, false));
-	    
-	    final Combo statusCombo = new Combo(group2, SWT.DROP_DOWN | SWT.READ_ONLY);
-
-	    int size = EnumUtils.stringsArray(EditStatus.class).length + 2;
-	    
-	    String items[] = new String[size];
-	    
-	    items[0] = "Latest version";
-	    setVersionStatus(items[0]);
-	    items[1] = "Loaded version (for current page)";
-	    int a = 2;
-
-	    for (String s : EnumUtils.stringsArray(EditStatus.class)){
-	    	items[a++] = s;
-	    	//logger.debug("editStatus " + s);
-	    }
-	    
-		statusCombo.setItems(items);
-		statusCombo.select(0);
-		
-		statusCombo.addSelectionListener(new SelectionAdapter() {
-	        @Override
-	        public void widgetSelected(SelectionEvent event) {
-	        	setVersionStatus(statusCombo.getText());
-	        }
-		});
+		choiceComposite.setWeights(new int[]{25, 75});
 
 	    b0.addSelectionListener(new SelectionAdapter() {
 	        @Override
@@ -529,6 +502,40 @@ public class CommonExportDialog extends Dialog {
 			@Override public void widgetDisposed(DisposeEvent e) {
 				updateSelectedPages();
 			}
+		});
+	}
+	
+	private void createChooseVersionGroup(Composite parent) {
+	    // Create the first Group
+	    Group group2 = new Group(parent, SWT.SHADOW_IN);
+	    group2.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
+	    group2.setText("Version status");
+	    group2.setLayout(new GridLayout(1, false));
+	    
+	    final Combo statusCombo = new Combo(group2, SWT.DROP_DOWN | SWT.READ_ONLY);
+
+	    int size = EnumUtils.stringsArray(EditStatus.class).length + 2;
+	    
+	    String items[] = new String[size];
+	    
+	    items[0] = "Latest version";
+	    setVersionStatus(items[0]);
+	    items[1] = "Loaded version (for current page)";
+	    int a = 2;
+
+	    for (String s : EnumUtils.stringsArray(EditStatus.class)){
+	    	items[a++] = s;
+	    	//logger.debug("editStatus " + s);
+	    }
+	    
+		statusCombo.setItems(items);
+		statusCombo.select(0);
+		
+		statusCombo.addSelectionListener(new SelectionAdapter() {
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	        	setVersionStatus(statusCombo.getText());
+	        }
 		});
 	}
 	

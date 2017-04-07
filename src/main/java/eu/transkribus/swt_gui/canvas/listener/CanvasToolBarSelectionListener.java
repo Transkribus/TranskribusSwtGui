@@ -3,6 +3,8 @@ package eu.transkribus.swt_gui.canvas.listener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +22,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasToolBarSelectionListener.class);
 	
 	CanvasWidget canvasWidget;
+	ImageEnhanceDialog imgEnhanceDialog;
 
 	public CanvasToolBarSelectionListener(CanvasWidget canvasWidget) {
 		this.canvasWidget = canvasWidget;
@@ -120,9 +123,14 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			TrpMainWidget.getInstance().reloadCurrentImage();
 		}
 		else if (s == toolbar.getImgEnhanceItem()) {
-			// TODO: open enhance dialog
-			ImageEnhanceDialog d = new ImageEnhanceDialog(canvas.getShell());
-			d.open();
+			// TODO: open enhance dialog			
+			
+			if(imgEnhanceDialog == null){
+				imgEnhanceDialog = new ImageEnhanceDialog(canvas.getShell());
+				imgEnhanceDialog.open();
+			}else{
+				imgEnhanceDialog.setActive();
+			}
 		}
 		else if (s == toolbar.getHelpItem()) {
 			mw.openCanvasHelpDialog();
