@@ -17,6 +17,8 @@ import org.eclipse.nebula.widgets.gallery.GalleryItem;
 import org.eclipse.nebula.widgets.gallery.MyDefaultGalleryItemRenderer;
 import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -178,7 +180,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 				gallery.setToolTipText(tooltipText);
 			}
 		});
-		
+			
 		if (doc != null)
 			gallery.setItemCount(doc.getNPages());
 		else{
