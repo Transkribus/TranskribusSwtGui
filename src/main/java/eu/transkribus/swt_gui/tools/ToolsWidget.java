@@ -249,7 +249,7 @@ public class ToolsWidget extends Composite {
 		});
 		
 		regAndLineSegBtn = new Button(laToolsGroup, SWT.PUSH);
-		regAndLineSegBtn.setText("Detext regions, lines and baselines");
+		regAndLineSegBtn.setText("Detect regions, lines and baselines");
 		regAndLineSegBtn.setToolTipText("Detects regions, lines and baselines in this page - warning: current regions, lines and baselines will be lost!");
 		regAndLineSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		

@@ -54,6 +54,7 @@ public class TrpMenuBar {
 	MenuItem autoSaveSettingsMenuItem;
 	MenuItem createThumbsMenuItem;
 	MenuItem deletePageMenuItem;
+	MenuItem addPageMenuItem;
 	
 	CascadeMenu collMenu;
 	MenuItem manageCollectionsItem;
@@ -129,8 +130,9 @@ public class TrpMenuBar {
 		saveTranscriptionMenuItem = createItem(fileMenu.m, SWT.NONE, Images.DISK, "Save");
 		saveTranscriptionToNewFileMenuItem = createItem(fileMenu.m, SWT.NONE, Images.getOrLoad("/icons/page_save.png"), "Save transcription to new file");
 		replaceImageItem = createItem(fileMenu.m, SWT.NONE, Images.IMAGE_EDIT, "Replace image of current page on server");
-		openLocalPageFileItem = createItem(fileMenu.m, 0, null, "Open local page file for current page");
+		openLocalPageFileItem = createItem(fileMenu.m, 0, null, "Open local page file for current page");		
 		deletePageMenuItem = createItem(fileMenu.m, 0, null, "Delete current page from server");
+		addPageMenuItem = createItem(fileMenu.m, 0, null, "Add page to document on server");
 		syncWordsWithLinesMenuItem = createItem(fileMenu.m, SWT.NONE, null, "Sync word transcription with text in lines");
 		
 		collMenu = createCascadeMenu(menuBar, null, "&Collections");

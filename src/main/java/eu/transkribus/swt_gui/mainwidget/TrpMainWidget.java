@@ -54,6 +54,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.mihalis.opal.tipOfTheDay.TipOfTheDay;
 import org.mihalis.opal.tipOfTheDay.TipOfTheDay.TipStyle;
@@ -64,6 +65,7 @@ import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
 import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.util.ImgFileFilter;
@@ -115,6 +117,10 @@ import eu.transkribus.swt.util.LoginDialog;
 import eu.transkribus.swt.util.SWTLog;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.SplashWindow;
+import eu.transkribus.swt.util.ThumbnailManagerVirtual;
+import eu.transkribus.swt.util.ThumbnailWidget;
+import eu.transkribus.swt.util.ThumbnailWidgetVirtual;
+import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
@@ -2660,6 +2666,60 @@ public class TrpMainWidget {
 				DialogUtil.showInfoMessageBox(getShell(), "Cancel", message);
 			}
 		});
+	}
+	
+	public void addPage(){		
+		
+		
+		if(storage.getDoc() == null){
+			DialogUtil.showErrorMessageBox(getShell(), "No remote document loaded", "No remote document loaded");
+			return;
+		}
+		
+		//FIXME where to handle which file extensions are allowed?
+		final String[] extArr = new String[] { "*.jpg", "*.jpeg", "*.tiff", "*.tif", "*.TIF", "*.TIFF", "*.png" };
+		
+		String filePath = DialogUtil.showOpenFileDialog(mw.getShell(), "Add page", null, extArr);
+		logger.debug("Uploading new page from: " + filePath);
+		if(filePath == null){
+			logger.error("ERROR: Bad filepath");
+			return;
+		}
+		File imgFile = new File(filePath);
+		
+		logger.debug(Long.toString(imgFile.length()));
+		//Set new pageNr
+		int pageNr = storage.getNPages() + 1;
+		int docId = storage.getDocId();
+		int colId = storage.getCollId();	
+		
+		
+		try {			
+			if (!imgFile.canRead())
+				throw new Exception("Can't read file at: " + filePath);
+			ProgressBarDialog.open(mw.getShell(), new IRunnableWithProgress(){
+
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					
+					try {
+//						monitor.beginTask("Uploading image file...", 120);
+						Storage.getInstance().addPage(colId, docId, pageNr, imgFile, monitor);
+					} catch (NoConnectionException e) {
+						logger.error(e.toString());
+					}					
+				}				
+			}, "Upload", false);			
+
+
+			reloadCurrentDocument();
+
+			
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+
 	}
 
 	public void deletePage() {

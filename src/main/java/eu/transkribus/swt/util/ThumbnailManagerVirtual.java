@@ -1,6 +1,8 @@
 package eu.transkribus.swt.util;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -13,7 +15,9 @@ import java.util.Comparator;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;
@@ -70,6 +74,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.ThumbnailManager.EditStatusMenuItemListener;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImg;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
@@ -336,8 +341,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 	    
 	    addMenuItems(contextMenu, EnumUtils.stringsArray(EditStatus.class));
 	    
-	    addPageMoveMenuItems(contextMenu);    
-	    
+	    addPageMoveMenuItems(contextMenu);    	    
 	    
 //	    contextMenu.addMenuListener(new MenuAdapter()
 //	    {
@@ -373,6 +377,62 @@ public class ThumbnailManagerVirtual extends Dialog{
 	    
 	    MenuItem moveSpecific = new MenuItem(subMoveMenu, SWT.NONE);
 	    moveSpecific.setText("Select position");
+	    
+	    MenuItem deletePage = new MenuItem(contextMenu, SWT.NONE);
+	    deletePage.setText("Delete page");
+	    
+	    MenuItem addPage = new MenuItem(contextMenu, SWT.NONE);
+	    addPage.setText("Add a new page");
+	    
+	    addPage.addListener(SWT.Selection, new Listener(){
+
+			@Override
+			public void handleEvent(Event event) {
+				mw.addPage();	
+				try {
+					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException
+						| NullValueException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				tw.setDoc(Storage.getInstance().getDoc(), false);
+				reload();
+				mw.getUi().getThumbnailWidget().reload();		    		
+				tw.getGallery().redraw();
+			}
+	    	
+	    });
+	    
+	    deletePage.addListener(SWT.Selection, new Listener(){
+
+			@Override
+			public void handleEvent(Event event) {
+				int response = DialogUtil.showYesNoCancelDialog(
+										mw.getShell(),
+										"Delete page from server",
+										"Are you sure you want to delete the selected page(s)? \nThis action cannot be undone.");
+				if(response == SWT.YES){
+					tw.getSelection();
+					List<TrpPage> selection = tw.getSelection();
+					deletePages(selection);
+					try {
+						Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
+						tw.setDoc(Storage.getInstance().getDoc(), false);
+						reload();
+						mw.getUi().getThumbnailWidget().reload();
+					} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException
+							| NullValueException e) {
+						e.printStackTrace();
+					}
+					
+				}
+				
+			}
+
+	    	
+	    });
+	    
 	    
 	    moveFront.addListener(SWT.Selection, new Listener(){
 
@@ -487,6 +547,33 @@ public class ThumbnailManagerVirtual extends Dialog{
 			logger.error(e.toString());
 		}
 
+	}
+	
+	private void deletePage(TrpPage page){
+		try {
+			Storage.getInstance().deletePage(tw.getDoc().getCollection().getColId(), page.getDocId(), page.getPageNr());
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e) {
+			logger.error(e.toString());
+		}
+	}
+	
+	private void deletePages(List<TrpPage> selection){
+		Collections.sort(selection, new Comparator<TrpPage>() {
+			@Override
+			public int compare(TrpPage o1, TrpPage o2) {
+				return o1.getPageNr()-o2.getPageNr();
+			}			
+			});
+		
+		Collections.reverse(selection);
+		for(TrpPage page : selection){
+			deletePage(page);
+		}
+		
+
+
+		
+		
 	}
 	
 	private void movePages(List<TrpPage> selection, int toPageNr) 
@@ -784,6 +871,10 @@ public class ThumbnailManagerVirtual extends Dialog{
 	public void addListener(int selection, Listener listener) {
 		logger.debug("add double click listener");
 		shell.addListener(selection, listener);	
+	}
+
+	public ThumbnailWidgetVirtualMinimal getWidget() {
+		return tw;
 	}
 
 }
