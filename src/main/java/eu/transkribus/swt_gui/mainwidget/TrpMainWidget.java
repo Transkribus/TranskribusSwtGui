@@ -95,9 +95,12 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportUtils;
+import eu.transkribus.core.model.builder.alto.AltoExportPars;
 import eu.transkribus.core.model.builder.docx.DocxBuilder;
+import eu.transkribus.core.model.builder.docx.DocxExportPars;
 import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxTableBuilder;
+import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
@@ -2880,42 +2883,20 @@ public class TrpMainWidget {
 				return;
 			}
 			
-			if (exportDiag.isDoServerExport()){
-				String pages = "";
-				for (Integer currInt : exportDiag.getSelectedPages()){
-					int tmpInt = currInt+1;
-					pages = pages.concat(Integer.toString(tmpInt)).concat(",");
-				}
-				if (pages.length()==1 && pages.contentEquals("0")){
-					DialogUtil.showErrorMessageBox(getShell(), "Wrong ", "Select valid page numbers for export!");
-					return;
-				}
-				if (pages.length()>0){
-					pages = pages.substring(0, pages.length()-1);
-				}
+			String pages = exportDiag.getPagesStr();
+			Set<Integer> pageIndices = exportDiag.getPageIndices();
+			
+			CommonExportPars commonPars = exportDiag.getCommonExportPars();
+			TeiExportPars teiPars =  exportDiag.getTeiExportPars();
+			PdfExportPars pdfPars = exportDiag.getPdfPars();
+			DocxExportPars docxPars = exportDiag.getDocxPars();
+			AltoExportPars altoPars = exportDiag.getAltoPars();
+
+			if (exportDiag.isDoServerExport()) {			
+				logger.debug("server export, commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
+				String jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), 
+											commonPars, altoPars, pdfPars, teiPars, docxPars);
 				
-				TeiExportPars pars =  exportDiag.getTeiExportPars();
-				
-				boolean doTeiWithNoZones = pars.hasZones();
-				boolean doTeiWithZonePerRegion = pars.isRegionZones();
-				boolean doTeiWithZonePerLine = pars.isLineZones();
-				boolean doTeiWithZonePerWord = pars.isWordZones();
-				boolean doTeiWithLineTags = pars.isLineTagType();
-				boolean doTeiWithLineBreaks = pars.isLineBreakType();
-				
-				logger.debug("server export - is page export " + exportDiag.isPageExport());
-				String jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), pages,
-						exportDiag.isMetsExport(), exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(), 
-						exportDiag.isSplitUpWords(), exportDiag.isPdfExport(), exportDiag.isTeiExport(), exportDiag.isDocxExport(),
-						exportDiag.isXlsxExport(), exportDiag.isTableExport(), exportDiag.isExportImagesOnly(),
-						exportDiag.isExportImagesPlusText(), exportDiag.isAddExtraTextPages2PDF(), exportDiag.isHighlightTags(),
-						doTeiWithNoZones, doTeiWithZonePerRegion, 
-						doTeiWithZonePerLine, doTeiWithZonePerWord,
-						doTeiWithLineTags, doTeiWithLineBreaks,
-						exportDiag.isTagExport(), exportDiag.isPreserveLinebreaks(), exportDiag.isMarkUnclearWords(),
-						exportDiag.isKeepAbbreviations(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
-						exportDiag.isWordBased(), exportDiag.isDoBlackening(), exportDiag.isCreateTitlePage(), 
-						exportDiag.getVersionStatus());
 				if (jobId != null) {
 					logger.debug("started job with id = "+jobId);
 								
@@ -2934,11 +2915,8 @@ public class TrpMainWidget {
 			if (!dir.exists()) {
 				dir.mkdir();
 			}
-
 			
 			exportFileOrDir = dir.getAbsolutePath();
-			Set<Integer> pageIndices = null;
-
 			boolean doZipExport = false;
 
 			boolean doMetsExport = false;
@@ -2983,9 +2961,9 @@ public class TrpMainWidget {
 
 				doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
 
-				doXlsxExport = (exportDiag.isXlsxExport() && exportDiag.getExportPathComp().checkExportFile(xlsxExportFile, ".xlsx", getShell()));
+				doXlsxExport = (exportDiag.isTagXlsxExport() && exportDiag.getExportPathComp().checkExportFile(xlsxExportFile, ".xlsx", getShell()));
 				
-				doTableExport = (exportDiag.isTableExport() && exportDiag.getExportPathComp().checkExportFile(tableExportFile, ".xlsx", getShell()));
+				doTableExport = (exportDiag.isTableXlsxExport() && exportDiag.getExportPathComp().checkExportFile(tableExportFile, ".xlsx", getShell()));
 			}
 
 			doZipExport = (exportDiag.isZipExport() && exportDiag.getExportPathComp().checkExportFile(zipExportFile, ".zip", getShell()));
@@ -3007,26 +2985,20 @@ public class TrpMainWidget {
 				return;
 			}
 
-			if (exportDiag.isPageableExport()) {
-				pageIndices = exportDiag.getSelectedPages();
-				if (pageIndices == null) {
-					DialogUtil.showErrorMessageBox(getShell(), "Error parsing page ranges", "Error parsing page ranges");
-					return;
-				}
+			if (exportDiag.isPageableExport() && pageIndices == null) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error parsing page ranges", "Error parsing page ranges");
+				return;
 			}
 
-			final Set<Integer> copyOfPageIndices = pageIndices;
-			Set<String> selectedTags = null;
-
-			logger.debug("loading transcripts..." + copyOfPageIndices.size());
+//			logger.debug("loading transcripts..." + copyOfPageIndices.size());
 
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						//logger.debug("loading transcripts...");
-						monitor.beginTask("Loading transcripts...", copyOfPageIndices.size());
+						monitor.beginTask("Loading transcripts...", pageIndices.size());
 						//unmarshal the page transcript only once
-						ExportUtils.storePageTranscripts4Export(storage.getDoc(), copyOfPageIndices, monitor, exportDiag.getVersionStatus(),
+						ExportUtils.storePageTranscripts4Export(storage.getDoc(), pageIndices, monitor, exportDiag.getVersionStatus(),
 								storage.getPageIndex(), storage.getTranscript().getMd());
 
 						monitor.done();
@@ -3037,24 +3009,23 @@ public class TrpMainWidget {
 			}, "Loading of transcripts: ", true);
 
 			logger.debug("transcripts loaded");
+			
+			Set<String> selectedTags = exportDiag.getSelectedTagsList();
 
 			if (exportDiag.isTagableExportChosen()) {
-
-				selectedTags = exportDiag.getSelectedTagsList();
 				ExportUtils.setSelectedTags(selectedTags);
 
 				logger.debug("loading tags..." + selectedTags.size());
-
-				final Set<String> copyOfSelectedTags = selectedTags;
 
 				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
 							//logger.debug("loading transcripts...");
-							monitor.beginTask("Loading tags...", copyOfPageIndices.size());
-							ExportUtils.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), copyOfPageIndices, monitor,
+							monitor.beginTask("Loading tags...", pageIndices.size());
+							ExportUtils.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), pageIndices, monitor,
 									exportDiag.isDoBlackening());
-							if (copyOfSelectedTags == null) {
+							
+							if (selectedTags == null) {
 								DialogUtil.showErrorMessageBox(getShell(), "Error while reading selected tag names", "Error while reading selected tag names");
 								return;
 							}
@@ -3101,12 +3072,12 @@ public class TrpMainWidget {
 				if (exportDiag.isTeiExport())
 					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag);
 				if (exportDiag.isDocxExport())
-					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isTagExport(), doBlackening,
+					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isDocxTagExport(), doBlackening,
 							createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 							exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied());
-				if (exportDiag.isXlsxExport())
-					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport());
-				if (exportDiag.isTableExport())
+				if (exportDiag.isTagXlsxExport())
+					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport());
+				if (exportDiag.isTableXlsxExport())
 					exportTableXlsx(new File(tempZipDirParent + "/" + dir.getName() + "_tables.xlsx"), pageIndices, selectedTags);
 
 				//createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".zip");
@@ -3181,7 +3152,7 @@ public class TrpMainWidget {
 
 			if (doDocxExport) {
 
-				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isTagExport(), doBlackening, createTitle,
+				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isDocxTagExport(), doBlackening, createTitle,
 						exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 						exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied());
 				if (exportFormats != "") {
@@ -3193,7 +3164,7 @@ public class TrpMainWidget {
 
 			if (doXlsxExport) {
 
-				if (exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isTagExport())){
+				if (exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport())){
 					if (exportFormats != "") {
 						exportFormats += " and ";
 					}
@@ -3610,8 +3581,8 @@ public class TrpMainWidget {
 
 	public void exportTei(final File file, final CommonExportDialog exportDiag) throws Throwable {
 		try {
-			final TeiExportPars pars = exportDiag.getTeiExportPars();
-			final CommonExportPars commonPars = exportDiag.getCommonExportPars();
+			TeiExportPars pars = exportDiag.getTeiExportPars();
+			CommonExportPars commonPars = exportDiag.getCommonExportPars();
 
 			if (file == null)
 				return;

@@ -1,18 +1,15 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -37,6 +34,9 @@ import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportUtils;
+import eu.transkribus.core.model.builder.alto.AltoExportPars;
+import eu.transkribus.core.model.builder.docx.DocxExportPars;
+import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
@@ -59,7 +59,7 @@ public class CommonExportDialog extends Dialog {
 	Button blackeningBtn;
 	Button createTitlePageBtn;
 	boolean wordBased=false;
-	boolean tagExport=false;
+	boolean docxTagExport=false;
 	boolean doBlackening = false;
 	boolean createTitlePage = false;
 	
@@ -94,8 +94,11 @@ public class CommonExportDialog extends Dialog {
 	
 	CommonExportPars commonPars;
 	TeiExportPars teiPars;
-	
-	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, xlsxExport, tableExport, zipExport;
+	AltoExportPars altoPars;
+	PdfExportPars pdfPars;
+	DocxExportPars docxPars;
+
+	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, tagXlsxExport, tableXlsxExport, zipExport;
 
 	String fileNamePattern = "${filename}";
 	Button addExtraTextPagesBtn;
@@ -123,7 +126,8 @@ public class CommonExportDialog extends Dialog {
 	
 	TagsSelector tagsSelector;
 	
-	Set<Integer> selectedPages = new HashSet<Integer>(); 
+	Set<Integer> pageIndices = null; 
+	String pagesStr = null;
 	
 	Button currentPageBtn;
 
@@ -380,7 +384,7 @@ public class CommonExportDialog extends Dialog {
 	        @Override
 	        public void widgetSelected(SelectionEvent event) {
 	            Button btn = (Button) event.getSource();
-            	setXlsxExport(btn.getSelection());
+            	setTagXlsxExport(btn.getSelection());
 	            showPageChoice();
 	            showTagChoice();
 	            shell.layout();
@@ -393,7 +397,7 @@ public class CommonExportDialog extends Dialog {
 	        @Override
 	        public void widgetSelected(SelectionEvent event) {
 	            Button btn = (Button) event.getSource();
-            	setTableExport(btn.getSelection());
+            	setTableXlsxExport(btn.getSelection());
 	            showPageChoice();
 	            showTagChoice();
 	            shell.layout();
@@ -451,30 +455,26 @@ public class CommonExportDialog extends Dialog {
 		exportButton.setText("OK");
 		exportButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-//				updateTeiZoneExportMode();
-//				updateLineBreakMode();
 				
-				updateCommonPars();
-				updateTeiPars();
+				updateParameters();
 				
-				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isXlsxExport()&& !isTableExport()){
-					DialogUtil.showInfoMessageBox(shell, "Missing export format", "Please choose an export format to continue");
+				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isTagXlsxExport()&& !isTableXlsxExport()){
+					DialogUtil.showErrorMessageBox(shell, "Missing export format", "Please choose an export format to continue");
+					return;
 				}
-				else {
-					if(isTagableExport()){
-						setSelectedTagsList(tagsSelector.getCheckedTagnames());
-						setTagExport(isTagExport());
-					}
-					//if (exportPathComp.checkExportFile()) {
-						result = exportPathComp.getExportFile();
-						
-						boolean canWrite = result!=null && result.getParentFile()!=null && result.getParentFile().canWrite(); 
-						if (!canWrite) {
-							DialogUtil.showErrorMessageBox(shell, "Cannot write to folder", "Cannot write into the specified folder - do you have write access?\n\n"+result.getAbsolutePath());		
-						} else						
-							shell.close();
-					//}
-				}
+
+
+				
+				result = exportPathComp.getExportFile();
+				
+				boolean canWrite = result!=null && result.getParentFile()!=null && result.getParentFile().canWrite();
+				
+				if (!canWrite) {
+					DialogUtil.showErrorMessageBox(shell, "Cannot write to folder", "Cannot write into the specified folder - do you have write access?\n\n"+result.getAbsolutePath());
+					return;
+				}		
+				
+				shell.close();
 			}
 		});
 //		saveButton.setToolTipText("Stores the configuration in the configuration file and closes the dialog");
@@ -498,11 +498,11 @@ public class CommonExportDialog extends Dialog {
 		shell.layout();
 		
 		// save values when shell is disposed:
-		shell.addDisposeListener(new DisposeListener() {
-			@Override public void widgetDisposed(DisposeEvent e) {
-				updateSelectedPages();
-			}
-		});
+//		shell.addDisposeListener(new DisposeListener() {
+//			@Override public void widgetDisposed(DisposeEvent e) {
+//				updateSelectedPages();
+//			}
+//		});
 	}
 	
 	private void createChooseVersionGroup(Composite parent) {
@@ -929,7 +929,7 @@ public class CommonExportDialog extends Dialog {
 
 		exportTagsBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				setTagExport(exportTagsBtn.getSelection());
+				setDocxTagExport(exportTagsBtn.getSelection());
 			}
 		});
 		
@@ -1075,13 +1075,6 @@ public class CommonExportDialog extends Dialog {
 		
 	    return docxComposite;
 	}
-	  
-	
-
-
-	public Set<Integer> getSelectedPages() {
-		return selectedPages;
-	}
 	
 	private void showPageChoice() {
 		docPagesSelector.setVisible(isPageableExport());
@@ -1093,35 +1086,53 @@ public class CommonExportDialog extends Dialog {
 	}
 	
 	public boolean isPageableExport() {
-		return isMetsExport() || isPdfExport() || isDocxExport() || isXlsxExport() || isTableExport() || isTeiExport();
+		return isMetsExport() || isPdfExport() || isDocxExport() || isTagXlsxExport() || isTableXlsxExport() || isTeiExport();
 	}
 		
 	public boolean isTagableExport(){
-		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport());
+		return (isPdfExport() || isDocxExport() || isTagXlsxExport() || isTeiExport());
 	}
 	
 	public boolean isTagableExportChosen(){
-		return (isPdfExport() || isDocxExport() || isXlsxExport() || isTeiExport()) && (isHighlightTags() || isTagExport() || isXlsxExport());
+		return (isPdfExport() || isDocxExport() || isTagXlsxExport() || isTeiExport()) && (isHighlightTags() || isDocxTagExport() || isTagXlsxExport());
 	}
 	
 	private void updateSelectedPages() {
 		try {
-			selectedPages = docPagesSelector.getSelectedPageIndices();
-			
-		} catch (IOException e1) {
-			selectedPages = null;
+			pageIndices = docPagesSelector.getSelectedPageIndices();
+			pagesStr = docPagesSelector.getPagesText().getText();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			pageIndices = null;
+			pagesStr = null;
 		}
-		logger.debug("selectedPages: "+selectedPages);
+		
+		logger.debug("pagesStr: "+pagesStr);		
 	}
 	
-	private void updateCommonPars() {
+	private void updateParameters() {
 		updateSelectedPages();
 		
-		commonPars = new CommonExportPars();
-		commonPars.setWriteTextOnWordLevel(isWordBased());
-		commonPars.setDoBlackening(isDoBlackening());
-		commonPars.setPageIndices(getSelectedPages());
-		commonPars.setSelectedTags(getSelectedTagsList());
+		if (StringUtils.isEmpty(pagesStr)) {
+			DialogUtil.showErrorMessageBox(shell, "Invalid pages", "Invalid pages specified: "+pagesStr);
+			return;
+		}				
+		
+		if(isTagableExport()) { // needed here?
+			setSelectedTagsList(tagsSelector.getCheckedTagnames());
+			setDocxTagExport(isDocxTagExport());
+		}				
+
+		updateCommonPars();
+		updateAltoPars();
+		updateTeiPars();
+		updatePdfPars();
+		updateDocxPars();
+	}
+		
+	private void updateCommonPars() {
+		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, 
+				pdfExport, teiExport, docxExport, tagXlsxExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList());
 	}
 	
 	public CommonExportPars getCommonExportPars() {
@@ -1145,15 +1156,34 @@ public class CommonExportDialog extends Dialog {
 		teiPars = new TeiExportPars(regions, lines, words, boundingBoxCoords, linebreakType);
 		teiPars.setPbImageNameAsXmlId(pbImageNameXmlIdChck.getSelection());
 	}
-		
-	private void updatePages() {
-//		startPage = startSpinner.getSelection();
-//		endPage = endSpinner.getSelection();
-		//logger.debug("pages " + startPage + "-" + endPage);
-	}
-		
+	
 	public TeiExportPars getTeiExportPars() {
 		return teiPars;
+	}
+	
+	private void updateAltoPars() {
+		altoPars = new AltoExportPars(splitUpWords);
+	}
+	
+	public AltoExportPars getAltoPars() {
+		return altoPars;
+	}
+	
+	private void updatePdfPars() {		
+		pdfPars = new PdfExportPars(exportImagesOnly, exportImagesPlusText, addExtraTextPages2PDF, highlightTags);
+	}
+	
+	public PdfExportPars getPdfPars() {
+		return pdfPars;
+	}
+	
+	private void updateDocxPars() {
+		docxPars = new DocxExportPars(docxTagExport, preserveLinebreaks, markUnclearWords, 
+				keepAbbreviations, expandAbbreviations, substituteAbbreviations);
+	}
+	
+	public DocxExportPars getDocxPars() {
+		return docxPars;
 	}
 	
 	public boolean isWordBased() {
@@ -1260,16 +1290,15 @@ public class CommonExportDialog extends Dialog {
 		this.selectedTagsList = set;
 	}
 
-	public boolean isTagExport() {
-		return tagExport;
+	public boolean isDocxTagExport() {
+		return docxTagExport;
 	}
 
-	public void setTagExport(boolean tagExport) {
-		this.tagExport = tagExport;
+	public void setDocxTagExport(boolean docxTagExport) {
+		this.docxTagExport = docxTagExport;
 	}
 	
 	public boolean isPreserveLinebreaks() {
-		// TODO Auto-generated method stub
 		return preserveLinebreaks;
 	}
 	
@@ -1286,20 +1315,20 @@ public class CommonExportDialog extends Dialog {
 		this.markUnclearWords = markUnclear;
 	}
 	
-	public boolean isXlsxExport() {
-		return xlsxExport;
+	public boolean isTagXlsxExport() {
+		return tagXlsxExport;
 	}
 
-	public void setXlsxExport(boolean xlsxExport) {
-		this.xlsxExport = xlsxExport;
+	public void setTagXlsxExport(boolean tagXlsxExport) {
+		this.tagXlsxExport = tagXlsxExport;
 	}
 	
-	public boolean isTableExport() {
-		return tableExport;
+	public boolean isTableXlsxExport() {
+		return tableXlsxExport;
 	}
 
-	public void setTableExport(boolean tableExport) {
-		this.tableExport = tableExport;
+	public void setTableXlsxExport(boolean tableExport) {
+		this.tableXlsxExport = tableExport;
 	}
 
 	public void setAddExtraTextPages2PDF(boolean addExtraTextPages2PDF) {
@@ -1307,7 +1336,6 @@ public class CommonExportDialog extends Dialog {
 	}
 
 	public boolean isHighlightTags() {
-		// TODO Auto-generated method stub
 		return highlightTags;
 	}
 
@@ -1411,73 +1439,11 @@ public class CommonExportDialog extends Dialog {
 		this.doServerExport = doServerExport;
 	}
 
-
+	public String getPagesStr() {
+		return pagesStr;
+	}
 	
-//	  /**
-//	   * Gets the control for tab one
-//	   * 
-//	   * @param tabFolder2 the parent tab folder
-//	   * @return Control
-//	   */
-//	  private Control getTabOneControlTest(CTabFolder tabFolder2) {
-//		  
-//		    //final Composite checkExport = new Composite(tabFolder2, SWT.NONE);
-//		    Table checkExport = new Table(tabFolder, SWT.CHECK | SWT.BORDER);
-//		    //checkExport.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
-//		    //checkExport.setLayout(new FillLayout());
-//		    final TableItem ti1 = new TableItem(checkExport, SWT.CHECK);
-//		    final TableItem ti2 = new TableItem(checkExport, SWT.CHECK);
-//		    
-//		    final Button e1 = new Button(checkExport, SWT.CHECK);
-//		    final Button e2 = new Button(checkExport, SWT.CHECK);
-//		    
-//		    e1.setSelection(true);
-//		    setPageExport(true);
-//		    
-//		    ti1.setText("Export Page");
-//		    ti2.setText("Export ALTO");
-//		    
-//		   ti1.setGrayed(true);
-//		    
-//		    TableEditor editor=new TableEditor(checkExport);
-//		    editor.setEditor(e1, ti1, 0);
-//		    editor.setEditor(e2, ti2, 1);
-//		    
-//		    e1.addSelectionListener(new SelectionAdapter() {
-//
-//		        @Override
-//		        public void widgetSelected(SelectionEvent event) {
-//		            Button btn = (Button) event.getSource();
-//		            if (btn.getSelection()){
-//		            	setPageExport(true);
-//		            }
-//		            else{
-//		            	//one export should always be selected - so if no alto export the page export cannot be deselected
-//		            	if (!e2.getSelection()){
-//		            		e1.setSelection(true);
-//		            	}
-//		            	else{
-//		            		setPageExport(false);
-//		            	}
-//		            }	
-//		        }
-//		    });
-//		    
-//		    e2.addSelectionListener(new SelectionAdapter() {
-//		        @Override
-//		        public void widgetSelected(SelectionEvent event) {
-//		            Button btn = (Button) event.getSource();
-//		            if (btn.getSelection()){
-//		            	setAltoExport(true);
-//		            }
-//		            else{
-//		            	setAltoExport(false);
-//		            	e1.setSelection(true);
-//		            }
-//		        }
-//		    });
-//		    
-//		    return checkExport;
-//	  }
-	
+	public Set<Integer> getPageIndices() {
+		return pageIndices;
+	}
 }
