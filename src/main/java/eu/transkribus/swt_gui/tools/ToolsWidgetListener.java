@@ -77,12 +77,13 @@ public class ToolsWidgetListener implements SelectionListener {
 //		blockSegWPsBtn.addSelectionListener(this);
 //		tw.baselineBtn.addSelectionListener(this);
 		
-		SWTUtil.addSelectionListener(tw.structAnalysisPageBtn, this);
 		SWTUtil.addSelectionListener(tw.ocrBtn, this);
 		SWTUtil.addSelectionListener(tw.htrTrainBtn, this);
 		SWTUtil.addSelectionListener(tw.recogBtn, this);
 		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
+		
+		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 				
 		//OLD
 //		tw.startOcrBtn.addSelectionListener(this);
@@ -106,7 +107,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 	
 	boolean isLayoutAnalysis(Object s) {
-		return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn || s == tw.baselineBtn);
+		return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn || s == tw.baselineBtn || s == tw.polygon2baselinesBtn);
 	}
 	
 	boolean needsRegions(Object s) {
@@ -171,7 +172,7 @@ public class ToolsWidgetListener implements SelectionListener {
 				logger.debug("jobImpl = "+jobImpl);
 				
 //				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-				jobIds = store.analyzeLayoutOnCurrentTranscript(rids,analRegions, true, false, jobImpl, null);			
+				jobIds = store.analyzeLayoutOnCurrentTranscript(rids, analRegions, true, false, false, jobImpl, null);			
 			}
 //			else if(s == tw.lineSegBtn) {
 //				logger.info("Get lines and baselines");
@@ -208,20 +209,27 @@ public class ToolsWidgetListener implements SelectionListener {
 						if (!laDiag.isCurrentTranscript()) {
 							logger.debug("running la on pages: "+laDiag.getPages());
 							jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(laDiag.getPages(),
-										laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), laDiag.getJobImpl(), null);
+										laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), false, laDiag.getJobImpl(), null);
 						} else {
 							logger.debug("running la on current transcript and selected rids: "+CoreUtils.join(rids));
 							jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
-									laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), laDiag.getJobImpl(), null);	
+									laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), false, laDiag.getJobImpl(), null);	
 						}
 					}
 				}
 			}
+			else if (s == tw.polygon2baselinesBtn) {
+				logger.debug("polygon2baselinesBtn pressed, pages = "+tw.poly2blPages.getPagesText().getText());
+				
+				jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.poly2blPages.getPagesText().getText(),
+						false, false, false, true, JobImpl.NcsrOldLaJob.toString(), null);
+				
+			}
 			
 			// struct analysis:
-			else if (s == tw.structAnalysisPageBtn) {
-				mw.analyzePageStructure(tw.detectPageNumbers.getSelection(), tw.detectRunningTitles.getSelection(), tw.detectFootnotesCheck.getSelection());
-			}
+//			else if (s == tw.polygon2baselinesBtn) {
+//				mw.analyzePageStructure(tw.detectPageNumbers.getSelection(), tw.detectRunningTitles.getSelection(), tw.detectFootnotesCheck.getSelection());
+//			}
 			
 			else if(s == tw.computeWerBtn){
 				

@@ -2853,12 +2853,12 @@ public class TrpMainWidget {
 				if (jobId != null) {
 					logger.debug("started job with id = "+jobId);
 								
-					mw.registerJobToUpdate(jobId);
+//					mw.registerJobToUpdate(jobId); // do not register job as you get an email anyway...
 					
 					storage.sendJobListUpdateEvent();
 					mw.updatePageLock();
 					
-					DialogUtil.showInfoMessageBox(mw.getShell(), "Export Job started", "Started export job with id = "+jobId+"\n After it is finished, you will receive a download link");
+					DialogUtil.showInfoMessageBox(mw.getShell(), "Export Job started", "Started export job with id = "+jobId+"\n After it is finished, you will receive a download link via mail");
 				}
 				return;
 			}
@@ -3034,7 +3034,7 @@ public class TrpMainWidget {
 					exportTableXlsx(new File(tempZipDirParent + "/" + dir.getName() + "_tables.xlsx"), pageIndices, selectedTags);
 
 				//createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".zip");
-				ZipUtils.createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), zipExportFile.getAbsolutePath());
+				ZipUtils.createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), zipExportFile.getAbsolutePath(), false);
 
 				if (exportFormats != "") {
 					exportFormats += " and ";

@@ -32,7 +32,10 @@ import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
 import eu.transkribus.swt_gui.dialogs.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.PageLoadEvent;
+import eu.transkribus.swt_gui.util.DocPagesSelector;
 
 public class ToolsWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(ToolsWidget.class);
@@ -45,7 +48,9 @@ public class ToolsWidget extends Composite {
 	Button /*blockSegBtn,*/ regAndLineSegBtn, lineSegBtn, wordSegBtn, baselineBtn;
 	Button batchLaBtn;
 	
-	Button structAnalysisPageBtn, saInfoBtn;
+	Button polygon2baselinesBtn;
+	DocPagesSelector poly2blPages;
+	
 	Button detectPageNumbers, detectRunningTitles, detectFootnotesCheck;
 	
 	Button ocrBtn, htrTrainBtn, recogBtn;
@@ -146,8 +151,8 @@ public class ToolsWidget extends Composite {
 		
 		initLayoutAnalysisTools();
 		initRecogTools();
-		initStructureTools();
 		initWerGroup();
+		initOtherTools();
 //		initOCRTools();
 //		initHTRTools();
 		
@@ -488,67 +493,83 @@ public class ToolsWidget extends Composite {
 	}
 
 	
-	private void initStructureTools() {
+	private void initOtherTools() {
 		ExpandableComposite exp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
 		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Composite c = new Composite(exp, SWT.SHADOW_ETCHED_IN);
 		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		c.setLayout(new GridLayout(2, true));
 		
-		structAnalysisPageBtn = new Button(c, SWT.PUSH);
-		structAnalysisPageBtn.setText("Analyse Structure of Page");
-		structAnalysisPageBtn.setToolTipText("Analyses the structure on the current page and detects the structures that are checked below");
+		polygon2baselinesBtn = new Button(c, SWT.PUSH);
+		polygon2baselinesBtn.setText("Polygons to Baselines");
+		polygon2baselinesBtn.setToolTipText("Creates baselines for all surrounding polygons - warning: existing baselines will be lost!");
+		polygon2baselinesBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 		
-//		saInfoBtn = new Button(c, SWT.PUSH);
+		poly2blPages = new DocPagesSelector(c, SWT.NONE);
+		poly2blPages.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		Button aboutBtn = new Button(c, SWT.PUSH);
-		aboutBtn.setImage(Images.getOrLoad("/icons/information.png"));
-//		aboutBtn.setText("About...");
-		aboutBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				String title = "About: Structure analysis";
-				String msg = "Status\n"
-				+ "\t-Beta version. Can be used for production\n"
-				+ "Behaviour\n"
-				+ "\t-SA needs as input a page which was processed with an OCR engine.\n"
-				+ "\t-Based on several rules it will detect\n"
-				+ "\t\t-page numbers\n"
-				+ "\t\t-headers (=running titles) and\n"
-				+ "\t\t-footnotes (regions, not single footnotes)\n"
-				+ "\t-Values appear in the “Structure” tab on the left hand side.\n"
-				+ "Background\n"
-				+ "\t-As part of the IMPACT project (2008-2012) University of Innsbruck, Digitisation\n"
-				+ "\t and Digital Preservation group developed several rule sets for processing\n"
-				+ "\t historical printed documents\n"
-				+ "\t-The rule sets can easily be extended to other document types as well.\n"
-				+ "Provider\n"
-				+ "\t-University Innsbruck, Digitisation and Digital Preservation group\n"
-				+ "Credits\n"
-				+ "\t-This implementation is based on the infrastructure set up during the\n"
-				+ "\t IMPACT project (2008-2012)\n"
-				+ "\t http://www.digitisation.eu/\n"
-				+ "Contact\n"
-				+ "\t http://germanistik.uibk.ac.at/dea/";
-				
-				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);
+		Storage.getInstance().addListener(new IStorageListener() {
+			public void handleDocLoadEvent(DocLoadEvent dle) { // on doc load, set pages of selector
+				if (Storage.getInstance().isDocLoaded()) {
+					poly2blPages.setPages(Storage.getInstance().getDoc().getPages());
+				}
+			}
+			
+			public void handlePageLoadEvent(PageLoadEvent arg) { // on page load, set to current page
+				if (Storage.getInstance().isPageLoaded()) {
+					poly2blPages.getPagesText().setText(""+(Storage.getInstance().getPageIndex()+1));
+				}
 			}
 		});
+		
+//		Button aboutBtn = new Button(c, SWT.PUSH);
+//		aboutBtn.setImage(Images.getOrLoad("/icons/information.png"));
+////		aboutBtn.setText("About...");
+//		aboutBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				String title = "About: Structure analysis";
+//				String msg = "Status\n"
+//				+ "\t-Beta version. Can be used for production\n"
+//				+ "Behaviour\n"
+//				+ "\t-SA needs as input a page which was processed with an OCR engine.\n"
+//				+ "\t-Based on several rules it will detect\n"
+//				+ "\t\t-page numbers\n"
+//				+ "\t\t-headers (=running titles) and\n"
+//				+ "\t\t-footnotes (regions, not single footnotes)\n"
+//				+ "\t-Values appear in the “Structure” tab on the left hand side.\n"
+//				+ "Background\n"
+//				+ "\t-As part of the IMPACT project (2008-2012) University of Innsbruck, Digitisation\n"
+//				+ "\t and Digital Preservation group developed several rule sets for processing\n"
+//				+ "\t historical printed documents\n"
+//				+ "\t-The rule sets can easily be extended to other document types as well.\n"
+//				+ "Provider\n"
+//				+ "\t-University Innsbruck, Digitisation and Digital Preservation group\n"
+//				+ "Credits\n"
+//				+ "\t-This implementation is based on the infrastructure set up during the\n"
+//				+ "\t IMPACT project (2008-2012)\n"
+//				+ "\t http://www.digitisation.eu/\n"
+//				+ "Contact\n"
+//				+ "\t http://germanistik.uibk.ac.at/dea/";
+//				
+//				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);
+//			}
+//		});
 				
-		detectPageNumbers = new Button(c, SWT.CHECK);
-		detectPageNumbers.setText("Detect Page Numbers");
-		detectPageNumbers.setSelection(true);
-		
-		detectRunningTitles = new Button(c, SWT.CHECK);
-		detectRunningTitles.setText("Detect Headers");
-		detectRunningTitles.setSelection(true);
-		
-		detectFootnotesCheck = new Button(c, SWT.CHECK);
-		detectFootnotesCheck.setText("Detect Footnotes");
-		detectFootnotesCheck.setSelection(true);
+//		detectPageNumbers = new Button(c, SWT.CHECK);
+//		detectPageNumbers.setText("Detect Page Numbers");
+//		detectPageNumbers.setSelection(true);
+//		
+//		detectRunningTitles = new Button(c, SWT.CHECK);
+//		detectRunningTitles.setText("Detect Headers");
+//		detectRunningTitles.setSelection(true);
+//		
+//		detectFootnotesCheck = new Button(c, SWT.CHECK);
+//		detectFootnotesCheck.setText("Detect Footnotes");
+//		detectFootnotesCheck.setSelection(true);
 
 		exp.setClient(c);
 		new Label(c, SWT.NONE);
-		exp.setText("Structure Analysis");
+		exp.setText("Other Tools");
 		exp.setExpanded(true);
 		exp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {

@@ -681,7 +681,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 		if (ret == IDialogConstants.OK_ID) {			
 			try {
 				List<String> jobIds = Storage.getInstance().analyzeLayoutOnLatestTranscriptOfPages(laD.getPages(),
-						laD.isDoBlockSeg(), laD.isDoLineSeg(), laD.isDoWordSeg(), laD.getJobImpl(), null);
+						laD.isDoBlockSeg(), laD.isDoLineSeg(), laD.isDoWordSeg(), false, laD.getJobImpl(), null);
 				
 				if (jobIds != null && mw != null) {
 					logger.debug("started jobs: "+jobIds.size());

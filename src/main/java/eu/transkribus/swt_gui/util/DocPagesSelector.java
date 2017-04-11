@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.util;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -32,8 +33,13 @@ public class DocPagesSelector extends Composite {
 	Text pagesText;
 	Button selectPagesBtn;
 	Button testBtn;
+	Label label;
 	
 	static final boolean TEST=false;
+		
+	public DocPagesSelector(Composite parent, int style) {
+		this(parent, style, true, new ArrayList<>());
+	}
 
 	public DocPagesSelector(Composite parent, int style, final List<TrpPage> pages) {
 		this(parent, style, true, pages);
@@ -48,33 +54,34 @@ public class DocPagesSelector extends Composite {
 		this.pages = pages;
 		
 		if(showLabel) {
-			Label l = new Label(this, 0);
-			l.setText("Pages ("+pages.size()+"): ");
-			l.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+			label = new Label(this, 0);
+			label.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		}
 		
 		pagesText = new Text(this, SWT.SINGLE | SWT.BORDER);
 		pagesText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		pagesText.setToolTipText("Type page ranges and/or single page numbers seperated by commas, e.g. '1-10, 13, 14' or '1, 3-4, 6-8, 10'");
-		pagesText.setText("1-"+pages.size());
+		
+		updateLabelAndPagesStr();
 		
 		selectPagesBtn = new Button(this, SWT.PUSH);
+		selectPagesBtn.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 		selectPagesBtn.setText("...");
 		selectPagesBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				final DocPageViewer dpv = new DocPageViewer(SWTUtil.dummyShell, 0, false, true, false);
-				dpv.setDataList(pages);
+				dpv.setDataList(DocPagesSelector.this.pages);
 //				Shell s = DialogUtil.openShellWithComposite(null, dpv, 400, 400, "Select pages");
 				final MessageDialog d = DialogUtil.createCustomMessageDialog(getShell(), "Select pages", "", null, 0, new String[]{"OK",  "Cancel"}, 0, dpv);
 				// gets called when dialog is closed:
 				dpv.addDisposeListener(new DisposeListener() {
 					@Override
 					public void widgetDisposed(DisposeEvent e) {
-						logger.info("return code: "+d.getReturnCode());
-						logger.info("checked list: "+dpv.getCheckedList());
+						logger.trace("return code: "+d.getReturnCode());
+						logger.trace("checked list: "+dpv.getCheckedList());
 						if (d.getReturnCode() == 0) {
 							String rs = CoreUtils.getRangeListStr(dpv.getCheckedList());
-							logger.info("rs = "+rs);
+							logger.trace("rs = "+rs);
 							pagesText.setText(rs);
 						}
 					}
@@ -82,7 +89,6 @@ public class DocPagesSelector extends Composite {
 				d.open();
 			}
 		});
-		selectPagesBtn.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 		
 		if (TEST) {
 			testBtn = new Button(this, SWT.PUSH);
@@ -100,6 +106,17 @@ public class DocPagesSelector extends Composite {
 			});
 			testBtn.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 		}
+	}
+	
+	public void setPages(List<TrpPage> pages) {
+		this.pages = pages;
+		
+		updateLabelAndPagesStr();
+	}
+	
+	private void updateLabelAndPagesStr() {
+		label.setText("Pages ("+this.pages.size()+"): ");
+		pagesText.setText("1-"+this.pages.size());
 	}
 	
 	public Set<Integer> getSelectedPageIndices() throws IOException {

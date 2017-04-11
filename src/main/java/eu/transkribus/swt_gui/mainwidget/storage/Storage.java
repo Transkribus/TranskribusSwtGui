@@ -1496,7 +1496,7 @@ public class Storage {
 		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
 	}
 	
-	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
 		checkConnection(true);
 		
 		if (!isRemoteDoc()) {
@@ -1515,7 +1515,7 @@ public class Storage {
 		dsds.add(dd);
 		
 		List<String> jobids = new ArrayList<>();
-		List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, jobImpl, pars);
+		List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, jobImpl, pars);
 		for (TrpJobStatus j : jobs) {
 			jobids.add(j.getJobId());
 		}
@@ -1527,7 +1527,7 @@ public class Storage {
 	/**
 	 * Wrapper method which takes a pages range string of the currently loaded document
 	 */
-	public List<String> analyzeLayoutOnLatestTranscriptOfPages(String pageStr, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+	public List<String> analyzeLayoutOnLatestTranscriptOfPages(String pageStr, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
 		checkConnection(true);
 		
 		if (!isRemoteDoc()) {
@@ -1540,7 +1540,7 @@ public class Storage {
 		dsds.add(dd);
 		
 		List<String> jobids = new ArrayList<>();
-		List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, jobImpl, pars);
+		List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, jobImpl, pars);
 		for (TrpJobStatus j : jobs) {
 			jobids.add(j.getJobId());
 		}
@@ -1548,9 +1548,9 @@ public class Storage {
 		return jobids;
 	}
 	
-	public List<TrpJobStatus> analyzeLayout(int colId, List<DocumentSelectionDescriptor> dsds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+	public List<TrpJobStatus> analyzeLayout(int colId, List<DocumentSelectionDescriptor> dsds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
-		return conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, jobImpl, pars);
+		return conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, jobImpl, pars);
 	}
 	
 	/**
