@@ -2689,7 +2689,7 @@ public class TrpMainWidget {
 		
 		logger.debug(Long.toString(imgFile.length()));
 		//Set new pageNr
-		int pageNr = storage.getNPages() + 1;
+		int pageNr = storage.getNPages()+1;
 		int docId = storage.getDocId();
 		int colId = storage.getCollId();	
 		
@@ -2703,7 +2703,7 @@ public class TrpMainWidget {
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					
 					try {
-//						monitor.beginTask("Uploading image file...", 120);
+						monitor.beginTask("Uploading image file...colId " + colId + " docId " + docId + " pageNr " + pageNr, 120);
 						Storage.getInstance().addPage(colId, docId, pageNr, imgFile, monitor);
 					} catch (NoConnectionException e) {
 						logger.error(e.toString());
@@ -2720,6 +2720,53 @@ public class TrpMainWidget {
 			e.printStackTrace();
 		}		
 
+	}
+	
+	public void addSeveralPages2Doc() {
+		logger.debug("Open Dialog for adding images");
+
+		//FIXME where to handle which file extensions are allowed?
+		final String[] extArr = new String[] { "*.jpg", "*.jpeg", "*.tiff", "*.tif", "*.TIF", "*.TIFF", "*.png" };
+		final ArrayList<String> imgNames = DialogUtil.showOpenFilesDialog(getShell(), "Select image files to add", null, extArr);
+		if (imgNames == null)
+			return;
+
+		try {
+			int pageNr = storage.getNPages();
+			//check img file
+			for (String img : imgNames){
+				final File imgFile = new File(img);
+				
+				pageNr += 1;
+				int pageNumber = pageNr;
+				int docId = storage.getDocId();
+				int colId = storage.getCollId();
+				
+				if (!imgFile.canRead())
+					throw new Exception("Can't read file at: " + img);
+				
+				ProgressBarDialog.open(mw.getShell(), new IRunnableWithProgress(){
+
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						
+						try {
+							monitor.beginTask("Uploading image file...colId " + colId + " docId " + docId + " pageNr " + pageNumber, 120);
+							Storage.getInstance().addPage(colId, docId, pageNumber, imgFile, monitor);
+						} catch (NoConnectionException e) {
+							logger.error(e.toString());
+						}					
+					}				
+				}, "Upload", false);			
+
+
+				reloadCurrentDocument();
+			}
+			
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
 	}
 
 	public void deletePage() {

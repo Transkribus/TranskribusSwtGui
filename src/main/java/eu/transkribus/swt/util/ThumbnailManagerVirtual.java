@@ -27,6 +27,8 @@ import org.eclipse.nebula.widgets.gallery.MyDefaultGalleryItemRenderer;
 import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -324,6 +326,7 @@ public class ThumbnailManagerVirtual extends Dialog{
             public void widgetSelected(SelectionEvent e) {
             	if (tw.getGallery().getSelectionCount()>=1){
             		//set to true if edits are allowed
+            		logger.debug("At least one gallery item is selected");
             		enableEdits(true);
             	}
             	else{
@@ -332,6 +335,20 @@ public class ThumbnailManagerVirtual extends Dialog{
             }
 
 
+		});
+		
+		tw.getGallery().addKeyListener(new KeyAdapter() {
+		    @Override
+		    public void keyPressed( KeyEvent e ) {
+		 
+		        if( e.keyCode == 'a'
+		                && ( e.stateMask & SWT.MODIFIER_MASK ) == SWT.CTRL ) {
+		        	logger.debug("select all");
+		            tw.getGallery().selectAll();
+		            enableEdits(true);
+		            
+		        }
+		    }
 		});
 						
 	    contextMenu = new Menu(tw.getGallery());
@@ -382,13 +399,15 @@ public class ThumbnailManagerVirtual extends Dialog{
 	    deletePage.setText("Delete page");
 	    
 	    MenuItem addPage = new MenuItem(contextMenu, SWT.NONE);
-	    addPage.setText("Add a new page");
+	    addPage.setText("Add new page(s)");
+	    addPage.setToolTipText("For importing several pages press 'ctrl' or 'shift' button");
 	    
 	    addPage.addListener(SWT.Selection, new Listener(){
 
 			@Override
 			public void handleEvent(Event event) {
-				mw.addPage();	
+				//mw.addPage();
+				mw.addSeveralPages2Doc();
 				try {
 					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
 				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException
@@ -761,11 +780,11 @@ public class ThumbnailManagerVirtual extends Dialog{
 		if (tw.getGallery().getSelectionCount() > 0) {
 			for(GalleryItem si : tw.getGallery().getSelection()){
 				int selectedPageNr = tw.getGallery().indexOf(si) + 1;
+				logger.debug("page " + selectedPageNr);
 				String tmp = Integer.toString(selectedPageNr);
 				pages += (pages.equals("")? tmp : ",".concat(tmp));
 			}			
 		}
-		//logger.debug("pages String " + pages);
 		return pages;
 	}
 	

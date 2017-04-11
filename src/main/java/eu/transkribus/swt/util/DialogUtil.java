@@ -1,8 +1,11 @@
 package eu.transkribus.swt.util;
 
 import java.awt.Desktop;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IStatus;
@@ -198,6 +201,34 @@ public class DialogUtil {
 		fd.setFilterExtensions(exts);
 		String selected = fd.open();
 		return selected;
+	}
+	
+	//for choosing several files at once
+	public static ArrayList<String> showOpenFilesDialog(Shell shell, String title, String filterPath, String[] exts) {
+		FileDialog fd = new FileDialog(shell, SWT.OPEN | SWT.MULTI);
+		fd.setOverwrite(true); // prompt user if file exists!
+		fd.setText(title);
+		if (filterPath == null)
+			filterPath = System.getProperty("user.dir");
+		fd.setFilterPath(filterPath);
+		if (exts == null)
+			exts = new String[]{"*.*"};
+		fd.setFilterExtensions(exts);
+		
+		ArrayList<String> files = new ArrayList<String>();
+	    if (fd.open() != null) {
+	      String[] names = fd.getFileNames();
+	      for (int i = 0, n = names.length; i < n; i++) {
+	        StringBuffer buf = new StringBuffer(fd.getFilterPath());
+	        if (buf.charAt(buf.length() - 1) != File.separatorChar)
+	          buf.append(File.separatorChar);
+	        buf.append(names[i]);
+	        files.add(buf.toString());
+	      }
+	    }
+	    System.out.println(files);
+
+		return files;
 	}
 	
 	public static String showOpenFolderDialog(Shell shell, String title, String filterPath) {
