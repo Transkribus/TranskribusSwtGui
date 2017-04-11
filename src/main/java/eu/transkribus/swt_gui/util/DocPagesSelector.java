@@ -116,7 +116,11 @@ public class DocPagesSelector extends Composite {
 	
 	private void updateLabelAndPagesStr() {
 		label.setText("Pages ("+this.pages.size()+"): ");
-		pagesText.setText("1-"+this.pages.size());
+		
+		if (!pages.isEmpty())
+			pagesText.setText("1-"+this.pages.size());
+		else
+			pagesText.setText("");
 	}
 	
 	public Set<Integer> getSelectedPageIndices() throws IOException {

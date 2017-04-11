@@ -501,8 +501,8 @@ public class ToolsWidget extends Composite {
 		c.setLayout(new GridLayout(2, true));
 		
 		polygon2baselinesBtn = new Button(c, SWT.PUSH);
-		polygon2baselinesBtn.setText("Polygons to Baselines");
-		polygon2baselinesBtn.setToolTipText("Creates baselines for all surrounding polygons - warning: existing baselines will be lost!");
+		polygon2baselinesBtn.setText("Add Baselines to Polygons");
+		polygon2baselinesBtn.setToolTipText("Creates baselines for all surrounding polygons - warning: existing baselines will be lost (text is retained however!)");
 		polygon2baselinesBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 		
 		poly2blPages = new DocPagesSelector(c, SWT.NONE);
