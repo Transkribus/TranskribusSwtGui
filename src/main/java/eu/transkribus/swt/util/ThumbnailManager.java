@@ -64,7 +64,7 @@ import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImg;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
-import eu.transkribus.swt_gui.dialogs.la.LayoutAnalysisDialog;
+import eu.transkribus.swt_gui.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 

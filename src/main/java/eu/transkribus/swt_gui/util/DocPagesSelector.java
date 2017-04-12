@@ -37,9 +37,9 @@ public class DocPagesSelector extends Composite {
 	
 	static final boolean TEST=false;
 		
-	public DocPagesSelector(Composite parent, int style) {
-		this(parent, style, true, new ArrayList<>());
-	}
+//	public DocPagesSelector(Composite parent, int style) {
+//		this(parent, style, true, new ArrayList<>());
+//	}
 
 	public DocPagesSelector(Composite parent, int style, final List<TrpPage> pages) {
 		this(parent, style, true, pages);
@@ -69,6 +69,9 @@ public class DocPagesSelector extends Composite {
 		selectPagesBtn.setText("...");
 		selectPagesBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
+				if (pages.isEmpty())
+					return;
+				
 				final DocPageViewer dpv = new DocPageViewer(SWTUtil.dummyShell, 0, false, true, false);
 				dpv.setDataList(DocPagesSelector.this.pages);
 //				Shell s = DialogUtil.openShellWithComposite(null, dpv, 400, 400, "Select pages");
@@ -115,7 +118,9 @@ public class DocPagesSelector extends Composite {
 	}
 	
 	private void updateLabelAndPagesStr() {
-		label.setText("Pages ("+this.pages.size()+"): ");
+		if (label != null) {
+			label.setText("Pages ("+this.pages.size()+"): ");
+		}
 		
 		if (!pages.isEmpty())
 			pagesText.setText("1-"+this.pages.size());
@@ -129,6 +134,10 @@ public class DocPagesSelector extends Composite {
 	
 	public Text getPagesText(){
 		return pagesText;
+	}
+	
+	public String getPagesStr() {
+		return pagesText.getText();
 	}
 
 	public void setEnabled(boolean enabled) {

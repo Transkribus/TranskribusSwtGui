@@ -17,7 +17,6 @@ import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
@@ -34,9 +33,7 @@ import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.HtrTrainingDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
-import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog;
 import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog2;
-import eu.transkribus.swt_gui.dialogs.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.GuiUtil;
@@ -53,12 +50,9 @@ public class ToolsWidgetListener implements SelectionListener {
 	
 	ThumbnailManager tm;
 	HtrTrainingDialog htd;
-	@Deprecated
-	TextRecognitionDialog trd;
 	OcrDialog od;
 	TextRecognitionDialog2 trd2;
-	LayoutAnalysisDialog laDiag;
-		
+
 	public ToolsWidgetListener(TrpMainWidget mainWidget) {
 		this.mw = mainWidget;
 		this.canvas = mainWidget.getCanvas();
@@ -69,17 +63,23 @@ public class ToolsWidgetListener implements SelectionListener {
 	
 	private void addListener() {
 		// use utiliy method from SWTUtil class to avoid nullpointer exceptions!
-		SWTUtil.addSelectionListener(tw.batchLaBtn, this);
-		SWTUtil.addSelectionListener(tw.regAndLineSegBtn, this);
-		SWTUtil.addSelectionListener(tw.lineSegBtn, this);
-		SWTUtil.addSelectionListener(tw.wordSegBtn, this);
+//		SWTUtil.addSelectionListener(tw.batchLaBtn, this);
+//		SWTUtil.addSelectionListener(tw.regAndLineSegBtn, this);
+//		SWTUtil.addSelectionListener(tw.lineSegBtn, this);
+//		SWTUtil.addSelectionListener(tw.wordSegBtn, this);
+		
+		SWTUtil.addSelectionListener(tw.trComp.getRunBtn(), this);
+		SWTUtil.addSelectionListener(tw.trComp.getTrainBtn(), this);
+		
+		SWTUtil.addSelectionListener(tw.startLaBtn, this);
 		
 //		blockSegWPsBtn.addSelectionListener(this);
 //		tw.baselineBtn.addSelectionListener(this);
 		
-		SWTUtil.addSelectionListener(tw.ocrBtn, this);
-		SWTUtil.addSelectionListener(tw.htrTrainBtn, this);
-		SWTUtil.addSelectionListener(tw.recogBtn, this);
+//		SWTUtil.addSelectionListener(tw.ocrBtn, this);
+//		SWTUtil.addSelectionListener(tw.htrTrainBtn, this);
+//		SWTUtil.addSelectionListener(tw.recogBtn, this);
+		
 		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
 		
@@ -107,11 +107,13 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 	
 	boolean isLayoutAnalysis(Object s) {
-		return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn || s == tw.baselineBtn || s == tw.polygon2baselinesBtn);
+		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn;
+//		return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn || s == tw.baselineBtn || s == tw.polygon2baselinesBtn);
 	}
 	
 	boolean needsRegions(Object s) {
-		return s == tw.baselineBtn || s == tw.lineSegBtn;
+		return (s == tw.startLaBtn && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn;
+//		return s == tw.baselineBtn || s == tw.lineSegBtn;
 	}
 		
 	@Override
@@ -163,67 +165,76 @@ public class ToolsWidgetListener implements SelectionListener {
 //				logger.info("Get new block seg. in PS");
 //				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
 //			}
-			else if(s == tw.regAndLineSegBtn || s == tw.lineSegBtn) {
-				boolean analRegions = s==tw.regAndLineSegBtn;
-				logger.info("Get regions, lines and baselines, analyRegions = "+analRegions);
-				
-				List<String> rids = getSelectedRegionIds();
-				String jobImpl = LayoutAnalysisDialog.getJobImplForMethod(tw.getSelectedLaMethod());
-				logger.debug("jobImpl = "+jobImpl);
-				
-//				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-				jobIds = store.analyzeLayoutOnCurrentTranscript(rids, analRegions, true, false, false, jobImpl, null);			
-			}
-//			else if(s == tw.lineSegBtn) {
-//				logger.info("Get lines and baselines");
+			
+//			else if(s == tw.regAndLineSegBtn || s == tw.lineSegBtn) {
+//				boolean analRegions = s==tw.regAndLineSegBtn;
+//				logger.info("Get regions, lines and baselines, analyRegions = "+analRegions);
+//				
 //				List<String> rids = getSelectedRegionIds();
-////				boolean hasRegIds = CoreUtils.isEmpty(rids);
+//				String jobImpl = LayoutAnalysisComposite.getJobImplForMethod(tw.getSelectedLaMethod());
+//				logger.debug("jobImpl = "+jobImpl);
 //				
-//				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-//				
-//				jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
-//						false, true, false, laDiag.getJobImpl(), null);
-//				
+////				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+//				jobIds = store.analyzeLayoutOnCurrentTranscript(rids, analRegions, true, false, false, jobImpl, null);			
 //			}
-			else if(s == tw.wordSegBtn) {
-				logger.info("Get new word seg.");
-				List<String> rids = getSelectedRegionIds();
-				jobId = store.analyzeWords(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-			}
-			else if(s == tw.baselineBtn) {
-				logger.info("Get new Baselines.");
-				List<String> rids = getSelectedRegionIds();
-				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-			} 
-			else if(s == tw.batchLaBtn) {
-				if(laDiag != null && SWTUtil.isDisposed(laDiag.getShell())) {
-					laDiag.setVisible();
+//			else if(s == tw.wordSegBtn) {
+//				logger.info("Get new word seg.");
+//				List<String> rids = getSelectedRegionIds();
+//				jobId = store.analyzeWords(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+//			}
+//			else if(s == tw.baselineBtn) {
+//				logger.info("Get new Baselines.");
+//				List<String> rids = getSelectedRegionIds();
+//				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
+//			} 
+//			else if(s == tw.batchLaBtn) {
+//				if(laDiag != null && SWTUtil.isDisposed(laDiag.getShell())) {
+//					laDiag.setVisible();
+//				} else {
+//					laDiag = new LayoutAnalysisDialog(mw.getShell());
+//					int ret = laDiag.open();
+//					if (ret == IDialogConstants.OK_ID) {
+//						List<String> rids = getSelectedRegionIds();
+//						logger.debug("selected regIds = "+CoreUtils.join(rids));
+//						
+//						// FIXME: if pageStr contains only current page nr, select currently selected transcript !?????						
+//						if (!laDiag.isCurrentTranscript()) {
+//							logger.debug("running la on pages: "+laDiag.getPages());
+//							jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(laDiag.getPages(),
+//										laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), false, laDiag.getJobImpl(), null);
+//						} else {
+//							logger.debug("running la on current transcript and selected rids: "+CoreUtils.join(rids));
+//							jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
+//									laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), false, laDiag.getJobImpl(), null);	
+//						}
+//					}
+//				}
+//			}
+			
+			else if (s == tw.startLaBtn) {
+				if (!tw.laComp.isCurrentTranscript()) {
+					logger.debug("running la on pages: "+tw.laComp.getPages());
+					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.laComp.getPages(),
+							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, tw.laComp.getJobImpl(), null);
 				} else {
-					laDiag = new LayoutAnalysisDialog(mw.getShell());
-					int ret = laDiag.open();
-					if (ret == IDialogConstants.OK_ID) {
-						List<String> rids = getSelectedRegionIds();
-						logger.debug("selected regIds = "+CoreUtils.join(rids));
-						
-						// FIXME: if pageStr contains only current page nr, select currently selected transcript !?????						
-						if (!laDiag.isCurrentTranscript()) {
-							logger.debug("running la on pages: "+laDiag.getPages());
-							jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(laDiag.getPages(),
-										laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), false, laDiag.getJobImpl(), null);
-						} else {
-							logger.debug("running la on current transcript and selected rids: "+CoreUtils.join(rids));
-							jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
-									laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), false, laDiag.getJobImpl(), null);	
-						}
-					}
+					List<String> rids = getSelectedRegionIds();
+					logger.debug("running la on current transcript and selected rids: "+CoreUtils.join(rids));
+					jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
+							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, tw.laComp.getJobImpl(), null);	
 				}
 			}
 			else if (s == tw.polygon2baselinesBtn) {
-				logger.debug("polygon2baselinesBtn pressed, pages = "+tw.poly2blPages.getPagesText().getText());
-				
-				jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.poly2blPages.getPagesText().getText(),
-						false, false, false, true, JobImpl.NcsrOldLaJob.toString(), null);
-				
+				if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
+					logger.debug("polygon2baselinesBtn on pages: "+tw.otherToolsPagesSelector.getPagesStr());
+					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
+							false, false, false, true, JobImpl.NcsrOldLaJob.toString(), null);
+				} else {
+					logger.debug("polygon2baselinesBtn on current transcript");
+					List<String> rids = getSelectedRegionIds();
+					
+					jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
+							false, false, false, true, JobImpl.NcsrOldLaJob.toString(), null);
+				}
 			}
 			
 			// struct analysis:
@@ -292,87 +303,9 @@ public class ToolsWidgetListener implements SelectionListener {
 					DiffCompareTool diff = new DiffCompareTool(mw.getShell().getDisplay(), hypText, refText);
 					
 					mw.openVersionsCompareDialog(diff.getResult());
-				}					
-			
-			} else if (s == tw.ocrBtn) {
-				//OLD TEXT RECOGNITION DIALOG
-//				if(trd != null) {
-//					trd.setVisible();
-//				} else {
-//					trd = new TextRecognitionDialog(mw.getShell());
-//					int ret = trd.open();
-//					final String pageStr = trd.getSelectedPages();
-//					if (ret == IDialogConstants.OK_ID) {
-//						if(trd.getRecMode().equals(RecMode.OCR)){
-//							logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
-//							jobId = store.runOcr(colId, docId, pageStr);
-//						} else { //HTR
-//							store.saveTranscript(colId, null);
-//							store.setLatestTranscriptAsCurrent();
-//							if(trd.getHtrRecMode().equals(HtrRecMode.HMM)) {
-//								final HtrModel model = trd.getSelectedHtrModel();
-//								logger.info("starting HMM HTR for doc " + docId + " on pages " + pageStr + " with model = " + model.getModelName());
-//								jobId = store.runHtr(colId, docId, pageStr, model.getModelName());
-//							} else if(trd.getHtrRecMode().equals(HtrRecMode.RNN)){
-//								final String netName = trd.getRnnName();
-//								final String dictName = trd.getDictName();
-//								logger.info("starting RNN HTR for doc " + docId + " on pages " + pageStr + " with net = " + netName + " | dict = " + dictName);
-//								jobId = store.runRnnHtr(colId, docId, pageStr, netName, dictName);
-//							} else {
-//								DialogUtil.showErrorMessageBox(TrpMainWidget.getInstance().getShell(), "Info", "Result: 42");
-//							}
-//						}
-//					}
-//					trd = null;
-//				}
-				if(od != null) {
-					od.setVisible();
-				} else {
-					od = new OcrDialog(mw.getShell());
-					int ret = od.open();
-					
-					if (ret == IDialogConstants.OK_ID) {
-						final String pageStr = od.getPages();
-						final OcrConfig config = od.getConfig();
-						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
-						jobId = store.runOcr(colId, docId, pageStr, config);
-					}
-					od = null;
 				}
-//			} else if (s == tw.languageCombo) {
-//				d.getMd().setLanguage(tw.languageCombo.getText());
-//				mw.saveDocMetadata();
-//			}
-				// ocr:
-//				else if (s == tw.startOcrBtn) {
-//					mw.saveDocMetadata();
-//					TrpDocMetadata md = store.getDoc().getMd();
-//					if(md.getScriptType() == null || md.getLanguage() == null || md.getLanguage().isEmpty()) {
-//						DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "Please select script type and language.");
-//					} else {
-//						logger.info("starting ocr for doc "+docId+" and col "+colId);
-//						jobId = store.runOcr(colId, docId);
-//					}
-//				} 
-//				else if (s == tw.startOcrPageBtn){
-//					mw.saveDocMetadata();
-//					final int pageNr = p.getPageNr();
-//					TrpDocMetadata md = store.getDoc().getMd();
-//					if(md.getScriptType() == null || md.getLanguage() == null || md.getLanguage().isEmpty()) {
-//						DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "Please select script type and language.");
-//					} else {
-//						logger.info("starting ocr for doc "+docId+", page " + pageNr + " and col "+colId);
-//						jobId = store.runOcr(colId, docId, pageNr);
-//					}
-//				} else if (s == tw.getRunHtrOnPageBtn()) {
-//					store.saveTranscript(colId, null);
-//					store.setLatestTranscriptAsCurrent();
-//					final int pageNr = store.getPage().getPageNr();
-//					final String model = tw.htrModelsCombo.getItem(tw.htrModelsCombo.getSelectionIndex());
-//					logger.info("starting HTR for doc " + docId + " on page " + pageNr + " with model = " + model);
-//					jobId = store.runHtrOnPage(colId, docId, pageNr, model);
-//				} 
-			} else if(s==tw.htrTrainBtn) {
+			} 
+			else if (tw.trComp.isHtr() && s == tw.trComp.getTrainBtn()) {
 				if(!store.isAdminLoggedIn()) {
 					DialogUtil.showInfoMessageBox(mw.getShell(), "Not Available", "HTR Training is currently under development and only available to Admins.\n"
 							+ "In case you want to request a data set to be trained, please contact us at email@transkribus.eu.");
@@ -388,7 +321,8 @@ public class ToolsWidgetListener implements SelectionListener {
 						htd = null;
 					}
 				}
-			} else if(s==tw.recogBtn) {
+			}
+			else if (tw.trComp.isHtr() && s == tw.trComp.getRunBtn()) {
 				if(trd2 != null) {
 					logger.debug("htr diag set visible");
 					trd2.setVisible();
@@ -406,6 +340,74 @@ public class ToolsWidgetListener implements SelectionListener {
 					trd2 = null;
 				}
 			}
+			else if (tw.trComp.isOcr() && s == tw.trComp.getRunBtn()) {
+				if(od != null) {
+					od.setVisible();
+				} else {
+					od = new OcrDialog(mw.getShell());
+					int ret = od.open();
+					
+					if (ret == IDialogConstants.OK_ID) {
+						final String pageStr = od.getPages();
+						final OcrConfig config = od.getConfig();
+						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
+						jobId = store.runOcr(colId, docId, pageStr, config);
+					}
+					od = null;
+				}
+			}
+			
+			// OLD OCR / HTR BTN LISTENER STUFF
+//			else if (s == tw.ocrBtn) {
+//				if(od != null) {
+//					od.setVisible();
+//				} else {
+//					od = new OcrDialog(mw.getShell());
+//					int ret = od.open();
+//					
+//					if (ret == IDialogConstants.OK_ID) {
+//						final String pageStr = od.getPages();
+//						final OcrConfig config = od.getConfig();
+//						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
+//						jobId = store.runOcr(colId, docId, pageStr, config);
+//					}
+//					od = null;
+//				} 
+//			} 
+//			else if(s==tw.htrTrainBtn) {
+//				if(!store.isAdminLoggedIn()) {
+//					DialogUtil.showInfoMessageBox(mw.getShell(), "Not Available", "HTR Training is currently under development and only available to Admins.\n"
+//							+ "In case you want to request a data set to be trained, please contact us at email@transkribus.eu.");
+//				} else {
+//					if(htd != null) {
+//						htd.setVisible();
+//					} else {
+//						htd = new HtrTrainingDialog(mw.getShell());
+//						if(htd.open() == IDialogConstants.OK_ID) {
+//							CitLabHtrTrainConfig config = htd.getConfig();
+//							jobId = store.runHtrTraining(config);
+//						}
+//						htd = null;
+//					}
+//				}
+//			} else if(s==tw.recogBtn) {
+//				if(trd2 != null) {
+//					logger.debug("htr diag set visible");
+//					trd2.setVisible();
+//				} else {
+//					trd2 = new TextRecognitionDialog2(mw.getShell());
+//					if(trd2.open() == IDialogConstants.OK_ID) {
+//						TextRecognitionConfig config = trd2.getConfig();
+//						final String pages = trd2.getPages();
+//						try {
+//							jobId = store.runHtr(pages, config);
+//						} finally {
+//							trd2 = null;
+//						}
+//					}
+//					trd2 = null;
+//				}
+//			}
 //			else {
 //				mw.onError("Error", "Unknown event!", null);
 //				return;
@@ -442,7 +444,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		} catch (Exception ex) {
 			mw.onError("Error", ex.getMessage(), ex);
 		} finally {
-			laDiag = null;
+//			laDiag = null;
 		}
 		return;
 	}

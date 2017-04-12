@@ -1,14 +1,10 @@
 package eu.transkribus.swt_gui.tools;
 
-import javax.mail.Store;
-
+import org.docx4j.fonts.FontUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.internal.SWTEventListener;
 import org.eclipse.swt.layout.GridData;
@@ -25,17 +21,15 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
-import eu.transkribus.swt_gui.dialogs.la.LayoutAnalysisDialog;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.htr.TextRecognitionComposite;
+import eu.transkribus.swt_gui.la.LayoutAnalysisComposite;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.PageLoadEvent;
-import eu.transkribus.swt_gui.util.DocPagesSelector;
+import eu.transkribus.swt_gui.util.CurrentDocPagesSelector;
+import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
 public class ToolsWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(ToolsWidget.class);
@@ -44,29 +38,23 @@ public class ToolsWidget extends Composite {
 	Composite mdGroup;
 	SWTEventListener listener=null;
 	
-	LabeledCombo laMethodCombo;
-	Button /*blockSegBtn,*/ regAndLineSegBtn, lineSegBtn, wordSegBtn, baselineBtn;
-	Button batchLaBtn;
+	LayoutAnalysisComposite laComp;
+	Button startLaBtn;
 	
+	TextRecognitionComposite trComp;
+	
+//	LabeledCombo laMethodCombo;
+//	Button /*blockSegBtn,*/ regAndLineSegBtn, lineSegBtn, wordSegBtn;
+//	Button batchLaBtn;
+
 	Button polygon2baselinesBtn;
-	DocPagesSelector poly2blPages;
-	
-	Button detectPageNumbers, detectRunningTitles, detectFootnotesCheck;
-	
-	Button ocrBtn, htrTrainBtn, recogBtn;
+	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
+		
+//	Button ocrBtn, htrTrainBtn, recogBtn;
 	
 	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
 	Label ncsrIconLbl;
 
-	/* Deprecated Elements */
-//	Button startOcrBtn, startOcrPageBtn;
-//	Combo scriptTypeCombo;
-//	LanguageSelectionTable languagesTable;
-//	Combo htrModelsCombo;
-//	Button runHtrOnPageBtn;
-	/* =============== END */
-	
-//	Combo refVersionCombo, hypVersionCombo;
 	TranscriptVersionChooser refVersionChooser, hypVersionChooser;
 	
 	Button computeWerBtn;
@@ -171,11 +159,16 @@ public class ToolsWidget extends Composite {
 	}
 	
 	public String getSelectedLaMethod() {
-		if (laMethodCombo.combo.getSelectionIndex()>=0 && laMethodCombo.combo.getSelectionIndex()<laMethodCombo.combo.getItemCount()) {
-			return laMethodCombo.combo.getItems()[laMethodCombo.combo.getSelectionIndex()];	
-		} else {
-			return "";
-		}
+		return laComp.getSelectedMethod();
+		
+//		if (laMethodCombo == null) 
+//			return "";
+//		
+//		if (laMethodCombo.combo.getSelectionIndex()>=0 && laMethodCombo.combo.getSelectionIndex()<laMethodCombo.combo.getItemCount()) {
+//			return laMethodCombo.combo.getItems()[laMethodCombo.combo.getSelectionIndex()];	
+//		} else {
+//			return "";
+//		}
 	}
 	
 	private void initLayoutAnalysisTools() {
@@ -185,27 +178,64 @@ public class ToolsWidget extends Composite {
 		laToolsGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 //		metadatagroup.setText("Document metadata");
 		laToolsGroup.setLayout(new GridLayout(2, false));
-				
-//		dps = new DocPagesSelector(laToolsGroup, SWT.NONE, Storage.getInstance().getDoc().getPages());
-//		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 2, 1));
-//		currPageBtn = new Button(laToolsGroup, SWT.PUSH);
-//		currPageBtn.setText("Current Page");
 		
-//		blockSegBtn = new Button(laToolsGroup, SWT.PUSH);
-//		blockSegBtn.setText("Detect regions");
-//		blockSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-//		blockSegBtn.setToolTipText("Detects regions in the current page - warning: all current regions will be removed!");
-//		Button aboutBlockSegBtn = new Button(laToolsGroup, SWT.PUSH);
-//		aboutBlockSegBtn.setImage(Images.getOrLoad("/icons/information.png"));
-//		aboutBlockSegBtn.addSelectionListener(new SelectionAdapter() {
+		laComp = new LayoutAnalysisComposite(laToolsGroup, 0);
+		laComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
+		startLaBtn = new Button(laToolsGroup, 0);
+		startLaBtn.setText("Run");
+		startLaBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		startLaBtn.setImage(Images.ARROW_RIGHT);
+		
+		if (false) {
+//		laMethodCombo = new LabeledCombo(laToolsGroup, "Method: ");
+//		laMethodCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//		laMethodCombo.combo.setItems(LayoutAnalysisComposite.getMethods(false).toArray(new String[0]));
+//		laMethodCombo.combo.select(0);
+//		Storage.getInstance().addListener(new IStorageListener() {
+//			public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+//				if (arg.login) {
+//					laMethodCombo.combo.setItems(LayoutAnalysisComposite.getMethods(false).toArray(new String[0]));
+//					laMethodCombo.combo.select(0);
+//				}
+//			}
+//		});
+//		
+//		laMethodCombo.combo.addModifyListener(new ModifyListener() {
+//			@Override public void modifyText(ModifyEvent e) {
+//				updateLaGui();
+//			}
+//		});
+//		
+//		regAndLineSegBtn = new Button(laToolsGroup, SWT.PUSH);
+//		regAndLineSegBtn.setText("Detect regions, lines and baselines");
+//		regAndLineSegBtn.setToolTipText("Detects regions, lines and baselines in this page - warning: current regions, lines and baselines will be lost!");
+//		regAndLineSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//		
+////		Button aboutRegAndLineSegBtn = new Button(laToolsGroup, SWT.PUSH);
+////		aboutRegAndLineSegBtn.setImage(Images.getOrLoad("/icons/information.png"));
+//		
+//		lineSegBtn = new Button(laToolsGroup, SWT.PUSH);
+//		lineSegBtn.setText("Detect lines and baselines");
+//		lineSegBtn.setToolTipText("Detects lines and baselines in all selected regions (or in all regions if no region is selected) - warning: current lines and baselines in selected regions will be lost!");
+//		lineSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+//		
+//		batchLaBtn = new Button(laToolsGroup, SWT.PUSH);
+//		batchLaBtn.setText("Batch job...");
+//		batchLaBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		batchLaBtn.setToolTipText("Configure and start a batch job for layout analysis");
+//		
+//		Button aboutLaBtn = new Button(laToolsGroup, SWT.PUSH);
+//		aboutLaBtn.setImage(Images.getOrLoad("/icons/information.png"));
+//		aboutLaBtn.addSelectionListener(new SelectionAdapter() {
 //			@Override public void widgetSelected(SelectionEvent e) {
-//				String title = "About: Detect regions";
+//				String title = "About: Analyze Layout";
 //				String msg = "Status\n"
 //						+ "\t-Experimental\n"
 //						+ "\t-Needs enhancement\n"
 //						+ "Behaviour\n"
-//						+ "\t-Text regions are detected at single pages\n"
-//						+ "\t-Already available text regions are deleted\n"
+//						+ "\t-Text regions and lines are detected\n"
+//						+ "\t-Already available text regions and/or lines are deleted\n"
 //						+ "Background\n"
 //						+ "\t-HTR processing needs correctly detected text regions and baselines\n"
 //						+ "\t-In the future it is planned to have integrated solutions available where\n"
@@ -220,51 +250,7 @@ public class ToolsWidget extends Composite {
 //			}
 //		});
 		
-		laMethodCombo = new LabeledCombo(laToolsGroup, "Method: ");
-		laMethodCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		laMethodCombo.combo.setItems(LayoutAnalysisDialog.getMethods(false).toArray(new String[0]));
-		laMethodCombo.combo.select(0);
-		Storage.getInstance().addListener(new IStorageListener() {
-			public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
-				if (arg.login) {
-					laMethodCombo.combo.setItems(LayoutAnalysisDialog.getMethods(false).toArray(new String[0]));
-					laMethodCombo.combo.select(0);
-				}
-			}
-		});
-//		laMethodCombo.combo.addSelectionListener(new SelectionListener() {
-//			
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				updateLaGui();
-//				
-//			}
-//			
-//			@Override
-//			public void widgetDefaultSelected(SelectionEvent e) {
-//				// TODO Auto-generated method stub
-//				
-//			}
-//		});
-		
-		laMethodCombo.combo.addModifyListener(new ModifyListener() {
-			@Override public void modifyText(ModifyEvent e) {
-				updateLaGui();
-			}
-		});
-		
-		regAndLineSegBtn = new Button(laToolsGroup, SWT.PUSH);
-		regAndLineSegBtn.setText("Detect regions, lines and baselines");
-		regAndLineSegBtn.setToolTipText("Detects regions, lines and baselines in this page - warning: current regions, lines and baselines will be lost!");
-		regAndLineSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		
-//		Button aboutRegAndLineSegBtn = new Button(laToolsGroup, SWT.PUSH);
-//		aboutRegAndLineSegBtn.setImage(Images.getOrLoad("/icons/information.png"));
-		
-		lineSegBtn = new Button(laToolsGroup, SWT.PUSH);
-		lineSegBtn.setText("Detect lines and baselines");
-		lineSegBtn.setToolTipText("Detects lines and baselines in all selected regions (or in all regions if no region is selected) - warning: current lines and baselines in selected regions will be lost!");
-		lineSegBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+		}
 		
 //		Button aboutLineSegBtn = new Button(laToolsGroup, SWT.PUSH);
 //		aboutLineSegBtn.setImage(Images.getOrLoad("/icons/information.png"));
@@ -372,60 +358,34 @@ public class ToolsWidget extends Composite {
 //			}
 //		});
 		
-		batchLaBtn = new Button(laToolsGroup, SWT.PUSH);
-		batchLaBtn.setText("Batch job...");
-		batchLaBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		batchLaBtn.setToolTipText("Configure and start a batch job for layout analysis");
-		
-		Button aboutLaBtn = new Button(laToolsGroup, SWT.PUSH);
-		aboutLaBtn.setImage(Images.getOrLoad("/icons/information.png"));
-		aboutLaBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				String title = "About: Analyze Layout";
-				String msg = "Status\n"
-						+ "\t-Experimental\n"
-						+ "\t-Needs enhancement\n"
-						+ "Behaviour\n"
-						+ "\t-Text regions and lines are detected\n"
-						+ "\t-Already available text regions and/or lines are deleted\n"
-						+ "Background\n"
-						+ "\t-HTR processing needs correctly detected text regions and baselines\n"
-						+ "\t-In the future it is planned to have integrated solutions available where\n"
-						+ "\t text regions and baselines are detected in one process"
-						+ "Provider\n"
-						+ "\t-National Centre for Scientific Research (NCSR) – Demokritos in\n"
-						+ "\t Greece/Athens.\n"
-						+ "Contact\n"
-						+ "\t https://www.iit.demokritos.gr/cil";
-				
-				DialogUtil.showMessageDialog(getShell(), title, msg, null, ncsrIcon, new String[] { "Close" }, 0);
-			}
-		});		
-		
 		laToolsExp.setClient(laToolsGroup);
 		laToolsExp.setText("Layout Analysis");
 		laToolsExp.setExpanded(true);
+		Fonts.setBoldFont(laToolsExp);
 		laToolsExp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
 				layout();
 			}
 		});
 		
-		updateLaGui();
+//		updateLaGui();
 	}
 	
-	private void updateLaGui() {
-		String method = getSelectedLaMethod();
-		regAndLineSegBtn.setEnabled(true);
-		lineSegBtn.setEnabled(true);
-		
-		if (method.equals(LayoutAnalysisDialog.METHOD_NCSR)) {
-			regAndLineSegBtn.setEnabled(false);
-		}
-		else if (method.equals(LayoutAnalysisDialog.METHOD_CVL)) {
-			lineSegBtn.setEnabled(false);
-		}
-	}
+//	private void updateLaGui() {
+//		if (regAndLineSegBtn == null || lineSegBtn == null)
+//			return;
+//		
+//		String method = getSelectedLaMethod();
+//		regAndLineSegBtn.setEnabled(true);
+//		lineSegBtn.setEnabled(true);
+//		
+//		if (method.equals(LayoutAnalysisComposite.METHOD_NCSR)) {
+//			regAndLineSegBtn.setEnabled(false);
+//		}
+//		else if (method.equals(LayoutAnalysisComposite.METHOD_CVL)) {
+//			lineSegBtn.setEnabled(false);
+//		}
+//	}
 	
 	private void initRecogTools() {
 		ExpandableComposite exp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
@@ -434,56 +394,66 @@ public class ToolsWidget extends Composite {
 		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		c.setLayout(new GridLayout(3, false));
 		
-		ocrBtn = new Button(c, SWT.PUSH);
-		ocrBtn.setText("Run OCR...");
-		ocrBtn.setToolTipText("Starts the recognition process for the current book");
-		ocrBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		trComp = new TextRecognitionComposite(c, 0);
+		trComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
-		
-		Button aboutOcrBtn = new Button(c, SWT.PUSH);
-		aboutOcrBtn.setImage(Images.getOrLoad("/icons/information.png"));
-		aboutOcrBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				String title = "About: OCR";
-				String msg = "Status\n"
-						+ "\t-Productive\n"
-						+ "Behaviour\n"
-						+ "\t-All pages/images of the document are processed with\n"
-						+ "\tABBYY FineReader 11 SDK";
-				
-				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
-			}
-		});		
-		
-		htrTrainBtn = new Button(c, SWT.PUSH);
-		htrTrainBtn.setText("Train Text Recognition...");
-		htrTrainBtn.setToolTipText("EXPERIMENTAL");
-		htrTrainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		
-		Button aboutHtrBtn = new Button(c, SWT.PUSH);
-		aboutHtrBtn.setImage(Images.getOrLoad("/icons/information.png"));
-		aboutHtrBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				String title = "About: Text Recognition";
-				String msg = "Status\n"
-						+ "\t-Productive\n"
-						+ "Behaviour\n"
-						+ "\t-All pages/images of the document are processed with\n"
-						+ "\tHTR Technology\n"
-						+ "Provider\n"
-						+ "\t-University of Rostock, Institute of Mathematics, CITlab for HTR";
-						
-				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
-			}
-		});
-		
-		recogBtn = new Button(c, SWT.PUSH);
-		recogBtn.setText("Run Text Recognition...");
-		recogBtn.setToolTipText("EXPERIMENTAL");
-		recogBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+//		if (false) {
+//		ocrBtn = new Button(c, SWT.PUSH);
+//		ocrBtn.setText("Run OCR...");
+//		ocrBtn.setImage(Images.getOrLoad("/icons/ocr_16.png"));
+//		ocrBtn.setToolTipText("Starts the recognition process for the current book");
+//		ocrBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//		
+//		
+//		Button aboutOcrBtn = new Button(c, SWT.PUSH);
+//		aboutOcrBtn.setImage(Images.getOrLoad("/icons/information.png"));
+//		aboutOcrBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				String title = "About: OCR";
+//				String msg = "Status\n"
+//						+ "\t-Productive\n"
+//						+ "Behaviour\n"
+//						+ "\t-All pages/images of the document are processed with\n"
+//						+ "\tABBYY FineReader 11 SDK";
+//				
+//				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
+//			}
+//		});		
+//		
+//		htrTrainBtn = new Button(c, SWT.PUSH);
+//		htrTrainBtn.setText("Train Text Recognition...");
+//		htrTrainBtn.setImage(Images.getOrLoad("/icons/muscle_16.png"));
+//		htrTrainBtn.setToolTipText("EXPERIMENTAL");
+//		htrTrainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//		
+//		Button aboutHtrBtn = new Button(c, SWT.PUSH);
+//		aboutHtrBtn.setImage(Images.getOrLoad("/icons/information.png"));
+//		aboutHtrBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				String title = "About: Text Recognition";
+//				String msg = "Status\n"
+//						+ "\t-Productive\n"
+//						+ "Behaviour\n"
+//						+ "\t-All pages/images of the document are processed with\n"
+//						+ "\tHTR Technology\n"
+//						+ "Provider\n"
+//						+ "\t-University of Rostock, Institute of Mathematics, CITlab for HTR";
+//						
+//				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);				
+//			}
+//		});
+//		
+//		recogBtn = new Button(c, SWT.PUSH);
+//		recogBtn.setText("Run Text Recognition...");
+//		recogBtn.setToolTipText("EXPERIMENTAL");
+//		recogBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+//		recogBtn.setImage(Images.getOrLoad("/icons/htr_16.png"));
+//		
+//		}
 		
 		exp.setClient(c);
 		exp.setText("Text Recognition");
+		Fonts.setBoldFont(exp);
 		exp.setExpanded(true);
 		exp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
@@ -498,78 +468,20 @@ public class ToolsWidget extends Composite {
 		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Composite c = new Composite(exp, SWT.SHADOW_ETCHED_IN);
 		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		c.setLayout(new GridLayout(2, true));
+		c.setLayout(new GridLayout(1, true));
+		
+		otherToolsPagesSelector = new CurrentTranscriptOrCurrentDocPagesSelector(c, SWT.NONE, true);
+		otherToolsPagesSelector.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		polygon2baselinesBtn = new Button(c, SWT.PUSH);
 		polygon2baselinesBtn.setText("Add Baselines to Polygons");
 		polygon2baselinesBtn.setToolTipText("Creates baselines for all surrounding polygons - warning: existing baselines will be lost (text is retained however!)");
-		polygon2baselinesBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
-		
-		poly2blPages = new DocPagesSelector(c, SWT.NONE);
-		poly2blPages.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		Storage.getInstance().addListener(new IStorageListener() {
-			public void handleDocLoadEvent(DocLoadEvent dle) { // on doc load, set pages of selector
-				if (Storage.getInstance().isDocLoaded()) {
-					poly2blPages.setPages(Storage.getInstance().getDoc().getPages());
-				}
-			}
-			
-			public void handlePageLoadEvent(PageLoadEvent arg) { // on page load, set to current page
-				if (Storage.getInstance().isPageLoaded()) {
-					poly2blPages.getPagesText().setText(""+(Storage.getInstance().getPageIndex()+1));
-				}
-			}
-		});
-		
-//		Button aboutBtn = new Button(c, SWT.PUSH);
-//		aboutBtn.setImage(Images.getOrLoad("/icons/information.png"));
-////		aboutBtn.setText("About...");
-//		aboutBtn.addSelectionListener(new SelectionAdapter() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//				String title = "About: Structure analysis";
-//				String msg = "Status\n"
-//				+ "\t-Beta version. Can be used for production\n"
-//				+ "Behaviour\n"
-//				+ "\t-SA needs as input a page which was processed with an OCR engine.\n"
-//				+ "\t-Based on several rules it will detect\n"
-//				+ "\t\t-page numbers\n"
-//				+ "\t\t-headers (=running titles) and\n"
-//				+ "\t\t-footnotes (regions, not single footnotes)\n"
-//				+ "\t-Values appear in the “Structure” tab on the left hand side.\n"
-//				+ "Background\n"
-//				+ "\t-As part of the IMPACT project (2008-2012) University of Innsbruck, Digitisation\n"
-//				+ "\t and Digital Preservation group developed several rule sets for processing\n"
-//				+ "\t historical printed documents\n"
-//				+ "\t-The rule sets can easily be extended to other document types as well.\n"
-//				+ "Provider\n"
-//				+ "\t-University Innsbruck, Digitisation and Digital Preservation group\n"
-//				+ "Credits\n"
-//				+ "\t-This implementation is based on the infrastructure set up during the\n"
-//				+ "\t IMPACT project (2008-2012)\n"
-//				+ "\t http://www.digitisation.eu/\n"
-//				+ "Contact\n"
-//				+ "\t http://germanistik.uibk.ac.at/dea/";
-//				
-//				DialogUtil.showMessageDialog(getShell(), title, msg, null, null, new String[] { "Close" }, 0);
-//			}
-//		});
-				
-//		detectPageNumbers = new Button(c, SWT.CHECK);
-//		detectPageNumbers.setText("Detect Page Numbers");
-//		detectPageNumbers.setSelection(true);
-//		
-//		detectRunningTitles = new Button(c, SWT.CHECK);
-//		detectRunningTitles.setText("Detect Headers");
-//		detectRunningTitles.setSelection(true);
-//		
-//		detectFootnotesCheck = new Button(c, SWT.CHECK);
-//		detectFootnotesCheck.setText("Detect Footnotes");
-//		detectFootnotesCheck.setSelection(true);
+		polygon2baselinesBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		exp.setClient(c);
 		new Label(c, SWT.NONE);
 		exp.setText("Other Tools");
+		Fonts.setBoldFont(exp);
 		exp.setExpanded(true);
 		exp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
@@ -614,6 +526,7 @@ public class ToolsWidget extends Composite {
 		
 		werExp.setClient(werGroup);
 		werExp.setText("Compute Accuracy");
+		Fonts.setBoldFont(werExp);
 		werExp.setExpanded(true);
 		werExp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {

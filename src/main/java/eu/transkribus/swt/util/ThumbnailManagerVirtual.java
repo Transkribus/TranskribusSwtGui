@@ -80,7 +80,7 @@ import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.ThumbnailManager.EditStatusMenuItemListener;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImg;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
-import eu.transkribus.swt_gui.dialogs.la.LayoutAnalysisDialog;
+import eu.transkribus.swt_gui.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import jersey.repackaged.com.google.common.collect.Lists;

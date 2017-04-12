@@ -23,6 +23,8 @@ public class Images {
 	public static final Image FOLDER_IMPORT = Images.getOrLoad("/icons/folder_import.png");
 	public static final Image FOLDER_GO = Images.getOrLoad("/icons/folder_go.png");
 	
+	public static final Image START = Images.getOrLoad("/icons/start_16.png");
+	
 	public static final Image FOLDER = Images.getOrLoad("/icons/folder.png");
 	public static final Image IMAGES = Images.getOrLoad("/icons/images.png");
 	public static final Image IMAGE = Images.getOrLoad("/icons/image.png");
@@ -61,6 +63,7 @@ public class Images {
 	public static final Image ARROW_UP = getOrLoad("/icons/arrow_up.png");
 	public static final Image ARROW_DOWN = getOrLoad("/icons/arrow_down.png");
 	public static final Image ARROW_LEFT = getOrLoad("/icons/arrow_left.png");
+	public static final Image ARROW_RIGHT = getOrLoad("/icons/arrow_right.png");
 	public static final Image ARROW_UNDO = getOrLoad("/icons/arrow_undo.png");
 	public static final Image ARROW_REDO = getOrLoad("/icons/arrow_redo.png");
 	
