@@ -18,8 +18,8 @@ public class TextRecognitionComposite extends Composite {
 
 	private LabeledCombo methodCombo;
 	
-	public static final String METHOD_OCR = "OCR";
-	public static final String METHOD_HTR = "HTR";
+	public static final String METHOD_OCR = "OCR (Abbyy FineReader)";
+	public static final String METHOD_HTR = "HTR (CITlab)";
 	
 	public static final String[] METHODS = { METHOD_HTR, METHOD_OCR };
 	
