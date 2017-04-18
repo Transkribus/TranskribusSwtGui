@@ -5,6 +5,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,7 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
-import eu.transkribus.core.io.util.TrpProperties;
+import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.StrUtil;
@@ -66,6 +67,8 @@ import eu.transkribus.util.TextRecognitionConfig.Mode;
 public class TextRecognitionConfigDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(TextRecognitionConfigDialog.class);
 
+	private static final String NOT_AVAILABLE = "N/A";
+	
 	private Storage store = Storage.getInstance();
 	
 	private CTabFolder folder;
@@ -74,7 +77,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private Group dictGrp;
 	
 	private HtrTableWidget htw;
-	private Text nameTxt, langTxt, descTxt;//, paramTxt;
+	private Text nameTxt, langTxt, descTxt, paramTxt, nrOfLinesTxt, nrOfWordsTxt;
 	private Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
 	private org.jfree.experimental.chart.swt.ChartComposite jFreeChartComp;
 	
@@ -212,10 +215,20 @@ public class TextRecognitionConfigDialog extends Dialog {
 		descTxt = new Text(detailGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
 		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		
-//		Label paramLbl = new Label(detailGrp, SWT.NONE);
-//		paramLbl.setText("Parameters:");
-//		paramTxt = new Text(detailGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
-//		paramTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		Label nrOfWordsLbl = new Label(detailGrp, SWT.NONE);
+		nrOfWordsLbl.setText("Nr. of Words:");
+		nrOfWordsTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
+		nrOfWordsTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+		
+		Label nrOfLinesLbl = new Label(detailGrp, SWT.NONE);
+		nrOfLinesLbl.setText("Nr. of Lines:");
+		nrOfLinesTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
+		nrOfLinesTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+		
+		Label paramLbl = new Label(detailGrp, SWT.NONE);
+		paramLbl.setText("Parameters:");
+		paramTxt = new Text(detailGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
+		paramTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		
 		new Label(detailGrp, SWT.NONE);
 		showTrainSetBtn = new Button(detailGrp, SWT.PUSH);
@@ -374,12 +387,14 @@ public class TextRecognitionConfigDialog extends Dialog {
 		nameTxt.setText(StrUtil.get(htr.getName()));
 		langTxt.setText(StrUtil.get(htr.getLanguage()));
 		descTxt.setText(StrUtil.get(htr.getDescription()));
-//		paramTxt.setText(StrUtil.get(htr.getParams()));
+		nrOfWordsTxt.setText(htr.getNrOfWords() > 0 ? ""+htr.getNrOfWords() : NOT_AVAILABLE);
+		nrOfLinesTxt.setText(htr.getNrOfLines() > 0 ? ""+htr.getNrOfLines() : NOT_AVAILABLE);
 		
-		logger.debug(htr.getParams());
+		final String params = layoutParams(htr.getParamsProps());
+		paramTxt.setText(params.isEmpty() ? NOT_AVAILABLE : params);
 		
 		charSetTitle = "Character Set of Model: " + htr.getName();
-		charSet = htr.getCharList() == null || htr.getCharList().isEmpty() ? "N/A" : htr.getCharList();
+		charSet = htr.getCharList() == null || htr.getCharList().isEmpty() ? NOT_AVAILABLE : htr.getCharList();
 		
 		showCharSetBtn.setEnabled(htr.getCharList() != null && !htr.getCharList().isEmpty());
 		
@@ -389,6 +404,28 @@ public class TextRecognitionConfigDialog extends Dialog {
 		showTrainSetBtn.setEnabled(htr.getGtDocId() != null);
 		
 		updateChart(htr);
+	}
+
+	private String layoutParams(Properties p) {
+		if(p.isEmpty()) {
+			return "";
+		}
+		String res = "";
+		res += CitLabHtrTrainConfig.NUM_EPOCHS_KEY + ":\t\t\t" 
+				+ p.getProperty(CitLabHtrTrainConfig.NUM_EPOCHS_KEY) + "\n";
+		res += CitLabHtrTrainConfig.LEARNING_RATE_KEY + ":\t\t\t" 
+				+ p.getProperty(CitLabHtrTrainConfig.LEARNING_RATE_KEY) + "\n";
+		res += CitLabHtrTrainConfig.NOISE_KEY + ":\t\t\t\t"
+				+ p.getProperty(CitLabHtrTrainConfig.NOISE_KEY) + "\n";
+		res += CitLabHtrTrainConfig.TRAIN_SIZE_KEY + ":\t"
+				+ p.getProperty(CitLabHtrTrainConfig.TRAIN_SIZE_KEY) + "\n";
+		if(p.containsKey(CitLabHtrTrainConfig.BASE_MODEL_ID_KEY)) {
+			res += CitLabHtrTrainConfig.BASE_MODEL_ID_KEY + ":\t"
+					+ p.getProperty(CitLabHtrTrainConfig.BASE_MODEL_ID_KEY) + "\n";
+			res += CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY + ":\t"
+					+ p.getProperty(CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY);
+		}
+		return res;
 	}
 
 	private void updateChart(TrpHtr htr) {
