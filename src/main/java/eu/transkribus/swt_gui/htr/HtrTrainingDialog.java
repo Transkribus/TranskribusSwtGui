@@ -1,8 +1,14 @@
-package eu.transkribus.swt_gui.dialogs;
+package eu.transkribus.swt_gui.htr;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -10,7 +16,13 @@ import javax.ws.rs.ServerErrorException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
@@ -19,6 +31,8 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -27,30 +41,45 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
+import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
+import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class HtrTrainingDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTrainingDialog.class);
 	
+	private static final Color BLUE = Colors.getSystemColor(SWT.COLOR_BLUE);
+	private static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
+	private static final Color GREEN = Colors.getSystemColor(SWT.COLOR_GREEN);
+	
 	private CTabFolder paramTabFolder;
 	private CTabItem uroTabItem;
 
+	private CTabFolder selectionMethodTabFolder;
+	private CTabItem thumbNailTabItem, treeViewerTabItem;
+	
 	private Button addTrainDocBtn, addTestDocBtn;
 	private CTabFolder docTabFolder, testDocTabFolder;
 	
@@ -67,7 +96,23 @@ public class HtrTrainingDialog extends Dialog {
 	
 	private CitLabHtrTrainConfig conf;
 	
-	Storage store = Storage.getInstance();
+	private TreeViewer tv;
+	private CollectionContentProvider contentProv;
+	private CollectionLabelProvider labelProv;
+	private Button useGtVersionChk;
+	
+	private Composite buttonComp;
+	private Label previewLbl;
+	
+	private Button addToTrainSetBtn, addToTestSetBtn;
+	
+	private DataSetTableWidget testSetOverviewTable, trainSetOverviewTable;
+	
+	private Storage store = Storage.getInstance();
+	
+	private List<TrpDocMetadata> docList;
+	
+	private Map<TrpDocMetadata, List<TrpPage>> trainDocMap, testDocMap;
 
 	private final static String[] NOISE_OPTIONS = new String[] {"no", "preproc", "net", "both"};
 	private final static int NOISE_DEFAULT_CHOICE = 3;
@@ -82,6 +127,9 @@ public class HtrTrainingDialog extends Dialog {
 		super(parent);
 		trainTwList = new LinkedList<>();
 		testTwList = new LinkedList<>();
+		docList = store.getDocList();
+		trainDocMap = new TreeMap<>();
+		testDocMap = new TreeMap<>();
 	}
     
 	public void setVisible() {
@@ -156,7 +204,7 @@ public class HtrTrainingDialog extends Dialog {
 		baseModelLbl.setText("Base Model:");
 		baseModelCmb = new Combo(uroParamCont, SWT.READ_ONLY);
 		baseModelCmb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		baseModelCmb.setItems(new String[] {"", "bla", "blubb"});
+		baseModelCmb.setItems(new String[] {""});
 		
 		baseModelCmbViewer = new ComboViewer(baseModelCmb);
 		baseModelCmbViewer.setLabelProvider(new LabelProvider() {
@@ -191,7 +239,15 @@ public class HtrTrainingDialog extends Dialog {
 
 		// doc selection ===========================================================================================
 
-		Composite docCont = new Composite(sash, SWT.BORDER);
+		selectionMethodTabFolder = new CTabFolder(sash, SWT.BORDER | SWT.FLAT);
+		selectionMethodTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
+		// create thumbnail view ================================================================================0
+		
+		thumbNailTabItem = new CTabItem(selectionMethodTabFolder, SWT.NONE);
+		thumbNailTabItem.setText("Thumbnail View");
+		
+		Composite docCont = new Composite(selectionMethodTabFolder, SWT.BORDER);
 		docCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		docCont.setLayout(new GridLayout(1, false));
 
@@ -302,9 +358,303 @@ public class HtrTrainingDialog extends Dialog {
 		trainDocCont.pack();
 		
 		docCont.pack();
-
+		
 		sash.setWeights(new int[] { 34, 66 });
+		
+		thumbNailTabItem.setControl(docCont);
+		selectionMethodTabFolder.setSelection(0);
+		
+		// create TreeViewer view =============================================================================
+//		treeViewerTabItem = new CTabItem(selectionMethodTabFolder, SWT.NONE);
+//		treeViewerTabItem.setText("Tree View");
+		
+//		Composite docCont2 = new Composite(selectionMethodTabFolder, SWT.BORDER);
+//		docCont2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+//		docCont2.setLayout(new GridLayout(1, false));
+		
+		SashForm docSash2 = new SashForm(selectionMethodTabFolder, SWT.HORIZONTAL);
+		docSash2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		docSash2.setLayout(new GridLayout(1, false));		
+		
+		
+		Group treeViewerCont = new Group(docSash2, SWT.NONE);
+		treeViewerCont.setText("Training Set");
+		treeViewerCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		treeViewerCont.setLayout(new GridLayout(1, false));
+		
+		tv = new TreeViewer(treeViewerCont, SWT.BORDER | SWT.MULTI);
+		contentProv = new CollectionContentProvider();
+		labelProv = new CollectionLabelProvider();
+		tv.setContentProvider(contentProv);
+		tv.setLabelProvider(labelProv);
+		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		tv.setInput(docList);
+		
+		buttonComp = new Composite(docSash2, SWT.NONE);
+		buttonComp.setLayout(new GridLayout(1, true));
+		
+		previewLbl = new Label(buttonComp, SWT.NONE);
+		GridData gd2 = new GridData(SWT.CENTER, SWT.TOP, true, true);
+		gd2.heightHint = 120;
+		gd2.widthHint = 100;
+		previewLbl.setLayoutData(gd2);
+		
+		addToTrainSetBtn = new Button(buttonComp, SWT.PUSH);
+		addToTrainSetBtn.setText("Train >");
+		addToTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		addToTestSetBtn = new Button(buttonComp, SWT.PUSH);
+		addToTestSetBtn.setText("Test >");
+		addToTestSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		
+		Group trainOverviewCont = new Group(docSash2, SWT.NONE);
+		trainOverviewCont.setText("Overview");
+		trainOverviewCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		trainOverviewCont.setLayout(new GridLayout(1, false));
+		
+		useGtVersionChk = new Button(trainOverviewCont, SWT.CHECK);
+		useGtVersionChk.setText("Use Groundtruth versions");
+//		useTrainGtVersionChk2.addSelectionListener(new SelectionAdapter() {
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				trainTreeViewer.setUseGtVersions(useTestGtVersionChk.getSelection());
+//				super.widgetSelected(e);
+//			}
+//		});
+		
+		Group trainSetGrp = new Group(trainOverviewCont, SWT.NONE);
+		trainSetGrp.setText("Training Set");
+		trainSetGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		trainSetGrp.setLayout(new GridLayout(1, true));
+		
+		trainSetOverviewTable = new DataSetTableWidget(trainSetGrp, SWT.BORDER);
+		trainSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
+		Group testSetGrp = new Group(trainOverviewCont, SWT.NONE);
+		testSetGrp.setText("Test Set");
+		testSetGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		testSetGrp.setLayout(new GridLayout(1, true));
+		
+		testSetOverviewTable = new DataSetTableWidget(testSetGrp, SWT.BORDER);
+		testSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
+		docSash2.setWeights(new int[] {45, 10, 45});
+		
+		treeViewerCont.pack();
+		buttonComp.pack();
+		trainOverviewCont.pack();
+		trainSetGrp.pack();
+		testSetGrp.pack();
+		
+		
+//		treeViewerTabItem.setControl(docSash2);
+		
+		addListeners();
+		
 		return cont;
+	}
+	
+	private void addListeners() {
+		tv.addDoubleClickListener(new IDoubleClickListener(){
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				Object o = ((IStructuredSelection)event.getSelection()).getFirstElement();
+				if(o instanceof TrpDocMetadata) {
+					for(TreeItem i : tv.getTree().getItems()) {
+						if(i.getData().equals(o)) {
+							tv.setExpandedState(o, !i.getExpanded());
+							return;
+						}
+					}
+				}
+			}
+		});
+		
+		tv.addSelectionChangedListener(new ISelectionChangedListener() {
+			
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				IStructuredSelection selection = (IStructuredSelection)event.getSelection();
+				Object o = selection.getFirstElement();
+				if(o instanceof TrpPage) {
+					TrpPage p = (TrpPage)o;
+					try {
+						Image image = ImgLoader.load(p.getThumbUrl());
+						if(previewLbl.getImage() != null) {
+							previewLbl.getImage().dispose();
+						}
+						previewLbl.setImage(image);
+					} catch (IOException e) {
+						logger.error("Could not load image", e);
+					}
+				} else if(o instanceof TrpDocMetadata) {
+					if(previewLbl.getImage() != null) {
+						previewLbl.getImage().dispose();
+					}
+					previewLbl.setImage(null);
+				}
+				
+			}
+		});
+		
+		tv.getTree().addListener(SWT.Expand, new Listener() {
+			public void handleEvent(Event e) {
+				TreeItem t = (TreeItem)e.item;
+				Object o = t.getData();
+				if(o instanceof TrpDocMetadata) {
+					TrpDocMetadata docMd = (TrpDocMetadata)o;
+					
+					if(trainDocMap.containsKey(docMd)) {
+						List<TrpPage> pageList = trainDocMap.get(docMd);
+						for(TreeItem i : t.getItems()) {
+							if(pageList.contains((TrpPage)i.getData())) {
+								i.setBackground(BLUE);
+								i.setForeground(WHITE);
+							}
+						}
+					}
+					if(testDocMap.containsKey(docMd)) {
+						List<TrpPage> pageList = testDocMap.get(docMd);
+						for(TreeItem i : t.getItems()) {
+							if(pageList.contains((TrpPage)i.getData())) {
+								i.setBackground(GREEN);
+								i.setForeground(WHITE);
+							}
+						}
+					}
+				}
+			}
+		});
+		addToTrainSetBtn.addSelectionListener(
+				new SelectionAdapter(){
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						IStructuredSelection sel = (IStructuredSelection)tv.getSelection();
+						Iterator<?> it = sel.iterator();
+						while(it.hasNext()) {
+							Object o = it.next();
+							if(o instanceof TrpDocMetadata) {
+								TrpDocMetadata docMd = (TrpDocMetadata)o;
+								Object[] pageObjArr = contentProv.getChildren(docMd);
+								List<TrpPage> pageList = new LinkedList<>();
+								for(Object page : pageObjArr) {
+									pageList.add((TrpPage)page);
+								}
+								
+								trainDocMap.put(docMd, pageList);
+								
+								if(testDocMap.containsKey(docMd)) {
+									testDocMap.remove(docMd);
+								}
+								
+								paintItem(o, BLUE, WHITE);
+							} else if (o instanceof TrpPage) {
+								TrpPage p = (TrpPage)o;
+								TrpDocMetadata parent = (TrpDocMetadata)contentProv.getParent(p);
+								if(trainDocMap.containsKey(parent) && !trainDocMap.get(parent).contains(p)) {
+									trainDocMap.get(parent).add(p);
+								} else if(!trainDocMap.containsKey(parent)) {
+									List<TrpPage> pageList = new LinkedList<>();
+									pageList.add(p);
+									trainDocMap.put(parent, pageList);
+								}
+								
+								if(testDocMap.containsKey(parent) && testDocMap.get(parent).contains(p)) {
+									if(testDocMap.get(parent).size() == 1) {
+										testDocMap.remove(parent);
+									} else {
+										testDocMap.get(parent).remove(p);
+									}
+								}
+								
+								paintItem(o, BLUE, WHITE);
+							}
+						}
+						updateTable(trainSetOverviewTable, trainDocMap);
+						updateTable(testSetOverviewTable, testDocMap);
+					}
+				});
+		
+		addToTestSetBtn.addSelectionListener(
+				new SelectionAdapter(){
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						IStructuredSelection sel = (IStructuredSelection)tv.getSelection();
+						Iterator<?> it = sel.iterator();
+						while(it.hasNext()) {
+							Object o = it.next();
+							if(o instanceof TrpDocMetadata) {
+								TrpDocMetadata docMd = (TrpDocMetadata)o;
+								Object[] pageObjArr = contentProv.getChildren(docMd);
+								List<TrpPage> pageList = new LinkedList<>();
+								for(Object page : pageObjArr) {
+									pageList.add((TrpPage)page);
+								}
+								testDocMap.put(docMd, pageList);
+								
+								if(trainDocMap.containsKey(docMd)) {
+									trainDocMap.remove(docMd);
+								}
+								
+								paintItem(o, GREEN, WHITE);
+							} else if (o instanceof TrpPage) {
+								TrpPage p = (TrpPage)o;
+								TrpDocMetadata parent = (TrpDocMetadata)contentProv.getParent(p);
+								if(testDocMap.containsKey(parent) && !testDocMap.get(parent).contains(p)) {
+									testDocMap.get(parent).add(p);
+								} else if(!testDocMap.containsKey(parent)) {
+									List<TrpPage> pageList = new LinkedList<>();
+									pageList.add(p);
+									testDocMap.put(parent, pageList);
+								}
+								
+								if(trainDocMap.containsKey(parent) && trainDocMap.get(parent).contains(p)) {
+									if(trainDocMap.get(parent).size() == 1) {
+										trainDocMap.remove(parent);
+									} else {
+										trainDocMap.get(parent).remove(p);
+									}
+								}
+								
+								paintItem(o, GREEN, WHITE);
+							}
+						}
+						updateTable(trainSetOverviewTable, trainDocMap);
+						updateTable(testSetOverviewTable, testDocMap);
+					}
+				});
+		
+		selectionMethodTabFolder.addSelectionListener(new SelectionMethodChangedAdapter());
+	}
+	
+	private void paintItem(Object o, Color background, Color foreground) {
+		if(o instanceof TrpDocMetadata) {
+			for(TreeItem i : tv.getTree().getItems()) {
+				if(i.getData().equals(o)) {
+					i.setBackground(background);
+					i.setForeground(foreground);
+					if(i.getExpanded()) {
+						for(TreeItem i2 : i.getItems()){
+							i2.setBackground(background);
+							i2.setForeground(foreground);
+						}
+					}
+				}
+			}
+		} else if (o instanceof TrpPage) {
+			TrpDocMetadata parent = (TrpDocMetadata)contentProv.getParent((TrpPage)o);
+			for(TreeItem i : tv.getTree().getItems()) {
+				if(!i.getData().equals(parent)) {
+					continue;
+				} else {
+					for(TreeItem i2 : i.getItems()) {
+						if(i2.getData().equals(o)) {
+							i2.setBackground(background);
+							i2.setForeground(foreground);
+						}	
+					}
+				}
+			}
+		}
 	}
 	
 	private void renameTabs(CTabItem closedItem, CTabFolder folder) {
@@ -347,7 +697,6 @@ public class HtrTrainingDialog extends Dialog {
 		Combo docCombo = new Combo(c, SWT.READ_ONLY);
 		docCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
-		List<TrpDocMetadata> docList = store.getDocList();
 		String[] items = new String[docList.size()];
 		int selIndex = 0;
 		for(int i = 0; i < docList.size(); i++) {
@@ -406,20 +755,12 @@ public class HtrTrainingDialog extends Dialog {
 		
 		conf.setColId(store.getCollId());
 		
-		for(ThumbnailWidgetVirtualMinimal tw : trainTwList) {
-			DocumentSelectionDescriptor dsd = tw.getSelectionDescriptor();
-			
-			if(dsd != null) {
-				conf.getTrain().add(dsd);
-			}
-		}
-		
-		for(ThumbnailWidgetVirtualMinimal tw : testTwList) {
-			DocumentSelectionDescriptor dsd = tw.getSelectionDescriptor();
-			
-			if(dsd != null) {
-				conf.getTest().add(dsd);
-			}
+		if(selectionMethodTabFolder.getSelection().equals(thumbNailTabItem)) {
+			conf.setTrain(getSelectionFromThumbnailWidgetList(trainTwList));
+			conf.setTest(getSelectionFromThumbnailWidgetList(testTwList));		
+		} else {
+//			conf.setTrain(trainTreeViewer.getSelectionDescriptorList());
+//			conf.setTrain(testTreeViewer.getSelectionDescriptorList());
 		}
 		
 		if(conf.getTrain().isEmpty()) {
@@ -435,6 +776,20 @@ public class HtrTrainingDialog extends Dialog {
 		}
 		
 		super.okPressed();
+	}
+
+	private List<DocumentSelectionDescriptor> getSelectionFromThumbnailWidgetList(
+			List<ThumbnailWidgetVirtualMinimal> twList) {
+		
+		List<DocumentSelectionDescriptor> list = new LinkedList<>();
+		for(ThumbnailWidgetVirtualMinimal tw : twList) {
+			DocumentSelectionDescriptor dsd = tw.getSelectionDescriptor();
+			
+			if(dsd != null) {
+				list.add(dsd);
+			}
+		}
+		return list;
 	}
 
 	@Override
@@ -501,5 +856,88 @@ public class HtrTrainingDialog extends Dialog {
 	
 	public CitLabHtrTrainConfig getConfig() {
 		return conf;
+	}
+	
+	private void updateTable(DataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {
+		List<DataSetEntry> list = new ArrayList<>(map.entrySet().size());
+		for(Entry<TrpDocMetadata, List<TrpPage>> entry : map.entrySet()) {
+			final int id = entry.getKey().getDocId();
+			final String title = entry.getKey().getTitle();
+			
+			List<TrpPage> pageList = entry.getValue();
+			Collections.sort(pageList);
+			final int nrOfPages = entry.getKey().getNrOfPages();
+			List<Boolean> boolList = new ArrayList<>(nrOfPages);
+			for(int i = 0; i < nrOfPages; i++) {
+				boolList.add(i, Boolean.FALSE);
+			}
+			
+			for(TrpPage p : entry.getValue()) {
+				boolList.set(p.getPageNr()-1, Boolean.TRUE);
+			}			
+			final String pageString = CoreUtils.getRangeListStr(boolList);
+			list.add(new DataSetEntry(id, title, pageString));
+		}
+		Collections.sort(list);
+		t.getTableViewer().setInput(list);
+	}
+	
+	private class SelectionMethodChangedAdapter extends SelectionAdapter {
+		List<DocumentSelectionDescriptor> trainList;
+		List<DocumentSelectionDescriptor> testList;
+		@Override 
+		public void widgetSelected(SelectionEvent e) {
+			
+			if(e.item.equals(treeViewerTabItem)) {
+				trainList = getSelectionFromThumbnailWidgetList(trainTwList);
+				testList = getSelectionFromThumbnailWidgetList(testTwList);
+//				trainTreeViewer.applySelection(trainList);
+//				testTreeViewer.applySelection(testList);
+			} else if(e.item.equals(thumbNailTabItem)) {
+				trainList = getSelectionFromThumbnailWidgetList(trainTwList);
+				testList = getSelectionFromThumbnailWidgetList(testTwList);
+				
+			}
+		}
+	}
+	
+	public class DataSetEntry implements Comparable<DataSetEntry> {
+		private int id;
+		private String title;
+		private String pageString;
+		public DataSetEntry (int id, String title, String pageString) {
+			this.id = id;
+			this.title = title;
+			this.pageString = pageString;
+		}
+		public int getId() {
+			return id;
+		}
+		public void setId(int id) {
+			this.id = id;
+		}
+		public String getTitle() {
+			return title;
+		}
+		public void setTitle(String title) {
+			this.title = title;
+		}
+		public String getPageString() {
+			return pageString;
+		}
+		public void setPageString(String pageString) {
+			this.pageString = pageString;
+		}
+		
+		@Override
+		public int compareTo(DataSetEntry o) {
+			if (this.id > o.getId()) {
+				return 1;
+			}
+			if (this.id < o.getId()) {
+				return -1;
+			}
+			return 0;
+		}
 	}
 }
