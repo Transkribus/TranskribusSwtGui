@@ -54,13 +54,17 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
@@ -73,6 +77,7 @@ public class HtrTrainingDialog extends Dialog {
 	private static final Color BLUE = Colors.getSystemColor(SWT.COLOR_BLUE);
 	private static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
 	private static final Color GREEN = Colors.getSystemColor(SWT.COLOR_GREEN);
+	private static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
 	
 	private CTabFolder paramTabFolder;
 	private CTabItem uroTabItem;
@@ -104,7 +109,7 @@ public class HtrTrainingDialog extends Dialog {
 	private Composite buttonComp;
 	private Label previewLbl;
 	
-	private Button addToTrainSetBtn, addToTestSetBtn;
+	private Button addToTrainSetBtn, addToTestSetBtn, removeFromTrainSetBtn, removeFromTestSetBtn;
 	
 	private DataSetTableWidget testSetOverviewTable, trainSetOverviewTable;
 	
@@ -394,17 +399,19 @@ public class HtrTrainingDialog extends Dialog {
 		buttonComp.setLayout(new GridLayout(1, true));
 		
 		previewLbl = new Label(buttonComp, SWT.NONE);
-		GridData gd2 = new GridData(SWT.CENTER, SWT.TOP, true, true);
+		GridData gd2 = new GridData(SWT.CENTER, SWT.CENTER, true, true);
 		gd2.heightHint = 120;
 		gd2.widthHint = 100;
 		previewLbl.setLayoutData(gd2);
 		
 		addToTrainSetBtn = new Button(buttonComp, SWT.PUSH);
-		addToTrainSetBtn.setText("Train >");
-		addToTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		addToTrainSetBtn.setImage(Images.ADD);
+		addToTrainSetBtn.setText("Training");
+		addToTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		addToTestSetBtn = new Button(buttonComp, SWT.PUSH);
-		addToTestSetBtn.setText("Test >");
-		addToTestSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		addToTestSetBtn.setImage(Images.ADD);
+		addToTestSetBtn.setText("Testing");
+		addToTestSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		
 		Group trainOverviewCont = new Group(docSash2, SWT.NONE);
 		trainOverviewCont.setText("Overview");
@@ -421,21 +428,35 @@ public class HtrTrainingDialog extends Dialog {
 //			}
 //		});
 		
+		GridData tableGd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		GridLayout tableGl = new GridLayout(1, true);
+		
 		Group trainSetGrp = new Group(trainOverviewCont, SWT.NONE);
 		trainSetGrp.setText("Training Set");
-		trainSetGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		trainSetGrp.setLayout(new GridLayout(1, true));
+		trainSetGrp.setLayoutData(tableGd);
+		trainSetGrp.setLayout(tableGl);
 		
 		trainSetOverviewTable = new DataSetTableWidget(trainSetGrp, SWT.BORDER);
 		trainSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
+		GridData buttonGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
+		removeFromTrainSetBtn = new Button(trainSetGrp, SWT.PUSH);
+		removeFromTrainSetBtn.setLayoutData(buttonGd);
+		removeFromTrainSetBtn.setImage(Images.CROSS);
+		removeFromTrainSetBtn.setText("Remove entries from train set");
+		
 		Group testSetGrp = new Group(trainOverviewCont, SWT.NONE);
 		testSetGrp.setText("Test Set");
-		testSetGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		testSetGrp.setLayout(new GridLayout(1, true));
+		testSetGrp.setLayoutData(tableGd);
+		testSetGrp.setLayout(tableGl);
 		
 		testSetOverviewTable = new DataSetTableWidget(testSetGrp, SWT.BORDER);
 		testSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
+		removeFromTestSetBtn = new Button(testSetGrp, SWT.PUSH);
+		removeFromTestSetBtn.setLayoutData(buttonGd);
+		removeFromTestSetBtn.setImage(Images.CROSS);
+		removeFromTestSetBtn.setText("Remove entries from test set");
 		
 		docSash2.setWeights(new int[] {45, 10, 45});
 		
@@ -454,20 +475,6 @@ public class HtrTrainingDialog extends Dialog {
 	}
 	
 	private void addListeners() {
-		tv.addDoubleClickListener(new IDoubleClickListener(){
-			@Override
-			public void doubleClick(DoubleClickEvent event) {
-				Object o = ((IStructuredSelection)event.getSelection()).getFirstElement();
-				if(o instanceof TrpDocMetadata) {
-					for(TreeItem i : tv.getTree().getItems()) {
-						if(i.getData().equals(o)) {
-							tv.setExpandedState(o, !i.getExpanded());
-							return;
-						}
-					}
-				}
-			}
-		});
 		
 		tv.addSelectionChangedListener(new ISelectionChangedListener() {
 			
@@ -493,6 +500,21 @@ public class HtrTrainingDialog extends Dialog {
 					previewLbl.setImage(null);
 				}
 				
+			}
+		});
+		
+		tv.addDoubleClickListener(new IDoubleClickListener(){
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				Object o = ((IStructuredSelection)event.getSelection()).getFirstElement();
+				if(o instanceof TrpDocMetadata) {
+					for(TreeItem i : tv.getTree().getItems()) {
+						if(i.getData().equals(o)) {
+							tv.setExpandedState(o, !i.getExpanded());
+							//FIXME this will NOT color the children correctly!
+						}
+					}
+				}
 			}
 		});
 		
@@ -623,6 +645,34 @@ public class HtrTrainingDialog extends Dialog {
 					}
 				});
 		
+		removeFromTrainSetBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				List<DataSetEntry> entries = trainSetOverviewTable.getSelectedDataSets();
+				if(!entries.isEmpty()) {
+					for(DataSetEntry entry : entries) {
+						trainDocMap.remove(entry.getData());
+						paintItem(entry.getData(), WHITE, BLACK);
+					}
+					updateTable(trainSetOverviewTable, trainDocMap);
+				}
+			}
+		});
+		
+		removeFromTestSetBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				List<DataSetEntry> entries = testSetOverviewTable.getSelectedDataSets();
+				if(!entries.isEmpty()) {
+					for(DataSetEntry entry : entries) {
+						testDocMap.remove(entry.getData());
+						paintItem(entry.getData(), WHITE, BLACK);
+					}
+					updateTable(testSetOverviewTable, testDocMap);
+				}
+			}
+		});
+		
 		selectionMethodTabFolder.addSelectionListener(new SelectionMethodChangedAdapter());
 	}
 	
@@ -724,8 +774,7 @@ public class HtrTrainingDialog extends Dialog {
 				try {
 					tw.setDoc(store.getRemoteDoc(store.getCollId(), d.getDocId(), -1), useGtVersions);
 				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					logger.error("Could not load remote doc!", e1);
 				}
 			}
 		});
@@ -759,8 +808,8 @@ public class HtrTrainingDialog extends Dialog {
 			conf.setTrain(getSelectionFromThumbnailWidgetList(trainTwList));
 			conf.setTest(getSelectionFromThumbnailWidgetList(testTwList));		
 		} else {
-//			conf.setTrain(trainTreeViewer.getSelectionDescriptorList());
-//			conf.setTrain(testTreeViewer.getSelectionDescriptorList());
+			conf.setTrain(buildSelectionDescriptorList(trainDocMap));
+			conf.setTest(buildSelectionDescriptorList(testDocMap));
 		}
 		
 		if(conf.getTrain().isEmpty()) {
@@ -776,6 +825,34 @@ public class HtrTrainingDialog extends Dialog {
 		}
 		
 		super.okPressed();
+	}
+
+	private List<DocumentSelectionDescriptor> buildSelectionDescriptorList(
+			Map<TrpDocMetadata, List<TrpPage>> map) {
+		List<DocumentSelectionDescriptor> list = new LinkedList<>();
+		final boolean useGt = useGtVersionChk.getSelection();
+		
+		for(Entry<TrpDocMetadata, List<TrpPage>> e : map.entrySet()) {
+			DocumentSelectionDescriptor dsd = new DocumentSelectionDescriptor();
+			dsd.setDocId(e.getKey().getDocId());
+			for(TrpPage p : e.getValue()) {
+				PageDescriptor pd = new PageDescriptor();
+				pd.setPageId(p.getPageId());
+				pd.setTsId(p.getCurrentTranscript().getTsId());
+				if(useGt) {
+					for(TrpTranscriptMetadata t : p.getTranscripts()) {
+						if(t.getStatus().equals(EditStatus.GT)) {
+							pd.setTsId(t.getTsId());
+							break;
+						}
+					}
+				}
+				dsd.addPage(pd);
+			}
+			list.add(dsd);
+		}
+		
+		return list;
 	}
 
 	private List<DocumentSelectionDescriptor> getSelectionFromThumbnailWidgetList(
@@ -861,8 +938,7 @@ public class HtrTrainingDialog extends Dialog {
 	private void updateTable(DataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {
 		List<DataSetEntry> list = new ArrayList<>(map.entrySet().size());
 		for(Entry<TrpDocMetadata, List<TrpPage>> entry : map.entrySet()) {
-			final int id = entry.getKey().getDocId();
-			final String title = entry.getKey().getTitle();
+			TrpDocMetadata data = entry.getKey();
 			
 			List<TrpPage> pageList = entry.getValue();
 			Collections.sort(pageList);
@@ -876,10 +952,10 @@ public class HtrTrainingDialog extends Dialog {
 				boolList.set(p.getPageNr()-1, Boolean.TRUE);
 			}			
 			final String pageString = CoreUtils.getRangeListStr(boolList);
-			list.add(new DataSetEntry(id, title, pageString));
+			list.add(new DataSetEntry(data, pageString));
 		}
 		Collections.sort(list);
-		t.getTableViewer().setInput(list);
+		t.setInput(list);
 	}
 	
 	private class SelectionMethodChangedAdapter extends SelectionAdapter {
@@ -902,25 +978,17 @@ public class HtrTrainingDialog extends Dialog {
 	}
 	
 	public class DataSetEntry implements Comparable<DataSetEntry> {
-		private int id;
-		private String title;
 		private String pageString;
-		public DataSetEntry (int id, String title, String pageString) {
-			this.id = id;
-			this.title = title;
+		private TrpDocMetadata data;
+		public DataSetEntry (TrpDocMetadata data, String pageString) {
 			this.pageString = pageString;
+			this.data = data;
 		}
 		public int getId() {
-			return id;
-		}
-		public void setId(int id) {
-			this.id = id;
+			return data.getDocId();
 		}
 		public String getTitle() {
-			return title;
-		}
-		public void setTitle(String title) {
-			this.title = title;
+			return data.getTitle();
 		}
 		public String getPageString() {
 			return pageString;
@@ -928,13 +996,19 @@ public class HtrTrainingDialog extends Dialog {
 		public void setPageString(String pageString) {
 			this.pageString = pageString;
 		}
+		public TrpDocMetadata getData() {
+			return data;
+		}
+		public void setData(TrpDocMetadata data) {
+			this.data = data;
+		}
 		
 		@Override
 		public int compareTo(DataSetEntry o) {
-			if (this.id > o.getId()) {
+			if (this.data.getDocId() > o.getId()) {
 				return 1;
 			}
-			if (this.id < o.getId()) {
+			if (this.data.getDocId() < o.getId()) {
 				return -1;
 			}
 			return 0;

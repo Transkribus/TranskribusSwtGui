@@ -1,8 +1,5 @@
 package eu.transkribus.swt_gui.htr;
 
-import java.util.List;
-import java.util.Map.Entry;
-
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -11,16 +8,10 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog.DataSetEntry;
 
 public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
-	private final static Logger logger = LoggerFactory.getLogger(DataSetTableLabelProvider.class);
 	
 	Table table;
 	TableViewer tableViewer;
