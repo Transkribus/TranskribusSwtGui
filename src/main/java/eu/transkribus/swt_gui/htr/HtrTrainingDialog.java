@@ -13,7 +13,6 @@ import java.util.TreeMap;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
@@ -269,8 +268,6 @@ public class HtrTrainingDialog extends Dialog {
 	}
 
 	private void createTreeViewerTab() {
-		// create TreeViewer view
-		// =============================================================================
 		treeViewerTabItem = new CTabItem(selectionMethodTabFolder, SWT.NONE);
 		treeViewerTabItem.setText("Tree View");
 
