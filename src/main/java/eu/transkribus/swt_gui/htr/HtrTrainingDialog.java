@@ -13,6 +13,7 @@ import java.util.TreeMap;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
@@ -74,10 +75,15 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 public class HtrTrainingDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTrainingDialog.class);
 	
+	private static final Color DARK_BLUE = Colors.getSystemColor(SWT.COLOR_DARK_BLUE);
 	private static final Color BLUE = Colors.getSystemColor(SWT.COLOR_BLUE);
 	private static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
+	private static final Color DARK_GREEN = Colors.getSystemColor(SWT.COLOR_DARK_GREEN);
 	private static final Color GREEN = Colors.getSystemColor(SWT.COLOR_GREEN);
+	private static final Color CYAN = Colors.getSystemColor(SWT.COLOR_DARK_CYAN);
 	private static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
+	
+	private final int colId;
 	
 	private CTabFolder paramTabFolder;
 	private CTabItem uroTabItem;
@@ -133,6 +139,7 @@ public class HtrTrainingDialog extends Dialog {
 		trainTwList = new LinkedList<>();
 		testTwList = new LinkedList<>();
 		docList = store.getDocList();
+		colId = store.getCollId();
 		trainDocMap = new TreeMap<>();
 		testDocMap = new TreeMap<>();
 	}
@@ -367,16 +374,11 @@ public class HtrTrainingDialog extends Dialog {
 		sash.setWeights(new int[] { 34, 66 });
 		
 		thumbNailTabItem.setControl(docCont);
-		selectionMethodTabFolder.setSelection(0);
-		
+				
 		// create TreeViewer view =============================================================================
-//		treeViewerTabItem = new CTabItem(selectionMethodTabFolder, SWT.NONE);
-//		treeViewerTabItem.setText("Tree View");
-		
-//		Composite docCont2 = new Composite(selectionMethodTabFolder, SWT.BORDER);
-//		docCont2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//		docCont2.setLayout(new GridLayout(1, false));
-		
+		treeViewerTabItem = new CTabItem(selectionMethodTabFolder, SWT.NONE);
+		treeViewerTabItem.setText("Tree View");
+	
 		SashForm docSash2 = new SashForm(selectionMethodTabFolder, SWT.HORIZONTAL);
 		docSash2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		docSash2.setLayout(new GridLayout(1, false));		
@@ -420,13 +422,6 @@ public class HtrTrainingDialog extends Dialog {
 		
 		useGtVersionChk = new Button(trainOverviewCont, SWT.CHECK);
 		useGtVersionChk.setText("Use Groundtruth versions");
-//		useTrainGtVersionChk2.addSelectionListener(new SelectionAdapter() {
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				trainTreeViewer.setUseGtVersions(useTestGtVersionChk.getSelection());
-//				super.widgetSelected(e);
-//			}
-//		});
 		
 		GridData tableGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		GridLayout tableGl = new GridLayout(1, true);
@@ -467,9 +462,11 @@ public class HtrTrainingDialog extends Dialog {
 		testSetGrp.pack();
 		
 		
-//		treeViewerTabItem.setControl(docSash2);
+		treeViewerTabItem.setControl(docSash2);
 		
 		addListeners();
+		
+		selectionMethodTabFolder.setSelection(1);
 		
 		return cont;
 	}
@@ -511,41 +508,19 @@ public class HtrTrainingDialog extends Dialog {
 					for(TreeItem i : tv.getTree().getItems()) {
 						if(i.getData().equals(o)) {
 							tv.setExpandedState(o, !i.getExpanded());
-							//FIXME this will NOT color the children correctly!
 						}
 					}
+					updateColors();
 				}
 			}
 		});
 		
 		tv.getTree().addListener(SWT.Expand, new Listener() {
 			public void handleEvent(Event e) {
-				TreeItem t = (TreeItem)e.item;
-				Object o = t.getData();
-				if(o instanceof TrpDocMetadata) {
-					TrpDocMetadata docMd = (TrpDocMetadata)o;
-					
-					if(trainDocMap.containsKey(docMd)) {
-						List<TrpPage> pageList = trainDocMap.get(docMd);
-						for(TreeItem i : t.getItems()) {
-							if(pageList.contains((TrpPage)i.getData())) {
-								i.setBackground(BLUE);
-								i.setForeground(WHITE);
-							}
-						}
-					}
-					if(testDocMap.containsKey(docMd)) {
-						List<TrpPage> pageList = testDocMap.get(docMd);
-						for(TreeItem i : t.getItems()) {
-							if(pageList.contains((TrpPage)i.getData())) {
-								i.setBackground(GREEN);
-								i.setForeground(WHITE);
-							}
-						}
-					}
-				}
+				updateColors();
 			}
 		});
+		
 		addToTrainSetBtn.addSelectionListener(
 				new SelectionAdapter(){
 					@Override
@@ -567,8 +542,6 @@ public class HtrTrainingDialog extends Dialog {
 								if(testDocMap.containsKey(docMd)) {
 									testDocMap.remove(docMd);
 								}
-								
-								paintItem(o, BLUE, WHITE);
 							} else if (o instanceof TrpPage) {
 								TrpPage p = (TrpPage)o;
 								TrpDocMetadata parent = (TrpDocMetadata)contentProv.getParent(p);
@@ -587,12 +560,11 @@ public class HtrTrainingDialog extends Dialog {
 										testDocMap.get(parent).remove(p);
 									}
 								}
-								
-								paintItem(o, BLUE, WHITE);
 							}
 						}
 						updateTable(trainSetOverviewTable, trainDocMap);
 						updateTable(testSetOverviewTable, testDocMap);
+						updateColors();
 					}
 				});
 		
@@ -616,8 +588,6 @@ public class HtrTrainingDialog extends Dialog {
 								if(trainDocMap.containsKey(docMd)) {
 									trainDocMap.remove(docMd);
 								}
-								
-								paintItem(o, GREEN, WHITE);
 							} else if (o instanceof TrpPage) {
 								TrpPage p = (TrpPage)o;
 								TrpDocMetadata parent = (TrpDocMetadata)contentProv.getParent(p);
@@ -636,12 +606,11 @@ public class HtrTrainingDialog extends Dialog {
 										trainDocMap.get(parent).remove(p);
 									}
 								}
-								
-								paintItem(o, GREEN, WHITE);
 							}
 						}
 						updateTable(trainSetOverviewTable, trainDocMap);
 						updateTable(testSetOverviewTable, testDocMap);
+						updateColors();
 					}
 				});
 		
@@ -651,10 +620,10 @@ public class HtrTrainingDialog extends Dialog {
 				List<DataSetEntry> entries = trainSetOverviewTable.getSelectedDataSets();
 				if(!entries.isEmpty()) {
 					for(DataSetEntry entry : entries) {
-						trainDocMap.remove(entry.getData());
-						paintItem(entry.getData(), WHITE, BLACK);
+						trainDocMap.remove(entry.getDoc());
 					}
 					updateTable(trainSetOverviewTable, trainDocMap);
+					updateColors();
 				}
 			}
 		});
@@ -665,43 +634,59 @@ public class HtrTrainingDialog extends Dialog {
 				List<DataSetEntry> entries = testSetOverviewTable.getSelectedDataSets();
 				if(!entries.isEmpty()) {
 					for(DataSetEntry entry : entries) {
-						testDocMap.remove(entry.getData());
-						paintItem(entry.getData(), WHITE, BLACK);
+						testDocMap.remove(entry.getDoc());
 					}
 					updateTable(testSetOverviewTable, testDocMap);
+					updateColors();
 				}
 			}
 		});
-		
-		selectionMethodTabFolder.addSelectionListener(new SelectionMethodChangedAdapter());
 	}
 	
-	private void paintItem(Object o, Color background, Color foreground) {
-		if(o instanceof TrpDocMetadata) {
-			for(TreeItem i : tv.getTree().getItems()) {
-				if(i.getData().equals(o)) {
-					i.setBackground(background);
-					i.setForeground(foreground);
-					if(i.getExpanded()) {
-						for(TreeItem i2 : i.getItems()){
-							i2.setBackground(background);
-							i2.setForeground(foreground);
-						}
-					}
+	private void updateColors() {
+		List<TrpPage> trainPages, testPages;
+		for(TreeItem i : tv.getTree().getItems()) {
+			TrpDocMetadata doc = (TrpDocMetadata)i.getData();
+			
+			//default color set
+			Color fgColor = BLACK;
+			Color bgColor = WHITE;
+			
+			if(trainDocMap.containsKey(doc) && testDocMap.containsKey(doc)) {
+				fgColor = WHITE;
+				bgColor = CYAN;
+			} else if(trainDocMap.containsKey(doc)){
+				fgColor = WHITE;
+				if(doc.getNrOfPages() == trainDocMap.get(doc).size()) {
+					bgColor = DARK_BLUE;
+				} else {
+					bgColor = BLUE;
+				}
+			} else if(testDocMap.containsKey(doc)) {
+				fgColor = WHITE;
+				if(doc.getNrOfPages() == testDocMap.get(doc).size()) {
+					bgColor = DARK_GREEN;
+				} else {
+					bgColor = GREEN;
 				}
 			}
-		} else if (o instanceof TrpPage) {
-			TrpDocMetadata parent = (TrpDocMetadata)contentProv.getParent((TrpPage)o);
-			for(TreeItem i : tv.getTree().getItems()) {
-				if(!i.getData().equals(parent)) {
-					continue;
+			i.setBackground(bgColor);
+			i.setForeground(fgColor);
+			
+			trainPages = trainDocMap.containsKey(doc) ? trainDocMap.get(doc) : new ArrayList<>(0);
+			testPages = testDocMap.containsKey(doc) ? testDocMap.get(doc) : new ArrayList<>(0);
+
+			for(TreeItem child : i.getItems()) {
+				TrpPage page = (TrpPage)child.getData();
+				if(trainPages.contains(page)) {
+					child.setBackground(DARK_BLUE);
+					child.setForeground(WHITE);
+				} else if (testPages.contains(page)) {
+					child.setBackground(DARK_GREEN);
+					child.setForeground(WHITE);
 				} else {
-					for(TreeItem i2 : i.getItems()) {
-						if(i2.getData().equals(o)) {
-							i2.setBackground(background);
-							i2.setForeground(foreground);
-						}	
-					}
+					child.setBackground(WHITE);
+					child.setForeground(BLACK);
 				}
 			}
 		}
@@ -802,7 +787,7 @@ public class HtrTrainingDialog extends Dialog {
 			throw new IllegalArgumentException();
 		}
 		
-		conf.setColId(store.getCollId());
+		conf.setColId(colId);
 		
 		if(selectionMethodTabFolder.getSelection().equals(thumbNailTabItem)) {
 			conf.setTrain(getSelectionFromThumbnailWidgetList(trainTwList));
@@ -824,7 +809,57 @@ public class HtrTrainingDialog extends Dialog {
 			return;
 		}
 		
-		super.okPressed();
+		String msg = "You are about to start an HTR Training using ";
+		if(paramTabFolder.getSelection().equals(uroTabItem)) {
+			msg += uroTabItem.getText();
+		} else {
+			//TODO
+			return;
+		}
+		msg += " HTR.\n\n";
+		
+		if(selectionMethodTabFolder.getSelection().equals(treeViewerTabItem)) {
+			DataSetMetadata trainSetMd = computeDataSetSize(trainDocMap);
+			DataSetMetadata testSetMd = computeDataSetSize(testDocMap);
+			msg += "Training set size:\t" + trainSetMd.getPages() + " pages\n";
+			msg += "\t\t\t\t" + trainSetMd.getLines() + " lines\n";
+			msg += "\t\t\t\t" + trainSetMd.getWords() + " words\n";
+			msg += "Test set size:\t\t" + testSetMd.getPages() + " pages\n";
+			msg += "\t\t\t\t" + + testSetMd.getLines() + " lines\n";
+			msg += "\t\t\t\t" + testSetMd.getWords() + " words\n";
+		}
+		
+		msg += "\nStart training?";
+		
+		int result = DialogUtil.showYesNoDialog(this.getShell(), "Start Training?", msg);
+		
+		if(result == SWT.YES) {
+			super.okPressed();
+		}
+	}
+
+	private DataSetMetadata computeDataSetSize(Map<TrpDocMetadata, List<TrpPage>> map) {
+		final boolean useGt = useGtVersionChk.getSelection();
+		int pages = 0;
+		int lines = 0;
+		int words = 0;
+		for(Entry<TrpDocMetadata, List<TrpPage>> e : map.entrySet()) {
+			for(TrpPage p : e.getValue()) {
+				TrpTranscriptMetadata tmd = p.getCurrentTranscript();
+				if(useGt) {
+					for(TrpTranscriptMetadata t : p.getTranscripts()) {
+						if(t.getStatus().equals(EditStatus.GT)) {
+							tmd = t;
+							break;
+						}
+					}
+				}
+				pages++;
+				lines += tmd.getNrOfTranscribedLines();
+				words += tmd.getNrOfWordsInLines();
+			}
+		}
+		return new DataSetMetadata(pages, lines, words);
 	}
 
 	private List<DocumentSelectionDescriptor> buildSelectionDescriptorList(
@@ -938,57 +973,40 @@ public class HtrTrainingDialog extends Dialog {
 	private void updateTable(DataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {
 		List<DataSetEntry> list = new ArrayList<>(map.entrySet().size());
 		for(Entry<TrpDocMetadata, List<TrpPage>> entry : map.entrySet()) {
-			TrpDocMetadata data = entry.getKey();
+			TrpDocMetadata doc = entry.getKey();
 			
 			List<TrpPage> pageList = entry.getValue();
-			Collections.sort(pageList);
-			final int nrOfPages = entry.getKey().getNrOfPages();
-			List<Boolean> boolList = new ArrayList<>(nrOfPages);
-			for(int i = 0; i < nrOfPages; i++) {
-				boolList.add(i, Boolean.FALSE);
-			}
 			
-			for(TrpPage p : entry.getValue()) {
-				boolList.set(p.getPageNr()-1, Boolean.TRUE);
-			}			
-			final String pageString = CoreUtils.getRangeListStr(boolList);
-			list.add(new DataSetEntry(data, pageString));
+			list.add(new DataSetEntry(doc, pageList));
 		}
 		Collections.sort(list);
 		t.setInput(list);
 	}
 	
-	private class SelectionMethodChangedAdapter extends SelectionAdapter {
-		List<DocumentSelectionDescriptor> trainList;
-		List<DocumentSelectionDescriptor> testList;
-		@Override 
-		public void widgetSelected(SelectionEvent e) {
-			
-			if(e.item.equals(treeViewerTabItem)) {
-				trainList = getSelectionFromThumbnailWidgetList(trainTwList);
-				testList = getSelectionFromThumbnailWidgetList(testTwList);
-//				trainTreeViewer.applySelection(trainList);
-//				testTreeViewer.applySelection(testList);
-			} else if(e.item.equals(thumbNailTabItem)) {
-				trainList = getSelectionFromThumbnailWidgetList(trainTwList);
-				testList = getSelectionFromThumbnailWidgetList(testTwList);
-				
-			}
-		}
-	}
-	
 	public class DataSetEntry implements Comparable<DataSetEntry> {
 		private String pageString;
-		private TrpDocMetadata data;
-		public DataSetEntry (TrpDocMetadata data, String pageString) {
-			this.pageString = pageString;
-			this.data = data;
+		private TrpDocMetadata doc;
+		private List<TrpPage> pages;
+		public DataSetEntry (TrpDocMetadata doc, List<TrpPage> pages) {
+			Collections.sort(pages);
+			final int nrOfPages = doc.getNrOfPages();
+			List<Boolean> boolList = new ArrayList<>(nrOfPages);
+			for(int i = 0; i < nrOfPages; i++) {
+				boolList.add(i, Boolean.FALSE);
+			}
+			
+			for(TrpPage p : pages) {
+				boolList.set(p.getPageNr()-1, Boolean.TRUE);
+			}			
+			this.pageString = CoreUtils.getRangeListStr(boolList);
+			this.pages = pages;
+			this.doc = doc;
 		}
 		public int getId() {
-			return data.getDocId();
+			return doc.getDocId();
 		}
 		public String getTitle() {
-			return data.getTitle();
+			return doc.getTitle();
 		}
 		public String getPageString() {
 			return pageString;
@@ -996,22 +1014,48 @@ public class HtrTrainingDialog extends Dialog {
 		public void setPageString(String pageString) {
 			this.pageString = pageString;
 		}
-		public TrpDocMetadata getData() {
-			return data;
+		public TrpDocMetadata getDoc() {
+			return doc;
 		}
-		public void setData(TrpDocMetadata data) {
-			this.data = data;
+		public void setDoc(TrpDocMetadata doc) {
+			this.doc = doc;
+		}
+		public List<TrpPage> getPages() {
+			return pages;
+		}
+		public void setPages(List<TrpPage> pages) {
+			this.pages = pages;
 		}
 		
 		@Override
 		public int compareTo(DataSetEntry o) {
-			if (this.data.getDocId() > o.getId()) {
+			if (this.doc.getDocId() > o.getId()) {
 				return 1;
 			}
-			if (this.data.getDocId() < o.getId()) {
+			if (this.doc.getDocId() < o.getId()) {
 				return -1;
 			}
 			return 0;
+		}
+	}
+	
+	private class DataSetMetadata {
+		private int pages;
+		private int lines;
+		private int words;
+		public DataSetMetadata(int pages, int lines, int words) {
+			this.pages = pages;
+			this.lines = lines;
+			this.words = words;
+		}
+		public int getPages() {
+			return pages;
+		}
+		public int getLines() {
+			return lines;
+		}
+		public int getWords() {
+			return words;
 		}
 	}
 }

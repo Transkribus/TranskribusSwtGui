@@ -48,7 +48,7 @@ public class CollectionLabelProvider implements ILabelProvider {
 	public String getText(Object element) {
 		if(element instanceof TrpDocMetadata) {
 			TrpDocMetadata d = (TrpDocMetadata)element;
-			return d.getDocId() + " - " + d.getTitle();
+			return d.getDocId() + " - " + d.getTitle() + " (" + d.getNrOfPages() + " pages)";
 		} else if (element instanceof TrpPage) {
 			TrpPage p = (TrpPage)element;
 			return "Page " + p.getPageNr() + " (" + p.getCurrentTranscript().getNrOfTranscribedLines() + " lines)";
