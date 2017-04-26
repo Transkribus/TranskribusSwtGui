@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.tools;
 
-import org.docx4j.fonts.FontUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
@@ -28,7 +26,6 @@ import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
 import eu.transkribus.swt_gui.htr.TextRecognitionComposite;
 import eu.transkribus.swt_gui.la.LayoutAnalysisComposite;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.util.CurrentDocPagesSelector;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
 public class ToolsWidget extends Composite {
