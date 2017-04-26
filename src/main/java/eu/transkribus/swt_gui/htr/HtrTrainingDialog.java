@@ -340,7 +340,7 @@ public class HtrTrainingDialog extends Dialog {
 		removeFromTrainSetBtn = new Button(trainSetGrp, SWT.PUSH);
 		removeFromTrainSetBtn.setLayoutData(buttonGd);
 		removeFromTrainSetBtn.setImage(Images.CROSS);
-		removeFromTrainSetBtn.setText("Remove entries from train set");
+		removeFromTrainSetBtn.setText("Remove selected entries from train set");
 
 		Group testSetGrp = new Group(trainOverviewCont, SWT.NONE);
 		testSetGrp.setText("Test Set");
@@ -353,7 +353,7 @@ public class HtrTrainingDialog extends Dialog {
 		removeFromTestSetBtn = new Button(testSetGrp, SWT.PUSH);
 		removeFromTestSetBtn.setLayoutData(buttonGd);
 		removeFromTestSetBtn.setImage(Images.CROSS);
-		removeFromTestSetBtn.setText("Remove entries from test set");
+		removeFromTestSetBtn.setText("Remove selected entries from test set");
 
 		docSash2.setWeights(new int[] { 45, 10, 45 });
 
