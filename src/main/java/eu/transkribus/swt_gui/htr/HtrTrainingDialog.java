@@ -12,6 +12,7 @@ import java.util.TreeMap;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
+import javax.xml.bind.JAXBException;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -61,7 +62,9 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
@@ -69,6 +72,7 @@ import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class HtrTrainingDialog extends Dialog {
@@ -510,9 +514,17 @@ public class HtrTrainingDialog extends Dialog {
 					for (TreeItem i : tv.getTree().getItems()) {
 						if (i.getData().equals(o)) {
 							tv.setExpandedState(o, !i.getExpanded());
+							break;
 						}
 					}
 					updateColors();
+				} else if (o instanceof TrpPage) {
+					TrpPage p = (TrpPage)o;
+					TrpLocation loc = new TrpLocation();
+					loc.collectionId = colId;
+					loc.docId = p.getDocId();
+					loc.pageNr = p.getPageNr();
+					TrpMainWidget.getInstance().showLocation(loc);
 				}
 			}
 		});
@@ -833,7 +845,7 @@ public class HtrTrainingDialog extends Dialog {
 		msg += "\nStart training?";
 
 		int result = DialogUtil.showYesNoDialog(this.getShell(), "Start Training?", msg);
-
+		
 		if (result == SWT.YES) {
 			super.okPressed();
 		}
