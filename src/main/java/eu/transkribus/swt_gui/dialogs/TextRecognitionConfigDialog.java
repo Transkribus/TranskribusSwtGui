@@ -3,11 +3,8 @@ package eu.transkribus.swt_gui.dialogs;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -56,6 +53,7 @@ import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.htr.HtrTableWidget;
@@ -77,7 +75,8 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private Group dictGrp;
 	
 	private HtrTableWidget htw;
-	private Text nameTxt, langTxt, descTxt, paramTxt, nrOfLinesTxt, nrOfWordsTxt;
+	private Text nameTxt, langTxt, descTxt, paramTxt, nrOfLinesTxt, nrOfWordsTxt, 
+		finalTrainCerTxt, finalTestCerTxt;
 	private Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
 	private org.jfree.experimental.chart.swt.ChartComposite jFreeChartComp;
 	
@@ -87,11 +86,11 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private DocImgViewerDialog trainDocViewer, testDocViewer = null;
 	private CharSetViewerDialog charSetViewer = null;
 	
-	Combo htrDictCombo, ocrLangCombo, typeFaceCombo;
+	private Combo htrDictCombo, ocrLangCombo, typeFaceCombo;
 	
 	private TrpHtr htr;
 	
-	List<String> htrDicts;
+	private List<String> htrDicts;
 	
 	private TextRecognitionConfig config;
 	
@@ -285,7 +284,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 		
 		showCharSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				List<String> charList = parseCitLabCharSet(charSet);
+				List<String> charList = HtrUtils.parseCitLabCharSet(charSet);
 				if(charSetViewer != null) {
 					charSetViewer.setVisible();
 				} else {
@@ -299,20 +298,6 @@ public class TextRecognitionConfigDialog extends Dialog {
 					
 					charSetViewer = null;
 				}				
-			}
-			
-			/** TODO put this into some HtrUtils class as static method
-			 * @param charSet
-			 * @return
-			 */
-			private List<String> parseCitLabCharSet(String charSet) {
-				Pattern p = Pattern.compile("(.)=[0-9]+");
-				Matcher m = p.matcher(charSet);
-				List<String> result = new LinkedList<>();
-				while(m.find()) {
-					result.add(m.group(1));
-				}
-				return result;
 			}
 		});	
 		
@@ -328,6 +313,16 @@ public class TextRecognitionConfigDialog extends Dialog {
 		jFreeChartComp = new ChartComposite(detailGrp, SWT.BORDER);
 		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		
+		GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		Label finalTrainCerLbl = new Label(detailGrp, SWT.NONE);
+		finalTrainCerLbl.setText("Final CER on Train Set:");
+		finalTrainCerTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
+		finalTrainCerTxt.setLayoutData(gd);
+		
+		Label finalTestCerLbl = new Label(detailGrp, SWT.NONE);
+		finalTestCerLbl.setText("Final CER on Test Set:");
+		finalTestCerTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
+		finalTestCerTxt.setLayoutData(gd);
 		
 		dictGrp = new Group(uroSash, SWT.NONE);
 		dictGrp.setLayout(new GridLayout(1, false));
@@ -403,7 +398,13 @@ public class TextRecognitionConfigDialog extends Dialog {
 		showTestSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
 		showTrainSetBtn.setEnabled(htr.getGtDocId() != null);
 		
-		updateChart(htr);
+		final double[] cerTrainSetVals = HtrUtils.parseCitlabCerString(htr.getCerString());
+		final double[] cerTestSetVals = HtrUtils.parseCitlabCerString(htr.getCerTestString());
+		updateChart(cerTrainSetVals, cerTestSetVals);
+		final double finalTrainCerVal = cerTrainSetVals.length < 1 ? -1 : cerTrainSetVals[cerTrainSetVals.length-1];
+		final double finalTestCerVal = cerTestSetVals.length < 1 ? -1 : cerTestSetVals[cerTestSetVals.length-1];
+		finalTrainCerTxt.setText(finalTrainCerVal < 0 ? "N/A" : ""+(finalTrainCerVal*100)+"%");
+		finalTestCerTxt.setText(finalTestCerVal < 0 ? "N/A" : ""+(finalTestCerVal*100)+"%");
 	}
 
 	private String layoutParams(Properties p) {
@@ -428,9 +429,8 @@ public class TextRecognitionConfigDialog extends Dialog {
 		return res;
 	}
 
-	private void updateChart(TrpHtr htr) {
-		double[] cerTrainSetVals = parseCerString(htr.getCerString());
-		double[] cerTestSetVals = parseCerString(htr.getCerTestString());
+	private void updateChart(double[] cerTrainSetVals, double[] cerTestSetVals) {
+		
 		
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		
@@ -467,24 +467,6 @@ public class TextRecognitionConfigDialog extends Dialog {
 		plot.getRenderer().setSeriesPaint(1, Color.RED);
 		jFreeChartComp.setChart(chart);
 		chart.fireChartChanged();
-	}
-
-	private double[] parseCerString(String cerString) {
-		
-		if(cerString == null || cerString.isEmpty()) {
-			return new double[]{};
-		}
-		
-		String[] cerStrs = cerString.split("\\s");
-		double[] cerVals = new double[cerStrs.length];
-		for(int i = 0; i < cerStrs.length; i++) {
-			try {
-				cerVals[i] = Double.parseDouble(cerStrs[i].replace(',', '.'));
-			} catch(NumberFormatException e) {
-				logger.error("Could not parse CER String: " + cerStrs[i]);
-			}
-		}
-		return cerVals;
 	}
 
 	private void updateHtrs() {

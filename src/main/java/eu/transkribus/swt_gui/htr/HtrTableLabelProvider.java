@@ -67,6 +67,8 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 			
 			if (ct.equals(HtrTableWidget.HTR_NAME_COL)) {
 				return htr.getName();
+			} else if (ct.equals(HtrTableWidget.HTR_LANG_COL)) {
+				return htr.getLanguage();
 			} else if (ct.equals(HtrTableWidget.HTR_ID_COL)) {
 				return ""+htr.getHtrId();
 			}

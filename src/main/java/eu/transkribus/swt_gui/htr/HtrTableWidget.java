@@ -24,6 +24,7 @@ public class HtrTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTableWidget.class);
 	
 	public static final String HTR_NAME_COL = "Name";
+	public static final String HTR_LANG_COL = "Language";
 	public static final String HTR_ID_COL = "ID";
 	
 	MyTableViewer htrTv;
@@ -31,7 +32,8 @@ public class HtrTableWidget extends Composite {
 	
 	public final ColumnConfig[] HTR_COLS = new ColumnConfig[] {
 		new ColumnConfig(HTR_NAME_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(HTR_ID_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(HTR_LANG_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(HTR_ID_COL, 50, true, DefaultTableColumnViewerSorter.ASC),
 	};
 	
 	public HtrTableWidget(Composite parent, int style) {
