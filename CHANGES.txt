@@ -445,5 +445,7 @@ CHANGES AND BUGFIXES
 1.1.3
 	-> remove "analyze structure" from tools
 	-> add "other tools" area and integrate polygon to baselines as first such tool
+	-> redesigned HtrTrainingDialog
+	-> more details on HTR models in TextRecognitionConfigDialog
 	
 	
