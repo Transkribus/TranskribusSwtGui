@@ -12,7 +12,6 @@ import java.util.TreeMap;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
-import javax.xml.bind.JAXBException;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -64,7 +63,6 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
