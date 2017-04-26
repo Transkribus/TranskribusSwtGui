@@ -14,6 +14,7 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -34,6 +35,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -76,12 +78,19 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 public class HtrTrainingDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTrainingDialog.class);
 
-	private static final Color DARK_BLUE = Colors.getSystemColor(SWT.COLOR_DARK_BLUE);
-	private static final Color BLUE = Colors.getSystemColor(SWT.COLOR_BLUE);
+	private static final RGB BLUE_RGB = new RGB(0, 0, 140);
+	private static final RGB LIGHT_BLUE_RGB = new RGB(0, 140, 255);
+	private static final RGB GREEN_RGB = new RGB(0, 140, 0);
+	private static final RGB LIGHT_GREEN_RGB = new RGB(0, 255, 0);
+	private static final RGB CYAN_RGB = new RGB(85, 240, 240);
+	
+	private static final Color BLUE = Colors.createColor(BLUE_RGB);
+	private static final Color LIGHT_BLUE = Colors.createColor(LIGHT_BLUE_RGB);
+	private static final Color GREEN = Colors.createColor(GREEN_RGB);
+	private static final Color LIGHT_GREEN = Colors.createColor(LIGHT_GREEN_RGB);
+//	private static final Color CYAN = Colors.getSystemColor(SWT.COLOR_CYAN);
+	private static final Color CYAN = Colors.createColor(CYAN_RGB);
 	private static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
-	private static final Color DARK_GREEN = Colors.getSystemColor(SWT.COLOR_DARK_GREEN);
-	private static final Color GREEN = Colors.getSystemColor(SWT.COLOR_GREEN);
-	private static final Color CYAN = Colors.getSystemColor(SWT.COLOR_DARK_CYAN);
 	private static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
 
 	private final int colId;
@@ -142,7 +151,7 @@ public class HtrTrainingDialog extends Dialog {
 		docList = store.getDocList();
 		colId = store.getCollId();
 		trainDocMap = new TreeMap<>();
-		testDocMap = new TreeMap<>();
+		testDocMap = new TreeMap<>();		
 	}
 
 	public void setVisible() {
@@ -668,16 +677,16 @@ public class HtrTrainingDialog extends Dialog {
 			} else if (trainDocMap.containsKey(doc)) {
 				fgColor = WHITE;
 				if (doc.getNrOfPages() == trainDocMap.get(doc).size()) {
-					bgColor = DARK_BLUE;
-				} else {
 					bgColor = BLUE;
+				} else {
+					bgColor = LIGHT_BLUE;
 				}
 			} else if (testDocMap.containsKey(doc)) {
 				fgColor = WHITE;
 				if (doc.getNrOfPages() == testDocMap.get(doc).size()) {
-					bgColor = DARK_GREEN;
-				} else {
 					bgColor = GREEN;
+				} else {
+					bgColor = LIGHT_GREEN;
 				}
 			}
 			i.setBackground(bgColor);
@@ -689,10 +698,10 @@ public class HtrTrainingDialog extends Dialog {
 			for (TreeItem child : i.getItems()) {
 				TrpPage page = (TrpPage) child.getData();
 				if (trainPages.contains(page)) {
-					child.setBackground(DARK_BLUE);
+					child.setBackground(BLUE);
 					child.setForeground(WHITE);
 				} else if (testPages.contains(page)) {
-					child.setBackground(DARK_GREEN);
+					child.setBackground(GREEN);
 					child.setForeground(WHITE);
 				} else {
 					child.setBackground(WHITE);
