@@ -596,6 +596,7 @@ public class SWTCanvas extends Canvas {
 			gc.setForeground(settings.getNewDrawColor());
 			gc.setLineWidth(settings.getNewDrawLineWidth());
 			gc.setBackground(settings.getSelectedPointColor());
+			gc.setAlpha(255);
 
 			Point mP = getMouseListener().getMousePtWoTr();
 
