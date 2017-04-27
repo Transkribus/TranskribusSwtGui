@@ -153,8 +153,9 @@ public class ToolsWidgetListener implements SelectionListener {
 				return;
 			}
 			
-			if (isLayoutAnalysis(s) && store.isTranscriptEdited())
+			if (isLayoutAnalysis(s) && store.isTranscriptEdited()) {
 				mw.saveTranscription(false);
+			}
 			
 			// layout analysis:
 //			if (s == tw.blockSegBtn) {
@@ -211,7 +212,8 @@ public class ToolsWidgetListener implements SelectionListener {
 //				}
 //			}
 			
-			else if (s == tw.startLaBtn) {
+			
+			if (s == tw.startLaBtn) {
 				if (!tw.laComp.isCurrentTranscript()) {
 					logger.debug("running la on pages: "+tw.laComp.getPages());
 					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.laComp.getPages(),
