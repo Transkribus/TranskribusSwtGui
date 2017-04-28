@@ -313,18 +313,24 @@ public class TrpMainWidget {
 		return mw;
 	}
 	
-	public String registerJobsToUpdate(List<String> jobIds) {
+	public String registerJobsToUpdate(Collection<String> jobIds) {
+		if (jobIds == null)
+			return "no jobs started";
+		
+		return registerJobsToUpdate(jobIds.toArray(new String[0]));
+	}
+	
+	public String registerJobsToUpdate(String... jobIds) {
+		if (jobIds == null)
+			return "no jobs started";
+		
 		String jobIdsStr = "";
 		for (String jobId : jobIds) {
-			registerJobToUpdate(jobId);
+			docJobUpdater.registerJobToUpdate(jobId);
 			jobIdsStr += jobId+"\n";
 		}
 		
 		return jobIdsStr;
-	}
-	
-	public void registerJobToUpdate(String jobId) {
-		docJobUpdater.registerJobToUpdate(jobId);
 	}
 
 	public Storage getStorage() {

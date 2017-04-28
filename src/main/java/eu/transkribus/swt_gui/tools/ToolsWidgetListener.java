@@ -136,15 +136,9 @@ public class ToolsWidgetListener implements SelectionListener {
 			return;
 		}
 
-//		final TrpServerConn conn = store.getConnection();
 		try {
-			TrpDoc d = store.getDoc();
-			int docId = d.getMd().getDocId();
-			TrpPage p = store.getPage();
-
 			PcGtsType pageData = store.getTranscript().getPageData();
-			String jobId = null;
-			List<String> jobIds=null;
+			List<String> jobIds=new ArrayList<>();
 			
 			int colId = store.getCurrentDocumentCollectionId();
 			
@@ -153,65 +147,11 @@ public class ToolsWidgetListener implements SelectionListener {
 				return;
 			}
 			
-			if (isLayoutAnalysis(s) && store.isTranscriptEdited())
+			if (isLayoutAnalysis(s) && store.isTranscriptEdited()) {
 				mw.saveTranscription(false);
-			
-			// layout analysis:
-//			if (s == tw.blockSegBtn) {
-//				logger.info("Get new block seg.");
-//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, false);
-//			} 
-//			else if(s == tw.blockSegWPsBtn) {
-//				logger.info("Get new block seg. in PS");
-//				jobId = store.analyzeBlocks(colId, docId, p.getPageNr(), pageData, true);
-//			}
-			
-//			else if(s == tw.regAndLineSegBtn || s == tw.lineSegBtn) {
-//				boolean analRegions = s==tw.regAndLineSegBtn;
-//				logger.info("Get regions, lines and baselines, analyRegions = "+analRegions);
-//				
-//				List<String> rids = getSelectedRegionIds();
-//				String jobImpl = LayoutAnalysisComposite.getJobImplForMethod(tw.getSelectedLaMethod());
-//				logger.debug("jobImpl = "+jobImpl);
-//				
-////				jobId = store.analyzeLines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-//				jobIds = store.analyzeLayoutOnCurrentTranscript(rids, analRegions, true, false, false, jobImpl, null);			
-//			}
-//			else if(s == tw.wordSegBtn) {
-//				logger.info("Get new word seg.");
-//				List<String> rids = getSelectedRegionIds();
-//				jobId = store.analyzeWords(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-//			}
-//			else if(s == tw.baselineBtn) {
-//				logger.info("Get new Baselines.");
-//				List<String> rids = getSelectedRegionIds();
-//				jobId = store.addBaselines(colId, docId, p.getPageNr(), pageData, rids.isEmpty() ? null : rids);
-//			} 
-//			else if(s == tw.batchLaBtn) {
-//				if(laDiag != null && SWTUtil.isDisposed(laDiag.getShell())) {
-//					laDiag.setVisible();
-//				} else {
-//					laDiag = new LayoutAnalysisDialog(mw.getShell());
-//					int ret = laDiag.open();
-//					if (ret == IDialogConstants.OK_ID) {
-//						List<String> rids = getSelectedRegionIds();
-//						logger.debug("selected regIds = "+CoreUtils.join(rids));
-//						
-//						// FIXME: if pageStr contains only current page nr, select currently selected transcript !?????						
-//						if (!laDiag.isCurrentTranscript()) {
-//							logger.debug("running la on pages: "+laDiag.getPages());
-//							jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(laDiag.getPages(),
-//										laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), false, laDiag.getJobImpl(), null);
-//						} else {
-//							logger.debug("running la on current transcript and selected rids: "+CoreUtils.join(rids));
-//							jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
-//									laDiag.isDoBlockSeg(), laDiag.isDoLineSeg(), laDiag.isDoWordSeg(), false, laDiag.getJobImpl(), null);	
-//						}
-//					}
-//				}
-//			}
-			
-			else if (s == tw.startLaBtn) {
+			}
+
+			if (s == tw.startLaBtn) {
 				if (!tw.laComp.isCurrentTranscript()) {
 					logger.debug("running la on pages: "+tw.laComp.getPages());
 					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.laComp.getPages(),
@@ -316,7 +256,8 @@ public class ToolsWidgetListener implements SelectionListener {
 						htd = new HtrTrainingDialog(mw.getShell());
 						if(htd.open() == IDialogConstants.OK_ID) {
 							CitLabHtrTrainConfig config = htd.getConfig();
-							jobId = store.runHtrTraining(config);
+							String jobId = store.runHtrTraining(config);
+							jobIds.add(jobId);
 						}
 						htd = null;
 					}
@@ -332,7 +273,8 @@ public class ToolsWidgetListener implements SelectionListener {
 						TextRecognitionConfig config = trd2.getConfig();
 						final String pages = trd2.getPages();
 						try {
-							jobId = store.runHtr(pages, config);
+							String jobId = store.runHtr(pages, config);
+							jobIds.add(jobId);
 						} finally {
 							trd2 = null;
 						}
@@ -350,97 +292,35 @@ public class ToolsWidgetListener implements SelectionListener {
 					if (ret == IDialogConstants.OK_ID) {
 						final String pageStr = od.getPages();
 						final OcrConfig config = od.getConfig();
-						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
-						jobId = store.runOcr(colId, docId, pageStr, config);
+						logger.info("starting ocr for doc "+store.getDocId()+", pages " + pageStr + " and col "+colId);
+						String jobId = store.runOcr(colId, store.getDocId(), pageStr, config);
+						jobIds.add(jobId);
 					}
 					od = null;
 				}
 			}
 			
-			// OLD OCR / HTR BTN LISTENER STUFF
-//			else if (s == tw.ocrBtn) {
-//				if(od != null) {
-//					od.setVisible();
-//				} else {
-//					od = new OcrDialog(mw.getShell());
-//					int ret = od.open();
-//					
-//					if (ret == IDialogConstants.OK_ID) {
-//						final String pageStr = od.getPages();
-//						final OcrConfig config = od.getConfig();
-//						logger.info("starting ocr for doc "+docId+", pages " + pageStr + " and col "+colId);
-//						jobId = store.runOcr(colId, docId, pageStr, config);
-//					}
-//					od = null;
-//				} 
-//			} 
-//			else if(s==tw.htrTrainBtn) {
-//				if(!store.isAdminLoggedIn()) {
-//					DialogUtil.showInfoMessageBox(mw.getShell(), "Not Available", "HTR Training is currently under development and only available to Admins.\n"
-//							+ "In case you want to request a data set to be trained, please contact us at email@transkribus.eu.");
-//				} else {
-//					if(htd != null) {
-//						htd.setVisible();
-//					} else {
-//						htd = new HtrTrainingDialog(mw.getShell());
-//						if(htd.open() == IDialogConstants.OK_ID) {
-//							CitLabHtrTrainConfig config = htd.getConfig();
-//							jobId = store.runHtrTraining(config);
-//						}
-//						htd = null;
-//					}
-//				}
-//			} else if(s==tw.recogBtn) {
-//				if(trd2 != null) {
-//					logger.debug("htr diag set visible");
-//					trd2.setVisible();
-//				} else {
-//					trd2 = new TextRecognitionDialog2(mw.getShell());
-//					if(trd2.open() == IDialogConstants.OK_ID) {
-//						TextRecognitionConfig config = trd2.getConfig();
-//						final String pages = trd2.getPages();
-//						try {
-//							jobId = store.runHtr(pages, config);
-//						} finally {
-//							trd2 = null;
-//						}
-//					}
-//					trd2 = null;
-//				}
-//			}
-//			else {
-//				mw.onError("Error", "Unknown event!", null);
-//				return;
-//			}
-			
-			if (jobId != null) { // single job started
-				logger.debug("started job with id = "+jobId);
-							
-				mw.registerJobToUpdate(jobId);
-				
+			if (!CoreUtils.isEmpty(jobIds)) {
+				logger.debug("started "+jobIds.size()+" jobs");
+				String jobIdsStr = mw.registerJobsToUpdate(jobIds);
 				store.sendJobListUpdateEvent();
 				mw.updatePageLock();
 				
-				DialogUtil.showInfoMessageBox(tw.getShell(), "Job started", "Started job with id = "+jobId);
-			} else if (jobIds != null) { // multiple jobs started
-				logger.debug("started jobs: "+jobIds.size());
-				String jobIdsStr = mw.registerJobsToUpdate(jobIds);				
-				store.sendJobListUpdateEvent();
-				mw.updatePageLock();
-				
-				DialogUtil.showInfoMessageBox(tw.getShell(), jobIds.size()+ " jobs started", jobIds.size()+ " jobs started\nIDs:\n "+jobIdsStr);
+				String jobsStr = jobIds.size()>1 ? "jobs" : "job";
+				DialogUtil.showInfoMessageBox(tw.getShell(), jobIds.size()+" "+jobsStr+" started!", "IDs:\n "+jobIdsStr);
 			}
-		} catch (ClientErrorException cee) {
-//			final int status = cee.getResponse().getStatus();
-//			if(status == 400) {
-//				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", 
-//						"A job of this type already exists for this page/document!");
-//			} 
-//			else {
-//				mw.onError("Error", cee.getMessage(), cee);
-//			}
 			
-			mw.onError("Error", cee.getMessage(), cee);
+		} catch (ClientErrorException cee) {
+			final int status = cee.getResponse().getStatus();
+			if(status == 400) {
+				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", 
+						"A job of this type already exists for this page/document!");
+			} 
+			else {
+				mw.onError("Error", cee.getMessage(), cee);
+			}
+			
+//			mw.onError("Error", cee.getMessage(), cee);
 		} catch (Exception ex) {
 			mw.onError("Error", ex.getMessage(), ex);
 		} finally {
