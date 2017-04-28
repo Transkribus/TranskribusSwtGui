@@ -847,55 +847,6 @@ public class TrpSettings extends APropertyChangeSupport {
 		this.eventsTxtFileName = eventsTxtFileName;
 		firePropertyChange(EVENTS_TXT_FILE_NAME, old, this.eventsTxtFileName);
 	}
-
-	public boolean isProxyEnabled() {
-		return proxyEnabled;
-	}
-	
-	public void setProxyEnabled(boolean isProxyEnabled) {
-		this.proxyEnabled = isProxyEnabled;
-		firePropertyChange(PROXY_ENABLED, !this.proxyEnabled, this.proxyEnabled);
-	}
-	
-	public String getProxyHost() {
-		return proxyHost;
-	}
-	
-	public void setProxyHost(String proxyHost) {
-		String old = this.proxyHost;
-		this.proxyHost = proxyHost;
-		firePropertyChange(PROXY_HOST, old, this.proxyHost);
-	}
-	
-	public String getProxyPort(){
-		return proxyPort;
-	}
-	
-	public void setProxyPort(String proxyPort) {
-		String old = this.proxyPort;
-		this.proxyPort = proxyPort;
-		firePropertyChange(PROXY_PORT, old, this.proxyPort);
-	}
-	
-	public String getProxyUser(){
-		return proxyUser;
-	}
-	
-	public void setProxyUser(String proxyUser) {
-		String old = this.proxyUser;
-		this.proxyUser = proxyUser;
-		firePropertyChange(PROXY_USER, old, this.proxyUser);
-	}
-	
-	public String getProxyPassword(){
-		return proxyPassword;
-	}
-
-	public void setProxyPassword(String proxyPassword) {
-		String old = this.proxyPassword;
-		this.proxyPassword  = proxyPassword;
-		firePropertyChange(PROXY_PW, old, this.proxyPassword);
-	}
 	
 	public String getCattiServerUrl() {
 		return cattiServerUrl;

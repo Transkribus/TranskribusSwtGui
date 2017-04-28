@@ -41,6 +41,7 @@ public class TrpGuiPrefs {
 	public static final String OAUTH_NODE = "oauth";
 	public static final String ACCOUNT_NODE = "acc";
 	public static final String EXPORT_NODE = "export";
+	public static final String PROXY_NODE = "proxy";
 	
 	private static final String OAUTH_UN_KEY = "_un";
 	private static final String OAUTH_PIC_KEY = "_pic";
@@ -53,11 +54,20 @@ public class TrpGuiPrefs {
 	
 	public static final String LAST_EXPORT_FOLDER_KEY = "lastExportFolder";
 	
+	public static final String PROXY_ENABLED_KEY = "enabled";
+	public static final String PROXY_HOST_KEY = "host";
+	public static final String PROXY_PORT_KEY = "port";
+	public static final String PROXY_USER_KEY = "user";
+	public static final String PROXY_PASS_KEY = "password";
+	
+	
 	static Preferences pref = Preferences.userNodeForPackage(TrpGui.class).node(CREDS_NODE);
 	static Preferences oAuthPrefs = Preferences.userNodeForPackage(TrpGui.class).node(OAUTH_NODE);
 	static Preferences accountPrefs = Preferences.userNodeForPackage(TrpGui.class).node(ACCOUNT_NODE);
 	
 	static Preferences exportPrefs = Preferences.userNodeForPackage(TrpGui.class).node(EXPORT_NODE);
+
+	static Preferences proxyPrefs = Preferences.userNodeForPackage(TrpGui.class).node(PROXY_NODE);
 	
 	public static String encryptAes(String key, String strToEncrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -218,6 +228,51 @@ public class TrpGuiPrefs {
 		oAuthPrefs.remove(prov.toString()+ OAUTH_PIC_KEY);
 	}
 	
+	public static void setProxyPrefs (ProxyPrefs p) {
+		if(p == null) {
+			throw new IllegalArgumentException("ProxyPrefs object is null!");
+		}
+		proxyPrefs.putBoolean(PROXY_ENABLED_KEY, p.isEnabled());
+		proxyPrefs.put(PROXY_HOST_KEY, p.getHost());
+		proxyPrefs.putInt(PROXY_PORT_KEY, p.getPort());
+		proxyPrefs.put(PROXY_USER_KEY, p.getUser());
+		
+		if(p.getPassword().isEmpty()) {
+			proxyPrefs.put(PROXY_PASS_KEY, "");
+		} else {
+			String encrPw;
+			try {
+				encrPw = encryptAes(wtf, p.getPassword());
+			} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
+					| BadPaddingException e) {
+				logger.error("Could not encrypt proxy password!", e);
+				encrPw = "";
+			}
+			proxyPrefs.put(PROXY_PASS_KEY, encrPw);
+		}
+	}
+	
+	public static ProxyPrefs getProxyPrefs () {
+		ProxyPrefs p = new ProxyPrefs();
+		p.setEnabled(proxyPrefs.getBoolean(PROXY_ENABLED_KEY, false));
+		p.setHost(proxyPrefs.get(PROXY_HOST_KEY, ""));
+		p.setPort(proxyPrefs.getInt(PROXY_PORT_KEY, -1));
+		p.setUser(proxyPrefs.get(PROXY_USER_KEY, ""));
+		final String encrPw = proxyPrefs.get(PROXY_PASS_KEY, "");
+		if(encrPw.isEmpty()) {
+			p.setPassword("");
+		} else {
+			try {
+				p.setPassword(decryptAes(wtf, encrPw));
+			} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | NoSuchAlgorithmException
+					| NoSuchPaddingException e) {
+				logger.error("Could not decrypt proxy password!", e);
+				p.setPassword("");
+			}
+		}
+		return p;
+	}
+	
 	public static void testPreferences() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		
 //		byte[] key = generateAesKey();
@@ -278,6 +333,63 @@ public class TrpGuiPrefs {
 		public String toString() {
 			return "OAuthCreds [refreshToken=" + refreshToken + ", userName=" + userName + ", profilePicUrl="
 					+ profilePicUrl + "]";
+		}
+	}
+	
+	public static class ProxyPrefs {
+		private boolean enabled;
+		private String host;
+		private int port;
+		private String user;
+		private String password;
+		public ProxyPrefs() {
+			enabled = false;
+			host = "";
+			port = -1;
+			user = "";
+			password = "";
+		}
+		public ProxyPrefs(boolean enabled, String host, int port, String user, String password) {
+			this.enabled = enabled;
+			this.host = host;
+			this.port = port;
+			this.user = user;
+			this.password = password;
+		}
+		public boolean isEnabled() {
+			return enabled;
+		}
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
+		}
+		public String getHost() {
+			return host;
+		}
+		public void setHost(String host) {
+			this.host = host;
+		}
+		public int getPort() {
+			return port;
+		}
+		public void setPort(int port) {
+			this.port = port;
+		}
+		public String getUser() {
+			return user;
+		}
+		public void setUser(String user) {
+			this.user = user;
+		}
+		public String getPassword() {
+			return password;
+		}
+		public void setPassword(String password) {
+			this.password = password;
+		}
+		@Override
+		public String toString() {
+			return "ProxyPrefs [enabled=" + enabled + ", host=" + host + ", port=" + port + ", user=" + user
+					+ ", password=" + password + "]";
 		}
 	}
 }

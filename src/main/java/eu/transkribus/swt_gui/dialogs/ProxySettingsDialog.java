@@ -14,10 +14,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.TrpGuiPrefs;
+import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 /**
  * Test with proxy.uibk.ac.at:3128
@@ -29,25 +30,26 @@ public class ProxySettingsDialog extends Dialog {
 	protected Object result;
 	protected Shell shell;
 	
-	TrpSettings trpSets;
+	ProxyPrefs prefs;
 	
 	private Text proxyHostTxt;
 	private Text proxyPortTxt;
 	private Text proxyUserTxt;
 	private Text proxyPasswordTxt;
 	private Button isProxyEnabledBtn;
-	Button saveButton;
+	private Label msgLbl;
+	private Button saveButton;
 
 	/**
 	 * Create the dialog.
 	 * @param parent
 	 * @param style
 	 */
-	public ProxySettingsDialog(Shell parent, int style, TrpSettings trpSets) {
+	public ProxySettingsDialog(Shell parent, int style, ProxyPrefs prefs) {
 		super(parent, style);
 		setText("Proxy Settings");
 		
-		this.trpSets = trpSets;
+		this.prefs = prefs;
 	}
 	
 	public Shell getShell() {
@@ -60,7 +62,6 @@ public class ProxySettingsDialog extends Dialog {
 	 */
 	public Object open() {
 		createContents();
-		addBindings();
 		
 		SWTUtil.centerShell(shell);
 		shell.open();
@@ -72,15 +73,6 @@ public class ProxySettingsDialog extends Dialog {
 			}
 		}
 		return result;
-	}
-	
-	private void addBindings() {
-		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.PROXY_ENABLED, trpSets, isProxyEnabledBtn);
-		
-		DataBinder.get().bindBeanToWidgetText(TrpSettings.PROXY_HOST, trpSets, this.proxyHostTxt);
-		DataBinder.get().bindBeanToWidgetText(TrpSettings.PROXY_PORT, trpSets, this.proxyPortTxt);
-		DataBinder.get().bindBeanToWidgetText(TrpSettings.PROXY_USER, trpSets, this.proxyUserTxt);
-		DataBinder.get().bindBeanToWidgetText(TrpSettings.PROXY_PW, trpSets, this.proxyPasswordTxt);
 	}
 	
 	/**
@@ -120,7 +112,7 @@ public class ProxySettingsDialog extends Dialog {
 		Label lblPwLabel = new Label(shell, SWT.NONE);
 		lblPwLabel.setText("Proxy Password:");
 		
-		proxyPasswordTxt = new Text(shell, SWT.BORDER);
+		proxyPasswordTxt = new Text(shell, SWT.BORDER | SWT.PASSWORD);
 //		proxyPasswordTxt.setText(trpSets.getProxyPassword());
 		proxyPasswordTxt.setLayoutData(gd);
 
@@ -130,6 +122,10 @@ public class ProxySettingsDialog extends Dialog {
 //		isProxyEnabledBtn.setSelection(trpSets.isProxyEnabled());
 //		isProxyEnabledBtn.setToolTipText("");
 				
+		msgLbl = new Label(shell, SWT.NONE);
+		msgLbl.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
+		msgLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		
 		Composite buttonComposite = new Composite(shell, SWT.NONE);
 		buttonComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 		buttonComposite.setLayout(new FillLayout());
@@ -138,11 +134,28 @@ public class ProxySettingsDialog extends Dialog {
 		saveButton.setText("OK");
 		saveButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-//				TrpConfig.save();
+				prefs.setEnabled(isProxyEnabledBtn.getSelection());
+				prefs.setHost(proxyHostTxt.getText());
+				prefs.setUser(proxyUserTxt.getText());
+				prefs.setPassword(proxyPasswordTxt.getText());
+				
+				final String portStr = proxyPortTxt.getText();
+				if(!portStr.isEmpty()) {
+					final int port;
+					try {
+						port = Integer.parseInt(portStr);
+						prefs.setPort(port);
+					} catch (NumberFormatException nfe) {
+						msgLbl.setText("Port has to be a number!");
+						return;
+					}
+				}
+				
+				TrpGuiPrefs.setProxyPrefs(prefs);
 				shell.close();
 			}
 		});
-		saveButton.setToolTipText("Stores the configuration in the configuration file and closes the dialog");
+		saveButton.setToolTipText("Stores the configuration in the registry and closes the dialog");
 		
 		Button closeButton = new Button(buttonComposite, SWT.PUSH);
 		closeButton.setText("Cancel");
@@ -153,6 +166,16 @@ public class ProxySettingsDialog extends Dialog {
 		});
 		closeButton.setToolTipText("Closes this dialog without saving");
 		
+		updateFields();
+		
 		shell.pack();
+	}
+
+	private void updateFields() {
+		isProxyEnabledBtn.setSelection(prefs.isEnabled());
+		proxyHostTxt.setText(prefs.getHost());
+		proxyPortTxt.setText(""+prefs.getPort());
+		proxyUserTxt.setText(prefs.getUser());
+		proxyPasswordTxt.setText(prefs.getPassword());
 	}
 }

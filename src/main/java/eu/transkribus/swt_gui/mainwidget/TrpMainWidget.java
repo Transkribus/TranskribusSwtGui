@@ -4256,7 +4256,7 @@ public class TrpMainWidget {
 		if (proxyDiag!=null && !SWTUtil.isDisposed(proxyDiag.getShell())) {
 			proxyDiag.getShell().setVisible(true);
 		} else {
-			proxyDiag = new ProxySettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getTrpSets());
+			proxyDiag = new ProxySettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, TrpGuiPrefs.getProxyPrefs());
 			proxyDiag.open();
 			Storage.getInstance().updateProxySettings();
 		}
