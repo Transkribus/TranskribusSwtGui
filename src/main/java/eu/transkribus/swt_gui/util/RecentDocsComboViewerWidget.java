@@ -69,7 +69,8 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 			@Override
 			public void paintControl(PaintEvent e) {			
 				Rectangle r = lastDocsCombo.getBounds();
-				e.gc.drawString(label, r.x, r.y, false);
+				e.gc.setBackground(lastDocsCombo.getBackground());
+				e.gc.drawString(label, r.x, r.y, true);
 			}
 		});
 

@@ -14,6 +14,9 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
@@ -27,7 +30,6 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
-import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
@@ -57,6 +59,10 @@ public class ServerWidget extends Composite {
 	ServerWidgetListener serverWidgetListener;
 	
 	List<Control> userControls = new ArrayList<>();
+	
+	Menu docOverviewMenu;
+	MenuItem deleteDocMenuItem;
+	MenuItem duplicateDocMenuItem;
 		
 	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
@@ -149,7 +155,23 @@ public class ServerWidget extends Composite {
 			((SashForm)remoteDocsGroup).setWeights(new int[]{50, 50});
 		}
 		
+		initDocOverviewMenu();
+		
 		updateHighlightedRow(-1);
+	}
+	
+	private void initDocOverviewMenu() {
+		Table t = docTableWidget.getPageableTable().getViewer().getTable();
+		docOverviewMenu = new Menu(t);
+		t.setMenu(docOverviewMenu);
+		
+		deleteDocMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
+		deleteDocMenuItem.setImage(Images.DELETE);
+		deleteDocMenuItem.setText("Delete document...");
+		
+		duplicateDocMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
+		duplicateDocMenuItem.setImage(Images.PAGE_COPY);
+		duplicateDocMenuItem.setText("Duplicate...");
 	}
 	
 	private void configExpandable(ExpandableComposite exp, Composite client, String text, final Composite container, boolean expand) {

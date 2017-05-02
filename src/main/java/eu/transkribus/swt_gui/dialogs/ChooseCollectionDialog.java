@@ -17,6 +17,8 @@ public class ChooseCollectionDialog extends Dialog {
 		
 	Storage store = Storage.getInstance();
 		
+	Integer initColId=null;
+	
 	TrpCollection selectedCollection=null;
 	CollectionComboViewerWidget collCombo;
 	
@@ -27,8 +29,13 @@ public class ChooseCollectionDialog extends Dialog {
 	}
 
 	public ChooseCollectionDialog(Shell parentShell, String title) {
+		this(parentShell, title, null);
+	}
+	
+	public ChooseCollectionDialog(Shell parentShell, String title, Integer initColId) {
 		super(parentShell);
 		this.title = title;
+		this.initColId = initColId;
 	}
 	
 	@Override protected void configureShell(Shell shell) {
@@ -53,6 +60,9 @@ public class ChooseCollectionDialog extends Dialog {
 		collCombo = new CollectionComboViewerWidget(parent, 0, true, false, false);
 		collCombo.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
+		if (initColId != null) {
+			collCombo.setSelectedCollection(initColId, false);
+		}
 
 		return container;
 	}

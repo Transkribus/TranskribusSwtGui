@@ -37,7 +37,7 @@ import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.doc_overview.DocTableWidget;
-import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
+import eu.transkribus.swt_gui.doc_overview.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -245,11 +245,11 @@ public class SimpleDocSearchComposite extends Composite {
 		};		
 		docWidgetPaged.getTableViewer().addDoubleClickListener(openSelectedDocListener);
 		
-		if (false) {
-		docWidget = new DocTableWidget(this, 0);
-		docWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		docWidget.getTableViewer().addDoubleClickListener(openSelectedDocListener);
-		}
+//		if (false) {
+//		docWidget = new DocTableWidget(this, 0);
+//		docWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+//		docWidget.getTableViewer().addDoubleClickListener(openSelectedDocListener);
+//		}
 		
 		sf.setWeights(new int[]{55, 45});
 //		sf.setWeights(new int[]{facetsC.computeSize(SWT.DEFAULT, SWT.DEFAULT).y, docWidgetPaged.computeSize(SWT.DEFAULT, SWT.DEFAULT).y});

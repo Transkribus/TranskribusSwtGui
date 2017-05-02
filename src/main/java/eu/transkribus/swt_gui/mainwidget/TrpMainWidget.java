@@ -43,6 +43,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.DeviceData;
@@ -78,6 +79,7 @@ import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.auth.TrpRole;
+import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
@@ -143,6 +145,7 @@ import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.AutoSaveDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
 import eu.transkribus.swt_gui.dialogs.BugDialog;
+import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
@@ -160,6 +163,7 @@ import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBarListener;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
@@ -4380,6 +4384,114 @@ public class TrpMainWidget {
 		ftComp.searchCurrentDoc(true);							
 		ftComp.setSearchText(ui.getQuickSearchText().getText());			
 		ftComp.findText();
+	}
+	
+	public void duplicateDocument(int srcColId, TrpDocMetadata srcDoc) {
+		try {
+			if (!storage.isLoggedIn())
+				return;
+			
+			logger.debug("duplicating document, srcColId = "+srcColId+", srcDoc = "+srcDoc);
+			
+	//		if (srcColId <= 0) {
+	//			DialogUtil.showErrorMessageBox(getShell(), "Error", "No source collection specified!");
+	//			return;
+	//		}
+			
+			if (srcDoc == null) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "No source document specified!");
+				return;
+			}
+			
+			if (!StorageUtil.canDuplicate(srcColId, srcDoc)) {
+				DialogUtil.showErrorMessageBox(getShell(), "Insufficient rights", "You must be either at least editor of the collection or uploader of the document!");
+				return;
+			}
+									
+			ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a destination collection", srcColId);
+			if (diag.open() != Dialog.OK)
+				return;
+			
+			TrpCollection c = diag.getSelectedCollection();
+			if (c==null) {
+				DialogUtil.showErrorMessageBox(getShell(), "No collection selected", "Please select a collection to duplicate the document to!");
+				return;
+			}
+			int toColId = c.getColId();
+			
+			InputDialog dlg = new InputDialog(getShell(), "New name", "Enter the new name of the document", null, null);
+			if (dlg.open() != Window.OK)
+				return;
+			
+			String newName = dlg.getValue();
+			
+//			storage.duplicateDocument(srcColId, srcDoc.getDocId(), newName, toColId <= 0 ? null : toColId);
+			storage.duplicateDocument(0, srcDoc.getDocId(), newName, toColId <= 0 ? null : toColId); // TEST
+			DialogUtil.showInfoMessageBox(getShell(), "Success duplicating", "Go to the jobs view to check the status of duplication!");
+		} catch (Exception e) {
+			mw.onError("Error duplicating document", e.getMessage(), e);
+		}
+	}
+	
+	public boolean deleteDocuments(TrpDocMetadata ...docs) {
+		if (!storage.isLoggedIn()) {
+			return false;
+		}
+		
+		if (docs==null || docs.length==0) {
+			DialogUtil.showErrorMessageBox(getShell(), "No document selected", "Please select a document you want to delete!");
+			return false;
+		}
+		
+		int N = docs.length;
+		
+		if (N > 1) {
+			if (DialogUtil.showYesNoDialog(getShell(), "Delete Documents", "Do you really want to delete " + N + " selected documents ")!=SWT.YES) {
+				return false;
+			}
+		}
+		else{
+			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", "Do you really want to delete document "+docs[0].getTitle())!=SWT.YES) {
+				return false;
+			}
+		}
+
+		try {
+			TrpUserLogin user = storage.getUser();
+						
+			int count = 0;
+			for (TrpDocMetadata md : docs) {
+				if (!user.isAdmin() && user.getUserId()!=md.getDocId()) {
+					DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the owner of this document. " + md.getTitle());
+					return false;
+				}
+
+				try {
+					storage.deleteDocument(md.getColList().get(0).getColId(), md.getDocId());
+					count++;
+				} catch (Exception e) {
+//					Browser browser = new Browser(ui, 0);
+//					browser.setText(html);
+										
+					DialogUtil.showErrorMessageBox(getShell(), "Error deleting document", CoreUtils.removeHtmlAtEnd(e.getMessage()));
+				}
+
+				//cmw.getCurrentDocTableWidgetPagination().getPageableTable().refreshPage();
+			}
+			
+			if (count > 0) {
+				DialogUtil.showInfoMessageBox(getShell(), "Deleted document", "Successfully deleted "+count+" document(s)");
+				ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+				return true;
+			} else {
+				return false;
+			}
+		} 
+		catch (Exception e) {
+			mw.onError("Error deleting document", e.getMessage(), e);
+			return false;
+		}
+
 	}
 
 }

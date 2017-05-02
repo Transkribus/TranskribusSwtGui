@@ -33,6 +33,7 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.util.AuthUtils;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.UserInputChecker;
 import eu.transkribus.swt.util.ComboInputDialog;
 import eu.transkribus.swt.util.DialogUtil;
@@ -461,11 +462,11 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		}
 	}
 	
-	boolean isUploader(TrpUserLogin user, TrpDocMetadata md) {
+	public static boolean isUploader(TrpUserLogin user, TrpDocMetadata md) {
 		return md.getUploaderId() == user.getUserId();
 	}
 	
-	boolean isAdminOrUploader(TrpUserLogin user, TrpDocMetadata md) {
+	public static boolean isAdminOrUploader(TrpUserLogin user, TrpDocMetadata md) {
 		return user.isAdmin() || isUploader(user, md);
 	}
 	
@@ -486,101 +487,60 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 	private void deleteDocument() {
 		if (store.isLoggedIn()) {
 			List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
-//			if (selected.isEmpty() || selected.size() > 1) {
-//				DialogUtil.showErrorMessageBox(shell, "Select a single document", "Please select a single document!");
-//				return;
-//			}
-			
-			if (selected.isEmpty()) {
-				DialogUtil.showErrorMessageBox(shell, "Select a document", "Please select a document you wish to delete!");
-				return;
-			}
-			else if (selected.size() > 1){
-				if (DialogUtil.showYesNoDialog(shell, "Delete Documents", "Do you really want to delete " + selected.size() + " selected documents ")!=SWT.YES) {
-					return;
-				}
-			}
-			else{
-				if (DialogUtil.showYesNoDialog(shell, "Delete Document", "Do you really want to delete document "+selected.get(0).getTitle())!=SWT.YES) {
-					return;
-				}
-			}
-			
-			TrpUserLogin user = store.getUser();
-			
-			//TrpDocMetadata md = selected.get(0);
-			
-			int count = 0;
-			for (TrpDocMetadata md : selected){
-				count++;
-				if(!isAdminOrUploader(user, md)) {
-					DialogUtil.showErrorMessageBox(shell, "Unauthorized", "You are not the owner of this document. " + md.getTitle());
-					return;
-				}
-
-				try {
-					store.deleteDocument(md.getColList().get(0).getColId(), md.getDocId());
-				} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
-					mw.onError("Error deleting document", e.getMessage(), e);
-				}
-				
-				if (selected.size() == 1) {
-					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted document "+md.getTitle());
-				}
-				else if(count == selected.size()){
-					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted "+selected.size()+" documents");
-				}
-				
-				cmw.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			if (!CoreUtils.isEmpty(selected)) {
+				mw.deleteDocuments(selected.toArray(new TrpDocMetadata[0]));
 				cmw.docsTableWidget.reloadDocs(false, true);
-
-				//cmw.getCurrentDocTableWidgetPagination().getPageableTable().refreshPage();
 			}
-
-			
 		}
 	}
 
 	private void duplicateDocument() {
-		if (store.isLoggedIn()) {
-			List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
-			if (selected.isEmpty() || selected.size() > 1) {
-				DialogUtil.showErrorMessageBox(cmw.getShell(), "Select a single document", "Please select a single document");
-				return;
-			}
-			
-			TrpDocMetadata md = selected.get(0);
-			
-			if (!checkUploaderOrCollectionOwnerRights(store.getUser(), md))
-				return;
-			
-			ChooseCollectionDialog diag = new ChooseCollectionDialog(cmw.shell, "Choose a collection to duplicate to");
-			if (diag.open() != Dialog.OK)
-				return;
-			
-			TrpCollection c = diag.getSelectedCollection();
-			if (c==null) {
-				DialogUtil.showErrorMessageBox(cmw.getShell(), "No collection selected", "Please select a collection to duplicate the document to!");
-				return;
-			}
-			int toColId = c.getColId();
-			
-			InputDialog dlg = new InputDialog(shell, "New name", "Enter the new name of the document", null, null);
-			if (dlg.open() != Window.OK)
-				return;
-			
-			String newName = dlg.getValue();
-			
-			try {
-				store.duplicateDocument(cmw.getSelectedCollection().getColId(), md.getDocId(), newName, toColId <= 0 ? null : toColId);
-			} catch (SessionExpiredException | ServerErrorException
-					| IllegalArgumentException | NoConnectionException e) {
-				mw.onError("Error duplicating document", e.getMessage(), e);
-			}
-			
-			DialogUtil.showInfoMessageBox(shell, "Success duplicating", "Go to the jobs view to check the status of duplication!");
+		TrpDocMetadata srcDoc = cmw.getFirstSelectedDocument();
+		if (srcDoc != null) {
+			mw.duplicateDocument(cmw.getSelectedCollectionId(), srcDoc);
+			cmw.docsTableWidget.reloadDocs(false, true);
 		}
 	}
+	
+//		if (store.isLoggedIn()) {
+//			List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
+//			if (selected.isEmpty() || selected.size() > 1) {
+//				DialogUtil.showErrorMessageBox(cmw.getShell(), "Select a single document", "Please select a single document");
+//				return;
+//			}
+//			
+//			TrpDocMetadata md = selected.get(0);
+//			
+//			if (!checkUploaderOrCollectionOwnerRights(store.getUser(), md))
+//				return;
+//			
+//			ChooseCollectionDialog diag = new ChooseCollectionDialog(cmw.shell, "Choose a collection to duplicate to");
+//			if (diag.open() != Dialog.OK)
+//				return;
+//			
+//			TrpCollection c = diag.getSelectedCollection();
+//			if (c==null) {
+//				DialogUtil.showErrorMessageBox(cmw.getShell(), "No collection selected", "Please select a collection to duplicate the document to!");
+//				return;
+//			}
+//			int toColId = c.getColId();
+//			
+//			InputDialog dlg = new InputDialog(shell, "New name", "Enter the new name of the document", null, null);
+//			if (dlg.open() != Window.OK)
+//				return;
+//			
+//			String newName = dlg.getValue();
+//			
+//			try {
+//				store.duplicateDocument(cmw.getSelectedCollection().getColId(), md.getDocId(), newName, toColId <= 0 ? null : toColId);
+//			} catch (SessionExpiredException | ServerErrorException
+//					| IllegalArgumentException | NoConnectionException e) {
+//				mw.onError("Error duplicating document", e.getMessage(), e);
+//			}
+//			
+//			DialogUtil.showInfoMessageBox(shell, "Success duplicating", "Go to the jobs view to check the status of duplication!");
+//		}
+//	}
 	
 	private void modifySelectedCollection() {
 		TrpCollection c = cmw.getSelectedCollection();

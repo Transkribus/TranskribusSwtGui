@@ -44,9 +44,9 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.doc_overview.DocTableWidgetPagination;
+import eu.transkribus.swt_gui.doc_overview.MyDocsTableWidgetPagination;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
-import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
-import eu.transkribus.swt_gui.doclist_widgets.MyDocsTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination;
@@ -346,7 +346,7 @@ public class CollectionManagerDialog extends Dialog {
 		
 		duplicatedDocumentBtn = new Button(btns, SWT.PUSH);
 		duplicatedDocumentBtn.setText("Duplicate document");
-		duplicatedDocumentBtn.setImage(Images.getOrLoad("/icons/page_copy.png"));
+		duplicatedDocumentBtn.setImage(Images.PAGE_COPY);
 		duplicatedDocumentBtn.setToolTipText("Duplicate document from server");		
 		duplicatedDocumentBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
 		
@@ -448,7 +448,6 @@ public class CollectionManagerDialog extends Dialog {
 		return getSelectedCollection()==null ? -1 : getSelectedCollection().getColId();
 	}
 
-	
 	public TrpCollection getSelectedCollection() {
 		return collectionsTv.getFirstSelected();		
 	}
@@ -459,6 +458,14 @@ public class CollectionManagerDialog extends Dialog {
 		
 	public List<TrpDocMetadata> getSelectedDocuments() {
 		return ((IStructuredSelection) getCurrentDocTableWidgetPagination().getTableViewer().getSelection()).toList();
+	}
+	
+	public TrpDocMetadata getFirstSelectedDocument() {
+		List<TrpDocMetadata> selected = getSelectedDocuments();
+		if (selected.isEmpty())
+			return null;
+		else
+			return selected.get(0);
 	}
 	
 	public List<TrpUser> getSelectedUsersInCollection() {

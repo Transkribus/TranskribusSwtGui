@@ -98,6 +98,8 @@ public class Images {
 	public static final Image PENCIL = getOrLoad("/icons/pencil.png");
 
 	public static final Image GROUP = getOrLoad("/icons/group.png");
+	
+	public static final Image PAGE_COPY = Images.getOrLoad("/icons/page_copy.png");
 
 	static HashMap<String, Image> imageMap;
 

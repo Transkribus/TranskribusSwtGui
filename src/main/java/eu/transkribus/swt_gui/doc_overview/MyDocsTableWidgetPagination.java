@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.doclist_widgets;
+package eu.transkribus.swt_gui.doc_overview;
 
 import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
 import org.eclipse.swt.events.DisposeEvent;
@@ -11,6 +11,9 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
+/**
+ * This widget only display documents the current user has uploaded
+ */
 public class MyDocsTableWidgetPagination extends DocTableWidgetPagination {
 	IStorageListener storageListener;
 	

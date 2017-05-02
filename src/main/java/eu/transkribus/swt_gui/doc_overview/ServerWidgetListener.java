@@ -55,10 +55,9 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		sw.manageCollectionsBtn.addSelectionListener(this);
 		sw.showActivityWidgetBtn.addSelectionListener(this);
 		
-//		sw.syncWithLocalDocBtn.addSelectionListener(this);
-//		sw.applyAffineTransformBtn.addSelectionListener(this);
-//		sw.batchReplaceImgsBtn.addSelectionListener(this);
-		
+		sw.duplicateDocMenuItem.addSelectionListener(this);
+		sw.deleteDocMenuItem.addSelectionListener(this);
+
 		Storage.getInstance().addListener(this);
 	}
 	
@@ -73,9 +72,8 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		sw.manageCollectionsBtn.removeSelectionListener(this);
 		sw.showActivityWidgetBtn.removeSelectionListener(this);
 		
-//		sw.syncWithLocalDocBtn.removeSelectionListener(this);
-//		sw.applyAffineTransformBtn.removeSelectionListener(this);
-//		sw.batchReplaceImgsBtn.removeSelectionListener(this);
+		sw.duplicateDocMenuItem.removeSelectionListener(this);
+		sw.deleteDocMenuItem.removeSelectionListener(this);
 		
 		Storage.getInstance().removeListener(this);
 	}
@@ -123,6 +121,14 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		}
 		else if (s == sw.showActivityWidgetBtn) {
 			mw.openActivityDialog();
+		}
+		
+		else if (s == sw.duplicateDocMenuItem) {
+			mw.duplicateDocument(mw.getSelectedCollectionId(), sw.getSelectedDocument());
+		}
+		
+		else if (s == sw.deleteDocMenuItem) {
+			mw.deleteDocuments(sw.getSelectedDocument());
 		}
 		
 //		else if (s == sw.syncWithLocalDocBtn) {

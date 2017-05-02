@@ -41,7 +41,7 @@ import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
+import eu.transkribus.swt_gui.doc_overview.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 

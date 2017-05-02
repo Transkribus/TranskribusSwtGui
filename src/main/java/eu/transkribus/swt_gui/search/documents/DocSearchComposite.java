@@ -35,14 +35,14 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.doc_overview.DocTableWidget;
-import eu.transkribus.swt_gui.doclist_widgets.DocTableWidgetPagination;
+import eu.transkribus.swt_gui.doc_overview.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DocSearchComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocSearchComposite.class);
 	
-	DocTableWidget docWidget;
+//	DocTableWidget docWidget;
 	DocTableWidgetPagination docWidgetPaged;
 	
 	LabeledText documentId, title, description, author, writer;
@@ -183,11 +183,11 @@ public class DocSearchComposite extends Composite {
 		};		
 		docWidgetPaged.getTableViewer().addDoubleClickListener(openSelectedDocListener);
 		
-		if (false) {
-		docWidget = new DocTableWidget(this, 0);
-		docWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		docWidget.getTableViewer().addDoubleClickListener(openSelectedDocListener);
-		}
+//		if (false) {
+//		docWidget = new DocTableWidget(this, 0);
+//		docWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+//		docWidget.getTableViewer().addDoubleClickListener(openSelectedDocListener);
+//		}
 		
 		sf.setWeights(new int[]{55, 45});
 //		sf.setWeights(new int[]{facetsC.computeSize(SWT.DEFAULT, SWT.DEFAULT).y, docWidgetPaged.computeSize(SWT.DEFAULT, SWT.DEFAULT).y});
@@ -234,20 +234,20 @@ public class DocSearchComposite extends Composite {
 				infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
 				infoLabel.setText("Found "+docWidgetPaged.getPageableTable().getController().getTotalElements()+" documents!");
 				
-				if (docWidget != null) {
-					List<TrpDocMetadata> docList = 
-							s.getConnection().findDocuments(colId, docid, title.txt(), description.txt(), author.txt(), writer.txt(), exactMatch.getSelection(), caseSensitive.getSelection(), 0, 0, null, null);
-					logger.debug("found docs: "+docList.size());
-					
-					infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
-					infoLabel.setText("Found "+docList.size()+" documents!");
-	//				for (TrpDocMetadata doc : docList)
-	//					logger.debug(doc.toString());
-					
-					
-					docWidget.refreshList(docList);
-				}
-			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
+//				if (docWidget != null) {
+//					List<TrpDocMetadata> docList = 
+//							s.getConnection().findDocuments(colId, docid, title.txt(), description.txt(), author.txt(), writer.txt(), exactMatch.getSelection(), caseSensitive.getSelection(), 0, 0, null, null);
+//					logger.debug("found docs: "+docList.size());
+//					
+//					infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
+//					infoLabel.setText("Found "+docList.size()+" documents!");
+//	//				for (TrpDocMetadata doc : docList)
+//	//					logger.debug(doc.toString());
+//					
+//					
+//					docWidget.refreshList(docList);
+//				}
+			} catch (Exception e1) {
 				logger.error(e1.getMessage(), e1);
 				
 				infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_RED));

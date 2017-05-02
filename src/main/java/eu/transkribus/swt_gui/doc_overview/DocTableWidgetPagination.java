@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.doclist_widgets;
+package eu.transkribus.swt_gui.doc_overview;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -128,7 +128,8 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 
 		Storage store = Storage.getInstance();
 		if (forceReload || collectionId != store.getCollId()) { // have to reload doclist
-			store.getConnection().getAllDocsAsync(collectionId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+//			store.getConnection().getAllDocsAsync(collectionId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+			store.getConnection().getAllDocsAsync(collectionId, 0, 0, "docId", "asc", new InvocationCallback<List<TrpDocMetadata>>() {
 				@Override public void failed(Throwable throwable) {
 					DialogUtil.showBallonToolTip(DocTableWidgetPagination.this, SWT.ICON_ERROR, "Error loading documents", throwable.getMessage());
 					logger.error(throwable.getMessage(), throwable);
@@ -227,6 +228,9 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		col.setLabelProvider(new DocTableColumnLabelProvider("docId"));
 		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("docId"));
 		
+//		tv.getTable().setSortColumn(col.getColumn());
+//		tv.getTable().setSortDirection(SWT.DOWN);
+		
 		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOCS_TITLE_COL, 150);
 		col.setLabelProvider(new DocTableColumnLabelProvider("title"));
 		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("title"));
@@ -246,6 +250,8 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_COLLECTIONS_COL, 100);	
 		col.setLabelProvider(new DocTableColumnLabelProvider("colString"));
 //		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("colString"));
+		
+		
 
 	}
 

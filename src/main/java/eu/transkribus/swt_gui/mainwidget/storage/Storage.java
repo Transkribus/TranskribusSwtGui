@@ -1751,6 +1751,16 @@ public class Storage {
 	}
 	
 	public List<TrpCollection> getCollections() { return collections; }
+	
+	public TrpCollection getCollection(int colId) {
+		for (TrpCollection c : collections) {
+			if (c.getColId() == colId) {
+				return c;
+			}
+		}
+		return null;
+	}
+	
 	public List<TrpCollection> getCollectionsCanManage() {
 		List<TrpCollection> ccm = new ArrayList<>();
 		for (TrpCollection c : collections) {
@@ -1885,32 +1895,14 @@ public class Storage {
 		conn.deleteEditDeclOption(getCurrentDocumentCollectionId(), opt);
 	}
 
-	public TrpRole getRoleOfUserInCurrentCollection() {
-		if(!isLoggedIn()){
-			return TrpRole.Admin;
-		}
-		TrpUserLogin userLogin = conn.getUserLogin();
-		if(userLogin.isAdmin()){
-			return TrpRole.Admin;
-		}
-		final int currentCol = getCurrentDocumentCollectionId();
-		TrpRole role = null;
-		for(TrpCollection c : collections){
-			if(c.getColId() == currentCol){
-				role = c.getRole();
-				break;
-			}
-		}
-		if(role == null){
-			role = TrpRole.None;
-		}
-		return role;
-	}
-
 	public void deleteTranscript(TrpTranscriptMetadata tMd) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
 		conn.deleteTranscript(this.getCurrentDocumentCollectionId(), this.getDoc().getId(), 
 				this.getPage().getPageNr(), tMd.getKey());
+	}
+	
+	public TrpRole getRoleOfUserInCurrentCollection() {
+		return StorageUtil.getRoleOfUserInCurrentCollection();
 	}
 
 	public String computeWer(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {

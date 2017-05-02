@@ -120,13 +120,17 @@ public class DocTableLabelProvider implements ITableLabelProvider, ITableFontPro
 			}
 			else if (ct.equals(DocTableWidget.DOC_ID_COL)) {
 				return ""+doc.getDocId();
-			} else if (ct.equals(DocTableWidget.DOCS_TITLE_COL)) {
+			} 
+			else if (ct.equals(DocTableWidget.DOCS_TITLE_COL)) {
 				return doc.getTitle();
-			} else if (ct.equals(DocTableWidget.DOC_NPAGES_COL)) {
+			} 
+			else if (ct.equals(DocTableWidget.DOC_NPAGES_COL)) {
 				return ""+doc.getNrOfPages();
-			} else if (ct.equals(DocTableWidget.DOC_OWNER_COL)) {
+			} 
+			else if (ct.equals(DocTableWidget.DOC_UPLOADER_COL)) {
 				return ""+doc.getUploader();
-			} else if (ct.equals(DocTableWidget.DOC_COLLECTIONS_COL)) {
+			} 
+			else if (ct.equals(DocTableWidget.DOC_COLLECTIONS_COL)) {
 				return doc.getColString();
 			}
 		}
