@@ -781,9 +781,16 @@ public class Storage {
 		
 		SebisStopWatch.SW.start();
 		
-		Future<List<TrpDocMetadata>> fut = conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+		Future<List<TrpDocMetadata>> fut = 
+//			conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+			conn.getAllDocsAsync(colId, 0, 0, "docId", "desc", new InvocationCallback<List<TrpDocMetadata>>() {
 			@Override
 			public void completed(List<TrpDocMetadata> docs) {
+				for (TrpDocMetadata doc : docs) {
+					System.out.println(doc);
+				}
+				
+				
 				synchronized (this) {
 					docList.clear();
 					docList.addAll(docs);

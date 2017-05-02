@@ -447,5 +447,7 @@ CHANGES AND BUGFIXES
 	-> add "other tools" area and integrate polygon to baselines as first such tool
 	-> redesigned HtrTrainingDialog
 	-> more details on HTR models in TextRecognitionConfigDialog
+	-> context menu for doclist widget (delete, duplicate)
+	-> deafult sorting for docs in doclist is doc-id descending
 	
 	
