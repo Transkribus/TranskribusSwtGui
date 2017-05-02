@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -133,6 +134,7 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 		collectionCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
 //		collectionCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		collectionComboViewer = new ComboViewer(collectionCombo);
+		collectionComboViewer.setUseHashlookup(true);
 		
 		if (withReloadButton) {
 			reloadCollectionsBtn = new Button(collComposite, SWT.PUSH);
@@ -153,6 +155,7 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 		});
 		
 		collectionComboViewer.setContentProvider(new ArrayContentProvider());
+		
 		
 		if (withFilter) {
 			collectionComboViewer.addFilter(new ViewerFilter() {		

@@ -61,6 +61,9 @@ public class ServerWidget extends Composite {
 	List<Control> userControls = new ArrayList<>();
 	
 	Menu docOverviewMenu;
+	
+	MenuItem addToCollectionMenuItem;
+	MenuItem removeFromCollectionMenuItem;
 	MenuItem deleteDocMenuItem;
 	MenuItem duplicateDocMenuItem;
 		
@@ -144,7 +147,7 @@ public class ServerWidget extends Composite {
 		docsContainer.setLayout(new GridLayout(2, false));
 		docsContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 
-		docTableWidget = new DocTableWidgetPagination(docsContainer, 0, 100);
+		docTableWidget = new DocTableWidgetPagination(docsContainer, SWT.MULTI, 100);
 		docTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		userControls.add(docTableWidget);
 		
@@ -164,6 +167,14 @@ public class ServerWidget extends Composite {
 		Table t = docTableWidget.getPageableTable().getViewer().getTable();
 		docOverviewMenu = new Menu(t);
 		t.setMenu(docOverviewMenu);
+		
+		addToCollectionMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
+		addToCollectionMenuItem.setImage(Images.ADD);
+		addToCollectionMenuItem.setText("Add to different collection...");
+		
+		removeFromCollectionMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
+		removeFromCollectionMenuItem.setImage(Images.DELETE);
+		removeFromCollectionMenuItem.setText("Remove from this collection...");		
 		
 		deleteDocMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
 		deleteDocMenuItem.setImage(Images.DELETE);
@@ -205,6 +216,10 @@ public class ServerWidget extends Composite {
 		
 	public TrpDocMetadata getSelectedDocument() {
 		return docTableWidget.getFirstSelected();
+	}
+	
+	public List<TrpDocMetadata> getSelectedDocuments() {
+		return docTableWidget.getSelected();
 	}
 	
 	public int getSelectedCollectionId() {

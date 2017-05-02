@@ -1,5 +1,8 @@
 package eu.transkribus.swt_gui.mainwidget.storage;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,5 +54,25 @@ public class StorageUtil {
 		
 		return AuthUtils.canDuplicate(role, d, u);
 	}
+	
+	public static boolean isOwnerOfCollection(TrpCollection coll) {
+		return coll!=null && AuthUtils.isOwner(coll.getRole());		
+	}
+	
+	public static boolean isUploader(TrpUserLogin user, TrpDocMetadata... docs) {
+		return isUploader(user, Arrays.asList(docs));
+	}
+	
+	public static boolean isUploader(TrpUserLogin user, Collection<TrpDocMetadata> docs) {
+		return docs.stream().allMatch((d) -> {
+			return d.getUploaderId() == user.getUserId();
+		});
+	}
+	
+//	public static boolean canAddDocumentToDifferentCollection(TrpUserLogin user, TrpDocMetadata d, TrpCollection c) {
+//		!user.isAdmin() && !isUploader(user, d) && !isOwnerOfCollection(c);
+//	}
+	
+	
 
 }

@@ -4491,6 +4491,118 @@ public class TrpMainWidget {
 			mw.onError("Error deleting document", e.getMessage(), e);
 			return false;
 		}
+	}
+	
+	public boolean addDocumentsToCollection(int srcColId, Collection<TrpDocMetadata> docs) {
+		if (!storage.isLoggedIn()) {
+			return false;
+		}
+		
+		TrpCollection coll = storage.getCollection(srcColId);
+		if (coll == null) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not determin collection for selected documents!");
+		}
+		
+		final TrpUserLogin user = storage.getUser();
+		
+		if (!user.isAdmin() && !StorageUtil.isOwnerOfCollection(coll) && !StorageUtil.isUploader(user, docs)) {
+			DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the owner in this collection or uploader of the document(s)!");
+			return false;
+		}
+		
+		ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a collection to move the add the documents to", storage.getCurrentDocumentCollectionId());
+		if (diag.open() != Dialog.OK)
+			return false;
+		
+		TrpCollection c = diag.getSelectedCollection();
+		if (c==null) {
+			DialogUtil.showErrorMessageBox(getShell(), "No collection selected", "Please select a collection to add the document to!");
+			return false;
+		}
+		logger.debug("selected collection is: "+c);		
+		
+		TrpServerConn conn = storage.getConnection();
+				
+		List<String> error = new ArrayList<>();
+		
+		for (TrpDocMetadata d : docs) {
+			logger.debug("adding document: "+d+" to collection: "+c.getColId());				
+			try {						
+				conn.addDocToCollection(c.getColId(), d.getDocId());
+				logger.info("added document: "+d);
+			} catch (Throwable e) {
+				logger.warn("Could not add document: "+d);
+				error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
+			}
+		}
+		
+		if (!error.isEmpty()) {
+			String msg = "Could not add the following documents:\n";
+			for (String u : error) {
+				msg += u + "\n";
+			}
+			
+			mw.onError("Error adding documents", msg, null);
+			return false;
+		} else {
+			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully added "+docs.size()+" documents");
+			return true;
+		}
+	}
+
+	public boolean removeDocumentsFromCollection(int selColId, List<TrpDocMetadata> docs) {
+		if (!storage.isLoggedIn() || CoreUtils.isEmpty(docs)) {
+			return false;
+		}
+		
+		if (DialogUtil.showYesNoDialog(getShell(), "", "Do you really want to remove "+docs.size()+" documents from this collection?") != SWT.YES)
+			return false;
+		
+		// check rights first:
+		TrpCollection coll = storage.getCollection(selColId);
+		if (coll == null) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not determin collection for selected documents!");
+		}
+		
+		TrpUserLogin user = storage.getUser();
+		if (!user.isAdmin() && !StorageUtil.isOwnerOfCollection(coll) && !StorageUtil.isUploader(user, docs)) {
+			DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the owner in this collection or uploader of the document(s)!");
+			return false;
+		}
+		
+		logger.debug("selected collection is: "+coll);		
+		
+		TrpServerConn conn = storage.getConnection();
+
+		List<String> error = new ArrayList<>();
+		for (TrpDocMetadata d : docs) {
+			logger.debug("removing document: "+d+" from collection: "+coll.getColId());				
+			try {
+				conn.removeDocFromCollection(coll.getColId(), d.getDocId());
+				logger.info("removed document: "+d);
+			} catch (Throwable e) {
+				logger.warn("Could not remove document: "+d);
+				error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
+			}
+		}
+		
+		if (!error.isEmpty()) {
+			String msg = "Could not remove the following documents:\n";
+			for (String u : error) {
+				msg += u + "\n";
+			}
+			
+			mw.onError("Error removing documents", msg, null);
+			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			
+			return false;
+//				DialogUtil.showErrorMessageBox(shell, "Error removing documents", msg);
+		} else {
+			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully removed "+docs.size()+" documents");
+			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			
+			return true;
+		}
 
 	}
 

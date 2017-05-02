@@ -160,97 +160,20 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		if (selected.isEmpty())
 			return;
 		
-		if (!checkUploaderOrCollectionOwnerRights(store.getUser(), selected.toArray(new TrpDocMetadata[0])))
-			return;
+		mw.addDocumentsToCollection(cmw.getSelectedCollection().getColId(), selected);
 		
-		ChooseCollectionDialog diag = new ChooseCollectionDialog(cmw.shell);
-		if (diag.open() != Dialog.OK)
-			return;
-		TrpCollection c = diag.getSelectedCollection();
-		if (c==null) {
-			DialogUtil.showErrorMessageBox(cmw.getShell(), "No collection selected", "Please select a collection to add the document to!");
-			return;
-		}
-		logger.debug("selected collection is: "+c);		
-		
-		if (c != null && store.isLoggedIn()) {
-			TrpServerConn conn = store.getConnection();
-					
-			List<String> error = new ArrayList<>();
-			
-			for (TrpDocMetadata d : selected) {
-				logger.debug("adding document: "+d+" to collection: "+c.getColId());				
-				try {						
-					conn.addDocToCollection(c.getColId(), d.getDocId());
-					logger.info("added document: "+d);
-				} catch (Throwable e) {
-					logger.warn("Could not add document: "+d);
-					error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
-				}
-			}
-			
-			if (!error.isEmpty()) {
-				String msg = "Could not add the following documents:\n";
-				for (String u : error) {
-					msg += u + "\n";
-				}
-				
-				mw.onError("Error adding documents", msg, null);
-//				DialogUtil.showErrorMessageBox(shell, "Error adding documents", msg);
-			} else {
-				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully added "+selected.size()+" documents");
-			}
-			
-			cmw.docsTableWidget.refreshPage(false);
-//			cmw.updateAll();
-		}
+		cmw.docsTableWidget.refreshPage(false);
 	}
 	
 	private void removeDocumentFromCollection() {
 		List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
-		if (selected.isEmpty())
-			return;
-		
-		// check rights first:
-		if (!checkUploaderOrCollectionOwnerRights(store.getUser(), selected.toArray(new TrpDocMetadata[0])))
-			return;			
-		
 		TrpCollection c = cmw.getSelectedCollection();
-		if (c==null) {
-			DialogUtil.showErrorMessageBox(cmw.getShell(), "No collection selected", "Please select a collection to remove the documents from!");
+		if (selected.isEmpty() || c==null)
 			return;
-		}
-		logger.debug("selected collection is: "+c);		
 		
-		if (c != null && store.isLoggedIn()) {
-			TrpServerConn conn = store.getConnection();
-
-			List<String> error = new ArrayList<>();
-			for (TrpDocMetadata d : selected) {
-				logger.debug("removing document: "+d+" to collection: "+c.getColId());				
-				try {
-					conn.removeDocFromCollection(c.getColId(), d.getDocId());
-					logger.info("removed document: "+d);
-				} catch (Throwable e) {
-					logger.warn("Could not remove document: "+d);
-					error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
-				}
-			}
-			
-			if (!error.isEmpty()) {
-				String msg = "Could not remove the following documents:\n";
-				for (String u : error) {
-					msg += u + "\n";
-				}
-				
-				mw.onError("Error removing documents", msg, null);
-//				DialogUtil.showErrorMessageBox(shell, "Error removing documents", msg);
-			} else {
-				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully removed "+selected.size()+" documents");
-			}
-			
-			cmw.updateAll();
-		}
+		mw.removeDocumentsFromCollection(c.getColId(), selected);
+		
+		cmw.updateAll();
 	}
 
 	@Override public void widgetDefaultSelected(SelectionEvent e) {
