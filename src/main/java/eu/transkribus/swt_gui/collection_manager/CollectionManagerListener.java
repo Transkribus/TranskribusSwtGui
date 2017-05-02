@@ -411,7 +411,7 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		if (store.isLoggedIn()) {
 			List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
 			if (!CoreUtils.isEmpty(selected)) {
-				mw.deleteDocuments(selected.toArray(new TrpDocMetadata[0]));
+				mw.deleteDocuments(selected);
 				cmw.docsTableWidget.reloadDocs(false, true);
 			}
 		}

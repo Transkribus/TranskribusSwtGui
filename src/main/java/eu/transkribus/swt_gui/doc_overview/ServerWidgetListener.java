@@ -130,7 +130,7 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 			mw.duplicateDocument(mw.getSelectedCollectionId(), sw.getSelectedDocument());
 		}
 		else if (s == sw.deleteDocMenuItem) {
-			mw.deleteDocuments(sw.getSelectedDocument());
+			mw.deleteDocuments(sw.getSelectedDocuments());
 		}
 		else if (s == sw.addToCollectionMenuItem) {
 			mw.addDocumentsToCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());

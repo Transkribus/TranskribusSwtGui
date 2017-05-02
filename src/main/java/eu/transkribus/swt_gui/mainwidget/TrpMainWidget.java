@@ -4433,17 +4433,17 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public boolean deleteDocuments(TrpDocMetadata ...docs) {
+	public boolean deleteDocuments(List<TrpDocMetadata> docs) {
 		if (!storage.isLoggedIn()) {
 			return false;
 		}
 		
-		if (docs==null || docs.length==0) {
+		if (CoreUtils.isEmpty(docs)) {
 			DialogUtil.showErrorMessageBox(getShell(), "No document selected", "Please select a document you want to delete!");
 			return false;
 		}
 		
-		int N = docs.length;
+		int N = docs.size();
 		
 		if (N > 1) {
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Documents", "Do you really want to delete " + N + " selected documents ")!=SWT.YES) {
@@ -4451,7 +4451,7 @@ public class TrpMainWidget {
 			}
 		}
 		else{
-			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", "Do you really want to delete document "+docs[0].getTitle())!=SWT.YES) {
+			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", "Do you really want to delete document "+docs.get(0).getTitle())!=SWT.YES) {
 				return false;
 			}
 		}
@@ -4462,7 +4462,7 @@ public class TrpMainWidget {
 			int count = 0;
 			for (TrpDocMetadata md : docs) {
 				if (!user.isAdmin() && user.getUserId()!=md.getDocId()) {
-					DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the owner of this document. " + md.getTitle());
+					DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the uploader of this document. " + md.getTitle());
 					return false;
 				}
 
