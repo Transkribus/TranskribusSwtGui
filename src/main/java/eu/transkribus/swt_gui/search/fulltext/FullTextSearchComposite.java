@@ -57,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.TrpFimgStoreConf;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDbTag;
@@ -129,7 +130,8 @@ public class FullTextSearchComposite extends Composite{
 		super(parent, style);
 		shell = parent.getShell();	
 		try {
-			imgStoreClient = new FimgStoreGetClient(new URL("https://dbis-thure.uibk.ac.at/f/"));
+			imgStoreClient = new FimgStoreGetClient(new URL(TrpFimgStoreConf.getFimgStoreUrl()+"/"));
+//			logger.debug("URL: " + TrpFimgStoreConf.getFimgStoreUrl());
 		} catch (Exception e) {
 			logger.error("Could not create connection to FimgStore" + e);
 			e.printStackTrace();
