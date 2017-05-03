@@ -72,11 +72,7 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 	Storage storage = Storage.getInstance();
 	
 	boolean withFilter, withReloadButton;
-	
-//	public CollectionComboViewerWidget(Composite parent, int style) {
-//		this(parent, style, true, true, true);
-//	}
-	
+		
 	private class TrpCollectionLabelProvider extends LabelProvider implements ITableLabelProvider, ITableColorProvider, ITableFontProvider {
 		/**
 		 * We return null, because we don't support images yet.
@@ -251,10 +247,9 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		collectionComboViewer = new TableComboViewer(collComposite, SWT.READ_ONLY | SWT.BORDER);
 //		collectionComboViewer.getTableCombo().setLayoutData(new GridData(125, SWT.DEFAULT));
 		collectionComboViewer.getTableCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
-//		collectionComboViewer.getTableCombo().setVisibleItemCount(10);
-		collectionComboViewer.getTableCombo().setShowTableHeader(true);
+//		collectionComboViewer.getTableCombo().setTableWidthPercentage(100);
+		
 		collectionComboViewer.getTableCombo().defineColumns(new String[] { "ID", "Name", "Role"}, new int[] { 50 , 300, SWT.DEFAULT});
-		collectionComboViewer.getTableCombo().setTableWidthPercentage(150);
 
 		// set the content provider
 		collectionComboViewer.setContentProvider(ArrayContentProvider.getInstance());
@@ -268,6 +263,9 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		
 		// set which column index will be used to display the selected item.
 		collectionComboViewer.getTableCombo().setDisplayColumnIndex(1);
+		
+		collectionComboViewer.getTableCombo().setShowTableHeader(true);
+		collectionComboViewer.getTableCombo().setVisibleItemCount(10);
 		
 		// load the data
 //		tcv.setInput(modelList);
