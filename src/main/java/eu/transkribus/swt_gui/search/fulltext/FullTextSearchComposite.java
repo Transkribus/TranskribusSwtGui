@@ -123,7 +123,7 @@ public class FullTextSearchComposite extends Composite{
 	String searchText;
 	private String lastSearchText;
 	private int numPageHits;
-	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],),~,#";
+	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],),#";
 	private SearchType type;
 
 	public FullTextSearchComposite(Composite parent, int style){
@@ -153,7 +153,7 @@ public class FullTextSearchComposite extends Composite{
 		facetsGroup = new Group(sf, SWT.NONE);
 		facetsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));	
 		facetsGroup.setLayout(new GridLayout(2, false));
-		facetsGroup.setText("Solr search currently supports standard word search, exact phrasing (\"...\") and wildcards (* or ?) ");
+		facetsGroup.setText("Search transcribed text for words or phrases");
 		
 		TraverseListener findTagsOnEnterListener = new TraverseListener() {
 			@Override public void keyTraversed(TraverseEvent e) {
@@ -169,7 +169,7 @@ public class FullTextSearchComposite extends Composite{
 		
 		parameters = new Composite(facetsGroup, 0);
 		parameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
-		parameters.setLayout(new GridLayout(5, false));		
+		parameters.setLayout(new GridLayout(6, false));		
 				
 		storage = Storage.getInstance();
 		
@@ -242,6 +242,46 @@ public class FullTextSearchComposite extends Composite{
 		textTypeBtn[1].setSelection(true);
 		textTypeBtn[1].setText("Line-based text");	
 		textTypeBtn[1].setToolTipText("Search documents transcribed line by line");
+		
+		Button helpBtn = new Button(parameters, SWT.PUSH);
+		helpBtn.setImage(Images.HELP);
+		helpBtn.setText("Help");
+		helpBtn.addSelectionListener(new SelectionAdapter(){
+			@Override
+			public void widgetSelected(SelectionEvent e){
+				DialogUtil.showInfoMessageBox(shell, "Solr search quickreference", 
+						"Solr search supports searching for single words or phrases.\n"
+						+ "\n"
+						+ "The following options are available:\n"
+						+ "Current document:\tLimit search to currently loaded document\n"
+						+ "Case sensitive:\tDifferentiate between upper and lower case\n"
+						+ "Show word preview:\tDisplays a small preview image of matched word\n"
+						+ "\t\tif available when hovering with mouse\n"
+						+ "Word based text:\tSearch text transcribed word by word\n"
+						+ "Line based text:\tSearch text transcribed line by line\n"
+						+ "\n"
+						+ "\n"
+						+ "The search field also supports various commands:\n"
+						+ "\"...\" for exact phrasing\n"
+						+ "? as single character wildcard\n"
+						+ "* as multi-character wildcard\n"
+						+ "~ for proximity searches\n"
+						+ "Example 1: \"word1 word2\"~10 will search for word1 and word2 with\n"
+						+ "a maximum of 10 characters in between\n"
+						+ "Example 2: roam~ will also match foam or foams\n"
+						+ "(roam~1 allows a maximum character distance of 1, so it will match foam but not foams)\n"
+						+ "Boolean operators:\n"
+						+ "&&\trequires both terms on either side to be present\n"
+						+ "!\trequires that the following term not be present\n"
+						+ "||\trequires that either (or both) terms be present\n"
+						+ "\n"
+						+ "Search results can be narrowed down to specific collections, authors,\n"
+						+ "documents and/or uploaders using the drop down tools.\n"
+						+ "\n"
+						
+						);
+			}
+		});
 						
 		Composite btnsComp = new Composite(facetsGroup, 0);
 		btnsComp.setLayout(new FillLayout(SWT.HORIZONTAL));
