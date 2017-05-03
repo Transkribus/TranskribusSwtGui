@@ -448,6 +448,8 @@ CHANGES AND BUGFIXES
 	-> redesigned HtrTrainingDialog
 	-> more details on HTR models in TextRecognitionConfigDialog
 	-> context menu for doclist widget (delete, duplicate)
-	-> deafult sorting for docs in doclist is doc-id descending
+	-> default sorting for docs in doclist is doc-id descending
+	-> collection-combo-viewer enhanced
+	-> filter for doclist viewers
 	
 	
