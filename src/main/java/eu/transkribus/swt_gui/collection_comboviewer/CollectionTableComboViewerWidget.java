@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.collection_comboviewer;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -10,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ILazyContentProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITableColorProvider;
 import org.eclipse.jface.viewers.ITableFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -67,7 +67,7 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 	
 	ModifyListener filterModifyListener;
 	
-	private List<TrpCollection> collections = new ArrayList<>();
+//	private List<TrpCollection> collections = new ArrayList<>();
 	
 	Storage storage = Storage.getInstance();
 	
@@ -401,30 +401,20 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		DialogUtil.showBallonToolTip(collectionCombo, iconType, title, message);	
 	}
 	
-	public TrpCollection getSelectedCollection() {
+	public TrpCollection getSelectedCollection() {		
+		IStructuredSelection sel = (IStructuredSelection) collectionComboViewer.getSelection();
+		if (!sel.isEmpty())
+			return (TrpCollection) sel.getFirstElement();
 		
-		System.out.println(collectionComboViewer.getSelection());
-		
-		int i = collectionCombo.getSelectionIndex();
-		System.out.println(i);
-		if (i>=0 && i<collections.size()) {
-			return collections.get(i);
-		}
 		return null;
-//		
-//		IStructuredSelection sel = (IStructuredSelection) collectionComboViewer.getSelection();
-//		if (!sel.isEmpty())
-//			return (TrpCollection) sel.getFirstElement();
-//		
-//		return null;
 	}
 	
 	private int getIndexOfCollection(int colId) {
 		if (colId<=0)
 			return -1;
 		
-		for (int i=0; i<collections.size(); ++i) {
-			if (collections.get(i).getColId() == colId)
+		for (int i=0; i<getCollections().size(); ++i) {
+			if (getCollections().get(i).getColId() == colId)
 				return i;
 		}
 		return -1;
@@ -434,11 +424,18 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 //		collectionsTable.refreshList(collections);
 		
 //		logger.info("1");
-		this.collections = collections;
+//		this.collections = collections;
 		TrpCollection selectedBefore = getSelectedCollection();
 //		logger.info("2");
 		
 		collectionComboViewer.setInput(collections);
+		
+//		if (selectedBefore != null) {
+//			collectionComboViewer.setSelection(new StructuredSelection(selectedBefore));
+//			collectionCombo.setSelection(new Point(0,0));
+//			sendComboSelectionEvent();
+//		}
+		
 //		logger.info("3");
 		int i = getIndexOfCollection(selectedBefore!=null ? selectedBefore.getColId() : -1);
 		if (i != -1) { // select collection selected before if possible
@@ -448,9 +445,14 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 			collectionCombo.select(0);
 //			logger.info("5");
 		}
+		
 		collectionCombo.setSelection(new Point(0,0));
 		
 		sendComboSelectionEvent();
+	}
+	
+	public List<TrpCollection> getCollections() {
+		return (List<TrpCollection>) collectionComboViewer.getInput();
 	}
 	
 	public int getSelectedCollectionId() {
@@ -471,6 +473,9 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 	}
 	
 	void sendComboSelectionEvent() {
+//		if (true)
+//			return;
+		
 		Event event = new Event(); 
 		event.type = SWT.Selection;
 		event.widget = collectionCombo;

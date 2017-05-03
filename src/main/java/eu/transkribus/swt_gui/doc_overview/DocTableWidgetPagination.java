@@ -84,7 +84,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 				if (SWTUtil.isDisposed(filter))
 					return true;
 				
-				logger.debug("filter, select: "+element);
+				logger.trace("filter, select: "+element);
 
 				String ft = filter.getText();
 				logger.debug("ft = "+ft);
@@ -101,7 +101,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 				for (String property : filterProperties) {
 					try {
 						String propValue = BeanUtils.getSimpleProperty(element, property);
-						logger.debug("property: "+property+" value: "+propValue);
+						logger.trace("property: "+property+" value: "+propValue);
 						
 						if (propValue.matches(reg)) {
 							return true;
