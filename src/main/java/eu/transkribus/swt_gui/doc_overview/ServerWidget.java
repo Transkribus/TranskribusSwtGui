@@ -30,6 +30,7 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionTableComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
@@ -39,7 +40,8 @@ public class ServerWidget extends Composite {
 	Label usernameLabel;
 	DocTableWidgetPagination docTableWidget;
 
-	CollectionComboViewerWidget collectionComboViewerWidget;
+//	CollectionComboViewerWidget collectionComboViewerWidget;
+	CollectionTableComboViewerWidget collectionComboViewerWidget;
 	RecentDocsComboViewerWidget recentDocsComboViewerWidget;
 	
 	Button manageCollectionsBtn;
@@ -137,7 +139,7 @@ public class ServerWidget extends Composite {
 		remoteDocsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		remoteDocsGroup.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 
-		collectionComboViewerWidget = new CollectionComboViewerWidget(remoteDocsGroup, 0, true, true, false);
+		collectionComboViewerWidget = new CollectionTableComboViewerWidget(remoteDocsGroup, 0, true, true, false);
 		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		collectionComboViewerWidget.getCollectionFilterLabel().setText("Collections ");
 		userControls.add(collectionComboViewerWidget);

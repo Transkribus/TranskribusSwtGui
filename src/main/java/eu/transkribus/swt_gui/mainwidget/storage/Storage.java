@@ -785,12 +785,7 @@ public class Storage {
 //			conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
 			conn.getAllDocsAsync(colId, 0, 0, "docId", "desc", new InvocationCallback<List<TrpDocMetadata>>() {
 			@Override
-			public void completed(List<TrpDocMetadata> docs) {
-				for (TrpDocMetadata doc : docs) {
-					System.out.println(doc);
-				}
-				
-				
+			public void completed(List<TrpDocMetadata> docs) {				
 				synchronized (this) {
 					docList.clear();
 					docList.addAll(docs);
