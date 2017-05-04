@@ -494,7 +494,7 @@ public class TrpMainWidgetView extends Composite {
 		
 		openLocalFolderButton = new ToolItem(toolBar, SWT.PUSH);
 		openLocalFolderButton.setToolTipText("Open local document");
-		openLocalFolderButton.setImage(Images.getOrLoad("/icons/folder.png"));
+		openLocalFolderButton.setImage(Images.FOLDER);
 		
 		uploadDocsItem = new ToolItem(toolBar, SWT.PUSH);
 		uploadDocsItem.setToolTipText("Import document(s)");

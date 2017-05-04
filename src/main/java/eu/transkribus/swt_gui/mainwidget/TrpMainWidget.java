@@ -43,7 +43,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.DeviceData;
@@ -55,7 +54,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.mihalis.opal.tipOfTheDay.TipOfTheDay;
 import org.mihalis.opal.tipOfTheDay.TipOfTheDay.TipStyle;
@@ -65,8 +63,8 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
+import eu.transkribus.core.exceptions.InvalidUserInputException;
 import eu.transkribus.core.exceptions.NoConnectionException;
-import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.util.ImgFileFilter;
@@ -106,9 +104,11 @@ import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
+import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.core.util.UserInputChecker;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -119,10 +119,6 @@ import eu.transkribus.swt.util.LoginDialog;
 import eu.transkribus.swt.util.SWTLog;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.SplashWindow;
-import eu.transkribus.swt.util.ThumbnailManagerVirtual;
-import eu.transkribus.swt.util.ThumbnailWidget;
-import eu.transkribus.swt.util.ThumbnailWidgetVirtual;
-import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
@@ -140,6 +136,7 @@ import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
+import eu.transkribus.swt_gui.collection_manager.CollectionUsersDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
 import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.AutoSaveDialog;
@@ -247,6 +244,8 @@ public class TrpMainWidget {
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
+	CollectionUsersDialog collUsersDiag;
+	
 	EditDeclManagerDialog edDiag;
 	ActivityDialog ad;
 	Shell sleakDiag;
@@ -2058,7 +2057,7 @@ public class TrpMainWidget {
 
 	public void loadLocalFolder() {
 		logger.debug("loading a local folder...");
-		String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and page files", lastLocalDocFolder);
+		String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and (optional) PAGE XML files", lastLocalDocFolder);
 		if (fn == null)
 			return;
 
@@ -4188,6 +4187,15 @@ public class TrpMainWidget {
 		}
 	}
 	
+	public void openCollectionUsersDialog() {
+		if (SWTUtil.isOpen(collUsersDiag)) {
+			collUsersDiag.getShell().setVisible(true);
+		} else {
+			collUsersDiag = new CollectionUsersDialog(getShell(), ui.serverWidget.getSelectedCollection());
+			collUsersDiag.open();
+		}
+	}
+	
 	public void openCollectionManagerDialog() {
 		logger.debug("opening cm dialog");
 		
@@ -4327,6 +4335,10 @@ public class TrpMainWidget {
 	
 	public int getSelectedCollectionId() {
 		return ui.getServerWidget().getSelectedCollectionId();
+	}
+	
+	public TrpCollection getSelectedCollection() {
+		return ui.getServerWidget().getSelectedCollection();
 	}
 
 	public void openCanvasHelpDialog() {
@@ -4604,6 +4616,98 @@ public class TrpMainWidget {
 			return true;
 		}
 
+	}
+	
+	public void createCollection() {
+		logger.debug("creating collection...");
+		
+		InputDialog dlg = new InputDialog(getShell(),
+	            "Create collection", "Enter the name of the new collection (min. 3 characters)", "", new IInputValidator() {
+					@Override public String isValid(String newText) {
+						if (StringUtils.length(newText) >= 3)
+							return null;
+						else
+							return "Too short";
+					}
+				});
+		if (dlg.open() != Window.OK)
+			return;
+				
+		String collName = dlg.getValue();
+		try {
+			storage.addCollection(dlg.getValue());
+			logger.debug("created new collection '"+collName+"' - now reloading available collections!");
+			storage.reloadCollections();
+		} catch (Throwable th) {
+			mw.onError("Error", "Error creating collection '"+collName+"': "+th.getMessage(), th);	
+		}
+	}
+	
+	public void deleteCollection(TrpCollection c) {
+		if (c== null || !storage.isLoggedIn())
+			return;
+		
+		TrpServerConn conn = storage.getConnection();
+		logger.debug("deleting collection: "+c.getColId()+" name: "+c.getColName());
+					
+		if(!storage.getUser().isAdmin() && !AuthUtils.isOwner(c.getRole())) {
+			DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the owner of this collection.");
+			return;
+		}
+		
+		if (DialogUtil.showYesNoDialog(getShell(), "Are you sure?", "Do you really want to delete the collection \"" 
+				+ c.getColName() + "\"?\n\n"
+				+ "Note: documents are not deleted, only their reference to the collection is removed - "
+				+ "use the delete document button to completely remove documents from the server!",
+				SWT.ICON_WARNING)!=SWT.YES) {
+			return;
+		}
+		
+		try {
+			conn.deleteCollection(c.getColId());
+//			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully deleted collection!");
+			
+			logger.info("deleted collection "+c.getColId()+" name: "+c.getColName());
+			storage.reloadCollections();
+		} catch (Throwable th) {
+			mw.onError("Error", "Error deleting collection '"+c.getColName()+"': "+th.getMessage(), th);
+		}
+	}
+
+	public void modifyCollection(TrpCollection c) {
+		if (c== null || !storage.isLoggedIn())
+			return;
+		
+		if (!AuthUtils.canManage(c.getRole())) {
+			DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not allowed to modify this collection!");
+			return;
+		}
+		
+		InputDialog id = new InputDialog(getShell(), "Modify collection", "Enter the new collection name: ", c.getColName(), new IInputValidator() {
+			@Override public String isValid(String newText) {
+				try {
+					UserInputChecker.checkCollectionName(newText);
+				} catch (InvalidUserInputException e) {
+					return e.getMessage();
+				}
+				return null;
+			}
+		});
+		if (id.open() != Window.OK)
+			return;
+		
+		String newName = id.getValue();
+		if (StringUtils.isEmpty(newName))
+			return;
+		
+		try {
+			storage.getConnection().modifyCollection(c.getColId(), newName);
+			storage.reloadCollections();
+			
+//			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully modified the colleciton!");
+		} catch (Exception e) {
+			mw.onError("Error modifying collection", e.getMessage(), e);
+		}
 	}
 
 }

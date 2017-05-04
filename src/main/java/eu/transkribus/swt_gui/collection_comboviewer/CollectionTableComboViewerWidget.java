@@ -31,6 +31,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -239,15 +240,14 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		collComposite = new Composite(this, 0);
 		collComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 		collComposite.setLayout(new GridLayout(2, false));
+//		collComposite.setLayout(new RowLayout());
 		
 		int colSize = withReloadButton ? 1 : 2;
 		
 		// create TableCombo
-//		collectionComboViewer = new TableComboViewer(collComposite, SWT.READ_ONLY | SWT.BORDER | SWT.VIRTUAL);
 		collectionComboViewer = new TableComboViewer(collComposite, SWT.READ_ONLY | SWT.BORDER);
-//		collectionComboViewer.getTableCombo().setLayoutData(new GridData(125, SWT.DEFAULT));
 		collectionComboViewer.getTableCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
-//		collectionComboViewer.getTableCombo().setTableWidthPercentage(100);
+//		collectionComboViewer.getTableCombo().setLayoutData(new RowData(100, SWT.DEFAULT));
 		
 		collectionComboViewer.getTableCombo().defineColumns(new String[] { "ID", "Name", "Role"}, new int[] { 50 , 300, SWT.DEFAULT});
 
@@ -284,34 +284,12 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 				CollectionTableComboViewerWidget.this.getParent().forceFocus();
 			}
 		});
-		
-//		collectionCombo.getText().
 				
-//		collectionCombo = new Combo(collComposite, SWT.READ_ONLY | SWT.DROP_DOWN);
-//		collectionCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
-//		collectionComboViewer = new ComboViewer(collectionCombo);
-//		collectionComboViewer.setUseHashlookup(true);
-		
 		if (withReloadButton) {
 			reloadCollectionsBtn = new Button(collComposite, SWT.PUSH);
-//			reloadCollectionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
-//			reloadCollectionsBtn.setLayoutData(new GridData(GridData.END));
 			reloadCollectionsBtn.setImage(Images.getOrLoad("/icons/refresh.gif"));
 			reloadCollectionsBtn.setToolTipText("Reload list of available collections!");
-//			reloadCollectionsBtn.pack();
 		}
-				
-//		collectionComboViewer.setLabelProvider(new LabelProvider() {
-//			@Override public String getText(Object element) {
-//				if (element instanceof TrpCollection) {
-//					return ((TrpCollection) element).getSummary();
-//				}
-//				else return "i am error";
-//			}
-//		});
-		
-//		collectionComboViewer.setContentProvider(new ArrayContentProvider());
-		
 		
 		if (withFilter) {
 			collectionComboViewer.addFilter(new ViewerFilter() {		
@@ -340,6 +318,10 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		addListener();
 		
 		updateCollections();
+	}
+	
+	public Composite getCollComposite() {
+		return collComposite;
 	}
 	
 	public void refreshCombo(boolean setListVisible) {

@@ -10,7 +10,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 public class Images {
 	
-	
+	public static final Image USER_EDIT = Images.getOrLoad("/icons/user_edit.png");
 	
 	public static final Image READING_ORDER = Images.getOrLoad("/icons/readingOrder.png");
 	public static final Image READING_ORDER_REGIONS = Images.getOrLoad("/icons/reading_order_r.png");

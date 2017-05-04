@@ -24,7 +24,7 @@ public class TranscriptsDialog extends Dialog {
 	      super.configureShell(shell);
 	      shell.setSize(1000, 800);
 	      SWTUtil.centerShell(shell);
-	      shell.setText("Versions");
+	      shell.setText("Versions of the current page");
 	}
 
 	@Override protected Control createDialogArea(Composite parent) {

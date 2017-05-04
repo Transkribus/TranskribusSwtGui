@@ -58,25 +58,20 @@ public class CollectionManagerDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(CollectionManagerDialog.class);
 
 	CollectionsTableWidgetPagination collectionsTv;
-	UserTableWidgetPagination collectionUsersTv;
-	DocTableWidgetPagination docsTableWidget; 
+	
+	DocTableWidgetPagination docsTableWidget;
 	MyDocsTableWidgetPagination myDocsTableWidget;
 	
 	Button addCollectionBtn, deleteCollectionBtn, modifyCollectionBtn;
-//	Text newCollNameText;
 	
-//	Button showUploadedDocsCheck;
-	Button addUserToColBtn, removeUserFromColBtn/*, editUserFromColBtn*/;
 	Button addDocumentToCollBtn, removeDocumentFromCollBtn;
 	Button deleteDocumentBtn;
 	Button duplicatedDocumentBtn;
 	Button searchBtn, closeBtn;
-//	Button reloadCollectionsBtn;
-	Combo role;
 	
 	Group docGroup;
 	
-	FindUsersWidget findUsersWidget;
+	private CollectionUsersWidget collectionUsersWidget;
 	
 	CollectionManagerListener cml;
 	
@@ -126,8 +121,6 @@ public class CollectionManagerDialog extends Dialog {
 	void createContents() {
 		shell = new Shell(getParent(), getStyle());
 		shell.setText(getText());
-//		shell.setLayout(new GridLayout(2, false));
-//		shell.setLayout(new GridLayout(4, false));
 		FillLayout l = new FillLayout();
 		l.marginHeight = 5;
 		l.marginWidth = 5;
@@ -144,12 +137,15 @@ public class CollectionManagerDialog extends Dialog {
 		createCollectionsTable(first);
 		createDocsTable(first);
 		
-		Composite second = new SashForm(container, SWT.VERTICAL);
-		second.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		second.setLayout(new GridLayout(1, false));
+		collectionUsersWidget = new CollectionUsersWidget(container, 0);
+		collectionUsersWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		createCollectionUsersTable(second);
-		createFindUsersWidget(second);
+//		Composite second = new SashForm(container, SWT.VERTICAL);
+//		second.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		second.setLayout(new GridLayout(1, false));
+//		
+//		createCollectionUsersTable(second);
+//		createFindUsersWidget(second);
 		
 		addListener();
 		
@@ -183,46 +179,10 @@ public class CollectionManagerDialog extends Dialog {
 				updateDocumentsTable(serverWidget.getSelectedDocument(), true);
 			}
 		});
-		
-		collectionUsersTv.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
-			@Override public void selectionChanged(SelectionChangedEvent event) {
-				//new user selected in 'Users in collection' ==> deselect user in 'Find users' table and vice versa
-				ISelection users = collectionUsersTv.getSelectedAsIStructuredSelection();
-				if (!findUsersWidget.getSelectedUsers().isEmpty()){
-					findUsersWidget.getUsersTableViewer().setSelection(null);
-					if(users != null)
-						collectionUsersTv.getTableViewer().setSelection(users);
-				}
-				updateBtnVisibility();
-			}
-		});
-		
+
 		shell.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
 				cml.detach();
-			}
-		});
-	}
-	
-	private void createFindUsersWidget(Composite container) {
-		Group group = new Group(container, SWT.SHADOW_ETCHED_IN);
-		group.setText("Find users");
-		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		group.setLayout(new FillLayout());
-		group.setFont(Fonts.createBoldFont(group.getFont()));
-		
-		findUsersWidget = new FindUsersWidget(group, 0);
-		findUsersWidget.getUsersTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
-			@Override public void selectionChanged(SelectionChangedEvent event) {
-				//new user selected in 'Find users' ==> deselect user in 'Users in collection' table and vice versa
-				IStructuredSelection users = findUsersWidget.getSelectedUsersAsStructuredSelection();
-				if (!getSelectedUsersInCollection().isEmpty()){
-					collectionUsersTv.getTableViewer().setSelection(null);
-					if(users != null)
-						findUsersWidget.setSelectedUsers(users);
-				}
-				
-				updateBtnVisibility();
 			}
 		});
 	}
@@ -267,9 +227,9 @@ public class CollectionManagerDialog extends Dialog {
 		deleteCollectionBtn.pack();
 		
 		modifyCollectionBtn = new Button(btns, SWT.PUSH);
-		modifyCollectionBtn.setText("Modify collection...");
+		modifyCollectionBtn.setText("Rename...");
 		modifyCollectionBtn.setImage(Images.getOrLoad("/icons/pencil.png"));
-		modifyCollectionBtn.setToolTipText("Modify the selected collection using the name on the left");
+		modifyCollectionBtn.setToolTipText("Change the collection name");
 						
 		group.pack();
 	}
@@ -359,91 +319,6 @@ public class CollectionManagerDialog extends Dialog {
 		SWTUtil.onSelectionEvent(searchBtn, (e) -> { openSimpleSearchDialog(); });
 	}
 	
-	private void createCollectionUsersTable(Composite container) {
-		Group group = new Group(container, SWT.SHADOW_ETCHED_IN);
-		group.setText("Users in collection");
-		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		group.setLayout(new GridLayout(1, false));
-		group.setFont(Fonts.createBoldFont(group.getFont()));
-		
-		// NEW:
-		collectionUsersTv = new UserTableWidgetPagination(group, 0, 25);
-		collectionUsersTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		// OLD:
-//		collectionUsersTv = new MyTableViewer(group, SWT.MULTI | SWT.FULL_SELECTION);
-//		collectionUsersTv.setContentProvider(new ArrayContentProvider());
-//		collectionUsersTv.setLabelProvider(new UsersTableLabelProvider(collectionUsersTv));
-//		
-//		Table table = collectionUsersTv.getTable();
-//		table.setHeaderVisible(true);
-//		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		
-//		collectionUsersTv.addColumns(USER_COLS);
-		
-		// add buttons:
-		Composite btns = new Composite(group, 0);
-		btns.setLayout(new RowLayout(SWT.HORIZONTAL));
-		btns.setLayout(new GridLayout(4, false));
-		
-		btns.setLayoutData(new GridData(SWT.TOP, SWT.FILL, true, false, 1, 1));
-		addUserToColBtn = new Button(btns, SWT.PUSH);
-//		addUserToColBtn.setText("Add user");
-		addUserToColBtn.setText("Add user");
-		addUserToColBtn.setImage(Images.getOrLoad("/icons/user_add.png"));
-		addUserToColBtn.setToolTipText("Add selected users from search window on the right to collection");
-		addUserToColBtn.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-				
-		removeUserFromColBtn = new Button(btns, SWT.PUSH);
-		removeUserFromColBtn.setText("Remove user");
-		removeUserFromColBtn.setToolTipText("Remove selected users from collection");
-		removeUserFromColBtn.setImage(Images.getOrLoad("/icons/user_delete.png"));
-		removeUserFromColBtn.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-		
-//		editUserFromColBtn = new Button(btns, SWT.PUSH);
-//		editUserFromColBtn.setText("Edit role");
-//		editUserFromColBtn.setToolTipText("Edit role of selected users from collection");
-//		editUserFromColBtn.setImage(Images.getOrLoad("/icons/user_edit.png"));
-		
-//		Composite btns2 = new Composite(group, 0);
-//		btns2.setLayout(new RowLayout(SWT.HORIZONTAL));
-//		btns2.setLayoutData(new GridData(SWT.TOP, SWT.FILL, true, false, 1, 1));
-		
-		Label l = new Label(btns, 0);
-		l.setText("Change Role:");
-		GridData gd = new GridData(GridData.FILL_VERTICAL);
-		gd.verticalAlignment = SWT.CENTER;
-		removeUserFromColBtn.setLayoutData(gd);
-		
-		role = new Combo(btns, SWT.READ_ONLY);
-		role.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-		for (TrpRole r : TrpRole.values()) {
-			if (!r.isVirtual()) {
-				role.add(r.toString());
-			}
-		}
-		
-		selectRole(TrpRole.Transcriber);
-				
-		group.pack();
-	}
-	
-	public TrpRole getSelectedRole() {
-		return TrpRole.fromStringNonVirtual(role.getItem(role.getSelectionIndex()));
-	}
-		
-	void selectRole(TrpRole r) {
-		if (r == null)
-			return;
-		
-		for (int i=0; i<role.getItemCount(); ++i) {
-			if (role.getItem(i).equals(r.toString())) {
-				role.select(i);
-				break;
-			}
-		}		
-	}
-	
 	public int getSelectedCollectionId() {
 		return getSelectedCollection()==null ? -1 : getSelectedCollection().getColId();
 	}
@@ -469,27 +344,23 @@ public class CollectionManagerDialog extends Dialog {
 	}
 	
 	public List<TrpUser> getSelectedUsersInCollection() {
-		return ((IStructuredSelection) collectionUsersTv.getTableViewer().getSelection()).toList();
+		return collectionUsersWidget.getSelectedUsersInCollection();
 	}
 		
-	void updateBtnVisibility() {
+	private void updateBtnVisibility() {
 		TrpCollection c = getSelectedCollection();
 		boolean isAdmin = store.getUser() != null ? store.getUser().isAdmin() : false;
 		
 		boolean hasRole = c!=null && c.getRole()!=null;
-		boolean canManage = hasRole && c.getRole().canManage() || isAdmin;
+//		boolean canManage = hasRole && c.getRole().canManage() || isAdmin;
 		boolean isOwner = hasRole && c.getRole().getValue()>=TrpRole.Owner.getValue() || isAdmin;
 		
-		boolean hasFindUsersSelected = !findUsersWidget.getSelectedUsers().isEmpty();
-		boolean hasCollectionUsersSelected = !getSelectedUsersInCollection().isEmpty();
+//		boolean hasCollectionUsersSelected = !getSelectedUsersInCollection().isEmpty();
 		boolean hasDocsSelected = !getSelectedDocuments().isEmpty();
 		boolean hasCollSelected = getSelectedCollection()!=null;
 		
 		deleteCollectionBtn.setEnabled(hasCollSelected);
 		modifyCollectionBtn.setEnabled(hasCollSelected && isOwner);
-			
-		addUserToColBtn.setEnabled(canManage && hasFindUsersSelected);
-		removeUserFromColBtn.setEnabled(canManage && hasCollectionUsersSelected);
 		 
 //		editUserFromColBtn.setEnabled(isOwner && hasCollectionUsersSelected);
 		
@@ -498,19 +369,7 @@ public class CollectionManagerDialog extends Dialog {
 		addDocumentToCollBtn.setEnabled(hasDocsSelected);
 		deleteDocumentBtn.setEnabled(hasDocsSelected);
 		
-		if (canManage && hasCollectionUsersSelected){
-			role.setEnabled(true);
-			// update role combo:
-			List<TrpUser> us = getSelectedUsersInCollection();
-			if (us.size() > 0) {
-				TrpUserCollection uc = us.get(0).getUserCollection();
-				TrpRole r = uc == null ? null : uc.getRole(); 
-				selectRole(r);
-			}
-		}
-		else{
-			role.setEnabled(false);
-		}
+		collectionUsersWidget.updateBtnVisibility();
 	}
 	
 	public void updateDocumentsTable(TrpDocMetadata docMd, boolean resetToFirstPage) {
@@ -528,17 +387,7 @@ public class CollectionManagerDialog extends Dialog {
 	}
 		
 	public void updateUsersForSelectedCollection() {
-		logger.debug("updating users for selected collection...");
-		TrpCollection c = getSelectedCollection();
-		updateBtnVisibility();
-		
-		if (c!=null && store.isLoggedIn()) {
-			try {
-				collectionUsersTv.refreshList(c.getColId());
-			} catch (ServerErrorException | IllegalArgumentException e) {
-				DialogUtil.createAndShowBalloonToolTip(shell, SWT.ICON_ERROR, e.getMessage(), "Error loading users", -1, -1, true);
-			}
-		}
+		collectionUsersWidget.setCollection(getSelectedCollection());
 	}
 	
 	public void updateAll() {

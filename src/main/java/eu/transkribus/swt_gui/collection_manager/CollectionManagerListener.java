@@ -67,9 +67,6 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 	}
 	
 	public void attach() {
-		cmw.addUserToColBtn.addSelectionListener(this);
-		cmw.removeUserFromColBtn.addSelectionListener(this);
-		cmw.role.addSelectionListener(this);
 		cmw.addCollectionBtn.addSelectionListener(this);
 		cmw.deleteCollectionBtn.addSelectionListener(this);
 		cmw.addDocumentToCollBtn.addSelectionListener(this);
@@ -81,9 +78,6 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 	}
 	
 	public void detach() {
-		cmw.addUserToColBtn.removeSelectionListener(this);
-		cmw.removeUserFromColBtn.removeSelectionListener(this);
-		cmw.role.removeSelectionListener(this);
 		cmw.addCollectionBtn.removeSelectionListener(this);
 		cmw.deleteCollectionBtn.removeSelectionListener(this);
 		cmw.addDocumentToCollBtn.removeSelectionListener(this);
@@ -97,16 +91,9 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 	@Override public void widgetSelected(SelectionEvent e) {
 		try {
 			Object s = e.getSource();
-			if (s == cmw.addUserToColBtn) {
-				addSelectedUsersToCollection();
-			} else if (s == cmw.removeUserFromColBtn) {
-				removeSelectedUsersFromCollection();
-			} 
-			else if (s == cmw.role) {
-				editSelectedUsersFromCollection();
-			} 
-			else if (s == cmw.addCollectionBtn) {
-				createCollection();
+
+			if (s == cmw.addCollectionBtn) {
+				mw.createCollection();
 			} else if (s == cmw.deleteCollectionBtn) {
 				deleteCollection();
 			} else if (s == cmw.addDocumentToCollBtn) {
@@ -181,208 +168,8 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 	
 	private void deleteCollection() {
 		TrpCollection c = cmw.getSelectedCollection();
-		if (c != null && store.isLoggedIn()) {
-			TrpServerConn conn = store.getConnection();
-			logger.debug("deleting collection: "+c.getColId()+" name: "+c.getColName());
-			
-			if(!store.getUser().isAdmin() && !isOwnerOfCurrentCollection()) {
-				DialogUtil.showErrorMessageBox(shell, "Unauthorized", "You are not the owner of this collection.");
-				return;
-			}
-			
-			if (DialogUtil.showYesNoDialog(shell, "Are you sure?", "Do you really want to delete the collection \"" 
-					+ c.getColName() + "\"?\n\n"
-					+ "Note: documents are not deleted, only their reference to the collection is removed - "
-					+ "use the delete document button to completely remove documents from the server!",
-					SWT.ICON_WARNING)!=SWT.YES) {
-				return;
-			}
-			
-			try {
-				conn.deleteCollection(c.getColId());
-				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully deleted collection!");
-				
-				logger.info("deleted collection "+c.getColId()+" name: "+c.getColName());
-				store.reloadCollections();
-			} catch (Throwable th) {
-				mw.onError("Error", "Error deleting collection '"+c.getColName()+"': "+th.getMessage(), th);
-			}
-		}
-	}
-	
-	private void createCollection() {
-		logger.debug("creating collection...");
 		
-		InputDialog dlg = new InputDialog(cmw.getShell(),
-	            "Create collection", "Enter the name of the new collection (min. 3 characters)", "", new IInputValidator() {
-					@Override public String isValid(String newText) {
-						if (StringUtils.length(newText) >= 3)
-							return null;
-						else
-							return "Too short";
-					}
-				});
-		if (dlg.open() == Window.OK) {
-			String collName = dlg.getValue();
-			try {
-				store.addCollection(dlg.getValue());
-				logger.debug("created new collection '"+collName+"' - now reloading available collections!");
-				store.reloadCollections();
-			} catch (Throwable th) {
-				mw.onError("Error", "Error creating collection '"+collName+"': "+th.getMessage(), th);	
-			}
-	    }	
-	}
-	
-	void editSelectedUsersFromCollection() {
-		//add dialog to check with the user
-		int a = DialogUtil.showYesNoDialog(cmw.getShell(), "Change user role", "Really change the role of the selected user?");
-		if (a == SWT.YES){
-	
-			TrpCollection collection = cmw.getSelectedCollection();
-			if (store.isLoggedIn() && collection!=null) {
-				TrpServerConn conn = store.getConnection();
-				TrpRole r = cmw.getSelectedRole();
-				List<TrpUser> selected = cmw.getSelectedUsersInCollection();
-				
-				List<String> error = new ArrayList<>();
-				for (TrpUser u : selected) {
-					logger.debug("edit user: "+u+ " new role: "+r.toString());				
-					try {
-						conn.addOrModifyUserInCollection(collection.getColId(), u.getUserId(), r);
-						logger.info("edited user: "+u+ " new role: "+r.toString());		
-					} catch (Throwable e) {
-						logger.warn("Could not edit user: "+u+ " new role: "+r.toString());		
-						error.add(u.getUserName()+" - reason: "+e.getMessage());
-					}
-				}
-				
-				if (!error.isEmpty()) {
-					String msg = "Could not edit the following user:\n";
-					for (String u : error) {
-						msg += u + "\n";
-					}
-								
-					mw.onError("Error editing user", msg, null);
-				} else {
-					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully edited user ("+selected.size()+")");
-				}
-				
-				cmw.updateUsersForSelectedCollection();
-			}
-		}
-	}
-	
-	void removeSelectedUsersFromCollection() {
-
-		
-		TrpCollection collection = cmw.getSelectedCollection();
-		if (store.isLoggedIn() && collection!=null) {
-			if (cmw.isMyDocsTabOpen()) {
-				DialogUtil.showErrorMessageBox(shell, "Error", "Cannot determine the collection for an uploaded document");
-				
-				return;
-			}			
-			
-			
-			TrpServerConn conn = store.getConnection();
-			List<TrpUser> selected = cmw.getSelectedUsersInCollection();
-			
-			List<String> error = new ArrayList<>();
-			boolean currentUserAffected=false;
-			for (TrpUser u : selected) {
-				if (u.getUserId() == store.getUser().getUserId()) {
-					currentUserAffected=true;
-				}
-				
-				logger.debug("removing user: "+u);				
-				try {
-					conn.removeUserFromCollection(collection.getColId(), u.getUserId());
-					logger.info("removed user: "+u);
-				} catch (Throwable e) {
-					logger.warn("Could not remove user: "+u);
-					error.add(u.getUserName()+" - reason: "+e.getMessage());
-				}
-			}
-			
-			if (!error.isEmpty()) {
-				String msg = "Could not remove the following user:\n";
-				for (String u : error) {
-					msg += u + "\n";
-				}
-				
-				mw.onError("Error removing user", msg, null);
-			} else {
-				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully removed user ("+selected.size()+")");
-			}
-			
-			if (currentUserAffected) {
-				try {
-					store.reloadCollections();
-				} catch (Throwable e) {
-					logger.error(e.getMessage(), e);
-				}
-			}
-			
-			cmw.updateUsersForSelectedCollection();
-		}
-	}
-	
-	TrpRole getRoleFromUser(String title) {
-		List<String> roleStrs = new ArrayList<>();
-		for (TrpRole r : TrpRole.values()) {
-			if (!r.isVirtual()) {
-				roleStrs.add(r.toString());
-			}
-		}
-		
-		ComboInputDialog d = new ComboInputDialog(shell, title==null?"Choose a role: ":title, roleStrs.toArray(new String[0]));
-		
-		if (d.open() != Window.OK)
-			return null;
-		
-		return TrpRole.fromString(d.getSelectedText());
-	}
-	
-	void addSelectedUsersToCollection() {
-		TrpCollection collection = cmw.getSelectedCollection();
-		if (store.isLoggedIn() && collection!=null) {
-			TrpServerConn conn = store.getConnection();
-			
-			TrpRole r = getRoleFromUser(null);
-			if (r==null)
-				return;
-			
-			List<TrpUser> selected = cmw.findUsersWidget.getSelectedUsers();
-			if (selected.isEmpty())
-				return;
-
-			List<String> error = new ArrayList<>();
-			for (TrpUser u : selected) {
-				logger.debug("adding user: "+u);
-				
-				try {
-					conn.addOrModifyUserInCollection(collection.getColId(), u.getUserId(), r);
-					logger.info("added user: "+u);
-				} catch (Throwable e) {
-					logger.warn("Could not add user: "+u);
-					error.add(u.getUserName()+" - reason: "+e.getMessage());
-				}
-			}
-			
-			if (!error.isEmpty()) {
-				String msg = "Could not add the following users:\n";
-				for (String u : error) {
-					msg += u + "\n";
-				}
-				
-				mw.onError("Error adding user", msg, null);
-			} else {
-				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully adding user ("+selected.size()+")");
-			}
-			
-			cmw.updateUsersForSelectedCollection();
-		}
+		mw.deleteCollection(c);
 	}
 	
 	public static boolean isUploader(TrpUserLogin user, TrpDocMetadata md) {
@@ -425,80 +212,10 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		}
 	}
 	
-//		if (store.isLoggedIn()) {
-//			List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
-//			if (selected.isEmpty() || selected.size() > 1) {
-//				DialogUtil.showErrorMessageBox(cmw.getShell(), "Select a single document", "Please select a single document");
-//				return;
-//			}
-//			
-//			TrpDocMetadata md = selected.get(0);
-//			
-//			if (!checkUploaderOrCollectionOwnerRights(store.getUser(), md))
-//				return;
-//			
-//			ChooseCollectionDialog diag = new ChooseCollectionDialog(cmw.shell, "Choose a collection to duplicate to");
-//			if (diag.open() != Dialog.OK)
-//				return;
-//			
-//			TrpCollection c = diag.getSelectedCollection();
-//			if (c==null) {
-//				DialogUtil.showErrorMessageBox(cmw.getShell(), "No collection selected", "Please select a collection to duplicate the document to!");
-//				return;
-//			}
-//			int toColId = c.getColId();
-//			
-//			InputDialog dlg = new InputDialog(shell, "New name", "Enter the new name of the document", null, null);
-//			if (dlg.open() != Window.OK)
-//				return;
-//			
-//			String newName = dlg.getValue();
-//			
-//			try {
-//				store.duplicateDocument(cmw.getSelectedCollection().getColId(), md.getDocId(), newName, toColId <= 0 ? null : toColId);
-//			} catch (SessionExpiredException | ServerErrorException
-//					| IllegalArgumentException | NoConnectionException e) {
-//				mw.onError("Error duplicating document", e.getMessage(), e);
-//			}
-//			
-//			DialogUtil.showInfoMessageBox(shell, "Success duplicating", "Go to the jobs view to check the status of duplication!");
-//		}
-//	}
-	
 	private void modifySelectedCollection() {
 		TrpCollection c = cmw.getSelectedCollection();
-		if (c!=null && store.isLoggedIn()) {
-			if (!canManageCurrentCollection()) {
-				DialogUtil.showErrorMessageBox(shell, "Unauthorized", "You are not allowed to modify this collection!");
-				return;
-			}
-			
-			InputDialog id = new InputDialog(shell, "Modify collection", "Enter the new collection name: ", c.getColName(), new IInputValidator() {
-				@Override public String isValid(String newText) {
-					try {
-						UserInputChecker.checkCollectionName(newText);
-					} catch (InvalidUserInputException e) {
-						return e.getMessage();
-					}
-					return null;
-				}
-			});
-			if (id.open() != Window.OK)
-				return;
-			
-			String newName = id.getValue();
-			if (StringUtils.isEmpty(newName))
-				return;
-			
-			try {
-				store.getConnection().modifyCollection(c.getColId(), newName);
-				store.reloadCollections();
-				
-				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully modified the colleciton!");
-			} catch (Exception e) {
-				mw.onError("Error modifying collection", e.getMessage(), e);
-			}
-		}
+		
+		mw.modifyCollection(c);
 	}	
 	
 	@Override public void dragEnter(DragSourceDragEvent dsde) {

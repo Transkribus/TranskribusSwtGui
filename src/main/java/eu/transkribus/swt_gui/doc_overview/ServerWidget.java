@@ -8,11 +8,16 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -29,7 +34,6 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionTableComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
@@ -47,7 +51,19 @@ public class ServerWidget extends Composite {
 	Button manageCollectionsBtn;
 	Button showActivityWidgetBtn;
 	Text quickLoadByID;
-			
+	
+	Button openLocalDocBtn;
+	Button importBtn;
+	Button exportBtn;
+	Button findBtn;
+	
+	Menu editCollectionMenu;
+	MenuItem collectionUsersBtn;
+	MenuItem createCollectionBtn;
+	MenuItem deleteCollectionBtn, modifyCollectionBtn;
+	
+	Button openEditCollectionMenuBtn;
+
 	Storage store = Storage.getInstance();
 	Composite remoteDocsGroup;
 	Composite container;
@@ -103,32 +119,69 @@ public class ServerWidget extends Composite {
 		
 		Composite btns1 = new Composite(container, 0);
 		btns1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		btns1.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		btns1.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+		
+		Composite docsComposite = new Composite(btns1, 0);
+//		Group docsComposite = new Group(btns1, 0);
+		docsComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		docsComposite.setLayout(SWTUtil.createGridLayout(4, false, 3, 3));
+//		docsComposite.setText("Document");
+		
+//		Label l1 = new Label(docsComposite, 0);
+//		l1.setText("Document: ");
+//		l1.setFont(Fonts.createBoldFont(l1.getFont()));
+//		l1.setLayoutData(new GridData(GridData.BEGINNING));
+		
+		openLocalDocBtn = new Button(docsComposite, SWT.PUSH);
+		openLocalDocBtn.setText("Open");
+		openLocalDocBtn.setToolTipText("Open a local document from a folder of images");
+		openLocalDocBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		openLocalDocBtn.setImage(Images.FOLDER);
+		
+		importBtn = new Button(docsComposite, SWT.PUSH);
+		importBtn.setText("Import");
+		importBtn.setToolTipText("Import a document to the server");
+		importBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		importBtn.setImage(Images.FOLDER_IMPORT);
+		
+		exportBtn = new Button(docsComposite, SWT.PUSH);
+		exportBtn.setText("Export");
+		exportBtn.setToolTipText("Export the current document to your local machine");
+		exportBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		exportBtn.setImage(Images.FOLDER_GO);
+		
+		findBtn = new Button(docsComposite, SWT.PUSH);
+		findBtn.setText("Find");
+		findBtn.setToolTipText("Find documents, text or tags");
+		findBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		findBtn.setImage(Images.FIND);
 		
 		showJobsBtn = new Button(btns1, 0);
 		showJobsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		showJobsBtn.setText("Jobs on server...");
+		showJobsBtn.setText("Jobs");
+		showJobsBtn.setToolTipText("Show jobs on server");
 		showJobsBtn.setImage(Images.CUP);
 		userControls.add(showJobsBtn);
 		
 		showVersionsBtn = new Button(btns1, 0);
 		showVersionsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		showVersionsBtn.setText("Versions of page...");
+		showVersionsBtn.setText("Versions");
+		showVersionsBtn.setToolTipText("Show versions of the current page");
 		showVersionsBtn.setImage(Images.PAGE_WHITE_STACK);
 		userControls.add(showVersionsBtn);
-
-		manageCollectionsBtn = new Button(btns1, SWT.PUSH);
-		manageCollectionsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		manageCollectionsBtn.setImage(Images.getOrLoad("/icons/user_edit.png"));
-		manageCollectionsBtn.setText("Manage collections...");
-		userControls.add(manageCollectionsBtn);
+		
+//		manageCollectionsBtn = new Button(btns1, SWT.PUSH);
+//		manageCollectionsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		manageCollectionsBtn.setImage(Images.getOrLoad("/icons/folder_edit.png"));
+//		manageCollectionsBtn.setText("Manage collections...");
+//		userControls.add(manageCollectionsBtn);
 		
 		showActivityWidgetBtn = new Button(btns1, SWT.PUSH);
 		showActivityWidgetBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		showActivityWidgetBtn.setImage(Images.GROUP);
-		showActivityWidgetBtn.setText("User activity...");
+		showActivityWidgetBtn.setText("User activity");
 		userControls.add(showActivityWidgetBtn);
-				
+	
 		recentDocsComboViewerWidget = new RecentDocsComboViewerWidget(container, 0);
 		recentDocsComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		userControls.add(recentDocsComboViewerWidget);
@@ -138,10 +191,50 @@ public class ServerWidget extends Composite {
 		
 		remoteDocsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		remoteDocsGroup.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		
+//		Composite C
 
 		collectionComboViewerWidget = new CollectionTableComboViewerWidget(remoteDocsGroup, 0, true, true, false);
 		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		collectionComboViewerWidget.getCollectionFilterLabel().setText("Collections ");
+		
+		Composite collComp = collectionComboViewerWidget.getCollComposite();
+		collComp.setLayout(new GridLayout(3, false)); // have to change nr of columns to add a new buttons
+		
+		openEditCollectionMenuBtn = new Button(collComp, SWT.PUSH);
+		openEditCollectionMenuBtn.setImage(Images.PENCIL);
+		openEditCollectionMenuBtn.setToolTipText("Manage collection...");
+		openEditCollectionMenuBtn.addSelectionListener(new SelectionAdapter() {			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Point loc = openEditCollectionMenuBtn.getLocation();
+                Rectangle rect = openEditCollectionMenuBtn.getBounds();
+                Point mLoc = new Point(loc.x-1, loc.y+rect.height);
+
+                editCollectionMenu.setLocation(getShell().getDisplay().map(openEditCollectionMenuBtn.getParent(), null, mLoc));
+                editCollectionMenu.setVisible(true);
+			}
+		});
+		
+		editCollectionMenu = new Menu(getShell(), SWT.POP_UP);
+		
+		createCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
+		createCollectionBtn.setImage(Images.ADD);
+		createCollectionBtn.setText("Create a new collection...");
+		
+		deleteCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
+		deleteCollectionBtn.setImage(Images.DELETE);
+		deleteCollectionBtn.setText("Delete this collection...");
+		
+		modifyCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
+		modifyCollectionBtn.setText("Change name of collection...");
+		
+		collectionUsersBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
+		collectionUsersBtn.setImage(Images.USER_EDIT);
+		collectionUsersBtn.setText("Manage users in collection...");
+		
+		collComp.layout();
+		
 		userControls.add(collectionComboViewerWidget);
 		
 		Composite docsContainer = new Composite(remoteDocsGroup, 0);

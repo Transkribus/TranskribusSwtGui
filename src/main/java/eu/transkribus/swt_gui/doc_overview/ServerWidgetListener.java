@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -52,13 +53,23 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 
 		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
 		sw.recentDocsComboViewerWidget.lastDocsCombo.addSelectionListener(this);
-		sw.manageCollectionsBtn.addSelectionListener(this);
+		SWTUtil.addSelectionListener(sw.manageCollectionsBtn, this);
 		sw.showActivityWidgetBtn.addSelectionListener(this);
 		
 		sw.duplicateDocMenuItem.addSelectionListener(this);
 		sw.deleteDocMenuItem.addSelectionListener(this);
 		sw.addToCollectionMenuItem.addSelectionListener(this);
 		sw.removeFromCollectionMenuItem.addSelectionListener(this);
+		
+		sw.collectionUsersBtn.addSelectionListener(this);
+		sw.createCollectionBtn.addSelectionListener(this);
+		sw.deleteCollectionBtn.addSelectionListener(this);
+		sw.modifyCollectionBtn.addSelectionListener(this);
+		
+		sw.openLocalDocBtn.addSelectionListener(this);
+		sw.importBtn.addSelectionListener(this);
+		sw.exportBtn.addSelectionListener(this);
+		sw.findBtn.addSelectionListener(this);
 
 		Storage.getInstance().addListener(this);
 	}
@@ -71,13 +82,23 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		
 		sw.collectionComboViewerWidget.collectionCombo.removeSelectionListener(this);
 		sw.recentDocsComboViewerWidget.lastDocsCombo.removeSelectionListener(this);
-		sw.manageCollectionsBtn.removeSelectionListener(this);
+		SWTUtil.removeSelectionListener(sw.manageCollectionsBtn, this);
 		sw.showActivityWidgetBtn.removeSelectionListener(this);
 		
 		sw.duplicateDocMenuItem.removeSelectionListener(this);
 		sw.deleteDocMenuItem.removeSelectionListener(this);
 		sw.addToCollectionMenuItem.removeSelectionListener(this);
 		sw.removeFromCollectionMenuItem.removeSelectionListener(this);		
+		
+		sw.collectionUsersBtn.removeSelectionListener(this);
+		sw.createCollectionBtn.removeSelectionListener(this);
+		sw.deleteCollectionBtn.removeSelectionListener(this);
+		sw.modifyCollectionBtn.removeSelectionListener(this);
+		
+		sw.openLocalDocBtn.removeSelectionListener(this);
+		sw.importBtn.removeSelectionListener(this);
+		sw.exportBtn.removeSelectionListener(this);
+		sw.findBtn.removeSelectionListener(this);
 		
 		Storage.getInstance().removeListener(this);
 	}
@@ -139,16 +160,31 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		else if (s == sw.removeFromCollectionMenuItem) {
 			mw.removeDocumentsFromCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
+		else if (s == sw.collectionUsersBtn) {
+			mw.openCollectionUsersDialog();
+		}
+		else if (s == sw.createCollectionBtn) {
+			mw.createCollection();
+		}
+		else if (s == sw.deleteCollectionBtn) {
+			mw.deleteCollection(mw.getSelectedCollection());
+		}
+		else if (s == sw.modifyCollectionBtn) {
+			mw.modifyCollection(mw.getSelectedCollection());
+		}
+		else if (s == sw.openLocalDocBtn) {
+			mw.loadLocalFolder();
+		}
+		else if (s == sw.importBtn) {
+			mw.uploadDocuments();
+		}
+		else if (s == sw.exportBtn) {
+			mw.unifiedExport();
+		}
+		else if (s == sw.findBtn) {
+			mw.openSearchDialog();
+		}
 		
-//		else if (s == sw.syncWithLocalDocBtn) {
-//			mw.syncWithLocalDoc();
-//		}
-//		else if (s == sw.applyAffineTransformBtn) {
-//			mw.applyAffineTransformToDoc();
-//		}
-//		else if (s == sw.batchReplaceImgsBtn) {
-//			mw.batchReplaceImagesForDoc();
-//		}		
 	}
 
 	@Override

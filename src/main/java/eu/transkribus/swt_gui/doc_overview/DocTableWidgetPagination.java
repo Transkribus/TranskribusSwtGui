@@ -87,7 +87,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 				logger.trace("filter, select: "+element);
 
 				String ft = filter.getText();
-				logger.debug("ft = "+ft);
+				logger.trace("ft = "+ft);
 				if (StringUtils.isEmpty(ft))
 					return true;
 				

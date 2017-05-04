@@ -751,6 +751,14 @@ public class SWTUtil {
 		return true;
 	}
 	
+	public static boolean removeSelectionListener(Button btn, SelectionListener l) {
+		if (isDisposed(btn))
+			return false;
+					
+		btn.removeSelectionListener(l);
+		return true;
+	}
+	
 	public static void setEnabled(DropDownToolItem item, boolean enabled) {
 		if (!isDisposed(item) && item.ti.getEnabled()!=enabled) 
 			item.ti.setEnabled(enabled);
