@@ -516,6 +516,11 @@ public class TrpMainWidgetView extends Composite {
 		searchBtn.setToolTipText("Search for documents, keywords etc.");
 		searchBtn.setImage(Images.getOrLoad("/icons/find.png"));
 		
+		jobsButton = new ToolItem(toolBar, SWT.PUSH);
+		jobsButton.setToolTipText("Show jobs");
+		jobsButton.setImage(Images.CUP);
+		jobsButton.setEnabled(false);
+		
 		// *** quicksearch
 		ToolItem offset = new ToolItem(toolBar, SWT.SEPARATOR);
 		//offset.setWidth(20);
@@ -573,16 +578,11 @@ public class TrpMainWidgetView extends Composite {
 		versionsButton.setToolTipText("Show versions");
 		versionsButton.setImage(Images.PAGE_WHITE_STACK);
 		versionsButton.setEnabled(false);
-		
-		jobsButton = new ToolItem(toolBar, SWT.PUSH);
-		jobsButton.setToolTipText("Show jobs");
-		jobsButton.setImage(Images.CUP);
-		jobsButton.setEnabled(false);
-		
+				
 		loadTranscriptInTextEditor = new ToolItem(toolBar, SWT.PUSH);
 		loadTranscriptInTextEditor.setToolTipText("Open transcript source");
 		loadTranscriptInTextEditor.setImage(Images.getOrLoad("/icons/script.png"));
-		
+				
 		new ToolItem(toolBar, SWT.SEPARATOR);
 								
 		if (TrpSettings.ENABLE_LINE_EDITOR) {

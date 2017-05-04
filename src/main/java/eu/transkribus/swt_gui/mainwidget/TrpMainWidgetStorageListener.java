@@ -63,6 +63,9 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		SWTUtil.setEnabled(mw.getUi().getVersionsButton(), dle.doc!=null);
 		SWTUtil.setEnabled(mw.getUi().getLoadTranscriptInTextEditor(), dle.doc!=null);
 		
+		SWTUtil.setEnabled(mw.getUi().getSaveTranscriptToolItem(), dle.doc!=null);
+		SWTUtil.setEnabled(mw.getUi().getSaveTranscriptWithMessageToolItem(), dle.doc!=null);
+		
 		mw.updateDocumentInfo();
 	}
 	
@@ -90,6 +93,8 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		} else {
 			ui.updateLoginInfo(arg.login, "", "");
 		}
+		
+		SWTUtil.setEnabled(mw.getUi().getJobsButton(), arg.login);
 	}
 
 	@Override public void handlePageLoadEvent(PageLoadEvent arg) {
