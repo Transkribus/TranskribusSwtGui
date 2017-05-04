@@ -140,16 +140,22 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 				} catch (IOException e) {
 //					Most likely happens because thumbnail image is not yet available!
 //					e.printStackTrace();
-					try {
-//						---->Try to generate thumbnail on the fly from actual page image.
-						FimgStoreGetClient imgStoreClient;
-						imgStoreClient = new FimgStoreGetClient(doc.getPages().get(index).getUrl());						
-						URL url = imgStoreClient.getImgXyScaled(doc.getPages().get(index).getKey(), 82, 120, false).getUri().toURL();
-						item.setImage(ImageDescriptor.createFromURL(url).createImage());							
-					} catch (IOException e1) {
-//						If everything fails display an error thumbnail
+					
+					if (false) { // loading thumbs on the fly all the time is f****** slow
+						try {
+	//						---->Try to generate thumbnail on the fly from actual page image.
+							FimgStoreGetClient imgStoreClient;
+							imgStoreClient = new FimgStoreGetClient(doc.getPages().get(index).getUrl());						
+							URL url = imgStoreClient.getImgXyScaled(doc.getPages().get(index).getKey(), 82, 120, false).getUri().toURL();
+							item.setImage(ImageDescriptor.createFromURL(url).createImage());							
+						} catch (IOException e1) {
+	//						If everything fails display an error thumbnail
+							item.setImage(Images.ERROR_IMG);
+							e1.printStackTrace();
+						}
+					} else {
 						item.setImage(Images.ERROR_IMG);
-						e1.printStackTrace();
+//						e.printStackTrace();
 					}
 				}
 				
