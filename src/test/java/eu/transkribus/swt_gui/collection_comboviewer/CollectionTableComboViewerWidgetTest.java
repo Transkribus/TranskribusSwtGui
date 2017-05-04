@@ -13,12 +13,13 @@ import org.eclipse.swt.widgets.Display;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.swt.util.SWTUtil;
 
-public class CollectionComboViewerWidgetTest {
-	
+public class CollectionTableComboViewerWidgetTest {
+
 	static List<TrpCollection> createTestCollections() {
+		int N = 10000;
 		
 		List<TrpCollection> colls = new ArrayList<>();
-		for (int i=0; i<1000; ++i) {
+		for (int i=0; i<N; ++i) {
 			TrpCollection c = new TrpCollection(i, "coll-"+i, "i am coll "+i);
 			colls.add(c);
 		}
@@ -34,7 +35,7 @@ public class CollectionComboViewerWidgetTest {
 //				getShell().setSize(600, 600);
 				
 //				CollectionComboViewerWidget c = new CollectionComboViewerWidget(parent, 0, false, true, true);
-				CollectionComboViewerWidget c = new CollectionComboViewerWidget(parent, 0, true, false, false);
+				CollectionTableComboViewerWidget c = new CollectionTableComboViewerWidget(parent, 0, true, false, false);
 				c.setAvailableCollections(createTestCollections());
 				
 //				InstallSpecificVersionDialog d = new InstallSpecificVersionDialog(getShell(), 0);

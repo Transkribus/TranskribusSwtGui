@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionTableComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ChooseCollectionDialog extends Dialog {
@@ -20,7 +20,7 @@ public class ChooseCollectionDialog extends Dialog {
 	Integer initColId=null;
 	
 	TrpCollection selectedCollection=null;
-	CollectionComboViewerWidget collCombo;
+	CollectionTableComboViewerWidget collCombo;
 	
 	String title;
 	
@@ -57,7 +57,7 @@ public class ChooseCollectionDialog extends Dialog {
 		
 //		Label l = new Label(container, 0);
 //		l.setText("Choose a collection: ");
-		collCombo = new CollectionComboViewerWidget(parent, 0, true, false, false);
+		collCombo = new CollectionTableComboViewerWidget(parent, 0, true, false, false);
 		collCombo.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		if (initColId != null) {

@@ -3,16 +3,22 @@ package eu.transkribus.swt_gui.doc_overview;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.InvocationCallback;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
 import org.eclipse.nebula.widgets.pagination.table.SortTableColumnSelectionListener;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -26,9 +32,11 @@ import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableViewerUtils;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetadata> {
 	private final static Logger logger = LoggerFactory.getLogger(DocTableWidgetPagination.class);
@@ -42,6 +50,8 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	public static final String DOC_COLLECTIONS_COL = "Collections";
 	
 	public static final boolean LOAD_ALL_DOCS_ONCE = true;
+	
+	
 	
 //	public static final ColumnConfig[] DOCS_COLS = new ColumnConfig[] {
 //		new ColumnConfig(DOC_NR_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
@@ -58,13 +68,75 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	List<TrpDocMetadata> docs = new ArrayList<>();
 	PageResultLoaderList<TrpDocMetadata> listLoader;
 	static final boolean USE_LIST_LOADER = true;
+	ViewerFilter viewerFilter;
+	protected ModifyListener filterModifyListener;
+	static String[] filterProperties = { "docId", "title", "uploader" }; // those are the properties of the TrpDocMetadata bean that are used for filtering
 	
 	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize) {
-		super(parent, style, initialPageSize);
+		this(parent, style, initialPageSize, null);
 	}	
 	
 	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<TrpDocMetadata> methods) {
-		super(parent, style, initialPageSize, methods);
+		super(parent, style, initialPageSize, methods, false, true);
+		
+		viewerFilter = new ViewerFilter() {
+			@Override public boolean select(Viewer viewer, Object parentElement, Object element) {
+				if (SWTUtil.isDisposed(filter))
+					return true;
+				
+				logger.trace("filter, select: "+element);
+
+				String ft = filter.getText();
+				logger.debug("ft = "+ft);
+				if (StringUtils.isEmpty(ft))
+					return true;
+				
+				ft = Pattern.quote(ft);
+				
+				String reg = "(?i)(.*"+ft+".*)";
+				logger.trace("reg = "+reg);
+				
+//				TrpDocMetadata d = (TrpDocMetadata) element;
+				
+				for (String property : filterProperties) {
+					try {
+						String propValue = BeanUtils.getSimpleProperty(element, property);
+						logger.trace("property: "+property+" value: "+propValue);
+						
+						if (propValue.matches(reg)) {
+							return true;
+						}
+					} catch (Exception e) {
+						logger.error("Error getting filter property '"+property+"': "+e.getMessage());
+					}
+				}
+
+				return false;
+				
+//				boolean matches = element.toString().matches(reg);
+//				logger.debug("matches = "+matches);
+//				return matches;
+			}
+		};
+		
+		filterModifyListener = new ModifyListener() {
+			DelayedTask dt = new DelayedTask(() -> { 
+				reloadDocs(true, false); 
+			}, true);
+			@Override public void modifyText(ModifyEvent e) {
+				dt.start();
+			}
+		};
+		filter.addModifyListener(filterModifyListener);
+//		pageableTable.getViewer().addFilter(viewerFilter); // does not work with pagination -> using viewerFilter explicitly when setting input to listLoader
+		
+	}
+	
+	public String getFilterText() {
+		if (SWTUtil.isDisposed(filter))
+			return "";
+		else
+			return filter.getText();
 	}
 	
 	private void setCollectionId(int collectionId) {
@@ -104,8 +176,24 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	private void setDocList(List<TrpDocMetadata> newDocs, boolean resetPage) {
 		synchronized (this) {
 			this.docs = new ArrayList<>();
-			this.docs.addAll(newDocs);
 			
+			// filter
+			for (TrpDocMetadata d : newDocs) {
+				if (viewerFilter.select(null, null, d)) {
+					this.docs.add(d);
+				}
+			}
+			
+//			if (!StringUtils.isEmpty(getFilterText())) {
+//				for (TrpDocMetadata d : newDocs) {
+//					if (viewerFilter.select(null, null, d)) {
+//						this.docs.add(d);
+//					}
+//				}				
+//			} else {
+//				this.docs.addAll(newDocs);				
+//			}
+
 //			logger.debug("adding newDocs: "+newDocs.size());
 //			
 //			this.docs.clear();

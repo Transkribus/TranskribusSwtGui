@@ -772,6 +772,12 @@
 
 		<dependency>
 			<groupId>org.eclipse.nebula.widgets</groupId>
+			<artifactId>tablecombo</artifactId>
+			<version>1.0.0.201703081533</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.nebula.widgets</groupId>
 			<artifactId>gallery</artifactId>
 <!-- 			<version>0.6.0.201403182228</version> -->
 			<version>1.0.0</version>

@@ -112,6 +112,7 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 
 		if (s == sw.collectionComboViewerWidget.collectionCombo) {
+			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
 			mw.reloadDocList(sw.getSelectedCollectionId());
 		}
 		else if (s == sw.recentDocsComboViewerWidget.lastDocsCombo){

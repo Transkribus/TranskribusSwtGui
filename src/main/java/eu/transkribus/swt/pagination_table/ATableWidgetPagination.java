@@ -1,7 +1,6 @@
 package eu.transkribus.swt.pagination_table;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.beanutils.PropertyUtils;
@@ -13,10 +12,10 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.nebula.widgets.pagination.IPageLoaderHandler;
+import org.eclipse.nebula.widgets.pagination.MyPageSizeComboRenderer;
 import org.eclipse.nebula.widgets.pagination.PageableController;
 import org.eclipse.nebula.widgets.pagination.collections.PageResult;
 import org.eclipse.nebula.widgets.pagination.collections.PageResultContentProvider;
-import org.eclipse.nebula.widgets.pagination.renderers.pagesize.PageSizeComboRenderer;
 import org.eclipse.nebula.widgets.pagination.table.PageableTable;
 import org.eclipse.nebula.widgets.pagination.table.SortTableColumnSelectionListener;
 import org.eclipse.swt.SWT;
@@ -27,6 +26,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +48,9 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	
 	protected LoadingComposite loadingComposite;
 	
+	protected Text filter;
+	protected boolean withFilter;
+	
 //	T itemToSelect=null;
 	
 //	public ATableWidgetPagination(Composite parent, int style) {
@@ -67,9 +70,14 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	}
 	
 	public ATableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<T> methods, boolean singleSelection) {
+		this(parent, style, initialPageSize, methods, singleSelection, false);
+	}
+	
+	public ATableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<T> methods, boolean singleSelection, boolean withFilter) {
 		super(parent, style);
 		this.setLayout(new GridLayout(1, false));
 		
+		this.withFilter = withFilter;
 		this.initialPageSize = initialPageSize;
 		this.methods = methods;
 		
@@ -231,29 +239,48 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 //				return bottom;
 				
 				Composite bottom = new Composite(parent, 0);
-				bottom.setLayout(new GridLayout(2, false));
+				bottom.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				bottom.setLayout(new GridLayout(withFilter ? 3 : 2, false));
 				
-				PageSizeComboRenderer pageSizeComboDecorator = new PageSizeComboRenderer(
+//				PageSizeComboRenderer pageSizeComboDecorator = new PageSizeComboRenderer(
+//						bottom, SWT.NONE, getController(), new Integer[] { 5, 10, 25, 50, 75, 100, 200 }) {
+//					
+//					public void widgetSelected(SelectionEvent e) {						
+//						pageableTable.refreshPage(true); // needed to refresh pagination control -> bug in original code!						
+//						super.widgetSelected(e);
+//					}
+//				};
+				MyPageSizeComboRenderer pageSizeComboDecorator = new MyPageSizeComboRenderer(
 						bottom, SWT.NONE, getController(), new Integer[] { 5, 10, 25, 50, 75, 100, 200 }) {
 					
 					public void widgetSelected(SelectionEvent e) {						
 						pageableTable.refreshPage(true); // needed to refresh pagination control -> bug in original code!						
 						super.widgetSelected(e);
-
-//						pageableTable.setCurrentPage(0);
 					}
-				};
-				pageSizeComboDecorator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				};				
+				
+				
+				pageSizeComboDecorator.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 				pageSizeComboDecorator.pageSizeChanged(initialPageSize, initialPageSize, getController());
 				
-				loadingComposite = new LoadingComposite(bottom);
+				if (ATableWidgetPagination.this.withFilter) {
+//					Label filterLabel = new Label(bottom, 0);
+//					filterLabel.setText("Filter: ");
+					
+					filter = new Text(bottom, SWT.BORDER);
+					filter.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					filter.setToolTipText("Filter");
+//					filter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 2));
+				}				
+				
+				loadingComposite = new LoadingComposite(bottom, false);
 				loadingComposite.reload.addSelectionListener(new SelectionAdapter() {
 					@Override public void widgetSelected(SelectionEvent e) {
 						onReloadButtonPressed();
 					}
 				});
-				loadingComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				
+				loadingComposite.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
+								
 				return bottom;
 			}
 		};

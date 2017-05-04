@@ -35,7 +35,7 @@ import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionTableComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
@@ -52,7 +52,7 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 	public static final String PAGE_NR_COL = "Page";
 	
 	Button showAllLocksBtn;
-	CollectionComboViewerWidget collectionsViewer;
+	CollectionTableComboViewerWidget collectionsViewer;
 	Text docIdText;
 	
 	Storage store = Storage.getInstance();
@@ -74,7 +74,7 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 			showAllLocksBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 		}
 		
-		collectionsViewer = new CollectionComboViewerWidget(btns, SWT.READ_ONLY | SWT.DROP_DOWN, false, true, true);
+		collectionsViewer = new CollectionTableComboViewerWidget(btns, SWT.READ_ONLY | SWT.DROP_DOWN, false, true, true);
 		collectionsViewer.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 //		collectionsViewer.getCollectionLabel().setText("Collection:");
 //		Label l1 = new Label(collectionsViewer, 0);
