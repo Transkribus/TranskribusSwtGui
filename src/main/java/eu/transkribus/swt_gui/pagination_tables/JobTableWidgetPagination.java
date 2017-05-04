@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
@@ -201,6 +202,7 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 		if (methods == null) {
 			methods = new IPageLoadMethods<TrpJobStatus>() {
 				Storage store = Storage.getInstance();
+				SebisStopWatch sw = new SebisStopWatch();
 				
 				@Override public int loadTotalSize() {
 					int N = 0;
@@ -209,7 +211,9 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 					
 					if (store.isLoggedIn()) {
 						try {
+//							sw.start();
 							N = store.getConnection().countJobs(!showAllJobsBtn.getSelection(), getState(), getDocId());
+//							sw.stop(true, "time for counting jobs: ", logger);
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 							TrpMainWidget.getInstance().onError("Error loading jobs", e.getMessage(), e);
 						}
@@ -224,8 +228,10 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 					
 					if (store.isLoggedIn()) {
 						try {
+//							sw.start();
 							logger.debug("loading jobs from server...");
 							jobs = store.getConnection().getJobs(!showAllJobsBtn.getSelection(), getState(), getDocId(), fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+//							sw.stop(true, "time for loading jobs: ", logger);
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 							TrpMainWidget.getInstance().onError("Error loading jobs", e.getMessage(), e);
 						}
