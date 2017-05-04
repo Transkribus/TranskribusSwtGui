@@ -101,6 +101,7 @@ public class TrpMainWidgetView extends Composite {
 	ToolItem saveTranscriptToolItem, saveTranscriptWithMessageToolItem;
 	
 	ToolItem versionsButton;
+	ToolItem jobsButton;
 	
 //	DropDownToolItem visibilityItem;
 //	MenuItem showRegionsItem;
@@ -573,6 +574,11 @@ public class TrpMainWidgetView extends Composite {
 		versionsButton.setImage(Images.PAGE_WHITE_STACK);
 		versionsButton.setEnabled(false);
 		
+		jobsButton = new ToolItem(toolBar, SWT.PUSH);
+		jobsButton.setToolTipText("Show jobs");
+		jobsButton.setImage(Images.CUP);
+		jobsButton.setEnabled(false);
+		
 		loadTranscriptInTextEditor = new ToolItem(toolBar, SWT.PUSH);
 		loadTranscriptInTextEditor.setToolTipText("Open transcript source");
 		loadTranscriptInTextEditor.setImage(Images.getOrLoad("/icons/script.png"));
@@ -670,6 +676,7 @@ public class TrpMainWidgetView extends Composite {
 	public ToolItem getReloadDocumentButton() { return reloadDocumentButton; }
 	public ToolItem getExportDocumentButton() { return exportDocumentButton; }
 	public ToolItem getVersionsButton() { return versionsButton; }
+	public ToolItem getJobsButton() { return jobsButton; }
 	
 	public MenuItem getSaveTranscriptMenuItem() { return saveTranscriptMenuItem; }
 	public MenuItem getSaveTranscriptWithMessageMenuItem() { return saveTranscriptWithMessageMenuItem; }

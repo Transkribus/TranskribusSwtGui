@@ -59,6 +59,8 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		//SWTUtil.onSelectionEvent(ui.reloadDocumentButton, (e) -> { mw.reloadCurrentDocument(); } );
 						
 		SWTUtil.onSelectionEvent(ui.versionsButton, (e) -> { mw.openVersionsDialog(); } );
+		
+		SWTUtil.onSelectionEvent(ui.jobsButton, (e) -> { mw.openJobsDialog(); } );
 				
 		SWTUtil.onSelectionEvent(ui.saveDrowDown, (e) -> {
 			if (e.detail != SWT.ARROW) {
