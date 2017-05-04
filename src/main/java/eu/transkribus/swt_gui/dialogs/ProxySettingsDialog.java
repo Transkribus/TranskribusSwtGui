@@ -144,9 +144,15 @@ public class ProxySettingsDialog extends Dialog {
 					final int port;
 					try {
 						port = Integer.parseInt(portStr);
+						if(port < 1) {
+							throw new IllegalArgumentException("Port has to be a positive number!");
+						}
 						prefs.setPort(port);
 					} catch (NumberFormatException nfe) {
 						msgLbl.setText("Port has to be a number!");
+						return;
+					} catch (IllegalArgumentException iae) {
+						msgLbl.setText(iae.getMessage());
 						return;
 					}
 				}
@@ -174,7 +180,7 @@ public class ProxySettingsDialog extends Dialog {
 	private void updateFields() {
 		isProxyEnabledBtn.setSelection(prefs.isEnabled());
 		proxyHostTxt.setText(prefs.getHost());
-		proxyPortTxt.setText(""+prefs.getPort());
+		proxyPortTxt.setText(prefs.getPort() > 0 ? ""+prefs.getPort() : "");
 		proxyUserTxt.setText(prefs.getUser());
 		proxyPasswordTxt.setText(prefs.getPassword());
 	}
