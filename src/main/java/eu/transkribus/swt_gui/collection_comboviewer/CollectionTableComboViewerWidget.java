@@ -16,8 +16,9 @@ import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.nebula.jface.tablecomboviewer.MyTableComboViewer;
 import org.eclipse.nebula.jface.tablecomboviewer.TableComboViewer;
-import org.eclipse.nebula.widgets.tablecombo.TableCombo;
+import org.eclipse.nebula.widgets.tablecombo.MyTableCombo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -31,7 +32,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -57,8 +57,8 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 	public Label collectionFilterLabel;
 	public Text collectionFilterText;
 	
-	public TableComboViewer collectionComboViewer;
-	public TableCombo collectionCombo;
+	public MyTableComboViewer collectionComboViewer;
+	public MyTableCombo collectionCombo;
 	
 	public Button reloadCollectionsBtn;
 	public Label collectionLabel;
@@ -67,6 +67,7 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 	public Composite collComposite;
 	
 	ModifyListener filterModifyListener;
+	TraverseListener filterTraverseListener;
 	
 //	private List<TrpCollection> collections = new ArrayList<>();
 	
@@ -217,24 +218,28 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 			collectionFilterLabel.setText("Filter: ");
 //			collectionFilterLabel.setLayoutData(new GridData(GridData.BEGINNING));
 			
-			collectionFilterText = new Text(filterComposite, SWT.BORDER);
-			collectionFilterText.setToolTipText("Collection name filter");
-//			collectionFilterText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-			collectionFilterText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			filterModifyListener = new ModifyListener() {
 				DelayedTask dt = new DelayedTask(() -> { refreshCombo(true); }, true);
 				@Override public void modifyText(ModifyEvent e) {
 					dt.start();
 				}
-			};
-			collectionFilterText.addModifyListener(filterModifyListener);
+			};		
 			
-			collectionFilterText.addTraverseListener(new TraverseListener() {
+			filterTraverseListener = new TraverseListener() {
 				@Override public void keyTraversed(TraverseEvent e) {
 					if (e.detail == SWT.TRAVERSE_RETURN)
 						refreshCombo(true);
 				}
-			});
+			};
+			
+			if (false) {
+			collectionFilterText = new Text(filterComposite, SWT.BORDER);
+			collectionFilterText.setToolTipText("Collection name filter");
+//			collectionFilterText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			collectionFilterText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			collectionFilterText.addModifyListener(filterModifyListener);
+			collectionFilterText.addTraverseListener(filterTraverseListener);
+			}			
 		}
 		
 		collComposite = new Composite(this, 0);
@@ -245,7 +250,7 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		int colSize = withReloadButton ? 1 : 2;
 		
 		// create TableCombo
-		collectionComboViewer = new TableComboViewer(collComposite, SWT.READ_ONLY | SWT.BORDER);
+		collectionComboViewer = new MyTableComboViewer(collComposite, SWT.READ_ONLY | SWT.BORDER);
 		collectionComboViewer.getTableCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
 //		collectionComboViewer.getTableCombo().setLayoutData(new RowData(100, SWT.DEFAULT));
 		
@@ -264,8 +269,8 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		// set which column index will be used to display the selected item.
 		collectionComboViewer.getTableCombo().setDisplayColumnIndex(1);
 		
-		collectionComboViewer.getTableCombo().setShowTableHeader(true);
-		collectionComboViewer.getTableCombo().setVisibleItemCount(10);
+//		collectionComboViewer.getTableCombo().setShowTableHeader(true);
+		collectionComboViewer.getTableCombo().setVisibleItemCount(12);
 		
 		// load the data
 //		tcv.setInput(modelList);
@@ -284,6 +289,11 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 				CollectionTableComboViewerWidget.this.getParent().forceFocus();
 			}
 		});
+		
+		if (withFilter) {
+//			collectionCombo.getFilter().addModifyListener(filterModifyListener);
+//			collectionCombo.getFilter().addTraverseListener(filterTraverseListener);
+		}
 				
 		if (withReloadButton) {
 			reloadCollectionsBtn = new Button(collComposite, SWT.PUSH);
@@ -294,8 +304,13 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		if (withFilter) {
 			collectionComboViewer.addFilter(new ViewerFilter() {		
 				@Override public boolean select(Viewer viewer, Object parentElement, Object element) {
+					if (!collectionCombo.isDropped()) {
+						return true;
+					}
+					
 					logger.trace("selecting: "+element);
-					String ft = collectionFilterText.getText();
+//					String ft = collectionFilterText.getText();
+					String ft = collectionCombo.getFilter().getText();
 					if (StringUtils.isEmpty(ft))
 						return true;
 					
@@ -324,6 +339,7 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		return collComposite;
 	}
 	
+	// FIXME
 	public void refreshCombo(boolean setListVisible) {
 		collectionComboViewer.refresh();
 		if (setListVisible) {
@@ -333,9 +349,16 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 	}
 	
 	public void clearFilter() {
+		if (false) {
 		collectionFilterText.removeModifyListener(filterModifyListener);
 		collectionFilterText.setText("");
 		collectionFilterText.addModifyListener(filterModifyListener);
+		}
+		
+//		collectionCombo.removeModifyListener(filterModifyListener);
+//		collectionCombo.getFilter().setText("");
+//		collectionCombo.addModifyListener(filterModifyListener);
+		
 		refreshCombo(false);
 	}
 	
@@ -468,7 +491,9 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 	@Override public void setEnabled(boolean enabled) {
 		super.setEnabled(enabled);
 		
-		SWTUtil.setEnabled(collectionFilterText, enabled);
+		if (false) {
+			SWTUtil.setEnabled(collectionFilterText, enabled);
+		}
 		SWTUtil.setEnabled(collectionCombo, enabled);
 		SWTUtil.setEnabled(reloadCollectionsBtn, enabled);
 	}
@@ -480,9 +505,9 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		return collectionFilterLabel;
 	}
 
-	public Text getCollectionFilterText() {
-		return collectionFilterText;
-	}
+//	public Text getCollectionFilterText() {
+//		return collectionFilterText;
+//	}
 
 //	public ComboViewer getCollectionComboViewer() {
 //		return collectionComboViewer;

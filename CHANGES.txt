@@ -442,7 +442,7 @@ CHANGES AND BUGFIXES
 	-> private FTP upload bugfix
 	-> bugfix: preserve reading order during export
 	
-1.2
+1.2.0
 	-> remove "analyze structure" from tools
 	-> add "other tools" area and integrate polygon to baselines as first such tool
 	-> redesigned HtrTrainingDialog
@@ -452,5 +452,7 @@ CHANGES AND BUGFIXES
 	-> collection-combo-viewer enhanced
 	-> filter for doclist viewers
 	-> removed collection manager and moved all of its functionality into the doclist viewer
+	
+
 	
 	
