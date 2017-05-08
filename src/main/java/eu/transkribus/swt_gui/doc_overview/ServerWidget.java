@@ -125,6 +125,7 @@ public class ServerWidget extends Composite {
 		DropDownButton docDropDown = new DropDownButton(btns1, SWT.PUSH, "Document...", null);
 		docDropDown.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		userControls.add(docDropDown);
+		
 		openLocalDocBtn = docDropDown.addItem("Open local document...", Images.FOLDER);
 		importBtn = docDropDown.addItem("Import document to server...", Images.FOLDER_IMPORT);
 		exportBtn = docDropDown.addItem("Export document to your local machine...", Images.FOLDER_GO);

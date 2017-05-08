@@ -52,6 +52,11 @@ public class DropDownButton extends Composite {
 		});
 	}
 	
+	@Override public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+		button.setEnabled(enabled);
+	}
+	
 	public MenuItem addItem(String text, Image img) {
 		MenuItem item = new MenuItem(menu, SWT.PUSH);
         item.setText(text);
