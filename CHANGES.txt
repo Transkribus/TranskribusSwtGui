@@ -453,4 +453,8 @@ CHANGES AND BUGFIXES
 	-> filter for doclist viewers
 	-> removed collection manager and moved all of its functionality into the doclist viewer
 	
+1.2.1
+	-> collapse open-local-doc, import, export and find btns in server widget to one drop-down btn
+	-> revert to old collection combo viewer (new one did not work on mac)
+	
 	
