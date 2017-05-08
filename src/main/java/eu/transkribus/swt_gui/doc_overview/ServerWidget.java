@@ -10,7 +10,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -18,7 +17,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -35,6 +33,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionTableComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DropDownButton;
@@ -47,7 +46,7 @@ public class ServerWidget extends Composite {
 	DocTableWidgetPagination docTableWidget;
 
 //	CollectionComboViewerWidget collectionComboViewerWidget;
-	CollectionTableComboViewerWidget collectionComboViewerWidget;
+	CollectionComboViewerWidget collectionComboViewerWidget;
 	RecentDocsComboViewerWidget recentDocsComboViewerWidget;
 	
 	Button manageCollectionsBtn;
@@ -199,7 +198,7 @@ public class ServerWidget extends Composite {
 		
 //		Composite C
 
-		collectionComboViewerWidget = new CollectionTableComboViewerWidget(remoteDocsGroup, 0, true, true, false);
+		collectionComboViewerWidget = new CollectionComboViewerWidget(remoteDocsGroup, 0, true, true, false);
 		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		collectionComboViewerWidget.getCollectionFilterLabel().setText("Collections ");
 		

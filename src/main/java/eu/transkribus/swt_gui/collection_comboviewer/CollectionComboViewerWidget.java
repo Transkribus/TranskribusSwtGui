@@ -343,6 +343,10 @@ public class CollectionComboViewerWidget extends Composite implements Observer {
 	public Label getCollectionLabel() {
 		return collectionLabel;
 	}
+
+	public Composite getCollComposite() {
+		return collComposite;
+	}
 	
 	
 
