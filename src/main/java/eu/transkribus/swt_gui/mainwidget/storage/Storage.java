@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.mainwidget.storage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -1468,7 +1469,7 @@ public class Storage {
 		conn.ingestDocFromFtp(cId, dirName, checkForDuplicateTitle);
 	}
 	
-	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException{
+	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException, UnsupportedEncodingException{
 //		if (!isLoggedIn())
 //			throw new Exception("Not logged in!");
 		checkConnection(true);
