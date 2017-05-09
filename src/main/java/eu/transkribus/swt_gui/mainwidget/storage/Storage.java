@@ -84,10 +84,11 @@ import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
+import eu.transkribus.core.util.ProxyUtils;
+import eu.transkribus.core.util.ProxyUtils.ProxyPrefs;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
-import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.ImageDataDacheFactory;
@@ -2047,45 +2048,8 @@ public class Storage {
 
 	public void updateProxySettings() {
 		ProxyPrefs p = TrpGuiPrefs.getProxyPrefs();
-		if(p.isEnabled()){
-			logger.debug("PROXY IS ENABLED");
-			final String proxyHost = p.getHost();
-			final int proxyPort = p.getPort();
-			final String proxyUser = p.getUser();
-			final String proxyPassword = p.getPassword();
-			final String proxyPortStr = (proxyPort > 0 ? ""+proxyPort : "");
-			System.setProperty("https.proxyHost", proxyHost);
-			System.setProperty("https.proxyPort", proxyPortStr);
-			System.setProperty("https.proxyUser", proxyUser);
-			System.setProperty("https.proxyPassword", proxyPassword);
-			System.setProperty("https.nonProxyHosts", "localhost|127.0.0.1");
-			System.setProperty("http.proxyHost", proxyHost);
-			System.setProperty("http.proxyPort", proxyPortStr);
-			System.setProperty("http.proxyUser", proxyUser);
-			System.setProperty("http.proxyPassword", proxyPassword);
-			System.setProperty("http.nonProxyHosts", "localhost|127.0.0.1");
-
-		} else {
-			logger.debug("PROXY IS DISABLED");
-			System.setProperty("https.proxyHost", "");
-			System.setProperty("https.proxyPort", "");
-			System.setProperty("https.proxyUser", "");
-			System.setProperty("https.proxyPassword", "");
-			System.setProperty("https.nonProxyHosts", "");
-			System.setProperty("http.proxyHost", "");
-			System.setProperty("http.proxyPort", "");
-			System.setProperty("http.proxyUser", "");
-			System.setProperty("http.proxyPassword", "");
-			System.setProperty("http.nonProxyHosts", "");
-		}
-		logger.debug("HTTPS ProxyHost = " + System.getProperty("https.proxyHost"));
-		logger.debug("HTTPS ProxyPort = " + System.getProperty("https.proxyPort"));
-		logger.debug("HTTPS ProxyUser = " + System.getProperty("https.proxyUser"));
-		logger.debug("HTTPS ProxyPassword = " + System.getProperty("https.proxyPassword"));
-		logger.debug("ProxyHost = " + System.getProperty("http.proxyHost"));
-		logger.debug("ProxyPort = " + System.getProperty("http.proxyPort"));
-		logger.debug("ProxyUser = " + System.getProperty("http.proxyUser"));
-		logger.debug("ProxyPassword = " + System.getProperty("http.proxyPassword"));
+		ProxyUtils.setProxy(p);
+		ProxyUtils.logProxySettings();
 	}
 	
 	/*

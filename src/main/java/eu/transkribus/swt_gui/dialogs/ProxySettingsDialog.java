@@ -14,11 +14,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import eu.transkribus.core.util.ProxyUtils.ProxyPrefs;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
-import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 /**
  * Test with proxy.uibk.ac.at:3128
