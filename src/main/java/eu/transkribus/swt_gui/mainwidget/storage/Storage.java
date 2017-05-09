@@ -86,10 +86,10 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.core.util.ProxyUtils;
-import eu.transkribus.core.util.ProxyUtils.ProxyPrefs;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
+import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.ImageDataDacheFactory;
@@ -2049,7 +2049,13 @@ public class Storage {
 
 	public void updateProxySettings() {
 		ProxyPrefs p = TrpGuiPrefs.getProxyPrefs();
-		ProxyUtils.setProxy(p);
+		if(p.isEnabled()) {
+			logger.debug("PROXY IS ENABLED");
+			ProxyUtils.setProxy(p);
+		} else {
+			logger.debug("PROXY IS DISABLED");
+			ProxyUtils.unsetProxy();
+		}
 		ProxyUtils.logProxySettings();
 	}
 	

@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
-import eu.transkribus.core.util.ProxyUtils.ProxyPrefs;
+import eu.transkribus.core.util.ProxyUtils.ProxySettings;
 import eu.transkribus.swt_gui.util.OAuthGuiUtil;
 
 /**
@@ -334,6 +334,30 @@ public class TrpGuiPrefs {
 		public String toString() {
 			return "OAuthCreds [refreshToken=" + refreshToken + ", userName=" + userName + ", profilePicUrl="
 					+ profilePicUrl + "]";
+		}
+	}
+	
+	public static class ProxyPrefs extends ProxySettings {
+		private boolean enabled;
+		
+		public ProxyPrefs() {
+			super();
+			enabled = false;
+		}
+		public ProxyPrefs(boolean enabled, String host, int port, String user, String password) {
+			super(host, port, user, password);
+			this.enabled = enabled;
+		}
+		public boolean isEnabled() {
+			return enabled;
+		}
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
+		}
+		@Override
+		public String toString() {
+			return "ProxyPrefs [enabled=" + enabled + ", host=" + host + ", port=" + port + ", user=" + user
+					+ ", password=" + password + "]";
 		}
 	}
 }
