@@ -17,7 +17,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -34,8 +33,10 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionTableComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.util.DropDownButton;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
 public class ServerWidget extends Composite {
@@ -45,17 +46,17 @@ public class ServerWidget extends Composite {
 	DocTableWidgetPagination docTableWidget;
 
 //	CollectionComboViewerWidget collectionComboViewerWidget;
-	CollectionTableComboViewerWidget collectionComboViewerWidget;
+	CollectionComboViewerWidget collectionComboViewerWidget;
 	RecentDocsComboViewerWidget recentDocsComboViewerWidget;
 	
 	Button manageCollectionsBtn;
 	Button showActivityWidgetBtn;
 	Text quickLoadByID;
 	
-	Button openLocalDocBtn;
-	Button importBtn;
-	Button exportBtn;
-	Button findBtn;
+	MenuItem openLocalDocBtn;
+	MenuItem importBtn;
+	MenuItem exportBtn;
+	MenuItem findBtn;
 	
 	Menu editCollectionMenu;
 	MenuItem collectionUsersBtn;
@@ -119,42 +120,46 @@ public class ServerWidget extends Composite {
 		
 		Composite btns1 = new Composite(container, 0);
 		btns1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		btns1.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+		btns1.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
-		Composite docsComposite = new Composite(btns1, 0);
-//		Group docsComposite = new Group(btns1, 0);
-		docsComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
-		docsComposite.setLayout(SWTUtil.createGridLayout(4, false, 3, 3));
-//		docsComposite.setText("Document");
+		DropDownButton docDropDown = new DropDownButton(btns1, SWT.PUSH, "Document...", null);
+		docDropDown.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		userControls.add(docDropDown);
 		
-//		Label l1 = new Label(docsComposite, 0);
-//		l1.setText("Document: ");
-//		l1.setFont(Fonts.createBoldFont(l1.getFont()));
-//		l1.setLayoutData(new GridData(GridData.BEGINNING));
+		openLocalDocBtn = docDropDown.addItem("Open local document...", Images.FOLDER);
+		importBtn = docDropDown.addItem("Import document to server...", Images.FOLDER_IMPORT);
+		exportBtn = docDropDown.addItem("Export document to your local machine...", Images.FOLDER_GO);
+		findBtn = docDropDown.addItem("Find documents, text or tags...", Images.FIND);
 		
-		openLocalDocBtn = new Button(docsComposite, SWT.PUSH);
-		openLocalDocBtn.setText("Open");
-		openLocalDocBtn.setToolTipText("Open a local document from a folder of images");
-		openLocalDocBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		openLocalDocBtn.setImage(Images.FOLDER);
-		
-		importBtn = new Button(docsComposite, SWT.PUSH);
-		importBtn.setText("Import");
-		importBtn.setToolTipText("Import a document to the server");
-		importBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		importBtn.setImage(Images.FOLDER_IMPORT);
-		
-		exportBtn = new Button(docsComposite, SWT.PUSH);
-		exportBtn.setText("Export");
-		exportBtn.setToolTipText("Export the current document to your local machine");
-		exportBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		exportBtn.setImage(Images.FOLDER_GO);
-		
-		findBtn = new Button(docsComposite, SWT.PUSH);
-		findBtn.setText("Find");
-		findBtn.setToolTipText("Find documents, text or tags");
-		findBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		findBtn.setImage(Images.FIND);
+//		if (false) {
+//		Composite docsComposite = new Composite(btns1, 0);
+//		docsComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+//		docsComposite.setLayout(SWTUtil.createGridLayout(4, false, 3, 3));
+//		        		
+//		openLocalDocBtn = new Button(docsComposite, SWT.PUSH);
+//		openLocalDocBtn.setText("Open");
+//		openLocalDocBtn.setToolTipText("Open a local document from a folder of images");
+//		openLocalDocBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		openLocalDocBtn.setImage(Images.FOLDER);
+//		
+//		importBtn = new Button(docsComposite, SWT.PUSH);
+//		importBtn.setText("Import");
+//		importBtn.setToolTipText("Import a document to the server");
+//		importBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		importBtn.setImage(Images.FOLDER_IMPORT);
+//		
+//		exportBtn = new Button(docsComposite, SWT.PUSH);
+//		exportBtn.setText("Export");
+//		exportBtn.setToolTipText("Export the current document to your local machine");
+//		exportBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		exportBtn.setImage(Images.FOLDER_GO);
+//		
+//		findBtn = new Button(docsComposite, SWT.PUSH);
+//		findBtn.setText("Find");
+//		findBtn.setToolTipText("Find documents, text or tags");
+//		findBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		findBtn.setImage(Images.FIND);
+//		}
 		
 		showJobsBtn = new Button(btns1, 0);
 		showJobsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -194,7 +199,7 @@ public class ServerWidget extends Composite {
 		
 //		Composite C
 
-		collectionComboViewerWidget = new CollectionTableComboViewerWidget(remoteDocsGroup, 0, true, true, false);
+		collectionComboViewerWidget = new CollectionComboViewerWidget(remoteDocsGroup, 0, true, true, false);
 		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		collectionComboViewerWidget.getCollectionFilterLabel().setText("Collections ");
 		
