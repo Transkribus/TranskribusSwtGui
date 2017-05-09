@@ -457,4 +457,8 @@ CHANGES AND BUGFIXES
 	-> collapse open-local-doc, import, export and find btns in server widget to one drop-down btn
 	-> revert to old collection combo viewer (new one did not work on mac)
 	
+1.2.2
+	-> encode METS URL before sending it
+	-> reload doclist bug fixed
+	
 	
