@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
+import eu.transkribus.swt.util.GeomUtils;
 import math.geom2d.Vector2D;
 
 //public class CanvasPolyline extends ACanvasShape<java.awt.geom.GeneralPath> {
@@ -209,7 +210,8 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	 *  @fixme Remove type paramter as by specifying distUp or distDown as 0 
 	 *  */
 	public CanvasPolygon getPolyRectangle(int distUp, int distDown, int type) {
-		List<Point> pts = getPoints();
+//		List<Point> pts = getPoints();
+		List<Point> pts = getPoints(true);
 		logger.trace("nr of pts in polyline = "+pts.size());
 
 		List<Point> ptsUp = new ArrayList<>();
@@ -218,10 +220,11 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		Vector2D nBefore = new Vector2D(0, 0);
 		Vector2D nCurrentLine = null;
 		
+		Point lastPt = null;
 		for (int i=0; i<pts.size()-1; ++i) {
 //			Point p1 = pts.get(i);
 //			Point p2 = pts.get(i+1);
-						
+									
 			Line2D line = new Line2D.Double(pts.get(i).x, pts.get(i).y, pts.get(i+1).x, pts.get(i+1).y);
 			
 			Vector2D pt = new Vector2D(pts.get(i).x, pts.get(i).y);
@@ -314,14 +317,15 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	
 	@Override
 	public boolean setPoints(List<Point> pts) {
-		java.awt.Polygon poly = new java.awt.Polygon();
-		
-		for (Point p : pts) {
-			poly.addPoint(p.x, p.y);
-		}
-		
-//		GeneralPath path = new GeneralPath(poly);
-//		setAwtShape(path);
+		java.awt.Polygon poly = GeomUtils.createPolygon(pts, true);
+//		java.awt.Polygon poly = new java.awt.Polygon();
+//		
+//		for (Point p : pts) {
+//			poly.addPoint(p.x, p.y);
+//		}
+//		
+////		GeneralPath path = new GeneralPath(poly);
+////		setAwtShape(path);
 		setAwtShape(poly);
 		
 		setChanged();
@@ -329,13 +333,12 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		return true;
 	}
 	
-	@Override
-	public List<java.awt.Point> getPoints() {
-		List<java.awt.Point> pts = new ArrayList<java.awt.Point>();
-		for (int i=0; i<awtShape.npoints; ++i) {
-			pts.add(new java.awt.Point(awtShape.xpoints[i], awtShape.ypoints[i]));
-		}
-		return pts;
+	public List<java.awt.Point> getPoints(boolean removeSucceedingEqualPts) {
+		return GeomUtils.getPoints(awtShape, removeSucceedingEqualPts);
+	}
+			
+	@Override public List<java.awt.Point> getPoints() {
+		return getPoints(false);
 	}
 	
 	@Override
