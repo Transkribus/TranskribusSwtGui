@@ -135,6 +135,7 @@ import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionUsersDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
@@ -4678,30 +4679,26 @@ public class TrpMainWidget {
 		if (c== null || !storage.isLoggedIn())
 			return;
 		
+		logger.debug("Role in collection: " + c.getRole());
 		if (!AuthUtils.canManage(c.getRole())) {
 			DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not allowed to modify this collection!");
 			return;
 		}
 		
-		InputDialog id = new InputDialog(getShell(), "Modify collection", "Enter the new collection name: ", c.getColName(), new IInputValidator() {
-			@Override public String isValid(String newText) {
-				try {
-					UserInputChecker.checkCollectionName(newText);
-				} catch (InvalidUserInputException e) {
-					return e.getMessage();
-				}
-				return null;
-			}
-		});
-		if (id.open() != Window.OK)
+		CollectionEditorDialog ced = new CollectionEditorDialog(getShell(), c);
+		if (ced.open() != IDialogConstants.OK_ID) {
 			return;
+		}
 		
-		String newName = id.getValue();
-		if (StringUtils.isEmpty(newName))
+		if(!ced.isMdChanged()) {
+			logger.debug("Metadata was not altered.");
 			return;
+		}
 		
+		TrpCollection newMd = ced.getCollection();
+				
 		try {
-			storage.getConnection().modifyCollection(c.getColId(), newName);
+			storage.getConnection().updateCollectionMd(newMd);
 			storage.reloadCollections();
 			
 //			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully modified the colleciton!");

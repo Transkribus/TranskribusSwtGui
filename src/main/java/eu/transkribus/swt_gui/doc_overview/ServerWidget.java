@@ -232,7 +232,7 @@ public class ServerWidget extends Composite {
 		deleteCollectionBtn.setText("Delete this collection...");
 		
 		modifyCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
-		modifyCollectionBtn.setText("Change name of collection...");
+		modifyCollectionBtn.setText("Edit metadata of collection...");
 		
 		collectionUsersBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
 		collectionUsersBtn.setImage(Images.USER_EDIT);
