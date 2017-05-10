@@ -139,6 +139,9 @@ public class CanvasContextMenu extends Observable {
 	}
 	
 	private void createCreateDefaultLineItem(ICanvasShape s) {
+		if (s == null)
+			return;
+		
 		ITrpShapeType st = (ITrpShapeType) s.getData();
 		if (st==null || (!RegionTypeUtil.isLine(st) && !RegionTypeUtil.isBaseline(st)))
 			return;
