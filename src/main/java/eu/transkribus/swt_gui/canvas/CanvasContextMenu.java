@@ -14,11 +14,14 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.CreateDefaultLineEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.DeleteItemEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.DeleteTableEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.RemoveIntermediatePointsTableEvent;
@@ -37,6 +40,7 @@ public class CanvasContextMenu extends Observable {
 	protected SWTCanvas canvas;
 	protected Menu menu;
 	protected MenuItem deleteItem;
+	protected MenuItem createDefaultLineItem;
 	protected SelectionListener itemSelListener;
 
 	Menu borderMenu;
@@ -132,6 +136,14 @@ public class CanvasContextMenu extends Observable {
 			return;
 		
 		deleteItem = createMenuItem("Delete", Images.DELETE, new DeleteItemEvent(this), menu);
+	}
+	
+	private void createCreateDefaultLineItem(ICanvasShape s) {
+		ITrpShapeType st = (ITrpShapeType) s.getData();
+		if (st==null || (!RegionTypeUtil.isLine(st) && !RegionTypeUtil.isBaseline(st)))
+			return;
+		
+		createDefaultLineItem = createMenuItem("Create default line shape", null, new CreateDefaultLineEvent(this), menu);
 	}
 	
 	protected MenuItem createMenuItem(String txt, Image img, Event event, Menu menu) {
@@ -244,6 +256,7 @@ public class CanvasContextMenu extends Observable {
 
 	protected void initItems(ICanvasShape s) {
 		createDeleteItem(s);
+		createCreateDefaultLineItem(s);
 		createTableItems(s);
 		createTableCellItems(s);		
 	}	
