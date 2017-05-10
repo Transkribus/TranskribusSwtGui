@@ -200,6 +200,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected Point oldTextSelection=new Point(-1, -1);
 	protected Point contextMenuPoint=null;
 	protected Menu contextMenu = null;
+	protected MenuItem deleteTagMenuItem;
 	
 	protected UndoRedoImpl undoRedo;
 	
@@ -1494,6 +1495,11 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void initContextMenu() {
 		contextMenu = new Menu(text);
 		
+		deleteTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
+		deleteTagMenuItem.setImage(Images.DELETE);
+		deleteTagMenuItem.setText("Delete tag(s) under cursor");
+		deleteTagMenuItem.addSelectionListener(new MenuItemListener());
+		
 		addTagItems();
 				
 //		final Menu tagMenu = new Menu(contextMenu);
@@ -1620,7 +1626,13 @@ public abstract class ATranscriptionWidget extends Composite{
 	 */
 	class MenuItemListener extends SelectionAdapter {
 	    public void widgetSelected(SelectionEvent event) {
-	    	System.out.println("You selected " + ((MenuItem) event.widget).getText());
+	    	logger.debug("You selected " + ((MenuItem) event.widget).getText());
+	    	
+	    	if (event.widget == deleteTagMenuItem) {
+	    		logger.debug("deleting tags under cursor: "+getCustomTagsForCurrentOffset());
+	    		TrpMainWidget.getInstance().deleteTags(getCustomTagsForCurrentOffset());
+	    		return;
+	    	}
 	    	
 	    	String tagname = ((MenuItem) event.widget).getText();
 	    	try {

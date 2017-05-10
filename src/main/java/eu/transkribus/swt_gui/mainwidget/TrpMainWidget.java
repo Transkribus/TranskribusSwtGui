@@ -4767,7 +4767,32 @@ public class TrpMainWidget {
 			}
 		} catch (Exception e) {
 			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
-		}		
+		}	
+	}
+	
+	public void deleteTags(CustomTag... tags) {
+		if (tags != null) {
+			deleteTags(Arrays.asList(tags));
+		}
+	}
+
+	public void deleteTags(List<CustomTag> tags) {
+		try {
+			for (CustomTag t : tags) {
+				logger.trace("deleting tag: "+t+" ctl: "+t.getCustomTagList());
+				if (t==null || t.getCustomTagList()==null)
+					continue;
+				
+				t.getCustomTagList().deleteTagAndContinuations(t);
+			}
+	
+			updatePageRelatedMetadata();
+			getUi().getLineTranscriptionWidget().redrawText(true);
+			getUi().getWordTranscriptionWidget().redrawText(true);
+			refreshStructureView();
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
+		}
 	}
 
 }
