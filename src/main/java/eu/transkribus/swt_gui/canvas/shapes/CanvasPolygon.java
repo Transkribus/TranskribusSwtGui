@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.GC;
 
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
+import eu.transkribus.swt.util.GeomUtils;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 
 /**
@@ -53,11 +54,20 @@ public class CanvasPolygon extends ACanvasShape<java.awt.Polygon> {
 	}
 			
 	@Override public boolean setPoints(List<Point> pts) {
-		java.awt.Polygon poly = new java.awt.Polygon();
+		java.awt.Polygon poly = GeomUtils.createPolygon(pts, true);
 		
-		for (Point p : pts) {
-			poly.addPoint(p.x, p.y);
-		}
+//		java.awt.Polygon poly = new java.awt.Polygon();
+//		
+//		Point lastPt=null;
+//		for (Point p : pts) {
+//			if (lastPt != null && p.equals(lastPt)) {
+//				continue;
+//			}
+//			
+//			poly.addPoint(p.x, p.y);
+//			lastPt = p;
+//		}
+		
 		setAwtShape(poly);
 		
 		setChanged();
@@ -65,13 +75,13 @@ public class CanvasPolygon extends ACanvasShape<java.awt.Polygon> {
 		
 		return true;
 	}
-		
+	
+	public List<java.awt.Point> getPoints(boolean removeSucceedingEqualPts) {
+		return GeomUtils.getPoints(awtShape, removeSucceedingEqualPts);
+	}
+			
 	@Override public List<java.awt.Point> getPoints() {
-		List<java.awt.Point> pts = new ArrayList<java.awt.Point>();
-		for (int i=0; i<awtShape.npoints; ++i) {
-			pts.add(new java.awt.Point(awtShape.xpoints[i], awtShape.ypoints[i]));
-		}
-		return pts;
+		return getPoints(false);
 	}
 	
 	@Override

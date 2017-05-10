@@ -83,6 +83,8 @@ import math.geom2d.Vector2D;
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
 	
+	
+	
 	public static GridLayout createGridLayout(int numColumns, boolean makeColumnsEqualWidth, int marginWidth, int marginHeight) {
 		GridLayout l = new GridLayout(numColumns, makeColumnsEqualWidth);
 		l.marginWidth = marginWidth;
