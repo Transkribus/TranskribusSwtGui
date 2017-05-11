@@ -19,7 +19,7 @@ import eu.transkribus.swt.util.DialogUtil;
 public class CollectionEditorDialog extends Dialog {
 	
 	Text nameTxt, descrTxt;
-	Button isCrowdsourceBtn;
+	Button isCrowdsourceBtn, isELearningBtn;
 	
 	private TrpCollection collection;
 	private boolean mdChanged = false;
@@ -50,9 +50,13 @@ public class CollectionEditorDialog extends Dialog {
 		descrTxt = new Text(cont, SWT.BORDER | SWT.MULTI);
 		descrTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		Label emptyLbl = new Label(cont, SWT.NONE);
+		new Label(cont, SWT.NONE);
 		isCrowdsourceBtn = new Button(cont, SWT.CHECK);
 		isCrowdsourceBtn.setText("Crowdsourcing");
+		
+		new Label(cont, SWT.NONE);
+		isELearningBtn = new Button(cont, SWT.CHECK);
+		isELearningBtn.setText("eLearning");
 		
 		updateValues();
 		
@@ -63,6 +67,7 @@ public class CollectionEditorDialog extends Dialog {
 		nameTxt.setText(collection.getColName());
 		descrTxt.setText(collection.getDescription() == null ? "" : collection.getDescription());
 		isCrowdsourceBtn.setSelection(collection.isCrowdsourcing());
+		isELearningBtn.setSelection(collection.isElearning());
 	}
 
 	public TrpCollection getCollection() {
@@ -79,6 +84,7 @@ public class CollectionEditorDialog extends Dialog {
 		final String name = nameTxt.getText();
 		final String descr = descrTxt.getText();
 		final boolean isCrowdsource = isCrowdsourceBtn.getSelection();
+		final boolean isELearning = isELearningBtn.getSelection();
 		
 		if(StringUtils.isEmpty(name)) {
 			DialogUtil.showErrorMessageBox(this.getShell(), 
@@ -90,7 +96,7 @@ public class CollectionEditorDialog extends Dialog {
 		//if crowdsourcing was checked but the collection was not for crowdsourcing yet
 		if(!collection.isCrowdsourcing() && isCrowdsource) {
 			int ret = DialogUtil.showYesNoDialog(this.getShell(), 
-					"Are you sure?", 
+					"Collection was marked for crowdsourcing", 
 					"You have marked the collection to be available for crowdsourcing.\n"
 					+ "This will allow any user to subscribe to this collection, see its content "
 					+ "and edit the contained documents!\nAre you sure you want to do this?");
@@ -99,14 +105,28 @@ public class CollectionEditorDialog extends Dialog {
 			}
 		}
 		
+		//if crowdsourcing was checked but the collection was not for crowdsourcing yet
+		if(!collection.isElearning() && isELearning) {
+			int ret = DialogUtil.showYesNoDialog(this.getShell(), 
+					"Collection was marked for eLearning", 
+					"You have marked the collection to be available for eLearning.\n"
+					+ "This will allow any user to subscribe to this collection and see its content.\n"
+					+ "Are you sure you want to do this?");
+			if(ret != SWT.YES) {
+				return;
+			}
+		}
+		
 		mdChanged = !name.equals(collection.getColName()) 
 				|| !descr.equals(collection.getDescription())
-				|| isCrowdsource != collection.isCrowdsourcing();
+				|| isCrowdsource != collection.isCrowdsourcing()
+				|| isELearning != collection.isElearning();
 		
 		if(mdChanged) {
 			collection.setColName(name);
 			collection.setDescription(descr);
 			collection.setCrowdsourcing(isCrowdsource);
+			collection.setElearning(isELearning);
 		}
 		super.okPressed();
 	}
