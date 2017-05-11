@@ -20,9 +20,14 @@ public interface ICanvasContextMenuListener {
 
 	default void handleSelectTableCellsEvent(SelectTableCellsEvent event) {}
 	
+	default void handleCreateDefaultLineEvent(CreateDefaultLineEvent event) {}
+	
 	default void handleEvent(Event event) {
 		if (event instanceof DeleteItemEvent) {
 			handleDeleteItemEvent((DeleteItemEvent) event);
+		}
+		else if (event instanceof CreateDefaultLineEvent) {
+			handleCreateDefaultLineEvent((CreateDefaultLineEvent) event);
 		}
 		else if (event instanceof SelectTableCellsEvent) {
 			handleSelectTableCellsEvent((SelectTableCellsEvent) event);
@@ -49,6 +54,13 @@ public interface ICanvasContextMenuListener {
 	public static class DeleteItemEvent extends Event {
 		public DeleteItemEvent(Object source) {
 			super(source, "DeleteItemEvent");
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public static class CreateDefaultLineEvent extends Event {
+		public CreateDefaultLineEvent(Object source) {
+			super(source, "CreateDefaultLineEvent");
 		}
 	}
 	

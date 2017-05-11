@@ -2,16 +2,58 @@ package eu.transkribus.swt.util;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.Logger;
 import math.geom2d.AffineTransform2D;
 import math.geom2d.Point2D;
 import math.geom2d.line.Line2D;
 
 public class GeomUtils {
+	private static final Logger logger = LoggerFactory.getLogger(GeomUtils.class);
+	
+	public static List<Point> getPoints(java.awt.Polygon polygon, boolean removeSucceedingEqualPts) {
+		List<java.awt.Point> pts = new ArrayList<java.awt.Point>();
+		
+		Integer xOld = null;
+		Integer yOld = null;
+		
+		for (int i=0; i<polygon.npoints; ++i) {
+			if (removeSucceedingEqualPts && xOld!=null && yOld!=null && xOld==polygon.xpoints[i] && yOld==polygon.ypoints[i]) {
+				logger.trace("removing equal succeeding point, i="+i+", x="+xOld+", y="+yOld);
+				continue;
+			}
+			
+			pts.add(new java.awt.Point(polygon.xpoints[i], polygon.ypoints[i]));
+			xOld = polygon.xpoints[i];
+			yOld = polygon.ypoints[i];			
+		}
+		
+		return pts;
+	}
+	
+	public static java.awt.Polygon createPolygon(List<Point> pts, boolean removeSucceedingEqualsPts) {
+//		removeSucceedingEqualsPts = false; // TEST
+		
+		java.awt.Polygon poly = new java.awt.Polygon();
+		Point lastPt=null;
+		for (Point p : pts) {
+			logger.trace("p = "+p+" lastPt = "+lastPt+" remove = "+removeSucceedingEqualsPts);
+			if (removeSucceedingEqualsPts && lastPt != null && p.equals(lastPt)) {
+				logger.trace("removing pt: "+p);
+				continue;
+			}
+			
+			poly.addPoint(p.x, p.y);
+			lastPt = p;
+		}
+		
+		return poly;
+	}
 	
 	public static Rectangle extend(Rectangle r, int ext) {
 		return new Rectangle(r.x-ext, r.y-ext, r.width+ext, r.height+ext);

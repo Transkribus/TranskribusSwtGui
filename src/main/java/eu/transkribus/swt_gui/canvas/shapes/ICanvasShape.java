@@ -60,6 +60,8 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	Point getCornerPoint(RectDirection rc);
 	
 	List<java.awt.Point> getPoints();
+//	List<java.awt.Point> getPointsSimplified();
+	
 	java.awt.Point getPoint(int i);
 	int [] getPointArray();
 	int getNPoints();

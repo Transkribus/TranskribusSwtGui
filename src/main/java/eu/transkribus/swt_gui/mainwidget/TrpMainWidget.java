@@ -132,9 +132,15 @@ import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
 import eu.transkribus.swt_gui.canvas.CanvasWidget;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasRect;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionUsersDialog;
 import eu.transkribus.swt_gui.dialogs.ActivityDialog;
@@ -4678,35 +4684,114 @@ public class TrpMainWidget {
 		if (c== null || !storage.isLoggedIn())
 			return;
 		
+		logger.debug("Role in collection: " + c.getRole());
 		if (!AuthUtils.canManage(c.getRole())) {
 			DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not allowed to modify this collection!");
 			return;
 		}
 		
-		InputDialog id = new InputDialog(getShell(), "Modify collection", "Enter the new collection name: ", c.getColName(), new IInputValidator() {
-			@Override public String isValid(String newText) {
-				try {
-					UserInputChecker.checkCollectionName(newText);
-				} catch (InvalidUserInputException e) {
-					return e.getMessage();
-				}
-				return null;
-			}
-		});
-		if (id.open() != Window.OK)
+		CollectionEditorDialog ced = new CollectionEditorDialog(getShell(), c);
+		if (ced.open() != IDialogConstants.OK_ID) {
 			return;
+		}
 		
-		String newName = id.getValue();
-		if (StringUtils.isEmpty(newName))
+		if(!ced.isMdChanged()) {
+			logger.debug("Metadata was not altered.");
 			return;
+		}
 		
+		TrpCollection newMd = ced.getCollection();
+				
 		try {
-			storage.getConnection().modifyCollection(c.getColId(), newName);
+			storage.getConnection().updateCollectionMd(newMd);
 			storage.reloadCollections();
 			
 //			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully modified the colleciton!");
 		} catch (Exception e) {
 			mw.onError("Error modifying collection", e.getMessage(), e);
+		}
+	}
+	
+	public void createImageSizeTextRegion() {
+		try {
+			if (!storage.hasTranscript()) {
+				return;
+			}
+			
+			canvas.getScene().getMainImage().getBounds();
+			Rectangle imgBounds = canvas.getScene().getMainImage().getBounds();
+			
+			if (CanvasShapeUtil.getFirstTextRegionWithSize(storage.getTranscript().getPage(), 0, 0, imgBounds.width, imgBounds.height, false) != null) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "Top level region with size of image already exists!");
+				return;
+			}
+			
+			CanvasPolygon imgBoundsPoly = new CanvasPolygon(imgBounds);
+//			CanvasMode modeBackup = canvas.getMode();
+			canvas.setMode(CanvasMode.ADD_TEXTREGION);
+			ShapeEditOperation op = canvas.getShapeEditor().addShapeToCanvas(imgBoundsPoly, true);
+			canvas.setMode(CanvasMode.SELECTION);
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
+		}	
+	}
+
+	public void createDefaultLineForSelectedShape() {
+		if (canvas.getFirstSelected() == null)
+			return;
+		
+		try {
+			logger.debug("creating default line for seected line/baseline!");
+			
+//			CanvasPolyline baselineShape = (CanvasPolyline) shape;
+//			shapeOfParent = baselineShape.getDefaultPolyRectangle();
+			
+			ICanvasShape shape = canvas.getFirstSelected();
+			CanvasPolyline blShape = (CanvasPolyline) CanvasShapeUtil.getBaselineShape(shape);
+			if (blShape == null)
+				return;
+			
+			CanvasPolygon pl = blShape.getDefaultPolyRectangle();
+			if (pl == null)
+				return;
+			
+			ITrpShapeType st = (ITrpShapeType) shape.getData();
+			TrpTextLineType line = TrpShapeTypeUtils.getLine(st);
+			if (line != null) {
+				ICanvasShape lineShape = (ICanvasShape) line.getData();
+				if (lineShape != null) {
+					lineShape.setPoints(pl.getPoints());
+					
+					canvas.redraw();
+				}
+			}
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
+		}	
+	}
+	
+	public void deleteTags(CustomTag... tags) {
+		if (tags != null) {
+			deleteTags(Arrays.asList(tags));
+		}
+	}
+
+	public void deleteTags(List<CustomTag> tags) {
+		try {
+			for (CustomTag t : tags) {
+				logger.trace("deleting tag: "+t+" ctl: "+t.getCustomTagList());
+				if (t==null || t.getCustomTagList()==null)
+					continue;
+				
+				t.getCustomTagList().deleteTagAndContinuations(t);
+			}
+	
+			updatePageRelatedMetadata();
+			getUi().getLineTranscriptionWidget().redrawText(true);
+			getUi().getWordTranscriptionWidget().redrawText(true);
+			refreshStructureView();
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
 		}
 	}
 

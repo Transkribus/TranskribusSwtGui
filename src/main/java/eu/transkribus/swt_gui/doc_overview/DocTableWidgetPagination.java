@@ -81,8 +81,9 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		
 		viewerFilter = new ViewerFilter() {
 			@Override public boolean select(Viewer viewer, Object parentElement, Object element) {
-				if (SWTUtil.isDisposed(filter))
+				if (SWTUtil.isDisposed(filter)) {
 					return true;
+				}
 				
 				logger.trace("filter, select: "+element);
 
@@ -164,7 +165,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		boolean hasChanged = this.collectionId != collectionId;
 		setCollectionId(collectionId);
 		
-		logger.debug("refreshing doc table, collectionId="+collectionId+" resetPage="+resetPage+" hasChanged="+hasChanged);
+		logger.debug("refreshing doc table, collectionId="+collectionId+" resetPage="+resetPage+" hasChanged="+hasChanged+" forceServerReload="+forceServerReload);
 		if (hasChanged || forceServerReload) {
 			logger.debug("reloading docs from server...");
 			reloadDocs(resetPage, forceServerReload);
@@ -175,15 +176,11 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	
 	private void setDocList(List<TrpDocMetadata> newDocs, boolean resetPage) {
 		synchronized (this) {
-			this.docs = new ArrayList<>();
+			logger.debug("setDocList, N = "+newDocs.size());
 			
-			// filter
-			for (TrpDocMetadata d : newDocs) {
-				if (viewerFilter.select(null, null, d)) {
-					this.docs.add(d);
-				}
-			}
-			
+//			this.docs = new ArrayList<>();
+//			this.docs.addAll(newDocs);
+						
 //			if (!StringUtils.isEmpty(getFilterText())) {
 //				for (TrpDocMetadata d : newDocs) {
 //					if (viewerFilter.select(null, null, d)) {
@@ -199,9 +196,17 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 //			this.docs.clear();
 //			this.docs.addAll(newDocs);
 			
-			logger.debug("size after: "+this.docs.size());
+//			logger.debug("size after: "+this.docs.size());
 
 			Display.getDefault().asyncExec(() -> {
+				this.docs = new ArrayList<>();
+				// filter
+				for (TrpDocMetadata d : newDocs) {
+					if (viewerFilter.select(null, null, d)) {
+						this.docs.add(d);
+					}
+				}
+				
 				listLoader.setItems(docs);
 				refreshPage(resetPage);	
 			});

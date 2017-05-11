@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.mainwidget.storage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -84,6 +85,7 @@ import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
+import eu.transkribus.core.util.ProxyUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
@@ -1467,7 +1469,7 @@ public class Storage {
 		conn.ingestDocFromFtp(cId, dirName, checkForDuplicateTitle);
 	}
 	
-	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException{
+	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException, UnsupportedEncodingException{
 //		if (!isLoggedIn())
 //			throw new Exception("Not logged in!");
 		checkConnection(true);
@@ -2047,45 +2049,14 @@ public class Storage {
 
 	public void updateProxySettings() {
 		ProxyPrefs p = TrpGuiPrefs.getProxyPrefs();
-		if(p.isEnabled()){
+		if(p.isEnabled()) {
 			logger.debug("PROXY IS ENABLED");
-			final String proxyHost = p.getHost();
-			final int proxyPort = p.getPort();
-			final String proxyUser = p.getUser();
-			final String proxyPassword = p.getPassword();
-			final String proxyPortStr = (proxyPort > 0 ? ""+proxyPort : "");
-			System.setProperty("https.proxyHost", proxyHost);
-			System.setProperty("https.proxyPort", proxyPortStr);
-			System.setProperty("https.proxyUser", proxyUser);
-			System.setProperty("https.proxyPassword", proxyPassword);
-			System.setProperty("https.nonProxyHosts", "localhost|127.0.0.1");
-			System.setProperty("http.proxyHost", proxyHost);
-			System.setProperty("http.proxyPort", proxyPortStr);
-			System.setProperty("http.proxyUser", proxyUser);
-			System.setProperty("http.proxyPassword", proxyPassword);
-			System.setProperty("http.nonProxyHosts", "localhost|127.0.0.1");
-
+			ProxyUtils.setProxy(p);
 		} else {
 			logger.debug("PROXY IS DISABLED");
-			System.setProperty("https.proxyHost", "");
-			System.setProperty("https.proxyPort", "");
-			System.setProperty("https.proxyUser", "");
-			System.setProperty("https.proxyPassword", "");
-			System.setProperty("https.nonProxyHosts", "");
-			System.setProperty("http.proxyHost", "");
-			System.setProperty("http.proxyPort", "");
-			System.setProperty("http.proxyUser", "");
-			System.setProperty("http.proxyPassword", "");
-			System.setProperty("http.nonProxyHosts", "");
+			ProxyUtils.unsetProxy();
 		}
-		logger.debug("HTTPS ProxyHost = " + System.getProperty("https.proxyHost"));
-		logger.debug("HTTPS ProxyPort = " + System.getProperty("https.proxyPort"));
-		logger.debug("HTTPS ProxyUser = " + System.getProperty("https.proxyUser"));
-		logger.debug("HTTPS ProxyPassword = " + System.getProperty("https.proxyPassword"));
-		logger.debug("ProxyHost = " + System.getProperty("http.proxyHost"));
-		logger.debug("ProxyPort = " + System.getProperty("http.proxyPort"));
-		logger.debug("ProxyUser = " + System.getProperty("http.proxyUser"));
-		logger.debug("ProxyPassword = " + System.getProperty("http.proxyPassword"));
+		ProxyUtils.logProxySettings();
 	}
 	
 	/*
