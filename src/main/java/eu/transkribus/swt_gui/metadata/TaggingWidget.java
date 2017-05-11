@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.page_metadata;
+package eu.transkribus.swt_gui.metadata;
 
 import java.util.ArrayList;
 import java.util.Collection;

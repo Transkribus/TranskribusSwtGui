@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.page_metadata;
+package eu.transkribus.swt_gui.metadata;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,7 +38,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 		this.ui = mainWidget.getUi();
 		this.canvas = mainWidget.getCanvas();
 		this.mw = mainWidget.getUi().getStructuralMetadataWidget();
-		this.tw = mw.getTextStyleWidget();
+		this.tw = ui.getTextStyleWidget();
 		this.settings = mainWidget.getTrpSets();
 		
 		ui.getTaggingWidgetNew().addListener(this);

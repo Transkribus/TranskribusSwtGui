@@ -78,7 +78,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableLabelProvider;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.page_metadata.CustomTagSearcher;
+import eu.transkribus.swt_gui.metadata.CustomTagSearcher;
 
 public class TagSearchComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TagSearchComposite.class);

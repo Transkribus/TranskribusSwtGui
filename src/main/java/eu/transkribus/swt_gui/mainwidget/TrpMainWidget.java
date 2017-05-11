@@ -63,7 +63,6 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
-import eu.transkribus.core.exceptions.InvalidUserInputException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
@@ -80,11 +79,9 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
-import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
-import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
@@ -108,7 +105,6 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
-import eu.transkribus.core.util.UserInputChecker;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -137,7 +133,6 @@ import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
-import eu.transkribus.swt_gui.canvas.shapes.CanvasRect;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
@@ -167,8 +162,9 @@ import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
-import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
-import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
+import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetListener;
+import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
@@ -229,7 +225,8 @@ public class TrpMainWidget {
 	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
 	CanvasShapeObserver canvasShapeObserver;
-	PageMetadataWidgetListener metadataWidgetListener;
+	PageMetadataWidgetListener pageMetadataWidgetListener;
+	TextStyleTypeWidgetListener textStyleWidgetListener;
 	TaggingWidgetListener taggingWidgetListener;
 	ToolsWidgetListener laWidgetListener;
 //	JobTableWidgetListener jobOverviewWidgetListener;
@@ -766,7 +763,9 @@ public class TrpMainWidget {
 			}
 		});
 		
-		metadataWidgetListener = new PageMetadataWidgetListener(this);
+		pageMetadataWidgetListener = new PageMetadataWidgetListener(this);
+		
+		textStyleWidgetListener = new TextStyleTypeWidgetListener(ui.getTextStyleWidget());
 
 		taggingWidgetListener = new TaggingWidgetListener(this);
 
@@ -1576,7 +1575,7 @@ public class TrpMainWidget {
 
 		if (!storage.hasTranscript()) {
 			ui.taggingWidget.setSelectedTags(null);
-			ui.getStructuralMetadataWidget().updateData(null, null, nSel, null, null, new ArrayList<CustomTag>());
+			ui.getStructuralMetadataWidget().updateData(null, null, nSel, null, new ArrayList<CustomTag>());
 			return;
 		}
 
@@ -1618,26 +1617,9 @@ public class TrpMainWidget {
 		// selectedTagNames.add(t.getTagName());
 		// }
 
-		// get text style(s) for selection:
-		boolean isSelectedInTranscriptionWidget = isTextSelectedInTranscriptionWidget();
-		logger.debug("isSelectedInTranscriptionWidget = " + isSelectedInTranscriptionWidget);
-		TextStyleType textStyle = new TextStyleType();
-
-		if (st != null) {
-			if (!getTrpSets().isEnableIndexedStyles()) { // OUTDATED
-				textStyle = canvas.getScene().getCommonTextStyleOfSelected();
-			} else { // get common TextStyleType for selection
-				ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
-				if (aw != null) {
-					TextStyleTag tst = aw.getCommonIndexedCustomTagForCurrentSelection(TextStyleTag.TAG_NAME);
-					if (tst != null)
-						textStyle = tst.getTextStyle();
-				}
-			}
-		}
-
 		ui.taggingWidget.setSelectedTags(selectedTags);
-		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, textStyle, selectedTags);
+		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, selectedTags);
+		ui.getTextStyleWidget().updateData();
 
 	}
 

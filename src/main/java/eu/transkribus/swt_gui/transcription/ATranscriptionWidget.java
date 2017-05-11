@@ -109,7 +109,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.page_metadata.TaggingWidget;
+import eu.transkribus.swt_gui.metadata.TaggingWidget;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
@@ -1283,7 +1283,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void paintTagsFromCustomTagList(PaintEvent e, CustomTagList ctl, int offset) {
 		Set<String> tagNames = ctl.getIndexedTagNames();
 		
-		if (!view.getStructuralMetadataWidget().getTextStyleWidget().underlineTextStylesBtn.getSelection()) {
+		if (!view.getTextStyleWidget().underlineTextStylesBtn.getSelection()) {
 			tagNames.remove(TextStyleTag.TAG_NAME); // do not underline  TextStyleTags, as they are
 												// rendered into the bloody text anyway
 		}

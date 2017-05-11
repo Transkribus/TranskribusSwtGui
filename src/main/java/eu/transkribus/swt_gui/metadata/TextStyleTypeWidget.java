@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.page_metadata;
+package eu.transkribus.swt_gui.metadata;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,14 +12,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -35,23 +32,30 @@ import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.XStream;
 
+import eu.transkribus.core.model.beans.JAXBPageTranscript;
+import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.pagecontent.ColourSimpleType;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.util.EnumUtils;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.ExclusiveButtonSelectionGroup;
-import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
 public class TextStyleTypeWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TextStyleTypeWidget.class);
 	
-	public Group textStyleGroup;
+	public Composite container;
 	public Group styleSheetGroup;
 	
 //	public Combo styleSheetCombo;
@@ -87,26 +91,37 @@ public class TextStyleTypeWidget extends Composite {
 	public Button applyBtn, applyRecursiveBtn;
 	
 	public Button underlineTextStylesBtn;
+	
+	static boolean USE_GROUP_CONTAINER = false;
+	
+//	static TrpMainWidget mw = TrpMainWidget.getInstance();
 
 	public TextStyleTypeWidget(Composite parent, int style) {
 		super(parent, style);
 //		this.setLayout(new FillLayout());
-		this.setLayout(new GridLayout());
+		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 
 		textStyleSources = new ArrayList<>();
 		
 //		this.setLayout(new GridLayout(2, false));
 		
-		textStyleGroup = new Group(this, SWT.NONE);
-		textStyleGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		textStyleGroup.setText("Text style");
-		GridLayout layout = new GridLayout(2, true);
-		layout.marginHeight = 15;
-		layout.marginWidth = 5;
-		layout.verticalSpacing = 1;
-		textStyleGroup.setLayout(layout);
+		if (USE_GROUP_CONTAINER) {
+			container = new Group(this, SWT.NONE);
+			GridLayout layout = new GridLayout(2, true);
+			layout.marginHeight = 15;
+			layout.marginWidth = 5;
+			layout.verticalSpacing = 1;
+			container.setLayout(layout);
+			
+			((Group) container).setText("Text style");
+		} else {
+			container = new Composite(this, SWT.NONE);
+			container.setLayout(SWTUtil.createGridLayout(2, true, 0, 0));
+		}
 		
-		underlineTextStylesBtn = new Button(textStyleGroup, SWT.CHECK);
+		container.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		underlineTextStylesBtn = new Button(container, SWT.CHECK);
 		underlineTextStylesBtn.setText("Underline styled text");
 		underlineTextStylesBtn.setToolTipText("If enabled, text styles are underlined like other tags in the transcription widget");
 		underlineTextStylesBtn.setSelection(true);
@@ -127,39 +142,39 @@ public class TextStyleTypeWidget extends Composite {
 				
 //		textStyleGroup.setLayout(new FillLayout());
 		
-		Label l1 = new Label(textStyleGroup, SWT.LEFT);
+		Label l1 = new Label(container, SWT.LEFT);
 		l1.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		l1.setText("Font family: ");
 //		fontFamilyText = new Text(textStyleGroup, SWT.LEFT | SWT.BORDER);
-		fontFamilyText = new Combo(textStyleGroup, SWT.LEFT | SWT.BORDER);
+		fontFamilyText = new Combo(container, SWT.LEFT | SWT.BORDER);
 		fontFamilyText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		fontFamilyText.setData("propertyName", "fontFamily");
 		fontFamilyText.setItems(new String [] { "Antiqua", "Gothic", "Normal" });
 
-		boldCheck = createButton(textStyleGroup, SWT.CHECK, "Bold", 1, false, "bold");
-		italicCheck = createButton(textStyleGroup, SWT.CHECK, "Italic", 1, false, "italic");
-		subscriptCheck = createButton(textStyleGroup, SWT.CHECK, "Subscript", 1, false, "subscript");
-		superscriptCheck = createButton(textStyleGroup, SWT.CHECK, "Superscript", 1, false, "superscript");
-		underlinedCheck = createButton(textStyleGroup, SWT.CHECK, "Underlined", 1, false, "underlined");		
-		strikethroughCheck = createButton(textStyleGroup, SWT.CHECK, "Strikethrough", 1, false, "strikethrough");		
-		serifCheck = createButton(textStyleGroup, SWT.CHECK, "Serif", 1, false, "serif");
-		monospaceCheck = createButton(textStyleGroup, SWT.CHECK, "Monospace", 1, false, "monospace");		
-		reverseVideoCheck = createButton(textStyleGroup, SWT.CHECK, "Reverse Video", 1, false, "reverseVideo");
-		smallCapsCheck = createButton(textStyleGroup, SWT.CHECK, "Small caps", 1, false, "smallCaps");
-		letterSpacedCheck = createButton(textStyleGroup, SWT.CHECK, "Letter spaced", 2, false, "letterSpaced");
+		boldCheck = createButton(container, SWT.CHECK, "Bold", 1, false, "bold");
+		italicCheck = createButton(container, SWT.CHECK, "Italic", 1, false, "italic");
+		subscriptCheck = createButton(container, SWT.CHECK, "Subscript", 1, false, "subscript");
+		superscriptCheck = createButton(container, SWT.CHECK, "Superscript", 1, false, "superscript");
+		underlinedCheck = createButton(container, SWT.CHECK, "Underlined", 1, false, "underlined");		
+		strikethroughCheck = createButton(container, SWT.CHECK, "Strikethrough", 1, false, "strikethrough");		
+		serifCheck = createButton(container, SWT.CHECK, "Serif", 1, false, "serif");
+		monospaceCheck = createButton(container, SWT.CHECK, "Monospace", 1, false, "monospace");		
+		reverseVideoCheck = createButton(container, SWT.CHECK, "Reverse Video", 1, false, "reverseVideo");
+		smallCapsCheck = createButton(container, SWT.CHECK, "Small caps", 1, false, "smallCaps");
+		letterSpacedCheck = createButton(container, SWT.CHECK, "Letter spaced", 2, false, "letterSpaced");
 		
-		fontSizeSpinner = createSpinner(textStyleGroup, "Font size: ", true, "fontSize");
-		kerningSpinner = createSpinner(textStyleGroup, "Kerning: ", false, "kerning");
+		fontSizeSpinner = createSpinner(container, "Font size: ", true, "fontSize");
+		kerningSpinner = createSpinner(container, "Kerning: ", false, "kerning");
 		
-		textColorCombo = createComboWithLabel(textStyleGroup, "Text color: ", SWT.DROP_DOWN | SWT.READ_ONLY, "textColor");
+		textColorCombo = createComboWithLabel(container, "Text color: ", SWT.DROP_DOWN | SWT.READ_ONLY, "textColor");
 		textColorCombo.setItems(EnumUtils.valuesArray(ColourSimpleType.class));
 		
-		bgColorCombo = createComboWithLabel(textStyleGroup, "Background color: ", SWT.DROP_DOWN | SWT.READ_ONLY, "bgColor");
+		bgColorCombo = createComboWithLabel(container, "Background color: ", SWT.DROP_DOWN | SWT.READ_ONLY, "bgColor");
 		bgColorCombo.setItems(EnumUtils.valuesArray(ColourSimpleType.class));
 		
 		
-		applyBtn = createButton(textStyleGroup, SWT.PUSH, "Apply", 1, false, null);
-		applyRecursiveBtn = createButton(textStyleGroup, SWT.PUSH, "Apply recursively", 1, false, null);
+		applyBtn = createButton(container, SWT.PUSH, "Apply", 1, false, null);
+		applyRecursiveBtn = createButton(container, SWT.PUSH, "Apply recursively", 1, false, null);
 		
 		applyBtn.setToolTipText("Applies the style to all selected elements (note: if multiple elements are selected, the metadata is not applied automatically but with this button)");
 		applyRecursiveBtn.setToolTipText("Applies the style to all selected elements and its child elements, e.g. for a region and all its line and word elements!");		
@@ -190,7 +205,7 @@ public class TextStyleTypeWidget extends Composite {
 	}
 	
 	private void initStyleSheetsWidget() {
-		ExpandableComposite styleSheetExp = new ExpandableComposite(textStyleGroup, ExpandableComposite.COMPACT);
+		ExpandableComposite styleSheetExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		styleSheetExp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 		Composite styleSheetGroup = new Composite(styleSheetExp, SWT.SHADOW_ETCHED_IN);
 //		styleSheetGroup = new Group(textStyleGroup, SWT.NONE);
@@ -239,7 +254,7 @@ public class TextStyleTypeWidget extends Composite {
 		styleSheetExp.setExpanded(false);
 		styleSheetExp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
-				textStyleGroup.layout();
+				container.layout();
 			}
 		});
 	}
@@ -363,6 +378,46 @@ public class TextStyleTypeWidget extends Composite {
 		if (listener!=null) {
 			addTextStyleListener(listener);
 		}
+	}
+	
+//	public void updateData(JAXBPageTranscript transcript, ITrpShapeType firstSelected, int nSelectedShapes, String structureType, TextStyleType textStyle, List<CustomTag> selectedTags) {
+//	public void updateData(int nSelectedShapes, TextStyleType textStyle) {
+	public void updateData() {
+		SebisStopWatch.SW.start();
+		
+		detachListener();
+		
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		int nSelected = mw.getCanvas().getNSelected();
+		
+		// get text style(s) for selection:
+		boolean isSelectedInTranscriptionWidget = mw.isTextSelectedInTranscriptionWidget();
+		logger.debug("isSelectedInTranscriptionWidget = " + isSelectedInTranscriptionWidget);
+		TextStyleType textStyle = new TextStyleType();
+		if (nSelected > 0) {
+			if (!mw.getTrpSets().isEnableIndexedStyles()) { // OUTDATED
+				textStyle = mw.getCanvas().getScene().getCommonTextStyleOfSelected();
+			} else { // get common TextStyleType for selection
+				ATranscriptionWidget aw = mw.getUi().getSelectedTranscriptionWidget();
+				if (aw != null) {
+					TextStyleTag tst = aw.getCommonIndexedCustomTagForCurrentSelection(TextStyleTag.TAG_NAME);
+					if (tst != null)
+						textStyle = tst.getTextStyle();
+				}
+			}
+		}
+		
+		// update text style widget:
+		SWTUtil.recursiveSetEnabled(this, nSelected>0);
+		updateTextStyleFromData(textStyle);
+		
+		attachListener();
+		
+		SebisStopWatch.SW.stop(true, "time for updating text style widget: ", logger);
+	}
+	
+	public void savePage(){
+		//TrpMainWidget.getInstance().saveTranscriptionSilent();
 	}
 	
 	public void removeTextStyleListener(Listener listener) {

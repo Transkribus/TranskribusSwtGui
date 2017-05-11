@@ -64,6 +64,7 @@ public class TrpTabWidget extends Composite {
 	// items for metadata tf:
 	CTabItem docMdItem;
 	CTabItem structuralMdItem;
+	CTabItem textStyleMdItem;
 	CTabItem textTaggingItem;
 	CTabItem commentsItem;
 
@@ -120,7 +121,8 @@ public class TrpTabWidget extends Composite {
 		SWTUtil.setSelection(mainTf, serverItem);
 		SWTUtil.setSelection(serverTf, docListItem);
 		SWTUtil.setSelection(documentTf, structureItem);
-		SWTUtil.setSelection(metadataTf, structuralMdItem);
+//		SWTUtil.setSelection(metadataTf, structuralMdItem);
+		SWTUtil.setSelection(metadataTf, textTaggingItem);
 		SWTUtil.setSelection(toolsTf, remoteToolsItem);
 	}
 
@@ -197,6 +199,7 @@ public class TrpTabWidget extends Composite {
 
 		docMdItem = createCTabItem(metadataTf, c, "Document", secondRowItems);
 		structuralMdItem = createCTabItem(metadataTf, c, "Structural", secondRowItems);
+		textStyleMdItem = createCTabItem(metadataTf, c, "Textstyle", secondRowItems);
 		textTaggingItem = createCTabItem(metadataTf, c, "Tagging", secondRowItems);
 		commentsItem = createCTabItem(metadataTf, c, "Comments", secondRowItems);
 
