@@ -438,11 +438,11 @@ CHANGES AND BUGFIXES
 	-> determine CITlabLaJob availability in UI via server call
 	-> remove "new" (which was actually the old one) and buggy NCSR LA method
 
-1.1.2
+1.1.2:
 	-> private FTP upload bugfix
 	-> bugfix: preserve reading order during export
 	
-1.2
+1.2.0:
 	-> remove "analyze structure" from tools
 	-> add "other tools" area and integrate polygon to baselines as first such tool
 	-> redesigned HtrTrainingDialog
@@ -453,21 +453,11 @@ CHANGES AND BUGFIXES
 	-> filter for doclist viewers
 	-> removed collection manager and moved all of its functionality into the doclist viewer
 	
-
-	
-1.2.1
+1.2.1:
 	-> collapse open-local-doc, import, export and find btns in server widget to one drop-down btn
 	-> revert to old collection combo viewer (new one did not work on mac)
 	
-1.2.2
-	-> encode METS URL before sending it
-	-> reload doclist bug fixed
-	
-1.2.1
-	-> collapse open-local-doc, import, export and find btns in server widget to one drop-down btn
-	-> revert to old collection combo viewer (new one did not work on mac)
-	
-1.2.2
+1.2.2:
 	-> encode METS URL before sending it
 	-> reload doclist bug fixed
 	
