@@ -513,19 +513,19 @@ public class CanvasToolBarNew {
 		}		
 		
 		optionsItem = new DropDownToolItem(tb, false, true, true, SWT.CHECK);
-		optionsItem.ti.setImage(Images.getOrLoad("/icons/wrench.png"));
+		optionsItem.ti.setImage(Images.WRENCH);
 //		optionsItem.setKeepMenuOpenOnClick(true);
 		
 		String ott = "Canvas options...";
 		
-		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.getOrLoad("/icons/wrench.png"), ott);
-		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.getOrLoad("/icons/wrench.png"), ott);
-		addLineToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: use the selected region as parent)", Images.getOrLoad("/icons/wrench.png"), ott);
-		addBaselineToOverlappingLineItem = optionsItem.addItem("Add baselines to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), ott);
-		addWordsToOverlappingLineItem = optionsItem.addItem("Add words to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), ott);
-		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.getOrLoad("/icons/wrench.png"), ott);
-		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.getOrLoad("/icons/wrench.png"), "");
-		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.getOrLoad("/icons/wrench.png"), ott);
+		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.WRENCH, ott);
+		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.WRENCH, ott);
+		addLineToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: use the selected region as parent)", Images.WRENCH, ott);
+		addBaselineToOverlappingLineItem = optionsItem.addItem("Add baselines to overlapping parent lines (else: use the selected line as parent)", Images.WRENCH, ott);
+		addWordsToOverlappingLineItem = optionsItem.addItem("Add words to overlapping parent lines (else: use the selected line as parent)", Images.WRENCH, ott);
+		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.WRENCH, ott);
+		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.WRENCH, "");
+		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.WRENCH, ott);
 
 //		new ToolItem(this, SWT.SEPARATOR);
 		undo = new ToolItem(tb, SWT.PUSH);

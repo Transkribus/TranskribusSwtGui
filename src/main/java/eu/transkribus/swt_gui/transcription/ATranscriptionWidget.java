@@ -115,6 +115,7 @@ import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
 import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
 import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
+import eu.transkribus.swt_gui.util.DropDownToolItemSimple;
 import eu.transkribus.util.Utils;
 
 public abstract class ATranscriptionWidget extends Composite{
@@ -134,20 +135,24 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	protected PagingToolBar regionsPagingToolBar;
 	protected ToolBar regionsToolbar;
-	protected ToolItem fontItem;
-	protected ToolItem showLineBulletsItem;
+	protected MenuItem fontItem;	
+	protected MenuItem showLineBulletsItem;
+	
 	protected MenuItem leftAlignmentItem;
 	protected MenuItem centerAlignmentItem;
 	protected MenuItem rightAlignmentItem;
 	
-	protected ToolItem writingOrientationItem;
-	protected ToolItem showControlSignsItem;
+	protected DropDownToolItemSimple viewSetsDropDown;
 	
-	protected ToolItem centerCurrentLineItem;
-	protected DropDownToolItem textStyleDisplayOptions;
+	protected ToolItem writingOrientationItem;
+	protected MenuItem showControlSignsItem;
+	
+	protected MenuItem centerCurrentLineItem;
+//	protected DropDownToolItem textStyleDisplayOptions;
+	protected MenuItem textStyleDisplayOptions;
 	protected MenuItem renderFontStyleTypeItem, renderTextStylesItem, renderOtherStyleTypeItem, renderTagsItem;
 	
-	protected ToolItem focusShapeOnDoubleClickInTranscriptionWidgetItem;
+	protected MenuItem focusShapeOnDoubleClickInTranscriptionWidgetItem;
 	
 	private DropDownToolItem deleteTextDropDown;
 	protected MenuItem deleteRegionTextItem;
@@ -219,10 +224,12 @@ public abstract class ATranscriptionWidget extends Composite{
 	public static final boolean USE_AUTOCOMPLETE_FROM_PAGE=true;
 	
 	List<ITranscriptionWidgetListener> listener = new ArrayList<>(); // custom event listener
-	private DropDownToolItem alignmentDropDown;
+//	private DropDownToolItem alignmentDropDown;
+	private MenuItem alignmentMenuItem;
 	
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
+	private static final boolean SHOW_WORD_GRAPH_STUFF = false;
 	
 	private class ReloadWgRunnable implements Runnable {
 		Storage store;
@@ -446,7 +453,7 @@ public abstract class ATranscriptionWidget extends Composite{
 				
 		SWTUtil.setEnabled(reloadWordGraphEditorItem, visible);
 		
-		logger.debug("wged size: "+wordGraphEditor.getSize());
+		logger.trace("wged size: "+wordGraphEditor.getSize());
 	}
 	
 	/** Returns ranges of (start, end) indices that indicate line wrappings */
@@ -543,51 +550,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
-		fontItem = new ToolItem(regionsToolbar, SWT.PUSH);
-		fontItem.setImage(Images.getOrLoad("/icons/font.png"));
-		fontItem.setToolTipText("Change global display font of text field (does not affect the text style metadata!!)");
-		additionalToolItems.add(fontItem);
-		
-		showLineBulletsItem = new ToolItem(regionsToolbar, SWT.CHECK);
-		showLineBulletsItem.setImage(Images.getOrLoad("/icons/text_list_numbers.png"));
-		showLineBulletsItem.setToolTipText("Toggle line bullet visibility");
-		additionalToolItems.add(showLineBulletsItem);
-		
-		showControlSignsItem = new ToolItem(regionsToolbar, SWT.CHECK);
-//		showLineBulletsItem.setImage(Images.getOrLoad("/icons/text_list_numbers.png"));
-		showControlSignsItem.setText("\u00B6");
-		showControlSignsItem.setToolTipText("Show control signs");
-		additionalToolItems.add(showControlSignsItem);
-		
-		new ToolItem(regionsToolbar, SWT.SEPARATOR);
-		
-		textAlignment = SWT.LEFT;
-		
-		alignmentDropDown = new DropDownToolItem(regionsToolbar, false, true, true, SWT.RADIO);
-		additionalToolItems.add(alignmentDropDown.ti);
-		
-		leftAlignmentItem = alignmentDropDown.addItem("Left", Images.getOrLoad("/icons/text_align_left.png"), "Text alignment", true);
-		centerAlignmentItem = alignmentDropDown.addItem("Center", Images.getOrLoad("/icons/text_align_center.png"), "Text alignment", false);
-		rightAlignmentItem = alignmentDropDown.addItem("Right", Images.getOrLoad("/icons/text_align_right.png"), "Text alignment", false);
-		
-//		leftAlignmentItem = new ToolItem(regionsToolbar, SWT.RADIO);
-//		leftAlignmentItem.setImage(Images.getOrLoad("/icons/text_align_left.png"));
-//		leftAlignmentItem.setToolTipText("Left align text");
-//		leftAlignmentItem.setSelection(textAlignment == SWT.LEFT);
-//		additionalToolItems.add(leftAlignmentItem);
-//		
-//		centerAlignmentItem = new ToolItem(regionsToolbar, SWT.RADIO);
-//		centerAlignmentItem.setImage(Images.getOrLoad("/icons/text_align_center.png"));
-//		centerAlignmentItem.setToolTipText("Center text");
-//		centerAlignmentItem.setSelection(textAlignment == SWT.CENTER);
-//		additionalToolItems.add(centerAlignmentItem);
-//		
-//		rightAlignmentItem = new ToolItem(regionsToolbar, SWT.RADIO);
-//		rightAlignmentItem.setImage(Images.getOrLoad("/icons/text_align_right.png"));
-//		rightAlignmentItem.setToolTipText("Right align text");
-//		rightAlignmentItem.setSelection(textAlignment == SWT.RIGHT);
-//		additionalToolItems.add(rightAlignmentItem);
-		
+		initViewSetsDropDown();
+
+//		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+						
 		if (false) { // obsolete button -> remove in later version!
 		writingOrientationItem = new ToolItem(regionsToolbar, SWT.CHECK);
 //		writingOrientationItem.setImage(Images.getOrLoad("/icons/text_align_right.png"));
@@ -597,28 +563,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		writingOrientationItem.setSelection(false);
 		additionalToolItems.add(writingOrientationItem);
 		}
-		
-		centerCurrentLineItem = new ToolItem(regionsToolbar, SWT.CHECK);
-		centerCurrentLineItem.setImage(Images.getOrLoad("/icons/arrow_up_down.png"));
-		centerCurrentLineItem.setToolTipText("Ensures that there is always a visible line above and below the selected one in the text field if possible");
-		centerCurrentLineItem.setSelection(settings.isCenterCurrentTranscriptionLine());
-		additionalToolItems.add(centerCurrentLineItem);
-
-		textStyleDisplayOptions = new DropDownToolItem(regionsToolbar, false, true, true, SWT.CHECK);
-		String tt = "Determines which styles are rendered in the transcription widget";
-		textStyleDisplayOptions.ti.setToolTipText(tt);
-		renderFontStyleTypeItem = textStyleDisplayOptions.addItem("Font type styles: serif, monospace, letter spaced (will override default font!)", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderFontStyles());
-		renderTextStylesItem= textStyleDisplayOptions.addItem("Text style: normal, italic, bold, bold&italic", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTextStyles());
-		renderOtherStyleTypeItem = textStyleDisplayOptions.addItem("Other: underlined, strikethrough, etc.", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderOtherStyles());
-		renderTagsItem = textStyleDisplayOptions.addItem("Tags: colored underlines for tags", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTags());
-		additionalToolItems.add(textStyleDisplayOptions.ti);
-		
-		focusShapeOnDoubleClickInTranscriptionWidgetItem = new ToolItem(regionsToolbar, SWT.CHECK);
-		focusShapeOnDoubleClickInTranscriptionWidgetItem.setImage(Images.getOrLoad("/icons/mouse_focus.png"));
-		focusShapeOnDoubleClickInTranscriptionWidgetItem.setToolTipText("Focus shape on double-click in transcription area?");
-		focusShapeOnDoubleClickInTranscriptionWidgetItem.setSelection(settings.isFocusShapeOnDoubleClickInTranscriptionWidget());
-		additionalToolItems.add(focusShapeOnDoubleClickInTranscriptionWidgetItem);
-		
+						
 //		tagsToolItem = new DropDownToolItem(regionsToolbar, false, false, SWT.PUSH);
 //		tagsToolItem.ti.setText("Tags");
 //		tagsToolItem.ti.addSelectionListener(new SelectionAdapter() {
@@ -645,10 +590,12 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
-		deleteTextDropDown = new DropDownToolItem(regionsToolbar, false, true, false, SWT.PUSH);
-		deleteRegionTextItem = deleteTextDropDown.addItem("Region", Images.DELETE, "Delete text of region, line or word");
-		deleteLineTextItem = deleteTextDropDown.addItem("Line", Images.DELETE, "Delete text of region, line or word");
-		deleteWordTextItem = deleteTextDropDown.addItem("Word", Images.DELETE, "Delete text of region, line or word");
+		deleteTextDropDown = new DropDownToolItem(regionsToolbar, false, true, true, SWT.PUSH);
+		deleteTextDropDown.ti.setImage(Images.TEXT_FIELD_DELETE);
+		
+		deleteRegionTextItem = deleteTextDropDown.addItem("Delete region text", Images.TEXT_FIELD_DELETE, "Delete text of region, line or word");
+		deleteLineTextItem = deleteTextDropDown.addItem("Delete line text", Images.TEXT_FIELD_DELETE, "Delete text of region, line or word");
+		deleteWordTextItem = deleteTextDropDown.addItem("Delete word text", Images.TEXT_FIELD_DELETE, "Delete text of region, line or word");
 		additionalToolItems.add(deleteTextDropDown.ti);
 			
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
@@ -698,7 +645,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		redoItem.setToolTipText("Redo last undone text change (ctrl + y)");
 		additionalToolItems.add(redoItem);
 		
-		if (getType() == Type.LINE_BASED) {
+		if (SHOW_WORD_GRAPH_STUFF && getType() == Type.LINE_BASED) {
 			new ToolItem(regionsToolbar, SWT.SEPARATOR);
 			
 			showWordGraphEditorItem = new ToolItem(regionsToolbar, SWT.CHECK);
@@ -707,20 +654,59 @@ public abstract class ATranscriptionWidget extends Composite{
 			showWordGraphEditorItem.setToolTipText("Toggle visibility of the suggestion editor using HTR results - green line bullets indicate that an HTR result is available for the line!");
 			additionalToolItems.add(showWordGraphEditorItem);
 			
+			reloadWordGraphEditorItem = new ToolItem(regionsToolbar, SWT.NONE);
+			reloadWordGraphEditorItem.setImage(Images.getOrLoad("/icons/refresh.gif"));
+			reloadWordGraphEditorItem.setToolTipText("Reload wordgraph editor");
+			additionalToolItems.add(reloadWordGraphEditorItem);			
+			
+//			if (false) {
 			enableCattiItem = new ToolItem(regionsToolbar, SWT.CHECK);
 			enableCattiItem.setImage(null);
 			enableCattiItem.setText("CATTI");
 			enableCattiItem.setToolTipText("Enables the CATTI server suggestion mode");
 //			enableCattiItem.setSelection(true);
 			additionalToolItems.add(enableCattiItem);
-			
-			reloadWordGraphEditorItem = new ToolItem(regionsToolbar, SWT.NONE);
-			reloadWordGraphEditorItem.setImage(Images.getOrLoad("/icons/refresh.gif"));
-			reloadWordGraphEditorItem.setToolTipText("Reload wordgraph editor");
-			additionalToolItems.add(reloadWordGraphEditorItem);
+//			}
+
 		}
 	}
 	
+	private void initViewSetsDropDown() {
+		viewSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.EYE);
+		additionalToolItems.add(viewSetsDropDown.getToolItem());
+		
+		fontItem = viewSetsDropDown.addItem("Change text field font...", Images.getOrLoad("/icons/font.png"), SWT.PUSH);
+		showLineBulletsItem = viewSetsDropDown.addItem("Show line bullets", Images.getOrLoad("/icons/text_list_numbers.png"), SWT.CHECK);
+		showControlSignsItem = viewSetsDropDown.addItem("\u00B6 Show control signs", null, SWT.CHECK);
+		centerCurrentLineItem = viewSetsDropDown.addItem("Always try to show a line above and below the selected one", Images.getOrLoad("/icons/arrow_up_down.png"), SWT.CHECK);
+		focusShapeOnDoubleClickInTranscriptionWidgetItem = viewSetsDropDown.addItem("Focus shape on double-click", Images.getOrLoad("/icons/mouse_focus.png"), SWT.CHECK);
+		
+		textAlignment = SWT.LEFT;
+		alignmentMenuItem = viewSetsDropDown.addItem("Text alignment", Images.getOrLoad("/icons/text_align_left.png"), SWT.CASCADE);
+		Menu textAlignmentMenu = new Menu(viewSetsDropDown.getMenu());
+		alignmentMenuItem.setMenu(textAlignmentMenu);
+		leftAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Left", Images.getOrLoad("/icons/text_align_left.png"), SWT.RADIO);
+		leftAlignmentItem.setSelection(true);
+		centerAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Center", Images.getOrLoad("/icons/text_align_center.png"), SWT.RADIO);
+		rightAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Right", Images.getOrLoad("/icons/text_align_right.png"), SWT.RADIO);
+		
+		textStyleDisplayOptions = viewSetsDropDown.addItem("Rendered tag styles", Images.getOrLoad("/icons/paintbrush.png"), SWT.CASCADE);
+		Menu textStyleDisplayOptionsMenu = new Menu(viewSetsDropDown.getMenu());
+		textStyleDisplayOptions.setMenu(textStyleDisplayOptionsMenu);
+//		textStyleDisplayOptions = new DropDownToolItem(regionsToolbar, false, true, true, SWT.CHECK);
+//		String tt = "Determines which styles are rendered in the transcription widget";
+//		textStyleDisplayOptions.ti.setToolTipText(tt);
+		
+		renderFontStyleTypeItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Font type styles: serif, monospace, letter spaced (will override default font!)", null, SWT.CHECK);
+		renderTextStylesItem= SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Text style: normal, italic, bold, bold&italic", null, SWT.CHECK);
+		renderOtherStyleTypeItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Other: underlined, strikethrough, etc.", null, SWT.CHECK);
+		renderTagsItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Tags: colored underlines for tags", null, SWT.CHECK);
+		
+//		renderTextStylesItem= textStyleDisplayOptions.addItem("Text style: normal, italic, bold, bold&italic", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTextStyles());
+//		renderOtherStyleTypeItem = textStyleDisplayOptions.addItem("Other: underlined, strikethrough, etc.", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderOtherStyles());
+//		renderTagsItem = textStyleDisplayOptions.addItem("Tags: colored underlines for tags", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTags());
+	}
+
 	public ToolItem getVkItem() {
 		return vkItem;
 	}
@@ -1743,16 +1729,16 @@ public abstract class ATranscriptionWidget extends Composite{
 		db.bindBeanToWidgetSelection(TrpSettings.RENDER_OTHER_STYLES, settings, renderOtherStyleTypeItem);
 		db.bindBeanToWidgetSelection(TrpSettings.RENDER_TAGS, settings, renderTagsItem);
 		
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY,
+		db.bindBeanToWidgetSelection(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY,
 				settings, centerCurrentLineItem);
 		
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINE_BULLETS_PROPERTY,
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINE_BULLETS_PROPERTY,
 				settings, showLineBulletsItem);
 		
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY,
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY,
 				settings, showControlSignsItem);
 		
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.FOCUS_SHAPE_ON_DOUBLE_CLICK_IN_TRANSCRIPTION_WIDGET,
+		db.bindBeanToWidgetSelection(TrpSettings.FOCUS_SHAPE_ON_DOUBLE_CLICK_IN_TRANSCRIPTION_WIDGET,
 				settings, focusShapeOnDoubleClickInTranscriptionWidgetItem);
 	}
 	
@@ -2084,6 +2070,9 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	protected void reloadWordGraphMatrix(final boolean fromCache) {
+		if (!SHOW_WORD_GRAPH_STUFF)
+			return;
+		
 		if (getType() == Type.WORD_BASED)
 			return;		
 		
