@@ -1,5 +1,8 @@
 package eu.transkribus.swt_gui.htr;
 
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -8,6 +11,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.SWTUtil;
@@ -56,7 +61,16 @@ public class TextRecognitionComposite extends Composite {
 		
 		Storage.getInstance().addListener(new IStorageListener() {
 			public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
-				updateGui(Storage.getInstance().isAdminLoggedIn());
+				boolean withTrainBtn = false;
+				if(arg.login) {
+					final String trainJobImplStr = JobImpl.CITlabHtrTrainingJob.toString();	
+					try {
+						withTrainBtn = Storage.getInstance().getConnection().isUserAllowedForJob(trainJobImplStr);
+					} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+						withTrainBtn = false;
+					}
+				}
+				updateGui(withTrainBtn);
 			}
 		});
 	}

@@ -14,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
-import eu.transkribus.core.model.beans.TrpDoc;
-import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
@@ -246,21 +244,16 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 			} 
 			else if (tw.trComp.isHtr() && s == tw.trComp.getTrainBtn()) {
-				if(!store.isAdminLoggedIn()) {
-					DialogUtil.showInfoMessageBox(mw.getShell(), "Not Available", "HTR Training is currently under development and only available to Admins.\n"
-							+ "In case you want to request a data set to be trained, please contact us at email@transkribus.eu.");
+				if(htd != null) {
+					htd.setVisible();
 				} else {
-					if(htd != null) {
-						htd.setVisible();
-					} else {
-						htd = new HtrTrainingDialog(mw.getShell());
-						if(htd.open() == IDialogConstants.OK_ID) {
-							CitLabHtrTrainConfig config = htd.getConfig();
-							String jobId = store.runHtrTraining(config);
-							jobIds.add(jobId);
-						}
-						htd = null;
+					htd = new HtrTrainingDialog(mw.getShell());
+					if(htd.open() == IDialogConstants.OK_ID) {
+						CitLabHtrTrainConfig config = htd.getConfig();
+						String jobId = store.runHtrTraining(config);
+						jobIds.add(jobId);
 					}
+					htd = null;
 				}
 			}
 			else if (tw.trComp.isHtr() && s == tw.trComp.getRunBtn()) {

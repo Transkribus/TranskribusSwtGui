@@ -63,7 +63,6 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
-import eu.transkribus.core.exceptions.InvalidUserInputException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
@@ -108,7 +107,6 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
-import eu.transkribus.core.util.UserInputChecker;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -132,8 +130,13 @@ import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
 import eu.transkribus.swt_gui.canvas.CanvasWidget;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasRect;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
@@ -4704,6 +4707,89 @@ public class TrpMainWidget {
 //			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully modified the colleciton!");
 		} catch (Exception e) {
 			mw.onError("Error modifying collection", e.getMessage(), e);
+		}
+	}
+	
+	public void createImageSizeTextRegion() {
+		try {
+			if (!storage.hasTranscript()) {
+				return;
+			}
+			
+			canvas.getScene().getMainImage().getBounds();
+			Rectangle imgBounds = canvas.getScene().getMainImage().getBounds();
+			
+			if (CanvasShapeUtil.getFirstTextRegionWithSize(storage.getTranscript().getPage(), 0, 0, imgBounds.width, imgBounds.height, false) != null) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "Top level region with size of image already exists!");
+				return;
+			}
+			
+			CanvasPolygon imgBoundsPoly = new CanvasPolygon(imgBounds);
+//			CanvasMode modeBackup = canvas.getMode();
+			canvas.setMode(CanvasMode.ADD_TEXTREGION);
+			ShapeEditOperation op = canvas.getShapeEditor().addShapeToCanvas(imgBoundsPoly, true);
+			canvas.setMode(CanvasMode.SELECTION);
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
+		}	
+	}
+
+	public void createDefaultLineForSelectedShape() {
+		if (canvas.getFirstSelected() == null)
+			return;
+		
+		try {
+			logger.debug("creating default line for seected line/baseline!");
+			
+//			CanvasPolyline baselineShape = (CanvasPolyline) shape;
+//			shapeOfParent = baselineShape.getDefaultPolyRectangle();
+			
+			ICanvasShape shape = canvas.getFirstSelected();
+			CanvasPolyline blShape = (CanvasPolyline) CanvasShapeUtil.getBaselineShape(shape);
+			if (blShape == null)
+				return;
+			
+			CanvasPolygon pl = blShape.getDefaultPolyRectangle();
+			if (pl == null)
+				return;
+			
+			ITrpShapeType st = (ITrpShapeType) shape.getData();
+			TrpTextLineType line = TrpShapeTypeUtils.getLine(st);
+			if (line != null) {
+				ICanvasShape lineShape = (ICanvasShape) line.getData();
+				if (lineShape != null) {
+					lineShape.setPoints(pl.getPoints());
+					
+					canvas.redraw();
+				}
+			}
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
+		}	
+	}
+	
+	public void deleteTags(CustomTag... tags) {
+		if (tags != null) {
+			deleteTags(Arrays.asList(tags));
+		}
+	}
+
+	public void deleteTags(List<CustomTag> tags) {
+		try {
+			for (CustomTag t : tags) {
+				logger.trace("deleting tag: "+t+" ctl: "+t.getCustomTagList());
+				if (t==null || t.getCustomTagList()==null)
+					continue;
+				
+				t.getCustomTagList().deleteTagAndContinuations(t);
+			}
+	
+			updatePageRelatedMetadata();
+			getUi().getLineTranscriptionWidget().redrawText(true);
+			getUi().getWordTranscriptionWidget().redrawText(true);
+			refreshStructureView();
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
 		}
 	}
 
