@@ -137,12 +137,17 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 		if (tag == null || tag.getCustomTagList() == null)
 			return;
 		
-		tag.getCustomTagList().deleteTagAndContinuations(tag);
-		
-		mainWidget.updatePageRelatedMetadata();
-		mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
-		mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
-		mainWidget.refreshStructureView();
+		mainWidget.deleteTags(tag);
+
+//		if (tag == null || tag.getCustomTagList() == null)
+//			return;
+//		
+//		tag.getCustomTagList().deleteTagAndContinuations(tag);
+//		
+//		mainWidget.updatePageRelatedMetadata();
+//		mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
+//		mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
+//		mainWidget.refreshStructureView();
 	}
 
 	/**

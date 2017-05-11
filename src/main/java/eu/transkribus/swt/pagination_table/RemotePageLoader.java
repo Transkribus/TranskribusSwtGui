@@ -23,7 +23,7 @@ public class RemotePageLoader<T> implements IPageLoader<PageResult<T>> {
 	}
 	
 	@Override public PageResult<T> loadPage(PageableController controller) {
-		logger.debug("loading page, pageIndex = "+controller.getPageOffset()+" pageSize = "+controller.getPageSize());
+		logger.trace("loading page, pageIndex = "+controller.getPageOffset()+" pageSize = "+controller.getPageSize());
 		
 		try {
 			return PagingUtils.loadPage(methods, controller);

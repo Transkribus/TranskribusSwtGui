@@ -9,6 +9,7 @@ import math.geom2d.Point2D;
 import math.geom2d.polygon.SimplePolygon2D;
 
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Rectangle;
 
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
@@ -31,7 +32,23 @@ public class CanvasPolygon extends ACanvasShape<java.awt.Polygon> {
 	
 	public CanvasPolygon(List<Point> pts) {
 		setPoints(pts);
-	}	
+	}
+	
+	public CanvasPolygon(java.awt.Rectangle rect) {
+		this();
+		
+		List<Point> pts = new ArrayList<>();
+		pts.add(new Point(rect.x, rect.y));
+		pts.add(new Point(rect.x+rect.width, rect.y));
+		pts.add(new Point(rect.x+rect.width, rect.y+rect.height));
+		pts.add(new Point(rect.x, rect.y+rect.height));
+		
+		setPoints(pts);
+	}
+	
+	public CanvasPolygon(Rectangle r) {
+		this(new java.awt.Rectangle(r.x, r.y, r.width, r.height));
+	}
 	
 	public CanvasPolygon(Collection<Point2D> ptsIn) {
 		setPoints2D(ptsIn);
@@ -44,7 +61,7 @@ public class CanvasPolygon extends ACanvasShape<java.awt.Polygon> {
 	public CanvasPolygon(CanvasPolygon src) {
 		super(src);
 	}
-	
+
 	@Override public CanvasPolygon copy() {
 		return new CanvasPolygon(this);
 	}	

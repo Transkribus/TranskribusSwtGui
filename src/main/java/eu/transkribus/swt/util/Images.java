@@ -101,6 +101,8 @@ public class Images {
 	
 	public static final Image PAGE_COPY = Images.getOrLoad("/icons/page_copy.png");
 
+	public static final Image SHAPE_SQUARE_EDIT = Images.getOrLoad("/icons/shape_square_edit.png");
+
 	static HashMap<String, Image> imageMap;
 
 	public static Image getSystemImage(int swtSysImg) {

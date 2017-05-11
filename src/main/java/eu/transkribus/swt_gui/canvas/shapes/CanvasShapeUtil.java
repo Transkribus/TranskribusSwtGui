@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.canvas.shapes;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.Line2D;
 import java.util.List;
 
@@ -8,8 +9,38 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+
 public class CanvasShapeUtil {
 	public final static Logger logger = LoggerFactory.getLogger(CanvasShapeUtil.class);
+	
+	public static TrpTextRegionType getFirstTextRegionWithSize(TrpPageType page, int x, int y, int width, int height, boolean recursive) {
+		Rectangle check = new Rectangle(x, y, width, height);
+		for (TrpTextRegionType tr : page.getTextRegions(recursive)) {
+			ICanvasShape s = (ICanvasShape) tr.getData();
+
+			if (s != null && s.getNPoints() == 4 && check.equals(s.getBounds())) {
+				return tr;
+			}
+		}
+		
+		return null;
+	}
+	
+	public static ICanvasShape getBaselineShape(ICanvasShape s) {
+		if (s == null)
+			return null;
+		
+		TrpBaselineType bl = TrpShapeTypeUtils.getBaseline((ITrpShapeType) s.getData());
+		if (bl == null)
+			return null;
+		
+		return (CanvasPolyline) bl.getData();
+	}
 	
 	public static Pair<int[], Double> getClosestLineIndices(int x, int y, List<Point> pts, boolean wrap) {		
 		logger.trace("getClosestLineIndices: " + x + ", " + y + " wrap = " + wrap + ", pts.size() = " + pts.size());

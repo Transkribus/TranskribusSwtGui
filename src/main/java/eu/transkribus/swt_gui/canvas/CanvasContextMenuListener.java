@@ -4,9 +4,15 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
@@ -30,6 +36,10 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 		} catch (Throwable ex) {
 			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
 		}
+	}
+	
+	public void handleCreateDefaultLineEvent(CreateDefaultLineEvent event) {
+		TrpMainWidget.getInstance().createDefaultLineForSelectedShape();
 	}
 	
 	public void handleTableHelpEvent(TableHelpEvent event) {
