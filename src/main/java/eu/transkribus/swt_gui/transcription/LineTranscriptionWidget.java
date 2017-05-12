@@ -83,8 +83,10 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				
 				// send this information to this bloody method which causes the modification to be done in the underlying page element:
 				onTextChangedFromUser(start, end, replacementText);
-				text.redraw();
-				text.redrawRange(0, text.getCharCount(), true);
+				
+				redrawText(true);
+//				text.redraw();
+//				text.redrawRange(0, text.getCharCount(), true);
 			}
 		};
 		addUserExtendedModifyListener(extendedModifyListener);

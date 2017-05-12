@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -164,6 +165,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetListener;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
@@ -4759,6 +4761,61 @@ public class TrpMainWidget {
 				t.getCustomTagList().deleteTagAndContinuations(t);
 			}
 	
+			updatePageRelatedMetadata();
+			getUi().getLineTranscriptionWidget().redrawText(true);
+			getUi().getWordTranscriptionWidget().redrawText(true);
+			refreshStructureView();
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
+		}
+	}
+	
+	public void addTagForSelection(CustomTag t) {
+		addTagForSelection(t.getTagName(), t.getAttributeNamesValuesMap());
+	}
+
+	public void addTagForSelection(String tagName, Map<String, Object> attributes) {
+		try {
+			boolean isTextSelectedInTranscriptionWidget = isTextSelectedInTranscriptionWidget();
+			
+	//		ATranscriptionWidget aw = mainWidget.getUi().getSelectedTranscriptionWidget();
+	//		boolean isSingleSelection = aw!=null && aw.isSingleSelection();
+			
+			CustomTag protoTag = CustomTagFactory.getTagObjectFromRegistry(tagName);
+			
+			boolean canBeEmpty = protoTag!=null && protoTag.canBeEmpty();
+			logger.debug("protoTag = "+protoTag+" canBeEmtpy = "+canBeEmpty);
+			
+			logger.debug("isTextSelectedInTranscriptionWidget = "+isTextSelectedInTranscriptionWidget);		
+			
+			if (!isTextSelectedInTranscriptionWidget && !canBeEmpty) {
+				logger.debug("applying tag to all selected in canvas: "+tagName);
+				List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedData(ITrpShapeType.class);
+				logger.debug("selData = "+selData.size());
+				for (ITrpShapeType sel : selData) {
+					if (sel instanceof TrpTextLineType || sel instanceof TrpWordType) { // tags only for words and lines!
+						try {
+							CustomTag t = CustomTagFactory.create(tagName, 0, sel.getUnicodeText().length(), attributes);						
+							sel.getCustomTagList().addOrMergeTag(t, null);
+							logger.debug("created tag: "+t);
+						} catch (Exception e) {
+							logger.error("Error creating tag: "+e.getMessage(), e);
+						}
+					}
+				}
+			} else {
+				logger.debug("applying tag to all selected in transcription widget: "+tagName);
+				List<Pair<ITrpShapeType, CustomTag>> tags4Shapes = TaggingWidgetUtils.constructTagsFromSelectionInTranscriptionWidget(ui, tagName, attributes);
+	//			List<Pair<ITrpShapeType, CustomTag>> tags4Shapes = TaggingWidgetUtils.constructTagsFromSelectionInTranscriptionWidget(ui, tagName, null);
+				for (Pair<ITrpShapeType, CustomTag> p : tags4Shapes) {
+					CustomTag tag = p.getRight();
+					if (tag != null) {
+						tag.setContinued(tags4Shapes.size()>1);
+						p.getLeft().getCustomTagList().addOrMergeTag(tag, null);
+					}
+				}		
+			}
+			
 			updatePageRelatedMetadata();
 			getUi().getLineTranscriptionWidget().redrawText(true);
 			getUi().getWordTranscriptionWidget().redrawText(true);

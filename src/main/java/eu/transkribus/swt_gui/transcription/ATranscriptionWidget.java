@@ -95,6 +95,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
+import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
@@ -195,7 +196,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected int lastKeyCode=0;
 	protected long lastDefaultSelectionEventTime = 0;
 		
-	protected List<StyleRange> styleRanges = new ArrayList<StyleRange>();
+//	protected List<StyleRange> styleRanges = new ArrayList<StyleRange>();
 	
 	protected final static int DEFAULT_FONT_SIZE = 20;
 	protected TrpSettings settings;
@@ -230,6 +231,13 @@ public abstract class ATranscriptionWidget extends Composite{
 	private MenuItem alignmentMenuItem;
 	private DropDownToolItemSimple transcriptSetsDropDown;
 	private MenuItem toolBarOnTopItem;
+	
+	ToolItem boldTagItem;
+	ToolItem italicTagItem;
+	ToolItem subscriptTagItem;
+	ToolItem superscriptTagItem;
+	ToolItem underlinedTagItem;
+	ToolItem strikethroughTagItem;
 	
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
@@ -642,6 +650,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
+		initFontTagsToolbar();
+		
+		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+		
 		undoItem = new ToolItem(regionsToolbar, SWT.PUSH);
 		undoItem.setImage(Images.getOrLoad("/icons/arrow_undo.png"));
 		undoItem.setToolTipText("Undo last text change (ctrl + z)");
@@ -676,6 +688,44 @@ public abstract class ATranscriptionWidget extends Composite{
 //			}
 
 		}
+	}
+	
+	private void initFontTagsToolbar() {
+		boldTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
+		boldTagItem.setImage(Images.getOrLoad("/icons/text_bold.png"));
+		boldTagItem.setToolTipText("Tag text as bold");
+		boldTagItem.setData(TextStyleTag.getBoldTag());
+		boldTagItem.addSelectionListener(new TagItemListener());
+		
+		italicTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
+		italicTagItem.setImage(Images.getOrLoad("/icons/text_italic.png"));
+		italicTagItem.setToolTipText("Tag as italic");
+		italicTagItem.setData(TextStyleTag.getItalicTag());
+		italicTagItem.addSelectionListener(new TagItemListener());
+		
+		subscriptTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
+		subscriptTagItem.setImage(Images.getOrLoad("/icons/text_subscript.png"));
+		subscriptTagItem.setToolTipText("Tag as subscript");
+		subscriptTagItem.setData(TextStyleTag.getSubscriptTag());
+		subscriptTagItem.addSelectionListener(new TagItemListener());
+		
+		superscriptTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
+		superscriptTagItem.setImage(Images.getOrLoad("/icons/text_superscript.png"));
+		superscriptTagItem.setToolTipText("Tag as superscript");
+		superscriptTagItem.setData(TextStyleTag.getSuperscriptTag());
+		superscriptTagItem.addSelectionListener(new TagItemListener());
+		
+		underlinedTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
+		underlinedTagItem.setImage(Images.getOrLoad("/icons/text_underline.png"));
+		underlinedTagItem.setToolTipText("Tag as underlined");
+		underlinedTagItem.setData(TextStyleTag.getUnderlinedTag());
+		underlinedTagItem.addSelectionListener(new TagItemListener());
+		
+		strikethroughTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
+		strikethroughTagItem.setImage(Images.getOrLoad("/icons/text_strikethrough.png"));
+		strikethroughTagItem.setToolTipText("Tag as strikethrough");
+		strikethroughTagItem.setData(TextStyleTag.getStrikethroughTag());
+		strikethroughTagItem.addSelectionListener(new TagItemListener());
 	}
 	
 	private void initTranscriptionSetsDropDown() {
@@ -1082,7 +1132,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 	}
 	
-	public void updateLineStyles() {
+	protected void updateLineStyles() {
 		if (!text.isEnabled()) {
 			return;
 		}
@@ -1117,8 +1167,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 //		if (true)
 //			centerCurrentLine();
-		
-		
+
 		text.redraw();
 	}
 	
@@ -1629,8 +1678,7 @@ public abstract class ATranscriptionWidget extends Composite{
 				tagItem1.setText(tmp);
 				tagItem1.addSelectionListener(new MenuItemListener());
 			}
-			else{
-
+			else {
 				tagnamesRest.add(tmp);
 			}
 
@@ -1652,6 +1700,38 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 	}
 	
+	class TagItemListener extends SelectionAdapter {
+		public void widgetSelected(SelectionEvent event) {
+			logger.debug("TagItemListener, widget = "+event.widget);
+			
+			if (event.widget == null)
+				return;
+			
+			if (!(event.widget.getData() instanceof CustomTag)) {
+				logger.debug("no CustomTag as data!");
+				return;
+			}
+			
+			
+			
+			CustomTag t = (CustomTag) event.widget.getData();
+			logger.debug("adding tag for current selection: "+t);
+			
+			// merge existing text-styles of current selection into the tag
+			if (t instanceof TextStyleTag) {
+				TextStyleTag tst = getCommonIndexedCustomTagForCurrentSelection(TextStyleTag.TAG_NAME);
+				logger.debug("tst = "+tst);
+				if (tst != null) {
+					((TextStyleTag) t).applyTrueValues(tst);
+//					t.setAttributes(tst, false);
+					logger.debug("t = "+t);
+				}
+			}
+			
+			TrpMainWidget.getInstance().addTagForSelection(t);
+	    } // end widgetSelected
+	}
+	
 	/*
 	 * right click listener for the transcript table
 	 * for the latest transcript the new status can be set with the right click button and by choosing the new status
@@ -1659,6 +1739,9 @@ public abstract class ATranscriptionWidget extends Composite{
 	class MenuItemListener extends SelectionAdapter {
 	    public void widgetSelected(SelectionEvent event) {
 	    	logger.debug("You selected " + ((MenuItem) event.widget).getText());
+	    	
+//	    	TextStyleTag t = new TextStyleTag();
+//	    	t.getBold();
 	    	
 	    	if (event.widget == deleteTagMenuItem) {
 	    		logger.debug("deleting tags under cursor: "+getCustomTagsForCurrentOffset());
@@ -1696,7 +1779,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	    				    			
 	    			Map<String, Object> atts = new HashMap<>();
 	    			atts.put(CommentTag.COMMENT_PROPERTY_NAME, commentText);
-	    			mw.getTaggingWidgetListener().addTagForSelection(CommentTag.TAG_NAME, atts);
+	    			mw.addTagForSelection(CommentTag.TAG_NAME, atts);
 	    			mw.getUi().getCommentsWidget().reloadComments();
 	    		}
 	    		else{
@@ -1800,6 +1883,8 @@ public abstract class ATranscriptionWidget extends Composite{
 			} else {
 				currentLineObject.setStructure(TextTypeSimpleType.PARAGRAPH.value(), false, this);
 			}
+			
+			redrawText(true);
 		}
 	}
 	
@@ -2145,10 +2230,12 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 		
 	public void redrawText(boolean updateStyles) {
-		if (updateStyles)
-			updateLineStyles();
-		
-		text.redraw();
+		if (updateStyles) {
+			updateLineStyles(); // also redraw's text field...
+		}
+		else {
+			text.redraw();
+		}
 	}
 	
 	/** Is called everytime after the method {@link #updateData(TrpTextRegionType, TrpTextLineType, TrpWordType)} was invoked */

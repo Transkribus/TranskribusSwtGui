@@ -78,50 +78,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 	}
 		
 	@Override public void addTagForSelection(String tagName, Map<String, Object> attributes) {
-		boolean isTextSelectedInTranscriptionWidget = mainWidget.isTextSelectedInTranscriptionWidget();
-		
-//		ATranscriptionWidget aw = mainWidget.getUi().getSelectedTranscriptionWidget();
-//		boolean isSingleSelection = aw!=null && aw.isSingleSelection();
-		
-		CustomTag protoTag = CustomTagFactory.getTagObjectFromRegistry(tagName);
-		
-		boolean canBeEmpty = protoTag!=null && protoTag.canBeEmpty();
-		logger.debug("protoTag = "+protoTag+" canBeEmtpy = "+canBeEmpty);
-		
-		logger.debug("isTextSelectedInTranscriptionWidget = "+isTextSelectedInTranscriptionWidget);		
-		
-		if (!isTextSelectedInTranscriptionWidget && !canBeEmpty) {
-			logger.debug("applying tag to all selected in canvas: "+tagName);
-			List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedData(ITrpShapeType.class);
-			logger.debug("selData = "+selData.size());
-			for (ITrpShapeType sel : selData) {
-				if (sel instanceof TrpTextLineType || sel instanceof TrpWordType) { // tags only for words and lines!
-					try {
-						CustomTag t = CustomTagFactory.create(tagName, 0, sel.getUnicodeText().length(), attributes);						
-						sel.getCustomTagList().addOrMergeTag(t, null);
-						logger.debug("created tag: "+t);
-					} catch (Exception e) {
-						logger.error("Error creating tag: "+e.getMessage(), e);
-					}
-				}
-			}
-		} else {
-			logger.debug("applying tag to all selected in transcription widget: "+tagName);
-			List<Pair<ITrpShapeType, CustomTag>> tags4Shapes = TaggingWidgetUtils.constructTagsFromSelectionInTranscriptionWidget(ui, tagName, attributes);
-//			List<Pair<ITrpShapeType, CustomTag>> tags4Shapes = TaggingWidgetUtils.constructTagsFromSelectionInTranscriptionWidget(ui, tagName, null);
-			for (Pair<ITrpShapeType, CustomTag> p : tags4Shapes) {
-				CustomTag tag = p.getRight();
-				if (tag != null) {
-					tag.setContinued(tags4Shapes.size()>1);
-					p.getLeft().getCustomTagList().addOrMergeTag(tag, null);
-				}
-			}		
-		}
-		
-		mainWidget.updatePageRelatedMetadata();
-		mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
-		mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
-		mainWidget.refreshStructureView();
+		mainWidget.addTagForSelection(tagName, attributes);
 	}
 		
 //	@Override public void deleteTag(CustomTagAndList ctal) {
