@@ -114,7 +114,6 @@ import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
 import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
-import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
 import eu.transkribus.swt_gui.util.DropDownToolItemSimple;
 import eu.transkribus.util.Utils;
 
@@ -161,7 +160,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	protected ToolItem undoItem, redoItem;
 	
-	protected ToolItem autocompleteToggle;
+	protected MenuItem autocompleteToggle;
 	
 	// additional characters:
 	protected ToolItem longDash;
@@ -209,7 +208,10 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	protected UndoRedoImpl undoRedo;
 	
-	protected DropDownToolItem transcriptionTypeItem;
+//	protected DropDownToolItem transcriptionTypeItem;
+	protected MenuItem transcriptionTypeMenuItem;
+	protected MenuItem transcriptionTypeLineBasedItem;
+	protected MenuItem transcriptionTypeWordBasedItem;
 	
 //	protected WritingOrientation writingOrientation = WritingOrientation.LEFT_TO_RIGHT;
 	protected ExtendedModifyListener rightToLeftModifyListener;
@@ -226,6 +228,8 @@ public abstract class ATranscriptionWidget extends Composite{
 	List<ITranscriptionWidgetListener> listener = new ArrayList<>(); // custom event listener
 //	private DropDownToolItem alignmentDropDown;
 	private MenuItem alignmentMenuItem;
+	private DropDownToolItemSimple transcriptSetsDropDown;
+	private MenuItem toolBarOnTopItem;
 	
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
@@ -359,6 +363,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		updateData(null, null, null);
 		
 		initContextMenu();
+		
+		moveToolBar(settings.getTranscriptionToolbarOnTop());
 	}
 	
 	public void addListener(ITranscriptionWidgetListener l) {
@@ -533,23 +539,28 @@ public abstract class ATranscriptionWidget extends Composite{
 		text.setFont(globalTextFont);
 	}
 	
+	public void moveToolBar(boolean top) {
+		logger.debug("moveToolBar: "+top);
+		if (top) {
+			regionsToolbar.moveAbove(container);
+		} else {
+			regionsToolbar.moveBelow(container);
+		}
+
+		logger.trace("layouting...");
+		this.layout(true);
+	}
+	
 	protected void initToolBar() {
 //		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, true, this, SWT.FLAT | SWT.BOTTOM);
 		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, true, this, /*SWT.FLAT |*/ SWT.BOTTOM);
 		regionsPagingToolBar.removeReloadButton();
 		regionsPagingToolBar.removeDoubleButtons();
 		regionsToolbar = regionsPagingToolBar.getToolBar();
-		
-		// TEST:
-		transcriptionTypeItem = new DropDownToolItem(regionsToolbar, true, true, true, SWT.RADIO | SWT.BOLD, 0);
-//		transcriptionTypeItem.addItem("Region based", null, "", true, Type.REGION_BASED);
-		transcriptionTypeItem.addItem("Line based", null, "", true, Type.LINE_BASED);
-		transcriptionTypeItem.addItem("Word based", null, "", false, Type.WORD_BASED);
-		new ToolItem(regionsToolbar, SWT.SEPARATOR, 1);
-		// END OF TEST
-		
+				
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
+		initTranscriptionSetsDropDown();
 		initViewSetsDropDown();
 
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
@@ -599,11 +610,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		additionalToolItems.add(deleteTextDropDown.ti);
 			
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
-		
-		autocompleteToggle = new ToolItem(regionsToolbar, SWT.CHECK);
-		autocompleteToggle.setImage(Images.getOrLoad("/icons/autocomplete.png"));
-		autocompleteToggle.setToolTipText("Enable autocomplete");
-		
+				
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
 		longDash = new ToolItem(regionsToolbar, SWT.PUSH);
@@ -671,8 +678,33 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 	}
 	
+	private void initTranscriptionSetsDropDown() {
+		transcriptSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.WRENCH);
+		transcriptSetsDropDown.getToolItem().setToolTipText("Transcription settings...");
+		
+		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
+				
+		transcriptionTypeMenuItem = transcriptSetsDropDown.addItem("Transcription level", null, SWT.CASCADE);
+		Menu transcriptionTypeMenu = new Menu(transcriptSetsDropDown.getMenu());
+		transcriptionTypeMenuItem.setMenu(transcriptionTypeMenu);
+		
+		transcriptionTypeLineBasedItem = SWTUtil.createMenuItem(transcriptionTypeMenu, "Line based", null, SWT.RADIO);
+		transcriptionTypeLineBasedItem.setSelection(true);
+		transcriptionTypeLineBasedItem.setData(Type.LINE_BASED);
+		
+		transcriptionTypeWordBasedItem= SWTUtil.createMenuItem(transcriptionTypeMenu, "Word based", null, SWT.RADIO);
+		transcriptionTypeWordBasedItem.setData(Type.WORD_BASED);
+		
+		autocompleteToggle = transcriptSetsDropDown.addItem("Autocomplete (experimental)", Images.getOrLoad("/icons/autocomplete.png"), SWT.CHECK);
+		
+//		autocompleteToggle = new ToolItem(regionsToolbar, SWT.CHECK);
+//		autocompleteToggle.setImage(Images.getOrLoad("/icons/autocomplete.png"));
+//		autocompleteToggle.setToolTipText("Enable autocomplete");
+	}
+	
 	private void initViewSetsDropDown() {
 		viewSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.EYE);
+		viewSetsDropDown.getToolItem().setToolTipText("Viewing settings for the transcription widget");
 		additionalToolItems.add(viewSetsDropDown.getToolItem());
 		
 		fontItem = viewSetsDropDown.addItem("Change text field font...", Images.getOrLoad("/icons/font.png"), SWT.PUSH);
@@ -680,6 +712,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		showControlSignsItem = viewSetsDropDown.addItem("\u00B6 Show control signs", null, SWT.CHECK);
 		centerCurrentLineItem = viewSetsDropDown.addItem("Always try to show a line above and below the selected one", Images.getOrLoad("/icons/arrow_up_down.png"), SWT.CHECK);
 		focusShapeOnDoubleClickInTranscriptionWidgetItem = viewSetsDropDown.addItem("Focus shape on double-click", Images.getOrLoad("/icons/mouse_focus.png"), SWT.CHECK);
+		toolBarOnTopItem = viewSetsDropDown.addItem("Display toolbar on top", null, SWT.CHECK);
 		
 		textAlignment = SWT.LEFT;
 		alignmentMenuItem = viewSetsDropDown.addItem("Text alignment", Images.getOrLoad("/icons/text_align_left.png"), SWT.CASCADE);
@@ -702,6 +735,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		renderOtherStyleTypeItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Other: underlined, strikethrough, etc.", null, SWT.CHECK);
 		renderTagsItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Tags: colored underlines for tags", null, SWT.CHECK);
 		
+		
 //		renderTextStylesItem= textStyleDisplayOptions.addItem("Text style: normal, italic, bold, bold&italic", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTextStyles());
 //		renderOtherStyleTypeItem = textStyleDisplayOptions.addItem("Other: underlined, strikethrough, etc.", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderOtherStyles());
 //		renderTagsItem = textStyleDisplayOptions.addItem("Tags: colored underlines for tags", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTags());
@@ -711,8 +745,12 @@ public abstract class ATranscriptionWidget extends Composite{
 		return vkItem;
 	}
 
-	public ToolItem getAutocompleteToggle() { return autocompleteToggle; }
-	public DropDownToolItem getTranscriptionTypeItem() { return transcriptionTypeItem; }
+//	public ToolItem getAutocompleteToggle() { return autocompleteToggle; }
+	
+//	public DropDownToolItem getTranscriptionTypeItem() { return transcriptionTypeItem; }
+	
+	public MenuItem getTranscriptionTypeLineBasedItem() { return transcriptionTypeLineBasedItem; }
+	public MenuItem getTranscriptionTypeWordBasedItem() { return transcriptionTypeWordBasedItem; }
 	
 	protected abstract void onTextChangedFromUser(int start, int end, String replacementText);
 
@@ -766,16 +804,24 @@ public abstract class ATranscriptionWidget extends Composite{
 						text.setLineSpacing(DEFAULT_LINE_SPACING);
 				}
 								
-				if (pn.equals(TrpSettings.TRANSCRIPTION_FONT_NAME_PROPERTY)) {
+				else if (pn.equals(TrpSettings.TRANSCRIPTION_FONT_NAME_PROPERTY)) {
 					setFontFromSettings();
 				}
 				
-				if (pn.equals(TrpSettings.TRANSCRIPTION_FONT_SIZE_PROPERTY)) {
+				else if (pn.equals(TrpSettings.TRANSCRIPTION_FONT_SIZE_PROPERTY)) {
 					setFontFromSettings();
 				}
 				
-				if (pn.equals(TrpSettings.TRANSCRIPTION_FONT_STYLE_PROPERTY)) {
+				else if (pn.equals(TrpSettings.TRANSCRIPTION_FONT_STYLE_PROPERTY)) {
 					setFontFromSettings();
+				}
+				
+				else if (pn.equals(TrpSettings.TRANSCRIPTION_TOOLBAR_ON_TOP_PROPERTY)) {
+					moveToolBar(settings.getTranscriptionToolbarOnTop());
+				}
+				
+				else if (pn.equals(TrpSettings.AUTOCOMPLETE_PROPERTY)) {
+					autocomplete.getAdapter().setEnabled(settings.isAutocomplete());
 				}
 				
 				// saving on change not needed anymore... gets saved anyway
@@ -1740,6 +1786,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		db.bindBeanToWidgetSelection(TrpSettings.FOCUS_SHAPE_ON_DOUBLE_CLICK_IN_TRANSCRIPTION_WIDGET,
 				settings, focusShapeOnDoubleClickInTranscriptionWidgetItem);
+		
+		db.bindBeanToWidgetSelection(TrpSettings.TRANSCRIPTION_TOOLBAR_ON_TOP_PROPERTY, settings, toolBarOnTopItem);
+		
+		db.bindBeanToWidgetSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, TrpMainWidget.getTrpSettings(), autocompleteToggle);
 	}
 	
 	protected void toggleParagraphOnSelectedLine() {

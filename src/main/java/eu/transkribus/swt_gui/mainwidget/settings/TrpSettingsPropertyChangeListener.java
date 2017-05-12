@@ -11,6 +11,7 @@ import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TrpSettingsPropertyChangeListener implements PropertyChangeListener {
 	private final static Logger logger = LoggerFactory.getLogger(TrpSettingsPropertyChangeListener.class);
@@ -32,9 +33,7 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 		logger.debug(evt.getPropertyName() + " property changed, new value: " + evt.getNewValue());
 		String pn = evt.getPropertyName();
 
-		if (pn.equals(TrpSettings.AUTOCOMPLETE_PROPERTY)) {
-			mainWidget.enableAutocomplete();
-		} else if (pn.equals(TrpSettings.SHOW_LINE_EDITOR_PROPERTY)) {
+		if (pn.equals(TrpSettings.SHOW_LINE_EDITOR_PROPERTY)) {
 			canvas.getLineEditor().updateEditor();
 		} else if (TrpSettings.isSegmentationVisibilityProperty(pn)){
 			mainWidget.getScene().updateSegmentationViewSettings();	
@@ -83,10 +82,6 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 				mainWidget.getCanvas().fitWidth();
 			}
 		}
-		
-		
-		
-		
 		
 		if (TrpSettings.isColorProperty(pn)) {
 			logger.debug("color info changed - updating!");

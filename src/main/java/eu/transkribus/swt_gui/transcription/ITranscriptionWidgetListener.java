@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.transcription.listener;
+package eu.transkribus.swt_gui.transcription;
 
 import eu.transkribus.core.catti.CattiRequest;
 

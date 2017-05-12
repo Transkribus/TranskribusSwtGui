@@ -336,8 +336,9 @@ public class TrpMainWidgetView extends Composite {
 		
 		if (type == ATranscriptionWidget.Type.LINE_BASED) {
 			changed=true;
-//			lineTranscriptionWidget.getTranscriptionTypeItem().clearSelections();
-			lineTranscriptionWidget.getTranscriptionTypeItem().selectItem(0, false);
+			lineTranscriptionWidget.getTranscriptionTypeLineBasedItem().setSelection(true);
+			lineTranscriptionWidget.getTranscriptionTypeWordBasedItem().setSelection(false);
+//			lineTranscriptionWidget.getTranscriptionTypeItem().selectItem(0, false);
 			
 			lineTranscriptionWidget.setParent(transcriptionWidgetContainer);
 			wordTranscriptionWidget.setParent(SWTUtil.dummyShell);
@@ -346,8 +347,9 @@ public class TrpMainWidgetView extends Composite {
 			
 		} else if (type == ATranscriptionWidget.Type.WORD_BASED) {
 			changed=true;
-//			wordTranscriptionWidget.getTranscriptionTypeItem().clearSelections();
-			wordTranscriptionWidget.getTranscriptionTypeItem().selectItem(1, false);
+			wordTranscriptionWidget.getTranscriptionTypeLineBasedItem().setSelection(false);
+			wordTranscriptionWidget.getTranscriptionTypeWordBasedItem().setSelection(true);
+//			wordTranscriptionWidget.getTranscriptionTypeItem().selectItem(1, false);
 			
 			lineTranscriptionWidget.setParent(SWTUtil.dummyShell);
 			wordTranscriptionWidget.setParent(transcriptionWidgetContainer);

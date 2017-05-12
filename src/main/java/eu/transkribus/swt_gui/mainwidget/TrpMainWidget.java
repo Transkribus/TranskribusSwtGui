@@ -172,10 +172,10 @@ import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
 import eu.transkribus.swt_gui.tools.ToolsWidgetListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.swt_gui.transcription.LineEditorListener;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
-import eu.transkribus.swt_gui.transcription.listener.LineEditorListener;
-import eu.transkribus.swt_gui.transcription.listener.LineTranscriptionWidgetListener;
-import eu.transkribus.swt_gui.transcription.listener.WordTranscriptionWidgetListener;
+import eu.transkribus.swt_gui.transcription.LineTranscriptionWidgetListener;
+import eu.transkribus.swt_gui.transcription.WordTranscriptionWidgetListener;
 import eu.transkribus.swt_gui.upload.UploadDialog;
 import eu.transkribus.swt_gui.upload.UploadDialogUltimate;
 import eu.transkribus.swt_gui.util.GuiUtil;
@@ -305,7 +305,6 @@ public class TrpMainWidget {
 		addListener();
 		addUiBindings();
 		
-		enableAutocomplete();
 		updateToolBars();
 		if(getTrpSets().autoSaveFolder.trim().isEmpty()){
 			getTrpSets().setAutoSaveFolder(TrpSettings.getDefaultAutoSaveFolder());
@@ -2376,14 +2375,6 @@ public class TrpMainWidget {
 
 	public TranscriptObserver getTranscriptObserver() {
 		return transcriptObserver;
-	}
-
-	public void enableAutocomplete() {
-		ui.lineTranscriptionWidget.getAutoComplete().getAdapter().setEnabled(getTrpSets().isAutocomplete());
-		ui.wordTranscriptionWidget.getAutoComplete().getAdapter().setEnabled(getTrpSets().isAutocomplete());
-		canvas.getLineEditor().getAutoComplete().getAdapter().setEnabled(getTrpSets().isAutocomplete());
-
-		// trpTranscriptionWidget.getAutoComplete().getAdapter().setEnabled(selection);
 	}
 
 	/**

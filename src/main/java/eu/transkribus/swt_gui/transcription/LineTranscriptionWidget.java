@@ -42,7 +42,6 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.Utils;
 import junit.framework.Assert;
