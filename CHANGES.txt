@@ -461,4 +461,10 @@ CHANGES AND BUGFIXES
 	-> encode METS URL before sending it
 	-> reload doclist bug fixed
 	
+1.2.3:
+	-> fixed bug that prevented starting the LA without any regions
+	-> HTR training interface modified
+	-> collection metadata editor
+	
+	
 	

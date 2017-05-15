@@ -109,9 +109,12 @@ public class ToolsWidgetListener implements SelectionListener {
 //		return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn || s == tw.baselineBtn || s == tw.polygon2baselinesBtn);
 	}
 	
-	boolean needsRegions(Object s) {
-		return (s == tw.startLaBtn && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn;
-//		return s == tw.baselineBtn || s == tw.lineSegBtn;
+	boolean needsRegions(PcGtsType pageData, Object s) {
+		if (PageXmlUtils.hasRegions(pageData)) {
+			return false;
+		}
+		
+		return (s == tw.startLaBtn && !tw.laComp.isDoBlockSeg() && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn;
 	}
 		
 	@Override
@@ -140,7 +143,7 @@ public class ToolsWidgetListener implements SelectionListener {
 			
 			int colId = store.getCurrentDocumentCollectionId();
 			
-			if (needsRegions(s) && !PageXmlUtils.hasRegions(pageData)) {
+			if (needsRegions(pageData, s)) {
 				DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "You have to define text regions first!");
 				return;
 			}
