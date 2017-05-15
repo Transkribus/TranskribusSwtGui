@@ -123,7 +123,7 @@ public class FullTextSearchComposite extends Composite{
 	String searchText;
 	private String lastSearchText;
 	private int numPageHits;
-	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],),#";
+	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],),#,~";
 	private SearchType type;
 
 	public FullTextSearchComposite(Composite parent, int style){
@@ -829,14 +829,12 @@ public class FullTextSearchComposite extends Composite{
 		
 		searchText = inputText.getText().toString();
 		
-		if(fuzzyCheck.getSelection()){
-			searchText += "~2";
-		}
-		
-		
-		
 		for(String c : BAD_SYMBOLS.split(",")){
 			searchText = searchText.replaceAll("\\"+c, "");
+		}
+		
+		if(fuzzyCheck.getSelection()){
+			searchText += "~2";
 		}
 		
 		searchText = searchText.trim();
