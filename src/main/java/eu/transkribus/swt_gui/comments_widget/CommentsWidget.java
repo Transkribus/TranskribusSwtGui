@@ -198,7 +198,7 @@ public class CommentsWidget extends Composite {
 		
 		Map<String, Object> atts = new HashMap<>();
 		atts.put(CommentTag.COMMENT_PROPERTY_NAME, commentText.getText());
-		mw.addTagForSelection(CommentTag.TAG_NAME, atts);
+		mw.addTagForSelection(CommentTag.TAG_NAME, atts, null);
 		reloadComments();
 	}
 	

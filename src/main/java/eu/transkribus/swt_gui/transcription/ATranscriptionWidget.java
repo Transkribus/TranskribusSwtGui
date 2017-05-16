@@ -1712,23 +1712,35 @@ public abstract class ATranscriptionWidget extends Composite{
 				return;
 			}
 			
-			
-			
 			CustomTag t = (CustomTag) event.widget.getData();
 			logger.debug("adding tag for current selection: "+t);
 			
+			String addOnlyThisProperty = null;
+			
 			// merge existing text-styles of current selection into the tag
 			if (t instanceof TextStyleTag) {
-				TextStyleTag tst = getCommonIndexedCustomTagForCurrentSelection(TextStyleTag.TAG_NAME);
-				logger.debug("tst = "+tst);
-				if (tst != null) {
-					((TextStyleTag) t).applyTrueValues(tst);
-//					t.setAttributes(tst, false);
-					logger.debug("t = "+t);
-				}
+				if (event.widget == boldTagItem)
+					addOnlyThisProperty = "bold";
+				else if (event.widget == italicTagItem)
+					addOnlyThisProperty = "italic";
+				else if (event.widget == subscriptTagItem)
+					addOnlyThisProperty = "subscript";
+				else if (event.widget == superscriptTagItem)
+					addOnlyThisProperty = "superscript";
+				else if (event.widget == underlinedTagItem)
+					addOnlyThisProperty = "underlined";
+				else if (event.widget == strikethroughTagItem)
+					addOnlyThisProperty = "strikethrough";			
+								
+//				TextStyleTag tst = getCommonIndexedCustomTagForCurrentSelection(TextStyleTag.TAG_NAME);
+//				logger.debug("tst = "+tst);
+//				if (tst != null) {
+//					((TextStyleTag) t).applyTrueValues(tst);
+//					logger.debug("t = "+t);
+//				}
 			}
-			
-			TrpMainWidget.getInstance().addTagForSelection(t);
+
+			TrpMainWidget.getInstance().addTagForSelection(t, addOnlyThisProperty);
 	    } // end widgetSelected
 	}
 	
@@ -1779,7 +1791,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	    				    			
 	    			Map<String, Object> atts = new HashMap<>();
 	    			atts.put(CommentTag.COMMENT_PROPERTY_NAME, commentText);
-	    			mw.addTagForSelection(CommentTag.TAG_NAME, atts);
+	    			mw.addTagForSelection(CommentTag.TAG_NAME, atts, null);
 	    			mw.getUi().getCommentsWidget().reloadComments();
 	    		}
 	    		else{

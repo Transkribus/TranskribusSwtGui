@@ -4770,22 +4770,22 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public void addTagForSelection(CustomTag t) {
-		addTagForSelection(t.getTagName(), t.getAttributeNamesValuesMap());
+	public void addTagForSelection(CustomTag t, String addOnlyThisProperty) {
+		addTagForSelection(t.getTagName(), t.getAttributeNamesValuesMap(), addOnlyThisProperty);
 	}
 
-	public void addTagForSelection(String tagName, Map<String, Object> attributes) {
+	public void addTagForSelection(String tagName, Map<String, Object> attributes, String addOnlyThisProperty) {
 		try {
+			logger.debug("addTagForSelection, tagName = "+tagName+", attributes = "+attributes+", addOnlyThisProperty = "+addOnlyThisProperty);
+			
 			boolean isTextSelectedInTranscriptionWidget = isTextSelectedInTranscriptionWidget();
 			
 	//		ATranscriptionWidget aw = mainWidget.getUi().getSelectedTranscriptionWidget();
 	//		boolean isSingleSelection = aw!=null && aw.isSingleSelection();
 			
 			CustomTag protoTag = CustomTagFactory.getTagObjectFromRegistry(tagName);
-			
 			boolean canBeEmpty = protoTag!=null && protoTag.canBeEmpty();
 			logger.debug("protoTag = "+protoTag+" canBeEmtpy = "+canBeEmpty);
-			
 			logger.debug("isTextSelectedInTranscriptionWidget = "+isTextSelectedInTranscriptionWidget);		
 			
 			if (!isTextSelectedInTranscriptionWidget && !canBeEmpty) {
@@ -4796,7 +4796,7 @@ public class TrpMainWidget {
 					if (sel instanceof TrpTextLineType || sel instanceof TrpWordType) { // tags only for words and lines!
 						try {
 							CustomTag t = CustomTagFactory.create(tagName, 0, sel.getUnicodeText().length(), attributes);						
-							sel.getCustomTagList().addOrMergeTag(t, null);
+							sel.getCustomTagList().addOrMergeTag(t, addOnlyThisProperty);
 							logger.debug("created tag: "+t);
 						} catch (Exception e) {
 							logger.error("Error creating tag: "+e.getMessage(), e);
@@ -4811,7 +4811,7 @@ public class TrpMainWidget {
 					CustomTag tag = p.getRight();
 					if (tag != null) {
 						tag.setContinued(tags4Shapes.size()>1);
-						p.getLeft().getCustomTagList().addOrMergeTag(tag, null);
+						p.getLeft().getCustomTagList().addOrMergeTag(tag, addOnlyThisProperty);
 					}
 				}		
 			}

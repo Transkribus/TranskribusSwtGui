@@ -78,7 +78,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 	}
 		
 	@Override public void addTagForSelection(String tagName, Map<String, Object> attributes) {
-		mainWidget.addTagForSelection(tagName, attributes);
+		mainWidget.addTagForSelection(tagName, attributes, null);
 	}
 		
 //	@Override public void deleteTag(CustomTagAndList ctal) {
