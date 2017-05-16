@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.page_metadata;
+package eu.transkribus.swt_gui.metadata;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,7 @@ public class PageMetadataWidget extends Composite {
 	List<Button> structureRadios = new ArrayList<>();
 	
 	// text style md:
-	TextStyleTypeWidget textStyleWidget;
+//	TextStyleTypeWidget textStyleWidget;
 	
 	Button applyStructBtn, applyStructRecBtn;
 	Listener listener=null;
@@ -150,7 +150,7 @@ public class PageMetadataWidget extends Composite {
 
 //		initTaggingWidget(container);
 		
-		initTextStyleMd(container);
+//		initTextStyleMd(container);
 		
 		if (USE_EXPAND_BAR)
 			initExpandItmes();
@@ -163,11 +163,11 @@ public class PageMetadataWidget extends Composite {
 		item1.setControl(structureGroup);		
 		item1.setExpanded(true);
 		
-		ExpandItem item3 = new ExpandItem (bar, SWT.NONE, 2);
-		item3.setText("Text-Style");
-		item3.setHeight(textStyleWidget.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
-		item3.setControl(textStyleWidget);
-		item3.setExpanded(true);
+//		ExpandItem item3 = new ExpandItem (bar, SWT.NONE, 2);
+//		item3.setText("Text-Style");
+//		item3.setHeight(textStyleWidget.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+//		item3.setControl(textStyleWidget);
+//		item3.setExpanded(true);
 	}
 	
 //	private void initTaggingWidget(Composite parent) {
@@ -239,13 +239,13 @@ public class PageMetadataWidget extends Composite {
 		linkList.setMenu(m);
 	}
 	
-	private void initTextStyleMd(Composite parent) {		
-		textStyleWidget = new TextStyleTypeWidget(parent, SWT.NONE);
-		textStyleWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
-//		textStyleWidget.pack();
-		
-//		textStyleGroup.pack();
-	}
+//	private void initTextStyleMd(Composite parent) {		
+//		textStyleWidget = new TextStyleTypeWidget(parent, SWT.NONE);
+//		textStyleWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+////		textStyleWidget.pack();
+//		
+////		textStyleGroup.pack();
+//	}
 	
 	public void detachListener() {
 		if (listener != null)
@@ -269,9 +269,7 @@ public class PageMetadataWidget extends Composite {
 		structureText.removeModifyListener((ModifyListener) listener);
 		for (Button b : structureRadios)
 			b.removeSelectionListener((SelectionListener) listener);
-		
-		textStyleWidget.removeTextStyleListener((Listener) listener);
-		
+				
 		applyStructBtn.removeSelectionListener((SelectionListener)listener);
 		applyStructRecBtn.removeSelectionListener((SelectionListener) listener);
 		
@@ -299,8 +297,6 @@ public class PageMetadataWidget extends Composite {
 		structureText.addModifyListener((ModifyListener) listener);
 		for (Button b : structureRadios)
 			b.addSelectionListener((SelectionListener) listener);
-	
-		textStyleWidget.addTextStyleListener((Listener) listener);
 		
 		applyStructBtn.addSelectionListener((SelectionListener)listener);
 		applyStructRecBtn.addSelectionListener((SelectionListener) listener);
@@ -361,7 +357,7 @@ public class PageMetadataWidget extends Composite {
 	}
 	
 //	public void updateData(TrpPageType page, int nSelectedShapes, boolean hasStructure, TextTypeSimpleType structureType, boolean hasTextStyle, TextStyleType textStyle, List<String> selectedTagNames) {
-	public void updateData(JAXBPageTranscript transcript, ITrpShapeType firstSelected, int nSelectedShapes, String structureType, TextStyleType textStyle, List<CustomTag> selectedTags) {
+	public void updateData(JAXBPageTranscript transcript, ITrpShapeType firstSelected, int nSelectedShapes, String structureType, List<CustomTag> selectedTags) {
 		logger.debug("updating page metadata widget");
 		
 		SWTUtil.recursiveSetEnabled(this, transcript!=null);
@@ -406,11 +402,7 @@ public class PageMetadataWidget extends Composite {
 		//		}
 		//	}
 		logger.debug("st before = "+structureText.getText()+" new = "+structureType);		
-		
-		// update text style widget:
-		SWTUtil.recursiveSetEnabled(textStyleWidget, hasSelected);
-		textStyleWidget.updateTextStyleFromData(textStyle);
-		
+				
 		// update link list and keep last selected item if still there:
 		String lastSel=null;
 		if (linkList.getSelectionCount()==1) {
@@ -473,7 +465,7 @@ public class PageMetadataWidget extends Composite {
 	public Combo getPageStyleCombo() { return pageStyleCombo; }
 	public Combo getRegionTypeCombo() { return regionTypeCombo; }
 	
-	public TextStyleTypeWidget getTextStyleWidget() { return textStyleWidget; }
+//	public TextStyleTypeWidget getTextStyleWidget() { return textStyleWidget; }
 	public Button getApplyStructBtn() { return applyStructBtn; }
 	public Button getApplyStructRecBtn() { return applyStructRecBtn; }
 	

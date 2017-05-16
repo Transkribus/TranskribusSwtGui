@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.page_metadata;
+package eu.transkribus.swt_gui.metadata;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
 	PageMetadataWidget mw;
-	TextStyleTypeWidget tw;
+//	TextStyleTypeWidget tw;
 	SWTCanvas canvas;
 	TrpSettings settings;
 		
@@ -65,7 +65,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		this.ui = mainWidget.getUi();
 		this.canvas = mainWidget.getCanvas();
 		this.mw = mainWidget.getUi().getStructuralMetadataWidget();
-		this.tw = mw.getTextStyleWidget();
+//		this.tw = ui.getTextStyleWidget();
 		this.settings = mainWidget.getTrpSets();
 		
 		addListener();
@@ -137,23 +137,24 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		}
 		
 		// update text style:
-		else if (tw.getTextStyleSources().contains(s) /*&& getNSelected() == 1*/) {
-			String propertyName = (String) ((Widget)s).getData("propertyName");
-			logger.debug("property name: "+propertyName);
-			
-			applyTextStyleToAllSelected(propertyName, false);
-			mw.savePage();
-		}
-		else if (s == tw.getApplyBtn()) {
-//			applyStructureTypeToAllSelected(false);
-			applyTextStyleToAllSelected(null, false);
-			mw.savePage();
-		}
-		else if (s == tw.getApplyRecursiveBtn()) {
-//			applyStructureTypeToAllSelected(true);
-			applyTextStyleToAllSelected(null, true);
-			mw.savePage();
-		}
+//		else if (tw.getTextStyleSources().contains(s) /*&& getNSelected() == 1*/) {
+//			String propertyName = (String) ((Widget)s).getData("propertyName");
+//			logger.debug("property name: "+propertyName);
+//			
+//			applyTextStyleToAllSelected(propertyName, false);
+//			mw.savePage();
+//		}
+//		else if (s == tw.getApplyBtn()) {
+////			applyStructureTypeToAllSelected(false);
+//			applyTextStyleToAllSelected(null, false);
+//			mw.savePage();
+//		}
+//		else if (s == tw.getApplyRecursiveBtn()) {
+////			applyStructureTypeToAllSelected(true);
+//			applyTextStyleToAllSelected(null, true);
+//			mw.savePage();
+//		}
+		
 		// update tags:
 //		else if (s == mw.getTaggingWidget()) {
 //			logger.debug("setting/removing tag: "+e.text+", "+e.detail);
@@ -333,11 +334,8 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 	}
 
 	@Override
-	public void modifyText(ModifyEvent e) {
-		if (e.getSource()==tw.fontFamilyText /*&& getNSelected() == 1*/) {
-			logger.debug("font family modified: "+tw.fontFamilyText);
-			applyTextStyleToAllSelected("fontFamily", false);
-		} else if (e.getSource() == mw.structureText) {
+	public void modifyText(ModifyEvent e) { 
+		if (e.getSource() == mw.structureText) {
 			logger.debug("structure type text changed - applying to selected: "+mw.structureText.getText());
 			applyStructureTypeToAllSelected(mw.structureText.getText(), false);
 		}
@@ -406,72 +404,72 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 //		
 //	}
 			
-	private void applyTextStyleToAllSelected(String updateOnlyThisProperty, boolean recursive) {
-		boolean isTextSelectedInTranscriptionWidget = mainWidget.isTextSelectedInTranscriptionWidget();
-		logger.debug("isTextSelectedInTranscriptionWidget = "+isTextSelectedInTranscriptionWidget);
-		
-		TextStyleType ts = tw.getTextStyleTypeFromUi();
-		if (updateOnlyThisProperty!=null && updateOnlyThisProperty.equals("fontFamily")) { // FIXME?? this is a hack -> if only fontFamily is updated, use also empty font family field!!
-			logger.debug("setting font family: "+tw.fontFamilyText.getText());
-			ts.setFontFamily(tw.fontFamilyText.getText());
-		}
-		
-		if (!isTextSelectedInTranscriptionWidget) {
-			logger.debug("applying this text style to all selected in canvas: "+ts);
-			List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedData(ITrpShapeType.class);
-			logger.debug("nr selected: "+selData.size());
-			for (ITrpShapeType sel : selData) {
-				sel.setTextStyle(ts, recursive, mw);
-			}
-		} else { // for a selection in the transcription widget
-			logger.debug("applying this text style to all selected in transcription widget: "+ts);
-			List<Pair<ITrpShapeType, CustomTag>> tags4Shapes = TaggingWidgetUtils.constructTagsFromSelectionInTranscriptionWidget(ui, TextStyleTag.TAG_NAME, null);
-			for (Pair<ITrpShapeType, CustomTag> p : tags4Shapes) {
-				TextStyleTag tag = (TextStyleTag) p.getRight();
-				
-				if (settings.isEnableIndexedStyles() /*&& isLineEditor*/ && !recursive) {
-					if (tag != null) {
-						tag.setTextStyle(ts);
-						p.getLeft().addTextStyleTag(tag, updateOnlyThisProperty, /*false,*/ mw);
-					}
-				} else {
-					p.getLeft().setTextStyle(ts, recursive, mw);
-				}	
-			}
-			
-			// OLD:
-//			ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
-//			if (aw==null) {
-//				logger.debug("no transcription widget selected - doin nothing!");
-//				return;
+//	private void applyTextStyleToAllSelected(String updateOnlyThisProperty, boolean recursive) {
+//		boolean isTextSelectedInTranscriptionWidget = mainWidget.isTextSelectedInTranscriptionWidget();
+//		logger.debug("isTextSelectedInTranscriptionWidget = "+isTextSelectedInTranscriptionWidget);
+//		
+//		TextStyleType ts = tw.getTextStyleTypeFromUi();
+//		if (updateOnlyThisProperty!=null && updateOnlyThisProperty.equals("fontFamily")) { // FIXME?? this is a hack -> if only fontFamily is updated, use also empty font family field!!
+//			logger.debug("setting font family: "+tw.fontFamilyText.getText());
+//			ts.setFontFamily(tw.fontFamilyText.getText());
+//		}
+//		
+//		if (!isTextSelectedInTranscriptionWidget) {
+//			logger.debug("applying this text style to all selected in canvas: "+ts);
+//			List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedData(ITrpShapeType.class);
+//			logger.debug("nr selected: "+selData.size());
+//			for (ITrpShapeType sel : selData) {
+//				sel.setTextStyle(ts, recursive, mw);
 //			}
-//			boolean isLineEditor = aw.getType() == ATranscriptionWidget.Type.LINE_BASED;
-//			List<Pair<ITrpShapeType, IntRange>> selRanges = aw.getSelectedShapesAndRanges();
-//			for (Pair<ITrpShapeType, IntRange> r : selRanges) {
-//				boolean isSingleSelection = selRanges.size()==1 && r.getRight().length==0;
-//				if (settings.isEnableIndexedStyles() && isLineEditor && !recursive) {
-//					TextStyleTag tst=null;
-//					
-//					// create textstyle - for the word editor or a single selection, set whole range
-//					if ( (isSingleSelection && APPLY_TAG_TO_WHOLE_LINE_IF_SINGLE_SELECTION) || !isLineEditor) {
-//						tst = new TextStyleTag(ts, 0, r.getLeft().getUnicodeText().length());
-//					} else if (r.getRight().length>0) {
-//						tst = new TextStyleTag(ts, r.getRight().offset, r.getRight().length);
+//		} else { // for a selection in the transcription widget
+//			logger.debug("applying this text style to all selected in transcription widget: "+ts);
+//			List<Pair<ITrpShapeType, CustomTag>> tags4Shapes = TaggingWidgetUtils.constructTagsFromSelectionInTranscriptionWidget(ui, TextStyleTag.TAG_NAME, null);
+//			for (Pair<ITrpShapeType, CustomTag> p : tags4Shapes) {
+//				TextStyleTag tag = (TextStyleTag) p.getRight();
+//				
+//				if (settings.isEnableIndexedStyles() /*&& isLineEditor*/ && !recursive) {
+//					if (tag != null) {
+//						tag.setTextStyle(ts);
+//						p.getLeft().addTextStyleTag(tag, updateOnlyThisProperty, /*false,*/ mw);
 //					}
-//					
-//					if (tst!=null)
-//						r.getLeft().addTextStyleTag(tst, updateOnlyThisProperty, recursive, mw);
 //				} else {
-//					r.getLeft().setTextStyle(ts, recursive, mw);
-//				}
+//					p.getLeft().setTextStyle(ts, recursive, mw);
+//				}	
 //			}
-		}
-		
-		tw.updateStyleSheetAccordingToCurrentSelection();
-		mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
-		mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
-		mainWidget.refreshStructureView();
-	}
+//			
+//			// OLD:
+////			ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
+////			if (aw==null) {
+////				logger.debug("no transcription widget selected - doin nothing!");
+////				return;
+////			}
+////			boolean isLineEditor = aw.getType() == ATranscriptionWidget.Type.LINE_BASED;
+////			List<Pair<ITrpShapeType, IntRange>> selRanges = aw.getSelectedShapesAndRanges();
+////			for (Pair<ITrpShapeType, IntRange> r : selRanges) {
+////				boolean isSingleSelection = selRanges.size()==1 && r.getRight().length==0;
+////				if (settings.isEnableIndexedStyles() && isLineEditor && !recursive) {
+////					TextStyleTag tst=null;
+////					
+////					// create textstyle - for the word editor or a single selection, set whole range
+////					if ( (isSingleSelection && APPLY_TAG_TO_WHOLE_LINE_IF_SINGLE_SELECTION) || !isLineEditor) {
+////						tst = new TextStyleTag(ts, 0, r.getLeft().getUnicodeText().length());
+////					} else if (r.getRight().length>0) {
+////						tst = new TextStyleTag(ts, r.getRight().offset, r.getRight().length);
+////					}
+////					
+////					if (tst!=null)
+////						r.getLeft().addTextStyleTag(tst, updateOnlyThisProperty, recursive, mw);
+////				} else {
+////					r.getLeft().setTextStyle(ts, recursive, mw);
+////				}
+////			}
+//		}
+//		
+//		tw.updateStyleSheetAccordingToCurrentSelection();
+//		mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
+//		mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
+//		mainWidget.refreshStructureView();
+//	}
 			
 //	private void applyTagToSelection(String tagName) {
 //		boolean isSelectedInTranscriptionWidget = mainWidget.isSelectedInTranscriptionWidget();

@@ -42,7 +42,7 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
-import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
+import eu.transkribus.swt_gui.transcription.ITranscriptionWidgetListener;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
 import eu.transkribus.util.IndexTextUtils;
 

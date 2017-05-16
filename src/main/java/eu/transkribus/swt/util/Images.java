@@ -47,6 +47,8 @@ public class Images {
 	public static final Image COMMENT = Images.getOrLoad("/icons/comment.png");
 	public static final Image CONTROL_EQUALIZER = Images.getOrLoad("/icons/control_equalizer.png");
 	
+	public static final Image TEXT_FIELD_DELETE = getOrLoad("/icons/textfield_delete.png");
+	
 	public static final Image DISK1 = Images.getOrLoad("/icons/disk.png");
 
 	public static final Image IMAGE_EDIT = Images.getOrLoad("/icons/image_edit.png");
@@ -102,6 +104,8 @@ public class Images {
 	public static final Image PAGE_COPY = Images.getOrLoad("/icons/page_copy.png");
 
 	public static final Image SHAPE_SQUARE_EDIT = Images.getOrLoad("/icons/shape_square_edit.png");
+	
+	public static final Image WRENCH = Images.getOrLoad("/icons/wrench.png");
 
 	static HashMap<String, Image> imageMap;
 

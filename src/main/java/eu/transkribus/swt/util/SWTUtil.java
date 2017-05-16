@@ -99,6 +99,14 @@ public class SWTUtil {
 		return s==i.ti && eventDetail != SWT.ARROW;
 	}
 	
+	public static MenuItem createMenuItem(Menu menu, String text, Image img, int style) {
+		MenuItem item = new MenuItem(menu, style);
+        item.setText(text);
+        item.setImage(img);
+        
+        return item;
+    }
+	
 	public static void mask2(final Composite c) {
 		c.setEnabled(false);
 		

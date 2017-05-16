@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -79,11 +80,9 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
-import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
-import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
@@ -135,7 +134,6 @@ import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
-import eu.transkribus.swt_gui.canvas.shapes.CanvasRect;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
@@ -165,8 +163,10 @@ import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
-import eu.transkribus.swt_gui.page_metadata.PageMetadataWidgetListener;
-import eu.transkribus.swt_gui.page_metadata.TaggingWidgetListener;
+import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetListener;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
+import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
@@ -174,10 +174,10 @@ import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
 import eu.transkribus.swt_gui.tools.ToolsWidgetListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.swt_gui.transcription.LineEditorListener;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
-import eu.transkribus.swt_gui.transcription.listener.LineEditorListener;
-import eu.transkribus.swt_gui.transcription.listener.LineTranscriptionWidgetListener;
-import eu.transkribus.swt_gui.transcription.listener.WordTranscriptionWidgetListener;
+import eu.transkribus.swt_gui.transcription.LineTranscriptionWidgetListener;
+import eu.transkribus.swt_gui.transcription.WordTranscriptionWidgetListener;
 import eu.transkribus.swt_gui.upload.UploadDialog;
 import eu.transkribus.swt_gui.upload.UploadDialogUltimate;
 import eu.transkribus.swt_gui.util.GuiUtil;
@@ -227,7 +227,8 @@ public class TrpMainWidget {
 	CanvasContextMenuListener canvasContextMenuListener;
 	TranscriptObserver transcriptObserver;
 	CanvasShapeObserver canvasShapeObserver;
-	PageMetadataWidgetListener metadataWidgetListener;
+	PageMetadataWidgetListener pageMetadataWidgetListener;
+	TextStyleTypeWidgetListener textStyleWidgetListener;
 	TaggingWidgetListener taggingWidgetListener;
 	ToolsWidgetListener laWidgetListener;
 //	JobTableWidgetListener jobOverviewWidgetListener;
@@ -306,7 +307,6 @@ public class TrpMainWidget {
 		addListener();
 		addUiBindings();
 		
-		enableAutocomplete();
 		updateToolBars();
 		if(getTrpSets().autoSaveFolder.trim().isEmpty()){
 			getTrpSets().setAutoSaveFolder(TrpSettings.getDefaultAutoSaveFolder());
@@ -764,7 +764,9 @@ public class TrpMainWidget {
 			}
 		});
 		
-		metadataWidgetListener = new PageMetadataWidgetListener(this);
+		pageMetadataWidgetListener = new PageMetadataWidgetListener(this);
+		
+		textStyleWidgetListener = new TextStyleTypeWidgetListener(ui.getTextStyleWidget());
 
 		taggingWidgetListener = new TaggingWidgetListener(this);
 
@@ -1574,7 +1576,7 @@ public class TrpMainWidget {
 
 		if (!storage.hasTranscript()) {
 			ui.taggingWidget.setSelectedTags(null);
-			ui.getStructuralMetadataWidget().updateData(null, null, nSel, null, null, new ArrayList<CustomTag>());
+			ui.getStructuralMetadataWidget().updateData(null, null, nSel, null, new ArrayList<CustomTag>());
 			return;
 		}
 
@@ -1616,26 +1618,9 @@ public class TrpMainWidget {
 		// selectedTagNames.add(t.getTagName());
 		// }
 
-		// get text style(s) for selection:
-		boolean isSelectedInTranscriptionWidget = isTextSelectedInTranscriptionWidget();
-		logger.debug("isSelectedInTranscriptionWidget = " + isSelectedInTranscriptionWidget);
-		TextStyleType textStyle = new TextStyleType();
-
-		if (st != null) {
-			if (!getTrpSets().isEnableIndexedStyles()) { // OUTDATED
-				textStyle = canvas.getScene().getCommonTextStyleOfSelected();
-			} else { // get common TextStyleType for selection
-				ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
-				if (aw != null) {
-					TextStyleTag tst = aw.getCommonIndexedCustomTagForCurrentSelection(TextStyleTag.TAG_NAME);
-					if (tst != null)
-						textStyle = tst.getTextStyle();
-				}
-			}
-		}
-
 		ui.taggingWidget.setSelectedTags(selectedTags);
-		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, textStyle, selectedTags);
+		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, selectedTags);
+		ui.getTextStyleWidget().updateData();
 
 	}
 
@@ -2392,14 +2377,6 @@ public class TrpMainWidget {
 
 	public TranscriptObserver getTranscriptObserver() {
 		return transcriptObserver;
-	}
-
-	public void enableAutocomplete() {
-		ui.lineTranscriptionWidget.getAutoComplete().getAdapter().setEnabled(getTrpSets().isAutocomplete());
-		ui.wordTranscriptionWidget.getAutoComplete().getAdapter().setEnabled(getTrpSets().isAutocomplete());
-		canvas.getLineEditor().getAutoComplete().getAdapter().setEnabled(getTrpSets().isAutocomplete());
-
-		// trpTranscriptionWidget.getAutoComplete().getAdapter().setEnabled(selection);
 	}
 
 	/**
@@ -4784,6 +4761,61 @@ public class TrpMainWidget {
 				t.getCustomTagList().deleteTagAndContinuations(t);
 			}
 	
+			updatePageRelatedMetadata();
+			getUi().getLineTranscriptionWidget().redrawText(true);
+			getUi().getWordTranscriptionWidget().redrawText(true);
+			refreshStructureView();
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
+		}
+	}
+	
+	public void addTagForSelection(CustomTag t, String addOnlyThisProperty) {
+		addTagForSelection(t.getTagName(), t.getAttributeNamesValuesMap(), addOnlyThisProperty);
+	}
+
+	public void addTagForSelection(String tagName, Map<String, Object> attributes, String addOnlyThisProperty) {
+		try {
+			logger.debug("addTagForSelection, tagName = "+tagName+", attributes = "+attributes+", addOnlyThisProperty = "+addOnlyThisProperty);
+			
+			boolean isTextSelectedInTranscriptionWidget = isTextSelectedInTranscriptionWidget();
+			
+	//		ATranscriptionWidget aw = mainWidget.getUi().getSelectedTranscriptionWidget();
+	//		boolean isSingleSelection = aw!=null && aw.isSingleSelection();
+			
+			CustomTag protoTag = CustomTagFactory.getTagObjectFromRegistry(tagName);
+			boolean canBeEmpty = protoTag!=null && protoTag.canBeEmpty();
+			logger.debug("protoTag = "+protoTag+" canBeEmtpy = "+canBeEmpty);
+			logger.debug("isTextSelectedInTranscriptionWidget = "+isTextSelectedInTranscriptionWidget);		
+			
+			if (!isTextSelectedInTranscriptionWidget && !canBeEmpty) {
+				logger.debug("applying tag to all selected in canvas: "+tagName);
+				List<? extends ITrpShapeType> selData = canvas.getScene().getSelectedData(ITrpShapeType.class);
+				logger.debug("selData = "+selData.size());
+				for (ITrpShapeType sel : selData) {
+					if (sel instanceof TrpTextLineType || sel instanceof TrpWordType) { // tags only for words and lines!
+						try {
+							CustomTag t = CustomTagFactory.create(tagName, 0, sel.getUnicodeText().length(), attributes);						
+							sel.getCustomTagList().addOrMergeTag(t, addOnlyThisProperty);
+							logger.debug("created tag: "+t);
+						} catch (Exception e) {
+							logger.error("Error creating tag: "+e.getMessage(), e);
+						}
+					}
+				}
+			} else {
+				logger.debug("applying tag to all selected in transcription widget: "+tagName);
+				List<Pair<ITrpShapeType, CustomTag>> tags4Shapes = TaggingWidgetUtils.constructTagsFromSelectionInTranscriptionWidget(ui, tagName, attributes);
+	//			List<Pair<ITrpShapeType, CustomTag>> tags4Shapes = TaggingWidgetUtils.constructTagsFromSelectionInTranscriptionWidget(ui, tagName, null);
+				for (Pair<ITrpShapeType, CustomTag> p : tags4Shapes) {
+					CustomTag tag = p.getRight();
+					if (tag != null) {
+						tag.setContinued(tags4Shapes.size()>1);
+						p.getLeft().getCustomTagList().addOrMergeTag(tag, addOnlyThisProperty);
+					}
+				}		
+			}
+			
 			updatePageRelatedMetadata();
 			getUi().getLineTranscriptionWidget().redrawText(true);
 			getUi().getWordTranscriptionWidget().redrawText(true);

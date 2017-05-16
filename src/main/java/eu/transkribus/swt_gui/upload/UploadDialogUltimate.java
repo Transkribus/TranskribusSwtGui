@@ -399,7 +399,7 @@ public class UploadDialogUltimate extends Dialog {
 			ftpGroup.setParent(SWTUtil.dummyShell);
 			pdfGroup.setParent(SWTUtil.dummyShell);
 		}
-		logger.info("is disposed: "+add.isDisposed());
+		logger.trace("is disposed: "+add.isDisposed());
 		
 		//remove.setParent(SWTUtil.dummyShell);
 		add.setParent(container);

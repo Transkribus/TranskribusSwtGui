@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.transcription.listener;
+package eu.transkribus.swt_gui.transcription;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.transcription.LineEditor;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
