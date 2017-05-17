@@ -38,7 +38,7 @@ public class DropDownButton extends Composite {
                 Rectangle rect = button.getBounds();
 
                 Point mLoc = new Point(loc.x-1, loc.y+rect.height);
-
+                
                 menu.setLocation(getShell().getDisplay().map(button.getParent(), null, mLoc));
 
                 menu.setVisible(true);			
@@ -50,6 +50,11 @@ public class DropDownButton extends Composite {
 				
 			}
 		});
+	}
+	
+	@Override public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+		button.setEnabled(enabled);
 	}
 	
 	public MenuItem addItem(String text, Image img) {

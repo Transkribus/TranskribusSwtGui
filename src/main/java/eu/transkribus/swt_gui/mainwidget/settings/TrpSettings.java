@@ -255,6 +255,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	public boolean autoSaveEnabled = true;
 	public static final String AUTOSAVE_ENABLED = "autoSaveEnabled";
 	
+	public boolean transcriptionToolbarOnTop = false;
+	public static final String TRANSCRIPTION_TOOLBAR_ON_TOP_PROPERTY = "transcriptionToolbarOnTop";	
+	
 	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
 	
@@ -916,6 +919,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setAutoSaveEnabled(boolean enabled){
 		this.autoSaveEnabled = enabled;
 		firePropertyChange(AUTOSAVE_ENABLED, !this.autoSaveEnabled, this.autoSaveEnabled);
+	}
+	
+	public boolean getTranscriptionToolbarOnTop() {
+		return transcriptionToolbarOnTop;
+	}
+	
+	public void setTranscriptionToolbarOnTop(boolean transcriptionToolbarOnTop) {
+		this.transcriptionToolbarOnTop = transcriptionToolbarOnTop;
+		firePropertyChange(TRANSCRIPTION_TOOLBAR_ON_TOP_PROPERTY, !this.transcriptionToolbarOnTop, transcriptionToolbarOnTop);
 	}
 
 	@Override public List<String> getPropertiesToNotSave() {

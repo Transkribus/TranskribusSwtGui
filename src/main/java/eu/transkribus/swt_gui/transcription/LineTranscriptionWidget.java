@@ -42,7 +42,6 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.transcription.listener.ITranscriptionWidgetListener;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.Utils;
 import junit.framework.Assert;
@@ -84,8 +83,10 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				
 				// send this information to this bloody method which causes the modification to be done in the underlying page element:
 				onTextChangedFromUser(start, end, replacementText);
-				text.redraw();
-				text.redrawRange(0, text.getCharCount(), true);
+				
+				redrawText(true);
+//				text.redraw();
+//				text.redrawRange(0, text.getCharCount(), true);
 			}
 		};
 		addUserExtendedModifyListener(extendedModifyListener);

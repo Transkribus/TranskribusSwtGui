@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
+import eu.transkribus.core.util.ProxyUtils.ProxySettings;
 import eu.transkribus.swt_gui.util.OAuthGuiUtil;
 
 /**
@@ -336,55 +337,22 @@ public class TrpGuiPrefs {
 		}
 	}
 	
-	public static class ProxyPrefs {
+	public static class ProxyPrefs extends ProxySettings {
 		private boolean enabled;
-		private String host;
-		private int port;
-		private String user;
-		private String password;
+		
 		public ProxyPrefs() {
+			super();
 			enabled = false;
-			host = "";
-			port = -1;
-			user = "";
-			password = "";
 		}
 		public ProxyPrefs(boolean enabled, String host, int port, String user, String password) {
+			super(host, port, user, password);
 			this.enabled = enabled;
-			this.host = host;
-			this.port = port;
-			this.user = user;
-			this.password = password;
 		}
 		public boolean isEnabled() {
 			return enabled;
 		}
 		public void setEnabled(boolean enabled) {
 			this.enabled = enabled;
-		}
-		public String getHost() {
-			return host;
-		}
-		public void setHost(String host) {
-			this.host = host;
-		}
-		public int getPort() {
-			return port;
-		}
-		public void setPort(int port) {
-			this.port = port;
-		}
-		public String getUser() {
-			return user;
-		}
-		public void setUser(String user) {
-			this.user = user;
-		}
-		public String getPassword() {
-			return password;
-		}
-		public void setPassword(String password) {
-			this.password = password;
 		}
 		@Override
 		public String toString() {

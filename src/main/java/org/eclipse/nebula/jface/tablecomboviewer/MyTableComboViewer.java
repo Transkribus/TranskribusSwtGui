@@ -1,22 +1,11 @@
-/****************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *	Marty Jones <martybjones@gmail.com> - initial API and implementation
- *  Enrico Schnepel <enrico.schnepel@randomice.net> - added logic to fix bug 304353
- *****************************************************************************/
 package org.eclipse.nebula.jface.tablecomboviewer;
 
 import org.eclipse.jface.viewers.AbstractTableViewer;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.ViewerRow;
+import org.eclipse.nebula.jface.tablecomboviewer.TableComboViewerRow;
 import org.eclipse.nebula.widgets.tablecombo.MyTableCombo;
-import org.eclipse.nebula.widgets.tablecombo.TableCombo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;

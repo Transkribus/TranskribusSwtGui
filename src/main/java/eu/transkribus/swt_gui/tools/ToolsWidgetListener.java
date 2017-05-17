@@ -14,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
-import eu.transkribus.core.model.beans.TrpDoc;
-import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
@@ -111,9 +109,12 @@ public class ToolsWidgetListener implements SelectionListener {
 //		return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn || s == tw.baselineBtn || s == tw.polygon2baselinesBtn);
 	}
 	
-	boolean needsRegions(Object s) {
-		return (s == tw.startLaBtn && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn;
-//		return s == tw.baselineBtn || s == tw.lineSegBtn;
+	boolean needsRegions(PcGtsType pageData, Object s) {
+		if (PageXmlUtils.hasRegions(pageData)) {
+			return false;
+		}
+		
+		return (s == tw.startLaBtn && !tw.laComp.isDoBlockSeg() && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn;
 	}
 		
 	@Override
@@ -142,7 +143,7 @@ public class ToolsWidgetListener implements SelectionListener {
 			
 			int colId = store.getCurrentDocumentCollectionId();
 			
-			if (needsRegions(s) && !PageXmlUtils.hasRegions(pageData)) {
+			if (needsRegions(pageData, s)) {
 				DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "You have to define text regions first!");
 				return;
 			}
@@ -246,21 +247,16 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 			} 
 			else if (tw.trComp.isHtr() && s == tw.trComp.getTrainBtn()) {
-				if(!store.isAdminLoggedIn()) {
-					DialogUtil.showInfoMessageBox(mw.getShell(), "Not Available", "HTR Training is currently under development and only available to Admins.\n"
-							+ "In case you want to request a data set to be trained, please contact us at email@transkribus.eu.");
+				if(htd != null) {
+					htd.setVisible();
 				} else {
-					if(htd != null) {
-						htd.setVisible();
-					} else {
-						htd = new HtrTrainingDialog(mw.getShell());
-						if(htd.open() == IDialogConstants.OK_ID) {
-							CitLabHtrTrainConfig config = htd.getConfig();
-							String jobId = store.runHtrTraining(config);
-							jobIds.add(jobId);
-						}
-						htd = null;
+					htd = new HtrTrainingDialog(mw.getShell());
+					if(htd.open() == IDialogConstants.OK_ID) {
+						CitLabHtrTrainConfig config = htd.getConfig();
+						String jobId = store.runHtrTraining(config);
+						jobIds.add(jobId);
 					}
+					htd = null;
 				}
 			}
 			else if (tw.trComp.isHtr() && s == tw.trComp.getRunBtn()) {

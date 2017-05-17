@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.transcription.listener;
+package eu.transkribus.swt_gui.transcription;
 
 import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
@@ -12,7 +12,6 @@ import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 
 public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListener {
 	private final static Logger logger = LoggerFactory.getLogger(LineTranscriptionWidgetListener.class);

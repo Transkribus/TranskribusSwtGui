@@ -78,7 +78,7 @@ public class FullTextSearchComposite extends Composite{
 	private final static Logger logger = LoggerFactory.getLogger(FullTextSearchComposite.class);
 	Group facetsGroup;
 	LabeledText inputText;
-	Button currentDocCheck, wholeWordCheck, caseSensitiveCheck, previewCheck;
+	Button currentDocCheck, wholeWordCheck, caseSensitiveCheck, previewCheck, fuzzyCheck;
 	Button searchBtn, searchPrevBtn, searchNextBtn;
 	Composite parameters;
 	Composite facetComp;
@@ -123,7 +123,7 @@ public class FullTextSearchComposite extends Composite{
 	String searchText;
 	private String lastSearchText;
 	private int numPageHits;
-	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],),#";
+	private static final String BAD_SYMBOLS = "(,[,+,-,:,=,],),#,~";
 	private SearchType type;
 
 	public FullTextSearchComposite(Composite parent, int style){
@@ -169,9 +169,14 @@ public class FullTextSearchComposite extends Composite{
 		
 		parameters = new Composite(facetsGroup, 0);
 		parameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
-		parameters.setLayout(new GridLayout(6, false));		
+		parameters.setLayout(new GridLayout(4, false));		
 				
 		storage = Storage.getInstance();
+		
+		previewCheck = new Button(parameters, SWT.CHECK);
+		previewCheck.setText("Show word preview");
+		previewCheck.setSelection(true);
+		previewCheck.setToolTipText("Automatic loading of word image preview. Works better with word-based text. Guesses word coordinates for line-based text.");
 		
 		currentDocCheck = new Button(parameters, SWT.CHECK);
 		currentDocCheck.setText("Current document");
@@ -225,14 +230,6 @@ public class FullTextSearchComposite extends Composite{
 			
 		});
 		
-		caseSensitiveCheck = new Button(parameters, SWT.CHECK);
-		caseSensitiveCheck.setText("Case sensitive");
-		
-		previewCheck = new Button(parameters, SWT.CHECK);
-		previewCheck.setText("Show word preview");
-		previewCheck.setSelection(true);
-		previewCheck.setToolTipText("Automatic loading of word image preview. Works better with word-based text. Guesses word coordinates for line-based text.");
-		
 		textTypeBtn = new Button[2];
 		textTypeBtn[0] = new Button(parameters, SWT.RADIO);
 		textTypeBtn[0].setSelection(false);
@@ -243,45 +240,52 @@ public class FullTextSearchComposite extends Composite{
 		textTypeBtn[1].setText("Line-based text");	
 		textTypeBtn[1].setToolTipText("Search documents transcribed line by line");
 		
-		Button helpBtn = new Button(parameters, SWT.PUSH);
-		helpBtn.setImage(Images.HELP);
-		helpBtn.setText("Help");
-		helpBtn.addSelectionListener(new SelectionAdapter(){
-			@Override
-			public void widgetSelected(SelectionEvent e){
-				DialogUtil.showInfoMessageBox(shell, "Solr search quickreference", 
-						"Solr search supports searching for single words or phrases.\n"
-						+ "\n"
-						+ "The following options are available:\n"
-						+ "Current document:\tLimit search to currently loaded document\n"
-						+ "Case sensitive:\tDifferentiate between upper and lower case\n"
-						+ "Show word preview:\tDisplays a small preview image of matched word\n"
-						+ "\t\tif available when hovering with mouse\n"
-						+ "Word based text:\tSearch text transcribed word by word\n"
-						+ "Line based text:\tSearch text transcribed line by line\n"
-						+ "\n"
-						+ "\n"
-						+ "The search field also supports various commands:\n"
-						+ "\"...\" for exact phrasing\n"
-						+ "? as single character wildcard\n"
-						+ "* as multi-character wildcard\n"
-						+ "~ for proximity searches\n"
-						+ "Example 1: \"word1 word2\"~10 will search for word1 and word2 with\n"
-						+ "a maximum of 10 characters in between\n"
-						+ "Example 2: roam~ will also match foam or foams\n"
-						+ "(roam~1 allows a maximum character distance of 1, so it will match foam but not foams)\n"
-						+ "Boolean operators:\n"
-						+ "&&\trequires both terms on either side to be present\n"
-						+ "!\trequires that the following term not be present\n"
-						+ "||\trequires that either (or both) terms be present\n"
-						+ "\n"
-						+ "Search results can be narrowed down to specific collections, authors,\n"
-						+ "documents and/or uploaders using the drop down tools.\n"
-						+ "\n"
-						
-						);
-			}
-		});
+		caseSensitiveCheck = new Button(parameters, SWT.CHECK);
+		caseSensitiveCheck.setText("Case sensitive");
+		
+		fuzzyCheck = new Button(parameters, SWT.CHECK);
+		fuzzyCheck.setText("Fuzzy search");
+		fuzzyCheck.setSelection(false);
+		
+//		Button helpBtn = new Button(parameters, SWT.PUSH);
+//		helpBtn.setImage(Images.HELP);
+//		helpBtn.setText("");
+//		helpBtn.addSelectionListener(new SelectionAdapter(){
+//			@Override
+//			public void widgetSelected(SelectionEvent e){
+//				DialogUtil.showInfoMessageBox(shell, "Solr search quickreference", 
+//						"Solr search supports searching for single words or phrases.\n"
+//						+ "\n"
+//						+ "The following options are available:\n"
+//						+ "Current document:\tLimit search to currently loaded document\n"
+//						+ "Case sensitive:\tDifferentiate between upper and lower case\n"
+//						+ "Show word preview:\tDisplays a small preview image of matched word\n"
+//						+ "\t\tif available when hovering with mouse\n"
+//						+ "Word based text:\tSearch text transcribed word by word\n"
+//						+ "Line based text:\tSearch text transcribed line by line\n"
+//						+ "\n"
+//						+ "\n"
+//						+ "The search field also supports various commands:\n"
+//						+ "\"...\" for exact phrasing\n"
+//						+ "? as single character wildcard\n"
+//						+ "* as multi-character wildcard\n"
+//						+ "~ for proximity searches\n"
+//						+ "Example 1: \"word1 word2\"~10 will search for word1 and word2 with\n"
+//						+ "a maximum of 10 characters in between\n"
+//						+ "Example 2: roam~ will also match foam or foams\n"
+//						+ "(roam~1 allows a maximum character distance of 1, so it will match foam but not foams)\n"
+//						+ "Boolean operators:\n"
+//						+ "&&\trequires both terms on either side to be present\n"
+//						+ "!\trequires that the following term not be present\n"
+//						+ "||\trequires that either (or both) terms be present\n"
+//						+ "\n"
+//						+ "Search results can be narrowed down to specific collections, authors,\n"
+//						+ "documents and/or uploaders using the drop down tools.\n"
+//						+ "\n"
+//						
+//						);
+//			}
+//		});
 						
 		Composite btnsComp = new Composite(facetsGroup, 0);
 		btnsComp.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -797,10 +801,40 @@ public class FullTextSearchComposite extends Composite{
 	public void findText(){	
 		prevImages = new HashMap<String,Image>();
 		
+
+//		String sText = inputText.getText();
+//		if(		inputText.getText().contains("~")
+//				&& inputText.getText().indexOf("~")!= inputText.getText().length()-1){
+//			if(!Character.isDigit(inputText.getText().indexOf("~")+1)
+//					&& !Character.isDigit(inputText.getText().indexOf("~")+2)
+//					||inputText.getText().indexOf("~")+2 != inputText.getText().length())
+//			{
+//					sText = inputText.getText().replaceAll("~2", "");
+//				
+//			}	
+//			
+//		}
+		
+//		inputText.setText(sText);
+//		if(		fuzzyCheck.getSelection() 
+//				&& !inputText.getText().trim().isEmpty()
+//				&& !inputText.getText().contains("~")){
+//			inputText.setText(inputText.getText()+"~2");			
+//		}
+//		if(     !fuzzyCheck.getSelection()
+//				&& inputText.getText().contains("~2")){
+//			inputText.setText(inputText.getText().replaceAll("~2", ""));
+//		}
+			
+		
 		searchText = inputText.getText().toString();
 		
 		for(String c : BAD_SYMBOLS.split(",")){
 			searchText = searchText.replaceAll("\\"+c, "");
+		}
+		
+		if(fuzzyCheck.getSelection()){
+			searchText += "~2";
 		}
 		
 		searchText = searchText.trim();

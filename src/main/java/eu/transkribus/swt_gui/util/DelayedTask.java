@@ -25,7 +25,7 @@ public class DelayedTask {
 	
 	public void start() {
 		lastTime = System.currentTimeMillis();
-		final long DIFF_T = 500;
+//		final long DIFF_T = 500;
 		new Timer().schedule(new TimerTask() {
 			@Override public void run() {
 				long selDiff = System.currentTimeMillis() - lastTime;
@@ -36,7 +36,7 @@ public class DelayedTask {
 						task.run();
 				}
 			}
-		}, DIFF_T);
+		}, timeThreshMs);
 	}
 
 }

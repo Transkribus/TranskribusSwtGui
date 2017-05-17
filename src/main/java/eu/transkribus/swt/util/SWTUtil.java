@@ -83,6 +83,8 @@ import math.geom2d.Vector2D;
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
 	
+	
+	
 	public static GridLayout createGridLayout(int numColumns, boolean makeColumnsEqualWidth, int marginWidth, int marginHeight) {
 		GridLayout l = new GridLayout(numColumns, makeColumnsEqualWidth);
 		l.marginWidth = marginWidth;
@@ -96,6 +98,14 @@ public class SWTUtil {
 		
 		return s==i.ti && eventDetail != SWT.ARROW;
 	}
+	
+	public static MenuItem createMenuItem(Menu menu, String text, Image img, int style) {
+		MenuItem item = new MenuItem(menu, style);
+        item.setText(text);
+        item.setImage(img);
+        
+        return item;
+    }
 	
 	public static void mask2(final Composite c) {
 		c.setEnabled(false);

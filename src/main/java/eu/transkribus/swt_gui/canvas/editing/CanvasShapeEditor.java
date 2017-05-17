@@ -193,9 +193,9 @@ public class CanvasShapeEditor {
 			finishCurrentShape(false);
 		}
 		
-		logger.debug("shape to draw = "+shapeToDraw);
-		
 		Point invPt = canvas.inverseTransform(x, y);
+		logger.debug("addPointForNewShape, shape to draw = "+shapeToDraw+", invPt = "+invPt+", drawnPoints = "+drawnPoints);
+		
 		// cannot add more than one point to a rectangle -> second point will finish shape!
 		if (shapeToDraw == CanvasShapeType.RECTANGLE && drawnPoints.size() == 1) {
 			drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));
@@ -209,8 +209,12 @@ public class CanvasShapeEditor {
 				return;
 			}
 		}
-		// actually add point:
-		drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));
+		
+		// actually add point if not the same as last one:
+		if (drawnPoints.isEmpty() || drawnPoints.get(drawnPoints.size()-1).distance(invPt.x, invPt.y) >= canvas.getSettings().getSelectedPointRadius()) {
+			drawnPoints.add(new java.awt.Point(invPt.x,invPt.y));	
+		}
+		
 	}
 	
 	/** Finishes the currently drawn shape and adds it to the canvas */

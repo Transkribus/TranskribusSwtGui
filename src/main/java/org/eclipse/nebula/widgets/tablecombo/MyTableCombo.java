@@ -19,7 +19,10 @@
 package org.eclipse.nebula.widgets.tablecombo;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.eclipse.nebula.widgets.tablecombo.MyTableCombo.TableComboFilterListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.accessibility.ACC;
@@ -32,15 +35,20 @@ import org.eclipse.swt.accessibility.AccessibleTextEvent;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -56,6 +64,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TypedListener;
 import org.eclipse.swt.widgets.Widget;
+
+import eu.transkribus.swt.util.SWTUtil;
 
 /**
  * The TableCombo class represents a selectable user interface object that
@@ -89,6 +99,7 @@ public class MyTableCombo extends Composite {
 	private Button arrow;
 	private Label selectedImage;
 	private Text text;
+	private Text filter;
 	private Table table;
 	private Font font;
 	private boolean hasFocus;
@@ -104,6 +115,7 @@ public class MyTableCombo extends Composite {
 	private boolean showColorWithinSelection = true;
 	private boolean showFontWithinSelection = true;
 	private boolean closePupupAfterSelection = true;
+	private boolean useFilter = true;
 
 	/**
 	 * Constructs a new instance of this class given its parent and a style
@@ -646,10 +658,23 @@ public class MyTableCombo extends Composite {
 	void createPopup(int selectionIndex) {
 		// create shell and table
 		popup = new Shell(getShell(), SWT.NO_TRIM | SWT.ON_TOP);
+		popup.setLayout(new FillLayout());
+//		popup.setLayout(new GridLayout(1, true));
+		
+		Composite container = new Composite(popup, 0);
+		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 
+		if (useFilter) {
+			filter = new Text(container, SWT.BORDER);
+			filter.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			
+			addFilterListener(new TableComboFilterListener());
+		}
+		
 		// create table
-		table = new Table(popup, SWT.SINGLE | SWT.FULL_SELECTION);
-
+		table = new Table(container, SWT.SINGLE | SWT.FULL_SELECTION);
+		table.setLayoutData(new GridData(GridData.FILL_BOTH));
+	
 		if (font != null) {
 			table.setFont(font);
 		}
@@ -700,6 +725,50 @@ public class MyTableCombo extends Composite {
 		checkWidget();
 		text.cut();
 	}
+	
+	public class TableComboFilterListener implements ModifyListener, TraverseListener {
+
+		@Override
+		public void keyTraversed(TraverseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void modifyText(ModifyEvent e) {
+			// TODO Auto-generated method stub
+			
+			
+			MyTableCombo.this.table.redraw();
+			
+			
+		}
+		
+		
+	}
+	
+	List<TableComboFilterListener> filterListener = new ArrayList<>();
+	
+	public void addFilterListener(TableComboFilterListener l) {
+		filterListener.add(l);
+		
+		filter.addModifyListener(l);
+		filter.addTraverseListener(l);
+	}
+	
+	public void clearFilter() {
+		for (TableComboFilterListener l : filterListener) {
+			filter.removeModifyListener(l);
+			filter.removeTraverseListener(l);
+		}
+		
+		filter.setText("");
+		
+		for (TableComboFilterListener l : filterListener) {
+			filter.addModifyListener(l);
+			filter.addTraverseListener(l);
+		}
+	}
 
 	/**
 	 * handle DropDown request
@@ -707,7 +776,8 @@ public class MyTableCombo extends Composite {
 	 * @param drop
 	 */
 	void dropDown(boolean drop) {
-
+		// FIXME: visibleItemCount always shows about 1 1/2 items too few...
+		
 		// if already dropped then return
 		if (drop == isDropped()) {
 			return;
@@ -719,6 +789,9 @@ public class MyTableCombo extends Composite {
 			if (!isDisposed() && isFocusControl()) {
 				text.setFocus();
 			}
+			
+			filter.setText("");
+			
 			return;
 		}
 
@@ -732,9 +805,11 @@ public class MyTableCombo extends Composite {
 
 		// calculate the table height.
 		int itemCount = table.getItemCount();
-		itemCount = (itemCount == 0) ? visibleItemCount : Math.min(visibleItemCount, itemCount);
+//		itemCount = (itemCount == 0) ? visibleItemCount : Math.min(visibleItemCount, itemCount);
+		itemCount = visibleItemCount+1;
+//		itemCount+=2; // some extra space...
 		int itemHeight = (table.getItemHeight() * itemCount);
-
+		
 		// add 1 to the table height if the table item count is less than the
 		// visible item count.
 		if (table.getItemCount() <= visibleItemCount) {
@@ -750,6 +825,10 @@ public class MyTableCombo extends Composite {
 		// add height of header if the header is being displayed.
 		if (table.getHeaderVisible()) {
 			itemHeight += table.getHeaderHeight();
+		}
+		
+		if (useFilter) {
+			itemHeight += filter.getBounds().height;
 		}
 
 		// get table column references
@@ -794,7 +873,7 @@ public class MyTableCombo extends Composite {
 		if (tableWidthPercentage < 100) {
 			tableHeight += table.getHorizontalBar().getSize().y;
 		}
-
+		
 		// set the bounds on the table.
 		table.setBounds(1, 1, tableWidth, tableHeight);
 
@@ -805,13 +884,12 @@ public class MyTableCombo extends Composite {
 		// it is needed or not.
 		if (!table.getVerticalBar().getVisible()
 				&& tableSize.x - table.getVerticalBar().getSize().x >= tableComboSize.x - 2) {
-
 			tableWidth = tableWidth - table.getVerticalBar().getSize().x;
 
 			// reset the bounds on the table.
 			table.setBounds(1, 1, tableWidth, tableHeight);
 		}
-
+		
 		// adjust the last column to make sure that there is no empty space.
 		autoAdjustColumnWidthsIfNeeded(tableColumns, tableWidth, totalColumnWidth);
 
@@ -849,13 +927,28 @@ public class MyTableCombo extends Composite {
 
 		// set the bounds of the popup
 		popup.setBounds(x, y, overallWidth, overallHeight);
-
+		
 		// set the popup visible
 		popup.setVisible(true);
 
+//		table.setFocus();
+		
 		// set focus on the table.
-		table.setFocus();
+		if (!useFilter) {
+			table.setFocus();
+		} else {
+			filter.setFocus();
+			filter.setSelection(0);			
+		}
 	}
+	
+	public Text getFilter() {
+		return filter;
+	}
+	
+//	public Text getTextField() {
+//		return text;
+//	}
 
 	/*
 	 * Return the Label immediately preceding the receiver in the z-order, or
@@ -1391,7 +1484,7 @@ public class MyTableCombo extends Composite {
 	 *
 	 * @return
 	 */
-	private boolean isDropped() {
+	public boolean isDropped() {
 		return popup.getVisible();
 	}
 
@@ -1627,8 +1720,12 @@ public class MyTableCombo extends Composite {
 			 * selection event to be disappear.
 			 */
 			if (!"carbon".equals(SWT.getPlatform())) {
-				Point point = arrow.toControl(getDisplay().getCursorLocation());
-				Point size = arrow.getSize();
+//				Point point = arrow.toControl(getDisplay().getCursorLocation());
+//				Point size = arrow.getSize();				
+				// bugfix from jkloe: use whole widget as reference, not only arrow!
+				Point point = this.toControl(getDisplay().getCursorLocation());
+				Point size = this.getSize();
+								
 				Rectangle rect = new Rectangle(0, 0, size.x, size.y);
 				if (!rect.contains(point)) {
 					dropDown(false);

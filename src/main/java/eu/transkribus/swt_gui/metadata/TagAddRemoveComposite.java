@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.page_metadata;
+package eu.transkribus.swt_gui.metadata;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;

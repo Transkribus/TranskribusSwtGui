@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.editing.UndoStack;
-import eu.transkribus.swt_gui.canvas.listener.CanvasToolBarSelectionListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
@@ -128,7 +127,7 @@ public class CanvasWidget extends Composite {
 	
 	protected void addListener() {
 		// selection listener for toolbar:
-		//canvasToolBarSelectionListener = new CanvasToolBarSelectionListener(toolBar, canvas);
+		canvasToolBarSelectionListener = new CanvasToolBarSelectionListener(this);
 		//toolBar.addAddButtonsSelectionListener(canvasToolBarSelectionListener);
 		
 		// selection listener on canvas:
@@ -159,7 +158,7 @@ public class CanvasWidget extends Composite {
 			}
 		});
 		
-		toolbar.addSelectionListener(new CanvasToolBarSelectionListener(this));	
+//		toolbar.addSelectionListener(new CanvasToolBarSelectionListener(this));	
 		
 		
 	}

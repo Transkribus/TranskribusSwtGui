@@ -1,39 +1,18 @@
 package eu.transkribus.swt_gui.canvas;
 
-import java.awt.MouseInfo;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Item;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.TextToolItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.junit.Assert;
@@ -41,15 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
-import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 
 //public class CanvasToolBar extends ToolBar {
 public class CanvasToolBarNew {
@@ -143,6 +118,9 @@ public class CanvasToolBarNew {
 	DropDownToolItem imageVersionDropdown;
 //	DropDownToolItem tableItem;
 	ToolItem helpItem;
+	
+	MenuItem createDefaultLineItem;
+	MenuItem createImageSizeTextRegionItem;
 	
 //	MenuItem deleteRowItem;
 //	MenuItem deleteColumnItem;
@@ -513,6 +491,16 @@ public class CanvasToolBarNew {
 		mergeShapes.setToolTipText("Merges the selected shapes");
 		mergeShapes.setImage(Images.getOrLoad("/icons/merge.png"));
 		
+		if (true) {
+		DropDownToolItem otherSegmentationToolsDropDown = new DropDownToolItem(tb, false, false, true, SWT.PUSH); // TEST
+		otherSegmentationToolsDropDown.ti.setImage(Images.SHAPE_SQUARE_EDIT);
+		otherSegmentationToolsDropDown.ti.setText("...");
+		otherSegmentationToolsDropDown.ti.setToolTipText("Other segmentation tools...");
+
+		createImageSizeTextRegionItem = otherSegmentationToolsDropDown.addItem("Create top level text region with size of image", null, null);
+		createDefaultLineItem = otherSegmentationToolsDropDown.addItem("Create default line for selected line / baseline", null, null);
+		}
+		
 		if (false) {
 		simplifyEpsItem = new DropDownToolItem(tb, false, true, false, SWT.RADIO);
 		for (int i=5; i<=100; i+=5)
@@ -525,19 +513,19 @@ public class CanvasToolBarNew {
 		}		
 		
 		optionsItem = new DropDownToolItem(tb, false, true, true, SWT.CHECK);
-		optionsItem.ti.setImage(Images.getOrLoad("/icons/wrench.png"));
+		optionsItem.ti.setImage(Images.WRENCH);
 //		optionsItem.setKeepMenuOpenOnClick(true);
 		
 		String ott = "Canvas options...";
 		
-		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.getOrLoad("/icons/wrench.png"), ott);
-		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.getOrLoad("/icons/wrench.png"), ott);
-		addLineToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: use the selected region as parent)", Images.getOrLoad("/icons/wrench.png"), ott);
-		addBaselineToOverlappingLineItem = optionsItem.addItem("Add baselines to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), ott);
-		addWordsToOverlappingLineItem = optionsItem.addItem("Add words to overlapping parent lines (else: use the selected line as parent)", Images.getOrLoad("/icons/wrench.png"), ott);
-		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.getOrLoad("/icons/wrench.png"), ott);
-		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.getOrLoad("/icons/wrench.png"), "");
-		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.getOrLoad("/icons/wrench.png"), ott);
+		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.WRENCH, ott);
+		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.WRENCH, ott);
+		addLineToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: use the selected region as parent)", Images.WRENCH, ott);
+		addBaselineToOverlappingLineItem = optionsItem.addItem("Add baselines to overlapping parent lines (else: use the selected line as parent)", Images.WRENCH, ott);
+		addWordsToOverlappingLineItem = optionsItem.addItem("Add words to overlapping parent lines (else: use the selected line as parent)", Images.WRENCH, ott);
+		selectNewlyCreatedShapeItem = optionsItem.addItem("Select a new shape after it was created", Images.WRENCH, ott);
+		lockZoomOnFocusItem = optionsItem.addItem("Lock zoom on focus", Images.WRENCH, "");
+		deleteLineIfBaselineDeletedItem = optionsItem.addItem("Delete line if baseline is deleted", Images.WRENCH, ott);
 
 //		new ToolItem(this, SWT.SEPARATOR);
 		undo = new ToolItem(tb, SWT.PUSH);
@@ -610,64 +598,64 @@ public class CanvasToolBarNew {
 
 	}
 
-	public void addSelectionListener(SelectionListener listener) {
-		SWTUtil.addSelectionListener(selectionMode, listener);
-		SWTUtil.addSelectionListener(zoomSelection, listener);
-		SWTUtil.addSelectionListener(zoomIn, listener);
-		SWTUtil.addSelectionListener(zoomOut, listener);
-		SWTUtil.addSelectionListener(loupe, listener);
-//		SWTUtil.addToolItemSelectionListener(rotateLeft, listener);
-//		SWTUtil.addToolItemSelectionListener(rotateRight, listener);
-		SWTUtil.addSelectionListener(fitItem, listener);
-		SWTUtil.addSelectionListener(rotateItem, listener);
-//		SWTUtil.addToolItemSelectionListener(translateItem.ti, listener);
-		
-		SWTUtil.addSelectionListener(focus, listener);
-		SWTUtil.addSelectionListener(addPoint, listener);
-		SWTUtil.addSelectionListener(removePoint, listener);
-//		SWTUtil.addSelectionListener(addShape, listener);
-		SWTUtil.addSelectionListener(removeShape, listener);
-		SWTUtil.addSelectionListener(simplifyEpsItem, listener);
-		SWTUtil.addSelectionListener(undo, listener);
-		
-		SWTUtil.addSelectionListener(splitHorizontalItem, listener);
-		SWTUtil.addSelectionListener(splitVerticalItem, listener);
-		SWTUtil.addSelectionListener(splitLineItem, listener);
-		
-		SWTUtil.addSelectionListener(splitShapeLine, listener);
-		SWTUtil.addSelectionListener(splitShapeWithVerticalLine, listener);
-		SWTUtil.addSelectionListener(splitShapeWithHorizontalLine, listener);
-		
-		SWTUtil.addSelectionListener(mergeShapes, listener);
-	
-		SWTUtil.addSelectionListener(imageVersionDropdown, listener);
-		
-//		SWTUtil.addSelectionListener(addPrintspace, listener);
-//		SWTUtil.addSelectionListener(addTextRegion, listener);
-//		SWTUtil.addSelectionListener(addLine, listener);
-//		SWTUtil.addSelectionListener(addBaseLine, listener);
-//		SWTUtil.addSelectionListener(addWord, listener);
-		
-		SWTUtil.addSelectionListener(addTextRegionItem, listener);
-		SWTUtil.addSelectionListener(addLineItem, listener);
-		SWTUtil.addSelectionListener(addBaselineItem, listener);
-		SWTUtil.addSelectionListener(addWordItem, listener);
-		
-		SWTUtil.addSelectionListener(addElementDropdown, listener);
-		SWTUtil.addSelectionListener(splitDropdown, listener);
-
-		SWTUtil.addSelectionListener(viewSettingsMenuItem, listener);
-		
-		SWTUtil.addSelectionListener(imgEnhanceItem, listener);
-		
-		SWTUtil.addSelectionListener(helpItem, listener);
-				
-		// table stuff
-//		SWTUtil.addSelectionListener(deleteRowItem, listener);
-//		SWTUtil.addSelectionListener(deleteColumnItem, listener);
-//		SWTUtil.addSelectionListener(splitMergedCell, listener);
-//		SWTUtil.addSelectionListener(removeIntermediatePtsItem, listener);
-	}
+//	public void addSelectionListener(SelectionListener listener) {
+//		SWTUtil.addSelectionListener(selectionMode, listener);
+//		SWTUtil.addSelectionListener(zoomSelection, listener);
+//		SWTUtil.addSelectionListener(zoomIn, listener);
+//		SWTUtil.addSelectionListener(zoomOut, listener);
+//		SWTUtil.addSelectionListener(loupe, listener);
+////		SWTUtil.addToolItemSelectionListener(rotateLeft, listener);
+////		SWTUtil.addToolItemSelectionListener(rotateRight, listener);
+//		SWTUtil.addSelectionListener(fitItem, listener);
+//		SWTUtil.addSelectionListener(rotateItem, listener);
+////		SWTUtil.addToolItemSelectionListener(translateItem.ti, listener);
+//		
+//		SWTUtil.addSelectionListener(focus, listener);
+//		SWTUtil.addSelectionListener(addPoint, listener);
+//		SWTUtil.addSelectionListener(removePoint, listener);
+////		SWTUtil.addSelectionListener(addShape, listener);
+//		SWTUtil.addSelectionListener(removeShape, listener);
+//		SWTUtil.addSelectionListener(simplifyEpsItem, listener);
+//		SWTUtil.addSelectionListener(undo, listener);
+//		
+//		SWTUtil.addSelectionListener(splitHorizontalItem, listener);
+//		SWTUtil.addSelectionListener(splitVerticalItem, listener);
+//		SWTUtil.addSelectionListener(splitLineItem, listener);
+//		
+//		SWTUtil.addSelectionListener(splitShapeLine, listener);
+//		SWTUtil.addSelectionListener(splitShapeWithVerticalLine, listener);
+//		SWTUtil.addSelectionListener(splitShapeWithHorizontalLine, listener);
+//		
+//		SWTUtil.addSelectionListener(mergeShapes, listener);
+//	
+//		SWTUtil.addSelectionListener(imageVersionDropdown, listener);
+//		
+////		SWTUtil.addSelectionListener(addPrintspace, listener);
+////		SWTUtil.addSelectionListener(addTextRegion, listener);
+////		SWTUtil.addSelectionListener(addLine, listener);
+////		SWTUtil.addSelectionListener(addBaseLine, listener);
+////		SWTUtil.addSelectionListener(addWord, listener);
+//		
+//		SWTUtil.addSelectionListener(addTextRegionItem, listener);
+//		SWTUtil.addSelectionListener(addLineItem, listener);
+//		SWTUtil.addSelectionListener(addBaselineItem, listener);
+//		SWTUtil.addSelectionListener(addWordItem, listener);
+//		
+//		SWTUtil.addSelectionListener(addElementDropdown, listener);
+//		SWTUtil.addSelectionListener(splitDropdown, listener);
+//
+//		SWTUtil.addSelectionListener(viewSettingsMenuItem, listener);
+//		
+//		SWTUtil.addSelectionListener(imgEnhanceItem, listener);
+//		
+//		SWTUtil.addSelectionListener(helpItem, listener);
+//		
+//		// table stuff
+////		SWTUtil.addSelectionListener(deleteRowItem, listener);
+////		SWTUtil.addSelectionListener(deleteColumnItem, listener);
+////		SWTUtil.addSelectionListener(splitMergedCell, listener);
+////		SWTUtil.addSelectionListener(removeIntermediatePtsItem, listener);
+//	}
 
 	public ToolItem getZoomIn() {
 		return zoomIn;

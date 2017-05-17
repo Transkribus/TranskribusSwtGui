@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.page_metadata;
+package eu.transkribus.swt_gui.metadata;
 
 import org.mihalis.opal.propertyTable.editor.PTFloatEditor;
 import org.slf4j.Logger;

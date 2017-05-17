@@ -1,20 +1,13 @@
-package eu.transkribus.swt_gui.canvas.listener;
+package eu.transkribus.swt_gui.canvas;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.CanvasMode;
-import eu.transkribus.swt_gui.canvas.CanvasToolBar;
-import eu.transkribus.swt_gui.canvas.CanvasToolBarNew;
-import eu.transkribus.swt_gui.canvas.CanvasWidget;
-import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.dialogs.ImageEnhanceDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -23,9 +16,76 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 	
 	CanvasWidget canvasWidget;
 	ImageEnhanceDialog imgEnhanceDialog;
+	CanvasToolBarNew tb;
 
 	public CanvasToolBarSelectionListener(CanvasWidget canvasWidget) {
 		this.canvasWidget = canvasWidget;
+		tb = this.canvasWidget.getToolbar();
+		
+		attach();
+	}
+	
+	private void attach() {
+		SWTUtil.addSelectionListener(tb.selectionMode, this);
+		SWTUtil.addSelectionListener(tb.zoomSelection, this);
+		SWTUtil.addSelectionListener(tb.zoomIn, this);
+		SWTUtil.addSelectionListener(tb.zoomOut, this);
+		SWTUtil.addSelectionListener(tb.loupe, this);
+//		SWTUtil.addToolItemSelectionListener(tb.rotateLeft, this);
+//		SWTUtil.addToolItemSelectionListener(tb.rotateRight, this);
+		SWTUtil.addSelectionListener(tb.fitItem, this);
+		SWTUtil.addSelectionListener(tb.rotateItem, this);
+//		SWTUtil.addToolItemSelectionListener(tb.translateItem.ti, this);
+		
+		SWTUtil.addSelectionListener(tb.focus, this);
+		SWTUtil.addSelectionListener(tb.addPoint, this);
+		SWTUtil.addSelectionListener(tb.removePoint, this);
+//		SWTUtil.addSelectionListener(tb.addShape, this);
+		SWTUtil.addSelectionListener(tb.removeShape, this);
+		SWTUtil.addSelectionListener(tb.simplifyEpsItem, this);
+		SWTUtil.addSelectionListener(tb.undo, this);
+		
+		SWTUtil.addSelectionListener(tb.splitHorizontalItem, this);
+		SWTUtil.addSelectionListener(tb.splitVerticalItem, this);
+		SWTUtil.addSelectionListener(tb.splitLineItem, this);
+		
+		SWTUtil.addSelectionListener(tb.splitShapeLine, this);
+		SWTUtil.addSelectionListener(tb.splitShapeWithVerticalLine, this);
+		SWTUtil.addSelectionListener(tb.splitShapeWithHorizontalLine, this);
+		
+		SWTUtil.addSelectionListener(tb.mergeShapes, this);
+	
+		SWTUtil.addSelectionListener(tb.imageVersionDropdown, this);
+		
+//		SWTUtil.addSelectionListener(tb.addPrintspace, this);
+//		SWTUtil.addSelectionListener(tb.addTextRegion, this);
+//		SWTUtil.addSelectionListener(tb.addLine, this);
+//		SWTUtil.addSelectionListener(tb.addBaseLine, this);
+//		SWTUtil.addSelectionListener(tb.addWord, this);
+		
+		SWTUtil.addSelectionListener(tb.addTextRegionItem, this);
+		SWTUtil.addSelectionListener(tb.addLineItem, this);
+		SWTUtil.addSelectionListener(tb.addBaselineItem, this);
+		SWTUtil.addSelectionListener(tb.addWordItem, this);
+		
+		SWTUtil.addSelectionListener(tb.addElementDropdown, this);
+		SWTUtil.addSelectionListener(tb.splitDropdown, this);
+
+		SWTUtil.addSelectionListener(tb.viewSettingsMenuItem, this);
+		
+		SWTUtil.addSelectionListener(tb.imgEnhanceItem, this);
+		
+		SWTUtil.addSelectionListener(tb.helpItem, this);
+		
+		SWTUtil.addSelectionListener(tb.createDefaultLineItem, this);
+		SWTUtil.addSelectionListener(tb.createImageSizeTextRegionItem, this);
+		
+		// table stuff
+//		SWTUtil.addSelectionListener(tb.deleteRowItem, this);
+//		SWTUtil.addSelectionListener(tb.deleteColumnItem, this);
+//		SWTUtil.addSelectionListener(tb.splitMergedCell, this);
+//		SWTUtil.addSelectionListener(tb.removeIntermediatePtsItem, this);
+		
 	}
 	
 	@Override
@@ -37,7 +97,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		
 		canvas.setMode(getModeForSelectionEvent(e));
 		logger.debug("mode = "+canvas.getMode());
-		
+				
 		if (s == toolbar.getZoomIn()) {
 			canvas.zoomIn();
 		}
@@ -134,6 +194,12 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		}
 		else if (s == toolbar.getHelpItem()) {
 			mw.openCanvasHelpDialog();
+		}
+		else if (s == toolbar.createDefaultLineItem) {
+			mw.createDefaultLineForSelectedShape();
+		}
+		else if (s == toolbar.createImageSizeTextRegionItem) {
+			mw.createImageSizeTextRegion();
 		}
 	}
 	
