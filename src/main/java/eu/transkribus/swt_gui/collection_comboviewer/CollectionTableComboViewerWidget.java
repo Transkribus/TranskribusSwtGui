@@ -16,8 +16,9 @@ import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.nebula.jface.tablecomboviewer.MyTableComboViewer;
 import org.eclipse.nebula.jface.tablecomboviewer.TableComboViewer;
-import org.eclipse.nebula.widgets.tablecombo.TableCombo;
+import org.eclipse.nebula.widgets.tablecombo.MyTableCombo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -31,7 +32,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -57,8 +57,8 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 	public Label collectionFilterLabel;
 	public Text collectionFilterText;
 	
-	public TableComboViewer collectionComboViewer;
-	public TableCombo collectionCombo;
+	public MyTableComboViewer collectionComboViewer;
+	public MyTableCombo collectionCombo;
 	
 	public Button reloadCollectionsBtn;
 	public Label collectionLabel;
@@ -238,16 +238,18 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		}
 		
 		collComposite = new Composite(this, 0);
-		collComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		collComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		collComposite.setLayout(new GridLayout(2, false));
 //		collComposite.setLayout(new RowLayout());
 		
 		int colSize = withReloadButton ? 1 : 2;
 		
 		// create TableCombo
-		collectionComboViewer = new TableComboViewer(collComposite, SWT.READ_ONLY | SWT.BORDER);
-		collectionComboViewer.getTableCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
+		collectionComboViewer = new MyTableComboViewer(collComposite, SWT.READ_ONLY | SWT.FLAT);
+		collectionComboViewer.getTableCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, colSize, 1));
 //		collectionComboViewer.getTableCombo().setLayoutData(new RowData(100, SWT.DEFAULT));
+		
+		new Button(collComposite, SWT.ARROW | SWT.UP | SWT.DOWN);
 		
 		collectionComboViewer.getTableCombo().defineColumns(new String[] { "ID", "Name", "Role"}, new int[] { 50 , 300, SWT.DEFAULT});
 
