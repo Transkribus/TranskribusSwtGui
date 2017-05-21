@@ -466,5 +466,8 @@ CHANGES AND BUGFIXES
 	-> HTR training interface modified
 	-> collection metadata editor
 	
+1.2.4:
+	-> new collection selector widget
+	
 	
 	
