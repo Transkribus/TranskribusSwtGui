@@ -34,6 +34,7 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionTableComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DropDownButton;
@@ -46,7 +47,9 @@ public class ServerWidget extends Composite {
 	DocTableWidgetPagination docTableWidget;
 
 //	CollectionComboViewerWidget collectionComboViewerWidget;
-	CollectionComboViewerWidget collectionComboViewerWidget;
+//	CollectionComboViewerWidget collectionComboViewerWidget;
+	CollectionSelectorWidget collectionSelectorWidget;
+	
 	RecentDocsComboViewerWidget recentDocsComboViewerWidget;
 	
 	Button manageCollectionsBtn;
@@ -197,14 +200,19 @@ public class ServerWidget extends Composite {
 		remoteDocsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		remoteDocsGroup.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
-//		Composite C
-
-		collectionComboViewerWidget = new CollectionComboViewerWidget(remoteDocsGroup, 0, true, true, false);
-		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		collectionComboViewerWidget.getCollectionFilterLabel().setText("Collections ");
+		Label collectionsLabel = new Label(remoteDocsGroup, 0);
+		collectionsLabel.setText("Collections:");
+		Fonts.setBoldFont(collectionsLabel);
 		
-		Composite collComp = collectionComboViewerWidget.getCollComposite();
-		collComp.setLayout(new GridLayout(3, false)); // have to change nr of columns to add a new buttons
+		collectionSelectorWidget = new CollectionSelectorWidget(remoteDocsGroup, 0, false, false, false);
+		collectionSelectorWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+//		collectionSelectorWidget.getCollectionFilterLabel().setText("Collections ");
+//		collectionComboViewerWidget = new CollectionComboViewerWidget(remoteDocsGroup, 0, true, true, false);
+//		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+//		collectionComboViewerWidget.getCollectionFilterLabel().setText("Collections ");
+		
+		Composite collComp = collectionSelectorWidget.getCollComposite();
+//		collComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0)); // have to change nr of columns to add a new buttons
 		
 		openEditCollectionMenuBtn = new Button(collComp, SWT.PUSH);
 		openEditCollectionMenuBtn.setImage(Images.PENCIL);
@@ -240,7 +248,7 @@ public class ServerWidget extends Composite {
 		
 		collComp.layout();
 		
-		userControls.add(collectionComboViewerWidget);
+		userControls.add(collectionSelectorWidget);
 		
 		Composite docsContainer = new Composite(remoteDocsGroup, 0);
 		docsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -323,11 +331,11 @@ public class ServerWidget extends Composite {
 	}
 	
 	public int getSelectedCollectionId() {
-		return collectionComboViewerWidget.getSelectedCollectionId();
+		return collectionSelectorWidget.getSelectedCollectionId();
 	}
 	
 	public TrpCollection getSelectedCollection() {
-		return collectionComboViewerWidget.getSelectedCollection();
+		return collectionSelectorWidget.getSelectedCollection();
 	}
 	
 	public String getSelectedRecentDoc(){
@@ -335,8 +343,8 @@ public class ServerWidget extends Composite {
 	}
 		
 	public void setSelectedCollection(int colId) {
-		collectionComboViewerWidget.clearFilter();
-		collectionComboViewerWidget.setSelectedCollection(colId, false);
+		collectionSelectorWidget.clearFilter();
+		collectionSelectorWidget.setSelectedCollection(colId);
 	}
 				
 	public void updateRecentDocs() {

@@ -68,6 +68,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	List<TrpDocMetadata> docs = new ArrayList<>();
 	PageResultLoaderList<TrpDocMetadata> listLoader;
 	static final boolean USE_LIST_LOADER = true;
+	
 	ViewerFilter viewerFilter;
 	protected ModifyListener filterModifyListener;
 	static String[] filterProperties = { "docId", "title", "uploader" }; // those are the properties of the TrpDocMetadata bean that are used for filtering

@@ -84,6 +84,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		createTable(singleSelection);
 	}
 	
+	public Text getFilter() {
+		return filter;
+	}
+	
 	public String getSortPropertyName() {
 		return pageableTable.getController().getSortPropertyName();
 	}

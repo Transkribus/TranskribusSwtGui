@@ -26,7 +26,7 @@ public class ActivityDialog extends Dialog {
 	
 	@Override protected void configureShell(Shell shell) {
 	      super.configureShell(shell);
-	      shell.setText("User Avtivity");
+	      shell.setText("User Activity");
 	      SWTUtil.centerShell(shell);
 	}
 	

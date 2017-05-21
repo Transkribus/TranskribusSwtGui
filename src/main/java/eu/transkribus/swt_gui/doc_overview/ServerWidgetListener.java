@@ -6,6 +6,7 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
@@ -14,6 +15,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +26,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class ServerWidgetListener extends SelectionAdapter implements ISelectionChangedListener, IDoubleClickListener, KeyListener, MouseTrackListener, IStorageListener {
+public class ServerWidgetListener extends SelectionAdapter implements Listener, ISelectionChangedListener, IDoubleClickListener, KeyListener, MouseTrackListener, IStorageListener {
 	private final static Logger logger = LoggerFactory.getLogger(ServerWidgetListener.class);
 	
 	ServerWidget sw;
@@ -51,7 +54,9 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		dtv.getTable().addMouseTrackListener(this);
 		dtv.getTable().addKeyListener(this);
 
-		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
+//		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
+		sw.collectionSelectorWidget.addListener(SWT.Selection, this);
+		
 		sw.recentDocsComboViewerWidget.lastDocsCombo.addSelectionListener(this);
 		SWTUtil.addSelectionListener(sw.manageCollectionsBtn, this);
 		sw.showActivityWidgetBtn.addSelectionListener(this);
@@ -80,7 +85,8 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		dtv.getTable().removeMouseTrackListener(this);
 		dtv.getTable().removeKeyListener(this);
 		
-		sw.collectionComboViewerWidget.collectionCombo.removeSelectionListener(this);
+//		sw.collectionComboViewerWidget.collectionCombo.removeSelectionListener(this);
+		sw.collectionSelectorWidget.removeListener(SWT.Selection, this);
 		sw.recentDocsComboViewerWidget.lastDocsCombo.removeSelectionListener(this);
 		SWTUtil.removeSelectionListener(sw.manageCollectionsBtn, this);
 		sw.showActivityWidgetBtn.removeSelectionListener(this);
@@ -132,11 +138,7 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 		Object s = e.getSource();
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 
-		if (s == sw.collectionComboViewerWidget.collectionCombo) {
-			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
-			mw.reloadDocList(sw.getSelectedCollectionId());
-		}
-		else if (s == sw.recentDocsComboViewerWidget.lastDocsCombo){
+		if (s == sw.recentDocsComboViewerWidget.lastDocsCombo){
 			String docToLoad = sw.getSelectedRecentDoc();
 			if (docToLoad != null) {
 				mw.loadRecentDoc(docToLoad);
@@ -240,6 +242,14 @@ public class ServerWidgetListener extends SelectionAdapter implements ISelection
 //		
 //		
 //		
+	}
+
+	@Override
+	public void handleEvent(Event event) {
+		if (event.type == SWT.Selection && event.widget == sw.collectionSelectorWidget) {
+			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
+			TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
+		}
 	}
 
 

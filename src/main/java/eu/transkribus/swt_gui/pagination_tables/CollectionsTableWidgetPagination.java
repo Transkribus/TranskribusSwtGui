@@ -1,24 +1,36 @@
 package eu.transkribus.swt_gui.pagination_tables;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.nebula.widgets.pagination.IPageLoader;
 import org.eclipse.nebula.widgets.pagination.collections.PageResult;
 import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class CollectionsTableWidgetPagination extends ATableWidgetPagination<TrpCollection> {
 	private final static Logger logger = LoggerFactory.getLogger(CollectionsTableWidgetPagination.class);
@@ -34,12 +46,74 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 	List<TrpCollection> collections = new ArrayList<>();
 	PageResultLoaderList<TrpCollection> listLoader;
 	
+	ViewerFilter viewerFilter;
+	protected ModifyListener filterModifyListener;
+	static String[] filterProperties = { "colId", "colName" };
+	
 	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<TrpCollection> methods, boolean singleSelection) {
-		super(parent, style, initialPageSize, methods, singleSelection);
+		super(parent, style, initialPageSize, methods, singleSelection, true);
+		initFilter();
 	}
 	
 	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize) {
 		super(parent, style, initialPageSize);
+		initFilter();
+	}
+	
+	void initFilter() {
+		viewerFilter = new ViewerFilter() {
+			@Override public boolean select(Viewer viewer, Object parentElement, Object element) {
+				if (SWTUtil.isDisposed(filter)) {
+					return true;
+				}
+				
+				logger.trace("filter, select: "+element);
+
+				String ft = filter.getText();
+				logger.trace("ft = "+ft);
+				if (StringUtils.isEmpty(ft))
+					return true;
+				
+				ft = Pattern.quote(ft);
+				
+				String reg = "(?i)(.*"+ft+".*)";
+				logger.trace("reg = "+reg);
+				
+//				TrpDocMetadata d = (TrpDocMetadata) element;
+				
+				for (String property : filterProperties) {
+					try {
+						String propValue = BeanUtils.getSimpleProperty(element, property);
+						logger.trace("property: "+property+" value: "+propValue);
+						
+						if (propValue.matches(reg)) {
+							return true;
+						}
+					} catch (Exception e) {
+						logger.error("Error getting filter property '"+property+"': "+e.getMessage());
+					}
+				}
+
+				return false;
+				
+//				boolean matches = element.toString().matches(reg);
+//				logger.debug("matches = "+matches);
+//				return matches;
+			}
+		};
+		
+		filterModifyListener = new ModifyListener() {
+			DelayedTask dt = new DelayedTask(() -> { 
+				refreshList(collections);
+			}, true);
+			@Override public void modifyText(ModifyEvent e) {
+				dt.start();
+			}
+		};
+		filter.addModifyListener(filterModifyListener);
+//		pageableTable.getViewer().addFilter(viewerFilter); // does not work with pagination -> using viewerFilter explicitly when setting input to listLoader
+
+		
 	}
 	
 	public synchronized void refreshList(List<TrpCollection> collections) {
@@ -48,11 +122,21 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 		this.collections = new ArrayList<>();
 		this.collections.addAll(collections);
 		
-		if (USE_LIST_LOADER && listLoader!=null) {
-			listLoader.setItems(this.collections);
+		List<TrpCollection> filtered = new ArrayList<>();
+		// filter
+		for (TrpCollection c : collections) {
+			if (viewerFilter.select(null, null, c)) {
+				filtered.add(c);
+			}
 		}
 		
-		refreshPage(true);
+		Display.getDefault().asyncExec(() -> {
+			if (USE_LIST_LOADER && listLoader!=null) {
+				listLoader.setItems(filtered);
+			}
+			
+			refreshPage(true);
+		});
 	}
 
 	@Override protected void setPageLoader() {
@@ -116,12 +200,12 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 			}
             
         	@Override public Font getFont(Object element) {
-        		if (element instanceof TrpCollection) {
-        			TrpCollection c = (TrpCollection) element;
-        			
-        			if (c.getColId() == TrpMainWidget.getInstance().getUi().getServerWidget().getSelectedCollectionId())
-        				return boldFont;
-        		}
+//        		if (element instanceof TrpCollection) {
+//        			TrpCollection c = (TrpCollection) element;
+//        			
+//        			if (c.getColId() == TrpMainWidget.getInstance().getUi().getServerWidget().getSelectedCollectionId())
+//        				return boldFont;
+//        		}
         		
         		return null;
         	}
@@ -142,10 +226,10 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 		}
 		
 		createColumn(ID_COL, 50, "colId", new CollectionsTableColumnLabelProvider("colId"));
-		createColumn(NAME_COL, 200, "colName", new CollectionsTableColumnLabelProvider("colName"));
+		createColumn(NAME_COL, 250, "colName", new CollectionsTableColumnLabelProvider("colName"));
 		createColumn(ROLE_COL, 80, "colName", new CollectionsTableColumnLabelProvider("role"));
-		createColumn(DESC_COL, 100, "description", new CollectionsTableColumnLabelProvider("description"));
-		createColumn(LABEL_COL, 100, "label", new CollectionsTableColumnLabelProvider("label"));
+		createColumn(DESC_COL, 500, "description", new CollectionsTableColumnLabelProvider("description"));
+//		createColumn(LABEL_COL, 100, "label", new CollectionsTableColumnLabelProvider("label"));
 	}
 
 }
