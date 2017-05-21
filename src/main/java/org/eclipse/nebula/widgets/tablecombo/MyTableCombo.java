@@ -92,6 +92,7 @@ import eu.transkribus.swt.util.SWTUtil;
  * <dd>DefaultSelection, Modify, Selection, Verify</dd>
  * </dl>
  *
+ * @deprecated not used...
  */
 
 public class MyTableCombo extends Composite {

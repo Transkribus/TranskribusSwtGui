@@ -1,7 +1,6 @@
 package eu.transkribus.swt_gui.pagination_tables;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -21,15 +20,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.CollectionsLoadEvent;
 import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class CollectionsTableWidgetPagination extends ATableWidgetPagination<TrpCollection> {
@@ -53,11 +53,28 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<TrpCollection> methods, boolean singleSelection) {
 		super(parent, style, initialPageSize, methods, singleSelection, true);
 		initFilter();
+		initListener();
 	}
 	
 	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize) {
 		super(parent, style, initialPageSize);
 		initFilter();
+		initListener();
+	}
+	
+	void initListener() {
+		if (USE_LIST_LOADER) {
+			Storage.getInstance().addListener(new IStorageListener() {
+				@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
+					if (SWTUtil.isDisposed(CollectionsTableWidgetPagination.this) || SWTUtil.isDisposed(getShell()))
+							return;
+					
+					refreshList(Storage.getInstance().getCollections());
+				}
+			});
+			
+			refreshList(Storage.getInstance().getCollections());
+		}
 	}
 	
 	void initFilter() {
@@ -125,7 +142,7 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 		List<TrpCollection> filtered = new ArrayList<>();
 		// filter
 		for (TrpCollection c : collections) {
-			if (viewerFilter.select(null, null, c)) {
+			if (viewerFilter.select(null, null, c)) { 
 				filtered.add(c);
 			}
 		}
@@ -137,6 +154,19 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 			
 			refreshPage(true);
 		});
+	}
+	
+	protected void onReloadButtonPressed() {
+		if (USE_LIST_LOADER) {
+			try {
+				logger.debug("re-loading collections...");
+				Storage.getInstance().reloadCollections();
+			} catch (Exception e) {
+				logger.error("Error loading collections: "+e.getMessage(), e);
+			}
+		} else {
+			super.onReloadButtonPressed();	
+		}
 	}
 
 	@Override protected void setPageLoader() {

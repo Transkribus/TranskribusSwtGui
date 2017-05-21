@@ -4487,13 +4487,13 @@ public class TrpMainWidget {
 	}
 	
 	public boolean addDocumentsToCollection(int srcColId, Collection<TrpDocMetadata> docs) {
-		if (!storage.isLoggedIn()) {
+		if (!storage.isLoggedIn() || docs==null || docs.isEmpty()) {
 			return false;
 		}
 		
 		TrpCollection coll = storage.getCollection(srcColId);
 		if (coll == null) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not determin collection for selected documents!");
+			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not determine collection for selected documents!");
 		}
 		
 		final TrpUserLogin user = storage.getUser();
@@ -4659,25 +4659,24 @@ public class TrpMainWidget {
 		if (c== null || !storage.isLoggedIn())
 			return;
 		
-		logger.debug("Role in collection: " + c.getRole());
-		if (!AuthUtils.canManage(c.getRole())) {
-			DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not allowed to modify this collection!");
-			return;
-		}
-		
-		CollectionEditorDialog ced = new CollectionEditorDialog(getShell(), c);
-		if (ced.open() != IDialogConstants.OK_ID) {
-			return;
-		}
-		
-		if(!ced.isMdChanged()) {
-			logger.debug("Metadata was not altered.");
-			return;
-		}
-		
-		TrpCollection newMd = ced.getCollection();
-				
 		try {
+			logger.debug("Role in collection: " + c.getRole());
+			if (!AuthUtils.canManage(c.getRole())) {
+				DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not allowed to modify this collection!");
+				return;
+			}
+			
+			CollectionEditorDialog ced = new CollectionEditorDialog(getShell(), c);
+			if (ced.open() != IDialogConstants.OK_ID) {
+				return;
+			}
+			
+			if(!ced.isMdChanged()) {
+				logger.debug("Metadata was not altered.");
+				return;
+			}
+			
+			TrpCollection newMd = ced.getCollection();
 			storage.getConnection().updateCollectionMd(newMd);
 			storage.reloadCollections();
 			

@@ -60,22 +60,22 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		sw.recentDocsComboViewerWidget.lastDocsCombo.addSelectionListener(this);
 		SWTUtil.addSelectionListener(sw.manageCollectionsBtn, this);
 		sw.showActivityWidgetBtn.addSelectionListener(this);
+				
+		SWTUtil.addSelectionListener(sw.duplicateDocMenuItem, this);
+		SWTUtil.addSelectionListener(sw.deleteDocMenuItem, this);
+		SWTUtil.addSelectionListener(sw.addToCollectionMenuItem, this);
+		SWTUtil.addSelectionListener(sw.removeFromCollectionMenuItem, this);
 		
-		sw.duplicateDocMenuItem.addSelectionListener(this);
-		sw.deleteDocMenuItem.addSelectionListener(this);
-		sw.addToCollectionMenuItem.addSelectionListener(this);
-		sw.removeFromCollectionMenuItem.addSelectionListener(this);
+		SWTUtil.addSelectionListener(sw.collectionUsersBtn, this);
+		SWTUtil.addSelectionListener(sw.createCollectionBtn, this);
+		SWTUtil.addSelectionListener(sw.deleteCollectionBtn, this);
+		SWTUtil.addSelectionListener(sw.modifyCollectionBtn, this);
 		
-		sw.collectionUsersBtn.addSelectionListener(this);
-		sw.createCollectionBtn.addSelectionListener(this);
-		sw.deleteCollectionBtn.addSelectionListener(this);
-		sw.modifyCollectionBtn.addSelectionListener(this);
+		SWTUtil.addSelectionListener(sw.openLocalDocBtn, this);
+		SWTUtil.addSelectionListener(sw.importBtn, this);
+		SWTUtil.addSelectionListener(sw.exportBtn, this);
+		SWTUtil.addSelectionListener(sw.findBtn, this);
 		
-		sw.openLocalDocBtn.addSelectionListener(this);
-		sw.importBtn.addSelectionListener(this);
-		sw.exportBtn.addSelectionListener(this);
-		sw.findBtn.addSelectionListener(this);
-
 		Storage.getInstance().addListener(this);
 	}
 	
@@ -91,20 +91,20 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.removeSelectionListener(sw.manageCollectionsBtn, this);
 		sw.showActivityWidgetBtn.removeSelectionListener(this);
 		
-		sw.duplicateDocMenuItem.removeSelectionListener(this);
-		sw.deleteDocMenuItem.removeSelectionListener(this);
-		sw.addToCollectionMenuItem.removeSelectionListener(this);
-		sw.removeFromCollectionMenuItem.removeSelectionListener(this);		
+		SWTUtil.removeSelectionListener(sw.duplicateDocMenuItem, this);
+		SWTUtil.removeSelectionListener(sw.deleteDocMenuItem, this);
+		SWTUtil.removeSelectionListener(sw.addToCollectionMenuItem, this);
+		SWTUtil.removeSelectionListener(sw.removeFromCollectionMenuItem, this);
 		
-		sw.collectionUsersBtn.removeSelectionListener(this);
-		sw.createCollectionBtn.removeSelectionListener(this);
-		sw.deleteCollectionBtn.removeSelectionListener(this);
-		sw.modifyCollectionBtn.removeSelectionListener(this);
+		SWTUtil.removeSelectionListener(sw.collectionUsersBtn, this);
+		SWTUtil.removeSelectionListener(sw.createCollectionBtn, this);
+		SWTUtil.removeSelectionListener(sw.deleteCollectionBtn, this);
+		SWTUtil.removeSelectionListener(sw.modifyCollectionBtn, this);
 		
-		sw.openLocalDocBtn.removeSelectionListener(this);
-		sw.importBtn.removeSelectionListener(this);
-		sw.exportBtn.removeSelectionListener(this);
-		sw.findBtn.removeSelectionListener(this);
+		SWTUtil.removeSelectionListener(sw.openLocalDocBtn, this);
+		SWTUtil.removeSelectionListener(sw.importBtn, this);
+		SWTUtil.removeSelectionListener(sw.exportBtn, this);
+		SWTUtil.removeSelectionListener(sw.findBtn, this);
 		
 		Storage.getInstance().removeListener(this);
 	}

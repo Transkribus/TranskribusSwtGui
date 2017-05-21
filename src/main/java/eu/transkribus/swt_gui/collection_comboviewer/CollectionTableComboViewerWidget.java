@@ -51,6 +51,9 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DelayedTask;
 
+/**
+ * @deprecated does not render nicely on mac
+ */
 public class CollectionTableComboViewerWidget extends Composite implements Observer {
 	private final static Logger logger = LoggerFactory.getLogger(CollectionComboViewerWidget.class);
 	

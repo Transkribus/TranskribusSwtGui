@@ -7,10 +7,12 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.swt_gui.collection_comboviewer.CollectionComboViewerWidget;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ChooseCollectionDialog extends Dialog {
@@ -20,7 +22,8 @@ public class ChooseCollectionDialog extends Dialog {
 	Integer initColId=null;
 	
 	TrpCollection selectedCollection=null;
-	CollectionComboViewerWidget collCombo;
+//	CollectionComboViewerWidget collCombo;
+	CollectionSelectorWidget collCombo;
 	
 	String title;
 	
@@ -53,15 +56,21 @@ public class ChooseCollectionDialog extends Dialog {
 	 */
 	@Override protected Control createDialogArea(Composite parent) {
 		Composite container = (Composite) super.createDialogArea(parent);
-		container.setLayout(new GridLayout(1, true));
+		container.setLayout(new GridLayout(2, false));
 		
-//		Label l = new Label(container, 0);
-//		l.setText("Choose a collection: ");
-		collCombo = new CollectionComboViewerWidget(parent, 0, true, false, false);
-		collCombo.setLayoutData(new GridData(GridData.FILL_BOTH));
+//		collCombo = new CollectionComboViewerWidget(parent, 0, true, false, false);
+//		collCombo.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		Label l = new Label(container, 0);
+		l.setText("Selected collection: ");
+		Fonts.setBoldFont(l);
+//		collCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		collCombo = new CollectionSelectorWidget(container, 0, true, false, false);
+		collCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		if (initColId != null) {
-			collCombo.setSelectedCollection(initColId, false);
+			collCombo.setSelectedCollection(initColId);
 		}
 
 		return container;
@@ -84,7 +93,7 @@ public class ChooseCollectionDialog extends Dialog {
 	 * Return the initial size of the dialog.
 	 */
 	@Override protected Point getInitialSize() {
-		return new Point(600, 200);
+		return new Point(550, 150);
 	}
 
 }

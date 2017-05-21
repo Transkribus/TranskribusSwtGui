@@ -211,9 +211,9 @@ public class ServerWidget extends Composite {
 //		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 //		collectionComboViewerWidget.getCollectionFilterLabel().setText("Collections ");
 		
+		if (false) {
 		Composite collComp = collectionSelectorWidget.getCollComposite();
 //		collComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0)); // have to change nr of columns to add a new buttons
-		
 		openEditCollectionMenuBtn = new Button(collComp, SWT.PUSH);
 		openEditCollectionMenuBtn.setImage(Images.PENCIL);
 		openEditCollectionMenuBtn.setToolTipText("Manage collection...");
@@ -247,6 +247,7 @@ public class ServerWidget extends Composite {
 		collectionUsersBtn.setText("Manage users in collection...");
 		
 		collComp.layout();
+		}
 		
 		userControls.add(collectionSelectorWidget);
 		

@@ -20,6 +20,8 @@ import org.eclipse.swt.widgets.Widget;
  * TableComboViewerRow is basically identical to the TableViewer class with a
  * few modifications to reference the Table within the TableCombo widget 
  * instead of a parent Table widget.
+ * 
+ * @deprecated not used...
   */
 public class MyTableComboViewer extends AbstractTableViewer {
 	

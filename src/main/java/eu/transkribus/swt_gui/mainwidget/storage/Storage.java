@@ -1783,8 +1783,10 @@ public class Storage {
 	
 	public void reloadCollections() throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
-
+		
+		logger.debug("loading collections from server");
 		List<TrpCollection> collectionsFromServer = conn.getAllCollections(0, 0, null, null);
+		logger.debug("got collections: "+(collectionsFromServer==null?"null":collectionsFromServer.size()));
 		
 		collections.clear();
 		collections.addAll(collectionsFromServer);

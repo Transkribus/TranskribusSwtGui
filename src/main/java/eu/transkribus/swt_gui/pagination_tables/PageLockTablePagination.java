@@ -22,7 +22,9 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,7 @@ import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionTableComboViewerWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -52,7 +55,7 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 	public static final String PAGE_NR_COL = "Page";
 	
 	Button showAllLocksBtn;
-	CollectionTableComboViewerWidget collectionsViewer;
+	CollectionSelectorWidget collectionsSelector;
 	Text docIdText;
 	
 	Storage store = Storage.getInstance();
@@ -74,8 +77,8 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 			showAllLocksBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 		}
 		
-		collectionsViewer = new CollectionTableComboViewerWidget(btns, SWT.READ_ONLY | SWT.DROP_DOWN, false, true, true);
-		collectionsViewer.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+		collectionsSelector = new CollectionSelectorWidget(btns, SWT.READ_ONLY | SWT.DROP_DOWN, false, true, true);
+		collectionsSelector.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 //		collectionsViewer.getCollectionLabel().setText("Collection:");
 //		Label l1 = new Label(collectionsViewer, 0);
 //		l1.setText("Collection: ");
@@ -121,12 +124,14 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 			}
 		});
 		
-		collectionsViewer.collectionCombo.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				refreshLocks();
+		collectionsSelector.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				logger.trace("refreshing locks...");
+				refreshLocks();				
 			}
 		});
-		
+				
 	}
 	
 	boolean isShowAllLocks() {
@@ -135,7 +140,7 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 	
 	void refreshLocks() {
 		try {
-			TrpCollection col = collectionsViewer.getSelectedCollection();
+			TrpCollection col = collectionsSelector.getSelectedCollection();
 			int colId = (col == null || isShowAllLocks()) ? -1 : col.getColId();
 			int docId = parseDocId();
 			

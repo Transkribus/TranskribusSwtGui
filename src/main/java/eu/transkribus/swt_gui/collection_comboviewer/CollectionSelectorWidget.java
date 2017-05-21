@@ -30,7 +30,6 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.dialogs.CollectionSelectorDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DelayedTask;
@@ -38,31 +37,20 @@ import eu.transkribus.swt_gui.util.DelayedTask;
 public class CollectionSelectorWidget extends Composite implements Observer {
 	private final static Logger logger = LoggerFactory.getLogger(CollectionSelectorWidget.class);
 	
-	public Label collectionFilterLabel;
-	public Text collectionFilterText;
+	Label collectionFilterLabel;
+	Text collectionFilterText;
+	Button collectionBtn;
 	
-//	public ComboViewer collectionComboViewer;
-//	public Combo collectionCombo;
-	
-	public Button collectionBtn;
-	
-	public Button reloadCollectionsBtn;
-	public Label collectionLabel;
-	public Composite headerComposite;
-	public Composite filterComposite;
-	public Composite collComposite;
+	Button reloadCollectionsBtn;
+	Label collectionLabel;
+	Composite headerComposite;
+	Composite filterComposite;
+	Composite collComposite;
 	
 	ModifyListener filterModifyListener;
-	
-	private List<TrpCollection> collections = new ArrayList<>();
-	
+	List<TrpCollection> collections = new ArrayList<>();
 	Storage storage = Storage.getInstance();
-	
 	boolean withFilter, withAdditionalBtn;
-	
-//	public CollectionComboViewerWidget(Composite parent, int style) {
-//		this(parent, style, true, true, true);
-//	}
 	
 	public CollectionSelectorWidget(Composite parent, int style, boolean withFilter, boolean withAdditionalBtn, boolean withHeader) {
 		super(parent, style);
@@ -131,14 +119,12 @@ public class CollectionSelectorWidget extends Composite implements Observer {
 		collectionBtn = new Button(collComposite, SWT.PUSH);
 		collectionBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		collectionBtn.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				CollectionSelectorDialog d = new CollectionSelectorDialog(getShell(), collections);
+			@Override public void widgetSelected(SelectionEvent e) {
+				CollectionSelectorDialog d = new CollectionSelectorDialog(getShell());
 				if (d.open() != Dialog.OK) {
 					return;
 				}
-								
+							
 				TrpCollection c = d.getSelectedCollection();
 				logger.info("selected collection: "+c);
 				if (c == null)

@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.junit.Assert;
 
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.swt.util.DialogUtil;
@@ -26,14 +27,16 @@ public class CollectionEditorDialog extends Dialog {
 
 	public CollectionEditorDialog(Shell parentShell, TrpCollection c) {
 		super(parentShell);
+		Assert.assertNotNull("Collection cannot be null!", c);
+		
 		this.collection = c;
 	}
 	
-	public void setVisible() {
-		if(super.getShell() != null && !super.getShell().isDisposed()) {
-			super.getShell().setVisible(true);
-		}
-	}
+//	public void setVisible() {
+//		if (super.getShell() != null && !super.getShell().isDisposed()) {
+//			super.getShell().setVisible(true);
+//		}
+//	}
 	
 	@Override
 	protected Control createDialogArea(Composite parent) {
@@ -64,10 +67,17 @@ public class CollectionEditorDialog extends Dialog {
 	}
 	
 	private void updateValues() {
-		nameTxt.setText(collection.getColName());
-		descrTxt.setText(collection.getDescription() == null ? "" : collection.getDescription());
-		isCrowdsourceBtn.setSelection(collection.isCrowdsourcing());
-		isELearningBtn.setSelection(collection.isElearning());
+		if (collection == null) {
+			nameTxt.setText("");
+			descrTxt.setText("");
+			isCrowdsourceBtn.setSelection(false);
+			isELearningBtn.setSelection(false);
+		} else {
+			nameTxt.setText(collection.getColName());
+			descrTxt.setText(collection.getDescription() == null ? "" : collection.getDescription());
+			isCrowdsourceBtn.setSelection(collection.isCrowdsourcing());
+			isELearningBtn.setSelection(collection.isElearning());
+		}
 	}
 
 	public TrpCollection getCollection() {
@@ -86,7 +96,7 @@ public class CollectionEditorDialog extends Dialog {
 		final boolean isCrowdsource = isCrowdsourceBtn.getSelection();
 		final boolean isELearning = isELearningBtn.getSelection();
 		
-		if(StringUtils.isEmpty(name)) {
+		if (StringUtils.isEmpty(name)) {
 			DialogUtil.showErrorMessageBox(this.getShell(), 
 					"Invalid Input", 
 					"Collection name must not be empty!");
