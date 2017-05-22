@@ -25,6 +25,7 @@ import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.shapes.RectDirection;
+import math.geom2d.Point2D;
 
 public class CanvasMouseListener implements MouseListener, MouseMoveListener, MouseWheelListener, MouseTrackListener {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasMouseListener.class);
@@ -45,6 +46,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 	Point translation = null;
 	Point shapeBoundaryPt = null;
 	boolean hasMouseMoved=false;
+	double lastCanvasMoveDist=-1;
 	
 	RectDirection mouseOverDirection=RectDirection.NONE;
 	RectDirection selectedDirection=RectDirection.NONE;
@@ -81,6 +83,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		mousePtWoTr = null;
 		shapeBoundaryPt = null;
 		hasMouseMoved=false;
+		lastCanvasMoveDist=-1;
 		
 		mouseOverDirection=RectDirection.NONE;
 		selectedDirection=RectDirection.NONE;
@@ -180,6 +183,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		// update data:
 		wasPointSelected=false;
 		hasMouseMoved=false;
+		lastCanvasMoveDist=-1;
 		firstMove = true;
 		mousePt = new Point(e.x, e.y);
 		mousePtWoTr = canvas.inverseTransform(mousePt.x, mousePt.y);
@@ -197,6 +201,13 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				button == settings.getSelectMouseButton() 
 				&& !isMovingShapePossible && shapeBoundaryPt == null 
 				&& mouseOverPoint == -1 && e.stateMask==0 && e.stateMask != CanvasKeys.SELECTION_RECTANGLE_REQUIRED_KEYS;
+		
+//		if (button == settings.getTranslateMouseButton()) {
+//			modeBackup = settings.getMode();
+//			canvas.setMode(CanvasMode.MOVE);
+//		} else if (isMoveImgOnLeftBtnPossible) {
+//			
+//		}
 		
 		if (button == settings.getTranslateMouseButton() 
 				/*|| e.stateMask == CanvasKeys.MOVE_SCENE_REQUIRED_KEYS*/
@@ -317,8 +328,12 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 //				canvas.setMode(CanvasMode.MOVE);
 //				Point oldMovePt = getMouseMove(settings.getTranslateMouseButton());
 				if (oldMovePt != null) {
+					lastCanvasMoveDist = Point2D.distance(mousePt.x, mousePt.y, oldMovePt.x, oldMovePt.y);
+					logger.trace("moving, d = "+lastCanvasMoveDist);
+					
 					canvas.translate(mousePt.x-oldMovePt.x, mousePt.y-oldMovePt.y);
 					hasMouseMoved=true;
+					
 				}
 			}
 			// move shape:
@@ -428,18 +443,18 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		// deselect point if mouse has not moved:
 		CanvasMode mode = canvas.getMode();
 		boolean triedToMoveShapeOrImage = (mode == CanvasMode.MOVE || mode == CanvasMode.MOVE_SHAPE) && modeBackup == CanvasMode.SELECTION;
-		logger.debug("H0 "+triedToMoveShapeOrImage+" button: "+button+" selectedPoint: "+selectedPoint+" mode: "+canvas.getMode());
+		boolean hasMovedJustALittle = lastCanvasMoveDist>=0 && lastCanvasMoveDist<=15;
+		logger.debug("H0 "+triedToMoveShapeOrImage+" button: "+button+" selectedPoint: "+selectedPoint+" mode: "+canvas.getMode()+", hasMovedJustALittle: "+hasMovedJustALittle);
+		
 		if (button == settings.getSelectMouseButton()
-				&& !hasMouseMoved
+				&& (!hasMouseMoved || hasMovedJustALittle) 
 				&& (canvas.getMode() == CanvasMode.SELECTION || triedToMoveShapeOrImage)
 				) { // perform de-selection of point or selection of shape on mouse up
-//			logger.debug("H1");
 			ICanvasShape selected = canvas.getFirstSelected();			
 			if (selected != null && selected.isEditable() && wasPointSelected) {
 				selected.deselectPoint(selectedPoint, true);
 				wasPointSelected = false;
 			}
-//			logger.debug("H2");
 			// TEST:
 			if (selectedPoint == -1 && selectedDirection == RectDirection.NONE && selectedLine == null) {
 				logger.debug("selecting object on: "+e.x+"x"+e.y);
@@ -453,6 +468,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		}
 		
 		hasMouseMoved = false;
+		lastCanvasMoveDist = 0;
 		firstMove = false;
 		currentMoveOp = null;
 		mousePt = new Point(e.x, e.y);
