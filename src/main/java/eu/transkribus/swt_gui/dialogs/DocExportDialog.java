@@ -16,6 +16,10 @@ import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.swt.util.SWTUtil;
 
+/**
+ * @deprecated not used anymore
+ *
+ */
 public class DocExportDialog extends Dialog {
 
 	Shell shell;

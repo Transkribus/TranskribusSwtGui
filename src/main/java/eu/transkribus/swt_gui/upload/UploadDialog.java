@@ -32,6 +32,10 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
+/**
+ * @deprecated not used anymore
+ *
+ */
 public class UploadDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(UploadDialog.class);
 	

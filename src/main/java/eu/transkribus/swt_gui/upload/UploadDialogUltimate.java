@@ -43,6 +43,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocDir;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -166,13 +167,13 @@ public class UploadDialogUltimate extends Dialog {
 		singleGroup.setText("Single document upload");
 		singleGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		singleGroup.setLayout(new GridLayout(3, false));
-		createSingleGroup(singleGroup);	
+		createSingleGroup(singleGroup);
 		
 		metsUrlGroup = new Group(SWTUtil.dummyShell, 0);
 		metsUrlGroup.setText("Document upload via METS");
 		metsUrlGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		metsUrlGroup.setLayout(new GridLayout(3, false));
-		createMetsUrlGroup(metsUrlGroup);	
+		createMetsUrlGroup(metsUrlGroup);
 		
 		pdfGroup = new Group(SWTUtil.dummyShell, 0);
 		pdfGroup.setText("Extract images from pdf (locally) and upload");
@@ -201,12 +202,24 @@ public class UploadDialogUltimate extends Dialog {
 		addCollBtn.setImage(Images.getOrLoad("/icons/add.png"));
 		addCollBtn.setToolTipText("Creates a new collection with the name on the left - you will be the owner of the collection");
 		
+		SebisStopWatch sw = new SebisStopWatch();
+		
+		sw.start();
 		updateDocDirs();
+		sw.stop(true, "updateDocDirs");
+		
+		sw.start();
 		updateCollections();
+		sw.stop(true, "updateDocDirs");
+		
+		sw.start();
 		addListener();
+		sw.stop(true, "updateDocDirs");
 		
 		this.container = container;
+		sw.start();
 		updateGroupVisibility();
+		sw.stop(true, "updateGroupVisibility");
 		
 		return container;
 	}
@@ -744,31 +757,6 @@ public class UploadDialogUltimate extends Dialog {
 		return list;	
 	}
 	
-	public static void main(String[] args) throws Exception {
-		ApplicationWindow aw = new ApplicationWindow(null) {
-			@Override
-			protected Control createContents(Composite parent) {
-				// getShell().setLayout(new FillLayout());
-				getShell().setSize(300, 200);
-				Button btn = new Button(parent, SWT.PUSH);
-				btn.setText("Open upload dialog");
-				btn.addSelectionListener(new SelectionAdapter() {
-					@Override public void widgetSelected(SelectionEvent e) {
-						(new UploadDialogUltimate(getShell(), null)).open();
-					}
-				});
-
-				SWTUtil.centerShell(getShell());
-
-				return parent;
-			}
-		};
-		aw.setBlockOnOpen(true);
-		aw.open();
-
-		Display.getCurrent().dispose();
-	}
-
 	public boolean isMetsUrlUpload() {
 		return isMetsUrlUpload;
 	}
@@ -776,4 +764,29 @@ public class UploadDialogUltimate extends Dialog {
 	public String getMetsUrl() {
 		return url;
 	}
+	
+//	public static void main(String[] args) throws Exception {
+//		ApplicationWindow aw = new ApplicationWindow(null) {
+//			@Override
+//			protected Control createContents(Composite parent) {
+//				// getShell().setLayout(new FillLayout());
+//				getShell().setSize(300, 200);
+//				Button btn = new Button(parent, SWT.PUSH);
+//				btn.setText("Open upload dialog");
+//				btn.addSelectionListener(new SelectionAdapter() {
+//					@Override public void widgetSelected(SelectionEvent e) {
+//						(new UploadDialogUltimate(getShell(), null)).open();
+//					}
+//				});
+//
+//				SWTUtil.centerShell(getShell());
+//
+//				return parent;
+//			}
+//		};
+//		aw.setBlockOnOpen(true);
+//		aw.open();
+//
+//		Display.getCurrent().dispose();
+//	}
 }
