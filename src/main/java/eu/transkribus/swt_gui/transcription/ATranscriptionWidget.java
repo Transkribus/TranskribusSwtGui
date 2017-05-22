@@ -142,7 +142,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected MenuItem centerAlignmentItem;
 	protected MenuItem rightAlignmentItem;
 	
-	protected DropDownToolItemSimple viewSetsDropDown;
+//	protected DropDownToolItemSimple viewSetsDropDown;
 	
 	protected ToolItem writingOrientationItem;
 	protected MenuItem showControlSignsItem;
@@ -567,10 +567,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		regionsToolbar = regionsPagingToolBar.getToolBar();
 				
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
-		
-		initTranscriptionSetsDropDown();
-		initViewSetsDropDown();
-
+				
+//		initViewSetsDropDown();
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 						
 		if (false) { // obsolete button -> remove in later version!
@@ -619,7 +617,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 				
-		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+//		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
 		longDash = new ToolItem(regionsToolbar, SWT.PUSH);
 		longDash.setText("\u2014");
@@ -650,7 +648,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
-		initFontTagsToolbar();
+		initTaggingToolbar();
 		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
@@ -663,6 +661,13 @@ public abstract class ATranscriptionWidget extends Composite{
 		redoItem.setImage(Images.getOrLoad("/icons/arrow_redo.png"));
 		redoItem.setToolTipText("Redo last undone text change (ctrl + y)");
 		additionalToolItems.add(redoItem);
+		
+		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+		
+		transcriptSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.WRENCH);
+		transcriptSetsDropDown.getToolItem().setToolTipText("Transcription settings...");		
+		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
+		initTranscriptionSetsDropDownItems(transcriptSetsDropDown);
 		
 		if (SHOW_WORD_GRAPH_STUFF && getType() == Type.LINE_BASED) {
 			new ToolItem(regionsToolbar, SWT.SEPARATOR);
@@ -690,52 +695,53 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 	}
 	
-	private void initFontTagsToolbar() {
+	private void initTaggingToolbar() {
 		boldTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
 		boldTagItem.setImage(Images.getOrLoad("/icons/text_bold.png"));
 		boldTagItem.setToolTipText("Tag text as bold");
 		boldTagItem.setData(TextStyleTag.getBoldTag());
 		boldTagItem.addSelectionListener(new TagItemListener());
+		additionalToolItems.add(boldTagItem);
 		
 		italicTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
 		italicTagItem.setImage(Images.getOrLoad("/icons/text_italic.png"));
 		italicTagItem.setToolTipText("Tag as italic");
 		italicTagItem.setData(TextStyleTag.getItalicTag());
 		italicTagItem.addSelectionListener(new TagItemListener());
+		additionalToolItems.add(italicTagItem);
 		
 		subscriptTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
 		subscriptTagItem.setImage(Images.getOrLoad("/icons/text_subscript.png"));
 		subscriptTagItem.setToolTipText("Tag as subscript");
 		subscriptTagItem.setData(TextStyleTag.getSubscriptTag());
 		subscriptTagItem.addSelectionListener(new TagItemListener());
+		additionalToolItems.add(subscriptTagItem);
 		
 		superscriptTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
 		superscriptTagItem.setImage(Images.getOrLoad("/icons/text_superscript.png"));
 		superscriptTagItem.setToolTipText("Tag as superscript");
 		superscriptTagItem.setData(TextStyleTag.getSuperscriptTag());
 		superscriptTagItem.addSelectionListener(new TagItemListener());
+		additionalToolItems.add(superscriptTagItem);
 		
 		underlinedTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
 		underlinedTagItem.setImage(Images.getOrLoad("/icons/text_underline.png"));
 		underlinedTagItem.setToolTipText("Tag as underlined");
 		underlinedTagItem.setData(TextStyleTag.getUnderlinedTag());
 		underlinedTagItem.addSelectionListener(new TagItemListener());
+		additionalToolItems.add(underlinedTagItem);
 		
 		strikethroughTagItem = new ToolItem(regionsToolbar, SWT.PUSH);
 		strikethroughTagItem.setImage(Images.getOrLoad("/icons/text_strikethrough.png"));
 		strikethroughTagItem.setToolTipText("Tag as strikethrough");
 		strikethroughTagItem.setData(TextStyleTag.getStrikethroughTag());
 		strikethroughTagItem.addSelectionListener(new TagItemListener());
+		additionalToolItems.add(strikethroughTagItem);
 	}
 	
-	private void initTranscriptionSetsDropDown() {
-		transcriptSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.WRENCH);
-		transcriptSetsDropDown.getToolItem().setToolTipText("Transcription settings...");
-		
-		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
-				
-		transcriptionTypeMenuItem = transcriptSetsDropDown.addItem("Transcription level", null, SWT.CASCADE);
-		Menu transcriptionTypeMenu = new Menu(transcriptSetsDropDown.getMenu());
+	private void initTranscriptionSetsDropDownItems(DropDownToolItemSimple ti) {				
+		transcriptionTypeMenuItem = ti.addItem("Transcription level", null, SWT.CASCADE);
+		Menu transcriptionTypeMenu = new Menu(ti.getMenu());
 		transcriptionTypeMenuItem.setMenu(transcriptionTypeMenu);
 		
 		transcriptionTypeLineBasedItem = SWTUtil.createMenuItem(transcriptionTypeMenu, "Line based", null, SWT.RADIO);
@@ -745,51 +751,70 @@ public abstract class ATranscriptionWidget extends Composite{
 		transcriptionTypeWordBasedItem= SWTUtil.createMenuItem(transcriptionTypeMenu, "Word based", null, SWT.RADIO);
 		transcriptionTypeWordBasedItem.setData(Type.WORD_BASED);
 		
-		autocompleteToggle = transcriptSetsDropDown.addItem("Autocomplete (experimental)", Images.getOrLoad("/icons/autocomplete.png"), SWT.CHECK);
+		autocompleteToggle = ti.addItem("Autocomplete (based on text of current transcript)", Images.getOrLoad("/icons/autocomplete.png"), SWT.CHECK);
 		
-//		autocompleteToggle = new ToolItem(regionsToolbar, SWT.CHECK);
-//		autocompleteToggle.setImage(Images.getOrLoad("/icons/autocomplete.png"));
-//		autocompleteToggle.setToolTipText("Enable autocomplete");
-	}
-	
-	private void initViewSetsDropDown() {
-		viewSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.EYE);
-		viewSetsDropDown.getToolItem().setToolTipText("Viewing settings for the transcription widget");
-		additionalToolItems.add(viewSetsDropDown.getToolItem());
+		// old "view" sets...
 		
-		fontItem = viewSetsDropDown.addItem("Change text field font...", Images.getOrLoad("/icons/font.png"), SWT.PUSH);
-		showLineBulletsItem = viewSetsDropDown.addItem("Show line bullets", Images.getOrLoad("/icons/text_list_numbers.png"), SWT.CHECK);
-		showControlSignsItem = viewSetsDropDown.addItem("\u00B6 Show control signs", null, SWT.CHECK);
-		centerCurrentLineItem = viewSetsDropDown.addItem("Always try to show a line above and below the selected one", Images.getOrLoad("/icons/arrow_up_down.png"), SWT.CHECK);
-		focusShapeOnDoubleClickInTranscriptionWidgetItem = viewSetsDropDown.addItem("Focus shape on double-click", Images.getOrLoad("/icons/mouse_focus.png"), SWT.CHECK);
-		toolBarOnTopItem = viewSetsDropDown.addItem("Display toolbar on top", null, SWT.CHECK);
+		fontItem = ti.addItem("Change text field font...", Images.getOrLoad("/icons/font.png"), SWT.PUSH);
+		showLineBulletsItem = ti.addItem("Show line bullets", Images.getOrLoad("/icons/text_list_numbers.png"), SWT.CHECK);
+		showControlSignsItem = ti.addItem("\u00B6 Show control signs", null, SWT.CHECK);
+		centerCurrentLineItem = ti.addItem("Always try to show a line above and below the selected one", Images.getOrLoad("/icons/arrow_up_down.png"), SWT.CHECK);
+		focusShapeOnDoubleClickInTranscriptionWidgetItem = ti.addItem("Focus shape on double-click", Images.getOrLoad("/icons/mouse_focus.png"), SWT.CHECK);
+		toolBarOnTopItem = ti.addItem("Display toolbar on top", null, SWT.CHECK);
 		
 		textAlignment = SWT.LEFT;
-		alignmentMenuItem = viewSetsDropDown.addItem("Text alignment", Images.getOrLoad("/icons/text_align_left.png"), SWT.CASCADE);
-		Menu textAlignmentMenu = new Menu(viewSetsDropDown.getMenu());
+		alignmentMenuItem = ti.addItem("Text alignment", Images.getOrLoad("/icons/text_align_left.png"), SWT.CASCADE);
+		Menu textAlignmentMenu = new Menu(ti.getMenu());
 		alignmentMenuItem.setMenu(textAlignmentMenu);
 		leftAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Left", Images.getOrLoad("/icons/text_align_left.png"), SWT.RADIO);
 		leftAlignmentItem.setSelection(true);
 		centerAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Center", Images.getOrLoad("/icons/text_align_center.png"), SWT.RADIO);
 		rightAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Right", Images.getOrLoad("/icons/text_align_right.png"), SWT.RADIO);
 		
-		textStyleDisplayOptions = viewSetsDropDown.addItem("Rendered tag styles", Images.getOrLoad("/icons/paintbrush.png"), SWT.CASCADE);
-		Menu textStyleDisplayOptionsMenu = new Menu(viewSetsDropDown.getMenu());
+		textStyleDisplayOptions = ti.addItem("Rendered tag styles", Images.getOrLoad("/icons/paintbrush.png"), SWT.CASCADE);
+		Menu textStyleDisplayOptionsMenu = new Menu(ti.getMenu());
 		textStyleDisplayOptions.setMenu(textStyleDisplayOptionsMenu);
-//		textStyleDisplayOptions = new DropDownToolItem(regionsToolbar, false, true, true, SWT.CHECK);
-//		String tt = "Determines which styles are rendered in the transcription widget";
-//		textStyleDisplayOptions.ti.setToolTipText(tt);
-		
 		renderFontStyleTypeItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Font type styles: serif, monospace, letter spaced (will override default font!)", null, SWT.CHECK);
 		renderTextStylesItem= SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Text style: normal, italic, bold, bold&italic", null, SWT.CHECK);
 		renderOtherStyleTypeItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Other: underlined, strikethrough, etc.", null, SWT.CHECK);
-		renderTagsItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Tags: colored underlines for tags", null, SWT.CHECK);
+		renderTagsItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Tags: colored underlines for tags", null, SWT.CHECK);		
 		
-		
-//		renderTextStylesItem= textStyleDisplayOptions.addItem("Text style: normal, italic, bold, bold&italic", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTextStyles());
-//		renderOtherStyleTypeItem = textStyleDisplayOptions.addItem("Other: underlined, strikethrough, etc.", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderOtherStyles());
-//		renderTagsItem = textStyleDisplayOptions.addItem("Tags: colored underlines for tags", Images.getOrLoad("/icons/paintbrush.png"), tt, settings.isRenderTags());
+//		autocompleteToggle = new ToolItem(regionsToolbar, SWT.CHECK);
+//		autocompleteToggle.setImage(Images.getOrLoad("/icons/autocomplete.png"));
+//		autocompleteToggle.setToolTipText("Enable autocomplete");
 	}
+	
+//	private void initViewSetsDropDown() {
+//		viewSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.EYE);
+//		viewSetsDropDown.getToolItem().setToolTipText("Viewing settings for the transcription widget");
+//		additionalToolItems.add(viewSetsDropDown.getToolItem());
+//		
+//		
+//		
+//		fontItem = viewSetsDropDown.addItem("Change text field font...", Images.getOrLoad("/icons/font.png"), SWT.PUSH);
+//		showLineBulletsItem = viewSetsDropDown.addItem("Show line bullets", Images.getOrLoad("/icons/text_list_numbers.png"), SWT.CHECK);
+//		showControlSignsItem = viewSetsDropDown.addItem("\u00B6 Show control signs", null, SWT.CHECK);
+//		centerCurrentLineItem = viewSetsDropDown.addItem("Always try to show a line above and below the selected one", Images.getOrLoad("/icons/arrow_up_down.png"), SWT.CHECK);
+//		focusShapeOnDoubleClickInTranscriptionWidgetItem = viewSetsDropDown.addItem("Focus shape on double-click", Images.getOrLoad("/icons/mouse_focus.png"), SWT.CHECK);
+//		toolBarOnTopItem = viewSetsDropDown.addItem("Display toolbar on top", null, SWT.CHECK);
+//		
+//		textAlignment = SWT.LEFT;
+//		alignmentMenuItem = viewSetsDropDown.addItem("Text alignment", Images.getOrLoad("/icons/text_align_left.png"), SWT.CASCADE);
+//		Menu textAlignmentMenu = new Menu(viewSetsDropDown.getMenu());
+//		alignmentMenuItem.setMenu(textAlignmentMenu);
+//		leftAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Left", Images.getOrLoad("/icons/text_align_left.png"), SWT.RADIO);
+//		leftAlignmentItem.setSelection(true);
+//		centerAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Center", Images.getOrLoad("/icons/text_align_center.png"), SWT.RADIO);
+//		rightAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Right", Images.getOrLoad("/icons/text_align_right.png"), SWT.RADIO);
+//		
+//		textStyleDisplayOptions = viewSetsDropDown.addItem("Rendered tag styles", Images.getOrLoad("/icons/paintbrush.png"), SWT.CASCADE);
+//		Menu textStyleDisplayOptionsMenu = new Menu(viewSetsDropDown.getMenu());
+//		textStyleDisplayOptions.setMenu(textStyleDisplayOptionsMenu);
+//		renderFontStyleTypeItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Font type styles: serif, monospace, letter spaced (will override default font!)", null, SWT.CHECK);
+//		renderTextStylesItem= SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Text style: normal, italic, bold, bold&italic", null, SWT.CHECK);
+//		renderOtherStyleTypeItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Other: underlined, strikethrough, etc.", null, SWT.CHECK);
+//		renderTagsItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Tags: colored underlines for tags", null, SWT.CHECK);
+//	}
 
 	public ToolItem getVkItem() {
 		return vkItem;
