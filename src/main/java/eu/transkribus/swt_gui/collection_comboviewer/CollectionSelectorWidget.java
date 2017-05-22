@@ -80,6 +80,7 @@ public class CollectionSelectorWidget extends Composite implements Observer {
 		
 		addListener();
 		
+		setSelectedCollection(null);
 		updateSelectedCollection();
 	}
 	
