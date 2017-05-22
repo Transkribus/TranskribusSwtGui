@@ -140,6 +140,7 @@ public class CollectionSelectorWidget extends Composite implements Observer {
 				
 			}
 		});
+		setSelectedCollection(-1);
 				
 //		collectionCombo = new Combo(collComposite, SWT.READ_ONLY | SWT.DROP_DOWN);
 //		collectionCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, colSize, 1));
