@@ -14,18 +14,18 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.util.RecentDocsPreferences;
 
 public class RecentDocsComboViewerWidget extends Composite implements Observer {
@@ -37,13 +37,16 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 //	Storage storage = Storage.getInstance();
 	
 	public final String label = "Recent documents...";
+	
+	boolean isBeingSelected=false;
 		
 	public RecentDocsComboViewerWidget(Composite parent, int style) {
 		super(parent, style);
 				
 //		Composite collsContainer = new Composite(this, 0);
 //		collsContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		this.setLayout(new GridLayout(2, false));
+//		this.setLayout(new GridLayout(2, false));
+		this.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
 //		lastDocsCombo = new Combo(this, /*SWT.READ_ONLY |*/ SWT.DROP_DOWN);
 		lastDocsCombo = new Combo(this, SWT.READ_ONLY | SWT.DROP_DOWN);
@@ -67,10 +70,21 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 		// draw label "artificially"
 		lastDocsCombo.addPaintListener(new PaintListener() {
 			@Override
-			public void paintControl(PaintEvent e) {			
+			public void paintControl(PaintEvent e) {	
+				if (isBeingSelected)
+					return;
+				
+				Point txtExtent = e.gc.textExtent(label);
 				Rectangle r = lastDocsCombo.getBounds();
 				e.gc.setBackground(lastDocsCombo.getBackground());
-				e.gc.drawString(label, r.x, r.y, true);
+				e.gc.drawString(label, r.x+10, r.y+(r.height-txtExtent.y)/2, true);
+			}
+		});
+		
+		lastDocsCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				isBeingSelected = true;
 			}
 		});
 
@@ -110,6 +124,8 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 				
 		if (sendSelectionEvent)
 			sendComboSelectionEvent();
+		
+		isBeingSelected = false;
 	}	
 	
 	void sendComboSelectionEvent() {
@@ -119,8 +135,6 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 //		event.widget = this;
 		lastDocsCombo.notifyListeners(SWT.Selection, event);
 	}
-	
-
 
 	@Override public void update(Observable o, Object arg) {
 	}
