@@ -53,6 +53,11 @@ import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination
 import eu.transkribus.swt_gui.pagination_tables.UserTableWidgetPagination;
 import eu.transkribus.swt_gui.search.SimpleSearchDialog;
 
+/**
+ * @deprecated not used anymore
+ * @author jkloe
+ *
+ */
 public class CollectionManagerDialog extends Dialog {
 	
 	private final static Logger logger = LoggerFactory.getLogger(CollectionManagerDialog.class);
@@ -194,7 +199,7 @@ public class CollectionManagerDialog extends Dialog {
 		group.setLayout(new GridLayout());
 		group.setFont(Fonts.createBoldFont(group.getFont()));
 		
-		collectionsTv = new CollectionsTableWidgetPagination(group, SWT.SINGLE | SWT.FULL_SELECTION, 25, null, true);
+		collectionsTv = new CollectionsTableWidgetPagination(group, SWT.SINGLE | SWT.FULL_SELECTION, 25, null, null);
 		collectionsTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		IDoubleClickListener openSelectedColListener = new IDoubleClickListener() {

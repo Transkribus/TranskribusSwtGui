@@ -204,7 +204,7 @@ public class ServerWidget extends Composite {
 		collectionsLabel.setText("Collections:");
 		Fonts.setBoldFont(collectionsLabel);
 		
-		collectionSelectorWidget = new CollectionSelectorWidget(remoteDocsGroup, 0, false, false, false);
+		collectionSelectorWidget = new CollectionSelectorWidget(remoteDocsGroup, 0, false, null);
 		collectionSelectorWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 //		collectionSelectorWidget.getCollectionFilterLabel().setText("Collections ");
 //		collectionComboViewerWidget = new CollectionComboViewerWidget(remoteDocsGroup, 0, true, true, false);
@@ -343,9 +343,8 @@ public class ServerWidget extends Composite {
 		return recentDocsComboViewerWidget.getSelectedDoc();
 	}
 		
-	public void setSelectedCollection(int colId) {
-		collectionSelectorWidget.clearFilter();
-		collectionSelectorWidget.setSelectedCollection(colId);
+	public void setSelectedCollection(TrpCollection trpCollection) {
+		collectionSelectorWidget.setSelectedCollection(trpCollection);
 	}
 				
 	public void updateRecentDocs() {

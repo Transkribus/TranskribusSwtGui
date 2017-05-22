@@ -77,7 +77,7 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 			showAllLocksBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 		}
 		
-		collectionsSelector = new CollectionSelectorWidget(btns, SWT.READ_ONLY | SWT.DROP_DOWN, false, true, true);
+		collectionsSelector = new CollectionSelectorWidget(btns, SWT.READ_ONLY | SWT.DROP_DOWN, true, null);
 		collectionsSelector.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 //		collectionsViewer.getCollectionLabel().setText("Collection:");
 //		Label l1 = new Label(collectionsViewer, 0);

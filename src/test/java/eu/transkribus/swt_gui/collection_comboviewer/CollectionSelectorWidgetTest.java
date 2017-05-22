@@ -34,8 +34,8 @@ public class CollectionSelectorWidgetTest {
 //				getShell().setSize(600, 600);
 				
 //				CollectionComboViewerWidget c = new CollectionComboViewerWidget(parent, 0, false, true, true);
-				CollectionSelectorWidget c = new CollectionSelectorWidget(parent, 0, true, false, false);
-				c.setAvailableCollections(createTestCollections());
+				CollectionSelectorWidget c = new CollectionSelectorWidget(parent, 0, false, null);
+//				c.setAvailableCollections(createTestCollections());
 				
 //				InstallSpecificVersionDialog d = new InstallSpecificVersionDialog(getShell(), 0);
 //				d.open();

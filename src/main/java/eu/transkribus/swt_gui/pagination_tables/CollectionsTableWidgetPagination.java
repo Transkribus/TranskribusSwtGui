@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.pagination_tables;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -26,10 +27,8 @@ import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.CollectionsLoadEvent;
 import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class CollectionsTableWidgetPagination extends ATableWidgetPagination<TrpCollection> {
@@ -50,17 +49,21 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 	protected ModifyListener filterModifyListener;
 	static String[] filterProperties = { "colId", "colName" };
 	
-	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<TrpCollection> methods, boolean singleSelection) {
-		super(parent, style, initialPageSize, methods, singleSelection, true);
+	Predicate<TrpCollection> collectionPredicate;
+	
+	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize, Predicate<TrpCollection> collectionPredicate, IPageLoadMethods<TrpCollection> methods) {
+		super(parent, style, initialPageSize, methods, true);
+		this.collectionPredicate = collectionPredicate;
+		
 		initFilter();
 		initListener();
 	}
 	
-	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize) {
-		super(parent, style, initialPageSize);
-		initFilter();
-		initListener();
-	}
+//	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize) {
+//		super(parent, style, initialPageSize);
+//		initFilter();
+//		initListener();
+//	}
 	
 	void initListener() {
 		if (USE_LIST_LOADER) {
@@ -133,16 +136,17 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 		
 	}
 	
+	private boolean matchesCollectionPredicate(TrpCollection c) {		
+		return collectionPredicate==null || collectionPredicate.test(c);
+	}
+	
 	public synchronized void refreshList(List<TrpCollection> collections) {
-//		this.collections = collections;
-		
 		this.collections = new ArrayList<>();
 		this.collections.addAll(collections);
 		
 		List<TrpCollection> filtered = new ArrayList<>();
-		// filter
 		for (TrpCollection c : collections) {
-			if (viewerFilter.select(null, null, c)) { 
+			if (matchesCollectionPredicate(c) && viewerFilter.select(null, null, c)) { 
 				filtered.add(c);
 			}
 		}

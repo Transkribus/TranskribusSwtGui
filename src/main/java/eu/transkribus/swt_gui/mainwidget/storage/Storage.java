@@ -714,29 +714,14 @@ public class Storage {
 		// notifyObservers(event);
 	}
 
-	// //////////// METHODS THAT THROW EXCEPTIONS: /////////////////////////
-	
-//	public int getCollectionId(int collectionIndex) /*throws NoConnectionException*/ {		
-//		if (user == null)
-//			return -1;
-//		
-//		if (collectionIndex>=0 && collectionIndex<collections.size())
-//			return collections.get(collectionIndex).getColId();
-//		else
-//			return -1;
-//	}
+	// //////////// METHODS THAT THROW EXCEPTIONS: /////////////////////////	
+	public TrpCollection getCurrentDocumentCollection() {
+		return isRemoteDoc() ? doc.getCollection() : null;
+	}
 	
 	public int getCurrentDocumentCollectionId() {
-		return isRemoteDoc() ? doc.getCollection().getColId() : 0;
-		// TODO: check if collection is null (should never happen with the new server though...)
-//		if (isRemoteDoc()) {
-//			if (doc.getCollection() != null)
-//				return doc.getCollection().getColId();
-//			else
-//				return TrpMainWidget.getInstance().getUi().getDocOverviewWidget().getSelectedCollection().getColId();
-//		}
-//		else
-//			return 0;
+		TrpCollection c = getCurrentDocumentCollection();
+		return c==null ? 0 : c.getColId();
 	}
 		
 	public void reloadUserDocs() {

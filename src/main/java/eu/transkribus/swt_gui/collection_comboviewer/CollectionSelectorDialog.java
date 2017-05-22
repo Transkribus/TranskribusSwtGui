@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.collection_comboviewer;
 
+import java.util.function.Predicate;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -28,10 +30,13 @@ public class CollectionSelectorDialog extends Dialog {
 //	List<TrpCollection> collections;
 	CollectionsTableWidgetPagination collectionTable;
 	Button createBtn, deleteBtn, modifyBtn, addUsersBtn;
+	
+	Predicate<TrpCollection> collectionPredicate;
 
-	public CollectionSelectorDialog(Shell parentShell) {
+	public CollectionSelectorDialog(Shell parentShell, Predicate<TrpCollection> collectionPredicate) {
 		super(parentShell);
-//		this.collections = collections;
+		
+		this.collectionPredicate = collectionPredicate;
 	}
 	
 	@Override
@@ -42,7 +47,7 @@ public class CollectionSelectorDialog extends Dialog {
 	protected void configureShell(Shell shell) {
 		super.configureShell(shell);
 		shell.setText("Choose a collection via double click");
-		shell.setSize(600, 600);
+		shell.setSize(800, 650);
 		SWTUtil.centerShell(shell);
 	}
 	
@@ -54,7 +59,7 @@ public class CollectionSelectorDialog extends Dialog {
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
-		collectionTable = new CollectionsTableWidgetPagination(container, SWT.SINGLE | SWT.FULL_SELECTION, 50, null, true);
+		collectionTable = new CollectionsTableWidgetPagination(container, SWT.SINGLE | SWT.FULL_SELECTION, 50, collectionPredicate, null);
 		collectionTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		IDoubleClickListener openSelectedColListener = new IDoubleClickListener() {

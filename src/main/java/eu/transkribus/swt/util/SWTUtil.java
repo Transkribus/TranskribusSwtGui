@@ -694,6 +694,13 @@ public class SWTUtil {
 //		}
 //	}
 	
+	public static int addBitIfNotSet(int mask, int bit) {
+		if ((mask & bit) != 0) {
+			return (mask | bit);
+		} else
+			return mask;
+	}
+	
 	public static void addListener(Widget w, int eventType, Listener l) {		
 		if (w != null) {
 			w.addListener(eventType, l);

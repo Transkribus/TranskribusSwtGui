@@ -29,9 +29,11 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
@@ -43,14 +45,17 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocDir;
+import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -92,14 +97,19 @@ public class UploadDialogUltimate extends Dialog {
 	private MyTableViewer docDirTv;
 	List<TrpDocDir> docDirs = new ArrayList<>(0);
 	
-	TrpCollection selColl;
 	private List<TrpDocDir> selDocDirs;
-	Text newCollText;
-	Button addCollBtn;
 	Button reloadBtn;
 	Button helpBtn;
-	Combo collCombo;
+	
 	Storage store = Storage.getInstance();
+	
+	TrpCollection selColl;
+	
+//	Text newCollText;
+//	Button addCollBtn;
+//	Combo collCombo;
+	
+	CollectionSelectorWidget collSelector;
 	
 	Composite container;
 	
@@ -183,43 +193,37 @@ public class UploadDialogUltimate extends Dialog {
 		
 		Label lblCollections = new Label(container, SWT.NONE);
 		lblCollections.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblCollections.setText("Collection:");
+		lblCollections.setText("Add to collection:");
+		Fonts.setBoldFont(lblCollections);
 		
-		collCombo = new Combo(container, SWT.READ_ONLY);
-		collCombo.setToolTipText("This is the collection the document will be added to - you can only upload to collections with Owner / Editor rights");
-		collCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		collSelector = new CollectionSelectorWidget(container, 0, false, (c) -> { return AuthUtils.canManage(c.getRole()); } );
+		collSelector.setToolTipText("This is the collection the document will be added to - you can only upload to collections where you are at least editor");
+		collSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(container, SWT.NONE);
 		
-		Label lblCreateCollection = new Label(container, SWT.NONE);
-		lblCreateCollection.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblCreateCollection.setText("Create collection:");
+//		collCombo = new Combo(container, SWT.READ_ONLY);
+//		collCombo.setToolTipText("This is the collection the document will be added to - you can only upload to collections where you are at least editor");
+//		collCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		new Label(container, SWT.NONE);
 		
-		newCollText = new Text(container, SWT.BORDER);
-		newCollText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		newCollText.setToolTipText("The title of the new collection");
-		
-		addCollBtn = new Button(container, SWT.NONE);
-		addCollBtn.setImage(Images.getOrLoad("/icons/add.png"));
-		addCollBtn.setToolTipText("Creates a new collection with the name on the left - you will be the owner of the collection");
-		
-		SebisStopWatch sw = new SebisStopWatch();
-		
-		sw.start();
+//		Label lblCreateCollection = new Label(container, SWT.NONE);
+//		lblCreateCollection.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+//		lblCreateCollection.setText("Create collection:");
+//		
+//		newCollText = new Text(container, SWT.BORDER);
+//		newCollText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		newCollText.setToolTipText("The title of the new collection");
+//		
+//		addCollBtn = new Button(container, SWT.NONE);
+//		addCollBtn.setImage(Images.getOrLoad("/icons/add.png"));
+//		addCollBtn.setToolTipText("Creates a new collection with the name on the left - you will be the owner of the collection");
+				
 		updateDocDirs();
-		sw.stop(true, "updateDocDirs");
-		
-		sw.start();
-		updateCollections();
-		sw.stop(true, "updateDocDirs");
-		
-		sw.start();
+//		updateCollections();
 		addListener();
-		sw.stop(true, "updateDocDirs");
 		
 		this.container = container;
-		sw.start();
 		updateGroupVisibility();
-		sw.stop(true, "updateGroupVisibility");
 		
 		return container;
 	}
@@ -450,12 +454,12 @@ public class UploadDialogUltimate extends Dialog {
 			}
 		});
 		
-		store.addListener(new IStorageListener() {
-			@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
-				if (getShell() != null && !getShell().isDisposed())
-					updateCollections();
-			}
-		});
+//		store.addListener(new IStorageListener() {
+//			@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
+//				if (getShell() != null && !getShell().isDisposed())
+//					updateCollections();
+//			}
+//		});
 		
 		link.addSelectionListener(new SelectionAdapter(){
 	        @Override
@@ -490,37 +494,43 @@ public class UploadDialogUltimate extends Dialog {
 	        }
 	    });
 		
-		collCombo.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-//				logger.debug("selected!");
-				List<TrpCollection> ccm = store.getCollectionsCanManage();
-				int i = collCombo.getSelectionIndex();
-				if (i >= 0 && i < ccm.size()) {
-					selColl = ccm.get(i);
-				}
-				updateBtnVisibility();
+		collSelector.addListener(SWT.Selection, new Listener() {
+			@Override public void handleEvent(Event event) {
+				selColl = collSelector.getSelectedCollection();
 			}
 		});
 		
-		addCollBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				if (store.isLoggedIn() && !newCollText.getText().isEmpty()) {
-					try {
-						store.getConnection().createCollection(newCollText.getText());
-						store.reloadCollections();
-					} catch (Exception e1) {
-						mw.onError("Could not create new collection", e1.getMessage(), e1);
-					}
-				}
-				
-				List<TrpCollection> ccm = store.getCollectionsCanManage();
-				int i = collCombo.getSelectionIndex();
-				if (i >= 0 && i < ccm.size()) {
-					selColl = ccm.get(i);
-				}
-				updateBtnVisibility();
-			}
-		});
+//		collCombo.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+////				logger.debug("selected!");
+//				List<TrpCollection> ccm = store.getCollectionsCanManage();
+//				int i = collCombo.getSelectionIndex();
+//				if (i >= 0 && i < ccm.size()) {
+//					selColl = ccm.get(i);
+//				}
+//				updateBtnVisibility();
+//			}
+//		});
+		
+//		addCollBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				if (store.isLoggedIn() && !newCollText.getText().isEmpty()) {
+//					try {
+//						store.getConnection().createCollection(newCollText.getText());
+//						store.reloadCollections();
+//					} catch (Exception e1) {
+//						mw.onError("Could not create new collection", e1.getMessage(), e1);
+//					}
+//				}
+//				
+//				List<TrpCollection> ccm = store.getCollectionsCanManage();
+//				int i = collCombo.getSelectionIndex();
+//				if (i >= 0 && i < ccm.size()) {
+//					selColl = ccm.get(i);
+//				}
+//				updateBtnVisibility();
+//			}
+//		});
 		
 		reloadBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
@@ -544,17 +554,17 @@ public class UploadDialogUltimate extends Dialog {
 	
 	private void updateBtnVisibility() {
 		if (getButton(IDialogConstants.OK_ID) != null)
-			getButton(IDialogConstants.OK_ID).setEnabled(collCombo.getSelectionIndex() != -1);
+			getButton(IDialogConstants.OK_ID).setEnabled(collSelector.getSelectedCollection()!=null);
 	}
 	
-	private TrpCollection getSelectedCollection() {
-		List<TrpCollection> ccm = store.getCollectionsCanManage();
-		int i = collCombo.getSelectionIndex();
-		if (i < 0 || i >= ccm.size())
-			return null;
-		else
-			return ccm.get(collCombo.getSelectionIndex());
-	}
+//	private TrpCollection getSelectedCollection() {
+//		List<TrpCollection> ccm = store.getCollectionsCanManage();
+//		int i = collCombo.getSelectionIndex();
+//		if (i < 0 || i >= ccm.size())
+//			return null;
+//		else
+//			return ccm.get(collCombo.getSelectionIndex());
+//	}
 	
 	private void updateDocDirs() {
 		try {
@@ -566,33 +576,6 @@ public class UploadDialogUltimate extends Dialog {
 		docDirTv.setInput(docDirs);
 	}
 	
-	private void updateCollections() {
-		collCombo.removeAll();
-		List<TrpCollection> ccm = store.getCollectionsCanManage();
-		
-		List<String> elements = new ArrayList<>();
-		
-		int selCollId = selColl == null ? 0 : selColl.getColId();
-		int selItemInd = 0;
-		for(int i = 0; i < ccm.size(); i++){
-			final TrpCollection c = ccm.get(i);
-			logger.trace("collection name: "+c.getColName()+ " i = "+i);
-			elements.add(c.getColName());
-//			collCombo.add(c.getColName());
-			if (c.getColId() == selCollId)
-				selItemInd = i;
-		}
-		
-		collCombo.setItems(elements.toArray(new String[0]));
-		collCombo.select(selItemInd);
-		
-		
-		if (collCombo.getItemCount() > 0 && collCombo.getSelectionIndex() == -1)
-			collCombo.select(0);
-		
-		updateBtnVisibility();
-	}
-
 	// overriding this methods allows you to set the
 	// title of the custom dialog
 	@Override protected void configureShell(Shell newShell) {
@@ -698,7 +681,7 @@ public class UploadDialogUltimate extends Dialog {
 		this.isPdfUpload = pdfButton.getSelection();
 		
 		this.selDocDirs = getSelectedDocDirs();
-		this.selColl =  getSelectedCollection();
+		this.selColl = collSelector.getSelectedCollection();
 		
 		this.folder = folderText.getText();
 		this.pdffolder = pdfFolderText.getText();

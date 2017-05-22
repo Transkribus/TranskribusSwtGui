@@ -78,7 +78,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	}	
 	
 	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<TrpDocMetadata> methods) {
-		super(parent, style, initialPageSize, methods, false, true);
+		super(parent, style, initialPageSize, methods, true);
 		
 		viewerFilter = new ViewerFilter() {
 			@Override public boolean select(Viewer viewer, Object parentElement, Object element) {

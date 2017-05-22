@@ -19,10 +19,9 @@ public class ChooseCollectionDialog extends Dialog {
 		
 	Storage store = Storage.getInstance();
 		
-	Integer initColId=null;
+	TrpCollection initColl=null;
 	
 	TrpCollection selectedCollection=null;
-//	CollectionComboViewerWidget collCombo;
 	CollectionSelectorWidget collCombo;
 	
 	String title;
@@ -35,10 +34,10 @@ public class ChooseCollectionDialog extends Dialog {
 		this(parentShell, title, null);
 	}
 	
-	public ChooseCollectionDialog(Shell parentShell, String title, Integer initColId) {
+	public ChooseCollectionDialog(Shell parentShell, String title, TrpCollection initColl) {
 		super(parentShell);
 		this.title = title;
-		this.initColId = initColId;
+		this.initColl = initColl;
 	}
 	
 	@Override protected void configureShell(Shell shell) {
@@ -58,20 +57,13 @@ public class ChooseCollectionDialog extends Dialog {
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(new GridLayout(2, false));
 		
-//		collCombo = new CollectionComboViewerWidget(parent, 0, true, false, false);
-//		collCombo.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
 		Label l = new Label(container, 0);
 		l.setText("Selected collection: ");
 		Fonts.setBoldFont(l);
-//		collCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		collCombo = new CollectionSelectorWidget(container, 0, true, false, false);
-		collCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		if (initColId != null) {
-			collCombo.setSelectedCollection(initColId);
-		}
+		collCombo = new CollectionSelectorWidget(container, 0, false, null);
+		collCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
+		collCombo.setSelectedCollection(initColl);
 
 		return container;
 	}

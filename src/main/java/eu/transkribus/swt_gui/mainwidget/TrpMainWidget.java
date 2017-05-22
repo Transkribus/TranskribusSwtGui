@@ -490,7 +490,7 @@ public class TrpMainWidget {
 
 			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
 
-			ui.getServerWidget().setSelectedCollection(colId);
+			ui.getServerWidget().setSelectedCollection(storage.getCollection(colId));
 
 			Future<List<TrpDocMetadata>> doclist;
 			try {
@@ -500,7 +500,7 @@ public class TrpMainWidget {
 				if(e instanceof SessionExpiredException){
 					loginDialog("Session Expired!");
 					//retry
-					ui.getServerWidget().setSelectedCollection(colId);
+					ui.getServerWidget().setSelectedCollection(storage.getCollection(colId));
 					doclist = storage.reloadDocList(colId);
 				}
 				throw e;
@@ -2442,7 +2442,7 @@ public class TrpMainWidget {
 			final TrpCollection c = ud.getCollection();
 			final int cId = (c == null) ? -1 : c.getColId();
 			if (c == null || (c.getRole() != null && !c.getRole().canManage())) {
-				throw new Exception("Cannot upload to specified collection: " + cId);
+				throw new Exception("You must be at least an editor to upload to this collection ("+ cId+")");
 			}
 
 			if (ud.isSingleDocUpload()) { // single doc upload
@@ -4401,7 +4401,7 @@ public class TrpMainWidget {
 				return;
 			}
 									
-			ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a destination collection", srcColId);
+			ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a destination collection", storage.getCollection(srcColId));
 			if (diag.open() != Dialog.OK)
 				return;
 			
@@ -4503,7 +4503,7 @@ public class TrpMainWidget {
 			return false;
 		}
 		
-		ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a collection to move the add the documents to", storage.getCurrentDocumentCollectionId());
+		ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a collection to move the add the documents to", storage.getCurrentDocumentCollection());
 		if (diag.open() != Dialog.OK)
 			return false;
 		

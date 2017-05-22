@@ -61,27 +61,23 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 //		createTable();
 //	}
 	
-	public ATableWidgetPagination(Composite parent, int style, int initialPageSize) {
-		this(parent, style, initialPageSize, null, false);
+	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize) {
+		this(parent, tableStyle, initialPageSize, null, false);
 	}
 
-	public ATableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<T> methods) {
-		this(parent, style, initialPageSize, methods, false);
+	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize, IPageLoadMethods<T> methods) {
+		this(parent, tableStyle, initialPageSize, methods, false);
 	}
-	
-	public ATableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<T> methods, boolean singleSelection) {
-		this(parent, style, initialPageSize, methods, singleSelection, false);
-	}
-	
-	public ATableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<T> methods, boolean singleSelection, boolean withFilter) {
-		super(parent, style);
+		
+	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize, IPageLoadMethods<T> methods, boolean withFilter) {
+		super(parent, 0);
 		this.setLayout(new GridLayout(1, false));
 		
 		this.withFilter = withFilter;
 		this.initialPageSize = initialPageSize;
 		this.methods = methods;
 		
-		createTable(singleSelection);
+		createTable(tableStyle);
 	}
 	
 	public Text getFilter() {
@@ -211,10 +207,15 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		
 	}
 
-	void createTable(boolean singleSelection) {
+	void createTable(int style) {
 		int tableStyle = SWT.BORDER | SWT.MULTI  | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL;
-		if (singleSelection)
+		
+		if ((style & SWT.SINGLE) != 0) {
 			tableStyle |= SWT.SINGLE;
+		}
+				
+//		if (singleSelection)
+//			tableStyle |= SWT.SINGLE;
 		
 		pageableTable = new PageableTable(this, SWT.BORDER, tableStyle, initialPageSize
 				, PageResultContentProvider.getInstance(),
