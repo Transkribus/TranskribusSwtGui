@@ -401,10 +401,8 @@ public class TextRecognitionConfigDialog extends Dialog {
 		final double[] cerTrainSetVals = HtrUtils.parseCitlabCerString(htr.getCerString());
 		final double[] cerTestSetVals = HtrUtils.parseCitlabCerString(htr.getCerTestString());
 		updateChart(cerTrainSetVals, cerTestSetVals);
-		final double finalTrainCerVal = cerTrainSetVals.length < 1 ? -1 : cerTrainSetVals[cerTrainSetVals.length-1];
-		final double finalTestCerVal = cerTestSetVals.length < 1 ? -1 : cerTestSetVals[cerTestSetVals.length-1];
-		finalTrainCerTxt.setText(finalTrainCerVal < 0 ? "N/A" : ""+(finalTrainCerVal*100)+"%");
-		finalTestCerTxt.setText(finalTestCerVal < 0 ? "N/A" : ""+(finalTestCerVal*100)+"%");
+		finalTrainCerTxt.setText(HtrUtils.printLastCerPercentage(cerTrainSetVals));
+		finalTestCerTxt.setText(HtrUtils.printLastCerPercentage(cerTestSetVals));
 	}
 
 	private String layoutParams(Properties p) {
