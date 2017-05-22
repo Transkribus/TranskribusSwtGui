@@ -24,6 +24,8 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.CreateDefaultLineEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.DeleteItemEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.DeleteTableEvent;
+import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.FocusTableEvent;
+import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.MergeTableCellsEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.RemoveIntermediatePointsTableEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SelectTableCellsEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SplitTableCellEvent;
@@ -50,6 +52,8 @@ public class CanvasContextMenu extends Observable {
 	MenuItem selectTableRowCellsItem;
 
 	MenuItem selectTableColumnCellsItem;
+	
+	MenuItem focusTableItem;
 
 	MenuItem deleteTableRowItem;
 	
@@ -223,6 +227,7 @@ public class CanvasContextMenu extends Observable {
 		selectTableCellsItem = createMenuItem("Select all cells", null, new SelectTableCellsEvent(this, null), menu);
 		selectTableRowCellsItem = createMenuItem("Select row cells", null, new SelectTableCellsEvent(this, TableDimension.ROW), menu);
 		selectTableColumnCellsItem = createMenuItem("Select columns cells", null, new SelectTableCellsEvent(this, TableDimension.COLUMN), menu);
+		focusTableItem = createMenuItem("Focus on table", null, new FocusTableEvent(this), menu);
 		
 		deleteTableRowItem = createMenuItem("Delete row", Images.DELETE, new DeleteTableEvent(this, TableDimension.ROW), menu);
 		deleteTableColumnItem = createMenuItem("Delete column", Images.DELETE, new DeleteTableEvent(this, TableDimension.COLUMN), menu);
@@ -250,8 +255,12 @@ public class CanvasContextMenu extends Observable {
 		if (cell.isMergedCell())
 			createMenuItem("Split merged cell", null, new SplitTableCellEvent(this), menu);
 		
+		if (canvas.getNSelected()>=2) {
+			createMenuItem("Merge cells", null, new MergeTableCellsEvent(this), menu);
+		}
+		
 		if (s.getNPoints() > 4) // TODO: better check if there are intermediate points -> have to check also if a point is corner point of neighbor!!
-			createMenuItem("Remove intermediate points", null, new RemoveIntermediatePointsTableEvent(this), menu);
+			createMenuItem("Remove non-corner points", null, new RemoveIntermediatePointsTableEvent(this), menu);
 		
 		// about:
 		createMenuItem("Table help", Images.HELP, new TableHelpEvent(this), menu);

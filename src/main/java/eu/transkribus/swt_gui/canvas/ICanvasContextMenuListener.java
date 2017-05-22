@@ -17,10 +17,14 @@ public interface ICanvasContextMenuListener {
 	default void handleRemoveIntermediatePointsTableEvent(RemoveIntermediatePointsTableEvent event) {}
 
 	default void handleSplitTableCellEvent(SplitTableCellEvent event) {}
+	
+	default void handleMergeTableCellsEvent(MergeTableCellsEvent event) {}
 
 	default void handleSelectTableCellsEvent(SelectTableCellsEvent event) {}
 	
 	default void handleCreateDefaultLineEvent(CreateDefaultLineEvent event) {}
+	
+	default void handleFocusTableEvent(FocusTableEvent event) {}
 	
 	default void handleEvent(Event event) {
 		if (event instanceof DeleteItemEvent) {
@@ -44,9 +48,14 @@ public interface ICanvasContextMenuListener {
 		else if (event instanceof TableBorderEditEvent) {
 			handleTableBorderEditEvent((TableBorderEditEvent) event);
 		}
-		
 		else if (event instanceof TableHelpEvent) {
 			handleTableHelpEvent((TableHelpEvent) event);
+		}
+		else if (event instanceof FocusTableEvent) {
+			handleFocusTableEvent((FocusTableEvent) event);
+		}
+		else if (event instanceof MergeTableCellsEvent) {
+			handleMergeTableCellsEvent((MergeTableCellsEvent) event);
 		}
 	}
 
@@ -75,8 +84,23 @@ public interface ICanvasContextMenuListener {
 	}
 	
 	@SuppressWarnings("serial")
+	public static class FocusTableEvent extends Event {
+		
+		public FocusTableEvent(Object source) {
+			super(source);
+		}
+	}
+	
+	@SuppressWarnings("serial")
 	public static class SplitTableCellEvent extends Event {		
 		public SplitTableCellEvent(Object source) {
+			super(source);
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public static class MergeTableCellsEvent extends Event {
+		public MergeTableCellsEvent(Object source) {
 			super(source);
 		}
 	}

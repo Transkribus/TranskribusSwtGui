@@ -10,6 +10,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.FocusTableEvent;
+import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.MergeTableCellsEvent;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
@@ -104,5 +106,28 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 		} catch (Throwable ex) {
 			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
 		}
+	}
+	
+	public void handleFocusTableEvent(FocusTableEvent event) {
+		try {
+			ICanvasShape ls = canvas.getLastSelected();
+			
+			TrpTableCellType cell = TableUtils.getTableCell(ls);
+			if (cell != null) {
+				canvas.getScene().selectObjectWithData(cell.getTable(), true, false);
+				canvas.focusFirstSelected();
+			}
+		} catch (Throwable ex) {
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
+		}		
+	}
+	
+	public void handleMergeTableCellsEvent(MergeTableCellsEvent event) {
+		try {
+			canvas.getShapeEditor().mergeSelected();
+		} catch (Throwable ex) {
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
+		}
+		
 	}
 }
