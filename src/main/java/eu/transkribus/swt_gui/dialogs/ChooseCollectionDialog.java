@@ -22,7 +22,7 @@ public class ChooseCollectionDialog extends Dialog {
 	TrpCollection initColl=null;
 	
 	TrpCollection selectedCollection=null;
-	CollectionSelectorWidget collCombo;
+	CollectionSelectorWidget collSelector;
 	
 	String title;
 	
@@ -61,15 +61,15 @@ public class ChooseCollectionDialog extends Dialog {
 		l.setText("Selected collection: ");
 		Fonts.setBoldFont(l);
 		
-		collCombo = new CollectionSelectorWidget(container, 0, false, null);
-		collCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
-		collCombo.setSelectedCollection(initColl);
+		collSelector = new CollectionSelectorWidget(container, 0, false, null);
+		collSelector.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		collSelector.setSelectedCollection(initColl);
 
 		return container;
 	}
 	
 	@Override protected void okPressed() {
-		selectedCollection = collCombo.getSelectedCollection();
+		selectedCollection = collSelector.getSelectedCollection();
 		
 		super.okPressed();
 	}

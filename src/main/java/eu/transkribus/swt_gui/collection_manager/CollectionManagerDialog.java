@@ -199,7 +199,7 @@ public class CollectionManagerDialog extends Dialog {
 		group.setLayout(new GridLayout());
 		group.setFont(Fonts.createBoldFont(group.getFont()));
 		
-		collectionsTv = new CollectionsTableWidgetPagination(group, SWT.SINGLE | SWT.FULL_SELECTION, 25, null, null);
+		collectionsTv = new CollectionsTableWidgetPagination(group, SWT.SINGLE | SWT.FULL_SELECTION, 25, null, null, Storage.getInstance().getCurrentDocumentCollection());
 		collectionsTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		IDoubleClickListener openSelectedColListener = new IDoubleClickListener() {

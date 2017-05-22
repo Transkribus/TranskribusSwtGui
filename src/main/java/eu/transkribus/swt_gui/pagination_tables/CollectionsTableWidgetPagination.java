@@ -27,6 +27,7 @@ import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DelayedTask;
@@ -50,13 +51,18 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 	static String[] filterProperties = { "colId", "colName" };
 	
 	Predicate<TrpCollection> collectionPredicate;
-	
-	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize, Predicate<TrpCollection> collectionPredicate, IPageLoadMethods<TrpCollection> methods) {
+		
+	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize, Predicate<TrpCollection> collectionPredicate, IPageLoadMethods<TrpCollection> methods, TrpCollection initColl) {
 		super(parent, style, initialPageSize, methods, true);
 		this.collectionPredicate = collectionPredicate;
 		
 		initFilter();
 		initListener();
+		
+		logger.debug("initColl = "+initColl);
+		if (initColl != null) {
+			loadPage("colId", initColl.getColId(), false);
+		}
 	}
 	
 //	public CollectionsTableWidgetPagination(Composite parent, int style, int initialPageSize) {
@@ -151,7 +157,7 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 			}
 		}
 		
-		Display.getDefault().asyncExec(() -> {
+		Display.getDefault().syncExec(() -> {
 			if (USE_LIST_LOADER && listLoader!=null) {
 				listLoader.setItems(filtered);
 			}
@@ -234,12 +240,12 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 			}
             
         	@Override public Font getFont(Object element) {
-//        		if (element instanceof TrpCollection) {
-//        			TrpCollection c = (TrpCollection) element;
-//        			
-//        			if (c.getColId() == TrpMainWidget.getInstance().getUi().getServerWidget().getSelectedCollectionId())
-//        				return boldFont;
-//        		}
+        		if (element instanceof TrpCollection) {
+        			TrpCollection c = (TrpCollection) element;
+        			
+        			if (c.getColId() == TrpMainWidget.getInstance().getUi().getServerWidget().getSelectedCollectionId())
+        				return boldFont;
+        		}
         		
         		return null;
         	}

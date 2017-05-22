@@ -30,13 +30,15 @@ public class CollectionSelectorDialog extends Dialog {
 //	List<TrpCollection> collections;
 	CollectionsTableWidgetPagination collectionTable;
 	Button createBtn, deleteBtn, modifyBtn, addUsersBtn;
+	TrpCollection initColl;
 	
 	Predicate<TrpCollection> collectionPredicate;
 
-	public CollectionSelectorDialog(Shell parentShell, Predicate<TrpCollection> collectionPredicate) {
+	public CollectionSelectorDialog(Shell parentShell, Predicate<TrpCollection> collectionPredicate, TrpCollection initColl) {
 		super(parentShell);
 		
 		this.collectionPredicate = collectionPredicate;
+		this.initColl = initColl;
 	}
 	
 	@Override
@@ -59,7 +61,7 @@ public class CollectionSelectorDialog extends Dialog {
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
-		collectionTable = new CollectionsTableWidgetPagination(container, SWT.SINGLE | SWT.FULL_SELECTION, 50, collectionPredicate, null);
+		collectionTable = new CollectionsTableWidgetPagination(container, SWT.SINGLE | SWT.FULL_SELECTION, 50, collectionPredicate, null, initColl);
 		collectionTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		IDoubleClickListener openSelectedColListener = new IDoubleClickListener() {

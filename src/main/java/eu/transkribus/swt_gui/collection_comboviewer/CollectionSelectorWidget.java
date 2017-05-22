@@ -33,8 +33,9 @@ public class CollectionSelectorWidget extends Composite implements Observer {
 		
 	Storage storage = Storage.getInstance();
 	Predicate<TrpCollection> collectionPredicate;
+	TrpCollection initColl;
 	
-	public CollectionSelectorWidget(Composite parent, int style, boolean withHeader, Predicate<TrpCollection> collectionPredicate) {
+	public CollectionSelectorWidget(Composite parent, int style, boolean withHeader, Predicate<TrpCollection> collectionPredicate/*, TrpCollection initColl*/) {
 		super(parent, style);
 		
 		this.collectionPredicate = collectionPredicate;
@@ -62,8 +63,8 @@ public class CollectionSelectorWidget extends Composite implements Observer {
 		collectionBtn = new Button(collComposite, SWT.PUSH);
 		collectionBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		collectionBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				CollectionSelectorDialog d = new CollectionSelectorDialog(getShell(), collectionPredicate);
+			@Override public void widgetSelected(SelectionEvent e) {				
+				CollectionSelectorDialog d = new CollectionSelectorDialog(getShell(), collectionPredicate, getSelectedCollection());
 				if (d.open() != Dialog.OK) {
 					return;
 				}
