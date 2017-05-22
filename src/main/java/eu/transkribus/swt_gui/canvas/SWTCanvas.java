@@ -3,7 +3,9 @@ package eu.transkribus.swt_gui.canvas;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
@@ -24,14 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
-import eu.transkribus.core.model.beans.pagecontent.TableRegionType;
-import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.PointStrUtils;
@@ -1376,11 +1375,31 @@ public class SWTCanvas extends Canvas {
 		
 		// set some offset depending on focused shape:
 		if (sel.getData() instanceof TrpTableCellType) { // focus on parent table for cells
-			if (sel.getParent() != null) {
-				offsetX = 10;
-				offsetY = 10;
-				focusBounds = sel.getParent().getBounds();
+			// focus on baseline with greatest with in table cell or cell region itslef if no line present			
+			ICanvasShape zoomShape = sel;
+			
+			Optional<ICanvasShape> max = sel.getChildren(false).stream().max(new Comparator<ICanvasShape>() {
+				@Override
+				public int compare(ICanvasShape o1, ICanvasShape o2) {
+					return Double.compare(o1.getBounds().getWidth(), o2.getBounds().getWidth());
+				}
+			});
+			if (max.isPresent()) {
+				zoomShape = max.get();
 			}
+			
+			logger.debug("zoomShape = "+zoomShape);
+			
+//			offsetX = 10;
+//			offsetY = 10;
+			offsetY = scene.getBounds().height / 15;
+			focusBounds = zoomShape.getBounds();		
+			
+//			if (sel.getParent() != null) {
+//				offsetX = 10;
+//				offsetY = 10;
+//				focusBounds = sel.getParent().getBounds();
+//			}
 		}
 		else if (sel.getData() instanceof TrpTextLineType || sel.getData() instanceof TrpBaselineType) {
 			logger.debug("focus on line/baseline");
