@@ -60,7 +60,6 @@ public class TrpMainWidgetKeyListener implements Listener {
 			mw.getCanvas().setMode(CanvasMode.SELECTION);
 		}
 		
-		// enable debug mode on ctrl-d-d-d:
 		if (isCtrlOrCommand && kc == 'd' && count == 3) {
 			mw.openDebugDialog();
 		}
@@ -69,13 +68,10 @@ public class TrpMainWidgetKeyListener implements Listener {
 			mw.openSleak();
 		}
 		
-		// load local testset on crtl-t-t-t:
 		else if (isCtrlOrCommand && kc == 't' && count == 3) {
-			logger.debug("loading local testset!");
 			mw.loadLocalTestset();
 		}
 						
-		// save transcript:
 		else if (!storage.isPageLocked() && isCtrlOrCommand && kc == 's') {
 			mw.saveTranscription(false);
 		}
@@ -83,11 +79,9 @@ public class TrpMainWidgetKeyListener implements Listener {
 			mw.openSearchDialog();
 		}
 		else if (isCtrlOrCommand && kc == 'r') {
-			logger.debug("reloading current transcript!");
 			mw.reloadCurrentTranscript(false, false);
 		}
 		else if (isCtrlOrCommand && kc == 'o') {
-			logger.debug("open local folder!");
 			mw.loadLocalFolder();
 		}
 		

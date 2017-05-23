@@ -502,7 +502,6 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				boolean isCtrl = CanvasKeys.isCtrlKeyDown(e);
 				boolean isCmd = CanvasKeys.isCommandKeyDown(e);
 				
-				
 				// test hooks:
 				if (false) {
 				if (isCtrl && isAlt && e.keyCode == 'p') {
