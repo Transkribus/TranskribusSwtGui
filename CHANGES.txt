@@ -468,6 +468,9 @@ CHANGES AND BUGFIXES
 	
 1.2.4:
 	-> new collection selector widget
-	
+	-> redesigned transcription widget toolbar
+	-> table-cells are focused individually (formerly: whole table was focused when double-clicking table cell)
+	-> bugfix: selection of shapes in canvas did not work when moving a little bit during click
+	-> iterate through table cells using arrow keys in canvas
 	
 	

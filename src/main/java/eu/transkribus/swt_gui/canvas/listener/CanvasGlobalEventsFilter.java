@@ -69,10 +69,10 @@ public class CanvasGlobalEventsFilter implements Listener {
 	private boolean deliverKeyEvents(Event event) {
 		switch (event.type) {
 		case SWT.KeyDown:
-			canvas.getKeyListener().keyPressed(new KeyEvent(event));
+			keyListener.keyPressed(new KeyEvent(event));
 			return true;
 		case SWT.KeyUp:
-			canvas.getKeyListener().keyReleased(new KeyEvent(event));
+			keyListener.keyReleased(new KeyEvent(event));
 			return true;
 		}
 		

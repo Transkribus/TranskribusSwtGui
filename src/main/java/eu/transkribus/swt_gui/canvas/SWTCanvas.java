@@ -163,11 +163,6 @@ public class SWTCanvas extends Canvas {
 		undoStack = new UndoStack(this);
 	}
 
-	protected void initKeyListener() {
-		keyListener = new CanvasKeyListener(this);
-
-	}
-
 	protected void initListener() {
 		// removeKeyListener(); // remove key listener from canvas to
 		// prevent duplicate signals from
@@ -190,8 +185,8 @@ public class SWTCanvas extends Canvas {
 		mouseListener = new CanvasMouseListener(this);
 		addMouseListener();
 
-		initKeyListener();
-		// this.addKeyListener(keyListener);
+		keyListener = new CanvasKeyListener(this);
+//		addKeyListener(keyListener); // key eventy are delivered to keyListener by CanvasGobalEventsFilter so you do *not* have to explicitly add the listener here, elsewise events will be handled twice!!
 
 		// mouse events and key events are filtered by this listener and
 		// redirected to the listener:
@@ -210,8 +205,6 @@ public class SWTCanvas extends Canvas {
 			}
 		});
 		
-		addKeyListener(new CanvasKeyListener(this));
-
 		// settingsPropertyChangeListener = new
 		// CanvasSettingsPropertyChangeListener(this);
 		//

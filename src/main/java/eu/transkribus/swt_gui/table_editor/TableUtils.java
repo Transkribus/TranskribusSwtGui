@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.swt.SWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -322,6 +323,13 @@ public class TableUtils {
 			throw new TrpTablePointsInconsistentException("Table has inconsistent points!", invalid);
 	}
 	
+	public static TrpTableCellType getCell(TrpTableRegionType table, int row, int col) {
+		if (table==null)
+			return null;
+		
+		return table.getCell(row, col);
+	}
+	
 	public static void selectCells(SWTCanvas canvas, TrpTableCellType cell, TableDimension dim, boolean multiSelect) {
 		int index = -1;
 		if (dim == TableDimension.ROW) {
@@ -346,15 +354,84 @@ public class TableUtils {
 			canvas.getScene().clearSelected();
 		for (int i=0; i<cells.size(); ++i) {
 			TrpTableCellType c = cells.get(i);
-			if (c.getData() instanceof ICanvasShape) {
-				ICanvasShape s = (ICanvasShape) c.getData();
-				s.setSelected(false);
-				
-				canvas.getScene().selectObject((ICanvasShape) c.getData(), i==cells.size()-1, true);
-			}
+			selectTableCell(canvas, c, i==cells.size()-1, true);
 		}
 		
 		canvas.redraw();
+	}
+	
+	public static void selectTableCell(SWTCanvas canvas, TrpTableCellType cell, boolean sendSignal, boolean multiselect) {
+		if (cell!=null && cell.getData() instanceof ICanvasShape) {
+			ICanvasShape s = (ICanvasShape) cell.getData();
+			s.setSelected(false); // for multiselection to work
+			
+			canvas.getScene().selectObject((ICanvasShape) cell.getData(), sendSignal, multiselect);
+		}
+	}
+	
+	public static int parsePositionFromArrowKeyCode(int keyCode) {
+		if (keyCode == SWT.ARROW_LEFT)
+			return 0;
+		if (keyCode == SWT.ARROW_DOWN)
+			return 1;
+		if (keyCode == SWT.ARROW_RIGHT)
+			return 2;
+		if (keyCode == SWT.ARROW_UP)
+			return 3;
+		
+		return -1;
+	}
+	
+	/**
+	 * select neighbor according to position
+	 * 0 -> left
+	 * 1 -> bottom
+	 * 2 -> right
+	 * 3 -> top
+	 */
+	public static void selectNeighborCell(SWTCanvas canvas, TrpTableCellType tc, int position) {
+		logger.debug("selectNeighborCell, tc = "+tc+", position = "+position);
+		
+		if (tc == null || tc.getTable()==null)
+			return;
+		
+		TrpTableRegionType table = tc.getTable();
+				
+		int r=-1, c=-1;
+		if (position == 0) { // left
+			r = tc.getRow();
+			c = tc.getCol()-1;
+		}
+		else if (position == 1) { // bottom
+			r = tc.getRowEnd();
+			c = tc.getCol();
+		}
+		else if (position == 2) { // right
+			r = tc.getRow();
+			c = tc.getColEnd();
+		}
+		else if (position == 3) { // top
+			r = tc.getRow()-1;
+			c = tc.getCol();
+		}
+		else
+			return;
+		
+		logger.debug("r = "+r+" c = "+c);
+		TrpTableCellType neighborCell = table.getCell(r, c);
+		logger.debug("neighborCell = "+neighborCell);
+		
+		selectTableCell(canvas, neighborCell, true, false);
+		
+		// OLD code
+//		List<TrpTableCellType> n = tc.getNeighborCells(position);
+//		if (n.isEmpty()) {
+//			// TODO: what to do here? --> jump to first / last cell in next row / column
+//			
+//		} else {
+//			TrpTableCellType c = n.get(0);
+//			selectTableCell(canvas, c, true, false);			
+//		}
 	}
 	
 	public static boolean hasLeftNeighbor(TrpTableCellType c, List<ICanvasShape> tableCellShapes) {
