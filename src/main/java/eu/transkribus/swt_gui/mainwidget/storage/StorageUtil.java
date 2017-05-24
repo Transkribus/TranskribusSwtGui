@@ -52,7 +52,7 @@ public class StorageUtil {
 		TrpUserLogin u = storage.getUser();
 		TrpRole role = getRoleOfUserInCollection(srcColId);
 		
-		return AuthUtils.canDuplicate(role, d, u);
+		return AuthUtils.canManage(role);
 	}
 	
 	public static boolean isOwnerOfCollection(TrpCollection coll) {
