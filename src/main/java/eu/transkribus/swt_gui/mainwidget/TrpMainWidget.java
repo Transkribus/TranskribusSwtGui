@@ -4396,7 +4396,7 @@ public class TrpMainWidget {
 				return;
 			}
 			
-			if (!StorageUtil.canDuplicate(srcColId, srcDoc)) {
+			if (!StorageUtil.canDuplicate(srcColId)) {
 				DialogUtil.showErrorMessageBox(getShell(), "Insufficient rights", "You must be either at least editor of the collection or uploader of the document!");
 				return;
 			}
@@ -4418,8 +4418,7 @@ public class TrpMainWidget {
 			
 			String newName = dlg.getValue();
 			
-//			storage.duplicateDocument(srcColId, srcDoc.getDocId(), newName, toColId <= 0 ? null : toColId);
-			storage.duplicateDocument(0, srcDoc.getDocId(), newName, toColId <= 0 ? null : toColId); // TEST
+			storage.duplicateDocument(srcColId, srcDoc.getDocId(), newName, toColId <= 0 ? null : toColId);
 			DialogUtil.showInfoMessageBox(getShell(), "Success duplicating", "Go to the jobs view to check the status of duplication!");
 		} catch (Exception e) {
 			mw.onError("Error duplicating document", e.getMessage(), e);
