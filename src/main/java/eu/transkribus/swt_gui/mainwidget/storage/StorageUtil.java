@@ -43,15 +43,12 @@ public class StorageUtil {
 		return role;
 	}
 	
-	public static boolean canDuplicate(int srcColId, TrpDocMetadata d) {
+	public static boolean canDuplicate(int srcColId) {
 		if (storage.getUser() == null) {
 			logger.error("No user - not logged in?");
 			return false;
 		}
-		
-		TrpUserLogin u = storage.getUser();
 		TrpRole role = getRoleOfUserInCollection(srcColId);
-		
 		return AuthUtils.canManage(role);
 	}
 	
