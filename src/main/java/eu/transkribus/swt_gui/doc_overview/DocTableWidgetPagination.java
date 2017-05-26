@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.InvocationCallback;
 
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
@@ -156,9 +158,9 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		this.refreshList(collectionId, resetPage, false);
 	}
 		
-	public void refreshList(boolean resetPage) {
-		this.refreshList(this.collectionId, resetPage, false);
-	}
+//	public void refreshList(boolean resetPage) {
+//		this.refreshList(this.collectionId, resetPage, false);
+//	}
 	
 	public void refreshList(int collectionId, boolean resetPage, boolean forceServerReload) {
 		logger.debug("old coll-id: "+this.collectionId+" new coll-id: "+collectionId);
@@ -167,12 +169,15 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		setCollectionId(collectionId);
 		
 		logger.debug("refreshing doc table, collectionId="+collectionId+" resetPage="+resetPage+" hasChanged="+hasChanged+" forceServerReload="+forceServerReload);
-		if (hasChanged || forceServerReload) {
-			logger.debug("reloading docs from server...");
-			reloadDocs(resetPage, forceServerReload);
-		} else {
-			refreshPage(resetPage);
-		}
+		reloadDocs(resetPage, forceServerReload);
+		
+//		if (hasChanged || forceServerReload) {
+//			logger.debug("reloading docs from server...");
+//			reloadDocs(resetPage, forceServerReload);
+//		} 
+//		else {
+//			refreshPage(resetPage);
+//		}
 	}
 	
 	private void setDocList(List<TrpDocMetadata> newDocs, boolean resetPage) {
@@ -223,17 +228,20 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		Storage store = Storage.getInstance();
 		if (forceReload || collectionId != store.getCollId()) { // have to reload doclist
 //			store.getConnection().getAllDocsAsync(collectionId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
-			store.getConnection().getAllDocsAsync(collectionId, 0, 0, "docId", "desc", new InvocationCallback<List<TrpDocMetadata>>() {
-				@Override public void failed(Throwable throwable) {
-					DialogUtil.showBallonToolTip(DocTableWidgetPagination.this, SWT.ICON_ERROR, "Error loading documents", throwable.getMessage());
-					logger.error(throwable.getMessage(), throwable);
-				}
-				
-				@Override public void completed(List<TrpDocMetadata> response) {
-					logger.debug("loaded docs from server: "+response.size());
-					setDocList(response, resetPage);
-				}
-			});
+			logger.debug("collection id differs from storage - reloading from server! "+collectionId+" / "+store.getCollId());
+			TrpMainWidget.getInstance().reloadDocList(collectionId);
+			
+//			store.getConnection().getAllDocsAsync(collectionId, 0, 0, "docId", "desc", new InvocationCallback<List<TrpDocMetadata>>() {
+//				@Override public void failed(Throwable throwable) {
+//					DialogUtil.showBallonToolTip(DocTableWidgetPagination.this, SWT.ICON_ERROR, "Error loading documents", throwable.getMessage());
+//					logger.error(throwable.getMessage(), throwable);
+//				}
+//				
+//				@Override public void completed(List<TrpDocMetadata> response) {
+//					logger.debug("loaded docs from server: "+response.size());
+//					setDocList(response, resetPage);
+//				}
+//			});
 		} else {
 			logger.debug("setting docs from storage: "+store.getDocList().size());
 			setDocList(store.getDocList(), resetPage);

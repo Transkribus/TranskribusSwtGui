@@ -28,10 +28,10 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.TableViewerUtils;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-///**
-// * @deprecated
-// *
-// */
+/**
+ * @deprecated not used
+ *
+ */
 public class DocTableWidget /*extends ATableWidgetPagination<TrpDocMetadata>*/ extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocTableWidget.class);
 	

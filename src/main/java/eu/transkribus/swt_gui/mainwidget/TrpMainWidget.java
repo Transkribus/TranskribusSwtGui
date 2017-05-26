@@ -2883,7 +2883,7 @@ public class TrpMainWidget {
 			AltoExportPars altoPars = exportDiag.getAltoPars();
 
 			if (exportDiag.isDoServerExport()) {			
-				logger.debug("server export, commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
+				logger.debug("server export, collId = "+storage.getCollId()+", docId = "+storage.getDocId()+", commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
 				String jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), 
 											commonPars, altoPars, pdfPars, teiPars, docxPars);
 				
@@ -3185,10 +3185,9 @@ public class TrpMainWidget {
 				logger.warn("Session expired!");
 				loginDialog("Session expired!");
 				//unifiedExport();
-			}else {
-				logger.error(e.getMessage(), e);
+			} else {
+				onError("Export error", e.getMessage(), e);
 			}
-			// onError("Export error", "Error during export of document", e);
 		} finally {
 			
 			if (exportFormats != "") {
