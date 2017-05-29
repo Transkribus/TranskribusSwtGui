@@ -114,7 +114,7 @@ public class CollectionSelectorDialog extends Dialog {
 					TrpMainWidget.getInstance().modifyCollection(c);
 				}
 				else if (e.getSource() == addUsersBtn && c!=null) {
-					TrpMainWidget.getInstance().openCollectionUsersDialog();
+					TrpMainWidget.getInstance().openCollectionUsersDialog(c);
 				}
 			}
 		};

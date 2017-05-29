@@ -220,7 +220,7 @@ public class CollectionUsersWidget extends Composite {
 	}
 	
 	public void updateUsersForSelectedCollection() {
-		logger.debug("updating users for selected collection...");
+		logger.debug("updating users for selected collection: "+collection);
 //		TrpCollection c = getSelectedCollection();
 		updateBtnVisibility();
 		

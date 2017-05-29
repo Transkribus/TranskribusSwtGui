@@ -163,7 +163,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			mw.removeDocumentsFromCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
 		else if (s == sw.collectionUsersBtn) {
-			mw.openCollectionUsersDialog();
+			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
 		}
 		else if (s == sw.createCollectionBtn) {
 			mw.createCollection();

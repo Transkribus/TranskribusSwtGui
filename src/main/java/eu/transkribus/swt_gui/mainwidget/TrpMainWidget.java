@@ -4167,11 +4167,11 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public void openCollectionUsersDialog() {
+	public void openCollectionUsersDialog(TrpCollection c) {
 		if (SWTUtil.isOpen(collUsersDiag)) {
 			collUsersDiag.getShell().setVisible(true);
 		} else {
-			collUsersDiag = new CollectionUsersDialog(getShell(), ui.serverWidget.getSelectedCollection());
+			collUsersDiag = new CollectionUsersDialog(getShell(), c);
 			collUsersDiag.open();
 		}
 	}

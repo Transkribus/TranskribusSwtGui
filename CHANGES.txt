@@ -472,5 +472,6 @@ CHANGES AND BUGFIXES
 	-> table-cells are focused individually (formerly: whole table was focused when double-clicking table cell)
 	-> bugfix: selection of shapes in canvas did not work when moving a little bit during click
 	-> iterate through table cells using arrow keys in canvas
+	-> bugfix: duplicate document possible again
 	
 	
