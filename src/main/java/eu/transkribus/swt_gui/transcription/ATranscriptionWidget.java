@@ -4,6 +4,7 @@ package eu.transkribus.swt_gui.transcription;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,9 @@ import java.util.regex.Pattern;
 
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.commons.beanutils.BeanToPropertyValueTransformer;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.dialogs.InputDialog;
@@ -1749,9 +1753,11 @@ public abstract class ATranscriptionWidget extends Composite{
 				return;
 			}
 			
-			CustomTag t = (CustomTag) event.widget.getData();
-			logger.debug("adding tag for current selection: "+t);
+			CustomTag tOrig = (CustomTag) event.widget.getData();
+			CustomTag t = tOrig.copy(); // copy stored tag, s.t. values do not get messed up
 			
+			logger.debug("adding tag for current selection: "+t);
+		
 			String addOnlyThisProperty = null;
 			
 			// merge existing text-styles of current selection into the tag
@@ -1767,14 +1773,28 @@ public abstract class ATranscriptionWidget extends Composite{
 				else if (event.widget == underlinedTagItem)
 					addOnlyThisProperty = "underlined";
 				else if (event.widget == strikethroughTagItem)
-					addOnlyThisProperty = "strikethrough";			
-								
-//				TextStyleTag tst = getCommonIndexedCustomTagForCurrentSelection(TextStyleTag.TAG_NAME);
-//				logger.debug("tst = "+tst);
-//				if (tst != null) {
-//					((TextStyleTag) t).applyTrueValues(tst);
-//					logger.debug("t = "+t);
-//				}
+					addOnlyThisProperty = "strikethrough";
+				
+				// try to "invert" property if it is already set:
+				if (addOnlyThisProperty != null) {
+					TextStyleTag textStyleForCurrentSelection = getCommonIndexedCustomTagForCurrentSelection(TextStyleTag.TAG_NAME);
+					logger.debug("textStyleForCurrentSelection = "+textStyleForCurrentSelection);
+					if (textStyleForCurrentSelection != null) {
+						try {
+							String p = BeanUtils.getSimpleProperty(textStyleForCurrentSelection, addOnlyThisProperty);
+							if (StringUtils.equals(p, "true")) {
+								logger.debug("inverting '"+addOnlyThisProperty+"' property");
+								try {
+									BeanUtils.setProperty(t, addOnlyThisProperty, false);
+								} catch (IllegalAccessException | InvocationTargetException e) {
+									logger.error(e.getMessage(), e);
+								}								
+							}
+						} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+							logger.error(e.getMessage(), e);
+						}
+					}
+				} // end addOnlyThisProperty != null
 			}
 
 			TrpMainWidget.getInstance().addTagForSelection(t, addOnlyThisProperty);
