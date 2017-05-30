@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.dialogs;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -25,7 +26,7 @@ public class ChooseCollectionDialog extends Dialog {
 	CollectionSelectorWidget collSelector;
 	
 	String title;
-	
+		
 	public ChooseCollectionDialog(Shell parentShell) {
 		this(parentShell, "Choose a collection");
 	}
@@ -56,7 +57,7 @@ public class ChooseCollectionDialog extends Dialog {
 	@Override protected Control createDialogArea(Composite parent) {
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(new GridLayout(2, false));
-		
+				
 		Label l = new Label(container, 0);
 		l.setText("Selected collection: ");
 		Fonts.setBoldFont(l);
@@ -64,7 +65,7 @@ public class ChooseCollectionDialog extends Dialog {
 		collSelector = new CollectionSelectorWidget(container, 0, false, null);
 		collSelector.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		collSelector.setSelectedCollection(initColl);
-
+				
 		return container;
 	}
 	
@@ -85,7 +86,7 @@ public class ChooseCollectionDialog extends Dialog {
 	 * Return the initial size of the dialog.
 	 */
 	@Override protected Point getInitialSize() {
-		return new Point(550, 150);
+		return new Point(550, 200);
 	}
 
 }

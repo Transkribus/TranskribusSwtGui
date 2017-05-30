@@ -186,6 +186,12 @@ public class Fonts {
 		return f;
 	}
 	
+	public static Font setItalicFont(Control ctrl) {
+		Font f = createItalicFont(ctrl.getFont());
+		ctrl.setFont(f);
+		return f;
+	}
+	
 	public static Font setNormalFont(Control ctrl) {
 		Font f = createNormalFont(ctrl.getFont());
 		ctrl.setFont(f);

@@ -50,9 +50,13 @@ import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -111,6 +115,7 @@ import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CreateThumbsService;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LoginDialog;
 import eu.transkribus.swt.util.SWTLog;
@@ -136,6 +141,7 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionUsersDialog;
@@ -4501,7 +4507,22 @@ public class TrpMainWidget {
 			return false;
 		}
 		
-		ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a collection to move the add the documents to", storage.getCurrentDocumentCollection());
+		ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a collection where the documents should be added to", storage.getCurrentDocumentCollection()) {
+			@Override protected Control createDialogArea(Composite parent) {
+				Composite container = (Composite) super.createDialogArea(parent);
+				
+				Label infoLabel = new Label(container, 0);
+				infoLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 2));
+				infoLabel.setText("Note: documents are only linked into the collection, i.e. a soft copy is created.\nThey also remain linked to the current collection");
+				Fonts.setItalicFont(infoLabel);
+				
+				return container;
+			}
+			
+			@Override protected Point getInitialSize() {
+				return new Point(550, 200);
+			}
+		};
 		if (diag.open() != Dialog.OK)
 			return false;
 		
