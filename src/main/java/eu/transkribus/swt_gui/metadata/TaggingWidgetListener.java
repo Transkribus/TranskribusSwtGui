@@ -42,9 +42,6 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 		this.settings = mainWidget.getTrpSets();
 		
 		ui.getTaggingWidgetNew().addListener(this);
-		
-//		if (TrpMainWidgetView.SHOW_NEW_TW)
-//			ui.getTaggingWidgetNew().addListener(this);
 	}
 	
 	@Override public void createNewTag(String tagName) {
@@ -108,7 +105,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 	}
 
 	/**
-	 * @deprecated Ambigious
+	 * @deprecated Ambiguous
 	 */
 	@Override public void deleteTagForSelection(String tagName) {
 		ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
@@ -144,30 +141,8 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 		mainWidget.refreshStructureView();		
 	}
 
-	@Override public void deleteTagsOnSelection() {
-		try {
-			logger.debug("clearing tags from selection!");
-			ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
-			if (aw==null) {
-				logger.debug("no transcription widget selected - doin nothing!");
-				return;
-			}
-			
-			List<Pair<ITrpShapeType, IntRange>> ranges = aw.getSelectedShapesAndRanges();
-			for (Pair<ITrpShapeType, IntRange> p : ranges) {
-				ITrpShapeType s = p.getLeft();
-				IntRange r = p.getRight();
-				s.getCustomTagList().deleteTagsInRange(r.getOffset(), r.getLength(), true);
-				s.setTextStyle(null); // delete also text styles from range!
-			}
-			
-			mainWidget.updatePageRelatedMetadata();
-			mainWidget.getUi().getLineTranscriptionWidget().redrawText(true);
-			mainWidget.getUi().getWordTranscriptionWidget().redrawText(true);
-			mainWidget.refreshStructureView();
-		} catch (Exception e) {
-			mainWidget.onError("Unexpected error deleting tags", e.getMessage(), e);
-		}
+	@Override public void deleteTagsForCurrentSelection() {
+		mainWidget.deleteTagsForCurrentSelection();
 	}
 
 //	@Override public void tagsUpdated() {

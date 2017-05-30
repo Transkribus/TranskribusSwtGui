@@ -105,6 +105,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.UndoRedoImpl;
 import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
@@ -137,6 +138,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected ToolBar regionsToolbar;
 	protected MenuItem fontItem;	
 	protected MenuItem showLineBulletsItem;
+	protected MenuItem underlineTextStyleItem;
 	
 	protected MenuItem leftAlignmentItem;
 	protected MenuItem centerAlignmentItem;
@@ -630,7 +632,6 @@ public abstract class ATranscriptionWidget extends Composite{
 		additionalToolItems.add(notSign);
 		
 		addParagraphItem = new ToolItem(regionsToolbar, SWT.CHECK);
-//		showLineBulletsItem.setImage(Images.getOrLoad("/icons/text_list_numbers.png"));
 		addParagraphItem.setText("+ \u00B6");
 		addParagraphItem.setToolTipText("Toggle paragraph on selected line");
 		additionalToolItems.add(addParagraphItem);
@@ -757,6 +758,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		fontItem = ti.addItem("Change text field font...", Images.getOrLoad("/icons/font.png"), SWT.PUSH);
 		showLineBulletsItem = ti.addItem("Show line bullets", Images.getOrLoad("/icons/text_list_numbers.png"), SWT.CHECK);
+		underlineTextStyleItem = ti.addItem("Underline styled text", null, SWT.CHECK);
 		showControlSignsItem = ti.addItem("\u00B6 Show control signs", null, SWT.CHECK);
 		centerCurrentLineItem = ti.addItem("Always try to show a line above and below the selected one", Images.getOrLoad("/icons/arrow_up_down.png"), SWT.CHECK);
 		focusShapeOnDoubleClickInTranscriptionWidgetItem = ti.addItem("Focus shape on double-click", Images.getOrLoad("/icons/mouse_focus.png"), SWT.CHECK);
@@ -897,6 +899,9 @@ public abstract class ATranscriptionWidget extends Composite{
 				
 				else if (pn.equals(TrpSettings.AUTOCOMPLETE_PROPERTY)) {
 					autocomplete.getAdapter().setEnabled(settings.isAutocomplete());
+				}
+				else if (pn.equals(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY)) {
+					redrawText(true);
 				}
 				
 				// saving on change not needed anymore... gets saved anyway
@@ -1389,11 +1394,11 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void paintTagsFromCustomTagList(PaintEvent e, CustomTagList ctl, int offset) {
 		Set<String> tagNames = ctl.getIndexedTagNames();
 		
-		if (!view.getTextStyleWidget().underlineTextStylesBtn.getSelection()) {
+		if (!settings.isUnderlineTextStyles()) {
 			tagNames.remove(TextStyleTag.TAG_NAME); // do not underline  TextStyleTags, as they are
-												// rendered into the bloody text anyway
+			// rendered into the bloody text anyway			
 		}
-
+		
 		// adjust line spacing to fit all tags:
 		int spaceForTags = (TAG_LINE_WIDTH + 2*SPACE_BETWEEN_TAG_LINES) * tagNames.size();
 		if (spaceForTags > text.getLineSpacing())
@@ -1603,8 +1608,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		deleteTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
 		deleteTagMenuItem.setImage(Images.DELETE);
-		deleteTagMenuItem.setText("Delete tag(s) under cursor");
-		deleteTagMenuItem.addSelectionListener(new MenuItemListener());
+		deleteTagMenuItem.setText("Delete tag(s) for selection");
+		deleteTagMenuItem.addSelectionListener(new TagItemListener());
 		
 		addTagItems();
 				
@@ -1732,6 +1737,13 @@ public abstract class ATranscriptionWidget extends Composite{
 			if (event.widget == null)
 				return;
 			
+	    	if (event.widget == deleteTagMenuItem) {
+	    		logger.debug("deleting tags for current selection");
+//	    		TrpMainWidget.getInstance().deleteTags(getCustomTagsForCurrentOffset());
+	    		TrpMainWidget.getInstance().deleteTagsForCurrentSelection();
+	    		return;
+	    	}
+			
 			if (!(event.widget.getData() instanceof CustomTag)) {
 				logger.debug("no CustomTag as data!");
 				return;
@@ -1776,16 +1788,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	class MenuItemListener extends SelectionAdapter {
 	    public void widgetSelected(SelectionEvent event) {
 	    	logger.debug("You selected " + ((MenuItem) event.widget).getText());
-	    	
-//	    	TextStyleTag t = new TextStyleTag();
-//	    	t.getBold();
-	    	
-	    	if (event.widget == deleteTagMenuItem) {
-	    		logger.debug("deleting tags under cursor: "+getCustomTagsForCurrentOffset());
-	    		TrpMainWidget.getInstance().deleteTags(getCustomTagsForCurrentOffset());
-	    		return;
-	    	}
-	    	
+	    		    	
 	    	String tagname = ((MenuItem) event.widget).getText();
 	    	try {
 
@@ -1900,6 +1903,9 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINE_BULLETS_PROPERTY,
 				settings, showLineBulletsItem);
+		
+		db.bindBeanToWidgetSelection(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY, 
+				settings, underlineTextStyleItem);
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY,
 				settings, showControlSignsItem);

@@ -17,7 +17,7 @@ class ClearTagsSelectionListener extends ATagActionSelectionListener {
 	}
 	
 	@Override public void performAction(ITaggingWidgetListener l) {
-		l.deleteTagsOnSelection();
+		l.deleteTagsForCurrentSelection();
 	}
 }
 

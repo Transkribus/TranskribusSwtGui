@@ -10,8 +10,14 @@ import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 public interface ITaggingWidgetListener {
 	void addTagForSelection(String tagName, Map<String, Object> attributes);
 	void addTagsForSelection(List<String> checkedTags);
+	
+	/**
+	 * @deprecated Ambiguous -> for the current selection (i.e. the current cursor position), two tags with the same tagName can exist!
+	 * @param tagName
+	 */
 	void deleteTagForSelection(String tagName);
-	void deleteTagsOnSelection();
+	
+	void deleteTagsForCurrentSelection();
 //	void tagsUpdated();
 //	void deleteTag(CustomTagAndList ctal);
 	

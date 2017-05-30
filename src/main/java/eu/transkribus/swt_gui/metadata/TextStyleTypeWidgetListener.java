@@ -18,7 +18,10 @@ import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 
 public class TextStyleTypeWidgetListener implements SelectionListener, ModifyListener, Listener {
 	private static final Logger logger = LoggerFactory.getLogger(TextStyleTypeWidgetListener.class);
@@ -32,7 +35,9 @@ public class TextStyleTypeWidgetListener implements SelectionListener, ModifyLis
 	}
 
 	private void addListener() {
-		tw.addTextStyleListener((Listener) this);		
+		tw.addTextStyleListener((Listener) this);
+		
+		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY, TrpConfig.getTrpSettings(), tw.underlineTextStylesBtn);
 	}
 
 	@Override

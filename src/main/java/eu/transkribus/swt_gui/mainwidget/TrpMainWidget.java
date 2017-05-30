@@ -108,6 +108,7 @@ import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.ZipUtils;
@@ -314,7 +315,7 @@ public class TrpMainWidget {
 		addUiBindings();
 		
 		updateToolBars();
-		if(getTrpSets().autoSaveFolder.trim().isEmpty()){
+		if(getTrpSets().getAutoSaveFolder().trim().isEmpty()){
 			getTrpSets().setAutoSaveFolder(TrpSettings.getDefaultAutoSaveFolder());
 		}
 		beginAutoSaveThread();
@@ -1188,7 +1189,7 @@ public class TrpMainWidget {
 				logger.debug("AutoSave Thread interrupted");
 			}
 		}		
-		if(getTrpSets().autoSaveEnabled){
+		if(getTrpSets().getAutoSaveEnabled()){
 			autoSaveThread = new Thread(saveTask, "AutoSaveThread");
 			autoSaveThread.start();
 			logger.debug("AutoSave Thread started");
@@ -4788,6 +4789,32 @@ public class TrpMainWidget {
 		}
 	}
 	
+	public void deleteTagsForCurrentSelection() {
+		try {
+			logger.debug("clearing tags from selection!");
+			ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();
+			if (aw==null) {
+				logger.debug("no transcription widget selected - doin nothing!");
+				return;
+			}
+			
+			List<Pair<ITrpShapeType, IntRange>> ranges = aw.getSelectedShapesAndRanges();
+			for (Pair<ITrpShapeType, IntRange> p : ranges) {
+				ITrpShapeType s = p.getLeft();
+				IntRange r = p.getRight();
+				s.getCustomTagList().deleteTagsInRange(r.getOffset(), r.getLength(), true);
+				s.setTextStyle(null); // delete also text styles from range!
+			}
+			
+			updatePageRelatedMetadata();
+			getUi().getLineTranscriptionWidget().redrawText(true);
+			getUi().getWordTranscriptionWidget().redrawText(true);
+			refreshStructureView();
+		} catch (Exception e) {
+			onError("Unexpected error deleting tags", e.getMessage(), e);
+		}	
+	}
+	
 	public void addTagForSelection(CustomTag t, String addOnlyThisProperty) {
 		addTagForSelection(t.getTagName(), t.getAttributeNamesValuesMap(), addOnlyThisProperty);
 	}
@@ -4842,5 +4869,7 @@ public class TrpMainWidget {
 			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
 		}
 	}
+
+
 
 }

@@ -181,82 +181,89 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean centerCurrentTranscriptionLine=true;
 	public static final String CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY = "centerCurrentTranscriptionLine";
 	
-	public boolean showLineBullets=true;
+	private boolean showLineBullets=true;
 	public static final String SHOW_LINE_BULLETS_PROPERTY = "showLineBullets";
 	
-	public boolean showControlSigns=true;
+	private boolean showControlSigns=true;
 	public static final String SHOW_CONTROL_SIGNS_PROPERTY = "showControlSigns";
 	
-	public boolean showTipOfTheDay=true;
+	private boolean showTipOfTheDay=true;
 	public static final String SHOW_TIP_OF_THE_DAY_PROPERTY="showTipOfTheDay";
 	
-	public boolean useFtpProgramUpdater=false;
+	private boolean useFtpProgramUpdater=false;
 	public static final String USE_FTP_PROGRAM_UPDATER = "useFtpProgramUpdater";
 	
-	public boolean focusShapeOnDoubleClickInTranscriptionWidget=true;
+	private boolean focusShapeOnDoubleClickInTranscriptionWidget=true;
 	public static final String FOCUS_SHAPE_ON_DOUBLE_CLICK_IN_TRANSCRIPTION_WIDGET = "focusShapeOnDoubleClickInTranscriptionWidget";
 	
-	public int showEventsMaxDays = 5;
+	private int showEventsMaxDays = 5;
 	public static final String SHOW_EVENTS_MAX_DAYS = "showEventsMaxDays";
 	
-	public String eventsTxtFileName = "events.txt";
+	private String eventsTxtFileName = "events.txt";
 	public static final String EVENTS_TXT_FILE_NAME = "eventsTxtFileName";
 
-	public boolean proxyEnabled = false;
+	private boolean proxyEnabled = false;
 	public static final String PROXY_ENABLED = "proxyEnabled";
-	public String proxyHost = "";
+	
+	private String proxyHost = "";
 	public static final String PROXY_HOST = "proxyHost";
-	public String proxyPort = "";
+	
+	private String proxyPort = "";
 	public static final String PROXY_PORT = "proxyPort";
-	public String proxyUser = "";
+	
+	private String proxyUser = "";
 	public static final String PROXY_USER = "proxyUser";
-	public String proxyPassword = "";
+	
+	private String proxyPassword = "";
 	public static final String PROXY_PW = "proxyPw";
 	
-	public boolean autoLogin = false;
+	private boolean autoLogin = false;
 	public static final String AUTO_LOGIN_PROPERTY = "autoLogin";
 	
-	public Docking leftViewDockingState = Docking.DOCKED;
+	private Docking leftViewDockingState = Docking.DOCKED;
 	public static final String LEFT_VIEW_DOCKING_STATE_PROPERTY = "leftViewDockingState";
 	
-	public Docking rightViewDockingState = Docking.DOCKED;
+	private Docking rightViewDockingState = Docking.DOCKED;
 	public static final String RIGHT_VIEW_DOCKING_STATE_PROPERTY = "rightViewDockingState";
 	
-	public Docking bottomViewDockingState = Docking.DOCKED;
+	private Docking bottomViewDockingState = Docking.DOCKED;
 	public static final String BOTTOM_VIEW_DOCKING_STATE_PROPERTY = "bottomViewDockingState";
 	
-	public int[] newWeightsForVerticalTopLevelSlash = new int [] {80, 20};
+	private int[] newWeightsForVerticalTopLevelSlash = new int [] {80, 20};
 	public static final String NEW_WEIGHTS_FOR_VERTICAL_TOP_LEVEL = "newWeightsForVerticalTopLevelSlash";
 	
-	public String cattiServerUrl = TrpCattiClientEndpoint.DEFAULT_CATTI_URI;
+	private String cattiServerUrl = TrpCattiClientEndpoint.DEFAULT_CATTI_URI;
 	public static final String CATTI_SERVER_URL_PROPERTY = "cattiServerUrl";
 	
-	public int leftTabSelectionId = 0;
+	private int leftTabSelectionId = 0;
 	public static final String LEFT_TAB_SELECTION_ID = "leftTabSelectionId";
 	
-	public int rightTabSelectionId = 0;
+	private int rightTabSelectionId = 0;
 	public static final String RIGHT_TAB_SELECTION_ID = "rightTabSelectionId";
 	
-	public String imgFitTo = "width";
+	private String imgFitTo = "width";
 	public static final String IMG_FIT_TO = "imgFitTo";
 	
-	public boolean createThumbs = true;
+	private boolean createThumbs = true;
 	public static final String CREATE_THUMBS_PROPERTY = "createThumbs";
 	
-	public boolean loadThumbs = true;
+	private boolean loadThumbs = true;
 	public static final String LOAD_THUMBS_PROPERTY = "loadThumbs";
 	
-	public String autoSaveFolder = "";
+	private String autoSaveFolder = "";
 	public static final String AUTOSAVE_FOLDER_PROPERTY = "autoSaveFolder";
 	
-	public int autoSaveInterval = 60;
+	private int autoSaveInterval = 60;
 	public static final String AUTOSAVE_INTERVAL_PROPERTY = "autoSaveInterval";
 	
-	public boolean autoSaveEnabled = true;
+	private boolean autoSaveEnabled = true;
 	public static final String AUTOSAVE_ENABLED = "autoSaveEnabled";
 	
-	public boolean transcriptionToolbarOnTop = false;
-	public static final String TRANSCRIPTION_TOOLBAR_ON_TOP_PROPERTY = "transcriptionToolbarOnTop";	
+	private boolean transcriptionToolbarOnTop = false;
+	public static final String TRANSCRIPTION_TOOLBAR_ON_TOP_PROPERTY = "transcriptionToolbarOnTop";
+	
+	private boolean underlineTextStyles = true;
+	public static final String UNDERLINE_TEXT_STYLES_PROPERTY = "underlineTextStyles";
 	
 	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
@@ -928,6 +935,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setTranscriptionToolbarOnTop(boolean transcriptionToolbarOnTop) {
 		this.transcriptionToolbarOnTop = transcriptionToolbarOnTop;
 		firePropertyChange(TRANSCRIPTION_TOOLBAR_ON_TOP_PROPERTY, !this.transcriptionToolbarOnTop, transcriptionToolbarOnTop);
+	}
+
+	public boolean isUnderlineTextStyles() {
+		return underlineTextStyles;
+	}
+
+	public void setUnderlineTextStyles(boolean underlineTextStyles) {
+		this.underlineTextStyles = underlineTextStyles;
+		firePropertyChange(UNDERLINE_TEXT_STYLES_PROPERTY, !this.underlineTextStyles, underlineTextStyles);
 	}
 
 	@Override public List<String> getPropertiesToNotSave() {
