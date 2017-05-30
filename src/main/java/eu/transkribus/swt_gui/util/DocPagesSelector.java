@@ -69,7 +69,9 @@ public class DocPagesSelector extends Composite {
 		selectPagesBtn.setText("...");
 		selectPagesBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				if (pages.isEmpty())
+				logger.debug("opening DocPageViewer, pages = "+DocPagesSelector.this.pages);
+				
+				if (DocPagesSelector.this.pages.isEmpty())
 					return;
 				
 				final DocPageViewer dpv = new DocPageViewer(SWTUtil.dummyShell, 0, false, true, false);
