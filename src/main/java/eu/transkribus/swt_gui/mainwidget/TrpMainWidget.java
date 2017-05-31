@@ -1312,28 +1312,14 @@ public class TrpMainWidget {
 //	        		TrpTranscriptMetadata tr;
 	        		JAXBPageTranscript jxtr = new JAXBPageTranscript();
 	        		jxtr.setPageData(pcLocal);
-	        		storage.setCurrentTranscript(jxtr.getMd());
+//	        		storage.setCurrentTranscript(jxtr.getMd());
 	        		storage.getTranscript().setPageData(pcLocal);
+	        		storage.getTranscript().setMd(jxtr.getMd());
 	        		storage.setLatestTranscriptAsCurrent();
-	        		
-	
-//	        		storage.getTranscript().getPage().getLines()
 	        		
 	        		logger.debug("+#####" + storage.getTranscript().getPage().getLines().get(0).getUnicodeText());
 	        	
-	        		
-	        		getUi().getStructureTreeViewer().setInput(jxtr.getPageData());
-	        		
-//	        		storage.getTranscript().setPageData(pc);
-//	        		
-//
-//	        		JAXBPageTranscript newTranscript = new JAXBPageTranscript(storage.getTranscriptMetadata(), pc);
-//	        		
-////	        		storage.setCurrentTranscript(storage.getTranscript().getMd());
-//	        		
-////	        		TrpTranscriptMetadata md = page.getCurrentTranscript();
-//	        		
-//	        		
+
 	    			try {
 						loadJAXBTranscriptIntoView(storage.getTranscript());
 					} catch (Exception e) {
