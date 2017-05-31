@@ -906,7 +906,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	}
 	
 	public static String getDefaultAutoSaveFolder() {
-		return System.getProperty("java.io.tmpdir") + "/Transkribus/autoSave";
+		String path = System.getProperty("java.io.tmpdir");
+		if(path.substring(path.length() - 1).equals( "\\")
+				|| path.substring(path.length() - 1).equals( "/")){
+			path += "Transkribus" + File.separator + "autoSave";
+		}else{
+			path += File.separator + "Transkribus" + File.separator + "autoSave";
+		}
+				
+		return path;
 	}
 	
 	public int getAutoSaveInterval(){

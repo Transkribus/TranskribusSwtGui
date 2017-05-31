@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -9,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -23,6 +26,9 @@ import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.io.FileDeleteStrategy;
 import org.apache.commons.io.FileExistsException;
@@ -1212,11 +1218,24 @@ public class TrpMainWidget {
 			return;
 		}
 		
+		if(!storage.isTranscriptEdited()){
+			return;
+		}
+		
 		File f = null;
 		try {
 			PcGtsType currentPage = storage.getTranscript().getPageData();
+			if(currentPage == null){
+				return;
+			}
+			Date datenow = new Date();
+			GregorianCalendar gc = new GregorianCalendar();
+			gc.setTime(datenow);
+			XMLGregorianCalendar xc = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
+			currentPage.getMetadata().setLastChange(xc);
 			String tempDir = path;
-			tempDir += File.separator + "p" + storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
+			tempDir += File.separator + storage.getTranscript().getMd().getPageId()+".xml";
+//			tempDir += File.separator + "p" + storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
 			f = new File(tempDir);
 			
 			byte[] bytes = PageXmlUtils.marshalToBytes(currentPage);
@@ -1228,6 +1247,116 @@ public class TrpMainWidget {
 			String fn = f==null ? "NA" : f.getAbsolutePath();
 			logger.error("Error while autosaving transcription to " + fn, e1);
 		}
+	}
+	
+	public boolean checkLocalSaves(TrpPage page){
+		logger.debug("Checking for local autosave files...");
+		int remotePageId = page.getPageId();
+		String localPath = getTrpSets().getAutoSaveFolder();
+		File dir = new File(localPath);
+		FilenameFilter filter = new FilenameFilter() {
+			public boolean accept (File dir, String name) { 
+			return name.replace(".xml", "").equals(Integer.toString(remotePageId));
+			} 
+	    }; 
+	    String[] children = dir.list(filter);
+	    if(children.length == 0){
+	    	logger.debug("No local autosave files found.");
+	    	return false;
+	    }
+	    logger.debug("Local autosave files found! Comparing timestamps...");
+	    
+	    
+	    File localTranscript = new File(localPath + File.separator + children[0]);
+	    XMLGregorianCalendar localTimestamp;
+	    try {
+			PcGtsType pcLocal = PageXmlUtils.unmarshal(localTranscript);
+			localTimestamp = pcLocal.getMetadata().getLastChange();
+	    
+	    logger.debug("local timestamp: "
+	    		+localTimestamp.getMonth()
+			    + "/" + localTimestamp.getDay()
+			    +"h" + localTimestamp.getHour() 
+			    + "m" + localTimestamp.getMinute() 
+			    + "s" + localTimestamp.getSecond());
+	    
+	    long lRemoteTimestamp = page.getCurrentTranscript().getTimestamp();
+	    GregorianCalendar gc = new GregorianCalendar();
+	    gc.setTimeInMillis(lRemoteTimestamp);
+	    XMLGregorianCalendar remoteTimeStamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
+	    
+	    
+	    logger.debug("remote timestamp: "
+	    		+remoteTimeStamp.getMonth()
+			    + "/" + remoteTimeStamp.getDay()
+			    +"h" + remoteTimeStamp.getHour() 
+			    + "m" + remoteTimeStamp.getMinute() 
+			    + "s" + remoteTimeStamp.getSecond());
+	    
+	    
+	    if(localTimestamp.compare(remoteTimeStamp)==DatatypeConstants.LESSER){
+	    	logger.debug("#####################OLDER######################");
+	    	return false;
+	    }
+
+	    logger.debug("#####################NEWER########################");
+	    Display.getDefault().syncExec(new Runnable() {
+	        public void run() {
+	        	String diagText = "A newer transcript of this page exists on your computer. Do you want to load it?";
+	        	if(DialogUtil.showYesNoCancelDialog(getShell(),"Newer version found in autosaves",diagText) == SWT.YES){
+//	        		TODO
+	        		
+	        		logger.debug("loading local transcript into view");
+	        		
+//	        		storage.getTranscript().setPageData(pcLocal);
+//	        		TrpTranscriptMetadata tr;
+	        		JAXBPageTranscript jxtr = new JAXBPageTranscript();
+	        		jxtr.setPageData(pcLocal);
+	        		storage.setCurrentTranscript(jxtr.getMd());
+	        		storage.getTranscript().setPageData(pcLocal);
+	        		storage.setLatestTranscriptAsCurrent();
+	        		
+	
+//	        		storage.getTranscript().getPage().getLines()
+	        		
+	        		logger.debug("+#####" + storage.getTranscript().getPage().getLines().get(0).getUnicodeText());
+	        	
+	        		
+	        		getUi().getStructureTreeViewer().setInput(jxtr.getPageData());
+	        		
+//	        		storage.getTranscript().setPageData(pc);
+//	        		
+//
+//	        		JAXBPageTranscript newTranscript = new JAXBPageTranscript(storage.getTranscriptMetadata(), pc);
+//	        		
+////	        		storage.setCurrentTranscript(storage.getTranscript().getMd());
+//	        		
+////	        		TrpTranscriptMetadata md = page.getCurrentTranscript();
+//	        		
+//	        		
+	    			try {
+						loadJAXBTranscriptIntoView(storage.getTranscript());
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+	    			ui.taggingWidget.updateAvailableTags();
+	    			updateTranscriptionWidgetsData();
+	    			canvas.getScene().updateSegmentationViewSettings();
+	    			canvas.update();
+	    			
+//	    			reloadCurrentPage(true);
+	        		
+	        	}
+	        }
+	    });
+
+	    
+	    }catch (Exception e){
+	    	e.printStackTrace();
+	    }
+	    
+		return true;
 	}
 	
 	
@@ -1420,6 +1549,7 @@ public class TrpMainWidget {
 		if (saveTranscriptDialogOrAutosave()) {
 			if (storage.setCurrentPage(index)) {
 				reloadCurrentPage(true);
+				checkLocalSaves(storage.getPage());
 			}
 		}
 	}
@@ -2037,7 +2167,7 @@ public class TrpMainWidget {
 
 			storage.setCurrentPage(pageIndex);
 			reloadCurrentPage(true);
-
+			
 			//store the path for the local doc
 			RecentDocsPreferences.push(folder);
 			ui.getServerWidget().updateRecentDocs();
@@ -2123,7 +2253,8 @@ public class TrpMainWidget {
 			}, "Loading document from server", false);
 
 			storage.setCurrentPage(pageIndex);
-			reloadCurrentPage(true);			
+			reloadCurrentPage(true);	
+			checkLocalSaves(storage.getPage());
 			
 			//store the recent doc info to the preferences
 			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);
