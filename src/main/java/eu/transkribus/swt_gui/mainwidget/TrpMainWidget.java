@@ -4385,49 +4385,103 @@ public class TrpMainWidget {
 		ftComp.findText();
 	}
 	
-	public void duplicateDocument(int srcColId, TrpDocMetadata srcDoc) {
-		try {
-			if (!storage.isLoggedIn())
-				return;
-			
-			logger.debug("duplicating document, srcColId = "+srcColId+", srcDoc = "+srcDoc);
-			
-	//		if (srcColId <= 0) {
-	//			DialogUtil.showErrorMessageBox(getShell(), "Error", "No source collection specified!");
-	//			return;
-	//		}
-			
-			if (srcDoc == null) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error", "No source document specified!");
-				return;
-			}
-			
-			if (!StorageUtil.canDuplicate(srcColId)) {
-				DialogUtil.showErrorMessageBox(getShell(), "Insufficient rights", "You must be either at least editor of the collection or uploader of the document!");
-				return;
-			}
-									
-			ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a destination collection", storage.getCollection(srcColId));
-			if (diag.open() != Dialog.OK)
-				return;
-			
-			TrpCollection c = diag.getSelectedCollection();
-			if (c==null) {
-				DialogUtil.showErrorMessageBox(getShell(), "No collection selected", "Please select a collection to duplicate the document to!");
-				return;
-			}
-			int toColId = c.getColId();
-			
-			InputDialog dlg = new InputDialog(getShell(), "New name", "Enter the new name of the document", null, null);
+	public boolean duplicateDocuments(int srcColId, List<TrpDocMetadata> docs) {
+		if (!storage.isLoggedIn())
+			return false;
+		
+		if (CoreUtils.isEmpty(docs)) {
+			DialogUtil.showErrorMessageBox(getShell(), "No document selected", "Please select documents you want to duplicate!");
+			return false;
+		}
+		
+		logger.debug("duplicating document, srcColId = "+srcColId+", nDocs = "+docs.size());
+		
+//		if (srcColId <= 0) {
+//			DialogUtil.showErrorMessageBox(getShell(), "Error", "No source collection specified!");
+//			return;
+//		}
+				
+		if (!StorageUtil.canDuplicate(srcColId)) {
+			DialogUtil.showErrorMessageBox(getShell(), "Insufficient rights", "You must be either at least editor of the collection!");
+			return false;
+		}
+								
+		ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a destination collection", storage.getCollection(srcColId));
+		if (diag.open() != Dialog.OK)
+			return false;
+		
+		TrpCollection c = diag.getSelectedCollection();
+		if (c==null) {
+			DialogUtil.showErrorMessageBox(getShell(), "No collection selected", "Please select a collection to duplicate the document to!");
+			return false;
+		}
+		int toColId = c.getColId();
+		
+		final String title_suffix = "_duplicated";
+		
+		String nameTmp = null;
+		if (docs.size() == 1) {
+			InputDialog dlg = new InputDialog(getShell(), "New name", "Enter the new name of the document", docs.get(0).getTitle()+title_suffix, null);
 			if (dlg.open() != Window.OK)
-				return;
+				return false;
+		
+			nameTmp = dlg.getValue();
+		}
+		final String newNameForSingleDoc = nameTmp;
+		
+		final List<String> error = new ArrayList<>();
+		try {
+		ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+			@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				
+				try {
+					monitor.beginTask("Duplicating documents", docs.size());
+//						TrpUserLogin user = storage.getUser();
+					int i = 0;
+					for (TrpDocMetadata d : docs) {
+						if (monitor.isCanceled())
+							throw new InterruptedException();
+
+						try {
+							// the name of the duplicated document is either the name the user has input into the dialog for a single document, or, for multiple
+							// documents, the document title + title_suffix
+							String name = docs.size()==1 && !StringUtils.isEmpty(newNameForSingleDoc) ? newNameForSingleDoc : d.getTitle()+title_suffix;
+							logger.debug("duplicating document: "+d+" name: "+name+", toColId: "+toColId);
+							
+							storage.duplicateDocument(srcColId, d.getDocId(), name, toColId <= 0 ? null : toColId);
+//							storage.duplicateDocument(srcColId, d.getDocId(), null, toColId <= 0 ? null : toColId); // TEST: null as name, did formerly result in NPE on server
+						} catch (Throwable e) {
+							logger.warn("Could not duplicate document: "+d);
+							error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
+						}
+													
+						monitor.worked(++i);
+					}
+				}
+				catch (InterruptedException ie) {
+					throw ie;
+				} catch (Throwable e) {
+					throw new InvocationTargetException(e, e.getMessage());
+				}
+			}
+		}, "Duplicating documents", true);
+		}
+		catch (InterruptedException e) {}
+		catch (Throwable e) {
+			onError("Unexpected error", e.getMessage(), e);
+		}
+		
+		if (!error.isEmpty()) {
+			String msg = "Could not duplicate the following documents:\n";
+			for (String u : error) {
+				msg += u + "\n";
+			}
 			
-			String newName = dlg.getValue();
-			
-			storage.duplicateDocument(srcColId, srcDoc.getDocId(), newName, toColId <= 0 ? null : toColId);
-			DialogUtil.showInfoMessageBox(getShell(), "Success duplicating", "Go to the jobs view to check the status of duplication!");
-		} catch (Exception e) {
-			mw.onError("Error duplicating document", e.getMessage(), e);
+			mw.onError("Error duplicating documents", msg, null);
+			return false;
+		} else {
+			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully duplicated "+docs.size()+" documents\nGo to the jobs view to check the status of duplication!");
+			return true;
 		}
 	}
 	
@@ -4453,41 +4507,65 @@ public class TrpMainWidget {
 				return false;
 			}
 		}
-
+		
+		final List<String> error = new ArrayList<>();
 		try {
-			TrpUserLogin user = storage.getUser();
-						
-			int count = 0;
-			for (TrpDocMetadata md : docs) {
-				if (!user.isAdmin() && user.getUserId()!=md.getDocId()) {
-					DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the uploader of this document. " + md.getTitle());
-					return false;
-				}
-
+		ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+			@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				
 				try {
-					storage.deleteDocument(md.getColList().get(0).getColId(), md.getDocId());
-					count++;
-				} catch (Exception e) {
-//					Browser browser = new Browser(ui, 0);
-//					browser.setText(html);
-										
-					DialogUtil.showErrorMessageBox(getShell(), "Error deleting document", CoreUtils.removeHtmlAtEnd(e.getMessage()));
-				}
+					monitor.beginTask("Deleting documents", docs.size());
+					TrpUserLogin user = storage.getUser();
+					int i = 0;
+					for (TrpDocMetadata d : docs) {
+						if (monitor.isCanceled())
+							throw new InterruptedException();
 
-				//cmw.getCurrentDocTableWidgetPagination().getPageableTable().refreshPage();
+						logger.debug("deleting document: "+d);
+						
+						if (!user.isAdmin() && user.getUserId()!=d.getDocId()) {
+//							DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the uploader of this document. " + md.getTitle());
+//							return false;
+							String errorMsg = "Unauthorized - you are not the owner of this document: "+d.getTitle()+", id: "+d.getDocId();
+							logger.warn(errorMsg);
+							error.add(errorMsg);
+						} else {
+							try {
+								storage.deleteDocument(d.getColList().get(0).getColId(), d.getDocId());
+								logger.info("deleted document: "+d);
+							} catch (Throwable e) {
+								logger.warn("Could not add document: "+d);
+								error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
+							}
+						}
+						
+						monitor.worked(++i);
+					}
+				}
+				catch (InterruptedException ie) {
+					throw ie;
+				} catch (Throwable e) {
+					throw new InvocationTargetException(e, e.getMessage());
+				}
+			}
+		}, "Deleting documents", true);
+		}
+		catch (InterruptedException e) {}
+		catch (Throwable e) {
+			onError("Unexpected error", e.getMessage(), e);
+		}
+		
+		if (!error.isEmpty()) {
+			String msg = "Could not delete the following documents:\n";
+			for (String u : error) {
+				msg += u + "\n";
 			}
 			
-			if (count > 0) {
-				DialogUtil.showInfoMessageBox(getShell(), "Deleted document", "Successfully deleted "+count+" document(s)");
-				ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
-				return true;
-			} else {
-				return false;
-			}
-		} 
-		catch (Exception e) {
-			mw.onError("Error deleting document", e.getMessage(), e);
+			mw.onError("Error deleting documents", msg, null);
 			return false;
+		} else {
+			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully deleted "+docs.size()+" documents");
+			return true;
 		}
 	}
 	
@@ -4536,17 +4614,41 @@ public class TrpMainWidget {
 		
 		TrpServerConn conn = storage.getConnection();
 				
-		List<String> error = new ArrayList<>();
-		
-		for (TrpDocMetadata d : docs) {
-			logger.debug("adding document: "+d+" to collection: "+c.getColId());				
-			try {						
-				conn.addDocToCollection(c.getColId(), d.getDocId());
-				logger.info("added document: "+d);
-			} catch (Throwable e) {
-				logger.warn("Could not add document: "+d);
-				error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
+		final List<String> error = new ArrayList<>();
+		try {
+		ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+			@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				try {
+					monitor.beginTask("Adding documents to collection", docs.size());
+					
+					int i = 0;
+					for (TrpDocMetadata d : docs) {
+						if (monitor.isCanceled())
+							throw new InterruptedException();
+						
+						logger.debug("adding document: "+d+" to collection: "+c.getColId());				
+						try {					
+							conn.addDocToCollection(c.getColId(), d.getDocId());
+							logger.info("added document: "+d);
+						} catch (Throwable e) {
+							logger.warn("Could not add document: "+d);
+							error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
+						}
+						
+						monitor.worked(++i);
+					}
+				}
+				catch (InterruptedException ie) {
+					throw ie;
+				} catch (Throwable e) {
+					throw new InvocationTargetException(e, e.getMessage());
+				}
 			}
+		}, "Adding documents to collection", true);
+		}
+		catch (InterruptedException e) {}
+		catch (Throwable e) {
+			onError("Unexpected error", e.getMessage(), e);
 		}
 		
 		if (!error.isEmpty()) {
@@ -4585,20 +4687,45 @@ public class TrpMainWidget {
 		
 		logger.debug("selected collection is: "+coll);		
 		
-		TrpServerConn conn = storage.getConnection();
-
 		List<String> error = new ArrayList<>();
-		for (TrpDocMetadata d : docs) {
-			logger.debug("removing document: "+d+" from collection: "+coll.getColId());				
-			try {
-				conn.removeDocFromCollection(coll.getColId(), d.getDocId());
-				logger.info("removed document: "+d);
-			} catch (Throwable e) {
-				logger.warn("Could not remove document: "+d);
-				error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
+		try {
+		ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+			@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				try {
+					monitor.beginTask("Removing documents from collection", docs.size());
+
+					TrpServerConn conn = storage.getConnection();
+					int i = 0;
+					for (TrpDocMetadata d : docs) {
+						if (monitor.isCanceled())
+							throw new InterruptedException();
+						
+						logger.debug("removing document: "+d+" from collection: "+coll.getColId());				
+						try {
+							conn.removeDocFromCollection(coll.getColId(), d.getDocId());
+							logger.info("removed document: "+d);
+						} catch (Throwable e) {
+							logger.warn("Could not remove document: "+d);
+							error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
+						}
+						
+						monitor.worked(++i);
+					}
+				}
+				catch (InterruptedException ie) {
+					throw ie;
+				}
+				catch (Throwable e) {
+					throw new InvocationTargetException(e, e.getMessage());
+				}
 			}
+		}, "Removing documents from collection", true);
 		}
-		
+		catch (InterruptedException e) {}
+		catch (Throwable e) {
+			onError("Unexpected error", e.getMessage(), e);
+		}	
+				
 		if (!error.isEmpty()) {
 			String msg = "Could not remove the following documents:\n";
 			for (String u : error) {
@@ -4607,16 +4734,13 @@ public class TrpMainWidget {
 			
 			mw.onError("Error removing documents", msg, null);
 			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
-			
 			return false;
-//				DialogUtil.showErrorMessageBox(shell, "Error removing documents", msg);
 		} else {
 			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully removed "+docs.size()+" documents");
 			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
 			
 			return true;
 		}
-
 	}
 	
 	public void createCollection() {

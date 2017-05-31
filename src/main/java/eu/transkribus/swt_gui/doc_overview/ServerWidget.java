@@ -22,6 +22,8 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -86,6 +88,8 @@ public class ServerWidget extends Composite {
 	MenuItem removeFromCollectionMenuItem;
 	MenuItem deleteDocMenuItem;
 	MenuItem duplicateDocMenuItem;
+	
+	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, duplicateDocTi;
 		
 	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
@@ -123,7 +127,7 @@ public class ServerWidget extends Composite {
 		btns1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		btns1.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
-		DropDownButton docDropDown = new DropDownButton(btns1, SWT.PUSH, "Document...", null);
+		DropDownButton docDropDown = new DropDownButton(btns1, SWT.PUSH, "Document...", Images.FOLDER, null);
 		docDropDown.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		userControls.add(docDropDown);
 		
@@ -261,6 +265,46 @@ public class ServerWidget extends Composite {
 		ColumnViewerToolTipSupport.enableFor(docTableWidget.getPageableTable().getViewer(), ToolTip.NO_RECREATE);
 		docTableWidget.getPageableTable().setToolTipText("");
 		
+		// 	get top toolbar of docTableWidget:
+		Control c = docTableWidget.getPageableTable().getCompositeTop().getChildren()[0];
+		ToolBar tb = (ToolBar) c;
+		
+		new ToolItem(tb, SWT.SEPARATOR);
+		
+		addToCollectionTi = new ToolItem(tb, SWT.PUSH);
+		addToCollectionTi.setImage(Images.ADD);
+		addToCollectionTi.setToolTipText("Add selected documents to a different collection...");
+				
+		removeFromCollectionTi = new ToolItem(tb, SWT.PUSH);
+		removeFromCollectionTi.setImage(Images.DELETE);
+		removeFromCollectionTi.setToolTipText("Remove selected documents from this collection....");
+		
+		deleteDocTi = new ToolItem(tb, SWT.PUSH);
+		deleteDocTi.setImage(Images.FOLDER_DELETE);
+		deleteDocTi.setToolTipText("Delete the selected documents from Transkribus...");
+		
+		duplicateDocTi = new ToolItem(tb, SWT.PUSH);
+		duplicateDocTi.setImage(Images.PAGE_COPY);
+		duplicateDocTi.setToolTipText("Duplicate the selected documents into another collection...");
+
+//		Composite docBtns = new Composite(docsContainer, 0);
+//		docBtns.setLayout(new RowLayout());
+//		docBtns.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//		
+////		addToCollectionBtn, removeFromCollectionBtn, deleteDocBtn, duplicateDocBtn;
+//		addToCollectionBtn = new Button(docBtns, SWT.PUSH);
+//		addToCollectionBtn.setText("Add to collection");
+//		addToCollectionBtn.setImage(Images.ADD);
+//		
+//		removeFromCollectionBtn = new Button(docBtns, SWT.PUSH);
+//		removeFromCollectionBtn.setText("Remove from collection");
+//		
+//		deleteDocBtn = new Button(docBtns, SWT.PUSH);
+//		deleteDocBtn.setText("Delete");
+//		
+//		duplicateDocBtn = new Button(docBtns, SWT.PUSH);
+//		duplicateDocBtn.setText("Duplicate");
+		
 		if (remoteDocsGroup instanceof SashForm) {
 			((SashForm)remoteDocsGroup).setWeights(new int[]{50, 50});
 		}
@@ -284,7 +328,7 @@ public class ServerWidget extends Composite {
 		removeFromCollectionMenuItem.setText("Remove from this collection...");		
 		
 		deleteDocMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
-		deleteDocMenuItem.setImage(Images.DELETE);
+		deleteDocMenuItem.setImage(Images.FOLDER_DELETE);
 		deleteDocMenuItem.setText("Delete document...");
 		
 		duplicateDocMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);

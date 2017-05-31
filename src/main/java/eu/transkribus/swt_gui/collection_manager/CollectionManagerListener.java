@@ -205,9 +205,9 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 	}
 
 	private void duplicateDocument() {
-		TrpDocMetadata srcDoc = cmw.getFirstSelectedDocument();
-		if (srcDoc != null) {
-			mw.duplicateDocument(cmw.getSelectedCollectionId(), srcDoc);
+		List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
+		if (!CoreUtils.isEmpty(selected)) {
+			mw.duplicateDocuments(cmw.getSelectedCollectionId(), selected);
 			cmw.docsTableWidget.reloadDocs(false, true);
 		}
 	}

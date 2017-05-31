@@ -16,6 +16,11 @@ import org.eclipse.swt.widgets.Shell;
 
 public class SWTLog {
 	public static int showError(Logger logger, Shell shell, String title, String message, Throwable th) {
+		// TODO: truncate message if too long!!
+		
+//		if (message.length() > 500)
+//			message = message.substring(0, 200)+"...";
+		
 		return DialogUtil.showDetailedErrorMessageBox(shell, title, message, th);
 		
 //		if (logger.getEffectiveLevel().toInt() <= Priority.DEBUG_INT) { // show throwable message in dialog when in debug mode!

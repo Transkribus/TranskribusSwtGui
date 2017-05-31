@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -20,8 +20,8 @@ public class DropDownButton extends Composite {
 	Button button;
 	
 	List<MenuItem> items = new ArrayList<>();
-
-	public DropDownButton(Composite parent, int btnStyle, String text, Image img) {
+	
+	public DropDownButton(Composite parent, int btnStyle, String text, Image img, Menu menu) {
 		super(parent, 0);
 		setLayout(new FillLayout());
 		
@@ -29,27 +29,24 @@ public class DropDownButton extends Composite {
 		button.setText(text);
 		button.setImage(img);
 		
-		menu = new Menu(getShell(), SWT.POP_UP);
-        button.addSelectionListener(new SelectionListener() {
-			
+		if (menu != null) {
+			this.menu = menu;
+		} else {
+			this.menu = new Menu(getShell(), SWT.POP_UP);
+		}
+		
+		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Point loc = button.getLocation();
-                Rectangle rect = button.getBounds();
+				Rectangle rect = button.getBounds();
+				Point mLoc = new Point(loc.x - 1, loc.y + rect.height);
 
-                Point mLoc = new Point(loc.x-1, loc.y+rect.height);
-                
-                menu.setLocation(getShell().getDisplay().map(button.getParent(), null, mLoc));
-
-                menu.setVisible(true);			
-               }
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
+				DropDownButton.this.menu.setLocation(getShell().getDisplay().map(button.getParent(), null, mLoc));
+				DropDownButton.this.menu.setVisible(true);
 			}
 		});
+		
 	}
 	
 	@Override public void setEnabled(boolean enabled) {
@@ -67,6 +64,10 @@ public class DropDownButton extends Composite {
 	
 	public Menu getMenu() {
 		return menu;
+	}
+	
+	public Button getButton() {
+		return button;
 	}
 
 }

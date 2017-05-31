@@ -1,21 +1,15 @@
 package eu.transkribus.swt.util;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -24,16 +18,12 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.transkribus.client.util.FtpConsts;
 
 public class DialogUtil {
 	private final static Logger logger = LoggerFactory.getLogger(DialogUtil.class);
@@ -109,6 +99,11 @@ public class DialogUtil {
 	}
 	
 	public static int showDetailedErrorMessageBox(Shell shell, String title, String message, Throwable th) {
+//		Label l = new Label(SWTUtil.dummyShell, 0);
+//		l.setImage(Images.getSystemImage(SWT.ICON_INFORMATION));
+//				
+//		return showCustomMessageDialog(shell, title, message, null, SWT.ERROR, new String[] {"OK",  "Send bug report"}, 0, l);
+		
 		Status s = null;
 		if (th != null) {
 			s = new Status(IStatus.ERROR, "ID0", 0, th.getMessage(), th);

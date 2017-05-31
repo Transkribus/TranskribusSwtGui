@@ -1990,6 +1990,7 @@ public class Storage {
 
 	public String duplicateDocument(int colId, int docId, String newName, Integer toColId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
+		
 		return conn.duplicateDocument(colId, docId, newName, toColId);		
 	}
 

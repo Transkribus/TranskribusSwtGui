@@ -66,6 +66,11 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.addSelectionListener(sw.addToCollectionMenuItem, this);
 		SWTUtil.addSelectionListener(sw.removeFromCollectionMenuItem, this);
 		
+		SWTUtil.addSelectionListener(sw.duplicateDocTi, this);
+		SWTUtil.addSelectionListener(sw.deleteDocTi, this);
+		SWTUtil.addSelectionListener(sw.addToCollectionTi, this);
+		SWTUtil.addSelectionListener(sw.removeFromCollectionTi, this);
+		
 		SWTUtil.addSelectionListener(sw.collectionUsersBtn, this);
 		SWTUtil.addSelectionListener(sw.createCollectionBtn, this);
 		SWTUtil.addSelectionListener(sw.deleteCollectionBtn, this);
@@ -95,6 +100,11 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.removeSelectionListener(sw.deleteDocMenuItem, this);
 		SWTUtil.removeSelectionListener(sw.addToCollectionMenuItem, this);
 		SWTUtil.removeSelectionListener(sw.removeFromCollectionMenuItem, this);
+		
+		SWTUtil.removeSelectionListener(sw.duplicateDocTi, this);
+		SWTUtil.removeSelectionListener(sw.deleteDocTi, this);
+		SWTUtil.removeSelectionListener(sw.addToCollectionTi, this);
+		SWTUtil.removeSelectionListener(sw.removeFromCollectionTi, this);		
 		
 		SWTUtil.removeSelectionListener(sw.collectionUsersBtn, this);
 		SWTUtil.removeSelectionListener(sw.createCollectionBtn, this);
@@ -150,18 +160,19 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		else if (s == sw.showActivityWidgetBtn) {
 			mw.openActivityDialog();
 		}
-		else if (s == sw.duplicateDocMenuItem) {
-			mw.duplicateDocument(mw.getSelectedCollectionId(), sw.getSelectedDocument());
+		else if (s == sw.duplicateDocMenuItem || s == sw.duplicateDocTi) {
+			mw.duplicateDocuments(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
-		else if (s == sw.deleteDocMenuItem) {
+		else if (s == sw.deleteDocMenuItem || s == sw.deleteDocTi) {
 			mw.deleteDocuments(sw.getSelectedDocuments());
 		}
-		else if (s == sw.addToCollectionMenuItem) {
+		else if (s == sw.addToCollectionMenuItem || s == sw.addToCollectionTi) {
 			mw.addDocumentsToCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
-		else if (s == sw.removeFromCollectionMenuItem) {
+		else if (s == sw.removeFromCollectionMenuItem || s == sw.removeFromCollectionTi) {
 			mw.removeDocumentsFromCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
+		
 		else if (s == sw.collectionUsersBtn) {
 			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
 		}

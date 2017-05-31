@@ -26,6 +26,8 @@ public class Images {
 	public static final Image START = Images.getOrLoad("/icons/start_16.png");
 	
 	public static final Image FOLDER = Images.getOrLoad("/icons/folder.png");
+	public static final Image FOLDER_DELETE = Images.getOrLoad("/icons/folder_delete.png");
+	
 	public static final Image IMAGES = Images.getOrLoad("/icons/images.png");
 	public static final Image IMAGE = Images.getOrLoad("/icons/image.png");
 	
