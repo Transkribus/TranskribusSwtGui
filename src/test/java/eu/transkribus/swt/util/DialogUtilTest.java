@@ -13,11 +13,6 @@ import eu.transkribus.util.RecentDocsPreferences;
 
 public class DialogUtilTest {
 
-	@Test
-	public void test() {
-		fail("Not yet implemented");
-	}
-	
 	public static void main(String[] args) {
 		ApplicationWindow aw = new ApplicationWindow(null) {
 			@Override

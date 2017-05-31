@@ -466,7 +466,7 @@ CHANGES AND BUGFIXES
 	-> HTR training interface modified
 	-> collection metadata editor
 	
-1.2.4:
+1.3.0:
 	-> new collection selector widget
 	-> redesigned transcription widget toolbar
 	-> table-cells are focused individually (formerly: whole table was focused when double-clicking table cell)
