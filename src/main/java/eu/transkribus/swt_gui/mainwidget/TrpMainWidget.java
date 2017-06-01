@@ -1260,7 +1260,7 @@ public class TrpMainWidget {
 			} 
 	    }; 
 	    String[] children = dir.list(filter);
-	    if(children.length == 0){
+	    if (children==null || children.length == 0) {
 	    	logger.debug("No local autosave files found.");
 	    	return false;
 	    }

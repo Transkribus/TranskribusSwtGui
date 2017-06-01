@@ -475,6 +475,7 @@ CHANGES AND BUGFIXES
 	-> bugfix: duplicate document possible again
 	-> bugfix: pages selector could not be opened in tools widget
 	-> "delete tags for current selection" added to transcription widget context menu
+	-> autosave: prompt user if he wants to load autosaved version if newer than loaded transcript
 	
 	
 	
