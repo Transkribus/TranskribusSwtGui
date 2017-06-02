@@ -116,6 +116,8 @@ public class UploadDialogUltimate extends Dialog {
 	
 	TrpMainWidget mw = TrpMainWidget.getInstance();
 	Label spacerLabel;
+	
+	boolean isLoadingFtpDocDirs = false;
 
 	public static final String DIRECTORY_COL = "Directory";
 	public static final String TITLE_COL = "Title";
@@ -567,13 +569,39 @@ public class UploadDialogUltimate extends Dialog {
 //	}
 	
 	private void updateDocDirs() {
-		try {
-			docDirs = store.listDocDirsOnFtp();
-		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
-				| NoConnectionException e) {
-			mw.onError("Error", "Could not load directory list!", e);
+		// loading doc dirs async:
+		if (!isLoadingFtpDocDirs) {
+			isLoadingFtpDocDirs = true;
+			docDirTv.getTable().setEnabled(false);
+			new Thread() {
+				@Override public void run() {
+					try {
+						docDirs = store.listDocDirsOnFtp();
+						logger.debug("loaded ftp doc dir: "+docDirs.size());
+					} catch (Exception e) {
+						docDirs = new ArrayList<>();
+						Display.getDefault().asyncExec(() -> {
+							mw.onError("Error", "Could not load directory list!", e);
+						});
+					} finally {
+						Display.getDefault().asyncExec(() -> {
+							docDirTv.getTable().setEnabled(true);
+							docDirTv.setInput(docDirs);
+						});
+						isLoadingFtpDocDirs = false;
+					}
+				}
+			}.start();
 		}
-		docDirTv.setInput(docDirs);
+		
+		// OLD CODE: SYNC LOADING -> opening dialog takes very long for many FTP dirs
+//		try {
+//			docDirs = store.listDocDirsOnFtp();
+//		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+//				| NoConnectionException e) {
+//			mw.onError("Error", "Could not load directory list!", e);
+//		}
+//		docDirTv.setInput(docDirs);
 	}
 	
 	// overriding this methods allows you to set the
