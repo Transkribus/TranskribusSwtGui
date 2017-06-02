@@ -53,7 +53,7 @@ import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.util.HtrUtils;
+import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.htr.HtrTableWidget;
@@ -284,7 +284,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 		
 		showCharSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				List<String> charList = HtrUtils.parseCitLabCharSet(charSet);
+				List<String> charList = HtrCITlabUtils.parseCitLabCharSet(charSet);
 				if(charSetViewer != null) {
 					charSetViewer.setVisible();
 				} else {
@@ -398,11 +398,11 @@ public class TextRecognitionConfigDialog extends Dialog {
 		showTestSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
 		showTrainSetBtn.setEnabled(htr.getGtDocId() != null);
 		
-		final double[] cerTrainSetVals = HtrUtils.parseCitlabCerString(htr.getCerString());
-		final double[] cerTestSetVals = HtrUtils.parseCitlabCerString(htr.getCerTestString());
+		final double[] cerTrainSetVals = HtrCITlabUtils.parseCitlabCerString(htr.getCerString());
+		final double[] cerTestSetVals = HtrCITlabUtils.parseCitlabCerString(htr.getCerTestString());
 		updateChart(cerTrainSetVals, cerTestSetVals);
-		finalTrainCerTxt.setText(HtrUtils.printLastCerPercentage(cerTrainSetVals));
-		finalTestCerTxt.setText(HtrUtils.printLastCerPercentage(cerTestSetVals));
+		finalTrainCerTxt.setText(HtrCITlabUtils.printLastCerPercentage(cerTrainSetVals));
+		finalTestCerTxt.setText(HtrCITlabUtils.printLastCerPercentage(cerTestSetVals));
 	}
 
 	private String layoutParams(Properties p) {
