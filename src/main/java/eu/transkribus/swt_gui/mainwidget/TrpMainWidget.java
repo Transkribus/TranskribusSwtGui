@@ -4648,7 +4648,7 @@ public class TrpMainWidget {
 							error.add(errorMsg);
 						} else {
 							try {
-								storage.deleteDocument(d.getColList().get(0).getColId(), d.getDocId());
+								storage.deleteDocument(storage.getCollId(), d.getDocId());
 								logger.info("deleted document: "+d);
 							} catch (Throwable e) {
 								logger.warn("Could not add document: "+d);
