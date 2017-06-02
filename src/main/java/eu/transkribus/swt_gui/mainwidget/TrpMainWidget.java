@@ -4640,7 +4640,7 @@ public class TrpMainWidget {
 
 						logger.debug("deleting document: "+d);
 						
-						if (!user.isAdmin() && user.getUserId()!=d.getDocId()) {
+						if (!user.isAdmin() && user.getUserId()!=d.getUploaderId()) {
 //							DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the uploader of this document. " + md.getTitle());
 //							return false;
 							String errorMsg = "Unauthorized - you are not the owner of this document: "+d.getTitle()+", id: "+d.getDocId();
