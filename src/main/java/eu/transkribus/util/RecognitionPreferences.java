@@ -60,8 +60,11 @@ public class RecognitionPreferences {
 		case CITlab:
 			pref.putInt(buildKey(HTR, colId, serverUri, HTR_ID), config.getHtrId());
 			pref.put(buildKey(HTR, colId, serverUri, HTR_NAME), config.getHtrName());
+			final String dictKey = buildKey(HTR, colId, serverUri, DICTIONARY);
 			if(config.getDictionary() != null) {
-				pref.put(buildKey(HTR, colId, serverUri, DICTIONARY), config.getDictionary());
+				pref.put(dictKey, config.getDictionary());
+			} else {
+				pref.remove(dictKey);
 			}
 			break;
 		case UPVLC:
