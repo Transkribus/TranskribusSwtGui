@@ -2137,7 +2137,9 @@ public class Storage {
 	
 	public List<String> getHtrDicts() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
 		checkConnection(true);
-		return conn.getHtrDictListText();
+		List<String> sortedDictList = conn.getHtrDictListText();
+		Collections.sort(sortedDictList);
+		return sortedDictList;
 	}
 
 	public void reloadHtrModelsStr() throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {

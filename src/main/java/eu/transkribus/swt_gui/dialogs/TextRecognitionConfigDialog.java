@@ -197,40 +197,53 @@ public class TextRecognitionConfigDialog extends Dialog {
 		Group detailGrp = new Group(uroSash, SWT.BORDER);
 		detailGrp.setText("Details");
 		detailGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		detailGrp.setLayout(new GridLayout(4, false));
+		detailGrp.setLayout(new GridLayout(1, false));
 		
-		Label nameLbl = new Label(detailGrp, SWT.NONE);
+		SashForm detailSash = new SashForm(detailGrp, SWT.VERTICAL);
+		detailSash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		detailSash.setLayout(new GridLayout(2, false));
+		
+		//a composite for the HTR metadata
+		Composite mdComp = new Composite(detailSash, SWT.BORDER);
+		mdComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		mdComp.setLayout(new GridLayout(2, true));
+		
+		Label nameLbl = new Label(mdComp, SWT.NONE);
 		nameLbl.setText("Name:");
-		nameTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
-		nameTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		
-		Label langLbl = new Label(detailGrp, SWT.NONE);
+		Label langLbl = new Label(mdComp, SWT.NONE);
 		langLbl.setText("Language:");
-		langTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
-		langTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
-		Label descLbl = new Label(detailGrp, SWT.NONE);
+		nameTxt = new Text(mdComp, SWT.BORDER | SWT.READ_ONLY);
+		nameTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		langTxt = new Text(mdComp, SWT.BORDER | SWT.READ_ONLY);
+		langTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label descLbl = new Label(mdComp, SWT.NONE);
 		descLbl.setText("Description:");
-		descTxt = new Text(detailGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
-		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
-		
-		Label nrOfWordsLbl = new Label(detailGrp, SWT.NONE);
-		nrOfWordsLbl.setText("Nr. of Words:");
-		nrOfWordsTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
-		nrOfWordsTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
-		
-		Label nrOfLinesLbl = new Label(detailGrp, SWT.NONE);
-		nrOfLinesLbl.setText("Nr. of Lines:");
-		nrOfLinesTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
-		nrOfLinesTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
-		
-		Label paramLbl = new Label(detailGrp, SWT.NONE);
+		Label paramLbl = new Label(mdComp, SWT.NONE);
 		paramLbl.setText("Parameters:");
-		paramTxt = new Text(detailGrp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
-		paramTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		
-		new Label(detailGrp, SWT.NONE);
-		showTrainSetBtn = new Button(detailGrp, SWT.PUSH);
+		// TODO possibly descTxt and paramTxt should have x/y scroll functionality?
+		descTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
+		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		paramTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
+		paramTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		Label nrOfWordsLbl = new Label(mdComp, SWT.NONE);
+		nrOfWordsLbl.setText("Nr. of Words:");
+		Label nrOfLinesLbl = new Label(mdComp, SWT.NONE);
+		nrOfLinesLbl.setText("Nr. of Lines:");
+		
+		nrOfWordsTxt = new Text(mdComp, SWT.BORDER | SWT.READ_ONLY);
+		nrOfWordsTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		nrOfLinesTxt = new Text(mdComp, SWT.BORDER | SWT.READ_ONLY);
+		nrOfLinesTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		
+		Composite btnComp = new Composite(mdComp, SWT.NONE);
+		btnComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		btnComp.setLayout(new GridLayout(3, true));
+		
+		showTrainSetBtn = new Button(btnComp, SWT.PUSH);
 		showTrainSetBtn.setText("Show Train Set");
 		showTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		showTrainSetBtn.addSelectionListener(new SelectionAdapter() {
@@ -254,7 +267,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 			}
 		});
 		
-		showTestSetBtn = new Button(detailGrp, SWT.PUSH);
+		showTestSetBtn = new Button(btnComp, SWT.PUSH);
 		showTestSetBtn.setText("Show Test Set");
 		showTestSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		showTestSetBtn.addSelectionListener(new SelectionAdapter() {
@@ -278,7 +291,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 			}
 		});
 		
-		showCharSetBtn = new Button(detailGrp, SWT.PUSH);
+		showCharSetBtn = new Button(btnComp, SWT.PUSH);
 		showCharSetBtn.setText("Show Character Set");
 		showCharSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
@@ -301,7 +314,12 @@ public class TextRecognitionConfigDialog extends Dialog {
 			}
 		});	
 		
-		Label cerLbl = new Label(detailGrp, SWT.NONE);
+		//a composite for the CER stuff
+		Composite cerComp = new Composite(detailSash, SWT.BORDER);
+		cerComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		cerComp.setLayout(new GridLayout(4, false));
+		
+		Label cerLbl = new Label(cerComp, SWT.NONE);
 		cerLbl.setText("Train Curve:");
 		
 //		cerChart = new Chart(detailGrp, SWT.BORDER);
@@ -310,18 +328,18 @@ public class TextRecognitionConfigDialog extends Dialog {
 //		cerChart.getAxisSet().getXAxis(0).getTitle().setText("Epochs");
 //		cerChart.getAxisSet().getYAxis(0).getTitle().setText("CER");
 		
-		jFreeChartComp = new ChartComposite(detailGrp, SWT.BORDER);
+		jFreeChartComp = new ChartComposite(cerComp, SWT.BORDER);
 		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		
 		GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		Label finalTrainCerLbl = new Label(detailGrp, SWT.NONE);
+		Label finalTrainCerLbl = new Label(cerComp, SWT.NONE);
 		finalTrainCerLbl.setText("Final CER on Train Set:");
-		finalTrainCerTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
+		finalTrainCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
 		finalTrainCerTxt.setLayoutData(gd);
 		
-		Label finalTestCerLbl = new Label(detailGrp, SWT.NONE);
+		Label finalTestCerLbl = new Label(cerComp, SWT.NONE);
 		finalTestCerLbl.setText("Final CER on Test Set:");
-		finalTestCerTxt = new Text(detailGrp, SWT.BORDER | SWT.READ_ONLY);
+		finalTestCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
 		finalTestCerTxt.setLayoutData(gd);
 		
 		dictGrp = new Group(uroSash, SWT.NONE);
@@ -359,6 +377,8 @@ public class TextRecognitionConfigDialog extends Dialog {
 			htw.setSelection(config.getHtrId());
 			
 			if(config.getDictionary() == null) {
+				//if this is null, no dictionary will be used
+				// first entry in dictCombo is always "No dictionary"
 				htrDictCombo.select(0);
 			} else {
 				//set the dictionary according to config
