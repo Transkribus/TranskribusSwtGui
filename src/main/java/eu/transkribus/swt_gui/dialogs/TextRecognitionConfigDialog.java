@@ -224,9 +224,9 @@ public class TextRecognitionConfigDialog extends Dialog {
 		paramLbl.setText("Parameters:");
 		
 		// TODO possibly descTxt and paramTxt should have x/y scroll functionality?
-		descTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
+		descTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP);
 		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		paramTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
+		paramTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP);
 		paramTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		Label nrOfWordsLbl = new Label(mdComp, SWT.NONE);
