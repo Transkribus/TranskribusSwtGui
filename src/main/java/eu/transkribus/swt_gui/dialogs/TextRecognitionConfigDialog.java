@@ -319,17 +319,11 @@ public class TextRecognitionConfigDialog extends Dialog {
 		cerComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		cerComp.setLayout(new GridLayout(4, false));
 		
-		Label cerLbl = new Label(cerComp, SWT.NONE);
-		cerLbl.setText("Train Curve:");
-		
-//		cerChart = new Chart(detailGrp, SWT.BORDER);
-//		cerChart.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
-//		cerChart.getTitle().setVisible(false);
-//		cerChart.getAxisSet().getXAxis(0).getTitle().setText("Epochs");
-//		cerChart.getAxisSet().getYAxis(0).getTitle().setText("CER");
+//		Label cerLbl = new Label(cerComp, SWT.NONE);
+//		cerLbl.setText("Train Curve:");
 		
 		jFreeChartComp = new ChartComposite(cerComp, SWT.BORDER);
-		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
 		
 		GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		Label finalTrainCerLbl = new Label(cerComp, SWT.NONE);
@@ -473,7 +467,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 		}
 
 		JFreeChart chart = ChartFactory.createXYLineChart(
-				"CER Series", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, true, true, false);
+				"Character Error Rate", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, true, true, false);
 
 		XYPlot plot = (XYPlot)chart.getPlot();
 		LogAxis logAxis = new LogAxis("CER");
