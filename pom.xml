@@ -59,6 +59,12 @@
 					<exclude>How_to_use_TRANSKRIBUS-0.1.7.pdf</exclude>
 				</excludes>
 			</resource>
+
+			<!-- Include source code -->
+			<resource>
+				<directory>src/main/java</directory>
+				<filtering>false</filtering>
+			</resource>
 		</resources>
 		
 	    <filters>
@@ -141,11 +147,11 @@
 <!-- 				<version>2.4</version> -->
 				<configuration>
 				    <!-- Including examples package costs about 0.1 MB, so dont risk anything here... -->
-<!-- 				    <excludes> -->
-<!--             			<exclude>examples/**</exclude> -->
-<!--           			</excludes> -->
+				    <excludes>
+            			<exclude>examples/**</exclude>
+          			</excludes>
 					<archive>
-					    <addMavenDescriptor>false</addMavenDescriptor> <!-- do not add maven descripor in jar! -->
+					    <addMavenDescriptor>false</addMavenDescriptor>
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>${dependency-dir}/</classpathPrefix>
