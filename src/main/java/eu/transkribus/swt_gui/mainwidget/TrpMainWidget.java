@@ -1201,10 +1201,8 @@ public class TrpMainWidget {
 			logger.debug("AutoSave Thread started");
 		}
 	}
-
 	
 	
-
 	public boolean localAutosaveEnabled = true;
 	
 	public void localAutoSave(String path){
@@ -1254,89 +1252,84 @@ public class TrpMainWidget {
 		int remotePageId = page.getPageId();
 		String localPath = getTrpSets().getAutoSaveFolder();
 		File dir = new File(localPath);
+		
 		FilenameFilter filter = new FilenameFilter() {
 			public boolean accept (File dir, String name) { 
 			return name.replace(".xml", "").equals(Integer.toString(remotePageId));
 			} 
 	    }; 
+	    
 	    String[] children = dir.list(filter);
+	    
+	    //Return false if no local autosave files are found
 	    if (children==null || children.length == 0) {
 	    	logger.debug("No local autosave files found.");
 	    	return false;
 	    }
-	    logger.debug("Local autosave files found! Comparing timestamps...");
 	    
+	    logger.debug("Local autosave files found! Comparing timestamps...");	    
 	    
 	    File localTranscript = new File(localPath + File.separator + children[0]);
 	    XMLGregorianCalendar localTimestamp;
+	    
 	    try {
 			PcGtsType pcLocal = PageXmlUtils.unmarshal(localTranscript);
 			localTimestamp = pcLocal.getMetadata().getLastChange();
 	    
-	    logger.debug("local timestamp: "
+			logger.debug("local timestamp: "
 	    		+localTimestamp.getMonth()
 			    + "/" + localTimestamp.getDay()
 			    +"h" + localTimestamp.getHour() 
 			    + "m" + localTimestamp.getMinute() 
 			    + "s" + localTimestamp.getSecond());
 	    
-	    long lRemoteTimestamp = page.getCurrentTranscript().getTimestamp();
-	    GregorianCalendar gc = new GregorianCalendar();
-	    gc.setTimeInMillis(lRemoteTimestamp);
-	    XMLGregorianCalendar remoteTimeStamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
+		    long lRemoteTimestamp = page.getCurrentTranscript().getTimestamp();
+		    GregorianCalendar gc = new GregorianCalendar();
+		    gc.setTimeInMillis(lRemoteTimestamp);
+		    XMLGregorianCalendar remoteTimeStamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);	    
 	    
-	    
-	    logger.debug("remote timestamp: "
+		    logger.debug("remote timestamp: "
 	    		+remoteTimeStamp.getMonth()
 			    + "/" + remoteTimeStamp.getDay()
 			    +"h" + remoteTimeStamp.getHour() 
 			    + "m" + remoteTimeStamp.getMinute() 
 			    + "s" + remoteTimeStamp.getSecond());
 	    
-	    
-	    if(localTimestamp.compare(remoteTimeStamp)==DatatypeConstants.LESSER){
-	    	logger.debug("#####################OLDER######################");
-	    	return false;
-	    }
+		    //Return false if local autosave transcript is older
+		    if(localTimestamp.compare(remoteTimeStamp)==DatatypeConstants.LESSER 
+		    		||localTimestamp.compare(remoteTimeStamp)==DatatypeConstants.EQUAL ){
+		    	logger.debug("No newer autosave transcript found.");
+		    	return false;
+		    }
+	
+		    logger.debug("Newer autosave transcript found.");
+		    Display.getDefault().syncExec(new Runnable() {
+		        public void run() {
+		        	String diagText = "A newer transcript of this page exists on your computer. Do you want to load it?";
+		        	if(DialogUtil.showYesNoCancelDialog(getShell(),"Newer version found in autosaves",diagText) == SWT.YES){
+		        		logger.debug("loading local transcript into view");	        		
 
-	    logger.debug("#####################NEWER########################");
-	    Display.getDefault().syncExec(new Runnable() {
-	        public void run() {
-	        	String diagText = "A newer transcript of this page exists on your computer. Do you want to load it?";
-	        	if(DialogUtil.showYesNoCancelDialog(getShell(),"Newer version found in autosaves",diagText) == SWT.YES){
-//	        		TODO
-	        		
-	        		logger.debug("loading local transcript into view");
-	        		
-//	        		storage.getTranscript().setPageData(pcLocal);
-//	        		TrpTranscriptMetadata tr;
-	        		JAXBPageTranscript jxtr = new JAXBPageTranscript();
-	        		jxtr.setPageData(pcLocal);
-//	        		storage.setCurrentTranscript(jxtr.getMd());
-	        		storage.getTranscript().setPageData(pcLocal);
-	        		storage.getTranscript().setMd(jxtr.getMd());
-	        		storage.setLatestTranscriptAsCurrent();
-	        		
-	        		logger.debug("+#####" + storage.getTranscript().getPage().getLines().get(0).getUnicodeText());
-	        	
-
-	    			try {
-						loadJAXBTranscriptIntoView(storage.getTranscript());
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-	    			ui.taggingWidget.updateAvailableTags();
-	    			updateTranscriptionWidgetsData();
-	    			canvas.getScene().updateSegmentationViewSettings();
-	    			canvas.update();
-	    			
-//	    			reloadCurrentPage(true);
-	        		
-	        	}
-	        }
-	    });
-
+		        		JAXBPageTranscript jxtr = new JAXBPageTranscript();
+		        		jxtr.setPageData(pcLocal);
+		        		storage.getTranscript().setPageData(pcLocal);
+		        		storage.getTranscript().setMd(jxtr.getMd());
+		        		storage.setLatestTranscriptAsCurrent();      
+	
+		    			try {
+							loadJAXBTranscriptIntoView(storage.getTranscript());
+						} catch (Exception e) {
+							TrpMainWidget.getInstance().onError("Error when loading transcript into view.", e.getMessage(), e.getCause());
+							e.printStackTrace();
+						}
+		    			ui.taggingWidget.updateAvailableTags();
+		    			updateTranscriptionWidgetsData();
+		    			canvas.getScene().updateSegmentationViewSettings();
+		    			canvas.update();
+		    			
+//	    				reloadCurrentPage(true);	        		
+		        	}
+		        }
+		    });
 	    
 	    }catch (Exception e){
 	    	e.printStackTrace();
