@@ -5,16 +5,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import math.geom2d.Point2D;
-import math.geom2d.polygon.SimplePolygon2D;
-
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 
+import eu.transkribus.core.util.GeomUtils;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
-import eu.transkribus.swt.util.GeomUtils;
-import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import math.geom2d.Point2D;
+import math.geom2d.polygon.SimplePolygon2D;
 
 /**
  * A drawable polygon class inherited from ADrawableShape. The underlying shape class is set to be java.awt.Polygon

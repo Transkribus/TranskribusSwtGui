@@ -12,9 +12,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.util.GeomUtils;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
-import eu.transkribus.swt.util.GeomUtils;
 import math.geom2d.Vector2D;
 
 //public class CanvasPolyline extends ACanvasShape<java.awt.geom.GeneralPath> {

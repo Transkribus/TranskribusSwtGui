@@ -10,7 +10,6 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -19,20 +18,16 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
-import org.plutext.jaxb.svg11.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.GeomUtils;
 import eu.transkribus.swt.util.Colors;
-import eu.transkribus.swt.util.GeomUtils;
 import eu.transkribus.swt.util.RamerDouglasPeuckerFilter;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;
@@ -982,7 +977,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	@Override
 	public double distance(double x, double y, boolean signedDist) {
 		double minDist = GeomUtils.getDistToPolygonAndClosestSegment(getPoints(), x, y, isClosedShape()).getLeft();
-		
+			
 //		double minDist = Integer.MAX_VALUE;
 //		List<Point> pts = getPoints();
 //		
