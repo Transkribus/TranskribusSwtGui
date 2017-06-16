@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javax.ws.rs.ServerErrorException;
 
@@ -198,10 +199,16 @@ public class UploadDialogUltimate extends Dialog {
 		lblCollections.setText("Add to collection:");
 		Fonts.setBoldFont(lblCollections);
 		
-		collSelector = new CollectionSelectorWidget(container, 0, false, (c) -> { return AuthUtils.canManage(c.getRole()); } );
+		Predicate<TrpCollection> collSelectorPredicate = (c) -> { return c!=null && AuthUtils.canManage(c.getRole()); }; // show only collections where user can upload to!
+		collSelector = new CollectionSelectorWidget(container, 0, false, collSelectorPredicate );
 		collSelector.setToolTipText("This is the collection the document will be added to - you can only upload to collections where you are at least editor");
 		collSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(container, SWT.NONE);
+		// set to current collection if possible:
+		TrpCollection c = TrpMainWidget.getInstance().getSelectedCollection();
+		if (collSelectorPredicate.test(c)) {
+			collSelector.setSelectedCollection(c);
+		}
 		
 //		collCombo = new Combo(container, SWT.READ_ONLY);
 //		collCombo.setToolTipText("This is the collection the document will be added to - you can only upload to collections where you are at least editor");
