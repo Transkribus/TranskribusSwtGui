@@ -25,6 +25,8 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt_gui.dialogs.TrpMessageDialog;
+
 public class DialogUtil {
 	private final static Logger logger = LoggerFactory.getLogger(DialogUtil.class);
 	
@@ -99,19 +101,27 @@ public class DialogUtil {
 	}
 	
 	public static int showDetailedErrorMessageBox(Shell shell, String title, String message, Throwable th) {
-//		Label l = new Label(SWTUtil.dummyShell, 0);
-//		l.setImage(Images.getSystemImage(SWT.ICON_INFORMATION));
-//				
-//		return showCustomMessageDialog(shell, title, message, null, SWT.ERROR, new String[] {"OK",  "Send bug report"}, 0, l);
-		
-		Status s = null;
-		if (th != null) {
-			s = new Status(IStatus.ERROR, "ID0", 0, th.getMessage(), th);
-		} else {
-			s = new Status(IStatus.ERROR, "ID0", 0, "", null);
+		if (true) {
+			if (th != null) {
+				return TrpMessageDialog.showErrorDialog(shell, title, message, th.getMessage(), th);	
+			} else {
+				return TrpMessageDialog.showErrorDialog(shell, title, message, null, null);
+			}
+		} else { // old code: uses ExceptionDetailsErrorDialog, which produces a very large dialog in height for long error message (exceptions!)
+	//		Label l = new Label(SWTUtil.dummyShell, 0);
+	//		l.setImage(Images.getSystemImage(SWT.ICON_INFORMATION));
+	//				
+	//		return showCustomMessageDialog(shell, title, message, null, SWT.ERROR, new String[] {"OK",  "Send bug report"}, 0, l);
+			
+			Status s = null;
+			if (th != null) {
+				s = new Status(IStatus.ERROR, "ID0", 0, th.getMessage(), th);
+			} else {
+				s = new Status(IStatus.ERROR, "ID0", 0, "", null);
+			}
+				 
+			return ExceptionDetailsErrorDialog.openError(shell, title, message, s);
 		}
-			 
-		return ExceptionDetailsErrorDialog.openError(shell, title, message, s);		
 	}
 	
 	public static int showInfoMessageBox(Shell shell, String title, String message) {

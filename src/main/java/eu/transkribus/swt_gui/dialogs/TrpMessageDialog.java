@@ -7,15 +7,15 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -28,24 +28,27 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
 
-public class TrpErrorDialog extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(TrpErrorDialog.class);
+public class TrpMessageDialog extends Dialog {
+	private static final Logger logger = LoggerFactory.getLogger(TrpMessageDialog.class);
 	
-	Group pageLocksGroup;
-	PageLockTablePagination pageLockTable;
-	
+	public static final int DEFAULT_ICON = SWT.ICON_ERROR;
+//	public static final int MINIMIZED_HEIGHT = 200;
+//	public static final int MAXIMIZED_HEIGHT = 800;
+
 	String title;
 	String message;
 	String detailedMessage;
 	Throwable exception;
 	
+	int swtIcon = DEFAULT_ICON;
 	Label iconLabel;
-	Text messageText;
+	StyledText messageText;
 	StyledText exceptionText;
+	
+	boolean hasDetails = false;
 
-	public TrpErrorDialog(Shell parentShell, String title, String message, String detailedMessage, Throwable exception) {
+	public TrpMessageDialog(Shell parentShell, String title, String message, String detailedMessage, Throwable exception) {
 		super(parentShell);
 		
 		this.title = title;
@@ -54,11 +57,26 @@ public class TrpErrorDialog extends Dialog {
 		this.exception = exception;
 	}
 	
+	public static int showErrorDialog(Shell parentShell, String title, String message, String detailedMessage, Throwable exception) {
+		TrpMessageDialog d = new TrpMessageDialog(parentShell, title, message, detailedMessage, exception);
+		return d.open();
+	}
+	
+	public static int showInfoDialog(Shell parentShell, String title, String message, String detailedMessage, Throwable exception) {
+		TrpMessageDialog d = new TrpMessageDialog(parentShell, title, message, detailedMessage, exception);
+		d.setSwtIcon(SWT.ICON_INFORMATION);
+		return d.open();
+	}	
+	
+	public void setSwtIcon(int swtIcon) {
+		this.swtIcon = swtIcon;
+	}
+	
 	@Override protected void configureShell(Shell shell) {
 	      super.configureShell(shell);
 	      shell.setText(StringUtils.isEmpty(title) ? "" : title);
 	      SWTUtil.centerShell(shell);
-	      shell.pack();
+//	      shell.pack();
 	}
 	
 	@Override protected boolean isResizable() {
@@ -66,20 +84,39 @@ public class TrpErrorDialog extends Dialog {
 	}
 	
 	@Override protected Point getInitialSize() {
-		return new Point(600, 200);
+		return new Point(800, getMinHeight());
 	}
 	
 	@Override protected void createButtonsForButtonBar(Composite parent) {
 		Button b = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
 		b.setFocus();
-//		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CLOSE_LABEL, false);
-		createButton(parent, IDialogConstants.CLIENT_ID, "Send bug report", false);
+		b = createButton(parent, IDialogConstants.HELP_ID, "Bug...", false);
+		b.setImage(Images.BUG);
+		b.setToolTipText("Send a bug report");
+		
+		// close dialog and return HELP_ID when user pushes bug report button:
+		getButton(IDialogConstants.HELP_ID).addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setReturnCode(IDialogConstants.HELP_ID);
+				close();
+			}
+		});
 	}
 	
 	@Override protected void setShellStyle(int newShellStyle) {           
 	    super.setShellStyle(SWT.CLOSE | SWT.MODELESS| SWT.BORDER | SWT.TITLE | SWT.RESIZE);
 	    setBlockOnOpen(false);
 	}	
+	
+	private int getMinHeight() {
+//		System.out.println(messageText.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		
+		return messageText.computeSize(SWT.DEFAULT, SWT.DEFAULT).y + (hasDetails ? 150 : 100);
+	}
+	
+	private int getMaxHeight() {
+		return getMinHeight() + 500;
+	}
 	
 	/**
 	 * Create contents of the dialog.
@@ -90,20 +127,24 @@ public class TrpErrorDialog extends Dialog {
 		container.setLayout(new GridLayout(2, false));
 		
 		iconLabel = new Label(container, 0);
-		iconLabel.setImage(Images.getSystemImage(SWT.ICON_ERROR));
+		iconLabel.setImage(Images.getSystemImage(swtIcon));
 		
-		messageText = new Text(container, SWT.FLAT | SWT.READ_ONLY | SWT.SINGLE);
+		messageText = new StyledText(container, SWT.FLAT | SWT.READ_ONLY | SWT.MULTI | SWT.WRAP);
 		messageText.setBackground(container.getBackground());
-//		messageText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		messageText.setText(message);
-		messageText.clearSelection();
+		messageText.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
-		if (!StringUtils.isEmpty(detailedMessage) || exception != null) {
+		hasDetails = !StringUtils.isEmpty(detailedMessage) || exception != null;
+		if (hasDetails) {
 			ExpandableComposite ec = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 			ec.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-			ec.setLayout(new FillLayout());
-			
+			ec.setLayout(new GridLayout());
+						
 			exceptionText = new StyledText(ec, SWT.BORDER | SWT.MULTI | SWT.VERTICAL | SWT.WRAP);
+			
+			GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+			gd.heightHint = 800;
+			exceptionText.setLayoutData(gd);
 			
 			String msg = "";
 			int i=0;
@@ -131,23 +172,28 @@ public class TrpErrorDialog extends Dialog {
 				exceptionText.setStyleRange(sr);
 			}
 			
-//			exceptionText.setLineSt
-			
 			ec.setClient(exceptionText);
 			ec.setText("Details");
 			Fonts.setBoldFont(ec);
 			ec.setExpanded(false);
 			ec.addExpansionListener(new ExpansionAdapter() {
 				public void expansionStateChanged(ExpansionEvent e) {
-					getShell().pack();
-//					container.pack();
+					if (e.getState() == true) {
+						getShell().setSize(getShell().computeSize(SWT.DEFAULT, getMaxHeight()));
+					} else {
+						getShell().setSize(getShell().computeSize(SWT.DEFAULT, getMinHeight()));
+					}
 				}
 			});
 			
 //			getShell().pack();
 		}
 		
+//		getShell().setSize(getShell().computeSize(SWT.DEFAULT, getMinHeight()));
+		
 		parent.pack();
+		
+		
 
 		return container;
 	}

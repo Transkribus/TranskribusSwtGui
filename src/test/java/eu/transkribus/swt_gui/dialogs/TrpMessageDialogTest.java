@@ -7,9 +7,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
-import eu.transkribus.swt.util.SWTUtil;
-
-public class TrpErrorDialogTest {
+public class TrpMessageDialogTest {
 
 	public static void main(String[] args) throws LoginException {		
 		ApplicationWindow aw = new ApplicationWindow(null) {
@@ -17,15 +15,23 @@ public class TrpErrorDialogTest {
 			protected Control createContents(Composite parent) {
 				getShell().setSize(600, 600);
 				
+				Exception e = new Exception("asdadf", new Exception("ddd", new Exception(new Exception(new Exception(new Exception(new Exception(new Exception(new Exception())))))))); 
+				
+				String msg = "I am Error! adfasdf asdfasdf asdfasd asdf asdfa sdfasdfasdf asdfasdfa asdf asdfa sfasdfa sfd sa fdd asdf asdfas dddd dd asdf asdf asdf asdf asfdasdf asdf asfd asd fasdfasdf as fd\n mutliple lines long!\nasdf\nasdfasdfasd\nasdfasdf";
+				
+				TrpMessageDialog.showErrorDialog(getShell(), "Error in...", msg, null, null);
+//				TrpMessageDialog.showErrorDialog(getShell(), "Error in...", msg, "a detailed error message!", e);
+				
 //				TrpErrorDialog d = new TrpErrorDialog(getShell(), "Error in...", "I am Error!", "detailed error message!", new Exception("asdadf", new Exception("ddd", new Exception())));
-				TrpErrorDialog d = new TrpErrorDialog(getShell(), "Error in...", "I am Error!", null, new Exception("asdadf", new Exception("ddd", new Exception())));
+//				TrpMessageDialog d = new TrpMessageDialog(getShell(), "Error in...", "I am Error!", null, new Exception("asdadf", new Exception("ddd", new Exception())));
+//				d.setSwtIcon(SWT.ICON_INFORMATION);
 //				TrpErrorDialog d = new TrpErrorDialog(getShell(), "Error in...", "I am Error!", "detailed error message!", null);
-				d.open();
+//				d.open();
 				
 //				s = new Status(IStatus.ERROR, "ID0", 0, "", null);
 //				ExceptionDetailsErrorDialog.openError(getShell(), "asdf", "massage", new Status(IStatus.ERROR, "ID0", 0, "", null));
 
-				SWTUtil.centerShell(getShell());
+//				SWTUtil.centerShell(getShell());
 
 				return parent;
 			}
