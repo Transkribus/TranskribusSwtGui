@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +16,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt_gui.dialogs.TrpMessageDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -121,9 +123,10 @@ public class DocJobUpdater {
 			Display.getDefault().asyncExec(() -> {
 				if (!job.isSuccess()) {
 					logger.error("a job for the current page failed: "+job);
-					
+
+					TrpMessageDialog.showErrorDialog(mw.getShell(), "A job for this page failed", job.getDescription(), job.getStackTrace(), null);
 					// TODO: show stacktrace of error... job.getStackTrace()
-					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
+//					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
 				}
 				else if (store.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
 //					if (job.getJobImpl().equals(JobImpl.DocExportJob.toString())) {

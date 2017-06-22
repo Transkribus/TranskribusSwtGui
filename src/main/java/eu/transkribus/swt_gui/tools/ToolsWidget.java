@@ -44,7 +44,7 @@ public class ToolsWidget extends Composite {
 //	Button /*blockSegBtn,*/ regAndLineSegBtn, lineSegBtn, wordSegBtn;
 //	Button batchLaBtn;
 
-	Button polygon2baselinesBtn;
+	Button polygon2baselinesBtn, baseline2PolygonBtn;
 	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
 		
 //	Button ocrBtn, htrTrainBtn, recogBtn;
@@ -474,7 +474,12 @@ public class ToolsWidget extends Composite {
 		polygon2baselinesBtn.setText("Add Baselines to Polygons");
 		polygon2baselinesBtn.setToolTipText("Creates baselines for all surrounding polygons - warning: existing baselines will be lost (text is retained however!)");
 		polygon2baselinesBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
+		
+		baseline2PolygonBtn = new Button(c, SWT.PUSH);
+		baseline2PolygonBtn.setText("Add Polygons to Baselines");
+		baseline2PolygonBtn.setToolTipText("Creates polygons for all baselines - warning: existing polygons will be lost (text is retained however!)");
+		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
 		exp.setClient(c);
 		new Label(c, SWT.NONE);
 		exp.setText("Other Tools");

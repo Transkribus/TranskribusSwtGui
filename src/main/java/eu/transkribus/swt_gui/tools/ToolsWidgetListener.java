@@ -82,6 +82,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
 		
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
+		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
 				
 		//OLD
 //		tw.startOcrBtn.addSelectionListener(this);
@@ -105,7 +106,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 	
 	boolean isLayoutAnalysis(Object s) {
-		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn;
+		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn;
 //		return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn || s == tw.baselineBtn || s == tw.polygon2baselinesBtn);
 	}
 	
@@ -114,7 +115,7 @@ public class ToolsWidgetListener implements SelectionListener {
 			return false;
 		}
 		
-		return (s == tw.startLaBtn && !tw.laComp.isDoBlockSeg() && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn;
+		return (s == tw.startLaBtn && !tw.laComp.isDoBlockSeg() && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn;
 	}
 		
 	@Override
@@ -156,25 +157,29 @@ public class ToolsWidgetListener implements SelectionListener {
 				if (!tw.laComp.isCurrentTranscript()) {
 					logger.debug("running la on pages: "+tw.laComp.getPages());
 					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.laComp.getPages(),
-							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, tw.laComp.getJobImpl(), null);
+							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false, tw.laComp.getJobImpl(), null);
 				} else {
 					List<String> rids = getSelectedRegionIds();
 					logger.debug("running la on current transcript and selected rids: "+CoreUtils.join(rids));
 					jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
-							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, tw.laComp.getJobImpl(), null);	
+							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false, tw.laComp.getJobImpl(), null);	
 				}
 			}
-			else if (s == tw.polygon2baselinesBtn) {
+			else if (s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn) {
+				boolean isPolygon2Baseline = s == tw.polygon2baselinesBtn;
+				String jobImpl = isPolygon2Baseline ? JobImpl.NcsrOldLaJob.toString() : JobImpl.UpvlcLaJob.toString();
+				String btnName = isPolygon2Baseline ? "polygon2baselinesBtn" : "baseline2PolygonBtn";
+				
 				if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
-					logger.debug("polygon2baselinesBtn on pages: "+tw.otherToolsPagesSelector.getPagesStr());
+					logger.debug(btnName+" on pages: "+tw.otherToolsPagesSelector.getPagesStr());
 					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
-							false, false, false, true, JobImpl.NcsrOldLaJob.toString(), null);
+							false, false, false, isPolygon2Baseline, !isPolygon2Baseline, jobImpl, null);
 				} else {
-					logger.debug("polygon2baselinesBtn on current transcript");
+					logger.debug(btnName+" on current transcript");
 					List<String> rids = getSelectedRegionIds();
 					
 					jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
-							false, false, false, true, JobImpl.NcsrOldLaJob.toString(), null);
+							false, false, false, isPolygon2Baseline, !isPolygon2Baseline, jobImpl, null);
 				}
 			}
 			
