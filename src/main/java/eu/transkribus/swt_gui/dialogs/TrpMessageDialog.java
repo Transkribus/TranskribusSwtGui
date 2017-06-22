@@ -154,7 +154,8 @@ public class TrpMessageDialog extends Dialog {
 				i = msg.length();
 			}
 			
-			String exceptionStr = ExceptionUtil.printStackTrace(exception);
+			
+			String exceptionStr = exception==null ? "" : ExceptionUtil.printStackTrace(exception);
 			
 			String exceptionHeader = "Exception:\n";
 			if (!StringUtils.isEmpty(exceptionStr)) {
@@ -172,6 +173,7 @@ public class TrpMessageDialog extends Dialog {
 				
 				exceptionText.setStyleRange(sr);
 			}
+			
 			
 			ec.setClient(exceptionText);
 			ec.setText("Details");
