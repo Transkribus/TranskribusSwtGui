@@ -115,6 +115,7 @@ import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
+import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.ZipUtils;
@@ -1270,11 +1271,24 @@ public class TrpMainWidget {
 	    logger.debug("Local autosave files found! Comparing timestamps...");	    
 	    
 	    File localTranscript = new File(localPath + File.separator + children[0]);
-	    XMLGregorianCalendar localTimestamp;
 	    
-	    try {
+//	    XMLGregorianCalendar localTimestamp;
+	    
+	    try { 
+	    	
 			PcGtsType pcLocal = PageXmlUtils.unmarshal(localTranscript);
-			localTimestamp = pcLocal.getMetadata().getLastChange();
+			
+	    	/*
+	    	 * getLastChange() Doesn't return correct metadata xml element ???
+	    	 * (getCreator/creationDate work fine)
+	    	 * --> use actual file lastmodified time instead for now	    	
+	    	 */
+//			localTimestamp = pcLocal.getMetadata().getLastChange();	    	
+	    	
+			long lLocalTimestamp = localTranscript.lastModified();
+		    GregorianCalendar gc = new GregorianCalendar();
+		    gc.setTimeInMillis(lLocalTimestamp);
+		    XMLGregorianCalendar localTimestamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);	
 	    
 			logger.debug("local timestamp: "
 	    		+localTimestamp.getMonth()
@@ -1284,10 +1298,12 @@ public class TrpMainWidget {
 			    + "s" + localTimestamp.getSecond());
 	    
 		    long lRemoteTimestamp = page.getCurrentTranscript().getTimestamp();
-		    GregorianCalendar gc = new GregorianCalendar();
 		    gc.setTimeInMillis(lRemoteTimestamp);
-		    XMLGregorianCalendar remoteTimeStamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);	    
+		    XMLGregorianCalendar remoteTimeStamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);	  
+//		    XMLGregorianCalendar remoteTimeStamp = storage.getTranscript().getPage().getPcGtsType().getMetadata().getLastChange();
+		    
 	    
+
 		    logger.debug("remote timestamp: "
 	    		+remoteTimeStamp.getMonth()
 			    + "/" + remoteTimeStamp.getDay()
@@ -1529,6 +1545,7 @@ public class TrpMainWidget {
 			if (storage.setCurrentPage(index)) {
 				reloadCurrentPage(true);
 				checkLocalSaves(storage.getPage());
+							
 			}
 		}
 	}
