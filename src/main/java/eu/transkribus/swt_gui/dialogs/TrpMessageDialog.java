@@ -33,8 +33,7 @@ public class TrpMessageDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(TrpMessageDialog.class);
 	
 	public static final int DEFAULT_ICON = SWT.ICON_ERROR;
-//	public static final int MINIMIZED_HEIGHT = 200;
-//	public static final int MAXIMIZED_HEIGHT = 800;
+	public static final int MAX_WIDTH = 800;
 
 	String title;
 	String message;
@@ -47,6 +46,8 @@ public class TrpMessageDialog extends Dialog {
 	StyledText exceptionText;
 	
 	boolean hasDetails = false;
+	
+	ExpandableComposite ec;
 
 	public TrpMessageDialog(Shell parentShell, String title, String message, String detailedMessage, Throwable exception) {
 		super(parentShell);
@@ -84,7 +85,7 @@ public class TrpMessageDialog extends Dialog {
 	}
 	
 	@Override protected Point getInitialSize() {
-		return new Point(800, getMinHeight());
+		return new Point(MAX_WIDTH, getMinHeight());
 	}
 	
 	@Override protected void createButtonsForButtonBar(Composite parent) {
@@ -129,14 +130,14 @@ public class TrpMessageDialog extends Dialog {
 		iconLabel = new Label(container, 0);
 		iconLabel.setImage(Images.getSystemImage(swtIcon));
 		
-		messageText = new StyledText(container, SWT.FLAT | SWT.READ_ONLY | SWT.MULTI | SWT.WRAP);
+		messageText = new StyledText(container, SWT.FLAT | SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.VERTICAL);
 		messageText.setBackground(container.getBackground());
 		messageText.setText(message);
 		messageText.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		hasDetails = !StringUtils.isEmpty(detailedMessage) || exception != null;
 		if (hasDetails) {
-			ExpandableComposite ec = new ExpandableComposite(container, ExpandableComposite.COMPACT);
+			ec = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 			ec.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 			ec.setLayout(new GridLayout());
 						
@@ -178,11 +179,7 @@ public class TrpMessageDialog extends Dialog {
 			ec.setExpanded(false);
 			ec.addExpansionListener(new ExpansionAdapter() {
 				public void expansionStateChanged(ExpansionEvent e) {
-					if (e.getState() == true) {
-						getShell().setSize(getShell().computeSize(SWT.DEFAULT, getMaxHeight()));
-					} else {
-						getShell().setSize(getShell().computeSize(SWT.DEFAULT, getMinHeight()));
-					}
+					updateSize();
 				}
 			});
 			
@@ -191,11 +188,24 @@ public class TrpMessageDialog extends Dialog {
 		
 //		getShell().setSize(getShell().computeSize(SWT.DEFAULT, getMinHeight()));
 		
-		parent.pack();
-		
-		
+//		parent.pack();
+//		getShell().setSize(getShell().computeSize(SWT.DEFAULT, getMinHeight()));
+		updateSize();
 
 		return container;
+	}
+	
+	private void updateSize() {
+		Point size;
+		if (ec.isExpanded() == true) {
+			size = getShell().computeSize(SWT.DEFAULT, getMaxHeight());
+		} else {
+			size = getShell().computeSize(SWT.DEFAULT, getMinHeight());
+		}
+		
+		size.x = Math.min(MAX_WIDTH, size.x);
+		
+		getShell().setSize(size);
 	}
 	
 	
