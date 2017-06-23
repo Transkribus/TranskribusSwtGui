@@ -4870,7 +4870,7 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public void createCollection() {
+	public int createCollection() {
 		logger.debug("creating collection...");
 		
 		InputDialog dlg = new InputDialog(getShell(),
@@ -4883,15 +4883,18 @@ public class TrpMainWidget {
 					}
 				});
 		if (dlg.open() != Window.OK)
-			return;
+			return 0;
 				
 		String collName = dlg.getValue();
 		try {
-			storage.addCollection(dlg.getValue());
+			int collId = storage.addCollection(dlg.getValue());
 			logger.debug("created new collection '"+collName+"' - now reloading available collections!");
 			storage.reloadCollections();
+			
+			return collId;
 		} catch (Throwable th) {
-			mw.onError("Error", "Error creating collection '"+collName+"': "+th.getMessage(), th);	
+			mw.onError("Error", "Error creating collection '"+collName+"': "+th.getMessage(), th);
+			return 0;
 		}
 	}
 	

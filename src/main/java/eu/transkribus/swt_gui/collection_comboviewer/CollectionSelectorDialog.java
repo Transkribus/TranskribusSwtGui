@@ -105,7 +105,10 @@ public class CollectionSelectorDialog extends Dialog {
 				logger.trace("c = "+c+" source = "+e.getSource());
 				
 				if (e.getSource() == createBtn) {
-					TrpMainWidget.getInstance().createCollection();
+					int collId = TrpMainWidget.getInstance().createCollection();
+					if (collId > 0) {
+						collectionTable.loadPage("colId", collId, false);
+					}
 				}
 				else if (e.getSource() == deleteBtn && c!=null) {
 					TrpMainWidget.getInstance().deleteCollection(c);

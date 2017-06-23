@@ -110,7 +110,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	}
 	
 	/**
-	 * Loads the page that contains the specified values
+	 * Loads the page that contains the specified property / value pair; if found, the element is selected
 	 */
 	public synchronized void loadPage(String propertyName, Object value, boolean refreshFirst) {
 		if (propertyName == null || value == null) {

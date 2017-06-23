@@ -1779,10 +1779,10 @@ public class Storage {
 		sendEvent(new CollectionsLoadEvent(this, user, collections));
 	}
 	
-	public void addCollection(String name) throws NoConnectionException, SessionExpiredException, ServerErrorException {
+	public int addCollection(String name) throws NoConnectionException, SessionExpiredException, ServerErrorException {
 		checkConnection(true);
 		
-		conn.createCollection(name);
+		return conn.createCollection(name);
 	}
 	
 
