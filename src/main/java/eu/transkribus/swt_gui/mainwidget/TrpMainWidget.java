@@ -558,8 +558,6 @@ public class TrpMainWidget {
 	}
 
 	public void clearDocList() {
-		String title = ui.APP_NAME;
-
 		getUi().getServerWidget().clearDocList();
 	}
 
@@ -1093,7 +1091,9 @@ public class TrpMainWidget {
 			closeCurrentDocument(true);
 		}
 
+		ui.serverWidget.setSelectedCollection(null);
 		clearDocList();
+		
 //		clearHtrModelList();
 //		ui.getJobOverviewWidget().refreshPage(true);
 		updateThumbs();

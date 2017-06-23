@@ -199,7 +199,7 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 			List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
 			if (!CoreUtils.isEmpty(selected)) {
 				mw.deleteDocuments(selected);
-				cmw.docsTableWidget.reloadDocs(false, true);
+				mw.reloadDocList(mw.getSelectedCollectionId());
 			}
 		}
 	}
@@ -208,7 +208,7 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		List<TrpDocMetadata> selected = cmw.getSelectedDocuments();
 		if (!CoreUtils.isEmpty(selected)) {
 			mw.duplicateDocuments(cmw.getSelectedCollectionId(), selected);
-			cmw.docsTableWidget.reloadDocs(false, true);
+			mw.reloadDocList(mw.getSelectedCollectionId());
 		}
 	}
 	

@@ -52,7 +52,7 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 	}
 	
 	@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
-		ui.getServerWidget().refreshDocList();
+		ui.getServerWidget().refreshDocListFromStorage();
 	}
 	
 	@Override public void handleDocLoadEvent(DocLoadEvent dle) {

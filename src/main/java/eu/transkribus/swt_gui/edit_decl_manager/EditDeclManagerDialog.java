@@ -276,7 +276,7 @@ public class EditDeclManagerDialog extends Dialog {
 		docTable = new DocTableWidgetPagination(btns3, 0, 25);
 		docTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
-		docTable.refreshList(store.getCurrentDocumentCollectionId(), true);
+		docTable.refreshList(store.getCurrentDocumentCollectionId(), true, false);
 		
 		s1.setWeights(new int[] { 50, 50 } );
 				

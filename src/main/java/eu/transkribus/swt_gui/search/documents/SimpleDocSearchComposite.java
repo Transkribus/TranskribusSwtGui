@@ -324,7 +324,7 @@ public class SimpleDocSearchComposite extends Composite {
 					infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
 					infoLabel.setText("Found "+resultList.size()+" documents!");
 
-					docWidgetPaged.refreshList(-1, false);
+					docWidgetPaged.refreshList(-1, false, false);
 					//docWidgetPaged.refreshPage(true);
 				}
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {

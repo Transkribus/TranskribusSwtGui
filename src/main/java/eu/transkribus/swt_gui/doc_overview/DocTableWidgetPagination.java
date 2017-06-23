@@ -52,24 +52,11 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	public static final String DOC_COLLECTIONS_COL = "Collections";
 	
 	public static final boolean LOAD_ALL_DOCS_ONCE = true;
-	
-	
-	
-//	public static final ColumnConfig[] DOCS_COLS = new ColumnConfig[] {
-//		new ColumnConfig(DOC_NR_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
-//		new ColumnConfig(DOC_ID_COL, 65, false, DefaultTableColumnViewerSorter.ASC),
-//		new ColumnConfig(DOCS_TITLE_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
-//		new ColumnConfig(DOC_NPAGES_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
-//		new ColumnConfig(DOC_OWNER_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
-//		new ColumnConfig(DOC_COLLECTIONS_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
-//	};
-
 	protected int collectionId=Integer.MIN_VALUE;
-//	boolean reloadDocs=false;
 	
 	List<TrpDocMetadata> docs = new ArrayList<>();
 	PageResultLoaderList<TrpDocMetadata> listLoader;
-	static final boolean USE_LIST_LOADER = true;
+	public static final boolean USE_LIST_LOADER = true;
 	
 	ViewerFilter viewerFilter;
 	protected ModifyListener filterModifyListener;
@@ -154,9 +141,9 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		refreshList(this.collectionId, false, true);
 	}
 	
-	public void refreshList(int collectionId, boolean resetPage) {
-		this.refreshList(collectionId, resetPage, false);
-	}
+//	public void refreshList(int collectionId, boolean resetPage) {
+//		this.refreshList(collectionId, resetPage, false);
+//	}
 		
 //	public void refreshList(boolean resetPage) {
 //		this.refreshList(this.collectionId, resetPage, false);
@@ -167,6 +154,9 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		
 		boolean hasChanged = this.collectionId != collectionId;
 		setCollectionId(collectionId);
+		
+		if (hasChanged)
+			forceServerReload = true;
 		
 		logger.debug("refreshing doc table, collectionId="+collectionId+" resetPage="+resetPage+" hasChanged="+hasChanged+" forceServerReload="+forceServerReload);
 		reloadDocs(resetPage, forceServerReload);
@@ -184,26 +174,6 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		synchronized (this) {
 			logger.debug("setDocList, N = "+newDocs.size());
 			
-//			this.docs = new ArrayList<>();
-//			this.docs.addAll(newDocs);
-						
-//			if (!StringUtils.isEmpty(getFilterText())) {
-//				for (TrpDocMetadata d : newDocs) {
-//					if (viewerFilter.select(null, null, d)) {
-//						this.docs.add(d);
-//					}
-//				}				
-//			} else {
-//				this.docs.addAll(newDocs);				
-//			}
-
-//			logger.debug("adding newDocs: "+newDocs.size());
-//			
-//			this.docs.clear();
-//			this.docs.addAll(newDocs);
-			
-//			logger.debug("size after: "+this.docs.size());
-
 			Display.getDefault().asyncExec(() -> {
 				this.docs = new ArrayList<>();
 				// filter
@@ -230,65 +200,11 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 //			store.getConnection().getAllDocsAsync(collectionId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
 			logger.debug("collection id differs from storage - reloading from server! "+collectionId+" / "+store.getCollId());
 			TrpMainWidget.getInstance().reloadDocList(collectionId);
-			
-//			store.getConnection().getAllDocsAsync(collectionId, 0, 0, "docId", "desc", new InvocationCallback<List<TrpDocMetadata>>() {
-//				@Override public void failed(Throwable throwable) {
-//					DialogUtil.showBallonToolTip(DocTableWidgetPagination.this, SWT.ICON_ERROR, "Error loading documents", throwable.getMessage());
-//					logger.error(throwable.getMessage(), throwable);
-//				}
-//				
-//				@Override public void completed(List<TrpDocMetadata> response) {
-//					logger.debug("loaded docs from server: "+response.size());
-//					setDocList(response, resetPage);
-//				}
-//			});
 		} else {
 			logger.debug("setting docs from storage: "+store.getDocList().size());
 			setDocList(store.getDocList(), resetPage);
 		}
-
-//		new Thread() {
-//			public void run() {
-//				
-//				DocTableWidgetPagination me = DocTableWidgetPagination.this;
-//				
-//				List<TrpDocMetadata> newDocs=store.getDocList();
-//								
-//				if (me.collectionId != store.getCollId()) { // have to reload doclist
-//					try {
-//						newDocs = store.getConnection().getAllDocs(collectionId, 0, 0, null, null);
-//					} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
-//						DialogUtil.showBallonToolTip(me, SWT.ICON_ERROR, "Error loading documents", e.getMessage());
-//						logger.error(e.getMessage(), e);
-//					}
-//				} else {
-//					newDocs = store.getDocList();
-//				}
-//				
-//				synchronized (me) {
-//					docs.clear();
-//					docs.addAll(newDocs);
-//				
-//					refreshPage(resetPage);
-//				}
-//			}
-//		}.start();
 	}
-	
-//	public void refreshList(List<TrpDocMetadata> docs, boolean resetPage) {
-//		
-//		if (getPageableTable().getPageLoader() instanceof PageResultLoaderList) {
-//			PageResultLoaderList<TrpDocMetadata> pl = (PageResultLoaderList<TrpDocMetadata>) getPageableTable().getPageLoader();
-//			pl.setItems(docs);
-//		}
-//		
-//		if (USE_LIST_LOADER && listLoader!=null) {
-//			listLoader.setItems(docs);
-//		}
-//		
-//		refreshPage(true);
-//		
-//	}
 	
 	protected void createColumns() {
 		// generic label provider constructed with the bean property used for this column

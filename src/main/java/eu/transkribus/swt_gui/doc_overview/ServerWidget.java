@@ -36,6 +36,7 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DropDownButton;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
@@ -108,6 +109,11 @@ public class ServerWidget extends Composite {
 		
 		for (Control c : userControls) {			
 			c.setEnabled(isLoggedIn);
+		}
+		
+		if (!isLoggedIn) {
+			setSelectedCollection(null);
+			clearDocList();
 		}
 	}
 	
@@ -351,12 +357,12 @@ public class ServerWidget extends Composite {
 		docTableWidget.getTableViewer().refresh();
 	}
 	
-	public void refreshDocList() {
-		docTableWidget.refreshList(getSelectedCollectionId(), true);
+	public void refreshDocListFromStorage() {
+		docTableWidget.refreshList(getSelectedCollectionId(), true, false);
 	}
 	
 	public void clearDocList() {
-		docTableWidget.refreshList(0, true);
+		docTableWidget.refreshList(0, true, false);
 	}
 	
 	public DocTableWidgetPagination getDocTableWidget() { return docTableWidget; }

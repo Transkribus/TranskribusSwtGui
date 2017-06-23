@@ -383,7 +383,7 @@ public class CollectionManagerDialog extends Dialog {
 
 		if (c!=null && store.isLoggedIn()) {
 			if(resetToFirstPage){
-				docsTableWidget.refreshList(c.getColId(), resetToFirstPage);
+				docsTableWidget.refreshList(c.getColId(), resetToFirstPage, false);
 			}
 			if (docMd != null){
 				docsTableWidget.loadPage("docId", docMd.getDocId(), false);
