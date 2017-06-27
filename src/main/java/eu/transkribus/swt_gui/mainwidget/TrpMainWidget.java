@@ -3016,11 +3016,20 @@ public class TrpMainWidget {
 			DocxExportPars docxPars = exportDiag.getDocxPars();
 			AltoExportPars altoPars = exportDiag.getAltoPars();
 
-			if (exportDiag.isDoServerExport()) {			
-				logger.debug("server export, collId = "+storage.getCollId()+", docId = "+storage.getDocId()+", commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
-				String jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), 
-											commonPars, altoPars, pdfPars, teiPars, docxPars);
-				
+			if (exportDiag.isDoServerExport()) {
+				String jobId;
+				if (exportDiag.isExportCurrentDocOnServer()) {
+					logger.debug("server export, collId = "+storage.getCollId()+", docId = "+storage.getDocId()+", commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
+					jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), 
+												commonPars, altoPars, pdfPars, teiPars, docxPars);
+				} else {
+					logger.debug("server collection export, collId = "+storage.getCollId()+" dsds = "+CoreUtils.toListString(exportDiag.getDocumentsToExportOnServer()));
+					logger.debug("commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
+					
+					jobId = storage.getConnection().exportDocuments(storage.getCollId(), exportDiag.getDocumentsToExportOnServer(), 
+							commonPars, altoPars, pdfPars, teiPars, docxPars);
+				}
+
 				if (jobId != null) {
 					logger.debug("started job with id = "+jobId);
 								

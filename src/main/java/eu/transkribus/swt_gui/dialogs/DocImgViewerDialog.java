@@ -174,4 +174,8 @@ public class DocImgViewerDialog extends Dialog {
 		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
 		// setBlockOnOpen(false);
 	}
+	
+	@Override protected boolean isResizable() {
+	    return true;
+	}
 }

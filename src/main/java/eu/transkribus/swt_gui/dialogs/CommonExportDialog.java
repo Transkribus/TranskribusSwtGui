@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -29,6 +29,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
+import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
@@ -40,6 +43,7 @@ import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
@@ -79,8 +83,9 @@ public class CommonExportDialog extends Dialog {
 	Button ignoreSuppliedBtn;
 	boolean ignoreSupplied = false;
 	
-	Button serverExportBtn;
+//	Button serverExportBtn;
 	boolean doServerExport = false;
+	boolean exportCurrentDocOnServer = true;
 	
 	Button noZonesRadio;
 //	CheckBoxGroup zonesGroup;
@@ -115,6 +120,14 @@ public class CommonExportDialog extends Dialog {
 	CTabItem tabItemTEI;
 	CTabItem tabItemDOCX;
 	
+	CTabFolder exportTypeTabFolder;
+	CTabItem clientExportItem;
+	CTabItem serverExportItem;
+	
+	Button docsSelectorBtn, currentDocRadio, multipleDocsRadio;
+	Label serverExportLabel;
+	
+	
 	Composite metsComposite;
 	Composite pdfComposite;
 	Composite teiComposite;
@@ -128,6 +141,8 @@ public class CommonExportDialog extends Dialog {
 	
 	Set<Integer> pageIndices = null; 
 	String pagesStr = null;
+	
+	List<DocumentSelectionDescriptor> documentsToExportOnServer = null;
 	
 	Button currentPageBtn;
 
@@ -157,16 +172,89 @@ public class CommonExportDialog extends Dialog {
 		SashForm sf = new SashForm(shell, SWT.VERTICAL);
 		sf.setLayout(new GridLayout(1, false));		
 		
-	    ScrolledComposite sc = new ScrolledComposite(sf, SWT.H_SCROLL
-		        | SWT.V_SCROLL);
+//	    ScrolledComposite sc = new ScrolledComposite(sf, SWT.H_SCROLL
+//		        | SWT.V_SCROLL);
+	    
+		SashForm sf1 = new SashForm(sf, SWT.VERTICAL);
+	    sf1.setLayout(new GridLayout(1, false));
 
-	    Composite mainComp = new Composite(sc, SWT.NONE);
-	    mainComp.setLayout(new GridLayout(1,false));
-		
-		exportPathComp = new ExportPathComposite(mainComp, lastExportFolder, "File/Folder name: ", null, docName);
+//	    Composite mainComp = new Composite(sc, SWT.NONE);
+//	    mainComp.setLayout(new GridLayout(1,false));
+	    	    
+	    exportTypeTabFolder = new CTabFolder(sf1, SWT.NONE);
+	    exportTypeTabFolder.setLayout(new GridLayout(1,false));
+	    exportTypeTabFolder.setSelectionBackground(new Color[]{shell.getDisplay().getSystemColor(SWT.COLOR_TITLE_INACTIVE_BACKGROUND_GRADIENT), shell.getDisplay().getSystemColor(SWT.COLOR_TITLE_BACKGROUND)}, new int[]{100}, true);
+	    exportTypeTabFolder.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				boolean isServerTabSelected = exportTypeTabFolder.getSelection() == serverExportItem;
+				logger.debug("setting server type export: "+isServerTabSelected);
+				setDoServerExport(isServerTabSelected);
+			}
+		});
+	    
+	    clientExportItem = new CTabItem(exportTypeTabFolder, SWT.FILL);
+	    clientExportItem.setText("Client export");
+		exportPathComp = new ExportPathComposite(exportTypeTabFolder, lastExportFolder, "File/Folder name: ", null, docName);
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		clientExportItem.setControl(exportPathComp);
 		
-		SashForm choiceComposite = new SashForm(mainComp, SWT.HORIZONTAL);
+	    serverExportItem = new CTabItem(exportTypeTabFolder, SWT.FILL);
+	    serverExportItem.setText("Server export");
+	    
+	    Composite serverExportComposite = new Composite(exportTypeTabFolder, 0);
+	    serverExportComposite.setLayout(new GridLayout(1, false));
+	    
+	    serverExportLabel = new Label(serverExportComposite, 0);
+	    serverExportLabel.setFont(Fonts.createBoldFont(serverExportLabel.getFont()));
+	    serverExportLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    	    
+	    Composite docsToExportComp = new Composite(serverExportComposite, 0);
+	    docsToExportComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    docsToExportComp.setLayout(new FillLayout());
+	    
+	    SelectionAdapter serverExportSelListener = new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				exportCurrentDocOnServer = currentDocRadio.getSelection();
+				logger.debug("exportCurrentDocOnServer = "+exportCurrentDocOnServer);
+				docsSelectorBtn.setEnabled(!exportCurrentDocOnServer);
+				updateServerExportLabel();
+			}
+		};
+	    
+	    currentDocRadio = new Button(docsToExportComp, SWT.RADIO);
+	    currentDocRadio.setText("Current document");
+	    currentDocRadio.setSelection(true);
+	    currentDocRadio.addSelectionListener(serverExportSelListener);
+	    
+	    multipleDocsRadio = new Button(docsToExportComp, SWT.RADIO);
+	    multipleDocsRadio.setText("Collection export");
+	    multipleDocsRadio.addSelectionListener(serverExportSelListener);
+	    
+	    docsSelectorBtn = new Button(docsToExportComp, SWT.PUSH);
+	    docsSelectorBtn.setText("Choose documents to export...");
+	    docsSelectorBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DocumentsSelectorDialog dsd = new DocumentsSelectorDialog(shell, "Select documents to export", Storage.getInstance().getDocList());
+				if (dsd.open() == IDialogConstants.OK_ID) {
+					documentsToExportOnServer = dsd.getCheckedDocumentDescriptors();
+					System.out.println("n selected documents: "+dsd.getCheckedDocs().size());
+				}
+				
+				updateServerExportLabel();
+			}
+		});
+	    docsSelectorBtn.setEnabled(false);
+	    
+	    serverExportItem.setControl(serverExportComposite);
+	    updateServerExportLabel();
+	    
+//	    CTabFolder mainComp = new CTabFolder(sc, SWT.NONE);
+//	    mainComp.setLayout(new GridLayout(1,false));
+
+		SashForm choiceComposite = new SashForm(sf1, SWT.HORIZONTAL);
 //		Composite choiceComposite = new Composite(mainComp, SWT.NONE);
 		choiceComposite.setLayout(new GridLayout(2, false));
 		choiceComposite.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
@@ -176,6 +264,7 @@ public class CommonExportDialog extends Dialog {
 	    group1.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 	    group1.setText("Choose export formats");
 	    group1.setLayout(new GridLayout(1, false));
+	    group1.setFont(Fonts.createBoldFont(group1.getFont()));
 	    
 	    final Button b0 = new Button(group1, SWT.CHECK);
 	    b0.setText("Transkribus Document");
@@ -205,6 +294,7 @@ public class CommonExportDialog extends Dialog {
 	    Group optionsGroup = new Group(choiceComposite, SWT.NONE);
 	    optionsGroup.setText("Export options:");
 	    optionsGroup.setLayout(new GridLayout(2, false));
+	    optionsGroup.setFont(Fonts.createBoldFont(group1.getFont()));
 	    GridData gridData = new GridData();
 	    //gridData.heightHint = 0;
 	    gridData.horizontalAlignment = SWT.RIGHT;
@@ -272,17 +362,17 @@ public class CommonExportDialog extends Dialog {
 		tagsSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tagsSelector.setVisible(false);
 		
-		serverExportBtn = new Button(otherOptionsComp, SWT.CHECK);
-		serverExportBtn.setText("Do server export");
-		serverExportBtn.setToolTipText("If checked, the export is started on the server and can be downloaded after export is finished");
-		serverExportBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
-		
-		serverExportBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-	            Button btn = (Button) e.getSource();
-            	setDoServerExport(btn.getSelection());
-			}
-		});
+//		serverExportBtn = new Button(otherOptionsComp, SWT.CHECK);
+//		serverExportBtn.setText("Do server export");
+//		serverExportBtn.setToolTipText("If checked, the export is started on the server and can be downloaded after export is finished");
+//		serverExportBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
+//		
+//		serverExportBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//	            Button btn = (Button) e.getSource();
+//            	setDoServerExport(btn.getSelection());
+//			}
+//		});
 		
 		choiceComposite.setWeights(new int[]{25, 75});
 
@@ -436,11 +526,13 @@ public class CommonExportDialog extends Dialog {
 	        }
 	    });
 	    
-	    sc.setContent(mainComp);
-	    sc.setMinSize(600, 200);
+//	    sc.setContent(mainComp);
+//	    sc.setMinSize(600, 200);
 	    
-	    sc.setExpandHorizontal(true);
-	    sc.setExpandVertical(true);
+//	    sc.setExpandHorizontal(true);
+//	    sc.setExpandVertical(true);
+	    
+	    sf1.setWeights(new int[] {25, 75});
 	    
 //	    Composite fixedButtons = new Composite(shell,SWT.NONE);
 //	    fixedButtons.setLayout(new GridLayout(1,false));
@@ -503,6 +595,29 @@ public class CommonExportDialog extends Dialog {
 //				updateSelectedPages();
 //			}
 //		});
+	}
+	
+	private void updateServerExportLabel() {
+		String txt;
+		if (currentDocRadio.getSelection()) {
+			TrpDoc d = Storage.getInstance().getDoc();
+			if (d == null) {
+				txt = "No document found!";
+			} else {
+				txt = d.getMd().getTitle()+" ("+d.getId()+")";
+			}
+		} else {
+			TrpCollection c = Storage.getInstance().getCurrentDocumentCollection();
+			if (c == null) {
+				txt = "No collection found!";
+			} else {
+				int total = Storage.getInstance().getDocList().size();
+				int nToExport = documentsToExportOnServer == null ? total : documentsToExportOnServer.size();
+				txt = "Exporting "+nToExport+"/"+total+" documents from collection "+c.getColName()+" ("+c.getColId()+")";
+			}
+		}
+		
+		serverExportLabel.setText(txt);
 	}
 	
 	private void createChooseVersionGroup(Composite parent) {
@@ -1437,6 +1552,14 @@ public class CommonExportDialog extends Dialog {
 
 	public void setDoServerExport(boolean doServerExport) {
 		this.doServerExport = doServerExport;
+	}
+	
+	public boolean isExportCurrentDocOnServer() {
+		return exportCurrentDocOnServer;
+	}
+	
+	public List<DocumentSelectionDescriptor> getDocumentsToExportOnServer() {
+		return documentsToExportOnServer;
 	}
 
 	public String getPagesStr() {

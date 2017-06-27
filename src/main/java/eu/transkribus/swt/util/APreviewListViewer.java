@@ -52,20 +52,20 @@ public abstract class APreviewListViewer<T> extends Composite {
 	protected boolean showUpDownBtns;
 	protected boolean withCheckboxes;
 	protected boolean renderOriginalImages;
-	
-//	public static final String URL_COL = "URL";
-//
-//	public static final ColumnConfig[] COLS = new ColumnConfig[] {
-//		new ColumnConfig(URL_COL, 65, false, DefaultTableColumnViewerSorter.ASC),
-//	};
-
+	protected boolean showPreviewImage;
+		
 	public APreviewListViewer(Composite parent, int style, ColumnConfig[] columns, ITableLabelProvider labelProvider, boolean showUpDownBtns, boolean withCheckboxes, boolean renderOriginalImages) {
+		this(parent, style, columns, labelProvider, showUpDownBtns, withCheckboxes, renderOriginalImages, true);
+	}
+
+	public APreviewListViewer(Composite parent, int style, ColumnConfig[] columns, ITableLabelProvider labelProvider, boolean showUpDownBtns, boolean withCheckboxes, boolean renderOriginalImages, boolean showPreviewImage) {
 		super(parent, style);
 		this.setLayout(new GridLayout(1, false));
 		
 		this.showUpDownBtns = showUpDownBtns;
 		this.withCheckboxes = withCheckboxes;
 		this.renderOriginalImages = renderOriginalImages;
+		this.showPreviewImage = showPreviewImage;
 		
 		boolean hasBtns = showUpDownBtns || withCheckboxes;
 		
@@ -76,9 +76,11 @@ public abstract class APreviewListViewer<T> extends Composite {
 		titleLabel = new Label(SWTUtil.dummyShell, 0);
 		titleLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		
-		showPreviewBtn = new Button(this, SWT.CHECK);
-		showPreviewBtn.setText("Show preview");
-		showPreviewBtn.setSelection(true);
+		if (this.showPreviewImage) {
+			showPreviewBtn = new Button(this, SWT.CHECK);
+			showPreviewBtn.setText("Show preview");
+			showPreviewBtn.setSelection(true);
+		}
 		
 		sf = new SashForm(this, SWT.VERTICAL);
 		sf.setLayout(new GridLayout(1, false));
@@ -171,27 +173,28 @@ public abstract class APreviewListViewer<T> extends Composite {
 			
 		}
 		
-		imgLabel = new Label(sf, SWT.BORDER);
-		GridData gd = new GridData(SWT.CENTER, SWT.BOTTOM, true, false, 1, 1);
-		gd.widthHint = 120;
-		gd.heightHint = 180;
-		imgLabel.setLayoutData(gd);
-		imgLabel.addPaintListener(new PaintListener() {
-			@Override public void paintControl(PaintEvent e) {
-				if (selectedImage != null) {
-					e.gc.setInterpolation(SWT.HIGH);
-					
-					int srcWidth = selectedImage.getImageData().width;
-					int srcHeight = selectedImage.getImageData().height;
-					
-					double sf = (double) imgLabel.getSize().y / (double) srcHeight;
-					int destWidth = (int)(sf * srcWidth);
-					e.gc.drawImage(selectedImage, 0, 0, srcWidth, srcHeight, 0, 0, destWidth, imgLabel.getSize().y);
+		if (this.showPreviewImage) {
+			imgLabel = new Label(sf, SWT.BORDER);
+			GridData gd = new GridData(SWT.CENTER, SWT.BOTTOM, true, false, 1, 1);
+			gd.widthHint = 120;
+			gd.heightHint = 180;
+			imgLabel.setLayoutData(gd);
+			imgLabel.addPaintListener(new PaintListener() {
+				@Override public void paintControl(PaintEvent e) {
+					if (selectedImage != null) {
+						e.gc.setInterpolation(SWT.HIGH);
+						
+						int srcWidth = selectedImage.getImageData().width;
+						int srcHeight = selectedImage.getImageData().height;
+						
+						double sf = (double) imgLabel.getSize().y / (double) srcHeight;
+						int destWidth = (int)(sf * srcWidth);
+						e.gc.drawImage(selectedImage, 0, 0, srcWidth, srcHeight, 0, 0, destWidth, imgLabel.getSize().y);
+					}
 				}
-			}
-		});
-		
-		sf.setWeights(new int[] { 2, 1} );
+			});
+			sf.setWeights(new int[] { 2, 1} );
+		}
 		
 		this.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
@@ -211,7 +214,7 @@ public abstract class APreviewListViewer<T> extends Composite {
 	protected abstract Image loadImageForData(T data) throws IOException;
 		
 	void reloadImageForSelection() {
-		if (!showPreviewBtn.getSelection())
+		if ( !showPreviewImage || !showPreviewBtn.getSelection() )
 			return;
 		
 		T selected = getFirstSelected();
@@ -230,7 +233,9 @@ public abstract class APreviewListViewer<T> extends Composite {
 			selectedImage = Images.ERROR_IMG;
 		}
 		
-		imgLabel.redraw();
+		if (imgLabel != null) {
+			imgLabel.redraw();
+		}
 	}
 	
 //	void reloadSelectedImage() {

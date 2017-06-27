@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 
 public class ExportPathComposite extends Composite {
@@ -26,6 +27,7 @@ public class ExportPathComposite extends Composite {
 	String lastExportFolder;
 	String extension = null;
 	
+	Label pathDescLabel;
 	Label pathLabel;
 
 	public ExportPathComposite(Composite parent, final String lastExportFolder, String fileOrFolderLabel, String extension, String docName) {
@@ -36,6 +38,7 @@ public class ExportPathComposite extends Composite {
 		Label labelBaseFolder = new Label(this, SWT.NONE);
 		labelBaseFolder.setText("Base folder: ");
 		labelBaseFolder.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		labelBaseFolder.setFont(Fonts.createBoldFont(labelBaseFolder.getFont()));
 		
 		baseFolderText = new Text(this, SWT.BORDER);
 		GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
@@ -80,6 +83,7 @@ public class ExportPathComposite extends Composite {
 		
 		Label labelFileOrFolder = new Label(this, SWT.NONE);
 		labelFileOrFolder.setText(fileOrFolderLabel != null ? fileOrFolderLabel : "File/Folder name: ");
+		labelFileOrFolder.setFont(Fonts.createBoldFont(labelFileOrFolder.getFont()));
 		
 		fileOrFolderText = new Text(this, SWT.BORDER);
 		fileOrFolderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -91,10 +95,14 @@ public class ExportPathComposite extends Composite {
 				updatePathLabel();
 			}
 		});
-		
+	
+		pathDescLabel = new Label(this, SWT.NONE);
+		pathDescLabel.setText("Export path: ");
+		pathDescLabel.setFont(Fonts.createBoldFont(pathDescLabel.getFont()));
+		pathDescLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		
 		pathLabel = new Label(this, SWT.NONE);
-		pathLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		pathLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		updatePathLabel();
 		
 		parent.redraw();
