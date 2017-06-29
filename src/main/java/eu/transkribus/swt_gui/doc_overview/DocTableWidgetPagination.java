@@ -46,7 +46,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	public static final String DOC_NR_COL = "NR";
 	public static final String DOC_ID_COL = "ID";
 	public static final String DOCS_TITLE_COL = "Title";
-	public static final String DOC_NPAGES_COL = "N-Pages";
+	public static final String DOC_NPAGES_COL = "Pages";
 	public static final String DOC_UPLOADER_COL = "Uploader";
 	public static final String DOC_UPLOADED_COL = "Uploaded";
 	public static final String DOC_COLLECTIONS_COL = "Collections";
@@ -249,11 +249,11 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 //		tv.getTable().setSortColumn(col.getColumn());
 //		tv.getTable().setSortDirection(SWT.DOWN);
 		
-		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOCS_TITLE_COL, 150);
+		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOCS_TITLE_COL, 225);
 		col.setLabelProvider(new DocTableColumnLabelProvider("title"));
 		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("title"));
 		
-		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_NPAGES_COL, 100);
+		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_NPAGES_COL, 50);
 		col.setLabelProvider(new DocTableColumnLabelProvider("nrOfPages"));
 //		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("nrOfPages"));
 

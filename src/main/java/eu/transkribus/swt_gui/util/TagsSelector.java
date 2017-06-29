@@ -57,7 +57,7 @@ public class TagsSelector extends Composite {
 //		});
 		
 		selectTagsBtn = new Button(this, SWT.PUSH);
-		selectTagsBtn.setText("select Tags");
+		selectTagsBtn.setText("Select Tags");
 		selectTagsBtn.setToolTipText("Select tags you wish to export");
 		selectTagsBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
 		selectTagsBtn.addSelectionListener(new SelectionAdapter() {

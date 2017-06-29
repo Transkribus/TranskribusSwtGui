@@ -144,7 +144,7 @@ public class CommonExportDialog extends Dialog {
 	
 	List<DocumentSelectionDescriptor> documentsToExportOnServer = null;
 	
-	Button currentPageBtn;
+//	Button currentPageBtn;
 
 	String versionStatus;
 	
@@ -164,7 +164,7 @@ public class CommonExportDialog extends Dialog {
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle() | SWT.RESIZE);
 		
-		shell.setSize(750, 600);
+		shell.setSize(800, 600);
 		shell.setText("Export document");
 //		shell.setLayout(new GridLayout(1, false));
 		shell.setLayout(new FillLayout(SWT.VERTICAL));
@@ -344,19 +344,19 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 	    
-	    docPagesSelector = new DocPagesSelector(otherOptionsComp, SWT.NONE, pages);
+	    docPagesSelector = new DocPagesSelector(otherOptionsComp, SWT.NONE, true, true, true, pages);
 	    docPagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 	    docPagesSelector.setVisible(false);
 	    
-	    currentPageBtn = new Button(otherOptionsComp, SWT.PUSH);
-	    currentPageBtn.setText("Export Current Page");
-	    currentPageBtn.setToolTipText("Press this button if you want to export the current page only");
-	    currentPageBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				String currentPageNr = Integer.toString(Storage.getInstance().getPageIndex()+1);
-				docPagesSelector.getPagesText().setText(currentPageNr);				
-			}
-		});
+//	    currentPageBtn = new Button(otherOptionsComp, SWT.PUSH);
+//	    currentPageBtn.setText("Export Current Page");
+//	    currentPageBtn.setToolTipText("Press this button if you want to export the current page only");
+//	    currentPageBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override public void widgetSelected(SelectionEvent e) {
+//				String currentPageNr = Integer.toString(Storage.getInstance().getPageIndex()+1);
+//				docPagesSelector.getPagesText().setText(currentPageNr);				
+//			}
+//		});
 	    
 		tagsSelector = new TagsSelector(otherOptionsComp, SWT.FILL, getSelectedTagsList());
 		tagsSelector.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -1193,7 +1193,7 @@ public class CommonExportDialog extends Dialog {
 	
 	private void showPageChoice() {
 		docPagesSelector.setVisible(isPageableExport());
-		currentPageBtn.setVisible(isPageableExport());
+//		docPagesSelector.getCurrentPageBtn().setVisible(isPageableExport());
 	}
 	
 	private void showTagChoice() {

@@ -25,6 +25,7 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DocPagesSelector extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocPagesSelector.class);
@@ -32,6 +33,8 @@ public class DocPagesSelector extends Composite {
 	List<TrpPage> pages;
 	Text pagesText;
 	Button selectPagesBtn;
+	Button currentPageBtn, allPagesBtn;
+	
 	Button testBtn;
 	Label label;
 	
@@ -46,8 +49,23 @@ public class DocPagesSelector extends Composite {
 	}
 	
 	public DocPagesSelector(Composite parent, int style, boolean showLabel, final List<TrpPage> pages) {
+		this(parent, style, showLabel, false, false, pages);
+	}
+		
+	public DocPagesSelector(Composite parent, int style, boolean showLabel, boolean showCurrentPageBtn, boolean showAllPagesBtn, final List<TrpPage> pages) {
 		super(parent, style);
-		this.setLayout(new GridLayout(3, false));
+		
+		int nColumns = 2;
+		if (showLabel)
+			nColumns++;
+		if (showCurrentPageBtn)
+			nColumns++;
+		if (showAllPagesBtn)
+			nColumns++;
+		if (TEST)
+			nColumns++;
+		
+		this.setLayout(new GridLayout(nColumns, false));
 		
 		Assert.assertNotNull("pages null!", pages);
 		
@@ -62,10 +80,10 @@ public class DocPagesSelector extends Composite {
 		pagesText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		pagesText.setToolTipText("Type page ranges and/or single page numbers seperated by commas, e.g. '1-10, 13, 14' or '1, 3-4, 6-8, 10'");
 		
-		updateLabelAndPagesStr();
+		resetLabelAndPagesStr();
 		
 		selectPagesBtn = new Button(this, SWT.PUSH);
-		selectPagesBtn.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+		selectPagesBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		selectPagesBtn.setText("...");
 		selectPagesBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
@@ -95,6 +113,31 @@ public class DocPagesSelector extends Composite {
 			}
 		});
 		
+		if (showCurrentPageBtn) {
+			currentPageBtn = new Button(this, SWT.PUSH);
+		    currentPageBtn.setText("Current");
+		    currentPageBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+		    currentPageBtn.setToolTipText("Set pages to currently loaded page");
+		    currentPageBtn.addSelectionListener(new SelectionAdapter() {
+				@Override public void widgetSelected(SelectionEvent e) {
+					String currentPageNr = Integer.toString(Storage.getInstance().getPageIndex()+1);
+					getPagesText().setText(currentPageNr);				
+				}
+			});
+		}
+		
+		if (showAllPagesBtn) {
+			allPagesBtn = new Button(this, SWT.PUSH);
+			allPagesBtn.setText("All");
+			allPagesBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
+			allPagesBtn.setToolTipText("Set pages to all pages");
+			allPagesBtn.addSelectionListener(new SelectionAdapter() {
+				@Override public void widgetSelected(SelectionEvent e) {
+					resetLabelAndPagesStr();		
+				}
+			});
+		}
+
 		if (TEST) {
 			testBtn = new Button(this, SWT.PUSH);
 			testBtn.setText("test");
@@ -116,10 +159,10 @@ public class DocPagesSelector extends Composite {
 	public void setPages(List<TrpPage> pages) {
 		this.pages = pages;
 		
-		updateLabelAndPagesStr();
+		resetLabelAndPagesStr();
 	}
 	
-	private void updateLabelAndPagesStr() {
+	private void resetLabelAndPagesStr() {
 		if (label != null) {
 			label.setText("Pages ("+this.pages.size()+"): ");
 		}
@@ -140,6 +183,30 @@ public class DocPagesSelector extends Composite {
 	
 	public String getPagesStr() {
 		return pagesText.getText();
+	}
+
+	public List<TrpPage> getPages() {
+		return pages;
+	}
+
+	public Button getSelectPagesBtn() {
+		return selectPagesBtn;
+	}
+
+	public Button getCurrentPageBtn() {
+		return currentPageBtn;
+	}
+
+	public Button getAllPagesBtn() {
+		return allPagesBtn;
+	}
+
+	public Button getTestBtn() {
+		return testBtn;
+	}
+
+	public Label getLabel() {
+		return label;
 	}
 
 	public void setEnabled(boolean enabled) {
