@@ -87,29 +87,7 @@ public class DocPagesSelector extends Composite {
 		selectPagesBtn.setText("...");
 		selectPagesBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				logger.debug("opening DocPageViewer, pages = "+DocPagesSelector.this.pages);
-				
-				if (DocPagesSelector.this.pages.isEmpty())
-					return;
-				
-				final DocPageViewer dpv = new DocPageViewer(SWTUtil.dummyShell, 0, false, true, false);
-				dpv.setDataList(DocPagesSelector.this.pages);
-//				Shell s = DialogUtil.openShellWithComposite(null, dpv, 400, 400, "Select pages");
-				final MessageDialog d = DialogUtil.createCustomMessageDialog(getShell(), "Select pages", "", null, 0, new String[]{"OK",  "Cancel"}, 0, dpv);
-				// gets called when dialog is closed:
-				dpv.addDisposeListener(new DisposeListener() {
-					@Override
-					public void widgetDisposed(DisposeEvent e) {
-						logger.trace("return code: "+d.getReturnCode());
-						logger.trace("checked list: "+dpv.getCheckedList());
-						if (d.getReturnCode() == 0) {
-							String rs = CoreUtils.getRangeListStr(dpv.getCheckedList());
-							logger.trace("rs = "+rs);
-							pagesText.setText(rs);
-						}
-					}
-				});
-				d.open();
+				openDocPageViewer();
 			}
 		});
 		
@@ -154,6 +132,32 @@ public class DocPagesSelector extends Composite {
 			});
 			testBtn.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
 		}
+	}
+	
+	protected void openDocPageViewer() {
+		logger.debug("opening DocPageViewer, pages = "+DocPagesSelector.this.pages);
+		
+		if (DocPagesSelector.this.pages.isEmpty())
+			return;
+		
+		final DocPageViewer dpv = new DocPageViewer(SWTUtil.dummyShell, 0, false, true, false);
+		dpv.setDataList(DocPagesSelector.this.pages);
+//		Shell s = DialogUtil.openShellWithComposite(null, dpv, 400, 400, "Select pages");
+		final MessageDialog d = DialogUtil.createCustomMessageDialog(getShell(), "Select pages", "", null, 0, new String[]{"OK",  "Cancel"}, 0, dpv);
+		// gets called when dialog is closed:
+		dpv.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				logger.trace("return code: "+d.getReturnCode());
+				logger.trace("checked list: "+dpv.getCheckedList());
+				if (d.getReturnCode() == 0) {
+					String rs = CoreUtils.getRangeListStr(dpv.getCheckedList());
+					logger.trace("rs = "+rs);
+					pagesText.setText(rs);
+				}
+			}
+		});
+		d.open();
 	}
 	
 	public void setPages(List<TrpPage> pages) {
@@ -210,7 +214,9 @@ public class DocPagesSelector extends Composite {
 	}
 
 	public void setEnabled(boolean enabled) {
-		pagesText.setEnabled(enabled);
-		selectPagesBtn.setEnabled(enabled);
+		SWTUtil.setEnabled(pagesText, enabled);
+		SWTUtil.setEnabled(selectPagesBtn, enabled);
+		SWTUtil.setEnabled(allPagesBtn, enabled);
+		SWTUtil.setEnabled(currentPageBtn, enabled);
 	}
 }

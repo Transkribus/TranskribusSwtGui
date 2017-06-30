@@ -3023,6 +3023,8 @@ public class TrpMainWidget {
 					jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), 
 												commonPars, altoPars, pdfPars, teiPars, docxPars);
 				} else {
+					commonPars.setPages(null); // delete pagesStr for multiple document export!
+					
 					logger.debug("server collection export, collId = "+storage.getCollId()+" dsds = "+CoreUtils.toListString(exportDiag.getDocumentsToExportOnServer()));
 					logger.debug("commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
 					

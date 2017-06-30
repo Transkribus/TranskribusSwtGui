@@ -34,7 +34,7 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 		pagesRadio.setToolTipText("Restrict method to selected pages");
 		pagesRadio.setText("");
 		
-		ps = new CurrentDocPagesSelector(this, 0);
+		ps = new CurrentDocPagesSelector(this, 0, true, false, false);
 		ps.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		SelectionAdapter radioSelection = new SelectionAdapter() {

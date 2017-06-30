@@ -43,12 +43,14 @@ import eu.transkribus.core.model.builder.alto.AltoExportPars;
 import eu.transkribus.core.model.builder.docx.DocxExportPars;
 import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.util.CurrentDocPagesSelector;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 import eu.transkribus.swt_gui.util.TagsSelector;
 
@@ -139,9 +141,9 @@ public class CommonExportDialog extends Dialog {
 	
 	FilenamePatternComposite filenamePatternComp;
 	
-	List<TrpPage> pages;
 	Set<String> selectedTagsList;
-	DocPagesSelector docPagesSelector;
+//	DocPagesSelector docPagesSelector;
+	CurrentDocPagesSelector docPagesSelector;
 	
 	TagsSelector tagsSelector;
 	
@@ -232,7 +234,6 @@ public class CommonExportDialog extends Dialog {
 		super(parent, style |= SWT.DIALOG_TRIM | SWT.RESIZE);
 		this.lastExportFolder = lastExportFolder;
 		this.docName = docName;
-		this.pages = pages;
 		Set<String> regTagNames = CustomTagFactory.getRegisteredTagNames();
 		Set<String> usedTagNames = ExportUtils.getOnlyWantedTagnames(regTagNames);
 		setSelectedTagsList(usedTagNames);
@@ -297,9 +298,10 @@ public class CommonExportDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				exportCurrentDocOnServer = currentDocRadio.getSelection();
-				logger.debug("exportCurrentDocOnServer = "+exportCurrentDocOnServer);
 				docsSelectorBtn.setEnabled(!exportCurrentDocOnServer);
 				updateServerExportLabel();
+				
+				docPagesSelector.setEnabled(!isDoServerExport() || exportCurrentDocOnServer);
 			}
 		};
 	    
@@ -309,7 +311,7 @@ public class CommonExportDialog extends Dialog {
 	    currentDocRadio.addSelectionListener(serverExportSelListener);
 	    
 	    multipleDocsRadio = new Button(docsToExportComp, SWT.RADIO);
-	    multipleDocsRadio.setText("Collection export");
+	    multipleDocsRadio.setText("Current collection");
 	    multipleDocsRadio.addSelectionListener(serverExportSelListener);
 	    
 	    docsSelectorBtn = new Button(docsToExportComp, SWT.PUSH);
@@ -423,7 +425,7 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 	    
-	    docPagesSelector = new DocPagesSelector(otherOptionsComp, SWT.NONE, true, true, true, pages);
+	    docPagesSelector = new CurrentDocPagesSelector(otherOptionsComp, SWT.NONE, true, true, true);
 	    docPagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 	    docPagesSelector.setVisible(false);
 	    
@@ -1294,18 +1296,23 @@ public class CommonExportDialog extends Dialog {
 	public boolean isTagableExportChosen(){
 		return (isPdfExport() || isDocxExport() || isTagXlsxExport() || isTeiExport()) && (isHighlightTags() || isDocxTagExport() || isTagXlsxExport());
 	}
-	
+		
 	private void updateSelectedPages() {
 		try {
-			pageIndices = docPagesSelector.getSelectedPageIndices();
 			pagesStr = docPagesSelector.getPagesText().getText();
+			if (isDoServerExport() && !exportCurrentDocOnServer) { // multiple doc-export
+				pageIndices = CoreUtils.parseRangeListStr(pagesStr, Integer.MAX_VALUE);
+			}
+			else {
+				pageIndices = docPagesSelector.getSelectedPageIndices();
+			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			pageIndices = null;
 			pagesStr = null;
 		}
 		
-		logger.debug("pagesStr: "+pagesStr);		
+		logger.debug("pagesStr: "+pagesStr);	
 	}
 	
 	private void updateParameters() {
