@@ -12,6 +12,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -29,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.io.ExportFilePatternUtils;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
@@ -44,6 +46,7 @@ import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
@@ -105,7 +108,8 @@ public class CommonExportDialog extends Dialog {
 
 	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, tagXlsxExport, tableXlsxExport, zipExport;
 
-	String fileNamePattern = "${filename}";
+//	String fileNamePattern = ExportFilePatternUtils.FILENAME_PATTERN;
+	
 	Button addExtraTextPagesBtn;
 	boolean addExtraTextPages2PDF;
 	Button imagesOnlyBtn;
@@ -133,6 +137,8 @@ public class CommonExportDialog extends Dialog {
 	Composite teiComposite;
 	Composite docxComposite;
 	
+	FilenamePatternComposite filenamePatternComp;
+	
 	List<TrpPage> pages;
 	Set<String> selectedTagsList;
 	DocPagesSelector docPagesSelector;
@@ -147,6 +153,80 @@ public class CommonExportDialog extends Dialog {
 //	Button currentPageBtn;
 
 	String versionStatus;
+	
+	public static class FilenamePatternComposite extends Composite {
+		Group group;
+		Button pageNr_FilenamePattern, fileNamePattern, docId_PageNr_PageIdPattern;
+		LabeledText pattern;
+		Label patternDescription;
+		
+		public FilenamePatternComposite(Composite parent, int style) {
+			super(parent, style);
+			this.setLayout(new FillLayout());
+			
+			group = new Group(this, 0);
+			group.setText("Filename pattern");
+			group.setLayout(new GridLayout(1, false));
+			
+			pageNr_FilenamePattern = new Button(group, SWT.RADIO);
+			pageNr_FilenamePattern.setText("pageNr + filename");
+			pageNr_FilenamePattern.setSelection(true);
+			
+			fileNamePattern = new Button(group, SWT.RADIO);
+			fileNamePattern.setText("filename (warning: filenames must be unique for document)");
+			
+			docId_PageNr_PageIdPattern = new Button(group, SWT.RADIO);
+			docId_PageNr_PageIdPattern.setText("docId + pageNr + pageId");
+			
+//			customPattern = new Button(group, SWT.RADIO);
+//			customPattern.setText("Custom pattern");
+			
+			pattern = new LabeledText(group, "Pattern: ");
+			pattern.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			pattern.text.setToolTipText("The filename pattern is a combination of regular characters and placeholders for document-id etc. (see below)");
+//			pattern.text.addKeyListener(new KeyAdapter() {		
+//				@Override
+//				public void keyPressed(KeyEvent e) {
+//					// prevent editing 
+//					if (!customPattern.getSelection())
+//						e.doit = false;
+//				}
+//			});
+			
+			patternDescription = new Label(group, 0);
+			patternDescription.setText("Placeholder: "+StringUtils.join(ExportFilePatternUtils.ALL_PATTERNS, ", "));
+			
+			addListener();
+			updatePattern();
+		}
+		
+		void addListener() {
+			SelectionListener listener = new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					updatePattern();
+				}
+			};
+			
+			pageNr_FilenamePattern.addSelectionListener(listener);
+			fileNamePattern.addSelectionListener(listener);
+			docId_PageNr_PageIdPattern.addSelectionListener(listener);
+//			customPattern.addSelectionListener(listener);
+		}
+		
+		void updatePattern() {
+			if (pageNr_FilenamePattern.getSelection()) {
+				pattern.text.setText(ExportFilePatternUtils.PAGENR_PATTERN+"_"+ExportFilePatternUtils.FILENAME_PATTERN);
+			}
+			else if (fileNamePattern.getSelection()) {
+				pattern.text.setText(ExportFilePatternUtils.FILENAME_PATTERN);
+			}
+			else if (docId_PageNr_PageIdPattern.getSelection()) {
+				pattern.text.setText(ExportFilePatternUtils.STANDARDIZED_PATTERN);
+			}
+//			pattern.text.setEnabled(customPattern.getSelection());
+		}
+	}
 	
 	public CommonExportDialog(Shell parent, int style, String lastExportFolder, String docName, List<TrpPage> pages) {
 		super(parent, style |= SWT.DIALOG_TRIM | SWT.RESIZE);
@@ -164,7 +244,7 @@ public class CommonExportDialog extends Dialog {
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle() | SWT.RESIZE);
 		
-		shell.setSize(800, 600);
+		shell.setSize(1000, 800);
 		shell.setText("Export document");
 //		shell.setLayout(new GridLayout(1, false));
 		shell.setLayout(new FillLayout(SWT.VERTICAL));
@@ -301,7 +381,6 @@ public class CommonExportDialog extends Dialog {
 	    gridData.verticalAlignment = SWT.FILL;
 	    gridData.verticalSpan = 2;
 	    optionsGroup.setLayoutData(gridData);
-	    
 	    
 	    createTabFolders(optionsGroup);
 	    
@@ -674,6 +753,7 @@ public class CommonExportDialog extends Dialog {
 		tabFolder = new CTabFolder(tabComposite, SWT.NONE);
 		tabFolder.setLayout(new FillLayout());
 		//tabFolder.setSimple(false);
+		tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 	    // Create each tab and set its text, tool tip text,
 	    // image, and control
@@ -769,7 +849,9 @@ public class CommonExportDialog extends Dialog {
 			final Button e2 = new Button(metsComposite, SWT.CHECK);
 			final Button e21 = new Button(metsComposite, SWT.CHECK);
 			final Button e3 = new Button(metsComposite, SWT.CHECK);
-			final Button e4 = new Button(metsComposite, SWT.CHECK);
+//			final Button e4 = new Button(metsComposite, SWT.CHECK);
+			
+			filenamePatternComp = new FilenamePatternComposite(metsComposite, 0);
 			
 			e1.setSelection(true);
 			e3.setSelection(true);
@@ -781,7 +863,8 @@ public class CommonExportDialog extends Dialog {
 			e21.setText("Export ALTO (Word Level)");
 			e21.setToolTipText("Words get determined from the lines with some degree of fuzziness");
 			e3.setText("Export Image");
-			e4.setText("Standardized Filenames");
+			
+//			e4.setText("Standardized Filenames");
 			
 			e1.addSelectionListener(new SelectionAdapter() {
 			
@@ -851,18 +934,18 @@ public class CommonExportDialog extends Dialog {
 			    }
 			});
 			
-			e4.addSelectionListener(new SelectionAdapter() {
-			    @Override
-			    public void widgetSelected(SelectionEvent event) {
-			        Button btn = (Button) event.getSource();
-			        if (btn.getSelection()){
-			        	setFileNamePattern("${docId}_${pageNr}_${pageId}");
-			        }
-			        else{
-			        	setFileNamePattern("${filename}");
-			        }
-			    }
-			});
+//			e4.addSelectionListener(new SelectionAdapter() {
+//			    @Override
+//			    public void widgetSelected(SelectionEvent event) {
+//			        Button btn = (Button) event.getSource();
+//			        if (btn.getSelection()){
+//			        	setFileNamePattern(ExportFilenameUtils.STANDARDIZED_PATTERN);
+//			        }
+//			        else{
+//			        	setFileNamePattern(ExportFilenameUtils.FILENAME_PATTERN);
+//			        }
+//			    }
+//			});
 			
 			return metsComposite;
 	}
@@ -1236,7 +1319,12 @@ public class CommonExportDialog extends Dialog {
 		if(isTagableExport()) { // needed here?
 			setSelectedTagsList(tagsSelector.getCheckedTagnames());
 			setDocxTagExport(isDocxTagExport());
-		}				
+		}
+		
+		if (!ExportFilePatternUtils.isFileNamePatternValid(filenamePatternComp.pattern.getText())) {
+			DialogUtil.showErrorMessageBox(shell, "Invalid filename pattern", "Invalid filename pattern specified: "+filenamePatternComp.pattern.getText());
+			return;
+		}
 
 		updateCommonPars();
 		updateAltoPars();
@@ -1248,6 +1336,7 @@ public class CommonExportDialog extends Dialog {
 	private void updateCommonPars() {
 		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, 
 				pdfExport, teiExport, docxExport, tagXlsxExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList());
+		commonPars.setFileNamePattern(filenamePatternComp.pattern.text.getText());
 	}
 	
 	public CommonExportPars getCommonExportPars() {
@@ -1371,10 +1460,6 @@ public class CommonExportDialog extends Dialog {
 		this.altoExport = altoExport;
 		this.splitUpWords = wordLevel;
 	}
-	
-	public void setFileNamePattern(final String fileNamePattern) {
-		this.fileNamePattern = fileNamePattern;
-	}
 
 	public boolean isMetsExport() {
 		return metsExport;
@@ -1460,10 +1545,6 @@ public class CommonExportDialog extends Dialog {
 
 	public ExportPathComposite getExportPathComp() {
 		return exportPathComp;
-	}
-
-	public String getFileNamePattern() {
-		return fileNamePattern;
 	}
 
 	public boolean isImgExport() {

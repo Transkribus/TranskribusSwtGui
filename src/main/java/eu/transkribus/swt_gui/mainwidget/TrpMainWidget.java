@@ -3106,8 +3106,6 @@ public class TrpMainWidget {
 				//logger.debug("temp dir is ..." + tempDir);
 			}
 
-			final String fileNamePattern = exportDiag.getFileNamePattern();
-
 			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doXlsxExport && !doZipExport && !doTableExport) {
 				/*
 				 * if the export file exists and the user wants not to overwrite it then the 
@@ -3198,7 +3196,7 @@ public class TrpMainWidget {
 
 				if (exportDiag.isMetsExport())
 					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-							exportDiag.isSplitUpWords(), fileNamePattern);
+							exportDiag.isSplitUpWords(), commonPars.getFileNamePattern());
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
 							exportDiag.isExportImagesOnly(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
@@ -3245,7 +3243,7 @@ public class TrpMainWidget {
 			if (doMetsExport) {
 
 				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-						exportDiag.isSplitUpWords(), fileNamePattern);
+						exportDiag.isSplitUpWords(), commonPars.getFileNamePattern());
 				if (exportDiag.isPageExport()) {
 					if (exportFormats != "") {
 						exportFormats += " and ";
