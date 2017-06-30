@@ -76,8 +76,6 @@ public class TrpMessageDialog extends Dialog {
 	@Override protected void configureShell(Shell shell) {
 	      super.configureShell(shell);
 	      shell.setText(StringUtils.isEmpty(title) ? "" : title);
-	      SWTUtil.centerShell(shell);
-//	      shell.pack();
 	}
 	
 	@Override protected boolean isResizable() {
@@ -102,6 +100,8 @@ public class TrpMessageDialog extends Dialog {
 				close();
 			}
 		});
+		
+		updateSize();
 	}
 	
 	@Override protected void setShellStyle(int newShellStyle) {           
@@ -192,7 +192,9 @@ public class TrpMessageDialog extends Dialog {
 		
 //		parent.pack();
 //		getShell().setSize(getShell().computeSize(SWT.DEFAULT, getMinHeight()));
-		updateSize();
+		
+		SWTUtil.centerShell(getShell());
+//		updateSize();
 
 		return container;
 	}
@@ -208,6 +210,7 @@ public class TrpMessageDialog extends Dialog {
 		size.x = Math.min(MAX_WIDTH, size.x);
 		
 		getShell().setSize(size);
+		getShell().layout(true);
 	}
 	
 	
