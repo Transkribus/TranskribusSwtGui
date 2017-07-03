@@ -483,6 +483,7 @@ CHANGES AND BUGFIXES
 1.3.2:
 	-> integrate baseline2polygon tool
 	-> collection-wise / multiple documents server export
+	-> include TranskribusMetadata element with transcript metadata in export
 	-> fixed TEI export issues regarding XML escaping (issue TranskribusCore#15)
 	-> fixed export issues regarding duplicate filenames (issue TranskribusCore#13)
 	-> fixed issue regarding export of documents with backslashes in title (issue TranskribusCore#6) 
