@@ -930,13 +930,8 @@
 		
 		<dependency>
 		    <groupId>org.jfree</groupId>
-		    <artifactId>jfreechart</artifactId>
-		    <version>1.0.17</version>
-		</dependency>
-		<dependency>
-		    <groupId>jfree</groupId>
 		    <artifactId>jfreechart-swt</artifactId>
-		    <version>1.0.17</version>
+		    <version>1.0</version>
 		</dependency>
 	</dependencies>
 

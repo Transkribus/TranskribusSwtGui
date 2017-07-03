@@ -42,9 +42,9 @@ import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.TickUnits;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.swt.ChartComposite;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.experimental.chart.swt.ChartComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +78,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private Text nameTxt, langTxt, descTxt, paramTxt, nrOfLinesTxt, nrOfWordsTxt, 
 		finalTrainCerTxt, finalTestCerTxt;
 	private Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
-	private org.jfree.experimental.chart.swt.ChartComposite jFreeChartComp;
+	private ChartComposite jFreeChartComp;
 	
 	private String charSetTitle, charSet;
 //	private Integer trainSetId, testSetId;
