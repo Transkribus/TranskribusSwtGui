@@ -26,6 +26,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
@@ -1433,9 +1434,6 @@ public class Storage {
 		// extract images from pdf and load images into Trp document
 		TrpDoc doc = LocalDocReader.loadPdf(file, dirName);
 		logger.debug("Extracted and loaded pdf " + file);
-		
-		if (file != null && !file.isEmpty())
-			doc.getMd().setTitle(file);
 
 		conn.postTrpDoc(colId, doc, monitor);
 	}
