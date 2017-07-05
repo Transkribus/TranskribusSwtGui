@@ -80,7 +80,7 @@ public class StructureTreeWidget extends Composite {
 	Tree tree;
 	TreeViewer treeViewer;
 	ToolItem clearPageItem;
-	ToolItem updateIDsItem, expandAll, collapseAll, setReadingOrderRegions /*, setReadingOrderLines, setReadingOrderWords*/;
+	ToolItem updateIDsItem, expandAll, collapseAll, setReadingOrderRegions, assignGeometrically /*, setReadingOrderLines, setReadingOrderWords*/;
 	//ToolItem deleteReadingOrderRegions;
 	
 	ToolItem moveUpButton;
@@ -149,6 +149,10 @@ public class StructureTreeWidget extends Composite {
 		setReadingOrderRegions = new ToolItem(toolBar, SWT.NONE);
 		setReadingOrderRegions.setToolTipText("Sets the reading order of the children of the selected element(s) according to their coordinates!");
 		setReadingOrderRegions.setImage(Images.getOrLoad("/icons/reading_order_r.png"));
+		
+		assignGeometrically = new ToolItem(toolBar, SWT.NONE);
+		assignGeometrically.setToolTipText("Assign child shapes to selected shape according to geometric overlap. If page is selected, all shapes will be reinserted according to geometric overlap");
+		assignGeometrically.setImage(Images.getOrLoad("/icons/layout.png"));
 //		
 //		deleteReadingOrderRegions = new ToolItem(toolBar, SWT.NONE);
 //		deleteReadingOrderRegions.setToolTipText("Deletes the reading order from the children of the selected element(s)!");
@@ -215,6 +219,10 @@ public class StructureTreeWidget extends Composite {
 	
 	public ToolItem getSetReadingOrderRegions() {
 		return setReadingOrderRegions;
+	}
+	
+	public ToolItem getAssignGeometrically() {
+		return assignGeometrically;
 	}
 	
 	

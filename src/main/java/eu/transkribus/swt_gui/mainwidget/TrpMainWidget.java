@@ -3872,8 +3872,48 @@ public class TrpMainWidget {
 		}
 
 	}
+	
+	public void updateParentRelationshipAccordingToGeometricOverlap() {
+		if (!storage.hasTranscript())
+			return;
 
-	public void updateReadingOrderAccordingToCoordinates(boolean deleteReadingOrder) {
+//		JAXBPageTranscript tr = storage.getTranscript();
+
+		logger.debug("updating parent relationship according to geometric overlap");
+		IStructuredSelection sel = (IStructuredSelection) ui.getStructureTreeViewer().getSelection();
+		Iterator<?> it = sel.iterator();
+		while (it.hasNext()) {
+			Object o = it.next();
+			if (o instanceof TrpPageType) {
+				TrpPageType p = (TrpPageType) o;
+				int c = CanvasShapeUtil.assignToShapesGeometrically(p.getRegions(), p.getLines());
+				logger.debug("reassigned nr of shapes: "+c);
+				if (c > 0) {
+					updateReadingOrderAccordingToCoordinates(true, true);	
+				}
+			} else if (o instanceof TrpTextRegionType) {
+				TrpTextRegionType textRegion = (TrpTextRegionType) o;
+				int c = CanvasShapeUtil.assignToParentIfOverlapping(textRegion, textRegion.getPage().getLines(), 0.9d);
+				logger.debug("reassigned nr of shapes: "+c);
+				if (c > 0) {
+					updateReadingOrderAccordingToCoordinates(false, false);
+				}
+			} else if (o instanceof TrpTextLineType) {
+				TrpTextLineType textLine = (TrpTextLineType) o;
+				int c = CanvasShapeUtil.assignToParentIfOverlapping(textLine, textLine.getPage().getLines(), 0.9d);
+				logger.debug("reassigned nr of shapes: "+c);
+				if (c > 0) {
+					updateReadingOrderAccordingToCoordinates(false, false);
+				}
+			}
+			// TODO: tables???? --> most probably not relevant for this functionality...
+		}
+		
+//		tr.getPage().sortContent();
+//		ui.getStructureTreeViewer().refresh();
+	}
+
+	public void updateReadingOrderAccordingToCoordinates(boolean deleteReadingOrder, boolean recursive) {
 		if (!storage.hasTranscript())
 			return;
 
@@ -3886,11 +3926,11 @@ public class TrpMainWidget {
 			Object o = it.next();
 			if (o instanceof TrpPageType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpPageType) o).getTextRegionOrImageRegionOrLineDrawingRegion(), false,
-						deleteReadingOrder);
+						deleteReadingOrder, recursive);
 			} else if (o instanceof TrpTextRegionType) {
-				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextRegionType) o).getTextLine(), false, deleteReadingOrder);
+				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextRegionType) o).getTrpTextLine(), false, deleteReadingOrder, recursive);
 			} else if (o instanceof TrpTextLineType) {
-				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextLineType) o).getWord(), false, deleteReadingOrder);
+				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextLineType) o).getTrpWord(), false, deleteReadingOrder, recursive);
 			}
 		}
 		tr.getPage().sortContent();

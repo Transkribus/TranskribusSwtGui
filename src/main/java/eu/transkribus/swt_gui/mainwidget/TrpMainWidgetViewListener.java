@@ -48,7 +48,12 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		});
 		
 		SWTUtil.onSelectionEvent(ui.getStructureTreeWidget().getSetReadingOrderRegions(), (e) -> { 
-			mw.updateReadingOrderAccordingToCoordinates(false);
+			mw.updateReadingOrderAccordingToCoordinates(false, false);
+			canvas.redraw();
+		} );
+		
+		SWTUtil.onSelectionEvent(ui.getStructureTreeWidget().getAssignGeometrically(), (e) -> { 
+			mw.updateParentRelationshipAccordingToGeometricOverlap();
 			canvas.redraw();
 		} );
 		
