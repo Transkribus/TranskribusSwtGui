@@ -105,8 +105,8 @@ public class AutoSaveDialog extends Dialog{
 	      public void widgetSelected(SelectionEvent event) {
 	        DirectoryDialog dlg = new DirectoryDialog(shell);
 	        dlg.setFilterPath(autoSaveFolderTxt.getText());
-	        dlg.setText("SWT's DirectoryDialog");
-	        dlg.setMessage("Select a directory");
+	        dlg.setText("Select a directory");
+//	        dlg.setMessage("Select a directory");
 	        String dir = dlg.open();
 	        if (dir != null) {
 	        	autoSaveFolderTxt.setText(dir);

@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -271,8 +272,22 @@ public class TestSth {
 		
 		
 	}
+	
+	public static void testPathNormalization() {
+		String path = "C:\\Users\\hansm\\AppData\\Local\\Temp\\/Transkribus/autoSave";
+		
+		String pathNormalized = FilenameUtils.normalize(path);
+		
+		System.out.println(path);
+		System.out.println(pathNormalized);
+		
+	}
 			
 	public static void main(String [] args) {
+		testPathNormalization();
+		if (true)
+			return;
+		
 		try {
 			
 			A a = new A();

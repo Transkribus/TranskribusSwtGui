@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.commons.io.FilenameUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
@@ -907,14 +908,18 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	public static String getDefaultAutoSaveFolder() {
 		String path = System.getProperty("java.io.tmpdir");
-		if(path.substring(path.length() - 1).equals( "\\")
-				|| path.substring(path.length() - 1).equals( "/")){
-			path += "Transkribus" + File.separator + "autoSave";
-		}else{
-			path += File.separator + "Transkribus" + File.separator + "autoSave";
-		}
-				
-		return path;
+		String pathNormalized = FilenameUtils.normalizeNoEndSeparator(path);
+		
+		return pathNormalized + File.separator + "Transkribus" + File.separator + "autoSave";
+		
+//		if(path.substring(path.length() - 1).equals( "\\")
+//				|| path.substring(path.length() - 1).equals( "/")){
+//			path += "Transkribus" + File.separator + "autoSave";
+//		}else{
+//			path += File.separator + "Transkribus" + File.separator + "autoSave";
+//		}
+//
+//		return path;
 	}
 	
 	public int getAutoSaveInterval(){
