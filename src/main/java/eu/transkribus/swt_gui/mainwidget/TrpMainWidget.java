@@ -3877,40 +3877,50 @@ public class TrpMainWidget {
 		if (!storage.hasTranscript())
 			return;
 
-//		JAXBPageTranscript tr = storage.getTranscript();
-
-		logger.debug("updating parent relationship according to geometric overlap");
-		IStructuredSelection sel = (IStructuredSelection) ui.getStructureTreeViewer().getSelection();
-		Iterator<?> it = sel.iterator();
-		while (it.hasNext()) {
-			Object o = it.next();
-			if (o instanceof TrpPageType) {
-				TrpPageType p = (TrpPageType) o;
-				int c = CanvasShapeUtil.assignToShapesGeometrically(p.getRegions(), p.getLines());
-				logger.debug("reassigned nr of shapes: "+c);
-				if (c > 0) {
-					updateReadingOrderAccordingToCoordinates(true, true);	
+		try {
+			logger.debug("updating parent relationship according to geometric overlap");
+			IStructuredSelection sel = (IStructuredSelection) ui.getStructureTreeViewer().getSelection();
+			Iterator<?> it = sel.iterator();
+			
+			int cTotal=0;
+			while (it.hasNext()) {
+				Object o = it.next();
+				int c=0;
+				
+				if (o instanceof TrpPageType) {
+					TrpPageType page = (TrpPageType) o;
+					c = CanvasShapeUtil.assignToShapesGeometrically(page.getTextRegions(false), page.getLines());
+					if (c > 0) {
+						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(page.getTextRegionOrImageRegionOrLineDrawingRegion(), false, true, false);
+					}
+				} else if (o instanceof TrpTextRegionType) {
+					TrpTextRegionType textRegion = (TrpTextRegionType) o;
+					c = CanvasShapeUtil.assignToParentIfOverlapping(textRegion, textRegion.getPage().getLines(), 0.9d);
+					if (c > 0) {
+						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textRegion.getTrpTextLine(), false, false, false);
+					}
+				} else if (o instanceof TrpTextLineType) {
+					TrpTextLineType textLine = (TrpTextLineType) o;
+					c = CanvasShapeUtil.assignToParentIfOverlapping(textLine, textLine.getPage().getLines(), 0.9d);
+					if (c > 0) {
+						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textLine.getTrpWord(), false, false, false);
+					}
 				}
-			} else if (o instanceof TrpTextRegionType) {
-				TrpTextRegionType textRegion = (TrpTextRegionType) o;
-				int c = CanvasShapeUtil.assignToParentIfOverlapping(textRegion, textRegion.getPage().getLines(), 0.9d);
-				logger.debug("reassigned nr of shapes: "+c);
-				if (c > 0) {
-					updateReadingOrderAccordingToCoordinates(false, false);
-				}
-			} else if (o instanceof TrpTextLineType) {
-				TrpTextLineType textLine = (TrpTextLineType) o;
-				int c = CanvasShapeUtil.assignToParentIfOverlapping(textLine, textLine.getPage().getLines(), 0.9d);
-				logger.debug("reassigned nr of shapes: "+c);
-				if (c > 0) {
-					updateReadingOrderAccordingToCoordinates(false, false);
-				}
+				// TODO: tables???? --> most probably not relevant for this functionality...
+				cTotal += c;
 			}
-			// TODO: tables???? --> most probably not relevant for this functionality...
+			logger.debug("reassigned nr of shapes: "+cTotal);
+			
+			if (cTotal > 0) {
+				JAXBPageTranscript tr = storage.getTranscript();
+				if (tr != null) {
+					tr.getPage().sortContent();
+				}
+				ui.getStructureTreeViewer().refresh();
+			}
+		} catch (Throwable e) {
+			onError("Error updating parent relationship", e.getMessage(), e);
 		}
-		
-//		tr.getPage().sortContent();
-//		ui.getStructureTreeViewer().refresh();
 	}
 
 	public void updateReadingOrderAccordingToCoordinates(boolean deleteReadingOrder, boolean recursive) {
