@@ -489,6 +489,8 @@ CHANGES AND BUGFIXES
 	-> fixed issue regarding export of documents with backslashes in title (issue TranskribusCore#6)
 
 1.3.3:
-	-> drag & drop to move elements between different parent shapes in 'Layout' tab 
+	-> drag & drop to move elements between different parent shapes in 'Layout' tab
+	-> button in 'Layout' tab that moves subshapes to parent shapes according to geometrical overlap
+	-> do not check for local autosaves by default; introduce additional save dropdown where autosaves can be loaded explicitly
 	
 	
