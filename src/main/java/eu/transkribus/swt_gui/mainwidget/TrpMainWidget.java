@@ -57,7 +57,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -115,7 +114,6 @@ import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
-import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.ZipUtils;
@@ -149,7 +147,6 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.collection_manager.CollectionUsersDialog;
@@ -288,6 +285,8 @@ public class TrpMainWidget {
 	
 	static Thread asyncSaveThread;
 	static DocJobUpdater docJobUpdater;
+	
+	AutoSaveController autoSaveController;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
@@ -320,6 +319,8 @@ public class TrpMainWidget {
 
 		addListener();
 		addUiBindings();
+		
+		autoSaveController = new AutoSaveController(this);
 		
 		updateToolBars();
 		if(getTrpSets().getAutoSaveFolder().trim().isEmpty()){
@@ -364,6 +365,10 @@ public class TrpMainWidget {
 
 	public static TrpSettings getTrpSettings() {
 		return TrpConfig.getTrpSettings();
+	}
+	
+	public AutoSaveController getAutoSaveController() {
+		return autoSaveController;
 	}
 
 	public void showTipsOfTheDay() {
@@ -1248,111 +1253,91 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public boolean checkLocalSaves(TrpPage page){
-		logger.debug("Checking for local autosave files...");
-		int remotePageId = page.getPageId();
-		String localPath = getTrpSets().getAutoSaveFolder();
-		File dir = new File(localPath);
-		
-		FilenameFilter filter = new FilenameFilter() {
-			public boolean accept (File dir, String name) { 
-			return name.replace(".xml", "").equals(Integer.toString(remotePageId));
-			} 
-	    }; 
-	    
-	    String[] children = dir.list(filter);
-	    
-	    //Return false if no local autosave files are found
-	    if (children==null || children.length == 0) {
-	    	logger.debug("No local autosave files found.");
-	    	return false;
-	    }
-	    
-	    logger.debug("Local autosave files found! Comparing timestamps...");	    
-	    
-	    File localTranscript = new File(localPath + File.separator + children[0]);
-	    
-//	    XMLGregorianCalendar localTimestamp;
-	    
-	    try { 
-	    	
-			PcGtsType pcLocal = PageXmlUtils.unmarshal(localTranscript);
-			
-	    	/*
-	    	 * getLastChange() Doesn't return correct metadata xml element ???
-	    	 * (getCreator/creationDate work fine)
-	    	 * --> use actual file lastmodified time instead for now	    	
-	    	 */
-//			localTimestamp = pcLocal.getMetadata().getLastChange();	    	
-	    	
-			long lLocalTimestamp = localTranscript.lastModified();
-		    GregorianCalendar gc = new GregorianCalendar();
-		    gc.setTimeInMillis(lLocalTimestamp);
-		    XMLGregorianCalendar localTimestamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);	
-	    
-			logger.debug("local timestamp: "
-	    		+localTimestamp.getMonth()
-			    + "/" + localTimestamp.getDay()
-			    +"h" + localTimestamp.getHour() 
-			    + "m" + localTimestamp.getMinute() 
-			    + "s" + localTimestamp.getSecond());
-	    
-		    long lRemoteTimestamp = page.getCurrentTranscript().getTimestamp();
-		    gc.setTimeInMillis(lRemoteTimestamp);
-		    XMLGregorianCalendar remoteTimeStamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);	  
-//		    XMLGregorianCalendar remoteTimeStamp = storage.getTranscript().getPage().getPcGtsType().getMetadata().getLastChange();
-		    
-	    
-
-		    logger.debug("remote timestamp: "
-	    		+remoteTimeStamp.getMonth()
-			    + "/" + remoteTimeStamp.getDay()
-			    +"h" + remoteTimeStamp.getHour() 
-			    + "m" + remoteTimeStamp.getMinute() 
-			    + "s" + remoteTimeStamp.getSecond());
-	    
-		    //Return false if local autosave transcript is older
-		    if(localTimestamp.compare(remoteTimeStamp)==DatatypeConstants.LESSER 
-		    		||localTimestamp.compare(remoteTimeStamp)==DatatypeConstants.EQUAL ){
-		    	logger.debug("No newer autosave transcript found.");
-		    	return false;
-		    }
-	
-		    logger.debug("Newer autosave transcript found.");
-		    Display.getDefault().syncExec(new Runnable() {
-		        public void run() {
-		        	String diagText = "A newer transcript of this page exists on your computer. Do you want to load it?";
-		        	if(DialogUtil.showYesNoCancelDialog(getShell(),"Newer version found in autosaves",diagText) == SWT.YES){
-		        		logger.debug("loading local transcript into view");	        		
-
-		        		JAXBPageTranscript jxtr = new JAXBPageTranscript();
-		        		jxtr.setPageData(pcLocal);
-		        		storage.getTranscript().setPageData(pcLocal);
-		        		storage.getTranscript().setMd(jxtr.getMd());
-		        		storage.setLatestTranscriptAsCurrent();      
-	
-		    			try {
-							loadJAXBTranscriptIntoView(storage.getTranscript());
-						} catch (Exception e) {
-							TrpMainWidget.getInstance().onError("Error when loading transcript into view.", e.getMessage(), e.getCause());
-							e.printStackTrace();
-						}
-		    			ui.taggingWidget.updateAvailableTags();
-		    			updateTranscriptionWidgetsData();
-		    			canvas.getScene().updateSegmentationViewSettings();
-		    			canvas.update();
-		    			
-//	    				reloadCurrentPage(true);	        		
-		        	}
-		        }
-		    });
-	    
-	    }catch (Exception e){
-	    	e.printStackTrace();
-	    }
-	    
-		return true;
-	}
+//	public boolean checkLocalSaves(TrpPage page) {
+//		List<File> files = autoSaveController.getAutoSavesFiles(page);
+//		
+//	    if (CoreUtils.isEmpty(files)) {
+//	    	logger.debug("No local autosave files found.");
+//	    	return false;
+//	    }
+//	    
+//	    logger.debug("Local autosave files found! Comparing timestamps...");	    
+//	    File localTranscript = files.get(0);
+//	    	    
+//	    try {
+//	    	/*
+//	    	 * getLastChange() Doesn't return correct metadata xml element ???
+//	    	 * (getCreator/creationDate work fine)
+//	    	 * --> use actual file lastmodified time instead for now	    	
+//	    	 */
+////			localTimestamp = pcLocal.getMetadata().getLastChange();	    	
+//	    	
+//			long lLocalTimestamp = localTranscript.lastModified();
+//		    GregorianCalendar gc = new GregorianCalendar();
+//		    gc.setTimeInMillis(lLocalTimestamp);
+//		    XMLGregorianCalendar localTimestamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);	
+//	    
+//			logger.debug("local timestamp: "
+//	    		+localTimestamp.getMonth()
+//			    + "/" + localTimestamp.getDay()
+//			    +"h" + localTimestamp.getHour() 
+//			    + "m" + localTimestamp.getMinute() 
+//			    + "s" + localTimestamp.getSecond());
+//	    
+//		    long lRemoteTimestamp = page.getCurrentTranscript().getTimestamp();
+//		    gc.setTimeInMillis(lRemoteTimestamp);
+//		    XMLGregorianCalendar remoteTimeStamp = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);	  
+////		    XMLGregorianCalendar remoteTimeStamp = storage.getTranscript().getPage().getPcGtsType().getMetadata().getLastChange();
+//
+//		    logger.debug("remote timestamp: "
+//	    		+remoteTimeStamp.getMonth()
+//			    + "/" + remoteTimeStamp.getDay()
+//			    +"h" + remoteTimeStamp.getHour() 
+//			    + "m" + remoteTimeStamp.getMinute() 
+//			    + "s" + remoteTimeStamp.getSecond());
+//	    
+//		    //Return false if local autosave transcript is older
+//		    if(localTimestamp.compare(remoteTimeStamp)==DatatypeConstants.LESSER 
+//		    		||localTimestamp.compare(remoteTimeStamp)==DatatypeConstants.EQUAL ){
+//		    	logger.debug("No newer autosave transcript found.");
+//		    	return false;
+//		    }
+//	
+//		    logger.debug("Newer autosave transcript found.");
+//		    Display.getDefault().syncExec(new Runnable() {
+//		        public void run() {
+//		        	String diagText = "A newer transcript of this page exists on your computer. Do you want to load it?";
+//		        	if(DialogUtil.showYesNoCancelDialog(getShell(),"Newer version found in autosaves",diagText) == SWT.YES){
+//		        		logger.debug("loading local transcript into view");	        		
+//
+//		    			try {
+//			        		PcGtsType pcLocal = PageXmlUtils.unmarshal(localTranscript);
+//			        		JAXBPageTranscript jxtr = new JAXBPageTranscript();
+//			        		jxtr.setPageData(pcLocal);
+//			        		storage.getTranscript().setPageData(pcLocal);
+//			        		storage.getTranscript().setMd(jxtr.getMd());
+//			        		storage.setLatestTranscriptAsCurrent();      		    				
+//							loadJAXBTranscriptIntoView(storage.getTranscript());
+//						} catch (Exception e) {
+//							TrpMainWidget.getInstance().onError("Error when loading transcript into view.", e.getMessage(), e.getCause());
+//							e.printStackTrace();
+//						}
+//		    			ui.taggingWidget.updateAvailableTags();
+//		    			updateTranscriptionWidgetsData();
+//		    			canvas.getScene().updateSegmentationViewSettings();
+//		    			canvas.update();
+//		    			
+////	    				reloadCurrentPage(true);	        		
+//		        	}
+//		        }
+//		    });
+//	    
+//	    }catch (Exception e){
+//	    	e.printStackTrace();
+//	    }
+//	    
+//		return true;
+//	}
 	
 	
 	public boolean saveTranscriptionSilent() {
@@ -1544,8 +1529,9 @@ public class TrpMainWidget {
 		if (saveTranscriptDialogOrAutosave()) {
 			if (storage.setCurrentPage(index)) {
 				reloadCurrentPage(true);
-				checkLocalSaves(storage.getPage());
-							
+				if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
+					autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
+				}
 			}
 		}
 	}
@@ -2030,7 +2016,7 @@ public class TrpMainWidget {
 	}
 
 	// @SuppressWarnings("rawtypes")
-	private void loadJAXBTranscriptIntoView(JAXBPageTranscript transcript) throws Exception {
+	void loadJAXBTranscriptIntoView(JAXBPageTranscript transcript) throws Exception {
 
 		// add shapes to canvas:
 		getCanvas().getScene().clearShapes();
@@ -2249,8 +2235,10 @@ public class TrpMainWidget {
 			}, "Loading document from server", false);
 
 			storage.setCurrentPage(pageIndex);
-			reloadCurrentPage(true);	
-			checkLocalSaves(storage.getPage());
+			reloadCurrentPage(true);
+			if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
+				autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
+			}
 			
 			//store the recent doc info to the preferences
 			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);

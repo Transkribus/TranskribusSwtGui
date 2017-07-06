@@ -669,8 +669,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
-		transcriptSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.WRENCH);
-		transcriptSetsDropDown.getToolItem().setToolTipText("Transcription settings...");		
+		transcriptSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.WRENCH, "Transcription settings...");
 		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
 		initTranscriptionSetsDropDownItems(transcriptSetsDropDown);
 		

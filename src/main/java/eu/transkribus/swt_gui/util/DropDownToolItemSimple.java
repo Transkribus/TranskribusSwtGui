@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -22,13 +23,17 @@ public class DropDownToolItemSimple {
 	
 	List<MenuItem> items = new ArrayList<>();
 
-	public DropDownToolItemSimple(ToolBar parent, int btnStyle, String text, Image img) {
+	public DropDownToolItemSimple(ToolBar parent, int btnStyle, String text, Image img, String toolTip) {
 //		super(tb, 0);
 //		setLayout(new FillLayout());
 		
 		toolItem = new ToolItem(parent,  btnStyle);
-		toolItem.setText(text);
-		toolItem.setImage(img);
+		if (!StringUtils.isEmpty(text))
+			toolItem.setText(text);
+		if (img != null)
+			toolItem.setImage(img);
+		if (!StringUtils.isEmpty(toolTip))
+			toolItem.setToolTipText(toolTip);
 		
 		menu = new Menu(parent.getShell(), SWT.POP_UP);
 		toolItem.addSelectionListener(new SelectionListener() {

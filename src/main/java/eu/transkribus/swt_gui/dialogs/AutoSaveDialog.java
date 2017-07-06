@@ -58,7 +58,12 @@ public class AutoSaveDialog extends Dialog{
 	    Button enableAutoSaveButton = new Button(shell, SWT.CHECK);
 	    enableAutoSaveButton.setText("Enable Autosave");
 	    enableAutoSaveButton.setSelection(trpSets.getAutoSaveEnabled());
-		enableAutoSaveButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));			
+		enableAutoSaveButton.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
+	    Button enableCheckForNewerAutoSave = new Button(shell, SWT.CHECK);
+	    enableCheckForNewerAutoSave.setText("Check for newer autosaved version on page load");
+	    enableCheckForNewerAutoSave.setSelection(trpSets.isCheckForNewerAutosaveFile());
+	    enableCheckForNewerAutoSave.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 	    
 		Label autoSaveIntervalLabel = new Label(shell, SWT.NONE);
 		autoSaveIntervalLabel.setText("Time Interval:");
@@ -123,6 +128,7 @@ public class AutoSaveDialog extends Dialog{
 		      public void widgetSelected(SelectionEvent e) {
 		    	  trpSets.setAutoSaveFolder(autoSaveFolderTxt.getText());
 		    	  trpSets.setAutoSaveEnabled(enableAutoSaveButton.getSelection());
+		    	  trpSets.setCheckForNewerAutosaveFile(enableCheckForNewerAutoSave.getSelection());
 		    	  if(timeMinCombo.getSelectionIndex() == 0 && timeSecCombo.getSelectionIndex() == 0){
 		    		  DialogUtil.showErrorMessageBox(getShell(), "Error", "Please select valid time interval");
 		    	  }else{

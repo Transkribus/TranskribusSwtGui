@@ -95,6 +95,7 @@ public class Images {
 
 	public static final Image DISK = getOrLoad("/icons/disk.png");
 	public static final Image DISK_MESSAGE = getOrLoad("/icons/disk_message.png");
+	public static final Image DISK_WRENCH = getOrLoad("/icons/disk_wrench.png");
 	
 	public static final Image PAGE_NEXT = getOrLoad("/icons/page-next.gif");
 	public static final Image PAGE_PREV = getOrLoad("/icons/page-prev.gif");

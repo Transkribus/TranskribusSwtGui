@@ -1,22 +1,28 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ArmEvent;
+import org.eclipse.swt.events.ArmListener;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.CanvasToolBarNew;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 import eu.transkribus.swt_gui.vkeyboards.ITrpVirtualKeyboardsTabWidgetListener;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsTabWidget;
 
@@ -76,7 +82,8 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		
 		SWTUtil.onSelectionEvent(ui.saveTranscriptToolItem, (e) -> { mw.saveTranscription(false); } );
 		SWTUtil.onSelectionEvent(ui.saveTranscriptWithMessageToolItem, (e) -> { mw.saveTranscription(true); } );
-		
+		SWTUtil.onSelectionEvent(ui.saveTranscriptWithMessageMenuItem, (e) -> { mw.saveTranscription(true); } );
+		SWTUtil.onSelectionEvent(ui.autoSaveSettingsMenuItem, (e) -> { mw.openAutoSaveSetsDialog(); });
 		
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptButton(), this);
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptWithMessageButton(), this);
@@ -143,6 +150,38 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		SWTUtil.onSelectionEvent(tb.fitPageItem, (e) -> { canvas.fitToPage(); });
 		SWTUtil.onSelectionEvent(tb.fitWidthItem, (e) -> { canvas.fitWidth();; });
 		SWTUtil.onSelectionEvent(tb.origSizeItem, (e) -> { canvas.resetTransformation(); });
+		
+		ui.autoSaveListMenu.addMenuListener(new MenuListener() {
+			@Override
+			public void menuShown(MenuEvent e) {
+				logger.debug("building autosave menu...");
+				List<File> files = mw.getAutoSaveController().getAutoSavesFiles(Storage.getInstance().getPage());
+				logger.debug("n-files: "+files.size());
+				for (MenuItem item : ui.autoSaveListMenu.getItems()) {
+				    item.dispose();
+				}
+				
+				for (int i=0; i<files.size() && i<10; ++i) {
+					File f = files.get(i);
+					
+					SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+//				    System.out.println("Modified Date :- " + sdf.format(f.lastModified()));
+					
+					MenuItem autoSaveFileItem = new MenuItem(ui.autoSaveListMenu, SWT.PUSH);
+					autoSaveFileItem.setText(sdf.format(f.lastModified()));
+					autoSaveFileItem.setData(f);
+					SWTUtil.onSelectionEvent(autoSaveFileItem, (evt) -> {
+						MenuItem mi = (MenuItem) evt.getSource();
+						logger.debug("selected autosave item for file: "+mi.getData());
+						mw.getAutoSaveController().loadAutoSaveTranscriptFileIntoView((File) mi.getData());
+					});
+				}		
+			}
+			
+			@Override
+			public void menuHidden(MenuEvent e) {
+			}
+		});
 	}
 	
 	@Override

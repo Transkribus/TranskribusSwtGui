@@ -58,6 +58,7 @@ import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
+import eu.transkribus.swt_gui.util.DropDownToolItemSimple;
 
 public class TrpMainWidgetView extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TrpMainWidgetView.class);
@@ -100,6 +101,12 @@ public class TrpMainWidgetView extends Composite {
 	DropDownToolItem saveDrowDown;
 	MenuItem saveTranscriptMenuItem, saveTranscriptWithMessageMenuItem;
 	ToolItem saveTranscriptToolItem, saveTranscriptWithMessageToolItem;
+	Menu autoSaveListMenu;
+	MenuItem autoSaveListMenuItem, autoSaveSettingsMenuItem;
+	
+	MenuItem createDefaultLineItem;
+	MenuItem createImageSizeTextRegionItem;
+	
 	
 	ToolItem versionsButton;
 	ToolItem jobsButton;
@@ -575,9 +582,24 @@ public class TrpMainWidgetView extends Composite {
 			saveTranscriptToolItem.setImage(Images.DISK);
 			saveTranscriptToolItem.setToolTipText("Save");
 			
+			if (false) {
 			saveTranscriptWithMessageToolItem = new ToolItem(toolBar, SWT.PUSH);
 			saveTranscriptWithMessageToolItem.setImage(Images.DISK_MESSAGE);
 			saveTranscriptWithMessageToolItem.setToolTipText("Save with commit message");
+			}
+			
+			DropDownToolItemSimple otherSaveOptionstoolItem = new DropDownToolItemSimple(toolBar, SWT.PUSH, "", Images.DISK_WRENCH, "Save options");
+			
+			saveTranscriptWithMessageMenuItem = otherSaveOptionstoolItem.addItem("Save with commit message", Images.DISK_MESSAGE, SWT.PUSH);
+			
+			autoSaveListMenuItem = otherSaveOptionstoolItem.addItem("Load autosaved transcript", null, SWT.CASCADE);
+			autoSaveListMenu = new Menu(otherSaveOptionstoolItem.getMenu());
+			autoSaveListMenuItem.setMenu(autoSaveListMenu);
+			
+			autoSaveSettingsMenuItem = otherSaveOptionstoolItem.addItem("Autosave settings", null, SWT.PUSH);
+
+//			createImageSizeTextRegionItem = otherSaveOptionstoolItem.addItem("Create top level text region with size of image", null, null);
+//			createDefaultLineItem = otherSaveOptionstoolItem.addItem("Create default line for selected line / baseline", null, null);
 		}
 
 		versionsButton = new ToolItem(toolBar, SWT.PUSH);

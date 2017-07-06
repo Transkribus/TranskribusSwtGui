@@ -266,6 +266,11 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean underlineTextStyles = true;
 	public static final String UNDERLINE_TEXT_STYLES_PROPERTY = "underlineTextStyles";
 	
+	private boolean checkForNewerAutosaveFile = false;
+	public static final String CHECK_FOR_NEWER_AUTO_SAVE_FILE = "checkForNewerAutosaveFile";
+	
+	
+	
 	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
 	
@@ -940,7 +945,16 @@ public class TrpSettings extends APropertyChangeSupport {
 		this.autoSaveEnabled = enabled;
 		firePropertyChange(AUTOSAVE_ENABLED, !this.autoSaveEnabled, this.autoSaveEnabled);
 	}
-	
+
+	public boolean isCheckForNewerAutosaveFile() {
+		return checkForNewerAutosaveFile;
+	}
+
+	public void setCheckForNewerAutosaveFile(boolean checkForNewerAutosaveFile) {
+		this.checkForNewerAutosaveFile = checkForNewerAutosaveFile;
+		firePropertyChange(CHECK_FOR_NEWER_AUTO_SAVE_FILE, !this.checkForNewerAutosaveFile, this.checkForNewerAutosaveFile);
+	}
+
 	public boolean getTranscriptionToolbarOnTop() {
 		return transcriptionToolbarOnTop;
 	}
