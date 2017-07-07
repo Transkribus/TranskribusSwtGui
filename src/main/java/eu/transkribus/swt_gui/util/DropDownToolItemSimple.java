@@ -22,6 +22,8 @@ public class DropDownToolItemSimple {
 	ToolItem toolItem;
 	
 	List<MenuItem> items = new ArrayList<>();
+	
+	boolean openMenuOnlyOnArrowBtn=false;
 
 	public DropDownToolItemSimple(ToolBar parent, int btnStyle, String text, Image img, String toolTip) {
 //		super(tb, 0);
@@ -40,6 +42,10 @@ public class DropDownToolItemSimple {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if (isOpenMenuOnlyOnArrowBtn() && e.detail != SWT.ARROW) {
+					return;
+				}
+				
 				Rectangle rect = toolItem.getBounds();
 				Point pt = toolItem.getParent().toDisplay(new Point(rect.x, rect.y));
 				
@@ -64,6 +70,14 @@ public class DropDownToolItemSimple {
 		});
 	}
 	
+	public boolean isOpenMenuOnlyOnArrowBtn() {
+		return openMenuOnlyOnArrowBtn;
+	}
+
+	public void setOpenMenuOnlyOnArrowBtn(boolean openMenuOnlyOnArrowBtn) {
+		this.openMenuOnlyOnArrowBtn = openMenuOnlyOnArrowBtn;
+	}
+
 	public void setEnabled(boolean enabled) {
 //		super.setEnabled(enabled);
 		toolItem.setEnabled(enabled);

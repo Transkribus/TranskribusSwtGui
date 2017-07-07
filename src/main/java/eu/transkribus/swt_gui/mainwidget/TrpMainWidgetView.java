@@ -100,7 +100,10 @@ public class TrpMainWidgetView extends Composite {
 
 	DropDownToolItem saveDrowDown;
 	MenuItem saveTranscriptMenuItem, saveTranscriptWithMessageMenuItem;
+	
 	ToolItem saveTranscriptToolItem, saveTranscriptWithMessageToolItem;
+	
+	DropDownToolItemSimple saveOptionsToolItem;
 	Menu autoSaveListMenu;
 	MenuItem autoSaveListMenuItem, autoSaveSettingsMenuItem;
 	
@@ -578,9 +581,12 @@ public class TrpMainWidgetView extends Composite {
 		saveTranscriptMenuItem = saveDrowDown.addItem("Save", Images.DISK, "", true);
 		saveTranscriptWithMessageMenuItem = saveDrowDown.addItem("Save with message", Images.DISK_MESSAGE, "", false);
 		} else {
+			
+			if (false) {
 			saveTranscriptToolItem = new ToolItem(toolBar, SWT.PUSH);
 			saveTranscriptToolItem.setImage(Images.DISK);
 			saveTranscriptToolItem.setToolTipText("Save");
+			}
 			
 			if (false) {
 			saveTranscriptWithMessageToolItem = new ToolItem(toolBar, SWT.PUSH);
@@ -588,15 +594,20 @@ public class TrpMainWidgetView extends Composite {
 			saveTranscriptWithMessageToolItem.setToolTipText("Save with commit message");
 			}
 			
-			DropDownToolItemSimple otherSaveOptionstoolItem = new DropDownToolItemSimple(toolBar, SWT.PUSH, "", Images.DISK_WRENCH, "Save options");
+//			saveOptionsToolItem = new DropDownToolItemSimple(toolBar, SWT.PUSH, "", Images.DISK_WRENCH, "Save options");
+			saveOptionsToolItem = new DropDownToolItemSimple(toolBar, SWT.DROP_DOWN, null, Images.DISK, "Save transcription...");
+			saveOptionsToolItem.setOpenMenuOnlyOnArrowBtn(true);
 			
-			saveTranscriptWithMessageMenuItem = otherSaveOptionstoolItem.addItem("Save with commit message", Images.DISK_MESSAGE, SWT.PUSH);
+//			DropDownToo
 			
-			autoSaveListMenuItem = otherSaveOptionstoolItem.addItem("Load autosaved transcript", null, SWT.CASCADE);
-			autoSaveListMenu = new Menu(otherSaveOptionstoolItem.getMenu());
+			saveTranscriptMenuItem = saveOptionsToolItem.addItem("Save", Images.DISK, SWT.PUSH);
+			saveTranscriptWithMessageMenuItem = saveOptionsToolItem.addItem("Save with commit message", Images.DISK_MESSAGE, SWT.PUSH);
+			
+			autoSaveListMenuItem = saveOptionsToolItem.addItem("Load autosaved transcript", null, SWT.CASCADE);
+			autoSaveListMenu = new Menu(saveOptionsToolItem.getMenu());
 			autoSaveListMenuItem.setMenu(autoSaveListMenu);
 			
-			autoSaveSettingsMenuItem = otherSaveOptionstoolItem.addItem("Autosave settings", null, SWT.PUSH);
+			autoSaveSettingsMenuItem = saveOptionsToolItem.addItem("Autosave settings", null, SWT.PUSH);
 
 //			createImageSizeTextRegionItem = otherSaveOptionstoolItem.addItem("Create top level text region with size of image", null, null);
 //			createDefaultLineItem = otherSaveOptionstoolItem.addItem("Create default line for selected line / baseline", null, null);

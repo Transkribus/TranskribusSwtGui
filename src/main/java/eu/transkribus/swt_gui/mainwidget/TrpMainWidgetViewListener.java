@@ -81,10 +81,19 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		});
 		
 		SWTUtil.onSelectionEvent(ui.saveTranscriptToolItem, (e) -> { mw.saveTranscription(false); } );
+		SWTUtil.onSelectionEvent(ui.saveTranscriptMenuItem, (e) -> { mw.saveTranscription(false); });
+		
 		SWTUtil.onSelectionEvent(ui.saveTranscriptWithMessageToolItem, (e) -> { mw.saveTranscription(true); } );
 		SWTUtil.onSelectionEvent(ui.saveTranscriptWithMessageMenuItem, (e) -> { mw.saveTranscription(true); } );
-		SWTUtil.onSelectionEvent(ui.autoSaveSettingsMenuItem, (e) -> { mw.openAutoSaveSetsDialog(); });
 		
+		SWTUtil.onSelectionEvent(ui.saveOptionsToolItem.getToolItem(), (e) -> {
+			if (e.detail != SWT.ARROW) {
+				mw.saveTranscription(false);
+			}
+		});
+		
+		SWTUtil.onSelectionEvent(ui.autoSaveSettingsMenuItem, (e) -> { mw.openAutoSaveSetsDialog(); });
+
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptButton(), this);
 //		SWTUtil.addSelectionListener(ui.getSaveTranscriptWithMessageButton(), this);
 		
