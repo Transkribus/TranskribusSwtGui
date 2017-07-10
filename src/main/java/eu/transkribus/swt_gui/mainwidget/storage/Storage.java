@@ -78,6 +78,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.builder.CommonExportPars;
+import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.alto.AltoExporter;
 import eu.transkribus.core.model.builder.pdf.PdfExporter;
 import eu.transkribus.core.model.builder.tei.ATeiBuilder;
@@ -1343,23 +1344,49 @@ public class Storage {
 
 	}
 	
-	public void syncDocPages(List<TrpPage> pages, List<Boolean> checked, IProgressMonitor monitor) throws IOException, SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException, NullValueException, JAXBException {
+	/**
+	 * Synchronize local PAGE xml files for current document on server.
+	 * If the number of local and remote pages do not match, file name matching is 
+	 * checked and documents are synced according to filename. 
+	 * If filenames do not match, the current document page is not touched 
+	 * and a warning is passed issued.
+	 * 
+	 * @param pages local document pages
+	 * @param checked indices of pages to sync
+	 * @param monitor status of progress
+	 * @throws IOException
+	 * @throws SessionExpiredException
+	 * @throws ServerErrorException
+	 * @throws IllegalArgumentException
+	 * @throws NoConnectionException
+	 * @throws NullValueException
+	 * @throws JAXBException
+	 */
+	public void syncDocPages(List<TrpPage> pages, List<Boolean> checked, IProgressMonitor monitor) 
+			throws IOException, SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException, NullValueException, JAXBException {
 //		if (!localDoc.isLocalDoc())
 //			throw new IOException("No local document given!");
 		
 		checkConnection(true);
 		
+		// alert if number of local and remote pages mismatch
 		if (checked != null && pages.size() != checked.size()) {
 			throw new IOException("Nr of checked list is unequal to nr of pages: "+checked.size()+"/"+pages.size());
 		}
+		
+		// alert if no remote document (i.e. target doc) is loaded
 		if (!isRemoteDoc())
 			throw new IOException("No remote document loaded!");
 		
+		// check consistency of local doc vs. checked pages
+		// only pick first n pages if local doc has more pages than remote doc
 		if (pages.size() > doc.getPages().size()) {
 			pages = pages.subList(0, doc.getPages().size());
 			if (checked != null)
 				checked = checked.subList(0, doc.getPages().size());
 		}
+
+		// calculate correct number of pages to sync for progress monitor output
 		int nToSync = checked == null ? pages.size() : Utils.countTrue(checked);
 		
 //		int N = Math.min(doc.getPages().size(), nToSync);
@@ -1367,9 +1394,15 @@ public class Storage {
 		if (monitor != null)
 			monitor.beginTask("Syncing doc pages with local pages", nToSync);
 
+		// retrieve names of files in current doc
+		List<String> basenames = doc.getPageImgNames();
+				
+		// workflow to sync by filename
 		int worked=0;
 		for (int i=0; i<pages.size(); ++i) {
 			if (checked == null || checked.get(i)) {
+				
+				// metadata of i-th entry of local document 
 				TrpTranscriptMetadata tmd = pages.get(i).getCurrentTranscript();
 				
 				logger.debug("syncing page "+(worked+1));
@@ -1380,10 +1413,32 @@ public class Storage {
 				if (monitor != null && monitor.isCanceled())
 					return;
 				
-				conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
-						(i+1), EditStatus.IN_PROGRESS,
-						tmd.unmarshallTranscript(), tmd.getTsId(), null);
+				// retrieve matching server page according to filename
+				int remotePosition = 0;
+				boolean foundMatch = false;
+				for (int j=0; j<doc.getNPages(); j++) {
+					//TODO: check whether it makes more sense to work with tmd.getURL().getFile() for retrieving XML filename
+					logger.debug("local XML file at: "+tmd.getUrl());
+					if (StringUtils.contains(basenames.get(j), pages.get(i).getImgFileName())) {
+						remotePosition = j;
+						foundMatch = true;
+						logger.debug("Found remote match at position" + remotePosition + ": "+pages.get(i).getImgFileName());
+						break;
+					}
+				}
 				
+				if (foundMatch) {
+					conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
+							(remotePosition+1), EditStatus.IN_PROGRESS,
+							tmd.unmarshallTranscript(), tmd.getTsId(), null);
+				} else {
+					// no matching file found on server --> exception!
+//					conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
+//						(i+1), EditStatus.IN_PROGRESS,
+//						tmd.unmarshallTranscript(), tmd.getTsId(), null);
+					logger.debug("No matching file found on server for "+pages.get(i).getImgFileName());
+					//throw new IOException("Could not find matching file on server for "+pages.get(i).getImgFileName());
+				}
 				if (monitor != null)
 					monitor.worked(++worked);
 			}
