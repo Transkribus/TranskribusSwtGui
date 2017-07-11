@@ -1388,61 +1388,104 @@ public class Storage {
 
 		// calculate correct number of pages to sync for progress monitor output
 		int nToSync = checked == null ? pages.size() : Utils.countTrue(checked);
-		
-//		int N = Math.min(doc.getPages().size(), nToSync);
-		
+
 		if (monitor != null)
 			monitor.beginTask("Syncing doc pages with local pages", nToSync);
 
 		// retrieve names of files in current doc
-		List<String> basenames = doc.getPageImgNames();
-				
+		List<String> remoteImgNames = doc.getPageImgNames();
+		List<Integer> remoteIndices = new ArrayList<Integer>();
+		List<Integer> syncIndices = new ArrayList<Integer>();
+		
+		// retrieve matching server page according to filename
+		// loop over local pages
+		for (int i=0; i<pages.size(); ++i) {
+			// loop until match is found in remote doc
+			for (int j=0; j<remoteImgNames.size(); j++) {
+				//TODO: check whether it makes more sense to work with tmd.getURL().getFile() for retrieving XML filename
+				if (StringUtils.contains(remoteImgNames.get(j), pages.get(i).getImgFileName())) {
+					remoteIndices.add(j);
+					syncIndices.add(i);
+					logger.debug("Found remote match at position" + j + ": "+pages.get(i).getImgFileName());
+					continue;
+				}
+			}
+		}	
+		
+		logger.debug("Synching "+remoteIndices.size()+" pages " + remoteIndices);
+		
+		// TODO:FIXME decide what to do then!!!
+		if (remoteIndices.size() != pages.size()) {
+			logger.warn("Found " + remoteIndices.size() +" pages on server, you gave me " + pages.size());
+		}
+		
 		// workflow to sync by filename
 		int worked=0;
-		for (int i=0; i<pages.size(); ++i) {
-			if (checked == null || checked.get(i)) {
-				
-				// metadata of i-th entry of local document 
-				TrpTranscriptMetadata tmd = pages.get(i).getCurrentTranscript();
-				
-				logger.debug("syncing page "+(worked+1));
-				
-				if (monitor != null)
-					monitor.subTask("Syncing page "+(worked+1)+" / "+nToSync);
-				
-				if (monitor != null && monitor.isCanceled())
-					return;
-				
-				// retrieve matching server page according to filename
-				int remotePosition = 0;
-				boolean foundMatch = false;
-				for (int j=0; j<doc.getNPages(); j++) {
-					//TODO: check whether it makes more sense to work with tmd.getURL().getFile() for retrieving XML filename
-					logger.debug("local XML file at: "+tmd.getUrl());
-					if (StringUtils.contains(basenames.get(j), pages.get(i).getImgFileName())) {
-						remotePosition = j;
-						foundMatch = true;
-						logger.debug("Found remote match at position" + remotePosition + ": "+pages.get(i).getImgFileName());
-						break;
-					}
-				}
-				
-				if (foundMatch) {
-					conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
-							(remotePosition+1), EditStatus.IN_PROGRESS,
-							tmd.unmarshallTranscript(), tmd.getTsId(), null);
-				} else {
-					// no matching file found on server --> exception!
-//					conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
-//						(i+1), EditStatus.IN_PROGRESS,
-//						tmd.unmarshallTranscript(), tmd.getTsId(), null);
-					logger.debug("No matching file found on server for "+pages.get(i).getImgFileName());
-					//throw new IOException("Could not find matching file on server for "+pages.get(i).getImgFileName());
-				}
-				if (monitor != null)
-					monitor.worked(++worked);
-			}
+		for (int i=0; i<remoteIndices.size(); ++i) {
+			// metadata of entry of local document 
+			TrpTranscriptMetadata tmd = pages.get(syncIndices.get(i)).getCurrentTranscript();
+
+			logger.debug("syncing page "+(worked+1));
+			
+			// TODO:FIXME adjust nToSync above!
+			if (monitor != null)
+				monitor.subTask("Syncing page "+(worked+1)+" / "+nToSync);
+			
+			if (monitor != null && monitor.isCanceled())
+				return;
+			
+			conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
+					(remoteIndices.get(i)+1), EditStatus.IN_PROGRESS,
+					tmd.unmarshallTranscript(), tmd.getTsId(), null);
+
+			if (monitor != null)
+				monitor.worked(++worked);
 		}
+		
+//		for (int i=0; i<pages.size(); ++i) {
+//			if (checked == null || checked.get(i)) {
+//				
+//				// metadata of i-th entry of local document 
+//				TrpTranscriptMetadata tmd = pages.get(i).getCurrentTranscript();
+//				
+//				logger.debug("syncing page "+(worked+1));
+//				
+//				if (monitor != null)
+//					monitor.subTask("Syncing page "+(worked+1)+" / "+nToSync);
+//				
+//				if (monitor != null && monitor.isCanceled())
+//					return;
+//				
+//				// retrieve matching server page according to filename
+//				int remotePosition = 0;
+//				boolean foundMatch = false;
+//				for (int j=0; j<doc.getNPages(); j++) {
+//					//TODO: check whether it makes more sense to work with tmd.getURL().getFile() for retrieving XML filename
+//					logger.debug("local XML file at: "+tmd.getUrl());
+//					if (StringUtils.contains(remoteImgNames.get(j), pages.get(i).getImgFileName())) {
+//						remotePosition = j;
+//						foundMatch = true;
+//						logger.debug("Found remote match at position" + remotePosition + ": "+pages.get(i).getImgFileName());
+//						break;
+//					}
+//				}
+//				
+//				if (foundMatch) {
+//					conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
+//							(remotePosition+1), EditStatus.IN_PROGRESS,
+//							tmd.unmarshallTranscript(), tmd.getTsId(), null);
+//				} else {
+//					// no matching file found on server --> exception!
+////					conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
+////						(i+1), EditStatus.IN_PROGRESS,
+////						tmd.unmarshallTranscript(), tmd.getTsId(), null);
+//					logger.debug("No matching file found on server for "+pages.get(i).getImgFileName());
+//					//throw new IOException("Could not find matching file on server for "+pages.get(i).getImgFileName());
+//				}
+//				if (monitor != null)
+//					monitor.worked(++worked);
+//			}
+//		}
 	}
 
 	public void saveDocMd(int colId) throws SessionExpiredException, IllegalArgumentException, Exception {
