@@ -2090,6 +2090,8 @@ public class TrpMainWidget {
 
 		SWTUtil.setEnabled(ui.getCloseDocBtn(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getSaveDropDown(), isDocLoaded);
+		if (ui.saveOptionsToolItem != null)
+			SWTUtil.setEnabled(ui.saveOptionsToolItem.getToolItem(), isDocLoaded);
 
 		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);

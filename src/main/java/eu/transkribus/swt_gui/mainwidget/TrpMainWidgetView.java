@@ -577,9 +577,9 @@ public class TrpMainWidgetView extends Composite {
 		boolean USE_SAVE_DROP_DOWN=false;
 		
 		if (USE_SAVE_DROP_DOWN) {
-		saveDrowDown = new DropDownToolItem(toolBar, false, true, false, SWT.RADIO);
-		saveTranscriptMenuItem = saveDrowDown.addItem("Save", Images.DISK, "", true);
-		saveTranscriptWithMessageMenuItem = saveDrowDown.addItem("Save with message", Images.DISK_MESSAGE, "", false);
+			saveDrowDown = new DropDownToolItem(toolBar, false, true, false, SWT.RADIO);
+			saveTranscriptMenuItem = saveDrowDown.addItem("Save", Images.DISK, "", true);
+			saveTranscriptWithMessageMenuItem = saveDrowDown.addItem("Save with message", Images.DISK_MESSAGE, "", false);
 		} else {
 			
 			if (false) {
