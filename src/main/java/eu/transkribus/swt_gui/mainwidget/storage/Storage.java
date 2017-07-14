@@ -368,7 +368,7 @@ public class Storage {
 		if (!isLoggedIn())
 			return unfinished;
 		
-		return conn.getJobs(filterByUser, TrpJobStatus.UNFINISHED, null, 0, 0, null, null);
+		return conn.getJobs(filterByUser, TrpJobStatus.UNFINISHED, null, null, 0, 0, null, null);
 		
 //		for (TrpJobStatus j : getJobs()) {
 //			if (!j.isFinished())

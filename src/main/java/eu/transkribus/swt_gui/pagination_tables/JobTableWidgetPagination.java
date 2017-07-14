@@ -235,7 +235,7 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 					if (store.isLoggedIn()) {
 						try {
 							// sw.start();
-							N = store.getConnection().countJobs(!showAllJobsBtn.getSelection(), getState(), getDocId());
+							N = store.getConnection().countJobs(!showAllJobsBtn.getSelection(), getState(), null, getDocId());
 							// sw.stop(true, "time for counting jobs: ",
 							// logger);
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
@@ -256,7 +256,7 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 						try {
 							// sw.start();
 							logger.debug("loading jobs from server...");
-							jobs = store.getConnection().getJobs(!showAllJobsBtn.getSelection(), getState(), getDocId(),
+							jobs = store.getConnection().getJobs(!showAllJobsBtn.getSelection(), getState(), null, getDocId(),
 									fromIndex, toIndex - fromIndex, sortPropertyName, sortDirection);
 							// sw.stop(true, "time for loading jobs: ", logger);
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
