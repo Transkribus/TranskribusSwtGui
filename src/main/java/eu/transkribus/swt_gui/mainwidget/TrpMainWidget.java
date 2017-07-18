@@ -4028,7 +4028,8 @@ public class TrpMainWidget {
 			if (fn == null)
 				return;
 
-			TrpDoc localDoc = LocalDocReader.load(fn);
+			// enable sync mode to allow for local docs without images
+			TrpDoc localDoc = LocalDocReader.load(fn,false,true);
 			// create thumbs for this doc:			
 			CreateThumbsService.createThumbForDoc(localDoc, false, updateThumbsWidgetRunnable);
 
