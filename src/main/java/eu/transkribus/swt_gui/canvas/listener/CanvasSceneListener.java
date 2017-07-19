@@ -7,6 +7,7 @@ import java.util.EventListener;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collector;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -21,10 +22,12 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
@@ -692,15 +695,20 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				ITrpShapeType stC = GuiUtil.getTrpShape(s);
 				//&& stC instanceof TrpBaselineType
 				if (st.getClass() != stC.getClass() ) {
-					throw new Exception("Cannot merge elements of different type!");
+//					throw new Exception("Cannot merge elements of different type!");
+					e.stop = true;
+					DialogUtil.showErrorMessageBox(shell, "Error during merge", "Cannot merge elements of different type!");
+					return;
 				}
 				if (st.getParent() != stC.getParent()) {
-					throw new Exception("Cannot merge elements with different parent shape!");
+					e.stop = true;
+					DialogUtil.showErrorMessageBox(shell, "Error during merge", "Cannot merge elements with different parent shape!");
+					return;
 				}
-			}			
+			}
 		} catch (Throwable th) {
 			e.stop = true;
-			mw.onError("Error during operation", "Could not merge elements", th);
+			mw.onError("Error during merge", "Could not merge elements: "+th.getMessage(), th);
 		}		
 	}
 
@@ -764,76 +772,44 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 	//			mergedSt.reInsertIntoParent();
 	//			mergedSt.setData(newShape);
 							
-				// assign children
-				boolean baselineSet=false;
-				ICanvasShape baselineToRemove = null;
-				ICanvasShape mainBaselineShape = null;
-				ICanvasShape copyOfBaseline = null;
-				TrpBaselineType mainBaseline = null;
-				
+				// assign children				
 				logger.debug(" child number is : " + newShape.getChildren(false).size());
 				
 				for (ICanvasShape childShape : newShape.getChildren(false)) {
 					ITrpShapeType st = (ITrpShapeType) childShape.getData();
+					st.setParent(mergedSt);
+					st.reInsertIntoParent();					
+				}
+				
+				// if merged shapes were lines -> merge baselines also!
+				if (mergedSt instanceof TrpTextLineType) {
+					logger.debug("baseline merge - n-merged shapes: "+trpMergedShapes.size());
+					TrpTextLineType mergedTl = (TrpTextLineType) mergedSt;
 					
-					//st.removeFromParent();
-					
-					if ((st instanceof TrpBaselineType)) {
-						if (!baselineSet) {
-//							st.setParent(mergedSt);
-//							st.reInsertIntoParent();
-							mainBaseline = (TrpBaselineType) st;
-							mainBaselineShape = childShape;
-							copyOfBaseline = mainBaselineShape.copy();
-							baselineSet = true;
-						} else {
-							//combine baselines if they are in series
-							logger.debug("+++++++++++++mainBaselineShape.getBounds().getMaxX() " +mainBaselineShape.getBounds().getMaxX());
-							logger.debug("+++++++++++++childShape.getBounds().getMinX() " +childShape.getBounds().getMinX());
-							if(copyOfBaseline.getBounds().getMaxX() <= childShape.getBounds().getMinX()){							
-								
-								HashSet<Point> pts = new LinkedHashSet<>();
-								
-								pts.addAll(mainBaselineShape.getPoints());
-								pts.addAll(childShape.getPoints());
-								
-								List<Point> pts1 = new ArrayList<>();
-								for (Point point : pts){
-									pts1.add(point);
-								}
-								
-								copyOfBaseline.setPoints(pts1);
-								ITrpShapeType el2 = mw.getShapeFactory().copyJAXBElementFromShapeAndData(copyOfBaseline, -1);
-								copyOfBaseline.setData(el2);
-								
-								mainBaseline = (TrpBaselineType) copyOfBaseline.getData();
-
-								logger.debug(" copyOfBaseline get points- ------ " + copyOfBaseline.getPoints());
-								mw.getScene().removeShape(mainBaselineShape, false, false);								
+					// collect all baseline points (trpMergedShapes should be sorted by reading order!)
+					List<Point> blPts = new ArrayList<>();
+					for (ITrpShapeType st : trpMergedShapes) {
+						if (st != null && st instanceof TrpTextLineType) {
+							TrpTextLineType tl = (TrpTextLineType) st;
+							if (tl.getTrpBaseline() != null) {
+								mw.getScene().removeShape((ICanvasShape) tl.getTrpBaseline().getData(), false, false);
+								blPts.addAll(PointStrUtils.parsePoints(tl.getTrpBaseline().getPoints()));
 							}
-							
-							baselineToRemove = childShape;
-							mw.getScene().removeShape(baselineToRemove, false, false);
 						}
-					} else {
-						st.setParent(mergedSt);
-						st.reInsertIntoParent();					
+					}
+					
+					// create a new baseline if there were baseline points
+					if (!blPts.isEmpty()) {
+						CanvasPolyline pl = new CanvasPolyline(blPts);
+						pl.setEditable(true);
+						pl.setParent(newShape);
+						mw.getScene().addShape(pl, newShape, false);
+						
+						TrpBaselineType bl = TrpShapeElementFactory.createPAGEBaseline(pl, mergedTl);
+						TrpShapeElementFactory.syncCanvasShapeAndTrpShape(pl, bl);
 					}
 				}
-				
-//				if (baselineToRemove!=null){
-//					mw.getScene().removeShape(baselineToRemove, false, false);
-//				}
-				
-				if (baselineSet){
-
-					mainBaseline.setParent(mergedSt);
-					mainBaseline.reInsertIntoParent();
-					if (copyOfBaseline != null)
-						mw.getScene().addShape(copyOfBaseline, newShape, false);
-					
-				}
-							
+	
 				// update ui stuff
 				mw.getScene().updateAllShapesParentInfo();
 				if (mergedSt.getParent() instanceof TrpPageType){
