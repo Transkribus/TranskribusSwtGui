@@ -32,9 +32,7 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.ComboInputDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
-import eu.transkribus.swt_gui.doc_overview.DocTableWidget;
 import eu.transkribus.swt_gui.doc_overview.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -45,7 +43,7 @@ public class DocSearchComposite extends Composite {
 //	DocTableWidget docWidget;
 	DocTableWidgetPagination docWidgetPaged;
 	
-	LabeledText documentId, title, description, author, writer;
+	public LabeledText documentId, title, description, author, writer;
 //	LabeledCombo collection;
 	Button collectionCheck;
 	Button exactMatch, caseSensitive;
@@ -183,18 +181,7 @@ public class DocSearchComposite extends Composite {
 		};		
 		docWidgetPaged.getTableViewer().addDoubleClickListener(openSelectedDocListener);
 		
-//		if (false) {
-//		docWidget = new DocTableWidget(this, 0);
-//		docWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//		docWidget.getTableViewer().addDoubleClickListener(openSelectedDocListener);
-//		}
-		
 		sf.setWeights(new int[]{55, 45});
-//		sf.setWeights(new int[]{facetsC.computeSize(SWT.DEFAULT, SWT.DEFAULT).y, docWidgetPaged.computeSize(SWT.DEFAULT, SWT.DEFAULT).y});
-
-//		searchItem = createCTabItem(tabFolder, sf, "Search");
-
-		
 	}
 	
 //	void updateCollections() {

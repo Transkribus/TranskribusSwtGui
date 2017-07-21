@@ -28,7 +28,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 	
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
-	PageMetadataWidget mw;
+	StructuralMetadataWidget mw;
 	TextStyleTypeWidget tw;
 	SWTCanvas canvas;
 	TrpSettings settings;

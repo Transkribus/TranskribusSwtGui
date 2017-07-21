@@ -41,8 +41,8 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
-public class PageMetadataWidget extends Composite {
-	private final static Logger logger = LoggerFactory.getLogger(PageMetadataWidget.class);
+public class StructuralMetadataWidget extends Composite {
+	private final static Logger logger = LoggerFactory.getLogger(StructuralMetadataWidget.class);
 	
 	// page related md:
 	Combo pageStyleCombo, statusCombo;
@@ -76,7 +76,7 @@ public class PageMetadataWidget extends Composite {
 	
 	ModifyListener structModifyListener;
 	
-	public PageMetadataWidget(Composite parent, int style) {
+	public StructuralMetadataWidget(Composite parent, int style) {
 		super(parent, style);
 		this.setLayout(new GridLayout(2, false));
 		this.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
