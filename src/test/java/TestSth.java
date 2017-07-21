@@ -165,7 +165,7 @@ public class TestSth {
 	}
 
 	public static void testReadingOrder() throws Exception {
-		TrpDoc doc = LocalDocReader.load("/media/dea_scratch/TRP/Schauplatz_Small2/", true, true, true, true);
+		TrpDoc doc = LocalDocReader.load("/media/dea_scratch/TRP/Schauplatz_Small2/", true, true, true, true, false);
 		
 		TrpPage p = doc.getPages().get(0);
 		JAXBPageTranscript tr = new JAXBPageTranscript(p.getCurrentTranscript());
