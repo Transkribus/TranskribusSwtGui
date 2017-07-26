@@ -426,26 +426,32 @@ public class CollectionEditorDialog extends Dialog {
 		        //if crowd project is checked -> either there is already a project and needs to be loaded or we
 		        //have to create a new one
 		        if(button.getSelection()){
-		        	try {
-						TrpCrowdProject project = storage.loadCrowdProject(collection.getColId());
-						collection.setCrowdProject(project);
-					} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-							| NoConnectionException e1) {
-						// TODO Auto-generated catch block
-						//System.out.println("in catch block");
-						e1.printStackTrace();
-					}
-
 		        	if (collection.getCrowdProject() == null){
-		        		System.out.println("Create new crowd project");
-		        		crowdMdChanged = true;
-		        		collection.setCrowdProject(new TrpCrowdProject(collection.getColId()));
+		        		//try to load from database
+			        	try {
+							TrpCrowdProject project = storage.loadCrowdProject(collection.getColId());
+							collection.setCrowdProject(project);
+						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+								| NoConnectionException e1) {
+							// TODO Auto-generated catch block
+							//System.out.println("in catch block");
+							e1.printStackTrace();
+						}
+			        	//if there is no crowd project in DB create one
+			        	if (collection.getCrowdProject() == null){
+			        		System.out.println("Create new crowd project");
+			        		crowdMdChanged = true;
+			        		collection.setCrowdProject(new TrpCrowdProject(collection.getColId()));
+		        		}
+			        	else{
+			        		reloadCollectionEditorWidget();
+			        	}
 		        	}
 		        	else{
 		        		//System.out.println("reloading..");
-		        		
 		        		reloadCollectionEditorWidget();
 		        	}
+
 		        }
 		        else{
 		        	clearCollectionEditorWidget();
@@ -493,7 +499,7 @@ public class CollectionEditorDialog extends Dialog {
 		if (collection.getCrowdProject() != null){
 			for (TrpCrowdProjectMilestone mst : collection.getCrowdProject().getCrowdProjectMilestones()){
 				if (mst.getProjectId() == null){
-					continue;
+					//continue;
 				}
 		  	  	TableItem newMst = new TableItem(tableMst, SWT.NULL);
 		  	  	newMst.setText(new String[] {mst.getTitle(), mst.getDescription(), mst.getDueDate(), mst.getDate()});
@@ -507,7 +513,7 @@ public class CollectionEditorDialog extends Dialog {
 			//System.out.println("load messages");
 			for (TrpCrowdProjectMessage msg : collection.getCrowdProject().getCrowdProjectMessages()){
 				if (msg.getProjectId() == null){
-					continue;
+					//continue;
 				}
 		  	  	TableItem newMsg = new TableItem(tableMsg, SWT.NULL);
 		  	  	String emailInfo = "No";
@@ -650,7 +656,9 @@ public class CollectionEditorDialog extends Dialog {
 				
 				//System.out.println("new milestone id = " + id);
 				
+				//System.out.println("mst size before = " + collection.getCrowdProject().getCrowdProjectMilestones().size());
 			  	collection.getCrowdProject().getCrowdProjectMilestones().add(currMst);
+			  	//System.out.println("mst size after = " + collection.getCrowdProject().getCrowdProjectMilestones().size());
 
 			  	TableItem newItem = new TableItem(tableMst, SWT.NULL);
 			  	newItem.setData("id", id);

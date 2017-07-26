@@ -4992,6 +4992,7 @@ public class TrpMainWidget {
 				return;
 			}
 			
+			storage.reloadCollections();
 			CollectionEditorDialog ced = new CollectionEditorDialog(getShell(), c);
 			if (ced.open() != IDialogConstants.OK_ID) {
 				/*
