@@ -55,6 +55,9 @@ import eu.transkribus.core.model.beans.HtrModel;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.PageLock;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpCrowdProject;
+import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
+import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -1874,6 +1877,21 @@ public class Storage {
 		conn.deleteEditDeclFeature(getCurrentDocumentCollectionId(), feat);
 	}
 	
+	public void storeCrowdProject(TrpCrowdProject project, int collId) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
+		checkConnection(true);
+		conn.postCrowdProject(collId, project);
+	}
+	
+	public int storeCrowdProjectMilestone(TrpCrowdProjectMilestone milestone, int collId) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
+		checkConnection(true);
+		return conn.postCrowdProjectMilestone(collId, milestone);
+	}
+	
+	public int storeCrowdProjectMessage(TrpCrowdProjectMessage message, int collId) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
+		checkConnection(true);
+		return conn.postCrowdProjectMessage(collId, message);
+	}
+	
 	public void storeEdOption(EdOption opt) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
 		conn.postEditDeclOption(getCurrentDocumentCollectionId(), opt);
@@ -2166,6 +2184,11 @@ public class Storage {
 	public void removeHtrFromCollection(TrpHtr htr) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException {
 		checkConnection(true);
 		conn.removeHtrFromCollection(htr.getHtrId(), this.collId);		
+	}
+
+	public TrpCrowdProject loadCrowdProject(int colId) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		checkConnection(true);
+		return conn.getCrowdProject(colId);		
 	}
 
 

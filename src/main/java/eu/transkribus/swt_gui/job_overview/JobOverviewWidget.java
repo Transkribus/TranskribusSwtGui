@@ -53,6 +53,7 @@ public class JobOverviewWidget extends Composite {
 	public static final String PAGE_COL = "Pages";
 	public static final String DESCRIPTION_COL = "Description";
 	public static final String USER_NAME_COL = "Username";
+	public static final String RESULT_COL = "Download-Link";
 	
 	// This are the columns, sorted in their order of appearence in the table:
 	public final ColumnConfig[] COLS = new ColumnConfig[] {
@@ -72,6 +73,7 @@ public class JobOverviewWidget extends Composite {
 		new ColumnConfig(PAGE_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(DESCRIPTION_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(ID_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(RESULT_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 	};
 	
 	

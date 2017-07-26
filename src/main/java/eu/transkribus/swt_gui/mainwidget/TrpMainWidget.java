@@ -79,6 +79,8 @@ import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.util.ImgFileFilter;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
+import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -3879,19 +3881,19 @@ public class TrpMainWidget {
 					TrpPageType page = (TrpPageType) o;
 					c = CanvasShapeUtil.assignToShapesGeometrically(page.getTextRegions(false), page.getLines());
 					if (c > 0) {
-						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(page.getTextRegionOrImageRegionOrLineDrawingRegion(), false, true, false);
+						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(page.getTextRegionOrImageRegionOrLineDrawingRegion(), false, true);
 					}
 				} else if (o instanceof TrpTextRegionType) {
 					TrpTextRegionType textRegion = (TrpTextRegionType) o;
 					c = CanvasShapeUtil.assignToParentIfOverlapping(textRegion, textRegion.getPage().getLines(), 0.9d);
 					if (c > 0) {
-						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textRegion.getTrpTextLine(), false, false, false);
+						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textRegion.getTrpTextLine(), false, false);
 					}
 				} else if (o instanceof TrpTextLineType) {
 					TrpTextLineType textLine = (TrpTextLineType) o;
 					c = CanvasShapeUtil.assignToParentIfOverlapping(textLine, textLine.getPage().getLines(), 0.9d);
 					if (c > 0) {
-						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textLine.getTrpWord(), false, false, false);
+						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textLine.getTrpWord(), false, false);
 					}
 				}
 				// TODO: tables???? --> most probably not relevant for this functionality...
@@ -3924,11 +3926,11 @@ public class TrpMainWidget {
 			Object o = it.next();
 			if (o instanceof TrpPageType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpPageType) o).getTextRegionOrImageRegionOrLineDrawingRegion(), false,
-						deleteReadingOrder, recursive);
+						deleteReadingOrder);
 			} else if (o instanceof TrpTextRegionType) {
-				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextRegionType) o).getTrpTextLine(), false, deleteReadingOrder, recursive);
+				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextRegionType) o).getTrpTextLine(), false, deleteReadingOrder);
 			} else if (o instanceof TrpTextLineType) {
-				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextLineType) o).getTrpWord(), false, deleteReadingOrder, recursive);
+				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextLineType) o).getTrpWord(), false, deleteReadingOrder);
 			}
 		}
 		tr.getPage().sortContent();
@@ -4989,17 +4991,42 @@ public class TrpMainWidget {
 			
 			CollectionEditorDialog ced = new CollectionEditorDialog(getShell(), c);
 			if (ced.open() != IDialogConstants.OK_ID) {
+				/*
+				 * user clicked cancel: milestones and messages without project id (this is how we know the
+				 * added milestones and messages from this session) get deleted because this seems to be his 
+				 * intention by clicking Cancel 
+				 */
+				if (ced.isCrowdMdChanged()){
+					storage.getConnection().deleteCrowdProjectMilestones(ced.getCollection().getColId());
+					storage.getConnection().deleteCrowdProjectMessages(ced.getCollection().getColId());
+					storage.reloadCollections();
+					
+				}
 				return;
 			}
 			
 			if(!ced.isMdChanged()) {
 				logger.debug("Metadata was not altered.");
-				return;
+				//return;
+			}
+			else{
+				TrpCollection newMd = ced.getCollection();
+				storage.getConnection().updateCollectionMd(newMd);
+				storage.reloadCollections();
 			}
 			
-			TrpCollection newMd = ced.getCollection();
-			storage.getConnection().updateCollectionMd(newMd);
-			storage.reloadCollections();
+			if (ced.isCrowdMdChanged()){
+				TrpCollection newMd = ced.getCollection();
+				logger.debug("crowd metadata has changed");
+				storage.getConnection().postCrowdProject(newMd.getColId(), newMd.getCrowdProject());
+				for (TrpCrowdProjectMilestone mst : newMd.getCrowdProject().getCrowdProjectMilestones()){
+					storage.getConnection().postCrowdProjectMilestone(newMd.getCrowdProject().getColId(), mst);
+				}
+				for (TrpCrowdProjectMessage msg : newMd.getCrowdProject().getCrowdProjectMessages()){
+					storage.getConnection().postCrowdProjectMessage(newMd.getCrowdProject().getColId(), msg);
+				}
+				
+			}
 			
 //			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully modified the colleciton!");
 		} catch (Exception e) {

@@ -54,7 +54,7 @@ public class AutoSaveController {
 		};
 
 	    File[] files = dir.listFiles(filter);
-	    List<File> fileList = CoreUtils.asList(files);
+	    List<File> fileList = Arrays.asList(files);
 	    
 	    logger.debug("found autosave files: "+fileList.size());
 	    return fileList;

@@ -9,6 +9,9 @@ import javax.ws.rs.ServerErrorException;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -65,6 +68,7 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 	public static final String PAGE_COL = "Pages";
 	public static final String DESCRIPTION_COL = "Description";
 	public static final String USER_NAME_COL = "Username";
+	public static final String RESULT_COL = "Download-Link";
 
 	public final ColumnConfig[] COLS = new ColumnConfig[] {
 			new ColumnConfig(TYPE_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
@@ -76,7 +80,8 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 			new ColumnConfig(USER_NAME_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(PAGE_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(DESCRIPTION_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
-			new ColumnConfig(ID_COL, 100, false, DefaultTableColumnViewerSorter.ASC), };
+			new ColumnConfig(ID_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
+			new ColumnConfig(RESULT_COL, 100, false, DefaultTableColumnViewerSorter.ASC),};
 
 	Button showAllJobsBtn, cancelBtn;
 	Combo stateCombo;
@@ -344,6 +349,34 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 		createDefaultColumn(FINISHED_COL, 120, "endTimeFormatted", "endTime");
 
 		createDefaultColumn(ID_COL, 100, "jobId", true);
+		TableViewerColumn resultColumn = createDefaultColumn(RESULT_COL, 300, "result", false);
+		resultColumn.setEditingSupport(new EditingSupport(resultColumn.getViewer()) {
+			
+			@Override
+			protected void setValue(Object arg0, Object arg1) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			protected Object getValue(Object arg0) {
+				// TODO Auto-generated method stub
+				return resultColumn.getColumn().getText();
+			}
+			
+			@Override
+			protected CellEditor getCellEditor(Object arg0) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+			
+			@Override
+			protected boolean canEdit(Object arg0) {
+				// TODO Auto-generated method stub
+				return true;
+			}
+		});
+		
 
 		// sort by creation date down:
 		// pageableTable.getViewer().getTable().setSortColumn(creationCol.getColumn());

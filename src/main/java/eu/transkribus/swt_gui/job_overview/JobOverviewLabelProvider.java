@@ -82,6 +82,8 @@ public class JobOverviewLabelProvider implements ITableLabelProvider, ITableColo
 				return job.getDescription();
 			} else if (ct.equals(JobOverviewWidget.USER_NAME_COL)) {
 				return job.getUserName();
+			} else if (ct.equals(JobOverviewWidget.RESULT_COL) && job.getType().equals("Export Document")) {
+				return job.getResult();
 			}
 		}
 
