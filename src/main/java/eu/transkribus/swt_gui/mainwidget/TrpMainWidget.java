@@ -3883,19 +3883,19 @@ public class TrpMainWidget {
 					TrpPageType page = (TrpPageType) o;
 					c = CanvasShapeUtil.assignToShapesGeometrically(page.getTextRegions(false), page.getLines());
 					if (c > 0) {
-						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(page.getTextRegionOrImageRegionOrLineDrawingRegion(), false, true);
+						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(page.getTextRegionOrImageRegionOrLineDrawingRegion(), false, true, false);
 					}
 				} else if (o instanceof TrpTextRegionType) {
 					TrpTextRegionType textRegion = (TrpTextRegionType) o;
 					c = CanvasShapeUtil.assignToParentIfOverlapping(textRegion, textRegion.getPage().getLines(), 0.9d);
 					if (c > 0) {
-						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textRegion.getTrpTextLine(), false, false);
+						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textRegion.getTrpTextLine(), false, false, false);
 					}
 				} else if (o instanceof TrpTextLineType) {
 					TrpTextLineType textLine = (TrpTextLineType) o;
 					c = CanvasShapeUtil.assignToParentIfOverlapping(textLine, textLine.getPage().getLines(), 0.9d);
 					if (c > 0) {
-						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textLine.getTrpWord(), false, false);
+						TrpShapeTypeUtils.applyReadingOrderFromCoordinates(textLine.getTrpWord(), false, false, false);
 					}
 				}
 				// TODO: tables???? --> most probably not relevant for this functionality...
@@ -3928,11 +3928,11 @@ public class TrpMainWidget {
 			Object o = it.next();
 			if (o instanceof TrpPageType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpPageType) o).getTextRegionOrImageRegionOrLineDrawingRegion(), false,
-						deleteReadingOrder);
+						deleteReadingOrder, recursive);
 			} else if (o instanceof TrpTextRegionType) {
-				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextRegionType) o).getTrpTextLine(), false, deleteReadingOrder);
+				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextRegionType) o).getTrpTextLine(), false, deleteReadingOrder, recursive);
 			} else if (o instanceof TrpTextLineType) {
-				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextLineType) o).getTrpWord(), false, deleteReadingOrder);
+				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextLineType) o).getTrpWord(), false, deleteReadingOrder, recursive);
 			}
 		}
 		tr.getPage().sortContent();
