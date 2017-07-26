@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
@@ -34,6 +35,7 @@ import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener.SceneEvent;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener.SceneEventType;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeReadingOrderComparator;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -268,42 +270,24 @@ public class CanvasScene {
 	}
 	
 	public ShapeEditOperation mergeSelected(boolean sendSignal) {
-		List<ICanvasShape> initSelectedShapes = getSelectedAsNewArray();
-		if (initSelectedShapes.size() < 2)
+		List<ICanvasShape> selectedShapes = getSelectedAsNewArray();
+		if (selectedShapes.size() < 2)
 			return null;
 		
-		logger.debug("merging "+initSelectedShapes.size()+" shapes");
-		
-		/*
-		 * this leads to the effect that baselines and lines are handled equivalent during a merge
-		 */
-		List<ICanvasShape> selectedShapes = new ArrayList<ICanvasShape>();
-		for (ICanvasShape shape : initSelectedShapes){
-			ITrpShapeType trpShape = (ITrpShapeType) shape.getData();
-			
-			if (trpShape instanceof TrpBaselineType){
-				//insert according to reading order to ease the join of baselines in proper order later on
-				
-				if (selectedShapes.size() == 0){	
-					selectedShapes.add(shape.getParent());
-				}
-				else{
-					insertAccordingToReadingOrder(new ArrayList<ICanvasShape>(selectedShapes), selectedShapes, shape.getParent());
-				}
-			}
-			else{
-				if (selectedShapes.size() == 0){	
-					selectedShapes.add(shape);
-				}
-				else{
-					insertAccordingToReadingOrder(new ArrayList<ICanvasShape>(selectedShapes), selectedShapes, shape);
-				}
-				
+		logger.debug("merging "+selectedShapes.size()+" shapes");
+
+		// replace baseline shapes by lines -> this leads to the effect that baselines and lines are handled equivalent during a merge 
+		for (int i=0; i<selectedShapes.size(); ++i) {
+			ICanvasShape s = selectedShapes.get(i);
+			if (GuiUtil.getTrpShape(s) instanceof TrpBaselineType) {
+				selectedShapes.set(i, s.getParent());
 			}
 		}
-				
+		// sort shapes by reading order
+		Collections.sort(selectedShapes, new CanvasShapeReadingOrderComparator());
+	
 		if (sendSignal) {
-			if (notifyOnBeforeShapesMerged(selectedShapes))
+			if (notifyOnBeforeShapesMerged(selectedShapes)) // calls the method CanvasSceneListener::onBeforeMerge which checks if all shapes are of same type etc.
 				return null;
 		}
 			
@@ -341,7 +325,7 @@ public class CanvasScene {
 		op.addNewShape(merged);
 		
 		if (sendSignal) {
-			notifyOnShapesMerged(op);
+			notifyOnShapesMerged(op); // actual merging of TrpShapeType's is done here, i.e. in the method CanvasSceneListener::onMerge
 		}
 		
 		canvas.redraw();
@@ -350,23 +334,6 @@ public class CanvasScene {
 		
 	}
 	
-	private void insertAccordingToReadingOrder(List<ICanvasShape> selectedShapes, List<ICanvasShape> selectedShapesOrig, ICanvasShape shape2Add) {
-		ITrpShapeType trpShape2Add = (ITrpShapeType) shape2Add.getData();
-		
-		for (ICanvasShape shape : selectedShapes){
-			ITrpShapeType currShape = (ITrpShapeType) shape.getData();
-			if (currShape.getReadingOrder() > trpShape2Add.getReadingOrder() ){
-				selectedShapesOrig.add(selectedShapes.indexOf(shape), shape2Add);
-			}
-			//added thus - otherwise merging is not working
-			else if (currShape.getReadingOrder() < trpShape2Add.getReadingOrder() ){
-				int index = selectedShapes.indexOf(shape)+1;
-				selectedShapesOrig.add(index, shape2Add);
-			}
-		}
-		
-	}
-
 	/**
 	 * Splits the given shape by the line running through [x1,y1], [x1, y2]
 	 * @param shape The shape to split

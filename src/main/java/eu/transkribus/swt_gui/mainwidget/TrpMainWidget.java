@@ -2092,6 +2092,8 @@ public class TrpMainWidget {
 
 		SWTUtil.setEnabled(ui.getCloseDocBtn(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getSaveDropDown(), isDocLoaded);
+		if (ui.saveOptionsToolItem != null)
+			SWTUtil.setEnabled(ui.saveOptionsToolItem.getToolItem(), isDocLoaded);
 
 		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);
@@ -4028,7 +4030,8 @@ public class TrpMainWidget {
 			if (fn == null)
 				return;
 
-			TrpDoc localDoc = LocalDocReader.load(fn);
+			// enable sync mode to allow for local docs without images
+			TrpDoc localDoc = LocalDocReader.load(fn,false,true);
 			// create thumbs for this doc:			
 			CreateThumbsService.createThumbForDoc(localDoc, false, updateThumbsWidgetRunnable);
 

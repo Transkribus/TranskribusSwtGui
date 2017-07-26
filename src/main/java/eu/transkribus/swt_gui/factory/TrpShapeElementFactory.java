@@ -73,8 +73,11 @@ public class TrpShapeElementFactory {
 	
 	/** Synchronizes parent/child and data info between a CanvasShape and a ITrpShapeType. Also sets the color of the shape
 	 * according to the ITrpShapeType. Returns the parent shape of the given ICanvasShape */
-	public ICanvasShape syncCanvasShapeAndTrpShape(ICanvasShape shape, ITrpShapeType trpShape) {
-		TrpSettings sets = mainWidget.getTrpSets();
+	public static ICanvasShape syncCanvasShapeAndTrpShape(ICanvasShape shape, ITrpShapeType trpShape) {
+		TrpSettings sets = TrpMainWidget.getTrpSettings();
+		TrpMainWidget mainWidget = TrpMainWidget.getInstance();
+		SWTCanvas canvas = mainWidget.getCanvas();
+		
 		// update info in shape:
 		shape.setColor(TrpSettings.determineColor(sets, trpShape));
 		shape.setLevel(trpShape.getLevel());
@@ -510,7 +513,7 @@ public class TrpShapeElementFactory {
 		return tl;
 	}
 	
-	private static TrpBaselineType createPAGEBaseline(ICanvasShape shape, TrpTextLineType parent) {
+	public static TrpBaselineType createPAGEBaseline(ICanvasShape shape, TrpTextLineType parent) {
 		TrpBaselineType bl = new TrpBaselineType(parent);
 		bl.setPoints(PointStrUtils.pointsToString(shape.getPoints()));
 		

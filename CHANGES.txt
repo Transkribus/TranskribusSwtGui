@@ -492,5 +492,7 @@ CHANGES AND BUGFIXES
 	-> drag & drop to move elements between different parent shapes in 'Layout' tab
 	-> button in 'Layout' tab that moves subshapes to parent shapes according to geometrical overlap
 	-> do not check for local autosaves by default; introduce additional save dropdown where autosaves can be loaded explicitly
+	-> show history of finished server exports not older than 2 weeks in export dialog
+	-> bugfix: merging baselines (issue TranskribusSwtGui#21)
 	
 	

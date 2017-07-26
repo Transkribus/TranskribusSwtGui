@@ -1,8 +1,12 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -10,6 +14,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -27,9 +33,11 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.internal.layout.LayoutUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.io.ExportFilePatternUtils;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpCollection;
@@ -37,6 +45,7 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.alto.AltoExportPars;
@@ -45,13 +54,14 @@ import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.CurrentDocPagesSelector;
-import eu.transkribus.swt_gui.util.DocPagesSelector;
 import eu.transkribus.swt_gui.util.TagsSelector;
 
 public class CommonExportDialog extends Dialog {
@@ -132,7 +142,8 @@ public class CommonExportDialog extends Dialog {
 	
 	Button docsSelectorBtn, currentDocRadio, multipleDocsRadio;
 	Label serverExportLabel;
-	
+	StyledText exportHistoryText;
+	Button reloadExportHistoryBtn;
 	
 	Composite metsComposite;
 	Composite pdfComposite;
@@ -329,6 +340,24 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 	    docsSelectorBtn.setEnabled(false);
+	    
+	    Composite exportHistoryHeader = new Composite(serverExportComposite, 0);
+	    exportHistoryHeader.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    exportHistoryHeader.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+	    
+	    Label exportHistoryLabel = new Label(exportHistoryHeader, 0);
+	    exportHistoryLabel.setText("Finished server exports (not older than 2 weeks)");
+	    exportHistoryLabel.setFont(Fonts.createBoldFont(exportHistoryLabel.getFont()));
+//	    exportHistoryLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    
+	    reloadExportHistoryBtn = new Button(exportHistoryHeader, SWT.PUSH);
+	    reloadExportHistoryBtn.setImage(Images.REFRESH);
+	    reloadExportHistoryBtn.setToolTipText("Refresh expost history");
+	    SWTUtil.onSelectionEvent(reloadExportHistoryBtn, (e) -> { updateExportHistory(); });
+	    	    
+	    exportHistoryText = new StyledText(serverExportComposite, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER | SWT.V_SCROLL);
+	    exportHistoryText.setLayoutData(new GridData(GridData.FILL_BOTH));
+	    updateExportHistory();
 	    
 	    serverExportItem.setControl(serverExportComposite);
 	    updateServerExportLabel();
@@ -613,7 +642,7 @@ public class CommonExportDialog extends Dialog {
 //	    sc.setExpandHorizontal(true);
 //	    sc.setExpandVertical(true);
 	    
-	    sf1.setWeights(new int[] {25, 75});
+	    sf1.setWeights(new int[] {30, 70});
 	    
 //	    Composite fixedButtons = new Composite(shell,SWT.NONE);
 //	    fixedButtons.setLayout(new GridLayout(1,false));
@@ -676,6 +705,62 @@ public class CommonExportDialog extends Dialog {
 //				updateSelectedPages();
 //			}
 //		});
+	}
+	
+	private void updateExportHistory() {
+		new Thread() {
+			public void run() {
+				logger.debug("refreshing export history...");
+				Storage store = Storage.getInstance();
+				
+				final String txt;
+				final List<StyleRange> styleRanges = new ArrayList<>();
+				
+				if (store != null && store.isLoggedIn()) {
+					String txtTmp = "";
+					try {
+						List<TrpJobStatus> jobs = store.getConnection().getJobs(false, TrpJobStatus.FINISHED, "Export Document", null, 0, 0, null, null);
+						logger.debug("got finished export jobs: "+jobs.size());
+						
+//						int i=0;
+						for (TrpJobStatus job : jobs) {
+							if (job.getEnded() == null)
+								continue;
+							
+							long tdiff = System.currentTimeMillis() - job.getEnded().getTime();
+							if (tdiff > 1000*60*60*24*14) { // only list jobs finished in the last two weeks (else: download link expired!)
+								continue;
+							}
+							txtTmp += "id: "+job.getJobId()+", finished: "+job.getEndTimeFormatted()+", link: ";
+							
+							// add link
+							int start = txtTmp.length();
+							txtTmp += job.getResult()+"\n";
+							StyleRange sr = new StyleRange();
+							sr.underlineStyle = SWT.UNDERLINE_LINK; // FIXME: does not work...
+							sr.data = job.getResult();
+							sr.start = start;
+							sr.length = StringUtils.length(job.getResult());
+							sr.fontStyle = SWT.BOLD;
+							styleRanges.add(sr);
+						}
+					} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+							| IllegalArgumentException e) {
+						logger.error(e.getMessage(), e);
+						txtTmp = "Error retrieving jobs: "+e.getMessage();
+					} finally {
+						txt = txtTmp;
+					}
+				} else {
+					txt = "";
+				}
+				
+				Display.getDefault().asyncExec(() -> {
+					exportHistoryText.setText(txt);
+					exportHistoryText.setStyleRanges(styleRanges.toArray(new StyleRange[0]));
+				});
+			}
+		}.start();
 	}
 	
 	private void updateServerExportLabel() {
