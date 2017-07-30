@@ -143,6 +143,7 @@ public class StructureTreeDropAdapter extends ViewerDropAdapter {
 //		int newRo = 0;
 		
 		// check geometric overlap:
+		if (false) {
 		if (targetSt instanceof TrpWordType || targetSt instanceof TrpTextLineType) {
 			boolean hasOverlap = false;
 			
@@ -165,6 +166,7 @@ public class StructureTreeDropAdapter extends ViewerDropAdapter {
 				}
 			}
 		} // end check geometrical overlap
+		}
 
 		Iterator<ITrpShapeType> selectedIt = sel.iterator();
 		switch (location) {
