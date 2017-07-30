@@ -237,6 +237,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	private MenuItem alignmentMenuItem;
 	private DropDownToolItemSimple transcriptSetsDropDown;
 	private MenuItem toolBarOnTopItem;
+	private MenuItem focusShapesAccordingToTextAlignmentItem;
 	
 	ToolItem boldTagItem;
 	ToolItem italicTagItem;
@@ -766,6 +767,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		centerCurrentLineItem = ti.addItem("Always try to show a line above and below the selected one", Images.getOrLoad("/icons/arrow_up_down.png"), SWT.CHECK);
 		focusShapeOnDoubleClickInTranscriptionWidgetItem = ti.addItem("Focus shape on double-click", Images.getOrLoad("/icons/mouse_focus.png"), SWT.CHECK);
 		toolBarOnTopItem = ti.addItem("Display toolbar on top", null, SWT.CHECK);
+		focusShapesAccordingToTextAlignmentItem = ti.addItem("Focus shapes according to text alignment", null, SWT.CHECK);
 		
 		alignmentMenuItem = ti.addItem("Text alignment", Images.getOrLoad("/icons/text_align_left.png"), SWT.CASCADE);
 		Menu textAlignmentMenu = new Menu(ti.getMenu());
@@ -1939,6 +1941,8 @@ public abstract class ATranscriptionWidget extends Composite{
 				settings, focusShapeOnDoubleClickInTranscriptionWidgetItem);
 		
 		db.bindBeanToWidgetSelection(TrpSettings.TRANSCRIPTION_TOOLBAR_ON_TOP_PROPERTY, settings, toolBarOnTopItem);
+		
+		db.bindBeanToWidgetSelection(TrpSettings.FOCUS_SHAPES_ACCORDING_TO_TEXT_ALIGNMENT, settings, focusShapesAccordingToTextAlignmentItem);
 		
 		db.bindBeanToWidgetSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, TrpMainWidget.getTrpSettings(), autocompleteToggle);
 	}
