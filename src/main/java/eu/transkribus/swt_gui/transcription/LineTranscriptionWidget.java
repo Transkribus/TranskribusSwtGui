@@ -103,11 +103,12 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 	}
 	
 	private void preventDelAndBackspace(VerifyEvent e) {
-		boolean isSingleSelect = (e.start == e.end);
+		// one char max between start and end
+		boolean isSingleSelect = (e.end - e.start < 2); // (e.start == e.end);
 		
 		// prevent backspace on start of line
 		int xIndex = getCurrentXIndex();
-		if (lastKeyCode == SWT.BS && xIndex == 0 && isSingleSelect) { 
+		if (lastKeyCode == SWT.BS && xIndex == 0 && isSingleSelect && e.text.equals("")) { 
 			logger.debug("preventing bs");
 			e.doit = false;
 			return;
@@ -115,7 +116,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		
 		// prevent del on end of line
 		int lineLength = text.getLine(text.getLineAtOffset(text.getCaretOffset())).length();
-		if (lastKeyCode == SWT.DEL && xIndex == lineLength && isSingleSelect) { 
+		if (lastKeyCode == SWT.DEL && xIndex == lineLength && isSingleSelect && e.text.equals("")) { 
 			logger.debug("preventing del");
 			e.doit = false;
 			return;
@@ -411,6 +412,9 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 			@Override
 			public void verifyText(VerifyEvent e) {
 
+				//TODO:FIXME take out!
+				logger.debug("verifyText() "+e.keyCode + ": "+e.character + " - "+ e.text);
+				
 				// prevent del and backspace on begin and end of line:
 				preventDelAndBackspace(e);
 				if (e.doit == false)
@@ -520,6 +524,9 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 						callCattiMethod(CattiMethod.REJECT_SUFFIX, 0, 0, null);
 					}
 				}
+				
+				//TODO:FIXME take out!
+				logger.debug("verifyKey() "+e.keyCode + ": "+e.character + " - "+ e.text);
 				
 				// VERY OLD SHIT:
 //				boolean isSingleSelect = (e.start == e.end);
