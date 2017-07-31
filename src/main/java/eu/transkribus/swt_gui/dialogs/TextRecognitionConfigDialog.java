@@ -34,9 +34,12 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYPointerAnnotation;
 import org.jfree.chart.axis.LogAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.TickUnits;
@@ -67,6 +70,15 @@ public class TextRecognitionConfigDialog extends Dialog {
 
 	private static final String NOT_AVAILABLE = "N/A";
 	
+	private static final String[] CITLAB_TRAIN_PARAMS = {
+			CitLabHtrTrainConfig.NUM_EPOCHS_KEY,
+			CitLabHtrTrainConfig.LEARNING_RATE_KEY,
+			CitLabHtrTrainConfig.NOISE_KEY,
+			CitLabHtrTrainConfig.TRAIN_SIZE_KEY,
+			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY,
+			CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY
+		};
+	
 	private Storage store = Storage.getInstance();
 	
 	private CTabFolder folder;
@@ -75,8 +87,9 @@ public class TextRecognitionConfigDialog extends Dialog {
 	private Group dictGrp;
 	
 	private HtrTableWidget htw;
-	private Text nameTxt, langTxt, descTxt, paramTxt, nrOfLinesTxt, nrOfWordsTxt, 
+	private Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, 
 		finalTrainCerTxt, finalTestCerTxt;
+	private Table paramTable;
 	private Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
 	private ChartComposite jFreeChartComp;
 	
@@ -226,9 +239,14 @@ public class TextRecognitionConfigDialog extends Dialog {
 		// TODO possibly descTxt and paramTxt should have x/y scroll functionality?
 		descTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP);
 		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		paramTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP);
-		paramTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
+		paramTable = new Table(mdComp, SWT.BORDER);
+		paramTable.setHeaderVisible(false);
+	    TableColumn paramCol = new TableColumn(paramTable, SWT.NONE);
+	    paramCol.setText("Parameter");
+	    TableColumn valueCol = new TableColumn(paramTable, SWT.NONE);
+		valueCol.setText("Value");
+		paramTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+	    
 		Label nrOfWordsLbl = new Label(mdComp, SWT.NONE);
 		nrOfWordsLbl.setText("Nr. of Words:");
 		Label nrOfLinesLbl = new Label(mdComp, SWT.NONE);
@@ -399,8 +417,8 @@ public class TextRecognitionConfigDialog extends Dialog {
 		nrOfWordsTxt.setText(htr.getNrOfWords() > 0 ? ""+htr.getNrOfWords() : NOT_AVAILABLE);
 		nrOfLinesTxt.setText(htr.getNrOfLines() > 0 ? ""+htr.getNrOfLines() : NOT_AVAILABLE);
 		
-		final String params = layoutParams(htr.getParamsProps());
-		paramTxt.setText(params.isEmpty() ? NOT_AVAILABLE : params);
+		updateParamTable(htr.getParamsProps());
+		
 		
 		charSetTitle = "Character Set of Model: " + htr.getName();
 		charSet = htr.getCharList() == null || htr.getCharList().isEmpty() ? NOT_AVAILABLE : htr.getCharList();
@@ -414,34 +432,31 @@ public class TextRecognitionConfigDialog extends Dialog {
 		
 		final double[] cerTrainSetVals = HtrCITlabUtils.parseCitlabCerString(htr.getCerString());
 		final double[] cerTestSetVals = HtrCITlabUtils.parseCitlabCerString(htr.getCerTestString());
-		updateChart(cerTrainSetVals, cerTestSetVals);
+		updateChart(cerTrainSetVals, cerTestSetVals, htr.isBestNetStored());
 		finalTrainCerTxt.setText(HtrCITlabUtils.printLastCerPercentage(cerTrainSetVals));
 		finalTestCerTxt.setText(HtrCITlabUtils.printLastCerPercentage(cerTestSetVals));
 	}
 
-	private String layoutParams(Properties p) {
-		if(p.isEmpty()) {
-			return "";
+	private void updateParamTable(Properties paramsProps) {
+		paramTable.removeAll();
+		if(paramsProps.isEmpty()) {
+			TableItem item = new TableItem(paramTable, SWT.NONE);
+			item.setText(0, NOT_AVAILABLE);
+			item.setText(1, NOT_AVAILABLE);
+		} else {
+			for(String s : CITLAB_TRAIN_PARAMS) {
+				if(paramsProps.containsKey(s)) {
+					TableItem item = new TableItem(paramTable, SWT.NONE);
+					item.setText(0, s + " ");
+					item.setText(1, paramsProps.getProperty(s));
+				}
+			}
 		}
-		String res = "";
-		res += CitLabHtrTrainConfig.NUM_EPOCHS_KEY + ":\t\t\t" 
-				+ p.getProperty(CitLabHtrTrainConfig.NUM_EPOCHS_KEY) + "\n";
-		res += CitLabHtrTrainConfig.LEARNING_RATE_KEY + ":\t\t\t" 
-				+ p.getProperty(CitLabHtrTrainConfig.LEARNING_RATE_KEY) + "\n";
-		res += CitLabHtrTrainConfig.NOISE_KEY + ":\t\t\t\t"
-				+ p.getProperty(CitLabHtrTrainConfig.NOISE_KEY) + "\n";
-		res += CitLabHtrTrainConfig.TRAIN_SIZE_KEY + ":\t"
-				+ p.getProperty(CitLabHtrTrainConfig.TRAIN_SIZE_KEY) + "\n";
-		if(p.containsKey(CitLabHtrTrainConfig.BASE_MODEL_ID_KEY)) {
-			res += CitLabHtrTrainConfig.BASE_MODEL_ID_KEY + ":\t"
-					+ p.getProperty(CitLabHtrTrainConfig.BASE_MODEL_ID_KEY) + "\n";
-			res += CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY + ":\t"
-					+ p.getProperty(CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY);
-		}
-		return res;
+		paramTable.getColumn(0).pack();
+		paramTable.getColumn(1).pack();
 	}
 
-	private void updateChart(double[] cerTrainSetVals, double[] cerTestSetVals) {
+	private void updateChart(double[] cerTrainSetVals, double[] cerTestSetVals, boolean bestNetIsStored) {
 		
 		
 		XYSeriesCollection dataset = new XYSeriesCollection();
@@ -449,9 +464,16 @@ public class TextRecognitionConfigDialog extends Dialog {
 		final String cerTrainKey = "CER Train";
 		XYSeries series = new XYSeries(cerTrainKey);
 		series.setDescription(cerTrainKey);
+		
+		double trainMin = 100;
+		int bestEpoch = 0;
 	    for(int i = 0; i < cerTrainSetVals.length; i++) {
 	    	double val = cerTrainSetVals[i];
 	    	series.add(i+1, val);
+	    	if(val < trainMin) {
+	    		trainMin = val;
+	    		bestEpoch = i+1;
+	    	}
 	    }
 		dataset.addSeries(series);	
 		
@@ -465,7 +487,18 @@ public class TextRecognitionConfigDialog extends Dialog {
 		    }
 			dataset.addSeries(testSeries);	
 		}
-
+		
+		//Create an annotation representing the stored net
+		XYPointerAnnotation annot;
+		final String annotLabel = "Stored HTR";
+		if(htr.isBestNetStored()) {
+			annot = new XYPointerAnnotation(annotLabel, bestEpoch, trainMin, trainMin < 50 ? 180 : 90);
+		} else {				
+			final double finalCerVal = cerTrainSetVals[cerTrainSetVals.length-1];
+			annot = new XYPointerAnnotation(annotLabel, cerTrainSetVals.length, finalCerVal, finalCerVal < 50 ? 180 : 90);
+		}
+		annot.setTipRadius(2);
+				
 		JFreeChart chart = ChartFactory.createXYLineChart(
 				"Character Error Rate", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, true, true, false);
 
@@ -477,6 +510,9 @@ public class TextRecognitionConfigDialog extends Dialog {
 		plot.setRangeAxis(logAxis);
 		plot.getRenderer().setSeriesPaint(0, Color.BLUE);
 		plot.getRenderer().setSeriesPaint(1, Color.RED);
+		if(cerTrainSetVals.length > 1) {
+			plot.addAnnotation(annot);
+		}
 		jFreeChartComp.setChart(chart);
 		chart.fireChartChanged();
 	}
