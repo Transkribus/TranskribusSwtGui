@@ -494,5 +494,6 @@ CHANGES AND BUGFIXES
 	-> do not check for local autosaves by default; introduce additional save dropdown where autosaves can be loaded explicitly
 	-> show history of finished server exports not older than 2 weeks in export dialog
 	-> bugfix: merging baselines (issue TranskribusSwtGui#21)
+	-> align shapes in canvas according to text alignment (enable via transcription widget toolbar)
 	
 	
