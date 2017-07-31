@@ -269,7 +269,11 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean checkForNewerAutosaveFile = false;
 	public static final String CHECK_FOR_NEWER_AUTO_SAVE_FILE = "checkForNewerAutosaveFile";
 	
+	private boolean focusShapesAccordingToTextAlignment = false;
+	public static final String FOCUS_SHAPES_ACCORDING_TO_TEXT_ALIGNMENT = "focusShapesAccordingToTextAlignment";
 	
+	private int textAlignment = SWT.LEFT; // SWT.LEFT, SWT.RIGHT or SWT.CENTER
+	public static final String TEXT_ALIGNMENT = "textAlignment";
 	
 	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 	}};
@@ -953,6 +957,28 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setCheckForNewerAutosaveFile(boolean checkForNewerAutosaveFile) {
 		this.checkForNewerAutosaveFile = checkForNewerAutosaveFile;
 		firePropertyChange(CHECK_FOR_NEWER_AUTO_SAVE_FILE, !this.checkForNewerAutosaveFile, this.checkForNewerAutosaveFile);
+	}
+
+	public boolean isFocusShapesAccordingToTextAlignment() {
+		return focusShapesAccordingToTextAlignment;
+	}
+
+	public void setFocusShapesAccordingToTextAlignment(boolean focusShapesAccordingToTextAlignment) {
+		this.focusShapesAccordingToTextAlignment = focusShapesAccordingToTextAlignment;
+		firePropertyChange(FOCUS_SHAPES_ACCORDING_TO_TEXT_ALIGNMENT, !this.focusShapesAccordingToTextAlignment, this.focusShapesAccordingToTextAlignment);
+	}
+
+	public int getTextAlignment() {
+		return textAlignment;
+	}
+
+	public void setTextAlignment(int textAlignment) {
+		int old = this.textAlignment;
+		if (textAlignment != SWT.LEFT && textAlignment != SWT.RIGHT && textAlignment != SWT.CENTER)
+			textAlignment = SWT.LEFT;
+		
+		this.textAlignment = textAlignment;
+		firePropertyChange(TEXT_ALIGNMENT, old, this.textAlignment);
 	}
 
 	public boolean getTranscriptionToolbarOnTop() {

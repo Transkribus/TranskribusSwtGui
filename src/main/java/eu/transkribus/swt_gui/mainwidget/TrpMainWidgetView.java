@@ -49,7 +49,7 @@ import eu.transkribus.swt_gui.doc_overview.DocMetadataEditor;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBar;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
-import eu.transkribus.swt_gui.metadata.PageMetadataWidget;
+import eu.transkribus.swt_gui.metadata.StructuralMetadataWidget;
 import eu.transkribus.swt_gui.metadata.TaggingWidget;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidget;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget;
@@ -79,7 +79,7 @@ public class TrpMainWidgetView extends Composite {
 	
 //	JobTableWidgetPagination jobOverviewWidget;
 //	TranscriptsTableWidgetPagination versionsWidget;
-	PageMetadataWidget structuralMdWidget;
+	StructuralMetadataWidget structuralMdWidget;
 	TextStyleTypeWidget textStyleWidget;
 	
 //	public static boolean SHOW_NEW_TW = true;
@@ -242,7 +242,7 @@ public class TrpMainWidgetView extends Composite {
 		docMetadataEditor = new DocMetadataEditor(tabWidget.metadataTf, 0);
 		tabWidget.docMdItem.setControl(docMetadataEditor);
 
-		structuralMdWidget = new PageMetadataWidget(tabWidget.metadataTf, SWT.TOP);
+		structuralMdWidget = new StructuralMetadataWidget(tabWidget.metadataTf, SWT.TOP);
 		tabWidget.structuralMdItem.setControl(structuralMdWidget);
 		
 		textStyleWidget = new TextStyleTypeWidget(tabWidget.metadataTf, SWT.TOP);
@@ -769,7 +769,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	//public ToolItem getLoginToggle() { return loginToggle; }
 	
-	public PageMetadataWidget getStructuralMetadataWidget() { return structuralMdWidget; }
+	public StructuralMetadataWidget getStructuralMetadataWidget() { return structuralMdWidget; }
 	public ToolsWidget getToolsWidget() { return toolsWidget; }
 		
 	public void updateLoginInfo(boolean loggedIn, String username, String server) {

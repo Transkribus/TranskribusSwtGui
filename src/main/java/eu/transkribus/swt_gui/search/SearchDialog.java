@@ -14,7 +14,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
@@ -92,9 +91,7 @@ public class SearchDialog extends Dialog {
 		kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS (Demo)");
 		}
-		
-		SebisStopWatch.SW.stop(true, "h4: ");
-		
+
 		return c;
 	}
 	

@@ -55,7 +55,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 	
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
-	PageMetadataWidget mw;
+	StructuralMetadataWidget mw;
 //	TextStyleTypeWidget tw;
 	SWTCanvas canvas;
 	TrpSettings settings;
@@ -176,18 +176,18 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		else if (s == mw.getLinkList() || s == mw.getDeleteLinkMenuItem() || s == mw.getBreakLinkBtn()) {
 			org.eclipse.swt.widgets.List linkList = mw.getLinkList();
 			if (linkList.getSelectionCount()==1) {
-				String[] splits = linkList.getSelection()[0].split(PageMetadataWidget.LINK_DELIMITER);
+				String[] splits = linkList.getSelection()[0].split(StructuralMetadataWidget.LINK_DELIMITER);
 				String id1 = splits[0].trim();
 				String id2 = splits[1].trim();
 				
 				if (s == mw.getDeleteLinkMenuItem() || s == mw.getBreakLinkBtn()) {
-					logger.debug("deleting link "+id1+PageMetadataWidget.LINK_DELIMITER+id2+", hasLink = "+ page.hasLink(id1, id2));
+					logger.debug("deleting link "+id1+StructuralMetadataWidget.LINK_DELIMITER+id2+", hasLink = "+ page.hasLink(id1, id2));
 					
 					if (page.removeLink(id1, id2)) {
 						mainWidget.updatePageRelatedMetadata();
 					}
 				} else if (s == mw.getLinkList()) {
-					logger.debug("selecting link "+id1+PageMetadataWidget.LINK_DELIMITER+id2+", hasLink = "+ page.hasLink(id1, id2));
+					logger.debug("selecting link "+id1+StructuralMetadataWidget.LINK_DELIMITER+id2+", hasLink = "+ page.hasLink(id1, id2));
 					
 					RelationType r = page.getLink(id1, id2);
 					if (r!=null) {
