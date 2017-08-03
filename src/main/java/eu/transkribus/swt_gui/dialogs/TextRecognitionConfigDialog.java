@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.awt.Color;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,8 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYPointerAnnotation;
 import org.jfree.chart.axis.LogAxis;
+import org.jfree.chart.axis.LogarithmicAxis;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.TickUnits;
 import org.jfree.chart.plot.PlotOrientation;
@@ -500,14 +503,24 @@ public class TextRecognitionConfigDialog extends Dialog {
 		annot.setTipRadius(2);
 				
 		JFreeChart chart = ChartFactory.createXYLineChart(
-				"Character Error Rate", "Epochs", "CER", dataset, PlotOrientation.VERTICAL, true, true, false);
+				"Learning Curve", "Epochs", "Accuracy in CER", dataset, PlotOrientation.VERTICAL, true, true, false);
 
 		XYPlot plot = (XYPlot)chart.getPlot();
-		LogAxis logAxis = new LogAxis("CER");
-		TickUnits tickUnits = new TickUnits();
-		tickUnits.add(new NumberTickUnit(0.1, NumberFormat.getPercentInstance()));
-		logAxis.setStandardTickUnits(tickUnits);//NumberAxis.createStandardTickUnits());
-		plot.setRangeAxis(logAxis);
+		
+		NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+		DecimalFormat pctFormat = new DecimalFormat("#%");
+	    rangeAxis.setNumberFormatOverride(pctFormat); 
+		rangeAxis.setRange(0.0, 1.0);
+		
+		//this once worked with old version swt-jfreechart...
+//		LogAxis logAxis = new LogAxis("CER");
+//		logAxis.setRange(0, 100);
+//		TickUnits tickUnits = new TickUnits();
+//		tickUnits.add(new NumberTickUnit(5, NumberFormat.getPercentInstance()));
+//		logAxis.setStandardTickUnits(tickUnits);
+//		//logAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits());
+//		plot.setRangeAxis(logAxis);
+		
 		plot.getRenderer().setSeriesPaint(0, Color.BLUE);
 		plot.getRenderer().setSeriesPaint(1, Color.RED);
 		if(cerTrainSetVals.length > 1) {
