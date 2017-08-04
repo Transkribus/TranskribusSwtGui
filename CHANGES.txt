@@ -495,5 +495,8 @@ CHANGES AND BUGFIXES
 	-> show history of finished server exports not older than 2 weeks in export dialog
 	-> bugfix: merging baselines (issue TranskribusSwtGui#21)
 	-> align shapes in canvas according to text alignment (enable via transcription widget toolbar)
-	
+	-> HTR CER chart: tick-units fixed on y-axis, annotation for stored HTR, minor changes
+	-> crowdProject management
+1.3.4
+	-> fix NullpointerException in TrpMessageDialog	
 	
