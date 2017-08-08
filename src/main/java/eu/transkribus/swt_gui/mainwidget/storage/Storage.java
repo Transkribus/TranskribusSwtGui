@@ -1441,7 +1441,7 @@ public class Storage {
 			
 			conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
 					(remoteIndices.get(i)+1), EditStatus.IN_PROGRESS,
-					tmd.unmarshallTranscript(), tmd.getTsId(), null);
+					tmd.unmarshallTranscript(), tmd.getTsId(), "synched from local doc");
 
 			if (monitor != null)
 				monitor.worked(++worked);
