@@ -201,7 +201,7 @@ public class TrpMessageDialog extends Dialog {
 	
 	private void updateSize() {
 		Point size;
-		if (ec.isExpanded() == true) {
+		if (ec != null && ec.isExpanded() == true) {
 			size = getShell().computeSize(SWT.DEFAULT, getMaxHeight());
 		} else {
 			size = getShell().computeSize(SWT.DEFAULT, getMinHeight());

@@ -344,7 +344,7 @@ public class SWTCanvas extends Canvas {
 
 	public void fitToPage() {
 		transform.identity();
-		focusBounds(scene.getBounds(), false, false, 0.0f, false);
+		focusBounds(scene.getBounds(), false, 0, false, 0.0f, false);
 		// after zoomToBounds, image will be centered, but we want it at the
 		// top-left corner:
 		// transform.setTranslation(0, 0);
@@ -353,7 +353,7 @@ public class SWTCanvas extends Canvas {
 
 	public void fitWidth() {
 		// transform.identity();
-		focusBounds(new Rectangle(0, 0, scene.getBounds().width, 1), false,
+		focusBounds(new Rectangle(0, 0, scene.getBounds().width, 1), false, 0,
 				false, 0.0f, false);
 		// after zoomToBounds, image will be centered, but we want it at the
 		// top-left corner:
@@ -363,7 +363,7 @@ public class SWTCanvas extends Canvas {
 
 	public void fitHeight() {
 		// transform.identity();
-		focusBounds(new Rectangle(0, 0, 1, scene.getBounds().height), false,
+		focusBounds(new Rectangle(0, 0, 1, scene.getBounds().height), false, 0,
 				false, 0.0f, false);
 		// after zoomToBounds, image will be centered, but we want it at the
 		// top-left corner:
@@ -372,7 +372,7 @@ public class SWTCanvas extends Canvas {
 	}
 
 	public void focusBounds(Rectangle bounds) {
-		focusBounds(bounds, true, settings.isDoTransition(), 0.0f,
+		focusBounds(bounds, true, SWT.CENTER, settings.isDoTransition(), 0.0f,
 				settings.isLockZoomOnFocus());
 	}
 
@@ -409,11 +409,14 @@ public class SWTCanvas extends Canvas {
 		return Pair.of(scaleToWidth, sf);
 	}
 
-	public void focusBounds(Rectangle bounds, boolean doCentering,
+	public void focusBounds(Rectangle bounds, boolean doCentering, int xAlignment,
 			boolean doTransition, float angle, boolean keepOriginalZoom) {
 		if (bounds.width == 0.0f || bounds.height == 0.0f) {
 			return;
 		}
+		
+		if (xAlignment != SWT.LEFT && xAlignment != SWT.CENTER && xAlignment != SWT.RIGHT)
+			xAlignment = SWT.CENTER;
 
 		// transformCopy.copyElements(transform);
 		transformCopy.identity();
@@ -465,14 +468,20 @@ public class SWTCanvas extends Canvas {
 		transformCopy.scale(sfX, sfY);
 
 		// do centering of bounds if desired:
-		if (doCentering) {
+		if (doCentering && true) {
 			if (!keepOriginalZoom || true) {
-				if (scaleToWidth) { // center image at height
+				if (scaleToWidth) { // center image at height -> no xAlignment adjustement needed!
 					transformCopy.translate(-bounds.x, clientRect.height / sfY
 							/ (2.0f) - (bounds.y + bounds.height / 2.0f));
-				} else { // center image at width
-					transformCopy.translate(clientRect.width / sfX / (2.0f)
-							- (bounds.x + bounds.width / 2.0f), -bounds.y);
+				} else { // center image at width -> respect xAlignment parameter!
+					if (xAlignment == SWT.LEFT) {
+						transformCopy.translate(-bounds.x, -bounds.y);
+					} else if (xAlignment == SWT.CENTER) {
+						transformCopy.translate(clientRect.width / sfX / (2.0f)
+								- (bounds.x + bounds.width / 2.0f), -bounds.y);
+					} else if (xAlignment == SWT.RIGHT) {
+						transformCopy.translate(clientRect.width / sfX - bounds.x - bounds.width, -bounds.y);
+					}
 				}
 			} else
 				// keeping original zoom -> center image at height TODO:
@@ -1365,10 +1374,11 @@ public class SWTCanvas extends Canvas {
 		java.awt.Rectangle focusBounds = sel.getBounds();
 		int offsetX = scene.getBounds().width / 15;
 		int offsetY = scene.getBounds().height / 15;
+		boolean isRegion = false;
 		
 		// set some offset depending on focused shape:
-		if (sel.getData() instanceof TrpTableCellType) { // focus on parent table for cells
-			// focus on baseline with greatest with in table cell or cell region itslef if no line present			
+		if (sel.getData() instanceof TrpTableCellType) {
+			// focus on baseline with greatest width in table cell or cell region itslef if no line present			
 			ICanvasShape zoomShape = sel;
 			
 			Optional<ICanvasShape> max = sel.getChildren(false).stream().max(new Comparator<ICanvasShape>() {
@@ -1403,8 +1413,7 @@ public class SWTCanvas extends Canvas {
 			logger.debug("focus on word");
 			if (sel.getParent()!=null) { // focus on parent (= line) if its there (which it should be)
 				focusBounds = sel.getParent().getBounds();
-				offsetX = 10;
-				offsetY = scene.getBounds().height / 15;				
+				offsetY = scene.getBounds().height / 15;		
 			} else {
 				offsetX = scene.getBounds().width / 10;
 				offsetY = scene.getBounds().height / 15;
@@ -1414,6 +1423,7 @@ public class SWTCanvas extends Canvas {
 			logger.debug("focus on region");
 			offsetX = 10;
 			offsetY = 10;
+			isRegion = true;
 		} 
 		
 		// correct angle:	
@@ -1422,9 +1432,26 @@ public class SWTCanvas extends Canvas {
 		if (Math.abs(angle) < FOCUS_ANGLE_THRESHOLD) { // if angle is below a threshold, do no correct!
 			angle = 0.0f;
 		}
-			
-		Rectangle br = new Rectangle(focusBounds.x-offsetX, focusBounds.y-offsetY, focusBounds.width+2*offsetX, focusBounds.height+2*offsetY);	
-		focusBounds(br, true, settings.isDoTransition(), -(float)MathUtil.radToDeg(angle), settings.isLockZoomOnFocus());
+		
+		int lo = offsetX;
+		int ro = offsetX;
+		
+		// adjust left or right offset according to text alignment if settings has been turned on and this is not a region
+		int xAlignment = SWT.CENTER;
+		TrpSettings sets = TrpConfig.getTrpSettings();
+		if (!isRegion && sets.isFocusShapesAccordingToTextAlignment()) {
+			xAlignment = sets.getTextAlignment();
+			if (sets.getTextAlignment() == SWT.LEFT) {
+				lo = 5;
+			} else if (sets.getTextAlignment() == SWT.RIGHT) {
+				ro = 5;
+			}
+		}
+		
+		//ro = lo = 0;
+
+		Rectangle br = new Rectangle(focusBounds.x-lo, focusBounds.y-offsetY, focusBounds.width+lo+ro, focusBounds.height+2*offsetY);
+		focusBounds(br, true, xAlignment, settings.isDoTransition(), -(float)MathUtil.radToDeg(angle), settings.isLockZoomOnFocus());
 	}	
 
 	// ORIG:

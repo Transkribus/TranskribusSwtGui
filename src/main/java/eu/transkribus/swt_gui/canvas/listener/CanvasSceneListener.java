@@ -783,6 +783,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				
 				// if merged shapes were lines -> merge baselines also!
 				if (mergedSt instanceof TrpTextLineType) {
+					Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>(false)); // sort lines by XY coordinates!
 					logger.debug("baseline merge - n-merged shapes: "+trpMergedShapes.size());
 					TrpTextLineType mergedTl = (TrpTextLineType) mergedSt;
 					

@@ -176,7 +176,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected List<ToolItem> additionalToolItems = new ArrayList<>();
 
 	protected StyledText text;
-	protected int textAlignment = SWT.LEFT;
+//	protected int textAlignment = SWT.LEFT;
 	
 	protected TrpTextRegionType currentRegionObject=null;
 //	protected TrpRegionType currentRegionObject=null;
@@ -237,6 +237,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	private MenuItem alignmentMenuItem;
 	private DropDownToolItemSimple transcriptSetsDropDown;
 	private MenuItem toolBarOnTopItem;
+	private MenuItem focusShapesAccordingToTextAlignmentItem;
 	
 	ToolItem boldTagItem;
 	ToolItem italicTagItem;
@@ -402,13 +403,13 @@ public abstract class ATranscriptionWidget extends Composite{
 		if (getWritingOrientation() == WritingOrientation.LEFT_TO_RIGHT) {
 			text.removeExtendedModifyListener(rightToLeftModifyListener);
 			
-			textAlignment = SWT.LEFT;
+			settings.setTextAlignment(SWT.LEFT);
 			leftAlignmentItem.setSelection(true);
 			rightAlignmentItem.setSelection(false);
 		} else if (getWritingOrientation() == WritingOrientation.RIGHT_TO_LEFT) {
 			text.addExtendedModifyListener(rightToLeftModifyListener);
 			
-			textAlignment = SWT.RIGHT;
+			settings.setTextAlignment(SWT.RIGHT);
 			leftAlignmentItem.setSelection(false);
 			rightAlignmentItem.setSelection(true);			
 		}
@@ -766,15 +767,22 @@ public abstract class ATranscriptionWidget extends Composite{
 		centerCurrentLineItem = ti.addItem("Always try to show a line above and below the selected one", Images.getOrLoad("/icons/arrow_up_down.png"), SWT.CHECK);
 		focusShapeOnDoubleClickInTranscriptionWidgetItem = ti.addItem("Focus shape on double-click", Images.getOrLoad("/icons/mouse_focus.png"), SWT.CHECK);
 		toolBarOnTopItem = ti.addItem("Display toolbar on top", null, SWT.CHECK);
+		focusShapesAccordingToTextAlignmentItem = ti.addItem("Focus shapes according to text alignment", null, SWT.CHECK);
 		
-		textAlignment = SWT.LEFT;
 		alignmentMenuItem = ti.addItem("Text alignment", Images.getOrLoad("/icons/text_align_left.png"), SWT.CASCADE);
 		Menu textAlignmentMenu = new Menu(ti.getMenu());
 		alignmentMenuItem.setMenu(textAlignmentMenu);
 		leftAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Left", Images.getOrLoad("/icons/text_align_left.png"), SWT.RADIO);
-		leftAlignmentItem.setSelection(true);
 		centerAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Center", Images.getOrLoad("/icons/text_align_center.png"), SWT.RADIO);
 		rightAlignmentItem = SWTUtil.createMenuItem(textAlignmentMenu, "Right", Images.getOrLoad("/icons/text_align_right.png"), SWT.RADIO);
+		if (settings.getTextAlignment() == SWT.LEFT)
+			leftAlignmentItem.setSelection(true);
+		else if (settings.getTextAlignment() == SWT.RIGHT)
+			rightAlignmentItem.setSelection(true);
+		else if (settings.getTextAlignment() == SWT.CENTER)
+			centerAlignmentItem.setSelection(true);
+		else
+			leftAlignmentItem.setSelection(true);
 		
 		textStyleDisplayOptions = ti.addItem("Rendered tag styles", Images.getOrLoad("/icons/paintbrush.png"), SWT.CASCADE);
 		Menu textStyleDisplayOptionsMenu = new Menu(ti.getMenu());
@@ -1152,7 +1160,7 @@ public abstract class ATranscriptionWidget extends Composite{
 				
 				text.setLineBullet(i, 1, bullet);
 				text.setLineIndent(i, 1, 25);
-				text.setLineAlignment(i, 1, textAlignment);
+				text.setLineAlignment(i, 1, settings.getTextAlignment());
 				text.setLineWrapIndent(i, 1, 25+style.metrics.width);
 			}
 			
@@ -1934,6 +1942,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		db.bindBeanToWidgetSelection(TrpSettings.TRANSCRIPTION_TOOLBAR_ON_TOP_PROPERTY, settings, toolBarOnTopItem);
 		
+		db.bindBeanToWidgetSelection(TrpSettings.FOCUS_SHAPES_ACCORDING_TO_TEXT_ALIGNMENT, settings, focusShapesAccordingToTextAlignmentItem);
+		
 		db.bindBeanToWidgetSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, TrpMainWidget.getTrpSettings(), autocompleteToggle);
 	}
 	
@@ -1952,12 +1962,11 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	protected void updateTextAlignment() {
 		if (leftAlignmentItem.getSelection()) {
-			textAlignment = SWT.LEFT;
+			settings.setTextAlignment(SWT.LEFT);
 		} else if (centerAlignmentItem.getSelection()) {
-			textAlignment = SWT.CENTER;
-			
+			settings.setTextAlignment(SWT.CENTER);
 		} else if (rightAlignmentItem.getSelection()) {
-			textAlignment = SWT.RIGHT;
+			settings.setTextAlignment(SWT.RIGHT);
 		}
 		
 		sendDefaultSelectionChangedSignal(false);

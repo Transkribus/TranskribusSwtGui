@@ -4,10 +4,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.codec.binary.StringUtils;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.TransferData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +23,10 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.util.GuiUtil;
 
 public class StructureTreeDropAdapter extends ViewerDropAdapter {
 	private static final Logger logger = LoggerFactory.getLogger(StructureTreeDropAdapter.class);
@@ -33,6 +38,18 @@ public class StructureTreeDropAdapter extends ViewerDropAdapter {
 	public StructureTreeDropAdapter(TreeViewer treeViewer) {
 		super(treeViewer);
 		this.treeViewer = treeViewer;
+	}
+
+	private boolean hasGeometricOverlap(ITrpShapeType targetSt, ITrpShapeType st) {
+		ICanvasShape targetShape = GuiUtil.getCanvasShape(targetSt);
+		ICanvasShape shape = GuiUtil.getCanvasShape(st);
+		if (targetShape == null || shape == null)
+			return false;
+		
+		double intersectionArea = targetShape.intersectionArea(shape);
+		
+		logger.debug("intersectionArea = "+intersectionArea);
+		return intersectionArea > 0;
 	}
 	
 	private void insertElement(IStructuredSelection selected, ITrpShapeType targetSt, List<?> targetList, boolean insertBefore) {
@@ -124,9 +141,34 @@ public class StructureTreeDropAdapter extends ViewerDropAdapter {
 		
 		int location = this.determineLocation(getCurrentEvent());					
 //		int newRo = 0;
+		
+		// check geometric overlap:
+		if (false) {
+		if (targetSt instanceof TrpWordType || targetSt instanceof TrpTextLineType) {
+			boolean hasOverlap = false;
+			
+			Iterator<ITrpShapeType> selectedIt = sel.iterator();
+			while (selectedIt.hasNext()) {
+				ITrpShapeType st = selectedIt.next();
+				if (location == LOCATION_BEFORE || location == LOCATION_AFTER) {
+					hasOverlap = hasGeometricOverlap(parentShape, st);
+				}
+				else {
+					hasOverlap = hasGeometricOverlap(targetSt, st);
+				}
+				if (!hasOverlap)
+					break;
+			}
+			if (!hasOverlap) {
+				String msg = "Shape(s) do not overlap with new parent shape - do you want to continue?";
+				if (DialogUtil.showYesNoDialog(treeViewer.getTree().getShell(), "No overlap", msg)!=SWT.YES) {
+					return false;
+				}
+			}
+		} // end check geometrical overlap
+		}
 
 		Iterator<ITrpShapeType> selectedIt = sel.iterator();
-		
 		switch (location) {
 			case LOCATION_BEFORE:
 				insertElement(sel, targetSt, targetList, true);
