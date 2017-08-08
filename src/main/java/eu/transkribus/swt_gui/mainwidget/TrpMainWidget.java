@@ -4993,7 +4993,9 @@ public class TrpMainWidget {
 			}
 			
 			storage.reloadCollections();
+			
 			CollectionEditorDialog ced = new CollectionEditorDialog(getShell(), c);
+			ced.getCollection().setCrowdProject(storage.loadCrowdProject(ced.getCollection().getColId()));
 			if (ced.open() != IDialogConstants.OK_ID) {
 				/*
 				 * user clicked cancel: milestones and messages without project id (this is how we know the

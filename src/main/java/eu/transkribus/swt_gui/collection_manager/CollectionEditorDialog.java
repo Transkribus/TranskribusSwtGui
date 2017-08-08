@@ -814,6 +814,17 @@ public class CollectionEditorDialog extends Dialog {
 			collection.setElearning(isELearning);
 		}
 		
+		if (collection.isCrowdsourcing() && collection.getCrowdProject().getProjId() == null){
+			try {
+				storage.storeCrowdProject(collection.getCrowdProject(), collection.getColId());
+				collection.setCrowdProject(storage.loadCrowdProject(collection.getColId()));
+			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+					| NoConnectionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		//changes of crowdsourcing project are handled separatately
 		if (collection.isCrowdsourcing() && collection.getCrowdProject() != null){
 			//store a new crowd project

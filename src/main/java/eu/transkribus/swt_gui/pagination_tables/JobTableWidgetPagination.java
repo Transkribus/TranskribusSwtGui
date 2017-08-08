@@ -12,11 +12,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.events.VerifyEvent;
@@ -350,6 +353,21 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 
 		createDefaultColumn(ID_COL, 100, "jobId", true);
 		TableViewerColumn resultColumn = createDefaultColumn(RESULT_COL, 300, "result", false);
+		//Text text = new Text(resultColumn, SWT.NONE);
+		resultColumn.getColumn().addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				System.out.println("widget selected");
+				
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 		resultColumn.setEditingSupport(new EditingSupport(resultColumn.getViewer()) {
 			
 			@Override
@@ -367,7 +385,7 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 			@Override
 			protected CellEditor getCellEditor(Object arg0) {
 				// TODO Auto-generated method stub
-				return null;
+				return new TextCellEditor();
 			}
 			
 			@Override

@@ -26,7 +26,17 @@ public class DatePickerDialog extends Dialog {
 	    shell.addDisposeListener(new DisposeListener() { 
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
-				date = dateTime.getYear() + "-" + dateTime.getMonth() + "-" + dateTime.getDay();
+				int month = dateTime.getMonth()+1;
+				String monthStr = Integer.toString(month);  
+				if (month < 10){
+					monthStr = "0"+month;
+				}
+				int day = dateTime.getDay();
+				String dayStr = Integer.toString(day);
+				if (day < 10){
+					dayStr = "0"+day;
+				}
+				date = dateTime.getYear() + "-" + monthStr + "-" + dayStr;
 				//date = dateTime.toString();
 			} 
 	    }); 
