@@ -826,7 +826,8 @@ public class CollectionEditorDialog extends Dialog {
 		}
 		
 		//changes of crowdsourcing project are handled separatately
-		if (collection.isCrowdsourcing() && collection.getCrowdProject() != null){
+		//if (collection.isCrowdsourcing() && collection.getCrowdProject() != null){
+		if (collection.getCrowdProject() != null){
 			//store a new crowd project
 			TrpCrowdProject crowdProject = collection.getCrowdProject();
 			if (!aim.equals(crowdProject.getAim())){
