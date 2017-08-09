@@ -18,6 +18,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -80,6 +81,20 @@ public abstract class APreviewListViewer<T> extends Composite {
 			showPreviewBtn = new Button(this, SWT.CHECK);
 			showPreviewBtn.setText("Show preview");
 			showPreviewBtn.setSelection(true);
+			showPreviewBtn.addSelectionListener(new SelectionListener() {
+				
+				@Override
+				public void widgetSelected(SelectionEvent event) {
+					// TODO Auto-generated method stub
+					togglePreview(showPreviewBtn.getSelection());
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent arg0) {
+					// TODO Auto-generated method stub
+					togglePreview(showPreviewBtn.getSelection());
+				}
+			});
 		}
 		
 		sf = new SashForm(this, SWT.VERTICAL);
@@ -190,6 +205,9 @@ public abstract class APreviewListViewer<T> extends Composite {
 						double sf = (double) imgLabel.getSize().y / (double) srcHeight;
 						int destWidth = (int)(sf * srcWidth);
 						e.gc.drawImage(selectedImage, 0, 0, srcWidth, srcHeight, 0, 0, destWidth, imgLabel.getSize().y);
+					} else {
+						e.gc.drawImage(Images.LOCK, 0, 0);
+						e.gc.drawText("No image selected", 0, 0);
 					}
 				}
 			});
@@ -320,6 +338,15 @@ public abstract class APreviewListViewer<T> extends Composite {
 		return checked;
 	}
 
-	
+	public void togglePreview(boolean newState) {
+		showPreviewBtn.setSelection(newState);
+		if (!newState && imgLabel != null) {
+			// display empty image if selection is empty
+			imgLabel.setImage(Images.LOCK);
+			imgLabel.setText("No image for display!");
+			SWTUtil.dispose(Images.LOCK);
+			imgLabel.redraw();
+		}
+	}
 }
 

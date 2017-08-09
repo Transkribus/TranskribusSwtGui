@@ -4023,8 +4023,10 @@ public class TrpMainWidget {
 		try {
 			logger.debug("syncing with local doc!");
 
-			if (!storage.isLoggedIn() || !storage.isRemoteDoc())
+			if (!storage.isLoggedIn() || !storage.isRemoteDoc()) {
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "No remote document loaded!");
+				return;
+			}
 
 			String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and page files", lastLocalDocFolder);
 			if (fn == null)

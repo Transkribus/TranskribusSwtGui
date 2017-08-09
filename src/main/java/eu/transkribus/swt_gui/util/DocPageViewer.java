@@ -30,6 +30,11 @@ public class DocPageViewer extends APreviewListViewer<TrpPage> {
 	};
 
 	public DocPageViewer(Composite parent, int style, boolean showUpDownBtns, boolean withCheckboxes, boolean renderOriginalImages) {
+		this(parent, style, showUpDownBtns, withCheckboxes, renderOriginalImages, true);
+	}
+	
+	public DocPageViewer(Composite parent, int style, boolean showUpDownBtns, boolean withCheckboxes, boolean renderOriginalImages, 
+			boolean enablePreview) {
 		super(parent, style, COLS, new ITableLabelProvider() {
 			@Override public void removeListener(ILabelProviderListener listener) {
 			}
@@ -65,7 +70,7 @@ public class DocPageViewer extends APreviewListViewer<TrpPage> {
 			@Override public Image getColumnImage(Object element, int columnIndex) {
 				return null;
 			}
-		}, showUpDownBtns, withCheckboxes, renderOriginalImages);
+		}, showUpDownBtns, withCheckboxes, renderOriginalImages, enablePreview);
 	}
 	
 	@Override protected Image loadImageForData(TrpPage data) throws IOException {
