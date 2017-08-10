@@ -10,6 +10,7 @@ import java.util.Properties;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -170,8 +171,12 @@ public class TextRecognitionConfigDialog extends Dialog {
 				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 						| NoConnectionException e1) {
 					logger.debug("Could not add HTR to collection!", e1);
+					String errorMsg = "The selected HTR could not be added to this collection.";
+					if(!StringUtils.isEmpty(e1.getMessage())) {
+						errorMsg += "\n" + e1.getMessage();
+					}
 					DialogUtil.showErrorMessageBox(getParentShell(), "Error sharing HTR",
-							"The selected HTR could not be added to this collection.");
+							errorMsg);
 				}
 				super.widgetSelected(e);
 			}
