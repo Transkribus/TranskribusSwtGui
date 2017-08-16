@@ -232,9 +232,11 @@ public abstract class APreviewListViewer<T> extends Composite {
 	protected abstract Image loadImageForData(T data) throws IOException;
 		
 	void reloadImageForSelection() {
-		if ( !showPreviewImage || !showPreviewBtn.getSelection() )
+		if ( !showPreviewImage || !showPreviewBtn.getSelection() ) {
+			selectedImage = Images.ERROR_IMG;
+			imgLabel.redraw();
 			return;
-		
+		}
 		T selected = getFirstSelected();
 		logger.debug("reloading image for element: "+selected);
 		SWTUtil.dispose(selectedImage);
@@ -341,12 +343,9 @@ public abstract class APreviewListViewer<T> extends Composite {
 	public void togglePreview(boolean newState) {
 		showPreviewBtn.setSelection(newState);
 		if (!newState && imgLabel != null) {
-			// display empty image if selection is empty
-			imgLabel.setImage(Images.LOCK);
-			imgLabel.setText("No image for display!");
-			SWTUtil.dispose(Images.LOCK);
-			imgLabel.redraw();
+			selectedImage = null;
 		}
+		reloadImageForSelection();
 	}
 }
 
