@@ -220,6 +220,7 @@ public class CustomTagPropertyTable extends Composite {
 		this.prototypeTag = prototypeTag;
 		this.selectedTag = selectedTag;
 		tv.setInput(prototypeTag);		
+		tv.refresh();
 	}
 	
 	public CustomTagAttribute getSelectedProperty() {
