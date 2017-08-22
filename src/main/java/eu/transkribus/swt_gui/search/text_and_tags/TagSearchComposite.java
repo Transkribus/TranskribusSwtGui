@@ -422,7 +422,8 @@ public class TagSearchComposite extends Composite {
 	//				else if (cn.equals(TITLE_COL)) {
 	//				}
 					else if (cn.equals(PAGE_COL)) {
-						return ""+t.getPagenr();
+						int pgnr = t.getPagenr();
+						return pgnr<10? "0"+pgnr : ""+pgnr;
 					}
 					else if (cn.equals(REGION_COL)) {
 						return t.getRegionid();
