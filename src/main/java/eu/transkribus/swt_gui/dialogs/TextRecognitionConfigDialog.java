@@ -475,6 +475,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 
 		String storedHtrTrainCerStr = NOT_AVAILABLE;
 		int trainMinEpoch = -1;
+		double trainMin = 1.0;
 //		XYPointerAnnotation annot = null;
 		XYLineAnnotation lineAnnot = null;
 		if (htr.hasCerLog()) {
@@ -482,8 +483,6 @@ public class TextRecognitionConfigDialog extends Dialog {
 			series.setDescription(CER_TRAIN_KEY);
 
 			// build XYSeries and find minimum
-			double trainMin = 1.0;
-
 			for (int i = 0; i < htr.getCerLog().length; i++) {
 				double val = htr.getCerLog()[i];
 				series.add(i + 1, val);
@@ -518,11 +517,19 @@ public class TextRecognitionConfigDialog extends Dialog {
 
 		String storedHtrTestCerStr = NOT_AVAILABLE;
 		if (htr.hasCerTestLog()) {
+			//then the minimum of this curve represents the best net stored
+			//thus reset those min vals.
+			trainMinEpoch = -1;
+			trainMin = 1.0;
 			XYSeries testSeries = new XYSeries(cerTestKey);
 			testSeries.setDescription(cerTestKey);
 			for (int i = 0; i < htr.getCerTestLog().length; i++) {
 				double val = htr.getCerTestLog()[i];
 				testSeries.add(i + 1, val);
+				if (val < trainMin) {
+					trainMin = val;
+					trainMinEpoch = i + 1;
+				}
 			}
 			dataset.addSeries(testSeries);
 
