@@ -81,7 +81,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.builder.CommonExportPars;
-import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.alto.AltoExporter;
 import eu.transkribus.core.model.builder.pdf.PdfExporter;
 import eu.transkribus.core.model.builder.tei.ATeiBuilder;
@@ -2132,7 +2131,7 @@ public class Storage {
 		checkConnection(true);
 		switch(config.getMode()) {
 		case CITlab:
-			return conn.runCitLabHtr(this.collId, this.doc.getId(), pages, 
+			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), getDocId(), pages, 
 					config.getHtrId(), config.getDictionary());
 		case UPVLC:
 			return null;
