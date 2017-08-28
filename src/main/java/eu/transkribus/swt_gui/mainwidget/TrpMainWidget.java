@@ -99,6 +99,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -185,6 +186,7 @@ import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.tools.ToolsWidgetListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.LineEditorListener;
@@ -1556,6 +1558,17 @@ public class TrpMainWidget {
 		jumpToRegion(Storage.getInstance().getCurrentRegion() - 1);
 	}
 
+	public void jumpToNextCell(int keycode) {
+		TrpTableCellType currentCell = TableUtils.getTableCell(GuiUtil.getCanvasShape(Storage.getInstance().getCurrentRegionObject())); 
+		if (currentCell == null) {
+			logger.debug("No table found in transcript");
+			return;
+		}
+		TableUtils.selectNeighborCell(getCanvas(), 
+				currentCell, 
+				TableUtils.parsePositionFromArrowKeyCode(keycode));
+	}
+	
 	public void jumpToRegion(int index) {
 		if (storage.jumpToRegion(index)) {
 			// get item and select it in canvas, then it will automatically be
@@ -4023,8 +4036,10 @@ public class TrpMainWidget {
 		try {
 			logger.debug("syncing with local doc!");
 
-			if (!storage.isLoggedIn() || !storage.isRemoteDoc())
+			if (!storage.isLoggedIn() || !storage.isRemoteDoc()) {
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "No remote document loaded!");
+				return;
+			}
 
 			String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and page files", lastLocalDocFolder);
 			if (fn == null)

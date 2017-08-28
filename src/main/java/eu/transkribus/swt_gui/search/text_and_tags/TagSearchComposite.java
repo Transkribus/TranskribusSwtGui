@@ -56,12 +56,15 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDbTag;
+import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.search.CustomTagSearchFacets;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
@@ -419,7 +422,8 @@ public class TagSearchComposite extends Composite {
 	//				else if (cn.equals(TITLE_COL)) {
 	//				}
 					else if (cn.equals(PAGE_COL)) {
-						return ""+t.getPagenr();
+						int pgnr = t.getPagenr();
+						return pgnr<10? "0"+pgnr : ""+pgnr;
 					}
 					else if (cn.equals(REGION_COL)) {
 						return t.getRegionid();
@@ -546,6 +550,7 @@ public class TagSearchComposite extends Composite {
 		List<TrpDbTag> selTags = sel.toList();
 		logger.debug("selTags: "+selTags);
 		tagNormWidget.setInput(selTags);
+		tagNormWidget.redraw();
 	}
 	
 	void updateTagProps() {
@@ -778,7 +783,7 @@ public class TagSearchComposite extends Composite {
 			if (monitor != null && monitor.isCanceled())
 				return;
 
-			s.saveTranscript(s.getCurrentDocumentCollectionId(), pt, null, pt.getMd().getTsId(), "Tagged from text");
+			s.saveTranscript(collId, pt, null, pt.getMd().getTsId(), "Tagged from text");
 
 			if (monitor != null)
 				monitor.worked(c++);
@@ -787,6 +792,46 @@ public class TagSearchComposite extends Composite {
 		}
 	}
 
+	protected static void saveAffectedPages(IProgressMonitor monitor, List<TrpDbTag> selectedTags) 
+		throws Exception {
+		// TODO Auto-generated method stub
+		if (monitor != null)
+			monitor.beginTask("Saving affected transcripts", selectedTags.size());
+		
+		Storage s = Storage.getInstance();
+		int c = 0;
+		
+		for (TrpDbTag t : selectedTags) {
+			if (monitor != null && monitor.isCanceled())
+				return;
+
+			// retrieve current transcript
+			TrpPage page = s.getConnection().getTrpDoc(t.getCollId(), t.getDocid(), 1).getPages().get(t.getPagenr()-1);
+			TrpPageType pt = s.getOrBuildPage(page.getCurrentTranscript(), true); 
+
+			// convert DbTag to CustomTag
+			// parse CssTag
+			CssSyntaxTag cssTag =  CssSyntaxTag.parseSingleCssTag(t.getCustomTagCss());
+						
+			CustomTag ct = CustomTagFactory.create(cssTag.getTagName(), t.getOffset(), t.getLength(), cssTag.getAttributes());
+
+			// retrieve parent line / shape
+			TrpTextLineType lt = pt.getLineWithId(t.getRegionid());
+			
+			// add or merge tag on line
+			lt.getCustomTagList().addOrMergeTag(ct, null, true);
+			
+			// save new transcript
+			s.saveTranscript(t.getCollId(), pt, null, t.getTsid(), "Tagged from text in normalization ");
+			
+			if (monitor != null)
+				monitor.worked(c++);
+
+			++c;		
+		}
+	}
+
+	
 	public static void main(String [] args) {
 		Shell shell = new Shell();
 		shell.setLayout(new FillLayout());

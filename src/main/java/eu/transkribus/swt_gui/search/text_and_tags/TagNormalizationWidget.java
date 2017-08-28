@@ -3,9 +3,7 @@ package eu.transkribus.swt_gui.search.text_and_tags;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -21,12 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDbTag;
-import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
-//import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CustomTagPropertyTable;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -93,7 +88,7 @@ class TagNormalizationWidget extends Composite {
 			return;
 		
 		final Storage s = Storage.getInstance();
-		
+
 		try {
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				
@@ -103,24 +98,26 @@ class TagNormalizationWidget extends Composite {
 					
 					monitor.beginTask("Updating tag values", selectedTags.size());
 					int c=0;
-					Map<TrpTranscriptMetadata, TrpPageType> affectedPages = new HashMap<>();
+					
 					for (TrpDbTag t : selectedTags) {
 						if (monitor.isCanceled())
 							return;
 						
-						// TODO: open pages from t.tsid and 
-//						
-//						t.setAttributes(propertyTable.getSelectedTag(), false, true);
-//						affectedPages.put(t.getCustomTagList().getShape().getPage().getMd(), t.getCustomTagList().getShape().getPage());
+						// compile list of affected pages and tags to be changed
+						logger.debug("Updating tag value for " + t.toString());
 						
-//						t.getCustomTagList().getShape().getPage();
+						// replace attributes in selected result table with normalization attributes  
+						t.setCustomTagCss(propertyTable.getSelectedTag().getCssStr());
+						
+						logger.debug("New value: " + selectedTags.get(c));
+
 						monitor.worked(c++);
 					}
 					
-					logger.debug("nr of affected transcripts: "+affectedPages.size());
+					logger.debug("nr of affected transcripts: "+selectedTags.size());
 					
 					try {
-						TagSearchComposite.saveAffectedPages(monitor, s.getCurrentDocumentCollectionId(), affectedPages.values());
+						TagSearchComposite.saveAffectedPages(monitor, selectedTags);
 					} catch (Exception e) {
 						throw new InvocationTargetException(e);
 					}
@@ -154,6 +151,7 @@ class TagNormalizationWidget extends Composite {
 			this.selectedTags = null;
 			propertyTable.setInput(null, null);
 		}
+		propertyTable.redraw();
 	}
 
 }

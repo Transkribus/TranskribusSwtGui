@@ -69,6 +69,10 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 			else
 				mainWidget.jumpToNextRegion();
 		}
+		if ( CanvasKeys.isCtrlKeyDown(e.stateMask) && (e.keyCode == SWT.ARROW_DOWN 
+					|| e.keyCode == SWT.ARROW_UP || e.keyCode == SWT.ARROW_LEFT || e.keyCode == SWT.ARROW_RIGHT)) {
+				mainWidget.jumpToNextCell(e.keyCode);
+		}
 	}
 	
 	@Override public void keyReleased(KeyEvent e) {
