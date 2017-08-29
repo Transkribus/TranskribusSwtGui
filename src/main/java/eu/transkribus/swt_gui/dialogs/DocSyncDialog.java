@@ -35,6 +35,7 @@ public class DocSyncDialog extends Dialog {
 		
 		this.target = target;
 		this.source = source;
+		
 	}
 	
 	@Override protected boolean isResizable() {
@@ -46,12 +47,16 @@ public class DocSyncDialog extends Dialog {
 	 * @param parent
 	 */
 	@Override protected Control createDialogArea(Composite parent) {
+		getShell().setText("Sychronize current document with files on local hard disc");
+
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(new GridLayout(1, true));
 		
 		Label titleLabel = new Label(container, SWT.WRAP | SWT.LEFT);
 		titleLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 2));
-		titleLabel.setText("Move pages from the source document on the right to correspond with pages on the target document on the left. Only checked pages are synced");
+		titleLabel.setText("Move pages from the source document on the right to correspond with pages on the target document on the left. \n"
+				+ "\n"
+				+ "Note: Pages are synced according to filename! Only checked pages will be synced.");
 		
 		SashForm sf = new SashForm(container, SWT.HORIZONTAL);
 		sf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -62,10 +67,12 @@ public class DocSyncDialog extends Dialog {
 		targetViewer.setDataList(target.getPages());
 		targetViewer.setTitle("Target: "+target.getMd().getTitle());
 		
-		sourceViewer = new DocPageViewer(sf, 0, true, true, false);
+		sourceViewer = new DocPageViewer(sf, 0, false, true, false);
 		sourceViewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		sourceViewer.setDataList(source.getPages());
 		sourceViewer.setTitle("Source: "+source.getMd().getTitle());
+		sourceViewer.togglePreview(false);
+		
 		
 		sf.setWeights(new int[] { 1, 1 } );
 
