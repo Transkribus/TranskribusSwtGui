@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -27,6 +28,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
@@ -1215,6 +1217,31 @@ public class Storage {
 	public TrpDoc getRemoteDoc(int colId, int docId, int nrOfTranscripts) throws SessionExpiredException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.getTrpDoc(colId, docId, nrOfTranscripts);
+	}
+	
+	/**
+	 * Saves all transcripts in transcriptsMap.
+	 * @param transcriptsMap A map of the transcripts to save. The map's key is the page-id, its value is a pair of the collection-id and the 
+	 * corresponding TrpPageType object to save as newest version.
+	 * @param monitor A progress monitor that can also be null is no GUI status update is needed.
+	 */
+	public void saveTranscriptsMap(Map<Integer, Pair<Integer, TrpPageType>> transcriptsMap, IProgressMonitor monitor)
+			throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
+		if (monitor != null)
+			monitor.beginTask("Saving affected transcripts", transcriptsMap.size());
+
+		int c = 0;
+		for (Pair<Integer, TrpPageType> ptPair : transcriptsMap.values()) {
+			if (monitor != null && monitor.isCanceled())
+				return;
+			
+			saveTranscript(ptPair.getLeft(), ptPair.getRight(), null, ptPair.getRight().getMd().getTsId(), "Tagged from text");
+
+			if (monitor != null)
+				monitor.worked(c++);
+
+			++c;
+		}
 	}
 	
 	public void saveTranscript(int colId, String commitMessage) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {

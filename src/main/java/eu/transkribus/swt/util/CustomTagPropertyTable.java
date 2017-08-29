@@ -45,10 +45,17 @@ public class CustomTagPropertyTable extends Composite {
 	private CustomTag prototypeTag;
 
 	private CustomTag selectedTag;
-
+	boolean withOffsetLengthContinuedProperties;
+	
 	public CustomTagPropertyTable(Composite parent, int style) {
+		this(parent, style, true);
+	}
+
+	public CustomTagPropertyTable(Composite parent, int style, boolean withOffsetLengthContinuedProperties) {
 		super(parent, style);
 		this.setLayout(new FillLayout());
+		
+		this.withOffsetLengthContinuedProperties = withOffsetLengthContinuedProperties;
 		
 		tv = new TableViewer(this, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		table = tv.getTable();
@@ -117,9 +124,12 @@ public class CustomTagPropertyTable extends Composite {
 					
 					// create list of entries with offset/length/continued properties first:
 					List<Entry<CustomTagAttribute, Object>> entries = new ArrayList<>();
-					entries.add(new SimpleEntry(CustomTag.OFFSET_PROPERTY,  m.get(CustomTag.OFFSET_PROPERTY)));
-					entries.add(new SimpleEntry(CustomTag.LENGTH_PROPETY,  m.get(CustomTag.LENGTH_PROPETY)));
-					entries.add(new SimpleEntry(CustomTag.CONTINUED_PROPERTY,  m.get(CustomTag.CONTINUED_PROPERTY)));					
+					
+					if (withOffsetLengthContinuedProperties) {
+						entries.add(new SimpleEntry(CustomTag.OFFSET_PROPERTY,  m.get(CustomTag.OFFSET_PROPERTY)));
+						entries.add(new SimpleEntry(CustomTag.LENGTH_PROPETY,  m.get(CustomTag.LENGTH_PROPETY)));
+						entries.add(new SimpleEntry(CustomTag.CONTINUED_PROPERTY,  m.get(CustomTag.CONTINUED_PROPERTY)));
+					}
 					
 					for (CustomTagAttribute a : m.keySet()) {
 						if (CustomTag.isOffsetOrLengthOrContinuedProperty(a.getName()))

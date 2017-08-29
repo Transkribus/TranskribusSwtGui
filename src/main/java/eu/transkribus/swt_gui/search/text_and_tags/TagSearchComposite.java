@@ -15,6 +15,7 @@ import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.InvocationCallback;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -539,15 +540,18 @@ public class TagSearchComposite extends Composite {
 		updateNormalizationWidgetVisibility();
 	}
 	
+	protected List<TrpDbTag> getSelectedTags() {
+		return ((IStructuredSelection) resultsTable.getSelection()).toList();
+	}
+	
 	protected void updateNormalizationSelection() {
 		logger.debug("updating norm selection...");
 		if (!isNormalizationPossible()) {
-			tagNormWidget.propertyTable.setInput(null, null);
+			tagNormWidget.setInput(null);
 			return;
 		}
 		
-		IStructuredSelection sel = (IStructuredSelection) resultsTable.getSelection();
-		List<TrpDbTag> selTags = sel.toList();
+		List<TrpDbTag> selTags = getSelectedTags();
 		logger.debug("selTags: "+selTags);
 		tagNormWidget.setInput(selTags);
 		tagNormWidget.redraw();
@@ -772,65 +776,52 @@ public class TagSearchComposite extends Composite {
 		}
 	}
 	
-	protected static void saveAffectedPages(IProgressMonitor monitor, int collId, Collection<TrpPageType> affectedPages)
-			throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
-		if (monitor != null)
-			monitor.beginTask("Saving affected transcripts", affectedPages.size());
-
-		Storage s = Storage.getInstance();
-		int c = 0;
-		for (TrpPageType pt : affectedPages) {
-			if (monitor != null && monitor.isCanceled())
-				return;
-
-			s.saveTranscript(collId, pt, null, pt.getMd().getTsId(), "Tagged from text");
-
-			if (monitor != null)
-				monitor.worked(c++);
-
-			++c;
-		}
-	}
-
-	protected static void saveAffectedPages(IProgressMonitor monitor, List<TrpDbTag> selectedTags) 
-		throws Exception {
-		// TODO Auto-generated method stub
-		if (monitor != null)
-			monitor.beginTask("Saving affected transcripts", selectedTags.size());
-		
-		Storage s = Storage.getInstance();
-		int c = 0;
-		
-		for (TrpDbTag t : selectedTags) {
-			if (monitor != null && monitor.isCanceled())
-				return;
-
-			// retrieve current transcript
-			TrpPage page = s.getConnection().getTrpDoc(t.getCollId(), t.getDocid(), 1).getPages().get(t.getPagenr()-1);
-			TrpPageType pt = s.getOrBuildPage(page.getCurrentTranscript(), true); 
-
-			// convert DbTag to CustomTag
-			// parse CssTag
-			CssSyntaxTag cssTag =  CssSyntaxTag.parseSingleCssTag(t.getCustomTagCss());
-						
-			CustomTag ct = CustomTagFactory.create(cssTag.getTagName(), t.getOffset(), t.getLength(), cssTag.getAttributes());
-
-			// retrieve parent line / shape
-			TrpTextLineType lt = pt.getLineWithId(t.getRegionid());
-			
-			// add or merge tag on line
-			lt.getCustomTagList().addOrMergeTag(ct, null, true);
-			
-			// save new transcript
-			s.saveTranscript(t.getCollId(), pt, null, t.getTsid(), "Tagged from text in normalization ");
-			
-			if (monitor != null)
-				monitor.worked(c++);
-
-			++c;		
-		}
-	}
-
+//	/**
+//	 * @deprecated not used anymore -> inefficient (stores pages multiple times if multiple tags on a page!)
+//	 */
+//	protected static void saveAffectedPages(IProgressMonitor monitor, List<TrpDbTag> selectedTags) 
+//		throws Exception {
+//		// TODO Auto-generated method stub
+//		if (monitor != null)
+//			monitor.beginTask("Updating tag values", selectedTags.size());
+//		
+//		Storage s = Storage.getInstance();
+//		int c = 0;
+//		
+//		Map<Integer, TrpPageType> pagesCache = new HashMap<>();
+//		
+//		for (TrpDbTag t : selectedTags) {
+//			if (monitor != null && monitor.isCanceled())
+//				return;
+//			
+//			TrpPageType pt = pagesCache.get(t.getPageid());
+//			if (pt == null) { // page not be found in cache -> unmarshall!
+//				// retrieve current transcript
+//				TrpPage page = s.getConnection().getTrpDoc(t.getCollId(), t.getDocid(), 1).getPages().get(t.getPagenr()-1);
+//				pt = s.getOrBuildPage(page.getCurrentTranscript(), true);
+//				pagesCache.put(t.getPageid(), pt);
+//			}
+//
+//			// convert DbTag to CustomTag
+//			// parse CssTag
+//			CssSyntaxTag cssTag =  CssSyntaxTag.parseSingleCssTag(t.getCustomTagCss());
+//						
+//			CustomTag ct = CustomTagFactory.create(cssTag.getTagName(), t.getOffset(), t.getLength(), cssTag.getAttributes());
+//
+//			// retrieve parent line / shape
+//			TrpTextLineType lt = pt.getLineWithId(t.getRegionid());
+//			
+//			// add or merge tag on line
+//			lt.getCustomTagList().addOrMergeTag(ct, null, true);
+//			
+//			// save new transcript
+//			s.saveTranscript(t.getCollId(), pt, null, t.getTsid(), "Tagged from text in normalization ");
+//			
+//			if (monitor != null)
+//				monitor.worked(c++);
+//		}
+//		logger.debug("saveAffectedPages, pages loaded: "+pagesCache.size());
+//	}
 	
 	public static void main(String [] args) {
 		Shell shell = new Shell();

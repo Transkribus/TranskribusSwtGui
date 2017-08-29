@@ -23,6 +23,10 @@ import eu.transkribus.swt.util.CustomTagPropertyTable;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.LabeledCombo;
 
+/**
+ * @deprecated not used currently
+ *
+ */
 public class AddTagWidget extends Composite /*implements Observer*/ {
 	private final static Logger logger = LoggerFactory.getLogger(AddTagWidget.class);
 	
