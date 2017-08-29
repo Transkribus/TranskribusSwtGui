@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -27,6 +28,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
@@ -65,6 +67,7 @@ import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.TrpUpload;
 import eu.transkribus.core.model.beans.TrpWordgraph;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
@@ -1217,6 +1220,31 @@ public class Storage {
 		return conn.getTrpDoc(colId, docId, nrOfTranscripts);
 	}
 	
+	/**
+	 * Saves all transcripts in transcriptsMap.
+	 * @param transcriptsMap A map of the transcripts to save. The map's key is the page-id, its value is a pair of the collection-id and the 
+	 * corresponding TrpPageType object to save as newest version.
+	 * @param monitor A progress monitor that can also be null is no GUI status update is needed.
+	 */
+	public void saveTranscriptsMap(Map<Integer, Pair<Integer, TrpPageType>> transcriptsMap, IProgressMonitor monitor)
+			throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
+		if (monitor != null)
+			monitor.beginTask("Saving affected transcripts", transcriptsMap.size());
+
+		int c = 0;
+		for (Pair<Integer, TrpPageType> ptPair : transcriptsMap.values()) {
+			if (monitor != null && monitor.isCanceled())
+				return;
+			
+			saveTranscript(ptPair.getLeft(), ptPair.getRight(), null, ptPair.getRight().getMd().getTsId(), "Tagged from text");
+
+			if (monitor != null)
+				monitor.worked(c++);
+
+			++c;
+		}
+	}
+	
 	public void saveTranscript(int colId, String commitMessage) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
 		if (!isLocalDoc() && !isLoggedIn())
 			throw new Exception("No connection");
@@ -1440,7 +1468,7 @@ public class Storage {
 			
 			conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
 					(remoteIndices.get(i)+1), EditStatus.IN_PROGRESS,
-					tmd.unmarshallTranscript(), tmd.getTsId(), null);
+					tmd.unmarshallTranscript(), tmd.getTsId(), "synched from local doc");
 
 			if (monitor != null)
 				monitor.worked(++worked);
@@ -1463,15 +1491,17 @@ public class Storage {
 		sendEvent(new DocMetadataUpdateEvent(this, doc, doc.getMd()));
 	}
 
-	public void uploadDocument(int colId, String folder, String title, IProgressMonitor monitor) throws IOException, Exception {
+	public TrpUpload uploadDocument(int colId, String folder, String title, IProgressMonitor monitor) throws IOException, Exception {
 		if (!isLoggedIn())
 			throw new Exception("Not logged in!");
 
-		TrpDoc doc = LocalDocReader.load(folder);
-		if (title != null && !title.isEmpty())
+		//do not force create XMLs
+		TrpDoc doc = LocalDocReader.load(folder, false);
+		if (title != null && !title.isEmpty()) {
 			doc.getMd().setTitle(title);
+		}
 
-		conn.postTrpDoc(colId, doc, monitor);
+		return conn.uploadTrpDoc(colId, doc, monitor);
 	}
 	
 	/**
@@ -1492,7 +1522,7 @@ public class Storage {
 		TrpDoc doc = LocalDocReader.loadPdf(file, dirName);
 		logger.debug("Extracted and loaded pdf " + file);
 
-		conn.postTrpDoc(colId, doc, monitor);
+		conn.uploadTrpDoc(colId, doc, monitor);
 	}
 	
 	public boolean checkDocumentOnPrivateFtp(String dirName) throws Exception {

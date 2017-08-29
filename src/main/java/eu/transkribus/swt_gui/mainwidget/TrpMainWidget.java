@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -26,7 +25,6 @@ import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
-import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -87,6 +85,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.TrpUpload;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
@@ -99,6 +98,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -185,6 +185,7 @@ import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.tools.ToolsWidgetListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.LineEditorListener;
@@ -1556,6 +1557,17 @@ public class TrpMainWidget {
 		jumpToRegion(Storage.getInstance().getCurrentRegion() - 1);
 	}
 
+	public void jumpToNextCell(int keycode) {
+		TrpTableCellType currentCell = TableUtils.getTableCell(GuiUtil.getCanvasShape(Storage.getInstance().getCurrentRegionObject())); 
+		if (currentCell == null) {
+			logger.debug("No table found in transcript");
+			return;
+		}
+		TableUtils.selectNeighborCell(getCanvas(), 
+				currentCell, 
+				TableUtils.parsePositionFromArrowKeyCode(keycode));
+	}
+	
 	public void jumpToRegion(int index) {
 		if (storage.jumpToRegion(index)) {
 			// get item and select it in canvas, then it will automatically be
@@ -2572,28 +2584,22 @@ public class TrpMainWidget {
 			}
 
 			if (ud.isSingleDocUpload()) { // single doc upload
-				logger.debug("uploading to directory: " + ud.getFolder() + ", title: '" + ud.getTitle() + " collection: " + cId + " viaFtp: "
-						+ ud.isSingleUploadViaFtp());
-				String type = ud.isSingleUploadViaFtp() ? "FTP" : "HTTP";
-
-				// final int colId =
-				// storage.getCollectionId(ui.getDocOverviewWidget().getSelectedCollectionIndex());
+				logger.debug("uploading to directory: " + ud.getFolder() + ", title: '" + ud.getTitle() + " collection: " + cId);
 				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 					@Override public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						TrpUpload upload = null;
 						try {
-							// storage.uploadDocument(4, ud.getFolder(),
-							// ud.getTitle(), monitor);// TEST
-							boolean uploadViaFTP = ud.isSingleUploadViaFtp();
-							logger.debug("uploadViaFTP = " + uploadViaFTP);
-							storage.uploadDocument(cId, ud.getFolder(), ud.getTitle(), monitor);
-							if (!monitor.isCanceled())
+							upload = storage.uploadDocument(cId, ud.getFolder(), ud.getTitle(), monitor);
+							if (!monitor.isCanceled()) {
+								logger.info("Ingest job has ID = " + upload.getJobId());
 								displaySuccessMessage(
 										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
+							}
 						} catch (Exception e) {
 							throw new InvocationTargetException(e);
 						}
 					}
-				}, "Uploading via " + type, true);
+				}, "Uploading via HTTPS", true);
 			} else if (ud.isMetsUrlUpload()) {
 				logger.debug("uploading title: " + ud.getTitle() + " to collection: " + cId);
 				//test url: http://rosdok.uni-rostock.de/file/rosdok_document_0000007322/rosdok_derivate_0000026952/ppn778418405.dv.mets.xml
@@ -2616,18 +2622,11 @@ public class TrpMainWidget {
 				// extract images from pdf and upload extracted images
 			} else if (ud.isUploadFromPdf()) {
 				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + ud.getPdfFolder());
-				logger.debug("ingest into collection: " + cId + " viaFtp: " + ud.isSingleUploadViaFtp());
-				String type = ud.isSingleUploadViaFtp() ? "FTP" : "HTTP";
-
-				// final int colId =
-				// storage.getCollectionId(ui.getDocOverviewWidget().getSelectedCollectionIndex());
+				logger.debug("ingest into collection: " + cId);
+				
 				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 					@Override public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							// storage.uploadDocument(4, ud.getFolder(),
-							// ud.getTitle(), monitor);// TEST
-							boolean uploadViaFTP = ud.isSingleUploadViaFtp();
-							logger.debug("uploadViaFTP = " + uploadViaFTP);
 							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getPdfFolder(), monitor);
 							if (!monitor.isCanceled())
 								displaySuccessMessage(
@@ -2636,7 +2635,7 @@ public class TrpMainWidget {
 							throw new InvocationTargetException(e);
 						}
 					}
-				}, "Uploading via " + type, true);
+				}, "Uploading PDF via HTTPS", true);
 
 			} else { // private ftp ingest
 				final List<TrpDocDir> dirs = ud.getDocDirs();
@@ -4023,8 +4022,10 @@ public class TrpMainWidget {
 		try {
 			logger.debug("syncing with local doc!");
 
-			if (!storage.isLoggedIn() || !storage.isRemoteDoc())
+			if (!storage.isLoggedIn() || !storage.isRemoteDoc()) {
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "No remote document loaded!");
+				return;
+			}
 
 			String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and page files", lastLocalDocFolder);
 			if (fn == null)

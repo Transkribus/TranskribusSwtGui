@@ -1,15 +1,15 @@
 package eu.transkribus.swt_gui.upload;
 
 import java.awt.Desktop;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
-
-import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -18,7 +18,6 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -26,7 +25,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -42,12 +40,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.FtpConsts;
-import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.util.AuthUtils;
-import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -58,13 +53,10 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class UploadDialogUltimate extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(UploadDialogUltimate.class);
-	
-//	private final static String ENC_USERNAME = Storage.getInstance().getUser().getUserName().replace("@", "%40");
 	
 	private final static String INFO_MSG = 
 			"You can upload folders containing image files to:\n\n"
@@ -84,12 +76,11 @@ public class UploadDialogUltimate extends Dialog {
 	Text folderText, pdfFolderText;
 	Text titleText, urlText;
 	Text fileText;
-	Combo uploadTypeCombo;
 	
 //	String dirName;
 	String file, folder, pdffolder, title, url;
 	
-	boolean singleUploadViaFtp=false, isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false;
+	boolean isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false;
 	
 //	TrpDoc doc;
 	
@@ -156,7 +147,7 @@ public class UploadDialogUltimate extends Dialog {
 		ftpButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		
 		singleDocButton = new Button(container, SWT.RADIO);
-		singleDocButton.setText("Upload single document (up to 500 MB)");
+		singleDocButton.setText("Upload single document");
 		singleDocButton.setSelection(true);
 		singleDocButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
 		
@@ -247,9 +238,9 @@ public class UploadDialogUltimate extends Dialog {
 		folderText = new Text(container, SWT.BORDER);
 		folderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		if (store.isLocalDoc())
+		if (store.isLocalDoc()) {
 			folderText.setText(store.getDoc().getMd().getLocalFolder().getAbsolutePath());
-
+		}
 		Button setFolderBtn = new Button(container, SWT.NONE);
 		setFolderBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
@@ -270,15 +261,6 @@ public class UploadDialogUltimate extends Dialog {
 		titleText.setToolTipText("The title of the uploaded document - leave blank to generate a default title");
 		titleText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(container, SWT.NONE);
-		
-		Label l = new Label(container, 0);
-		l.setText("Upload via: ");
-		
-		uploadTypeCombo = new Combo(container, SWT.READ_ONLY | SWT.DROP_DOWN);
-		uploadTypeCombo.add("HTTP (default)");
-		uploadTypeCombo.add("FTP");
-		uploadTypeCombo.select(0);
-		uploadTypeCombo.setToolTipText("The type of upload - usually HTTP should be fine but you can try FTP also if it does not work");
 	}
 
 	private void createPdfGroup(Composite container) {
@@ -324,15 +306,6 @@ public class UploadDialogUltimate extends Dialog {
 			}
 		});
 		setFolderBtn.setImage(Images.getOrLoad("/icons/folder.png"));
-		
-		Label l = new Label(container, 0);
-		l.setText("Upload via: ");
-		
-		uploadTypeCombo = new Combo(container, SWT.READ_ONLY | SWT.DROP_DOWN);
-		uploadTypeCombo.add("HTTP (default)");
-		uploadTypeCombo.add("FTP");
-		uploadTypeCombo.select(0);
-		uploadTypeCombo.setToolTipText("The type of upload - usually HTTP should be fine but you can try FTP also if it does not work");
 	}
 	
 	private void createMetsUrlGroup(Composite container) {
@@ -356,10 +329,19 @@ public class UploadDialogUltimate extends Dialog {
 	}
 	
 	private String getUsernameEncoded() {
-		if (Storage.getInstance().isLoggedIn())
-			return Storage.getInstance().getUser().getUserName().replace("@", "%40");
-		else
+		if (Storage.getInstance().isLoggedIn()) {
+			String un = Storage.getInstance().getUser().getUserName();
+			try {
+				un = URLEncoder.encode(un, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				logger.error("Could not UTF-8 encode username for URL", e);
+				//in most cases only "@" has to be encoded
+				un = un.replace("@", "%40");
+			}
+			return un;
+		} else {
 			return "Not-logged-in";
+		}
 	}
 	
 	private void createFtpGroup(Composite container) {
@@ -724,7 +706,6 @@ public class UploadDialogUltimate extends Dialog {
 		this.file = fileText.getText();
 		
 		this.title = titleText.getText();
-		this.singleUploadViaFtp = uploadTypeCombo.getSelectionIndex()==1;
 	}
 	
 	public TrpCollection getCollection() {
@@ -749,10 +730,6 @@ public class UploadDialogUltimate extends Dialog {
 	
 	public String getFile() {
 		return file;
-	}
-	
-	public boolean isSingleUploadViaFtp() {
-		return singleUploadViaFtp;
 	}
 	
 	public boolean isSingleDocUpload() {
