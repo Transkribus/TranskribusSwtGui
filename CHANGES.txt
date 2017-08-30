@@ -503,4 +503,5 @@ CHANGES AND BUGFIXES
 	
 1.3.5:
 	-> normalizing tag attributes available again
+	-> TrpDocUploadHttp: no file size limits, resumable uploads
 	
