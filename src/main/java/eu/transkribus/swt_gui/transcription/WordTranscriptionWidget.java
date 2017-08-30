@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent.WordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
@@ -79,7 +80,7 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 //		applyTextFromWords.setEnabled(!isLinesInSyncWithWordsText());
 	}
 	
-	@Override public Type getType() { return Type.WORD_BASED; }
+	@Override public TranscriptionLevel getType() { return TranscriptionLevel.WORD_BASED; }
 	
 	protected void applyTextFromWords() {
 		if (currentRegionObject!=null)
@@ -544,7 +545,7 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 		
 		if (newWord != currentWordObject) {
 			currentWordObject = newWord;
-			if (getType() == Type.WORD_BASED) { // only send signal if in in word based editor -> should be true here always
+			if (getType() == TranscriptionLevel.WORD_BASED) { // only send signal if in in word based editor -> should be true here always
 				sendSelectionChangedSignal();
 				text.redraw();
 			}

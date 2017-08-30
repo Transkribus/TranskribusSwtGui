@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.search.fulltext;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +15,10 @@ import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.InvocationCallback;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -39,6 +43,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -50,6 +55,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
@@ -58,16 +64,23 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.TrpFimgStoreConf;
-import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.exceptions.NotImplementedException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDbTag;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
+import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.searchresult.Facet;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.PageHit;
+import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
@@ -88,10 +101,16 @@ public class FullTextSearchComposite extends Composite{
 	Table resultsTable;
 	TableViewer viewer;
 	TreeViewer facetViewer;
-	SashForm resultsSf;
+//	SashForm resultsSf;
+	Composite resultsSf;
 	Label resultsLabel;
 	String lastHoverCoords;
 	Shell shell;
+	
+	Composite replaceComp;
+	
+	Text replaceText;
+	Button replaceBtn;
 	
 	boolean noMultiCombos = true;
 	
@@ -336,7 +355,7 @@ public class FullTextSearchComposite extends Composite{
 //		filters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));		
 
 		initResultsTable(sf);
-		sf.setWeights(new int[] { 25, 75 } );		
+		sf.setWeights(new int[] { 25, 75 } );
 	}	
 	
 	void initResultsTable(Composite container){
@@ -350,11 +369,14 @@ public class FullTextSearchComposite extends Composite{
 
 		initFacetSf(resultsGroup);
         
-		resultsSf = new SashForm(resultsGroup, SWT.HORIZONTAL);
+//		resultsSf = new SashForm(resultsGroup, SWT.HORIZONTAL);
+		resultsSf = new Composite(resultsGroup, SWT.HORIZONTAL);
 		resultsSf.setLayout(new GridLayout(1, false));
 		resultsSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
         viewer = new TableViewer(resultsSf);
+        viewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
+        
         viewer.getTable().setHeaderVisible(true);
         viewer.getTable().setLinesVisible(true);
         viewer.setContentProvider(new ArrayContentProvider());
@@ -609,6 +631,28 @@ public class FullTextSearchComposite extends Composite{
 			}
 		});
 		
+		if (false) {
+			replaceComp = new Composite(resultsSf, 0);
+			replaceComp.setLayout(new GridLayout(3, false));
+			replaceComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			
+			Label replaceLabel = new Label(replaceComp, 0);
+			replaceLabel.setText("Replace with: ");
+			replaceLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+			
+			replaceText = new Text(replaceComp, SWT.SINGLE | SWT.BORDER);
+			replaceText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+			
+			replaceBtn = new Button(replaceComp, 0);
+			replaceBtn.setText("Replace!");
+			replaceBtn.setToolTipText("Replaces selected hits with the text on the left and stores the affected pages");
+			replaceBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+			replaceBtn.addSelectionListener(new SelectionAdapter() {
+				@Override public void widgetSelected(SelectionEvent e) {
+					replaceSelectedHits();
+				}
+			});
+		}
 	}
 	
 	private void initFacetSf(Group resultsGroup) {
@@ -1042,6 +1086,7 @@ public class FullTextSearchComposite extends Composite{
 		
         hits = new ArrayList<Hit>();
         
+        logger.debug("1nr of page hits: "+fullTextSearchResult.getNumResults()+" / "+fullTextSearchResult.getPageHits().size()+" nHits: "+hits.size());
         for (PageHit pHit : fullTextSearchResult.getPageHits()){
         	int numTags = 0;
         	Map<String,Integer> foundWords = new HashMap<String,Integer>();	
@@ -1086,7 +1131,7 @@ public class FullTextSearchComposite extends Composite{
         		String worId = wCoords.split(":")[1].split("/")[2];
         		String pxCoords = wCoords.split(":")[2];
         		
-        		ArrayList<Integer> colIds = pHit.getCollectionIds();        		
+        		ArrayList<Integer> colIds = pHit.getCollectionIds();
         		
         		String pUrl = pHit.getPageUrl();
         		Hit hit = new Hit(hlString, (int)pHit.getDocId(), pHit.getDocTitle(), (int)pHit.getPageNr(), regId, linId, worId, pxCoords, pUrl);
@@ -1096,6 +1141,8 @@ public class FullTextSearchComposite extends Composite{
         	}
         	
         }
+        
+        logger.debug("2nr of page hits: "+fullTextSearchResult.getNumResults()+" / "+fullTextSearchResult.getPageHits().size()+" nHits: "+hits.size());
 
         viewer.setInput(hits);
         
@@ -1159,6 +1206,86 @@ public class FullTextSearchComposite extends Composite{
     
         
         //loadPrevImg.run();
+		
+	}
+	
+	private List<Hit> getSelectedHits() {
+		if (!viewer.getSelection().isEmpty()) {
+			return ((IStructuredSelection) viewer.getSelection()).toList();
+		} else {
+			return new ArrayList<>();
+		}
+	}
+	
+	/**
+	 * @deprecated TODO
+	 */
+	private void replaceSelectedHits() {
+		if (true)
+			throw new NotImplementedException();
+		
+		logger.debug("replaceSelectedHits");
+		try {
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						final List<Hit> selectedHits = getSelectedHits();
+						logger.debug("selectedHits: "+selectedHits.size());
+						
+	//					monitor.setTaskName("Saving");
+						logger.info("Replacing text in hits: "+selectedHits.size());
+						monitor.beginTask("Replacing text in hits", selectedHits.size());
+						int c=0;
+						Storage s = Storage.getInstance();
+						
+						// a pages cache: key is pageid, value is a pair of collection-id and corresponding TrpPageType
+						Map<Integer, Pair<Integer, TrpPageType>> affectedPages = new HashMap<>();
+						for (Hit t : selectedHits) {
+							if (monitor.isCanceled())
+								return;
+							
+							// compile list of affected pages and tags to be changed
+							logger.debug("Updating text for hit: " + t);
+							
+							
+							// --- COPIED FROM TagNormalizationWidget ---
+//							// set attributes in tag result object
+//							t.setCustomTagCss(propertyTable.getSelectedTag().getCssStr());
+//							logger.trace("New value: " + selectedTags.get(c));
+//							
+//							// load page on which the tag is on (if not loaded yet)
+//							Pair<Integer, TrpPageType> ptPair = affectedPages.get(t.get);
+//							if (ptPair == null) {
+//								TrpPage page = s.getConnection().getTrpDoc(t.getCollId(), t.getDocid(), 1).getPages().get(t.getPagenr()-1);
+//								TrpPageType pt = s.getOrBuildPage(page.getCurrentTranscript(), true);
+//								ptPair = Pair.of(t.getCollId(), pt);
+//								affectedPages.put(t.getPageid(), ptPair);
+//							}
+//							
+//							// convert DbTag to CustomTag
+//							CssSyntaxTag cssTag =  CssSyntaxTag.parseSingleCssTag(t.getCustomTagCss());
+//							CustomTag ct = CustomTagFactory.create(cssTag.getTagName(), t.getOffset(), t.getLength(), cssTag.getAttributes());
+//
+//							// retrieve parent line / shape
+//							TrpTextLineType lt = ptPair.getRight().getLineWithId(t.getRegionid());
+//							
+//							// add or merge tag on line
+//							lt.getCustomTagList().addOrMergeTag(ct, null, true);
+							// --- COPIED FROM TagNormalizationWidget ---
+							
+							monitor.worked(c++);
+						}
+						
+						logger.debug("nr of affected pages: "+affectedPages.size());
+						s.saveTranscriptsMap(affectedPages, monitor);
+					} catch (Exception e) {
+						throw new InvocationTargetException(e);
+					}
+				}
+			}, "Normalizing tag attributes", true);
+		} catch (Throwable e) {
+			TrpMainWidget.getInstance().onError("Error replacing text", e.getMessage(), e, true, false);
+		}
 		
 	}
 	
@@ -1270,7 +1397,13 @@ public class FullTextSearchComposite extends Composite{
 		public void setCollectionIds(ArrayList<Integer> collectionIds) {
 			this.collectionIds = collectionIds;
 		}
-		
+
+		@Override
+		public String toString() {
+			return "Hit [highlightText=" + highlightText + ", imgUrl=" + imgUrl + ", regionId=" + regionId + ", lineId="
+					+ lineId + ", wordId=" + wordId + ", title=" + title + ", pixelCoords=" + pixelCoords
+					+ ", collectionIds=" + collectionIds + ", docId=" + docId + ", pageNr=" + pageNr + "]";
+		}
 	  }
 	  
 	  private static final Pattern TAG_REGEX = Pattern.compile("<em>(.+?)</em>");

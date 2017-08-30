@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
@@ -42,7 +43,7 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 				
 				MenuItem mi = (MenuItem) e.getSource();
 				if (mi.getSelection()) {
-					mainWidget.getUi().changeToTranscriptionWidget((ATranscriptionWidget.Type) mi.getData());
+					mainWidget.getUi().changeToTranscriptionWidget((TranscriptionLevel) mi.getData());
 				}
 			}
 		};

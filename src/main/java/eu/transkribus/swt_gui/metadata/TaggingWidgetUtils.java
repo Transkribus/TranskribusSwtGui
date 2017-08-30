@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.swt.util.Colors;
@@ -59,7 +60,7 @@ public class TaggingWidgetUtils {
 			logger.debug("no transcription widget selected - returning null range!");
 			return null;
 		}
-		boolean isLineEditor = aw.getType() == ATranscriptionWidget.Type.LINE_BASED;
+		boolean isLineEditor = aw.getType() == TranscriptionLevel.LINE_BASED;
 		boolean isSingleSelection = nRanges==1 && r.getRight().length==0;
 			
 		// create range:

@@ -31,6 +31,7 @@ import eu.transkribus.core.catti.CattiRequest;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.CoreUtils;
@@ -63,7 +64,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		logger.debug("spacing before = "+text.getLineSpacing());
 	}
 	
-	@Override public Type getType() { return Type.LINE_BASED; }
+	@Override public TranscriptionLevel getType() { return TranscriptionLevel.LINE_BASED; }
 			
 	@Override
 	protected void initModifyListener() {
@@ -747,7 +748,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		logger.trace("updating line object, caretOffset = "+text.getCaretOffset()+", line-index = "+newLineIndex);
 		if (newLine != currentLineObject) {
 			currentLineObject = newLine;
-			if (getType() == Type.LINE_BASED) { // only send signal if in line-based editor -> important to prevent overwriting updating of new word object!
+			if (getType() == TranscriptionLevel.LINE_BASED) { // only send signal if in line-based editor -> important to prevent overwriting updating of new word object!
 				sendSelectionChangedSignal();
 				text.redraw();
 			}
