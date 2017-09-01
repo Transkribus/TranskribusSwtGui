@@ -1228,7 +1228,7 @@ public class SWTUtil {
 //				rgb.blue = CoreUtils.bound((int) Math.pow(rgb.blue, gamma), 0, 255);
 				
 //				System.out.println("rgb2 = "+rgb);
-				newImageData.setPixel(x, y, newImageData.palette.getPixel(rgb));				
+				newImageData.setPixel(x, y, newImageData.palette.getPixel(rgb));
 			}
 		}
 		

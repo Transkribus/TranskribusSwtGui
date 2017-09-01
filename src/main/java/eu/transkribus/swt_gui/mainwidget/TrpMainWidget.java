@@ -92,6 +92,7 @@ import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
@@ -1495,9 +1496,9 @@ public class TrpMainWidget {
 	// toolbar.getAddShape().setEnabled(enable);
 	// }
 
-	public void updateTranscriptionWidget(ATranscriptionWidget.Type type) {
+	public void updateTranscriptionWidget(TranscriptionLevel type) {
 		ATranscriptionWidget aw = null;
-		if (type == ATranscriptionWidget.Type.WORD_BASED)
+		if (type == TranscriptionLevel.WORD_BASED)
 			aw = ui.getWordTranscriptionWidget();
 		else
 			aw = ui.getLineTranscriptionWidget();
@@ -1521,11 +1522,11 @@ public class TrpMainWidget {
 	}
 
 	public void updateWordTranscriptionWidgetData() {
-		updateTranscriptionWidget(ATranscriptionWidget.Type.WORD_BASED);
+		updateTranscriptionWidget(TranscriptionLevel.WORD_BASED);
 	}
 
 	public void updateLineTranscriptionWidgetData() {
-		updateTranscriptionWidget(ATranscriptionWidget.Type.LINE_BASED);
+		updateTranscriptionWidget(TranscriptionLevel.LINE_BASED);
 	}
 
 	public void jumpToPage(int index) {
@@ -3783,9 +3784,9 @@ public class TrpMainWidget {
 			return;
 
 		if (selected.getData() instanceof TrpWordType) {
-			ui.changeToTranscriptionWidget(ATranscriptionWidget.Type.WORD_BASED);
+			ui.changeToTranscriptionWidget(TranscriptionLevel.WORD_BASED);
 		} else if (selected.getData() instanceof TrpTextLineType || selected.getData() instanceof TrpBaselineType) {
-			ui.changeToTranscriptionWidget(ATranscriptionWidget.Type.LINE_BASED);
+			ui.changeToTranscriptionWidget(TranscriptionLevel.LINE_BASED);
 		}
 	}
 
