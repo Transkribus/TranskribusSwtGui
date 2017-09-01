@@ -23,8 +23,7 @@ final public class CanvasImage {
 	
 	public URL url;
 	public Image img;
-	public Image imgBackup;
-//	public Image img;
+//	public Image imgBackup;
 	
 	public int width;
 	public int height;
@@ -76,46 +75,51 @@ final public class CanvasImage {
 			this.img = imgIn;
 		}
 		
-		backup();
+//		backup();
 	}
 	
-	private void backup() {
-		if (img != null && !img.isDisposed()) {
-			SWTUtil.dispose(imgBackup);
-			this.imgBackup = new Image(img.getDevice(), img, SWT.IMAGE_COPY);
-		}
-	}
+//	private void backup() {
+//		if (img != null && !img.isDisposed()) {
+//			SWTUtil.dispose(imgBackup);
+//			this.imgBackup = new Image(img.getDevice(), img, SWT.IMAGE_COPY);
+//		}
+//	}
 	
-	public void revert() {
-		if (imgBackup != null && !imgBackup.isDisposed()) {
-			SWTUtil.dispose(img);
-			this.img = new Image(imgBackup.getDevice(), imgBackup, SWT.IMAGE_COPY);
-		}
-	}
+//	public void revert() {
+//		if (imgBackup != null && !imgBackup.isDisposed()) {
+//			SWTUtil.dispose(img);
+//			this.img = new Image(imgBackup.getDevice(), imgBackup, SWT.IMAGE_COPY);
+//		}
+//	}
 	
 	public void applyGamma(double gamma) {
-		if (SWTUtil.isDisposed(img) || SWTUtil.isDisposed(imgBackup)) {
+		if (SWTUtil.isDisposed(img) /*|| SWTUtil.isDisposed(imgBackup)*/) {
 			return;
 		}
 		
-		if (false) { // in-place gamma correction doesn't work, no clue why... 
+		if (true) { 
 			logger.debug("this.gamma = "+this.gamma);	
 			double scaledGamma = gamma / this.gamma;
 			logger.debug("scaledGamma = "+scaledGamma);
-			SWTUtil.multScalar(img.getImageData(), scaledGamma, true);	
-		} else {
-			logger.debug("gamma = "+gamma);
-			ImageData d = SWTUtil.multScalar(imgBackup.getImageData(), gamma, false);
-			SWTUtil.dispose(img);
+			ImageData d = SWTUtil.multScalar(img.getImageData(), scaledGamma, true);
+			
+			logger.debug("disposing old image and creating new one with scaled image data...");
+			img.dispose();
 			img = new Image(Display.getDefault(), d);
 		}
+//		else {
+//			logger.debug("gamma = "+gamma);
+//			ImageData d = SWTUtil.multScalar(imgBackup.getImageData(), gamma, false);
+//			SWTUtil.dispose(img);
+//			img = new Image(Display.getDefault(), d);
+//		}
 		
 		this.gamma = gamma;
 	}
 	
 	public void dispose() {
 		SWTUtil.dispose(img);
-		SWTUtil.dispose(imgBackup);
+//		SWTUtil.dispose(imgBackup);
 		
 //		if (img!=null && !img.isDisposed())
 //			img.dispose();
