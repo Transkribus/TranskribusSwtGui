@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt.util.CanvasTransform;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.SWTUtil;
-import examples.MemoryUsage;
+import eu.transkribus.util.MemoryUsage;
 
 final public class CanvasImage {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasImage.class);

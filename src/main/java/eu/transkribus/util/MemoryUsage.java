@@ -1,4 +1,4 @@
-package examples;
+package eu.transkribus.util;
 
 import java.io.File;
 

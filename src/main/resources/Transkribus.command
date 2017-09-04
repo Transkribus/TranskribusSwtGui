@@ -60,7 +60,7 @@ fi
 
 # set some java flags
 # set max heap space to 2 GB
-java_flags="-Xmx2048m " 
+java_flags="-Xms512m -Xmx2048m " 
 # add -XstartOnFirstThread flag for mac-os (i.e. $OSTYPE == 'darwin'*)
 # since elsewise there will be a deadlock on startup: 
 if [[ $OSTYPE == 'darwin'* ]]; then
