@@ -995,7 +995,7 @@ public class Storage {
 			logger.debug("this is a local image file!");
 			urlStr = ub.toString();
 		} else {
-			logger.debug("this is a remove image file - adding fileType parameter for fileType="+fileType);
+			logger.debug("this is a remote image file - adding fileType parameter for fileType="+fileType);
 			urlStr = UriBuilder.fromUri(urlStr).replaceQueryParam("fileType", fileType).toString();
 		}
 					
