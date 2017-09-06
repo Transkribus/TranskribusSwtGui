@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt.util.CanvasTransform;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.util.MemoryUsage;
 
 final public class CanvasImage {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasImage.class);
@@ -35,9 +36,16 @@ final public class CanvasImage {
 	
 	public CanvasImage(URL url) throws Exception {
 		this.url = url;
+		
+		logger.debug("--- memory before loading image ---");
+		MemoryUsage.printMemoryUsage();
+		
 		Image imgIn = ImgLoader.load(url);
 		
-		logger.debug("loaded image from "+url.toString()+" depth = "+imgIn.getImageData().depth);
+		logger.debug("--- memory after loading image ---");
+		MemoryUsage.printMemoryUsage();
+		
+		logger.debug("loaded image from "+url.toString());
 		
 		if (imgIn==null)
 			throw new Exception("Could not load image: "+url);
@@ -47,14 +55,17 @@ final public class CanvasImage {
 		this.nPixels = this.width * this.height;
 		
 		this.internalScalingFactor = null;
-		if (nPixels > N_PIXELS_THRESHOLD_FOR_SCALING) {
-			
+		if (true && nPixels > N_PIXELS_THRESHOLD_FOR_SCALING) {
+			logger.debug("before loading scaled image");
 			internalScalingFactor = DEFAULT_INTERNAL_SCALING;
 			logger.debug("internalScalingFactor = "+internalScalingFactor);
 			
 			Image imgScaled = new Image(imgIn.getDevice(), 
 										Math.round(width*internalScalingFactor),
 										Math.round(height*internalScalingFactor));
+			
+			logger.debug("--- memory usage after loading scaled image ---");
+			MemoryUsage.printMemoryUsage();
 			
 			CanvasTransform scaleTr = new CanvasTransform(imgIn.getDevice());
 			scaleTr.scale(internalScalingFactor, internalScalingFactor);
@@ -69,6 +80,10 @@ final public class CanvasImage {
 			scaleTr.dispose();
 			
 			imgIn.dispose();
+			
+			logger.info("--- memory usage after disposing orignal image ---");
+			MemoryUsage.printMemoryUsage();
+			
 			this.img = imgScaled;
 		}
 		else {
