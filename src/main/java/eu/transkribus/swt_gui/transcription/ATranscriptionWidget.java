@@ -92,6 +92,7 @@ import eu.transkribus.core.model.beans.customtags.RegionTypeTag;
 import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.customtags.UnclearTag;
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TaggedWord;
@@ -124,12 +125,6 @@ import eu.transkribus.swt_gui.util.DropDownToolItemSimple;
 import eu.transkribus.util.Utils;
 
 public abstract class ATranscriptionWidget extends Composite{
-	public static enum Type {
-//		REGION_BASED,
-		LINE_BASED,
-		WORD_BASED;
-	};
-	
 	public static enum WritingOrientation {
 		LEFT_TO_RIGHT,
 		RIGHT_TO_LEFT;
@@ -422,7 +417,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		return writingOrientationItem!=null && writingOrientationItem.getSelection() ? WritingOrientation.RIGHT_TO_LEFT : WritingOrientation.LEFT_TO_RIGHT;
 	}
 	
-	public abstract Type getType();
+	public abstract TranscriptionLevel getType();
 	
 	public abstract boolean selectCustomTag(CustomTag t);
 	
@@ -674,7 +669,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
 		initTranscriptionSetsDropDownItems(transcriptSetsDropDown);
 		
-		if (SHOW_WORD_GRAPH_STUFF && getType() == Type.LINE_BASED) {
+		if (SHOW_WORD_GRAPH_STUFF && getType() == TranscriptionLevel.LINE_BASED) {
 			new ToolItem(regionsToolbar, SWT.SEPARATOR);
 			
 			showWordGraphEditorItem = new ToolItem(regionsToolbar, SWT.CHECK);
@@ -751,10 +746,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		transcriptionTypeLineBasedItem = SWTUtil.createMenuItem(transcriptionTypeMenu, "Line based", null, SWT.RADIO);
 		transcriptionTypeLineBasedItem.setSelection(true);
-		transcriptionTypeLineBasedItem.setData(Type.LINE_BASED);
+		transcriptionTypeLineBasedItem.setData(TranscriptionLevel.LINE_BASED);
 		
 		transcriptionTypeWordBasedItem= SWTUtil.createMenuItem(transcriptionTypeMenu, "Word based", null, SWT.RADIO);
-		transcriptionTypeWordBasedItem.setData(Type.WORD_BASED);
+		transcriptionTypeWordBasedItem.setData(TranscriptionLevel.WORD_BASED);
 		
 		autocompleteToggle = ti.addItem("Autocomplete (based on text of current transcript)", Images.getOrLoad("/icons/autocomplete.png"), SWT.CHECK);
 		
@@ -853,8 +848,8 @@ public abstract class ATranscriptionWidget extends Composite{
 			text.insert(textToInsert);
 			
 			if (/*getWritingOrientation()==WritingOrientation.LEFT_TO_RIGHT &&*/ 
-					( getType() == ATranscriptionWidget.Type.LINE_BASED
-				|| ( getType() == ATranscriptionWidget.Type.WORD_BASED && !getTranscriptionUnitText().isEmpty() ) ) ) {
+					( getType() == TranscriptionLevel.LINE_BASED
+				|| ( getType() == TranscriptionLevel.WORD_BASED && !getTranscriptionUnitText().isEmpty() ) ) ) {
 //				this.setFocus();
 //				text.setSelection(text.getSelection().x+1);
 				text.setCaretOffset(text.getCaretOffset()+1);
@@ -1051,7 +1046,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	protected void initWordGraphListener() {
-		if (getType() == Type.WORD_BASED)
+		if (getType() == TranscriptionLevel.WORD_BASED)
 			return;
 		
 		if (reloadWordGraphEditorItem != null)
@@ -2279,7 +2274,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		if (!SHOW_WORD_GRAPH_STUFF)
 			return;
 		
-		if (getType() == Type.WORD_BASED)
+		if (getType() == TranscriptionLevel.WORD_BASED)
 			return;		
 		
 //		wordGraphEditor.setWordGraphMatrix(null, null, -1, EditType.RELOAD);

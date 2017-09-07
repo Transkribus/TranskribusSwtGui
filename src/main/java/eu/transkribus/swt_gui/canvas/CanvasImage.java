@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt.util.CanvasTransform;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.util.MemoryUsage;
 
 final public class CanvasImage {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasImage.class);
@@ -23,8 +24,7 @@ final public class CanvasImage {
 	
 	public URL url;
 	public Image img;
-	public Image imgBackup;
-//	public Image img;
+//	public Image imgBackup;
 	
 	public int width;
 	public int height;
@@ -36,9 +36,16 @@ final public class CanvasImage {
 	
 	public CanvasImage(URL url) throws Exception {
 		this.url = url;
+		
+		logger.debug("--- memory before loading image ---");
+		MemoryUsage.printMemoryUsage();
+		
 		Image imgIn = ImgLoader.load(url);
 		
-		logger.debug("loaded image from "+url.toString()+" depth = "+imgIn.getImageData().depth);
+		logger.debug("--- memory after loading image ---");
+		MemoryUsage.printMemoryUsage();
+		
+		logger.debug("loaded image from "+url.toString());
 		
 		if (imgIn==null)
 			throw new Exception("Could not load image: "+url);
@@ -48,14 +55,17 @@ final public class CanvasImage {
 		this.nPixels = this.width * this.height;
 		
 		this.internalScalingFactor = null;
-		if (nPixels > N_PIXELS_THRESHOLD_FOR_SCALING) {
-			
+		if (true && nPixels > N_PIXELS_THRESHOLD_FOR_SCALING) {
+			logger.debug("before loading scaled image");
 			internalScalingFactor = DEFAULT_INTERNAL_SCALING;
 			logger.debug("internalScalingFactor = "+internalScalingFactor);
 			
 			Image imgScaled = new Image(imgIn.getDevice(), 
 										Math.round(width*internalScalingFactor),
 										Math.round(height*internalScalingFactor));
+			
+			logger.debug("--- memory usage after loading scaled image ---");
+			MemoryUsage.printMemoryUsage();
 			
 			CanvasTransform scaleTr = new CanvasTransform(imgIn.getDevice());
 			scaleTr.scale(internalScalingFactor, internalScalingFactor);
@@ -70,52 +80,61 @@ final public class CanvasImage {
 			scaleTr.dispose();
 			
 			imgIn.dispose();
+			
+			logger.info("--- memory usage after disposing orignal image ---");
+			MemoryUsage.printMemoryUsage();
+			
 			this.img = imgScaled;
 		}
 		else {
 			this.img = imgIn;
 		}
 		
-		backup();
+//		backup();
 	}
 	
-	private void backup() {
-		if (img != null && !img.isDisposed()) {
-			SWTUtil.dispose(imgBackup);
-			this.imgBackup = new Image(img.getDevice(), img, SWT.IMAGE_COPY);
-		}
-	}
+//	private void backup() {
+//		if (img != null && !img.isDisposed()) {
+//			SWTUtil.dispose(imgBackup);
+//			this.imgBackup = new Image(img.getDevice(), img, SWT.IMAGE_COPY);
+//		}
+//	}
 	
-	public void revert() {
-		if (imgBackup != null && !imgBackup.isDisposed()) {
-			SWTUtil.dispose(img);
-			this.img = new Image(imgBackup.getDevice(), imgBackup, SWT.IMAGE_COPY);
-		}
-	}
+//	public void revert() {
+//		if (imgBackup != null && !imgBackup.isDisposed()) {
+//			SWTUtil.dispose(img);
+//			this.img = new Image(imgBackup.getDevice(), imgBackup, SWT.IMAGE_COPY);
+//		}
+//	}
 	
 	public void applyGamma(double gamma) {
-		if (SWTUtil.isDisposed(img) || SWTUtil.isDisposed(imgBackup)) {
+		if (SWTUtil.isDisposed(img) /*|| SWTUtil.isDisposed(imgBackup)*/) {
 			return;
 		}
 		
-		if (false) { // in-place gamma correction doesn't work, no clue why... 
+		if (true) { 
 			logger.debug("this.gamma = "+this.gamma);	
 			double scaledGamma = gamma / this.gamma;
 			logger.debug("scaledGamma = "+scaledGamma);
-			SWTUtil.multScalar(img.getImageData(), scaledGamma, true);	
-		} else {
-			logger.debug("gamma = "+gamma);
-			ImageData d = SWTUtil.multScalar(imgBackup.getImageData(), gamma, false);
-			SWTUtil.dispose(img);
+			ImageData d = SWTUtil.multScalar(img.getImageData(), scaledGamma, true);
+			
+			logger.debug("disposing old image and creating new one with scaled image data...");
+			img.dispose();
 			img = new Image(Display.getDefault(), d);
 		}
+//		else {
+//			logger.debug("gamma = "+gamma);
+//			ImageData d = SWTUtil.multScalar(imgBackup.getImageData(), gamma, false);
+//			SWTUtil.dispose(img);
+//			img = new Image(Display.getDefault(), d);
+//		}
 		
 		this.gamma = gamma;
 	}
 	
 	public void dispose() {
 		SWTUtil.dispose(img);
-		SWTUtil.dispose(imgBackup);
+//		SWTUtil.dispose(imgBackup);
 		
 //		if (img!=null && !img.isDisposed())
 //			img.dispose();

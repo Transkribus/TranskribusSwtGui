@@ -504,4 +504,6 @@ CHANGES AND BUGFIXES
 1.3.5:
 	-> normalizing tag attributes available again
 	-> TrpDocUploadHttp: no file size limits, resumable uploads
+	-> import local docs with text files only (in txt subfolder, one text file for each image, dummy lines with size of image are created for each line)
+	
 	

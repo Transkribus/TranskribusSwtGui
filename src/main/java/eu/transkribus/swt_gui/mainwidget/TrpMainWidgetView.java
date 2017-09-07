@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.portal.PortalWidget;
 import eu.transkribus.swt.portal.PortalWidget.Docking;
@@ -55,7 +56,6 @@ import eu.transkribus.swt_gui.metadata.TextStyleTypeWidget;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget;
 import eu.transkribus.swt_gui.tools.ToolsWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
-import eu.transkribus.swt_gui.transcription.ATranscriptionWidget.Type;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
 import eu.transkribus.swt_gui.util.DropDownToolItemSimple;
@@ -279,7 +279,7 @@ public class TrpMainWidgetView extends Composite {
 //		lineTranscriptionItem = createTabItem(transcriptionTabFolder, lineTranscriptionWidget, "Line based correction");
 //		wordTranscriptionItem = createTabItem(transcriptionTabFolder, wordTranscriptionWidget, "Word based correction");
 		}
-		changeToTranscriptionWidget(Type.LINE_BASED);
+		changeToTranscriptionWidget(TranscriptionLevel.LINE_BASED);
 		
 //		Composite child = new Composite(SWTUtil.dummyShell, SWT.NONE);
 //	    child.setLayout(new FillLayout());
@@ -340,11 +340,11 @@ public class TrpMainWidgetView extends Composite {
 		}
 	}
 	
-	public void changeToTranscriptionWidget(ATranscriptionWidget.Type type) {
+	public void changeToTranscriptionWidget(TranscriptionLevel type) {
 		logger.debug("changing to tr-widget: "+type);
 		boolean changed=false;
 		
-		if (type == ATranscriptionWidget.Type.LINE_BASED) {
+		if (type == TranscriptionLevel.LINE_BASED) {
 			changed=true;
 			lineTranscriptionWidget.getTranscriptionTypeLineBasedItem().setSelection(true);
 			lineTranscriptionWidget.getTranscriptionTypeWordBasedItem().setSelection(false);
@@ -355,7 +355,7 @@ public class TrpMainWidgetView extends Composite {
 			
 //			lineTranscriptionWidget.updateToolbarSize();
 			
-		} else if (type == ATranscriptionWidget.Type.WORD_BASED) {
+		} else if (type == TranscriptionLevel.WORD_BASED) {
 			changed=true;
 			wordTranscriptionWidget.getTranscriptionTypeLineBasedItem().setSelection(false);
 			wordTranscriptionWidget.getTranscriptionTypeWordBasedItem().setSelection(true);
@@ -747,7 +747,7 @@ public class TrpMainWidgetView extends Composite {
 //	public TabFolder getLeftTabFolder() { return this.leftTabFolder; }
 //	public DocMetadataEditor getDocMetadataEditor() { return docOverviewWidget.getDocMetadataEditor(); }
 	
-	public ATranscriptionWidget.Type getSelectedTranscriptionType() {
+	public TranscriptionLevel getSelectedTranscriptionType() {
 		ATranscriptionWidget widget = getSelectedTranscriptionWidget();
 		if (widget!=null) {
 			return widget.getType();
