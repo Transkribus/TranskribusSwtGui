@@ -1,14 +1,11 @@
 package eu.transkribus.swt.util;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
@@ -17,8 +14,6 @@ import org.eclipse.nebula.widgets.gallery.GalleryItem;
 import org.eclipse.nebula.widgets.gallery.MyDefaultGalleryItemRenderer;
 import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -38,12 +33,12 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ThumbnailWidgetVirtualMinimal extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidgetVirtualMinimal.class);
 
 	static final int TEXT_TO_THUMB_OFFSET = 5;
+	static final boolean DO_SCALE_THUMBS = true;
 
 	public static final int THUMB_WIDTH = 80;
 	public static final int THUMB_HEIGHT = 120;
@@ -114,56 +109,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		gallery.setItemRenderer(ir);
 		// virtual table stuff:
 		gallery.setVirtualGroups(true);
-		gallery.addListener(SWT.SetData, new Listener() {
-			@Override
-			public void handleEvent(Event event) {
-//				logger.debug("setting data: " + event);
-//				logger.debug("item: " + event.item);
-
-				final GalleryItem item = (GalleryItem) event.item;
-				int index;
-				if (item.getParentItem() != null) { // if this is a leaft item
-													// -> set nr of items to 0!
-					index = item.getParentItem().indexOf(item);
-					item.setItemCount(0);
-				} else {
-					index = gallery.indexOf(item);
-					item.setItemCount(doc.getThumbUrls().size());
-				}
-
-				//logger.debug("setData index " + index); //$NON-NLS-1$
-				
-				item.setExpanded(true);
-
-				try {
-					item.setImage(ImgLoader.load(doc.getPages().get(index).getThumbUrl()));
-				} catch (IOException e) {
-//					Most likely happens because thumbnail image is not yet available!
-//					e.printStackTrace();
-					
-					if (false) { // loading thumbs on the fly all the time is f****** slow
-						try {
-	//						---->Try to generate thumbnail on the fly from actual page image.
-							FimgStoreGetClient imgStoreClient;
-							imgStoreClient = new FimgStoreGetClient(doc.getPages().get(index).getUrl());						
-							URL url = imgStoreClient.getImgXyScaled(doc.getPages().get(index).getKey(), 82, 120, false).getUri().toURL();
-							item.setImage(ImageDescriptor.createFromURL(url).createImage());							
-						} catch (IOException e1) {
-	//						If everything fails display an error thumbnail
-							item.setImage(Images.ERROR_IMG);
-							e1.printStackTrace();
-						}
-					} else {
-						item.setImage(Images.ERROR_IMG);
-//						e.printStackTrace();
-					}
-				}
-				
-				item.setData("doNotScaleImage", new Object());
-
-				setItemTextAndBackground(item, index);
-			}
-		});
+		gallery.addListener(SWT.SetData, new GalleryFeedListener());
 		
 		gallery.addListener(SWT.MouseHover, new Listener() {
 			
@@ -174,7 +120,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 					return;
 				}
 				int index;
-				if (item.getParentItem() != null) { // if this is a leaft item
+				if (item.getParentItem() != null) { // if this is a leaf item
 													// -> set nr of items to 0!
 					index = item.getParentItem().indexOf(item);
 				} else {
@@ -351,8 +297,9 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		maxWidth = 0;
 		maxHeight = 0;
 			
+		final List<TrpTranscriptMetadata> transcripts = doc.getTranscripts();
 		TrpTranscriptMetadata tmd;
-		tmd = doc.getTranscripts().get(index);
+		tmd = transcripts.get(index);
 		
 		if(useGtVersions) {
 			List<TrpTranscriptMetadata> tList = doc.getPages().get(index).getTranscripts();
@@ -410,7 +357,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 
 		GC gc = new GC(item.getParent());
 		
-		final List<TrpTranscriptMetadata> transcripts = doc.getTranscripts();
+		
 		final List<String> names = doc.getPageImgNames();
 		if (/* showOrigFn.getSelection() && */names != null && index >= 0 && index < names.size()
 				&& !names.get(index).isEmpty()) {
@@ -425,8 +372,9 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 			maxHeight = Math.max(maxHeight, tmpHeight);
 			// logger.debug("/////user id" + transcripts.get(i).getUserName());
 			// logger.debug("/////status" + transcripts.get(i).getStatus());
-			text += (transcripts.get(index) != null ? transcripts.get(index).getStatus().getStr() : "");
+			
 			if (transcripts.get(index) != null) {
+				text += transcripts.get(index).getStatus().getStr();
 				// tmp =
 				// gc.textExtent(transcripts.get(i).getStatus().getStr()).x +
 				// 10;
@@ -438,7 +386,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 				// logger.debug("curr maxWidth " + maxWidth);
 			}
 
-			if (ENABLE_TRANSCRIBED_LINES && !transcribedLinesText.equals("")) {
+			if (ENABLE_TRANSCRIBED_LINES && !StringUtils.isEmpty(transcribedLinesText)) {
 				text += transcribedLinesText;
 				tmpWidth = gc.textExtent(transcribedLinesText).x + 20;
 				tmpHeight = gc.textExtent(text).y + 20;
@@ -484,6 +432,67 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 	public int getMaxWidth() {
 		return maxWidth;
 	}	
+	
+	private class GalleryFeedListener implements Listener {
+		final int itemWidth;
+		final int itemHeight;
+		public GalleryFeedListener() {
+			itemWidth = groupRenderer.getItemWidth();
+			itemHeight = groupRenderer.getItemHeight();
+		}
+		@Override
+		public void handleEvent(Event event) {
+//			logger.debug("setting data: " + event);
+//			logger.debug("item: " + event.item);
 
+			final GalleryItem item = (GalleryItem) event.item;
+			int index;
+			if (item.getParentItem() != null) { // if this is a leaft item
+												// -> set nr of items to 0!
+				index = item.getParentItem().indexOf(item);
+				item.setItemCount(0);
+			} else {
+				index = gallery.indexOf(item);
+				item.setItemCount(doc.getThumbUrls().size());
+			}
+
+			//logger.debug("setData index " + index); //$NON-NLS-1$
+			
+			item.setExpanded(true);
+
+			try {
+				Image thumbImg = ImgLoader.load(doc.getPages().get(index).getThumbUrl());
+				if(DO_SCALE_THUMBS) {
+					thumbImg = Images.resize(thumbImg, itemWidth, itemHeight);
+				}
+				item.setImage(thumbImg);
+			} catch (IOException e) {
+//				Most likely happens because thumbnail image is not yet available!
+//				e.printStackTrace();
+				
+				if (false) { // loading thumbs on the fly all the time is f****** slow
+					try {
+//						---->Try to generate thumbnail on the fly from actual page image.
+						FimgStoreGetClient imgStoreClient;
+						imgStoreClient = new FimgStoreGetClient(doc.getPages().get(index).getUrl());						
+						URL url = imgStoreClient.getImgXyScaled(doc.getPages().get(index).getKey(), 82, 120, false).getUri().toURL();
+						item.setImage(ImageDescriptor.createFromURL(url).createImage());							
+					} catch (IOException e1) {
+//						If everything fails display an error thumbnail
+						item.setImage(Images.ERROR_IMG);
+						e1.printStackTrace();
+					}
+				} else {
+					item.setImage(Images.ERROR_IMG);
+//					e.printStackTrace();
+				}
+			}
+			
+			//FIXME WTF does this do?
+			item.setData("doNotScaleImage", new Object());
+
+			setItemTextAndBackground(item, index);
+		}
+	}
 
 }

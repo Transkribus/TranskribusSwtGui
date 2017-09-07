@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.slf4j.Logger;
@@ -67,6 +68,17 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		SWTUtil.setEnabled(mw.getUi().getSaveTranscriptWithMessageToolItem(), dle.doc!=null);
 		
 		mw.updateDocumentInfo();
+		
+		if(dle.doc != null && dle.doc.isLocalDoc()) {
+			/*
+			 * check if the doc contains known errors and display an error message in case
+			 * FIXME when remote doc is loaded this does not work and the GUI is then locked!?!?
+			 */
+			final String problems = dle.doc.getImageErrors();
+			if(!StringUtils.isEmpty(problems)) {
+				mw.onError("The document contains faulty pages!", problems, null);
+			}
+		}
 	}
 	
 	@Override public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {

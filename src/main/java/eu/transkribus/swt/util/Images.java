@@ -3,6 +3,7 @@ package eu.transkribus.swt.util;
 import java.util.HashMap;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
@@ -129,10 +130,17 @@ public class Images {
 	}
 
 	public static Image resize(Image image, int width, int height) {
+		return resize(image, width, height, null);
+	}
+	
+	public static Image resize(Image image, int width, int height, Color bg) {
 		Image scaled = new Image(Display.getDefault(), width, height);
 		GC gc = new GC(scaled);
 		gc.setAntialias(SWT.ON);
 		gc.setInterpolation(SWT.HIGH);
+		if(bg != null) {
+			gc.setBackground(bg);
+		}
 		int origX = image.getBounds().width;
 		int origY = image.getBounds().height;
 		
