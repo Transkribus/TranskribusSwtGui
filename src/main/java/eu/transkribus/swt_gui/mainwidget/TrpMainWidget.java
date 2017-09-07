@@ -639,16 +639,18 @@ public class TrpMainWidget {
 
 			if (storage.getPage() != null) {
 				fn = storage.getPage().getImgFileName() != null ? storage.getPage().getImgFileName() : "";
-				key = storage.getPage().getKey() != null ? storage.getPage().getKey() : "";
+//				key = storage.getPage().getKey() != null ? storage.getPage().getKey() : "";
 
 //				imgUrl = CoreUtils.urlToString(storage.getPage().getUrl());
-				if (storage.getCurrentImage() != null)
+				if (storage.getCurrentImage() != null && !storage.getPage().hasImgError()) {
 					imgUrl = CoreUtils.urlToString(storage.getCurrentImage().url);
-
+				}
 				pageNr = storage.getPage().getPageNr();
 				pageId = storage.getPage().getPageId();
 
-				if (storage.getTranscriptMetadata() != null && storage.getTranscriptMetadata().getUrl() != null) {
+				if (storage.getTranscriptMetadata() != null 
+						&& storage.getTranscriptMetadata().getUrl() != null 
+						&& !storage.getPage().hasImgError()) {
 					transcriptUrl = CoreUtils.urlToString(storage.getTranscriptMetadata().getUrl());
 					tsid = storage.getTranscriptMetadata().getTsId();
 				}
@@ -691,6 +693,7 @@ public class TrpMainWidget {
 
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getLoadedPageText().setText(fn);
+		
 		ui.getDocInfoWidget().getLoadedImageUrl().setText(imgUrl);
 		ui.getDocInfoWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
 		
