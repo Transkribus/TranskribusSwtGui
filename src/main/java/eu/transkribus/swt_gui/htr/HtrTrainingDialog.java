@@ -14,11 +14,11 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -75,6 +75,11 @@ import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
+/**
+ * Configuration dialog for HTR training.<br/>
+ * @author philip
+ *
+ */
 public class HtrTrainingDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTrainingDialog.class);
 
@@ -92,6 +97,11 @@ public class HtrTrainingDialog extends Dialog {
 	private static final Color CYAN = Colors.createColor(CYAN_RGB);
 	private static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
 	private static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
+	
+	/**
+	 * this en-/disables the tabbed selection method with thumbnail view (which is garbage at the moment)
+	 */
+	private static final boolean ALLOW_SELECTION_METHOD_CHOICES = false;
 
 	private final int colId;
 
@@ -234,8 +244,9 @@ public class HtrTrainingDialog extends Dialog {
 			public String getText(Object element) {
 				if (element instanceof TrpHtr) {
 					return ((TrpHtr) element).getName();
-				} else
+				} else {
 					return "i am error";
+				}
 			}
 		});
 		baseModelCmbViewer.setContentProvider(new ArrayContentProvider());
@@ -262,27 +273,36 @@ public class HtrTrainingDialog extends Dialog {
 
 		// doc selection ===============================================================================
 
-		selectionMethodTabFolder = new CTabFolder(sash, SWT.BORDER | SWT.FLAT);
-		selectionMethodTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-
-		createThumbNailTab();
-
+		if(ALLOW_SELECTION_METHOD_CHOICES) {
+			selectionMethodTabFolder = new CTabFolder(sash, SWT.BORDER | SWT.FLAT);
+			selectionMethodTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			createThumbNailTab(selectionMethodTabFolder);
+			createTreeViewerTab(selectionMethodTabFolder);
+		} else {
+			createTreeViewerTab(sash);
+			
+		}
 		sash.setWeights(new int[] { 34, 66 });
-
-		createTreeViewerTab();
-
+		
 		addListeners();
 
-		selectionMethodTabFolder.setSelection(treeViewerTabItem);
-
+		if(ALLOW_SELECTION_METHOD_CHOICES) {
+			selectionMethodTabFolder.setSelection(treeViewerTabItem);
+		}
+		
 		return cont;
 	}
 
-	private void createTreeViewerTab() {
-		treeViewerTabItem = new CTabItem(selectionMethodTabFolder, SWT.NONE);
-		treeViewerTabItem.setText("Tree View");
-
-		SashForm docSash2 = new SashForm(selectionMethodTabFolder, SWT.HORIZONTAL);
+	private void createTreeViewerTab(Composite parent) {
+		SashForm docSash2;
+		if(parent instanceof CTabFolder) {
+			CTabFolder selectionMethodTabFolder = (CTabFolder) parent;
+			treeViewerTabItem = new CTabItem(selectionMethodTabFolder, SWT.NONE);
+			treeViewerTabItem.setText("Tree View");
+			docSash2 = new SashForm(selectionMethodTabFolder, SWT.HORIZONTAL);
+		} else {
+			docSash2 = new SashForm(parent, SWT.HORIZONTAL);
+		}
 		docSash2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		docSash2.setLayout(new GridLayout(1, false));
 
@@ -362,15 +382,17 @@ public class HtrTrainingDialog extends Dialog {
 		trainOverviewCont.pack();
 		trainSetGrp.pack();
 		testSetGrp.pack();
-
-		treeViewerTabItem.setControl(docSash2);
+		if(ALLOW_SELECTION_METHOD_CHOICES) {
+			treeViewerTabItem.setControl(docSash2);
+		}
 	}
 
-	private void createThumbNailTab() {
-		thumbNailTabItem = new CTabItem(selectionMethodTabFolder, SWT.NONE);
+	private void createThumbNailTab(CTabFolder parent) {
+		thumbNailTabItem = new CTabItem(parent, SWT.NONE);
+		
 		thumbNailTabItem.setText("Thumbnail View");
 
-		Composite docCont = new Composite(selectionMethodTabFolder, SWT.BORDER);
+		Composite docCont = new Composite(parent, SWT.BORDER);
 		docCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		docCont.setLayout(new GridLayout(1, false));
 
@@ -480,8 +502,9 @@ public class HtrTrainingDialog extends Dialog {
 		trainDocCont.pack();
 
 		docCont.pack();
-
-		thumbNailTabItem.setControl(docCont);
+		if(ALLOW_SELECTION_METHOD_CHOICES) {
+			thumbNailTabItem.setControl(docCont);
+		}
 	}
 
 	private void addListeners() {
@@ -731,7 +754,10 @@ public class HtrTrainingDialog extends Dialog {
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e1) {
 			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Could not load HTR model list!");
 		}
-
+		TrpHtr noneHtr = new TrpHtr();
+		noneHtr.setName("None");
+		noneHtr.setHtrId(-1);
+		uroHtrs.add(0, noneHtr);
 		baseModelCmbViewer.setInput(uroHtrs);
 	}
 
@@ -740,7 +766,7 @@ public class HtrTrainingDialog extends Dialog {
 		learningRateTxt.setText(LEARNING_RATE_DEFAULT);
 		noiseCmb.select(NOISE_DEFAULT_CHOICE);
 		trainSizeTxt.setText("" + TRAIN_SIZE_DEFAULT);
-		// baseModelCmb.select(0);
+		baseModelCmb.select(0);
 	}
 
 	private Composite createDocOverviewCont(List<ThumbnailWidgetVirtualMinimal> twList, boolean useGtVersions,
@@ -804,13 +830,21 @@ public class HtrTrainingDialog extends Dialog {
 			conf.setNoise(noiseCmb.getText());
 			conf.setLearningRate(learningRateTxt.getText());
 			conf.setTrainSizePerEpoch(Integer.parseInt(trainSizeTxt.getText()));
+			
+			final int baseHtrId = getSelectedBaseHtrId();
+			if(baseHtrId > 0) {
+				logger.debug("Setting base HTR ID = " + baseHtrId);
+				conf.setBaseModelId(baseHtrId);
+			} else {
+				logger.debug("No base HTR selected.");
+			}
 		} else {
 			throw new IllegalArgumentException();
 		}
 
 		conf.setColId(colId);
 
-		if (selectionMethodTabFolder.getSelection().equals(thumbNailTabItem)) {
+		if (ALLOW_SELECTION_METHOD_CHOICES && selectionMethodTabFolder.getSelection().equals(thumbNailTabItem)) {
 			conf.setTrain(getSelectionFromThumbnailWidgetList(trainTwList));
 			conf.setTest(getSelectionFromThumbnailWidgetList(testTwList));
 		} else {
@@ -838,7 +872,8 @@ public class HtrTrainingDialog extends Dialog {
 		}
 		msg += " HTR.\n\n";
 
-		if (selectionMethodTabFolder.getSelection().equals(treeViewerTabItem)) {
+		if (!ALLOW_SELECTION_METHOD_CHOICES 
+				|| selectionMethodTabFolder.getSelection().equals(treeViewerTabItem)) {
 			DataSetMetadata trainSetMd = computeDataSetSize(trainDocMap);
 			DataSetMetadata testSetMd = computeDataSetSize(testDocMap);
 			msg += "Training set size:\t" + trainSetMd.getPages() + " pages\n";
@@ -856,6 +891,18 @@ public class HtrTrainingDialog extends Dialog {
 		if (result == SWT.YES) {
 			super.okPressed();
 		}
+	}
+
+	private int getSelectedBaseHtrId() {
+		ISelection selection = baseModelCmbViewer.getSelection();
+		logger.debug("Base HTR selection : " + selection);
+		int htrId = -1;
+		if (selection != null && !selection.isEmpty()) {
+		   IStructuredSelection sel = (IStructuredSelection) selection;
+		   TrpHtr htr = (TrpHtr) sel.getFirstElement();
+		   htrId = htr.getHtrId();
+		}
+		return htrId;
 	}
 
 	private DataSetMetadata computeDataSetSize(Map<TrpDocMetadata, List<TrpPage>> map) {
