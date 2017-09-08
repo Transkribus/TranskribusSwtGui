@@ -131,6 +131,10 @@ public class CollectionsTableWidgetPagination extends ATableWidgetPagination<Trp
 		filterModifyListener = new ModifyListener() {
 			DelayedTask dt = new DelayedTask(() -> { 
 				refreshList(collections);
+				//this way the first collection found by the filter is preselected
+				if (!tv.getTable().isDisposed()){
+					tv.getTable().select(0);
+				}
 			}, true);
 			@Override public void modifyText(ModifyEvent e) {
 				dt.start();
