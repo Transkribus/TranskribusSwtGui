@@ -32,6 +32,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
+import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
@@ -1682,7 +1683,9 @@ public class Storage {
 		conn.addPage(colId, docId, pageNr, imgFile, monitor);
 	}
 
-	public String exportDocument(File dir, Set<Integer> pageIndices, boolean exportImg, boolean exportPage, boolean exportAlto, boolean splitIntoWordsInAlto, final String fileNamePattern, final IProgressMonitor monitor) throws SessionExpiredException, ServerErrorException, IllegalArgumentException,
+	public String exportDocument(File dir, Set<Integer> pageIndices, boolean exportImg, 
+			boolean exportPage, boolean exportAlto, boolean splitIntoWordsInAlto, 
+			final String fileNamePattern, final ImgType imgType, final IProgressMonitor monitor) throws SessionExpiredException, ServerErrorException, IllegalArgumentException,
 			NoConnectionException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
@@ -1722,7 +1725,7 @@ public class Storage {
 		};
 		DocExporter de = new DocExporter();
 		de.addObserver(o);
-		de.writeRawDoc(doc, path, true, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern);
+		de.writeRawDoc(doc, path, true, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern, imgType);
 
 		return path;
 	}

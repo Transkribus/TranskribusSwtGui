@@ -505,5 +505,7 @@ CHANGES AND BUGFIXES
 	-> normalizing tag attributes available again
 	-> TrpDocUploadHttp: no file size limits, resumable uploads
 	-> import local docs with text files only (in txt subfolder, one text file for each image, dummy lines with size of image are created for each line)
-	
+	-> CommonExportDialog: allow to choose image quality (original | JPEG)
+	-> HtrTrainingDialog: fix bugs in selection of base model
+	-> IO stuff: broken image files can now be handled (local/remote docs)
 	

@@ -9,6 +9,7 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang.StringUtils;
+import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -33,7 +34,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.internal.layout.LayoutUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +54,6 @@ import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
-import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
@@ -161,85 +160,23 @@ public class CommonExportDialog extends Dialog {
 	Set<Integer> pageIndices = null; 
 	String pagesStr = null;
 	
+	Combo imgQualityCmb = null;
+	/*
+	 * TODO add image quality choice to PDF export too
+	 * Combo pdfImgQualityCmb = null;
+	 */
+	
+	//only add values here that can be resolved to ImgTypeLabels enum!
+	final String[] imgQualityChoices = { 
+			ImgTypeLabels.Original.toString(),
+			ImgTypeLabels.JPEG.toString()
+	};
+	
 	List<DocumentSelectionDescriptor> documentsToExportOnServer = null;
 	
 //	Button currentPageBtn;
 
 	String versionStatus;
-	
-	public static class FilenamePatternComposite extends Composite {
-		Group group;
-		Button pageNr_FilenamePattern, fileNamePattern, docId_PageNr_PageIdPattern;
-		LabeledText pattern;
-		Label patternDescription;
-		
-		public FilenamePatternComposite(Composite parent, int style) {
-			super(parent, style);
-			this.setLayout(new FillLayout());
-			
-			group = new Group(this, 0);
-			group.setText("Filename pattern");
-			group.setLayout(new GridLayout(1, false));
-			
-			pageNr_FilenamePattern = new Button(group, SWT.RADIO);
-			pageNr_FilenamePattern.setText("pageNr + filename");
-			pageNr_FilenamePattern.setSelection(true);
-			
-			fileNamePattern = new Button(group, SWT.RADIO);
-			fileNamePattern.setText("filename (warning: filenames must be unique for document)");
-			
-			docId_PageNr_PageIdPattern = new Button(group, SWT.RADIO);
-			docId_PageNr_PageIdPattern.setText("docId + pageNr + pageId");
-			
-//			customPattern = new Button(group, SWT.RADIO);
-//			customPattern.setText("Custom pattern");
-			
-			pattern = new LabeledText(group, "Pattern: ");
-			pattern.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			pattern.text.setToolTipText("The filename pattern is a combination of regular characters and placeholders for document-id etc. (see below)");
-//			pattern.text.addKeyListener(new KeyAdapter() {		
-//				@Override
-//				public void keyPressed(KeyEvent e) {
-//					// prevent editing 
-//					if (!customPattern.getSelection())
-//						e.doit = false;
-//				}
-//			});
-			
-			patternDescription = new Label(group, 0);
-			patternDescription.setText("Placeholder: "+StringUtils.join(ExportFilePatternUtils.ALL_PATTERNS, ", "));
-			
-			addListener();
-			updatePattern();
-		}
-		
-		void addListener() {
-			SelectionListener listener = new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					updatePattern();
-				}
-			};
-			
-			pageNr_FilenamePattern.addSelectionListener(listener);
-			fileNamePattern.addSelectionListener(listener);
-			docId_PageNr_PageIdPattern.addSelectionListener(listener);
-//			customPattern.addSelectionListener(listener);
-		}
-		
-		void updatePattern() {
-			if (pageNr_FilenamePattern.getSelection()) {
-				pattern.text.setText(ExportFilePatternUtils.PAGENR_PATTERN+"_"+ExportFilePatternUtils.FILENAME_PATTERN);
-			}
-			else if (fileNamePattern.getSelection()) {
-				pattern.text.setText(ExportFilePatternUtils.FILENAME_PATTERN);
-			}
-			else if (docId_PageNr_PageIdPattern.getSelection()) {
-				pattern.text.setText(ExportFilePatternUtils.STANDARDIZED_PATTERN);
-			}
-//			pattern.text.setEnabled(customPattern.getSelection());
-		}
-	}
 	
 	public CommonExportDialog(Shell parent, int style, String lastExportFolder, String docName, List<TrpPage> pages) {
 		super(parent, style |= SWT.DIALOG_TRIM | SWT.RESIZE);
@@ -937,6 +874,11 @@ public class CommonExportDialog extends Dialog {
 			final Button e21 = new Button(metsComposite, SWT.CHECK);
 			final Button e3 = new Button(metsComposite, SWT.CHECK);
 //			final Button e4 = new Button(metsComposite, SWT.CHECK);
+			final Composite imgComp = new Composite(metsComposite, SWT.NONE);
+			imgComp.setLayout(new GridLayout(2, false));
+			Label imgQualLbl = new Label(imgComp, SWT.NONE);
+			imgQualLbl.setText("Image type:");
+			imgQualityCmb = new Combo(imgComp, SWT.READ_ONLY);
 			
 			filenamePatternComp = new FilenamePatternComposite(metsComposite, 0);
 			
@@ -950,6 +892,10 @@ public class CommonExportDialog extends Dialog {
 			e21.setText("Export ALTO (Word Level)");
 			e21.setToolTipText("Words get determined from the lines with some degree of fuzziness");
 			e3.setText("Export Image");
+			
+			imgQualityCmb.setItems(imgQualityChoices);
+			imgQualityCmb.select(0);
+			imgQualityCmb.pack();
 			
 //			e4.setText("Standardized Filenames");
 			
@@ -1012,12 +958,9 @@ public class CommonExportDialog extends Dialog {
 			    @Override
 			    public void widgetSelected(SelectionEvent event) {
 			        Button btn = (Button) event.getSource();
-			        if (btn.getSelection()){
-			        	setImgExport(true);
-			        }
-			        else{
-			        	setImgExport(false);
-			        }
+			        boolean checked = btn.getSelection();
+			        setImgExport(checked);
+			        imgQualityCmb.setEnabled(checked);
 			    }
 			});
 			
@@ -1429,8 +1372,26 @@ public class CommonExportDialog extends Dialog {
 		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, 
 				pdfExport, teiExport, docxExport, tagXlsxExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList());
 		commonPars.setFileNamePattern(filenamePatternComp.pattern.text.getText());
+		
+		if(isImgExport() && imgQualityCmb != null) {
+			ImgType type = getSelectedImgType(imgQualityCmb);
+			logger.debug("Setting img quality for export: " + type.toString());
+			commonPars.setRemoteImgQuality(type);
+		}
+		
+		commonPars.setSplitIntoWordsInAltoXml(isSplitUpWords());
 	}
 	
+	private ImgType getSelectedImgType(Combo cmb) {
+		final int i = cmb.getSelectionIndex();
+		ImgTypeLabels type = ImgTypeLabels.valueOf(imgQualityChoices[i]);
+		if(type == null) {
+			logger.error("Could not determine selected image type: " + imgQualityChoices[i]);
+			type = ImgTypeLabels.Original;
+		}
+		return type.getImgType();
+	}
+
 	public CommonExportPars getCommonExportPars() {
 		return commonPars;
 	}
@@ -1741,5 +1702,90 @@ public class CommonExportDialog extends Dialog {
 	
 	public Set<Integer> getPageIndices() {
 		return pageIndices;
+	}
+	
+	public static class FilenamePatternComposite extends Composite {
+		Group group;
+		Button pageNr_FilenamePattern, fileNamePattern, docId_PageNr_PageIdPattern;
+		LabeledText pattern;
+		Label patternDescription;
+		
+		public FilenamePatternComposite(Composite parent, int style) {
+			super(parent, style);
+			this.setLayout(new FillLayout());
+			
+			group = new Group(this, 0);
+			group.setText("Filename pattern");
+			group.setLayout(new GridLayout(1, false));
+			
+			pageNr_FilenamePattern = new Button(group, SWT.RADIO);
+			pageNr_FilenamePattern.setText("pageNr + filename");
+			pageNr_FilenamePattern.setSelection(true);
+			
+			fileNamePattern = new Button(group, SWT.RADIO);
+			fileNamePattern.setText("filename (warning: filenames must be unique for document)");
+			
+			docId_PageNr_PageIdPattern = new Button(group, SWT.RADIO);
+			docId_PageNr_PageIdPattern.setText("docId + pageNr + pageId");
+			
+//			customPattern = new Button(group, SWT.RADIO);
+//			customPattern.setText("Custom pattern");
+			
+			pattern = new LabeledText(group, "Pattern: ");
+			pattern.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			pattern.text.setToolTipText("The filename pattern is a combination of regular characters and placeholders for document-id etc. (see below)");
+//			pattern.text.addKeyListener(new KeyAdapter() {		
+//				@Override
+//				public void keyPressed(KeyEvent e) {
+//					// prevent editing 
+//					if (!customPattern.getSelection())
+//						e.doit = false;
+//				}
+//			});
+			
+			patternDescription = new Label(group, 0);
+			patternDescription.setText("Placeholder: "+StringUtils.join(ExportFilePatternUtils.ALL_PATTERNS, ", "));
+			
+			addListener();
+			updatePattern();
+		}
+		
+		void addListener() {
+			SelectionListener listener = new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					updatePattern();
+				}
+			};
+			
+			pageNr_FilenamePattern.addSelectionListener(listener);
+			fileNamePattern.addSelectionListener(listener);
+			docId_PageNr_PageIdPattern.addSelectionListener(listener);
+//			customPattern.addSelectionListener(listener);
+		}
+		
+		void updatePattern() {
+			if (pageNr_FilenamePattern.getSelection()) {
+				pattern.text.setText(ExportFilePatternUtils.PAGENR_PATTERN+"_"+ExportFilePatternUtils.FILENAME_PATTERN);
+			}
+			else if (fileNamePattern.getSelection()) {
+				pattern.text.setText(ExportFilePatternUtils.FILENAME_PATTERN);
+			}
+			else if (docId_PageNr_PageIdPattern.getSelection()) {
+				pattern.text.setText(ExportFilePatternUtils.STANDARDIZED_PATTERN);
+			}
+//			pattern.text.setEnabled(customPattern.getSelection());
+		}
+	}
+	
+	private enum ImgTypeLabels {
+		Original(ImgType.orig),
+		JPEG(ImgType.view);
+		private ImgType imgType;
+		private ImgTypeLabels(ImgType type) {
+			this.imgType = type;		}
+		public ImgType getImgType() {
+			return this.imgType;
+		}
 	}
 }

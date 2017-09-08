@@ -34,6 +34,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
+import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -2972,6 +2973,13 @@ public class TrpMainWidget {
 		}
 	}
 
+	/**
+	 * FIXME <br/>
+	 * this is one monster method!<br/>
+	 * export-parameter-objects can be used instead of single parameters<br/>
+	 * progress bar does not work after transcripts are loaded
+	 * 
+	 */
 	public void unifiedExport() {
 		File dir = null;
 		String exportFileOrDir = "";
@@ -3193,7 +3201,7 @@ public class TrpMainWidget {
 
 				if (exportDiag.isMetsExport())
 					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-							exportDiag.isSplitUpWords(), commonPars.getFileNamePattern());
+							exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality());
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
 							exportDiag.isExportImagesOnly(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
@@ -3240,7 +3248,7 @@ public class TrpMainWidget {
 			if (doMetsExport) {
 
 				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-						exportDiag.isSplitUpWords(), commonPars.getFileNamePattern());
+						exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality());
 				if (exportDiag.isPageExport()) {
 					if (exportFormats != "") {
 						exportFormats += " and ";
@@ -3385,7 +3393,7 @@ public class TrpMainWidget {
 
 
 	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto,
-			final boolean splitIntoWordsInAlto, final String fileNamePattern) throws Throwable {
+			final boolean splitIntoWordsInAlto, final String fileNamePattern, final ImgType imgType) throws Throwable {
 		try {
 
 			if (dir == null)
@@ -3398,7 +3406,7 @@ public class TrpMainWidget {
 					try {
 						logger.debug("exporting document...");
 						final String path = storage.exportDocument(dir, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern,
-								monitor);
+								imgType, monitor);
 						monitor.done();
 						// displaySuccessMessage("Written export to "+path);
 					} catch (Exception e) {
