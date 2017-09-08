@@ -234,7 +234,9 @@ public abstract class APreviewListViewer<T> extends Composite {
 	void reloadImageForSelection() {
 		if ( !showPreviewImage || !showPreviewBtn.getSelection() ) {
 			selectedImage = Images.ERROR_IMG;
-			imgLabel.redraw();
+			if(imgLabel != null) {
+				imgLabel.redraw();
+			}
 			return;
 		}
 		T selected = getFirstSelected();
