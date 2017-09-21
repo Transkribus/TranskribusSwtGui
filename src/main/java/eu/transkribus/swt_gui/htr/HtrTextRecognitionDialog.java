@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.dialogs;
+package eu.transkribus.swt_gui.htr;
 
 import java.io.IOException;
 
@@ -24,10 +24,10 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 import eu.transkribus.util.TextRecognitionConfig;
 
-public class TextRecognitionDialog2 extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(TextRecognitionDialog2.class);
+public class HtrTextRecognitionDialog extends Dialog {
+	private static final Logger logger = LoggerFactory.getLogger(HtrTextRecognitionDialog.class);
 	
-	private TextRecognitionConfigDialog trcd = null;
+	private HtrTextRecognitionConfigDialog trcd = null;
 	
 	private Button thisPageBtn, severalPagesBtn;
 	private DocPagesSelector dps;
@@ -38,7 +38,7 @@ public class TextRecognitionDialog2 extends Dialog {
 	private String pages;
 
 	
-	public TextRecognitionDialog2(Shell parent) {
+	public HtrTextRecognitionDialog(Shell parent) {
 		super(parent);
 	}
     
@@ -84,7 +84,7 @@ public class TextRecognitionDialog2 extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(trcd == null) {
-					trcd = new TextRecognitionConfigDialog(parent.getShell(), config);
+					trcd = new HtrTextRecognitionConfigDialog(parent.getShell(), config);
 					if(trcd.open() == IDialogConstants.OK_ID) {
 						logger.info("OK pressed");
 						config = trcd.getConfig();

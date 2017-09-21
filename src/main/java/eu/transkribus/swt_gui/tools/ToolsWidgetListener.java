@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
@@ -30,10 +32,12 @@ import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
-import eu.transkribus.swt_gui.dialogs.TextRecognitionDialog2;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
+import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
+import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage.StorageException;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.OcrConfig;
 import eu.transkribus.util.TextRecognitionConfig;
@@ -49,7 +53,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	ThumbnailManager tm;
 	HtrTrainingDialog htd;
 	OcrDialog od;
-	TextRecognitionDialog2 trd2;
+	HtrTextRecognitionDialog trd2;
 
 	public ToolsWidgetListener(TrpMainWidget mainWidget) {
 		this.mw = mainWidget;
@@ -83,7 +87,10 @@ public class ToolsWidgetListener implements SelectionListener {
 		
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
-				
+		SWTUtil.onSelectionEvent(tw.text2ImageBtn, (e) -> {
+			startTextToImage();
+		});
+		
 		//OLD
 //		tw.startOcrBtn.addSelectionListener(this);
 //		tw.startOcrPageBtn.addSelectionListener(this);
@@ -118,6 +125,43 @@ public class ToolsWidgetListener implements SelectionListener {
 		return (s == tw.startLaBtn && !tw.laComp.isDoBlockSeg() && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn;
 	}
 		
+	private void startTextToImage() {
+		try {
+			store.checkLoggedIn();
+			store.checkRemoteDocLoaded();
+			
+			Text2ImageConfDialog diag = new Text2ImageConfDialog(mw.getShell());
+			if (diag.open() == Dialog.OK) {
+				CitLabSemiSupervisedHtrTrainConfig config = diag.getConfig();
+
+				String jobId = store.getConnection().runCitLabText2Image(config);
+				showSuccessMessage(jobId);				
+			}
+		}
+		catch (StorageException e) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", e.getMessage());
+		}
+		catch (Exception e) {
+			mw.onError("Error while starting text to image job: "+e.getMessage(), e.getMessage(), e);
+		}
+	}
+	
+	private void showSuccessMessage(List<String> jobIds) {
+		showSuccessMessage(jobIds.toArray(new String[0]));
+	}
+	
+	private void showSuccessMessage(String... jobIds) {
+		if (!CoreUtils.isEmpty(jobIds)) {
+			logger.debug("started "+jobIds.length+" jobs");
+			String jobIdsStr = mw.registerJobsToUpdate(jobIds);
+			store.sendJobListUpdateEvent();
+			mw.updatePageLock();
+			
+			String jobsStr = jobIds.length>1 ? "jobs" : "job";
+			DialogUtil.showInfoMessageBox(tw.getShell(), jobIds.length+" "+jobsStr+" started!", "IDs:\n "+jobIdsStr);
+		}
+	}
+		
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
@@ -126,7 +170,7 @@ public class ToolsWidgetListener implements SelectionListener {
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No document loaded!");
 			return;
 		}
-				
+						
 		if (!store.isPageLoaded()) {
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No page loaded!");
 			return;
@@ -269,7 +313,7 @@ public class ToolsWidgetListener implements SelectionListener {
 					logger.debug("htr diag set visible");
 					trd2.setVisible();
 				} else {
-					trd2 = new TextRecognitionDialog2(mw.getShell());
+					trd2 = new HtrTextRecognitionDialog(mw.getShell());
 					if(trd2.open() == IDialogConstants.OK_ID) {
 						TextRecognitionConfig config = trd2.getConfig();
 						final String pages = trd2.getPages();
@@ -301,16 +345,7 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 			}
 			
-			if (!CoreUtils.isEmpty(jobIds)) {
-				logger.debug("started "+jobIds.size()+" jobs");
-				String jobIdsStr = mw.registerJobsToUpdate(jobIds);
-				store.sendJobListUpdateEvent();
-				mw.updatePageLock();
-				
-				String jobsStr = jobIds.size()>1 ? "jobs" : "job";
-				DialogUtil.showInfoMessageBox(tw.getShell(), jobIds.size()+" "+jobsStr+" started!", "IDs:\n "+jobIdsStr);
-			}
-			
+			showSuccessMessage(jobIds);			
 		} catch (ClientErrorException cee) {
 			final int status = cee.getResponse().getStatus();
 			if(status == 400) {

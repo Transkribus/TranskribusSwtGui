@@ -28,6 +28,7 @@ public class TextRecognitionComposite extends Composite {
 	
 	public static final String[] METHODS = { METHOD_HTR, METHOD_OCR };
 	
+	Button modelsBtn;
 	Button runBtn;
 	Button trainBtn;
 	

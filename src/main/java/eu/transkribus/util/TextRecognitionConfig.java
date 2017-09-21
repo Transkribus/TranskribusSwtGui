@@ -1,6 +1,7 @@
 package eu.transkribus.util;
 
-import eu.transkribus.swt_gui.dialogs.TextRecognitionConfigDialog;
+import eu.transkribus.swt_gui.htr.HtrDictionaryComposite;
+import eu.transkribus.swt_gui.htr.HtrTextRecognitionConfigDialog_Old;
 
 public class TextRecognitionConfig {
 	
@@ -74,7 +75,7 @@ public class TextRecognitionConfig {
 		switch(mode) {
 		case CITlab:
 			s = "CITlab RNN HTR\nNet Name: " + htrName + "\nLanguage: " + language + "\nDictionary: " 
-					+ (dictionary == null ? TextRecognitionConfigDialog.NO_DICTIONARY : dictionary);
+					+ (dictionary == null ? HtrDictionaryComposite.NO_DICTIONARY : dictionary);
 			break;
 		case UPVLC:
 			s = "This mode is not implemented.";

@@ -15,9 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt_gui.htr.HtrTextRecognitionConfigDialog_Old;
 
 public class CharSetViewerDialog extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(TextRecognitionConfigDialog.class);
+	private static final Logger logger = LoggerFactory.getLogger(HtrTextRecognitionConfigDialog_Old.class);
 
 	private final String title;
 	private final List<String> charSet;

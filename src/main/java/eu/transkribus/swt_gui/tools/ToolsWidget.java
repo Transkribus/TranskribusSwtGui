@@ -44,7 +44,7 @@ public class ToolsWidget extends Composite {
 //	Button /*blockSegBtn,*/ regAndLineSegBtn, lineSegBtn, wordSegBtn;
 //	Button batchLaBtn;
 
-	Button polygon2baselinesBtn, baseline2PolygonBtn;
+	Button polygon2baselinesBtn, baseline2PolygonBtn, text2ImageBtn;
 	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
 		
 //	Button ocrBtn, htrTrainBtn, recogBtn;
@@ -479,6 +479,11 @@ public class ToolsWidget extends Composite {
 		baseline2PolygonBtn.setText("Add Polygons to Baselines");
 		baseline2PolygonBtn.setToolTipText("Creates polygons for all baselines - warning: existing polygons will be lost (text is retained however!)");
 		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		text2ImageBtn = new Button(c, SWT.PUSH);
+		text2ImageBtn.setText("Align text to image (experimental)...");
+		text2ImageBtn.setToolTipText("Tries to align the text in this document to a layout analysis\nWarning: does take some time...");
+		text2ImageBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		exp.setClient(c);
 		new Label(c, SWT.NONE);
