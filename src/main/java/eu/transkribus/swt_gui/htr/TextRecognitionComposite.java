@@ -10,6 +10,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Widget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,22 +32,24 @@ public class TextRecognitionComposite extends Composite {
 	
 	public static final String[] METHODS = { METHOD_HTR, METHOD_OCR };
 	
-	Button modelsBtn;
 	Button runBtn;
+	
+	HtrModelChooserButton modelsBtn;
 	Button trainBtn;
 	Button text2ImageBtn;
 	
 	public TextRecognitionComposite(Composite parent, int style) {
 		super(parent, style);
 		
-		GridLayout gl = new GridLayout(2, false);
+		int nCols = 3;
+		GridLayout gl = new GridLayout(nCols, false);
 		gl.marginHeight = gl.marginWidth = 0;
 		this.setLayout(gl);
 
 		methodCombo = new LabeledCombo(this, "Method:");
 		methodCombo.combo.setItems(METHODS);
 		methodCombo.combo.select(0);
-		methodCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		methodCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
 		methodCombo.combo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -54,7 +57,10 @@ public class TextRecognitionComposite extends Composite {
 			}
 		});
 		
-//		Composite c = new Composite(parent, style);
+		modelsBtn = new HtrModelChooserButton(this, 0);
+		modelsBtn.setText("Models...");
+		modelsBtn.setImage(Images.getOrLoad("/icons/model2_16.png"));
+		modelsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		trainBtn = new Button(this, 0);
 		trainBtn.setText("Train...");
@@ -73,7 +79,7 @@ public class TextRecognitionComposite extends Composite {
 		runBtn.setText("Run...");
 		runBtn.setImage(Images.ARROW_RIGHT);
 		runBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		runBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		runBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
 		
 		Storage.getInstance().addListener(new IStorageListener() {
 			public void handleLoginOrLogout(LoginOrLogoutEvent arg) {

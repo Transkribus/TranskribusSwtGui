@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.htr;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -40,6 +41,18 @@ public class HtrModelChooserButton extends Composite {
 	
 	public TrpHtr getModel() {
 		return (TrpHtr) baseModelBtn.getData();
+	}
+	
+	public Button getButton() {
+		return baseModelBtn;
+	}
+
+	public void setText(String string) {
+		baseModelBtn.setText(string);
+	}
+	
+	public void setImage(Image image) {
+		baseModelBtn.setImage(image);
 	}
 
 

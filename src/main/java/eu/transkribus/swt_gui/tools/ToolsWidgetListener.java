@@ -64,40 +64,23 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 	
 	private void addListener() {
-		// use utiliy method from SWTUtil class to avoid nullpointer exceptions!
-//		SWTUtil.addSelectionListener(tw.batchLaBtn, this);
-//		SWTUtil.addSelectionListener(tw.regAndLineSegBtn, this);
-//		SWTUtil.addSelectionListener(tw.lineSegBtn, this);
-//		SWTUtil.addSelectionListener(tw.wordSegBtn, this);
-		
 		SWTUtil.addSelectionListener(tw.trComp.getRunBtn(), this);
-		SWTUtil.addSelectionListener(tw.trComp.getTrainBtn(), this);
+				
+		SWTUtil.onSelectionEvent(tw.trComp.getTrainBtn(), (e) -> {
+			startHtrTraining();
+		});
 		
 		SWTUtil.addSelectionListener(tw.startLaBtn, this);
-		
-//		blockSegWPsBtn.addSelectionListener(this);
-//		tw.baselineBtn.addSelectionListener(this);
-		
-//		SWTUtil.addSelectionListener(tw.ocrBtn, this);
-//		SWTUtil.addSelectionListener(tw.htrTrainBtn, this);
-//		SWTUtil.addSelectionListener(tw.recogBtn, this);
-		
+				
 		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
 		
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
+		
 		SWTUtil.onSelectionEvent(tw.trComp.getText2ImageBtn(), (e) -> {
 			startTextToImage();
 		});
-		
-		//OLD
-//		tw.startOcrBtn.addSelectionListener(this);
-//		tw.startOcrPageBtn.addSelectionListener(this);
-//		tw.languagesTable.addCheckStateListener(this);
-//		tw.scriptTypeCombo.addModifyListener(this);
-//		tw.runHtrOnPageBtn.addSelectionListener(this);
-//		tw.htrModelsCombo.addModifyListener(this);
 	}
 	
 	List<String> getSelectedRegionIds() {
@@ -123,6 +106,30 @@ public class ToolsWidgetListener implements SelectionListener {
 		}
 		
 		return (s == tw.startLaBtn && !tw.laComp.isDoBlockSeg() && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn;
+	}
+	
+	private void startHtrTraining() {
+		try {
+			store.checkLoggedIn();
+			
+			if(htd != null) {
+				htd.setVisible();
+			} else {
+				htd = new HtrTrainingDialog(mw.getShell());
+				if(htd.open() == IDialogConstants.OK_ID) {
+					CitLabHtrTrainConfig config = htd.getConfig();
+					String jobId = store.runHtrTraining(config);
+					showSuccessMessage(jobId);
+				}
+				htd = null;
+			}
+		}
+		catch (StorageException e) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", e.getMessage());
+		}
+		catch (Exception e) {
+			mw.onError("Error while starting training job: "+e.getMessage(), e.getMessage(), e);
+		}
 	}
 		
 	private void startTextToImage() {
@@ -295,19 +302,19 @@ public class ToolsWidgetListener implements SelectionListener {
 					mw.openVersionsCompareDialog(diff.getResult());
 				}
 			} 
-			else if (tw.trComp.isHtr() && s == tw.trComp.getTrainBtn()) {
-				if(htd != null) {
-					htd.setVisible();
-				} else {
-					htd = new HtrTrainingDialog(mw.getShell());
-					if(htd.open() == IDialogConstants.OK_ID) {
-						CitLabHtrTrainConfig config = htd.getConfig();
-						String jobId = store.runHtrTraining(config);
-						jobIds.add(jobId);
-					}
-					htd = null;
-				}
-			}
+//			else if (tw.trComp.isHtr() && s == tw.trComp.getTrainBtn()) {
+//				if(htd != null) {
+//					htd.setVisible();
+//				} else {
+//					htd = new HtrTrainingDialog(mw.getShell());
+//					if(htd.open() == IDialogConstants.OK_ID) {
+//						CitLabHtrTrainConfig config = htd.getConfig();
+//						String jobId = store.runHtrTraining(config);
+//						jobIds.add(jobId);
+//					}
+//					htd = null;
+//				}
+//			}
 			else if (tw.trComp.isHtr() && s == tw.trComp.getRunBtn()) {
 				if(trd2 != null) {
 					logger.debug("htr diag set visible");
