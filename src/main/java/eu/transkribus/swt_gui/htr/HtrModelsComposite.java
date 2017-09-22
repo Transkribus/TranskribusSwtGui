@@ -336,7 +336,7 @@ public class HtrModelsComposite extends Composite {
 
 		updateHtrs();
 
-		uroSash.setWeights(new int[] { 30, 70 });
+		uroSash.setWeights(new int[] { 40, 60 });
 		// fix for missing tooltip in chart after resize. Still does not work always...
 		this.getShell().addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {

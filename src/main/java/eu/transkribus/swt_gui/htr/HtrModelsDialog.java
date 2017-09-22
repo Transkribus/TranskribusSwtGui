@@ -35,6 +35,7 @@ public class HtrModelsDialog extends Dialog {
 		modelsComp = new HtrModelsComposite(cont, 0);
 		modelsComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
+		
 		modelsComp.htw.getTableViewer().getTable().addKeyListener(new KeyAdapter() {			
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -69,7 +70,7 @@ public class HtrModelsDialog extends Dialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1024, 768);
+		return new Point(1200, 800);
 	}
 
 	@Override
