@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.dialogs;
+package eu.transkribus.swt_gui.htr;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -11,9 +11,7 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -21,20 +19,16 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -42,7 +36,6 @@ import org.eclipse.swt.widgets.Text;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.annotations.XYLineAnnotation;
-import org.jfree.chart.annotations.XYPointerAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -60,15 +53,14 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt_gui.htr.HtrTableWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.dialogs.CharSetViewerDialog;
+import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
+import eu.transkribus.swt_gui.dialogs.DocImgViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.util.TextRecognitionConfig;
-import eu.transkribus.util.TextRecognitionConfig.Mode;
 
-public class TextRecognitionConfigDialog extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(TextRecognitionConfigDialog.class);
-
+public class HtrModelsComposite extends Composite {
+	private static final Logger logger = LoggerFactory.getLogger(HtrModelsComposite.class);
+	
 	private static final String NOT_AVAILABLE = "N/A";
 
 	private static final String[] CITLAB_TRAIN_PARAMS = { CitLabHtrTrainConfig.NUM_EPOCHS_KEY,
@@ -80,52 +72,33 @@ public class TextRecognitionConfigDialog extends Dialog {
 
 	final String cerTestKey = "CER Test";
 
-	private Storage store = Storage.getInstance();
+	Storage store = Storage.getInstance();
 
-	private CTabFolder folder;
-	private CTabItem citLabTabItem;
+	CTabFolder folder;
+	CTabItem citLabTabItem;
 
-	private Group dictGrp;
+	HtrTableWidget htw;
+	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalTestCerTxt;
+	Table paramTable;
+	Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
+	ChartComposite jFreeChartComp;
+	JFreeChart chart = null;
 
-	private HtrTableWidget htw;
-	private Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalTestCerTxt;
-	private Table paramTable;
-	private Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
-	private ChartComposite jFreeChartComp;
-	private JFreeChart chart = null;
+	String charSetTitle, charSet;
+	// Integer trainSetId, testSetId;
 
-	private String charSetTitle, charSet;
-	// private Integer trainSetId, testSetId;
+	DocImgViewerDialog trainDocViewer, testDocViewer = null;
+	CharSetViewerDialog charSetViewer = null;
 
-	private DocImgViewerDialog trainDocViewer, testDocViewer = null;
-	private CharSetViewerDialog charSetViewer = null;
+//	Combo ocrLangCombo, typeFaceCombo;
 
-	private Combo htrDictCombo, ocrLangCombo, typeFaceCombo;
+	TrpHtr htr;
 
-	private TrpHtr htr;
-
-	private List<String> htrDicts;
-
-	private TextRecognitionConfig config;
-
-	public final static String NO_DICTIONARY = "No dictionary";
-
-	public TextRecognitionConfigDialog(Shell parent, TextRecognitionConfig config) {
-		super(parent);
-		this.config = config;
-	}
-
-	public void setVisible() {
-		if (super.getShell() != null && !super.getShell().isDisposed()) {
-			super.getShell().setVisible(true);
-		}
-	}
-
-	@Override
-	protected Control createDialogArea(Composite parent) {
-		Composite cont = (Composite) super.createDialogArea(parent);
-
-		folder = new CTabFolder(cont, SWT.BORDER | SWT.FLAT);
+	public HtrModelsComposite(Composite parent, int flags) {
+		super(parent, flags);
+		this.setLayout(new GridLayout(1, false));
+		
+		folder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
 		folder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 
 		citLabTabItem = new CTabItem(folder, SWT.NONE);
@@ -133,16 +106,13 @@ public class TextRecognitionConfigDialog extends Dialog {
 
 		SashForm uroSash = new SashForm(folder, SWT.HORIZONTAL);
 		uroSash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		uroSash.setLayout(new GridLayout(3, false));
-		// sash.setWeights(new int[] {40, 60});
+		uroSash.setLayout(new GridLayout(2, false));
 
 		htw = new HtrTableWidget(uroSash, SWT.BORDER);
 		htw.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				IStructuredSelection sel = (IStructuredSelection) htw.getTableViewer().getSelection();
-				TrpHtr htr = (TrpHtr) sel.getFirstElement();
-				updateDetails(htr);
+				updateDetails(getSelectedHtr());
 			}
 		});
 
@@ -156,13 +126,13 @@ public class TextRecognitionConfigDialog extends Dialog {
 		shareItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				ChooseCollectionDialog ccd = new ChooseCollectionDialog(getParentShell());
+				ChooseCollectionDialog ccd = new ChooseCollectionDialog(getShell());
 				int ret = ccd.open();
 				TrpCollection col = ccd.getSelectedCollection();
 				TrpHtr htr = htw.getSelectedHtr();
 
 				if (store.getCollId() == col.getColId()) {
-					DialogUtil.showInfoMessageBox(getParentShell(), "Info",
+					DialogUtil.showInfoMessageBox(getShell(), "Info",
 							"The selected HTR is already included in this collection.");
 					return;
 				}
@@ -175,7 +145,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 					if(!StringUtils.isEmpty(e1.getMessage())) {
 						errorMsg += "\n" + e1.getMessage();
 					}
-					DialogUtil.showErrorMessageBox(getParentShell(), "Error sharing HTR",
+					DialogUtil.showErrorMessageBox(getShell(), "Error sharing HTR",
 							errorMsg);
 				}
 				super.widgetSelected(e);
@@ -193,7 +163,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 						| NoConnectionException e1) {
 					logger.debug("Could not remove HTR from collection!", e1);
-					DialogUtil.showErrorMessageBox(getParentShell(), "Error removing HTR",
+					DialogUtil.showErrorMessageBox(getShell(), "Error removing HTR",
 							"The selected HTR could not be removed from this collection.");
 				}
 				super.widgetSelected(e);
@@ -276,7 +246,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 					trainDocViewer.setVisible();
 				} else {
 					try {
-						trainDocViewer = new DocImgViewerDialog(getParentShell(), "Train Set", store.getTrainSet(htr));
+						trainDocViewer = new DocImgViewerDialog(getShell(), "Train Set", store.getTrainSet(htr));
 						trainDocViewer.open();
 					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException
 							| NoConnectionException e1) {
@@ -300,7 +270,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 					testDocViewer.setVisible();
 				} else {
 					try {
-						testDocViewer = new DocImgViewerDialog(getParentShell(), "Test Set", store.getTestSet(htr));
+						testDocViewer = new DocImgViewerDialog(getShell(), "Test Set", store.getTestSet(htr));
 						testDocViewer.open();
 					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException
 							| NoConnectionException e1) {
@@ -326,7 +296,7 @@ public class TextRecognitionConfigDialog extends Dialog {
 					charSetViewer.setVisible();
 				} else {
 					try {
-						charSetViewer = new CharSetViewerDialog(getParentShell(), "Character Set", charList);
+						charSetViewer = new CharSetViewerDialog(getShell(), "Character Set", charList);
 						charSetViewer.open();
 					} catch (ClientErrorException | IllegalArgumentException e1) {
 						// TODO Auto-generated catch block
@@ -359,34 +329,20 @@ public class TextRecognitionConfigDialog extends Dialog {
 		finalTestCerLbl.setText("CER on Test Set:");
 		finalTestCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
 		finalTestCerTxt.setLayoutData(gd);
-
-		dictGrp = new Group(uroSash, SWT.NONE);
-		dictGrp.setLayout(new GridLayout(1, false));
-		dictGrp.setText("Dictionary");
-		htrDictCombo = new Combo(dictGrp, SWT.READ_ONLY);
-		htrDictCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-
+		
 		citLabTabItem.setControl(uroSash);
 
 		folder.setSelection(citLabTabItem);
 
 		updateHtrs();
 
-		loadHtrDicts();
-		htrDictCombo.setItems(this.htrDicts.toArray(new String[this.htrDicts.size()]));
-		htrDictCombo.select(0);
-
-		// updateDictGroup();
-		applyConfig();
-
-		uroSash.setWeights(new int[] { 20, 60, 20 });
-
+		uroSash.setWeights(new int[] { 30, 70 });
 		// fix for missing tooltip in chart after resize. Still does not work always...
 		this.getShell().addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
-				logger.debug("Resizing...");
+				logger.trace("Resizing...");
 				if(getShell().getMaximized()) {
-					logger.debug("To MAX!");
+					logger.trace("To MAX!");
 				}
 				
 				if(chart != null) {
@@ -394,42 +350,20 @@ public class TextRecognitionConfigDialog extends Dialog {
 				}
 			}
 		});
-
-		return cont;
 	}
-
-	private void applyConfig() {
-		if (config == null) {
-			return;
-		}
-		Mode mode = config.getMode();
-		switch (mode) {
-		case CITlab:
-			htw.setSelection(config.getHtrId());
-
-			if (config.getDictionary() == null) {
-				// if this is null, no dictionary will be used
-				// first entry in dictCombo is always "No dictionary"
-				htrDictCombo.select(0);
-			} else {
-				// set the dictionary according to config
-				for (int i = 0; i < htrDicts.size(); i++) {
-					if (config.getDictionary().equals(htrDicts.get(i))) {
-						htrDictCombo.select(i);
-						break;
-					}
-				}
-			}
-			break;
-		case UPVLC:
-			break;
-		default:
-			break;
-
-		}
+	
+	public void setSelection(int htrId) {
+		htw.setSelection(htrId);
 	}
-
+	
+	public TrpHtr getSelectedHtr() {
+		return htw.getSelectedHtr();
+	}
+	
 	private void updateDetails(TrpHtr htr) {
+		if (htr == null)
+			return;
+		
 		nameTxt.setText(StrUtil.get(htr.getName()));
 		langTxt.setText(StrUtil.get(htr.getLanguage()));
 		descTxt.setText(StrUtil.get(htr.getDescription()));
@@ -575,64 +509,26 @@ public class TextRecognitionConfigDialog extends Dialog {
 		try {
 			uroHtrs = store.listHtrs("CITlab");
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e1) {
-			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Could not load HTR model list!");
+			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not load HTR model list!");
+			logger.error(e1.getMessage(), e1);
 			return;
 		}
 
 		htw.refreshList(uroHtrs);
 	}
-
-	private void loadHtrDicts() {
-		try {
-			this.htrDicts = store.getHtrDicts();
-		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
-			TrpMainWidget.getInstance().onError("Error", "Could not load HTR model list!", e);
-			htrDicts = new ArrayList<>(0);
-		}
-		htrDicts.add(0, NO_DICTIONARY);
+	
+	public boolean isCitlabHtrTabSelected() {
+		return folder.getSelection().equals(citLabTabItem);
 	}
 
-	public TextRecognitionConfig getConfig() {
-		return config;
-	}
+//	private void loadHtrDicts() {
+//		try {
+//			this.htrDicts = store.getHtrDicts();
+//		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
+//			TrpMainWidget.getInstance().onError("Error", "Could not load HTR model list!", e);
+//			htrDicts = new ArrayList<>(0);
+//		}
+//		htrDicts.add(0, NO_DICTIONARY);
+//	}
 
-	@Override
-	protected void okPressed() {
-
-		if (folder.getSelection().equals(citLabTabItem)) {
-			config = new TextRecognitionConfig(Mode.CITlab);
-
-			final String dictName = htrDicts.get(htrDictCombo.getSelectionIndex());
-			config.setDictionary(dictName == NO_DICTIONARY ? null : dictName);
-			TrpHtr htr = htw.getSelectedHtr();
-			if (htr == null) {
-				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");
-				return;
-			}
-			config.setHtrId(htr.getHtrId());
-			config.setHtrName(htr.getName());
-			config.setLanguage(htr.getLanguage());
-		} else {
-			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Bad configuration!");
-		}
-		super.okPressed();
-	}
-
-	@Override
-	protected void configureShell(Shell newShell) {
-		super.configureShell(newShell);
-		newShell.setText("Text Recognition Configuration");
-		newShell.setMinimumSize(800, 600);
-	}
-
-	@Override
-	protected Point getInitialSize() {
-		return new Point(1024, 768);
-	}
-
-	@Override
-	protected void setShellStyle(int newShellStyle) {
-		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
-		// setBlockOnOpen(false);
-	}
 }

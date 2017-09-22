@@ -52,6 +52,9 @@ import eu.transkribus.swt_gui.tools.HtrModelTableLabelProvider;
 import eu.transkribus.swt_gui.upload.UploadFromFtpDialog;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 
+/**
+ * @deprecated Not used anymore. Was used for HMM based training
+ */
 public class TextRecognitionDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(TextRecognitionDialog.class);
 

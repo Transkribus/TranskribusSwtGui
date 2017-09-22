@@ -10,6 +10,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Widget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
@@ -20,7 +23,8 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TextRecognitionComposite extends Composite {
-
+	private static final Logger logger = LoggerFactory.getLogger(TextRecognitionComposite.class);
+	
 	private LabeledCombo methodCombo;
 	
 	public static final String METHOD_OCR = "OCR (Abbyy FineReader)";
@@ -29,50 +33,61 @@ public class TextRecognitionComposite extends Composite {
 	public static final String[] METHODS = { METHOD_HTR, METHOD_OCR };
 	
 	Button runBtn;
+	
+	HtrModelChooserButton modelsBtn;
 	Button trainBtn;
+	Button text2ImageBtn;
 	
 	public TextRecognitionComposite(Composite parent, int style) {
 		super(parent, style);
 		
-		GridLayout gl = new GridLayout(2, false);
+		int nCols = 3;
+		GridLayout gl = new GridLayout(nCols, false);
 		gl.marginHeight = gl.marginWidth = 0;
 		this.setLayout(gl);
 
 		methodCombo = new LabeledCombo(this, "Method:");
 		methodCombo.combo.setItems(METHODS);
 		methodCombo.combo.select(0);
-		methodCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		methodCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
 		methodCombo.combo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				updateGui(Storage.getInstance().isAdminLoggedIn());
+				updateGui();
 			}
 		});
 		
-		trainBtn = new Button(SWTUtil.dummyShell, 0);
+		modelsBtn = new HtrModelChooserButton(this, 0);
+		modelsBtn.setText("Models...");
+		modelsBtn.setImage(Images.getOrLoad("/icons/model2_16.png"));
+		modelsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		trainBtn = new Button(this, 0);
 		trainBtn.setText("Train...");
 		trainBtn.setImage(Images.getOrLoad("/icons/muscle_16.png"));
-		trainBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		trainBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		trainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		text2ImageBtn = new Button(this, SWT.PUSH);
+		text2ImageBtn.setText("Text2Image (experimental)...");
+		text2ImageBtn.setImage(Images.getOrLoad("/icons/image_link.png"));
+		text2ImageBtn.setToolTipText("Tries to align the text in this document to a layout analysis\nWarning: does take some time...");
+//		text2ImageBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		text2ImageBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		runBtn = new Button(this, 0);
 		runBtn.setText("Run...");
 		runBtn.setImage(Images.ARROW_RIGHT);
 		runBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		runBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
 		
 		Storage.getInstance().addListener(new IStorageListener() {
 			public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
-				boolean withTrainBtn = false;
-				if(arg.login) {
-					final String trainJobImplStr = JobImpl.CITlabHtrTrainingJob.toString();	
-					try {
-						withTrainBtn = Storage.getInstance().getConnection().isUserAllowedForJob(trainJobImplStr);
-					} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
-						withTrainBtn = false;
-					}
-				}
-				updateGui(withTrainBtn);
+				updateGui();
 			}
 		});
+		
+		updateGui();
 	}
 	
 	public Button getRunBtn() {
@@ -81,6 +96,10 @@ public class TextRecognitionComposite extends Composite {
 	
 	public Button getTrainBtn() {
 		return trainBtn;
+	}
+	
+	public Button getText2ImageBtn() {
+		return text2ImageBtn;
 	}
 	
 	public String getSelectedMethod() {
@@ -103,9 +122,27 @@ public class TextRecognitionComposite extends Composite {
 //		trainBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 //	}
 	
-	public void updateGui(boolean withTrainBtn) {
-		boolean showTrainBtn = withTrainBtn && isHtr();
+	public void updateGui() {
+		boolean withTrainBtn = false;
+		boolean withText2ImageBtn = false;
 		
+		if(Storage.getInstance() != null && Storage.getInstance().isLoggedIn()) {
+			try {
+				withTrainBtn = Storage.getInstance().getConnection().isUserAllowedForJob(JobImpl.CITlabHtrTrainingJob.toString());
+				withText2ImageBtn = Storage.getInstance().getConnection().isUserAllowedForJob(JobImpl.CITlabSemiSupervisedHtrTrainingJob.toString());
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+				withTrainBtn = false;
+				withText2ImageBtn = false;
+			}
+		}
+		
+		setBtnVisibility(withTrainBtn, withText2ImageBtn);
+	}
+	
+	private void setBtnVisibility(boolean withTrainBtn, boolean withText2ImageBtn) {
+		boolean showTrainBtn = withTrainBtn && isHtr();
+		boolean showText2ImgBtn = withTrainBtn && isHtr();
+
 		if (showTrainBtn) {
 			trainBtn.setParent(this);
 //			runBtn.moveBelow(trainBtn);
@@ -114,7 +151,16 @@ public class TextRecognitionComposite extends Composite {
 			trainBtn.setParent(SWTUtil.dummyShell);
 		}
 		
+		if (showText2ImgBtn) {
+			text2ImageBtn.setParent(this);
+			text2ImageBtn.moveAbove(runBtn);
+		} else {
+			text2ImageBtn.setParent(SWTUtil.dummyShell);
+		}
+		
 		this.layout();
+		logger.info("parent: "+getParent());
+		getParent().layout();
 	}
 
 }

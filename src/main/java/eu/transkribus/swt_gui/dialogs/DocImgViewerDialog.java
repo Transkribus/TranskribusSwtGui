@@ -27,10 +27,11 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.htr.HtrTextRecognitionConfigDialog_Old;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DocImgViewerDialog extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(TextRecognitionConfigDialog.class);
+	private static final Logger logger = LoggerFactory.getLogger(HtrTextRecognitionConfigDialog_Old.class);
 
 	private Storage store = Storage.getInstance();
 

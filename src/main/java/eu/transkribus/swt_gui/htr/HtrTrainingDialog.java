@@ -120,7 +120,9 @@ public class HtrTrainingDialog extends Dialog {
 	private List<ThumbnailWidgetVirtualMinimal> trainTwList, testTwList;
 
 	private Text modelNameTxt, descTxt, langTxt, trainSizeTxt;
-	private Combo baseModelCmb, noiseCmb;
+	private Combo baseModelCmb;
+
+	CitlabNoiseParamCombo noiseCmb;
 	private ComboViewer baseModelCmbViewer;
 
 	private Text numEpochsTxt, learningRateTxt;
@@ -145,12 +147,12 @@ public class HtrTrainingDialog extends Dialog {
 
 	private Map<TrpDocMetadata, List<TrpPage>> trainDocMap, testDocMap;
 
-	private final static String[] NOISE_OPTIONS = new String[] { "no", "preproc", "net", "both" };
-	private final static int NOISE_DEFAULT_CHOICE = 3;
+//	private final static String[] NOISE_OPTIONS = new String[] { "no", "preproc", "net", "both" };
+//	private final static int NOISE_DEFAULT_CHOICE = 3;
 
-	private final static int NUM_EPOCHS_DEFAULT = 200;
-	private final static String LEARNING_RATE_DEFAULT = "2e-3";
-	private final static int TRAIN_SIZE_DEFAULT = 1000;
+//	private final static int NUM_EPOCHS_DEFAULT = 200;
+//	private final static String LEARNING_RATE_DEFAULT = "2e-3";
+//	private final static int TRAIN_SIZE_DEFAULT = 1000;
 
 	private final static String TAB_NAME_PREFIX = "Document ";
 
@@ -223,9 +225,12 @@ public class HtrTrainingDialog extends Dialog {
 
 		Label noiseLbl = new Label(uroParamCont, SWT.NONE);
 		noiseLbl.setText("Noise:");
-		noiseCmb = new Combo(uroParamCont, SWT.READ_ONLY);
+		noiseCmb = new CitlabNoiseParamCombo(uroParamCont, 0);
 		noiseCmb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		noiseCmb.setItems(NOISE_OPTIONS);
+		
+//		noiseCmb = new Combo(uroParamCont, SWT.READ_ONLY);
+//		noiseCmb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+//		noiseCmb.setItems(NOISE_OPTIONS);
 
 		Label trainSizeLbl = new Label(uroParamCont, SWT.NONE);
 		trainSizeLbl.setText("Train Size per Epoch:");
@@ -762,10 +767,10 @@ public class HtrTrainingDialog extends Dialog {
 	}
 
 	private void setUroDefaults() {
-		numEpochsTxt.setText("" + NUM_EPOCHS_DEFAULT);
-		learningRateTxt.setText(LEARNING_RATE_DEFAULT);
-		noiseCmb.select(NOISE_DEFAULT_CHOICE);
-		trainSizeTxt.setText("" + TRAIN_SIZE_DEFAULT);
+		numEpochsTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_NUM_EPOCHS);
+		learningRateTxt.setText(CitLabHtrTrainConfig.DEFAULT_LEARNING_RATE);
+		noiseCmb.setDefault();
+		trainSizeTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_TRAIN_SIZE_PER_EPOCH);
 		baseModelCmb.select(0);
 	}
 
@@ -827,7 +832,7 @@ public class HtrTrainingDialog extends Dialog {
 			conf.setLanguage(langTxt.getText());
 
 			conf.setNumEpochs(Integer.parseInt(numEpochsTxt.getText()));
-			conf.setNoise(noiseCmb.getText());
+			conf.setNoise(noiseCmb.getNoise());
 			conf.setLearningRate(learningRateTxt.getText());
 			conf.setTrainSizePerEpoch(Integer.parseInt(trainSizeTxt.getText()));
 			
