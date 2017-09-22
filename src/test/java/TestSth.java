@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -8,6 +9,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,7 @@ import Jama.Matrix;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocWriter;
+import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
@@ -283,8 +286,51 @@ public class TestSth {
 		
 	}
 			
-	public static void main(String [] args) {
-		testPathNormalization();
+	public static void main(String [] args) throws Exception {
+		
+		System.out.println(CitLabSemiSupervisedHtrTrainConfig.isValidTrainingEpochsString(""));
+		
+		String trainepochs="";
+		int[] epochs_inner;
+		int epochs = trainepochs.split(";").length;
+		
+        String[] split = trainepochs.split(";");
+        if (split.length == 1) {
+            epochs_inner = new int[epochs];
+            for (int i = 0; i < epochs_inner.length; i++) {
+                epochs_inner[i] = Integer.parseInt(trainepochs);
+            }
+        } else {
+            if (split.length != epochs) {
+                throw new RuntimeException("epochs = " + epochs + " but training epochs '" + trainepochs + "' can only be split into " + split.length + " parts.");
+            }
+            epochs_inner = new int[epochs];
+            for (int i = 0; i < split.length; i++) {
+                epochs_inner[i] = Integer.parseInt(split[i]);
+            }
+        }
+        
+        System.out.println("epochs_inner: ");
+        for (int i : epochs_inner) {
+        	System.out.println(i);
+        }
+        
+        
+        
+        if (true)
+        	return;
+		
+		;
+		
+		for (Path pageXml : CoreUtils.listFilesRecursive("/mnt/dea_scratch/TRP/test/Ms__orient__A_2654/t2iworkdir/trainInput", ".xml", true)) {
+			String bn = FilenameUtils.getBaseName(pageXml.getFileName().toString());
+			System.out.println(pageXml.getParent().getParent() + File.separator + bn);
+		
+			
+//			laWrapper.process(image, xmlInOut, null, null);
+		}
+		
+//		testPathNormalization();
 		if (true)
 			return;
 		

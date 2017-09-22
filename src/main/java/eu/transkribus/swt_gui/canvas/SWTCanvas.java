@@ -820,7 +820,7 @@ public class SWTCanvas extends Canvas {
 			gc.fillRectangle(clientRect);
 			// updateScrollBars();
 		}
-
+		
 		long time = System.currentTimeMillis() - st;
 		// logger.trace("painted, time = "+time+" ms");
 	}

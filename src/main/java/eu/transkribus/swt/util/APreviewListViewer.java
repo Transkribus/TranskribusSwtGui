@@ -196,7 +196,7 @@ public abstract class APreviewListViewer<T> extends Composite {
 			imgLabel.setLayoutData(gd);
 			imgLabel.addPaintListener(new PaintListener() {
 				@Override public void paintControl(PaintEvent e) {
-					if (selectedImage != null) {
+					if (selectedImage != null && !selectedImage.isDisposed()) {
 						e.gc.setInterpolation(SWT.HIGH);
 						
 						int srcWidth = selectedImage.getImageData().width;

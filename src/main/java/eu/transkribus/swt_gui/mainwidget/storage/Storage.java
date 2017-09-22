@@ -180,7 +180,20 @@ public class Storage {
 	Set<IStorageListener> listener = new HashSet<>();
 	
 	// just for debugging purposes:
-	private static int reloadDocListCounter=0; 
+	private static int reloadDocListCounter=0;
+	
+	public static class StorageException extends Exception {
+		private static final long serialVersionUID = -2215354890031208420L;
+
+		public StorageException(String message) {
+			super(message);
+		}
+		
+		public StorageException(String message, Exception cause) {
+			super(message, cause);
+		}
+	}
+	
 
 	private Storage() {
 		initImCache();
@@ -478,6 +491,37 @@ public class Storage {
 		lineObject = null;
 		wordObject = null;
 	}
+	
+	public void checkDocLoaded() throws StorageException {
+		if (!isDocLoaded()) {
+			throw new StorageException("No document loaded!");
+		}
+	}
+	
+	public void checkRemoteDocLoaded() throws StorageException {
+		if (!isRemoteDoc()) {
+			throw new StorageException("No remote document loaded!");
+		}
+	}
+	
+	public void checkLocalDocLoaded() throws StorageException {
+		if (!isRemoteDoc()) {
+			throw new StorageException("No local document loaded!");
+		}
+	}
+	
+	public void checkLoggedIn() throws StorageException {
+		if (!isLoggedIn()) {
+			throw new StorageException("You are not logged in!");
+		}
+	}
+	
+	public void checkPageLoaded() throws StorageException {
+		if (!isPageLoaded()) {
+			throw new StorageException("No page loaded!");
+		}
+	}
+	
 
 	private void clearTranscriptContent() {
 		transcript.clear();
@@ -2277,6 +2321,5 @@ public class Storage {
 		checkConnection(true);
 		return conn.getCrowdProject(colId);		
 	}
-
 
 }

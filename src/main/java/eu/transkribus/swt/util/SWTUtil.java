@@ -1410,5 +1410,5 @@ public class SWTUtil {
 		
 		addListener(w, SWT.Traverse, l);
 	}
-
+	
 }
