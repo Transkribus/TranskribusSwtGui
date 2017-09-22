@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.Display;
 
 import eu.transkribus.client.connection.ATrpServerConn;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -23,7 +24,7 @@ public class GenericDialogTest {
 			store = Storage.getInstance();
 			store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
 			Future<?> fut = store.reloadDocList(1); // reload doclist of a collection just that the collection id gets set!
-			store.loadRemoteDoc(1, 455); // bentham doc on testserver
+//			store.loadRemoteDoc(1, 455); // bentham doc on testserver
 			
 			fut.get();
 			}
@@ -36,14 +37,19 @@ public class GenericDialogTest {
 					
 //					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 	//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
-//					HtrModelsDialog diag = new HtrModelsDialog(getShell());
-//					if (diag.open() == Dialog.OK) {
-//						System.out.println("selected model: "+diag.getSelectedHtr());
-//					}
 					
+					if (true) {
+					HtrModelsDialog diag = new HtrModelsDialog(getShell());
+					if (diag.open() == Dialog.OK) {
+						System.out.println("selected model: "+diag.getSelectedHtr());
+					}
+					}
+					
+					if (false) {
 					Text2ImageConfDialog diag = new Text2ImageConfDialog(getShell());
 					if (diag.open() == Dialog.OK) {
 						System.out.println("conf: "+diag.getConfig());
+					}
 					}
 	
 					return parent;
