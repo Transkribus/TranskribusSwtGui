@@ -87,7 +87,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
-		SWTUtil.onSelectionEvent(tw.text2ImageBtn, (e) -> {
+		SWTUtil.onSelectionEvent(tw.trComp.getText2ImageBtn(), (e) -> {
 			startTextToImage();
 		});
 		
