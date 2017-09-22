@@ -291,8 +291,12 @@ public class Utils {
 			String key = it.next();
 			String value = config.getProperty(key).toString().trim();
 			Class<?> type = beanmap.getType(key);
-			if (type == null) // no such property!
+			if (type == null) {
+				// no such property!
+				logger.debug("Could not find property: " + key);
 				continue;
+			}
+				
 			
 			logger.debug("setting property '"+key+"' of bean '"+bean.getClass().getSimpleName()+"' to '"+value+"'"+ " type = "+type);
 			
