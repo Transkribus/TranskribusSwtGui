@@ -116,7 +116,14 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		private boolean doTransition = false;
 		public static final String DO_TRANSITION_PROPERTY = "doTransition";
 
-		private boolean lockZoomOnFocus=false;
+		private boolean lockZoomOnFocus = false;
+
+		private boolean showMouseCoords = false;
+		public static final String IS_SHOW_MOUSE_COORDS_PROPERTY = "showMouseCoords";
+
+		private Color canvasBackgroundColor = null; 
+		public static final String BACKGROUND_COLOR_PROPERTY = "canvasBackgroundColor";
+		
 		public static final String LOCK_ZOOM_ON_FOCUS_PROPERTY = "lockZoomOnFocus";
 		
 		static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
@@ -414,6 +421,25 @@ public class CanvasSettings extends APropertyChangeSupport  {
 			firePropertyChange( LOCK_ZOOM_ON_FOCUS_PROPERTY, !this.lockZoomOnFocus, this.lockZoomOnFocus );
 		}
 
+		public Color getCanvasBackgroundColor() {
+			return canvasBackgroundColor;
+		}
+		
+		public void setCanvasBackgroundColor(Color canvasBackgroundColor) {
+			Color old = this.canvasBackgroundColor;
+			this.canvasBackgroundColor = canvasBackgroundColor;
+			firePropertyChange(BACKGROUND_COLOR_PROPERTY, old, this.canvasBackgroundColor);
+		}
+
+		public boolean isShowMouseCoords() {
+			return showMouseCoords;
+		}
+		
+		public void setShowMouseCoords(boolean showMouseCoords) {
+			this.showMouseCoords = showMouseCoords;
+			firePropertyChange(IS_SHOW_MOUSE_COORDS_PROPERTY, !showMouseCoords, showMouseCoords);
+		}
+		
 		@Override public List<String> getPropertiesToNotSave() {
 			return DO_NOT_SAVE_THOSE_PROPERTIES;
 		}
@@ -433,7 +459,4 @@ public class CanvasSettings extends APropertyChangeSupport  {
 					+ rotateAroundCenter + ", translateWoScalingAndRotation=" + translateWoScalingAndRotation + ", editingEnabled=" + editingEnabled
 					+ ", focusFirstSelected=" + focusFirstSelected + ", doTransition=" + doTransition + ", lockZoomOnFocus=" + lockZoomOnFocus + "]";
 		}
-		
-		
-
 	}
