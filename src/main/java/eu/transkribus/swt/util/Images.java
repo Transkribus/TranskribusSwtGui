@@ -89,8 +89,9 @@ public class Images {
 	
 	public static final Image BORDER_VERTICAL_CLOSED = getOrLoad("/icons/border_vertical_closed.png");
 	public static final Image BORDER_VERTICAL_OPEN = getOrLoad("/icons/border_vertical_open.png");
-
-
+	
+	public static final Image COG_EDIT = getOrLoad("/icons/cog_edit.png");
+	
 	public static final Image TICK = getOrLoad("/icons/tick.png");
 	public static final Image FIND = getOrLoad("/icons/find.png");
 
