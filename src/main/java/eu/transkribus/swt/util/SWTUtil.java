@@ -83,7 +83,11 @@ import math.geom2d.Vector2D;
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
 	
-	
+	public static Composite createContainerComposite(Composite parent, int nColumns, boolean makeColumnsEqualWidth) {
+		Composite c = new Composite(parent, 0);
+		c.setLayout(createGridLayout(nColumns, makeColumnsEqualWidth, 0, 0));
+		return c;
+	}
 	
 	public static GridLayout createGridLayout(int numColumns, boolean makeColumnsEqualWidth, int marginWidth, int marginHeight) {
 		GridLayout l = new GridLayout(numColumns, makeColumnsEqualWidth);
@@ -716,8 +720,20 @@ public class SWTUtil {
 			addSelectionListener((Button) w, l);
 		else if (w instanceof DropDownToolItem) {
 			addSelectionListener((DropDownToolItem) w, l);
-		} else
+		} 
+		else if (w instanceof CTabFolder) {
+			addSelectionListener((CTabFolder) w, l);
+		}
+		else
 			throw new RuntimeException("Widget type not supported for selection events: " + w);
+	}
+	
+	public static boolean addSelectionListener(CTabFolder f, SelectionListener l) {
+		if (isDisposed(f))
+			return false;
+		
+		f.addSelectionListener(l);
+		return true;
 	}
 	
 	public static boolean addSelectionListener(DropDownToolItem i, SelectionListener l) {

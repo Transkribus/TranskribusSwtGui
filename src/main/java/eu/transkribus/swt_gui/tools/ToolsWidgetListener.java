@@ -67,7 +67,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.trComp.getRunBtn(), this);
 				
 		SWTUtil.onSelectionEvent(tw.trComp.getTrainBtn(), (e) -> {
-			startHtrTraining();
+			startHtrTrainingDialog();
 		});
 		
 		SWTUtil.addSelectionListener(tw.startLaBtn, this);
@@ -77,10 +77,6 @@ public class ToolsWidgetListener implements SelectionListener {
 		
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
-		
-		SWTUtil.onSelectionEvent(tw.trComp.getText2ImageBtn(), (e) -> {
-			startTextToImage();
-		});
 	}
 	
 	List<String> getSelectedRegionIds() {
@@ -108,7 +104,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		return (s == tw.startLaBtn && !tw.laComp.isDoBlockSeg() && tw.laComp.isDoLineSeg()) || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn;
 	}
 	
-	private void startHtrTraining() {
+	private void startHtrTrainingDialog() {
 		try {
 			store.checkLoggedIn();
 			
@@ -117,9 +113,17 @@ public class ToolsWidgetListener implements SelectionListener {
 			} else {
 				htd = new HtrTrainingDialog(mw.getShell());
 				if(htd.open() == IDialogConstants.OK_ID) {
-					CitLabHtrTrainConfig config = htd.getConfig();
-					String jobId = store.runHtrTraining(config);
-					showSuccessMessage(jobId);
+					String jobId = null;
+					if (htd.getCitlabTrainConfig() != null) {
+						CitLabHtrTrainConfig config = htd.getCitlabTrainConfig();
+						jobId = store.runHtrTraining(config);
+						showSuccessMessage(jobId);
+					}
+					else if (htd.getCitlabT2IConfig() != null) {
+						CitLabSemiSupervisedHtrTrainConfig config = htd.getCitlabT2IConfig();
+						jobId = store.runCitLabText2Image(config);
+						showSuccessMessage(jobId);
+					}
 				}
 				htd = null;
 			}
@@ -132,26 +136,38 @@ public class ToolsWidgetListener implements SelectionListener {
 		}
 	}
 		
-	private void startTextToImage() {
-		try {
-			store.checkLoggedIn();
-			store.checkRemoteDocLoaded();
-			
-			Text2ImageConfDialog diag = new Text2ImageConfDialog(mw.getShell());
-			if (diag.open() == Dialog.OK) {
-				CitLabSemiSupervisedHtrTrainConfig config = diag.getConfig();
-
-				String jobId = store.getConnection().runCitLabText2Image(config);
-				showSuccessMessage(jobId);				
-			}
-		}
-		catch (StorageException e) {
-			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", e.getMessage());
-		}
-		catch (Exception e) {
-			mw.onError("Error while starting text to image job: "+e.getMessage(), e.getMessage(), e);
-		}
-	}
+//	private void startTextToImage() {
+//		try {
+//			store.checkLoggedIn();
+//			store.checkRemoteDocLoaded();
+//			
+////			if(htd != null) {
+////				htd.setVisible();
+////			} else {
+////				htd = new HtrTrainingDialog(mw.getShell());
+////				if(htd.open() == IDialogConstants.OK_ID) {
+////					CitLabHtrTrainConfig config = htd.getCitlabTrainConfig();
+////					String jobId = store.runHtrTraining(config);
+////					showSuccessMessage(jobId);
+////				}
+////				htd = null;
+////			}
+//			
+//			Text2ImageConfDialog diag = new Text2ImageConfDialog(mw.getShell());
+//			if (diag.open() == Dialog.OK) {
+//				CitLabSemiSupervisedHtrTrainConfig config = diag.getConfig();
+//
+//				String jobId = store.getConnection().runCitLabText2Image(config);
+//				showSuccessMessage(jobId);				
+//			}
+//		}
+//		catch (StorageException e) {
+//			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", e.getMessage());
+//		}
+//		catch (Exception e) {
+//			mw.onError("Error while starting text to image job: "+e.getMessage(), e.getMessage(), e);
+//		}
+//	}
 	
 	private void showSuccessMessage(List<String> jobIds) {
 		showSuccessMessage(jobIds.toArray(new String[0]));

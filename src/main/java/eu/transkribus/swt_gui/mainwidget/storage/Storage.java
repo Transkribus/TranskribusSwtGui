@@ -50,6 +50,7 @@ import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocWriter;
 import eu.transkribus.core.io.UnsupportedFormatException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.EdFeature;
@@ -2222,6 +2223,13 @@ public class Storage {
 			throw new IllegalArgumentException("Config is null!");
 		}
 		return conn.runCitLabHtrTraining(config);
+	}
+	
+	public String runCitLabText2Image(CitLabSemiSupervisedHtrTrainConfig config) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		if(config == null) {
+			throw new IllegalArgumentException("Config is null!");
+		}
+		return conn.runCitLabText2Image(config);
 	}
 	
 	public TrpDoc getTestSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {

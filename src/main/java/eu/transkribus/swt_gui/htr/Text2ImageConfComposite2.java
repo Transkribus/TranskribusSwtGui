@@ -23,11 +23,12 @@ import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.swt.util.LabeledText;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.CurrentDocPagesSelector;
 
-public class Text2ImageConfComposite extends Composite {
-	private static final Logger logger = LoggerFactory.getLogger(Text2ImageConfComposite.class);
+public class Text2ImageConfComposite2 extends Composite {
+	private static final Logger logger = LoggerFactory.getLogger(Text2ImageConfComposite2.class);
 	
 	LabeledText epochsTxt;
 	LabeledText subsamplingTxt;
@@ -43,55 +44,63 @@ public class Text2ImageConfComposite extends Composite {
 	Text additonalParameters;
 	PropertyTable advancedPropertiesTable;
 	
-	CurrentDocPagesSelector currentDocPagesSelector;
+//	CurrentDocPagesSelector currentDocPagesSelector;
 	
-	public Text2ImageConfComposite(Composite parent, int flags) {
+	public Text2ImageConfComposite2(Composite parent, int flags) {
 		super(parent, flags);
 		this.setLayout(new GridLayout(2, false));
 		
-		currentDocPagesSelector = new CurrentDocPagesSelector(this, 0, true, true, true);
-		currentDocPagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//		currentDocPagesSelector = new CurrentDocPagesSelector(this, 0, true, true, true);
+//		currentDocPagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		Label labelBaseModel = new Label(this, 0);
+		Composite baseModelCont = SWTUtil.createContainerComposite(this, 2, true);
+		baseModelCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Label labelBaseModel = new Label(baseModelCont, 0);
 		labelBaseModel.setText("Base model:");
-		
-		baseModelBtn = new HtrModelChooserButton(this);
+		baseModelBtn = new HtrModelChooserButton(baseModelCont);
 		baseModelBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		epochsTxt = new LabeledText(this, "Epochs: ");
+		epochsTxt = new LabeledText(this, "Epochs: ", true);
 		epochsTxt.setText(CitLabSemiSupervisedHtrTrainConfig.DEFAULT_TRAINING_EPOCHS);
 		epochsTxt.setToolTipText("A series of training epochs per iteration divided by semicolons - enter an empty string for no training at all");
-		epochsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		epochsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		subsamplingTxt = new LabeledText(this, "Subsampling: ");
+		subsamplingTxt = new LabeledText(this, "Subsampling: ", true);
 		subsamplingTxt.setText(""+CitLabSemiSupervisedHtrTrainConfig.DEFAULT_SUBSAMPLING);
 		subsamplingTxt.setToolTipText("The number of subsets the document is divided into - max is the number of pages");
-		subsamplingTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		subsamplingTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		removeLineBreaksCheck = new Button(this, SWT.CHECK);
+		Composite removeLbCont = SWTUtil.createContainerComposite(this, 2, true);
+		removeLbCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		new Label(removeLbCont, 0);
+		removeLineBreaksCheck = new Button(removeLbCont, SWT.CHECK);
 		removeLineBreaksCheck.setText("Remove line breaks");
 		removeLineBreaksCheck.setToolTipText("If checked line breaks in the input text are not respected");
-		removeLineBreaksCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		removeLineBreaksCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Label noiseLbl = new Label(this, SWT.NONE);
+		Composite noiseCont = SWTUtil.createContainerComposite(this, 2, true);
+		noiseCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Label noiseLbl = new Label(noiseCont, SWT.NONE);
 		noiseLbl.setText("Noise:");
-		noiseCmb = new CitlabNoiseParamCombo(this, 0);
+		noiseCmb = new CitlabNoiseParamCombo(noiseCont, 0);
 		noiseCmb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
-		trainSizePerEpochTxt = new LabeledText(this, "Train size per epoch:");
+		trainSizePerEpochTxt = new LabeledText(this, "Train size per epoch:", true);
 		trainSizePerEpochTxt.setText(""+CitLabSemiSupervisedHtrTrainConfig.DEFAULT_TRAIN_SIZE_PER_EPOCH);
 		trainSizePerEpochTxt.setToolTipText("The number of lines per epoch that is used for training");
-		trainSizePerEpochTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		trainSizePerEpochTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		Label lrLbl = new Label(this, SWT.NONE);
+		Composite lrCont = SWTUtil.createContainerComposite(this, 2, true);
+		lrCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Label lrLbl = new Label(lrCont, SWT.NONE);
 		lrLbl.setText("Learning rate:");
-		learningRateCombo = new LearningRateCombo(this, 0);
+		learningRateCombo = new LearningRateCombo(lrCont, 0);
 		learningRateCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		numberOfThreadsTxt = new LabeledText(this, "Number of threads:");
+		numberOfThreadsTxt = new LabeledText(this, "Number of threads:", true);
 		numberOfThreadsTxt.setText(""+CitLabSemiSupervisedHtrTrainConfig.DEFAULT_NUMBER_OF_THREADS);
 		numberOfThreadsTxt.setToolTipText("The number of threads that is used on the server to process this job");
-		numberOfThreadsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		numberOfThreadsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		initAdditionalParametersUi();
 	}
@@ -199,14 +208,14 @@ public class Text2ImageConfComposite extends Composite {
 		CitLabSemiSupervisedHtrTrainConfig config = new CitLabSemiSupervisedHtrTrainConfig();
 		
 		// add current document as train document:
-		Storage store = Storage.getInstance();
-		if (store.isRemoteDoc()) {
-			logger.debug("pages str: "+currentDocPagesSelector.getPagesStr());
-			config.getTrain().add(DocumentSelectionDescriptor.fromDocAndPagesStr(store.getDoc(), currentDocPagesSelector.getPagesStr()));
-			config.setColId(store.getCurrentDocumentCollectionId());
-		} else {
-			throw new IOException("No remote document loaded!");
-		}
+//		Storage store = Storage.getInstance();
+//		if (store.isRemoteDoc()) {
+//			logger.debug("pages str: "+currentDocPagesSelector.getPagesStr());
+//			config.getTrain().add(DocumentSelectionDescriptor.fromDocAndPagesStr(store.getDoc(), currentDocPagesSelector.getPagesStr()));
+//			config.setColId(store.getCurrentDocumentCollectionId());
+//		} else {
+//			throw new IOException("No remote document loaded!");
+//		}
 		
 		if (baseModelBtn.getModel() != null) {
 			config.setBaseModelId(baseModelBtn.getModel().getHtrId());

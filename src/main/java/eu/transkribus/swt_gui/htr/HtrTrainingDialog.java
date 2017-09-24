@@ -10,18 +10,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.ServerErrorException;
-
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -55,8 +48,10 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
+import eu.transkribus.core.model.beans.HtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
@@ -69,6 +64,7 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ImgLoader;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
@@ -106,7 +102,8 @@ public class HtrTrainingDialog extends Dialog {
 	private final int colId;
 
 	private CTabFolder paramTabFolder;
-	private CTabItem uroTabItem;
+	private CTabItem citlabTrainingTabItem;
+	private CTabItem citlabT2ITabItem;
 
 	private CTabFolder selectionMethodTabFolder;
 	private CTabItem thumbNailTabItem, treeViewerTabItem;
@@ -120,14 +117,16 @@ public class HtrTrainingDialog extends Dialog {
 	private List<ThumbnailWidgetVirtualMinimal> trainTwList, testTwList;
 
 	private Text modelNameTxt, descTxt, langTxt, trainSizeTxt;
-	private Combo baseModelCmb;
+//	private Combo baseModelCmb;
 
 	CitlabNoiseParamCombo noiseCmb;
-	private ComboViewer baseModelCmbViewer;
+//	private ComboViewer baseModelCmbViewer;
+	private HtrModelChooserButton baseModelBtn;
 
 	private Text numEpochsTxt, learningRateTxt;
 
-	private CitLabHtrTrainConfig conf;
+	private CitLabHtrTrainConfig citlabTrainConf;
+	private CitLabSemiSupervisedHtrTrainConfig citlabT2IConf;
 
 	private TreeViewer tv;
 	private CollectionContentProvider contentProv;
@@ -146,6 +145,8 @@ public class HtrTrainingDialog extends Dialog {
 	private List<TrpDocMetadata> docList;
 
 	private Map<TrpDocMetadata, List<TrpPage>> trainDocMap, testDocMap;
+
+	private Text2ImageConfComposite2 t2iConfComp;
 
 //	private final static String[] NOISE_OPTIONS = new String[] { "no", "preproc", "net", "both" };
 //	private final static int NOISE_DEFAULT_CHOICE = 3;
@@ -204,14 +205,58 @@ public class HtrTrainingDialog extends Dialog {
 
 		paramTabFolder = new CTabFolder(paramCont, SWT.BORDER | SWT.FLAT);
 		paramTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
+		createCitlabTrainingTab();
+		
+		// TODO: restrict access according to Storage.getInstance().getConnection().isUserAllowedForJob(JobImpl.CITlabSemiSupervisedHtrTrainingJob.toString());
+		createCitlabT2ITab();
+		
+		paramTabFolder.setSelection(citlabT2ITabItem);		
+		paramCont.pack();
+		SWTUtil.onSelectionEvent(paramTabFolder, (e) -> { updateUI(); } );
+		updateUI();
 
-		uroTabItem = new CTabItem(paramTabFolder, SWT.NONE);
-		uroTabItem.setText("CITlab RNN");
+		// doc selection ===============================================================================
+		if(ALLOW_SELECTION_METHOD_CHOICES) {
+			selectionMethodTabFolder = new CTabFolder(sash, SWT.BORDER | SWT.FLAT);
+			selectionMethodTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			createThumbNailTab(selectionMethodTabFolder);
+			createTreeViewerTab(selectionMethodTabFolder);
+		} else {
+			createTreeViewerTab(sash);
+			
+		}
+		sash.setWeights(new int[] { 45, 55 });
+		
+		addListeners();
+
+		if(ALLOW_SELECTION_METHOD_CHOICES) {
+			selectionMethodTabFolder.setSelection(treeViewerTabItem);
+		}
+		
+		return cont;
+	}
+	
+	private void updateUI() {
+		boolean isT2I = paramTabFolder.getSelection() == citlabT2ITabItem;
+		descTxt.setEnabled(!isT2I);
+		modelNameTxt.setEnabled(!isT2I);
+	}
+	
+	private void createCitlabT2ITab() {
+		citlabT2ITabItem = new CTabItem(paramTabFolder, SWT.NONE);
+		citlabT2ITabItem.setText("CITlab T2I");
+		
+		t2iConfComp = new Text2ImageConfComposite2(paramTabFolder, 0);
+		citlabT2ITabItem.setControl(t2iConfComp);
+	}
+	
+	private void createCitlabTrainingTab() {
+		citlabTrainingTabItem = new CTabItem(paramTabFolder, SWT.NONE);
+		citlabTrainingTabItem.setText("CITlab RNN");
 
 		Composite uroParamCont = new Composite(paramTabFolder, SWT.NONE);
 		uroParamCont.setLayout(new GridLayout(4, false));
-
-		paramTabFolder.setSelection(uroTabItem);
 
 		Label numEpochsLbl = new Label(uroParamCont, SWT.NONE);
 		numEpochsLbl.setText("Nr. of Epochs:");
@@ -238,27 +283,11 @@ public class HtrTrainingDialog extends Dialog {
 		trainSizeTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
 		Label baseModelLbl = new Label(uroParamCont, SWT.NONE);
-		baseModelLbl.setText("Base Model:");
-		baseModelCmb = new Combo(uroParamCont, SWT.READ_ONLY);
-		baseModelCmb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		baseModelCmb.setItems(new String[] { "" });
+		baseModelLbl.setText("Base Model:");		
+		baseModelBtn = new HtrModelChooserButton(uroParamCont);
+		baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
-		baseModelCmbViewer = new ComboViewer(baseModelCmb);
-		baseModelCmbViewer.setLabelProvider(new LabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof TrpHtr) {
-					return ((TrpHtr) element).getName();
-				} else {
-					return "i am error";
-				}
-			}
-		});
-		baseModelCmbViewer.setContentProvider(new ArrayContentProvider());
-
-		updateHtrs();
-
-		setUroDefaults();
+		setCitlabTrainingDefaults();
 
 		Label emptyLbl = new Label(uroParamCont, SWT.NONE);
 		Button resetUroDefaultsBtn = new Button(uroParamCont, SWT.PUSH);
@@ -268,34 +297,11 @@ public class HtrTrainingDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
-				setUroDefaults();
+				setCitlabTrainingDefaults();
 			}
 		});
 
-		uroTabItem.setControl(uroParamCont);
-
-		paramCont.pack();
-
-		// doc selection ===============================================================================
-
-		if(ALLOW_SELECTION_METHOD_CHOICES) {
-			selectionMethodTabFolder = new CTabFolder(sash, SWT.BORDER | SWT.FLAT);
-			selectionMethodTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-			createThumbNailTab(selectionMethodTabFolder);
-			createTreeViewerTab(selectionMethodTabFolder);
-		} else {
-			createTreeViewerTab(sash);
-			
-		}
-		sash.setWeights(new int[] { 34, 66 });
-		
-		addListeners();
-
-		if(ALLOW_SELECTION_METHOD_CHOICES) {
-			selectionMethodTabFolder.setSelection(treeViewerTabItem);
-		}
-		
-		return cont;
+		citlabTrainingTabItem.setControl(uroParamCont);
 	}
 
 	private void createTreeViewerTab(Composite parent) {
@@ -752,26 +758,26 @@ public class HtrTrainingDialog extends Dialog {
 		}
 	}
 
-	private void updateHtrs() {
-		List<TrpHtr> uroHtrs = new ArrayList<>(0);
-		try {
-			uroHtrs = store.listHtrs("CITlab");
-		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e1) {
-			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Could not load HTR model list!");
-		}
-		TrpHtr noneHtr = new TrpHtr();
-		noneHtr.setName("None");
-		noneHtr.setHtrId(-1);
-		uroHtrs.add(0, noneHtr);
-		baseModelCmbViewer.setInput(uroHtrs);
-	}
+//	private void updateHtrs() {
+//		List<TrpHtr> uroHtrs = new ArrayList<>(0);
+//		try {
+//			uroHtrs = store.listHtrs("CITlab");
+//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e1) {
+//			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Could not load HTR model list!");
+//		}
+//		TrpHtr noneHtr = new TrpHtr();
+//		noneHtr.setName("None");
+//		noneHtr.setHtrId(-1);
+//		uroHtrs.add(0, noneHtr);
+//		baseModelCmbViewer.setInput(uroHtrs);
+//	}
 
-	private void setUroDefaults() {
+	private void setCitlabTrainingDefaults() {
 		numEpochsTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_NUM_EPOCHS);
 		learningRateTxt.setText(CitLabHtrTrainConfig.DEFAULT_LEARNING_RATE);
 		noiseCmb.setDefault();
 		trainSizeTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_TRAIN_SIZE_PER_EPOCH);
-		baseModelCmb.select(0);
+		baseModelBtn.setModel(null);
 	}
 
 	private Composite createDocOverviewCont(List<ThumbnailWidgetVirtualMinimal> twList, boolean useGtVersions,
@@ -819,63 +825,94 @@ public class HtrTrainingDialog extends Dialog {
 		c.pack();
 		return c;
 	}
+	
+	private void setTrainAndTestDocsInHtrConfig(HtrTrainConfig config) throws IOException {
+		config.setColId(colId);
+		
+		if (ALLOW_SELECTION_METHOD_CHOICES && selectionMethodTabFolder.getSelection().equals(thumbNailTabItem)) {
+			config.setTrain(getSelectionFromThumbnailWidgetList(trainTwList));
+			config.setTest(getSelectionFromThumbnailWidgetList(testTwList));
+		} else {
+			config.setTrain(buildSelectionDescriptorList(trainDocMap));
+			config.setTest(buildSelectionDescriptorList(testDocMap));
+		}
+
+		if (config.getTrain().isEmpty()) {
+			throw new IOException("Train set must not be empty!");
+		}
+
+		if (config.isTestAndTrainOverlapping()) {
+			throw new IOException("Train and Test sets must not overlap!");
+		}
+	}
+	
+	private CitLabHtrTrainConfig createCitlabTrainConfig() throws IOException {
+		checkCitlabTrainingConfig();
+		
+		CitLabHtrTrainConfig citlabTrainConf = new CitLabHtrTrainConfig();
+		citlabTrainConf.setDescription(descTxt.getText());
+		citlabTrainConf.setModelName(modelNameTxt.getText());
+		citlabTrainConf.setLanguage(langTxt.getText());
+
+		citlabTrainConf.setNumEpochs(Integer.parseInt(numEpochsTxt.getText()));
+		citlabTrainConf.setNoise(noiseCmb.getNoise());
+		citlabTrainConf.setLearningRate(learningRateTxt.getText());
+		citlabTrainConf.setTrainSizePerEpoch(Integer.parseInt(trainSizeTxt.getText()));
+		
+		TrpHtr htr = baseModelBtn.getModel();
+		if (htr != null) {
+			citlabTrainConf.setBaseModelId(htr.getHtrId());
+		}
+		else {
+			logger.debug("No base HTR selected.");
+		}
+		setTrainAndTestDocsInHtrConfig(citlabTrainConf);
+		
+		return citlabTrainConf;
+	}
+	
+	private CitLabSemiSupervisedHtrTrainConfig createCitlabT2IConfig() throws IOException {
+		CitLabSemiSupervisedHtrTrainConfig config = t2iConfComp.getConfig();
+		setTrainAndTestDocsInHtrConfig(config);
+		
+		return config;
+	}
+	
+	boolean isCitlabTrainingSelected() {
+		return paramTabFolder.getSelection().equals(citlabTrainingTabItem);
+	}
+	
+	boolean isCitlabT2ISelected() {
+		return paramTabFolder.getSelection().equals(citlabT2ITabItem);
+	}
 
 	@Override
 	protected void okPressed() {
-		if (!isConfigValid()) {
-			return;
-		}
-		if (paramTabFolder.getSelection().equals(uroTabItem)) {
-			conf = new CitLabHtrTrainConfig();
-			conf.setDescription(descTxt.getText());
-			conf.setModelName(modelNameTxt.getText());
-			conf.setLanguage(langTxt.getText());
-
-			conf.setNumEpochs(Integer.parseInt(numEpochsTxt.getText()));
-			conf.setNoise(noiseCmb.getNoise());
-			conf.setLearningRate(learningRateTxt.getText());
-			conf.setTrainSizePerEpoch(Integer.parseInt(trainSizeTxt.getText()));
-			
-			final int baseHtrId = getSelectedBaseHtrId();
-			if(baseHtrId > 0) {
-				logger.debug("Setting base HTR ID = " + baseHtrId);
-				conf.setBaseModelId(baseHtrId);
-			} else {
-				logger.debug("No base HTR selected.");
+		citlabTrainConf = citlabT2IConf = null;
+		String msg = "";
+		try {
+			if (isCitlabTrainingSelected()) {
+				msg = "You are about to start an HTR Training using CITlab RNN\n\n";
+				citlabTrainConf = createCitlabTrainConfig();
 			}
-		} else {
-			throw new IllegalArgumentException();
+			else if (isCitlabT2ISelected()) {
+				logger.debug("creating citlab t2i config!");
+				msg = "You are about to start a Text2Image alignment using CITlab RNN\n\n";
+				citlabT2IConf = createCitlabT2IConfig();
+			}
+			else {
+				throw new IOException("Invalid method selected - should not happen anyway...");
+			}
 		}
-
-		conf.setColId(colId);
-
-		if (ALLOW_SELECTION_METHOD_CHOICES && selectionMethodTabFolder.getSelection().equals(thumbNailTabItem)) {
-			conf.setTrain(getSelectionFromThumbnailWidgetList(trainTwList));
-			conf.setTest(getSelectionFromThumbnailWidgetList(testTwList));
-		} else {
-			conf.setTrain(buildSelectionDescriptorList(trainDocMap));
-			conf.setTest(buildSelectionDescriptorList(testDocMap));
-		}
-
-		if (conf.getTrain().isEmpty()) {
-			DialogUtil.showErrorMessageBox(this.getParentShell(), "Bad configuration", "Train set must not be empty!");
+		catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			DialogUtil.showErrorMessageBox(getShell(), "Bad configuration", e.getMessage());
 			return;
 		}
-
-		if (conf.isTestAndTrainOverlapping()) {
-			DialogUtil.showErrorMessageBox(this.getParentShell(), "Bad configuration",
-					"Train and Test sets must not overlap!");
+		catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Unexcpected error", e.getMessage(), e);
 			return;
 		}
-
-		String msg = "You are about to start an HTR Training using ";
-		if (paramTabFolder.getSelection().equals(uroTabItem)) {
-			msg += uroTabItem.getText();
-		} else {
-			// TODO
-			return;
-		}
-		msg += " HTR.\n\n";
 
 		if (!ALLOW_SELECTION_METHOD_CHOICES 
 				|| selectionMethodTabFolder.getSelection().equals(treeViewerTabItem)) {
@@ -889,25 +926,13 @@ public class HtrTrainingDialog extends Dialog {
 			msg += "\t\t\t\t" + testSetMd.getWords() + " words\n";
 		}
 
-		msg += "\nStart training?";
+		msg += "\nStart?";
 
-		int result = DialogUtil.showYesNoDialog(this.getShell(), "Start Training?", msg);
+		int result = DialogUtil.showYesNoDialog(this.getShell(), "Start?", msg);
 		
 		if (result == SWT.YES) {
 			super.okPressed();
 		}
-	}
-
-	private int getSelectedBaseHtrId() {
-		ISelection selection = baseModelCmbViewer.getSelection();
-		logger.debug("Base HTR selection : " + selection);
-		int htrId = -1;
-		if (selection != null && !selection.isEmpty()) {
-		   IStructuredSelection sel = (IStructuredSelection) selection;
-		   TrpHtr htr = (TrpHtr) sel.getFirstElement();
-		   htrId = htr.getHtrId();
-		}
-		return htrId;
 	}
 
 	private DataSetMetadata computeDataSetSize(Map<TrpDocMetadata, List<TrpPage>> map) {
@@ -993,7 +1018,7 @@ public class HtrTrainingDialog extends Dialog {
 		// setBlockOnOpen(false);
 	}
 
-	private boolean isConfigValid() {
+	private void checkCitlabTrainingConfig() throws IOException {
 		String error = "";
 		if (!isString(modelNameTxt)) {
 			error += "Model Name must not be empty!\n";
@@ -1004,7 +1029,7 @@ public class HtrTrainingDialog extends Dialog {
 		if (!isString(langTxt)) {
 			error += "Language must not be empty!\n";
 		}
-		if (paramTabFolder.getSelection().equals(uroTabItem)) {
+		if (paramTabFolder.getSelection().equals(citlabTrainingTabItem)) {
 			if (!isNumber(numEpochsTxt)) {
 				error += "Number of Epochs must contain a number!\n";
 			}
@@ -1015,10 +1040,10 @@ public class HtrTrainingDialog extends Dialog {
 				error += "Train size per epoch must contain a number!\n";
 			}
 		}
+		
 		if (!error.isEmpty()) {
-			DialogUtil.showErrorMessageBox(this.getParentShell(), "Bad Configuration", error);
+			throw new IOException(error);
 		}
-		return error.isEmpty();
 	}
 
 	private boolean isString(Text text) {
@@ -1037,8 +1062,12 @@ public class HtrTrainingDialog extends Dialog {
 		return true;
 	}
 
-	public CitLabHtrTrainConfig getConfig() {
-		return conf;
+	public CitLabHtrTrainConfig getCitlabTrainConfig() {
+		return citlabTrainConf;
+	}
+	
+	public CitLabSemiSupervisedHtrTrainConfig getCitlabT2IConfig() {
+		return citlabT2IConf;
 	}
 
 	private void updateTable(DataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {

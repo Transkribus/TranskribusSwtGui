@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Display;
 import eu.transkribus.client.connection.ATrpServerConn;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
+import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -38,7 +39,7 @@ public class GenericDialogTest {
 //					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 	//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 					
-					if (true) {
+					if (false) {
 					HtrModelsDialog diag = new HtrModelsDialog(getShell());
 					if (diag.open() == Dialog.OK) {
 						System.out.println("selected model: "+diag.getSelectedHtr());
@@ -50,6 +51,11 @@ public class GenericDialogTest {
 					if (diag.open() == Dialog.OK) {
 						System.out.println("conf: "+diag.getConfig());
 					}
+					}
+					
+					if (true) {
+						HtrTrainingDialog diag = new HtrTrainingDialog(getShell());
+						diag.open();
 					}
 	
 					return parent;
