@@ -211,7 +211,7 @@ public class HtrTrainingDialog extends Dialog {
 		// TODO: restrict access according to Storage.getInstance().getConnection().isUserAllowedForJob(JobImpl.CITlabSemiSupervisedHtrTrainingJob.toString());
 		createCitlabT2ITab();
 		
-		paramTabFolder.setSelection(citlabT2ITabItem);		
+		paramTabFolder.setSelection(citlabTrainingTabItem);		
 		paramCont.pack();
 		SWTUtil.onSelectionEvent(paramTabFolder, (e) -> { updateUI(); } );
 		updateUI();
