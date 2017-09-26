@@ -320,6 +320,13 @@ public class DocMetadataEditor extends Composite {
 		updateDateChooser(enableCreatedToBtn, createdTo, md != null ? md.getCreatedToDate() : null);
 	}
 	
+	
+	/**
+	 * FIXME does this set the current date if date is null?
+	 * @param b
+	 * @param c
+	 * @param date
+	 */
 	private void updateDateChooser(Button b, DateChooserCombo c, Date date) {
 		c.setValue(date!=null ? date : new Date());
 		c.setEnabled(date!=null);

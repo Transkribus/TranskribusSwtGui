@@ -9,6 +9,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import eu.transkribus.core.util.ImgUtils;
+
 public class Images {
 	
 	public static final Image USER_EDIT = Images.getOrLoad("/icons/user_edit.png");
@@ -144,9 +146,7 @@ public class Images {
 		int origX = image.getBounds().width;
 		int origY = image.getBounds().height;
 		
-		double xScale = (double)width/origX;
-        double yScale = (double)height/origY;
-        double scale = Math.min(xScale, yScale);
+		double scale = ImgUtils.computeScaleFactor(origX, origY, width, height);
 		
         int destX = new Double(origX*scale).intValue();
         int destY = new Double(origY*scale).intValue();

@@ -61,21 +61,21 @@ public class KwsTreeLabelProvider extends CellLabelProvider implements ITableLab
 			lineId = ""+hit.getLineId();
 		}
 
-		if (columnIndex < 0 || columnIndex >= KeywordSpottingComposite.COLUMNS.length)
+		if (columnIndex < 0 || columnIndex >= OldKeywordSpottingComposite.COLUMNS.length)
 			return "wrong col index";
-		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.TYPE_COL)
+		else if (OldKeywordSpottingComposite.COLUMNS[columnIndex] == OldKeywordSpottingComposite.TYPE_COL)
 			return type;
-		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.DOC_ID_COL)
+		else if (OldKeywordSpottingComposite.COLUMNS[columnIndex] == OldKeywordSpottingComposite.DOC_ID_COL)
 			return docId;
-		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.TITLE_COL)
+		else if (OldKeywordSpottingComposite.COLUMNS[columnIndex] == OldKeywordSpottingComposite.TITLE_COL)
 			return title;
-		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.PAGE_NR_COL)
+		else if (OldKeywordSpottingComposite.COLUMNS[columnIndex] == OldKeywordSpottingComposite.PAGE_NR_COL)
 			return pageNr;
-		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.SCORE_COL)
+		else if (OldKeywordSpottingComposite.COLUMNS[columnIndex] == OldKeywordSpottingComposite.SCORE_COL)
 			return score;
-		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.LINE_ID_COL)
+		else if (OldKeywordSpottingComposite.COLUMNS[columnIndex] == OldKeywordSpottingComposite.LINE_ID_COL)
 			return lineId;
-		else if (KeywordSpottingComposite.COLUMNS[columnIndex] == KeywordSpottingComposite.HITS_COL)
+		else if (OldKeywordSpottingComposite.COLUMNS[columnIndex] == OldKeywordSpottingComposite.HITS_COL)
 			return hits;
 		
 		return "i am error!";
@@ -91,7 +91,7 @@ public class KwsTreeLabelProvider extends CellLabelProvider implements ITableLab
 
 	@Override
 	public void update(ViewerCell cell) {
-		ColConfig cf = KeywordSpottingComposite.COLUMNS[cell.getColumnIndex()];
+		ColConfig cf = OldKeywordSpottingComposite.COLUMNS[cell.getColumnIndex()];
 		Object element = cell.getViewerRow().getElement();
 //		logger.trace("column = "+cf.name);
 		 
