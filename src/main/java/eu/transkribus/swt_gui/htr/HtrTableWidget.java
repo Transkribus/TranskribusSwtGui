@@ -46,7 +46,7 @@ public class HtrTableWidget extends Composite {
 	boolean withFilter;
 	
 	public final ColumnConfig[] HTR_COLS = new ColumnConfig[] {
-		new ColumnConfig(HTR_NAME_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(HTR_NAME_COL, 220, false, DefaultTableColumnViewerSorter.DESC),
 		new ColumnConfig(HTR_LANG_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(HTR_ID_COL, 50, true, DefaultTableColumnViewerSorter.ASC),
 	};
@@ -63,12 +63,16 @@ public class HtrTableWidget extends Composite {
 		htrTv.setContentProvider(new ArrayContentProvider());
 		htrTv.setLabelProvider(new HtrTableLabelProvider(htrTv));
 		htrTv.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
-		
+				
 		Table table = htrTv.getTable();
 		table.setHeaderVisible(true);
 //		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		htrTv.addColumns(HTR_COLS);
+		
+//		htrTv.getTable().setSortDirection(SWT.UP);
+//		htrTv.getTable().setSortColumn(htrTv.getColumn(0));
+//		htrTv.refresh();
 		
 		addFilter();
 	}

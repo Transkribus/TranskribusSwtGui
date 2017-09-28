@@ -13,8 +13,8 @@ public class HtrModelChooserButton extends Composite {
 	
 	Button baseModelBtn;
 
-	public HtrModelChooserButton(Composite parent, int style) {
-		super(parent, style);
+	public HtrModelChooserButton(Composite parent) {
+		super(parent, 0);
 		
 		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
@@ -25,8 +25,7 @@ public class HtrModelChooserButton extends Composite {
 		SWTUtil.onSelectionEvent(baseModelBtn, (e) -> {
 			HtrModelsDialog diag = new HtrModelsDialog(getShell());
 			if (diag.open() == Dialog.OK) {
-				baseModelBtn.setData(diag.getSelectedHtr());
-				updateModelText();
+				setModel(diag.getSelectedHtr());
 			}
 		});
 	}
@@ -37,6 +36,11 @@ public class HtrModelChooserButton extends Composite {
 		} else {
 			baseModelBtn.setText(getModel().getName());
 		}
+	}
+	
+	public void setModel(TrpHtr htr) {
+		baseModelBtn.setData(htr);
+		updateModelText();
 	}
 	
 	public TrpHtr getModel() {
@@ -54,7 +58,5 @@ public class HtrModelChooserButton extends Composite {
 	public void setImage(Image image) {
 		baseModelBtn.setImage(image);
 	}
-
-
 
 }

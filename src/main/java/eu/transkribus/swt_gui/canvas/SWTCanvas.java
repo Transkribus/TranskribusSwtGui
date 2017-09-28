@@ -14,6 +14,7 @@ import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -115,9 +116,7 @@ public class SWTCanvas extends Canvas {
 		setLayout(null); // absolute layout
 		
 		lineEditor = new LineEditor(this, SWT.BORDER);
-
-		// parent.setBackground(getDisplay().getSystemColor(SWT.COLOR_BLUE));
-
+		
 		init();
 	}
 
@@ -129,7 +128,7 @@ public class SWTCanvas extends Canvas {
 
 	protected void init() {
 		initSettings();
-
+		setBackGroundColor();
 		initCanvasScene();
 		initShapeEditor();
 		initUndoStack();
@@ -141,6 +140,13 @@ public class SWTCanvas extends Canvas {
 	
 	//public TrpMainWidget getMainWidget() { return mainWidget; }
 	//public void setMainWidget(TrpMainWidget mainWidget) { this.mainWidget = mainWidget; }
+
+	private void setBackGroundColor() {
+		Color bg = settings.getCanvasBackgroundColor();
+		if(bg != null) {
+			this.setBackground(bg);
+		}
+	}
 
 	protected void initContextMenu() {
 		contextMenu = new CanvasContextMenu(this);
@@ -804,6 +810,10 @@ public class SWTCanvas extends Canvas {
 			gc.setTransform(IDENTITY_TRANSFORM);
 			// draw rectangle:
 			drawInteractiveRectangle(gc);
+			
+			if(settings.isShowMouseCoords()) {
+				drawMouseCoords(gc);
+			}
 		} else {
 			// logger.debug("has NO data to paint");
 			gc.setClipping(clientRect);
@@ -813,6 +823,19 @@ public class SWTCanvas extends Canvas {
 		
 		long time = System.currentTimeMillis() - st;
 		// logger.trace("painted, time = "+time+" ms");
+	}
+
+	/**
+	 * Draws mouse pointer coordinates in top-left corner transparently
+	 * 
+	 * @param gc
+	 */
+	private void drawMouseCoords(GC gc) {
+		Point p = getMouseListener().getMousePtWoTr();
+		if(p != null) {
+			final String coords = String.format("%d,%d", p.x, p.y);
+			gc.drawString(coords, 10, 10, true);
+		}
 	}
 
 	/**

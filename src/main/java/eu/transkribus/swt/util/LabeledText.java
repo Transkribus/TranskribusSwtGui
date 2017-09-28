@@ -19,9 +19,13 @@ public class LabeledText extends Composite {
 	boolean validateToInt=false;
 	
 	public LabeledText(Composite parent, String labelText) {
+		this(parent, labelText, false);
+	}
+	
+	public LabeledText(Composite parent, String labelText, boolean makeColumnsEqualWidth) {
 		super(parent, 0);
 		
-		this.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		this.setLayout(SWTUtil.createGridLayout(2, makeColumnsEqualWidth, 0, 0));
 		
 		label = new Label(this, 0);
 		label.setText(labelText);
