@@ -73,6 +73,8 @@ public class ThumbnailWidgetVirtual extends Composite {
 	static ThumbnailManagerVirtual tm;
 	ThumbnailWidgetVirtualMinimal tw;
 	
+	static AdministrativeCenter ac;
+	
 	TrpMainWidget mw;
 	
 	static int thread_counter=0;
@@ -179,21 +181,29 @@ public class ThumbnailWidgetVirtual extends Composite {
 			return;
 		}
 		
-		//if shell is open {
-		if(isManagerOpen(tm)){
-			tm.getShell().setVisible(true);
+		if (isAdministrativeCenterIsOpen(ac)){
+			ac.getShell().setVisible(true);
 		} else {
-			tm = new ThumbnailManagerVirtual(getShell(), SWT.NONE, mw);
-
-			tm.addListener(SWT.Selection, new Listener() {
-				@Override public void handleEvent(Event event) {
-					logger.debug("loading page " + event.index);
-					mw.jumpToPage(event.index);
-				}
-			});
-
-			tm.open();
+			ac = new AdministrativeCenter(getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+			ac.open();
 		}
+		
+		
+		//if shell is open {
+//		if(isManagerOpen(tm)){
+//			tm.getShell().setVisible(true);
+//		} else {
+//			tm = new ThumbnailManagerVirtual(getShell(), SWT.NONE, mw);
+//
+//			tm.addListener(SWT.Selection, new Listener() {
+//				@Override public void handleEvent(Event event) {
+//					logger.debug("loading page " + event.index);
+//					mw.jumpToPage(event.index);
+//				}
+//			});
+//
+//			tm.open();
+//		}
 
 	}
 	
@@ -203,6 +213,15 @@ public class ThumbnailWidgetVirtual extends Composite {
 		}
 		return false;
 	}
+	
+	private boolean isAdministrativeCenterIsOpen(AdministrativeCenter ac){
+		if(ac != null && ac.getShell() != null && !ac.getShell().isDisposed()){
+			return true;
+		}
+		return false;
+	}
+	
+	
 		
 	public void reload() {
 		

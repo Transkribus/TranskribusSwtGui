@@ -89,7 +89,7 @@ public class ServerWidget extends Composite {
 	MenuItem deleteDocMenuItem;
 	MenuItem duplicateDocMenuItem;
 	
-	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, duplicateDocTi;
+	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, duplicateDocTi, administerCollectionTi;
 		
 	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
@@ -278,7 +278,7 @@ public class ServerWidget extends Composite {
 		
 		addToCollectionTi = new ToolItem(tb, SWT.PUSH);
 		addToCollectionTi.setImage(Images.ADD);
-		addToCollectionTi.setToolTipText("Add selected documents to a different collection...");
+		addToCollectionTi.setToolTipText("Link selected documents to a different collection...");
 				
 		removeFromCollectionTi = new ToolItem(tb, SWT.PUSH);
 		removeFromCollectionTi.setImage(Images.DELETE);
@@ -291,6 +291,10 @@ public class ServerWidget extends Composite {
 		duplicateDocTi = new ToolItem(tb, SWT.PUSH);
 		duplicateDocTi.setImage(Images.PAGE_COPY);
 		duplicateDocTi.setToolTipText("Duplicate the selected documents into another collection...");
+		
+		administerCollectionTi = new ToolItem(tb, SWT.PUSH);
+		administerCollectionTi.setImage(Images.COG_EDIT);
+		administerCollectionTi.setToolTipText("Administrate docs in collection, e.g. Add pages, Choose symbolic images,...");
 
 //		Composite docBtns = new Composite(docsContainer, 0);
 //		docBtns.setLayout(new RowLayout());

@@ -54,7 +54,7 @@ public class DocSyncDialog extends Dialog {
 		
 		Label titleLabel = new Label(container, SWT.WRAP | SWT.LEFT);
 		titleLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 2));
-		titleLabel.setText("Move pages from the source document on the right to correspond with pages on the target document on the left. \n"
+		titleLabel.setText("Select pages from the source document on the right to correspond with pages on the target document on the left. \n"
 				+ "\n"
 				+ "Note: Pages are synced according to filename! Only checked pages will be synced.");
 		

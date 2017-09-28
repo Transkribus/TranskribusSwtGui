@@ -243,7 +243,7 @@ public abstract class APreviewListViewer<T> extends Composite {
 		logger.debug("reloading image for element: "+selected);
 		SWTUtil.dispose(selectedImage);
 		selectedImage = null;
-		if (selected == null) {
+		if (selected == null && dataList != null && dataList.size() > 0) {
 			//if no page is selected in GUI show the first page on canvas
 			selected = dataList.get(0);
 		}

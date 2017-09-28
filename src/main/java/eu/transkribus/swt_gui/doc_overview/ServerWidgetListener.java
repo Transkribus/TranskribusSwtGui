@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.swt.util.AdministrativeCenter;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
@@ -70,6 +71,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.addSelectionListener(sw.deleteDocTi, this);
 		SWTUtil.addSelectionListener(sw.addToCollectionTi, this);
 		SWTUtil.addSelectionListener(sw.removeFromCollectionTi, this);
+		SWTUtil.addSelectionListener(sw.administerCollectionTi, this);
 		
 		SWTUtil.addSelectionListener(sw.collectionUsersBtn, this);
 		SWTUtil.addSelectionListener(sw.createCollectionBtn, this);
@@ -105,6 +107,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.removeSelectionListener(sw.deleteDocTi, this);
 		SWTUtil.removeSelectionListener(sw.addToCollectionTi, this);
 		SWTUtil.removeSelectionListener(sw.removeFromCollectionTi, this);		
+		SWTUtil.removeSelectionListener(sw.administerCollectionTi, this);
 		
 		SWTUtil.removeSelectionListener(sw.collectionUsersBtn, this);
 		SWTUtil.removeSelectionListener(sw.createCollectionBtn, this);
@@ -172,7 +175,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		else if (s == sw.removeFromCollectionMenuItem || s == sw.removeFromCollectionTi) {
 			mw.removeDocumentsFromCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
-		
+		else if (s == sw.administerCollectionTi){
+			AdministrativeCenter ac = new AdministrativeCenter(mw.getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+			ac.open();
+		}		
 		else if (s == sw.collectionUsersBtn) {
 			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
 		}

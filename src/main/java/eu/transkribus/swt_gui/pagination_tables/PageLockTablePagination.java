@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.window.ApplicationWindow;
@@ -70,6 +71,14 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 		btns.setLayout(new GridLayout(2, false));
 		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		btns.moveAbove(pageableTable);
+		
+		//for showing the currently logged in users
+		try {
+			System.out.println(Storage.getInstance().getConnection().countUsersLoggedIn());
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		if (store.isAdminLoggedIn()) {
 			showAllLocksBtn = new Button(btns, SWT.CHECK);
@@ -152,7 +161,9 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 					PageLock l = it.next();
 					if (l.getDocId() != docId)
 						it.remove();
+					logger.debug("logged in at " + l.getLoginTime());
 				}
+				
 			}
 
 			logger.debug("got "+locks.size()+" locks!");
@@ -172,6 +183,9 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 		
 		if (USE_LIST_LOADER && listLoader!=null) {
 			listLoader.setItems(this.locks);
+			for (PageLock lock : this.locks){
+				logger.debug(" login time: " + lock.getLoginTime());
+			}
 		}
 		
 		refreshPage(true);
