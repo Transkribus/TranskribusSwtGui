@@ -1,6 +1,8 @@
 package eu.transkribus.swt_gui.search.kws;
 
+import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -20,6 +22,7 @@ import eu.transkribus.core.util.JobDataUtils;
 
 public class TrpKwsResultTableEntry {
 	private static final Logger logger = LoggerFactory.getLogger(TrpKwsResultTableEntry.class);
+	private static final DecimalFormat DF = new DecimalFormat("#.#");
 	private TrpKwsResult result;
 	private Date created;
 	private String duration;
@@ -28,24 +31,34 @@ public class TrpKwsResultTableEntry {
 	private String status;
 
 	public TrpKwsResultTableEntry(TrpJobStatus job) {
+//		logger.debug(job.toString());
 		this.created = job.getCreated();
 		if (job.getEndTime() < 1) {
 			this.duration = "N/A";
 		} else {
 			final long diff = job.getEndTime() - job.getCreateTime();
-			this.duration = (diff / 1000) / 60f + " minutes";
+			this.duration = DF.format((diff / 1000) / 60f) + " min.";
 		}
 		this.scope = job.getDocId() < 1 ? "Collection" : "Document";
 		this.status = job.getEnded() == null ? "Processing..." : "Completed";
 		TrpProperties props = job.getJobDataProps();
-		List<String> queries = JobDataUtils.getStringList(props.getProperties(), JobConst.PROP_QUERY);
-		String queriesStr = StringUtils.join(queries, "\", \"");
-		this.query = "\"" + queriesStr + "\"";
 		this.result = extractResult(props);
+		if(result == null) {
+			List<String> queries = JobDataUtils.getStringList(props.getProperties(), JobConst.PROP_QUERY);
+			this.query = "\"" + StringUtils.join(queries, "\", \"") + "\"";
+		} else {
+			List<String> queriesWithHits = new LinkedList<>();
+			result.getKeyWords()
+				.forEach(k -> queriesWithHits
+							.add("\"" + k.getKeyWord() + "\" (" + k.getHits().size() + ")")
+							);
+			this.query = StringUtils.join(queriesWithHits, ", ");
+		}
 	}
 
 	private TrpKwsResult extractResult(TrpProperties props) {
-		final String xmlStr = props.getString("result");
+		final String xmlStr = props.getString(JobConst.PROP_RESULT);
+//		logger.debug(xmlStr);
 		TrpKwsResult res = null;
 		if(xmlStr != null) {
 			try {

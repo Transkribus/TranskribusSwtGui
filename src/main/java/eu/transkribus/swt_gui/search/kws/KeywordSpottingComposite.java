@@ -3,12 +3,23 @@ package eu.transkribus.swt_gui.search.kws;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -25,12 +36,19 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.kws.TrpKeyWord;
+import eu.transkribus.core.model.beans.kws.TrpKwsHit;
+import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 
 public class KeywordSpottingComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(KeywordSpottingComposite.class);
@@ -44,6 +62,8 @@ public class KeywordSpottingComposite extends Composite {
 	KwsResultTableWidget resultTable;
 	
 	List<QueryWidget> queryWidgets;
+	
+	ResultLoader rl;
 	
 	protected static final String SCOPE_DOC = "Current document";
 	protected static final String SCOPE_COLL = "Current collection";
@@ -102,51 +122,34 @@ public class KeywordSpottingComposite extends Composite {
 		resultTable = new KwsResultTableWidget(resultGroup, SWT.BORDER);
 		resultTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		updateKwsResults();
+//		updateKwsResults();
 		
-//		treeViewer.addDoubleClickListener(new IDoubleClickListener(){
-//			@Override
-//			public void doubleClick(DoubleClickEvent event) {
-//				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-//				Object el = selection.getFirstElement();
-//				logger.debug("double click on element: "+el);
-//				TrpLocation loc;
-//				if (el instanceof KwsDocHit) {
-//					loc = new TrpLocation();
-//					KwsDocHit h = ((KwsDocHit)el);
-//					loc.collectionId = h.getColId();
-//					loc.docId = h.getDocId();
-//				} else if (el instanceof KwsPageHit) {
-//					loc = new TrpLocation();
-//					KwsPageHit h = ((KwsPageHit)el);
-//					loc.collectionId = h.getColId();
-//					loc.docId = h.getDocId();
-//					loc.pageNr = h.getPageNr();					
-//				} else if (el instanceof KwsHit){
-//					loc = new TrpLocation();
-//					KwsHit h = ((KwsHit)el);
-//					loc.collectionId = h.getColId();
-//					loc.docId = h.getDocId();
-//					loc.pageNr = h.getPageNr();	
-//					loc.shapeId = h.getLineId();
-//				} else {
-//					loc = null;
-//				}
-//				TrpMainWidget.getInstance().showLocation(loc);
-//			}
-//		});
-		
-//		initCols();
+		resultTable.getTableViewer().addDoubleClickListener(new IDoubleClickListener(){
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				TrpKwsResultTableEntry entry = resultTable.getSelectedKws();
+				if(entry.getResult() != null) {
+					try {
+						logger.debug(JaxbUtils.marshalToString(entry.getResult(), true, TrpKeyWord.class, TrpKwsHit.class));
+					} catch (JAXBException e) {
+						logger.error("Could not read result.", e);
+					}
+					KwsResultViewer viewer = new KwsResultViewer(getShell(), entry);
+					viewer.open();
+				}
+			}
+		});
+//		attach();
+		rl = new ResultLoader();
+		rl.start();
+		kwsC.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				logger.debug("Disposing KWS composite.");
+//				detach();
+				rl.stop();
+			}
+		});
 	}
-	
-//	private void initCols() {
-//		for (ColConfig cf : COLUMNS) {
-//			TreeViewerColumn column = new TreeViewerColumn(treeViewer, SWT.SINGLE);
-//			column.getColumn().setText(cf.name);
-//			column.getColumn().setWidth(cf.colSize);
-//			column.setLabelProvider(new KwsTreeLabelProvider());
-//		}
-//	}
 	
 	protected void startKws() {
 		List<String> queries = getQueries();
@@ -170,7 +173,12 @@ public class KeywordSpottingComposite extends Composite {
 		final int colId = currCol.getColId();
 		final String colName = currCol.getColName();
 		final int docId = store.getDocId();
-		final String docTitle = store.getDoc().getMd().getTitle();
+		String docTitle = "";
+		try {
+			docTitle = store.getDoc().getMd().getTitle();
+		}catch(NullPointerException npe) {
+			//FIXME where does npe come from when a doc is loaded at this point?
+		}
 		final String queryOverviewStr = "\"" + StringUtils.join(queries, "\"\n\t\"") + "\"";
 		
 		final String message = "You are about to start a Keyword Spotting job:\n\n" +
@@ -184,7 +192,7 @@ public class KeywordSpottingComposite extends Composite {
 			logger.debug("OK. Starting job.");
 			try {
 				store.getConnection().doCITlabKwsSearch(colId, docId, queries);
-				updateKwsResults();
+//				updateKwsResults();
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 					| IllegalArgumentException e) {
 				DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessage());
@@ -262,34 +270,37 @@ public class KeywordSpottingComposite extends Composite {
 		return queryWidgets.isEmpty() || qw.getIndex() == queryWidgets.size()-1;
 	}
 	
-	private void updateKwsResults() {
-		Runnable loader = new Runnable() {
-			@Override
-			public void run() {
-				logger.debug("refreshing kws results...");
-				List<TrpKwsResultTableEntry> kwsList = new LinkedList<>();
-				if (store != null && store.isLoggedIn()) {
-					List<TrpJobStatus> jobs;
-					try {
-						jobs = store.getConnection().getJobs(false, null, "CITlab Keyword Spotting", null, 0, 0, null, null);
-						logger.debug("got finished kws jobs: "+jobs.size());
-					} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-							| IllegalArgumentException e) {
-						logger.error(e.getMessage(), e);
-						jobs = new ArrayList<>(0);
-					}
-					for(TrpJobStatus j : jobs) {
-						if(!j.isFailed()) {
-							kwsList.add(new TrpKwsResultTableEntry(j));
-						}
-					}
-				}
-				Display.getDefault().asyncExec(() -> {
-					resultTable.getTableViewer().setInput(kwsList);
-				});
+	private void updateResultTable(List<TrpJobStatus> jobs) {
+		List<TrpKwsResultTableEntry> kwsList = new LinkedList<>();
+		
+		for(TrpJobStatus j : jobs) {
+			if(!j.isFailed()) {
+				kwsList.add(new TrpKwsResultTableEntry(j));
 			}
-		};
-		new Thread(loader).start();
+		}
+	
+		Display.getDefault().asyncExec(() -> {	
+			if(resultTable != null && !resultTable.isDisposed()) {
+				logger.debug("Updating KWS result table");
+				resultTable.getTableViewer().setInput(kwsList);
+			}
+		});
+	}
+	
+	private void updateResultTableFromStorage() {
+		List<TrpKwsResultTableEntry> kwsList = new LinkedList<>();
+		List<TrpJobStatus> jobs = new ArrayList<>(0);
+		if (store != null && store.isLoggedIn()) {
+			try {
+				jobs = store.getConnection().getJobs(true, null, "CITlab Keyword Spotting", null, 0, 0, null, null);
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+					| IllegalArgumentException e) {
+				logger.error(e.getMessage(), e);
+				jobs = new ArrayList<>(0);
+			}
+			
+		}
+		updateResultTable(jobs);
 	}
 	
 	private class QueryWidget extends Composite {
@@ -342,4 +353,36 @@ public class KeywordSpottingComposite extends Composite {
 			removeBtn.setVisible(visible);
 		}
 	}
+	
+	private class ResultLoader {
+		private ScheduledThreadPoolExecutor threadPool = null;
+		private Future<?> future = null;
+		
+		public ResultLoader() {
+			logger.debug("Instantiating ResultLoader.");
+			if(threadPool == null) {
+				ThreadFactory tf = new ThreadFactoryBuilder().setNameFormat("TRP-TASK-%d").build();
+				threadPool = new ScheduledThreadPoolExecutor(1, tf);
+			}
+		}
+		
+		public void start(){
+			logger.debug("Starting TaskScheduler.");
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					updateResultTableFromStorage();
+				}
+			};
+			
+			future = (ScheduledFuture<?>)threadPool.scheduleAtFixedRate(r, 0, 3, TimeUnit.SECONDS);
+		}
+		
+		public void stop(){
+			logger.debug("Stopping TaskScheduler.");
+			future.cancel(false);
+			threadPool.shutdown();
+		}
+	}
+	
 }

@@ -33,10 +33,10 @@ public class KwsResultTableWidget extends Composite {
 //	boolean withFilter;
 	
 	public final ColumnConfig[] KWS_RES_COLS = new ColumnConfig[] {
-		new ColumnConfig(KWS_CREATED_COL, 100, true, DefaultTableColumnViewerSorter.DESC),
-		new ColumnConfig(KWS_STATUS_COL, 75, false, DefaultTableColumnViewerSorter.DESC),
+		new ColumnConfig(KWS_CREATED_COL, 150, true, DefaultTableColumnViewerSorter.DESC),
+		new ColumnConfig(KWS_STATUS_COL, 100, false, DefaultTableColumnViewerSorter.DESC),
 		new ColumnConfig(KWS_QUERY_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(KWS_DURATION_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(KWS_DURATION_COL, 125, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(KWS_SCOPE_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		
 	};
@@ -121,10 +121,10 @@ public class KwsResultTableWidget extends Composite {
 		return kwsResTv;
 	}
 
-	public TrpKwsResult getSelectedKws() {
+	public TrpKwsResultTableEntry getSelectedKws() {
 		IStructuredSelection sel = (IStructuredSelection) kwsResTv.getSelection();
-		if (sel.getFirstElement() != null && sel.getFirstElement() instanceof TrpHtr) {
-			return ((TrpKwsResultTableEntry) sel.getFirstElement()).getResult();
+		if (sel.getFirstElement() != null && sel.getFirstElement() instanceof TrpKwsResultTableEntry) {
+			return (TrpKwsResultTableEntry) sel.getFirstElement();
 		} else
 			return null;
 
