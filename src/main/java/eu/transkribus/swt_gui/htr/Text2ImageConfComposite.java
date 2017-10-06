@@ -30,7 +30,7 @@ public class Text2ImageConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(Text2ImageConfComposite.class);
 	
 	LabeledText epochsTxt;
-	LabeledText subsamplingTxt;
+	LabeledText subsetsTxt;
 	Button removeLineBreaksCheck;
 	LabeledText numberOfThreadsTxt;
 	
@@ -63,10 +63,10 @@ public class Text2ImageConfComposite extends Composite {
 		epochsTxt.setToolTipText("A series of training epochs per iteration divided by semicolons - enter an empty string for no training at all");
 		epochsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		subsamplingTxt = new LabeledText(this, "Subsampling: ");
-		subsamplingTxt.setText(""+CitLabSemiSupervisedHtrTrainConfig.DEFAULT_SUBSAMPLING);
-		subsamplingTxt.setToolTipText("The number of subsets the document is divided into - max is the number of pages");
-		subsamplingTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		subsetsTxt = new LabeledText(this, "Subsets: ");
+		subsetsTxt.setText(""+CitLabSemiSupervisedHtrTrainConfig.DEFAULT_SUBSETS);
+		subsetsTxt.setToolTipText("The number of subsets the document is divided into - max is the number of pages");
+		subsetsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		removeLineBreaksCheck = new Button(this, SWT.CHECK);
 		removeLineBreaksCheck.setText("Remove line breaks");
@@ -220,8 +220,8 @@ public class Text2ImageConfComposite extends Composite {
 			throw new IOException("Cannot parse epochs string: "+epochsTxt.getText());
 		}
 		
-		if (subsamplingTxt.toIntVal()!=null) {
-			config.setSubSampling(subsamplingTxt.toIntVal());
+		if (subsetsTxt.toIntVal()!=null) {
+			config.setSubSets(subsetsTxt.toIntVal());
 		} else {
 			throw new IOException("Cannot parse subsampling parameter: "+epochsTxt.getText());
 		}

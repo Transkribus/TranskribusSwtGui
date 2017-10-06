@@ -31,7 +31,7 @@ public class Text2ImageConfComposite2 extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(Text2ImageConfComposite2.class);
 	
 	LabeledText epochsTxt;
-	LabeledText subsamplingTxt;
+	LabeledText subsetsTxt;
 	Button removeLineBreaksCheck;
 	LabeledText numberOfThreadsTxt;
 	
@@ -65,10 +65,10 @@ public class Text2ImageConfComposite2 extends Composite {
 		epochsTxt.setToolTipText("A series of training epochs per iteration divided by semicolons - enter an empty string for no training at all");
 		epochsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
-		subsamplingTxt = new LabeledText(this, "Subsampling: ", true);
-		subsamplingTxt.setText(""+CitLabSemiSupervisedHtrTrainConfig.DEFAULT_SUBSAMPLING);
-		subsamplingTxt.setToolTipText("The number of subsets the document is divided into - max is the number of pages");
-		subsamplingTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		subsetsTxt = new LabeledText(this, "Subsets: ", true);
+		subsetsTxt.setText(""+CitLabSemiSupervisedHtrTrainConfig.DEFAULT_SUBSETS);
+		subsetsTxt.setToolTipText("The number of subsets the document is divided into - max is the number of pages");
+		subsetsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Composite removeLbCont = SWTUtil.createContainerComposite(this, 2, true);
 		removeLbCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -229,8 +229,8 @@ public class Text2ImageConfComposite2 extends Composite {
 			throw new IOException("Cannot parse epochs string: "+epochsTxt.getText());
 		}
 		
-		if (subsamplingTxt.toIntVal()!=null) {
-			config.setSubSampling(subsamplingTxt.toIntVal());
+		if (subsetsTxt.toIntVal()!=null) {
+			config.setSubSets(subsetsTxt.toIntVal());
 		} else {
 			throw new IOException("Cannot parse subsampling parameter: "+epochsTxt.getText());
 		}

@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
@@ -57,7 +58,9 @@ public class TextRecognitionComposite extends Composite {
 			}
 		});
 		
-		modelsBtn = new HtrModelChooserButton(this);
+		modelsBtn = new HtrModelChooserButton(this) {
+			@Override public void setModel(TrpHtr htr) {}
+		};
 		modelsBtn.setText("Models...");
 		modelsBtn.setImage(Images.getOrLoad("/icons/model2_16.png"));
 		modelsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
