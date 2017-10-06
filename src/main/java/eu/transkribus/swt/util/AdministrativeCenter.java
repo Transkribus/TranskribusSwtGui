@@ -12,6 +12,7 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -33,8 +34,10 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -61,6 +64,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.io.UnsupportedFormatException;
+import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
@@ -118,6 +122,12 @@ public class AdministrativeCenter extends Dialog {
 	static final Color lightYellow = new Color(Display.getCurrent(), 255, 255, 200);
 	static final Color lightRed = new Color(Display.getCurrent(), 252, 204, 188);
 	static final Color lightBlue = new Color(Display.getCurrent(), 0, 140, 255);
+	
+	FontDescriptor boldDescriptor = FontDescriptor.createFrom(Display.getCurrent().getSystemFont()).setStyle(SWT.BOLD);
+	Font boldFont = boldDescriptor.createFont(Display.getCurrent());
+	
+	FontDescriptor normalDescriptor = FontDescriptor.createFrom(Display.getCurrent().getSystemFont()).setStyle(SWT.NORMAL);
+	Font normalFont = normalDescriptor.createFont(Display.getCurrent());
 
 	Image image;
 
@@ -191,6 +201,7 @@ public class AdministrativeCenter extends Dialog {
 						break;
 					}
 				}
+				updateColors();
 			}
 		}
 
@@ -398,23 +409,13 @@ public class AdministrativeCenter extends Dialog {
 		chooseCollectionImg.setText("Take as collection image");
 		chooseCollectionImg.setToolTipText("Take this image as the representative image for the overall collection");
 
-		chooseImg.addListener(SWT.Selection, new Listener() {
+		chooseCollectionImg.addListener(SWT.Selection, new Listener() {
 
 			@Override
 			public void handleEvent(Event event) {
-				// Storage.getInstance().getDoc().getCollection().setColImgUrl();
-				// mw.addSeveralPages2Doc();
-				// try {
-				// Storage.getInstance().reloadCurrentDocument(colId);
-				// } catch (SessionExpiredException | IllegalArgumentException |
-				// NoConnectionException | IOException
-				// | NullValueException e) {
-				// // TODO Auto-generated catch block
-				// e.printStackTrace();
-				// }
-				// reload();
-				// mw.getUi().getThumbnailWidget().reload();
-				// tv.getTree().redraw();
+				
+				addSymbolicCollectionImage();
+
 			}
 
 		});
@@ -428,24 +429,54 @@ public class AdministrativeCenter extends Dialog {
 				TrpPage p = (TrpPage) ti.getData();
 				logger.debug("listener: page id " + p.getPageId());
 				logger.debug("listener: loaded docMd id is " + docMd.getDocId());
-				docMd.setPageId((Integer) p.getPageId());
+				docMd.setDesc("this is the new description");
+				docMd.setPageId(p.getPageId());
+				
+				ti.getParentItem().setData(docMd);
 				Storage.getInstance().getConnection().updateDocMd(colId, docMd.getDocId(), docMd);
 				break;
 			}
-
-			// mw.addSeveralPages2Doc();
-
-			Storage.getInstance().reloadCurrentDocument(colId);
-		} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException
-				| NullValueException e) {
+		} catch (SessionExpiredException | IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		 reload();
-		// mw.getUi().getThumbnailWidget().reload();
 		updateColors();
 		tv.getTree().redraw();
+
+	}
+	
+	private void addSymbolicCollectionImage() {
+		try {
+			for (TreeItem ti : tv.getTree().getSelection()) {
+
+				TrpPage p = (TrpPage) ti.getData();
+				TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
+				colMd.setPageId(new Integer(p.getPageId()));
+				Storage.getInstance().getConnection().updateCollectionMd(colMd);
+				break;
+			}
+		} catch (SessionExpiredException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		updateColors();
+		tv.getTree().redraw();
+		
+		// Storage.getInstance().getDoc().getCollection().setColImgUrl();
+		// mw.addSeveralPages2Doc();
+		// try {
+		// Storage.getInstance().reloadCurrentDocument(colId);
+		// } catch (SessionExpiredException | IllegalArgumentException |
+		// NoConnectionException | IOException
+		// | NullValueException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		// reload();
+		// mw.getUi().getThumbnailWidget().reload();
+		// tv.getTree().redraw();
 
 	}
 
@@ -521,11 +552,28 @@ public class AdministrativeCenter extends Dialog {
 			}
 
 		});
+		
+		Label label1 = new Label(buttonComp2, SWT.NONE);
+		label1.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
+		label1.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+		updateLabel(label1);
+
+		
 
 		collectionImageBtn = new Button(buttonComp2, SWT.PUSH);
 		collectionImageBtn.setImage(Images.ADD);
 		collectionImageBtn.setText("Choose Image for Collection");
 		collectionImageBtn.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
+		collectionImageBtn.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+
+				addSymbolicCollectionImage();
+
+			}
+
+		});
 
 		// buttonComp = new Composite(docSash2, SWT.NONE);
 		// buttonComp.setLayout(new GridLayout(1, false));
@@ -562,6 +610,21 @@ public class AdministrativeCenter extends Dialog {
 
 		updateColors();
 
+	}
+
+	private void updateLabel(Label label1) {
+		if (Storage.getInstance().getDoc() != null){
+			TrpDoc currDoc = Storage.getInstance().getDoc();
+			if (currDoc.getMd().getPageId() != null){
+				for (TrpPage p : currDoc.getPages()){
+					if (currDoc.getMd().getPageId().equals(p.getPageId())){
+						label1.setText("Current symbolic image is \n" + p.getImgFileName());
+					}
+				}
+			}
+			
+		}
+		
 	}
 
 	private void addListeners() {
@@ -682,23 +745,43 @@ public class AdministrativeCenter extends Dialog {
 				if (page == null) {
 					continue;
 				}
-
-				logger.debug(" get page id: " + page.getPageId());
-				logger.debug(" doc: " + doc.getDocId());
-
-				if (doc != null && doc.getPageId() != null && page.getPageId() == doc.getPageId()) {
-					logger.debug(" get page id from doc: " + doc.getPageId());
-					child.setChecked(true);
+				
+				if (page.getCurrentTranscript().getNrOfTranscribedLines() != null){
+					if (page.getCurrentTranscript().getNrOfTranscribedLines() > 0) {
+						child.setBackground(lightGreen);
+					} else if (page.getCurrentTranscript().getNrOfTranscribedLines() == 0
+							&& page.getCurrentTranscript().getNrOfLines() > 0) {
+						child.setBackground(lightYellow);
+					} else {
+						child.setBackground(lightRed);
+					}
+				}
+				
+				TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
+				if (colMd != null && colMd.getPageId() != null && page.getPageId() == colMd.getPageId()){
+					logger.debug("symbolic image found for collection with ID: " + doc.getPageId());
+					child.setFont( boldFont );
+					child.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_CYAN));
+				}
+				
+				else if (doc != null && doc.getPageId() != null && page.getPageId() == doc.getPageId()) {
+					logger.debug("symbolic image found for document with ID: " + doc.getPageId());
+//					GC gc = new GC(cR_Dhild.getDisplay().getActiveShell());
+//					gc.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
+//					gc.setBackground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
+//					gc.setLineWidth(10);
+//					child.drawLine(child.getBounds().x, child.getBounds().y, child.getBounds().width, child.getBounds().y);
+//					gc.drawRectangle(child.getBounds());
+//					gc.dispose();
+					child.setFont( boldFont );
+					child.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
+				}
+				else {
+					child.setFont(normalFont);
+					child.setForeground(Colors.getSystemColor(SWT.COLOR_BLACK));
 				}
 
-				if (page.getCurrentTranscript().getNrOfTranscribedLines() > 0) {
-					child.setBackground(lightGreen);
-				} else if (page.getCurrentTranscript().getNrOfTranscribedLines() == 0
-						&& page.getCurrentTranscript().getNrOfLines() > 0) {
-					child.setBackground(lightYellow);
-				} else {
-					child.setBackground(lightRed);
-				}
+
 			}
 		}
 	}
