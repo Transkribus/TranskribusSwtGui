@@ -508,4 +508,5 @@ CHANGES AND BUGFIXES
 	-> CommonExportDialog: allow to choose image quality (original | JPEG)
 	-> HtrTrainingDialog: fix bugs in selection of base model
 	-> IO stuff: broken image files can now be handled (local/remote docs)
+	-> fix high resolution issue
 	
