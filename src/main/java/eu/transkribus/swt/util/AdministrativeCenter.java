@@ -11,6 +11,7 @@ import java.util.Iterator;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.batik.dom.GenericEntityReference;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -92,11 +93,14 @@ public class AdministrativeCenter extends Dialog {
 	protected Label pageNrLabel;
 	protected Label totalTranscriptsLabel;
 	protected Label totalWordTranscriptsLabel;
+	
+	protected Label docLabel, collLabel;
 
 	protected GalleryItem group;
 
 	protected Button reload, showOrigFn, createThumbs, startLA;
 	protected Button collectionImageBtn, documentImageBtn;
+	protected Button showCollectionImageBtn, showDocumentImageBtn;
 
 	protected List<URL> urls;
 	protected List<String> names = null;
@@ -202,6 +206,7 @@ public class AdministrativeCenter extends Dialog {
 					}
 				}
 				updateColors();
+				updateSymbolicImgLabels();
 			}
 		}
 
@@ -390,7 +395,7 @@ public class AdministrativeCenter extends Dialog {
 	private void addChooseImageMenuItems(Menu menu) {
 		MenuItem chooseImg = new MenuItem(menu, SWT.NONE);
 		chooseImg.setText("Take as document image");
-		chooseImg.setToolTipText("Take this image as the representative image for this document");
+		chooseImg.setToolTipText("Take this image as the symbolic image for this document");
 
 		logger.debug("listener for setting symbolic doc image called");
 
@@ -407,7 +412,7 @@ public class AdministrativeCenter extends Dialog {
 
 		MenuItem chooseCollectionImg = new MenuItem(menu, SWT.NONE);
 		chooseCollectionImg.setText("Take as collection image");
-		chooseCollectionImg.setToolTipText("Take this image as the representative image for the overall collection");
+		chooseCollectionImg.setToolTipText("Take this image as the symbolic image for the overall collection");
 
 		chooseCollectionImg.addListener(SWT.Selection, new Listener() {
 
@@ -427,21 +432,32 @@ public class AdministrativeCenter extends Dialog {
 			for (TreeItem ti : tv.getTree().getSelection()) {
 
 				TrpPage p = (TrpPage) ti.getData();
-				logger.debug("listener: page id " + p.getPageId());
-				logger.debug("listener: loaded docMd id is " + docMd.getDocId());
-				docMd.setDesc("this is the new description");
 				docMd.setPageId(p.getPageId());
 				
 				ti.getParentItem().setData(docMd);
 				Storage.getInstance().getConnection().updateDocMd(colId, docMd.getDocId(), docMd);
+				Storage.getInstance().reloadCurrentDocument(colId);
 				break;
 			}
 		} catch (SessionExpiredException | IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (UnsupportedFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NullValueException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		updateColors();
+		updateSymbolicImgLabels();
 		tv.getTree().redraw();
 
 	}
@@ -454,14 +470,16 @@ public class AdministrativeCenter extends Dialog {
 				TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
 				colMd.setPageId(new Integer(p.getPageId()));
 				Storage.getInstance().getConnection().updateCollectionMd(colMd);
+				Storage.getInstance().reloadCollections();
 				break;
 			}
-		} catch (SessionExpiredException | IllegalArgumentException e) {
+		} catch (SessionExpiredException | IllegalArgumentException | ServerErrorException | NoConnectionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		updateColors();
+		updateSymbolicImgLabels();
 		tv.getTree().redraw();
 		
 		// Storage.getInstance().getDoc().getCollection().setColImgUrl();
@@ -540,7 +558,7 @@ public class AdministrativeCenter extends Dialog {
 
 		documentImageBtn = new Button(buttonComp2, SWT.PUSH);
 		documentImageBtn.setImage(Images.ADD);
-		documentImageBtn.setText("Choose Image for Document");
+		documentImageBtn.setText("Choose Symbolic Image for Document");
 		documentImageBtn.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
 		documentImageBtn.addListener(SWT.Selection, new Listener() {
 
@@ -553,16 +571,55 @@ public class AdministrativeCenter extends Dialog {
 
 		});
 		
-		Label label1 = new Label(buttonComp2, SWT.NONE);
-		label1.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
-		label1.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
-		updateLabel(label1);
+	
+		showDocumentImageBtn = new Button(buttonComp2, SWT.PUSH);
+		showDocumentImageBtn.setImage(Images.IMAGE);
+		showDocumentImageBtn.setText("Show Symbolic Image for Document");
+		showDocumentImageBtn.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
+		showDocumentImageBtn.addListener(SWT.Selection, new Listener() {
 
+			@Override
+			public void handleEvent(Event event) {
+
+				if (image != null) {
+					image.dispose();
+					image = null;
+				}
+				//show the symbolic image of the loaded doc
+				try {
+					if (Storage.getInstance().getDoc() != null){
+						image = ImgLoader.load(Storage.getInstance().getDoc().getMd().getUrl());
+						previewLbl.redraw();
+					}
+					else{
+						
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+
+			}
+
+		});
 		
+		docLabel = new Label(buttonComp2, SWT.NONE);
+		docLabel.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
+		docLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+		
+		updateSymbolicImgLabels();
+		
+		collLabel = new Label(buttonComp2, SWT.NONE);
+		collLabel.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
+		collLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_CYAN));
+
+		updateSymbolicImgLabels();
+			
 
 		collectionImageBtn = new Button(buttonComp2, SWT.PUSH);
 		collectionImageBtn.setImage(Images.ADD);
-		collectionImageBtn.setText("Choose Image for Collection");
+		collectionImageBtn.setText("Choose Symbolic Image for Collection");
 		collectionImageBtn.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
 		collectionImageBtn.addListener(SWT.Selection, new Listener() {
 
@@ -570,6 +627,32 @@ public class AdministrativeCenter extends Dialog {
 			public void handleEvent(Event event) {
 
 				addSymbolicCollectionImage();
+
+			}
+
+		});
+
+		showCollectionImageBtn = new Button(buttonComp2, SWT.PUSH);
+		showCollectionImageBtn.setImage(Images.IMAGE);
+		showCollectionImageBtn.setText("Show Symbolic Image for Collection");
+		showCollectionImageBtn.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
+		showCollectionImageBtn.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+
+				if (image != null) {
+					image.dispose();
+					image = null;
+				}
+				//show the symbolic image of the loaded collection
+				try {
+					image = ImgLoader.load(Storage.getInstance().getCollection(colId).getUrl());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				previewLbl.redraw();
 
 			}
 
@@ -609,22 +692,51 @@ public class AdministrativeCenter extends Dialog {
 		});
 
 		updateColors();
+		updateSymbolicImgLabels();
 
 	}
 
-	private void updateLabel(Label label1) {
+	private void updateSymbolicImgLabels() {
+
 		if (Storage.getInstance().getDoc() != null){
 			TrpDoc currDoc = Storage.getInstance().getDoc();
 			if (currDoc.getMd().getPageId() != null){
 				for (TrpPage p : currDoc.getPages()){
 					if (currDoc.getMd().getPageId().equals(p.getPageId())){
-						label1.setText("Current symbolic image is \n" + p.getImgFileName());
+						docLabel.setText("Loaded doc: " + p.getDocId() + "\nwith symbolic image: \n" + p.getImgFileName() );
 					}
 				}
-			}
-			
+			}	
+		}
+		else{
+			docLabel.setText("Currently no document loaded.");
 		}
 		
+		if (Storage.getInstance().getCollection(colId) != null){
+			
+			TrpCollection currCol = Storage.getInstance().getCollection(colId);
+			if (currCol.getPageId() != null){
+				
+				//tv.expandToLevel(2);
+
+				for (TreeItem i : tv.getTree().getItems()) {
+
+					for (TreeItem child : i.getItems()) {
+						TrpPage page = (TrpPage) child.getData();
+						if (page == null) {
+							continue;
+						}
+						if (Integer.valueOf(page.getPageId()).equals(currCol.getPageId())){
+							logger.debug("collection page for symbolic image found");
+							collLabel.setText("Collection " + colId + "\n with symbolic image: \n" + page.getImgFileName() );
+							return;
+						}
+							
+					}
+							
+				}
+			}	
+		}
 	}
 
 	private void addListeners() {
@@ -669,6 +781,7 @@ public class AdministrativeCenter extends Dialog {
 					// previewLbl.setImage(null);
 				}
 				updateColors();
+				updateSymbolicImgLabels();
 				enableEdits(currDocId == Storage.getInstance().getDocId());
 
 			}
@@ -707,6 +820,7 @@ public class AdministrativeCenter extends Dialog {
 				docMd = Storage.getInstance().getDoc().getMd();
 				// enableEdits(currDocId == Storage.getInstance().getDocId());
 				updateColors();
+				updateSymbolicImgLabels();
 				addStatisticalNumbers();
 			}
 
@@ -1253,7 +1367,7 @@ public class AdministrativeCenter extends Dialog {
 	class EditStatusMenuItemListener extends SelectionAdapter {
 
 		public void widgetSelected(SelectionEvent event) {
-			logger.debug("You selected " + ((MenuItem) event.widget).getText());
+			//logger.debug("You selected " + ((MenuItem) event.widget).getText());
 			// System.out.println("You selected cont.1 " +
 			// EnumUtils.fromString(EditStatus.class, ((MenuItem)
 			// event.widget).getText()));
@@ -1360,7 +1474,7 @@ public class AdministrativeCenter extends Dialog {
 	}
 
 	public void addListener(int selection, Listener listener) {
-		logger.debug("add double click listener");
+		//logger.debug("add double click listener");
 		shell.addListener(selection, listener);
 	}
 
