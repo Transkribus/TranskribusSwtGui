@@ -62,6 +62,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.io.UnsupportedFormatException;
@@ -69,6 +71,7 @@ import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.TrpTotalTranscriptStatistics;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
@@ -213,7 +216,7 @@ public class AdministrativeCenter extends Dialog {
 	}
 
 	public AdministrativeCenter(Shell parent, int style, TrpMainWidget mw, int colId) {
-		super(parent, style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
+		super(parent.getShell(), style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
 
 		this.colId = colId;
 
@@ -229,7 +232,7 @@ public class AdministrativeCenter extends Dialog {
 			docMd = Storage.getInstance().getDoc().getMd();
 		}
 
-		shell = new Shell(getParent(), style);
+		shell = new Shell((Shell)parent, style);
 		shell.setText("Administrative Center");
 
 		FillLayout l = new FillLayout();
@@ -372,7 +375,7 @@ public class AdministrativeCenter extends Dialog {
 		case 0:
 			// allow only for loaded document
 			if (((TrpDocMetadata) item.getData()).compareTo(Storage.getInstance().getDoc().getMd()) == 0) {
-				addMenuItems4BothLevels(menu, EnumUtils.stringsArray(EditStatus.class));
+				addMenuItems4BothLevels(menu);
 				addMenuItems4DocLevel(menu);
 
 			}
@@ -380,8 +383,8 @@ public class AdministrativeCenter extends Dialog {
 		case 1:
 			// allow only for loaded pages
 			if (((TrpPage) item.getData()).getDocId() == Storage.getInstance().getDoc().getId()) {
-				addMenuItems4BothLevels(menu, EnumUtils.stringsArray(EditStatus.class));
-				addMenuItems4PageLevel(menu);
+				addMenuItems4BothLevels(menu);
+				addMenuItems4PageLevel(menu, EnumUtils.stringsArray(EditStatus.class));
 			}
 			addChooseImageMenuItems(menu);
 			break;
@@ -432,11 +435,13 @@ public class AdministrativeCenter extends Dialog {
 			for (TreeItem ti : tv.getTree().getSelection()) {
 
 				TrpPage p = (TrpPage) ti.getData();
-				docMd.setPageId(p.getPageId());
-				
-				ti.getParentItem().setData(docMd);
-				Storage.getInstance().getConnection().updateDocMd(colId, docMd.getDocId(), docMd);
-				Storage.getInstance().reloadCurrentDocument(colId);
+				if(p.getDocId() == docMd.getDocId()){
+					docMd.setPageId(p.getPageId());
+					
+					ti.getParentItem().setData(docMd);
+					Storage.getInstance().getConnection().updateDocMd(colId, docMd.getDocId(), docMd);
+					Storage.getInstance().reloadCurrentDocument(colId);
+				}
 				break;
 			}
 		} catch (SessionExpiredException | IllegalArgumentException e) {
@@ -737,6 +742,7 @@ public class AdministrativeCenter extends Dialog {
 				}
 			}	
 		}
+		buttonComp2.layout();
 	}
 
 	private void addListeners() {
@@ -847,6 +853,7 @@ public class AdministrativeCenter extends Dialog {
 			}
 			TrpDocMetadata doc = (TrpDocMetadata) i.getData();
 			if (doc == null) {
+				logger.debug("null??");
 				continue;
 			}
 
@@ -872,14 +879,14 @@ public class AdministrativeCenter extends Dialog {
 				}
 				
 				TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
-				if (colMd != null && colMd.getPageId() != null && page.getPageId() == colMd.getPageId()){
-					logger.debug("symbolic image found for collection with ID: " + doc.getPageId());
+				if (colMd != null && colMd.getPageId() != null && Integer.valueOf(page.getPageId()).equals(colMd.getPageId())){
+					logger.debug("symbolic image found for collection with ID: " + colMd.getColId());
 					child.setFont( boldFont );
 					child.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_CYAN));
 				}
 				
-				else if (doc != null && doc.getPageId() != null && page.getPageId() == doc.getPageId()) {
-					logger.debug("symbolic image found for document with ID: " + doc.getPageId());
+				else if (doc != null && doc.getPageId() != null && Integer.valueOf(page.getPageId()).equals(doc.getPageId())) {
+					logger.debug("symbolic image found for document with ID: " + doc.getDocId());
 //					GC gc = new GC(cR_Dhild.getDisplay().getActiveShell());
 //					gc.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
 //					gc.setBackground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
@@ -971,37 +978,38 @@ public class AdministrativeCenter extends Dialog {
 		Storage storage = Storage.getInstance();
 
 		List<TrpPage> pageList = getPageList();
-
-		if (!pageList.isEmpty()) {
-
-			for (TrpPage page : pageList) {
-				int pageNr = page.getPageNr();
-				int docId = page.getDocId();
-				int transcriptId = 0;
-				if ((pageNr - 1) >= 0) {
-					transcriptId = page.getCurrentTranscript().getTsId();
+		try {
+			
+			if (!pageList.isEmpty()) {
+	
+				for (TrpPage page : pageList) {
+					int pageNr = page.getPageNr();
+					int docId = page.getDocId();
+					int transcriptId = 0;
+					if ((pageNr - 1) >= 0) {
+						transcriptId = page.getCurrentTranscript().getTsId();
+					}
+					
+						storage.getConnection().updatePageStatus(colId, docId, pageNr, transcriptId,
+								EditStatus.fromString(text), "");
+						// .reloadCurrentDocument(colId);
+	
+						// tw.setDoc(Storage.getInstance().getDoc(), false);
+						enableEdits(false);
+						// logger.debug("status is changed to : " +
+						// storage.getDoc().getPages().get(pageNr-1).getCurrentTranscript().getStatus());
 				}
-				try {
-					storage.getConnection().updatePageStatus(colId, docId, pageNr, transcriptId,
-							EditStatus.fromString(text), "");
-					storage.reloadCollections();// .reloadCurrentDocument(colId);
-
-					// tw.setDoc(Storage.getInstance().getDoc(), false);
-					enableEdits(false);
-					// logger.debug("status is changed to : " +
-					// storage.getDoc().getPages().get(pageNr-1).getCurrentTranscript().getStatus());
-
-				} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (NoConnectionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				storage.reloadCollections();
 			}
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}
@@ -1086,7 +1094,22 @@ public class AdministrativeCenter extends Dialog {
 		});
 	}
 
-	private void addMenuItems4PageLevel(Menu contextMenu) {
+	private void addMenuItems4PageLevel(Menu contextMenu, String[] editStatusArray) {
+		MenuItem tmp;
+		
+		Menu statusMenu = new Menu(contextMenu);
+		MenuItem statusMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+		statusMenuItem.setText("Edit Status");
+		statusMenuItem.setMenu(statusMenu);
+		// statusMenuItem.setEnabled(false);
+
+		for (String editStatus : editStatusArray) {
+			tmp = new MenuItem(statusMenu, SWT.PUSH);
+			tmp.setText(editStatus);
+			tmp.addSelectionListener(new EditStatusMenuItemListener());
+			// tmp.setEnabled(true);
+		}
+		
 		MenuItem movePage = new MenuItem(contextMenu, SWT.CASCADE);
 		movePage.setText("Move page(s) to");
 
@@ -1246,21 +1269,8 @@ public class AdministrativeCenter extends Dialog {
 
 	}
 
-	private void addMenuItems4BothLevels(Menu contextMenu, String[] editStatusArray) {
+	private void addMenuItems4BothLevels(Menu contextMenu) {
 		MenuItem tmp;
-
-		Menu statusMenu = new Menu(contextMenu);
-		MenuItem statusMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
-		statusMenuItem.setText("Edit Status");
-		statusMenuItem.setMenu(statusMenu);
-		// statusMenuItem.setEnabled(false);
-
-		for (String editStatus : editStatusArray) {
-			tmp = new MenuItem(statusMenu, SWT.PUSH);
-			tmp.setText(editStatus);
-			tmp.addSelectionListener(new EditStatusMenuItemListener());
-			// tmp.setEnabled(true);
-		}
 
 		// Menu labelMenu = new Menu(contextMenu);
 		// MenuItem labelMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
@@ -1432,26 +1442,43 @@ public class AdministrativeCenter extends Dialog {
 			statisticLabel
 					.setText("Loaded Document is " + doc.getMd().getTitle() + " with ID " + doc.getMd().getDocId());
 			statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-			pageNrLabel = new Label(labelComposite, SWT.NONE);
-			pageNrLabel.setText("Nr of pages: " + storage.getDoc().getNPages());
-
-			int totalLinesTranscribed = 0;
-			int totalWordsTranscribed = 0;
-
-			for (int i = 0; i < doc.getTranscripts().size(); i++) {
-				TrpTranscriptMetadata tmd;
-				tmd = doc.getTranscripts().get(i);
-
-				totalLinesTranscribed += tmd.getNrOfTranscribedLines();
-				totalWordsTranscribed += tmd.getNrOfWordsInLines();
+			
+			int totalCollectionPages = 0;
+			int totalCollectionLines = 0;
+			int totalCollectionWords = 0;
+			
+			try {
+				TrpTotalTranscriptStatistics collectionStats = storage.getConnection().getCollectionStats(colId);
+				logger.debug("coll stats " + collectionStats.getNrOfTranscribedLines());
+				totalCollectionLines = collectionStats.getNrOfTranscribedLines();
+				totalCollectionWords = collectionStats.getNrOfWordsInLines();
+			} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			for (TrpDocMetadata currDoc : storage.getDocList()){
+				totalCollectionPages += currDoc.getNrOfPages();
 			}
 
-			totalTranscriptsLabel = new Label(labelComposite, SWT.None);
-			totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed);
+			pageNrLabel = new Label(labelComposite, SWT.NONE);
+			pageNrLabel.setText("Nr of pages : " + doc.getNPages() + " in doc / " + totalCollectionPages + " in collection");
 
+			int totalLinesTranscribed = doc.getMd().getNrOfTranscribedLines();
+			int totalWordsTranscribed = doc.getMd().getNrOfWordsInLines();
+
+//			for (int i = 0; i < doc.getTranscripts().size(); i++) {
+//				TrpTranscriptMetadata tmd;
+//				tmd = doc.getTranscripts().get(i);
+//
+//				totalLinesTranscribed += tmd.getNrOfTranscribedLines();
+//				totalWordsTranscribed += tmd.getNrOfWordsInLines();
+//			}
+
+			totalTranscriptsLabel = new Label(labelComposite, SWT.None);
+			totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed + " in doc / " + totalCollectionLines + " in collection");
+						
 			totalWordTranscriptsLabel = new Label(labelComposite, SWT.None);
-			totalWordTranscriptsLabel.setText("Nr. of words trancribed: " + totalWordsTranscribed);
+			totalWordTranscriptsLabel.setText("Nr. of words trancribed: " + totalWordsTranscribed + " in doc / " + totalCollectionWords + " in collection");
 
 			groupComposite.layout(true, true);
 

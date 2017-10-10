@@ -102,13 +102,9 @@ public class ThumbnailWidgetVirtual extends Composite {
 		labelComposite.setLayout(new GridLayout(1, true));
 		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
-		statisticLabel = new Label(labelComposite, SWT.TOP);
-		statisticLabel.setText("Thumbnail Overview: ");
-		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		
 		showPageManager = new Button(labelComposite, 0);
 		showPageManager.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		showPageManager.setText("Show Document Manager");
+		showPageManager.setText("Open Administrative Center");
 		
 		showPageManager.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -116,6 +112,10 @@ public class ThumbnailWidgetVirtual extends Composite {
 				showPageManager();
 			}
 		});
+		
+		statisticLabel = new Label(labelComposite, SWT.TOP);
+		statisticLabel.setText("Thumbnail Overview of Document: ");
+		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
 		Composite btns = new Composite(this, 0);
 		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
