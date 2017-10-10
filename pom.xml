@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.3.5.9-SNAPSHOT</version>
+	<version>1.3.5.10-SNAPSHOT</version>
 	<name>Transkribus</name>
 
 	<properties>
@@ -26,7 +26,7 @@
 			due to a bug -->
 
 		<swt.groupId>org.eclipse.swt</swt.groupId>
-		<swt.version>4.5</swt.version>
+		<swt.version>4.7.1</swt.version>
 
 		<jface.groupId>org.eclipse.ui</jface.groupId>
 		<jface.version>3.7.1.v20120104-1859</jface.version>
@@ -237,7 +237,7 @@
 										<include>swt-${swt.version}-linux64.jar</include>
 										<include>swt-${swt.version}-win32.jar</include>
 										<include>swt-${swt.version}-win64.jar</include>
-										<include>swt-${swt.version}-osx32.jar</include>
+										<!-- <include>swt-${swt.version}-osx32.jar</include> -->
 										<include>swt-${swt.version}-osx64.jar</include>
 									</includes>
 								</resource>
