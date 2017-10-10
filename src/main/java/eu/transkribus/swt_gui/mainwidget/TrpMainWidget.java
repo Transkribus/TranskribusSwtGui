@@ -2161,7 +2161,17 @@ public class TrpMainWidget {
 		}
 
 		try {
-			storage.loadLocalDoc(folder);
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					monitor.beginTask("Loading local document from "+folder, IProgressMonitor.UNKNOWN);
+					try {
+						storage.loadLocalDoc(folder, monitor);
+						logger.debug("loaded local doc "+folder);
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Loading local document", false);
 
 			final boolean DISABLE_THUMB_CREATION_ON_LOAD = true;
 			if (!DISABLE_THUMB_CREATION_ON_LOAD && getTrpSets().isCreateThumbs()) {

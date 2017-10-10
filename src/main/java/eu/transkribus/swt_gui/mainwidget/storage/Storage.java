@@ -981,7 +981,7 @@ public class Storage {
 
 		if (doc != null) {
 			if (isLocalDoc()) {
-				loadLocalDoc(doc.getMd().getLocalFolder().getAbsolutePath());
+				loadLocalDoc(doc.getMd().getLocalFolder().getAbsolutePath(), null);
 			} else {
 				loadRemoteDoc(colId, doc.getMd().getDocId());
 			}
@@ -1234,10 +1234,10 @@ public class Storage {
 		transcript.setPageData(pcGts);
 	}
 
-	public void loadLocalDoc(String folder) throws UnsupportedFormatException, IOException, NullValueException {
+	public void loadLocalDoc(String folder, IProgressMonitor monitor) throws UnsupportedFormatException, IOException, NullValueException {
 		tryReleaseLocks();
 		
-		doc = LocalDocReader.load(folder);
+		doc = LocalDocReader.load(folder); // TODO: integrate monitor feedback
 		setCurrentPage(0);
 
 		if (doc == null)
