@@ -732,7 +732,7 @@ public class AdministrativeCenter extends Dialog {
 							continue;
 						}
 						if (Integer.valueOf(page.getPageId()).equals(currCol.getPageId())){
-							logger.debug("collection page for symbolic image found");
+							//logger.debug("collection page for symbolic image found");
 							collLabel.setText("Collection " + colId + "\n with symbolic image: \n" + page.getImgFileName() );
 							return;
 						}
@@ -880,13 +880,13 @@ public class AdministrativeCenter extends Dialog {
 				
 				TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
 				if (colMd != null && colMd.getPageId() != null && Integer.valueOf(page.getPageId()).equals(colMd.getPageId())){
-					logger.debug("symbolic image found for collection with ID: " + colMd.getColId());
+					//logger.debug("symbolic image found for collection with ID: " + colMd.getColId());
 					child.setFont( boldFont );
 					child.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_CYAN));
 				}
 				
 				else if (doc != null && doc.getPageId() != null && Integer.valueOf(page.getPageId()).equals(doc.getPageId())) {
-					logger.debug("symbolic image found for document with ID: " + doc.getDocId());
+					//logger.debug("symbolic image found for document with ID: " + doc.getDocId());
 //					GC gc = new GC(cR_Dhild.getDisplay().getActiveShell());
 //					gc.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
 //					gc.setBackground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
@@ -1149,7 +1149,7 @@ public class AdministrativeCenter extends Dialog {
 						Object o = it.next();
 						if (o instanceof TrpPage) {
 							TrpPage currPage = (TrpPage) o;
-							logger.debug("selected page " + currPage.getImgFileName());
+							//logger.debug("selected page " + currPage.getImgFileName());
 							selection.add(currPage);
 							tv.remove(currPage);
 						} else if (o instanceof TrpDoc) {
@@ -1328,7 +1328,7 @@ public class AdministrativeCenter extends Dialog {
 			Object o = it.next();
 			if (o instanceof TrpPage) {
 				TrpPage currPage = (TrpPage) o;
-				logger.debug("selected page " + currPage.getPageNr());
+				//logger.debug("selected page " + currPage.getPageNr());
 				int selectedPageNr = currPage.getPageNr();
 				String tmp = Integer.toString(selectedPageNr);
 				pages += (pages.equals("") ? tmp : ",".concat(tmp));
@@ -1449,7 +1449,7 @@ public class AdministrativeCenter extends Dialog {
 			
 			try {
 				TrpTotalTranscriptStatistics collectionStats = storage.getConnection().getCollectionStats(colId);
-				logger.debug("coll stats " + collectionStats.getNrOfTranscribedLines());
+				//logger.debug("coll stats " + collectionStats.getNrOfTranscribedLines());
 				totalCollectionLines = collectionStats.getNrOfTranscribedLines();
 				totalCollectionWords = collectionStats.getNrOfWordsInLines();
 			} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e) {
