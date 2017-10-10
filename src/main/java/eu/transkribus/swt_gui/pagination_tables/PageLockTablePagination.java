@@ -73,12 +73,12 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 		btns.moveAbove(pageableTable);
 		
 		//for showing the currently logged in users
-		try {
-			System.out.println(Storage.getInstance().getConnection().countUsersLoggedIn());
-		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			System.out.println(Storage.getInstance().getConnection().countUsersLoggedIn());
+//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 		if (store.isAdminLoggedIn()) {
 			showAllLocksBtn = new Button(btns, SWT.CHECK);
