@@ -510,4 +510,7 @@ CHANGES AND BUGFIXES
 	-> IO stuff: broken image files can now be handled (local/remote docs)
 	-> fix high resolution issue
 	-> fix PDF import bug
+1.3.6
+	-> fix Abbyy XML import bug
+	-> Export: fix version chooser
 	
