@@ -592,13 +592,10 @@ public class AdministrativeCenter extends Dialog {
 				}
 				//show the symbolic image of the loaded doc
 				try {
-					if (Storage.getInstance().getDoc() != null){
-						image = ImgLoader.load(Storage.getInstance().getDoc().getMd().getUrl());
-						previewLbl.redraw();
+					if (Storage.getInstance().getDoc() != null && Storage.getInstance().getDoc().getMd().getUrl() != null){
+						image = ImgLoader.load(Storage.getInstance().getDoc().getMd().getUrl());	
 					}
-					else{
-						
-					}
+					previewLbl.redraw();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -652,12 +649,15 @@ public class AdministrativeCenter extends Dialog {
 				}
 				//show the symbolic image of the loaded collection
 				try {
-					image = ImgLoader.load(Storage.getInstance().getCollection(colId).getUrl());
+					if (Storage.getInstance().getCollection(colId) != null && Storage.getInstance().getCollection(colId).getUrl() != null){
+						image = ImgLoader.load(Storage.getInstance().getCollection(colId).getUrl());
+					}
+					previewLbl.redraw();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				previewLbl.redraw();
+				
 
 			}
 
@@ -751,7 +751,7 @@ public class AdministrativeCenter extends Dialog {
 
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				logger.debug("selection changed");
+				//logger.debug("selection changed");
 				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 				Object o = selection.getFirstElement();
 				int currDocId = 0;
@@ -996,6 +996,12 @@ public class AdministrativeCenter extends Dialog {
 	
 						// tw.setDoc(Storage.getInstance().getDoc(), false);
 						enableEdits(false);
+						
+						/*
+						 * TODO: we break after first change because otherwise too slow for a batch
+						 * Try to fasten this on the server side
+						 */
+						break;
 						// logger.debug("status is changed to : " +
 						// storage.getDoc().getPages().get(pageNr-1).getCurrentTranscript().getStatus());
 				}
@@ -1449,9 +1455,18 @@ public class AdministrativeCenter extends Dialog {
 			
 			try {
 				TrpTotalTranscriptStatistics collectionStats = storage.getConnection().getCollectionStats(colId);
-				//logger.debug("coll stats " + collectionStats.getNrOfTranscribedLines());
-				totalCollectionLines = collectionStats.getNrOfTranscribedLines();
-				totalCollectionWords = collectionStats.getNrOfWordsInLines();
+//				logger.debug("coll stats " + collectionStats.getNrOfTranscribedLines());
+//				logger.debug("coll stats " + collectionStats.getNrOfWordsInLines());
+				if (collectionStats.getNrOfTranscribedLines() != null){
+					totalCollectionLines = collectionStats.getNrOfTranscribedLines();
+				}
+				if (collectionStats.getNrOfWordsInLines() != null){
+					totalCollectionWords = collectionStats.getNrOfWordsInLines();
+				}
+				else if (collectionStats.getNrOfTranscribedWords() != null){
+					totalCollectionWords = collectionStats.getNrOfTranscribedWords();
+				}
+				
 			} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1463,8 +1478,17 @@ public class AdministrativeCenter extends Dialog {
 			pageNrLabel = new Label(labelComposite, SWT.NONE);
 			pageNrLabel.setText("Nr of pages : " + doc.getNPages() + " in doc / " + totalCollectionPages + " in collection");
 
-			int totalLinesTranscribed = doc.getMd().getNrOfTranscribedLines();
-			int totalWordsTranscribed = doc.getMd().getNrOfWordsInLines();
+			int totalLinesTranscribed = 0;
+			int totalWordsTranscribed = 0;
+			if (doc.getMd().getNrOfTranscribedLines() != null){
+				totalLinesTranscribed = doc.getMd().getNrOfTranscribedLines();
+			}
+			if (doc.getMd().getNrOfWordsInLines() != null){
+				totalWordsTranscribed = doc.getMd().getNrOfWordsInLines();
+			}
+			else if (doc.getMd().getNrOfTranscribedWords() != null){
+				totalWordsTranscribed = doc.getMd().getNrOfTranscribedWords();
+			}
 
 //			for (int i = 0; i < doc.getTranscripts().size(); i++) {
 //				TrpTranscriptMetadata tmd;
