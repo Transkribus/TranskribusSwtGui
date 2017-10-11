@@ -509,4 +509,5 @@ CHANGES AND BUGFIXES
 	-> HtrTrainingDialog: fix bugs in selection of base model
 	-> IO stuff: broken image files can now be handled (local/remote docs)
 	-> fix high resolution issue
+	-> fix PDF import bug
 	
