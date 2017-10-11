@@ -22,7 +22,7 @@ import eu.transkribus.core.util.JobDataUtils;
 
 public class TrpKwsResultTableEntry {
 	private static final Logger logger = LoggerFactory.getLogger(TrpKwsResultTableEntry.class);
-	private static final DecimalFormat DF = new DecimalFormat("#.#");
+	private static final DecimalFormat DF = new DecimalFormat("#.##");
 	private TrpKwsResult result;
 	private Date created;
 	private String duration;
@@ -37,7 +37,7 @@ public class TrpKwsResultTableEntry {
 			this.duration = "N/A";
 		} else {
 			final long diff = job.getEndTime() - job.getCreateTime();
-			this.duration = DF.format((diff / 1000) / 60f) + " min.";
+			this.duration = DF.format(diff / 1000f) + " sec.";
 		}
 		this.scope = job.getDocId() < 1 ? "Collection" : "Document";
 		this.status = job.getEnded() == null ? "Processing..." : "Completed";

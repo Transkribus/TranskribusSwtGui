@@ -96,7 +96,7 @@ public class SearchDialog extends Dialog {
 		oldKwsTabItem = createCTabItem(tabFolder, oldKwsComposite, "KWS (Demo)");
 		}
 		Storage store = Storage.getInstance();
-		if(store.isAdminLoggedIn() && store.getConnection().getServerUri().contains("Testing")) {
+		if(store.isLoggedIn() && store.getConnection().getServerUri().contains("Testing")) {
 			kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
 			kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 			kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
