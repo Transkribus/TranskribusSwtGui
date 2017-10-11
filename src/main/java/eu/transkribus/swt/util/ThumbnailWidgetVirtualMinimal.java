@@ -314,36 +314,39 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		String transcribedLinesText = "";
 		String transcribedWordsText = "";
 
-		int transcribedLines = tmd.getNrOfTranscribedLines();
-		int transcribedWords = tmd.getNrOfWordsInLines();
-		int segmentedLines = tmd.getNrOfLines();
+		Integer transcribedLines = tmd.getNrOfTranscribedLines();
+		Integer transcribedWords = tmd.getNrOfWordsInLines();
+		Integer segmentedLines = tmd.getNrOfLines();
 
 		// logger.debug("segmentedLines: " + segmentedLines);
 		// logger.debug("transcribedLines: " + transcribedLines);
 
-		if (segmentedLines == 0) {
-			transcribedLinesText = "\nNo lines segmented";
+		if (segmentedLines == null) {
+			transcribedLinesText = "\nN/A";
 		} else {
 			transcribedLinesText = (transcribedLines > 0 ? "\nTranscribed lines: " + transcribedLines
 					: "\nTranscribed lines: 0");
 		}
 		
-		if(transcribedWords > 0){
+		if(transcribedWords == null) {
+			transcribedWordsText = "\nN/A";
+		} else {
 			transcribedWordsText = (transcribedWords > 0 ? "\nTranscribed words: " + transcribedWords
 					: "\nTranscribed words: 0");
 		}
 
-		if (transcribedLines > 0) {
-			totalLinesTranscribed += transcribedLines;
-
-			item.setBackground(lightGreen);
-		} else if (transcribedLines == 0 && segmentedLines > 0) {
-			item.setBackground(lightYellow);
-		} else {
-			item.setBackground(lightRed);
+		if (transcribedLines != null) {
+			if (transcribedLines > 0) {
+				totalLinesTranscribed += transcribedLines;
+				item.setBackground(lightGreen);
+			} else if (transcribedLines == 0 && segmentedLines > 0) {
+				item.setBackground(lightYellow);
+			} else {
+				item.setBackground(lightRed);
+			}
 		}
 		
-		if (transcribedWords > 0){
+		if (transcribedWords != null && transcribedWords > 0){
 			totalWordsTranscribed += transcribedWords;
 		}
 

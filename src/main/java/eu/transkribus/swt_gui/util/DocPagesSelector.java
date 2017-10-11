@@ -1,7 +1,6 @@
 package eu.transkribus.swt_gui.util;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
