@@ -2596,7 +2596,6 @@ public class TrpMainWidget {
 						try {
 							upload = storage.uploadDocument(cId, ud.getFolder(), ud.getTitle(), monitor);
 							if (!monitor.isCanceled()) {
-								logger.info("Ingest job has ID = " + upload.getJobId());
 								displaySuccessMessage(
 										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
 							}

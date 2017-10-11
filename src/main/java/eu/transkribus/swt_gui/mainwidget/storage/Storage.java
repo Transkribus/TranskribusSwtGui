@@ -1258,7 +1258,9 @@ public class Storage {
 
 		sendEvent(new DocLoadEvent(this, doc));
 
-		logger.info("loaded remote document, docId = " + doc.getId() + ", title = " + doc.getMd().getTitle() + ", nPages = " + doc.getPages().size());
+		logger.info("loaded remote document, docId = " + doc.getId() + ", title = " 
+				+ doc.getMd().getTitle() + ", nPages = " + doc.getPages().size() + ", pageId = " 
+				+ doc.getMd().getPageId());
 	}
 
 	public TrpDoc getRemoteDoc(int colId, int docId, int nrOfTranscripts) throws SessionExpiredException, IllegalArgumentException, NoConnectionException {
