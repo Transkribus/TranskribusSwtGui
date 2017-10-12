@@ -1328,8 +1328,9 @@ public class Storage {
 			checkConnection(true);	
 		}
 		
-		if (status == null)
+		if (status == null || status.equals(EditStatus.NEW)){
 			status = EditStatus.IN_PROGRESS;
+		}
 			
 		if (docId != -1) {
 			page.writeCustomTagsToPage();
