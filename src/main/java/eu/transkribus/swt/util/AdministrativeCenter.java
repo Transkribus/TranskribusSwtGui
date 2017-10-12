@@ -120,7 +120,7 @@ public class AdministrativeCenter extends Dialog {
 	private Composite buttonComp, buttonComp2;
 	private Canvas previewLbl;
 
-	private final int colId;
+	private int colId;
 	private List<TrpDocMetadata> docList;
 
 	static int thread_counter = 0;
@@ -878,7 +878,10 @@ public class AdministrativeCenter extends Dialog {
 					}
 				}
 				
-				TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
+				TrpCollection colMd = null;
+				if (Storage.getInstance().getDoc() != null){
+					colMd = Storage.getInstance().getDoc().getCollection();
+				}
 				if (colMd != null && colMd.getPageId() != null && Integer.valueOf(page.getPageId()).equals(colMd.getPageId())){
 					//logger.debug("symbolic image found for collection with ID: " + colMd.getColId());
 					child.setFont( boldFont );
@@ -1420,6 +1423,28 @@ public class AdministrativeCenter extends Dialog {
 	}
 
 	public void reload() {
+		tv.refresh(true);
+
+		// addStatisticalNumbers();
+	}
+	
+	public void totalReload(int colId) {
+		this.colId = colId;
+
+		// if (Storage.getInstance().getDoc() == null){
+		// return;
+		// }
+
+		docList = Storage.getInstance().getDocList();
+		tv.setInput(docList);
+		
+		addStatisticalNumbers();
+		
+		expandCurrentDocument();
+		
+		updateSymbolicImgLabels();
+		updateColors();
+		
 		tv.refresh(true);
 
 		// addStatisticalNumbers();

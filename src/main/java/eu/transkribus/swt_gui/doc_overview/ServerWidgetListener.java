@@ -1,5 +1,9 @@
 package eu.transkribus.swt_gui.doc_overview;
 
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -20,6 +24,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.util.AdministrativeCenter;
 import eu.transkribus.swt.util.SWTUtil;
@@ -34,6 +40,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	TableViewer dtv;
 	
 	Storage storage = Storage.getInstance();
+	AdministrativeCenter ac;
 	
 	public ServerWidgetListener(ServerWidget sw) {
 		this.sw = sw;
@@ -176,7 +183,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			mw.removeDocumentsFromCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
 		else if (s == sw.administerCollectionTi){
-			AdministrativeCenter ac = new AdministrativeCenter(mw.getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+			ac = new AdministrativeCenter(mw.getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
 			ac.open();
 		}		
 		else if (s == sw.collectionUsersBtn) {
@@ -265,7 +272,24 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	public void handleEvent(Event event) {
 		if (event.type == SWT.Selection && event.widget == sw.collectionSelectorWidget) {
 			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
-			TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
+			Future<List<TrpDocMetadata>> docs = TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
+			try {
+				/*
+				 * load first doc immediately - otherwise the document from the previous collection is in the storage which can be 
+				 * really confusing
+				 */
+				if (docs.get().size() > 0 && docs.get().get(0) != null){
+					TrpMainWidget.getInstance().loadRemoteDoc(docs.get().get(0).getDocId(), sw.getSelectedCollectionId());
+				}
+			} catch (IllegalArgumentException | InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//now: if the administrative center is open it gets refreshed with the data of the new collection
+			if (ac != null && !ac.getShell().isDisposed() && ac.getShell().isVisible()){
+				ac.totalReload(sw.getSelectedCollectionId());
+			}
 		}
 	}
 
