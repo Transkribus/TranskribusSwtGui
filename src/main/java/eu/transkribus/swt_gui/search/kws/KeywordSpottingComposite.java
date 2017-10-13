@@ -1,274 +1,388 @@
 package eu.transkribus.swt_gui.search.kws;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
+import javax.xml.bind.JAXBException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Tree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.model.beans.KwsDocHit;
-import eu.transkribus.core.model.beans.KwsHit;
-import eu.transkribus.core.model.beans.KwsPageHit;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
-import eu.transkribus.swt.util.Colors;
-import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.LabeledCombo;
-import eu.transkribus.swt.util.LabeledText;
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.kws.TrpKeyWord;
+import eu.transkribus.core.model.beans.kws.TrpKwsHit;
+import eu.transkribus.core.util.JaxbUtils;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget.ColConfig;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 
 public class KeywordSpottingComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(KeywordSpottingComposite.class);
+	Storage store;
 	
-	LabeledText kwsDocId;
-//	LabeledCombo kwsCollection;
-	Button collectionCheck;
+	Combo scopeCombo;
+	Group queryGroup, resultGroup;
+	Composite queryComp;
+	Button searchBtn;
 	
-	TreeViewer treeViewer;
-	Tree tree;
-	Button kwsBtn;
-	LabeledText term;
-	Slider confSlider;
-
-	Label kwsInfoLabel;
-
-	Text confValueTxt;
+	KwsResultTableWidget resultTable;
 	
-	public final static ColConfig TYPE_COL = new ColConfig("Type", 100);
-	public final static ColConfig DOC_ID_COL = new ColConfig("Doc ID", 60);
-	public final static ColConfig TITLE_COL = new ColConfig("Title", 200);
-	public final static ColConfig PAGE_NR_COL = new ColConfig("Page Nr.", 100);
-	public final static ColConfig HITS_COL = new ColConfig("Hits", 60);
-	public final static ColConfig SCORE_COL = new ColConfig("Score", 100);
-	public final static ColConfig LINE_ID_COL = new ColConfig("Line ID", 60);
-
-	public final static ColConfig[] COLUMNS = new ColConfig[] { TYPE_COL, DOC_ID_COL, TITLE_COL, PAGE_NR_COL, HITS_COL, SCORE_COL, LINE_ID_COL };
-
+	List<QueryWidget> queryWidgets;
+	
+	ResultLoader rl;
+	
+	protected static final String SCOPE_DOC = "Current document";
+	protected static final String SCOPE_COLL = "Current collection";
+	
+	String[] SCOPES = new String[] { SCOPE_COLL, SCOPE_DOC };
+	
 	public KeywordSpottingComposite(Composite parent, int style) {
 		super(parent, style);
-		
+		store = Storage.getInstance();
+		queryWidgets = new ArrayList<>();
 		createContents();
-//		updateCollections();
 	}
 	
 	private void createContents() {
 		this.setLayout(new GridLayout(1, false));
 		Composite kwsC = new Composite(this, 0);
 		kwsC.setLayoutData(new GridData(GridData.FILL_BOTH));
-		kwsC.setLayout(new GridLayout());
+		kwsC.setLayout(new GridLayout(2, false));
 		
-		TraverseListener tl2 = new TraverseListener() {
-			@Override public void keyTraversed(TraverseEvent e) {
-				if (e.detail == SWT.TRAVERSE_RETURN) {
-					spotKeyWords();
-				}
+		Label scopeLbl = new Label(kwsC, SWT.NONE);
+		scopeLbl.setText("Search in:");
+		scopeCombo = new Combo(kwsC, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		scopeCombo.setItems(SCOPES);
+		//FIXME Java Heap space error when to many confmats are loaded. Thus for now only scope "document"
+		scopeCombo.select(1);
+		scopeCombo.setEnabled(false);
+		
+		GridLayout groupLayout = new GridLayout(1, false);
+		GridData groupGridData = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
+		
+		queryGroup = new Group(kwsC, SWT.NONE);
+		queryGroup.setText("Queries");
+		queryGroup.setLayout(groupLayout);
+		queryGroup.setLayoutData(groupGridData);
+		
+		queryComp = new Composite(queryGroup, SWT.NONE);
+		queryComp.setLayout(groupLayout);
+		queryComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		addQueryWidget();
+		
+		searchBtn = new Button(queryGroup, SWT.PUSH);
+		searchBtn.setText("Search");
+		searchBtn.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 2, 1));
+		searchBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				startKws();
 			}
-		};
+		});	
 		
-//		kwsCollection = new LabeledCombo(kwsC, "Restrict search to collection: ");
-//		kwsCollection.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		resultGroup = new Group(kwsC, SWT.NONE);
+		resultGroup.setText("Search Results");
+		resultGroup.setLayout(groupLayout);
+		resultGroup.setLayoutData(groupGridData);
 		
-		collectionCheck = new Button(kwsC, SWT.CHECK);
-		collectionCheck.setText("Search on selected collection");
-		collectionCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		resultTable = new KwsResultTableWidget(resultGroup, SWT.BORDER);
+		resultTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		kwsDocId = new LabeledText(kwsC, "Doc-ID: ");
-		kwsDocId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		kwsDocId.text.addTraverseListener(tl2);
+//		updateKwsResults();
 		
-		term = new LabeledText(kwsC, "Search term: ");
-		term.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		term.text.addTraverseListener(tl2);
-		
-		Composite sliderComp = new Composite(kwsC, SWT.NONE);
-		sliderComp.setLayout(new GridLayout(3, false));
-		sliderComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		Label sliderLabel = new Label(sliderComp, SWT.NONE);
-		sliderLabel.setText("Confidence:");
-		confValueTxt = new Text(sliderComp, SWT.NONE);
-		confValueTxt.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
-		confValueTxt.setEnabled(false);
-		confSlider = new Slider(sliderComp, SWT.HORIZONTAL);
-		confSlider.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		confSlider.setMaximum(109);
-		confSlider.setThumb(10);
-		confSlider.setMinimum(0);
-		confSlider.setSelection(50);
-
-		confValueTxt.setText(""+confSlider.getSelection());
-		
-		confSlider.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(e.detail == SWT.NONE){
-					confValueTxt.setText(""+confSlider.getSelection());
-				}
-			}
-		});
-		
-		treeViewer = new TreeViewer(kwsC, SWT.FULL_SELECTION | SWT.MULTI);
-		treeViewer.setContentProvider(new KwsTreeContentProvider());
-		treeViewer.getTree().setHeaderVisible(true);
-		treeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		tree = treeViewer.getTree();
-		
-		treeViewer.addDoubleClickListener(new IDoubleClickListener(){
+		resultTable.getTableViewer().addDoubleClickListener(new IDoubleClickListener(){
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-				Object el = selection.getFirstElement();
-				logger.debug("double click on element: "+el);
-				TrpLocation loc;
-				if (el instanceof KwsDocHit) {
-					loc = new TrpLocation();
-					KwsDocHit h = ((KwsDocHit)el);
-					loc.collectionId = h.getColId();
-					loc.docId = h.getDocId();
-				} else if (el instanceof KwsPageHit) {
-					loc = new TrpLocation();
-					KwsPageHit h = ((KwsPageHit)el);
-					loc.collectionId = h.getColId();
-					loc.docId = h.getDocId();
-					loc.pageNr = h.getPageNr();					
-				} else if (el instanceof KwsHit){
-					loc = new TrpLocation();
-					KwsHit h = ((KwsHit)el);
-					loc.collectionId = h.getColId();
-					loc.docId = h.getDocId();
-					loc.pageNr = h.getPageNr();	
-					loc.shapeId = h.getLineId();
-				} else {
-					loc = null;
+				TrpKwsResultTableEntry entry = resultTable.getSelectedKws();
+				if(entry.getResult() != null) {
+					try {
+						logger.debug(JaxbUtils.marshalToString(entry.getResult(), true, TrpKeyWord.class, TrpKwsHit.class));
+					} catch (JAXBException e) {
+						logger.error("Could not read result.", e);
+					}
+					KwsResultViewer viewer = new KwsResultViewer(getShell(), entry);
+					viewer.open();
 				}
-				TrpMainWidget.getInstance().showLocation(loc);
 			}
 		});
-				
-		kwsBtn = new Button(kwsC, SWT.PUSH);
-		kwsBtn.setText("Find Keywords");
-		kwsBtn.setImage(Images.getOrLoad("/icons/find.png"));
-		
-		kwsBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				spotKeyWords();
+//		attach();
+		rl = new ResultLoader();
+		rl.start();
+		kwsC.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				logger.debug("Disposing KWS composite.");
+//				detach();
+				rl.stop();
 			}
 		});
-		
-		kwsInfoLabel = new Label(kwsC, 0);
-		kwsInfoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		initCols();
 	}
 	
-	private void initCols() {
-		for (ColConfig cf : COLUMNS) {
-			TreeViewerColumn column = new TreeViewerColumn(treeViewer, SWT.SINGLE);
-			column.getColumn().setText(cf.name);
-			column.getColumn().setWidth(cf.colSize);
-			column.setLabelProvider(new KwsTreeLabelProvider());
+	protected void startKws() {
+		List<String> queries = getQueries();
+		if(queries.isEmpty()) {
+			DialogUtil.showErrorMessageBox(getShell(), "No keywords given", "Please enter at least one keyword.");
+			return;
 		}
-	}
-
-//	void updateCollections() {
-//		Storage s = Storage.getInstance();
-//		
-//		List<String> items = new ArrayList<>();
-//		
-//		for (TrpCollection c : s.getCollections()) {
-//			String key = c.getColId()+" - "+c.getColName();
-//			kwsCollection.combo.setData(key, c);
-//			items.add(key);
-//		}
-//		kwsCollection.combo.setItems(items.toArray(new String[0]));
-//		kwsCollection.combo.select(0);
-//		
-//		items.add(0, "");	
-//	}
-	
-	void spotKeyWords() {
-		Storage s = Storage.getInstance();
-		if (s.isLoggedIn()) {
-			try {				
-				int colId = getKwsColId();
-				logger.debug("searching for docs, collId = "+colId);
-				
-				Integer docid = getKwsDocId();
-				
-				if (!kwsDocId.txt().isEmpty() && docid == null) {
-					kwsInfoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
-					kwsInfoLabel.setText("Invalid document id!");
-					return;
-				}
-				
-//				docWidgetPaged.refreshPage(true);
-//				infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
-//				infoLabel.setText("Found "+docWidgetPaged.getPageableTable().getController().getTotalElements()+" documents!");
-				
-//				if (docWidget != null) {
-				List<KwsDocHit> docList = s.getConnection().doKwsSearch(colId, docid, term.txt(), confSlider.getSelection());
-					
-					logger.debug("found docs: "+docList.size());
-					
-//					infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_GREEN));
-//					infoLabel.setText("Found "+docList.size()+" documents!");
-	//				for (TrpDocMetadata doc : docList)
-	//					logger.debug(doc.toString());
-					treeViewer.setInput(docList);
-					
-//					docWidget.refreshList(docList);
-//				}
-					
-			} catch(ClientErrorException cee){
-				logger.error(cee.getMessage(), cee);
-				treeViewer.setInput(new ArrayList<KwsDocHit>(0));
-			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
-				logger.error(e1.getMessage(), e1);
-				
-				kwsInfoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
-				kwsInfoLabel.setText("Error: "+e1.getMessage());
-			}
+		
+		final String scope = scopeCombo.getText();
+		logger.debug("searching on scope: "+scope);
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		final TrpCollection currCol =  mw.getUi().getServerWidget().getSelectedCollection();
+		boolean isValidScope = scope.equals(SCOPE_COLL) && currCol == null 
+				|| (scope.equals(SCOPE_DOC) && !store.isLocalDoc());
+		
+		if (!store.isLoggedIn() || !isValidScope) {
+			DialogUtil.showErrorMessageBox(getShell(), "Not logged in", "Keyword Spotting is only available for online documents.");
+			return;
 		}
-	}
-	
-	Integer getKwsDocId() {
+		
+		final int colId = currCol.getColId();
+		final String colName = currCol.getColName();
+		final int docId = store.getDocId();
+		String docTitle = "";
 		try {
-			return Integer.parseInt(kwsDocId.txt().trim());
-//			logger.debug("parsed docid = "+docid);
-		} catch (Exception e) {
-			return null;
+			docTitle = store.getDoc().getMd().getTitle();
+		}catch(NullPointerException npe) {
+			//FIXME where does npe come from when a doc is loaded at this point?
+		}
+		final String queryOverviewStr = "\"" + StringUtils.join(queries, "\"\n\t\"") + "\"";
+		
+		final String message = "You are about to start a Keyword Spotting job:\n\n" +
+					"\tCollection: \"" + colName + "\" (ID = " + colId + ")\n" +
+					"\tDocument: \"" + docTitle + "\" (ID = " + docId + ")\n" +
+					"\tKeywords:\n\t" + queryOverviewStr +
+					"\n\nStart the process?";
+		
+		int ret = DialogUtil.showYesNoDialog(this.getShell(), "Start Keyword Spotting?", message);
+		if(ret == SWT.YES) {
+			logger.debug("OK. Starting job.");
+			try {
+				store.getConnection().doCITlabKwsSearch(colId, docId, queries);
+//				updateKwsResults();
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+					| IllegalArgumentException e) {
+				DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessage());
+				return;
+			}
+		}
+	}
+
+	private List<String> getQueries() {
+		List<String> queries = new ArrayList<>(queryWidgets.size()-1);
+		for(QueryWidget qw : queryWidgets) {
+			final String q = qw.getQuery();
+			if(!StringUtils.isEmpty(q)) {
+				queries.add(qw.getQuery());
+			}
+		}
+		return queries;
+	}
+
+	private void addQueryWidget() {
+		final int index = queryWidgets.size();
+		final QueryWidget qw = new QueryWidget(queryComp, index, SWT.NONE);
+		qw.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		queryWidgets.add(qw);
+		if(index > 0) {
+			qw.getRemoveBtn().addSelectionListener(new SelectionAdapter() {
+				@Override public void widgetSelected(SelectionEvent e) {
+					queryWidgets.removeIf(q -> q.getIndex() == index);
+					updateQueryGroup();
+					qw.dispose();
+					queryComp.layout();
+					queryGroup.layout();
+				}
+			});
+		}
+		qw.getText().addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				//DO nothing
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				final String text = qw.getText().getText();
+				if(!StringUtils.isEmpty(text) && isLast(qw)) {
+					addQueryWidget();
+				}
+			}
+			
+		});
+		updateRemoveBtnVisibility();
+		queryComp.layout();
+		queryGroup.layout();
+	}
+
+	private void updateRemoveBtnVisibility() {
+		queryWidgets.stream().forEach(q -> q.setRemoveBtnVisible(!isFirst(q) && !isLast(q)));
+	}
+
+	private void updateQueryGroup() {
+		for(int i = 0; i < queryWidgets.size(); i++) {
+			logger.debug("index = " + i + " | #queryWidgets = " + queryWidgets.size());
+			QueryWidget qw = queryWidgets.get(i);
+			qw.setIndex(i);
+		}
+		updateRemoveBtnVisibility();
+	}
+	
+	private boolean isFirst(QueryWidget qw) {
+		return queryWidgets.isEmpty() || qw.getIndex() == 0;
+	}
+	
+	private boolean isLast(QueryWidget qw) {
+		return queryWidgets.isEmpty() || qw.getIndex() == queryWidgets.size()-1;
+	}
+	
+	private void updateResultTable(List<TrpJobStatus> jobs) {
+		List<TrpKwsResultTableEntry> kwsList = new LinkedList<>();
+		
+		for(TrpJobStatus j : jobs) {
+			if(!j.isFailed()) {
+				kwsList.add(new TrpKwsResultTableEntry(j));
+			}
+		}
+	
+		Display.getDefault().asyncExec(() -> {	
+			if(resultTable != null && !resultTable.isDisposed()) {
+				logger.debug("Updating KWS result table");
+				resultTable.getTableViewer().setInput(kwsList);
+			}
+		});
+	}
+	
+	private void updateResultTableFromStorage() {
+		List<TrpKwsResultTableEntry> kwsList = new LinkedList<>();
+		List<TrpJobStatus> jobs = new ArrayList<>(0);
+		if (store != null && store.isLoggedIn()) {
+			try {
+				jobs = store.getConnection().getJobs(true, null, "CITlab Keyword Spotting", null, 0, 0, null, null);
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+					| IllegalArgumentException e) {
+				logger.error(e.getMessage(), e);
+				jobs = new ArrayList<>(0);
+			}
+			
+		}
+		updateResultTable(jobs);
+	}
+	
+	private class QueryWidget extends Composite {
+		private static final String LBL_TXT = "Keyword ";
+		private int index;
+		
+		Label queryLbl;
+		Text queryTxt;
+		Button removeBtn;
+
+		public QueryWidget(Composite parent, int index, int style) {
+			super(parent, style);
+			this.setLayout(new GridLayout(3, false));
+			this.index = index;
+			queryLbl = new Label(this, SWT.NONE);
+			queryTxt = new Text(this, SWT.BORDER);
+			queryTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			removeBtn = new Button(this, SWT.PUSH);
+			removeBtn.setText("X");
+			updateLblTxt();
+			this.layout();
+		}
+		
+		private void updateLblTxt() {
+			if(!queryLbl.isDisposed()) {
+				queryLbl.setText(LBL_TXT + (this.index+1));
+			}
+		}
+		
+		public int getIndex() {
+			return index;
+		}
+
+		public void setIndex(int index) {
+			this.index = index;
+			updateLblTxt();
+		}
+		
+		public String getQuery() {
+			return queryTxt.getText();
+		}
+		
+		public Button getRemoveBtn() {
+			return removeBtn;
+		}
+		public Text getText() {
+			return queryTxt;
+		}
+		public void setRemoveBtnVisible(boolean visible) {
+			removeBtn.setVisible(visible);
 		}
 	}
 	
-	int getKwsColId() {
-		return collectionCheck.getSelection() ? TrpMainWidget.getInstance().getSelectedCollectionId() : 0;
+	private class ResultLoader {
+		private ScheduledThreadPoolExecutor threadPool = null;
+		private Future<?> future = null;
+		
+		public ResultLoader() {
+			logger.debug("Instantiating ResultLoader.");
+			if(threadPool == null) {
+				ThreadFactory tf = new ThreadFactoryBuilder().setNameFormat("TRP-TASK-%d").build();
+				threadPool = new ScheduledThreadPoolExecutor(1, tf);
+			}
+		}
+		
+		public void start(){
+			logger.debug("Starting TaskScheduler.");
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					updateResultTableFromStorage();
+				}
+			};
+			
+			future = (ScheduledFuture<?>)threadPool.scheduleAtFixedRate(r, 0, 3, TimeUnit.SECONDS);
+		}
+		
+		public void stop(){
+			logger.debug("Stopping TaskScheduler.");
+			future.cancel(false);
+			threadPool.shutdown();
+		}
 	}
-
+	
 }

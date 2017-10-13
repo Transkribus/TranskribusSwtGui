@@ -17,23 +17,27 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.documents.DocSearchComposite;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.search.kws.KeywordSpottingComposite;
+import eu.transkribus.swt_gui.search.kws.OldKeywordSpottingComposite;
 import eu.transkribus.swt_gui.search.text_and_tags.TagSearchComposite;
 
 public class SearchDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(SearchDialog.class);
 	
 	DocSearchComposite docSearchComposite;
-	KeywordSpottingComposite kwsComposite;
+	OldKeywordSpottingComposite oldKwsComposite;
 	FullTextSearchComposite fullTextSearchComposite;
+	KeywordSpottingComposite kwsComposite;
+	
 
 	LabeledText kwsDocId;
 	LabeledCombo kwsCollection;
 	
 	CTabFolder tabFolder;
-	CTabItem docSearchTabItem, kwsTabItem, textAndTagsItem, fullTextSearchItem;
+	CTabItem docSearchTabItem, oldKwsTabItem, textAndTagsItem, fullTextSearchItem, kwsTabItem;
 
 
 	/**
@@ -87,11 +91,16 @@ public class SearchDialog extends Dialog {
 //		textAndTagsItem = createCTabItem(tabFolder, tsc, "Text / Tags");
 		
 		if (false) {
-		kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
-		kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-		kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS (Demo)");
+		oldKwsComposite = new OldKeywordSpottingComposite(tabFolder, 0);
+		oldKwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+		oldKwsTabItem = createCTabItem(tabFolder, oldKwsComposite, "KWS (Demo)");
 		}
-
+		Storage store = Storage.getInstance();
+		if(store.isLoggedIn() && store.getConnection().getServerUri().contains("Testing")) {
+			kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
+			kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+			kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
+		}
 		return c;
 	}
 	
