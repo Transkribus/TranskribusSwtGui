@@ -14,6 +14,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
@@ -25,6 +27,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -52,6 +55,7 @@ public class KwsResultViewer extends Dialog {
 
 	public KwsResultViewer(Shell parent, TrpKwsResultTableEntry result) {
 		super(parent);
+		
 		this.result = result;
 		cache = new HashMap<>();
 	}
@@ -72,27 +76,80 @@ public class KwsResultViewer extends Dialog {
 		for (TrpKeyWord k : result.getResult().getKeyWords()) {
 			createKwTab(k);
 		}
+		ProgressBar pb = new ProgressBar(cont, SWT.SMOOTH);
+		pb.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
+		pb.setMaximum(result.getResult().getTotalNrOfHits());
 		
-//		preloadImages();
+		Thread loaderThread = preloadImages(pb);
+		cont.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				logger.debug("Disposing KwsResultViewer.");
+//				detach();
+				if(loaderThread.isAlive()) {
+					loaderThread.interrupt();
+				}
+			}
+		});
 		
 		return cont;
 	}
 
-	private void preloadImages() {
+	private Thread preloadImages(ProgressBar pb) {
 		Runnable loader = new Runnable() {
 			@Override
 			public void run() {
-				result.getResult().getKeyWords()
-					.stream()
-					.forEach(k -> {
-						k.getHits()
-						.stream()
-						.forEach(h -> getImage(h.getImgUrl()));
-					});				
+				int i = 0;
+				for(TrpKeyWord k : result.getResult().getKeyWords()){
+					for(TrpKwsHit h : k.getHits()) {
+						URL imgUrl = h.getImgUrl();
+						Image img = ImageDescriptor.createFromURL(imgUrl).createImage();
+						cache.put(imgUrl, img);
+						final int work = i++;
+						if(Thread.currentThread().isInterrupted()) {
+							logger.debug("Loader thread exits on interrupt.");
+							return;
+						}
+						Display.getDefault().asyncExec(new Runnable() {
+							@Override
+							public void run() {
+								if(pb != null && !pb.isDisposed() && !Thread.currentThread().isInterrupted()) {
+									pb.setSelection(work);
+								}
+							}
+						});
+					}
+				}
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						if(pb != null && !pb.isDisposed() && !Thread.currentThread().isInterrupted()) {
+							pb.setVisible(false);
+						}
+					}
+				});
+//				result.getResult().getKeyWords()
+//					.stream()
+//					.forEach(k -> {
+//						k.getHits()
+//						.stream()
+//						.forEach(h -> {
+//							URL imgUrl = h.getImgUrl();
+//							Image img = ImageDescriptor.createFromURL(imgUrl).createImage();
+//							cache.put(imgUrl, img);
+//							Display.getDefault().asyncExec(new Runnable() {
+//								@Override
+//								public void run() {
+//									pb.setSelection(i++);
+//								}
+//							});
+//						});
+//					});
 			}
 		};
-		Display.getDefault().asyncExec(loader);
-//		new Thread(loader, "KWS Hit Image Loader Thread").start();
+//		Display.getDefault().asyncExec(loader);
+		Thread t = new Thread(loader, "KWS Hit Image Loader Thread");
+		t.start();
+		return t;
 	}
 
 	private void createKwTab(TrpKeyWord k) {
@@ -107,31 +164,12 @@ public class KwsResultViewer extends Dialog {
 		hitTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		hitTableWidget.getTableViewer().setInput(k.getHits());
 		
-		for(TableItem i : hitTableWidget.getTableViewer().getTable().getItems()) {
-			//setGrayed->false when image is loaded
-			i.setGrayed(true);
-		}
 		addHoverListeners(hitTableWidget.getTableViewer().getTable());
 		item.setControl(c);
 		
 		addDoubleClickListener(hitTableWidget.getTableViewer());
 		
 //		loadImages(hitTableWidget.getTableViewer().getTable());
-	}
-
-	private void loadImages(Table table) {
-		Runnable loader = new Runnable() {
-			@Override
-			public void run() {
-				for(TableItem i : table.getItems()) {
-					URL url = ((TrpKwsHit) i.getData()).getImgUrl();
-					logger.debug("loading: " + url);
-					getImage(url);
-					i.setGrayed(false);	
-				}
-			}
-		};
-		new Thread(loader, "KWS image loader").start();
 	}
 
 	//		resultTable.addListener(SWT.MouseEnter, new Listener() {
@@ -225,27 +263,23 @@ public class KwsResultViewer extends Dialog {
 		}
 		
 		public void handleEvent(Event e) {
-//			logger.debug("handling hover event...");
+			logger.debug("handling hover event...");
 			Point p = new Point(e.x, e.y);
 
 			TableItem hoverItem = table.getItem(p);
 //			logger.debug(""+hoverItem);
-			if (hoverItem != null && !hoverItem.getGrayed()) {
+			if (hoverItem != null) {
 
 				TrpKwsHit currentHit = ((TrpKwsHit) hoverItem.getData());
+				
 				Point mousePos = Display.getCurrent().getCursorLocation();
-				if (currentHit != null && !currentHit.equals(lastHoverHit)) {
-					
+				if (currentHit != null) {
 					URL imgUrl = currentHit.getImgUrl();
-					try {
-						final Image img = getImage(imgUrl);
+					if(cache.containsKey(imgUrl)) {
+						final Image img = cache.get(imgUrl);
 						hShell.imgLabel.setImage(img);
 						hShell.hoverShell.setVisible(true);
-					} catch (Exception ex) {
-						logger.error("Could not load image", ex);
-						hShell.imgLabel.setText("Could not load preview image");
 					}
-
 				}
 				hShell.hoverShell.setLocation(mousePos.x + 20, mousePos.y - 20);
 				hShell.hoverShell.pack();
@@ -258,14 +292,14 @@ public class KwsResultViewer extends Dialog {
 		}
 	}
 
-	private Image getImage(URL imgUrl) {
-		final Image img;
-		if(cache.containsKey(imgUrl)) {
-			img = cache.get(imgUrl); 
-		} else {
-			img = ImageDescriptor.createFromURL(imgUrl).createImage();
-			cache.put(imgUrl, img);
-		}
-		return img;
-	}
+//	private Image getImage(URL imgUrl) {
+//		final Image img;
+//		if(cache.containsKey(imgUrl)) {
+//			img = cache.get(imgUrl); 
+//		} else {
+//			img = ImageDescriptor.createFromURL(imgUrl).createImage();
+//			cache.put(imgUrl, img);
+//		}
+//		return img;
+//	}
 }
