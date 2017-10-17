@@ -375,6 +375,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		} catch (TrpClientErrorException | TrpServerErrorException ee) {
 			final int status = ee.getResponse().getStatus();
 			if(status == 400) {
+				logger.error(ee.getMessage(), ee);
 				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", 
 						ee.getMessageToUser());
 			} else {
