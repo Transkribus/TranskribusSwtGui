@@ -14,6 +14,8 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
@@ -368,7 +370,16 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 			}
 			
-			showSuccessMessage(jobIds);			
+			showSuccessMessage(jobIds);	
+			
+		} catch (TrpClientErrorException | TrpServerErrorException ee) {
+			final int status = ee.getResponse().getStatus();
+			if(status == 400) {
+				DialogUtil.showErrorMessageBox(this.mw.getShell(), "Error", 
+						ee.getMessageToUser());
+			} else {
+				mw.onError("Error", ee.getMessageToUser(), ee);
+			}
 		} catch (ClientErrorException cee) {
 			final int status = cee.getResponse().getStatus();
 			if(status == 400) {
