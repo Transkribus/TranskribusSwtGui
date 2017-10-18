@@ -183,9 +183,9 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 		
 		if (USE_LIST_LOADER && listLoader!=null) {
 			listLoader.setItems(this.locks);
-			for (PageLock lock : this.locks){
-				logger.debug(" login time: " + lock.getLoginTime());
-			}
+//			for (PageLock lock : this.locks){
+//				logger.debug(" login time: " + lock.getLoginTime());
+//			}
 		}
 		
 		refreshPage(true);

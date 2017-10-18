@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.swt.util.AdministrativeCenter;
+import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
@@ -40,7 +40,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	TableViewer dtv;
 	
 	Storage storage = Storage.getInstance();
-	AdministrativeCenter ac;
+	DocumentManager ac;
 	
 	public ServerWidgetListener(ServerWidget sw) {
 		this.sw = sw;
@@ -80,6 +80,9 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.addSelectionListener(sw.removeFromCollectionTi, this);
 		SWTUtil.addSelectionListener(sw.administerCollectionTi, this);
 		
+		SWTUtil.addSelectionListener(sw.docManager, this);
+		SWTUtil.addSelectionListener(sw.userManager, this);
+		
 		SWTUtil.addSelectionListener(sw.collectionUsersBtn, this);
 		SWTUtil.addSelectionListener(sw.createCollectionBtn, this);
 		SWTUtil.addSelectionListener(sw.deleteCollectionBtn, this);
@@ -115,6 +118,9 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.removeSelectionListener(sw.addToCollectionTi, this);
 		SWTUtil.removeSelectionListener(sw.removeFromCollectionTi, this);		
 		SWTUtil.removeSelectionListener(sw.administerCollectionTi, this);
+		
+		SWTUtil.removeSelectionListener(sw.docManager, this);
+		SWTUtil.removeSelectionListener(sw.userManager, this);
 		
 		SWTUtil.removeSelectionListener(sw.collectionUsersBtn, this);
 		SWTUtil.removeSelectionListener(sw.createCollectionBtn, this);
@@ -182,10 +188,13 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		else if (s == sw.removeFromCollectionMenuItem || s == sw.removeFromCollectionTi) {
 			mw.removeDocumentsFromCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
-		else if (s == sw.administerCollectionTi){
-			ac = new AdministrativeCenter(mw.getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+		else if (s == sw.administerCollectionTi || s == sw.docManager){
+			ac = new DocumentManager(mw.getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
 			ac.open();
 		}		
+		else if (s == sw.userManager){
+			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
+		}
 		else if (s == sw.collectionUsersBtn) {
 			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
 		}

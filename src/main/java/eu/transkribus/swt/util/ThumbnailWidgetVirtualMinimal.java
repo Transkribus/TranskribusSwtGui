@@ -445,6 +445,10 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		}
 		@Override
 		public void handleEvent(Event event) {
+			
+			if(doc == null) {
+				return;
+			}
 //			logger.debug("setting data: " + event);
 //			logger.debug("item: " + event.item);
 

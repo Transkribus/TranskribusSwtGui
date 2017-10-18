@@ -54,6 +54,7 @@ public class CollectionUsersWidget extends Composite {
 	Button addUserToColBtn, removeUserFromColBtn/*, editUserFromColBtn*/;
 	Combo role;
 
+	Group group;
 	TrpCollection collection;
 	
 	CollectionUsersWidgetListener listener;
@@ -73,8 +74,8 @@ public class CollectionUsersWidget extends Composite {
 	}
 	
 	private void createCollectionUsersTable(Composite container) {
-		Group group = new Group(container, SWT.SHADOW_ETCHED_IN);
-		group.setText("Users in collection");
+		group = new Group(container, SWT.SHADOW_ETCHED_IN);
+		group.setText("Users in collection ");
 		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		group.setLayout(new GridLayout(1, false));
 		group.setFont(Fonts.createBoldFont(group.getFont()));
@@ -213,8 +214,16 @@ public class CollectionUsersWidget extends Composite {
 		this.collection = collection;
 		
 		updateUsersForSelectedCollection();
+		updateGroupText();
 	}
 	
+	private void updateGroupText() {
+		if (collection != null){
+			group.setText("Users in collection " + collection.getColName());
+		}
+		
+	}
+
 	public TrpCollection getCollection() {
 		return collection;
 	}

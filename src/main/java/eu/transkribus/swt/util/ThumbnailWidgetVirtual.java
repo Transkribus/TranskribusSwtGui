@@ -73,7 +73,7 @@ public class ThumbnailWidgetVirtual extends Composite {
 	static ThumbnailManagerVirtual tm;
 	ThumbnailWidgetVirtualMinimal tw;
 	
-	static AdministrativeCenter ac;
+	static DocumentManager ac;
 	
 	TrpMainWidget mw;
 	
@@ -104,7 +104,7 @@ public class ThumbnailWidgetVirtual extends Composite {
 		
 		showPageManager = new Button(labelComposite, 0);
 		showPageManager.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		showPageManager.setText("Open Administrative Center");
+		showPageManager.setText("Open Document Manager");
 		
 		showPageManager.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -184,7 +184,7 @@ public class ThumbnailWidgetVirtual extends Composite {
 		if (isAdministrativeCenterIsOpen(ac)){
 			ac.getShell().setVisible(true);
 		} else {
-			ac = new AdministrativeCenter(getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+			ac = new DocumentManager(getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
 			ac.open();
 		}
 		
@@ -214,7 +214,7 @@ public class ThumbnailWidgetVirtual extends Composite {
 		return false;
 	}
 	
-	private boolean isAdministrativeCenterIsOpen(AdministrativeCenter ac){
+	private boolean isAdministrativeCenterIsOpen(DocumentManager ac){
 		if(ac != null && ac.getShell() != null && !ac.getShell().isDisposed()){
 			return true;
 		}
