@@ -30,6 +30,7 @@ public class Images {
 	
 	public static final Image FOLDER = Images.getOrLoad("/icons/folder.png");
 	public static final Image FOLDER_DELETE = Images.getOrLoad("/icons/folder_delete.png");
+	public static final Image FOLDER_WRENCH = Images.getOrLoad("/icons/folder_wrench.png");
 	
 	public static final Image IMAGES = Images.getOrLoad("/icons/images.png");
 	public static final Image IMAGE = Images.getOrLoad("/icons/image.png");

@@ -82,8 +82,8 @@ import eu.transkribus.swt_gui.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class AdministrativeCenter extends Dialog {
-	protected final static Logger logger = LoggerFactory.getLogger(AdministrativeCenter.class);
+public class DocumentManager extends Dialog {
+	protected final static Logger logger = LoggerFactory.getLogger(DocumentManager.class);
 
 	protected Composite groupComposite;
 	protected Composite labelComposite;
@@ -215,7 +215,7 @@ public class AdministrativeCenter extends Dialog {
 
 	}
 
-	public AdministrativeCenter(Shell parent, int style, TrpMainWidget mw, int colId) {
+	public DocumentManager(Shell parent, int style, TrpMainWidget mw, int colId) {
 		super(parent.getShell(), style |= (SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MODELESS | SWT.MAX));
 
 		this.colId = colId;
@@ -233,7 +233,7 @@ public class AdministrativeCenter extends Dialog {
 		}
 
 		shell = new Shell((Shell)parent, style);
-		shell.setText("Administrative Center");
+		shell.setText("Document Manager");
 
 		FillLayout l = new FillLayout();
 		l.marginHeight = 5;
