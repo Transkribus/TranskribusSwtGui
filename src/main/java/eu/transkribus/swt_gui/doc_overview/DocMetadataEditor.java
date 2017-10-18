@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.nebula.widgets.datechooser.DateChooserCombo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -24,6 +25,7 @@ import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.FinereaderUtils;
+import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -230,30 +232,54 @@ public class DocMetadataEditor extends Composite {
 		saveThread.start();
 	}
 	
+	/**
+	 * Compare mutable md fields. Returns true if a value has changed. Empty string vs. null value does not count as change.
+	 * 
+	 * @param md
+	 * @return
+	 */
 	public boolean hasChanged(TrpDocMetadata md) {
 		if (md == null)
-			return false;		
+			return false;	
 		
-		if (!titleText.getText().equals(md.getTitle()))
+		if (!StrUtil.equalsContent(titleText.getText(), md.getTitle())) {
+			logger.debug("title changed: '" + titleText.getText() + "' <-> '" + md.getTitle() + "'");
 			return true;
-		if (!authorText.getText().equals(md.getAuthor()))
+		}
+		if (!StrUtil.equalsContent(authorText.getText(), md.getAuthor())) {
+			logger.debug("author changed: '" + authorText.getText() + "' <-> '" + md.getAuthor() + "'");
 			return true;
-		if (!genreText.getText().equals(md.getGenre()))
+		}
+		if (!StrUtil.equalsContent(genreText.getText(), md.getGenre())) {
+			logger.debug("genre changed: '" + genreText.getText() + "' <-> '" + md.getGenre() + "'");
 			return true;
-		if (!writerText.getText().equals(md.getWriter()))
+		}
+		if (!StrUtil.equalsContent(writerText.getText(), md.getWriter())) {
+			logger.debug("writer changed: '" + writerText.getText() + "' <-> '" + md.getWriter() + "'");
 			return true;
-		if (!descriptionText.getText().equals(md.getDesc()))
+		}
+		if (!StrUtil.equalsContent(descriptionText.getText(), md.getDesc())) {
+			logger.debug("description changed: '" + descriptionText.getText() + "' <-> '" + md.getDesc() + "'");
 			return true;
-		if (!langTable.getSelectedLanguagesString().equals(md.getLanguage()))
+		}
+		if (!StrUtil.equalsContent(langTable.getSelectedLanguagesString(), md.getLanguage())) {
+			logger.debug("language changed: '" + langTable.getSelectedLanguagesString() + "' <-> '" + md.getLanguage() + "'");
 			return true;
+		}
 		
-		if (!CoreUtils.equalsObjects(getSelectedScriptType(), md.getScriptType()))
+		if (!CoreUtils.equalsObjects(getSelectedScriptType(), md.getScriptType())) {
+			logger.debug("scriptType changed: '" + getSelectedScriptType() + "' <-> '" + md.getScriptType() + "'");
 			return true;
+		}
 		
-		if (!CoreUtils.equalsObjects(getSelectedCreatedFromDate(), md.getCreatedFromDate()))
+		if (!CoreUtils.equalsObjects(getSelectedCreatedFromDate(), md.getCreatedFromDate())) {
+			logger.debug("createDateFrom changed: '" + getSelectedCreatedFromDate() + "' <-> '" + md.getCreatedFromDate() + "'");
 			return true;
-		if (!CoreUtils.equalsObjects(getSelectedCreatedToDate(), md.getCreatedToDate()))
+		}
+		if (!CoreUtils.equalsObjects(getSelectedCreatedToDate(), md.getCreatedToDate())) {
+			logger.debug("createDateTo changed: '" + getSelectedCreatedToDate() + "' <-> '" + md.getCreatedToDate() + "'");
 			return true;
+		}
 		
 		return false;
 	}
@@ -264,12 +290,13 @@ public class DocMetadataEditor extends Composite {
 		
 		logger.debug("updating doc-metadata object: "+md);
 				
-		md.setTitle(titleText.getText());
-		md.setAuthor(authorText.getText());
-		md.setGenre(genreText.getText());
-		md.setWriter(writerText.getText());
-		md.setDesc(descriptionText.getText());
-		md.setLanguage(langTable.getSelectedLanguagesString());
+		//don't update missing fields with empty strings
+		md.setTitle(StringUtils.isEmpty(titleText.getText()) ? null : titleText.getText());
+		md.setAuthor(StringUtils.isEmpty(authorText.getText()) ? null : authorText.getText());
+		md.setGenre(StringUtils.isEmpty(genreText.getText()) ? null : genreText.getText());
+		md.setWriter(StringUtils.isEmpty(writerText.getText()) ? null : writerText.getText());
+		md.setDesc(StringUtils.isEmpty(descriptionText.getText()) ? null : descriptionText.getText());
+		md.setLanguage(StringUtils.isEmpty(langTable.getSelectedLanguagesString()) ? null : langTable.getSelectedLanguagesString());
 		md.setScriptType(getSelectedScriptType());
 
 		md.setCreatedFromDate(getSelectedCreatedFromDate());
