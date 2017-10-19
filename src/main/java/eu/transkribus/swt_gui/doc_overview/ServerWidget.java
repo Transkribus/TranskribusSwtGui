@@ -76,6 +76,7 @@ public class ServerWidget extends Composite {
 		
 	int selectedId=-1;
 	
+	Button docManager, userManager;
 	Button showJobsBtn, showVersionsBtn;
 	
 	ServerWidgetListener serverWidgetListener;
@@ -89,7 +90,7 @@ public class ServerWidget extends Composite {
 	MenuItem deleteDocMenuItem;
 	MenuItem duplicateDocMenuItem;
 	
-	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, duplicateDocTi;
+	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, duplicateDocTi, administerCollectionTi;
 		
 	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
@@ -130,16 +131,19 @@ public class ServerWidget extends Composite {
 		
 		Composite btns1 = new Composite(container, 0);
 		btns1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		btns1.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		btns1.setLayout(SWTUtil.createGridLayout(2, true, 0, 0));
 		
-		DropDownButton docDropDown = new DropDownButton(btns1, SWT.PUSH, "Document...", Images.FOLDER, null);
-		docDropDown.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		userControls.add(docDropDown);
 		
-		openLocalDocBtn = docDropDown.addItem("Open local document...", Images.FOLDER);
-		importBtn = docDropDown.addItem("Import document to server...", Images.FOLDER_IMPORT);
-		exportBtn = docDropDown.addItem("Export document to your local machine...", Images.FOLDER_GO);
-		findBtn = docDropDown.addItem("Find documents, text or tags...", Images.FIND);
+		
+		
+//		DropDownButton docDropDown = new DropDownButton(btns1, SWT.PUSH, "Document...", Images.FOLDER, null);
+//		docDropDown.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		userControls.add(docDropDown);
+//		
+//		openLocalDocBtn = docDropDown.addItem("Open local document...", Images.FOLDER);
+//		importBtn = docDropDown.addItem("Import document to server...", Images.FOLDER_IMPORT);
+//		exportBtn = docDropDown.addItem("Export document to your local machine...", Images.FOLDER_GO);
+//		findBtn = docDropDown.addItem("Find documents, text or tags...", Images.FIND);
 		
 //		if (false) {
 //		Composite docsComposite = new Composite(btns1, 0);
@@ -171,12 +175,19 @@ public class ServerWidget extends Composite {
 //		findBtn.setImage(Images.FIND);
 //		}
 		
-		showJobsBtn = new Button(btns1, 0);
-		showJobsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		showJobsBtn.setText("Jobs");
-		showJobsBtn.setToolTipText("Show jobs on server");
-		showJobsBtn.setImage(Images.CUP);
-		userControls.add(showJobsBtn);
+		docManager = new Button(btns1, 0);
+		docManager.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		docManager.setText("Document Manager");
+		docManager.setToolTipText("Add pages, add transcripts, choose symbolic images,...");
+		docManager.setImage(Images.FOLDER_WRENCH);
+		userControls.add(docManager);
+			
+		userManager = new Button(btns1, 0);
+		userManager.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		userManager.setText("User Manager");
+		userManager.setToolTipText("Add/Remove users to your collections");
+		userManager.setImage(Images.USER_EDIT);
+		userControls.add(userManager);
 		
 		showVersionsBtn = new Button(btns1, 0);
 		showVersionsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -185,21 +196,28 @@ public class ServerWidget extends Composite {
 		showVersionsBtn.setImage(Images.PAGE_WHITE_STACK);
 		userControls.add(showVersionsBtn);
 		
+		showJobsBtn = new Button(btns1, 0);
+		showJobsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		showJobsBtn.setText("Jobs");
+		showJobsBtn.setToolTipText("Show jobs on server");
+		showJobsBtn.setImage(Images.CUP);
+		userControls.add(showJobsBtn);
+		
 //		manageCollectionsBtn = new Button(btns1, SWT.PUSH);
 //		manageCollectionsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 //		manageCollectionsBtn.setImage(Images.getOrLoad("/icons/folder_edit.png"));
 //		manageCollectionsBtn.setText("Manage collections...");
 //		userControls.add(manageCollectionsBtn);
+	
+		recentDocsComboViewerWidget = new RecentDocsComboViewerWidget(btns1, 0);
+		recentDocsComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		userControls.add(recentDocsComboViewerWidget);
 		
 		showActivityWidgetBtn = new Button(btns1, SWT.PUSH);
 		showActivityWidgetBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		showActivityWidgetBtn.setImage(Images.GROUP);
 		showActivityWidgetBtn.setText("User activity");
 		userControls.add(showActivityWidgetBtn);
-	
-		recentDocsComboViewerWidget = new RecentDocsComboViewerWidget(container, 0);
-		recentDocsComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		userControls.add(recentDocsComboViewerWidget);
 		
 		////////////////
 		remoteDocsGroup = new Composite(container, 0); // orig-parent = container
@@ -278,7 +296,7 @@ public class ServerWidget extends Composite {
 		
 		addToCollectionTi = new ToolItem(tb, SWT.PUSH);
 		addToCollectionTi.setImage(Images.ADD);
-		addToCollectionTi.setToolTipText("Add selected documents to a different collection...");
+		addToCollectionTi.setToolTipText("Link selected documents to a different collection...");
 				
 		removeFromCollectionTi = new ToolItem(tb, SWT.PUSH);
 		removeFromCollectionTi.setImage(Images.DELETE);
@@ -291,6 +309,10 @@ public class ServerWidget extends Composite {
 		duplicateDocTi = new ToolItem(tb, SWT.PUSH);
 		duplicateDocTi.setImage(Images.PAGE_COPY);
 		duplicateDocTi.setToolTipText("Duplicate the selected documents into another collection...");
+		
+		administerCollectionTi = new ToolItem(tb, SWT.PUSH);
+		administerCollectionTi.setImage(Images.COG_EDIT);
+		administerCollectionTi.setToolTipText("Administrate docs in collection, e.g. Add pages, Choose symbolic images,...");
 
 //		Composite docBtns = new Composite(docsContainer, 0);
 //		docBtns.setLayout(new RowLayout());

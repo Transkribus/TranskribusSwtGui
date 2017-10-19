@@ -37,6 +37,7 @@ public class LayoutAnalysisComposite extends Composite {
 	public static final String METHOD_NCSR = "NCSR New (experimental)";
 	public static final String METHOD_CVL = "CVL (experimental)";
 	public static final String METHOD_CITLAB = "CITlab";
+	public static final String METHOD_CITLAB_ADVANCED = "CITlab Advanced";
 	
 //	public static final String METHOD_CUSTOM = "Custom";
 	
@@ -105,8 +106,7 @@ public class LayoutAnalysisComposite extends Composite {
 		else if (method.equals(METHOD_NCSR_OLD)) {
 			doWordSegBtn.setSelection(false);
 			doWordSegBtn.setEnabled(false);
-		}
-		else if (method.equals(METHOD_CITLAB)) {
+		} else if (method.equals(METHOD_CITLAB)) {
 //			doBlockSegBtn.setSelection(true);
 //			doBlockSegBtn.setEnabled(false);
 		
@@ -118,6 +118,9 @@ public class LayoutAnalysisComposite extends Composite {
 			
 			doWordSegBtn.setSelection(false);
 			doWordSegBtn.setEnabled(false);			
+		} else if (method.equals(METHOD_CITLAB_ADVANCED)) {		
+			doWordSegBtn.setSelection(false);
+			doWordSegBtn.setEnabled(false);
 		}
 		
 //		customJobImplText.setVisible(method.equals(METHOD_CUSTOM));
@@ -143,6 +146,7 @@ public class LayoutAnalysisComposite extends Composite {
 //		methods.add(METHOD_NCSR);
 		methods.add(METHOD_CVL);
 		methods.add(METHOD_CITLAB);
+		methods.add(METHOD_CITLAB_ADVANCED);
 		
 //		if (withCustom) {
 //			methods.add(METHOD_CUSTOM);
@@ -215,7 +219,9 @@ public class LayoutAnalysisComposite extends Composite {
 		else if (selectedMethod.equals(METHOD_CITLAB)) {
 			return JobImpl.CITlabLaJob.toString();
 		}
-
+		else if (selectedMethod.equals(METHOD_CITLAB_ADVANCED)) {
+			return JobImpl.CITlabAdvancedLaJob.toString();
+		}
 		return null;
 	}
 		

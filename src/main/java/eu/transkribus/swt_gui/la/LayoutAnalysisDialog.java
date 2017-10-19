@@ -121,6 +121,7 @@ public class LayoutAnalysisDialog extends Dialog {
 	}
 
 	public void setPageSelectionToSelectedPages(String pages2) {
+		pages = pages2;
 		laComp.setPageSelectionToSelectedPages(pages2);
 	}
 }

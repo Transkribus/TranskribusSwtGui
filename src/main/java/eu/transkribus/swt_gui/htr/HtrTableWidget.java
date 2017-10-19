@@ -168,6 +168,8 @@ public class HtrTableWidget extends Composite {
 				break;
 			}
 		}
-		htrTv.setSelection(new StructuredSelection(htr), true);
+		if(htr != null) { //if model has been removed from this collection it is not in the list.
+			htrTv.setSelection(new StructuredSelection(htr), true);
+		}
 	}	
 }

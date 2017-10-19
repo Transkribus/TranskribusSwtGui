@@ -1,5 +1,9 @@
 package eu.transkribus.swt_gui.doc_overview;
 
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -20,7 +24,10 @@ import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
@@ -33,6 +40,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	TableViewer dtv;
 	
 	Storage storage = Storage.getInstance();
+	DocumentManager ac;
 	
 	public ServerWidgetListener(ServerWidget sw) {
 		this.sw = sw;
@@ -70,6 +78,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.addSelectionListener(sw.deleteDocTi, this);
 		SWTUtil.addSelectionListener(sw.addToCollectionTi, this);
 		SWTUtil.addSelectionListener(sw.removeFromCollectionTi, this);
+		SWTUtil.addSelectionListener(sw.administerCollectionTi, this);
+		
+		SWTUtil.addSelectionListener(sw.docManager, this);
+		SWTUtil.addSelectionListener(sw.userManager, this);
 		
 		SWTUtil.addSelectionListener(sw.collectionUsersBtn, this);
 		SWTUtil.addSelectionListener(sw.createCollectionBtn, this);
@@ -105,6 +117,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.removeSelectionListener(sw.deleteDocTi, this);
 		SWTUtil.removeSelectionListener(sw.addToCollectionTi, this);
 		SWTUtil.removeSelectionListener(sw.removeFromCollectionTi, this);		
+		SWTUtil.removeSelectionListener(sw.administerCollectionTi, this);
+		
+		SWTUtil.removeSelectionListener(sw.docManager, this);
+		SWTUtil.removeSelectionListener(sw.userManager, this);
 		
 		SWTUtil.removeSelectionListener(sw.collectionUsersBtn, this);
 		SWTUtil.removeSelectionListener(sw.createCollectionBtn, this);
@@ -172,7 +188,13 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		else if (s == sw.removeFromCollectionMenuItem || s == sw.removeFromCollectionTi) {
 			mw.removeDocumentsFromCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
-		
+		else if (s == sw.administerCollectionTi || s == sw.docManager){
+			ac = new DocumentManager(mw.getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+			ac.open();
+		}		
+		else if (s == sw.userManager){
+			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
+		}
 		else if (s == sw.collectionUsersBtn) {
 			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
 		}
@@ -259,7 +281,24 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	public void handleEvent(Event event) {
 		if (event.type == SWT.Selection && event.widget == sw.collectionSelectorWidget) {
 			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
-			TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
+			Future<List<TrpDocMetadata>> docs = TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
+			try {
+				/*
+				 * load first doc immediately - otherwise the document from the previous collection is in the storage which can be 
+				 * really confusing
+				 */
+				if (docs.get().size() > 0 && docs.get().get(0) != null){
+					TrpMainWidget.getInstance().loadRemoteDoc(docs.get().get(0).getDocId(), sw.getSelectedCollectionId());
+				}
+			} catch (IllegalArgumentException | InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//now: if the administrative center is open it gets refreshed with the data of the new collection
+			if (ac != null && !ac.getShell().isDisposed() && ac.getShell().isVisible()){
+				ac.totalReload(sw.getSelectedCollectionId());
+			}
 		}
 	}
 

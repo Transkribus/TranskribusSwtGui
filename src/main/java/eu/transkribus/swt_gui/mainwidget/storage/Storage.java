@@ -42,6 +42,8 @@ import com.itextpdf.text.DocumentException;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
@@ -1258,7 +1260,9 @@ public class Storage {
 
 		sendEvent(new DocLoadEvent(this, doc));
 
-		logger.info("loaded remote document, docId = " + doc.getId() + ", title = " + doc.getMd().getTitle() + ", nPages = " + doc.getPages().size());
+		logger.info("loaded remote document, docId = " + doc.getId() + ", title = " 
+				+ doc.getMd().getTitle() + ", nPages = " + doc.getPages().size() + ", pageId = " 
+				+ doc.getMd().getPageId());
 	}
 
 	public TrpDoc getRemoteDoc(int colId, int docId, int nrOfTranscripts) throws SessionExpiredException, IllegalArgumentException, NoConnectionException {
@@ -1328,8 +1332,9 @@ public class Storage {
 			checkConnection(true);	
 		}
 		
-		if (status == null)
+		if (status == null || status.equals(EditStatus.NEW)){
 			status = EditStatus.IN_PROGRESS;
+		}
 			
 		if (docId != -1) {
 			page.writeCustomTagsToPage();
@@ -2205,7 +2210,7 @@ public class Storage {
 		return conn.getHtrs(this.getCollId(), provider);		
 	}
 	
-	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, TrpServerErrorException, TrpClientErrorException {
 		checkConnection(true);
 		switch(config.getMode()) {
 		case CITlab:

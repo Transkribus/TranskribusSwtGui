@@ -509,4 +509,10 @@ CHANGES AND BUGFIXES
 	-> HtrTrainingDialog: fix bugs in selection of base model
 	-> IO stuff: broken image files can now be handled (local/remote docs)
 	-> fix high resolution issue
+	-> fix PDF import bug
+1.3.6
+	-> fix Abbyy XML import bug
+	-> Export: fix version chooser
+	-> show correct error message when a job can't be started from tools tab
+	-> Fix a bug that blocked the HTR config. dialog when a non-existent HTR is selected
 	

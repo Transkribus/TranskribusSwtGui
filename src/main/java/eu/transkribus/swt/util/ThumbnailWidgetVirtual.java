@@ -73,6 +73,8 @@ public class ThumbnailWidgetVirtual extends Composite {
 	static ThumbnailManagerVirtual tm;
 	ThumbnailWidgetVirtualMinimal tw;
 	
+	static DocumentManager ac;
+	
 	TrpMainWidget mw;
 	
 	static int thread_counter=0;
@@ -100,13 +102,9 @@ public class ThumbnailWidgetVirtual extends Composite {
 		labelComposite.setLayout(new GridLayout(1, true));
 		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
-		statisticLabel = new Label(labelComposite, SWT.TOP);
-		statisticLabel.setText("Thumbnail Overview: ");
-		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		
 		showPageManager = new Button(labelComposite, 0);
 		showPageManager.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		showPageManager.setText("Show Document Manager");
+		showPageManager.setText("Open Document Manager");
 		
 		showPageManager.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -114,6 +112,10 @@ public class ThumbnailWidgetVirtual extends Composite {
 				showPageManager();
 			}
 		});
+		
+		statisticLabel = new Label(labelComposite, SWT.TOP);
+		statisticLabel.setText("Thumbnail Overview of Document: ");
+		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
 		Composite btns = new Composite(this, 0);
 		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -179,21 +181,29 @@ public class ThumbnailWidgetVirtual extends Composite {
 			return;
 		}
 		
-		//if shell is open {
-		if(isManagerOpen(tm)){
-			tm.getShell().setVisible(true);
+		if (isAdministrativeCenterIsOpen(ac)){
+			ac.getShell().setVisible(true);
 		} else {
-			tm = new ThumbnailManagerVirtual(getShell(), SWT.NONE, mw);
-
-			tm.addListener(SWT.Selection, new Listener() {
-				@Override public void handleEvent(Event event) {
-					logger.debug("loading page " + event.index);
-					mw.jumpToPage(event.index);
-				}
-			});
-
-			tm.open();
+			ac = new DocumentManager(getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+			ac.open();
 		}
+		
+		
+		//if shell is open {
+//		if(isManagerOpen(tm)){
+//			tm.getShell().setVisible(true);
+//		} else {
+//			tm = new ThumbnailManagerVirtual(getShell(), SWT.NONE, mw);
+//
+//			tm.addListener(SWT.Selection, new Listener() {
+//				@Override public void handleEvent(Event event) {
+//					logger.debug("loading page " + event.index);
+//					mw.jumpToPage(event.index);
+//				}
+//			});
+//
+//			tm.open();
+//		}
 
 	}
 	
@@ -203,6 +213,15 @@ public class ThumbnailWidgetVirtual extends Composite {
 		}
 		return false;
 	}
+	
+	private boolean isAdministrativeCenterIsOpen(DocumentManager ac){
+		if(ac != null && ac.getShell() != null && !ac.getShell().isDisposed()){
+			return true;
+		}
+		return false;
+	}
+	
+	
 		
 	public void reload() {
 		

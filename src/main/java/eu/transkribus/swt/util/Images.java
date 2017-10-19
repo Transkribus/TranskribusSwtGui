@@ -30,6 +30,7 @@ public class Images {
 	
 	public static final Image FOLDER = Images.getOrLoad("/icons/folder.png");
 	public static final Image FOLDER_DELETE = Images.getOrLoad("/icons/folder_delete.png");
+	public static final Image FOLDER_WRENCH = Images.getOrLoad("/icons/folder_wrench.png");
 	
 	public static final Image IMAGES = Images.getOrLoad("/icons/images.png");
 	public static final Image IMAGE = Images.getOrLoad("/icons/image.png");
@@ -91,8 +92,9 @@ public class Images {
 	
 	public static final Image BORDER_VERTICAL_CLOSED = getOrLoad("/icons/border_vertical_closed.png");
 	public static final Image BORDER_VERTICAL_OPEN = getOrLoad("/icons/border_vertical_open.png");
-
-
+	
+	public static final Image COG_EDIT = getOrLoad("/icons/cog_edit.png");
+	
 	public static final Image TICK = getOrLoad("/icons/tick.png");
 	public static final Image FIND = getOrLoad("/icons/find.png");
 
