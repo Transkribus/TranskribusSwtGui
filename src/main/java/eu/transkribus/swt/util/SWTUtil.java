@@ -724,6 +724,9 @@ public class SWTUtil {
 		else if (w instanceof CTabFolder) {
 			addSelectionListener((CTabFolder) w, l);
 		}
+		else if (w instanceof Combo){
+			addSelectionListener((Combo) w, l);
+		}
 		else
 			throw new RuntimeException("Widget type not supported for selection events: " + w);
 	}
@@ -741,6 +744,14 @@ public class SWTUtil {
 			return false;
 		
 		i.ti.addSelectionListener(l);
+		return true;
+	}
+	
+	public static boolean addSelectionListener(Combo i, SelectionListener l) {
+		if (isDisposed(i))
+			return false;
+		
+		i.addSelectionListener(l);
 		return true;
 	}
 	

@@ -42,8 +42,6 @@ import com.itextpdf.text.DocumentException;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.client.util.TrpClientErrorException;
-import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
@@ -2210,7 +2208,7 @@ public class Storage {
 		return conn.getHtrs(this.getCollId(), provider);		
 	}
 	
-	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, TrpServerErrorException, TrpClientErrorException {
+	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
 		checkConnection(true);
 		switch(config.getMode()) {
 		case CITlab:

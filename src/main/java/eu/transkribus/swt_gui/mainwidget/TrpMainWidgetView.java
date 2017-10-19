@@ -1,9 +1,13 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.MenuEvent;
@@ -15,9 +19,11 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -28,7 +34,9 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
+import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.portal.PortalWidget;
 import eu.transkribus.swt.portal.PortalWidget.Docking;
@@ -50,6 +58,7 @@ import eu.transkribus.swt_gui.doc_overview.DocMetadataEditor;
 import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBar;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructuralMetadataWidget;
 import eu.transkribus.swt_gui.metadata.TaggingWidget;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidget;
@@ -138,7 +147,9 @@ public class TrpMainWidgetView extends Composite {
 //	ToolItem helpItem;
 	ToolItem bugReportItem;
 	
-//	****Search integration stuff****
+	Combo statusCombo;
+	
+	//	****Search integration stuff****
 	ToolItem quickSearchButton;
 	TextToolItem quickSearchText;
 //	********************************
@@ -613,6 +624,25 @@ public class TrpMainWidgetView extends Composite {
 //			createDefaultLineItem = otherSaveOptionstoolItem.addItem("Create default line for selected line / baseline", null, null);
 		}
 
+		ToolItem label = new ToolItem(toolBar, SWT.LEFT);
+		label.setText("Page status:");
+		
+		ToolItem sep = new ToolItem(toolBar, SWT.SEPARATOR);
+	
+		statusCombo = new Combo(toolBar, SWT.DROP_DOWN | SWT.READ_ONLY);
+		//statusCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+
+		statusCombo.setItems(EditStatus.getStatusListWithoutNew());
+		statusCombo.pack();
+	    sep.setWidth(statusCombo.getSize().x);
+	    sep.setControl(statusCombo);
+		
+		// page status:
+		if (Storage.getInstance().getTranscriptMetadata() != null){
+			SWTUtil.select(statusCombo, EnumUtils.indexOf(Storage.getInstance().getTranscriptMetadata().getStatus()));
+		}
+		statusCombo.setEnabled(false);
+
 		versionsButton = new ToolItem(toolBar, SWT.PUSH);
 		versionsButton.setToolTipText("Show versions");
 		versionsButton.setImage(Images.PAGE_WHITE_STACK);
@@ -728,6 +758,7 @@ public class TrpMainWidgetView extends Composite {
 	public ToolItem getLoadTranscriptInTextEditor() { return loadTranscriptInTextEditor; }
 	public ToolItem getSearchBtn() { return searchBtn; }
 	public ToolItem getUploadDocsItem() { return uploadDocsItem; }
+	public Combo getStatusCombo() {	return statusCombo;	}
 	
 	@Override
 	protected void checkSubclass() {
