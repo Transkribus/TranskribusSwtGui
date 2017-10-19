@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -15,6 +16,9 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
@@ -90,6 +94,12 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 			if (e.detail != SWT.ARROW) {
 				mw.saveTranscription(false);
 			}
+		});
+		
+		SWTUtil.onSelectionEvent(ui.statusCombo, (e) -> { 
+			ArrayList<TrpPage> pageList = new ArrayList<TrpPage>();
+			pageList.add(mw.getStorage().getPage());
+			mw.changeVersionStatus(ui.statusCombo.getText(), pageList);
 		});
 		
 		SWTUtil.onSelectionEvent(ui.autoSaveSettingsMenuItem, (e) -> { mw.openAutoSaveSetsDialog(); });

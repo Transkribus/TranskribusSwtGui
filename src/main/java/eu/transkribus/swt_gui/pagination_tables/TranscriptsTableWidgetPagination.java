@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.EnumUtils;
@@ -50,7 +51,7 @@ public class TranscriptsTableWidgetPagination extends ATableWidgetPagination<Trp
 	    contextMenu = new Menu(tv.getTable());
 	    tv.getTable().setMenu(contextMenu);
 	    
-	    addMenuItems(contextMenu, EnumUtils.stringsArray(EditStatus.class));
+	    addMenuItems(contextMenu, EditStatus.getStatusListWithoutNew());
 	    		
 //		if (withDeleteBtn) {
 			deleteBtn = new Button(this, SWT.NONE);
@@ -68,8 +69,8 @@ public class TranscriptsTableWidgetPagination extends ATableWidgetPagination<Trp
 			tmp = new MenuItem(contextMenu, SWT.None);
 			tmp.setText(editStatus);
 			tmp.addSelectionListener(new MenuItemListener());
+			
 		}
-		
 	}
 
 	/*
@@ -81,17 +82,16 @@ public class TranscriptsTableWidgetPagination extends ATableWidgetPagination<Trp
 //	    	System.out.println("You selected " + ((MenuItem) event.widget).getText());
 //	    	System.out.println("You selected cont.1 " + EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
 //	    	System.out.println("You selected cont.2 " + EnumUtils.indexOf(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText())));
-
-	    	Storage.getInstance().getTranscriptMetadata().setStatus(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
+			ArrayList<TrpPage> pageList = new ArrayList<TrpPage>();
+			pageList.add(Storage.getInstance().getPage());
+	    	TrpMainWidget.getInstance().changeVersionStatus(((MenuItem) event.widget).getText(),pageList);
+//	    	Storage.getInstance().getTranscriptMetadata().setStatus(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
 	    	try {
-				Storage.getInstance().saveTranscript(Storage.getInstance().getCurrentDocumentCollectionId(), null);
-				Storage.getInstance().setLatestTranscriptAsCurrent();
+//				Storage.getInstance().saveTranscript(Storage.getInstance().getCurrentDocumentCollectionId(), null);
+//				Storage.getInstance().setLatestTranscriptAsCurrent();
 				tv.refresh();
 				tv.getTable().deselectAll();
 				tv.getTable().select(0);
-			} catch (SessionExpiredException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (ServerErrorException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -185,7 +185,7 @@ public class TranscriptsTableWidgetPagination extends ATableWidgetPagination<Trp
 	public void enableContextMenu(){
 		contextMenu = new Menu(tv.getTable());
 		tv.getTable().setMenu(contextMenu); 
-		addMenuItems(contextMenu, EnumUtils.stringsArray(EditStatus.class));
+		addMenuItems(contextMenu, EditStatus.getStatusListWithoutNew());
 	}
 
 //	public void setContextMenuVisible(boolean value) {

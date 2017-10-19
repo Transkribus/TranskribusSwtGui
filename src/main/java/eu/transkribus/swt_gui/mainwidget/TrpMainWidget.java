@@ -91,6 +91,7 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
@@ -117,6 +118,7 @@ import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
@@ -2114,7 +2116,12 @@ public class TrpMainWidget {
 
 		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);
-
+		SWTUtil.setEnabled(ui.getStatusCombo(), isDocLoaded);
+		
+		if (Storage.getInstance().getTranscript() != null && Storage.getInstance().getTranscript().getMd() != null){
+			ui.getStatusCombo().setText(Storage.getInstance().getTranscript().getMd().getStatus().getStr());
+		}
+		
 		ui.updateToolBarSize();
 	}
 
@@ -5226,6 +5233,77 @@ public class TrpMainWidget {
 		} catch (Exception e) {
 			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
 		}
+	}
+
+	public void changeVersionStatus(String text, List<TrpPage> pageList) {
+		Storage storage = Storage.getInstance();
+
+		try {
+			int colId = Storage.getInstance().getCollId();
+			if (!pageList.isEmpty()) {
+				boolean isLoadedPage = false;
+				for (TrpPage page : pageList) {
+					isLoadedPage = (page.getPageId() == Storage.getInstance().getPage().getPageId());
+					int pageNr = page.getPageNr();
+					int docId = page.getDocId();
+					
+					int transcriptId = 0;
+					if ((pageNr - 1) >= 0) {
+						transcriptId = page.getCurrentTranscript().getTsId();
+					}
+					
+					storage.getConnection().updatePageStatus(colId, docId, pageNr, transcriptId,
+							EditStatus.fromString(text), "");
+					
+					if (isLoadedPage){
+						storage.getTranscript().getMd().setStatus(EditStatus.fromString(text));
+						Storage.getInstance().reloadTranscriptsList(colId);
+						if (Storage.getInstance().setLatestTranscriptAsCurrent()){
+							logger.debug("latest transcript is current");
+						}
+						else{
+							logger.debug("setting of latest transcript to current fails");
+						}
+						
+						TrpTranscriptMetadata trMd = Storage.getInstance().getTranscript().getMd();
+						
+						if (trMd != null){
+							//ui.getStatusCombo().add(storage.getTranscriptMetadata().getStatus().getStr());
+		//					ui.getStatusCombo().add(arg0);
+		//					ui.getStatusCombo().remove(arg0);
+							ui.getStatusCombo().setText(trMd.getStatus().getStr());
+							ui.getStatusCombo().redraw();
+							logger.debug("Status: " + trMd.getStatus().getStr() + " tsid = " + trMd.getTsId());
+							//SWTUtil.select(ui.getStatusCombo(), EnumUtils.indexOf(storage.getTranscriptMetadata().getStatus()));
+						}
+						
+					}			
+					
+					/*
+					 * TODO: we break after first change because otherwise too slow for a batch
+					 * Try to fasten this on the server side
+					 */
+					break;
+					// logger.debug("status is changed to : " +
+					// storage.getDoc().getPages().get(pageNr-1).getCurrentTranscript().getStatus());
+				}
+				//storage.reloadCollections();
+
+			}
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 

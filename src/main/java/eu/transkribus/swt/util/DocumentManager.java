@@ -272,13 +272,13 @@ public class DocumentManager extends Dialog {
 		editCombos.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
 		statusCombo = initComboWithLabel(editCombos, "Edit status: ", SWT.DROP_DOWN | SWT.READ_ONLY);
-		statusCombo.setItems(EnumUtils.stringsArray(EditStatus.class));
+		statusCombo.setItems(EditStatus.getStatusListWithoutNew());
 		statusCombo.setEnabled(false);
 		statusCombo.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				logger.debug(statusCombo.getText());
-				changeVersionStatus(statusCombo.getText());
+				mw.changeVersionStatus(statusCombo.getText(), getPageList());
 				reload();
 
 				tv.getTree().redraw();
@@ -384,7 +384,7 @@ public class DocumentManager extends Dialog {
 			// allow only for loaded pages
 			if (((TrpPage) item.getData()).getDocId() == Storage.getInstance().getDoc().getId()) {
 				addMenuItems4BothLevels(menu);
-				addMenuItems4PageLevel(menu, EnumUtils.stringsArray(EditStatus.class));
+				addMenuItems4PageLevel(menu, EditStatus.getStatusListWithoutNew());
 			}
 			addChooseImageMenuItems(menu);
 			break;
@@ -835,7 +835,7 @@ public class DocumentManager extends Dialog {
 		tv.getTree().addListener(SWT.Expand, new Listener() {
 			public void handleEvent(Event e) {
 				updateColors();
-				enableEdits(false);
+				enableEdits(true);
 			}
 		});
 
@@ -977,10 +977,9 @@ public class DocumentManager extends Dialog {
 
 	}
 
-	private void changeVersionStatus(String text) {
+	private void changeVersionStatus(String text, List<TrpPage> pageList) {
 		Storage storage = Storage.getInstance();
 
-		List<TrpPage> pageList = getPageList();
 		try {
 			
 			if (!pageList.isEmpty()) {
@@ -998,7 +997,7 @@ public class DocumentManager extends Dialog {
 						// .reloadCurrentDocument(colId);
 	
 						// tw.setDoc(Storage.getInstance().getDoc(), false);
-						enableEdits(false);
+						//enableEdits(false);
 						
 						/*
 						 * TODO: we break after first change because otherwise too slow for a batch
@@ -1392,7 +1391,8 @@ public class DocumentManager extends Dialog {
 			// event.widget).getText()));
 
 			String tmp = ((MenuItem) event.widget).getText();
-			changeVersionStatus(tmp);
+			mw.changeVersionStatus(tmp, getPageList());
+			//enableEdits(false);
 
 			reload();
 			mw.getUi().getThumbnailWidget().reload();
