@@ -322,7 +322,7 @@ public class TestSth {
 		
 		;
 		
-		for (Path pageXml : CoreUtils.listFilesRecursive("/mnt/dea_scratch/TRP/test/Ms__orient__A_2654/t2iworkdir/trainInput", ".xml", true)) {
+		for (Path pageXml : CoreUtils.listFilesRecursive("/mnt/dea_scratch/TRP/test/Ms__orient__A_2654/t2iworkdir/trainInput", new String[]{".xml"}, true)) {
 			String bn = FilenameUtils.getBaseName(pageXml.getFileName().toString());
 			System.out.println(pageXml.getParent().getParent() + File.separator + bn);
 		
