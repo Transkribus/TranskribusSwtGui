@@ -36,7 +36,7 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 	
 //	Storage storage = Storage.getInstance();
 	
-	public final String label = "Recent documents...";
+	public final String label = "Most Recently Used Documents...";
 	
 	boolean isBeingSelected=false;
 		
@@ -53,7 +53,7 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 		
 //		lastDocsCombo.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		
-		lastDocsCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		lastDocsCombo.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false, 2, 1));
 		lastDocsCombo.addKeyListener(new KeyListener() {
 			
 			@Override
