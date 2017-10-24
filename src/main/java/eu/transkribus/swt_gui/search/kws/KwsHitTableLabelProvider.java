@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.search.kws;
 
 import java.text.DecimalFormat;
+import java.util.Map;
 
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableFontProvider;
@@ -14,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.kws.TrpKwsHit;
-import eu.transkribus.core.util.CoreUtils;
 
 public class KwsHitTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	private final static Logger logger = LoggerFactory.getLogger(KwsHitTableLabelProvider.class);
@@ -24,9 +24,12 @@ public class KwsHitTableLabelProvider implements ITableLabelProvider, ITableFont
 	Table table;
 	TableViewer tableViewer;
 
-	public KwsHitTableLabelProvider(TableViewer tableViewer) {
+	private Map<TrpKwsHit, Image> icons;
+
+	public KwsHitTableLabelProvider(TableViewer tableViewer, Map<TrpKwsHit, Image> icons) {
 		this.tableViewer = tableViewer;
 		this.table = tableViewer.getTable();
+		this.icons = icons;
 	}
 
 	@Override
@@ -55,7 +58,16 @@ public class KwsHitTableLabelProvider implements ITableLabelProvider, ITableFont
 
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
-		
+		if (element instanceof TrpKwsHit) {
+			TrpKwsHit hit = (TrpKwsHit) element;
+			
+			TableColumn column = table.getColumn(columnIndex);
+			String ct = column.getText();
+	
+			if (ct.equals(KwsHitTableWidget.KWS_PREVIEW_COL) && icons.containsKey(hit)) {
+				return icons.get(hit);
+			}
+		}
 		return null;
 	}
 
@@ -76,7 +88,11 @@ public class KwsHitTableLabelProvider implements ITableLabelProvider, ITableFont
 			} else if (ct.equals(KwsHitTableWidget.KWS_TEXT_COL)) {
 				return hit.getTranscription();
 			} else if (ct.equals(KwsHitTableWidget.KWS_PREVIEW_COL)) {
-				return "Loading...";
+				if(!icons.containsKey(hit)) {
+					return "Loading...";
+				} else {
+					return "";
+				}
 			}
 		}
 		return "i am error";

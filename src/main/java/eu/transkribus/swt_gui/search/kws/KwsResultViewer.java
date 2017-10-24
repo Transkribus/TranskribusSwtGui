@@ -74,7 +74,7 @@ public class KwsResultViewer extends Dialog {
 	//cache for images
 	volatile Map<URL, Image> cache;
 	//cache for icon-sized images in table
-	List<Image> icons;
+	Map<TrpKwsHit, Image> icons;
 
 	private List<TableViewer> tvList;
 
@@ -83,7 +83,7 @@ public class KwsResultViewer extends Dialog {
 		
 		this.result = result;
 		cache = new HashMap<>();
-		icons = new LinkedList<>();
+		icons = new HashMap<>();
 		tvList = new ArrayList<>(result.getResult().getKeyWords().size());
 	}
 
@@ -131,7 +131,9 @@ public class KwsResultViewer extends Dialog {
 				for(Entry<URL, Image> entry : cache.entrySet()) {
 					entry.getValue().dispose();
 				}
-				icons.stream().forEach(i -> i.dispose());
+				for(Entry<TrpKwsHit, Image> entry : icons.entrySet()) {
+					entry.getValue().dispose();
+				}
 			}
 		});
 		
@@ -203,7 +205,7 @@ public class KwsResultViewer extends Dialog {
 													TABLE_COLUMN_HEIGHT);
 											tableItem.setText(3, "");
 											tableItem.setImage(3, icon);
-											icons.add(icon);
+											icons.put(item, icon);
 										}										
 									}
 								}
@@ -234,7 +236,7 @@ public class KwsResultViewer extends Dialog {
 		c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		c.setLayout(new GridLayout(1, false));
 
-		KwsHitTableWidget hitTableWidget = new KwsHitTableWidget(c, SWT.BORDER);
+		KwsHitTableWidget hitTableWidget = new KwsHitTableWidget(c, SWT.BORDER, icons);
 		hitTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		hitTableWidget.getTableViewer().setInput(k.getHits());
 		
