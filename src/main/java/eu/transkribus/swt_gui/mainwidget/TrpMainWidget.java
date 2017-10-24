@@ -14,6 +14,7 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -1017,7 +1018,8 @@ public class TrpMainWidget {
 			} else {
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Local folder does not exist anymore", 2, true);
 			}
-		} else if (tmp.length == 3) {
+		} else if (tmp.length == 3 || tmp.length == 4) {
+			boolean loadPage = (tmp.length == 4 ? true : false);
 //			for (int i = 0; i < tmp.length; i++){
 //				logger.debug(" split : " + tmp[i]);
 //			}
@@ -1028,9 +1030,12 @@ public class TrpMainWidget {
 			try {
 				docList = storage.getConnection().findDocuments(colid, docid, "", "", "", "", true, false, 0, 0, null, null);
 				if (docList != null && docList.size() > 0) {
-					if (loadRemoteDoc(docid, colid)) {
-//						getUi().getServerWidget().setSelectedCollection(colid, true);
-//						getUi().getServerWidget().getDocTableWidget().loadPage("docId", docid, true);
+					if (loadPage){
+						int pageId = Integer.valueOf(tmp[3]);
+						loadRemoteDoc(docid, colid, (pageId-1));
+					}
+					else{
+						loadRemoteDoc(docid, colid);
 					}
 				} else {
 					//DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, "Loading Error", "Last used document is not on this server", 2, true);
@@ -1415,6 +1420,20 @@ public class TrpMainWidget {
 			logger.debug("commitMessage = " + commitMessage);
 
 			final int colId = storage.getCurrentDocumentCollectionId();
+			
+			ListIterator<String> it = RecentDocsPreferences.getItems().listIterator();
+			
+			//store the recent doc info to the preferences
+			while (it.hasNext()) {
+				if (it.next().startsWith(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + storage.getDocId() + ";;;" + colId)){
+					it.remove();
+					//RecentDocsPreferences.getItems().remove(currPref);
+				}
+			}
+			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + storage.getDocId() + ";;;" + colId + ";;;" + (storage.getPageIndex()+1));
+			ui.getServerWidget().updateRecentDocs();
+			
+			
 			// canvas.getScene().selectObject(null, true, false); // security
 			// measure due to mysterious bug leading to freeze of progress
 			// dialog
@@ -2279,7 +2298,12 @@ public class TrpMainWidget {
 			}
 			
 			//store the recent doc info to the preferences
-			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);
+			if (pageIndex == 0){
+				RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);
+			}
+			else if (pageIndex > 0){
+				RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal + ";;;" + (pageIndex+1));
+			}
 			ui.getServerWidget().updateRecentDocs();
 									
 //			getUi().getServerWidget().setSelectedCollection(colId);
