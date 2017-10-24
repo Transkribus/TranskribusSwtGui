@@ -75,6 +75,8 @@ public class KwsHitTableLabelProvider implements ITableLabelProvider, ITableFont
 				return ""+hit.getPageNr();
 			} else if (ct.equals(KwsHitTableWidget.KWS_TEXT_COL)) {
 				return hit.getTranscription();
+			} else if (ct.equals(KwsHitTableWidget.KWS_PREVIEW_COL)) {
+				return "Loading...";
 			}
 		}
 		return "i am error";

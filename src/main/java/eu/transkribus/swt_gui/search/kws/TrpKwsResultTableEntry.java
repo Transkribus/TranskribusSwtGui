@@ -39,8 +39,18 @@ public class TrpKwsResultTableEntry {
 			final long diff = job.getEndTime() - job.getCreateTime();
 			this.duration = DF.format(diff / 1000f) + " sec.";
 		}
-		this.scope = job.getDocId() < 1 ? "Collection" : "Document";
-		this.status = job.getEnded() == null ? "Processing..." : "Completed";
+		this.scope = job.getDocId() < 1 ? "Collection " + job.getColId() : "Document " + job.getDocId();
+		switch(job.getState()) {
+		case TrpJobStatus.RUNNING:
+			this.status = "Processing...";
+			break;
+		case TrpJobStatus.FAILED:
+			this.status = "Failed. See job overview for more info.";
+			break;
+		default:
+			this.status = "Completed";
+			break;
+		}
 		TrpProperties props = job.getJobDataProps();
 		this.result = extractResult(props);
 		if(result == null) {

@@ -16,7 +16,6 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -39,6 +38,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.kws.TrpKeyWord;
@@ -47,8 +48,6 @@ import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 
 public class KeywordSpottingComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(KeywordSpottingComposite.class);
@@ -74,6 +73,7 @@ public class KeywordSpottingComposite extends Composite {
 		super(parent, style);
 		store = Storage.getInstance();
 		queryWidgets = new ArrayList<>();
+		rl = new ResultLoader();
 		createContents();
 	}
 	
@@ -140,13 +140,12 @@ public class KeywordSpottingComposite extends Composite {
 			}
 		});
 //		attach();
-		rl = new ResultLoader();
 		rl.start();
 		kwsC.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
 				logger.debug("Disposing KWS composite.");
 //				detach();
-				rl.stop();
+				rl.setStopped();
 			}
 		});
 	}
@@ -158,10 +157,9 @@ public class KeywordSpottingComposite extends Composite {
 			return;
 		}
 		
-		final String scope = scopeCombo.getText();
+		final String scope = getSelectedScope();
 		logger.debug("searching on scope: "+scope);
-		TrpMainWidget mw = TrpMainWidget.getInstance();
-		final TrpCollection currCol =  mw.getUi().getServerWidget().getSelectedCollection();
+		final TrpCollection currCol = getCurrentCollection();
 		boolean isValidScope = scope.equals(SCOPE_COLL) && currCol == null 
 				|| (scope.equals(SCOPE_DOC) && !store.isLocalDoc());
 		
@@ -192,9 +190,16 @@ public class KeywordSpottingComposite extends Composite {
 			logger.debug("OK. Starting job.");
 			try {
 				store.getConnection().doCITlabKwsSearch(colId, docId, queries);
-//				updateKwsResults();
-			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-					| IllegalArgumentException e) {
+				if(!rl.isAlive()) {
+					rl = new ResultLoader();
+					rl.start();
+				}
+			} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
+				logger.error(e.getMessage(), e);
+				DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessageToUser());
+				return;
+			} catch (IllegalArgumentException e) {
+				logger.error(e.getMessage(), e);
 				DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessage());
 				return;
 			}
@@ -272,13 +277,17 @@ public class KeywordSpottingComposite extends Composite {
 	
 	private void updateResultTable(List<TrpJobStatus> jobs) {
 		List<TrpKwsResultTableEntry> kwsList = new LinkedList<>();
-		
+		boolean allFinished = true;
 		for(TrpJobStatus j : jobs) {
-			if(!j.isFailed()) {
-				kwsList.add(new TrpKwsResultTableEntry(j));
-			}
+			allFinished &= j.isFinished();
+			kwsList.add(new TrpKwsResultTableEntry(j));
 		}
-	
+		
+		if(allFinished) {
+			logger.debug("All KWS jobs have finished.");
+			rl.setStopped();
+		}
+		
 		Display.getDefault().asyncExec(() -> {	
 			if(resultTable != null && !resultTable.isDisposed()) {
 				logger.debug("Updating KWS result table");
@@ -287,20 +296,21 @@ public class KeywordSpottingComposite extends Composite {
 		});
 	}
 	
-	private void updateResultTableFromStorage() {
-		List<TrpKwsResultTableEntry> kwsList = new LinkedList<>();
+	private List<TrpJobStatus> getKwsJobs() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
 		List<TrpJobStatus> jobs = new ArrayList<>(0);
 		if (store != null && store.isLoggedIn()) {
-			try {
-				jobs = store.getConnection().getJobs(true, null, "CITlab Keyword Spotting", null, 0, 0, null, null);
-			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-					| IllegalArgumentException e) {
-				logger.error(e.getMessage(), e);
-				jobs = new ArrayList<>(0);
-			}
-			
+			jobs = store.getConnection().getJobs(true, null, "CITlab Keyword Spotting", null, 0, 0, null, null);
 		}
-		updateResultTable(jobs);
+		return jobs;
+	}
+	
+	public String getSelectedScope() {
+		return scopeCombo.getText();
+	}
+	
+	public TrpCollection getCurrentCollection() {
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		return mw.getUi().getServerWidget().getSelectedCollection();
 	}
 	
 	private class QueryWidget extends Composite {
@@ -354,34 +364,32 @@ public class KeywordSpottingComposite extends Composite {
 		}
 	}
 	
-	private class ResultLoader {
-		private ScheduledThreadPoolExecutor threadPool = null;
-		private Future<?> future = null;
+	private class ResultLoader extends Thread {
+		private final static int SLEEP = 3000;
+		private boolean stopped = false;
 		
-		public ResultLoader() {
-			logger.debug("Instantiating ResultLoader.");
-			if(threadPool == null) {
-				ThreadFactory tf = new ThreadFactoryBuilder().setNameFormat("TRP-TASK-%d").build();
-				threadPool = new ScheduledThreadPoolExecutor(1, tf);
+		@Override
+		public void run() {
+			logger.debug("Starting result polling.");
+			while(!stopped) {
+				List<TrpJobStatus> jobs;
+				try {
+					jobs = getKwsJobs();
+					updateResultTable(jobs);
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+						| IllegalArgumentException e) {
+					logger.error("Could not update ResultTable!", e);
+				}
+				try {
+					Thread.sleep(SLEEP);
+				} catch (InterruptedException e) {
+					logger.error("Sleep interrupted.", e);
+				}
 			}
 		}
-		
-		public void start(){
-			logger.debug("Starting TaskScheduler.");
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					updateResultTableFromStorage();
-				}
-			};
-			
-			future = (ScheduledFuture<?>)threadPool.scheduleAtFixedRate(r, 0, 3, TimeUnit.SECONDS);
-		}
-		
-		public void stop(){
-			logger.debug("Stopping TaskScheduler.");
-			future.cancel(false);
-			threadPool.shutdown();
+		public void setStopped() {
+			logger.debug("Stopping result polling.");
+			stopped = true;
 		}
 	}
 	

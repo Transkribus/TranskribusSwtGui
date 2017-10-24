@@ -23,6 +23,7 @@ public class KwsHitTableWidget extends Composite {
 	public static final String KWS_CONF_COL = "Confidence";
 	public static final String KWS_PAGE_COL = "Page Nr.";
 	public static final String KWS_TEXT_COL = "Line transcription";
+	public static final String KWS_PREVIEW_COL = "Preview";
 	
 	MyTableViewer tv;
 	int selectedId=-1;
@@ -35,6 +36,7 @@ public class KwsHitTableWidget extends Composite {
 		new ColumnConfig(KWS_CONF_COL, 150, true, DefaultTableColumnViewerSorter.DESC),
 		new ColumnConfig(KWS_PAGE_COL, 100, false, DefaultTableColumnViewerSorter.DESC),
 		new ColumnConfig(KWS_TEXT_COL, 400, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(KWS_PREVIEW_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 	};
 	
 	public KwsHitTableWidget(Composite parent, int style) {

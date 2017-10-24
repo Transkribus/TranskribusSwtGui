@@ -138,21 +138,21 @@ public class Images {
 	}
 	
 	public static Image resize(Image image, int width, int height, Color bg) {
-		Image scaled = new Image(Display.getDefault(), width, height);
+		int origWidth = image.getBounds().width;
+		int origHeight = image.getBounds().height;
+		
+		double scale = ImgUtils.computeScaleFactor(origWidth, origHeight, width, height);
+		
+        int destWidth = new Double(origWidth*scale).intValue();
+        int destHeight = new Double(origHeight*scale).intValue();
+        Image scaled = new Image(Display.getDefault(), destWidth, destHeight);
 		GC gc = new GC(scaled);
 		gc.setAntialias(SWT.ON);
 		gc.setInterpolation(SWT.HIGH);
 		if(bg != null) {
 			gc.setBackground(bg);
 		}
-		int origX = image.getBounds().width;
-		int origY = image.getBounds().height;
-		
-		double scale = ImgUtils.computeScaleFactor(origX, origY, width, height);
-		
-        int destX = new Double(origX*scale).intValue();
-        int destY = new Double(origY*scale).intValue();
-		gc.drawImage(image, 0, 0, origX, origY, 0, 0, destX, destY);
+		gc.drawImage(image, 0, 0, origWidth, origHeight, 0, 0, destWidth, destHeight);
 		gc.dispose();
 		return scaled;
 	}
