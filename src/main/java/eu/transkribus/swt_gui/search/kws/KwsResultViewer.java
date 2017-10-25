@@ -174,7 +174,7 @@ public class KwsResultViewer extends Dialog {
 
 	private Thread preloadImages(ProgressBar pb) {
 		Runnable loader = new Runnable() {
-			private final static int TABLE_COLUMN_HEIGHT = 23; //for the icons
+			private final static int TABLE_COLUMN_HEIGHT = 20; //for the icons
 			
 			@Override
 			public void run() {
