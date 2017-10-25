@@ -90,6 +90,7 @@ import eu.transkribus.core.model.beans.customtags.PlaceTag;
 import eu.transkribus.core.model.beans.customtags.ReadingOrderTag;
 import eu.transkribus.core.model.beans.customtags.RegionTypeTag;
 import eu.transkribus.core.model.beans.customtags.StructureTag;
+import eu.transkribus.core.model.beans.customtags.SuppliedTag;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.customtags.UnclearTag;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
@@ -1709,7 +1710,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		for (String tmp : CustomTagFactory.getRegisteredTagNamesSorted()){
 			
 			if (tmp.equals(AbbrevTag.TAG_NAME) || tmp.equals(PersonTag.TAG_NAME) || tmp.equals(PlaceTag.TAG_NAME) || 
-					tmp.equals(DateTag.TAG_NAME) || tmp.equals(BlackeningTag.TAG_NAME) || tmp.equals(UnclearTag.TAG_NAME) || tmp.equals(CommentTag.TAG_NAME)){
+					tmp.equals(DateTag.TAG_NAME) || tmp.equals(BlackeningTag.TAG_NAME) || tmp.equals(UnclearTag.TAG_NAME) || 
+					tmp.equals(CommentTag.TAG_NAME) || tmp.equals(GapTag.TAG_NAME) || tmp.equals(SuppliedTag.TAG_NAME)){
 				tagItem1 = new MenuItem(contextMenu, SWT.NONE);
 				tagItem1.setText(tmp);
 				tagItem1.addSelectionListener(new MenuItemListener());
