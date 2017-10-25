@@ -196,17 +196,19 @@ public class KwsResultViewer extends Dialog {
 									pb.setSelection(work);
 								}
 								for(TableViewer tv : tvList) {
-									for(int j = 0; j < tv.getTable().getItemCount(); j++) {
-										TableItem tableItem = tv.getTable().getItem(j);
-										TrpKwsHit item = (TrpKwsHit)tableItem.getData();
-										if(item.equals(h)) {
-											Image icon = Images.resize(img, 
-													Integer.MAX_VALUE,
-													TABLE_COLUMN_HEIGHT);
-											tableItem.setText(3, "");
-											tableItem.setImage(3, icon);
-											icons.put(item, icon);
-										}										
+									if(!tv.getTable().isDisposed()) {
+										for(int j = 0; j < tv.getTable().getItemCount(); j++) {
+											TableItem tableItem = tv.getTable().getItem(j);
+											TrpKwsHit item = (TrpKwsHit)tableItem.getData();
+											if(item.equals(h)) {
+												Image icon = Images.resize(img, 
+														Integer.MAX_VALUE,
+														TABLE_COLUMN_HEIGHT);
+												tableItem.setText(3, "");
+												tableItem.setImage(3, icon);
+												icons.put(item, icon);
+											}										
+										}
 									}
 								}
 							}
