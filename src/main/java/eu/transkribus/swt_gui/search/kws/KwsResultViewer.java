@@ -1,9 +1,12 @@
 package eu.transkribus.swt_gui.search.kws;
 
 import java.net.URL;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -14,17 +17,23 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
@@ -37,27 +46,45 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.kws.TrpKeyWord;
 import eu.transkribus.core.model.beans.kws.TrpKwsHit;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class KwsResultViewer extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(KwsResultViewer.class);
-	final String title = "Keyword Spotting Results";
+		
+	private static final boolean SHOW_PROGRESSBAR = false;
+	
+	final String title = Msgs.get("search.kws.results", "Keyword Spotting Results");
 	final TrpKwsResultTableEntry result;
 
 	Composite cont;
+	SashForm sash;
+	Group previewGrp;
+	Canvas canvas;
 	CTabFolder folder;
 	HoverShell hShell;
 
 	//buffer to store last hit that was previewed
 	TrpKwsHit lastHoverHit;
+	//store currently displayed preview image reference
+	Image currentImgOrig = null;
+	Image currentImgScaled = null;
 	//cache for images
 	volatile Map<URL, Image> cache;
+	//cache for icon-sized images in table
+	Map<TrpKwsHit, Image> icons;
+
+	private List<TableViewer> tvList;
 
 	public KwsResultViewer(Shell parent, TrpKwsResultTableEntry result) {
 		super(parent);
 		
 		this.result = result;
 		cache = new HashMap<>();
+		icons = new HashMap<>();
+		tvList = new ArrayList<>(result.getResult().getKeyWords().size());
 	}
 
 	public void setVisible() {
@@ -69,18 +96,31 @@ public class KwsResultViewer extends Dialog {
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		cont = (Composite) super.createDialogArea(parent);
-		cont.setLayout(new GridLayout(1, false));
-		folder = new CTabFolder(cont, SWT.BORDER | SWT.FLAT);
+		cont.setLayout(new FillLayout());
+		sash = new SashForm(cont, SWT.VERTICAL);
+		sash.setLayout(new FillLayout());
+		int[] sashWeights = new int[]{67, 33};
+		
+		folder = new CTabFolder(sash, SWT.BORDER | SWT.FLAT);
 		folder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		hShell = new HoverShell(getShell());
 		for (TrpKeyWord k : result.getResult().getKeyWords()) {
 			createKwTab(k);
 		}
-		ProgressBar pb = new ProgressBar(cont, SWT.SMOOTH);
-		pb.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
-		pb.setMaximum(result.getResult().getTotalNrOfHits());
+		
+		createPreviewArea(sash);
+		
+		ProgressBar pb = null;
+		if(SHOW_PROGRESSBAR) {
+			pb = new ProgressBar(sash, SWT.SMOOTH);
+			pb.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
+			pb.setMaximum(result.getResult().getTotalNrOfHits());
+			sashWeights = new int[]{67, 30, 3};
+		}
 		
 		Thread loaderThread = preloadImages(pb);
+		
+		
 		cont.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
 				logger.debug("Disposing KwsResultViewer.");
@@ -88,14 +128,54 @@ public class KwsResultViewer extends Dialog {
 				if(loaderThread.isAlive()) {
 					loaderThread.interrupt();
 				}
+				for(Entry<URL, Image> entry : cache.entrySet()) {
+					entry.getValue().dispose();
+				}
+				for(Entry<TrpKwsHit, Image> entry : icons.entrySet()) {
+					entry.getValue().dispose();
+				}
 			}
 		});
 		
+		sash.setWeights(sashWeights);
 		return cont;
+	}
+
+	private void createPreviewArea(Composite cont) {
+		previewGrp = new Group(cont, SWT.NONE);
+		previewGrp.setText(Msgs.get("search.kws.preview"));
+		previewGrp.setLayout(new FillLayout());
+//		previewGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		canvas = new Canvas(previewGrp, SWT.NONE);
+		canvas.setBackground(Colors.getSystemColor(SWT.COLOR_GRAY));
+		
+		canvas.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				if(currentImgOrig != null) {
+					Rectangle client = canvas.getClientArea();
+					if(currentImgScaled != null) {
+						currentImgScaled.dispose();
+					}
+					currentImgScaled = Images.resize(currentImgOrig, client.width, client.height,
+							Colors.getSystemColor(SWT.COLOR_GRAY));
+					Rectangle imgBounds = currentImgScaled.getBounds();
+					final int xOffset = (client.width - imgBounds.width) / 2; 
+					e.gc.drawImage(currentImgScaled, xOffset, 0);
+				}
+			}
+		});
+	    
+	    canvas.addListener (SWT.Resize,  e -> {
+	    	if(currentImgOrig != null) {
+				canvas.redraw ();
+	    	}
+		});
 	}
 
 	private Thread preloadImages(ProgressBar pb) {
 		Runnable loader = new Runnable() {
+			private final static int TABLE_COLUMN_HEIGHT = 20; //for the icons
+			
 			@Override
 			public void run() {
 				int i = 0;
@@ -115,6 +195,22 @@ public class KwsResultViewer extends Dialog {
 								if(pb != null && !pb.isDisposed() && !Thread.currentThread().isInterrupted()) {
 									pb.setSelection(work);
 								}
+								for(TableViewer tv : tvList) {
+									if(!tv.getTable().isDisposed()) {
+										for(int j = 0; j < tv.getTable().getItemCount(); j++) {
+											TableItem tableItem = tv.getTable().getItem(j);
+											TrpKwsHit item = (TrpKwsHit)tableItem.getData();
+											if(item.equals(h)) {
+												Image icon = Images.resize(img, 
+														Integer.MAX_VALUE,
+														TABLE_COLUMN_HEIGHT);
+												tableItem.setText(3, "");
+												tableItem.setImage(3, icon);
+												icons.put(item, icon);
+											}										
+										}
+									}
+								}
 							}
 						});
 					}
@@ -127,26 +223,8 @@ public class KwsResultViewer extends Dialog {
 						}
 					}
 				});
-//				result.getResult().getKeyWords()
-//					.stream()
-//					.forEach(k -> {
-//						k.getHits()
-//						.stream()
-//						.forEach(h -> {
-//							URL imgUrl = h.getImgUrl();
-//							Image img = ImageDescriptor.createFromURL(imgUrl).createImage();
-//							cache.put(imgUrl, img);
-//							Display.getDefault().asyncExec(new Runnable() {
-//								@Override
-//								public void run() {
-//									pb.setSelection(i++);
-//								}
-//							});
-//						});
-//					});
 			}
 		};
-//		Display.getDefault().asyncExec(loader);
 		Thread t = new Thread(loader, "KWS Hit Image Loader Thread");
 		t.start();
 		return t;
@@ -160,23 +238,18 @@ public class KwsResultViewer extends Dialog {
 		c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		c.setLayout(new GridLayout(1, false));
 
-		KwsHitTableWidget hitTableWidget = new KwsHitTableWidget(c, SWT.BORDER);
+		KwsHitTableWidget hitTableWidget = new KwsHitTableWidget(c, SWT.BORDER, icons);
 		hitTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		hitTableWidget.getTableViewer().setInput(k.getHits());
+		
+		tvList.add(hitTableWidget.getTableViewer());
 		
 		addHoverListeners(hitTableWidget.getTableViewer().getTable());
 		item.setControl(c);
 		
 		addDoubleClickListener(hitTableWidget.getTableViewer());
-		
-//		loadImages(hitTableWidget.getTableViewer().getTable());
 	}
 
-	//		resultTable.addListener(SWT.MouseEnter, new Listener() {
-//		public void handleEvent(Event e) {
-//			// Do nothing
-//		}
-//	});
 	private void addHoverListeners(Table hitTable) {
 		hitTable.addListener(SWT.MouseExit, new Listener() {
 			public void handleEvent(Event e) {
@@ -234,13 +307,39 @@ public class KwsResultViewer extends Dialog {
 
 	@Override
 	protected void setShellStyle(int newShellStyle) {
-		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
+		super.setShellStyle(SWT.MIN | SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
 		// setBlockOnOpen(false);
 	}
 
 	@Override
 	protected boolean isResizable() {
 		return true;
+	}
+
+	private class MouseMoveListener implements Listener {
+		final Table table;
+		public MouseMoveListener(Table resultTable) {
+			this.table = resultTable;
+		}
+		
+		public void handleEvent(Event e) {
+			Point p = new Point(e.x, e.y);
+
+			TableItem hoverItem = table.getItem(p);
+			TrpKwsHit currentHit;
+//			logger.debug(""+hoverItem);
+			if (hoverItem != null 
+					&& (currentHit = ((TrpKwsHit) hoverItem.getData())) != null
+					&& !currentHit.equals(lastHoverHit)) {
+
+				URL imgUrl = currentHit.getImgUrl();
+				if(cache.containsKey(imgUrl)) {
+					currentImgOrig = cache.get(imgUrl);
+					canvas.redraw();
+				}
+				lastHoverHit = currentHit;
+			}
+		}
 	}
 
 	private class HoverShell {
@@ -256,9 +355,10 @@ public class KwsResultViewer extends Dialog {
 		}
 	}
 	
-	private class MouseMoveListener implements Listener {
+	
+	private class HoverShellMouseMoveListener implements Listener {
 		final Table table;
-		public MouseMoveListener(Table resultTable) {
+		public HoverShellMouseMoveListener(Table resultTable) {
 			this.table = resultTable;
 		}
 		
@@ -267,21 +367,28 @@ public class KwsResultViewer extends Dialog {
 			Point p = new Point(e.x, e.y);
 
 			TableItem hoverItem = table.getItem(p);
+			TrpKwsHit currentHit;
 //			logger.debug(""+hoverItem);
-			if (hoverItem != null) {
-
-				TrpKwsHit currentHit = ((TrpKwsHit) hoverItem.getData());
+			if (hoverItem != null 
+					&& (currentHit = ((TrpKwsHit) hoverItem.getData())) != null
+					&& !currentHit.equals(lastHoverHit)) {
 				
 				Point mousePos = Display.getCurrent().getCursorLocation();
-				if (currentHit != null) {
-					URL imgUrl = currentHit.getImgUrl();
-					if(cache.containsKey(imgUrl)) {
-						final Image img = cache.get(imgUrl);
-						hShell.imgLabel.setImage(img);
-						hShell.hoverShell.setVisible(true);
-					}
+				URL imgUrl = currentHit.getImgUrl();
+				if(cache.containsKey(imgUrl)) {
+					currentImgOrig = cache.get(imgUrl);
+					canvas.redraw();
+					hShell.imgLabel.setImage(currentImgOrig);
+					
+					hShell.hoverShell.setVisible(true);
 				}
-				hShell.hoverShell.setLocation(mousePos.x + 20, mousePos.y - 20);
+				
+				final int xPos, yPos;
+				//set location next to the mouse pointer
+				xPos = mousePos.x + 20;
+				yPos = mousePos.y - 20;
+				
+				hShell.hoverShell.setLocation(xPos, yPos);
 				hShell.hoverShell.pack();
 				hShell.hoverShell.redraw();
 				lastHoverHit = currentHit;
@@ -292,14 +399,4 @@ public class KwsResultViewer extends Dialog {
 		}
 	}
 
-//	private Image getImage(URL imgUrl) {
-//		final Image img;
-//		if(cache.containsKey(imgUrl)) {
-//			img = cache.get(imgUrl); 
-//		} else {
-//			img = ImageDescriptor.createFromURL(imgUrl).createImage();
-//			cache.put(imgUrl, img);
-//		}
-//		return img;
-//	}
 }

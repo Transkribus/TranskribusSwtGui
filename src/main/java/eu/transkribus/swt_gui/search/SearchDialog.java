@@ -91,16 +91,14 @@ public class SearchDialog extends Dialog {
 //		textAndTagsItem = createCTabItem(tabFolder, tsc, "Text / Tags");
 		
 		if (false) {
-		oldKwsComposite = new OldKeywordSpottingComposite(tabFolder, 0);
-		oldKwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-		oldKwsTabItem = createCTabItem(tabFolder, oldKwsComposite, "KWS (Demo)");
+			oldKwsComposite = new OldKeywordSpottingComposite(tabFolder, 0);
+			oldKwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+			oldKwsTabItem = createCTabItem(tabFolder, oldKwsComposite, "KWS (Demo)");
 		}
-		Storage store = Storage.getInstance();
-		if(store.isLoggedIn() && store.getConnection().getServerUri().contains("Testing")) {
-			kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
-			kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-			kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
-		}
+		
+		kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
+		kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+		kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
 		return c;
 	}
 	

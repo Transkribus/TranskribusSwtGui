@@ -515,4 +515,5 @@ CHANGES AND BUGFIXES
 	-> Export: fix version chooser
 	-> show correct error message when a job can't be started from tools tab
 	-> Fix a bug that blocked the HTR config. dialog when a non-existent HTR is selected
+	-> KWS
 	

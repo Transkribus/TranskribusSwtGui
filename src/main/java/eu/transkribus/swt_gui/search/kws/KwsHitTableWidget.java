@@ -1,8 +1,11 @@
 package eu.transkribus.swt_gui.search.kws;
 
+import java.util.Map;
+
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -23,6 +26,7 @@ public class KwsHitTableWidget extends Composite {
 	public static final String KWS_CONF_COL = "Confidence";
 	public static final String KWS_PAGE_COL = "Page Nr.";
 	public static final String KWS_TEXT_COL = "Line transcription";
+	public static final String KWS_PREVIEW_COL = "Preview";
 	
 	MyTableViewer tv;
 	int selectedId=-1;
@@ -35,16 +39,17 @@ public class KwsHitTableWidget extends Composite {
 		new ColumnConfig(KWS_CONF_COL, 150, true, DefaultTableColumnViewerSorter.DESC),
 		new ColumnConfig(KWS_PAGE_COL, 100, false, DefaultTableColumnViewerSorter.DESC),
 		new ColumnConfig(KWS_TEXT_COL, 400, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(KWS_PREVIEW_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 	};
 	
-	public KwsHitTableWidget(Composite parent, int style) {
+	public KwsHitTableWidget(Composite parent, int style, Map<TrpKwsHit, Image> icons) {
 		super(parent, style);
 
 		this.setLayout(new GridLayout(1, false));
 				
 		tv = new MyTableViewer(this, SWT.H_SCROLL | SWT.V_SCROLL);
 		tv.setContentProvider(new ArrayContentProvider());
-		tv.setLabelProvider(new KwsHitTableLabelProvider(tv));
+		tv.setLabelProvider(new KwsHitTableLabelProvider(tv, icons));
 		tv.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 				
 		Table table = tv.getTable();
