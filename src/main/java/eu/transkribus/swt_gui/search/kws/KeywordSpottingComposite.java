@@ -533,7 +533,7 @@ public class KeywordSpottingComposite extends Composite {
 		public void keyReleased(KeyEvent e) {
 			validate();
 		}
-		public void validate() {
+		public boolean validate() {
 			final String text = txt.getText();
 			String errorMsg = "";
 			Color color = Colors.getSystemColor(SWT.COLOR_BLACK);
@@ -544,15 +544,17 @@ public class KeywordSpottingComposite extends Composite {
 					try {
 						Pattern.compile(text);
 					} catch(PatternSyntaxException nfe) {
-						errorMsg = "There are syntax errors in this regular expression.";
+						errorMsg = "There are syntax errors in this regular expression: " + nfe.getMessage();
 					}
 				}
 			}
-			if(!StringUtils.isEmpty(errorMsg)) {
+			boolean isValid = StringUtils.isEmpty(errorMsg);
+			if(!isValid) {
 				color = Colors.getSystemColor(SWT.COLOR_RED);
 			}
 			txt.setForeground(color);
 			txt.setToolTipText(errorMsg);
+			return isValid;
 		}
 	};
 }
