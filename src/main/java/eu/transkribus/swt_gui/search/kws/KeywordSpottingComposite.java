@@ -3,11 +3,8 @@ package eu.transkribus.swt_gui.search.kws;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -23,6 +20,7 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -31,32 +29,42 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.job.KwsParameters;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.kws.TrpKeyWord;
 import eu.transkribus.core.model.beans.kws.TrpKwsHit;
 import eu.transkribus.core.util.JaxbUtils;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class KeywordSpottingComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(KeywordSpottingComposite.class);
+	
+	private final static int MIN_CONF = 1;
+	private final static int MAX_CONF = 99;
+	private final static int THUMB_SIZE = 5; // size of slider thumb
+	
 	Storage store;
 	
 	Combo scopeCombo;
+	Button expertBtn, partialMatchBtn, caseSensitivityBtn;
+	Slider confSlider;
+	Text confValueTxt;
 	Group queryGroup, resultGroup;
 	Composite queryComp;
 	Button searchBtn;
+	
 	
 	KwsResultTableWidget resultTable;
 	
@@ -83,13 +91,87 @@ public class KeywordSpottingComposite extends Composite {
 		kwsC.setLayoutData(new GridData(GridData.FILL_BOTH));
 		kwsC.setLayout(new GridLayout(2, false));
 		
-		Label scopeLbl = new Label(kwsC, SWT.NONE);
+		Composite paramComp = new Composite(kwsC, SWT.NONE);
+		paramComp.setLayout(new GridLayout(5, false));
+		paramComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		
+		Label scopeLbl = new Label(paramComp, SWT.NONE);
 		scopeLbl.setText("Search in:");
-		scopeCombo = new Combo(kwsC, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		scopeCombo = new Combo(paramComp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		scopeCombo.setItems(SCOPES);
 		//FIXME Java Heap space error when to many confmats are loaded. Thus for now only scope "document"
 		scopeCombo.select(1);
 		scopeCombo.setEnabled(false);
+		
+		partialMatchBtn = new Button(paramComp, SWT.CHECK);
+		partialMatchBtn.setText("Partial Matches");
+		partialMatchBtn.setToolTipText("Includes partially matched words in the result");
+		
+		caseSensitivityBtn = new Button(paramComp, SWT.CHECK);
+		caseSensitivityBtn.setText("Case-sensitivity");
+		caseSensitivityBtn.setToolTipText("Enables case sensitive matching");
+		
+		expertBtn = new Button(paramComp, SWT.CHECK);
+		expertBtn.setText("Expert Syntax");
+		expertBtn.setToolTipText("Enables regular expressions");
+		
+		Composite sliderComp = new Composite(paramComp, SWT.NONE);
+		sliderComp.setLayout(new GridLayout(3, false));
+		sliderComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 5, 1));
+		
+		Label sliderLabel = new Label(sliderComp, SWT.NONE);
+		sliderLabel.setText("Confidence Threshold:");
+		confValueTxt = new Text(sliderComp, SWT.BORDER);
+		confValueTxt.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
+//		confValueTxt.setEnabled(false);
+		confSlider = new Slider(sliderComp, SWT.HORIZONTAL);
+		confSlider.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		confSlider.setMaximum(MAX_CONF + THUMB_SIZE);
+		confSlider.setThumb(THUMB_SIZE);
+		confSlider.setMinimum(MIN_CONF);
+		confSlider.setSelection(20);
+
+		confValueTxt.setText(""+confSlider.getSelection());
+		confValueTxt.setTextLimit(2);
+		
+		confValueTxt.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				//DO nothing
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				final String text = confValueTxt.getText();
+				int value = confSlider.getSelection();
+				if(!StringUtils.isEmpty(text)) {
+					try {
+						value = Integer.parseInt(text);
+						confValueTxt.setForeground(Colors.getSystemColor(SWT.COLOR_BLACK));
+						if(value < MIN_CONF) {
+							value = MIN_CONF;
+						}
+						if(value > MAX_CONF) {
+							value = MAX_CONF;
+						}
+						confSlider.setSelection(value);
+					} catch(NumberFormatException nfe) {
+						confValueTxt.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
+					}
+				}
+			}
+		});
+		
+		confSlider.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(e.detail == SWT.NONE){
+					confValueTxt.setText(""+confSlider.getSelection());// + "%");
+				}
+			}
+		});
+		
 		
 		GridLayout groupLayout = new GridLayout(1, false);
 		GridData groupGridData = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
@@ -104,6 +186,13 @@ public class KeywordSpottingComposite extends Composite {
 		queryComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		addQueryWidget();
+		
+		expertBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				queryWidgets.forEach(q -> q.setExpert(expertBtn.getSelection()));
+			}
+		});
 		
 		searchBtn = new Button(queryGroup, SWT.PUSH);
 		searchBtn.setText("Search");
@@ -177,19 +266,34 @@ public class KeywordSpottingComposite extends Composite {
 		}catch(NullPointerException npe) {
 			//FIXME where does npe come from when a doc is loaded at this point?
 		}
+		
+		KwsParameters params;
+		try {
+			params = getParameters();
+		} catch (NumberFormatException nfe) {
+			DialogUtil.showErrorMessageBox(this.getShell(), "Invalid Input", 
+					"Please enter a number between 1 and 99 for the confidence threshold.");
+			return;
+		}
+		logger.debug(params.toString());
+		
 		final String queryOverviewStr = "\"" + StringUtils.join(queries, "\"\n\t\"") + "\"";
 		
 		final String message = "You are about to start a Keyword Spotting job:\n\n" +
 					"\tCollection: \"" + colName + "\" (ID = " + colId + ")\n" +
 					"\tDocument: \"" + docTitle + "\" (ID = " + docId + ")\n" +
-					"\tKeywords:\n\t" + queryOverviewStr +
+					"\tKeywords:\n\t" + queryOverviewStr + "\n" +
+					"\tThreshold: \"" + (params.getThreshold() * 100) + "%\n" + 
+					"\tPartial Matches: " + (params.isPartialMatching() ? "On" : "Off") + "\n" + 
+					"\tCase-sensitivity: " + (params.isCaseSensitive() ? "On" : "Off") + "\n" +
+					"\tExpert Syntax: " + (params.isExpert() ? "On" : "Off") + "\n" + 
 					"\n\nStart the process?";
 		
 		int ret = DialogUtil.showYesNoDialog(this.getShell(), "Start Keyword Spotting?", message);
 		if(ret == SWT.YES) {
 			logger.debug("OK. Starting job.");
 			try {
-				store.getConnection().doCITlabKwsSearch(colId, docId, queries);
+				store.getConnection().doCITlabKwsSearch(colId, docId, queries, params);
 				if(!rl.isAlive()) {
 					rl = new ResultLoader();
 					rl.start();
@@ -215,6 +319,17 @@ public class KeywordSpottingComposite extends Composite {
 			}
 		}
 		return queries;
+	}
+	
+	public KwsParameters getParameters() throws NumberFormatException {
+		KwsParameters params = new KwsParameters();
+		params.setCaseSensitive(caseSensitivityBtn.getSelection());
+		params.setExpert(expertBtn.getSelection());
+		params.setPartialMatching(partialMatchBtn.getSelection());
+		final String confStr = confValueTxt.getText();
+		Integer conf = Integer.parseInt(confStr);
+		params.setThreshold(conf / 100.0);
+		return params;
 	}
 
 	private void addQueryWidget() {
@@ -315,8 +430,9 @@ public class KeywordSpottingComposite extends Composite {
 	
 	private class QueryWidget extends Composite {
 		private static final String LBL_TXT = "Keyword ";
+		private RegexValidator regexValidator;
 		private int index;
-		
+		private boolean expert = false;
 		Label queryLbl;
 		Text queryTxt;
 		Button removeBtn;
@@ -332,6 +448,7 @@ public class KeywordSpottingComposite extends Composite {
 			removeBtn.setText("X");
 			updateLblTxt();
 			this.layout();
+			regexValidator = new RegexValidator(queryTxt);
 		}
 		
 		private void updateLblTxt() {
@@ -361,6 +478,15 @@ public class KeywordSpottingComposite extends Composite {
 		}
 		public void setRemoveBtnVisible(boolean visible) {
 			removeBtn.setVisible(visible);
+		}
+		public void setExpert(boolean expert) {
+			if(this.expert && !expert) {
+				queryTxt.removeKeyListener(regexValidator);
+				queryTxt.setForeground(Colors.getSystemColor(SWT.COLOR_BLACK));
+			} else if(!this.expert && expert) {
+				queryTxt.addKeyListener(regexValidator);
+				regexValidator.validate();
+			}
 		}
 	}
 	
@@ -393,4 +519,40 @@ public class KeywordSpottingComposite extends Composite {
 		}
 	}
 	
+	public class RegexValidator implements KeyListener {
+		private final Text txt; //the field to validate
+		
+		public RegexValidator(Text txt) {
+			this.txt = txt;
+		}
+		@Override
+		public void keyPressed(KeyEvent e) {
+			//DO nothing
+		}
+		@Override
+		public void keyReleased(KeyEvent e) {
+			validate();
+		}
+		public void validate() {
+			final String text = txt.getText();
+			String errorMsg = "";
+			Color color = Colors.getSystemColor(SWT.COLOR_BLACK);
+			if(!StringUtils.isEmpty(text)) {
+				if(!text.contains("(?<KW>")) {
+					errorMsg = "The regular expression must define a group named 'KW'. E.g. .*(?<KW>query).*";
+				} else {
+					try {
+						Pattern.compile(text);
+					} catch(PatternSyntaxException nfe) {
+						errorMsg = "There are syntax errors in this regular expression.";
+					}
+				}
+			}
+			if(!StringUtils.isEmpty(errorMsg)) {
+				color = Colors.getSystemColor(SWT.COLOR_RED);
+			}
+			txt.setForeground(color);
+			txt.setToolTipText(errorMsg);
+		}
+	};
 }
