@@ -110,6 +110,7 @@ public class KeywordSpottingComposite extends Composite {
 		caseSensitivityBtn = new Button(paramComp, SWT.CHECK);
 		caseSensitivityBtn.setText("Case-sensitivity");
 		caseSensitivityBtn.setToolTipText("Enables case sensitive matching");
+		caseSensitivityBtn.setSelection(true);
 		
 		expertBtn = new Button(paramComp, SWT.CHECK);
 		expertBtn.setText("Expert Syntax");
