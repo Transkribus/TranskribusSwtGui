@@ -480,13 +480,17 @@ public class KeywordSpottingComposite extends Composite {
 			removeBtn.setVisible(visible);
 		}
 		public void setExpert(boolean expert) {
+			logger.debug("Expert switching");
 			if(this.expert && !expert) {
+				logger.debug("disable expert mode in widget");
 				queryTxt.removeKeyListener(regexValidator);
 				queryTxt.setForeground(Colors.getSystemColor(SWT.COLOR_BLACK));
 			} else if(!this.expert && expert) {
+				logger.debug("enable expert mode in widget");
 				queryTxt.addKeyListener(regexValidator);
 				regexValidator.validate();
 			}
+			this.expert = expert;
 		}
 	}
 	
