@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.search.kws;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,9 +52,11 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 public class KeywordSpottingComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(KeywordSpottingComposite.class);
 	
-	private final static int MIN_CONF = 1;
-	private final static int MAX_CONF = 99;
+	private final static double MIN_CONF = 0.01;
+	private final static double MAX_CONF = 0.99;
+	private final static double DEFAULT_CONF = 0.05;
 	private final static int THUMB_SIZE = 5; // size of slider thumb
+	private static final DecimalFormat CONF_FORMAT = new DecimalFormat("0.00");
 	
 	Storage store;
 	
@@ -127,13 +130,13 @@ public class KeywordSpottingComposite extends Composite {
 //		confValueTxt.setEnabled(false);
 		confSlider = new Slider(sliderComp, SWT.HORIZONTAL);
 		confSlider.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		confSlider.setMaximum(MAX_CONF + THUMB_SIZE);
+		confSlider.setMaximum(convertConfidenceToSliderValue(MAX_CONF) + THUMB_SIZE);
 		confSlider.setThumb(THUMB_SIZE);
-		confSlider.setMinimum(MIN_CONF);
-		confSlider.setSelection(20);
+		confSlider.setMinimum(convertConfidenceToSliderValue(MIN_CONF));
+		confSlider.setSelection(convertConfidenceToSliderValue(DEFAULT_CONF));
 
-		confValueTxt.setText(""+confSlider.getSelection());
-		confValueTxt.setTextLimit(2);
+		confValueTxt.setText(CONF_FORMAT.format(getConfidenceSliderValue()));
+		confValueTxt.setTextLimit(4);
 		
 		confValueTxt.addKeyListener(new KeyListener() {
 
@@ -145,10 +148,10 @@ public class KeywordSpottingComposite extends Composite {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				final String text = confValueTxt.getText();
-				int value = confSlider.getSelection();
+				Double value = getConfidenceSliderValue();
 				if(!StringUtils.isEmpty(text)) {
 					try {
-						value = Integer.parseInt(text);
+						value = Double.parseDouble(text);
 						confValueTxt.setForeground(Colors.getSystemColor(SWT.COLOR_BLACK));
 						if(value < MIN_CONF) {
 							value = MIN_CONF;
@@ -156,7 +159,7 @@ public class KeywordSpottingComposite extends Composite {
 						if(value > MAX_CONF) {
 							value = MAX_CONF;
 						}
-						confSlider.setSelection(value);
+						setConfidenceSliderValue(value);
 					} catch(NumberFormatException nfe) {
 						confValueTxt.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
 					}
@@ -168,7 +171,7 @@ public class KeywordSpottingComposite extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(e.detail == SWT.NONE){
-					confValueTxt.setText(""+confSlider.getSelection());// + "%");
+					confValueTxt.setText(CONF_FORMAT.format(getConfidenceSliderValue()));// + "%");
 				}
 			}
 		});
@@ -240,6 +243,22 @@ public class KeywordSpottingComposite extends Composite {
 		});
 	}
 	
+	private int convertConfidenceToSliderValue(Double value) {
+		if(value == null) {
+			throw new IllegalArgumentException("Value must not be null");
+		}
+		final Double sliderVal = value * 100;
+		return sliderVal.intValue();
+	}
+	
+	private void setConfidenceSliderValue(Double value) {
+		confSlider.setSelection(convertConfidenceToSliderValue(value));
+	}
+	
+	private double getConfidenceSliderValue() {
+		return confSlider.getSelection() / 100.0;
+	}
+	
 	protected void startKws() {
 		List<String> queries = getQueries();
 		if(queries.isEmpty()) {
@@ -273,7 +292,7 @@ public class KeywordSpottingComposite extends Composite {
 			params = getParameters();
 		} catch (NumberFormatException nfe) {
 			DialogUtil.showErrorMessageBox(this.getShell(), "Invalid Input", 
-					"Please enter a number between 1 and 99 for the confidence threshold.");
+					"Please enter a number between 0.01 and 0.99 for the confidence threshold.");
 			return;
 		}
 		logger.debug(params.toString());
@@ -328,8 +347,8 @@ public class KeywordSpottingComposite extends Composite {
 		params.setExpert(expertBtn.getSelection());
 		params.setPartialMatching(partialMatchBtn.getSelection());
 		final String confStr = confValueTxt.getText();
-		Integer conf = Integer.parseInt(confStr);
-		params.setThreshold(conf / 100.0);
+		Double conf = Double.parseDouble(confStr);
+		params.setThreshold(conf);
 		return params;
 	}
 
