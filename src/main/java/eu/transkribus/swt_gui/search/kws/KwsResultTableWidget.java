@@ -23,7 +23,7 @@ public class KwsResultTableWidget extends Composite {
 	public static final String KWS_STATUS_COL = "Status";
 	public static final String KWS_SCOPE_COL = "Scope";
 	public static final String KWS_DURATION_COL = "Duration";
-	public static final String KWS_QUERY_COL = "ID";
+	public static final String KWS_QUERY_COL = "Queries";
 	
 	MyTableViewer kwsResTv;
 	int selectedId=-1;
