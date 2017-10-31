@@ -431,16 +431,12 @@ public class KeywordSpottingComposite extends Composite {
 		});
 	}
 	
-	private List<TrpJobStatus> getKwsJobs() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
-		List<TrpJobStatus> jobs = new ArrayList<>(0);
-		if (store != null && store.isLoggedIn()) {
-			jobs = store.getConnection().getJobs(true, null, "CITlab Keyword Spotting", null, 0, 0, null, null);
+	public final String getSelectedScope() {
+		if(scopeCombo.getEnabled()) {
+			return scopeCombo.getText();
+		} else {
+			return SCOPE_DOC;
 		}
-		return jobs;
-	}
-	
-	public String getSelectedScope() {
-		return scopeCombo.getText();
 	}
 	
 	public TrpCollection getCurrentCollection() {
@@ -524,7 +520,7 @@ public class KeywordSpottingComposite extends Composite {
 			while(!stopped) {
 				List<TrpJobStatus> jobs;
 				try {
-					jobs = getKwsJobs();
+					jobs = this.getKwsJobs();
 					updateResultTable(jobs);
 				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 						| IllegalArgumentException e) {
@@ -540,6 +536,29 @@ public class KeywordSpottingComposite extends Composite {
 		public void setStopped() {
 			logger.debug("Stopping result polling.");
 			stopped = true;
+		}
+		
+		/**
+		 * TODO allow to filter jobs by collection in REST API
+		 * 
+		 * @return
+		 * @throws SessionExpiredException
+		 * @throws ServerErrorException
+		 * @throws ClientErrorException
+		 * @throws IllegalArgumentException
+		 */
+		private List<TrpJobStatus> getKwsJobs() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+			//final int colId = getCurrentCollection().getColId();
+			Integer docId = store.getDocId();
+//			Integer docId = null;
+//			if(SCOPE_DOC.equals(getSelectedScope())) {
+//				docId = store.getDocId();
+//			}
+			List<TrpJobStatus> jobs = new ArrayList<>(0);
+			if (store != null && store.isLoggedIn()) {
+				jobs = store.getConnection().getJobs(true, null, "CITlab Keyword Spotting", docId, 0, 0, null, null);
+			}
+			return jobs;
 		}
 	}
 	
@@ -562,15 +581,7 @@ public class KeywordSpottingComposite extends Composite {
 			String errorMsg = "";
 			Color color = Colors.getSystemColor(SWT.COLOR_BLACK);
 			if(!StringUtils.isEmpty(text)) {
-				if(!text.contains("(?<KW>")) {
-					errorMsg = "The regular expression must define a group named 'KW'. E.g. .*(?<KW>query).*";
-				} else {
-					try {
-						Pattern.compile(text);
-					} catch(PatternSyntaxException nfe) {
-						errorMsg = "There are syntax errors in this regular expression: " + nfe.getMessage();
-					}
-				}
+				errorMsg = checkPattern(text);
 			}
 			boolean isValid = StringUtils.isEmpty(errorMsg);
 			if(!isValid) {
@@ -579,6 +590,24 @@ public class KeywordSpottingComposite extends Composite {
 			txt.setForeground(color);
 			txt.setToolTipText(errorMsg);
 			return isValid;
+		}
+		
+		private String checkPattern(String text) {
+			String errorMsg = "";
+			try {
+				Pattern.compile(text);
+			} catch(PatternSyntaxException nfe) {
+				errorMsg = "There are syntax errors in this regular expression: " + nfe.getMessage();
+			}
+			return errorMsg;
+		}
+		
+		private String checkForKwGroup(String text) {
+			String errorMsg = "";
+			if(!text.contains("(?<KW>")) {
+				errorMsg = "The regular expression must define a group named 'KW'. E.g. .*(?<KW>query).*";
+			}
+			return errorMsg;
 		}
 	};
 }

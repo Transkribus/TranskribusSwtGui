@@ -223,14 +223,16 @@ public class KwsResultViewer extends Dialog {
 						});
 					}
 				}
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						if(pb != null && !pb.isDisposed() && !Thread.currentThread().isInterrupted()) {
-							pb.setVisible(false);
+				if(pb != null) {
+					Display.getDefault().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							if(pb != null && !pb.isDisposed() && !Thread.currentThread().isInterrupted()) {
+								pb.setVisible(false);
+							}
 						}
-					}
-				});
+					});
+				}
 			}
 		};
 		Thread t = new Thread(loader, "KWS Hit Image Loader Thread");
