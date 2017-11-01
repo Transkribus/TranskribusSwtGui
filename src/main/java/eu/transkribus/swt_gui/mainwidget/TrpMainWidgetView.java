@@ -624,12 +624,13 @@ public class TrpMainWidgetView extends Composite {
 //			createDefaultLineItem = otherSaveOptionstoolItem.addItem("Create default line for selected line / baseline", null, null);
 		}
 
-		ToolItem label = new ToolItem(toolBar, SWT.LEFT);
-		label.setText("Page status:");
+		/*ToolItem label = new ToolItem(toolBar, SWT.LEFT);
+		label.setText("Page status:");*/
 		
 		ToolItem sep = new ToolItem(toolBar, SWT.SEPARATOR);
 	
 		statusCombo = new Combo(toolBar, SWT.DROP_DOWN | SWT.READ_ONLY);
+		statusCombo.setToolTipText("Page status");
 		//statusCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
 		statusCombo.setItems(EditStatus.getStatusListWithoutNew());
