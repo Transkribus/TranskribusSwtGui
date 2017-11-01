@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
@@ -96,10 +97,30 @@ public class SearchDialog extends Dialog {
 			oldKwsTabItem = createCTabItem(tabFolder, oldKwsComposite, "KWS (Demo)");
 		}
 		
-		kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
-		kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-		kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
+		final boolean showKws = isUserAllowedForKws();
+		if(showKws) {
+			kwsComposite = new KeywordSpottingComposite(tabFolder, 0);
+			kwsComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+			kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
+		}
+		
 		return c;
+	}
+	
+	
+	public boolean isUserAllowedForKws() {
+		boolean showKws = false;
+		if(Storage.getInstance() != null && Storage.getInstance().isLoggedIn()) {
+			try {
+				showKws = Storage.getInstance()
+						.getConnection()
+						.isUserAllowedForJob(JobImpl.CITlabKwsJob.toString());
+			} catch (Exception e) {
+				logger.error("Could not determine permission for KWS on server!", e);
+				showKws = false;
+			}
+		}
+		return showKws;
 	}
 	
 	public CTabFolder getTabFolder(){

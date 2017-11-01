@@ -22,7 +22,7 @@ import eu.transkribus.core.util.JobDataUtils;
 
 public class TrpKwsResultTableEntry {
 	private static final Logger logger = LoggerFactory.getLogger(TrpKwsResultTableEntry.class);
-	private static final DecimalFormat DF = new DecimalFormat("#.##");
+	private static final DecimalFormat DF = new DecimalFormat("0.00");
 	private TrpKwsResult result;
 	private Date created;
 	private String duration;

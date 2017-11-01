@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.search.kws;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,9 +52,11 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 public class KeywordSpottingComposite extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(KeywordSpottingComposite.class);
 	
-	private final static int MIN_CONF = 1;
-	private final static int MAX_CONF = 99;
+	private final static double MIN_CONF = 0.01;
+	private final static double MAX_CONF = 0.99;
+	private final static double DEFAULT_CONF = 0.05;
 	private final static int THUMB_SIZE = 5; // size of slider thumb
+	private static final DecimalFormat CONF_FORMAT = new DecimalFormat("0.00");
 	
 	Storage store;
 	
@@ -127,13 +130,13 @@ public class KeywordSpottingComposite extends Composite {
 //		confValueTxt.setEnabled(false);
 		confSlider = new Slider(sliderComp, SWT.HORIZONTAL);
 		confSlider.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		confSlider.setMaximum(MAX_CONF + THUMB_SIZE);
+		confSlider.setMaximum(convertConfidenceToSliderValue(MAX_CONF) + THUMB_SIZE);
 		confSlider.setThumb(THUMB_SIZE);
-		confSlider.setMinimum(MIN_CONF);
-		confSlider.setSelection(20);
+		confSlider.setMinimum(convertConfidenceToSliderValue(MIN_CONF));
+		confSlider.setSelection(convertConfidenceToSliderValue(DEFAULT_CONF));
 
-		confValueTxt.setText(""+confSlider.getSelection());
-		confValueTxt.setTextLimit(2);
+		confValueTxt.setText(CONF_FORMAT.format(getConfidenceSliderValue()));
+		confValueTxt.setTextLimit(4);
 		
 		confValueTxt.addKeyListener(new KeyListener() {
 
@@ -145,10 +148,10 @@ public class KeywordSpottingComposite extends Composite {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				final String text = confValueTxt.getText();
-				int value = confSlider.getSelection();
+				Double value = getConfidenceSliderValue();
 				if(!StringUtils.isEmpty(text)) {
 					try {
-						value = Integer.parseInt(text);
+						value = Double.parseDouble(text);
 						confValueTxt.setForeground(Colors.getSystemColor(SWT.COLOR_BLACK));
 						if(value < MIN_CONF) {
 							value = MIN_CONF;
@@ -156,7 +159,7 @@ public class KeywordSpottingComposite extends Composite {
 						if(value > MAX_CONF) {
 							value = MAX_CONF;
 						}
-						confSlider.setSelection(value);
+						setConfidenceSliderValue(value);
 					} catch(NumberFormatException nfe) {
 						confValueTxt.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
 					}
@@ -168,7 +171,7 @@ public class KeywordSpottingComposite extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(e.detail == SWT.NONE){
-					confValueTxt.setText(""+confSlider.getSelection());// + "%");
+					confValueTxt.setText(CONF_FORMAT.format(getConfidenceSliderValue()));// + "%");
 				}
 			}
 		});
@@ -240,6 +243,22 @@ public class KeywordSpottingComposite extends Composite {
 		});
 	}
 	
+	private int convertConfidenceToSliderValue(Double value) {
+		if(value == null) {
+			throw new IllegalArgumentException("Value must not be null");
+		}
+		final Double sliderVal = value * 100;
+		return sliderVal.intValue();
+	}
+	
+	private void setConfidenceSliderValue(Double value) {
+		confSlider.setSelection(convertConfidenceToSliderValue(value));
+	}
+	
+	private double getConfidenceSliderValue() {
+		return confSlider.getSelection() / 100.0;
+	}
+	
 	protected void startKws() {
 		List<String> queries = getQueries();
 		if(queries.isEmpty()) {
@@ -273,7 +292,7 @@ public class KeywordSpottingComposite extends Composite {
 			params = getParameters();
 		} catch (NumberFormatException nfe) {
 			DialogUtil.showErrorMessageBox(this.getShell(), "Invalid Input", 
-					"Please enter a number between 1 and 99 for the confidence threshold.");
+					"Please enter a number between 0.01 and 0.99 for the confidence threshold.");
 			return;
 		}
 		logger.debug(params.toString());
@@ -328,8 +347,8 @@ public class KeywordSpottingComposite extends Composite {
 		params.setExpert(expertBtn.getSelection());
 		params.setPartialMatching(partialMatchBtn.getSelection());
 		final String confStr = confValueTxt.getText();
-		Integer conf = Integer.parseInt(confStr);
-		params.setThreshold(conf / 100.0);
+		Double conf = Double.parseDouble(confStr);
+		params.setThreshold(conf);
 		return params;
 	}
 
@@ -412,16 +431,12 @@ public class KeywordSpottingComposite extends Composite {
 		});
 	}
 	
-	private List<TrpJobStatus> getKwsJobs() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
-		List<TrpJobStatus> jobs = new ArrayList<>(0);
-		if (store != null && store.isLoggedIn()) {
-			jobs = store.getConnection().getJobs(true, null, "CITlab Keyword Spotting", null, 0, 0, null, null);
+	public final String getSelectedScope() {
+		if(scopeCombo.getEnabled()) {
+			return scopeCombo.getText();
+		} else {
+			return SCOPE_DOC;
 		}
-		return jobs;
-	}
-	
-	public String getSelectedScope() {
-		return scopeCombo.getText();
 	}
 	
 	public TrpCollection getCurrentCollection() {
@@ -505,7 +520,7 @@ public class KeywordSpottingComposite extends Composite {
 			while(!stopped) {
 				List<TrpJobStatus> jobs;
 				try {
-					jobs = getKwsJobs();
+					jobs = this.getKwsJobs();
 					updateResultTable(jobs);
 				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 						| IllegalArgumentException e) {
@@ -521,6 +536,29 @@ public class KeywordSpottingComposite extends Composite {
 		public void setStopped() {
 			logger.debug("Stopping result polling.");
 			stopped = true;
+		}
+		
+		/**
+		 * TODO allow to filter jobs by collection in REST API
+		 * 
+		 * @return
+		 * @throws SessionExpiredException
+		 * @throws ServerErrorException
+		 * @throws ClientErrorException
+		 * @throws IllegalArgumentException
+		 */
+		private List<TrpJobStatus> getKwsJobs() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+			//final int colId = getCurrentCollection().getColId();
+			Integer docId = store.getDocId();
+//			Integer docId = null;
+//			if(SCOPE_DOC.equals(getSelectedScope())) {
+//				docId = store.getDocId();
+//			}
+			List<TrpJobStatus> jobs = new ArrayList<>(0);
+			if (store != null && store.isLoggedIn()) {
+				jobs = store.getConnection().getJobs(true, null, "CITlab Keyword Spotting", docId, 0, 0, null, null);
+			}
+			return jobs;
 		}
 	}
 	
@@ -543,15 +581,7 @@ public class KeywordSpottingComposite extends Composite {
 			String errorMsg = "";
 			Color color = Colors.getSystemColor(SWT.COLOR_BLACK);
 			if(!StringUtils.isEmpty(text)) {
-				if(!text.contains("(?<KW>")) {
-					errorMsg = "The regular expression must define a group named 'KW'. E.g. .*(?<KW>query).*";
-				} else {
-					try {
-						Pattern.compile(text);
-					} catch(PatternSyntaxException nfe) {
-						errorMsg = "There are syntax errors in this regular expression: " + nfe.getMessage();
-					}
-				}
+				errorMsg = checkPattern(text);
 			}
 			boolean isValid = StringUtils.isEmpty(errorMsg);
 			if(!isValid) {
@@ -560,6 +590,24 @@ public class KeywordSpottingComposite extends Composite {
 			txt.setForeground(color);
 			txt.setToolTipText(errorMsg);
 			return isValid;
+		}
+		
+		private String checkPattern(String text) {
+			String errorMsg = "";
+			try {
+				Pattern.compile(text);
+			} catch(PatternSyntaxException nfe) {
+				errorMsg = "There are syntax errors in this regular expression: " + nfe.getMessage();
+			}
+			return errorMsg;
+		}
+		
+		private String checkForKwGroup(String text) {
+			String errorMsg = "";
+			if(!text.contains("(?<KW>")) {
+				errorMsg = "The regular expression must define a group named 'KW'. E.g. .*(?<KW>query).*";
+			}
+			return errorMsg;
 		}
 	};
 }

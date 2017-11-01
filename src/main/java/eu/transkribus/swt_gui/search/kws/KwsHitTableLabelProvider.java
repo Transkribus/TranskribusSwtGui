@@ -19,7 +19,7 @@ import eu.transkribus.core.model.beans.kws.TrpKwsHit;
 public class KwsHitTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	private final static Logger logger = LoggerFactory.getLogger(KwsHitTableLabelProvider.class);
 	
-	private final static DecimalFormat DF = new DecimalFormat("#.####");
+	private final static DecimalFormat DF = new DecimalFormat("0.0000");
 	
 	Table table;
 	TableViewer tableViewer;

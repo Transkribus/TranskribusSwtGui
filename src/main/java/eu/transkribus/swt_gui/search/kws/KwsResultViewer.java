@@ -3,12 +3,12 @@ package eu.transkribus.swt_gui.search.kws;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -80,13 +80,21 @@ public class KwsResultViewer extends Dialog {
 
 	public KwsResultViewer(Shell parent, TrpKwsResultTableEntry result) {
 		super(parent);
-		
+				
 		this.result = result;
 		cache = new HashMap<>();
 		icons = new HashMap<>();
 		tvList = new ArrayList<>(result.getResult().getKeyWords().size());
 	}
 
+	/**
+	 * Create contents of the button bar.
+	 * @param parent
+	 */
+	@Override protected void createButtonsForButtonBar(Composite parent) {
+		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CLOSE_LABEL, false);
+	}
+	
 	public void setVisible() {
 		if (super.getShell() != null && !super.getShell().isDisposed()) {
 			super.getShell().setVisible(true);
@@ -215,14 +223,16 @@ public class KwsResultViewer extends Dialog {
 						});
 					}
 				}
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						if(pb != null && !pb.isDisposed() && !Thread.currentThread().isInterrupted()) {
-							pb.setVisible(false);
+				if(pb != null) {
+					Display.getDefault().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							if(pb != null && !pb.isDisposed() && !Thread.currentThread().isInterrupted()) {
+								pb.setVisible(false);
+							}
 						}
-					}
-				});
+					});
+				}
 			}
 		};
 		Thread t = new Thread(loader, "KWS Hit Image Loader Thread");
