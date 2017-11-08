@@ -32,7 +32,7 @@ public class Text2ImageConfComposite2 extends Composite {
 	
 	LabeledText epochsTxt;
 	LabeledText subsetsTxt;
-	Button removeLineBreaksCheck;
+	Button respectLineBreaksCheck;
 	LabeledText numberOfThreadsTxt;
 	
 	LabeledText trainSizePerEpochTxt;
@@ -73,10 +73,11 @@ public class Text2ImageConfComposite2 extends Composite {
 		Composite removeLbCont = SWTUtil.createContainerComposite(this, 2, true);
 		removeLbCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		new Label(removeLbCont, 0);
-		removeLineBreaksCheck = new Button(removeLbCont, SWT.CHECK);
-		removeLineBreaksCheck.setText("Remove line breaks");
-		removeLineBreaksCheck.setToolTipText("If checked line breaks in the input text are not respected");
-		removeLineBreaksCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		respectLineBreaksCheck = new Button(removeLbCont, SWT.CHECK);
+		respectLineBreaksCheck.setSelection(true);
+		respectLineBreaksCheck.setText("Respect line breaks of input text");
+		respectLineBreaksCheck.setToolTipText("Check to respect line breaks in the input text");
+		respectLineBreaksCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Composite noiseCont = SWTUtil.createContainerComposite(this, 2, true);
 		noiseCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -234,6 +235,9 @@ public class Text2ImageConfComposite2 extends Composite {
 		} else {
 			throw new IOException("Cannot parse subsampling parameter: "+epochsTxt.getText());
 		}
+		
+		boolean removeLineBreaks = !respectLineBreaksCheck.getSelection();
+		config.setRemoveLineBreaks(removeLineBreaks);
 		
 		if (numberOfThreadsTxt.toIntVal()!=null) {
 			config.setnThreads(numberOfThreadsTxt.toIntVal());

@@ -26,6 +26,9 @@ import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.CurrentDocPagesSelector;
 
+/**
+ * @deprecated not used currently
+ */
 public class Text2ImageConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(Text2ImageConfComposite.class);
 	
