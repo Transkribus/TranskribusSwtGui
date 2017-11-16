@@ -8,31 +8,30 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.forms.events.ExpansionAdapter;
-import org.eclipse.ui.forms.events.ExpansionEvent;
-import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.mihalis.opal.propertyTable.PTProperty;
 import org.mihalis.opal.propertyTable.PropertyTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.util.CurrentDocPagesSelector;
 
 public class Text2ImageConfComposite2 extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(Text2ImageConfComposite2.class);
 	
 	LabeledText epochsTxt;
 	LabeledText subsetsTxt;
-	Button removeLineBreaksCheck;
+	Button respectLineBreaksCheck;
+	LabeledText thresholdTxt;
+	
 	LabeledText numberOfThreadsTxt;
 	
 	LabeledText trainSizePerEpochTxt;
@@ -41,7 +40,7 @@ public class Text2ImageConfComposite2 extends Composite {
 	
 	HtrModelChooserButton baseModelBtn;
 	
-	Text additonalParameters;
+	Text advancedParameters;
 	PropertyTable advancedPropertiesTable;
 	
 //	CurrentDocPagesSelector currentDocPagesSelector;
@@ -60,7 +59,7 @@ public class Text2ImageConfComposite2 extends Composite {
 		baseModelBtn = new HtrModelChooserButton(baseModelCont);
 		baseModelBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		epochsTxt = new LabeledText(this, "Epochs: ", true);
+		epochsTxt = new LabeledText(this, "Epochs per iteration: ", true);
 		epochsTxt.setText(CitLabSemiSupervisedHtrTrainConfig.DEFAULT_TRAINING_EPOCHS);
 		epochsTxt.setToolTipText("A series of training epochs per iteration divided by semicolons - enter an empty string for no training at all");
 		epochsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -73,10 +72,11 @@ public class Text2ImageConfComposite2 extends Composite {
 		Composite removeLbCont = SWTUtil.createContainerComposite(this, 2, true);
 		removeLbCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		new Label(removeLbCont, 0);
-		removeLineBreaksCheck = new Button(removeLbCont, SWT.CHECK);
-		removeLineBreaksCheck.setText("Remove line breaks");
-		removeLineBreaksCheck.setToolTipText("If checked line breaks in the input text are not respected");
-		removeLineBreaksCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		respectLineBreaksCheck = new Button(removeLbCont, SWT.CHECK);
+		respectLineBreaksCheck.setSelection(true);
+		respectLineBreaksCheck.setText("Respect line breaks of input text");
+		respectLineBreaksCheck.setToolTipText("Check to respect line breaks in the input text");
+		respectLineBreaksCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Composite noiseCont = SWTUtil.createContainerComposite(this, 2, true);
 		noiseCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -97,34 +97,50 @@ public class Text2ImageConfComposite2 extends Composite {
 		learningRateCombo = new LearningRateCombo(lrCont, 0);
 		learningRateCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
+		new Label(this, 0);
+		/*
 		numberOfThreadsTxt = new LabeledText(this, "Number of threads:", true);
 		numberOfThreadsTxt.setText(""+CitLabSemiSupervisedHtrTrainConfig.DEFAULT_NUMBER_OF_THREADS);
 		numberOfThreadsTxt.setToolTipText("The number of threads that is used on the server to process this job");
 		numberOfThreadsTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		*/
+//		thresholdTxt = new LabeledText(this, "Threshold:", true);
+//		thresholdTxt.setText(""+CitLabSemiSupervisedHtrTrainConfig.DEFAULT_NUMBER_OF_THREADS);
+//		thresholdTxt.setToolTipText("Threshold for alignment. Typically between 0.01 and 0.05 - see https://read02.uibk.ac.at/wiki/index.php/Text2ImageParameters");
+//		thresholdTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		initAdditionalParametersUi();
 	}
 		
 	private void initAdditionalParametersUi() {
-		ExpandableComposite exp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
-		exp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-		
-		additonalParameters = new Text(exp, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
-	    additonalParameters.setLayoutData(new GridData(GridData.FILL_BOTH));
-		additonalParameters.setToolTipText("Advanced parameters for Text2Image - use key=value format in each line!");
-//		advancedParameters.setText("hyphen=null\n");
-		
-//		advancedPropertiesTable = buildPropertyTable(exp, true);
-		
-		exp.setClient(additonalParameters);
-		exp.setText("Additional Parameters");
-//		Fonts.setBoldFont(exp);
-		exp.setExpanded(true);
-		exp.addExpansionListener(new ExpansionAdapter() {
-			public void expansionStateChanged(ExpansionEvent e) {
-				layout();
+		Composite container = new Composite(this, 0);
+		container.setLayout(new GridLayout(1, false));
+		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+
+		Link help = new Link(container, 0);
+		help.setText("Advanced Parameters, see <a href=\"https://read02.uibk.ac.at/wiki/index.php/Text2ImageParameters\">read02.uibk.ac.at/wiki/index.php/Text2ImageParameters</a>");
+		help.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event e) {
+				try {
+					org.eclipse.swt.program.Program.launch(e.text);
+				} catch (Exception ex) {
+					logger.error(ex.getMessage(), ex);
+				}
 			}
 		});
+
+		advancedParameters = new Text(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+	    advancedParameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		advancedParameters.setToolTipText("Advanced parameters for Text2Image - use key=value format in each line!");
+		advancedParameters.setText(	"thresh=0.01\n"+
+										"hyphen=null\n"+
+										"hyphen_lang=null\n"+
+										"skip_word=null\n"+
+										"skip_bl=null\n"+
+										"jump_bl=null\n"+
+										"best_pathes=Infinity\n"
+				);
 	}
 	
 	@Deprecated
@@ -235,6 +251,9 @@ public class Text2ImageConfComposite2 extends Composite {
 			throw new IOException("Cannot parse subsampling parameter: "+epochsTxt.getText());
 		}
 		
+		boolean removeLineBreaks = !respectLineBreaksCheck.getSelection();
+		config.setRemoveLineBreaks(removeLineBreaks);
+		
 		if (numberOfThreadsTxt.toIntVal()!=null) {
 			config.setnThreads(numberOfThreadsTxt.toIntVal());
 		} else {
@@ -252,7 +271,7 @@ public class Text2ImageConfComposite2 extends Composite {
 		}
 		
 		try {
-			Properties props = CoreUtils.readPropertiesFromString(additonalParameters.getText());
+			Properties props = CoreUtils.readPropertiesFromString(advancedParameters.getText());
 			config.setJsonProps(GsonUtil.toJson(GsonUtil.toJson(props)));
 		} catch (IOException e) {
 			throw new IOException("Cannot parse advanced properties - use key=value format for each line!");

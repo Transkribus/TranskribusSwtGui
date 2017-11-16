@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
 import eu.transkribus.client.connection.ATrpServerConn;
+import eu.transkribus.swt.util.MyMessageDialog;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
@@ -53,10 +54,16 @@ public class GenericDialogTest {
 					}
 					}
 					
-					if (true) {
-						HtrTrainingDialog diag = new HtrTrainingDialog(getShell());
-						diag.open();
-					}
+//					if (true) {
+//						HtrTrainingDialog diag = new HtrTrainingDialog(getShell());
+//						diag.open();
+//					}
+					
+//					if (true) {
+//						MyMessageDialog diag = new MyMessageDialog(parentShell, dialogTitle, dialogTitleImage, dialogMessage, image, dialogButtonLabels, defaultIndex);
+//						
+//						
+//					}
 	
 					return parent;
 				}
