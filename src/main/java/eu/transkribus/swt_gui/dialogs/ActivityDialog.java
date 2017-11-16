@@ -70,17 +70,17 @@ public class ActivityDialog extends Dialog {
 //		pageLockTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		/*
-		 * TODO: when the needed rest service is available via the prod server we can add this label
+		 * shows the users with a open session in TranskribusX (WebUI, rest service users are not included)
 		 */
-//		Label users = new Label(container, 0);
-//		try {
-//			int users_nr = Storage.getInstance().getConnection().countUsersLoggedIn();
-//			String user = ( (users_nr > 0 && users_nr == 1)? "user" : "users");
-//			users.setText( users_nr + " " + user + " currently working with TranskribusX.");
-//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		Label users = new Label(container, 0);
+		try {
+			int users_nr = Storage.getInstance().getConnection().countUsersLoggedIn();
+			String user = ( (users_nr > 0 && users_nr == 1)? "user" : "users");
+			users.setText( users_nr + " " + user + " currently working with TranskribusX.");
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		return container;
 	}
