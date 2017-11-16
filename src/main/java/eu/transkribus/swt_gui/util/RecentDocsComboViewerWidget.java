@@ -36,7 +36,7 @@ public class RecentDocsComboViewerWidget extends Composite implements Observer {
 	
 //	Storage storage = Storage.getInstance();
 	
-	public final String label = "Most Recently Used Documents...";
+	public final String label = "Recent Documents...";
 	
 	boolean isBeingSelected=false;
 		
