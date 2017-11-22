@@ -142,11 +142,11 @@ public class LayoutAnalysisComposite extends Composite {
 	public static List<String> getMethods(boolean withCustom) {
 		List<String> methods = new ArrayList<>();
 		
+		methods.add(METHOD_CITLAB_ADVANCED);
 		methods.add(METHOD_NCSR_OLD);
 //		methods.add(METHOD_NCSR);
 		methods.add(METHOD_CVL);
 		methods.add(METHOD_CITLAB);
-		methods.add(METHOD_CITLAB_ADVANCED);
 		
 //		if (withCustom) {
 //			methods.add(METHOD_CUSTOM);

@@ -516,4 +516,5 @@ CHANGES AND BUGFIXES
 	-> show correct error message when a job can't be started from tools tab
 	-> Fix a bug that blocked the HTR config. dialog when a non-existent HTR is selected
 	-> KWS
-	
+	-> new default parameters for HTR training
+	-> CITlab Advanced LA is now the default selection

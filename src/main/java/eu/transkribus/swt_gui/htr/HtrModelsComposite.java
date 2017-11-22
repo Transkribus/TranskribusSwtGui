@@ -148,6 +148,7 @@ public class HtrModelsComposite extends Composite {
 					DialogUtil.showErrorMessageBox(getShell(), "Error sharing HTR",
 							errorMsg);
 				}
+				DialogUtil.showInfoMessageBox(getShell(), "Success", "The HTR was added to the selected collection.");
 				super.widgetSelected(e);
 			}
 		});
