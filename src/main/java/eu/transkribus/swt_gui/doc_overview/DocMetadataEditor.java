@@ -113,7 +113,9 @@ public class DocMetadataEditor extends Composite {
 		lblLang.setText("Language:");
 				
 		langTable = new LanguageSelectionTable(this, 0);
-		langTable.setAvailableLanguages(FinereaderUtils.FINEREADER_LANGUAGES);
+		String[] tmpArr = new String[FinereaderUtils.ALL_LANGUAGES.size()];
+		tmpArr = FinereaderUtils.ALL_LANGUAGES.toArray(tmpArr);
+		langTable.setAvailableLanguages(tmpArr);
 		langTable.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		
