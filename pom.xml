@@ -228,10 +228,10 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/${dependency-dir}/</outputDirectory>
+							<outputDirectory>${project.build.directory}${file.separator}${dependency-dir}/</outputDirectory>
 							<resources>
 								<resource>
-									<directory>./swt/</directory>
+									<directory>.${file.separator}swt${file.separator}</directory>
 									<includes>
 										<include>swt-${swt.version}-linux32.jar</include>
 										<include>swt-${swt.version}-linux64.jar</include>

@@ -118,7 +118,8 @@ public class Text2ImageConfComposite2 extends Composite {
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 
 		Link help = new Link(container, 0);
-		help.setText("Advanced Parameters, see <a href=\"https://read02.uibk.ac.at/wiki/index.php/Text2ImageParameters\">read02.uibk.ac.at/wiki/index.php/Text2ImageParameters</a>");
+		String t2iParsLink="https://transkribus.eu/wiki/index.php/Text2ImageParameters";
+		help.setText("Advanced Parameters, see <a href=\""+t2iParsLink+"\">"+t2iParsLink+"</a>");
 		help.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event e) {
