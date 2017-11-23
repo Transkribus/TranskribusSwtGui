@@ -2333,4 +2333,9 @@ public class Storage {
 		return conn.getCrowdProject(colId);		
 	}
 
+	public void reloadDocWithAllTranscripts() throws SessionExpiredException, ClientErrorException, IllegalArgumentException {
+		doc = conn.getTrpDoc(this.collId, doc.getMd().getDocId(), -1);
+		
+	}
+
 }

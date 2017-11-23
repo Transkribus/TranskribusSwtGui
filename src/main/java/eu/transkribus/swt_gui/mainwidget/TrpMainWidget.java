@@ -3030,7 +3030,7 @@ public class TrpMainWidget {
 				DialogUtil.showErrorMessageBox(getShell(), "No document loaded", "You first have to open a document that shall be exported!");
 				return;
 			}
-
+			
 			/*
 			 * preselect document title for export folder name filter out all
 			 * unwanted chars
@@ -3048,6 +3048,15 @@ public class TrpMainWidget {
 			dir = exportDiag.open();
 			if (dir == null){
 				return;
+			}
+			
+			/*
+			 * if we do not export the latest version
+			 * -> reload the doc with all available transcripts to allow export of specific versions
+			 * param -1
+			 */
+			if (!exportDiag.getVersionStatus().contains("Latest")){
+				storage.reloadDocWithAllTranscripts();
 			}
 			
 			String pages = exportDiag.getPagesStr();
