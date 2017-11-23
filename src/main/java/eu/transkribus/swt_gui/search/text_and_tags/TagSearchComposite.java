@@ -138,7 +138,7 @@ public class TagSearchComposite extends Composite {
 	
 	public static final ColumnConfig[] RESULT_COLS = new ColumnConfig[] {
 		new ColumnConfig(TAG_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
-//		new ColumnConfig(TAG_VALUE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(TAG_VALUE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(CONTEXT_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(DOC_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(PAGE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),

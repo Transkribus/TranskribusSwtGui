@@ -1751,8 +1751,7 @@ public class Storage {
 		// throw new
 		// Exception("Export directory already exists: "+destDir.getAbsolutePath());
 		
-		final int totalWork = pageIndices==null ? doc.getNPages() : pageIndices.size();
-		
+		final int totalWork = pageIndices==null ? doc.getNPages() : pageIndices.size();		
 		monitor.beginTask("Exporting document", totalWork);
 
 		String path = dir.getAbsolutePath();
