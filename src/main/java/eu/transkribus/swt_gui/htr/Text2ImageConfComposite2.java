@@ -32,7 +32,7 @@ public class Text2ImageConfComposite2 extends Composite {
 	Button respectLineBreaksCheck;
 	LabeledText thresholdTxt;
 	
-	LabeledText numberOfThreadsTxt;
+//	LabeledText numberOfThreadsTxt;
 	
 	LabeledText trainSizePerEpochTxt;
 	CitlabNoiseParamCombo noiseCmb;
@@ -255,11 +255,13 @@ public class Text2ImageConfComposite2 extends Composite {
 		boolean removeLineBreaks = !respectLineBreaksCheck.getSelection();
 		config.setRemoveLineBreaks(removeLineBreaks);
 		
+		/*
 		if (numberOfThreadsTxt.toIntVal()!=null) {
 			config.setnThreads(numberOfThreadsTxt.toIntVal());
 		} else {
 			throw new IOException("Cannot parse number of threads parameter: "+epochsTxt.getText());
 		}
+		*/
 		
 		config.setNoise(noiseCmb.getNoise());
 		
