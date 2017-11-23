@@ -510,7 +510,8 @@ CHANGES AND BUGFIXES
 	-> IO stuff: broken image files can now be handled (local/remote docs)
 	-> fix high resolution issue
 	-> fix PDF import bug
-1.3.6
+	
+1.3.6:
 	-> fix Abbyy XML import bug
 	-> Export: fix version chooser
 	-> show correct error message when a job can't be started from tools tab
@@ -518,3 +519,8 @@ CHANGES AND BUGFIXES
 	-> KWS
 	-> new default parameters for HTR training
 	-> CITlab Advanced LA is now the default selection
+
+1.3.7:
+	-> fix NPE in Text2Image
+	-> add "value" column in tag search&replace
+	
