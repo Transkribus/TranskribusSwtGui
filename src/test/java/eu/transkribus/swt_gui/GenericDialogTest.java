@@ -9,12 +9,11 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
 import eu.transkribus.client.connection.ATrpServerConn;
-import eu.transkribus.swt.util.MyMessageDialog;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
-import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.TagConfDialog;
 
 public class GenericDialogTest {
 
@@ -22,7 +21,7 @@ public class GenericDialogTest {
 		Storage store=null;
 		try {
 			
-			if (true) { // load Storage?
+			if (false) { // load Storage?
 			store = Storage.getInstance();
 			store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
 			Future<?> fut = store.reloadDocList(1); // reload doclist of a collection just that the collection id gets set!
@@ -39,6 +38,13 @@ public class GenericDialogTest {
 					
 //					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 	//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
+					
+					if (true) {
+					TagConfDialog diag = new TagConfDialog(getShell());
+					if (diag.open() == Dialog.OK) {
+						
+					}
+					}
 					
 					if (false) {
 					HtrModelsDialog diag = new HtrModelsDialog(getShell());

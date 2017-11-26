@@ -13,6 +13,7 @@ import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
+import eu.transkribus.swt_gui.metadata.CustomTagDef;
 
 public interface IStorageListener {
 
@@ -37,6 +38,8 @@ public interface IStorageListener {
 	default void handleDocMetadataUpdateEvent(DocMetadataUpdateEvent e) {}
 	
 	default void handleDocListLoadEvent(DocListLoadEvent e) {}
+	
+	default void handlTagDefsChangedEvent(TagDefsChangedEvent e) {}
 	
 	default void handleEvent(Event event) {
 		if (event instanceof JobUpdateEvent) {
@@ -72,6 +75,9 @@ public interface IStorageListener {
 		else if (event instanceof DocListLoadEvent) {
 			handleDocListLoadEvent((DocListLoadEvent) event);
 		}
+		else if (event instanceof TagDefsChangedEvent) {
+			handlTagDefsChangedEvent((TagDefsChangedEvent) event);
+		}
 	}
 	
 	@SuppressWarnings("serial")
@@ -85,6 +91,16 @@ public interface IStorageListener {
 			this.login = login;
 			this.user = user;
 			this.serverUri = serverUri;
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public static class TagDefsChangedEvent extends Event {
+		List<CustomTagDef> tagDefs;
+		
+		public TagDefsChangedEvent(Object source, List<CustomTagDef> tagDefs) {
+			super(source, "Tag defs changed");
+			this.tagDefs = tagDefs;
 		}
 	}
 

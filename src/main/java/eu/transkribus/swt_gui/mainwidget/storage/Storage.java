@@ -111,9 +111,11 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.MainImageLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.PageLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TagDefsChangedEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
+import eu.transkribus.swt_gui.metadata.CustomTagDef;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -141,6 +143,8 @@ public class Storage {
 
 	private List<TrpDocMetadata> docList = Collections.synchronizedList(new ArrayList<>());
 	private List<TrpDocMetadata> userDocList = Collections.synchronizedList(new ArrayList<>());
+	
+	private List<CustomTagDef> customTagDefs = new ArrayList<>();
 	
 	private int collId;
 		
@@ -2335,6 +2339,22 @@ public class Storage {
 	public void reloadDocWithAllTranscripts() throws SessionExpiredException, ClientErrorException, IllegalArgumentException {
 		doc = conn.getTrpDoc(this.collId, doc.getMd().getDocId(), -1);
 		
+	}
+	
+	public List<CustomTagDef> getCustomTagDefs() {
+		return customTagDefs;
+	}
+	
+	public void addCustomTagDef(CustomTagDef tagDef) {
+		customTagDefs.add(tagDef);
+		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
+		// TODO: store to server!
+	}
+	
+	public void removeCustomTag(CustomTagDef tagDef) {
+		customTagDefs.remove(tagDef);
+		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
+		// TODO: store to server!
 	}
 
 }

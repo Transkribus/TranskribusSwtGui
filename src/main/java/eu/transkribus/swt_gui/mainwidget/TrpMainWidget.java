@@ -119,7 +119,6 @@ import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
@@ -182,6 +181,7 @@ import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListe
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
+import eu.transkribus.swt_gui.metadata.TaggingController;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetListener;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
@@ -295,6 +295,7 @@ public class TrpMainWidget {
 	static DocJobUpdater docJobUpdater;
 	
 	AutoSaveController autoSaveController;
+//	TaggingController taggingController;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
@@ -329,6 +330,7 @@ public class TrpMainWidget {
 		addUiBindings();
 		
 		autoSaveController = new AutoSaveController(this);
+//		taggingController = new TaggingController(this);
 		
 		updateToolBars();
 		if(getTrpSets().getAutoSaveFolder().trim().isEmpty()){
@@ -378,6 +380,10 @@ public class TrpMainWidget {
 	public AutoSaveController getAutoSaveController() {
 		return autoSaveController;
 	}
+	
+//	public TaggingController getTaggingController() {
+//		return taggingController;
+//	}
 
 	public void showTipsOfTheDay() {
 		Collection<Object> tips = TrpConfig.getTipsOfTheDay().values();

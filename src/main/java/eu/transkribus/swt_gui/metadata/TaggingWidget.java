@@ -71,10 +71,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 public class TaggingWidget extends Composite implements Observer {
 	private final static Logger logger = LoggerFactory.getLogger(TaggingWidget.class);
 		
-	public static final boolean USE_SIMPLE_ATTRIBUTES = true;
-	
 	private Set<String> availableTagNames = new TreeSet<>();
-	
 	CheckboxTableViewer tagsTableViewer;
 	Table tagsTable;
 	
@@ -113,11 +110,11 @@ public class TaggingWidget extends Composite implements Observer {
 	
 	SashForm sf;
 	
-	static int colorIndex = 1; 
-	public static final Map<String, Color> TAG_COLOR_REGISTRY = new HashMap<>();
-	static {
-		TAG_COLOR_REGISTRY.put(TextStyleTag.TAG_NAME, Colors.getSystemColor(SWT.COLOR_BLACK));
-	}
+//	static int colorIndex = 1; 
+//	public static final Map<String, Color> TAG_COLOR_REGISTRY = new HashMap<>();
+//	static {
+//		TAG_COLOR_REGISTRY.put(TextStyleTag.TAG_NAME, Colors.getSystemColor(SWT.COLOR_BLACK));
+//	}
 	
 	/**
 	 * 
@@ -402,9 +399,6 @@ public class TaggingWidget extends Composite implements Observer {
 		CellLabelProvider addButtonColLabelProvider = new CellLabelProvider() {
 			@Override public void update(final ViewerCell cell) {
 				String tagName = (String) cell.getElement();
-				boolean isSelected = isTagSelected(tagName);
-				logger.trace("tagName: "+tagName+" isSelected: "+isSelected);
-				
 				final TableItem item = (TableItem) cell.getItem();
 				TableEditor editor = new TableEditor(item.getParent());
 				
@@ -537,10 +531,6 @@ public class TaggingWidget extends Composite implements Observer {
 		clearTagsBtn.addSelectionListener(new ClearTagsSelectionListener(listener));
 	}
 	
-	boolean isTagSelected(String tagName) {
-		return getSelectedTag(tagName) != null;
-	}
-	
 	CustomTag getSelectedTag(String tagName) {
 		for (CustomTag t : selectedTags) {
 			if (t.getTagName().equals(tagName))
@@ -619,17 +609,17 @@ public class TaggingWidget extends Composite implements Observer {
 	
 	public void updateButtonVisibility() {
 		if (removeSelectedTagBtn!=null)
-			removeSelectedTagBtn.setEnabled(isTagSelected(getTagNameSelectedInTable()));
+			removeSelectedTagBtn.setEnabled(getTagNameSelectedInTable()!=null);
 		
-		logger.trace("updating buttons: "+addDelEditors.size());
-		for (String tagName : addDelEditors.keySet()) {
-			ControlEditor e = addDelEditors.get(tagName);
-			if (e.getEditor() == null || e.getEditor().isDisposed())
-				continue;
-			
-			TagAddRemoveComposite c = (TagAddRemoveComposite) e.getEditor();
-			SWTUtil.setEnabled(c.getRemoveButton(), isTagSelected(tagName));
-		}
+//		logger.trace("updating buttons: "+addDelEditors.size());
+//		for (String tagName : addDelEditors.keySet()) {
+//			ControlEditor e = addDelEditors.get(tagName);
+//			if (e.getEditor() == null || e.getEditor().isDisposed())
+//				continue;
+//			
+//			TagAddRemoveComposite c = (TagAddRemoveComposite) e.getEditor();
+//			SWTUtil.setEnabled(c.getRemoveButton(), isTagSelected(tagName));
+//		}
 		
 //		for (String k : removeBtns.keySet()) {
 //			SWTUtil.setEnabled(removeBtns.get(k), selectedTags.contains(k));
@@ -988,8 +978,6 @@ public class TaggingWidget extends Composite implements Observer {
 	}
 
 	@Override public void update(Observable o, Object arg) {
-		
-		
 		if (arg instanceof TagRegistryChangeEvent) {
 			logger.debug("updated tag registry "+arg);
 
@@ -999,110 +987,4 @@ public class TaggingWidget extends Composite implements Observer {
 			updateAvailableTags();
 		}
 	}
-
-//	private void initPropertyTable() {
-//		logger.debug("initing property table!");
-//		if (propertyTable != null && !propertyTable.isDisposed()) {	
-//			logger.debug("disposing old property table...");
-//			propertyTable.dispose();
-//			propertyTable = null;
-//		}
-//		
-//		propertyTable = new MyPropertyTable(propertyTableContainer, SWT.NONE);
-//		propertyTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-//		propertyTable.hideButtons();
-//		
-////		propertyTable.addChangeListener(new PTPropertyChangeListener() {
-////			@Override public void propertyHasChanged(PTProperty property) {
-////				logger.debug("property changed: "+property.getName()+" value: "+property.getValue());
-////			}
-////		});
-//				
-////		propertyTable.viewAsFlatList();
-//				
-//		propsExp.layout();
-//		this.layout();
-//	}
-	
-//	private Table getPropertyTableWidget()  {
-//		try {
-//			Field f = propertyTable.getClass().getDeclaredField("widget"); //NoSuchFieldException
-//			f.setAccessible(true);
-//			PTWidget w = (PTWidget) f.get(propertyTable);
-//			logger.info("ptwidget: "+w);
-//			
-//			return (Table) w.getWidget();
-//		} catch (Exception e) {
-//			logger.error(e.getMessage(), e);
-//			return null;
-//		}
-//	}
-	
-//	private void updatePropertyTableProperties(CustomTag tag, boolean setValues) {
-//		if (!withProperties)
-//			return;
-//		
-//		if (true)
-//			return;
-//		
-//		initPropertyTable();
-//				
-////		propertyTable.getPropertiesListPointer().clear();
-//		
-//		for (CustomTagAttribute an : tag.getAttributes()) {
-//			logger.debug("adding attribute: "+an);
-//			if (false && !an.isEditable()) {
-//				logger.debug("attribute "+an.getName()+" is not editable - skipping!");
-//				continue;
-//			}
-//			
-//			Class<?> type = tag.getAttributeType(an.getName());
-//			if (type == null) {
-//				logger.warn("could not determine type for attribute: "+an+" - skipping!");
-//				continue;
-//			}
-//			logger.debug("type = "+type);
-//						
-//			String displayName = an.getName(); // default: use tag name as display name!
-//			if (USE_SIMPLE_ATTRIBUTES)
-//				displayName = StringUtils.isEmpty(an.getDisplayName()) ? an.getName() : an.getDisplayName();
-//				
-//			PTProperty pt = new PTProperty(an.getName(), displayName, an.getDescription(), null);
-//			if (type.equals(Boolean.class))
-//				pt.setEditor(new PTCheckboxEditor());
-//			else if (type.equals(Float.class))
-//				pt.setEditor(new MyPTFloatEditor());
-//			else if (type.equals(Integer.class))
-//				pt.setEditor(new MyPTIntegerEditor());
-//			
-//			pt.setEnabled(an.isEditable());
-//			
-//			try {
-//				propertyTable.addProperty(pt);
-//				if (setValues)
-//					pt.setValue(tag.getAttributeValue(an.getName()));
-//				else
-//					pt.setValue(null);				
-//			} catch (Exception e) {
-//				logger.warn(e.getMessage(), e);
-//			}
-//			
-//
-//		}
-////		this.layout();
-////		propertyTable.layout();
-//		
-////		propertyTable.viewAsFlatList();
-//		
-//		logger.debug("widget: "+propertyTable.getWidget());
-//		propertyTable.getWidget().refillData();
-//		propertyTable.layout();
-//		
-//		propsExp.layout();
-//		layout();
-//		redraw();
-//	}
-	
-	
-
 }
