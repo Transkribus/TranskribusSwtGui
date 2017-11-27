@@ -116,6 +116,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptList
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
 import eu.transkribus.swt_gui.metadata.CustomTagDef;
+import eu.transkribus.swt_gui.metadata.CustomTagDefUtil;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -204,6 +205,7 @@ public class Storage {
 		initImCache();
 		initTranscriptCache();
 		addInternalListener();
+		readTagDefsFromLocalSettings();
 	}
 	
 	private void addInternalListener() {
@@ -2348,13 +2350,31 @@ public class Storage {
 	public void addCustomTagDef(CustomTagDef tagDef) {
 		customTagDefs.add(tagDef);
 		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
-		// TODO: store to server!
+	
+		updateCustomTagDefsForCurrentCollection();
 	}
 	
 	public void removeCustomTag(CustomTagDef tagDef) {
 		customTagDefs.remove(tagDef);
 		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
-		// TODO: store to server!
+		
+		updateCustomTagDefsForCurrentCollection();
+	}
+	
+	private void updateCustomTagDefsForCurrentCollection() {
+		if (!storage.isLoggedIn()) {
+			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
+			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
+		} else {
+			// TODO: write to server for current collection if logged in!
+		}
+	}
+	
+	private void readTagDefsFromLocalSettings() {
+		customTagDefs.clear();
+		customTagDefs.addAll(CustomTagDefUtil.readCustomTagDefsFromSettings());
+		
+		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
 	}
 
 }

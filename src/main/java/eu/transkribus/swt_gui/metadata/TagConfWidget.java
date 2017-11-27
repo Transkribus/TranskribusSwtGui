@@ -23,12 +23,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.TableEditor;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
@@ -36,7 +32,6 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -52,12 +47,9 @@ import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
 import eu.transkribus.swt.util.ColorChooseButton;
-import eu.transkribus.swt.util.Colors;
-import eu.transkribus.swt.util.CustomTagPropertyTable;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -66,17 +58,20 @@ public class TagConfWidget extends Composite {
 	
 	Set<String> availableTagNames = new TreeSet<>();
 	
-	TableViewer availableTagsTv, tagDefsTv;
+	TableViewer availableTagsTv;
 	SashForm availableTagsSf;
 	CustomTagPropertyTable propsTable;
+	
+	TagDefsWidget tagDefsWidget;
 
 	SashForm horizontalSf;
 	
 //	List<ITaggingWidgetListener> listener = new ArrayList<>();
 	
 	Map<String, ControlEditor> addTagToListEditors = new HashMap<>();
-	Map<CustomTagDef, ControlEditor> removeTagDefEditors = new HashMap<>();
-	Map<CustomTagDef, ControlEditor> colorEditors = new HashMap<>();
+	
+//	Map<CustomTagDef, ControlEditor> removeTagDefEditors = new HashMap<>();
+//	Map<CustomTagDef, ControlEditor> colorEditors = new HashMap<>();
 	
 	public TagConfWidget(Composite parent, int style) {
 		super(parent, style);
@@ -128,19 +123,12 @@ public class TagConfWidget extends Composite {
 			}
 		});
 		
-		initTagDefsTable();
+		tagDefsWidget = new TagDefsWidget(horizontalSf, 0, true);
 		
 		horizontalSf.setWeights(new int[] { 50, 50 });
 		availableTagsSf.setWeights(new int[] { 70, 30 });
 		
 		updateAvailableTags();
-		updateTagDefsFromStorage();
-		
-		Storage.getInstance().addListener(new IStorageListener() {
-			public void handlTagDefsChangedEvent(TagDefsChangedEvent e) {
-				updateTagDefsFromStorage();
-			}
-		});
 		
 		CustomTagFactory.registryObserver.addObserver(new Observer() {
 			@Override
@@ -413,6 +401,7 @@ public class TagConfWidget extends Composite {
 		});
 		
 		propsTable = new CustomTagPropertyTable(propsContainer, 0, false);
+		propsTable.getTableViewer().getTable().setHeaderVisible(false);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2);
 //		gd.heightHint = 200;
 		propsTable.setLayoutData(gd);
@@ -420,143 +409,6 @@ public class TagConfWidget extends Composite {
 //		initPropertyTable();
 
 		layout();
-	}
-	
-	private void initTagDefsTable() {
-		Composite container = new Composite(horizontalSf, SWT.NONE);
-		container.setLayout(new GridLayout(1, false));
-		
-		Label headerLbl = new Label(container, 0);
-		headerLbl.setText("Tag defintions for current collection");
-		Fonts.setBoldFont(headerLbl);
-		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		container.setLayout(new GridLayout(1, false));
-		container.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		
-		Composite btnsContainer = new Composite(container, 0);
-		btnsContainer.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		btnsContainer.setLayout(new GridLayout(4, false));
-
-		int tableViewerStyle = SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION;
-		tagDefsTv = new TableViewer(container, tableViewerStyle);
-		tagDefsTv.getTable().setToolTipText("List of tag definitions that are available in the user interface");
-		
-//		tagsTableViewer = new TableViewer(taggingGroup, SWT.FULL_SELECTION|SWT.HIDE_SELECTION|SWT.NO_FOCUS | SWT.H_SCROLL
-//		        | SWT.V_SCROLL | SWT.FULL_SELECTION /*| SWT.BORDER*/);
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-//		GridData gd = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
-		gd.heightHint = 150;
-		tagDefsTv.getTable().setLayoutData(gd);
-		tagDefsTv.getTable().setHeaderVisible(true);
-		tagDefsTv.getTable().setLinesVisible(true);
-		tagDefsTv.setContentProvider(new ArrayContentProvider());
-		
-		TableViewerColumn tagDefCol = new TableViewerColumn(tagDefsTv, SWT.NONE);
-		tagDefCol.getColumn().setText("Tag definition");
-		tagDefCol.getColumn().setResizable(true);
-		tagDefCol.getColumn().setWidth(300);
-		ColumnLabelProvider nameColLP = new ColumnLabelProvider() {
-			@Override public String getText(Object element) {
-				if (!(element instanceof CustomTagDef)) {
-					return "i am error";
-				}
-				
-				CustomTagDef tagDef = (CustomTagDef) element;
-				return tagDef.getCustomTag().getCssStr();
-			}
-		};
-		tagDefCol.setLabelProvider(nameColLP);
-		
-		if (true) {
-			TableViewerColumn colorCol = new TableViewerColumn(tagDefsTv, SWT.NONE);
-			colorCol.getColumn().setText("Color");
-			colorCol.getColumn().setResizable(true);
-			colorCol.getColumn().setWidth(50);
-			colorCol.setLabelProvider(new CellLabelProvider() {
-				@Override public void update(ViewerCell cell) {
-					if (!(cell.getElement() instanceof CustomTagDef)) {
-						return;
-					}
-					
-					TableItem item = (TableItem) cell.getItem();
-					CustomTagDef tagDef = (CustomTagDef) cell.getElement();
-					
-					TableEditor editor = new TableEditor(item.getParent());				
-	                editor.grabHorizontal  = true;
-	                editor.grabVertical = true;
-	                editor.horizontalAlignment = SWT.LEFT;
-	                editor.verticalAlignment = SWT.TOP;
-	                
-	                ColorChooseButton colorCtrl = new ColorChooseButton((Composite) cell.getViewerRow().getControl(), tagDef.getRGB()) {
-	                	@Override protected void onColorChanged(RGB rgb) {
-	                		tagDef.setRGB(rgb);
-	                		logger.info("color of tag def changed, tagDef: "+tagDef);
-	                		// TODO: update tagDef list on server
-	                	}
-	                };
-
-	                editor.setEditor(colorCtrl , item, cell.getColumnIndex());
-	                editor.layout();
-	                
-	                TaggingWidgetUtils.replaceEditor(colorEditors, tagDef, editor);
-				}
-			});
-			
-		}
-
-		if (true) { // remove btn for table rows
-		TableViewerColumn removeBtnCol = new TableViewerColumn(tagDefsTv, SWT.NONE);
-		removeBtnCol.getColumn().setText("");
-		removeBtnCol.getColumn().setResizable(false);
-		removeBtnCol.getColumn().setWidth(100);
-		
-		class RemoveTagDefSelectionListener extends SelectionAdapter {
-			CustomTagDef tagDef;
-			
-			public RemoveTagDefSelectionListener(CustomTagDef tagDef) {
-				this.tagDef = tagDef;
-			}
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				Storage.getInstance().removeCustomTag(tagDef);
- 				tagDefsTv.refresh();
-			}
-		};
-		
-		CellLabelProvider removeButtonColLabelProvider = new CellLabelProvider() {
-			@Override public void update(final ViewerCell cell) {
-							
-				final TableItem item = (TableItem) cell.getItem();
-				TableEditor editor = new TableEditor(item.getParent());
-				
-				Button removeButton = new Button((Composite) cell.getViewerRow().getControl(), SWT.PUSH);
-//		        addButton.setImage(Images.ADD);
-		        removeButton.setImage(Images.getOrLoad("/icons/delete_12.png"));
-		        removeButton.setToolTipText("Remove tag definition");
-		        removeButton.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
-		        
-		        CustomTagDef tagDef = (CustomTagDef) cell.getElement();	
-		        removeButton.addSelectionListener(new RemoveTagDefSelectionListener(tagDef));
-		        Control c = removeButton;
-		        
-                Point size = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-				editor.minimumWidth = size.x;
-				editor.horizontalAlignment = SWT.LEFT;
-                editor.setEditor(c , item, cell.getColumnIndex());
-                editor.layout();
-                
-                TaggingWidgetUtils.replaceEditor(removeTagDefEditors, tagDef, editor);
-			}
-		};
-		removeBtnCol.setLabelProvider(removeButtonColLabelProvider);
-		}
-		
-		tagDefsTv.refresh(true);
-		tagDefsTv.getTable().pack();
-
-		container.layout(true);
 	}
 
 	public String getSelectedAvailableTagsName() {
@@ -597,30 +449,7 @@ public class TagConfWidget extends Composite {
 		});
 	}
 	
-	private void updateTagDefsFromStorage() {
-		Display.getDefault().asyncExec(() -> {
-			tagDefsTv.setInput(Storage.getInstance().getCustomTagDefs());
-			tagDefsTv.refresh();
-			
-			TaggingWidgetUtils.updateEditors(colorEditors, Storage.getInstance().getCustomTagDefs());
-			TaggingWidgetUtils.updateEditors(removeTagDefEditors, Storage.getInstance().getCustomTagDefs());
-		});
-	}
-	
-//	private void updateTable() {
-//		updateEditors();
-//		availableTagsTv.refresh(true);
-//		availableTagsTv.getTable().layout(true);
-//	}
-	
-//	private void updateEditors() {
-////		TaggingWidgetUtils.updateEditors(colorEditors, availableTagNames);
-//		TaggingWidgetUtils.updateEditors(addTagToListEditors, availableTagNames);
-////		TaggingWidgetUtils.updateEditors(delSelectedEditors, getSelectedTagNames());
-////		TaggingWidgetUtils.updateEditors(delSelectedEditors, selectedTags);
-//	}
-	
-	public void updatePropertiesForSelectedTag() {
+	private void updatePropertiesForSelectedTag() {
 		String tn = getSelectedAvailableTagsName();
 		if (tn == null) {
 			propsTable.setInput(null, null);

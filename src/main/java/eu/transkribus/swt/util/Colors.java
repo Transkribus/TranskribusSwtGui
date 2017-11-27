@@ -17,6 +17,11 @@ public class Colors {
 //		return resManager.createColor(rgb);
 	}
 	
+	public static RGB toRGB(String code) throws NumberFormatException {
+		java.awt.Color c = java.awt.Color.decode(code);
+		return new RGB(c.getRed(), c.getGreen(), c.getBlue());
+	}
+	
 	public static Color decode(String code) throws NumberFormatException {
 		java.awt.Color c = java.awt.Color.decode(code);
 		RGB rgb = new RGB(c.getRed(), c.getGreen(), c.getBlue());
@@ -32,18 +37,22 @@ public class Colors {
 		} catch (Exception e) {
 			return null;
 		}
-	}	
+	}
+	
+	public static String toHex(RGB rgb) {
+		return toHex(rgb.red, rgb.green, rgb.blue);
+	}
 	
 	public static String toHex(int r, int g, int b) {
-	    return "#" + toBrowserHexValue(r) + toBrowserHexValue(g) + toBrowserHexValue(b);
-	  }
+		return "#" + toBrowserHexValue(r) + toBrowserHexValue(g) + toBrowserHexValue(b);
+	}
 
-	  private static String toBrowserHexValue(int number) {
-	    StringBuilder builder = new StringBuilder(Integer.toHexString(number & 0xff));
-	    while (builder.length() < 2) {
-	      builder.append("0");
-	    }
-	    return builder.toString().toUpperCase();
-	  }
+	private static String toBrowserHexValue(int number) {
+		StringBuilder builder = new StringBuilder(Integer.toHexString(number & 0xff));
+		while (builder.length() < 2) {
+			builder.append("0");
+		}
+		return builder.toString().toUpperCase();
+	}
  
 }

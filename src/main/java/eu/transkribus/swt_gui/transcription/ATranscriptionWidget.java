@@ -117,7 +117,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.metadata.TaggingWidget;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetOld;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
@@ -1442,7 +1442,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //				e.gc.setLineStyle(tag.isContinued() ? SWT.LINE_DASH : SWT.LINE_SOLID);
 				e.gc.setLineWidth(TAG_LINE_WIDTH);
 				
-				Color c = TaggingWidget.getTagColor(tagName);
+				Color c = TaggingWidgetOld.getTagColor(tagName);
 				e.gc.setForeground(c);
 				e.gc.setBackground(c);
 
@@ -1846,21 +1846,13 @@ public abstract class ATranscriptionWidget extends Composite{
 	    			mw.addTagForSelection(CommentTag.TAG_NAME, atts, null);
 	    			mw.getUi().getCommentsWidget().reloadComments();
 	    		}
-	    		else{
-	    			mw.getTaggingWidgetListener().addTagForSelection(tagname, null);
+	    		else {
+	    			mw.addTagForSelection(tagname, null, null);
 	    		}
 	
-			} catch (ServerErrorException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
-	    	
 	    }
 	}
 

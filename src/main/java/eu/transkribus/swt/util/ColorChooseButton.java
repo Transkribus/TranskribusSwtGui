@@ -21,6 +21,8 @@ public class ColorChooseButton extends Composite {
 	
 	Button colorBtn;
 	
+	boolean editorEnabled=true;
+	
 	public ColorChooseButton(Composite parent) { 
 		this(parent, DEFAULT_COLOR);
 	}
@@ -46,6 +48,10 @@ public class ColorChooseButton extends Composite {
         
         colorBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
+				if (!editorEnabled) {
+					return;
+				}
+				
 				ColorDialog dlg = new ColorDialog(getShell());
 				
 				dlg.setRGB((RGB) colorBtn.getData());
@@ -70,6 +76,20 @@ public class ColorChooseButton extends Composite {
 	public RGB getRGB() {
 		return (RGB) colorBtn.getData();
 	}
+	
+	public Button getColorBtn() {
+		return colorBtn;
+	}
+
+	public boolean isEditorEnabled() {
+		return editorEnabled;
+	}
+
+	public void setEditorEnabled(boolean editorEnabled) {
+		this.editorEnabled = editorEnabled;
+	}
+	
+	
 	
 
 }

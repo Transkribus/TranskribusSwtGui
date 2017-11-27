@@ -47,6 +47,8 @@ public class Images {
 	public static final Image DELETE = getOrLoad("/icons/delete.png");
 	public static final Image CROSS = getOrLoad("/icons/cross.png");
 	public static final Image ADD = Images.getOrLoad("/icons/add.png");
+	public static final Image ADD_12 = Images.getOrLoad("/icons/add_12.png");
+	
 	public static final Image APPLICATION_DOUBLE = Images.getOrLoad("/icons/application_double.png");
 	public static final Image LOADING_IMG = Images.getOrLoad("/icons/loading.gif");
 	public static final Image ERROR_IMG = Images.getOrLoad("/icons/broken_image.png");

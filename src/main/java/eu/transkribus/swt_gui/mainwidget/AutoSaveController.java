@@ -131,7 +131,7 @@ public class AutoSaveController {
 			TrpMainWidget.getInstance().onError("Error when loading transcript into view.", e.getMessage(), e.getCause());
 			e.printStackTrace();
 		}
-		mw.ui.taggingWidget.updateAvailableTags();
+//		mw.ui.taggingWidget.updateAvailableTags();
 		mw.updateTranscriptionWidgetsData();
 		mw.canvas.getScene().updateSegmentationViewSettings();
 		mw.canvas.update();

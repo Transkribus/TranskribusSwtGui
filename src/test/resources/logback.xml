@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- For assistance related to logback-translator or configuration -->
+<!-- files in general, please contact the logback user mailing list -->
+<!-- at http://www.qos.ch/mailman/listinfo/logback-user -->
+<!-- -->
+<!-- For professional support please see -->
+<!-- http://www.qos.ch/shop/products/professionalSupport -->
+
+<!-- DO NOT CHANGE THE APPENDER NAME (org.dea), ELSE THE APPLICATON WONT BE ABLE TO FIND THE LOGFILE FOR SENDING BUG REQUESTS
+ THE ONLY THING YOU MIGHT WANT TO CHANGE IS THE LOG LEVEL (INFO, DEBUG ...) -->
+<configuration>
+	<!-- Appenders: -->
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- <filter.ID>org.apache.log4j.varia.LevelRangeFilter</filter.ID> -->
+		<!-- <filter.ID.LevelMax>INFO</filter.ID.LevelMax> -->
+		<!-- <filter.ID.LevelMin>ALL</filter.ID.LevelMin> -->
+		<encoder>
+			<pattern>%-5p [%t] %c - %m%n</pattern>
+		</encoder>
+	</appender>
+	<!-- <appender name="CONSOLE_ERR" class="ch.qos.logback.core.ConsoleAppender"> -->
+	<!-- <target>System.err</target> -->
+	<!-- <filter.ID>org.apache.log4j.varia.LevelRangeFilter</filter.ID> -->
+	<!-- <filter.ID.LevelMin>WARN</filter.ID.LevelMin> -->
+	<!-- <filter.ID.LevelMax>FATAL</filter.ID.LevelMax> -->
+	<!-- <encoder> -->
+	<!-- <pattern>%-5p [%t] %c %x - %m%n</pattern> -->
+	<!-- </encoder> -->
+	<!-- </appender> -->
+	<appender name="LOGFILE"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<!--See http://logback.qos.ch/manual/appenders.html#RollingFileAppender -->
+		<!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy -->
+		<!--for further documentation -->
+		<File>logs/TrpGui.log</File>
+		<Append>true</Append>
+		<encoder>
+			<pattern>%d [%t] %-5p %c - %m%n</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>logs/TrpGui.log.%d{.yyyy-MM}</fileNamePattern>
+		</rollingPolicy>
+	</appender>    
+    
+	<logger name="eu.transkribus" level="DEBUG">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="LOGFILE" />
+	</logger>    
+	<logger name="org.dea" level="DEBUG">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="LOGFILE" />
+	</logger>    
+	<logger name="org.eclipse" level="DEBUG">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="LOGFILE" />
+	</logger>
+	<logger name="org.apache" level="ERROR">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="LOGFILE" />
+	</logger>
+</configuration>

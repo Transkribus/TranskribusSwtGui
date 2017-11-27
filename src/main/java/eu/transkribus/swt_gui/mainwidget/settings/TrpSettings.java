@@ -167,6 +167,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private String tagNames="";
 	public static final String TAG_NAMES_PROPERTY="tagNames";
 	
+	private String tagDefs="";
+	public static final String TAG_DEFS_PROPERTY="tagDefs";
+	
 	private int imageCacheSize = 3;
 	public static final String IMAGE_CACHE_SIZE_PROPERTY="imageCacheSize";
 	
@@ -633,16 +636,26 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(ENABLE_INDEXED_STYLES, !this.enableIndexedStyles, this.enableIndexedStyles);
 	}
 	
-	public String getTagNames() { return tagNames; }
+	public String getTagNames() {
+		return tagNames;
+	}
+	
 	public void setTagNames(String tagNames) {
 		String old = this.tagNames;
 		this.tagNames = tagNames;
-		
-		logger.debug("SETTING TAG NAMES: "+tagNames);
-		
 		firePropertyChange(TAG_NAMES_PROPERTY, old, this.tagNames);
 	}
-
+	
+	public String getTagDefs() {
+		return tagDefs;
+	}
+	
+	public void setTagDefs(String tagDefs) {
+		String old = this.tagDefs;
+		this.tagDefs = tagDefs;
+		firePropertyChange(TAG_DEFS_PROPERTY, old, this.tagDefs);
+	}
+	
 	public static Color determineColor(TrpSettings sets, Object wrappedData) {
 		if (wrappedData instanceof TableCellType) {
 			return sets.colorTableCells;

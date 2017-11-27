@@ -1,4 +1,4 @@
-package eu.transkribus.swt.util;
+package eu.transkribus.swt_gui.metadata;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
@@ -31,6 +31,12 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.MyCheckboxEditor;
+import eu.transkribus.swt.util.MyTextCellEditor;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.TableViewerUtils;
 
 public class CustomTagPropertyTable extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(CustomTagPropertyTable.class);
@@ -208,6 +214,10 @@ public class CustomTagPropertyTable extends Composite {
 		valueCol.setEditingSupport(valueEditingSupport);
 		
 //		valueCol.addSelectionListener(new Selection);
+	}
+	
+	public TableViewer getTableViewer() {
+		return tv;
 	}
 	
 	public CustomTag getPrototypeTag() { return prototypeTag; }

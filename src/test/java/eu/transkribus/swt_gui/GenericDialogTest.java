@@ -14,6 +14,7 @@ import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.TagConfDialog;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetDialog;
 
 public class GenericDialogTest {
 
@@ -40,10 +41,17 @@ public class GenericDialogTest {
 	//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 					
 					if (true) {
-					TagConfDialog diag = new TagConfDialog(getShell());
-					if (diag.open() == Dialog.OK) {
-						
+						TaggingWidgetDialog diag = new TaggingWidgetDialog(getShell());
+						if (diag.open() == Dialog.OK) {
+							
+						}
 					}
+					
+					if (false) {
+						TagConfDialog diag = new TagConfDialog(getShell());
+						if (diag.open() == Dialog.OK) {
+							
+						}
 					}
 					
 					if (false) {

@@ -181,8 +181,7 @@ import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListe
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
-import eu.transkribus.swt_gui.metadata.TaggingController;
-import eu.transkribus.swt_gui.metadata.TaggingWidgetListener;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetOldListener;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
@@ -248,7 +247,7 @@ public class TrpMainWidget {
 	CanvasShapeObserver canvasShapeObserver;
 	PageMetadataWidgetListener pageMetadataWidgetListener;
 	TextStyleTypeWidgetListener textStyleWidgetListener;
-	TaggingWidgetListener taggingWidgetListener;
+//	TaggingWidgetOldListener taggingWidgetListener;
 	ToolsWidgetListener laWidgetListener;
 //	JobTableWidgetListener jobOverviewWidgetListener;
 //	TranscriptsTableWidgetListener versionsWidgetListener;
@@ -802,7 +801,7 @@ public class TrpMainWidget {
 		
 		textStyleWidgetListener = new TextStyleTypeWidgetListener(ui.getTextStyleWidget());
 
-		taggingWidgetListener = new TaggingWidgetListener(this);
+//		taggingWidgetListener = new TaggingWidgetOldListener(this);
 
 		laWidgetListener = new ToolsWidgetListener(this);
 		
@@ -876,9 +875,9 @@ public class TrpMainWidget {
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, cw.getToolbar().showReadingOrderWordsButton);
 	}
 	
-	public TaggingWidgetListener getTaggingWidgetListener() {
-		return taggingWidgetListener;
-	}
+//	public TaggingWidgetOldListener getTaggingWidgetListener() {
+//		return taggingWidgetListener;
+//	}
 
 	// boolean isThisDocOpen(TrpJobStatus job) {
 	// return storage.isDocLoaded() && storage.getDoc().getId()==job.getDocId();
@@ -1740,7 +1739,7 @@ public class TrpMainWidget {
 		List<ICanvasShape> selected = canvas.getScene().getSelectedAsNewArray();
 
 		if (!storage.hasTranscript()) {
-			ui.taggingWidget.setSelectedTags(null);
+//			ui.taggingWidget.setSelectedTags(null);
 			ui.getStructuralMetadataWidget().updateData(null, null, nSel, null, new ArrayList<CustomTag>());
 			return;
 		}
@@ -1783,7 +1782,7 @@ public class TrpMainWidget {
 		// selectedTagNames.add(t.getTagName());
 		// }
 
-		ui.taggingWidget.setSelectedTags(selectedTags);
+//		ui.taggingWidget.setSelectedTags(selectedTags);
 		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, selectedTags);
 		ui.getTextStyleWidget().updateData();
 
@@ -1973,7 +1972,7 @@ public class TrpMainWidget {
 			// logger.debug("CHANGED: "+storage.getTranscript().getPage().isEdited());
 			loadJAXBTranscriptIntoView(storage.getTranscript());
 
-			ui.taggingWidget.updateAvailableTags();
+//			ui.taggingWidget.updateAvailableTags();
 			updateTranscriptionWidgetsData();
 			canvas.getScene().updateSegmentationViewSettings();
 
