@@ -170,6 +170,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private String tagDefs="";
 	public static final String TAG_DEFS_PROPERTY="tagDefs";
 	
+	private boolean enforceEqualColorsForEqualTagNames=true;
+	public static final String ENFORCE_EQUAL_COLORS_FOR_EQUAL_TAG_NAMES_PROPERTY="enforceEqualColorsForEqualTagNames";
+	
 	private int imageCacheSize = 3;
 	public static final String IMAGE_CACHE_SIZE_PROPERTY="imageCacheSize";
 	
@@ -646,6 +649,15 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(TAG_NAMES_PROPERTY, old, this.tagNames);
 	}
 	
+	public boolean isEnforceEqualColorsForEqualTagNames() {
+		return enforceEqualColorsForEqualTagNames;
+	}
+
+	public void setEnforceEqualColorsForEqualTagNames(boolean enforceEqualColorsForEqualTagNames) {
+		this.enforceEqualColorsForEqualTagNames = enforceEqualColorsForEqualTagNames;
+		firePropertyChange(ENFORCE_EQUAL_COLORS_FOR_EQUAL_TAG_NAMES_PROPERTY, !this.enforceEqualColorsForEqualTagNames, this.enforceEqualColorsForEqualTagNames);
+	}
+
 	public String getTagDefs() {
 		return tagDefs;
 	}

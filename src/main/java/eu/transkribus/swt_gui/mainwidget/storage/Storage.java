@@ -2349,19 +2349,51 @@ public class Storage {
 	
 	public void addCustomTagDef(CustomTagDef tagDef) {
 		customTagDefs.add(tagDef);
+		checkTagColorsConsistency();
 		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
 	
-		updateCustomTagDefsForCurrentCollection();
+		storeCustomTagDefsForCurrentCollection();
 	}
 	
 	public void removeCustomTag(CustomTagDef tagDef) {
 		customTagDefs.remove(tagDef);
+		checkTagColorsConsistency();
 		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
 		
-		updateCustomTagDefsForCurrentCollection();
+		storeCustomTagDefsForCurrentCollection();
 	}
 	
-	private void updateCustomTagDefsForCurrentCollection() {
+	public void signalCustomTagDefsChanged() {
+		checkTagColorsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
+		storeCustomTagDefsForCurrentCollection();
+	}
+	
+	private void checkTagColorsConsistency() {
+//		boolean enforceEqualColorOverEqualTagNames = true;
+		if (TrpConfig.getTrpSettings().isEnforceEqualColorsForEqualTagNames()) {
+			for (CustomTagDef cDef: customTagDefs) {
+				String t1 = cDef.getCustomTag().getTagName();
+				
+				for (CustomTagDef cDefOther : customTagDefs) {
+					String t2 = cDef.getCustomTag().getTagName();
+					if (cDef == cDefOther) {
+						continue;
+					}
+					
+					if (!t1.equals(t2)) {
+						continue;
+					}
+					
+					if (!CoreUtils.equalsObjects(cDef.getRGB(), cDefOther.getRGB())) {
+						cDefOther.setRGB(cDef.getRGB());
+					}
+				}
+			}
+		}
+	}
+	
+	private void storeCustomTagDefsForCurrentCollection() {
 		if (!storage.isLoggedIn()) {
 			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
 			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);

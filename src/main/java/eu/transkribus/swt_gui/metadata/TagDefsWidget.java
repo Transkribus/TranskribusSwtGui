@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.metadata;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -34,7 +35,10 @@ import eu.transkribus.swt.util.ColorChooseButton;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -54,27 +58,42 @@ public class TagDefsWidget extends Composite {
 		setLayout(new FillLayout());
 		
 		this.isEditable = isEditable;
+		int nCols = isEditable ? 1 : 2;
 
 		Composite container = new Composite(this, SWT.NONE);
 //		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
-		container.setLayout(new GridLayout(1, false));
+		container.setLayout(new GridLayout(nCols, false));
 		
 		Label headerLbl = new Label(container, 0);
 		headerLbl.setText("Tag defintions for current collection");
 		Fonts.setBoldFont(headerLbl);
 		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		Composite btnsContainer = new Composite(container, 0);
-		btnsContainer.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		btnsContainer.setLayout(new GridLayout(4, false));
-
+		if (!isEditable) {
+			Button editBtn = new Button(container, 0);
+			editBtn.setText("Edit..");
+			editBtn.setImage(Images.PENCIL);
+			SWTUtil.onSelectionEvent(editBtn, e -> {
+				TagConfDialog diag = new TagConfDialog(getShell());
+				diag.open();
+			});
+		}
+		
+		if (isEditable) {
+			Button enforceEqualColorsForEqualTagNamesBtn = new Button(container, SWT.CHECK);
+			enforceEqualColorsForEqualTagNamesBtn.setText("Enforce equal colors for equal tag names");
+			enforceEqualColorsForEqualTagNamesBtn.setToolTipText("Enforces equal colors for tags with the same name but different attributes");
+			enforceEqualColorsForEqualTagNamesBtn.setSelection(true);
+			DataBinder.get().bindBeanToWidgetSelection(TrpSettings.ENFORCE_EQUAL_COLORS_FOR_EQUAL_TAG_NAMES_PROPERTY, TrpConfig.getTrpSettings(), enforceEqualColorsForEqualTagNamesBtn);
+		}
+		
 		int tableViewerStyle = SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION;
 		tableViewer = new TableViewer(container, tableViewerStyle);
 		tableViewer.getTable().setToolTipText("List of tag definitions that are available in the user interface");
 		
 //		tagsTableViewer = new TableViewer(taggingGroup, SWT.FULL_SELECTION|SWT.HIDE_SELECTION|SWT.NO_FOCUS | SWT.H_SCROLL
 //		        | SWT.V_SCROLL | SWT.FULL_SELECTION /*| SWT.BORDER*/);
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, nCols, 1);
 //		GridData gd = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
 		gd.heightHint = 150;
 		tableViewer.getTable().setLayoutData(gd);
@@ -122,7 +141,7 @@ public class TagDefsWidget extends Composite {
 	                	@Override protected void onColorChanged(RGB rgb) {
 	                		tagDef.setRGB(rgb);
 	                		logger.info("color of tag def changed, tagDef: "+tagDef);
-	                		// TODO: update tagDef list on server
+	                		Storage.getInstance().signalCustomTagDefsChanged();
 	                	}
 	                };
 	                colorCtrl.setEditorEnabled(isEditable);
@@ -185,7 +204,7 @@ public class TagDefsWidget extends Composite {
 			removeBtnCol.setLabelProvider(removeButtonColLabelProvider);
 		}
 		
-		if (!this.isEditable) { // TODO add an "add tag button" to add the tag to the current position in the transcription widget 
+		if (!this.isEditable) { // add an "add tag button" to add the tag to the current position in the transcription widget 
 			TableViewerColumn addButtonCol = new TableViewerColumn(tableViewer, SWT.NONE);
 			addButtonCol.getColumn().setText("");
 			addButtonCol.getColumn().setResizable(false);
@@ -220,10 +239,7 @@ public class TagDefsWidget extends Composite {
 				}
 			};
 			addButtonCol.setLabelProvider(addButtonColLabelProvider);
-			
-			
-			
-		}
+		} // end add button column
 		
 		tableViewer.refresh(true);
 		tableViewer.getTable().pack();

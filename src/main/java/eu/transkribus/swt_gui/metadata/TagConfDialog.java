@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.metadata;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -29,8 +30,16 @@ public class TagConfDialog extends Dialog {
 	}
 	
 	@Override
+    protected void createButtonsForButtonBar(Composite parent) {
+        createButton(parent, IDialogConstants.OK_ID, "OK", true);
+//        createButton(parent, IDialogConstants.CANCEL_ID,
+//                IDialogConstants.CANCEL_LABEL, false);
+    }
+	
+	@Override
 	protected void okPressed() {
-		// do sth. on ok pressed... needed?
+		super.okPressed();
+		// do sth. else on ok pressed... needed?
 	}
 	
 	@Override
@@ -47,7 +56,7 @@ public class TagConfDialog extends Dialog {
 
 	@Override
 	protected void setShellStyle(int newShellStyle) {
-		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
+		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE | SWT.APPLICATION_MODAL);
 		// setBlockOnOpen(false);
 	}
 	
