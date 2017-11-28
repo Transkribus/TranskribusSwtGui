@@ -1398,6 +1398,12 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected abstract void initVerifyKeyListener();
 	protected abstract void onPaintTags(PaintEvent e);
 	
+	/**
+	 * 
+	 * @param e
+	 * @param ctl The CustomTagList for which the tag markers are drawn
+	 * @param offset The character offset for the line of the given CustomTagList ctl
+	 */
 	protected void paintTagsFromCustomTagList(PaintEvent e, CustomTagList ctl, int offset) {
 		Set<String> tagNames = ctl.getIndexedTagNames();
 		
@@ -1439,13 +1445,6 @@ public abstract class ATranscriptionWidget extends Composite{
 					continue;
 				sr.length = tag.getLength();
 				
-//				e.gc.setLineStyle(tag.isContinued() ? SWT.LINE_DASH : SWT.LINE_SOLID);
-				e.gc.setLineWidth(TAG_LINE_WIDTH);
-				
-				Color c = TaggingWidgetOld.getTagColor(tagName);
-				e.gc.setForeground(c);
-				e.gc.setBackground(c);
-
 				// since there is a word-wrap, we have to calculate multiple bounds to draw the tag-line correctly:
 				// 1: compute bounds:
 				List<Rectangle> bounds = new ArrayList<>();
@@ -1468,7 +1467,13 @@ public abstract class ATranscriptionWidget extends Composite{
 				if (cb!=null)
 					bounds.add(cb);
 				
-				// 2: draw them bounds:
+				// 2: draw them bloody bounds:
+//				e.gc.setLineStyle(tag.isContinued() ? SWT.LINE_DASH : SWT.LINE_SOLID);
+				e.gc.setLineWidth(TAG_LINE_WIDTH);
+				Color c = TaggingWidgetOld.getTagColor(tagName);
+				e.gc.setForeground(c);
+				e.gc.setBackground(c);				
+				
 				int spacerHeight = TAG_LINE_WIDTH+SPACE_BETWEEN_TAG_LINES;
 //				if (tag.canBeEmpty()) {
 //					logger.debug("tag = "+tag);
@@ -1522,6 +1527,52 @@ public abstract class ATranscriptionWidget extends Composite{
 			}
 		}
 	}	
+	
+	public List<Rectangle> getTagDrawBounds(CustomTag tag, int offset) {
+		int li = text.getLineAtOffset(offset + tag.getOffset());
+		int lo = text.getOffsetAtLine(li);
+		int ll = text.getLine(li).length();
+		
+		StyleRange sr = null;
+		int styleOffset = offset + tag.getOffset();
+		if (styleOffset>=0 && styleOffset<text.getCharCount())
+			sr = text.getStyleRangeAtOffset(offset + tag.getOffset());
+		
+		// handle special case where a tag is empty and at the end of the line -> sr will be null from the last call in this case --> construct 'artificial' StyleRange!!
+		boolean canBeEmptyAndIsAtTheEnd = tag.canBeEmpty() && ( (offset+tag.getOffset()) == (lo+ll));
+		if (canBeEmptyAndIsAtTheEnd)
+			sr = new StyleRange(offset+tag.getOffset(), 0, null, null);
+		
+		logger.trace("stylerange at offset: "+sr);
+		if (sr == null)
+			return new ArrayList<>();
+		
+		sr.length = tag.getLength();
+		
+		// since there is a word-wrap, we have to calculate multiple bounds to draw the tag-line correctly:
+		// 1: compute bounds:
+		List<Rectangle> bounds = new ArrayList<>();
+		Rectangle cb = null;
+		int co=sr.start;
+		for (int k=sr.start; k<sr.start+sr.length; ++k) {
+			logger.trace("text: "+text.getText(co, k)+" (s,e)="+co+"/"+k);
+			Rectangle b = text.getTextBounds(co, k);
+			logger.trace("y = "+b.y+" height = "+b.height);
+			if (cb==null)
+				cb = b;
+			
+			if (cb.height!=b.height) {
+				bounds.add(new Rectangle(cb.x, cb.y, cb.width, cb.height));
+				co = k;
+				cb = null;									
+			} else
+				cb = b;
+		}
+		if (cb!=null)
+			bounds.add(cb);
+		
+		return bounds;
+	}
 	
 	protected void initCustomTagPaintListener() {
 		text.addPaintListener(new PaintListener() {

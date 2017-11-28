@@ -470,6 +470,7 @@ public class TagConfWidget extends Composite {
 			logger.debug("protoTag atts: "+protoTag.getAttributeNames());
 			
 			propsTable.setInput(protoTag, null);
+			propsTable.selectFirstAttribute();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return;

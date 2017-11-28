@@ -2,6 +2,8 @@ package eu.transkribus.swt_gui;
 
 import java.util.concurrent.Future;
 
+import org.eclipse.core.databinding.observable.Realm;
+import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.widgets.Composite;
@@ -31,6 +33,11 @@ public class GenericDialogTest {
 			fut.get();
 			}
 			
+			
+		Realm.runWithDefault(SWTObservables.getRealm(Display.getDefault()), new Runnable() {
+			@Override public void run() {
+			
+			
 			ApplicationWindow aw = new ApplicationWindow(null) {
 				@Override
 				protected Control createContents(Composite parent) {
@@ -40,14 +47,14 @@ public class GenericDialogTest {
 //					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 	//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 					
-					if (true) {
+					if (false) {
 						TaggingWidgetDialog diag = new TaggingWidgetDialog(getShell());
 						if (diag.open() == Dialog.OK) {
 							
 						}
 					}
 					
-					if (false) {
+					if (true) {
 						TagConfDialog diag = new TagConfDialog(getShell());
 						if (diag.open() == Dialog.OK) {
 							
@@ -86,6 +93,9 @@ public class GenericDialogTest {
 			aw.open();
 	
 			Display.getCurrent().dispose();
+		}});
+				
+				
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
