@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.Id;
+
+import org.apache.batik.bridge.UpdateManagerListener;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -42,6 +45,8 @@ class TagNormalizationWidget extends Composite {
 	
 //	List<CustomTag> selectedTags;
 	List<TrpDbTag> selectedTags;
+	
+	boolean currentPageAffected = false;
 
 	public TagNormalizationWidget(Composite parent, int style) {
 		super(parent, style);
@@ -93,6 +98,7 @@ class TagNormalizationWidget extends Composite {
 		if (selectedTags == null)
 			return;
 		
+		
 		try {
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -125,6 +131,9 @@ class TagNormalizationWidget extends Composite {
 								TrpPageType pt = s.getOrBuildPage(page.getCurrentTranscript(), true);
 								ptPair = Pair.of(t.getCollId(), pt);
 								affectedPages.put(t.getPageid(), ptPair);
+								if (s.getPage().getPageId() == page.getPageId()){
+									currentPageAffected = true;
+								}
 							}
 							
 							// convert DbTag to CustomTag
@@ -149,6 +158,10 @@ class TagNormalizationWidget extends Composite {
 			}, "Normalizing tag attributes", true);
 		} catch (Throwable e) {
 			TrpMainWidget.getInstance().onError("Error normalizing tag attributes", e.getMessage(), e, true, false);
+		}
+		//if loaded pae (loaded in GUI) has normalized tags then the new transcript must be loaded
+		if (currentPageAffected){
+			TrpMainWidget.getInstance().reloadCurrentPage(true, true);
 		}
 	}
 	
