@@ -173,6 +173,7 @@ import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
+import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
@@ -1421,15 +1422,8 @@ public class TrpMainWidget {
 
 			final int colId = storage.getCurrentDocumentCollectionId();
 			
-			ListIterator<String> it = RecentDocsPreferences.getItems().listIterator();
-			
-			//store the recent doc info to the preferences
-			while (it.hasNext()) {
-				if (it.next().startsWith(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + storage.getDocId() + ";;;" + colId)){
-					it.remove();
-					//RecentDocsPreferences.getItems().remove(currPref);
-				}
-			}
+			updateRecentDocItems(Storage.getInstance().getDoc().getMd());			
+
 			RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + storage.getDocId() + ";;;" + colId + ";;;" + (storage.getPageIndex()+1));
 			ui.getServerWidget().updateRecentDocs();
 			
@@ -1463,6 +1457,18 @@ public class TrpMainWidget {
 		} finally {
 			updatePageInfo();
 		}
+	}
+
+	private void updateRecentDocItems(TrpDocMetadata md) {
+		ListIterator<String> it = RecentDocsPreferences.getItems().listIterator();
+		
+		//delete all entries starting with title;;;docID;;;colID
+		while (it.hasNext()) {
+			if (it.next().startsWith(md.getTitle() + ";;;" + md.getDocId() + ";;;" + Storage.getInstance().getCollId())){
+				it.remove();
+			}
+		}
+		
 	}
 
 	public void updateSegmentationEditStatus() {
@@ -4758,6 +4764,9 @@ public class TrpMainWidget {
 					monitor.beginTask("Deleting documents", docs.size());
 					TrpUserLogin user = storage.getUser();
 					int i = 0;
+					boolean symbolicImgDeleted = false;
+					boolean currDocDeleted = false;
+					TrpCollection col = storage.getCollection(storage.getCollId());
 					for (TrpDocMetadata d : docs) {
 						if (monitor.isCanceled())
 							throw new InterruptedException();
@@ -4772,15 +4781,32 @@ public class TrpMainWidget {
 							error.add(errorMsg);
 						} else {
 							try {
+								/*
+								 * set new pageID(= new symbolic image for collection) if old is in this document
+								 */
+								Integer symUrl = col.getPageId();
+								if (storage.getDoc().getPageWithId(symUrl) != null){
+									logger.debug("symbolic image of collection is in deleted doc -> we must select another image");
+									//hence doc to delete contains symbolic image for this collection
+									//and so we need new symbolic image
+									symbolicImgDeleted = true;
+								}
+
 								storage.deleteDocument(storage.getCollId(), d.getDocId());
 								logger.info("deleted document: "+d);
 							} catch (Throwable e) {
-								logger.warn("Could not add document: "+d);
+								logger.warn("Could not delete document: "+d);
 								error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
 							}
 						}
-						
+	
 						monitor.worked(++i);
+					}
+					//set symbolic image to the first pageID of the remaining documents
+					if (symbolicImgDeleted && Storage.getInstance().getDocList().size() > 0){
+						logger.debug("set new symbolic image: take the one from doc: " + Storage.getInstance().getDocList().get(0).getDocId());
+						col.setPageId(Storage.getInstance().getDocList().get(0).getPageId());
+						storage.getConnection().updateCollectionMd(col);
 					}
 				}
 				catch (InterruptedException ie) {
@@ -4801,11 +4827,44 @@ public class TrpMainWidget {
 			for (String u : error) {
 				msg += u + "\n";
 			}
-			
 			mw.onError("Error deleting documents", msg, null);
+			try {
+				//reload necessary in fact the symbolic image has changed
+				storage.reloadCollections();
+			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+					| NoConnectionException e) {
+				// TODO Auto-generated catch block
+				logger.error("reloading collections not possible after document(s) deletion");
+				e.printStackTrace();
+			}
+			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
 			return false;
 		} else {
 			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully deleted "+docs.size()+" documents");
+			//clean up GUI
+			try {
+				//reload necessary in fact the symbolic image has changed
+				storage.reloadCollections();
+			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+					| NoConnectionException e) {
+				// TODO Auto-generated catch block
+				logger.error("reloading collections not possible after documents deletion");
+				e.printStackTrace();
+			}
+			//reload necessary to actualize doc list
+			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			for (TrpDocMetadata d : docs) {
+				if (storage.isThisDocLoaded(d.getDocId(), null)) {
+					//if deleted doc was loaded in GUI - close it
+					logger.debug("deleted doc loaded in GUI - close it");
+					storage.closeCurrentDocument();
+					clearCurrentPage();
+				}
+				//update the recent docs list
+				updateRecentDocItems(d);
+				ui.getServerWidget().updateRecentDocs();
+			}
+			
 			return true;
 		}
 	}
@@ -4972,13 +5031,42 @@ public class TrpMainWidget {
 			for (String u : error) {
 				msg += u + "\n";
 			}
-			
 			mw.onError("Error removing documents", msg, null);
+			//clean up GUI
+			try {
+				//reload necessary in fact the symbolic image has changed
+				storage.reloadCollections();
+			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+					| NoConnectionException e) {
+				// TODO Auto-generated catch block
+				logger.error("reloading collections not possible after documents deletion");
+				e.printStackTrace();
+			}
 			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
 			return false;
 		} else {
 			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully removed "+docs.size()+" documents");
+			//clean up GUI
+			try {
+				//reload necessary in fact the symbolic image has changed
+				storage.reloadCollections();
+			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+					| NoConnectionException e) {
+				// TODO Auto-generated catch block
+				logger.error("reloading collections not possible after documents deletion");
+				e.printStackTrace();
+			}
+			//reload necessary to actualize doc list
 			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			for (TrpDocMetadata d : docs) {
+				if (storage.isThisDocLoaded(d.getDocId(), null)) {
+					//if deleted doc was loaded in GUI - close it
+					logger.debug("deleted doc loaded in GUI - close it");
+					storage.closeCurrentDocument();
+					clearCurrentPage();
+				}
+			}
+			
 			
 			return true;
 		}
