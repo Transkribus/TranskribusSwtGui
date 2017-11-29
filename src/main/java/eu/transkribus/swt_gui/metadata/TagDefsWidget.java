@@ -3,13 +3,18 @@ package eu.transkribus.swt_gui.metadata;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
@@ -27,6 +32,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,6 +56,7 @@ public class TagDefsWidget extends Composite {
 	Map<CustomTagDef, ControlEditor> insertTagEditors = new HashMap<>();
 	Map<CustomTagDef, ControlEditor> removeTagDefEditors = new HashMap<>();
 	Map<CustomTagDef, ControlEditor> colorEditors = new HashMap<>();
+	Map<CustomTagDef, ControlEditor> shortCutEditors = new HashMap<>();
 	
 	boolean isEditable=true;
 	
@@ -155,6 +162,98 @@ public class TagDefsWidget extends Composite {
 			});
 			
 		}
+		
+		if (this.isEditable) {
+			TableViewerColumn shortcutCol = new TableViewerColumn(tableViewer, SWT.NONE);
+			shortcutCol.getColumn().setText("Shortcut");
+			shortcutCol.getColumn().setResizable(false);
+			shortcutCol.getColumn().setWidth(100);
+			
+			shortcutCol.setLabelProvider(new CellLabelProvider() {
+				@Override
+				public void update(ViewerCell cell) {
+					Object element = cell.getElement();
+					String text = "";
+					logger.debug("element = "+element);
+					if (!(element instanceof CustomTagDef)) {
+						cell.setText("i am error");
+					}
+					
+					CustomTagDef tagDef = (CustomTagDef) element;
+					if (tagDef.getShortCut()!=null) {
+						text = "Alt+"+tagDef.getShortCut();
+					}
+					else {
+						text = "";
+					}
+					
+					cell.setText(text);
+				}
+			});
+
+			shortcutCol.setEditingSupport(new EditingSupport(tableViewer) {
+				@Override
+				protected void setValue(Object element, Object value) {
+					logger.debug("setting value of: "+element+" to: "+value);
+						CustomTagDef cDef = (CustomTagDef) element;
+						if (cDef == null) {
+							return;
+						}
+						
+						logger.debug("setting value to: "+value);
+						
+						String shortCut = (String) value;
+						if (shortCut==null || shortCut.isEmpty()) {
+							cDef.setShortCut(null);
+						} else {
+							cDef.setShortCut(shortCut);
+						}
+						
+						tableViewer.refresh(true);
+						logger.debug("shorcut value changed - sending signal to storage!");
+						Storage.getInstance().signalCustomTagDefsChanged();
+				}
+				
+				@Override
+				protected Object getValue(Object element) {
+					CustomTagDef cDef = (CustomTagDef) element;
+					if (cDef == null) { // shouldn't happen I guess...
+						return "";
+					} else {
+						return cDef.getShortCut()==null ? "" : cDef.getShortCut();
+					}
+				}
+				
+				@Override
+				protected CellEditor getCellEditor(Object element) {
+					TextCellEditor ce = new TextCellEditor(tableViewer.getTable());
+					ce.setValidator(new ICellEditorValidator() {
+						
+						@Override
+						public String isValid(Object value) {
+							String str = (String) value;
+							int len = StringUtils.length(str);
+							logger.debug("sc = "+str+" len = "+len);
+							if (len<=0 || len>=2) {
+								return "Not a string of size 1!";
+							}
+							if (!CustomTagDef.isValidShortCut(str)) {
+								return "Not a valid shortcut character (0-9)!";
+							}
+							
+							return null;
+						}
+					});
+					
+					return ce;
+				}
+				
+				@Override
+				protected boolean canEdit(Object element) {
+					return true;
+				}
+			});
+		}
 
 		if (this.isEditable) { // remove btn for table rows
 			TableViewerColumn removeBtnCol = new TableViewerColumn(tableViewer, SWT.NONE);
@@ -183,7 +282,6 @@ public class TagDefsWidget extends Composite {
 					TableEditor editor = new TableEditor(item.getParent());
 					
 					Button removeButton = new Button((Composite) cell.getViewerRow().getControl(), SWT.PUSH);
-	//		        addButton.setImage(Images.ADD);
 			        removeButton.setImage(Images.getOrLoad("/icons/delete_12.png"));
 			        removeButton.setToolTipText("Remove tag definition");
 			        removeButton.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
@@ -269,6 +367,7 @@ public class TagDefsWidget extends Composite {
 			TaggingWidgetUtils.updateEditors(colorEditors, Storage.getInstance().getCustomTagDefs());
 			TaggingWidgetUtils.updateEditors(removeTagDefEditors, Storage.getInstance().getCustomTagDefs());
 			TaggingWidgetUtils.updateEditors(insertTagEditors, Storage.getInstance().getCustomTagDefs());
+			TaggingWidgetUtils.updateEditors(shortCutEditors, Storage.getInstance().getCustomTagDefs());
 		});
 	}
 	

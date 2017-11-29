@@ -42,7 +42,7 @@ public class CustomTagDefAdapter extends TypeAdapter<CustomTagDef> {
 		
 		CustomTag ct=null;
 		RGB rgb=null;
-		Character shortCut=null;
+		String shortCut=null;
 		
 		while (reader.hasNext()) {
 		      switch (reader.nextName()) {
@@ -60,7 +60,7 @@ public class CustomTagDefAdapter extends TypeAdapter<CustomTagDef> {
 		        rgb = Colors.toRGB(colorCode);
 		        break;
 		      case "shortCut":
-		        shortCut = new Character((char) Integer.parseInt(reader.nextString()));
+		        shortCut = reader.nextString();
 		        break;
 		      }
 		}

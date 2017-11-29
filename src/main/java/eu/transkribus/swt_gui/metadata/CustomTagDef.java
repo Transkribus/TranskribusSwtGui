@@ -22,7 +22,9 @@ public class CustomTagDef {
 	
 	RGB rgb;
 	CustomTag customTag;
-	Character shortCut;
+	String shortCut;
+	
+	public static String[] VALID_SHORTCUTS = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 	
 	public CustomTagDef(CustomTag customTag) {
 		this.customTag = customTag;
@@ -44,12 +46,26 @@ public class CustomTagDef {
 		this.customTag = customTag;
 	}
 
-	public Character getShortCut() {
+	public String getShortCut() {
 		return shortCut;
 	}
 
-	public void setShortCut(Character shortCut) {
-		this.shortCut = shortCut;
+	public void setShortCut(String shortCut) {
+		if (shortCut==null) {
+			this.shortCut = null;
+		}
+		else if (isValidShortCut(shortCut)) {
+			this.shortCut = shortCut;
+		}
+	}
+	
+	public static boolean isValidShortCut(String sc) {
+		for (String validC : VALID_SHORTCUTS) {
+			if (validC.equals(sc)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
