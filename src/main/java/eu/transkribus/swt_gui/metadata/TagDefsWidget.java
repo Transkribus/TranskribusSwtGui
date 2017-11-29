@@ -248,7 +248,7 @@ public class TagDefsWidget extends Composite {
 		
 		
 		updateTagDefsFromStorage();
-		
+
 		Storage.getInstance().addListener(new IStorageListener() {
 			public void handlTagDefsChangedEvent(TagDefsChangedEvent e) {
 				updateTagDefsFromStorage();
@@ -257,7 +257,12 @@ public class TagDefsWidget extends Composite {
 	}
 	
 	private void updateTagDefsFromStorage() {
-		Display.getDefault().asyncExec(() -> {
+		logger.info("updating tag defs from storage: "+Storage.getInstance().getCustomTagDefs());
+		Display.getDefault().syncExec(() -> {
+			if (SWTUtil.isDisposed(tableViewer.getTable()) || SWTUtil.isDisposed(this)) {
+				return;
+			}
+			
 			tableViewer.setInput(Storage.getInstance().getCustomTagDefs());
 			tableViewer.refresh();
 			

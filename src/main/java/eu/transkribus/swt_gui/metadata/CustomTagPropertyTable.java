@@ -226,22 +226,22 @@ public class CustomTagPropertyTable extends Composite {
 		};
 		valueCol.setEditingSupport(valueEditingSupport);
 		
-		tv.getTable().addTraverseListener(new TraverseListener() {
-			@Override
-			public void keyTraversed(TraverseEvent e) {
-				e.doit = false;
-				
-				System.out.println("traversed!");
-				if (e.detail == SWT.TRAVERSE_RETURN) {
-					e.doit = false;
-					
-					System.out.println("return!");
-					
-					
-					
-				}
-			}
-		});
+//		tv.getTable().addTraverseListener(new TraverseListener() {
+//			@Override
+//			public void keyTraversed(TraverseEvent e) {
+//				e.doit = false;
+//				
+//				System.out.println("traversed!");
+//				if (e.detail == SWT.TRAVERSE_RETURN) {
+//					e.doit = false;
+//					
+//					System.out.println("return!");
+//					
+//					
+//					
+//				}
+//			}
+//		});
 		
 //		tv.getTable().addKeyListener(new KeyListener() {
 //			@Override

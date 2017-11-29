@@ -14,6 +14,7 @@ public class TagPropertyPopup {
 	int posX=0, posY=0;
 	CustomTagPropertyTable propsTable;
 	CustomTag tag;
+	
 	Shell shell;
 	
 	public Shell getShell() {

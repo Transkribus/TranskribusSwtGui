@@ -2376,7 +2376,7 @@ public class Storage {
 				String t1 = cDef.getCustomTag().getTagName();
 				
 				for (CustomTagDef cDefOther : customTagDefs) {
-					String t2 = cDef.getCustomTag().getTagName();
+					String t2 = cDefOther.getCustomTag().getTagName();
 					if (cDef == cDefOther) {
 						continue;
 					}
@@ -2394,12 +2394,15 @@ public class Storage {
 	}
 	
 	private void storeCustomTagDefsForCurrentCollection() {
-		if (!storage.isLoggedIn()) {
-			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
-			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
-		} else {
-			// TODO: write to server for current collection if logged in!
-		}
+		logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
+		CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
+		
+//		if (!storage.isLoggedIn()) {
+//			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
+//			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
+//		} else {
+//			// TODO: write to server for current collection if logged in!
+//		}
 	}
 	
 	private void readTagDefsFromLocalSettings() {

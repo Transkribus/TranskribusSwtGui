@@ -117,7 +117,9 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.TagPropertyEditor;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetOld;
+import eu.transkribus.swt_gui.metadata.TranscriptionTaggingWidget;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
@@ -172,6 +174,8 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected List<ToolItem> additionalToolItems = new ArrayList<>();
 
 	protected StyledText text;
+//	protected TagPropertyEditor tagPropertyEditor;
+	protected TranscriptionTaggingWidget transcriptionTaggingWidget;
 //	protected int textAlignment = SWT.LEFT;
 	
 	protected TrpTextRegionType currentRegionObject=null;
@@ -182,6 +186,8 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	// for word graph editor:
 	protected SashForm container;
+	protected SashForm horizontalSf;
+	
 	protected WordGraphEditor wordGraphEditor;
 	protected ToolItem showWordGraphEditorItem, reloadWordGraphEditorItem, enableCattiItem;
 	
@@ -242,6 +248,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	ToolItem underlinedTagItem;
 	ToolItem strikethroughTagItem;
 	
+	ToolItem showTagEditorItem;
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
 	private static final boolean SHOW_WORD_GRAPH_STUFF = false;
@@ -322,12 +329,23 @@ public abstract class ATranscriptionWidget extends Composite{
 		container = new SashForm(this, SWT.VERTICAL);
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		container.setLayout(new GridLayout(1, false));
-
-		text = new StyledText(container, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.H_SCROLL);
+		
+		horizontalSf = new SashForm(container, SWT.HORIZONTAL);
+		horizontalSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		horizontalSf.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		
+//		tagPropertyEditor = new TagPropertyEditor(horizontalSf, this, true);
+//		tagPropertyEditor.setLayoutData(new GridData(GridData.FILL_BOTH));
+//		tagPropertyEditor.setCustomTag(null);
+		
+		transcriptionTaggingWidget = new TranscriptionTaggingWidget(horizontalSf, 0, this);
+		transcriptionTaggingWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		text = new StyledText(horizontalSf, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.H_SCROLL);
 		text.setDoubleClickEnabled(false); // disables default doubleclick and(!) tripleclick behaviour --> for new implementation see mouse listener!
 		text.setLineSpacing(DEFAULT_LINE_SPACING);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
+				
 		wordGraphEditor = new WordGraphEditor(container, SWT.NONE, this);
 		wordGraphEditor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
@@ -367,6 +385,7 @@ public abstract class ATranscriptionWidget extends Composite{
 
 		////////////////////////
 		
+		setTaggingEditorVisiblity(true);
 		setWordGraphEditorVisibility(false);
 		
 		undoRedo = new UndoRedoImpl(text);
@@ -448,21 +467,45 @@ public abstract class ATranscriptionWidget extends Composite{
 	public void clearAutocompleteProposals() {
 		autocomplete.setProposals(new String[]{});
 	}
-		
-
 	
 //	protected boolean isWordGraphEditorVisible() {
 //		return container.getParent() == this;
 //	}
+	
+	public boolean isTagEditorVisible() {
+		return showTagEditorItem.getSelection();
+	}
+	
+	protected void setTaggingEditorVisiblity(boolean visible) {
+		logger.debug("setTaggingEditorVisiblity: "+visible);
+		
+		showTagEditorItem.setSelection(visible);
+		
+		horizontalSf.setWeights(new int[] { 25, 75 });
+		
+		if (true) // false -> show editor always
+		if (!visible) {
+			horizontalSf.setMaximizedControl(text);
+		} else {
+			horizontalSf.setMaximizedControl(null);
+			if (transcriptionTaggingWidget.isTagPropertyEditorSelected()) {
+				transcriptionTaggingWidget.getTagPropertyEditor().findAndSetNextTag();	
+			}
+		}
+		
+		SWTUtil.setEnabled(reloadWordGraphEditorItem, visible);
+		
+		logger.trace("wged size: "+wordGraphEditor.getSize());
+	}
 	
 	protected void setWordGraphEditorVisibility(boolean visible) {		
 		logger.debug("setWordGraphEditorVisibility: "+visible);
 		
 		container.setWeights(new int[] { 50, 50 });
 		
-		if (true) // set to false to show wge always for debuggin purposes
+		if (true) // set to false to show wge always for debugging purposes
 		if (!visible) {
-			container.setMaximizedControl(text);
+			container.setMaximizedControl(horizontalSf);
 		} else {
 			container.setMaximizedControl(null);
 			reloadWordGraphMatrix(false);
@@ -738,6 +781,13 @@ public abstract class ATranscriptionWidget extends Composite{
 		strikethroughTagItem.setData(TextStyleTag.getStrikethroughTag());
 		strikethroughTagItem.addSelectionListener(new TagItemListener());
 		additionalToolItems.add(strikethroughTagItem);
+		
+		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+		
+		showTagEditorItem = new ToolItem(regionsToolbar, SWT.CHECK);
+		showTagEditorItem.setImage(Images.getOrLoad("/icons/tag_blue_edit.png"));
+		showTagEditorItem.setToolTipText("Show/hide embedded tag editor");
+		additionalToolItems.add(showTagEditorItem);
 	}
 	
 	private void initTranscriptionSetsDropDownItems(DropDownToolItemSimple ti) {				
@@ -1044,6 +1094,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		});
 		
 		initWordGraphListener();
+		
+		SWTUtil.onSelectionEvent(showTagEditorItem, e -> {
+			setTaggingEditorVisiblity(showTagEditorItem.getSelection());
+		});
 	}
 	
 	protected void initWordGraphListener() {
@@ -2251,6 +2305,28 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 		
 		return tags;
+	}
+	
+	/**
+	 * not tested yet... is it really needed?
+	 */
+	public void updateData(ITrpShapeType shape) {
+		if (shape == null) {
+			updateData(null, null, null);
+		}
+		
+		if (shape instanceof TrpTextRegionType) {
+			TrpTextRegionType region = (TrpTextRegionType) shape;
+			updateData(region, null, null);
+		}
+		else if (shape instanceof TrpTextLineType) {
+			TrpTextLineType line = (TrpTextLineType) shape;
+			updateData(line.getRegion(), line, null);
+		}
+		else if (shape instanceof TrpWordType) {
+			TrpWordType word = (TrpWordType) shape;
+			updateData(word.getLine().getRegion(), word.getLine(), word);
+		}
 	}
 	
 	/** Updates the data of the transcription widget with the given region, line and word object.

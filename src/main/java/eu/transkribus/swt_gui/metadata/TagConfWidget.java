@@ -47,6 +47,7 @@ import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
 import eu.transkribus.swt.util.ColorChooseButton;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
@@ -61,6 +62,7 @@ public class TagConfWidget extends Composite {
 	TableViewer availableTagsTv;
 	SashForm availableTagsSf;
 	CustomTagPropertyTable propsTable;
+	ColorChooseButton colorChooseBtn;
 	
 	TagDefsWidget tagDefsWidget;
 
@@ -94,8 +96,8 @@ public class TagConfWidget extends Composite {
 		tagColorLbl.setText("Color");
 		Fonts.setBoldFont(tagColorLbl);
 		
-		ColorChooseButton color = new ColorChooseButton(colorComp, CustomTagDef.DEFAULT_COLOR);
-		color.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		colorChooseBtn = new ColorChooseButton(colorComp, CustomTagDef.DEFAULT_COLOR);
+		colorChooseBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		Button addTagDefBtn = new Button(leftWidget, 0);
 		addTagDefBtn.setText("Add tag definition");
@@ -113,7 +115,7 @@ public class TagConfWidget extends Composite {
 					CustomTag tag = CustomTagFactory.create(tagName, getCurrentAttributes());
 
 					CustomTagDef tagDef = new CustomTagDef(tag);
-					tagDef.setRGB(color.getRGB());
+					tagDef.setRGB(colorChooseBtn.getRGB());
 					
 					logger.info("tagDef: "+tagDef);
 					Storage.getInstance().addCustomTagDef(tagDef);
@@ -471,6 +473,14 @@ public class TagConfWidget extends Composite {
 			
 			propsTable.setInput(protoTag, null);
 			propsTable.selectFirstAttribute();
+			
+			// set color label:
+			String colorStr = CustomTagFactory.getTagColor(tag.getTagName());
+			if (colorStr != null) {
+				colorChooseBtn.setRGB(Colors.toRGB(colorStr));
+			} else {
+				colorChooseBtn.setRGB(ColorChooseButton.DEFAULT_COLOR);
+			}			
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return;

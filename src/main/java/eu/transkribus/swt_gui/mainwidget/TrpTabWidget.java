@@ -80,9 +80,7 @@ public class TrpTabWidget extends Composite {
 
 	public TrpTabWidget(Composite parent, int style) {
 		super(parent, style);
-
-		this.setLayout(new GridLayout(1, false));
-
+		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		init();
 	}
 

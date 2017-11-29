@@ -77,6 +77,11 @@ public class ColorChooseButton extends Composite {
 		return (RGB) colorBtn.getData();
 	}
 	
+	public void setRGB(RGB rgb) {
+		colorBtn.setData(rgb);
+		colorBtn.redraw();
+	}
+	
 	public Button getColorBtn() {
 		return colorBtn;
 	}
