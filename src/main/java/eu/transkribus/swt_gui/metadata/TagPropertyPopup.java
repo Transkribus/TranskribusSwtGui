@@ -10,6 +10,10 @@ import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 
+/**
+ * @deprecated not used and outdated
+ *
+ */
 public class TagPropertyPopup {
 	int posX=0, posY=0;
 	CustomTagPropertyTable propsTable;

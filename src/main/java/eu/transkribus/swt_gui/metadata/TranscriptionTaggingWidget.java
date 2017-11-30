@@ -72,7 +72,7 @@ public class TranscriptionTaggingWidget extends Composite {
 		
 		tabFolder.setSelection(tagsItem);
 		
-		tagDefsWidget.getTableViewer().getTable().getColumn(0).setWidth(100);
+		tagDefsWidget.getTableViewer().getTable().getColumn(0).setWidth(150);
 	}
 	
 	public TagDefsWidget getTagDefsWidget() {

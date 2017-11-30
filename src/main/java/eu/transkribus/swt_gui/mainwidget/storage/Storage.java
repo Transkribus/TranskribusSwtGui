@@ -2349,7 +2349,7 @@ public class Storage {
 	
 	public void addCustomTagDef(CustomTagDef tagDef) {
 		customTagDefs.add(tagDef);
-		checkTagColorsConsistency();
+		checkTagDefsValuesConistency();
 		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
 	
 		storeCustomTagDefsForCurrentCollection();
@@ -2357,19 +2357,50 @@ public class Storage {
 	
 	public void removeCustomTag(CustomTagDef tagDef) {
 		customTagDefs.remove(tagDef);
-		checkTagColorsConsistency();
+		checkTagDefsValuesConistency();
 		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
 		
 		storeCustomTagDefsForCurrentCollection();
 	}
 	
 	public void signalCustomTagDefsChanged() {
-		checkTagColorsConsistency();
+		checkTagDefsValuesConistency();
 		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
 		storeCustomTagDefsForCurrentCollection();
 	}
 	
-	private void checkTagColorsConsistency() {
+	public CustomTagDef getCustomTagDefWithShortCut(String shortCut) {
+		if (shortCut == null) {
+			return null;
+		}
+		
+		return customTagDefs.stream().filter(cDef -> { return StringUtils.equals(shortCut, cDef.getShortCut());}).findFirst().get();
+	}
+	
+	private void checkTagDefsValuesConistency() {
+		checkTagDefsColorsConsistency();
+		checkTagDefsShortCutConsistency();
+	}
+	
+	private void checkTagDefsShortCutConsistency() {
+		for (CustomTagDef cDef: customTagDefs) {
+			String sc1 = cDef.getShortCut();
+			
+			for (CustomTagDef cDefOther : customTagDefs) {
+				String sc2 = cDefOther.getShortCut();
+				
+				if (cDef == cDefOther) {
+					continue;
+				}
+				
+				if (sc1!=null && sc2!=null && sc1.equals(sc2)) {
+					cDefOther.setShortCut(null);
+				}
+			}
+		}		
+	}
+	
+	private void checkTagDefsColorsConsistency() {
 //		boolean enforceEqualColorOverEqualTagNames = true;
 		if (TrpConfig.getTrpSettings().isEnforceEqualColorsForEqualTagNames()) {
 			for (CustomTagDef cDef: customTagDefs) {

@@ -163,34 +163,35 @@ public class TagDefsWidget extends Composite {
 			
 		}
 		
-		if (this.isEditable) {
-			TableViewerColumn shortcutCol = new TableViewerColumn(tableViewer, SWT.NONE);
-			shortcutCol.getColumn().setText("Shortcut");
-			shortcutCol.getColumn().setResizable(false);
-			shortcutCol.getColumn().setWidth(100);
-			
-			shortcutCol.setLabelProvider(new CellLabelProvider() {
-				@Override
-				public void update(ViewerCell cell) {
-					Object element = cell.getElement();
-					String text = "";
-					logger.debug("element = "+element);
-					if (!(element instanceof CustomTagDef)) {
-						cell.setText("i am error");
-					}
-					
-					CustomTagDef tagDef = (CustomTagDef) element;
-					if (tagDef.getShortCut()!=null) {
-						text = "Alt+"+tagDef.getShortCut();
-					}
-					else {
-						text = "";
-					}
-					
-					cell.setText(text);
+		
+		TableViewerColumn shortcutCol = new TableViewerColumn(tableViewer, SWT.NONE);
+		shortcutCol.getColumn().setText("Shortcut");
+		shortcutCol.getColumn().setResizable(false);
+		shortcutCol.getColumn().setWidth(100);
+		
+		shortcutCol.setLabelProvider(new CellLabelProvider() {
+			@Override
+			public void update(ViewerCell cell) {
+				Object element = cell.getElement();
+				String text = "";
+				logger.debug("element = "+element);
+				if (!(element instanceof CustomTagDef)) {
+					cell.setText("i am error");
 				}
-			});
+				
+				CustomTagDef tagDef = (CustomTagDef) element;
+				if (tagDef.getShortCut()!=null) {
+					text = "Alt+"+tagDef.getShortCut();
+				}
+				else {
+					text = "";
+				}
+				
+				cell.setText(text);
+			}
+		});
 
+		if (this.isEditable) {
 			shortcutCol.setEditingSupport(new EditingSupport(tableViewer) {
 				@Override
 				protected void setValue(Object element, Object value) {

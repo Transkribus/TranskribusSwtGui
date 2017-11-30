@@ -481,7 +481,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		showTagEditorItem.setSelection(visible);
 		
-		horizontalSf.setWeights(new int[] { 25, 75 });
+		horizontalSf.setWeights(new int[] { 30, 70 });
 		
 		if (true) // false -> show editor always
 		if (!visible) {
