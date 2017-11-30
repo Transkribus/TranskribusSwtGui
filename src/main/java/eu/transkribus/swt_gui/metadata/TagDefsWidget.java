@@ -1,10 +1,10 @@
 package eu.transkribus.swt_gui.metadata;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
@@ -26,13 +26,13 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,10 +53,12 @@ public class TagDefsWidget extends Composite {
 	
 	TableViewer tableViewer;
 	
-	Map<CustomTagDef, ControlEditor> insertTagEditors = new HashMap<>();
-	Map<CustomTagDef, ControlEditor> removeTagDefEditors = new HashMap<>();
-	Map<CustomTagDef, ControlEditor> colorEditors = new HashMap<>();
-	Map<CustomTagDef, ControlEditor> shortCutEditors = new HashMap<>();
+	Map<CustomTagDef, ControlEditor> insertTagEditors = new ConcurrentHashMap<>();
+	Map<CustomTagDef, ControlEditor> removeTagDefEditors = new ConcurrentHashMap<>();
+	Map<CustomTagDef, ControlEditor> colorEditors = new ConcurrentHashMap<>();
+	
+	Map<CustomTagDef, ControlEditor> moveUpEditors = new ConcurrentHashMap<>();
+	Map<CustomTagDef, ControlEditor> moveDownEditors = new ConcurrentHashMap<>();
 	
 	boolean isEditable=true;
 	
@@ -72,7 +74,7 @@ public class TagDefsWidget extends Composite {
 		container.setLayout(new GridLayout(nCols, false));
 		
 		Label headerLbl = new Label(container, 0);
-		headerLbl.setText("Tag defintions for current collection");
+		headerLbl.setText("Tag definitions for current collection");
 		Fonts.setBoldFont(headerLbl);
 		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
@@ -94,13 +96,17 @@ public class TagDefsWidget extends Composite {
 			DataBinder.get().bindBeanToWidgetSelection(TrpSettings.ENFORCE_EQUAL_COLORS_FOR_EQUAL_TAG_NAMES_PROPERTY, TrpConfig.getTrpSettings(), enforceEqualColorsForEqualTagNamesBtn);
 		}
 		
+		Composite tableContainer = new Composite(container, SWT.NONE);
+		tableContainer.setLayout(SWTUtil.createGridLayout(isEditable ? 2 : 1, false, 0, 0));
+		tableContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, nCols, 1));
+		
 		int tableViewerStyle = SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION;
-		tableViewer = new TableViewer(container, tableViewerStyle);
+		tableViewer = new TableViewer(tableContainer, tableViewerStyle);
 		tableViewer.getTable().setToolTipText("List of tag definitions that are available in the user interface");
 		
 //		tagsTableViewer = new TableViewer(taggingGroup, SWT.FULL_SELECTION|SWT.HIDE_SELECTION|SWT.NO_FOCUS | SWT.H_SCROLL
 //		        | SWT.V_SCROLL | SWT.FULL_SELECTION /*| SWT.BORDER*/);
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, nCols, 1);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, isEditable ? 1 : 2, 1);
 //		GridData gd = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
 		gd.heightHint = 150;
 		tableViewer.getTable().setLayoutData(gd);
@@ -157,12 +163,9 @@ public class TagDefsWidget extends Composite {
 	                editor.layout();
 	                
 	                TaggingWidgetUtils.replaceEditor(colorEditors, tagDef, editor);
-					
 				}
 			});
-			
 		}
-		
 		
 		TableViewerColumn shortcutCol = new TableViewerColumn(tableViewer, SWT.NONE);
 		shortcutCol.getColumn().setText("Shortcut");
@@ -256,11 +259,11 @@ public class TagDefsWidget extends Composite {
 			});
 		}
 
-		if (this.isEditable) { // remove btn for table rows
+		if (false && this.isEditable) { // remove btn for table rows
 			TableViewerColumn removeBtnCol = new TableViewerColumn(tableViewer, SWT.NONE);
 			removeBtnCol.getColumn().setText("");
 			removeBtnCol.getColumn().setResizable(false);
-			removeBtnCol.getColumn().setWidth(100);
+			removeBtnCol.getColumn().setWidth(50);
 			
 			class RemoveTagDefSelectionListener extends SelectionAdapter {
 				CustomTagDef tagDef;
@@ -303,6 +306,98 @@ public class TagDefsWidget extends Composite {
 			removeBtnCol.setLabelProvider(removeButtonColLabelProvider);
 		}
 		
+		if (false && this.isEditable) { // move up/down btns
+			class MoveTagDefUpDownSelectionListener extends SelectionAdapter {
+				CustomTagDef tagDef;
+				boolean moveUp;
+				
+				public MoveTagDefUpDownSelectionListener(CustomTagDef tagDef, boolean moveUp) {
+					this.tagDef = tagDef;
+					this.moveUp = moveUp;
+				}
+				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					List<CustomTagDef> cDefs = Storage.getInstance().getCustomTagDefs();
+					int i = cDefs.indexOf(tagDef);
+					if (!moveUp && i>=1) {
+						if (cDefs.remove(tagDef)) {
+							cDefs.add(i-1, tagDef);
+							Storage.getInstance().signalCustomTagDefsChanged();
+						}
+					}
+					else if (moveUp && i<cDefs.size()-1) {
+						if (cDefs.remove(tagDef)) {
+							cDefs.add(i+1, tagDef);
+							Storage.getInstance().signalCustomTagDefsChanged();
+						}
+					}
+				}
+			};	
+			
+			TableViewerColumn moveUpBtnCol = new TableViewerColumn(tableViewer, SWT.NONE);
+			moveUpBtnCol.getColumn().setText("");
+			moveUpBtnCol.getColumn().setResizable(false);
+			moveUpBtnCol.getColumn().setWidth(50);
+			
+			CellLabelProvider moveUpBtnColLabelProvider = new CellLabelProvider() {
+				@Override public void update(final ViewerCell cell) {
+								
+					final TableItem item = (TableItem) cell.getItem();
+					TableEditor editor = new TableEditor(item.getParent());
+					
+					Button btn = new Button((Composite) cell.getViewerRow().getControl(), SWT.PUSH);
+			        btn.setImage(Images.getOrLoad("/icons/arrow_up.png"));
+			        btn.setToolTipText("Move up");
+			        btn.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
+			        
+			        CustomTagDef tagDef = (CustomTagDef) cell.getElement();	
+			        btn.addSelectionListener(new MoveTagDefUpDownSelectionListener(tagDef, true));
+			        Control c = btn;
+			        
+	                Point size = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+					editor.minimumWidth = size.x;
+					editor.horizontalAlignment = SWT.LEFT;
+	                editor.setEditor(c , item, cell.getColumnIndex());
+	                editor.layout();
+	                
+	                TaggingWidgetUtils.replaceEditor(moveUpEditors, tagDef, editor);
+				}
+			};
+			moveUpBtnCol.setLabelProvider(moveUpBtnColLabelProvider);
+
+			TableViewerColumn moveDownBtnCol = new TableViewerColumn(tableViewer, SWT.NONE);
+			moveDownBtnCol.getColumn().setText("");
+			moveDownBtnCol.getColumn().setResizable(false);
+			moveDownBtnCol.getColumn().setWidth(50);
+						
+			CellLabelProvider moveDownBtnLabelProvider = new CellLabelProvider() {
+				@Override public void update(final ViewerCell cell) {
+								
+					final TableItem item = (TableItem) cell.getItem();
+					TableEditor editor = new TableEditor(item.getParent());
+					
+					Button removeButton = new Button((Composite) cell.getViewerRow().getControl(), SWT.PUSH);
+			        removeButton.setImage(Images.getOrLoad("/icons/arrow_down.png"));
+			        removeButton.setToolTipText("Move down");
+			        removeButton.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
+			        
+			        CustomTagDef tagDef = (CustomTagDef) cell.getElement();	
+			        removeButton.addSelectionListener(new MoveTagDefUpDownSelectionListener(tagDef, false));
+			        Control c = removeButton;
+			        
+	                Point size = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+					editor.minimumWidth = size.x;
+					editor.horizontalAlignment = SWT.LEFT;
+	                editor.setEditor(c , item, cell.getColumnIndex());
+	                editor.layout();
+	                
+	                TaggingWidgetUtils.replaceEditor(moveDownEditors, tagDef, editor);
+				}
+			};
+			moveDownBtnCol.setLabelProvider(moveDownBtnLabelProvider);
+		}
+		
 		if (!this.isEditable) { // add an "add tag button" to add the tag to the current position in the transcription widget 
 			TableViewerColumn addButtonCol = new TableViewerColumn(tableViewer, SWT.NONE);
 			addButtonCol.getColumn().setText("");
@@ -342,6 +437,33 @@ public class TagDefsWidget extends Composite {
 		
 		tableViewer.refresh(true);
 		tableViewer.getTable().pack();
+		
+		if (this.isEditable) {
+			Composite btnsComp = new Composite(tableContainer, 0);
+			btnsComp.setLayout(new RowLayout(SWT.VERTICAL));
+			btnsComp.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true, 1, 1));
+			
+			Button removeBtn = new Button(btnsComp, 0);
+			removeBtn.setImage(Images.DELETE);
+			removeBtn.setToolTipText("Remove selected tag from list");
+			SWTUtil.onSelectionEvent(removeBtn, e -> {
+				removeSelected();
+			});
+			
+			Button moveUpBtn = new Button(btnsComp, 0);
+			moveUpBtn.setImage(Images.getOrLoad("/icons/arrow_up.png"));
+			moveUpBtn.setToolTipText("Move up selected");
+			SWTUtil.onSelectionEvent(moveUpBtn, e -> {
+				moveSelected(true);
+			});			
+			
+			Button moveDownBtn = new Button(btnsComp, 0);
+			moveDownBtn.setImage(Images.getOrLoad("/icons/arrow_down.png"));
+			moveDownBtn.setToolTipText("Move down selected");
+			SWTUtil.onSelectionEvent(moveDownBtn, e -> {
+				moveSelected(false);
+			});			
+		}		
 
 		container.layout(true);
 		
@@ -355,9 +477,40 @@ public class TagDefsWidget extends Composite {
 		});
 	}
 	
+	private void removeSelected() {
+		CustomTagDef cDef = getSelected();
+		if (cDef != null) {
+			Storage.getInstance().removeCustomTag(cDef);
+		}
+	}
+	
+	private void moveSelected(boolean moveUp) {
+		CustomTagDef tagDef = getSelected();
+		if (tagDef==null) {
+			return;
+		}
+		
+		logger.debug("moving selected: "+tagDef);
+		
+		List<CustomTagDef> cDefs = Storage.getInstance().getCustomTagDefs();
+		int i = cDefs.indexOf(tagDef);
+		if (moveUp && i>=1) {
+			if (cDefs.remove(tagDef)) {
+				cDefs.add(i-1, tagDef);
+				Storage.getInstance().signalCustomTagDefsChanged();
+			}
+		}
+		else if (!moveUp && i<cDefs.size()-1) {
+			if (cDefs.remove(tagDef)) {
+				cDefs.add(i+1, tagDef);
+				Storage.getInstance().signalCustomTagDefsChanged();
+			}
+		}
+	}
+	
 	private void updateTagDefsFromStorage() {
 		logger.info("updating tag defs from storage: "+Storage.getInstance().getCustomTagDefs());
-		Display.getDefault().syncExec(() -> {
+		Display.getDefault().asyncExec(() -> {
 			if (SWTUtil.isDisposed(tableViewer.getTable()) || SWTUtil.isDisposed(this)) {
 				return;
 			}
@@ -368,7 +521,8 @@ public class TagDefsWidget extends Composite {
 			TaggingWidgetUtils.updateEditors(colorEditors, Storage.getInstance().getCustomTagDefs());
 			TaggingWidgetUtils.updateEditors(removeTagDefEditors, Storage.getInstance().getCustomTagDefs());
 			TaggingWidgetUtils.updateEditors(insertTagEditors, Storage.getInstance().getCustomTagDefs());
-			TaggingWidgetUtils.updateEditors(shortCutEditors, Storage.getInstance().getCustomTagDefs());
+			TaggingWidgetUtils.updateEditors(moveUpEditors, Storage.getInstance().getCustomTagDefs());
+			TaggingWidgetUtils.updateEditors(moveDownEditors, Storage.getInstance().getCustomTagDefs());
 		});
 	}
 	

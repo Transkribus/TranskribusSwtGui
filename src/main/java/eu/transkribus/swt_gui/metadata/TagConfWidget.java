@@ -7,6 +7,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -27,7 +28,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -51,7 +51,6 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TagConfWidget extends Composite {
@@ -66,14 +65,8 @@ public class TagConfWidget extends Composite {
 	
 	TagDefsWidget tagDefsWidget;
 
-	SashForm horizontalSf;
-	
-//	List<ITaggingWidgetListener> listener = new ArrayList<>();
-	
-	Map<String, ControlEditor> addTagToListEditors = new HashMap<>();
-	
-//	Map<CustomTagDef, ControlEditor> removeTagDefEditors = new HashMap<>();
-//	Map<CustomTagDef, ControlEditor> colorEditors = new HashMap<>();
+	SashForm horizontalSf;	
+	Map<String, ControlEditor> addTagToListEditors = new ConcurrentHashMap<>();
 	
 	public TagConfWidget(Composite parent, int style) {
 		super(parent, style);
@@ -127,7 +120,7 @@ public class TagConfWidget extends Composite {
 		
 		tagDefsWidget = new TagDefsWidget(horizontalSf, 0, true);
 		
-		horizontalSf.setWeights(new int[] { 50, 50 });
+		horizontalSf.setWeights(new int[] { 35, 65 });
 		availableTagsSf.setWeights(new int[] { 70, 30 });
 		
 		updateAvailableTags();
