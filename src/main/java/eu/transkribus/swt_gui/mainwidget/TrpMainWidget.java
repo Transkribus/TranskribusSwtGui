@@ -1873,6 +1873,7 @@ public class TrpMainWidget {
 			if (reloadTranscript && storage.getNTranscripts() > 0) {
 				storage.setLatestTranscriptAsCurrent();
 				reloadCurrentTranscript(false, true);
+				updateVersionStatus();
 			}
 
 			return true;
@@ -5355,6 +5356,11 @@ public class TrpMainWidget {
 			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
 		}
 	}
+	
+	public void updateVersionStatus(){
+		ui.getStatusCombo().setText(storage.getTranscriptMetadata().getStatus().getStr());
+		ui.getStatusCombo().redraw();
+	}
 
 	public void changeVersionStatus(String text, List<TrpPage> pageList) {
 		Storage storage = Storage.getInstance();
@@ -5362,9 +5368,24 @@ public class TrpMainWidget {
 		try {
 			int colId = Storage.getInstance().getCollId();
 			if (!pageList.isEmpty()) {
-				boolean isLoadedPage = false;
+		        boolean isLatestTranscript = false;
+		        boolean isLoaded = false;
 				for (TrpPage page : pageList) {
-					isLoadedPage = (page.getPageId() == Storage.getInstance().getPage().getPageId());
+					if (EditStatus.fromString(text).equals(EditStatus.NEW)){
+						//New is only allowed for the first transcript
+						DialogUtil.showInfoMessageBox(getShell(), "Status 'New' reserved for first transcript", "Only the first transcript can be 'New', all others must be at least 'InProgress'");
+						break;
+					}
+					//is the page the one currently loaded in Transkribus
+					isLoaded = (page.getPageId() == Storage.getInstance().getPage().getPageId());
+			        //then only the latest transcript can be changed -> page.getCurrentTranscript() gives the latest of this page
+					isLatestTranscript = (page.getCurrentTranscript().getTsId() == Storage.getInstance().getTranscriptMetadata().getTsId());
+			        
+					if (isLoaded && !isLatestTranscript){
+						DialogUtil.showInfoMessageBox(getShell(), "Status change not allowed", "Status change is only allowed for the latest transcript. Load the latest transcript via the 'Versions' button.");
+						break;
+						//logger.debug("page is loaded with transcript ID " + Storage.getInstance().getTranscriptMetadata().getTsId());
+					}
 					int pageNr = page.getPageNr();
 					int docId = page.getDocId();
 					
@@ -5376,7 +5397,7 @@ public class TrpMainWidget {
 					storage.getConnection().updatePageStatus(colId, docId, pageNr, transcriptId,
 							EditStatus.fromString(text), "");
 					
-					if (isLoadedPage){
+					if (isLoaded && isLatestTranscript){
 						storage.getTranscript().getMd().setStatus(EditStatus.fromString(text));
 						Storage.getInstance().reloadTranscriptsList(colId);
 						if (Storage.getInstance().setLatestTranscriptAsCurrent()){
@@ -5423,6 +5444,9 @@ public class TrpMainWidget {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		finally{
+			updateVersionStatus();
 		}
 
 	}

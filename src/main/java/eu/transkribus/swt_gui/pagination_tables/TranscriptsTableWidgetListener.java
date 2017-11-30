@@ -118,6 +118,7 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 		if (md!=null) {
 			logger.debug("Loading transcript: "+md);
 			TrpMainWidget.getInstance().jumpToTranscript(md, true);
+			TrpMainWidget.getInstance().updateVersionStatus();
 		}		
 	}
 	
@@ -168,14 +169,15 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 		
         TableItem[] selection = tv.getTable().getSelection();
         
-        boolean isCurrentTranscript = false;
+        boolean isLatestTranscriptAndLoaded = false;
         if(tw.getFirstSelected() != null) {
-        	isCurrentTranscript = (tw.getFirstSelected().getTime().getTime() == Storage.getInstance().getTranscriptMetadata().getTime().getTime());
+        	//current transcript means 'latest'
+        	isLatestTranscriptAndLoaded = (tw.getFirstSelected().getTsId() == Storage.getInstance().getPage().getCurrentTranscript().getTsId()) && (tw.getFirstSelected().getTsId() == Storage.getInstance().getTranscriptMetadata().getTsId());
         }
         /*
-         * only the current loaded transcript can be set to a new status with right click (only  for this transcipt the menu gets visible)
+         * only the newest transcript can be set to a new status with right click (only  for this transcipt the menu gets visible)
          */
-        if(selection.length==1 && isCurrentTranscript && (e.button == 3)){
+        if(selection.length==1 && isLatestTranscriptAndLoaded && (e.button == 3)){
         	logger.debug("show content menu");
         	//vw.setContextMenuVisible(true);
         	tw.enableContextMenu();
