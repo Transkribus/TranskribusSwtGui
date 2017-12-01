@@ -562,7 +562,7 @@ public class HtrTrainingDialog extends Dialog {
 				} else if (o instanceof TrpPage) {
 					TrpPage p = (TrpPage)o;
 					TrpLocation loc = new TrpLocation();
-					loc.collectionId = colId;
+					loc.collId = colId;
 					loc.docId = p.getDocId();
 					loc.pageNr = p.getPageNr();
 					TrpMainWidget.getInstance().showLocation(loc);

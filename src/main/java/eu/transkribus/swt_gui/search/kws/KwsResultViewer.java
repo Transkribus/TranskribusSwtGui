@@ -280,7 +280,7 @@ public class KwsResultViewer extends Dialog {
 				if (el instanceof TrpKwsHit){
 					loc = new TrpLocation();
 					TrpKwsHit h = ((TrpKwsHit)el);
-					loc.collectionId = h.getColId();
+					loc.collId = h.getColId();
 					loc.docId = h.getDocId();
 					loc.pageNr = h.getPageNr();	
 					loc.shapeId = h.getLineId();

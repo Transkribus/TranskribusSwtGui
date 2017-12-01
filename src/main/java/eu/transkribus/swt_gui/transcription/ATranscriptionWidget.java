@@ -15,9 +15,6 @@ import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.ServerErrorException;
-
-import org.apache.commons.beanutils.BeanToPropertyValueTransformer;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -51,7 +48,6 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
@@ -96,12 +92,10 @@ import eu.transkribus.core.model.beans.customtags.UnclearTag;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TaggedWord;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
-import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
@@ -111,13 +105,11 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.UndoRedoImpl;
 import eu.transkribus.swt.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.metadata.TagPropertyEditor;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetOld;
 import eu.transkribus.swt_gui.metadata.TranscriptionTaggingWidget;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
@@ -385,7 +377,7 @@ public abstract class ATranscriptionWidget extends Composite{
 
 		////////////////////////
 		
-		setTaggingEditorVisiblity(true);
+		setTaggingEditorVisiblity(false);
 		setWordGraphEditorVisibility(false);
 		
 		undoRedo = new UndoRedoImpl(text);

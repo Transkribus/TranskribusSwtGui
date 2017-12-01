@@ -94,6 +94,7 @@ public class TagConfWidget extends Composite {
 		
 		Button addTagDefBtn = new Button(leftWidget, 0);
 		addTagDefBtn.setText("Add tag definition");
+		addTagDefBtn.setToolTipText("Adds the tag with the configuration above to the list of available tags on the right");
 		addTagDefBtn.setImage(Images.ADD);
 		addTagDefBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		addTagDefBtn.addSelectionListener(new SelectionAdapter() {
@@ -156,7 +157,7 @@ public class TagConfWidget extends Composite {
 		createTagBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		createTagBtn.setText("Create new tag...");
 		createTagBtn.setImage(Images.ADD);
-		createTagBtn.setToolTipText("Creates a new tag");
+		createTagBtn.setToolTipText("Adds a new tag to the list of registered tags\nThose tags can then be added to the tag definitions for usage in the user interface");
 		
 		createTagBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {

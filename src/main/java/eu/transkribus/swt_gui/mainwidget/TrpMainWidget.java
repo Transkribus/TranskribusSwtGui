@@ -195,6 +195,7 @@ import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.LineEditorListener;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidgetListener;
+import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidgetListener;
 import eu.transkribus.swt_gui.upload.UploadDialog;
 import eu.transkribus.swt_gui.upload.UploadDialogUltimate;
@@ -1992,11 +1993,11 @@ public class TrpMainWidget {
 		// return;
 		// }
 
-		logger.info("showing loation: " + l);
+		logger.debug("showing loation: " + l);
 
 		// 1st: load doc & page
 		if (!l.hasDoc()) {
-			logger.info("location has no doc specified!");
+			logger.debug("location has no doc specified!");
 			return;
 		}
 		int pageIndex = l.hasPage() ? l.pageNr - 1 : 0;
@@ -2008,14 +2009,14 @@ public class TrpMainWidget {
 				if (!loadLocalDoc(l.localFolder.getAbsolutePath(), pageIndex))
 					return;
 			} else {
-				if (!loadRemoteDoc(l.docId, l.collectionId, pageIndex))
+				if (!loadRemoteDoc(l.docId, l.collId, pageIndex))
 					return;
 			}
 		}
 
 		// 2nd: load page if not loaded by doc anyway:
 		if (!l.hasPage()) {
-			logger.info("location has no page specified!");
+			logger.debug("location has no page specified!");
 			return;
 		}
 
@@ -2033,25 +2034,39 @@ public class TrpMainWidget {
 			return;
 		}
 		ICanvasShape s = canvas.getScene().selectObjectWithId(l.shapeId, true, false);
-
-		if (s == null)
+		if (s == null) {
+			logger.debug("shape is null!");
 			return;
-
+		}
 		canvas.focusShape(s);
-
+		
+		ITrpShapeType st = canvas.getFirstSelectedSt();
 		// 4th: select tag in transcription widget; TODO: select word!?
 		if (l.t == null) {
-			logger.info("location has no tag specified!");
+			logger.debug("location has no tag specified!");
 			return;
 		}
-
-		boolean isLine = l.getLowestShapeType() instanceof TrpTextLineType;
-		boolean isWord = l.getLowestShapeType() instanceof TrpWordType;
-		ATranscriptionWidget tw = ui.getSelectedTranscriptionWidget();
-		if (isLine && tw instanceof LineTranscriptionWidget) {
-			tw.selectCustomTag(l.t);
+		if (st == null) {
+			logger.warn("shape type could not be retrieved - should not happen here!");
 		}
-
+		
+		ATranscriptionWidget tw = ui.getSelectedTranscriptionWidget();
+		if (st instanceof TrpTextLineType && tw instanceof LineTranscriptionWidget) {
+			logger.debug("selecting custom tag: "+l.t);
+			tw.selectCustomTag(l.t);			
+		}
+		if (st instanceof TrpWordType && tw instanceof WordTranscriptionWidget) {
+			// TODO
+		} 
+		
+//		boolean isLine = l.getLowestShapeType() instanceof TrpTextLineType;
+//		logger.debug("isLine: "+isLine);
+//		boolean isWord = l.getLowestShapeType() instanceof TrpWordType;
+//		
+//		logger.debug("is lwtw: "+(tw instanceof LineTranscriptionWidget));
+//		if (isLine && tw instanceof LineTranscriptionWidget) {
+//
+//		}
 	}
 
 	private void clearTranscriptFromView() {
