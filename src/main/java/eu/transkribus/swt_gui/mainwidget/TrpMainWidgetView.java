@@ -187,7 +187,8 @@ public class TrpMainWidgetView extends Composite {
 		
 		setToolTipText("An interactive adaptive transcription platform");
 		getShell().setText(APP_NAME);
-		getShell().setImage(Images.getOrLoad("/icons/pencil.png"));
+		//getShell().setImage(Images.getOrLoad("/icons/pencil.png"));
+		getShell().setImage(Images.getOrLoad("/icons/ticon6.png"));
 //		getShell().setImage(Images.getOrLoad("/wolpertinger_small_64.png"));
 //		setSize(1200, 850);
 //		setLayout(new FillLayout());
