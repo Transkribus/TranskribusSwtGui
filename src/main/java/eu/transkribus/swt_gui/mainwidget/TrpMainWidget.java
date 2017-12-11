@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -92,6 +94,7 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
@@ -181,7 +184,6 @@ import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListe
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
-import eu.transkribus.swt_gui.metadata.TaggingWidgetOldListener;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
@@ -818,6 +820,18 @@ public class TrpMainWidget {
 //			}
 //			@Override public void widgetDefaultSelected(SelectionEvent e) {}
 //		});
+		
+		CustomTagFactory.addObserver(new Observer() {
+			@Override
+			public void update(Observable o, Object arg) {
+				if (arg instanceof TagRegistryChangeEvent) {
+					TagRegistryChangeEvent trce = (TagRegistryChangeEvent) arg;
+					if (trce.type.equals(TagRegistryChangeEvent.CHANGED_TAG_COLOR) && getUi()!=null && getUi().getSelectedTranscriptionWidget()!=null) {
+						TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
+					}
+				}
+			}
+		});
 	}
 	
 	private void addUiBindings() {

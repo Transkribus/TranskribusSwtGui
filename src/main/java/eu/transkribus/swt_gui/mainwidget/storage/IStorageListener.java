@@ -13,7 +13,7 @@ import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
-import eu.transkribus.swt_gui.metadata.CustomTagDef;
+import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 
 public interface IStorageListener {
 
@@ -96,9 +96,9 @@ public interface IStorageListener {
 	
 	@SuppressWarnings("serial")
 	public static class TagDefsChangedEvent extends Event {
-		List<CustomTagDef> tagDefs;
+		List<CustomTagSpec> tagDefs;
 		
-		public TagDefsChangedEvent(Object source, List<CustomTagDef> tagDefs) {
+		public TagDefsChangedEvent(Object source, List<CustomTagSpec> tagDefs) {
 			super(source, "Tag defs changed");
 			this.tagDefs = tagDefs;
 		}

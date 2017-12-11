@@ -15,7 +15,7 @@ import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.metadata.CustomTagDef;
+import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 
 public abstract class ATranscriptionWidgetListener implements Listener, KeyListener {
 	private final static Logger logger = LoggerFactory.getLogger(ATranscriptionWidgetListener.class);
@@ -79,7 +79,7 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 		}
 		
 		if ( CanvasKeys.isAltKeyDown(e.stateMask)) {
-			CustomTagDef cDef = Storage.getInstance().getCustomTagDefWithShortCut(""+e.character);
+			CustomTagSpec cDef = Storage.getInstance().getCustomTagSpecWithShortCut(""+e.character);
 			if (cDef != null) {
 				logger.debug("CustomTagDef shortcut matched: "+cDef);
 				mainWidget.addTagForSelection(cDef.getCustomTag(), null);

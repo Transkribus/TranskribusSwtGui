@@ -23,7 +23,7 @@ public class TranscriptionTaggingWidget extends Composite {
 	
 	CTabFolder tagsTf;
 	CTabItem tagsItem;
-	TagDefsWidget tagDefsWidget;
+	TagSpecsWidget tagDefsWidget;
 	
 	CTabFolder propsTf;
 	CTabItem propsItem;
@@ -42,7 +42,7 @@ public class TranscriptionTaggingWidget extends Composite {
 		tagsTf = createTabFolder(tabFolder);
 		tagsItem = createCTabItem(tabFolder, tagsTf, "Tags", null);
 		
-		tagDefsWidget = new TagDefsWidget(tabFolder, 0, false);
+		tagDefsWidget = new TagSpecsWidget(tabFolder, 0, false);
 		tagDefsWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
 		tagsItem.setControl(tagDefsWidget);
 				
@@ -75,7 +75,7 @@ public class TranscriptionTaggingWidget extends Composite {
 		tagDefsWidget.getTableViewer().getTable().getColumn(0).setWidth(150);
 	}
 	
-	public TagDefsWidget getTagDefsWidget() {
+	public TagSpecsWidget getTagDefsWidget() {
 		return tagDefsWidget;
 	}
 	

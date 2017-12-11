@@ -167,12 +167,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private String tagNames="";
 	public static final String TAG_NAMES_PROPERTY="tagNames";
 	
-	private String tagDefs="";
-	public static final String TAG_DEFS_PROPERTY="tagDefs";
-	
-	private boolean enforceEqualColorsForEqualTagNames=true;
-	public static final String ENFORCE_EQUAL_COLORS_FOR_EQUAL_TAG_NAMES_PROPERTY="enforceEqualColorsForEqualTagNames";
-	
+	private String tagSpecs="";
+	public static final String TAG_SPECS_PROPERTY="tagSpecs";
+		
 	private int imageCacheSize = 3;
 	public static final String IMAGE_CACHE_SIZE_PROPERTY="imageCacheSize";
 	
@@ -649,23 +646,14 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(TAG_NAMES_PROPERTY, old, this.tagNames);
 	}
 	
-	public boolean isEnforceEqualColorsForEqualTagNames() {
-		return enforceEqualColorsForEqualTagNames;
-	}
-
-	public void setEnforceEqualColorsForEqualTagNames(boolean enforceEqualColorsForEqualTagNames) {
-		this.enforceEqualColorsForEqualTagNames = enforceEqualColorsForEqualTagNames;
-		firePropertyChange(ENFORCE_EQUAL_COLORS_FOR_EQUAL_TAG_NAMES_PROPERTY, !this.enforceEqualColorsForEqualTagNames, this.enforceEqualColorsForEqualTagNames);
-	}
-
-	public String getTagDefs() {
-		return tagDefs;
+	public String getTagSpecs() {
+		return tagSpecs;
 	}
 	
-	public void setTagDefs(String tagDefs) {
-		String old = this.tagDefs;
-		this.tagDefs = tagDefs;
-		firePropertyChange(TAG_DEFS_PROPERTY, old, this.tagDefs);
+	public void setTagSpecs(String tagDefs) {
+		String old = this.tagSpecs;
+		this.tagSpecs = tagDefs;
+		firePropertyChange(TAG_SPECS_PROPERTY, old, this.tagSpecs);
 	}
 	
 	public static Color determineColor(TrpSettings sets, Object wrappedData) {

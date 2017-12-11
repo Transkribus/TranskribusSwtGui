@@ -26,8 +26,10 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -51,6 +53,7 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TagConfWidget extends Composite {
@@ -61,12 +64,14 @@ public class TagConfWidget extends Composite {
 	TableViewer availableTagsTv;
 	SashForm availableTagsSf;
 	CustomTagPropertyTable propsTable;
-	ColorChooseButton colorChooseBtn;
+//	ColorChooseButton colorChooseBtn;
 	
-	TagDefsWidget tagDefsWidget;
+	TagSpecsWidget tagDefsWidget;
 
-	SashForm horizontalSf;	
+	SashForm horizontalSf;
+	
 	Map<String, ControlEditor> addTagToListEditors = new ConcurrentHashMap<>();
+	Map<String, ControlEditor> colorEditors = new ConcurrentHashMap<>();
 	
 	public TagConfWidget(Composite parent, int style) {
 		super(parent, style);
@@ -85,15 +90,14 @@ public class TagConfWidget extends Composite {
 		colorComp.setLayout(new GridLayout(2, false));
 		colorComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		Label tagColorLbl = new Label(colorComp, 0);
-		tagColorLbl.setText("Color");
-		Fonts.setBoldFont(tagColorLbl);
-		
-		colorChooseBtn = new ColorChooseButton(colorComp, CustomTagDef.DEFAULT_COLOR);
-		colorChooseBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		Label tagColorLbl = new Label(colorComp, 0);
+//		tagColorLbl.setText("Color");
+//		Fonts.setBoldFont(tagColorLbl);
+//		colorChooseBtn = new ColorChooseButton(colorComp, CustomTagSpec.DEFAULT_COLOR);
+//		colorChooseBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		Button addTagDefBtn = new Button(leftWidget, 0);
-		addTagDefBtn.setText("Add tag definition");
+		addTagDefBtn.setText("Add tag specification");
 		addTagDefBtn.setToolTipText("Adds the tag with the configuration above to the list of available tags on the right");
 		addTagDefBtn.setImage(Images.ADD);
 		addTagDefBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -108,25 +112,25 @@ public class TagConfWidget extends Composite {
 					logger.debug("selected tag: "+getSelectedAvailableTagsName()+", tagName: "+tagName+", curr-atts: "+getCurrentAttributes());
 					CustomTag tag = CustomTagFactory.create(tagName, getCurrentAttributes());
 
-					CustomTagDef tagDef = new CustomTagDef(tag);
-					tagDef.setRGB(colorChooseBtn.getRGB());
+					CustomTagSpec tagSpec = new CustomTagSpec(tag);
+//					tagSpec.setRGB(colorChooseBtn.getRGB());
 					
-					logger.info("tagDef: "+tagDef);
-					Storage.getInstance().addCustomTagDef(tagDef);
+					logger.info("tagSpec: "+tagSpec);
+					Storage.getInstance().addCustomTagSpec(tagSpec);
 				} catch (Exception ex) {
 					DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding tag definiton", ex.getMessage(), ex);
 				}
 			}
 		});
 		
-		tagDefsWidget = new TagDefsWidget(horizontalSf, 0, true);
+		tagDefsWidget = new TagSpecsWidget(horizontalSf, 0, true);
 		
 		horizontalSf.setWeights(new int[] { 35, 65 });
 		availableTagsSf.setWeights(new int[] { 70, 30 });
 		
 		updateAvailableTags();
 		
-		CustomTagFactory.registryObserver.addObserver(new Observer() {
+		CustomTagFactory.addObserver(new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
 				if (arg instanceof TagRegistryChangeEvent) {
@@ -205,21 +209,14 @@ public class TagConfWidget extends Composite {
 //			}
 //		});
 
-		int tableViewerStyle = SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION;
-		availableTagsTv = new TableViewer(tagsTableContainer, tableViewerStyle);
+		availableTagsTv = new TableViewer(tagsTableContainer, SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		availableTagsTv.getTable().setToolTipText("List of tags - italic tags are predefined and cannot be removed");
-		
-//		tagsTableViewer = new TableViewer(taggingGroup, SWT.FULL_SELECTION|SWT.HIDE_SELECTION|SWT.NO_FOCUS | SWT.H_SCROLL
-//		        | SWT.V_SCROLL | SWT.FULL_SELECTION /*| SWT.BORDER*/);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-//		GridData gd = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
 		gd.heightHint = 150;
-		Table tagsTable = availableTagsTv.getTable();
-		tagsTable.setLayoutData(gd);
-		
+		availableTagsTv.getTable().setLayoutData(gd);
 		availableTagsTv.setContentProvider(new ArrayContentProvider());
-		tagsTable.setHeaderVisible(false);
-		tagsTable.setLinesVisible(true);
+		availableTagsTv.getTable().setHeaderVisible(false);
+		availableTagsTv.getTable().setLinesVisible(true);
 		
 		availableTagsTv.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
@@ -239,13 +236,48 @@ public class TagConfWidget extends Composite {
 			@Override public Font getFont(Object element) {
 				CustomTag t = CustomTagFactory.getTagObjectFromRegistry((String)element);
 				if (t != null && !t.isDeleteable()) {
-					return Fonts.createItalicFont(tagsTable.getFont());
+					return Fonts.createItalicFont(availableTagsTv.getTable().getFont());
 				}
 				
 				return null;
 			}
 		};
 		nameCol.setLabelProvider(nameColLP);
+		
+		if (true) {
+			TableViewerColumn colorCol = new TableViewerColumn(availableTagsTv, SWT.NONE);
+			colorCol.getColumn().setText("Color");
+			colorCol.getColumn().setResizable(true);
+			colorCol.getColumn().setWidth(50);
+			colorCol.setLabelProvider(new CellLabelProvider() {
+				@Override public void update(ViewerCell cell) {
+					TableItem item = (TableItem) cell.getItem();
+					String tagName = (String) cell.getElement();
+					
+					TableEditor editor = new TableEditor(item.getParent());				
+	                editor.grabHorizontal  = true;
+	                editor.grabVertical = true;
+	                editor.horizontalAlignment = SWT.LEFT;
+	                editor.verticalAlignment = SWT.TOP;
+	                
+	                Color tagColor = getTagColor(tagName);
+	                
+	                ColorChooseButton colorCtrl = new ColorChooseButton((Composite) cell.getViewerRow().getControl(), tagColor.getRGB()) {
+	                	@Override protected void onColorChanged(RGB rgb) {
+	                		if (CustomTagFactory.setTagColor(tagName, Colors.toHex(rgb))) {
+	                			availableTagsTv.refresh();	
+	                		}
+	                	}
+	                };
+	                colorCtrl.setEditorEnabled(true);
+
+	                editor.setEditor(colorCtrl , item, cell.getColumnIndex());
+	                editor.layout();
+	                
+	                TaggingWidgetUtils.replaceEditor(colorEditors, tagName, editor);
+				}
+			});
+		}
 
 		if (false) { // add btns for table rows
 		TableViewerColumn addButtonCol = new TableViewerColumn(availableTagsTv, SWT.NONE);
@@ -274,8 +306,8 @@ public class TagConfWidget extends Composite {
 						}
 						logger.info("tag = "+tag);
 						
-						CustomTagDef tagDef = new CustomTagDef(tag);
-						Storage.getInstance().addCustomTagDef(tagDef);
+						CustomTagSpec tagDef = new CustomTagSpec(tag);
+						Storage.getInstance().addCustomTagSpec(tagDef);
 					} catch (Exception ex) {
 						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding tag definiton", ex.getMessage(), ex);
 					}
@@ -319,6 +351,17 @@ public class TagConfWidget extends Composite {
 		availableTagsTv.getTable().pack();
 
 		tagsTableContainer.layout(true);
+	}
+	
+	private static Color getTagColor(String tagName) {
+		String tagColorStr = CustomTagFactory.getTagColor(tagName);
+		Color c = Colors.decode2(tagColorStr);
+
+		if (c == null) {
+			c = Colors.getSystemColor(SWT.COLOR_GRAY); // default tag color
+		}
+		
+		return c;
 	}
 	
 	private void initPropertyTable(Composite parent) {
@@ -440,6 +483,7 @@ public class TagConfWidget extends Composite {
 			
 			availableTagsTv.refresh(true);
 			
+			TaggingWidgetUtils.updateEditors(colorEditors, availableTagNames);
 			TaggingWidgetUtils.updateEditors(addTagToListEditors, availableTagNames);
 			}
 		});
@@ -469,12 +513,12 @@ public class TagConfWidget extends Composite {
 			propsTable.selectFirstAttribute();
 			
 			// set color label:
-			String colorStr = CustomTagFactory.getTagColor(tag.getTagName());
-			if (colorStr != null) {
-				colorChooseBtn.setRGB(Colors.toRGB(colorStr));
-			} else {
-				colorChooseBtn.setRGB(ColorChooseButton.DEFAULT_COLOR);
-			}			
+//			String colorStr = CustomTagFactory.getTagColor(tag.getTagName());
+//			if (colorStr != null) {
+//				colorChooseBtn.setRGB(Colors.toRGB(colorStr));
+//			} else {
+//				colorChooseBtn.setRGB(ColorChooseButton.DEFAULT_COLOR);
+//			}			
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			return;

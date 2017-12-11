@@ -12,22 +12,21 @@ import com.google.gson.stream.JsonWriter;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
-import eu.transkribus.swt.util.Colors;
 
 /**
- * A gson adapter for reading / writing CustomTagDef objects to / from json
+ * A gson adapter for reading / writing CustomTagSpec objects to / from json
  */
-public class CustomTagDefAdapter extends TypeAdapter<CustomTagDef> {
+public class CustomTagSpecAdapter extends TypeAdapter<CustomTagSpec> {
 
 	@Override
-	public void write(JsonWriter writer, CustomTagDef value) throws IOException {
+	public void write(JsonWriter writer, CustomTagSpec value) throws IOException {
 		writer.beginObject();
 				
 		writer.name("customTag").value(value.getCustomTag().toString());
 
-		if (value.getRGB() != null) {
-			writer.name("rgb").value(Colors.toHex(value.getRGB()));
-		}
+//		if (value.getRGB() != null) {
+//			writer.name("rgb").value(Colors.toHex(value.getRGB()));
+//		}
         
         if (value.getShortCut() != null) {
         	writer.name("shortCut").value(value.getShortCut());	
@@ -37,7 +36,7 @@ public class CustomTagDefAdapter extends TypeAdapter<CustomTagDef> {
 	}
 
 	@Override
-	public CustomTagDef read(JsonReader reader) throws IOException {
+	public CustomTagSpec read(JsonReader reader) throws IOException {
 		reader.beginObject();
 		
 		CustomTag ct=null;
@@ -55,10 +54,10 @@ public class CustomTagDefAdapter extends TypeAdapter<CustomTagDef> {
 					throw new IOException("Could not read tag definition: "+e.getMessage(), e);
 				}
 		        break;
-		      case "rgb":
-		        String colorCode = reader.nextString();
-		        rgb = Colors.toRGB(colorCode);
-		        break;
+//		      case "rgb":
+//		        String colorCode = reader.nextString();
+//		        rgb = Colors.toRGB(colorCode);
+//		        break;
 		      case "shortCut":
 		        shortCut = reader.nextString();
 		        break;
@@ -69,8 +68,8 @@ public class CustomTagDefAdapter extends TypeAdapter<CustomTagDef> {
 			throw new IOException("No custom tag definition found!");
 		}
 		
-		CustomTagDef cDef = new CustomTagDef(ct);
-		cDef.setRGB(rgb); 
+		CustomTagSpec cDef = new CustomTagSpec(ct);
+//		cDef.setRGB(rgb); 
 		cDef.setShortCut(shortCut);
 		
 		reader.endObject();

@@ -157,7 +157,7 @@ public class TaggingWidgetOld extends Composite implements Observer {
 			sf.setWeights(new int[] {50, 15, 35});
 		}
 		
-		CustomTagFactory.registryObserver.addObserver(this);
+		CustomTagFactory.addObserver(this);
 	}
 	
 	private void initTagsTable(int type) {

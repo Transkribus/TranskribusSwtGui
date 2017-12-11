@@ -23,7 +23,7 @@ public class TaggingWidget extends Composite {
 	SashForm verticalSf;
 	SashForm horizontalSf;
 	
-	TagDefsWidget tagDefsWidget;
+	TagSpecsWidget tagDefsWidget;
 	CustomTagPropertyTable propsTable;
 	
 	TagListWidget tagListWidget; 
@@ -46,7 +46,7 @@ public class TaggingWidget extends Composite {
 	}
 	
 	private void initTagDefsWidget(Composite parent) {
-		tagDefsWidget = new TagDefsWidget(parent, 0, false);
+		tagDefsWidget = new TagSpecsWidget(parent, 0, false);
 		tagDefsWidget.setLayoutData(new GridData(GridData.FILL_BOTH));		
 	}
 	

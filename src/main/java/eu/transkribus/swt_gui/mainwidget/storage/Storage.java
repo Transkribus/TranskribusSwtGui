@@ -115,8 +115,8 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TagDefsChanged
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
-import eu.transkribus.swt_gui.metadata.CustomTagDef;
-import eu.transkribus.swt_gui.metadata.CustomTagDefUtil;
+import eu.transkribus.swt_gui.metadata.CustomTagSpec;
+import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -145,7 +145,7 @@ public class Storage {
 	private List<TrpDocMetadata> docList = Collections.synchronizedList(new ArrayList<>());
 	private List<TrpDocMetadata> userDocList = Collections.synchronizedList(new ArrayList<>());
 	
-	private List<CustomTagDef> customTagDefs = new ArrayList<>();
+	private List<CustomTagSpec> customTagSpecs = new ArrayList<>();
 	
 	private int collId;
 		
@@ -205,7 +205,7 @@ public class Storage {
 		initImCache();
 		initTranscriptCache();
 		addInternalListener();
-		readTagDefsFromLocalSettings();
+		readTagSpecsFromLocalSettings();
 	}
 	
 	private void addInternalListener() {
@@ -2343,50 +2343,52 @@ public class Storage {
 		
 	}
 	
-	public List<CustomTagDef> getCustomTagDefs() {
-		return customTagDefs;
+	
+	// CUSTOM TAG SPEC STUFF:
+	
+	public List<CustomTagSpec> getCustomTagSpecs() {
+		return customTagSpecs;
 	}
 	
-	public void addCustomTagDef(CustomTagDef tagDef) {
-		customTagDefs.add(tagDef);
-		checkTagDefsValuesConistency();
-		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
+	public void addCustomTagSpec(CustomTagSpec tagSpec) {
+		customTagSpecs.add(tagSpec);
+		checkTagSpecsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
 	
-		storeCustomTagDefsForCurrentCollection();
+		storeCustomTagSpecsForCurrentCollection();
 	}
 	
-	public void removeCustomTag(CustomTagDef tagDef) {
-		customTagDefs.remove(tagDef);
-		checkTagDefsValuesConistency();
-		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
+	public void removeCustomTagSpec(CustomTagSpec tagDef) {
+		customTagSpecs.remove(tagDef);
+		checkTagSpecsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
 		
-		storeCustomTagDefsForCurrentCollection();
+		storeCustomTagSpecsForCurrentCollection();
 	}
 	
-	public void signalCustomTagDefsChanged() {
-		checkTagDefsValuesConistency();
-		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
-		storeCustomTagDefsForCurrentCollection();
+	public void signalCustomTagSpecsChanged() {
+		checkTagSpecsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		storeCustomTagSpecsForCurrentCollection();
 	}
 	
-	public CustomTagDef getCustomTagDefWithShortCut(String shortCut) {
+	public CustomTagSpec getCustomTagSpecWithShortCut(String shortCut) {
 		if (shortCut == null) {
 			return null;
 		}
 		
-		return customTagDefs.stream().filter(cDef -> { return StringUtils.equals(shortCut, cDef.getShortCut());}).findFirst().get();
+		return customTagSpecs.stream().filter(cDef -> { return StringUtils.equals(shortCut, cDef.getShortCut());}).findFirst().get();
 	}
 	
-	private void checkTagDefsValuesConistency() {
-		checkTagDefsColorsConsistency();
+	private void checkTagSpecsConsistency() {
 		checkTagDefsShortCutConsistency();
 	}
 	
 	private void checkTagDefsShortCutConsistency() {
-		for (CustomTagDef cDef: customTagDefs) {
+		for (CustomTagSpec cDef: customTagSpecs) {
 			String sc1 = cDef.getShortCut();
 			
-			for (CustomTagDef cDefOther : customTagDefs) {
+			for (CustomTagSpec cDefOther : customTagSpecs) {
 				String sc2 = cDefOther.getShortCut();
 				
 				if (cDef == cDefOther) {
@@ -2399,34 +2401,10 @@ public class Storage {
 			}
 		}		
 	}
-	
-	private void checkTagDefsColorsConsistency() {
-//		boolean enforceEqualColorOverEqualTagNames = true;
-		if (TrpConfig.getTrpSettings().isEnforceEqualColorsForEqualTagNames()) {
-			for (CustomTagDef cDef: customTagDefs) {
-				String t1 = cDef.getCustomTag().getTagName();
-				
-				for (CustomTagDef cDefOther : customTagDefs) {
-					String t2 = cDefOther.getCustomTag().getTagName();
-					if (cDef == cDefOther) {
-						continue;
-					}
-					
-					if (!t1.equals(t2)) {
-						continue;
-					}
-					
-					if (!CoreUtils.equalsObjects(cDef.getRGB(), cDefOther.getRGB())) {
-						cDefOther.setRGB(cDef.getRGB());
-					}
-				}
-			}
-		}
-	}
-	
-	private void storeCustomTagDefsForCurrentCollection() {
-		logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
-		CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
+		
+	private void storeCustomTagSpecsForCurrentCollection() {
+		logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagSpecs);
+		CustomTagSpecUtil.writeCustomTagSpecsToSettings(customTagSpecs);
 		
 //		if (!storage.isLoggedIn()) {
 //			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
@@ -2436,11 +2414,13 @@ public class Storage {
 //		}
 	}
 	
-	private void readTagDefsFromLocalSettings() {
-		customTagDefs.clear();
-		customTagDefs.addAll(CustomTagDefUtil.readCustomTagDefsFromSettings());
+	private void readTagSpecsFromLocalSettings() {
+		customTagSpecs.clear();
+		customTagSpecs.addAll(CustomTagSpecUtil.readCustomTagSpecsFromSettings());
 		
-		sendEvent(new TagDefsChangedEvent(this, customTagDefs));
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
 	}
+	
+	// END OF CUSTOM TAG SPECS STUFF
 
 }

@@ -8,15 +8,15 @@ import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.util.APropertyChangeSupport;
 
 /**
- * A specific definition of a custom tag for usage in the UI.
- * Includes also additional information such as color, shortcut character etc.
+ * A specification of a custom tag for usage in the UI.
+ * Includes also additional information such as shortcut character etc.
  */
-@JsonAdapter(CustomTagDefAdapter.class)
-public class CustomTagDef extends APropertyChangeSupport {
+@JsonAdapter(CustomTagSpecAdapter.class)
+public class CustomTagSpec extends APropertyChangeSupport {
 	public static RGB DEFAULT_COLOR = new RGB(0, 0, 255);
 	
-	RGB rgb;
-	public static String RGB_PROPERTY="rgb";
+//	RGB rgb;
+//	public static String RGB_PROPERTY="rgb";
 	
 	CustomTag customTag;
 	public static String CUSTOM_TAG_PROPERTY="customTag";
@@ -26,19 +26,19 @@ public class CustomTagDef extends APropertyChangeSupport {
 	
 	public static String[] VALID_SHORTCUTS = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 	
-	public CustomTagDef(CustomTag customTag) {
+	public CustomTagSpec(CustomTag customTag) {
 		this.customTag = customTag;
 	}
 
-	public RGB getRGB() {
-		return rgb;
-	}
-
-	public void setRGB(RGB rgb) {
-		RGB old = this.rgb;
-		this.rgb = rgb;
-		firePropertyChange(RGB_PROPERTY, old, this.rgb);
-	}
+//	public RGB getRGB() {
+//		return rgb;
+//	}
+//
+//	public void setRGB(RGB rgb) {
+//		RGB old = this.rgb;
+//		this.rgb = rgb;
+//		firePropertyChange(RGB_PROPERTY, old, this.rgb);
+//	}
 
 	public CustomTag getCustomTag() {
 		return customTag;
@@ -73,7 +73,7 @@ public class CustomTagDef extends APropertyChangeSupport {
 
 	@Override
 	public String toString() {
-		return "CustomTagDef [rgb=" + rgb + ", customTag=" + customTag + ", shortCut=" + shortCut + "]";
+		return "CustomTagDef [customTag=" + customTag + ", shortCut=" + shortCut + "]";
 	}	
 
 }

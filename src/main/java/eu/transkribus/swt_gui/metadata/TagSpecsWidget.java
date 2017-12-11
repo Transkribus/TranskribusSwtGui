@@ -2,6 +2,8 @@ package eu.transkribus.swt_gui.metadata;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +23,7 @@ import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FillLayout;
@@ -37,32 +40,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
 import eu.transkribus.swt.util.ColorChooseButton;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class TagDefsWidget extends Composite {
-	private static final Logger logger = LoggerFactory.getLogger(TagDefsWidget.class);
+public class TagSpecsWidget extends Composite {
+	private static final Logger logger = LoggerFactory.getLogger(TagSpecsWidget.class);
 	
 	TableViewer tableViewer;
 	
-	Map<CustomTagDef, ControlEditor> insertTagEditors = new ConcurrentHashMap<>();
-	Map<CustomTagDef, ControlEditor> removeTagDefEditors = new ConcurrentHashMap<>();
-	Map<CustomTagDef, ControlEditor> colorEditors = new ConcurrentHashMap<>();
+	Map<CustomTagSpec, ControlEditor> insertTagEditors = new ConcurrentHashMap<>();
+	Map<CustomTagSpec, ControlEditor> removeTagDefEditors = new ConcurrentHashMap<>();
+	Map<CustomTagSpec, ControlEditor> colorEditors = new ConcurrentHashMap<>();
 	
-	Map<CustomTagDef, ControlEditor> moveUpEditors = new ConcurrentHashMap<>();
-	Map<CustomTagDef, ControlEditor> moveDownEditors = new ConcurrentHashMap<>();
+	Map<CustomTagSpec, ControlEditor> moveUpEditors = new ConcurrentHashMap<>();
+	Map<CustomTagSpec, ControlEditor> moveDownEditors = new ConcurrentHashMap<>();
 	
 	boolean isEditable=true;
 	
-	public TagDefsWidget(Composite parent, int style, boolean isEditable) {
+	public TagSpecsWidget(Composite parent, int style, boolean isEditable) {
 		super(parent, style);
 		setLayout(new FillLayout());
 		
@@ -74,7 +77,7 @@ public class TagDefsWidget extends Composite {
 		container.setLayout(new GridLayout(nCols, false));
 		
 		Label headerLbl = new Label(container, 0);
-		headerLbl.setText("Tag definitions for current collection");
+		headerLbl.setText("Tag specifications for current collection");
 		Fonts.setBoldFont(headerLbl);
 		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
@@ -87,22 +90,14 @@ public class TagDefsWidget extends Composite {
 				diag.open();
 			});
 		}
-		
-		if (isEditable) {
-			Button enforceEqualColorsForEqualTagNamesBtn = new Button(container, SWT.CHECK);
-			enforceEqualColorsForEqualTagNamesBtn.setText("Enforce equal colors for equal tag names");
-			enforceEqualColorsForEqualTagNamesBtn.setToolTipText("Enforces equal colors for tags with the same name but different attributes");
-			enforceEqualColorsForEqualTagNamesBtn.setSelection(true);
-			DataBinder.get().bindBeanToWidgetSelection(TrpSettings.ENFORCE_EQUAL_COLORS_FOR_EQUAL_TAG_NAMES_PROPERTY, TrpConfig.getTrpSettings(), enforceEqualColorsForEqualTagNamesBtn);
-		}
-		
+				
 		Composite tableContainer = new Composite(container, SWT.NONE);
 		tableContainer.setLayout(SWTUtil.createGridLayout(isEditable ? 2 : 1, false, 0, 0));
 		tableContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, nCols, 1));
 		
 		int tableViewerStyle = SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION;
 		tableViewer = new TableViewer(tableContainer, tableViewerStyle);
-		tableViewer.getTable().setToolTipText("List of tag definitions that are available in the user interface");
+		tableViewer.getTable().setToolTipText("List of tag specifications that are available in the user interface");
 		
 //		tagsTableViewer = new TableViewer(taggingGroup, SWT.FULL_SELECTION|SWT.HIDE_SELECTION|SWT.NO_FOCUS | SWT.H_SCROLL
 //		        | SWT.V_SCROLL | SWT.FULL_SELECTION /*| SWT.BORDER*/);
@@ -115,34 +110,44 @@ public class TagDefsWidget extends Composite {
 		tableViewer.setContentProvider(new ArrayContentProvider());
 		
 		TableViewerColumn tagDefCol = new TableViewerColumn(tableViewer, SWT.NONE);
-		tagDefCol.getColumn().setText("Tag definition");
+		tagDefCol.getColumn().setText("Tag specification");
 		tagDefCol.getColumn().setResizable(true);
 		tagDefCol.getColumn().setWidth(300);
 		ColumnLabelProvider nameColLP = new ColumnLabelProvider() {
 			@Override public String getText(Object element) {
-				if (!(element instanceof CustomTagDef)) {
+				if (!(element instanceof CustomTagSpec)) {
 					return "i am error";
 				}
 				
-				CustomTagDef tagDef = (CustomTagDef) element;
+				CustomTagSpec tagDef = (CustomTagSpec) element;
 				return tagDef.getCustomTag().getCssStr();
+			}
+			
+			@Override public Color getForeground(Object element) {
+				if (!(element instanceof CustomTagSpec)) {
+					return null;
+				}
+				CustomTagSpec tagDef = (CustomTagSpec) element;
+				
+				String tagColor = CustomTagFactory.getTagColor(tagDef.getCustomTag().getTagName());
+				return Colors.decode2(tagColor);
 			}
 		};
 		tagDefCol.setLabelProvider(nameColLP);
 		
-		if (true) {
+		if (false) {
 			TableViewerColumn colorCol = new TableViewerColumn(tableViewer, SWT.NONE);
 			colorCol.getColumn().setText("Color");
 			colorCol.getColumn().setResizable(true);
 			colorCol.getColumn().setWidth(50);
 			colorCol.setLabelProvider(new CellLabelProvider() {
 				@Override public void update(ViewerCell cell) {
-					if (!(cell.getElement() instanceof CustomTagDef)) {
+					if (!(cell.getElement() instanceof CustomTagSpec)) {
 						return;
 					}
 					
 					TableItem item = (TableItem) cell.getItem();
-					CustomTagDef tagDef = (CustomTagDef) cell.getElement();
+					CustomTagSpec tagSpec = (CustomTagSpec) cell.getElement();
 					
 					TableEditor editor = new TableEditor(item.getParent());				
 	                editor.grabHorizontal  = true;
@@ -150,11 +155,9 @@ public class TagDefsWidget extends Composite {
 	                editor.horizontalAlignment = SWT.LEFT;
 	                editor.verticalAlignment = SWT.TOP;
 	                
-	                ColorChooseButton colorCtrl = new ColorChooseButton((Composite) cell.getViewerRow().getControl(), tagDef.getRGB()) {
+	                ColorChooseButton colorCtrl = new ColorChooseButton((Composite) cell.getViewerRow().getControl(), Colors.toRGB(CustomTagFactory.getTagColor(tagSpec.getCustomTag().getTagName()))) {
 	                	@Override protected void onColorChanged(RGB rgb) {
-	                		tagDef.setRGB(rgb);
-	                		logger.info("color of tag def changed, tagDef: "+tagDef);
-	                		Storage.getInstance().signalCustomTagDefsChanged();
+	                		CustomTagFactory.setTagColor(tagSpec.getCustomTag().getTagName(), Colors.toHex(rgb));
 	                	}
 	                };
 	                colorCtrl.setEditorEnabled(isEditable);
@@ -162,7 +165,7 @@ public class TagDefsWidget extends Composite {
 	                editor.setEditor(colorCtrl , item, cell.getColumnIndex());
 	                editor.layout();
 	                
-	                TaggingWidgetUtils.replaceEditor(colorEditors, tagDef, editor);
+	                TaggingWidgetUtils.replaceEditor(colorEditors, tagSpec, editor);
 				}
 			});
 		}
@@ -178,11 +181,11 @@ public class TagDefsWidget extends Composite {
 				Object element = cell.getElement();
 				String text = "";
 				logger.debug("element = "+element);
-				if (!(element instanceof CustomTagDef)) {
+				if (!(element instanceof CustomTagSpec)) {
 					cell.setText("i am error");
 				}
 				
-				CustomTagDef tagDef = (CustomTagDef) element;
+				CustomTagSpec tagDef = (CustomTagSpec) element;
 				if (tagDef.getShortCut()!=null) {
 					text = "Alt+"+tagDef.getShortCut();
 				}
@@ -199,7 +202,7 @@ public class TagDefsWidget extends Composite {
 				@Override
 				protected void setValue(Object element, Object value) {
 					logger.debug("setting value of: "+element+" to: "+value);
-						CustomTagDef cDef = (CustomTagDef) element;
+						CustomTagSpec cDef = (CustomTagSpec) element;
 						if (cDef == null) {
 							return;
 						}
@@ -215,12 +218,12 @@ public class TagDefsWidget extends Composite {
 						
 						tableViewer.refresh(true);
 						logger.debug("shorcut value changed - sending signal to storage!");
-						Storage.getInstance().signalCustomTagDefsChanged();
+						Storage.getInstance().signalCustomTagSpecsChanged();
 				}
 				
 				@Override
 				protected Object getValue(Object element) {
-					CustomTagDef cDef = (CustomTagDef) element;
+					CustomTagSpec cDef = (CustomTagSpec) element;
 					if (cDef == null) { // shouldn't happen I guess...
 						return "";
 					} else {
@@ -241,7 +244,7 @@ public class TagDefsWidget extends Composite {
 							if (len<=0 || len>=2) {
 								return "Not a string of size 1!";
 							}
-							if (!CustomTagDef.isValidShortCut(str)) {
+							if (!CustomTagSpec.isValidShortCut(str)) {
 								return "Not a valid shortcut character (0-9)!";
 							}
 							
@@ -266,15 +269,15 @@ public class TagDefsWidget extends Composite {
 			removeBtnCol.getColumn().setWidth(50);
 			
 			class RemoveTagDefSelectionListener extends SelectionAdapter {
-				CustomTagDef tagDef;
+				CustomTagSpec tagDef;
 				
-				public RemoveTagDefSelectionListener(CustomTagDef tagDef) {
+				public RemoveTagDefSelectionListener(CustomTagSpec tagDef) {
 					this.tagDef = tagDef;
 				}
 				
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					Storage.getInstance().removeCustomTag(tagDef);
+					Storage.getInstance().removeCustomTagSpec(tagDef);
 	 				tableViewer.refresh();
 				}
 			};
@@ -287,10 +290,10 @@ public class TagDefsWidget extends Composite {
 					
 					Button removeButton = new Button((Composite) cell.getViewerRow().getControl(), SWT.PUSH);
 			        removeButton.setImage(Images.getOrLoad("/icons/delete_12.png"));
-			        removeButton.setToolTipText("Remove tag definition");
+			        removeButton.setToolTipText("Remove tag specification");
 			        removeButton.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
 			        
-			        CustomTagDef tagDef = (CustomTagDef) cell.getElement();	
+			        CustomTagSpec tagDef = (CustomTagSpec) cell.getElement();	
 			        removeButton.addSelectionListener(new RemoveTagDefSelectionListener(tagDef));
 			        Control c = removeButton;
 			        
@@ -308,28 +311,28 @@ public class TagDefsWidget extends Composite {
 		
 		if (false && this.isEditable) { // move up/down btns
 			class MoveTagDefUpDownSelectionListener extends SelectionAdapter {
-				CustomTagDef tagDef;
+				CustomTagSpec tagDef;
 				boolean moveUp;
 				
-				public MoveTagDefUpDownSelectionListener(CustomTagDef tagDef, boolean moveUp) {
+				public MoveTagDefUpDownSelectionListener(CustomTagSpec tagDef, boolean moveUp) {
 					this.tagDef = tagDef;
 					this.moveUp = moveUp;
 				}
 				
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					List<CustomTagDef> cDefs = Storage.getInstance().getCustomTagDefs();
+					List<CustomTagSpec> cDefs = Storage.getInstance().getCustomTagSpecs();
 					int i = cDefs.indexOf(tagDef);
 					if (!moveUp && i>=1) {
 						if (cDefs.remove(tagDef)) {
 							cDefs.add(i-1, tagDef);
-							Storage.getInstance().signalCustomTagDefsChanged();
+							Storage.getInstance().signalCustomTagSpecsChanged();
 						}
 					}
 					else if (moveUp && i<cDefs.size()-1) {
 						if (cDefs.remove(tagDef)) {
 							cDefs.add(i+1, tagDef);
-							Storage.getInstance().signalCustomTagDefsChanged();
+							Storage.getInstance().signalCustomTagSpecsChanged();
 						}
 					}
 				}
@@ -351,7 +354,7 @@ public class TagDefsWidget extends Composite {
 			        btn.setToolTipText("Move up");
 			        btn.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
 			        
-			        CustomTagDef tagDef = (CustomTagDef) cell.getElement();	
+			        CustomTagSpec tagDef = (CustomTagSpec) cell.getElement();	
 			        btn.addSelectionListener(new MoveTagDefUpDownSelectionListener(tagDef, true));
 			        Control c = btn;
 			        
@@ -382,7 +385,7 @@ public class TagDefsWidget extends Composite {
 			        removeButton.setToolTipText("Move down");
 			        removeButton.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
 			        
-			        CustomTagDef tagDef = (CustomTagDef) cell.getElement();	
+			        CustomTagSpec tagDef = (CustomTagSpec) cell.getElement();	
 			        removeButton.addSelectionListener(new MoveTagDefUpDownSelectionListener(tagDef, false));
 			        Control c = removeButton;
 			        
@@ -406,7 +409,7 @@ public class TagDefsWidget extends Composite {
 			
 			CellLabelProvider addButtonColLabelProvider = new CellLabelProvider() {
 				@Override public void update(final ViewerCell cell) {
-					CustomTagDef tagDef = (CustomTagDef) cell.getElement();
+					CustomTagSpec tagDef = (CustomTagSpec) cell.getElement();
 					final TableItem item = (TableItem) cell.getItem();
 					TableEditor editor = new TableEditor(item.getParent());
 					
@@ -468,61 +471,71 @@ public class TagDefsWidget extends Composite {
 		container.layout(true);
 		
 		
-		updateTagDefsFromStorage();
+		updateAvailableTagSpecs();
 
 		Storage.getInstance().addListener(new IStorageListener() {
 			public void handlTagDefsChangedEvent(TagDefsChangedEvent e) {
-				updateTagDefsFromStorage();
+				updateAvailableTagSpecs();
+			}
+		});
+		
+		CustomTagFactory.addObserver(new Observer() {
+			@Override
+			public void update(Observable o, Object arg) {
+				if (arg instanceof TagRegistryChangeEvent) {
+					logger.debug("TagRegistryChangeEvent: "+arg);
+					updateAvailableTagSpecs();
+				}				
 			}
 		});
 	}
 	
 	private void removeSelected() {
-		CustomTagDef cDef = getSelected();
+		CustomTagSpec cDef = getSelected();
 		if (cDef != null) {
-			Storage.getInstance().removeCustomTag(cDef);
+			Storage.getInstance().removeCustomTagSpec(cDef);
 		}
 	}
 	
 	private void moveSelected(boolean moveUp) {
-		CustomTagDef tagDef = getSelected();
+		CustomTagSpec tagDef = getSelected();
 		if (tagDef==null) {
 			return;
 		}
 		
 		logger.debug("moving selected: "+tagDef);
 		
-		List<CustomTagDef> cDefs = Storage.getInstance().getCustomTagDefs();
+		List<CustomTagSpec> cDefs = Storage.getInstance().getCustomTagSpecs();
 		int i = cDefs.indexOf(tagDef);
 		if (moveUp && i>=1) {
 			if (cDefs.remove(tagDef)) {
 				cDefs.add(i-1, tagDef);
-				Storage.getInstance().signalCustomTagDefsChanged();
+				Storage.getInstance().signalCustomTagSpecsChanged();
 			}
 		}
 		else if (!moveUp && i<cDefs.size()-1) {
 			if (cDefs.remove(tagDef)) {
 				cDefs.add(i+1, tagDef);
-				Storage.getInstance().signalCustomTagDefsChanged();
+				Storage.getInstance().signalCustomTagSpecsChanged();
 			}
 		}
 	}
 	
-	private void updateTagDefsFromStorage() {
-		logger.info("updating tag defs from storage: "+Storage.getInstance().getCustomTagDefs());
+	private void updateAvailableTagSpecs() {
+		logger.info("updating available tag specs: "+Storage.getInstance().getCustomTagSpecs());
 		Display.getDefault().asyncExec(() -> {
 			if (SWTUtil.isDisposed(tableViewer.getTable()) || SWTUtil.isDisposed(this)) {
 				return;
 			}
 			
-			tableViewer.setInput(Storage.getInstance().getCustomTagDefs());
+			tableViewer.setInput(Storage.getInstance().getCustomTagSpecs());
 			tableViewer.refresh();
 			
-			TaggingWidgetUtils.updateEditors(colorEditors, Storage.getInstance().getCustomTagDefs());
-			TaggingWidgetUtils.updateEditors(removeTagDefEditors, Storage.getInstance().getCustomTagDefs());
-			TaggingWidgetUtils.updateEditors(insertTagEditors, Storage.getInstance().getCustomTagDefs());
-			TaggingWidgetUtils.updateEditors(moveUpEditors, Storage.getInstance().getCustomTagDefs());
-			TaggingWidgetUtils.updateEditors(moveDownEditors, Storage.getInstance().getCustomTagDefs());
+			TaggingWidgetUtils.updateEditors(colorEditors, Storage.getInstance().getCustomTagSpecs());
+			TaggingWidgetUtils.updateEditors(removeTagDefEditors, Storage.getInstance().getCustomTagSpecs());
+			TaggingWidgetUtils.updateEditors(insertTagEditors, Storage.getInstance().getCustomTagSpecs());
+			TaggingWidgetUtils.updateEditors(moveUpEditors, Storage.getInstance().getCustomTagSpecs());
+			TaggingWidgetUtils.updateEditors(moveDownEditors, Storage.getInstance().getCustomTagSpecs());
 		});
 	}
 	
@@ -530,8 +543,8 @@ public class TagDefsWidget extends Composite {
 		return tableViewer;
 	}
 
-	public CustomTagDef getSelected() {
-		return (CustomTagDef) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
+	public CustomTagSpec getSelected() {
+		return (CustomTagSpec) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
 	}
 
 }
