@@ -22,9 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.SebisStopWatch;
-import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
-import eu.transkribus.swt_gui.canvas.CanvasWidget;
 
 public class ImgLoader {
 	private final static Logger logger = LoggerFactory.getLogger(ImgLoader.class);
