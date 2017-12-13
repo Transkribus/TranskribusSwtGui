@@ -1588,11 +1588,16 @@ public class Storage {
 		conn.ingestDocFromFtp(cId, dirName, checkForDuplicateTitle);
 	}
 	
-	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException, UnsupportedEncodingException{
+	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException, MalformedURLException, IOException{
 //		if (!isLoggedIn())
 //			throw new Exception("Not logged in!");
 		checkConnection(true);
-		conn.ingestDocFromUrl(cId, metsUrl);
+		if (metsUrl.startsWith("file")){
+			conn.ingestDocFromLocalMetsUrl(cId, metsUrl);
+		}
+		else{
+			conn.ingestDocFromUrl(cId, metsUrl);
+		}
 	}
 	
 	public String analyzeBlocks(int colId, int docId, int pageNr, PcGtsType pageData, boolean usePrintspaceOnly) throws SessionExpiredException, ServerErrorException,
@@ -1751,8 +1756,7 @@ public class Storage {
 		// throw new
 		// Exception("Export directory already exists: "+destDir.getAbsolutePath());
 		
-		final int totalWork = pageIndices==null ? doc.getNPages() : pageIndices.size();
-		
+		final int totalWork = pageIndices==null ? doc.getNPages() : pageIndices.size();		
 		monitor.beginTask("Exporting document", totalWork);
 
 		String path = dir.getAbsolutePath();

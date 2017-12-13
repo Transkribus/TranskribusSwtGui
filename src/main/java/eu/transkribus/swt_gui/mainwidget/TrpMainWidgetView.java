@@ -633,7 +633,8 @@ public class TrpMainWidgetView extends Composite {
 		statusCombo.setToolTipText("Page status");
 		//statusCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
-		statusCombo.setItems(EditStatus.getStatusListWithoutNew());
+		statusCombo.setItems(EnumUtils.stringsArray(EditStatus.class));
+		//statusCombo.setItems(EditStatus.getStatusListWithoutNew());
 		statusCombo.pack();
 	    sep.setWidth(statusCombo.getSize().x);
 	    sep.setControl(statusCombo);

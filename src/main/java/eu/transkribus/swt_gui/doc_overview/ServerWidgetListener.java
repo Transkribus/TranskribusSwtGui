@@ -181,6 +181,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		}
 		else if (s == sw.deleteDocMenuItem || s == sw.deleteDocTi) {
 			mw.deleteDocuments(sw.getSelectedDocuments());
+			mw.reloadDocList(mw.getSelectedCollectionId());
 		}
 		else if (s == sw.addToCollectionMenuItem || s == sw.addToCollectionTi) {
 			mw.addDocumentsToCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());

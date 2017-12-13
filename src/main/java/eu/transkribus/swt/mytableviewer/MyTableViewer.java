@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -125,16 +126,18 @@ public class MyTableViewer extends TableViewer {
 				
 //				sw.start();
 				if (d == SWT.DOWN) {
-					logger.trace("sorting down!");
+					logger.debug("sorting down!");
 					Collections.sort(inputList, comp);
 				} else if (d == SWT.UP) {
-					logger.trace("sorting up!");
+					logger.debug("sorting up!");
 					Collections.sort(inputList, new Comparator<T>() {
 						@Override public int compare(T o1, T o2) {
 							return -1*comp.compare(o1, o2);
 						}
 					});
-				}
+				}				
+				//redraws the table with the current sort direction
+				refresh();
 //				sw.stop(true, "sorting time: ");
 			}
 
