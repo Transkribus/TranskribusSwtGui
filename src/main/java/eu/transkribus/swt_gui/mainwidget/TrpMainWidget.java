@@ -46,6 +46,7 @@ import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.util.BidiUtils;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
@@ -55,6 +56,7 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.internal.BidiUtil;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -2422,6 +2424,9 @@ public class TrpMainWidget {
 	}
 
 	public static void show(Display givenDisplay) {
+		BidiUtils.setBidiSupport(true);
+		logger.debug("bidi support: "+BidiUtils.getBidiSupport());
+		
 		GuiUtil.initLogger();
 		try {
 			// final Display display = Display.getDefault();
