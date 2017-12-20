@@ -23,6 +23,7 @@ import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.text.JFaceTextUtil;
+import org.eclipse.jface.util.BidiUtils;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.Bullet;
@@ -337,7 +338,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		text.setDoubleClickEnabled(false); // disables default doubleclick and(!) tripleclick behaviour --> for new implementation see mouse listener!
 		text.setLineSpacing(DEFAULT_LINE_SPACING);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				
+		BidiUtils.applyBidiProcessing(text, BidiUtils.AUTO); // set bidi processing to auto for this text field
+
 		wordGraphEditor = new WordGraphEditor(container, SWT.NONE, this);
 		wordGraphEditor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
