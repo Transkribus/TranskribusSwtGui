@@ -11,6 +11,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -21,9 +22,10 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.FillLayout;
@@ -108,6 +110,7 @@ public class TagSpecsWidget extends Composite {
 		tableViewer.getTable().setHeaderVisible(true);
 		tableViewer.getTable().setLinesVisible(true);
 		tableViewer.setContentProvider(new ArrayContentProvider());
+		ColumnViewerToolTipSupport.enableFor(tableViewer);
 		
 		TableViewerColumn tagDefCol = new TableViewerColumn(tableViewer, SWT.NONE);
 		tagDefCol.getColumn().setText("Tag specification");
@@ -195,6 +198,11 @@ public class TagSpecsWidget extends Composite {
 				
 				cell.setText(text);
 			}
+			
+			@Override
+	        public String getToolTipText(Object element) {
+	           return "Alt + a number between 0 and 9";
+	        }
 		});
 
 		if (this.isEditable) {
@@ -234,6 +242,19 @@ public class TagSpecsWidget extends Composite {
 				@Override
 				protected CellEditor getCellEditor(Object element) {
 					TextCellEditor ce = new TextCellEditor(tableViewer.getTable());
+					
+					// add a "default" description text when no shortcut is set
+					ce.getControl().addFocusListener(new FocusAdapter() {				
+						@Override
+						public void focusGained(FocusEvent e) {
+							CustomTagSpec cDef = (CustomTagSpec) element;
+							if (StringUtils.isEmpty(cDef.getShortCut())) {
+								ce.setValue("Enter a number between 0 and 9");
+								ce.performSelectAll();		
+							}
+						}
+					});
+					
 					ce.setValidator(new ICellEditorValidator() {
 						
 						@Override
@@ -241,7 +262,10 @@ public class TagSpecsWidget extends Composite {
 							String str = (String) value;
 							int len = StringUtils.length(str);
 							logger.debug("sc = "+str+" len = "+len);
-							if (len<=0 || len>=2) {
+							if (len <= 0) { // empty string are allowed for deleting shortcut
+								return null;
+							}
+							if (len>=2) {
 								return "Not a string of size 1!";
 							}
 							if (!CustomTagSpec.isValidShortCut(str)) {
