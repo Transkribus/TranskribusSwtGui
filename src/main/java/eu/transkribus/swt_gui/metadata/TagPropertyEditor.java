@@ -36,6 +36,8 @@ public class TagPropertyEditor extends Composite {
 	Button nextBtn, prevBtn, refreshBtn;
 	ATranscriptionWidget tWidget;
 	
+	boolean settingCustomTag=false;
+	
 	public TagPropertyEditor(Composite parent, ATranscriptionWidget tWidget, boolean withHeader) {
 		super(parent, 0);
 		this.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
@@ -107,6 +109,7 @@ public class TagPropertyEditor extends Composite {
 	}
 	
 	public void setCustomTag(CustomTag tag) {
+		settingCustomTag = true;
 		this.tag = tag;
 		
 		if (this.tag != null) {
@@ -119,9 +122,9 @@ public class TagPropertyEditor extends Composite {
 			if (this.tag.getCustomTagList() != null) {
 				// select shape first if not yet done:
 				ITrpShapeType shape = this.tag.getCustomTagList().getShape();
-				if (shape != tWidget.getTranscriptionUnit()) {
+//				if (shape != tWidget.getTranscriptionUnit()) {
 					TrpMainWidget.getInstance().selectObjectWithData(shape, true, false);
-				}
+//				}
 				
 				tWidget.selectCustomTag(tag);
 			}
@@ -131,6 +134,11 @@ public class TagPropertyEditor extends Composite {
 		}
 		
 		propsTable.selectFirstAttribute();
+		settingCustomTag = false;
+	}
+	
+	public boolean isSettingCustomTag() {
+		return settingCustomTag;
 	}
 	
 	public void findAndSetNextTag() {
@@ -173,9 +181,7 @@ public class TagPropertyEditor extends Composite {
 				neighborShape = TrpShapeTypeUtils.getNeighborShape(neighborShape, previous, false);
 			}
 		}
-		
-		logger.debug("neighborTag: "+neighborTag);
-		
+				
 		if (neighborTag != null) {
 			setCustomTag(neighborTag);
 		}

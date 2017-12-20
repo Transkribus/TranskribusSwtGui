@@ -61,6 +61,10 @@ public class TranscriptionTaggingWidget extends Composite {
 		
 		tWidget.addListener(SWT.DefaultSelection, e -> {
 			if (isTagPropertyEditorSelected() && tWidget.isTagEditorVisible()) {
+				if (tagPropEditor.isSettingCustomTag()) { // if currently setting a custom tag in the property editor, ignore selection changed events from transcription widget!
+					return;
+				}
+				
 				List<CustomTag> tags = tWidget.getCustomTagsForCurrentOffset();
 				if (tags.isEmpty()) {
 					return;

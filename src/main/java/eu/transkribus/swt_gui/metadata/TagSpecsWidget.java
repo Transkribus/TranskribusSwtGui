@@ -123,19 +123,19 @@ public class TagSpecsWidget extends Composite {
 				return tagDef.getCustomTag().getCssStr();
 			}
 			
-			@Override public Color getForeground(Object element) {
-				if (!(element instanceof CustomTagSpec)) {
-					return null;
-				}
-				CustomTagSpec tagDef = (CustomTagSpec) element;
-				
-				String tagColor = CustomTagFactory.getTagColor(tagDef.getCustomTag().getTagName());
-				return Colors.decode2(tagColor);
-			}
+//			@Override public Color getForeground(Object element) {
+//				if (!(element instanceof CustomTagSpec)) {
+//					return null;
+//				}
+//				CustomTagSpec tagDef = (CustomTagSpec) element;
+//				
+//				String tagColor = CustomTagFactory.getTagColor(tagDef.getCustomTag().getTagName());
+//				return Colors.decode2(tagColor);
+//			}
 		};
 		tagDefCol.setLabelProvider(nameColLP);
 		
-		if (false) {
+		if (true) {
 			TableViewerColumn colorCol = new TableViewerColumn(tableViewer, SWT.NONE);
 			colorCol.getColumn().setText("Color");
 			colorCol.getColumn().setResizable(true);
