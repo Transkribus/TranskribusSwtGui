@@ -338,7 +338,9 @@ public abstract class ATranscriptionWidget extends Composite{
 		text.setDoubleClickEnabled(false); // disables default doubleclick and(!) tripleclick behaviour --> for new implementation see mouse listener!
 		text.setLineSpacing(DEFAULT_LINE_SPACING);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		BidiUtils.applyBidiProcessing(text, BidiUtils.AUTO); // set bidi processing to auto for this text field
+		// FIXME: enabling BIDI processing triggers a bug in StyledText.getOffsetAtPoint -> Layout.getLineIndex -> IllegalArgumentException
+		// quick and dirty solution: added a try/catch block to the main event loop of TrapMainWidget.show method that prints out and ignores unexpected exceptions!
+		BidiUtils.applyBidiProcessing(text, BidiUtils.AUTO); 
 
 		wordGraphEditor = new WordGraphEditor(container, SWT.NONE, this);
 		wordGraphEditor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
