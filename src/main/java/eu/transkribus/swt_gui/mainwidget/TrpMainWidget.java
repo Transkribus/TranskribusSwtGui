@@ -2479,8 +2479,12 @@ public class TrpMainWidget {
 					// while((Display.getCurrent().getShells().length != 0)
 					// && !Display.getCurrent().getShells()[0].isDisposed()) {
 					while (!shell.isDisposed()) {
-						if (!Display.getCurrent().readAndDispatch()) {
-							Display.getCurrent().sleep();
+						try {
+							if (!Display.getCurrent().readAndDispatch()) {
+								Display.getCurrent().sleep();
+							}
+						} catch (Throwable th) {
+							logger.error("Unexpected error occured: "+th.getMessage(), th);
 						}
 					}
 
