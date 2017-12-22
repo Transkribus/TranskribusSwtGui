@@ -2202,6 +2202,8 @@ public class TrpMainWidget {
 						logger.debug("loaded local doc "+folder);
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
+					} finally {
+						monitor.done();
 					}
 				}
 			}, "Loading local document", false);
