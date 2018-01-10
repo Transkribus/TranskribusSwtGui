@@ -14,7 +14,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;

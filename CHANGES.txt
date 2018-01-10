@@ -529,3 +529,7 @@ CHANGES AND BUGFIXES
 	-> adapted PDF export
 	-> adapted tag search and replace
 	
+1.3.9:
+	-> simple txt export
+	-> export images without loading transcripts
+	

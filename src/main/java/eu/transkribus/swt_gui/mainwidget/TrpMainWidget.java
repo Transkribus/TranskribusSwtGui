@@ -121,6 +121,7 @@ import eu.transkribus.core.model.builder.ms.TrpXlsxTableBuilder;
 import eu.transkribus.core.model.builder.pdf.PdfExportPars;
 import eu.transkribus.core.model.builder.rtf.TrpRtfBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
+import eu.transkribus.core.model.builder.txt.TrpTxtBuilder;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
@@ -2238,6 +2239,8 @@ public class TrpMainWidget {
 						logger.debug("loaded local doc "+folder);
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
+					} finally {
+						monitor.done();
 					}
 				}
 			}, "Loading local document", false);
@@ -3159,6 +3162,7 @@ public class TrpMainWidget {
 			boolean doMetsExport = false;
 			boolean doPdfExport = false;
 			boolean doDocxExport = false;
+			boolean doTxtExport = false;
 			boolean doTeiExport = false;
 			boolean doXlsxExport = false;
 			boolean doTableExport = false;
@@ -3176,6 +3180,9 @@ public class TrpMainWidget {
 
 			String docxExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".docx";
 			File docxExportFile = new File(docxExportFileOrDir);
+			
+			String txtExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".txt";
+			File txtExportFile = new File(txtExportFileOrDir);
 
 			String xlsxExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".xlsx";
 			File xlsxExportFile = new File(xlsxExportFileOrDir);
@@ -3197,6 +3204,8 @@ public class TrpMainWidget {
 				doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
 
 				doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
+				
+				doTxtExport = (exportDiag.isTxtExport() && exportDiag.getExportPathComp().checkExportFile(txtExportFile, ".txt", getShell()));
 
 				doXlsxExport = (exportDiag.isTagXlsxExport() && exportDiag.getExportPathComp().checkExportFile(xlsxExportFile, ".xlsx", getShell()));
 				
@@ -3210,7 +3219,7 @@ public class TrpMainWidget {
 				//logger.debug("temp dir is ..." + tempDir);
 			}
 
-			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doXlsxExport && !doZipExport && !doTableExport) {
+			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doTxtExport && !doXlsxExport && !doZipExport && !doTableExport) {
 				/*
 				 * if the export file exists and the user wants not to overwrite it then the 
 				 * export dialog shows up again with the possibility to choose another location
@@ -3226,53 +3235,60 @@ public class TrpMainWidget {
 			}
 
 //			logger.debug("loading transcripts..." + copyOfPageIndices.size());
-
-			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						//logger.debug("loading transcripts...");
-						monitor.beginTask("Loading transcripts...", pageIndices.size());
-						//unmarshal the page transcript only once
-						ExportUtils.storePageTranscripts4Export(storage.getDoc(), pageIndices, monitor, exportDiag.getVersionStatus(),
-								storage.getPageIndex(), storage.getTranscript().getMd());
-
-						monitor.done();
-					} catch (Exception e) {
-						throw new InvocationTargetException(e, e.getMessage());
-					}
-				}
-			}, "Loading of transcripts: ", true);
-
-			logger.debug("transcripts loaded");
 			
 			Set<String> selectedTags = exportDiag.getSelectedTagsList();
-
-			if (exportDiag.isTagableExportChosen()) {
-				ExportUtils.setSelectedTags(selectedTags);
-
-				logger.debug("loading tags..." + selectedTags.size());
+			
+			if (!commonPars.exportImagesOnly()){
 
 				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
+	
 							//logger.debug("loading transcripts...");
-							monitor.beginTask("Loading tags...", pageIndices.size());
-							ExportUtils.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), pageIndices, monitor,
-									exportDiag.isDoBlackening());
+							monitor.beginTask("Loading transcripts...", pageIndices.size());						
+						
+							//unmarshal the page transcript only once for all different export, don't do this if only images are exported
+							ExportUtils.storePageTranscripts4Export(storage.getDoc(), pageIndices, monitor, exportDiag.getVersionStatus(),
+									storage.getPageIndex(), storage.getTranscript().getMd());
 							
-							if (selectedTags == null) {
-								DialogUtil.showErrorMessageBox(getShell(), "Error while reading selected tag names", "Error while reading selected tag names");
-								return;
-							}
 							monitor.done();
+	
 						} catch (Exception e) {
 							throw new InvocationTargetException(e, e.getMessage());
 						}
 					}
-				}, "Loading of tags: ", true);
-
-				logger.debug("tags loaded");
-
+				}, "Loading of transcripts: ", true);
+	
+				logger.debug("transcripts loaded");
+	
+				if (exportDiag.isTagableExportChosen()) {
+					ExportUtils.setSelectedTags(selectedTags);
+	
+					logger.debug("loading tags..." + selectedTags.size());
+	
+					ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+						@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+							try {
+								//logger.debug("loading transcripts...");
+								monitor.beginTask("Loading tags...", pageIndices.size());
+								ExportUtils.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), pageIndices, monitor,
+										exportDiag.isDoBlackening());
+								
+								if (selectedTags == null) {
+									DialogUtil.showErrorMessageBox(getShell(), "Error while reading selected tag names", "Error while reading selected tag names");
+									return;
+								}
+								monitor.done();
+							} catch (Exception e) {
+								throw new InvocationTargetException(e, e.getMessage());
+							}
+						}
+					}, "Loading of tags: ", true);
+	
+					logger.debug("tags loaded");
+	
+				}
+			
 			}
 
 			boolean wordBased = exportDiag.isWordBased();
@@ -3310,6 +3326,8 @@ public class TrpMainWidget {
 					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isDocxTagExport(), doBlackening,
 							createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 							exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied());
+				if (exportDiag.isTxtExport())
+					exportTxt(new File(tempZipDirParent + "/" + dir.getName() + ".txt"), pageIndices, createTitle, exportDiag.isWordBased(), true);
 				if (exportDiag.isTagXlsxExport())
 					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport());
 				if (exportDiag.isTableXlsxExport())
@@ -3361,6 +3379,13 @@ public class TrpMainWidget {
 					}
 					exportFormats += "METS/ALTO";
 				}
+				
+				if (exportDiag.isImgExport()){
+					if (exportFormats != "") {
+						exportFormats += " and ";
+					}
+					exportFormats += "IMAGES";
+				}
 
 			}
 
@@ -3394,6 +3419,17 @@ public class TrpMainWidget {
 					exportFormats += " and ";
 				}
 				exportFormats += "DOCX";
+
+			}
+			
+			if (doTxtExport) {
+
+				//last param keeps the line breaks by default 
+				exportTxt(txtExportFile, pageIndices, createTitle, wordBased, true);
+				if (exportFormats != "") {
+					exportFormats += " and ";
+				}
+				exportFormats += "TXT";
 
 			}
 
@@ -3591,6 +3627,36 @@ public class TrpMainWidget {
 		}
 	}
 
+	public void exportTxt(final File file, final Set<Integer> pageIndices, final boolean createTitle, final boolean isWordBased, final boolean preserveLineBreaks) throws Throwable {
+		try {
+
+			if (file == null)
+				return;
+
+			logger.info("Txt export. pages " + pageIndices + ", isWordBased: " + isWordBased);
+
+			lastExportFolder = file.getParentFile().getAbsolutePath();
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						logger.debug("creating txt file...");
+						TrpTxtBuilder.writeTxtForDoc(storage.getDoc(), createTitle, isWordBased, preserveLineBreaks, file, pageIndices, monitor);
+						monitor.done();
+					} catch (InterruptedException ie) {
+						throw ie;
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Exporting", true);
+		} catch (Throwable e) {
+			if (!(e instanceof InterruptedException)) {
+				onError("Export error", "Error during Txt export of document", e);
+			}
+			throw e;
+		}
+	}
+	
 	public void exportDocx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening,
 			final boolean createTitle, final boolean markUnclearWords, final boolean expandAbbrevs,
 			final boolean substituteAbbrevs, final boolean preserveLineBreaks, final boolean suppliedWithBrackets, final boolean ignoreSupplied) throws Throwable {

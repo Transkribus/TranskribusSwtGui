@@ -117,7 +117,8 @@ public class CommonExportDialog extends Dialog {
 	PdfExportPars pdfPars;
 	DocxExportPars docxPars;
 
-	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, pageExport, tagXlsxExport, tableXlsxExport, zipExport;
+	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, 
+	pageExport, tagXlsxExport, tableXlsxExport, zipExport, txtExport;
 
 //	String fileNamePattern = ExportFilePatternUtils.FILENAME_PATTERN;
 	
@@ -322,6 +323,8 @@ public class CommonExportDialog extends Dialog {
 	    b2.setText("TEI");
 	    final Button b3 = new Button(group1, SWT.CHECK);
 	    b3.setText("DOCX");
+	    final Button b30 = new Button(group1, SWT.CHECK);
+	    b30.setText("Simple TXT");
 	    final Button b4 = new Button(group1, SWT.CHECK);
 	    b4.setText("Tag Export (Excel)");
 	    final Button b41 = new Button(group1, SWT.CHECK);
@@ -516,6 +519,18 @@ public class CommonExportDialog extends Dialog {
 	        }
 	    });
 	    
+	    b30.addSelectionListener(new SelectionAdapter() {
+
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	            Button btn = (Button) event.getSource();
+            	setTxtExport(btn.getSelection());
+	            showPageChoice();
+	            showTagChoice();
+	            shell.layout();
+	        }
+	    });
+	    
 	    b4.addSelectionListener(new SelectionAdapter() {
 
 	        @Override
@@ -554,6 +569,8 @@ public class CommonExportDialog extends Dialog {
 	            b2.notifyListeners(SWT.Selection, new Event());
 	            b3.setSelection(btn.getSelection());
 	            b3.notifyListeners(SWT.Selection, new Event());
+	            b30.setSelection(btn.getSelection());
+	            b30.notifyListeners(SWT.Selection, new Event());
 	            b4.setSelection(btn.getSelection());
 	            b4.notifyListeners(SWT.Selection, new Event());
 	            b41.setSelection(btn.getSelection());
@@ -597,13 +614,11 @@ public class CommonExportDialog extends Dialog {
 				
 				updateParameters();
 				
-				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTeiExport() && !isAltoExport() && !isTagXlsxExport()&& !isTableXlsxExport()){
+				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTxtExport() && !isTeiExport() && !isAltoExport() && !isTagXlsxExport()&& !isTableXlsxExport()){
 					DialogUtil.showErrorMessageBox(shell, "Missing export format", "Please choose an export format to continue");
 					return;
 				}
 
-
-				
 				result = exportPathComp.getExportFile();
 				
 				boolean canWrite = result!=null && result.getParentFile()!=null && result.getParentFile().canWrite();
@@ -1314,7 +1329,7 @@ public class CommonExportDialog extends Dialog {
 	}
 	
 	public boolean isPageableExport() {
-		return isMetsExport() || isPdfExport() || isDocxExport() || isTagXlsxExport() || isTableXlsxExport() || isTeiExport();
+		return isMetsExport() || isPdfExport() || isDocxExport() || isTxtExport() || isTagXlsxExport() || isTableXlsxExport() || isTeiExport();
 	}
 		
 	public boolean isTagableExport(){
@@ -1370,7 +1385,7 @@ public class CommonExportDialog extends Dialog {
 		
 	private void updateCommonPars() {
 		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, 
-				pdfExport, teiExport, docxExport, tagXlsxExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList());
+				pdfExport, teiExport, docxExport, txtExport, tagXlsxExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList());
 		commonPars.setFileNamePattern(filenamePatternComp.pattern.text.getText());
 		
 		if(isImgExport() && imgQualityCmb != null) {
@@ -1483,6 +1498,14 @@ public class CommonExportDialog extends Dialog {
 
 	public void setDocxExport(boolean docxExport) {
 		this.docxExport = docxExport;
+	}
+	
+	public boolean isTxtExport() {
+		return txtExport;
+	}
+
+	public void setTxtExport(boolean txtExport) {
+		this.txtExport = txtExport;
 	}
 
 	public boolean isPdfExport() {
