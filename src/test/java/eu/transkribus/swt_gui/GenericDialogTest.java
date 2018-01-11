@@ -11,12 +11,17 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
 import eu.transkribus.client.connection.ATrpServerConn;
+
+import eu.transkribus.core.util.UnicodeList;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.TagConfDialog;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetDialog;
+import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsWidget;
+import eu.transkribus.swt_gui.vkeyboards.VirtualKeyboardEditor;
 
 public class GenericDialogTest {
 

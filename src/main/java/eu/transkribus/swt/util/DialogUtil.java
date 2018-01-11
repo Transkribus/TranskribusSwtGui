@@ -143,14 +143,28 @@ public class DialogUtil {
 	}
 	
 	public static int showCustomMessageDialog(Shell shell, String title, String message, 
-			Image dialogTitleImage, int style, String[] buttons, int defaultIndex, final Control custom) {
+			Image dialogTitleImage, int style, String[] buttons, int defaultIndex, Control custom) {
 		return createCustomMessageDialog(shell, title, message, dialogTitleImage, style, buttons, defaultIndex, custom).open();
 	}
 	
+	public static int showCustomMessageDialog(Shell shell, String title, String message, 
+			Image dialogTitleImage, int style, String[] buttons, int defaultIndex, Control custom, Point initialSize) {
+		return createCustomMessageDialog(shell, title, message, dialogTitleImage, style, buttons, defaultIndex, custom, initialSize).open();
+	}
+	
+	public static MessageDialog createCustomMessageDialog(Shell shell, String title, String message,
+			Image dialogTitleImage, int style, String[] buttons, int defaultIndex, Control custom) {
+
+		return createCustomMessageDialog(shell, title, message, dialogTitleImage, style, buttons, defaultIndex, custom,
+				null);
+	}
+	
 	public static MessageDialog createCustomMessageDialog(Shell shell, String title, String message, 
-			Image dialogTitleImage, int style, String[] buttons, int defaultIndex, final Control custom) {
+			Image dialogTitleImage, int style, String[] buttons, int defaultIndex, Control custom, Point initialSize) {
+		
 		MessageDialog dialog = new MessageDialog(shell, title, dialogTitleImage, message, style, buttons, defaultIndex) {
-		    protected Control createCustomArea(Composite parent) {
+			@Override
+			protected Control createCustomArea(Composite parent) {
 		    	if (custom != null) {
 		    		custom.setParent(parent);
 		    		custom.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -158,10 +172,57 @@ public class DialogUtil {
 		    	
 		        return custom;
 		    }
+		    		    
+			@Override
+			protected int getShellStyle() {
+				if (style>0) {
+					return style;
+				}
+				else {
+					return super.getShellStyle();
+				}
+			}
+			
+			@Override
+			protected Point getInitialSize() {
+				if (initialSize != null) {
+					return initialSize;
+				}
+				else {
+					return super.getInitialSize();
+				}
+			}
 		};
 		
 		return dialog;
 	}
+	
+//	public static MessageDialog createCustomMessageDialog(Shell shell, String title, String message, 
+//			Image dialogTitleImage, int style, String[] buttons, int defaultIndex, Control custom) {
+//		MessageDialog dialog = new MessageDialog(shell, title, dialogTitleImage, message, style, buttons, defaultIndex) {
+//			@Override
+//			protected Control createCustomArea(Composite parent) {
+//		    	if (custom != null) {
+//		    		custom.setParent(parent);
+//		    		custom.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		    	}
+//		    	
+//		        return custom;
+//		    }
+//		    		    
+//			@Override
+//			protected int getShellStyle() {
+//				return style;
+//			}
+//			
+////			@Override
+////			protected Point getInitialSize() {
+////				return new Point(900, 680);
+////			}
+//		};
+//		
+//		return dialog;
+//	}
 	
 	public static Pair<Integer, Boolean> showMessageDialogWithToggle(Shell shell, String title, String message, 
 			String toggleMessage, boolean toggleState, int style, String... buttons) {
