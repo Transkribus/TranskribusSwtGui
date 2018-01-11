@@ -2341,7 +2341,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 		
 	@Override public void setEnabled(boolean value) {
-		super.setEnabled(value);
+//		super.setEnabled(value);
 		
 		regionsPagingToolBar.setToolbarEnabled(value);
 		for (ToolItem ti : additionalToolItems)
