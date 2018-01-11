@@ -31,7 +31,7 @@ public class TrpKwsResultTableEntry {
 		if (job.getEndTime() < 1) {
 			this.duration = "N/A";
 		} else {
-			final long diff = job.getEndTime() - job.getCreateTime();
+			final long diff = job.getEndTime() - job.getStartTime();
 			this.duration = KwsTransformer.DECIMAL_FORMAT.format(diff / 1000f) + " sec.";
 		}
 		this.scope = job.getDocId() < 1 ? "Collection " + job.getColId() : "Document " + job.getDocId();
