@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.transcription;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -73,19 +74,25 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 			else
 				mainWidget.jumpToNextRegion();
 		}
-		if ( CanvasKeys.isCtrlKeyDown(e.stateMask) && (e.keyCode == SWT.ARROW_DOWN 
+		else if ( CanvasKeys.isCtrlKeyDown(e.stateMask) && (e.keyCode == SWT.ARROW_DOWN 
 					|| e.keyCode == SWT.ARROW_UP || e.keyCode == SWT.ARROW_LEFT || e.keyCode == SWT.ARROW_RIGHT)) {
 				mainWidget.jumpToNextCell(e.keyCode);
 		}
-		
-		if ( CanvasKeys.isAltKeyDown(e.stateMask)) {
+		// insert custom tags with shortcuts
+		else if ( CanvasKeys.isAltKeyDown(e.stateMask)) {
 			CustomTagSpec cDef = Storage.getInstance().getCustomTagSpecWithShortCut(""+e.character);
 			if (cDef != null) {
 				logger.debug("CustomTagDef shortcut matched: "+cDef);
 				mainWidget.addTagForSelection(cDef.getCustomTag(), null);
 			}
 		}
-		
+		// TODO insert virtual keys with shortcuts
+		else if ( CanvasKeys.isCtrlKeyDown(e.stateMask) ) {
+			Pair<Integer, String> vk = Storage.getInstance().getVirtualKeyShortCutValue(""+e.character);
+			if (vk != null) {
+				transcriptionWidget.insertTextIfFocused(vk.getRight());
+			}
+		}
 		
 	}
 	

@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -146,6 +147,7 @@ public class Storage {
 	private List<TrpDocMetadata> userDocList = Collections.synchronizedList(new ArrayList<>());
 	
 	private List<CustomTagSpec> customTagSpecs = new ArrayList<>();
+	private Map<String, Pair<Integer, String>> virtualKeysShortCuts = new HashMap<>();
 	
 	private int collId;
 		
@@ -206,6 +208,10 @@ public class Storage {
 		initTranscriptCache();
 		addInternalListener();
 		readTagSpecsFromLocalSettings();
+		
+		// init some dummy vk shortcuts:
+//		setVirtualKeyShortCut("1", Pair.of(1, "hello"));
+//		setVirtualKeyShortCut("2", Pair.of(2, "-"));
 	}
 	
 	private void addInternalListener() {
@@ -2424,6 +2430,37 @@ public class Storage {
 		customTagSpecs.addAll(CustomTagSpecUtil.readCustomTagSpecsFromSettings());
 		
 		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+	}
+	
+	// virtual keys shortcuts:
+	public Pair<Integer, String> getVirtualKeyShortCutValue(String key) {
+		return virtualKeysShortCuts.get(key);
+	}
+	
+	public String getVirtualKeyShortCutKey(Pair<Integer, String> vk) {
+		for (String key : virtualKeysShortCuts.keySet()) {
+			if (virtualKeysShortCuts.get(key).equals(vk)) {
+				return key;
+			}
+		}
+		return null;
+	}
+	
+	public Pair<Integer, String> setVirtualKeyShortCut(String key, Pair<Integer, String> vk) {
+		return virtualKeysShortCuts.put(key, vk);
+	}
+	
+	public boolean isValidVirtualKeyShortCutKey(String key) {
+		return key.equals("0") || key.equals("1") || key.equals("2") || key.equals("3") || key.equals("4") || key.equals("5") || 
+				key.equals("6") || key.equals("7") || key.equals("8") || key.equals("9");
+	}
+	
+	public void clearVirtualKeyShortCuts() {
+		virtualKeysShortCuts.clear();
+	}
+	
+	public Map<String, Pair<Integer, String>> getVirtualKeysShortCuts() {
+		return virtualKeysShortCuts;
 	}
 	
 	// END OF CUSTOM TAG SPECS STUFF

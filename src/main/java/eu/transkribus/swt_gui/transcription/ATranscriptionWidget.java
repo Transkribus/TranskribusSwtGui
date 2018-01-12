@@ -15,7 +15,7 @@ import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.codec.binary.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.dialogs.InputDialog;
@@ -884,11 +884,11 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected abstract void onTextChangedFromUser(int start, int end, String replacementText);
 
 	public void insertTextIfFocused(String textToInsert) {
-		if (currentRegionObject==null)
+		if (currentRegionObject==null || StringUtils.isEmpty(textToInsert)) {
 			return;
+		}
 		
 		logger.debug("text orientation: " + text.getOrientation());
-		
 //		if (text.isFocCusControl()) {
 		text.setFocus();
 			text.insert(textToInsert);
@@ -898,7 +898,7 @@ public abstract class ATranscriptionWidget extends Composite{
 				|| ( getType() == TranscriptionLevel.WORD_BASED && !getTranscriptionUnitText().isEmpty() ) ) ) {
 //				this.setFocus();
 //				text.setSelection(text.getSelection().x+1);
-				text.setCaretOffset(text.getCaretOffset()+1);
+				text.setCaretOffset(text.getCaretOffset()+StringUtils.length(textToInsert));
 				
 			}
 //		}
