@@ -2294,7 +2294,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			return tags;
 		
 		Pair<ITrpShapeType, Integer> shapeAndOffset = getTranscriptionUnitAndRelativePositionFromOffset(caretOffset);
-		logger.debug("getting overlapping tags for offset="+caretOffset+", shape at offset = "+shapeAndOffset);
+		logger.trace("getting overlapping tags for offset="+caretOffset+", shape at offset = "+shapeAndOffset);
 		if (shapeAndOffset != null) {
 			tags.addAll(shapeAndOffset.getLeft().getCustomTagList().getOverlappingTags(null, shapeAndOffset.getRight(), 0));
 		}

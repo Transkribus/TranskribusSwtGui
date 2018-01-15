@@ -28,21 +28,41 @@ public class TaggingWidget extends Composite {
 	
 	TagListWidget tagListWidget; 
 
+//	public TaggingWidget(Composite parent, int style) {
+//		super(parent, style);
+//		this.setLayout(new FillLayout());
+//
+//		verticalSf = new SashForm(this, SWT.VERTICAL);
+//		
+//		initTagDefsWidget(verticalSf);
+//		
+//		horizontalSf = new SashForm(verticalSf, SWT.HORIZONTAL); 
+//		
+//		initTagListWidget(horizontalSf);
+//		initPropsWidget(horizontalSf);
+//		
+//		verticalSf.setWeights(new int[] { 50, 50 } );
+//		horizontalSf.setWeights(new int[] { 50, 50 } );
+//	}
+	
 	public TaggingWidget(Composite parent, int style) {
 		super(parent, style);
-		this.setLayout(new FillLayout());
+		this.setLayout(new GridLayout(1, false));
+		
+		tagListWidget = new TagListWidget(this, 0);
+		tagListWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		verticalSf = new SashForm(this, SWT.VERTICAL);
-		
-		initTagDefsWidget(verticalSf);
-		
-		horizontalSf = new SashForm(verticalSf, SWT.HORIZONTAL); 
-		
-		initTagListWidget(horizontalSf);
-		initPropsWidget(horizontalSf);
-		
-		verticalSf.setWeights(new int[] { 50, 50 } );
-		horizontalSf.setWeights(new int[] { 50, 50 } );
+//		verticalSf = new SashForm(this, SWT.VERTICAL);
+//		
+//		initTagDefsWidget(verticalSf);
+//		
+//		horizontalSf = new SashForm(verticalSf, SWT.HORIZONTAL); 
+//		
+//		initTagListWidget(horizontalSf);
+//		initPropsWidget(horizontalSf);
+//		
+//		verticalSf.setWeights(new int[] { 50, 50 } );
+//		horizontalSf.setWeights(new int[] { 50, 50 } );
 	}
 	
 	private void initTagDefsWidget(Composite parent) {
