@@ -5,24 +5,19 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
-import eu.transkribus.core.model.beans.kws.TrpKeyWord;
-import eu.transkribus.core.model.beans.kws.TrpKwsHit;
 import eu.transkribus.core.model.beans.kws.TrpKwsResult;
+import eu.transkribus.core.model.beans.transformer.KwsTransformer;
 import eu.transkribus.core.rest.JobConst;
-import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.core.util.JobDataUtils;
 
 public class TrpKwsResultTableEntry {
 	private static final Logger logger = LoggerFactory.getLogger(TrpKwsResultTableEntry.class);
-	private static final DecimalFormat DF = new DecimalFormat("0.00");
 	private TrpKwsResult result;
 	private Date created;
 	private String duration;
@@ -36,8 +31,8 @@ public class TrpKwsResultTableEntry {
 		if (job.getEndTime() < 1) {
 			this.duration = "N/A";
 		} else {
-			final long diff = job.getEndTime() - job.getCreateTime();
-			this.duration = DF.format(diff / 1000f) + " sec.";
+			final long diff = job.getEndTime() - job.getStartTime();
+			this.duration = KwsTransformer.DECIMAL_FORMAT.format(diff / 1000f) + " sec.";
 		}
 		this.scope = job.getDocId() < 1 ? "Collection " + job.getColId() : "Document " + job.getDocId();
 		switch(job.getState()) {
@@ -52,7 +47,7 @@ public class TrpKwsResultTableEntry {
 			break;
 		}
 		TrpProperties props = job.getJobDataProps();
-		this.result = extractResult(props);
+		this.result = KwsTransformer.extractResultDataFromProps(props);
 		if(result == null) {
 			List<String> queries = JobDataUtils.getStringList(props.getProperties(), JobConst.PROP_QUERY);
 			this.query = "\"" + StringUtils.join(queries, "\", \"") + "\"";
@@ -64,20 +59,6 @@ public class TrpKwsResultTableEntry {
 							);
 			this.query = StringUtils.join(queriesWithHits, ", ");
 		}
-	}
-
-	private TrpKwsResult extractResult(TrpProperties props) {
-		final String xmlStr = props.getString(JobConst.PROP_RESULT);
-//		logger.debug(xmlStr);
-		TrpKwsResult res = null;
-		if(xmlStr != null) {
-			try {
-				res = JaxbUtils.unmarshal(xmlStr, TrpKwsResult.class, TrpKeyWord.class, TrpKwsHit.class);
-			} catch (JAXBException e) {
-				logger.error("Could not unmarshal kws result from job!");
-			}
-		}
-		return res;
 	}
 
 	public TrpKwsResult getResult() {

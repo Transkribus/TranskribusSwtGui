@@ -145,6 +145,10 @@ public class VirtualKeyboard extends Composite {
 		return ul.getUnicodeHexRange();
 	}
 	
+	public UnicodeList getUnicodeList() {
+		return ul;
+	}
+	
 	public VirtualKeyboard(Composite parent, int style, String name, char unicodeStart, char unicodeEnd) {
 		this(parent, style, new UnicodeList(name, unicodeStart, unicodeEnd));
 	}
@@ -165,7 +169,15 @@ public class VirtualKeyboard extends Composite {
 	
 	public void reload(String unicodeString) {
 		this.ul.initChars(unicodeString);
-		logger.info("got chars: "+ul.getUnicodesAsStrings().size());
+		
+		logger.debug("got chars: "+ul.getUnicodesAsStrings().size());
+		clearButtons();
+		initButtons(ul.getUnicodes());
+	}
+	
+	public void reload(List<Pair<Integer,String>> unicodes) {
+		this.ul.setUnicodes(unicodes);
+
 		clearButtons();
 		initButtons(ul.getUnicodes());
 	}
@@ -205,6 +217,8 @@ public class VirtualKeyboard extends Composite {
 		if (!undefined.isEmpty()) {
 			logger.warn("Undefined unicode values in virtual keyboard: "+undefined);	
 		}
+		
+		this.layout();
 	}
 	
 	private Button initButton(Pair<Integer, String> c) {

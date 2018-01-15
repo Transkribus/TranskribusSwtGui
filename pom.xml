@@ -649,6 +649,13 @@
 			<groupId>${jface.groupId}</groupId>
 			<artifactId>${jface.artifactId}</artifactId>
 			<version>${jface.version}</version>
+			<exclusions>
+			<!-- jface version does not match the one below here and automatic omit doesn't work if variables are used here -->
+				<exclusion>
+					<groupId>org.eclipse.jface</groupId>
+					<artifactId>org.eclipse.jface</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- <dependency> -->

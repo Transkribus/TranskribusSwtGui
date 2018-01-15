@@ -115,7 +115,7 @@ public class KwsResultViewer extends Dialog {
 		for (TrpKeyWord k : result.getResult().getKeyWords()) {
 			createKwTab(k);
 		}
-		
+
 		createPreviewArea(sash);
 		
 		ProgressBar pb = null;
@@ -242,6 +242,7 @@ public class KwsResultViewer extends Dialog {
 
 	private void createKwTab(TrpKeyWord k) {
 		CTabItem item = new CTabItem(folder, SWT.NONE);
+		logger.debug("Creating Keyword tab for: " + k.getKeyWord());
 		item.setText("\"" + k.getKeyWord() + "\" (" + k.getHits().size() + " hits)");
 
 		Composite c = new Composite(folder, SWT.NONE);
