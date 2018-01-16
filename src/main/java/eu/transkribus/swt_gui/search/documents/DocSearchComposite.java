@@ -43,7 +43,7 @@ public class DocSearchComposite extends Composite {
 //	DocTableWidget docWidget;
 	DocTableWidgetPagination docWidgetPaged;
 	
-	public LabeledText documentId, title, description, author, writer;
+	public LabeledText collectionId, documentId, title, description, author, writer, uploader;
 //	LabeledCombo collection;
 	Button collectionCheck;
 	Button exactMatch, caseSensitive;
@@ -79,8 +79,12 @@ public class DocSearchComposite extends Composite {
 //		collection.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		collectionCheck = new Button(facetsC, SWT.CHECK);
-		collectionCheck.setText("Search on selected collection");
+		collectionCheck.setText("Restrict search to current collection only");
 		collectionCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		
+		collectionId = new LabeledText(facetsC, "Col-ID: ");
+		collectionId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		collectionId.text.addTraverseListener(tl);
 		
 		documentId = new LabeledText(facetsC, "Doc-ID: ");
 		documentId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -102,6 +106,10 @@ public class DocSearchComposite extends Composite {
 		writer.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		writer.text.addTraverseListener(tl);
 		
+		uploader = new LabeledText(facetsC, "Uploaded by: ");
+		uploader.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		uploader.text.addTraverseListener(tl);
+		
 		exactMatch = new Button(facetsC, SWT.CHECK);
 		exactMatch.setText("Exact match of keywords ");
 		
@@ -115,8 +123,6 @@ public class DocSearchComposite extends Composite {
 		findBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				searchDocuments();
-				
-
 			}
 		});
 		
@@ -129,7 +135,7 @@ public class DocSearchComposite extends Composite {
 			@Override public int loadTotalSize() {
 				int N = 0;
 				
-				int colId = getColId();				
+				Integer colId = getColId();				
 				Integer docid = getDocId();
 				if (!documentId.txt().isEmpty() && docid == null) {
 					return 0;
@@ -243,8 +249,14 @@ public class DocSearchComposite extends Composite {
 		}
 	}
 	
-	int getColId() {
-		return collectionCheck.getSelection() ? TrpMainWidget.getInstance().getSelectedCollectionId() : 0;
+	Integer getColId() {
+		try {
+			return collectionCheck.getSelection() ? 
+				TrpMainWidget.getInstance().getSelectedCollectionId() : 
+				Integer.parseInt(collectionId.txt().trim());
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	Integer getDocId() {
