@@ -197,10 +197,9 @@ public class TrpTabWidget extends Composite {
 
 		docMdItem = createCTabItem(metadataTf, c, "Document", secondRowItems);
 		structuralMdItem = createCTabItem(metadataTf, c, "Structural", secondRowItems);
-		textStyleMdItem = createCTabItem(metadataTf, c, "Textstyle", secondRowItems);
-		textTaggingItem = createCTabItem(metadataTf, c, "Tagging", secondRowItems);
+		textTaggingItem = createCTabItem(metadataTf, c, "Textual", secondRowItems);
 		commentsItem = createCTabItem(metadataTf, c, "Comments", secondRowItems);
-
+//		textStyleMdItem = createCTabItem(metadataTf, c, "Textstyle (outdated)", secondRowItems);
 	}
 
 	void initToolsTf() {

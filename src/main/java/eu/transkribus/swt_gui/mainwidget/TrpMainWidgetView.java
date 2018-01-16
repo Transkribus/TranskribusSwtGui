@@ -255,15 +255,17 @@ public class TrpMainWidgetView extends Composite {
 		structuralMdWidget = new StructuralMetadataWidget(tabWidget.metadataTf, SWT.TOP);
 		tabWidget.structuralMdItem.setControl(structuralMdWidget);
 		
-		textStyleWidget = new TextStyleTypeWidget(tabWidget.metadataTf, SWT.TOP);
-		tabWidget.textStyleMdItem.setControl(textStyleWidget);
-		
 		taggingWidget = new TaggingWidget(tabWidget.metadataTf, SWT.TOP);
 		taggingWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tabWidget.textTaggingItem.setControl(taggingWidget);
 		
 		commentsWidget = new CommentsWidget(tabWidget.metadataTf, SWT.TOP);
 		tabWidget.commentsItem.setControl(commentsWidget);
+		
+		if (tabWidget.textStyleMdItem != null) { // outdated and removed
+		textStyleWidget = new TextStyleTypeWidget(tabWidget.metadataTf, SWT.TOP);
+		tabWidget.textStyleMdItem.setControl(textStyleWidget);
+		}
 		
 		toolsWidget = new ToolsWidget(tabWidget.mainTf, SWT.TOP);
 		toolsWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));

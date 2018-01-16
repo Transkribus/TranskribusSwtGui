@@ -36,7 +36,6 @@ public class TaggingWidgetOldListener implements ITaggingWidgetListener {
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
 	StructuralMetadataWidget mw;
-	TextStyleTypeWidget tw;
 	SWTCanvas canvas;
 	TrpSettings settings;
 	
@@ -46,7 +45,6 @@ public class TaggingWidgetOldListener implements ITaggingWidgetListener {
 		this.ui = mainWidget.getUi();
 		this.canvas = mainWidget.getCanvas();
 		this.mw = mainWidget.getUi().getStructuralMetadataWidget();
-		this.tw = ui.getTextStyleWidget();
 		this.settings = mainWidget.getTrpSets();
 		
 		taggingWidget.addListener(this);

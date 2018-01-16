@@ -159,7 +159,13 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean renderOtherStyles=true;
 	public static final String RENDER_OTHER_STYLES = "renderOtherStyles";
 	private boolean renderTags=true;
-	public static final String RENDER_TAGS = "renderTags";	
+	public static final String RENDER_TAGS = "renderTags";
+	
+	private boolean showTextTagEditor = false;
+	public static final String SHOW_TEXT_TAG_EDITOR_PROPERTY = "showTextTagEditor";
+	
+	private boolean highlightComments = false;
+	public static final String HIGHLIGHT_COMMENTS_PROPERTY = "highlightComments";
 	
 	private boolean enableIndexedStyles=true;
 	public static final String ENABLE_INDEXED_STYLES="enableIndexedStyles";
@@ -621,6 +627,24 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(RENDER_TAGS, !this.renderTags, this.renderTags);
 	}
 	
+	public boolean isShowTextTagEditor() {
+		return showTextTagEditor;
+	}
+
+	public void setShowTextTagEditor(boolean showTextTagEditor) {
+		this.showTextTagEditor = showTextTagEditor;
+		firePropertyChange(SHOW_TEXT_TAG_EDITOR_PROPERTY, !this.showTextTagEditor, this.showTextTagEditor);
+	}
+	
+	public boolean isHighlightComments() {
+		return highlightComments;
+	}
+
+	public void setHighlightComments(boolean highlightComments) {
+		this.highlightComments = highlightComments;
+		firePropertyChange(HIGHLIGHT_COMMENTS_PROPERTY, !this.highlightComments, this.highlightComments);
+	}
+
 	/**
 	 * @deprecated non-indexed styles are not supported anymore - will be removed
 	 */

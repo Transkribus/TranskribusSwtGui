@@ -26,6 +26,9 @@ import org.eclipse.jface.util.BidiUtils;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.Bullet;
+import org.eclipse.swt.custom.CTabFolder2Adapter;
+import org.eclipse.swt.custom.CTabFolder2Listener;
+import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CaretEvent;
 import org.eclipse.swt.custom.CaretListener;
 import org.eclipse.swt.custom.ExtendedModifyEvent;
@@ -57,6 +60,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.GlyphMetrics;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -66,8 +70,10 @@ import org.eclipse.swt.widgets.FontDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.mihalis.opal.transitionComposite.HorizontalTransition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +103,8 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
+import eu.transkribus.swt.portal.PortalWidget.Docking;
+import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
@@ -168,6 +176,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected StyledText text;
 //	protected TagPropertyEditor tagPropertyEditor;
 	protected TranscriptionTaggingWidget transcriptionTaggingWidget;
+	protected Shell transcriptionTaggingWidgetShell;
 //	protected int textAlignment = SWT.LEFT;
 	
 	protected TrpTextRegionType currentRegionObject=null;
@@ -239,6 +248,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	ToolItem superscriptTagItem;
 	ToolItem underlinedTagItem;
 	ToolItem strikethroughTagItem;
+	MenuItem serifItem, monospaceItem, reverseVideoItem, smallCapsItem, letterSpacedItem;
 	
 	ToolItem showTagEditorItem;
 	
@@ -380,7 +390,7 @@ public abstract class ATranscriptionWidget extends Composite{
 
 		////////////////////////
 		
-		setTaggingEditorVisiblity(false);
+		setTaggingEditorVisiblity(settings.isShowTextTagEditor());
 		setWordGraphEditorVisibility(false);
 		
 		undoRedo = new UndoRedoImpl(text);
@@ -471,26 +481,68 @@ public abstract class ATranscriptionWidget extends Composite{
 		return showTagEditorItem.getSelection();
 	}
 	
-	protected void setTaggingEditorVisiblity(boolean visible) {
-		logger.debug("setTaggingEditorVisiblity: "+visible);
+	public void setTaggingEditorVisiblity(boolean visible) {
+		setTaggingEditorVisiblity(visible ? 1 : 0);
+	}
+	
+	public void setTaggingEditorVisiblity(int visibility) {
+		logger.debug("setTaggingEditorVisiblity: "+visibility);
 		
-		showTagEditorItem.setSelection(visible);
+		showTagEditorItem.setSelection(visibility > 0);
 		
-		horizontalSf.setWeights(new int[] { 30, 70 });
-		
-		if (true) // false -> show editor always
-		if (!visible) {
-			horizontalSf.setMaximizedControl(text);
-		} else {
-			horizontalSf.setMaximizedControl(null);
-			if (transcriptionTaggingWidget.isTagPropertyEditorSelected()) {
-				transcriptionTaggingWidget.getTagPropertyEditor().findAndSetNextTag();	
+		if (visibility <= 1) {
+			transcriptionTaggingWidget.setParent(horizontalSf);
+			transcriptionTaggingWidget.moveAbove(null);
+			transcriptionTaggingWidget.getTabFolder().setMaximizeVisible(true);
+			transcriptionTaggingWidget.pack();
+			
+			if (!SWTUtil.isDisposed(transcriptionTaggingWidgetShell)) {
+				logger.trace("disposing shell!");
+				transcriptionTaggingWidgetShell.dispose();
 			}
+			
+			horizontalSf.setWeights(new int[] { 30, 70 });
+			if (true) // false -> show editor always
+			if (visibility<=0) {
+				horizontalSf.setMaximizedControl(text);
+			} else {
+				horizontalSf.setMaximizedControl(null);
+				if (transcriptionTaggingWidget.isTagPropertyEditorSelected()) {
+					transcriptionTaggingWidget.getTagPropertyEditor().findAndSetNextTag();	
+				}
+			}
+			
+			SWTUtil.setEnabled(reloadWordGraphEditorItem, visibility>0);
+			
+			logger.trace("wged size: "+wordGraphEditor.getSize());
+		} else {
+			Point l = this.toDisplay(this.getLocation());
+			transcriptionTaggingWidgetShell = new Shell(getDisplay(), SWT.SHELL_TRIM);
+			transcriptionTaggingWidgetShell.setText("Text based Tagging");
+			transcriptionTaggingWidgetShell.setLayout(new FillLayout());
+			
+			int height=600;
+			transcriptionTaggingWidgetShell.setSize(400, height);
+			transcriptionTaggingWidgetShell.setLocation(l.x, l.y+this.getSize().y-height);
+
+			transcriptionTaggingWidget.setParent(transcriptionTaggingWidgetShell);
+			transcriptionTaggingWidget.getTabFolder().setMaximizeVisible(false);
+			transcriptionTaggingWidget.pack();
+			transcriptionTaggingWidget.layout();
+			horizontalSf.setWeights(new int[] { 100 });
+			horizontalSf.setMaximizedControl(text);
+			
+			transcriptionTaggingWidgetShell.layout(true);
+			
+			// react on closing this shell -> dock this widget again!
+			transcriptionTaggingWidgetShell.addListener(SWT.Close, new Listener() {
+				@Override public void handleEvent(Event event) {
+					settings.setShowTextTagEditor(false);
+				}
+			});
+			
+			transcriptionTaggingWidgetShell.open();
 		}
-		
-		SWTUtil.setEnabled(reloadWordGraphEditorItem, visible);
-		
-		logger.trace("wged size: "+wordGraphEditor.getSize());
 	}
 	
 	protected void setWordGraphEditorVisibility(boolean visible) {		
@@ -776,6 +828,28 @@ public abstract class ATranscriptionWidget extends Composite{
 		strikethroughTagItem.setData(TextStyleTag.getStrikethroughTag());
 		strikethroughTagItem.addSelectionListener(new TagItemListener());
 		additionalToolItems.add(strikethroughTagItem);
+		
+		DropDownToolItemSimple otherTextStyleTags = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "...", null, "Other text styles...");
+		additionalToolItems.add(otherTextStyleTags.getToolItem());
+		serifItem = otherTextStyleTags.addItem("Serif", null, SWT.PUSH);
+		serifItem.addSelectionListener(new TagItemListener());
+		serifItem.setData(TextStyleTag.getSerifTag());
+		
+		monospaceItem = otherTextStyleTags.addItem("Monospace", null, SWT.PUSH);
+		monospaceItem.addSelectionListener(new TagItemListener());
+		monospaceItem.setData(TextStyleTag.getMonospaceTag());
+		
+		reverseVideoItem = otherTextStyleTags.addItem("Reverse Video", null, SWT.PUSH);
+		reverseVideoItem.addSelectionListener(new TagItemListener());
+		reverseVideoItem.setData(TextStyleTag.getReverseVideoTag());
+		
+		smallCapsItem = otherTextStyleTags.addItem("Small Caps", null, SWT.PUSH);
+		smallCapsItem.addSelectionListener(new TagItemListener());
+		smallCapsItem.setData(TextStyleTag.getSmallCapsTag());
+		
+		letterSpacedItem = otherTextStyleTags.addItem("Letter Spaced", null, SWT.PUSH);
+		letterSpacedItem.addSelectionListener(new TagItemListener());
+		letterSpacedItem.setData(TextStyleTag.getLetterSpacedTag());
 		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
@@ -1089,9 +1163,16 @@ public abstract class ATranscriptionWidget extends Composite{
 		});
 		
 		initWordGraphListener();
-		
-		SWTUtil.onSelectionEvent(showTagEditorItem, e -> {
-			setTaggingEditorVisiblity(showTagEditorItem.getSelection());
+		initTaggingWidgetListener();
+	}
+	
+	protected void initTaggingWidgetListener() {
+		transcriptionTaggingWidget.getTabFolder().addCTabFolder2Listener(new CTabFolder2Adapter() {
+			@Override
+			public void maximize(CTabFolderEvent event) {
+//				logger.debug("maximizing!!");
+				setTaggingEditorVisiblity(2);
+			}
 		});
 	}
 	
@@ -1553,7 +1634,7 @@ public abstract class ATranscriptionWidget extends Composite{
 						Rectangle b=bounds.get(k);
 						logger.trace("bound: "+b);
 						if (tag instanceof CommentTag) {
-							if (view.getCommentsWidget().isShowComments()) {								
+							if (settings.isHighlightComments()) {							
 								e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_YELLOW));
 								e.gc.setAlpha(70);
 								e.gc.fillRoundRectangle(b.x, b.y, b.width, b.height, 2, 2);
@@ -1878,6 +1959,16 @@ public abstract class ATranscriptionWidget extends Composite{
 					addOnlyThisProperty = "underlined";
 				else if (event.widget == strikethroughTagItem)
 					addOnlyThisProperty = "strikethrough";
+				else if (event.widget == serifItem)
+					addOnlyThisProperty = "serif";
+				else if (event.widget == monospaceItem)
+					addOnlyThisProperty = "monospace";
+				else if (event.widget == reverseVideoItem)
+					addOnlyThisProperty = "reverseVideo";
+				else if (event.widget == smallCapsItem)
+					addOnlyThisProperty = "smallCaps";
+				else if (event.widget == serifItem)
+					addOnlyThisProperty = "letterSpaced";
 				
 				// try to "invert" property if it is already set:
 				if (addOnlyThisProperty != null) {
@@ -1944,7 +2035,9 @@ public abstract class ATranscriptionWidget extends Composite{
 	    			Map<String, Object> atts = new HashMap<>();
 	    			atts.put(CommentTag.COMMENT_PROPERTY_NAME, commentText);
 	    			mw.addTagForSelection(CommentTag.TAG_NAME, atts, null);
+	    			
 	    			mw.getUi().getCommentsWidget().reloadComments();
+	    			transcriptionTaggingWidget.reloadComments();
 	    		}
 	    		else {
 	    			mw.addTagForSelection(tagname, null, null);
@@ -2033,7 +2126,9 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		db.bindBeanToWidgetSelection(TrpSettings.FOCUS_SHAPES_ACCORDING_TO_TEXT_ALIGNMENT, settings, focusShapesAccordingToTextAlignmentItem);
 		
-		db.bindBeanToWidgetSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, TrpMainWidget.getTrpSettings(), autocompleteToggle);
+		db.bindBeanToWidgetSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, settings, autocompleteToggle);
+		
+		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY, settings, showTagEditorItem);
 	}
 	
 	protected void toggleParagraphOnSelectedLine() {
@@ -2507,6 +2602,10 @@ public abstract class ATranscriptionWidget extends Composite{
 
 	public TrpWordType getCurrentWordObject() {
 		return currentWordObject;
+	}
+	
+	public TranscriptionTaggingWidget getTranscriptionTaggingWidget() {
+		return transcriptionTaggingWidget;
 	}
 	
 	

@@ -4,16 +4,21 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Listener;
+import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TranscriptionTaggingWidget extends Composite {
@@ -29,8 +34,12 @@ public class TranscriptionTaggingWidget extends Composite {
 	CTabItem propsItem;
 	TagPropertyEditor tagPropEditor;
 	
+	CTabFolder commentsTf;
+	CTabItem commentsItem;
+	CommentsWidget commentsWidget;	
+	
 	ATranscriptionWidget tWidget;
-
+	
 	public TranscriptionTaggingWidget(Composite parent, int style, ATranscriptionWidget tWidget) {
 		super(parent, style);
 		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
@@ -52,6 +61,17 @@ public class TranscriptionTaggingWidget extends Composite {
 		tagPropEditor = new TagPropertyEditor(tabFolder, tWidget, false);
 		tagPropEditor.setLayoutData(new GridData(GridData.FILL_BOTH));
 		propsItem.setControl(tagPropEditor);
+		
+		if (false) {
+		commentsTf = createTabFolder(tabFolder);
+		commentsItem = createCTabItem(tabFolder, commentsTf, "Comments", null);
+		
+		commentsWidget = new CommentsWidget(tabFolder, 0);
+		commentsWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
+		commentsItem.setControl(commentsWidget);
+		}
+		
+		// listener:
 		
 		SWTUtil.onSelectionEvent(tabFolder, e -> {
 			if (isTagPropertyEditorSelected()) {
@@ -77,6 +97,14 @@ public class TranscriptionTaggingWidget extends Composite {
 		tabFolder.setSelection(tagsItem);
 		
 		tagDefsWidget.getTableViewer().getTable().getColumn(0).setWidth(150);
+	}
+	
+//	public CommentsWidget getCommentsWidget() {
+//		return commentsWidget;
+//	}
+	
+	public CTabFolder getTabFolder() {
+		return tabFolder;
 	}
 	
 	public TagSpecsWidget getTagDefsWidget() {
@@ -111,6 +139,12 @@ public class TranscriptionTaggingWidget extends Composite {
 
 	public boolean isTagPropertyEditorSelected() {
 		return tabFolder.getSelection() == propsItem; 
+	}
+
+	public void reloadComments() {
+		if (commentsWidget != null) {
+			commentsWidget.reloadComments();
+		}
 	}
 	
 	

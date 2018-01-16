@@ -7,31 +7,28 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.custom.TableEditor;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.TableItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableLabelProvider;
@@ -41,12 +38,12 @@ import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt.util.TableViewerUtils;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TagListWidget extends Composite {
+	private static final Logger logger = LoggerFactory.getLogger(TagListWidget.class);
 	
 	MyTableViewer tv;
 //	TreeViewer treeViewer;
@@ -79,18 +76,32 @@ public class TagListWidget extends Composite {
 
 	public TagListWidget(Composite parent, int style) {
 		super(parent, style);
-		setLayout(new FillLayout());
+//		setLayout(new FillLayout());
+		setLayout(new GridLayout(1, false));
 		
-		Composite container = new Composite(this, 0);
+//		Composite container = new Composite(this, 0);
 //		container.setLayout(new GridLayout(1, false));
-		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+//		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 //		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
+		Composite container = this;
+		
 		Label headerLbl = new Label(container, 0);
-		headerLbl.setText("Tags in selected region");
+		headerLbl.setText("Tags of current Transcript");
 		Fonts.setBoldFont(headerLbl);
 		headerLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
+		initBtns(container);
+		initTable(container);
+
+		store.addListener(new IStorageListener() {
+			 public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+				 refreshTable();
+			 }
+		});
+	}
+	
+	private void initTable(Composite container) {
 		tv = new MyTableViewer(container, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
@@ -172,6 +183,17 @@ public class TagListWidget extends Composite {
 			}
 		});
 		
+		tv.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent arg0) {
+				List<CustomTag> selected = getSelectedTags();
+				if (!selected.isEmpty()) {
+					logger.debug("showing tag: "+selected.get(0));
+					TrpMainWidget.getInstance().showLocation(new TrpLocation(selected.get(0)));
+				}
+			}
+		});
+		
 //		tv = new TableViewer(container);
 //		tv.setContentProvider(new ArrayContentProvider());
 //		tv.getTable().setHeaderVisible(false);
@@ -186,51 +208,51 @@ public class TagListWidget extends Composite {
 //			}
 //		});
 		
-		class DeleteTagDefSelectionListener extends SelectionAdapter {
-			CustomTag tag;
-			
-			public DeleteTagDefSelectionListener(CustomTag tag) {
-				this.tag = tag;
-			}
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (tag != null) {
-				 	if (TrpMainWidget.getInstance() != null) {
-				 		TrpMainWidget.getInstance().deleteTags(tag);
-				 	}
-				}
-			}
-		};
+//		class DeleteTagDefSelectionListener extends SelectionAdapter {
+//			CustomTag tag;
+//			
+//			public DeleteTagDefSelectionListener(CustomTag tag) {
+//				this.tag = tag;
+//			}
+//			
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				if (tag != null) {
+//				 	if (TrpMainWidget.getInstance() != null) {
+//				 		TrpMainWidget.getInstance().deleteTags(tag);
+//				 	}
+//				}
+//			}
+//		};
 		
-		TableViewerColumn deleteTagCol = TableViewerUtils.createTableViewerColumn(tv, SWT.LEFT, "", 50);
-		deleteTagCol.setLabelProvider(new CellLabelProvider() {
-			@Override public void update(ViewerCell cell) {
-				final CustomTag tag = (CustomTag) cell.getElement();
-//				String tagName = tag.getTagName();
-				
-				final TableItem item = (TableItem) cell.getItem();
-				TableEditor editor = new TableEditor(item.getParent());
-				Button removeButton = new Button((Composite) cell.getViewerRow().getControl(), SWT.PUSH);
-		        removeButton.setImage(Images.getOrLoad("/icons/delete_12.png"));
-		        removeButton.setToolTipText("Delete this tag");
-		        removeButton.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
-		        removeButton.addSelectionListener(new DeleteTagDefSelectionListener(tag));
-		        Control c = removeButton;
-				
-				c.pack();
-				   
-                Point size = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-                
-				editor.minimumWidth = size.x;
-				editor.horizontalAlignment = SWT.LEFT;
-                editor.setEditor(c , item, cell.getColumnIndex());
-                editor.layout();
-                
-//                TaggingWidgetUtils.replaceEditor(delSelectedEditors, tagName, editor);
-                TaggingWidgetUtils.replaceEditor(delSelectedEditors, tag, editor);
-			}
-		});
+//		TableViewerColumn deleteTagCol = TableViewerUtils.createTableViewerColumn(tv, SWT.LEFT, "", 50);
+//		deleteTagCol.setLabelProvider(new CellLabelProvider() {
+//			@Override public void update(ViewerCell cell) {
+//				final CustomTag tag = (CustomTag) cell.getElement();
+////				String tagName = tag.getTagName();
+//				
+//				final TableItem item = (TableItem) cell.getItem();
+//				TableEditor editor = new TableEditor(item.getParent());
+//				Button removeButton = new Button((Composite) cell.getViewerRow().getControl(), SWT.PUSH);
+//		        removeButton.setImage(Images.getOrLoad("/icons/delete_12.png"));
+//		        removeButton.setToolTipText("Delete this tag");
+//		        removeButton.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
+//		        removeButton.addSelectionListener(new DeleteTagDefSelectionListener(tag));
+//		        Control c = removeButton;
+//				
+//				c.pack();
+//				   
+//                Point size = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+//                
+//				editor.minimumWidth = size.x;
+//				editor.horizontalAlignment = SWT.LEFT;
+//                editor.setEditor(c , item, cell.getColumnIndex());
+//                editor.layout();
+//                
+////                TaggingWidgetUtils.replaceEditor(delSelectedEditors, tagName, editor);
+//                TaggingWidgetUtils.replaceEditor(delSelectedEditors, tag, editor);
+//			}
+//		});
 		
 //		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
 //			@Override public void selectionChanged(SelectionChangedEvent event) {
@@ -239,14 +261,16 @@ public class TagListWidget extends Composite {
 //				selectTagname(selectedTagName);				
 //			}
 //		});
-		
+	}
+	
+	private void initBtns(Composite container) {
 		Composite btnsContainer = new Composite(container, 0);
 		btnsContainer.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		btnsContainer.setLayout(new RowLayout(SWT.HORIZONTAL));
 		
 		Button reloadBtn = new Button(btnsContainer, SWT.PUSH);
 		reloadBtn.setImage(Images.REFRESH);
-		reloadBtn.setToolTipText("Reload tags for page");
+		reloadBtn.setToolTipText("Refreshes the tag list for the loaded transcript");
 		SWTUtil.onSelectionEvent(reloadBtn, (e) -> {
 			refreshTable();
 		});
@@ -254,17 +278,14 @@ public class TagListWidget extends Composite {
 		Button clearTagsBtn = new Button(btnsContainer, SWT.PUSH);
 //		clearTagsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		clearTagsBtn.setImage(Images.DELETE);
-		clearTagsBtn.setText("Delete tags for selection");
-		clearTagsBtn.setToolTipText("Clears all tags from the current selection in the transcription widget");
-//		clearTagsBtn.addSelectionListener(new TagActionSelectionListener(this, listener, TaggingActionType.CLEAR_TAGS));
-//		clearTagsBtn.addSelectionListener(new ClearTagsSelectionListener(listener));
-		// TODO: add clear tags listener
-		
-		
-		store.addListener(new IStorageListener() {
-			 public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
-				 refreshTable();
-			 }
+//		clearTagsBtn.setText("Delete selected");
+		clearTagsBtn.setToolTipText("Deletes the selected tags from the list");
+		SWTUtil.onSelectionEvent(clearTagsBtn, e -> {
+			List<CustomTag> selected = getSelectedTags();
+			logger.debug("deleting selected tags: "+selected.size());
+			if (!selected.isEmpty()) {
+				TrpMainWidget.getInstance().deleteTags(selected);
+			}			
 		});
 	}
 	
@@ -286,8 +307,12 @@ public class TagListWidget extends Composite {
 		return tv;
 	}
 	
-	public CustomTag getSelected() {
-		return (CustomTag) ((IStructuredSelection) tv.getSelection()).getFirstElement();
+	@SuppressWarnings("unchecked")
+	public List<CustomTag> getSelectedTags() {
+		return ((IStructuredSelection) tv.getSelection()).toList();
+//		return (CustomTag) ((IStructuredSelection) tv.getSelection()).getFirstElement();
 	}
+	
+	
 
 }

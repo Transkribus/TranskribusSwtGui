@@ -806,7 +806,9 @@ public class TrpMainWidget {
 		
 		pageMetadataWidgetListener = new PageMetadataWidgetListener(this);
 		
-		textStyleWidgetListener = new TextStyleTypeWidgetListener(ui.getTextStyleWidget());
+		if (ui.getTextStyleWidget()!=null) {
+			textStyleWidgetListener = new TextStyleTypeWidgetListener(ui.getTextStyleWidget());
+		}
 
 //		taggingWidgetListener = new TaggingWidgetOldListener(this);
 
@@ -1808,8 +1810,10 @@ public class TrpMainWidget {
 
 //		ui.taggingWidget.setSelectedTags(selectedTags);
 		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, selectedTags);
-		ui.getTextStyleWidget().updateData();
-
+		
+		if (ui.getTextStyleWidget()!=null) {
+			ui.getTextStyleWidget().updateData();	
+		}
 	}
 
 	public void updateTreeSelectionFromCanvas() {
@@ -5380,6 +5384,8 @@ public class TrpMainWidget {
 			getUi().getLineTranscriptionWidget().redrawText(true);
 			getUi().getWordTranscriptionWidget().redrawText(true);
 			refreshStructureView();
+			
+//			getUi().getTaggingWidget().getTagListWidget().refreshTable();
 		} catch (Exception e) {
 			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
 		}

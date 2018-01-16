@@ -82,6 +82,10 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 				mainWidget.getCanvas().fitWidth();
 			}
 		}
+		else if (pn.equals(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY)) {
+			mainWidget.getUi().getLineTranscriptionWidget().setTaggingEditorVisiblity((boolean) evt.getNewValue());
+			mainWidget.getUi().getWordTranscriptionWidget().setTaggingEditorVisiblity((boolean) evt.getNewValue());
+		}
 		
 		if (TrpSettings.isColorProperty(pn)) {
 			logger.debug("color info changed - updating!");
