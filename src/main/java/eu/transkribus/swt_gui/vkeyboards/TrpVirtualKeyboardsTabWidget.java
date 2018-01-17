@@ -21,42 +21,29 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.UnicodeList;
 
-//public class TrpVirtualKeyboards extends TabFolder {
 public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 	private final static Logger logger = LoggerFactory.getLogger(TrpVirtualKeyboardsTabWidget.class);
 	
 	public static final File VK_XML = new File("virtualKeyboards.xml");
 	
-
 	XMLPropertiesConfiguration conf;
 	
 	Set<ITrpVirtualKeyboardsTabWidgetListener> listener = new HashSet<>();
-//	Set<SelectionListener> selListener = new HashSet<>();
 		
 	public TrpVirtualKeyboardsTabWidget(Composite parent, int style) {
 		super(parent, style);
-		
-//		try {
-//			List<UnicodeList> unicodeLists = loadVirtualKeyboardsXml(VK_XML);
-//			for (UnicodeList ul : unicodeLists) {
-//				addVirtualKeyboardTab(ul);
-//			}
-//		} catch (IOException e) {
-//			logger.error(e.getMessage(), e);
-//		}
-		
+				
 		reload();
 	}
 	
 	public void reload() {
-		logger.info("reloading vkeyboard tab list...");
+		logger.debug("reloading vkeyboard tab list...");
 		
 		for (CTabItem c : getItems()) {
 			if (c!=null && !c.isDisposed())
@@ -64,12 +51,13 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 		}
 
 		try {
-			logger.info("loading virtual keyboards from file: "+VK_XML.getAbsolutePath());
+			logger.debug("loading virtual keyboards from file: "+VK_XML.getAbsolutePath()+", file exits: "+VK_XML.exists());
 			
 			conf = new XMLPropertiesConfiguration();
 			conf.setEncoding("UTF-8");
 			conf.setFile(VK_XML);
 			conf.load();
+			logger.debug("actual file: "+conf.getFile().getAbsolutePath());
 			conf.setAutoSave(true);
 			
 			List<UnicodeList> unicodeLists = loadVirtualKeyboardsXml(conf);
@@ -121,7 +109,7 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 		while (it.hasNext()) {
 			String key = it.next();
 			String value = conf.getString(key);
-			logger.info("value = '"+value+"'");
+			logger.debug("parsing virtual keyboard entry, key = '"+key+"', value = '"+value+"'");
 
 			UnicodeList ul = new UnicodeList(key, value);
 			unicodeLists.add(ul);
@@ -219,11 +207,7 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 		
 		vk.addListener(new ITrpVirtualKeyboardsTabWidgetListener() {
 			@Override public void onVirtualKeyPressed(TrpVirtualKeyboardsTabWidget w, char c, String description) {
-				logger.info("widget: "+vk);
-				logger.info("c = "+c);
-				logger.info("description = "+description);
-				
-				
+				logger.debug("virtual keyboard button pressed, widget: "+vk+", c = "+c+", desc = "+description);
 			}
 		});
 
