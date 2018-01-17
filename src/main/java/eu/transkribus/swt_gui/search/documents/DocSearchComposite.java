@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.ComboInputDialog;
@@ -85,6 +86,8 @@ public class DocSearchComposite extends Composite {
 		collectionId = new LabeledText(facetsC, "Col-ID: ");
 		collectionId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		collectionId.text.addTraverseListener(tl);
+		
+		
 		
 		documentId = new LabeledText(facetsC, "Doc-ID: ");
 		documentId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -169,6 +172,10 @@ public class DocSearchComposite extends Composite {
 					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
 					}
+					
+					/// TODO: get user id from email / name
+//					List<TrpUser> users = store.getConnection().findUsers(userNameText.getText(), firstNameText.getText(), lastNameText.getText(), exactMatch, caseSensitive);
+//					docs = store.getConnection().getAllDocsByUser(index, nValues, sortPropertyName, sortDirection);
 				}
 				
 				return docs;
@@ -211,7 +218,16 @@ public class DocSearchComposite extends Composite {
 	void searchDocuments() {
 		Storage s = Storage.getInstance();
 		if (s.isLoggedIn()) {
-			try {				
+			try {	
+				if (collectionCheck.getSelection()) {
+					collectionId.setText("hier sollte default was stehen");
+					collectionId.text.setEditable(false);
+				} else {
+					collectionId.text.setEditable(true);
+				}
+					
+					
+				
 				int colId = getColId();
 				logger.debug("searching for docs, collId = "+colId);
 				
@@ -250,13 +266,20 @@ public class DocSearchComposite extends Composite {
 	}
 	
 	Integer getColId() {
+		Integer id = new Integer(0);
 		try {
-			return collectionCheck.getSelection() ? 
-				TrpMainWidget.getInstance().getSelectedCollectionId() : 
-				Integer.parseInt(collectionId.txt().trim());
+			if (collectionCheck.getSelection()) {
+				id = TrpMainWidget.getInstance().getSelectedCollectionId(); 
+				collectionId.text.setEnabled(false);
+			} else {
+				String collectionIdTxt = collectionId.txt().trim();
+				if (!collectionIdTxt.isEmpty()) 
+					id = Integer.parseInt(collectionIdTxt);
+			}
 		} catch (Exception e) {
 			return null;
 		}
+		return id;
 	}
 
 	Integer getDocId() {
