@@ -43,7 +43,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -66,17 +65,11 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.TrpFimgStoreConf;
 import eu.transkribus.core.exceptions.NotImplementedException;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.TrpDbTag;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
-import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.searchresult.Facet;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.PageHit;
@@ -1108,7 +1101,7 @@ public class FullTextSearchComposite extends Composite{
         			}
         		}
         		
-        		ArrayList<String> matchedCoords = new ArrayList<>();
+        		List<String> matchedCoords = new ArrayList<>();
         		for(String word : pHit.getWordCoords()){
         			if(word.split(":")[0].equals(tags.get(0))){
         				matchedCoords.add(word);
@@ -1131,7 +1124,7 @@ public class FullTextSearchComposite extends Composite{
         		String worId = wCoords.split(":")[1].split("/")[2];
         		String pxCoords = wCoords.split(":")[2];
         		
-        		ArrayList<Integer> colIds = pHit.getCollectionIds();
+        		List<Integer> colIds = pHit.getCollectionIds();
         		
         		String pUrl = pHit.getPageUrl();
         		Hit hit = new Hit(hlString, (int)pHit.getDocId(), pHit.getDocTitle(), (int)pHit.getPageNr(), regId, linId, worId, pxCoords, pUrl);
@@ -1296,7 +1289,7 @@ public class FullTextSearchComposite extends Composite{
 
 		String regionId, lineId, wordId, title;
 	    private String pixelCoords;
-	    private ArrayList<Integer> collectionIds;
+	    private List<Integer> collectionIds;
 
 		int docId, pageNr;
 		      
@@ -1390,11 +1383,11 @@ public class FullTextSearchComposite extends Composite{
 			this.pixelCoords = pixelCoords;
 		}
 
-		public ArrayList<Integer> getCollectionIds() {
+		public List<Integer> getCollectionIds() {
 			return collectionIds;
 		}
 
-		public void setCollectionIds(ArrayList<Integer> collectionIds) {
+		public void setCollectionIds(List<Integer> collectionIds) {
 			this.collectionIds = collectionIds;
 		}
 

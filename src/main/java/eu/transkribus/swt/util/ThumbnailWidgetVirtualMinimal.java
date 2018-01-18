@@ -38,7 +38,11 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidgetVirtualMinimal.class);
 
 	static final int TEXT_TO_THUMB_OFFSET = 5;
-	static final boolean DO_SCALE_THUMBS = true;
+	/* 
+	 * scaling thumbs is the reason for ver slow loading of the 'Overview' tab
+	 * Do not scale until we have faster way to do it
+	 */
+	static final boolean DO_SCALE_THUMBS = false;
 
 	public static final int THUMB_WIDTH = 80;
 	public static final int THUMB_HEIGHT = 120;
@@ -496,7 +500,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 			}
 			
 			//FIXME WTF does this do?
-			item.setData("doNotScaleImage", new Object());
+			//item.setData("doNotScaleImage", new Object());
 
 			setItemTextAndBackground(item, index);
 		}
