@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Display;
 import org.junit.Test;
 
 import eu.transkribus.client.connection.TrpServerConn;
+import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
 import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBar;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -28,6 +29,9 @@ public class JobsDialogTest {
 				
 				try {
 					Storage s = Storage.getInstance();
+					
+					s.updateProxySettings();
+					
 					s.login(TrpServerConn.PROD_SERVER_URI, args[0], args[1]);
 				
 					JobsDialog d = new JobsDialog(getShell());
