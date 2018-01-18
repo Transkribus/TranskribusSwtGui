@@ -87,11 +87,9 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		
 		ui.getLineTranscriptionWidget().clearAutocompleteProposals();
 		ui.getLineTranscriptionWidget().addAutocompleteProposals(arg.transcript);
-		ui.getLineTranscriptionWidget().getTranscriptionTaggingWidget().reloadComments();
 		
 		ui.getWordTranscriptionWidget().clearAutocompleteProposals();
 		ui.getWordTranscriptionWidget().addAutocompleteProposals(arg.transcript);
-		ui.getWordTranscriptionWidget().getTranscriptionTaggingWidget().reloadComments();
 		
 		ui.getCommentsWidget().reloadComments();
 	}

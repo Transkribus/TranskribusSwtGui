@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -94,6 +95,7 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpUpload;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
+import eu.transkribus.core.model.beans.customtags.CommentTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
@@ -830,14 +832,48 @@ public class TrpMainWidget {
 		CustomTagFactory.addObserver(new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
-				if (arg instanceof TagRegistryChangeEvent) {
-					TagRegistryChangeEvent trce = (TagRegistryChangeEvent) arg;
-					if (trce.type.equals(TagRegistryChangeEvent.CHANGED_TAG_COLOR) && getUi()!=null && getUi().getSelectedTranscriptionWidget()!=null) {
-						TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
+				Display.getDefault().asyncExec(() -> {
+					if (arg instanceof TagRegistryChangeEvent) {
+						TagRegistryChangeEvent trce = (TagRegistryChangeEvent) arg;
+						if (trce.type.equals(TagRegistryChangeEvent.CHANGED_TAG_COLOR) && getUi()!=null && getUi().getSelectedTranscriptionWidget()!=null) {
+							TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
+						}
 					}
-				}
+				});
 			}
 		});
+	}
+	
+	/**
+	 * Add a comment tag for the current selection in the transcription widget.
+	 * If commentText is empty or null, the user is prompted to input a comment.
+	 */
+	public void addCommentForSelection(String commentText) {
+		try {
+			// show dialog if commentText parameter is empty!
+			if (StringUtils.isEmpty(commentText)) {
+				InputDialog id = new InputDialog(getShell(), "Comment", "Please enter a comment: ", "", null);
+				id.setBlockOnOpen(true);
+				if (id.open() != Window.OK) {
+					return;
+				}
+				commentText = id.getValue();
+			}
+			
+			if (StringUtils.isEmpty(commentText)) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "Cannot add an empty comment!");
+				return;
+			}
+				    			
+			Map<String, Object> atts = new HashMap<>();
+			atts.put(CommentTag.COMMENT_PROPERTY_NAME, commentText);
+			addTagForSelection(CommentTag.TAG_NAME, atts, null);
+			getUi().getCommentsWidget().reloadComments();
+		} catch (Exception e) {
+			onError("Error adding comment", e.getMessage(), e);
+		}
+		
+		
 	}
 	
 	private void addUiBindings() {
@@ -5473,8 +5509,10 @@ public class TrpMainWidget {
 	}
 	
 	public void updateVersionStatus(){
-		ui.getStatusCombo().setText(storage.getTranscriptMetadata().getStatus().getStr());
-		ui.getStatusCombo().redraw();
+		if (storage.hasTranscript()) {
+			ui.getStatusCombo().setText(storage.getTranscriptMetadata().getStatus().getStr());
+			ui.getStatusCombo().redraw();			
+		}
 	}
 
 	public void changeVersionStatus(String text, List<TrpPage> pageList) {

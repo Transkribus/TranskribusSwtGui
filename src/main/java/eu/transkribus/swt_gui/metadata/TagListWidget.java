@@ -53,6 +53,8 @@ public class TagListWidget extends Composite {
 	
 	List<CustomTag> tagList = new ArrayList<>();
 	
+	Composite btnsContainer;
+	
 	public static final String DOC_COL = "Doc";
 //	public static final String TITLE_COL = "Title";
 	public static final String PAGE_COL = "Page";
@@ -264,7 +266,7 @@ public class TagListWidget extends Composite {
 	}
 	
 	private void initBtns(Composite container) {
-		Composite btnsContainer = new Composite(container, 0);
+		btnsContainer = new Composite(container, 0);
 		btnsContainer.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		btnsContainer.setLayout(new RowLayout(SWT.HORIZONTAL));
 		
@@ -287,6 +289,10 @@ public class TagListWidget extends Composite {
 				TrpMainWidget.getInstance().deleteTags(selected);
 			}			
 		});
+	}
+	
+	public Composite getBtnsContainer() {
+		return btnsContainer;
 	}
 	
 	public void refreshTable() {

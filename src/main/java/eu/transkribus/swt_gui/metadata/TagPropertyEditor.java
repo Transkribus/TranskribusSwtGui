@@ -34,17 +34,16 @@ public class TagPropertyEditor extends Composite {
 	
 	Label tagInfo;
 	Button nextBtn, prevBtn, refreshBtn;
-	ATranscriptionWidget tWidget;
+//	ATranscriptionWidget tWidget;
 	
 	boolean settingCustomTag=false;
 	
-	public TagPropertyEditor(Composite parent, ATranscriptionWidget tWidget, boolean withHeader) {
+	public TagPropertyEditor(Composite parent, /*ATranscriptionWidget tWidget,*/ boolean withHeader) {
 		super(parent, 0);
 		this.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
-		Assert.assertNotNull("Transcription widget cannot be null!", tWidget);
-		
-		this.tWidget = tWidget;
+//		Assert.assertNotNull("Transcription widget cannot be null!", tWidget);
+//		this.tWidget = tWidget;
 		
 		if (withHeader) {
 			Label header = new Label(this, 0);
@@ -109,6 +108,11 @@ public class TagPropertyEditor extends Composite {
 	}
 	
 	public void setCustomTag(CustomTag tag) {
+		ATranscriptionWidget tWidget = getCurrentTranscriptionWidget();
+		if (tWidget == null) {
+			return;
+		}		
+		
 		settingCustomTag = true;
 		this.tag = tag;
 		
@@ -142,6 +146,11 @@ public class TagPropertyEditor extends Composite {
 	}
 	
 	public void findAndSetNextTag() {
+		ATranscriptionWidget tWidget = getCurrentTranscriptionWidget();
+		if (tWidget == null) {
+			return;
+		}
+		
 		List<CustomTag> tagsForOffset = tWidget.getCustomTagsForCurrentOffset();
 		if (tagsForOffset.isEmpty()) {
 			int co = tWidget.getText().getCaretOffset();
@@ -161,6 +170,11 @@ public class TagPropertyEditor extends Composite {
 	}
 	
 	public void jumpToNextTag(boolean previous) {
+		ATranscriptionWidget tWidget = getCurrentTranscriptionWidget();
+		if (tWidget == null) {
+			return;
+		}		
+		
 		if (tag == null) {
 			findAndSetNextTag();
 		}
@@ -184,6 +198,15 @@ public class TagPropertyEditor extends Composite {
 				
 		if (neighborTag != null) {
 			setCustomTag(neighborTag);
+		}
+	}
+	
+	private ATranscriptionWidget getCurrentTranscriptionWidget() {
+		if (TrpMainWidget.getInstance()==null) {
+			return null;
+		}
+		else {
+			return TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget();
 		}
 	}
 

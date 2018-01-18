@@ -14,6 +14,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.batik.gvt.event.SelectionListener;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -26,9 +28,6 @@ import org.eclipse.jface.util.BidiUtils;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.Bullet;
-import org.eclipse.swt.custom.CTabFolder2Adapter;
-import org.eclipse.swt.custom.CTabFolder2Listener;
-import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CaretEvent;
 import org.eclipse.swt.custom.CaretListener;
 import org.eclipse.swt.custom.ExtendedModifyEvent;
@@ -43,6 +42,8 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -60,7 +61,6 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.GlyphMetrics;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -70,10 +70,8 @@ import org.eclipse.swt.widgets.FontDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.mihalis.opal.transitionComposite.HorizontalTransition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,8 +101,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
-import eu.transkribus.swt.portal.PortalWidget.Docking;
-import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
@@ -118,8 +114,8 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetOld;
-import eu.transkribus.swt_gui.metadata.TranscriptionTaggingWidget;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
@@ -175,8 +171,6 @@ public abstract class ATranscriptionWidget extends Composite{
 
 	protected StyledText text;
 //	protected TagPropertyEditor tagPropertyEditor;
-	protected TranscriptionTaggingWidget transcriptionTaggingWidget;
-	protected Shell transcriptionTaggingWidgetShell;
 //	protected int textAlignment = SWT.LEFT;
 	
 	protected TrpTextRegionType currentRegionObject=null;
@@ -187,7 +181,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	// for word graph editor:
 	protected SashForm container;
-	protected SashForm horizontalSf;
+//	protected SashForm horizontalSf;
 	
 	protected WordGraphEditor wordGraphEditor;
 	protected ToolItem showWordGraphEditorItem, reloadWordGraphEditorItem, enableCattiItem;
@@ -215,6 +209,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected Point contextMenuPoint=null;
 	protected Menu contextMenu = null;
 	protected MenuItem deleteTagMenuItem;
+	protected MenuItem addCommentTagMenuItem;
 	
 	protected UndoRedoImpl undoRedo;
 	
@@ -250,7 +245,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	ToolItem strikethroughTagItem;
 	MenuItem serifItem, monospaceItem, reverseVideoItem, smallCapsItem, letterSpacedItem;
 	
-	ToolItem showTagEditorItem;
+//	ToolItem showTagEditorItem;
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
 	private static final boolean SHOW_WORD_GRAPH_STUFF = false;
@@ -332,18 +327,18 @@ public abstract class ATranscriptionWidget extends Composite{
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		container.setLayout(new GridLayout(1, false));
 		
-		horizontalSf = new SashForm(container, SWT.HORIZONTAL);
-		horizontalSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		horizontalSf.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+//		horizontalSf = new SashForm(container, SWT.HORIZONTAL);
+//		horizontalSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		horizontalSf.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
 //		tagPropertyEditor = new TagPropertyEditor(horizontalSf, this, true);
 //		tagPropertyEditor.setLayoutData(new GridData(GridData.FILL_BOTH));
 //		tagPropertyEditor.setCustomTag(null);
 		
-		transcriptionTaggingWidget = new TranscriptionTaggingWidget(horizontalSf, 0, this);
-		transcriptionTaggingWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
+//		transcriptionTaggingWidget = new TranscriptionTaggingWidget(horizontalSf, 0, this);
+//		transcriptionTaggingWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
-		text = new StyledText(horizontalSf, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.H_SCROLL);
+		text = new StyledText(container, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.H_SCROLL);
 		text.setDoubleClickEnabled(false); // disables default doubleclick and(!) tripleclick behaviour --> for new implementation see mouse listener!
 		text.setLineSpacing(DEFAULT_LINE_SPACING);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -390,7 +385,7 @@ public abstract class ATranscriptionWidget extends Composite{
 
 		////////////////////////
 		
-		setTaggingEditorVisiblity(settings.isShowTextTagEditor());
+//		setTaggingEditorVisiblity(settings.isShowTextTagEditor());
 		setWordGraphEditorVisibility(false);
 		
 		undoRedo = new UndoRedoImpl(text);
@@ -477,74 +472,10 @@ public abstract class ATranscriptionWidget extends Composite{
 //		return container.getParent() == this;
 //	}
 	
-	public boolean isTagEditorVisible() {
-		return showTagEditorItem.getSelection();
-	}
-	
-	public void setTaggingEditorVisiblity(boolean visible) {
-		setTaggingEditorVisiblity(visible ? 1 : 0);
-	}
-	
-	public void setTaggingEditorVisiblity(int visibility) {
-		logger.debug("setTaggingEditorVisiblity: "+visibility);
-		
-		showTagEditorItem.setSelection(visibility > 0);
-		
-		if (visibility <= 1) {
-			transcriptionTaggingWidget.setParent(horizontalSf);
-			transcriptionTaggingWidget.moveAbove(null);
-			transcriptionTaggingWidget.getTabFolder().setMaximizeVisible(true);
-			transcriptionTaggingWidget.pack();
+//	public boolean isTagEditorVisible() {
+//		return showTagEditorItem.getSelection();
+//	}
 			
-			if (!SWTUtil.isDisposed(transcriptionTaggingWidgetShell)) {
-				logger.trace("disposing shell!");
-				transcriptionTaggingWidgetShell.dispose();
-			}
-			
-			horizontalSf.setWeights(new int[] { 30, 70 });
-			if (true) // false -> show editor always
-			if (visibility<=0) {
-				horizontalSf.setMaximizedControl(text);
-			} else {
-				horizontalSf.setMaximizedControl(null);
-				if (transcriptionTaggingWidget.isTagPropertyEditorSelected()) {
-					transcriptionTaggingWidget.getTagPropertyEditor().findAndSetNextTag();	
-				}
-			}
-			
-			SWTUtil.setEnabled(reloadWordGraphEditorItem, visibility>0);
-			
-			logger.trace("wged size: "+wordGraphEditor.getSize());
-		} else {
-			Point l = this.toDisplay(this.getLocation());
-			transcriptionTaggingWidgetShell = new Shell(getDisplay(), SWT.SHELL_TRIM);
-			transcriptionTaggingWidgetShell.setText("Text based Tagging");
-			transcriptionTaggingWidgetShell.setLayout(new FillLayout());
-			
-			int height=600;
-			transcriptionTaggingWidgetShell.setSize(400, height);
-			transcriptionTaggingWidgetShell.setLocation(l.x, l.y+this.getSize().y-height);
-
-			transcriptionTaggingWidget.setParent(transcriptionTaggingWidgetShell);
-			transcriptionTaggingWidget.getTabFolder().setMaximizeVisible(false);
-			transcriptionTaggingWidget.pack();
-			transcriptionTaggingWidget.layout();
-			horizontalSf.setWeights(new int[] { 100 });
-			horizontalSf.setMaximizedControl(text);
-			
-			transcriptionTaggingWidgetShell.layout(true);
-			
-			// react on closing this shell -> dock this widget again!
-			transcriptionTaggingWidgetShell.addListener(SWT.Close, new Listener() {
-				@Override public void handleEvent(Event event) {
-					settings.setShowTextTagEditor(false);
-				}
-			});
-			
-			transcriptionTaggingWidgetShell.open();
-		}
-	}
-	
 	protected void setWordGraphEditorVisibility(boolean visible) {		
 		logger.debug("setWordGraphEditorVisibility: "+visible);
 		
@@ -552,7 +483,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		if (true) // set to false to show wge always for debugging purposes
 		if (!visible) {
-			container.setMaximizedControl(horizontalSf);
+			container.setMaximizedControl(text);
 		} else {
 			container.setMaximizedControl(null);
 			reloadWordGraphMatrix(false);
@@ -851,12 +782,11 @@ public abstract class ATranscriptionWidget extends Composite{
 		letterSpacedItem.addSelectionListener(new TagItemListener());
 		letterSpacedItem.setData(TextStyleTag.getLetterSpacedTag());
 		
-		new ToolItem(regionsToolbar, SWT.SEPARATOR);
-		
-		showTagEditorItem = new ToolItem(regionsToolbar, SWT.CHECK);
-		showTagEditorItem.setImage(Images.getOrLoad("/icons/tag_blue_edit.png"));
-		showTagEditorItem.setToolTipText("Show/hide embedded tag editor");
-		additionalToolItems.add(showTagEditorItem);
+//		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+//		showTagEditorItem = new ToolItem(regionsToolbar, SWT.CHECK);
+//		showTagEditorItem.setImage(Images.getOrLoad("/icons/tag_blue_edit.png"));
+//		showTagEditorItem.setToolTipText("Show/hide embedded tag editor");
+//		additionalToolItems.add(showTagEditorItem);
 	}
 	
 	private void initTranscriptionSetsDropDownItems(DropDownToolItemSimple ti) {				
@@ -1163,17 +1093,6 @@ public abstract class ATranscriptionWidget extends Composite{
 		});
 		
 		initWordGraphListener();
-		initTaggingWidgetListener();
-	}
-	
-	protected void initTaggingWidgetListener() {
-		transcriptionTaggingWidget.getTabFolder().addCTabFolder2Listener(new CTabFolder2Adapter() {
-			@Override
-			public void maximize(CTabFolderEvent event) {
-//				logger.debug("maximizing!!");
-				setTaggingEditorVisiblity(2);
-			}
-		});
 	}
 	
 	protected void initWordGraphListener() {
@@ -1794,15 +1713,45 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void initContextMenu() {
 		contextMenu = new Menu(text);
 		
+		contextMenu.addMenuListener(new MenuListener() {
+			void deleteDynamicMenuItems() {
+				for (MenuItem mi : contextMenu.getItems()) {
+					if (mi == deleteTagMenuItem || mi == addCommentTagMenuItem) {
+						continue;
+					}
+					
+					if (!SWTUtil.isDisposed(mi)) {
+						mi.dispose();
+					}
+				}
+			}
+			
+			@Override
+			public void menuShown(MenuEvent e) {
+				deleteDynamicMenuItems();
+				createCustomTagSpecsMenuItems(contextMenu);
+			}
+			
+			@Override
+			public void menuHidden(MenuEvent e) {
+//				deleteDynamicMenuItems();
+			}
+		});
+		
 		deleteTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
 		deleteTagMenuItem.setImage(Images.DELETE);
 		deleteTagMenuItem.setText("Delete tag(s) for selection");
-		deleteTagMenuItem.addSelectionListener(new TagItemListener());
+		SWTUtil.onSelectionEvent(deleteTagMenuItem, e -> {
+	    	TrpMainWidget.getInstance().deleteTagsForCurrentSelection();
+		});
 		
-		addTagItems();
-				
-//		final Menu tagMenu = new Menu(contextMenu);
-//		tagItem.setMenu(tagMenu);
+		addCommentTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
+		addCommentTagMenuItem.setText("Add a comment");
+		SWTUtil.onSelectionEvent(addCommentTagMenuItem, e -> {
+			TrpMainWidget.getInstance().addCommentForSelection(null);
+		});
+		
+//		addTagItems();
 		
 		// used to store location of right-click of menu:
 		text.addMouseListener(new MouseAdapter() {
@@ -1814,72 +1763,66 @@ public abstract class ATranscriptionWidget extends Composite{
 			}
 		});
 		
-		text.setMenu(contextMenu);		
-//		contextMenu.addMenuListener(new MenuListener() {
-//			@Override public void menuShown(MenuEvent e) {
-//				for (MenuItem mi : tagMenu.getItems())
-//					mi.dispose();				
-//				
-//				logger.debug("menu shown: "+e+" contextMenuPoint: "+contextMenuPoint);
-//				if (contextMenuPoint==null)
-//					return;
-//				
-//				final int offset = text.getOffsetAtLocation(contextMenuPoint);
-//
-//				final Pair<ITrpShapeType, Integer> shapeAndRelativePositionAtOffset 
-//								= getTranscriptionUnitAndRelativePositionFromOffset(offset);
-//				final ITrpShapeType shape = shapeAndRelativePositionAtOffset.getLeft();
-//				final CustomTagList ctl = shape.getCustomTagList();
-////				final int relativeOffset = shapeAndRelativePositionAtOffset.getRight();				
-//				
-//				logger.debug("offset at menu location = "+offset);
-//				
-//				List<CustomTag> tags = getCustomTagsForOffset(offset);
-//				logger.debug("nr. of custom tags = "+tags.size());
-//				for (CustomTag t : tags) {
-//					if (t.getTagName().equals(TextStyleTag.TAG_NAME))
-//						continue;
-//					
-//					MenuItem ti = new MenuItem(tagMenu, SWT.PUSH);
-//					ti.setData(t);
-//					ti.setText(t.getTagName());
-//					ti.setImage(Images.DELETE);
-//					ti.addSelectionListener(new SelectionAdapter() {
-//						@Override public void widgetSelected(SelectionEvent e) {
-////							logger.debug("se = "+e.getSource());
-////							line.getCustomTagList().removeTags(tagName);
-//							// TODO: find(!!!) and delete custom-tag that goes over multiple ranges!!
-//							CustomTag tag = (CustomTag) ((MenuItem)e.widget).getData();
-//							
-//							List<Pair<CustomTagList, CustomTag>> tags = 
-//									ctl.getCustomTagAndContinuations(tag);
-//
-//							logger.debug(tag+" tags and continuatsion: ");
-//							for (Pair<CustomTagList, CustomTag> t : tags) {
-//								logger.debug("1shape: "+t.getLeft().getShape().getId()+" tag: "+t.getRight());
-//							}
-//						}
-//					});
-//				}
-//			}
-//			
-//			@Override public void menuHidden(MenuEvent e) {
-//				contextMenuPoint = null;				
-//			}
-//		});
-//		
-//		tagItem.addSelectionListener(new SelectionListener() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//			}
-//			
-//			@Override public void widgetDefaultSelected(SelectionEvent e) {
-//				logger.debug("tags item selected");
-//			}
-//		});
+		text.setMenu(contextMenu);	
+	}
+	
+	private List<MenuItem> createCustomTagSpecsMenuItems(Menu menu) {
+		List<MenuItem> items = new ArrayList<>();
+		
+		// create menu items for tag specs:
+		for (CustomTagSpec spec : Storage.getInstance().getCustomTagSpecs()) {
+			MenuItem tagItem = new MenuItem(menu, SWT.PUSH);
+			tagItem.setText(spec.getCustomTag().getCssStr());
+			tagItem.addSelectionListener(new TagSpecMenuItemListener(spec));
+			items.add(tagItem);
+		}
+		
+		// create sub menu for all tags:
+		MenuItem allTagsItem = new MenuItem(contextMenu, SWT.CASCADE);
+		allTagsItem.setText("All tags");
+		Menu allTagsMenu = new Menu(allTagsItem);
+		allTagsItem.setMenu(allTagsMenu);
+		items.add(allTagsItem);
+		for (String tagName: CustomTagFactory.getRegisteredTagNamesSorted()) {
+			if(!tagName.equals(ReadingOrderTag.TAG_NAME) && !tagName.equals(RegionTypeTag.TAG_NAME) && !tagName.equals(StructureTag.TAG_NAME)
+					&& !tagName.equals(TextStyleTag.TAG_NAME)) {
+				MenuItem tagItem = new MenuItem(allTagsMenu, SWT.NONE);
+				tagItem.setText(tagName);
+				tagItem.addSelectionListener(new TagSpecMenuItemListener(tagName));
+			}
+		}
+		
+		return items;
+	}
+	
+	class TagSpecMenuItemListener extends SelectionAdapter {
+		CustomTagSpec cTagSpec;
+		String tagName;
+		
+		public TagSpecMenuItemListener(CustomTagSpec cTagSpec) {
+			logger.trace("TagSpec: "+cTagSpec);
+			this.cTagSpec = cTagSpec;
+		}
+		
+		public TagSpecMenuItemListener(String tagName) {
+			this.tagName = tagName;
+		}
+		
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			logger.debug("add tag spec: "+cTagSpec);
+			if (cTagSpec != null) {
+				TrpMainWidget.getInstance().addTagForSelection(cTagSpec.getCustomTag(), null);
+			}
+			else if (!StringUtils.isEmpty(tagName)) {
+				TrpMainWidget.getInstance().addTagForSelection(tagName, null, null);
+			}
+		}
 	}
 
-	/*
+	/**
 	 * add a tag item menu to choose tags on a mouse right click
+	 * @deprecated
 	 */
 	private void addTagItems() {
 
@@ -1925,14 +1868,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			
 			if (event.widget == null)
 				return;
-			
-	    	if (event.widget == deleteTagMenuItem) {
-	    		logger.debug("deleting tags for current selection");
-//	    		TrpMainWidget.getInstance().deleteTags(getCustomTagsForCurrentOffset());
-	    		TrpMainWidget.getInstance().deleteTagsForCurrentSelection();
-	    		return;
-	    	}
-			
+						
 			if (!(event.widget.getData() instanceof CustomTag)) {
 				logger.debug("no CustomTag as data!");
 				return;
@@ -1996,9 +1932,10 @@ public abstract class ATranscriptionWidget extends Composite{
 	    } // end widgetSelected
 	}
 	
-	/*
+	/**
 	 * right click listener for the transcript table
 	 * for the latest transcript the new status can be set with the right click button and by choosing the new status
+	 * @deprecated
 	 */
 	class MenuItemListener extends SelectionAdapter {
 	    public void widgetSelected(SelectionEvent event) {
@@ -2011,12 +1948,11 @@ public abstract class ATranscriptionWidget extends Composite{
 	    		
 	    		boolean isTextSelectedInTranscriptionWidget = mw.isTextSelectedInTranscriptionWidget();
 	    		if (!isTextSelectedInTranscriptionWidget && !tagname.equals(GapTag.TAG_NAME)) {
-	    			DialogUtil.showErrorMessageBox(getShell(), "Error", "No text seleceted in transcription widget!");
+	    			DialogUtil.showErrorMessageBox(getShell(), "Error", "No text selected in transcription widget!");
 	    			return;
 	    		}
 	    		
-	    		if (tagname.equals(CommentTag.TAG_NAME)){
-	    			
+	    		if (tagname.equals(CommentTag.TAG_NAME)) {
 	    			String commentText = null;
 			
     				InputDialog id = new InputDialog(getShell(), "Comment", "Please enter a comment: ", "", null);
@@ -2026,7 +1962,6 @@ public abstract class ATranscriptionWidget extends Composite{
     				}
     				
     				commentText = id.getValue();
-
 	    			if (commentText.isEmpty()) {
 	    				DialogUtil.showErrorMessageBox(getShell(), "Error", "Cannot add an empty comment!");
 	    				return;
@@ -2037,7 +1972,6 @@ public abstract class ATranscriptionWidget extends Composite{
 	    			mw.addTagForSelection(CommentTag.TAG_NAME, atts, null);
 	    			
 	    			mw.getUi().getCommentsWidget().reloadComments();
-	    			transcriptionTaggingWidget.reloadComments();
 	    		}
 	    		else {
 	    			mw.addTagForSelection(tagname, null, null);
@@ -2128,7 +2062,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		db.bindBeanToWidgetSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, settings, autocompleteToggle);
 		
-		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY, settings, showTagEditorItem);
+//		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY, settings, showTagEditorItem);
 	}
 	
 	protected void toggleParagraphOnSelectedLine() {
@@ -2604,9 +2538,9 @@ public abstract class ATranscriptionWidget extends Composite{
 		return currentWordObject;
 	}
 	
-	public TranscriptionTaggingWidget getTranscriptionTaggingWidget() {
-		return transcriptionTaggingWidget;
-	}
+//	public TranscriptionTaggingWidget getTranscriptionTaggingWidget() {
+//		return transcriptionTaggingWidget;
+//	}
 	
 	
 		

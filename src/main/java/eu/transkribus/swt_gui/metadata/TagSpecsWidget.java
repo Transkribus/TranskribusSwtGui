@@ -158,7 +158,11 @@ public class TagSpecsWidget extends Composite {
 	                editor.horizontalAlignment = SWT.LEFT;
 	                editor.verticalAlignment = SWT.TOP;
 	                
-	                ColorChooseButton colorCtrl = new ColorChooseButton((Composite) cell.getViewerRow().getControl(), Colors.toRGB(CustomTagFactory.getTagColor(tagSpec.getCustomTag().getTagName()))) {
+	                String tagColor = CustomTagFactory.getTagColor(tagSpec.getCustomTag().getTagName());
+	                if (tagColor == null) {
+	                	tagColor = CustomTagFactory.getNewTagColor();
+	                }
+	                ColorChooseButton colorCtrl = new ColorChooseButton((Composite) cell.getViewerRow().getControl(), Colors.toRGB(tagColor)) {
 	                	@Override protected void onColorChanged(RGB rgb) {
 	                		CustomTagFactory.setTagColor(tagSpec.getCustomTag().getTagName(), Colors.toHex(rgb));
 	                	}
