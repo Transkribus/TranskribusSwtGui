@@ -83,11 +83,12 @@ public class DocSearchComposite extends Composite {
 		collectionCheck.setText("Restrict search to current collection only");
 		collectionCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
+		// TODO add listener to toggle edit of colID field
+		//collectionCheck.add
+		
 		collectionId = new LabeledText(facetsC, "Col-ID: ");
 		collectionId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		collectionId.text.addTraverseListener(tl);
-		
-		
 		
 		documentId = new LabeledText(facetsC, "Doc-ID: ");
 		documentId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -226,7 +227,6 @@ public class DocSearchComposite extends Composite {
 					collectionId.text.setEditable(true);
 				}
 					
-					
 				
 				int colId = getColId();
 				logger.debug("searching for docs, collId = "+colId);
@@ -270,7 +270,7 @@ public class DocSearchComposite extends Composite {
 		try {
 			if (collectionCheck.getSelection()) {
 				id = TrpMainWidget.getInstance().getSelectedCollectionId(); 
-				collectionId.text.setEnabled(false);
+				collectionId.text.setEditable(false);
 			} else {
 				String collectionIdTxt = collectionId.txt().trim();
 				if (!collectionIdTxt.isEmpty()) 
