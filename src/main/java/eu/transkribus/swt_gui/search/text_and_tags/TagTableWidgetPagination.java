@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui;
+package eu.transkribus.swt_gui.search.text_and_tags;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -197,12 +197,21 @@ public class TagTableWidgetPagination extends ATableWidgetPagination<TrpDbTag> {
 						collIds = CoreUtils.createSet(store.getCollId());
 						docIds = CoreUtils.createSet(store.getDocId());
 
+						//deactivate this change for now as client's interface does not fit to this
+//						try {
+//							tags = store.getConnection().searchTags(collIds, docIds, null, null, null, null, true,
+//									false, null, sortPropertyName, sortDirection);
+//						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
+//							TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
+//						}
+						
 						try {
 							tags = store.getConnection().searchTags(collIds, docIds, null, null, null, null, true,
-									false, null, sortPropertyName, sortDirection);
+									false, null);
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 							TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
 						}
+						
 						return tags;
 					}
 				};
