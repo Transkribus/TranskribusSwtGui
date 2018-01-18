@@ -241,7 +241,8 @@ public abstract class APreviewListViewer<T> extends Composite {
 		}
 		T selected = getFirstSelected();
 		logger.debug("reloading image for element: "+selected);
-		SWTUtil.dispose(selectedImage);
+		// this line caused errors when the dialog was called more than once, so omit!
+		// SWTUtil.dispose(selectedImage);
 		selectedImage = null;
 		if (selected == null && dataList != null && dataList.size() > 0) {
 			//if no page is selected in GUI show the first page on canvas
