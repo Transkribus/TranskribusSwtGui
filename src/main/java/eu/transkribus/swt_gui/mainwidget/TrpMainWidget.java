@@ -165,6 +165,7 @@ import eu.transkribus.swt_gui.dialogs.AffineTransformDialog;
 import eu.transkribus.swt_gui.dialogs.AutoSaveDialog;
 import eu.transkribus.swt_gui.dialogs.BatchImageReplaceDialog;
 import eu.transkribus.swt_gui.dialogs.BugDialog;
+import eu.transkribus.swt_gui.dialogs.ChangeLogDialog;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
@@ -260,6 +261,7 @@ public class TrpMainWidget {
 //	CollectionManagerListener collectionsManagerListener;
 	TrpMenuBarListener menuListener;
 	
+	// Dialogs
 	SearchDialog searchDiag;
 	TrpVirtualKeyboardsDialog vkDiag;
 	TranscriptsDialog versionsDiag;
@@ -269,6 +271,7 @@ public class TrpMainWidget {
 	DebuggerDialog debugDiag;
 	VersionsDiffBrowserDialog browserDiag;
 	BugDialog bugDialog;
+	ChangeLogDialog changelogDialog;
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
@@ -4609,6 +4612,15 @@ public class TrpMainWidget {
 		}		
 	}
 
+	public void openChangeLogDialog() {
+		if (changelogDialog == null) {
+			changelogDialog = new ChangeLogDialog(getShell(), SWT.NONE);
+			changelogDialog.open();
+		} else {
+			changelogDialog.setActive();
+		}
+	}
+	
 	public void openPAGEXmlViewer() {
 		try {
 			logger.debug("loading transcript source");

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.ComboInputDialog;
@@ -43,7 +44,7 @@ public class DocSearchComposite extends Composite {
 //	DocTableWidget docWidget;
 	DocTableWidgetPagination docWidgetPaged;
 	
-	public LabeledText documentId, title, description, author, writer;
+	public LabeledText collectionId, documentId, title, description, author, writer, uploader;
 //	LabeledCombo collection;
 	Button collectionCheck;
 	Button exactMatch, caseSensitive;
@@ -79,8 +80,15 @@ public class DocSearchComposite extends Composite {
 //		collection.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		collectionCheck = new Button(facetsC, SWT.CHECK);
-		collectionCheck.setText("Search on selected collection");
+		collectionCheck.setText("Restrict search to current collection only");
 		collectionCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		
+		// TODO add listener to toggle edit of colID field
+		//collectionCheck.add
+		
+		collectionId = new LabeledText(facetsC, "Col-ID: ");
+		collectionId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		collectionId.text.addTraverseListener(tl);
 		
 		documentId = new LabeledText(facetsC, "Doc-ID: ");
 		documentId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -102,6 +110,10 @@ public class DocSearchComposite extends Composite {
 		writer.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		writer.text.addTraverseListener(tl);
 		
+		uploader = new LabeledText(facetsC, "Uploaded by: ");
+		uploader.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		uploader.text.addTraverseListener(tl);
+		
 		exactMatch = new Button(facetsC, SWT.CHECK);
 		exactMatch.setText("Exact match of keywords ");
 		
@@ -115,8 +127,6 @@ public class DocSearchComposite extends Composite {
 		findBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				searchDocuments();
-				
-
 			}
 		});
 		
@@ -129,7 +139,7 @@ public class DocSearchComposite extends Composite {
 			@Override public int loadTotalSize() {
 				int N = 0;
 				
-				int colId = getColId();				
+				Integer colId = getColId();				
 				Integer docid = getDocId();
 				if (!documentId.txt().isEmpty() && docid == null) {
 					return 0;
@@ -163,6 +173,10 @@ public class DocSearchComposite extends Composite {
 					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
 					}
+					
+					/// TODO: get user id from email / name
+//					List<TrpUser> users = store.getConnection().findUsers(userNameText.getText(), firstNameText.getText(), lastNameText.getText(), exactMatch, caseSensitive);
+//					docs = store.getConnection().getAllDocsByUser(index, nValues, sortPropertyName, sortDirection);
 				}
 				
 				return docs;
@@ -205,7 +219,15 @@ public class DocSearchComposite extends Composite {
 	void searchDocuments() {
 		Storage s = Storage.getInstance();
 		if (s.isLoggedIn()) {
-			try {				
+			try {	
+				if (collectionCheck.getSelection()) {
+					collectionId.setText("hier sollte default was stehen");
+					collectionId.text.setEditable(false);
+				} else {
+					collectionId.text.setEditable(true);
+				}
+					
+				
 				int colId = getColId();
 				logger.debug("searching for docs, collId = "+colId);
 				
@@ -243,8 +265,21 @@ public class DocSearchComposite extends Composite {
 		}
 	}
 	
-	int getColId() {
-		return collectionCheck.getSelection() ? TrpMainWidget.getInstance().getSelectedCollectionId() : 0;
+	Integer getColId() {
+		Integer id = new Integer(0);
+		try {
+			if (collectionCheck.getSelection()) {
+				id = TrpMainWidget.getInstance().getSelectedCollectionId(); 
+				collectionId.text.setEditable(false);
+			} else {
+				String collectionIdTxt = collectionId.txt().trim();
+				if (!collectionIdTxt.isEmpty()) 
+					id = Integer.parseInt(collectionIdTxt);
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		return id;
 	}
 
 	Integer getDocId() {
