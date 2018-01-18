@@ -1100,6 +1100,18 @@ public class DocumentManager extends Dialog {
 			}
 
 		});
+		
+		MenuItem lineBack = new MenuItem(contextMenu, SWT.NONE);
+		lineBack.setText("Line back current versions");
+		lineBack.setToolTipText("Latest versions of the document swap places with their parents - use case is e.g. if layout recognition should be undone");
+		lineBack.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				mw.lineVersionsBack(getPageList());
+			}
+		});
+		
+		
 	}
 
 	private void addMenuItems4PageLevel(Menu contextMenu, String[] editStatusArray) {

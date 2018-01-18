@@ -5526,6 +5526,29 @@ public class TrpMainWidget {
 
 	}
 
+	public void lineVersionsBack(List<TrpPage> pageList) {
+		for (TrpPage page : pageList) {
+			TrpTranscriptMetadata currTranscript = page.getCurrentTranscript();
+			TrpTranscriptMetadata parentTranscript = page.getTranscriptById(currTranscript.getParentTsId());
+			
+			try {
+				JAXBPageTranscript tr = new JAXBPageTranscript(parentTranscript);
+				tr.build();
+
+				Storage.getInstance().getConnection().updateTranscript(Storage.getInstance().getCurrentDocumentCollectionId(), parentTranscript.getDocId(), parentTranscript.getPageNr(), parentTranscript.getStatus(), tr.getPageData(), parentTranscript.getParentTsId(), "resetted as current");
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+					| IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+		
+	}
+
 
 
 }
