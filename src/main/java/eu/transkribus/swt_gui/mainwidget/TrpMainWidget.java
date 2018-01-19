@@ -5526,25 +5526,44 @@ public class TrpMainWidget {
 
 	}
 
-	public void lineVersionsBack(List<TrpPage> pageList) {
-		for (TrpPage page : pageList) {
-			TrpTranscriptMetadata currTranscript = page.getCurrentTranscript();
-			TrpTranscriptMetadata parentTranscript = page.getTranscriptById(currTranscript.getParentTsId());
-			
-			try {
-				JAXBPageTranscript tr = new JAXBPageTranscript(parentTranscript);
-				tr.build();
+	public void revertVersions() {
+		
+		try {
+			//get doc to have all transcripts for all pages available to change
+			Storage storage = Storage.getInstance();
+			TrpDoc currDoc = Storage.getInstance().getRemoteDoc(storage.getCurrentDocumentCollectionId(), storage.getDocId(), -1);
+			for (TrpPage page : currDoc.getPages()) {
+				
+				TrpTranscriptMetadata currTranscript = page.getCurrentTranscript();
+				TrpTranscriptMetadata parentTranscript = page.getTranscriptById(currTranscript.getParentTsId());
 
-				Storage.getInstance().getConnection().updateTranscript(Storage.getInstance().getCurrentDocumentCollectionId(), parentTranscript.getDocId(), parentTranscript.getPageNr(), parentTranscript.getStatus(), tr.getPageData(), parentTranscript.getParentTsId(), "resetted as current");
-			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-					| IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				//logger.debug("currTranscript.getToolName(): " + currTranscript.getToolName());
+				
+				//if there is a toolname != null we can revert the job of that tool
+				if(parentTranscript != null && currTranscript.getToolName() != null){
+					logger.debug("parent exists and transcript stems from tool/job - revert version");
+					JAXBPageTranscript tr = new JAXBPageTranscript(parentTranscript);
+					tr.build();
+					storage.getConnection().updateTranscript(storage.getCurrentDocumentCollectionId(), parentTranscript.getDocId(), parentTranscript.getPageNr(), parentTranscript.getStatus(), tr.getPageData(), parentTranscript.getParentTsId(), "resetted as current");
+				}
+				
+				//for loaded page do a reload: does not work since because it runs in a separate thread and there are some resource conflicts
+//				if (storage.getPage().getPageId() == page.getPageId()){
+//					logger.debug("page id = " + storage.getPage().getPageId());
+//					Storage.getInstance().setLatestTranscriptAsCurrent();
+//					mw.reloadCurrentPage(true);
+//				}
 			}
-
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 	}

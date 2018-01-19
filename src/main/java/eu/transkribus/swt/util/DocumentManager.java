@@ -1101,13 +1101,23 @@ public class DocumentManager extends Dialog {
 
 		});
 		
-		MenuItem lineBack = new MenuItem(contextMenu, SWT.NONE);
-		lineBack.setText("Line back current versions");
-		lineBack.setToolTipText("Latest versions of the document swap places with their parents - use case is e.g. if layout recognition should be undone");
-		lineBack.addListener(SWT.Selection, new Listener() {
+		MenuItem moveBack = new MenuItem(contextMenu, SWT.NONE);
+		moveBack.setText("Revert to version(s) prior to your last (batch) job");
+		moveBack.setToolTipText("Latest versions - derived from (batch) job - of the document swap places with their parents - use case is e.g. if layout recognition should be undone");
+		moveBack.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				mw.lineVersionsBack(getPageList());
+				if (DialogUtil.showYesNoDialog(mw.getShell(), "Revert to previous version(s)", "Do you really want to revert to the version(s) before the last job was completed")!=SWT.YES) {
+					return;
+				}
+				Thread thread = new Thread(){
+				    public void run(){
+				    	mw.revertVersions();
+				    }
+				};
+			
+				thread.start();
+				
 			}
 		});
 		
