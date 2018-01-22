@@ -12,7 +12,7 @@ public class SearchDialogTest {
 
 	public static void main(String[] args) {
 		ApplicationWindow aw = new ApplicationWindow(null) {
-			@Override
+						@Override
 			protected Control createContents(Composite parent) {
 				try {
 					Storage s = Storage.getInstance();
@@ -25,10 +25,11 @@ public class SearchDialogTest {
 				}
 				return parent;
 			}
+		
 		};
+		
 		aw.setBlockOnOpen(true);
 		aw.open();
 
-		Display.getCurrent().dispose();
 	}
 }

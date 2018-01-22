@@ -44,7 +44,8 @@ public class DocSearchComposite extends Composite {
 //	DocTableWidget docWidget;
 	DocTableWidgetPagination docWidgetPaged;
 	
-	public LabeledText collectionId, documentId, title, description, author, writer, uploader;
+	public LabeledText collectionId, documentId, title, description, author, writer; 
+	//, uploader;
 //	LabeledCombo collection;
 	Button collectionCheck;
 	Button exactMatch, caseSensitive;
@@ -83,8 +84,18 @@ public class DocSearchComposite extends Composite {
 		collectionCheck.setText("Restrict search to current collection only");
 		collectionCheck.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
-		// TODO add listener to toggle edit of colID field
-		//collectionCheck.add
+		// enable / disable collection field
+		collectionCheck.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				if (collectionCheck.getSelection()) {
+					collectionId.setText(getColId().toString());
+					collectionId.text.setEditable(false);
+				} else {
+					collectionId.text.setEditable(true);
+				} 
+					
+			}
+		});
 		
 		collectionId = new LabeledText(facetsC, "Col-ID: ");
 		collectionId.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -110,9 +121,9 @@ public class DocSearchComposite extends Composite {
 		writer.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		writer.text.addTraverseListener(tl);
 		
-		uploader = new LabeledText(facetsC, "Uploaded by: ");
-		uploader.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		uploader.text.addTraverseListener(tl);
+//		uploader = new LabeledText(facetsC, "Uploaded by: ");
+//		uploader.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+//		uploader.text.addTraverseListener(tl);
 		
 		exactMatch = new Button(facetsC, SWT.CHECK);
 		exactMatch.setText("Exact match of keywords ");
@@ -159,6 +170,7 @@ public class DocSearchComposite extends Composite {
 			
 			@Override public List<TrpDocMetadata> loadPage(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {
 				List<TrpDocMetadata> docs = new ArrayList<>();
+				List<TrpDocMetadata> userdocs = new ArrayList<>();
 				
 				int colId = getColId();				
 				Integer docid = getDocId();
@@ -175,6 +187,13 @@ public class DocSearchComposite extends Composite {
 					}
 					
 					/// TODO: get user id from email / name
+//					try {
+//						userdocs = store.getConnection().getAllDocsByUser(0, -1, null, null);
+//						System.out.println("found "+userdocs.size());
+//						logger.debug("search user pagesize = "+userdocs.size());
+//					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e){
+//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
+//					}
 //					List<TrpUser> users = store.getConnection().findUsers(userNameText.getText(), firstNameText.getText(), lastNameText.getText(), exactMatch, caseSensitive);
 //					docs = store.getConnection().getAllDocsByUser(index, nValues, sortPropertyName, sortDirection);
 				}
@@ -220,13 +239,6 @@ public class DocSearchComposite extends Composite {
 		Storage s = Storage.getInstance();
 		if (s.isLoggedIn()) {
 			try {	
-				if (collectionCheck.getSelection()) {
-					collectionId.setText("hier sollte default was stehen");
-					collectionId.text.setEditable(false);
-				} else {
-					collectionId.text.setEditable(true);
-				}
-					
 				
 				int colId = getColId();
 				logger.debug("searching for docs, collId = "+colId);
@@ -270,14 +282,17 @@ public class DocSearchComposite extends Composite {
 		try {
 			if (collectionCheck.getSelection()) {
 				id = TrpMainWidget.getInstance().getSelectedCollectionId(); 
-				collectionId.text.setEditable(false);
 			} else {
 				String collectionIdTxt = collectionId.txt().trim();
 				if (!collectionIdTxt.isEmpty()) 
 					id = Integer.parseInt(collectionIdTxt);
 			}
 		} catch (Exception e) {
-			return null;
+			logger.error(e.getMessage(), e);
+			
+			infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
+			infoLabel.setText("Could not retrieve current collection");
+			return 0;
 		}
 		return id;
 	}
