@@ -528,8 +528,7 @@ CHANGES AND BUGFIXES
 	-> add BIDI support in transcription widget
 	-> adapted PDF export
 	-> adapted tag search and replace
-	
-1.3.9:
 	-> simple txt export
 	-> export images without loading transcripts
+	-> Transcripts: Revert to the version(s) before the last (batch) job was completed
 	

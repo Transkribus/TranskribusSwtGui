@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.search.text_and_tags;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -10,13 +9,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
-import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.InvocationCallback;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -58,23 +54,17 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDbTag;
-import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
-import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.customtags.search.CustomTagSearchFacets;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableLabelProvider;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
-import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
@@ -84,7 +74,6 @@ import eu.transkribus.swt.util.LazyTableViewerArrayContentProvider;
 import eu.transkribus.swt.util.MapContentProvider;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableLabelProvider;
-import eu.transkribus.swt_gui.TagTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.CustomTagSearcher;
@@ -104,8 +93,7 @@ public class TagSearchComposite extends Composite {
 	Group facetsGroup;
 	
 	MyTableViewer propsTable;
-
-	TagTableWidgetPagination tagResultWidget;
+	MyTableViewer resultsTable;
 	
 	Map<String, Object> props = new HashMap<String, Object>();
 	
@@ -357,7 +345,6 @@ public class TagSearchComposite extends Composite {
 		});
 		
 		initResultsTable(sf);
-
 		
 		sf.setWeights(new int[] { 50, 40 } );
 		
@@ -372,7 +359,6 @@ public class TagSearchComposite extends Composite {
 				logger.debug("disposed!");
 			}
 		});
-		
 
 	}
 	
@@ -415,35 +401,13 @@ public class TagSearchComposite extends Composite {
 		resultsSf.setLayout(new GridLayout(1, false));
 		resultsSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 
+		resultsTable = new MyTableViewer(resultsSf, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		resultsTable.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		tagResultWidget = new TagTableWidgetPagination(resultsSf, 0, 50, new IPageLoadMethods<TrpDbTag>() {
-			
-			@Override
-			public int loadTotalSize() {
-//				if (tagResultWidget.getTags() != null) return tagResultWidget.getTags().size();
-//				else return 0;
-				return 100;
-			}
-			
-			@Override
-			public List<TrpDbTag> loadPage(int fromIndex, int toIndex, 
-					String sortPropertyName, String sortDirection) {
-				List<TrpDbTag> tags = new ArrayList<>();
-				tags = findTags(sortPropertyName, sortDirection);
-				return tags;
-			}
-		});
-		tagResultWidget.getFilter().setFocus();
-		tagResultWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		IDoubleClickListener openSelectedDocListener = new IDoubleClickListener() {
-			@Override public void doubleClick(DoubleClickEvent event) {
-				IStructuredSelection sel = (IStructuredSelection) event.getSelection();
-				if (sel.isEmpty())
-					return;
-				openDocument((TrpDbTag) sel.getFirstElement());
-			}
-		};		
-		tagResultWidget.getTableViewer().addDoubleClickListener(openSelectedDocListener);
+		resultsTable.getTable().setHeaderVisible(true);
+		resultsTable.getTable().setLinesVisible(true);
+		
+		resultsTable.addColumns(RESULT_COLS);
 		
 		final MyTableLabelProvider mtlp = new MyTableLabelProvider() {
 			@Override public String getColumnText(String cn, Object element, Object data) {
@@ -457,7 +421,8 @@ public class TagSearchComposite extends Composite {
 	//				else if (cn.equals(TITLE_COL)) {
 	//				}
 					else if (cn.equals(PAGE_COL)) {
-						return Integer.toString(t.getPagenr());
+						int pgnr = t.getPagenr();
+						return pgnr<10? "0"+pgnr : ""+pgnr;
 					}
 					else if (cn.equals(REGION_COL)) {
 						return t.getRegionid();
@@ -487,28 +452,33 @@ public class TagSearchComposite extends Composite {
 				return "i am error";
 			}
 		};
-//		
-//		// set custom sorters (needed as this table is virtual!):
-//		for (final TableColumn tc : resultsTable.getTable().getColumns()) {
-//			resultsTable.setCustomListSorterForColumn(tc.getText(), new Comparator<TrpDbTag>() {
-//				@Override public int compare(TrpDbTag o1, TrpDbTag o2) {
-//					// NOTE: no debug output here, it will be called very often! 
-//					
-//					String t1 = mtlp.getColumnText(tc.getText(), o1, null);
-//					String t2 = mtlp.getColumnText(tc.getText(), o2, null);
-//					
-//					if (t1 == null)
-//						t1 = "";
-//					if (t2 == null)
-//						t2 = "";				
-//					
-//					return t1.compareTo(t2);
-//				}
-//			});
-//			
-//		}
+		
+		// set custom sorters (needed as this table is virtual!):
+		for (final TableColumn tc : resultsTable.getTable().getColumns()) {
+			resultsTable.setCustomListSorterForColumn(tc.getText(), new Comparator<TrpDbTag>() {
+				@Override public int compare(TrpDbTag o1, TrpDbTag o2) {
+					// NOTE: no debug output here, it will be called very often! 
+					
+					String t1 = mtlp.getColumnText(tc.getText(), o1, null);
+					String t2 = mtlp.getColumnText(tc.getText(), o2, null);
+					
+					if (t1 == null)
+						t1 = "";
+					if (t2 == null)
+						t2 = "";				
+					
+					return t1.compareTo(t2);
+				}
+			});
+		}
 				
-		tagResultWidget.getTableViewer().setLabelProvider(new StyledCellLabelProvider() {
+//		resultsTable.setContentProvider(new ArrayContentProvider());
+		
+		resultsTable.setContentProvider(LazyTableViewerArrayContentProvider.instance());
+		resultsTable.setUseHashlookup(true);
+//		resultsTable.setItemCount(100);
+				
+		resultsTable.setLabelProvider(new StyledCellLabelProvider() {
 			public void update(ViewerCell cell) {
 				if (cell.getElement() instanceof TrpDbTag) {
 					int ci = cell.getColumnIndex();
@@ -531,17 +501,32 @@ public class TagSearchComposite extends Composite {
 			}
 		});
 
-//		tagResultWidget.getTableViewer().addDoubleClickListener(new IDoubleClickListener() {
-//			@Override public void doubleClick(DoubleClickEvent event) {
-//				IStructuredSelection sel = (IStructuredSelection) event.getSelection();
-//				if (sel.getFirstElement() instanceof TrpDbTag) {
-//					TrpDbTag t = (TrpDbTag) sel.getFirstElement();
-//				}
-//				
-//			}
-//		});
+		resultsTable.addDoubleClickListener(new IDoubleClickListener() {
+			@Override public void doubleClick(DoubleClickEvent event) {
+				IStructuredSelection sel = (IStructuredSelection) event.getSelection();
+				if (sel.getFirstElement() instanceof TrpDbTag) {
+					TrpDbTag t = (TrpDbTag) sel.getFirstElement();
+					logger.debug("opening tag: "+t);
+					
+					// TODO: convert TrpDbTag to TrpLocation -> including range of text!
+					TrpLocation l = new TrpLocation();
+					l.collectionId = t.getCollId();
+					l.docId = t.getDocid();
+//					l.pageid = t.getPageid();
+					l.pageNr = t.getPagenr();
+					l.shapeId = t.getRegionid();
+					
+//					logger.debug("collectionId = "+t.getCollId());
+					
+//					TrpLocation l = new TrpLocation(t);
+					
+					TrpMainWidget.getInstance().showLocation(l);
+				}
+				
+			}
+		});
 		
-		tagResultWidget.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+		resultsTable.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
 				updateNormalizationSelection();
 			}
@@ -554,7 +539,7 @@ public class TagSearchComposite extends Composite {
 	}
 	
 	protected List<TrpDbTag> getSelectedTags() {
-		return ((IStructuredSelection) tagResultWidget.getTableViewer().getSelection()).toList();
+		return ((IStructuredSelection) resultsTable.getSelection()).toList();
 	}
 	
 	protected void updateNormalizationSelection() {
@@ -591,8 +576,7 @@ public class TagSearchComposite extends Composite {
 	}
 
 	public void updateResults(List<TrpDbTag> searchResult) {
-		if (SWTUtil.isDisposed(resultsLabel) || 
-				tagResultWidget.isDisposed()) {
+		if (SWTUtil.isDisposed(resultsLabel) || SWTUtil.isDisposed(resultsTable.getControl())) {
 			return;
 		}
 		
@@ -601,7 +585,9 @@ public class TagSearchComposite extends Composite {
 		logger.debug("updating results table, N = "+N);
 		resultsLabel.setText(N+" matches");
 
-//		tagResultWidget.refreshPage(true);
+		resultsTable.setInput(searchResult);
+		resultsTable.setItemCount(N);
+		resultsTable.refresh();
 	}
 	
 	void updateTagNames() {		
@@ -631,17 +617,10 @@ public class TagSearchComposite extends Composite {
 	}
 
 	protected void findTags() {
-		tagResultWidget.refreshPage(true);
-	}
-	
-	protected List<TrpDbTag> findTags(String sortFieldName, String sortDirection) {
 		final CustomTagSearchFacets f = getFacets();
-		
-		List<TrpDbTag> tags = new ArrayList<>();
-		
 		if (StringUtils.length(f.getTagName(false)) < 3) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error searching for tags", "Please specify a valid tagname");
-			return tags;
+			return;
 		}
 		
 		logger.debug("searching tags, facets: "+f);
@@ -661,7 +640,7 @@ public class TagSearchComposite extends Composite {
 			if (useDbSearch) {
 				if (!s.isLoggedIn()) {
 					DialogUtil.showErrorMessageBox(getShell(), "Not logged in", "You need to connect to the server to search for tags in remote documents!");
-					return tags;
+					return;
 				}
 
 				Set<Integer> collIds = null;
@@ -676,52 +655,40 @@ public class TagSearchComposite extends Composite {
 				toogleSearchBtn(true);
 				lastSearch = System.currentTimeMillis();
 				
-//				InvocationCallback<List<TrpDbTag>> callback = new InvocationCallback<List<TrpDbTag>>() {
-//					long time = TagSearchComposite.lastSearch;
-//					
-//					@Override
-//					public void completed(List<TrpDbTag> tags) {
-//						if (time != TagSearchComposite.lastSearch) {
-//							logger.debug("search was canceled: "+tags.size());
-//							return;
-//						}
-//						
-//						logger.debug("found "+tags.size()+" in DB!");
-//						List<TrpDbTag> searchResult = new ArrayList<>();
-//						searchResult.addAll(tags);
-//						searchResult.forEach((t) -> { t.setCollId(collId); });
-//						
-//						Display.getDefault().asyncExec(() -> {
-//							updateResults(searchResult);
-//							toogleSearchBtn(false);
-//						});
-//					}
-//
-//					@Override public void failed(Throwable throwable) {
-//						Display.getDefault().asyncExec(() -> {
-//							TrpMainWidget.getInstance().onError("Error searching tags", throwable.getMessage(), throwable);
-//							toogleSearchBtn(false);
-//						});
-//					}
-//				};	
-//				
-//				s.getConnection().searchTagsAsync(collIds, docIds, null, f.getTagName(false), 
-//						f.getTagValue(false), f.getRegionType(), f.isExactMatch(), f.isCaseSensitive(), f.getProps(), 
-//						callback, sortFieldName, sortDirection);
-//
+				InvocationCallback<List<TrpDbTag>> callback = new InvocationCallback<List<TrpDbTag>>() {
+					long time = TagSearchComposite.lastSearch;
+					
+					@Override
+					public void completed(List<TrpDbTag> tags) {
+						if (time != TagSearchComposite.lastSearch) {
+							logger.debug("search was canceled: "+tags.size());
+							return;
+						}
+						
+						logger.debug("found "+tags.size()+" in DB!");
+						List<TrpDbTag> searchResult = new ArrayList<>();
+						searchResult.addAll(tags);
+						searchResult.forEach((t) -> { t.setCollId(collId); });
+						
+						Display.getDefault().asyncExec(() -> {
+							updateResults(searchResult);
+							toogleSearchBtn(false);
+						});
+					}
+
+					@Override public void failed(Throwable throwable) {
+						Display.getDefault().asyncExec(() -> {
+							TrpMainWidget.getInstance().onError("Error searching tags", throwable.getMessage(), throwable);
+							toogleSearchBtn(false);
+						});
+					}
+				};	
 				
-				
-//				// synchronized version:
-				tags = s.getConnection().searchTags(collIds, docIds, null, f.getTagName(false), null, null, true,
-						false, null, sortFieldName, sortDirection);
-//				String tagName = f.getTagName(false);
-//				String tagValue = f.getTagValue(true);
-//				if (tagValue.equals("")) tagValue=null;
-//				tags = s.getConnection().searchTags(collIds, 
-//						docIds, null, tagName, tagValue, 
-//						f.getRegionType(), f.isExactMatch(), f.isCaseSensitive(), null,
-//						sortFieldName, sortDirection);
-				logger.debug("found "+tags.size()+" in DB!");
+				s.getConnection().searchTagsAsync(collIds, docIds, null, f.getTagName(false), f.getTagValue(false), f.getRegionType(), f.isExactMatch(), f.isCaseSensitive(), f.getProps(), callback);
+
+				// synchronized version:
+//				List<TrpDbTag> tags = s.getConnection().searchTags(collIds, docIds, null, f.getTagName(false), f.getTagValue(false), regionType, f.isExactMatch(), f.isCaseSensitive(), f.getProps());
+//				logger.debug("found "+tags.size()+" in DB!");
 //
 //				List<TrpDbTag> searchResult = new ArrayList<>();
 //				searchResult.addAll(tags);
@@ -749,7 +716,7 @@ public class TagSearchComposite extends Composite {
 				if (scope.equals(SCOPE_COLL)) {
 					if (currCol == null) {
 						DialogUtil.showErrorMessageBox(getShell(), "Error", "No collection selected!");
-						return tags;
+						return;
 					}
 
 					pd.open(new IRunnableWithProgress() {
@@ -767,7 +734,7 @@ public class TagSearchComposite extends Composite {
 				else if (scope.equals(SCOPE_DOC)) {
 					if (!s.isDocLoaded()) {
 						DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded!");
-						return tags;
+						return;
 					}
 					String docTitle = s.getDoc().getMd() != null ? s.getDoc().getMd().getTitle() : "NA";
 					
@@ -783,7 +750,7 @@ public class TagSearchComposite extends Composite {
 				else if (scope.equals(SCOPE_PAGE)) {
 					if (!s.isPageLoaded() || s.getTranscript().getPageData() == null) {
 						DialogUtil.showErrorMessageBox(getShell(), "Error", "No page loaded!");
-						return tags;
+						return;
 					}
 					TrpPageType p = s.getTranscript().getPage();
 					
@@ -793,7 +760,7 @@ public class TagSearchComposite extends Composite {
 					TrpTextRegionType r = s.getCurrentRegionObject();
 					if (r==null) {
 						DialogUtil.showErrorMessageBox(getShell(), "Error", "No region selected!");
-						return tags;
+						return;
 					}
 						
 					CustomTagSearcher.searchOnRegion(searchResult, s.getCurrentDocumentCollectionId(), s.getDocId(), s.getPage().getPageId(), s.getTranscriptMetadata().getTsId(), r, f, 0, false, 0, false);
@@ -803,31 +770,9 @@ public class TagSearchComposite extends Composite {
 		}
 		catch (Throwable e) {
 			mw.onError("Error in tag search", e.getMessage(), e);
-			return tags;
+			return;
 		}
-		
-		return tags;
 	}
-	
-	public void openDocument(TrpDbTag t) {
-		logger.debug("opening tag: "+t);
-		
-		// TODO: convert TrpDbTag to TrpLocation -> including range of text!
-		TrpLocation l = new TrpLocation();
-		l.collectionId = t.getCollId();
-		l.docId = t.getDocid();
-//		l.pageid = t.getPageid();
-		l.pageNr = t.getPagenr();
-		l.shapeId = t.getRegionid();
-		try {
-			CssSyntaxTag csstag = CssSyntaxTag.parseSingleCssTag(t.getCustomTagCss());
-			l.t = CustomTagFactory.create(csstag.getTagName(), csstag.getAttributes());
-		} catch (Exception e) {
-			logger.error("Could not parse css tag for " + t.getCustomTagCss());
-		}
-		TrpMainWidget.getInstance().showLocation(l);
-	}
-	
 	
 //	/**
 //	 * @deprecated not used anymore -> inefficient (stores pages multiple times if multiple tags on a page!)
@@ -883,22 +828,6 @@ public class TagSearchComposite extends Composite {
 		Display display = shell.getDisplay();
 		
 		TagSearchComposite c = new TagSearchComposite(shell, 0);
-		
-		/////// TODO: REMOVE, test data only!!!
-		List <TrpDbTag> taglist = new ArrayList<>();
-		int nrtesttags=500;
-		for (int i = 0; i < nrtesttags; i++) {
-			TrpDbTag testtag = new TrpDbTag();
-			testtag.setId(i);
-			testtag.setCollId(i);
-			testtag.setDocid(i);
-			testtag.setPageid(i);
-			testtag.setPagenr(i);
-			testtag.setRegionid("region "+(nrtesttags-i));
-			testtag.setValue("ABC "+ i);
-			taglist.add(testtag);
-		}
-		c.updateResults(taglist);
 		
 		SWTUtil.centerShell(shell);
 
