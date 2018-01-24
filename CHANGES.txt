@@ -531,4 +531,6 @@ CHANGES AND BUGFIXES
 	-> simple txt export
 	-> export images without loading transcripts
 	-> Transcripts: Revert to the version(s) before the last (batch) job was completed
+	-> add What is new in Transkribus (make CHANGES.txt visible to the user)
+	-> add search for documents by collection ID
 	
