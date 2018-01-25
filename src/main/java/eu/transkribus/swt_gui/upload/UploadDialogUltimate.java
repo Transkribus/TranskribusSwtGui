@@ -1,10 +1,12 @@
 package eu.transkribus.swt_gui.upload;
 
 import java.awt.Desktop;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -73,12 +75,12 @@ public class UploadDialogUltimate extends Dialog {
 	Button singleDocButton, ftpButton, metsUrlButton, pdfButton;
 	Group ftpGroup, singleGroup, metsUrlGroup, pdfGroup;
 	
-	Text folderText, pdfFolderText;
+	Text folderText; //, pdfFolderText;
 	Text titleText, urlText;
 	Text fileText;
 	
 //	String dirName;
-	String file, folder, pdffolder, title, url;
+	String file, folder, /*pdffolder, */ title, url;
 	
 	boolean isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false;
 	
@@ -115,6 +117,7 @@ public class UploadDialogUltimate extends Dialog {
 	public static final String TITLE_COL = "Title";
 	public static final String NR_OF_FILES_COL = "Nr. of Files";
 	public static final String CREATE_DATE_COL = "Last modified";
+	public static final String USER_TMP_FOLDER = System.getProperty("java.io.tmpdir") + File.separator + "TrpPDFimgs";
 	
 	public static final ColumnConfig[] DOC_DIR_COLS = new ColumnConfig[] {
 		new ColumnConfig(DIRECTORY_COL, 180, true, DefaultTableColumnViewerSorter.ASC),
@@ -196,11 +199,13 @@ public class UploadDialogUltimate extends Dialog {
 		collSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		new Label(container, SWT.NONE);
 		// set to current collection if possible:
-		TrpCollection c = TrpMainWidget.getInstance().getSelectedCollection();
-		if (collSelectorPredicate.test(c)) {
-			collSelector.setSelectedCollection(c);
-		}
-		
+		mw = TrpMainWidget.getInstance();
+		if (mw != null) {
+			TrpCollection c = mw.getSelectedCollection();
+			if (collSelectorPredicate.test(c)) {
+				collSelector.setSelectedCollection(c);
+			}
+		} 
 //		collCombo = new Combo(container, SWT.READ_ONLY);
 //		collCombo.setToolTipText("This is the collection the document will be added to - you can only upload to collections where you are at least editor");
 //		collCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -264,12 +269,14 @@ public class UploadDialogUltimate extends Dialog {
 	}
 
 	private void createPdfGroup(Composite container) {
+		
+		// ToDo find user-friendly layout  
 		Label lblFileLabel = new Label(container, SWT.NONE);
-		lblFileLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblFileLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		lblFileLabel.setText("Local pdf file:");
 
 		fileText = new Text(container, SWT.BORDER);
-		fileText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		fileText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		
 		if (store.isLocalDoc())
 			fileText.setText(store.getDoc().getMd().getLocalFolder().getAbsolutePath());
@@ -286,7 +293,14 @@ public class UploadDialogUltimate extends Dialog {
 		});
 		setFileBtn.setImage(Images.getOrLoad("/icons/folder_explore.png"));
 
-		Label lblExtractFolder = new Label(container, SWT.NONE);
+ 		Label lblExtractFolder = new Label(container, SWT.NONE);
+		lblExtractFolder.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+		lblExtractFolder.setText("Contained page images will be temporarily extracted to "+ USER_TMP_FOLDER);
+		
+/*
+ * Replace user specified extraction folder by temp folder
+ * 		
+ 		Label lblExtractFolder = new Label(container, SWT.NONE);
 		lblExtractFolder.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblExtractFolder.setText("Local folder for extracted images:");
 
@@ -306,6 +320,8 @@ public class UploadDialogUltimate extends Dialog {
 			}
 		});
 		setFolderBtn.setImage(Images.getOrLoad("/icons/folder.png"));
+*/
+		
 	}
 	
 	private void createMetsUrlGroup(Composite container) {
@@ -570,7 +586,10 @@ public class UploadDialogUltimate extends Dialog {
 					} catch (Exception e) {
 						docDirs = new ArrayList<>();
 						Display.getDefault().asyncExec(() -> {
-							mw.onError("Error", "Could not load directory list!", e);
+							if (mw != null)
+								mw.onError("Error", "Could not load directory list!", e);
+							else 
+								logger.error("Could not load directory list " + e.getMessage());
 						});
 					} finally {
 						Display.getDefault().asyncExec(() -> {
@@ -604,7 +623,7 @@ public class UploadDialogUltimate extends Dialog {
 		return new Point(700, 500);
 	}
 
-	// override method to use "Login" as label for the OK button
+	// override method to use "Upload" as label for the OK button
 	@Override protected void createButtonsForButtonBar(Composite parent) {
 		createButton(parent, IDialogConstants.OK_ID, "Upload", true);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
@@ -683,11 +702,8 @@ public class UploadDialogUltimate extends Dialog {
 //		}
 		else if (isPdfUpload && StringUtils.isEmpty(file)) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You need to select a pdf first");
-		} else if (isPdfUpload && StringUtils.isEmpty(pdffolder)) {
-			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please specify a folder to "
-					+ "which you want to extract the images in your pdf");
-		}
-		else {
+		
+		} else {
 			super.okPressed();
 		}
 	}
@@ -701,7 +717,7 @@ public class UploadDialogUltimate extends Dialog {
 		this.selColl = collSelector.getSelectedCollection();
 		
 		this.folder = folderText.getText();
-		this.pdffolder = pdfFolderText.getText();
+//		this.pdffolder = pdfFolderText.getText();
 		this.url = urlText.getText();
 		this.file = fileText.getText();
 		
@@ -725,7 +741,7 @@ public class UploadDialogUltimate extends Dialog {
 	}
 	
 	public String getPdfFolder() {
-		return pdffolder;
+		return USER_TMP_FOLDER;
 	}
 	
 	public String getFile() {
