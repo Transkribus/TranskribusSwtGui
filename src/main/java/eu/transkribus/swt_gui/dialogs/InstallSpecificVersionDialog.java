@@ -20,7 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class InstallSpecificVersionDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(InstallSpecificVersionDialog.class);
@@ -31,6 +33,7 @@ public class InstallSpecificVersionDialog extends Dialog {
 	Combo releasesCombo, snapshotsCombo;
 	Button releasesRadio, snapshotsRadio;
 	Button update, replace, cancel, downloadAll;
+	Button changelog;
 	
 	List<ProgramPackageFile> releases, snapshots;
 //	List releases, snapshots;
@@ -145,6 +148,16 @@ public class InstallSpecificVersionDialog extends Dialog {
 			@Override public void widgetSelected(SelectionEvent e) {
 				result = 2;
 				shell.close();
+			}
+		});
+		
+		changelog = new Button(shell, SWT.PUSH);
+		changelog.setImage(Images.getOrLoad("/icons/new.png"));
+		changelog.setText("What's new in Transkribus");
+		changelog.setToolTipText("Check out the log of changes introduced in each version of the Transkribus software.");
+		changelog.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				TrpMainWidget.getInstance().openChangeLogDialog();
 			}
 		});
 		

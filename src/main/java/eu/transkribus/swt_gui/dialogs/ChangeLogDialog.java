@@ -8,6 +8,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
@@ -15,6 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.mainwidget.ProgramInfo;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 
 public class ChangeLogDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(ChangeLogDialog.class);
@@ -25,7 +29,11 @@ public class ChangeLogDialog extends Dialog {
 
 	public ChangeLogDialog(Shell parent, int style) {
 		super(parent, style|= (SWT.DIALOG_TRIM | SWT.RESIZE) );
-		setText("What's new in Transkribus");
+
+
+		ProgramInfo info = new ProgramInfo();
+
+		setText("What's new in Transkribus - (active: " + info.getName() + info.getVersion() + ")");
 		
 		try {
 			changelog = CoreUtils.readStringFromTxtFile("CHANGES.txt");
@@ -47,7 +55,7 @@ public class ChangeLogDialog extends Dialog {
 		FillLayout fillLayout = new FillLayout();
 		fillLayout.type = SWT.VERTICAL;
 		shell.setLayout(fillLayout);
-
+		
 		ScrolledComposite sc = new ScrolledComposite(shell, SWT.NONE);
 		Text text = new Text(sc, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL | SWT.READ_ONLY);
 		text.setText(changelog);

@@ -26,7 +26,7 @@ public class TextFieldDialogTest {
 //				TextFieldDialog rtd = new TextFieldDialog(getShell(), "title!!", "<strong>bold text!</strong>");
 				
 				try {
-					String helpText = CoreUtils.readStringFromTxtFile("table_help.txt");
+					String helpText = CoreUtils.readStringFromTxtFile("CHANGES.txt");
 					DialogUtil.showMessageBox(getShell(), 
 							"aasdf", helpText, SWT.RESIZE);					
 				} catch (IOException e) {
