@@ -67,14 +67,14 @@ public class TagPropertyEditor extends Composite {
 		
 		prevBtn = new Button(btns, 0);
 		prevBtn.setText("Previous");
-		prevBtn.setImage(Images.ARROW_LEFT);
+		prevBtn.setImage(Images.PAGE_PREV);
 		SWTUtil.onSelectionEvent(prevBtn, e -> {
 			jumpToNextTag(true);
 		});
 		
 		nextBtn = new Button(btns, 0);
 		nextBtn.setText("Next");
-		nextBtn.setImage(Images.ARROW_RIGHT);
+		nextBtn.setImage(Images.PAGE_NEXT);
 		SWTUtil.onSelectionEvent(nextBtn, e -> {
 			jumpToNextTag(false);
 		});
@@ -181,12 +181,12 @@ public class TagPropertyEditor extends Composite {
 		
 		ITrpShapeType shape = tWidget.getTranscriptionUnit();
 		CustomTagList ctl = shape.getCustomTagList();
-		List<CustomTag> tags = ctl.getIndexedTagsAsList();
+		List<CustomTag> tags = ctl.getIndexedTags();
 		CustomTag neighborTag = CoreUtils.getNeighborElement(tags, tag, previous, false);
 		if (neighborTag == null) { // neighbor tag not found in this shape -> search for in neighbor shapes!
 			ITrpShapeType neighborShape = TrpShapeTypeUtils.getNeighborShape(shape, previous, false);
 			while (neighborShape!=null) {
-				List<CustomTag> tagsOfNeighborShape = neighborShape.getCustomTagList().getIndexedTagsAsList();
+				List<CustomTag> tagsOfNeighborShape = neighborShape.getCustomTagList().getIndexedTags();
 				if (!tagsOfNeighborShape.isEmpty()) {
 					neighborTag = tagsOfNeighborShape.get(previous ? tagsOfNeighborShape.size()-1 : 0);
 					break;

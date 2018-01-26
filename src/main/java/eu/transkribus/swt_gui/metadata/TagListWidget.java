@@ -9,7 +9,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerCell;
@@ -256,13 +258,21 @@ public class TagListWidget extends Composite {
 //			}
 //		});
 		
-//		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-//			@Override public void selectionChanged(SelectionChangedEvent event) {
-//				IStructuredSelection sel = (IStructuredSelection) event.getSelection();
-//				String selectedTagName = sel.isEmpty() ? null : ((CustomTag) sel.getFirstElement()).getTagName();
-//				selectTagname(selectedTagName);				
-//			}
-//		});
+		tv.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override public void selectionChanged(SelectionChangedEvent event) {
+				List<CustomTag> selected = getSelectedTags();
+				if (selected.size()==1) {
+					TrpMainWidget mw = TrpMainWidget.getInstance();
+					if (mw == null) {
+						return;
+					}
+					
+					CustomTag tag = selected.get(0);
+					mw.showLocation(new TrpLocation(tag));
+					mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag);
+				}
+			}
+		});
 	}
 	
 	private void initBtns(Composite container) {
@@ -303,6 +313,10 @@ public class TagListWidget extends Composite {
 			tagList.addAll(tagsForPage);
 		}
 		
+		for (CustomTag t : tagList) {
+			logger.debug("tag: "+t);
+		}
+		
 		Display.getCurrent().asyncExec(() -> {
 			tv.setInput(tagList);
 			TaggingWidgetUtils.updateEditors(delSelectedEditors, tagList);
@@ -313,6 +327,16 @@ public class TagListWidget extends Composite {
 		return tv;
 	}
 	
+	public CustomTag getSelectedTag() {
+		List<CustomTag> selected = getSelectedTags();
+		if (!selected.isEmpty()) {
+			return selected.get(0);
+		}
+		else {
+			return null;
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public List<CustomTag> getSelectedTags() {
 		return ((IStructuredSelection) tv.getSelection()).toList();
