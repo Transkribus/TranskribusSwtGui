@@ -1185,6 +1185,11 @@ public class SWTCanvas extends Canvas {
 			java.awt.Point p1 = selected.getPoint(line[0]);
 			java.awt.Point p2 = selected.getPoint(line[1]);
 			
+			if (p1 == null || p2 == null) {
+				logger.warn("could not find points for line indices - should not happen here... returning -1 anyway!");
+				return -1;
+			}
+			
 			java.awt.Point p1r = GeomUtils.invertRotation(p1.x, p1.y, transform.getAngleRad());
 			java.awt.Point p2r = GeomUtils.invertRotation(p2.x, p2.y, transform.getAngleRad());
 
