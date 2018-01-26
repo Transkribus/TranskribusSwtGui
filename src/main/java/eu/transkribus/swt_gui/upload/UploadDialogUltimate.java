@@ -21,6 +21,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -52,6 +53,7 @@ import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -270,13 +272,12 @@ public class UploadDialogUltimate extends Dialog {
 
 	private void createPdfGroup(Composite container) {
 		
-		// ToDo find user-friendly layout  
 		Label lblFileLabel = new Label(container, SWT.NONE);
 		lblFileLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		lblFileLabel.setText("Local pdf file:");
 
 		fileText = new Text(container, SWT.BORDER);
-		fileText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		fileText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		if (store.isLocalDoc())
 			fileText.setText(store.getDoc().getMd().getLocalFolder().getAbsolutePath());
@@ -292,36 +293,13 @@ public class UploadDialogUltimate extends Dialog {
 			}
 		});
 		setFileBtn.setImage(Images.getOrLoad("/icons/folder_explore.png"));
-
- 		Label lblExtractFolder = new Label(container, SWT.NONE);
-		lblExtractFolder.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
-		lblExtractFolder.setText("Contained page images will be temporarily extracted to "+ USER_TMP_FOLDER);
 		
-/*
- * Replace user specified extraction folder by temp folder
- * 		
- 		Label lblExtractFolder = new Label(container, SWT.NONE);
-		lblExtractFolder.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblExtractFolder.setText("Local folder for extracted images:");
-
-		pdfFolderText = new Text(container, SWT.BORDER);
-		pdfFolderText.setToolTipText("Name of directory to which images in pdf are extracted. "
-				+ "Must have writing permits on chosen folder.");
-		pdfFolderText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		Text lblInfo = new Text(container, SWT.NONE);
 		
-		Button setFolderBtn = new Button(container, SWT.NONE);
-		setFolderBtn.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				pdffolder = DialogUtil.showOpenFolderDialog(getShell(), 
-						"Specify a folder to which the images are extracted", pdffolder);
-				if (pdffolder != null) {
-					pdfFolderText.setText(pdffolder);
-				}
-			}
-		});
-		setFolderBtn.setImage(Images.getOrLoad("/icons/folder.png"));
-*/
-		
+		lblInfo.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, true, false, 2, 1));
+		//lblExtractFolder.text.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+		lblInfo.setText("Extracted images can be found at "+ USER_TMP_FOLDER);
+		lblInfo.setEnabled(false);
 	}
 	
 	private void createMetsUrlGroup(Composite container) {
