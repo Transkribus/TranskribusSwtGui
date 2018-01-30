@@ -30,10 +30,12 @@ public class DelayedTask {
 			@Override public void run() {
 				long selDiff = System.currentTimeMillis() - lastTime;
 				if (selDiff >= timeThreshMs) {
-					if (isGuiTask)
+					if (isGuiTask) {
 						Display.getDefault().asyncExec(task);
-					else
+					}
+					else {
 						task.run();
+					}
 				}
 			}
 		}, timeThreshMs);

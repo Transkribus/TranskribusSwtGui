@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -111,9 +112,12 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.MainImageLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.PageLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TagDefsChangedEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
+import eu.transkribus.swt_gui.metadata.CustomTagSpec;
+import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -141,6 +145,9 @@ public class Storage {
 
 	private List<TrpDocMetadata> docList = Collections.synchronizedList(new ArrayList<>());
 	private List<TrpDocMetadata> userDocList = Collections.synchronizedList(new ArrayList<>());
+	
+	private List<CustomTagSpec> customTagSpecs = new ArrayList<>();
+	private Map<String, Pair<Integer, String>> virtualKeysShortCuts = new HashMap<>();
 	
 	private int collId;
 		
@@ -200,6 +207,11 @@ public class Storage {
 		initImCache();
 		initTranscriptCache();
 		addInternalListener();
+		readTagSpecsFromLocalSettings();
+		
+		// init some dummy vk shortcuts:
+//		setVirtualKeyShortCut("1", Pair.of(1, "hello"));
+//		setVirtualKeyShortCut("2", Pair.of(2, "-"));
 	}
 	
 	private void addInternalListener() {
@@ -2341,5 +2353,116 @@ public class Storage {
 		doc = conn.getTrpDoc(this.collId, doc.getMd().getDocId(), -1);
 		
 	}
+	
+	
+	// CUSTOM TAG SPEC STUFF:
+	
+	public List<CustomTagSpec> getCustomTagSpecs() {
+		return customTagSpecs;
+	}
+	
+	public void addCustomTagSpec(CustomTagSpec tagSpec) {
+		customTagSpecs.add(tagSpec);
+		checkTagSpecsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+	
+		storeCustomTagSpecsForCurrentCollection();
+	}
+	
+	public void removeCustomTagSpec(CustomTagSpec tagDef) {
+		customTagSpecs.remove(tagDef);
+		checkTagSpecsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		
+		storeCustomTagSpecsForCurrentCollection();
+	}
+	
+	public void signalCustomTagSpecsChanged() {
+		checkTagSpecsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		storeCustomTagSpecsForCurrentCollection();
+	}
+	
+	public CustomTagSpec getCustomTagSpecWithShortCut(String shortCut) {
+		if (shortCut == null) {
+			return null;
+		}
+		
+		return customTagSpecs.stream().filter(cDef -> { return StringUtils.equals(shortCut, cDef.getShortCut());}).findFirst().get();
+	}
+	
+	private void checkTagSpecsConsistency() {
+		checkTagDefsShortCutConsistency();
+	}
+	
+	private void checkTagDefsShortCutConsistency() {
+		for (CustomTagSpec cDef: customTagSpecs) {
+			String sc1 = cDef.getShortCut();
+			
+			for (CustomTagSpec cDefOther : customTagSpecs) {
+				String sc2 = cDefOther.getShortCut();
+				
+				if (cDef == cDefOther) {
+					continue;
+				}
+				
+				if (sc1!=null && sc2!=null && sc1.equals(sc2)) {
+					cDefOther.setShortCut(null);
+				}
+			}
+		}		
+	}
+		
+	private void storeCustomTagSpecsForCurrentCollection() {
+		logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagSpecs);
+		CustomTagSpecUtil.writeCustomTagSpecsToSettings(customTagSpecs);
+		
+//		if (!storage.isLoggedIn()) {
+//			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
+//			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
+//		} else {
+//			// TODO: write to server for current collection if logged in!
+//		}
+	}
+	
+	private void readTagSpecsFromLocalSettings() {
+		customTagSpecs.clear();
+		customTagSpecs.addAll(CustomTagSpecUtil.readCustomTagSpecsFromSettings());
+		
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+	}
+	
+	// virtual keys shortcuts:
+	public Pair<Integer, String> getVirtualKeyShortCutValue(String key) {
+		return virtualKeysShortCuts.get(key);
+	}
+	
+	public String getVirtualKeyShortCutKey(Pair<Integer, String> vk) {
+		for (String key : virtualKeysShortCuts.keySet()) {
+			if (virtualKeysShortCuts.get(key).equals(vk)) {
+				return key;
+			}
+		}
+		return null;
+	}
+	
+	public Pair<Integer, String> setVirtualKeyShortCut(String key, Pair<Integer, String> vk) {
+		return virtualKeysShortCuts.put(key, vk);
+	}
+	
+	public boolean isValidVirtualKeyShortCutKey(String key) {
+		return key.equals("0") || key.equals("1") || key.equals("2") || key.equals("3") || key.equals("4") || key.equals("5") || 
+				key.equals("6") || key.equals("7") || key.equals("8") || key.equals("9");
+	}
+	
+	public void clearVirtualKeyShortCuts() {
+		virtualKeysShortCuts.clear();
+	}
+	
+	public Map<String, Pair<Integer, String>> getVirtualKeysShortCuts() {
+		return virtualKeysShortCuts;
+	}
+	
+	// END OF CUSTOM TAG SPECS STUFF
 
 }

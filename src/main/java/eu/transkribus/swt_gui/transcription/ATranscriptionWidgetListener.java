@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.transcription;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -14,12 +15,16 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 
 public abstract class ATranscriptionWidgetListener implements Listener, KeyListener {
 	private final static Logger logger = LoggerFactory.getLogger(ATranscriptionWidgetListener.class);
 	
 	TrpMainWidget mainWidget;
-	ATranscriptionWidget transcriptionWidget;	
+	ATranscriptionWidget transcriptionWidget;
+	
+//	TagPropertyPopup tagPropertyPopup;
 
 	public ATranscriptionWidgetListener(TrpMainWidget mainWidget, ATranscriptionWidget transcriptionWidget) {
 		this.mainWidget = mainWidget;
@@ -58,7 +63,6 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 //				}
 //			}
 //		});
-		
 	}
 	
 	@Override public void keyPressed(KeyEvent e) {
@@ -70,10 +74,26 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 			else
 				mainWidget.jumpToNextRegion();
 		}
-		if ( CanvasKeys.isCtrlKeyDown(e.stateMask) && (e.keyCode == SWT.ARROW_DOWN 
+		else if ( CanvasKeys.isCtrlKeyDown(e.stateMask) && (e.keyCode == SWT.ARROW_DOWN 
 					|| e.keyCode == SWT.ARROW_UP || e.keyCode == SWT.ARROW_LEFT || e.keyCode == SWT.ARROW_RIGHT)) {
 				mainWidget.jumpToNextCell(e.keyCode);
 		}
+		// insert custom tags with shortcuts
+		else if ( CanvasKeys.isAltKeyDown(e.stateMask)) {
+			CustomTagSpec cDef = Storage.getInstance().getCustomTagSpecWithShortCut(""+e.character);
+			if (cDef != null) {
+				logger.debug("CustomTagDef shortcut matched: "+cDef);
+				mainWidget.addTagForSelection(cDef.getCustomTag(), null);
+			}
+		}
+		// TODO insert virtual keys with shortcuts
+		else if ( CanvasKeys.isCtrlKeyDown(e.stateMask) ) {
+			Pair<Integer, String> vk = Storage.getInstance().getVirtualKeyShortCutValue(""+e.character);
+			if (vk != null) {
+				transcriptionWidget.insertTextIfFocused(vk.getRight());
+			}
+		}
+		
 	}
 	
 	@Override public void keyReleased(KeyEvent e) {

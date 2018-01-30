@@ -4,13 +4,9 @@ import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -27,7 +23,7 @@ import eu.transkribus.core.util.UnicodeList;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.dialogs.MultilineInputDialog;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TrpVirtualKeyboardsWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TrpVirtualKeyboardsWidget.class);
@@ -77,7 +73,19 @@ public class TrpVirtualKeyboardsWidget extends Composite {
 //				vk.pack();
 
 				try {
-					tabWidget.setConfProperrty(vk.getUnicodeList().getName(), vk.getUnicodeList().getUnicodeHexRange(), true);
+					tabWidget.setConfProperty(vk.getUnicodeList().getName(), vk.getUnicodeList().getUnicodeHexRange(), true);
+					
+					// store shortcuts:
+					logger.debug("storing shorcuts, N = "+Storage.getInstance().getVirtualKeysShortCuts().size());
+					for (String key : Storage.getInstance().getVirtualKeysShortCuts().keySet()) {
+						logger.debug("storing shortcut: "+key);
+						
+						Pair<Integer, String> sc = Storage.getInstance().getVirtualKeyShortCutValue(key);
+						logger.debug("sc = "+sc);
+						if (sc != null) { // should always be the case
+							tabWidget.setConfProperty(TrpVirtualKeyboardsTabWidget.SHORTCUT_PROP_PREFIX+key, UnicodeList.toUnicodeString(sc.getKey()), true);
+						}
+					}
 				} catch (ConfigurationException e1) {
 					DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not save virtual keyboard:\n\n"+e1.getMessage());
 					logger.error(e1.getMessage(), e1);

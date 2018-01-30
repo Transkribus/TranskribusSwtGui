@@ -100,10 +100,14 @@ public class TrpConfig {
 			config.setFile(CONFIG_FILE);
 
 			try {
+				logger.debug("trying to load config file: "+CONFIG_FILE);
 				if (!CONFIG_FILE.exists()) // create empty file if it does not exist!
 					config.save();
 				
 				config.load();
+				
+				registerBean(trpSettings, true);
+				registerBean(canvasSettings, true);
 			} catch (ConfigurationException e1) {
 				logger.error("Could not load configuration file "+CONFIG_FILENAME+": "+e1.getMessage());
 				throw new RuntimeException("Could not load configuration file "+CONFIG_FILENAME+": "+e1.getMessage(), e1);
@@ -132,7 +136,7 @@ public class TrpConfig {
 	
 	public static Properties getTipsOfTheDay() { return tips; }
 	
-	public static void registerBean(APropertyChangeSupport bean, boolean autoSave) {
+	private static void registerBean(APropertyChangeSupport bean, boolean autoSave) {
 		PropertyChangeSaveListener l = new PropertyChangeSaveListener(bean, autoSave);
 		bean.addPropertyChangeListener(l);
 		beans.put(bean, l);

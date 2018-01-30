@@ -23,6 +23,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEven
 import eu.transkribus.swt_gui.transcription.LineEditor;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
+import eu.transkribus.swt_gui.util.DelayedTask;
 
 /**
  * Observes changes (text, coordinates...) in any PAGE segmentation element, 
@@ -36,6 +37,7 @@ public class TranscriptObserver implements Observer {
 	WordTranscriptionWidget wordTranscriptionWidget;
 	LineEditor lineEditor;
 	boolean active=true;
+	DelayedTask tagListUpdateTask;
 
 	public TranscriptObserver(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;
@@ -43,6 +45,10 @@ public class TranscriptObserver implements Observer {
 		lineTranscriptionWidget = mainWidget.getUi().getLineTranscriptionWidget();
 		wordTranscriptionWidget = mainWidget.getUi().getWordTranscriptionWidget();
 		lineEditor = mainWidget.getCanvas().getLineEditor();
+		
+		this.tagListUpdateTask = new DelayedTask(() -> {
+			mainWidget.getUi().getTaggingWidget().getTagListWidget().refreshTable();
+		}, true);
 	}
 	
 	public void setActive(boolean active) { this.active = active; }
@@ -128,6 +134,9 @@ public class TranscriptObserver implements Observer {
 			wordTranscriptionWidget.redrawText(true);
 		}
 		}
+		
+		// usage of DelayedTask makes sure that update of list only occurs once after a 500ms time between two tag changes!
+		tagListUpdateTask.start();
 	}
 	
 	private void onStylesChanged(Object source, TrpTextStyleChangedEvent e) {

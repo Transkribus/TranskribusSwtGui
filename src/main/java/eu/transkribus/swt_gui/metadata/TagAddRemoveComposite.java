@@ -8,6 +8,11 @@ import org.eclipse.swt.widgets.Composite;
 
 import eu.transkribus.swt.util.Images;
 
+/**
+ * @deprecated
+ * @author jkloe
+ *
+ */
 public class TagAddRemoveComposite extends Composite {
 	
 //	public static class AddOrRemoveTagListener extends SelectionAdapter {

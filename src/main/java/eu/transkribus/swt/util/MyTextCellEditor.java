@@ -15,5 +15,13 @@ public class MyTextCellEditor extends TextCellEditor {
     	else
     		super.doSetValue(""+value);
     }
+    
+//    @Override protected void keyReleaseOccured(KeyEvent keyEvent) {
+//    	System.out.println("keyEvent: "+keyEvent);
+//    	
+//    	if (keyEvent.keyCode == SWT.TAB) {
+//    		keyEvent.doit = false;	
+//    	}
+//    }
 
 }

@@ -1,8 +1,9 @@
-package eu.transkribus.swt.util;
+package eu.transkribus.swt_gui.metadata;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,27 +11,45 @@ import java.util.Map.Entry;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewerEditor;
+import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
+import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
-import org.eclipse.jface.viewers.ICellEditorListener;
+import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TableViewerEditor;
+import org.eclipse.jface.viewers.TableViewerFocusCellManager;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.MyCheckboxEditor;
+import eu.transkribus.swt.util.MyTextCellEditor;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.TableViewerUtils;
 
 public class CustomTagPropertyTable extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(CustomTagPropertyTable.class);
@@ -197,7 +216,7 @@ public class CustomTagPropertyTable extends Composite {
 				ICellEditorValidator v = SWTUtil.createNumberCellValidator(t);
 				if (v != null)
 					e.setValidator(v);
-				
+												
 				return e;
 			}
 			
@@ -207,11 +226,108 @@ public class CustomTagPropertyTable extends Composite {
 		};
 		valueCol.setEditingSupport(valueEditingSupport);
 		
-//		valueCol.addSelectionListener(new Selection);
+//		tv.getTable().addTraverseListener(new TraverseListener() {
+//			@Override
+//			public void keyTraversed(TraverseEvent e) {
+//				e.doit = false;
+//				
+//				System.out.println("traversed!");
+//				if (e.detail == SWT.TRAVERSE_RETURN) {
+//					e.doit = false;
+//					
+//					System.out.println("return!");
+//					
+//					
+//					
+//				}
+//			}
+//		});
+		
+//		tv.getTable().addKeyListener(new KeyListener() {
+//			@Override
+//			public void keyReleased(KeyEvent e) {
+//				System.out.println("key released: "+e);
+//				if (e.keyCode == 0x1000050) {
+//					System.out.println("enter released!");
+//				}
+//			}
+//			
+//			@Override
+//			public void keyPressed(KeyEvent e) {
+//				System.out.println("key pressed!");
+//				
+//			}
+//		});
+		
+		initTraverseStuff();
+	}
+	
+	private void initTraverseStuff() {
+		TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(tv, new FocusCellOwnerDrawHighlighter(tv));
+
+		ColumnViewerEditorActivationStrategy activationSupport = new ColumnViewerEditorActivationStrategy(tv) {
+		    protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event) {
+		        if (event.eventType == ColumnViewerEditorActivationEvent.MOUSE_CLICK_SELECTION) {
+		            EventObject source = event.sourceEvent;
+		            if (source instanceof MouseEvent && ((MouseEvent)source).button == 3)
+		                return false;
+		        }
+		        return super.isEditorActivationEvent(event) || (event.eventType == ColumnViewerEditorActivationEvent.KEY_PRESSED && event.keyCode == SWT.CR);
+		    }
+		};
+
+		TableViewerEditor.create(tv, focusCellManager, activationSupport, ColumnViewerEditor.TABBING_HORIZONTAL | 
+		    ColumnViewerEditor.TABBING_MOVE_TO_ROW_NEIGHBOR | 
+		    ColumnViewerEditor.TABBING_VERTICAL |
+		    ColumnViewerEditor.KEYBOARD_ACTIVATION
+		    
+			);		
+	}
+
+	public void selectNextAttribute() {
+		if (prototypeTag == null) {
+			return;
+		}
+		
+		Entry<CustomTagAttribute, Object> entry = getSelectedEntry();
+		
+		int index=-1;
+		int N = tv.getTable().getItemCount();
+		for (int i=0; i<N; ++i) {
+			if (tv.getElementAt(i) == entry) {
+				index=i;
+				break;
+			}
+		}
+		
+		logger.debug("index = "+index);
+		
+		int nextIndex = (index+1) % N;
+		selectAttribute(nextIndex);
+	}
+	
+	public void selectAttribute(int index) {
+		int N = tv.getTable().getItemCount();
+		if (prototypeTag!=null && index>=0 && index<N) {
+			Entry<CustomTagAttribute, Object> entry = (Entry<CustomTagAttribute, Object>) tv.getElementAt(index);
+			tv.editElement(entry, 1);
+		}
+	}
+	
+	public void selectFirstAttribute() {
+		selectAttribute(0);
+	}
+	 
+	public TableViewer getTableViewer() {
+		return tv;
 	}
 	
 	public CustomTag getPrototypeTag() { return prototypeTag; }
 	public CustomTag getSelectedTag() { return selectedTag; }
+	
+	private Entry<CustomTagAttribute, Object> getSelectedEntry() {
+		return getEntry(((IStructuredSelection) tv.getSelection()).getFirstElement());
+	}
 	
 	private static Entry<CustomTagAttribute, Object> getEntry(Object element) {
 		return (Entry<CustomTagAttribute, Object>) element;
@@ -241,13 +357,4 @@ public class CustomTagPropertyTable extends Composite {
 			return null;
 	}
 	
-	public static void main(String[] args) {
-//		logger.info("value = "+Integer.parseInt("-10056"));
-		String str = "asdf";
-		
-		logger.info(""+Enum.class.isAssignableFrom(str.getClass()));
-		
-		
-	}
-
 }

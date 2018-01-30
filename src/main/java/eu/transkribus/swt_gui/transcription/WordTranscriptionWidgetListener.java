@@ -25,9 +25,8 @@ public class WordTranscriptionWidgetListener extends ATranscriptionWidgetListene
 		try {
 			logger.debug("word default selection change, event: ["+event.start+"-"+event.end+"]");
 
-			if (TrpConfig.getTrpSettings().isEnableIndexedStyles()) {
-				mainWidget.updatePageRelatedMetadata();
-			}
+			mainWidget.updatePageRelatedMetadata();
+			mainWidget.getUi().getTaggingWidget().getTranscriptionTaggingWidget().updateSelectedTag(transcriptionWidget);
 		} catch (Throwable th) {
 			String msg = "Could not update default selection from transcription widget";
 			mainWidget.onError("Error updating selection", msg, th);

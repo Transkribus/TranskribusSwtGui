@@ -149,13 +149,13 @@ public class CustomTagSearcher {
 				startOffset = -1;
 			}
 
-			searchOnRegion(result, collId, docid, p.getMd().getPageId(), p.getMd().getTsId(), r, facets, startLineIndex, stopOnFirst, startOffset, previous);
+			searchOnRegion(result, collId, docid, p.getMd().getPageNr(), p.getMd().getPageId(), p.getMd().getTsId(), r, facets, startLineIndex, stopOnFirst, startOffset, previous);
 			if (!result.isEmpty() && stopOnFirst)
 				break;
 		}
 	}
 	
-	public static void searchOnRegion(List<TrpDbTag> result, int collId, int docid, int pid, int tid, TrpTextRegionType region, CustomTagSearchFacets facets, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
+	public static void searchOnRegion(List<TrpDbTag> result, int collId, int docid, int pageNr, int pid, int tid, TrpTextRegionType region, CustomTagSearchFacets facets, int startLineIndex, boolean stopOnFirst, int startOffset, boolean previous) {
 		List<TextLineType> lines = region.getTextLine();
 //		if (startLineIndex<0 || startLineIndex>=lines.size())
 //			return;
@@ -166,7 +166,6 @@ public class CustomTagSearcher {
 			startLineIndex = previous ? lines.size()-1 : 0;
 		}
 		logger.debug("searching on region, line = "+startLineIndex);
-		
 		
 		int inc = previous ? -1 : 1;
 		for (int i=startLineIndex; previous && i>=0 || !previous && i<lines.size(); i+=inc) {
@@ -186,7 +185,7 @@ public class CustomTagSearcher {
 			
 			List<TrpDbTag> lineTagsDb = new ArrayList<>();
 			for (CustomTag t : lineTags) {
-				lineTagsDb.add(fromCustomTag(collId, docid, pid, tid, t));
+				lineTagsDb.add(fromCustomTag(collId, docid, pageNr, pid, tid, t));
 			}
 			
 			result.addAll(lineTagsDb);
@@ -196,7 +195,7 @@ public class CustomTagSearcher {
 		}
 	}
 	
-	public static TrpDbTag fromCustomTag(int collId, int docid, int pid, int tid, CustomTag t) {
+	public static TrpDbTag fromCustomTag(int collId, int docid, int pageNr, int pid, int tid, CustomTag t) {
 		TrpDbTag dbTag = new TrpDbTag();
 
 		dbTag.setCustomTagCss(t.getCssStr());
@@ -204,6 +203,11 @@ public class CustomTagSearcher {
 		dbTag.setCollId(collId);
 		dbTag.setDocid(docid);
 		dbTag.setPageid(pid);
+		dbTag.setValue(t.getContainedText());
+		dbTag.setPagenr(pageNr);
+		int N_NEIGHBOR_CHARS=15;
+		dbTag.setContextBefore(t.getNeighborText(true, N_NEIGHBOR_CHARS));
+		dbTag.setContextAfter(t.getNeighborText(false, N_NEIGHBOR_CHARS));
 		dbTag.setTsid(tid);
 		
 		if (t.getCustomTagList() != null) {

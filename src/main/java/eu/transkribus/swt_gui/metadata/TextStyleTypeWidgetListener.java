@@ -60,16 +60,15 @@ public class TextStyleTypeWidgetListener implements SelectionListener, ModifyLis
 			applyTextStyleToAllSelected(propertyName, false);
 			tw.savePage();
 		}
-		else if (s == tw.getApplyBtn()) {
-//			applyStructureTypeToAllSelected(false);
-			applyTextStyleToAllSelected(null, false);
-			tw.savePage();
-		}
-		else if (s == tw.getApplyRecursiveBtn()) {
-//			applyStructureTypeToAllSelected(true);
-			applyTextStyleToAllSelected(null, true);
-			tw.savePage();
-		}		
+		
+//		else if (s == tw.getApplyBtn()) {
+//			applyTextStyleToAllSelected(null, false);
+//			tw.savePage();
+//		}
+//		else if (s == tw.getApplyRecursiveBtn()) {
+//			applyTextStyleToAllSelected(null, true);
+//			tw.savePage();
+//		}		
 	}
 
 	@Override

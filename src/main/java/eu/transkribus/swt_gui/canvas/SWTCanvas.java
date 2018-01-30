@@ -127,7 +127,7 @@ public class SWTCanvas extends Canvas {
 	// }
 
 	protected void init() {
-		initSettings();
+		settings = TrpConfig.getCanvasSettings();
 		setBackGroundColor();
 		initCanvasScene();
 		initShapeEditor();
@@ -152,10 +152,10 @@ public class SWTCanvas extends Canvas {
 		contextMenu = new CanvasContextMenu(this);
 	}
 
-	protected void initSettings() {
-		settings = new CanvasSettings();
-		TrpConfig.registerBean(settings, true);
-	}
+//	protected void initSettings() {
+//		settings = new CanvasSettings();
+//		TrpConfig.registerBean(settings, true);
+//	}
 
 	protected void initCanvasScene() {
 		scene = new CanvasScene(this);

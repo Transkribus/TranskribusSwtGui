@@ -1,13 +1,9 @@
 package eu.transkribus.swt_gui.mainwidget;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.MenuEvent;
@@ -23,7 +19,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -61,6 +56,7 @@ import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructuralMetadataWidget;
 import eu.transkribus.swt_gui.metadata.TaggingWidget;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetOld;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidget;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget;
 import eu.transkribus.swt_gui.tools.ToolsWidget;
@@ -183,13 +179,16 @@ public class TrpMainWidgetView extends Composite {
 	public TreeViewer getStructureTreeViewer() { return structureTreeWidget.getTreeViewer(); }
 	
 	private void init(TrpMainWidget mainWidget) {
-		initSettings();
+		trpSets = TrpConfig.getTrpSettings();
+		
+//		initSettings();
 		
 //		progressDialog = new ProgressMonitorDialog(getShell());
 		
 		setToolTipText("An interactive adaptive transcription platform");
 		getShell().setText(APP_NAME);
-		getShell().setImage(Images.getOrLoad("/icons/pencil.png"));
+		//getShell().setImage(Images.getOrLoad("/icons/pencil.png"));
+		getShell().setImage(Images.getOrLoad("/icons/ticon6.png"));
 //		getShell().setImage(Images.getOrLoad("/wolpertinger_small_64.png"));
 //		setSize(1200, 850);
 //		setLayout(new FillLayout());
@@ -256,15 +255,17 @@ public class TrpMainWidgetView extends Composite {
 		structuralMdWidget = new StructuralMetadataWidget(tabWidget.metadataTf, SWT.TOP);
 		tabWidget.structuralMdItem.setControl(structuralMdWidget);
 		
-		textStyleWidget = new TextStyleTypeWidget(tabWidget.metadataTf, SWT.TOP);
-		tabWidget.textStyleMdItem.setControl(textStyleWidget);
-		
-		taggingWidget = new TaggingWidget(tabWidget.metadataTf, SWT.TOP, 2, true);
+		taggingWidget = new TaggingWidget(tabWidget.metadataTf, SWT.TOP);
 		taggingWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		tabWidget.textTaggingItem.setControl(taggingWidget);
 		
 		commentsWidget = new CommentsWidget(tabWidget.metadataTf, SWT.TOP);
 		tabWidget.commentsItem.setControl(commentsWidget);
+		
+		if (tabWidget.textStyleMdItem != null) { // outdated and removed
+		textStyleWidget = new TextStyleTypeWidget(tabWidget.metadataTf, SWT.TOP);
+		tabWidget.textStyleMdItem.setControl(textStyleWidget);
+		}
 		
 		toolsWidget = new ToolsWidget(tabWidget.mainTf, SWT.TOP);
 		toolsWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -405,10 +406,10 @@ public class TrpMainWidgetView extends Composite {
 //		rightTabFolder.setSelection(idx);
 	}
 
-	private void initSettings() {
-		trpSets = new TrpSettings();
-		TrpConfig.registerBean(trpSets, true);
-	}
+//	private void initSettings() {
+//		trpSets = new TrpSettings();
+//		TrpConfig.registerBean(trpSets, true);
+//	}
 
 	/**
 	 * Initialize toolbar and add toolbar buttons that come *before* the canvas toolbar
@@ -834,7 +835,7 @@ public class TrpMainWidgetView extends Composite {
 		return tabWidget;
 	}
 
-	public TaggingWidget getTaggingWidgetNew() {
+	public TaggingWidget getTaggingWidget() {
 		return taggingWidget;
 	}
 

@@ -57,7 +57,10 @@ public class CanvasShapeObserver implements Observer {
 
 	@Override
 	public void update(Observable o, Object arg) {
-		if (o instanceof ACanvasShape)
-			updateCoordinatesFromShapeData((ACanvasShape<?>) o);	
+		logger.trace("update in CanvasShapeObserver, o = "+o+", arg = "+arg);
+		
+		if (o instanceof ACanvasShape) {
+			updateCoordinatesFromShapeData((ACanvasShape<?>) o);
+		}
 	}
 }

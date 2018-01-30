@@ -23,25 +23,31 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
-public class TaggingWidgetListener implements ITaggingWidgetListener {
-	private final static Logger logger = LoggerFactory.getLogger(TaggingWidgetListener.class);
+/**
+ * @deprecated
+ * @author jkloe
+ *
+ */
+public class TaggingWidgetOldListener implements ITaggingWidgetListener {
+	private final static Logger logger = LoggerFactory.getLogger(TaggingWidgetOldListener.class);
+	
+	TaggingWidgetOld taggingWidget;
 	
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
 	StructuralMetadataWidget mw;
-	TextStyleTypeWidget tw;
 	SWTCanvas canvas;
 	TrpSettings settings;
 	
-	public TaggingWidgetListener(TrpMainWidget mainWidget) {
-		this.mainWidget = mainWidget;
+	public TaggingWidgetOldListener(TaggingWidgetOld taggingWidget) {
+		this.taggingWidget = taggingWidget;
+		this.mainWidget = TrpMainWidget.getInstance();
 		this.ui = mainWidget.getUi();
 		this.canvas = mainWidget.getCanvas();
 		this.mw = mainWidget.getUi().getStructuralMetadataWidget();
-		this.tw = ui.getTextStyleWidget();
 		this.settings = mainWidget.getTrpSets();
 		
-		ui.getTaggingWidgetNew().addListener(this);
+		taggingWidget.addListener(this);
 	}
 	
 	@Override public void createNewTag(String tagName) {
@@ -63,7 +69,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 			logger.debug("deleting tag: "+tagName);
 			CustomTagFactory.removeFromRegistry(tagName);
 			
-			ui.getTaggingWidgetNew().updateAvailableTags();
+			taggingWidget.updateAvailableTags();
 			
 //			ui.getMetadataWidget().getTaggingWidget().updateAvailableTags();
 //			ui.getTaggingWidgetNew().updateAvailableTags();
@@ -172,7 +178,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 			
 //			mainWidget.updatePageRelatedMetadata();
 //			ui.getMetadataWidget().getTaggingWidget().updatePropertiesForSelectedTag();
-			ui.getTaggingWidgetNew().updatePropertiesForSelectedTag();
+			taggingWidget.updatePropertiesForSelectedTag();
 			
 		} catch (Exception e) {
 			mainWidget.onError("Error adding attribute to tag "+tn, e.getMessage(), e);
@@ -198,7 +204,7 @@ public class TaggingWidgetListener implements ITaggingWidgetListener {
 	}
 	
 	private void updateTaggingWidgets() {
-		ui.getTaggingWidgetNew().updatePropertiesForSelectedTag();
+		taggingWidget.updatePropertiesForSelectedTag();
 	}
 
 

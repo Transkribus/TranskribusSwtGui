@@ -88,7 +88,7 @@ public class TextStyleTypeWidget extends Composite {
 
 	private SelectionAdapter styleSheetSelectionListener;
 	
-	public Button applyBtn, applyRecursiveBtn;
+//	public Button applyBtn, applyRecursiveBtn;
 	
 	public Button underlineTextStylesBtn;
 	
@@ -173,11 +173,11 @@ public class TextStyleTypeWidget extends Composite {
 		bgColorCombo.setItems(EnumUtils.valuesArray(ColourSimpleType.class));
 		
 		
-		applyBtn = createButton(container, SWT.PUSH, "Apply", 1, false, null);
-		applyRecursiveBtn = createButton(container, SWT.PUSH, "Apply recursively", 1, false, null);
+//		applyBtn = createButton(container, SWT.PUSH, "Apply", 1, false, null);
+//		applyRecursiveBtn = createButton(container, SWT.PUSH, "Apply recursively", 1, false, null);
 		
-		applyBtn.setToolTipText("Applies the style to all selected elements (note: if multiple elements are selected, the metadata is not applied automatically but with this button)");
-		applyRecursiveBtn.setToolTipText("Applies the style to all selected elements and its child elements, e.g. for a region and all its line and word elements!");		
+//		applyBtn.setToolTipText("Applies the style to all selected elements (note: if multiple elements are selected, the metadata is not applied automatically but with this button)");
+//		applyRecursiveBtn.setToolTipText("Applies the style to all selected elements and its child elements, e.g. for a region and all its line and word elements!");		
 		
 //		applyBtn = new Button(textStyleGroup, SWT.PUSH);
 //		applyBtn.setText("Apply");
@@ -441,8 +441,8 @@ public class TextStyleTypeWidget extends Composite {
 		superscriptCheck.removeSelectionListener((SelectionListener)listener);
 		textColorCombo.removeSelectionListener((SelectionListener)listener);
 		
-		applyBtn.removeSelectionListener((SelectionListener)listener);
-		applyRecursiveBtn.removeSelectionListener((SelectionListener)listener);
+//		applyBtn.removeSelectionListener((SelectionListener)listener);
+//		applyRecursiveBtn.removeSelectionListener((SelectionListener)listener);
 	}	
 	
 	public void addTextStyleListener(Listener listener) {
@@ -468,8 +468,8 @@ public class TextStyleTypeWidget extends Composite {
 		superscriptCheck.addSelectionListener((SelectionListener)listener);
 		textColorCombo.addSelectionListener((SelectionListener)listener);
 		
-		applyBtn.addSelectionListener((SelectionListener)listener);
-		applyRecursiveBtn.addSelectionListener((SelectionListener)listener);		
+//		applyBtn.addSelectionListener((SelectionListener)listener);
+//		applyRecursiveBtn.addSelectionListener((SelectionListener)listener);		
 	}
 	
 	public TextStyleType getTextStyleTypeFromUi() {
@@ -645,7 +645,7 @@ public class TextStyleTypeWidget extends Composite {
 		return textStyleSources;
 	}
 	
-	public Button getApplyBtn() { return applyBtn; }
-	public Button getApplyRecursiveBtn() { return applyRecursiveBtn; }
+//	public Button getApplyBtn() { return applyBtn; }
+//	public Button getApplyRecursiveBtn() { return applyRecursiveBtn; }
 //	public Button getEnableIndexedStylesBtn() { return enableIndexedStylesBtn; }
 }
