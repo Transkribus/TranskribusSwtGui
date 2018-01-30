@@ -274,7 +274,8 @@
 								<mainClass>${mainClassName}</mainClass>
 								<preCp>anything</preCp>
 							</classPath>
-							<icon>src/main/resources/icons/pencil.ico</icon>
+<!-- 							<icon>src/main/resources/icons/pencil.ico</icon> -->
+							<icon>src/main/resources/icons/ticon6.ico</icon>
 							<jre>
 								<minVersion>1.8.0</minVersion>
 								<jdkPreference>preferJre</jdkPreference>
