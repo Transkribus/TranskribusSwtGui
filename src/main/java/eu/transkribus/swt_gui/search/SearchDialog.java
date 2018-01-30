@@ -38,7 +38,7 @@ public class SearchDialog extends Dialog {
 	LabeledCombo kwsCollection;
 	
 	CTabFolder tabFolder;
-	CTabItem docSearchTabItem, oldKwsTabItem, textAndTagsItem, fullTextSearchItem, kwsTabItem;
+	CTabItem docSearchTabItem, oldKwsTabItem, tagsItem, fullTextSearchItem, kwsTabItem;
 
 
 	/**
@@ -85,7 +85,7 @@ public class SearchDialog extends Dialog {
 				
 		TagSearchComposite tagSearchComp = new TagSearchComposite(tabFolder, 0);
 		tagSearchComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		textAndTagsItem = createCTabItem(tabFolder, tagSearchComp, "Tags");
+		tagsItem = createCTabItem(tabFolder, tagSearchComp, "Tags");
 
 //		TextAndTagSearchComposite tsc = new TextAndTagSearchComposite(tabFolder, 0);
 //		tsc.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -133,6 +133,10 @@ public class SearchDialog extends Dialog {
 	
 	public FullTextSearchComposite getFulltextComposite(){
 		return fullTextSearchComposite;
+	}
+	
+	public CTabItem getTagsItem() {
+		return tagsItem;
 	}
 	
 	/**

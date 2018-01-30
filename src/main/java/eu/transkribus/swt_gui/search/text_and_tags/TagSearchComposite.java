@@ -54,6 +54,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDbTag;
+import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
@@ -130,11 +131,13 @@ public class TagSearchComposite extends Composite {
 	public static final String TAG_COL = "Tag";
 	public static final String CONTEXT_COL = "Text";
 	public static final String TAG_VALUE_COL = "Value";
+	public static final String PROPERTIES_COL = "Properties";
 	
 	public static final ColumnConfig[] RESULT_COLS = new ColumnConfig[] {
-		new ColumnConfig(TAG_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(TAG_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(TAG_VALUE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(CONTEXT_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(CONTEXT_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(PROPERTIES_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(DOC_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(PAGE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(REGION_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
@@ -196,7 +199,7 @@ public class TagSearchComposite extends Composite {
 		};
 		
 		tagNameInput = new Combo(facetsGroup, SWT.SIMPLE | SWT.DROP_DOWN | SWT.BORDER);
-		tagNameInput.setToolTipText("The name of tag to search");
+		tagNameInput.setToolTipText("The name of the tag to search");
 		tagNameInput.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		updateTagNames();
 		tagNameInput.addTraverseListener(findTagsOnEnterListener);
@@ -435,7 +438,22 @@ public class TagSearchComposite extends Composite {
 //						return "";
 //					}		
 					else if (cn.equals(TAG_COL)) {
-						return t.getCustomTagCss();
+						CustomTag ct = CustomTagUtil.parseSingleCustomTag2(t.getCustomTagCss());
+						if (ct != null) {
+							return ct.getTagName();
+						}
+						else { // should not happen...
+							return t.getCustomTagCss();
+						}
+					}
+					else if (cn.equals(PROPERTIES_COL)) {
+						CustomTag ct = CustomTagUtil.parseSingleCustomTag2(t.getCustomTagCss());
+						if (ct != null) {
+							return ct.getAttributesCssStrWoOffsetAndLength();
+						}
+						else { // should not happen...
+							return t.getCustomTagCss();
+						}
 					}
 					else if (cn.equals(CONTEXT_COL)) {
 						String b = t.getContextBefore()==null ? "" : t.getContextBefore();

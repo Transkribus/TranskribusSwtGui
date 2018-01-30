@@ -64,13 +64,15 @@ public class TagListWidget extends Composite {
 //	public static final String LINE_COL = "Line";
 //	public static final String WORD_COL = "Word";
 	public static final String TAG_COL = "Tag";
+	public static final String PROPERTIES_COL = "Properties";
 	public static final String CONTEXT_COL = "Text";
 	public static final String TAG_VALUE_COL = "Value";
 	
 	public static final ColumnConfig[] RESULT_COLS = new ColumnConfig[] {
-		new ColumnConfig(TAG_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(TAG_VALUE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(CONTEXT_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(TAG_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(TAG_VALUE_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(CONTEXT_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(PROPERTIES_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 //		new ColumnConfig(DOC_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
 //		new ColumnConfig(PAGE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(REGION_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
@@ -123,38 +125,24 @@ public class TagListWidget extends Composite {
 				
 				if (element instanceof CustomTag) {
 					CustomTag t = (CustomTag) element;
-					
-//					if (cn.equals(DOC_COL)) {
-//						return ""+t.getDocid();
-//					}
-	//				else if (cn.equals(TITLE_COL)) {
-	//				}
-//					else if (cn.equals(PAGE_COL)) {
-//						int pgnr = t.getPagenr();
-//						return pgnr<10? "0"+pgnr : ""+pgnr;
-//					}
-					
 					if (cn.equals(REGION_COL)) {
 						if (t.getCustomTagList()!=null && t.getCustomTagList().getShape()!=null) {
 							return t.getCustomTagList().getShape().getId();	
 						} else {
 							return "";
 						}
-					}
-//					else if (cn.equals(LINE_COL)) {
-//						return "";
-//					}
-//					else if (cn.equals(WORD_COL)) {
-//						return "";
-//					}		
+					}	
 					else if (cn.equals(TAG_COL)) {
-						return t.getCssStr();
+						return t.getTagName();
 					}
 					else if (cn.equals(CONTEXT_COL)) {
 						return t.getLeftContext(CONTEXT_LENGTH)+t.getContainedText()+t.getRightContext(CONTEXT_LENGTH);
 					}
 					else if (cn.equals(TAG_VALUE_COL)) {
 						return t.getContainedText();
+					}
+					else if (cn.equals(PROPERTIES_COL)) {
+						return t.getAttributesCssStrWoOffsetAndLength();
 					}
 					
 					return "";

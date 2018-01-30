@@ -161,7 +161,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean renderTags=true;
 	public static final String RENDER_TAGS = "renderTags";
 	
-	private boolean showTextTagEditor = false;
+	private boolean showTextTagEditor = true;
 	public static final String SHOW_TEXT_TAG_EDITOR_PROPERTY = "showTextTagEditor";
 	
 	private boolean highlightComments = false;

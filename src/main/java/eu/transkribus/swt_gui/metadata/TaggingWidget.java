@@ -20,6 +20,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 
 public class TaggingWidget extends Composite {
@@ -35,7 +36,7 @@ public class TaggingWidget extends Composite {
 	TranscriptionTaggingWidget transcriptionTaggingWidget;
 	Shell transcriptionTaggingWidgetShell;
 	
-	Button enableTagEditorBtn;
+	Button enableTagEditorBtn, searchTagsBtn;
 	
 	public TaggingWidget(Composite parent, int style) {
 		super(parent, style);
@@ -80,6 +81,15 @@ public class TaggingWidget extends Composite {
 		enableTagEditorBtn.setToolTipText("Shows / hides the tagging editor");
 		enableTagEditorBtn.setImage(Images.getOrLoad("/icons/tag_blue_edit.png"));
 		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY, TrpConfig.getTrpSettings(), enableTagEditorBtn);
+		
+		searchTagsBtn = new Button(tagListWidget.getBtnsContainer(), SWT.PUSH);
+		searchTagsBtn.setToolTipText("Search for tags...");
+		searchTagsBtn.setImage(Images.FIND);
+		SWTUtil.onSelectionEvent(searchTagsBtn, e -> {
+			TrpMainWidget.getInstance().openSearchForTagsDialog();
+		});
+		
+//		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY, TrpConfig.getTrpSettings(), enableTagEditorBtn);		
 		
 		transcriptionTaggingWidget = new TranscriptionTaggingWidget(verticalSf, 0);
 		transcriptionTaggingWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -154,7 +164,7 @@ public class TaggingWidget extends Composite {
 				// on closing this shell -> dock this widget again!
 				transcriptionTaggingWidgetShell.addListener(SWT.Close, new Listener() {
 					@Override public void handleEvent(Event event) {
-						TrpConfig.getTrpSettings().setShowTextTagEditor(false);
+						TrpConfig.getTrpSettings().setShowTextTagEditor(true);
 					}
 				});				
 			

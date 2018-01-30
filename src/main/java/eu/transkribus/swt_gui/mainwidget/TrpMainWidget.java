@@ -4779,6 +4779,16 @@ public class TrpMainWidget {
 		}
 	}
 	
+	public void openSearchForTagsDialog() {
+		if(Storage.getInstance().getDoc() == null){
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "No document loaded.");
+			return;
+		}
+		
+		openSearchDialog();
+		getSearchDialog().getTabFolder().setSelection(getSearchDialog().getTagsItem());
+	}
+	
 	public void searchCurrentDoc(){		
 		if(Storage.getInstance().getDoc() == null){
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "No document loaded.");
