@@ -806,6 +806,9 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		if (!(t.getCustomTagList().getShape() instanceof TrpTextLineType))
 			return false;
 		
+		if (currentLineObject==null)
+			return false;
+		
 		if (!t.getCustomTagList().getShape().getId().equals(currentLineObject.getId()))
 			return false;
 		
