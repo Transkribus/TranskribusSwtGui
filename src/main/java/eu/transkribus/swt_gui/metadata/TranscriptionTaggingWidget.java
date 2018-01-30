@@ -75,6 +75,8 @@ public class TranscriptionTaggingWidget extends Composite {
 		
 		// listener:
 		SWTUtil.onSelectionEvent(tabFolder, e -> {
+			updateTabItemStyles();
+			
 			if (isTagPropertyEditorSelected()) {
 				tagPropEditor.findAndSetNextTag();
 			}
@@ -82,6 +84,12 @@ public class TranscriptionTaggingWidget extends Composite {
 		
 		tabFolder.setSelection(tagsItem);
 		tagDefsWidget.getTableViewer().getTable().getColumn(0).setWidth(150);
+		
+		updateTabItemStyles();
+	}
+	
+	private void updateTabItemStyles() {
+		SWTUtil.setBoldFontForSelectedCTabItem(tabFolder);
 	}
 		
 	public void updateSelectedTag(ATranscriptionWidget tWidget) {

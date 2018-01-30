@@ -4279,7 +4279,7 @@ public class TrpMainWidget {
 	}
 
 	public void openSearchDialog() {
-		if(searchDiag != null){
+		if (searchDiag != null) {
 			if(searchDiag.getShell() != null ){
 
 				if(searchDiag.getShell().getMinimized()){
@@ -4291,9 +4291,10 @@ public class TrpMainWidget {
 			}else{
 				searchDiag.open();
 			}
-		}else{		
-		searchDiag = new SearchDialog(getShell());
-		searchDiag.open();
+		} 
+		else{		
+			searchDiag = new SearchDialog(getShell());
+			searchDiag.open();
 		}
 	}
 	

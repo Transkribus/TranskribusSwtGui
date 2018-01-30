@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
@@ -61,6 +62,7 @@ public class SearchDialog extends Dialog {
 		super.configureShell(shell);
 		shell.setText("Search for...");
 		SWTUtil.centerShell(shell);
+		shell.setMinimumSize(640, 480);
 	}
 
 	/**
@@ -104,9 +106,17 @@ public class SearchDialog extends Dialog {
 			kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
 		}
 		
+		
+		SWTUtil.onSelectionEvent(tabFolder, e -> { updateTabItemStyles(); });
+		
+		updateTabItemStyles();
+		
 		return c;
 	}
 	
+	private void updateTabItemStyles() {
+		SWTUtil.setBoldFontForSelectedCTabItem(tabFolder);
+	}
 	
 	public boolean isUserAllowedForKws() {
 		boolean showKws = false;

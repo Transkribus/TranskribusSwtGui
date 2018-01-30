@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Dialog;
@@ -56,24 +57,14 @@ public class ChangeLogDialog extends Dialog {
 		fillLayout.type = SWT.VERTICAL;
 		shell.setLayout(fillLayout);
 		
-		ScrolledComposite sc = new ScrolledComposite(shell, SWT.NONE);
-		Text text = new Text(sc, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL | SWT.READ_ONLY);
+		StyledText text = new StyledText(shell, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | /*SWT.WRAP |*/ SWT.V_SCROLL | SWT.H_SCROLL);
 		text.setText(changelog);
+		text.setSize(500, 250);
 
-		// Set the minimum size
-	    sc.setSize(500, 250);
-	    sc.setContent(text);
-
-	    // scroll to bottom to display info about latest version
-	    text.setTopIndex(text.getLineCount());
+	    shell.setMinimumSize(text.getSize());
+	    shell.setSize(new Point(text.getSize().x + 50, text.getSize().y+100));
 	    
-	    // Expand both horizontally and vertically
-	    sc.setExpandHorizontal(true);
-	    sc.setExpandVertical(true); 
-
-	    shell.setMinimumSize(sc.getSize());
-	    shell.setSize(new Point(sc.getSize().x + 50, sc.getSize().y+100));
-
+	    text.setTopIndex(text.getLineCount() - 1);
 	}
 
 	/**

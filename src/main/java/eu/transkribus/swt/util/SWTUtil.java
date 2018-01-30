@@ -83,6 +83,17 @@ import math.geom2d.Vector2D;
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
 	
+	public static void setBoldFontForSelectedCTabItem(CTabFolder tabFolder) {
+		for (CTabItem ti : tabFolder.getItems()) {
+			if (ti == tabFolder.getSelection()) {
+				ti.setFont(Fonts.createBoldFont(ti.getFont()));
+			}
+			else {
+				ti.setFont(Fonts.createNormalFont(ti.getFont()));
+			}
+		}
+	}
+	
 	public static Composite createContainerComposite(Composite parent, int nColumns, boolean makeColumnsEqualWidth) {
 		Composite c = new Composite(parent, 0);
 		c.setLayout(createGridLayout(nColumns, makeColumnsEqualWidth, 0, 0));
