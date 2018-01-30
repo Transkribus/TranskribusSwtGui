@@ -321,7 +321,7 @@ public class TrpMainWidget {
 		VERSION = info.getVersion();
 		NAME = info.getName();
 
-		Display.setAppName(NAME + "asdf");
+		Display.setAppName(NAME);
 		Display.setAppVersion(VERSION);
 
 		// String time = info.getTimestampString();
