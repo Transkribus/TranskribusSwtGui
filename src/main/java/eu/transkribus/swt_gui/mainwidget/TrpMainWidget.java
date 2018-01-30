@@ -2775,7 +2775,8 @@ public class TrpMainWidget {
 							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getPdfFolder(), monitor);
 							if (!monitor.isCanceled())
 								displaySuccessMessage(
-										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
+										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished"
+										+ " - reload the document list occasionally");
 						} catch (Exception e) {
 							throw new InvocationTargetException(e);
 						}
@@ -2790,8 +2791,9 @@ public class TrpMainWidget {
 				}
 
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "FTP Upload",
-						"The FTP upload runs as background process and last for some time.\n"
-								+ "Look into Jobs tab!\nReloading the collection shows the already uploaded documents.",
+						"The FTP upload runs as background process and takes a while.\n"
+								+ "Look into Jobs tab!\n"
+								+ "Reloading the collection shows the already uploaded documents.",
 						2, true);
 				for (final TrpDocDir d : dirs) {
 					try {
