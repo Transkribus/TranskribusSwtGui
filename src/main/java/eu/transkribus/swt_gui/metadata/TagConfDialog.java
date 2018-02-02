@@ -10,6 +10,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.swt_gui.TrpConfig;
+
 public class TagConfDialog extends Dialog {
 	
 	TagConfWidget tagConfWidget;
@@ -37,7 +40,7 @@ public class TagConfDialog extends Dialog {
     }
 	
 	@Override
-	protected void okPressed() {
+	protected void okPressed() {		
 		super.okPressed();
 		// do sth. else on ok pressed... needed?
 	}

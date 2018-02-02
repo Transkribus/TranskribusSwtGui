@@ -53,6 +53,7 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -96,12 +97,12 @@ public class TagConfWidget extends Composite {
 //		colorChooseBtn = new ColorChooseButton(colorComp, CustomTagSpec.DEFAULT_COLOR);
 //		colorChooseBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		Button addTagDefBtn = new Button(leftWidget, 0);
-		addTagDefBtn.setText("Add tag specification");
-		addTagDefBtn.setToolTipText("Adds the tag with the configuration above to the list of available tags on the right");
-		addTagDefBtn.setImage(Images.ADD);
-		addTagDefBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		addTagDefBtn.addSelectionListener(new SelectionAdapter() {
+		Button addTagSpecBtn = new Button(leftWidget, 0);
+		addTagSpecBtn.setText("Add tag specification");
+		addTagSpecBtn.setToolTipText("Adds the tag with the configuration above to the list of available tags on the right");
+		addTagSpecBtn.setImage(Images.ADD);
+		addTagSpecBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		addTagSpecBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				String tagName = getSelectedAvailableTagsName();
@@ -170,6 +171,7 @@ public class TagConfWidget extends Composite {
 					String name = d.getName();
 					try {
 						CustomTagFactory.addToRegistry(CustomTagFactory.create(name), null);
+						saveTagDefs();
 					} catch (Exception e1) {
 						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error creating tag", e1.getMessage(), e1);
 					}
@@ -190,6 +192,7 @@ public class TagConfWidget extends Composite {
 						logger.debug("deleting tag: "+tn);
 						CustomTagFactory.removeFromRegistry(tn);
 						updateAvailableTags();
+						saveTagDefs();
 					} catch (IOException ex) {
 						DialogUtil.showErrorMessageBox(getShell(), "Cannot remove tag", ex.getMessage());
 					}
@@ -374,17 +377,17 @@ public class TagConfWidget extends Composite {
 		Fonts.setBoldFont(headerLbl);
 		headerLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		Button addAtrributeBtn = new Button(propsContainer, SWT.PUSH);
-		addAtrributeBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		addAtrributeBtn.setText("Add attribute...");
-		addAtrributeBtn.setImage(Images.ADD);
-		addAtrributeBtn.addSelectionListener(new SelectionAdapter() {
+		Button addPropertyBtn = new Button(propsContainer, SWT.PUSH);
+		addPropertyBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		addPropertyBtn.setText("Add property...");
+		addPropertyBtn.setImage(Images.ADD);
+		addPropertyBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				final String tn = getSelectedAvailableTagsName();
 				if (tn == null)
 					return;
 				
-				CreateTagNameDialog d = new CreateTagNameDialog(getShell(), "Specify attribute for '"+tn+"' tag");				
+				CreateTagNameDialog d = new CreateTagNameDialog(getShell(), "Specify property for '"+tn+"' tag");				
 				if (d.open() == Window.OK) {
 					try {
 						String name = d.getName();
@@ -394,7 +397,7 @@ public class TagConfWidget extends Composite {
 						logger.debug("tag object: "+t);
 						
 						if (t.hasAttribute(att.getName())) {
-							DialogUtil.showErrorMessageBox(getShell(), "Cannot add attribute", "Attribute already exists!");
+							DialogUtil.showErrorMessageBox(getShell(), "Cannot add property", "Property already exists!");
 							return;
 						}
 						
@@ -403,23 +406,25 @@ public class TagConfWidget extends Composite {
 						}
 						
 						updatePropertiesForSelectedTag();
+						saveTagDefs();
 					}
 					catch (Exception ex) {
-						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding attribute", ex.getMessage(), ex);
+						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding property", ex.getMessage(), ex);
 					}
 				}
 			}
 		});
 		
-		Button deleteAttributeButton = new Button(propsContainer, SWT.PUSH);
-		deleteAttributeButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		deleteAttributeButton.setText("Delete selected attribute");
-		deleteAttributeButton.setImage(Images.DELETE);
-		deleteAttributeButton.addSelectionListener(new SelectionAdapter() {
+		Button deletePropertyButton = new Button(propsContainer, SWT.PUSH);
+		deletePropertyButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		deletePropertyButton.setText("Delete selected property");
+		deletePropertyButton.setImage(Images.DELETE);
+		deletePropertyButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				String tn = getSelectedAvailableTagsName();
-				if (tn == null)
+				if (tn == null) {
 					return;
+				}
 				
 				CustomTagAttribute selectedProperty = getSelectedProperty();
 				logger.debug("selected property: "+selectedProperty);
@@ -432,8 +437,9 @@ public class TagConfWidget extends Composite {
 						}
 						
 						updatePropertiesForSelectedTag();
+						saveTagDefs();
 					} catch (Exception ex) {
-						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding attribute to tag "+tn, ex.getMessage(), ex);
+						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding property to tag "+tn, ex.getMessage(), ex);
 					}
 				}
 			}
@@ -533,6 +539,12 @@ public class TagConfWidget extends Composite {
 		}
 	
 		return props;
+	}
+	
+	private void saveTagDefs() {
+		String tagNamesProp = CustomTagFactory.constructTagDefPropertyForConfigFile();
+		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
+		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
 	}
 
 }

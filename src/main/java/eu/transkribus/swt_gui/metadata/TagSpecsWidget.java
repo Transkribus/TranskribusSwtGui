@@ -79,7 +79,7 @@ public class TagSpecsWidget extends Composite {
 		container.setLayout(new GridLayout(nCols, false));
 		
 		Label headerLbl = new Label(container, 0);
-		headerLbl.setText("Tag specifications for current collection");
+		headerLbl.setText("Tag specifications");
 		Fonts.setBoldFont(headerLbl);
 		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
