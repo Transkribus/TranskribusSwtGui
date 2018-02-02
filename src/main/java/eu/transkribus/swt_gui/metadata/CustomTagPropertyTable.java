@@ -17,6 +17,7 @@ import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
+import org.eclipse.jface.viewers.ICellEditorListener;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -28,16 +29,10 @@ import org.eclipse.jface.viewers.TableViewerFocusCellManager;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +60,12 @@ public class CustomTagPropertyTable extends Composite {
 
 	private CustomTag selectedTag;
 	boolean withOffsetLengthContinuedProperties;
+	
+	public interface ICustomTagPropertyTableListener {
+		void onPropertyChanged(CustomTagAttribute property); 
+	}
+	
+	List<ICustomTagPropertyTableListener> listener = new ArrayList<>();
 	
 	public CustomTagPropertyTable(Composite parent, int style) {
 		this(parent, style, true);
@@ -216,6 +217,24 @@ public class CustomTagPropertyTable extends Composite {
 				ICellEditorValidator v = SWTUtil.createNumberCellValidator(t);
 				if (v != null)
 					e.setValidator(v);
+				
+				e.addListener(new ICellEditorListener() {
+					
+					@Override
+					public void editorValueChanged(boolean arg0, boolean arg1) {
+						logger.trace("VALUE OF EDITOR CHANGED!!");						
+					}
+					
+					@Override
+					public void cancelEditor() {
+						logger.trace("EDITOR CANCELED!!");
+					}
+					
+					@Override
+					public void applyEditorValue() {
+						listener.stream().forEach(l -> { l.onPropertyChanged(a); });
+					}
+				});
 												
 				return e;
 			}
@@ -260,6 +279,14 @@ public class CustomTagPropertyTable extends Composite {
 //		});
 		
 		initTraverseStuff();
+	}
+	
+	public void addListener(ICustomTagPropertyTableListener l) {
+		listener.add(l);
+	}
+	
+	public boolean removeListener(ICustomTagPropertyTableListener l) {
+		return listener.remove(l);
 	}
 	
 	private void initTraverseStuff() {

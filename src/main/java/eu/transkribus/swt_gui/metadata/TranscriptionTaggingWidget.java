@@ -8,8 +8,6 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +16,6 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TranscriptionTaggingWidget extends Composite {

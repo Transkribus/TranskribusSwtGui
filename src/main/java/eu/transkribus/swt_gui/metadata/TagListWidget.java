@@ -186,66 +186,6 @@ public class TagListWidget extends Composite {
 			}
 		});
 		
-//		tv = new TableViewer(container);
-//		tv.setContentProvider(new ArrayContentProvider());
-//		tv.getTable().setHeaderVisible(false);
-//		tv.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		
-//		TableViewerColumn tagCol = TableViewerUtils.createTableViewerColumn(tv, SWT.LEFT, "Tags in region", 300);
-//		
-//		tagCol.setLabelProvider(new CellLabelProvider() {
-//			@Override public void update(ViewerCell cell) {
-//				final CustomTag tag = (CustomTag) cell.getElement();
-//				cell.setText(tag.getCssStr());
-//			}
-//		});
-		
-//		class DeleteTagDefSelectionListener extends SelectionAdapter {
-//			CustomTag tag;
-//			
-//			public DeleteTagDefSelectionListener(CustomTag tag) {
-//				this.tag = tag;
-//			}
-//			
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				if (tag != null) {
-//				 	if (TrpMainWidget.getInstance() != null) {
-//				 		TrpMainWidget.getInstance().deleteTags(tag);
-//				 	}
-//				}
-//			}
-//		};
-		
-//		TableViewerColumn deleteTagCol = TableViewerUtils.createTableViewerColumn(tv, SWT.LEFT, "", 50);
-//		deleteTagCol.setLabelProvider(new CellLabelProvider() {
-//			@Override public void update(ViewerCell cell) {
-//				final CustomTag tag = (CustomTag) cell.getElement();
-////				String tagName = tag.getTagName();
-//				
-//				final TableItem item = (TableItem) cell.getItem();
-//				TableEditor editor = new TableEditor(item.getParent());
-//				Button removeButton = new Button((Composite) cell.getViewerRow().getControl(), SWT.PUSH);
-//		        removeButton.setImage(Images.getOrLoad("/icons/delete_12.png"));
-//		        removeButton.setToolTipText("Delete this tag");
-//		        removeButton.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true));
-//		        removeButton.addSelectionListener(new DeleteTagDefSelectionListener(tag));
-//		        Control c = removeButton;
-//				
-//				c.pack();
-//				   
-//                Point size = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-//                
-//				editor.minimumWidth = size.x;
-//				editor.horizontalAlignment = SWT.LEFT;
-//                editor.setEditor(c , item, cell.getColumnIndex());
-//                editor.layout();
-//                
-////                TaggingWidgetUtils.replaceEditor(delSelectedEditors, tagName, editor);
-//                TaggingWidgetUtils.replaceEditor(delSelectedEditors, tag, editor);
-//			}
-//		});
-		
 		tv.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
 				List<CustomTag> selected = getSelectedTags();
@@ -313,6 +253,22 @@ public class TagListWidget extends Composite {
 	
 	public TableViewer getTableViewer() {
 		return tv;
+	}
+	
+	public boolean isSelectedTagsOfSameType() {
+		List<CustomTag> selected = getSelectedTags();
+		if (selected.size() <= 0) {
+			return true;
+		}
+		
+		CustomTag ref = selected.get(0);
+		for (int i=1; i<selected.size(); ++i) {
+			CustomTag comp = selected.get(i);
+			if (!ref.getTagName().equals(comp.getTagName())) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public CustomTag getSelectedTag() {

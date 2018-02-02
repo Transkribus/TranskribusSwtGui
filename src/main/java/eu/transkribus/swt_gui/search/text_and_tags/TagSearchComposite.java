@@ -389,7 +389,7 @@ public class TagSearchComposite extends Composite {
 		resultsLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		showNormalizeWidgetBtn = new Button(resultsGroup, SWT.TOGGLE);
-		showNormalizeWidgetBtn.setText("Assign equivalent tag values...");
+		showNormalizeWidgetBtn.setText("Assign tag values...");
 		showNormalizeWidgetBtn.setToolTipText("All selected tags will have the same values for all\n"
 				+ "of their properties after clicking Update!\n"
 				+ "Sort by value (in the search results)\n"

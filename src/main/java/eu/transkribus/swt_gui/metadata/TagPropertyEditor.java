@@ -33,6 +33,8 @@ public class TagPropertyEditor extends Composite {
 	CustomTag tag;
 	
 	Label tagInfo;
+	
+	Composite btnsComposite;
 	Button nextBtn, prevBtn, refreshBtn;
 //	ATranscriptionWidget tWidget;
 	
@@ -61,25 +63,25 @@ public class TagPropertyEditor extends Composite {
 		propsTable.getTableViewer().getTable().setHeaderVisible(false);
 		propsTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
-		Composite btns = new Composite(this, 0);
-		btns.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		btns.setLayout(new RowLayout());
+		btnsComposite = new Composite(this, 0);
+		btnsComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		btnsComposite.setLayout(new RowLayout());
 		
-		prevBtn = new Button(btns, 0);
+		prevBtn = new Button(btnsComposite, 0);
 		prevBtn.setText("Previous");
 		prevBtn.setImage(Images.PAGE_PREV);
 		SWTUtil.onSelectionEvent(prevBtn, e -> {
 			jumpToNextTag(true);
 		});
 		
-		nextBtn = new Button(btns, 0);
+		nextBtn = new Button(btnsComposite, 0);
 		nextBtn.setText("Next");
 		nextBtn.setImage(Images.PAGE_NEXT);
 		SWTUtil.onSelectionEvent(nextBtn, e -> {
 			jumpToNextTag(false);
 		});
 		
-		refreshBtn = new Button(btns, 0);
+		refreshBtn = new Button(btnsComposite, 0);
 		refreshBtn.setImage(Images.REFRESH);
 		SWTUtil.onSelectionEvent(refreshBtn, e -> {
 			findAndSetNextTag();
@@ -105,6 +107,10 @@ public class TagPropertyEditor extends Composite {
 		});
 		
 		setCustomTag(null);
+	}
+	
+	public Composite getBtnsComposite() {
+		return btnsComposite;
 	}
 	
 	public void setCustomTag(CustomTag tag) {

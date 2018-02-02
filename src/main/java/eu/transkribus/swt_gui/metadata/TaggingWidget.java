@@ -1,5 +1,9 @@
 package eu.transkribus.swt_gui.metadata;
 
+import java.util.List;
+
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
@@ -16,12 +20,16 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.metadata.CustomTagPropertyTable.ICustomTagPropertyTableListener;
 
 public class TaggingWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TaggingWidget.class);
@@ -37,6 +45,7 @@ public class TaggingWidget extends Composite {
 	Shell transcriptionTaggingWidgetShell;
 	
 	Button enableTagEditorBtn, searchTagsBtn;
+	Button applyPropertiesToAllSelectedBtn;
 	
 	public TaggingWidget(Composite parent, int style) {
 		super(parent, style);
@@ -75,6 +84,12 @@ public class TaggingWidget extends Composite {
 		
 		tagListWidget = new TagListWidget(verticalSf, 0);
 		tagListWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
+		tagListWidget.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent arg0) {
+				updateBtns();
+			}
+		});
 		
 		enableTagEditorBtn = new Button(tagListWidget.getBtnsContainer(), SWT.TOGGLE);
 //		enableTagEditorBtn.setText("Show text based tag editor");
@@ -104,7 +119,41 @@ public class TaggingWidget extends Composite {
 			public void minimize(CTabFolderEvent event) {
 				setTaggingEditorVisiblity(1);
 			}
-		});		
+		});
+		
+		applyPropertiesToAllSelectedBtn = new Button(transcriptionTaggingWidget.getTagPropertyEditor().getBtnsComposite(), 0);
+		applyPropertiesToAllSelectedBtn.setText("Apply to selected");
+		applyPropertiesToAllSelectedBtn.setToolTipText("Applies the property values to the selected tags of the same type");
+		SWTUtil.onSelectionEvent(applyPropertiesToAllSelectedBtn, e -> {
+			List<CustomTag> selected = tagListWidget.getSelectedTags();
+			if (selected.isEmpty()) {
+				return;
+			}
+			
+			if (!tagListWidget.isSelectedTagsOfSameType()) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "All selected tags must have the same type!");
+				return;
+			}
+			
+			CustomTag st = transcriptionTaggingWidget.getTagPropertyEditor().propsTable.getSelectedTag();
+			logger.debug("selected tag in property editor: "+st);
+			for (CustomTag t : selected) {
+				if (st.getTagName().equals(t.getTagName())) {
+					logger.debug("applying attributes to tag: "+t);
+					t.setAttributes(st, false, true);
+					logger.debug("after: "+t);
+				}
+			}
+			
+			tagListWidget.refreshTable();
+		});
+		
+		transcriptionTaggingWidget.getTagPropertyEditor().propsTable.addListener(new ICustomTagPropertyTableListener() {
+			@Override
+			public void onPropertyChanged(CustomTagAttribute property) {
+				tagListWidget.refreshTable();
+			}
+		});
 
 //		verticalSf = new SashForm(this, SWT.VERTICAL);
 //		
@@ -120,7 +169,15 @@ public class TaggingWidget extends Composite {
 //		horizontalSf.setWeights(new int[] { 50, 50 } );
 		
 		setTaggingEditorVisiblity(TrpConfig.getTrpSettings().isShowTextTagEditor());
+		
+		updateBtns();
 	}
+	
+//	private void
+	private void updateBtns() {
+		applyPropertiesToAllSelectedBtn.setEnabled(tagListWidget.getSelectedTag()!=null && tagListWidget.isSelectedTagsOfSameType());
+	}
+	
 	
 	public void setTaggingEditorVisiblity(boolean visible) {
 		setTaggingEditorVisiblity(visible ? 1 : 0);
