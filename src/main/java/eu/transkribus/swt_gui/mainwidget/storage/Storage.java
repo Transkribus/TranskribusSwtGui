@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.mainwidget.storage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -48,8 +47,10 @@ import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.DocExporter;
 import eu.transkribus.core.io.LocalDocReader;
+import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.LocalDocWriter;
 import eu.transkribus.core.io.UnsupportedFormatException;
+import eu.transkribus.core.io.util.ExtensionFileFilter;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
@@ -1556,8 +1557,29 @@ public class Storage {
 		if (!isLoggedIn())
 			throw new Exception("Not logged in!");
 
-		//do not force create XMLs
-		TrpDoc doc = LocalDocReader.load(folder, false);
+		DocLoadConfig config = new DocLoadConfig();
+		
+		File inputDir = new File(folder);
+		LocalDocReader.checkInputDir(inputDir);
+		
+		/*
+		 * Check if an import of non-PAGE files is needed.
+		 * Check for existence of a non-empty page dir
+		 */
+		final File pageDir = LocalDocReader.getPageXmlInputDir(inputDir);
+		final boolean hasNonEmptyPageDir = pageDir.isDirectory() 
+				&& pageDir.listFiles(ExtensionFileFilter.getXmlFileFilter()).length > 0;
+		
+		//if there is no page dir with files, then check if other files exist that should be converted
+		if(!hasNonEmptyPageDir && 
+				(LocalDocReader.getOcrXmlInputDir(inputDir).isDirectory()
+				|| LocalDocReader.getAltoXmlInputDir(inputDir).isDirectory()
+				|| LocalDocReader.getTxtInputDir(inputDir).isDirectory())) {
+			//force page XML creation for importing existing text files
+			config.setForceCreatePageXml(true);
+		}
+		
+		TrpDoc doc = LocalDocReader.load(folder, config, monitor);
 		if (title != null && !title.isEmpty()) {
 			doc.getMd().setTitle(title);
 		}
@@ -1600,11 +1622,12 @@ public class Storage {
 		conn.ingestDocFromFtp(cId, dirName, checkForDuplicateTitle);
 	}
 	
-	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException, MalformedURLException, IOException{
+	public void uploadDocumentFromMetsUrl(int cId, String metsUrlStr) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException, MalformedURLException, IOException{
 //		if (!isLoggedIn())
 //			throw new Exception("Not logged in!");
 		checkConnection(true);
-		if (metsUrl.startsWith("file")){
+		URL metsUrl = new URL(metsUrlStr);
+		if (metsUrl.getProtocol().startsWith("file")){
 			conn.ingestDocFromLocalMetsUrl(cId, metsUrl);
 		}
 		else{
