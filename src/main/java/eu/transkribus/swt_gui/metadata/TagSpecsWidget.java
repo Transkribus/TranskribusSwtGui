@@ -1,5 +1,11 @@
 package eu.transkribus.swt_gui.metadata;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
@@ -43,13 +49,17 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
 import eu.transkribus.swt.util.ColorChooseButton;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -57,6 +67,8 @@ public class TagSpecsWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagSpecsWidget.class);
 	
 	TableViewer tableViewer;
+	Button showAllTagsBtn, customizeBtn;
+	Label headerLbl;
 	
 	Map<CustomTagSpec, ControlEditor> insertTagEditors = new ConcurrentHashMap<>();
 	Map<CustomTagSpec, ControlEditor> removeTagDefEditors = new ConcurrentHashMap<>();
@@ -72,28 +84,33 @@ public class TagSpecsWidget extends Composite {
 		setLayout(new FillLayout());
 		
 		this.isEditable = isEditable;
-		int nCols = isEditable ? 1 : 2;
+		int nCols = isEditable ? 1 : 3;
 
-		Composite container = new Composite(this, SWT.NONE);
+		Composite topContainer = new Composite(this, SWT.NONE);
 //		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
-		container.setLayout(new GridLayout(nCols, false));
+		topContainer.setLayout(new GridLayout(nCols, false));
 		
-		Label headerLbl = new Label(container, 0);
+		headerLbl = new Label(topContainer, 0);
 		headerLbl.setText("Tag specifications");
 		Fonts.setBoldFont(headerLbl);
 		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		if (!isEditable) {
-			Button editBtn = new Button(container, 0);
-			editBtn.setText("Edit..");
-			editBtn.setImage(Images.PENCIL);
-			SWTUtil.onSelectionEvent(editBtn, e -> {
+			showAllTagsBtn = new Button(topContainer, SWT.TOGGLE | SWT.FLAT);
+			showAllTagsBtn.setText("Show all");
+			showAllTagsBtn.setToolTipText("Show all available tags");
+			DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY, TrpConfig.getTrpSettings(), showAllTagsBtn);
+			
+			customizeBtn = new Button(topContainer, 0);
+			customizeBtn.setText("Customize..");
+			customizeBtn.setImage(Images.PENCIL);
+			SWTUtil.onSelectionEvent(customizeBtn, e -> {
 				TagConfDialog diag = new TagConfDialog(getShell());
 				diag.open();
 			});
 		}
 				
-		Composite tableContainer = new Composite(container, SWT.NONE);
+		Composite tableContainer = new Composite(topContainer, SWT.NONE);
 		tableContainer.setLayout(SWTUtil.createGridLayout(isEditable ? 2 : 1, false, 0, 0));
 		tableContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, nCols, 1));
 		
@@ -123,7 +140,9 @@ public class TagSpecsWidget extends Composite {
 				}
 				
 				CustomTagSpec tagDef = (CustomTagSpec) element;
-				return tagDef.getCustomTag().getCssStr();
+				
+				String tagDefStr = tagDef.getCustomTag().getCssStr();
+				return tagDefStr.replaceAll("\\{\\}", "").trim(); // remove empty properties braces {} 
 			}
 			
 //			@Override public Color getForeground(Object element) {
@@ -159,6 +178,9 @@ public class TagSpecsWidget extends Composite {
 	                editor.verticalAlignment = SWT.TOP;
 	                
 	                String tagColor = CustomTagFactory.getTagColor(tagSpec.getCustomTag().getTagName());
+	                
+	                logger.trace("tag color for tag: "+tagSpec.getCustomTag().getTagName()+" color: "+tagColor);
+	                
 	                if (tagColor == null) {
 	                	tagColor = CustomTagFactory.getNewTagColor();
 	                }
@@ -187,7 +209,7 @@ public class TagSpecsWidget extends Composite {
 			public void update(ViewerCell cell) {
 				Object element = cell.getElement();
 				String text = "";
-				logger.debug("element = "+element);
+				logger.trace("element = "+element);
 				if (!(element instanceof CustomTagSpec)) {
 					cell.setText("i am error");
 				}
@@ -496,7 +518,7 @@ public class TagSpecsWidget extends Composite {
 			});			
 		}		
 
-		container.layout(true);
+		topContainer.layout(true);
 		
 		
 		updateAvailableTagSpecs();
@@ -516,6 +538,32 @@ public class TagSpecsWidget extends Composite {
 				}				
 			}
 		});
+		
+		TrpConfig.getTrpSettings().addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				if (evt.getPropertyName().equals(TrpSettings.SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY)) {
+					updateAvailableTagSpecs();
+				}
+			}
+		});
+	}
+	
+	private void update(boolean showAllTags) {
+		if (showAllTagsBtn == null) {
+			return;
+		}
+		
+		showAllTagsBtn.setSelection(showAllTags);
+		
+		if (showAllTags) {
+			headerLbl.setText("All Tags");
+		}
+		else {
+			headerLbl.setText("Tag Specifications");
+		}
+		
+		updateAvailableTagSpecs();
 	}
 	
 	private void removeSelected() {
@@ -556,14 +604,38 @@ public class TagSpecsWidget extends Composite {
 				return;
 			}
 			
-			tableViewer.setInput(Storage.getInstance().getCustomTagSpecs());
-			tableViewer.refresh();
+			boolean showAllTags = TrpConfig.getTrpSettings().isShowAllTagsInTagEditor();
+			if (!isEditable) {
+				showAllTagsBtn.setSelection(showAllTags);	
+			}
 			
-			TaggingWidgetUtils.updateEditors(colorEditors, Storage.getInstance().getCustomTagSpecs());
-			TaggingWidgetUtils.updateEditors(removeTagDefEditors, Storage.getInstance().getCustomTagSpecs());
-			TaggingWidgetUtils.updateEditors(insertTagEditors, Storage.getInstance().getCustomTagSpecs());
-			TaggingWidgetUtils.updateEditors(moveUpEditors, Storage.getInstance().getCustomTagSpecs());
-			TaggingWidgetUtils.updateEditors(moveDownEditors, Storage.getInstance().getCustomTagSpecs());
+			if (!showAllTags) {
+				headerLbl.setText("Tag Specifications");
+				tableViewer.setInput(Storage.getInstance().getCustomTagSpecs());
+			}
+			else {
+				headerLbl.setText("All Tags");
+				List<CustomTagSpec> allTagsSpecs = new ArrayList<>();
+				for (CustomTag t : CustomTagFactory.getRegisteredTagObjectsSorted()) {
+					if (!t.showInTagWidget() || t.getTagName().equals(TextStyleTag.TAG_NAME)) { // exclude TextStyle tag
+						continue;
+					}
+					
+					CustomTag tc = t.copy(); // to be sure not to overwrite existing objects
+					CustomTagSpec ts = new CustomTagSpec(tc);
+					allTagsSpecs.add(ts);
+				}
+				tableViewer.setInput(allTagsSpecs);
+			}
+			
+			Collection<CustomTagSpec> tagSpecs = (Collection<CustomTagSpec>) tableViewer.getInput();
+			TaggingWidgetUtils.updateEditors(colorEditors, tagSpecs);
+			TaggingWidgetUtils.updateEditors(removeTagDefEditors, tagSpecs);
+			TaggingWidgetUtils.updateEditors(insertTagEditors, tagSpecs);
+			TaggingWidgetUtils.updateEditors(moveUpEditors, tagSpecs);
+			TaggingWidgetUtils.updateEditors(moveDownEditors, tagSpecs);
+			
+			tableViewer.refresh(true);
 		});
 	}
 	

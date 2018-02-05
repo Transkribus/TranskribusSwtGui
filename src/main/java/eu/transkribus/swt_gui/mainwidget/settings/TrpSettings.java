@@ -164,6 +164,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean showTextTagEditor = true;
 	public static final String SHOW_TEXT_TAG_EDITOR_PROPERTY = "showTextTagEditor";
 	
+	private boolean showAllTagsInTagEditor = false;
+	public static final String SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY = "showAllTagsInTagEditor";
+	
 	private boolean highlightComments = false;
 	public static final String HIGHLIGHT_COMMENTS_PROPERTY = "highlightComments";
 	
@@ -634,6 +637,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setShowTextTagEditor(boolean showTextTagEditor) {
 		this.showTextTagEditor = showTextTagEditor;
 		firePropertyChange(SHOW_TEXT_TAG_EDITOR_PROPERTY, !this.showTextTagEditor, this.showTextTagEditor);
+	}
+	
+	public boolean isShowAllTagsInTagEditor() {
+		return showAllTagsInTagEditor;
+	}
+	
+	public void setShowAllTagsInTagEditor(boolean showAllTagsInTagEditor) {
+		this.showAllTagsInTagEditor = showAllTagsInTagEditor;
+		firePropertyChange(SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY, !this.showAllTagsInTagEditor, this.showAllTagsInTagEditor);
 	}
 	
 	public boolean isHighlightComments() {
