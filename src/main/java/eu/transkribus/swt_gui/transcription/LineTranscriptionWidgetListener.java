@@ -59,7 +59,7 @@ public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListene
 
 			mainWidget.updatePageRelatedMetadata();
 			mainWidget.getUi().getStructureTreeWidget().updateTextLabels(null);
-			mainWidget.getUi().getTaggingWidget().getTranscriptionTaggingWidget().updateSelectedTag(transcriptionWidget);
+			mainWidget.getUi().getTaggingWidget().updateSelectedTag(transcriptionWidget);
 			
 		} catch (Throwable th) {
 			String msg = "Could not update default selection from transcription widget";

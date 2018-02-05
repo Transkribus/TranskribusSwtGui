@@ -233,6 +233,14 @@ public class TrpTabWidget extends Composite {
 
 		return ti;
 	}
+	
+	public boolean isMetadataItemSeleced() {
+		return mainTf.getSelection().equals(metadataItem);
+	}
+	
+	public boolean isTextTaggingItemSeleced() {
+		return isMetadataItemSeleced() && metadataTf.getSelection().equals(textTaggingItem);
+	}
 
 	public void selectServerTab() {
 		mainTf.setSelection(serverItem);

@@ -26,7 +26,7 @@ public class WordTranscriptionWidgetListener extends ATranscriptionWidgetListene
 			logger.debug("word default selection change, event: ["+event.start+"-"+event.end+"]");
 
 			mainWidget.updatePageRelatedMetadata();
-			mainWidget.getUi().getTaggingWidget().getTranscriptionTaggingWidget().updateSelectedTag(transcriptionWidget);
+			mainWidget.getUi().getTaggingWidget().updateSelectedTag(transcriptionWidget);
 		} catch (Throwable th) {
 			String msg = "Could not update default selection from transcription widget";
 			mainWidget.onError("Error updating selection", msg, th);

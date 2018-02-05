@@ -74,7 +74,7 @@ public class TranscriptionTaggingWidget extends Composite {
 	}
 		
 	public void updateSelectedTag(ATranscriptionWidget tWidget) {
-		if (isTagPropertyEditorSelected() /*&& tWidget.isTagEditorVisible()*/) {
+		if (isTagPropertyEditorSelected()) {
 			if (tagPropEditor.isSettingCustomTag()) { // if currently setting a custom tag in the property editor, ignore selection changed events from transcription widget!
 				return;
 			}

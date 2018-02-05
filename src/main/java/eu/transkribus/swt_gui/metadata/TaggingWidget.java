@@ -30,6 +30,7 @@ import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.metadata.CustomTagPropertyTable.ICustomTagPropertyTableListener;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TaggingWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TaggingWidget.class);
@@ -133,6 +134,14 @@ public class TaggingWidget extends Composite {
 		setTaggingEditorVisiblity(TrpConfig.getTrpSettings().isShowTextTagEditor());
 		
 		updateBtns();
+	}
+	
+	public void updateSelectedTag(ATranscriptionWidget tWidget) {
+		tagListWidget.updateSelectedTag(tWidget);
+		
+		if (TrpMainWidget.getInstance().getUi().getTabWidget().isTextTaggingItemSeleced() && TrpConfig.getTrpSettings().isShowTextTagEditor()) {
+			transcriptionTaggingWidget.updateSelectedTag(tWidget);
+		}
 	}
 	
 	private void updateBtns() {
