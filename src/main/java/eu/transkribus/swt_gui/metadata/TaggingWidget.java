@@ -30,6 +30,7 @@ import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.metadata.CustomTagPropertyTable.ICustomTagPropertyTableListener;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TaggingWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TaggingWidget.class);
@@ -54,33 +55,6 @@ public class TaggingWidget extends Composite {
 		verticalSf = new SashForm(this, SWT.VERTICAL);
 		verticalSf.setLayout(new GridLayout(1, false));
 		verticalSf.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-//		Composite topWidget = new Composite(verticalSf, 0);
-//		topWidget.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
-//		topWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
-		
-//		Composite btnsTopContainer = new Composite(topWidget, 0);
-//		btnsTopContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-////		btnsTopContainer.setLayout(new RowLayout(SWT.HORIZONTAL));
-//		btnsTopContainer.setLayout(new FillLayout());
-//		
-//		Button enableTagEditorBtn = new Button(btnsTopContainer, SWT.TOGGLE);
-//		enableTagEditorBtn.setText("Show text based tag editor");
-//		enableTagEditorBtn.setToolTipText("Enables / disables the text based tag editor in the transcription widget");
-//		enableTagEditorBtn.setImage(Images.getOrLoad("/icons/tag_blue_edit.png"));
-//		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY, TrpConfig.getTrpSettings(), enableTagEditorBtn);
-		
-//		if (false) { // already contained in TranscriptionTaggingWidget ...
-//		Button editTagSpecsBtn = new Button(btnsTopContainer, 0);
-//		editTagSpecsBtn.setImage(Images.PENCIL);
-//		editTagSpecsBtn.setText("Edit tag specs...");
-//		editTagSpecsBtn.setToolTipText("Opens the dialog for editing the list of tag specifications");
-//		editTagSpecsBtn.setImage(Images.PENCIL);
-//		SWTUtil.onSelectionEvent(editTagSpecsBtn, e -> {
-//			TagConfDialog diag = new TagConfDialog(getShell());
-//			diag.open();
-//		});
-//		}
 		
 		tagListWidget = new TagListWidget(verticalSf, 0);
 		tagListWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -155,29 +129,24 @@ public class TaggingWidget extends Composite {
 			}
 		});
 
-//		verticalSf = new SashForm(this, SWT.VERTICAL);
-//		
-//		initTagDefsWidget(verticalSf);
-//		
-//		horizontalSf = new SashForm(verticalSf, SWT.HORIZONTAL); 
-//		
-//		initTagListWidget(horizontalSf);
-//		initPropsWidget(horizontalSf);
-//		
 		verticalSf.setWeights(new int[] { 77, 33 } );
-		
-//		horizontalSf.setWeights(new int[] { 50, 50 } );
 		
 		setTaggingEditorVisiblity(TrpConfig.getTrpSettings().isShowTextTagEditor());
 		
 		updateBtns();
 	}
 	
-//	private void
+	public void updateSelectedTag(ATranscriptionWidget tWidget) {
+		tagListWidget.updateSelectedTag(tWidget);
+		
+		if (TrpMainWidget.getInstance().getUi().getTabWidget().isTextTaggingItemSeleced() && TrpConfig.getTrpSettings().isShowTextTagEditor()) {
+			transcriptionTaggingWidget.updateSelectedTag(tWidget);
+		}
+	}
+	
 	private void updateBtns() {
 		applyPropertiesToAllSelectedBtn.setEnabled(tagListWidget.getSelectedTag()!=null && tagListWidget.isSelectedTagsOfSameType());
 	}
-	
 	
 	public void setTaggingEditorVisiblity(boolean visible) {
 		setTaggingEditorVisiblity(visible ? 1 : 0);

@@ -43,6 +43,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TagListWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagListWidget.class);
@@ -285,6 +286,11 @@ public class TagListWidget extends Composite {
 	public List<CustomTag> getSelectedTags() {
 		return ((IStructuredSelection) tv.getSelection()).toList();
 //		return (CustomTag) ((IStructuredSelection) tv.getSelection()).getFirstElement();
+	}
+
+	public void updateSelectedTag(ATranscriptionWidget tWidget) {
+//		tWidget.getTag
+//		asdfasdfasdf
 	}
 	
 	

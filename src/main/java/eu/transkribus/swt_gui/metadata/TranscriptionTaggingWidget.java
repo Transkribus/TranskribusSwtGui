@@ -15,7 +15,6 @@ import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.comments_widget.CommentsWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TranscriptionTaggingWidget extends Composite {
@@ -30,12 +29,6 @@ public class TranscriptionTaggingWidget extends Composite {
 	CTabFolder propsTf;
 	CTabItem propsItem;
 	TagPropertyEditor tagPropEditor;
-	
-	CTabFolder commentsTf;
-	CTabItem commentsItem;
-	CommentsWidget commentsWidget;	
-	
-//	ATranscriptionWidget tWidget;
 	
 	public TranscriptionTaggingWidget(Composite parent, int style) {
 		super(parent, style);
@@ -61,15 +54,6 @@ public class TranscriptionTaggingWidget extends Composite {
 		tagPropEditor.setLayoutData(new GridData(GridData.FILL_BOTH));
 		propsItem.setControl(tagPropEditor);
 		
-		if (false) {
-		commentsTf = createTabFolder(tabFolder);
-		commentsItem = createCTabItem(tabFolder, commentsTf, "Comments", null);
-		
-		commentsWidget = new CommentsWidget(tabFolder, 0);
-		commentsWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
-		commentsItem.setControl(commentsWidget);
-		}
-		
 		// listener:
 		SWTUtil.onSelectionEvent(tabFolder, e -> {
 			updateTabItemStyles();
@@ -90,7 +74,7 @@ public class TranscriptionTaggingWidget extends Composite {
 	}
 		
 	public void updateSelectedTag(ATranscriptionWidget tWidget) {
-		if (isTagPropertyEditorSelected() /*&& tWidget.isTagEditorVisible()*/) {
+		if (isTagPropertyEditorSelected()) {
 			if (tagPropEditor.isSettingCustomTag()) { // if currently setting a custom tag in the property editor, ignore selection changed events from transcription widget!
 				return;
 			}
