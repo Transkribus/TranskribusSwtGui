@@ -486,8 +486,8 @@ public class TrpMainWidget {
 		}
 		
 		// TEST:
-		loadLocalTestset();
-		jumpToPage(1);
+//		loadLocalTestset();
+//		jumpToPage(1);
 
 //		SWTUtil.mask2(ui.getStructureTreeWidget()); // TESt
 //		MyInfiniteProgressPanel p = MyInfiniteProgressPanel.getInfiniteProgressPanelFor(ui.getStructureTreeWidget());
