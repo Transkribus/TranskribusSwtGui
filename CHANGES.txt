@@ -533,4 +533,6 @@ CHANGES AND BUGFIXES
 	-> Transcripts: Revert to the version(s) before the last (batch) job was completed
 	-> add What is new in Transkribus (make CHANGES.txt visible to the user)
 	-> add search for documents by collection ID
+	-> remove outdated TipsOfTheDay 
+	-> add direct link to Transkribus HowTo guides
 	

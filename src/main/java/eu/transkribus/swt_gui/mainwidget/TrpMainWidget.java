@@ -1,9 +1,12 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -396,26 +399,6 @@ public class TrpMainWidget {
 //		return taggingController;
 //	}
 
-	public void showTipsOfTheDay() {
-		Collection<Object> tips = TrpConfig.getTipsOfTheDay().values();
-
-		final TipOfTheDay tip = new TipOfTheDay();
-		tip.setShowOnStartup(getTrpSets().isShowTipOfTheDay());
-
-		for (Object tipStr : tips) {
-			tip.addTip((String) tipStr);
-		}
-
-		if (tips.isEmpty())
-			tip.addTip("No tip found... check your configuration!");
-
-		tip.setStyle(TipStyle.TWO_COLUMNS);
-
-		tip.open(getShell());
-
-		getTrpSets().setShowTipOfTheDay(tip.isShowOnStartup());
-//		TrpConfig.save(TrpSettings.SHOW_TIP_OF_THE_DAY_PROPERTY);
-	}
 
 	/**
 	 * This method gets called in the {@link #show()} method after the UI is
@@ -476,10 +459,6 @@ public class TrpMainWidget {
 			}
 		}
 
-		final boolean DISABLE_TIPS_OF_THE_DAY = true;
-		if (getTrpSets().isShowTipOfTheDay() && !DISABLE_TIPS_OF_THE_DAY) {
-			showTipsOfTheDay();
-		}
 
 		if (TESTTABLES) {
 			loadLocalTestset();
@@ -4745,6 +4724,14 @@ public class TrpMainWidget {
 	}
 
 	public void openCanvasHelpDialog() {
+		// Open help page in system-default webbrowser first, then display key-board shortcuts
+		Desktop d = Desktop.getDesktop();
+		try {
+			d.browse(new URI("https://transkribus.eu/wiki/index.php/How_to_Guides"));
+		} catch (IOException | URISyntaxException e) {
+			logger.debug(e.getMessage());
+		}
+		
 		String ht = ""
 //				+ "Canvas shortcut operations:\n"
 				+ "- esc: set selection mode\n"
@@ -4754,8 +4741,10 @@ public class TrpMainWidget {
 				+ "  (note: on mac touchpads, right-clicks are performed using two fingers simultaneously)"
 				;
 		
+		
 		int res = DialogUtil.showMessageDialog(getShell(), "Canvas shortcut operations", ht, null, MessageDialog.INFORMATION, 
 				new String[] {"OK"}, 0);
+		
 	}
 	
 	/**
