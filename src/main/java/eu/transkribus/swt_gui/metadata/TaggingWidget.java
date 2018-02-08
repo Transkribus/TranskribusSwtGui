@@ -169,7 +169,7 @@ public class TaggingWidget extends Composite {
 				transcriptionTaggingWidgetShell.dispose();
 			}
 			
-			verticalSf.setWeights(new int[] { 77, 33 });
+			verticalSf.setWeights(new int[] { 60, 40 });
 			if (true) // false -> show editor always
 			if (visibility<=0) {
 				verticalSf.setMaximizedControl(tagListWidget);

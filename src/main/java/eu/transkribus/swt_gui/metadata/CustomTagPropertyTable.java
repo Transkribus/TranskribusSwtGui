@@ -169,13 +169,9 @@ public class CustomTagPropertyTable extends Composite {
 		// EDITING SUPPORT:
 		valueEditingSupport = new EditingSupport(tv) {
 			@Override protected void setValue(Object element, Object value) {
-				// TODO: apply changes to selected tag!!
-				// currently: the given customtag is just a copy of the one actually in a list!!
-				
 				CustomTagAttribute a = getEntryAttribute(element);
 				logger.debug("setting attribute value, att = "+a+" vaue = "+value);
 				try {
-					prototypeTag.setAttribute(a.getName(), value, true);
 					if (selectedTag != null) {
 						selectedTag.setAttribute(a.getName(), value, true);
 					}

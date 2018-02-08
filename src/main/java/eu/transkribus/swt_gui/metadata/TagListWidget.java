@@ -12,6 +12,7 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerCell;
@@ -80,6 +81,8 @@ public class TagListWidget extends Composite {
 	};
 	
 	static Storage store = Storage.getInstance();
+	
+	boolean disableSelectionEvent=false;
 
 	public TagListWidget(Composite parent, int style) {
 		super(parent, style);
@@ -189,6 +192,11 @@ public class TagListWidget extends Composite {
 		
 		tv.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
+				if (disableSelectionEvent) {
+					return;
+				}
+				
+				
 				List<CustomTag> selected = getSelectedTags();
 				if (selected.size()==1) {
 					TrpMainWidget mw = TrpMainWidget.getInstance();
@@ -198,7 +206,7 @@ public class TagListWidget extends Composite {
 					
 					CustomTag tag = selected.get(0);
 					mw.showLocation(new TrpLocation(tag));
-					mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag);
+					mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag, false);
 				}
 			}
 		});
@@ -289,8 +297,9 @@ public class TagListWidget extends Composite {
 	}
 
 	public void updateSelectedTag(ATranscriptionWidget tWidget) {
-//		tWidget.getTag
-//		asdfasdfasdf
+		disableSelectionEvent = true;
+		tv.setSelection(new StructuredSelection(tWidget.getCustomTagsForCurrentOffset()), true);
+		disableSelectionEvent = false;
 	}
 	
 	

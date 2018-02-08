@@ -8,6 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -425,9 +427,8 @@ public class TrpMainWidget {
 			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
 		}
 
-		boolean TESTTABLES = false; // test-hook for sebi's table editor
-		boolean DO_AUTO_LOGIN = true;
-		if (DO_AUTO_LOGIN && getTrpSets().isAutoLogin() && !TESTTABLES) {
+		boolean FORCE_AUTO_LOGIN = true;
+		if (FORCE_AUTO_LOGIN && getTrpSets().isAutoLogin()) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
 
 			try {
@@ -459,18 +460,48 @@ public class TrpMainWidget {
 			}
 		}
 
-
-		if (TESTTABLES) {
-			loadLocalTestset();
-		}
+		tryLoadingTestDocSpecifiedInLocalFile();
 		
 		// TEST:
+//		if (TESTTABLES) {
+//			loadLocalTestset();
+//		}		
 //		loadLocalTestset();
 //		jumpToPage(1);
 
 //		SWTUtil.mask2(ui.getStructureTreeWidget()); // TESt
 //		MyInfiniteProgressPanel p = MyInfiniteProgressPanel.getInfiniteProgressPanelFor(ui.getStructureTreeWidget());
 //		p.start();
+	}
+	
+	/** Tries to read the local file "loadThisDocOnStartup.txt" and load the specified document.<br/>
+     * To auto load a remote document: specify the first line as: "colId docId".<br/>
+	 * To auto load a local document: specify the path of the document (without spaces!) in the first line.<br/>
+	 * Comment out a line using a # sign at the start.
+	 */
+	private void tryLoadingTestDocSpecifiedInLocalFile() {
+		try {
+			List<String> lines = Files.readAllLines(Paths.get("./loadThisDocOnStartup.txt"));
+			if (!lines.isEmpty()) {
+				String docStr = lines.get(0);
+				if (!docStr.startsWith("#")) {
+					String[] splits = docStr.split(" ");
+					if (splits.length == 2) { // remote doc
+						try {
+							int colid = Integer.parseInt(splits[0]);
+							int docid = Integer.parseInt(splits[1]);
+							loadRemoteDoc(docid, colid);
+						} catch (NumberFormatException e) {
+							// ignore parsing errors and do nothing...
+						}
+					} else { // local doc
+						loadLocalDoc(docStr);
+					}
+				}
+			}
+		} catch (IOException e) {
+			// no file found -> ignore and to not load anything
+		}
 	}
 
 	public void syncTextOfDocFromWordsToLinesAndRegions() {
