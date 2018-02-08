@@ -54,20 +54,26 @@ public class CollectionLabelProviderExtended implements ILabelProvider {
 			TrpPage p = (TrpPage)element;
 			TrpTranscriptMetadata tmd;
 			tmd = p.getCurrentTranscript();
-			int transcribedLines = tmd.getNrOfTranscribedLines();
-			int transcribedWords = tmd.getNrOfWordsInLines();
-			int segmentedLines = tmd.getNrOfLines();
+			Integer transcribedLines = 0;
+			Integer transcribedWords = 0;
+			Integer segmentedLines = 0;
+			if (tmd != null){
+				transcribedLines = tmd.getNrOfTranscribedLines();
+				transcribedWords = tmd.getNrOfWordsInLines();
+				segmentedLines = tmd.getNrOfLines();
+			}
+				
 			
 			String transcribedLinesText = "";
 
 			// logger.debug("segmentedLines: " + segmentedLines);
 			// logger.debug("transcribedLines: " + transcribedLines);
 
-			if (segmentedLines == 0) {
-				transcribedLinesText = "No segmentation";
-			} else {
-				transcribedLinesText = (transcribedLines > 0 ? transcribedLines + " lines"
-						: "0 lines");
+			if (segmentedLines != null && segmentedLines == 0) {
+				transcribedLinesText = "No lines";
+			} else{
+				transcribedLinesText = ( (transcribedLines != null && transcribedLines > 0) ? transcribedLines + " lines with text"
+						: "No text");
 			}
 			return p.getImgFileName() + " (" + transcribedLinesText + ") :: " + p.getCurrentTranscript().getStatus();
 		}
