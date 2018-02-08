@@ -78,7 +78,12 @@ public class CollectionEditorDialog extends Dialog {
 		this.collection = c;
 		
 		TrpUserLogin user = storage.getUser();
-		if (user.isAdmin() || StorageUtil.isOwnerOfCollection(collection)){
+		
+		/*
+		 * set elearning and crowdsourcing only as admin 
+		 */
+		//if (user.isAdmin() || StorageUtil.isOwnerOfCollection(collection)){
+		if (user.isAdmin()){
 			editAllowed = true;
 		}
 	}
