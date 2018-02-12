@@ -84,7 +84,7 @@ public class TranscriptionTaggingWidget extends Composite {
 				return;
 			}
 			
-			tagPropEditor.setCustomTag(tags.get(0));
+			tagPropEditor.setCustomTag(tags.get(0), false);
 		}
 	}
 	

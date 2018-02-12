@@ -14,12 +14,16 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DropDownButton extends Composite {
 	Menu menu;
 	Button button;
 	
 	List<MenuItem> items = new ArrayList<>();
+	
+	private static final Logger logger = LoggerFactory.getLogger(DropDownButton.class);
 	
 	public DropDownButton(Composite parent, int btnStyle, String text, Image img, Menu menu) {
 		super(parent, 0);
@@ -38,11 +42,9 @@ public class DropDownButton extends Composite {
 		button.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				Point loc = button.getLocation();
 				Rectangle rect = button.getBounds();
-				Point mLoc = new Point(loc.x - 1, loc.y + rect.height);
-
-				DropDownButton.this.menu.setLocation(getShell().getDisplay().map(button.getParent(), null, mLoc));
+				Point pt = button.getParent().toDisplay(new Point(rect.x, rect.y));
+				DropDownButton.this.menu.setLocation(pt.x + rect.width, pt.y + rect.height);
 				DropDownButton.this.menu.setVisible(true);
 			}
 		});
@@ -54,8 +56,8 @@ public class DropDownButton extends Composite {
 		button.setEnabled(enabled);
 	}
 	
-	public MenuItem addItem(String text, Image img) {
-		MenuItem item = new MenuItem(menu, SWT.PUSH);
+	public MenuItem addItem(String text, Image img, int type) {
+		MenuItem item = new MenuItem(menu, type);
         item.setText(text);
         item.setImage(img);
         

@@ -10,3 +10,4 @@ logs
 /events.txt
 /style_sheets.xml
 /bin/
+/loadThisDocOnStartup.txt
