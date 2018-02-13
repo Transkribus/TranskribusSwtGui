@@ -112,7 +112,7 @@ public class CustomTagPropertyTable extends Composite {
 				Object value = getAttributeValue(cell.getElement());
 				
 				cell.setText(value==null ? "" : String.valueOf(value));
-				if (!selectedTag.isEditable(attName)) {
+				if (!CustomTag.isOffsetOrLengthOrContinuedProperty(attName)) {
 					cell.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 				}
 				else {
@@ -246,7 +246,7 @@ public class CustomTagPropertyTable extends Composite {
 				}
 				
 				String attName = getAttributeName(element);
-				return selectedTag.isEditable(attName);
+				return CustomTag.isOffsetOrLengthOrContinuedProperty(attName);
 			}
 		};
 		valueCol.setEditingSupport(valueEditingSupport);
