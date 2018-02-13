@@ -498,7 +498,7 @@ public class TagConfWidget extends Composite {
 	private void updatePropertiesForSelectedTag() {
 		String tn = getSelectedAvailableTagsName();
 		if (tn == null) {
-			propsTable.setInput(null, null);
+			propsTable.setInput(null);
 			propsTable.update();
 			return;
 		}
@@ -515,7 +515,7 @@ public class TagConfWidget extends Composite {
 			logger.debug("protoTag copy: "+protoTag);
 			logger.debug("protoTag atts: "+protoTag.getAttributeNames());
 			
-			propsTable.setInput(protoTag, null);
+			propsTable.setInput(protoTag);
 			propsTable.selectFirstAttribute();
 			
 			// set color label:
@@ -533,9 +533,9 @@ public class TagConfWidget extends Composite {
 	
 	public Map<String, Object> getCurrentAttributes() {
 		Map<String, Object> props = new HashMap<>();
-		CustomTag pt = propsTable.getPrototypeTag();
-		if (pt != null) {
-			return pt.getAttributeNamesValuesMap();
+		CustomTag st = propsTable.getSelectedTag();
+		if (st != null) {
+			return st.getAttributeNamesValuesMap();
 		}
 	
 		return props;

@@ -45,6 +45,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class TagListWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagListWidget.class);
@@ -80,6 +81,8 @@ public class TagListWidget extends Composite {
 	};
 	
 	static Storage store = Storage.getInstance();
+	
+	private boolean disableTagUpdate=false;
 	
 	public TagListWidget(Composite parent, int style) {
 		super(parent, style);
@@ -184,17 +187,22 @@ public class TagListWidget extends Composite {
 		tv.getTable().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+//				if (disableTagUpdate) {
+//					return;
+//				}
+				TrpMainWidget mw = TrpMainWidget.getInstance();
+				if (mw == null) {
+					return;
+				}				
+				
+				disableTagUpdate = true;
 				List<CustomTag> selected = getSelectedTags();
 				if (selected.size()==1) {
-					TrpMainWidget mw = TrpMainWidget.getInstance();
-					if (mw == null) {
-						return;
-					}
-					
 					CustomTag tag = selected.get(0);
 					mw.showLocation(new TrpLocation(tag));
 					mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag, false);
-				}				
+				}
+				disableTagUpdate = false;
 			}
 		});
 	}
@@ -283,8 +291,12 @@ public class TagListWidget extends Composite {
 //		return (CustomTag) ((IStructuredSelection) tv.getSelection()).getFirstElement();
 	}
 
-	public void updateSelectedTag(ATranscriptionWidget tWidget) {
-		tv.setSelection(new StructuredSelection(tWidget.getCustomTagsForCurrentOffset()), true);
+	public void updateSelectedTag(List<CustomTag> tags) {
+		if (disableTagUpdate) {
+			return;
+		}	
+		
+		tv.setSelection(new StructuredSelection(tags), true);
 	}
 
 }

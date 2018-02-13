@@ -15,7 +15,6 @@ import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.batik.gvt.event.SelectionListener;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -115,7 +114,6 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
-import eu.transkribus.swt_gui.metadata.TaggingWidgetOld;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
@@ -1520,7 +1518,11 @@ public abstract class ATranscriptionWidget extends Composite{
 				// 2: draw them bloody bounds:
 //				e.gc.setLineStyle(tag.isContinued() ? SWT.LINE_DASH : SWT.LINE_SOLID);
 				e.gc.setLineWidth(TAG_LINE_WIDTH);
-				Color c = TaggingWidgetOld.getTagColor(tagName);
+				Color c = Colors.decode2(CustomTagFactory.getTagColor(tagName));
+				if (c == null) {
+					c = Colors.getSystemColor(SWT.COLOR_GRAY); // default tag color
+				}
+				
 				e.gc.setForeground(c);
 				e.gc.setBackground(c);				
 				

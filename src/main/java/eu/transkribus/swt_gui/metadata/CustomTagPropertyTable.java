@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.MyCheckboxEditor;
@@ -56,13 +58,13 @@ public class CustomTagPropertyTable extends Composite {
 	TableViewerColumn valueCol;
 	EditingSupport valueEditingSupport;
 
-	private CustomTag prototypeTag;
+//	private CustomTag prototypeTag;
 
 	private CustomTag selectedTag;
 	boolean withOffsetLengthContinuedProperties;
 	
 	public interface ICustomTagPropertyTableListener {
-		void onPropertyChanged(CustomTagAttribute property); 
+		void onPropertyChanged(String name, Object value); 
 	}
 	
 	List<ICustomTagPropertyTableListener> listener = new ArrayList<>();
@@ -88,92 +90,93 @@ public class CustomTagPropertyTable extends Composite {
 		// LABEL PROVIDERS:
 		nameCol.setLabelProvider(new CellLabelProvider() {
 			@Override public void update(ViewerCell cell) {
-				// change font to italic if this is a predefined attribute:
-				if (prototypeTag != null) {
-					CustomTagAttribute a = getEntryAttribute(cell.getElement());
-					boolean isPredefined = prototypeTag.isPredefinedAttribute(a.getName());
-					if (isPredefined) {
+				String name = "";
+				if (selectedTag != null) {
+					name = (String) cell.getElement();
+					if (selectedTag.isPredefinedAttribute(name)) {
 						Font f = Fonts.createItalicFont(cell.getFont());
-						cell.setFont(f);
+						cell.setFont(f);						
 					}
 				}
-				
-				
-//				if (!a.isEditable()) {
-//					cell.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-//				} else
-//					cell.setBackground(Colors.getSystemColor(SWT.COLOR_WHITE));
-				
-				cell.setText(getEntryAttribute(cell.getElement()).getName());
+				cell.setText(name);
 			}
 		});
 		
 		valueCol.setLabelProvider(new CellLabelProvider() {
 			@Override public void update(ViewerCell cell) {
-				CustomTagAttribute a = getEntryAttribute(cell.getElement());
-				if (!a.isEditable()) {
-					cell.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-				} else
-					cell.setBackground(Colors.getSystemColor(SWT.COLOR_WHITE));				
-				
-				Object v = getEntryValue(cell.getElement());
-				if (v == null)
-					cell.setText("");
-				else
-					cell.setText(String.valueOf(v));
-				
-//				cell.setText(String.valueOf(getEntryValue(cell.getElement())));
-			}
-		});
-		
-		
-		
-		// CONTENT PROVIDER:
-		tv.setContentProvider(new IStructuredContentProvider() {
-			@Override public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-			}
-			
-			@Override public void dispose() {
-			}
-			
-			@Override public Object[] getElements(Object inputElement) {
-				if (prototypeTag != null) {
-					Map<CustomTagAttribute, Object> m = prototypeTag.getAttributesValuesMap();
-					logger.debug("getElements, nr of props = "+m.size()+" nr of atts = "+prototypeTag.getAttributes().size()+" class ="+prototypeTag.getClass().getSimpleName());
-					logger.debug("att names: "+prototypeTag.getAttributeNames());
-					
-					// create list of entries with offset/length/continued properties first:
-					List<Entry<CustomTagAttribute, Object>> entries = new ArrayList<>();
-					
-					if (withOffsetLengthContinuedProperties) {
-						entries.add(new SimpleEntry(CustomTag.OFFSET_PROPERTY,  m.get(CustomTag.OFFSET_PROPERTY)));
-						entries.add(new SimpleEntry(CustomTag.LENGTH_PROPETY,  m.get(CustomTag.LENGTH_PROPETY)));
-						entries.add(new SimpleEntry(CustomTag.CONTINUED_PROPERTY,  m.get(CustomTag.CONTINUED_PROPERTY)));
-					}
-					
-					for (CustomTagAttribute a : m.keySet()) {
-						if (CustomTag.isOffsetOrLengthOrContinuedProperty(a.getName()))
-							continue;
-						
-						entries.add(new SimpleEntry(a, m.get(a)));
-					}					
-					
-					return entries.toArray();
-//					return prototypeTag.getAttributesValuesMap().entrySet().toArray();
+				if (selectedTag==null) {
+					return;
 				}
 				
-				return null;
+				String attName = getAttributeName(cell.getElement());
+				Object value = getAttributeValue(cell.getElement());
+				
+				cell.setText(value==null ? "" : String.valueOf(value));
+				if (!selectedTag.isEditable(attName)) {
+					cell.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+				}
+				else {
+					cell.setBackground(Colors.getSystemColor(SWT.COLOR_WHITE));
+				}
 			}
 		});
+		tv.setContentProvider(ArrayContentProvider.getInstance());
+		
+//		// CONTENT PROVIDER:
+//		tv.setContentProvider(new IStructuredContentProvider() {
+//			@Override public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+//			}
+//			
+//			@Override public void dispose() {
+//			}
+//			
+//			@Override public Object[] getElements(Object inputElement) {
+//				if (prototypeTag == null) {
+//					return null;
+//				}
+//				
+//				
+//				
+//				if (prototypeTag != null) {
+//					Map<CustomTagAttribute, Object> m = prototypeTag.getAttributesValuesMap();
+//					logger.debug("getElements, nr of props = "+m.size()+" nr of atts = "+prototypeTag.getAttributes().size()+" class ="+prototypeTag.getClass().getSimpleName());
+//					logger.debug("att names: "+prototypeTag.getAttributeNames());
+//					
+//					// create list of entries with offset/length/continued properties first:
+//					List<Entry<CustomTagAttribute, Object>> entries = new ArrayList<>();
+//					
+//					if (withOffsetLengthContinuedProperties) {
+//						entries.add(new SimpleEntry(CustomTag.OFFSET_PROPERTY,  m.get(CustomTag.OFFSET_PROPERTY)));
+//						entries.add(new SimpleEntry(CustomTag.LENGTH_PROPETY,  m.get(CustomTag.LENGTH_PROPETY)));
+//						entries.add(new SimpleEntry(CustomTag.CONTINUED_PROPERTY,  m.get(CustomTag.CONTINUED_PROPERTY)));
+//					}
+//					
+//					for (CustomTagAttribute a : m.keySet()) {
+//						if (CustomTag.isOffsetOrLengthOrContinuedProperty(a.getName()))
+//							continue;
+//						
+//						entries.add(new SimpleEntry(a, m.get(a)));
+//					}					
+//					
+//					return entries.toArray();
+////					return prototypeTag.getAttributesValuesMap().entrySet().toArray();
+//				}
+//				
+//				return null;
+//			}
+//		});
 		
 		// EDITING SUPPORT:
 		valueEditingSupport = new EditingSupport(tv) {
 			@Override protected void setValue(Object element, Object value) {
-				CustomTagAttribute a = getEntryAttribute(element);
-				logger.debug("setting attribute value, att = "+a+" vaue = "+value);
+				if (selectedTag == null) {
+					return;
+				}
+				String attName = getAttributeName(element);
+				logger.debug("setting attribute value, att = "+attName+" vaue = "+value);
 				try {
-					if (selectedTag != null) {
-						selectedTag.setAttribute(a.getName(), value, true);
+					if (!StringUtils.isEmpty(attName)) {
+						selectedTag.setAttribute(attName, value, true);
 					}
 				} catch (IOException e) {
 					logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
@@ -183,19 +186,19 @@ public class CustomTagPropertyTable extends Composite {
 			}
 			
 			@Override protected Object getValue(Object element) {
-				return getEntryValue(element);
+				return getAttributeValue(element);
 			}
 			
 			@Override protected CellEditor getCellEditor(Object element) {
-				if (prototypeTag == null)
+				if (selectedTag == null) {
 					return null;
+				}
 				
-				CustomTagAttribute a = getEntryAttribute(element);
+				String attName = getAttributeName(element);
 				CellEditor e = null;
+				Class<?> t = selectedTag.getAttributeType(attName);
 				
-				Class<?> t = prototypeTag.getAttributeType(a.getName());
-				
-				logger.debug("cell editor, att = "+a.getName()+" type = "+t);
+				logger.debug("cell editor, att = "+attName+" type = "+t);
 				if (t.equals(Boolean.class) || t.equals(boolean.class)) {
 					e = new MyCheckboxEditor(table);
 				}
@@ -228,7 +231,9 @@ public class CustomTagPropertyTable extends Composite {
 					
 					@Override
 					public void applyEditorValue() {
-						listener.stream().forEach(l -> { l.onPropertyChanged(a); });
+						listener.stream().forEach(l -> { 
+							l.onPropertyChanged(getAttributeName(element), getAttributeValue(element));
+						});
 					}
 				});
 												
@@ -236,7 +241,12 @@ public class CustomTagPropertyTable extends Composite {
 			}
 			
 			@Override protected boolean canEdit(Object element) {
-				return getEntryAttribute(element).isEditable();
+				if (selectedTag == null) {
+					return false;
+				}
+				
+				String attName = getAttributeName(element);
+				return selectedTag.isEditable(attName);
 			}
 		};
 		valueCol.setEditingSupport(valueEditingSupport);
@@ -277,6 +287,20 @@ public class CustomTagPropertyTable extends Composite {
 		initTraverseStuff();
 	}
 	
+	public String getAttributeName(Object element) {
+		return element==null || selectedTag==null ? "" : (String) element;
+	}
+	
+	public Object getAttributeValue(Object element) {
+		String attName = getAttributeName(element);
+		if (!StringUtils.isEmpty(attName) && selectedTag!=null) {
+			return selectedTag.getAttributeValue(attName);
+		}
+		else {
+			return null;
+		}
+	}
+	
 	public void addListener(ICustomTagPropertyTableListener l) {
 		listener.add(l);
 	}
@@ -308,32 +332,21 @@ public class CustomTagPropertyTable extends Composite {
 	}
 
 	public void selectNextAttribute() {
-		if (prototypeTag == null) {
+		if (selectedTag == null) {
 			return;
 		}
+
+		int i = tv.getTable().getSelectionIndex();
 		
-		Entry<CustomTagAttribute, Object> entry = getSelectedEntry();
-		
-		int index=-1;
-		int N = tv.getTable().getItemCount();
-		for (int i=0; i<N; ++i) {
-			if (tv.getElementAt(i) == entry) {
-				index=i;
-				break;
-			}
-		}
-		
-		logger.debug("index = "+index);
-		
-		int nextIndex = (index+1) % N;
+		logger.debug("index = "+i);
+		int nextIndex = (i+1) % tv.getTable().getItemCount();
 		selectAttribute(nextIndex);
 	}
 	
 	public void selectAttribute(int index) {
 		int N = tv.getTable().getItemCount();
-		if (prototypeTag!=null && index>=0 && index<N) {
-			Entry<CustomTagAttribute, Object> entry = (Entry<CustomTagAttribute, Object>) tv.getElementAt(index);
-			tv.editElement(entry, 1);
+		if (selectedTag!=null && index>=0 && index<N) {
+			tv.editElement(tv.getElementAt(index), 1);
 		}
 	}
 	
@@ -345,37 +358,57 @@ public class CustomTagPropertyTable extends Composite {
 		return tv;
 	}
 	
-	public CustomTag getPrototypeTag() { return prototypeTag; }
+//	public CustomTag getPrototypeTag() { return prototypeTag; }
 	public CustomTag getSelectedTag() { return selectedTag; }
 	
-	private Entry<CustomTagAttribute, Object> getSelectedEntry() {
-		return getEntry(((IStructuredSelection) tv.getSelection()).getFirstElement());
-	}
+//	private Entry<CustomTagAttribute, Object> getSelectedEntry() {
+//		return getEntry(((IStructuredSelection) tv.getSelection()).getFirstElement());
+//	}
 	
-	private static Entry<CustomTagAttribute, Object> getEntry(Object element) {
-		return (Entry<CustomTagAttribute, Object>) element;
-	}
+//	private static Entry<CustomTagAttribute, Object> getEntry(Object element) {
+//		return (Entry<CustomTagAttribute, Object>) element;
+//	}
+//		
+//	private static Object getEntryValue(Object element) {
+//		return getEntry(element).getValue();
+//	}
+//	
+//	private static CustomTagAttribute getEntryAttribute(Object element) {
+//		return getEntry(element).getKey();
+//	}	
+	
+	public void setInput(CustomTag selectedTag) {
+		logger.debug("setting input of property table to: selected: "+selectedTag);
+		if (selectedTag == null) {
+			this.selectedTag = null;
+			tv.setInput(null);
+			return;
+		}
 		
-	private static Object getEntryValue(Object element) {
-		return getEntry(element).getValue();
-	}
-	
-	private static CustomTagAttribute getEntryAttribute(Object element) {
-		return getEntry(element).getKey();
-	}	
-	
-	public void setInput(CustomTag prototypeTag, CustomTag selectedTag) {
-		logger.debug("setting input of property table to: "+prototypeTag+" selected: "+selectedTag);
-		this.prototypeTag = prototypeTag;
 		this.selectedTag = selectedTag;
-		tv.setInput(prototypeTag);		
-		tv.refresh();
+		CustomTag prototypeTag = CustomTagFactory.getTagObjectFromRegistry(selectedTag.getTagName());
+		if (prototypeTag != null) {
+			prototypeTag = prototypeTag.copy();
+		}
+		else {
+			prototypeTag = selectedTag.copy();
+		}
+		logger.debug("prototypeTag: "+prototypeTag);
+		
+		List<String> attNames = prototypeTag.getAttributeNamesSortedByName();
+		if (!withOffsetLengthContinuedProperties) {
+			attNames.remove(CustomTag.OFFSET_PROPERTY_NAME);
+			attNames.remove(CustomTag.LENGTH_PROPERTY_NAME);
+			attNames.remove(CustomTag.CONTINUED_PROPERTY_NAME);	
+		}
+		tv.setInput(attNames);
+		tv.refresh(); // needed?
 	}
 	
 	public CustomTagAttribute getSelectedProperty() {
 		IStructuredSelection sel = (IStructuredSelection) tv.getSelection();
 		if (!sel.isEmpty()) {
-			return getEntryAttribute(sel.getFirstElement());
+			return selectedTag.getAttribute(getAttributeName(sel.getFirstElement()));
 		} else
 			return null;
 	}

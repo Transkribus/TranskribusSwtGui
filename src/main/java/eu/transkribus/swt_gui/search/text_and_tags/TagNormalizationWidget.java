@@ -178,15 +178,15 @@ class TagNormalizationWidget extends Composite {
 //				CustomTag protoTag = CustomTagFactory.getTagObjectFromRegistry(cssTag.getTagName());
 				// TODO clear attributes!?
 	
-				propertyTable.setInput(selectedCustomTag, selectedCustomTag);
+				propertyTable.setInput(selectedCustomTag);
 			} catch (Exception e) {
 				logger.error("Error setting normalization tag: "+e.getMessage(), e);
 				this.selectedTags = null;
-				propertyTable.setInput(null, null);
+				propertyTable.setInput(null);
 			}
 		} else {
 			this.selectedTags = null;
-			propertyTable.setInput(null, null);
+			propertyTable.setInput(null);
 		}
 		propertyTable.redraw();
 	}

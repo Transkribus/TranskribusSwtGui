@@ -134,18 +134,10 @@ public class TagPropertyEditor extends Composite {
 		
 		settingCustomTag = true;
 		this.tag = tag;
-		
+
 		if (this.tag != null) {
 			tagInfo.setText("tag: '"+tag.getTagName()+"'  -  value: '"+tag.getContainedText()+"'");
-			
-			CustomTag protoTag = CustomTagFactory.getTagObjectFromRegistry(tag.getTagName());
-			if (protoTag != null) {
-				protoTag = protoTag.copy();
-			}
-			else {
-				protoTag = tag.copy();
-			}
-			propsTable.setInput(protoTag, this.tag);
+			propsTable.setInput(this.tag);
 
 			// select tag in widget:
 			if (this.tag.getCustomTagList() != null) {
@@ -160,7 +152,7 @@ public class TagPropertyEditor extends Composite {
 			}
 		} else {
 			tagInfo.setText("");
-			propsTable.setInput(null, null);
+			propsTable.setInput(null);
 		}
 		
 		if (selectFirstAttribute) {

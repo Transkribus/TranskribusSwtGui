@@ -549,23 +549,6 @@ public class TagSpecsWidget extends Composite {
 		});
 	}
 	
-	private void update(boolean showAllTags) {
-		if (showAllTagsBtn == null) {
-			return;
-		}
-		
-		showAllTagsBtn.setSelection(showAllTags);
-		
-		if (showAllTags) {
-			headerLbl.setText("All Tags");
-		}
-		else {
-			headerLbl.setText("Tag Specifications");
-		}
-		
-		updateAvailableTagSpecs();
-	}
-	
 	private void removeSelected() {
 		CustomTagSpec cDef = getSelected();
 		if (cDef != null) {
@@ -609,7 +592,7 @@ public class TagSpecsWidget extends Composite {
 				showAllTagsBtn.setSelection(showAllTags);	
 			}
 			
-			if (!showAllTags) {
+			if (isEditable || !showAllTags) {
 				headerLbl.setText("Tag Specifications");
 				tableViewer.setInput(Storage.getInstance().getCustomTagSpecs());
 			}
