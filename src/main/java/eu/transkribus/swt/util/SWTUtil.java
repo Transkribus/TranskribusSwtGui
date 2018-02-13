@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 import java.util.Timer;
@@ -218,6 +219,24 @@ public class SWTUtil {
 		
 	public static boolean isOpen(org.eclipse.jface.dialogs.Dialog d) {
 		return d != null && d.getShell() != null && !d.getShell().isDisposed();
+	}
+	
+	public static void deleteMenuItems(Menu menu, MenuItem... excludedItems) {
+		if (SWTUtil.isDisposed(menu)) {
+			return;
+		}
+		
+		List<MenuItem> excludedList = Arrays.asList(excludedItems);
+		
+		for (MenuItem mi : menu.getItems()) {
+			if (excludedList.contains(mi)) {
+				continue;
+			}
+			
+			if (!SWTUtil.isDisposed(mi)) {
+				mi.dispose();
+			}
+		}
 	}
 	
 	

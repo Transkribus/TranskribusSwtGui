@@ -9,9 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -19,6 +17,8 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -50,7 +50,6 @@ public class TagListWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagListWidget.class);
 	
 	MyTableViewer tv;
-//	TreeViewer treeViewer;
 	
 	Map<CustomTag, ControlEditor> delSelectedEditors = new HashMap<>();
 	Button clearTagsBtn;
@@ -82,17 +81,9 @@ public class TagListWidget extends Composite {
 	
 	static Storage store = Storage.getInstance();
 	
-	boolean disableSelectionEvent=false;
-
 	public TagListWidget(Composite parent, int style) {
 		super(parent, style);
-//		setLayout(new FillLayout());
 		setLayout(new GridLayout(1, false));
-		
-//		Composite container = new Composite(this, 0);
-//		container.setLayout(new GridLayout(1, false));
-//		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
-//		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		Composite container = this;
 		
@@ -190,13 +181,9 @@ public class TagListWidget extends Composite {
 			}
 		});
 		
-		tv.addSelectionChangedListener(new ISelectionChangedListener() {
-			@Override public void selectionChanged(SelectionChangedEvent event) {
-				if (disableSelectionEvent) {
-					return;
-				}
-				
-				
+		tv.getTable().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
 				List<CustomTag> selected = getSelectedTags();
 				if (selected.size()==1) {
 					TrpMainWidget mw = TrpMainWidget.getInstance();
@@ -207,7 +194,7 @@ public class TagListWidget extends Composite {
 					CustomTag tag = selected.get(0);
 					mw.showLocation(new TrpLocation(tag));
 					mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag, false);
-				}
+				}				
 			}
 		});
 	}
@@ -297,11 +284,7 @@ public class TagListWidget extends Composite {
 	}
 
 	public void updateSelectedTag(ATranscriptionWidget tWidget) {
-		disableSelectionEvent = true;
 		tv.setSelection(new StructuredSelection(tWidget.getCustomTagsForCurrentOffset()), true);
-		disableSelectionEvent = false;
 	}
-	
-	
 
 }
