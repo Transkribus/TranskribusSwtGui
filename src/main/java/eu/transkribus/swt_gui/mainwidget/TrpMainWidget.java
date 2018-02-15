@@ -201,6 +201,7 @@ import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
+import eu.transkribus.swt_gui.search.SearchDialog.SearchType;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
@@ -4813,7 +4814,7 @@ public class TrpMainWidget {
 		}
 		
 		openSearchDialog();
-		getSearchDialog().getTabFolder().setSelection(getSearchDialog().getTagsItem());
+		getSearchDialog().selectTab(SearchType.TAGS);
 	}
 	
 	public void searchCurrentDoc(){		
@@ -4822,8 +4823,8 @@ public class TrpMainWidget {
 			return;
 		}
 		
-		openSearchDialog();		
-		getSearchDialog().getTabFolder().setSelection(getSearchDialog().getFulltextTabItem());		
+		openSearchDialog();
+		getSearchDialog().selectTab(SearchType.FULLTEXT);
 		
 		FullTextSearchComposite ftComp = getSearchDialog().getFulltextComposite();		
 		ftComp.searchCurrentDoc(true);							

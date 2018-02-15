@@ -599,7 +599,7 @@ public class TagSpecsWidget extends Composite {
 			else {
 				headerLbl.setText("All Tags");
 				List<CustomTagSpec> allTagsSpecs = new ArrayList<>();
-				for (CustomTag t : CustomTagFactory.getRegisteredTagObjectsSorted()) {
+				for (CustomTag t : CustomTagFactory.getRegisteredTagObjectsSortedByName(true)) {
 					if (!t.showInTagWidget() || t.getTagName().equals(TextStyleTag.TAG_NAME)) { // exclude TextStyle tag
 						continue;
 					}
