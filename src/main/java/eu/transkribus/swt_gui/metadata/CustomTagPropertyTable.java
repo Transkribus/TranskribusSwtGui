@@ -199,7 +199,10 @@ public class CustomTagPropertyTable extends Composite {
 				Class<?> t = selectedTag.getAttributeType(attName);
 				
 				logger.debug("cell editor, att = "+attName+" type = "+t);
-				if (t.equals(Boolean.class) || t.equals(boolean.class)) {
+				if (t==null) {
+					e = new MyTextCellEditor(table);
+				}
+				else if (t.equals(Boolean.class) || t.equals(boolean.class)) {
 					e = new MyCheckboxEditor(table);
 				}
 				// FIXME: true for every class???
@@ -213,20 +216,20 @@ public class CustomTagPropertyTable extends Composite {
 				else {
 					e = new MyTextCellEditor(table);
 				}
+				
 				ICellEditorValidator v = SWTUtil.createNumberCellValidator(t);
-				if (v != null)
+				if (v != null) {
 					e.setValidator(v);
+				}
 				
 				e.addListener(new ICellEditorListener() {
 					
 					@Override
 					public void editorValueChanged(boolean arg0, boolean arg1) {
-						logger.trace("VALUE OF EDITOR CHANGED!!");						
 					}
 					
 					@Override
 					public void cancelEditor() {
-						logger.trace("EDITOR CANCELED!!");
 					}
 					
 					@Override

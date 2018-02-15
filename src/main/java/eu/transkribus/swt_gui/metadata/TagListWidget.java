@@ -143,7 +143,7 @@ public class TagListWidget extends Composite {
 						return t.getContainedText();
 					}
 					else if (cn.equals(PROPERTIES_COL)) {
-						return t.getAttributesCssStrWoOffsetAndLength();
+						return t.getAttributesCssStrWoOffsetAndLength(true);
 					}
 					
 					return "";
