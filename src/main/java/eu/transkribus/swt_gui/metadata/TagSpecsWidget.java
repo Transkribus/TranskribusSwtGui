@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.metadata;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -140,7 +141,6 @@ public class TagSpecsWidget extends Composite {
 				}
 				
 				CustomTagSpec tagDef = (CustomTagSpec) element;
-				
 				String tagDefStr = tagDef.getCustomTag().getCssStr();
 				return tagDefStr.replaceAll("\\{\\}", "").trim(); // remove empty properties braces {} 
 			}
@@ -605,6 +605,18 @@ public class TagSpecsWidget extends Composite {
 					}
 					
 					CustomTag tc = t.copy(); // to be sure not to overwrite existing objects
+					// clear attributes from the list of all tags
+					tc.setOffset(-1);
+					tc.setLength(-1);
+					tc.setContinued(false);
+//					for (String an : tc.getAttributeNames()) {
+//						try {
+//							tc.setAttribute(an, null, false);
+//						} catch (IOException e) {
+//							// silently ignore exceptions
+//						}
+//					}
+					
 					CustomTagSpec ts = new CustomTagSpec(tc);
 					allTagsSpecs.add(ts);
 				}
