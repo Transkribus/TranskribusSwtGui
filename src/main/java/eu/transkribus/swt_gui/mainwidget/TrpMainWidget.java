@@ -1224,7 +1224,9 @@ public class TrpMainWidget {
 			
 //			DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "Saved document metadata!", "Success", 2, true);
 		} catch (Exception e) {
-			onError("Error saving doc-metadata", e.getMessage(), e, true, true);
+			Display.getDefault().asyncExec(() -> {
+				onError("Error saving doc-metadata", e.getMessage(), e, true, true);	
+			});
 		}
 	}
 
