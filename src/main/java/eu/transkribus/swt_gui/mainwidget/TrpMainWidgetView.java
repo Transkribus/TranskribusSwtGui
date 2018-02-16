@@ -807,7 +807,13 @@ public class TrpMainWidgetView extends Composite {
 		
 	public void updateLoginInfo(boolean loggedIn, String username, String server) {
 		if (loggedIn) {
-			serverWidget.getLoginBtn().setText("Logout "+username);
+			final String suffix;
+			if(server.contains("Testing")) {
+				suffix = " (TEST SERVER)";
+			} else {
+				suffix = "";
+			}
+			serverWidget.getLoginBtn().setText("Logout " + username + suffix);
 			serverWidget.getLoginBtn().setImage(Images.CONNECT);
 			serverWidget.getLoginBtn().setToolTipText("Server: "+server);
 		} else {
