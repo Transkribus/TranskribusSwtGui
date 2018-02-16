@@ -606,9 +606,9 @@ public class TagSpecsWidget extends Composite {
 					
 					CustomTag tc = t.copy(); // to be sure not to overwrite existing objects
 					// clear attributes from the list of all tags
-					tc.setOffset(-1);
-					tc.setLength(-1);
-					tc.setContinued(false);
+//					tc.setOffset(-1);
+//					tc.setLength(-1);
+//					tc.setContinued(false);
 //					for (String an : tc.getAttributeNames()) {
 //						try {
 //							tc.setAttribute(an, null, false);

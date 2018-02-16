@@ -420,8 +420,9 @@ public class TrpMainWidget {
 
 		// init predifined tags:
 		String tagNamesProp = TrpConfig.getTrpSettings().getTagNames();
-		if (tagNamesProp != null)
-			CustomTagFactory.addCustomDefinedTagsToRegistry(tagNamesProp);
+		if (tagNamesProp != null) {
+			CustomTagFactory.addLocalUserDefinedTagsToRegistry(tagNamesProp);
+		}
 
 		// check for updates:
 		if (getTrpSets().isCheckForUpdates()) {

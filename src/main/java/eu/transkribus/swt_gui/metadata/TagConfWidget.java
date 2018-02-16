@@ -540,7 +540,7 @@ public class TagConfWidget extends Composite {
 	}
 	
 	private void saveTagDefs() {
-		String tagNamesProp = CustomTagFactory.constructTagDefPropertyForConfigFile();
+		String tagNamesProp = CustomTagFactory.createTagDefPropertyForConfigFile();
 		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
 		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
 	}
