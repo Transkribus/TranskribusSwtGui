@@ -19,7 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.program_updater.ProgramPackageFile;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -42,6 +44,7 @@ public class InstallSpecificVersionDialog extends Dialog {
 	boolean isDownloadAll=false;
 	
 	Label timestampRelease, timestampSnapshots;
+	Label infoLabel;
 	
 	/**
 	 * Create the dialog.
@@ -111,8 +114,23 @@ public class InstallSpecificVersionDialog extends Dialog {
 		timestampSnapshots = new Label(shell, SWT.NONE);
 		timestampSnapshots.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));		
 		
-		Label label = new Label(shell, SWT.NONE);
-		label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, nCols, 1));
+		infoLabel = new Label(shell, SWT.NONE);
+		infoLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
+		infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
+		
+		SelectionListener updateInfoListener = new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				infoLabel.setText("");
+				if (snapshotsRadio.getSelection()) {
+					infoLabel.setText("Warning: snapshot versions are experimental");
+					infoLabel.pack();
+				}
+			}
+		};
+		
+		releasesRadio.addSelectionListener(updateInfoListener);
+		snapshotsRadio.addSelectionListener(updateInfoListener);
 		
 //		 updates the application with the new version keeping your customized configuration files";
 //			msg += "\n Replace: updates the application and overwrites all configuration files";
