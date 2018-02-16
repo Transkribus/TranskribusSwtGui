@@ -56,7 +56,6 @@ import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructuralMetadataWidget;
 import eu.transkribus.swt_gui.metadata.TaggingWidget;
-import eu.transkribus.swt_gui.metadata.TaggingWidgetOld;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidget;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget;
 import eu.transkribus.swt_gui.tools.ToolsWidget;
@@ -808,7 +807,13 @@ public class TrpMainWidgetView extends Composite {
 		
 	public void updateLoginInfo(boolean loggedIn, String username, String server) {
 		if (loggedIn) {
-			serverWidget.getLoginBtn().setText("Logout "+username);
+			final String suffix;
+			if(server.contains("Testing")) {
+				suffix = " (TEST SERVER)";
+			} else {
+				suffix = "";
+			}
+			serverWidget.getLoginBtn().setText("Logout " + username + suffix);
 			serverWidget.getLoginBtn().setImage(Images.CONNECT);
 			serverWidget.getLoginBtn().setToolTipText("Server: "+server);
 		} else {
