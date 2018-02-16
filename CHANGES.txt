@@ -524,7 +524,7 @@ CHANGES AND BUGFIXES
 	-> fix NPE in Text2Image
 	-> add "value" column in tag search&replace
 
-1.3.8:
+1.4.0:
 	-> add BIDI support in transcription widget
 	-> adapted PDF export
 	-> adapted tag search and replace
@@ -535,4 +535,5 @@ CHANGES AND BUGFIXES
 	-> add search for documents by collection ID
 	-> remove outdated TipsOfTheDay 
 	-> add direct link to Transkribus HowTo guides
+	-> change text based tagging system
 	
