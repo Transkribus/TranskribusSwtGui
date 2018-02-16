@@ -9,15 +9,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -43,13 +44,15 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
+import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class TagListWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagListWidget.class);
 	
 	MyTableViewer tv;
-//	TreeViewer treeViewer;
 	
 	Map<CustomTag, ControlEditor> delSelectedEditors = new HashMap<>();
 	Button clearTagsBtn;
@@ -80,16 +83,12 @@ public class TagListWidget extends Composite {
 	};
 	
 	static Storage store = Storage.getInstance();
-
+	
+	private boolean disableTagUpdate=false;
+	
 	public TagListWidget(Composite parent, int style) {
 		super(parent, style);
-//		setLayout(new FillLayout());
 		setLayout(new GridLayout(1, false));
-		
-//		Composite container = new Composite(this, 0);
-//		container.setLayout(new GridLayout(1, false));
-//		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
-//		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		Composite container = this;
 		
@@ -102,7 +101,8 @@ public class TagListWidget extends Composite {
 		initTable(container);
 
 		store.addListener(new IStorageListener() {
-			 public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+			 public void handleTranscriptSaveEvent(TranscriptSaveEvent tse) {
+				 logger.debug("refreshing tags for TagListWidget");
 				 refreshTable();
 			 }
 		});
@@ -143,7 +143,7 @@ public class TagListWidget extends Composite {
 						return t.getContainedText();
 					}
 					else if (cn.equals(PROPERTIES_COL)) {
-						return t.getAttributesCssStrWoOffsetAndLength();
+						return t.getAttributesCssStrWoOffsetAndLength(true);
 					}
 					
 					return "";
@@ -187,19 +187,31 @@ public class TagListWidget extends Composite {
 			}
 		});
 		
-		tv.addSelectionChangedListener(new ISelectionChangedListener() {
-			@Override public void selectionChanged(SelectionChangedEvent event) {
+		tv.getTable().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+//				if (disableTagUpdate) {
+//					return;
+//				}
+				TrpMainWidget mw = TrpMainWidget.getInstance();
+				if (mw == null) {
+					return;
+				}				
+				
+				disableTagUpdate = true;
 				List<CustomTag> selected = getSelectedTags();
 				if (selected.size()==1) {
-					TrpMainWidget mw = TrpMainWidget.getInstance();
-					if (mw == null) {
-						return;
-					}
-					
 					CustomTag tag = selected.get(0);
 					mw.showLocation(new TrpLocation(tag));
-					mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag);
+					mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag, false);
 				}
+				disableTagUpdate = false;
+			}
+		});
+		
+		Storage.getInstance().addListener(new IStorageListener() {
+			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+				refreshTable();
 			}
 		});
 	}
@@ -288,11 +300,12 @@ public class TagListWidget extends Composite {
 //		return (CustomTag) ((IStructuredSelection) tv.getSelection()).getFirstElement();
 	}
 
-	public void updateSelectedTag(ATranscriptionWidget tWidget) {
-//		tWidget.getTag
-//		asdfasdfasdf
+	public void updateSelectedTag(List<CustomTag> tags) {
+		if (disableTagUpdate) {
+			return;
+		}	
+		
+		tv.setSelection(new StructuredSelection(tags), true);
 	}
-	
-	
 
 }

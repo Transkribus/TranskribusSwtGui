@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.metadata;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -73,18 +74,17 @@ public class TranscriptionTaggingWidget extends Composite {
 		SWTUtil.setBoldFontForSelectedCTabItem(tabFolder);
 	}
 		
-	public void updateSelectedTag(ATranscriptionWidget tWidget) {
+	public void updateSelectedTag(List<CustomTag> tags) {
+		if (tags == null || tags.isEmpty()) {
+			return;
+		}
+		
 		if (isTagPropertyEditorSelected()) {
 			if (tagPropEditor.isSettingCustomTag()) { // if currently setting a custom tag in the property editor, ignore selection changed events from transcription widget!
 				return;
 			}
 			
-			List<CustomTag> tags = tWidget.getCustomTagsForCurrentOffset();
-			if (tags.isEmpty()) {
-				return;
-			}
-			
-			tagPropEditor.setCustomTag(tags.get(0));
+			tagPropEditor.setCustomTag(tags.get(0), false);
 		}
 	}
 	

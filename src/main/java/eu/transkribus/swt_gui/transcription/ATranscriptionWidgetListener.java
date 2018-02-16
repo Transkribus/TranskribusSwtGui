@@ -121,7 +121,9 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 
 	protected abstract void handleTextModified(Event event);
 
-	protected abstract void handleDefaultSelectionChanged(Event event);
+	protected void handleDefaultSelectionChanged(Event event) {
+		mainWidget.getUi().getTaggingWidget().updateSelectedTag(transcriptionWidget.getCustomTagsForCurrentOffset());
+	}
 
 	protected abstract void handleSelectionChanged(Event event);
 

@@ -8,6 +8,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -95,6 +97,16 @@ public class TaggingWidget extends Composite {
 			}
 		});
 		
+		transcriptionTaggingWidget.getTabFolder().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// on change to "Properties" tab: select tag that is selected in the TagListWidget
+				if (transcriptionTaggingWidget.isTagPropertyEditorSelected()) {
+					transcriptionTaggingWidget.updateSelectedTag(tagListWidget.getSelectedTags());
+				}
+			}
+		});
+		
 		applyPropertiesToAllSelectedBtn = new Button(transcriptionTaggingWidget.getTagPropertyEditor().getBtnsComposite(), 0);
 		applyPropertiesToAllSelectedBtn.setText("Apply to selected");
 		applyPropertiesToAllSelectedBtn.setToolTipText("Applies the property values to the selected tags of the same type");
@@ -124,7 +136,7 @@ public class TaggingWidget extends Composite {
 		
 		transcriptionTaggingWidget.getTagPropertyEditor().propsTable.addListener(new ICustomTagPropertyTableListener() {
 			@Override
-			public void onPropertyChanged(CustomTagAttribute property) {
+			public void onPropertyChanged(String property, Object value) {
 				tagListWidget.refreshTable();
 			}
 		});
@@ -136,11 +148,11 @@ public class TaggingWidget extends Composite {
 		updateBtns();
 	}
 	
-	public void updateSelectedTag(ATranscriptionWidget tWidget) {
-		tagListWidget.updateSelectedTag(tWidget);
+	public void updateSelectedTag(List<CustomTag> tags) {
+		tagListWidget.updateSelectedTag(tags);
 		
 		if (TrpMainWidget.getInstance().getUi().getTabWidget().isTextTaggingItemSeleced() && TrpConfig.getTrpSettings().isShowTextTagEditor()) {
-			transcriptionTaggingWidget.updateSelectedTag(tWidget);
+			transcriptionTaggingWidget.updateSelectedTag(tags);
 		}
 	}
 	
@@ -169,7 +181,7 @@ public class TaggingWidget extends Composite {
 				transcriptionTaggingWidgetShell.dispose();
 			}
 			
-			verticalSf.setWeights(new int[] { 77, 33 });
+			verticalSf.setWeights(new int[] { 60, 40 });
 			if (true) // false -> show editor always
 			if (visibility<=0) {
 				verticalSf.setMaximizedControl(tagListWidget);

@@ -15,7 +15,8 @@
 <entry key="Latin-1 Extended-A.">0100-017F</entry>
 <entry key="Latin-1 Extended-B.">0180-024F</entry>
 <entry key="Latin-1 Extended-D.">A720-A7FF</entry>
-<entry key="Hebrew">U+0590-U+05ff U+fb1d-U+fb4f</entry>
+<entry key="Hebrew">U+0590-U+05ff FB10-FB4F</entry>
+<entry key="Arabic">U+0600-06FF</entry>
 <entry key="General Punctuation">2000-206F</entry>
 <entry key="X_Astronomical Symbols">U+263D-2653</entry>
 <entry key="X_Alchemical Symbols">U+1F700-1F77F</entry>

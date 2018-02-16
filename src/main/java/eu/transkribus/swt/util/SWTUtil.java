@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 import java.util.Timer;
@@ -220,6 +221,24 @@ public class SWTUtil {
 		return d != null && d.getShell() != null && !d.getShell().isDisposed();
 	}
 	
+	public static void deleteMenuItems(Menu menu, MenuItem... excludedItems) {
+		if (SWTUtil.isDisposed(menu)) {
+			return;
+		}
+		
+		List<MenuItem> excludedList = Arrays.asList(excludedItems);
+		
+		for (MenuItem mi : menu.getItems()) {
+			if (excludedList.contains(mi)) {
+				continue;
+			}
+			
+			if (!SWTUtil.isDisposed(mi)) {
+				mi.dispose();
+			}
+		}
+	}
+	
 	
 	public static void mask(final Composite c) {
 		
@@ -397,7 +416,10 @@ public class SWTUtil {
 	
 	public static ICellEditorValidator createNumberCellValidator(Class<?> t) {
 		ICellEditorValidator v = null;
-		if (t.equals(Float.class) || t.equals(float.class)) {
+		if (t == null) {
+			return null;
+		}
+		else if (t.equals(Float.class) || t.equals(float.class)) {
 			v = new ICellEditorValidator() {
 				@Override public String isValid(Object value) {
 					try {

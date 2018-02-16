@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.metadata;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
@@ -38,7 +39,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.slf4j.Logger;
@@ -54,14 +54,12 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TagConfWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagConfWidget.class);
 	
-	Set<String> availableTagNames = new TreeSet<>();
-	
+	Set<String> availableTagNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 	TableViewer availableTagsTv;
 	SashForm availableTagsSf;
 	CustomTagPropertyTable propsTable;
@@ -498,7 +496,7 @@ public class TagConfWidget extends Composite {
 	private void updatePropertiesForSelectedTag() {
 		String tn = getSelectedAvailableTagsName();
 		if (tn == null) {
-			propsTable.setInput(null, null);
+			propsTable.setInput(null);
 			propsTable.update();
 			return;
 		}
@@ -515,7 +513,7 @@ public class TagConfWidget extends Composite {
 			logger.debug("protoTag copy: "+protoTag);
 			logger.debug("protoTag atts: "+protoTag.getAttributeNames());
 			
-			propsTable.setInput(protoTag, null);
+			propsTable.setInput(protoTag);
 			propsTable.selectFirstAttribute();
 			
 			// set color label:
@@ -533,9 +531,9 @@ public class TagConfWidget extends Composite {
 	
 	public Map<String, Object> getCurrentAttributes() {
 		Map<String, Object> props = new HashMap<>();
-		CustomTag pt = propsTable.getPrototypeTag();
-		if (pt != null) {
-			return pt.getAttributeNamesValuesMap();
+		CustomTag st = propsTable.getSelectedTag();
+		if (st != null) {
+			return st.getAttributeNamesValuesMap();
 		}
 	
 		return props;

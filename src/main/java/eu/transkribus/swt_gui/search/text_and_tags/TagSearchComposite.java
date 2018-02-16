@@ -449,7 +449,7 @@ public class TagSearchComposite extends Composite {
 					else if (cn.equals(PROPERTIES_COL)) {
 						CustomTag ct = CustomTagUtil.parseSingleCustomTag2(t.getCustomTagCss());
 						if (ct != null) {
-							return ct.getAttributesCssStrWoOffsetAndLength();
+							return ct.getAttributesCssStrWoOffsetAndLength(true);
 						}
 						else { // should not happen...
 							return t.getCustomTagCss();

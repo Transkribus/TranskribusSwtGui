@@ -15,7 +15,6 @@ import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.batik.gvt.event.SelectionListener;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -115,7 +114,6 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
-import eu.transkribus.swt_gui.metadata.TaggingWidgetOld;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.EditType;
 import eu.transkribus.swt_gui.transcription.WordGraphEditor.WordGraphEditData;
 import eu.transkribus.swt_gui.transcription.autocomplete.StyledTextContentAdapter;
@@ -209,6 +207,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected Point contextMenuPoint=null;
 	protected Menu contextMenu = null;
 	protected MenuItem deleteTagMenuItem;
+	protected Menu deleteTagMenu;
 	protected MenuItem addCommentTagMenuItem;
 	
 	protected UndoRedoImpl undoRedo;
@@ -1519,7 +1518,11 @@ public abstract class ATranscriptionWidget extends Composite{
 				// 2: draw them bloody bounds:
 //				e.gc.setLineStyle(tag.isContinued() ? SWT.LINE_DASH : SWT.LINE_SOLID);
 				e.gc.setLineWidth(TAG_LINE_WIDTH);
-				Color c = TaggingWidgetOld.getTagColor(tagName);
+				Color c = Colors.decode2(CustomTagFactory.getTagColor(tagName));
+				if (c == null) {
+					c = Colors.getSystemColor(SWT.COLOR_GRAY); // default tag color
+				}
+				
 				e.gc.setForeground(c);
 				e.gc.setBackground(c);				
 				
@@ -1713,23 +1716,29 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void initContextMenu() {
 		contextMenu = new Menu(text);
 		
+		deleteTagMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+		deleteTagMenuItem.setImage(Images.DELETE);
+		deleteTagMenuItem.setText("Delete...");
+		deleteTagMenu = new Menu(deleteTagMenuItem);
+		deleteTagMenuItem.setMenu(deleteTagMenu);
+		
+		addCommentTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
+		addCommentTagMenuItem.setText("Add a comment");
+		SWTUtil.onSelectionEvent(addCommentTagMenuItem, e -> {
+			TrpMainWidget.getInstance().addCommentForSelection(null);
+		});		
+		
 		contextMenu.addMenuListener(new MenuListener() {
 			void deleteDynamicMenuItems() {
-				for (MenuItem mi : contextMenu.getItems()) {
-					if (mi == deleteTagMenuItem || mi == addCommentTagMenuItem) {
-						continue;
-					}
-					
-					if (!SWTUtil.isDisposed(mi)) {
-						mi.dispose();
-					}
-				}
+				SWTUtil.deleteMenuItems(contextMenu, deleteTagMenuItem, addCommentTagMenuItem);
+				SWTUtil.deleteMenuItems(deleteTagMenu);
 			}
 			
 			@Override
 			public void menuShown(MenuEvent e) {
 				deleteDynamicMenuItems();
 				createCustomTagSpecsMenuItems(contextMenu);
+				createDeleteTagsMenuItems(deleteTagMenu);
 			}
 			
 			@Override
@@ -1737,21 +1746,6 @@ public abstract class ATranscriptionWidget extends Composite{
 //				deleteDynamicMenuItems();
 			}
 		});
-		
-		deleteTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
-		deleteTagMenuItem.setImage(Images.DELETE);
-		deleteTagMenuItem.setText("Delete tag(s) for selection");
-		SWTUtil.onSelectionEvent(deleteTagMenuItem, e -> {
-	    	TrpMainWidget.getInstance().deleteTagsForCurrentSelection();
-		});
-		
-		addCommentTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
-		addCommentTagMenuItem.setText("Add a comment");
-		SWTUtil.onSelectionEvent(addCommentTagMenuItem, e -> {
-			TrpMainWidget.getInstance().addCommentForSelection(null);
-		});
-		
-//		addTagItems();
 		
 		// used to store location of right-click of menu:
 		text.addMouseListener(new MouseAdapter() {
@@ -1764,6 +1758,26 @@ public abstract class ATranscriptionWidget extends Composite{
 		});
 		
 		text.setMenu(contextMenu);	
+	}
+	
+	private List<MenuItem> createDeleteTagsMenuItems(Menu menu) {
+		List<MenuItem> items = new ArrayList<>();
+		MenuItem deleteTagsForCurrentSelection = new MenuItem(menu, 0);
+		deleteTagsForCurrentSelection.setText("Tags for current selection");
+		SWTUtil.onSelectionEvent(deleteTagsForCurrentSelection, e -> {
+			TrpMainWidget.getInstance().deleteTagsForCurrentSelection();
+		});
+		
+		for (CustomTag t : getCustomTagsForCurrentOffset()) {
+			MenuItem deleteTagItem = new MenuItem(menu, 0);
+			deleteTagItem.setData(t);
+			deleteTagItem.setText(t.getCssStr());
+			SWTUtil.onSelectionEvent(deleteTagItem, e -> {
+				TrpMainWidget.getInstance().deleteTags((CustomTag) deleteTagItem.getData());
+			});
+		}
+		
+		return items;
 	}
 	
 	private List<MenuItem> createCustomTagSpecsMenuItems(Menu menu) {

@@ -10,10 +10,12 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
@@ -24,7 +26,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
-import junit.framework.Assert;
+import eu.transkribus.swt_gui.util.DropDownButton;
 
 public class TagPropertyEditor extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagPropertyEditor.class);
@@ -32,11 +34,14 @@ public class TagPropertyEditor extends Composite {
 	CustomTagPropertyTable propsTable;
 	CustomTag tag;
 	
+	Composite headerComp;
 	Label tagInfo;
 	
 	Composite btnsComposite;
 	Button nextBtn, prevBtn, refreshBtn;
 //	ATranscriptionWidget tWidget;
+	
+	MenuItem autoSelectTagInTranscriptionWidgetItem;
 	
 	boolean settingCustomTag=false;
 	
@@ -54,10 +59,18 @@ public class TagPropertyEditor extends Composite {
 			Fonts.setBoldFont(header);
 		}
 		
-		tagInfo = new Label(this, 0);
-		tagInfo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		headerComp = new Composite(this, 0);
+		headerComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		headerComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		
+		tagInfo = new Label(headerComp, 0);
+		tagInfo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		tagInfo.setText("");
 		Fonts.setBoldFont(tagInfo);
+		
+		DropDownButton prefsBtn = new DropDownButton(headerComp, 0, "", Images.WRENCH, null);
+		autoSelectTagInTranscriptionWidgetItem = prefsBtn.addItem("Auto select tag in transcription widget", null, SWT.CHECK);
+		autoSelectTagInTranscriptionWidgetItem.setSelection(false);
 		
 		propsTable = new CustomTagPropertyTable(this, 0, false);
 		propsTable.getTableViewer().getTable().setHeaderVisible(false);
@@ -106,14 +119,14 @@ public class TagPropertyEditor extends Composite {
 			}
 		});
 		
-		setCustomTag(null);
+		setCustomTag(null, false);
 	}
 	
 	public Composite getBtnsComposite() {
 		return btnsComposite;
 	}
 	
-	public void setCustomTag(CustomTag tag) {
+	public void setCustomTag(CustomTag tag, boolean selectFirstAttribute) {
 		ATranscriptionWidget tWidget = getCurrentTranscriptionWidget();
 		if (tWidget == null) {
 			return;
@@ -121,29 +134,30 @@ public class TagPropertyEditor extends Composite {
 		
 		settingCustomTag = true;
 		this.tag = tag;
-		
+
 		if (this.tag != null) {
 			tagInfo.setText("tag: '"+tag.getTagName()+"'  -  value: '"+tag.getContainedText()+"'");
-			
-			CustomTag protoTag = tag.copy();
-			propsTable.setInput(protoTag, this.tag);
+			propsTable.setInput(this.tag);
 
 			// select tag in widget:
 			if (this.tag.getCustomTagList() != null) {
 				// select shape first if not yet done:
 				ITrpShapeType shape = this.tag.getCustomTagList().getShape();
-//				if (shape != tWidget.getTranscriptionUnit()) {
-					TrpMainWidget.getInstance().selectObjectWithData(shape, true, false);
-//				}
-				
-				tWidget.selectCustomTag(tag);
+				TrpMainWidget.getInstance().selectObjectWithData(shape, true, false);
+
+				// TODO: introduce flag
+				if (autoSelectTagInTranscriptionWidgetItem.getSelection()) {
+					tWidget.selectCustomTag(tag);
+				}
 			}
 		} else {
 			tagInfo.setText("");
-			propsTable.setInput(null, null);
+			propsTable.setInput(null);
 		}
 		
-		propsTable.selectFirstAttribute();
+		if (selectFirstAttribute) {
+			propsTable.selectFirstAttribute();
+		}
 		settingCustomTag = false;
 	}
 	
@@ -171,7 +185,7 @@ public class TagPropertyEditor extends Composite {
 		}
 		
 		if (!tagsForOffset.isEmpty()) {
-			setCustomTag(tagsForOffset.get(0));
+			setCustomTag(tagsForOffset.get(0), true);
 		}
 	}
 	
@@ -203,7 +217,7 @@ public class TagPropertyEditor extends Composite {
 		}
 				
 		if (neighborTag != null) {
-			setCustomTag(neighborTag);
+			setCustomTag(neighborTag, true);
 		}
 	}
 	
