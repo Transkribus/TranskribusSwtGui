@@ -416,7 +416,10 @@ public class SWTUtil {
 	
 	public static ICellEditorValidator createNumberCellValidator(Class<?> t) {
 		ICellEditorValidator v = null;
-		if (t.equals(Float.class) || t.equals(float.class)) {
+		if (t == null) {
+			return null;
+		}
+		else if (t.equals(Float.class) || t.equals(float.class)) {
 			v = new ICellEditorValidator() {
 				@Override public String isValid(Object value) {
 					try {

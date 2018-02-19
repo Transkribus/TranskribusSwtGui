@@ -44,6 +44,8 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.util.DelayedTask;
 
@@ -99,7 +101,8 @@ public class TagListWidget extends Composite {
 		initTable(container);
 
 		store.addListener(new IStorageListener() {
-			 public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+			 public void handleTranscriptSaveEvent(TranscriptSaveEvent tse) {
+				 logger.debug("refreshing tags for TagListWidget");
 				 refreshTable();
 			 }
 		});
@@ -140,7 +143,7 @@ public class TagListWidget extends Composite {
 						return t.getContainedText();
 					}
 					else if (cn.equals(PROPERTIES_COL)) {
-						return t.getAttributesCssStrWoOffsetAndLength();
+						return t.getAttributesCssStrWoOffsetAndLength(true);
 					}
 					
 					return "";
@@ -203,6 +206,12 @@ public class TagListWidget extends Composite {
 					mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag, false);
 				}
 				disableTagUpdate = false;
+			}
+		});
+		
+		Storage.getInstance().addListener(new IStorageListener() {
+			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+				refreshTable();
 			}
 		});
 	}

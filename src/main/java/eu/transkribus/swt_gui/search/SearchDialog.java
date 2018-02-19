@@ -40,6 +40,11 @@ public class SearchDialog extends Dialog {
 	
 	CTabFolder tabFolder;
 	CTabItem docSearchTabItem, oldKwsTabItem, tagsItem, fullTextSearchItem, kwsTabItem;
+	
+	
+	public enum SearchType { 
+		DOC, OLD_KWS, TAGS, FULLTEXT, KWS
+	}
 
 
 	/**
@@ -114,7 +119,7 @@ public class SearchDialog extends Dialog {
 		return c;
 	}
 	
-	private void updateTabItemStyles() {
+	public void updateTabItemStyles() {
 		SWTUtil.setBoldFontForSelectedCTabItem(tabFolder);
 	}
 	
@@ -132,6 +137,27 @@ public class SearchDialog extends Dialog {
 		}
 		return showKws;
 	}
+	
+	public void selectTab(SearchType type) {
+		if (type == SearchType.DOC) {
+			tabFolder.setSelection(docSearchTabItem);
+		}
+		else if (type == SearchType.OLD_KWS) {
+			tabFolder.setSelection(oldKwsTabItem);
+		}
+		else if (type == SearchType.TAGS) {
+			tabFolder.setSelection(tagsItem);
+		}
+		else if (type == SearchType.FULLTEXT) {
+			tabFolder.setSelection(fullTextSearchItem);
+		}
+		else if (type == SearchType.KWS) {
+			tabFolder.setSelection(kwsTabItem);
+		}
+		
+		updateTabItemStyles();
+	}
+	
 	
 	public CTabFolder getTabFolder(){
 		return tabFolder;

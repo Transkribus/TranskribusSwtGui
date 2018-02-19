@@ -201,6 +201,7 @@ import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
+import eu.transkribus.swt_gui.search.SearchDialog.SearchType;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
@@ -419,8 +420,9 @@ public class TrpMainWidget {
 
 		// init predifined tags:
 		String tagNamesProp = TrpConfig.getTrpSettings().getTagNames();
-		if (tagNamesProp != null)
-			CustomTagFactory.addCustomDefinedTagsToRegistry(tagNamesProp);
+		if (tagNamesProp != null) {
+			CustomTagFactory.addLocalUserDefinedTagsToRegistry(tagNamesProp);
+		}
 
 		// check for updates:
 		if (getTrpSets().isCheckForUpdates()) {
@@ -1223,7 +1225,9 @@ public class TrpMainWidget {
 			
 //			DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "Saved document metadata!", "Success", 2, true);
 		} catch (Exception e) {
-			onError("Error saving doc-metadata", e.getMessage(), e, true, true);
+			Display.getDefault().asyncExec(() -> {
+				onError("Error saving doc-metadata", e.getMessage(), e, true, true);	
+			});
 		}
 	}
 
@@ -4813,7 +4817,7 @@ public class TrpMainWidget {
 		}
 		
 		openSearchDialog();
-		getSearchDialog().getTabFolder().setSelection(getSearchDialog().getTagsItem());
+		getSearchDialog().selectTab(SearchType.TAGS);
 	}
 	
 	public void searchCurrentDoc(){		
@@ -4822,8 +4826,8 @@ public class TrpMainWidget {
 			return;
 		}
 		
-		openSearchDialog();		
-		getSearchDialog().getTabFolder().setSelection(getSearchDialog().getFulltextTabItem());		
+		openSearchDialog();
+		getSearchDialog().selectTab(SearchType.FULLTEXT);
 		
 		FullTextSearchComposite ftComp = getSearchDialog().getFulltextComposite();		
 		ftComp.searchCurrentDoc(true);							

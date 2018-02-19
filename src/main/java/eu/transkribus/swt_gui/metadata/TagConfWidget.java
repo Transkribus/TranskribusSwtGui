@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.metadata;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
@@ -38,7 +39,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.slf4j.Logger;
@@ -54,14 +54,12 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TagConfWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagConfWidget.class);
 	
-	Set<String> availableTagNames = new TreeSet<>();
-	
+	Set<String> availableTagNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 	TableViewer availableTagsTv;
 	SashForm availableTagsSf;
 	CustomTagPropertyTable propsTable;
@@ -542,7 +540,7 @@ public class TagConfWidget extends Composite {
 	}
 	
 	private void saveTagDefs() {
-		String tagNamesProp = CustomTagFactory.constructTagDefPropertyForConfigFile();
+		String tagNamesProp = CustomTagFactory.createTagDefPropertyForConfigFile();
 		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
 		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
 	}
