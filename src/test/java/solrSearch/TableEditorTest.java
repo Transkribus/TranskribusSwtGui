@@ -70,38 +70,38 @@ public class TableEditorTest {
 
 
 
-        column = new TableColumn(viewer.getTable(), SWT.NONE);
-        column.setText("Actions");
-        column.setWidth(100);
-        TableViewerColumn actionsNameCol = new TableViewerColumn(viewer, column);
-        actionsNameCol.setLabelProvider(new ColumnLabelProvider(){
-            //make sure you dispose these buttons when viewer input changes
-            Map<Object, Button> buttons = new HashMap<Object, Button>();
-
-
-            @Override
-            public void update(ViewerCell cell) {
-
-                TableItem item = (TableItem) cell.getItem();
-                Button button;
-                if(buttons.containsKey(cell.getElement()))
-                {
-                    button = buttons.get(cell.getElement());
-                }
-                else
-                {
-                     button = new Button((Composite) cell.getViewerRow().getControl(),SWT.NONE);
-                    button.setText("Remove");
-                    buttons.put(cell.getElement(), button);
-                }
-                TableEditor editor = new TableEditor(item.getParent());
-                editor.grabHorizontal  = true;
-                editor.grabVertical = true;
-                editor.setEditor(button , item, cell.getColumnIndex());
-                editor.layout();
-            }
-
-        });
+//        column = new TableColumn(viewer.getTable(), SWT.NONE);
+//        column.setText("Actions");
+//        column.setWidth(100);
+//        TableViewerColumn actionsNameCol = new TableViewerColumn(viewer, column);
+//        actionsNameCol.setLabelProvider(new ColumnLabelProvider(){
+//            //make sure you dispose these buttons when viewer input changes
+//            Map<Object, Button> buttons = new HashMap<Object, Button>();
+//
+//
+//            @Override
+//            public void update(ViewerCell cell) {
+//
+//                TableItem item = (TableItem) cell.getItem();
+//                Button button;
+//                if(buttons.containsKey(cell.getElement()))
+//                {
+//                    button = buttons.get(cell.getElement());
+//                }
+//                else
+//                {
+//                     button = new Button((Composite) cell.getViewerRow().getControl(),SWT.NONE);
+//                    button.setText("Remove");
+//                    buttons.put(cell.getElement(), button);
+//                }
+//                TableEditor editor = new TableEditor(item.getParent());
+//                editor.grabHorizontal  = true;
+//                editor.grabVertical = true;
+//                editor.setEditor(button , item, cell.getColumnIndex());
+//                editor.layout();
+//            }
+//
+//        });
 
 
 

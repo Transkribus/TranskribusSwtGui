@@ -24,6 +24,7 @@ import eu.transkribus.swt_gui.search.documents.DocSearchComposite;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.search.kws.KeywordSpottingComposite;
 import eu.transkribus.swt_gui.search.kws.OldKeywordSpottingComposite;
+import eu.transkribus.swt_gui.search.kws_solr.KWSearchComposite;
 import eu.transkribus.swt_gui.search.text_and_tags.TagSearchComposite;
 
 public class SearchDialog extends Dialog {
@@ -33,13 +34,14 @@ public class SearchDialog extends Dialog {
 	OldKeywordSpottingComposite oldKwsComposite;
 	FullTextSearchComposite fullTextSearchComposite;
 	KeywordSpottingComposite kwsComposite;
+	KWSearchComposite kwSolrSearchComposite;
 	
 
 	LabeledText kwsDocId;
 	LabeledCombo kwsCollection;
 	
 	CTabFolder tabFolder;
-	CTabItem docSearchTabItem, oldKwsTabItem, tagsItem, fullTextSearchItem, kwsTabItem;
+	CTabItem docSearchTabItem, oldKwsTabItem, tagsItem, fullTextSearchItem, kwsTabItem, kwSolrSearchItem;
 	
 	
 	public enum SearchType { 
@@ -111,6 +113,11 @@ public class SearchDialog extends Dialog {
 			kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
 		}
 		
+		if(Storage.getInstance().getUser().isAdmin()){
+			kwSolrSearchComposite = new KWSearchComposite(tabFolder,0);
+			kwSolrSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+			kwSolrSearchItem = createCTabItem(tabFolder, kwSolrSearchComposite, "Keyword (Solr)");
+		}		
 		
 		SWTUtil.onSelectionEvent(tabFolder, e -> { updateTabItemStyles(); });
 		
