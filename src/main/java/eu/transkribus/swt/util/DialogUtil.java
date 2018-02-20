@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.IUserMessageException;
 import eu.transkribus.swt_gui.dialogs.TrpMessageDialog;
 
 public class DialogUtil {
@@ -103,7 +104,13 @@ public class DialogUtil {
 	public static int showDetailedErrorMessageBox(Shell shell, String title, String message, Throwable th) {
 		if (true) {
 			if (th != null) {
-				return TrpMessageDialog.showErrorDialog(shell, title, message, th.getMessage(), th);	
+				final String msg;
+				if(th instanceof IUserMessageException) {
+					msg = ((IUserMessageException)th).getMessageToUser(); 
+				} else {
+					msg = th.getMessage();
+				}
+				return TrpMessageDialog.showErrorDialog(shell, title, message, msg, th);
 			} else {
 				return TrpMessageDialog.showErrorDialog(shell, title, message, null, null);
 			}
