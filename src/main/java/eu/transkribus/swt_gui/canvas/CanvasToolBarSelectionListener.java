@@ -76,6 +76,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		SWTUtil.addSelectionListener(tb.imgEnhanceItem, this);
 		
 		SWTUtil.addSelectionListener(tb.helpItem, this);
+		SWTUtil.addSelectionListener(tb.canvasHelpItem, this);
 		
 		SWTUtil.addSelectionListener(tb.createDefaultLineItem, this);
 		SWTUtil.addSelectionListener(tb.createImageSizeTextRegionItem, this);
@@ -193,6 +194,9 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			}
 		}
 		else if (s == toolbar.getHelpItem()) {
+			mw.openHowToGuides();
+		}
+		else if (s == toolbar.getCanvasHelpItem()) {
 			mw.openCanvasHelpDialog();
 		}
 		else if (s == toolbar.createDefaultLineItem) {

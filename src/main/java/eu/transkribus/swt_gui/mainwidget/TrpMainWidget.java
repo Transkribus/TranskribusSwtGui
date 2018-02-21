@@ -4757,16 +4757,17 @@ public class TrpMainWidget {
 	public TrpCollection getSelectedCollection() {
 		return ui.getServerWidget().getSelectedCollection();
 	}
-
-	public void openCanvasHelpDialog() {
-		// Open help page in system-default webbrowser first, then display key-board shortcuts
+	
+	public void openHowToGuides() {
 		Desktop d = Desktop.getDesktop();
 		try {
 			d.browse(new URI("https://transkribus.eu/wiki/index.php/How_to_Guides"));
 		} catch (IOException | URISyntaxException e) {
 			logger.debug(e.getMessage());
-		}
-		
+		}		
+	}
+
+	public void openCanvasHelpDialog() {
 		String ht = ""
 //				+ "Canvas shortcut operations:\n"
 				+ "- esc: set selection mode\n"

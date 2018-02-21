@@ -83,7 +83,9 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		SWTUtil.onSelectionEvent(mb.installMenuItem, (e) -> { mw.installSpecificVersion(); });
 		
-		SWTUtil.onSelectionEvent(mb.aboutMenuIItem, (e) -> { mw.openAboutDialog(); });
+		SWTUtil.onSelectionEvent(mb.aboutMenuItem, (e) -> { mw.openAboutDialog(); });
+		
+		SWTUtil.onSelectionEvent(mb.helpMenuItem, (e) -> { mw.openHowToGuides(); });
 		
 		SWTUtil.onSelectionEvent(mb.changelogMenuItem,  (e) -> {mw.openChangeLogDialog(); }); 
 		
