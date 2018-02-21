@@ -5,7 +5,7 @@ import org.eclipse.swt.SWT;
 import eu.transkribus.swt.util.TableViewerSorter;
 
 public class ColumnConfig {
-	public String name = "zipfel";
+	public String name = "noname";
 	public int width = 100;
 	public boolean defaultSorting = false;
 	public int sortingDirection = TableViewerSorter.ASC;

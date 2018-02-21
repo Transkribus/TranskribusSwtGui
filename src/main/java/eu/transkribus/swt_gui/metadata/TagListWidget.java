@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.metadata;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,9 +27,11 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.TableColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.TrpDbTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
@@ -61,6 +64,7 @@ public class TagListWidget extends Composite {
 	
 	Composite btnsContainer;
 	
+	public static final String POSITION_COL = "";
 	public static final String DOC_COL = "Doc";
 //	public static final String TITLE_COL = "Title";
 	public static final String PAGE_COL = "Page";
@@ -73,6 +77,7 @@ public class TagListWidget extends Composite {
 	public static final String TAG_VALUE_COL = "Value";
 	
 	public static final ColumnConfig[] RESULT_COLS = new ColumnConfig[] {
+		new ColumnConfig(POSITION_COL, 35, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(TAG_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(TAG_VALUE_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(CONTEXT_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
@@ -109,13 +114,18 @@ public class TagListWidget extends Composite {
 	}
 	
 	private void initTable(Composite container) {
-		tv = new MyTableViewer(container, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		tv = new MyTableViewer(container, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION /*| SWT.VIRTUAL*/);
 		tv.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		tv.getTable().setHeaderVisible(true);
 		tv.getTable().setLinesVisible(true);
 		
 		tv.addColumns(RESULT_COLS);
+		
+		// ignore case when sorting columns:
+		for (int i=0; i<tv.getNColumns(); ++i) {
+			tv.getSorter(i).setIgnoreCase(true);
+		}
 		
 		tv.setContentProvider(ArrayContentProvider.getInstance());
 		
@@ -126,7 +136,11 @@ public class TagListWidget extends Composite {
 				
 				if (element instanceof CustomTag) {
 					CustomTag t = (CustomTag) element;
-					if (cn.equals(REGION_COL)) {
+					
+					if (cn.equals(POSITION_COL)) {
+						return ""+(tagList.indexOf(t) + 1);
+					}
+					else if (cn.equals(REGION_COL)) {
 						if (t.getCustomTagList()!=null && t.getCustomTagList().getShape()!=null) {
 							return t.getCustomTagList().getShape().getId();	
 						} else {

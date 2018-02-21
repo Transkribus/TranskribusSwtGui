@@ -59,7 +59,12 @@ public class DefaultTableColumnViewerSorter extends TableViewerSorter {
 			int i2 = Integer.parseInt(l2);
 			return Integer.compare(i1, i2);
 		} catch (NumberFormatException e) {
-			return l1.compareTo(l2);	
+			if (isIgnoreCase()) {
+				return l1.compareToIgnoreCase(l2);
+			}
+			else {
+				return l1.compareTo(l2);
+			}
 		}
 	}
 };
