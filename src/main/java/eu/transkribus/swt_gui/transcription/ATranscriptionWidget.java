@@ -1716,21 +1716,23 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void initContextMenu() {
 		contextMenu = new Menu(text);
 		
-		deleteTagMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
-		deleteTagMenuItem.setImage(Images.DELETE);
-		deleteTagMenuItem.setText("Delete...");
-		deleteTagMenu = new Menu(deleteTagMenuItem);
-		deleteTagMenuItem.setMenu(deleteTagMenu);
+		MenuItem separatorItem = new MenuItem(contextMenu, SWT.SEPARATOR);
 		
 		addCommentTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
 		addCommentTagMenuItem.setText("Add a comment");
 		SWTUtil.onSelectionEvent(addCommentTagMenuItem, e -> {
 			TrpMainWidget.getInstance().addCommentForSelection(null);
-		});		
+		});
+		
+		deleteTagMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+		deleteTagMenuItem.setImage(Images.DELETE);
+		deleteTagMenuItem.setText("Delete...");
+		deleteTagMenu = new Menu(deleteTagMenuItem);
+		deleteTagMenuItem.setMenu(deleteTagMenu);		
 		
 		contextMenu.addMenuListener(new MenuListener() {
 			void deleteDynamicMenuItems() {
-				SWTUtil.deleteMenuItems(contextMenu, deleteTagMenuItem, addCommentTagMenuItem);
+				SWTUtil.deleteMenuItems(contextMenu, deleteTagMenuItem, addCommentTagMenuItem, separatorItem);
 				SWTUtil.deleteMenuItems(deleteTagMenu);
 			}
 			
@@ -1784,15 +1786,16 @@ public abstract class ATranscriptionWidget extends Composite{
 		List<MenuItem> items = new ArrayList<>();
 		
 		// create menu items for tag specs:
+		int i = 0;
 		for (CustomTagSpec spec : Storage.getInstance().getCustomTagSpecs()) {
-			MenuItem tagItem = new MenuItem(menu, SWT.PUSH);
+			MenuItem tagItem = new MenuItem(menu, SWT.PUSH, i++);
 			tagItem.setText(spec.getCustomTag().getCssStr());
 			tagItem.addSelectionListener(new TagSpecMenuItemListener(spec));
 			items.add(tagItem);
 		}
 		
 		// create sub menu for all tags:
-		MenuItem allTagsItem = new MenuItem(contextMenu, SWT.CASCADE);
+		MenuItem allTagsItem = new MenuItem(contextMenu, SWT.CASCADE, i++);
 		allTagsItem.setText("All tags");
 		Menu allTagsMenu = new Menu(allTagsItem);
 		allTagsItem.setMenu(allTagsMenu);
