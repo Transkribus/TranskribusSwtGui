@@ -1,12 +1,11 @@
 package eu.transkribus.swt_gui.metadata;
 
 import java.io.IOException;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.EventObject;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -20,14 +19,12 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
 import org.eclipse.jface.viewers.ICellEditorListener;
 import org.eclipse.jface.viewers.ICellEditorValidator;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TableViewerEditor;
 import org.eclipse.jface.viewers.TableViewerFocusCellManager;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
@@ -404,6 +401,14 @@ public class CustomTagPropertyTable extends Composite {
 			attNames.remove(CustomTag.LENGTH_PROPERTY_NAME);
 			attNames.remove(CustomTag.CONTINUED_PROPERTY_NAME);	
 		}
+		// add attributes that are unique to selectedTag
+		for (String an : selectedTag.getAttributeNamesSortedByName()) {
+			if (!attNames.contains(an)) {
+				attNames.add(an);
+			}
+		}
+		Collections.sort(attNames, String.CASE_INSENSITIVE_ORDER);
+		
 		tv.setInput(attNames);
 		tv.refresh(); // needed?
 	}

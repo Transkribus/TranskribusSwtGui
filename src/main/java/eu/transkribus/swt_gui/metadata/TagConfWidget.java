@@ -168,7 +168,7 @@ public class TagConfWidget extends Composite {
 				if (d.open() == Window.OK) {
 					String name = d.getName();
 					try {
-						CustomTagFactory.addToRegistry(CustomTagFactory.create(name), null);
+						CustomTagFactory.addToRegistry(CustomTagFactory.create(name), null, false);
 						saveTagDefs();
 					} catch (Exception e1) {
 						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error creating tag", e1.getMessage(), e1);
