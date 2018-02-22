@@ -86,6 +86,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.alto.AltoExporter;
@@ -1660,7 +1661,7 @@ public class Storage {
 		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
 	}
 	
-	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
 		checkConnection(true);
 		
 		if (!isRemoteDoc()) {
@@ -1691,7 +1692,7 @@ public class Storage {
 	/**
 	 * Wrapper method which takes a pages range string of the currently loaded document
 	 */
-	public List<String> analyzeLayoutOnLatestTranscriptOfPages(String pageStr, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+	public List<String> analyzeLayoutOnLatestTranscriptOfPages(String pageStr, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
 		checkConnection(true);
 		
 		if (!isRemoteDoc()) {
@@ -1712,7 +1713,7 @@ public class Storage {
 		return jobids;
 	}
 	
-	public List<TrpJobStatus> analyzeLayout(int colId, List<DocumentSelectionDescriptor> dsds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+	public List<TrpJobStatus> analyzeLayout(int colId, List<DocumentSelectionDescriptor> dsds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
 	}
