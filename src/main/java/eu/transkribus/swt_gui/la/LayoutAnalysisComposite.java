@@ -3,9 +3,12 @@ package eu.transkribus.swt_gui.la;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -14,11 +17,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
-import eu.transkribus.swt.util.LabeledCombo;
-import eu.transkribus.swt.util.LabeledText;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.swt.util.LabeledComboWithButton;
+import eu.transkribus.swt_gui.TrpGuiPrefs;
+import eu.transkribus.swt_gui.dialogs.ALaConfigDialog;
+import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
 public class LayoutAnalysisComposite extends Composite {
@@ -30,7 +35,7 @@ public class LayoutAnalysisComposite extends Composite {
 //	private DocPagesSelector dps;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private Button doBlockSegBtn, doLineSegBtn, doWordSegBtn;
-	private LabeledCombo methodCombo;
+	private LabeledComboWithButton methodCombo;
 //	private LabeledText customJobImplText;
 		
 	public static final String METHOD_NCSR_OLD = "NCSR";
@@ -42,6 +47,9 @@ public class LayoutAnalysisComposite extends Composite {
 //	public static final String METHOD_CUSTOM = "Custom";
 	
 	public static final String[] LA_CITLAB_ALLOWED_USERS = { };
+	
+	private ParameterMap paramMap;
+	private ALaConfigDialog configDialog = null;
 
 	public LayoutAnalysisComposite(Composite parent, int style) {
 		super(parent, style);
@@ -55,7 +63,7 @@ public class LayoutAnalysisComposite extends Composite {
 //		g.numColumns = 1;
 //		g.makeColumnsEqualWidth = false;
 				
-		methodCombo = new LabeledCombo(mainContainer, "Method: ");
+		methodCombo = new LabeledComboWithButton(mainContainer, "Method: ", "Configure...");
 		methodCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		updateMethods();
 //		methodCombo.combo.setItems(getMethods(true).toArray(new String[0]));
@@ -98,33 +106,42 @@ public class LayoutAnalysisComposite extends Composite {
 		doBlockSegBtn.setEnabled(true);
 		doLineSegBtn.setEnabled(true);
 		doWordSegBtn.setEnabled(true);
-				
-		if (method.equals(METHOD_NCSR)) {
+		
+		boolean isMethodConfigurable = false;
+		switch(method) {
+		case METHOD_NCSR:
 			doBlockSegBtn.setEnabled(false);
 			doBlockSegBtn.setSelection(false);
-		}
-		else if (method.equals(METHOD_NCSR_OLD)) {
+			break;
+		case METHOD_NCSR_OLD:
 			doWordSegBtn.setSelection(false);
 			doWordSegBtn.setEnabled(false);
-		} else if (method.equals(METHOD_CITLAB)) {
+			break;
+		case METHOD_CITLAB:
 //			doBlockSegBtn.setSelection(true);
 //			doBlockSegBtn.setEnabled(false);
-		
 			doWordSegBtn.setSelection(false);
 			doWordSegBtn.setEnabled(false);
-		} else if (method.equals(METHOD_CVL)) {
+			break;
+		case METHOD_CVL:
 			doBlockSegBtn.setSelection(true);
 			doBlockSegBtn.setEnabled(false);
-			
-			doWordSegBtn.setSelection(false);
-			doWordSegBtn.setEnabled(false);			
-		} else if (method.equals(METHOD_CITLAB_ADVANCED)) {		
 			doWordSegBtn.setSelection(false);
 			doWordSegBtn.setEnabled(false);
+			break;
+		case METHOD_CITLAB_ADVANCED:
+			doWordSegBtn.setSelection(false);
+			doWordSegBtn.setEnabled(false);
+			isMethodConfigurable = true;
+			break;
+		default:
+			return;
 		}
 		
-//		customJobImplText.setVisible(method.equals(METHOD_CUSTOM));
+		//enable config button only if method is configurable (only CITlabAdvanced for now)
+		methodCombo.getButton().setEnabled(isMethodConfigurable);
 		
+//		customJobImplText.setVisible(method.equals(METHOD_CUSTOM));
 	}
 
 	public static boolean isUserAllowedCitlab() {
@@ -163,8 +180,41 @@ public class LayoutAnalysisComposite extends Composite {
 	private void addListener() {			
 		methodCombo.combo.addModifyListener(new ModifyListener() {
 			@Override public void modifyText(ModifyEvent e) {
-				logger.trace("method changed: "+getSelectedMethod());
+				logger.trace("method changed: " + getJobImpl());
+				paramMap = TrpGuiPrefs.getLaParameters(getJobImpl());
 				updateGui();
+				if(configDialog != null) {
+					configDialog.close();
+					configDialog = null;
+				}
+			}
+		});
+		
+		methodCombo.getButton().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				super.widgetSelected(e);
+				if(configDialog != null) {
+					configDialog.setVisible();
+				} else {
+					JobImpl impl = getJobImpl();
+					switch(impl) {
+					case CITlabAdvancedLaJob:
+						configDialog = new CITlabAdvancedLaConfigDialog(getShell(), paramMap);
+						break;
+					default:
+						return;	
+					}
+					final int ret = configDialog.open();
+					logger.debug("Dialog ret = " + ret);
+					if(ret == IDialogConstants.OK_ID && configDialog != null) { //may be null if close() is called programmatically (happens when switching methods)
+						paramMap = configDialog.getParameters();
+						if(paramMap != null && !paramMap.isEmpty()) {
+							TrpGuiPrefs.storeLaParameters(impl, paramMap);
+						}
+					}
+					configDialog = null;
+				}
 			}
 		});
 		
@@ -203,30 +253,23 @@ public class LayoutAnalysisComposite extends Composite {
 		} else {
 			return "";
 		}
-//		return methodCombo.combo.getItems()[methodCombo.combo.getSelectionIndex()];
 	}
 	
-	public static String getJobImplForMethod(String selectedMethod) {
-		if (selectedMethod.equals(METHOD_NCSR_OLD)) {
-			return JobImpl.NcsrOldLaJob.toString();
+	public static JobImpl getJobImplForMethod(String selectedMethod) {
+		switch(selectedMethod) {
+		case METHOD_NCSR_OLD:
+			return JobImpl.NcsrOldLaJob;
+		case METHOD_NCSR:
+			return JobImpl.NcsrLaJob;
+		case METHOD_CVL:
+			return JobImpl.CvlLaJob;
+		case METHOD_CITLAB:
+			return JobImpl.CITlabLaJob;
+		case METHOD_CITLAB_ADVANCED:
+			return JobImpl.CITlabAdvancedLaJob;
+		default:
+			return null;
 		}
-		if (selectedMethod.equals(METHOD_NCSR)) {
-			return JobImpl.NcsrLaJob.toString();
-		}
-		else if (selectedMethod.equals(METHOD_CVL)) {
-			return JobImpl.CvlLaJob.toString();
-		}
-		else if (selectedMethod.equals(METHOD_CITLAB)) {
-			return JobImpl.CITlabLaJob.toString();
-		}
-		else if (selectedMethod.equals(METHOD_CITLAB_ADVANCED)) {
-			return JobImpl.CITlabAdvancedLaJob.toString();
-		}
-		return null;
-	}
-		
-	private String getSelectedPages() {
-		return dps.getPagesStr();
 	}
 	
 	public boolean isDoLineSeg(){
@@ -249,14 +292,13 @@ public class LayoutAnalysisComposite extends Composite {
 		return dps.getPagesStr();
 	}
 	
-	public String getJobImpl() {
+	public ParameterMap getParameters() {
+		return paramMap;
+	}
+	
+	public JobImpl getJobImpl() {
 		String selectedMethod = getSelectedMethod();
-		String jobImpl = getJobImplForMethod(selectedMethod);
-		
-//		if (jobImpl == null) {
-//			jobImpl = customJobImplText.getText();
-//		}
-		
+		JobImpl jobImpl = getJobImplForMethod(selectedMethod);
 		return jobImpl;
 	}
 

@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
 
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -34,9 +33,8 @@ import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
-import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
-import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
+import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage.StorageException;
@@ -226,12 +224,12 @@ public class ToolsWidgetListener implements SelectionListener {
 				if (!tw.laComp.isCurrentTranscript()) {
 					logger.debug("running la on pages: "+tw.laComp.getPages());
 					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.laComp.getPages(),
-							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false, tw.laComp.getJobImpl(), null);
+							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters());
 				} else {
 					List<String> rids = getSelectedRegionIds();
 					logger.debug("running la on current transcript and selected rids: "+CoreUtils.join(rids));
 					jobIds = store.analyzeLayoutOnCurrentTranscript(rids,
-							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false, tw.laComp.getJobImpl(), null);	
+							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters());	
 				}
 			}
 			else if (s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn) {

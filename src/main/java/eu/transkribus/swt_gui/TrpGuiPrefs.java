@@ -3,7 +3,10 @@ package eu.transkribus.swt_gui;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -21,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
+import eu.transkribus.core.model.beans.job.enums.JobType;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.util.ProxyUtils.ProxySettings;
 import eu.transkribus.swt_gui.util.OAuthGuiUtil;
 
@@ -43,7 +49,8 @@ public class TrpGuiPrefs {
 	public static final String ACCOUNT_NODE = "acc";
 	public static final String EXPORT_NODE = "export";
 	public static final String PROXY_NODE = "proxy";
-	
+	public static final String LA_NODE = "LA";
+		
 	private static final String OAUTH_UN_KEY = "_un";
 	private static final String OAUTH_PIC_KEY = "_pic";
 	
@@ -69,6 +76,8 @@ public class TrpGuiPrefs {
 	static Preferences exportPrefs = Preferences.userNodeForPackage(TrpGui.class).node(EXPORT_NODE);
 
 	static Preferences proxyPrefs = Preferences.userNodeForPackage(TrpGui.class).node(PROXY_NODE);
+	static Preferences laPrefs = Preferences.userNodeForPackage(TrpGui.class).node(LA_NODE);
+			
 	
 	public static String encryptAes(String key, String strToEncrypt) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -272,6 +281,52 @@ public class TrpGuiPrefs {
 			}
 		}
 		return p;
+	}
+	
+	public static ParameterMap getLaParameters(JobImpl impl) {
+		ParameterMap map = new ParameterMap();
+		if(impl == null) {
+			return map;
+		}
+		//check if this is an LA job and normalize impl to base impl name if necessary
+		impl = JobImpl.getBaseLaJob(impl);
+		
+		Preferences implPrefs = laPrefs.node(impl.toString());
+		try {
+			for(String key : implPrefs.keys()) {
+				final String value = implPrefs.get(key, null);
+				if(value != null) {
+					map.addParameter(key, value);
+				}
+			}
+			logger.debug("Loaded stored parameters for LA: " + impl + "\n" + map.toString());
+		} catch (BackingStoreException e) {
+			logger.error("Could not retrieve preferences for " + impl.toString() + "!", e);
+		}
+		return map;
+	}
+	
+	public static void storeLaParameters(JobImpl impl, ParameterMap params) {
+		if(impl == null) {
+			return;
+		}
+		if(params == null || params.isEmpty()) {
+			return;
+		}
+		//check if this is an LA job and normalize impl to base impl name if necessary
+		impl = JobImpl.getBaseLaJob(impl);
+		Preferences implPrefs = laPrefs.node(impl.toString());
+		for(Entry<String, String> e : params.getParamMap().entrySet()) {
+			if(e.getKey() != null && e.getValue() != null) {
+				implPrefs.put(e.getKey(), e.getValue());
+			}
+		}
+		try {
+			implPrefs.flush();
+			logger.debug("Stored parameters for LA: " + impl + "\n" + params.toString());
+		} catch (BackingStoreException e) {
+			logger.error("Could not persist config for " + impl + " LA!", e);
+		}
 	}
 	
 	public static void testPreferences() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {

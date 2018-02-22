@@ -73,7 +73,7 @@ public class LayoutAnalysisDialog extends Dialog {
 	}
 
 	@Override protected void okPressed() {
-		jobImpl = laComp.getJobImpl();
+		jobImpl = laComp.getJobImpl().toString();
 		
 		doLineSeg = laComp.isDoLineSeg();
 		doBlockSeg = laComp.isDoBlockSeg();
