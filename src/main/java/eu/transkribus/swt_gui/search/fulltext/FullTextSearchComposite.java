@@ -782,7 +782,7 @@ public class FullTextSearchComposite extends Composite{
 //	    
 //	}
 
-	int[] getCropValues(String coords){
+	public static int[] getCropValues(String coords){
 		int[] values = new int[4];
 		
 		String[] singleCoords = coords.split(" ");
