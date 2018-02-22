@@ -1,17 +1,26 @@
 package eu.transkribus.swt_gui.search.kws_solr;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.InvocationCallback;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
@@ -27,10 +36,12 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -48,14 +59,20 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.TrpFimgStoreConf;
+import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.kws.TrpKwsHit;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.KeywordHit;
 import eu.transkribus.core.model.beans.searchresult.KeywordSearchResult;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
+import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
@@ -79,6 +96,14 @@ public class KWSearchComposite extends Composite{
 	private final static int THUMB_SIZE = 5; // size of slider thumb
 	private static final DecimalFormat CONF_FORMAT = new DecimalFormat("0.00");
 	
+	String sorting = "childfield(probability) desc";
+	
+	Combo scopeCombo;
+	Combo docCombo;
+	
+	
+	boolean prob_desc = true;
+	boolean word_desc = false;
 	String searchWord;
 	KeywordSearchResult kwSearchResult;
 	ArrayList<KeywordHit> keywordHits;
@@ -110,17 +135,37 @@ public class KWSearchComposite extends Composite{
 		
 		facetsGroup = new Group(sf, SWT.NONE);
 		facetsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));	
-		facetsGroup.setLayout(new GridLayout(2, false));
+		facetsGroup.setLayout(new GridLayout(5, false));
 		facetsGroup.setText("Search HTR text for single words");
 		
 		Label scopeLbl = new Label(facetsGroup, SWT.NONE);
-		scopeLbl.setText("Search in collection:");
-		Combo scopeCombo = new Combo(facetsGroup, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		scopeLbl.setText("Search in:");
+		scopeCombo = new Combo(facetsGroup, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		String[] SCOPES = new String[] { "1335"};
 		scopeCombo.setItems(SCOPES);
 		//FIXME Java Heap space error when to many confmats are loaded. Thus for now only scope "document"
 		scopeCombo.select(0);
 		scopeCombo.setEnabled(false);
+		
+		List<TrpDocMetadata> docsInCollection;
+		ArrayList<String> DOCSCOPES = new ArrayList<String>();
+		DOCSCOPES.add("All Documents");
+		try {
+			docsInCollection = storage.getConnection().getAllDocs(1335);
+			for(TrpDocMetadata md : docsInCollection){
+				DOCSCOPES.add(md.getTitle());
+				logger.debug(""+md.getDocId());
+			}
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e1) {
+			e1.printStackTrace();
+		}
+		
+		docCombo =  new Combo(facetsGroup, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		String[] docArray = new String[DOCSCOPES.size()];
+		docArray = DOCSCOPES.toArray(docArray);
+		docCombo.setItems(docArray);
+		docCombo.select(0);
+		
 		
 		TraverseListener findTagsOnEnterListener = new TraverseListener() {
 			@Override public void keyTraversed(TraverseEvent e) {
@@ -142,7 +187,6 @@ public class KWSearchComposite extends Composite{
 		sliderLabel.setText("Confidence Threshold:");
 		Text confValueTxt = new Text(sliderComp, SWT.BORDER);
 		confValueTxt.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
-//		confValueTxt.setEnabled(false);
 		confSlider = new Slider(sliderComp, SWT.HORIZONTAL);
 		confSlider.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		confSlider.setMaximum(convertConfidenceToSliderValue(MAX_CONF) + THUMB_SIZE);
@@ -152,6 +196,16 @@ public class KWSearchComposite extends Composite{
 		
 		confValueTxt.setText(CONF_FORMAT.format(getConfidenceSliderValue()));
 		confValueTxt.setTextLimit(4);
+		
+		Button searchBtn = new Button(facetsGroup, SWT.PUSH);
+		searchBtn.setImage(Images.FIND);
+		searchBtn.setText("Search!");
+		searchBtn.setToolTipText("Search for keyword");
+		searchBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				findKW();
+			}
+		});
 		
 		confValueTxt.addKeyListener(new KeyListener() {
 
@@ -201,8 +255,40 @@ public class KWSearchComposite extends Composite{
 		});
 		
 		initResultsTable(sf);	
-		sf.setWeights(new int[] { 20, 80 } );
+		initPreviewArea(sf);
+		sf.setWeights(new int[] { 20, 50, 30 } );
 
+		
+	}
+	
+	Image currentImgOrig;
+	Image currentImgScaled;
+	Canvas canvas;
+	
+	private void initPreviewArea(Composite cont){
+		Group previewGrp = new Group(cont, SWT.NONE);
+		previewGrp.setText(Msgs.get("search.kws.preview"));
+		previewGrp.setLayout(new FillLayout());
+		canvas = new Canvas(previewGrp, SWT.NONE);
+		canvas.setBackground(Colors.getSystemColor(SWT.COLOR_GRAY));
+		
+		canvas.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				if(currentImgOrig != null) {
+					Rectangle client = canvas.getClientArea();
+					if(currentImgScaled != null) {
+						currentImgScaled.dispose();
+					}
+					currentImgScaled = Images.resize(currentImgOrig, client.width, client.height,
+							Colors.getSystemColor(SWT.COLOR_GRAY));
+					Rectangle imgBounds = currentImgScaled.getBounds();
+					final int xOffset = (client.width - imgBounds.width) / 2; 
+					e.gc.drawImage(currentImgScaled, xOffset, 0);
+				}
+			}
+		});
+		
+		tv.getTable().addListener(SWT.MouseMove, new MouseMoveListener(tv.getTable()));		
 		
 	}
 	
@@ -212,13 +298,53 @@ public class KWSearchComposite extends Composite{
 		resultsGroup.setText("Search results");
 		resultsGroup.setLayout(new GridLayout(1, false));	
 		
-		tv = new TableViewer(resultsGroup);
+		tv = new TableViewer(resultsGroup, SWT.FULL_SELECTION);
 		Table table = tv.getTable();
-		table.setLayoutData(new GridData(GridData.FILL_BOTH));
+		table.setLayoutData(new GridData(GridData.FILL_BOTH));		
 		
         tv.getTable().setHeaderVisible(true);
         tv.getTable().setLinesVisible(true);
         tv.setContentProvider(new ArrayContentProvider());
+        
+		tv.addDoubleClickListener(new IDoubleClickListener() {	
+			@Override public void doubleClick(DoubleClickEvent event) {
+				IStructuredSelection sel = (IStructuredSelection) event.getSelection();
+				if (!sel.isEmpty()) {
+					logger.debug("Clicked! Doc: "+ ((KeywordHit)sel.getFirstElement()).getId()+ " Page: "+((KeywordHit)sel.getFirstElement()).getPageNr());
+					KeywordHit clHit = (KeywordHit)sel.getFirstElement();
+					Storage s = Storage.getInstance();		
+					
+					ArrayList<Integer> userCols = new ArrayList<>();
+					for(TrpCollection userCol : s.getCollections()){
+						userCols.add(userCol.getColId());
+//						logger.debug("User collection: " + userCol.getColId());
+					}
+//					find collections in searchresult that user has access to
+					int col = -1;
+					for(Integer userColId : userCols){
+						for(Integer hitColId : clHit.getColIds()){							
+							if(userColId.equals(hitColId)){
+								col = userColId;
+							}
+						}
+					}
+					logger.debug("Col: " + col);
+					if(col != -1){
+						int docId = Integer.parseInt(clHit.getId().split("_")[0]);
+						int pageNr = clHit.getPageNr();
+						TrpLocation l = new TrpLocation();
+						
+						l.collId = col;
+						l.docId = docId;
+						l.pageNr = pageNr;		
+						l.shapeId=clHit.getLineId();
+	
+						TrpMainWidget.getInstance().showLocation(l);
+					}
+				}
+				
+			}
+		});
 		
 		TableColumn tc = new TableColumn(table, SWT.LEFT);
 		tc.setText("Probability");
@@ -226,6 +352,18 @@ public class KWSearchComposite extends Composite{
 		
 		TableViewerColumn probCol = new TableViewerColumn(tv, tc);
 		
+		Listener sortListenerProb = new Listener(){
+			public void handleEvent(Event e){
+				TableColumn col = (TableColumn) e.widget;
+				prob_desc = !prob_desc;
+				if(prob_desc){
+					sorting = "childfield(probability) desc";
+				}else{
+					sorting = "childfield(probability) asc";
+				}
+				findKW();
+			}
+		};	
         probCol.setLabelProvider(new ColumnLabelProvider(){
             @Override
             public String getText(Object element) {
@@ -233,6 +371,7 @@ public class KWSearchComposite extends Composite{
                 return ""+hit.getProbability();
             }
         });		
+        tc.addListener(SWT.Selection, sortListenerProb);
         
         tc = new TableColumn(table, SWT.LEFT);
 		tc.setText("Word");
@@ -245,6 +384,20 @@ public class KWSearchComposite extends Composite{
                 return ""+hit.getWord();
             }
         });	
+        
+		Listener sortListenerWord = new Listener(){
+			public void handleEvent(Event e){
+				TableColumn col = (TableColumn) e.widget;
+				word_desc = !word_desc;
+				if(word_desc){
+					sorting = "childfield(word) desc";
+				}else{
+					sorting = "childfield(word) asc";
+				}
+				findKW();
+			}
+		};	
+		tc.addListener(SWT.Selection, sortListenerWord);
         
         tc = new TableColumn(table, SWT.LEFT);
 		tc.setText("Document");
@@ -271,7 +424,7 @@ public class KWSearchComposite extends Composite{
         });
         
         tc = new TableColumn(table, SWT.LEFT);
-		tc.setText("Line");
+		tc.setText("Line ID");
 		tc.setWidth(150);		
 		TableViewerColumn lineCol = new TableViewerColumn(tv, tc);		
         lineCol.setLabelProvider(new ColumnLabelProvider(){
@@ -347,10 +500,17 @@ public class KWSearchComposite extends Composite{
 			}
 			
 		};
-		ArrayList<String> filters = new ArrayList<String>();
-		String sorting = "childfield(probability) desc";
+		
+		ArrayList<String> filters = new ArrayList<String>();		
+		if(docCombo.getSelectionIndex() != 0){
+			String filterTitle = docCombo.getItem(docCombo.getSelectionIndex());
+			filters.add("title:"+filterTitle);
+		}
+		
 		
 		float probLow = (float) getConfidenceSliderValue();
+
+		
 
 		
 		try{
@@ -360,19 +520,120 @@ public class KWSearchComposite extends Composite{
 		}		
 	}
 	
+	volatile Map<String,Image> imageMap;
+	Thread imgLoaderThread;
+	
 	private void updateResultsTable(){
+		
 		if(kwSearchResult == null) return;
+		
+		keywordHits = (ArrayList<KeywordHit>) kwSearchResult.getKeywordHits();	
+		
+		Runnable loadPreviewImages = new Runnable(){
+			
+		public void run(){
+				if(imageMap!= null){
+					imageMap.clear();
+				}
+				imageMap = new HashMap<String,Image>();
+				for(KeywordHit kwHit : keywordHits){
+					putInImageMap(kwHit);		
+				}				
+			}
+		};
 
-		keywordHits = (ArrayList<KeywordHit>) kwSearchResult.getKeywordHits();
-				
-		tv.setInput(kwSearchResult.getKeywordHits());
+		if(imgLoaderThread != null){
+			imgLoaderThread.interrupt();
+			logger.debug("Image loading thread interrupted");
+        }
+		imgLoaderThread = new Thread(loadPreviewImages,"WordThmbLoaderThread");
+		imgLoaderThread.start();
+		imgLoaderThread.setPriority(Thread.MIN_PRIORITY);
+		logger.debug("Image loading thread started. Nr of imgages: "+keywordHits.size());  
+
 		
-		tv.refresh();
+		tv.setInput(kwSearchResult.getKeywordHits());		
+		tv.refresh();		
+		shell.redraw();		
+	}
+	
+	public void putInImageMap(KeywordHit kwHit){
+		String imgKey = kwHit.getPageUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
+		imgKey = imgKey.replace("&fileType=view", "");
+
+		String coords = kwHit.getTextCoords();
+		String imgId = kwHit.getId();
 		
-		shell.redraw();
+		if(imageMap.containsKey(imgId)) return;
+		
+		int[] cropValues = FullTextSearchComposite.getCropValues(coords);
+		URL url;
+		Image img = null;			
+		try {
+			url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
+			img = ImageDescriptor.createFromURL(url).createImage();
+
+		} catch (MalformedURLException | IllegalArgumentException e1) {
+			e1.printStackTrace();
+		}
+		imageMap.put(imgId, img);
+	}
+	
+	KeywordHit lastHoverHit = null;
+	private class MouseMoveListener implements Listener {
+		
+		final Table table;
+		KeywordHit currentHit;
+		Thread singleImageLoaderThread;
+		
+		public MouseMoveListener(Table resultTable) {
+			this.table = resultTable;
+		}
+		
+		Runnable loadPreviewImage = new Runnable(){
+
+			@Override
+			public void run() {
+				if(currentHit != null){
+					putInImageMap(currentHit);
+					currentImgOrig = imageMap.get(currentHit.getId());
+					Display.getDefault().asyncExec(()->{
+						canvas.redraw();
+					});
+				}
+			}
+			
+		};
+		
+		public void handleEvent(Event e) {
+			Point p = new Point(e.x, e.y);
+
+			TableItem hoverItem = table.getItem(p);
 			
 
-		
-	}
+			if (hoverItem != null 
+					&& (currentHit = ((KeywordHit) hoverItem.getData())) != null
+					&& !currentHit.equals(lastHoverHit)) {				
 
+				currentHit = (KeywordHit) hoverItem.getData();
+//				logger.debug(currentHit.getId());
+				
+				if(imageMap.get(currentHit.getId()) != null){
+					currentImgOrig = imageMap.get(currentHit.getId());
+
+				}else{
+					currentImgOrig = Images.LOADING_IMG;
+					if(singleImageLoaderThread != null){
+						singleImageLoaderThread.interrupt();
+					}
+					singleImageLoaderThread = new Thread(loadPreviewImage,"WordThmbLoaderThread");
+					singleImageLoaderThread.start();
+				}
+				canvas.redraw();
+				lastHoverHit = currentHit;
+			}
+		}
+	}
 }
+
+

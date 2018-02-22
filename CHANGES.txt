@@ -538,4 +538,4 @@ CHANGES AND BUGFIXES
 	-> add direct link to Transkribus HowTo guides
 	-> extended virtual keyboard: Hebrew and Arabic are new
 	-> change text based tagging system
-	
+	-> take local tmp directory as default for pdf upload

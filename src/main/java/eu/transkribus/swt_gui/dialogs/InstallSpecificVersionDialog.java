@@ -175,7 +175,7 @@ public class InstallSpecificVersionDialog extends Dialog {
 		changelog.setToolTipText("Check out the log of changes introduced in each version of the Transkribus software.");
 		changelog.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				TrpMainWidget.getInstance().openChangeLogDialog();
+				TrpMainWidget.getInstance().openChangeLogDialog(true);
 			}
 		});
 		
@@ -210,6 +210,8 @@ public class InstallSpecificVersionDialog extends Dialog {
 			selected = releases.get(releasesCombo.getSelectionIndex());
 		}
 		logger.debug("Selected file: "+selected.getName()+" version: "+selected.getName());
+		
+		TrpMainWidget.getTrpSettings().setShowChangeLog(true);
 		
 		shell.close();
 	}
