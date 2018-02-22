@@ -1,8 +1,10 @@
 package eu.transkribus.swt_gui.search.kws_solr;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +12,7 @@ import javax.ws.rs.client.InvocationCallback;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -27,6 +30,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -56,6 +60,7 @@ import eu.transkribus.core.model.beans.searchresult.KeywordSearchResult;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
+import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
@@ -79,6 +84,8 @@ public class KWSearchComposite extends Composite{
 	private final static int THUMB_SIZE = 5; // size of slider thumb
 	private static final DecimalFormat CONF_FORMAT = new DecimalFormat("0.00");
 	
+	
+	boolean prob_desc = true;
 	String searchWord;
 	KeywordSearchResult kwSearchResult;
 	ArrayList<KeywordHit> keywordHits;
@@ -201,8 +208,41 @@ public class KWSearchComposite extends Composite{
 		});
 		
 		initResultsTable(sf);	
-		sf.setWeights(new int[] { 20, 80 } );
+		initPreviewArea(sf);
+		sf.setWeights(new int[] { 20, 60, 20 } );
 
+		
+	}
+	
+	Image currentImgOrig;
+	Image currentImgScaled;
+	Canvas canvas;
+	
+	private void initPreviewArea(Composite cont){
+		Group previewGrp = new Group(cont, SWT.NONE);
+		previewGrp.setText(Msgs.get("search.kws.preview"));
+		previewGrp.setLayout(new FillLayout());
+		canvas = new Canvas(previewGrp, SWT.NONE);
+		canvas.setBackground(Colors.getSystemColor(SWT.COLOR_GRAY));
+		
+		canvas.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				if(currentImgOrig != null) {
+					Rectangle client = canvas.getClientArea();
+					if(currentImgScaled != null) {
+						currentImgScaled.dispose();
+					}
+					currentImgScaled = Images.resize(currentImgOrig, client.width, client.height,
+							Colors.getSystemColor(SWT.COLOR_GRAY));
+					Rectangle imgBounds = currentImgScaled.getBounds();
+					final int xOffset = (client.width - imgBounds.width) / 2; 
+					e.gc.drawImage(currentImgScaled, xOffset, 0);
+				}
+			}
+		});
+		
+		tv.getTable().addListener(SWT.MouseMove, new MouseMoveListener(tv.getTable()));
+		
 		
 	}
 	
@@ -226,6 +266,13 @@ public class KWSearchComposite extends Composite{
 		
 		TableViewerColumn probCol = new TableViewerColumn(tv, tc);
 		
+		Listener sortListener = new Listener(){
+			public void handleEvent(Event e){
+				TableColumn col = (TableColumn) e.widget;
+				prob_desc = !prob_desc;
+				findKW();
+			}
+		};	
         probCol.setLabelProvider(new ColumnLabelProvider(){
             @Override
             public String getText(Object element) {
@@ -233,6 +280,7 @@ public class KWSearchComposite extends Composite{
                 return ""+hit.getProbability();
             }
         });		
+        tc.addListener(SWT.Selection, sortListener);
         
         tc = new TableColumn(table, SWT.LEFT);
 		tc.setText("Word");
@@ -348,10 +396,15 @@ public class KWSearchComposite extends Composite{
 			
 		};
 		ArrayList<String> filters = new ArrayList<String>();
-		String sorting = "childfield(probability) desc";
+		
+		filters.add("title:passau89pageskwstranskr");
 		
 		float probLow = (float) getConfidenceSliderValue();
 
+		String sorting = "childfield(probability) desc";
+		if(!prob_desc){
+			sorting = "childfield(probability) asc";
+		}
 		
 		try{
 			storage.getConnection().searchKWAsync(searchWord, 0, 100, probLow, 1.0f, filters, sorting, 0, callback);
@@ -360,19 +413,117 @@ public class KWSearchComposite extends Composite{
 		}		
 	}
 	
+	volatile Map<String,Image> imageMap;
+	Thread imgLoaderThread;
+	
 	private void updateResultsTable(){
+		
 		if(kwSearchResult == null) return;
+		
+		keywordHits = (ArrayList<KeywordHit>) kwSearchResult.getKeywordHits();	
+		
+		Runnable loadPreviewImages = new Runnable(){
+			
+		public void run(){
+				if(imageMap!= null){
+					imageMap.clear();
+				}
+				imageMap = new HashMap<String,Image>();
+				for(KeywordHit kwHit : keywordHits){
+					putInImageMap(kwHit);		
+				}				
+			}
+		};
 
-		keywordHits = (ArrayList<KeywordHit>) kwSearchResult.getKeywordHits();
-				
-		tv.setInput(kwSearchResult.getKeywordHits());
+		if(imgLoaderThread != null){
+			imgLoaderThread.interrupt();
+			logger.debug("Image loading thread interrupted");
+        }
+		imgLoaderThread = new Thread(loadPreviewImages,"WordThmbLoaderThread");
+		imgLoaderThread.start();
+		imgLoaderThread.setPriority(Thread.MIN_PRIORITY);
+		logger.debug("Image loading thread started. Nr of imgages: "+keywordHits.size());  
+
 		
-		tv.refresh();
+		tv.setInput(kwSearchResult.getKeywordHits());		
+		tv.refresh();		
+		shell.redraw();		
+	}
+	
+	public void putInImageMap(KeywordHit kwHit){
+		String imgKey = kwHit.getPageUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
+		imgKey = imgKey.replace("&fileType=view", "");
+
+		String coords = kwHit.getTextCoords();
+		String imgId = kwHit.getId();
 		
-		shell.redraw();
+		if(imageMap.containsKey(imgId)) return;
+		
+		int[] cropValues = FullTextSearchComposite.getCropValues(coords);
+		URL url;
+		Image img = null;			
+		try {
+			url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
+			img = ImageDescriptor.createFromURL(url).createImage();
+
+		} catch (MalformedURLException | IllegalArgumentException e1) {
+			e1.printStackTrace();
+		}
+		imageMap.put(imgId, img);
+	}
+	
+	KeywordHit lastHoverHit = null;
+	private class MouseMoveListener implements Listener {
+		
+		final Table table;
+		KeywordHit currentHit;
+		Thread singleImageLoaderThread;
+		
+		public MouseMoveListener(Table resultTable) {
+			this.table = resultTable;
+		}
+		
+		Runnable loadPreviewImage = new Runnable(){
+
+			@Override
+			public void run() {
+				if(currentHit != null){
+					putInImageMap(currentHit);
+					currentImgOrig = imageMap.get(currentHit.getId());
+					Display.getDefault().asyncExec(()->{
+						canvas.redraw();
+					});
+				}
+			}
+			
+		};
+		
+		public void handleEvent(Event e) {
+			Point p = new Point(e.x, e.y);
+
+			TableItem hoverItem = table.getItem(p);
 			
 
-		
-	}
+			if (hoverItem != null 
+					&& (currentHit = ((KeywordHit) hoverItem.getData())) != null
+					&& !currentHit.equals(lastHoverHit)) {				
 
+				currentHit = (KeywordHit) hoverItem.getData();
+//				logger.debug(currentHit.getId());
+				
+				if(imageMap.get(currentHit.getId()) != null){
+					currentImgOrig = imageMap.get(currentHit.getId());
+
+				}else{
+					currentImgOrig = Images.LOADING_IMG;
+					singleImageLoaderThread = new Thread(loadPreviewImage,"WordThmbLoaderThread");
+					singleImageLoaderThread.start();
+				}
+				canvas.redraw();
+				lastHoverHit = currentHit;
+			}
+		}
+	}
 }
+
+
