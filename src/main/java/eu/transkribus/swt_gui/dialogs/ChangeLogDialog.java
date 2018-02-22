@@ -3,14 +3,19 @@ package eu.transkribus.swt_gui.dialogs;
 import java.io.IOException;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,13 +61,26 @@ public class ChangeLogDialog extends Dialog {
 		rowLayout.type = SWT.VERTICAL;
 		rowLayout.fill = true;
 		shell.setLayout(rowLayout);
+		
+	    ScrolledComposite scrolledComposite = new ScrolledComposite(shell, SWT.V_SCROLL | SWT.H_SCROLL);
+	    scrolledComposite.setLayout(new FillLayout());
 
-		StyledText text = new StyledText(shell, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		StyledText text = new StyledText(scrolledComposite, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 		text.setText(changelog);
 		text.setSize(500, 250);
 
 		RowData rowData = new RowData(500, 250);
 		text.setLayoutData(rowData);
+		scrolledComposite.setLayoutData(rowData);
+		
+		shell.addListener(SWT.Resize,  new Listener () {
+			public void handleEvent(Event arg0) {
+				Rectangle rect = shell.getClientArea ();
+				RowData rd = new RowData(rect.width, rect.height-50);
+				text.setSize(rect.width-5, rect.height-50);
+				scrolledComposite.setLayoutData(rd);				
+			}
+		});
 
 		// shell.setMinimumSize(text.getSize());
 		// shell.setSize(new Point(text.getSize().x + 50, text.getSize().y+100));
