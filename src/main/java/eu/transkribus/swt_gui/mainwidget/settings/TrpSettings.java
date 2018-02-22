@@ -203,6 +203,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean showTipOfTheDay=true;
 	public static final String SHOW_TIP_OF_THE_DAY_PROPERTY="showTipOfTheDay";
 	
+	private boolean showChangeLog=true;
+	public static final String SHOW_CHANGELOG_PROPERTY="showChangeLog";
+	
 	private boolean useFtpProgramUpdater=false;
 	public static final String USE_FTP_PROGRAM_UPDATER = "useFtpProgramUpdater";
 	
@@ -785,6 +788,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setShowTipOfTheDay(boolean showTipOfTheDay) {
 		this.showTipOfTheDay = showTipOfTheDay;
 		firePropertyChange(SHOW_TIP_OF_THE_DAY_PROPERTY, !this.showTipOfTheDay, this.showTipOfTheDay);
+	}
+	
+	public boolean isShowChangeLog() {
+		return showChangeLog;
+	}
+	
+	public void setShowChangeLog(boolean showChangeLog) {
+		this.showChangeLog = showChangeLog;
+		firePropertyChange(SHOW_CHANGELOG_PROPERTY, !this.showChangeLog, this.showChangeLog);
 	}
 	
 	@Deprecated
