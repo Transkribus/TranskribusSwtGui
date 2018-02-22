@@ -87,7 +87,7 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		SWTUtil.onSelectionEvent(mb.helpMenuItem, (e) -> { mw.openHowToGuides(); });
 		
-		SWTUtil.onSelectionEvent(mb.changelogMenuItem,  (e) -> {mw.openChangeLogDialog(); }); 
+		SWTUtil.onSelectionEvent(mb.changelogMenuItem,  (e) -> {mw.openChangeLogDialog(true); }); 
 		
 		SWTUtil.onSelectionEvent(mb.replaceImageItem, (e) -> { mw.replacePageImg(); });
 		

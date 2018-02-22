@@ -405,7 +405,7 @@ public class TrpMainWidget {
 
 	/**
 	 * This method gets called in the {@link #show()} method after the UI is
-	 * inited and dispayed
+	 * inited and displayed
 	 */
 	public void postInit() {
 		// remove unused old jar files: (maybe there from program update):
@@ -464,6 +464,8 @@ public class TrpMainWidget {
 
 		tryLoadingTestDocSpecifiedInLocalFile();
 		
+
+		
 		// TEST:
 //		if (TESTTABLES) {
 //			loadLocalTestset();
@@ -474,6 +476,9 @@ public class TrpMainWidget {
 //		SWTUtil.mask2(ui.getStructureTreeWidget()); // TESt
 //		MyInfiniteProgressPanel p = MyInfiniteProgressPanel.getInfiniteProgressPanelFor(ui.getStructureTreeWidget());
 //		p.start();
+
+//		final boolean DISABLE_CHANGELOG = true;
+//		openChangeLogDialog(getTrpSets().isShowChangeLog() && !DISABLE_CHANGELOG);
 	}
 	
 	/** Tries to read the local file "loadThisDocOnStartup.txt" and load the specified document.<br/>
@@ -2557,6 +2562,7 @@ public class TrpMainWidget {
 
 								sw.setProgress(100);
 								sw.stop();
+
 							}
 						});
 					} else {
@@ -2574,6 +2580,10 @@ public class TrpMainWidget {
 
 					// the main display loop:
 					logger.debug("entering main event loop");
+					
+					
+					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
+					
 					// while((Display.getCurrent().getShells().length != 0)
 					// && !Display.getCurrent().getShells()[0].isDisposed()) {
 					while (!shell.isDisposed()) {
@@ -4707,13 +4717,18 @@ public class TrpMainWidget {
 		}		
 	}
 
-	public void openChangeLogDialog() {
+	public void openChangeLogDialog(boolean show) {
+		
 		if (changelogDialog == null) {
 			changelogDialog = new ChangeLogDialog(getShell(), SWT.NONE);
-			changelogDialog.open();
-		} else {
-			changelogDialog.setActive();
+			changelogDialog.setShowOnStartup(getTrpSets().isShowChangeLog());
 		}
+		
+		if (show) {
+			changelogDialog.open();
+			getTrpSets().setShowChangeLog(changelogDialog.isShowOnStartup());
+		}
+
 	}
 	
 	public void openPAGEXmlViewer() {
