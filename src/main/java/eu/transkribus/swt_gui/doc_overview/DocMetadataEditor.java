@@ -221,8 +221,9 @@ public class DocMetadataEditor extends Composite {
 		
 		boolean hasChanged = updateMetadataObjectFromGui(doc.getMd());
 		
-		if (!hasChanged)
+		if (!hasChanged) {
 			return;
+		}
 		
 		logger.debug("doc-md has changed - saving in background!");
 
@@ -337,6 +338,8 @@ public class DocMetadataEditor extends Composite {
 	};
 	
 	public void setMetadataToGui(TrpDocMetadata md) {
+		listener.setDeactivate(true);
+		
 		titleText.setText(md!=null && md.getTitle()!=null ? md.getTitle() : "");
 		authorText.setText(md!=null && md.getAuthor()!=null ? md.getAuthor() : "");
 		uploadedLabel.setText(md!=null && md.getUploadTime()!=null&&md.getDocId()!=-1 ? md.getUploadTime().toString() : "NA");
@@ -347,6 +350,8 @@ public class DocMetadataEditor extends Composite {
 		initScriptTypeCombos(md!=null ? md.getScriptType() : null);
 		updateDateChooser(enableCreatedFromBtn, createdFrom, md != null ? md.getCreatedFromDate() : null);
 		updateDateChooser(enableCreatedToBtn, createdTo, md != null ? md.getCreatedToDate() : null);
+		
+		listener.setDeactivate(false);
 	}
 	
 	

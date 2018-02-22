@@ -54,15 +54,12 @@ public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListene
 	protected void handleDefaultSelectionChanged(Event event) {
 		try {
 			logger.debug("line default selection change, event: ["+event.start+"-"+event.end+"]");
+			super.handleDefaultSelectionChanged(event);
 			
 			transcriptionWidget.getWordGraphEditor().refresh();
 
-			if (TrpConfig.getTrpSettings().isEnableIndexedStyles()) {
-				mainWidget.updatePageRelatedMetadata();
-			}
-			
+			mainWidget.updatePageRelatedMetadata();
 			mainWidget.getUi().getStructureTreeWidget().updateTextLabels(null);
-			
 		} catch (Throwable th) {
 			String msg = "Could not update default selection from transcription widget";
 			mainWidget.onError("Error updating selection", msg, th);

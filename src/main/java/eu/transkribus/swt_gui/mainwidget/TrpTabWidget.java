@@ -80,9 +80,7 @@ public class TrpTabWidget extends Composite {
 
 	public TrpTabWidget(Composite parent, int style) {
 		super(parent, style);
-
-		this.setLayout(new GridLayout(1, false));
-
+		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		init();
 	}
 
@@ -199,10 +197,9 @@ public class TrpTabWidget extends Composite {
 
 		docMdItem = createCTabItem(metadataTf, c, "Document", secondRowItems);
 		structuralMdItem = createCTabItem(metadataTf, c, "Structural", secondRowItems);
-		textStyleMdItem = createCTabItem(metadataTf, c, "Textstyle", secondRowItems);
-		textTaggingItem = createCTabItem(metadataTf, c, "Tagging", secondRowItems);
+		textTaggingItem = createCTabItem(metadataTf, c, "Textual", secondRowItems);
 		commentsItem = createCTabItem(metadataTf, c, "Comments", secondRowItems);
-
+//		textStyleMdItem = createCTabItem(metadataTf, c, "Textstyle (outdated)", secondRowItems);
 	}
 
 	void initToolsTf() {
@@ -235,6 +232,14 @@ public class TrpTabWidget extends Composite {
 			list.add(ti);
 
 		return ti;
+	}
+	
+	public boolean isMetadataItemSeleced() {
+		return mainTf.getSelection().equals(metadataItem);
+	}
+	
+	public boolean isTextTaggingItemSeleced() {
+		return isMetadataItemSeleced() && metadataTf.getSelection().equals(textTaggingItem);
 	}
 
 	public void selectServerTab() {

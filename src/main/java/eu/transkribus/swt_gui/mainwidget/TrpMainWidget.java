@@ -1,22 +1,30 @@
 package eu.transkribus.swt_gui.mainwidget;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
@@ -92,8 +100,10 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpUpload;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
+import eu.transkribus.core.model.beans.customtags.CommentTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
@@ -122,7 +132,6 @@ import eu.transkribus.core.model.builder.txt.TrpTxtBuilder;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
@@ -187,12 +196,12 @@ import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListe
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
-import eu.transkribus.swt_gui.metadata.TaggingWidgetListener;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
+import eu.transkribus.swt_gui.search.SearchDialog.SearchType;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
@@ -201,6 +210,7 @@ import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.LineEditorListener;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidgetListener;
+import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidgetListener;
 import eu.transkribus.swt_gui.upload.UploadDialog;
 import eu.transkribus.swt_gui.upload.UploadDialogUltimate;
@@ -253,7 +263,7 @@ public class TrpMainWidget {
 	CanvasShapeObserver canvasShapeObserver;
 	PageMetadataWidgetListener pageMetadataWidgetListener;
 	TextStyleTypeWidgetListener textStyleWidgetListener;
-	TaggingWidgetListener taggingWidgetListener;
+//	TaggingWidgetOldListener taggingWidgetListener;
 	ToolsWidgetListener laWidgetListener;
 //	JobTableWidgetListener jobOverviewWidgetListener;
 //	TranscriptsTableWidgetListener versionsWidgetListener;
@@ -302,6 +312,7 @@ public class TrpMainWidget {
 	static DocJobUpdater docJobUpdater;
 	
 	AutoSaveController autoSaveController;
+//	TaggingController taggingController;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
 		@Override public void run() {
@@ -316,7 +327,7 @@ public class TrpMainWidget {
 		VERSION = info.getVersion();
 		NAME = info.getName();
 
-		Display.setAppName(NAME + "asdf");
+		Display.setAppName(NAME);
 		Display.setAppVersion(VERSION);
 
 		// String time = info.getTimestampString();
@@ -336,6 +347,7 @@ public class TrpMainWidget {
 		addUiBindings();
 		
 		autoSaveController = new AutoSaveController(this);
+//		taggingController = new TaggingController(this);
 		
 		updateToolBars();
 		if(getTrpSets().getAutoSaveFolder().trim().isEmpty()){
@@ -385,31 +397,15 @@ public class TrpMainWidget {
 	public AutoSaveController getAutoSaveController() {
 		return autoSaveController;
 	}
+	
+//	public TaggingController getTaggingController() {
+//		return taggingController;
+//	}
 
-	public void showTipsOfTheDay() {
-		Collection<Object> tips = TrpConfig.getTipsOfTheDay().values();
-
-		final TipOfTheDay tip = new TipOfTheDay();
-		tip.setShowOnStartup(getTrpSets().isShowTipOfTheDay());
-
-		for (Object tipStr : tips) {
-			tip.addTip((String) tipStr);
-		}
-
-		if (tips.isEmpty())
-			tip.addTip("No tip found... check your configuration!");
-
-		tip.setStyle(TipStyle.TWO_COLUMNS);
-
-		tip.open(getShell());
-
-		getTrpSets().setShowTipOfTheDay(tip.isShowOnStartup());
-//		TrpConfig.save(TrpSettings.SHOW_TIP_OF_THE_DAY_PROPERTY);
-	}
 
 	/**
 	 * This method gets called in the {@link #show()} method after the UI is
-	 * inited and dispayed
+	 * inited and displayed
 	 */
 	public void postInit() {
 		// remove unused old jar files: (maybe there from program update):
@@ -424,17 +420,17 @@ public class TrpMainWidget {
 
 		// init predifined tags:
 		String tagNamesProp = TrpConfig.getTrpSettings().getTagNames();
-		if (tagNamesProp != null)
-			CustomTagFactory.addCustomDefinedTagsToRegistry(tagNamesProp);
+		if (tagNamesProp != null) {
+			CustomTagFactory.addLocalUserDefinedTagsToRegistry(tagNamesProp);
+		}
 
 		// check for updates:
 		if (getTrpSets().isCheckForUpdates()) {
 			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
 		}
 
-		boolean TESTTABLES = false; // test-hook for sebi's table editor
-		boolean DO_AUTO_LOGIN = true;
-		if (DO_AUTO_LOGIN && getTrpSets().isAutoLogin() && !TESTTABLES) {
+		boolean FORCE_AUTO_LOGIN = true;
+		if (FORCE_AUTO_LOGIN && getTrpSets().isAutoLogin()) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
 
 			try {
@@ -466,18 +462,53 @@ public class TrpMainWidget {
 			}
 		}
 
-		final boolean DISABLE_TIPS_OF_THE_DAY = true;
-		if (getTrpSets().isShowTipOfTheDay() && !DISABLE_TIPS_OF_THE_DAY) {
-			showTipsOfTheDay();
-		}
+		tryLoadingTestDocSpecifiedInLocalFile();
+		
 
-		if (TESTTABLES) {
-			loadLocalTestset();
-		}
+		
+		// TEST:
+//		if (TESTTABLES) {
+//			loadLocalTestset();
+//		}		
+//		loadLocalTestset();
+//		jumpToPage(1);
 
 //		SWTUtil.mask2(ui.getStructureTreeWidget()); // TESt
 //		MyInfiniteProgressPanel p = MyInfiniteProgressPanel.getInfiniteProgressPanelFor(ui.getStructureTreeWidget());
 //		p.start();
+
+//		final boolean DISABLE_CHANGELOG = true;
+//		openChangeLogDialog(getTrpSets().isShowChangeLog() && !DISABLE_CHANGELOG);
+	}
+	
+	/** Tries to read the local file "loadThisDocOnStartup.txt" and load the specified document.<br/>
+     * To auto load a remote document: specify the first line as: "colId docId".<br/>
+	 * To auto load a local document: specify the path of the document (without spaces!) in the first line.<br/>
+	 * Comment out a line using a # sign at the start.
+	 */
+	private void tryLoadingTestDocSpecifiedInLocalFile() {
+		try {
+			List<String> lines = Files.readAllLines(Paths.get("./loadThisDocOnStartup.txt"));
+			if (!lines.isEmpty()) {
+				String docStr = lines.get(0);
+				if (!docStr.startsWith("#")) {
+					String[] splits = docStr.split(" ");
+					if (splits.length == 2) { // remote doc
+						try {
+							int colid = Integer.parseInt(splits[0]);
+							int docid = Integer.parseInt(splits[1]);
+							loadRemoteDoc(docid, colid);
+						} catch (NumberFormatException e) {
+							// ignore parsing errors and do nothing...
+						}
+					} else { // local doc
+						loadLocalDoc(docStr);
+					}
+				}
+			}
+		} catch (IOException e) {
+			// no file found -> ignore and to not load anything
+		}
 	}
 
 	public void syncTextOfDocFromWordsToLinesAndRegions() {
@@ -801,9 +832,11 @@ public class TrpMainWidget {
 		
 		pageMetadataWidgetListener = new PageMetadataWidgetListener(this);
 		
-		textStyleWidgetListener = new TextStyleTypeWidgetListener(ui.getTextStyleWidget());
+		if (ui.getTextStyleWidget()!=null) {
+			textStyleWidgetListener = new TextStyleTypeWidgetListener(ui.getTextStyleWidget());
+		}
 
-		taggingWidgetListener = new TaggingWidgetListener(this);
+//		taggingWidgetListener = new TaggingWidgetOldListener(this);
 
 		laWidgetListener = new ToolsWidgetListener(this);
 		
@@ -819,6 +852,52 @@ public class TrpMainWidget {
 //			}
 //			@Override public void widgetDefaultSelected(SelectionEvent e) {}
 //		});
+		
+		CustomTagFactory.addObserver(new Observer() {
+			@Override
+			public void update(Observable o, Object arg) {
+				Display.getDefault().asyncExec(() -> {
+					if (arg instanceof TagRegistryChangeEvent) {
+						TagRegistryChangeEvent trce = (TagRegistryChangeEvent) arg;
+						if (trce.type.equals(TagRegistryChangeEvent.CHANGED_TAG_COLOR) && getUi()!=null && getUi().getSelectedTranscriptionWidget()!=null) {
+							TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
+						}
+					}
+				});
+			}
+		});
+	}
+	
+	/**
+	 * Add a comment tag for the current selection in the transcription widget.
+	 * If commentText is empty or null, the user is prompted to input a comment.
+	 */
+	public void addCommentForSelection(String commentText) {
+		try {
+			// show dialog if commentText parameter is empty!
+			if (StringUtils.isEmpty(commentText)) {
+				InputDialog id = new InputDialog(getShell(), "Comment", "Please enter a comment: ", "", null);
+				id.setBlockOnOpen(true);
+				if (id.open() != Window.OK) {
+					return;
+				}
+				commentText = id.getValue();
+			}
+			
+			if (StringUtils.isEmpty(commentText)) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "Cannot add an empty comment!");
+				return;
+			}
+				    			
+			Map<String, Object> atts = new HashMap<>();
+			atts.put(CommentTag.COMMENT_PROPERTY_NAME, commentText);
+			addTagForSelection(CommentTag.TAG_NAME, atts, null);
+			getUi().getCommentsWidget().reloadComments();
+		} catch (Exception e) {
+			onError("Error adding comment", e.getMessage(), e);
+		}
+		
+		
 	}
 	
 	private void addUiBindings() {
@@ -877,9 +956,9 @@ public class TrpMainWidget {
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, cw.getToolbar().showReadingOrderWordsButton);
 	}
 	
-	public TaggingWidgetListener getTaggingWidgetListener() {
-		return taggingWidgetListener;
-	}
+//	public TaggingWidgetOldListener getTaggingWidgetListener() {
+//		return taggingWidgetListener;
+//	}
 
 	// boolean isThisDocOpen(TrpJobStatus job) {
 	// return storage.isDocLoaded() && storage.getDoc().getId()==job.getDocId();
@@ -1151,7 +1230,9 @@ public class TrpMainWidget {
 			
 //			DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "Saved document metadata!", "Success", 2, true);
 		} catch (Exception e) {
-			onError("Error saving doc-metadata", e.getMessage(), e, true, true);
+			Display.getDefault().asyncExec(() -> {
+				onError("Error saving doc-metadata", e.getMessage(), e, true, true);	
+			});
 		}
 	}
 
@@ -1746,7 +1827,7 @@ public class TrpMainWidget {
 		List<ICanvasShape> selected = canvas.getScene().getSelectedAsNewArray();
 
 		if (!storage.hasTranscript()) {
-			ui.taggingWidget.setSelectedTags(null);
+//			ui.taggingWidget.setSelectedTags(null);
 			ui.getStructuralMetadataWidget().updateData(null, null, nSel, null, new ArrayList<CustomTag>());
 			return;
 		}
@@ -1789,10 +1870,12 @@ public class TrpMainWidget {
 		// selectedTagNames.add(t.getTagName());
 		// }
 
-		ui.taggingWidget.setSelectedTags(selectedTags);
+//		ui.taggingWidget.setSelectedTags(selectedTags);
 		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, selectedTags);
-		ui.getTextStyleWidget().updateData();
-
+		
+		if (ui.getTextStyleWidget()!=null) {
+			ui.getTextStyleWidget().updateData();	
+		}
 	}
 
 	public void updateTreeSelectionFromCanvas() {
@@ -1980,7 +2063,7 @@ public class TrpMainWidget {
 			// logger.debug("CHANGED: "+storage.getTranscript().getPage().isEdited());
 			loadJAXBTranscriptIntoView(storage.getTranscript());
 
-			ui.taggingWidget.updateAvailableTags();
+//			ui.taggingWidget.updateAvailableTags();
 			updateTranscriptionWidgetsData();
 			canvas.getScene().updateSegmentationViewSettings();
 
@@ -2000,11 +2083,11 @@ public class TrpMainWidget {
 		// return;
 		// }
 
-		logger.info("showing loation: " + l);
+		logger.debug("showing loation: " + l);
 
 		// 1st: load doc & page
 		if (!l.hasDoc()) {
-			logger.info("location has no doc specified!");
+			logger.debug("location has no doc specified!");
 			return;
 		}
 		int pageIndex = l.hasPage() ? l.pageNr - 1 : 0;
@@ -2016,14 +2099,14 @@ public class TrpMainWidget {
 				if (!loadLocalDoc(l.localFolder.getAbsolutePath(), pageIndex))
 					return;
 			} else {
-				if (!loadRemoteDoc(l.docId, l.collectionId, pageIndex))
+				if (!loadRemoteDoc(l.docId, l.collId, pageIndex))
 					return;
 			}
 		}
 
 		// 2nd: load page if not loaded by doc anyway:
 		if (!l.hasPage()) {
-			logger.info("location has no page specified!");
+			logger.debug("location has no page specified!");
 			return;
 		}
 
@@ -2041,25 +2124,39 @@ public class TrpMainWidget {
 			return;
 		}
 		ICanvasShape s = canvas.getScene().selectObjectWithId(l.shapeId, true, false);
-
-		if (s == null)
+		if (s == null) {
+			logger.debug("shape is null!");
 			return;
-
+		}
 		canvas.focusShape(s);
-
+		
+		ITrpShapeType st = canvas.getFirstSelectedSt();
 		// 4th: select tag in transcription widget; TODO: select word!?
 		if (l.t == null) {
-			logger.info("location has no tag specified!");
+			logger.debug("location has no tag specified!");
 			return;
 		}
-
-		boolean isLine = l.getLowestShapeType() instanceof TrpTextLineType;
-		boolean isWord = l.getLowestShapeType() instanceof TrpWordType;
-		ATranscriptionWidget tw = ui.getSelectedTranscriptionWidget();
-		if (isLine && tw instanceof LineTranscriptionWidget) {
-			tw.selectCustomTag(l.t);
+		if (st == null) {
+			logger.warn("shape type could not be retrieved - should not happen here!");
 		}
-
+		
+		ATranscriptionWidget tw = ui.getSelectedTranscriptionWidget();
+		if (st instanceof TrpTextLineType && tw instanceof LineTranscriptionWidget) {
+			logger.debug("selecting custom tag: "+l.t);
+			tw.selectCustomTag(l.t);			
+		}
+		if (st instanceof TrpWordType && tw instanceof WordTranscriptionWidget) {
+			// TODO
+		} 
+		
+//		boolean isLine = l.getLowestShapeType() instanceof TrpTextLineType;
+//		logger.debug("isLine: "+isLine);
+//		boolean isWord = l.getLowestShapeType() instanceof TrpWordType;
+//		
+//		logger.debug("is lwtw: "+(tw instanceof LineTranscriptionWidget));
+//		if (isLine && tw instanceof LineTranscriptionWidget) {
+//
+//		}
 	}
 
 	private void clearTranscriptFromView() {
@@ -2431,7 +2528,7 @@ public class TrpMainWidget {
 
 	public static void show(Display givenDisplay) {
 		BidiUtils.setBidiSupport(true);
-		logger.debug("bidi support: "+BidiUtils.getBidiSupport());
+		logger.debug("bidiSupport: "+BidiUtils.getBidiSupport()+ " isBidiPlatform: "+BidiUtil.isBidiPlatform());
 		
 		GuiUtil.initLogger();
 		try {
@@ -2465,6 +2562,7 @@ public class TrpMainWidget {
 
 								sw.setProgress(100);
 								sw.stop();
+
 							}
 						});
 					} else {
@@ -2482,6 +2580,10 @@ public class TrpMainWidget {
 
 					// the main display loop:
 					logger.debug("entering main event loop");
+					
+					
+					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
+					
 					// while((Display.getCurrent().getShells().length != 0)
 					// && !Display.getCurrent().getShells()[0].isDisposed()) {
 					while (!shell.isDisposed()) {
@@ -2697,7 +2799,8 @@ public class TrpMainWidget {
 							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getPdfFolder(), monitor);
 							if (!monitor.isCanceled())
 								displaySuccessMessage(
-										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished - reload the document list occasionally");
+										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished"
+										+ " - reload the document list occasionally");
 						} catch (Exception e) {
 							throw new InvocationTargetException(e);
 						}
@@ -2712,8 +2815,9 @@ public class TrpMainWidget {
 				}
 
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_INFORMATION, "FTP Upload",
-						"The FTP upload runs as background process and last for some time.\n"
-								+ "Look into Jobs tab!\nReloading the collection shows the already uploaded documents.",
+						"The FTP upload runs as background process and takes a while.\n"
+								+ "Look into Jobs tab!\n"
+								+ "Reloading the collection shows the already uploaded documents.",
 						2, true);
 				for (final TrpDocDir d : dirs) {
 					try {
@@ -4205,7 +4309,7 @@ public class TrpMainWidget {
 	}
 
 	public void openSearchDialog() {
-		if(searchDiag != null){
+		if (searchDiag != null) {
 			if(searchDiag.getShell() != null ){
 
 				if(searchDiag.getShell().getMinimized()){
@@ -4217,9 +4321,10 @@ public class TrpMainWidget {
 			}else{
 				searchDiag.open();
 			}
-		}else{		
-		searchDiag = new SearchDialog(getShell());
-		searchDiag.open();
+		} 
+		else{		
+			searchDiag = new SearchDialog(getShell());
+			searchDiag.open();
 		}
 	}
 	
@@ -4612,13 +4717,18 @@ public class TrpMainWidget {
 		}		
 	}
 
-	public void openChangeLogDialog() {
+	public void openChangeLogDialog(boolean show) {
+		
 		if (changelogDialog == null) {
 			changelogDialog = new ChangeLogDialog(getShell(), SWT.NONE);
-			changelogDialog.open();
-		} else {
-			changelogDialog.setActive();
+			changelogDialog.setShowOnStartup(getTrpSets().isShowChangeLog());
 		}
+		
+		if (show) {
+			changelogDialog.open();
+			getTrpSets().setShowChangeLog(changelogDialog.isShowOnStartup());
+		}
+
 	}
 	
 	public void openPAGEXmlViewer() {
@@ -4662,6 +4772,15 @@ public class TrpMainWidget {
 	public TrpCollection getSelectedCollection() {
 		return ui.getServerWidget().getSelectedCollection();
 	}
+	
+	public void openHowToGuides() {
+		Desktop d = Desktop.getDesktop();
+		try {
+			d.browse(new URI("https://transkribus.eu/wiki/index.php/How_to_Guides"));
+		} catch (IOException | URISyntaxException e) {
+			logger.debug(e.getMessage());
+		}		
+	}
 
 	public void openCanvasHelpDialog() {
 		String ht = ""
@@ -4673,8 +4792,10 @@ public class TrpMainWidget {
 				+ "  (note: on mac touchpads, right-clicks are performed using two fingers simultaneously)"
 				;
 		
+		
 		int res = DialogUtil.showMessageDialog(getShell(), "Canvas shortcut operations", ht, null, MessageDialog.INFORMATION, 
 				new String[] {"OK"}, 0);
+		
 	}
 	
 	/**
@@ -4705,14 +4826,24 @@ public class TrpMainWidget {
 		}
 	}
 	
+	public void openSearchForTagsDialog() {
+		if(Storage.getInstance().getDoc() == null){
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "No document loaded.");
+			return;
+		}
+		
+		openSearchDialog();
+		getSearchDialog().selectTab(SearchType.TAGS);
+	}
+	
 	public void searchCurrentDoc(){		
 		if(Storage.getInstance().getDoc() == null){
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "No document loaded.");
 			return;
 		}
 		
-		openSearchDialog();		
-		getSearchDialog().getTabFolder().setSelection(getSearchDialog().getFulltextTabItem());		
+		openSearchDialog();
+		getSearchDialog().selectTab(SearchType.FULLTEXT);
 		
 		FullTextSearchComposite ftComp = getSearchDialog().getFulltextComposite();		
 		ftComp.searchCurrentDoc(true);							
@@ -5358,6 +5489,8 @@ public class TrpMainWidget {
 			getUi().getLineTranscriptionWidget().redrawText(true);
 			getUi().getWordTranscriptionWidget().redrawText(true);
 			refreshStructureView();
+			
+//			getUi().getTaggingWidget().getTagListWidget().refreshTable();
 		} catch (Exception e) {
 			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
 		}
@@ -5445,8 +5578,10 @@ public class TrpMainWidget {
 	}
 	
 	public void updateVersionStatus(){
-		ui.getStatusCombo().setText(storage.getTranscriptMetadata().getStatus().getStr());
-		ui.getStatusCombo().redraw();
+		if (storage.hasTranscript()) {
+			ui.getStatusCombo().setText(storage.getTranscriptMetadata().getStatus().getStr());
+			ui.getStatusCombo().redraw();			
+		}
 	}
 
 	public void changeVersionStatus(String text, List<TrpPage> pageList) {

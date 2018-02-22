@@ -3,12 +3,12 @@ package eu.transkribus.swt_gui.mainwidget.storage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -47,8 +47,10 @@ import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.DocExporter;
 import eu.transkribus.core.io.LocalDocReader;
+import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.LocalDocWriter;
 import eu.transkribus.core.io.UnsupportedFormatException;
+import eu.transkribus.core.io.util.ExtensionFileFilter;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
@@ -84,6 +86,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.alto.AltoExporter;
@@ -111,9 +114,12 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.MainImageLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.PageLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TagDefsChangedEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
+import eu.transkribus.swt_gui.metadata.CustomTagSpec;
+import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -141,6 +147,9 @@ public class Storage {
 
 	private List<TrpDocMetadata> docList = Collections.synchronizedList(new ArrayList<>());
 	private List<TrpDocMetadata> userDocList = Collections.synchronizedList(new ArrayList<>());
+	
+	private List<CustomTagSpec> customTagSpecs = new ArrayList<>();
+	private Map<String, Pair<Integer, String>> virtualKeysShortCuts = new HashMap<>();
 	
 	private int collId;
 		
@@ -200,6 +209,11 @@ public class Storage {
 		initImCache();
 		initTranscriptCache();
 		addInternalListener();
+		readTagSpecsFromLocalSettings();
+		
+		// init some dummy vk shortcuts:
+//		setVirtualKeyShortCut("1", Pair.of(1, "hello"));
+//		setVirtualKeyShortCut("2", Pair.of(2, "-"));
 	}
 	
 	private void addInternalListener() {
@@ -1544,8 +1558,29 @@ public class Storage {
 		if (!isLoggedIn())
 			throw new Exception("Not logged in!");
 
-		//do not force create XMLs
-		TrpDoc doc = LocalDocReader.load(folder, false);
+		DocLoadConfig config = new DocLoadConfig();
+		
+		File inputDir = new File(folder);
+		LocalDocReader.checkInputDir(inputDir);
+		
+		/*
+		 * Check if an import of non-PAGE files is needed.
+		 * Check for existence of a non-empty page dir
+		 */
+		final File pageDir = LocalDocReader.getPageXmlInputDir(inputDir);
+		final boolean hasNonEmptyPageDir = pageDir.isDirectory() 
+				&& pageDir.listFiles(ExtensionFileFilter.getXmlFileFilter()).length > 0;
+		
+		//if there is no page dir with files, then check if other files exist that should be converted
+		if(!hasNonEmptyPageDir && 
+				(LocalDocReader.getOcrXmlInputDir(inputDir).isDirectory()
+				|| LocalDocReader.getAltoXmlInputDir(inputDir).isDirectory()
+				|| LocalDocReader.getTxtInputDir(inputDir).isDirectory())) {
+			//force page XML creation for importing existing text files
+			config.setForceCreatePageXml(true);
+		}
+		
+		TrpDoc doc = LocalDocReader.load(folder, config, monitor);
 		if (title != null && !title.isEmpty()) {
 			doc.getMd().setTitle(title);
 		}
@@ -1588,11 +1623,12 @@ public class Storage {
 		conn.ingestDocFromFtp(cId, dirName, checkForDuplicateTitle);
 	}
 	
-	public void uploadDocumentFromMetsUrl(int cId, String metsUrl) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException, MalformedURLException, IOException{
+	public void uploadDocumentFromMetsUrl(int cId, String metsUrlStr) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException, MalformedURLException, IOException{
 //		if (!isLoggedIn())
 //			throw new Exception("Not logged in!");
 		checkConnection(true);
-		if (metsUrl.startsWith("file")){
+		URL metsUrl = new URL(metsUrlStr);
+		if (metsUrl.getProtocol().startsWith("file")){
 			conn.ingestDocFromLocalMetsUrl(cId, metsUrl);
 		}
 		else{
@@ -1625,7 +1661,7 @@ public class Storage {
 		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
 	}
 	
-	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
 		checkConnection(true);
 		
 		if (!isRemoteDoc()) {
@@ -1656,7 +1692,7 @@ public class Storage {
 	/**
 	 * Wrapper method which takes a pages range string of the currently loaded document
 	 */
-	public List<String> analyzeLayoutOnLatestTranscriptOfPages(String pageStr, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+	public List<String> analyzeLayoutOnLatestTranscriptOfPages(String pageStr, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
 		checkConnection(true);
 		
 		if (!isRemoteDoc()) {
@@ -1677,7 +1713,7 @@ public class Storage {
 		return jobids;
 	}
 	
-	public List<TrpJobStatus> analyzeLayout(int colId, List<DocumentSelectionDescriptor> dsds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, String pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+	public List<TrpJobStatus> analyzeLayout(int colId, List<DocumentSelectionDescriptor> dsds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
 	}
@@ -2341,5 +2377,116 @@ public class Storage {
 		doc = conn.getTrpDoc(this.collId, doc.getMd().getDocId(), -1);
 		
 	}
+	
+	
+	// CUSTOM TAG SPEC STUFF:
+	
+	public List<CustomTagSpec> getCustomTagSpecs() {
+		return customTagSpecs;
+	}
+	
+	public void addCustomTagSpec(CustomTagSpec tagSpec) {
+		customTagSpecs.add(tagSpec);
+		checkTagSpecsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+	
+		storeCustomTagSpecsForCurrentCollection();
+	}
+	
+	public void removeCustomTagSpec(CustomTagSpec tagDef) {
+		customTagSpecs.remove(tagDef);
+		checkTagSpecsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		
+		storeCustomTagSpecsForCurrentCollection();
+	}
+	
+	public void signalCustomTagSpecsChanged() {
+		checkTagSpecsConsistency();
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		storeCustomTagSpecsForCurrentCollection();
+	}
+	
+	public CustomTagSpec getCustomTagSpecWithShortCut(String shortCut) {
+		if (shortCut == null) {
+			return null;
+		}
+		
+		return customTagSpecs.stream().filter(cDef -> { return StringUtils.equals(shortCut, cDef.getShortCut());}).findFirst().get();
+	}
+	
+	private void checkTagSpecsConsistency() {
+		checkTagDefsShortCutConsistency();
+	}
+	
+	private void checkTagDefsShortCutConsistency() {
+		for (CustomTagSpec cDef: customTagSpecs) {
+			String sc1 = cDef.getShortCut();
+			
+			for (CustomTagSpec cDefOther : customTagSpecs) {
+				String sc2 = cDefOther.getShortCut();
+				
+				if (cDef == cDefOther) {
+					continue;
+				}
+				
+				if (sc1!=null && sc2!=null && sc1.equals(sc2)) {
+					cDefOther.setShortCut(null);
+				}
+			}
+		}		
+	}
+		
+	private void storeCustomTagSpecsForCurrentCollection() {
+		logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagSpecs);
+		CustomTagSpecUtil.writeCustomTagSpecsToSettings(customTagSpecs);
+		
+//		if (!storage.isLoggedIn()) {
+//			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
+//			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
+//		} else {
+//			// TODO: write to server for current collection if logged in!
+//		}
+	}
+	
+	private void readTagSpecsFromLocalSettings() {
+		customTagSpecs.clear();
+		customTagSpecs.addAll(CustomTagSpecUtil.readCustomTagSpecsFromSettings());
+		
+		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+	}
+	
+	// virtual keys shortcuts:
+	public Pair<Integer, String> getVirtualKeyShortCutValue(String key) {
+		return virtualKeysShortCuts.get(key);
+	}
+	
+	public String getVirtualKeyShortCutKey(Pair<Integer, String> vk) {
+		for (String key : virtualKeysShortCuts.keySet()) {
+			if (virtualKeysShortCuts.get(key).equals(vk)) {
+				return key;
+			}
+		}
+		return null;
+	}
+	
+	public Pair<Integer, String> setVirtualKeyShortCut(String key, Pair<Integer, String> vk) {
+		return virtualKeysShortCuts.put(key, vk);
+	}
+	
+	public boolean isValidVirtualKeyShortCutKey(String key) {
+		return key.equals("0") || key.equals("1") || key.equals("2") || key.equals("3") || key.equals("4") || key.equals("5") || 
+				key.equals("6") || key.equals("7") || key.equals("8") || key.equals("9");
+	}
+	
+	public void clearVirtualKeyShortCuts() {
+		virtualKeysShortCuts.clear();
+	}
+	
+	public Map<String, Pair<Integer, String>> getVirtualKeysShortCuts() {
+		return virtualKeysShortCuts;
+	}
+	
+	// END OF CUSTOM TAG SPECS STUFF
 
 }

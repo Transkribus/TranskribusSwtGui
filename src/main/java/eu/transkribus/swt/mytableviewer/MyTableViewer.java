@@ -41,13 +41,16 @@ public class MyTableViewer extends TableViewer {
 	}
 	
 	/** Adds columns to the viewer in the given order. */
-	public void addColumns(ColumnConfig... cols) {
+	public List<Pair<TableColumn, TableViewerSorter>> addColumns(ColumnConfig... cols) {
+		List<Pair<TableColumn, TableViewerSorter>> columns = new ArrayList<>();
 		for (ColumnConfig cf : cols) {
 			Pair<TableColumn, TableViewerSorter> p = 
 					createColumn(this, cf.style, cf.name, cf.width, cf.defaultSorting, cf.sortingDirection, cf.sorter);
-//			columns.add(p.getLeft());
 			sorter.add(p.getRight());
+			columns.add(p);
 		}
+		
+		return columns;
 	}
 	
 	public int getIndex(String columnName) {
@@ -77,6 +80,10 @@ public class MyTableViewer extends TableViewer {
 	
 	public TableColumn getColumn(int index) {
 		return getTable().getColumn(index);
+	}
+	
+	public int getNColumns() {
+		return getTable().getColumnCount();
 	}
 	
 	private static Pair<TableColumn, TableViewerSorter> createColumn(TableViewer viewer, int style, 

@@ -176,27 +176,26 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 			text.setCaretOffset(endOfEdit);
 		}
 		
-		// actions performed after DIFF_T ms of no text change:
-		
-		
-		final long DIFF_T = 500;
-		if (true)
-		new Timer().schedule(new TimerTask() {
-			@Override public void run() {
-    			long diff = System.currentTimeMillis() - lastTextChange;
-    			logger.debug("diff = "+diff);
-    			if (diff >= DIFF_T) {
-    				Display.getDefault().asyncExec(new Runnable() {
-						@Override public void run() {
-							if (isCattiMode()) {
-								logger.debug("starting cattiOnEdit!");
-								callCattiMethod(CattiMethod.SET_PREFIX, start, end, replacementText);
+		if (false) {
+			// actions performed after DIFF_T ms of no text change:
+			final long DIFF_T = 500;
+			new Timer().schedule(new TimerTask() {
+				@Override public void run() {
+	    			long diff = System.currentTimeMillis() - lastTextChange;
+	    			logger.debug("diff = "+diff);
+	    			if (diff >= DIFF_T) {
+	    				Display.getDefault().asyncExec(new Runnable() {
+							@Override public void run() {
+								if (isCattiMode()) {
+									logger.debug("starting cattiOnEdit!");
+									callCattiMethod(CattiMethod.SET_PREFIX, start, end, replacementText);
+								}
 							}
-						}
-					});
-    			}
-			}
-		}, DIFF_T);
+						});
+	    			}
+				}
+			}, DIFF_T);
+		}
 	}
 	
 	private boolean isCattiMode() {
@@ -804,6 +803,9 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 			return false;
 		
 		if (!(t.getCustomTagList().getShape() instanceof TrpTextLineType))
+			return false;
+		
+		if (currentLineObject==null)
 			return false;
 		
 		if (!t.getCustomTagList().getShape().getId().equals(currentLineObject.getId()))

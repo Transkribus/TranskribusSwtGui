@@ -6,7 +6,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.ServerErrorException;
-import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.CellEditor;
@@ -14,8 +13,6 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -37,14 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.exceptions.NoConnectionException;
-import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
-import eu.transkribus.core.rest.JobConst;
-import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
@@ -53,10 +44,8 @@ import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_gui.mainwidget.DocJobUpdater;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 
 public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatus> {
 	private final static Logger logger = LoggerFactory.getLogger(JobTableWidgetPagination.class);
@@ -316,13 +305,12 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 				if (element instanceof TrpJobStatus) {
 					final TrpJobStatus job = (TrpJobStatus)element;
 					String type = job.getType();
-					if (type.equals(JobImpl.CITlabHtrTrainingJob.getLabel())) {
-						logger.debug("Found a HTR Training job...");						
+					if (type.equals(JobImpl.CITlabHtrTrainingJob.getLabel()) && !StringUtils.isEmpty(job.getJobData())) {
 						Matcher m = htrModelNamePattern.matcher(job.getJobData());
 						if(m.find()) {
 							type += ": " + m.group(1).trim();
 						}
-
+						
 						// this is slower...
 //						final String objectStr = (String) job.getJobDataProps().get(JobConst.PROP_CONFIG);
 //						try {

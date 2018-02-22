@@ -537,7 +537,7 @@ public class FullTextSearchComposite extends Composite{
 						int pageNr = clHit.getPageNr();
 						TrpLocation l = new TrpLocation();
 						
-						l.collectionId = col;
+						l.collId = col;
 						l.docId = docId;
 						l.pageNr = pageNr;		
 						l.shapeId=clHit.getLineId();

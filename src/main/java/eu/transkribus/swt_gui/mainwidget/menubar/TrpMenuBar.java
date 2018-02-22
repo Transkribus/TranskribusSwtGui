@@ -82,7 +82,8 @@ public class TrpMenuBar {
 	MenuItem showBaselinesMenuItem;
 	MenuItem showWordsMenuItem;
 	
-	MenuItem aboutMenuIItem;
+	MenuItem aboutMenuItem;
+	MenuItem helpMenuItem;
 	MenuItem changelogMenuItem;
 	MenuItem exitItem;
 	MenuItem updateMenuItem;
@@ -190,7 +191,9 @@ public class TrpMenuBar {
 		
 		changelogMenuItem = createItem(menuBar, SWT.NONE, Images.getOrLoad("/icons/new.png"), "What's new in Transkribus");
 		
-		aboutMenuIItem = createItem(menuBar, SWT.NONE, Images.getOrLoad("/icons/information.png"), "About");
+		aboutMenuItem = createItem(menuBar, SWT.NONE, Images.getOrLoad("/icons/information.png"), "About");
+		
+		helpMenuItem = createItem(menuBar, 0, Images.HELP, "Help");
 
 		exitItem = createItem(menuBar, SWT.NONE, Images.getOrLoad("/icons/door_out.png"), "Exit");
 	}
@@ -235,7 +238,7 @@ public class TrpMenuBar {
 //	}
 
 	public MenuItem getAboutMenuItem() {
-		return aboutMenuIItem;
+		return aboutMenuItem;
 	}
 	
 	public MenuItem getWhatsnewMenuItem() { return changelogMenuItem; }

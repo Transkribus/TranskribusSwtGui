@@ -159,7 +159,16 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean renderOtherStyles=true;
 	public static final String RENDER_OTHER_STYLES = "renderOtherStyles";
 	private boolean renderTags=true;
-	public static final String RENDER_TAGS = "renderTags";	
+	public static final String RENDER_TAGS = "renderTags";
+	
+	private boolean showTextTagEditor = true;
+	public static final String SHOW_TEXT_TAG_EDITOR_PROPERTY = "showTextTagEditor";
+	
+	private boolean showAllTagsInTagEditor = false;
+	public static final String SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY = "showAllTagsInTagEditor";
+	
+	private boolean highlightComments = false;
+	public static final String HIGHLIGHT_COMMENTS_PROPERTY = "highlightComments";
 	
 	private boolean enableIndexedStyles=true;
 	public static final String ENABLE_INDEXED_STYLES="enableIndexedStyles";
@@ -167,6 +176,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private String tagNames="";
 	public static final String TAG_NAMES_PROPERTY="tagNames";
 	
+	private String tagSpecs="";
+	public static final String TAG_SPECS_PROPERTY="tagSpecs";
+		
 	private int imageCacheSize = 3;
 	public static final String IMAGE_CACHE_SIZE_PROPERTY="imageCacheSize";
 	
@@ -190,6 +202,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	private boolean showTipOfTheDay=true;
 	public static final String SHOW_TIP_OF_THE_DAY_PROPERTY="showTipOfTheDay";
+	
+	private boolean showChangeLog=true;
+	public static final String SHOW_CHANGELOG_PROPERTY="showChangeLog";
 	
 	private boolean useFtpProgramUpdater=false;
 	public static final String USE_FTP_PROGRAM_UPDATER = "useFtpProgramUpdater";
@@ -618,6 +633,33 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(RENDER_TAGS, !this.renderTags, this.renderTags);
 	}
 	
+	public boolean isShowTextTagEditor() {
+		return showTextTagEditor;
+	}
+
+	public void setShowTextTagEditor(boolean showTextTagEditor) {
+		this.showTextTagEditor = showTextTagEditor;
+		firePropertyChange(SHOW_TEXT_TAG_EDITOR_PROPERTY, !this.showTextTagEditor, this.showTextTagEditor);
+	}
+	
+	public boolean isShowAllTagsInTagEditor() {
+		return showAllTagsInTagEditor;
+	}
+	
+	public void setShowAllTagsInTagEditor(boolean showAllTagsInTagEditor) {
+		this.showAllTagsInTagEditor = showAllTagsInTagEditor;
+		firePropertyChange(SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY, !this.showAllTagsInTagEditor, this.showAllTagsInTagEditor);
+	}
+	
+	public boolean isHighlightComments() {
+		return highlightComments;
+	}
+
+	public void setHighlightComments(boolean highlightComments) {
+		this.highlightComments = highlightComments;
+		firePropertyChange(HIGHLIGHT_COMMENTS_PROPERTY, !this.highlightComments, this.highlightComments);
+	}
+
 	/**
 	 * @deprecated non-indexed styles are not supported anymore - will be removed
 	 */
@@ -633,16 +675,26 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(ENABLE_INDEXED_STYLES, !this.enableIndexedStyles, this.enableIndexedStyles);
 	}
 	
-	public String getTagNames() { return tagNames; }
+	public String getTagNames() {
+		return tagNames;
+	}
+	
 	public void setTagNames(String tagNames) {
 		String old = this.tagNames;
 		this.tagNames = tagNames;
-		
-		logger.debug("SETTING TAG NAMES: "+tagNames);
-		
 		firePropertyChange(TAG_NAMES_PROPERTY, old, this.tagNames);
 	}
-
+	
+	public String getTagSpecs() {
+		return tagSpecs;
+	}
+	
+	public void setTagSpecs(String tagDefs) {
+		String old = this.tagSpecs;
+		this.tagSpecs = tagDefs;
+		firePropertyChange(TAG_SPECS_PROPERTY, old, this.tagSpecs);
+	}
+	
 	public static Color determineColor(TrpSettings sets, Object wrappedData) {
 		if (wrappedData instanceof TableCellType) {
 			return sets.colorTableCells;
@@ -736,6 +788,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setShowTipOfTheDay(boolean showTipOfTheDay) {
 		this.showTipOfTheDay = showTipOfTheDay;
 		firePropertyChange(SHOW_TIP_OF_THE_DAY_PROPERTY, !this.showTipOfTheDay, this.showTipOfTheDay);
+	}
+	
+	public boolean isShowChangeLog() {
+		return showChangeLog;
+	}
+	
+	public void setShowChangeLog(boolean showChangeLog) {
+		this.showChangeLog = showChangeLog;
+		firePropertyChange(SHOW_CHANGELOG_PROPERTY, !this.showChangeLog, this.showChangeLog);
 	}
 	
 	@Deprecated

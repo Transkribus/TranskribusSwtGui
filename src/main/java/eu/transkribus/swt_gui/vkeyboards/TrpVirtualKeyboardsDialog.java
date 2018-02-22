@@ -37,7 +37,7 @@ public class TrpVirtualKeyboardsDialog extends Dialog {
 	}
 
 	@Override protected Point getInitialSize() {
-		return new Point(800, 400);
+		return new Point(850, 525);
 	}
 
 	@Override protected boolean isResizable() {

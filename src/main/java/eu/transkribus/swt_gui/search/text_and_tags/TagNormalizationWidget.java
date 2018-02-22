@@ -32,9 +32,9 @@ import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.swt.progress.ProgressBarDialog;
-import eu.transkribus.swt.util.CustomTagPropertyTable;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.CustomTagPropertyTable;
 
 class TagNormalizationWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TagNormalizationWidget.class);
@@ -178,15 +178,15 @@ class TagNormalizationWidget extends Composite {
 //				CustomTag protoTag = CustomTagFactory.getTagObjectFromRegistry(cssTag.getTagName());
 				// TODO clear attributes!?
 	
-				propertyTable.setInput(selectedCustomTag, selectedCustomTag);
+				propertyTable.setInput(selectedCustomTag);
 			} catch (Exception e) {
 				logger.error("Error setting normalization tag: "+e.getMessage(), e);
 				this.selectedTags = null;
-				propertyTable.setInput(null, null);
+				propertyTable.setInput(null);
 			}
 		} else {
 			this.selectedTags = null;
-			propertyTable.setInput(null, null);
+			propertyTable.setInput(null);
 		}
 		propertyTable.redraw();
 	}

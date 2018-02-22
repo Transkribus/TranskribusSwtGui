@@ -117,7 +117,7 @@ public class CanvasToolBarNew {
 	CanvasWidget canvasWidget;
 	DropDownToolItem imageVersionDropdown;
 //	DropDownToolItem tableItem;
-	ToolItem helpItem;
+	ToolItem helpItem, canvasHelpItem;
 	
 	MenuItem createDefaultLineItem;
 	MenuItem createImageSizeTextRegionItem;
@@ -332,10 +332,12 @@ public class CanvasToolBarNew {
 		viewSettingsMenuItem = new ToolItem(tb, SWT.PUSH);
 		viewSettingsMenuItem.setToolTipText("Change &viewing settings...");
 		viewSettingsMenuItem.setImage(Images.getOrLoad("/icons/palette.png"));
-				
+
+		if (false) {
 		helpItem = new ToolItem(tb, SWT.PUSH);
-		helpItem.setToolTipText("Canvas shortcuts");
+		helpItem.setToolTipText("How To Guides...");
 		helpItem.setImage(Images.HELP);
+		}
 		
 		if (true) {
 		new ToolItem(tb, SWT.SEPARATOR);
@@ -531,6 +533,10 @@ public class CanvasToolBarNew {
 		undo = new ToolItem(tb, SWT.PUSH);
 		undo.setToolTipText("Undo last edit step");
 		undo.setImage(Images.ARROW_UNDO);
+		
+		canvasHelpItem = new ToolItem(tb, SWT.PUSH);
+		canvasHelpItem.setToolTipText("Canvas shortcuts...");
+		canvasHelpItem.setImage(Images.HELP);
 		
 		tb.layout();
 	}
@@ -1072,6 +1078,10 @@ public class CanvasToolBarNew {
 	
 	public ToolItem getHelpItem() {
 		return helpItem;
+	}
+
+	public Object getCanvasHelpItem() {
+		return canvasHelpItem;
 	}
 
 }

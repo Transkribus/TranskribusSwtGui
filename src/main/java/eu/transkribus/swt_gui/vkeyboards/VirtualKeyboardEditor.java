@@ -6,20 +6,27 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -37,6 +44,8 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.MultilineInputDialog;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 
 public class VirtualKeyboardEditor extends Composite {
@@ -181,6 +190,120 @@ public class VirtualKeyboardEditor extends Composite {
 		};
 		addCol.setLabelProvider(addButtonColLabelProvider);
 		}
+		
+		createShortCutColumn();
+	}
+	
+	private void createShortCutColumn() {
+		TableViewerColumn shortcutCol = createColumn(tv, "Shortcut", 100, false);		
+		shortcutCol.setLabelProvider(new CellLabelProvider() {
+			Storage storage = Storage.getInstance();
+			
+			@Override
+			public void update(ViewerCell cell) {
+				try {
+					Pair<Integer, String> vk = getElement(cell.getElement());
+					String key = storage.getVirtualKeyShortCutKey(vk);
+					if (key != null) {
+						cell.setText("Ctrl+"+key);
+					}
+					else {
+						cell.setText("");
+					}
+				} catch (Exception e) {
+					cell.setText(e.getMessage());
+				}
+			}
+			
+			@Override
+	        public String getToolTipText(Object element) {
+	           return "Ctrl + a number between 0 and 9";
+	        }
+		});
+
+		if (true) { // is editable
+		shortcutCol.setEditingSupport(new EditingSupport(tv) {
+			Storage storage = Storage.getInstance();
+			
+			@Override
+			protected void setValue(Object element, Object value) {
+				logger.debug("setting value of: "+element+" to: "+value);
+				if (!storage.isValidVirtualKeyShortCutKey(""+value)) {
+					return;
+				}
+				
+				try {
+					Pair<Integer, String> vk = getElement(element);
+					storage.setVirtualKeyShortCut(""+value, vk);
+					tv.refresh(true);
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+			
+			@Override
+			protected Object getValue(Object element) {
+				try {
+					Pair<Integer, String> vk = getElement(element);
+					String key = storage.getVirtualKeyShortCutKey(vk);
+					return key==null ? "" : key;
+//					storage.setVirtualKeyShortCut(""+value, vk);
+//					tv.refresh(true);
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+					return "";
+				}
+			}
+			
+			@Override
+			protected CellEditor getCellEditor(Object element) {
+				TextCellEditor ce = new TextCellEditor(tv.getTable());
+				
+				// add a "default" description text when no shortcut is set
+				ce.getControl().addFocusListener(new FocusAdapter() {				
+					@Override
+					public void focusGained(FocusEvent e) {
+						Pair<Integer, String> vk = getElement(element);
+						String key = storage.getVirtualKeyShortCutKey(vk);
+						
+						if (StringUtils.isEmpty(key)) {
+							ce.setValue("Enter a number between 0 and 9");
+							ce.performSelectAll();		
+						}
+					}
+				});
+				
+				ce.setValidator(new ICellEditorValidator() {
+					
+					@Override
+					public String isValid(Object value) {
+						String str = (String) value;
+						int len = StringUtils.length(str);
+						logger.debug("sc = "+str+" len = "+len);
+						if (len <= 0) { // empty string are allowed for deleting shortcut
+							return null;
+						}
+						if (len>=2) {
+							return "Not a string of size 1!";
+						}
+						if (!storage.isValidVirtualKeyShortCutKey(""+value)) {
+							return "Not a valid shortcut character (0-9)!";
+						}
+						
+						return null;
+					}
+				});
+				
+				return ce;
+			}
+			
+			@Override
+			protected boolean canEdit(Object element) {
+				return true;
+			}
+		});
+		}
+		
 	}
 		
 	private static TableViewerColumn createColumn(TableViewer tv, String text, int width, boolean isResizable) {

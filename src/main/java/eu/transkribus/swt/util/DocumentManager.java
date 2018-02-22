@@ -806,7 +806,7 @@ public class DocumentManager extends Dialog {
 						}
 					}
 					TrpLocation loc = new TrpLocation();
-					loc.collectionId = colId;
+					loc.collId = colId;
 					loc.docId = ((TrpDocMetadata) o).getDocId();
 					loc.pageNr = 1;
 					TrpMainWidget.getInstance().showLocation(loc);
@@ -816,7 +816,7 @@ public class DocumentManager extends Dialog {
 				} else if (o instanceof TrpPage) {
 					TrpPage p = (TrpPage) o;
 					TrpLocation loc = new TrpLocation();
-					loc.collectionId = colId;
+					loc.collId = colId;
 					loc.docId = p.getDocId();
 					loc.pageNr = p.getPageNr();
 					TrpMainWidget.getInstance().showLocation(loc);

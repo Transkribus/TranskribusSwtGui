@@ -145,18 +145,18 @@ public class OldKeywordSpottingComposite extends Composite {
 				if (el instanceof KwsDocHit) {
 					loc = new TrpLocation();
 					KwsDocHit h = ((KwsDocHit)el);
-					loc.collectionId = h.getColId();
+					loc.collId = h.getColId();
 					loc.docId = h.getDocId();
 				} else if (el instanceof KwsPageHit) {
 					loc = new TrpLocation();
 					KwsPageHit h = ((KwsPageHit)el);
-					loc.collectionId = h.getColId();
+					loc.collId = h.getColId();
 					loc.docId = h.getDocId();
 					loc.pageNr = h.getPageNr();					
 				} else if (el instanceof KwsHit){
 					loc = new TrpLocation();
 					KwsHit h = ((KwsHit)el);
-					loc.collectionId = h.getColId();
+					loc.collId = h.getColId();
 					loc.docId = h.getDocId();
 					loc.pageNr = h.getPageNr();	
 					loc.shapeId = h.getLineId();

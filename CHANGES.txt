@@ -523,15 +523,19 @@ CHANGES AND BUGFIXES
 1.3.7:
 	-> fix NPE in Text2Image
 	-> add "value" column in tag search&replace
-
-1.3.8:
+	
+1.4.0:
 	-> add BIDI support in transcription widget
-	-> adapted PDF export
+	-> refined PDF export
+	-> Docx export considers tables resp. text in tables
 	-> adapted tag search and replace
-	-> simple txt export
+	-> new export option: simple txt export
 	-> export images without loading transcripts
 	-> Transcripts: Revert to the version(s) before the last (batch) job was completed
-	-> add What is new in Transkribus (make CHANGES.txt visible to the user)
+	-> add 'What is new' in Transkribus (make CHANGES.txt visible to the user)
 	-> add search for documents by collection ID
-	-> simplify load from pdf dialog, user's tmp directory is now used
-	
+	-> remove outdated TipsOfTheDay 
+	-> add direct link to Transkribus HowTo guides
+	-> extended virtual keyboard: Hebrew and Arabic are new
+	-> change text based tagging system
+	-> take local tmp directory as default for pdf upload

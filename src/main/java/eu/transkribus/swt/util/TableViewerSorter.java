@@ -31,6 +31,8 @@ public abstract class TableViewerSorter extends ViewerComparator {
 	
 	protected int columnIndex;
 	
+	protected boolean ignoreCase;
+	
 	public TableViewerSorter(TableViewer viewer) {
 		this.viewer = viewer;
 	}
@@ -121,5 +123,14 @@ public abstract class TableViewerSorter extends ViewerComparator {
 		this.viewer = viewer2;
 	}
 
+	public boolean isIgnoreCase() {
+		return ignoreCase;
+	}
+
+	public void setIgnoreCase(boolean ignoreCase) {
+		this.ignoreCase = ignoreCase;
+	}
+
+	
 
 }

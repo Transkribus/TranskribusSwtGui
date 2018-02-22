@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.3.8.3-SNAPSHOT</version>
+	<version>1.4.0.1-SNAPSHOT</version>
 	<name>Transkribus</name>
 
 	<properties>
@@ -274,7 +274,8 @@
 								<mainClass>${mainClassName}</mainClass>
 								<preCp>anything</preCp>
 							</classPath>
-							<icon>src/main/resources/icons/pencil.ico</icon>
+<!-- 							<icon>src/main/resources/icons/pencil.ico</icon> -->
+							<icon>src/main/resources/icons/ticon6.ico</icon>
 							<jre>
 								<minVersion>1.8.0</minVersion>
 								<jdkPreference>preferJre</jdkPreference>

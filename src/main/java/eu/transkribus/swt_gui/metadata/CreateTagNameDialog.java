@@ -26,16 +26,10 @@ public class CreateTagNameDialog extends Dialog {
 
 	String title;
 	Text nameTxt;
-//	Combo typeCombo;
 
 	String name = null;
 	Text status;
 	
-	/**
-	 * Create the dialog.
-	 * @param parentShell
-	 * @param tn 
-	 */
 	public CreateTagNameDialog(Shell parentShell, String title) {
 		super(parentShell);
 		this.title = title;
@@ -46,10 +40,6 @@ public class CreateTagNameDialog extends Dialog {
 	      shell.setText(title);
 	}
 
-	/**
-	 * Create contents of the dialog.
-	 * @param parent
-	 */
 	@Override protected Control createDialogArea(Composite parent) {
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(new GridLayout(2, false));
@@ -57,14 +47,13 @@ public class CreateTagNameDialog extends Dialog {
 		Label l0 = new Label(container, 0);
 		l0.setText("Name: ");
 		nameTxt = new Text(container, SWT.BORDER);
-		nameTxt.setToolTipText("The short name of the tag / attribute as it will be encoded in the export format - must be unique!");
+//		nameTxt.setToolTipText("The short name of the tag / attribute as it will be encoded in the export format - must be unique!");
 		nameTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		nameTxt.addModifyListener(new ModifyListener() {
 			@Override public void modifyText(ModifyEvent e) {
 				validateInput();
 			}
 		});
-		
 		
 		status = new Text(container, SWT.MULTI | SWT.READ_ONLY | SWT.WRAP);
 		status.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
@@ -86,13 +75,11 @@ public class CreateTagNameDialog extends Dialog {
 		
 	}
 	
-	private void validateInput() {
-		logger.trace("validating input: "+nameTxt.getText());
-		
+	private void validateInput() {		
 		boolean matches = RegexPattern.TAG_NAME_PATTERN.matches(nameTxt.getText());
 		getButton(IDialogConstants.OK_ID).setEnabled(matches);
 		
-		status.setText(!matches ? "Please specify a tag / attribute name.\nSyntax:\n"+RegexPattern.TAG_NAME_PATTERN.getDescription() : "");
+		status.setText(!matches ? RegexPattern.TAG_NAME_PATTERN.getDescription() : "");
 	}
 	
 	public void applyData() {

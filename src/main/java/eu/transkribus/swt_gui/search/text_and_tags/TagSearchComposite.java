@@ -54,9 +54,11 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDbTag;
+import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.customtags.search.CustomTagSearchFacets;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
@@ -111,7 +113,7 @@ public class TagSearchComposite extends Composite {
 	protected static final String SCOPE_REGION = "Current region";
 	protected static final String SCOPE_COLL = "Current collection";
 	
-	String[] SCOPES = new String[] { SCOPE_COLL, SCOPE_DOC, /*SCOPE_PAGE, SCOPE_REGION*/ };
+	String[] SCOPES = new String[] { SCOPE_COLL, SCOPE_DOC, SCOPE_PAGE, SCOPE_REGION };
 	
 	public static final String PROP_COL = "Property";
 	public static final String VALUE_COL = "Value";
@@ -129,11 +131,13 @@ public class TagSearchComposite extends Composite {
 	public static final String TAG_COL = "Tag";
 	public static final String CONTEXT_COL = "Text";
 	public static final String TAG_VALUE_COL = "Value";
+	public static final String PROPERTIES_COL = "Properties";
 	
 	public static final ColumnConfig[] RESULT_COLS = new ColumnConfig[] {
-		new ColumnConfig(TAG_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(TAG_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(TAG_VALUE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(CONTEXT_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(CONTEXT_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(PROPERTIES_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(DOC_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(PAGE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(REGION_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
@@ -195,7 +199,7 @@ public class TagSearchComposite extends Composite {
 		};
 		
 		tagNameInput = new Combo(facetsGroup, SWT.SIMPLE | SWT.DROP_DOWN | SWT.BORDER);
-		tagNameInput.setToolTipText("The name of tag to search");
+		tagNameInput.setToolTipText("The name of the tag to search");
 		tagNameInput.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		updateTagNames();
 		tagNameInput.addTraverseListener(findTagsOnEnterListener);
@@ -385,7 +389,7 @@ public class TagSearchComposite extends Composite {
 		resultsLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		showNormalizeWidgetBtn = new Button(resultsGroup, SWT.TOGGLE);
-		showNormalizeWidgetBtn.setText("Assign equivalent tag values...");
+		showNormalizeWidgetBtn.setText("Assign tag values...");
 		showNormalizeWidgetBtn.setToolTipText("All selected tags will have the same values for all\n"
 				+ "of their properties after clicking Update!\n"
 				+ "Sort by value (in the search results)\n"
@@ -434,7 +438,22 @@ public class TagSearchComposite extends Composite {
 //						return "";
 //					}		
 					else if (cn.equals(TAG_COL)) {
-						return t.getCustomTagCss();
+						CustomTag ct = CustomTagUtil.parseSingleCustomTag2(t.getCustomTagCss());
+						if (ct != null) {
+							return ct.getTagName();
+						}
+						else { // should not happen...
+							return t.getCustomTagCss();
+						}
+					}
+					else if (cn.equals(PROPERTIES_COL)) {
+						CustomTag ct = CustomTagUtil.parseSingleCustomTag2(t.getCustomTagCss());
+						if (ct != null) {
+							return ct.getAttributesCssStrWoOffsetAndLength(true);
+						}
+						else { // should not happen...
+							return t.getCustomTagCss();
+						}
 					}
 					else if (cn.equals(CONTEXT_COL)) {
 						String b = t.getContextBefore()==null ? "" : t.getContextBefore();
@@ -510,15 +529,12 @@ public class TagSearchComposite extends Composite {
 					
 					// TODO: convert TrpDbTag to TrpLocation -> including range of text!
 					TrpLocation l = new TrpLocation();
-					l.collectionId = t.getCollId();
+					l.collId = t.getCollId();
 					l.docId = t.getDocid();
 //					l.pageid = t.getPageid();
 					l.pageNr = t.getPagenr();
 					l.shapeId = t.getRegionid();
-					
-//					logger.debug("collectionId = "+t.getCollId());
-					
-//					TrpLocation l = new TrpLocation(t);
+					l.t = CustomTagUtil.parseSingleCustomTag2(t.getCustomTagCss());
 					
 					TrpMainWidget.getInstance().showLocation(l);
 				}
@@ -618,9 +634,20 @@ public class TagSearchComposite extends Composite {
 
 	protected void findTags() {
 		final CustomTagSearchFacets f = getFacets();
-		if (StringUtils.length(f.getTagName(false)) < 3) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error searching for tags", "Please specify a valid tagname");
-			return;
+		
+		String scope = getScope();
+		
+		if (StringUtils.isEmpty(f.getTagName(false))) {
+			if (scope.equals(SCOPE_COLL) /*|| scope.equals(SCOPE_DOC)*/) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error searching for tags", "Cannot search for all tags in collection or document - result set may be too large!");
+				return;
+			}			
+		}
+		else {
+			if (StringUtils.length(f.getTagName(false)) < 3) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error searching for tags", "Please specify a valid tagname - at least 3 characters are needed!");
+				return;
+			}
 		}
 		
 		logger.debug("searching tags, facets: "+f);
@@ -628,7 +655,6 @@ public class TagSearchComposite extends Composite {
 		final Storage s = Storage.getInstance();
 		final TrpMainWidget mw = TrpMainWidget.getInstance();
 				
-		String scope = getScope();
 		logger.debug("searching on scope: "+scope);
 		
 		boolean useDbSearch = scope.equals(SCOPE_COLL) || (scope.equals(SCOPE_DOC) && !s.isLocalDoc());
@@ -745,8 +771,6 @@ public class TagSearchComposite extends Composite {
 					}, "Searching in document "+docTitle, true);
 					updateResults(searchResult);
 				}
-				
-				// OBSOLETE BECAUSE SCOPES WERE REMOVED FROM UI:
 				else if (scope.equals(SCOPE_PAGE)) {
 					if (!s.isPageLoaded() || s.getTranscript().getPageData() == null) {
 						DialogUtil.showErrorMessageBox(getShell(), "Error", "No page loaded!");
@@ -763,7 +787,7 @@ public class TagSearchComposite extends Composite {
 						return;
 					}
 						
-					CustomTagSearcher.searchOnRegion(searchResult, s.getCurrentDocumentCollectionId(), s.getDocId(), s.getPage().getPageId(), s.getTranscriptMetadata().getTsId(), r, f, 0, false, 0, false);
+					CustomTagSearcher.searchOnRegion(searchResult, s.getCurrentDocumentCollectionId(), s.getDocId(), s.getPage().getPageNr(), s.getPage().getPageId(), s.getTranscriptMetadata().getTsId(), r, f, 0, false, 0, false);
 					updateResults(searchResult);
 				}
 			}

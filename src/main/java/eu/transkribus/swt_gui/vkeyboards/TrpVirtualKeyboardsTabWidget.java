@@ -3,16 +3,19 @@ package eu.transkribus.swt_gui.vkeyboards;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.InvalidPropertiesFormatException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLPropertiesConfiguration;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -26,11 +29,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.UnicodeList;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 	private final static Logger logger = LoggerFactory.getLogger(TrpVirtualKeyboardsTabWidget.class);
 	
 	public static final File VK_XML = new File("virtualKeyboards.xml");
+	public static final String SHORTCUT_PROP_PREFIX = "__Shortcut.";
 	
 	XMLPropertiesConfiguration conf;
 	
@@ -63,7 +68,15 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 			List<UnicodeList> unicodeLists = loadVirtualKeyboardsXml(conf);
 			for (UnicodeList ul : unicodeLists) {
 				addVirtualKeyboardTab(ul);
+			}		
+			
+			// parse and set shortcuts:
+			List<Pair<String, Pair<Integer, String>>> scs = loadVirtalKeyboardsShortCuts(conf);
+			Storage.getInstance().clearVirtualKeyShortCuts();
+			for (Pair<String, Pair<Integer, String>> sc : scs) {
+				Storage.getInstance().setVirtualKeyShortCut(sc.getKey(), sc.getValue());
 			}
+
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -73,13 +86,20 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 		
 	}
 	
-	public void setConfProperrty(String name, String unicodeRange, boolean save) throws ConfigurationException {
+	public void setConfProperty(String name, String value, boolean save) throws ConfigurationException {
 		if (conf.containsKey(name)) {
-			logger.debug("setting vk "+name+" values to: "+unicodeRange);
-			conf.setProperty(name, unicodeRange);
+			logger.debug("setting vk "+name+" values to: "+value);
+			conf.setProperty(name, value);
 			
 //			if (save)
 //				saveConf();
+		}
+		else if (name.startsWith(SHORTCUT_PROP_PREFIX)) {
+			logger.debug("setting shorcut "+name+" to "+value);
+			conf.setProperty(name, value);
+			
+//			if (save)
+//			saveConf();
 		}
 	}
 
@@ -96,9 +116,34 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 				
 			VirtualKeyboard vk = (VirtualKeyboard) i.getControl();	
 			
-			setConfProperrty(vk.getVirtualKeyboardName(), vk.getUnicodeHexRange(), false);
+			setConfProperty(vk.getVirtualKeyboardName(), vk.getUnicodeHexRange(), false);
 		}
 		saveConf();
+	}
+	
+	private static List<Pair<String, Pair<Integer, String>>> loadVirtalKeyboardsShortCuts(XMLPropertiesConfiguration conf) {
+		List<Pair<String, Pair<Integer, String>>> scs = new ArrayList<>();
+		Iterator<String> it=conf.getKeys();
+		while (it.hasNext()) {
+			String key = it.next();
+			logger.debug("key: "+key);
+			if (key.startsWith(SHORTCUT_PROP_PREFIX) && key.length()>SHORTCUT_PROP_PREFIX.length()) {
+				String scKey = key.substring(SHORTCUT_PROP_PREFIX.length());				
+				String value = conf.getString(key);
+				
+				logger.debug("found shortcut - key = "+scKey+" value = "+value);
+
+				Pair<String, Pair<Integer, String>> sc;
+				try {
+					sc = Pair.of(scKey, UnicodeList.parseUnicodeString(value));
+					scs.add(sc);
+				} catch (IOException e) {
+					logger.error("Could not parse shortcut "+scKey+": "+e.getMessage());
+				}
+			}
+		}
+		
+		return scs;
 	}
 	
 	private static List<UnicodeList> loadVirtualKeyboardsXml(XMLPropertiesConfiguration conf)
@@ -108,11 +153,17 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 		Iterator<String> it=conf.getKeys();
 		while (it.hasNext()) {
 			String key = it.next();
-			String value = conf.getString(key);
-			logger.debug("parsing virtual keyboard entry, key = '"+key+"', value = '"+value+"'");
+			
+			if (key.startsWith(SHORTCUT_PROP_PREFIX)) {
+				// TODO
+			}
+			else {
+				String value = conf.getString(key);
+				logger.debug("parsing virtual keyboard entry, key = '"+key+"', value = '"+value+"'");
 
-			UnicodeList ul = new UnicodeList(key, value);
-			unicodeLists.add(ul);
+				UnicodeList ul = new UnicodeList(key, value);
+				unicodeLists.add(ul);				
+			}
 		}
 		Collections.sort(unicodeLists);
 

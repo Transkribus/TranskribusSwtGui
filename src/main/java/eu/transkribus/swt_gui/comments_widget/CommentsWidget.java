@@ -30,7 +30,10 @@ import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CommentsWidget extends Composite {
@@ -154,7 +157,8 @@ public class CommentsWidget extends Composite {
 					TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
 			}
 		});
-		showComments.setSelection(true);
+		showComments.setSelection(TrpConfig.getTrpSettings().isHighlightComments());
+		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.HIGHLIGHT_COMMENTS_PROPERTY, TrpConfig.getTrpSettings(), showComments);
 		
 		commentsTable = new CommentsTable(bottom, 0);
 		commentsTable.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));

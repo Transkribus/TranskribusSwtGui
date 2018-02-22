@@ -33,6 +33,8 @@ public class DocMetadataEditorListener implements SelectionListener,
 	
 	DocMetadataEditor dme;
 	
+	boolean deactivate=false;
+	
 	public DocMetadataEditorListener(DocMetadataEditor dme) {
 		this.dme = dme;
 		
@@ -45,6 +47,14 @@ public class DocMetadataEditorListener implements SelectionListener,
 		});
 	}
 	
+	public boolean isDeactivate() {
+		return deactivate;
+	}
+
+	public void setDeactivate(boolean deactivate) {
+		this.deactivate = deactivate;
+	}
+
 	void attach() {
 		dme.saveBtn.addSelectionListener(this);
 		dme.openEditDeclManagerBtn.addSelectionListener(this);
@@ -99,6 +109,10 @@ public class DocMetadataEditorListener implements SelectionListener,
 	}
 	
 	@Override public void handleDocLoadEvent(DocLoadEvent dle) {
+		if (deactivate) {
+			return;
+		}
+		
 		if (SWTUtil.isDisposed(dme))
 			return;
 		
@@ -109,6 +123,10 @@ public class DocMetadataEditorListener implements SelectionListener,
 
 	@Override
 	public void widgetSelected(SelectionEvent e) {
+		if (deactivate) {
+			return;
+		}		
+		
 		Object s = e.getSource();
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 		
@@ -129,30 +147,46 @@ public class DocMetadataEditorListener implements SelectionListener,
 
 	@Override
 	public void widgetDefaultSelected(SelectionEvent e) {
-
+		if (deactivate) {
+			return;
+		}
+		
 		
 	}
 
 	@Override
 	public void focusGained(FocusEvent e) {
-		// do nothing
+		if (deactivate) {
+			return;
+		}
 		
 	}
 
 	@Override
 	public void focusLost(FocusEvent e) {
-		dme.saveMd();
+		if (deactivate) {
+			return;
+		}
 		
+		dme.saveMd();
 	}
 
 	@Override
 	public void checkStateChanged(CheckStateChangedEvent arg0) {
+		if (deactivate) {
+			return;
+		}		
+		
 		dme.saveMd();
 		
 	}
 
 	@Override
 	public void keyTraversed(TraverseEvent e) {
+		if (deactivate) {
+			return;
+		}		
+		
 		if (e.detail == SWT.TRAVERSE_RETURN) {
 			dme.saveMd();
 		}
@@ -165,6 +199,9 @@ public class DocMetadataEditorListener implements SelectionListener,
 	
 	@Override
 	public void modifyText(ModifyEvent e) {
+		if (deactivate) {
+			return;
+		}		
 //		logger.trace("modified, s = "+e.getSource());
 		
 		dt.start();

@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
@@ -23,6 +24,7 @@ import eu.transkribus.swt_gui.search.documents.DocSearchComposite;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.search.kws.KeywordSpottingComposite;
 import eu.transkribus.swt_gui.search.kws.OldKeywordSpottingComposite;
+import eu.transkribus.swt_gui.search.kws_solr.KWSearchComposite;
 import eu.transkribus.swt_gui.search.text_and_tags.TagSearchComposite;
 
 public class SearchDialog extends Dialog {
@@ -32,13 +34,19 @@ public class SearchDialog extends Dialog {
 	OldKeywordSpottingComposite oldKwsComposite;
 	FullTextSearchComposite fullTextSearchComposite;
 	KeywordSpottingComposite kwsComposite;
+	KWSearchComposite kwSolrSearchComposite;
 	
 
 	LabeledText kwsDocId;
 	LabeledCombo kwsCollection;
 	
 	CTabFolder tabFolder;
-	CTabItem docSearchTabItem, oldKwsTabItem, textAndTagsItem, fullTextSearchItem, kwsTabItem;
+	CTabItem docSearchTabItem, oldKwsTabItem, tagsItem, fullTextSearchItem, kwsTabItem, kwSolrSearchItem;
+	
+	
+	public enum SearchType { 
+		DOC, OLD_KWS, TAGS, FULLTEXT, KWS
+	}
 
 
 	/**
@@ -61,6 +69,7 @@ public class SearchDialog extends Dialog {
 		super.configureShell(shell);
 		shell.setText("Search for...");
 		SWTUtil.centerShell(shell);
+		shell.setMinimumSize(640, 480);
 	}
 
 	/**
@@ -85,7 +94,7 @@ public class SearchDialog extends Dialog {
 				
 		TagSearchComposite tagSearchComp = new TagSearchComposite(tabFolder, 0);
 		tagSearchComp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		textAndTagsItem = createCTabItem(tabFolder, tagSearchComp, "Tags");
+		tagsItem = createCTabItem(tabFolder, tagSearchComp, "Tags");
 
 //		TextAndTagSearchComposite tsc = new TextAndTagSearchComposite(tabFolder, 0);
 //		tsc.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -104,9 +113,22 @@ public class SearchDialog extends Dialog {
 			kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
 		}
 		
+		if(Storage.getInstance().getUser().isAdmin()){
+			kwSolrSearchComposite = new KWSearchComposite(tabFolder,0);
+			kwSolrSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+			kwSolrSearchItem = createCTabItem(tabFolder, kwSolrSearchComposite, "Keyword (Solr)");
+		}		
+		
+		SWTUtil.onSelectionEvent(tabFolder, e -> { updateTabItemStyles(); });
+		
+		updateTabItemStyles();
+		
 		return c;
 	}
 	
+	public void updateTabItemStyles() {
+		SWTUtil.setBoldFontForSelectedCTabItem(tabFolder);
+	}
 	
 	public boolean isUserAllowedForKws() {
 		boolean showKws = false;
@@ -123,6 +145,27 @@ public class SearchDialog extends Dialog {
 		return showKws;
 	}
 	
+	public void selectTab(SearchType type) {
+		if (type == SearchType.DOC) {
+			tabFolder.setSelection(docSearchTabItem);
+		}
+		else if (type == SearchType.OLD_KWS) {
+			tabFolder.setSelection(oldKwsTabItem);
+		}
+		else if (type == SearchType.TAGS) {
+			tabFolder.setSelection(tagsItem);
+		}
+		else if (type == SearchType.FULLTEXT) {
+			tabFolder.setSelection(fullTextSearchItem);
+		}
+		else if (type == SearchType.KWS) {
+			tabFolder.setSelection(kwsTabItem);
+		}
+		
+		updateTabItemStyles();
+	}
+	
+	
 	public CTabFolder getTabFolder(){
 		return tabFolder;
 	}
@@ -133,6 +176,10 @@ public class SearchDialog extends Dialog {
 	
 	public FullTextSearchComposite getFulltextComposite(){
 		return fullTextSearchComposite;
+	}
+	
+	public CTabItem getTagsItem() {
+		return tagsItem;
 	}
 	
 	/**
