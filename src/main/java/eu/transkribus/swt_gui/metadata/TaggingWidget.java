@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.metadata;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -16,6 +17,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -23,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
@@ -31,6 +32,8 @@ import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.CustomTagPropertyTable.ICustomTagPropertyTableListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
@@ -131,13 +134,24 @@ public class TaggingWidget extends Composite {
 				}
 			}
 			
-			tagListWidget.refreshTable();
+			refreshTagsFromStorageAndCurrentSelection();
 		});
 		
 		transcriptionTaggingWidget.getTagPropertyEditor().propsTable.addListener(new ICustomTagPropertyTableListener() {
 			@Override
-			public void onPropertyChanged(String property, Object value) {
-				tagListWidget.refreshTable();
+			public void onPropertyChanged(CustomTag tag, String property, Object value) {
+				logger.debug("property changed: "+property+"/"+value);
+				refreshTagsFromStorageAndCurrentSelection();
+			}
+		});
+		
+		Storage.getInstance().addListener(new IStorageListener() {
+			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+				refreshTagsFromStorageAndCurrentSelection();
+			}
+
+			public void handleTranscriptSaveEvent(TranscriptSaveEvent tse) {
+				refreshTagsFromStorageAndCurrentSelection();
 			}
 		});
 
@@ -146,6 +160,22 @@ public class TaggingWidget extends Composite {
 		setTaggingEditorVisiblity(TrpConfig.getTrpSettings().isShowTextTagEditor());
 		
 		updateBtns();
+	}
+	
+	public void refreshTagsFromStorageAndCurrentSelection() {
+		tagListWidget.refreshTable();
+		ATranscriptionWidget tWidget = TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget();
+		
+		List<CustomTag> selectedTags = new ArrayList<>();
+		if (tWidget != null) {
+			selectedTags.addAll(tWidget.getCustomTagsForCurrentOffset());
+		}
+		logger.trace("YES - nr of selected tags: "+selectedTags.size());
+		for (CustomTag t : selectedTags) {
+			logger.debug(""+t);
+		}
+		
+		updateSelectedTag(selectedTags);
 	}
 	
 	public void updateSelectedTag(List<CustomTag> tags) {

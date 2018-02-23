@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
@@ -75,16 +76,20 @@ public class TranscriptionTaggingWidget extends Composite {
 	}
 		
 	public void updateSelectedTag(List<CustomTag> tags) {
-		if (tags == null || tags.isEmpty()) {
-			return;
-		}
+//		if (tags == null || tags.isEmpty()) {
+//			return;
+//		}
 		
-		if (isTagPropertyEditorSelected()) {
+		if (true || isTagPropertyEditorSelected()) {
 			if (tagPropEditor.isSettingCustomTag()) { // if currently setting a custom tag in the property editor, ignore selection changed events from transcription widget!
 				return;
 			}
 			
-			tagPropEditor.setCustomTag(tags.get(0), false);
+			if (CoreUtils.isEmpty(tags)) {
+				tagPropEditor.setCustomTag(null, false);
+			} else {
+				tagPropEditor.setCustomTag(tags.get(0), false);	
+			}
 		}
 	}
 	
