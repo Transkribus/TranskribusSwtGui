@@ -189,7 +189,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		for(Group g : new Group[]{settingsGroup, sepGroup, rotGroup}) {
 			g.setEnabled(enabled);
 		}
-		for(Button b : new Button[]{rotSchemeHom, rotSchemeHet, sepSchemeAlways, sepSchemeNever}) {
+		for(Button b : new Button[]{rotSchemeDef, rotSchemeHom, rotSchemeHet, sepSchemeDef, sepSchemeAlways, sepSchemeNever}) {
 			b.setEnabled(enabled);
 		}
 	}

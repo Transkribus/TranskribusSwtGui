@@ -98,6 +98,8 @@ public class LayoutAnalysisComposite extends Composite {
 	private void updateMethods() {
 		methodCombo.combo.setItems(getMethods(true).toArray(new String[0]));
 		methodCombo.combo.select(0);
+		//load stored params
+		paramMap = TrpGuiPrefs.getLaParameters(getJobImpl());
 	}
 	
 	private void updateGui() {
@@ -140,7 +142,6 @@ public class LayoutAnalysisComposite extends Composite {
 		
 		//enable config button only if method is configurable (only CITlabAdvanced for now)
 		methodCombo.getButton().setEnabled(isMethodConfigurable);
-		
 //		customJobImplText.setVisible(method.equals(METHOD_CUSTOM));
 	}
 
