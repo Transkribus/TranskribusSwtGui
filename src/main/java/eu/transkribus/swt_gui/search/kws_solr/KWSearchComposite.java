@@ -86,29 +86,41 @@ public class KWSearchComposite extends Composite{
 	FimgStoreGetClient imgStoreClient;
 	Shell shell;
 	Storage storage;
-	Group facetsGroup;
-	LabeledText inputText;
 	
-	Slider confSlider;
 	private final static double MIN_CONF = 0.01;
 	private final static double MAX_CONF = 0.99;
 	private final static double DEFAULT_CONF = 0.05;
 	private final static int THUMB_SIZE = 5; // size of slider thumb
-	private static final DecimalFormat CONF_FORMAT = new DecimalFormat("0.00");
+	private static final DecimalFormat CONF_FORMAT = new DecimalFormat("0.00");	
 	
-	String sorting = "childfield(probability) desc";
-	
+	Group facetsGroup;
 	Combo scopeCombo;
-	Combo docCombo;
+	Combo docCombo;	
+	LabeledText inputText;
+	Slider confSlider;
+	Button searchBtn, searchPrevBtn, searchNextBtn;
 	
+	String searchWord;
+	private int start = 0;
+	private final int rows = 100;	
 	
+	private String sorting = "childfield(probability) desc";
 	boolean prob_desc = true;
 	boolean word_desc = false;
-	String searchWord;
+	boolean page_desc = false;
+	
+	Group resultsGroup;
 	KeywordSearchResult kwSearchResult;
 	ArrayList<KeywordHit> keywordHits;
 	TableViewer tv;
 	
+	volatile Map<String,Image> imageMap;
+	Thread imgLoaderThread;
+	Image currentImgOrig;
+	Image currentImgScaled;
+	Canvas canvas;
+	KeywordHit lastHoverHit = null;
+		
 	public KWSearchComposite(Composite parent, int style){
 		super(parent, style);
 		shell = parent.getShell();	
@@ -135,12 +147,16 @@ public class KWSearchComposite extends Composite{
 		
 		facetsGroup = new Group(sf, SWT.NONE);
 		facetsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));	
-		facetsGroup.setLayout(new GridLayout(5, false));
+		facetsGroup.setLayout(new GridLayout(2, false));
 		facetsGroup.setText("Search HTR text for single words");
 		
-		Label scopeLbl = new Label(facetsGroup, SWT.NONE);
+		Composite scopeComp = new Composite(facetsGroup, 0);
+		scopeComp.setLayout(new FillLayout(SWT.HORIZONTAL));
+		scopeComp.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, false, 3, 1));
+		
+		Label scopeLbl = new Label(scopeComp, SWT.NONE);
 		scopeLbl.setText("Search in:");
-		scopeCombo = new Combo(facetsGroup, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		scopeCombo = new Combo(scopeComp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		String[] SCOPES = new String[] { "1335"};
 		scopeCombo.setItems(SCOPES);
 		//FIXME Java Heap space error when to many confmats are loaded. Thus for now only scope "document"
@@ -160,7 +176,7 @@ public class KWSearchComposite extends Composite{
 			e1.printStackTrace();
 		}
 		
-		docCombo =  new Combo(facetsGroup, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		docCombo =  new Combo(scopeComp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		String[] docArray = new String[DOCSCOPES.size()];
 		docArray = DOCSCOPES.toArray(docArray);
 		docCombo.setItems(docArray);
@@ -170,6 +186,8 @@ public class KWSearchComposite extends Composite{
 		TraverseListener findTagsOnEnterListener = new TraverseListener() {
 			@Override public void keyTraversed(TraverseEvent e) {
 				if (e.detail == SWT.TRAVERSE_RETURN) {
+					start = 0;
+					sorting = "childfield(probability) desc";
 					findKW();
 				}
 			}
@@ -197,15 +215,49 @@ public class KWSearchComposite extends Composite{
 		confValueTxt.setText(CONF_FORMAT.format(getConfidenceSliderValue()));
 		confValueTxt.setTextLimit(4);
 		
-		Button searchBtn = new Button(facetsGroup, SWT.PUSH);
+		Composite btnsComp = new Composite(facetsGroup, 0);
+		btnsComp.setLayout(new FillLayout(SWT.HORIZONTAL));
+		btnsComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		
+		searchBtn = new Button(btnsComp, SWT.PUSH);
 		searchBtn.setImage(Images.FIND);
 		searchBtn.setText("Search!");
 		searchBtn.setToolTipText("Search for keyword");
 		searchBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
+				start = 0;
+				sorting = "childfield(probability) desc";
 				findKW();
 			}
 		});
+		
+		searchPrevBtn = new Button(btnsComp, SWT.PUSH);
+		searchPrevBtn.setImage(Images.PAGE_PREV);
+		searchPrevBtn.setText("Previous page");
+		searchPrevBtn.setEnabled(false);
+		searchPrevBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+					if(start > 0){
+						start -= rows;
+						findKW();
+				}				
+			}
+		});
+		
+		searchNextBtn = new Button(btnsComp, SWT.PUSH);
+		searchNextBtn.setImage(Images.PAGE_NEXT);
+		searchNextBtn.setText("Next page");
+		searchNextBtn.setEnabled(false);
+		searchNextBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				if(kwSearchResult != null){
+					if((start+rows) < kwSearchResult.getNumResults()) {
+						start += rows;
+						findKW();
+					}
+				}				
+			}
+		});	
 		
 		confValueTxt.addKeyListener(new KeyListener() {
 
@@ -256,15 +308,11 @@ public class KWSearchComposite extends Composite{
 		
 		initResultsTable(sf);	
 		initPreviewArea(sf);
-		sf.setWeights(new int[] { 20, 50, 30 } );
+		sf.setWeights(new int[] { 22, 48, 30 } );
 
 		
 	}
-	
-	Image currentImgOrig;
-	Image currentImgScaled;
-	Canvas canvas;
-	
+		
 	private void initPreviewArea(Composite cont){
 		Group previewGrp = new Group(cont, SWT.NONE);
 		previewGrp.setText(Msgs.get("search.kws.preview"));
@@ -291,9 +339,9 @@ public class KWSearchComposite extends Composite{
 		tv.getTable().addListener(SWT.MouseMove, new MouseMoveListener(tv.getTable()));		
 		
 	}
-	
+			
 	private void initResultsTable(SashForm sf){
-		Group resultsGroup = new Group(sf, SWT.NONE);
+		resultsGroup = new Group(sf, SWT.NONE);
 		resultsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		resultsGroup.setText("Search results");
 		resultsGroup.setLayout(new GridLayout(1, false));	
@@ -361,6 +409,7 @@ public class KWSearchComposite extends Composite{
 				}else{
 					sorting = "childfield(probability) asc";
 				}
+				start = 0;
 				findKW();
 			}
 		};	
@@ -394,6 +443,7 @@ public class KWSearchComposite extends Composite{
 				}else{
 					sorting = "childfield(word) asc";
 				}
+				start = 0;
 				findKW();
 			}
 		};	
@@ -422,6 +472,20 @@ public class KWSearchComposite extends Composite{
                 return ""+hit.getPageNr();
             }
         });
+		Listener sortListenerPage = new Listener(){
+			public void handleEvent(Event e){
+				TableColumn col = (TableColumn) e.widget;
+				page_desc = !page_desc;
+				if(page_desc){
+					sorting = "pageNr desc";
+				}else{
+					sorting = "pageNr asc";
+				}
+				start = 0;
+				findKW();
+			}
+		};
+		tc.addListener(SWT.Selection, sortListenerPage);
         
         tc = new TableColumn(table, SWT.LEFT);
 		tc.setText("Line ID");
@@ -433,8 +497,7 @@ public class KWSearchComposite extends Composite{
                 KeywordHit hit = (KeywordHit)element;  
                 return ""+hit.getLineId();
             }
-        });
-		
+        });		
 	}
 	
 	private double getConfidenceSliderValue() {
@@ -455,6 +518,9 @@ public class KWSearchComposite extends Composite{
 	
 	private void findKW(){
 		storage = Storage.getInstance();
+		
+		canvas.setBackground(Colors.getSystemColor(SWT.COLOR_GRAY));
+		canvas.redraw();;
 			
 		if(TEST_ONLY){
 			final String testServer = "https://transkribus.eu/TrpServerTesting";
@@ -465,7 +531,7 @@ public class KWSearchComposite extends Composite{
 						null, false, false);
 				return;
 			}
-		}
+		}		
 		
 		searchWord = inputText.getText().trim();
 		if(searchWord.isEmpty()) {
@@ -497,35 +563,52 @@ public class KWSearchComposite extends Composite{
 				Display.getDefault().asyncExec(() -> {
 					TrpMainWidget.getInstance().onError("Error searching keyword", throwable.getMessage(), throwable);
 				});
-			}
-			
+			}			
 		};
 		
 		ArrayList<String> filters = new ArrayList<String>();		
 		if(docCombo.getSelectionIndex() != 0){
 			String filterTitle = docCombo.getItem(docCombo.getSelectionIndex());
 			filters.add("title:"+filterTitle);
-		}
-		
+		}		
 		
 		float probLow = (float) getConfidenceSliderValue();
-
-		
-
 		
 		try{
-			storage.getConnection().searchKWAsync(searchWord, 0, 100, probLow, 1.0f, filters, sorting, 0, callback);
+			storage.getConnection().searchKWAsync(searchWord, start, rows, probLow, 1.0f, filters, sorting, 0, callback);
 		}catch(Exception e){
 			e.printStackTrace();
 		}		
 	}
-	
-	volatile Map<String,Image> imageMap;
-	Thread imgLoaderThread;
-	
+		
 	private void updateResultsTable(){
 		
 		if(kwSearchResult == null) return;
+		
+		if(start > 0){
+			searchPrevBtn.setEnabled(true);
+		}else{
+			searchPrevBtn.setEnabled(false);
+		}
+		
+		if(kwSearchResult.getNumResults()>start+rows){
+			searchNextBtn.setEnabled(true);
+		}else{
+			searchNextBtn.setEnabled(false);
+		}
+		
+		long numResults = kwSearchResult.getNumResults();
+		int pages = (int) Math.ceil((double) numResults / (double) rows);
+		int currentPage = Math.floorDiv(start, rows)+1;
+		
+		String searchOutput;
+		if(numResults>0){
+			searchOutput = String.format("Search results (%d hits, page %d of %d):",numResults, currentPage, pages);
+		}else{
+			searchOutput = "Search results (no matches):";
+		}		
+		
+		resultsGroup.setText(searchOutput);
 		
 		keywordHits = (ArrayList<KeywordHit>) kwSearchResult.getKeywordHits();	
 		
@@ -550,7 +633,6 @@ public class KWSearchComposite extends Composite{
 		imgLoaderThread.start();
 		imgLoaderThread.setPriority(Thread.MIN_PRIORITY);
 		logger.debug("Image loading thread started. Nr of imgages: "+keywordHits.size());  
-
 		
 		tv.setInput(kwSearchResult.getKeywordHits());		
 		tv.refresh();		
@@ -579,7 +661,6 @@ public class KWSearchComposite extends Composite{
 		imageMap.put(imgId, img);
 	}
 	
-	KeywordHit lastHoverHit = null;
 	private class MouseMoveListener implements Listener {
 		
 		final Table table;
