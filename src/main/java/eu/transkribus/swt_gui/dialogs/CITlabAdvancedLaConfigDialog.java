@@ -115,7 +115,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		if(PRESET_NET_NAME.equals(m.getLabel())) {
 			RotScheme rot = null;
 			if(rotSchemeHet.getSelection()) {
-				rot = RotScheme.hetero;
+				rot = RotScheme.het;
 			} else if (rotSchemeHom.getSelection()) {
 				rot = RotScheme.hom;
 			}
@@ -158,7 +158,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		setSelectedNet(model);
 				
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
-		if(RotScheme.hetero.toString().equals(rotScheme)) {
+		if(RotScheme.het.toString().equals(rotScheme)) {
 			rotSchemeHet.setSelection(true);
 		} else if (RotScheme.hom.toString().equals(rotScheme)){
 			rotSchemeHom.setSelection(true);
