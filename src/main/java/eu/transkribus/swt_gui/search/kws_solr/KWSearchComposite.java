@@ -709,6 +709,7 @@ public class KWSearchComposite extends Composite{
 					}
 					singleImageLoaderThread = new Thread(loadPreviewImage,"WordThmbLoaderThread");
 					singleImageLoaderThread.start();
+					singleImageLoaderThread.setPriority(Thread.MAX_PRIORITY);
 				}
 				canvas.redraw();
 				lastHoverHit = currentHit;
