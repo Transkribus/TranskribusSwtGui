@@ -58,17 +58,17 @@ public class CustomTagPropertyTable extends Composite {
 //	private CustomTag prototypeTag;
 
 	private CustomTag selectedTag;
-	boolean withOffsetLengthContinuedProperties;
+	boolean withOffsetLengthContinuedProperties=false;
 	
 	public interface ICustomTagPropertyTableListener {
-		void onPropertyChanged(String name, Object value); 
+		void onPropertyChanged(CustomTag tag, String name, Object value); 
 	}
 	
 	List<ICustomTagPropertyTableListener> listener = new ArrayList<>();
 	
-	public CustomTagPropertyTable(Composite parent, int style) {
-		this(parent, style, true);
-	}
+//	public CustomTagPropertyTable(Composite parent, int style) {
+//		this(parent, style, true);
+//	}
 
 	public CustomTagPropertyTable(Composite parent, int style, boolean withOffsetLengthContinuedProperties) {
 		super(parent, style);
@@ -174,12 +174,18 @@ public class CustomTagPropertyTable extends Composite {
 				try {
 					if (!StringUtils.isEmpty(attName)) {
 						selectedTag.setAttribute(attName, value, true);
+						tv.update(element, null);
+						
+						listener.stream().forEach(l -> { 
+							l.onPropertyChanged(selectedTag, attName, value);
+						});						
 					}
 				} catch (IOException e) {
 					logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
 				}
 				
-				tv.refresh(true);
+//				tv.refresh(true);
+//				tv.update(element, null);
 			}
 			
 			@Override protected Object getValue(Object element) {
@@ -202,7 +208,7 @@ public class CustomTagPropertyTable extends Composite {
 				else if (t.equals(Boolean.class) || t.equals(boolean.class)) {
 					e = new MyCheckboxEditor(table);
 				}
-				// FIXME: true for every class???
+				// TODO: true for every class???
 				else if (Enum.class.getClass().isAssignableFrom(t)) {
 					ComboBoxViewerCellEditor cbe = new ComboBoxViewerCellEditor(table);
 					cbe.setContentProvider(new ArrayContentProvider());
@@ -219,23 +225,23 @@ public class CustomTagPropertyTable extends Composite {
 					e.setValidator(v);
 				}
 				
-				e.addListener(new ICellEditorListener() {
-					
-					@Override
-					public void editorValueChanged(boolean arg0, boolean arg1) {
-					}
-					
-					@Override
-					public void cancelEditor() {
-					}
-					
-					@Override
-					public void applyEditorValue() {
-						listener.stream().forEach(l -> { 
-							l.onPropertyChanged(getAttributeName(element), getAttributeValue(element));
-						});
-					}
-				});
+//				e.addListener(new ICellEditorListener() {
+//					
+//					@Override
+//					public void editorValueChanged(boolean arg0, boolean arg1) {
+//					}
+//					
+//					@Override
+//					public void cancelEditor() {
+//					}
+//					
+//					@Override
+//					public void applyEditorValue() {
+////						listener.stream().forEach(l -> { 
+////							l.onPropertyChanged(getAttributeName(element), getAttributeValue(element));
+////						});
+//					}
+//				});
 												
 				return e;
 			}
@@ -396,16 +402,17 @@ public class CustomTagPropertyTable extends Composite {
 		logger.debug("prototypeTag: "+prototypeTag);
 		
 		List<String> attNames = prototypeTag.getAttributeNamesSortedByName();
-		if (!withOffsetLengthContinuedProperties) {
-			attNames.remove(CustomTag.OFFSET_PROPERTY_NAME);
-			attNames.remove(CustomTag.LENGTH_PROPERTY_NAME);
-			attNames.remove(CustomTag.CONTINUED_PROPERTY_NAME);	
-		}
 		// add attributes that are unique to selectedTag
 		for (String an : selectedTag.getAttributeNamesSortedByName()) {
 			if (!attNames.contains(an)) {
 				attNames.add(an);
 			}
+		}
+		// exclude offset/length/continued property
+		if (!withOffsetLengthContinuedProperties) {
+			attNames.remove(CustomTag.OFFSET_PROPERTY_NAME);
+			attNames.remove(CustomTag.LENGTH_PROPERTY_NAME);
+			attNames.remove(CustomTag.CONTINUED_PROPERTY_NAME);	
 		}
 		Collections.sort(attNames, String.CASE_INSENSITIVE_ORDER);
 		

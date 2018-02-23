@@ -47,7 +47,8 @@ public class TranscriptObserver implements Observer {
 		lineEditor = mainWidget.getCanvas().getLineEditor();
 		
 		this.tagListUpdateTask = new DelayedTask(() -> {
-			mainWidget.getUi().getTaggingWidget().getTagListWidget().refreshTable();
+//			mainWidget.getUi().getTaggingWidget().getTagListWidget().refreshTable();
+			mainWidget.getUi().getTaggingWidget().refreshTagsFromStorageAndCurrentSelection();
 		}, true);
 	}
 	

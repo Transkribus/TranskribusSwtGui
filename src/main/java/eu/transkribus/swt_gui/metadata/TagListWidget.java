@@ -104,13 +104,6 @@ public class TagListWidget extends Composite {
 		
 		initBtns(container);
 		initTable(container);
-
-		store.addListener(new IStorageListener() {
-			 public void handleTranscriptSaveEvent(TranscriptSaveEvent tse) {
-				 logger.debug("refreshing tags for TagListWidget");
-				 refreshTable();
-			 }
-		});
 	}
 	
 	private void initTable(Composite container) {
@@ -223,11 +216,7 @@ public class TagListWidget extends Composite {
 			}
 		});
 		
-		Storage.getInstance().addListener(new IStorageListener() {
-			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
-				refreshTable();
-			}
-		});
+
 	}
 	
 	private void initBtns(Composite container) {
@@ -271,11 +260,9 @@ public class TagListWidget extends Composite {
 		for (CustomTag t : tagList) {
 			logger.debug("tag: "+t);
 		}
-		
-		Display.getCurrent().asyncExec(() -> {
-			tv.setInput(tagList);
-			TaggingWidgetUtils.updateEditors(delSelectedEditors, tagList);
-		});
+
+		tv.setInput(tagList);
+		TaggingWidgetUtils.updateEditors(delSelectedEditors, tagList);
 	}
 	
 	public TableViewer getTableViewer() {
