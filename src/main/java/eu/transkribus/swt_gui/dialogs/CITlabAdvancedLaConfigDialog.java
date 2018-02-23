@@ -73,9 +73,9 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		rotSchemeDef = new Button(rotGroup, SWT.RADIO);
 		rotSchemeDef.setText("Default");
 		rotSchemeHet = new Button(rotGroup, SWT.RADIO);
-		rotSchemeHet.setText("Heterogenuous");
+		rotSchemeHet.setText("Heterogeneous");
 		rotSchemeHom = new Button(rotGroup, SWT.RADIO);
-		rotSchemeHom.setText("Homogenuous");
+		rotSchemeHom.setText("Homogeneous");
 		
 		sepGroup = new Group(settingsGroup, SWT.NONE);
 		sepGroup.setLayout(new GridLayout(3, false));
