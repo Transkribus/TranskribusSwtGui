@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
@@ -449,33 +451,8 @@ public class UploadDialogUltimate extends Dialog {
 		link.addSelectionListener(new SelectionAdapter(){
 	        @Override
 	        public void widgetSelected(SelectionEvent e) {
-	        	Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-	            if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-	                try {
-	                    desktop.browse(new URI(e.text));
-	                } catch (Exception ex) {
-	                	//UnsupportedOperationException - if the current platform does not support the Desktop.Action.BROWSE action
-	                	//IOException - if the user default browser is not found, or it fails to be launched, or the default handler application failed to be launched
-	                	//SecurityException - if a security manager exists and it denies the AWTPermission("showWindowWithoutWarningBanner") permission, or the calling thread is not allowed to create a subprocess; and not invoked from within an applet or Java Web Started application
-	                	//IllegalArgumentException - if the necessary permissions are not available and the URI can not be converted to a URL
-	                	logger.error("Could not open ftp client!");
-	                	
-	                	DialogUtil.showMessageBox(getShell(), "Could not find FTP client", INFO_MSG, SWT.NONE);
-	                }
-	            } else {
-	            	org.eclipse.swt.program.Program.launch(e.text);
-	            }
-	        	
-//	        	try {
-//	        		//  Open default external browser 
-//	        		PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(e.text));
-//	        	} catch (PartInitException ex) {
-//	        		// TODO Auto-generated catch block
-//	        		ex.printStackTrace();
-//	            } catch (MalformedURLException ex) {
-//	            	// TODO Auto-generated catch block
-//	            	ex.printStackTrace();
-//	            }
+	        	final String uriStr = e.text;
+	            DesktopUtil.browse(uriStr, INFO_MSG, getShell());
 	        }
 	    });
 		

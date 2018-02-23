@@ -209,9 +209,7 @@ public class LayoutAnalysisComposite extends Composite {
 					logger.debug("Dialog ret = " + ret);
 					if(ret == IDialogConstants.OK_ID && configDialog != null) { //may be null if close() is called programmatically (happens when switching methods)
 						paramMap = configDialog.getParameters();
-						if(paramMap != null && !paramMap.isEmpty()) {
-							TrpGuiPrefs.storeLaParameters(impl, paramMap);
-						}
+						TrpGuiPrefs.storeLaParameters(impl, paramMap);
 					}
 					configDialog = null;
 				}

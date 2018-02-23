@@ -290,7 +290,6 @@ public class TrpGuiPrefs {
 		}
 		//check if this is an LA job and normalize impl to base impl name if necessary
 		impl = JobImpl.getBaseLaJob(impl);
-		
 		Preferences implPrefs = laPrefs.node(impl.toString());
 		try {
 			for(String key : implPrefs.keys()) {
@@ -310,12 +309,17 @@ public class TrpGuiPrefs {
 		if(impl == null) {
 			return;
 		}
-		if(params == null || params.isEmpty()) {
+		if(params == null) {
 			return;
 		}
 		//check if this is an LA job and normalize impl to base impl name if necessary
 		impl = JobImpl.getBaseLaJob(impl);
 		Preferences implPrefs = laPrefs.node(impl.toString());
+		try {
+			implPrefs.clear();
+		} catch (BackingStoreException e) {
+			logger.error("Could not clear config for " + impl + " LA!", e);
+		}
 		for(Entry<String, String> e : params.getParamMap().entrySet()) {
 			if(e.getKey() != null && e.getValue() != null) {
 				implPrefs.put(e.getKey(), e.getValue());

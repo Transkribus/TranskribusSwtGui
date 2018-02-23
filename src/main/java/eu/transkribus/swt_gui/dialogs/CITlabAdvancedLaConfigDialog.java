@@ -1,9 +1,14 @@
 package eu.transkribus.swt_gui.dialogs;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -19,21 +24,24 @@ import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.LaCITlabUtils;
 import eu.transkribus.core.util.LaCITlabUtils.RotScheme;
 import eu.transkribus.core.util.LaCITlabUtils.SepScheme;
+import eu.transkribus.swt.util.DesktopUtil;
+import eu.transkribus.swt.util.Images;
 
 public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 
 	private final static String PRESET_NET_NAME = "Preset";
+	private final static String HELP_WIKI_PAGE = "https://transkribus.eu/wiki/index.php/Layout_Analysis_Help";
 	
 	private Combo neuralNetCombo;
-	private Button rotSchemeHom, rotSchemeHet, sepSchemeAlways, sepSchemeNever;
+	private Button rotSchemeDef, rotSchemeHom, rotSchemeHet, sepSchemeDef, sepSchemeAlways, sepSchemeNever;
 	private Group settingsGroup, rotGroup, sepGroup;
+	private Button helpButton;
 	
-	//TODO add real data from server in loadData()
-	private final String konzilsProtNetLabel = "Konzilsprotokolle Greifswald";
-	private final String konzilsProtNetName = "LA_alvermann1.pb";
+	private List<LaModel> modelList;
 	
 	public CITlabAdvancedLaConfigDialog(Shell parent, ParameterMap parameters) {
 		super(parent, parameters);
+		modelList = new ArrayList<>(0);
 	}
 
 	@Override
@@ -49,7 +57,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		netGroup.setLayout(new GridLayout(1, false));
 		netGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		
-		//TODO recreate that as table when more items have to be shown
+		//TODO recreate that as TableViewer when more items have to be shown
 		neuralNetCombo = new Combo(netGroup, SWT.READ_ONLY);
 		neuralNetCombo.setLayoutData(gd);
 		
@@ -59,26 +67,26 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		settingsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 2));
 		
 		rotGroup = new Group(settingsGroup, SWT.NONE);
-		rotGroup.setLayout(new GridLayout(2, false));
+		rotGroup.setLayout(new GridLayout(3, false));
 		rotGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		rotGroup.setText("Text orientation");
+		rotSchemeDef = new Button(rotGroup, SWT.RADIO);
+		rotSchemeDef.setText("Default");
 		rotSchemeHet = new Button(rotGroup, SWT.RADIO);
 		rotSchemeHet.setText("Heterogenuous");
-		
 		rotSchemeHom = new Button(rotGroup, SWT.RADIO);
 		rotSchemeHom.setText("Homogenuous");
 		
 		sepGroup = new Group(settingsGroup, SWT.NONE);
-		sepGroup.setLayout(new GridLayout(2, false));
+		sepGroup.setLayout(new GridLayout(3, false));
 		sepGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		sepGroup.setText("Use separators");
+		sepSchemeDef = new Button(sepGroup, SWT.RADIO);
+		sepSchemeDef.setText("Default");
 		sepSchemeNever = new Button(sepGroup, SWT.RADIO);
 		sepSchemeNever.setText("Never");
 		sepSchemeAlways = new Button(sepGroup, SWT.RADIO);
 		sepSchemeAlways.setText("Always");
-		
-		neuralNetCombo.add(PRESET_NET_NAME);
-		neuralNetCombo.select(0);
 		
 		loadData();
 		
@@ -96,80 +104,84 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				updateGui();				
-			}});
+			}
+		});
 	}
-
-	@Override
-	protected void configureShell(Shell newShell) {
-		super.configureShell(newShell);
-		newShell.setText("Layout Analysis Configuration");
-//		newShell.setMinimumSize(480, 480);
-	}
-
-	@Override
-	protected Point getInitialSize() {
-		return new Point(480, 300);
-	}
-
-	@Override
-	protected void setShellStyle(int newShellStyle) {
-		super.setShellStyle(SWT.CLOSE | SWT.TITLE); //SWT.MAX | SWT.RESIZE
-	}
-
+	
 	@Override
 	protected void storeSelectionInParameterMap() {
 		parameters = new ParameterMap();
-		if(PRESET_NET_NAME.equals(getSelectedNet())) {
-			parameters.addParameter(LaCITlabUtils.ROT_SCHEME_KEY, rotSchemeHet.getSelection() ? RotScheme.hetero : RotScheme.hom);
-			parameters.addParameter(LaCITlabUtils.SEP_SCHEME_KEY, sepSchemeNever.getSelection() ? SepScheme.never : SepScheme.always);
+		LaModel m = getSelectedNet();
+		if(PRESET_NET_NAME.equals(m.getLabel())) {
+			RotScheme rot = null;
+			if(rotSchemeHet.getSelection()) {
+				rot = RotScheme.hetero;
+			} else if (rotSchemeHom.getSelection()) {
+				rot = RotScheme.hom;
+			}
+			parameters.addParameter(LaCITlabUtils.ROT_SCHEME_KEY, rot);
+			
+			SepScheme sep = null;
+			if(sepSchemeAlways.getSelection()) {
+				sep = SepScheme.always;
+			} else if (sepSchemeNever.getSelection()) {
+				sep = SepScheme.never;
+			}
+			parameters.addParameter(LaCITlabUtils.SEP_SCHEME_KEY, sep);
 		} else {
-			//just set netName
-			final String netName = konzilsProtNetLabel.equals(getSelectedNet()) ? konzilsProtNetName : getSelectedNet();
-			parameters.addParameter(JobConst.PROP_MODELNAME, netName);
+			//set net's filename to parameters
+			parameters.addParameter(JobConst.PROP_MODELNAME, m.getFilename());
 		}
 	}
 	
 	private void loadData() {
-		// TODO load available nets from server
-		neuralNetCombo.add(konzilsProtNetLabel);		
+		//TODO get from Storage
+		modelList = LaDataProvider.getModels();
+		modelList.add(0, new LaModel(PRESET_NET_NAME, null));
+		modelList.stream().forEach(m -> neuralNetCombo.add(m.getLabel()));		
+		neuralNetCombo.select(0);
 	}
 
 	@Override
 	protected void applyParameterMapToDialog() {
-		String netName = parameters.getParameterValue(JobConst.PROP_MODELNAME);
-		if(netName == null || netName.equals(PRESET_NET_NAME)) {
-			setSelectedNet(PRESET_NET_NAME);
-		} else {
-			
-			//FIXME map internal name to label here for now
-			if(netName.equals(konzilsProtNetName)) {
-				netName = konzilsProtNetLabel;
+		String netFilename = parameters.getParameterValue(JobConst.PROP_MODELNAME);
+		//FIXME map internal filename to label here for now. Should be solved with TableViewer
+		LaModel model = null;
+		if(netFilename != null) {
+			for(LaModel m : modelList) {
+				if(netFilename.equals(m.getFilename())) {
+					model = m;
+					break;
+				}
 			}
-			
-			setSelectedNet(netName);
 		}
-		
+		setSelectedNet(model);
+				
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
 		if(RotScheme.hetero.toString().equals(rotScheme)) {
 			rotSchemeHet.setSelection(true);
+		} else if (RotScheme.hom.toString().equals(rotScheme)){
+			rotSchemeHom.setSelection(true);
 		} else {
 			//default
-			rotSchemeHom.setSelection(true);
+			rotSchemeDef.setSelection(true);
 		}
 		final String sepScheme = parameters.getParameterValue(LaCITlabUtils.SEP_SCHEME_KEY);
 		if(SepScheme.always.toString().equals(sepScheme)) {
 			sepSchemeAlways.setSelection(true);
+		} else if (SepScheme.never.toString().equals(sepScheme)) {
+			sepSchemeNever.setSelection(true);
 		} else {
 			//default
-			sepSchemeNever.setSelection(true);
+			sepSchemeDef.setSelection(true);
 		}
 		
 		updateGui();
 	}
 
 	private void updateGui() {
-		final String net = getSelectedNet();
-		boolean isPreset = PRESET_NET_NAME.equals(net);
+		final LaModel m = getSelectedNet();
+		boolean isPreset = PRESET_NET_NAME.equals(m.label);
 		setSettingsGroupEnabled(isPreset);
 	}
 
@@ -182,19 +194,106 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		}
 	}
 
-	private void setSelectedNet(String netName) {
+	private void setSelectedNet(LaModel m) {
 		neuralNetCombo.select(0);
-		if(StringUtils.isEmpty(netName)) {
+		if(m == null) {
 			return;
 		}
 		for(int i = 0; i < neuralNetCombo.getItems().length; i++) {
-			if(neuralNetCombo.getItems()[i].equals(netName)) {
+			if(neuralNetCombo.getItems()[i].equals(m.getLabel())) {
 				neuralNetCombo.select(i);
 				return;
 			}
 		}
 	}
-	private String getSelectedNet() {
-		return neuralNetCombo.getText();		
+	private LaModel getSelectedNet() {
+		final String label = neuralNetCombo.getText();
+		for(LaModel m : modelList) {
+			if(m.getLabel().equals(label)) {
+				return m;
+			}
+		}
+		return modelList.get(0);
+	}
+	
+	@Override
+	protected void configureShell(Shell newShell) {
+		super.configureShell(newShell);
+		newShell.setText("Layout Analysis Configuration (Experimental)");
+//		newShell.setMinimumSize(480, 480);
+	}
+
+	@Override
+	protected Point getInitialSize() {
+		return new Point(480, 300);
+	}
+
+	@Override
+	protected void setShellStyle(int newShellStyle) {
+		super.setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.HELP); //SWT.MAX | SWT.RESIZE
+	}
+
+	
+	/* 
+	 * Add help button to buttonBar
+	 * 
+	 * (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.Dialog#createButtonsForButtonBar(org.eclipse.swt.widgets.Composite)
+	 */
+	@Override
+	protected void createButtonsForButtonBar(Composite parent) {
+	  // Change parent layout data to fill the whole bar
+//	  parent.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+	  helpButton = createButton(parent, IDialogConstants.HELP_ID, "Help", false);
+	  helpButton.setImage(Images.HELP); //super.getImage(Dialog.DLG_IMG_HELP));
+	  
+	  // Update layout of the parent composite to count the spacer
+//	  GridLayout layout = (GridLayout)parent.getLayout();
+//	  layout.numColumns++;
+//	  layout.makeColumnsEqualWidth = false;
+
+	  createButton(parent, IDialogConstants.OK_ID, "OK", true);
+	  createButton(parent, IDialogConstants.CANCEL_ID, "Cancel" , false);
+	  GridData buttonLd = (GridData)getButton(IDialogConstants.CANCEL_ID).getLayoutData();
+	  helpButton.setLayoutData(buttonLd);
+	  helpButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DesktopUtil.browse(HELP_WIKI_PAGE, "You can find the relevant information on the Transkribus Wiki.", getParentShell());
+			}
+		});		
+	}
+	
+	/**
+	 * TODO Replace that with respective methods in Storage/TrpServerConn
+	 * 
+	 * @author philip
+	 *
+	 */
+	private static class LaDataProvider {
+		private final static String konzilsProtNetLabel = "Konzilsprotokolle Greifswald";
+		private final static String konzilsProtNetName = "LA_alvermann1.pb";
+		private LaDataProvider() {}
+		public static List<LaModel> getModels() {
+			final List<LaModel> nets = new ArrayList<>(1);
+			LaModel m = new LaModel(konzilsProtNetLabel, konzilsProtNetName);
+			nets.add(m);
+			return nets;
+		}
+	}
+	private static class LaModel {
+		private String filename;
+		private String label;
+		public LaModel(String label, String filename) {
+			this.filename = filename;
+			this.label = label;
+		}
+		public String getFilename() {
+			return filename;
+		}
+		public String getLabel() {
+			return label;
+		}
 	}
 }
