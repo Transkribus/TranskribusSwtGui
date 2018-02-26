@@ -108,6 +108,14 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		});
 	}
 	
+	private void loadData() {
+		//TODO get from Storage
+		modelList = LaDataProvider.getModels();
+		modelList.add(0, new LaModel(PRESET_NET_NAME, null));
+		modelList.stream().forEach(m -> neuralNetCombo.add(m.getLabel()));		
+		neuralNetCombo.select(0);
+	}
+	
 	@Override
 	protected void storeSelectionInParameterMap() {
 		parameters = new ParameterMap();
@@ -132,14 +140,6 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			//set net's filename to parameters
 			parameters.addParameter(JobConst.PROP_MODELNAME, m.getFilename());
 		}
-	}
-	
-	private void loadData() {
-		//TODO get from Storage
-		modelList = LaDataProvider.getModels();
-		modelList.add(0, new LaModel(PRESET_NET_NAME, null));
-		modelList.stream().forEach(m -> neuralNetCombo.add(m.getLabel()));		
-		neuralNetCombo.select(0);
 	}
 
 	@Override
