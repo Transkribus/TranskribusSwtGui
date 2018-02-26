@@ -1,5 +1,8 @@
 package eu.transkribus.swt_gui.search;
 
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -14,6 +17,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
+import eu.transkribus.core.model.beans.TrpTotalTranscriptStatistics;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.LabeledCombo;
@@ -113,7 +120,7 @@ public class SearchDialog extends Dialog {
 			kwsTabItem = createCTabItem(tabFolder, kwsComposite, "KWS");
 		}
 		
-		if(Storage.getInstance().getUser().isAdmin()){
+		if(isUserAllowedForSolrKws()){
 			kwSolrSearchComposite = new KWSearchComposite(tabFolder,0);
 			kwSolrSearchComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 			kwSolrSearchItem = createCTabItem(tabFolder, kwSolrSearchComposite, "Keyword (Solr)");
@@ -128,6 +135,22 @@ public class SearchDialog extends Dialog {
 	
 	public void updateTabItemStyles() {
 		SWTUtil.setBoldFontForSelectedCTabItem(tabFolder);
+	}
+	
+	public boolean isUserAllowedForSolrKws(){
+		
+		boolean allowed = false;
+		try {
+			allowed = Storage.getInstance().getConnection().canManageCollection(1335);
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+		final String testServer = "https://transkribus.eu/TrpServerTesting";
+		if(!Storage.getInstance().getCurrentServer().equals(testServer)){
+			allowed = false;
+		}
+		
+		return allowed;
 	}
 	
 	public boolean isUserAllowedForKws() {
