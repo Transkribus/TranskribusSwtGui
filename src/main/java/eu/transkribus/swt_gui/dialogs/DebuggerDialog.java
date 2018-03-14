@@ -55,8 +55,6 @@ public class DebuggerDialog extends Dialog {
 	public SWTCanvas canvas = mw.getCanvas();
 	
 	public Storage storage = Storage.getInstance();
-	public Button processUploadedZipFileBtn;
-	public Text processZipFileText;
 	public Button listLibsBtn, clearDebugText;
 	
 	public StyledText debugText;
@@ -123,14 +121,6 @@ public class DebuggerDialog extends Dialog {
 		openSleakBtn.setText("Open Sleak");
 		
 //		new Label(shell, SWT.NONE);
-		
-		if (false) {
-		processUploadedZipFileBtn = new Button(container, SWT.NONE);
-		processUploadedZipFileBtn.setText("Process uploaded zip file");
-		
-		processZipFileText = new Text(container, SWT.BORDER);
-		processZipFileText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		}
 		
 		listLibsBtn = new Button(container, 0);
 		listLibsBtn.setText("List libs");		
@@ -208,21 +198,6 @@ public class DebuggerDialog extends Dialog {
 		SWTUtil.onSelectionEvent(applyAffineTransformBtn, (e) -> {mw.applyAffineTransformToDoc();} );
 		SWTUtil.onSelectionEvent(batchReplaceImgsBtn, (e) -> {mw.batchReplaceImagesForDoc();} );
 		SWTUtil.onSelectionEvent(openSleakBtn, (e) -> { mw.openSleak(); } );
-				
-		if (processUploadedZipFileBtn != null) {
-			processUploadedZipFileBtn.addSelectionListener(new SelectionAdapter() {		
-				@Override public void widgetSelected(SelectionEvent e) {
-					String zipFn = processZipFileText.getText().trim();
-					logger.debug("trying to process zip file: "+zipFn);
-					try {
-						int colId = mw.getUi().getServerWidget().getSelectedCollectionId();
-						storage.getConnection().processTrpDocFromFtp(colId, zipFn);
-					} catch (Exception e1) {
-						mw.onError("An error occured", e1.getMessage(), e1);
-					}
-				}
-			});
-		}
 		
 		listLibsBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
