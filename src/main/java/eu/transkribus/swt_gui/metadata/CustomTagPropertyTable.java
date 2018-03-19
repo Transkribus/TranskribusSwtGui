@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.MyCheckboxEditor;
@@ -173,14 +174,29 @@ public class CustomTagPropertyTable extends Composite {
 				logger.debug("setting attribute value, att = "+attName+" vaue = "+value);
 				try {
 					if (!StringUtils.isEmpty(attName)) {
-						selectedTag.setAttribute(attName, value, true);
-						tv.update(element, null);
-						
-						listener.stream().forEach(l -> { 
-							l.onPropertyChanged(selectedTag, attName, value);
-						});						
+						// OLD VERSION: just apply for tag in this line:
+//						selectedTag.setAttribute(attName, value, true);
+//						tv.update(element, null);
+//						listener.stream().forEach(l -> { 
+//							l.onPropertyChanged(selectedTag, attName, value);
+//						});						
+
+						// NEW VERSION: apply for tag and continuations
+						CustomTagUtil.applyForAllTagsAndContinuations(selectedTag, tag-> {
+							try {
+								tag.setAttribute(attName, value, true);
+								tv.update(element, null);
+								
+								listener.stream().forEach(l -> { 
+									l.onPropertyChanged(tag, attName, value);
+								});
+							}
+							catch (Exception e) {
+								logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
+							}
+						});					
 					}
-				} catch (IOException e) {
+				} catch (Exception e) {
 					logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
 				}
 				

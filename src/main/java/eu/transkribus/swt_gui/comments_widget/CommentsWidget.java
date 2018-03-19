@@ -103,7 +103,7 @@ public class CommentsWidget extends Composite {
         editComment = new Button(top, SWT.PUSH);
         editComment.setImage(Images.PENCIL);
         editComment.setText("Edit selected");
-        editComment.setToolTipText("Edits the selected comment with the text below");
+        editComment.setToolTipText("Edits the selected comment with the text above");
         editComment.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
         editComment.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
