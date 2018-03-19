@@ -117,6 +117,9 @@ public class Images {
 	
 	public static final Image WRENCH = Images.getOrLoad("/icons/wrench.png");
 
+	public static final Image INFO = Images.getOrLoad("/icons/information.png");
+	public static final Image ERROR = Images.getOrLoad("/icons/error.png");
+
 	static HashMap<String, Image> imageMap;
 
 	public static Image getSystemImage(int swtSysImg) {

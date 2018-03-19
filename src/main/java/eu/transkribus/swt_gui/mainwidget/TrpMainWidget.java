@@ -75,8 +75,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.mihalis.opal.tipOfTheDay.TipOfTheDay;
-import org.mihalis.opal.tipOfTheDay.TipOfTheDay.TipStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,7 +184,6 @@ import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
-import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
@@ -228,7 +225,7 @@ public class TrpMainWidget {
 	private static Shell mainShell;
 	// Ui stuff:
 	// Display display = Display.getDefault();
-	static Display display;
+	static Display display;	
 	SWTCanvas canvas;
 	TrpMainWidgetView ui;
 	LoginDialog loginDialog;
