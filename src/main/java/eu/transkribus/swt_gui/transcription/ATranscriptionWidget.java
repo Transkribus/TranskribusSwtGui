@@ -1555,14 +1555,12 @@ public abstract class ATranscriptionWidget extends Composite{
 					for (int k=0; k<bounds.size(); k++) {
 						Rectangle b=bounds.get(k);
 						logger.trace("bound: "+b);
-						if (tag instanceof CommentTag) {
-							if (settings.isHighlightComments()) {							
-								e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_YELLOW));
-								e.gc.setAlpha(70);
-								e.gc.fillRoundRectangle(b.x, b.y, b.width, b.height, 2, 2);
-							}
+						if (settings.isHighlightComments() && tag instanceof CommentTag) {
+							e.gc.setAlpha(70);
+							e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_YELLOW));
+							e.gc.fillRoundRectangle(b.x, b.y, b.width, b.height, 2, 2);
 						} else {
-		//				for (Rectangle b : bounds) {
+							e.gc.setAlpha(255);
 							int yBottom = b.y + b.height + TAG_LINE_WIDTH / 2 + j * (TAG_LINE_WIDTH + 2*SPACE_BETWEEN_TAG_LINES);
 							
 							e.gc.drawLine(b.x, yBottom, b.x + b.width, yBottom);
