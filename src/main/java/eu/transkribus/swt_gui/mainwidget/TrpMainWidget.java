@@ -3156,12 +3156,14 @@ public class TrpMainWidget {
 				DialogUtil.showErrorMessageBox(getShell(), "No document loaded", "You first have to open a document that shall be exported!");
 				return;
 			}
-			
+
 			/*
 			 * preselect document title for export folder name filter out all
 			 * unwanted chars
 			 */
-			String adjTitle = ExportUtils.getAdjustedDocTitle(storage.getDoc().getMd().getTitle());
+			boolean isLocalDoc = storage.isLocalDoc();
+			String title = isLocalDoc ? storage.getDoc().getMd().getLocalFolder().getName() : storage.getDoc().getMd().getTitle();
+			String adjTitle = ExportUtils.getAdjustedDocTitle(title);
 
 			saveTranscriptDialogOrAutosave();
 
