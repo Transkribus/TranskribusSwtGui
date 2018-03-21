@@ -539,5 +539,8 @@ CHANGES AND BUGFIXES
 	-> extended virtual keyboard: Hebrew and Arabic are new
 	-> change text based tagging system
 	-> take local tmp directory as default for pdf upload
+	
 1.4.1
 	-> CITlabAdvanced layout analysis method can now be configured in user interface
+	-> bugfix: cannot open local document
+	-> bugfix: apply properties for tags over all continuations in property editor 
