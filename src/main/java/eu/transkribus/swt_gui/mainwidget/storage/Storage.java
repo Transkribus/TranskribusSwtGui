@@ -94,6 +94,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.builder.CommonExportPars;
+import eu.transkribus.core.model.builder.ExportCache;
 import eu.transkribus.core.model.builder.alto.AltoExporter;
 import eu.transkribus.core.model.builder.pdf.PdfExporter;
 import eu.transkribus.core.model.builder.tei.ATeiBuilder;
@@ -1784,7 +1785,7 @@ public class Storage {
 
 	public String exportDocument(File dir, Set<Integer> pageIndices, boolean exportImg, 
 			boolean exportPage, boolean exportAlto, boolean splitIntoWordsInAlto, 
-			final String fileNamePattern, final ImgType imgType, final IProgressMonitor monitor) throws SessionExpiredException, ServerErrorException, IllegalArgumentException,
+			final String fileNamePattern, final ImgType imgType, final IProgressMonitor monitor, ExportCache cache) throws SessionExpiredException, ServerErrorException, IllegalArgumentException,
 			NoConnectionException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
@@ -1821,14 +1822,14 @@ public class Storage {
 				}
 			}
 		};
-		DocExporter de = new DocExporter();
+		DocExporter de = new DocExporter(cache);
 		de.addObserver(o);
 		de.writeRawDoc(doc, path, true, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern, imgType);
 
 		return path;
 	}
 
-	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, final boolean imagesOnly, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle) throws MalformedURLException, DocumentException,
+	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, final boolean imagesOnly, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle, ExportCache cache) throws MalformedURLException, DocumentException,
 			IOException, JAXBException, InterruptedException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
@@ -1866,12 +1867,12 @@ public class Storage {
 		};
 		pdfExp.addObserver(o);
 		
-		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, wordBased, extraTextPages, imagesOnly, highlightTags, doBlackening, createTitle);
+		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, wordBased, extraTextPages, imagesOnly, highlightTags, doBlackening, createTitle, cache);
 
 		return pdf.getAbsolutePath();
 	}
 
-	public String exportTei(File tei, CommonExportPars commonPars, TeiExportPars pars, IProgressMonitor monitor) throws IOException, Exception {
+	public String exportTei(File tei, CommonExportPars commonPars, TeiExportPars pars, IProgressMonitor monitor, ExportCache cache) throws IOException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
 		if (tei.isDirectory()) {
@@ -1885,6 +1886,7 @@ public class Storage {
 		
 //		TrpTeiDomBuilder builder = new TrpTeiDomBuilder(doc, mode, monitor, pageIndices);
 		ATeiBuilder builder = new TrpTeiStringBuilder(doc, commonPars, pars, monitor);
+		builder.addTranscriptsFromCache(cache);
 		builder.buildTei();
 		
 		if (monitor != null)

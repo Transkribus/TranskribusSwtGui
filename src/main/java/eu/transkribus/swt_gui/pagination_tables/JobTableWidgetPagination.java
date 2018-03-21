@@ -22,32 +22,38 @@ import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
-import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.core.model.beans.rest.JobErrorList;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
-import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
+import eu.transkribus.swt.pagination_table.ATableWidgetPaginationWithInfoBtn;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.pagination_table.RemotePageLoader;
 import eu.transkribus.swt.pagination_table.TableColumnBeanLabelProvider;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatus> {
+public class JobTableWidgetPagination extends ATableWidgetPaginationWithInfoBtn<TrpJobStatus> {
 	private final static Logger logger = LoggerFactory.getLogger(JobTableWidgetPagination.class);
 
 	public static final String ID_COL = "ID";
@@ -59,9 +65,11 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 	public static final String DOC_ID_COL = "Doc-Id";
 	public static final String PAGE_COL = "Pages";
 	public static final String DESCRIPTION_COL = "Description";
+	public static final String NR_OF_ERRORS_COL = "Errors";
 	public static final String USER_NAME_COL = "Username";
 	public static final String RESULT_COL = "Download-Link";
 
+	@Deprecated //never used!?
 	public final ColumnConfig[] COLS = new ColumnConfig[] {
 			new ColumnConfig(TYPE_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(STATE_COL, 75, false, DefaultTableColumnViewerSorter.ASC),
@@ -75,16 +83,19 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 			new ColumnConfig(ID_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(RESULT_COL, 100, false, DefaultTableColumnViewerSorter.ASC),};
 
-	Button showAllJobsBtn, cancelBtn;
-	Combo stateCombo;
-	Text docIdText;
-	Text typeFilterTxt;
+	protected Button showAllJobsBtn, cancelBtn;
+	protected Combo stateCombo;
+	protected Text docIdText;
+	protected Text typeFilterTxt;
+	
+	protected JobErrorDialog errorDiag = null;
 
 	// DocJobUpdater docUpdater;
 	static Storage store = Storage.getInstance();
 
 	public JobTableWidgetPagination(Composite parent, int style, int initialPageSize) {
-		super(parent, style, initialPageSize);
+//		super(parent, style, initialPageSize, Images.getOrLoad("/icons/exclamation.png"), "Show job error details");
+		super(parent, style, initialPageSize); //, Images.EXCLAMATION, "Show job error details");
 
 		pageableTable.getController().setSort("createTime", SWT.UP);
 
@@ -220,9 +231,6 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 	protected void setPageLoader() {
 		if (methods == null) {
 			methods = new IPageLoadMethods<TrpJobStatus>() {
-				Storage store = Storage.getInstance();
-				SebisStopWatch sw = new SebisStopWatch();
-
 				@Override
 				public int loadTotalSize() {
 					int N = 0;
@@ -271,8 +279,8 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 
 	@Override
 	protected void createColumns() {
-		class CollectionsTableColumnLabelProvider extends TableColumnBeanLabelProvider {
-			public CollectionsTableColumnLabelProvider(String colName) {
+		class JobStateTableColumnLabelProvider extends TableColumnBeanLabelProvider {
+			public JobStateTableColumnLabelProvider(String colName) {
 				super(colName);
 			}
 
@@ -289,6 +297,17 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 					}
 				}
 
+				return null;
+			}
+			
+			@Override
+			public Image getImage(Object element) {
+				if (element instanceof TrpJobStatus) {
+					TrpJobStatus job = (TrpJobStatus) element;
+					if (job.getNrOfErrors() > 0) {
+						return Images.ERROR;
+					}
+				}
 				return null;
 			}
 		}
@@ -328,12 +347,13 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 		}
 
 		createColumn(TYPE_COL, 100, "type", new JobTypeTableColumnLabelProvider("type"));
-		createColumn(STATE_COL, 75, "state", new CollectionsTableColumnLabelProvider("state"));
+		createColumn(STATE_COL, 75, "state", new JobStateTableColumnLabelProvider("state"));
 
 		createDefaultColumn(DOC_ID_COL, 50, "docId", true);
 		createDefaultColumn(PAGE_COL, 50, "pages", true);
 		createDefaultColumn(USER_NAME_COL, 100, "userName", true);
 		createDefaultColumn(DESCRIPTION_COL, 100, "description", true);
+		createDefaultColumn(NR_OF_ERRORS_COL, 50, "nrOfErrors", true);
 
 		createDefaultColumn(CREATION_COL, 120, "createTimeFormatted", "createTime");
 		createDefaultColumn(STARTED_COL, 120, "startTimeFormatted", "startTime");
@@ -413,6 +433,54 @@ public class JobTableWidgetPagination extends ATableWidgetPagination<TrpJobStatu
 					break;
 				}
 			}
+		}
+	}
+	
+	@Override
+	protected void updateItemInfoBtn() {
+		List<TrpJobStatus> selection = getSelected();
+		int nrOfErrors = 0;
+		if(selection.size() == 1) {
+			TrpJobStatus job = selection.get(0);
+			nrOfErrors = job.getNrOfErrors();
+		} 
+		itemInfoBtn.setEnabled(nrOfErrors > 0);
+	}
+
+	/**
+	 * ask for errors on this job at server. TrpJobStatus now has field nrOfErrors though....
+	 */
+	@Deprecated
+	protected void updateItemInfoBtnOld() {
+		List<TrpJobStatus> selection = getSelected();
+		if(selection.size() == 1) {
+			TrpJobStatus job = selection.get(0);
+			Display.getCurrent().asyncExec(new Runnable () {
+				public void run() {
+					JobErrorList errors = new JobErrorList(new ArrayList<>(0), 0, 0, -1, null, null);
+					try {
+						errors = store.getConnection().getJobErrors(job.getJobId(), 0, 1, null, null);
+					} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
+						logger.error("Could not load job errors for job " + job.getJobId(), e);
+					}
+					itemInfoBtn.setEnabled(errors.getTotal() > 0);
+				};
+			});
+		} else {
+			//nothing selected...
+			itemInfoBtn.setEnabled(false);
+		}
+	}
+	
+	@Override
+	protected void onItemInfoBtnPressed(TrpJobStatus item) {
+		logger.debug("opening job error dialog");
+		if (SWTUtil.isOpen(errorDiag)) {
+			errorDiag.setJobId(item.getJobIdAsInt());
+			errorDiag.getShell().setVisible(true);
+		} else {
+			errorDiag = new JobErrorDialog(getShell(), item.getJobIdAsInt());
+			errorDiag.open();
 		}
 	}
 }
