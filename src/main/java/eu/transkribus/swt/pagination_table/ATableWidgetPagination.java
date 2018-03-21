@@ -1,6 +1,7 @@
 package eu.transkribus.swt.pagination_table;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.beanutils.PropertyUtils;
@@ -68,7 +69,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize, IPageLoadMethods<T> methods) {
 		this(parent, tableStyle, initialPageSize, methods, false);
 	}
-		
+
 	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize, IPageLoadMethods<T> methods, boolean withFilter) {
 		super(parent, 0);
 		this.setLayout(new GridLayout(1, false));
@@ -276,7 +277,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 					filter.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					filter.setToolTipText("Filter");
 //					filter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 2));
-				}				
+				}
 				
 				loadingComposite = new LoadingComposite(bottom, false);
 				loadingComposite.reload.addSelectionListener(new SelectionAdapter() {
@@ -325,7 +326,6 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 		createColumns();
 		setPageLoader();
 		
-		if (true) {
 		pageableTable.setPageLoaderHandler(new IPageLoaderHandler<PageableController>() {
 			long time = 0;
 			
@@ -355,8 +355,7 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 				
 				return true;
 			}
-		});		
-		}
+		});
 	}
 	
 	protected void onReloadButtonPressed() {
@@ -382,11 +381,17 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	}
 	
 	public T getFirstSelected() {
+		if(tv == null) {
+			return null;
+		}
 		IStructuredSelection sel = (IStructuredSelection) tv.getSelection();		
 		return (T) sel.getFirstElement();
 	}
 	
 	public List<T> getSelected() {
+		if(tv == null) {
+			return new ArrayList<>(0);
+		}
 		return ((IStructuredSelection) tv.getSelection()).toList();
 	}
 	

@@ -75,8 +75,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.mihalis.opal.tipOfTheDay.TipOfTheDay;
-import org.mihalis.opal.tipOfTheDay.TipOfTheDay.TipStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,6 +117,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.builder.CommonExportPars;
+import eu.transkribus.core.model.builder.ExportCache;
 import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.alto.AltoExportPars;
 import eu.transkribus.core.model.builder.docx.DocxBuilder;
@@ -186,7 +185,6 @@ import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
-import eu.transkribus.swt_gui.doc_overview.ServerWidget;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
@@ -228,7 +226,7 @@ public class TrpMainWidget {
 	private static Shell mainShell;
 	// Ui stuff:
 	// Display display = Display.getDefault();
-	static Display display;
+	static Display display;	
 	SWTCanvas canvas;
 	TrpMainWidgetView ui;
 	LoginDialog loginDialog;
@@ -3311,7 +3309,8 @@ public class TrpMainWidget {
 
 //			logger.debug("loading transcripts..." + copyOfPageIndices.size());
 			
-			Set<String> selectedTags = exportDiag.getSelectedTagsList();
+			ExportCache cache = new ExportCache();
+			cache.setSelectedTags(exportDiag.getSelectedTagsList());
 			
 			if (!commonPars.exportImagesOnly()){
 
@@ -3323,7 +3322,7 @@ public class TrpMainWidget {
 							monitor.beginTask("Loading transcripts...", pageIndices.size());						
 						
 							//unmarshal the page transcript only once for all different export, don't do this if only images are exported
-							ExportUtils.storePageTranscripts4Export(storage.getDoc(), pageIndices, monitor, exportDiag.getVersionStatus(),
+							cache.storePageTranscripts4Export(storage.getDoc(), pageIndices, monitor, exportDiag.getVersionStatus(),
 									storage.getPageIndex(), storage.getTranscript().getMd());
 							
 							monitor.done();
@@ -3336,20 +3335,18 @@ public class TrpMainWidget {
 	
 				logger.debug("transcripts loaded");
 	
-				if (exportDiag.isTagableExportChosen()) {
-					ExportUtils.setSelectedTags(selectedTags);
-	
-					logger.debug("loading tags..." + selectedTags.size());
+				if (exportDiag.isTagableExportChosen()) {	
+					logger.debug("loading tags..." + cache.getSelectedTags().size());
 	
 					ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 						@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
 								//logger.debug("loading transcripts...");
 								monitor.beginTask("Loading tags...", pageIndices.size());
-								ExportUtils.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), pageIndices, monitor,
+								cache.storeCustomTagMapForDoc(storage.getDoc(), exportDiag.isWordBased(), pageIndices, monitor,
 										exportDiag.isDoBlackening());
 								
-								if (selectedTags == null) {
+								if (cache.getSelectedTags() == null) {
 									DialogUtil.showErrorMessageBox(getShell(), "Error while reading selected tag names", "Error while reading selected tag names");
 									return;
 								}
@@ -3391,22 +3388,22 @@ public class TrpMainWidget {
 
 				if (exportDiag.isMetsExport())
 					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-							exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality());
+							exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
-							exportDiag.isExportImagesOnly(), selectedTags, exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
+							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache);
 				if (exportDiag.isTeiExport())
-					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag);
+					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag, cache);
 				if (exportDiag.isDocxExport())
 					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isDocxTagExport(), doBlackening,
 							createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
-							exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied());
+							exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied(), cache);
 				if (exportDiag.isTxtExport())
-					exportTxt(new File(tempZipDirParent + "/" + dir.getName() + ".txt"), pageIndices, createTitle, exportDiag.isWordBased(), true);
+					exportTxt(new File(tempZipDirParent + "/" + dir.getName() + ".txt"), pageIndices, createTitle, exportDiag.isWordBased(), true, cache);
 				if (exportDiag.isTagXlsxExport())
-					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport());
+					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport(), cache);
 				if (exportDiag.isTableXlsxExport())
-					exportTableXlsx(new File(tempZipDirParent + "/" + dir.getName() + "_tables.xlsx"), pageIndices, selectedTags);
+					exportTableXlsx(new File(tempZipDirParent + "/" + dir.getName() + "_tables.xlsx"), pageIndices, cache);
 
 				//createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), dir.getParentFile().getAbsolutePath() + "/" + dir.getName() + ".zip");
 				ZipUtils.createZipFromFolder(tempZipDirParentFile.getAbsolutePath(), zipExportFile.getAbsolutePath(), false);
@@ -3440,7 +3437,7 @@ public class TrpMainWidget {
 			if (doMetsExport) {
 
 				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-						exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality());
+						exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
 				if (exportDiag.isPageExport()) {
 					if (exportFormats != "") {
 						exportFormats += " and ";
@@ -3466,8 +3463,8 @@ public class TrpMainWidget {
 
 			if (doPdfExport) {
 
-				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), selectedTags,
-						exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle);
+				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), 
+						exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -3477,7 +3474,7 @@ public class TrpMainWidget {
 
 			if (doTeiExport) {
 
-				exportTei(teiExportFile, exportDiag);
+				exportTei(teiExportFile, exportDiag, cache);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -3489,7 +3486,7 @@ public class TrpMainWidget {
 
 				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isDocxTagExport(), doBlackening, createTitle,
 						exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
-						exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied());
+						exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied(), cache);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -3500,7 +3497,7 @@ public class TrpMainWidget {
 			if (doTxtExport) {
 
 				//last param keeps the line breaks by default 
-				exportTxt(txtExportFile, pageIndices, createTitle, wordBased, true);
+				exportTxt(txtExportFile, pageIndices, createTitle, wordBased, true, cache);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -3510,7 +3507,7 @@ public class TrpMainWidget {
 
 			if (doXlsxExport) {
 
-				if (exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport())){
+				if (exportXlsx(xlsxExportFile, pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport(), cache)){
 					if (exportFormats != "") {
 						exportFormats += " and ";
 					}
@@ -3521,7 +3518,7 @@ public class TrpMainWidget {
 			
 			if (doTableExport) {
 
-				exportTableXlsx(tableExportFile, pageIndices, selectedTags);
+				exportTableXlsx(tableExportFile, pageIndices, cache);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -3558,52 +3555,8 @@ public class TrpMainWidget {
 
 	}
 
-	// public void exportDocument() {
-	// try {
-	// if (!storage.isDocLoaded()) {
-	// DialogUtil.showErrorMessageBox(getShell(), "No document loaded",
-	// "You first have to open a document that shall be exported!");
-	// return;
-	// }
-	//
-	// /*
-	// * preselect document title for export folder name
-	// * filter out all unwanted chars
-	// *
-	// * */
-	// String title = storage.getDoc().getMd().getTitle();
-	// title = title.replaceAll("([/\\?%*:| \"<>. ])", "_");
-	// final DocExportDialog exportDiag = new DocExportDialog(getShell(),
-	// SWT.NONE, lastExportFolder, title);
-	// final File dir = exportDiag.open();
-	//
-	// if (dir == null)
-	// return;
-	//
-	// lastExportFolder = dir.getParent();
-	// ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-	// @Override public void run(IProgressMonitor monitor) throws
-	// InvocationTargetException, InterruptedException {
-	// try {
-	// logger.debug("exporting document...");
-	// monitor.beginTask("Exporting document", storage.getNPages());
-	// final String path = storage.exportDocument(dir, true, false, monitor);
-	// monitor.done();
-	// displaySuccessMessage("Written export to "+path);
-	// } catch (Exception e) {
-	// throw new InvocationTargetException(e, e.getMessage());
-	// }
-	// }
-	// }, "Exporting", false);
-	// } catch (Throwable e) {
-	// onError("Export error", "Error during export of document", e);
-	// }
-	// }
-
-
-
 	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto,
-			final boolean splitIntoWordsInAlto, final String fileNamePattern, final ImgType imgType) throws Throwable {
+			final boolean splitIntoWordsInAlto, final String fileNamePattern, final ImgType imgType, ExportCache cache) throws Throwable {
 		try {
 
 			if (dir == null)
@@ -3616,7 +3569,7 @@ public class TrpMainWidget {
 					try {
 						logger.debug("exporting document...");
 						final String path = storage.exportDocument(dir, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern,
-								imgType, monitor);
+								imgType, monitor, cache);
 						monitor.done();
 						// displaySuccessMessage("Written export to "+path);
 					} catch (Exception e) {
@@ -3676,7 +3629,7 @@ public class TrpMainWidget {
 	// }
 
 	public void exportRtf(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening,
-			final Set<String> selectedTags) throws Throwable {
+			ExportCache cache) throws Throwable {
 		try {
 
 			if (file == null)
@@ -3689,7 +3642,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating RTF document...");
-						TrpRtfBuilder.writeRtfForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor, selectedTags);
+						TrpRtfBuilder.writeRtfForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor, cache);
 						monitor.done();
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
@@ -3702,7 +3655,7 @@ public class TrpMainWidget {
 		}
 	}
 
-	public void exportTxt(final File file, final Set<Integer> pageIndices, final boolean createTitle, final boolean isWordBased, final boolean preserveLineBreaks) throws Throwable {
+	public void exportTxt(final File file, final Set<Integer> pageIndices, final boolean createTitle, final boolean isWordBased, final boolean preserveLineBreaks, ExportCache cache) throws Throwable {
 		try {
 
 			if (file == null)
@@ -3715,7 +3668,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating txt file...");
-						TrpTxtBuilder.writeTxtForDoc(storage.getDoc(), createTitle, isWordBased, preserveLineBreaks, file, pageIndices, monitor);
+						TrpTxtBuilder.writeTxtForDoc(storage.getDoc(), createTitle, isWordBased, preserveLineBreaks, file, pageIndices, monitor, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
@@ -3734,7 +3687,7 @@ public class TrpMainWidget {
 	
 	public void exportDocx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening,
 			final boolean createTitle, final boolean markUnclearWords, final boolean expandAbbrevs,
-			final boolean substituteAbbrevs, final boolean preserveLineBreaks, final boolean suppliedWithBrackets, final boolean ignoreSupplied) throws Throwable {
+			final boolean substituteAbbrevs, final boolean preserveLineBreaks, final boolean suppliedWithBrackets, final boolean ignoreSupplied, ExportCache cache) throws Throwable {
 		try {
 
 			if (file == null)
@@ -3748,7 +3701,7 @@ public class TrpMainWidget {
 					try {
 						logger.debug("creating Docx document...");
 						DocxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor,
-								createTitle, markUnclearWords, expandAbbrevs, substituteAbbrevs, preserveLineBreaks, suppliedWithBrackets, ignoreSupplied);
+								createTitle, markUnclearWords, expandAbbrevs, substituteAbbrevs, preserveLineBreaks, suppliedWithBrackets, ignoreSupplied, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
@@ -3765,17 +3718,17 @@ public class TrpMainWidget {
 		}
 	}
 
-	public boolean exportXlsx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport) throws Throwable {
+	public boolean exportXlsx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, ExportCache cache) throws Throwable {
 		try {
 
-			if (ExportUtils.getCustomTagMapForDoc().isEmpty()) {
+			if (cache.getCustomTagMapForDoc().isEmpty()) {
 				logger.info("No tags to store -> Xlsx export cancelled");
 				displayCancelMessage("No custom tags in document to store -> Xlsx export cancelled");
 				return false;
 				//throw new Exception("No tags to store -> Xlsx export cancelled");
 			}
 			
-			logger.debug("tags " + ExportUtils.getCustomTagMapForDoc().size());
+			logger.debug("tags " + cache.getCustomTagMapForDoc().size());
 			
 			//logger.debug("lastExportXlsxFn = " + lastExportXlsxFn);
 
@@ -3789,7 +3742,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Excel document...");
-						TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, file, pageIndices, monitor);
+						TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, file, pageIndices, monitor, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
@@ -3806,7 +3759,7 @@ public class TrpMainWidget {
 		return true;
 	}
 	
-	public void exportTableXlsx(final File file, final Set<Integer> pageIndices, final Set<String> selectedTags) throws Throwable {
+	public void exportTableXlsx(final File file, final Set<Integer> pageIndices, ExportCache cache) throws Throwable {
 		try {
 
 			if (file == null)
@@ -3819,7 +3772,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Excel document...");
-						TrpXlsxTableBuilder.writeXlsxForTables(storage.getDoc(), file, pageIndices, monitor);
+						TrpXlsxTableBuilder.writeXlsxForTables(storage.getDoc(), file, pageIndices, monitor, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
@@ -3880,7 +3833,7 @@ public class TrpMainWidget {
 	// }
 
 	public void exportPdf(final File dir, final Set<Integer> pageIndices, final boolean extraTextPages, final boolean imagesOnly,
-			final Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle)
+			final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle, ExportCache cache)
 			throws Throwable {
 		try {
 			if (dir == null)
@@ -3896,8 +3849,8 @@ public class TrpMainWidget {
 			ProgressBarDialog.open(shell, new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, selectedTags, highlightTags, wordBased, doBlackening,
-								createTitle);
+						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, cache.getSelectedTags(), highlightTags, wordBased, doBlackening,
+								createTitle, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
@@ -3954,7 +3907,7 @@ public class TrpMainWidget {
 	// }
 	// }
 
-	public void exportTei(final File file, final CommonExportDialog exportDiag) throws Throwable {
+	public void exportTei(final File file, final CommonExportDialog exportDiag, ExportCache cache) throws Throwable {
 		try {
 			TeiExportPars pars = exportDiag.getTeiExportPars();
 			CommonExportPars commonPars = exportDiag.getCommonExportPars();
@@ -3970,7 +3923,7 @@ public class TrpMainWidget {
 					try {
 						logger.debug("creating TEI document, pars: " + pars);
 
-						storage.exportTei(file, commonPars, pars, monitor);
+						storage.exportTei(file, commonPars, pars, monitor, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;

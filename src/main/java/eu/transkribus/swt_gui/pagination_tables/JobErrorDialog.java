@@ -11,22 +11,24 @@ import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.swt.util.SWTUtil;
 
-public class JobsDialog extends Dialog {
+public class JobErrorDialog extends Dialog {
 	
-	public JobTableWidgetPagination jw;
-	JobTableWidgetListener jwl;
+	public JobErrorTableWidgetPagination jw;
+	protected JobErrorTableWidgetListener jwl;
+	protected int jobId;
 
-	public JobsDialog(Shell parentShell) {
+	public JobErrorDialog(Shell parentShell, final int jobId) {
 		super(parentShell);
+		this.jobId = jobId;
 	}
 
 	@Override protected Control createDialogArea(Composite parent) {
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(new GridLayout(1, true));
 		
-		jw = new JobTableWidgetPagination(container, 0, 50);
+		jw = new JobErrorTableWidgetPagination(container, 0, 50, this.jobId);
 		jw.setLayoutData(new GridData(GridData.FILL_BOTH));
-		jwl = new JobTableWidgetListener(jw);
+		jwl = new JobErrorTableWidgetListener(jw);
 		
 		container.pack();
 
@@ -36,7 +38,7 @@ public class JobsDialog extends Dialog {
 	@Override protected void configureShell(Shell shell) {
 		super.configureShell(shell);
 		SWTUtil.centerShell(shell);
-		shell.setText("Jobs on Server");
+		shell.setText("Errors in job " + jobId);
 	}
 
 	@Override protected Point getInitialSize() { return new Point(1000, 800); }
@@ -46,6 +48,16 @@ public class JobsDialog extends Dialog {
 	@Override protected void setShellStyle(int newShellStyle) {
 		super.setShellStyle(SWT.CLOSE | SWT.MODELESS | SWT.BORDER | SWT.TITLE | SWT.RESIZE);
 		setBlockOnOpen(false);
+	}
+
+	/**
+	 * Set new JobID and update the table
+	 * 
+	 * @param jobId
+	 */
+	public void setJobId(int jobId) {
+		this.jobId = jobId;
+		jw.reloadJobErrorList();
 	}
 
 }
