@@ -1773,7 +1773,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		for (CustomTag t : getCustomTagsForCurrentOffset()) {
 			MenuItem deleteTagItem = new MenuItem(menu, 0);
 			deleteTagItem.setData(t);
-			deleteTagItem.setText(t.getCssStr(false));
+			deleteTagItem.setText(t.getCssStr());
 			SWTUtil.onSelectionEvent(deleteTagItem, e -> {
 				TrpMainWidget.getInstance().deleteTags((CustomTag) deleteTagItem.getData());
 			});
@@ -1789,7 +1789,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		int i = 0;
 		for (CustomTagSpec spec : Storage.getInstance().getCustomTagSpecs()) {
 			MenuItem tagItem = new MenuItem(menu, SWT.PUSH, i++);
-			tagItem.setText(spec.getCustomTag().getCssStr(false));
+			tagItem.setText(spec.getCustomTag().getCssStr());
 			tagItem.addSelectionListener(new TagSpecMenuItemListener(spec));
 			items.add(tagItem);
 		}

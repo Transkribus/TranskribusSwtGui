@@ -141,7 +141,7 @@ public class TagSpecsWidget extends Composite {
 				}
 				
 				CustomTagSpec tagDef = (CustomTagSpec) element;
-				String tagDefStr = tagDef.getCustomTag().getCssStr(false);
+				String tagDefStr = tagDef.getCustomTag().getCssStr();
 				return tagDefStr.replaceAll("\\{\\}", "").trim(); // remove empty properties braces {} 
 			}
 			
