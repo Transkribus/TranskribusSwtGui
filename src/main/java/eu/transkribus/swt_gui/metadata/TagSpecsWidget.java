@@ -141,7 +141,7 @@ public class TagSpecsWidget extends Composite {
 				}
 				
 				CustomTagSpec tagDef = (CustomTagSpec) element;
-				String tagDefStr = tagDef.getCustomTag().getCssStr();
+				String tagDefStr = tagDef.getCustomTag().getCssStr(false);
 				return tagDefStr.replaceAll("\\{\\}", "").trim(); // remove empty properties braces {} 
 			}
 			
@@ -187,6 +187,7 @@ public class TagSpecsWidget extends Composite {
 	                ColorChooseButton colorCtrl = new ColorChooseButton((Composite) cell.getViewerRow().getControl(), Colors.toRGB(tagColor)) {
 	                	@Override protected void onColorChanged(RGB rgb) {
 	                		CustomTagFactory.setTagColor(tagSpec.getCustomTag().getTagName(), Colors.toHex(rgb));
+	                		tagSpec.setColor(Colors.toHex(rgb));
 	                	}
 	                };
 	                colorCtrl.setEditorEnabled(isEditable);
@@ -327,7 +328,7 @@ public class TagSpecsWidget extends Composite {
 				
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					Storage.getInstance().removeCustomTagSpec(tagDef);
+					Storage.getInstance().removeCustomTagSpec(tagDef, false);
 	 				tableViewer.refresh();
 				}
 			};
@@ -552,7 +553,7 @@ public class TagSpecsWidget extends Composite {
 	private void removeSelected() {
 		CustomTagSpec cDef = getSelected();
 		if (cDef != null) {
-			Storage.getInstance().removeCustomTagSpec(cDef);
+			Storage.getInstance().removeCustomTagSpec(cDef, false);
 		}
 	}
 	

@@ -4,8 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
+import eu.transkribus.core.model.beans.pagecontent.TableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -59,8 +62,25 @@ public class StructureTreeContentProvider implements ITreeContentProvider {
 //			return getElements(parentElement);
 			return ((TrpPageType) parentElement).getAllShapes(false).toArray();
 		}
+//		else if (parentElement instanceof TrpTableRegionType) {
+//			logger.debug("is TrpTableRegionType type");
+//			return ((ITrpShapeType)parentElement).getChildren(true).toArray();
+//		}
+//		else if (parentElement instanceof TableRegionType) {
+//			logger.debug("is TableRegionType type");
+//			return ((ITrpShapeType)parentElement).getChildren(true).toArray();
+//		}
+//		else if (parentElement instanceof TrpRegionType) {
+//			logger.debug("is TrpRegionType type");
+//			return ((ITrpShapeType)parentElement).getChildren(true).toArray();
+//		}
 		else if (parentElement instanceof ITrpShapeType) {
+			logger.debug("name of shape " + ((ITrpShapeType) parentElement).getName());
+			logger.debug("shape " + parentElement);
 			return ((ITrpShapeType)parentElement).getChildren(false).toArray();
+		}
+		else{
+			logger.debug("(else) name of shape " + ((ITrpShapeType) parentElement).getName());
 		}
 //		else if (parentElement instanceof TrpTextRegionType) {
 //			return ((TrpTextRegionType)parentElement).getTextLine().toArray();

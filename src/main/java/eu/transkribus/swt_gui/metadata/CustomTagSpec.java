@@ -24,6 +24,9 @@ public class CustomTagSpec extends APropertyChangeSupport {
 	String shortCut;
 	public static String SHORT_CUT_PROPERTY="shortCut";
 	
+	String color;
+	public static String COLOR__PROPERTY="color";
+	
 	public static String[] VALID_SHORTCUTS = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 	
 	public CustomTagSpec(CustomTag customTag) {
@@ -50,6 +53,14 @@ public class CustomTagSpec extends APropertyChangeSupport {
 		firePropertyChange(CUSTOM_TAG_PROPERTY, old, this.customTag);
 	}
 
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String color) {
+		this.color = color;
+	}
+
 	public String getShortCut() {
 		return shortCut;
 	}
@@ -73,7 +84,7 @@ public class CustomTagSpec extends APropertyChangeSupport {
 
 	@Override
 	public String toString() {
-		return "CustomTagDef [customTag=" + customTag + ", shortCut=" + shortCut + "]";
+		return "CustomTagDef [customTag=" + customTag + ", shortCut=" + shortCut + ", color=" + color +"]";
 	}	
 
 }

@@ -19,6 +19,7 @@ import java.util.Observer;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import javax.json.JsonArray;
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -75,6 +76,10 @@ import eu.transkribus.core.model.beans.TrpUpload;
 import eu.transkribus.core.model.beans.TrpWordgraph;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
+import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
+import eu.transkribus.core.model.beans.customtags.PersonTag;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.SearchType;
@@ -96,6 +101,7 @@ import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.Event;
+import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.core.util.ProxyUtils;
 import eu.transkribus.core.util.SebisStopWatch;
@@ -119,6 +125,8 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptList
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
+import eu.transkribus.swt_gui.metadata.CustomTagSpecDB;
+import eu.transkribus.swt_gui.metadata.CustomTagSpecDBUtil;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
@@ -149,6 +157,8 @@ public class Storage {
 	private List<TrpDocMetadata> userDocList = Collections.synchronizedList(new ArrayList<>());
 	
 	private List<CustomTagSpec> customTagSpecs = new ArrayList<>();
+	private List<CustomTagSpec> collectionSpecificTagSpecs = new ArrayList<>();
+	
 	private Map<String, Pair<Integer, String>> virtualKeysShortCuts = new HashMap<>();
 	
 	private int collId;
@@ -2385,26 +2395,53 @@ public class Storage {
 		return customTagSpecs;
 	}
 	
-	public void addCustomTagSpec(CustomTagSpec tagSpec) {
+	public void addCustomTagSpec(CustomTagSpec tagSpec, boolean collectionSpecific) {
+		if (collectionSpecific){
+			collectionSpecificTagSpecs.add(tagSpec);
+			sendEvent(new TagDefsChangedEvent(this, collectionSpecificTagSpecs));
+			return;
+		}
+		
 		customTagSpecs.add(tagSpec);
 		checkTagSpecsConsistency();
 		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
 	
-		storeCustomTagSpecsForCurrentCollection();
+		try {
+			storeCustomTagSpecsForCurrentCollection();
+		} catch (ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-	public void removeCustomTagSpec(CustomTagSpec tagDef) {
+	public void removeCustomTagSpec(CustomTagSpec tagDef, boolean collectionSpecific) {
+		if (collectionSpecific){
+			collectionSpecificTagSpecs.remove(tagDef);
+			sendEvent(new TagDefsChangedEvent(this, collectionSpecificTagSpecs));
+			return;
+		}
+		
 		customTagSpecs.remove(tagDef);
 		checkTagSpecsConsistency();
 		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
 		
-		storeCustomTagSpecsForCurrentCollection();
+		try {
+			storeCustomTagSpecsForCurrentCollection();
+		} catch (ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void signalCustomTagSpecsChanged() {
 		checkTagSpecsConsistency();
 		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
-		storeCustomTagSpecsForCurrentCollection();
+		try {
+			storeCustomTagSpecsForCurrentCollection();
+		} catch (ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public CustomTagSpec getCustomTagSpecWithShortCut(String shortCut) {
@@ -2438,15 +2475,15 @@ public class Storage {
 	}
 		
 	private void storeCustomTagSpecsForCurrentCollection() {
+		
 		logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagSpecs);
 		CustomTagSpecUtil.writeCustomTagSpecsToSettings(customTagSpecs);
 		
-//		if (!storage.isLoggedIn()) {
-//			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
-//			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
-//		} else {
-//			// TODO: write to server for current collection if logged in!
-//		}
+		/**
+		 * store them in the DB as user specific tags - used for DB
+		 */
+		updateCustomTagSpecsForUserInDB();
+		
 	}
 	
 	private void readTagSpecsFromLocalSettings() {
@@ -2454,6 +2491,42 @@ public class Storage {
 		customTagSpecs.addAll(CustomTagSpecUtil.readCustomTagSpecsFromSettings());
 		
 		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+	}
+	
+//	public void readCollectionTagSpecsFromDB() {
+//		collectionSpecificTagSpecs.clear();
+//		try {
+//			if (conn != null){
+//				logger.debug("tag Defs = " + conn.getTagDefsCollection(collId));
+//				List<CustomTagSpec> tagDefs = CustomTagSpecUtil.readCustomTagSpecsFromJsonString(conn.getTagDefsCollection(collId));
+//				if (tagDefs != null){
+//					collectionSpecificTagSpecs.addAll(tagDefs);
+//				}
+//			}
+//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		//sendEvent(new TagDefsChangedEvent(this, collectionSpecificTagSpecs));
+//	}
+//	
+	public void readCollectionTagSpecsFromDB() {
+		collectionSpecificTagSpecs.clear();
+		try {
+			if (conn != null){
+				logger.debug("tag Defs = " + conn.getTagDefsUser());
+				List<CustomTagSpec> tagDefs = CustomTagSpecUtil.readCustomTagSpecsFromJsonString(conn.getTagDefsUser());
+				if (tagDefs != null){
+					collectionSpecificTagSpecs.addAll(tagDefs);
+				}
+			}
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//sendEvent(new TagDefsChangedEvent(this, collectionSpecificTagSpecs));
 	}
 	
 	// virtual keys shortcuts:
@@ -2488,5 +2561,116 @@ public class Storage {
 	}
 	
 	// END OF CUSTOM TAG SPECS STUFF
+	
+	// START OF COLLECTION-SPECIFIC TAG STUFF
+	
+	public List<CustomTagSpec> getCustomTagSpecsForCurrentCollection(){
+		
+		//TODO: "load custom tag defs from DB for loaded collection"
+		logger.debug("load custom tag defs from DB for this collection");
+		return collectionSpecificTagSpecs;
+		
+//		//List<CustomTagSpec> tagSpecs = 
+//		try {
+//			return CustomTagSpecUtil.readCustomTagSpecsFromJsonString(conn.getTagDefsCollection(collId));
+//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		return null;
+
+//		currList.add(getCustomTagSpecs().get(0));
+//		
+//		CustomTag tag;
+//		try {
+//			tag = CustomTagFactory.create("person");
+//			CustomTagSpec tagDef = new CustomTagSpec(tag);
+//			
+//			currList.add(tagDef);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//
+//		return currList;
+		
+//		if (!storage.isLoggedIn()) {
+//			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
+//			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
+//		} else {
+//			// TODO: write to server for current collection if logged in!
+//		}
+	}
+	
+	public void updateCustomTagSpecsForCurrentCollectionInDB(){
+		
+		// TODO: write to DB on server for current collection if logged in!
+		
+		/*
+		 * add current colors to store in the web interface
+		 */
+		for (CustomTagSpec ct : collectionSpecificTagSpecs){
+			String color = CustomTagFactory.getTagColor(ct.getCustomTag().getTagName());
+			ct.setColor(color);
+		}
+
+		String tagSpecString = CustomTagSpecUtil.getCollectionTagSpecsAsJsonString(collectionSpecificTagSpecs);
+		try {
+			checkConnection(true);
+			conn.updateTagDefsCollection(collId, tagSpecString);
+		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+//		if (!storage.isLoggedIn()) {
+//			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
+//			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
+//		} else {
+//			// TODO: write to server for current collection if logged in!
+//		}
+	}
+	
+	public void updateCustomTagSpecsForUserInDB(){
+		
+		/*
+		 * first of all get the object registry (contains all custom tags )
+		 * get tag definitions which are not predefined
+		 * get them with tagname from object registry
+		 * add them to a customtagspec list and import in DB
+		 */
+		// init predifined tags:
+		//String tagNamesProp = TrpConfig.getTrpSettings().getTagNames();
+		List<CustomTagSpecDB> userTagSpecs = new ArrayList<CustomTagSpecDB>();
+
+		//List<CustomTag> cts = CustomTagFactory.getCustomTagListFromProperties(tagNamesProp);
+		Collection<CustomTag> cts = CustomTagFactory.getRegisteredTagObjects();
+		for (CustomTag ct : cts){
+			String color = CustomTagFactory.getTagColor(ct.getTagName());
+			CustomTagSpecDB spec = new CustomTagSpecDB(ct);
+			spec.setColor(color);
+			userTagSpecs.add(spec);
+		}
+
+		JsonArray tagSpecString = CustomTagSpecDBUtil.getCollectionTagSpecsAsJsonString(userTagSpecs);
+		logger.debug("user defined tags " + tagSpecString);
+		try {
+			checkConnection(true);
+			conn.updateTagDefsUser(tagSpecString);
+		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	
+	
+	// END OF COLLECTION-SPECIFIC TAG STUFF
 
 }

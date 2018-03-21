@@ -27,6 +27,10 @@ public class CustomTagSpecAdapter extends TypeAdapter<CustomTagSpec> {
 //		if (value.getRGB() != null) {
 //			writer.name("rgb").value(Colors.toHex(value.getRGB()));
 //		}
+		
+		if (value.getColor() != null){
+			writer.name("color").value(value.getColor());
+		}
         
         if (value.getShortCut() != null) {
         	writer.name("shortCut").value(value.getShortCut());	
@@ -41,6 +45,7 @@ public class CustomTagSpecAdapter extends TypeAdapter<CustomTagSpec> {
 		
 		CustomTag ct=null;
 		RGB rgb=null;
+		String color= null;
 		String shortCut=null;
 		
 		while (reader.hasNext()) {
@@ -58,9 +63,13 @@ public class CustomTagSpecAdapter extends TypeAdapter<CustomTagSpec> {
 //		        String colorCode = reader.nextString();
 //		        rgb = Colors.toRGB(colorCode);
 //		        break;
+		      case "color":
+		    	color = reader.nextString();
+		    	break;
 		      case "shortCut":
 		        shortCut = reader.nextString();
-		        break;
+		        break; 
+
 		      }
 		}
 		
@@ -71,6 +80,7 @@ public class CustomTagSpecAdapter extends TypeAdapter<CustomTagSpec> {
 		CustomTagSpec cDef = new CustomTagSpec(ct);
 //		cDef.setRGB(rgb); 
 		cDef.setShortCut(shortCut);
+		cDef.setColor(color);
 		
 		reader.endObject();
 		

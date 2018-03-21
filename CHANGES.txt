@@ -541,3 +541,4 @@ CHANGES AND BUGFIXES
 	-> take local tmp directory as default for pdf upload
 1.4.1
 	-> CITlabAdvanced layout analysis method can now be configured in user interface
+	-> KWS: experimental test feature

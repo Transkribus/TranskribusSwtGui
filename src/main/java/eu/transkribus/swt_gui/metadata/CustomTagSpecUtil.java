@@ -11,6 +11,7 @@ import com.google.gson.reflect.TypeToken;
 
 import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CustomTagSpecUtil {
 	private static final Logger logger = LoggerFactory.getLogger(CustomTagSpecUtil.class);
@@ -61,4 +62,15 @@ public class CustomTagSpecUtil {
 			logger.error("Could not write tag specs!");
 		}
 	}
+	
+	public static String getCollectionTagSpecsAsJsonString(List<CustomTagSpec> tagSpecs) {
+		try {
+			return writeCustomTagSpecsToJsonString(tagSpecs);
+		}
+		catch (Exception e) {
+			logger.error("Could not write tag specs!");
+		}
+		return null;
+	}
+	
 }

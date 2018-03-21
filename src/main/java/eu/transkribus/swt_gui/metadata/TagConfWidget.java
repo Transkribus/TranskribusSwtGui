@@ -1,7 +1,9 @@
 package eu.transkribus.swt_gui.metadata;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
@@ -21,11 +23,14 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
@@ -52,6 +57,7 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -65,11 +71,19 @@ public class TagConfWidget extends Composite {
 //	ColorChooseButton colorChooseBtn;
 	
 	TagSpecsWidget tagDefsWidget;
+	TagSpecsWidgetForCollection tagDefsWidgetForCollection;
 
 	SashForm horizontalSf;
 	
 	Map<String, ControlEditor> addTagToListEditors = new ConcurrentHashMap<>();
 	Map<String, ControlEditor> colorEditors = new ConcurrentHashMap<>();
+	
+	List<CTabFolder> tabfolder = new ArrayList<>();
+	CTabFolder mainTf;
+	CTabFolder userTagsTf;
+	CTabFolder collectionTagsTf;
+	CTabItem userTagsItem;
+	CTabItem collectionTagsItem;
 	
 	public TagConfWidget(Composite parent, int style) {
 		super(parent, style);
@@ -113,15 +127,53 @@ public class TagConfWidget extends Composite {
 					CustomTagSpec tagSpec = new CustomTagSpec(tag);
 //					tagSpec.setRGB(colorChooseBtn.getRGB());
 					
-					logger.info("tagSpec: "+tagSpec);
-					Storage.getInstance().addCustomTagSpec(tagSpec);
+					/*
+					 * either add to user specific tag list or to collection specific tag list (choose regarding to which is active
+					 */
+					
+					if (tagDefsWidget.isVisible()){
+						logger.info("tagSpec: "+tagSpec);
+						Storage.getInstance().addCustomTagSpec(tagSpec, false);
+					}
+					else if (tagDefsWidgetForCollection.isVisible()){
+						logger.info("add " + tagSpec + " to collection tag list in DB");
+						Storage.getInstance().addCustomTagSpec(tagSpec, true);
+						Storage.getInstance().updateCustomTagSpecsForCurrentCollectionInDB();
+						
+					}
+
 				} catch (Exception ex) {
 					DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding tag definiton", ex.getMessage(), ex);
 				}
 			}
 		});
 		
-		tagDefsWidget = new TagSpecsWidget(horizontalSf, 0, true);
+		
+		mainTf = createTabFolder(horizontalSf);
+
+		userTagsTf = createTabFolder(mainTf);
+		userTagsItem = createCTabItem(mainTf, userTagsTf, "Most wanted (fast assignment)", null);
+		userTagsItem.setFont(Fonts.createBoldFont(userTagsItem.getFont()));
+//		initServerTf();
+
+		collectionTagsTf = createTabFolder(mainTf);//		documentTf.setLayout(new FillLayout());
+		collectionTagsItem = createCTabItem(mainTf, collectionTagsTf, "Collection specific (for WebUI)", null);
+		collectionTagsItem.setFont(Fonts.createBoldFont(collectionTagsItem.getFont()));
+		
+		tagDefsWidget = new TagSpecsWidget(mainTf, 0, true);	
+		userTagsItem.setControl(tagDefsWidget);
+		
+		tagDefsWidgetForCollection = new TagSpecsWidgetForCollection(mainTf, 0);
+		collectionTagsItem.setControl(tagDefsWidgetForCollection);
+
+		// listener:
+		SWTUtil.onSelectionEvent(mainTf, e -> {
+			updateTabItemStyles();
+		});
+		
+		mainTf.setSelection(userTagsItem);
+		
+		updateTabItemStyles();
 		
 		horizontalSf.setWeights(new int[] { 35, 65 });
 		availableTagsSf.setWeights(new int[] { 70, 30 });
@@ -209,7 +261,7 @@ public class TagConfWidget extends Composite {
 //			}
 //		});
 
-		availableTagsTv = new TableViewer(tagsTableContainer, SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+		availableTagsTv = new TableViewer(tagsTableContainer, SWT.CHECK | SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		availableTagsTv.getTable().setToolTipText("List of tags - italic tags are predefined and cannot be removed");
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
 		gd.heightHint = 150;
@@ -224,6 +276,21 @@ public class TagConfWidget extends Composite {
 				updatePropertiesForSelectedTag();
 			}
 		});
+		
+		//add checkbox to select tags for the user interface
+		TableViewerColumn checkboxCol = new TableViewerColumn(availableTagsTv, 1);
+		checkboxCol.getColumn().setText("Select for WebUI");
+		checkboxCol.getColumn().setResizable(true);
+		checkboxCol.getColumn().setWidth(30);
+		
+		checkboxCol.setLabelProvider(new ColumnLabelProvider(){
+			@Override public String getText(Object element) {
+				return "";
+			}
+        });
+		
+		//checkboxCol.getViewer().setEditingSupport(editingSupport);
+		
 		
 		TableViewerColumn nameCol = new TableViewerColumn(availableTagsTv, SWT.NONE);
 		nameCol.getColumn().setText("Name");
@@ -266,6 +333,12 @@ public class TagConfWidget extends Composite {
 	                	@Override protected void onColorChanged(RGB rgb) {
 	                		if (CustomTagFactory.setTagColor(tagName, Colors.toHex(rgb))) {
 	                			availableTagsTv.refresh();	
+	                			
+	                			/*
+	                			 * with this call we save the changed color to the config.settings so that the user will see these changes also after the 
+	                			 * next login - without this call the colors are always the default ones 
+	                			 */
+	                			saveTagDefs();
 	                		}
 	                	}
 	                };
@@ -307,7 +380,7 @@ public class TagConfWidget extends Composite {
 						logger.info("tag = "+tag);
 						
 						CustomTagSpec tagDef = new CustomTagSpec(tag);
-						Storage.getInstance().addCustomTagSpec(tagDef);
+						Storage.getInstance().addCustomTagSpec(tagDef, false);
 					} catch (Exception ex) {
 						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding tag definiton", ex.getMessage(), ex);
 					}
@@ -482,9 +555,10 @@ public class TagConfWidget extends Composite {
 		Display.getDefault().asyncExec(new Runnable() {
 		@Override public void run() {
 //			updateAvailableTags();
-			availableTagsTv.setInput(availableTagNames);
-			
-			availableTagsTv.refresh(true);
+			if (!availableTagsTv.getTable().isDisposed()){
+				availableTagsTv.setInput(availableTagNames);
+				availableTagsTv.refresh(true);
+			}
 			
 			TaggingWidgetUtils.updateEditors(colorEditors, availableTagNames);
 			TaggingWidgetUtils.updateEditors(addTagToListEditors, availableTagNames);
@@ -542,6 +616,59 @@ public class TagConfWidget extends Composite {
 		String tagNamesProp = CustomTagFactory.createTagDefPropertyForConfigFile();
 		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
 		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
+		
+		Storage.getInstance().updateCustomTagSpecsForUserInDB();
+	}
+	
+	private void updateTabItemStyles() {
+		SWTUtil.setBoldFontForSelectedCTabItem(mainTf);
+	}
+	
+	private CTabFolder createTabFolder(Composite parent) {
+		CTabFolder tf = new CTabFolder(parent, SWT.BORDER | SWT.FLAT);
+		tf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tf.setBorderVisible(true);
+		tf.setSelectionBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+
+		tabfolder.add(tf);
+
+		return tf;
+	}
+	
+	private CTabItem createCTabItem(CTabFolder tabFolder, Control control, String Text, List<CTabItem> list) {
+		CTabItem ti = new CTabItem(tabFolder, SWT.NONE);
+		ti.setText(Text);
+		ti.setControl(control);
+
+		if (list != null)
+			list.add(ti);
+
+		return ti;
+	}
+	
+	void setDefaultSelection() {
+		SWTUtil.setSelection(mainTf, userTagsItem);
+		SWTUtil.setSelection(userTagsTf, userTagsItem);
+		SWTUtil.setSelection(collectionTagsTf, collectionTagsItem);
+	}
+	
+	void addTabFolderSelectionListener() {
+		SelectionListener sl = new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				if (!(e.item instanceof CTabItem))
+					return;
+
+				CTabItem item = (CTabItem) e.item;
+
+				//updateSelectedOnTabFolder(item.getParent());
+			}
+		};
+
+		for (CTabFolder tf : tabfolder) {
+			tf.addSelectionListener(sl);
+		}
+
+		//updateTabItemStyles();
 	}
 
 }

@@ -121,7 +121,7 @@ class TagNormalizationWidget extends Composite {
 							logger.debug("Updating tag value for " + t.toString());
 							
 							// set attributes in tag result object
-							t.setCustomTagCss(propertyTable.getSelectedTag().getCssStr());
+							t.setCustomTagCss(propertyTable.getSelectedTag().getCssStr(false));
 							logger.trace("New value: " + selectedTags.get(c));
 							
 							// load page on which the tag is on (if not loaded yet)

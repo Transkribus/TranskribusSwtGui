@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.4.1.2-SNAPSHOT</version>
+	<version>1.4.1.3-SNAPSHOT</version>
 	<name>Transkribus</name>
 
 	<properties>
@@ -911,6 +911,18 @@
 			<artifactId>org.eclipse.jface</artifactId>
 			<version>3.7.0.v20110928-1505</version>
 		</dependency> -->
+		
+		<dependency>
+		    <groupId>javax.json</groupId>
+		    <artifactId>javax.json-api</artifactId>
+		    <version>1.1.2</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.glassfish</groupId>
+		    <artifactId>javax.json</artifactId>
+		    <version>1.1</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse</groupId>

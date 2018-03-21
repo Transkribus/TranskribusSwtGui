@@ -265,7 +265,9 @@ public class CanvasShapeEditor {
 		drawnShapes.clear();
 		drawnPoints.clear();
 		
-		canvas.redraw();
+		if (!canvas.isDisposed()){
+			canvas.redraw();
+		}
 	}
 	
 	protected ICanvasShape constructShapeFromPoints(List<java.awt.Point> pts, CanvasShapeType shapeType) {

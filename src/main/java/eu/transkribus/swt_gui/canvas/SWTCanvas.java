@@ -207,7 +207,9 @@ public class SWTCanvas extends Canvas {
 						CanvasSettings.EDITING_ENABLED_PROPERTY)) {
 					onEditEnabledStatusChanged();
 				}
-				redraw();
+				if (!isDisposed()){
+					redraw();
+				}
 			}
 		});
 		
