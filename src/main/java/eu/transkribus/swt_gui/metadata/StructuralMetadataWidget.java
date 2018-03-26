@@ -60,6 +60,8 @@ public class StructuralMetadataWidget extends Composite {
 //	Text selectedShapeTypeText;
 	Combo shapeTypeCombo;
 	
+	StructTagSpecWidget structTagSpecWidget;
+	
 	List<Button> structureRadios = new ArrayList<>();
 	
 	// text style md:
@@ -101,6 +103,11 @@ public class StructuralMetadataWidget extends Composite {
 		shapeTypeCombo.setItems(RegionTypeUtil.ALL_REGIONS.toArray(new String[0]));
 		
 //		regionTypeText.setText("whatever");
+		
+		// NEW STUFF
+		structTagSpecWidget = new StructTagSpecWidget(container, 0, false);
+		structTagSpecWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+		// END NEW STUFF
 		
 		structureGroup = new Group(container, SWT.NONE);
 //		structureGroup = new Composite(expandBar, SWT.NONE);
@@ -342,8 +349,9 @@ public class StructuralMetadataWidget extends Composite {
 	public void setStructureType(String structureType) {
 		structureText.removeModifyListener(structModifyListener);
 		
-		if (!structureText.getText().equals(structureType))
+		if (!structureText.getText().equals(structureType)) {
 			structureText.setText(structureType==null ? "" : structureType);
+		}
 
 		for (Button b : structureRadios) {
 			b.setSelection(structureType!=null && b.getText().equals(structureType));
@@ -433,10 +441,6 @@ public class StructuralMetadataWidget extends Composite {
 		}
 		
 		attachListener();
-	}
-	
-	public void savePage(){
-		//TrpMainWidget.getInstance().saveTranscriptionSilent();
 	}
 	
 //	public void updateData(boolean hasPageType, PageTypeSimpleType pageType, boolean hasTextType, TextTypeSimpleType regionType, boolean hasTextStyle, TextStyleType textType) {

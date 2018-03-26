@@ -75,6 +75,7 @@ import eu.transkribus.core.model.beans.TrpUpload;
 import eu.transkribus.core.model.beans.TrpWordgraph;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.SearchType;
@@ -115,12 +116,14 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.MainImageLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.PageLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TagDefsChangedEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.StructTagSpecsChangedEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TagSpecsChangedEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
+import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -150,6 +153,7 @@ public class Storage {
 	private List<TrpDocMetadata> userDocList = Collections.synchronizedList(new ArrayList<>());
 	
 	private List<CustomTagSpec> customTagSpecs = new ArrayList<>();
+	private List<StructCustomTagSpec> structCustomTagSpecs = new ArrayList<>();
 	private Map<String, Pair<Integer, String>> virtualKeysShortCuts = new HashMap<>();
 	
 	private int collId;
@@ -211,6 +215,7 @@ public class Storage {
 		initTranscriptCache();
 		addInternalListener();
 		readTagSpecsFromLocalSettings();
+		readStructTagSpecsFromLocalSettings();
 		
 		// init some dummy vk shortcuts:
 //		setVirtualKeyShortCut("1", Pair.of(1, "hello"));
@@ -2387,61 +2392,77 @@ public class Storage {
 		return customTagSpecs;
 	}
 	
+	public List<StructCustomTagSpec> getStructCustomTagSpecs() {
+		return structCustomTagSpecs;
+	}
+	
 	public void addCustomTagSpec(CustomTagSpec tagSpec) {
 		customTagSpecs.add(tagSpec);
-		checkTagSpecsConsistency();
-		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		CustomTagSpecUtil.checkTagSpecsConsistency(customTagSpecs);
+		sendEvent(new TagSpecsChangedEvent(this, customTagSpecs));
 	
 		storeCustomTagSpecsForCurrentCollection();
+	}
+	
+	public void addStructCustomTagSpec(StructCustomTagSpec tagSpec) {
+		structCustomTagSpecs.add(tagSpec);
+		CustomTagSpecUtil.checkTagSpecsConsistency(structCustomTagSpecs);
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+	
+		storeStructCustomTagSpecsForCurrentCollection();
 	}
 	
 	public void removeCustomTagSpec(CustomTagSpec tagDef) {
 		customTagSpecs.remove(tagDef);
-		checkTagSpecsConsistency();
-		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		CustomTagSpecUtil.checkTagSpecsConsistency(customTagSpecs);
+		sendEvent(new TagSpecsChangedEvent(this, customTagSpecs));
 		
 		storeCustomTagSpecsForCurrentCollection();
+	}
+	
+	public void removeStructCustomTagSpec(CustomTagSpec tagDef) {
+		structCustomTagSpecs.remove(tagDef);
+		CustomTagSpecUtil.checkTagSpecsConsistency(structCustomTagSpecs);
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+		
+		storeStructCustomTagSpecsForCurrentCollection();
 	}
 	
 	public void signalCustomTagSpecsChanged() {
-		checkTagSpecsConsistency();
-		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		CustomTagSpecUtil.checkTagSpecsConsistency(customTagSpecs);
+		sendEvent(new TagSpecsChangedEvent(this, customTagSpecs));
 		storeCustomTagSpecsForCurrentCollection();
 	}
 	
+	public void signalStructCustomTagSpecsChanged() {
+		CustomTagSpecUtil.checkTagSpecsConsistency(structCustomTagSpecs);
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+		storeStructCustomTagSpecsForCurrentCollection();
+	}
+	
 	public CustomTagSpec getCustomTagSpecWithShortCut(String shortCut) {
-		if (shortCut == null) {
-			return null;
-		}
-		
-		return customTagSpecs.stream().filter(cDef -> { return StringUtils.equals(shortCut, cDef.getShortCut());}).findFirst().get();
+		return CustomTagSpecUtil.getCustomTagSpecWithShortCut(customTagSpecs, shortCut);
 	}
 	
-	private void checkTagSpecsConsistency() {
-		checkTagDefsShortCutConsistency();
+	public StructCustomTagSpec getStructCustomTagSpecWithShortCut(String shortCut) {
+		return CustomTagSpecUtil.getCustomTagSpecWithShortCut(structCustomTagSpecs, shortCut);
 	}
 	
-	private void checkTagDefsShortCutConsistency() {
-		for (CustomTagSpec cDef: customTagSpecs) {
-			String sc1 = cDef.getShortCut();
-			
-			for (CustomTagSpec cDefOther : customTagSpecs) {
-				String sc2 = cDefOther.getShortCut();
-				
-				if (cDef == cDefOther) {
-					continue;
-				}
-				
-				if (sc1!=null && sc2!=null && sc1.equals(sc2)) {
-					cDefOther.setShortCut(null);
-				}
-			}
-		}		
-	}
-		
 	private void storeCustomTagSpecsForCurrentCollection() {
-		logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagSpecs);
+		logger.debug("updating custom tag specs for local mode, customTagSpecs: "+customTagSpecs);
 		CustomTagSpecUtil.writeCustomTagSpecsToSettings(customTagSpecs);
+		
+//		if (!storage.isLoggedIn()) {
+//			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
+//			CustomTagDefUtil.writeCustomTagDefsToSettings(customTagDefs);
+//		} else {
+//			// TODO: write to server for current collection if logged in!
+//		}
+	}
+	
+	private void storeStructCustomTagSpecsForCurrentCollection() {
+		logger.debug("updating struct custom tag specs for local mode, structCustomTagSpecs: "+structCustomTagSpecs);
+		CustomTagSpecUtil.writeStructCustomTagSpecsToSettings(structCustomTagSpecs);
 		
 //		if (!storage.isLoggedIn()) {
 //			logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagDefs);
@@ -2455,8 +2476,16 @@ public class Storage {
 		customTagSpecs.clear();
 		customTagSpecs.addAll(CustomTagSpecUtil.readCustomTagSpecsFromSettings());
 		
-		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		sendEvent(new TagSpecsChangedEvent(this, customTagSpecs));
 	}
+	
+	private void readStructTagSpecsFromLocalSettings() {
+		structCustomTagSpecs.clear();
+		structCustomTagSpecs.addAll(CustomTagSpecUtil.readStructCustomTagSpecsFromSettings());
+		
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+	}
+	// END OF CUSTOM TAG SPECS STUFF
 	
 	// virtual keys shortcuts:
 	public Pair<Integer, String> getVirtualKeyShortCutValue(String key) {
@@ -2489,6 +2518,10 @@ public class Storage {
 		return virtualKeysShortCuts;
 	}
 	
-	// END OF CUSTOM TAG SPECS STUFF
+	public void saveTagDefinitions() {
+		String tagNamesProp = CustomTagFactory.createTagDefPropertyForConfigFile();
+		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
+		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
+	}
 
 }

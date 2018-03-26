@@ -24,6 +24,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -40,6 +42,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
+import org.eclipse.ui.internal.dnd.SwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +55,7 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -70,6 +74,8 @@ public class TagConfWidget extends Composite {
 	
 	Map<String, ControlEditor> addTagToListEditors = new ConcurrentHashMap<>();
 	Map<String, ControlEditor> colorEditors = new ConcurrentHashMap<>();
+	
+	Observer customTagFactoryObserver;
 	
 	public TagConfWidget(Composite parent, int style) {
 		super(parent, style);
@@ -128,13 +134,21 @@ public class TagConfWidget extends Composite {
 		
 		updateAvailableTags();
 		
-		CustomTagFactory.addObserver(new Observer() {
+		customTagFactoryObserver = new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
 				if (arg instanceof TagRegistryChangeEvent) {
 					logger.debug("TagRegistryChangeEvent: "+arg);
 					updateAvailableTags();
 				}				
+			}
+		};
+		CustomTagFactory.addObserver(customTagFactoryObserver);
+		
+		this.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				CustomTagFactory.deleteObserver(customTagFactoryObserver);
 			}
 		});
 	}
@@ -168,7 +182,7 @@ public class TagConfWidget extends Composite {
 					String name = d.getName();
 					try {
 						CustomTagFactory.addToRegistry(CustomTagFactory.create(name), null, false);
-						saveTagDefs();
+						Storage.getInstance().saveTagDefinitions();
 					} catch (Exception e1) {
 						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error creating tag", e1.getMessage(), e1);
 					}
@@ -189,7 +203,7 @@ public class TagConfWidget extends Composite {
 						logger.debug("deleting tag: "+tn);
 						CustomTagFactory.removeFromRegistry(tn);
 						updateAvailableTags();
-						saveTagDefs();
+						Storage.getInstance().saveTagDefinitions();
 					} catch (IOException ex) {
 						DialogUtil.showErrorMessageBox(getShell(), "Cannot remove tag", ex.getMessage());
 					}
@@ -403,7 +417,7 @@ public class TagConfWidget extends Composite {
 						}
 						
 						updatePropertiesForSelectedTag();
-						saveTagDefs();
+						Storage.getInstance().saveTagDefinitions();
 					}
 					catch (Exception ex) {
 						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding property", ex.getMessage(), ex);
@@ -434,7 +448,7 @@ public class TagConfWidget extends Composite {
 						}
 						
 						updatePropertiesForSelectedTag();
-						saveTagDefs();
+						Storage.getInstance().saveTagDefinitions();
 					} catch (Exception ex) {
 						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error adding property to tag "+tn, ex.getMessage(), ex);
 					}
@@ -469,6 +483,10 @@ public class TagConfWidget extends Composite {
 	}
 	
 	private void updateAvailableTags() {
+		if (SWTUtil.isDisposed(this) || SWTUtil.isDisposed(availableTagsSf)) {
+			return;
+		}
+		
 		logger.debug("updating available tags");
 		
 		availableTagNames.clear();
@@ -538,10 +556,4 @@ public class TagConfWidget extends Composite {
 		return props;
 	}
 	
-	private void saveTagDefs() {
-		String tagNamesProp = CustomTagFactory.createTagDefPropertyForConfigFile();
-		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
-		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
-	}
-
 }

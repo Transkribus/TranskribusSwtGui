@@ -167,6 +167,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean showAllTagsInTagEditor = false;
 	public static final String SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY = "showAllTagsInTagEditor";
 	
+	private boolean showAllStructTagsInTagEditor = false;
+	public static final String SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY = "showAllStructTagsInTagEditor";
+	
 	private boolean highlightComments = false;
 	public static final String HIGHLIGHT_COMMENTS_PROPERTY = "highlightComments";
 	
@@ -178,6 +181,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	private String tagSpecs="";
 	public static final String TAG_SPECS_PROPERTY="tagSpecs";
+	
+	private String structTagSpecs="";
+	public static final String STRUCT_TAG_SPECS_PROPERTY="structTagSpecs";
 		
 	private int imageCacheSize = 3;
 	public static final String IMAGE_CACHE_SIZE_PROPERTY="imageCacheSize";
@@ -651,6 +657,15 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY, !this.showAllTagsInTagEditor, this.showAllTagsInTagEditor);
 	}
 	
+	public boolean isShowAllStructTagsInTagEditor() {
+		return showAllStructTagsInTagEditor;
+	}
+
+	public void setShowAllStructTagsInTagEditor(boolean showAllStructTagsInTagEditor) {
+		this.showAllStructTagsInTagEditor = showAllStructTagsInTagEditor;
+		firePropertyChange(SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY, !this.showAllTagsInTagEditor, this.showAllTagsInTagEditor);
+	}
+
 	public boolean isHighlightComments() {
 		return highlightComments;
 	}
@@ -695,6 +710,16 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(TAG_SPECS_PROPERTY, old, this.tagSpecs);
 	}
 	
+	public String getStructTagSpecs() {
+		return structTagSpecs;
+	}
+
+	public void setStructTagSpecs(String structTagSpecs) {
+		String old = this.structTagSpecs;
+		this.structTagSpecs = structTagSpecs;
+		firePropertyChange(STRUCT_TAG_SPECS_PROPERTY, old, this.structTagSpecs);
+	}
+
 	public static Color determineColor(TrpSettings sets, Object wrappedData) {
 		if (wrappedData instanceof TableCellType) {
 			return sets.colorTableCells;

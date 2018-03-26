@@ -30,16 +30,6 @@ public class CustomTagSpec extends APropertyChangeSupport {
 		this.customTag = customTag;
 	}
 
-//	public RGB getRGB() {
-//		return rgb;
-//	}
-//
-//	public void setRGB(RGB rgb) {
-//		RGB old = this.rgb;
-//		this.rgb = rgb;
-//		firePropertyChange(RGB_PROPERTY, old, this.rgb);
-//	}
-
 	public CustomTag getCustomTag() {
 		return customTag;
 	}
@@ -73,7 +63,7 @@ public class CustomTagSpec extends APropertyChangeSupport {
 
 	@Override
 	public String toString() {
-		return "CustomTagDef [customTag=" + customTag + ", shortCut=" + shortCut + "]";
+		return "CustomTagSpec [customTag=" + customTag + ", shortCut=" + shortCut + "]";
 	}	
 
 }

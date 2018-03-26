@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.ICellEditorValidator;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -67,6 +68,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
@@ -83,6 +85,37 @@ import math.geom2d.Vector2D;
 
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
+	
+	/**
+	 * @deprecated seems to be very inefficient - check that!
+	 *  Resize last column in tree viewer so that it fills the client area completely if extra space.
+	 */
+	public static void packAndFillLastColumn(TableViewer viewer) {
+//	    Tree tree = treeViewer.getTree();
+	    int columnsWidth = 0;
+	    for (int i = 0; i < viewer.getTable().getColumnCount() - 1; i++) {
+	        columnsWidth += viewer.getTable().getColumn(i).getWidth();
+	    }
+	    TableColumn lastColumn = viewer.getTable().getColumn(viewer.getTable().getColumnCount() - 1);
+	    lastColumn.pack();
+
+	    Rectangle area = viewer.getTable().getClientArea();
+
+	    Point preferredSize = viewer.getTable().computeSize(SWT.DEFAULT, SWT.DEFAULT);
+	    int width = area.width - 2*viewer.getTable().getBorderWidth();
+
+	    if (preferredSize.y > area.height + viewer.getTable().getHeaderHeight()) {
+	        // Subtract the scrollbar width from the total column width
+	        // if a vertical scrollbar will be required
+	        Point vBarSize = viewer.getTable().getVerticalBar().getSize();
+	        width -= vBarSize.x;
+	    }
+
+	    // last column is packed, so that is the minimum. If more space is available, add it.
+	    if(lastColumn.getWidth() < width - columnsWidth) {
+	        lastColumn.setWidth(width - columnsWidth);
+	    }
+	}
 	
 	public static void setBoldFontForSelectedCTabItem(CTabFolder tabFolder) {
 		for (CTabItem ti : tabFolder.getItems()) {

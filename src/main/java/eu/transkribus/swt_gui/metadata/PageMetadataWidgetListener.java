@@ -110,30 +110,23 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		if (s == mw.pageStyleCombo) {
 			logger.debug("pagestyle changed: "+mw.getPageStyleCombo().getText()+" value = "+EnumUtils.fromValue(PageTypeSimpleType.class, mw.getPageStyleCombo().getText()));
 			page.setType(EnumUtils.fromValue(PageTypeSimpleType.class, mw.pageStyleCombo.getText()));
-			mw.savePage();
 		}
 		else if (s == mw.statusCombo) {
 			logger.debug("setting new status: "+mw.statusCombo.getText());
 			md.setStatus(EnumUtils.fromString(EditStatus.class, mw.statusCombo.getText()));
-			mw.savePage();
 		}
 		// update structure:
 //		else if (s == mw.getRegionTypeCombo() && getNSelected() == 1) {
 //			applyStructureTypeToAllSelected(false);
 //		}
 		else if (mw.getStructureRadios().contains(s) /*&& getNSelected() == 1*/) {
-			applyStructureTypeToAllSelected(((Button) s).getText(), false);
-			mw.savePage();
+			mainWidget.setStructureTypeOfSelected(((Button) s).getText(), false);
 		}
 		else if (s == mw.getApplyStructBtn()) {
-			applyStructureTypeToAllSelected(mw.structureText.getText(), false);
-//			applyTextStyleToAllSelected(false);
-			mw.savePage();
+			mainWidget.setStructureTypeOfSelected(mw.structureText.getText(), false);
 		}
 		else if (s == mw.getApplyStructRecBtn()) {
-			applyStructureTypeToAllSelected(mw.structureText.getText(), true);
-//			applyTextStyleToAllSelected(true);
-			mw.savePage();
+			mainWidget.setStructureTypeOfSelected(mw.structureText.getText(), true);
 		}
 		
 		// update text style:
@@ -201,7 +194,6 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 					}
 				}
 			}
-			mw.savePage();
 		} else if (s ==  mw.linkBtn) {
 			if (canvas.getScene().getNSelected()==2) {
 				logger.debug("linking shapes!");
@@ -213,12 +205,10 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 					mainWidget.updatePageRelatedMetadata();
 				}
 			}
-			mw.savePage();
 		}
 		else if (s == mw.shapeTypeCombo) {
 			try {
 				convertSelectedShape(mw.shapeTypeCombo.getText());
-				mw.savePage();
 				logger.debug("11");
 			} catch (IOException e1) {
 				DialogUtil.showErrorMessageBox(canvas.getShell(), "Error while converting shape", e1.getMessage());
@@ -337,24 +327,24 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 	public void modifyText(ModifyEvent e) { 
 		if (e.getSource() == mw.structureText) {
 			logger.debug("structure type text changed - applying to selected: "+mw.structureText.getText());
-			applyStructureTypeToAllSelected(mw.structureText.getText(), false);
+			mainWidget.setStructureTypeOfSelected(mw.structureText.getText(), false);
 		}
 	}
 	
-	private void applyStructureTypeToAllSelected(String structType, boolean recursive) {
-		List<ICanvasShape> selected = mainWidget.getCanvas().getScene().getSelectedAsNewArray();
-		logger.debug("applying structure type to selected, n = "+selected.size()+" structType: "+structType);
-//		TextTypeSimpleType struct = EnumUtils.fromValue(TextTypeSimpleType.class, mw.getRegionTypeCombo().getText());
-//		String struct = mw.getStructureType();		
-		for (ICanvasShape sel : selected) {
-			logger.debug("updating struct type for " + sel+" type = "+structType);
-			ITrpShapeType st = GuiUtil.getTrpShape(sel);
-			
-			st.setStructure(structType, recursive, mw);
-		}
-		
-		mainWidget.refreshStructureView();
-	}
+//	private void applyStructureTypeToAllSelected(String structType, boolean recursive) {
+//		List<ICanvasShape> selected = mainWidget.getCanvas().getScene().getSelectedAsNewArray();
+//		logger.debug("applying structure type to selected, n = "+selected.size()+" structType: "+structType);
+////		TextTypeSimpleType struct = EnumUtils.fromValue(TextTypeSimpleType.class, mw.getRegionTypeCombo().getText());
+////		String struct = mw.getStructureType();		
+//		for (ICanvasShape sel : selected) {
+//			logger.debug("updating struct type for " + sel+" type = "+structType);
+//			ITrpShapeType st = GuiUtil.getTrpShape(sel);
+//			
+//			st.setStructure(structType, recursive, mw);
+//		}
+//		
+//		mainWidget.refreshStructureView();
+//	}
 
 //	private IntRange getTagRange(int nRanges, Pair<ITrpShapeType, IntRange> r) {
 //		ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();

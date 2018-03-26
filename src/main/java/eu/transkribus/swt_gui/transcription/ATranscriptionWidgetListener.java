@@ -86,7 +86,7 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 				mainWidget.addTagForSelection(cDef.getCustomTag(), null);
 			}
 		}
-		// TODO insert virtual keys with shortcuts
+		// insert virtual keys with shortcuts
 		else if ( CanvasKeys.isCtrlKeyDown(e.stateMask) ) {
 			Pair<Integer, String> vk = Storage.getInstance().getVirtualKeyShortCutValue(""+e.character);
 			if (vk != null) {
