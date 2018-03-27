@@ -24,14 +24,17 @@ import org.eclipse.swt.graphics.GC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.GeomUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.RamerDouglasPeuckerFilter;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import math.geom2d.Vector2D;
 import math.geom2d.polygon.Polygon2D;
 import math.geom2d.polygon.Polygons2D;
@@ -445,13 +448,13 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 			if (canvas.getScene().isEditFocused(this))
 				drawBoundingBox(canvas, gc); // draw bounding box
 			gc.setLineWidth(sets.getSelectedLineWidth()); // set selected line with
-			gc.setBackground(color); // set background color
+			gc.setBackground(getColor()); // set background color
 		}
 		else {
 			gc.setLineWidth(sets.getDrawLineWidth());
-			gc.setBackground(color);
+			gc.setBackground(getColor());
 		}
-		gc.setForeground(color);
+		gc.setForeground(getColor());
 		gc.setLineStyle(canvas.getSettings().getLineStyle());
 	}
 	
@@ -944,7 +947,16 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	
 	@Override
 	public Color getColor() {
-		return color;
+		if (TrpConfig.getTrpSettings().isDrawShapesInStructColors()) {
+			String structType = CustomTagUtil.getStructure(CanvasShapeUtil.getTrpShapeType(this));
+			Color structColor = Storage.getInstance().getStructureTypeColor(structType);
+			return structColor;
+		}
+		else {
+			return color;
+		}
+		
+//		return color;
 	}
 
 	@Override

@@ -34,6 +34,8 @@ import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
 import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,11 +78,13 @@ import eu.transkribus.core.model.beans.TrpWordgraph;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
+import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageTypeUtils;
@@ -101,6 +105,7 @@ import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.core.util.ProxyUtils;
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
@@ -124,6 +129,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSave
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -2483,7 +2489,33 @@ public class Storage {
 		structCustomTagSpecs.clear();
 		structCustomTagSpecs.addAll(CustomTagSpecUtil.readStructCustomTagSpecsFromSettings());
 		
+		if (structCustomTagSpecs.isEmpty()) {
+			structCustomTagSpecs.addAll(getDefaultStructCustomTagSpecs());
+		}
+		
 		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+	}
+	
+	public static List<StructCustomTagSpec> getDefaultStructCustomTagSpecs() {
+		List<StructCustomTagSpec> specs = new ArrayList<>();
+		
+		int i=0;
+		for (TextTypeSimpleType tt : TextTypeSimpleType.values()) {
+			StructCustomTagSpec spec = new StructCustomTagSpec(new StructureTag(tt.value()), TaggingWidgetUtils.INDEX_COLORS[i++]);
+			specs.add(spec);
+		}
+		
+		return specs;
+	}
+	
+	public Color getStructureTypeColor(String type) {
+		StructCustomTagSpec c = structCustomTagSpecs.stream().filter(c1 -> c1.getCustomTag().getType().equals(type)).findFirst().orElse(null);
+		if (c!=null && c.getRGB()!=null) {
+			return Colors.createColor(c.getRGB());
+		}
+		else {
+			return Colors.getSystemColor(SWT.COLOR_WHITE);
+		}
 	}
 	// END OF CUSTOM TAG SPECS STUFF
 	

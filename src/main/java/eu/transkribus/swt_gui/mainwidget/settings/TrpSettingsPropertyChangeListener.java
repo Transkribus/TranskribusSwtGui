@@ -85,6 +85,9 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 		else if (pn.equals(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY)) {
 			mainWidget.getUi().getTaggingWidget().setTaggingEditorVisiblity((boolean) evt.getNewValue());
 		}
+		else if (pn.equals(TrpSettings.SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY)) {
+			mainWidget.redrawCanvas();
+		}
 		if (TrpSettings.isColorProperty(pn)) {
 			logger.debug("color info changed - updating!");
 			canvas.updateShapeColors();

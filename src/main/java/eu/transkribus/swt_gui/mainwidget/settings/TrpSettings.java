@@ -170,6 +170,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean showAllStructTagsInTagEditor = false;
 	public static final String SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY = "showAllStructTagsInTagEditor";
 	
+	private boolean drawShapesInStructColors = false;
+	public static final String DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY = "drawShapesInStructColors";
+	
 	private boolean highlightComments = false;
 	public static final String HIGHLIGHT_COMMENTS_PROPERTY = "highlightComments";
 	
@@ -663,7 +666,16 @@ public class TrpSettings extends APropertyChangeSupport {
 
 	public void setShowAllStructTagsInTagEditor(boolean showAllStructTagsInTagEditor) {
 		this.showAllStructTagsInTagEditor = showAllStructTagsInTagEditor;
-		firePropertyChange(SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY, !this.showAllTagsInTagEditor, this.showAllTagsInTagEditor);
+		firePropertyChange(SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY, !this.showAllStructTagsInTagEditor, this.showAllStructTagsInTagEditor);
+	}
+
+	public boolean isDrawShapesInStructColors() {
+		return drawShapesInStructColors;
+	}
+
+	public void setDrawShapesInStructColors(boolean drawShapesInStructColors) {
+		this.drawShapesInStructColors = drawShapesInStructColors;
+		firePropertyChange(DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY, !this.drawShapesInStructColors, this.drawShapesInStructColors);
 	}
 
 	public boolean isHighlightComments() {

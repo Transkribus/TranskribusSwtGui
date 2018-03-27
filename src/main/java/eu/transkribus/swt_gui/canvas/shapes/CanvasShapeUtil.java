@@ -21,13 +21,11 @@ public class CanvasShapeUtil {
 	public final static Logger logger = LoggerFactory.getLogger(CanvasShapeUtil.class);
 	
 	public static ICanvasShape getCanvasShape(ITrpShapeType st) {
-		if (st == null)
-			return null;
-		
-		if (st.getData() instanceof ICanvasShape)
-			return (ICanvasShape) st.getData();
-		else
-			return null;
+		return (st==null || !(st.getData() instanceof ICanvasShape)) ? null : (ICanvasShape) st.getData();
+	}
+	
+	public static ITrpShapeType getTrpShapeType(ICanvasShape cs) {
+		return (cs == null || !(cs.getData() instanceof ITrpShapeType)) ? null : (ITrpShapeType) cs.getData();
 	}
 	
 	public static int assignToParentIfOverlapping(ITrpShapeType parentShape, List<? extends ITrpShapeType> childShapes, double minOverlapRatio) {

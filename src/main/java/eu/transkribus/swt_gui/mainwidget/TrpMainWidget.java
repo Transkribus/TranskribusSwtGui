@@ -5682,6 +5682,7 @@ public class TrpMainWidget {
 		}
 		
 		refreshStructureView();
+		redrawCanvas();
 	}
 
 

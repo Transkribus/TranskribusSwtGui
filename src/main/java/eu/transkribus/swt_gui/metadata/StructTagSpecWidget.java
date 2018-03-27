@@ -64,7 +64,7 @@ public class StructTagSpecWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(StructTagSpecWidget.class);
 	
 	TableViewer tableViewer;
-	Button showAllTagsBtn, customizeBtn;
+	Button showAllTagsBtn, drawShapesInStructColorsBtn, customizeBtn;
 	Label headerLbl;
 	
 	Map<CustomTagSpec, ControlEditor> insertTagEditors = new ConcurrentHashMap<>();
@@ -93,11 +93,19 @@ public class StructTagSpecWidget extends Composite {
 		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		if (!isEditable) {
+			if (false) {
 			showAllTagsBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
 			showAllTagsBtn.setText("Show all");
 			showAllTagsBtn.setToolTipText("Show all available structure tags");
 			DataBinder.get().bindBeanToWidgetSelection(
 					TrpSettings.SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY, TrpConfig.getTrpSettings(), showAllTagsBtn);
+			}
+					
+			drawShapesInStructColorsBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
+			drawShapesInStructColorsBtn.setText("Render colors");
+			drawShapesInStructColorsBtn.setToolTipText("Draw all shapes in struct colors");
+			DataBinder.get().bindBeanToWidgetSelection(
+					TrpSettings.DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY, TrpConfig.getTrpSettings(), drawShapesInStructColorsBtn);
 			
 			customizeBtn = new Button(topContainer, 0);
 			customizeBtn.setText("Customize..");
@@ -474,9 +482,10 @@ public class StructTagSpecWidget extends Composite {
 				return;
 			}
 			
-			boolean showAllTags = TrpConfig.getTrpSettings().isShowAllStructTagsInTagEditor();
+//			boolean showAllTags = TrpConfig.getTrpSettings().isShowAllStructTagsInTagEditor();
+			boolean showAllTags = false;
 			if (!isEditable) {
-				showAllTagsBtn.setSelection(showAllTags);	
+				SWTUtil.setSelection(showAllTagsBtn, showAllTags);
 			}
 			
 			if (isEditable || !showAllTags) {
