@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
@@ -28,11 +29,14 @@ import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.FocusTableEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.MergeTableCellsEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.RemoveIntermediatePointsTableEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SelectTableCellsEvent;
+import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SetStructureEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SplitTableCellEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderEditEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableHelpEvent;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 
@@ -46,6 +50,7 @@ public class CanvasContextMenu extends Observable {
 	protected SelectionListener itemSelListener;
 
 	Menu borderMenu;
+	Menu structMenu;
 
 	MenuItem selectTableCellsItem;
 
@@ -133,24 +138,27 @@ public class CanvasContextMenu extends Observable {
 //		}
 //	}
 
-	private void createDeleteItem(ICanvasShape s) {			
+	private int createDeleteItem(ICanvasShape s) {			
 //		SWTUtil.dispose(deleteItem);
 		
-		if (s==null || TableUtils.getTableCell(s)!=null)
-			return;
+		if (s==null || TableUtils.getTableCell(s)!=null) {
+			return 0;
+		}
 		
 		deleteItem = createMenuItem("Delete", Images.DELETE, new DeleteItemEvent(this), menu);
+		return 1;
 	}
 	
-	private void createCreateDefaultLineItem(ICanvasShape s) {
+	private int createCreateDefaultLineItem(ICanvasShape s) {
 		if (s == null)
-			return;
+			return 0;
 		
 		ITrpShapeType st = (ITrpShapeType) s.getData();
 		if (st==null || (!RegionTypeUtil.isLine(st) && !RegionTypeUtil.isBaseline(st)))
-			return;
+			return 0;
 		
 		createDefaultLineItem = createMenuItem("Create default line shape", null, new CreateDefaultLineEvent(this), menu);
+		return 1;
 	}
 	
 	protected MenuItem createMenuItem(String txt, Image img, Event event, Menu menu) {
@@ -265,12 +273,39 @@ public class CanvasContextMenu extends Observable {
 		// about:
 		createMenuItem("Table help", Images.HELP, new TableHelpEvent(this), menu);
 	}
+	
+	private int createStructureItems(ICanvasShape s) {
+		structMenu = createSubMenu(menu, "Assign structure type");
+		int count=0;
+		Storage store = Storage.getInstance();
+		
+		for (StructCustomTagSpec c : store.getStructCustomTagSpecs()) {
+			StructureTag st = c.getCustomTag();
+			createMenuItem(st.getType(), Images.getOrCreateLabelImage(store.getStructureTypeColor(st.getType()), 16, 16), new SetStructureEvent(this, st), structMenu);
+			++count;
+		}
+		return count;
+	}
+	
+	private void createSeparator(Menu menu) {
+		if (menu.getItemCount() > 0) { // only if there is an item to separate!
+			int lastItemStyle = menu.getItem(menu.getItemCount()-1).getStyle();
+			if ((lastItemStyle & SWT.SEPARATOR) != SWT.SEPARATOR) { // only if last item wasn't also separator!
+				new MenuItem(menu, SWT.SEPARATOR);
+			}
+		}
+	}
 
 	protected void initItems(ICanvasShape s) {
-		createDeleteItem(s);
+		createStructureItems(s);
+		createSeparator(menu);
 		createCreateDefaultLineItem(s);
+		createSeparator(menu);
 		createTableItems(s);
-		createTableCellItems(s);		
+		createSeparator(menu);
+		createTableCellItems(s);
+		createSeparator(menu);
+		createDeleteItem(s);
 	}	
 
 }

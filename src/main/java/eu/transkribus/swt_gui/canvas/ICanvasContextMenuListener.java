@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.canvas;
 
+import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
 import eu.transkribus.swt_gui.table_editor.BorderFlags;
@@ -25,6 +26,8 @@ public interface ICanvasContextMenuListener {
 	default void handleCreateDefaultLineEvent(CreateDefaultLineEvent event) {}
 	
 	default void handleFocusTableEvent(FocusTableEvent event) {}
+	
+	default void handleSetStructureEvent(SetStructureEvent event) {}
 	
 	default void handleEvent(Event event) {
 		if (event instanceof DeleteItemEvent) {
@@ -56,6 +59,9 @@ public interface ICanvasContextMenuListener {
 		}
 		else if (event instanceof MergeTableCellsEvent) {
 			handleMergeTableCellsEvent((MergeTableCellsEvent) event);
+		}
+		else if (event instanceof SetStructureEvent) {
+			handleSetStructureEvent((SetStructureEvent) event);
 		}
 	}
 
@@ -136,6 +142,16 @@ public interface ICanvasContextMenuListener {
 	public static class TableHelpEvent extends Event {	
 		public TableHelpEvent(Object source) {
 			super(source);
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public static class SetStructureEvent extends Event {
+		public StructureTag st;
+		
+		public SetStructureEvent(Object source, StructureTag st) {
+			super(source);
+			this.st = st;
 		}
 	}
 	

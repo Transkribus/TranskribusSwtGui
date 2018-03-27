@@ -6,6 +6,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
 
@@ -134,6 +135,23 @@ public class Images {
 		if (img == null) {
 			img = SWTResourceManager.getImage(Images.class, path);
 			imageMap.put(path, img);
+		}
+		return img;
+	}
+	
+	public static Image getOrCreateLabelImage(Color color, int width, int height) {
+		String path = "__label_image_w="+width+"_h="+height+"_color="+color.getRGBA().toString();
+		Image img = imageMap.get(path);
+		if (img == null) {
+			img = new Image(Display.getDefault(), width, height);
+		    GC gc = new GC(img);
+		    gc.setBackground(color);
+		    
+		    gc.setForeground(color);
+		    gc.fillRectangle(0, 0, width, height);
+		    gc.dispose();
+		    
+		    imageMap.put(path, img);
 		}
 		return img;
 	}
