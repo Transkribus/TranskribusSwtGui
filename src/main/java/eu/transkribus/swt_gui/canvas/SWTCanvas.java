@@ -255,6 +255,7 @@ public class SWTCanvas extends Canvas {
 		transform.identity();
 		onTransformChanged(transform);
 		onScaleChanged(transform.getScaleX(), transform.getScaleY());
+//		scene.getMainImage().rotateImage(this, transform.getAngleDeg()); // TEST
 		redraw();
 	}
 
@@ -330,23 +331,23 @@ public class SWTCanvas extends Canvas {
 	/**
 	 * Rotation of the scene with different parameters
 	 * 
-	 * @param angle
+	 * @param angleDeg
 	 *            Angle of rotation in degrees
 	 * @param aroundCenter
 	 *            Rotate around the center of the main image?
 	 */
-	public void rotate(float angle) {
+	public void rotate(float angleDeg) {
 		if (settings.isRotateAroundCenter()) {
 			Point center = scene.getCenter();
-			logger.debug("center = " + center);
-			transform.rotateCenter(center.x, center.y, angle);
+			transform.rotateCenter(center.x, center.y, angleDeg);
 
 			logger.debug("rotation (rad/deg) = " + transform.getAngleRad()
 					+ "/" + transform.getAngleDeg());
 		} else {
-			transform.rotate(angle);
+			transform.rotate(angleDeg);
 		}
 		onTransformChanged(transform);
+//		scene.getMainImage().rotateImage(this, transform.getAngleDeg()); // TEST
 		redraw();
 	}
 

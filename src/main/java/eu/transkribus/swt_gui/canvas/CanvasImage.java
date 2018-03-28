@@ -6,11 +6,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.CanvasTransform;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.SWTUtil;
@@ -25,6 +27,7 @@ final public class CanvasImage {
 	public URL url;
 	public Image img;
 //	public Image imgBackup;
+	Image imgRot;
 	
 	public int width;
 	public int height;
@@ -144,23 +147,106 @@ final public class CanvasImage {
 		return (img==null || img.isDisposed());
 	}
 	
+	/**
+	 * @deprecated does not work yet...
+	 */
+	public void rotateImage(SWTCanvas canvas, float angleDeg) {
+		logger.debug("rotating main image: "+angleDeg);
+		
+		if (CoreUtils.equalsEps(0.0f, angleDeg, 0.1f)) {
+			SWTUtil.dispose(imgRot);
+			imgRot = null;
+		}
+		else {
+			SWTUtil.dispose(imgRot);
+//			imgRot = new Image(canvas.getDisplay(), canvas.getClientArea().width, canvas.getClientArea().height);
+			imgRot = new Image(canvas.getDisplay(), img.getBounds().width*2, img.getBounds().height*2);
+//			imgRot = new Image(canvas.getDisplay(), img, SWT.IMAGE_COPY);
+			GC gc = new GC(imgRot);
+//			gc.setClipping(canvas.getClientArea());
+			CanvasTransform transform = new CanvasTransform(canvas.getDisplay());
+			Point center = canvas.getScene().getCenter();
+			transform.rotateCenter(center.x, center.y, angleDeg);
+			transform.rotateCenter(0, 0, angleDeg);
+//			gc.drawLine(0, 0, canvas.getClientArea().width, canvas.getClientArea().height);
+			gc.setTransform(transform);
+	        gc.drawImage(img, 0, 0);
+	        gc.dispose();
+	        transform.dispose();
+		}
+	}
+	
+	private void drawImageFromSeparateGC(GC gc, SWTCanvas canvas) {
+		// TODO: apply rotation directly on image also - for now, if rotated, draw image the usual way (which is slow on windows!)
+		if (!CoreUtils.equalsEps(0.0f, canvas.getPersistentTransform().getAngleDeg(), 1e-4)) {
+			gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS MACHINES!
+			return;
+		}
+		
+		Image img=this.img;
+		if (!SWTUtil.isDisposed(imgRot)) {
+			logger.debug("drawing rotated image!");
+			img = this.imgRot;
+		}
+		
+		CanvasTransform transform = canvas.getPersistentTransform();
+		
+		Rectangle clientRect= canvas.getClientArea();
+		Rectangle imageRect=transform.inverseTransform(canvas.getClientArea());
+		
+		// find a better start point to render:
+		/*
+		int gap = 2;
+		imageRect.x -= gap;
+		imageRect.y -= gap;
+		imageRect.width += 2 * gap;
+		imageRect.height += 2 * gap;
+		*/
+		
+		Rectangle imageBound = img.getBounds();
+		imageRect = imageRect.intersection(imageBound);
+		Rectangle destRect = transform.transform(imageRect);
+		
+		Image screenImage = new Image(canvas.getDisplay(),clientRect.width, clientRect.height);
+		GC newGC = new GC(screenImage);
+		newGC.setClipping(clientRect);
+		
+//		if (!CoreUtils.equalsEps(0.0f, canvas.getPersistentTransform().getAngleDeg(), 0.1)) {
+//			CanvasTransform rot = new CanvasTransform(canvas.getDisplay());
+//			Point center = canvas.getScene().getCenter();
+//			rot.rotateCenter(center.x, center.y, transform.getAngleDeg());
+//			newGC.setTransform(rot);
+//		}
+		
+		newGC.drawImage(img, imageRect.x, imageRect.y, imageRect.width, imageRect.height, destRect.x,
+				destRect.y, destRect.width, destRect.height);
+
+		gc.setAdvanced(false);
+		gc.drawImage(screenImage, 0, 0);
+		gc.setAdvanced(true);
+		
+		screenImage.dispose();
+		newGC.dispose();
+		
+		gc.setTransform(transform);
+	}
+	
 	public void paint(GC gc, SWTCanvas canvas) {
 		try {
 			if (internalScalingFactor!=null) {
 				CanvasTransform myT = canvas.getTransformCopy();
 				myT.scale(1.0f/internalScalingFactor, 1.0f/internalScalingFactor); // revert internal scaling!
 				gc.setTransform(myT);
-				
-//				gc.setF
-				
-				gc.drawImage(img, 0, 0);
+
+				drawImageFromSeparateGC(gc, canvas);
+//				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS MACHINES!
 				gc.setTransform(canvas.getPersistentTransform());
 				myT.dispose();
 			}
-			else if (img != null && !img.isDisposed())
-				gc.drawImage(img, 0, 0);
-//			img.getImageData().depth
-			
+			else if (img != null && !img.isDisposed()) {
+				drawImageFromSeparateGC(gc, canvas);
+//				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS MACHINES!
+			}
 		}
 		catch (Throwable e) {
 			e.printStackTrace();
