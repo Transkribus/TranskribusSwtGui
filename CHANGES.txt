@@ -545,3 +545,6 @@ CHANGES AND BUGFIXES
 	-> KWS: experimental test feature
 	-> bugfix: cannot open local document
 	-> bugfix: apply properties for tags over all continuations in property editor 
+	-> bugfix: cannot open page due to widget closed exception
+	-> All tag definitions get stored in DB on server for later use in web interface
+	-> Status of pages can be set for an entire document in the 'Document Manager'
