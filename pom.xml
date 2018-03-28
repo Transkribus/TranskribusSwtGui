@@ -279,6 +279,9 @@
 							<jre>
 								<minVersion>1.8.0</minVersion>
 								<jdkPreference>preferJre</jdkPreference>
+								<opts>
+									<opt>-Dfile.encoding=UTF-8</opt>
+								</opts>
 <!-- 								<maxHeapSize>2048</maxHeapSize> -->
 <!--  								<initialHeapSize>512</initialHeapSize> -->
 <!-- 								<initialHeapPercent>15</initialHeapPercent> -->
