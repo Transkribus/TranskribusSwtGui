@@ -82,9 +82,7 @@ public class TranscriptsTableWidgetPagination extends ATableWidgetPagination<Trp
 //	    	System.out.println("You selected " + ((MenuItem) event.widget).getText());
 //	    	System.out.println("You selected cont.1 " + EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
 //	    	System.out.println("You selected cont.2 " + EnumUtils.indexOf(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText())));
-			ArrayList<TrpPage> pageList = new ArrayList<TrpPage>();
-			pageList.add(Storage.getInstance().getPage());
-	    	TrpMainWidget.getInstance().changeVersionStatus(((MenuItem) event.widget).getText(),pageList);
+	    	TrpMainWidget.getInstance().changeVersionStatus(((MenuItem) event.widget).getText(),Storage.getInstance().getPage());
 //	    	Storage.getInstance().getTranscriptMetadata().setStatus(EnumUtils.fromString(EditStatus.class, ((MenuItem) event.widget).getText()));
 	    	try {
 //				Storage.getInstance().saveTranscript(Storage.getInstance().getCurrentDocumentCollectionId(), null);

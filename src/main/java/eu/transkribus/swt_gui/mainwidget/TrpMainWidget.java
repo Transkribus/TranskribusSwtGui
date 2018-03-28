@@ -89,6 +89,7 @@ import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
+import eu.transkribus.core.model.beans.TrpDbTag;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -99,6 +100,7 @@ import eu.transkribus.core.model.beans.TrpUpload;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CommentTag;
+import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
@@ -856,9 +858,15 @@ public class TrpMainWidget {
 			public void update(Observable o, Object arg) {
 				Display.getDefault().asyncExec(() -> {
 					if (arg instanceof TagRegistryChangeEvent) {
+						logger.debug("registry has changed ");
 						TagRegistryChangeEvent trce = (TagRegistryChangeEvent) arg;
 						if (trce.type.equals(TagRegistryChangeEvent.CHANGED_TAG_COLOR) && getUi()!=null && getUi().getSelectedTranscriptionWidget()!=null) {
 							TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
+						}
+												
+						//if tag registry has changed and user is logged in -> store into DB for the current user
+						if (storage.isLoggedIn()){
+							Storage.getInstance().updateCustomTagSpecsForUserInDB();
 						}
 					}
 				});
@@ -1053,6 +1061,8 @@ public class TrpMainWidget {
 			storage.reloadCollections();
 
 			userCache.add(user);
+			
+
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
@@ -1060,6 +1070,18 @@ public class TrpMainWidget {
 
 			sessionExpired = false;
 			lastLoginServer = server;
+			
+			/*
+			 * when user is logged in we can store the tag definitions into the DB
+			 * later on the are stored each time they change
+			 */
+			try {
+				storage.updateCustomTagSpecsForUserInDB();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			return true;
 //		}
 //		catch (ClientVersionNotSupportedException e) {
@@ -5538,76 +5560,61 @@ public class TrpMainWidget {
 			ui.getStatusCombo().redraw();			
 		}
 	}
-
-	public void changeVersionStatus(String text, List<TrpPage> pageList) {
-		Storage storage = Storage.getInstance();
-
+	
+	public void changeVersionStatus(String text, TrpPage page) {
+		if (EditStatus.fromString(text).equals(EditStatus.NEW)){
+			//New is only allowed for the first transcript
+			DialogUtil.showInfoMessageBox(getShell(), "Status 'New' reserved for first transcript", "Only the first transcript can be 'New', all others must be at least 'InProgress'");
+			return;
+		}
+		
+		int colId = Storage.getInstance().getCollId();
+		//is the page the one currently loaded in Transkribus
+		boolean isLoaded = (page.getPageId() == Storage.getInstance().getPage().getPageId());
+        //then only the latest transcript can be changed -> page.getCurrentTranscript() gives the latest of this page
+		boolean isLatestTranscript = (page.getCurrentTranscript().getTsId() == Storage.getInstance().getTranscriptMetadata().getTsId());
+        
+		if (isLoaded && !isLatestTranscript){
+			DialogUtil.showInfoMessageBox(getShell(), "Status change not allowed", "Status change is only allowed for the latest transcript. Load the latest transcript via the 'Versions' button.");
+			return;
+			//logger.debug("page is loaded with transcript ID " + Storage.getInstance().getTranscriptMetadata().getTsId());
+		}
+		
+		int pageNr = page.getPageNr();
+		int docId = page.getDocId();
+		
+		int transcriptId = 0;
+		if ((pageNr - 1) >= 0) {
+			transcriptId = page.getCurrentTranscript().getTsId();
+		}
+		
 		try {
-			int colId = Storage.getInstance().getCollId();
-			if (!pageList.isEmpty()) {
-		        boolean isLatestTranscript = false;
-		        boolean isLoaded = false;
-				for (TrpPage page : pageList) {
-					if (EditStatus.fromString(text).equals(EditStatus.NEW)){
-						//New is only allowed for the first transcript
-						DialogUtil.showInfoMessageBox(getShell(), "Status 'New' reserved for first transcript", "Only the first transcript can be 'New', all others must be at least 'InProgress'");
-						break;
-					}
-					//is the page the one currently loaded in Transkribus
-					isLoaded = (page.getPageId() == Storage.getInstance().getPage().getPageId());
-			        //then only the latest transcript can be changed -> page.getCurrentTranscript() gives the latest of this page
-					isLatestTranscript = (page.getCurrentTranscript().getTsId() == Storage.getInstance().getTranscriptMetadata().getTsId());
-			        
-					if (isLoaded && !isLatestTranscript){
-						DialogUtil.showInfoMessageBox(getShell(), "Status change not allowed", "Status change is only allowed for the latest transcript. Load the latest transcript via the 'Versions' button.");
-						break;
-						//logger.debug("page is loaded with transcript ID " + Storage.getInstance().getTranscriptMetadata().getTsId());
-					}
-					int pageNr = page.getPageNr();
-					int docId = page.getDocId();
-					
-					int transcriptId = 0;
-					if ((pageNr - 1) >= 0) {
-						transcriptId = page.getCurrentTranscript().getTsId();
-					}
-					
-					storage.getConnection().updatePageStatus(colId, docId, pageNr, transcriptId,
-							EditStatus.fromString(text), "");
-					
-					if (isLoaded && isLatestTranscript){
-						storage.getTranscript().getMd().setStatus(EditStatus.fromString(text));
-						Storage.getInstance().reloadTranscriptsList(colId);
-						if (Storage.getInstance().setLatestTranscriptAsCurrent()){
-							logger.debug("latest transcript is current");
-						}
-						else{
-							logger.debug("setting of latest transcript to current fails");
-						}
-						
-						TrpTranscriptMetadata trMd = Storage.getInstance().getTranscript().getMd();
-						
-						if (trMd != null){
-							//ui.getStatusCombo().add(storage.getTranscriptMetadata().getStatus().getStr());
-		//					ui.getStatusCombo().add(arg0);
-		//					ui.getStatusCombo().remove(arg0);
-							ui.getStatusCombo().setText(trMd.getStatus().getStr());
-							ui.getStatusCombo().redraw();
-							logger.debug("Status: " + trMd.getStatus().getStr() + " tsid = " + trMd.getTsId());
-							//SWTUtil.select(ui.getStatusCombo(), EnumUtils.indexOf(storage.getTranscriptMetadata().getStatus()));
-						}
-						
-					}			
-					
-					/*
-					 * TODO: we break after first change because otherwise too slow for a batch
-					 * Try to fasten this on the server side
-					 */
-					break;
-					// logger.debug("status is changed to : " +
-					// storage.getDoc().getPages().get(pageNr-1).getCurrentTranscript().getStatus());
-				}
-				//storage.reloadCollections();
+			storage.getConnection().updatePageStatus(colId, docId, pageNr, transcriptId,
+					EditStatus.fromString(text), "");
 
+		
+			if (isLoaded && isLatestTranscript){
+				storage.getTranscript().getMd().setStatus(EditStatus.fromString(text));
+				Storage.getInstance().reloadTranscriptsList(colId);
+				if (Storage.getInstance().setLatestTranscriptAsCurrent()){
+					logger.debug("latest transcript is current");
+				}
+				else{
+					logger.debug("setting of latest transcript to current fails");
+				}
+				
+				TrpTranscriptMetadata trMd = Storage.getInstance().getTranscript().getMd();
+				
+				if (trMd != null){
+					//ui.getStatusCombo().add(storage.getTranscriptMetadata().getStatus().getStr());
+	//					ui.getStatusCombo().add(arg0);
+	//					ui.getStatusCombo().remove(arg0);
+					ui.getStatusCombo().setText(trMd.getStatus().getStr());
+					ui.getStatusCombo().redraw();
+					logger.debug("Status: " + trMd.getStatus().getStr() + " tsid = " + trMd.getTsId());
+					//SWTUtil.select(ui.getStatusCombo(), EnumUtils.indexOf(storage.getTranscriptMetadata().getStatus()));
+				}
+				
 			}
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
 			// TODO Auto-generated catch block
@@ -5615,15 +5622,95 @@ public class TrpMainWidget {
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (NoConnectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		finally{
-			updateVersionStatus();
+		
+	}
+
+	public void changeVersionStatus(String text, List<TrpPage> pageList) {
+		
+		if (EditStatus.fromString(text).equals(EditStatus.NEW)){
+			//New is only allowed for the first transcript
+			DialogUtil.showInfoMessageBox(getShell(), "Status 'New' reserved for first transcript", "Only the first transcript can be 'New', all others must be at least 'InProgress'");
+			return;
+		}
+		
+		Storage storage = Storage.getInstance();
+		
+		int colId = Storage.getInstance().getCollId();
+		if (!pageList.isEmpty()) {
+			
+			try {
+				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+							try{
+
+								monitor.beginTask("Change status to "+EditStatus.fromString(text), pageList.size());
+								int c=0;
+								
+								for (TrpPage page : pageList) {
+									
+									if (monitor.isCanceled()){
+										storage.reloadDocWithAllTranscripts();
+										return;
+									}
+
+									int pageNr = page.getPageNr();
+									int docId = page.getDocId();
+									
+									int transcriptId = 0;
+									if ((pageNr - 1) >= 0) {
+										transcriptId = page.getCurrentTranscript().getTsId();
+									}
+									
+									storage.getConnection().updatePageStatus(colId, docId, pageNr, transcriptId,
+											EditStatus.fromString(text), "");
+									
+									monitor.subTask("Page " + ++c + "/" + pageList.size() );
+									monitor.worked(c);
+																	
+									/*
+									 * TODO: we break after first change because otherwise too slow for a batch
+									 * Try to fasten this on the server side
+									 */
+									//break;
+									// logger.debug("status is changed to : " +
+									// storage.getDoc().getPages().get(pageNr-1).getCurrentTranscript().getStatus());
+								}
+								
+								storage.reloadDocWithAllTranscripts();
+								
+							} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (IllegalArgumentException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+//							} catch (NoConnectionException e) {
+//								// TODO Auto-generated catch block
+//								e.printStackTrace();
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+
+					}
+				}, "Updating page status", true);
+			} catch (Throwable e) {
+				TrpMainWidget.getInstance().onError("Error updating page status", e.getMessage(), e, true, false);
+			}
+			finally{
+				for (TrpPage page : pageList) {
+					//reload the page in the GUI if status has changed
+					if (page.getPageId() == Storage.getInstance().getPage().getPageId()){
+						reloadCurrentPage(true);
+					}
+				}
+				updateVersionStatus();
+				
+			}
 		}
 
 	}

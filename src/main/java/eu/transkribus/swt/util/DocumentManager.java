@@ -1127,18 +1127,21 @@ public class DocumentManager extends Dialog {
 	private void addMenuItems4PageLevel(Menu contextMenu, String[] editStatusArray) {
 		MenuItem tmp;
 		
-		Menu statusMenu = new Menu(contextMenu);
-		MenuItem statusMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
-		statusMenuItem.setText("Edit Status");
-		statusMenuItem.setMenu(statusMenu);
-		// statusMenuItem.setEnabled(false);
-
-		for (String editStatus : editStatusArray) {
-			tmp = new MenuItem(statusMenu, SWT.PUSH);
-			tmp.setText(editStatus);
-			tmp.addSelectionListener(new EditStatusMenuItemListener());
-			// tmp.setEnabled(true);
-		}
+		/*
+		 * now also allowed for current doc -> addMenuItems4BothLevels
+		 */
+//		Menu statusMenu = new Menu(contextMenu);
+//		MenuItem statusMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+//		statusMenuItem.setText("Edit Status");
+//		statusMenuItem.setMenu(statusMenu);
+//		// statusMenuItem.setEnabled(false);
+//
+//		for (String editStatus : editStatusArray) {
+//			tmp = new MenuItem(statusMenu, SWT.PUSH);
+//			tmp.setText(editStatus);
+//			tmp.addSelectionListener(new EditStatusMenuItemListener());
+//			// tmp.setEnabled(true);
+//		}
 		
 		MenuItem movePage = new MenuItem(contextMenu, SWT.CASCADE);
 		movePage.setText("Move page(s) to");
@@ -1342,6 +1345,19 @@ public class DocumentManager extends Dialog {
 				e.printStackTrace();
 			}
 		});
+		
+		Menu statusMenu = new Menu(contextMenu);
+		MenuItem statusMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+		statusMenuItem.setText("Edit Status");
+		statusMenuItem.setMenu(statusMenu);
+		// statusMenuItem.setEnabled(false);
+
+		for (String editStatus : EditStatus.getStatusListWithoutNew()) {
+			tmp = new MenuItem(statusMenu, SWT.PUSH);
+			tmp.setText(editStatus);
+			tmp.addSelectionListener(new EditStatusMenuItemListener());
+			// tmp.setEnabled(true);
+		}
 
 	}
 
@@ -1388,10 +1404,12 @@ public class DocumentManager extends Dialog {
 			Object o = it.next();
 			if (o instanceof TrpPage) {
 				TrpPage currPage = (TrpPage) o;
-				// logger.debug("selected page " + currPage.getPageNr());
+				//logger.debug("selected page " + currPage.getPageNr());
 				pages.add(currPage);
 			} else if (o instanceof TrpDocMetadata) {
+				//logger.debug("doc type page ");
 				pages.addAll(Storage.getInstance().getDoc().getPages());
+				
 				// break;
 			}
 

@@ -97,9 +97,7 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		});
 		
 		SWTUtil.onSelectionEvent(ui.statusCombo, (e) -> { 
-			ArrayList<TrpPage> pageList = new ArrayList<TrpPage>();
-			pageList.add(mw.getStorage().getPage());
-			mw.changeVersionStatus(ui.statusCombo.getText(), pageList);
+			mw.changeVersionStatus(ui.statusCombo.getText(), mw.getStorage().getPage());
 		});
 		
 		SWTUtil.onSelectionEvent(ui.autoSaveSettingsMenuItem, (e) -> { mw.openAutoSaveSetsDialog(); });
