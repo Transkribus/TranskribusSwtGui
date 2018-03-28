@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledComboWithButton;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.dialogs.ALaConfigDialog;
@@ -30,12 +31,14 @@ public class LayoutAnalysisComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(LayoutAnalysisComposite.class);
 	
 	public static boolean TEST = false;
+	public static final boolean IS_CONFIGURABLE = false;
 	
 	static private Storage store = TEST ? null : Storage.getInstance();
 //	private DocPagesSelector dps;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private Button doBlockSegBtn, doLineSegBtn, doWordSegBtn;
-	private LabeledComboWithButton methodCombo;
+//	private LabeledComboWithButton methodCombo;
+	private LabeledCombo methodCombo;
 //	private LabeledText customJobImplText;
 		
 	public static final String METHOD_NCSR_OLD = "NCSR";
@@ -62,8 +65,13 @@ public class LayoutAnalysisComposite extends Composite {
 //		GridLayout g = (GridLayout)mainContainer.getLayout();
 //		g.numColumns = 1;
 //		g.makeColumnsEqualWidth = false;
-				
-		methodCombo = new LabeledComboWithButton(mainContainer, "Method: ", "Configure...");
+		
+		final String labelTxt = "Method: ";
+		if(IS_CONFIGURABLE) {
+			methodCombo = new LabeledComboWithButton(mainContainer,  labelTxt, "Configure...");
+		} else {
+			methodCombo = new LabeledCombo(mainContainer,  labelTxt);
+		}
 		methodCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		updateMethods();
 //		methodCombo.combo.setItems(getMethods(true).toArray(new String[0]));
@@ -141,8 +149,9 @@ public class LayoutAnalysisComposite extends Composite {
 		}
 		
 		//enable config button only if method is configurable (only CITlabAdvanced for now)
-		methodCombo.getButton().setEnabled(isMethodConfigurable);
-//		customJobImplText.setVisible(method.equals(METHOD_CUSTOM));
+		if(methodCombo instanceof LabeledComboWithButton) {
+			((LabeledComboWithButton)methodCombo).getButton().setEnabled(isMethodConfigurable);
+		}
 	}
 
 	public static boolean isUserAllowedCitlab() {
@@ -190,32 +199,33 @@ public class LayoutAnalysisComposite extends Composite {
 				}
 			}
 		});
-		
-		methodCombo.getButton().addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				super.widgetSelected(e);
-				if(configDialog != null) {
-					configDialog.setVisible();
-				} else {
-					JobImpl impl = getJobImpl();
-					switch(impl) {
-					case CITlabAdvancedLaJob:
-						configDialog = new CITlabAdvancedLaConfigDialog(getShell(), paramMap);
-						break;
-					default:
-						return;	
+		if(methodCombo instanceof LabeledComboWithButton) {
+			((LabeledComboWithButton)methodCombo).getButton().addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					super.widgetSelected(e);
+					if(configDialog != null) {
+						configDialog.setVisible();
+					} else {
+						JobImpl impl = getJobImpl();
+						switch(impl) {
+						case CITlabAdvancedLaJob:
+							configDialog = new CITlabAdvancedLaConfigDialog(getShell(), paramMap);
+							break;
+						default:
+							return;	
+						}
+						final int ret = configDialog.open();
+						logger.debug("Dialog ret = " + ret);
+						if(ret == IDialogConstants.OK_ID && configDialog != null) { //may be null if close() is called programmatically (happens when switching methods)
+							paramMap = configDialog.getParameters();
+							TrpGuiPrefs.storeLaParameters(impl, paramMap);
+						}
+						configDialog = null;
 					}
-					final int ret = configDialog.open();
-					logger.debug("Dialog ret = " + ret);
-					if(ret == IDialogConstants.OK_ID && configDialog != null) { //may be null if close() is called programmatically (happens when switching methods)
-						paramMap = configDialog.getParameters();
-						TrpGuiPrefs.storeLaParameters(impl, paramMap);
-					}
-					configDialog = null;
 				}
-			}
-		});
+			});
+		}
 		
 		if (store != null) {
 			store.addListener(new IStorageListener() {
