@@ -126,7 +126,6 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptList
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
-import eu.transkribus.swt_gui.metadata.CustomTagSpecDB;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecDBUtil;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
 import eu.transkribus.util.DataCache;
@@ -2480,12 +2479,7 @@ public class Storage {
 		
 		logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagSpecs);
 		CustomTagSpecUtil.writeCustomTagSpecsToSettings(customTagSpecs);
-		
-		/**
-		 * store them in the DB as user specific tags - used for DB
-		 */
-		updateCustomTagSpecsForUserInDB();
-		
+				
 	}
 	
 	private void readTagSpecsFromLocalSettings() {
@@ -2495,30 +2489,28 @@ public class Storage {
 		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
 	}
 	
-//	public void readCollectionTagSpecsFromDB() {
-//		collectionSpecificTagSpecs.clear();
-//		try {
-//			if (conn != null){
-//				logger.debug("tag Defs = " + conn.getTagDefsCollection(collId));
-//				List<CustomTagSpec> tagDefs = CustomTagSpecUtil.readCustomTagSpecsFromJsonString(conn.getTagDefsCollection(collId));
-//				if (tagDefs != null){
-//					collectionSpecificTagSpecs.addAll(tagDefs);
-//				}
-//			}
-//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//		//sendEvent(new TagDefsChangedEvent(this, collectionSpecificTagSpecs));
-//	}
-//	
 	public void readCollectionTagSpecsFromDB() {
 		collectionSpecificTagSpecs.clear();
 		try {
 			if (conn != null){
-				logger.debug("tag Defs = " + conn.getTagDefsUser());
-				List<CustomTagSpec> tagDefs = CustomTagSpecUtil.readCustomTagSpecsFromJsonString(conn.getTagDefsUser());
+				logger.debug("tag Defs = " + conn.getTagDefsCollection(collId));
+				//List<CustomTagSpec> tagDefs = CustomTagSpecUtil.readCustomTagSpecsFromJsonString(conn.getTagDefsUser());
+				
+				List<String> tagNames = CustomTagSpecDBUtil.readCustomTagSpecsFromJsonString(conn.getTagDefsCollection(collId));
+				List<CustomTagSpec> tagDefs = new ArrayList<CustomTagSpec>();
+
+				for (String tn : tagNames){
+					CustomTag ct = CustomTagFactory.getTagObjectFromRegistry(tn);
+					//not null if tagname from DB is already known in the client
+					if (ct != null){
+						CustomTagSpec cts = new CustomTagSpec(ct);
+						tagDefs.add(cts);
+					}
+					else{
+						//TODO: add custom tag from DB to object registry because it is it known for this user
+					}
+				}
+
 				if (tagDefs != null){
 					collectionSpecificTagSpecs.addAll(tagDefs);
 				}
@@ -2616,10 +2608,10 @@ public class Storage {
 			ct.setColor(color);
 		}
 
-		String tagSpecString = CustomTagSpecUtil.getCollectionTagSpecsAsJsonString(collectionSpecificTagSpecs);
+		JsonArray tagSpecString = CustomTagSpecDBUtil.getCollectionTagSpecsAsJsonString(collectionSpecificTagSpecs);
 		try {
 			checkConnection(true);
-			conn.updateTagDefsCollection(collId, tagSpecString);
+			conn.updateTagDefsCollection(collId, tagSpecString.toString());
 		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -2646,22 +2638,22 @@ public class Storage {
 		 */
 		// init predifined tags:
 		//String tagNamesProp = TrpConfig.getTrpSettings().getTagNames();
-		List<CustomTagSpecDB> userTagSpecs = new ArrayList<CustomTagSpecDB>();
+		List<CustomTagSpec> userTagSpecs = new ArrayList<CustomTagSpec>();
 
 		//List<CustomTag> cts = CustomTagFactory.getCustomTagListFromProperties(tagNamesProp);
 		Collection<CustomTag> cts = CustomTagFactory.getRegisteredTagObjects();
 		for (CustomTag ct : cts){
 			String color = CustomTagFactory.getTagColor(ct.getTagName());
-			CustomTagSpecDB spec = new CustomTagSpecDB(ct);
+			CustomTagSpec spec = new CustomTagSpec(ct);
 			spec.setColor(color);
 			userTagSpecs.add(spec);
 		}
 
 		JsonArray tagSpecString = CustomTagSpecDBUtil.getCollectionTagSpecsAsJsonString(userTagSpecs);
-		logger.debug("user defined tags " + tagSpecString);
+		logger.debug("user defined tags " + tagSpecString.toString());
 		try {
 			checkConnection(true);
-			conn.updateTagDefsUser(tagSpecString);
+			conn.updateTagDefsUser(tagSpecString.toString());
 		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

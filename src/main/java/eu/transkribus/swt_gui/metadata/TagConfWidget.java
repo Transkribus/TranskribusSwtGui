@@ -152,19 +152,24 @@ public class TagConfWidget extends Composite {
 		mainTf = createTabFolder(horizontalSf);
 
 		userTagsTf = createTabFolder(mainTf);
-		userTagsItem = createCTabItem(mainTf, userTagsTf, "Most wanted (fast assignment)", null);
+		userTagsItem = createCTabItem(mainTf, userTagsTf, "Tag list for fast assignment", null);
 		userTagsItem.setFont(Fonts.createBoldFont(userTagsItem.getFont()));
 //		initServerTf();
 
-		collectionTagsTf = createTabFolder(mainTf);//		documentTf.setLayout(new FillLayout());
-		collectionTagsItem = createCTabItem(mainTf, collectionTagsTf, "Collection specific (for WebUI)", null);
-		collectionTagsItem.setFont(Fonts.createBoldFont(collectionTagsItem.getFont()));
+//		collectionTagsTf = createTabFolder(mainTf);//		documentTf.setLayout(new FillLayout());
+//		collectionTagsItem = createCTabItem(mainTf, collectionTagsTf, "Collection specific (for WebUI)", null);
+//		collectionTagsItem.setFont(Fonts.createBoldFont(collectionTagsItem.getFont()));
 		
 		tagDefsWidget = new TagSpecsWidget(mainTf, 0, true);	
 		userTagsItem.setControl(tagDefsWidget);
 		
-		tagDefsWidgetForCollection = new TagSpecsWidgetForCollection(mainTf, 0);
-		collectionTagsItem.setControl(tagDefsWidgetForCollection);
+		/*
+		 * TODO: add these two lines once we support defining tags for collections
+		 * Use case: only a few tag definitions should be tagged in the webUI
+		 * At the moment this would be confusing
+		 */
+//		tagDefsWidgetForCollection = new TagSpecsWidgetForCollection(mainTf, 0);
+//		collectionTagsItem.setControl(tagDefsWidgetForCollection);
 
 		// listener:
 		SWTUtil.onSelectionEvent(mainTf, e -> {
@@ -186,6 +191,7 @@ public class TagConfWidget extends Composite {
 				if (arg instanceof TagRegistryChangeEvent) {
 					logger.debug("TagRegistryChangeEvent: "+arg);
 					updateAvailableTags();
+
 				}				
 			}
 		});
@@ -473,9 +479,13 @@ public class TagConfWidget extends Composite {
 						
 						if (t != null) {
 							t.setAttribute(att.getName(), null, true);
+							CustomTagFactory.addToRegistry(t, CustomTagFactory.getTagColor(t.getTagName()), true);
 						}
 						
+						
+						
 						updatePropertiesForSelectedTag();
+						
 						saveTagDefs();
 					}
 					catch (Exception ex) {
@@ -504,6 +514,8 @@ public class TagConfWidget extends Composite {
 						CustomTag t = CustomTagFactory.getTagObjectFromRegistry(tn);
 						if (t != null) {
 							t.deleteCustomAttribute(selectedProperty.getName());
+							//add to registry to update the attributes there as well
+							CustomTagFactory.addToRegistry(t, CustomTagFactory.getTagColor(t.getTagName()), true);
 						}
 						
 						updatePropertiesForSelectedTag();
@@ -616,8 +628,7 @@ public class TagConfWidget extends Composite {
 		String tagNamesProp = CustomTagFactory.createTagDefPropertyForConfigFile();
 		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
 		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
-		
-		Storage.getInstance().updateCustomTagSpecsForUserInDB();
+
 	}
 	
 	private void updateTabItemStyles() {
