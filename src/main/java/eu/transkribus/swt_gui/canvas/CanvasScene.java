@@ -143,8 +143,11 @@ public class CanvasScene {
 
 	public void paint(GC gc) {
 		// Draw main image:
-		if (mainImage != null && !mainImage.isDisposed())
+		if (mainImage != null && !mainImage.isDisposed()) {
+			long t = System.currentTimeMillis();
 			mainImage.paint(gc, canvas);
+			logger.trace("t-painting-image = "+(System.currentTimeMillis()-t));
+		}
 		else {
 			logger.debug("mainImage: " + mainImage + ", isDisposed: " + mainImage.isDisposed());
 		}
@@ -154,6 +157,7 @@ public class CanvasScene {
 			gc.drawImage(image, 0, 0);
 		}
 
+		gc.setTransform(canvas.getPersistentTransform());
 		// Draw shapes:
 		// first draw non-selected shapes:
 		for (ICanvasShape s : shapes) {
