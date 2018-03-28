@@ -275,6 +275,10 @@ public class CanvasContextMenu extends Observable {
 	}
 	
 	private int createStructureItems(ICanvasShape s) {
+		if (s==null || TableUtils.getTableCell(s)!=null) {
+			return 0;
+		}
+		
 		structMenu = createSubMenu(menu, "Assign structure type");
 		int count=0;
 		Storage store = Storage.getInstance();

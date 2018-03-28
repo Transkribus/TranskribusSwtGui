@@ -1223,18 +1223,21 @@ public class SWTUtil {
     }
     
     public static void dispose(Item i) {
-    	if (i != null && !i.isDisposed())
+    	if (i != null && !i.isDisposed()) {
     		i.dispose();
+    	}
     }
         
     public static void dispose(Image img) {
-    	if (img != null && !img.isDisposed())
+    	if (img != null && !img.isDisposed()) {
     		img.dispose();
+    	}
     }
     
     public static void dispose(Control ctrl) {
-    	if (ctrl != null && !ctrl.isDisposed())
+    	if (ctrl != null && !ctrl.isDisposed()) {
     		ctrl.dispose();
+    	}
     }
     
     public static void drawTriangleArc(GC gc, int sX, int sY, int dX, int dY, int l, int w, boolean fill) {
