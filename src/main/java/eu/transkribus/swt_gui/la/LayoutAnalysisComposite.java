@@ -31,7 +31,7 @@ public class LayoutAnalysisComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(LayoutAnalysisComposite.class);
 	
 	public static boolean TEST = false;
-	public static final boolean IS_CONFIGURABLE = false;
+	public static final boolean IS_CONFIGURABLE = true;
 	
 	static private Storage store = TEST ? null : Storage.getInstance();
 //	private DocPagesSelector dps;
