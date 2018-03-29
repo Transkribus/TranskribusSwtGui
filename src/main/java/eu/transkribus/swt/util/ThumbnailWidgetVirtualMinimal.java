@@ -261,6 +261,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		
 		group.setItemCount(doc.getNPages());
 		
+		//FIXME this causes ALL items to be handled upon creation of that widget, also those not visible. Virtual gallery will call the handle method itself. p
 		int index = 0;
 		for (GalleryItem item : gallery.getItems()) {
 			if (item != null) {
