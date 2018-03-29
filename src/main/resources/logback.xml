@@ -16,7 +16,7 @@
 		<!-- <filter.ID.LevelMax>INFO</filter.ID.LevelMax> -->
 		<!-- <filter.ID.LevelMin>ALL</filter.ID.LevelMin> -->
 		<encoder>
-			<pattern>%-5p [%t] %c - %m%n</pattern>
+			<pattern>%d{HH:mm:ss.SSS} %-5p [%t] %c - %m%n</pattern>
 		</encoder>
 	</appender>
 	<!-- <appender name="CONSOLE_ERR" class="ch.qos.logback.core.ConsoleAppender"> -->
