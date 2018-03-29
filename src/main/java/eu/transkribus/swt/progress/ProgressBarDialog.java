@@ -174,7 +174,7 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 
 		shell.setLayout(gridLayout);
 
-		shell.setSize(450, 200);
+		shell.setSize(450, 250);
 
 		final Composite composite = new Composite(shell, SWT.NONE);
 		composite.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
@@ -227,6 +227,7 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 		});
 		
 		center();
+		shell.setSize(450, shell.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 	}
 		
 	public void center() {
