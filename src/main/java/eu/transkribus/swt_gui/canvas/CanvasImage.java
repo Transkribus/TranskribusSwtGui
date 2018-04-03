@@ -190,7 +190,11 @@ final public class CanvasImage {
 			img = this.imgRot;
 		}
 		
-		CanvasTransform transform = canvas.getPersistentTransform();
+//		CanvasTransform transform = canvas.getPersistentTransform();
+		CanvasTransform transform = canvas.getTransformCopy();
+		if (internalScalingFactor != null) { // revert internal scaling!
+			transform.scale(1.0f/internalScalingFactor, 1.0f/internalScalingFactor);
+		}
 		
 		Rectangle clientRect= canvas.getClientArea();
 		Rectangle imageRect=transform.inverseTransform(canvas.getClientArea());
@@ -231,18 +235,18 @@ final public class CanvasImage {
 		
 		screenImage.dispose();
 		newGC.dispose();
+		transform.dispose();
 		
-		gc.setTransform(transform);
+//		gc.setTransform(canvas.getPersistentTransform()); // needed? (...don't think so)
 	}
 	
 	/**
-	 * FIXME old method to paint image. Delete when {@link #paintNew(GC, SWTCanvas)} works.
+	 * FIXME old method to paint image. Delete when {@link #paint(GC, SWTCanvas)} works.
 	 * #189
 	 * 
-	 * @param gc
-	 * @param canvas
+	 * @deprecated Slow on Windows - advanced graphics system uses GDI+ on Windows which is not hardware accelerated
 	 */
-	public void paint(GC gc, SWTCanvas canvas) {
+	public void paintOld(GC gc, SWTCanvas canvas) {
 		try {
 			if (internalScalingFactor!=null) {
 				CanvasTransform myT = canvas.getTransformCopy();
@@ -261,33 +265,23 @@ final public class CanvasImage {
 			e.printStackTrace();
 		}
 	}
-	
-	/**
-	 * 
-	 * 
-	 * FIXME
-	 * Temporarily deactivated for new snapshot as image is not aligned to segmentation with this.
-	 * On some pages (see e.g. trpProd docId = 42727, page 1) the image is not scaled correctly to the PAGE XML dimension
-	 * #189
-	 * 
-	 * @param gc
-	 * @param canvas
-	 */
-	public void paintNew(GC gc, SWTCanvas canvas) {
+
+	public void paint(GC gc, SWTCanvas canvas) {
 		try {
 			if (internalScalingFactor!=null) {
+				logger.trace("internalScalingFactor = "+internalScalingFactor);
 				CanvasTransform myT = canvas.getTransformCopy();
 				myT.scale(1.0f/internalScalingFactor, 1.0f/internalScalingFactor); // revert internal scaling!
 				gc.setTransform(myT);
 
 				drawImageFromSeparateGC(gc, canvas);
-//				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS MACHINES!
+//				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS (uses GDI+ which is not hardware accelerated)
 				gc.setTransform(canvas.getPersistentTransform());
 				myT.dispose();
 			}
 			else if (img != null && !img.isDisposed()) {
 				drawImageFromSeparateGC(gc, canvas);
-//				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS MACHINES!
+//				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS (uses GDI+ which is not hardware accelerated)
 			}
 		}
 		catch (Throwable e) {

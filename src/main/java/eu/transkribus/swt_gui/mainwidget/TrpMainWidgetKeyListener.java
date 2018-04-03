@@ -69,7 +69,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 		}
 		
 		else if (isCtrlOrCommand && kc == 't' && count == 3) {
-			mw.loadLocalTestset();
+			mw.loadTestDocSpecifiedInLocalFile();
 		}
 						
 		else if (!storage.isPageLocked() && isCtrlOrCommand && kc == 's') {

@@ -462,15 +462,14 @@ public class TrpMainWidget {
 			}
 		}
 
-		tryLoadingTestDocSpecifiedInLocalFile();
+		loadTestDocSpecifiedInLocalFile();
 		
 
 		
 		// TEST:
 //		if (TESTTABLES) {
-//			loadLocalTestset();
+//			loadTestDocSpecifiedInLocalFile();
 //		}		
-//		loadLocalTestset();
 //		jumpToPage(1);
 
 //		SWTUtil.mask2(ui.getStructureTreeWidget()); // TESt
@@ -486,29 +485,37 @@ public class TrpMainWidget {
 	 * To auto load a local document: specify the path of the document (without spaces!) in the first line.<br/>
 	 * Comment out a line using a # sign at the start.
 	 */
-	private void tryLoadingTestDocSpecifiedInLocalFile() {
+	public boolean loadTestDocSpecifiedInLocalFile() {
 		try {
-			List<String> lines = Files.readAllLines(Paths.get("./loadThisDocOnStartup.txt"));
-			if (!lines.isEmpty()) {
-				String docStr = lines.get(0);
+			final String TEST_DOC_FN = "./loadThisDocOnStartup.txt";
+			logger.debug("loading test doc from file: "+new File(TEST_DOC_FN).getAbsolutePath());
+			List<String> lines = Files.readAllLines(Paths.get(TEST_DOC_FN));
+			
+			for (int i=0; i<lines.size(); ++i) {
+				String docStr = lines.get(i);
 				if (!docStr.startsWith("#")) {
+					logger.debug("found docStr: "+docStr);
 					String[] splits = docStr.split(" ");
 					if (splits.length == 2) { // remote doc
 						try {
 							int colid = Integer.parseInt(splits[0]);
 							int docid = Integer.parseInt(splits[1]);
 							loadRemoteDoc(docid, colid);
+							return true;
 						} catch (NumberFormatException e) {
 							// ignore parsing errors and do nothing...
 						}
 					} else { // local doc
 						loadLocalDoc(docStr);
+						return true;
 					}
 				}
 			}
 		} catch (IOException e) {
 			// no file found -> ignore and to not load anything
 		}
+		
+		return false;
 	}
 
 	public void syncTextOfDocFromWordsToLinesAndRegions() {
@@ -2272,35 +2279,6 @@ public class TrpMainWidget {
 		}
 		
 		ui.updateToolBarSize();
-	}
-
-	public void loadLocalTestset() {
-		String localTestdoc = "";
-
-		if (SysUtils.isWin()) {
-			localTestdoc = "C:/Schauplatz_small";
-		} else if (SysUtils.isOsx()) {
-			localTestdoc = "/Users/hansm/Documents/testDocs/Bentham_box_035/";
-//			localTestdoc = "/Users/hansm/Documents/testDocs/many_pages/";
-		} else {
-//			localTestdoc = System.getProperty( "user.home" )+"/Transkribus_TestDoc";
-			localTestdoc = "/mnt/dea_scratch/TRP/Transkribus_TestDoc";
-//			localTestdoc = "/home/sebastian/Documents/transkribus_testdocs/many_pages/";
-//			localTestdoc = System.getProperty( "user.home" )+"/testdocmanybl";
-		}
-
-		File f = new File(localTestdoc);
-		if (!f.isDirectory()) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error loading local testset", "The local testset directory does not exist:\n " + f.getAbsolutePath());
-			return;
-		}
-
-		loadLocalDoc(localTestdoc, 0);
-	}
-
-	public void loadRemoteTestset() {
-		// TODO
-
 	}
 
 	public void loginAsTestUser() {
