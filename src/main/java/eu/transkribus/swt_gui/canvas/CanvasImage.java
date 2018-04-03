@@ -235,7 +235,45 @@ final public class CanvasImage {
 		gc.setTransform(transform);
 	}
 	
+	/**
+	 * FIXME old method to paint image. Delete when {@link #paintNew(GC, SWTCanvas)} works.
+	 * #189
+	 * 
+	 * @param gc
+	 * @param canvas
+	 */
 	public void paint(GC gc, SWTCanvas canvas) {
+		try {
+			if (internalScalingFactor!=null) {
+				CanvasTransform myT = canvas.getTransformCopy();
+				myT.scale(1.0f/internalScalingFactor, 1.0f/internalScalingFactor); // revert internal scaling!
+				gc.setTransform(myT);
+
+				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS MACHINES!
+				gc.setTransform(canvas.getPersistentTransform());
+				myT.dispose();
+			}
+			else if (img != null && !img.isDisposed()) {
+				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS MACHINES!
+			}
+		}
+		catch (Throwable e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 
+	 * 
+	 * FIXME
+	 * Temporarily deactivated for new snapshot as image is not aligned to segmentation with this.
+	 * On some pages (see e.g. trpProd docId = 42727, page 1) the image is not scaled correctly to the PAGE XML dimension
+	 * #189
+	 * 
+	 * @param gc
+	 * @param canvas
+	 */
+	public void paintNew(GC gc, SWTCanvas canvas) {
 		try {
 			if (internalScalingFactor!=null) {
 				CanvasTransform myT = canvas.getTransformCopy();
