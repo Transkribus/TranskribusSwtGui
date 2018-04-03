@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.CanvasTransform;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.util.MemoryUsage;
@@ -209,6 +210,7 @@ final public class CanvasImage {
 		
 		Image screenImage = new Image(canvas.getDisplay(),clientRect.width, clientRect.height);
 		GC newGC = new GC(screenImage);
+		
 		newGC.setClipping(clientRect);
 		
 //		if (!CoreUtils.equalsEps(0.0f, canvas.getPersistentTransform().getAngleDeg(), 0.1)) {
@@ -218,6 +220,8 @@ final public class CanvasImage {
 //			newGC.setTransform(rot);
 //		}
 		
+		newGC.setBackground(canvas.getBackground());
+		newGC.fillRectangle(clientRect); // draw background color
 		newGC.drawImage(img, imageRect.x, imageRect.y, imageRect.width, imageRect.height, destRect.x,
 				destRect.y, destRect.width, destRect.height);
 
