@@ -80,6 +80,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
@@ -89,7 +91,6 @@ import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
-import eu.transkribus.core.model.beans.TrpDbTag;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -100,7 +101,6 @@ import eu.transkribus.core.model.beans.TrpUpload;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CommentTag;
-import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
@@ -135,7 +135,6 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
-import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -4955,11 +4954,18 @@ public class TrpMainWidget {
 							error.add(errorMsg);
 						} else {
 							try {
+								Integer symUrl = col.getPageId();
 								/*
 								 * set new pageID(= new symbolic image for collection) if old is in this document
+								 * 
+								 * FIXME original code causes NullpointerException when no document is loaded. 
+								 * Also, this does not work for all documents to be deleted except the one that is loaded.
+								 * issue #192
 								 */
-								Integer symUrl = col.getPageId();
-								if (storage.getDoc().getPageWithId(symUrl) != null){
+								//original code:
+//								if (storage.getDoc().getPageWithId(symUrl) != null){
+								//workaround:
+								if (storage.getDoc() != null && storage.getDoc().getPageWithId(symUrl) != null){
 									logger.debug("symbolic image of collection is in deleted doc -> we must select another image");
 									//hence doc to delete contains symbolic image for this collection
 									//and so we need new symbolic image
@@ -4968,8 +4974,11 @@ public class TrpMainWidget {
 
 								storage.deleteDocument(storage.getCollId(), d.getDocId());
 								logger.info("deleted document: "+d);
+							} catch (SessionExpiredException | TrpClientErrorException | TrpServerErrorException e) {
+								logger.warn("Could not delete document: "+d, e);
+								error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessageToUser());
 							} catch (Throwable e) {
-								logger.warn("Could not delete document: "+d);
+								logger.warn("Could not delete document: "+d, e);
 								error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
 							}
 						}
