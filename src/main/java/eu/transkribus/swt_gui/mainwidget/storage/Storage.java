@@ -2418,6 +2418,10 @@ public class Storage {
 		storeStructCustomTagSpecsForCurrentCollection();
 	}
 	
+	public String getNewStructCustomTagColor() {
+		return CustomTagSpecUtil.getNewStructSpecColor(structCustomTagSpecs);
+	}
+	
 	public void removeCustomTagSpec(CustomTagSpec tagDef) {
 		customTagSpecs.remove(tagDef);
 		CustomTagSpecUtil.checkTagSpecsConsistency(customTagSpecs);
@@ -2492,6 +2496,13 @@ public class Storage {
 		if (structCustomTagSpecs.isEmpty()) {
 			structCustomTagSpecs.addAll(getDefaultStructCustomTagSpecs());
 		}
+		
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+	}
+	
+	public void restoreDefaultStructCustomTagSpecs() {
+		structCustomTagSpecs.clear();
+		structCustomTagSpecs.addAll(getDefaultStructCustomTagSpecs());
 		
 		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
 	}

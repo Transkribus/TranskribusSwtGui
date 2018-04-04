@@ -18,6 +18,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.StructTagConfWidget;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsWidget;
 import eu.transkribus.swt_gui.vkeyboards.VirtualKeyboardEditor;
 
@@ -46,6 +47,12 @@ public class GenericDialogTest {
 	//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 					
 					if (true) {
+						StructTagConfWidget structTagConfWidget = new StructTagConfWidget(parent, 0);
+						getShell().setSize(500, 700);
+						SWTUtil.centerShell(getShell());
+					}
+					
+					if (false) {
 						final TrpVirtualKeyboardsWidget vk = new TrpVirtualKeyboardsWidget(parent, 0);
 						
 //						UnicodeList ul = new UnicodeList("Hebrew", "U+0590-U+05ff U+fb1d-U+fb4f");

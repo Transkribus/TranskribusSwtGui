@@ -35,6 +35,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -866,6 +867,22 @@ public class SWTUtil {
 			return false;
 					
 		btn.removeSelectionListener(l);
+		return true;
+	}
+	
+	public static boolean addModifyListener(Text text, ModifyListener l) {
+		if (isDisposed(text))
+			return false;
+					
+		text.addModifyListener(l);
+		return true;
+	}
+	
+	public static boolean removeModifyListener(Text text, ModifyListener l) {
+		if (isDisposed(text))
+			return false;
+					
+		text.removeModifyListener(l);
 		return true;
 	}
 	

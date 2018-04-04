@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.metadata;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -37,6 +38,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.util.EnumUtils;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -50,14 +52,8 @@ public class StructuralMetadataWidget extends Composite {
 	org.eclipse.swt.widgets.List linkList;
 	MenuItem deleteLinkMenuItem;
 
-	public static boolean USE_EXPAND_BAR=false; // experimental!
-	public static boolean USE_STRUCT_TYPE_LIST = false; // experimental!
-	// structure type md:
 	Group structureGroup;
-	Combo regionTypeCombo; // experimental!
-	
 	Text structureText;
-//	Text selectedShapeTypeText;
 	Combo shapeTypeCombo;
 	
 	StructTagSpecWidget structTagSpecWidget;
@@ -70,11 +66,7 @@ public class StructuralMetadataWidget extends Composite {
 	Button applyStructBtn, applyStructRecBtn;
 	Listener listener=null;
 	
-//	ExpandBar expandBar;
-	
 	public static String LINK_DELIMITER = " <--> ";
-	
-	ExpandBar bar;
 	
 	ModifyListener structModifyListener;
 	
@@ -83,32 +75,48 @@ public class StructuralMetadataWidget extends Composite {
 		this.setLayout(new GridLayout(2, false));
 		this.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1));
 		
-		if (USE_EXPAND_BAR) {
-			bar = new ExpandBar(this, SWT.V_SCROLL);
-		}
-		
-		Composite container = USE_EXPAND_BAR ? bar : this;
-		
 		initPageMd();
 		
-		Label l0 = new Label(this, 0);
-		l0.setText("Selected element type: ");
-		
-//		selectedShapeTypeText = new Text(this, SWT.SINGLE | SWT.BORDER);
-//		selectedShapeTypeText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+		Label shapeTypeLabel = new Label(this, 0);
+		shapeTypeLabel.setText("Selected element type: ");
+		Fonts.setBoldFont(shapeTypeLabel);
 		shapeTypeCombo = new Combo(this, SWT.DROP_DOWN | SWT.READ_ONLY);
 		shapeTypeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-						
 		shapeTypeCombo.setItems(RegionTypeUtil.ALL_REGIONS.toArray(new String[0]));
 		
-//		regionTypeText.setText("whatever");
-		
 		// NEW STUFF
-		structTagSpecWidget = new StructTagSpecWidget(container, 0, false);
+		structureGroup = new Group(this, SWT.NONE);
+		structureGroup.setText("Structure Type");
+		structureGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+		GridLayout structureGl = new GridLayout(2, false);
+		structureGl.verticalSpacing = 0;
+		structureGl.marginWidth = 1;
+		structureGroup.setLayout(structureGl);
+		Fonts.setBoldFont(structureGroup);
+		
+		Label structLabel = new Label(structureGroup, 0);
+		structLabel.setText("Type of selected: ");
+		structureText = new Text(structureGroup, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
+		structureText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		structureText.setToolTipText("The structure type of the selected element");		
+		
+		structTagSpecWidget = new StructTagSpecWidget(structureGroup, 0, false);
 		structTagSpecWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+		((GridData)structTagSpecWidget.getLayoutData()).heightHint = 500;
+		Fonts.setNormalFont(structTagSpecWidget.getHeaderLbl());
 		// END NEW STUFF
 		
+//		createStructureGroup(this);
+
+//		initTaggingWidget(container);
+		
+//		initTextStyleMd(container);
+	}
+	
+	/**
+	 * @deprecated old!
+	 */
+	private void createStructureGroup(Composite container) {
 		structureGroup = new Group(container, SWT.NONE);
 //		structureGroup = new Composite(expandBar, SWT.NONE);
 		structureGroup.setText("Structure Type");
@@ -139,9 +147,7 @@ public class StructuralMetadataWidget extends Composite {
 			});
 			structureRadios.add(btn);
 		}
-		
 		new Label(structureGroup, 0); // needed to align following button correctly!
-
 		
 		applyStructBtn = new Button(structureGroup, SWT.PUSH);
 		applyStructBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -154,33 +160,7 @@ public class StructuralMetadataWidget extends Composite {
 		applyStructRecBtn.setToolTipText("Applies the structure to all selected elements and its child elements, e.g. for a region and all its line and word elements!");
 		
 		structureGroup.pack();
-
-//		initTaggingWidget(container);
-		
-//		initTextStyleMd(container);
-		
-		if (USE_EXPAND_BAR)
-			initExpandItmes();
 	}
-	
-	private void initExpandItmes() {
-		ExpandItem item1 = new ExpandItem (bar, SWT.NONE, 0);
-		item1.setText("Structure");
-		item1.setHeight(structureGroup.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
-		item1.setControl(structureGroup);		
-		item1.setExpanded(true);
-		
-//		ExpandItem item3 = new ExpandItem (bar, SWT.NONE, 2);
-//		item3.setText("Text-Style");
-//		item3.setHeight(textStyleWidget.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
-//		item3.setControl(textStyleWidget);
-//		item3.setExpanded(true);
-	}
-	
-//	private void initTaggingWidget(Composite parent) {
-//		taggingWidget = new TaggingWidget(parent, SWT.NONE, 1, false);
-//		taggingWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-//	}
 	
 	private Button createButton(Composite parent, int style, String text, int horSpan, boolean grabExcessHorizontal) {
 		Button btn = new Button(parent, style);
@@ -199,6 +179,7 @@ public class StructuralMetadataWidget extends Composite {
 		Label l = new Label(parent, SWT.LEFT);
 		l.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		l.setText(label);
+		Fonts.setBoldFont(l);
 		
 		Combo combo = new Combo(parent, comboStyle);
 		combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -220,10 +201,10 @@ public class StructuralMetadataWidget extends Composite {
 		pageStyleCombo = initComboWithLabel(this, "Page type: ", SWT.DROP_DOWN | SWT.READ_ONLY);
 		pageStyleCombo.setItems(EnumUtils.valuesArray(PageTypeSimpleType.class));
 		
-		Label l = new Label(this, SWT.LEFT);
-		l.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		l.setText("Links:");
-		
+		Label linksLabel = new Label(this, SWT.LEFT);
+		linksLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		linksLabel.setText("Links:");
+		Fonts.setBoldFont(linksLabel);
 		Composite linkBtnW = new Composite(this, SWT.RIGHT);
 		linkBtnW.setLayout(new FillLayout());
 		linkBtnW.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
@@ -270,15 +251,13 @@ public class StructuralMetadataWidget extends Composite {
 			return;
 		
 		pageStyleCombo.removeSelectionListener((SelectionListener)listener);
-		if (regionTypeCombo!=null)
-			regionTypeCombo.removeSelectionListener((SelectionListener)listener);
-		
-		structureText.removeModifyListener((ModifyListener) listener);
-		for (Button b : structureRadios)
+		SWTUtil.removeModifyListener(structureText, (ModifyListener) listener);
+		for (Button b : structureRadios) {
 			b.removeSelectionListener((SelectionListener) listener);
+		}
 				
-		applyStructBtn.removeSelectionListener((SelectionListener)listener);
-		applyStructRecBtn.removeSelectionListener((SelectionListener) listener);
+		SWTUtil.removeSelectionListener(applyStructBtn, (SelectionListener)listener);
+		SWTUtil.removeSelectionListener(applyStructRecBtn, (SelectionListener)listener);
 		
 		linkList.removeSelectionListener((SelectionListener) listener);
 		deleteLinkMenuItem.removeSelectionListener((SelectionListener) listener);
@@ -298,15 +277,13 @@ public class StructuralMetadataWidget extends Composite {
 		if (pageStyleCombo != null)
 			pageStyleCombo.addSelectionListener((SelectionListener)listener);
 		
-		if (regionTypeCombo!=null)
-			regionTypeCombo.addSelectionListener((SelectionListener)listener);
-		
-		structureText.addModifyListener((ModifyListener) listener);
-		for (Button b : structureRadios)
+		SWTUtil.addModifyListener(structureText, (ModifyListener) listener);
+		for (Button b : structureRadios) {
 			b.addSelectionListener((SelectionListener) listener);
+		}
 		
-		applyStructBtn.addSelectionListener((SelectionListener)listener);
-		applyStructRecBtn.addSelectionListener((SelectionListener) listener);
+		SWTUtil.addSelectionListener(applyStructBtn, (SelectionListener)listener);
+		SWTUtil.addSelectionListener(applyStructRecBtn, (SelectionListener)listener);
 		
 		linkList.addSelectionListener((SelectionListener) listener);
 		deleteLinkMenuItem.addSelectionListener((SelectionListener) listener);
@@ -335,29 +312,42 @@ public class StructuralMetadataWidget extends Composite {
 		linkBtn.setEnabled(enabled); breakLinkBtn.setEnabled(enabled);
 		linkList.setEnabled(enabled); deleteLinkMenuItem.setEnabled(enabled);
 		
-		// structure type:
-		SWTUtil.setEnabled(regionTypeCombo, enabled);
-		
 		SWTUtil.setEnabled(structureGroup, enabled);
-		for (Button b : structureRadios)
+		for (Button b : structureRadios) {
 			SWTUtil.setEnabled(b, enabled);
+		}
+		
+		SWTUtil.setEnabled(structTagSpecWidget, enabled);
 		
 		SWTUtil.setEnabled(applyStructBtn, enabled);
 		SWTUtil.setEnabled(applyStructRecBtn, enabled);
 	}
 	
 	public void setStructureType(String structureType) {
-		structureText.removeModifyListener(structModifyListener);
-		
-		if (!structureText.getText().equals(structureType)) {
-			structureText.setText(structureType==null ? "" : structureType);
-		}
-
-		for (Button b : structureRadios) {
-			b.setSelection(structureType!=null && b.getText().equals(structureType));
-		}
-		structureText.addModifyListener(structModifyListener);
+		logger.debug("setting structure type to text: "+structureType);
+			structureText.setText(StringUtils.isEmpty(structureType) ? "" : structureType);
 	}
+	
+	// OLD
+//	public void setStructureType(String structureType) {
+//		if (structureText != null) {
+//			if (structModifyListener!=null) {
+//				structureText.removeModifyListener(structModifyListener);
+//			}
+//			
+//			if (!structureText.getText().equals(structureType)) {
+//				structureText.setText(structureType==null ? "" : structureType);
+//			}
+//			
+//			if (structModifyListener!=null) {
+//				structureText.addModifyListener(structModifyListener);
+//			}
+//		}
+//
+//		for (Button b : structureRadios) {
+//			b.setSelection(structureType!=null && b.getText().equals(structureType));
+//		}
+//	}
 	
 	public void setPageType(TrpPageType page ) {
 		PageTypeSimpleType pageType = page.getType();
@@ -467,7 +457,6 @@ public class StructuralMetadataWidget extends Composite {
 //	}
 
 	public Combo getPageStyleCombo() { return pageStyleCombo; }
-	public Combo getRegionTypeCombo() { return regionTypeCombo; }
 	
 //	public TextStyleTypeWidget getTextStyleWidget() { return textStyleWidget; }
 	public Button getApplyStructBtn() { return applyStructBtn; }

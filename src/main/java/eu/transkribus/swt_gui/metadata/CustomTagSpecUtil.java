@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.swt.graphics.RGB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.reflect.TypeToken;
 
 import eu.transkribus.core.util.GsonUtil;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.TrpConfig;
 
 public class CustomTagSpecUtil {
@@ -49,6 +51,19 @@ public class CustomTagSpecUtil {
 		
 		return GsonUtil.fromJson(jsonStr, new TypeToken<List<CustomTagSpec>>(){}.getType());
 	}
+	
+	public static String getNewStructSpecColor(List<StructCustomTagSpec> specs) {
+		for (int i=0; i<TaggingWidgetUtils.INDEX_COLORS.length; ++i) {
+			String newColor = TaggingWidgetUtils.INDEX_COLORS[i];
+			RGB newColorRGB = Colors.toRGB(newColor);
+			if (specs.stream().filter(t -> newColorRGB.equals(t.getRGB())).findFirst().orElse(null) == null) { // no spec with new color found --> return this color!
+				return newColor;
+			}
+		}
+		
+		return Colors.toHex(StructCustomTagSpec.DEFAULT_COLOR);
+	}
+	
 	
 	public static List<StructCustomTagSpec> readStructCustomTagSpecsFromJsonString(String jsonStr) {
 		if (StringUtils.isEmpty(jsonStr)) {

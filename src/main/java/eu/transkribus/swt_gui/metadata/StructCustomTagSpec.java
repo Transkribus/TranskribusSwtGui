@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.metadata;
 
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +15,7 @@ public class StructCustomTagSpec extends CustomTagSpec {
 	
 	RGB rgb;
 	public static String RGB_PROPERTY="rgb";
+	public static RGB DEFAULT_COLOR = new RGB(255, 255, 255);
 	
 //	StructureTag customTag;
 
@@ -35,7 +35,7 @@ public class StructCustomTagSpec extends CustomTagSpec {
 	}
 	
 	public RGB getRGB() {
-		return rgb;
+		return rgb==null ? DEFAULT_COLOR : rgb;
 	}
 
 	public void setRGB(RGB rgb) {

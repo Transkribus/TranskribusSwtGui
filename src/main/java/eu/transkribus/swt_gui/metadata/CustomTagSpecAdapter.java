@@ -10,7 +10,9 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
+import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 
 /**
@@ -48,9 +50,7 @@ public class CustomTagSpecAdapter extends TypeAdapter<CustomTagSpec> {
 		      case "customTag":
 		        try {
 					ct = CustomTagUtil.parseSingleCustomTag(reader.nextString());
-				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException | ClassNotFoundException | NoSuchMethodException
-						| ParseException e) {
+				} catch (Exception e) {
 					throw new IOException("Could not read tag definition: "+e.getMessage(), e);
 				}
 		        break;

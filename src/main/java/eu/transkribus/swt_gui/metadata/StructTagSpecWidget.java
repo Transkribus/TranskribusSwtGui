@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.metadata;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,6 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.ICellEditorValidator;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TextCellEditor;
@@ -47,9 +45,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
 import eu.transkribus.core.model.beans.customtags.StructureTag;
-import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.swt.util.ColorChooseButton;
-import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
@@ -88,7 +84,7 @@ public class StructTagSpecWidget extends Composite {
 		topContainer.setLayout(new GridLayout(nCols, false));
 		
 		headerLbl = new Label(topContainer, 0);
-		headerLbl.setText("Structure Tag Specifications");
+		headerLbl.setText("Structure Tags");
 		Fonts.setBoldFont(headerLbl);
 		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
@@ -102,8 +98,8 @@ public class StructTagSpecWidget extends Composite {
 			}
 					
 			drawShapesInStructColorsBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
-			drawShapesInStructColorsBtn.setText("Render colors");
-			drawShapesInStructColorsBtn.setToolTipText("Draw all shapes in struct colors");
+			drawShapesInStructColorsBtn.setText("Paint struct colors");
+			drawShapesInStructColorsBtn.setToolTipText("Paint all shapes in its structure type color - white means no structure type is set!");
 			DataBinder.get().bindBeanToWidgetSelection(
 					TrpSettings.DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY, TrpConfig.getTrpSettings(), drawShapesInStructColorsBtn);
 			
@@ -111,9 +107,8 @@ public class StructTagSpecWidget extends Composite {
 			customizeBtn.setText("Customize..");
 			customizeBtn.setImage(Images.PENCIL);
 			SWTUtil.onSelectionEvent(customizeBtn, e -> {
-//				TagConfDialog diag = new TagConfDialog(getShell());
-//				diag.open();
-				// TODO: create StructTagConfDialog
+				StructTagConfDialog diag = new StructTagConfDialog(getShell());
+				diag.open();
 			});
 		}
 				
@@ -121,7 +116,7 @@ public class StructTagSpecWidget extends Composite {
 		tableContainer.setLayout(SWTUtil.createGridLayout(isEditable ? 2 : 1, false, 0, 0));
 		tableContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, nCols, 1));
 		
-		int tableViewerStyle = SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION;
+		int tableViewerStyle = SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI;
 		tableViewer = new TableViewer(tableContainer, tableViewerStyle);
 //		tableViewer.getTable().setToolTipText("List of structure tag specifications);
 		
@@ -152,7 +147,6 @@ public class StructTagSpecWidget extends Composite {
 				}
 				
 				StructCustomTagSpec tagSpec = (StructCustomTagSpec) element;
-				logger.debug("tagSpec: "+tagSpec);
 				String type = (String) tagSpec.getCustomTag().getType();
 				return type==null ? "error parsing structure type" : type;
 			}
@@ -196,16 +190,13 @@ public class StructTagSpecWidget extends Composite {
 	                
 	                RGB rgb = tagSpec.getRGB();
 	                if (rgb == null) {
-	                	rgb = new RGB(128, 128, 128);
+	                	rgb = StructCustomTagSpec.DEFAULT_COLOR;
 	                }
 	                
 	                ColorChooseButton colorCtrl = new ColorChooseButton((Composite) cell.getViewerRow().getControl(), rgb) {
 	                	@Override protected void onColorChanged(RGB rgb) {
-//	                		CustomTagFactory.setTagColor(tagSpec.getCustomTag().getTagName(), Colors.toHex(rgb));
-	                		// TODO: set tag color of tag spec
 	                		tagSpec.setRGB(rgb);
-//	                		Storage.getInstance().signalStructCustomTagSpecsChanged();
-	                		// TODO: how to store colors???
+	                		Storage.getInstance().signalStructCustomTagSpecsChanged();
 	                	}
 	                };
 	                colorCtrl.setEditorEnabled(isEditable);
@@ -236,7 +227,7 @@ public class StructTagSpecWidget extends Composite {
 				
 				StructCustomTagSpec tagDef = (StructCustomTagSpec) element;
 				if (tagDef.getShortCut()!=null) {
-					text = "Alt+"+tagDef.getShortCut();
+					text = "Ctrl+Alt+"+tagDef.getShortCut();
 				}
 				else {
 					text = "";
@@ -347,8 +338,6 @@ public class StructTagSpecWidget extends Composite {
 					addBtn.setImage(Images.ADD_12);
 					addBtn.setToolTipText("Tag selected elements with this structure type");
 					SWTUtil.onSelectionEvent(addBtn, e -> {
-						// TODO
-						StructCustomTagSpec selTagDef = getSelected();
 						if (TrpMainWidget.getInstance() != null && tagSpec != null && tagSpec.getCustomTag()!=null) {
 							StructureTag st = tagSpec.getCustomTag();
 							TrpMainWidget.getInstance().setStructureTypeOfSelected(st.getType(), false);
@@ -407,7 +396,7 @@ public class StructTagSpecWidget extends Composite {
 		updateAvailableTagSpecs();
 
 		IStorageListener storageListener = new IStorageListener() {
-			public void handlTagSpecsChangedEvent(TagSpecsChangedEvent e) {
+			@Override public void handlStructTagSpecsChangedEvent(StructTagSpecsChangedEvent e) {
 				updateAvailableTagSpecs();
 			}
 		};
@@ -445,32 +434,33 @@ public class StructTagSpecWidget extends Composite {
 	}
 	
 	private void removeSelected() {
-		CustomTagSpec cDef = getSelected();
-		if (cDef != null) {
-			Storage.getInstance().removeCustomTagSpec(cDef);
+		for (StructCustomTagSpec cDef : getSelected()) {
+			if (cDef != null) {
+				Storage.getInstance().removeStructCustomTagSpec(cDef);
+			}			
 		}
 	}
 	
 	private void moveSelected(boolean moveUp) {
-		CustomTagSpec tagDef = getSelected();
+		StructCustomTagSpec tagDef = getFirstSelected();
 		if (tagDef==null) {
 			return;
 		}
 		
 		logger.debug("moving selected: "+tagDef);
 		
-		List<CustomTagSpec> cDefs = Storage.getInstance().getCustomTagSpecs();
+		List<StructCustomTagSpec> cDefs = Storage.getInstance().getStructCustomTagSpecs();
 		int i = cDefs.indexOf(tagDef);
 		if (moveUp && i>=1) {
 			if (cDefs.remove(tagDef)) {
 				cDefs.add(i-1, tagDef);
-				Storage.getInstance().signalCustomTagSpecsChanged();
+				Storage.getInstance().signalStructCustomTagSpecsChanged();
 			}
 		}
 		else if (!moveUp && i<cDefs.size()-1) {
 			if (cDefs.remove(tagDef)) {
 				cDefs.add(i+1, tagDef);
-				Storage.getInstance().signalCustomTagSpecsChanged();
+				Storage.getInstance().signalStructCustomTagSpecsChanged();
 			}
 		}
 	}
@@ -487,24 +477,25 @@ public class StructTagSpecWidget extends Composite {
 			if (!isEditable) {
 				SWTUtil.setSelection(showAllTagsBtn, showAllTags);
 			}
+			tableViewer.setInput(Storage.getInstance().getStructCustomTagSpecs());
 			
-			if (isEditable || !showAllTags) {
-				headerLbl.setText("Structure Tag Specifications");
-				tableViewer.setInput(Storage.getInstance().getStructCustomTagSpecs());
-			}
-			else {
-				headerLbl.setText("All Structure Tags");
-				List<StructCustomTagSpec> allTagsSpecs = new ArrayList<>();
-				
-				int i=0;
-				for (TextTypeSimpleType t : TextTypeSimpleType.values()) {
-					StructureTag st = new StructureTag(t.value());
-					String colorStr = TaggingWidgetUtils.INDEX_COLORS[i++];
-					StructCustomTagSpec ts = new StructCustomTagSpec(st, colorStr); // TODO: use fixed colors!
-					allTagsSpecs.add(ts);
-				}
-				tableViewer.setInput(allTagsSpecs);
-			}
+//			if (isEditable || !showAllTags) {
+//				headerLbl.setText("Structure Tag Specifications");
+//				tableViewer.setInput(Storage.getInstance().getStructCustomTagSpecs());
+//			}
+//			else {
+//				headerLbl.setText("All Structure Tags");
+//				List<StructCustomTagSpec> allTagsSpecs = new ArrayList<>();
+//				
+//				int i=0;
+//				for (TextTypeSimpleType t : TextTypeSimpleType.values()) {
+//					StructureTag st = new StructureTag(t.value());
+//					String colorStr = TaggingWidgetUtils.INDEX_COLORS[i++];
+//					StructCustomTagSpec ts = new StructCustomTagSpec(st, colorStr); // TODO: use fixed colors!
+//					allTagsSpecs.add(ts);
+//				}
+//				tableViewer.setInput(allTagsSpecs);
+//			}
 			
 			Collection<CustomTagSpec> tagSpecs = (Collection<CustomTagSpec>) tableViewer.getInput();
 			TaggingWidgetUtils.updateEditors(colorEditors, tagSpecs);
@@ -521,8 +512,16 @@ public class StructTagSpecWidget extends Composite {
 		return tableViewer;
 	}
 
-	public StructCustomTagSpec getSelected() {
-		return (StructCustomTagSpec) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
+	public List<StructCustomTagSpec> getSelected() {
+		return tableViewer.getStructuredSelection().toList();
+	}
+	
+	public StructCustomTagSpec getFirstSelected() {
+		return getSelected().isEmpty() ? null : getSelected().get(0);
+	}
+	
+	public Label getHeaderLbl() {
+		return headerLbl;
 	}
 
 }

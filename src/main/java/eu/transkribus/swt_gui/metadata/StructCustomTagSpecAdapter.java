@@ -1,21 +1,24 @@
 package eu.transkribus.swt_gui.metadata;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.text.ParseException;
 
 import org.eclipse.swt.graphics.RGB;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.swt.util.Colors;
 
 public class StructCustomTagSpecAdapter extends TypeAdapter<StructCustomTagSpec> {
+	private static final Logger logger = LoggerFactory.getLogger(StructCustomTagSpecAdapter.class);
+	
 	@Override
 	public void write(JsonWriter writer, StructCustomTagSpec value) throws IOException {
 		writer.beginObject();
@@ -46,15 +49,13 @@ public class StructCustomTagSpecAdapter extends TypeAdapter<StructCustomTagSpec>
 		      case "customTag":
 		        try {
 					CustomTag ct1 = CustomTagUtil.parseSingleCustomTag(reader.nextString());
-					if (!(ct1 instanceof StructureTag)) {
+					if (ct1 instanceof StructureTag) {
 						ct = (StructureTag) ct1;
 					}
 					else {
 						throw new IOException("Not a struture tag: "+ct1.getCssStr());
 					}
-				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException | ClassNotFoundException | NoSuchMethodException
-						| ParseException | IOException e) {
+				} catch (Exception e) {
 					throw new IOException("Could not read tag definition: "+e.getMessage(), e);
 				}
 		        break;
