@@ -83,6 +83,8 @@ public class CommonExportDialog extends Dialog {
 	
 	Button preserveLinebreaksBtn;
 	boolean preserveLinebreaks = false;
+	Button forcePagebreaksBtn;
+	boolean forcePagebreaks = false;
 	Button markUnclearWordsBtn;
 	boolean markUnclearWords = false;
 	Button keepAbbrevBtn;
@@ -1187,6 +1189,17 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 		
+		forcePagebreaksBtn = new Button(docxComposite, SWT.CHECK);
+		forcePagebreaksBtn.setText("Force page breaks");
+		forcePagebreaksBtn.setToolTipText("If checked, after each document page a page break is made.");
+		forcePagebreaksBtn.setLayoutData(new GridData(SWT.LEFT, SWT.LEFT, false, false));
+
+		forcePagebreaksBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setForcePagebreaks(forcePagebreaksBtn.getSelection());
+			}
+		});
+		
 		markUnclearWordsBtn = new Button(docxComposite, SWT.CHECK);
 		markUnclearWordsBtn.setText("Mark unclear words");
 		markUnclearWordsBtn.setToolTipText("If checked, all unclear tags get printed inside two square brackets -> [unclear]. Tag export must be choosen too!");
@@ -1450,7 +1463,7 @@ public class CommonExportDialog extends Dialog {
 	}
 	
 	private void updateDocxPars() {
-		docxPars = new DocxExportPars(docxTagExport, preserveLinebreaks, markUnclearWords, 
+		docxPars = new DocxExportPars(docxTagExport, preserveLinebreaks, forcePagebreaks, markUnclearWords, 
 				keepAbbreviations, expandAbbreviations, substituteAbbreviations);
 	}
 	
@@ -1583,6 +1596,14 @@ public class CommonExportDialog extends Dialog {
 		
 	}
 	
+	public boolean isForcePagebreaks() {
+		return forcePagebreaks;
+	}
+
+	public void setForcePagebreaks(boolean forcePagebreaks) {
+		this.forcePagebreaks = forcePagebreaks;
+	}
+
 	public boolean isMarkUnclearWords() {
 		return markUnclearWords;
 	}

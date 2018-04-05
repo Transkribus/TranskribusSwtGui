@@ -2653,7 +2653,8 @@ public class Storage {
 		logger.debug("user defined tags " + tagSpecString.toString());
 		try {
 			checkConnection(true);
-			conn.updateTagDefsUser(tagSpecString.toString());
+			String s = (String) tagSpecString.toString();
+			conn.updateTagDefsUser(s);
 		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

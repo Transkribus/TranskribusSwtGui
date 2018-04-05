@@ -3396,7 +3396,7 @@ public class TrpMainWidget {
 				if (exportDiag.isDocxExport())
 					exportDocx(new File(tempZipDirParent + "/" + dir.getName() + ".docx"), pageIndices, wordBased, exportDiag.isDocxTagExport(), doBlackening,
 							createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
-							exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied(), cache);
+							exportDiag.isPreserveLinebreaks(), exportDiag.isForcePagebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied(), cache);
 				if (exportDiag.isTxtExport())
 					exportTxt(new File(tempZipDirParent + "/" + dir.getName() + ".txt"), pageIndices, createTitle, exportDiag.isWordBased(), true, cache);
 				if (exportDiag.isTagXlsxExport())
@@ -3485,7 +3485,8 @@ public class TrpMainWidget {
 
 				exportDocx(docxExportFile, pageIndices, wordBased, exportDiag.isDocxTagExport(), doBlackening, createTitle,
 						exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
-						exportDiag.isPreserveLinebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied(), cache);
+						exportDiag.isPreserveLinebreaks(), exportDiag.isForcePagebreaks(), exportDiag.isShowSuppliedWithBrackets(), 
+						exportDiag.isIgnoreSupplied(), cache);
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -3686,7 +3687,7 @@ public class TrpMainWidget {
 	
 	public void exportDocx(final File file, final Set<Integer> pageIndices, final boolean isWordBased, final boolean isTagExport, final boolean doBlackening,
 			final boolean createTitle, final boolean markUnclearWords, final boolean expandAbbrevs,
-			final boolean substituteAbbrevs, final boolean preserveLineBreaks, final boolean suppliedWithBrackets, final boolean ignoreSupplied, ExportCache cache) throws Throwable {
+			final boolean substituteAbbrevs, final boolean preserveLineBreaks, final boolean forcePageBreaks, final boolean suppliedWithBrackets, final boolean ignoreSupplied, ExportCache cache) throws Throwable {
 		try {
 
 			if (file == null)
@@ -3700,7 +3701,7 @@ public class TrpMainWidget {
 					try {
 						logger.debug("creating Docx document...");
 						DocxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor,
-								createTitle, markUnclearWords, expandAbbrevs, substituteAbbrevs, preserveLineBreaks, suppliedWithBrackets, ignoreSupplied, cache);
+								createTitle, markUnclearWords, expandAbbrevs, substituteAbbrevs, preserveLineBreaks, forcePageBreaks, suppliedWithBrackets, ignoreSupplied, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
