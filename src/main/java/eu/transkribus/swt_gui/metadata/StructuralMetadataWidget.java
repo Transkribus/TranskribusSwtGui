@@ -97,6 +97,7 @@ public class StructuralMetadataWidget extends Composite {
 //		Fonts.setBoldFont(structureGroup);
 		
 		Label structureTypeLabel = new Label(this, 0);
+		structureTypeLabel.setText("Structure Type");
 		structureTypeLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		Fonts.setBoldFont(structureTypeLabel);
 		
