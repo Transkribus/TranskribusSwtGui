@@ -152,6 +152,6 @@ public class CustomTagSpecUtil {
 		
 		return customTagSpecs.stream()
 				.filter(cDef -> { return StringUtils.equals(shortCut, cDef.getShortCut());})
-				.findFirst().get();
+				.findFirst().orElse(null);
 	}
 }

@@ -80,7 +80,8 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 		}
 		// insert custom tags with shortcuts
 		else if ( CanvasKeys.isAltKeyDown(e.stateMask)) {
-			CustomTagSpec cDef = Storage.getInstance().getCustomTagSpecWithShortCut(""+e.character);
+			String shortCut = ""+(char)e.keyCode;
+			CustomTagSpec cDef = Storage.getInstance().getCustomTagSpecWithShortCut(shortCut);
 			if (cDef != null) {
 				logger.debug("CustomTagDef shortcut matched: "+cDef);
 				mainWidget.addTagForSelection(cDef.getCustomTag(), null);
@@ -88,7 +89,8 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 		}
 		// insert virtual keys with shortcuts
 		else if ( CanvasKeys.isCtrlKeyDown(e.stateMask) ) {
-			Pair<Integer, String> vk = Storage.getInstance().getVirtualKeyShortCutValue(""+e.character);
+			String shortCut = ""+(char)e.keyCode;
+			Pair<Integer, String> vk = Storage.getInstance().getVirtualKeyShortCutValue(shortCut);
 			if (vk != null) {
 				transcriptionWidget.insertTextIfFocused(vk.getRight());
 			}
