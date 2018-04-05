@@ -28,6 +28,8 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -185,7 +187,7 @@ public class TagConfWidget extends Composite {
 		
 		updateAvailableTags();
 		
-		CustomTagFactory.addObserver(new Observer() {
+		Observer tagsChangedObserver = new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
 				if (arg instanceof TagRegistryChangeEvent) {
@@ -193,6 +195,14 @@ public class TagConfWidget extends Composite {
 					updateAvailableTags();
 
 				}				
+			}
+		};
+		CustomTagFactory.addObserver(tagsChangedObserver);
+		
+		this.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				CustomTagFactory.deleteObserver(tagsChangedObserver);
 			}
 		});
 	}
@@ -554,6 +564,10 @@ public class TagConfWidget extends Composite {
 	}
 	
 	private void updateAvailableTags() {
+		if (SWTUtil.isDisposed(this) || SWTUtil.isDisposed(availableTagsSf)) {
+			return;
+		}
+		
 		logger.debug("updating available tags");
 		
 		availableTagNames.clear();

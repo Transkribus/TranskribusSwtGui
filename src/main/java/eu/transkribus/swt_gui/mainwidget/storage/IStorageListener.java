@@ -14,6 +14,7 @@ import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
+import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 
 public interface IStorageListener {
 
@@ -39,7 +40,9 @@ public interface IStorageListener {
 	
 	default void handleDocListLoadEvent(DocListLoadEvent e) {}
 	
-	default void handlTagDefsChangedEvent(TagDefsChangedEvent e) {}
+	default void handlTagSpecsChangedEvent(TagSpecsChangedEvent e) {}
+	
+	default void handlStructTagSpecsChangedEvent(StructTagSpecsChangedEvent e) {}
 	
 	default void handleEvent(Event event) {
 		if (event instanceof JobUpdateEvent) {
@@ -75,8 +78,11 @@ public interface IStorageListener {
 		else if (event instanceof DocListLoadEvent) {
 			handleDocListLoadEvent((DocListLoadEvent) event);
 		}
-		else if (event instanceof TagDefsChangedEvent) {
-			handlTagDefsChangedEvent((TagDefsChangedEvent) event);
+		else if (event instanceof TagSpecsChangedEvent) {
+			handlTagSpecsChangedEvent((TagSpecsChangedEvent) event);
+		}
+		else if (event instanceof StructTagSpecsChangedEvent) {
+			handlStructTagSpecsChangedEvent((StructTagSpecsChangedEvent) event);
 		}
 	}
 	
@@ -95,12 +101,22 @@ public interface IStorageListener {
 	}
 	
 	@SuppressWarnings("serial")
-	public static class TagDefsChangedEvent extends Event {
-		List<CustomTagSpec> tagDefs;
+	public static class TagSpecsChangedEvent extends Event {
+		List<CustomTagSpec> tagSpecs;
 		
-		public TagDefsChangedEvent(Object source, List<CustomTagSpec> tagDefs) {
-			super(source, "Tag defs changed");
-			this.tagDefs = tagDefs;
+		public TagSpecsChangedEvent(Object source, List<CustomTagSpec> tagSpecs) {
+			super(source, "Tag specs changed");
+			this.tagSpecs = tagSpecs;
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public static class StructTagSpecsChangedEvent extends Event {
+		List<StructCustomTagSpec> tagSpecs;
+		
+		public StructTagSpecsChangedEvent(Object source, List<StructCustomTagSpec> tagSpecs) {
+			super(source, "Struct tag specs changed");
+			this.tagSpecs = tagSpecs;
 		}
 	}
 

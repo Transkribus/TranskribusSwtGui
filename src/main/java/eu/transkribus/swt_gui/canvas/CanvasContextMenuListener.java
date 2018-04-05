@@ -130,4 +130,8 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 		}
 		
 	}
+	
+	public void handleSetStructureEvent(SetStructureEvent event) {
+		TrpMainWidget.getInstance().setStructureTypeOfSelected(event.st.getType(), false);
+	}
 }

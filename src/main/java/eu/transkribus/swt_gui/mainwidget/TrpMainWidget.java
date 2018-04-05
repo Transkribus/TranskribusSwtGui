@@ -5741,7 +5741,22 @@ public class TrpMainWidget {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void setStructureTypeOfSelected(String structType, boolean recursive) {
+		List<ICanvasShape> selected = getCanvas().getScene().getSelectedAsNewArray();
+		logger.debug("applying structure type to selected, n = "+selected.size()+" structType: "+structType);
+//		TextTypeSimpleType struct = EnumUtils.fromValue(TextTypeSimpleType.class, mw.getRegionTypeCombo().getText());
+//		String struct = mw.getStructureType();	
+		for (ICanvasShape sel : selected) {
+			logger.debug("updating struct type for " + sel+" type = "+structType);
+			ITrpShapeType st = GuiUtil.getTrpShape(sel);
+			
+			st.setStructure(structType, recursive, mw);
+		}
 		
+		refreshStructureView();
+		redrawCanvas();
 	}
 
 
