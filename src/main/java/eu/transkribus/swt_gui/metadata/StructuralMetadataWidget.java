@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -16,8 +20,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.ExpandBar;
-import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -32,16 +34,15 @@ import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent.PageTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent.RelationType;
-import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class StructuralMetadataWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(StructuralMetadataWidget.class);
@@ -49,7 +50,8 @@ public class StructuralMetadataWidget extends Composite {
 	// page related md:
 	Combo pageStyleCombo, statusCombo;
 	Button linkBtn, breakLinkBtn;
-	org.eclipse.swt.widgets.List linkList;
+//	org.eclipse.swt.widgets.List linkList;
+	ListViewer linkList;
 	MenuItem deleteLinkMenuItem;
 
 	Group structureGroup;
@@ -221,14 +223,30 @@ public class StructuralMetadataWidget extends Composite {
 		breakLinkBtn.setImage(Images.getOrLoad("/icons/link_break.png"));
 		breakLinkBtn.setToolTipText("Removes the selected link");		
 		
-		linkList = new org.eclipse.swt.widgets.List(this, SWT.SINGLE | SWT.V_SCROLL);
-		linkList.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 3));
+		linkList = new ListViewer(this, SWT.SINGLE | SWT.V_SCROLL);
+		linkList.getList().setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 3));
 		int nrOfVisibleItems = 3;
-		((GridData)linkList.getLayoutData()).heightHint = linkList.getItemHeight()*nrOfVisibleItems;		
-		Menu m = new Menu(linkList);
+		((GridData)linkList.getList().getLayoutData()).heightHint = linkList.getList().getItemHeight()*nrOfVisibleItems;
+		linkList.setContentProvider(ArrayContentProvider.getInstance());
+		linkList.setLabelProvider(new LabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof RelationType) {
+					RelationType r = (RelationType) element;
+					List<String> ids  = TrpPageType.getRegionRefsIds(r.getRegionRef());
+					logger.debug("getText, ids = "+ids.size());
+					return CoreUtils.toListString(ids);
+				}
+				else {
+					return "i am error";
+				}
+			}
+		});
+		
+		Menu m = new Menu(linkList.getList());
 		deleteLinkMenuItem = new MenuItem(m, 0);
 		deleteLinkMenuItem.setText("Delete");
-		linkList.setMenu(m);
+		linkList.getList().setMenu(m);
 	}
 	
 //	private void initTextStyleMd(Composite parent) {		
@@ -263,7 +281,7 @@ public class StructuralMetadataWidget extends Composite {
 		SWTUtil.removeSelectionListener(applyStructBtn, (SelectionListener)listener);
 		SWTUtil.removeSelectionListener(applyStructRecBtn, (SelectionListener)listener);
 		
-		linkList.removeSelectionListener((SelectionListener) listener);
+		linkList.getList().removeSelectionListener((SelectionListener) listener);
 		deleteLinkMenuItem.removeSelectionListener((SelectionListener) listener);
 		
 		linkBtn.removeSelectionListener((SelectionListener) listener);
@@ -289,7 +307,7 @@ public class StructuralMetadataWidget extends Composite {
 		SWTUtil.addSelectionListener(applyStructBtn, (SelectionListener)listener);
 		SWTUtil.addSelectionListener(applyStructRecBtn, (SelectionListener)listener);
 		
-		linkList.addSelectionListener((SelectionListener) listener);
+		linkList.getList().addSelectionListener((SelectionListener) listener);
 		deleteLinkMenuItem.addSelectionListener((SelectionListener) listener);
 		
 		linkBtn.addSelectionListener((SelectionListener) listener);
@@ -314,7 +332,7 @@ public class StructuralMetadataWidget extends Composite {
 		// page:
 		pageStyleCombo.setEnabled(enabled);
 		linkBtn.setEnabled(enabled); breakLinkBtn.setEnabled(enabled);
-		linkList.setEnabled(enabled); deleteLinkMenuItem.setEnabled(enabled);
+		linkList.getList().setEnabled(enabled); deleteLinkMenuItem.setEnabled(enabled);
 		
 		SWTUtil.setEnabled(structureGroup, enabled);
 		for (Button b : structureRadios) {
@@ -406,35 +424,28 @@ public class StructuralMetadataWidget extends Composite {
 		logger.debug("st before = "+structureText.getText()+" new = "+structureType);		
 				
 		// update link list and keep last selected item if still there:
-		String lastSel=null;
-		if (linkList.getSelectionCount()==1) {
-			lastSel = linkList.getSelection()[0];
-		}
-		linkList.removeAll();
+		// TODO: only update linkList if links have changed (implement an observer/listener on the links TrpPageType!)
 		if (transcript!=null && page.getRelations()!=null) {
-			int selIndex=-1;
-			for (int i=0; i<page.getRelations().getRelation().size(); ++i) {
-				RelationType r = page.getRelations().getRelation().get(i);
-				ITrpShapeType s1 = (ITrpShapeType) r.getRegionRef().get(0).getRegionRef();
-				ITrpShapeType s2 = (ITrpShapeType) r.getRegionRef().get(1).getRegionRef();
-				
-				if (s1 == null || s2 == null) {
-					logger.warn("Warning: dead link found: "+i);
-					continue;
-				}
-				
-				String link = s1.getId() + LINK_DELIMITER +s2.getId();
-				linkList.add(link);
-				
-				if (lastSel!=null && lastSel.equals(link)) {
-					selIndex = i;
-				}
+			RelationType lastSelectedLink = getSelectedLink();
+			linkList.setInput(page.getRelations().getRelation());
+			if (lastSelectedLink != null) {
+				linkList.setSelection(new StructuredSelection(lastSelectedLink));
 			}
-			if (selIndex != -1)
-				linkList.select(selIndex);
+		} else {
+			linkList.setInput(null);
 		}
 		
 		attachListener();
+	}
+	
+	public RelationType getSelectedLink() {
+		if (linkList.getSelection()!=null && !linkList.getSelection().isEmpty()) {
+			return (RelationType) ((StructuredSelection)linkList.getSelection()).getFirstElement();
+		}
+		else {
+			return null;
+		}
+		
 	}
 	
 //	public void updateData(boolean hasPageType, PageTypeSimpleType pageType, boolean hasTextType, TextTypeSimpleType regionType, boolean hasTextStyle, TextStyleType textType) {
@@ -466,7 +477,7 @@ public class StructuralMetadataWidget extends Composite {
 	public Button getApplyStructBtn() { return applyStructBtn; }
 	public Button getApplyStructRecBtn() { return applyStructRecBtn; }
 	
-	public org.eclipse.swt.widgets.List getLinkList() { return linkList; }
+	public ListViewer getLinkList() { return linkList; }
 	public MenuItem getDeleteLinkMenuItem() { return deleteLinkMenuItem; }
 
 	public Button getLinkBtn() {
