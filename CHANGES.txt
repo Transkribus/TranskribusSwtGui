@@ -550,3 +550,4 @@ CHANGES AND BUGFIXES
 	-> Status of pages can be set for an entire document in the 'Document Manager'
 	-> fix slow image rendering on Windows systems
 	-> first draft of new structure type editor
+	-> DOCX export: allow to force page breaks for each single page in a document
