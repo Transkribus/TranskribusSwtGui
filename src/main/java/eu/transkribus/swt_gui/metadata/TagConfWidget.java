@@ -277,7 +277,7 @@ public class TagConfWidget extends Composite {
 //			}
 //		});
 
-		availableTagsTv = new TableViewer(tagsTableContainer, SWT.CHECK | SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+		availableTagsTv = new TableViewer(tagsTableContainer, SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		availableTagsTv.getTable().setToolTipText("List of tags - italic tags are predefined and cannot be removed");
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
 		gd.heightHint = 150;
@@ -294,19 +294,17 @@ public class TagConfWidget extends Composite {
 		});
 		
 		//add checkbox to select tags for the user interface
-		TableViewerColumn checkboxCol = new TableViewerColumn(availableTagsTv, 1);
-		checkboxCol.getColumn().setText("Select for WebUI");
-		checkboxCol.getColumn().setResizable(true);
-		checkboxCol.getColumn().setWidth(30);
-		
-		checkboxCol.setLabelProvider(new ColumnLabelProvider(){
-			@Override public String getText(Object element) {
-				return "";
-			}
-        });
-		
-		//checkboxCol.getViewer().setEditingSupport(editingSupport);
-		
+//		TableViewerColumn checkboxCol = new TableViewerColumn(availableTagsTv, 1);
+//		checkboxCol.getColumn().setText("Select for WebUI");
+//		checkboxCol.getColumn().setResizable(true);
+//		checkboxCol.getColumn().setWidth(30);
+//		
+//		checkboxCol.setLabelProvider(new ColumnLabelProvider(){
+//			@Override public String getText(Object element) {
+//				return "";
+//			}
+//        });
+				
 		
 		TableViewerColumn nameCol = new TableViewerColumn(availableTagsTv, SWT.NONE);
 		nameCol.getColumn().setText("Name");
