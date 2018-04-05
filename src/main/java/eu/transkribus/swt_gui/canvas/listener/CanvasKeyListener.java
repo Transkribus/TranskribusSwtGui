@@ -19,6 +19,8 @@ import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
@@ -122,6 +124,20 @@ public class CanvasKeyListener implements KeyListener {
 		
 		// set modes depending on key press:		
 		CanvasMode mode = canvas.getMode();
+		
+		// set structure type on ctrl + alt + <number key>
+		// FIXME: maybe integrate this keyhook in a "nicer" way, maybe via KeyAction's as below?
+		if (mode.equals(CanvasMode.SELECTION) && CanvasKeys.isCtrlKeyDown(e.stateMask) && CanvasKeys.isAltKeyDown(e.stateMask)) {
+			logger.debug("getting struct for shortcut: "+(char)e.keyCode);
+			
+			StructCustomTagSpec cDef = Storage.getInstance().getStructCustomTagSpecWithShortCut(""+(char)e.keyCode);
+			logger.debug("got: "+cDef);
+			if (cDef != null) {
+				TrpMainWidget.getInstance().setStructureTypeOfSelected(cDef.getCustomTag().getType(), false);
+			}
+			
+			return;
+		}
 		
 		KeyAction ka = CanvasKeys.getKeyAction(e);
 		if (ka == null) {

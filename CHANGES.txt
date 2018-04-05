@@ -549,3 +549,4 @@ CHANGES AND BUGFIXES
 	-> All tag definitions get stored in DB on server for later use in web interface
 	-> Status of pages can be set for an entire document in the 'Document Manager'
 	-> fix slow image rendering on Windows systems
+	-> first draft of new structure type editor

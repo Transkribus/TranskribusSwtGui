@@ -29,6 +29,8 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -246,14 +248,15 @@ public class TagSpecsWidgetForCollection extends Composite {
 		Storage.getInstance().readCollectionTagSpecsFromDB();
 
 		updateAvailableTagSpecs();
-
-		Storage.getInstance().addListener(new IStorageListener() {
-			public void handlTagDefsChangedEvent(TagDefsChangedEvent e) {
+		
+		IStorageListener storageListener = new IStorageListener() {
+			@Override public void handlTagSpecsChangedEvent(TagSpecsChangedEvent e) {
 				updateAvailableTagSpecs();
 			}
-		});
+		};
+		Storage.getInstance().addListener(storageListener);
 		
-		CustomTagFactory.addObserver(new Observer() {
+		Observer customTagFactoryObserver = new Observer() {
 			@Override
 			public void update(Observable o, Object arg) {
 				if (arg instanceof TagRegistryChangeEvent) {
@@ -261,14 +264,25 @@ public class TagSpecsWidgetForCollection extends Composite {
 					updateAvailableTagSpecs();
 				}				
 			}
-		});
+		};
+		CustomTagFactory.addObserver(customTagFactoryObserver);
 		
-		TrpConfig.getTrpSettings().addPropertyChangeListener(new PropertyChangeListener() {
+		PropertyChangeListener propChangeListener = new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
 				if (evt.getPropertyName().equals(TrpSettings.SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY)) {
 					updateAvailableTagSpecs();
 				}
+			}
+		};
+		TrpConfig.getTrpSettings().addPropertyChangeListener(propChangeListener);
+		
+		this.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				Storage.getInstance().removeListener(storageListener);
+				CustomTagFactory.deleteObserver(customTagFactoryObserver);
+				TrpConfig.getTrpSettings().removePropertyChangeListener(propChangeListener);
 			}
 		});
 	}
@@ -310,6 +324,10 @@ public class TagSpecsWidgetForCollection extends Composite {
 	}
 	
 	private void updateAvailableTagSpecs() {
+		if (SWTUtil.isDisposed(this) || SWTUtil.isDisposed(tableViewer.getTable())) {
+			return;
+		}
+		
 		logger.info("updating available tag specs: "+Storage.getInstance().getCustomTagSpecsForCurrentCollection());
 		Display.getDefault().asyncExec(() -> {
 			if (SWTUtil.isDisposed(tableViewer.getTable()) || SWTUtil.isDisposed(this)) {

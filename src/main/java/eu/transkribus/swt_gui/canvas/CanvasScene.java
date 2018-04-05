@@ -568,6 +568,10 @@ public class CanvasScene {
 		return sd;
 	}
 	
+	public List<ITrpShapeType> getSelectedTrpShapeTypes() {
+		return getSelectedData(ITrpShapeType.class);
+	}
+	
 	public <T> List<T> getSelectedData(Class<T> clazz) {
 		List<T> sd = new ArrayList<>();
 		for (Object o : getSelectedData()) {

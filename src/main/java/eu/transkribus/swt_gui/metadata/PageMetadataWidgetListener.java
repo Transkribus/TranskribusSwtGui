@@ -23,6 +23,7 @@ import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent.PageTypeSimpleType;
+import eu.transkribus.core.model.beans.pagecontent.RegionRefType;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.RelationType;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
@@ -110,30 +111,23 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		if (s == mw.pageStyleCombo) {
 			logger.debug("pagestyle changed: "+mw.getPageStyleCombo().getText()+" value = "+EnumUtils.fromValue(PageTypeSimpleType.class, mw.getPageStyleCombo().getText()));
 			page.setType(EnumUtils.fromValue(PageTypeSimpleType.class, mw.pageStyleCombo.getText()));
-			mw.savePage();
 		}
 		else if (s == mw.statusCombo) {
 			logger.debug("setting new status: "+mw.statusCombo.getText());
 			md.setStatus(EnumUtils.fromString(EditStatus.class, mw.statusCombo.getText()));
-			mw.savePage();
 		}
 		// update structure:
 //		else if (s == mw.getRegionTypeCombo() && getNSelected() == 1) {
 //			applyStructureTypeToAllSelected(false);
 //		}
 		else if (mw.getStructureRadios().contains(s) /*&& getNSelected() == 1*/) {
-			applyStructureTypeToAllSelected(((Button) s).getText(), false);
-			mw.savePage();
+			mainWidget.setStructureTypeOfSelected(((Button) s).getText(), false);
 		}
 		else if (s == mw.getApplyStructBtn()) {
-			applyStructureTypeToAllSelected(mw.structureText.getText(), false);
-//			applyTextStyleToAllSelected(false);
-			mw.savePage();
+			mainWidget.setStructureTypeOfSelected(mw.structureText.getText(), false);
 		}
 		else if (s == mw.getApplyStructRecBtn()) {
-			applyStructureTypeToAllSelected(mw.structureText.getText(), true);
-//			applyTextStyleToAllSelected(true);
-			mw.savePage();
+			mainWidget.setStructureTypeOfSelected(mw.structureText.getText(), true);
 		}
 		
 		// update text style:
@@ -173,52 +167,49 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 //		}
 
 		// linking stuff:
-		else if (s == mw.getLinkList() || s == mw.getDeleteLinkMenuItem() || s == mw.getBreakLinkBtn()) {
-			org.eclipse.swt.widgets.List linkList = mw.getLinkList();
-			if (linkList.getSelectionCount()==1) {
-				String[] splits = linkList.getSelection()[0].split(StructuralMetadataWidget.LINK_DELIMITER);
-				String id1 = splits[0].trim();
-				String id2 = splits[1].trim();
-				
+		else if (s == mw.getLinkList().getList() || s == mw.getDeleteLinkMenuItem() || s == mw.getBreakLinkBtn()) {
+			RelationType link = mw.getSelectedLink();
+			if (link != null) {
 				if (s == mw.getDeleteLinkMenuItem() || s == mw.getBreakLinkBtn()) {
-					logger.debug("deleting link "+id1+StructuralMetadataWidget.LINK_DELIMITER+id2+", hasLink = "+ page.hasLink(id1, id2));
-					
-					if (page.removeLink(id1, id2)) {
+					logger.debug("deleting link "+link);
+					if (page.removeLink(link)) {
 						mainWidget.updatePageRelatedMetadata();
 					}
-				} else if (s == mw.getLinkList()) {
-					logger.debug("selecting link "+id1+StructuralMetadataWidget.LINK_DELIMITER+id2+", hasLink = "+ page.hasLink(id1, id2));
+				} else if (s == mw.getLinkList().getList()) {
+					logger.debug("selecting link "+link);
+					canvas.getScene().selectObject(null, true, false);
 					
-					RelationType r = page.getLink(id1, id2);
-					if (r!=null) {
-						ITrpShapeType s1 = (ITrpShapeType) r.getRegionRef().get(0).getRegionRef();
-						ITrpShapeType s2 = (ITrpShapeType) r.getRegionRef().get(1).getRegionRef();
-						
-						if (s1 != null && s2 != null) {
-							canvas.getScene().selectObjectWithData(s1, true, false);
-							canvas.getScene().selectObjectWithData(s2, true, true);
+					boolean sentSignal=false;
+					for (RegionRefType ref : link.getRegionRef()) {
+						if (ref != null && ref.getRegionRef() instanceof ITrpShapeType) {
+							if (!sentSignal) {
+								canvas.getScene().selectObjectWithData(ref.getRegionRef(), true, true);
+								sentSignal = true;
+							}
+							else {
+								canvas.getScene().selectObjectWithData(ref.getRegionRef(), false, true);
+							}
 						}
+					}
+					canvas.redraw();
+				}
+			}
+		} else if (s ==  mw.linkBtn) {
+			logger.debug("linking shapes: "+canvas.getScene().getNSelected());
+			if (canvas.getScene().getNSelected()>=2) {
+				List<ITrpShapeType> selectedShapeTypes = canvas.getScene().getSelectedTrpShapeTypes();
+				if (!selectedShapeTypes.isEmpty()) {
+					RelationType link = Storage.getInstance().getTranscript().getPage().addLink(selectedShapeTypes);
+					logger.debug("added link: "+link);
+					if (link != null) {
+						mainWidget.updatePageRelatedMetadata();
 					}
 				}
 			}
-			mw.savePage();
-		} else if (s ==  mw.linkBtn) {
-			if (canvas.getScene().getNSelected()==2) {
-				logger.debug("linking shapes!");
-				List<Object> selData = canvas.getScene().getSelectedData();
-				ITrpShapeType st1 = (ITrpShapeType) selData.get(0);
-				ITrpShapeType st2 = (ITrpShapeType) selData.get(1);
-				if (Storage.getInstance().hasTranscript()) {
-					Storage.getInstance().getTranscript().getPage().addLink(st1, st2);
-					mainWidget.updatePageRelatedMetadata();
-				}
-			}
-			mw.savePage();
 		}
 		else if (s == mw.shapeTypeCombo) {
 			try {
 				convertSelectedShape(mw.shapeTypeCombo.getText());
-				mw.savePage();
 				logger.debug("11");
 			} catch (IOException e1) {
 				DialogUtil.showErrorMessageBox(canvas.getShell(), "Error while converting shape", e1.getMessage());
@@ -337,24 +328,24 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 	public void modifyText(ModifyEvent e) { 
 		if (e.getSource() == mw.structureText) {
 			logger.debug("structure type text changed - applying to selected: "+mw.structureText.getText());
-			applyStructureTypeToAllSelected(mw.structureText.getText(), false);
+			mainWidget.setStructureTypeOfSelected(mw.structureText.getText(), false);
 		}
 	}
 	
-	private void applyStructureTypeToAllSelected(String structType, boolean recursive) {
-		List<ICanvasShape> selected = mainWidget.getCanvas().getScene().getSelectedAsNewArray();
-		logger.debug("applying structure type to selected, n = "+selected.size()+" structType: "+structType);
-//		TextTypeSimpleType struct = EnumUtils.fromValue(TextTypeSimpleType.class, mw.getRegionTypeCombo().getText());
-//		String struct = mw.getStructureType();		
-		for (ICanvasShape sel : selected) {
-			logger.debug("updating struct type for " + sel+" type = "+structType);
-			ITrpShapeType st = GuiUtil.getTrpShape(sel);
-			
-			st.setStructure(structType, recursive, mw);
-		}
-		
-		mainWidget.refreshStructureView();
-	}
+//	private void applyStructureTypeToAllSelected(String structType, boolean recursive) {
+//		List<ICanvasShape> selected = mainWidget.getCanvas().getScene().getSelectedAsNewArray();
+//		logger.debug("applying structure type to selected, n = "+selected.size()+" structType: "+structType);
+////		TextTypeSimpleType struct = EnumUtils.fromValue(TextTypeSimpleType.class, mw.getRegionTypeCombo().getText());
+////		String struct = mw.getStructureType();		
+//		for (ICanvasShape sel : selected) {
+//			logger.debug("updating struct type for " + sel+" type = "+structType);
+//			ITrpShapeType st = GuiUtil.getTrpShape(sel);
+//			
+//			st.setStructure(structType, recursive, mw);
+//		}
+//		
+//		mainWidget.refreshStructureView();
+//	}
 
 //	private IntRange getTagRange(int nRanges, Pair<ITrpShapeType, IntRange> r) {
 //		ATranscriptionWidget aw = ui.getSelectedTranscriptionWidget();

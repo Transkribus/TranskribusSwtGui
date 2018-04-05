@@ -35,6 +35,8 @@ import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
 import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,13 +80,13 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
-import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
-import eu.transkribus.core.model.beans.customtags.PersonTag;
+import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
+import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageTypeUtils;
@@ -102,10 +104,10 @@ import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.Event;
-import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.core.util.ProxyUtils;
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
@@ -121,13 +123,16 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.MainImageLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.PageLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TagDefsChangedEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.StructTagSpecsChangedEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TagSpecsChangedEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecDBUtil;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
+import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
+import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -158,7 +163,7 @@ public class Storage {
 	
 	private List<CustomTagSpec> customTagSpecs = new ArrayList<>();
 	private List<CustomTagSpec> collectionSpecificTagSpecs = new ArrayList<>();
-	
+	private List<StructCustomTagSpec> structCustomTagSpecs = new ArrayList<>();
 	private Map<String, Pair<Integer, String>> virtualKeysShortCuts = new HashMap<>();
 	
 	private int collId;
@@ -220,6 +225,7 @@ public class Storage {
 		initTranscriptCache();
 		addInternalListener();
 		readTagSpecsFromLocalSettings();
+		readStructTagSpecsFromLocalSettings();
 		
 		// init some dummy vk shortcuts:
 //		setVirtualKeyShortCut("1", Pair.of(1, "hello"));
@@ -2396,16 +2402,20 @@ public class Storage {
 		return customTagSpecs;
 	}
 	
+	public List<StructCustomTagSpec> getStructCustomTagSpecs() {
+		return structCustomTagSpecs;
+	}
+	
 	public void addCustomTagSpec(CustomTagSpec tagSpec, boolean collectionSpecific) {
 		if (collectionSpecific){
 			collectionSpecificTagSpecs.add(tagSpec);
-			sendEvent(new TagDefsChangedEvent(this, collectionSpecificTagSpecs));
+			sendEvent(new TagSpecsChangedEvent(this, collectionSpecificTagSpecs));
 			return;
 		}
-		
+	
 		customTagSpecs.add(tagSpec);
-		checkTagSpecsConsistency();
-		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		CustomTagSpecUtil.checkTagSpecsConsistency(customTagSpecs);
+		sendEvent(new TagSpecsChangedEvent(this, customTagSpecs));
 	
 		try {
 			storeCustomTagSpecsForCurrentCollection();
@@ -2418,75 +2428,80 @@ public class Storage {
 	public void removeCustomTagSpec(CustomTagSpec tagDef, boolean collectionSpecific) {
 		if (collectionSpecific){
 			collectionSpecificTagSpecs.remove(tagDef);
-			sendEvent(new TagDefsChangedEvent(this, collectionSpecificTagSpecs));
+			sendEvent(new TagSpecsChangedEvent(this, collectionSpecificTagSpecs));
 			return;
 		}
 		
 		customTagSpecs.remove(tagDef);
-		checkTagSpecsConsistency();
-		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		CustomTagSpecUtil.checkTagSpecsConsistency(customTagSpecs);
+		sendEvent(new TagSpecsChangedEvent(this, customTagSpecs));
 		
 		try {
 			storeCustomTagSpecsForCurrentCollection();
 		} catch (ClientErrorException | IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
+	}
+	
+	public void addStructCustomTagSpec(StructCustomTagSpec tagSpec) {
+		structCustomTagSpecs.add(tagSpec);
+		CustomTagSpecUtil.checkTagSpecsConsistency(structCustomTagSpecs);
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+	
+		storeStructCustomTagSpecsForCurrentCollection();
+	}
+	
+	public String getNewStructCustomTagColor() {
+		return CustomTagSpecUtil.getNewStructSpecColor(structCustomTagSpecs);
+	}
+	
+	public void removeStructCustomTagSpec(CustomTagSpec tagDef) {
+		structCustomTagSpecs.remove(tagDef);
+		CustomTagSpecUtil.checkTagSpecsConsistency(structCustomTagSpecs);
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+		
+		storeStructCustomTagSpecsForCurrentCollection();
 	}
 	
 	public void signalCustomTagSpecsChanged() {
-		checkTagSpecsConsistency();
-		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		CustomTagSpecUtil.checkTagSpecsConsistency(customTagSpecs);
+		sendEvent(new TagSpecsChangedEvent(this, customTagSpecs));
 		try {
 			storeCustomTagSpecsForCurrentCollection();
 		} catch (ClientErrorException | IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
+	}
+	
+	public void signalStructCustomTagSpecsChanged() {
+		CustomTagSpecUtil.checkTagSpecsConsistency(structCustomTagSpecs);
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+		storeStructCustomTagSpecsForCurrentCollection();
 	}
 	
 	public CustomTagSpec getCustomTagSpecWithShortCut(String shortCut) {
-		if (shortCut == null) {
-			return null;
-		}
-		
-		return customTagSpecs.stream().filter(cDef -> { return StringUtils.equals(shortCut, cDef.getShortCut());}).findFirst().get();
+		return CustomTagSpecUtil.getCustomTagSpecWithShortCut(customTagSpecs, shortCut);
 	}
 	
-	private void checkTagSpecsConsistency() {
-		checkTagDefsShortCutConsistency();
+	public StructCustomTagSpec getStructCustomTagSpecWithShortCut(String shortCut) {
+		return CustomTagSpecUtil.getCustomTagSpecWithShortCut(structCustomTagSpecs, shortCut);
 	}
 	
-	private void checkTagDefsShortCutConsistency() {
-		for (CustomTagSpec cDef: customTagSpecs) {
-			String sc1 = cDef.getShortCut();
-			
-			for (CustomTagSpec cDefOther : customTagSpecs) {
-				String sc2 = cDefOther.getShortCut();
-				
-				if (cDef == cDefOther) {
-					continue;
-				}
-				
-				if (sc1!=null && sc2!=null && sc1.equals(sc2)) {
-					cDefOther.setShortCut(null);
-				}
-			}
-		}		
-	}
-		
 	private void storeCustomTagSpecsForCurrentCollection() {
-		
-		logger.debug("updating custom tag defs for local mode, customTagDefs: "+customTagSpecs);
+		logger.debug("updating custom tag specs for local mode, customTagSpecs: "+customTagSpecs);
 		CustomTagSpecUtil.writeCustomTagSpecsToSettings(customTagSpecs);
-				
+	}
+	
+	private void storeStructCustomTagSpecsForCurrentCollection() {
+		logger.debug("updating struct custom tag specs for local mode, structCustomTagSpecs: "+structCustomTagSpecs);
+		CustomTagSpecUtil.writeStructCustomTagSpecsToSettings(structCustomTagSpecs);
 	}
 	
 	private void readTagSpecsFromLocalSettings() {
 		customTagSpecs.clear();
 		customTagSpecs.addAll(CustomTagSpecUtil.readCustomTagSpecsFromSettings());
 		
-		sendEvent(new TagDefsChangedEvent(this, customTagSpecs));
+		sendEvent(new TagSpecsChangedEvent(this, customTagSpecs));
 	}
 	
 	public void readCollectionTagSpecsFromDB() {
@@ -2522,6 +2537,47 @@ public class Storage {
 		
 		//sendEvent(new TagDefsChangedEvent(this, collectionSpecificTagSpecs));
 	}
+
+	private void readStructTagSpecsFromLocalSettings() {
+		structCustomTagSpecs.clear();
+		structCustomTagSpecs.addAll(CustomTagSpecUtil.readStructCustomTagSpecsFromSettings());
+		
+		if (structCustomTagSpecs.isEmpty()) {
+			structCustomTagSpecs.addAll(getDefaultStructCustomTagSpecs());
+		}
+		
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+	}
+	
+	public void restoreDefaultStructCustomTagSpecs() {
+		structCustomTagSpecs.clear();
+		structCustomTagSpecs.addAll(getDefaultStructCustomTagSpecs());
+		
+		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+	}
+	
+	public static List<StructCustomTagSpec> getDefaultStructCustomTagSpecs() {
+		List<StructCustomTagSpec> specs = new ArrayList<>();
+		
+		int i=0;
+		for (TextTypeSimpleType tt : TextTypeSimpleType.values()) {
+			StructCustomTagSpec spec = new StructCustomTagSpec(new StructureTag(tt.value()), TaggingWidgetUtils.INDEX_COLORS[i++]);
+			specs.add(spec);
+		}
+		
+		return specs;
+	}
+	
+	public Color getStructureTypeColor(String type) {
+		StructCustomTagSpec c = structCustomTagSpecs.stream().filter(c1 -> c1.getCustomTag().getType().equals(type)).findFirst().orElse(null);
+		if (c!=null && c.getRGB()!=null) {
+			return Colors.createColor(c.getRGB());
+		}
+		else {
+			return Colors.getSystemColor(SWT.COLOR_WHITE);
+		}
+	}
+	// END OF CUSTOM TAG SPECS STUFF
 	
 	// virtual keys shortcuts:
 	public Pair<Integer, String> getVirtualKeyShortCutValue(String key) {
@@ -2553,7 +2609,6 @@ public class Storage {
 	public Map<String, Pair<Integer, String>> getVirtualKeysShortCuts() {
 		return virtualKeysShortCuts;
 	}
-	
 	// END OF CUSTOM TAG SPECS STUFF
 	
 	// START OF COLLECTION-SPECIFIC TAG STUFF
@@ -2667,5 +2722,10 @@ public class Storage {
 	
 	
 	// END OF COLLECTION-SPECIFIC TAG STUFF
+	public void saveTagDefinitions() {
+		String tagNamesProp = CustomTagFactory.createTagDefPropertyForConfigFile();
+		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
+		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
+	}
 
 }
