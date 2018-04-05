@@ -85,23 +85,27 @@ public class StructuralMetadataWidget extends Composite {
 		shapeTypeCombo.setItems(RegionTypeUtil.ALL_REGIONS.toArray(new String[0]));
 		
 		// NEW STUFF
-		structureGroup = new Group(this, SWT.NONE);
-		structureGroup.setText("Structure Type");
-		structureGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
-		GridLayout structureGl = new GridLayout(2, false);
-		structureGl.verticalSpacing = 0;
-		structureGl.marginWidth = 1;
-		structureGroup.setLayout(structureGl);
-		Fonts.setBoldFont(structureGroup);
+//		structureGroup = new Group(this, SWT.NONE);
+//		structureGroup.setText("Structure Type");
+//		structureGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+//		GridLayout structureGl = new GridLayout(2, false);
+//		structureGl.verticalSpacing = 0;
+//		structureGl.marginWidth = 1;
+//		structureGroup.setLayout(structureGl);
+//		Fonts.setBoldFont(structureGroup);
 		
-		Label structLabel = new Label(structureGroup, 0);
+		Label structureTypeLabel = new Label(this, 0);
+		structureTypeLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		Fonts.setBoldFont(structureTypeLabel);
+		
+		Label structLabel = new Label(this, 0);
 		structLabel.setText("Type of selected: ");
-		structureText = new Text(structureGroup, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
+		structureText = new Text(this, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
 		structureText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		structureText.setToolTipText("The structure type of the selected element");		
 		
-		structTagSpecWidget = new StructTagSpecWidget(structureGroup, 0, false);
-		structTagSpecWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+		structTagSpecWidget = new StructTagSpecWidget(this, 0, false);
+		structTagSpecWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
 		((GridData)structTagSpecWidget.getLayoutData()).heightHint = 500;
 		Fonts.setNormalFont(structTagSpecWidget.getHeaderLbl());
 		// END NEW STUFF

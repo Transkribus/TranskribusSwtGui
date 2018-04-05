@@ -51,7 +51,7 @@ public class StructTagConfDialog extends Dialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(400, 600);
+		return new Point(500, 800);
 	}
 
 	@Override
