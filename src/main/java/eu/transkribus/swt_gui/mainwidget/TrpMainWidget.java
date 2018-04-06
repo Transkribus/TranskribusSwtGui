@@ -4237,6 +4237,9 @@ public class TrpMainWidget {
 			if (fn == null)
 				return;
 
+			// store current location 
+			lastLocalDocFolder = fn;
+			
 			// enable sync mode to allow for local docs without images
 			DocLoadConfig config = new DocLoadConfig();
 			config.setEnableSyncWithoutImages(true);
@@ -4386,6 +4389,9 @@ public class TrpMainWidget {
 			if (fn == null)
 				return;
 
+			// store current location 
+			lastLocalDocFolder = fn;
+			
 			File inputDir = new File(fn);
 			List<File> imgFiles = Arrays.asList(inputDir.listFiles(new ImgFileFilter()));
 			Collections.sort(imgFiles);
