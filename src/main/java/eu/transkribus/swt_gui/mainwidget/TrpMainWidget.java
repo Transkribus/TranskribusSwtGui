@@ -86,6 +86,7 @@ import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
+import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.util.ImgFileFilter;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpCollection;
@@ -4237,9 +4238,9 @@ public class TrpMainWidget {
 				return;
 
 			// enable sync mode to allow for local docs without images
-			TrpDoc localDoc = LocalDocReader.load(fn,false,true);
-			// create thumbs for this doc:			
-			CreateThumbsService.createThumbForDoc(localDoc, false, updateThumbsWidgetRunnable);
+			DocLoadConfig config = new DocLoadConfig();
+			config.setEnableSyncWithoutImages(true);
+			TrpDoc localDoc = LocalDocReader.load(fn, config);
 
 			final DocSyncDialog d = new DocSyncDialog(getShell(), storage.getDoc(), localDoc);
 			if (d.open() != Dialog.OK) {

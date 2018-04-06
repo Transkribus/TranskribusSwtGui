@@ -65,29 +65,6 @@ public class DocSyncDialog extends Dialog {
 				+ "\n"
 				+ "Note: Pages are synced according to filename! Only checked pages will be synced.");
 
-		Group formatGroup = new Group(container, SWT.FILL | SWT.RIGHT);
-		formatGroup.setLayout(new RowLayout(SWT.HORIZONTAL));
-		
-		Label chooseFormat = new Label(formatGroup, SWT.LEFT);
-		chooseFormat.setText("Choose synchronization format (PAGE XML or txt):  ");
-		
-		Button xmlFormat = new Button(formatGroup, SWT.RADIO);
-		xmlFormat.setText("page");
-		// TODO continue here
-//		xmlFormat.addSelectionListener(new SelectionAdapter() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//				updateGroupVisibility();
-//			}
-//		});
-//		Button txtFormat = new Button(formatGroup, SWT.RADIO);
-//		txtFormat.setText("txt");
-//		txtFormat.addSelectionListener(new SelectionAdapter() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//				updateGroupVisibility();
-//			}
-//		});
-				
-		
 		SashForm sf = new SashForm(container, SWT.HORIZONTAL);
 		sf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		sf.setLayout(new GridLayout(2, true));
