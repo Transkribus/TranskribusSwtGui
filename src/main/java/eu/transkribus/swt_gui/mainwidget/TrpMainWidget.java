@@ -4955,24 +4955,6 @@ public class TrpMainWidget {
 							error.add(errorMsg);
 						} else {
 							try {
-								Integer symUrl = col.getPageId();
-								/*
-								 * set new pageID(= new symbolic image for collection) if old is in this document
-								 * 
-								 * FIXME original code causes NullpointerException when no document is loaded. 
-								 * Also, this does not work for all documents to be deleted except the one that is loaded.
-								 * issue #192
-								 */
-								//original code:
-//								if (storage.getDoc().getPageWithId(symUrl) != null){
-								//workaround:
-								if (storage.getDoc() != null && storage.getDoc().getPageWithId(symUrl) != null){
-									logger.debug("symbolic image of collection is in deleted doc -> we must select another image");
-									//hence doc to delete contains symbolic image for this collection
-									//and so we need new symbolic image
-									symbolicImgDeleted = true;
-								}
-
 								storage.deleteDocument(storage.getCollId(), d.getDocId());
 								logger.info("deleted document: "+d);
 							} catch (SessionExpiredException | TrpClientErrorException | TrpServerErrorException e) {
@@ -4986,12 +4968,7 @@ public class TrpMainWidget {
 	
 						monitor.worked(++i);
 					}
-					//set symbolic image to the first pageID of the remaining documents
-					if (symbolicImgDeleted && Storage.getInstance().getDocList().size() > 0){
-						logger.debug("set new symbolic image: take the one from doc: " + Storage.getInstance().getDocList().get(0).getDocId());
-						col.setPageId(Storage.getInstance().getDocList().get(0).getPageId());
-						storage.getConnection().updateCollectionMd(col);
-					}
+
 				}
 				catch (InterruptedException ie) {
 					throw ie;
@@ -5013,7 +4990,7 @@ public class TrpMainWidget {
 			}
 			mw.onError("Error deleting documents", msg, null);
 			try {
-				//reload necessary in fact the symbolic image has changed
+				//reload necessary in fact the symbolic image has changed - this is done during the delete job
 				storage.reloadCollections();
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
 					| NoConnectionException e) {
@@ -5027,7 +5004,7 @@ public class TrpMainWidget {
 			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully deleted "+docs.size()+" documents");
 			//clean up GUI
 			try {
-				//reload necessary in fact the symbolic image has changed
+				//reload necessary in fact the symbolic image has changed - this is done during the delete job
 				storage.reloadCollections();
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
 					| NoConnectionException e) {

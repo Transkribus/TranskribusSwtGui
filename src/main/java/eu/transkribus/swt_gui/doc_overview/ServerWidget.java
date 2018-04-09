@@ -300,7 +300,7 @@ public class ServerWidget extends Composite {
 				
 		removeFromCollectionTi = new ToolItem(tb, SWT.PUSH);
 		removeFromCollectionTi.setImage(Images.DELETE);
-		removeFromCollectionTi.setToolTipText("Remove selected documents from this collection....");
+		removeFromCollectionTi.setToolTipText("Unlink selected documents from this collection....");
 		
 		deleteDocTi = new ToolItem(tb, SWT.PUSH);
 		deleteDocTi.setImage(Images.FOLDER_DELETE);
@@ -308,7 +308,7 @@ public class ServerWidget extends Composite {
 		
 		duplicateDocTi = new ToolItem(tb, SWT.PUSH);
 		duplicateDocTi.setImage(Images.PAGE_COPY);
-		duplicateDocTi.setToolTipText("Duplicate the selected documents into another collection...");
+		duplicateDocTi.setToolTipText("Duplicate/Copy the selected documents into another collection...");
 		
 		administerCollectionTi = new ToolItem(tb, SWT.PUSH);
 		administerCollectionTi.setImage(Images.COG_EDIT);
@@ -348,11 +348,11 @@ public class ServerWidget extends Composite {
 		
 		addToCollectionMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
 		addToCollectionMenuItem.setImage(Images.ADD);
-		addToCollectionMenuItem.setText("Add to different collection...");
+		addToCollectionMenuItem.setText("Link to different collection...");
 		
 		removeFromCollectionMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
 		removeFromCollectionMenuItem.setImage(Images.DELETE);
-		removeFromCollectionMenuItem.setText("Remove from this collection...");		
+		removeFromCollectionMenuItem.setText("Unlink from this collection...");		
 		
 		deleteDocMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
 		deleteDocMenuItem.setImage(Images.FOLDER_DELETE);
@@ -360,7 +360,7 @@ public class ServerWidget extends Composite {
 		
 		duplicateDocMenuItem = new MenuItem(docOverviewMenu, SWT.PUSH);
 		duplicateDocMenuItem.setImage(Images.PAGE_COPY);
-		duplicateDocMenuItem.setText("Duplicate...");
+		duplicateDocMenuItem.setText("Duplicate/Copy...");
 	}
 	
 	private void configExpandable(ExpandableComposite exp, Composite client, String text, final Composite container, boolean expand) {
