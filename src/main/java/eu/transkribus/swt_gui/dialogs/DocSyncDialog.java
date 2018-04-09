@@ -2,15 +2,22 @@ package eu.transkribus.swt_gui.dialogs;
 
 import java.util.List;
 
+import javax.swing.ButtonGroup;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Assert;
@@ -57,7 +64,7 @@ public class DocSyncDialog extends Dialog {
 		titleLabel.setText("Select pages from the source document on the right to correspond with pages on the target document on the left. \n"
 				+ "\n"
 				+ "Note: Pages are synced according to filename! Only checked pages will be synced.");
-		
+
 		SashForm sf = new SashForm(container, SWT.HORIZONTAL);
 		sf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		sf.setLayout(new GridLayout(2, true));
@@ -67,12 +74,10 @@ public class DocSyncDialog extends Dialog {
 		targetViewer.setDataList(target.getPages());
 		targetViewer.setTitle("Target: "+target.getMd().getTitle());
 		
-		sourceViewer = new DocPageViewer(sf, 0, false, true, false);
+		sourceViewer = new DocPageViewer(sf, 0, false, true, false,false);
 		sourceViewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		sourceViewer.setDataList(source.getPages());
 		sourceViewer.setTitle("Source: "+source.getMd().getTitle());
-		sourceViewer.togglePreview(false);
-		
 		
 		sf.setWeights(new int[] { 1, 1 } );
 

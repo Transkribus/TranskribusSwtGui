@@ -121,7 +121,7 @@ public class UploadDialogUltimate extends Dialog {
 	public static final String TITLE_COL = "Title";
 	public static final String NR_OF_FILES_COL = "Nr. of Files";
 	public static final String CREATE_DATE_COL = "Last modified";
-	public static final String USER_TMP_FOLDER = System.getProperty("java.io.tmpdir") + File.separator + "TrpPDFimgs";
+	public static final String USER_TMP_FOLDER = System.getProperty("java.io.tmpdir") + "TrpPDFimgs";
 	
 	public static final ColumnConfig[] DOC_DIR_COLS = new ColumnConfig[] {
 		new ColumnConfig(DIRECTORY_COL, 180, true, DefaultTableColumnViewerSorter.ASC),

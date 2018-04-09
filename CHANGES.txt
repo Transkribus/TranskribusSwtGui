@@ -551,3 +551,5 @@ CHANGES AND BUGFIXES
 	-> fix slow image rendering on Windows systems
 	-> first draft of new structure type editor
 	-> DOCX export: allow to force page breaks for each single page in a document
+	-> sync dialog: allow synchronizing from txt files
+	-> bugfix: memory and path reading errors for pdf upload 
