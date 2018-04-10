@@ -4945,9 +4945,6 @@ public class TrpMainWidget {
 					monitor.beginTask("Deleting documents", docs.size());
 					TrpUserLogin user = storage.getUser();
 					int i = 0;
-					boolean symbolicImgDeleted = false;
-					boolean currDocDeleted = false;
-					TrpCollection col = storage.getCollection(storage.getCollId());
 					for (TrpDocMetadata d : docs) {
 						if (monitor.isCanceled())
 							throw new InterruptedException();
