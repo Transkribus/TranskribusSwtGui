@@ -554,3 +554,4 @@ CHANGES AND BUGFIXES
 	-> sync dialog: allow synchronizing from txt files
 	-> bugfix: memory and path reading errors for pdf upload 
 	-> bugfix: resetting symbolic image during deletion of document
+	-> compare versions now also considers tables

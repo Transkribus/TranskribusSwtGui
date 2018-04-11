@@ -20,9 +20,13 @@ import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
+import eu.transkribus.core.model.beans.pagecontent.TableCellType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.CoreUtils;
@@ -38,6 +42,7 @@ import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage.StorageException;
+import eu.transkribus.swt_gui.table_editor.TableUtils.TrpTablePointsInconsistentException;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import eu.transkribus.util.OcrConfig;
 import eu.transkribus.util.TextRecognitionConfig;
@@ -293,21 +298,40 @@ public class ToolsWidgetListener implements SelectionListener {
 				ArrayList<String> refText = new ArrayList<String>(); 
 				ArrayList<String> hypText = new ArrayList<String>();
 				
+				TrpPageType refPage = (TrpPageType) ref.unmarshallTranscript().getPage();
+				TrpPageType hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
+				
 				if (ref != null && hyp != null) {
 
-					for (TrpRegionType region : ref.unmarshallTranscript().getPage().getTextRegionOrImageRegionOrLineDrawingRegion()){
+					for (TrpRegionType region : refPage.getRegions()){
 						if (region instanceof TrpTextRegionType){
 							for (TextLineType line : ((TrpTextRegionType) region).getTextLine()){
 								refText.add(((TrpTextLineType) line).getUnicodeText());
 								//refText = refText.concat(region.getUnicodeText());
 							}
 						}
+						
+						if (region instanceof TrpTableRegionType) {
+							for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
+								for (TextLineType line : cell.getTextLine()) {
+									refText.add(((TrpTextLineType) line).getUnicodeText());
+								}
+							}
+						}
 					}
-					for (TrpRegionType region : hyp.unmarshallTranscript().getPage().getTextRegionOrImageRegionOrLineDrawingRegion()){
+					
+					for (TrpRegionType region : hypPage.getRegions()){
 						if (region instanceof TrpTextRegionType){
 							for (TextLineType line : ((TrpTextRegionType) region).getTextLine()){
 								hypText.add(((TrpTextLineType) line).getUnicodeText());
 							//hypText = hypText.concat(region.getUnicodeText());
+							}
+						}
+						if (region instanceof TrpTableRegionType) {
+							for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
+								for (TextLineType line : cell.getTextLine()) {
+									hypText.add(((TrpTextLineType) line).getUnicodeText());
+								}
 							}
 						}
 					}
