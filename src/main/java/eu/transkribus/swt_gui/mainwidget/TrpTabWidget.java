@@ -99,6 +99,7 @@ public class TrpTabWidget extends Composite {
 	
 	void init() {
 		mainTf = createTabFolder(this);
+		mainTf.setFont(Fonts.createFontWithHeight(mainTf.getFont(), 11));
 
 		serverTf = createTabFolder(mainTf);
 		serverItem = createCTabItem(mainTf, serverTf, "Server", firstRowItems);
@@ -112,6 +113,7 @@ public class TrpTabWidget extends Composite {
 		structureItem = createCTabItem(mainTf, structureTf, Msgs.get2("layout_tab_title"), firstRowItems);
 
 		metadataTf = createTabFolder(mainTf);
+//		metadataTf.setFont(Fonts.createFontWithHeight(metadataTf.getFont(), 10));
 		metadataItem = createCTabItem(mainTf, metadataTf, "Metadata", firstRowItems);
 		initMetadataTf();
 
@@ -124,7 +126,7 @@ public class TrpTabWidget extends Composite {
 
 		setDefaultSelection();
 
-		updateFirstRowColors();
+		initTabItemStyles();
 		initTabFolderSelectionListener();
 	}
 
@@ -137,10 +139,10 @@ public class TrpTabWidget extends Composite {
 		SWTUtil.setSelection(toolsTf, remoteToolsItem);
 	}
 
-	void updateFirstRowColors() {
-		for (CTabItem i : firstRowItems) {
-			i.setFont(Fonts.addStyleBit(i.getFont(), SWT.ITALIC));
-		}
+	void initTabItemStyles() {
+//		for (CTabItem i : secondRowItems) {
+//			i.setFont(Fonts.addStyleBit(i.getFont(), SWT.ITALIC));
+//		}
 	}
 
 	void updateTabItemStyles() {
