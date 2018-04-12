@@ -79,14 +79,11 @@ public class StructureTreeWidget extends Composite {
 
 	Tree tree;
 	TreeViewer treeViewer;
-	ToolItem clearPageItem;
+	ToolItem clearPageItem, deleteSelectedBtn;
 	ToolItem updateIDsItem, expandAll, collapseAll, setReadingOrderRegions, assignGeometrically /*, setReadingOrderLines, setReadingOrderWords*/;
 	//ToolItem deleteReadingOrderRegions;
 	
-	ToolItem moveUpButton;
-	ToolItem moveDownButton;
-	
-	
+	ToolItem moveUpButton, moveDownButton;
 
 	public final static ColConfig TYPE_COL = new ColConfig("Type", 100);
 	public final static ColConfig ID_COL = new ColConfig("ID", 65);
@@ -101,9 +98,6 @@ public class StructureTreeWidget extends Composite {
 	static final int UP = 0;
 	static final int DOWN = 1;
 	
-	/**
-	 * @wbp.parser.constructor
-	 */
 	public StructureTreeWidget(Composite parent) {
 		super(parent, SWT.NONE);
 
@@ -139,6 +133,10 @@ public class StructureTreeWidget extends Composite {
 		clearPageItem = new ToolItem(toolBar, 0);
 		clearPageItem.setToolTipText("Clear page content");
 		clearPageItem.setImage(Images.CROSS);
+		
+		deleteSelectedBtn = new ToolItem(toolBar, 0);
+		deleteSelectedBtn.setToolTipText("Delete selected shapes");
+		deleteSelectedBtn.setImage(Images.DELETE);
 
 		updateIDsItem = new ToolItem(toolBar, SWT.NONE);
 		updateIDsItem.setToolTipText("Assigns unique IDs to all elements according to their current sorting");
@@ -215,6 +213,10 @@ public class StructureTreeWidget extends Composite {
 	
 	public ToolItem getClearPageItem() {
 		return clearPageItem;
+	}
+	
+	public ToolItem getDeleteSelectedBtn() {
+		return deleteSelectedBtn;
 	}
 	
 	public ToolItem getSetReadingOrderRegions() {

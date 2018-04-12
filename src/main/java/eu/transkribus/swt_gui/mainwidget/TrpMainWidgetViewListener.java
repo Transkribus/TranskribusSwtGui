@@ -55,8 +55,12 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 		
 		SWTUtil.onSelectionEvent(ui.getStructureTreeWidget().getClearPageItem(), (e) -> { 			
 			if (DialogUtil.showYesNoDialog(ui.getShell(), "Really?", "Do you really want to clear the whole page content?")==SWT.YES) {
-			ui.getCanvas().getShapeEditor().removeAll();
+				ui.getCanvas().getShapeEditor().removeAll();
 			} 
+		});
+		
+		SWTUtil.onSelectionEvent(ui.getStructureTreeWidget().getDeleteSelectedBtn(), e -> {
+			mw.getCanvas().getShapeEditor().removeSelected();
 		});
 		
 		SWTUtil.onSelectionEvent(ui.getStructureTreeWidget().getSetReadingOrderRegions(), (e) -> { 
