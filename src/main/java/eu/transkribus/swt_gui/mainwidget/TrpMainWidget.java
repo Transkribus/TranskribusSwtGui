@@ -811,7 +811,7 @@ public class TrpMainWidget {
 		// line editor listener (modify and enter pressed)
 		// lineEditorListener = new LineEditorListener(this);
 		// struct tree listener:
-		structTreeListener = new StructureTreeListener(this);
+		structTreeListener = new StructureTreeListener(ui.getStructureTreeWidget().getTreeViewer(), true);
 		// transcription observer:
 		transcriptObserver = new TranscriptObserver(this);
 		// shape observer:
@@ -2667,6 +2667,7 @@ public class TrpMainWidget {
 
 	public void refreshStructureView() {
 		ui.getStructureTreeViewer().refresh();
+		ui.getStructuralMetadataWidget().getStructTagListWidget().getTreeViewer().refresh();
 	}
 
 	// public TreeViewer getStructureTreeViewer() {

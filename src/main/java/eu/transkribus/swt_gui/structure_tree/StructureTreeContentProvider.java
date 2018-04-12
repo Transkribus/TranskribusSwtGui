@@ -18,7 +18,7 @@ public class StructureTreeContentProvider implements ITreeContentProvider {
 	private static final Logger logger = LoggerFactory.getLogger(StructureTreeContentProvider.class);
 	
 //	public static boolean DISPLAY_ROOT_ELEMENT=true;
-	TrpPageType page;
+//	TrpPageType page;
 
 	@Override
 	public void dispose() {
@@ -26,9 +26,9 @@ public class StructureTreeContentProvider implements ITreeContentProvider {
 
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {		
-		if (newInput instanceof TrpPageType) {
-			this.page = (TrpPageType) newInput;
-		}
+//		if (newInput instanceof TrpPageType) {
+//			this.page = (TrpPageType) newInput;
+//		}
 	}
 
 	@Override
@@ -58,7 +58,7 @@ public class StructureTreeContentProvider implements ITreeContentProvider {
 	@Override
 	public Object[] getChildren(Object parentElement) {
 		if (parentElement instanceof TrpPageType) {
-			logger.debug("getting children elements for: "+parentElement);
+			logger.trace("getting children elements for: "+parentElement);
 //			return getElements(parentElement);
 			return ((TrpPageType) parentElement).getAllShapes(false).toArray();
 		}
@@ -75,12 +75,12 @@ public class StructureTreeContentProvider implements ITreeContentProvider {
 //			return ((ITrpShapeType)parentElement).getChildren(true).toArray();
 //		}
 		else if (parentElement instanceof ITrpShapeType) {
-			logger.debug("name of shape " + ((ITrpShapeType) parentElement).getName());
-			logger.debug("shape " + parentElement);
+			logger.trace("name of shape " + ((ITrpShapeType) parentElement).getName());
+			logger.trace("shape " + parentElement);
 			return ((ITrpShapeType)parentElement).getChildren(false).toArray();
 		}
 		else{
-			logger.debug("(else) name of shape " + ((ITrpShapeType) parentElement).getName());
+			logger.trace("(else) name of shape " + ((ITrpShapeType) parentElement).getName());
 		}
 //		else if (parentElement instanceof TrpTextRegionType) {
 //			return ((TrpTextRegionType)parentElement).getTextLine().toArray();

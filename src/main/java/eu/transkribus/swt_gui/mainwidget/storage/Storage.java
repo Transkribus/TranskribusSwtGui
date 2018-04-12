@@ -18,6 +18,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import javax.json.JsonArray;
 import javax.security.auth.login.LoginException;
@@ -2405,6 +2406,10 @@ public class Storage {
 	
 	public List<StructCustomTagSpec> getStructCustomTagSpecs() {
 		return structCustomTagSpecs;
+	}
+	
+	public List<String> getStructCustomTagSpecsTypeStrings() {
+		return structCustomTagSpecs.stream().map(t -> t.getCustomTag().getType()).collect(Collectors.toList());
 	}
 	
 	public void addCustomTagSpec(CustomTagSpec tagSpec, boolean collectionSpecific) {

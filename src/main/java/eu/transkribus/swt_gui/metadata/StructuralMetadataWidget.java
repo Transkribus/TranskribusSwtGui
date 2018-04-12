@@ -9,6 +9,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -59,6 +60,7 @@ public class StructuralMetadataWidget extends Composite {
 	Combo shapeTypeCombo;
 	
 	StructTagSpecWidget structTagSpecWidget;
+	StructTagListWidget structTagListWidget;
 	
 	List<Button> structureRadios = new ArrayList<>();
 	
@@ -105,12 +107,22 @@ public class StructuralMetadataWidget extends Composite {
 		structLabel.setText("Type of selected: ");
 		structureText = new Text(this, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
 		structureText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		structureText.setToolTipText("The structure type of the selected element");		
+		structureText.setToolTipText("The structure type of the selected element");
 		
-		structTagSpecWidget = new StructTagSpecWidget(this, 0, false);
-		structTagSpecWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
-		((GridData)structTagSpecWidget.getLayoutData()).heightHint = 500;
+		SashForm structureSf = new SashForm(this, SWT.VERTICAL);
+		structureSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
+		structTagSpecWidget = new StructTagSpecWidget(structureSf, 0, false);
+//		structTagSpecWidget.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 2, 1));
+//		((GridData)structTagSpecWidget.getLayoutData()).heightHint = 500;
 //		Fonts.setNormalFont(structTagSpecWidget.getHeaderLbl());
+		
+		structTagListWidget = new StructTagListWidget(structureSf, 0);
+//		structTagListWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
+//		((GridData)structTagListWidget.getLayoutData()).heightHint = 500;
+		
+		structureSf.setWeights(new int[] {60, 40});
+		
 		// END NEW STUFF
 		
 //		createStructureGroup(this);
@@ -495,6 +507,10 @@ public class StructuralMetadataWidget extends Composite {
 	
 	public StructTagSpecWidget getStructTagSpecWidget() {
 		return structTagSpecWidget;
+	}
+	
+	public StructTagListWidget getStructTagListWidget() {
+		return structTagListWidget;
 	}
 	
 //	public CheckboxTableViewer getStructureTypeTableViewer() { return structureTypeTableViewer; }
