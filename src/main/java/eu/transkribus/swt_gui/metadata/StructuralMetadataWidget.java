@@ -110,7 +110,7 @@ public class StructuralMetadataWidget extends Composite {
 		structTagSpecWidget = new StructTagSpecWidget(this, 0, false);
 		structTagSpecWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
 		((GridData)structTagSpecWidget.getLayoutData()).heightHint = 500;
-		Fonts.setNormalFont(structTagSpecWidget.getHeaderLbl());
+//		Fonts.setNormalFont(structTagSpecWidget.getHeaderLbl());
 		// END NEW STUFF
 		
 //		createStructureGroup(this);
@@ -491,6 +491,10 @@ public class StructuralMetadataWidget extends Composite {
 
 	public List<Button> getStructureRadios() {
 		return structureRadios;
+	}
+	
+	public StructTagSpecWidget getStructTagSpecWidget() {
+		return structTagSpecWidget;
 	}
 	
 //	public CheckboxTableViewer getStructureTypeTableViewer() { return structureTypeTableViewer; }

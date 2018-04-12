@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.widgets.Display;
 
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.MouseButtons;
 import eu.transkribus.util.APropertyChangeSupport;
 
@@ -121,7 +122,7 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		private boolean showMouseCoords = false;
 		public static final String IS_SHOW_MOUSE_COORDS_PROPERTY = "showMouseCoords";
 
-		private Color canvasBackgroundColor = null; 
+		private Color canvasBackgroundColor = Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
 		public static final String BACKGROUND_COLOR_PROPERTY = "canvasBackgroundColor";
 		
 		public static final String LOCK_ZOOM_ON_FOCUS_PROPERTY = "lockZoomOnFocus";

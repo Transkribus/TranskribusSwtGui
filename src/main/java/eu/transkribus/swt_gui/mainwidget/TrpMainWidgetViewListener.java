@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ArmEvent;
 import org.eclipse.swt.events.ArmListener;
 import org.eclipse.swt.events.MenuEvent;
@@ -25,6 +26,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.CanvasToolBarNew;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.mainwidget.TrpTabWidget.TrpTabItemSelectionListener;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.vkeyboards.ITrpVirtualKeyboardsTabWidgetListener;
@@ -197,6 +199,16 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 			
 			@Override
 			public void menuHidden(MenuEvent e) {
+			}
+		});
+		
+		// tab item listener:
+		ui.getTabWidget().addTabItemSelectionListener(new TrpTabItemSelectionListener() {
+			@Override
+			public void onTabItemSelected(CTabItem tabItem) {
+				logger.debug("tab item selected: "+tabItem);
+				
+				ui.getCanvas().redraw();
 			}
 		});
 	}

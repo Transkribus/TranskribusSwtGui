@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.mainwidget.settings;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -167,11 +168,17 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean showAllTagsInTagEditor = false;
 	public static final String SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY = "showAllTagsInTagEditor";
 	
-	private boolean showAllStructTagsInTagEditor = false;
-	public static final String SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY = "showAllStructTagsInTagEditor";
+//	private boolean showAllStructTagsInTagEditor = false;
+//	public static final String SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY = "showAllStructTagsInTagEditor";
 	
-	private boolean drawShapesInStructColors = false;
-	public static final String DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY = "drawShapesInStructColors";
+//	private boolean drawShapesInStructColors = false;
+//	public static final String DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY = "drawShapesInStructColors";
+	
+	private boolean drawShapesInDefaultColorsInStructEditor = false;
+	public static final String DRAW_SHAPES_IN_DEFAULT_COLORS_IN_STRUCT_EDITOR_PROPERTY = "drawShapesInDefaultColorsInStructEditor";
+	
+	private boolean drawStructTypeText = true;
+	public static final String DRAW_STRUCT_TYPE_TEXT_PROPERTY = "drawStructTypeText";
 	
 	private boolean highlightComments = false;
 	public static final String HIGHLIGHT_COMMENTS_PROPERTY = "highlightComments";
@@ -299,8 +306,10 @@ public class TrpSettings extends APropertyChangeSupport {
 	private int textAlignment = SWT.LEFT; // SWT.LEFT, SWT.RIGHT or SWT.CENTER
 	public static final String TEXT_ALIGNMENT = "textAlignment";
 	
-	static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
-	}};
+	static final String[] DO_NOT_SAVE_THOSE_PROPERTIES = { 
+			DRAW_SHAPES_IN_DEFAULT_COLORS_IN_STRUCT_EDITOR_PROPERTY,
+			DRAW_STRUCT_TYPE_TEXT_PROPERTY
+	};
 	
 	public TrpSettings() {
 		super();
@@ -660,22 +669,41 @@ public class TrpSettings extends APropertyChangeSupport {
 		firePropertyChange(SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY, !this.showAllTagsInTagEditor, this.showAllTagsInTagEditor);
 	}
 	
-	public boolean isShowAllStructTagsInTagEditor() {
-		return showAllStructTagsInTagEditor;
+//	public boolean isShowAllStructTagsInTagEditor() {
+//		return showAllStructTagsInTagEditor;
+//	}
+//
+//	public void setShowAllStructTagsInTagEditor(boolean showAllStructTagsInTagEditor) {
+//		this.showAllStructTagsInTagEditor = showAllStructTagsInTagEditor;
+//		firePropertyChange(SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY, !this.showAllStructTagsInTagEditor, this.showAllStructTagsInTagEditor);
+//	}
+
+//	public boolean isDrawShapesInStructColors() {
+//		return drawShapesInStructColors;
+//	}
+//
+//	public void setDrawShapesInStructColors(boolean drawShapesInStructColors) {
+//		this.drawShapesInStructColors = drawShapesInStructColors;
+//		firePropertyChange(DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY, !this.drawShapesInStructColors, this.drawShapesInStructColors);
+//	}
+	
+	public boolean isDrawShapesInDefaultColorsInStructEditor() {
+		return drawShapesInDefaultColorsInStructEditor;
 	}
 
-	public void setShowAllStructTagsInTagEditor(boolean showAllStructTagsInTagEditor) {
-		this.showAllStructTagsInTagEditor = showAllStructTagsInTagEditor;
-		firePropertyChange(SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY, !this.showAllStructTagsInTagEditor, this.showAllStructTagsInTagEditor);
+	public void setDrawShapesInDefaultColorsInStructEditor(boolean drawShapesInDefaultColorsInStructEditor) {
+		this.drawShapesInDefaultColorsInStructEditor = drawShapesInDefaultColorsInStructEditor;
+		firePropertyChange(DRAW_SHAPES_IN_DEFAULT_COLORS_IN_STRUCT_EDITOR_PROPERTY, !this.drawShapesInDefaultColorsInStructEditor, this.drawShapesInDefaultColorsInStructEditor);
+	}	
+	
+
+	public boolean isDrawStructTypeText() {
+		return drawStructTypeText;
 	}
 
-	public boolean isDrawShapesInStructColors() {
-		return drawShapesInStructColors;
-	}
-
-	public void setDrawShapesInStructColors(boolean drawShapesInStructColors) {
-		this.drawShapesInStructColors = drawShapesInStructColors;
-		firePropertyChange(DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY, !this.drawShapesInStructColors, this.drawShapesInStructColors);
+	public void setDrawStructTypeText(boolean drawStructTypeText) {
+		this.drawStructTypeText = drawStructTypeText;
+		firePropertyChange(DRAW_STRUCT_TYPE_TEXT_PROPERTY, !this.drawStructTypeText, this.drawStructTypeText);
 	}
 
 	public boolean isHighlightComments() {
@@ -1098,7 +1126,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	}
 
 	@Override public List<String> getPropertiesToNotSave() {
-		return DO_NOT_SAVE_THOSE_PROPERTIES;
+		return Arrays.asList(DO_NOT_SAVE_THOSE_PROPERTIES);
 	}
 
 	public Docking getLeftViewDockingState() {

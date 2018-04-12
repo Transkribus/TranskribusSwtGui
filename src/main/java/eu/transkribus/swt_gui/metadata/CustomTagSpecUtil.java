@@ -54,10 +54,11 @@ public class CustomTagSpecUtil {
 	}
 	
 	public static String getNewStructSpecColor(List<StructCustomTagSpec> specs) {
-		for (int i=0; i<TaggingWidgetUtils.INDEX_COLORS.length; ++i) {
-			String newColor = TaggingWidgetUtils.INDEX_COLORS[i];
+		for (int i=0; i<TaggingWidgetUtils.getNColors(); ++i) {
+			String newColor = TaggingWidgetUtils.getColorCodeForIndex(i);
 			RGB newColorRGB = Colors.toRGB(newColor);
-			if (specs.stream().filter(t -> newColorRGB.equals(t.getRGB())).findFirst().orElse(null) == null) { // no spec with new color found --> return this color!
+			if (!newColorRGB.equals(StructCustomTagSpec.DEFAULT_COLOR)
+					&& specs.stream().filter(t -> newColorRGB.equals(t.getRGB())).findFirst().orElse(null) == null) { // no spec with new color found --> return this color!
 				return newColor;
 			}
 		}
