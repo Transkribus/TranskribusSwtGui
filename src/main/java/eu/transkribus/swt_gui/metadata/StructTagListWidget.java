@@ -7,13 +7,12 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -76,6 +75,11 @@ public class StructTagListWidget extends Composite {
 		super(parent, style);
 
 		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		
+		Label l = new Label(this, 0);
+		l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		l.setText("Layout");
+		Fonts.setBoldFont(l);
 		
 		viewer = new TreeViewer(this, SWT.FULL_SELECTION | SWT.SINGLE);
 		viewer.getTree().setHeaderVisible(true);
