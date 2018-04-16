@@ -164,6 +164,8 @@ public class CommonExportDialog extends Dialog {
 	String pagesStr = null;
 	
 	Combo imgQualityCmb = null;
+	Combo fontDropDown = null;
+	String font = "";
 	/*
 	 * TODO add image quality choice to PDF export too
 	 * Combo pdfImgQualityCmb = null;
@@ -1063,6 +1065,29 @@ public class CommonExportDialog extends Dialog {
 				setHighlightTags(highlightTagsBtn.getSelection());
 			}
 		});
+	    
+	    /*
+	     * dropdown with fonts for export
+	     */
+	    Label fontLabel = new Label(pdfComposite, SWT.NONE);
+	    fontLabel.setText("Select Font");
+	    fontDropDown = new Combo(pdfComposite, SWT.DROP_DOWN | SWT.BORDER);
+	    fontDropDown.add("Arial");
+	    fontDropDown.add("Arialunicodems");
+	    /*
+	     * next font covers a lot but is not for free use
+	     */
+	    //fontDropDown.add("Code2000");
+	    fontDropDown.add("FreeSerif");
+	    fontDropDown.add("Junicode");
+	    fontDropDown.add("NotoSans-Regular");
+	    fontDropDown.select(2);
+	    setFont(fontDropDown.getText());
+	    fontDropDown.addSelectionListener(new SelectionAdapter() {
+	        public void widgetSelected(SelectionEvent e) {
+	        	setFont(fontDropDown.getText());
+	        }
+	    });
 
 	    return pdfComposite;
 	}
@@ -1634,6 +1659,14 @@ public class CommonExportDialog extends Dialog {
 
 	public boolean isHighlightTags() {
 		return highlightTags;
+	}
+
+	public String getFont() {
+		return font;
+	}
+
+	public void setFont(String font) {
+		this.font = font;
 	}
 
 	public boolean isCreateTitlePage() {

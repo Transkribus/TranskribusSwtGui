@@ -3391,7 +3391,7 @@ public class TrpMainWidget {
 							exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
-							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache);
+							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont());
 				if (exportDiag.isTeiExport())
 					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag, cache);
 				if (exportDiag.isDocxExport())
@@ -3464,7 +3464,7 @@ public class TrpMainWidget {
 			if (doPdfExport) {
 
 				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), 
-						exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache);
+						exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont());
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -3834,7 +3834,7 @@ public class TrpMainWidget {
 	// }
 
 	public void exportPdf(final File dir, final Set<Integer> pageIndices, final boolean extraTextPages, final boolean imagesOnly,
-			final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle, ExportCache cache)
+			final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle, ExportCache cache, final String exportFontname)
 			throws Throwable {
 		try {
 			if (dir == null)
@@ -3851,7 +3851,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, cache.getSelectedTags(), highlightTags, wordBased, doBlackening,
-								createTitle, cache);
+								createTitle, cache, exportFontname);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;

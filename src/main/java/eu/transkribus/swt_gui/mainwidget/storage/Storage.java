@@ -1834,7 +1834,7 @@ public class Storage {
 		return path;
 	}
 
-	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, final boolean imagesOnly, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle, ExportCache cache) throws MalformedURLException, DocumentException,
+	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, final boolean imagesOnly, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle, ExportCache cache, String exportFontname) throws MalformedURLException, DocumentException,
 			IOException, JAXBException, InterruptedException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
@@ -1872,7 +1872,7 @@ public class Storage {
 		};
 		pdfExp.addObserver(o);
 		
-		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, wordBased, extraTextPages, imagesOnly, highlightTags, doBlackening, createTitle, cache);
+		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, wordBased, extraTextPages, imagesOnly, highlightTags, doBlackening, createTitle, cache, exportFontname);
 
 		return pdf.getAbsolutePath();
 	}
