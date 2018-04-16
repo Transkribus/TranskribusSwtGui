@@ -555,3 +555,4 @@ CHANGES AND BUGFIXES
 	-> bugfix: memory and path reading errors for pdf upload 
 	-> bugfix: resetting symbolic image during deletion of document
 	-> PDF export: select your preferred font or use the default one ('FreeSerif') - mainly to cover the different used character sets
+	-> compare versions now also considers tables

@@ -28,7 +28,7 @@ public class TaggingWidgetUtils {
 	public static boolean APPLY_TAG_TO_WHOLE_LINE_IF_SINGLE_SELECTION=false;
 	
 	/** an array of different colors for tags: */
-	public final static String[] INDEX_COLORS = new String[] {
+	private final static String[] INDEX_COLORS = new String[] {
         "#000000", "#1CE6FF", "#FF34FF", "#008941", "#006FA6", "#A30059", "#FFFF00", "#00846F",
         "#FFDBE5", "#7A4900", "#0000A6", "#63FFAC", "#B79762", "#004D43", "#8FB0FF", "#997D87",
         "#5A0007", "#809693", "#FEFFE6", "#1B4400", "#4FC601", "#3B5DFF", "#4A3B53", "#FF2F80",
@@ -47,10 +47,17 @@ public class TaggingWidgetUtils {
         "#BF5650", "#E83000", "#66796D", "#DA007C", "#FF1A59", "#8ADBB4", "#1E0200", "#5B4E51",
         "#C895C5", "#320033", "#FF6832", "#66E1D3", "#CFCDAC", "#D0AC94", "#7ED379", "#012C58"
 	};
-		
-	public static Color getColorForIndex(int ri) {
-		String colorCode = TaggingWidgetUtils.INDEX_COLORS[ri%(TaggingWidgetUtils.INDEX_COLORS.length-1)+1];
-		Color c = Colors.decode(colorCode);
+	
+	public static int getNColors() {
+		return INDEX_COLORS.length;
+	}
+	
+	public static String getColorCodeForIndex(int i) {
+		return INDEX_COLORS[i%TaggingWidgetUtils.INDEX_COLORS.length];
+	}
+	
+	public static Color getColorForIndex(int i) {
+		Color c = Colors.decode(getColorCodeForIndex(i));
 		return c;
 	}
 	

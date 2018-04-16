@@ -15,7 +15,8 @@ public class StructCustomTagSpec extends CustomTagSpec {
 	
 	RGB rgb;
 	public static String RGB_PROPERTY="rgb";
-	public static RGB DEFAULT_COLOR = new RGB(255, 255, 255);
+//	public static RGB DEFAULT_COLOR = new RGB(255, 255, 255);
+	public static RGB DEFAULT_COLOR = new RGB(0, 0, 0);
 	
 //	StructureTag customTag;
 

@@ -17,23 +17,28 @@ import java.util.Observable;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.GeomUtils;
 import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.RamerDouglasPeuckerFilter;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import math.geom2d.Vector2D;
 import math.geom2d.polygon.Polygon2D;
@@ -70,7 +75,6 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	protected List<ICanvasShape> children=new ArrayList<ICanvasShape>();	
 	
 	public Ellipse2D readingOrderCircle = null;
-	
 		
 	/** A generic data object can be associated with each shape **/ 
 	protected Object data=null;
@@ -477,6 +481,32 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 			gc.drawPolyline(pointArray);
 		}
 	}
+	
+	public ITrpShapeType getTrpShapeType() {
+		return CanvasShapeUtil.getTrpShapeType(this);
+	}
+		
+	public void drawStructType(SWTCanvas canvas, GC gc) {
+		boolean drawStructTypeText = isStructEditorSelected() && TrpConfig.getTrpSettings().isDrawStructTypeText();
+		if (!drawStructTypeText) {
+			return;
+		}
+		
+		ITrpShapeType st = getTrpShapeType();
+		if (st == null || StringUtils.isEmpty(st.getStructure())) {
+			return;
+		}
+		if (st instanceof TrpBaselineType) {
+			return;
+		}
+		
+		int fontHeight = 35;
+		String structStr = st.getStructure();
+		Rectangle bounds = getBounds();
+		gc.setFont(Fonts.createFontWithHeight(gc.getFont(), fontHeight));
+		gc.setAlpha(255);
+		gc.drawString(structStr, bounds.x, bounds.y - gc.stringExtent(structStr).y - 3, true);
+	}
 
 	@Override public void draw(SWTCanvas canvas, GC gc) {
 		CanvasSettings sets = canvas.getSettings();
@@ -532,6 +562,8 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 			gc.fillPolygon(bp.getPointArray());
 //			bp.draw(canvas, gc);
 		}
+		
+		drawStructType(canvas, gc);
 	}
 	
 	//Test
@@ -943,12 +975,17 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	@Override
 	public boolean canInsert() {
 		return true;
-	}	
+	}
+	
+	private boolean isStructEditorSelected() {
+		return TrpMainWidget.getInstance()!=null && TrpMainWidget.getInstance().getUi().getTabWidget().isStructTaggingItemSelected();
+	}
 	
 	@Override
 	public Color getColor() {
-		if (TrpConfig.getTrpSettings().isDrawShapesInStructColors()) {
-			String structType = CustomTagUtil.getStructure(CanvasShapeUtil.getTrpShapeType(this));
+		boolean drawStructColor = isStructEditorSelected() && !TrpConfig.getTrpSettings().isDrawShapesInDefaultColorsInStructEditor();
+		if (drawStructColor) {
+			String structType = getTrpShapeType()==null ? "" : getTrpShapeType().getStructure();
 			Color structColor = Storage.getInstance().getStructureTypeColor(structType);
 			return structColor;
 		}

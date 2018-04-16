@@ -18,6 +18,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import javax.json.JsonArray;
 import javax.security.auth.login.LoginException;
@@ -37,6 +38,7 @@ import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2406,6 +2408,10 @@ public class Storage {
 		return structCustomTagSpecs;
 	}
 	
+	public List<String> getStructCustomTagSpecsTypeStrings() {
+		return structCustomTagSpecs.stream().map(t -> t.getCustomTag().getType()).collect(Collectors.toList());
+	}
+	
 	public void addCustomTagSpec(CustomTagSpec tagSpec, boolean collectionSpecific) {
 		if (collectionSpecific){
 			collectionSpecificTagSpecs.add(tagSpec);
@@ -2561,7 +2567,14 @@ public class Storage {
 		
 		int i=0;
 		for (TextTypeSimpleType tt : TextTypeSimpleType.values()) {
-			StructCustomTagSpec spec = new StructCustomTagSpec(new StructureTag(tt.value()), TaggingWidgetUtils.INDEX_COLORS[i++]);
+			
+			String colorCode = TaggingWidgetUtils.getColorCodeForIndex(i++);
+			RGB rgb = Colors.toRGB(colorCode);
+			if (rgb.equals(StructCustomTagSpec.DEFAULT_COLOR)) { // get next color if this was the default color!
+				colorCode = TaggingWidgetUtils.getColorCodeForIndex(i++);
+			}
+			
+			StructCustomTagSpec spec = new StructCustomTagSpec(new StructureTag(tt.value()), colorCode);
 			specs.add(spec);
 		}
 		
@@ -2574,7 +2587,7 @@ public class Storage {
 			return Colors.createColor(c.getRGB());
 		}
 		else {
-			return Colors.getSystemColor(SWT.COLOR_WHITE);
+			return Colors.createColor(StructCustomTagSpec.DEFAULT_COLOR);
 		}
 	}
 	// END OF CUSTOM TAG SPECS STUFF

@@ -60,7 +60,7 @@ public class StructTagSpecWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(StructTagSpecWidget.class);
 	
 	TableViewer tableViewer;
-	Button showAllTagsBtn, drawShapesInStructColorsBtn, customizeBtn;
+	Button /*showAllTagsBtn, drawShapesInStructColorsBtn,*/ customizeBtn, drawDefaultColorsBtn, drawStructTypeTextBtn;
 	Label headerLbl;
 	
 	Map<CustomTagSpec, ControlEditor> insertTagEditors = new ConcurrentHashMap<>();
@@ -74,7 +74,8 @@ public class StructTagSpecWidget extends Composite {
 	
 	public StructTagSpecWidget(Composite parent, int style, boolean isEditable) {
 		super(parent, style);
-		setLayout(new FillLayout());
+//		setLayout(new FillLayout());
+		setLayout(new GridLayout(1, false));
 		
 		this.isEditable = isEditable;
 		int nCols = isEditable ? 1 : 3;
@@ -82,26 +83,42 @@ public class StructTagSpecWidget extends Composite {
 		Composite topContainer = new Composite(this, SWT.NONE);
 //		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		topContainer.setLayout(new GridLayout(nCols, false));
+//		topContainer.setLayout(new RowLayout(SWT.HORIZONTAL));
 		
-		headerLbl = new Label(topContainer, 0);
-		headerLbl.setText("Structure Tags");
-		Fonts.setBoldFont(headerLbl);
-		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		if (isEditable) {
+			headerLbl = new Label(topContainer, 0);
+			headerLbl.setText("Structure Tags");
+			Fonts.setBoldFont(headerLbl);
+		}
+		
+//		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		DataBinder dBinder = DataBinder.get();
 		
 		if (!isEditable) {
-			if (false) {
-			showAllTagsBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
-			showAllTagsBtn.setText("Show all");
-			showAllTagsBtn.setToolTipText("Show all available structure tags");
-			DataBinder.get().bindBeanToWidgetSelection(
-					TrpSettings.SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY, TrpConfig.getTrpSettings(), showAllTagsBtn);
-			}
-					
-			drawShapesInStructColorsBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
-			drawShapesInStructColorsBtn.setText("Paint struct colors");
-			drawShapesInStructColorsBtn.setToolTipText("Paint all shapes in its structure type color - white means no structure type is set!");
-			DataBinder.get().bindBeanToWidgetSelection(
-					TrpSettings.DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY, TrpConfig.getTrpSettings(), drawShapesInStructColorsBtn);
+//			if (false) {
+//			showAllTagsBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
+//			showAllTagsBtn.setText("Show all");
+//			showAllTagsBtn.setToolTipText("Show all available structure tags");
+//			dBinder.bindBeanToWidgetSelection(
+//					TrpSettings.SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY, TrpConfig.getTrpSettings(), showAllTagsBtn);
+//			}
+			
+//			drawShapesInStructColorsBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
+//			drawShapesInStructColorsBtn.setText("Paint struct colors");
+//			drawShapesInStructColorsBtn.setToolTipText("Paint all shapes in its structure type color - white means no structure type is set!");
+//			dBinder.bindBeanToWidgetSelection(
+//					TrpSettings.DRAW_SHAPES_IN_STRUCT_COLORS_PROPERTY, TrpConfig.getTrpSettings(), drawShapesInStructColorsBtn);
+			
+			drawStructTypeTextBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
+			drawStructTypeTextBtn.setText("Draw struct type");
+			drawStructTypeTextBtn.setToolTipText("Draws the structure type in the canvas");
+			dBinder.bindBeanToWidgetSelection(TrpSettings.DRAW_STRUCT_TYPE_TEXT_PROPERTY, TrpConfig.getTrpSettings(), drawStructTypeTextBtn);
+			
+			drawDefaultColorsBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
+			drawDefaultColorsBtn.setText("Draw default colors");
+			drawDefaultColorsBtn.setToolTipText("Draws the default shape colors according to their region type");
+			dBinder.bindBeanToWidgetSelection(TrpSettings.DRAW_SHAPES_IN_DEFAULT_COLORS_IN_STRUCT_EDITOR_PROPERTY, TrpConfig.getTrpSettings(), drawDefaultColorsBtn);
 			
 			customizeBtn = new Button(topContainer, 0);
 			customizeBtn.setText("Customize..");
@@ -112,7 +129,7 @@ public class StructTagSpecWidget extends Composite {
 			});
 		}
 				
-		Composite tableContainer = new Composite(topContainer, SWT.NONE);
+		Composite tableContainer = new Composite(this, SWT.NONE);
 		tableContainer.setLayout(SWTUtil.createGridLayout(isEditable ? 2 : 1, false, 0, 0));
 		tableContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, nCols, 1));
 		
@@ -286,7 +303,7 @@ public class StructTagSpecWidget extends Composite {
 						public void focusGained(FocusEvent e) {
 							StructCustomTagSpec cDef = (StructCustomTagSpec) element;
 							if (StringUtils.isEmpty(cDef.getShortCut())) {
-								ce.setValue("Enter a number between 0 and 9");
+								ce.setValue("0 - 9");
 								ce.performSelectAll();		
 							}
 						}
@@ -392,9 +409,15 @@ public class StructTagSpecWidget extends Composite {
 
 		topContainer.layout(true);
 		
+//		if (isEditable) {
+//			SWTUtil.packAndFillLastColumn(tableViewer);
+//		}
 		
 		updateAvailableTagSpecs();
 
+		
+		// Listener:
+		
 		IStorageListener storageListener = new IStorageListener() {
 			@Override public void handlStructTagSpecsChangedEvent(StructTagSpecsChangedEvent e) {
 				updateAvailableTagSpecs();
@@ -416,9 +439,9 @@ public class StructTagSpecWidget extends Composite {
 		PropertyChangeListener propertyChangeListener = new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent evt) {
-				if (evt.getPropertyName().equals(TrpSettings.SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY)) {
-					updateAvailableTagSpecs();
-				}
+//				if (evt.getPropertyName().equals(TrpSettings.SHOW_ALL_STRUCT_TAGS_IN_TAG_EDITOR_PROPERTY)) {
+//					updateAvailableTagSpecs();
+//				}
 			}
 		};
 		TrpConfig.getTrpSettings().addPropertyChangeListener(propertyChangeListener);
@@ -473,10 +496,10 @@ public class StructTagSpecWidget extends Composite {
 			}
 			
 //			boolean showAllTags = TrpConfig.getTrpSettings().isShowAllStructTagsInTagEditor();
-			boolean showAllTags = false;
-			if (!isEditable) {
-				SWTUtil.setSelection(showAllTagsBtn, showAllTags);
-			}
+//			boolean showAllTags = false;
+//			if (!isEditable) {
+//				SWTUtil.setSelection(showAllTagsBtn, showAllTags);
+//			}
 			tableViewer.setInput(Storage.getInstance().getStructCustomTagSpecs());
 			
 //			if (isEditable || !showAllTags) {
@@ -520,8 +543,12 @@ public class StructTagSpecWidget extends Composite {
 		return getSelected().isEmpty() ? null : getSelected().get(0);
 	}
 	
-	public Label getHeaderLbl() {
-		return headerLbl;
+//	public Label getHeaderLbl() {
+//		return headerLbl;
+//	}
+	
+	public Button getDrawDefaultColorsBtn() {
+		return drawDefaultColorsBtn;
 	}
 
 }

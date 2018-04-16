@@ -11,26 +11,19 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
-import org.eclipse.jface.viewers.ComboBoxCellEditor;
-import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.TreeViewerEditor;
 import org.eclipse.jface.viewers.TreeViewerFocusCellManager;
-import org.eclipse.jface.viewers.ViewerDropAdapter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.dnd.TransferData;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -45,19 +38,12 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
-import eu.transkribus.core.model.beans.pagecontent.TextLineType;
-import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
-import eu.transkribus.core.model.beans.pagecontent.WordType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
-import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -79,16 +65,13 @@ public class StructureTreeWidget extends Composite {
 
 	Tree tree;
 	TreeViewer treeViewer;
-	ToolItem clearPageItem;
+	ToolItem clearPageItem, deleteSelectedBtn;
 	ToolItem updateIDsItem, expandAll, collapseAll, setReadingOrderRegions, assignGeometrically /*, setReadingOrderLines, setReadingOrderWords*/;
 	//ToolItem deleteReadingOrderRegions;
 	
-	ToolItem moveUpButton;
-	ToolItem moveDownButton;
-	
-	
+	ToolItem moveUpButton, moveDownButton;
 
-	public final static ColConfig TYPE_COL = new ColConfig("Type", 100);
+	public final static ColConfig TYPE_COL = new ColConfig("Type", 110);
 	public final static ColConfig ID_COL = new ColConfig("ID", 65);
 	public final static ColConfig TEXT_COL = new ColConfig("Text", 100);
 	public final static ColConfig COORDS_COL = new ColConfig("Coords", 200);
@@ -101,9 +84,6 @@ public class StructureTreeWidget extends Composite {
 	static final int UP = 0;
 	static final int DOWN = 1;
 	
-	/**
-	 * @wbp.parser.constructor
-	 */
 	public StructureTreeWidget(Composite parent) {
 		super(parent, SWT.NONE);
 
@@ -139,6 +119,10 @@ public class StructureTreeWidget extends Composite {
 		clearPageItem = new ToolItem(toolBar, 0);
 		clearPageItem.setToolTipText("Clear page content");
 		clearPageItem.setImage(Images.CROSS);
+		
+		deleteSelectedBtn = new ToolItem(toolBar, 0);
+		deleteSelectedBtn.setToolTipText("Delete selected shapes");
+		deleteSelectedBtn.setImage(Images.DELETE);
 
 		updateIDsItem = new ToolItem(toolBar, SWT.NONE);
 		updateIDsItem.setToolTipText("Assigns unique IDs to all elements according to their current sorting");
@@ -217,6 +201,10 @@ public class StructureTreeWidget extends Composite {
 		return clearPageItem;
 	}
 	
+	public ToolItem getDeleteSelectedBtn() {
+		return deleteSelectedBtn;
+	}
+	
 	public ToolItem getSetReadingOrderRegions() {
 		return setReadingOrderRegions;
 	}
@@ -244,120 +232,16 @@ public class StructureTreeWidget extends Composite {
 			TreeViewerColumn column = new TreeViewerColumn(treeViewer, SWT.MULTI);
 			column.getColumn().setText(cf.name);
 			column.getColumn().setWidth(cf.colSize);
-			column.setLabelProvider(new StructureTreeLabelProvider());
+			column.setLabelProvider(new StructureTreeLabelProvider(treeViewer, false));
 
 			if (cf.equals(STRUCTURE_TYPE_COL)) {
-				column.setEditingSupport(new EditingSupport(treeViewer) {
-					@Override protected void setValue(Object element, Object value) {
-						ITrpShapeType s = (ITrpShapeType) element;
-						int i = (int) value;
-						if (i >= 1 && i <= TextTypeSimpleType.values().length) {
-							s.setStructure(TextTypeSimpleType.values()[i - 1].value(), false, this);
-						}
-						if (i == 0)
-							s.setStructure(null, false, this);
-						treeViewer.refresh();
-					}
-
-					@Override protected Object getValue(Object element) {
-						ITrpShapeType s = (ITrpShapeType) element;
-						String struct = s.getStructure();
-						return EnumUtils.indexOf(StructureTag.parseTextType(struct)) + 1;
-					}
-
-					@Override protected CellEditor getCellEditor(Object element) {
-						List<String> values = EnumUtils.valuesList(TextTypeSimpleType.class);
-						values.add(0, ""); // add empty string as value to
-											// delete structure type!
-
-						return new ComboBoxCellEditor(treeViewer.getTree(), values.toArray(new String[0]), SWT.READ_ONLY);
-					}
-
-					@Override protected boolean canEdit(Object element) {
-						boolean isPageLocked = Storage.getInstance().isPageLocked();
-						boolean isRegionOrLineOrWord = element instanceof TrpTextRegionType || element instanceof TrpTextLineType || element instanceof TrpWordType;
-						
-						return !isPageLocked && isRegionOrLineOrWord;
-					}
-				});
+				column.setEditingSupport(new StructureTypeEditingSupport(treeViewer));
 			}
 			
 			if (cf.equals(READING_ORDER_COL)) {
-				column.setEditingSupport(new EditingSupport(treeViewer) {
-					@Override protected void setValue(Object element, Object value) {
-						ITrpShapeType s = (ITrpShapeType) element;
-						//logger.debug("value is: "+value);
-						String valueStr = (String) value;
-						//logger.debug("valueStr is: "+valueStr);
-					
-						if (valueStr.isEmpty()) {
-							s.setReadingOrder(null, StructureTreeWidget.this);
-						} else {
-							try {
-								int ro = Integer.parseInt(valueStr);
-								//logger.debug("++++++++++++reInsertIntoParent(ro) " + (ro-1));
-								s.removeFromParent();
-								s.reInsertIntoParent(ro-1);
-								//s.setReadingOrder(ro, StructureTreeWidget.this);
-							} catch (NumberFormatException ne) {
-								logger.debug("not a valid number: "+valueStr);
-							}
-						}
-						treeViewer.refresh();
-					}
-
-					@Override protected Object getValue(Object element) {
-						ITrpShapeType s = (ITrpShapeType) element;
-						//increase reding order with one to have sorting from 1 to n instead of 0 to n
-						return s.getReadingOrder()==null ? "" : ""+(s.getReadingOrder()+1);
-					}
-
-					@Override protected CellEditor getCellEditor(Object element) {
-						return new TextCellEditor(treeViewer.getTree());
-					}
-
-					@Override protected boolean canEdit(Object element) {
-						boolean isPageLocked = Storage.getInstance().isPageLocked();
-						boolean isRegionOrLineOrWord = element instanceof TrpRegionType || element instanceof TrpTextLineType || element instanceof TrpWordType;
-						return !isPageLocked && isRegionOrLineOrWord;
-					}
-				});
+				column.setEditingSupport(new ReadingOrderEditingSupport(this, treeViewer));
 			}
-
-			// editing support for text column:
-			if (cf.equals(TEXT_COL) && false) { // disable editing of text in structure widget -> too dangerous...
-				column.setEditingSupport(new EditingSupport(treeViewer) {
-
-					@Override protected void setValue(Object element, Object value) {
-						if (element instanceof ITrpShapeType)
-							((ITrpShapeType) element).setUnicodeText((String) value, StructureTreeWidget.this);
-					}
-
-					@Override protected Object getValue(Object element) {
-						String text = "";
-						if (element instanceof ITrpShapeType)
-							text = ((ITrpShapeType) element).getUnicodeText();
-
-						return text;
-					}
-
-					@Override protected CellEditor getCellEditor(Object element) {
-						return new TextCellEditor(treeViewer.getTree());
-					}
-
-					@Override protected boolean canEdit(Object element) {
-//						boolean isPageLocked = Storage.getInstance().isPageLocked();
-//						boolean isLineOrWord = element instanceof TrpTextLineType || element instanceof TrpWordType;
-//						return !isPageLocked && (isLineOrWord);
-						
-						return false;
-					}
-				});
-
-			}
-
 		}
-
 	}
 
 	private void initEditOnDoubleClick() {

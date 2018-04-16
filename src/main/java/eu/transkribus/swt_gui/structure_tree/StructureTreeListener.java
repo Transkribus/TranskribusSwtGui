@@ -25,18 +25,20 @@ import eu.transkribus.swt_gui.util.GuiUtil;
 public class StructureTreeListener implements ISelectionChangedListener, IDoubleClickListener, KeyListener {
 	private final static Logger logger = LoggerFactory.getLogger(StructureTreeListener.class);
 	
-	TrpMainWidget mainWidget;
+//	TrpMainWidget mainWidget;
 	TreeViewer treeViewer;
 	Tree tree;
 	
 	public boolean isInsideTreeSelectionEvent=false;
-		
-	public StructureTreeListener(TrpMainWidget mainWidget) {
-		this.mainWidget = mainWidget;
-		this.treeViewer = mainWidget.getUi().getStructureTreeViewer();
+			
+	public StructureTreeListener(TreeViewer treeViewer, boolean autoAttachAll) {
+//		this.mainWidget = TrpMainWidget.getInstance();
+		this.treeViewer = treeViewer;
 		this.tree = treeViewer.getTree();
 		
-		attach();
+		if (autoAttachAll) {
+			attach();
+		}
 	}
 	
 	public void detach() {
@@ -54,6 +56,7 @@ public class StructureTreeListener implements ISelectionChangedListener, IDouble
 
 	@Override
 	public void doubleClick(DoubleClickEvent event) {
+		TrpMainWidget mainWidget = TrpMainWidget.getInstance();
 //		logger.debug("source = "+e.getSource());
 		
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
@@ -72,6 +75,7 @@ public class StructureTreeListener implements ISelectionChangedListener, IDouble
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
+		TrpMainWidget mainWidget = TrpMainWidget.getInstance();
 		isInsideTreeSelectionEvent = true;
 		IStructuredSelection selection = (IStructuredSelection)event.getSelection();
 				
@@ -100,6 +104,7 @@ public class StructureTreeListener implements ISelectionChangedListener, IDouble
 
 	@Override
 	public void keyPressed(KeyEvent e) {
+		TrpMainWidget mainWidget = TrpMainWidget.getInstance();
 //		if (true)
 //			return;
 		int nSelected = tree.getSelection().length;

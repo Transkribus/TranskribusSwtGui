@@ -16,6 +16,7 @@ import org.eclipse.swt.graphics.GC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 
 public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode<ICanvasShape> {	
@@ -296,5 +297,7 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	Ellipse2D getReadingOrderCircle();
 	void showReadingOrder(boolean contains);
 	boolean isReadingOrderVisible();
+	
+	ITrpShapeType getTrpShapeType();
 
 }

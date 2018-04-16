@@ -811,7 +811,7 @@ public class TrpMainWidget {
 		// line editor listener (modify and enter pressed)
 		// lineEditorListener = new LineEditorListener(this);
 		// struct tree listener:
-		structTreeListener = new StructureTreeListener(this);
+		structTreeListener = new StructureTreeListener(ui.getStructureTreeWidget().getTreeViewer(), true);
 		// transcription observer:
 		transcriptObserver = new TranscriptObserver(this);
 		// shape observer:
@@ -2667,6 +2667,7 @@ public class TrpMainWidget {
 
 	public void refreshStructureView() {
 		ui.getStructureTreeViewer().refresh();
+		ui.getStructuralMetadataWidget().getStructTagListWidget().getTreeViewer().refresh();
 	}
 
 	// public TreeViewer getStructureTreeViewer() {
@@ -4945,9 +4946,6 @@ public class TrpMainWidget {
 					monitor.beginTask("Deleting documents", docs.size());
 					TrpUserLogin user = storage.getUser();
 					int i = 0;
-					boolean symbolicImgDeleted = false;
-					boolean currDocDeleted = false;
-					TrpCollection col = storage.getCollection(storage.getCollId());
 					for (TrpDocMetadata d : docs) {
 						if (monitor.isCanceled())
 							throw new InterruptedException();

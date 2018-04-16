@@ -1,25 +1,33 @@
 package eu.transkribus.swt_gui.structure_tree;
 
+import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.ITableLabelProvider;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.swt.graphics.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
-import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget.ColConfig;
-
-import org.eclipse.jface.viewers.CellLabelProvider;
-import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.ViewerCell;
-import org.eclipse.swt.graphics.Image;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class StructureTreeLabelProvider extends CellLabelProvider implements ITableLabelProvider {
 	private final static Logger logger = LoggerFactory.getLogger(StructureTreeLabelProvider.class);
+	TreeViewer treeViewer;
+	Storage store = Storage.getInstance();
+	boolean useStructColors=false;
+	
+	public StructureTreeLabelProvider(TreeViewer treeViewer, boolean useStructColors) {
+		this.treeViewer = treeViewer;
+		this.useStructColors = useStructColors;
+	}
 
 	@Override
 	public void addListener(ILabelProviderListener listener) {		
@@ -43,7 +51,7 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 		return null;
 	}
 	
-	public static String getTextForElement(Object element, int columnIndex) {
+	public static String getTextForElement(Object element, int columnIndex, String columnName) {
 		String name="", id="", coords="", text="", regionType="", readingOrder="", other="";
 		
 		if (element instanceof TrpPageType) {
@@ -96,26 +104,25 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 			}
 		}
 		
-		ColConfig col = StructureTreeWidget.COLUMNS[columnIndex];
-
-		if (columnIndex < 0 || columnIndex >= StructureTreeWidget.COLUMNS.length)
-			return "wrong col index";
+//		ColConfig col = StructureTreeWidget.COLUMNS[columnIndex];
+//		if (columnIndex < 0 || columnIndex >= StructureTreeWidget.COLUMNS.length)
+//			return "wrong col index";
 		
-		else if (col == StructureTreeWidget.TYPE_COL)
+		if (columnName.equals(StructureTreeWidget.TYPE_COL.name))
 			return name;
-		else if (col == StructureTreeWidget.ID_COL)
+		else if (columnName.equals(StructureTreeWidget.ID_COL.name))
 			return id;
-		else if (col == StructureTreeWidget.TEXT_COL)
+		else if (columnName.equals(StructureTreeWidget.TEXT_COL.name))
 			return text;
-		else if (col == StructureTreeWidget.COORDS_COL)
+		else if (columnName.equals(StructureTreeWidget.COORDS_COL.name))
 			return coords;
-		else if (col == StructureTreeWidget.STRUCTURE_TYPE_COL)
+		else if (columnName.equals(StructureTreeWidget.STRUCTURE_TYPE_COL.name))
 			return regionType;
-		else if (col == StructureTreeWidget.READING_ORDER_COL)
+		else if (columnName.equals(StructureTreeWidget.READING_ORDER_COL.name))
 			return readingOrder;
-		else if (col == StructureTreeWidget.READING_ORDER_COL)
+		else if (columnName.equals(StructureTreeWidget.READING_ORDER_COL.name))
 			return readingOrder;
-		else if (col == StructureTreeWidget.OTHER_COL)
+		else if (columnName.equals(StructureTreeWidget.OTHER_COL.name))
 			return other;
 		
 		return "i am error!";
@@ -124,19 +131,25 @@ public class StructureTreeLabelProvider extends CellLabelProvider implements ITa
 
 	@Override
 	public String getColumnText(Object element, int columnIndex) {
-		return getTextForElement(element, columnIndex);
+		String columnName = treeViewer.getTree().getColumn(columnIndex).getText();
+		return getTextForElement(element, columnIndex, columnName);
 	}
 	
 	// CellLabelProvider:
 
 	@Override
 	public void update(ViewerCell cell) {
-		ColConfig cf = StructureTreeWidget.COLUMNS[cell.getColumnIndex()];
 		Object element = cell.getViewerRow().getElement();
-//		logger.trace("column = "+cf.name);
-		 
-		String text = StructureTreeLabelProvider.getTextForElement(element, cell.getColumnIndex());
+		String columnName = treeViewer.getTree().getColumn(cell.getColumnIndex()).getText();
+		String text = StructureTreeLabelProvider.getTextForElement(element, cell.getColumnIndex(), columnName);
+		
+		
 		cell.setText(text);
+		
+		if (useStructColors && element instanceof ITrpShapeType && columnName.equals(StructureTreeWidget.STRUCTURE_TYPE_COL.name)) {
+			ITrpShapeType st = (ITrpShapeType) element;
+			cell.setForeground(store.getStructureTypeColor(st.getStructure()));
+		}
 	}
 
 

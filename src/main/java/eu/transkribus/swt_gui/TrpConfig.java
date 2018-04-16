@@ -180,12 +180,17 @@ public class TrpConfig {
 		}
 	}
 	
-	private static void updateConfigFromBean(APropertyChangeSupport bean, String... forceAddThisProperties) {
+	private static void updateConfigFromBean(APropertyChangeSupport bean, boolean excludePropertiesNotToSave, String... forceAddThisProperties) {
 		List<String> addThoseL = Arrays.asList(forceAddThisProperties);
 
 		logger.debug("updating config from bean: "+bean.getClass().getName()+ ", adding those props: "+CoreUtils.toListString(addThoseL));
 		
 		for (PropertyDescriptor pd :  PropertyUtils.getPropertyDescriptors(bean)) {
+			if (excludePropertiesNotToSave && !bean.isSaveProperty(pd.getName())) {
+				logger.debug("excluding non save property: "+pd.getName());
+				continue;
+			}
+			
 			Object value = null;
 			try {
 //				logger.debug("property name: "+pd.getName());
@@ -256,7 +261,7 @@ public class TrpConfig {
 	public static void save(String... forceAddThisProperties) {
 		try {
 			for (APropertyChangeSupport bean : getRegisteredBeans()) {
-				updateConfigFromBean(bean, forceAddThisProperties);
+				updateConfigFromBean(bean, true, forceAddThisProperties);
 			}
 			
 			config.save();

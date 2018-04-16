@@ -42,6 +42,7 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.shapes.RectDirection;
 import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableCellUndoData;
 import eu.transkribus.swt_gui.table_editor.TableShapeEditOperation;
@@ -326,11 +327,8 @@ public class CanvasShapeEditor {
 		
 	public void removeSelected() {
 		List<ICanvasShape> selected = scene.getSelectedAsNewArray();
-		
 		logger.debug("removing selected: "+selected.size()+ " / "+scene.nShapes());
-		
 		removeShapesFromCanvas(selected, true);
-				
 		canvas.redraw();
 	}
 	

@@ -284,7 +284,7 @@ public class TagSpecsWidget extends Composite {
 						public void focusGained(FocusEvent e) {
 							CustomTagSpec cDef = (CustomTagSpec) element;
 							if (StringUtils.isEmpty(cDef.getShortCut())) {
-								ce.setValue("Enter a number between 0 and 9");
+								ce.setValue("0 - 9");
 								ce.performSelectAll();		
 							}
 						}

@@ -77,15 +77,29 @@ public class TrpTabWidget extends Composite {
 	List<CTabItem> allItems = new ArrayList<>();
 
 	List<CTabFolder> tabfolder = new ArrayList<>();
+	
+	public interface TrpTabItemSelectionListener {
+		public void onTabItemSelected(CTabItem tabItem);
+	}
+	List<TrpTabItemSelectionListener> tabItemSelectionListener = new ArrayList<>();
 
 	public TrpTabWidget(Composite parent, int style) {
 		super(parent, style);
 		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		init();
 	}
-
+	
+	public void addTabItemSelectionListener(TrpTabItemSelectionListener listener) {
+		tabItemSelectionListener.add(listener);
+	}
+	
+	public boolean removeTabItemSelectionListener(TrpTabItemSelectionListener listener) {
+		return tabItemSelectionListener.remove(listener);
+	}
+	
 	void init() {
 		mainTf = createTabFolder(this);
+		mainTf.setFont(Fonts.createFontWithHeight(mainTf.getFont(), 11));
 
 		serverTf = createTabFolder(mainTf);
 		serverItem = createCTabItem(mainTf, serverTf, "Server", firstRowItems);
@@ -99,6 +113,7 @@ public class TrpTabWidget extends Composite {
 		structureItem = createCTabItem(mainTf, structureTf, Msgs.get2("layout_tab_title"), firstRowItems);
 
 		metadataTf = createTabFolder(mainTf);
+//		metadataTf.setFont(Fonts.createFontWithHeight(metadataTf.getFont(), 10));
 		metadataItem = createCTabItem(mainTf, metadataTf, "Metadata", firstRowItems);
 		initMetadataTf();
 
@@ -111,8 +126,8 @@ public class TrpTabWidget extends Composite {
 
 		setDefaultSelection();
 
-		updateFirstRowColors();
-		addTabFolderSelectionListener();
+		initTabItemStyles();
+		initTabFolderSelectionListener();
 	}
 
 	void setDefaultSelection() {
@@ -124,10 +139,10 @@ public class TrpTabWidget extends Composite {
 		SWTUtil.setSelection(toolsTf, remoteToolsItem);
 	}
 
-	void updateFirstRowColors() {
-		for (CTabItem i : firstRowItems) {
-			i.setFont(Fonts.addStyleBit(i.getFont(), SWT.ITALIC));
-		}
+	void initTabItemStyles() {
+//		for (CTabItem i : secondRowItems) {
+//			i.setFont(Fonts.addStyleBit(i.getFont(), SWT.ITALIC));
+//		}
 	}
 
 	void updateTabItemStyles() {
@@ -154,13 +169,18 @@ public class TrpTabWidget extends Composite {
 		}
 	}
 
-	void addTabFolderSelectionListener() {
+	private void initTabFolderSelectionListener() {
 		SelectionListener sl = new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				if (!(e.item instanceof CTabItem))
+				if (!(e.item instanceof CTabItem)) {
 					return;
+				}
 
 				CTabItem item = (CTabItem) e.item;
+				
+				for (TrpTabItemSelectionListener l : tabItemSelectionListener) {
+					l.onTabItemSelected(item);
+				}
 
 				updateSelectedOnTabFolder(item.getParent());
 			}
@@ -240,6 +260,10 @@ public class TrpTabWidget extends Composite {
 	
 	public boolean isTextTaggingItemSeleced() {
 		return isMetadataItemSeleced() && metadataTf.getSelection().equals(textTaggingItem);
+	}
+	
+	public boolean isStructTaggingItemSelected() {
+		return isMetadataItemSeleced() && metadataTf.getSelection().equals(structuralMdItem);
 	}
 
 	public void selectServerTab() {
