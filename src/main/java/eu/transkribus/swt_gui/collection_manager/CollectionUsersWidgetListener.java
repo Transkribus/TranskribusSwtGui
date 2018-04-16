@@ -7,12 +7,18 @@ import java.awt.dnd.DragSourceListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +29,15 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.swt.util.ComboInputDialog;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionOverviewDialog;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorDialog;
+import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.CollectionsLoadEvent;
 
 public class CollectionUsersWidgetListener implements IStorageListener, SelectionListener, DragSourceListener  {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionUsersWidgetListener.class);
@@ -52,12 +64,14 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 		cuw.addUserToColBtn.addSelectionListener(this);
 		cuw.removeUserFromColBtn.addSelectionListener(this);
 		cuw.role.addSelectionListener(this);
+		cuw.showUserCollections.addSelectionListener(this);
 	}
 	
 	public void detach() {
 		cuw.addUserToColBtn.removeSelectionListener(this);
 		cuw.removeUserFromColBtn.removeSelectionListener(this);
 		cuw.role.removeSelectionListener(this);
+		cuw.showUserCollections.removeSelectionListener(this);
 	}
 
 	@Override
@@ -102,11 +116,16 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 			else if (s == cuw.role) {
 				editSelectedUsersFromCollection();
 			} 
+			else if (s == cuw.showUserCollections){
+				showCollectionsOfUser(cuw.getFirstSelectedUser());
+			}
 
 		} catch (Throwable th) {
 			mw.onError("Unexpected error", "An unexpected error occured: "+th.getMessage(), th);
 		}		
 	}
+
+
 
 	@Override
 	public void widgetDefaultSelected(SelectionEvent e) {
@@ -219,6 +238,42 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 			return null;
 		
 		return TrpRole.fromString(d.getSelectedText());
+	}
+	
+	private void showCollectionsOfUser(TrpUser trpUser) {
+//		List<TrpUser> selected = cuw.findUsersWidget.getSelectedUsers();
+//		if (selected.isEmpty())
+//			return;
+		
+//		TrpUser selUser = selected.get(0);
+		//Todo new collection widget with colletions of user with id selUser.getID;
+		
+		logger.debug("show collections of user " + trpUser);
+		
+		final Composite container = new Composite(cuw.getShell(), SWT.NONE);
+		container.setLayout(new GridLayout(2, false));
+						
+		//CollectionSelectorWidget collSelector = new CollectionSelectorWidget(container, 0, false, null);
+		CollectionOverviewDialog d = new CollectionOverviewDialog(cuw.getShell(), trpUser);
+		if (d.open() != Dialog.OK) {
+			return;
+		}
+		
+		TrpCollection c = d.getSelectedCollection();
+		logger.debug("selected collection: "+c);
+		if (c == null)
+			return;
+		
+		TrpMainWidget.getInstance().reloadDocList(c.getColId());
+
+	}
+	
+	private void sendSelectionEvent(TrpCollection c) {
+		Event event = new Event(); 
+		event.type = SWT.Selection;
+		event.data = c;
+		event.widget = cuw;
+		cuw.notifyListeners(SWT.Selection, event);
 	}
 	
 	void addSelectedUsersToCollection() {

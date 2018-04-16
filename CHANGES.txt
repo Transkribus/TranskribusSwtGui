@@ -554,3 +554,4 @@ CHANGES AND BUGFIXES
 	-> sync dialog: allow synchronizing from txt files
 	-> bugfix: memory and path reading errors for pdf upload 
 	-> bugfix: resetting symbolic image during deletion of document
+	-> PDF export: select your preferred font or use the default one ('FreeSerif') - mainly to cover the different used character sets

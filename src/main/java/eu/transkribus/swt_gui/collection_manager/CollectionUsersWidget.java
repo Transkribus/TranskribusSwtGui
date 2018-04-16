@@ -51,7 +51,7 @@ public class CollectionUsersWidget extends Composite {
 	UserTableWidgetPagination collectionUsersTv;
 	FindUsersWidget findUsersWidget;
 	
-	Button addUserToColBtn, removeUserFromColBtn/*, editUserFromColBtn*/;
+	Button addUserToColBtn, removeUserFromColBtn, showUserCollections/*, editUserFromColBtn*/;
 	Combo role;
 
 	Group group;
@@ -86,7 +86,7 @@ public class CollectionUsersWidget extends Composite {
 		// add buttons:
 		Composite btns = new Composite(group, 0);
 		btns.setLayout(new RowLayout(SWT.HORIZONTAL));
-		btns.setLayout(new GridLayout(4, false));
+		btns.setLayout(new GridLayout(5, false));
 		
 		btns.setLayoutData(new GridData(SWT.TOP, SWT.FILL, true, false, 1, 1));
 		addUserToColBtn = new Button(btns, SWT.PUSH);
@@ -114,6 +114,12 @@ public class CollectionUsersWidget extends Composite {
 				role.add(r.toString());
 			}
 		}
+		
+		showUserCollections = new Button(btns, SWT.PUSH);
+		showUserCollections.setText("Collections");
+		showUserCollections.setToolTipText("Show all collections of this user");
+		showUserCollections.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+		showUserCollections.setVisible(false);
 		
 		selectRole(TrpRole.Transcriber);
 				
@@ -164,6 +170,13 @@ public class CollectionUsersWidget extends Composite {
 		return ((IStructuredSelection) collectionUsersTv.getTableViewer().getSelection()).toList();
 	}
 	
+	public TrpUser getFirstSelectedUser(){
+		if (!findUsersWidget.getSelectedUsers().isEmpty()){
+			return findUsersWidget.getSelectedUsers().get(0);
+		}
+		return null;
+	}
+	
 	public TrpRole getSelectedRole() {
 		return TrpRole.fromStringNonVirtual(role.getItem(role.getSelectionIndex()));
 	}
@@ -207,6 +220,13 @@ public class CollectionUsersWidget extends Composite {
 		}
 		else{
 			role.setEnabled(false);
+		}
+		
+		if (isAdmin && getFirstSelectedUser() != null){
+			showUserCollections.setVisible(true);
+		}
+		else{
+			showUserCollections.setVisible(false);
 		}
 	}
 	
