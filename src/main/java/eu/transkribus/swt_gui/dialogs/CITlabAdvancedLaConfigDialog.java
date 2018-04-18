@@ -72,10 +72,19 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		rotGroup.setText("Text orientation");
 		rotSchemeDef = new Button(rotGroup, SWT.RADIO);
 		rotSchemeDef.setText("Default");
+		rotSchemeDef.setToolTipText("Assume text is horizontal");
 		rotSchemeHet = new Button(rotGroup, SWT.RADIO);
 		rotSchemeHet.setText("Heterogeneous");
+		rotSchemeHet.setToolTipText("Mixture of text orientations");
 		rotSchemeHom = new Button(rotGroup, SWT.RADIO);
 		rotSchemeHom.setText("Homogeneous");
+		rotSchemeHom.setToolTipText("Entire text is equally oriented (0°, 90°, 180° or 270°)");
+		
+//		independentSettingsGrp = new Group(cont, SWT.NONE);
+//		independentSettingsGrp.setText("Use Separators");
+//		independentSettingsGrp.setLayout(new GridLayout(1, false));
+//		independentSettingsGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 2));
+		
 		
 		sepGroup = new Group(settingsGroup, SWT.NONE);
 		sepGroup.setLayout(new GridLayout(3, false));
@@ -83,10 +92,13 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		sepGroup.setText("Use separators");
 		sepSchemeDef = new Button(sepGroup, SWT.RADIO);
 		sepSchemeDef.setText("Default");
+		sepSchemeDef.setToolTipText("Only use separators if no regions are given");
 		sepSchemeNever = new Button(sepGroup, SWT.RADIO);
 		sepSchemeNever.setText("Never");
+		sepSchemeNever.setToolTipText("Never use separators");
 		sepSchemeAlways = new Button(sepGroup, SWT.RADIO);
 		sepSchemeAlways.setText("Always");
+		sepSchemeAlways.setToolTipText("Always use separators");
 		
 		loadData();
 		
@@ -120,6 +132,14 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	protected void storeSelectionInParameterMap() {
 		parameters = new ParameterMap();
 		LaModel m = getSelectedNet();
+		
+		SepScheme sep = null;
+		if(sepSchemeAlways.getSelection()) {
+			sep = SepScheme.always;
+		} else if (sepSchemeNever.getSelection()) {
+			sep = SepScheme.never;
+		}
+		
 		if(PRESET_NET_NAME.equals(m.getLabel())) {
 			RotScheme rot = null;
 			if(rotSchemeHet.getSelection()) {
@@ -128,15 +148,9 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 				rot = RotScheme.hom;
 			}
 			parameters.addParameter(LaCITlabUtils.ROT_SCHEME_KEY, rot);
-			
-			SepScheme sep = null;
-			if(sepSchemeAlways.getSelection()) {
-				sep = SepScheme.always;
-			} else if (sepSchemeNever.getSelection()) {
-				sep = SepScheme.never;
-			}
 			parameters.addParameter(LaCITlabUtils.SEP_SCHEME_KEY, sep);
 		} else {
+			parameters.addParameter(LaCITlabUtils.SEP_SCHEME_KEY, sep);
 			//set net's filename to parameters
 			parameters.addParameter(JobConst.PROP_MODELNAME, m.getFilename());
 		}
@@ -186,10 +200,10 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	}
 
 	private void setSettingsGroupEnabled(boolean enabled) {
-		for(Group g : new Group[]{settingsGroup, sepGroup, rotGroup}) {
+		for(Group g : new Group[]{rotGroup}) {
 			g.setEnabled(enabled);
 		}
-		for(Button b : new Button[]{rotSchemeDef, rotSchemeHom, rotSchemeHet, sepSchemeDef, sepSchemeAlways, sepSchemeNever}) {
+		for(Button b : new Button[]{rotSchemeDef, rotSchemeHom, rotSchemeHet}) {
 			b.setEnabled(enabled);
 		}
 	}
@@ -219,7 +233,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
-		newShell.setText("Layout Analysis Configuration (Experimental)");
+		newShell.setText("Layout Analysis Configuration");
 //		newShell.setMinimumSize(480, 480);
 	}
 
