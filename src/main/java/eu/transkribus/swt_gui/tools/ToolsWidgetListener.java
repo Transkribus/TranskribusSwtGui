@@ -118,6 +118,11 @@ public class ToolsWidgetListener implements SelectionListener {
 			} else {
 				htd = new HtrTrainingDialog(mw.getShell());
 				if(htd.open() == IDialogConstants.OK_ID) {
+					//new: check here if user wants to store or not
+//					if (!mw.saveTranscriptDialogOrAutosave()) {
+//						//if user canceled this
+//						return;
+//					}
 					String jobId = null;
 					if (htd.getCitlabTrainConfig() != null) {
 						CitLabHtrTrainConfig config = htd.getCitlabTrainConfig();
@@ -224,6 +229,13 @@ public class ToolsWidgetListener implements SelectionListener {
 			if (isLayoutAnalysis(s) && store.isTranscriptEdited()) {
 				mw.saveTranscription(false);
 			}
+
+			//new: check here if user wants to store or not: e.g layout corrected and HTR started but not saved before
+			if (!mw.saveTranscriptDialogOrAutosave()) {
+				//if user canceled this
+				return;
+			}
+
 
 			if (s == tw.startLaBtn) {
 				if (!tw.laComp.isCurrentTranscript()) {
