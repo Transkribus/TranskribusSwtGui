@@ -118,6 +118,11 @@ public class ToolsWidgetListener implements SelectionListener {
 			} else {
 				htd = new HtrTrainingDialog(mw.getShell());
 				if(htd.open() == IDialogConstants.OK_ID) {
+					//new: check here if user wants to store or not
+//					if (!mw.saveTranscriptDialogOrAutosave()) {
+//						//if user canceled this
+//						return;
+//					}
 					String jobId = null;
 					if (htd.getCitlabTrainConfig() != null) {
 						CitLabHtrTrainConfig config = htd.getCitlabTrainConfig();
