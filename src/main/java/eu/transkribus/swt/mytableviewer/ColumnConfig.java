@@ -24,6 +24,10 @@ public class ColumnConfig {
 		this(name, width, defaultSorting, sortingDirection, SWT.LEFT, null);
 	}	
 	
+	public ColumnConfig(String name, int width, boolean defaultSorting, int sortingDirection, TableViewerSorter sorter) {
+		this(name, width, defaultSorting, sortingDirection, SWT.LEFT, sorter);
+	}
+	
 	public ColumnConfig(String name, int width, boolean defaultSorting, int sortingDirection, int style, TableViewerSorter sorter) {
 		super();
 		this.name = name;
