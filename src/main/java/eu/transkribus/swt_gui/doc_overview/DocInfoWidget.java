@@ -8,12 +8,13 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtual;
 import eu.transkribus.swt.util.ThumbnailManagerVirtual;
+import eu.transkribus.swt.util.ThumbnailWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class DocInfoWidget extends Composite {
 	
 	Text loadedDocText, currentCollectionText, loadedPageText, loadedImageUrl, loadedTranscriptUrl, idsText;
-	ThumbnailWidgetVirtual thumbnailWidget;
+	ThumbnailWidget thumbnailWidget;
 	
 //	Button openEditDeclManagerBtn;
 	
@@ -84,7 +85,7 @@ public class DocInfoWidget extends Composite {
 //		docMdGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 //		docMdGroup.setLayout(new FillLayout());
 		
-		thumbnailWidget = new ThumbnailWidgetVirtual(this, SWT.NONE, mw);
+		thumbnailWidget = new ThumbnailWidget(this, SWT.NONE, mw);
 		thumbnailWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 //		docMetadataEditor = new DocMetadataEditor(docMdGroup, 0);
@@ -100,9 +101,6 @@ public class DocInfoWidget extends Composite {
 	public Text getLoadedPageText() { return loadedPageText; }
 	public Text getIdsText() { return idsText; }
 	
-	public ThumbnailWidgetVirtual getThumbnailWidget() { return thumbnailWidget; }
+	public ThumbnailWidget getThumbnailWidget() { return thumbnailWidget; }
 
-	public ThumbnailManagerVirtual getThumbnailManager() {
-		return thumbnailWidget.getThumbnailManager();
-	}
 }
