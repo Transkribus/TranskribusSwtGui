@@ -9,6 +9,7 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
+import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
@@ -31,11 +33,13 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.dialogs.ErrorRateDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
@@ -279,11 +283,11 @@ public class ToolsWidgetListener implements SelectionListener {
 
 				if (ref != null && hyp != null) {
 					logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
-					final String result = store.computeWer(ref, hyp);
-					MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);
-					mb.setText("Result");
-					mb.setMessage(result);
-					mb.open();
+					
+					// Opens dialog which displays table
+					TrpErrorRate resultErr = new TrpErrorRate();
+					ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(),resultErr);
+					dialog.open();
 				}
 				
 //				final int refIndex = tw.refVersionCombo.getSelectionIndex();
