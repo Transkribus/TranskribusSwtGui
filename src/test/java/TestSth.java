@@ -301,7 +301,8 @@ public class TestSth {
 				pageIndices.add(i);	
 			}
 			
-			Mets mets = TrpMetsBuilder.buildMets(doc, true, false, true, pageIndices);
+			TrpMetsBuilder metsBuilder = new TrpMetsBuilder();
+			Mets mets = metsBuilder.buildMets(doc, true, false, true, pageIndices);
 			String outFile = "c:/tmp/mets.xml";
 			
 			JaxbUtils.marshalToFile(mets, new File(outFile), TrpDocMetadata.class);
