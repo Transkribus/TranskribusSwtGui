@@ -3,13 +3,14 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,13 +24,17 @@ import eu.transkribus.core.io.LocalDocWriter;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpDoc;
+import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.mets.Mets;
 import eu.transkribus.core.model.beans.pagecontent.OrderedGroupIndexedType;
 import eu.transkribus.core.model.beans.pagecontent.OrderedGroupType;
 import eu.transkribus.core.model.beans.pagecontent.ReadingOrderType;
 import eu.transkribus.core.model.beans.pagecontent.RegionRefIndexedType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.builder.mets.TrpMetsBuilder;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.util.DesktopApi;
 
 
@@ -285,8 +290,31 @@ public class TestSth {
 		System.out.println(pathNormalized);
 		
 	}
+	
+	public static void createMetsForRemoteDoc(String[] args) throws Exception {
+		try (TrpServerConn conn = TrpServerConn.connectToProdServer(args[0], args[1])) {
+			TrpDoc doc = conn.getTrpDoc(12494, 42174, 1);
+			System.out.println("Loaded doc: "+doc.getMd().getTitle()+" nr. of pages: "+doc.getNPages());
+			
+			Set<Integer> pageIndices = new HashSet<>();
+			for (int i=0; i<10; ++i) {
+				pageIndices.add(i);	
+			}
+			
+			Mets mets = TrpMetsBuilder.buildMets(doc, true, false, true, pageIndices);
+			String outFile = "c:/tmp/mets.xml";
+			
+			JaxbUtils.marshalToFile(mets, new File(outFile), TrpDocMetadata.class);
+//			if (printResultOnSysOut)
+			JaxbUtils.marshalToSysOut(mets, TrpDocMetadata.class);
+		}
+	}
 			
 	public static void main(String [] args) throws Exception {
+		createMetsForRemoteDoc(args);
+		
+		if (true)
+			return;
 		
 		System.out.println(CitLabSemiSupervisedHtrTrainConfig.isValidTrainingEpochsString(""));
 		
