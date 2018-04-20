@@ -72,6 +72,7 @@ import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
@@ -2106,14 +2107,13 @@ public class Storage {
 		return StorageUtil.getRoleOfUserInCurrentCollection();
 	}
 
-	public String computeWer(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+	public TrpErrorRate computeWer(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		if(ref == null || hyp == null){
 			throw new IllegalArgumentException("A parameter is null!");
 		}	
-		String result = conn.computeWer(ref.getKey(), hyp.getKey());
-		result = result.replace("WER", "Word Error Rate:");
-		result = result.replace("CER", "Character Error Rate:");
+		TrpErrorRate result = new TrpErrorRate();	
+		result = conn.computeErrorRate(ref.getKey(), hyp.getKey());
 		return result;
 	}
 	
