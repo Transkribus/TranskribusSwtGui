@@ -86,6 +86,23 @@ public class ErrorRateDialog extends Dialog{
 	    
 	    Table table = viewer.getTable();
 		table.setHeaderVisible(true);
+		table.getColumn(6).addListener(SWT.MouseDown, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+				try
+	            {
+	               Runtime.getRuntime().exec("c:/Program Files/Internet Explorer/iexplore " + table.getColumn(6).getText());
+	            }
+	            catch(java.io.IOException exc)
+	            {
+	               System.out.println(exc.toString());
+	            }
+	         }
+				
+			
+			
+		});
 		
 		TableItem itemWord = new TableItem(table, SWT.NONE);
 		itemWord.setText(new String[] { "Word", resultErr.getWer(), resultErr.getwAcc(),"","","","https://en.wikipedia.org/wiki/Word_error_rate"});
