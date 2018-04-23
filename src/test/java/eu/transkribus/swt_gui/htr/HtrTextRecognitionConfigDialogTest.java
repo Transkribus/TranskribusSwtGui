@@ -18,6 +18,7 @@ public class HtrTextRecognitionConfigDialogTest {
 		Storage store=null;
 		try {
 			store = Storage.getInstance();
+			store.updateProxySettings();
 			store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
 			Future<?> fut = store.reloadDocList(2); // reload doclist of a collection just that the collection id gets set!
 			fut.get();

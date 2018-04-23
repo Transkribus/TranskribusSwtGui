@@ -50,6 +50,7 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.progress.ProgressBarDialog;
+import eu.transkribus.swt.util.DateTableColumnViewerSorter;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
@@ -92,7 +93,7 @@ public class UploadDialogUltimate extends Dialog {
 	
 	Link link;
 	private Table docDirTable;
-	private MyTableViewer docDirTv;
+	private static MyTableViewer docDirTv;
 	List<TrpDocDir> docDirs = new ArrayList<>(0);
 	
 	private List<TrpDocDir> selDocDirs;
@@ -127,7 +128,7 @@ public class UploadDialogUltimate extends Dialog {
 		new ColumnConfig(DIRECTORY_COL, 180, true, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(TITLE_COL, 110, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(NR_OF_FILES_COL, 110, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(CREATE_DATE_COL, 150, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(CREATE_DATE_COL, 150, false, DateTableColumnViewerSorter.ASC, new DateTableColumnViewerSorter(docDirTv,null)),
 	};
 	
 	public UploadDialogUltimate(Shell parentShell, TrpCollection selColl) {
