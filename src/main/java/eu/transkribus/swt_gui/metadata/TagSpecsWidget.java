@@ -81,30 +81,32 @@ public class TagSpecsWidget extends Composite {
 	
 	boolean isEditable=true;
 	
+	Composite header;
+	
 	public TagSpecsWidget(Composite parent, int style, boolean isEditable) {
 		super(parent, style);
-		setLayout(new FillLayout());
+		setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
 		this.isEditable = isEditable;
 		int nCols = isEditable ? 1 : 3;
 
-		Composite topContainer = new Composite(this, SWT.NONE);
-//		container.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
-		topContainer.setLayout(new GridLayout(nCols, false));
+		header = new Composite(this, SWT.NONE);
+		header.setLayout(new GridLayout(nCols, false));
+		header.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		headerLbl = new Label(topContainer, 0);
+		headerLbl = new Label(header, 0);
 		headerLbl.setText("Tag specifications");
 		Fonts.setBoldFont(headerLbl);
 		headerLbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		if (!isEditable) {
-			showAllTagsBtn = new Button(topContainer, SWT.CHECK | SWT.FLAT);
+			showAllTagsBtn = new Button(header, SWT.CHECK | SWT.FLAT);
 			showAllTagsBtn.setText("Show all");
 			showAllTagsBtn.setToolTipText("Show all available tags");
 			DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_ALL_TAGS_IN_TAG_EDITOR_PROPERTY, TrpConfig.getTrpSettings(), showAllTagsBtn);
 			
-			customizeBtn = new Button(topContainer, 0);
-			customizeBtn.setText("Customize..");
+			customizeBtn = new Button(header, 0);
+			customizeBtn.setText("Customize...");
 			customizeBtn.setImage(Images.PENCIL);
 			SWTUtil.onSelectionEvent(customizeBtn, e -> {
 				TagConfDialog diag = new TagConfDialog(getShell());
@@ -112,9 +114,9 @@ public class TagSpecsWidget extends Composite {
 			});
 		}
 				
-		Composite tableContainer = new Composite(topContainer, SWT.NONE);
+		Composite tableContainer = new Composite(this, SWT.NONE);
 		tableContainer.setLayout(SWTUtil.createGridLayout(isEditable ? 2 : 1, false, 0, 0));
-		tableContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, nCols, 1));
+		tableContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		int tableViewerStyle = SWT.NO_FOCUS | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION;
 		tableViewer = new TableViewer(tableContainer, tableViewerStyle);
@@ -527,7 +529,7 @@ public class TagSpecsWidget extends Composite {
 			});			
 		}		
 
-		topContainer.layout(true);
+		header.layout(true);
 		
 		updateAvailableTagSpecs();
 
@@ -660,6 +662,10 @@ public class TagSpecsWidget extends Composite {
 
 	public CustomTagSpec getSelected() {
 		return (CustomTagSpec) ((IStructuredSelection) tableViewer.getSelection()).getFirstElement();
+	}
+	
+	public Composite getHeader() {
+		return header;
 	}
 
 }

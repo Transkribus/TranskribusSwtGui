@@ -1,12 +1,13 @@
 package eu.transkribus.swt_gui.metadata;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.slf4j.Logger;
@@ -17,20 +18,19 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TranscriptionTaggingWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TranscriptionTaggingWidget.class);
 	
 	CTabFolder tabFolder;
 	
-	CTabFolder tagsTf;
 	CTabItem tagsItem;
 	TagSpecsWidget tagDefsWidget;
 	
-	CTabFolder propsTf;
-	CTabItem propsItem;
+//	CTabItem propsItem;
 	TagPropertyEditor tagPropEditor;
+	
+	SashForm sf;
 	
 	public TranscriptionTaggingWidget(Composite parent, int style) {
 		super(parent, style);
@@ -39,30 +39,31 @@ public class TranscriptionTaggingWidget extends Composite {
 //		this.tWidget = tWidget;
 		
 		tabFolder = createTabFolder(this);
-		
-		tagsTf = createTabFolder(tabFolder);
-		tagsItem = createCTabItem(tabFolder, tagsTf, "Tags", null);
+		tagsItem = createCTabItem(tabFolder, null, "Tags", null);
 		tagsItem.setFont(Fonts.createBoldFont(tagsItem.getFont()));
 		
-		tagDefsWidget = new TagSpecsWidget(tabFolder, 0, false);
-		tagDefsWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
-		tagsItem.setControl(tagDefsWidget);
-				
-		propsTf = createTabFolder(tabFolder);
-		propsItem = createCTabItem(tabFolder, propsTf, "Properties", null);
-		propsItem.setFont(Fonts.createBoldFont(propsItem.getFont()));
+		sf = new SashForm(tabFolder, SWT.VERTICAL);
+		sf.setLayoutData(new GridData(GridData.FILL_BOTH));
+//		sf.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		sf.setLayout(new GridLayout(1, false));
 		
-		tagPropEditor = new TagPropertyEditor(tabFolder, /*tWidget,*/ false);
+		tagsItem.setControl(sf);
+		
+		tagDefsWidget = new TagSpecsWidget(sf, 0, false);
+		tagDefsWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		tagPropEditor = new TagPropertyEditor(sf, /*tWidget,*/ false);
 		tagPropEditor.setLayoutData(new GridData(GridData.FILL_BOTH));
-		propsItem.setControl(tagPropEditor);
+		
+		sf.setWeights(new int[] { 55, 45 } );
 		
 		// listener:
 		SWTUtil.onSelectionEvent(tabFolder, e -> {
 			updateTabItemStyles();
 			
-			if (isTagPropertyEditorSelected()) {
-				tagPropEditor.findAndSetNextTag();
-			}
+//			if (isTagPropertyEditorSelected()) {
+//				tagPropEditor.findAndSetNextTag();
+//			}
 		});
 		
 		tabFolder.setSelection(tagsItem);
@@ -80,7 +81,7 @@ public class TranscriptionTaggingWidget extends Composite {
 //			return;
 //		}
 		
-		if (true || isTagPropertyEditorSelected()) {
+		if (true /*|| isTagPropertyEditorSelected()*/) {
 			if (tagPropEditor.isSettingCustomTag()) { // if currently setting a custom tag in the property editor, ignore selection changed events from transcription widget!
 				return;
 			}
@@ -122,14 +123,12 @@ public class TranscriptionTaggingWidget extends Composite {
 		tf.setBorderVisible(true);
 		tf.setSelectionBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 
-//		tabfolder.add(tf);
-
 		return tf;
 	}
 
-	public boolean isTagPropertyEditorSelected() {
-		return tabFolder.getSelection() == propsItem; 
-	}
+//	public boolean isTagPropertyEditorSelected() {
+//		return tabFolder.getSelection() == propsItem; 
+//	}
 
 //	public void reloadComments() {
 //		if (commentsWidget != null) {
