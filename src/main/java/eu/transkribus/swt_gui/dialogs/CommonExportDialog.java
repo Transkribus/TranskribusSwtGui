@@ -1423,7 +1423,7 @@ public class CommonExportDialog extends Dialog {
 		
 	private void updateCommonPars() {
 		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, 
-				pdfExport, teiExport, docxExport, txtExport, tagXlsxExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList());
+				pdfExport, teiExport, docxExport, txtExport, tagXlsxExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList(), font);
 		commonPars.setFileNamePattern(filenamePatternComp.pattern.text.getText());
 		
 		if(isImgExport() && imgQualityCmb != null) {

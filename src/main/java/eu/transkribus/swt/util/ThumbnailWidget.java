@@ -80,7 +80,8 @@ public class ThumbnailWidget extends Composite {
 //	protected NoGroupRenderer groupRenderer;
 	protected AbstractGridGroupRenderer groupRenderer;
 	
-	static ThumbnailManager tm;
+	//static ThumbnailManager tm;
+	static DocumentManager ac;
 	
 	static int thread_counter=0;
 	
@@ -245,11 +246,11 @@ public class ThumbnailWidget extends Composite {
 							*/
 							gallery.redraw();
 							
-							if (isManagerOpen(tm)){
-								tm.group.getItem(index).setImage(image);
-								tm.group.getItem(index).setData("doNotScaleImage", null);
-								tm.gallery.redraw();
-							}
+//							if (isManagerOpen(tm)){
+//								tm.group.getItem(index).setImage(image);
+//								tm.group.getItem(index).setData("doNotScaleImage", null);
+//								tm.gallery.redraw();
+//							}
 						}
 						@Override
 						protected void onError() {
@@ -260,11 +261,11 @@ public class ThumbnailWidget extends Composite {
 							group.getItem(index).setData("doNotScaleImage", new Object());
 							gallery.redraw();
 							
-							if(isManagerOpen(tm)){
-								tm.group.getItem(index).setImage(Images.ERROR_IMG);
-								tm.group.getItem(index).setData("doNotScaleImage", new Object());
-								tm.gallery.redraw();
-							}
+//							if(isManagerOpen(tm)){
+//								tm.group.getItem(index).setImage(Images.ERROR_IMG);
+//								tm.group.getItem(index).setData("doNotScaleImage", new Object());
+//								tm.gallery.redraw();
+//							}
 						}
 						
 						@Override protected void onDone() {
@@ -273,10 +274,10 @@ public class ThumbnailWidget extends Composite {
 							//labelComposite.redraw();
 							//groupComposite.redraw();
 							gallery.redraw();
-							if(isManagerOpen(tm)){
-								tm.setItemTextAndBackground(group.getItem(index), index);
-								tm.gallery.redraw();
-							}
+//							if(isManagerOpen(tm)){
+//								tm.setItemTextAndBackground(group.getItem(index), index);
+//								tm.gallery.redraw();
+//							}
 						}
 					});	
 				}
@@ -407,20 +408,38 @@ public class ThumbnailWidget extends Composite {
 	}
 	
 	protected void showPageManager(TrpMainWidget mw) {
-		
+					
 		if (Storage.getInstance().getDoc() == null) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded");
 			return;
 		}
 		
-		//if shell is open {
-		if(isManagerOpen(tm)){
-			tm.getShell().setVisible(true);
+		if (isAdministrativeCenterIsOpen(ac)){
+			ac.getShell().setVisible(true);
 		} else {
-			tm = new ThumbnailManager(getShell(), SWT.NONE, this, mw);
-			tm.open();
+			ac = new DocumentManager(getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
+			ac.open();
 		}
+			
+					
+		//if shell is open {
+		/*
+		 * old manager
+		 */
+//		if(isManagerOpen(tm)){
+//			tm.getShell().setVisible(true);
+//		} else {
+//			tm = new ThumbnailManager(getShell(), SWT.NONE, this, mw);
+//			tm.open();
+//		}
 
+	}
+	
+	private boolean isAdministrativeCenterIsOpen(DocumentManager ac){
+		if(ac != null && ac.getShell() != null && !ac.getShell().isDisposed()){
+			return true;
+		}
+		return false;
 	}
 	
 	private boolean isManagerOpen(ThumbnailManager tm){
@@ -559,16 +578,16 @@ public class ThumbnailWidget extends Composite {
 	}
 	
 	public void loadThumbsIntoManager() {
-		tm.setUrls(urls, names);
-		tm.setTranscripts(transcripts);
-		tm.createGalleryItems();
-		for (ThmbImg thumb : thumbs){
-			if (tm != null){
-				tm.group.getItem(thumb.index).setImage(thumb.image);
-				tm.group.getItem(thumb.index).setData("doNotScaleImage", null);
-				tm.gallery.redraw();
-			}
-		}
+//		tm.setUrls(urls, names);
+//		tm.setTranscripts(transcripts);
+//		tm.createGalleryItems();
+//		for (ThmbImg thumb : thumbs){
+//			if (tm != null){
+//				tm.group.getItem(thumb.index).setImage(thumb.image);
+//				tm.group.getItem(thumb.index).setData("doNotScaleImage", null);
+//				tm.gallery.redraw();
+//			}
+//		}
 	}
 		
 	public void reload() {
@@ -623,11 +642,11 @@ public class ThumbnailWidget extends Composite {
 		
 		// create new gallery items:
 		createGalleryItems();
-		if(isManagerOpen(tm)){
-			tm.setUrls(urls, names);
-			tm.setTranscripts(transcripts);
-			tm.createGalleryItems();
-		}
+//		if(isManagerOpen(tm)){
+//			tm.setUrls(urls, names);
+//			tm.setTranscripts(transcripts);
+//			tm.createGalleryItems();
+//		}
 		
 //		if (storage.getDoc() != null){
 //			tm.createGalleryItems();
@@ -765,13 +784,13 @@ public class ThumbnailWidget extends Composite {
 //	public void setImages(List<Image> thumbImages) {
 //		tv.setInput(thumbImages);
 //	}
-	public ThumbnailManager getThumbnailManager() {
-		return tm;
-	}
-	
-	public void setThumbnailManager(ThumbnailManager tm) {
-		this.tm = tm;
-	}
+//	public ThumbnailManager getThumbnailManager() {
+//		return tm;
+//	}
+//	
+//	public void setThumbnailManager(ThumbnailManager tm) {
+//		this.tm = tm;
+//	}
 	
 	public Button getCreateThumbs() {
 		return createThumbs;

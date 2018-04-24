@@ -134,6 +134,7 @@ import eu.transkribus.core.model.builder.txt.TrpTxtBuilder;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.ZipUtils;
@@ -3670,7 +3671,8 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating txt file...");
-						TrpTxtBuilder.writeTxtForDoc(storage.getDoc(), createTitle, isWordBased, preserveLineBreaks, file, pageIndices, monitor, cache);
+						TrpTxtBuilder txtBuilder = new TrpTxtBuilder();
+						txtBuilder.writeTxtForDoc(storage.getDoc(), createTitle, isWordBased, preserveLineBreaks, file, pageIndices, monitor, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
@@ -3702,7 +3704,8 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Docx document...");
-						DocxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor,
+						DocxBuilder docxBuilder = new DocxBuilder();
+						docxBuilder.writeDocxForDoc(storage.getDoc(), isWordBased, isTagExport, doBlackening, file, pageIndices, monitor,
 								createTitle, markUnclearWords, expandAbbrevs, substituteAbbrevs, preserveLineBreaks, forcePageBreaks, suppliedWithBrackets, ignoreSupplied, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
@@ -3744,7 +3747,8 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Excel document...");
-						TrpXlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, file, pageIndices, monitor, cache);
+						TrpXlsxBuilder xlsxBuilder = new TrpXlsxBuilder();
+						xlsxBuilder.writeXlsxForDoc(storage.getDoc(), isWordBased, file, pageIndices, monitor, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
@@ -3774,7 +3778,8 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("creating Excel document...");
-						TrpXlsxTableBuilder.writeXlsxForTables(storage.getDoc(), file, pageIndices, monitor, cache);
+						TrpXlsxTableBuilder xlsxTableBuilder = new TrpXlsxTableBuilder();
+						xlsxTableBuilder.writeXlsxForTables(storage.getDoc(), file, pageIndices, monitor, cache);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;

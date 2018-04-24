@@ -41,6 +41,7 @@ import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ThumbnailManagerVirtual;
+import eu.transkribus.swt.util.ThumbnailWidget;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtual;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
@@ -856,12 +857,8 @@ public class TrpMainWidgetView extends Composite {
 		return portalWidget;
 	}
 	
-	public ThumbnailWidgetVirtual getThumbnailWidget() {
+	public ThumbnailWidget getThumbnailWidget() {
 		return docInfoWidget.getThumbnailWidget();
-	}
-	
-	public ThumbnailManagerVirtual getThumbnailManager() {
-		return docInfoWidget.getThumbnailManager();
 	}
 
 	public DropDownToolItem getSaveDropDown() {

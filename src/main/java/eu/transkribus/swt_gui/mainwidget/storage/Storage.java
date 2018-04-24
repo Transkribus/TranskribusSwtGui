@@ -29,6 +29,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.io.GetBufferedRandomAccessSource;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
@@ -72,6 +74,7 @@ import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
@@ -1507,7 +1510,7 @@ public class Storage {
 			for (int j=0; j<remoteImgNames.size(); j++) {
 
 				// check whether image filenames match (and incoming images are selected)
-				if (StringUtils.contains(remoteImgNames.get(j), pages.get(i).getImgFileName())
+				if (StringUtils.contains(remoteImgNames.get(j), FilenameUtils.getBaseName(pages.get(i).getImgFileName()))
 						&& (checked == null || checked.get(i))) {
 					remoteIndices.add(j);
 					syncIndices.add(i);
@@ -2106,14 +2109,13 @@ public class Storage {
 		return StorageUtil.getRoleOfUserInCurrentCollection();
 	}
 
-	public String computeWer(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+	public TrpErrorRate computeWer(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		if(ref == null || hyp == null){
 			throw new IllegalArgumentException("A parameter is null!");
 		}	
-		String result = conn.computeWer(ref.getKey(), hyp.getKey());
-		result = result.replace("WER", "Word Error Rate:");
-		result = result.replace("CER", "Character Error Rate:");
+		TrpErrorRate result = new TrpErrorRate();	
+		result = conn.computeErrorRate(ref.getKey(), hyp.getKey());
 		return result;
 	}
 	
