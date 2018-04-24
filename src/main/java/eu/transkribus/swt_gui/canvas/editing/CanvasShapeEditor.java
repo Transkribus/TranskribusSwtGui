@@ -1486,12 +1486,20 @@ public class CanvasShapeEditor {
 			
 			if (!TableUtils.hasLeftNeighbor(c, shapes)) {
 				c.setLeftBorderVisible(bf.vertLeft);
+				for (TrpTableCellType n : c.getNeighborCells(0)) {
+					op.addCellBackup(n);
+					n.setRightBorderVisible(bf.vertLeft);
+				}
 			} else {
 				c.setLeftBorderVisible(bf.vertInner);
 			}
 			
 			if (!TableUtils.hasRightNeighbor(c, shapes)) {
 				c.setRightBorderVisible(bf.vertRight);
+				for (TrpTableCellType n : c.getNeighborCells(2)) {
+					op.addCellBackup(n);
+					n.setLeftBorderVisible(bf.vertRight);	
+				}
 			}
 			else {
 				c.setRightBorderVisible(bf.vertInner);
@@ -1499,6 +1507,10 @@ public class CanvasShapeEditor {
 			
 			if (!TableUtils.hasBottomNeighbor(c, shapes)) {
 				c.setBottomBorderVisible(bf.horBottom);
+				for (TrpTableCellType n : c.getNeighborCells(1)) {
+					op.addCellBackup(n);
+					n.setTopBorderVisible(bf.horBottom);				
+				}
 			}
 			else {
 				c.setBottomBorderVisible(bf.horInner);
@@ -1506,6 +1518,10 @@ public class CanvasShapeEditor {
 			
 			if (!TableUtils.hasTopNeighbor(c, shapes)) {
 				c.setTopBorderVisible(bf.horTop);
+				for (TrpTableCellType n : c.getNeighborCells(3)) {
+					op.addCellBackup(n);
+					n.setBottomBorderVisible(bf.horTop);
+				}
 			}
 			else {
 				c.setTopBorderVisible(bf.horInner);
