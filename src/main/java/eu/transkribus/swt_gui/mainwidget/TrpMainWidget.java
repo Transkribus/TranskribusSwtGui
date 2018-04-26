@@ -5700,6 +5700,14 @@ public class TrpMainWidget {
 				
 				TrpTranscriptMetadata currTranscript = page.getCurrentTranscript();
 				TrpTranscriptMetadata parentTranscript = page.getTranscriptById(currTranscript.getParentTsId());
+				
+				/*
+				 * workaround as long t2i does not save the parent transcript in the transcript metadata
+				 */
+				if(currTranscript.getToolName() != null && currTranscript.getToolName().equals("T2I")){
+					parentTranscript = page.getTranscriptWithStatus("New");
+					logger.debug("parent transcript for T2I found: " + parentTranscript.getTsId());
+				}
 
 				//logger.debug("currTranscript.getToolName(): " + currTranscript.getToolName());
 				

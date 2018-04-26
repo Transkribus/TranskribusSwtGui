@@ -322,6 +322,17 @@ public abstract class APreviewListViewer<T> extends Composite {
 		}
 	}
 	
+	public void selectFromList(List<Integer> checked) {
+
+		int idx = 0;
+		for (TableItem ti : tv.getTable().getItems()) {
+
+			ti.setChecked(checked.contains(idx++));
+			
+		}
+		
+	}
+	
 	public List<Boolean> getCheckedList() {
 		List<Boolean> checked = new ArrayList<>();
 		for (TableItem ti : tv.getTable().getItems()) {

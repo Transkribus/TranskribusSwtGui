@@ -134,13 +134,20 @@ public class DocPagesSelector extends Composite {
 	}
 	
 	protected void openDocPageViewer() {
-		logger.debug("opening DocPageViewer, pages = "+DocPagesSelector.this.pages);
+		//logger.debug("opening DocPageViewer, pages = "+DocPagesSelector.this.pages);
 		
 		if (DocPagesSelector.this.pages.isEmpty())
 			return;
 		
 		final DocPageViewer dpv = new DocPageViewer(SWTUtil.dummyShell, 0, false, true, false);
 		dpv.setDataList(DocPagesSelector.this.pages);
+		
+		try {
+			dpv.selectFromList(CoreUtils.parseRangeListStrToList(getPagesStr(), pages.size()));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 //		Shell s = DialogUtil.openShellWithComposite(null, dpv, 400, 400, "Select pages");
 		final MessageDialog d = DialogUtil.createCustomMessageDialog(getShell(), "Select pages", "", null, 0, new String[]{"OK",  "Cancel"}, 0, dpv);
 		// gets called when dialog is closed:
@@ -165,7 +172,7 @@ public class DocPagesSelector extends Composite {
 		resetLabelAndPagesStr();
 	}
 	
-	private void resetLabelAndPagesStr() {
+	public void resetLabelAndPagesStr() {
 		if (label != null) {
 			label.setText("Pages ("+this.pages.size()+"): ");
 		}
@@ -186,6 +193,10 @@ public class DocPagesSelector extends Composite {
 	
 	public String getPagesStr() {
 		return pagesText.getText();
+	}
+	
+	public void setPagesStr(String selPages) {
+		pagesText.setText(selPages);
 	}
 
 	public List<TrpPage> getPages() {

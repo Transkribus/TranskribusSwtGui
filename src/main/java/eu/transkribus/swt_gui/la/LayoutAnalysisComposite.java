@@ -3,21 +3,30 @@ package eu.transkribus.swt_gui.la;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.ClientErrorException;
+
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledComboWithButton;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
@@ -36,7 +45,7 @@ public class LayoutAnalysisComposite extends Composite {
 	static private Storage store = TEST ? null : Storage.getInstance();
 //	private DocPagesSelector dps;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
-	private Button doBlockSegBtn, doLineSegBtn, doWordSegBtn;
+	private Button doBlockSegBtn, doLineSegBtn, doWordSegBtn, unsegmentedBtn;
 //	private LabeledComboWithButton methodCombo;
 	private LabeledCombo methodCombo;
 //	private LabeledText customJobImplText;
@@ -84,16 +93,96 @@ public class LayoutAnalysisComposite extends Composite {
 //		checkGrp.setLayout(new GridLayout(1, false));
 //		checkGrp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 2));
 		
-		doBlockSegBtn = new Button(mainContainer, SWT.CHECK);
+		Composite tmpContainer = new Composite(mainContainer, SWT.FILL);
+		tmpContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		tmpContainer.setLayout(new GridLayout(2, true));
+		
+		doBlockSegBtn = new Button(tmpContainer, SWT.CHECK);
 		doBlockSegBtn.setText("Find Text Regions");
 		doBlockSegBtn.setSelection(true);
+		doBlockSegBtn.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, true, 1, 1));
+		
+		unsegmentedBtn = new Button(tmpContainer, SWT.PUSH);
+		unsegmentedBtn.setText("Use only unsegmented pages for LA");
+		unsegmentedBtn.setSelection(false);
+		unsegmentedBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, true, true, 1, 1));
+		
+		unsegmentedBtn.addSelectionListener(new SelectionListener() {
 
-		doLineSegBtn = new Button(mainContainer, SWT.CHECK);
+			public void widgetSelected(SelectionEvent event) {
+				String pageString = "";
+				List<Boolean> checked = new ArrayList<>();
+				if (Storage.getInstance().getDoc() != null){
+					try {
+						Storage.getInstance().reloadDocWithAllTranscripts();
+					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					for (TrpPage page : Storage.getInstance().getDoc().getPages()){
+						TrpTranscriptMetadata ttm = page.getCurrentTranscript();
+						if (ttm != null && ttm.getNrOfLines() != null && ttm.getNrOfLines() > 0){
+							checked.add(false);
+						}
+						else{
+							checked.add(true);
+						}
+					}
+					pageString = CoreUtils.getRangeListStr(checked);
+					logger.debug("pageString with pages containing no lines = "+pageString);
+
+					dps.setPagesStr(pageString);
+					dps.selectPagesRadio();
+				}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+					
+			}
+		
+		});
+		
+		/*
+		 * used if unsegmentedBtn is a checkbox
+		 */
+//		unsegmentedBtn.addSelectionListener(new SelectionAdapter() {
+//		      public void widgetSelected(SelectionEvent e) {
+//		    	  	//pages String
+//		    	  if (unsegmentedBtn.getSelection()){
+//			    	  String pageString = "";
+//			    	  List<Boolean> checked = new ArrayList<>();
+//			    	  for (TrpPage page : Storage.getInstance().getDoc().getPages()){
+//			    		  TrpTranscriptMetadata ttm = page.getCurrentTranscript();
+//			    		  if (ttm.getNrOfLines() != null && ttm.getNrOfLines() > 0){
+//			    			  checked.add(false);
+//			    		  }
+//			    		  else{
+//			    			  checked.add(true);
+//			    		  }
+//			    	  }
+//			    	  pageString = CoreUtils.getRangeListStr(checked);
+//			    	  logger.debug("pageString with pages containing no lines = "+pageString);
+//			    	  
+//			    	  dps.setPagesStr(pageString);
+//		    	  }
+//		    	  else{
+//		    		  dps.getPagesSelector().resetLabelAndPagesStr();
+//		    	  }
+//		      }
+//		      });
+		
+		doLineSegBtn = new Button(tmpContainer, SWT.CHECK);
 		doLineSegBtn.setText("Find Lines in Text Regions");
 		doLineSegBtn.setSelection(true);
+		
+		//can be used as a place filler
+		//new Label(tmpContainer, SWT.NONE);
 
-		doWordSegBtn = new Button(mainContainer, SWT.CHECK);
+		doWordSegBtn = new Button(tmpContainer, SWT.CHECK);
 		doWordSegBtn.setText("Find Words in Lines (experimental!)");
+		doWordSegBtn.setVisible(false);
 
 //		customJobImplText = new LabeledText(mainContainer, "Custom jobImpl: ");
 //		customJobImplText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -310,5 +399,5 @@ public class LayoutAnalysisComposite extends Composite {
 		JobImpl jobImpl = getJobImplForMethod(selectedMethod);
 		return jobImpl;
 	}
-
+	
 }

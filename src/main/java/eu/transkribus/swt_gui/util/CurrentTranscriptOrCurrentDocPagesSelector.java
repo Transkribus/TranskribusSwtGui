@@ -24,7 +24,7 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 		this.setLayout(gl);
 		
 		currentTanscriptRadio = new Button(this, SWT.RADIO);
-		currentTanscriptRadio.setText("Current transcript");
+		currentTanscriptRadio.setText("Current page");
 		currentTanscriptRadio.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, oneRow ? 1 : 2, 1));
 		currentTanscriptRadio.setSelection(true);
 		currentTanscriptRadio.setToolTipText("Restrict method to current transcript");
@@ -49,7 +49,7 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 		updateGui();
 	}
 	
-	private void updateGui() {
+	public void updateGui() {
 		ps.setEnabled(pagesRadio.getSelection());
 	}
 	
@@ -63,6 +63,16 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 	
 	public String getPagesStr() {
 		return ps.getPagesStr();
+	}
+	
+	public void selectPagesRadio(){
+		pagesRadio.setSelection(true);
+		currentTanscriptRadio.setSelection(false);
+		updateGui();
+	}
+	
+	public void setPagesStr(String pages) {
+		ps.setPagesStr(pages);
 	}
 	
 	public CurrentDocPagesSelector getPagesSelector() {

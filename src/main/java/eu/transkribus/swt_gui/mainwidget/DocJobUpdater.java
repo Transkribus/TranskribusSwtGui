@@ -87,6 +87,8 @@ public class DocJobUpdater {
 								logger.debug("removing finished job " + jobId + ", nr of unfinished jobs: "
 										+ jobsToUpdate.size());
 								jobsToUpdate.remove(jobId);
+								//Added for batch jobs - after the job has finished we need to reload the transcripts in the storage
+								store.reloadDocWithAllTranscripts();
 								checkIfFinishedJobAffectsOpenedPage(job);
 							}
 						}
