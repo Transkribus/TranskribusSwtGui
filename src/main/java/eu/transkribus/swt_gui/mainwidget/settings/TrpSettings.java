@@ -306,6 +306,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private int textAlignment = SWT.LEFT; // SWT.LEFT, SWT.RIGHT or SWT.CENTER
 	public static final String TEXT_ALIGNMENT = "textAlignment";
 	
+	private boolean showNonEditableTextTagProperties = false;
+	public static final String SHOW_NON_EDITABLE_TEXT_TAG_PROPERTIES_PROPERTY = "showNonEditableTextTagProperties";
+	
 	static final String[] DO_NOT_SAVE_THOSE_PROPERTIES = { 
 			DRAW_SHAPES_IN_DEFAULT_COLORS_IN_STRUCT_EDITOR_PROPERTY,
 			DRAW_STRUCT_TYPE_TEXT_PROPERTY
@@ -1201,7 +1204,15 @@ public class TrpSettings extends APropertyChangeSupport {
 		this.imgFitTo = imgFitTo;
 		firePropertyChange(IMG_FIT_TO, oldValue, this.imgFitTo);
 	}
-	
+
+	public boolean isShowNonEditableTextTagProperties() {
+		return showNonEditableTextTagProperties;
+	}
+
+	public void setShowNonEditableTextTagProperties(boolean showNonEditableTextTagProperties) {
+		this.showNonEditableTextTagProperties = showNonEditableTextTagProperties;
+		firePropertyChange(SHOW_NON_EDITABLE_TEXT_TAG_PROPERTIES_PROPERTY, !this.showNonEditableTextTagProperties, this.showNonEditableTextTagProperties);
+	}
 	
 //	public boolean isUseSnapshotUpdates() { return useSnapshotUpdates; }
 //	public void setUseSnapshotUpdates(boolean useSnapshotUpdates) {
