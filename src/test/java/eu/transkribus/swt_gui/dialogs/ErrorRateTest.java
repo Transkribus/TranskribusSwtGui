@@ -26,6 +26,10 @@ public class ErrorRateTest {
 				rate.setCer("4%");
 				rate.setcAcc("12.1%");
 				rate.setwAcc("12.34%");
+				rate.setBagTokensF("98.2%");
+				rate.setBagTokensPrec("13.2%");
+				rate.setBagTokensRec("76.0%");
+		
 				
 				ErrorRateDialog eDia = new ErrorRateDialog(getShell(),rate);
 				eDia.open();

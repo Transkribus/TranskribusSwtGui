@@ -29,6 +29,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.io.GetBufferedRandomAccessSource;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
@@ -1508,7 +1510,7 @@ public class Storage {
 			for (int j=0; j<remoteImgNames.size(); j++) {
 
 				// check whether image filenames match (and incoming images are selected)
-				if (StringUtils.contains(remoteImgNames.get(j), pages.get(i).getImgFileName())
+				if (StringUtils.contains(remoteImgNames.get(j), FilenameUtils.getBaseName(pages.get(i).getImgFileName()))
 						&& (checked == null || checked.get(i))) {
 					remoteIndices.add(j);
 					syncIndices.add(i);

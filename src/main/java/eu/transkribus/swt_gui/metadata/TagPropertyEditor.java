@@ -6,6 +6,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -15,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
@@ -60,17 +60,13 @@ public class TagPropertyEditor extends Composite {
 		}
 		
 		headerComp = new Composite(this, 0);
-		headerComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		headerComp.setLayout(new GridLayout(2, false));
 		headerComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		tagInfo = new Label(headerComp, 0);
-		tagInfo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		tagInfo.setText("");
+		tagInfo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		tagInfo.setText("Props for tag: no tag selected");
 		Fonts.setBoldFont(tagInfo);
-		
-		DropDownButton prefsBtn = new DropDownButton(headerComp, 0, "", Images.WRENCH, null);
-		autoSelectTagInTranscriptionWidgetItem = prefsBtn.addItem("Auto select tag in transcription widget", null, SWT.CHECK);
-		autoSelectTagInTranscriptionWidgetItem.setSelection(false);
 		
 		propsTable = new CustomTagPropertyTable(this, 0, false);
 		propsTable.getTableViewer().getTable().setHeaderVisible(false);
@@ -99,6 +95,10 @@ public class TagPropertyEditor extends Composite {
 		SWTUtil.onSelectionEvent(refreshBtn, e -> {
 			findAndSetNextTag();
 		});
+		
+		DropDownButton prefsBtn = new DropDownButton(btnsComposite, 0, "", Images.WRENCH, null);
+		autoSelectTagInTranscriptionWidgetItem = prefsBtn.addItem("Auto select tag in transcription widget", null, SWT.CHECK);
+		autoSelectTagInTranscriptionWidgetItem.setSelection(false);
 		
 		propsTable.getTableViewer().getTable().addTraverseListener(new TraverseListener() {
 			@Override
@@ -136,7 +136,7 @@ public class TagPropertyEditor extends Composite {
 		this.tag = tag;
 
 		if (this.tag != null) {
-			tagInfo.setText("tag: '"+tag.getTagName()+"'  -  value: '"+tag.getContainedText()+"'");
+			tagInfo.setText("Props for tag: '"+tag.getTagName()+"'  -  value: '"+tag.getContainedText()+"'");
 			propsTable.setInput(this.tag);
 
 			// select tag in widget:
@@ -151,7 +151,7 @@ public class TagPropertyEditor extends Composite {
 				}
 			}
 		} else {
-			tagInfo.setText("");
+			tagInfo.setText("Props for tag: no tag selected");
 			propsTable.setInput(null);
 		}
 		

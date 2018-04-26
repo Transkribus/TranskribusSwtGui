@@ -100,15 +100,15 @@ public class TaggingWidget extends Composite {
 			}
 		});
 		
-		transcriptionTaggingWidget.getTabFolder().addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// on change to "Properties" tab: select tag that is selected in the TagListWidget
-				if (transcriptionTaggingWidget.isTagPropertyEditorSelected()) {
-					transcriptionTaggingWidget.updateSelectedTag(tagListWidget.getSelectedTags());
-				}
-			}
-		});
+//		transcriptionTaggingWidget.getTabFolder().addSelectionListener(new SelectionAdapter() {
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				// on change to "Properties" tab: select tag that is selected in the TagListWidget
+//				if (true /*transcriptionTaggingWidget.isTagPropertyEditorSelected()*/) {
+//					transcriptionTaggingWidget.updateSelectedTag(tagListWidget.getSelectedTags());
+//				}
+//			}
+//		});
 		
 		applyPropertiesToAllSelectedBtn = new Button(transcriptionTaggingWidget.getTagPropertyEditor().getBtnsComposite(), 0);
 		applyPropertiesToAllSelectedBtn.setText("Apply to selected");
@@ -155,7 +155,7 @@ public class TaggingWidget extends Composite {
 			}
 		});
 
-		verticalSf.setWeights(new int[] { 77, 33 } );
+		verticalSf.setWeights(new int[] { 60, 40 } );
 		
 		setTaggingEditorVisiblity(TrpConfig.getTrpSettings().isShowTextTagEditor());
 		
@@ -211,13 +211,13 @@ public class TaggingWidget extends Composite {
 				transcriptionTaggingWidgetShell.dispose();
 			}
 			
-			verticalSf.setWeights(new int[] { 60, 40 });
+			verticalSf.setWeights(new int[] { 55, 45 });
 			if (true) // false -> show editor always
 			if (visibility<=0) {
 				verticalSf.setMaximizedControl(tagListWidget);
 			} else {
 				verticalSf.setMaximizedControl(null);
-				if (transcriptionTaggingWidget.isTagPropertyEditorSelected()) {
+				if (true /*transcriptionTaggingWidget.isTagPropertyEditorSelected()*/) {
 					transcriptionTaggingWidget.getTagPropertyEditor().findAndSetNextTag();	
 				}
 			}
