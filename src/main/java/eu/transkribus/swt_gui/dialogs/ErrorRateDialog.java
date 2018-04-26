@@ -1,14 +1,19 @@
 package eu.transkribus.swt_gui.dialogs;
 
+
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -32,6 +37,8 @@ public class ErrorRateDialog extends Dialog {
 	protected static final String HELP_WIKI_FMEA = "https://en.wikipedia.org/wiki/F1_score";
 
 	MyTableViewer viewer;
+	
+	private Composite composite;
 
 	private TrpErrorRate resultErr;
 
@@ -49,17 +56,34 @@ public class ErrorRateDialog extends Dialog {
 		this.resultErr = resultErr;
 
 	}
-
-	@Override
-	protected void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText("Error Rate Results");
+	
+	public void createConfig() {
+		
+		Composite config = new Composite(composite,SWT.NONE);
+		
+		config.setLayout(new GridLayout(3,false));
+		config.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+		
+		Label firstLabel = new Label(config, SWT.NONE);
+	    firstLabel.setText("Configuration");
+	    
+	    Combo combo = new Combo(config,SWT.DROP_DOWN);
+	    String[] items = new String[] {"case sensitive","not case sensitive"};
+	    combo.setItems(items);
+	    
+	    Button refresh = createButton(config, IDialogConstants.HELP_ID, "Refresh", false);
+	    
+	    
+	     
 	}
-
-	@Override
-	protected Control createDialogArea(final Composite parent) {
-		final Composite body = (Composite) super.createDialogArea(parent);
-
+	
+	public void createTable() {
+		
+		Composite body = new Composite(composite,SWT.NONE);
+		
+		body.setLayout(new GridLayout(1,false));
+		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+	
 		final MyTableViewer viewer = new MyTableViewer(body, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 
 		viewer.getTable().setLinesVisible(true);
@@ -68,47 +92,6 @@ public class ErrorRateDialog extends Dialog {
 
 		Table table = viewer.getTable();
 		table.setHeaderVisible(true);
-
-		// Hyperlinks in Table , workaround with Buttons
-		// TableViewerColumn linksCol = new TableViewerColumn(viewer,links);
-		// linksCol.setLabelProvider(new ColumnLabelProvider() {
-		//
-		// Map<Object, Hyperlink> buttons = new HashMap<Object,Hyperlink>();
-		//
-		// @Override
-		// public void update(ViewerCell cell) {
-		// TableItem item = (TableItem) cell.getItem();
-		// Hyperlink hyperlink = new Hyperlink(table, SWT.NONE);
-		// if (buttons.containsKey(cell.getElement())) {
-		// hyperlink = buttons.get(cell.getElement());
-		// }
-		// else{
-		// for(String link : URLs) {
-		// hyperlink = new Hyperlink((Composite)
-		// cell.getViewerRow().getControl(),SWT.NONE);
-		// hyperlink.setText(link);
-		// hyperlink.setHref(link);
-		// hyperlink.addHyperlinkListener(new HyperlinkAdapter() {
-		// public void linkActivated(HyperlinkEvent e) {
-		// System.out.println(e.getHref());
-		// org.eclipse.swt.program.Program.launch(hyperlink.getHref().toString());
-		// }
-		//
-		// });
-		// buttons.put(cell.getElement(), hyperlink);
-		//
-		// TableEditor editor = new TableEditor(item.getParent());
-		// editor.grabHorizontal = true;
-		// editor.grabVertical = true;
-		// editor.setEditor(hyperlink , item, cell.getColumnIndex());
-		// editor.layout();
-		//
-		// }
-		//
-		// }
-		// }
-		//
-		// });
 
 		TableItem itemWord = new TableItem(table, SWT.NONE);
 		itemWord.setText(new String[] { "Word", resultErr.getWer(), resultErr.getwAcc(), "", "", "" });
@@ -119,8 +102,25 @@ public class ErrorRateDialog extends Dialog {
 		TableItem itemBag = new TableItem(table, SWT.NONE);
 		itemBag.setText(new String[] { "Bag of Tokens", "", "", resultErr.getBagTokensPrec(),
 				resultErr.getBagTokensRec(), resultErr.getBagTokensF() });
+		
+	}
 
-		return body;
+	@Override
+	protected void configureShell(Shell shell) {
+		super.configureShell(shell);
+		shell.setText("Error Rate Results");
+	}
+
+	@Override
+	protected Control createDialogArea(final Composite parent) {
+		
+		this.composite = (Composite) super.createDialogArea(parent);
+		
+		createConfig();
+		
+		createTable();
+
+		return composite;
 	}
 
 	@Override
@@ -132,7 +132,7 @@ public class ErrorRateDialog extends Dialog {
 		wikiFmeaButton = createButton(parent, IDialogConstants.HELP_ID, "F-Measure", false);
 		wikiFmeaButton.setImage(Images.HELP);
 
-		createButton(parent, IDialogConstants.OK_ID, "OK", true);
+		createButton(parent, IDialogConstants.OK_ID, "Ok", true);
 		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
 		GridData buttonLd = (GridData) getButton(IDialogConstants.CANCEL_ID).getLayoutData();
 		wikiErrButton.setLayoutData(buttonLd);
