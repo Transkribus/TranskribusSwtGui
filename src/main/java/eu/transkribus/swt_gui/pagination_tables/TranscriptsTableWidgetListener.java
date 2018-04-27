@@ -1,7 +1,13 @@
 package eu.transkribus.swt_gui.pagination_tables;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.TableViewer;
@@ -13,11 +19,17 @@ import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -90,21 +102,71 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 		if(s == tw.deleteBtn){
 			List<TrpTranscriptMetadata> selectedVersions = tw.getSelected();
 			int nrOfVersions2Delete = selectedVersions.size();
-			if (DialogUtil.showYesNoDialog(tw.getShell(), "Delete Version(s)", "Do you really want to delete " + nrOfVersions2Delete + " selected versions ")!=SWT.YES) {
+			if (nrOfVersions2Delete == 0 || DialogUtil.showYesNoDialog(tw.getShell(), "Delete Version(s)", "Do you really want to delete " + nrOfVersions2Delete + " selected versions ")!=SWT.YES) {
 				return;
 			}
-			for (TrpTranscriptMetadata md : selectedVersions){
-				nrOfVersions2Delete--;
-				//to load only the new version in the canvas after deleting the 
-				boolean lastVersion2Delete = (nrOfVersions2Delete == 0 ? true : false);
-				if (md!=null) {
-					deleteTranscript(md, lastVersion2Delete);
+			
+			int itemCount = (int) tw.getPageableTable().getController().getTotalElements();
+			try {		
+				if(itemCount == 1){
+					throw new Exception("Cannot delete all transcripts of a page!");
+				}
+				
+				final TrpTranscriptMetadata currentTranscript = Storage.getInstance().getTranscriptMetadata();
+			
+				ProgressBarDialog.open(tw.getShell(), new IRunnableWithProgress() {
+					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+
+							monitor.beginTask("Delete version(s) ", nrOfVersions2Delete);
+							int c=0;
+							
+							for (TrpTranscriptMetadata md : selectedVersions){
+								if (monitor.isCanceled()){
+									monitor.done();
+									return;
+								}
+
+								if (md!=null) {
+									try {
+										logger.info("delete transcript: " + md.getKey());
+										Storage.getInstance().deleteTranscript(md);
+									} catch (SessionExpiredException | ServerErrorException
+											| IllegalArgumentException | NoConnectionException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									
+									// reload page if current transcript was deleted:
+									if (currentTranscript!=null && currentTranscript.equals(md)) {
+										//TrpMainWidget.getInstance().reloadCurrentPage(false);
+										Storage.getInstance().setLatestTranscriptAsCurrent();
+									}
+									
+								}
+								
+								monitor.subTask("Version(s) deleted " + ++c + "/" + nrOfVersions2Delete );
+								monitor.worked(c);
+							}
+							monitor.done();
+					}
+				}, "Delete transcript version(s)", true);
+			} catch (Throwable ex) {
+				TrpMainWidget.getInstance().onError("Error deleting versions", ex.getMessage(), ex, true, false);
+//				MessageBox messageBox = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
+//				messageBox.setMessage("Could not delete transcript: " + ex.getMessage());
+//				messageBox.setText("Error");
+//				messageBox.open();
+			}finally{
+				try {
+					TrpMainWidget.getInstance().reloadCurrentPage(false);
+					//Storage.getInstance().reloadDocWithAllTranscripts();
+					tw.redraw();
+				} catch (ClientErrorException | IllegalArgumentException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
 			}
-//			TrpTranscriptMetadata md = tw.getFirstSelected();
-//			if (md!=null) {
-//				deleteTranscript(md);
-//			}
+
 		}
 	}
 
@@ -121,48 +183,6 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 			TrpMainWidget.getInstance().updateVersionStatus();
 		}		
 	}
-	
-	private void deleteTranscript(TrpTranscriptMetadata tMd, boolean lastVersion2Delete) {
-		logger.info("delete transcript: " + tMd.getKey());
-		
-		int itemCount = (int) tw.getPageableTable().getController().getTotalElements();
-		
-		if(itemCount == 1 || tMd.getKey() == null){
-			MessageBox messageBox = new MessageBox(tw.getShell(), SWT.ICON_INFORMATION
-		            | SWT.OK);
-	        messageBox.setMessage("Can not delete this version.");
-	        messageBox.setText("Unauthorized");
-	        messageBox.open();
-		} else {
-			try {
-				Storage store = Storage.getInstance();
-				
-				TrpTranscriptMetadata currentTranscript = store.getTranscriptMetadata();
-				logger.debug("deleting transcript");
-				store.deleteTranscript(tMd);
-				
-				// reload page if current transcript was deleted:
-				if (currentTranscript!=null && currentTranscript.equals(tMd)) {
-					//TrpMainWidget.getInstance().reloadCurrentPage(false);
-					store.setLatestTranscriptAsCurrent();
-				} else {
-					store.reloadTranscriptsList(store.getCurrentDocumentCollectionId());
-				}
-				
-				if (lastVersion2Delete){
-					TrpMainWidget.getInstance().reloadCurrentPage(false);
-				}
-				
-			} catch (Exception e1) {
-				MessageBox messageBox = new MessageBox(tw.getShell(), SWT.ICON_ERROR
-			            | SWT.OK);
-		        messageBox.setMessage("Could not delete transcript: " + e1.getMessage());
-		        messageBox.setText("Error");
-		        messageBox.open();
-			}
-		}
-	}
-
 
 	@Override
 	public void mouseDown(MouseEvent e) {
