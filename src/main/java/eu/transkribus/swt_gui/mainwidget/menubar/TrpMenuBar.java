@@ -33,6 +33,7 @@ public class TrpMenuBar {
 	MenuItem uploadItem;
 	MenuItem exportItem;
 	MenuItem syncXmlItem;
+	MenuItem syncTextItem;
 	
 	// OLD MENU STUFF:
 
@@ -126,6 +127,7 @@ public class TrpMenuBar {
 		uploadItem = createItem(docsMenu.m, SWT.NONE, Images.FOLDER_IMPORT, "Import document(s)...");
 		exportItem = createItem(docsMenu.m, SWT.NONE, Images.FOLDER_GO, "Export document...");
 		syncXmlItem = createItem(docsMenu.m, SWT.NONE, Images.getOrLoad("/icons/database_refresh.png"), "Sync local transcriptions with doc...");
+		syncTextItem = createItem(docsMenu.m, SWT.NONE, Images.getOrLoad("/icons/page_add.png"), "Sync local text files with doc...");
 		createThumbsMenuItem = createItem(docsMenu.m, SWT.CHECK, null, "Create thumbs when opening local folder");
 		
 		// FILE MENU:

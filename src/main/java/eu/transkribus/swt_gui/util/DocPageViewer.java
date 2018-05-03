@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.util;
 import java.io.IOException;
 import java.net.URL;
 
+import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -61,7 +62,8 @@ public class DocPageViewer extends APreviewListViewer<TrpPage> {
 					return p.getKey();
 				}
 				else if (cn.equals(FN_COL)) {
-					return p.getImgFileName();
+					// display basename of image only if selection is allowed 
+					return withCheckboxes? FilenameUtils.getBaseName(p.getImgFileName()) : p.getImgFileName() ;
 				}
 				
 				return null;
