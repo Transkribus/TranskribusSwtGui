@@ -37,7 +37,6 @@ import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
 import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
@@ -45,10 +44,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.io.GetBufferedRandomAccessSource;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
@@ -2108,7 +2108,13 @@ public class Storage {
 	public TrpRole getRoleOfUserInCurrentCollection() {
 		return StorageUtil.getRoleOfUserInCurrentCollection();
 	}
-
+	
+	public TrpJobStatus computeErrorRate(int docId, final String pageStr, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
+		//TODO
+		conn.computeErrorRateWithJob(docId, pageStr, params);
+		return null;
+	}
+	
 	public TrpErrorRate computeWer(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		if(ref == null || hyp == null){
