@@ -10,7 +10,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -41,9 +40,8 @@ public class ErrorRateDialog extends Dialog {
 	private Composite composite;
 
 	private TrpErrorRate resultErr;
-
-	private Button wikiErrButton;
-	private Button wikiFmeaButton;
+	
+	Button expertBtn, partialMatchBtn, caseSensitivityBtn, wikiErrButton, wikiFmeaButton;
 
 	public final ColumnConfig[] ERR_COLS = new ColumnConfig[] { new ColumnConfig(ERR_EMPTY_COL, 200),
 			new ColumnConfig(ERR_WORD_COL, 100), new ColumnConfig(ERR_CHAR_COL, 100),
@@ -57,23 +55,15 @@ public class ErrorRateDialog extends Dialog {
 
 	}
 	
-	public void createConfig() {
+	public void createHeader() {
 		
 		Composite config = new Composite(composite,SWT.NONE);
 		
-		config.setLayout(new GridLayout(3,false));
+		config.setLayout(new GridLayout(4,false));
 		config.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 		
 		Label firstLabel = new Label(config, SWT.NONE);
-	    firstLabel.setText("Configuration");
-	    
-	    Combo combo = new Combo(config,SWT.DROP_DOWN);
-	    String[] items = new String[] {"case sensitive","not case sensitive"};
-	    combo.setItems(items);
-	    
-	    Button refresh = createButton(config, IDialogConstants.HELP_ID, "Refresh", false);
-	    
-	    
+	    firstLabel.setText("Quick compare for current page ");
 	     
 	}
 	
@@ -116,10 +106,10 @@ public class ErrorRateDialog extends Dialog {
 		
 		this.composite = (Composite) super.createDialogArea(parent);
 		
-		createConfig();
+		createHeader();
 		
 		createTable();
-
+		
 		return composite;
 	}
 

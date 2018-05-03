@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.metadata;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -23,8 +25,11 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.util.DropDownButton;
 
@@ -41,7 +46,7 @@ public class TagPropertyEditor extends Composite {
 	Button nextBtn, prevBtn, refreshBtn;
 //	ATranscriptionWidget tWidget;
 	
-	MenuItem autoSelectTagInTranscriptionWidgetItem;
+	MenuItem autoSelectTagInTranscriptionWidgetItem, showNonEditablePropsItem;
 	
 	boolean settingCustomTag=false;
 	
@@ -100,6 +105,10 @@ public class TagPropertyEditor extends Composite {
 		autoSelectTagInTranscriptionWidgetItem = prefsBtn.addItem("Auto select tag in transcription widget", null, SWT.CHECK);
 		autoSelectTagInTranscriptionWidgetItem.setSelection(false);
 		
+		showNonEditablePropsItem = prefsBtn.addItem("Show non-editable properties", null, SWT.CHECK);
+		showNonEditablePropsItem.setSelection(false);
+		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_NON_EDITABLE_TEXT_TAG_PROPERTIES_PROPERTY, TrpConfig.getTrpSettings(), showNonEditablePropsItem);
+		
 		propsTable.getTableViewer().getTable().addTraverseListener(new TraverseListener() {
 			@Override
 			public void keyTraversed(TraverseEvent e) {
@@ -115,6 +124,15 @@ public class TagPropertyEditor extends Composite {
 				else if (e.detail == SWT.TRAVERSE_ARROW_PREVIOUS) {
 					e.doit = false;
 					jumpToNextTag(true);
+				}
+			}
+		});
+		
+		TrpConfig.getTrpSettings().addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				if (evt.getPropertyName().equals(TrpSettings.SHOW_NON_EDITABLE_TEXT_TAG_PROPERTIES_PROPERTY)) {
+					propsTable.setShowNonEditableProperties(showNonEditablePropsItem.getSelection());
 				}
 			}
 		});

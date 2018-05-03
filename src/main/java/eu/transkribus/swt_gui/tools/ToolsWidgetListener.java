@@ -34,6 +34,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
@@ -76,6 +77,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.startLaBtn, this);
 
 		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
+		SWTUtil.addSelectionListener(tw.computeAdvancedBtn, this);
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
 
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
@@ -286,32 +288,24 @@ public class ToolsWidgetListener implements SelectionListener {
 					// Opens dialog which displays table
 
 					TrpErrorRate resultErr = store.computeWer(ref, hyp);
+					
+					logger.debug("F-Measure  : "+resultErr.getBagTokensF());
 
 					ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
 					dialog.open();
 				}
+				
+			}else if (s == tw.computeAdvancedBtn) {
+				
 
-				// final int refIndex = tw.refVersionCombo.getSelectionIndex();
-				// final int hypIndex = tw.hypVersionCombo.getSelectionIndex();
-				// if(refIndex > -1 && hypIndex > -1){
-				// String refStr =
-				// tw.refVersionCombo.getItem(tw.refVersionCombo.getSelectionIndex());
-				// String hypStr =
-				// tw.hypVersionCombo.getItem(tw.hypVersionCombo.getSelectionIndex());
-				// TrpTranscriptMetadata ref =
-				// (TrpTranscriptMetadata)tw.refVersionCombo.getData(refStr);
-				// TrpTranscriptMetadata hyp =
-				// (TrpTranscriptMetadata)tw.hypVersionCombo.getData(hypStr);
-				//
-				// logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
-				// final String result = store.computeWer(ref, hyp);
-				// MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(),
-				// SWT.ICON_INFORMATION | SWT.OK);
-				// mb.setText("Result");
-				// mb.setMessage(result);
-				// mb.open();
-				// }
-
+				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;
+				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) tw.hypVersionChooser.selectedMd;
+				
+				if(ref != null & hyp != null) {
+					ErrorRateAdvancedDialog dialog = new ErrorRateAdvancedDialog(mw.getShell(),ref,hyp);
+					dialog.open();
+				
+				}
 			} else if (s == tw.compareVersionsBtn) {
 
 				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;

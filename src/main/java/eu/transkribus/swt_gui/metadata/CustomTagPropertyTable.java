@@ -1,9 +1,7 @@
 package eu.transkribus.swt_gui.metadata;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EventObject;
 import java.util.List;
 
@@ -17,7 +15,6 @@ import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
 import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
-import org.eclipse.jface.viewers.ICellEditorListener;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
@@ -59,7 +56,7 @@ public class CustomTagPropertyTable extends Composite {
 //	private CustomTag prototypeTag;
 
 	private CustomTag selectedTag;
-	boolean withOffsetLengthContinuedProperties=false;
+	boolean showNonEditableProperties=false;
 	
 	public interface ICustomTagPropertyTableListener {
 		void onPropertyChanged(CustomTag tag, String name, Object value); 
@@ -71,11 +68,11 @@ public class CustomTagPropertyTable extends Composite {
 //		this(parent, style, true);
 //	}
 
-	public CustomTagPropertyTable(Composite parent, int style, boolean withOffsetLengthContinuedProperties) {
+	public CustomTagPropertyTable(Composite parent, int style, boolean showNonEditableProperties) {
 		super(parent, style);
 		this.setLayout(new FillLayout());
 		
-		this.withOffsetLengthContinuedProperties = withOffsetLengthContinuedProperties;
+		this.showNonEditableProperties = showNonEditableProperties;
 		
 		tv = new TableViewer(this, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		table = tv.getTable();
@@ -417,25 +414,42 @@ public class CustomTagPropertyTable extends Composite {
 		}
 		logger.debug("prototypeTag: "+prototypeTag);
 		
-		List<String> attNames = prototypeTag.getAttributeNamesSortedByName();
+		boolean caseSensitiveOrder = false;
+		List<String> attNames = prototypeTag.getAttributeNamesSortedByName(caseSensitiveOrder);
+		// 1st: remove all non-editable properties
+		attNames.remove(CustomTag.OFFSET_PROPERTY_NAME);
+		attNames.remove(CustomTag.LENGTH_PROPERTY_NAME);
+		attNames.remove(CustomTag.CONTINUED_PROPERTY_NAME);
+		
 		// add attributes that are unique to selectedTag
-		for (String an : selectedTag.getAttributeNamesSortedByName()) {
-			if (!attNames.contains(an)) {
+		for (String an : selectedTag.getAttributeNamesSortedByName(caseSensitiveOrder)) {
+			if (!attNames.contains(an) && !CustomTag.isOffsetOrLengthOrContinuedProperty(an)) {
 				attNames.add(an);
 			}
 		}
-		// exclude offset/length/continued property
-		if (!withOffsetLengthContinuedProperties) {
-			attNames.remove(CustomTag.OFFSET_PROPERTY_NAME);
-			attNames.remove(CustomTag.LENGTH_PROPERTY_NAME);
-			attNames.remove(CustomTag.CONTINUED_PROPERTY_NAME);	
-		}
 		Collections.sort(attNames, String.CASE_INSENSITIVE_ORDER);
+		
+		// if non-editable properties shall be shown, add them to the top of the list
+		if (showNonEditableProperties) {
+			int i=0;
+			attNames.add(i++, CustomTag.OFFSET_PROPERTY_NAME);
+			attNames.add(i++, CustomTag.LENGTH_PROPERTY_NAME);
+			attNames.add(i++, CustomTag.CONTINUED_PROPERTY_NAME);
+		}
 		
 		tv.setInput(attNames);
 		tv.refresh(); // needed?
 	}
 	
+	public void setShowNonEditableProperties(boolean showNonEditableProperties) {
+		this.showNonEditableProperties = showNonEditableProperties;
+		reload();
+	}
+	
+	public void reload() {
+		this.setInput(selectedTag);
+	}
+
 	public CustomTagAttribute getSelectedProperty() {
 		IStructuredSelection sel = (IStructuredSelection) tv.getSelection();
 		if (!sel.isEmpty()) {

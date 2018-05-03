@@ -1478,7 +1478,8 @@ public class CanvasShapeEditor {
 		}
 		logger.debug("changing border type for table "+shapes.size()+", bf: "+bf);
 		
-		TableShapeEditOperation op = new TableShapeEditOperation("Changed border type for "+shapes.size()+" table cells");
+		TableShapeEditOperation op = new TableShapeEditOperation("Changed border type for "+shapes.size()+" table cells "
+				+ "and the respective neighboring cells");
 						
 		for (ICanvasShape s : shapes) {
 			TrpTableCellType c = (TrpTableCellType) s.getData();
