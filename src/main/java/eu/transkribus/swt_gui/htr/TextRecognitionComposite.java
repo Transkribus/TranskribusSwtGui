@@ -141,6 +141,15 @@ public class TextRecognitionComposite extends Composite {
 	
 	private void setBtnVisibility(boolean withTrainBtn) {
 		boolean showTrainBtn = withTrainBtn && isHtr();
+		boolean showModelBtn = isHtr();
+		
+		if (showModelBtn){
+			modelsBtn.setParent(this);
+			modelsBtn.moveAbove(runBtn);
+		}
+		else {
+			modelsBtn.setParent(SWTUtil.dummyShell);
+		}
 
 		if (showTrainBtn) {
 			trainBtn.setParent(this);
@@ -149,6 +158,8 @@ public class TextRecognitionComposite extends Composite {
 		} else {
 			trainBtn.setParent(SWTUtil.dummyShell);
 		}
+		
+
 				
 		this.layout();
 		logger.info("parent: "+getParent());
