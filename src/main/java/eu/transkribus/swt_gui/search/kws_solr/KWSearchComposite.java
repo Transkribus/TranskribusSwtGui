@@ -87,11 +87,11 @@ public class KWSearchComposite extends Composite{
 	Shell shell;
 	Storage storage;
 	
-	private final static double MIN_CONF = 1.0;
-	private final static double MAX_CONF = 100.0;
-	private final static double DEFAULT_CONF = 25;
-	private final static int THUMB_SIZE = 1; // size of slider thumb
-	private static final DecimalFormat CONF_FORMAT = new DecimalFormat("0");	
+	private final static double MIN_CONF = 0.01;
+	private final static double MAX_CONF = 0.99;
+	private final static double DEFAULT_CONF = 0.05;
+	private final static int THUMB_SIZE = 5; // size of slider thumb
+	private static final DecimalFormat CONF_FORMAT = new DecimalFormat("0.00");	
 	
 	Group facetsGroup;
 	Combo scopeCombo;
@@ -135,7 +135,6 @@ public class KWSearchComposite extends Composite{
 		
 	}
 	
-	ArrayList<String> DOCSCOPES = new ArrayList<String>();
 	private void createContents(){
 		
 		storage = Storage.getInstance();
@@ -158,44 +157,18 @@ public class KWSearchComposite extends Composite{
 		Label scopeLbl = new Label(scopeComp, SWT.NONE);
 		scopeLbl.setText("Search in:");
 		scopeCombo = new Combo(scopeComp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-		String[] SCOPES = new String[] { "All Collections", "1555"};
+		String[] SCOPES = new String[] { "1335"};
 		scopeCombo.setItems(SCOPES);
 		//FIXME Java Heap space error when to many confmats are loaded. Thus for now only scope "document"
-		scopeCombo.select(1);
+		scopeCombo.select(0);
 		scopeCombo.setEnabled(false);
-		scopeCombo.addSelectionListener(new SelectionAdapter(){
-			@Override public void widgetSelected(SelectionEvent e) {
-				List<TrpDocMetadata> mdList = new ArrayList<TrpDocMetadata>();
-				if(scopeCombo.getSelectionIndex() == 0) return;
-				try {
-					int collId = Integer.parseInt(scopeCombo.getItem(scopeCombo.getSelectionIndex()));
-					mdList = storage.getConnection().getAllDocs(collId);
-				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-						| IllegalArgumentException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				if(mdList.size() != 0){
-					DOCSCOPES = new ArrayList<String>();
-					DOCSCOPES.add("All Documents");
-					for(TrpDocMetadata md : mdList){
-						DOCSCOPES.add(md.getTitle());
-						logger.debug(""+md.getTitle());
-					}
-					String[] docArray = new String[DOCSCOPES.size()];
-					docCombo.setItems(DOCSCOPES.toArray(docArray));
-					docCombo.select(0);
-				}
-			}
-		});
 		
 		List<TrpDocMetadata> docsInCollection;
-		
+		ArrayList<String> DOCSCOPES = new ArrayList<String>();
 		DOCSCOPES.add("All Documents");
 		try {
-			int collId = Integer.parseInt(scopeCombo.getItem(scopeCombo.getSelectionIndex()));
-			docsInCollection = storage.getConnection().getAllDocs(collId);
-			for(TrpDocMetadata md : docsInCollection){				
+			docsInCollection = storage.getConnection().getAllDocs(1335);
+			for(TrpDocMetadata md : docsInCollection){
 				DOCSCOPES.add(md.getTitle());
 				logger.debug(""+md.getDocId());
 			}
@@ -339,29 +312,6 @@ public class KWSearchComposite extends Composite{
 
 		
 	}
-	
-	private double prob2sigma(double x){
-		
-		if (x == 1.0){
-			return x*100;
-		}
-		double z = 0;
-		double lim = 4.53988e-05;
-		double a = 0.2;
-		z = (float) (x < lim ?  lim : (x > 1.0 ? 1.0 : x)); 
-		double zz = 50.0 - (1.0 / a) * Math.log(1.0 / z - 1.0);
-		if (zz < 0.000102575) zz = 0;
-		if (zz > 100.0) zz = 100.0;
-		return zz;
-		
-	}
-	
-	private double sigma2prob(double zz){
-		double a = 0.2;
-		double z = 1.0/(Math.exp( (50.0-zz)*a ) + 1);
-		
-		return z;
-	}
 		
 	private void initPreviewArea(Composite cont){
 		Group previewGrp = new Group(cont, SWT.NONE);
@@ -467,8 +417,7 @@ public class KWSearchComposite extends Composite{
             @Override
             public String getText(Object element) {
                 KeywordHit hit = (KeywordHit)element;  
-                double sigma = prob2sigma((double)hit.getProbability());
-                return "" + CONF_FORMAT.format(sigma);
+                return ""+hit.getProbability();
             }
         });		
         tc.addListener(SWT.Selection, sortListenerProb);
@@ -552,7 +501,7 @@ public class KWSearchComposite extends Composite{
 	}
 	
 	private double getConfidenceSliderValue() {
-		return confSlider.getSelection();
+		return confSlider.getSelection() / 100.0;
 	}
 	
 	private void setConfidenceSliderValue(Double value) {
@@ -563,7 +512,7 @@ public class KWSearchComposite extends Composite{
 		if(value == null) {
 			throw new IllegalArgumentException("Value must not be null");
 		}
-		final Double sliderVal = value;
+		final Double sliderVal = value * 100;
 		return sliderVal.intValue();
 	}
 	
@@ -597,7 +546,7 @@ public class KWSearchComposite extends Composite{
 				kwSearchResult = response;
 				if(kwSearchResult != null){	
 					Display.getDefault().asyncExec(()->{
-						logger.debug("searched word: "+searchWord);
+						logger.debug("searched"+searchWord);
 						logger.debug("num hits: "+kwSearchResult.getNumResults());
 						updateResultsTable();
 					}); 					
@@ -620,20 +569,10 @@ public class KWSearchComposite extends Composite{
 		ArrayList<String> filters = new ArrayList<String>();		
 		if(docCombo.getSelectionIndex() != 0){
 			String filterTitle = docCombo.getItem(docCombo.getSelectionIndex());
-//			Solr requires this format for spaces in title -> title:"xxx xxx"
-			filterTitle = filterTitle.replaceAll("'", "");
-			filterTitle = '"'+filterTitle+'"';
 			filters.add("title:"+filterTitle);
-		}	
-		if (scopeCombo.getSelectionIndex() != 0){
-			String filterCollection = scopeCombo.getItem(scopeCombo.getSelectionIndex());
-			filters.add("collectionId:"+filterCollection);
-		}
+		}		
 		
-		logger.debug("filters:" + filters);
-		
-		float probLow = (float)sigma2prob(getConfidenceSliderValue());
-		System.out.println(probLow);
+		float probLow = (float) getConfidenceSliderValue();
 		
 		try{
 			storage.getConnection().searchKWAsync(searchWord, start, rows, probLow, 1.0f, filters, sorting, 0, callback);
