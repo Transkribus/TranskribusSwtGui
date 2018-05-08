@@ -29,6 +29,7 @@ import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpTabWidget.TrpTabItemSelectionListener;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.vkeyboards.ITrpVirtualKeyboardsTabWidgetListener;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsTabWidget;
 
@@ -213,6 +214,14 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 				logger.debug("tab item selected: "+tabItem);
 				
 				ui.getCanvas().redraw();
+				
+				if (ui.getTabWidget().isTextTaggingItemSeleced()) {
+					logger.debug("selected text tagging item!");
+					ATranscriptionWidget transcriptionWidget = ui.getSelectedTranscriptionWidget();
+					if (transcriptionWidget != null) {
+						ui.getTaggingWidget().updateSelectedTag(transcriptionWidget.getCustomTagsForCurrentOffset());	
+					}
+				}
 			}
 		});
 	}
