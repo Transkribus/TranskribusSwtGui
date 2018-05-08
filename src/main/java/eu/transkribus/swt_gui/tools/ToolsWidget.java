@@ -48,6 +48,7 @@ public class ToolsWidget extends Composite {
 	TranscriptVersionChooser refVersionChooser, hypVersionChooser;
 	
 	Button computeWerBtn;
+	Button computeAdvancedBtn;
 	Button compareVersionsBtn;
 	Composite werGroup;
 	ExpandableComposite werExp;
@@ -419,11 +420,14 @@ public class ToolsWidget extends Composite {
 		hypVersionChooser = new TranscriptVersionChooser("Hypothesis:\n(HTR Text) ", werGroup, 0);
 		hypVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));		
 				
-		Label emptyLabel = new Label(werGroup,0);
 		computeWerBtn = new Button(werGroup, SWT.PUSH);
-		computeWerBtn.setText("Compare");
-		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
+		computeWerBtn.setText("Quick Compare");
+		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 0, 1));
 		computeWerBtn.setToolTipText("Compares the two selected transcripts and computes word error rate and character error rate.");
+		
+		computeAdvancedBtn = new Button(werGroup,SWT.PUSH);
+		computeAdvancedBtn.setText("Advanced...");
+		
 //		computeWerBtn.pack();
 		
 		compareVersionsBtn = new Button(werGroup, SWT.PUSH);

@@ -131,7 +131,7 @@ public class HtrTrainingDialog extends Dialog {
 	private TreeViewer tv;
 	private CollectionContentProvider contentProv;
 	private CollectionLabelProvider labelProv;
-	private Button useGtVersionChk;
+	private Button useGtVersionChk, useNewVersionChk;
 
 	private Composite buttonComp;
 	private Label previewLbl;
@@ -214,7 +214,7 @@ public class HtrTrainingDialog extends Dialog {
 		paramTabFolder.setSelection(citlabTrainingTabItem);		
 		paramCont.pack();
 		SWTUtil.onSelectionEvent(paramTabFolder, (e) -> { updateUI(); } );
-		updateUI();
+		
 
 		// doc selection ===============================================================================
 		if(ALLOW_SELECTION_METHOD_CHOICES) {
@@ -227,6 +227,8 @@ public class HtrTrainingDialog extends Dialog {
 			
 		}
 		sash.setWeights(new int[] { 45, 55 });
+		
+		updateUI();
 		
 		addListeners();
 
@@ -241,6 +243,8 @@ public class HtrTrainingDialog extends Dialog {
 		boolean isT2I = paramTabFolder.getSelection() == citlabT2ITabItem;
 		descTxt.setEnabled(!isT2I);
 		modelNameTxt.setEnabled(!isT2I);
+		useGtVersionChk.setEnabled(!isT2I);
+		useNewVersionChk.setEnabled(isT2I);
 	}
 	
 	private void createCitlabT2ITab() {
@@ -355,6 +359,10 @@ public class HtrTrainingDialog extends Dialog {
 
 		useGtVersionChk = new Button(trainOverviewCont, SWT.CHECK);
 		useGtVersionChk.setText("Use Groundtruth versions");
+		
+		useNewVersionChk = new Button(trainOverviewCont, SWT.CHECK);
+		useNewVersionChk.setText("Use initial('New') versions");
+		useNewVersionChk.setSelection(true);
 
 		GridData tableGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		GridLayout tableGl = new GridLayout(1, true);
@@ -936,17 +944,22 @@ public class HtrTrainingDialog extends Dialog {
 	}
 
 	private DataSetMetadata computeDataSetSize(Map<TrpDocMetadata, List<TrpPage>> map) {
-		final boolean useGt = useGtVersionChk.getSelection();
+		final boolean useGt = useGtVersionChk.isEnabled() && useGtVersionChk.getSelection();
+		final boolean useInitial = useNewVersionChk.isEnabled() && useNewVersionChk.getSelection();
 		int pages = 0;
 		int lines = 0;
 		int words = 0;
 		for (Entry<TrpDocMetadata, List<TrpPage>> e : map.entrySet()) {
 			for (TrpPage p : e.getValue()) {
 				TrpTranscriptMetadata tmd = p.getCurrentTranscript();
-				if (useGt) {
+				if (useGt || useInitial) {
 					for (TrpTranscriptMetadata t : p.getTranscripts()) {
-						if (t.getStatus().equals(EditStatus.GT)) {
+						if (useGt && t.getStatus().equals(EditStatus.GT)) {
 							tmd = t;
+							break;
+						}
+						if (useInitial && t.getStatus().equals(EditStatus.NEW)){
+							tmd=t;
 							break;
 						}
 					}
@@ -961,7 +974,8 @@ public class HtrTrainingDialog extends Dialog {
 
 	private List<DocumentSelectionDescriptor> buildSelectionDescriptorList(Map<TrpDocMetadata, List<TrpPage>> map) {
 		List<DocumentSelectionDescriptor> list = new LinkedList<>();
-		final boolean useGt = useGtVersionChk.getSelection();
+		final boolean useGt = useGtVersionChk.isEnabled() && useGtVersionChk.getSelection();
+		final boolean useInitial = useNewVersionChk.isEnabled() && useNewVersionChk.getSelection();
 
 		for (Entry<TrpDocMetadata, List<TrpPage>> e : map.entrySet()) {
 			DocumentSelectionDescriptor dsd = new DocumentSelectionDescriptor();
@@ -970,9 +984,13 @@ public class HtrTrainingDialog extends Dialog {
 				PageDescriptor pd = new PageDescriptor();
 				pd.setPageId(p.getPageId());
 				pd.setTsId(p.getCurrentTranscript().getTsId());
-				if (useGt) {
+				if (useGt || useInitial) {
 					for (TrpTranscriptMetadata t : p.getTranscripts()) {
-						if (t.getStatus().equals(EditStatus.GT)) {
+						if (useGt && t.getStatus().equals(EditStatus.GT)) {
+							pd.setTsId(t.getTsId());
+							break;
+						}
+						if (useInitial && t.getStatus().equals(EditStatus.NEW)){
 							pd.setTsId(t.getTsId());
 							break;
 						}

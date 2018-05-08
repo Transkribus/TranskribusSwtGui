@@ -2304,9 +2304,10 @@ public class TrpMainWidget {
 						logger.debug("loaded local doc "+folder);
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
-					} finally {
-						monitor.done();
 					}
+//					} finally {
+//						monitor.done();
+//					}
 				}
 			}, "Loading local document", false);
 
@@ -4249,6 +4250,7 @@ public class TrpMainWidget {
 			// enable sync mode to allow for local docs without images
 			DocLoadConfig config = new DocLoadConfig();
 			config.setEnableSyncWithoutImages(true);
+			config.setDimensionMapFromDoc(storage.getDoc());
 			TrpDoc localDoc = LocalDocReader.load(fn, config);
 
 			final DocSyncDialog d = new DocSyncDialog(getShell(), storage.getDoc(), localDoc);
