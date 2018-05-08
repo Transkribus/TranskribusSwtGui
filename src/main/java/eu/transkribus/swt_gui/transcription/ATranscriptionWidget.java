@@ -1299,7 +1299,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		        				Display.getDefault().asyncExec(new Runnable() {
 									@Override public void run() {
 										logger.debug("sending default selection changed signal!");
-										sendDefaultSelectionChangedSignal(true);
+										sendDefaultSelectionChangedSignal(false);
 									}
 								});
 		        			}

@@ -112,12 +112,13 @@ public class TagPropertyEditor extends Composite {
 		propsTable.getTableViewer().getTable().addTraverseListener(new TraverseListener() {
 			@Override
 			public void keyTraversed(TraverseEvent e) {
-				logger.debug("traverse event in TagPropertyEditor!");
-				if (e.detail == SWT.TRAVERSE_RETURN) {
-					e.doit = false;
-					jumpToNextTag(CanvasKeys.isShiftKeyDown(e.stateMask));
-				}
-				else if (e.detail == SWT.TRAVERSE_ARROW_NEXT) {
+				logger.debug("traverse event in TagPropertyEditor: "+e.detail);
+//				if (e.detail == SWT.TRAVERSE_RETURN) {
+//					logger.debug("traverse return!");
+//					e.doit = false;
+//					jumpToNextTag(CanvasKeys.isShiftKeyDown(e.stateMask));
+//				}
+				if (e.detail == SWT.TRAVERSE_ARROW_NEXT) {
 					e.doit = false;
 					jumpToNextTag(false);
 				}
@@ -137,6 +138,7 @@ public class TagPropertyEditor extends Composite {
 			}
 		});
 		
+		propsTable.setShowNonEditableProperties(showNonEditablePropsItem.getSelection());
 		setCustomTag(null, false);
 	}
 	
@@ -181,6 +183,10 @@ public class TagPropertyEditor extends Composite {
 	
 	public boolean isSettingCustomTag() {
 		return settingCustomTag;
+	}
+	
+	public CustomTagPropertyTable getPropsTable() {
+		return propsTable;
 	}
 	
 	public void findAndSetNextTag() {

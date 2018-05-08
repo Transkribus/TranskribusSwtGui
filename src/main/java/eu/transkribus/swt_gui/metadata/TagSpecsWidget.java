@@ -83,6 +83,12 @@ public class TagSpecsWidget extends Composite {
 	
 	Composite header;
 	
+	public interface TagSpecsWidgetListener {
+		public void addTagButtonClicked(CustomTagSpec tagSpec);
+	}
+	
+	List<TagSpecsWidgetListener> listener = new ArrayList<>();
+	
 	public TagSpecsWidget(Composite parent, int style, boolean isEditable) {
 		super(parent, style);
 		setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
@@ -470,7 +476,7 @@ public class TagSpecsWidget extends Composite {
 			
 			CellLabelProvider addButtonColLabelProvider = new CellLabelProvider() {
 				@Override public void update(final ViewerCell cell) {
-					CustomTagSpec tagDef = (CustomTagSpec) cell.getElement();
+					CustomTagSpec tagSpec = (CustomTagSpec) cell.getElement();
 					final TableItem item = (TableItem) cell.getItem();
 					TableEditor editor = new TableEditor(item.getParent());
 					
@@ -478,11 +484,9 @@ public class TagSpecsWidget extends Composite {
 					addBtn.setImage(Images.ADD_12);
 					addBtn.setToolTipText("Insert this tag at the selected position in the transcription");
 					SWTUtil.onSelectionEvent(addBtn, e -> {
-//						CustomTagDef selTagDef = getSelected();
-						if (TrpMainWidget.getInstance() != null && tagDef != null && tagDef.getCustomTag()!=null) {
-							CustomTag ct = tagDef.getCustomTag();
-							TrpMainWidget.getInstance().addTagForSelection(ct.getTagName(), ct.getAttributeNamesValuesMap(), null);
-						}
+						listener.stream().forEach(l -> {
+							l.addTagButtonClicked(tagSpec);
+						});
 					});
 					                
 	                Point size = addBtn.computeSize(SWT.DEFAULT, SWT.DEFAULT);
@@ -493,7 +497,7 @@ public class TagSpecsWidget extends Composite {
 	                editor.setEditor(addBtn , item, cell.getColumnIndex());
 	                editor.layout();
 	                
-	                TaggingWidgetUtils.replaceEditor(insertTagEditors, tagDef, editor);
+	                TaggingWidgetUtils.replaceEditor(insertTagEditors, tagSpec, editor);
 				}
 			};
 			addButtonCol.setLabelProvider(addButtonColLabelProvider);
@@ -666,6 +670,14 @@ public class TagSpecsWidget extends Composite {
 	
 	public Composite getHeader() {
 		return header;
+	}
+	
+	public void addListener(TagSpecsWidgetListener l) {
+		listener.add(l);
+	}
+	
+	public boolean removeListener(TagSpecsWidgetListener l) {
+		return listener.remove(l);
 	}
 
 }
