@@ -13,7 +13,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
@@ -50,7 +49,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private Group resultGroup;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private LabeledCombo options;
-	private Button compare;
 	final ParameterMap params = new ParameterMap();
 
 
@@ -82,10 +80,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		options.combo.addModifyListener(new ModifyListener() {
 			@Override public void modifyText(ModifyEvent e) {
-				System.out.println(options.combo);
-				logger.debug("Selected Combo "+options.combo.getSelectionIndex());
-//				params.addIntParam("option", options.combo.getSelectionIndex());
-				
+				logger.debug("Selected Combo "+options.combo.getSelectionIndex());			
 			}
 		});
 		
@@ -134,8 +129,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				}
 			}
 		});
-		
-		
 	}
 	
 	public TrpCollection getCurrentCollection() {

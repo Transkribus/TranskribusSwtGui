@@ -6,7 +6,9 @@ import org.eclipse.swt.widgets.Control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ErrorRateAdvancedTest {
+import eu.transkribus.core.model.beans.TrpErrorRate;
+
+public class ErrorAdvandedStatsTest {
 	
 	private final static Logger logger = LoggerFactory.getLogger(ErrorRateAdvancedTest.class);	
 
@@ -15,7 +17,16 @@ public class ErrorRateAdvancedTest {
 			@Override
 			protected Control createContents(Composite parent) {
 		
-				ErrorRateAdvancedDialog eDia = new ErrorRateAdvancedDialog(getShell());
+				TrpErrorRate e = new TrpErrorRate();
+				e.setWer("12,2%");
+				e.setwAcc("6,98%");
+				e.setCer("10,66%");
+				e.setcAcc("29,38%");
+				e.setBagTokensF("18,96%");
+				e.setBagTokensPrec("24,91%");
+				e.setBagTokensRec("40.21528861154446177");
+				
+				ErrorRateAdvancedStats eDia = new ErrorRateAdvancedStats(getShell(),e);
 			
 				eDia.open();
 				
