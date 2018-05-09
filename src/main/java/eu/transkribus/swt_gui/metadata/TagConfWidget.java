@@ -69,7 +69,7 @@ public class TagConfWidget extends Composite {
 	Set<String> availableTagNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 	TableViewer availableTagsTv;
 	SashForm availableTagsSf;
-	CustomTagPropertyTable propsTable;
+	CustomTagPropertyTableNew propsTable;
 //	ColorChooseButton colorChooseBtn;
 	
 	TagSpecsWidget tagDefsWidget;
@@ -535,7 +535,7 @@ public class TagConfWidget extends Composite {
 			}
 		});
 		
-		propsTable = new CustomTagPropertyTable(propsContainer, 0, false);
+		propsTable = new CustomTagPropertyTableNew(propsContainer, 0, false);
 		propsTable.getTableViewer().getTable().setHeaderVisible(false);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2);
 //		gd.heightHint = 200;

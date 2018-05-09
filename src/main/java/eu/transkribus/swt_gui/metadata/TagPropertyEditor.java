@@ -30,7 +30,7 @@ import eu.transkribus.swt_gui.util.DropDownButton;
 public class TagPropertyEditor extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagPropertyEditor.class);
 	
-	CustomTagPropertyTable propsTable;
+	CustomTagPropertyTableNew propsTable;
 	CustomTag tag;
 	
 	Composite headerComp;
@@ -67,7 +67,7 @@ public class TagPropertyEditor extends Composite {
 		tagInfo.setText("Props for tag: no tag selected");
 		Fonts.setBoldFont(tagInfo);
 		
-		propsTable = new CustomTagPropertyTable(this, 0, false);
+		propsTable = new CustomTagPropertyTableNew(this, 0, false);
 		propsTable.getTableViewer().getTable().setHeaderVisible(false);
 		propsTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
@@ -179,7 +179,7 @@ public class TagPropertyEditor extends Composite {
 		return settingCustomTag;
 	}
 	
-	public CustomTagPropertyTable getPropsTable() {
+	public CustomTagPropertyTableNew getPropsTable() {
 		return propsTable;
 	}
 	

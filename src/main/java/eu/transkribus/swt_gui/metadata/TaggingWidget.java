@@ -6,8 +6,6 @@ import java.util.Map;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
@@ -40,7 +38,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.metadata.CustomTagPropertyTable.ICustomTagPropertyTableListener;
+import eu.transkribus.swt_gui.metadata.CustomTagPropertyTableNew.ICustomTagPropertyTableNewListener;
 import eu.transkribus.swt_gui.metadata.TagSpecsWidget.TagSpecsWidgetListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
@@ -211,12 +209,13 @@ public class TaggingWidget extends Composite {
 //			refreshTagsFromStorageAndCurrentSelection();
 		});
 		
-		transcriptionTaggingWidget.getTagPropertyEditor().propsTable.addListener(new ICustomTagPropertyTableListener() {
+		transcriptionTaggingWidget.getTagPropertyEditor().propsTable.addListener(new ICustomTagPropertyTableNewListener() {
 			@Override
 			public void onPropertyChanged(CustomTag tag, String property, Object value) {
 				logger.debug("property changed: "+property+"/"+value);
-				refreshTagList();
+//				refreshTagList();
 //				refreshTagsFromStorageAndCurrentSelection();
+				tagListWidget.getTableViewer().refresh(tag);
 			}
 		});
 		
