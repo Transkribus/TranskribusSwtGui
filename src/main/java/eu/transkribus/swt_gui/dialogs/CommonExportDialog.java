@@ -1797,10 +1797,11 @@ public class CommonExportDialog extends Dialog {
 			
 			pageNr_FilenamePattern = new Button(group, SWT.RADIO);
 			pageNr_FilenamePattern.setText("pageNr + filename");
-			pageNr_FilenamePattern.setSelection(true);
+			//pageNr_FilenamePattern.setSelection(true);
 			
 			fileNamePattern = new Button(group, SWT.RADIO);
 			fileNamePattern.setText("filename (warning: filenames must be unique for document)");
+			fileNamePattern.setSelection(true);
 			
 			docId_PageNr_PageIdPattern = new Button(group, SWT.RADIO);
 			docId_PageNr_PageIdPattern.setText("docId + pageNr + pageId");
