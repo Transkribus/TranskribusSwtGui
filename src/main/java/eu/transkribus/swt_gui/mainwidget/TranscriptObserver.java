@@ -48,7 +48,7 @@ public class TranscriptObserver implements Observer {
 		
 		this.tagListUpdateTask = new DelayedTask(() -> {
 //			mainWidget.getUi().getTaggingWidget().getTagListWidget().refreshTable();
-			mainWidget.getUi().getTaggingWidget().refreshTagsFromStorageAndCurrentSelection();
+			mainWidget.getUi().getTaggingWidget().refreshTagList();
 		}, true);
 	}
 	

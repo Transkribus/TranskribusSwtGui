@@ -1,55 +1,101 @@
 package eu.transkribus.swt_gui.dialogs;
 
 
+import javax.xml.bind.JAXBException;
+
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
+import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.kws.TrpKeyWord;
+import eu.transkribus.core.model.beans.kws.TrpKwsHit;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.core.util.JaxbUtils;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.LabeledCombo;
+import eu.transkribus.swt.util.LabeledComboWithButton;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
+import eu.transkribus.swt_gui.search.kws.KwsResultViewer;
+import eu.transkribus.swt_gui.search.kws.TrpKwsResultTableEntry;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
 public class ErrorRateAdvancedDialog extends Dialog {
+	private final static Logger logger = LoggerFactory.getLogger(ErrorRateAdvancedDialog.class);
 	
-
-	private TrpTranscriptMetadata ref;
-	private TrpTranscriptMetadata hyp;
+	
+	
+	Storage store;
 	private Composite composite;
 	private KwsResultTableWidget resultTable;
 	private Group resultGroup;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
-	private Combo options;
-	
+	private LabeledCombo options;
+	final ParameterMap params = new ParameterMap();
 
-	public ErrorRateAdvancedDialog(Shell parentShell, TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) {
+
+	public ErrorRateAdvancedDialog(Shell parentShell) {
 		
 		super(parentShell);
-		this.ref = ref;
-		this.hyp = hyp;
-
+		store = Storage.getInstance();
 	}
 	
 	public void createConfig() {
 		
 		Composite config = new Composite(composite,SWT.NONE);
 		
-		config.setLayout(new GridLayout(2,false));
+		config.setLayout(new GridLayout(3,false));
 		
 		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 		
-		options = new Combo(config,SWT.READ_ONLY);
-		String items[] = {"normcompatibility","normcanonic","case sensitive"};
-		options.setItems(items);
+		
+		options = new LabeledComboWithButton(config,"Options","Compare");
+		options.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
+		options.combo.setItems(" ","normcompatibility","normcanonic","non-case-sensitive");
+		
+		addListener();
+		
+	
+	}
+	private void addListener() {
+		
+		options.combo.addModifyListener(new ModifyListener() {
+			@Override public void modifyText(ModifyEvent e) {
+				logger.debug("Selected Combo "+options.combo.getSelectionIndex());			
+			}
+		});
+		
+		((LabeledComboWithButton)options).getButton().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				super.widgetSelected(e);
+				params.addIntParam("option", options.combo.getSelectionIndex());
+				startError();
+			}
+			
+		});
 		
 	}
-	
+
 	public void createJobTable() {
 		
 		Composite jobs = new Composite(composite,SWT.NONE);
@@ -68,6 +114,26 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		resultTable = new KwsResultTableWidget(resultGroup, SWT.BORDER);
 		resultTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
+		resultTable.getTableViewer().addDoubleClickListener(new IDoubleClickListener(){
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				TrpKwsResultTableEntry entry = resultTable.getSelectedKws();
+				if(entry.getResult() != null) {
+					try {
+						logger.debug(JaxbUtils.marshalToString(entry.getResult(), true, TrpKeyWord.class, TrpKwsHit.class));
+					} catch (JAXBException e) {
+						logger.error("Could not read result.", e);
+					}
+					KwsResultViewer viewer = new KwsResultViewer(getShell(), entry);
+					viewer.open();
+				}
+			}
+		});
+	}
+	
+	public TrpCollection getCurrentCollection() {
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		return mw.getUi().getServerWidget().getSelectedCollection();
 	}
 	
 	@Override
@@ -87,5 +153,22 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		return composite;
 	}
+	
+	protected void startError() {
+
+		try {
+			logger.debug("Store ID :" + store.getDocId());
+			logger.debug("Page String : "+ dps.getPagesStr());
+			logger.debug("Parameter Query " + params.getIntParam("option"));
+			store.getConnection().computeErrorRateWithJob(store.getDocId(), dps.getPagesStr(), params);
+			
+		} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
+			logger.error(e.getMessage(), e);
+			DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessageToUser());
+			return;
+		} 
+		
+	}
+
 
 }

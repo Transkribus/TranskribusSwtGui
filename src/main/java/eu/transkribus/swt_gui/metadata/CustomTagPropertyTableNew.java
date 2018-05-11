@@ -3,32 +3,41 @@ package eu.transkribus.swt_gui.metadata;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
-import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
-import org.eclipse.jface.viewers.EditingSupport;
+import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
-import org.eclipse.jface.viewers.ICellEditorValidator;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TableViewerEditor;
 import org.eclipse.jface.viewers.TableViewerFocusCellManager;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,40 +47,35 @@ import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
-import eu.transkribus.swt.util.MyCheckboxEditor;
-import eu.transkribus.swt.util.MyTextCellEditor;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableViewerUtils;
 
-/**
- * @deprecated did not apply attribute values sometimes
- */
-public class CustomTagPropertyTable extends Composite {
-	private final static Logger logger = LoggerFactory.getLogger(CustomTagPropertyTable.class);
+public class CustomTagPropertyTableNew extends Composite {
+	private final static Logger logger = LoggerFactory.getLogger(CustomTagPropertyTableNew.class);
 	
 	TableViewer tv;
 	Table table;
 	
 	TableViewerColumn nameCol;
 	TableViewerColumn valueCol;
-	EditingSupport valueEditingSupport;
+//	EditingSupport valueEditingSupport;
 
 //	private CustomTag prototypeTag;
 
 	private CustomTag selectedTag;
 	boolean showNonEditableProperties=false;
 	
-	public interface ICustomTagPropertyTableListener {
+	public interface ICustomTagPropertyTableNewListener {
 		void onPropertyChanged(CustomTag tag, String name, Object value); 
 	}
 	
-	List<ICustomTagPropertyTableListener> listener = new ArrayList<>();
+	List<ICustomTagPropertyTableNewListener> listener = new ArrayList<>();
 	
 //	public CustomTagPropertyTable(Composite parent, int style) {
 //		this(parent, style, true);
 //	}
 
-	public CustomTagPropertyTable(Composite parent, int style, boolean showNonEditableProperties) {
+	public CustomTagPropertyTableNew(Composite parent, int style, boolean showNonEditableProperties) {
 		super(parent, style);
 		this.setLayout(new FillLayout());
 		
@@ -106,15 +110,21 @@ public class CustomTagPropertyTable extends Composite {
 					return;
 				}
 				
-				String attName = getAttributeName(cell.getElement());
-				Object value = getAttributeValue(cell.getElement());
-				
-				cell.setText(value==null ? "" : String.valueOf(value));
-				if (CustomTag.isOffsetOrLengthOrContinuedProperty(attName)) {
-					cell.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+				if (!canEdit(cell.getElement())) { // for editable values, the editor with it's content will always be visible!
+					String attName = getAttributeName(cell.getElement());
+					Object value = getAttributeValue(cell.getElement());
+					
+					cell.setText(value==null ? "" : String.valueOf(value));
+					if (CustomTag.isOffsetOrLengthOrContinuedProperty(attName)) {
+						cell.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+					}
+					else {
+						cell.setBackground(Colors.getSystemColor(SWT.COLOR_WHITE));
+					}
 				}
 				else {
 					cell.setBackground(Colors.getSystemColor(SWT.COLOR_WHITE));
+					cell.setText("");
 				}
 			}
 		});
@@ -165,148 +175,123 @@ public class CustomTagPropertyTable extends Composite {
 //		});
 		
 		// EDITING SUPPORT:
-		valueEditingSupport = new EditingSupport(tv) {
-			@Override protected void setValue(Object element, Object value) {
-				if (selectedTag == null) {
-					return;
-				}
-				String attName = getAttributeName(element);
-				logger.debug("setting attribute value, att = "+attName+" vaue = "+value);
-				try {
-					if (!StringUtils.isEmpty(attName)) {
-						// OLD VERSION: just apply for tag in this line:
-//						selectedTag.setAttribute(attName, value, true);
-//						tv.update(element, null);
-//						listener.stream().forEach(l -> { 
-//							l.onPropertyChanged(selectedTag, attName, value);
-//						});						
-
-						// NEW VERSION: apply for tag and continuations
-						CustomTagUtil.applyForAllTagsAndContinuations(selectedTag, tag-> {
-							try {
-								tag.setAttribute(attName, value, true);
-								tv.update(element, null);
-								
-								listener.stream().forEach(l -> { 
-									l.onPropertyChanged(tag, attName, value);
-								});
-							}
-							catch (Exception e) {
-								logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
-							}
-						});					
-					}
-				} catch (Exception e) {
-					logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
-				}
-				
-//				tv.refresh(true);
-//				tv.update(element, null);
-			}
-			
-			@Override protected Object getValue(Object element) {
-				return getAttributeValue(element);
-			}
-			
-			@Override protected CellEditor getCellEditor(Object element) {
-				if (selectedTag == null) {
-					return null;
-				}
-				
-				String attName = getAttributeName(element);
-				CellEditor e = null;
-				Class<?> t = selectedTag.getAttributeType(attName);
-				
-				logger.debug("cell editor, att = "+attName+" type = "+t);
-				if (t==null) {
-					e = new MyTextCellEditor(table);
-				}
-				else if (t.equals(Boolean.class) || t.equals(boolean.class)) {
-					e = new MyCheckboxEditor(table);
-				}
-				// TODO: true for every class???
-				else if (Enum.class.getClass().isAssignableFrom(t)) {
-					ComboBoxViewerCellEditor cbe = new ComboBoxViewerCellEditor(table);
-					cbe.setContentProvider(new ArrayContentProvider());
-					cbe.setInput(t.getEnumConstants());
-					cbe.setLabelProvider(new LabelProvider());
-					e = cbe;					
-				}
-				else {
-					e = new MyTextCellEditor(table);
-				}
-				
-				ICellEditorValidator v = SWTUtil.createNumberCellValidator(t);
-				if (v != null) {
-					e.setValidator(v);
-				}
-				
-//				e.addListener(new ICellEditorListener() {
-//					
-//					@Override
-//					public void editorValueChanged(boolean arg0, boolean arg1) {
-//					}
-//					
-//					@Override
-//					public void cancelEditor() {
-//					}
-//					
-//					@Override
-//					public void applyEditorValue() {
-////						listener.stream().forEach(l -> { 
-////							l.onPropertyChanged(getAttributeName(element), getAttributeValue(element));
-////						});
-//					}
-//				});
-												
-				return e;
-			}
-			
-			@Override protected boolean canEdit(Object element) {
-				if (selectedTag == null) {
-					return false;
-				}
-				
-				String attName = getAttributeName(element);
-				return !CustomTag.isOffsetOrLengthOrContinuedProperty(attName);
-			}
-		};
-		valueCol.setEditingSupport(valueEditingSupport);
-		
-//		tv.getTable().addTraverseListener(new TraverseListener() {
-//			@Override
-//			public void keyTraversed(TraverseEvent e) {
-//				e.doit = false;
-//				
-//				System.out.println("traversed!");
-//				if (e.detail == SWT.TRAVERSE_RETURN) {
-//					e.doit = false;
-//					
-//					System.out.println("return!");
-//					
-//					
-//					
-//				}
-//			}
-//		});
-		
-//		tv.getTable().addKeyListener(new KeyListener() {
-//			@Override
-//			public void keyReleased(KeyEvent e) {
-//				System.out.println("key released: "+e);
-//				if (e.keyCode == 0x1000050) {
-//					System.out.println("enter released!");
-//				}
+//		valueEditingSupport = new EditingSupport(tv) {
+//			@Override protected void setValue(Object element, Object value) {
+//				setValue(element, value);
 //			}
 //			
-//			@Override
-//			public void keyPressed(KeyEvent e) {
-//				System.out.println("key pressed!");
-//				
+//			@Override protected Object getValue(Object element) {
+//				return getAttributeValue(element);
 //			}
-//		});
+//			
+//			@Override protected CellEditor getCellEditor(Object element) {
+//				if (selectedTag == null) {
+//					return null;
+//				}
+//				
+//				String attName = getAttributeName(element);
+//				CellEditor e = null;
+//				Class<?> t = selectedTag.getAttributeType(attName);
+//				
+//				logger.debug("cell editor, att = "+attName+" type = "+t);
+//				if (t==null) {
+//					e = new MyTextCellEditor(table);
+//				}
+//				else if (t.equals(Boolean.class) || t.equals(boolean.class)) {
+//					e = new MyCheckboxEditor(table);
+//				}
+//				// TODO: true for every class???
+//				else if (Enum.class.getClass().isAssignableFrom(t)) {
+//					ComboBoxViewerCellEditor cbe = new ComboBoxViewerCellEditor(table);
+//					cbe.setContentProvider(new ArrayContentProvider());
+//					cbe.setInput(t.getEnumConstants());
+//					cbe.setLabelProvider(new LabelProvider());
+//					e = cbe;					
+//				}
+//				else {
+//					e = new MyTextCellEditor(table);
+//				}
+//				
+//				ICellEditorValidator v = SWTUtil.createNumberCellValidator(t);
+//				if (v != null) {
+//					e.setValidator(v);
+//				}
+//				
+////				e.addListener(new ICellEditorListener() {
+////					
+////					@Override
+////					public void editorValueChanged(boolean arg0, boolean arg1) {
+////					}
+////					
+////					@Override
+////					public void cancelEditor() {
+////					}
+////					
+////					@Override
+////					public void applyEditorValue() {
+//////						listener.stream().forEach(l -> { 
+//////							l.onPropertyChanged(getAttributeName(element), getAttributeValue(element));
+//////						});
+////					}
+////				});
+//												
+//				return e;
+//			}
+//			
+//			@Override protected boolean canEdit(Object element) {
+//				return canEdit(element);
+//			}
+//		};
+//		valueCol.setEditingSupport(valueEditingSupport);
 		
 		initTraverseStuff();
+	}
+	
+	private void setValue(Object element, Object value) {
+		if (selectedTag == null) {
+			return;
+		}
+		String attName = getAttributeName(element);
+		logger.debug("setting attribute value, att = "+attName+" vaue = "+value);
+		try {
+			if (!StringUtils.isEmpty(attName)) {
+				// OLD VERSION: just apply for tag in this line:
+//				selectedTag.setAttribute(attName, value, true);
+//				tv.update(element, null);
+//				listener.stream().forEach(l -> { 
+//					l.onPropertyChanged(selectedTag, attName, value);
+//				});						
+
+				// NEW VERSION: apply for tag and continuations
+				CustomTagUtil.applyForAllTagsAndContinuations(selectedTag, tag-> {
+					try {
+						tag.setAttribute(attName, value, true);
+						tv.update(element, null);
+						
+						listener.stream().forEach(l -> { 
+							l.onPropertyChanged(tag, attName, value);
+						});
+					}
+					catch (Exception e) {
+						logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
+					}
+				});					
+			}
+		} catch (Exception e) {
+			logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
+		}
+		
+//		tv.refresh(true);
+//		tv.update(element, null);
+	}
+	
+	private boolean canEdit(Object element) {
+		if (selectedTag == null) {
+			return false;
+		}
+		
+		String attName = getAttributeName(element);
+		return !CustomTag.isOffsetOrLengthOrContinuedProperty(attName);
 	}
 	
 	public String getAttributeName(Object element) {
@@ -323,11 +308,11 @@ public class CustomTagPropertyTable extends Composite {
 		}
 	}
 	
-	public void addListener(ICustomTagPropertyTableListener l) {
+	public void addListener(ICustomTagPropertyTableNewListener l) {
 		listener.add(l);
 	}
 	
-	public boolean removeListener(ICustomTagPropertyTableListener l) {
+	public boolean removeListener(ICustomTagPropertyTableNewListener l) {
 		return listener.remove(l);
 	}
 	
@@ -404,6 +389,7 @@ public class CustomTagPropertyTable extends Composite {
 		if (selectedTag == null) {
 			this.selectedTag = null;
 			tv.setInput(null);
+			clearEditors();
 			return;
 		}
 		
@@ -441,7 +427,95 @@ public class CustomTagPropertyTable extends Composite {
 		}
 		
 		tv.setInput(attNames);
+		createEditors();
 		tv.refresh(); // needed?
+	}
+	
+	List<TableEditor> editors = new ArrayList<>();
+//	DelayedTask setValueDelayedTask = new DelayedTask(task, isGuiTask);
+	
+	private void clearEditors() {
+		for (TableEditor e : editors) {
+			TaggingWidgetUtils.deleteEditor(e);
+		}
+		editors.clear();
+	}
+	
+	private void createEditors() {
+		clearEditors();
+		
+		for (TableItem item : tv.getTable().getItems()) {
+			Object element = item.getData();
+
+			if (!canEdit(element)) {
+				continue;
+			}
+			
+			TableEditor editor = new TableEditor(tv.getTable());
+			Control ctrl = createEditor(element);
+		    editor.grabHorizontal = true;
+//		    editor.minimumWidth = 100;
+		    editor.grabVertical = true;
+		    editor.setEditor(ctrl, item, 1);
+			
+		    editors.add(editor);
+		}
+		
+	}
+	
+	private Control createEditor(Object element) {
+		Control ctrl;
+		
+		String attName = getAttributeName(element);
+		Object value = getAttributeValue(element);
+		Class<?> t = selectedTag.getAttributeType(attName);
+		
+		logger.debug("cell editor, att = "+attName+" type = "+t);
+		if (t.equals(Boolean.class) || t.equals(boolean.class)) { // e.g. for boolean values in TextStyleTypeTag
+			logger.trace("creating a checkbox!");
+			Button checkBox = new Button(table, SWT.CHECK);
+			checkBox.setSelection(value==null ? false : (boolean) value);
+			SWTUtil.onSelectionEvent(checkBox, evt -> {
+				setValue(element, checkBox.getSelection());
+			});
+			ctrl = checkBox;
+		}
+		else if (t.isEnum()) { // e.g. for colors in TextStyleTypeTag
+			logger.trace("creating a comboviewer!");
+			ComboViewer combo = new ComboViewer(table, SWT.READ_ONLY);
+			combo.setContentProvider(ArrayContentProvider.getInstance());
+			combo.setInput(t.getEnumConstants());
+			combo.setLabelProvider(new LabelProvider());
+			Fonts.setFontHeight(combo.getControl(), table.getFont().getFontData()[0].getHeight()-1); // to fit it into the table cell height...
+			if (value!=null) {
+				combo.setSelection(new StructuredSelection(value));
+			}
+			combo.addSelectionChangedListener(new ISelectionChangedListener() {
+				@Override
+				public void selectionChanged(SelectionChangedEvent arg0) {
+					StructuredSelection sel = (StructuredSelection) combo.getSelection();
+					setValue(element, sel.getFirstElement());
+				}
+			});
+			ctrl = combo.getControl();				
+		}
+		else {
+			logger.trace("creating a textfield!");
+			Text text = new Text(table, SWT.NONE);
+			text.setText(value==null ? "" : String.valueOf(value));
+			text.addModifyListener(new ModifyListener() {
+				
+				@Override
+				public void modifyText(ModifyEvent e) {
+					setValue(element, text.getText());
+				}
+			});
+			ctrl = text;
+		}
+		
+		// TODO: add validators depending on type! (int, float ...)
+		
+		return ctrl;
 	}
 	
 	public void setShowNonEditableProperties(boolean showNonEditableProperties) {

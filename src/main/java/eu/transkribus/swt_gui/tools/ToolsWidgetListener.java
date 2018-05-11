@@ -288,8 +288,6 @@ public class ToolsWidgetListener implements SelectionListener {
 					// Opens dialog which displays table
 
 					TrpErrorRate resultErr = store.computeWer(ref, hyp);
-					
-					logger.debug("F-Measure  : "+resultErr.getBagTokensF());
 
 					ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
 					dialog.open();
@@ -302,7 +300,7 @@ public class ToolsWidgetListener implements SelectionListener {
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) tw.hypVersionChooser.selectedMd;
 				
 				if(ref != null & hyp != null) {
-					ErrorRateAdvancedDialog dialog = new ErrorRateAdvancedDialog(mw.getShell(),ref,hyp);
+					ErrorRateAdvancedDialog dialog = new ErrorRateAdvancedDialog(mw.getShell());
 					dialog.open();
 				
 				}

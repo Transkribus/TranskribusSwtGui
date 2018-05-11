@@ -5,8 +5,6 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -18,16 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
-import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
@@ -36,7 +30,7 @@ import eu.transkribus.swt_gui.util.DropDownButton;
 public class TagPropertyEditor extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagPropertyEditor.class);
 	
-	CustomTagPropertyTable propsTable;
+	CustomTagPropertyTableNew propsTable;
 	CustomTag tag;
 	
 	Composite headerComp;
@@ -73,7 +67,7 @@ public class TagPropertyEditor extends Composite {
 		tagInfo.setText("Props for tag: no tag selected");
 		Fonts.setBoldFont(tagInfo);
 		
-		propsTable = new CustomTagPropertyTable(this, 0, false);
+		propsTable = new CustomTagPropertyTableNew(this, 0, false);
 		propsTable.getTableViewer().getTable().setHeaderVisible(false);
 		propsTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
@@ -84,22 +78,22 @@ public class TagPropertyEditor extends Composite {
 		prevBtn = new Button(btnsComposite, 0);
 		prevBtn.setText("Previous");
 		prevBtn.setImage(Images.PAGE_PREV);
-		SWTUtil.onSelectionEvent(prevBtn, e -> {
-			jumpToNextTag(true);
-		});
+//		SWTUtil.onSelectionEvent(prevBtn, e -> {
+//			jumpToNextTag(true);
+//		});
 		
 		nextBtn = new Button(btnsComposite, 0);
 		nextBtn.setText("Next");
 		nextBtn.setImage(Images.PAGE_NEXT);
-		SWTUtil.onSelectionEvent(nextBtn, e -> {
-			jumpToNextTag(false);
-		});
+//		SWTUtil.onSelectionEvent(nextBtn, e -> {
+//			jumpToNextTag(false);
+//		});
 		
-		refreshBtn = new Button(btnsComposite, 0);
-		refreshBtn.setImage(Images.REFRESH);
-		SWTUtil.onSelectionEvent(refreshBtn, e -> {
-			findAndSetNextTag();
-		});
+//		refreshBtn = new Button(btnsComposite, 0);
+//		refreshBtn.setImage(Images.REFRESH);
+//		SWTUtil.onSelectionEvent(refreshBtn, e -> {
+//			findAndSetNextTag();
+//		});
 		
 		DropDownButton prefsBtn = new DropDownButton(btnsComposite, 0, "", Images.WRENCH, null);
 		autoSelectTagInTranscriptionWidgetItem = prefsBtn.addItem("Auto select tag in transcription widget", null, SWT.CHECK);
@@ -109,24 +103,25 @@ public class TagPropertyEditor extends Composite {
 		showNonEditablePropsItem.setSelection(false);
 		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.SHOW_NON_EDITABLE_TEXT_TAG_PROPERTIES_PROPERTY, TrpConfig.getTrpSettings(), showNonEditablePropsItem);
 		
-		propsTable.getTableViewer().getTable().addTraverseListener(new TraverseListener() {
-			@Override
-			public void keyTraversed(TraverseEvent e) {
-				logger.debug("traverse event in TagPropertyEditor!");
-				if (e.detail == SWT.TRAVERSE_RETURN) {
-					e.doit = false;
-					jumpToNextTag(CanvasKeys.isShiftKeyDown(e.stateMask));
-				}
-				else if (e.detail == SWT.TRAVERSE_ARROW_NEXT) {
-					e.doit = false;
-					jumpToNextTag(false);
-				}
-				else if (e.detail == SWT.TRAVERSE_ARROW_PREVIOUS) {
-					e.doit = false;
-					jumpToNextTag(true);
-				}
-			}
-		});
+//		propsTable.getTableViewer().getTable().addTraverseListener(new TraverseListener() {
+//			@Override
+//			public void keyTraversed(TraverseEvent e) {
+//				logger.debug("traverse event in TagPropertyEditor: "+e.detail);
+////				if (e.detail == SWT.TRAVERSE_RETURN) {
+////					logger.debug("traverse return!");
+////					e.doit = false;
+////					jumpToNextTag(CanvasKeys.isShiftKeyDown(e.stateMask));
+////				}
+//				if (e.detail == SWT.TRAVERSE_ARROW_NEXT) {
+//					e.doit = false;
+//					jumpToNextTag(false);
+//				}
+//				else if (e.detail == SWT.TRAVERSE_ARROW_PREVIOUS) {
+//					e.doit = false;
+//					jumpToNextTag(true);
+//				}
+//			}
+//		});
 		
 		TrpConfig.getTrpSettings().addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
@@ -137,6 +132,7 @@ public class TagPropertyEditor extends Composite {
 			}
 		});
 		
+		propsTable.setShowNonEditableProperties(showNonEditablePropsItem.getSelection());
 		setCustomTag(null, false);
 	}
 	
@@ -183,7 +179,11 @@ public class TagPropertyEditor extends Composite {
 		return settingCustomTag;
 	}
 	
-	public void findAndSetNextTag() {
+	public CustomTagPropertyTableNew getPropsTable() {
+		return propsTable;
+	}
+	
+	public void findAndSetNextTagFromTranscriptionWidget() {
 		ATranscriptionWidget tWidget = getCurrentTranscriptionWidget();
 		if (tWidget == null) {
 			return;
@@ -207,37 +207,37 @@ public class TagPropertyEditor extends Composite {
 		}
 	}
 	
-	public void jumpToNextTag(boolean previous) {
-		ATranscriptionWidget tWidget = getCurrentTranscriptionWidget();
-		if (tWidget == null) {
-			return;
-		}		
-		
-		if (tag == null) {
-			findAndSetNextTag();
-		}
-		
-		ITrpShapeType shape = tWidget.getTranscriptionUnit();
-		CustomTagList ctl = shape.getCustomTagList();
-		List<CustomTag> tags = ctl.getIndexedTags();
-		CustomTag neighborTag = CoreUtils.getNeighborElement(tags, tag, previous, false);
-		if (neighborTag == null) { // neighbor tag not found in this shape -> search for in neighbor shapes!
-			ITrpShapeType neighborShape = TrpShapeTypeUtils.getNeighborShape(shape, previous, false);
-			while (neighborShape!=null) {
-				List<CustomTag> tagsOfNeighborShape = neighborShape.getCustomTagList().getIndexedTags();
-				if (!tagsOfNeighborShape.isEmpty()) {
-					neighborTag = tagsOfNeighborShape.get(previous ? tagsOfNeighborShape.size()-1 : 0);
-					break;
-				}
-				
-				neighborShape = TrpShapeTypeUtils.getNeighborShape(neighborShape, previous, false);
-			}
-		}
-				
-		if (neighborTag != null) {
-			setCustomTag(neighborTag, true);
-		}
-	}
+//	public void jumpToNextTag(boolean previous) {
+//		ATranscriptionWidget tWidget = getCurrentTranscriptionWidget();
+//		if (tWidget == null) {
+//			return;
+//		}		
+//		
+//		if (tag == null) {
+//			findAndSetNextTag();
+//		}
+//		
+//		ITrpShapeType shape = tWidget.getTranscriptionUnit();
+//		CustomTagList ctl = shape.getCustomTagList();
+//		List<CustomTag> tags = ctl.getIndexedTags();
+//		CustomTag neighborTag = CoreUtils.getNeighborElement(tags, tag, previous, false);
+//		if (neighborTag == null) { // neighbor tag not found in this shape -> search for in neighbor shapes!
+//			ITrpShapeType neighborShape = TrpShapeTypeUtils.getNeighborShape(shape, previous, false);
+//			while (neighborShape!=null) {
+//				List<CustomTag> tagsOfNeighborShape = neighborShape.getCustomTagList().getIndexedTags();
+//				if (!tagsOfNeighborShape.isEmpty()) {
+//					neighborTag = tagsOfNeighborShape.get(previous ? tagsOfNeighborShape.size()-1 : 0);
+//					break;
+//				}
+//				
+//				neighborShape = TrpShapeTypeUtils.getNeighborShape(neighborShape, previous, false);
+//			}
+//		}
+//				
+//		if (neighborTag != null) {
+//			setCustomTag(neighborTag, true);
+//		}
+//	}
 	
 	private ATranscriptionWidget getCurrentTranscriptionWidget() {
 		if (TrpMainWidget.getInstance()==null) {
@@ -246,6 +246,14 @@ public class TagPropertyEditor extends Composite {
 		else {
 			return TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget();
 		}
+	}
+	
+	public Button getNextBtn() {
+		return nextBtn;
+	}
+	
+	public Button getPrevBtn() {
+		return prevBtn;
 	}
 
 }

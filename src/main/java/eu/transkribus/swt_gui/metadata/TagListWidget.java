@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -183,39 +184,6 @@ public class TagListWidget extends Composite {
 			}
 		});
 		
-		tv.addDoubleClickListener(new IDoubleClickListener() {
-			@Override
-			public void doubleClick(DoubleClickEvent arg0) {
-				List<CustomTag> selected = getSelectedTags();
-				if (!selected.isEmpty()) {
-					logger.debug("showing tag: "+selected.get(0));
-					TrpMainWidget.getInstance().showLocation(new TrpLocation(selected.get(0)));
-				}
-			}
-		});
-		
-		tv.getTable().addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-//				if (disableTagUpdate) {
-//					return;
-//				}
-				TrpMainWidget mw = TrpMainWidget.getInstance();
-				if (mw == null) {
-					return;
-				}				
-				
-				disableTagUpdate = true;
-				List<CustomTag> selected = getSelectedTags();
-				if (selected.size()==1) {
-					CustomTag tag = selected.get(0);
-					mw.showLocation(new TrpLocation(tag));
-					mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag, false);
-				}
-				disableTagUpdate = false;
-			}
-		});
-		
 
 	}
 	
@@ -300,6 +268,14 @@ public class TagListWidget extends Composite {
 		return ((IStructuredSelection) tv.getSelection()).toList();
 //		return (CustomTag) ((IStructuredSelection) tv.getSelection()).getFirstElement();
 	}
+	
+	public void setDisableTagUpdate(boolean disableTagUpdate) {
+		this.disableTagUpdate = disableTagUpdate;
+	}
+	
+	public boolean isDisableTagUpdate() {
+		return this.disableTagUpdate;
+	}
 
 	public void updateSelectedTag(List<CustomTag> tags) {
 		if (disableTagUpdate) {
@@ -307,6 +283,17 @@ public class TagListWidget extends Composite {
 		}	
 		
 		tv.setSelection(new StructuredSelection(tags), true);
+	}
+	
+	public List<CustomTag> getTagsAsSortedInUi() {
+		TableItem[] items = tv.getTable().getItems();
+		
+		List<CustomTag> tagsAsInUi = new ArrayList<>();
+		for (int i = 0; i < items.length; i++) {
+			tagsAsInUi.add((CustomTag) items[i].getData());
+		}
+		
+		return tagsAsInUi;
 	}
 
 }

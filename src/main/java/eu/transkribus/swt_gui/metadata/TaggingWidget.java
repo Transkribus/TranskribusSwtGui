@@ -2,22 +2,24 @@ package eu.transkribus.swt_gui.metadata;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -25,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
@@ -34,18 +38,15 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.metadata.CustomTagPropertyTable.ICustomTagPropertyTableListener;
+import eu.transkribus.swt_gui.metadata.CustomTagPropertyTableNew.ICustomTagPropertyTableNewListener;
+import eu.transkribus.swt_gui.metadata.TagSpecsWidget.TagSpecsWidgetListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 
 public class TaggingWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TaggingWidget.class);
 	
 	SashForm verticalSf;
-//	SashForm horizontalSf;
-	
-	TagSpecsWidget tagDefsWidget;
-	CustomTagPropertyTable propsTable;
-	
+
 	TagListWidget tagListWidget; 
 	TranscriptionTaggingWidget transcriptionTaggingWidget;
 	Shell transcriptionTaggingWidgetShell;
@@ -63,10 +64,29 @@ public class TaggingWidget extends Composite {
 		
 		tagListWidget = new TagListWidget(verticalSf, 0);
 		tagListWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
-		tagListWidget.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+//		tagListWidget.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+//			@Override
+//			public void selectionChanged(SelectionChangedEvent arg0) {
+//				updateBtns();
+//			}
+//		});
+		
+		tagListWidget.getTableViewer().addDoubleClickListener(new IDoubleClickListener() {
 			@Override
-			public void selectionChanged(SelectionChangedEvent arg0) {
+			public void doubleClick(DoubleClickEvent arg0) {
+				List<CustomTag> selected = tagListWidget.getSelectedTags();
+				if (!selected.isEmpty()) {
+					logger.debug("showing tag: "+selected.get(0));
+					TrpMainWidget.getInstance().showLocation(new TrpLocation(selected.get(0)));
+				}
+			}
+		});
+		
+		tagListWidget.getTableViewer().getTable().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
 				updateBtns();
+				selectSelectedTagFromTagListInTranscriptionWidget();
 			}
 		});
 		
@@ -97,6 +117,57 @@ public class TaggingWidget extends Composite {
 			@Override
 			public void minimize(CTabFolderEvent event) {
 				setTaggingEditorVisiblity(1);
+			}
+		});
+		
+		// show properties for selected tag...
+		transcriptionTaggingWidget.getTagSpecsWidget().getTableViewer().getTable().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				TagSpecsWidget tagSpecsWidget = transcriptionTaggingWidget.getTagSpecsWidget();
+				TagPropertyEditor tagPropEditor = transcriptionTaggingWidget.getTagPropertyEditor();
+				
+				if (tagPropEditor.isSettingCustomTag()) { // if currently setting a custom tag in the property editor, ignore selection changed events from transcription widget!
+					return;
+				}
+				
+				CustomTagSpec selectedSpec = tagSpecsWidget.getSelected();
+				if (selectedSpec == null) {
+					return;
+				}
+				
+//				CustomTag selectedTagInPropertyEditor = tagPropEditor.propsTable.getSelectedTag();
+//				if (selectedTagInPropertyEditor!=null && selectedTagInPropertyEditor.getTagName().equals(selectedSpec.getCustomTag().getTagName())) {
+//					logger.debug("a tag of this type is already selected - skipping!");
+//					return;
+//				}
+				
+				CustomTag protoTagCopy = selectedSpec.getCustomTag().copy();
+				tagPropEditor.setCustomTag(protoTagCopy, false);
+				tagListWidget.getTableViewer().setSelection(null); // clear selection in tagListWidget
+			}
+		});
+		
+		transcriptionTaggingWidget.getTagSpecsWidget().addListener(new TagSpecsWidgetListener() {
+			@Override
+			public void addTagButtonClicked(CustomTagSpec tagSpec) {
+//				CustomTagDef selTagDef = getSelected();
+				if (TrpMainWidget.getInstance() != null && tagSpec != null && tagSpec.getCustomTag()!=null) {
+					CustomTag ct = tagSpec.getCustomTag();
+					Map<String, Object> attsMap = ct.getAttributeNamesValuesMap();
+					
+					CustomTag selectedTagInPropEditor = transcriptionTaggingWidget.getTagPropertyEditor().getPropsTable().getSelectedTag();
+					
+					// take attributes from property editor if its the same tag!
+					if (selectedTagInPropEditor!=null && selectedTagInPropEditor.getTagName().equals(ct.getTagName())) {
+						attsMap = transcriptionTaggingWidget.getTagPropertyEditor().getPropsTable().getSelectedTag().getAttributeNamesValuesMap();	
+					}
+					
+					logger.debug("adding tag: "+ct.getTagName()+", attributes: "+attsMap);
+					
+					// TODO: add attributes from property editor!???
+					TrpMainWidget.getInstance().addTagForSelection(ct.getTagName(), attsMap, null);
+				}
 			}
 		});
 		
@@ -134,14 +205,34 @@ public class TaggingWidget extends Composite {
 				}
 			}
 			
-			refreshTagsFromStorageAndCurrentSelection();
+			refreshTagList();
+//			refreshTagsFromStorageAndCurrentSelection();
 		});
 		
-		transcriptionTaggingWidget.getTagPropertyEditor().propsTable.addListener(new ICustomTagPropertyTableListener() {
+		transcriptionTaggingWidget.getTagPropertyEditor().propsTable.addListener(new ICustomTagPropertyTableNewListener() {
 			@Override
 			public void onPropertyChanged(CustomTag tag, String property, Object value) {
 				logger.debug("property changed: "+property+"/"+value);
-				refreshTagsFromStorageAndCurrentSelection();
+//				refreshTagList();
+//				refreshTagsFromStorageAndCurrentSelection();
+				tagListWidget.getTableViewer().refresh(tag);
+			}
+		});
+		
+		SWTUtil.onSelectionEvent(transcriptionTaggingWidget.getTagPropertyEditor().getNextBtn(), e->jumpToNextTag(false));
+		SWTUtil.onSelectionEvent(transcriptionTaggingWidget.getTagPropertyEditor().getPrevBtn(), e->jumpToNextTag(true));
+		transcriptionTaggingWidget.getTagPropertyEditor().getPropsTable().getTableViewer().getTable().addTraverseListener(new TraverseListener() {
+			@Override
+			public void keyTraversed(TraverseEvent e) {
+				logger.debug("traverse event in TagPropertyEditor: "+e.detail);
+				if (e.detail == SWT.TRAVERSE_ARROW_NEXT) {
+					e.doit = false;
+					jumpToNextTag(false);
+				}
+				else if (e.detail == SWT.TRAVERSE_ARROW_PREVIOUS) {
+					e.doit = false;
+					jumpToNextTag(true);
+				}
 			}
 		});
 		
@@ -162,19 +253,34 @@ public class TaggingWidget extends Composite {
 		updateBtns();
 	}
 	
-	public void refreshTagsFromStorageAndCurrentSelection() {
-		tagListWidget.refreshTable();
-		ATranscriptionWidget tWidget = TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget();
+	private void selectSelectedTagFromTagListInTranscriptionWidget() {
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		if (mw == null) {
+			return;
+		}
 		
+		tagListWidget.setDisableTagUpdate(true);
+		List<CustomTag> selected = tagListWidget.getSelectedTags();
+		if (selected.size()==1) {
+			CustomTag tag = selected.get(0);
+			mw.showLocation(new TrpLocation(tag));
+			mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag, false);
+		}
+		tagListWidget.setDisableTagUpdate(false);				
+	}
+	
+	public void refreshTagList() {
+		tagListWidget.refreshTable();
+	}
+	
+	public void refreshTagsFromStorageAndCurrentSelection() {
+		refreshTagList();
+		
+		ATranscriptionWidget tWidget = TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget();
 		List<CustomTag> selectedTags = new ArrayList<>();
 		if (tWidget != null) {
 			selectedTags.addAll(tWidget.getCustomTagsForCurrentOffset());
 		}
-		logger.trace("YES - nr of selected tags: "+selectedTags.size());
-		for (CustomTag t : selectedTags) {
-			logger.debug(""+t);
-		}
-		
 		updateSelectedTag(selectedTags);
 	}
 	
@@ -218,7 +324,7 @@ public class TaggingWidget extends Composite {
 			} else {
 				verticalSf.setMaximizedControl(null);
 				if (true /*transcriptionTaggingWidget.isTagPropertyEditorSelected()*/) {
-					transcriptionTaggingWidget.getTagPropertyEditor().findAndSetNextTag();	
+//					transcriptionTaggingWidget.getTagPropertyEditor().findAndSetNextTag();
 				}
 			}
 		} else {
@@ -266,6 +372,30 @@ public class TaggingWidget extends Composite {
 		return transcriptionTaggingWidget;
 	}
 	
-
+	public void jumpToNextTag(boolean previous) {
+		logger.trace("jumpToNextTag: previous="+previous);
+		
+		CustomTag selected = tagListWidget.getSelectedTag();
+		List<CustomTag> sortedTags = tagListWidget.getTagsAsSortedInUi();
+		int index = sortedTags.indexOf(selected);
+		
+		List<CustomTag> nextSelected = new ArrayList<>();
+		
+		if (!sortedTags.isEmpty()) {
+			if (selected == null || index==-1) {
+				nextSelected.add(sortedTags.get(0));
+			}
+			else {
+				CustomTag neighbor = CoreUtils.getNeighborElement(sortedTags, selected, previous, true);
+				if (neighbor != null) {
+					nextSelected.add(neighbor);
+				}
+			}			
+		}
+		
+		tagListWidget.updateSelectedTag(nextSelected);
+		selectSelectedTagFromTagListInTranscriptionWidget();
+//		updateSelectedTag(nextSelected); // FIXME: this call creates a confusing loop of events...
+	}
 
 }
