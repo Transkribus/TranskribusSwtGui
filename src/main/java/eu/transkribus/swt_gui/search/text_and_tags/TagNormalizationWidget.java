@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Id;
-
-import org.apache.batik.bridge.UpdateManagerListener;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -34,12 +31,12 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.metadata.CustomTagPropertyTable;
+import eu.transkribus.swt_gui.metadata.CustomTagPropertyTableNew;
 
 class TagNormalizationWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TagNormalizationWidget.class);
 	
-	CustomTagPropertyTable propertyTable;
+	CustomTagPropertyTableNew propertyTable;
 	Button normalizeBtn;
 	Label label;
 	
@@ -55,7 +52,7 @@ class TagNormalizationWidget extends Composite {
 		label = new Label(this, 0);
 		label.setText("Properties for selected tags: ");
 		
-		propertyTable = new CustomTagPropertyTable(this, 0, false);
+		propertyTable = new CustomTagPropertyTableNew(this, 0, false);
 		propertyTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		normalizeBtn = new Button(this, 0);

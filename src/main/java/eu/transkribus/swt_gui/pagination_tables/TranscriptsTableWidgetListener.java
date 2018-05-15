@@ -158,7 +158,7 @@ public class TranscriptsTableWidgetListener implements SelectionListener, IDoubl
 //				messageBox.open();
 			}finally{
 				try {
-					TrpMainWidget.getInstance().reloadCurrentPage(false);
+					TrpMainWidget.getInstance().reloadCurrentPage(true);
 					//Storage.getInstance().reloadDocWithAllTranscripts();
 					tw.redraw();
 				} catch (ClientErrorException | IllegalArgumentException e1) {
