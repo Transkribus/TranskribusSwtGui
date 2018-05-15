@@ -288,11 +288,15 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	private static class LaDataProvider {
 		private final static String konzilsProtNetLabel = "Konzilsprotokolle Greifswald";
 		private final static String konzilsProtNetName = "LA_alvermann1.pb";
+		private final static String postcardNetLabel = "Postcards";
+		private final static String postcardNetName = "postcards_aru_c3.pb";
 		private LaDataProvider() {}
 		public static List<LaModel> getModels() {
 			final List<LaModel> nets = new ArrayList<>(1);
-			LaModel m = new LaModel(konzilsProtNetLabel, konzilsProtNetName);
-			nets.add(m);
+			LaModel konzilsProt = new LaModel(konzilsProtNetLabel, konzilsProtNetName);
+			LaModel postcards = new LaModel(postcardNetLabel, postcardNetName);
+			nets.add(konzilsProt);
+			nets.add(postcards);
 			return nets;
 		}
 	}
