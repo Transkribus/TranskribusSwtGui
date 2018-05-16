@@ -153,6 +153,11 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			parameters.addParameter(LaCITlabUtils.SEP_SCHEME_KEY, sep);
 			//set net's filename to parameters
 			parameters.addParameter(JobConst.PROP_MODELNAME, m.getFilename());
+			
+			if(LaDataProvider.postcardNetLabel.equals(m.getLabel())) {
+				//FIXME quick fix to set the rotScheme parameter correctly for postcards net
+				parameters.addParameter(LaCITlabUtils.ROT_SCHEME_KEY, RotScheme.het);
+			}
 		}
 	}
 
@@ -288,11 +293,17 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 	private static class LaDataProvider {
 		private final static String konzilsProtNetLabel = "Konzilsprotokolle Greifswald";
 		private final static String konzilsProtNetName = "LA_alvermann1.pb";
+		protected final static String postcardNetLabel = "Postcards";
+		private final static String postcardNetName = "postcards_aru_c3.pb";
 		private LaDataProvider() {}
 		public static List<LaModel> getModels() {
 			final List<LaModel> nets = new ArrayList<>(1);
-			LaModel m = new LaModel(konzilsProtNetLabel, konzilsProtNetName);
-			nets.add(m);
+			LaModel konzilsProt = new LaModel(konzilsProtNetLabel, konzilsProtNetName);
+			LaModel postcards = new LaModel(postcardNetLabel, postcardNetName);
+			nets.add(konzilsProt);
+			
+			//TODO don't add postcards net to list for now as it is not compatible with tensorflow 1.2.1!
+//			nets.add(postcards);
 			return nets;
 		}
 	}
