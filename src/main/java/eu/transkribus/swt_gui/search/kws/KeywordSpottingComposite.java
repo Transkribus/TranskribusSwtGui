@@ -220,7 +220,7 @@ public class KeywordSpottingComposite extends Composite {
 		resultTable.getTableViewer().addDoubleClickListener(new IDoubleClickListener(){
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				TrpKwsResultTableEntry entry = resultTable.getSelectedKws();
+				TrpKwsResultTableEntry entry = (TrpKwsResultTableEntry)resultTable.getSelectedEntry();
 				if(entry.getResult() != null) {
 					try {
 						logger.debug(JaxbUtils.marshalToString(entry.getResult(), true, TrpKeyWord.class, TrpKwsHit.class));

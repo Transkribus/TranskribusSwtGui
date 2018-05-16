@@ -24,8 +24,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.kws.TrpKeyWord;
-import eu.transkribus.core.model.beans.kws.TrpKwsHit;
+import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.DialogUtil;
@@ -34,8 +33,7 @@ import eu.transkribus.swt.util.LabeledComboWithButton;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
-import eu.transkribus.swt_gui.search.kws.KwsResultViewer;
-import eu.transkribus.swt_gui.search.kws.TrpKwsResultTableEntry;
+import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
 public class ErrorRateAdvancedDialog extends Dialog {
@@ -117,15 +115,15 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		resultTable.getTableViewer().addDoubleClickListener(new IDoubleClickListener(){
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				TrpKwsResultTableEntry entry = resultTable.getSelectedKws();
+				TrpErrorResultTableEntry entry = (TrpErrorResultTableEntry) resultTable.getSelectedEntry();
 				if(entry.getResult() != null) {
 					try {
-						logger.debug(JaxbUtils.marshalToString(entry.getResult(), true, TrpKeyWord.class, TrpKwsHit.class));
+						logger.debug(JaxbUtils.marshalToString(entry.getResult(), true, TrpErrorRate.class));
 					} catch (JAXBException e) {
 						logger.error("Could not read result.", e);
 					}
-					KwsResultViewer viewer = new KwsResultViewer(getShell(), entry);
-					viewer.open();
+					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), entry.getResult());
+					stats.open();
 				}
 			}
 		});

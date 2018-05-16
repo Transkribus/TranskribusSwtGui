@@ -10,11 +10,10 @@ import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.kws.TrpKwsResult;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 
 public class KwsResultTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(KwsResultTableWidget.class);
@@ -121,13 +120,17 @@ public class KwsResultTableWidget extends Composite {
 		return kwsResTv;
 	}
 
-	public TrpKwsResultTableEntry getSelectedKws() {
+	public AJobResultTableEntry<?> getSelectedEntry() {
 		IStructuredSelection sel = (IStructuredSelection) kwsResTv.getSelection();
-		if (sel.getFirstElement() != null && sel.getFirstElement() instanceof TrpKwsResultTableEntry) {
-			return (TrpKwsResultTableEntry) sel.getFirstElement();
-		} else
+		if (sel.getFirstElement() == null) {
 			return null;
-
+		}
+		if(sel.getFirstElement() instanceof TrpKwsResultTableEntry) {
+			return (TrpKwsResultTableEntry) sel.getFirstElement();
+		} else if(sel.getFirstElement() instanceof TrpErrorResultTableEntry) {
+			return (TrpErrorResultTableEntry) sel.getFirstElement();
+		} 
+		return null;
 	}
 //	public void setSelection(int htrId) {
 //		List<TrpHtr> htrs = (List<TrpHtr>)kwsResTv.getInput();
