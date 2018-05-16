@@ -491,8 +491,8 @@ public class ThumbnailWidget extends Composite {
 		
 		String transcribedLinesText = "";
 
-		int transcribedLines = trpTranscriptMetadata.getNrOfTranscribedLines();
-		int segmentedLines = trpTranscriptMetadata.getNrOfLines();
+		int transcribedLines = trpTranscriptMetadata != null ? trpTranscriptMetadata.getNrOfTranscribedLines() : 0;
+		int segmentedLines = trpTranscriptMetadata != null ? trpTranscriptMetadata.getNrOfLines() : 0;
 		
 //		logger.debug("segmentedLines: " + segmentedLines);
 //		logger.debug("transcribedLines: " + transcribedLines);
