@@ -39,8 +39,6 @@ import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 public class ErrorRateAdvancedDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(ErrorRateAdvancedDialog.class);
 	
-	
-	
 	Storage store;
 	private Composite composite;
 	private KwsResultTableWidget resultTable;
@@ -48,7 +46,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private LabeledCombo options;
 	final ParameterMap params = new ParameterMap();
-
+	
 
 	public ErrorRateAdvancedDialog(Shell parentShell) {
 		
@@ -151,6 +149,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		return composite;
 	}
+	
 	
 	protected void startError() {
 

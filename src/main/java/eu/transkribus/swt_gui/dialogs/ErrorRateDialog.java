@@ -18,19 +18,12 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
 import eu.transkribus.core.model.beans.TrpErrorRate;
-import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.tool.error.ErrorTableViewer;
 
 public class ErrorRateDialog extends Dialog {
-
-	public static final String ERR_EMPTY_COL = " ";
-	public static final String ERR_WORD_COL = "Error Rate";
-	public static final String ERR_CHAR_COL = "Accuracy";
-	public static final String BAG_PREC_COL = "Precision";
-	public static final String BAG_REC_COL = "Recall";
-	public static final String BAG_FMEA_COL = "F-Measure";
 
 	protected static final String HELP_WIKI_ERR = "https://en.wikipedia.org/wiki/Word_error_rate";
 	protected static final String HELP_WIKI_FMEA = "https://en.wikipedia.org/wiki/F1_score";
@@ -42,11 +35,6 @@ public class ErrorRateDialog extends Dialog {
 	private TrpErrorRate resultErr;
 	
 	Button expertBtn, partialMatchBtn, caseSensitivityBtn, wikiErrButton, wikiFmeaButton;
-
-	public final ColumnConfig[] ERR_COLS = new ColumnConfig[] { new ColumnConfig(ERR_EMPTY_COL, 200),
-			new ColumnConfig(ERR_WORD_COL, 100), new ColumnConfig(ERR_CHAR_COL, 100),
-			new ColumnConfig(BAG_PREC_COL, 100), new ColumnConfig(BAG_REC_COL, 100),
-			new ColumnConfig(BAG_FMEA_COL, 100), };
 
 	public ErrorRateDialog(Shell parentShell, TrpErrorRate resultErr) {
 
@@ -74,24 +62,15 @@ public class ErrorRateDialog extends Dialog {
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	
-		final MyTableViewer viewer = new MyTableViewer(body, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		final ErrorTableViewer viewer = new ErrorTableViewer(body, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 
-		viewer.getTable().setLinesVisible(true);
-
-		viewer.addColumns(ERR_COLS);
+		viewer.getTable().setLinesVisible(false);
 
 		Table table = viewer.getTable();
 		table.setHeaderVisible(true);
 
-		TableItem itemWord = new TableItem(table, SWT.NONE);
-		itemWord.setText(new String[] { "Word", resultErr.getWer(), resultErr.getwAcc(), "", "", "" });
-
-		TableItem itemChar = new TableItem(table, SWT.NONE);
-		itemChar.setText(new String[] { "Character", resultErr.getCer(), resultErr.getcAcc(), "", "", "" });
-
-		TableItem itemBag = new TableItem(table, SWT.NONE);
-		itemBag.setText(new String[] { "Bag of Tokens", "", "", resultErr.getBagTokensPrec(),
-				resultErr.getBagTokensRec(), resultErr.getBagTokensF() });
+		TableItem itemPage = new TableItem(table, SWT.NONE);
+		itemPage.setText(new String[] { "Page", resultErr.getWer(), resultErr.getCer(),resultErr.getwAcc(),resultErr.getcAcc(),resultErr.getBagTokensPrec(),resultErr.getBagTokensRec(),resultErr.getBagTokensF()});
 		
 	}
 
