@@ -33,7 +33,7 @@ import eu.transkribus.swt.util.LabeledComboWithButton;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
-import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
+import eu.transkribus.swt_gui.tools.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
 public class ErrorRateAdvancedDialog extends Dialog {

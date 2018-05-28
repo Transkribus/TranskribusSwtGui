@@ -2115,13 +2115,25 @@ public class Storage {
 		return null;
 	}
 	
-	public TrpErrorRate computeWer(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+	public TrpErrorRate computeErrorRate(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		if(ref == null || hyp == null){
 			throw new IllegalArgumentException("A parameter is null!");
 		}	
 		TrpErrorRate result = new TrpErrorRate();	
 		result = conn.computeErrorRate(ref.getKey(), hyp.getKey());
+		return result;
+	}
+	
+	@Deprecated
+	public String computeWer(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		if(ref == null || hyp == null){
+			throw new IllegalArgumentException("A parameter is null!");
+		}	
+		String result = conn.computeWer(ref.getKey(), hyp.getKey());
+		result = result.replace("WER", "Word Error Rate:");
+		result = result.replace("CER", "Character Error Rate:");
 		return result;
 	}
 	

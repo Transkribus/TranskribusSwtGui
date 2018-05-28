@@ -6,8 +6,10 @@ import java.util.List;
 import javax.ws.rs.ClientErrorException;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -290,15 +292,28 @@ public class ToolsWidgetListener implements SelectionListener {
 				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) tw.hypVersionChooser.selectedMd;
 
+				//use plain text result until new computation works on Prod server
+				boolean usePlaintextResult = true;
+				
 				if (ref != null && hyp != null) {
-					logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
-
-					// Opens dialog which displays table
-
-					TrpErrorRate resultErr = store.computeWer(ref, hyp);
-
-					ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
-					dialog.open();
+					
+					if(usePlaintextResult) {
+						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
+						final String result = store.computeWer(ref, hyp);
+						MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);
+						mb.setText("Result");
+						mb.setMessage(result);
+						mb.open();
+					} else {					
+						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
+	
+						// Opens dialog which displays table
+	
+						TrpErrorRate resultErr = store.computeErrorRate(ref, hyp);
+	
+						ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
+						dialog.open();
+					}
 				}
 				
 			}else if (s == tw.computeAdvancedBtn) {

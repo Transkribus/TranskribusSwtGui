@@ -33,6 +33,7 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.core.util.SebisStopWatch.SSW;
 
 public class ThumbnailWidgetVirtualMinimal extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidgetVirtualMinimal.class);
@@ -237,6 +238,9 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 
 
 	void reload() {
+		SSW sw = new SSW();
+		logger.debug("Entering ThumbnailWidgetVirtualMinimal#reload()");
+		
 		if(doc == null) {
 			return;
 		}
@@ -260,6 +264,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 		gallery.clearAll();
 		
 		group.setItemCount(doc.getNPages());
+		logger.debug("Iterating items");
 		
 		//FIXME this causes ALL items to be handled upon creation of that widget, also those not visible. Virtual gallery will call the handle method itself. p
 		int index = 0;
@@ -268,6 +273,7 @@ public class ThumbnailWidgetVirtualMinimal extends Composite {
 				setItemTextAndBackground(item, index++);
 			}
 		}
+		logger.debug("Iterating items done");
 		
 		//hack for reloading the display
 //		GC gc = new GC(this);
