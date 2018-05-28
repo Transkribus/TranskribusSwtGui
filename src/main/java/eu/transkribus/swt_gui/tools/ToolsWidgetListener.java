@@ -40,6 +40,7 @@ import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage.StorageException;
 import eu.transkribus.swt_gui.util.GuiUtil;
@@ -82,6 +83,13 @@ public class ToolsWidgetListener implements SelectionListener {
 
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
+		
+		Storage.getInstance().addListener(new IStorageListener() {
+			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+				tw.refVersionChooser.setToGT();
+				tw.hypVersionChooser.setToCurrent();
+			}
+		});
 	}
 
 	List<String> getSelectedRegionIds() {
