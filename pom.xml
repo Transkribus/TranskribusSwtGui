@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.4.1.11-SNAPSHOT</version>
+	<version>1.4.1.12-SNAPSHOT</version>
 	<name>Transkribus</name>
 
 	<properties>
@@ -105,10 +105,39 @@
 			</plugin>
 		
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.7.0</version>
+				<executions>
+					<execution>
+						<id>default-compile</id>
+						<configuration>
+							<!-- compile everything to ensure module-info contains right entries -->
+							<!-- required when JAVA_HOME is JDK 8 or below -->
+							<jdkToolchain>
+								<version>9</version>
+							</jdkToolchain>
+							<release>9</release>
+						</configuration>
+					</execution>
+					<execution>
+						<id>base-compile</id>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<!-- recompile everything for target VM except the module-info.java -->
+						<configuration>
+							<excludes>
+								<exclude>module-info.java</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+				<!-- defaults for compile and testCompile -->
 				<configuration>
+					<!-- jdkToolchain required when JAVA_HOME is JDK 9 or above -->
+					<jdkToolchain>
+						<version>[1.8,9)</version>
+					</jdkToolchain>
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
@@ -556,7 +585,7 @@
 									<pluginExecutionFilter>
 										<groupId>org.apache.maven.plugins</groupId>
 										<artifactId>maven-antrun-plugin</artifactId>
-										<versionRange>1.7</versionRange>
+										<versionRange>1.8</versionRange>
 										<goals>
 											<goal>run</goal>
 										</goals>
