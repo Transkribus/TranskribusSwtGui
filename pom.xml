@@ -17,6 +17,7 @@
 		<macapp-resources-dir>/Transkribus.app/Contents/Resources</macapp-resources-dir>
 		<macapp-contents-dir>/Transkribus.app/Contents</macapp-contents-dir>
 		<mac-jre>jre-1.8.0_45-mac64</mac-jre>
+		<win-jre>jre-1.8.0_161-win64</win-jre>
 		
 		<swt-lib-name>swt-${swt.version}.jar</swt-lib-name>
 
@@ -219,7 +220,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.4</version>
+				<version>2.5</version>
 				<executions>
 					<execution>
 						<id>swt-libs</id>
@@ -314,7 +315,7 @@
 					<!-- <appendAssemblyId>false</appendAssemblyId> -->
 						<descriptor>src/assembly/dep.xml</descriptor>
 						<descriptor>src/assembly/dep_mac.xml</descriptor>
-					</descriptors>
+					</descriptors>				
 				</configuration>
 				<executions>
 					<execution>
@@ -372,8 +373,9 @@
 						<phase>validate</phase>
 						<configuration>
 							<tasks>
-								<echo message="unzipping mac jre into target dir" />
+								<echo message="unzipping jre's into target dir" />
 								<unzip src="jre/${mac-jre}.zip" dest="${project.build.directory}/${mac-jre}" />
+								<unzip src="jre/${win-jre}.zip" dest="${project.build.directory}/${win-jre}" />
 							</tasks>
 						</configuration>
 						<goals>
