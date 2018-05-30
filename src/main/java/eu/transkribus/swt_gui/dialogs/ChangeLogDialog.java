@@ -29,7 +29,7 @@ public class ChangeLogDialog extends Dialog {
 
 	protected Object result;
 	protected Shell shell;
-	protected String changelog;
+	protected String changelog="";
 
 	protected boolean hide=true;
 	
@@ -66,7 +66,7 @@ public class ChangeLogDialog extends Dialog {
 	    scrolledComposite.setLayout(new FillLayout());
 
 		StyledText text = new StyledText(scrolledComposite, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-		text.setText(changelog);
+		text.setText(changelog==null ? "" : changelog);
 		text.setSize(500, 250);
 
 		RowData rowData = new RowData(500, 250);
