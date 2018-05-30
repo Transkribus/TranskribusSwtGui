@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
@@ -118,6 +119,20 @@ public class ToolsWidget extends Composite {
 				selectedMd = Storage.getInstance().getTranscriptMetadata();
 				updateSelectedVersion();
 			}			
+		}
+		public void setToGT() {
+			if (Storage.getInstance().hasTranscript()) {
+				
+				for (TrpTranscriptMetadata version : Storage.getInstance().getTranscriptsSortedByDate(true, 20)) {
+					if (version.getStatus() == EditStatus.GT) {
+						selectedMd = version;
+						updateSelectedVersion();
+						return;
+					}
+				}
+				selectedMd = Storage.getInstance().getTranscriptMetadata();
+				updateSelectedVersion();				
+			}		
 		}
 	}	
 	
