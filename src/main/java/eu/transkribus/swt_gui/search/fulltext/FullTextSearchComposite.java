@@ -1150,8 +1150,12 @@ public class FullTextSearchComposite extends Composite{
 	        			if(Thread.currentThread().isInterrupted()) stopFlag = true;
 	        			if (stopFlag) return;
 	        			String coords = hit.getPixelCoords();
-						String imgKey = hit.getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
-						imgKey = imgKey.replace("&fileType=view", "");
+//						String imgKey = hit.getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
+//						imgKey = imgKey.replace("&fileType=view", "");
+	        			
+	        			//Extract key from URL
+	        			String imgKey = StringUtils.substringBetween(hit.getImgUrl(), "Get?id=", "&fileType=view");	
+
 						try {						
 							Image img;							
 							int[] cropValues = getCropValues(coords);

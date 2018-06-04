@@ -701,8 +701,11 @@ public class KWSearchComposite extends Composite{
 	}
 	
 	public void putInImageMap(KeywordHit kwHit){
-		String imgKey = kwHit.getPageUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
-		imgKey = imgKey.replace("&fileType=view", "");
+//		String imgKey = kwHit.getPageUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
+//		imgKey = imgKey.replace("&fileType=view", "");
+		
+		//Extract key from URL
+		String imgKey = StringUtils.substringBetween(kwHit.getPageUrl(), "Get?id=", "&fileType=view");	
 
 		String coords = kwHit.getTextCoords();
 		String imgId = kwHit.getId();
