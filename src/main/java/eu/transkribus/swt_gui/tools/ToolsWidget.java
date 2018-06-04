@@ -121,9 +121,8 @@ public class ToolsWidget extends Composite {
 			}			
 		}
 		public void setToGT() {
-			if (Storage.getInstance().hasTranscript()) {
-				
-				for (TrpTranscriptMetadata version : Storage.getInstance().getTranscriptsSortedByDate(true, 20)) {
+			if (Storage.getInstance().hasTranscript()) {	
+				for (TrpTranscriptMetadata version : Storage.getInstance().getTranscriptsSortedByDate(true, -1)) {
 					if (version.getStatus() == EditStatus.GT) {
 						selectedMd = version;
 						updateSelectedVersion();
