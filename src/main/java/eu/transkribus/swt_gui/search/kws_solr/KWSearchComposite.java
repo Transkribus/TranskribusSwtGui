@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -24,8 +23,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -59,14 +56,12 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.connection.ATrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.TrpFimgStoreConf;
-import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.io.FimgStoreReadConnection;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.kws.TrpKwsHit;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
-import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.beans.searchresult.KeywordHit;
 import eu.transkribus.core.model.beans.searchresult.KeywordSearchResult;
 import eu.transkribus.swt.util.Colors;
@@ -76,7 +71,6 @@ import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
-import eu.transkribus.swt_gui.search.kws.KwsHitTableWidget;
 
 public class KWSearchComposite extends Composite{
 	
@@ -123,13 +117,14 @@ public class KWSearchComposite extends Composite{
 		
 	public KWSearchComposite(Composite parent, int style){
 		super(parent, style);
-		shell = parent.getShell();	
-		try {
-			imgStoreClient = new FimgStoreGetClient(new URL(TrpFimgStoreConf.getFimgStoreUrl()+"/"));
-		} catch (Exception e) {
-			logger.error("Could not create connection to FimgStore" + e);
-			e.printStackTrace();
+		shell = parent.getShell();
+		
+		storage = Storage.getInstance();
+		if(storage.getConnection() != null && ATrpServerConn.TEST_SERVER_URI.equals(storage.getConnection().getServerUri())) {
+			FimgStoreReadConnection.loadConfig("trpTest");
+			logger.debug("Setting Imagestore config to test: " + FimgStoreReadConnection.getInstance().getFImagestore());
 		}
+		imgStoreClient = FimgStoreReadConnection.getGetClient();
 
 		createContents();
 		
@@ -138,7 +133,6 @@ public class KWSearchComposite extends Composite{
 	ArrayList<String> DOCSCOPES = new ArrayList<String>();
 	private void createContents(){
 		
-		storage = Storage.getInstance();
 		this.setLayout(new FillLayout());
 		Composite c = new Composite(this, 0);
 		c.setLayout(new FillLayout());
