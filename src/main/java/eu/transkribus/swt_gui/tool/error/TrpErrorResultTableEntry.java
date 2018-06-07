@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.tools.error;
+package eu.transkribus.swt_gui.tool.error;
 
 import java.util.List;
 
