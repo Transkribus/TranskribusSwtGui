@@ -17,6 +17,12 @@ public class ErrorTableViewer extends MyTableViewer {
 	public static final String BAG_FMEA_COL = "Bag Tokens F-Measure";
 	
 	
+	
+	public final ColumnConfig[] ERR_COLS = new ColumnConfig[] {};
+	
+	/*
+	 * FIXME ErrorTableColumnViewerSorter type is missing!
+	
 	public final ColumnConfig[] ERR_COLS = new ColumnConfig[] { 
 			new ColumnConfig(ERR_PAGE_COL, 100,false, ErrorTableColumnViewerSorter.ASC),
 			new ColumnConfig(ERR_WORD_COL, 150,false,ErrorTableColumnViewerSorter.ASC),
@@ -26,6 +32,7 @@ public class ErrorTableViewer extends MyTableViewer {
 			new ColumnConfig(BAG_PREC_COL, 150,false,ErrorTableColumnViewerSorter.ASC ),
 			new ColumnConfig(BAG_REC_COL, 150,false,ErrorTableColumnViewerSorter.ASC ),
 			new ColumnConfig(BAG_FMEA_COL, 150,false,ErrorTableColumnViewerSorter.ASC ) };
+	 */
 	
 	public ErrorTableViewer(Composite parent, int style) {
 		super(parent, style);

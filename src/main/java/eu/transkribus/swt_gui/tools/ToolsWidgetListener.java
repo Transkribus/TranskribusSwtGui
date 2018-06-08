@@ -80,7 +80,11 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.startLaBtn, this);
 
 		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
-		SWTUtil.addSelectionListener(tw.computeAdvancedBtn, this);
+		
+		if(!ToolsWidget.IS_LEGACY_WER_GROUP) {
+			SWTUtil.addSelectionListener(tw.computeAdvancedBtn, this);
+		}
+		
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
 
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
@@ -292,12 +296,9 @@ public class ToolsWidgetListener implements SelectionListener {
 				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) tw.hypVersionChooser.selectedMd;
 
-				//use plain text result until new computation works on Prod server
-				boolean usePlaintextResult = true;
-				
 				if (ref != null && hyp != null) {
 					
-					if(usePlaintextResult) {
+					if(ToolsWidget.IS_LEGACY_WER_GROUP) {
 						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
 						final String result = store.computeWer(ref, hyp);
 						MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);
