@@ -65,19 +65,19 @@ public class ErrorTableLabelProvider implements ITableLabelProvider, ITableFontP
 			
 				if (ct.equals(ErrorTableViewer.ERR_PAGE_COL)) {
 					return "Page "+list.getPageNumber();
-				} else if (ct.equals(tableViewer.ERR_WORD_COL)) {
+				} else if (ct.equals(ErrorTableViewer.ERR_WORD_COL)) {
 					return  list.getWerDouble()+" %" ;
-				} else if (ct.equals(tableViewer.ERR_CHAR_COL)) {
+				} else if (ct.equals(ErrorTableViewer.ERR_CHAR_COL)) {
 					return list.getCerDouble()+" %";
-				} else if (ct.equals(tableViewer.ACC_WORD_COL)) {
+				} else if (ct.equals(ErrorTableViewer.ACC_WORD_COL)) {
 					return list.getwAccDouble()+" %";
-				}else if (ct.equals(tableViewer.ACC_CHAR_COL)) {
+				}else if (ct.equals(ErrorTableViewer.ACC_CHAR_COL)) {
 					return list.getcAccDouble()+" %";
-				}else if (ct.equals(tableViewer.BAG_PREC_COL)) {
+				}else if (ct.equals(ErrorTableViewer.BAG_PREC_COL)) {
 					return list.getBagTokensPrecDouble()+" %";
-				}else if (ct.equals(tableViewer.BAG_REC_COL)) {
+				}else if (ct.equals(ErrorTableViewer.BAG_REC_COL)) {
 					return list.getBagTokensRecDouble()+"";
-				}else if (ct.equals(tableViewer.BAG_FMEA_COL)) {
+				}else if (ct.equals(ErrorTableViewer.BAG_FMEA_COL)) {
 					return list.getBagTokensFDouble()+" %";
 
 			}
