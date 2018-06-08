@@ -1,12 +1,12 @@
 package eu.transkribus.swt.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultTableColumnViewerSorter extends TableViewerSorter {
 	private final static Logger logger = LoggerFactory.getLogger(DefaultTableColumnViewerSorter.class);
@@ -41,10 +41,12 @@ public class DefaultTableColumnViewerSorter extends TableViewerSorter {
 			int r1 = getRowIndex(viewer, e1);
 			int r2 = getRowIndex(viewer, e2);
 			
-			if (r1 != -1)
-				l1 = t.getItem(r1).getText(columnIndex);
-			if (r2 != -1)
-				l2 = t.getItem(r2).getText(columnIndex);
+			
+			
+			if (r1 != -1) {
+				l1 = t.getItem(r1).getText(columnIndex).replaceAll("%","").replaceAll("Page","");
+			}if (r2 != -1)
+				l2 = t.getItem(r2).getText(columnIndex).replaceAll("%","").replaceAll("Page","");
 		}
 		
 		if (l1 == null && l2 == null)
@@ -55,14 +57,16 @@ public class DefaultTableColumnViewerSorter extends TableViewerSorter {
 			return 1;
 
 		try {
-			int i1 = Integer.parseInt(l1);
-			int i2 = Integer.parseInt(l2);
-			return Integer.compare(i1, i2);
+			double i1 = Double.parseDouble(l1);
+			double i2 = Double.parseDouble(l2);
+			return Double.compare(i1, i2);
 		} catch (NumberFormatException e) {
 			if (isIgnoreCase()) {
+				logger.debug("Number Format Exception is IgnoreCase");
 				return l1.compareToIgnoreCase(l2);
 			}
 			else {
+				logger.debug("Number Format Exception");
 				return l1.compareTo(l2);
 			}
 		}
