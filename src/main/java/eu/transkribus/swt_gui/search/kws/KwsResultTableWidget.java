@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_gui.tools.error.TrpErrorResultTableEntry;
+import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 
 public class KwsResultTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(KwsResultTableWidget.class);

@@ -61,9 +61,10 @@ import org.eclipse.swt.widgets.Tree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.connection.ATrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.TrpFimgStoreConf;
 import eu.transkribus.core.exceptions.NotImplementedException;
+import eu.transkribus.core.io.FimgStoreReadConnection;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -141,13 +142,13 @@ public class FullTextSearchComposite extends Composite{
 	public FullTextSearchComposite(Composite parent, int style){
 		super(parent, style);
 		shell = parent.getShell();	
-		try {
-			imgStoreClient = new FimgStoreGetClient(new URL(TrpFimgStoreConf.getFimgStoreUrl()+"/"));
-//			logger.debug("URL: " + TrpFimgStoreConf.getFimgStoreUrl());
-		} catch (Exception e) {
-			logger.error("Could not create connection to FimgStore" + e);
-			e.printStackTrace();
+		
+		storage = Storage.getInstance();
+		if(storage.getConnection() != null && ATrpServerConn.TEST_SERVER_URI.equals(storage.getConnection().getServerUri())) {
+			FimgStoreReadConnection.loadConfig("trpTest");
+			logger.debug("Setting Imagestore config to test: " + FimgStoreReadConnection.getInstance().getFImagestore());
 		}
+		imgStoreClient = FimgStoreReadConnection.getGetClient();
 
 		createContents();
 		
@@ -182,8 +183,6 @@ public class FullTextSearchComposite extends Composite{
 		parameters = new Composite(facetsGroup, 0);
 		parameters.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
 		parameters.setLayout(new GridLayout(4, false));		
-				
-		storage = Storage.getInstance();
 		
 		previewCheck = new Button(parameters, SWT.CHECK);
 		previewCheck.setText("Show word preview");
@@ -1150,8 +1149,12 @@ public class FullTextSearchComposite extends Composite{
 	        			if(Thread.currentThread().isInterrupted()) stopFlag = true;
 	        			if (stopFlag) return;
 	        			String coords = hit.getPixelCoords();
-						String imgKey = hit.getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
-						imgKey = imgKey.replace("&fileType=view", "");
+//						String imgKey = hit.getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
+//						imgKey = imgKey.replace("&fileType=view", "");
+	        			
+	        			//Extract key from URL
+	        			String imgKey = StringUtils.substringBetween(hit.getImgUrl(), "Get?id=", "&fileType=view");	
+
 						try {						
 							Image img;							
 							int[] cropValues = getCropValues(coords);

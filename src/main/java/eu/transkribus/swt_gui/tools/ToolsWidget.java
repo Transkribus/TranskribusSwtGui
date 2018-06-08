@@ -54,6 +54,11 @@ public class ToolsWidget extends Composite {
 	Composite werGroup;
 	ExpandableComposite werExp;
 	
+	/*
+	 * This can be safely removed when Error Rate tool integration is done.
+	 */
+	public final static boolean IS_LEGACY_WER_GROUP = true;
+	
 	public static class TranscriptVersionChooser extends Composite {
 		public Button useCurrentBtn;
 		public Button chooseVersionBtn;
@@ -121,9 +126,8 @@ public class ToolsWidget extends Composite {
 			}			
 		}
 		public void setToGT() {
-			if (Storage.getInstance().hasTranscript()) {
-				
-				for (TrpTranscriptMetadata version : Storage.getInstance().getTranscriptsSortedByDate(true, 20)) {
+			if (Storage.getInstance().hasTranscript()) {	
+				for (TrpTranscriptMetadata version : Storage.getInstance().getTranscriptsSortedByDate(true, -1)) {
 					if (version.getStatus() == EditStatus.GT) {
 						selectedMd = version;
 						updateSelectedVersion();
@@ -145,7 +149,13 @@ public class ToolsWidget extends Composite {
 		
 		initLayoutAnalysisTools();
 		initRecogTools();
-		initWerGroup();
+		
+		if(IS_LEGACY_WER_GROUP) {
+			initLegacyWerGroup();
+		} else {
+			initWerGroup();
+		}
+		
 		initOtherTools();
 
 	}
@@ -421,6 +431,40 @@ public class ToolsWidget extends Composite {
 		});
 	}
 
+	private void initLegacyWerGroup() {
+		werExp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
+		werExp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		werGroup = new Composite(werExp, SWT.SHADOW_ETCHED_IN);
+		werGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		werGroup.setLayout(new GridLayout(2, false));
+		
+		refVersionChooser = new TranscriptVersionChooser("Reference:\n(Correct Text) ", werGroup, 0);
+		refVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		
+		hypVersionChooser = new TranscriptVersionChooser("Hypothesis:\n(HTR Text) ", werGroup, 0);
+		hypVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));		
+				
+		computeWerBtn = new Button(werGroup, SWT.PUSH);
+		computeWerBtn.setText("Compare");
+		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 0, 1));
+		computeWerBtn.setToolTipText("Compares the two selected transcripts and computes word error rate and character error rate.");
+		
+		compareVersionsBtn = new Button(werGroup, SWT.PUSH);
+		compareVersionsBtn.setText("Compare Versions in Textfile");
+		compareVersionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
+		compareVersionsBtn.setToolTipText("Shows the difference of the two selected versions");
+		
+		werExp.setClient(werGroup);
+		werExp.setText("Compute Accuracy");
+		Fonts.setBoldFont(werExp);
+		werExp.setExpanded(true);
+		werExp.addExpansionListener(new ExpansionAdapter() {
+			public void expansionStateChanged(ExpansionEvent e) {
+				layout();
+			}
+		});
+	}
+	
 	private void initWerGroup() {
 		werExp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
 		werExp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
