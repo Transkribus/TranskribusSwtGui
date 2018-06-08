@@ -1739,28 +1739,9 @@ public class Storage {
 		return conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
 	}
 	
-	/**
-	 * @deprecated old batch method
-	 */
-	@Deprecated
-	private String analyzeLayoutOld(int colId, int docId, String pageStr, boolean doBlockSeg, boolean doLineSeg) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.analyzeLayoutBatch(colId, docId, pageStr, doBlockSeg, doLineSeg);
-	}
-	
 	public String runOcr(int colId, int docId, String pageStr, OcrConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
 		return conn.runOcr(colId, docId, pageStr, config.getTypeFace(), config.getLanguageString());
-	}
-	
-	public String runHtrOnPage(int colId, int docId, int pageNr, String model) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.runHtr(colId, docId, pageNr, model);
-	}
-	
-	public String runHtr(int colId, int docId, String pageStr, String model) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.runHtr(colId, docId, pageStr, model);
 	}
 
 	public void deleteDocument(int colId, int docId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
