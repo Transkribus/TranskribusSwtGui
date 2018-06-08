@@ -1975,6 +1975,7 @@ public class TrpMainWidget {
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
+						logger.debug("Runnable reloads page with index = " + (storage.getPageIndex() + 1));
 						monitor.beginTask("Loading page " + (storage.getPageIndex() + 1), IProgressMonitor.UNKNOWN);
 						storage.reloadCurrentPage(colId, fileType);
 					} catch (Exception e) {

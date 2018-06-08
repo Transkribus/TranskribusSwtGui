@@ -557,4 +557,6 @@ CHANGES AND BUGFIXES
 	-> PDF export: select your preferred font or use the default one ('FreeSerif') - mainly to cover the different used character sets
 	-> compare versions now also considers tables
 	-> Add 'saveTranscriptDialog' before tools start their job
+	-> updated config for test server with separate imagestore
+	
 
