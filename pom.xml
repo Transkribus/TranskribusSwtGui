@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.4.1.12-SNAPSHOT</version>
+	<version>1.4.1</version>
 	<name>Transkribus</name>
 
 	<properties>
@@ -628,7 +628,7 @@
 		<dependency>
 			<groupId>eu.transkribus</groupId>
 			<artifactId>TranskribusClient</artifactId>
-			<version>0.0.1</version>
+			<version>0.0.2</version>
 		</dependency>
 
 		<!-- SWT dependencies: -->
@@ -971,6 +971,12 @@
 				</exclusion>
 		    </exclusions>
 		</dependency>
+		
+		<dependency>
+		  <groupId>com.drewnoakes</groupId>
+		  <artifactId>metadata-extractor</artifactId>
+		  <version>2.11.0</version>
+		</dependency>		
 	</dependencies>
 
 	<repositories>
