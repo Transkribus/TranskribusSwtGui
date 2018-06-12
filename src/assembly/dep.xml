@@ -8,7 +8,15 @@
     <format>zip</format>
   </formats>
   <fileSets>
-  
+    <!-- include a jre into the windows package -->
+  	<fileSet>
+  		<directory>${project.build.directory}/${win-jre}/jre</directory>
+  		<outputDirectory>${file.separator}/jre</outputDirectory>
+  		<fileMode>0755</fileMode>
+  		<includes>
+                <include>**/*</include>
+        </includes>
+  	</fileSet>
 	<!-- Files from the build directory -->
     <fileSet>
       <directory>${project.build.directory}</directory>
