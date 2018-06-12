@@ -1,6 +1,12 @@
 package eu.transkribus.swt_gui.dialogs;
 
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
 import javax.xml.bind.JAXBException;
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -15,6 +21,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
@@ -25,6 +32,8 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpErrorRate;
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.DialogUtil;
@@ -33,6 +42,7 @@ import eu.transkribus.swt.util.LabeledComboWithButton;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
+import eu.transkribus.swt_gui.search.kws.TrpKwsResultTableEntry;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
@@ -46,12 +56,13 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private LabeledCombo options;
 	final ParameterMap params = new ParameterMap();
-	
+	ResultLoader rl;
 
 	public ErrorRateAdvancedDialog(Shell parentShell) {
 		
 		super(parentShell);
 		store = Storage.getInstance();
+		rl = new ResultLoader();
 	}
 	
 	public void createConfig() {
@@ -62,8 +73,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
-		
-		
+
 		options = new LabeledComboWithButton(config,"Options","Compare");
 		options.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
 		options.combo.setItems(" ","normcompatibility","normcanonic","non-case-sensitive");
@@ -154,9 +164,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	protected void startError() {
 
 		try {
-			logger.debug("Store ID :" + store.getDocId());
-			logger.debug("Page String : "+ dps.getPagesStr());
-			logger.debug("Parameter Query " + params.getIntParam("option"));
 			store.getConnection().computeErrorRateWithJob(store.getDocId(), dps.getPagesStr(), params);
 			
 		} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
@@ -166,6 +173,65 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		} 
 		
 	}
-
+	
+	private void updateResultTable(List<TrpJobStatus> jobs) {
+		List<TrpKwsResultTableEntry> errorList = new LinkedList<>();
+		boolean allFinished = true;
+		for(TrpJobStatus j : jobs) {
+			allFinished &= j.isFinished();
+			errorList.add(new TrpKwsResultTableEntry(j));
+		}
+		
+		if(allFinished) {
+			logger.debug("All KWS jobs have finished.");
+			rl.setStopped();
+		}
+		
+		Display.getDefault().asyncExec(() -> {	
+			if(resultTable != null && !resultTable.isDisposed()) {
+				logger.debug("Updating KWS result table");
+				resultTable.getTableViewer().setInput(errorList);
+			}
+		});
+	}
+	
+	
+	private class ResultLoader extends Thread {
+		private final static int SLEEP = 3000;
+		private boolean stopped = false;
+		
+		@Override
+		public void run() {
+			logger.debug("Starting result polling.");
+			while(!stopped) {
+				List<TrpJobStatus> jobs;
+				try {
+					jobs = this.getErrorJobs();
+					updateResultTable(jobs);
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+						| IllegalArgumentException e) {
+					logger.error("Could not update ResultTable!", e);
+				}
+				try {
+					Thread.sleep(SLEEP);
+				} catch (InterruptedException e) {
+					logger.error("Sleep interrupted.", e);
+				}
+			}
+		}
+		public void setStopped() {
+			logger.debug("Stopping result polling.");
+			stopped = true;
+		}
+		
+		private List<TrpJobStatus> getErrorJobs() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+			Integer docId = store.getDocId();
+			List<TrpJobStatus> jobs = new ArrayList<>(0);
+			if (store != null && store.isLoggedIn()) {
+				jobs = store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, null, null);
+			}
+			return jobs;
+		}
+	}
 
 }
