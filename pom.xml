@@ -17,7 +17,7 @@
 		<macapp-resources-dir>/Transkribus.app/Contents/Resources</macapp-resources-dir>
 		<macapp-contents-dir>/Transkribus.app/Contents</macapp-contents-dir>
 		<mac-jre>jre-1.8.0_45-mac64</mac-jre>
-		<win-jre>jre-1.8.0_161-win64</win-jre>
+		<win-jre>jre-1.8.0_172-win64</win-jre>
 		
 		<swt-lib-name>swt-${swt.version}.jar</swt-lib-name>
 
@@ -283,6 +283,7 @@
 								<opts>
 									<opt>-Dfile.encoding=UTF-8</opt>
 								</opts>
+								<path>jre</path>
 <!-- 								<maxHeapSize>2048</maxHeapSize> -->
 <!--  								<initialHeapSize>512</initialHeapSize> -->
 <!-- 								<initialHeapPercent>15</initialHeapPercent> -->
