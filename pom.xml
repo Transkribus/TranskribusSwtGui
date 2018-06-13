@@ -314,6 +314,7 @@
 					<descriptors>
 					<!-- <appendAssemblyId>false</appendAssemblyId> -->
 						<descriptor>src/assembly/dep.xml</descriptor>
+						<descriptor>src/assembly/dep_win64.xml</descriptor>
 						<descriptor>src/assembly/dep_mac.xml</descriptor>
 					</descriptors>				
 				</configuration>
@@ -367,7 +368,7 @@
 				<version>1.7</version>
 				<executions>
 				
-					<!--  Unzip mac jre to target dir (for packaging with assembly plugin!) -->
+					<!--  Unzip jre to target dir (for packaging with assembly plugin!) -->
 					<execution>
 						<id>unzip_mac_jre</id>
 						<phase>validate</phase>
@@ -447,6 +448,10 @@
 												<fileset dir="${project.build.directory}">
 													<include name="${project.build.finalName}-package.zip" />
 												</fileset>
+												<!-- Adding win64 zip -->
+												<fileset dir="${project.build.directory}">
+													<include name="${project.build.finalName}-package_win64.zip" />
+												</fileset>											
 											</copy>								    
 										  </then>
 										  <else>
