@@ -183,13 +183,13 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		}
 		
 		if(allFinished) {
-			logger.debug("All KWS jobs have finished.");
+			logger.debug("All Error jobs have finished.");
 			rl.setStopped();
 		}
 		
 		Display.getDefault().asyncExec(() -> {	
 			if(resultTable != null && !resultTable.isDisposed()) {
-				logger.debug("Updating KWS result table");
+				logger.debug("Updating Error result table");
 				resultTable.getTableViewer().setInput(errorList);
 			}
 		});
