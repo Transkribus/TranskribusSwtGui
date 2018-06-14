@@ -21,6 +21,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -64,6 +65,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	String docName;
 	ExportPathComposite exportPathComp;
 	File result=null;
+	SashForm sf;
 
 
 	protected static final String HELP_WIKI_ERR = "https://en.wikipedia.org/wiki/Word_error_rate";
@@ -158,20 +160,21 @@ public class ErrorRateAdvancedStats extends Dialog{
 		exportPathComp = new ExportPathComposite(body, lastExportFolder, "File/Folder name: ", ".xls", docName);
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
-		downloadXLS = createButton(body,0, "Download XLS", false);
+//		downloadXLS = createButton(body,1, "Download XLS", false);
+		downloadXLS = new Button(body,SWT.PUSH);
+		downloadXLS.setText("Download XLS");
 		downloadXLS.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (exportPathComp != null && !exportPathComp.isDisposed()) {
+				
 					result = exportPathComp.getExportFile();
 					logger.debug("Export path "+result.getAbsolutePath());
 					createWorkBook(result.getAbsolutePath(), resultErr);
-				} else {
-					logger.debug("composite = " + exportPathComp.pathDescLabel);
-				}
 				
-			}
+			}	
+			
 		});
+		
 	}
 
 	@Override
@@ -239,7 +242,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 				});
 		
 		for (TrpErrorList page : list) {
-			rowCount++;
+			if(rowCount < list.size()) {
+				rowCount++;
+			}
 			excelData.put(Integer.toString(rowCount),new Object[] {
 					"Page "+page.getPageNumber(),
 					page.getWerDouble(),
@@ -269,7 +274,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		}
 		
 		try {
-			FileOutputStream file = new FileOutputStream(new File(filePath+ ".xls"));
+			FileOutputStream file = new FileOutputStream(new File(filePath));
 			workbook.write(file);
 			file.close();
 			workbook.close();
