@@ -8,13 +8,15 @@ import eu.transkribus.swt.mytableviewer.MyTableViewer;
 public class ErrorTableViewer extends MyTableViewer {
 
 	public static final String ERR_PAGE_COL = "Page";
-	public static final String ERR_WORD_COL = "Word Error Rate ";
+	public static final String ERR_WORD_COL = "Word Error Rate";
 	public static final String ERR_CHAR_COL = "Char Error Rate";
 	public static final String ACC_WORD_COL = "Word Accuracy";
 	public static final String ACC_CHAR_COL = "Char Accuracy";
 	public static final String BAG_PREC_COL = "Bag Tokens Precision";
 	public static final String BAG_REC_COL = "Bag Tokens Recall";
 	public static final String BAG_FMEA_COL = "Bag Tokens F-Measure";
+	
+	public static final String[] columnNames = {"Page","Word Error Rate","Char Error Rate","Word Accuracy","Char Accuracy","Bag Tokens Precision","Bag Tokens Recall","Bag Tokens F-Measure"};
 	
 	
 	public final ColumnConfig[] ERR_COLS = new ColumnConfig[] { 
@@ -32,6 +34,10 @@ public class ErrorTableViewer extends MyTableViewer {
 		this.addColumns(ERR_COLS);
 
 		
+	}
+	
+	public String[] getColumnNames() {
+		return this.columnNames;	
 	}
 
 }	
