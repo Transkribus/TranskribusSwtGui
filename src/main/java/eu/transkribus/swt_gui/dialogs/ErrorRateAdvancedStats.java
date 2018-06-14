@@ -2,16 +2,25 @@ package eu.transkribus.swt_gui.dialogs;
 
 
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -26,6 +35,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.TrpErrorList;
 import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
@@ -37,13 +47,24 @@ public class ErrorRateAdvancedStats extends Dialog{
 
 	private TrpErrorRate resultErr;
 	private Composite composite;
+	Shell shell;
 	
-	private ErrorTableViewer overall;
+	ErrorTableViewer overall;
 	ErrorTableViewer page;
+	
+	CTabFolder exportTypeTabFolder;
+	CTabItem clientExportItem;
+	CTabItem serverExportItem;
 
 	private Button wikiErrButton, wikiFmeaButton, downloadXLS;
 	ErrorTableLabelProvider labelProvider;
 	Menu contextMenu;
+
+	String lastExportFolder;
+	String docName;
+	ExportPathComposite exportPathComp;
+	File result=null;
+
 
 	protected static final String HELP_WIKI_ERR = "https://en.wikipedia.org/wiki/Word_error_rate";
 	protected static final String HELP_WIKI_FMEA = "https://en.wikipedia.org/wiki/F1_score";
@@ -51,7 +72,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 
 	public ErrorRateAdvancedStats(Shell shell, TrpErrorRate resultErr) {
 		super(shell);
+		this.shell = shell;
 		this.resultErr = resultErr;
+		this.lastExportFolder = "";
+		this.docName = "DocName";
 		
 	}
 
@@ -65,10 +89,12 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected Control createDialogArea(final Composite parent) {
 		
 		this.composite = (Composite) super.createDialogArea(parent);
-		
+
 		errOverallTable();
 		
 		errPageTable();
+		
+		downloadXls();
 		
 		return composite;
 	}
@@ -88,7 +114,15 @@ public class ErrorRateAdvancedStats extends Dialog{
 		table.setHeaderVisible(true);
 
 		TableItem item = new TableItem(table, SWT.NONE);
-		item.setText(new String[] { "Overall", resultErr.getWer(), resultErr.getCer(),resultErr.getwAcc(),resultErr.getcAcc(),resultErr.getBagTokensPrec(),resultErr.getBagTokensRec(),resultErr.getBagTokensF()});
+		item.setText(new String[] { "Overall", 
+									resultErr.getWer(),
+									resultErr.getCer(),
+									resultErr.getwAcc(),
+									resultErr.getcAcc(),
+									resultErr.getBagTokensPrec(),
+									resultErr.getBagTokensRec(),
+									resultErr.getBagTokensF()
+									});
 		
 	}
 	
@@ -105,15 +139,40 @@ public class ErrorRateAdvancedStats extends Dialog{
 		labelProvider = new ErrorTableLabelProvider(page);
 		page.setLabelProvider(labelProvider);
 
-		Table table = page.getTable();
-		table.setHeaderVisible(true);
+		page.getTable().setHeaderVisible(true);
 		
+		page.getTable().getColumns();
+	
 		page.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
-		
-	
+
 	}
 	
+	public void downloadXls() {
+		
+		Composite body = new Composite(composite,SWT.NONE);
+		
+		body.setLayout(new GridLayout(2,false));
+		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+	    
+		exportPathComp = new ExportPathComposite(body, lastExportFolder, "File/Folder name: ", ".xls", docName);
+		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		
+		downloadXLS = createButton(body,0, "Download XLS", false);
+		downloadXLS.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (exportPathComp != null && !exportPathComp.isDisposed()) {
+					result = exportPathComp.getExportFile();
+					logger.debug("Export path "+result.getAbsolutePath());
+					createWorkBook(result.getAbsolutePath(), resultErr);
+				} else {
+					logger.debug("composite = " + exportPathComp.pathDescLabel);
+				}
+				
+			}
+		});
+	}
 
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
@@ -124,21 +183,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 		wikiFmeaButton = createButton(parent, IDialogConstants.HELP_ID, "F-Measure", false);
 		wikiFmeaButton.setImage(Images.HELP);
 		
-		downloadXLS = createButton(parent,0, "Download XLS", false);
-
 		createButton(parent, IDialogConstants.OK_ID, "Ok", true);
 		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
-		GridData buttonLd = (GridData) getButton(IDialogConstants.CANCEL_ID).getLayoutData();
-		
-		downloadXLS = createButton(parent,0, "Download XLS", false);
-		downloadXLS.setLayoutData(buttonLd);
-		downloadXLS.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				saveExcelData();
-			}
-
-		});
+		GridData buttonLd = (GridData) getButton(IDialogConstants.CANCEL_ID).getLayoutData();	
 		
 		wikiErrButton.setLayoutData(buttonLd);
 		wikiErrButton.addSelectionListener(new SelectionAdapter() {
@@ -160,17 +207,83 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 
 	}
-	private void saveExcelData() {
+	
+	public void createWorkBook(String filePath , TrpErrorRate resultErr) {
 		
 		HSSFWorkbook workbook = new HSSFWorkbook();
-		HSSFSheet sheet = workbook.createSheet("Error Measures");
-		
+		HSSFSheet sheet = workbook.createSheet("Error Measurements");
 		Map<String, Object[]> excelData = new HashMap<String, Object[]>();
+		int rowCount = 0;
+		List<TrpErrorList> list = resultErr.getList();
 		
+		excelData.put(Integer.toString(rowCount++),new Object[] {
+				"Pages",
+				"Word Error Rate",
+				"Char Error Rate",
+				"Word Accuracy",
+				"Char Accuracy",
+				"Bag Tokens Precision",
+				"Bag Tokens Recall",
+				"Bag Tokens F-Measure"
+				});
+		
+		excelData.put(Integer.toString(rowCount++),new Object[] {
+				"Overall",
+				resultErr.getWerDouble(),
+				resultErr.getCerDouble(),
+				resultErr.getwAccDouble(),
+				resultErr.getcAccDouble(),
+				resultErr.getBagTokensPrecDouble(),
+				resultErr.getBagTokensRecDouble(),
+				resultErr.getBagTokensFDouble()
+				});
+		
+		for (TrpErrorList page : list) {
+			rowCount++;
+			excelData.put(Integer.toString(rowCount),new Object[] {
+					"Page "+page.getPageNumber(),
+					page.getWerDouble(),
+					page.getCerDouble(),
+					page.getwAccDouble(),
+					page.getcAccDouble(),
+					page.getBagTokensPrecDouble(),
+					page.getBagTokensRecDouble(),
+					page.getBagTokensFDouble()
+					});
+		}
+		
+		Set<String> keyset = excelData.keySet();
+		int rownum = 0;
+		for (String key : keyset) {
+			Row row = sheet.createRow(rownum++);
+			Object[] objArr = excelData.get(key);
+			int cellnum = 0;
+			for (Object obj : objArr) {
+				Cell cell = row.createCell(cellnum++);
+				if (obj instanceof Double) {
+					cell.setCellValue((Double) obj);
+				} else {
+					cell.setCellValue((String) obj);
+				}
+			}
+		}
+		
+		try {
+			FileOutputStream file = new FileOutputStream(new File(filePath+ ".xls"));
+			workbook.write(file);
+			file.close();
+			workbook.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		
 	}
 
+	
+	
 }
+
+
 
 
