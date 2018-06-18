@@ -77,7 +77,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		this.shell = shell;
 		this.resultErr = resultErr;
 		this.lastExportFolder = "";
-		this.docName = "DocName";
+		this.docName = "DocId_";
 		
 	}
 
@@ -157,10 +157,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 		body.setLayout(new GridLayout(2,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	    
-		exportPathComp = new ExportPathComposite(body, lastExportFolder, "File/Folder name: ", ".xls", docName);
+		exportPathComp = new ExportPathComposite(body, lastExportFolder, "File/Folder name: ", ".xls", docName+""+resultErr.getParams().getParameterValue("docId"));
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
-//		downloadXLS = createButton(body,1, "Download XLS", false);
 		downloadXLS = new Button(body,SWT.PUSH);
 		downloadXLS.setText("Download XLS");
 		downloadXLS.addSelectionListener(new SelectionAdapter() {
