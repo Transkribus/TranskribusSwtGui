@@ -33,7 +33,7 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 			try {
 				res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
 			} catch (JAXBException e) {
-				logger.error("Could not unmarshal kws result from job!");
+				logger.error("Could not unmarshal error rate result from job!");
 			}
 		}
 		return res;	
