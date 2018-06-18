@@ -42,7 +42,6 @@ import eu.transkribus.swt.util.LabeledComboWithButton;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
-import eu.transkribus.swt_gui.search.kws.TrpKwsResultTableEntry;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
@@ -95,6 +94,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				params.addIntParam("option", options.combo.getSelectionIndex());
+				params.addIntParam("docID", store.getDocId());
 				startError();
 			}
 			
@@ -175,11 +175,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	}
 	
 	private void updateResultTable(List<TrpJobStatus> jobs) {
-		List<TrpKwsResultTableEntry> errorList = new LinkedList<>();
+		List<TrpErrorResultTableEntry> errorList = new LinkedList<>();
 		boolean allFinished = true;
 		for(TrpJobStatus j : jobs) {
 			allFinished &= j.isFinished();
-			errorList.add(new TrpKwsResultTableEntry(j));
+			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
 		if(allFinished) {
