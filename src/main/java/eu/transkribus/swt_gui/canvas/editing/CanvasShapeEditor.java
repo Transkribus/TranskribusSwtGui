@@ -1472,7 +1472,7 @@ public class CanvasShapeEditor {
 		return backupShape;
 	}
 
-	public ShapeEditOperation applyBorderToSelectedTableCells(List<ICanvasShape> shapes, BorderFlags bf, boolean addToUndoStack) {
+	public TableShapeEditOperation applyBorderToSelectedTableCells(List<ICanvasShape> shapes, BorderFlags bf, boolean addToUndoStack) {
 		if (!TableUtils.isTableCells(shapes)) {
 			return null;
 		}
@@ -1531,6 +1531,9 @@ public class CanvasShapeEditor {
 		
 		if (addToUndoStack)
 			addToUndoStack(op);
+		
+		// notify observers
+		scene.notifyOnShapeBorderEdited(op);
 		
 		return op;
 	}

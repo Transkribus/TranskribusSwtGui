@@ -558,3 +558,4 @@ CHANGES AND BUGFIXES
 	-> compare versions now also considers tables
 	-> Add 'saveTranscriptDialog' before tools start their job
 	-> updated config for test server with separate imagestore
+	-> Save changes dialog is now triggered also for table border mark-ups on leaving the current page

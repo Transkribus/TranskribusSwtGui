@@ -27,6 +27,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
+import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpStructureChangedEvent;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
@@ -861,6 +862,20 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 			e.stop = true;
 			mw.onError("Error during operation", "Could not set new reading order", th);
 		}		
+	}
+	
+	@Override
+	public void onBorderChanged(SceneEvent e) {
+		logger.debug("on border changed" + e.toString());
+		
+		ITrpShapeType st = e.getSource().getSelectedTrpShapeTypes().get(0);
+		
+		if (st != null)
+			st.getObservable().setChangedAndNotifyObservers(new TrpStructureChangedEvent(this));
+		
+		mw.getCanvasShapeObserver().updateObserverForAllShapes();
+		
+		
 	}
 
 }

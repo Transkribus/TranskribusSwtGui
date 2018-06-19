@@ -41,6 +41,7 @@ import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.table_editor.TableShapeEditOperation;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
@@ -1005,6 +1006,12 @@ public class CanvasScene {
 		return notifyAllListener(e);
 	}
 
+	public boolean notifyOnShapeBorderEdited(TableShapeEditOperation op) {
+		SceneEvent e = new SceneEvent(SceneEventType.BORDER_CHANGED, this, op);
+		logger.debug("notifying on shape border edited");
+		return notifyAllListener(e);
+	}
+	
 	public void updateSegmentationViewSettings() {
 		TrpSettings sets = TrpMainWidget.getInstance().getTrpSets();
 		logger.trace("trpsets: " + sets.toString());
