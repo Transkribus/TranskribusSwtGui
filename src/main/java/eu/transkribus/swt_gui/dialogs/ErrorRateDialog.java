@@ -18,7 +18,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
 import eu.transkribus.core.model.beans.TrpErrorRate;
-import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.tool.error.ErrorTableViewer;
@@ -28,8 +27,6 @@ public class ErrorRateDialog extends Dialog {
 	protected static final String HELP_WIKI_ERR = "https://en.wikipedia.org/wiki/Word_error_rate";
 	protected static final String HELP_WIKI_FMEA = "https://en.wikipedia.org/wiki/F1_score";
 
-	MyTableViewer viewer;
-	
 	private Composite composite;
 
 	private TrpErrorRate resultErr;
