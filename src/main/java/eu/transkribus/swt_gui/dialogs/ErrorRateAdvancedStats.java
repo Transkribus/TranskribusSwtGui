@@ -240,21 +240,24 @@ public class ErrorRateAdvancedStats extends Dialog{
 				resultErr.getBagTokensFDouble()
 				});
 		
-		for (TrpErrorList page : list) {
-			if(rowCount < list.size()) {
-				rowCount++;
+		if(resultErr.getList() != null) {
+			for (TrpErrorList page : list) {
+				if(rowCount < list.size()) {
+					rowCount++;
+				}
+				excelData.put(Integer.toString(rowCount),new Object[] {
+						"Page "+page.getPageNumber(),
+						page.getWerDouble(),
+						page.getCerDouble(),
+						page.getwAccDouble(),
+						page.getcAccDouble(),
+						page.getBagTokensPrecDouble(),
+						page.getBagTokensRecDouble(),
+						page.getBagTokensFDouble()
+						});
 			}
-			excelData.put(Integer.toString(rowCount),new Object[] {
-					"Page "+page.getPageNumber(),
-					page.getWerDouble(),
-					page.getCerDouble(),
-					page.getwAccDouble(),
-					page.getcAccDouble(),
-					page.getBagTokensPrecDouble(),
-					page.getBagTokensRecDouble(),
-					page.getBagTokensFDouble()
-					});
 		}
+		
 		
 		Set<String> keyset = excelData.keySet();
 		int rownum = 0;
