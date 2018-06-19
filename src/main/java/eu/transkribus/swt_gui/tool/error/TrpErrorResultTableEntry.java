@@ -1,10 +1,7 @@
 package eu.transkribus.swt_gui.tool.error;
 
-import java.util.List;
-
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,15 +10,13 @@ import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.JaxbUtils;
-import eu.transkribus.core.util.JobDataUtils;
 import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
 
 public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>{
 
 
 	public TrpErrorResultTableEntry(TrpJobStatus job) {
-		super(job);
-		
+		super(job);	
 	}
 	private static final Logger logger = LoggerFactory.getLogger(TrpErrorResultTableEntry.class);
 
@@ -33,7 +28,7 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 			try {
 				res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
 			} catch (JAXBException e) {
-				logger.error("Could not unmarshal error rate result from job!");
+				logger.error("Could not unmarshal error result result from job!");
 			}
 		}
 		return res;	
@@ -41,15 +36,20 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 
 	@Override
 	protected String extractQueries(TrpProperties props, TrpErrorRate result) {
-		String query = null;
-		if(result == null) {
-			List<String> queries = JobDataUtils.getStringList(props.getProperties(), JobConst.PROP_QUERY);
-			query = "\"" + StringUtils.join(queries, "\", \"") + "\"";
-		} else {
-			query = JobConst.PROP_QUERY;
-		}
-		
-		return query;
-	}
+//		logger.debug(props.writeToString());
+//		String option = null;
+//		switch((String)props.get("parameters.3.value")) {
+//		case "0": 
+//			option = "";
+//			break;
+//		case "1":
+//			option = "normcompatibility";
+//		case "2":
+//			option = "normcanonic";
+//		case "3":
+//			option = "non-case-sensitive";
+//		}
+		return "Pages : "+props.getOrDefault("parameters.0.value", "Page-Query missing") ;
+	} 
 
 }
