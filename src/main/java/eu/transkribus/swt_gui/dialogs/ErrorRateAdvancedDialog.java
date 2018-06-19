@@ -104,21 +104,23 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 	public void createJobTable() {
 		
-		Composite jobs = new Composite(composite,SWT.NONE);
+		Composite jobs = new Composite(composite,SWT.FILL);
 		
 		jobs.setLayout(new GridLayout(1,false));
-		jobs.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false));
+		jobs.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
 		
-		GridLayout groupLayout = new GridLayout(1, false);
-		GridData groupGridData = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
+		GridLayout groupLayout = new GridLayout(1, true);
+		GridData groupGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		groupGridData.heightHint = 350;
 		
-		resultGroup = new Group(jobs, SWT.NONE);
+		
+		resultGroup = new Group(jobs, SWT.FILL);
 		resultGroup.setText("Previous Compare Results");
 		resultGroup.setLayout(groupLayout);
 		resultGroup.setLayoutData(groupGridData);
 		
-		resultTable = new KwsResultTableWidget(resultGroup, SWT.BORDER);
-		resultTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		resultTable = new KwsResultTableWidget(resultGroup,0);
+		resultTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
 		resultTable.getTableViewer().addDoubleClickListener(new IDoubleClickListener(){
 			@Override
@@ -157,6 +159,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		createJobTable();
 		
+		rl.start();
+		
 		return composite;
 	}
 	
@@ -165,7 +169,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 		try {
 			store.getConnection().computeErrorRateWithJob(store.getDocId(), dps.getPagesStr(), params);
-			
 		} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
 			logger.error(e.getMessage(), e);
 			DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessageToUser());
@@ -197,7 +200,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	
 	
 	private class ResultLoader extends Thread {
-		private final static int SLEEP = 3000;
+		private final static int SLEEP = 4000;
 		private boolean stopped = false;
 		
 		@Override
@@ -226,7 +229,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		private List<TrpJobStatus> getErrorJobs() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
 			Integer docId = store.getDocId();
-			List<TrpJobStatus> jobs = new ArrayList<>(0);
+			List<TrpJobStatus> jobs = new ArrayList<>();
 			if (store != null && store.isLoggedIn()) {
 				jobs = store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, null, null);
 			}
