@@ -80,6 +80,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		compare = new Button(config,SWT.PUSH);
 		compare.setText("Compare");
+		compare.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
+
 		
 		addListener();
 		
@@ -200,7 +202,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	
 	
 	private class ResultLoader extends Thread {
-		private final static int SLEEP = 5000;
+		private final static int SLEEP = 3000;
 		private boolean stopped = false;
 		
 		@Override
