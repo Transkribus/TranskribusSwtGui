@@ -46,10 +46,13 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 			break;
 		case "1":
 			option = "normcompatibility";
+			break;
 		case "2":
 			option = "normcanonic";
+			break;
 		case "3":
 			option = "non-case-sensitive";
+			break;
 		}
 		return "Pages : "+props.getOrDefault("parameters.0.value", "Page-Query missing") +" | Option : "+option ;
 	} 
