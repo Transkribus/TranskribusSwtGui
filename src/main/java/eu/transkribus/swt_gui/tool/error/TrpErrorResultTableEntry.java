@@ -36,20 +36,22 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 
 	@Override
 	protected String extractQueries(TrpProperties props, TrpErrorRate result) {
-//		logger.debug(props.writeToString());
-//		String option = null;
-//		switch((String)props.get("parameters.3.value")) {
-//		case "0": 
-//			option = "";
-//			break;
-//		case "1":
-//			option = "normcompatibility";
-//		case "2":
-//			option = "normcanonic";
-//		case "3":
-//			option = "non-case-sensitive";
-//		}
-		return "Pages : "+props.getOrDefault("parameters.0.value", "Page-Query missing") ;
+		
+		String option = null;
+		switch((String)props.getProperty("parameters.3.value")) {
+		case "-1":
+			option = "No option";
+		case "0": 
+			option = "No option";
+			break;
+		case "1":
+			option = "normcompatibility";
+		case "2":
+			option = "normcanonic";
+		case "3":
+			option = "non-case-sensitive";
+		}
+		return "Pages : "+props.getOrDefault("parameters.0.value", "Page-Query missing") +" | Option : "+option ;
 	} 
 
 }

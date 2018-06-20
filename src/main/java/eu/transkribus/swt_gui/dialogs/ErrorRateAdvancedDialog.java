@@ -19,6 +19,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -38,7 +39,6 @@ import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.LabeledCombo;
-import eu.transkribus.swt.util.LabeledComboWithButton;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
@@ -54,6 +54,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private Group resultGroup;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private LabeledCombo options;
+	private Button compare;
 	final ParameterMap params = new ParameterMap();
 	ResultLoader rl;
 
@@ -73,9 +74,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 
-		options = new LabeledComboWithButton(config,"Options","Compare");
+		options = new LabeledCombo(config, "Options");
 		options.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
 		options.combo.setItems(" ","normcompatibility","normcanonic","non-case-sensitive");
+		
+		compare = new Button(config,SWT.PUSH);
+		compare.setText("Compare");
 		
 		addListener();
 		
@@ -89,11 +93,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			}
 		});
 		
-		((LabeledComboWithButton)options).getButton().addSelectionListener(new SelectionAdapter() {
+		compare.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
-				params.addIntParam("option", options.combo.getSelectionIndex());
+				params.addParameter("option", options.combo.getSelectionIndex());
+				logger.debug("Combo index :" +options.combo.getSelectionIndex());
 				params.addIntParam("docID", store.getDocId());
 				startError();
 			}
@@ -185,11 +190,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
-		if(allFinished) {
-			logger.debug("All Error jobs have finished.");
-			rl.setStopped();
-		}
-		
 		Display.getDefault().asyncExec(() -> {	
 			if(resultTable != null && !resultTable.isDisposed()) {
 				logger.debug("Updating Error result table");
@@ -200,7 +200,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	
 	
 	private class ResultLoader extends Thread {
-		private final static int SLEEP = 4000;
+		private final static int SLEEP = 5000;
 		private boolean stopped = false;
 		
 		@Override
@@ -222,11 +222,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				}
 			}
 		}
-		public void setStopped() {
-			logger.debug("Stopping result polling.");
-			stopped = true;
-		}
-		
 		private List<TrpJobStatus> getErrorJobs() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
 			Integer docId = store.getDocId();
 			List<TrpJobStatus> jobs = new ArrayList<>();
