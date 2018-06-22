@@ -109,6 +109,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		if (s == mw.pageStyleCombo) {
 			logger.debug("pagestyle changed: "+mw.getPageStyleCombo().getText()+" value = "+EnumUtils.fromValue(PageTypeSimpleType.class, mw.getPageStyleCombo().getText()));
 			page.setType(EnumUtils.fromValue(PageTypeSimpleType.class, mw.pageStyleCombo.getText()));
+			page.setEdited(true);
 		}
 		else if (s == mw.statusCombo) {
 			logger.debug("setting new status: "+mw.statusCombo.getText());
@@ -171,6 +172,7 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 				if (s == mw.getDeleteLinkMenuItem() || s == mw.getBreakLinkBtn()) {
 					logger.debug("deleting link "+link);
 					if (page.removeLink(link)) {
+						page.setEdited(true);
 						mainWidget.updatePageRelatedMetadata();
 					}
 				} else if (s == mw.getLinkList().getList()) {
@@ -198,8 +200,9 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 				List<ITrpShapeType> selectedShapeTypes = canvas.getScene().getSelectedTrpShapeTypes();
 				if (!selectedShapeTypes.isEmpty()) {
 					RelationType link = Storage.getInstance().getTranscript().getPage().addLink(selectedShapeTypes);
-					logger.debug("added link: "+link);
 					if (link != null) {
+						logger.debug("added link: "+link);
+						page.setEdited(true);
 						mainWidget.updatePageRelatedMetadata();
 					}
 				}
@@ -208,7 +211,6 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		else if (s == mw.shapeTypeCombo) {
 			try {
 				convertSelectedShape(mw.shapeTypeCombo.getText());
-				logger.debug("11");
 			} catch (IOException e1) {
 				DialogUtil.showErrorMessageBox(canvas.getShell(), "Error while converting shape", e1.getMessage());
 				mainWidget.updatePageRelatedMetadata();
