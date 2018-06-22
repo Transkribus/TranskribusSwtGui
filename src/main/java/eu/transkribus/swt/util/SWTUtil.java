@@ -737,8 +737,13 @@ public class SWTUtil {
 	
 	/** Selects the the given index in the combobox or deselects all if the index is not valid. */
 	public static void select(Combo combo, int i) {
-		if (i != -1)
+		if (SWTUtil.isDisposed(combo)) {
+			return;
+		}
+		
+		if (i != -1) {
 			combo.select(i);
+		}
 		else {
 			combo.deselectAll();
 		}

@@ -214,8 +214,10 @@ public class StructuralMetadataWidget extends Composite {
 //		mdGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 //		mdGroup.setText("Metadata");
 		
+		if (false) {
 		statusCombo = initComboWithLabel(this, "Edit status: ", SWT.DROP_DOWN | SWT.READ_ONLY);
 		statusCombo.setItems(EnumUtils.stringsArray(EditStatus.class));
+		}
 		
 		pageStyleCombo = initComboWithLabel(this, "Page type: ", SWT.DROP_DOWN | SWT.READ_ONLY);
 		pageStyleCombo.setItems(EnumUtils.valuesArray(PageTypeSimpleType.class));
@@ -306,11 +308,13 @@ public class StructuralMetadataWidget extends Composite {
 	public void addMetadataListener(Object listener) {
 		this.listener = (Listener) listener;
 		
-		if (statusCombo != null)
+		if (statusCombo != null) {
 			statusCombo.addSelectionListener((SelectionListener)listener);
+		}
 		
-		if (pageStyleCombo != null)
+		if (pageStyleCombo != null) {
 			pageStyleCombo.addSelectionListener((SelectionListener)listener);
+		}
 		
 		SWTUtil.addModifyListener(structureText, (ModifyListener) listener);
 		for (Button b : structureRadios) {

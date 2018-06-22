@@ -100,8 +100,6 @@ public class PageMetadataWidgetListener implements SelectionListener, ModifyList
 		TrpPageType page = getPage();
 		TrpTranscriptMetadata md = getTranscript().getMd();
 		
-
-		
 		Object s = e.getSource();
 		Widget w = null;
 		if (s instanceof Widget)
