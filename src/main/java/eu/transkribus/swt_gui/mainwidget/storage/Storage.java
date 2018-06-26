@@ -85,6 +85,7 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
@@ -92,6 +93,7 @@ import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageTypeUtils;
@@ -1256,6 +1258,9 @@ public class Storage {
 		}
 		// TEST:
 		// isPageLocked = true;
+		
+		// add foreign tags from this transcript:
+		addForeignStructTagSpecsFromTranscript();
 
 		sendEvent(new TranscriptLoadEvent(this, doc, page, transcript));
 		logger.debug("loaded JAXB, regions: " + getNTextRegions());
@@ -2499,7 +2504,7 @@ public class Storage {
 		CustomTagSpecUtil.writeCustomTagSpecsToSettings(customTagSpecs);
 	}
 	
-	private void storeStructCustomTagSpecsForCurrentCollection() {
+	public void storeStructCustomTagSpecsForCurrentCollection() {
 		logger.debug("updating struct custom tag specs for local mode, structCustomTagSpecs: "+structCustomTagSpecs);
 		CustomTagSpecUtil.writeStructCustomTagSpecsToSettings(structCustomTagSpecs);
 	}
@@ -2556,6 +2561,27 @@ public class Storage {
 		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
 	}
 	
+	private void addForeignStructTagSpecsFromTranscript() {
+		if (transcript != null) {
+			int sizeBefore = structCustomTagSpecs.size();
+			for (ITrpShapeType st : transcript.getPage().getAllShapes(true)) {
+				String structType = CustomTagUtil.getStructure(st);	
+				if (!StringUtils.isEmpty(structType)) {
+					StructCustomTagSpec spec = getStructCustomTagSpec(structType);
+					if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
+						spec = new StructCustomTagSpec(new StructureTag(structType), getNewStructCustomTagColor());
+						logger.debug("adding foreing page from transcript: "+spec);
+						structCustomTagSpecs.add(spec);
+					}
+				}
+			}
+			if (sizeBefore != structCustomTagSpecs.size()) {
+				logger.debug("added "+(structCustomTagSpecs.size()-sizeBefore)+" foreign tags!");
+				sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+			}
+		}
+	}
+	
 	public void restoreDefaultStructCustomTagSpecs() {
 		structCustomTagSpecs.clear();
 		structCustomTagSpecs.addAll(getDefaultStructCustomTagSpecs());
@@ -2582,8 +2608,16 @@ public class Storage {
 		return specs;
 	}
 	
+	public boolean hasStructCustomTagSpec(String type) {
+		return getStructCustomTagSpec(type) != null;
+	}
+	
+	public StructCustomTagSpec getStructCustomTagSpec(String type) {
+		return structCustomTagSpecs.stream().filter(c1 -> c1.getCustomTag().getType().equals(type)).findFirst().orElse(null);
+	}
+	
 	public Color getStructureTypeColor(String type) {
-		StructCustomTagSpec c = structCustomTagSpecs.stream().filter(c1 -> c1.getCustomTag().getType().equals(type)).findFirst().orElse(null);
+		StructCustomTagSpec c = getStructCustomTagSpec(type);
 		if (c!=null && c.getRGB()!=null) {
 			return Colors.createColor(c.getRGB());
 		}

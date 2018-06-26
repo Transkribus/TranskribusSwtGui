@@ -36,6 +36,7 @@ public class StructTagConfWidget extends Composite {
 	ComboViewer structTypesCombo;
 	Button addStructBtn;
 	Button restoreDefaultBtn;
+	Button storeBtn;
 	
 	public StructTagConfWidget(Composite parent, int style) {
 		super(parent, style);
@@ -91,8 +92,18 @@ public class StructTagConfWidget extends Composite {
 		restoreDefaultBtn.setImage(Images.REFRESH);
 		restoreDefaultBtn.setToolTipText("Restores the default structures types and color");
 		
+		storeBtn = new Button(this, 0);
+		storeBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		storeBtn.setText("Save");
+		storeBtn.setImage(Images.DISK);
+		storeBtn.setToolTipText("Saves the current taglist for the next startup");
+		
 		SWTUtil.onSelectionEvent(restoreDefaultBtn, e -> {
 			store.restoreDefaultStructCustomTagSpecs();
+		});
+		
+		SWTUtil.onSelectionEvent(storeBtn, e -> {
+			store.storeStructCustomTagSpecsForCurrentCollection();
 		});
 		
 		this.addDisposeListener(new DisposeListener() {
