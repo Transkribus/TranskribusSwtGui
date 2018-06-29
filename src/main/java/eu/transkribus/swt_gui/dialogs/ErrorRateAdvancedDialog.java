@@ -10,6 +10,7 @@ import javax.ws.rs.ServerErrorException;
 import javax.xml.bind.JAXBException;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.swt.SWT;
@@ -37,7 +38,9 @@ import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.util.JaxbUtils;
+import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -54,9 +57,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private Group resultGroup;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private LabeledCombo options;
-	private Button compare;
+	private Button compare, wikiOptions;
 	final ParameterMap params = new ParameterMap();
 	ResultLoader rl;
+	
+	protected static final String HELP_WIKI_OPTION = "https://en.wikipedia.org/wiki/Unicode_equivalence";
 
 	public ErrorRateAdvancedDialog(Shell parentShell) {
 		
@@ -76,7 +81,13 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 		options = new LabeledCombo(config, "Options");
 		options.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
-		options.combo.setItems(" ","normcompatibility","normcanonic","non-case-sensitive");
+		options.combo.setItems("default (case sensitive) ","normcompatibility","normcanonic","non-case-sensitive");
+		logger.debug("Get text on combo"+options.combo.getItem(1));
+		options.combo.setToolTipText("Default - case sensitive \n normcompatibility "
+				+ "- Characters are decomposed by compatibility, then recomposed by canonical equivalence \n "
+				+ "normcanonic - Characters are decomposed and then recomposed by canonical equivalence \n "
+				+ "non-case-sensitive \n"
+				+ "More information : https://en.wikipedia.org/wiki/Unicode_equivalence ");
 		
 		compare = new Button(config,SWT.PUSH);
 		compare.setText("Compare");
@@ -232,6 +243,27 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			}
 			return jobs;
 		}
+	}
+	
+	@Override
+	protected void createButtonsForButtonBar(Composite parent) {
+
+		wikiOptions = createButton(parent, IDialogConstants.HELP_ID, "Options Help", false);
+		wikiOptions.setImage(Images.HELP);
+		createButton(parent, IDialogConstants.OK_ID, "Ok", true);
+		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
+		GridData buttonLd = (GridData) getButton(IDialogConstants.CANCEL_ID).getLayoutData();	
+		
+		wikiOptions.setLayoutData(buttonLd);
+		wikiOptions.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DesktopUtil.browse(HELP_WIKI_OPTION, "You can find the relevant information on the Wikipedia page.",
+						getParentShell());
+			}
+		});
+
+
 	}
 
 }
