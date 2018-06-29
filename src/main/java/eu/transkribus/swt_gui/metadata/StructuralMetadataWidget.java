@@ -18,6 +18,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -44,6 +45,7 @@ import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class StructuralMetadataWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(StructuralMetadataWidget.class);
@@ -103,11 +105,21 @@ public class StructuralMetadataWidget extends Composite {
 		structureTypeLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		Fonts.setBoldFont(structureTypeLabel);
 		
-		Label structLabel = new Label(this, 0);
+		Composite container1 = new Composite(this, 0);
+		container1.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+		container1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		
+		Label structLabel = new Label(container1, 0);
 		structLabel.setText("Type of selected: ");
-		structureText = new Text(this, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
+		structureText = new Text(container1, SWT.SINGLE | SWT.BORDER | SWT.READ_ONLY);
 		structureText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		structureText.setToolTipText("The structure type of the selected element");
+		Button clearStructureTypeBtn = new Button(container1, 0);
+		clearStructureTypeBtn.setImage(Images.DELETE);
+		clearStructureTypeBtn.setToolTipText("Delete the structure type of the selected element(s)");
+		SWTUtil.onSelectionEvent(clearStructureTypeBtn, e -> {
+			TrpMainWidget.getInstance().setStructureTypeOfSelected("", false);
+		});
 		
 		SashForm structureSf = new SashForm(this, SWT.VERTICAL);
 		structureSf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));

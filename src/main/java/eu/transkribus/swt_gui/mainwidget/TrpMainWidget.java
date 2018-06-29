@@ -1938,6 +1938,8 @@ public class TrpMainWidget {
 		getTreeListener().detach();
 		ui.getStructureTreeViewer().setSelection(sel, true);
 		getTreeListener().attach();
+		
+		ui.getStructuralMetadataWidget().getStructTagListWidget().updateTreeSelectionFromCanvas(selData);
 	}
 
 	// public void updateDocMetadata() {

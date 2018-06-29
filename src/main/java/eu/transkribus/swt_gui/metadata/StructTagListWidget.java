@@ -1,5 +1,8 @@
 package eu.transkribus.swt_gui.metadata;
 
+import java.util.List;
+
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.swt.SWT;
@@ -11,9 +14,11 @@ import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeContentProvider;
@@ -25,6 +30,8 @@ import eu.transkribus.swt_gui.structure_tree.StructureTypeEditingSupport;
 
 public class StructTagListWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(StructTagListWidget.class);
+	
+	public final static ColConfig DELETE_COL = new ColConfig("", 25);
 	
 	public final static ColConfig[] COLUMNS = new ColConfig[] { 
 			StructureTreeWidget.TYPE_COL, 
@@ -38,6 +45,7 @@ public class StructTagListWidget extends Composite {
 	
 	TreeViewer viewer;
 	Storage store = Storage.getInstance();
+	StructureTreeListener structureTreeListener;
 	
 	private final class StructureTreeContentProvider2 extends StructureTreeContentProvider {
 		@Override
@@ -81,7 +89,7 @@ public class StructTagListWidget extends Composite {
 		l.setText("Layout");
 		Fonts.setBoldFont(l);
 		
-		viewer = new TreeViewer(this, SWT.FULL_SELECTION | SWT.SINGLE);
+		viewer = new TreeViewer(this, SWT.FULL_SELECTION | SWT.MULTI);
 		viewer.getTree().setHeaderVisible(true);
 		viewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
 		viewer.setContentProvider(new StructureTreeContentProvider2());
@@ -94,7 +102,7 @@ public class StructTagListWidget extends Composite {
 			}
 		};
 		store.addListener(storageListener);
-		StructureTreeListener listener = new StructureTreeListener(viewer, true);
+		structureTreeListener = new StructureTreeListener(viewer, true);
 		
 //		viewer.addSelectionChangedListener(new StructureTreeListener(viewer, false));
 //		viewer.addDoubleClickListener(new StructureTreeListener(viewer, false));
@@ -102,12 +110,37 @@ public class StructTagListWidget extends Composite {
 		this.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
 				store.removeListener(storageListener);
-				listener.detach(); // not needed I guess...
+				structureTreeListener.detach(); // not needed I guess...
 			}
 		});
 		
 		initCols();
 	}
+	
+	public void updateTreeSelectionFromCanvas(List<Object> selData) {
+		if (structureTreeListener.isInsideTreeSelectionEvent) {
+			// logger.debug("not updating tree!!");
+			return;
+		}
+
+		// select lines for baselines
+		for (int i = 0; i < selData.size(); ++i) {
+			Object o = selData.get(i);
+			if (o instanceof TrpBaselineType) {
+				TrpBaselineType bl = (TrpBaselineType) o;
+				selData.set(i, bl.getLine());
+			}
+		}
+		
+		StructuredSelection sel = new StructuredSelection(selData);
+		structureTreeListener.detach();
+		viewer.setSelection(sel, false);
+		structureTreeListener.attach();
+	}
+	
+//	public StructureTreeListener getStructureTreeListener() {
+//		return structureTreeListener;
+//	}
 	
 	private void initCols() {
 		for (ColConfig cf : COLUMNS) {
@@ -122,6 +155,7 @@ public class StructTagListWidget extends Composite {
 
 			if (cf.equals(StructureTreeWidget.STRUCTURE_TYPE_COL)) {
 				column.setEditingSupport(new StructureTypeEditingSupport(viewer));
+				
 			}
 			
 //			if (cf.equals(StructureTreeWidget.READING_ORDER_COL)) {
