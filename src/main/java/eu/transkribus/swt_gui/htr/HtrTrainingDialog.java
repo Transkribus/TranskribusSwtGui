@@ -848,6 +848,11 @@ public class HtrTrainingDialog extends Dialog {
 		if (config.getTrain().isEmpty()) {
 			throw new IOException("Train set must not be empty!");
 		}
+		
+		if(config.getTest().isEmpty() && !isCitlabT2ISelected()){
+			throw new IOException("Test set must not be empty! \nAt least one page must be selected to get meaningful error curve."
+					+ " Please increase choice of text pages with increasing training pages.");
+		}
 
 		if (config.isTestAndTrainOverlapping()) {
 			throw new IOException("Train and Test sets must not overlap!");
