@@ -145,6 +145,7 @@ public class SearchDialog extends Dialog {
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
 			e.printStackTrace();
 		}
+		
 		final String testServer = "https://transkribus.eu/TrpServerTesting";
 		if(!Storage.getInstance().getCurrentServer().equals(testServer)){
 			allowed = false;

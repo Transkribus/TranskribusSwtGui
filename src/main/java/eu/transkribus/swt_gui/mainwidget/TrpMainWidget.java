@@ -1938,6 +1938,8 @@ public class TrpMainWidget {
 		getTreeListener().detach();
 		ui.getStructureTreeViewer().setSelection(sel, true);
 		getTreeListener().attach();
+		
+		ui.getStructuralMetadataWidget().getStructTagListWidget().updateTreeSelectionFromCanvas(selData);
 	}
 
 	// public void updateDocMetadata() {
@@ -5748,10 +5750,12 @@ public class TrpMainWidget {
 //		TextTypeSimpleType struct = EnumUtils.fromValue(TextTypeSimpleType.class, mw.getRegionTypeCombo().getText());
 //		String struct = mw.getStructureType();	
 		for (ICanvasShape sel : selected) {
-			logger.debug("updating struct type for " + sel+" type = "+structType);
 			ITrpShapeType st = GuiUtil.getTrpShape(sel);
+			logger.debug("updating struct type for " + sel+" type = "+structType+", TrpShapeType = "+st);
 			
-			st.setStructure(structType, recursive, mw);
+			if (st != null) {
+				st.setStructure(structType, recursive, mw);
+			}
 		}
 		
 		refreshStructureView();

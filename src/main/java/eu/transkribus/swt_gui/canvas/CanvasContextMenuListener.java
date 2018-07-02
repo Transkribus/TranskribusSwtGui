@@ -50,7 +50,8 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 				+ "To merge table cells select them and click on the merge tool\n"
 				+ "ctrl + move table cell -> move table row\n"
 				+ "ctrl + alt + moving table cell -> move table column\n"
-				+ "ctrl + move table cell border -> move table row / cell border \n";
+				+ "ctrl + move table cell border -> move table row / cell border \n"
+				+ "ctrl + applying border type -> keep existing border type \n";
 				
 		DialogUtil.showMessageDialog(mw.getShell(), "Table help", shortCuts, Images.HELP, MessageDialog.INFORMATION, 
 				new String[] {"OK"}, 0);
@@ -58,7 +59,8 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 
 	public void handleTableBorderEditEvent(TableBorderEditEvent event) {
 		try {
-			canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, true);
+			boolean keepExisting = CanvasKeys.isCtrlOrCommandKeyDown(canvas.getMouseListener().getCurrentMoveStateMask());
+			canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, keepExisting, true);
 			canvas.redraw();
 		} catch (Throwable ex) {
 			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);

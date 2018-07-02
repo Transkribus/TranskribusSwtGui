@@ -7,6 +7,9 @@ import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
@@ -35,6 +38,7 @@ public class StructureTypeEditingSupport extends EditingSupport {
 		if (i == 0) {
 			s.setStructure(null, false, this);
 		}
+		getViewer().update(element, null);
 		getViewer().refresh();
 	}
 
@@ -50,10 +54,21 @@ public class StructureTypeEditingSupport extends EditingSupport {
 		List<String> values = store.getStructCustomTagSpecsTypeStrings();
 		values.toArray(new String[values.size()]);
 //					List<String> values = EnumUtils.valuesList(TextTypeSimpleType.class);
-		values.add(0, ""); // add empty string as value to
+		values.add(0, "--delete--"); // add --delete-- string as value to
 							// delete structure type!
 
-		return new ComboBoxCellEditor(getTreeViewer().getTree(), values.toArray(new String[0]), SWT.READ_ONLY);
+		ComboBoxCellEditor ce = new ComboBoxCellEditor(getTreeViewer().getTree(), values.toArray(new String[0]), SWT.READ_ONLY | SWT.FLAT);
+//		ce.setActivationStyle();
+		ce.setActivationStyle(ComboBoxCellEditor.DROP_DOWN_ON_MOUSE_ACTIVATION);
+		CCombo c = (CCombo) ce.getControl();
+		c.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				setValue(element, c.getSelectionIndex()); // on selection of the new structure type in the combo box, set the new value and close the editor	
+			}
+		});
+		
+		return ce;
 	}
 
 	@Override protected boolean canEdit(Object element) {

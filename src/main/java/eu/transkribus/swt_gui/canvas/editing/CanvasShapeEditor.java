@@ -1472,11 +1472,19 @@ public class CanvasShapeEditor {
 		return backupShape;
 	}
 
-	public TableShapeEditOperation applyBorderToSelectedTableCells(List<ICanvasShape> shapes, BorderFlags bf, boolean addToUndoStack) {
+	/**
+	 * 
+	 * @param shapes
+	 * @param bf
+	 * @param keepExisting keep the existing border
+	 * @param addToUndoStack
+	 * @return
+	 */
+	public TableShapeEditOperation applyBorderToSelectedTableCells(List<ICanvasShape> shapes, BorderFlags bf, boolean keepExisting, boolean addToUndoStack) {
 		if (!TableUtils.isTableCells(shapes)) {
 			return null;
 		}
-		logger.debug("changing border type for table "+shapes.size()+", bf: "+bf);
+		logger.debug("changing border type for table "+shapes.size()+", bf: "+bf+" keepExisting: "+keepExisting);
 		
 		TableShapeEditOperation op = new TableShapeEditOperation("Changed border type for "+shapes.size()+" table cells "
 				+ "and the respective neighboring cells");
@@ -1486,46 +1494,46 @@ public class CanvasShapeEditor {
 			op.addCellBackup(c);
 			
 			if (!TableUtils.hasLeftNeighbor(c, shapes)) {
-				c.setLeftBorderVisible(bf.vertLeft);
+				c.setLeftBorderVisible(keepExisting ? (bf.vertLeft || c.isLeftBorderVisible()) : bf.vertLeft);
 				for (TrpTableCellType n : c.getNeighborCells(0)) {
 					op.addCellBackup(n);
-					n.setRightBorderVisible(bf.vertLeft);
+					n.setRightBorderVisible(keepExisting ? (bf.vertLeft || n.isRightBorderVisible()) : bf.vertLeft);
 				}
 			} else {
-				c.setLeftBorderVisible(bf.vertInner);
+				c.setLeftBorderVisible(keepExisting ? (bf.vertInner || c.isLeftBorderVisible()) : bf.vertInner);
 			}
 			
 			if (!TableUtils.hasRightNeighbor(c, shapes)) {
-				c.setRightBorderVisible(bf.vertRight);
+				c.setRightBorderVisible(keepExisting ? (bf.vertRight || c.isRightBorderVisible()) : bf.vertRight);
 				for (TrpTableCellType n : c.getNeighborCells(2)) {
 					op.addCellBackup(n);
-					n.setLeftBorderVisible(bf.vertRight);	
+					n.setLeftBorderVisible(keepExisting ? (bf.vertRight || n.isRightBorderVisible()) : bf.vertRight);	
 				}
 			}
 			else {
-				c.setRightBorderVisible(bf.vertInner);
+				c.setRightBorderVisible(keepExisting ? (bf.vertInner || c.isRightBorderVisible()) : bf.vertInner);
 			}
 			
 			if (!TableUtils.hasBottomNeighbor(c, shapes)) {
-				c.setBottomBorderVisible(bf.horBottom);
+				c.setBottomBorderVisible(keepExisting ? (bf.horBottom || c.isBottomBorderVisible()) : bf.horBottom);
 				for (TrpTableCellType n : c.getNeighborCells(1)) {
 					op.addCellBackup(n);
-					n.setTopBorderVisible(bf.horBottom);				
+					n.setTopBorderVisible(keepExisting ? (bf.horBottom || n.isBottomBorderVisible()) : bf.horBottom);				
 				}
 			}
 			else {
-				c.setBottomBorderVisible(bf.horInner);
+				c.setBottomBorderVisible(keepExisting ? (bf.horInner || c.isBottomBorderVisible()) : bf.horInner);
 			}
 			
 			if (!TableUtils.hasTopNeighbor(c, shapes)) {
-				c.setTopBorderVisible(bf.horTop);
+				c.setTopBorderVisible(keepExisting ? (bf.horTop || c.isTopBorderVisible()) : bf.horTop);
 				for (TrpTableCellType n : c.getNeighborCells(3)) {
 					op.addCellBackup(n);
-					n.setBottomBorderVisible(bf.horTop);
+					n.setBottomBorderVisible(keepExisting ? (bf.horTop || n.isBottomBorderVisible()) : bf.horTop);
 				}
 			}
 			else {
-				c.setTopBorderVisible(bf.horInner);
+				c.setTopBorderVisible(keepExisting ? (bf.horInner || c.isTopBorderVisible()) : bf.horInner);
 			}
 		}
 		
