@@ -227,14 +227,22 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 	    
+	    serverExportItem = new CTabItem(exportTypeTabFolder, SWT.FILL);
+	    serverExportItem.setText("Server export");
+	    
+	    /*
+	     * set server export as default
+	     */
+	    exportTypeTabFolder.setSelection(serverExportItem);
+	    setDoServerExport(true);
+	    
 	    clientExportItem = new CTabItem(exportTypeTabFolder, SWT.FILL);
 	    clientExportItem.setText("Client export");
 		exportPathComp = new ExportPathComposite(exportTypeTabFolder, lastExportFolder, "File/Folder name: ", null, docName);
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		clientExportItem.setControl(exportPathComp);
 		
-	    serverExportItem = new CTabItem(exportTypeTabFolder, SWT.FILL);
-	    serverExportItem.setText("Server export");
+
 	    
 	    Composite serverExportComposite = new Composite(exportTypeTabFolder, 0);
 	    serverExportComposite.setLayout(new GridLayout(1, false));
@@ -1081,6 +1089,7 @@ public class CommonExportDialog extends Dialog {
 	    fontDropDown.add("FreeSerif");
 	    fontDropDown.add("Junicode");
 	    fontDropDown.add("NotoSans-Regular");
+	    //fontDropDown.add("DejaVuSansMono");
 	    fontDropDown.select(2);
 	    setFont(fontDropDown.getText());
 	    fontDropDown.addSelectionListener(new SelectionAdapter() {
