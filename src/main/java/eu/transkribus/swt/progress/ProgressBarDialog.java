@@ -6,15 +6,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 
-import junit.framework.Assert;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.CanvasException;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
@@ -34,11 +25,19 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.canvas.CanvasException;
+import junit.framework.Assert;
 
 public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 	private final static Logger logger = LoggerFactory.getLogger(ProgressBarDialog.class);
 
 	private Button cancelButton;
+	private Button minButton;
 	private Composite cancelComposite;
 	// private Label lineLabel;
 	private Composite progressBarComposite;
@@ -93,6 +92,7 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 		shell.setText(title);
 		shell.open();
 		shell.layout();
+		
 				
 		Future<?> fut = executorService.submit(internalRunnable);
 		while (!shell.isDisposed()) {
@@ -225,6 +225,19 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 				}
 			}
 		});
+		
+		minButton = new Button(cancelComposite,SWT.NONE);
+		minButton.setLayoutData(new GridData(78, SWT.DEFAULT));
+		minButton.setText("Minimize");
+		minButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				shell.setMinimized(true);
+				shell.dispose();
+			}
+		});
+		
+		
 		
 		center();
 		shell.setSize(450, shell.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
@@ -385,7 +398,7 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 										monitor.done();
 										break;
 									}
-									if (i==5)
+									if (i==9)
 										throw new InvocationTargetException(new CanvasException("yeah!!!"));
 
 									monitor.worked(i);
