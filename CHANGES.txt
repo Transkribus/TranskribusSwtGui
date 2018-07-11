@@ -560,3 +560,6 @@ CHANGES AND BUGFIXES
 	-> Add 'saveTranscriptDialog' before tools start their job
 	-> updated config for test server with separate imagestore
 	-> Save changes dialog is now triggered also for table border mark-ups on leaving the current page
+	
+1.4.2
+	-> bugfix for structural tagging with custom defined structure types
