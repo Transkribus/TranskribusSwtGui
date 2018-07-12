@@ -275,7 +275,7 @@ public class CanvasContextMenu extends Observable {
 	}
 	
 	private int createStructureItems(ICanvasShape s) {
-		if (s==null || TableUtils.getTableCell(s)!=null) {
+		if (s==null /*|| TableUtils.getTableCell(s)!=null*/) {
 			return 0;
 		}
 		
