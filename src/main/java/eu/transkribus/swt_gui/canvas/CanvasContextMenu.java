@@ -239,27 +239,10 @@ public class CanvasContextMenu extends Observable {
 		
 		deleteTableRowItem = createMenuItem("Delete row", Images.DELETE, new DeleteTableEvent(this, TableDimension.ROW), menu);
 		deleteTableColumnItem = createMenuItem("Delete column", Images.DELETE, new DeleteTableEvent(this, TableDimension.COLUMN), menu);
+
+// todo ... @EML		
+//		borderMenu = createMenuItem("Mark-up borders", Images.BORDER_MENU);
 		
-		borderMenu = createSubMenu(menu, "Border");
-				
-		createMenuItem("None", Images.BORDER_NONE, new TableBorderEditEvent(this, BorderFlags.none()), borderMenu);
-		createMenuItem("All", Images.BORDER_ALL, new TableBorderEditEvent(this, BorderFlags.all()), borderMenu);
-		createMenuItem("Closed", Images.BORDER_CLOSED, new TableBorderEditEvent(this, BorderFlags.closed()), borderMenu);
-		
-		createMenuItem("Left", Images.BORDER_LEFT, new TableBorderEditEvent(this, BorderFlags.left()), borderMenu);
-		createMenuItem("Right", Images.BORDER_RIGHT, new TableBorderEditEvent(this, BorderFlags.right()), borderMenu);
-		createMenuItem("Left / Right", Images.BORDER_LEFT_RIGHT, new TableBorderEditEvent(this, BorderFlags.left_right()), borderMenu);
-		
-		createMenuItem("Bottom", Images.BORDER_BOTTOM, new TableBorderEditEvent(this, BorderFlags.bottom()), borderMenu);
-		createMenuItem("Top", Images.BORDER_TOP, new TableBorderEditEvent(this, BorderFlags.top()), borderMenu);
-		createMenuItem("Bottom / Top", Images.BORDER_BOTTOM_TOP, new TableBorderEditEvent(this, BorderFlags.bottom_top()), borderMenu);
-		
-		createMenuItem("Horizontally closed", Images.BORDER_HORIZONTAL_CLOSED, new TableBorderEditEvent(this, BorderFlags.horizontal_closed()), borderMenu);
-		createMenuItem("Horizontally open", Images.BORDER_HORIZONTAL_OPEN, new TableBorderEditEvent(this, BorderFlags.horizontal_open()), borderMenu);
-		
-		createMenuItem("Vertically closed", Images.BORDER_VERTICAL_CLOSED, new TableBorderEditEvent(this, BorderFlags.vertical_closed()), borderMenu);
-		createMenuItem("Vertically open", Images.BORDER_VERTICAL_OPEN, new TableBorderEditEvent(this, BorderFlags.vertical_open()), borderMenu);
-				
 		if (cell.isMergedCell())
 			createMenuItem("Split merged cell", null, new SplitTableCellEvent(this), menu);
 		
