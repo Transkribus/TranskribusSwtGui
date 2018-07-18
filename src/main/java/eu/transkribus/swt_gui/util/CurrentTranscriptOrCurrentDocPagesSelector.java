@@ -57,6 +57,10 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 		return currentTanscriptRadio.getSelection();
 	}
 	
+	public Button getCurrentTranscriptButton() {
+		return this.currentTanscriptRadio;
+	}
+	
 	public boolean isPages() {
 		return pagesRadio.getSelection();
 	}
