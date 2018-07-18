@@ -112,6 +112,10 @@ public class ExportPathComposite extends Composite {
 		pathLabel.setText(getExportFile().getAbsolutePath());
 	}
 	
+	public String getBaseFolderText() {
+		return baseFolderText.getText();
+	}
+	
 	public File getExportFile() {
 		String fTxt = fileOrFolderText.getText();
 		if (extension != null && !fTxt.toLowerCase().endsWith(extension))
