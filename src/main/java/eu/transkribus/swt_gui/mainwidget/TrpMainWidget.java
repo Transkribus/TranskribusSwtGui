@@ -3242,7 +3242,10 @@ public class TrpMainWidget {
 			boolean doPdfExport = false;
 			boolean doDocxExport = false;
 			boolean doTxtExport = false;
-			boolean doTeiExport = false;
+			/*
+			 * tei export only available as server export because it is implemented as xslt transformation page -> tei
+			 */
+			//boolean doTeiExport = false;
 			boolean doXlsxExport = false;
 			boolean doTableExport = false;
 
@@ -3254,8 +3257,8 @@ public class TrpMainWidget {
 			String pdfExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".pdf";
 			File pdfExportFile = new File(pdfExportFileOrDir);
 
-			String teiExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + "_tei.xml";
-			File teiExportFile = new File(teiExportFileOrDir);
+//			String teiExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + "_tei.xml";
+//			File teiExportFile = new File(teiExportFileOrDir);
 
 			String docxExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".docx";
 			File docxExportFile = new File(docxExportFileOrDir);
@@ -3280,7 +3283,7 @@ public class TrpMainWidget {
 
 				doPdfExport = (exportDiag.isPdfExport() && exportDiag.getExportPathComp().checkExportFile(pdfExportFile, ".pdf", getShell()));
 
-				doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
+				//doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
 
 				doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
 				
@@ -3298,7 +3301,7 @@ public class TrpMainWidget {
 				//logger.debug("temp dir is ..." + tempDir);
 			}
 
-			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doTxtExport && !doXlsxExport && !doZipExport && !doTableExport) {
+			if (!doMetsExport && !doPdfExport && !doDocxExport && !doTxtExport && !doXlsxExport && !doZipExport && !doTableExport) {
 				/*
 				 * if the export file exists and the user wants not to overwrite it then the 
 				 * export dialog shows up again with the possibility to choose another location
@@ -3478,15 +3481,15 @@ public class TrpMainWidget {
 
 			}
 
-			if (doTeiExport) {
-
-				exportTei(teiExportFile, exportDiag, cache);
-				if (exportFormats != "") {
-					exportFormats += " and ";
-				}
-				exportFormats += "TEI";
-
-			}
+//			if (doTeiExport) {
+//
+//				exportTei(teiExportFile, exportDiag, cache);
+//				if (exportFormats != "") {
+//					exportFormats += " and ";
+//				}
+//				exportFormats += "TEI";
+//
+//			}
 
 			if (doDocxExport) {
 

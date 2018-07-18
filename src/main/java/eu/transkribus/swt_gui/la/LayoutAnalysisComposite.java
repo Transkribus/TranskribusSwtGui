@@ -222,15 +222,25 @@ public class LayoutAnalysisComposite extends Composite {
 			doWordSegBtn.setSelection(false);
 			doWordSegBtn.setEnabled(false);
 			break;
+			/*
+			 * next two are bottom-up approaches and thus must have 'detect lines' enabled
+			 * for CVL regions and lines are always recogniced for the whole page
+			 * for Citlab Advanced it is possible to detect lines just for the selected regions
+			 * TODO: merge the unselected regions with the result from the current recognition 
+			 */
 		case METHOD_CVL:
 			doBlockSegBtn.setSelection(true);
 			doBlockSegBtn.setEnabled(false);
+			doLineSegBtn.setSelection(true);
+			doLineSegBtn.setEnabled(false);
 			doWordSegBtn.setSelection(false);
 			doWordSegBtn.setEnabled(false);
 			break;
 		case METHOD_CITLAB_ADVANCED:
 			doWordSegBtn.setSelection(false);
 			doWordSegBtn.setEnabled(false);
+			doLineSegBtn.setSelection(true);
+			doLineSegBtn.setEnabled(false);
 			isMethodConfigurable = true;
 			break;
 		default:
