@@ -563,3 +563,10 @@ CHANGES AND BUGFIXES
 	
 1.4.2
 	-> bugfix for structural tagging with custom defined structure types
+
+1.4.3
+	-> export: server export as 'default'
+	-> TEI export is restricted to server export
+	-> We use a xslt (from https://github.com/dariok/page2tei) to transform page XMLs into TEI XMLs
+	--> Customer specific transformations can be integrated as well
+	-> Compare versions tool for several pages resp 
