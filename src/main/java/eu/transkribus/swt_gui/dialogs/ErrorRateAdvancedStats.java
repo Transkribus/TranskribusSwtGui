@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -40,6 +41,8 @@ import eu.transkribus.core.model.beans.TrpErrorList;
 import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.TrpGuiPrefs;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.tool.error.ErrorTableLabelProvider;
 import eu.transkribus.swt_gui.tool.error.ErrorTableViewer;
 
@@ -48,6 +51,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 
 	private TrpErrorRate resultErr;
 	private Composite composite;
+	Storage store;
 	Shell shell;
 	
 	ErrorTableViewer overall;
@@ -62,6 +66,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	Menu contextMenu;
 
 	String lastExportFolder;
+	String lastExportFolderTmp;
 	String docName;
 	ExportPathComposite exportPathComp;
 	File result=null;
@@ -72,12 +77,12 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected static final String HELP_WIKI_FMEA = "https://en.wikipedia.org/wiki/F1_score";
 	
 
-	public ErrorRateAdvancedStats(Shell shell, TrpErrorRate resultErr) {
+	public ErrorRateAdvancedStats(Shell shell, TrpErrorRate resultErr, Integer docId) {
 		super(shell);
 		this.shell = shell;
 		this.resultErr = resultErr;
 		this.lastExportFolder = "";
-		this.docName = "DocId_";
+		this.docName = "DocId_"+docId;
 		
 	}
 
@@ -156,6 +161,15 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		body.setLayout(new GridLayout(2,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+		
+		try {
+			lastExportFolderTmp = TrpGuiPrefs.getLastExportFolder();
+		} catch (Exception e) {
+			logger.error("Could not load last export folder");
+		}
+		if (lastExportFolderTmp != null && !lastExportFolderTmp.equals("")) {
+			lastExportFolder = lastExportFolderTmp;
+		}
 	    
 		exportPathComp = new ExportPathComposite(body, lastExportFolder, "File/Folder name: ", ".xls", docName);
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
@@ -167,8 +181,13 @@ public class ErrorRateAdvancedStats extends Dialog{
 			public void widgetSelected(SelectionEvent e) {
 				
 					result = exportPathComp.getExportFile();
-					logger.debug("Export path "+result.getAbsolutePath());
+					logger.debug("Export path "+exportPathComp.getBaseFolderText());
+					TrpGuiPrefs.storeLastExportFolder(exportPathComp.getBaseFolderText());
 					createWorkBook(result.getAbsolutePath(), resultErr);
+					MessageBox dialog = new MessageBox(shell, SWT.ICON_QUESTION | SWT.OK| SWT.CANCEL);
+					dialog.setText("XLS created");
+					dialog.setMessage("The Worksheet has been created and saved in : "+result.getPath());
+					dialog.open();
 				
 			}	
 			
