@@ -7,7 +7,6 @@ import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
-import javax.xml.bind.JAXBException;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -26,6 +25,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,11 +33,9 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
-import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
@@ -76,16 +74,18 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		config.setLayout(new GridLayout(3,false));
 		
-		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true);		
+		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true);
+		dps.getCurrentTranscriptButton().setText("All pages");
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 
 		options = new LabeledCombo(config, "Options");
 		options.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
 		options.combo.setItems("default (case sensitive) ","normcompatibility","normcanonic","non-case-sensitive");
 		logger.debug("Get text on combo"+options.combo.getItem(1));
-		options.combo.setToolTipText("Default - case sensitive \n normcompatibility "
-				+ "- Characters are decomposed by compatibility, then recomposed by canonical equivalence \n "
-				+ "normcanonic - Characters are decomposed and then recomposed by canonical equivalence \n "
+		options.combo.select(0);
+		options.combo.setToolTipText("Default - case sensitive \n "
+				+ "normcompatibility - Characters may have distinct visual appearances or behaviors, but represent the same character \n "
+				+ "normcanonic - Characters correctly displayed should always have the same visual appearance and behavior \n "
 				+ "non-case-sensitive \n"
 				+ "More information : https://en.wikipedia.org/wiki/Unicode_equivalence ");
 		
@@ -98,6 +98,16 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 	
 	}
+	
+	public void createExplainText() {
+		
+		Composite textComp = new Composite(composite,SWT.NONE);
+		textComp.setLayout(new GridLayout(3,false));
+		Text text = new Text(textComp, SWT.FILL);
+		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		text.setText("Compares the latest GT with latest version available (if no GT given takes the two latest versions)");
+	}
+	
 	private void addListener() {
 		
 		options.combo.addModifyListener(new ModifyListener() {
@@ -144,12 +154,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
 				TrpErrorResultTableEntry entry = (TrpErrorResultTableEntry) resultTable.getSelectedEntry();
-				if(entry.getResult() != null) {
-					try {
-						logger.debug(JaxbUtils.marshalToString(entry.getResult(), true, TrpErrorRate.class));
-					} catch (JAXBException e) {
-						logger.error("Could not read result.", e);
-					}
+				if(entry != null && rl.getErrorJobs().get(0).isSuccess() ) {
 					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), entry.getResult());
 					stats.open();
 				}
@@ -175,6 +180,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		createConfig();
 		
+		createExplainText();
+		
 		createJobTable();
 		
 		rl.start();
@@ -183,6 +190,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	}
 	
 	
+	
+
 	protected void startError() {
 
 		try {
@@ -197,9 +206,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	
 	private void updateResultTable(List<TrpJobStatus> jobs) {
 		List<TrpErrorResultTableEntry> errorList = new LinkedList<>();
-		boolean allFinished = true;
+
 		for(TrpJobStatus j : jobs) {
-			allFinished &= j.isFinished();
 			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
@@ -224,7 +232,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				try {
 					jobs = this.getErrorJobs();
 					updateResultTable(jobs);
-				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				} catch (ServerErrorException | ClientErrorException
 						| IllegalArgumentException e) {
 					logger.error("Could not update ResultTable!", e);
 				}
@@ -235,11 +243,16 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				}
 			}
 		}
-		private List<TrpJobStatus> getErrorJobs() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		private List<TrpJobStatus> getErrorJobs()  {
 			Integer docId = store.getDocId();
 			List<TrpJobStatus> jobs = new ArrayList<>();
 			if (store != null && store.isLoggedIn()) {
-				jobs = store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, null, null);
+				try {
+					jobs = store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, null, null);
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+						| IllegalArgumentException e) {	
+					logger.error("Could not load Jobs!");
+				}
 			}
 			return jobs;
 		}
@@ -248,7 +261,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 
-		wikiOptions = createButton(parent, IDialogConstants.HELP_ID, "Options Help", false);
+		wikiOptions = createButton(parent, IDialogConstants.HELP_ID, "Options", false);
 		wikiOptions.setImage(Images.HELP);
 		createButton(parent, IDialogConstants.OK_ID, "Ok", true);
 		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
