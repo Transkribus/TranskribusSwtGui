@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementReadingOrderComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
@@ -754,13 +755,18 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					
 					trpMergedShapes.add(st);
 				}
-				Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>());
+				//Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>());
+				
+				/*
+				 * reading order should be crucial for merging shapes - not the coordinates!!
+				 */
+				Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));
 				
 				ITrpShapeType mergedSt = mw.getShapeFactory().copyJAXBElementFromShapeAndData(newShape, minIndex);
-				logger.debug("newshape data: "+((ITrpShapeType)newShape.getData()).print());
+				//logger.debug("newshape data: "+((ITrpShapeType)newShape.getData()).print());
 				
 				for (ITrpShapeType st : trpMergedShapes) {				
-					text += st.getUnicodeText();
+					text = ( (text != "" && st.getUnicodeText() != "")? text + " " + st.getUnicodeText() : text + st.getUnicodeText());
 					st.removeFromParent();
 					// remove all links related to this shape TODO: links will be lost on undo!
 					st.getPage().removeLinks(st);
@@ -768,13 +774,13 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				text = StringUtils.removeEnd(text, " ");
 				
 				mergedSt.setUnicodeText(text, this);
-				logger.debug("newshape data2: "+((ITrpShapeType)newShape.getData()).print());
+				//logger.debug("newshape data2: "+((ITrpShapeType)newShape.getData()).print());
 				
 	//			mergedSt.reInsertIntoParent();
 	//			mergedSt.setData(newShape);
 							
 				// assign children				
-				logger.debug(" child number is : " + newShape.getChildren(false).size());
+				//logger.debug(" child number is : " + newShape.getChildren(false).size());
 				
 				for (ICanvasShape childShape : newShape.getChildren(false)) {
 					ITrpShapeType st = (ITrpShapeType) childShape.getData();
@@ -784,7 +790,8 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				
 				// if merged shapes were lines -> merge baselines also!
 				if (mergedSt instanceof TrpTextLineType) {
-					Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>(false)); // sort lines by XY coordinates!
+					//Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>(false)); // sort lines by XY coordinates!
+					Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));//reading order is crucial
 					logger.debug("baseline merge - n-merged shapes: "+trpMergedShapes.size());
 					TrpTextLineType mergedTl = (TrpTextLineType) mergedSt;
 					

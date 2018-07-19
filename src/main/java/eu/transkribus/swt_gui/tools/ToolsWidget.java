@@ -57,7 +57,7 @@ public class ToolsWidget extends Composite {
 	/*
 	 * This can be safely removed when Error Rate tool integration is done.
 	 */
-	public final static boolean IS_LEGACY_WER_GROUP = true;
+	public final static boolean IS_LEGACY_WER_GROUP = false;
 	
 	public static class TranscriptVersionChooser extends Composite {
 		public Button useCurrentBtn;

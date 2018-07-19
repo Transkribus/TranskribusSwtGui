@@ -51,7 +51,7 @@ public class ImgLoader {
 			return readExifOrientation(url);
 		}
 		catch (Exception e) {
-			logger.error("Cannot read exif orientation field: "+e.getMessage()+" - returning -1");
+			//logger.error("Cannot read exif orientation field: "+e.getMessage()+" - returning -1");
 			return -1;
 		}
 	}
