@@ -155,7 +155,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			public void doubleClick(DoubleClickEvent event) {
 				TrpErrorResultTableEntry entry = (TrpErrorResultTableEntry) resultTable.getSelectedEntry();
 				if(entry != null && rl.getErrorJobs().get(0).isSuccess() ) {
-					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), entry.getResult());
+					Integer docId = store.getDocId();
+					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), entry.getResult(),docId);
 					stats.open();
 				}
 			}
