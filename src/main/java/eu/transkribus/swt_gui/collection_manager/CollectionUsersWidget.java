@@ -28,6 +28,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpUserCollection;
 import eu.transkribus.core.model.beans.auth.TrpRole;
@@ -109,9 +111,14 @@ public class CollectionUsersWidget extends Composite {
 		
 		role = new Combo(btns, SWT.READ_ONLY);
 		role.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-		for (TrpRole r : TrpRole.values()) {
-			if (!r.isVirtual()) {
-				role.add(r.toString());
+		/*
+		 * only if the current user can manage the collection he can change the role of other users
+		 */
+		if (Storage.getInstance().getRoleOfUserInCurrentCollection().canManage()){
+			for (TrpRole r : TrpRole.values()) {
+				if (!r.isVirtual() && r.getValue()<=store.getRoleOfUserInCurrentCollection().getValue()) {
+					role.add(r.toString());
+				}
 			}
 		}
 		
@@ -196,9 +203,21 @@ public class CollectionUsersWidget extends Composite {
 	void updateBtnVisibility() {
 		boolean isAdmin = store.getUser() != null ? store.getUser().isAdmin() : false;
 		
+		try {
+			//if the role of the user has changed we should take care of that by reloading it
+			store.reloadCollections();
+			collection = store.getCollection(collection.getColId());
+		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		boolean hasRole = collection!=null && collection.getRole()!=null;
 		boolean canManage = hasRole && collection.getRole().canManage() || isAdmin;
-//		boolean isOwner = hasRole && collection.getRole().getValue()>=TrpRole.Owner.getValue() || isAdmin;
+		boolean isOwner = hasRole && collection.getRole().getValue()>=TrpRole.Owner.getValue() || isAdmin;
+		
+		logger.debug("has role:_ " + hasRole);
+		logger.debug("canManagee:_ " + canManage);
 		
 		boolean hasFindUsersSelected = !findUsersWidget.getSelectedUsers().isEmpty();
 		boolean hasCollectionUsersSelected = !getSelectedUsersInCollection().isEmpty();
@@ -208,7 +227,8 @@ public class CollectionUsersWidget extends Composite {
 		 
 //		editUserFromColBtn.setEnabled(isOwner && hasCollectionUsersSelected);
 				
-		if (canManage && hasCollectionUsersSelected) {
+		//at the moment only the owner can change the role via Rest API
+		if (isOwner && hasCollectionUsersSelected) {
 			role.setEnabled(true);
 			// update role combo:
 			List<TrpUser> us = getSelectedUsersInCollection();
@@ -228,6 +248,9 @@ public class CollectionUsersWidget extends Composite {
 		else{
 			showUserCollections.setVisible(false);
 		}
+		
+		//users can be added by editor as well
+		findUsersWidget.updateVisibility(canManage);
 	}
 	
 	public void setCollection(TrpCollection collection) {
@@ -251,7 +274,7 @@ public class CollectionUsersWidget extends Composite {
 	public void updateUsersForSelectedCollection() {
 		logger.debug("updating users for selected collection: "+collection);
 //		TrpCollection c = getSelectedCollection();
-		updateBtnVisibility();
+		
 		
 		if (collection!=null && store.isLoggedIn()) {
 			try {
@@ -260,6 +283,7 @@ public class CollectionUsersWidget extends Composite {
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, e.getMessage(), "Error loading users", -1, -1, true);
 			}
 		}
+		updateBtnVisibility();
 	}
 
 }

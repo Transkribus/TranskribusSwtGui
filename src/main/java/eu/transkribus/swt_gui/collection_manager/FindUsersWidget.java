@@ -124,6 +124,10 @@ public class FindUsersWidget extends Composite {
 		}
 	}
 	
+	public void updateVisibility(boolean allowed){
+		find.setEnabled(allowed);
+	}
+	
 	public List<TrpUser> getSelectedUsers() {
 		IStructuredSelection sel = (IStructuredSelection) usersTv.getSelection();
 		return sel.toList();	

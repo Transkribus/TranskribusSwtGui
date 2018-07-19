@@ -46,10 +46,12 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 	Shell shell;
 	static TrpMainWidget mw = TrpMainWidget.getInstance();
 	static Storage store = Storage.getInstance();
+	TrpCollection currCollection;
 
 	public CollectionUsersWidgetListener(CollectionUsersWidget cuw) {
 		this.cuw = cuw;
 		shell = cuw.getShell();
+		currCollection = store.getCollection(store.getCurrentDocumentCollectionId());
 				
 		cuw.getShell().addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
@@ -121,7 +123,8 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 			}
 
 		} catch (Throwable th) {
-			mw.onError("Unexpected error", "An unexpected error occured: "+th.getMessage(), th);
+			DialogUtil.showDetailedErrorMessageBox(shell, "Unexpected error",  "An unexpected error occured: "+th.getMessage(), th);
+			//mw.onError("Unexpected error", "An unexpected error occured: "+th.getMessage(), th);
 		}		
 	}
 
@@ -161,8 +164,8 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 					for (String u : error) {
 						msg += u + "\n";
 					}
-								
-					mw.onError("Error editing user", msg, null);
+					DialogUtil.showErrorMessageBox(shell, "Error editing user", msg);
+					//mw.onError("Error editing user", msg, null);
 				} else {
 					DialogUtil.showInfoMessageBox(shell, "Success", "Successfully edited user ("+selected.size()+")");
 				}
@@ -181,6 +184,8 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 //				return;
 //			}
 			
+			
+			
 			TrpServerConn conn = store.getConnection();
 			List<TrpUser> selected = cuw.getSelectedUsersInCollection();
 			
@@ -190,11 +195,19 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 				if (u.getUserId() == store.getUser().getUserId()) {
 					currentUserAffected=true;
 				}
-				
-				logger.debug("removing user: "+u);				
+								
+				//logger.debug("removing user: "+u);				
 				try {
-					conn.removeUserFromCollection(collection.getColId(), u.getUserId());
-					logger.info("removed user: "+u);
+//					logger.debug("current role in collection " + currCollection.getRole());
+//					logger.debug("u.getRoleInCollection() " + u.getRoleInCollection());
+					if (currCollection.getRole().getValue() < u.getRoleInCollection().getValue()){
+						//DialogUtil.showErrorMessageBox(shell, "Removing User", "Cannot remove user with role: " + u.getRoleInCollection());
+						error.add(u.getUserName()+" - reason: "+"Cannot remove user with higher role!");
+					}
+					else{
+						conn.removeUserFromCollection(collection.getColId(), u.getUserId());
+						logger.info("removed user: "+u);
+					}
 				} catch (Throwable e) {
 					logger.warn("Could not remove user: "+u);
 					error.add(u.getUserName()+" - reason: "+e.getMessage());
@@ -206,28 +219,35 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 				for (String u : error) {
 					msg += u + "\n";
 				}
-				
-				mw.onError("Error removing user", msg, null);
+				DialogUtil.showErrorMessageBox(shell, "Error removing user", msg);
+				//omit the next: this way we cannot close the window before closing the user manager and after that we get a 'Window is disposed'
+				//mw.onError("Error removing user", msg, null);
 			} else {
 				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully removed user ("+selected.size()+")");
 			}
 			
 			if (currentUserAffected) {
 				try {
+					logger.debug("Current user " + store.getUser().getUserName() + " removed himself from this collection: " + collection.getColId());
+					shell.dispose();
 					store.reloadCollections();
+					
 				} catch (Throwable e) {
 					logger.error(e.getMessage(), e);
 				}
 			}
 			
-			cuw.updateUsersForSelectedCollection();
+			//otherwise we have closed the widget and cuw is null
+			if (!currentUserAffected){
+				cuw.updateUsersForSelectedCollection();
+			}
 		}
 	}
 	
 	TrpRole getRoleFromUser(String title) {
 		List<String> roleStrs = new ArrayList<>();
 		for (TrpRole r : TrpRole.values()) {
-			if (!r.isVirtual()) {
+			if (!r.isVirtual() && r.getValue() <= currCollection.getRole().getValue()) {
 				roleStrs.add(r.toString());
 			}
 		}
@@ -308,7 +328,8 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 					msg += u + "\n";
 				}
 				
-				mw.onError("Error adding user", msg, null);
+				DialogUtil.showErrorMessageBox(shell, "Error adding user", msg);
+				//mw.onError("Error adding user", msg, null);
 			} else {
 				DialogUtil.showInfoMessageBox(shell, "Success", "Successfully adding user ("+selected.size()+")");
 			}
