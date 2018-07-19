@@ -216,8 +216,8 @@ public class CollectionUsersWidget extends Composite {
 		boolean canManage = hasRole && collection.getRole().canManage() || isAdmin;
 		boolean isOwner = hasRole && collection.getRole().getValue()>=TrpRole.Owner.getValue() || isAdmin;
 		
-		logger.debug("has role:_ " + hasRole);
-		logger.debug("canManagee:_ " + canManage);
+//		logger.debug("has role:_ " + hasRole);
+//		logger.debug("canManagee:_ " + canManage);
 		
 		boolean hasFindUsersSelected = !findUsersWidget.getSelectedUsers().isEmpty();
 		boolean hasCollectionUsersSelected = !getSelectedUsersInCollection().isEmpty();
