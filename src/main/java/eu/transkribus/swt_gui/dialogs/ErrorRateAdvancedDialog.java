@@ -81,7 +81,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		options = new LabeledCombo(config, "Options");
 		options.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
 		options.combo.setItems("default (case sensitive) ","normcompatibility","normcanonic","non-case-sensitive");
-		logger.debug("Get text on combo"+options.combo.getItem(1));
 		options.combo.select(0);
 		options.combo.setToolTipText("Default - case sensitive \n "
 				+ "normcompatibility - Characters may have distinct visual appearances or behaviors, but represent the same character \n "
@@ -105,7 +104,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		textComp.setLayout(new GridLayout(3,false));
 		Text text = new Text(textComp, SWT.FILL);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-		text.setText("Compares the latest GT with latest version available (if no GT given takes the two latest versions)");
+		text.setText("Compares the latest GT with latest version available (if no GT given compares the two latest versions)");
 	}
 	
 	private void addListener() {
@@ -121,7 +120,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				params.addParameter("option", options.combo.getSelectionIndex());
-				logger.debug("Combo index :" +options.combo.getSelectionIndex());
 				params.addIntParam("docID", store.getDocId());
 				startError();
 			}
@@ -154,13 +152,13 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
 				TrpErrorResultTableEntry entry = (TrpErrorResultTableEntry) resultTable.getSelectedEntry();
-				if(entry != null && rl.getErrorJobs().get(0).isSuccess() ) {
+				if(entry != null && entry.getStatus().equals("Completed") ) {
 					Integer docId = store.getDocId();
 					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), entry.getResult(),docId);
 					stats.open();
+					}
 				}
-			}
-		});
+			});
 	}
 	
 	public TrpCollection getCurrentCollection() {
