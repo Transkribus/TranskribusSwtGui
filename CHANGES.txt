@@ -565,8 +565,12 @@ CHANGES AND BUGFIXES
 	-> bugfix for structural tagging with custom defined structure types
 
 1.4.3
-	-> export: server export as 'default'
-	-> TEI export is restricted to server export
-	-> We use a xslt (from https://github.com/dariok/page2tei) to transform page XMLs into TEI XMLs
+	-> In the export dialog the server export is set as 'default' tab
+	-> TEI export (1): restricted to server export
+	-> TEI export (2): We use a xslt (from https://github.com/dariok/page2tei) to transform page XMLs into TEI XMLs
 	--> Customer specific transformations can be integrated as well
-	-> Compare versions tool for several pages resp 
+	-> Compare versions tool for several pages resp. a complete document 
+	-> CITlabAdvanced and CVL are bottom-up approaches and thus detect always lines: check boxes are therefore preselected and disabled
+	-> User manager: Roles are considered in order to determine what is allowed and what is not allowed
+	--> bug fix: Error messages in the user manager were not closable 
+	-> bug fix: merging of two shapes keeps the reading order and adds a space between them
