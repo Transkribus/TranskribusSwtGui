@@ -433,8 +433,10 @@
 								
 								<property name="deployDir1" value="/mnt/dea_scratch/TRP/Transkribus" />
 								<property name="deployDir2" value="${env.HOME}/Transkribus" />
+								<!-- read03 (Web UI) only has storage_kastl mounted -->
+								<property name="deployDir3" value="/mnt/storage_kastl/TranskribusGuiReleases" />
 								
-								<for list="${deployDir1},${deployDir2}" param="dir">
+								<for list="${deployDir1},${deployDir2},${deployDir3}" param="dir">
 								  <sequential>
 								  		<echo>Trying to deploy zip to @{dir}${deploySubDir}</echo>
 
