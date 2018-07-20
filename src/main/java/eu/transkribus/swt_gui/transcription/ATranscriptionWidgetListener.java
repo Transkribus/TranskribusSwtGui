@@ -124,6 +124,10 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 	protected abstract void handleTextModified(Event event);
 
 	protected void handleDefaultSelectionChanged(Event event) {
+		logger.debug("called by " + event.widget + " " + event.item);
+		
+		// todo: nächste Zeile an dieser Stelle entfernen und nur durch TAG_SET_EVENT aufrufen
+		//if (event.widget.getClass() instance of )
 		mainWidget.getUi().getTaggingWidget().updateSelectedTag(transcriptionWidget.getCustomTagsForCurrentOffset());
 	}
 
