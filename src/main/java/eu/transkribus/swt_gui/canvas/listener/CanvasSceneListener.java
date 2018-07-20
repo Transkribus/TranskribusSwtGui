@@ -291,7 +291,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				
 				final boolean newFirstSelected = e.getFirstShape() == canvas.getFirstSelected();
 				int nSelected = canvas.getNSelected();
-				logger.debug("selected data size = "+nSelected+ " new first selected = "+newFirstSelected);
+				logger.debug("selected data size = "+nSelected+ " new first selected = "+newFirstSelected + " for shape " + e.shapes.toString());
 				
 				// TEST: do sth. is table cell is selected
 				
