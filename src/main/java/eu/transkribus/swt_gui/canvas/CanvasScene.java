@@ -749,8 +749,9 @@ public class CanvasScene {
 			clearSelected();
 		}
 		
-		logger.debug("selecting, sendSignal: "+sendSignal+", multiselect: " + multiselect+", isSelected: "+shape.isSelected()+ " for "+shape.getTrpShapeType().toString());
+		logger.debug("selecting, sendSignal: "+sendSignal+", multiselect: " + multiselect);
 		if (hasShape(shape)) {
+			logger.debug(", isSelected: "+shape.isSelected()+ " for "+shape.getTrpShapeType().toString());
 			shape.setSelected(!shape.isSelected());
 			if (shape.isSelected()){
 				logger.debug("shape " + shape.getType() + " is selected !!!");
