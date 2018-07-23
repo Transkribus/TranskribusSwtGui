@@ -71,7 +71,7 @@ public class ErrorAdvandedStatsTest {
 				page4.setcAcc("19,38%");
 				page4.setBagTokensF("28,96%");
 				page4.setBagTokensPrec("27,91%");
-				page4.setBagTokensRec("5.21528861154446177");
+				page4.setBagTokensRec("5.31528861154446177");
 				page4.setPageNumber(7);
 				
 				TrpErrorList page5 = new TrpErrorList();
@@ -81,7 +81,7 @@ public class ErrorAdvandedStatsTest {
 				page5.setcAcc("19,38%");
 				page5.setBagTokensF("28,96%");
 				page5.setBagTokensPrec("67,91%");
-				page5.setBagTokensRec("5.21528861154446177");
+				page5.setBagTokensRec("5.51528861154446177");
 				page5.setPageNumber(8);
 				
 				TrpErrorList page6 = new TrpErrorList();
@@ -143,7 +143,7 @@ public class ErrorAdvandedStatsTest {
 					ex.printStackTrace();
 				}
 				
-				ErrorRateAdvancedStats eDia = new ErrorRateAdvancedStats(getShell(),e);
+				ErrorRateAdvancedStats eDia = new ErrorRateAdvancedStats(getShell(),e,3133);
 			
 				eDia.open();
 				

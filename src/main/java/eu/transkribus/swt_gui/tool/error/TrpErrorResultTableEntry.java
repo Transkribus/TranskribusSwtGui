@@ -40,9 +40,9 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 		String option = null;
 		switch((String)props.getProperty("parameters.3.value")) {
 		case "-1":
-			option = "No option";
+			option = "default (case sensitive)";
 		case "0": 
-			option = "No option";
+			option = "default (case sensitive)";
 			break;
 		case "1":
 			option = "normcompatibility";
