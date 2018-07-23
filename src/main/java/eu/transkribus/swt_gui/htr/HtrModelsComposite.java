@@ -131,7 +131,8 @@ public class HtrModelsComposite extends Composite {
 				TrpCollection col = ccd.getSelectedCollection();
 				TrpHtr htr = htw.getSelectedHtr();
 
-				if (store.getCollId() == col.getColId()) {
+				//because admin can see all models and if he then wants to share it to the collection he is actually in it is forbidden
+				if (store.getCollId() == col.getColId() && !store.getUser().isAdmin()) {
 					DialogUtil.showInfoMessageBox(getShell(), "Info",
 							"The selected HTR is already included in this collection.");
 					return;
