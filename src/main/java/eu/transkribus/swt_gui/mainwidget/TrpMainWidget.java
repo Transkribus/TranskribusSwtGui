@@ -2159,6 +2159,7 @@ public class TrpMainWidget {
 			logger.debug("shape is null!");
 			return;
 		}
+		
 		canvas.focusShape(s);
 		
 		ITrpShapeType st = canvas.getFirstSelectedSt();
@@ -2166,6 +2167,9 @@ public class TrpMainWidget {
 		if (l.t == null) {
 			logger.debug("location has no tag specified!");
 			return;
+		} else {
+			// reinforce focus on canvas
+			canvas.focusShape(s, true);
 		}
 		if (st == null) {
 			logger.warn("shape type could not be retrieved - should not happen here!");
