@@ -158,8 +158,10 @@ public class TagPropertyEditor extends Composite {
 				// select shape first if not yet done:
 				ITrpShapeType shape = this.tag.getCustomTagList().getShape();
 				
+				// BEWARE: the following results in selection cycles with no proper object being select after all!
+				// not exactly sure why but disabling the line was the best I could do (EML - 2018-07-24)
 				/// change to send no signal upon changes in customtag
-				TrpMainWidget.getInstance().selectObjectWithData(shape, false, false);
+				//TrpMainWidget.getInstance().selectObjectWithData(shape, false, false);
 
 				// TODO: introduce flag
 				if (autoSelectTagInTranscriptionWidgetItem.getSelection()) {
