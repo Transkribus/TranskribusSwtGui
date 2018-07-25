@@ -81,7 +81,7 @@ public class JavaVersionDialog extends TitleAreaDialog {
 		    area.setLayout(gridLayout);
 		    list = new List(area, SWT.BORDER | SWT.MULTI);
 		    final GridData gridData = new GridData();
-		    gridData.widthHint = 490;
+		    gridData.widthHint = 590;
 		    list.setLayoutData(gridData);
 		    
 		    if(isWrongArch()) {
@@ -105,7 +105,7 @@ public class JavaVersionDialog extends TitleAreaDialog {
 	
 	 @Override
 	    protected Point getInitialSize() {
-	        return new Point(510, 200);
+	        return new Point(610, 200);
 	    }
 	 
 	 @Override

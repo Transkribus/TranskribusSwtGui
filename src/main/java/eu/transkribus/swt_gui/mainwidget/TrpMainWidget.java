@@ -1,9 +1,12 @@
 package eu.transkribus.swt_gui.mainwidget;
 
 import java.awt.Desktop;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -136,6 +139,7 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -4716,22 +4720,38 @@ public class TrpMainWidget {
 	
 public void openJavaVersionDialog() {
 		
-		String arch = System.getenv("PROCESSOR_ARCHITECTURE");
-		String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-
-		String realArch = arch != null && arch.endsWith("64")
-		                  || wow64Arch != null && wow64Arch.endsWith("64")
-		                      ? "64" : "32";
 		String javaArch = System.getProperty("sun.arch.data.model");
 		String version = System.getProperty("java.version");
 		String fileEnc = System.getProperty("file.encoding");
 		
-		if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
-			javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
-			javaVersionDialog.open();
+		if (SysUtils.isWin()) {
+			String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+			String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+
+			String realArch = arch != null && arch.endsWith("64")
+			                  || wow64Arch != null && wow64Arch.endsWith("64")
+			                      ? "64" : "32";
+			if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
+				javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
+				javaVersionDialog.open();
+			}
 		}
-		
-		
+		if(SysUtils.isLinux()) {
+			String realArch;
+			Process p;
+			try {
+				p = Runtime.getRuntime().exec("lscpu");
+				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));	
+				realArch = br.readLine().contains("64") ? "64" : "32" ;
+				logger.debug("line : "+realArch);
+				if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
+					javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
+					javaVersionDialog.open();
+				}
+				
+			}catch (Exception e) {}
+		}
+	
 	}
 	
 	public void openPAGEXmlViewer() {
