@@ -1545,6 +1545,57 @@ public class CanvasShapeEditor {
 		
 		return op;
 	}
+	
+	public BorderFlags retrieveExistingBordersForTableCells(List<ICanvasShape> shapes) {
+		BorderFlags bf = new BorderFlags();
+		for (ICanvasShape s : shapes) {
+			TrpTableCellType c = (TrpTableCellType) s.getData();
+			
+			if (!TableUtils.hasLeftNeighbor(c, shapes)) {
+				bf.vertLeft = (bf.vertLeft || c.isLeftBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(0)) {
+					bf.vertRight = (bf.vertLeft || n.isRightBorderVisible());
+				}
+			} else {
+				bf.vertLeft = (bf.vertInner || c.isLeftBorderVisible());
+			}
+			
+			if (!TableUtils.hasRightNeighbor(c, shapes)) {
+				bf.vertRight = (bf.vertRight || c.isRightBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(2)) {
+					bf.vertLeft = (bf.vertRight || n.isRightBorderVisible());	
+				}
+			}
+			else {
+				bf.vertRight = (bf.vertInner || c.isRightBorderVisible());
+			}
+			
+			if (!TableUtils.hasBottomNeighbor(c, shapes)) {
+				bf.horBottom = (bf.horBottom || c.isBottomBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(1)) {
+					bf.horTop = (bf.horBottom || n.isBottomBorderVisible());				
+				}
+			}
+			else {
+				bf.horBottom = (bf.horInner || c.isBottomBorderVisible());
+			}
+			
+			if (!TableUtils.hasTopNeighbor(c, shapes)) {
+				bf.horTop = (bf.horTop || c.isTopBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(3)) {
+					bf.horBottom = (bf.horTop || n.isBottomBorderVisible());
+				}
+			}
+			else {
+				bf.horTop = (bf.horInner || c.isTopBorderVisible());
+			}
+		}
+	
+		// notify observers
+		scene.notifyOnShapeBorderRetrieval(shapes, bf);
+		
+		return bf;
+	}
 
 	public ShapeEditOperation mergeSelectedTableCells(List<ICanvasShape> shapes, boolean sendSignal, boolean addToUndoStack) {
 			if (shapes.size() < 2)

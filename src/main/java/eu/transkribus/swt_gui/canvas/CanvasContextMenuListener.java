@@ -17,6 +17,7 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 
 public class CanvasContextMenuListener implements ICanvasContextMenuListener {
@@ -55,6 +56,17 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 				
 		DialogUtil.showMessageDialog(mw.getShell(), "Table help", shortCuts, Images.HELP, MessageDialog.INFORMATION, 
 				new String[] {"OK"}, 0);
+	}
+	
+	public void handleTableBorderDialogEvent(TableBorderDialogEvent event) {
+		try {
+			BorderFlags bf = canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes());
+			TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().set(bf);
+			TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().show();	
+		} catch (Throwable ex) {
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
+		}
+		
 	}
 
 	public void handleTableBorderEditEvent(TableBorderEditEvent event) {

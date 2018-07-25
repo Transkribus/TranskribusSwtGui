@@ -12,6 +12,8 @@ public interface ICanvasContextMenuListener {
 	default void handleTableHelpEvent(TableHelpEvent event) {}
 
 	default void handleTableBorderEditEvent(TableBorderEditEvent event) {}
+	
+	default void handleTableBorderDialogEvent(TableBorderDialogEvent event) {}
 
 	default void handleDeleteTableEvent(DeleteTableEvent event) {}
 
@@ -63,6 +65,10 @@ public interface ICanvasContextMenuListener {
 		else if (event instanceof SetStructureEvent) {
 			handleSetStructureEvent((SetStructureEvent) event);
 		}
+		else if (event instanceof TableBorderDialogEvent) {
+			handleTableBorderDialogEvent((TableBorderDialogEvent) event); 
+		}
+		
 	}
 
 	@SuppressWarnings("serial")
@@ -135,6 +141,13 @@ public interface ICanvasContextMenuListener {
 		public TableBorderEditEvent(Object source, BorderFlags borderFlags) {
 			super(source);
 			this.borderFlags = borderFlags;
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public static class TableBorderDialogEvent extends Event {
+		public TableBorderDialogEvent(Object source) {
+			super(source);
 		}
 	}
 	

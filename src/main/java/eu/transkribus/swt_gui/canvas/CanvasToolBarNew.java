@@ -24,9 +24,8 @@ import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ToolBox;
-import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderEditEvent;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.table_editor.BorderFlags;
+import eu.transkribus.swt_gui.dialogs.TableToolBox;
 
 //public class CanvasToolBar extends ToolBar {
 public class CanvasToolBarNew {
@@ -88,11 +87,7 @@ public class CanvasToolBarNew {
 	ToolItem splitShapeWithVerticalLine;
 	ToolItem splitShapeWithHorizontalLine;
 
-	DropDownToolItem markupCells;	
-	Button markupNone, markupAll, markupClosed, markupLeft, markupRight, markupTop, markupBottom;
-	Button markupLeftRight, markupBottomTop;
-	Button markupHorizontalClosed, markupVerticalClosed, markupHorizontalOpen, markupVerticalOpen;
-	
+	TableToolBox markupBox;	
 	
 	DropDownToolItem simplifyEpsItem;
 	ToolItem undo;
@@ -506,25 +501,8 @@ public class CanvasToolBarNew {
 		markupItem.setToolTipText("Table Cell markup");
 		markupItem.setImage(Images.BORDER_MENU);
 		
-		ToolBox markupBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Cell borders");
+		markupBox = new TableToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Cell borders");
 		markupBox.addTriggerWidget(markupItem);
-		markupNone = markupBox.addButton("None", Images.BORDER_NONE, SWT.CHECK);
-		markupAll  = markupBox.addButton("All", Images.BORDER_ALL, SWT.CHECK);
-		markupClosed = markupBox.addButton("Closed", Images.BORDER_CLOSED, SWT.CHECK);
-		
-		markupLeft = markupBox.addButton("Left", Images.BORDER_LEFT, SWT.CHECK);
-		markupRight = markupBox.addButton("Right", Images.BORDER_RIGHT, SWT.CHECK);
-		markupLeftRight = markupBox.addButton("Left / Right", Images.BORDER_LEFT_RIGHT, SWT.CHECK);
-		
-		markupBottom = markupBox.addButton("Bottom", Images.BORDER_BOTTOM, SWT.CHECK);
-		markupTop = markupBox.addButton("Top", Images.BORDER_TOP, SWT.CHECK);
-		markupBottomTop = markupBox.addButton("Bottom / Top", Images.BORDER_BOTTOM_TOP, SWT.CHECK);
-		
-		markupHorizontalClosed = markupBox.addButton("Horizontally closed", Images.BORDER_HORIZONTAL_CLOSED, SWT.CHECK);
-		markupHorizontalOpen = markupBox.addButton("Horizontally open", Images.BORDER_HORIZONTAL_OPEN, SWT.CHECK);
-		markupVerticalClosed = markupBox.addButton("Vertically closed", Images.BORDER_VERTICAL_CLOSED, SWT.CHECK);
-		markupVerticalOpen = markupBox.addButton("Vertically open", Images.BORDER_VERTICAL_OPEN, SWT.CHECK);
-
 		
 		if (true) {
 		DropDownToolItem otherSegmentationToolsDropDown = new DropDownToolItem(tb, false, false, true, SWT.PUSH); // TEST
@@ -1115,6 +1093,10 @@ public class CanvasToolBarNew {
 
 	public Object getCanvasHelpItem() {
 		return canvasHelpItem;
+	}
+	
+	public TableToolBox getBorderMarkBox() {
+		return markupBox;
 	}
 
 }

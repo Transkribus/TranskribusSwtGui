@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.table_editor;
 
+import net.sf.saxon.functions.AccessorFn.HoursFromDateTime;
+
 public class BorderFlags {
 	public BorderFlags() {}
 	public BorderFlags(boolean vertLeft, boolean vertRight, boolean vertInner, boolean horBottom, boolean horTop, boolean horInner) {
@@ -28,10 +30,18 @@ public class BorderFlags {
 		return new BorderFlags();
 	}
 	
+	public boolean is_none() {
+		return (!vertLeft && !vertRight && !vertInner && !horBottom && !horTop && !horInner);
+	}
+	
 	public static BorderFlags all() {
 		BorderFlags bf = new BorderFlags();
 		bf.setAll(true);
 		return bf;
+	}
+	
+	public boolean is_all() {
+		return (vertLeft && vertRight && vertInner && horBottom && horTop && horInner);
 	}
 	
 	public static BorderFlags left() {
@@ -40,10 +50,18 @@ public class BorderFlags {
 		return bf;
 	}
 	
+	public boolean is_left() {
+		return vertLeft;
+	}
+	
 	public static BorderFlags right() {
 		BorderFlags bf = new BorderFlags();
 		bf.vertRight = true;
 		return bf;
+	}
+	
+	public boolean is_right() {
+		return vertRight;
 	}
 	
 	public static BorderFlags left_right() {
@@ -53,10 +71,18 @@ public class BorderFlags {
 		return bf;
 	}
 	
+	public boolean is_left_right() {
+		return (vertLeft && vertRight);
+	}
+	
 	public static BorderFlags bottom() {
 		BorderFlags bf = new BorderFlags();
 		bf.horBottom = true;
 		return bf;
+	}
+	
+	public boolean is_bottom() {
+		return horBottom;
 	}
 	
 	public static BorderFlags top() {
@@ -65,11 +91,19 @@ public class BorderFlags {
 		return bf;
 	}
 	
+	public boolean is_top() {
+		return horTop;
+	}
+	
 	public static BorderFlags bottom_top() {
 		BorderFlags bf = new BorderFlags();
 		bf.horBottom = true;
 		bf.horTop = true;
 		return bf;
+	}
+	
+	public boolean is_bottom_top() {
+		return (horBottom && horTop);
 	}
 	
 	public static BorderFlags horizontal_closed() {
@@ -82,12 +116,20 @@ public class BorderFlags {
 		return bf;
 	}
 	
+	public boolean is_horizontal_closed() {
+		return (horBottom && horTop && horInner && vertLeft && vertRight);
+	}
+	
 	public static BorderFlags horizontal_open() {
 		BorderFlags bf = new BorderFlags();
 		bf.horBottom = true;
 		bf.horTop = true;
 		bf.horInner = true;
 		return bf;
+	}
+	
+	public boolean is_horizontal_open() {
+		return (horBottom && horTop && horInner);
 	}
 	
 	public static BorderFlags vertical_closed() {
@@ -101,12 +143,20 @@ public class BorderFlags {
 		return bf;
 	}
 	
+	public boolean is_vertical_closed() {
+		return (vertLeft && vertRight && vertInner && horBottom && horTop);
+	}
+	
 	public static BorderFlags vertical_open() {
 		BorderFlags bf = new BorderFlags();
 		bf.vertLeft = true;
 		bf.vertRight = true;
 		bf.vertInner = true;
 		return bf;
+	}
+	
+	public boolean is_vertical_open() {
+		return (vertLeft && vertRight && vertInner);
 	}
 	
 	public static BorderFlags closed() {
@@ -116,6 +166,10 @@ public class BorderFlags {
 		bf.vertLeft = true;
 		bf.vertRight = true;
 		return bf;
+	}
+	
+	public boolean is_closed() {
+		return (horBottom && horTop && vertLeft && vertRight && !horInner && !vertInner);
 	}
 	
 	@Override public String toString() {

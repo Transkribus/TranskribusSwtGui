@@ -41,6 +41,7 @@ import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableShapeEditOperation;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
@@ -1009,6 +1010,13 @@ public class CanvasScene {
 	public boolean notifyOnShapeBorderEdited(TableShapeEditOperation op) {
 		SceneEvent e = new SceneEvent(SceneEventType.BORDER_CHANGED, this, op);
 		logger.debug("notifying on shape border edited");
+		return notifyAllListener(e);
+	}
+	
+	public boolean notifyOnShapeBorderRetrieval(List<ICanvasShape> cells, BorderFlags bf) {
+		SceneEvent e = new SceneEvent(SceneEventType.BORDER_FLAGS_CALLED, this, cells);
+		e.data = bf;
+		logger.debug("notifying on shape border retrieval");
 		return notifyAllListener(e);
 	}
 	
