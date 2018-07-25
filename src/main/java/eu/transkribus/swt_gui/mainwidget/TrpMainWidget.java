@@ -134,7 +134,6 @@ import eu.transkribus.core.model.builder.txt.TrpTxtBuilder;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.ZipUtils;
@@ -182,6 +181,7 @@ import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
+import eu.transkribus.swt_gui.dialogs.JavaVersionDialog;
 import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
@@ -283,6 +283,7 @@ public class TrpMainWidget {
 	VersionsDiffBrowserDialog browserDiag;
 	BugDialog bugDialog;
 	ChangeLogDialog changelogDialog;
+	JavaVersionDialog javaVersionDialog;
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
@@ -2513,6 +2514,7 @@ public class TrpMainWidget {
 		return false;
 		
 	}
+	
 
 	public static void show() {
 		ProgramInfo info = new ProgramInfo();
@@ -2586,6 +2588,7 @@ public class TrpMainWidget {
 					
 					
 					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
+					mw.openJavaVersionDialog();
 					
 					// while((Display.getCurrent().getShells().length != 0)
 					// && !Display.getCurrent().getShells()[0].isDisposed()) {
@@ -4705,6 +4708,26 @@ public class TrpMainWidget {
 			getTrpSets().setShowChangeLog(changelogDialog.isShowOnStartup());
 		}
 
+	}
+	
+public void openJavaVersionDialog() {
+		
+		String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+		String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+
+		String realArch = arch != null && arch.endsWith("64")
+		                  || wow64Arch != null && wow64Arch.endsWith("64")
+		                      ? "64" : "32";
+		String javaArch = System.getProperty("sun.arch.data.model");
+		String version = System.getProperty("java.version");
+		String fileEnc = System.getProperty("file.encoding");
+		
+		if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
+			javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
+			javaVersionDialog.open();
+		}
+		
+		
 	}
 	
 	public void openPAGEXmlViewer() {
