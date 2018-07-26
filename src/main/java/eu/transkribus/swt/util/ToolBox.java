@@ -233,6 +233,10 @@ public class ToolBox {
 		}
 	}
 	
+	public void showAt() {
+		showAt(posX, posY);
+	}
+	
 	public void hide() {
 		shell.setLocation(posX, posY);
 		shell.setVisible(false);

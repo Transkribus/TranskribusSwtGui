@@ -18,6 +18,26 @@ public class BorderFlags {
 		this.vertLeft = this.vertRight = this.vertInner = this.horBottom = this.horTop = this.horInner = val;
 	}
 	
+	public void set(BorderFlags bf, boolean keepExisting) {
+		if (keepExisting) {
+			// only set updated flags
+			vertLeft = bf.vertLeft ? bf.vertLeft : vertLeft;
+			vertRight = bf.vertRight ? bf.vertRight : vertRight;
+			vertInner = bf.vertInner ? bf.vertInner : vertInner;
+			horBottom = bf.horBottom ? bf.horBottom : horBottom;
+			horTop = bf.horTop ? bf.horTop : horTop;
+			horInner = bf.horInner ? bf.horInner : horInner;
+		} else {
+			vertLeft = bf.vertLeft;
+			vertRight = bf.vertRight;
+			vertInner = bf.vertInner;
+			horBottom = bf.horBottom;
+			horTop = bf.horTop;
+			horInner = bf.horInner;
+		}
+		
+	}
+	
 	public boolean vertLeft=false;
 	public boolean vertRight=false;
 	public boolean vertInner=false;
@@ -25,6 +45,17 @@ public class BorderFlags {
 	public boolean horBottom=false;
 	public boolean horTop=false;
 	public boolean horInner=false;
+	
+	public BorderFlags invert() {
+		vertLeft = !vertLeft;
+		vertRight = !vertRight;
+		vertInner = !vertInner;
+		horBottom = !horBottom;
+		horTop = !horTop;
+		horInner = !horInner;
+		
+		return this;
+	}
 	
 	public static BorderFlags none() {
 		return new BorderFlags();
@@ -72,7 +103,7 @@ public class BorderFlags {
 	}
 	
 	public boolean is_left_right() {
-		return (vertLeft && vertRight);
+		return (vertLeft && vertRight && !vertInner && !horBottom && !horTop && !horInner);
 	}
 	
 	public static BorderFlags bottom() {
@@ -103,7 +134,7 @@ public class BorderFlags {
 	}
 	
 	public boolean is_bottom_top() {
-		return (horBottom && horTop);
+		return (!vertLeft && !vertRight && !vertInner && horBottom && horTop && !horInner);
 	}
 	
 	public static BorderFlags horizontal_closed() {
@@ -117,7 +148,7 @@ public class BorderFlags {
 	}
 	
 	public boolean is_horizontal_closed() {
-		return (horBottom && horTop && horInner && vertLeft && vertRight);
+		return (horBottom && horTop && horInner && vertLeft && vertRight && !vertInner);
 	}
 	
 	public static BorderFlags horizontal_open() {
@@ -129,7 +160,7 @@ public class BorderFlags {
 	}
 	
 	public boolean is_horizontal_open() {
-		return (horBottom && horTop && horInner);
+		return (!vertLeft && !vertRight && !vertInner && horBottom && horTop && horInner);	
 	}
 	
 	public static BorderFlags vertical_closed() {
@@ -144,7 +175,7 @@ public class BorderFlags {
 	}
 	
 	public boolean is_vertical_closed() {
-		return (vertLeft && vertRight && vertInner && horBottom && horTop);
+		return (vertLeft && vertRight && vertInner && horBottom && horTop && !horInner);
 	}
 	
 	public static BorderFlags vertical_open() {
@@ -156,7 +187,7 @@ public class BorderFlags {
 	}
 	
 	public boolean is_vertical_open() {
-		return (vertLeft && vertRight && vertInner);
+		return (vertLeft && vertRight && vertInner && !horBottom && !horTop && !horInner);
 	}
 	
 	public static BorderFlags closed() {

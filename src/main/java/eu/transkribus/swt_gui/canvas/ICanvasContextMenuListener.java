@@ -137,10 +137,12 @@ public interface ICanvasContextMenuListener {
 	@SuppressWarnings("serial")
 	public static class TableBorderEditEvent extends Event {
 		public BorderFlags borderFlags;
+		public boolean set;
 		
-		public TableBorderEditEvent(Object source, BorderFlags borderFlags) {
+		public TableBorderEditEvent(Object source, BorderFlags borderFlags, boolean set) {
 			super(source);
 			this.borderFlags = borderFlags;
+			this.set = set;
 		}
 	}
 	

@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.canvas;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,11 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 		try {
 			BorderFlags bf = canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes());
 			TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().set(bf);
-			TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().show();	
+			
+			if (event.getSource() instanceof MenuItem) {
+				TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().removeTriggerWidget((MenuItem) event.getSource());
+			}
+			
 		} catch (Throwable ex) {
 			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
 		}
@@ -71,8 +76,10 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 
 	public void handleTableBorderEditEvent(TableBorderEditEvent event) {
 		try {
-			boolean keepExisting = CanvasKeys.isCtrlOrCommandKeyDown(canvas.getMouseListener().getCurrentMoveStateMask());
-			canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, keepExisting, true);
+			if (event.set)
+				canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, event.set, true);
+			else 
+				canvas.getShapeEditor().subtractBorderFromSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, true);
 			canvas.redraw();
 		} catch (Throwable ex) {
 			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
