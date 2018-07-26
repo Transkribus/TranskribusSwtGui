@@ -1,9 +1,12 @@
 package eu.transkribus.swt_gui.mainwidget;
 
 import java.awt.Desktop;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -134,9 +137,9 @@ import eu.transkribus.core.model.builder.txt.TrpTxtBuilder;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -182,6 +185,7 @@ import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
+import eu.transkribus.swt_gui.dialogs.JavaVersionDialog;
 import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
@@ -283,6 +287,7 @@ public class TrpMainWidget {
 	VersionsDiffBrowserDialog browserDiag;
 	BugDialog bugDialog;
 	ChangeLogDialog changelogDialog;
+	JavaVersionDialog javaVersionDialog;
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
@@ -2517,6 +2522,7 @@ public class TrpMainWidget {
 		return false;
 		
 	}
+	
 
 	public static void show() {
 		ProgramInfo info = new ProgramInfo();
@@ -2590,6 +2596,7 @@ public class TrpMainWidget {
 					
 					
 					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
+					mw.openJavaVersionDialog();
 					
 					// while((Display.getCurrent().getShells().length != 0)
 					// && !Display.getCurrent().getShells()[0].isDisposed()) {
@@ -4709,6 +4716,42 @@ public class TrpMainWidget {
 			getTrpSets().setShowChangeLog(changelogDialog.isShowOnStartup());
 		}
 
+	}
+	
+public void openJavaVersionDialog() {
+		
+		String javaArch = System.getProperty("sun.arch.data.model");
+		String version = System.getProperty("java.version");
+		String fileEnc = System.getProperty("file.encoding");
+		
+		if (SysUtils.isWin()) {
+			String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+			String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+
+			String realArch = arch != null && arch.endsWith("64")
+			                  || wow64Arch != null && wow64Arch.endsWith("64")
+			                      ? "64" : "32";
+			if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
+				javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
+				javaVersionDialog.open();
+			}
+		}
+		if(SysUtils.isLinux()) {
+			String realArch;
+			Process p;
+			try {
+				p = Runtime.getRuntime().exec("lscpu");
+				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));	
+				realArch = br.readLine().contains("64") ? "64" : "32" ;
+				logger.debug("line : "+realArch);
+				if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
+					javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
+					javaVersionDialog.open();
+				}
+				
+			}catch (Exception e) {}
+		}
+	
 	}
 	
 	public void openPAGEXmlViewer() {

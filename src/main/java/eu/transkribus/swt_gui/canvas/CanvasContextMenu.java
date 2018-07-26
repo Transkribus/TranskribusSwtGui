@@ -242,6 +242,9 @@ public class CanvasContextMenu extends Observable {
 		
 		deleteTableRowItem = createMenuItem("Delete row", Images.DELETE, new DeleteTableEvent(this, TableDimension.ROW), menu);
 		deleteTableColumnItem = createMenuItem("Delete column", Images.DELETE, new DeleteTableEvent(this, TableDimension.COLUMN), menu);
+
+// todo ... @EML		
+//		borderMenu = createMenuItem("Mark-up borders", Images.BORDER_MENU);
 		
 		if (cell.isMergedCell())
 			createMenuItem("Split merged cell", null, new SplitTableCellEvent(this), menu);
