@@ -32,6 +32,8 @@
 		<jface.groupId>org.eclipse.ui</jface.groupId>
 		<jface.version>3.7.1.v20120104-1859</jface.version>
 		<jface.artifactId>org.eclipse.ui.workbench</jface.artifactId>
+		
+		<client.version>0.0.3</client.version>
 	</properties>
 
 <!-- 	<distributionManagement> -->
@@ -636,7 +638,7 @@
 		<dependency>
 			<groupId>eu.transkribus</groupId>
 			<artifactId>TranskribusClient</artifactId>
-			<version>0.0.2</version>
+			<version>${client.version}</version>
 		</dependency>
 
 		<!-- SWT dependencies: -->
