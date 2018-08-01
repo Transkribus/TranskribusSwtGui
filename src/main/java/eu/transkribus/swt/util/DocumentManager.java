@@ -67,6 +67,7 @@ import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.io.UnsupportedFormatException;
+import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -96,6 +97,7 @@ public class DocumentManager extends Dialog {
 	protected Label pageNrLabel;
 	protected Label totalTranscriptsLabel;
 	protected Label totalWordTranscriptsLabel;
+	protected Label lastSaveAction;
 	
 	protected Label docLabel, collLabel;
 
@@ -243,21 +245,22 @@ public class DocumentManager extends Dialog {
 		Composite container = new Composite(shell, SWT.NONE);
 		GridLayout layout = new GridLayout(1, false);
 		container.setLayout(layout);
+		
 
 		SashForm sash = new SashForm(container, SWT.VERTICAL);
-		sash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		sash.setLayout(new GridLayout(2, false));
-
+		sash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
 		groupComposite = new Composite(sash, SWT.NONE);
 		GridLayout gl = new GridLayout(2, false);
 		gl.makeColumnsEqualWidth = true;
 		groupComposite.setLayout(gl);
-		GridData gridData = new GridData(GridData.FILL, GridData.BEGINNING, true, false);
+		GridData gridData = new GridData(GridData.FILL, GridData.BEGINNING, true, true);
 		groupComposite.setLayoutData(gridData);
 
 		labelComposite = new Composite(groupComposite, SWT.NONE);
 		labelComposite.setLayout(new GridLayout(1, true));
-		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		statisticLabel = new Label(labelComposite, SWT.TOP);
 		if (Storage.getInstance().getDoc() != null) {
@@ -265,7 +268,7 @@ public class DocumentManager extends Dialog {
 		} else {
 			statisticLabel.setText("Currently no document loaded in Transkribus");
 		}
-		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		editCombos = new Composite(groupComposite, SWT.NONE);
 		editCombos.setLayout(new GridLayout(2, true));
@@ -350,7 +353,7 @@ public class DocumentManager extends Dialog {
 			}
 		});
 
-		sash.setWeights(new int[] { 20, 80 });
+		sash.setWeights(new int[] { 25, 75 });
 
 		addListeners();
 
@@ -1363,7 +1366,7 @@ public class DocumentManager extends Dialog {
 
 	private String getPagesString() {
 		String pages = "";
-
+	
 		IStructuredSelection treeSelection = (IStructuredSelection) tv.getSelection();
 		Iterator it = treeSelection.iterator();
 		/*
@@ -1491,10 +1494,10 @@ public class DocumentManager extends Dialog {
 	}
 
 	private void addStatisticalNumbers() {
-
+		
 		Storage storage = Storage.getInstance();
 		TrpDoc doc = storage.getDoc();
-
+		
 		if (doc != null) {
 			if (statisticLabel != null && !statisticLabel.isDisposed()) {
 				statisticLabel.dispose();
@@ -1512,7 +1515,23 @@ public class DocumentManager extends Dialog {
 			statisticLabel = new Label(labelComposite, SWT.TOP);
 			statisticLabel
 					.setText("Loaded Document is " + doc.getMd().getTitle() + " with ID " + doc.getMd().getDocId());
-			statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+			//statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			
+			try {
+				List<TrpAction> actions = Storage.getInstance().getConnection().listActions(1, Storage.getInstance().getCollId(), Storage.getInstance().getDocId(), 1);
+				for (TrpAction action : actions){
+//					logger.debug("action time: " + action.getTime());
+//					logger.debug("action: " + action.getUserName());
+					lastSaveAction = new Label(labelComposite, SWT.TOP);
+					lastSaveAction.setText("<Last save: " + action.getTime() + " # page: " + action.getPageNr() + " # user: " + action.getUserName()+">");
+					lastSaveAction.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+					//lastSaveAction.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+					break;
+				}
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			int totalCollectionPages = 0;
 			int totalCollectionLines = 0;
