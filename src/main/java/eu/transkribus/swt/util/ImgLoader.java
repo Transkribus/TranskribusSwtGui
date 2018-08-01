@@ -38,7 +38,7 @@ public class ImgLoader {
 	static Image ERROR_IMG = Images.getOrLoad("/icons/broken_image.png");
 	
 	public static boolean TRY_LOAD_IMAGES_WITH_JFACE_FIRST = true;
-	public static boolean LOAD_LOCAL_IMAGES_WITH_JAI = true;
+	public static boolean LOAD_LOCAL_IMAGES_WITH_JAI = false;
 	
 	public static int readExifOrientation(URL url) throws ImageProcessingException, IOException, MetadataException {
 		Metadata metadata = ImageMetadataReader.readMetadata(url.openStream());
@@ -136,7 +136,7 @@ public class ImgLoader {
 		boolean isLocal = prot.startsWith("file");
 
 		Image img=null;
-		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST && !(isLocal && LOAD_LOCAL_IMAGES_WITH_JAI)) {
+		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST || !(isLocal && LOAD_LOCAL_IMAGES_WITH_JAI)) {
 			try {
 				logger.trace("loading image with jface");
 				img = loadWithSWTDownloadFirst(url);

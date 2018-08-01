@@ -25,6 +25,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.dialogs.TableToolBox;
 
 //public class CanvasToolBar extends ToolBar {
 public class CanvasToolBarNew {
@@ -78,14 +79,16 @@ public class CanvasToolBarNew {
 	ToolItem removePoint;
 	ToolItem removeShape;
 	ToolItem mergeShapes;
-	
+
 	DropDownToolItem splitDropdown;
 	MenuItem splitHorizontalItem, splitVerticalItem, splitLineItem;
-	
+		
 	ToolItem splitShapeLine;
 	ToolItem splitShapeWithVerticalLine;
 	ToolItem splitShapeWithHorizontalLine;
 
+	TableToolBox markupBox;	
+	
 	DropDownToolItem simplifyEpsItem;
 	ToolItem undo;
 	
@@ -355,7 +358,7 @@ public class CanvasToolBarNew {
 				
 		tb.pack();
 	}
-		
+	
 	public void createEditItems(ToolBar tb) {
 		
 		if (false) {
@@ -492,6 +495,14 @@ public class CanvasToolBarNew {
 		mergeShapes = new ToolItem(tb, SWT.PUSH);
 		mergeShapes.setToolTipText("Merges the selected shapes");
 		mergeShapes.setImage(Images.getOrLoad("/icons/merge.png"));
+		
+		// table cell markup
+		ToolItem markupItem = new ToolItem(tb, SWT.CHECK);
+		markupItem.setToolTipText("Table Cell markup");
+		markupItem.setImage(Images.BORDER_MENU);
+		
+		markupBox = new TableToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Cell borders");
+		markupBox.addTriggerWidget(markupItem);
 		
 		if (true) {
 		DropDownToolItem otherSegmentationToolsDropDown = new DropDownToolItem(tb, false, false, true, SWT.PUSH); // TEST
@@ -1082,6 +1093,10 @@ public class CanvasToolBarNew {
 
 	public Object getCanvasHelpItem() {
 		return canvasHelpItem;
+	}
+	
+	public TableToolBox getBorderMarkBox() {
+		return markupBox;
 	}
 
 }

@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Observable;
 import java.util.Set;
 
+import org.apache.poi.hpsf.MarkUnsupportedException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -32,9 +33,11 @@ import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SelectTableCells
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SetStructureEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SplitTableCellEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderEditEvent;
+import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderDialogEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableHelpEvent;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.table_editor.BorderFlags;
@@ -49,7 +52,7 @@ public class CanvasContextMenu extends Observable {
 	protected MenuItem createDefaultLineItem;
 	protected SelectionListener itemSelListener;
 
-	Menu borderMenu;
+	MenuItem borderMenu;
 	Menu structMenu;
 
 	MenuItem selectTableCellsItem;
@@ -239,27 +242,10 @@ public class CanvasContextMenu extends Observable {
 		
 		deleteTableRowItem = createMenuItem("Delete row", Images.DELETE, new DeleteTableEvent(this, TableDimension.ROW), menu);
 		deleteTableColumnItem = createMenuItem("Delete column", Images.DELETE, new DeleteTableEvent(this, TableDimension.COLUMN), menu);
+
+// todo ... @EML		
+//		borderMenu = createMenuItem("Mark-up borders", Images.BORDER_MENU);
 		
-		borderMenu = createSubMenu(menu, "Border");
-				
-		createMenuItem("None", Images.BORDER_NONE, new TableBorderEditEvent(this, BorderFlags.none()), borderMenu);
-		createMenuItem("All", Images.BORDER_ALL, new TableBorderEditEvent(this, BorderFlags.all()), borderMenu);
-		createMenuItem("Closed", Images.BORDER_CLOSED, new TableBorderEditEvent(this, BorderFlags.closed()), borderMenu);
-		
-		createMenuItem("Left", Images.BORDER_LEFT, new TableBorderEditEvent(this, BorderFlags.left()), borderMenu);
-		createMenuItem("Right", Images.BORDER_RIGHT, new TableBorderEditEvent(this, BorderFlags.right()), borderMenu);
-		createMenuItem("Left / Right", Images.BORDER_LEFT_RIGHT, new TableBorderEditEvent(this, BorderFlags.left_right()), borderMenu);
-		
-		createMenuItem("Bottom", Images.BORDER_BOTTOM, new TableBorderEditEvent(this, BorderFlags.bottom()), borderMenu);
-		createMenuItem("Top", Images.BORDER_TOP, new TableBorderEditEvent(this, BorderFlags.top()), borderMenu);
-		createMenuItem("Bottom / Top", Images.BORDER_BOTTOM_TOP, new TableBorderEditEvent(this, BorderFlags.bottom_top()), borderMenu);
-		
-		createMenuItem("Horizontally closed", Images.BORDER_HORIZONTAL_CLOSED, new TableBorderEditEvent(this, BorderFlags.horizontal_closed()), borderMenu);
-		createMenuItem("Horizontally open", Images.BORDER_HORIZONTAL_OPEN, new TableBorderEditEvent(this, BorderFlags.horizontal_open()), borderMenu);
-		
-		createMenuItem("Vertically closed", Images.BORDER_VERTICAL_CLOSED, new TableBorderEditEvent(this, BorderFlags.vertical_closed()), borderMenu);
-		createMenuItem("Vertically open", Images.BORDER_VERTICAL_OPEN, new TableBorderEditEvent(this, BorderFlags.vertical_open()), borderMenu);
-				
 		if (cell.isMergedCell())
 			createMenuItem("Split merged cell", null, new SplitTableCellEvent(this), menu);
 		
@@ -269,6 +255,10 @@ public class CanvasContextMenu extends Observable {
 		
 		if (s.getNPoints() > 4) // TODO: better check if there are intermediate points -> have to check also if a point is corner point of neighbor!!
 			createMenuItem("Remove non-corner points", null, new RemoveIntermediatePointsTableEvent(this), menu);
+		
+// do borders		
+		borderMenu = createMenuItem("Mark-up borders", Images.BORDER_MENU, new TableBorderDialogEvent(this), menu);
+		TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().addTriggerWidget(borderMenu);
 		
 		// about:
 		createMenuItem("Table help", Images.HELP, new TableHelpEvent(this), menu);
