@@ -1502,6 +1502,9 @@ public class DocumentManager extends Dialog {
 			if (statisticLabel != null && !statisticLabel.isDisposed()) {
 				statisticLabel.dispose();
 			}
+			if (lastSaveAction != null && !lastSaveAction.isDisposed()){
+				lastSaveAction.dispose();
+			}
 			if (pageNrLabel != null && !pageNrLabel.isDisposed()) {
 				pageNrLabel.dispose();
 			}
