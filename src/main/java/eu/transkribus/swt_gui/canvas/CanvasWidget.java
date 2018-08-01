@@ -296,8 +296,8 @@ public class CanvasWidget extends Composite {
 	public ToolItem getEditingEnabledToolItem() {
 		return toolbar.editingEnabledToolItem;
 	}
-	
-	public TableToolBox getTableToolBox() {
-		return toolbar.getBorderMarkBox();
-	}
+//	
+//	public TableToolBox getTableToolBox() {
+//		return toolbar.getBorderMarkBox();
+//	}
 }

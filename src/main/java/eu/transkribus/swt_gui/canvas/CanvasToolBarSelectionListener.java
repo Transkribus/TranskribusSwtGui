@@ -75,6 +75,8 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		
 		SWTUtil.addSelectionListener(tb.imgEnhanceItem, this);
 		
+		SWTUtil.addSelectionListener(tb.markupItem, this);
+		
 		SWTUtil.addSelectionListener(tb.helpItem, this);
 		SWTUtil.addSelectionListener(tb.canvasHelpItem, this);
 		
@@ -168,7 +170,11 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		}
 		else if (s == toolbar.getMergeShapes()) {
 			canvas.getShapeEditor().mergeSelected();
+		} 		
+		else if (s == toolbar.getBorderMarkupDialog()) {
+			mw.openTableBorderMarkup();
 		}
+
 
 		if (s == toolbar.getViewSettingsMenuItem()) {
 			mw.openViewSetsDialog();
@@ -205,6 +211,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.createImageSizeTextRegionItem) {
 			mw.createImageSizeTextRegion();
 		}
+
 	}
 	
 	protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {

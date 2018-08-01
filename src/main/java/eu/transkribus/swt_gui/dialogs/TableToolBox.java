@@ -2,13 +2,19 @@ package eu.transkribus.swt_gui.dialogs;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Widget;
 
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt.util.Images;
@@ -18,7 +24,10 @@ import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderEditE
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.BorderFlags;
 
-public class TableToolBox extends ToolBox {
+public class TableToolBox { // extends ToolBox {
+	Shell shell;
+	int posX, posY;
+
 	Button markupNone, markupAll, markupClosed, markupLeft, markupRight, markupTop, markupBottom;
 	Button markupLeftRight, markupBottomTop;
 	Button markupHorizontalClosed, markupVerticalClosed, markupHorizontalOpen, markupVerticalOpen;
@@ -42,8 +51,53 @@ public class TableToolBox extends ToolBox {
 	}
 
 	public TableToolBox(Shell parent, boolean vertical, String title) {
-		super(parent, vertical, title);
+		shell = new Shell(parent, SWT.RESIZE | SWT.CLOSE | SWT.MODELESS);
+		shell.setText(title);
 
+		shell.setLayout(new RowLayout(vertical ? SWT.VERTICAL : SWT.HORIZONTAL));		
+		shell.addShellListener(new ShellListener() {
+			
+			@Override
+			public void shellIconified(ShellEvent e) {}
+			
+			@Override
+			public void shellDeiconified(ShellEvent e) {}
+			
+			@Override
+			public void shellDeactivated(ShellEvent e) {}
+			
+			@Override
+			public void shellClosed(ShellEvent e) {
+				e.doit = false;
+				hide();
+			}
+			
+			@Override
+			public void shellActivated(ShellEvent e) {}
+		});
+		
+		shell.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.keyCode == SWT.ESC) {
+					hide();
+				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {}
+		});
+
+		addButtons();
+		
+		bf = new BorderFlags();
+		
+		posX = parent.getLocation().x;
+		posY = parent.getLocation().y;
+	}
+
+	private void addButtons() {
 		markupNone = addButton("None", Images.BORDER_NONE, SWT.CHECK, BorderFlags.none());
 		markupAll = addButton("All", Images.BORDER_ALL, SWT.CHECK, BorderFlags.all());
 
@@ -65,46 +119,75 @@ public class TableToolBox extends ToolBox {
 		
 		markupVerticalClosed = addButton("Vertically closed", Images.BORDER_VERTICAL_CLOSED, SWT.CHECK, BorderFlags.vertical_closed());
 		markupVerticalOpen = addButton("Vertically open", Images.BORDER_VERTICAL_OPEN, SWT.CHECK, BorderFlags.vertical_open());
-
-		
-
-
-		bf = new BorderFlags();
-
 	}
-
 	
-	public void set(BorderFlags flags) {
-		markupNone.setSelection(flags.is_none());
-		markupAll.setSelection(flags.is_all());
-		markupClosed.setSelection(flags.is_closed());
+	
+	public void showAt(int x, int y) {
+		posX=x;
+		posY=y;
+		
+		shell.pack();
+		shell.setVisible(true);
+		shell.setLocation(x, y);
+		shell.setActive();
+	}
+	
+	public void show() {
+		showAt(posX, posY);
+	}
+	
+	public void hide() {
+		shell.setLocation(posX, posY);
+		shell.setVisible(false);
+	}
+	
+	public Shell getShell() {
+		return shell;
+	}
+	
+	public void set(BorderFlags flags, boolean enable) {
+		markupNone.setSelection((bf.is_none() || flags.is_none()) && enable);
+		markupAll.setSelection((bf.is_all() || flags.is_all()) && enable);
+		markupClosed.setSelection((bf.is_closed() || flags.is_closed()) && enable);
 
-		markupLeft.setSelection(flags.is_left());
-		markupRight.setSelection(flags.is_right());
-		markupLeftRight.setSelection(flags.is_left_right());
+		markupLeft.setSelection((bf.is_left() || flags.is_left()) && enable);
+		markupRight.setSelection((bf.is_right() || flags.is_right()) && enable);
+		markupLeftRight.setSelection((bf.is_left_right() || flags.is_left_right()) && enable);
 
-		markupTop.setSelection(flags.is_top());
-		markupBottom.setSelection(flags.is_bottom());
-		markupBottomTop.setSelection(flags.is_bottom_top());
+		markupTop.setSelection((bf.is_top() || flags.is_top()) && enable);
+		markupBottom.setSelection((bf.is_bottom() || flags.is_bottom()) && enable);
+		markupBottomTop.setSelection((bf.is_bottom_top() || flags.is_bottom_top()) && enable);
 
-		markupHorizontalClosed.setSelection(flags.is_horizontal_closed());
-		markupHorizontalOpen.setSelection(flags.is_horizontal_open());
+		markupHorizontalClosed.setSelection((bf.is_horizontal_closed() || flags.is_horizontal_closed()) && enable);
+		markupHorizontalOpen.setSelection((bf.is_horizontal_open() || flags.is_horizontal_open()) && enable);
 
-		markupVerticalClosed.setSelection(flags.is_vertical_closed());
-		markupVerticalOpen.setSelection(flags.is_vertical_open());
+		markupVerticalClosed.setSelection((bf.is_vertical_closed() || flags.is_vertical_closed()) && enable);
+		markupVerticalOpen.setSelection((bf.is_vertical_open() || flags.is_vertical_open()) && enable);
 
 		bf = flags;
 	}
 
+	
 	protected Button addButton(String txt, Image img, int style, BorderFlags flags) {
-		Button b = addButton(txt, img, style);
+		Button b = new Button(shell, style);
+		if (!StringUtils.isEmpty(txt))
+			b.setText(txt);
+		if (img != null)
+			b.setImage(img);
+		shell.pack();
 
 		// add selection listener
 		SWTUtil.onSelectionEvent(b, (e) -> {
 
 			// todo: add logic to disable some parts, i.e. if all is selected, check, whether none was selected before and deactivate accordingly
+			boolean keep = b.getSelection();
+
+			set(flags, keep);
 			
-			Event event = new TableBorderEditEvent(b, flags, b.getSelection());
+			if (flags.is_all() || flags.is_none())
+				keep=false;
+			
+			Event event = new TableBorderEditEvent(b, flags, keep);
 			TrpMainWidget.getInstance().getCanvas().getContextMenu().sendEvent(event);
 		});
 
