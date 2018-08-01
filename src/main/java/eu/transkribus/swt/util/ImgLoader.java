@@ -149,7 +149,12 @@ public class ImgLoader {
 			img = loadWithJAI(url);
 		}
 		
-		img = fixOrientation(img, url);
+		/*
+		 * no fixOrientation because of https://github.com/Transkribus/TranskribusSwtGui/issues/208
+		 * -> mismatch of image on server and image represented in GUI 
+		 * -> tools use image as it is on server (do not use exif data)
+		 */
+		//img = fixOrientation(img, url);
 		return img;
 	}
 	
