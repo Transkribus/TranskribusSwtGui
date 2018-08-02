@@ -26,7 +26,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderDialogEvent;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.dialogs.TableToolBox;
+import eu.transkribus.swt_gui.dialogs.TableMarkupBox;
 
 //public class CanvasToolBar extends ToolBar {
 public class CanvasToolBarNew {

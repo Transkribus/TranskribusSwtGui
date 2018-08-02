@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt.util.Images;
@@ -23,8 +25,10 @@ import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderEditEvent;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.BorderFlags;
+import eu.transkribus.swt_gui.table_editor.TableUtils;
 
-public class TableToolBox { // extends ToolBox {
+public class TableMarkupBox { // extends ToolBox {
+	private final static Logger logger = LoggerFactory.getLogger(TableMarkupBox.class);
 	Shell shell;
 	int posX, posY;
 
@@ -50,11 +54,11 @@ public class TableToolBox { // extends ToolBox {
 
 	}
 
-	public TableToolBox(Shell parent, boolean vertical, String title) {
+	public TableMarkupBox(Shell parent, String title) {
 		shell = new Shell(parent, SWT.RESIZE | SWT.CLOSE | SWT.MODELESS);
 		shell.setText(title);
 
-		shell.setLayout(new RowLayout(vertical ? SWT.VERTICAL : SWT.HORIZONTAL));		
+		shell.setLayout(new RowLayout(SWT.VERTICAL));		
 		shell.addShellListener(new ShellListener() {
 			
 			@Override

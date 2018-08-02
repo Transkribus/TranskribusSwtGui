@@ -190,7 +190,7 @@ import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
-import eu.transkribus.swt_gui.dialogs.TableToolBox;
+import eu.transkribus.swt_gui.dialogs.TableMarkupBox;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
@@ -289,7 +289,7 @@ public class TrpMainWidget {
 	BugDialog bugDialog;
 	ChangeLogDialog changelogDialog;
 	JavaVersionDialog javaVersionDialog;
-	TableToolBox tableMarkupBox;
+	TableMarkupBox tableMarkupBox;
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
@@ -4317,10 +4317,7 @@ public class TrpMainWidget {
 	public SearchDialog getSearchDialog(){
 		return searchDiag;
 	}
-	
-	public TableToolBox getTableMarkupBox() {
-		return tableMarkupBox;
-	}
+
 
 //	//update visibility of reading order
 //	public void updateReadingOrderVisibility() {
@@ -4659,15 +4656,6 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public void openTableBorderMarkup() {
-		logger.debug("opening border markup box");
-		if (tableMarkupBox!=null && !SWTUtil.isDisposed(tableMarkupBox.getShell())) {
-			tableMarkupBox.getShell().setVisible(true);
-		} else {
-			tableMarkupBox = new TableToolBox(getUi().getShell(), true, "Cell borders");
-			tableMarkupBox.show();
-		} 
-	}
 		
 	public void openVersionsDialog() {
 		logger.debug("opening versions dialog");

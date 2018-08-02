@@ -172,7 +172,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			canvas.getShapeEditor().mergeSelected();
 		} 		
 		else if (s == toolbar.getBorderMarkupDialog()) {
-			mw.openTableBorderMarkup();
+			canvas.getTableMarkup().show();
 		}
 
 
