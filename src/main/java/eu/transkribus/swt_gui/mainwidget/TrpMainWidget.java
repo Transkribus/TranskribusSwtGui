@@ -4317,6 +4317,10 @@ public class TrpMainWidget {
 	public SearchDialog getSearchDialog(){
 		return searchDiag;
 	}
+	
+	public TableToolBox getTableMarkupBox() {
+		return tableMarkupBox;
+	}
 
 //	//update visibility of reading order
 //	public void updateReadingOrderVisibility() {

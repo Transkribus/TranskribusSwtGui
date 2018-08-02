@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.editing.UndoStack;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
-import eu.transkribus.swt_gui.dialogs.TableToolBox;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 
 public class CanvasWidget extends Composite {
@@ -296,8 +295,8 @@ public class CanvasWidget extends Composite {
 	public ToolItem getEditingEnabledToolItem() {
 		return toolbar.editingEnabledToolItem;
 	}
-//	
-//	public TableToolBox getTableToolBox() {
-//		return toolbar.getBorderMarkBox();
-//	}
+	
+	public ToolItem getTableToolBox() {
+		return toolbar.getBorderMarkupDialog();
+	}
 }

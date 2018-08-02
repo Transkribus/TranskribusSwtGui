@@ -61,9 +61,9 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 	
 	public void handleTableBorderDialogEvent(TableBorderDialogEvent event) {
 		try {
-			//BorderFlags bf = canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes());
 			TrpMainWidget.getInstance().openTableBorderMarkup();
-			//getCanvasWidget().getTableToolBox().set(bf, true);
+			BorderFlags bf = canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes());
+			TrpMainWidget.getInstance().getTableMarkupBox().set(bf, true);
 
 			
 		} catch (Throwable ex) {

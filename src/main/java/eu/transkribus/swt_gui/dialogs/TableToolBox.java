@@ -165,6 +165,8 @@ public class TableToolBox { // extends ToolBox {
 		markupVerticalOpen.setSelection((bf.is_vertical_open() || flags.is_vertical_open()) && enable);
 
 		bf = flags;
+		
+		shell.pack();
 	}
 
 	
