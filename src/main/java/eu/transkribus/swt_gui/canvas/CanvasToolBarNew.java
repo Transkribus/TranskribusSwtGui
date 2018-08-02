@@ -824,9 +824,9 @@ public class CanvasToolBarNew {
 		SWTUtil.setEnabled(splitShapeWithVerticalLine, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(splitShapeWithHorizontalLine, isEditingEnabled && notNullAndEditable);
 		
-		SWTUtil.setEnabled(markupItem, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getNSelected() > 0);
+		SWTUtil.setEnabled(markupItem, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getSelectedTableCellShapes().size() > 0);
 		
-		SWTUtil.setEnabled(mergeShapes, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getNSelected() >= 2);
+		SWTUtil.setEnabled(mergeShapes, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getNSelected() > 1);
 		SWTUtil.setEnabled(simplifyEpsItem, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(undo, isEditingEnabled);
 

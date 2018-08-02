@@ -141,6 +141,8 @@ public class TableMarkupBox { // extends ToolBox {
 	}
 	
 	public void hide() {
+		posX = shell.getLocation().x;
+		posY = shell.getLocation().y;
 		shell.setLocation(posX, posY);
 		shell.setVisible(false);
 	}
