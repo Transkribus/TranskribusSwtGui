@@ -97,6 +97,11 @@ public class Images {
 	public static final Image BORDER_VERTICAL_CLOSED = getOrLoad("/icons/border_vertical_closed.png");
 	public static final Image BORDER_VERTICAL_OPEN = getOrLoad("/icons/border_vertical_open.png");
 	
+	public static final Image BORDER_INNER = getOrLoad("/icons/border_inner.png");
+	public static final Image BORDER_INNER_VERTICAL = getOrLoad("/icons/border_vertical_inner.png");
+	public static final Image BORDER_INNER_HORIZONTAL = getOrLoad("/icons/border_horizontal_inner.png");
+	public static final Image BORDER_OUTER = getOrLoad("/icons/border_closed.png");
+	
 	public static final Image COG_EDIT = getOrLoad("/icons/cog_edit.png");
 	
 	public static final Image TICK = getOrLoad("/icons/tick.png");

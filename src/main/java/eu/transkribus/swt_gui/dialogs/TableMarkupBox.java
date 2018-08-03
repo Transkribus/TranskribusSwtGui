@@ -32,10 +32,13 @@ public class TableMarkupBox { // extends ToolBox {
 	Shell shell;
 	int posX, posY;
 
-	Button markupNone, markupAll, markupClosed, markupLeft, markupRight, markupTop, markupBottom;
+	Button markupNone, markupAll, markupOuter;
+	Button markupLeft, markupRight, markupTop, markupBottom;
+	Button markupInner, markupInnerHorizonal, markupInnerVertical;
+	
 	Button markupLeftRight, markupBottomTop;
 	Button markupHorizontalClosed, markupVerticalClosed, markupHorizontalOpen, markupVerticalOpen;
-	Button applySelection;
+
 
 	BorderFlags bf;
 
@@ -113,7 +116,11 @@ public class TableMarkupBox { // extends ToolBox {
 
 		// todo add separator lines
 		
-		markupClosed = addButton("Closed", Images.BORDER_CLOSED, SWT.CHECK, BorderFlags.closed());
+		markupOuter = addButton("Closed", Images.BORDER_CLOSED, SWT.CHECK, BorderFlags.closed());
+		markupInner = addButton("Inner", Images.BORDER_INNER, SWT.CHECK, BorderFlags.inner());
+		
+		markupInnerHorizonal = addButton("Inner horizontal", Images.BORDER_INNER_HORIZONTAL, SWT.CHECK, BorderFlags.horizontal_inner());
+		markupInnerVertical = addButton("Inner vertical", Images.BORDER_INNER_VERTICAL, SWT.CHECK, BorderFlags.vertical_inner());
 
 		markupLeftRight = addButton("Left / Right", Images.BORDER_LEFT_RIGHT, SWT.CHECK, BorderFlags.left_right());
 		markupBottomTop = addButton("Bottom / Top", Images.BORDER_BOTTOM_TOP, SWT.CHECK, BorderFlags.bottom_top());
@@ -154,7 +161,11 @@ public class TableMarkupBox { // extends ToolBox {
 	public void set(BorderFlags flags, boolean enable) {
 		markupNone.setSelection((bf.is_none() || flags.is_none()) && enable);
 		markupAll.setSelection((bf.is_all() || flags.is_all()) && enable);
-		markupClosed.setSelection((bf.is_closed() || flags.is_closed()) && enable);
+		markupOuter.setSelection((bf.is_closed() || flags.is_closed()) && enable);
+		
+		markupInner.setSelection((bf.is_inner() || flags.is_inner()) && enable);
+		markupInnerHorizonal.setSelection((bf.is_horizontal_inner() || flags.is_horizontal_inner()) && enable);
+		markupInnerVertical.setSelection((bf.is_vertical_inner() || flags.is_vertical_inner()) && enable);
 
 		markupLeft.setSelection((bf.is_left() || flags.is_left()) && enable);
 		markupRight.setSelection((bf.is_right() || flags.is_right()) && enable);

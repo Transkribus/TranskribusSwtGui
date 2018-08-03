@@ -203,6 +203,37 @@ public class BorderFlags {
 		return (horBottom && horTop && vertLeft && vertRight && !horInner && !vertInner);
 	}
 	
+	public static BorderFlags inner() {
+		BorderFlags bf = new BorderFlags();
+		bf.vertInner = true;
+		bf.horInner = true;
+		return bf;
+	}
+	
+	public boolean is_inner() {
+		return (!vertLeft && !vertRight && vertInner && !horBottom && !horTop && horInner);
+	}
+	
+	public static BorderFlags vertical_inner() {
+		BorderFlags bf = new BorderFlags();
+		bf.vertInner = true;
+		return bf;
+	}
+	
+	public boolean is_vertical_inner() {
+		return (vertInner);
+	}
+	
+	public static BorderFlags horizontal_inner() {
+		BorderFlags bf = new BorderFlags();
+		bf.horInner = true;
+		return bf;
+	}
+	
+	public boolean is_horizontal_inner() {
+		return (horInner);
+	}
+	
 	@Override public String toString() {
 		return "BorderFlags [vertLeft=" + vertLeft + ", vertRight=" + vertRight + ", vertInner=" + vertInner + ", horBottom=" + horBottom + ", horTop="
 				+ horTop + ", horInner=" + horInner + "]";

@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
@@ -190,7 +189,6 @@ import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
-import eu.transkribus.swt_gui.dialogs.TableMarkupBox;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
@@ -289,7 +287,6 @@ public class TrpMainWidget {
 	BugDialog bugDialog;
 	ChangeLogDialog changelogDialog;
 	JavaVersionDialog javaVersionDialog;
-	TableMarkupBox tableMarkupBox;
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
