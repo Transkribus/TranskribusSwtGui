@@ -4545,6 +4545,7 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			onError("Error", "Error during batch replace of images", e);
 		}
+		updateThumbs();
 	}
 	
 	public void insertTextOnSelectedTranscriptionWidget(Character c) {
