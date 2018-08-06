@@ -1,7 +1,5 @@
 package eu.transkribus.swt_gui.table_editor;
 
-import net.sf.saxon.functions.AccessorFn.HoursFromDateTime;
-
 public class BorderFlags {
 	public BorderFlags() {}
 	public BorderFlags(boolean vertLeft, boolean vertRight, boolean vertInner, boolean horBottom, boolean horTop, boolean horInner) {
@@ -14,8 +12,19 @@ public class BorderFlags {
 		this.horInner = horInner;
 	}
 	
+	public BorderFlags(boolean val) {
+		super();
+		this.vertLeft = val;
+		this.vertRight = val;
+		this.vertInner = val;
+		this.horBottom = val;
+		this.horTop = val;
+		this.horInner = val;
+	}
+	
 	public void setAll(boolean val) {
-		this.vertLeft = this.vertRight = this.vertInner = this.horBottom = this.horTop = this.horInner = val;
+		this.vertLeft = val;
+		this.vertRight = this.vertInner = this.horBottom = this.horTop = this.horInner = val;
 	}
 	
 	public void set(BorderFlags bf, boolean keepExisting) {
@@ -55,6 +64,23 @@ public class BorderFlags {
 		horInner = !horInner;
 		
 		return this;
+	}
+	
+	/**
+	 * Disables any existing entry according to set entries in incoming BorderFlags,
+	 * e.g. all flags are set, bf only has left border set --> all minus left border will be set
+	 * @param bf
+	 * @return true if changes occured
+	 */
+	public boolean subtract(BorderFlags bf) {
+		boolean changed = false;
+		if (bf.horBottom) horBottom = false;
+		if (bf.horInner) horInner = false;
+		if (bf.horTop) horTop = false;
+		if (bf.vertInner) vertInner = false;
+		if (bf.vertLeft) vertLeft = false;
+		if (bf.vertRight) vertRight = false;
+		return changed;
 	}
 	
 	public static BorderFlags none() {
@@ -211,7 +237,7 @@ public class BorderFlags {
 	}
 	
 	public boolean is_inner() {
-		return (!vertLeft && !vertRight && vertInner && !horBottom && !horTop && horInner);
+		return (vertInner && horInner);
 	}
 	
 	public static BorderFlags vertical_inner() {
@@ -234,9 +260,20 @@ public class BorderFlags {
 		return (horInner);
 	}
 	
-	@Override public String toString() {
+	@Override 
+	public String toString() {
 		return "BorderFlags [vertLeft=" + vertLeft + ", vertRight=" + vertRight + ", vertInner=" + vertInner + ", horBottom=" + horBottom + ", horTop="
 				+ horTop + ", horInner=" + horInner + "]";
+	}
+	
+	@Override 
+	public boolean equals(Object o){
+		if (this == o) return true;
+		if (!(o instanceof BorderFlags)) return false;
+		
+		BorderFlags bf = (BorderFlags) o;
+		return (bf.horBottom == horBottom && bf.horInner == horInner && bf.horTop == horTop
+				&& bf.vertInner == vertInner && bf.vertLeft == vertLeft && bf.vertRight == vertRight);
 	}
 
 }

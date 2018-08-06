@@ -1,6 +1,8 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.fontbox.afm.Composite;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -9,14 +11,20 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.itextpdf.text.io.GetBufferedRandomAccessSource;
 
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt.util.Images;
@@ -61,7 +69,7 @@ public class TableMarkupBox { // extends ToolBox {
 		shell = new Shell(parent, SWT.RESIZE | SWT.CLOSE | SWT.MODELESS);
 		shell.setText(title);
 
-		shell.setLayout(new RowLayout(SWT.VERTICAL));		
+		shell.setLayout(new GridLayout(1, true));		
 		shell.addShellListener(new ShellListener() {
 			
 			@Override
@@ -113,15 +121,17 @@ public class TableMarkupBox { // extends ToolBox {
 
 		markupBottom = addButton("Bottom", Images.BORDER_BOTTOM, SWT.CHECK, BorderFlags.bottom());
 		markupTop = addButton("Top", Images.BORDER_TOP, SWT.CHECK, BorderFlags.top());
-
-		// todo add separator lines
 		
-		markupOuter = addButton("Closed", Images.BORDER_CLOSED, SWT.CHECK, BorderFlags.closed());
 		markupInner = addButton("Inner", Images.BORDER_INNER, SWT.CHECK, BorderFlags.inner());
 		
 		markupInnerHorizonal = addButton("Inner horizontal", Images.BORDER_INNER_HORIZONTAL, SWT.CHECK, BorderFlags.horizontal_inner());
 		markupInnerVertical = addButton("Inner vertical", Images.BORDER_INNER_VERTICAL, SWT.CHECK, BorderFlags.vertical_inner());
 
+		Label separator = new Label(shell, SWT.SEPARATOR | SWT.HORIZONTAL);
+		separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		markupOuter = addButton("Closed", Images.BORDER_CLOSED, SWT.CHECK, BorderFlags.closed());
+		
 		markupLeftRight = addButton("Left / Right", Images.BORDER_LEFT_RIGHT, SWT.CHECK, BorderFlags.left_right());
 		markupBottomTop = addButton("Bottom / Top", Images.BORDER_BOTTOM_TOP, SWT.CHECK, BorderFlags.bottom_top());
 		
@@ -159,29 +169,30 @@ public class TableMarkupBox { // extends ToolBox {
 	}
 	
 	public void set(BorderFlags flags, boolean enable) {
-		markupNone.setSelection((bf.is_none() || flags.is_none()) && enable);
-		markupAll.setSelection((bf.is_all() || flags.is_all()) && enable);
-		markupOuter.setSelection((bf.is_closed() || flags.is_closed()) && enable);
 		
-		markupInner.setSelection((bf.is_inner() || flags.is_inner()) && enable);
-		markupInnerHorizonal.setSelection((bf.is_horizontal_inner() || flags.is_horizontal_inner()) && enable);
-		markupInnerVertical.setSelection((bf.is_vertical_inner() || flags.is_vertical_inner()) && enable);
+		markupNone.setSelection((flags.is_none()));
+		markupAll.setSelection((flags.is_all()));
+		markupOuter.setSelection((flags.is_closed()));
+		
+		markupInner.setSelection((flags.is_inner()));
+		markupInnerHorizonal.setSelection((flags.is_horizontal_inner()));
+		markupInnerVertical.setSelection((flags.is_vertical_inner()));
 
-		markupLeft.setSelection((bf.is_left() || flags.is_left()) && enable);
-		markupRight.setSelection((bf.is_right() || flags.is_right()) && enable);
-		markupLeftRight.setSelection((bf.is_left_right() || flags.is_left_right()) && enable);
+		markupLeft.setSelection((flags.is_left()));
+		markupRight.setSelection((flags.is_right()));
+		markupLeftRight.setSelection((flags.is_left_right()));
 
-		markupTop.setSelection((bf.is_top() || flags.is_top()) && enable);
-		markupBottom.setSelection((bf.is_bottom() || flags.is_bottom()) && enable);
-		markupBottomTop.setSelection((bf.is_bottom_top() || flags.is_bottom_top()) && enable);
+		markupTop.setSelection((flags.is_top()));
+		markupBottom.setSelection((flags.is_bottom()));
+		markupBottomTop.setSelection((flags.is_bottom_top()));
 
-		markupHorizontalClosed.setSelection((bf.is_horizontal_closed() || flags.is_horizontal_closed()) && enable);
-		markupHorizontalOpen.setSelection((bf.is_horizontal_open() || flags.is_horizontal_open()) && enable);
+		markupHorizontalClosed.setSelection((flags.is_horizontal_closed()));
+		markupHorizontalOpen.setSelection((flags.is_horizontal_open()));
 
-		markupVerticalClosed.setSelection((bf.is_vertical_closed() || flags.is_vertical_closed()) && enable);
-		markupVerticalOpen.setSelection((bf.is_vertical_open() || flags.is_vertical_open()) && enable);
+		markupVerticalClosed.setSelection((flags.is_vertical_closed()));
+		markupVerticalOpen.setSelection((flags.is_vertical_open()));
 
-		bf = flags;
+		bf.set(flags, false);
 		
 		shell.pack();
 	}
@@ -198,15 +209,51 @@ public class TableMarkupBox { // extends ToolBox {
 		// add selection listener
 		SWTUtil.onSelectionEvent(b, (e) -> {
 
-			// todo: add logic to disable some parts, i.e. if all is selected, check, whether none was selected before and deactivate accordingly
 			boolean keep = b.getSelection();
 
-			set(flags, keep);
+			BorderFlags setFlags = new BorderFlags();
 			
-			if (flags.is_all() || flags.is_none())
-				keep=false;
+			// (re)set flag pattern of sending button
+			if ((Button) e.getSource() == markupAll) {
+				setFlags = BorderFlags.all();
+			} else if ((Button) e.getSource() == markupNone) {
+				setFlags = BorderFlags.none();
+			} else if ((Button) e.getSource() == markupOuter) {
+				setFlags = BorderFlags.closed();
+			} else if ((Button) e.getSource() == markupLeft) {
+				setFlags = BorderFlags.left();
+			} else if ((Button) e.getSource() == markupRight) {
+				setFlags = BorderFlags.right();
+			} else if ((Button) e.getSource() == markupBottom) {
+				setFlags = BorderFlags.bottom();
+			} else if ((Button) e.getSource() == markupTop) {
+				setFlags = BorderFlags.top();
+			} else if ((Button) e.getSource() == markupInner) {
+				setFlags = BorderFlags.inner();
+			} else if ((Button) e.getSource() == markupInnerHorizonal) {
+				setFlags = BorderFlags.horizontal_inner();
+			} else if ((Button) e.getSource() == markupInnerVertical) {
+				setFlags = BorderFlags.vertical_inner();
+			} else if ((Button) e.getSource() == markupLeftRight) {
+				setFlags = BorderFlags.left_right(); 
+			} else if ((Button) e.getSource() == markupBottomTop) {
+				setFlags = BorderFlags.bottom_top();
+			} else if ((Button) e.getSource() == markupHorizontalClosed) {
+				setFlags = BorderFlags.horizontal_closed();
+			} else if ((Button) e.getSource() == markupHorizontalOpen) {
+				setFlags = BorderFlags.horizontal_open();
+			} else if ((Button) e.getSource() == markupVerticalClosed) {
+				setFlags = BorderFlags.vertical_closed(); 
+			} else if ((Button) e.getSource() == markupVerticalOpen) {
+				setFlags = BorderFlags.vertical_open();
+			}
 			
-			Event event = new TableBorderEditEvent(b, flags, keep);
+			set(checkLogic(setFlags, keep), keep);
+						
+//			if (flags.is_all() || flags.is_none())
+//				keep=false;
+			
+			Event event = new TableBorderEditEvent(b, bf, false);
 			TrpMainWidget.getInstance().getCanvas().getContextMenu().sendEvent(event);
 		});
 
@@ -226,6 +273,35 @@ public class TableMarkupBox { // extends ToolBox {
 		}
 
 		return bf;
+	}
+	
+	private BorderFlags checkLogic(BorderFlags newSelection, boolean enable) {
+		// check whether combination flags are set
+
+		BorderFlags flags = new BorderFlags();
+		flags.set(bf, true);
+		
+		// case 1: none selected || all deselected --> disable everything
+		if ((newSelection.is_all() && !enable) || (newSelection.is_none() && enable)) {
+			flags.setAll(false);
+		} 
+		
+		// set all flags
+		else if ((newSelection.is_all() && enable)) {
+			flags.setAll(true);
+		}
+		// case 2: (combination) flags set, new selection deactivates some parts
+		else if ((flags.is_all() || flags.is_closed() 
+				|| flags.is_vertical_closed() || flags.is_vertical_open()
+				|| flags.is_horizontal_closed() || flags.is_horizontal_open()) 
+				&& !newSelection.equals(flags) && !enable) {
+			flags.subtract(newSelection);
+		}
+		else if (enable) {
+			flags.set(newSelection, true);
+		}
+
+		return flags;
 	}
 
 }
