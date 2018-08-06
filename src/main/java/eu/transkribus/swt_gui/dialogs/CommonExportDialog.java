@@ -175,6 +175,7 @@ public class CommonExportDialog extends Dialog {
 	 * TODO add image quality choice to PDF export too
 	 * Combo pdfImgQualityCmb = null;
 	 */
+	Combo pdfImgQualityCmb = null;
 	
 	//only add values here that can be resolved to ImgTypeLabels enum!
 	final String[] imgQualityChoices = { 
@@ -1083,12 +1084,15 @@ public class CommonExportDialog extends Dialog {
 			}
 		});
 	    
+		final Composite imgComp = new Composite(pdfComposite, SWT.NONE);
+		imgComp.setLayout(new GridLayout(2, false));
+	    
 	    /*
 	     * dropdown with fonts for export
 	     */
-	    Label fontLabel = new Label(pdfComposite, SWT.NONE);
+	    Label fontLabel = new Label(imgComp, SWT.NONE);
 	    fontLabel.setText("Select Font");
-	    fontDropDown = new Combo(pdfComposite, SWT.DROP_DOWN | SWT.BORDER);
+	    fontDropDown = new Combo(imgComp, SWT.READ_ONLY);
 	    fontDropDown.add("Arial");
 	    fontDropDown.add("Arialunicodems");
 	    /*
@@ -1106,6 +1110,15 @@ public class CommonExportDialog extends Dialog {
 	        	setFont(fontDropDown.getText());
 	        }
 	    });
+	    
+
+		Label imgQualLbl = new Label(imgComp, SWT.NONE);
+		imgQualLbl.setText("Image type:");
+		pdfImgQualityCmb = new Combo(imgComp, SWT.READ_ONLY);
+		
+		pdfImgQualityCmb.setItems(imgQualityChoices);
+		pdfImgQualityCmb.select(1);
+		pdfImgQualityCmb.pack();
 
 	    return pdfComposite;
 	}
@@ -1522,6 +1535,11 @@ public class CommonExportDialog extends Dialog {
 	
 	private void updatePdfPars() {		
 		pdfPars = new PdfExportPars(exportImagesOnly, exportImagesPlusText, addExtraTextPages2PDF, highlightTags);
+		if(pdfImgQualityCmb != null) {
+			ImgType type = getSelectedImgType(pdfImgQualityCmb);
+			logger.debug("Setting img quality for export: " + type.toString());
+			pdfPars.setPdfImgQuality(type);
+		}
 	}
 	
 	public PdfExportPars getPdfPars() {
