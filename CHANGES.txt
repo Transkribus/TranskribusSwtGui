@@ -576,3 +576,4 @@ CHANGES AND BUGFIXES
 	-> bug fix: merging of two shapes keeps the reading order and adds a space between them
 	-> bug fix: selecting a tag from the table now also displays the right position in the image
 	-> show last save action on a document in the document manager (time, page number, user)
+	-> Enable possibility to choose image quality for PDF export
