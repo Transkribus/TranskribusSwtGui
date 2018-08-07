@@ -892,7 +892,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 		logger.debug("on border flags called - open dialog" + e.toString());
 		
 		BorderFlags bf = canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes());
-		canvas.getTableMarkup().set(bf, true);
+		canvas.getTableMarkup().set(bf);
 		canvas.getTableMarkup().show();
 	}
 	

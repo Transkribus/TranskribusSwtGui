@@ -168,7 +168,13 @@ public class TableMarkupBox { // extends ToolBox {
 		return shell;
 	}
 	
-	public void set(BorderFlags flags, boolean enable) {
+	public void set(BorderFlags flags) {
+		set(flags, true);
+	}
+	
+	public void set(BorderFlags f, boolean keep) {
+		BorderFlags flags = new BorderFlags();
+		flags = checkLogic(f, keep);
 		
 		markupNone.setSelection((flags.is_none()));
 		markupAll.setSelection((flags.is_all()));
@@ -248,7 +254,7 @@ public class TableMarkupBox { // extends ToolBox {
 				setFlags = BorderFlags.vertical_open();
 			}
 			
-			set(checkLogic(setFlags, keep), keep);
+			set(setFlags, keep);
 						
 //			if (flags.is_all() || flags.is_none())
 //				keep=false;
