@@ -1670,7 +1670,7 @@ public class CanvasShapeEditor {
 		}
 	
 		// notify observers
-		scene.notifyOnShapeBorderRetrieval(shapes, bf);
+		//scene.notifyOnShapeBorderRetrieval(shapes, bf);
 		
 		return bf;
 	}

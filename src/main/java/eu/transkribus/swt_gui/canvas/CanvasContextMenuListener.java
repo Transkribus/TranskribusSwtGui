@@ -62,11 +62,9 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 	public void handleTableBorderDialogEvent(TableBorderDialogEvent event) {
 		try {
 			BorderFlags bf = canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes());
-			TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().set(bf);
-			
-			if (event.getSource() instanceof MenuItem) {
-				TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().removeTriggerWidget((MenuItem) event.getSource());
-			}
+			canvas.getTableMarkup().set(bf, true);
+			canvas.getTableMarkup().show();
+
 			
 		} catch (Throwable ex) {
 			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
@@ -76,10 +74,9 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 
 	public void handleTableBorderEditEvent(TableBorderEditEvent event) {
 		try {
-			if (event.set)
-				canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, event.set, true);
-			else 
-				canvas.getShapeEditor().subtractBorderFromSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, true);
+			canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, event.set, true);
+//			else 
+//				canvas.getShapeEditor().subtractBorderFromSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, true);
 			canvas.redraw();
 		} catch (Throwable ex) {
 			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);

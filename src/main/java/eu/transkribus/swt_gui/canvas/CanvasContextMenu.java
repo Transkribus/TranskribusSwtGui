@@ -258,7 +258,7 @@ public class CanvasContextMenu extends Observable {
 		
 // do borders		
 		borderMenu = createMenuItem("Mark-up borders", Images.BORDER_MENU, new TableBorderDialogEvent(this), menu);
-		TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().addTriggerWidget(borderMenu);
+		//TrpMainWidget.getInstance().getCanvasWidget().getTableToolBox().addTriggerWidget(borderMenu);
 		
 		// about:
 		createMenuItem("Table help", Images.HELP, new TableHelpEvent(this), menu);

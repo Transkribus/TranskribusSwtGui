@@ -52,6 +52,7 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeType;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.shapes.RectDirection;
+import eu.transkribus.swt_gui.dialogs.TableMarkupBox;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.transcription.LineEditor;
@@ -98,7 +99,11 @@ public class SWTCanvas extends Canvas {
 	protected CanvasContextMenu contextMenu;
 	// protected CanvasSettingsPropertyChangeListener
 	// settingsPropertyChangeListener;
-
+	
+	// The TableToolBox provides the logic for TableBorder markup and has its home here
+	protected TableMarkupBox tableMarkup;
+	
+	
 	// --------------------- PRIVATE MEMBERS: -----------------------
 	// listener:
 	protected CanvasMouseListener mouseListener;
@@ -129,6 +134,8 @@ public class SWTCanvas extends Canvas {
 	protected void init() {
 		settings = TrpConfig.getCanvasSettings();
 		setBackGroundColor();
+		
+		initTableMarkup();
 		initCanvasScene();
 		initShapeEditor();
 		initUndoStack();
@@ -157,6 +164,10 @@ public class SWTCanvas extends Canvas {
 //		TrpConfig.registerBean(settings, true);
 //	}
 
+	protected void initTableMarkup() {
+		tableMarkup = new TableMarkupBox(this.getShell(), "Cell borders");
+	}
+	
 	protected void initCanvasScene() {
 		scene = new CanvasScene(this);
 	}
@@ -1516,6 +1527,10 @@ public class SWTCanvas extends Canvas {
 		return contextMenu;
 	}
 
+	public TableMarkupBox getTableMarkup() {
+		return tableMarkup;
+	}
+	
 	public UndoStack getUndoStack() {
 		return undoStack;
 	}
