@@ -168,13 +168,24 @@ public class TableMarkupBox { // extends ToolBox {
 		return shell;
 	}
 	
+	/**
+	 * External setting method which erases all previously set flags first
+	 * @param flags flags to be set
+	 */
 	public void set(BorderFlags flags) {
+		// clear existing flags
+		bf.setAll(false);
 		set(flags, true);
 	}
 	
-	public void set(BorderFlags f, boolean keep) {
+	/**
+	 * Internal setting method which checks and sets the check buttons
+	 * @param f flags to be set
+	 * @param enableOptions if set, a checkbox was activated 
+	 */
+	private void set(BorderFlags f, boolean enableOptions) {
 		BorderFlags flags = new BorderFlags();
-		flags = checkLogic(f, keep);
+		flags = checkLogic(f, enableOptions);
 		
 		markupNone.setSelection((flags.is_none()));
 		markupAll.setSelection((flags.is_all()));
