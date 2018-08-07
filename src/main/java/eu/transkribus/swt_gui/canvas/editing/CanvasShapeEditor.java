@@ -1632,40 +1632,40 @@ public class CanvasShapeEditor {
 			if (!TableUtils.hasLeftNeighbor(c, shapes)) {
 				bf.vertLeft = (bf.vertLeft || c.isLeftBorderVisible());
 				for (TrpTableCellType n : c.getNeighborCells(0)) {
-					bf.vertRight = (bf.vertLeft || n.isRightBorderVisible());
+					bf.vertLeft = (bf.vertLeft || n.isRightBorderVisible());
 				}
 			} else {
-				bf.vertLeft = (bf.vertInner || c.isLeftBorderVisible());
+				bf.vertInner = (bf.vertInner || c.isLeftBorderVisible());
 			}
 			
 			if (!TableUtils.hasRightNeighbor(c, shapes)) {
 				bf.vertRight = (bf.vertRight || c.isRightBorderVisible());
 				for (TrpTableCellType n : c.getNeighborCells(2)) {
-					bf.vertLeft = (bf.vertRight || n.isRightBorderVisible());	
+					bf.vertRight = (bf.vertRight || n.isLeftBorderVisible());	
 				}
 			}
 			else {
-				bf.vertRight = (bf.vertInner || c.isRightBorderVisible());
+				bf.vertInner = (bf.vertInner || c.isRightBorderVisible());
 			}
 			
 			if (!TableUtils.hasBottomNeighbor(c, shapes)) {
 				bf.horBottom = (bf.horBottom || c.isBottomBorderVisible());
 				for (TrpTableCellType n : c.getNeighborCells(1)) {
-					bf.horTop = (bf.horBottom || n.isBottomBorderVisible());				
+					bf.horBottom = (bf.horBottom || n.isTopBorderVisible());				
 				}
 			}
 			else {
-				bf.horBottom = (bf.horInner || c.isBottomBorderVisible());
+				bf.horInner = (bf.horInner || c.isBottomBorderVisible());
 			}
 			
 			if (!TableUtils.hasTopNeighbor(c, shapes)) {
 				bf.horTop = (bf.horTop || c.isTopBorderVisible());
 				for (TrpTableCellType n : c.getNeighborCells(3)) {
-					bf.horBottom = (bf.horTop || n.isBottomBorderVisible());
+					bf.horTop = (bf.horTop || n.isBottomBorderVisible());
 				}
 			}
 			else {
-				bf.horTop = (bf.horInner || c.isTopBorderVisible());
+				bf.horInner = (bf.horInner || c.isTopBorderVisible());
 			}
 		}
 	
