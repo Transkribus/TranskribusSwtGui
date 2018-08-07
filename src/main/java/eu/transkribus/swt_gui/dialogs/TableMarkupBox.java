@@ -286,19 +286,31 @@ public class TableMarkupBox { // extends ToolBox {
 			flags.setAll(false);
 		} 
 		
-		// set all flags
+		// case 2: set all flags
 		else if ((newSelection.is_all() && enable)) {
 			flags.setAll(true);
 		}
-		// case 2: (combination) flags set, new selection deactivates some parts
+		// case 3: (combination) flags set, new selection deactivates some parts
 		else if ((flags.is_all() || flags.is_closed() 
 				|| flags.is_vertical_closed() || flags.is_vertical_open()
 				|| flags.is_horizontal_closed() || flags.is_horizontal_open()) 
 				&& !newSelection.equals(flags) && !enable) {
 			flags.subtract(newSelection);
 		}
+		// case 4: set pre-selection
+		else if (enable && 
+				(newSelection.is_closed() || newSelection.is_left_right() || newSelection.is_bottom_top() 
+				|| newSelection.is_horizontal_closed() || newSelection.is_horizontal_open() 
+				|| newSelection.is_vertical_closed() || newSelection.is_vertical_open())) {
+			flags.set(newSelection, false);
+		}
+		// case 5: add additional flags
 		else if (enable) {
 			flags.set(newSelection, true);
+		} 
+		// case 6: subtract if not enabled
+		else if (!enable) {
+			flags.subtract(newSelection);
 		}
 
 		return flags;
