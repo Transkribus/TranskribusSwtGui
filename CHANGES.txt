@@ -578,3 +578,4 @@ CHANGES AND BUGFIXES
 	-> show last save action on a document in the document manager (time, page number, user)
 	-> Enable possibility to choose image quality for PDF export
 	-> integrated more user-friendly table border markup box (called from context menu and border button) 
+	-> bug fix: Sorting lines according to coordinates now also works for tables (R-button in Layout tab)
