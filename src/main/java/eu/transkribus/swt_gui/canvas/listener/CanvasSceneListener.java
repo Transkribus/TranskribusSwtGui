@@ -37,6 +37,7 @@ import eu.transkribus.swt_gui.canvas.CanvasScene;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
+import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener.SceneEvent;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
@@ -46,6 +47,7 @@ import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import math.geom2d.Point2D;
@@ -294,6 +296,9 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				logger.debug("selected data size = "+nSelected+ " new first selected = "+newFirstSelected + " for shape " + e.shapes.toString());
 				
 				// TEST: do sth. is table cell is selected
+				// update selection for table markup box if and only if selected shapes are TrpTableCellType
+				if (e.getFirstShape() != null && e.getFirstShape().getData() instanceof TrpTableCellType)
+					canvas.getTableMarkup().set(canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes()));
 				
 				if (false) {
 				if (e.getFirstShape() != null && e.getFirstShape().getData() instanceof TrpTableCellType) {
@@ -885,4 +890,13 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 		
 	}
 
+	@Override
+	public void onBorderFlagsCalled(SceneEvent e) {
+		logger.debug("on border flags called - open / refresh dialog" + e.toString());
+		
+//		BorderFlags bf = canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes());
+//		canvas.getTableMarkup().set((BorderFlags) e.data);
+		canvas.getTableMarkup().show();
+	}
+	
 }

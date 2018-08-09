@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
@@ -119,6 +118,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -4157,8 +4157,6 @@ public class TrpMainWidget {
 		if (!storage.hasTranscript())
 			return;
 
-		JAXBPageTranscript tr = storage.getTranscript();
-
 		logger.debug("applying reading order according to coordinates");
 		IStructuredSelection sel = (IStructuredSelection) ui.getStructureTreeViewer().getSelection();
 		Iterator<?> it = sel.iterator();
@@ -4166,13 +4164,18 @@ public class TrpMainWidget {
 			Object o = it.next();
 			if (o instanceof TrpPageType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpPageType) o).getTextRegionOrImageRegionOrLineDrawingRegion(), false,
-						deleteReadingOrder, recursive);
+						true, recursive);
 			} else if (o instanceof TrpTextRegionType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextRegionType) o).getTrpTextLine(), false, deleteReadingOrder, recursive);
 			} else if (o instanceof TrpTextLineType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextLineType) o).getTrpWord(), false, deleteReadingOrder, recursive);
+			} else if (o instanceof TrpTableRegionType) {
+				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTableRegionType) o).getTrpTableCell(), false, true, recursive);
 			}
 		}
+
+		JAXBPageTranscript tr = storage.getTranscript();
+
 		tr.getPage().sortContent();
 		ui.getStructureTreeViewer().refresh();
 	}
@@ -4324,6 +4327,7 @@ public class TrpMainWidget {
 	public SearchDialog getSearchDialog(){
 		return searchDiag;
 	}
+
 
 //	//update visibility of reading order
 //	public void updateReadingOrderVisibility() {
@@ -4662,6 +4666,7 @@ public class TrpMainWidget {
 			browserDiag.open();
 		}
 	}
+	
 		
 	public void openVersionsDialog() {
 		logger.debug("opening versions dialog");
