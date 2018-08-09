@@ -37,6 +37,8 @@ public class ImageEnhanceDialog extends Dialog {
 			} else if (s == defaultGammaBtn) {
 				gammaSlider.setSelection(50);
 				updateGammaValue();
+			} else if (s==applyThreshBtn) {
+				applyThreshold();
 			}
 			
 		}
@@ -55,12 +57,25 @@ public class ImageEnhanceDialog extends Dialog {
 			}
 
 		}
+		
+		void applyThreshold() {
+			double thresh = threshSlider.getSelection();
+			if (mw.getScene().getMainImage()!=null) {
+				mw.getScene().getMainImage().applyThreshold(thresh/100.0);
+				mw.getCanvas().redraw();
+			}
+
+		}
 	}
 	
 	
 	Slider gammaSlider;
 	Button applyGammaBtn, defaultGammaBtn;
 	Label gammaValueLabel;
+	
+	Slider threshSlider;
+	Button applyThreshBtn;
+	Label threshValueLabel;
 
 	public ImageEnhanceDialog(Shell parentShell) {
 		super(parentShell);
@@ -122,6 +137,26 @@ public class ImageEnhanceDialog extends Dialog {
 	    
 	    updateSliderValueFromGamma();
 	    
+	    
+	    /// Thresholding
+	    Label tl = new Label(container, 0);
+	    tl.setText("Threshold:    ");
+	    
+	    threshSlider = new Slider(container, SWT.HORIZONTAL);
+	    threshSlider.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    threshSlider.setValues(50, 1, 100, 1, 1, 1);
+	    threshSlider.addSelectionListener(new SelectionAdapter() {
+	    	@Override public void widgetSelected(SelectionEvent e) {
+	    		updateThreshold();
+	    	}
+		});
+
+	    threshValueLabel = new Label(container, 0);
+	    
+	    applyThreshBtn = new Button(container, SWT.PUSH);
+	    applyThreshBtn.setText("Apply");
+	    
+	    
 	    addListener();
 		
 		return container;
@@ -141,11 +176,16 @@ public class ImageEnhanceDialog extends Dialog {
 		gammaValueLabel.setText(""+gammaSlider.getSelection() / 50.0d);
 	}
 	
+	public void updateThreshold() {
+		threshValueLabel.setText(""+threshSlider.getSelection());
+	}
+	
 	void addListener() {
 		ImageEnhanceSelectionListner l = new ImageEnhanceSelectionListner();
 		
 		applyGammaBtn.addSelectionListener(l);
 		defaultGammaBtn.addSelectionListener(l);
+		applyThreshBtn.addSelectionListener(l);
 	}
 
 	public Slider getGammaSlider() {

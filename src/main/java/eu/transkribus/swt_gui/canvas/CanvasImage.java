@@ -37,6 +37,7 @@ final public class CanvasImage {
 	public Float internalScalingFactor=null;
 	
 	public double gamma=1.0f;
+	public double thresh=0.5f;
 	
 	public CanvasImage(URL url) throws Exception {
 		this.url = url;
@@ -110,6 +111,19 @@ final public class CanvasImage {
 //			this.img = new Image(imgBackup.getDevice(), imgBackup, SWT.IMAGE_COPY);
 //		}
 //	}
+	
+	public void applyThreshold(double factor) {
+		if (SWTUtil.isDisposed(img)) {
+			return;
+		}
+		logger.debug("this.thresh = "+this.thresh);	
+		ImageData d = SWTUtil.thresholdImage(img.getImageData(), factor, true);
+		
+		logger.debug("disposing old image and creating new one with scaled image data...");
+		img.dispose();
+		img = new Image(Display.getDefault(), d);
+		
+	}
 	
 	public void applyGamma(double gamma) {
 		if (SWTUtil.isDisposed(img) /*|| SWTUtil.isDisposed(imgBackup)*/) {

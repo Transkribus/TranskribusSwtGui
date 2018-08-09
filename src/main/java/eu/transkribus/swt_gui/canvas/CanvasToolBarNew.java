@@ -334,6 +334,7 @@ public class CanvasToolBarNew {
 		
 		
 		imgEnhanceItem = new ToolItem(tb, SWT.PUSH);
+		imgEnhanceItem.setToolTipText("Change image contrast settings");
 		imgEnhanceItem.setImage(Images.CONTRAST);
 		
 		viewSettingsMenuItem = new ToolItem(tb, SWT.PUSH);

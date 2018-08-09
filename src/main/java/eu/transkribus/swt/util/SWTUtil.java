@@ -80,6 +80,7 @@ import eu.transkribus.core.io.LocalDocConst;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.CoreUtilsTest;
 import eu.transkribus.core.util.ImgUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import math.geom2d.Vector2D;
@@ -1353,6 +1354,41 @@ public class SWTUtil {
 		return newImageData;
 	}
 
+	/**
+	 * Applies very simple threshold according to factor
+	 * @param factor 0.0 ... 1.0
+	 */
+	public static ImageData thresholdImage(ImageData data, double factor, boolean inPlace) {
+		assert(factor >= 0f && factor <= 1.0f);
+		
+		ImageData newImageData = inPlace ? data : 
+				new ImageData (data.width, data.height, 24, new PaletteData (0xFF, 0xFF00, 0xFF0000));
+		
+		final int w = data.width;
+		final int h = data.height;
+
+		// determine threshold
+		int t = CoreUtils.bound((int) (factor * 255.0), 0,255);
+		
+		for (int x=0; x<w; ++x) {
+			for (int y=0; y<h; ++y) {
+				int p = data.getPixel(x, y);
+				
+				RGB rgb = data.palette.getRGB(p);
+				
+				int gray = (rgb.red + rgb.green + rgb.blue) / 3;
+				int val = gray > t ? 255 : 0;
+				
+				rgb.red = rgb.green = rgb.blue = val;
+				
+				newImageData.setPixel(x, y, newImageData.palette.getPixel(rgb));
+			}
+		}
+		
+		return newImageData;
+	}
+
+	
 	public static void displayImage(Image img) {
 		
 		Shell shell = new Shell(SWT.SHELL_TRIM);
