@@ -105,6 +105,8 @@ public class CanvasToolBarNew {
 	ToolItem addBaselineItem;
 	ToolItem addWordItem;
 	
+	DropDownToolItem otherSegmentationToolsDropDown;
+	
 	DropDownToolItem addElementDropdown;
 	DropDownToolItem optionsItem;
 	ToolItem imgEnhanceItem;
@@ -505,7 +507,7 @@ public class CanvasToolBarNew {
 		markupBox.addTriggerWidget(markupItem);
 		
 		if (true) {
-		DropDownToolItem otherSegmentationToolsDropDown = new DropDownToolItem(tb, false, false, true, SWT.PUSH); // TEST
+		otherSegmentationToolsDropDown = new DropDownToolItem(tb, false, false, true, SWT.PUSH); // TEST
 		otherSegmentationToolsDropDown.ti.setImage(Images.SHAPE_SQUARE_EDIT);
 		otherSegmentationToolsDropDown.ti.setText("...");
 		otherSegmentationToolsDropDown.ti.setToolTipText("Other segmentation tools...");
@@ -810,8 +812,18 @@ public class CanvasToolBarNew {
 		SWTUtil.setEnabled(addPoint, isEditingEnabled && notNullAndEditable && selected.canInsert());
 		SWTUtil.setEnabled(addPoint, isEditingEnabled && notNullAndEditable && selected.canInsert());
 		SWTUtil.setEnabled(removePoint, isEditingEnabled && notNullAndEditable && selected.canRemove());
-//		SWTUtil.setEnabled(addShape, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(removeShape, isEditingEnabled && notNullAndEditable);
+		
+		//enable the 'add shapes' btns
+		SWTUtil.setEnabled(addTextRegionItem, isEditingEnabled);
+		SWTUtil.setEnabled(addLineItem, isEditingEnabled);
+		SWTUtil.setEnabled(addBaselineItem, isEditingEnabled);
+		SWTUtil.setEnabled(addWordItem, isEditingEnabled);	
+		SWTUtil.setEnabled(addElementDropdown, isEditingEnabled);
+		
+		//options to set
+		SWTUtil.setEnabled(otherSegmentationToolsDropDown, isEditingEnabled);
+		SWTUtil.setEnabled(optionsItem, isEditingEnabled);
 		
 		SWTUtil.setEnabled(splitDropdown, isEditingEnabled && notNullAndEditable);
 		

@@ -51,7 +51,13 @@ public class CurrentDocPagesSelector extends DocPagesSelector {
 	}
 	
 	@Override protected void openDocPageViewer() {
-		updatePagesFromStorage();
+		/*
+		 * once a selection has been made, it should be kept
+		 * especially when you have to select intervals of pages in a huge document, you forget one and have to go back to the selector
+		 * 
+		 * you go crazy if always the loaded page is selected
+		 */
+		//updatePagesFromStorage(
 		super.openDocPageViewer();
 	}
 	

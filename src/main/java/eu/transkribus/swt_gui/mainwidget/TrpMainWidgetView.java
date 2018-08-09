@@ -11,12 +11,14 @@ import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -29,6 +31,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.util.EnumUtils;
@@ -517,7 +520,7 @@ public class TrpMainWidgetView extends Composite {
 		profilesToolItem = new DropDownToolItem(toolBar, false, false, true, SWT.NONE);
 		profilesToolItem.ti.setImage(Images.CONTROL_EQUALIZER);
 		profilesToolItem.ti.setToolTipText("Profiles");
-		updateProfiles();
+		updateProfiles(true);
 		
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		
@@ -692,8 +695,13 @@ public class TrpMainWidgetView extends Composite {
 		updateToolBarSize();
 	}
 	
-	public void updateProfiles() {
+	public void updateProfiles(boolean canTranscribe) {
 		profilesToolItem.removeAll();
+		
+		//reader don't need profiles
+		if (!canTranscribe){
+			return;
+		}
 		
 		for (String name : TrpConfig.getPredefinedProfiles()) {
 			MenuItem i = profilesToolItem.addItem(name, null, null);
@@ -825,6 +833,55 @@ public class TrpMainWidgetView extends Composite {
 		
 		uploadDocsItem.setEnabled(loggedIn);
 		searchBtn.setEnabled(loggedIn);
+	}
+	
+	public void updateVisibility(){
+		//show only if role > transcriber (=editor, owner, admin)
+		boolean canManage = Storage.getInstance().getRoleOfUserInCurrentCollection().canManage();
+		boolean canTranscribe = Storage.getInstance().getRoleOfUserInCurrentCollection().canTranscribe();
+		
+//		logger.debug("can transcribe " + canTranscribe);
+//		logger.debug("can manage " + canManage);		
+		
+		if (tabWidget.isEnabled() && !tabWidget.toolsItem.isDisposed()){
+			if (!canTranscribe){
+				tabWidget.toolsItem.setControl(null);
+				tabWidget.textTaggingItem.setControl(null);
+				tabWidget.structuralMdItem.setControl(null);
+				tabWidget.commentsItem.setControl(null);
+				tabWidget.docMdItem.setControl(null);
+				tabWidget.structureItem.setControl(null);
+				lineTranscriptionWidget.setParent(SWTUtil.dummyShell);
+				wordTranscriptionWidget.setParent(SWTUtil.dummyShell);				
+			}
+			else{
+				tabWidget.toolsItem.setControl(toolsWidget);
+				tabWidget.textTaggingItem.setControl(taggingWidget);
+				tabWidget.structuralMdItem.setControl(structuralMdWidget);
+				tabWidget.commentsItem.setControl(commentsWidget);
+				tabWidget.docMdItem.setControl(docMetadataEditor);
+				tabWidget.structureItem.setControl(structureTreeWidget);
+				changeToTranscriptionWidget(TranscriptionLevel.LINE_BASED);
+			}
+			
+		}
+		
+		uploadDocsItem.setEnabled(canManage);
+		
+		updateProfiles(canTranscribe);
+		
+//		saveOptionsToolItem.setEnabled(canTranscribe);
+//		statusCombo.setEnabled(canTranscribe);
+		
+		//burger menu
+		menu.updateVisibility(canManage);
+		
+		//doc overview tool bar
+		serverWidget.updateBtnVisibility(canManage);
+		
+		//canvas toolbar
+		canvasWidget.getCanvas().getSettings().setEditingEnabled(canTranscribe);
+		
 	}
 
 	public void center() {

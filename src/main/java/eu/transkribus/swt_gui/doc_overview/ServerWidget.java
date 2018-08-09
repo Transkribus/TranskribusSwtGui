@@ -420,6 +420,19 @@ public class ServerWidget extends Composite {
 		recentDocsComboViewerWidget.setRecentDocs(false);	
 	}
 	
+	public void updateBtnVisibility(boolean canManage){
+		deleteDocTi.setEnabled(canManage);
+		removeFromCollectionTi.setEnabled(canManage);
+		addToCollectionTi.setEnabled(canManage);
+		duplicateDocTi.setEnabled(canManage);
+		administerCollectionTi.setEnabled(canManage);
+		
+		addToCollectionMenuItem.setEnabled(canManage);
+		removeFromCollectionMenuItem.setEnabled(canManage);
+		duplicateDocMenuItem.setEnabled(canManage);
+		deleteDocMenuItem.setEnabled(canManage);
+	}
+	
 	public Button getShowJobsBtn() { return showJobsBtn; }
 	public Button getShowVersionsBtn() { return showVersionsBtn; }
 	

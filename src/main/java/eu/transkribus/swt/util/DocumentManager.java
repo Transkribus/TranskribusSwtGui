@@ -124,6 +124,7 @@ public class DocumentManager extends Dialog {
 
 	private int colId;
 	private List<TrpDocMetadata> docList;
+	private boolean canManage = false;
 
 	static int thread_counter = 0;
 
@@ -223,7 +224,7 @@ public class DocumentManager extends Dialog {
 		this.colId = colId;
 
 		this.mw = mw;
-
+		
 		// if (Storage.getInstance().getDoc() == null){
 		// return;
 		// }
@@ -265,6 +266,10 @@ public class DocumentManager extends Dialog {
 		statisticLabel = new Label(labelComposite, SWT.TOP);
 		if (Storage.getInstance().getDoc() != null) {
 			statisticLabel.setText("Loaded Document is " + docMd.getTitle() + " with ID " + docMd.getDocId());
+			Storage store = Storage.getInstance();
+			if(store != null && store.getUser() != null && store.getUser().getRoleInCollection() != null){
+				canManage = (store.getRoleOfUserInCurrentCollection().canManage() || store.isAdminLoggedIn()) ? true : false;
+			}
 		} else {
 			statisticLabel.setText("Currently no document loaded in Transkribus");
 		}
@@ -372,12 +377,12 @@ public class DocumentManager extends Dialog {
 		for (MenuItem i : items) {
 			i.dispose();
 		}
-
+		
 		switch (level) {
 		// document level
 		case 0:
 			// allow only for loaded document
-			if (((TrpDocMetadata) item.getData()).compareTo(Storage.getInstance().getDoc().getMd()) == 0) {
+			if (((TrpDocMetadata) item.getData()).compareTo(Storage.getInstance().getDoc().getMd()) == 0 && canManage) {
 				addMenuItems4BothLevels(menu);
 				addMenuItems4DocLevel(menu);
 
@@ -385,11 +390,16 @@ public class DocumentManager extends Dialog {
 			break;
 		case 1:
 			// allow only for loaded pages
-			if (((TrpPage) item.getData()).getDocId() == Storage.getInstance().getDoc().getId()) {
-				addMenuItems4BothLevels(menu);
-				addMenuItems4PageLevel(menu, EditStatus.getStatusListWithoutNew());
+//			logger.debug("Storage.getInstance().getUser().getRoleInCollection() " + Storage.getInstance().getUser().getRoleInCollection());
+//			logger.debug("store.isAdminLoggedIn() " + Storage.getInstance().isAdminLoggedIn());
+//			logger.debug("Storage.getInstance().getUser().getRoleInCollection().canManage() " + canManage);
+			if (canManage){
+				if (((TrpPage) item.getData()).getDocId() == Storage.getInstance().getDoc().getId()) {
+					addMenuItems4BothLevels(menu);
+					addMenuItems4PageLevel(menu, EditStatus.getStatusListWithoutNew());
+				}
+				addChooseImageMenuItems(menu);
 			}
-			addChooseImageMenuItems(menu);
 			break;
 		}
 	}
@@ -432,20 +442,22 @@ public class DocumentManager extends Dialog {
 		});
 
 	}
-
+	
 	private void addSymbolicDocImage() {
 		try {
 			for (TreeItem ti : tv.getTree().getSelection()) {
 
-				TrpPage p = (TrpPage) ti.getData();
-				if(p.getDocId() == docMd.getDocId()){
-					docMd.setPageId(p.getPageId());
-					
-					ti.getParentItem().setData(docMd);
-					Storage.getInstance().getConnection().updateDocMd(colId, docMd.getDocId(), docMd);
-					Storage.getInstance().reloadCurrentDocument(colId);
-				}
-				break;
+				if (ti.getData() instanceof TrpPage){
+					TrpPage p = (TrpPage) ti.getData();
+					if(p.getDocId() == docMd.getDocId()){
+						docMd.setPageId(p.getPageId());
+						
+						ti.getParentItem().setData(docMd);
+						Storage.getInstance().getConnection().updateDocMd(colId, docMd.getDocId(), docMd);
+						Storage.getInstance().reloadCurrentDocument(colId);
+					}
+					break;
+				}	
 			}
 		} catch (SessionExpiredException | IllegalArgumentException e) {
 			// TODO Auto-generated catch block
@@ -473,13 +485,14 @@ public class DocumentManager extends Dialog {
 	private void addSymbolicCollectionImage() {
 		try {
 			for (TreeItem ti : tv.getTree().getSelection()) {
-
-				TrpPage p = (TrpPage) ti.getData();
-				TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
-				colMd.setPageId(new Integer(p.getPageId()));
-				Storage.getInstance().getConnection().updateCollectionMd(colMd);
-				Storage.getInstance().reloadCollections();
-				break;
+				if (ti.getData() instanceof TrpPage){
+					TrpPage p = (TrpPage) ti.getData();
+					TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
+					colMd.setPageId(new Integer(p.getPageId()));
+					Storage.getInstance().getConnection().updateCollectionMd(colMd);
+					Storage.getInstance().reloadCollections();
+					break;
+				}
 			}
 		} catch (SessionExpiredException | IllegalArgumentException | ServerErrorException | NoConnectionException e) {
 			// TODO Auto-generated catch block
@@ -579,6 +592,7 @@ public class DocumentManager extends Dialog {
 
 		});
 		
+		
 	
 		showDocumentImageBtn = new Button(buttonComp2, SWT.PUSH);
 		showDocumentImageBtn.setImage(Images.IMAGE);
@@ -608,6 +622,8 @@ public class DocumentManager extends Dialog {
 			}
 
 		});
+		
+		documentImageBtn.setEnabled(canManage);
 		
 		docLabel = new Label(buttonComp2, SWT.NONE);
 		docLabel.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
@@ -665,6 +681,8 @@ public class DocumentManager extends Dialog {
 			}
 
 		});
+		
+		collectionImageBtn.setEnabled(canManage);
 
 		// buttonComp = new Composite(docSash2, SWT.NONE);
 		// buttonComp.setLayout(new GridLayout(1, false));
@@ -791,7 +809,7 @@ public class DocumentManager extends Dialog {
 				}
 				updateColors();
 				updateSymbolicImgLabels();
-				enableEdits(currDocId == Storage.getInstance().getDocId());
+				enableEdits(currDocId == Storage.getInstance().getDocId() && canManage);
 
 			}
 		});
@@ -838,7 +856,7 @@ public class DocumentManager extends Dialog {
 		tv.getTree().addListener(SWT.Expand, new Listener() {
 			public void handleEvent(Event e) {
 				updateColors();
-				enableEdits(true);
+				enableEdits(canManage);
 			}
 		});
 
@@ -1477,8 +1495,12 @@ public class DocumentManager extends Dialog {
 		// if (Storage.getInstance().getDoc() == null){
 		// return;
 		// }
+		Storage store = Storage.getInstance();
+		if(store != null && store.getUser() != null && store.getUser().getRoleInCollection() != null){
+			canManage = (store.getRoleOfUserInCurrentCollection().canManage() || store.isAdminLoggedIn()) ? true : false;
+		}
 
-		docList = Storage.getInstance().getDocList();
+		docList = store.getDocList();
 		tv.setInput(docList);
 		
 		addStatisticalNumbers();
@@ -1487,6 +1509,9 @@ public class DocumentManager extends Dialog {
 		
 		updateSymbolicImgLabels();
 		updateColors();
+
+		documentImageBtn.setEnabled(canManage);
+		showDocumentImageBtn.setEnabled(canManage);
 		
 		tv.refresh(true);
 

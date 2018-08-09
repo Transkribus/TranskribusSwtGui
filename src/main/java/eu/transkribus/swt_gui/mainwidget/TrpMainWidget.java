@@ -1591,7 +1591,8 @@ public class TrpMainWidget {
 		
 	}
 
-	public void updateSegmentationEditStatus() {
+	public void updateSegmentationEditStatus() {	
+		
 		boolean isEditOn = getCanvas().getSettings().isEditingEnabled();
 
 		// ui.getUpdateIDsItem().setEnabled(isEditOn);
@@ -1600,6 +1601,9 @@ public class TrpMainWidget {
 		}
 
 		// updateAddShapeActionButton();
+		
+		//update visibility of edit buttons
+		ui.getCanvasWidget().getToolbar().updateButtonVisibility();
 		ui.redraw();
 	}
 
@@ -1785,7 +1789,8 @@ public class TrpMainWidget {
 	public void updatePageLock() {
 		if (storage.isPageLocked() != isPageLocked) { // page locking changed
 			isPageLocked = storage.isPageLocked();
-			TrpConfig.getCanvasSettings().setEditingEnabled(!isPageLocked);
+			boolean canTranscribe = Storage.getInstance().getRoleOfUserInCurrentCollection().canTranscribe();
+			TrpConfig.getCanvasSettings().setEditingEnabled(!isPageLocked && canTranscribe);
 
 			SWTUtil.setEnabled(ui.getCanvasWidget().getEditingEnabledToolItem(), !isPageLocked);
 			
@@ -2266,6 +2271,9 @@ public class TrpMainWidget {
 //	}
 
 	public void updateToolBars() {
+		//boolean canManage = Storage.getInstance().getRoleOfUserInCurrentCollection().canManage();
+		boolean canTranscribe = Storage.getInstance().getRoleOfUserInCurrentCollection().canTranscribe();
+		
 		boolean isDocLoaded = storage.isDocLoaded();
 		int nNPages = storage.getNPages();
 		boolean isPageLocked = storage.isPageLocked();
@@ -2281,17 +2289,19 @@ public class TrpMainWidget {
 		SWTUtil.setEnabled(ui.getCloseDocBtn(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getSaveDropDown(), isDocLoaded);
 		if (ui.saveOptionsToolItem != null)
-			SWTUtil.setEnabled(ui.saveOptionsToolItem.getToolItem(), isDocLoaded);
+			SWTUtil.setEnabled(ui.saveOptionsToolItem.getToolItem(), isDocLoaded&&canTranscribe);
 
 		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);
-		SWTUtil.setEnabled(ui.getStatusCombo(), isDocLoaded);
+		SWTUtil.setEnabled(ui.getStatusCombo(), isDocLoaded&&canTranscribe);
+		SWTUtil.setEnabled(ui.getExportDocumentButton(), isDocLoaded&&canTranscribe);
 		
 		if (Storage.getInstance().getTranscript() != null && Storage.getInstance().getTranscript().getMd() != null){
 			ui.getStatusCombo().setText(Storage.getInstance().getTranscript().getMd().getStatus().getStr());
 		}
 		
 		ui.updateToolBarSize();
+		
 	}
 
 	public void loginAsTestUser() {
@@ -4486,7 +4496,7 @@ public class TrpMainWidget {
 			File profileFile = null;
 			try {
 				profileFile = TrpConfig.saveProfile(profileName, false);
-				ui.updateProfiles();
+				ui.updateProfiles(true);
 			} catch (FileExistsException e) {
 				if (DialogUtil.showYesNoDialog(getShell(), "Profile already exists!", "Do want to overwrite the existing one?") == SWT.YES) {
 					profileFile = TrpConfig.saveProfile(profileName, true);

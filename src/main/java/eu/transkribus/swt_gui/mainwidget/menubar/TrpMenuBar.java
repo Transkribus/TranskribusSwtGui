@@ -265,6 +265,12 @@ public class TrpMenuBar {
 	public MenuItem getReplaceImageItem() {
 		return replaceImageItem;
 	}
+	
+	public void updateVisibility(boolean canManage){
+		docsMenu.mi.setEnabled(canManage);
+		collMenu.mi.setEnabled(canManage);
+		fileMenu.mi.setEnabled(canManage);
+	}
 
 //	public void showAll(boolean value) {
 //		this.viewSets.setShowAll(value);
