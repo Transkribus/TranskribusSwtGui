@@ -92,7 +92,7 @@ public class TrpMenuBar {
 //	MenuItem loadTestsetMenuItem;
 	
 	MenuItem installMenuItem;
-	MenuItem tipsOfTheDayMenuItem;
+//	MenuItem tipsOfTheDayMenuItem;
 	MenuItem bugReportItem;
 	
 
@@ -161,7 +161,7 @@ public class TrpMenuBar {
 		showWordsMenuItem = createItem(segmentationMenu.m, SWT.CHECK, null, "Show words");
 		showPrintspaceMenuItem = createItem(segmentationMenu.m, SWT.CHECK, null, "Show printspace");
 		
-		tipsOfTheDayMenuItem = createItem(viewMenu.m, SWT.PUSH, null, "Show tips of the day...");
+//		tipsOfTheDayMenuItem = createItem(viewMenu.m, SWT.PUSH, null, "Show tips of the day...");
 
 		// HELP MENU:
 //		mntmhelp = new MenuItem(menuBar, SWT.CASCADE);
@@ -247,7 +247,7 @@ public class TrpMenuBar {
 	
 	public MenuItem getUpdateMenuItem() { return updateMenuItem; }
 	public MenuItem getInstallMenuItem() { return installMenuItem; }
-	public MenuItem getTipsOfTheDayMenuItem() { return tipsOfTheDayMenuItem; }
+//	public MenuItem getTipsOfTheDayMenuItem() { return tipsOfTheDayMenuItem; }
 	public MenuItem getBugReportItem() { return bugReportItem; }
 
 //	public MenuItem getLoadTestsetMenuItem() {
