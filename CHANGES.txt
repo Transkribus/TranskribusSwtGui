@@ -579,3 +579,4 @@ CHANGES AND BUGFIXES
 	-> Enable possibility to choose image quality for PDF export
 	-> integrated more user-friendly table border markup box (called from context menu and border button) 
 	-> bug fix: Sorting lines according to coordinates now also works for tables (R-button in Layout tab)
+	-> Adapt the GUI appearance to the role a user has in the currently loaded collection, e.g. 'Reader' can not use the text editor or use 'save button' etc.
