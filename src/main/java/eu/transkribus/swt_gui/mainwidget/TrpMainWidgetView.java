@@ -870,6 +870,8 @@ public class TrpMainWidgetView extends Composite {
 		
 		updateProfiles(canTranscribe);
 		
+		//see also updateToolBars() in TrpMainWidget
+		
 //		saveOptionsToolItem.setEnabled(canTranscribe);
 //		statusCombo.setEnabled(canTranscribe);
 		
