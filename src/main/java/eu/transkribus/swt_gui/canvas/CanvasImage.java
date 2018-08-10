@@ -27,7 +27,8 @@ final public class CanvasImage {
 	
 	public URL url;
 	public Image img;
-	public Image imgBackup;
+	Image imgOrig;
+	Image imgBackup;
 
 	Image imgRot;
 	
@@ -96,29 +97,37 @@ final public class CanvasImage {
 			this.img = imgIn;
 		}
 		
-		backup();
+		setOrig(img);
+		backup(img);
 	}
 	
-	private void backup() {
-		if (img != null && !img.isDisposed()) {
-			SWTUtil.dispose(imgBackup);
-			this.imgBackup = new Image(img.getDevice(), img, SWT.IMAGE_COPY);
+	private void setOrig(Image image) {
+		if (image != null && !image.isDisposed()) {
+			SWTUtil.dispose(imgOrig);
+			this.imgOrig = new Image(image.getDevice(), image, SWT.IMAGE_COPY);
 		}
 	}
 	
-//	public void revert() {
-//		if (imgBackup != null && !imgBackup.isDisposed()) {
-//			SWTUtil.dispose(img);
-//			this.img = new Image(imgBackup.getDevice(), imgBackup, SWT.IMAGE_COPY);
-//		}
-//	}
+	private void backup(Image image) {
+		if (image != null && !image.isDisposed()) {
+			SWTUtil.dispose(imgBackup);
+			this.imgBackup = new Image(image.getDevice(), image, SWT.IMAGE_COPY);
+		}
+	}
+	
+	public void revert() {
+		if (imgBackup != null && !imgBackup.isDisposed()) {
+			SWTUtil.dispose(img);
+			this.img = new Image(imgBackup.getDevice(), imgBackup, SWT.IMAGE_COPY);
+		}
+	}
 	
 	public void applyThreshold(double factor) {
 		if (SWTUtil.isDisposed(img)) {
 			return;
 		}
 		logger.debug("this.thresh = "+this.thresh);	
-		ImageData d = SWTUtil.thresholdImage(imgBackup.getImageData(), factor, false);
+		ImageData d = SWTUtil.thresholdImage(imgOrig.getImageData(), factor, false);
 		
 		logger.debug("disposing old image and creating new one with scaled image data...");
 		img.dispose();
@@ -131,22 +140,16 @@ final public class CanvasImage {
 			return;
 		}
 		
-		if (true) { 
-			logger.debug("this.gamma = "+this.gamma);	
-			double scaledGamma = gamma / this.gamma;
-			logger.debug("scaledGamma = "+scaledGamma);
-			ImageData d = SWTUtil.multScalar(img.getImageData(), scaledGamma, false);
-			
-			logger.debug("disposing old image and creating new one with scaled image data...");
-			img.dispose();
-			img = new Image(Display.getDefault(), d);
-		}
-//		else {
-//			logger.debug("gamma = "+gamma);
-//			ImageData d = SWTUtil.multScalar(imgBackup.getImageData(), gamma, false);
-//			SWTUtil.dispose(img);
-//			img = new Image(Display.getDefault(), d);
-//		}
+		logger.debug("this.gamma = " + this.gamma);
+		double scaledGamma = gamma / this.gamma;
+		logger.debug("scaledGamma = " + scaledGamma);
+		ImageData d = SWTUtil.multScalar(imgBackup.getImageData(), scaledGamma, false);
+
+		logger.debug("disposing old image and creating new one with scaled image data...");
+		img.dispose();
+		img = new Image(Display.getDefault(), d);
+		
+		backup(img);
 		
 		this.gamma = gamma;
 	}

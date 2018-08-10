@@ -1084,7 +1084,9 @@ public class Storage {
 					
 		logger.debug("Loading image from url: " + urlStr);
 		final boolean FORCE_RELOAD = false;
-		currentImg = imCache.getOrPut(new URL(urlStr), true, fileType, FORCE_RELOAD);
+		
+		// always reload original image if asked for it
+		currentImg = imCache.getOrPut(new URL(urlStr), true, fileType, (fileType == "orig") || FORCE_RELOAD);
 		logger.trace("loaded image!");
 		
 		setCurrentImageMetadata();

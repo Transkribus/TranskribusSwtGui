@@ -41,6 +41,8 @@ public class ImageEnhanceDialog extends Dialog {
 				applyThreshold();
 			}
 			
+			// not nice but maybe the correct place indeed...
+			mw.getCanvasWidget().getToolbar().getImageVersionDropdown().selectItem(1, true);
 		}
 
 		@Override public void widgetDefaultSelected(SelectionEvent e) {
