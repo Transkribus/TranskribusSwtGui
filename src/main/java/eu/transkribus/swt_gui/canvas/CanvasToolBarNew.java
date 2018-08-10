@@ -326,10 +326,10 @@ public class CanvasToolBarNew {
 		imageVersionDropdown = new DropDownToolItem(tb, false, false, true, SWT.RADIO);
 		imageVersionDropdown.ti.setImage(Images.IMAGE);
 		
-		String versText = "Image file type displayed\n\torig: original image\n\tview: compressed viewing file\n\tbin: binarized image";
-		imageVersionDropdown.addItem("orig", Images.IMAGE, versText, false, "orig");
-		imageVersionDropdown.addItem("view", Images.IMAGE, versText, true, "view");
-		imageVersionDropdown.addItem("bin", Images.IMAGE, versText, false, "bin");
+		String versText = "Image file type displayed\n\torig: original image\n\tview: modified viewing file\n\tbin: binarized image";
+		imageVersionDropdown.addItem("original", Images.IMAGE, versText, false, "original image");
+		imageVersionDropdown.addItem("modified", Images.IMAGE, versText, true, "modified image after image enhancement");
+//		imageVersionDropdown.addItem("bin", Images.IMAGE, versText, false, "bin");
 		imageVersionDropdown.selectItem(1, false);
 		
 		

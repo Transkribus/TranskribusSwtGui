@@ -27,7 +27,8 @@ final public class CanvasImage {
 	
 	public URL url;
 	public Image img;
-//	public Image imgBackup;
+	public Image imgBackup;
+
 	Image imgRot;
 	
 	public int width;
@@ -95,15 +96,15 @@ final public class CanvasImage {
 			this.img = imgIn;
 		}
 		
-//		backup();
+		backup();
 	}
 	
-//	private void backup() {
-//		if (img != null && !img.isDisposed()) {
-//			SWTUtil.dispose(imgBackup);
-//			this.imgBackup = new Image(img.getDevice(), img, SWT.IMAGE_COPY);
-//		}
-//	}
+	private void backup() {
+		if (img != null && !img.isDisposed()) {
+			SWTUtil.dispose(imgBackup);
+			this.imgBackup = new Image(img.getDevice(), img, SWT.IMAGE_COPY);
+		}
+	}
 	
 //	public void revert() {
 //		if (imgBackup != null && !imgBackup.isDisposed()) {
@@ -117,7 +118,7 @@ final public class CanvasImage {
 			return;
 		}
 		logger.debug("this.thresh = "+this.thresh);	
-		ImageData d = SWTUtil.thresholdImage(img.getImageData(), factor, true);
+		ImageData d = SWTUtil.thresholdImage(imgBackup.getImageData(), factor, false);
 		
 		logger.debug("disposing old image and creating new one with scaled image data...");
 		img.dispose();
@@ -134,7 +135,7 @@ final public class CanvasImage {
 			logger.debug("this.gamma = "+this.gamma);	
 			double scaledGamma = gamma / this.gamma;
 			logger.debug("scaledGamma = "+scaledGamma);
-			ImageData d = SWTUtil.multScalar(img.getImageData(), scaledGamma, true);
+			ImageData d = SWTUtil.multScalar(img.getImageData(), scaledGamma, false);
 			
 			logger.debug("disposing old image and creating new one with scaled image data...");
 			img.dispose();

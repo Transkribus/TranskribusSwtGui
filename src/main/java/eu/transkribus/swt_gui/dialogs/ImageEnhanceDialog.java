@@ -156,6 +156,7 @@ public class ImageEnhanceDialog extends Dialog {
 	    applyThreshBtn = new Button(container, SWT.PUSH);
 	    applyThreshBtn.setText("Apply");
 	    
+	    updateSliderValueFromThreshold();
 	    
 	    addListener();
 		
@@ -176,6 +177,15 @@ public class ImageEnhanceDialog extends Dialog {
 		gammaValueLabel.setText(""+gammaSlider.getSelection() / 50.0d);
 	}
 	
+	private void updateSliderValueFromThreshold() {
+		CanvasImage ci = mw.getScene().getMainImage();
+		if (ci != null) {
+			int sel = (int) (ci.thresh*100.0d);
+			logger.debug("thresh from img = "+ci.thresh+" sel = "+sel);
+			gammaSlider.setSelection(sel);
+		}
+		updateThreshold();
+	}
 	public void updateThreshold() {
 		threshValueLabel.setText(""+threshSlider.getSelection());
 	}
