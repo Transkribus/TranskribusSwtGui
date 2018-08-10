@@ -191,14 +191,14 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			TrpMainWidget.getInstance().reloadCurrentImage();
 		}
 		else if (s == toolbar.getImgEnhanceItem()) {
-			// TODO: open enhance dialog			
-			
+			toolbar.getImageVersionDropdown().selectItem(1, true);
 			if(imgEnhanceDialog == null){
 				imgEnhanceDialog = new ImageEnhanceDialog(canvas.getShell());
 				imgEnhanceDialog.open();
 			}else{
 				imgEnhanceDialog.setActive();
 			}
+
 		}
 		else if (s == toolbar.getHelpItem()) {
 			mw.openHowToGuides();

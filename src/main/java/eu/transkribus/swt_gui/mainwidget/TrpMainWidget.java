@@ -4199,7 +4199,7 @@ public class TrpMainWidget {
 		String fileType = "view";
 		MenuItem mi = getCanvasWidget().getToolbar().getImageVersionDropdown().getSelected();
 		if (mi != null) {
-			fileType = (String) mi.getData();
+			fileType = (String) mi.getData("data");
 		}
 		
 		return fileType;
