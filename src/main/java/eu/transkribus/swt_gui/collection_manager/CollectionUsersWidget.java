@@ -206,7 +206,7 @@ public class CollectionUsersWidget extends Composite {
 		try {
 			//if the role of the user has changed we should take care of that by reloading it
 			store.reloadCollections();
-			collection = store.getCollection(collection.getColId());
+			collection = store.getCollection(store.getCollId());
 		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

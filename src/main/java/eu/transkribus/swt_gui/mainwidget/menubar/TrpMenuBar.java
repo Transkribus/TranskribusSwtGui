@@ -59,7 +59,7 @@ public class TrpMenuBar {
 	MenuItem addPageMenuItem;
 	
 	CascadeMenu collMenu;
-	MenuItem manageCollectionsItem;
+	//MenuItem manageCollectionsItem;
 	MenuItem userActivityItem;
 		
 	CascadeMenu languageMenu;
@@ -142,7 +142,7 @@ public class TrpMenuBar {
 		syncWordsWithLinesMenuItem = createItem(fileMenu.m, SWT.NONE, null, "Sync word transcription with text in lines");
 		
 		collMenu = createCascadeMenu(menuBar, null, "&Collections");
-		manageCollectionsItem = createItem(collMenu.m, SWT.NONE, null, "Manage...");
+		//manageCollectionsItem = createItem(collMenu.m, SWT.NONE, null, "Manage...");
 		userActivityItem = createItem(collMenu.m, SWT.NONE, null, "Show user activity...");
 		
 		// VIEW menu
@@ -208,9 +208,9 @@ public class TrpMenuBar {
 		return openLocalPageFileItem;
 	}
 		
-	public MenuItem getManageCollectionsMenuItem() {
-		return manageCollectionsItem;
-	}
+//	public MenuItem getManageCollectionsMenuItem() {
+//		return manageCollectionsItem;
+//	}
 	
 	public MenuItem getSyncWordsWithLinesMenuItem() {
 		return syncWordsWithLinesMenuItem;

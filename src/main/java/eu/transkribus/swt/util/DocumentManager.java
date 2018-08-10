@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.ws.rs.ClientErrorException;
@@ -125,6 +126,8 @@ public class DocumentManager extends Dialog {
 	private int colId;
 	private List<TrpDocMetadata> docList;
 	private boolean canManage = false;
+	
+	private HashMap<Integer,String> latestSavesMap = new HashMap<Integer,String>();
 
 	static int thread_counter = 0;
 
@@ -545,6 +548,7 @@ public class DocumentManager extends Dialog {
 		tv = new TreeViewer(treeViewerCont, SWT.BORDER | SWT.MULTI);
 		contentProv = new CollectionContentProvider();
 		labelProv = new CollectionLabelProviderExtended();
+		
 		tv.setContentProvider(contentProv);
 		tv.setLabelProvider(labelProv);
 		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -820,6 +824,7 @@ public class DocumentManager extends Dialog {
 				Object o = ((IStructuredSelection) event.getSelection()).getFirstElement();
 				int currDocId = 0;
 				if (o instanceof TrpDocMetadata) {
+										
 					for (TreeItem i : tv.getTree().getItems()) {
 						if (i.getData().equals(o)) {
 							tv.setExpandedState(o, !i.getExpanded());
@@ -831,7 +836,7 @@ public class DocumentManager extends Dialog {
 					loc.docId = ((TrpDocMetadata) o).getDocId();
 					loc.pageNr = 1;
 					TrpMainWidget.getInstance().showLocation(loc);
-					currDocId = loc.docId;
+					currDocId = loc.docId;					
 					expandCurrentDocument();
 
 				} else if (o instanceof TrpPage) {
@@ -845,6 +850,9 @@ public class DocumentManager extends Dialog {
 
 				}
 				docMd = Storage.getInstance().getDoc().getMd();
+				//adfa
+				//contentProv.inputChanged(null, null, docList);
+				tv.refresh(true);
 				// enableEdits(currDocId == Storage.getInstance().getDocId());
 				updateColors();
 				updateSymbolicImgLabels();
@@ -1545,6 +1553,10 @@ public class DocumentManager extends Dialog {
 					.setText("Loaded Document is " + doc.getMd().getTitle() + " with ID " + doc.getMd().getDocId());
 			//statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 			
+			/*
+			 * get all save actions for the loaded doc - the first on is the latest and is shown in the doc statistics
+			 * all other have to be parsed and we try to get the latest save for each page if any
+			 */
 			try {
 				List<TrpAction> actions = Storage.getInstance().getConnection().listActions(1, Storage.getInstance().getCollId(), Storage.getInstance().getDocId(), 1);
 				for (TrpAction action : actions){

@@ -4,12 +4,18 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CollectionLabelProviderExtended implements ILabelProvider {
+	
+	public void setPageSaves(TrpDoc doc){
+		
+	}
 
 	@Override
 	public void addListener(ILabelProviderListener listener) {
@@ -49,7 +55,11 @@ public class CollectionLabelProviderExtended implements ILabelProvider {
 	public String getText(Object element) {
 		if(element instanceof TrpDocMetadata) {
 			TrpDocMetadata d = (TrpDocMetadata)element;
-			return d.getDocId() + " - " + d.getTitle() + " (" + d.getNrOfPages() + " pages)";
+			String docLabel = d.getDocId() + " - " + d.getTitle() + " (" + d.getNrOfPages() + " pages) ";
+			if (d.getDocId() == Storage.getInstance().getDocId()){
+				docLabel += "currently loaded";
+			}
+			return docLabel;
 		} else if (element instanceof TrpPage) {
 			TrpPage p = (TrpPage)element;
 			TrpTranscriptMetadata tmd;
@@ -65,6 +75,7 @@ public class CollectionLabelProviderExtended implements ILabelProvider {
 				
 			
 			String transcribedLinesText = "";
+			String saveInfo = tmd.getUserName() + ", " + tmd.getTimeFormatted() + "]";
 
 			// logger.debug("segmentedLines: " + segmentedLines);
 			// logger.debug("transcribedLines: " + transcribedLines);
@@ -75,7 +86,7 @@ public class CollectionLabelProviderExtended implements ILabelProvider {
 				transcribedLinesText = ( (transcribedLines != null && transcribedLines > 0) ? transcribedLines + " lines with text"
 						: "No text");
 			}
-			return p.getImgFileName() + " (" + transcribedLinesText + ") :: " + p.getCurrentTranscript().getStatus();
+			return p.getImgFileName() + " (" + transcribedLinesText + ") # [" + p.getCurrentTranscript().getStatus() + ", " + saveInfo;
 		}
 		return null;
 	}
