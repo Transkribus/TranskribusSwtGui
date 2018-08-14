@@ -58,6 +58,8 @@ if ! isValidJava $_java; then
     exit 1
 fi
 
+swt="/swt/swt-${project.properties.swt.version}-osx64.jar"
+
 # set some java flags
 # set max heap space to 2 GB
 java_flags="" 
@@ -69,4 +71,4 @@ fi
 echo "java flags are: "$java_flags
 
 # start the bloody thing:
-$_java -jar $java_flags ${project.build.finalName}.jar
+$_java -cp $swt -Dfile.encoding=UTF-8 -jar $java_flags ${project.build.finalName}.jar

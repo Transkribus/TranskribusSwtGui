@@ -58,6 +58,14 @@ if ! isValidJava $_java; then
     exit 1
 fi
 
+if [ `getconf LONG_BIT` = "64" ]; then
+	echo "Adding SWT 64bit dependency to classpath"
+	swt = "/swt/swt-${project.properties.swt.version}-linux64.jar"
+else 
+	echo "Adding SWT 32bit dependency to classpath"
+	swt = "/swt/swt-${project.properties.swt.version}-linux32.jar"
+fi
+
 # set some java flags
 # set max heap space to 2 GB
 java_flags=""
@@ -72,4 +80,4 @@ echo "java flags are: "$java_flags
 export SWT_GTK3=0
 
 # start the bloody thing:
-$_java -jar $java_flags ${project.build.finalName}.jar
+$_java -cp $swt -Dfile.encoding=UTF-8 -jar $java_flags ${project.build.finalName}.jar
