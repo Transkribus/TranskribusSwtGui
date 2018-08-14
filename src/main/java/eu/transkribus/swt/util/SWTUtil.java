@@ -80,7 +80,6 @@ import eu.transkribus.core.io.LocalDocConst;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.core.util.CoreUtilsTest;
 import eu.transkribus.core.util.ImgUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import math.geom2d.Vector2D;
