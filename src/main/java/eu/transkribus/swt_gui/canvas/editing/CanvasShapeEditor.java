@@ -1472,11 +1472,22 @@ public class CanvasShapeEditor {
 		return backupShape;
 	}
 
-	public ShapeEditOperation applyBorderToSelectedTableCells(List<ICanvasShape> shapes, BorderFlags bf, boolean addToUndoStack) {
+	
+	
+	
+	/**
+	 * 
+	 * @param shapes
+	 * @param bf
+	 * @param keepExisting keep the existing border
+	 * @param addToUndoStack
+	 * @return
+	 */
+	public TableShapeEditOperation applyBorderToSelectedTableCells(List<ICanvasShape> shapes, BorderFlags bf, boolean keepExisting, boolean addToUndoStack) {
 		if (!TableUtils.isTableCells(shapes)) {
 			return null;
 		}
-		logger.debug("changing border type for table "+shapes.size()+", bf: "+bf);
+		logger.debug("changing border type for table "+shapes.size()+", bf: "+bf+" keepExisting: "+keepExisting);
 		
 		TableShapeEditOperation op = new TableShapeEditOperation("Changed border type for "+shapes.size()+" table cells "
 				+ "and the respective neighboring cells");
@@ -1486,53 +1497,182 @@ public class CanvasShapeEditor {
 			op.addCellBackup(c);
 			
 			if (!TableUtils.hasLeftNeighbor(c, shapes)) {
-				c.setLeftBorderVisible(bf.vertLeft);
+				c.setLeftBorderVisible(keepExisting ? (bf.vertLeft || c.isLeftBorderVisible()) : bf.vertLeft);
 				for (TrpTableCellType n : c.getNeighborCells(0)) {
 					op.addCellBackup(n);
-					n.setRightBorderVisible(bf.vertLeft);
+					n.setRightBorderVisible(keepExisting ? (bf.vertLeft || n.isRightBorderVisible()) : bf.vertLeft);
 				}
 			} else {
-				c.setLeftBorderVisible(bf.vertInner);
+				c.setLeftBorderVisible(keepExisting ? (bf.vertInner || c.isLeftBorderVisible()) : bf.vertInner);
 			}
 			
 			if (!TableUtils.hasRightNeighbor(c, shapes)) {
-				c.setRightBorderVisible(bf.vertRight);
+				c.setRightBorderVisible(keepExisting ? (bf.vertRight || c.isRightBorderVisible()) : bf.vertRight);
 				for (TrpTableCellType n : c.getNeighborCells(2)) {
 					op.addCellBackup(n);
-					n.setLeftBorderVisible(bf.vertRight);	
+					n.setLeftBorderVisible(keepExisting ? (bf.vertRight || n.isRightBorderVisible()) : bf.vertRight);	
 				}
 			}
 			else {
-				c.setRightBorderVisible(bf.vertInner);
+				c.setRightBorderVisible(keepExisting ? (bf.vertInner || c.isRightBorderVisible()) : bf.vertInner);
 			}
 			
 			if (!TableUtils.hasBottomNeighbor(c, shapes)) {
-				c.setBottomBorderVisible(bf.horBottom);
+				c.setBottomBorderVisible(keepExisting ? (bf.horBottom || c.isBottomBorderVisible()) : bf.horBottom);
 				for (TrpTableCellType n : c.getNeighborCells(1)) {
 					op.addCellBackup(n);
-					n.setTopBorderVisible(bf.horBottom);				
+					n.setTopBorderVisible(keepExisting ? (bf.horBottom || n.isBottomBorderVisible()) : bf.horBottom);				
 				}
 			}
 			else {
-				c.setBottomBorderVisible(bf.horInner);
+				c.setBottomBorderVisible(keepExisting ? (bf.horInner || c.isBottomBorderVisible()) : bf.horInner);
 			}
 			
 			if (!TableUtils.hasTopNeighbor(c, shapes)) {
-				c.setTopBorderVisible(bf.horTop);
+				c.setTopBorderVisible(keepExisting ? (bf.horTop || c.isTopBorderVisible()) : bf.horTop);
 				for (TrpTableCellType n : c.getNeighborCells(3)) {
 					op.addCellBackup(n);
-					n.setBottomBorderVisible(bf.horTop);
+					n.setBottomBorderVisible(keepExisting ? (bf.horTop || n.isBottomBorderVisible()) : bf.horTop);
 				}
 			}
 			else {
-				c.setTopBorderVisible(bf.horInner);
+				c.setTopBorderVisible(keepExisting ? (bf.horInner || c.isTopBorderVisible()) : bf.horInner);
 			}
 		}
 		
 		if (addToUndoStack)
 			addToUndoStack(op);
 		
+		// notify observers
+		scene.notifyOnShapeBorderEdited(op);
+		
 		return op;
+	}
+	
+	/**
+	 * 
+	 * @param shapes
+	 * @param bf
+	 * @param keepExisting keep the existing border
+	 * @param addToUndoStack
+	 * @return
+	 */
+	public TableShapeEditOperation subtractBorderFromSelectedTableCells(List<ICanvasShape> shapes, BorderFlags bf, boolean addToUndoStack) {
+		if (!TableUtils.isTableCells(shapes)) {
+			return null;
+		}
+		logger.debug("subtracting border type for table "+shapes.size()+", bf: "+bf);
+		
+		TableShapeEditOperation op = new TableShapeEditOperation("Changed border type for "+shapes.size()+" table cells "
+				+ "and the respective neighboring cells");
+						
+		for (ICanvasShape s : shapes) {
+			TrpTableCellType c = (TrpTableCellType) s.getData();
+			op.addCellBackup(c);
+			
+			if (!TableUtils.hasLeftNeighbor(c, shapes)) {
+				c.setLeftBorderVisible((bf.vertLeft && c.isLeftBorderVisible()) ? false : c.isLeftBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(0)) {
+					op.addCellBackup(n);
+					n.setRightBorderVisible((bf.vertLeft && n.isRightBorderVisible()) ? false : n.isRightBorderVisible());
+				}
+			} else {
+				c.setLeftBorderVisible((bf.vertInner && c.isLeftBorderVisible()) ? false : c.isLeftBorderVisible());
+			}
+			
+			if (!TableUtils.hasRightNeighbor(c, shapes)) {
+				c.setRightBorderVisible((bf.vertRight && c.isRightBorderVisible())  ? false : c.isRightBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(2)) {
+					op.addCellBackup(n);
+					n.setLeftBorderVisible((bf.vertRight && n.isRightBorderVisible())  ? false : n.isRightBorderVisible());	
+				}
+			}
+			else {
+				c.setRightBorderVisible((bf.vertInner && c.isRightBorderVisible()) ? false : c.isRightBorderVisible());
+			}
+			
+			if (!TableUtils.hasBottomNeighbor(c, shapes)) {
+				c.setBottomBorderVisible((bf.horBottom && c.isBottomBorderVisible()) ? false: c.isBottomBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(1)) {
+					op.addCellBackup(n);
+					n.setTopBorderVisible((bf.horBottom && n.isBottomBorderVisible()) ? false : n.isTopBorderVisible());				
+				}
+			}
+			else {
+				c.setBottomBorderVisible((bf.horInner && c.isBottomBorderVisible()) ? false : c.isBottomBorderVisible());
+			}
+			
+			if (!TableUtils.hasTopNeighbor(c, shapes)) {
+				c.setTopBorderVisible((bf.horTop && c.isTopBorderVisible()) ? false : c.isTopBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(3)) {
+					op.addCellBackup(n);
+					n.setBottomBorderVisible((bf.horTop && n.isBottomBorderVisible()) ? false : n.isBottomBorderVisible());
+				}
+			}
+			else {
+				c.setTopBorderVisible((bf.horInner && c.isTopBorderVisible()) ? false : c.isTopBorderVisible());
+			}
+		}
+		
+		if (addToUndoStack)
+			addToUndoStack(op);
+		
+		// notify observers
+		scene.notifyOnShapeBorderEdited(op);
+		
+		return op;
+	}
+
+	
+	public BorderFlags retrieveExistingBordersForTableCells(List<ICanvasShape> shapes) {
+		BorderFlags bf = new BorderFlags();
+		for (ICanvasShape s : shapes) {
+			TrpTableCellType c = (TrpTableCellType) s.getData();
+			
+			if (!TableUtils.hasLeftNeighbor(c, shapes)) {
+				bf.vertLeft = (bf.vertLeft || c.isLeftBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(0)) {
+					bf.vertLeft = (bf.vertLeft || n.isRightBorderVisible());
+				}
+			} else {
+				bf.vertInner = (bf.vertInner || c.isLeftBorderVisible());
+			}
+			
+			if (!TableUtils.hasRightNeighbor(c, shapes)) {
+				bf.vertRight = (bf.vertRight || c.isRightBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(2)) {
+					bf.vertRight = (bf.vertRight || n.isLeftBorderVisible());	
+				}
+			}
+			else {
+				bf.vertInner = (bf.vertInner || c.isRightBorderVisible());
+			}
+			
+			if (!TableUtils.hasBottomNeighbor(c, shapes)) {
+				bf.horBottom = (bf.horBottom || c.isBottomBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(1)) {
+					bf.horBottom = (bf.horBottom || n.isTopBorderVisible());				
+				}
+			}
+			else {
+				bf.horInner = (bf.horInner || c.isBottomBorderVisible());
+			}
+			
+			if (!TableUtils.hasTopNeighbor(c, shapes)) {
+				bf.horTop = (bf.horTop || c.isTopBorderVisible());
+				for (TrpTableCellType n : c.getNeighborCells(3)) {
+					bf.horTop = (bf.horTop || n.isBottomBorderVisible());
+				}
+			}
+			else {
+				bf.horInner = (bf.horInner || c.isTopBorderVisible());
+			}
+		}
+	
+		// notify observers
+		//scene.notifyOnShapeBorderRetrieval(shapes, bf);
+		
+		return bf;
 	}
 
 	public ShapeEditOperation mergeSelectedTableCells(List<ICanvasShape> shapes, boolean sendSignal, boolean addToUndoStack) {

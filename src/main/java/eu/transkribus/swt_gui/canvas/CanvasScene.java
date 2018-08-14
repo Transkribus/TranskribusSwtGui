@@ -41,6 +41,8 @@ import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.table_editor.BorderFlags;
+import eu.transkribus.swt_gui.table_editor.TableShapeEditOperation;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 
@@ -748,12 +750,12 @@ public class CanvasScene {
 			clearSelected();
 		}
 		
-		
+		logger.debug("selecting, sendSignal: "+sendSignal+", multiselect: " + multiselect);
 		if (hasShape(shape)) {
-			logger.debug("selecting, sendSignal: "+sendSignal+", multiselect: " + multiselect+", isSelected: "+shape.isSelected());
+			logger.debug(", isSelected: "+shape.isSelected()+ " for "+shape.getTrpShapeType().toString());
 			shape.setSelected(!shape.isSelected());
 			if (shape.isSelected()){
-				logger.debug("shape is selected !!!");
+				logger.debug("shape " + shape.getType() + " is selected !!!");
 				selected.add(shape);
 				
 			}
@@ -1005,6 +1007,19 @@ public class CanvasScene {
 		return notifyAllListener(e);
 	}
 
+	public boolean notifyOnShapeBorderEdited(TableShapeEditOperation op) {
+		SceneEvent e = new SceneEvent(SceneEventType.BORDER_CHANGED, this, op);
+		logger.debug("notifying on shape border edited");
+		return notifyAllListener(e);
+	}
+	
+	public boolean notifyOnShapeBorderRetrieval(List<ICanvasShape> cells, BorderFlags bf) {
+		SceneEvent e = new SceneEvent(SceneEventType.BORDER_FLAGS_CALLED, this, cells);
+		e.data = bf;
+		logger.debug("notifying on shape border retrieval");
+		return notifyAllListener(e);
+	}
+	
 	public void updateSegmentationViewSettings() {
 		TrpSettings sets = TrpMainWidget.getInstance().getTrpSets();
 		logger.trace("trpsets: " + sets.toString());

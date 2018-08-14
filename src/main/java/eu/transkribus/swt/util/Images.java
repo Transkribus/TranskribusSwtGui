@@ -78,6 +78,7 @@ public class Images {
 	public static final Image ARROW_UNDO = getOrLoad("/icons/arrow_undo.png");
 	public static final Image ARROW_REDO = getOrLoad("/icons/arrow_redo.png");
 	
+	public static final Image BORDER_MENU = getOrLoad("/icons/border-2-outer-icon.png");
 	public static final Image BORDER_NONE = getOrLoad("/icons/border_none.png");
 	public static final Image BORDER_ALL = getOrLoad("/icons/border_all.png");
 	public static final Image BORDER_CLOSED = getOrLoad("/icons/border_closed.png");
@@ -95,6 +96,11 @@ public class Images {
 	
 	public static final Image BORDER_VERTICAL_CLOSED = getOrLoad("/icons/border_vertical_closed.png");
 	public static final Image BORDER_VERTICAL_OPEN = getOrLoad("/icons/border_vertical_open.png");
+	
+	public static final Image BORDER_INNER = getOrLoad("/icons/border_inner.png");
+	public static final Image BORDER_INNER_VERTICAL = getOrLoad("/icons/border_vertical_inner.png");
+	public static final Image BORDER_INNER_HORIZONTAL = getOrLoad("/icons/border_horizontal_inner.png");
+	public static final Image BORDER_OUTER = getOrLoad("/icons/border_closed.png");
 	
 	public static final Image COG_EDIT = getOrLoad("/icons/cog_edit.png");
 	

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementReadingOrderComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
@@ -27,6 +28,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
+import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpStructureChangedEvent;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
@@ -35,6 +37,7 @@ import eu.transkribus.swt_gui.canvas.CanvasScene;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
+import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener.SceneEvent;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
@@ -44,6 +47,7 @@ import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
 import math.geom2d.Point2D;
@@ -289,9 +293,12 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				
 				final boolean newFirstSelected = e.getFirstShape() == canvas.getFirstSelected();
 				int nSelected = canvas.getNSelected();
-				logger.debug("selected data size = "+nSelected+ " new first selected = "+newFirstSelected);
+				logger.debug("selected data size = "+nSelected+ " new first selected = "+newFirstSelected + " for shape " + e.shapes.toString());
 				
 				// TEST: do sth. is table cell is selected
+				// update selection for table markup box if and only if selected shapes are TrpTableCellType
+				if (e.getFirstShape() != null && e.getFirstShape().getData() instanceof TrpTableCellType)
+					canvas.getTableMarkup().set(canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes()));
 				
 				if (false) {
 				if (e.getFirstShape() != null && e.getFirstShape().getData() instanceof TrpTableCellType) {
@@ -753,13 +760,18 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					
 					trpMergedShapes.add(st);
 				}
-				Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>());
+				//Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>());
+				
+				/*
+				 * reading order should be crucial for merging shapes - not the coordinates!!
+				 */
+				Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));
 				
 				ITrpShapeType mergedSt = mw.getShapeFactory().copyJAXBElementFromShapeAndData(newShape, minIndex);
-				logger.debug("newshape data: "+((ITrpShapeType)newShape.getData()).print());
+				//logger.debug("newshape data: "+((ITrpShapeType)newShape.getData()).print());
 				
 				for (ITrpShapeType st : trpMergedShapes) {				
-					text += st.getUnicodeText();
+					text = ( (text != "" && st.getUnicodeText() != "")? text + " " + st.getUnicodeText() : text + st.getUnicodeText());
 					st.removeFromParent();
 					// remove all links related to this shape TODO: links will be lost on undo!
 					st.getPage().removeLinks(st);
@@ -767,13 +779,13 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				text = StringUtils.removeEnd(text, " ");
 				
 				mergedSt.setUnicodeText(text, this);
-				logger.debug("newshape data2: "+((ITrpShapeType)newShape.getData()).print());
+				//logger.debug("newshape data2: "+((ITrpShapeType)newShape.getData()).print());
 				
 	//			mergedSt.reInsertIntoParent();
 	//			mergedSt.setData(newShape);
 							
 				// assign children				
-				logger.debug(" child number is : " + newShape.getChildren(false).size());
+				//logger.debug(" child number is : " + newShape.getChildren(false).size());
 				
 				for (ICanvasShape childShape : newShape.getChildren(false)) {
 					ITrpShapeType st = (ITrpShapeType) childShape.getData();
@@ -783,7 +795,8 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				
 				// if merged shapes were lines -> merge baselines also!
 				if (mergedSt instanceof TrpTextLineType) {
-					Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>(false)); // sort lines by XY coordinates!
+					//Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>(false)); // sort lines by XY coordinates!
+					Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));//reading order is crucial
 					logger.debug("baseline merge - n-merged shapes: "+trpMergedShapes.size());
 					TrpTextLineType mergedTl = (TrpTextLineType) mergedSt;
 					
@@ -862,5 +875,28 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 			mw.onError("Error during operation", "Could not set new reading order", th);
 		}		
 	}
+	
+	@Override
+	public void onBorderChanged(SceneEvent e) {
+		logger.debug("on border changed" + e.toString());
+		
+		ITrpShapeType st = e.getSource().getSelectedTrpShapeTypes().get(0);
+		
+		if (st != null)
+			st.getObservable().setChangedAndNotifyObservers(new TrpStructureChangedEvent(this));
+		
+		mw.getCanvasShapeObserver().updateObserverForAllShapes();
+		
+		
+	}
 
+	@Override
+	public void onBorderFlagsCalled(SceneEvent e) {
+		logger.debug("on border flags called - open / refresh dialog" + e.toString());
+		
+//		BorderFlags bf = canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes());
+//		canvas.getTableMarkup().set((BorderFlags) e.data);
+		canvas.getTableMarkup().show();
+	}
+	
 }

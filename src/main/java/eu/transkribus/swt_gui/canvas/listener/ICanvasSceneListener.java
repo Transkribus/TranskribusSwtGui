@@ -13,7 +13,8 @@ public interface ICanvasSceneListener {
 	
 	public static enum SceneEventType {
 		BEFORE_UNDO, UNDO, BEFORE_ADD, ADD, BEFORE_REMOVE, REMOVE, BEFORE_MOVE, MOVE, SELECTION_CHANGED,
-		BEFORE_SPLIT, AFTER_SPLIT, SPLIT, BEFORE_MERGE, MERGE, READING_ORDER_CHANGED
+		BEFORE_SPLIT, AFTER_SPLIT, SPLIT, BEFORE_MERGE, MERGE, READING_ORDER_CHANGED, 
+		BORDER_CHANGED, BORDER_FLAGS_CALLED
 	}
 	
 	@SuppressWarnings({"serial"})
@@ -107,7 +108,16 @@ public interface ICanvasSceneListener {
 		case READING_ORDER_CHANGED:
 			l.onReadingOrderChanged(e);
 			break;
+			
+		case BORDER_CHANGED:
+			l.onBorderChanged(e);
+			break;
+			
+		case BORDER_FLAGS_CALLED:
+			l.onBorderFlagsCalled(e);
 		}
+		
+		
 			
 		return e.stop;
 	}
@@ -141,5 +151,9 @@ public interface ICanvasSceneListener {
 	default void onMerge(SceneEvent e) {}
 
 	default void onReadingOrderChanged(SceneEvent e) {}
+	
+	default void onBorderChanged(SceneEvent e) {}
+	
+	default void onBorderFlagsCalled(SceneEvent e) {}
 
 }

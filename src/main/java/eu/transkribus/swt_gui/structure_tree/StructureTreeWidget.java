@@ -234,9 +234,9 @@ public class StructureTreeWidget extends Composite {
 			column.getColumn().setWidth(cf.colSize);
 			column.setLabelProvider(new StructureTreeLabelProvider(treeViewer, false));
 
-			if (cf.equals(STRUCTURE_TYPE_COL)) {
-				column.setEditingSupport(new StructureTypeEditingSupport(treeViewer));
-			}
+//			if (cf.equals(STRUCTURE_TYPE_COL)) { // disable here because should be done in StructuralMetadataWidget
+//				column.setEditingSupport(new StructureTypeEditingSupport(treeViewer));
+//			}
 			
 			if (cf.equals(READING_ORDER_COL)) {
 				column.setEditingSupport(new ReadingOrderEditingSupport(this, treeViewer));

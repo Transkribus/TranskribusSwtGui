@@ -75,6 +75,8 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		
 		SWTUtil.addSelectionListener(tb.imgEnhanceItem, this);
 		
+		SWTUtil.addSelectionListener(tb.markupItem, this);
+		
 		SWTUtil.addSelectionListener(tb.helpItem, this);
 		SWTUtil.addSelectionListener(tb.canvasHelpItem, this);
 		
@@ -168,7 +170,12 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		}
 		else if (s == toolbar.getMergeShapes()) {
 			canvas.getShapeEditor().mergeSelected();
+		} 		
+		else if (s == toolbar.getBorderMarkupDialog()) {
+//			canvas.getTableMarkup().set(canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes()));
+			canvas.getTableMarkup().show();
 		}
+
 
 		if (s == toolbar.getViewSettingsMenuItem()) {
 			mw.openViewSetsDialog();
@@ -184,14 +191,14 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			TrpMainWidget.getInstance().reloadCurrentImage();
 		}
 		else if (s == toolbar.getImgEnhanceItem()) {
-			// TODO: open enhance dialog			
-			
+			toolbar.getImageVersionDropdown().selectItem(1, true);
 			if(imgEnhanceDialog == null){
 				imgEnhanceDialog = new ImageEnhanceDialog(canvas.getShell());
 				imgEnhanceDialog.open();
 			}else{
 				imgEnhanceDialog.setActive();
 			}
+
 		}
 		else if (s == toolbar.getHelpItem()) {
 			mw.openHowToGuides();
@@ -205,6 +212,7 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.createImageSizeTextRegionItem) {
 			mw.createImageSizeTextRegion();
 		}
+
 	}
 	
 	protected CanvasMode getModeForSelectionEvent(SelectionEvent e) {

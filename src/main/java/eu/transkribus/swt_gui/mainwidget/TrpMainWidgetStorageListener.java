@@ -100,6 +100,7 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		if (arg.login) {
 			ui.getTabWidget().selectServerTab();
 			ui.updateLoginInfo(arg.login, arg.user.getUserName(), arg.serverUri);
+			 
 			//load future events from server and show a message box for each
 			mw.showEventMessages();
 		} else {

@@ -546,6 +546,7 @@ CHANGES AND BUGFIXES
 	-> bugfix: cannot open local document
 	-> bugfix: apply properties for tags over all continuations in property editor 
 	-> bugfix: cannot open page due to widget closed exception
+	-> bugfix: deletion of documents was sometimes not possible
 	-> All tag definitions get stored in DB on server for later use in web interface
 	-> Status of pages can be set for an entire document in the 'Document Manager'
 	-> fix slow image rendering on Windows systems
@@ -557,4 +558,25 @@ CHANGES AND BUGFIXES
 	-> PDF export: select your preferred font or use the default one ('FreeSerif') - mainly to cover the different used character sets
 	-> compare versions now also considers tables
 	-> Add 'saveTranscriptDialog' before tools start their job
+	-> updated config for test server with separate imagestore
+	-> Save changes dialog is now triggered also for table border mark-ups on leaving the current page
+	
+1.4.2
+	-> bugfix for structural tagging with custom defined structure types
 
+1.4.3
+	-> In the export dialog the server export is set as 'default' tab
+	-> TEI export (1): restricted to server export
+	-> TEI export (2): We use a xslt (from https://github.com/dariok/page2tei) to transform page XMLs into TEI XMLs
+	-> Customer specific transformations can be integrated as well
+	-> Compare versions tool for several pages resp. a complete document 
+	-> CITlabAdvanced and CVL are bottom-up approaches and thus detect always lines: check boxes are therefore preselected and disabled
+	-> User manager: Roles are considered in order to determine what is allowed and what is not allowed
+	-> bug fix: Error messages in the user manager were not closable 
+	-> bug fix: merging of two shapes keeps the reading order and adds a space between them
+	-> bug fix: selecting a tag from the table now also displays the right position in the image
+	-> show last save action on a document in the document manager (time, page number, user)
+	-> Enable possibility to choose image quality for PDF export
+	-> integrated more user-friendly table border markup box (called from context menu and border button) 
+	-> bug fix: Sorting lines according to coordinates now also works for tables (R-button in Layout tab)
+	-> Adapt the GUI appearance to the role a user has in the currently loaded collection, e.g. 'Reader' can not use the text editor or use 'save button' etc.

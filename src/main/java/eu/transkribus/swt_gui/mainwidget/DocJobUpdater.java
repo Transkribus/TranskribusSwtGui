@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.dialogs.TrpMessageDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
@@ -121,27 +122,47 @@ public class DocJobUpdater {
 		boolean isThisDocOpen = store.isDocLoaded() && store.getDoc().getId()==job.getDocId();
 		// reload current page if page job for this page is finished:
 		// (only ask question to reload page!!)
+//		logger.debug("the page nr of the job was " + job.getPageid());
+//		logger.debug("job pages " + job.getPages());
 		if (isThisDocOpen && job.isFinished()) {
 			Display.getDefault().asyncExec(() -> {
 				if (!job.isSuccess()) {
-					logger.error("a job for the current page failed: "+job);
+					logger.error("A job for the current document failed: "+job);
 
-					TrpMessageDialog.showErrorDialog(mw.getShell(), "A job for this page failed", job.getDescription(), job.getStackTrace(), null);
+					TrpMessageDialog.showErrorDialog(mw.getShell(), "A job for this document failed", job.getDescription(), job.getStackTrace(), null);
 					// TODO: show stacktrace of error... job.getStackTrace()
 //					DialogUtil.showErrorMessageBox(mw.getShell(), "A job for this page failed", job.getDescription());
 				}
-				else if (store.getPageIndex() == (job.getPageNr()-1) || job.getPageNr()==-1) {
+				//pageNr is deprecated but maybe still used by some jobs 
+				else if (store.getPageIndex() == (job.getPageNr()-1)) {
 //					if (job.getJobImpl().equals(JobImpl.DocExportJob.toString())) {
 //						ShowServerExportLinkDialog linkDiag = new ShowServerExportLinkDialog(mw.getShell(), job.getResult());
 //						linkDiag.open();
 //						return;
 //					}
 					// reload page if doc and page is open:					
-					if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "A job for this page just finished - do you want to reload the current page?") == SWT.YES) {
+					if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "Do you want to reload the current page? By saying 'No' you can save your latest changes first!") == SWT.YES) {
 						logger.debug("reloading page!");
 						mw.reloadCurrentPage(true);						
 					}
 				}
+				//page string set e.g. 1-30; get list of page indices and check if loaded page is affected
+				else if(job.getPages() != null)
+					try {
+						for (Integer pageIdx : CoreUtils.parseRangeListStrToList(job.getPages(),store.getDoc().getNPages())){
+							if (store.getPageIndex() == pageIdx){
+								if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "Do you want to reload the current page? By saying 'No' you can save your latest changes first!") == SWT.YES) {
+									logger.debug("reloading page!");
+									mw.reloadCurrentPage(true);						
+								}
+								break;
+							}
+							
+						}
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 			});
 		}
 	}

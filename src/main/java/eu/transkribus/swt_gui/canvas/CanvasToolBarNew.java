@@ -24,7 +24,9 @@ import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ToolBox;
+import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderDialogEvent;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.dialogs.TableMarkupBox;
 
 //public class CanvasToolBar extends ToolBar {
 public class CanvasToolBarNew {
@@ -78,14 +80,17 @@ public class CanvasToolBarNew {
 	ToolItem removePoint;
 	ToolItem removeShape;
 	ToolItem mergeShapes;
-	
+
 	DropDownToolItem splitDropdown;
 	MenuItem splitHorizontalItem, splitVerticalItem, splitLineItem;
-	
+		
 	ToolItem splitShapeLine;
 	ToolItem splitShapeWithVerticalLine;
 	ToolItem splitShapeWithHorizontalLine;
 
+	ToolItem markupItem;
+//	TableToolBox markupBox;	
+	
 	DropDownToolItem simplifyEpsItem;
 	ToolItem undo;
 	
@@ -101,6 +106,8 @@ public class CanvasToolBarNew {
 	ToolItem addLineItem;
 	ToolItem addBaselineItem;
 	ToolItem addWordItem;
+	
+	DropDownToolItem otherSegmentationToolsDropDown;
 	
 	DropDownToolItem addElementDropdown;
 	DropDownToolItem optionsItem;
@@ -317,16 +324,17 @@ public class CanvasToolBarNew {
 		
 //		imageVersionDropdown = new DropDownToolItem(tb, true, false, true, SWT.RADIO);
 		imageVersionDropdown = new DropDownToolItem(tb, false, false, true, SWT.RADIO);
-		imageVersionDropdown.ti.setImage(Images.IMAGE);
+		imageVersionDropdown.ti.setImage(Images.IMAGES);
 		
-		String versText = "Image file type displayed\n\torig: original image\n\tview: compressed viewing file\n\tbin: binarized image";
-		imageVersionDropdown.addItem("orig", Images.IMAGE, versText, false, "orig");
-		imageVersionDropdown.addItem("view", Images.IMAGE, versText, true, "view");
-		imageVersionDropdown.addItem("bin", Images.IMAGE, versText, false, "bin");
+		String versText = "Image file type displayed\n\torig: original image\n\tview: modified viewing file\n\tbin: binarized image";
+		imageVersionDropdown.addItem("original image", Images.IMAGE, versText, false, "orig");
+		imageVersionDropdown.addItem("modified image", Images.IMAGE_EDIT, versText, true, "view");
+		imageVersionDropdown.addItem("binarized image", Images.IMAGE_EDIT, versText, false, "bin");
 		imageVersionDropdown.selectItem(1, false);
 		
 		
 		imgEnhanceItem = new ToolItem(tb, SWT.PUSH);
+		imgEnhanceItem.setToolTipText("Change image contrast settings");
 		imgEnhanceItem.setImage(Images.CONTRAST);
 		
 		viewSettingsMenuItem = new ToolItem(tb, SWT.PUSH);
@@ -355,7 +363,7 @@ public class CanvasToolBarNew {
 				
 		tb.pack();
 	}
-		
+	
 	public void createEditItems(ToolBar tb) {
 		
 		if (false) {
@@ -493,8 +501,15 @@ public class CanvasToolBarNew {
 		mergeShapes.setToolTipText("Merges the selected shapes");
 		mergeShapes.setImage(Images.getOrLoad("/icons/merge.png"));
 		
+		// table cell markup
+		markupItem = new ToolItem(tb, SWT.CHECK);
+		markupItem.setToolTipText("Table Cell markup");
+		markupItem.setImage(Images.BORDER_MENU);
+		
+//		markupBox = new TableToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Cell borders");
+		
 		if (true) {
-		DropDownToolItem otherSegmentationToolsDropDown = new DropDownToolItem(tb, false, false, true, SWT.PUSH); // TEST
+		otherSegmentationToolsDropDown = new DropDownToolItem(tb, false, false, true, SWT.PUSH); // TEST
 		otherSegmentationToolsDropDown.ti.setImage(Images.SHAPE_SQUARE_EDIT);
 		otherSegmentationToolsDropDown.ti.setText("...");
 		otherSegmentationToolsDropDown.ti.setToolTipText("Other segmentation tools...");
@@ -754,6 +769,10 @@ public class CanvasToolBarNew {
 	public ToolItem getMergeShapes() {
 		return mergeShapes;
 	}
+	
+	public ToolItem getBorderMarkupDialog() {
+		return markupItem;
+	}
 
 //	public ToolItem getSplitShape() {
 //		return splitShapeLine;
@@ -799,8 +818,18 @@ public class CanvasToolBarNew {
 		SWTUtil.setEnabled(addPoint, isEditingEnabled && notNullAndEditable && selected.canInsert());
 		SWTUtil.setEnabled(addPoint, isEditingEnabled && notNullAndEditable && selected.canInsert());
 		SWTUtil.setEnabled(removePoint, isEditingEnabled && notNullAndEditable && selected.canRemove());
-//		SWTUtil.setEnabled(addShape, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(removeShape, isEditingEnabled && notNullAndEditable);
+		
+		//enable the 'add shapes' btns
+		SWTUtil.setEnabled(addTextRegionItem, isEditingEnabled);
+		SWTUtil.setEnabled(addLineItem, isEditingEnabled);
+		SWTUtil.setEnabled(addBaselineItem, isEditingEnabled);
+		SWTUtil.setEnabled(addWordItem, isEditingEnabled);	
+		SWTUtil.setEnabled(addElementDropdown, isEditingEnabled);
+		
+		//options to set
+		SWTUtil.setEnabled(otherSegmentationToolsDropDown, isEditingEnabled);
+		SWTUtil.setEnabled(optionsItem, isEditingEnabled);
 		
 		SWTUtil.setEnabled(splitDropdown, isEditingEnabled && notNullAndEditable);
 		
@@ -808,7 +837,9 @@ public class CanvasToolBarNew {
 		SWTUtil.setEnabled(splitShapeWithVerticalLine, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(splitShapeWithHorizontalLine, isEditingEnabled && notNullAndEditable);
 		
-		SWTUtil.setEnabled(mergeShapes, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getNSelected() >= 2);
+		SWTUtil.setEnabled(markupItem, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getSelectedTableCellShapes().size() > 0);
+		
+		SWTUtil.setEnabled(mergeShapes, isEditingEnabled && notNullAndEditable && canvasWidget.getCanvas().getScene().getNSelected() > 1);
 		SWTUtil.setEnabled(simplifyEpsItem, isEditingEnabled && notNullAndEditable);
 		SWTUtil.setEnabled(undo, isEditingEnabled);
 
@@ -1083,5 +1114,9 @@ public class CanvasToolBarNew {
 	public Object getCanvasHelpItem() {
 		return canvasHelpItem;
 	}
+	
+//	public TableToolBox getBorderMarkBox() {
+//		return markupBox;
+//	}
 
 }

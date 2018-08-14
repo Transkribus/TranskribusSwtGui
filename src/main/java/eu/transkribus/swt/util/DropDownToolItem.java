@@ -125,18 +125,19 @@ public class DropDownToolItem extends Widget {
 
 		}
 
-		public MenuItem add(String item, Image image, String toolTipText, int itemStyle, boolean isSelected, Object data) {
+		public MenuItem add(String text, Image image, String toolTipText, int itemStyle, boolean isSelected, Object data) {
 			MenuItem menuItem = new MenuItem(menu, itemStyle);
 						
 //			MenuItem menuItem = new MenuItem(menu, SWT.CHECK);
 			menuItem.setData("tooltip", toolTipText);
-			menuItem.setText(item);
+			menuItem.setData("text", text);
+			menuItem.setText(text);
 			if (image != null){
 				menuItem.setImage(image);
 			}
 //			menuItem.setSelection(false);
 			menuItem.setSelection(isSelected);
-			menuItem.setData(data);
+			menuItem.setData("data", data);
 			
 			menuItem.addSelectionListener(new SelectionAdapter() {
 				@Override

@@ -1,9 +1,11 @@
 package eu.transkribus.swt_gui.mainwidget;
 
 import java.awt.Desktop;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -116,6 +118,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -134,9 +137,9 @@ import eu.transkribus.core.model.builder.txt.TrpTxtBuilder;
 import eu.transkribus.core.program_updater.ProgramPackageFile;
 import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -182,6 +185,7 @@ import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
+import eu.transkribus.swt_gui.dialogs.JavaVersionDialog;
 import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
@@ -283,6 +287,7 @@ public class TrpMainWidget {
 	VersionsDiffBrowserDialog browserDiag;
 	BugDialog bugDialog;
 	ChangeLogDialog changelogDialog;
+	JavaVersionDialog javaVersionDialog;
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
@@ -1586,7 +1591,8 @@ public class TrpMainWidget {
 		
 	}
 
-	public void updateSegmentationEditStatus() {
+	public void updateSegmentationEditStatus() {	
+		
 		boolean isEditOn = getCanvas().getSettings().isEditingEnabled();
 
 		// ui.getUpdateIDsItem().setEnabled(isEditOn);
@@ -1595,6 +1601,9 @@ public class TrpMainWidget {
 		}
 
 		// updateAddShapeActionButton();
+		
+		//update visibility of edit buttons
+		ui.getCanvasWidget().getToolbar().updateButtonVisibility();
 		ui.redraw();
 	}
 
@@ -1780,7 +1789,8 @@ public class TrpMainWidget {
 	public void updatePageLock() {
 		if (storage.isPageLocked() != isPageLocked) { // page locking changed
 			isPageLocked = storage.isPageLocked();
-			TrpConfig.getCanvasSettings().setEditingEnabled(!isPageLocked);
+			boolean canTranscribe = Storage.getInstance().getRoleOfUserInCurrentCollection().canTranscribe();
+			TrpConfig.getCanvasSettings().setEditingEnabled(!isPageLocked && canTranscribe);
 
 			SWTUtil.setEnabled(ui.getCanvasWidget().getEditingEnabledToolItem(), !isPageLocked);
 			
@@ -1938,6 +1948,8 @@ public class TrpMainWidget {
 		getTreeListener().detach();
 		ui.getStructureTreeViewer().setSelection(sel, true);
 		getTreeListener().attach();
+		
+		ui.getStructuralMetadataWidget().getStructTagListWidget().updateTreeSelectionFromCanvas(selData);
 	}
 
 	// public void updateDocMetadata() {
@@ -1975,6 +1987,7 @@ public class TrpMainWidget {
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
+						logger.debug("Runnable reloads page with index = " + (storage.getPageIndex() + 1));
 						monitor.beginTask("Loading page " + (storage.getPageIndex() + 1), IProgressMonitor.UNKNOWN);
 						storage.reloadCurrentPage(colId, fileType);
 					} catch (Exception e) {
@@ -2156,6 +2169,7 @@ public class TrpMainWidget {
 			logger.debug("shape is null!");
 			return;
 		}
+		
 		canvas.focusShape(s);
 		
 		ITrpShapeType st = canvas.getFirstSelectedSt();
@@ -2163,6 +2177,9 @@ public class TrpMainWidget {
 		if (l.t == null) {
 			logger.debug("location has no tag specified!");
 			return;
+		} else {
+			// reinforce focus on canvas
+			canvas.focusShape(s, true);
 		}
 		if (st == null) {
 			logger.warn("shape type could not be retrieved - should not happen here!");
@@ -2254,6 +2271,9 @@ public class TrpMainWidget {
 //	}
 
 	public void updateToolBars() {
+		//boolean canManage = Storage.getInstance().getRoleOfUserInCurrentCollection().canManage();
+		boolean canTranscribe = Storage.getInstance().getRoleOfUserInCurrentCollection().canTranscribe();
+		
 		boolean isDocLoaded = storage.isDocLoaded();
 		int nNPages = storage.getNPages();
 		boolean isPageLocked = storage.isPageLocked();
@@ -2269,17 +2289,19 @@ public class TrpMainWidget {
 		SWTUtil.setEnabled(ui.getCloseDocBtn(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getSaveDropDown(), isDocLoaded);
 		if (ui.saveOptionsToolItem != null)
-			SWTUtil.setEnabled(ui.saveOptionsToolItem.getToolItem(), isDocLoaded);
+			SWTUtil.setEnabled(ui.saveOptionsToolItem.getToolItem(), isDocLoaded&&canTranscribe);
 
 		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);
-		SWTUtil.setEnabled(ui.getStatusCombo(), isDocLoaded);
+		SWTUtil.setEnabled(ui.getStatusCombo(), isDocLoaded&&canTranscribe);
+		SWTUtil.setEnabled(ui.getExportDocumentButton(), isDocLoaded&&canTranscribe);
 		
 		if (Storage.getInstance().getTranscript() != null && Storage.getInstance().getTranscript().getMd() != null){
 			ui.getStatusCombo().setText(Storage.getInstance().getTranscript().getMd().getStatus().getStr());
 		}
 		
 		ui.updateToolBarSize();
+		
 	}
 
 	public void loginAsTestUser() {
@@ -2510,6 +2532,7 @@ public class TrpMainWidget {
 		return false;
 		
 	}
+	
 
 	public static void show() {
 		ProgramInfo info = new ProgramInfo();
@@ -2583,6 +2606,7 @@ public class TrpMainWidget {
 					
 					
 					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
+					mw.openJavaVersionDialog();
 					
 					// while((Display.getCurrent().getShells().length != 0)
 					// && !Display.getCurrent().getShells()[0].isDisposed()) {
@@ -3239,7 +3263,10 @@ public class TrpMainWidget {
 			boolean doPdfExport = false;
 			boolean doDocxExport = false;
 			boolean doTxtExport = false;
-			boolean doTeiExport = false;
+			/*
+			 * tei export only available as server export because it is implemented as xslt transformation page -> tei
+			 */
+			//boolean doTeiExport = false;
 			boolean doXlsxExport = false;
 			boolean doTableExport = false;
 
@@ -3251,8 +3278,8 @@ public class TrpMainWidget {
 			String pdfExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".pdf";
 			File pdfExportFile = new File(pdfExportFileOrDir);
 
-			String teiExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + "_tei.xml";
-			File teiExportFile = new File(teiExportFileOrDir);
+//			String teiExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + "_tei.xml";
+//			File teiExportFile = new File(teiExportFileOrDir);
 
 			String docxExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".docx";
 			File docxExportFile = new File(docxExportFileOrDir);
@@ -3277,7 +3304,7 @@ public class TrpMainWidget {
 
 				doPdfExport = (exportDiag.isPdfExport() && exportDiag.getExportPathComp().checkExportFile(pdfExportFile, ".pdf", getShell()));
 
-				doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
+				//doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
 
 				doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
 				
@@ -3295,7 +3322,7 @@ public class TrpMainWidget {
 				//logger.debug("temp dir is ..." + tempDir);
 			}
 
-			if (!doMetsExport && !doPdfExport && !doTeiExport && !doDocxExport && !doTxtExport && !doXlsxExport && !doZipExport && !doTableExport) {
+			if (!doMetsExport && !doPdfExport && !doDocxExport && !doTxtExport && !doXlsxExport && !doZipExport && !doTableExport) {
 				/*
 				 * if the export file exists and the user wants not to overwrite it then the 
 				 * export dialog shows up again with the possibility to choose another location
@@ -3394,7 +3421,7 @@ public class TrpMainWidget {
 							exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
-							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont());
+							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont(), pdfPars.getPdfImgQuality());
 				if (exportDiag.isTeiExport())
 					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag, cache);
 				if (exportDiag.isDocxExport())
@@ -3467,7 +3494,7 @@ public class TrpMainWidget {
 			if (doPdfExport) {
 
 				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), 
-						exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont());
+						exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont(), pdfPars.getPdfImgQuality());
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -3475,15 +3502,15 @@ public class TrpMainWidget {
 
 			}
 
-			if (doTeiExport) {
-
-				exportTei(teiExportFile, exportDiag, cache);
-				if (exportFormats != "") {
-					exportFormats += " and ";
-				}
-				exportFormats += "TEI";
-
-			}
+//			if (doTeiExport) {
+//
+//				exportTei(teiExportFile, exportDiag, cache);
+//				if (exportFormats != "") {
+//					exportFormats += " and ";
+//				}
+//				exportFormats += "TEI";
+//
+//			}
 
 			if (doDocxExport) {
 
@@ -3841,7 +3868,7 @@ public class TrpMainWidget {
 	// }
 
 	public void exportPdf(final File dir, final Set<Integer> pageIndices, final boolean extraTextPages, final boolean imagesOnly,
-			final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle, ExportCache cache, final String exportFontname)
+			final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle, ExportCache cache, final String exportFontname, final ImgType imgType)
 			throws Throwable {
 		try {
 			if (dir == null)
@@ -3857,8 +3884,7 @@ public class TrpMainWidget {
 			ProgressBarDialog.open(shell, new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, cache.getSelectedTags(), highlightTags, wordBased, doBlackening,
-								createTitle, cache, exportFontname);
+						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, cache.getSelectedTags(), highlightTags, wordBased, doBlackening, createTitle, cache, exportFontname, imgType);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
@@ -4131,8 +4157,6 @@ public class TrpMainWidget {
 		if (!storage.hasTranscript())
 			return;
 
-		JAXBPageTranscript tr = storage.getTranscript();
-
 		logger.debug("applying reading order according to coordinates");
 		IStructuredSelection sel = (IStructuredSelection) ui.getStructureTreeViewer().getSelection();
 		Iterator<?> it = sel.iterator();
@@ -4140,13 +4164,18 @@ public class TrpMainWidget {
 			Object o = it.next();
 			if (o instanceof TrpPageType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpPageType) o).getTextRegionOrImageRegionOrLineDrawingRegion(), false,
-						deleteReadingOrder, recursive);
+						true, recursive);
 			} else if (o instanceof TrpTextRegionType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextRegionType) o).getTrpTextLine(), false, deleteReadingOrder, recursive);
 			} else if (o instanceof TrpTextLineType) {
 				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTextLineType) o).getTrpWord(), false, deleteReadingOrder, recursive);
+			} else if (o instanceof TrpTableRegionType) {
+				TrpShapeTypeUtils.applyReadingOrderFromCoordinates(((TrpTableRegionType) o).getTrpTableCell(), false, true, recursive);
 			}
 		}
+
+		JAXBPageTranscript tr = storage.getTranscript();
+
 		tr.getPage().sortContent();
 		ui.getStructureTreeViewer().refresh();
 	}
@@ -4170,7 +4199,7 @@ public class TrpMainWidget {
 		String fileType = "view";
 		MenuItem mi = getCanvasWidget().getToolbar().getImageVersionDropdown().getSelected();
 		if (mi != null) {
-			fileType = (String) mi.getData();
+			fileType = (String) mi.getData("data");
 		}
 		
 		return fileType;
@@ -4298,6 +4327,7 @@ public class TrpMainWidget {
 	public SearchDialog getSearchDialog(){
 		return searchDiag;
 	}
+
 
 //	//update visibility of reading order
 //	public void updateReadingOrderVisibility() {
@@ -4470,7 +4500,7 @@ public class TrpMainWidget {
 			File profileFile = null;
 			try {
 				profileFile = TrpConfig.saveProfile(profileName, false);
-				ui.updateProfiles();
+				ui.updateProfiles(true);
 			} catch (FileExistsException e) {
 				if (DialogUtil.showYesNoDialog(getShell(), "Profile already exists!", "Do want to overwrite the existing one?") == SWT.YES) {
 					profileFile = TrpConfig.saveProfile(profileName, true);
@@ -4525,6 +4555,7 @@ public class TrpMainWidget {
 		} catch (Throwable e) {
 			onError("Error", "Error during batch replace of images", e);
 		}
+		updateThumbs();
 	}
 	
 	public void insertTextOnSelectedTranscriptionWidget(Character c) {
@@ -4635,6 +4666,7 @@ public class TrpMainWidget {
 			browserDiag.open();
 		}
 	}
+	
 		
 	public void openVersionsDialog() {
 		logger.debug("opening versions dialog");
@@ -4699,6 +4731,42 @@ public class TrpMainWidget {
 			getTrpSets().setShowChangeLog(changelogDialog.isShowOnStartup());
 		}
 
+	}
+	
+public void openJavaVersionDialog() {
+		
+		String javaArch = System.getProperty("sun.arch.data.model");
+		String version = System.getProperty("java.version");
+		String fileEnc = System.getProperty("file.encoding");
+		
+		if (SysUtils.isWin()) {
+			String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+			String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+
+			String realArch = arch != null && arch.endsWith("64")
+			                  || wow64Arch != null && wow64Arch.endsWith("64")
+			                      ? "64" : "32";
+			if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
+				javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
+				javaVersionDialog.open();
+			}
+		}
+		if(SysUtils.isLinux()) {
+			String realArch;
+			Process p;
+			try {
+				p = Runtime.getRuntime().exec("lscpu");
+				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));	
+				realArch = br.readLine().contains("64") ? "64" : "32" ;
+				logger.debug("line : "+realArch);
+				if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
+					javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
+					javaVersionDialog.open();
+				}
+				
+			}catch (Exception e) {}
+		}
+	
 	}
 	
 	public void openPAGEXmlViewer() {
@@ -5747,10 +5815,12 @@ public class TrpMainWidget {
 //		TextTypeSimpleType struct = EnumUtils.fromValue(TextTypeSimpleType.class, mw.getRegionTypeCombo().getText());
 //		String struct = mw.getStructureType();	
 		for (ICanvasShape sel : selected) {
-			logger.debug("updating struct type for " + sel+" type = "+structType);
 			ITrpShapeType st = GuiUtil.getTrpShape(sel);
+			logger.debug("updating struct type for " + sel+" type = "+structType+", TrpShapeType = "+st);
 			
-			st.setStructure(structType, recursive, mw);
+			if (st != null) {
+				st.setStructure(structType, recursive, mw);
+			}
 		}
 		
 		refreshStructureView();

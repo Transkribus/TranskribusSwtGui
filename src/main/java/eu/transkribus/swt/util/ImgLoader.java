@@ -13,13 +13,21 @@ import org.apache.commons.io.IOUtils;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Transform;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.MetadataException;
+import com.drew.metadata.exif.ExifIFD0Directory;
 
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
@@ -30,24 +38,124 @@ public class ImgLoader {
 	static Image ERROR_IMG = Images.getOrLoad("/icons/broken_image.png");
 	
 	public static boolean TRY_LOAD_IMAGES_WITH_JFACE_FIRST = true;
-	public static boolean LOAD_LOCAL_IMAGES_WITH_JAI = true;
+	public static boolean LOAD_LOCAL_IMAGES_WITH_JAI = false;
+	
+	public static int readExifOrientation(URL url) throws ImageProcessingException, IOException, MetadataException {
+		Metadata metadata = ImageMetadataReader.readMetadata(url.openStream());
+		ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+        return exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+	}
+	
+	public static int readExifOrientation2(URL url) {
+		try {
+			return readExifOrientation(url);
+		}
+		catch (Exception e) {
+			//logger.error("Cannot read exif orientation field: "+e.getMessage()+" - returning -1");
+			return -1;
+		}
+	}
+	
+	/**
+	 * Fixes the orientation of the input image according to the given EXIF orientation tag.<br/>
+	 * <em>The original image is disposed if a transformation is performed!</em><br/>
+	 * @param img
+	 * @param url
+	 * @return
+	 */
+	public static Image fixOrientation(Image img, URL url) {
+		int orientation = readExifOrientation2(url);
+		if (orientation < 2 || orientation > 8) {
+			return img;
+		}
+		
+		logger.debug("fixing exif image orientation, value of orientation tag = "+orientation);
+		
+		int origWidth = img.getImageData().width;
+		int origHeight = img.getImageData().height;
+		Transform t = new Transform(img.getDevice());
+		
+		int returnWidth = origWidth;
+		int returnHeight = origHeight;
+		
+	    switch (orientation) {
+		    case 2: // Flip X
+		    	t.scale(-1.0f, 1.0f);
+		        t.translate(-origWidth, 0);
+		        break;
+		    case 3: // PI rotation 
+		        t.translate(origWidth, origHeight);
+		        t.rotate(180);
+		        break;
+		    case 4: // Flip Y
+		        t.scale(1.0f, -1.0f);
+		        t.translate(0, -origHeight);
+		        break;
+		    case 5: // - PI/2 and Flip X
+		    	returnWidth = origHeight;
+				returnHeight = origWidth;    	
+		        t.rotate(-90);
+		        t.scale(-1.0f, 1.0f);
+		        break;
+		    case 6: // -PI/2 and -width
+		    	logger.debug("rotating img clockwise 90°");
+		    	returnWidth = origHeight;
+				returnHeight = origWidth;
+		    	t.translate(origHeight, 0);
+		    	t.rotate(90.0f);
+		        break;
+		    case 7: // PI/2 and Flip
+		    	returnWidth = origHeight;
+				returnHeight = origWidth;
+		        t.scale(-1.0f, 1.0f);
+		        t.translate(-origHeight, 0);
+		        t.translate(0, origWidth);
+		        t.rotate(270.0f);
+		        break;
+		    case 8: // PI / 2
+		    	returnWidth = origHeight;
+				returnHeight = origWidth;	    	
+		        t.translate(0, origWidth);
+		        t.rotate(270.0f);
+		        break;
+	    }
+	    
+    	Image returnImg = new Image(img.getDevice(), returnWidth, returnHeight);
+    	GC gc = new GC(returnImg);
+    	gc.setTransform(t);
+    	gc.drawImage(img, 0, 0);
+    	img.dispose();
+    	t.dispose();
+    	gc.dispose();
+
+	    return returnImg;
+	}
 	
 	public static Image load(URL url) throws IOException {
 		String prot = url.getProtocol() == null ? "" : url.getProtocol();
 		boolean isLocal = prot.startsWith("file");
 
-		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST && !(isLocal && LOAD_LOCAL_IMAGES_WITH_JAI)) {
+		Image img=null;
+		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST || !(isLocal && LOAD_LOCAL_IMAGES_WITH_JAI)) {
 			try {
 				logger.trace("loading image with jface");
-				return loadWithSWTDownloadFirst(url);
+				img = loadWithSWTDownloadFirst(url);
 			} catch (Exception e) {
 				logger.warn("Error loading image with JFace - now trying to load with JAI (slower due to the awt->swt-image conversion process!, url: "+url);
-				return loadWithJAI(url);
+				img = loadWithJAI(url);
 			}
 		} else {
 			logger.debug("loading image with jai");
-			return loadWithJAI(url);
+			img = loadWithJAI(url);
 		}
+		
+		/*
+		 * no fixOrientation because of https://github.com/Transkribus/TranskribusSwtGui/issues/208
+		 * -> mismatch of image on server and image represented in GUI 
+		 * -> tools use image as it is on server (do not use exif data)
+		 */
+		//img = fixOrientation(img, url);
+		return img;
 	}
 	
 	/**

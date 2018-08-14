@@ -59,7 +59,7 @@ public class TrpMenuBar {
 	MenuItem addPageMenuItem;
 	
 	CascadeMenu collMenu;
-	MenuItem manageCollectionsItem;
+	//MenuItem manageCollectionsItem;
 	MenuItem userActivityItem;
 		
 	CascadeMenu languageMenu;
@@ -92,7 +92,7 @@ public class TrpMenuBar {
 //	MenuItem loadTestsetMenuItem;
 	
 	MenuItem installMenuItem;
-	MenuItem tipsOfTheDayMenuItem;
+//	MenuItem tipsOfTheDayMenuItem;
 	MenuItem bugReportItem;
 	
 
@@ -142,7 +142,7 @@ public class TrpMenuBar {
 		syncWordsWithLinesMenuItem = createItem(fileMenu.m, SWT.NONE, null, "Sync word transcription with text in lines");
 		
 		collMenu = createCascadeMenu(menuBar, null, "&Collections");
-		manageCollectionsItem = createItem(collMenu.m, SWT.NONE, null, "Manage...");
+		//manageCollectionsItem = createItem(collMenu.m, SWT.NONE, null, "Manage...");
 		userActivityItem = createItem(collMenu.m, SWT.NONE, null, "Show user activity...");
 		
 		// VIEW menu
@@ -161,7 +161,7 @@ public class TrpMenuBar {
 		showWordsMenuItem = createItem(segmentationMenu.m, SWT.CHECK, null, "Show words");
 		showPrintspaceMenuItem = createItem(segmentationMenu.m, SWT.CHECK, null, "Show printspace");
 		
-		tipsOfTheDayMenuItem = createItem(viewMenu.m, SWT.PUSH, null, "Show tips of the day...");
+//		tipsOfTheDayMenuItem = createItem(viewMenu.m, SWT.PUSH, null, "Show tips of the day...");
 
 		// HELP MENU:
 //		mntmhelp = new MenuItem(menuBar, SWT.CASCADE);
@@ -208,9 +208,9 @@ public class TrpMenuBar {
 		return openLocalPageFileItem;
 	}
 		
-	public MenuItem getManageCollectionsMenuItem() {
-		return manageCollectionsItem;
-	}
+//	public MenuItem getManageCollectionsMenuItem() {
+//		return manageCollectionsItem;
+//	}
 	
 	public MenuItem getSyncWordsWithLinesMenuItem() {
 		return syncWordsWithLinesMenuItem;
@@ -247,7 +247,7 @@ public class TrpMenuBar {
 	
 	public MenuItem getUpdateMenuItem() { return updateMenuItem; }
 	public MenuItem getInstallMenuItem() { return installMenuItem; }
-	public MenuItem getTipsOfTheDayMenuItem() { return tipsOfTheDayMenuItem; }
+//	public MenuItem getTipsOfTheDayMenuItem() { return tipsOfTheDayMenuItem; }
 	public MenuItem getBugReportItem() { return bugReportItem; }
 
 //	public MenuItem getLoadTestsetMenuItem() {
@@ -264,6 +264,12 @@ public class TrpMenuBar {
 
 	public MenuItem getReplaceImageItem() {
 		return replaceImageItem;
+	}
+	
+	public void updateVisibility(boolean canManage){
+		docsMenu.mi.setEnabled(canManage);
+		collMenu.mi.setEnabled(canManage);
+		fileMenu.mi.setEnabled(canManage);
 	}
 
 //	public void showAll(boolean value) {

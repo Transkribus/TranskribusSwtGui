@@ -85,6 +85,7 @@ import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
@@ -92,6 +93,7 @@ import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageTypeUtils;
@@ -1082,7 +1084,9 @@ public class Storage {
 					
 		logger.debug("Loading image from url: " + urlStr);
 		final boolean FORCE_RELOAD = false;
-		currentImg = imCache.getOrPut(new URL(urlStr), true, fileType, FORCE_RELOAD);
+		
+		// always reload original image if asked for it
+		currentImg = imCache.getOrPut(new URL(urlStr), true, fileType, (fileType == "orig") || FORCE_RELOAD);
 		logger.trace("loaded image!");
 		
 		setCurrentImageMetadata();
@@ -1256,6 +1260,9 @@ public class Storage {
 		}
 		// TEST:
 		// isPageLocked = true;
+		
+		// add foreign tags from this transcript:
+		addForeignStructTagSpecsFromTranscript();
 
 		sendEvent(new TranscriptLoadEvent(this, doc, page, transcript));
 		logger.debug("loaded JAXB, regions: " + getNTextRegions());
@@ -1739,28 +1746,9 @@ public class Storage {
 		return conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
 	}
 	
-	/**
-	 * @deprecated old batch method
-	 */
-	@Deprecated
-	private String analyzeLayoutOld(int colId, int docId, String pageStr, boolean doBlockSeg, boolean doLineSeg) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.analyzeLayoutBatch(colId, docId, pageStr, doBlockSeg, doLineSeg);
-	}
-	
 	public String runOcr(int colId, int docId, String pageStr, OcrConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
 		return conn.runOcr(colId, docId, pageStr, config.getTypeFace(), config.getLanguageString());
-	}
-	
-	public String runHtrOnPage(int colId, int docId, int pageNr, String model) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.runHtr(colId, docId, pageNr, model);
-	}
-	
-	public String runHtr(int colId, int docId, String pageStr, String model) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.runHtr(colId, docId, pageStr, model);
 	}
 
 	public void deleteDocument(int colId, int docId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
@@ -1839,7 +1827,7 @@ public class Storage {
 		return path;
 	}
 
-	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, final boolean imagesOnly, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle, ExportCache cache, String exportFontname) throws MalformedURLException, DocumentException,
+	public String exportPdf(File pdf, Set<Integer> pageIndices, final IProgressMonitor monitor, final boolean extraTextPages, final boolean imagesOnly, Set<String> selectedTags, final boolean highlightTags, final boolean wordBased, final boolean doBlackening, boolean createTitle, ExportCache cache, String exportFontname, ImgType imgType) throws MalformedURLException, DocumentException,
 			IOException, JAXBException, InterruptedException, Exception {
 		if (!isDocLoaded())
 			throw new Exception("No document is loaded!");
@@ -1877,7 +1865,7 @@ public class Storage {
 		};
 		pdfExp.addObserver(o);
 		
-		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, wordBased, extraTextPages, imagesOnly, highlightTags, doBlackening, createTitle, cache, exportFontname);
+		pdf = pdfExp.export(doc, pdf.getAbsolutePath(), pageIndices, wordBased, extraTextPages, imagesOnly, highlightTags, doBlackening, createTitle, cache, exportFontname, imgType);
 
 		return pdf.getAbsolutePath();
 	}
@@ -2518,7 +2506,7 @@ public class Storage {
 		CustomTagSpecUtil.writeCustomTagSpecsToSettings(customTagSpecs);
 	}
 	
-	private void storeStructCustomTagSpecsForCurrentCollection() {
+	public void storeStructCustomTagSpecsForCurrentCollection() {
 		logger.debug("updating struct custom tag specs for local mode, structCustomTagSpecs: "+structCustomTagSpecs);
 		CustomTagSpecUtil.writeStructCustomTagSpecsToSettings(structCustomTagSpecs);
 	}
@@ -2575,6 +2563,27 @@ public class Storage {
 		sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
 	}
 	
+	private void addForeignStructTagSpecsFromTranscript() {
+		if (transcript != null) {
+			int sizeBefore = structCustomTagSpecs.size();
+			for (ITrpShapeType st : transcript.getPage().getAllShapes(true)) {
+				String structType = CustomTagUtil.getStructure(st);	
+				if (!StringUtils.isEmpty(structType)) {
+					StructCustomTagSpec spec = getStructCustomTagSpec(structType);
+					if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
+						spec = new StructCustomTagSpec(new StructureTag(structType), getNewStructCustomTagColor());
+						logger.debug("adding foreing page from transcript: "+spec);
+						structCustomTagSpecs.add(spec);
+					}
+				}
+			}
+			if (sizeBefore != structCustomTagSpecs.size()) {
+				logger.debug("added "+(structCustomTagSpecs.size()-sizeBefore)+" foreign tags!");
+				sendEvent(new StructTagSpecsChangedEvent(this, structCustomTagSpecs));
+			}
+		}
+	}
+	
 	public void restoreDefaultStructCustomTagSpecs() {
 		structCustomTagSpecs.clear();
 		structCustomTagSpecs.addAll(getDefaultStructCustomTagSpecs());
@@ -2601,8 +2610,16 @@ public class Storage {
 		return specs;
 	}
 	
+	public boolean hasStructCustomTagSpec(String type) {
+		return getStructCustomTagSpec(type) != null;
+	}
+	
+	public StructCustomTagSpec getStructCustomTagSpec(String type) {
+		return structCustomTagSpecs.stream().filter(c1 -> c1.getCustomTag().getType().equals(type)).findFirst().orElse(null);
+	}
+	
 	public Color getStructureTypeColor(String type) {
-		StructCustomTagSpec c = structCustomTagSpecs.stream().filter(c1 -> c1.getCustomTag().getType().equals(type)).findFirst().orElse(null);
+		StructCustomTagSpec c = getStructCustomTagSpec(type);
 		if (c!=null && c.getRGB()!=null) {
 			return Colors.createColor(c.getRGB());
 		}

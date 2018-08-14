@@ -8,7 +8,6 @@
     <format>zip</format>
   </formats>
   <fileSets>
-  
 	<!-- Files from the build directory -->
     <fileSet>
       <directory>${project.build.directory}</directory>

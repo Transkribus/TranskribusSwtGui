@@ -29,7 +29,7 @@ public class CanvasSettingsPropertyChangeListener implements PropertyChangeListe
 	public void propertyChange(PropertyChangeEvent evt) {
 		String pn = evt.getPropertyName();
 		logger.debug("property changed: " + pn);
-
+		
 		if (pn.equals(CanvasSettings.EDITING_ENABLED_PROPERTY)) {
 			mainWidget.updateSegmentationEditStatus();
 		} else if (pn.equals(CanvasSettings.MODE_PROPERTY)) {

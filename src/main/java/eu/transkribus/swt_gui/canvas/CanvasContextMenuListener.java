@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.canvas;
 
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,7 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 
 public class CanvasContextMenuListener implements ICanvasContextMenuListener {
@@ -50,15 +52,31 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 				+ "To merge table cells select them and click on the merge tool\n"
 				+ "ctrl + move table cell -> move table row\n"
 				+ "ctrl + alt + moving table cell -> move table column\n"
-				+ "ctrl + move table cell border -> move table row / cell border \n";
+				+ "ctrl + move table cell border -> move table row / cell border \n"
+				+ "ctrl + applying border type -> keep existing border type \n";
 				
 		DialogUtil.showMessageDialog(mw.getShell(), "Table help", shortCuts, Images.HELP, MessageDialog.INFORMATION, 
 				new String[] {"OK"}, 0);
 	}
+	
+	public void handleTableBorderDialogEvent(TableBorderDialogEvent event) {
+		try {
+//			BorderFlags bf = canvas.getShapeEditor().retrieveExistingBordersForTableCells(canvas.getScene().getSelectedTableCellShapes());
+//			canvas.getTableMarkup().set(bf);
+			canvas.getTableMarkup().show();
+
+			
+		} catch (Throwable ex) {
+			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);
+		}
+		
+	}
 
 	public void handleTableBorderEditEvent(TableBorderEditEvent event) {
 		try {
-			canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, true);
+			canvas.getShapeEditor().applyBorderToSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, false, true);
+//			else 
+//				canvas.getShapeEditor().subtractBorderFromSelectedTableCells(canvas.getScene().getSelectedTableCellShapes(), event.borderFlags, true);
 			canvas.redraw();
 		} catch (Throwable ex) {
 			TrpMainWidget.getInstance().onError("Error", ex.getMessage(), ex);

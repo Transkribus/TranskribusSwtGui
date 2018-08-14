@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 
 public class KwsResultTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	private final static Logger logger = LoggerFactory.getLogger(KwsResultTableLabelProvider.class);
@@ -76,6 +77,25 @@ public class KwsResultTableLabelProvider implements ITableLabelProvider, ITableF
 			} else if (ct.equals(KwsResultTableWidget.KWS_QUERY_COL)) {
 				return res.getQuery();
 			}
+		}
+		if(element instanceof TrpErrorResultTableEntry) {
+			TrpErrorResultTableEntry res = (TrpErrorResultTableEntry) element;
+			
+			TableColumn column = table.getColumn(columnIndex);
+			String ct = column.getText();
+			
+			if (ct.equals(KwsResultTableWidget.KWS_CREATED_COL)) {
+				return CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(res.getCreated());
+			} else if (ct.equals(KwsResultTableWidget.KWS_STATUS_COL)) {
+				return res.getStatus();
+			} else if (ct.equals(KwsResultTableWidget.KWS_SCOPE_COL)) {
+				return res.getScope();
+			} else if (ct.equals(KwsResultTableWidget.KWS_DURATION_COL)) {
+				return res.getDuration();
+			} else if (ct.equals(KwsResultTableWidget.KWS_QUERY_COL)) {
+				return res.getQuery();
+			}
+			
 		}
 		return "i am error";
 	}

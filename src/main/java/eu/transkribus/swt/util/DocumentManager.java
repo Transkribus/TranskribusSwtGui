@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.ws.rs.ClientErrorException;
@@ -67,6 +68,7 @@ import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.io.UnsupportedFormatException;
+import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -96,6 +98,7 @@ public class DocumentManager extends Dialog {
 	protected Label pageNrLabel;
 	protected Label totalTranscriptsLabel;
 	protected Label totalWordTranscriptsLabel;
+	protected Label lastSaveAction;
 	
 	protected Label docLabel, collLabel;
 
@@ -122,6 +125,9 @@ public class DocumentManager extends Dialog {
 
 	private int colId;
 	private List<TrpDocMetadata> docList;
+	private boolean canManage = false;
+	
+	private HashMap<Integer,String> latestSavesMap = new HashMap<Integer,String>();
 
 	static int thread_counter = 0;
 
@@ -221,7 +227,7 @@ public class DocumentManager extends Dialog {
 		this.colId = colId;
 
 		this.mw = mw;
-
+		
 		// if (Storage.getInstance().getDoc() == null){
 		// return;
 		// }
@@ -243,29 +249,34 @@ public class DocumentManager extends Dialog {
 		Composite container = new Composite(shell, SWT.NONE);
 		GridLayout layout = new GridLayout(1, false);
 		container.setLayout(layout);
+		
 
 		SashForm sash = new SashForm(container, SWT.VERTICAL);
-		sash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		sash.setLayout(new GridLayout(2, false));
-
+		sash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
 		groupComposite = new Composite(sash, SWT.NONE);
 		GridLayout gl = new GridLayout(2, false);
 		gl.makeColumnsEqualWidth = true;
 		groupComposite.setLayout(gl);
-		GridData gridData = new GridData(GridData.FILL, GridData.BEGINNING, true, false);
+		GridData gridData = new GridData(GridData.FILL, GridData.BEGINNING, true, true);
 		groupComposite.setLayoutData(gridData);
 
 		labelComposite = new Composite(groupComposite, SWT.NONE);
 		labelComposite.setLayout(new GridLayout(1, true));
-		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		labelComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		statisticLabel = new Label(labelComposite, SWT.TOP);
 		if (Storage.getInstance().getDoc() != null) {
 			statisticLabel.setText("Loaded Document is " + docMd.getTitle() + " with ID " + docMd.getDocId());
+			Storage store = Storage.getInstance();
+			if(store != null && store.getUser() != null && store.getUser().getRoleInCollection() != null){
+				canManage = (store.getRoleOfUserInCurrentCollection().canManage() || store.isAdminLoggedIn()) ? true : false;
+			}
 		} else {
 			statisticLabel.setText("Currently no document loaded in Transkribus");
 		}
-		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		editCombos = new Composite(groupComposite, SWT.NONE);
 		editCombos.setLayout(new GridLayout(2, true));
@@ -350,7 +361,7 @@ public class DocumentManager extends Dialog {
 			}
 		});
 
-		sash.setWeights(new int[] { 20, 80 });
+		sash.setWeights(new int[] { 25, 75 });
 
 		addListeners();
 
@@ -369,12 +380,12 @@ public class DocumentManager extends Dialog {
 		for (MenuItem i : items) {
 			i.dispose();
 		}
-
+		
 		switch (level) {
 		// document level
 		case 0:
 			// allow only for loaded document
-			if (((TrpDocMetadata) item.getData()).compareTo(Storage.getInstance().getDoc().getMd()) == 0) {
+			if (((TrpDocMetadata) item.getData()).compareTo(Storage.getInstance().getDoc().getMd()) == 0 && canManage) {
 				addMenuItems4BothLevels(menu);
 				addMenuItems4DocLevel(menu);
 
@@ -382,11 +393,16 @@ public class DocumentManager extends Dialog {
 			break;
 		case 1:
 			// allow only for loaded pages
-			if (((TrpPage) item.getData()).getDocId() == Storage.getInstance().getDoc().getId()) {
-				addMenuItems4BothLevels(menu);
-				addMenuItems4PageLevel(menu, EditStatus.getStatusListWithoutNew());
+//			logger.debug("Storage.getInstance().getUser().getRoleInCollection() " + Storage.getInstance().getUser().getRoleInCollection());
+//			logger.debug("store.isAdminLoggedIn() " + Storage.getInstance().isAdminLoggedIn());
+//			logger.debug("Storage.getInstance().getUser().getRoleInCollection().canManage() " + canManage);
+			if (canManage){
+				if (((TrpPage) item.getData()).getDocId() == Storage.getInstance().getDoc().getId()) {
+					addMenuItems4BothLevels(menu);
+					addMenuItems4PageLevel(menu, EditStatus.getStatusListWithoutNew());
+				}
+				addChooseImageMenuItems(menu);
 			}
-			addChooseImageMenuItems(menu);
 			break;
 		}
 	}
@@ -429,20 +445,22 @@ public class DocumentManager extends Dialog {
 		});
 
 	}
-
+	
 	private void addSymbolicDocImage() {
 		try {
 			for (TreeItem ti : tv.getTree().getSelection()) {
 
-				TrpPage p = (TrpPage) ti.getData();
-				if(p.getDocId() == docMd.getDocId()){
-					docMd.setPageId(p.getPageId());
-					
-					ti.getParentItem().setData(docMd);
-					Storage.getInstance().getConnection().updateDocMd(colId, docMd.getDocId(), docMd);
-					Storage.getInstance().reloadCurrentDocument(colId);
-				}
-				break;
+				if (ti.getData() instanceof TrpPage){
+					TrpPage p = (TrpPage) ti.getData();
+					if(p.getDocId() == docMd.getDocId()){
+						docMd.setPageId(p.getPageId());
+						
+						ti.getParentItem().setData(docMd);
+						Storage.getInstance().getConnection().updateDocMd(colId, docMd.getDocId(), docMd);
+						Storage.getInstance().reloadCurrentDocument(colId);
+					}
+					break;
+				}	
 			}
 		} catch (SessionExpiredException | IllegalArgumentException e) {
 			// TODO Auto-generated catch block
@@ -470,13 +488,14 @@ public class DocumentManager extends Dialog {
 	private void addSymbolicCollectionImage() {
 		try {
 			for (TreeItem ti : tv.getTree().getSelection()) {
-
-				TrpPage p = (TrpPage) ti.getData();
-				TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
-				colMd.setPageId(new Integer(p.getPageId()));
-				Storage.getInstance().getConnection().updateCollectionMd(colMd);
-				Storage.getInstance().reloadCollections();
-				break;
+				if (ti.getData() instanceof TrpPage){
+					TrpPage p = (TrpPage) ti.getData();
+					TrpCollection colMd = Storage.getInstance().getDoc().getCollection();
+					colMd.setPageId(new Integer(p.getPageId()));
+					Storage.getInstance().getConnection().updateCollectionMd(colMd);
+					Storage.getInstance().reloadCollections();
+					break;
+				}
 			}
 		} catch (SessionExpiredException | IllegalArgumentException | ServerErrorException | NoConnectionException e) {
 			// TODO Auto-generated catch block
@@ -529,6 +548,7 @@ public class DocumentManager extends Dialog {
 		tv = new TreeViewer(treeViewerCont, SWT.BORDER | SWT.MULTI);
 		contentProv = new CollectionContentProvider();
 		labelProv = new CollectionLabelProviderExtended();
+		
 		tv.setContentProvider(contentProv);
 		tv.setLabelProvider(labelProv);
 		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -576,6 +596,7 @@ public class DocumentManager extends Dialog {
 
 		});
 		
+		
 	
 		showDocumentImageBtn = new Button(buttonComp2, SWT.PUSH);
 		showDocumentImageBtn.setImage(Images.IMAGE);
@@ -605,6 +626,8 @@ public class DocumentManager extends Dialog {
 			}
 
 		});
+		
+		documentImageBtn.setEnabled(canManage);
 		
 		docLabel = new Label(buttonComp2, SWT.NONE);
 		docLabel.setLayoutData(new GridData(GridData.CENTER, GridData.CENTER, true, false));
@@ -662,6 +685,8 @@ public class DocumentManager extends Dialog {
 			}
 
 		});
+		
+		collectionImageBtn.setEnabled(canManage);
 
 		// buttonComp = new Composite(docSash2, SWT.NONE);
 		// buttonComp.setLayout(new GridLayout(1, false));
@@ -788,7 +813,7 @@ public class DocumentManager extends Dialog {
 				}
 				updateColors();
 				updateSymbolicImgLabels();
-				enableEdits(currDocId == Storage.getInstance().getDocId());
+				enableEdits(currDocId == Storage.getInstance().getDocId() && canManage);
 
 			}
 		});
@@ -799,6 +824,7 @@ public class DocumentManager extends Dialog {
 				Object o = ((IStructuredSelection) event.getSelection()).getFirstElement();
 				int currDocId = 0;
 				if (o instanceof TrpDocMetadata) {
+										
 					for (TreeItem i : tv.getTree().getItems()) {
 						if (i.getData().equals(o)) {
 							tv.setExpandedState(o, !i.getExpanded());
@@ -810,7 +836,7 @@ public class DocumentManager extends Dialog {
 					loc.docId = ((TrpDocMetadata) o).getDocId();
 					loc.pageNr = 1;
 					TrpMainWidget.getInstance().showLocation(loc);
-					currDocId = loc.docId;
+					currDocId = loc.docId;					
 					expandCurrentDocument();
 
 				} else if (o instanceof TrpPage) {
@@ -824,6 +850,9 @@ public class DocumentManager extends Dialog {
 
 				}
 				docMd = Storage.getInstance().getDoc().getMd();
+				//adfa
+				//contentProv.inputChanged(null, null, docList);
+				tv.refresh(true);
 				// enableEdits(currDocId == Storage.getInstance().getDocId());
 				updateColors();
 				updateSymbolicImgLabels();
@@ -835,7 +864,7 @@ public class DocumentManager extends Dialog {
 		tv.getTree().addListener(SWT.Expand, new Listener() {
 			public void handleEvent(Event e) {
 				updateColors();
-				enableEdits(true);
+				enableEdits(canManage);
 			}
 		});
 
@@ -1363,7 +1392,7 @@ public class DocumentManager extends Dialog {
 
 	private String getPagesString() {
 		String pages = "";
-
+	
 		IStructuredSelection treeSelection = (IStructuredSelection) tv.getSelection();
 		Iterator it = treeSelection.iterator();
 		/*
@@ -1474,8 +1503,12 @@ public class DocumentManager extends Dialog {
 		// if (Storage.getInstance().getDoc() == null){
 		// return;
 		// }
+		Storage store = Storage.getInstance();
+		if(store != null && store.getUser() != null && store.getUser().getRoleInCollection() != null){
+			canManage = (store.getRoleOfUserInCurrentCollection().canManage() || store.isAdminLoggedIn()) ? true : false;
+		}
 
-		docList = Storage.getInstance().getDocList();
+		docList = store.getDocList();
 		tv.setInput(docList);
 		
 		addStatisticalNumbers();
@@ -1484,6 +1517,9 @@ public class DocumentManager extends Dialog {
 		
 		updateSymbolicImgLabels();
 		updateColors();
+
+		documentImageBtn.setEnabled(canManage);
+		showDocumentImageBtn.setEnabled(canManage);
 		
 		tv.refresh(true);
 
@@ -1491,13 +1527,16 @@ public class DocumentManager extends Dialog {
 	}
 
 	private void addStatisticalNumbers() {
-
+		
 		Storage storage = Storage.getInstance();
 		TrpDoc doc = storage.getDoc();
-
+		
 		if (doc != null) {
 			if (statisticLabel != null && !statisticLabel.isDisposed()) {
 				statisticLabel.dispose();
+			}
+			if (lastSaveAction != null && !lastSaveAction.isDisposed()){
+				lastSaveAction.dispose();
 			}
 			if (pageNrLabel != null && !pageNrLabel.isDisposed()) {
 				pageNrLabel.dispose();
@@ -1512,7 +1551,27 @@ public class DocumentManager extends Dialog {
 			statisticLabel = new Label(labelComposite, SWT.TOP);
 			statisticLabel
 					.setText("Loaded Document is " + doc.getMd().getTitle() + " with ID " + doc.getMd().getDocId());
-			statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+			//statisticLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			
+			/*
+			 * get all save actions for the loaded doc - the first on is the latest and is shown in the doc statistics
+			 * all other have to be parsed and we try to get the latest save for each page if any
+			 */
+			try {
+				List<TrpAction> actions = Storage.getInstance().getConnection().listActions(1, Storage.getInstance().getCollId(), Storage.getInstance().getDocId(), 1);
+				for (TrpAction action : actions){
+//					logger.debug("action time: " + action.getTime());
+//					logger.debug("action: " + action.getUserName());
+					lastSaveAction = new Label(labelComposite, SWT.TOP);
+					lastSaveAction.setText("<Last save: " + action.getTime() + " # page: " + action.getPageNr() + " # user: " + action.getUserName()+">");
+					lastSaveAction.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+					//lastSaveAction.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+					break;
+				}
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			int totalCollectionPages = 0;
 			int totalCollectionLines = 0;

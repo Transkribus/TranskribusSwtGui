@@ -107,6 +107,8 @@ public class CollectionSelectorWidget extends Composite implements Observer {
 		for (TrpCollection coll : storage.getCollections()) {
 			if (collectionPredicate==null || collectionPredicate.test(coll)) {
 				setSelectedCollection(coll);
+				//if a new collection is selected we want to handle that event in the ServerWidgetListener mainly to update the user permissions (visibility of buttons)
+				sendSelectionEvent(coll);
 				return;
 			}
 		}

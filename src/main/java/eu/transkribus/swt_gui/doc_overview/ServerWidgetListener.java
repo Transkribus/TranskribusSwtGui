@@ -280,7 +280,8 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 
 	@Override
 	public void handleEvent(Event event) {
-		if (event.type == SWT.Selection && event.widget == sw.collectionSelectorWidget) {
+		//logger.debug("event type : " +event.type + " event.widget is " + event.widget);
+		if (event.type == SWT.Selection && (event.widget == sw.collectionSelectorWidget || event.widget == sw)) {
 			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
 			Future<List<TrpDocMetadata>> docs = TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
 			try {
@@ -296,10 +297,13 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 				e.printStackTrace();
 			}
 			
-			//now: if the administrative center is open it gets refreshed with the data of the new collection
+			//now: if the document manager is open it gets refreshed with the data of the new collection
 			if (ac != null && !ac.getShell().isDisposed() && ac.getShell().isVisible()){
 				ac.totalReload(sw.getSelectedCollectionId());
 			}
+			
+			//last and least: the role of a user in this collection must be taken into account for visibility of buttons, tabs, tools,...
+			TrpMainWidget.getInstance().getUi().updateVisibility();
 		}
 	}
 

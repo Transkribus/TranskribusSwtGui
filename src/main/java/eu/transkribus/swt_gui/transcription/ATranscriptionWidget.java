@@ -2132,7 +2132,8 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void sendDefaultSelectionChangedSignal(boolean onlyIfChanged) {
 //		if (true) return;
 		
-    	if (!onlyIfChanged || !oldTextSelection.equals(text.getSelection())) {
+		// send event ONLY if changes occurred
+    	if (onlyIfChanged || !oldTextSelection.equals(text.getSelection())) {
     		logger.trace("sendDefaultSelectionChangedSignal, selection = "+text.getSelection()+ ", oldTextSelection = "+oldTextSelection);
     		
     		// update buttons:
@@ -2402,7 +2403,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		// init line and word objects:
 		if (line!=null)
 			logger.debug("updatedata, line = "+line.getId());
-		boolean lineChanged = initLineObject(line);
+ 		boolean lineChanged = initLineObject(line);
 		logger.debug("line changed = "+lineChanged);
 		boolean wordChanged = initWordObject(word);
 		

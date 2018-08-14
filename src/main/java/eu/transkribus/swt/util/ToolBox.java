@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -15,14 +14,11 @@ import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Widget;
 import org.junit.Assert;
@@ -35,7 +31,7 @@ public class ToolBox {
 		Widget triggerWidget;
 		
 		public TriggerWidgetListener(Widget triggerWidget) {
-			Assert.assertTrue("Only Button or ToolItem object supported!", triggerWidget instanceof Button || triggerWidget instanceof ToolItem);
+			Assert.assertTrue("Only Button, ToolItem or MenuItem object supported!", triggerWidget instanceof Button || triggerWidget instanceof ToolItem || triggerWidget instanceof MenuItem);
 
 			this.triggerWidget = triggerWidget;
 			
@@ -44,7 +40,10 @@ public class ToolBox {
 			}
 			else if (triggerWidget instanceof ToolItem) {
 				((ToolItem) triggerWidget).addSelectionListener(this);
-			}			
+			}	
+			else if (triggerWidget instanceof MenuItem) {
+				((MenuItem) triggerWidget).addSelectionListener(this);
+			}
 		}
 				
 		public boolean hasTriggerWidget() {
@@ -58,6 +57,9 @@ public class ToolBox {
 			else if (triggerWidget instanceof ToolItem) {
 				return ((ToolItem) triggerWidget).getBounds();
 			}
+			else if (triggerWidget instanceof MenuItem) {
+				return new Rectangle(0,0,0,0);
+			}
 			else {
 				return null;
 			}
@@ -69,6 +71,9 @@ public class ToolBox {
 			}
 			else if (triggerWidget instanceof ToolItem) {
 				return ((ToolItem) triggerWidget).getParent();
+			}
+			else if (triggerWidget instanceof MenuItem) {
+				return getShell();
 			}
 			else {
 				return null;
@@ -83,7 +88,11 @@ public class ToolBox {
 			else if (triggerWidget instanceof ToolItem) {
 				return ((ToolItem) triggerWidget).getSelection();
 			}
+			else if (triggerWidget instanceof MenuItem) {
+				return ((MenuItem) triggerWidget).getSelection();
+			}
 			else {
+				
 				return false;
 			}
 		}
@@ -96,11 +105,16 @@ public class ToolBox {
 			if (!isSelected()) {
 				hide();
 			} else {	
-				Rectangle rect = getTriggerWidgetBounds();
-				Composite c = getTriggerWidgetParent();
+				if (triggerWidget instanceof MenuItem) {
+					Point pt = shell.getLocation();
+					showAt(pt.x, pt.y);
+				} else {
+					Rectangle rect = getTriggerWidgetBounds();
+					Composite c = getTriggerWidgetParent();
 				
-				Point pt = c.toDisplay(new Point(rect.x, rect.y));
-				showAt(pt.x + rect.width, pt.y + rect.height);
+					Point pt = c.toDisplay(new Point(rect.x, rect.y));
+					showAt(pt.x + rect.width, pt.y + rect.height);
+				}
 			}
 		}
 
@@ -183,6 +197,9 @@ public class ToolBox {
 			else if (w instanceof ToolItem) {
 				((ToolItem) w).removeSelectionListener(twl);
 			}
+			else if (w instanceof MenuItem) {
+				((MenuItem) w).removeSelectionListener(twl);
+			}
 			
 			triggerWidgets.remove(w);
 		}
@@ -216,6 +233,10 @@ public class ToolBox {
 		}
 	}
 	
+	public void showAt() {
+		showAt(posX, posY);
+	}
+	
 	public void hide() {
 		shell.setLocation(posX, posY);
 		shell.setVisible(false);
@@ -229,62 +250,6 @@ public class ToolBox {
 		return shell;
 	}
 
-	public static void main(String[] args) {
-		
-		ApplicationWindow aw = new ApplicationWindow(null) {
-			@Override
-			protected Control createContents(Composite parent) {								
-				getShell().setSize(500, 200);
-				getShell().setLayout(new FillLayout());
-				
-				SWTUtil.centerShell(getShell());
-				
-				ToolBar tb = new ToolBar(getShell(), 0);
-				ToolItem ti = new ToolItem(tb, SWT.CHECK);
-				ti.setImage(Images.REFRESH);
-				
-				Button b = new Button(getShell(), SWT.CHECK);
-				b.setText("Press Me!");
-				
-				ToolBox box = new ToolBox(parent.getShell(), true, "toolbox...");
-				
-//				box.addButton("hello", Images.REFRESH, 0);
-//				box.addButton(null, Images.APPLICATION, 0);
-//				box.addButton("test", null, 0);
-				
-				box.addButton(null, Images.REFRESH, 0);
-				box.addButton(null, Images.APPLICATION, 0);
-				box.addButton(null, Images.ADD, 0);
-				
-				box.addTriggerWidget(b);
-				box.addTriggerWidget(ti);
-				
-				b.addSelectionListener(new SelectionListener() {
-					
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						DialogUtil.createCustomMessageDialog(getShell(), "asdfad", null, null, 0, null, 0, b);
-						
-					}
-					
-					@Override
-					public void widgetDefaultSelected(SelectionEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-				});
 
-				return parent;
-			}
-		};
-		aw.setBlockOnOpen(true);
-		aw.open();
-
-		Display.getCurrent().dispose();
-		
-		
-		
-		
-	}
 	
 }

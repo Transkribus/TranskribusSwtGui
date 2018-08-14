@@ -295,4 +295,8 @@ public class CanvasWidget extends Composite {
 	public ToolItem getEditingEnabledToolItem() {
 		return toolbar.editingEnabledToolItem;
 	}
+	
+	public ToolItem getTableBorderMarkupToolItem() {
+		return toolbar.getBorderMarkupDialog();
+	}
 }

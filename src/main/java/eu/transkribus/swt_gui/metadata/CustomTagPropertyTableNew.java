@@ -471,7 +471,7 @@ public class CustomTagPropertyTableNew extends Composite {
 		Class<?> t = selectedTag.getAttributeType(attName);
 		
 		logger.debug("cell editor, att = "+attName+" type = "+t);
-		if (t.equals(Boolean.class) || t.equals(boolean.class)) { // e.g. for boolean values in TextStyleTypeTag
+		if (t != null && (t.equals(Boolean.class) || t.equals(boolean.class))) { // e.g. for boolean values in TextStyleTypeTag
 			logger.trace("creating a checkbox!");
 			Button checkBox = new Button(table, SWT.CHECK);
 			checkBox.setSelection(value==null ? false : (boolean) value);
@@ -480,7 +480,7 @@ public class CustomTagPropertyTableNew extends Composite {
 			});
 			ctrl = checkBox;
 		}
-		else if (t.isEnum()) { // e.g. for colors in TextStyleTypeTag
+		else if (t != null && t.isEnum()) { // e.g. for colors in TextStyleTypeTag
 			logger.trace("creating a comboviewer!");
 			ComboViewer combo = new ComboViewer(table, SWT.READ_ONLY);
 			combo.setContentProvider(ArrayContentProvider.getInstance());

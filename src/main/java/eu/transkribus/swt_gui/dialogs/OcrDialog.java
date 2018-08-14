@@ -111,11 +111,7 @@ public class OcrDialog extends Dialog {
 		
 		langTab.addSelectionListener(new SelectionAdapter() {
 		    public void widgetSelected(SelectionEvent e) {
-//		        if( e.detail == SWT.CHECK ) {
-//		           
-//		        }
-		        TableItem item = ((TableItem)e.item);
-		        item.setChecked(!item.getChecked());
+
 		        updateLangStr();
 		    }
 		});
