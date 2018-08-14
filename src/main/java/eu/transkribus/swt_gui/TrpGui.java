@@ -92,8 +92,9 @@ public class TrpGui {
 		File swtJarFile = getLatestSWTJarFile();
 		logger.debug("SWT version is: "+stripSwtVersion(swtJarFile.getName()));
 		
-		logger.info("swt jar: "+swtJarFile.getName());
-		Utils.addJarToClasspath(swtJarFile);
+		// Java >= 9 does not allow this anymore #198
+//		logger.info("swt jar: "+swtJarFile.getName());
+//		Utils.addJarToClasspath(swtJarFile);
 		
 		TrpMainWidget.show();
 	}

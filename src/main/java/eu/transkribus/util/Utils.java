@@ -194,43 +194,44 @@ public class Utils {
 		return new Point(start, end);
 	}
 	
-	/**
-	 * New method. Doesn't what it should yet 
-	 * 
-	 * @param jarFile
-	 */
-	public static void addJarToClasspath(File jarFile) {
-		try {
-			URL url = jarFile.toURI().toURL();
-			URLClassLoader urlClassLoader = URLClassLoader.newInstance(new URL[]{url}, ClassLoader.getSystemClassLoader());
-			for(URL u : urlClassLoader.getURLs()) {
-				System.out.println("Added jar file to classpath: " + u);
-				
-			}
-			
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Not working on Java > v8
-	 * 
-	 * @param jarFile
-	 */
-	@Deprecated
-	public static void addJarToClasspath2(File jarFile) {
-		try {
-			URL url = jarFile.toURI().toURL();
-			URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-			Class<?> urlClass = URLClassLoader.class;
-			Method method = urlClass.getDeclaredMethod("addURL", new Class<?>[] { URL.class });
-			method.setAccessible(true);
-			method.invoke(urlClassLoader, new Object[] { url });
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
+	//Loading jars at runtime won't work with Java >= 9. #198
+//	/**
+//	 * New method. Doesn't what it should yet 
+//	 * 
+//	 * @param jarFile
+//	 */
+//	public static void addJarToClasspath(File jarFile) {
+//		try {
+//			URL url = jarFile.toURI().toURL();
+//			URLClassLoader urlClassLoader = URLClassLoader.newInstance(new URL[]{url}, ClassLoader.getSystemClassLoader());
+//			for(URL u : urlClassLoader.getURLs()) {
+//				System.out.println("Added jar file to classpath: " + u);
+//				
+//			}
+//			
+//		} catch (Throwable t) {
+//			t.printStackTrace();
+//		}
+//	}
+//	
+//	/**
+//	 * Not working on Java > v8
+//	 * 
+//	 * @param jarFile
+//	 */
+//	@Deprecated
+//	public static void addJarToClasspath2(File jarFile) {
+//		try {
+//			URL url = jarFile.toURI().toURL();
+//			URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+//			Class<?> urlClass = URLClassLoader.class;
+//			Method method = urlClass.getDeclaredMethod("addURL", new Class<?>[] { URL.class });
+//			method.setAccessible(true);
+//			method.invoke(urlClassLoader, new Object[] { url });
+//		} catch (Throwable t) {
+//			t.printStackTrace();
+//		}
+//	}
 	
 	public static List<Integer> parse3DIntVectors(String str) throws Exception {
 		String regex = "^[\\{\\(\\[]{0,1}" // optional opening brackets
