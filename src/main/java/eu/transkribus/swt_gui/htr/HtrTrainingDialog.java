@@ -60,6 +60,7 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
@@ -834,15 +835,15 @@ public class HtrTrainingDialog extends Dialog {
 		return c;
 	}
 	
-	private void setTrainAndTestDocsInHtrConfig(HtrTrainConfig config) throws IOException {
+	private void setTrainAndTestDocsInHtrConfig(HtrTrainConfig config, EditStatus status) throws IOException {
 		config.setColId(colId);
 		
 		if (ALLOW_SELECTION_METHOD_CHOICES && selectionMethodTabFolder.getSelection().equals(thumbNailTabItem)) {
 			config.setTrain(getSelectionFromThumbnailWidgetList(trainTwList));
 			config.setTest(getSelectionFromThumbnailWidgetList(testTwList));
 		} else {
-			config.setTrain(buildSelectionDescriptorList(trainDocMap));
-			config.setTest(buildSelectionDescriptorList(testDocMap));
+			config.setTrain(DescriptorUtils.buildSelectionDescriptorList(trainDocMap, status));
+			config.setTest(DescriptorUtils.buildSelectionDescriptorList(testDocMap, status));
 		}
 
 		if (config.getTrain().isEmpty()) {
@@ -879,14 +880,19 @@ public class HtrTrainingDialog extends Dialog {
 		else {
 			logger.debug("No base HTR selected.");
 		}
-		setTrainAndTestDocsInHtrConfig(citlabTrainConf);
+		
+		final boolean useGt = useGtVersionChk.isEnabled() && useGtVersionChk.getSelection();
+		EditStatus status = useGt ? EditStatus.GT : null;
+		setTrainAndTestDocsInHtrConfig(citlabTrainConf, status);
 		
 		return citlabTrainConf;
 	}
 	
 	private CitLabSemiSupervisedHtrTrainConfig createCitlabT2IConfig() throws IOException {
 		CitLabSemiSupervisedHtrTrainConfig config = t2iConfComp.getConfig();
-		setTrainAndTestDocsInHtrConfig(config);
+		final boolean useInitial = useNewVersionChk.isEnabled() && useNewVersionChk.getSelection();
+		EditStatus status = useInitial ? EditStatus.NEW : null;
+		setTrainAndTestDocsInHtrConfig(config, status);
 		
 		return config;
 	}
@@ -975,38 +981,6 @@ public class HtrTrainingDialog extends Dialog {
 			}
 		}
 		return new DataSetMetadata(pages, lines, words);
-	}
-
-	private List<DocumentSelectionDescriptor> buildSelectionDescriptorList(Map<TrpDocMetadata, List<TrpPage>> map) {
-		List<DocumentSelectionDescriptor> list = new LinkedList<>();
-		final boolean useGt = useGtVersionChk.isEnabled() && useGtVersionChk.getSelection();
-		final boolean useInitial = useNewVersionChk.isEnabled() && useNewVersionChk.getSelection();
-
-		for (Entry<TrpDocMetadata, List<TrpPage>> e : map.entrySet()) {
-			DocumentSelectionDescriptor dsd = new DocumentSelectionDescriptor();
-			dsd.setDocId(e.getKey().getDocId());
-			for (TrpPage p : e.getValue()) {
-				PageDescriptor pd = new PageDescriptor();
-				pd.setPageId(p.getPageId());
-				pd.setTsId(p.getCurrentTranscript().getTsId());
-				if (useGt || useInitial) {
-					for (TrpTranscriptMetadata t : p.getTranscripts()) {
-						if (useGt && t.getStatus().equals(EditStatus.GT)) {
-							pd.setTsId(t.getTsId());
-							break;
-						}
-						if (useInitial && t.getStatus().equals(EditStatus.NEW)){
-							pd.setTsId(t.getTsId());
-							break;
-						}
-					}
-				}
-				dsd.addPage(pd);
-			}
-			list.add(dsd);
-		}
-
-		return list;
 	}
 
 	private List<DocumentSelectionDescriptor> getSelectionFromThumbnailWidgetList(
