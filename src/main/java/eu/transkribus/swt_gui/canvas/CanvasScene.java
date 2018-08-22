@@ -26,6 +26,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
@@ -305,7 +306,26 @@ public class CanvasScene {
 			//logger.debug("merged = "+merged);
 			if (merged == null)
 				return null;
-						
+			
+			//try to resort the points of the shape:
+			List<java.awt.Point> pts1 = merged.getPoints();
+			List<java.awt.Point> sortedPts1 = new ArrayList<java.awt.Point>();
+			
+			/*
+			 * 
+			 * resort the points
+			 * for some reason the shape points start not at top left but at the lowest level of the shape?? - don't know why the hell!!
+			 * must be the result of the splitByPolyline - intersection function (GPCJ library) 
+			 * Hence we get the index of the top left point and resort the list
+			 * 
+			 */
+			int tl = getIndexOfLeftTopPoint(pts1);	
+			if (tl != -1){
+				sortedPts1.addAll(pts1.subList(tl, pts1.size()));
+				sortedPts1.addAll(pts1.subList(0, tl));	
+				merged.setPoints(sortedPts1);
+			}
+									
 			//logger.debug("remove shape = "+ selectedShapes.get(i));
 			removeShape(selectedShapes.get(i), false, false);
 			for (ICanvasShape child : selectedShapes.get(i).getChildren(false)) {
@@ -354,6 +374,7 @@ public class CanvasScene {
 			return null;
 		
 		logger.debug("splitting shape "+shape);
+		//logger.debug("shape points "+shape.getPoints());
 
 		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.SPLIT, "Shape splitted", shape);
 		op.setFollowUp(isFollowUp);
@@ -371,6 +392,41 @@ public class CanvasScene {
 		ICanvasShape s1 = splits.getLeft();
 		ICanvasShape s2 = splits.getRight();
 		
+//		logger.debug("shape 1: " + s1.getPoints());
+//		logger.debug("shape 2: " + s2.getPoints());
+		
+		//try to resort the points of the shape:
+		List<java.awt.Point> pts1 = s1.getPoints();
+		List<java.awt.Point> sortedPts1 = new ArrayList<java.awt.Point>();
+		
+		List<java.awt.Point> pts2 = s2.getPoints();
+		List<java.awt.Point> sortedPts2 = new ArrayList<java.awt.Point>();
+		
+		/*
+		 * 
+		 * resort the points
+		 * for some reason the shape points start not at top left but at the lowest level of the shape?? - don't know why the hell!!
+		 * must be the result of the splitByPolyline - intersection function (GPCJ library) 
+		 * Hence we get the index of the top left point and resort the list
+		 * 
+		 */
+		int tl = getIndexOfLeftTopPoint(pts1);	
+		if (tl != -1){
+			sortedPts1.addAll(pts1.subList(tl, pts1.size()));
+			sortedPts1.addAll(pts1.subList(0, tl));	
+			s1.setPoints(sortedPts1);
+		}
+		
+		int t2 = getIndexOfLeftTopPoint(pts2);	
+		if(t2 != -1){
+			sortedPts2.addAll(pts2.subList(t2, pts2.size()));
+			sortedPts2.addAll(pts2.subList(0, t2));	
+			s2.setPoints(sortedPts2);
+		}
+
+//		logger.debug("shape 1 sorted: " + s1.getPoints());
+//		logger.debug("shape 2 sorted: " + s2.getPoints());
+
 		// remove old shape from parent and set parent for new shapes; also, remove children from new shapes:
 		shape.removeFromParent();
 		
@@ -422,6 +478,24 @@ public class CanvasScene {
 		return op;
 	}
 	
+
+	private int getIndexOfLeftTopPoint(List<java.awt.Point> pts) {
+
+		double minDist = Integer.MAX_VALUE;
+		int i = 0;
+		int idx = -1;
+		for (java.awt.Point p : pts){
+			//the point top left is closest point to 0,0 and can be found with sqrt
+			if (Math.sqrt(p.x*p.x + p.y*p.y) < minDist){
+				minDist = Math.sqrt(p.x*p.x + p.y*p.y);
+				idx=i;
+			}
+			i++;
+		}
+		logger.debug("index " + idx);		
+		return idx;
+	}
+
 	public ShapeEditOperation addShape(ICanvasShape newShape, ICanvasShape parentShape, boolean sendSignal) {
 		if (sendSignal) {
 			if (notifyOnBeforeShapeAdded(newShape))

@@ -1194,10 +1194,18 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		pts.addAll(shape.getPoints2D());
 		pts.addAll(this.getPoints2D());
 		
+//		for (math.geom2d.Point2D pt : pts){
+//			logger.debug("point" + pt.toString());
+//		}
+		
 		Polygon2D mergedPoly2D =ch.convexHull(pts);
 		
 		ICanvasShape merged = this.copy();
 		merged.setPoints2D(mergedPoly2D.vertices());
+		
+//		for (math.geom2d.Point2D pt : merged.getPoints2D()){
+//			logger.debug("point merged" + pt.toString());
+//		}
 		
 		return merged;
 	}
