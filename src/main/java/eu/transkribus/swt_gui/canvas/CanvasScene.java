@@ -39,6 +39,9 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeReadingOrderComparator;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
+import eu.transkribus.swt_gui.exceptions.BaselineExistsException;
+import eu.transkribus.swt_gui.exceptions.NoParentLineException;
+import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -276,7 +279,7 @@ public class CanvasScene {
 //		}
 	}
 	
-	public ShapeEditOperation mergeSelected(boolean sendSignal) {
+	public ShapeEditOperation mergeSelected(boolean sendSignal, boolean replaceBaselinesWithLines) {
 		List<ICanvasShape> selectedShapes = getSelectedAsNewArray();
 		if (selectedShapes.size() < 2)
 			return null;
@@ -284,10 +287,12 @@ public class CanvasScene {
 		logger.debug("merging "+selectedShapes.size()+" shapes");
 
 		// replace baseline shapes by lines -> this leads to the effect that baselines and lines are handled equivalent during a merge 
-		for (int i=0; i<selectedShapes.size(); ++i) {
-			ICanvasShape s = selectedShapes.get(i);
-			if (GuiUtil.getTrpShape(s) instanceof TrpBaselineType) {
-				selectedShapes.set(i, s.getParent());
+		if (replaceBaselinesWithLines){
+			for (int i=0; i<selectedShapes.size(); ++i) {
+				ICanvasShape s = selectedShapes.get(i);
+				if (GuiUtil.getTrpShape(s) instanceof TrpBaselineType) {
+					selectedShapes.set(i, s.getParent());
+				}
 			}
 		}
 		// sort shapes by reading order
@@ -306,43 +311,57 @@ public class CanvasScene {
 			//logger.debug("merged = "+merged);
 			if (merged == null)
 				return null;
-			
-			//try to resort the points of the shape:
-			List<java.awt.Point> pts1 = merged.getPoints();
-			List<java.awt.Point> sortedPts1 = new ArrayList<java.awt.Point>();
-			
-			/*
-			 * 
-			 * resort the points
-			 * for some reason the shape points start not at top left but at the lowest level of the shape?? - don't know why the hell!!
-			 * must be the result of the splitByPolyline - intersection function (GPCJ library) 
-			 * Hence we get the index of the top left point and resort the list
-			 * 
-			 */
-			int tl = getIndexOfLeftTopPoint(pts1);	
-			if (tl != -1){
-				sortedPts1.addAll(pts1.subList(tl, pts1.size()));
-				sortedPts1.addAll(pts1.subList(0, tl));	
-				merged.setPoints(sortedPts1);
-			}
-									
-			//logger.debug("remove shape = "+ selectedShapes.get(i));
-			removeShape(selectedShapes.get(i), false, false);
+												
 			for (ICanvasShape child : selectedShapes.get(i).getChildren(false)) {
 				
-				//logger.debug("merge child with min x = " + child.getBounds().getMinX());
-				merged.addChild(child);
+				child.setParentAndAddAsChild(merged);
+				
 			}
+		}	
+		
+		//remove all selected shapes
+		for (int i=0; i<selectedShapes.size(); ++i){
+			removeShape(selectedShapes.get(i), false, false);
 		}
+				
+		/*
+		 * resort the points of the merged shape
+		 * for some reason the shape points start not at top left but at the lowest level of the shape?? - don't know why the hell!!
+		 * must be the result of the splitByPolyline - intersection function (GPCJ library) 
+		 * Hence we get the index of the top left point and resort the list
+		 * 
+		 */
+		List<java.awt.Point> pts1 = merged.getPoints();
+		List<java.awt.Point> sortedPts1 = new ArrayList<java.awt.Point>();
 		
-		removeShape(selectedShapes.get(0), false, false);
+
+		int tl = getIndexOfLeftTopPoint(pts1);	
+		if (tl != -1){
+			sortedPts1.addAll(pts1.subList(tl, pts1.size()));
+			sortedPts1.addAll(pts1.subList(0, tl));	
+			merged.setPoints(sortedPts1);
+		}
+				
+		//add the merged shape
 		ShapeEditOperation opa = addShape(merged, null, false);
-//		logger.debug("merge added: "+opa);
-		
+				
 		if (opa == null) {
 			addShape(selectedShapes.get(0), null, false);
 			logger.warn("unable to add merged shape: "+merged);
 			return null;
+		}
+		
+		/*
+		 * merge baselines for the merged shape!!
+		 */
+		if (GuiUtil.getTrpShape(merged) instanceof TrpTextLineType){
+			List<ICanvasShape> childs = merged.getChildren(false);
+			logger.debug("childs nr is " + childs.size());
+			for (int i = 1; i<childs.size(); i++){
+				//logger.debug("child " + childs.get(0).getPoints());
+				childs.get(0).merge(childs.get(i));
+				childs.get(i).removeFromParent();
+			}
 		}
 		
 		logger.debug(selectedShapes.size()+" shapes merged");
@@ -355,7 +374,7 @@ public class CanvasScene {
 		}
 		
 		canvas.redraw();
-		
+				
 		return op;
 		
 	}

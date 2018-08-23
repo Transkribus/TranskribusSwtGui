@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.util.GeomUtils;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.PointStrUtils.PointParseException;
+import math.geom2d.Point2D;
 import math.geom2d.Vector2D;
 
 //public class CanvasPolyline extends ACanvasShape<java.awt.geom.GeneralPath> {
@@ -140,8 +141,26 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 	
 	@Override
 	public ICanvasShape merge(ICanvasShape shape) {
-		logger.warn("Merging not allowed for polylines - returning null!");
-		return null;
+//		logger.warn("Merging not allowed for polylines - returning null!");
+//		return null;
+
+		List<Point2D> pts = new ArrayList<Point2D>();
+		List<Point2D> pts1 = this.getPoints2D();
+		List<Point2D> pts2 = shape.getPoints2D();
+
+		if (this.getTrpShapeType().getParentShape().getReadingOrder() < shape.getTrpShapeType().getParentShape().getReadingOrder()){
+			pts.addAll(pts1);
+			pts.addAll(pts2);
+		}
+		else{
+			pts.addAll(pts2);
+			pts.addAll(pts1);	
+		}
+
+		this.setPoints2D(pts);
+		logger.debug("points " + this.getPoints());
+		return this;
+		
 	}
 	
 	public CanvasPolyline extendAtEnds(final double dist) {

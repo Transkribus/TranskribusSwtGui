@@ -276,10 +276,12 @@ public class TrpShapeElementFactory {
 			if (setts.isAddBaselinesToOverlappingLines()) {
 				parentShape = canvas.getScene().findOverlappingShapeWithDataType(shape, TrpTextLineType.class);
 				errorMsg = "Could not find an overlapping parent line!";	
+				logger.debug("Could not find an overlapping parent line");
 			}
 			else if (selectedParentShape != null && selectedParentShape.getData() instanceof TrpTextLineType) {
 				parentShape = selectedParentShape;
 				errorMsg = "No parent line selected!";
+				logger.debug("No parent line selected!");
 			}
 			
 			if (parentShape == null)

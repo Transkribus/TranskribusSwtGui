@@ -345,7 +345,7 @@ public class CanvasShapeEditor {
 			if (selected.size() < 2)
 				return;
 
-			ShapeEditOperation op = scene.mergeSelected(true);
+			ShapeEditOperation op = scene.mergeSelected(true,true);
 			if (op!=null) {
 				addToUndoStack(op);	
 			}

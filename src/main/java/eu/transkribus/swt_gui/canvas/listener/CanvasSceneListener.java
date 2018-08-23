@@ -778,6 +778,8 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				}
 				text = StringUtils.removeEnd(text, " ");
 				
+				mergedSt.reInsertIntoParent(mergedSt.getReadingOrder());
+				
 				mergedSt.setUnicodeText(text, this);
 				//logger.debug("newshape data2: "+((ITrpShapeType)newShape.getData()).print());
 				
@@ -793,36 +795,40 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					st.reInsertIntoParent();					
 				}
 				
-				// if merged shapes were lines -> merge baselines also!
-				if (mergedSt instanceof TrpTextLineType) {
-					//Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>(false)); // sort lines by XY coordinates!
-					Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));//reading order is crucial
-					logger.debug("baseline merge - n-merged shapes: "+trpMergedShapes.size());
-					TrpTextLineType mergedTl = (TrpTextLineType) mergedSt;
-					
-					// collect all baseline points (trpMergedShapes should be sorted by reading order!)
-					List<Point> blPts = new ArrayList<>();
-					for (ITrpShapeType st : trpMergedShapes) {
-						if (st != null && st instanceof TrpTextLineType) {
-							TrpTextLineType tl = (TrpTextLineType) st;
-							if (tl.getTrpBaseline() != null) {
-								mw.getScene().removeShape((ICanvasShape) tl.getTrpBaseline().getData(), false, false);
-								blPts.addAll(PointStrUtils.parsePoints(tl.getTrpBaseline().getPoints()));
-							}
-						}
-					}
-					
-					// create a new baseline if there were baseline points
-					if (!blPts.isEmpty()) {
-						CanvasPolyline pl = new CanvasPolyline(blPts);
-						pl.setEditable(true);
-						pl.setParent(newShape);
-						mw.getScene().addShape(pl, newShape, false);
-						
-						TrpBaselineType bl = TrpShapeElementFactory.createPAGEBaseline(pl, mergedTl);
-						TrpShapeElementFactory.syncCanvasShapeAndTrpShape(pl, bl);
-					}
-				}
+				/*
+				 * if merged shapes were lines -> merge baselines also!
+				 * Now done already in the CanvasScene mergeSelected method
+				 */
+
+//				if (mergedSt instanceof TrpTextLineType) {
+//					//Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>(false)); // sort lines by XY coordinates!
+//					Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));//reading order is crucial
+//					logger.debug("baseline merge - n-merged shapes: "+trpMergedShapes.size());
+//					TrpTextLineType mergedTl = (TrpTextLineType) mergedSt;
+//					
+//					// collect all baseline points (trpMergedShapes should be sorted by reading order!)
+//					List<Point> blPts = new ArrayList<>();
+//					for (ITrpShapeType st : trpMergedShapes) {
+//						if (st != null && st instanceof TrpTextLineType) {
+//							TrpTextLineType tl = (TrpTextLineType) st;
+//							if (tl.getTrpBaseline() != null) {
+//								mw.getScene().removeShape((ICanvasShape) tl.getTrpBaseline().getData(), false, false);
+//								blPts.addAll(PointStrUtils.parsePoints(tl.getTrpBaseline().getPoints()));
+//							}
+//						}
+//					}
+//					
+//					// create a new baseline if there were baseline points
+//					if (!blPts.isEmpty()) {
+//						CanvasPolyline pl = new CanvasPolyline(blPts);
+//						pl.setEditable(true);
+//						pl.setParent(newShape);
+//						mw.getScene().addShape(pl, newShape, false);
+//						
+//						TrpBaselineType bl = TrpShapeElementFactory.createPAGEBaseline(pl, mergedTl);
+//						TrpShapeElementFactory.syncCanvasShapeAndTrpShape(pl, bl);
+//					}
+//				}
 	
 				// update ui stuff
 				mw.getScene().updateAllShapesParentInfo();
@@ -832,6 +838,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				else{
 					((ITrpShapeType) mergedSt.getParent()).sortChildren(true);
 				}
+					
 				//((ITrpShapeType) mergedSt.getParent()).sortChildren(true);
 				mw.refreshStructureView();
 				mw.getScene().selectObject(newShape, true, false);
@@ -841,6 +848,8 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				e.stop = true;
 				mw.onError("Error merging elements", "Could not merge elements", th);
 			} finally {
+				//!!otherwise the changes in the canvas will be drawn but not stored at the next save!!
+				mw.getCanvasShapeObserver().updateObserverForAllShapes();
 				mw.getTranscriptObserver().setActive(true);
 				
 			}
