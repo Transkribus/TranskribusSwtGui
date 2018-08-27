@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,11 +36,8 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.TrpGui;
 import eu.transkribus.swt_gui.mainwidget.ProgramInfo;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.util.FTPProgramUpdater;
 import eu.transkribus.swt_gui.util.HttpProgramUpdater;
 import eu.transkribus.swt_gui.util.ProgramUpdater;
 import eu.transkribus.util.SebisZipUtils;
@@ -294,7 +290,7 @@ public class ProgramUpdaterDialog {
 		}
 
 		public static void showTrayNotificationOnAvailableUpdate(final Shell shell, final String version, final Date timestamp) {
-			logger.info("Checking for updates on "+FTPProgramUpdater.ftpServer+", current version: "+version+", timestamp: "+timestamp);
+			logger.info("Checking for updates, current version: "+version+", timestamp: "+timestamp);
 			
 			Rectangle b = shell.getBounds();
 			try {
