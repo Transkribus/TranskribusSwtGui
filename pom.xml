@@ -36,13 +36,6 @@
 		<client.version>0.0.4-SNAPSHOT</client.version>
 	</properties>
 
-<!-- 	<distributionManagement> -->
-<!-- 		<repository> -->
-<!-- 			<id>trp-ftp</id> specify password for this server in your settings.xml! -->
-<!-- 			<url>ftp://dea-gulliver.uibk.ac.at</url> -->
-<!-- 		</repository> -->
-<!-- 	</distributionManagement> -->
-
 	<distributionManagement>
 	    <site>
 			<id>website</id>
