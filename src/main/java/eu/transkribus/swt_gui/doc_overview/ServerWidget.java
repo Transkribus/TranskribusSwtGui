@@ -90,7 +90,7 @@ public class ServerWidget extends Composite {
 	MenuItem deleteDocMenuItem;
 	MenuItem duplicateDocMenuItem;
 	
-	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, duplicateDocTi, administerCollectionTi;
+	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, duplicateDocTi, administerCollectionTi, recycleBin;
 		
 	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
@@ -281,7 +281,7 @@ public class ServerWidget extends Composite {
 		docsContainer.setLayout(new GridLayout(2, false));
 		docsContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 
-		docTableWidget = new DocTableWidgetPagination(docsContainer, SWT.MULTI, 100);
+		docTableWidget = new DocTableWidgetPagination(docsContainer, SWT.MULTI, 100, false);
 		docTableWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		userControls.add(docTableWidget);
 		
@@ -313,6 +313,10 @@ public class ServerWidget extends Composite {
 		administerCollectionTi = new ToolItem(tb, SWT.PUSH);
 		administerCollectionTi.setImage(Images.COG_EDIT);
 		administerCollectionTi.setToolTipText("Administrate docs in collection, e.g. Add pages, Choose symbolic images,...");
+		
+		recycleBin = new ToolItem(tb, SWT.PUSH);
+		recycleBin.setImage(Images.BIN);
+		recycleBin.setToolTipText("Contains deleted documents and transcripts!");
 
 //		Composite docBtns = new Composite(docsContainer, 0);
 //		docBtns.setLayout(new RowLayout());
@@ -426,6 +430,7 @@ public class ServerWidget extends Composite {
 		addToCollectionTi.setEnabled(canManage);
 		duplicateDocTi.setEnabled(canManage);
 		administerCollectionTi.setEnabled(canManage);
+		recycleBin.setEnabled(canManage);
 		
 		addToCollectionMenuItem.setEnabled(canManage);
 		removeFromCollectionMenuItem.setEnabled(canManage);

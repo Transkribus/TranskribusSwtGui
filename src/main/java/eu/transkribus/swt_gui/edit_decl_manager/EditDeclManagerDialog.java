@@ -273,7 +273,7 @@ public class EditDeclManagerDialog extends Dialog {
 		copyBtn = new Button(btns3, SWT.NONE);
 		copyBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		copyBtn.setText("Copy to document:");
-		docTable = new DocTableWidgetPagination(btns3, 0, 25);
+		docTable = new DocTableWidgetPagination(btns3, 0, 25, false);
 		docTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		docTable.refreshList(store.getCurrentDocumentCollectionId(), true, false);

@@ -146,7 +146,7 @@ public class DocTableWidget /*extends ATableWidgetPagination<TrpDocMetadata>*/ e
 
 		Storage store = Storage.getInstance();
 		if (forceReload || collectionId != store.getCollId()) { // have to reload doclist
-			store.getConnection().getAllDocsAsync(collectionId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+			store.getConnection().getAllDocsAsync(collectionId, 0, 0, null, null, 0, new InvocationCallback<List<TrpDocMetadata>>() {
 				@Override public void failed(Throwable throwable) {
 					DialogUtil.showBallonToolTip(DocTableWidget.this, SWT.ICON_ERROR, "Error loading documents", throwable.getMessage());
 					logger.error(throwable.getMessage(), throwable);

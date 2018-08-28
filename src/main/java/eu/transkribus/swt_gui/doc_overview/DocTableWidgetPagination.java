@@ -62,12 +62,16 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	protected ModifyListener filterModifyListener;
 	static String[] filterProperties = { "docId", "title", "uploader" }; // those are the properties of the TrpDocMetadata bean that are used for filtering
 	
-	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize) {
-		this(parent, style, initialPageSize, null);
+	boolean isRecycleBin = false;
+	
+	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize, boolean isRecycleBin) {		
+		this(parent, style, initialPageSize, isRecycleBin, null);
 	}	
 	
-	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize, IPageLoadMethods<TrpDocMetadata> methods) {
+	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize, boolean isRecycleBin, IPageLoadMethods<TrpDocMetadata> methods) {
 		super(parent, style, initialPageSize, methods, true);
+		
+		this.isRecycleBin = isRecycleBin;
 		
 		viewerFilter = new ViewerFilter() {
 			@Override public boolean select(Viewer viewer, Object parentElement, Object element) {
@@ -170,6 +174,19 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 //		}
 	}
 	
+	/*
+	 * for recycle bin - collectionId is the current one
+	 */
+	public void refreshList(int collectionId) {
+
+		setCollectionId(collectionId);
+				
+		logger.debug("refreshing doc table, collectionId="+collectionId);
+		reloadDocs(true, false);
+
+		
+	}
+	
 	private void setDocList(List<TrpDocMetadata> newDocs, boolean resetPage) {
 		synchronized (this) {
 			logger.debug("setDocList, N = "+newDocs.size());
@@ -191,6 +208,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	
 	public void reloadDocs(boolean resetPage, boolean forceReload) {
 		if (collectionId == 0) {
+			logger.debug("collectionId=0");
 			setDocList(new ArrayList<>(), resetPage);
 			return;
 		}
@@ -201,8 +219,9 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 			logger.debug("collection id differs from storage - reloading from server! "+collectionId+" / "+store.getCollId());
 			TrpMainWidget.getInstance().reloadDocList(collectionId);
 		} else {
-			logger.debug("setting docs from storage: "+store.getDocList().size());
-			setDocList(store.getDocList(), resetPage);
+			logger.debug("setting docs from storage: "+store.getDeletedDocList().size());
+			//List<TrpDocMetadata> docList = 
+			setDocList(isRecycleBin ? store.getDeletedDocList() : store.getDocList(), resetPage);
 		}
 	}
 	
@@ -303,7 +322,12 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 						List<TrpDocMetadata> docs = new ArrayList<>();
 						try {
 							logger.debug("loading docs, sortDirection = "+sortDirection+" collectionId = "+collectionId+" fromIndex = "+fromIndex+" toIndex = "+toIndex);
-							docs = store.getConnection().getAllDocs(collectionId, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+							if (!isRecycleBin){
+								docs = store.getConnection().getAllDocs(collectionId, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection,0);
+							}
+							else{
+								docs = store.getConnection().getAllDocs(collectionId, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection,1);
+							}
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 							TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
 						}

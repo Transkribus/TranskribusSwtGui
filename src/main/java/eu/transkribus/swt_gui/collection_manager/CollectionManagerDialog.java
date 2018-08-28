@@ -260,7 +260,7 @@ public class CollectionManagerDialog extends Dialog {
 		docTabFolder = new CTabFolder(docGroup, /*SWT.BORDER |*/ SWT.FLAT);
 		docTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		docsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25);		
+		docsTableWidget = new DocTableWidgetPagination(docTabFolder, 0, 25, false);		
 		docsTableWidget.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
 				updateBtnVisibility();

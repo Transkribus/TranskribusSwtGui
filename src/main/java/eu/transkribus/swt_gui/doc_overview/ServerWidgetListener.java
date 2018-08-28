@@ -79,6 +79,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.addSelectionListener(sw.addToCollectionTi, this);
 		SWTUtil.addSelectionListener(sw.removeFromCollectionTi, this);
 		SWTUtil.addSelectionListener(sw.administerCollectionTi, this);
+		SWTUtil.addSelectionListener(sw.recycleBin, this);
 		
 		SWTUtil.addSelectionListener(sw.docManager, this);
 		SWTUtil.addSelectionListener(sw.userManager, this);
@@ -118,6 +119,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.removeSelectionListener(sw.addToCollectionTi, this);
 		SWTUtil.removeSelectionListener(sw.removeFromCollectionTi, this);		
 		SWTUtil.removeSelectionListener(sw.administerCollectionTi, this);
+		SWTUtil.removeSelectionListener(sw.recycleBin, this);
 		
 		SWTUtil.removeSelectionListener(sw.docManager, this);
 		SWTUtil.removeSelectionListener(sw.userManager, this);
@@ -180,7 +182,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			mw.duplicateDocuments(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
 		}
 		else if (s == sw.deleteDocMenuItem || s == sw.deleteDocTi) {
-			mw.deleteDocuments(sw.getSelectedDocuments());
+			mw.deleteDocuments(sw.getSelectedDocuments(), false);
 			mw.reloadDocList(mw.getSelectedCollectionId());
 		}
 		else if (s == sw.addToCollectionMenuItem || s == sw.addToCollectionTi) {
@@ -192,7 +194,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		else if (s == sw.administerCollectionTi || s == sw.docManager){
 			ac = new DocumentManager(mw.getShell(), SWT.NONE, mw, Storage.getInstance().getCollId());
 			ac.open();
-		}		
+		}	
+		else if (s == sw.recycleBin){
+			mw.openRecycleBin();
+		}
 		else if (s == sw.userManager){
 			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
 		}

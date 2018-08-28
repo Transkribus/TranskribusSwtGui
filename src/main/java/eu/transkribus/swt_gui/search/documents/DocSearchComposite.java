@@ -144,7 +144,7 @@ public class DocSearchComposite extends Composite {
 		infoLabel = new Label(facetsC, 0);
 		infoLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				
-		docWidgetPaged = new DocTableWidgetPagination(sf, 0, 50, new IPageLoadMethods<TrpDocMetadata>() {
+		docWidgetPaged = new DocTableWidgetPagination(sf, 0, 50, false, new IPageLoadMethods<TrpDocMetadata>() {
 			Storage store = Storage.getInstance();
 			
 			@Override public int loadTotalSize() {

@@ -204,6 +204,7 @@ import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
+import eu.transkribus.swt_gui.pagination_tables.RecycleBinDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
 import eu.transkribus.swt_gui.search.SearchDialog.SearchType;
@@ -275,6 +276,7 @@ public class TrpMainWidget {
 	TrpMainWidgetStorageListener mainWidgetStorageListener;
 //	CollectionManagerListener collectionsManagerListener;
 	TrpMenuBarListener menuListener;
+
 	
 	// Dialogs
 	SearchDialog searchDiag;
@@ -288,6 +290,7 @@ public class TrpMainWidget {
 	BugDialog bugDialog;
 	ChangeLogDialog changelogDialog;
 	JavaVersionDialog javaVersionDialog;
+	RecycleBinDialog recycleBinDiag;
 	
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
@@ -1266,6 +1269,120 @@ public class TrpMainWidget {
 			Display.getDefault().asyncExec(() -> {
 				onError("Error saving doc-metadata", e.getMessage(), e, true, true);	
 			});
+		}
+	}
+	
+	public boolean saveDocMetadata(List<TrpDocMetadata> docs) {
+		if (!storage.isLoggedIn()) {
+			return false;
+		}
+		
+		if (CoreUtils.isEmpty(docs)) {
+			DialogUtil.showErrorMessageBox(getShell(), "No document selected", "Please select a document you want to restore!");
+			return false;
+		}
+		
+		int N = docs.size();
+		
+		if (N > 1) {
+			String msg = "Do you really want to restore " + N + " selected documents ";
+			if (DialogUtil.showYesNoDialog(getShell(), "Restore Documents", msg)!=SWT.YES) {
+				return false;
+			}
+		}
+		else{
+			String msg = "Do you really want to restore document "+docs.get(0).getTitle();
+			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", msg)!=SWT.YES) {
+				return false;
+			}
+		}
+		
+		final List<String> error = new ArrayList<>();
+		try {
+		ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+			@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				
+				try {
+					monitor.beginTask("Restoring documents", docs.size());
+					TrpUserLogin user = storage.getUser();
+					int i = 0;
+					for (TrpDocMetadata d : docs) {
+						if (monitor.isCanceled())
+							throw new InterruptedException();
+
+						logger.debug("restoring document: "+d);
+						
+						if (!user.isAdmin() && user.getUserId()!=d.getUploaderId()) {
+//							DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the uploader of this document. " + md.getTitle());
+//							return false;
+							String errorMsg = "Unauthorized - you are not the owner of this document: "+d.getTitle()+", id: "+d.getDocId();
+							logger.warn(errorMsg);
+							error.add(errorMsg);
+						} else {
+							try {
+								d.setDeleted(0);
+								storage.updateDocMd(Storage.getInstance().getCollId(), d);
+								logger.info("restored document: "+d);
+							} catch (SessionExpiredException | TrpClientErrorException | TrpServerErrorException e) {
+								logger.warn("Could not restore document: "+d, e);
+								error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessageToUser());
+							} catch (Throwable e) {
+								logger.warn("Could not restore document: "+d, e);
+								error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessage());
+							}
+						}
+	
+						monitor.worked(++i);
+					}
+
+				}
+				catch (InterruptedException ie) {
+					throw ie;
+				} catch (Throwable e) {
+					throw new InvocationTargetException(e, e.getMessage());
+				}
+			}
+		}, "Restoring documents", true);
+		}
+		catch (InterruptedException e) {}
+		catch (Throwable e) {
+			onError("Unexpected error", e.getMessage(), e);
+		}
+		
+		if (!error.isEmpty()) {
+			String msg = "Could not restore the following documents:\n";
+			for (String u : error) {
+				msg += u + "\n";
+			}
+			mw.onError("Error restoring documents", msg, null);
+			try {
+				storage.reloadCollections();
+			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+					| NoConnectionException e) {
+				// TODO Auto-generated catch block
+				logger.error("reloading collections not possible after document(s) restoring");
+				e.printStackTrace();
+			}
+			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			//Todo
+			//reload recycle bin if open??
+			return false;
+		} else {
+			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully restored "+docs.size()+" documents");
+			//clean up GUI
+			try {
+				//reload necessary in fact the symbolic image has changed - this is done during the delete job
+				storage.reloadCollections();
+			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+					| NoConnectionException e) {
+				// TODO Auto-generated catch block
+				logger.error("reloading collections not possible after restoring documents");
+				e.printStackTrace();
+			}
+			//reload necessary to actualize doc list
+			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			
+			return true;
 		}
 	}
 
@@ -4678,6 +4795,16 @@ public class TrpMainWidget {
 		}
 	}
 	
+	public void openRecycleBin() {
+		logger.debug("opening recycle bin - "+Storage.getInstance().getCollId());
+		if (SWTUtil.isOpen(recycleBinDiag)) {
+			recycleBinDiag.getShell().setVisible(true);
+		} else {
+			recycleBinDiag = new RecycleBinDialog(getShell(), Storage.getInstance().getCollId());
+			recycleBinDiag.open();
+		}
+	}
+	
 	public void openViewSetsDialog() {
 		
 		logger.debug("opening view sets dialog");
@@ -4988,8 +5115,8 @@ public void openJavaVersionDialog() {
 			return true;
 		}
 	}
-	
-	public boolean deleteDocuments(List<TrpDocMetadata> docs) {
+		
+	public boolean deleteDocuments(List<TrpDocMetadata> docs, boolean reallyDelete) {
 		if (!storage.isLoggedIn()) {
 			return false;
 		}
@@ -5002,12 +5129,14 @@ public void openJavaVersionDialog() {
 		int N = docs.size();
 		
 		if (N > 1) {
-			if (DialogUtil.showYesNoDialog(getShell(), "Delete Documents", "Do you really want to delete " + N + " selected documents ")!=SWT.YES) {
+			String msg = reallyDelete ? "Do you really want to delete " + N + " selected documents " : "After deletion you can find your documents in the recycle bin!";
+			if (DialogUtil.showYesNoDialog(getShell(), "Delete Documents", msg)!=SWT.YES) {
 				return false;
 			}
 		}
 		else{
-			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", "Do you really want to delete document "+docs.get(0).getTitle())!=SWT.YES) {
+			String msg = reallyDelete ? "Do you really want to delete document "+docs.get(0).getTitle() : "After deletion you can find your document in the recycle bin!";
+			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", msg)!=SWT.YES) {
 				return false;
 			}
 		}
@@ -5035,7 +5164,7 @@ public void openJavaVersionDialog() {
 							error.add(errorMsg);
 						} else {
 							try {
-								storage.deleteDocument(storage.getCollId(), d.getDocId());
+								storage.deleteDocument(storage.getCollId(), d.getDocId(), reallyDelete);
 								logger.info("deleted document: "+d);
 							} catch (SessionExpiredException | TrpClientErrorException | TrpServerErrorException e) {
 								logger.warn("Could not delete document: "+d, e);
@@ -5079,6 +5208,8 @@ public void openJavaVersionDialog() {
 				e.printStackTrace();
 			}
 			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			//Todo
+			//reload recycle bin if open??
 			return false;
 		} else {
 			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully deleted "+docs.size()+" documents");
@@ -5104,6 +5235,9 @@ public void openJavaVersionDialog() {
 				//update the recent docs list
 				updateRecentDocItems(d);
 				ui.getServerWidget().updateRecentDocs();
+				
+				//Todo
+				//reload recycle bin if open??
 			}
 			
 			return true;

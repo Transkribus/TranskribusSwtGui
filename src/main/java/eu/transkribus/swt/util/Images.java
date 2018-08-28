@@ -78,6 +78,8 @@ public class Images {
 	public static final Image ARROW_UNDO = getOrLoad("/icons/arrow_undo.png");
 	public static final Image ARROW_REDO = getOrLoad("/icons/arrow_redo.png");
 	
+	public static final Image BIN = Images.getOrLoad("/icons/bin.png");
+	
 	public static final Image BORDER_MENU = getOrLoad("/icons/border-2-outer-icon.png");
 	public static final Image BORDER_NONE = getOrLoad("/icons/border_none.png");
 	public static final Image BORDER_ALL = getOrLoad("/icons/border_all.png");
@@ -126,6 +128,7 @@ public class Images {
 
 	public static final Image INFO = Images.getOrLoad("/icons/information.png");
 	public static final Image ERROR = Images.getOrLoad("/icons/error.png");
+	
 
 	static HashMap<String, Image> imageMap;
 

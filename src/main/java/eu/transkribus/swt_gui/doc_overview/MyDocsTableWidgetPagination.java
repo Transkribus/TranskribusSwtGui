@@ -18,7 +18,7 @@ public class MyDocsTableWidgetPagination extends DocTableWidgetPagination {
 	IStorageListener storageListener;
 	
 	public MyDocsTableWidgetPagination(Composite parent, int style, int initialPageSize) {
-		super(parent, style, initialPageSize);
+		super(parent, style, initialPageSize, false);
 		
 		addListener();
 		

@@ -166,6 +166,7 @@ public class Storage {
 	// private int currentTranscriptIndex = 0;
 
 	private List<TrpDocMetadata> docList = Collections.synchronizedList(new ArrayList<>());
+	private List<TrpDocMetadata> deletedDocList = Collections.synchronizedList(new ArrayList<>());
 	private List<TrpDocMetadata> userDocList = Collections.synchronizedList(new ArrayList<>());
 	
 	private List<CustomTagSpec> customTagSpecs = new ArrayList<>();
@@ -860,7 +861,7 @@ public class Storage {
 		
 		Future<List<TrpDocMetadata>> fut = 
 //			conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
-			conn.getAllDocsAsync(colId, 0, 0, "docId", "desc", new InvocationCallback<List<TrpDocMetadata>>() {
+			conn.getAllDocsAsync(colId, 0, 0, "docId", "desc", 0, new InvocationCallback<List<TrpDocMetadata>>() {
 			@Override
 			public void completed(List<TrpDocMetadata> docs) {				
 				synchronized (this) {
@@ -883,6 +884,26 @@ public class Storage {
 //				TrpMainWidget.getInstance().onError(title, message, th);
 			}
 		});
+		
+		//load deleted docs list as well
+		Future<List<TrpDocMetadata>> fut2 = 
+//				conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+				conn.getAllDocsAsync(colId, 0, 0, "docId", "desc", 1, new InvocationCallback<List<TrpDocMetadata>>() {
+				@Override
+				public void completed(List<TrpDocMetadata> docs) {				
+					synchronized (this) {
+						deletedDocList.clear();
+						deletedDocList.addAll(docs);
+					}
+										
+					logger.debug("async loaded "+deletedDocList.size()+" nr of deleted docs in collection "+collId+" thread: "+Thread.currentThread().getName());
+
+				}
+
+				@Override public void failed(Throwable throwable) {
+
+				}
+			});
 		
 		return fut;
 	}
@@ -1581,7 +1602,21 @@ public class Storage {
 		}
 		sendEvent(new DocMetadataUpdateEvent(this, doc, doc.getMd()));
 	}
+	
+	/*
+	 * 
+	 */
+	public void updateDocMd(int colId, TrpDocMetadata docMd) throws SessionExpiredException, IllegalArgumentException, Exception {
+	
+		logger.debug("saving metadata " + docMd);
 
+		if (!isLoggedIn())
+			throw new Exception("No connection");
+
+		conn.updateDocMd(colId, docMd.getDocId(), docMd);
+		
+	}
+	
 	public TrpUpload uploadDocument(int colId, String folder, String title, IProgressMonitor monitor) throws IOException, Exception {
 		if (!isLoggedIn())
 			throw new Exception("Not logged in!");
@@ -1751,10 +1786,10 @@ public class Storage {
 		return conn.runOcr(colId, docId, pageStr, config.getTypeFace(), config.getLanguageString());
 	}
 
-	public void deleteDocument(int colId, int docId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
+	public void deleteDocument(int colId, int docId, boolean reallyDelete) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 
-		conn.deleteDoc(colId, docId);
+		conn.deleteDoc(colId, docId, reallyDelete);
 	}
 	
 	public void deleteCurrentPage() throws NoConnectionException, SessionExpiredException, IllegalArgumentException {
@@ -1927,6 +1962,10 @@ public class Storage {
 	
 	public List<TrpCollection> getCollections() { return collections; }
 	
+	public List<TrpDocMetadata> getDeletedDocList() {
+		return deletedDocList;
+	}
+
 	public TrpCollection getCollection(int colId) {
 		for (TrpCollection c : collections) {
 			if (c.getColId() == colId) {
