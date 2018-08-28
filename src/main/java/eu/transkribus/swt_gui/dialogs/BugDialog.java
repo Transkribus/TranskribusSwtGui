@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.ProgramInfo;
@@ -199,14 +200,15 @@ public class BugDialog extends Dialog {
 							conn = new TrpServerConn(TrpServerConn.SERVER_URIS[0]);
 						}
 
-						if (isBug) {
-							conn.sendBugReport(replyTo, subject, message, isBug, sendCopy, tailOfLogFile);
-							// TEST:
-//							CoreUtils.fileBugzillaBugReport(tailOfLogFile);
+						final String msg;
+						JavaInfo jInfo = TrpMainWidget.getInstance().getJavaInfo();
+						if(jInfo != null) {
+							msg = message + "\n\n" + jInfo.toPrettyString();
+						} else {
+							msg = message;
 						}
-						else {
-							conn.sendBugReport(replyTo, subject, message, isBug, sendCopy, tailOfLogFile);
-						}
+						
+						conn.sendBugReport(replyTo, subject, msg, isBug, sendCopy, tailOfLogFile);
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
 					}

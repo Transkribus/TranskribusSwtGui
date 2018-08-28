@@ -5804,6 +5804,8 @@ public class TrpMainWidget {
 		redrawCanvas();
 	}
 
-
+	public JavaInfo getJavaInfo() {
+		return javaInfo;
+	}
 
 }
