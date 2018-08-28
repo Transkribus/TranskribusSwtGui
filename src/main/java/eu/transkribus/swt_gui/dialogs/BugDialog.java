@@ -200,15 +200,13 @@ public class BugDialog extends Dialog {
 							conn = new TrpServerConn(TrpServerConn.SERVER_URIS[0]);
 						}
 
-						final String msg;
+						String msgToSend = message + "\n\nOS: " + System.getProperty("os.name");
 						JavaInfo jInfo = TrpMainWidget.getInstance().getJavaInfo();
 						if(jInfo != null) {
-							msg = message + "\n\n" + jInfo.toPrettyString();
-						} else {
-							msg = message;
+							msgToSend += "\n" + jInfo.toPrettyString();
 						}
 						
-						conn.sendBugReport(replyTo, subject, msg, isBug, sendCopy, tailOfLogFile);
+						conn.sendBugReport(replyTo, subject, msgToSend, isBug, sendCopy, tailOfLogFile);
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
 					}
