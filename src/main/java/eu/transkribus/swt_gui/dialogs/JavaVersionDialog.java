@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
 
@@ -35,12 +36,12 @@ public class JavaVersionDialog extends TitleAreaDialog {
 	String version;
 	String fileEnc;
 	
-	public JavaVersionDialog(Shell parent, int style, String realArch, String javaArch, String version, String fileEnc) {
+	public JavaVersionDialog(Shell parent, int style, JavaInfo java) {
 		super(parent);
-		this.realArch = realArch;
-		this.javaArch = javaArch;
-		this.version = version;
-		this.fileEnc = fileEnc;
+		this.realArch = java.getSystemArch();
+		this.javaArch = java.getJavaArch();
+		this.version = java.getVersion();
+		this.fileEnc = java.getFileEnc();
 	}
 	
 	public boolean isJava10() {
