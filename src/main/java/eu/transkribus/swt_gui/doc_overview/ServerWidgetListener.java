@@ -295,7 +295,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 				 * really confusing
 				 */
 				if (docs.get().size() > 0 && docs.get().get(0) != null){
-					TrpMainWidget.getInstance().loadRemoteDoc(docs.get().get(0).getDocId(), sw.getSelectedCollectionId());
+					//TrpMainWidget.getInstance().loadRemoteDoc(docs.get().get(0).getDocId(), sw.getSelectedCollectionId());
 				}
 			} catch (IllegalArgumentException | InterruptedException | ExecutionException e) {
 				// TODO Auto-generated catch block
@@ -311,7 +311,6 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			TrpMainWidget.getInstance().getUi().updateVisibility();
 		}
 	}
-
 
 
 

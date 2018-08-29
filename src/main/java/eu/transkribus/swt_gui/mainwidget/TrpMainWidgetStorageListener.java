@@ -54,6 +54,9 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 	
 	@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
 		ui.getServerWidget().refreshDocListFromStorage();
+		if (mw.recycleBinDiag != null){
+			mw.recycleBinDiag.getDocTableWidget().refreshList(mw.getSelectedCollectionId());
+		}
 	}
 	
 	@Override public void handleDocLoadEvent(DocLoadEvent dle) {

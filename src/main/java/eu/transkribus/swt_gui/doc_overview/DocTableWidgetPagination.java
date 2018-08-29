@@ -50,6 +50,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	public static final String DOC_UPLOADER_COL = "Uploader";
 	public static final String DOC_UPLOADED_COL = "Uploaded";
 	public static final String DOC_COLLECTIONS_COL = "Collections";
+	public static final String DOC_DEL_TIME = "Deleted on";
 	
 	public static final boolean LOAD_ALL_DOCS_ONCE = true;
 	protected int collectionId=Integer.MIN_VALUE;
@@ -61,18 +62,18 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	ViewerFilter viewerFilter;
 	protected ModifyListener filterModifyListener;
 	static String[] filterProperties = { "docId", "title", "uploader" }; // those are the properties of the TrpDocMetadata bean that are used for filtering
-	
-	boolean isRecycleBin = false;
+		
+	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize) {		
+		this(parent, style, initialPageSize, false, null);
+	}
 	
 	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize, boolean isRecycleBin) {		
 		this(parent, style, initialPageSize, isRecycleBin, null);
 	}	
 	
 	public DocTableWidgetPagination(Composite parent, int style, int initialPageSize, boolean isRecycleBin, IPageLoadMethods<TrpDocMetadata> methods) {
-		super(parent, style, initialPageSize, methods, true);
-		
-		this.isRecycleBin = isRecycleBin;
-		
+		super(parent, style, initialPageSize, methods, true, isRecycleBin);
+				
 		viewerFilter = new ViewerFilter() {
 			@Override public boolean select(Viewer viewer, Object parentElement, Object element) {
 				if (SWTUtil.isDisposed(filter)) {
@@ -219,7 +220,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 			logger.debug("collection id differs from storage - reloading from server! "+collectionId+" / "+store.getCollId());
 			TrpMainWidget.getInstance().reloadDocList(collectionId);
 		} else {
-			logger.debug("setting docs from storage: "+store.getDeletedDocList().size());
+			logger.debug("setting docs from storage: "+ (isRecycleBin ? store.getDeletedDocList().size() : store.getDocList().size()));
 			//List<TrpDocMetadata> docList = 
 			setDocList(isRecycleBin ? store.getDeletedDocList() : store.getDocList(), resetPage);
 		}
@@ -246,7 +247,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
             	try {
 					return BeanUtils.getSimpleProperty(element, colName);
 				} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-					return "i am error";
+					return "i am error" + e.getMessage();
 				}
             }
             
@@ -287,6 +288,11 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_COLLECTIONS_COL, 100);	
 		col.setLabelProvider(new DocTableColumnLabelProvider("colString"));
 //		col.getColumn().addSelectionListener(new SortTableColumnSelectionListener("colString"));
+
+		if(isRecycleBin){
+			col = TableViewerUtils.createTableViewerColumn(tv, 0, DOC_DEL_TIME, 100);	
+			col.setLabelProvider(new DocTableColumnLabelProvider("deletedOnDate"));
+		}
 		
 		
 

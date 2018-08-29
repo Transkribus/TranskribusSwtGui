@@ -176,16 +176,14 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 			for (TrpDocMetadata doc : getSelectedDocuments()){
 				logger.debug("Delete doc " + doc.getDocId());
 			}
-			//mw.deleteDocuments(getSelectedDocuments(), true);
+			mw.deleteDocuments(getSelectedDocuments(), true);
 		}
 		else if (s == retrieveSelected) {
 			logger.debug("retrieve selected docs/transcripts");
 			for (TrpDocMetadata doc : getSelectedDocuments()){
 				logger.debug("Retrieve doc " + doc.getDocId());
-//				doc.setDeleted(0);
-//				mw.getStorage().
 			}
-			//mw.saveDocMetadata(getSelectedDocuments());
+			mw.saveDocMetadata(getSelectedDocuments());
 			
 			/*
 			 * 

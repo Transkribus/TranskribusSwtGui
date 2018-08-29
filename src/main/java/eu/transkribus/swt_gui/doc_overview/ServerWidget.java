@@ -316,7 +316,7 @@ public class ServerWidget extends Composite {
 		
 		recycleBin = new ToolItem(tb, SWT.PUSH);
 		recycleBin.setImage(Images.BIN);
-		recycleBin.setToolTipText("Contains deleted documents and transcripts!");
+		recycleBin.setToolTipText("Contains deleted documents!");
 
 //		Composite docBtns = new Composite(docsContainer, 0);
 //		docBtns.setLayout(new RowLayout());

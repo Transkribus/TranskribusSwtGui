@@ -1285,14 +1285,14 @@ public class TrpMainWidget {
 		int N = docs.size();
 		
 		if (N > 1) {
-			String msg = "Do you really want to restore " + N + " selected documents ";
+			String msg = "Do you really want to restore " + N + " selected documents?";
 			if (DialogUtil.showYesNoDialog(getShell(), "Restore Documents", msg)!=SWT.YES) {
 				return false;
 			}
 		}
 		else{
-			String msg = "Do you really want to restore document "+docs.get(0).getTitle();
-			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", msg)!=SWT.YES) {
+			String msg = "Do you really want to restore document '"+docs.get(0).getTitle()+"'?";
+			if (DialogUtil.showYesNoDialog(getShell(), "Restore Document", msg)!=SWT.YES) {
 				return false;
 			}
 		}
@@ -1321,6 +1321,7 @@ public class TrpMainWidget {
 						} else {
 							try {
 								d.setDeleted(0);
+								d.setDeletedTimestamp((long) 0);
 								storage.updateDocMd(Storage.getInstance().getCollId(), d);
 								logger.info("restored document: "+d);
 							} catch (SessionExpiredException | TrpClientErrorException | TrpServerErrorException e) {
@@ -1356,14 +1357,16 @@ public class TrpMainWidget {
 			}
 			mw.onError("Error restoring documents", msg, null);
 			try {
-				storage.reloadCollections();
+				//storage.reloadCollections();
+				storage.reloadDocList(storage.getCollId());
+				//recycleBinDiag.getDocTableWidget().refreshList(storage.getCollId());
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
 					| NoConnectionException e) {
 				// TODO Auto-generated catch block
 				logger.error("reloading collections not possible after document(s) restoring");
 				e.printStackTrace();
 			}
-			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			//ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
 			//Todo
 			//reload recycle bin if open??
 			return false;
@@ -1372,7 +1375,9 @@ public class TrpMainWidget {
 			//clean up GUI
 			try {
 				//reload necessary in fact the symbolic image has changed - this is done during the delete job
-				storage.reloadCollections();
+				//storage.reloadCollections();
+				storage.reloadDocList(storage.getCollId());
+				//recycleBinDiag.getDocTableWidget().refreshList(storage.getCollId());
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
 					| NoConnectionException e) {
 				// TODO Auto-generated catch block
@@ -1380,7 +1385,7 @@ public class TrpMainWidget {
 				e.printStackTrace();
 			}
 			//reload necessary to actualize doc list
-			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
+			//ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
 			
 			return true;
 		}
@@ -5129,13 +5134,13 @@ public void openJavaVersionDialog() {
 		int N = docs.size();
 		
 		if (N > 1) {
-			String msg = reallyDelete ? "Do you really want to delete " + N + " selected documents " : "After deletion you can find your documents in the recycle bin!";
+			String msg = reallyDelete ? "Do you really want to delete " + N + " selected documents irreversible? " : "Do you really want to delete " + N + " selected documents?" + "\nAfter deletion you can find your documents in the recycle bin!";
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Documents", msg)!=SWT.YES) {
 				return false;
 			}
 		}
 		else{
-			String msg = reallyDelete ? "Do you really want to delete document "+docs.get(0).getTitle() : "After deletion you can find your document in the recycle bin!";
+			String msg = reallyDelete ? "Do you really want to delete document '"+docs.get(0).getTitle()+"' irreversible?" : "Do you really want to delete document "+docs.get(0).getTitle()+"\nAfter deletion you can find your document in the recycle bin!";
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", msg)!=SWT.YES) {
 				return false;
 			}
@@ -5199,8 +5204,8 @@ public void openJavaVersionDialog() {
 			}
 			mw.onError("Error deleting documents", msg, null);
 			try {
-				//reload necessary in fact the symbolic image has changed - this is done during the delete job
 				storage.reloadCollections();
+				storage.reloadDocList(storage.getCollId());
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
 					| NoConnectionException e) {
 				// TODO Auto-generated catch block
@@ -5215,8 +5220,8 @@ public void openJavaVersionDialog() {
 			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully deleted "+docs.size()+" documents");
 			//clean up GUI
 			try {
-				//reload necessary in fact the symbolic image has changed - this is done during the delete job
 				storage.reloadCollections();
+				storage.reloadDocList(storage.getCollId());
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
 					| NoConnectionException e) {
 				// TODO Auto-generated catch block

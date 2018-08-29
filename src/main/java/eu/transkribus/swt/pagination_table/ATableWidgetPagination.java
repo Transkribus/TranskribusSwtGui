@@ -52,6 +52,8 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	protected Text filter;
 	protected boolean withFilter;
 	
+	protected boolean isRecycleBin = false;
+	
 //	T itemToSelect=null;
 	
 //	public ATableWidgetPagination(Composite parent, int style) {
@@ -63,17 +65,22 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 //	}
 	
 	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize) {
-		this(parent, tableStyle, initialPageSize, null, false);
+		this(parent, tableStyle, initialPageSize, null, false, false);
 	}
 
 	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize, IPageLoadMethods<T> methods) {
-		this(parent, tableStyle, initialPageSize, methods, false);
+		this(parent, tableStyle, initialPageSize, methods, false, false);
+	}
+	
+	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize, IPageLoadMethods<T> methods, boolean withFilter) {
+		this(parent, tableStyle, initialPageSize, methods, withFilter, false);
 	}
 
-	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize, IPageLoadMethods<T> methods, boolean withFilter) {
+	public ATableWidgetPagination(Composite parent, int tableStyle, int initialPageSize, IPageLoadMethods<T> methods, boolean withFilter, boolean recycleBin) {
 		super(parent, 0);
 		this.setLayout(new GridLayout(1, false));
 		
+		this.isRecycleBin = recycleBin;
 		this.withFilter = withFilter;
 		this.initialPageSize = initialPageSize;
 		this.methods = methods;
@@ -370,6 +377,14 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 	
 	public Button getReloadButton() {
 		return loadingComposite.reload;
+	}
+	
+	public boolean isRecycleBin() {
+		return isRecycleBin;
+	}
+
+	public void setRecycleBin(boolean isRecycleBin) {
+		this.isRecycleBin = isRecycleBin;
 	}
 	
 	public TableViewer getTableViewer() { return tv; }
