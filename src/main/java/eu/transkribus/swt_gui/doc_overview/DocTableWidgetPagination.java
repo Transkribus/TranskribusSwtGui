@@ -247,7 +247,7 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
             	try {
 					return BeanUtils.getSimpleProperty(element, colName);
 				} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-					return "i am error" + e.getMessage();
+					return "i am error " + e.getMessage();
 				}
             }
             

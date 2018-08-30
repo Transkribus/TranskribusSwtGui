@@ -50,13 +50,18 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 	ToolItem deleteAll;
 	ToolItem retrieveSelected;
 	
+	List<Integer> listOfCreatedDeleteJobs = new ArrayList<>();;
+	
 	List<Control> userControls = new ArrayList<>();
 	
 	int collectionId;
 	
+	TrpMainWidget mw = TrpMainWidget.getInstance();
+	
 	public RecycleBinDialog(Shell parentShell, int colId) {
 		super(parentShell);
 		collectionId = colId;
+		mw.reloadDocList(collectionId);
 	}
 	
 	void updateLoggedIn() {
@@ -162,20 +167,21 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
-		TrpMainWidget mw = TrpMainWidget.getInstance();
-
+		
 		if (s == deleteAll){
 			logger.debug("delete all - empty the recycle bin");
 			for (TrpDocMetadata doc : mw.getStorage().getDeletedDocList()){
 				logger.debug("Delete doc " + doc.getDocId());
 			}
-			//mw.deleteDocuments(mw.getStorage().getDeletedDocList(), true);
+			
+			mw.deleteDocuments(mw.getStorage().getDeletedDocList(), true);
 		}
 		else if (s == deleteSelected) {
 			logger.debug("delete selected - empty the recycle bin");
 			for (TrpDocMetadata doc : getSelectedDocuments()){
 				logger.debug("Delete doc " + doc.getDocId());
 			}
+			
 			mw.deleteDocuments(getSelectedDocuments(), true);
 		}
 		else if (s == retrieveSelected) {

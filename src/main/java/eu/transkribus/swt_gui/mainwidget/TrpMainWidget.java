@@ -1,11 +1,9 @@
 package eu.transkribus.swt_gui.mainwidget;
 
 import java.awt.Desktop;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -111,6 +109,7 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
@@ -140,6 +139,7 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -247,6 +247,7 @@ public class TrpMainWidget {
 	public ProgramInfo info;
 	public final String VERSION;
 	public final String NAME;
+	private final JavaInfo javaInfo;
 	
 	private final double readingOrderCircleInitWidth = 90;
 
@@ -335,6 +336,7 @@ public class TrpMainWidget {
 		info = new ProgramInfo();
 		VERSION = info.getVersion();
 		NAME = info.getName();
+		javaInfo = SysUtils.getJavaInfo();
 
 		Display.setAppName(NAME);
 		Display.setAppVersion(VERSION);
@@ -1284,6 +1286,20 @@ public class TrpMainWidget {
 		
 		int N = docs.size();
 		
+		List<Integer> listOfDocIdsOfRunningJobs = new ArrayList<>();
+		
+		try {
+			/*
+			 * only docs for which no job is currently running will be considered to be deleted or retrieved
+			 */
+			for (TrpJobStatus job : mw.getStorage().getUnfinishedJobs(true)){
+				listOfDocIdsOfRunningJobs.add(job.getDocId());
+			}
+		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		if (N > 1) {
 			String msg = "Do you really want to restore " + N + " selected documents?";
 			if (DialogUtil.showYesNoDialog(getShell(), "Restore Documents", msg)!=SWT.YES) {
@@ -1312,7 +1328,12 @@ public class TrpMainWidget {
 
 						logger.debug("restoring document: "+d);
 						
-						if (!user.isAdmin() && user.getUserId()!=d.getUploaderId()) {
+						if (listOfDocIdsOfRunningJobs.contains(d.getDocId())){
+							String errorMsg = "Already job running for document id: "+d.getDocId();
+							logger.warn(errorMsg);
+							error.add(errorMsg);
+						}
+						else if (!user.isAdmin() && user.getUserId()!=d.getUploaderId()) {
 //							DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the uploader of this document. " + md.getTitle());
 //							return false;
 							String errorMsg = "Unauthorized - you are not the owner of this document: "+d.getTitle()+", id: "+d.getDocId();
@@ -1350,11 +1371,13 @@ public class TrpMainWidget {
 			onError("Unexpected error", e.getMessage(), e);
 		}
 		
-		if (!error.isEmpty()) {
+		if (!error.isEmpty() && error.size() == docs.size()) {
 			String msg = "Could not restore the following documents:\n";
 			for (String u : error) {
 				msg += u + "\n";
 			}
+			msg += "You have to cancel the job if you want to restore the document!";
+			recycleBinDiag.close();
 			mw.onError("Error restoring documents", msg, null);
 			try {
 				//storage.reloadCollections();
@@ -1371,7 +1394,16 @@ public class TrpMainWidget {
 			//reload recycle bin if open??
 			return false;
 		} else {
-			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully restored "+docs.size()+" documents");
+			String msg = "";
+			if (!error.isEmpty()) {
+				msg = error.size() + " doc(s) could not be restored:\n";
+				for (String u : error) {
+					msg += u + "\n";
+				}
+				msg += "You have to cancel the job if you want to restore the document!";
+			}
+			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully restored "+(docs.size()-error.size())+" documents\n"
+					+ msg);
 			//clean up GUI
 			try {
 				//reload necessary in fact the symbolic image has changed - this is done during the delete job
@@ -4843,7 +4875,11 @@ public class TrpMainWidget {
 	}
 
 	public void openAboutDialog() {
-		int res = DialogUtil.showMessageDialog(getShell(), ui.APP_NAME, ui.HELP_TEXT, null, MessageDialog.INFORMATION, 
+		String msg = ui.HELP_TEXT;
+		if(javaInfo != null) {
+			msg += "\n\nInstallation details:\n" + javaInfo.toPrettyString();
+		}
+		int res = DialogUtil.showMessageDialog(getShell(), ui.APP_NAME, msg, null, MessageDialog.INFORMATION, 
 				new String[] {"OK", "Report bug / feature request"}, 0);
 		
 		if (res == 1) {
@@ -4865,40 +4901,12 @@ public class TrpMainWidget {
 
 	}
 	
-public void openJavaVersionDialog() {
-		
-		String javaArch = System.getProperty("sun.arch.data.model");
-		String version = System.getProperty("java.version");
-		String fileEnc = System.getProperty("file.encoding");
-		
-		if (SysUtils.isWin()) {
-			String arch = System.getenv("PROCESSOR_ARCHITECTURE");
-			String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-
-			String realArch = arch != null && arch.endsWith("64")
-			                  || wow64Arch != null && wow64Arch.endsWith("64")
-			                      ? "64" : "32";
-			if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
-				javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
-				javaVersionDialog.open();
-			}
+	public void openJavaVersionDialog() {
+		if (javaVersionDialog == null && (!javaInfo.getSystemArch().equals(javaInfo.getJavaArch())) || javaInfo.getVersion().startsWith("1.10") 
+				|| !javaInfo.getFileEnc().startsWith("UTF-8")) {
+			javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, javaInfo);
+			javaVersionDialog.open();
 		}
-		if(SysUtils.isLinux()) {
-			String realArch;
-			Process p;
-			try {
-				p = Runtime.getRuntime().exec("lscpu");
-				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));	
-				realArch = br.readLine().contains("64") ? "64" : "32" ;
-				logger.debug("line : "+realArch);
-				if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
-					javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
-					javaVersionDialog.open();
-				}
-				
-			}catch (Exception e) {}
-		}
-	
 	}
 	
 	public void openPAGEXmlViewer() {
@@ -5131,6 +5139,20 @@ public void openJavaVersionDialog() {
 			return false;
 		}
 		
+		List<Integer> listOfDocIdsOfRunningJobs = new ArrayList<>();
+		
+		try {
+			/*
+			 * only docs for which no job is currently running will be considered to be deleted or retrieved
+			 */
+			for (TrpJobStatus job : mw.getStorage().getUnfinishedJobs(true)){
+				listOfDocIdsOfRunningJobs.add(job.getDocId());
+			}
+		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		int N = docs.size();
 		
 		if (N > 1) {
@@ -5140,7 +5162,7 @@ public void openJavaVersionDialog() {
 			}
 		}
 		else{
-			String msg = reallyDelete ? "Do you really want to delete document '"+docs.get(0).getTitle()+"' irreversible?" : "Do you really want to delete document "+docs.get(0).getTitle()+"\nAfter deletion you can find your document in the recycle bin!";
+			String msg = reallyDelete ? "Do you really want to delete document '"+docs.get(0).getTitle()+"' irreversible?" : "Do you really want to delete document '"+docs.get(0).getTitle()+"'\nAfter deletion you can find your document in the recycle bin!";
 			if (DialogUtil.showYesNoDialog(getShell(), "Delete Document", msg)!=SWT.YES) {
 				return false;
 			}
@@ -5161,16 +5183,22 @@ public void openJavaVersionDialog() {
 
 						logger.debug("deleting document: "+d);
 						
-						if (!user.isAdmin() && user.getUserId()!=d.getUploaderId()) {
+						if (listOfDocIdsOfRunningJobs.contains(d.getDocId())){
+							String errorMsg = "Already delete job running for document: "+d.getDocId();
+							logger.warn(errorMsg);
+							error.add(errorMsg);
+						}
+						else if (!user.isAdmin() && user.getUserId()!=d.getUploaderId()) {
 //							DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the uploader of this document. " + md.getTitle());
 //							return false;
 							String errorMsg = "Unauthorized - you are not the owner of this document: "+d.getTitle()+", id: "+d.getDocId();
 							logger.warn(errorMsg);
 							error.add(errorMsg);
-						} else {
+						} 					
+						else {
 							try {
 								storage.deleteDocument(storage.getCollId(), d.getDocId(), reallyDelete);
-								logger.info("deleted document: "+d);
+								logger.info("Create delete document job: "+d);
 							} catch (SessionExpiredException | TrpClientErrorException | TrpServerErrorException e) {
 								logger.warn("Could not delete document: "+d, e);
 								error.add(d.getTitle()+", ID = "+d.getDocId()+", Reason = "+e.getMessageToUser());
@@ -5197,11 +5225,12 @@ public void openJavaVersionDialog() {
 			onError("Unexpected error", e.getMessage(), e);
 		}
 		
-		if (!error.isEmpty()) {
+		if (!error.isEmpty() && error.size() == docs.size()) {
 			String msg = "Could not delete the following documents:\n";
 			for (String u : error) {
 				msg += u + "\n";
 			}
+			recycleBinDiag.close();
 			mw.onError("Error deleting documents", msg, null);
 			try {
 				storage.reloadCollections();
@@ -5209,7 +5238,7 @@ public void openJavaVersionDialog() {
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
 					| NoConnectionException e) {
 				// TODO Auto-generated catch block
-				logger.error("reloading collections not possible after document(s) deletion");
+				logger.error("reloading doc list not possible after document(s) deletion");
 				e.printStackTrace();
 			}
 			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
@@ -5217,15 +5246,31 @@ public void openJavaVersionDialog() {
 			//reload recycle bin if open??
 			return false;
 		} else {
-			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully deleted "+docs.size()+" documents");
+			String msg = "";
+			if (!error.isEmpty()) {
+				msg = error.size() + " doc(s) could not be deleted:\n";
+				for (String u : error) {
+					msg += u + "\n";
+				}
+			}
+			if (reallyDelete){
+				DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully created "+(docs.size()-error.size())+" delete document jobs\n"
+						+ "The deleted documents will disappear from the recycle bin after the delete jobs have been finished!\n"
+						+  msg);
+			}
+			else{
+				DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully added "+(docs.size()-error.size())+" document(s) to the recycle bin\n"
+						+  msg);
+			}
 			//clean up GUI
 			try {
+				//recycleBinDiag.close();
 				storage.reloadCollections();
 				storage.reloadDocList(storage.getCollId());
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
 					| NoConnectionException e) {
 				// TODO Auto-generated catch block
-				logger.error("reloading collections not possible after documents deletion");
+				logger.error("recycle bin");
 				e.printStackTrace();
 			}
 			//reload necessary to actualize doc list
@@ -5966,6 +6011,8 @@ public void openJavaVersionDialog() {
 		redrawCanvas();
 	}
 
-
+	public JavaInfo getJavaInfo() {
+		return javaInfo;
+	}
 
 }
