@@ -13,6 +13,8 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -184,6 +186,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		createJobTable();
 		
 		rl.start();
+		this.composite.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				logger.debug("Disposing ErrorRateAdvancedDialog composite.");
+				rl.setStopped();
+			}
+		});
 		
 		return composite;
 	}
@@ -254,6 +262,10 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				}
 			}
 			return jobs;
+		}
+		public void setStopped() {
+			logger.debug("Stopping result polling.");
+			stopped = true;
 		}
 	}
 	

@@ -1,11 +1,9 @@
 package eu.transkribus.swt_gui.mainwidget;
 
 import java.awt.Desktop;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -140,6 +138,7 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
@@ -246,6 +245,7 @@ public class TrpMainWidget {
 	public ProgramInfo info;
 	public final String VERSION;
 	public final String NAME;
+	private final JavaInfo javaInfo;
 	
 	private final double readingOrderCircleInitWidth = 90;
 
@@ -332,6 +332,7 @@ public class TrpMainWidget {
 		info = new ProgramInfo();
 		VERSION = info.getVersion();
 		NAME = info.getName();
+		javaInfo = SysUtils.getJavaInfo();
 
 		Display.setAppName(NAME);
 		Display.setAppVersion(VERSION);
@@ -4711,7 +4712,11 @@ public class TrpMainWidget {
 	}
 
 	public void openAboutDialog() {
-		int res = DialogUtil.showMessageDialog(getShell(), ui.APP_NAME, ui.HELP_TEXT, null, MessageDialog.INFORMATION, 
+		String msg = ui.HELP_TEXT;
+		if(javaInfo != null) {
+			msg += "\n\nInstallation details:\n" + javaInfo.toPrettyString();
+		}
+		int res = DialogUtil.showMessageDialog(getShell(), ui.APP_NAME, msg, null, MessageDialog.INFORMATION, 
 				new String[] {"OK", "Report bug / feature request"}, 0);
 		
 		if (res == 1) {
@@ -4733,40 +4738,12 @@ public class TrpMainWidget {
 
 	}
 	
-public void openJavaVersionDialog() {
-		
-		String javaArch = System.getProperty("sun.arch.data.model");
-		String version = System.getProperty("java.version");
-		String fileEnc = System.getProperty("file.encoding");
-		
-		if (SysUtils.isWin()) {
-			String arch = System.getenv("PROCESSOR_ARCHITECTURE");
-			String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-
-			String realArch = arch != null && arch.endsWith("64")
-			                  || wow64Arch != null && wow64Arch.endsWith("64")
-			                      ? "64" : "32";
-			if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
-				javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
-				javaVersionDialog.open();
-			}
+	public void openJavaVersionDialog() {
+		if (javaVersionDialog == null && (!javaInfo.getSystemArch().equals(javaInfo.getJavaArch())) || javaInfo.getVersion().startsWith("1.10") 
+				|| !javaInfo.getFileEnc().startsWith("UTF-8")) {
+			javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, javaInfo);
+			javaVersionDialog.open();
 		}
-		if(SysUtils.isLinux()) {
-			String realArch;
-			Process p;
-			try {
-				p = Runtime.getRuntime().exec("lscpu");
-				BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));	
-				realArch = br.readLine().contains("64") ? "64" : "32" ;
-				logger.debug("line : "+realArch);
-				if (javaVersionDialog == null && (!realArch.equals(javaArch) || version.startsWith("1.10") || !fileEnc.startsWith("UTF-8"))) {
-					javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, realArch,javaArch,version,fileEnc);
-					javaVersionDialog.open();
-				}
-				
-			}catch (Exception e) {}
-		}
-	
 	}
 	
 	public void openPAGEXmlViewer() {
@@ -5827,6 +5804,8 @@ public void openJavaVersionDialog() {
 		redrawCanvas();
 	}
 
-
+	public JavaInfo getJavaInfo() {
+		return javaInfo;
+	}
 
 }
