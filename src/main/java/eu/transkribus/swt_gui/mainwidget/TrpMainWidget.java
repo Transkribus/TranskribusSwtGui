@@ -5254,8 +5254,8 @@ public class TrpMainWidget {
 				}
 			}
 			if (reallyDelete){
-				DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully created "+(docs.size()-error.size())+" delete document jobs\n"
-						+ "The deleted documents will disappear from the recycle bin after the delete jobs have been finished!\n"
+				DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully created "+(docs.size()-error.size())+" delete document jobs!\n"
+						+ "The deleted documents will only disappear from the recycle bin after the delete jobs have been finished!\n"
 						+  msg);
 			}
 			else{

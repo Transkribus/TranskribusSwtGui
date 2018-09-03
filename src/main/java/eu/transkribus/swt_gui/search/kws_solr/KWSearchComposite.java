@@ -63,6 +63,7 @@ import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.searchresult.KeywordHit;
+import eu.transkribus.core.model.beans.searchresult.KeywordPageHit;
 import eu.transkribus.core.model.beans.searchresult.KeywordSearchResult;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
@@ -152,7 +153,7 @@ public class KWSearchComposite extends Composite{
 		Label scopeLbl = new Label(scopeComp, SWT.NONE);
 		scopeLbl.setText("Search in:");
 		scopeCombo = new Combo(scopeComp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-		String[] SCOPES = new String[] { "All Collections", "1555"};
+		String[] SCOPES = new String[] { "All Collections", "1895"};
 		scopeCombo.setItems(SCOPES);
 		//FIXME Java Heap space error when to many confmats are loaded. Thus for now only scope "document"
 		scopeCombo.select(1);
@@ -402,7 +403,7 @@ public class KWSearchComposite extends Composite{
 			@Override public void doubleClick(DoubleClickEvent event) {
 				IStructuredSelection sel = (IStructuredSelection) event.getSelection();
 				if (!sel.isEmpty()) {
-					logger.debug("Clicked! Doc: "+ ((KeywordHit)sel.getFirstElement()).getId()+ " Page: "+((KeywordHit)sel.getFirstElement()).getPageNr());
+					logger.debug("Clicked! Doc: "+ ((KeywordHit)sel.getFirstElement()).getPage().getId()+ " Page: "+((KeywordHit)sel.getFirstElement()).getPage().getPageNr());
 					KeywordHit clHit = (KeywordHit)sel.getFirstElement();
 					Storage s = Storage.getInstance();		
 					
@@ -414,7 +415,7 @@ public class KWSearchComposite extends Composite{
 //					find collections in searchresult that user has access to
 					int col = -1;
 					for(Integer userColId : userCols){
-						for(Integer hitColId : clHit.getColIds()){							
+						for(Integer hitColId : clHit.getPage().getColIds()){							
 							if(userColId.equals(hitColId)){
 								col = userColId;
 							}
@@ -422,8 +423,8 @@ public class KWSearchComposite extends Composite{
 					}
 					logger.debug("Col: " + col);
 					if(col != -1){
-						int docId = Integer.parseInt(clHit.getId().split("_")[0]);
-						int pageNr = clHit.getPageNr();
+						int docId = Integer.parseInt(clHit.getPage().getId().split("_")[0]);
+						int pageNr = clHit.getPage().getPageNr();
 						TrpLocation l = new TrpLocation();
 						
 						l.collId = col;
@@ -502,7 +503,7 @@ public class KWSearchComposite extends Composite{
             @Override
             public String getText(Object element) {
                 KeywordHit hit = (KeywordHit)element;  
-                return ""+hit.getDocTitle();
+                return ""+hit.getPage().getDocTitle();
             }
         });
         
@@ -514,7 +515,7 @@ public class KWSearchComposite extends Composite{
             @Override
             public String getText(Object element) {
                 KeywordHit hit = (KeywordHit)element;  
-                return ""+hit.getPageNr();
+                return ""+hit.getPage().getPageNr();
             }
         });
 		Listener sortListenerPage = new Listener(){
@@ -665,7 +666,18 @@ public class KWSearchComposite extends Composite{
 		
 		resultsGroup.setText(searchOutput);
 		
-		keywordHits = (ArrayList<KeywordHit>) kwSearchResult.getKeywordHits();	
+		ArrayList<KeywordPageHit> keywordPageHits = (ArrayList<KeywordPageHit>) kwSearchResult.getKeywordHits();
+		
+		
+//		keywordHits = (ArrayList<KeywordHit>) kwSearchResult.getKeywordHits();	
+		keywordHits = new ArrayList<KeywordHit>();
+		
+		for(KeywordPageHit pageHit : keywordPageHits){
+			for(KeywordHit wordHit : pageHit.getKwHits()){
+				wordHit.setPage(pageHit);				
+				keywordHits.add(wordHit);
+			}
+		}
 		
 		Runnable loadPreviewImages = new Runnable(){
 			
@@ -689,7 +701,8 @@ public class KWSearchComposite extends Composite{
 		imgLoaderThread.setPriority(Thread.MIN_PRIORITY);
 		logger.debug("Image loading thread started. Nr of imgages: "+keywordHits.size());  
 		
-		tv.setInput(kwSearchResult.getKeywordHits());		
+//		tv.setInput(kwSearchResult.getKeywordHits());	
+		tv.setInput(keywordHits);
 		tv.refresh();		
 		shell.redraw();		
 	}
@@ -699,10 +712,10 @@ public class KWSearchComposite extends Composite{
 //		imgKey = imgKey.replace("&fileType=view", "");
 		
 		//Extract key from URL
-		String imgKey = StringUtils.substringBetween(kwHit.getPageUrl(), "Get?id=", "&fileType=view");	
+		String imgKey = StringUtils.substringBetween(kwHit.getPage().getPageUrl(), "Get?id=", "&fileType=view");	
 
 		String coords = kwHit.getTextCoords();
-		String imgId = kwHit.getId();
+		String imgId = kwHit.getPage().getId();
 		
 		if(imageMap.containsKey(imgId)) return;
 		
@@ -735,7 +748,7 @@ public class KWSearchComposite extends Composite{
 			public void run() {
 				if(currentHit != null){
 					putInImageMap(currentHit);
-					currentImgOrig = imageMap.get(currentHit.getId());
+					currentImgOrig = imageMap.get(currentHit.getPage().getId());
 					Display.getDefault().asyncExec(()->{
 						canvas.redraw();
 					});
@@ -757,8 +770,8 @@ public class KWSearchComposite extends Composite{
 				currentHit = (KeywordHit) hoverItem.getData();
 //				logger.debug(currentHit.getId());
 				
-				if(imageMap.get(currentHit.getId()) != null){
-					currentImgOrig = imageMap.get(currentHit.getId());
+				if(imageMap.get(currentHit.getPage().getId()) != null){
+					currentImgOrig = imageMap.get(currentHit.getPage().getId());
 
 				}else{
 					currentImgOrig = Images.LOADING_IMG;

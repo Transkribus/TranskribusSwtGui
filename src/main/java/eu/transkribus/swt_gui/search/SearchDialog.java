@@ -141,7 +141,7 @@ public class SearchDialog extends Dialog {
 		
 		boolean allowed = false;
 		try {
-			allowed = Storage.getInstance().getConnection().canManageCollection(1555);
+			allowed = Storage.getInstance().getConnection().canManageCollection(1895);
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
 			e.printStackTrace();
 		}
