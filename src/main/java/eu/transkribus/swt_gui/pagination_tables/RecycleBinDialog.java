@@ -80,7 +80,7 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 	      super.configureShell(shell);
 	      shell.setSize(1000, 800);
 	      SWTUtil.centerShell(shell);
-	      shell.setText("Deleted documents and transcripts");
+	      shell.setText("Deleted documents");
 	}
 
 	@Override protected Control createDialogArea(Composite parent) {
