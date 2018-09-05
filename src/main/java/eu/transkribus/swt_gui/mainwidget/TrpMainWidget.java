@@ -3940,8 +3940,8 @@ public class TrpMainWidget {
 				}
 			}, "Exporting", true);
 		} catch (Throwable e) {
-			if (!(e instanceof InterruptedException))
-				onError("Export error", "Error during Xlsx export of document", e);
+//			if (!(e instanceof InterruptedException))
+//				onError("Export error", "Error during Xlsx export of document", e);
 			throw e;
 		}
 		return true;
@@ -3971,8 +3971,8 @@ public class TrpMainWidget {
 				}
 			}, "Exporting", true);
 		} catch (Throwable e) {
-			if (!(e instanceof InterruptedException))
-				onError("Export error", "Error during Xlsx export of document", e);
+//			if (!(e instanceof InterruptedException))
+//				onError("Export error", "Error during Xlsx export of document", e);
 			throw e;
 		}
 	}

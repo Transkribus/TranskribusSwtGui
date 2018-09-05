@@ -572,12 +572,14 @@ CHANGES AND BUGFIXES
 	-> Compare versions tool for several pages resp. a complete document 
 	-> CITlabAdvanced and CVL are bottom-up approaches and thus detect always lines: check boxes are therefore preselected and disabled
 	-> User manager: Roles are considered in order to determine what is allowed and what is not allowed
-	-> bug fix: Error messages in the user manager were not closable 
-	-> bug fix: merging of two shapes keeps the reading order and adds a space between them
-	-> bug fix: selecting a tag from the table now also displays the right position in the image
 	-> show last save action on a document in the document manager (time, page number, user)
 	-> Enable possibility to choose image quality for PDF export
 	-> integrated more user-friendly table border markup box (called from context menu and border button) 
-	-> bug fix: Sorting lines according to coordinates now also works for tables (R-button in Layout tab)
 	-> Adapt the GUI appearance to the role a user has in the currently loaded collection, e.g. 'Reader' can not use the text editor or use 'save button' etc.
 	-> Recycle bin for documents: contains deleted documents where they can be restored or deleted irreversible
+	-> bug fix: Error messages in the user manager were not closable 
+	-> bug fix: merging of two shapes keeps the reading order and adds a space between them
+	-> bug fix: selecting a tag from the table now also displays the right position in the image
+	-> bug fix: Sorting lines according to coordinates now also works for tables (R-button in Layout tab)
+	-> bug fix: Server export of tags and tables (xlsx) wasn't transparent to the user if there weren't any
+	-> bug fix: Table export into xlsx also works fine for highly structured tables
