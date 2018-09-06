@@ -403,7 +403,7 @@ public class KWSearchComposite extends Composite{
 			@Override public void doubleClick(DoubleClickEvent event) {
 				IStructuredSelection sel = (IStructuredSelection) event.getSelection();
 				if (!sel.isEmpty()) {
-					logger.debug("Clicked! Doc: "+ ((KeywordHit)sel.getFirstElement()).getPage().getId()+ " Page: "+((KeywordHit)sel.getFirstElement()).getPage().getPageNr());
+					logger.debug("Clicked! Doc: "+ ((KeywordHit)sel.getFirstElement()).getId()+ " Page: "+((KeywordHit)sel.getFirstElement()).getPageNr());
 					KeywordHit clHit = (KeywordHit)sel.getFirstElement();
 					Storage s = Storage.getInstance();		
 					
@@ -415,7 +415,7 @@ public class KWSearchComposite extends Composite{
 //					find collections in searchresult that user has access to
 					int col = -1;
 					for(Integer userColId : userCols){
-						for(Integer hitColId : clHit.getPage().getColIds()){							
+						for(Integer hitColId : clHit.getColIds()){							
 							if(userColId.equals(hitColId)){
 								col = userColId;
 							}
@@ -423,8 +423,8 @@ public class KWSearchComposite extends Composite{
 					}
 					logger.debug("Col: " + col);
 					if(col != -1){
-						int docId = Integer.parseInt(clHit.getPage().getId().split("_")[0]);
-						int pageNr = clHit.getPage().getPageNr();
+						int docId = Integer.parseInt(clHit.getId().split("_")[0]);
+						int pageNr = clHit.getPageNr();
 						TrpLocation l = new TrpLocation();
 						
 						l.collId = col;
@@ -503,7 +503,7 @@ public class KWSearchComposite extends Composite{
             @Override
             public String getText(Object element) {
                 KeywordHit hit = (KeywordHit)element;  
-                return ""+hit.getPage().getDocTitle();
+                return ""+hit.getDocTitle();
             }
         });
         
@@ -515,7 +515,7 @@ public class KWSearchComposite extends Composite{
             @Override
             public String getText(Object element) {
                 KeywordHit hit = (KeywordHit)element;  
-                return ""+hit.getPage().getPageNr();
+                return ""+hit.getPageNr();
             }
         });
 		Listener sortListenerPage = new Listener(){
@@ -666,18 +666,18 @@ public class KWSearchComposite extends Composite{
 		
 		resultsGroup.setText(searchOutput);
 		
-		ArrayList<KeywordPageHit> keywordPageHits = (ArrayList<KeywordPageHit>) kwSearchResult.getKeywordHits();
+//		ArrayList<KeywordPageHit> keywordPageHits = (ArrayList<KeywordPageHit>) kwSearchResult.getKeywordHits();
 		
 		
-//		keywordHits = (ArrayList<KeywordHit>) kwSearchResult.getKeywordHits();	
-		keywordHits = new ArrayList<KeywordHit>();
-		
-		for(KeywordPageHit pageHit : keywordPageHits){
-			for(KeywordHit wordHit : pageHit.getKwHits()){
-				wordHit.setPage(pageHit);				
-				keywordHits.add(wordHit);
-			}
-		}
+		keywordHits = (ArrayList<KeywordHit>) kwSearchResult.getKeywordHits();	
+//		keywordHits = new ArrayList<KeywordHit>();
+//		
+//		for(KeywordPageHit pageHit : keywordPageHits){
+//			for(KeywordHit wordHit : pageHit.getKwHits()){
+//				wordHit.setPage(pageHit);				
+//				keywordHits.add(wordHit);
+//			}
+//		}
 		
 		Runnable loadPreviewImages = new Runnable(){
 			
@@ -712,10 +712,10 @@ public class KWSearchComposite extends Composite{
 //		imgKey = imgKey.replace("&fileType=view", "");
 		
 		//Extract key from URL
-		String imgKey = StringUtils.substringBetween(kwHit.getPage().getPageUrl(), "Get?id=", "&fileType=view");	
+		String imgKey = StringUtils.substringBetween(kwHit.getPageUrl(), "Get?id=", "&fileType=view");	
 
 		String coords = kwHit.getTextCoords();
-		String imgId = kwHit.getPage().getId();
+		String imgId = kwHit.getId();
 		
 		if(imageMap.containsKey(imgId)) return;
 		
@@ -748,7 +748,7 @@ public class KWSearchComposite extends Composite{
 			public void run() {
 				if(currentHit != null){
 					putInImageMap(currentHit);
-					currentImgOrig = imageMap.get(currentHit.getPage().getId());
+					currentImgOrig = imageMap.get(currentHit.getId());
 					Display.getDefault().asyncExec(()->{
 						canvas.redraw();
 					});
@@ -770,8 +770,8 @@ public class KWSearchComposite extends Composite{
 				currentHit = (KeywordHit) hoverItem.getData();
 //				logger.debug(currentHit.getId());
 				
-				if(imageMap.get(currentHit.getPage().getId()) != null){
-					currentImgOrig = imageMap.get(currentHit.getPage().getId());
+				if(imageMap.get(currentHit.getId()) != null){
+					currentImgOrig = imageMap.get(currentHit.getId());
 
 				}else{
 					currentImgOrig = Images.LOADING_IMG;
