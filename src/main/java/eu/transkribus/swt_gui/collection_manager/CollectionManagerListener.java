@@ -147,7 +147,7 @@ public class CollectionManagerListener implements IStorageListener, SelectionLis
 		if (selected.isEmpty())
 			return;
 		
-		mw.addDocumentsToCollection(cmw.getSelectedCollection().getColId(), selected);
+		mw.addDocumentsToCollection(cmw.getSelectedCollection().getColId(), selected, false);
 		
 		cmw.docsTableWidget.refreshPage(false);
 	}

@@ -205,6 +205,7 @@ import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.RecycleBinDialog;
+import eu.transkribus.swt_gui.pagination_tables.StrayDocsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
 import eu.transkribus.swt_gui.search.SearchDialog.SearchType;
@@ -296,6 +297,7 @@ public class TrpMainWidget {
 	JobsDialog jobsDiag;
 	CollectionManagerDialog cm;
 	CollectionUsersDialog collUsersDiag;
+	StrayDocsDialog strayDocsDialog;
 	
 	EditDeclManagerDialog edDiag;
 	ActivityDialog ad;
@@ -4769,6 +4771,15 @@ public class TrpMainWidget {
 		}
 	}
 	
+	public void openStrayDocsDialog() {
+		if (SWTUtil.isOpen(strayDocsDialog)) {
+			strayDocsDialog.getShell().setVisible(true);
+		} else {
+			strayDocsDialog = new StrayDocsDialog(getShell());
+			strayDocsDialog.open();
+		}
+	}
+	
 	public void openCollectionManagerDialog() {
 		logger.debug("opening cm dialog");
 		
@@ -5255,7 +5266,7 @@ public class TrpMainWidget {
 			}
 			if (reallyDelete){
 				DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully created "+(docs.size()-error.size())+" delete document jobs!\n"
-						+ "The deleted documents will only disappear from the recycle bin after the delete jobs have been finished!\n"
+						+ "The deleted documents will only disappear after the delete jobs have been finished!\n"
 						+  msg);
 			}
 			else{
@@ -5267,6 +5278,9 @@ public class TrpMainWidget {
 				//recycleBinDiag.close();
 				storage.reloadCollections();
 				storage.reloadDocList(storage.getCollId());
+				if (SWTUtil.isOpen(strayDocsDialog)){
+					storage.reloadUserDocs();
+				}
 			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
 					| NoConnectionException e) {
 				// TODO Auto-generated catch block
@@ -5294,21 +5308,24 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public boolean addDocumentsToCollection(int srcColId, Collection<TrpDocMetadata> docs) {
+	public boolean addDocumentsToCollection(int srcColId, Collection<TrpDocMetadata> docs, boolean strayDoc) {
 		if (!storage.isLoggedIn() || docs==null || docs.isEmpty()) {
 			return false;
 		}
 		
-		TrpCollection coll = storage.getCollection(srcColId);
-		if (coll == null) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not determine collection for selected documents!");
-		}
-		
-		final TrpUserLogin user = storage.getUser();
-		
-		if (!user.isAdmin() && !StorageUtil.isOwnerOfCollection(coll) && !StorageUtil.isUploader(user, docs)) {
-			DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the owner in this collection or uploader of the document(s)!");
-			return false;
+		//cannot be checked for stray documents
+		if (!strayDoc){
+			TrpCollection coll = storage.getCollection(srcColId);
+			if (coll == null) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not determine collection for selected documents!");
+			}
+			
+			final TrpUserLogin user = storage.getUser();
+			
+			if (!user.isAdmin() && !StorageUtil.isOwnerOfCollection(coll) && !StorageUtil.isUploader(user, docs)) {
+				DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the owner in this collection or uploader of the document(s)!");
+				return false;
+			}
 		}
 		
 		ChooseCollectionDialog diag = new ChooseCollectionDialog(getShell(), "Choose a collection where the documents should be added to", storage.getCurrentDocumentCollection()) {
@@ -5317,7 +5334,9 @@ public class TrpMainWidget {
 				
 				Label infoLabel = new Label(container, 0);
 				infoLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 2));
-				infoLabel.setText("Note: documents are only linked into the collection, i.e. a soft copy is created.\nThey also remain linked to the current collection");
+				String lableTxt = (strayDoc ? "" : "Note: documents are only linked into the collection, i.e. a soft copy is created.\nThey also remain linked to the current collection but you can also unlink them!");
+				infoLabel.setText(lableTxt);
+				
 				Fonts.setItalicFont(infoLabel);
 				
 				return container;
@@ -5376,7 +5395,7 @@ public class TrpMainWidget {
 			onError("Unexpected error", e.getMessage(), e);
 		}
 		
-		if (!error.isEmpty()) {
+		if (!error.isEmpty() && error.size() == docs.size()) {
 			String msg = "Could not add the following documents:\n";
 			for (String u : error) {
 				msg += u + "\n";
@@ -5385,7 +5404,17 @@ public class TrpMainWidget {
 			mw.onError("Error adding documents", msg, null);
 			return false;
 		} else {
-			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully added "+docs.size()+" documents");
+			String msg = "";
+			if (!error.isEmpty()){
+				msg = "Could not add the following documents:\n";
+				for (String u : error) {
+					msg += u + "\n";
+				}
+			}
+			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully added "+docs.size()+" documents\n" + msg);
+			if (strayDoc){
+				storage.reloadUserDocs();
+			}
 			return true;
 		}
 	}
@@ -5451,7 +5480,7 @@ public class TrpMainWidget {
 			onError("Unexpected error", e.getMessage(), e);
 		}	
 				
-		if (!error.isEmpty()) {
+		if (!error.isEmpty() && error.size() == docs.size()) {
 			String msg = "Could not remove the following documents:\n";
 			for (String u : error) {
 				msg += u + "\n";
@@ -5470,7 +5499,14 @@ public class TrpMainWidget {
 			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
 			return false;
 		} else {
-			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully removed "+docs.size()+" documents");
+			String msg = "";
+			if (!error.isEmpty()){
+				msg = "Could not remove the following documents:\n";
+				for (String u : error) {
+					msg += u + "\n";
+				}
+			}
+			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully removed "+docs.size()+" documents\n" + msg);
 			//clean up GUI
 			try {
 				//reload necessary in fact the symbolic image has changed
@@ -5540,7 +5576,8 @@ public class TrpMainWidget {
 		if (DialogUtil.showYesNoDialog(getShell(), "Are you sure?", "Do you really want to delete the collection \"" 
 				+ c.getColName() + "\"?\n\n"
 				+ "Note: documents are not deleted, only their reference to the collection is removed - "
-				+ "use the delete document button to completely remove documents from the server!",
+				+ "use the delete document button to completely remove documents from the server!\n"
+				+ "After collection is deleted the docs can be deleted or reassigned via the 'Stray Docs Dialog'!",
 				SWT.ICON_WARNING)!=SWT.YES) {
 			return;
 		}

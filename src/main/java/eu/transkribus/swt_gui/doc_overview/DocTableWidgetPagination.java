@@ -208,13 +208,22 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	}
 	
 	public void reloadDocs(boolean resetPage, boolean forceReload) {
+		//case if user is logged out
 		if (collectionId == 0) {
 			logger.debug("collectionId=0");
 			setDocList(new ArrayList<>(), resetPage);
 			return;
 		}
-
+		
 		Storage store = Storage.getInstance();
+		//use collectionId == -1 for the stray docuements widget
+		if (collectionId == -1) {
+			logger.debug("collectionId=0");
+			setDocList(store.getUserDocList(), resetPage);
+			return;
+		}
+
+		
 		if (forceReload || collectionId != store.getCollId()) { // have to reload doclist
 //			store.getConnection().getAllDocsAsync(collectionId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
 			logger.debug("collection id differs from storage - reloading from server! "+collectionId+" / "+store.getCollId());

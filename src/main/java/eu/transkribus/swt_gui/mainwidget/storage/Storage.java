@@ -243,7 +243,7 @@ public class Storage {
 	private void addInternalListener() {
 		addListener(new IStorageListener() {
 			@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
-				reloadUserDocs();
+				//reloadUserDocs();
 			}
 		});
 	}
@@ -819,7 +819,7 @@ public class Storage {
 		logger.debug("reloading docs by user!");
 		
 		if (user != null) {
-			conn.getAllDocsByUserAsync(0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
+			conn.getAllStrayDocsByUserAsync(0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
 				@Override public void failed(Throwable throwable) {
 					logger.error("Error loading documents by user "+user+" - "+throwable.getMessage(), throwable);
 				}

@@ -385,7 +385,7 @@ public class ServerWidget extends Composite {
 	public void refreshDocListFromStorage() {
 		docTableWidget.refreshList(getSelectedCollectionId(), true, false);
 	}
-	
+		
 	public void clearDocList() {
 		docTableWidget.refreshList(0, true, false);
 	}

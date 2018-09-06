@@ -33,8 +33,8 @@ import eu.transkribus.swt_gui.doc_overview.DocTableWidgetPagination;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class RecycleBinDialog extends Dialog implements SelectionListener {
-	private static final Logger logger = LoggerFactory.getLogger(RecycleBinDialog.class);
+public class StrayDocsDialog extends Dialog implements SelectionListener {
+	private static final Logger logger = LoggerFactory.getLogger(StrayDocsDialog.class);
 	
 	CTabFolder mainTf;
 	
@@ -48,20 +48,19 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 	
 	ToolItem deleteSelected;
 	ToolItem deleteAll;
-	ToolItem retrieveSelected;
+	ToolItem linkSelected;
 	
 	List<Integer> listOfCreatedDeleteJobs = new ArrayList<>();;
 	
 	List<Control> userControls = new ArrayList<>();
 	
-	int collectionId;
+	int collectionId = -1;
 	
 	TrpMainWidget mw = TrpMainWidget.getInstance();
 	
-	public RecycleBinDialog(Shell parentShell, int colId) {
+	public StrayDocsDialog(Shell parentShell) {
 		super(parentShell);
-		collectionId = colId;
-		mw.reloadDocList(collectionId);
+		mw.getStorage().reloadUserDocs();
 	}
 	
 	void updateLoggedIn() {
@@ -80,7 +79,7 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 	      super.configureShell(shell);
 	      shell.setSize(1000, 800);
 	      SWTUtil.centerShell(shell);
-	      shell.setText("Deleted documents");
+	      shell.setText("Stray documents");
 	}
 
 	@Override protected Control createDialogArea(Composite parent) {
@@ -103,21 +102,21 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 		
 		deleteAll = new ToolItem(tb, SWT.NONE);
 		deleteAll.setData(new GridData(SWT.CENTER, SWT.TOP, false, false, 1, 1));
-		deleteAll.setToolTipText("Empty recycle bin");
+		deleteAll.setToolTipText("Delete all");
 		deleteAll.setImage(Images.getOrLoad("/icons/bin_empty.png"));
 		SWTUtil.addSelectionListener(deleteAll, this);
 		
 		new ToolItem(tb, SWT.SEPARATOR);
 		
-		retrieveSelected = new ToolItem(tb, SWT.NONE);
-		retrieveSelected.setData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
-		retrieveSelected.setToolTipText("Retrieve Selected");
-		retrieveSelected.setImage(Images.getOrLoad("/icons/arrow_undo.png"));
-		SWTUtil.addSelectionListener(retrieveSelected, this);
+		linkSelected = new ToolItem(tb, SWT.NONE);
+		linkSelected.setData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
+		linkSelected.setToolTipText("Assign selected");
+		linkSelected.setImage(Images.getOrLoad("/icons/add.png"));
+		SWTUtil.addSelectionListener(linkSelected, this);
 		
 		new ToolItem(tb, SWT.SEPARATOR);
 		
-		docTableWidget = new DocTableWidgetPagination(container, 0, 50, true);
+		docTableWidget = new DocTableWidgetPagination(container, 0, 50, false);
 		docTableWidget.setLayoutData(new GridData(GridData.FILL_BOTH));
 		docTableWidget.refreshList(collectionId);
 		userControls.add(docTableWidget);
@@ -146,6 +145,10 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 		docTableWidget.refreshList(0, true, false);
 	}
 	
+	public void refreshDocList() {
+		docTableWidget.refreshList(collectionId);
+	}
+	
 	public DocTableWidgetPagination getDocTableWidget() { return docTableWidget; }
 	
 	public TableViewer getTableViewer() { return docTableWidget.getTableViewer(); }
@@ -169,27 +172,27 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 		Object s = e.getSource();
 		
 		if (s == deleteAll){
-			logger.debug("delete all - empty the recycle bin");
-			for (TrpDocMetadata doc : mw.getStorage().getDeletedDocList()){
+			logger.debug("delete all stray documents irreversible");
+			for (TrpDocMetadata doc : mw.getStorage().getUserDocList()){
 				logger.debug("Delete doc " + doc.getDocId());
 			}
 			
-			mw.deleteDocuments(mw.getStorage().getDeletedDocList(), true);
+			//mw.deleteDocuments(mw.getStorage().getUserDocList(), true);
 		}
 		else if (s == deleteSelected) {
-			logger.debug("delete selected from recycle bin");
+			logger.debug("delete selected documents irreversible");
 			for (TrpDocMetadata doc : getSelectedDocuments()){
 				logger.debug("Delete doc " + doc.getDocId());
 			}
 			
-			mw.deleteDocuments(getSelectedDocuments(), true);
+			//mw.deleteDocuments(getSelectedDocuments(), true);
 		}
-		else if (s == retrieveSelected) {
-			logger.debug("retrieve selected docs");
+		else if (s == linkSelected) {
+			logger.debug("Assign selected docs to collection");
 			for (TrpDocMetadata doc : getSelectedDocuments()){
-				logger.debug("Retrieve doc " + doc.getDocId());
+				logger.debug("Assign doc " + doc.getDocId());
 			}
-			mw.saveDocMetadata(getSelectedDocuments());
+			mw.addDocumentsToCollection(-1, getSelectedDocuments(), true);
 			
 			/*
 			 * 

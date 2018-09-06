@@ -186,7 +186,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			mw.reloadDocList(mw.getSelectedCollectionId());
 		}
 		else if (s == sw.addToCollectionMenuItem || s == sw.addToCollectionTi) {
-			mw.addDocumentsToCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
+			mw.addDocumentsToCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments(), false);
 		}
 		else if (s == sw.removeFromCollectionMenuItem || s == sw.removeFromCollectionTi) {
 			mw.removeDocumentsFromCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments());
@@ -295,7 +295,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 				 * really confusing
 				 */
 				if (docs.get().size() > 0 && docs.get().get(0) != null){
-					//TrpMainWidget.getInstance().loadRemoteDoc(docs.get().get(0).getDocId(), sw.getSelectedCollectionId());
+					TrpMainWidget.getInstance().loadRemoteDoc(docs.get().get(0).getDocId(), sw.getSelectedCollectionId());
 				}
 			} catch (IllegalArgumentException | InterruptedException | ExecutionException e) {
 				// TODO Auto-generated catch block
