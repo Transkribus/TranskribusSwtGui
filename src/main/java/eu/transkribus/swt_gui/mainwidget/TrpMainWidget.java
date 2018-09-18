@@ -885,9 +885,9 @@ public class TrpMainWidget {
 						}
 												
 						//if tag registry has changed and user is logged in -> store into DB for the current user
-						if (storage.isLoggedIn()){
-							Storage.getInstance().updateCustomTagSpecsForUserInDB();
-						}
+//						if (storage.isLoggedIn()){
+//							Storage.getInstance().updateCustomTagSpecsForUserInDB();
+//						}
 					}
 				});
 			}
