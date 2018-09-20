@@ -29,7 +29,7 @@ public class CollectionSelectorDialog extends Dialog {
 	TrpCollection selectedCollection;
 //	List<TrpCollection> collections;
 	CollectionsTableWidgetPagination collectionTable;
-	Button createBtn, deleteBtn, modifyBtn, addUsersBtn;
+	Button createBtn, deleteBtn, modifyBtn, addUsersBtn, strayDocsBtn;
 	TrpCollection initColl;
 	
 	Predicate<TrpCollection> collectionPredicate;
@@ -76,7 +76,7 @@ public class CollectionSelectorDialog extends Dialog {
 		
 		Composite btns = new Composite(container, 0);
 		btns.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
-		btns.setLayout(new GridLayout(4, true));
+		btns.setLayout(new GridLayout(5, true));
 				
 		createBtn = new Button(btns, SWT.PUSH);
 		createBtn.setText("Create");
@@ -98,6 +98,13 @@ public class CollectionSelectorDialog extends Dialog {
 		addUsersBtn.setImage(Images.USER_EDIT);
 		addUsersBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
+		strayDocsBtn = new Button(btns, SWT.PUSH);
+		strayDocsBtn.setText("Stray documents");
+		strayDocsBtn.setToolTipText("After 'Delete collection' the stray docs end up here. Either delete irreversible or assign to other collection!");
+		strayDocsBtn.setImage(Images.FOLDER_PAGE_WHITE);
+		strayDocsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+
 		SelectionAdapter btnsListener = new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -119,12 +126,16 @@ public class CollectionSelectorDialog extends Dialog {
 				else if (e.getSource() == addUsersBtn && c!=null) {
 					TrpMainWidget.getInstance().openCollectionUsersDialog(c);
 				}
+				else if (e.getSource() == strayDocsBtn){
+					TrpMainWidget.getInstance().openStrayDocsDialog();
+				}
 			}
 		};
 		createBtn.addSelectionListener(btnsListener);
 		deleteBtn.addSelectionListener(btnsListener);
 		modifyBtn.addSelectionListener(btnsListener);
 		addUsersBtn.addSelectionListener(btnsListener);
+		strayDocsBtn.addSelectionListener(btnsListener);
 
 		return container;
 	}

@@ -86,7 +86,7 @@ public class CollectionLabelProviderExtended implements ILabelProvider {
 				transcribedLinesText = ( (transcribedLines != null && transcribedLines > 0) ? transcribedLines + " lines with text"
 						: "No text");
 			}
-			return p.getImgFileName() + " (" + transcribedLinesText + ") # [" + p.getCurrentTranscript().getStatus() + ", " + saveInfo;
+			return "("+tmd.getPageNr()+") " + p.getImgFileName() + " (" + transcribedLinesText + ") # [" + p.getCurrentTranscript().getStatus() + ", " + saveInfo;
 		}
 		return null;
 	}
