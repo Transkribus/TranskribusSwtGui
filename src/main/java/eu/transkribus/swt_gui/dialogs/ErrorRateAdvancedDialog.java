@@ -122,6 +122,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				params.addParameter("option", options.combo.getSelectionIndex());
+				//FIXME it seems that this parameter is never read!? in JobConst it's "docId"
 				params.addIntParam("docID", store.getDocId());
 				startError();
 			}
