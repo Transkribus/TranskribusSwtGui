@@ -254,6 +254,13 @@ public class ToolsWidgetListener implements SelectionListener {
 			}
 
 			if (s == tw.startLaBtn) {
+				
+				String pageStr = (!tw.laComp.isCurrentTranscript() ? tw.laComp.getPages() : Integer.toString(store.getPage().getPageNr()));
+				String msg = "Do you really want to start the LA for page(s) " + pageStr + "  ?";
+				if (DialogUtil.showYesNoDialog(mw.getShell(), "Layout recognition", msg)!=SWT.YES) {
+					return;
+				}
+
 				if (!tw.laComp.isCurrentTranscript()) {
 					logger.debug("running la on pages: " + tw.laComp.getPages());
 					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.laComp.getPages(),
@@ -399,8 +406,16 @@ public class ToolsWidgetListener implements SelectionListener {
 				} else {
 					trd2 = new HtrTextRecognitionDialog(mw.getShell());
 					if (trd2.open() == IDialogConstants.OK_ID) {
+												
 						TextRecognitionConfig config = trd2.getConfig();
 						final String pages = trd2.getPages();
+						
+						String msg = "Do you really want to start the HTR for page(s) " + pages + "  ?";
+						if (DialogUtil.showYesNoDialog(mw.getShell(), "Handwritten Text Recognition", msg)!=SWT.YES) {
+							trd2 = null;
+							return;
+						}
+						
 						try {
 							String jobId = store.runHtr(pages, config);
 							jobIds.add(jobId);
@@ -420,6 +435,13 @@ public class ToolsWidgetListener implements SelectionListener {
 					if (ret == IDialogConstants.OK_ID) {
 						final String pageStr = od.getPages();
 						final OcrConfig config = od.getConfig();
+						
+						String msg = "Do you really want to start the OCR for page(s) " + pageStr + "  ?";
+						if (DialogUtil.showYesNoDialog(mw.getShell(), "Optical Character Recognition", msg)!=SWT.YES) {
+							od = null;
+							return;
+						}
+						
 						logger.info("starting ocr for doc " + store.getDocId() + ", pages " + pageStr + " and col "
 								+ colId);
 						String jobId = store.runOcr(colId, store.getDocId(), pageStr, config);

@@ -12,10 +12,12 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
@@ -104,6 +106,7 @@ public class LayoutAnalysisComposite extends Composite {
 		
 		unsegmentedBtn = new Button(tmpContainer, SWT.PUSH);
 		unsegmentedBtn.setText("Use only unsegmented pages for LA");
+		unsegmentedBtn.setForeground(new Color(Display.getCurrent(),0, 100, 0));
 		unsegmentedBtn.setSelection(false);
 		unsegmentedBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, true, true, 1, 1));
 		
