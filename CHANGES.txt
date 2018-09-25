@@ -577,6 +577,8 @@ CHANGES AND BUGFIXES
 	-> integrated more user-friendly table border markup box (called from context menu and border button) 
 	-> Adapt the GUI appearance to the role a user has in the currently loaded collection, e.g. 'Reader' can not use the text editor or use 'save button' etc.
 	-> Recycle bin for documents: contains deleted documents where they can be restored or deleted irreversible
+	-> Stray documents list: the documents of a deleted collection can be added to another collection or irreversible deleted
+	-> extended document metadata for archives (authority, hierarchy, backlink and external ID)
 	-> bug fix: Error messages in the user manager were not closable 
 	-> bug fix: merging of two shapes keeps the reading order and adds a space between them
 	-> bug fix: selecting a tag from the table now also displays the right position in the image
