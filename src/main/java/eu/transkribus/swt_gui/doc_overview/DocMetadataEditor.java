@@ -1,6 +1,8 @@
 package eu.transkribus.swt_gui.doc_overview;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.nebula.widgets.datechooser.DateChooserCombo;
@@ -15,7 +17,10 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +41,10 @@ public class DocMetadataEditor extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(DocMetadataEditor.class);
 	
 	Text titleText;
+	Text authorityText;
+	Link backlink;
+	Text extIdText;
+	Tree hierarchyTree;
 	Text authorText;
 	Label uploadedLabel;
 	Text genreText;
@@ -83,6 +92,39 @@ public class DocMetadataEditor extends Composite {
 //		gd_titleText.widthHint = 366;
 //		gd_titleText.widthHint = 200;
 		titleText.setLayoutData(gd_titleText);
+		
+		Label lblAuthority = new Label(this,SWT.NONE);
+		lblAuthority.setText("Authority:");
+		
+		authorityText = new Text(this, SWT.BORDER);
+		authorityText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label backlinkLbl = new Label(this, SWT.NONE);
+		backlinkLbl.setText("Backlink:");
+				
+		backlink = new Link(this, SWT.NONE);
+		backlink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+	    
+		backlink.addSelectionListener(new SelectionAdapter(){
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+               //System.out.println("You have selected: "+e.text);
+               //  Open default external browser 
+               org.eclipse.swt.program.Program.launch(e.text);
+            }
+        });
+		
+		Label lblExtId = new Label(this, SWT.NONE);
+		lblExtId.setText("External ID:");
+		
+		extIdText = new Text(this, SWT.BORDER);
+		extIdText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		Label lblHierarchy = new Label(this, SWT.NONE);
+		lblHierarchy.setText("Hierarchy:");
+		
+	    hierarchyTree = new Tree(this, SWT.BORDER);
+	    hierarchyTree.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Label lblAuthor = new Label(this, SWT.NONE);
 		lblAuthor.setText("Author:");
@@ -249,6 +291,14 @@ public class DocMetadataEditor extends Composite {
 			logger.debug("title changed: '" + titleText.getText() + "' <-> '" + md.getTitle() + "'");
 			return true;
 		}
+		if (!StrUtil.equalsContent(authorityText.getText(), md.getAuthority())) {
+			logger.debug("authority changed: '" + authorityText.getText() + "' <-> '" + md.getAuthority() + "'");
+			return true;
+		}
+		if (!StrUtil.equalsContent(extIdText.getText(), md.getExternalId())) {
+			logger.debug("external ID changed: '" + extIdText.getText() + "' <-> '" + md.getExternalId() + "'");
+			return true;
+		}
 		if (!StrUtil.equalsContent(authorText.getText(), md.getAuthor())) {
 			logger.debug("author changed: '" + authorText.getText() + "' <-> '" + md.getAuthor() + "'");
 			return true;
@@ -295,6 +345,8 @@ public class DocMetadataEditor extends Composite {
 				
 		//don't update missing fields with empty strings
 		md.setTitle(StringUtils.isEmpty(titleText.getText()) ? null : titleText.getText());
+		md.setAuthority(StringUtils.isEmpty(authorityText.getText()) ? null : authorityText.getText());
+		md.setExternalId(StringUtils.isEmpty(extIdText.getText()) ? null : extIdText.getText());
 		md.setAuthor(StringUtils.isEmpty(authorText.getText()) ? null : authorText.getText());
 		md.setGenre(StringUtils.isEmpty(genreText.getText()) ? null : genreText.getText());
 		md.setWriter(StringUtils.isEmpty(writerText.getText()) ? null : writerText.getText());
@@ -341,6 +393,9 @@ public class DocMetadataEditor extends Composite {
 		listener.setDeactivate(true);
 		
 		titleText.setText(md!=null && md.getTitle()!=null ? md.getTitle() : "");
+		authorityText.setText(md!=null && md.getAuthority() !=null ? md.getAuthority() : "NA");
+	    backlink.setText(md!=null && md.getBacklink()!=null ? "<a href=\"" + md.getBacklink() +"\">"+md.getBacklink()+"</a>" : "NA");
+	    extIdText.setText(md!=null && md.getExternalId() !=null ? md.getExternalId() : "NA");
 		authorText.setText(md!=null && md.getAuthor()!=null ? md.getAuthor() : "");
 		uploadedLabel.setText(md!=null && md.getUploadTime()!=null&&md.getDocId()!=-1 ? md.getUploadTime().toString() : "NA");
 		genreText.setText(md!=null && md.getGenre()!=null ? md.getGenre() : "");
@@ -350,6 +405,41 @@ public class DocMetadataEditor extends Composite {
 		initScriptTypeCombos(md!=null ? md.getScriptType() : null);
 		updateDateChooser(enableCreatedFromBtn, createdFrom, md != null ? md.getCreatedFromDate() : null);
 		updateDateChooser(enableCreatedToBtn, createdTo, md != null ? md.getCreatedToDate() : null);
+		
+		//if (md!=null && md.getHierarchy()==null){
+		hierarchyTree.clearAll(true);
+		TreeItem [] items = hierarchyTree.getItems();
+		for (int i = 0; i<items.length; i++){
+			items[i].dispose();
+		}
+		hierarchyTree.setSize(0, 0);
+		
+		if (md!=null && md.getHierarchy()!=null){		
+//			hierarchyTree = new Tree(this, SWT.BORDER);
+//		    hierarchyTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			//logger.debug("hierarchy " + md.getHierarchy());
+			
+			String[] levels = md.getHierarchy().split("/");
+			List<TreeItem> treeItems = new ArrayList<TreeItem>();
+	        for (int i = 0; i < levels.length; i++) {
+	        	TreeItem treeItem;
+	        	if (i==0){
+	        		treeItem = new TreeItem(hierarchyTree, 0);
+	        	}
+	        	else{
+	        		treeItem = new TreeItem(treeItems.get(i-1), 0);
+	        		treeItems.get(i-1).setExpanded(true);
+	        	}
+	        	
+	        	treeItem.setText("" + levels[i]);
+	        	treeItems.add(treeItem);
+
+		    }
+	        hierarchyTree.layout();
+	        hierarchyTree.redraw();
+		}
+		this.layout();
+		this.redraw();
 		
 		listener.setDeactivate(false);
 	}
@@ -435,4 +525,5 @@ public class DocMetadataEditor extends Composite {
 	public boolean isCreatedToEnabled(){
 		return enableCreatedToBtn.getSelection();
 	}
+	
 }

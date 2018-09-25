@@ -60,12 +60,16 @@ public class DocMetadataEditorListener implements SelectionListener,
 		dme.openEditDeclManagerBtn.addSelectionListener(this);
 		
 		dme.titleText.addFocusListener(this);
+		dme.authorityText.addFocusListener(this);
+		dme.extIdText.addFocusListener(this);
 		dme.authorText.addFocusListener(this);
 		dme.genreText.addFocusListener(this);
 		dme.writerText.addFocusListener(this);
 		dme.descriptionText.addFocusListener(this);
 		
 		dme.titleText.addModifyListener(this);
+		dme.authorityText.addModifyListener(this);
+		dme.extIdText.addModifyListener(this);
 		dme.authorText.addModifyListener(this);
 		dme.genreText.addModifyListener(this);
 		dme.writerText.addModifyListener(this);
@@ -87,12 +91,16 @@ public class DocMetadataEditorListener implements SelectionListener,
 		dme.openEditDeclManagerBtn.removeSelectionListener(this);
 		
 		dme.titleText.removeFocusListener(this);
+		dme.authorityText.removeFocusListener(this);
+		dme.extIdText.removeFocusListener(this);
 		dme.authorText.removeFocusListener(this);
 		dme.genreText.removeFocusListener(this);
 		dme.writerText.removeFocusListener(this);
 		dme.descriptionText.removeFocusListener(this);
 		
 		dme.titleText.removeModifyListener(this);
+		dme.authorityText.removeModifyListener(this);
+		dme.extIdText.removeModifyListener(this);
 		dme.authorText.removeModifyListener(this);
 		dme.genreText.removeModifyListener(this);
 		dme.writerText.removeModifyListener(this);
