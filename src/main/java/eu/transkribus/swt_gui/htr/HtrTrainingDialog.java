@@ -842,8 +842,13 @@ public class HtrTrainingDialog extends Dialog {
 			config.setTrain(getSelectionFromThumbnailWidgetList(trainTwList));
 			config.setTest(getSelectionFromThumbnailWidgetList(testTwList));
 		} else {
-			config.setTrain(DescriptorUtils.buildSelectionDescriptorList(trainDocMap, status));
-			config.setTest(DescriptorUtils.buildSelectionDescriptorList(testDocMap, status));
+			
+			//FIXME activate this method once the training job can handle such descriptors
+//			config.setTrain(DescriptorUtils.buildSelectionDescriptorList(trainDocMap, status));
+//			config.setTest(DescriptorUtils.buildSelectionDescriptorList(testDocMap, status));
+			
+			config.setTrain(DescriptorUtils.buildCompleteSelectionDescriptorList(trainDocMap, status));
+			config.setTest(DescriptorUtils.buildCompleteSelectionDescriptorList(testDocMap, status));
 		}
 
 		if (config.getTrain().isEmpty()) {

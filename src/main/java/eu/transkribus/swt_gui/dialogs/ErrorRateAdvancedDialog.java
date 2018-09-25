@@ -122,7 +122,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				params.addParameter("option", options.combo.getSelectionIndex());
-				params.addIntParam("docID", store.getDocId());
 				startError();
 			}
 			
