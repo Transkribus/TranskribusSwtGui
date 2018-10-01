@@ -134,8 +134,8 @@ public class TrpMainWidgetView extends Composite {
 //	MenuItem showReadingOrderWordsMenuItem;	
 		
 	// dock state buttons
-	DropDownToolItem viewLeftDockingDropItem, viewBottomDockingDropitem;
-	DropDownToolItem viewDockingDropItem;
+//	DropDownToolItem viewLeftDockingDropItem, viewBottomDockingDropitem;
+//	DropDownToolItem viewDockingDropItem;
 	
 	HashMap<PositionDocking, MenuItem>  dockingMenuItems = new HashMap<>();
 	
@@ -451,71 +451,21 @@ public class TrpMainWidgetView extends Composite {
 		loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
 		*/
 		
-		boolean USE_TWO_DOCKING_ICONS=true;
-		if (USE_TWO_DOCKING_ICONS) {
-			viewLeftDockingDropItem = new DropDownToolItem(toolBar, false, false, true, SWT.RADIO);
-			viewLeftDockingDropItem.ti.setImage(Images.APPLICATION_SIDE_CONTRACT);
-			viewLeftDockingDropItem.ti.setToolTipText("Left view docking state...");
-			
-			
-			viewBottomDockingDropitem = new DropDownToolItem(toolBar, false, false, true, SWT.RADIO);
-			viewBottomDockingDropitem.ti.setImage(Images.APPLICATION_SIDE_PUT);
-			viewBottomDockingDropitem.ti.setToolTipText("Bottom view docking state...");
-		} else {
-			viewDockingDropItem = new DropDownToolItem(toolBar, false, false, true, SWT.CASCADE);
-			viewDockingDropItem.ti.setImage(Images.APPLICATION);
-			viewDockingDropItem.ti.setToolTipText("Change docking state...");
-		}
-
-		SelectionListener dockingStateSl = new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				if (!(e.getSource() instanceof MenuItem))
-					return;
-				
-				MenuItem mi = (MenuItem) e.getSource();
-				if (!(mi.getData() instanceof PositionDocking))
-					return;
-				
-				portalWidget.setWidgetDockingType((PositionDocking) mi.getData());
-			}
-		};
+//		ToolItem leftViewButton = new ToolItem(toolBar, SWT.CHECK);
+//		leftViewButton.setImage(Images.getOrLoad("/icons/three_dots_16.png"));
+////		leftViewButton.setText("yeah!");
+//		leftViewButton.setToolTipText("Show / hide menu view");
+//		leftViewButton.setSelection(trpSets.getLeftViewDockingState()==Docking.DOCKED);
+//		SWTUtil.onSelectionEvent(leftViewButton, e -> {
+//			if (!leftViewButton.getSelection()) {
+//				portalWidget.setWidgetDockingType(Position.LEFT, Docking.INVISIBLE);
+//			} else {
+//				portalWidget.setWidgetDockingType(Position.LEFT, Docking.DOCKED);
+//			}
+//		});
 		
-		Position[] positions = { Position.LEFT, /*Position.RIGHT,*/ Position.BOTTOM };
-		Docking[] dockings = { Docking.DOCKED, Docking.UNDOCKED, Docking.INVISIBLE };
-		String[] cascadeLabels = { "Left view", /*"Right view",*/ "Bottom view" };
-		String[] dockingsLabels = { "Docked", "Undocked", "Invisible" };	
-
-		int i=0;
-		for (Position p : positions) {
-			DropDownToolItem ti = USE_TWO_DOCKING_ICONS ? ( p == Position.LEFT ? viewLeftDockingDropItem : viewBottomDockingDropitem) : viewDockingDropItem;
-						
-			Menu cmiMenu = null;
-			if (!USE_TWO_DOCKING_ICONS) {
-				// create the cascade menu
-				MenuItem cmi = ti.addItem(cascadeLabels[i], Images.APPLICATION, "Change docking states of the different views");
-				
-				// create sub-menu and attach it
-				cmiMenu = new Menu(ti.getMenu());
-				cmi.setMenu(cmiMenu);
-			} else {
-				cmiMenu = ti.getMenu();
-			}
-
-			// create sub-menu items
-			int j=0;
-			for (Docking d : dockings) {
-				MenuItem dockItem = new MenuItem(cmiMenu, SWT.RADIO);
-				PositionDocking pd = new PositionDocking(p, d);
-				dockItem.setData(new PositionDocking(p, d));
-				dockItem.setText(dockingsLabels[j]);
-				dockItem.addSelectionListener(dockingStateSl);
-				
-				dockingMenuItems.put(pd, dockItem);
-				++j;
-			}
-
-			++i;
-		}
+//		initDockingToolItems();
+		initDockingToolItems2();
 
 		profilesToolItem = new DropDownToolItem(toolBar, false, false, true, SWT.NONE);
 		profilesToolItem.ti.setImage(Images.CONTROL_EQUALIZER);
@@ -678,6 +628,141 @@ public class TrpMainWidgetView extends Composite {
 		//updateToolBarSize();
 	}
 	
+	private void initDockingToolItems2() {
+		DropDownToolItemSimple viewLeftDockingDropItem = new DropDownToolItemSimple(toolBar, SWT.DROP_DOWN, null, Images.APPLICATION_SIDE_CONTRACT, "Menu view docking state");
+		viewLeftDockingDropItem.setOpenMenuOnlyOnArrowBtn(true);
+			
+		DropDownToolItemSimple viewBottomDockingDropitem = new DropDownToolItemSimple(toolBar, SWT.DROP_DOWN, null, Images.APPLICATION_SIDE_PUT, "Transcription view docking state");
+		viewBottomDockingDropitem.setOpenMenuOnlyOnArrowBtn(true);
+		
+		class DockingStateMainBtnListener extends SelectionAdapter {
+			Position p;
+			
+			public DockingStateMainBtnListener(Position p) {
+				this.p = p;
+			}
+			
+			@Override public void widgetSelected(SelectionEvent e) {
+				Docking d = portalWidget.getDocking(p);
+				if (d == Docking.DOCKED) {
+					portalWidget.setWidgetDockingType(p, Docking.INVISIBLE);
+				} else if (d == Docking.INVISIBLE) {
+					portalWidget.setWidgetDockingType(p, Docking.DOCKED);
+				} else if (d == Docking.UNDOCKED) {
+					portalWidget.setWidgetDockingType(p, Docking.DOCKED);
+				}
+			}
+		}
+		viewLeftDockingDropItem.getToolItem().addSelectionListener(new DockingStateMainBtnListener(Position.LEFT));
+		viewBottomDockingDropitem.getToolItem().addSelectionListener(new DockingStateMainBtnListener(Position.BOTTOM));
+
+		SelectionListener dockingStateSl = new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				if (!(e.getSource() instanceof MenuItem))
+					return;
+				
+				MenuItem mi = (MenuItem) e.getSource();
+				if (!(mi.getData() instanceof PositionDocking))
+					return;
+				
+				portalWidget.setWidgetDockingType((PositionDocking) mi.getData());
+			}
+		};
+		
+		Position[] positions = { Position.LEFT, /*Position.RIGHT,*/ Position.BOTTOM };
+		Docking[] dockings = { Docking.DOCKED, Docking.UNDOCKED, Docking.INVISIBLE };
+//		String[] cascadeLabels = { "Left view", /*"Right view",*/ "Bottom view" };
+		String[] dockingsLabels = { "Docked", "Undocked", "Invisible" };	
+
+		int i=0;
+		for (Position p : positions) {
+			DropDownToolItemSimple ti = (p == Position.LEFT) ? viewLeftDockingDropItem : viewBottomDockingDropitem;
+			// create sub-menu items
+			int j=0;
+			for (Docking d : dockings) {
+				MenuItem dockItem = ti.addItem(dockingsLabels[j], null, SWT.RADIO);
+//				MenuItem dockItem = new MenuItem(cmiMenu, SWT.RADIO);
+				PositionDocking pd = new PositionDocking(p, d);
+				dockItem.setData(new PositionDocking(p, d));
+//				dockItem.setText(dockingsLabels[j]);
+				dockItem.addSelectionListener(dockingStateSl);
+				dockingMenuItems.put(pd, dockItem);
+				++j;
+			}
+
+			++i;
+		}
+	}
+	
+	private void initDockingToolItems() {
+		boolean USE_TWO_DOCKING_ICONS=true;
+		DropDownToolItem viewLeftDockingDropItem=null, viewBottomDockingDropitem=null, viewDockingDropItem=null;
+		if (USE_TWO_DOCKING_ICONS) {
+			viewLeftDockingDropItem = new DropDownToolItem(toolBar, false, false, true, SWT.RADIO);
+			viewLeftDockingDropItem.ti.setImage(Images.APPLICATION_SIDE_CONTRACT);
+			viewLeftDockingDropItem.ti.setToolTipText("Left view docking state...");
+			
+			
+			viewBottomDockingDropitem = new DropDownToolItem(toolBar, false, false, true, SWT.RADIO);
+			viewBottomDockingDropitem.ti.setImage(Images.APPLICATION_SIDE_PUT);
+			viewBottomDockingDropitem.ti.setToolTipText("Bottom view docking state...");
+		} else {
+			viewDockingDropItem = new DropDownToolItem(toolBar, false, false, true, SWT.CASCADE);
+			viewDockingDropItem.ti.setImage(Images.APPLICATION);
+			viewDockingDropItem.ti.setToolTipText("Change docking state...");
+		}
+
+		SelectionListener dockingStateSl = new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				if (!(e.getSource() instanceof MenuItem))
+					return;
+				
+				MenuItem mi = (MenuItem) e.getSource();
+				if (!(mi.getData() instanceof PositionDocking))
+					return;
+				
+				portalWidget.setWidgetDockingType((PositionDocking) mi.getData());
+			}
+		};
+		
+		Position[] positions = { Position.LEFT, /*Position.RIGHT,*/ Position.BOTTOM };
+		Docking[] dockings = { Docking.DOCKED, Docking.UNDOCKED, Docking.INVISIBLE };
+		String[] cascadeLabels = { "Left view", /*"Right view",*/ "Bottom view" };
+		String[] dockingsLabels = { "Docked", "Undocked", "Invisible" };	
+
+		int i=0;
+		for (Position p : positions) {
+			DropDownToolItem ti = USE_TWO_DOCKING_ICONS ? ( p == Position.LEFT ? viewLeftDockingDropItem : viewBottomDockingDropitem) : viewDockingDropItem;
+						
+			Menu cmiMenu = null;
+			if (!USE_TWO_DOCKING_ICONS) {
+				// create the cascade menu
+				MenuItem cmi = ti.addItem(cascadeLabels[i], Images.APPLICATION, "Change docking states of the different views");
+				
+				// create sub-menu and attach it
+				cmiMenu = new Menu(ti.getMenu());
+				cmi.setMenu(cmiMenu);
+			} else {
+				cmiMenu = ti.getMenu();
+			}
+
+			// create sub-menu items
+			int j=0;
+			for (Docking d : dockings) {
+				MenuItem dockItem = new MenuItem(cmiMenu, SWT.RADIO);
+				PositionDocking pd = new PositionDocking(p, d);
+				dockItem.setData(new PositionDocking(p, d));
+				dockItem.setText(dockingsLabels[j]);
+				dockItem.addSelectionListener(dockingStateSl);
+				
+				dockingMenuItems.put(pd, dockItem);
+				++j;
+			}
+
+			++i;
+		}	
+	}
+
 	/**
 	 * add all toolbar buttons that come *after* the canvas toolbar
 	 */
