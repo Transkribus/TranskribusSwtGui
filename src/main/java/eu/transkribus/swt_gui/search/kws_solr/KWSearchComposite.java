@@ -99,7 +99,13 @@ public class KWSearchComposite extends Composite{
 	private int start = 0;
 	private final int rows = 100;	
 	
-	private String sorting = "childfield(probability) desc";
+	private final static String PROB_DESC = "rp desc";
+	private final static String PROB_ASC = "rp asc";
+	private final static String WORD_DESC = "tx desc";
+	private final static String WORD_ASC = "tx asc";
+
+			
+	private String sorting = "rp desc";
 	boolean prob_desc = true;
 	boolean word_desc = false;
 	boolean page_desc = false;
@@ -209,7 +215,7 @@ public class KWSearchComposite extends Composite{
 			@Override public void keyTraversed(TraverseEvent e) {
 				if (e.detail == SWT.TRAVERSE_RETURN) {
 					start = 0;
-					sorting = "childfield(probability) desc";
+					sorting = PROB_DESC;
 					findKW();
 				}
 			}
@@ -248,7 +254,7 @@ public class KWSearchComposite extends Composite{
 		searchBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				start = 0;
-				sorting = "childfield(probability) desc";
+				sorting = PROB_DESC;
 				findKW();
 			}
 		});
@@ -450,9 +456,9 @@ public class KWSearchComposite extends Composite{
 				TableColumn col = (TableColumn) e.widget;
 				prob_desc = !prob_desc;
 				if(prob_desc){
-					sorting = "childfield(probability) desc";
+					sorting = PROB_DESC;
 				}else{
-					sorting = "childfield(probability) asc";
+					sorting = PROB_ASC;
 				}
 				start = 0;
 				findKW();
@@ -485,9 +491,9 @@ public class KWSearchComposite extends Composite{
 				TableColumn col = (TableColumn) e.widget;
 				word_desc = !word_desc;
 				if(word_desc){
-					sorting = "childfield(word) desc";
+					sorting = WORD_DESC;
 				}else{
-					sorting = "childfield(word) asc";
+					sorting = WORD_ASC;
 				}
 				start = 0;
 				findKW();
@@ -531,7 +537,8 @@ public class KWSearchComposite extends Composite{
 				findKW();
 			}
 		};
-		tc.addListener(SWT.Selection, sortListenerPage);
+//		no page sorting for now
+//		tc.addListener(SWT.Selection, sortListenerPage);
         
         tc = new TableColumn(table, SWT.LEFT);
 		tc.setText("Line ID");
@@ -622,7 +629,7 @@ public class KWSearchComposite extends Composite{
 		}	
 		if (scopeCombo.getSelectionIndex() != 0){
 			String filterCollection = scopeCombo.getItem(scopeCombo.getSelectionIndex());
-			filters.add("collectionId:"+filterCollection);
+			filters.add("cId:"+filterCollection);
 		}
 		
 		logger.debug("filters:" + filters);
@@ -719,11 +726,22 @@ public class KWSearchComposite extends Composite{
 		
 		if(imageMap.containsKey(imgId)) return;
 		
-		int[] cropValues = FullTextSearchComposite.getCropValues(coords);
+//		int[] cropValues = FullTextSearchComposite.getCropValues(coords);		
+		ArrayList<Integer> pos = kwHit.getPos();
+		ArrayList<Integer> size = kwHit.getSize();
+		
+		int px, py, sx, sy;
+		sx = (int) (size.get(0) * 1.25);
+		sy = (int) (size.get(1) * 1.25);
+		px = (int) (pos.get(0) - sx/2.);
+		py = (int) (pos.get(1) - sy/2.);
+
+		
 		URL url;
 		Image img = null;			
 		try {
-			url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
+//			url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, cropValues[0], cropValues[1], cropValues[2], cropValues[3]).toURL();
+			url = imgStoreClient.getUriBuilder().getImgCroppedUri(imgKey, px, py, sx, sy).toURL();
 			img = ImageDescriptor.createFromURL(url).createImage();
 
 		} catch (MalformedURLException | IllegalArgumentException e1) {

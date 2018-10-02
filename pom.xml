@@ -433,8 +433,9 @@
 								
 								<for list="${deployDir1},${deployDir2},${deployDir3}" param="dir">
 								  <sequential>
-								  		<echo>Trying to deploy zip to @{dir}${deploySubDir}</echo>
+								  		<echo>Trying to deploy zip's to @{dir}${deploySubDir}</echo>
 
+										<!-- Deploy default package - NOTE: do *not* add any other zip files here, as the updater won't work anymore! -->
 										<if>
 										  <available file="@{dir}${deploySubDir}" type="dir" />
 										  <then>
@@ -446,10 +447,6 @@
 												<fileset dir="${project.build.directory}">
 													<include name="${project.build.finalName}-package.zip" />
 												</fileset>
-												<!-- Adding win64 zip -->
-												<fileset dir="${project.build.directory}">
-													<include name="${project.build.finalName}-package_win64.zip" />
-												</fileset>											
 											</copy>								    
 										  </then>
 										  <else>
@@ -475,6 +472,25 @@
 										    <echo message="Directory @{dir}${deploySubDir}/mac does not exist - skipping" />
 										  </else>
 										</if>
+										
+										<!-- Deploy win64 packge -->
+										<if>
+										  <available file="@{dir}${deploySubDir}/win64" type="dir" />
+										  <then>
+										    <echo message="Directory @{dir}${deploySubDir}/win64 exists - now copying win64 zip file to it" />
+											<copy todir="@{dir}${deploySubDir}/win64">
+<!-- 												<fileset dir="${project.build.directory}/classes"> -->
+<!-- 													<include name="BUILD.txt" /> -->
+<!-- 												</fileset> -->
+												<fileset dir="${project.build.directory}">
+													<include name="${project.build.finalName}-win64.zip" />
+												</fileset>
+											</copy>								    
+										  </then>
+										  <else>
+										    <echo message="Directory @{dir}${deploySubDir}/win64 does not exist - skipping" />
+										  </else>
+										</if>										
 								  </sequential>
 								</for>
 						</target>
