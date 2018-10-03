@@ -1,13 +1,9 @@
 package eu.transkribus.swt_gui.upload;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -22,7 +18,6 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -56,7 +51,6 @@ import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -122,7 +116,7 @@ public class UploadDialogUltimate extends Dialog {
 	public static final String TITLE_COL = "Title";
 	public static final String NR_OF_FILES_COL = "Nr. of Files";
 	public static final String CREATE_DATE_COL = "Last modified";
-	public static final String USER_TMP_FOLDER = System.getProperty("java.io.tmpdir") + "TrpPDFimgs";
+	public static final File USER_TMP_DIR = new File(System.getProperty("java.io.tmpdir"), "TrpPDFimgs");
 	
 	public static final ColumnConfig[] DOC_DIR_COLS = new ColumnConfig[] {
 		new ColumnConfig(DIRECTORY_COL, 180, true, DefaultTableColumnViewerSorter.ASC),
@@ -301,7 +295,7 @@ public class UploadDialogUltimate extends Dialog {
 		
 		lblInfo.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, true, false, 2, 1));
 		//lblExtractFolder.text.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
-		lblInfo.setText("Extracted images can be found at "+ USER_TMP_FOLDER);
+		lblInfo.setText("Extracted images can be found at "+ USER_TMP_DIR.getAbsolutePath());
 		lblInfo.setEnabled(false);
 	}
 	
@@ -697,7 +691,7 @@ public class UploadDialogUltimate extends Dialog {
 	}
 	
 	public String getPdfFolder() {
-		return USER_TMP_FOLDER;
+		return USER_TMP_DIR.getAbsolutePath();
 	}
 	
 	public String getFile() {
