@@ -730,8 +730,11 @@ public class CommonExportDialog extends Dialog {
 				}
 				
 				Display.getDefault().asyncExec(() -> {
-					exportHistoryText.setText(txt);
-					exportHistoryText.setStyleRanges(styleRanges.toArray(new StyleRange[0]));
+					//check if the dialog has been closed before accessing exportHistoryText
+					if(exportHistoryText != null && !exportHistoryText.isDisposed()) {
+						exportHistoryText.setText(txt);
+						exportHistoryText.setStyleRanges(styleRanges.toArray(new StyleRange[0]));
+					}
 				});
 			}
 		}.start();
