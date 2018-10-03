@@ -2971,13 +2971,14 @@ public class TrpMainWidget {
 //			}
 				// extract images from pdf and upload extracted images
 			} else if (ud.isUploadFromPdf()) {
-				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + ud.getPdfFolder());
+				File pdfFolderFile = ud.getPdfFolderFile();
+				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + pdfFolderFile.getAbsolutePath());
 				logger.debug("ingest into collection: " + cId);
 				
 				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 					@Override public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							storage.uploadDocumentFromPdf(cId, ud.getFile(), ud.getPdfFolder(), monitor);
+							storage.uploadDocumentFromPdf(cId, ud.getFile(), pdfFolderFile.getAbsolutePath(), monitor);
 							if (!monitor.isCanceled())
 								displaySuccessMessage(
 										"Uploaded document!\nNote: the document will be ready after document processing on the server is finished"
@@ -3059,7 +3060,7 @@ public class TrpMainWidget {
 //				}, "Ingesting", true);
 			}
 		} catch (Throwable e) {
-			onError("Error loading uploading document", "Could not upload document", e);
+			onError("Error uploading document", "Could not upload document", e);
 		}
 	}
 

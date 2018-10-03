@@ -1662,13 +1662,22 @@ public class Storage {
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	public void uploadDocumentFromPdf(int colId, String file, String dirName, IProgressMonitor monitor) 
+	public void uploadDocumentFromPdf(int colId, String file, String dirName, final IProgressMonitor monitor) 
 			throws IOException, Exception {
 		if (!isLoggedIn())
 			throw new Exception("Not logged in!");
 
+		Observer o = new Observer() {
+			@Override
+			public void update(Observable o, Object arg) {
+				if(arg instanceof String) {
+					monitor.subTask((String) arg);
+				}
+			}
+		};
+		
 		// extract images from pdf and load images into Trp document
-		TrpDoc doc = LocalDocReader.loadPdf(file, dirName);
+		TrpDoc doc = LocalDocReader.loadPdf(file, dirName, o);
 		logger.debug("Extracted and loaded pdf " + file);
 
 		conn.uploadTrpDoc(colId, doc, monitor);
