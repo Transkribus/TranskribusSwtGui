@@ -73,7 +73,8 @@ public class PortalWidget extends Composite {
 	public static final int DEFAULT_SASH_WIDTH = 3;
 	
 	private static int[] DEFAULT_WEIGHTS_HORIZONTAL_TOP_LEVEL = new int[] { 800, 220};
-	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 350, 1000};
+//	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 350, 1000};
+	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 90, 200};
 	private static int[] DEFAULT_WEIGHTS_VERTICAL_TOP_LEVEL = new int[] {100, 30};
 	private static int[] DEFAULT_WEIGHTS_VERTICAL = new int[] {10, 70};
 	

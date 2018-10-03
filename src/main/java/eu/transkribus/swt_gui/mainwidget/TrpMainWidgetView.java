@@ -643,6 +643,10 @@ public class TrpMainWidgetView extends Composite {
 			}
 			
 			@Override public void widgetSelected(SelectionEvent e) {
+				if (e.detail == SWT.ARROW) { // don't react if user has pressed the arrow button!
+					return;
+				}
+				
 				Docking d = portalWidget.getDocking(p);
 				if (d == Docking.DOCKED) {
 					portalWidget.setWidgetDockingType(p, Docking.INVISIBLE);
@@ -658,8 +662,9 @@ public class TrpMainWidgetView extends Composite {
 
 		SelectionListener dockingStateSl = new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				if (!(e.getSource() instanceof MenuItem))
+				if (!(e.getSource() instanceof MenuItem)) {
 					return;
+				}
 				
 				MenuItem mi = (MenuItem) e.getSource();
 				if (!(mi.getData() instanceof PositionDocking))
