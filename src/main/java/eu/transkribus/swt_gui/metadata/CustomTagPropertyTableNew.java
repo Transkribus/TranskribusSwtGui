@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.metadata;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventObject;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +31,6 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Table;
@@ -58,9 +56,6 @@ public class CustomTagPropertyTableNew extends Composite {
 	
 	TableViewerColumn nameCol;
 	TableViewerColumn valueCol;
-//	EditingSupport valueEditingSupport;
-
-//	private CustomTag prototypeTag;
 
 	private CustomTag selectedTag;
 	boolean showNonEditableProperties=false;
@@ -71,10 +66,6 @@ public class CustomTagPropertyTableNew extends Composite {
 	
 	List<ICustomTagPropertyTableNewListener> listener = new ArrayList<>();
 	
-//	public CustomTagPropertyTable(Composite parent, int style) {
-//		this(parent, style, true);
-//	}
-
 	public CustomTagPropertyTableNew(Composite parent, int style, boolean showNonEditableProperties) {
 		super(parent, style);
 		this.setLayout(new FillLayout());
@@ -87,7 +78,7 @@ public class CustomTagPropertyTableNew extends Composite {
 		table.setLinesVisible(true);
 		
 		nameCol = TableViewerUtils.createTableViewerColumn(tv, SWT.LEFT, "Property", 100);
-		valueCol = TableViewerUtils.createTableViewerColumn(tv, SWT.LEFT, "Value", 100);
+		valueCol = TableViewerUtils.createTableViewerColumn(tv, SWT.LEFT, "Value", 400);
 		
 		// LABEL PROVIDERS:
 		nameCol.setLabelProvider(new CellLabelProvider() {
@@ -275,6 +266,7 @@ public class CustomTagPropertyTableNew extends Composite {
 					catch (Exception e) {
 						logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
 					}
+					logger.debug("tag after attribute set: "+selectedTag);
 				});					
 			}
 		} catch (Exception e) {
@@ -394,6 +386,7 @@ public class CustomTagPropertyTableNew extends Composite {
 		}
 		
 		this.selectedTag = selectedTag;
+		logger.debug("selectedTag: "+this.selectedTag+", shape: "+selectedTag.getCustomTagList().getShape());
 		CustomTag prototypeTag = CustomTagFactory.getTagObjectFromRegistry(selectedTag.getTagName());
 		if (prototypeTag != null) {
 			prototypeTag = prototypeTag.copy();
@@ -504,7 +497,6 @@ public class CustomTagPropertyTableNew extends Composite {
 			Text text = new Text(table, SWT.NONE);
 			text.setText(value==null ? "" : String.valueOf(value));
 			text.addModifyListener(new ModifyListener() {
-				
 				@Override
 				public void modifyText(ModifyEvent e) {
 					setValue(element, text.getText());
@@ -523,7 +515,10 @@ public class CustomTagPropertyTableNew extends Composite {
 		reload();
 	}
 	
-	public void reload() {
+	/**
+	 * @deprecated may cause attribute leak...
+	 */
+	private void reload() {
 		this.setInput(selectedTag);
 	}
 

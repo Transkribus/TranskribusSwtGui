@@ -517,6 +517,17 @@ public abstract class ATranscriptionWidget extends Composite{
 		return ranges;
 	}
 	
+	/** Returns the index of the current cursor position in the current line */
+	protected int getCurrentXIndex() {
+		return getXIndex(text.getCaretOffset());
+	}
+	
+	protected int getXIndex(int caretOffset) {
+		int lineOffset = text.getOffsetAtLine(text.getLineAtOffset(caretOffset));
+		int xIndex = caretOffset - lineOffset;
+		return xIndex;
+	}	
+	
 	protected int getMaxLineTextHeight(int lineIndex) {
 		if (lineIndex < 0 || lineIndex >= text.getLineCount())
 			return -1;
@@ -1290,7 +1301,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	        	
 	        	if (true) {
 		        	// NEW: try to send event only when time diff between events is greater threshold to prevent overkill of signals!
-		    		final long DIFF_T = 500;
+		    		final long DIFF_T = 400;
 		    		new Timer().schedule(new TimerTask() {
 		    			@Override public void run() {
 		        			long selDiff = System.currentTimeMillis() - lastDefaultSelectionEventTime;
@@ -1371,7 +1382,23 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected abstract void initModifyListener();
 	protected abstract void initVerifyListener();
 	
-	protected abstract void updateLineObject();
+	/**
+	 * Updates the current line object from the current caret offset.
+	 */
+	protected void updateLineObject() {
+		int newLineIndex = text.getLineAtOffset(text.getCaretOffset());
+		TrpTextLineType newLine = getLineObject(newLineIndex);
+		logger.trace("updating line object, caretOffset = "+text.getCaretOffset()+", line-index = "+newLineIndex);
+		if (newLine != currentLineObject) {
+			currentLineObject = newLine;
+			if (getType() == TranscriptionLevel.LINE_BASED) { // only send signal if in line-based editor -> important to prevent overwriting updating of new word object!
+				sendSelectionChangedSignal();
+				text.redraw();
+			}
+		}
+	}
+	
+	// get implemented in WordTranscriptionWidget
 	protected abstract void updateWordObject();
 	
 	protected void updateLineAndWordObjects() {
@@ -2128,8 +2155,19 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		notifyListeners(SWT.Modify, e);
 	}
+	
+	/**
+	 * @return true if this editor is currently visible
+	 */
+	protected boolean isTranscriptionWidgetVisible() {
+		return view.getSelectedTranscriptionType() == getTranscriptionLevel();
+	}
 		
 	protected void sendDefaultSelectionChangedSignal(boolean onlyIfChanged) {
+		if (!isTranscriptionWidgetVisible()) {
+			logger.debug("transcription widget of type '"+getTranscriptionLevel()+"' not visible - not sending default selection event!");
+			return;
+		}
 //		if (true) return;
 		
 		// send event ONLY if changes occurred
@@ -2255,6 +2293,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	public TrpAutoCompleteField getAutoComplete() { return autocomplete; }
 	public StyledText getText() { return text; }
 	
+	public abstract TranscriptionLevel getTranscriptionLevel();
 	public abstract ITrpShapeType getTranscriptionUnit();
 	public abstract Class<? extends ITrpShapeType> getTranscriptionUnitClass();
 	public String getTranscriptionUnitText() {
@@ -2349,6 +2388,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	/**
 	 * not tested yet... is it really needed?
+	 * @deprecated
 	 */
 	public void updateData(ITrpShapeType shape) {
 		if (shape == null) {
@@ -2558,6 +2598,18 @@ public abstract class ATranscriptionWidget extends Composite{
 //		return transcriptionTaggingWidget;
 //	}
 	
+	protected void preventChangeOverMultipleLines(VerifyEvent e) {
+		// prevent changes on first line:
+		int lineIndex1 = text.getLineAtOffset(e.start);
+		int lineIndex2 = text.getLineAtOffset(e.end);
+		TrpTextLineType line1 = getLineObject(lineIndex1);
+		TrpTextLineType line2 = getLineObject(lineIndex2);
+		
+		if (currentLineObject == null || currentLineObject!=line1 || currentLineObject!=line2) {
+			logger.debug("changes over multiple lines not allowed!");
+			e.doit = false;
+		}
+	}
 	
 		
 }

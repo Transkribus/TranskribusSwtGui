@@ -158,6 +158,8 @@ public class TrpMainWidgetView extends Composite {
 	TrpTabWidget tabWidget;
 	Composite transcriptionWidgetContainer;
 
+	private TrpMainWidget mainWidget;
+
 	public TrpMainWidgetView(Composite parent, TrpMainWidget mainWidget) {
 		super(parent, SWT.NONE);
 		getShell().setMinimumSize(new Point(0, 0));
@@ -182,6 +184,7 @@ public class TrpMainWidgetView extends Composite {
 	public TreeViewer getStructureTreeViewer() { return structureTreeWidget.getTreeViewer(); }
 	
 	private void init(TrpMainWidget mainWidget) {
+		this.mainWidget = mainWidget;
 		trpSets = TrpConfig.getTrpSettings();
 		
 //		initSettings();
@@ -369,7 +372,6 @@ public class TrpMainWidgetView extends Composite {
 			wordTranscriptionWidget.setParent(SWTUtil.dummyShell);
 			
 //			lineTranscriptionWidget.updateToolbarSize();
-			
 		} else if (type == TranscriptionLevel.WORD_BASED) {
 			changed=true;
 			wordTranscriptionWidget.getTranscriptionTypeLineBasedItem().setSelection(false);
@@ -386,6 +388,7 @@ public class TrpMainWidgetView extends Composite {
 //			lineTranscriptionWidget.pack();
 //			wordTranscriptionWidget.pack();
 			transcriptionWidgetContainer.layout(true);
+			mainWidget.updateSelectedTranscriptionWidgetData();
 		}
 		
 	}

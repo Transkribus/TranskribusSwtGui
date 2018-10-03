@@ -1826,10 +1826,15 @@ public class TrpMainWidget {
 
 		logger.debug("finished updating " + type + " based trancription widget");
 	}
-
-	public void updateTranscriptionWidgetsData() {
-		updateLineTranscriptionWidgetData();
-		updateWordTranscriptionWidgetData();
+	
+	public void updateSelectedTranscriptionWidgetData() {
+		if (ui!=null && ui.getSelectedTranscriptionWidget()!=null) {
+			updateTranscriptionWidget(ui.getSelectedTranscriptionWidget().getTranscriptionLevel());	
+		}
+		
+		// do *not* update all transcript widgets...
+//		updateLineTranscriptionWidgetData();
+//		updateWordTranscriptionWidgetData();
 	}
 
 	public void updateWordTranscriptionWidgetData() {
@@ -2261,7 +2266,7 @@ public class TrpMainWidget {
 			loadJAXBTranscriptIntoView(storage.getTranscript());
 
 //			ui.taggingWidget.updateAvailableTags();
-			updateTranscriptionWidgetsData();
+			updateSelectedTranscriptionWidgetData();
 			canvas.getScene().updateSegmentationViewSettings();
 
 			logger.debug("loaded transcript - edited = " + storage.isTranscriptEdited());

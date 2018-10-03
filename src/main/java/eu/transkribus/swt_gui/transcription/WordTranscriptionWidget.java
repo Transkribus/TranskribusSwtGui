@@ -30,6 +30,8 @@ import eu.transkribus.util.Utils;
 
 import org.eclipse.jface.text.JFaceTextUtil;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ExtendedModifyEvent;
+import org.eclipse.swt.custom.ExtendedModifyListener;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.PaintEvent;
@@ -43,7 +45,7 @@ import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolItem;
 
-public class WordTranscriptionWidget extends LineTranscriptionWidget {
+public class WordTranscriptionWidget extends ATranscriptionWidget {
 	private final static Logger logger = LoggerFactory.getLogger(WordTranscriptionWidget.class);
 	
 	ToolItem applyTextFromWords;
@@ -646,6 +648,48 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 	@Override public boolean selectCustomTag(CustomTag t) {
 		// TODO
 		return false;
+	}
+	
+	@Override
+	public TranscriptionLevel getTranscriptionLevel() {
+		return TranscriptionLevel.WORD_BASED;
+	}	
+	
+	@Override
+	protected void initModifyListener() {
+		ExtendedModifyListener extendedModifyListener = new ExtendedModifyListener() {
+			@Override public void modifyText(ExtendedModifyEvent event) {
+				
+				logger.debug("modified event: "+event.start+"/"+event.length+"/"+event.replacedText);
+				// now 'invert' the modification, 
+				// i.e. compute start / end indices of the modification and the text that was replaced
+				int start = event.start;
+				int end = event.start + event.replacedText.length();
+				String replacementText = "";
+				if (event.length > 0)
+					replacementText = text.getText(event.start, event.start+event.length-1);
+				
+				logger.debug("modified as such: "+start+"/"+end+"/"+replacementText);
+				
+				// send this information to this bloody method which causes the modification to be done in the underlying page element:
+				onTextChangedFromUser(start, end, replacementText);
+				
+				redrawText(true);
+//				text.redraw();
+//				text.redrawRange(0, text.getCharCount(), true);
+			}
+		};
+		addUserExtendedModifyListener(extendedModifyListener);
+		
+//		ModifyListener modifyListener = new ModifyListener() {
+//			@Override
+//			public void modifyText(ModifyEvent e) {
+//				logger.debug("modified: "+e);
+//				
+////				sendTextModifiedSignal(currentLineObject, text.getLine(getCurrentLineIndex()), text.getSelection().x);
+//			}
+//		};
+//		addUserModifyListener(modifyListener);
 	}
 	
 //	@Override public Point getSelectionRangeRelativeToTranscriptionUnit() {

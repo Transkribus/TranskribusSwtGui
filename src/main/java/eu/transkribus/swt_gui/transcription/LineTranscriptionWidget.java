@@ -136,19 +136,6 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		return Pair.of(line, offset-text.getOffsetAtLine(li));
 	}
 	
-	protected void preventChangeOverMultipleLines(VerifyEvent e) {
-		// prevent changes on first line:
-		int lineIndex1 = text.getLineAtOffset(e.start);
-		int lineIndex2 = text.getLineAtOffset(e.end);
-		TrpTextLineType line1 = getLineObject(lineIndex1);
-		TrpTextLineType line2 = getLineObject(lineIndex2);
-		
-		if (currentLineObject == null || currentLineObject!=line1 || currentLineObject!=line2) {
-			logger.debug("changes over multiple lines not allowed!");
-			e.doit = false;
-		}
-	}
-	
 //	protected void onTextChangedFromUser(VerifyEvent e) {
 	protected void onTextChangedFromUser(final int start, final int end, final String replacementText) {
 		lastTextChange = System.currentTimeMillis();
@@ -553,16 +540,16 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		addUserVerifyKeyListener(verifyKeyListener);
 	}
 	
-	/** Returns the index of the current cursor position in the current line */
-	public int getCurrentXIndex() {
-		return getXIndex(text.getCaretOffset());
-	}
-	
-	public int getXIndex(int caretOffset) {
-		int lineOffset = text.getOffsetAtLine(text.getLineAtOffset(caretOffset));
-		int xIndex = caretOffset - lineOffset;
-		return xIndex;
-	}
+//	/** Returns the index of the current cursor position in the current line */
+//	public int getCurrentXIndex() {
+//		return getXIndex(text.getCaretOffset());
+//	}
+//	
+//	public int getXIndex(int caretOffset) {
+//		int lineOffset = text.getOffsetAtLine(text.getLineAtOffset(caretOffset));
+//		int xIndex = caretOffset - lineOffset;
+//		return xIndex;
+//	}
 				
 //	private void highlightWords(LineStyleEvent event, List<StyleRange> styleList) {
 //		int lineToHighlight = text.getLineAtOffset(event.lineOffset);
@@ -738,24 +725,9 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 //		return selectedLines;
 //	}
 
-	/** Updates the current line object from the current caret offset. */
 	@Override
-	protected void updateLineObject() {
-//		logger.debug("selectiontext = '"+text.getSelectionText()+"'");
-		int newLineIndex = text.getLineAtOffset(text.getCaretOffset()); // text.getCaretOffset()		
-		TrpTextLineType newLine = getLineObject(newLineIndex);
-		logger.trace("updating line object, caretOffset = "+text.getCaretOffset()+", line-index = "+newLineIndex);
-		if (newLine != currentLineObject) {
-			currentLineObject = newLine;
-			if (getType() == TranscriptionLevel.LINE_BASED) { // only send signal if in line-based editor -> important to prevent overwriting updating of new word object!
-				sendSelectionChangedSignal();
-				text.redraw();
-			}
-		}
+	protected void updateWordObject() {
 	}
-	
-	@Override
-	protected void updateWordObject() {}
 	
 	@Override
 	protected String getTextFromRegion() {
@@ -827,6 +799,11 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		text.setSelection(s, e);
 
 		return true;
+	}
+
+	@Override
+	public TranscriptionLevel getTranscriptionLevel() {
+		return TranscriptionLevel.LINE_BASED;
 	}
 	
 //	@Override public Point getSelectionRangeRelativeToTranscriptionUnit() {

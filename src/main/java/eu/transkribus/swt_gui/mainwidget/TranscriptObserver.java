@@ -62,7 +62,7 @@ public class TranscriptObserver implements Observer {
 			if (mainWidget.getStorage().hasTranscript())
 				mainWidget.getStorage().getTranscript().getPage().sortContent();
 	
-			mainWidget.updateTranscriptionWidgetsData();
+			mainWidget.updateSelectedTranscriptionWidgetData();
 			mainWidget.refreshStructureView();
 			mainWidget.redrawCanvas();
 		}
