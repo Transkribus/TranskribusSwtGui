@@ -121,6 +121,7 @@ import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.ImageDataDacheFactory;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.CollectionsLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocListLoadEvent;
@@ -931,6 +932,7 @@ public class Storage {
 			conn.close();
 
 		conn = new TrpServerConn(serverUri);
+		conn.enableDebugLogging(TrpMainWidget.getTrpSettings().isLogHttp());
 		user = conn.login(username, password);
 		logger.debug("Logged in as user: " + user + " connection: " + conn);
 
@@ -943,7 +945,7 @@ public class Storage {
 			conn.close();
 
 		conn = new TrpServerConn(serverUri);
-
+		conn.enableDebugLogging(TrpMainWidget.getTrpSettings().isLogHttp());
 		user = conn.loginOAuth(code, state, grantType, redirectUri, prov);
 		
 		logger.debug("Logged in as user: " + user + " connection: " + conn);
