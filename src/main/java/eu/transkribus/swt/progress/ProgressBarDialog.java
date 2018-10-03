@@ -96,7 +96,7 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 				
 		Future<?> fut = executorService.submit(internalRunnable);
 		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch()) {
+			if (!display.isDisposed() && !display.readAndDispatch()) {
 				checkIfFutIsDone(fut);
 				
 				display.sleep();	

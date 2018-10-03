@@ -309,6 +309,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean showNonEditableTextTagProperties = false;
 	public static final String SHOW_NON_EDITABLE_TEXT_TAG_PROPERTIES_PROPERTY = "showNonEditableTextTagProperties";
 	
+	private boolean logHttp = false;
+	public static final String LOG_HTTP_PROPERTIES_PROPERTY = "logHttp";
+	
 	static final String[] DO_NOT_SAVE_THOSE_PROPERTIES = { 
 			DRAW_SHAPES_IN_DEFAULT_COLORS_IN_STRUCT_EDITOR_PROPERTY,
 			DRAW_STRUCT_TYPE_TEXT_PROPERTY
@@ -1212,6 +1215,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setShowNonEditableTextTagProperties(boolean showNonEditableTextTagProperties) {
 		this.showNonEditableTextTagProperties = showNonEditableTextTagProperties;
 		firePropertyChange(SHOW_NON_EDITABLE_TEXT_TAG_PROPERTIES_PROPERTY, !this.showNonEditableTextTagProperties, this.showNonEditableTextTagProperties);
+	}
+	
+	public boolean isLogHttp() {
+		return logHttp;
+	}
+	
+	public void setLogHttp(boolean logHttp) {
+		this.logHttp = logHttp;
+		firePropertyChange(LOG_HTTP_PROPERTIES_PROPERTY, !this.logHttp, this.logHttp);
 	}
 	
 //	public boolean isUseSnapshotUpdates() { return useSnapshotUpdates; }
