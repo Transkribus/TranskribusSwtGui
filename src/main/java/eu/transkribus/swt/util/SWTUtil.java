@@ -35,6 +35,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -86,6 +88,83 @@ import math.geom2d.Vector2D;
 
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
+	
+	/**
+	 * This method adds select-on-focus functionality to a {@link Text} component.
+	 * 
+	 * Specific behavior:
+	 *  - when the Text is already focused -> normal behavior
+	 *  - when the Text is not focused:
+	 *    -> focus by keyboard -> select all text
+	 *    -> focus by mouse click -> select all text unless user manually selects text
+	 * 
+	 * @param text
+	 * {@link https://stackoverflow.com/questions/10038570/implementing-select-on-focus-behavior-for-an-eclipse-text-control#10048884}
+	 */
+	public static void addSelectOnFocusToText(Text text) {
+		if (text == null) {
+			return;
+		}
+		
+		Listener listener = new Listener() {
+
+			private boolean hasFocus = false;
+			private boolean hadFocusOnMousedown = false;
+
+			@Override
+			public void handleEvent(Event e) {
+				switch (e.type) {
+				case SWT.FocusIn: {
+					Text t = (Text) e.widget;
+
+					// Covers the case where the user focuses by keyboard.
+					t.selectAll();
+
+					// The case where the user focuses by mouse click is special because Eclipse,
+					// for some reason, fires SWT.FocusIn before SWT.MouseDown, and on mouse down
+					// it cancels the selection. So we set a variable to keep track of whether the
+					// control is focused (can't rely on isFocusControl() because sometimes it's
+					// wrong),
+					// and we make it asynchronous so it will get set AFTER SWT.MouseDown is fired.
+					t.getDisplay().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							hasFocus = true;
+						}
+					});
+
+					break;
+				}
+				case SWT.FocusOut: {
+					hasFocus = false;
+					((Text) e.widget).clearSelection();
+
+					break;
+				}
+				case SWT.MouseDown: {
+					// Set the variable which is used in SWT.MouseUp.
+					hadFocusOnMousedown = hasFocus;
+
+					break;
+				}
+				case SWT.MouseUp: {
+					Text t = (Text) e.widget;
+					if (t.getSelectionCount() == 0 && !hadFocusOnMousedown) {
+						((Text) e.widget).selectAll();
+					}
+
+					break;
+				}
+				}
+			}
+
+		};
+
+		text.addListener(SWT.FocusIn, listener);
+		text.addListener(SWT.FocusOut, listener);
+		text.addListener(SWT.MouseDown, listener);
+		text.addListener(SWT.MouseUp, listener);
+	}
 	
 	/**
 	 * @deprecated seems to be very inefficient - check that!
@@ -770,12 +849,21 @@ public class SWTUtil {
 //		}
 //	}
 	
-	public static int addBitIfNotSet(int mask, int bit) {
-		if ((mask & bit) != 0) {
-			return (mask | bit);
-		} else
-			return mask;
+	public static boolean isBitSet(int mask, int bit) {
+		return (mask & bit) == bit;
 	}
+	
+	public static int setBit(int mask, int bit) {
+		return mask | bit;
+	}
+
+	// not needed..
+//	public static int addBitIfNotSet(int mask, int bit) {
+//		if ((mask & bit) != 0) {
+//			return (mask | bit);
+//		} else
+//			return mask;
+//	}
 	
 	public static void addListener(Widget w, int eventType, Listener l) {		
 		if (w != null) {

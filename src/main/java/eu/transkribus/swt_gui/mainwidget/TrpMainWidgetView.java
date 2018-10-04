@@ -510,28 +510,9 @@ public class TrpMainWidgetView extends Composite {
 		//offset.setWidth(20);
 		
 		quickSearchText = new TextToolItem(toolBar, SWT.NONE);
-		String searchItemText = "Search current document...";
-		quickSearchText.setText(searchItemText);
-		int defaultSearchItemWidth = quickSearchText.getWidth();
-		quickSearchText.setWidth(defaultSearchItemWidth);	
-		quickSearchText.getTextControl().addFocusListener(new FocusListener(){
-
-			@Override
-			public void focusGained(FocusEvent e) {
-				if(quickSearchText.getText().equals(searchItemText)){
-					quickSearchText.setText("");
-					quickSearchText.setWidth(defaultSearchItemWidth);
-				}				
-			}
-
-			@Override
-			public void focusLost(FocusEvent e) {
-				if(quickSearchText.getText().trim().isEmpty()){
-					quickSearchText.setText(searchItemText);
-				}				
-			}
-			
-		});
+		quickSearchText.setAutoSelectTextOnFocus();
+		quickSearchText.setMessage("Search current document...");
+		quickSearchText.resizeToMessage();
 		
 		quickSearchButton = new ToolItem(toolBar, SWT.NONE);
 		quickSearchButton.setImage(Images.getOrLoad("/icons/quickfind.png"));

@@ -2544,6 +2544,31 @@ public class TrpMainWidget {
 //	public boolean loadRemoteDoc(final int docId) {
 //		return loadRemoteDoc(docId, 0);
 //	}
+	
+	/**
+	 * Tries to load a document just with a document id - first searches for documents with this id, 
+	 * then loads the document for the first collection
+	 */
+	public boolean loadRemoteDoc(final int docId, boolean showMsgIfNotFound) {
+		List<TrpDocMetadata> docs;
+		try {
+			docs = storage.getConnection().findDocuments(0, docId, null, null, null, null, 
+					true, true, 0, 0, null, null);
+			
+			if (!docs.isEmpty()) {
+				TrpDocMetadata doc = docs.get(0);
+				return TrpMainWidget.getInstance().loadRemoteDoc(doc.getDocId(), doc.getFirstCollectionId());
+			} else if (showMsgIfNotFound) {
+				DialogUtil.showInfoMessageBox(getShell(), "No such document", "Could not find document with id "+docId+" in any collection!");
+			}
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e1) {
+			logger.error(e1.getMessage(), e1);
+			TrpMainWidget.getInstance().onError("Error", "Could not load document with id "+docId, e1);
+		}
+		
+		return false;
+	}
 
 	public boolean loadRemoteDoc(final int docId, int colId) {
 		return loadRemoteDoc(docId, colId, 0);

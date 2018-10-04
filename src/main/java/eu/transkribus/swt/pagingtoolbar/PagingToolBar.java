@@ -113,6 +113,7 @@ public class PagingToolBar /*extends Composite*/ {
 		pagingItems.add(pagePrevBtn);
 		
 		currentPageTextItem = new TextToolItem(toolbar, SWT.NONE);
+		currentPageTextItem.setAutoSelectTextOnFocus();
 		currentPageTextItem.setMinWidth(MIN_CURRENT_PAGE_WIDTH);
 		currentPageTextItem.setText("0");
 		currentPageTextItem.getTextControl().setOrientation(SWT.RIGHT_TO_LEFT);

@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.TextToolItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
@@ -91,6 +92,7 @@ public class ServerWidget extends Composite {
 	MenuItem duplicateDocMenuItem;
 	
 	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, duplicateDocTi, administerCollectionTi, recycleBin;
+	TextToolItem quickLoadByDocId;
 		
 	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
@@ -317,6 +319,12 @@ public class ServerWidget extends Composite {
 		recycleBin = new ToolItem(tb, SWT.PUSH);
 		recycleBin.setImage(Images.BIN);
 		recycleBin.setToolTipText("Contains deleted documents!");
+		
+		quickLoadByDocId = new TextToolItem(tb, SWT.NONE);
+		quickLoadByDocId.setAutoSelectTextOnFocus();
+		quickLoadByDocId.setMessage("Doc-ID");
+		quickLoadByDocId.resizeToMessage();
+		quickLoadByDocId.setToolTipText("Load a document with the specified document id");
 
 //		Composite docBtns = new Composite(docsContainer, 0);
 //		docBtns.setLayout(new RowLayout());
