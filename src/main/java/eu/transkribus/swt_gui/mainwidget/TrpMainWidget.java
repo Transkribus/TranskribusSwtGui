@@ -156,6 +156,7 @@ import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
+import eu.transkribus.swt_gui.canvas.CanvasAutoZoomMode;
 import eu.transkribus.swt_gui.canvas.CanvasContextMenuListener;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.CanvasScene;
@@ -303,7 +304,8 @@ public class TrpMainWidget {
 	ActivityDialog ad;
 	Shell sleakDiag;
 
-	Storage storage; // the data
+	/** Storage keeps track of the currently loaded collection, document, page, transcription etc. */
+	Storage storage;
 	boolean isPageLocked = false;
 
 	String lastExportFolder = System.getProperty("user.home");
@@ -2130,12 +2132,20 @@ public class TrpMainWidget {
 	}
 
 	public boolean reloadCurrentPage(boolean force) {
-		return reloadCurrentPage(force, true);
+		return reloadCurrentPage(force, true, null);
 	}
 
-	public boolean reloadCurrentPage(boolean force, boolean reloadTranscript) {
-		if (!force && !saveTranscriptDialogOrAutosave())
+	/**
+	 * Reload the current page that is set in {@link #storage}.
+	 * @param force Forces a reload of the page without asking to save changes
+	 * @param reloadTranscript Also reload the current transcript?
+	 * @param zoomMode Specifies the zoom mode this page should be set to, if null the current transformation is kept.
+	 * @return True if page was reloaded, false otherwise
+	 */
+	public boolean reloadCurrentPage(boolean force, boolean reloadTranscript, CanvasAutoZoomMode zoomMode) {
+		if (!force && !saveTranscriptDialogOrAutosave()) {
 			return false;
+		}
 
 		try {
 			logger.info("loading page: " + storage.getPage());
@@ -2160,6 +2170,8 @@ public class TrpMainWidget {
 			if (storage.isPageLoaded() && storage.getCurrentImage() != null) {
 				getScene().setMainImage(storage.getCurrentImage());
 			}
+			
+			getScene().setCanvasAutoZoomMode(zoomMode);
 
 			if (reloadTranscript && storage.getNTranscripts() > 0) {
 				storage.setLatestTranscriptAsCurrent();
@@ -2500,7 +2512,7 @@ public class TrpMainWidget {
 			}
 
 			storage.setCurrentPage(pageIndex);
-			reloadCurrentPage(true);
+			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH);
 			
 			//store the path for the local doc
 			RecentDocsPreferences.push(folder);
@@ -2587,7 +2599,7 @@ public class TrpMainWidget {
 			}, "Loading document from server", false);
 
 			storage.setCurrentPage(pageIndex);
-			reloadCurrentPage(true);
+			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH);
 			if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
 				autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
 			}

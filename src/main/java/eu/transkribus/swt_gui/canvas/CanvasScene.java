@@ -135,8 +135,15 @@ public class CanvasScene {
 	/** Sets the reference to the main image */
 	public void setMainImage(CanvasImage img) {
 		mainImage = img;
-		if (mainImage != null)
+		if (mainImage != null) {
 			logger.debug("nr of pixels in loaded image = " + mainImage.nPixels);
+		}
+		canvas.fitWidth();
+		
+	}
+	
+	public void setCanvasAutoZoomMode(CanvasAutoZoomMode zoomMode) {
+		canvas.setCanvasAutoZoomMode(zoomMode);
 	}
 
 	public CanvasImage getMainImage() {

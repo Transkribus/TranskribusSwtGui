@@ -390,6 +390,27 @@ public class SWTCanvas extends Canvas {
 		// transform.setTranslation(0, 0);
 		redraw();
 	}
+	
+	public void setCanvasAutoZoomMode(CanvasAutoZoomMode zoomMode) {
+		if (zoomMode != null) {
+			switch (zoomMode) {
+			case IDENTITY:
+				resetTransformation();
+				break;
+			case FIT_WIDTH:
+				fitWidth();
+				break;
+			case FIT_HEIGHT:
+				fitHeight();
+				break;
+			case FIT_TO_PAGE:
+				fitToPage();
+				break;
+			default:
+					break;
+			}
+		}
+	}
 
 	public void focusBounds(Rectangle bounds) {
 		focusBounds(bounds, true, SWT.CENTER, settings.isDoTransition(), 0.0f,
