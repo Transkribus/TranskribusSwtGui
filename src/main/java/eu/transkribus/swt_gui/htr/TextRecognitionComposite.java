@@ -132,6 +132,7 @@ public class TextRecognitionComposite extends Composite {
 			try {
 				withTrainBtn = Storage.getInstance().getConnection().isUserAllowedForJob(JobImpl.CITlabHtrTrainingJob.toString());
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+				logger.debug("An exception occurred while querying job acl. Training is off.", e);
 				withTrainBtn = false;
 			}
 		}
