@@ -1458,7 +1458,9 @@ public abstract class ATranscriptionWidget extends Composite{
 					}
 					else { // if just enter pressed then jump one line down:
 						if (!autocomplete.getAdapter().isProposalPopupOpen()) {
-							sendTextKeyDownEvent(SWT.ARROW_DOWN);
+							jumpToFirstCharOfNeighborLine(false);
+							// OLD: just re-interpret as arrow-down, problem: caret not jumped to first char of new line
+//							sendTextKeyDownEvent(SWT.ARROW_DOWN);
 						}
 					}
 					return;
@@ -1472,6 +1474,26 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	protected abstract void initVerifyKeyListener();
 	protected abstract void onPaintTags(PaintEvent e);
+	
+	protected void jumpToFirstCharOfNeighborLine(boolean previous) {
+		try {
+			int cl = text.getLineAtOffset(text.getCaretOffset());
+			if (previous && cl == 0 || !previous && cl == text.getLineCount()-1) {// do nothing on last or first line
+				logger.trace("this is the first or last line, previous = "+previous);
+				return;
+			}
+			cl = previous ? cl-1 : cl+1;
+			
+			// jump to first character of line
+			int o = text.getOffsetAtLine(cl);
+			logger.trace("o = "+o);
+			if (o>=0 && o<text.getCharCount()) {
+				text.setSelection(o);
+			}
+		} catch (Exception e) {
+			logger.error("Could not jump to neighbor line: "+e.getMessage(), e);
+		}
+	}
 	
 	/**
 	 * 
