@@ -85,8 +85,9 @@ public class WordTranscriptionWidget extends ATranscriptionWidget {
 	@Override public TranscriptionLevel getType() { return TranscriptionLevel.WORD_BASED; }
 	
 	protected void applyTextFromWords() {
-		if (currentRegionObject!=null)
+		if (currentRegionObject!=null) {
 			currentRegionObject.applyTextFromWords();
+		}
 	}
 	
 	@Override 

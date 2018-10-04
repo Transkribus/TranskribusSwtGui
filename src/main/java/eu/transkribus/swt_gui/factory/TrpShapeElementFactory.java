@@ -411,6 +411,27 @@ public class TrpShapeElementFactory {
 		}
 	}
 	
+	public static TrpTextRegionType createDummyTextRegionForCurrentPageWithAllLinesIncluded() {
+		Storage store = Storage.getInstance();
+		if (!store.hasTranscript()) {
+			return null;
+		}
+		
+		TrpPageType page = store.getTranscript().getPage();
+		TrpTextRegionType region = new TrpTextRegionType();
+		region.getObservable().setActive(false);
+		region.setParent(page);
+		region.setId(TrpPageType.getUniqueId("dummy_region"));
+		region.getTextLine().clear();
+		region.getTextLine().addAll(page.getLines());
+		region.setCoordinates("0,0 0,0", null);
+		region.setReadingOrder(null, null);
+		
+		// TODO (maybe) - have to add region to page.getTextRegionOrImageRegionOrLineDrawingRegion() list???
+		
+		return region;
+	}
+	
 	private static TrpTextRegionType createPAGETextRegion(ICanvasShape shape, TrpPageType parent) {
 		assertNotNull(shape, "Shape");
 		assertNotNull(parent, "Parent page");

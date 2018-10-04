@@ -95,6 +95,7 @@ import eu.transkribus.core.model.beans.customtags.UnclearTag;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -109,6 +110,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.UndoRedoImpl;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
+import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
@@ -1192,7 +1194,22 @@ public abstract class ATranscriptionWidget extends Composite{
 		text.setLineBullet(0, text.getLineCount(), null); // delete line bullet first to guarantee update! (bug in SWT?)
 		if (settings.isShowLineBullets() && currentRegionObject!=null && getNTextLines()>0) {
 			Storage store = Storage.getInstance();
-			for (int i=0; i<text.getLineCount(); ++i) {				
+			
+			String currentRegionId=null;
+			int l=1;
+			int r=0;
+			
+			final String regionLineSeperator = "-";
+			GC gc = new GC(text);
+			Fonts.setBoldFont(text);
+			String maxBulletStr = Integer.toString(currentRegionObject.getPage().getRegions().size())+regionLineSeperator+Integer.toString(text.getLineCount());
+			logger.debug("max bullet string: "+maxBulletStr);
+			int glyphMetricsWidth = gc.stringExtent(maxBulletStr).x + 10;
+			Fonts.setNormalFont(text);
+			gc.dispose();
+			logger.debug("bullet metrics width: "+glyphMetricsWidth);
+			
+			for (int i=0; i<text.getLineCount(); ++i) {		
 				final int docId = store.getDoc().getId();
 				final int pNr = store.getPage().getPageNr();
 				
@@ -1208,15 +1225,38 @@ public abstract class ATranscriptionWidget extends Composite{
 				}
 
 				StyleRange style = new StyleRange(0, text.getCharCount(), Colors.getSystemColor(bulletFgColor), Colors.getSystemColor(SWT.COLOR_GRAY), fontStyle);
-				style.metrics = new GlyphMetrics(0, 0, Integer.toString(text.getLineCount() + 1).length() * 12);
+//				style.metrics = new GlyphMetrics(0, 0, Integer.toString(text.getLineCount() + 1).length() * 12);
+				style.metrics = new GlyphMetrics(0, 0, glyphMetricsWidth);
 //				style.background = Colors.getSystemColor(SWT.COLOR_GRAY);
 				Bullet bullet = new Bullet(/*ST.BULLET_NUMBER |*/ ST.BULLET_TEXT, style);
-				bullet.text = ""+(i+1);
+//				bullet.text = ""+(i+1);
 				
+				String bulletText="";
+				TrpTextLineType line = currentRegionObject.getTrpTextLine().get(i);
+				if (currentRegionId==null || !line.getRegion().getId().equals(currentRegionId)) {
+					++r;
+					currentRegionId = line.getRegion().getId();
+					l = 1;
+				}
+				if (true) {
+//					bulletText += "r"+r+"-l"+l;
+					bulletText += r+regionLineSeperator+l;
+				} else {
+					bulletText += ""+l;
+				}
+				bullet.text = bulletText;
+				
+				// OLD: just the line numbers
+//				bullet.text = ""+(i+1);
+//				int baseOffset = style.metrics.width*bulletText.length()+10; // add some offset if line is selected
+//				int baseOffset = style.metrics.width*bulletText.length()+25; // add some offset if line is selected
+				int baseOffset = 0; // add some offset if line is selected
 				text.setLineBullet(i, 1, bullet);
-				text.setLineIndent(i, 1, 25);
+//				text.setLineIndent(i, 1, baseOffset);
 				text.setLineAlignment(i, 1, settings.getTextAlignment());
-				text.setLineWrapIndent(i, 1, 25+style.metrics.width);
+				text.setLineWrapIndent(i, 1, baseOffset+style.metrics.width);
+				
+				++l;
 			}
 			
 //			text.setLineBullet(0, text.getLineCount(), bullet);
@@ -1225,6 +1265,11 @@ public abstract class ATranscriptionWidget extends Composite{
 //			text.setLineWrapIndent(0, text.getLineCount(), 25+style.metrics.width);			
 			
 
+		} else {
+//			final int defaultLineIndent = 5;
+//			for (int i=0; i<text.getLineCount(); ++i) {
+//				text.setLineIndent(i, 1, defaultLineIndent);	
+//			}
 		}
 	}
 	
@@ -1281,8 +1326,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 	}
 	
+	// FIXME: have to fix for mode when all lines are shown for all regions
 	public int getCurrentLineIndex() {
-		return (currentLineObject == null) ? -1 : currentLineObject.getIndex();
+//		return (currentLineObject == null) ? -1 : currentLineObject.getIndex();
+		return (currentLineObject == null) ? -1 : text.getLineAtOffset(text.getCaretOffset());
 	}
 	
 	protected void initSelectionListener() {
@@ -1423,10 +1470,10 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	protected TrpTextLineType getLineObject(int textLineIndex) {
-		if (textLineIndex < 0 || textLineIndex >= getNTextLines())
+		if (currentRegionObject == null || textLineIndex < 0 || textLineIndex >= getNTextLines())
 			return null;
 		
-		return (TrpTextLineType) currentRegionObject.getTextLine().get(textLineIndex);
+		return currentRegionObject.getTrpTextLine().get(textLineIndex);
 	}
 	
 	protected abstract List<StyleRange> getLineStyleRanges(int lineOffset);
@@ -2435,6 +2482,13 @@ public abstract class ATranscriptionWidget extends Composite{
 	 * Also checks if something has changed (text, selection etc.) and updates stuff accordingly. */
 	public void updateData(TrpTextRegionType region, TrpTextLineType line, TrpWordType word) {
 		logger.debug("updateData, type="+getType()+" region = "+region+ " line = "+line+" word = "+word);
+		
+		final boolean TEST_SHOW_LINES_FOR_ALL_REGIONS = true;
+		if (TEST_SHOW_LINES_FOR_ALL_REGIONS) {
+			logger.debug("setting dummy region!");
+			TrpTextRegionType dummyRegion = TrpShapeElementFactory.createDummyTextRegionForCurrentPageWithAllLinesIncluded();
+			region = dummyRegion;
+		}
 		
 		currentRegionObject = region;
 		if (region != currentRegionObject)
