@@ -1190,6 +1190,15 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 	}
 	
+	protected int getIndexOfLineInCurrentRegion(TrpTextLineType line) {
+		if (currentRegionObject == null) {
+			return -1;
+		}
+		else {
+			return currentRegionObject.getTrpTextLine().indexOf(line);
+		}
+	}
+	
 	protected void setLineBulletAndStuff() {
 		text.setLineBullet(0, text.getLineCount(), null); // delete line bullet first to guarantee update! (bug in SWT?)
 		if (settings.isShowLineBullets() && currentRegionObject!=null && getNTextLines()>0) {
@@ -1203,11 +1212,11 @@ public abstract class ATranscriptionWidget extends Composite{
 			GC gc = new GC(text);
 			Fonts.setBoldFont(text);
 			String maxBulletStr = Integer.toString(currentRegionObject.getPage().getRegions().size())+regionLineSeperator+Integer.toString(text.getLineCount());
-			logger.debug("max bullet string: "+maxBulletStr);
+			logger.trace("max bullet string: "+maxBulletStr);
 			int glyphMetricsWidth = gc.stringExtent(maxBulletStr).x + 10;
 			Fonts.setNormalFont(text);
 			gc.dispose();
-			logger.debug("bullet metrics width: "+glyphMetricsWidth);
+			logger.trace("bullet metrics width: "+glyphMetricsWidth);
 			
 			for (int i=0; i<text.getLineCount(); ++i) {		
 				final int docId = store.getDoc().getId();

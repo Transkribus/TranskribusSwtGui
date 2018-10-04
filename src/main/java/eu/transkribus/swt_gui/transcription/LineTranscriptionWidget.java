@@ -682,48 +682,19 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		
 	@Override
 	protected void updateSelection(boolean textChanged, boolean lineChanged, boolean wordChanged) {
-		if (currentLineObject == null)
+		if (currentLineObject == null) {
 			text.setSelection(0);
+		}
 		else if (textChanged || lineChanged) {// text or line change from outside of transcription widget
-			int li = currentLineObject.getIndex();
+//			int li = currentLineObject.getIndex();
+			int li = getIndexOfLineInCurrentRegion(currentLineObject);
+			logger.debug("li123 = "+li);
 			if (li!=-1) {
 				int selectionOffset = text.getOffsetAtLine(li);
 				text.setSelection(selectionOffset);
 			}
 		}
 	}
-		
-//	protected void initLineObject(TrpTextLineType line) {
-//		if (line == null) {
-//			currentLineObject=null;
-//			text.setSelection(0);
-//		}
-//		// only update cursor if line has changed:
-//		else if (currentLineObject != line) {
-//			currentLineObject = line;
-//			int selectionOffset = text.getOffsetAtLine(currentLineObject.getIndex());
-//			text.setSelection(selectionOffset);
-//		}
-//	}
-//	
-//	protected void initWordObject(TrpWordType word) {
-//	}
-	
-//	public List<TrpTextLineType> getSelectedShapes() {
-//		List<TrpTextLineType> selectedLines = new ArrayList<>();
-//		if (currentRegionObject == null)
-//			return selectedLines;
-//
-//		Point sel = text.getSelectionRange();
-//		int l1 = text.getLineAtOffset(sel.x);
-//		int l2 = text.getLineAtOffset(sel.x+sel.y);
-//		for (int i=l1; i<=l2; ++i) {
-//			selectedLines.add(getLineObject(i));
-//		}
-//		logger.debug("sel = "+sel+"l1 = "+l1+", l2 = "+l2+ " selectedLiens = "+selectedLines.size());
-//		
-//		return selectedLines;
-//	}
 
 	@Override
 	protected void updateWordObject() {
@@ -777,16 +748,21 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		if (!(t.getCustomTagList().getShape() instanceof TrpTextLineType))
 			return false;
 		
-		if (currentLineObject==null)
+		if (currentRegionObject == null || currentLineObject==null)
 			return false;
 		
 		if (!t.getCustomTagList().getShape().getId().equals(currentLineObject.getId()))
 			return false;
 		
+		
+		
 		TrpTextLineType l = (TrpTextLineType) t.getCustomTagList().getShape();
+		int lineIndex = currentRegionObject.getTrpTextLine().indexOf(l);
+		if (lineIndex==-1) {
+			return false;
+		}
 
-		int lo = text.getOffsetAtLine(l.getIndex());
-//		int ll = text.getLine(l.getIndex()).length();
+		int lo = text.getOffsetAtLine(lineIndex);
 		
 		int s = lo+t.getOffset();
 		int e = s+t.getLength();

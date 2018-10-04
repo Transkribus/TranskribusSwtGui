@@ -255,6 +255,14 @@ public class WordTranscriptionWidget extends ATranscriptionWidget {
 	// FIXME: MACHE DAS A BISSL SCHÖNER!!!! (EXCEPTION SOLLTE AUCH KEINE GESCHMISSEN WERDEN!!) (oder doch?)
 	// FIXME: derzeit wird der Text immer für das ganze Wort ersetzt und nicht indexbasiert so wie beim line-based editor!
 	protected void onTextChangedFromUser(int start, int end, String replacementText) {
+		if (currentRegionObject == null || currentLineObject==null || currentWordObject==null) {
+			return;
+		}
+		int currentLineIndex = getCurrentLineIndex();
+		if (currentLineIndex == -1) {
+			return;
+		}
+		
 		int wi = currentLineObject.getWordIndex(currentWordObject);
 		if (wi == -1)
 			throw new RuntimeException("Fatal exception: could not find word in text change from user!");
@@ -262,8 +270,8 @@ public class WordTranscriptionWidget extends ATranscriptionWidget {
 		// construct new word from replacement:
 		String newWordText = "";
 		Pair<Integer, Integer> wRange = new ArrayList<>(getWordRanges(currentLineObject).values()).get(wi);
-		int lineOffset = text.getOffsetAtLine(currentLineObject.getIndex());
-		
+//		int lineOffset = text.getOffsetAtLine(currentLineObject.getIndex());
+		int lineOffset = text.getOffsetAtLine(currentLineIndex);
 
 		if (!currentWordObject.getUnicodeText().isEmpty()) {
 			int bi = start - lineOffset - wRange.getLeft();
@@ -457,7 +465,14 @@ public class WordTranscriptionWidget extends ATranscriptionWidget {
 			return -1;
 		} else {
 			logger.trace("tl index: "+tl.getIndex());
-			int lo = text.getOffsetAtLine(tl.getIndex());
+//			int lo = text.getOffsetAtLine(tl.getIndex());
+			
+			int lineIndex = currentRegionObject.getTrpTextLine().indexOf(tl);
+			if (lineIndex == -1) {
+				return -1;
+			}
+			
+			int lo = text.getOffsetAtLine(lineIndex);
 			return lo+wi.getLeft();
 		}		
 	}

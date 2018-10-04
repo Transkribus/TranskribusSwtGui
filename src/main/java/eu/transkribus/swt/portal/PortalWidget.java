@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt.util.SWTUtil;
 import junit.framework.Assert;
 
 public class PortalWidget extends Composite {
@@ -72,10 +73,11 @@ public class PortalWidget extends Composite {
 	
 	public static final int DEFAULT_SASH_WIDTH = 3;
 	
-	private static int[] DEFAULT_WEIGHTS_HORIZONTAL_TOP_LEVEL = new int[] { 800, 220};
+//	private static int[] DEFAULT_WEIGHTS_HORIZONTAL_TOP_LEVEL = new int[] { 800, 220};
+	private static int[] DEFAULT_WEIGHTS_HORIZONTAL_TOP_LEVEL = new int[] { 25, 20};
 //	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 350, 1000};
 	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 90, 200};
-	private static int[] DEFAULT_WEIGHTS_VERTICAL_TOP_LEVEL = new int[] {100, 30};
+	private static int[] DEFAULT_WEIGHTS_VERTICAL_TOP_LEVEL = new int[] {100, 50};
 	private static int[] DEFAULT_WEIGHTS_VERTICAL = new int[] {10, 70};
 	
 	private SashForm sashFormHorizontalTopLevel;
@@ -158,6 +160,36 @@ public class PortalWidget extends Composite {
 		else
 			setWidgetDockingType(Position.RIGHT, Docking.INVISIBLE);
 		
+	}
+	
+	public Position getWidgetPosition(Composite widget) {
+		for (Position p : Position.values()) {
+			ScrolledComposite sc = widgets.get(p);
+			if (sc != null && sc.getContent()==widget) {
+				return p;
+			}
+		}
+		return null;
+	}
+	
+	public boolean setWidgetPosition(Composite widget, Position newPos) {
+		if (newPos == null) {
+			return false;
+		}
+		
+		for (Position p : Position.values()) {
+			ScrolledComposite sc = widgets.get(p);
+			if (sc != null && sc.getContent() == widget && p!=newPos) {
+				fillScrolledComposite(widgets.get(newPos), widget);
+				setWidgetDockingType(newPos, Docking.DOCKED);
+				
+				sc.setContent(null);
+				setWidgetDockingType(p, Docking.INVISIBLE);
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	private void fillScrolledComposite(ScrolledComposite sc, Composite child) {
