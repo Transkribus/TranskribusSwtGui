@@ -72,6 +72,11 @@ public class TextToolItem extends ACustomToolItem {
 	
 	public void setMessage(String message) {
 		text.setMessage(message);
-	}	
+	}
+	
+	@Override public void setToolTipText(String string) {
+//		super.setToolTipText(string);
+		text.setToolTipText(string);
+	}
 	
 }

@@ -324,7 +324,7 @@ public class ServerWidget extends Composite {
 		quickLoadByDocId.setAutoSelectTextOnFocus();
 		quickLoadByDocId.setMessage("Doc-ID");
 		quickLoadByDocId.resizeToMessage();
-		quickLoadByDocId.setToolTipText("Load a document with the specified document id");
+		quickLoadByDocId.setToolTipText("Load document with this id from the first collection it is contained");
 
 //		Composite docBtns = new Composite(docsContainer, 0);
 //		docBtns.setLayout(new RowLayout());
