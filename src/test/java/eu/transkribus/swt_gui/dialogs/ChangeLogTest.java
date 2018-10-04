@@ -6,6 +6,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
+import eu.transkribus.swt.util.SWTUtil;
+
 public class ChangeLogTest {
 
 	public static void main(String[] args) {
@@ -16,6 +18,7 @@ public class ChangeLogTest {
 				getShell().setSize(600, 600);
 				ChangeLogDialog changelog = new ChangeLogDialog(getShell(), SWT.NONE);
 				changelog.open();
+				
 				return parent;
 			}
 		};

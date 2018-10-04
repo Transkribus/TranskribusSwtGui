@@ -585,3 +585,6 @@ CHANGES AND BUGFIXES
 	-> bug fix: Sorting lines according to coordinates now also works for tables (R-button in Layout tab)
 	-> bug fix: Server export of tags and tables (xlsx) wasn't transparent to the user if there weren't any
 	-> bug fix: Table export into xlsx also works fine for highly structured tables
+	-> bug fix: vanishing properties in text tag property editor
+	-> new textfield to quickly open a document with a certain id
+	-> re-engineer the docking state buttons to quickly show/hide the control or transcription view with one click
