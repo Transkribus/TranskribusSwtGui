@@ -25,6 +25,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.swt.portal.PortalWidget.Docking;
+import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt_gui.Msgs;
@@ -252,14 +253,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean autoLogin = false;
 	public static final String AUTO_LOGIN_PROPERTY = "autoLogin";
 	
-	private Docking leftViewDockingState = Docking.DOCKED;
-	public static final String LEFT_VIEW_DOCKING_STATE_PROPERTY = "leftViewDockingState";
+	private Docking menuViewDockingState = Docking.DOCKED;
+	public static final String MENU_VIEW_DOCKING_STATE_PROPERTY = "menuViewDockingState";
 	
-	private Docking rightViewDockingState = Docking.DOCKED;
-	public static final String RIGHT_VIEW_DOCKING_STATE_PROPERTY = "rightViewDockingState";
+	private Docking transcriptionViewDockingState = Docking.DOCKED;
+	public static final String TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY = "transcriptionViewDockingState";
 	
-	private Docking bottomViewDockingState = Docking.DOCKED;
-	public static final String BOTTOM_VIEW_DOCKING_STATE_PROPERTY = "bottomViewDockingState";
+	private Position transcriptionViewPosition = DEFAULT_TRANSCRIPTION_VIEW_POSITION;
+	public static final String TRANSCRIPTION_VIEW_POSITION_PROPERTY = "transcriptionViewPosition";
+	public static final Position DEFAULT_TRANSCRIPTION_VIEW_POSITION = Position.BOTTOM;
 	
 	private int[] newWeightsForVerticalTopLevelSlash = new int [] {80, 20};
 	public static final String NEW_WEIGHTS_FOR_VERTICAL_TOP_LEVEL = "newWeightsForVerticalTopLevelSlash";
@@ -1135,38 +1137,38 @@ public class TrpSettings extends APropertyChangeSupport {
 		return Arrays.asList(DO_NOT_SAVE_THOSE_PROPERTIES);
 	}
 
-	public Docking getLeftViewDockingState() {
-		return leftViewDockingState;
+	public Docking getMenuViewDockingState() {
+		return menuViewDockingState;
 	}
 
-	public void setLeftViewDockingState(Docking leftViewDockingState) {
-		Docking old = this.leftViewDockingState;
-		this.leftViewDockingState = leftViewDockingState;
-		logger.debug("set left docking state");
+	public void setMenuViewDockingState(Docking menuViewDockingState) {
+		Docking old = this.menuViewDockingState;
+		this.menuViewDockingState = menuViewDockingState;
+		logger.debug("set menu docking state");
 		
-		firePropertyChange(LEFT_VIEW_DOCKING_STATE_PROPERTY, old, this.leftViewDockingState);
+		firePropertyChange(MENU_VIEW_DOCKING_STATE_PROPERTY, old, this.menuViewDockingState);
 	}
 
-	public Docking getRightViewDockingState() {
-		return rightViewDockingState;
+	public Docking getTranscriptionViewDockingState() {
+		return transcriptionViewDockingState;
 	}
 
-	public void setRightViewDockingState(Docking rightViewDockingState) {
-		Docking old = this.rightViewDockingState;
-		this.rightViewDockingState = rightViewDockingState;
-		firePropertyChange(RIGHT_VIEW_DOCKING_STATE_PROPERTY, old, this.rightViewDockingState);
-	}
-
-	public Docking getBottomViewDockingState() {
-		return bottomViewDockingState;
-	}
-
-	public void setBottomViewDockingState(Docking bottomViewDockingState) {
-		Docking old = this.bottomViewDockingState;
-		this.bottomViewDockingState = bottomViewDockingState;
-		firePropertyChange(BOTTOM_VIEW_DOCKING_STATE_PROPERTY, old, this.bottomViewDockingState);
+	public void setTranscriptionViewDockingState(Docking transcriptionViewDockingState) {
+		Docking old = this.transcriptionViewDockingState;
+		this.transcriptionViewDockingState = transcriptionViewDockingState;
+		firePropertyChange(TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY, old, this.transcriptionViewDockingState);
 	}
 	
+	public Position getTranscriptionViewPosition() {
+		return transcriptionViewPosition;
+	}
+
+	public void setTranscriptionViewPosition(Position transcriptionViewPosition) {
+		Position old = this.transcriptionViewPosition;
+		this.transcriptionViewPosition = transcriptionViewPosition;
+		firePropertyChange(TRANSCRIPTION_VIEW_POSITION_PROPERTY, old, this.transcriptionViewPosition);
+	}
+
 	public int[] getNewWeightsForVerticalTopLevelSlash() {
 		return newWeightsForVerticalTopLevelSlash;
 	}

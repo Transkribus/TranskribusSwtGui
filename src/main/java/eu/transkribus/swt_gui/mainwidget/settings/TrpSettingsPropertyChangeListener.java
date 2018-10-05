@@ -44,18 +44,23 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 		} else if (pn.equals(TrpSettings.RENDER_BLACKENINGS_PROPERTY)) {
 			canvas.redraw();
 		}
-		else if (pn.equals(TrpSettings.LEFT_VIEW_DOCKING_STATE_PROPERTY)) {
-			ui.getPortalWidget().setWidgetDockingType(Position.LEFT, (Docking) evt.getNewValue());
-			canvas.redraw();
-		}
-//		else if (pn.equals(TrpSettings.RIGHT_VIEW_DOCKING_STATE_PROPERTY)) {
-//			ui.getPortalWidget().setWidgetDockingType(Position.RIGHT, (Docking) evt.getNewValue());
-//			canvas.redraw();
+		
+		// NOTE: docking props are synced now in a PortalWidgetListener in TrpMainWidgetViewListener! 
+//		else if (pn.equals(TrpSettings.MENU_VIEW_DOCKING_STATE_PROPERTY)) {
+////			ui.getPortalWidget().setWidgetDockingType(TrpMainWidgetView.MENU_WIDGET_TYPE, (Docking) evt.getNewValue());
+////			ui.getPortalWidget().setWidgetDockingType(Position.LEFT, (Docking) evt.getNewValue());
+//			canvas.fitWidth();
+////			canvas.redraw();
 //		}
-		else if (pn.equals(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY)) {
-			ui.getPortalWidget().setWidgetDockingType(Position.BOTTOM, (Docking) evt.getNewValue());
-			canvas.redraw();
-		}
+//		else if (pn.equals(TrpSettings.TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY)) {
+////			ui.getPortalWidget().setWidgetDockingType(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, (Docking) evt.getNewValue());
+////			ui.getPortalWidget().setWidgetDockingType(Position.BOTTOM, (Docking) evt.getNewValue());
+//			canvas.fitWidth();
+////			canvas.redraw();
+//		}
+//		else if (pn.equals(TrpSettings.TRANSCRIPTION_VIEW_POSITION_PROPERTY)) {
+//			canvas.fitWidth();
+//		}
 		
 		else if (pn.equals(TrpSettings.NEW_WEIGHTS_FOR_VERTICAL_TOP_LEVEL)) {
 			ui.getPortalWidget().setNewSashFormVerticalTopLevelWeights((int[]) evt.getNewValue());

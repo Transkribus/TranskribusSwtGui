@@ -44,7 +44,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.ImgType;
-import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.databinding.swt.SWTObservables;
@@ -141,7 +140,6 @@ import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
-import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CreateThumbsService;
 import eu.transkribus.swt.util.DialogUtil;
@@ -937,11 +935,12 @@ public class TrpMainWidget {
 		logger.debug("cw = "+cw);
 		
 		CanvasSettings canvasSet = cw.getCanvas().getSettings();
-				
-		db.bindBeanPropertyToObservableValue(TrpSettings.LEFT_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
-												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.LEFT));
-		db.bindBeanPropertyToObservableValue(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
-												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.BOTTOM));
+		
+		// NOTE: docking props are synced now in a PortalWidgetListener in TrpMainWidgetViewListener! 
+//		db.bindBeanPropertyToObservableValue(TrpSettings.MENU_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+//												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.LEFT));
+//		db.bindBeanPropertyToObservableValue(TrpSettings.TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+//												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.BOTTOM));
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, cw.getShowPrintspaceItem());
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, cw.getShowRegionsItem());

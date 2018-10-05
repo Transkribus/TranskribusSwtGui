@@ -22,8 +22,6 @@ import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.configuration.Configuration;
-import org.docx4j.model.datastorage.XPathEnhancerParser.main_return;
-import org.eclipse.persistence.descriptors.partitioning.HashPartitioningPolicy;
 import org.eclipse.swt.graphics.RGB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +32,7 @@ import difflib.Patch;
 import eu.transkribus.core.i18n.I18nUtils;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.swt.portal.PortalWidget.Docking;
+import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;
 
@@ -327,6 +326,9 @@ public class Utils {
 		}
 		else if (type == Docking.class) {
 			return Docking.valueOf(valueStr);
+		}
+		else if (type == Position.class) {
+			return Position.valueOf(valueStr, true, true);
 		}
 		
 		return valueStr;

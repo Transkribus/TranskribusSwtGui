@@ -9,7 +9,6 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -35,7 +34,6 @@ import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.portal.PortalWidget;
 import eu.transkribus.swt.portal.PortalWidget.Docking;
 import eu.transkribus.swt.portal.PortalWidget.Position;
-import eu.transkribus.swt.portal.PortalWidget.PositionDocking;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
@@ -67,7 +65,16 @@ public class TrpMainWidgetView extends Composite {
 		
 	public final String APP_NAME;
 	public final String HELP_TEXT;
-
+	
+	public static final String MENU_WIDGET_TYPE = "menu";
+	public static final String CANVAS_WIDGET_TYPE = "canvas";
+	public static final String TRANSCRIPTION_WIDGET_TYPE = "transcription";
+	public static final String[] WIDGET_TYPES = { MENU_WIDGET_TYPE, CANVAS_WIDGET_TYPE, TRANSCRIPTION_WIDGET_TYPE };
+	
+	public static final String DOCKING_DATA_KEY = "docking";
+	public static final String POSITION_DATA_KEY = "position";
+	public static final String WIDGET_TYPE_DATA_KEY = "widgetType";
+//
 	// ##### Widgets and other stuff: #####
 	CanvasWidget canvasWidget;
 	PagingToolBar pagesPagingToolBar;
@@ -133,6 +140,7 @@ public class TrpMainWidgetView extends Composite {
 	
 //	HashMap<PositionDocking, MenuItem>  dockingMenuItems = new HashMap<>();
 	List<MenuItem> dockingMenuItems = new ArrayList<>();
+	List<MenuItem> trViewPosMenuItems = new ArrayList<>();
 	
 	DropDownToolItem profilesToolItem;
 	
@@ -302,8 +310,36 @@ public class TrpMainWidgetView extends Composite {
 //	    new Button(child, SWT.PUSH).setText("Two");
 				
 		// init portal widget:
+		
+		Docking menuViewDockingState = getTrpSets().getMenuViewDockingState()==null ? Docking.DOCKED : getTrpSets().getMenuViewDockingState();
+		Position transcriptViewPosition = getTrpSets().getTranscriptionViewPosition()==null ? Position.BOTTOM : getTrpSets().getTranscriptionViewPosition();
+		Docking transcriptViewDockingState = getTrpSets().getTranscriptionViewDockingState()==null ? Docking.DOCKED : getTrpSets().getTranscriptionViewDockingState();
+		canvasWidget.setData(WIDGET_TYPE_DATA_KEY, CANVAS_WIDGET_TYPE);
+		tabWidget.setData(WIDGET_TYPE_DATA_KEY, MENU_WIDGET_TYPE);
+		transcriptionWidgetContainer.setData(WIDGET_TYPE_DATA_KEY, TRANSCRIPTION_WIDGET_TYPE);		
+		
+//		portalWidget.setWidgetPosition(TRANSCRIPTION_WIDGET_TYPE, transcriptViewPosition);		
 //		portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, tabWidget, transcriptionWidgetContainer, rightTabFolder);
-		portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, tabWidget, transcriptionWidgetContainer, null);
+		
+		// construct portal widget depending on position of transcript view:
+		if (transcriptViewPosition == Position.BOTTOM) {
+			portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, tabWidget, transcriptionWidgetContainer, null);	
+		}
+		else if (transcriptViewPosition == Position.RIGHT) {
+			portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, tabWidget, null, transcriptionWidgetContainer);
+		}
+		else { // default --> bottom position
+			portalWidget = new PortalWidget(this, SWT.NONE, null, canvasWidget, tabWidget, transcriptionWidgetContainer, null);
+		}
+
+		// set different docking states if set in config.properties:
+		if (menuViewDockingState != Docking.DOCKED) {
+			portalWidget.setWidgetDockingType(MENU_WIDGET_TYPE, menuViewDockingState);
+		}
+		if (transcriptViewDockingState != Docking.DOCKED) {
+			portalWidget.setWidgetDockingType(TRANSCRIPTION_WIDGET_TYPE, transcriptViewDockingState);	
+		}
+		
 		portalWidget.setMinWidth(Position.LEFT, 200);
 		portalWidget.setMinWidth(Position.CENTER, 400);
 		portalWidget.setMinWidth(Position.BOTTOM, 400);
@@ -319,11 +355,7 @@ public class TrpMainWidgetView extends Composite {
 
 //		portalWidget.setMinHeight(Position.RIGHT, rightTabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		
-		logger.debug("left view docking state: "+getTrpSets().getLeftViewDockingState());
-		
-		portalWidget.setWidgetDockingType(Position.LEFT, getTrpSets().getLeftViewDockingState());
-//		portalWidget.setWidgetDockingType(Position.RIGHT, getTrpSets().getRightViewDockingState());
-		portalWidget.setWidgetDockingType(Position.BOTTOM, getTrpSets().getBottomViewDockingState());
+		logger.debug("left view docking state: "+getTrpSets().getMenuViewDockingState());
 		
 //		addInternalListener();
 //		addBindings();
@@ -346,12 +378,20 @@ public class TrpMainWidgetView extends Composite {
 	private void updateDockingStateButtons() {
 		logger.debug("updateDockingStateButtons");
 		for (MenuItem mi : dockingMenuItems) {
-			Composite widget = getWidgetFromType((String) mi.getData("widgetType"));
-			if (widget != null) {
-				Position p = portalWidget.getWidgetPosition(widget);
+			Position p = portalWidget.getWidgetPosition((String) mi.getData(WIDGET_TYPE_DATA_KEY));
+			if (p != null) {
 				Docking currentDocking = portalWidget.getDocking(p);
-				Docking dockingInMenuItem = (Docking) mi.getData("docking");
-				mi.setSelection(dockingInMenuItem.equals(currentDocking)); // set selection depending on docking state!
+				Docking dockingInMenuItem = (Docking) mi.getData(DOCKING_DATA_KEY);
+				if (dockingInMenuItem != null) {
+					mi.setSelection(dockingInMenuItem.equals(currentDocking)); // set selection depending on docking state!
+				}
+			}
+		}
+		
+		Position trViewPos = portalWidget.getWidgetPosition(TRANSCRIPTION_WIDGET_TYPE);
+		if (trViewPos != null) {
+			for (MenuItem mi : trViewPosMenuItems) {
+				mi.setSelection(trViewPos.equals(mi.getData(POSITION_DATA_KEY)));
 			}
 		}
 	}
@@ -466,7 +506,7 @@ public class TrpMainWidgetView extends Composite {
 //		});
 		
 //		initDockingToolItems();
-		initDockingToolItems2();
+		initDockingToolItems();
 
 		profilesToolItem = new DropDownToolItem(toolBar, false, false, true, SWT.NONE);
 		profilesToolItem.ti.setImage(Images.CONTROL_EQUALIZER);
@@ -610,7 +650,7 @@ public class TrpMainWidgetView extends Composite {
 		//updateToolBarSize();
 	}
 	
-	private void initDockingToolItems2() {
+	private void initDockingToolItems() {
 		DropDownToolItemSimple menuDockingDropItem = new DropDownToolItemSimple(toolBar, SWT.DROP_DOWN, null, Images.APPLICATION_SIDE_CONTRACT, "Menu view docking state");
 		menuDockingDropItem.setOpenMenuOnlyOnArrowBtn(true);
 			
@@ -629,13 +669,8 @@ public class TrpMainWidgetView extends Composite {
 				if (e.detail == SWT.ARROW) { // don't react if user has pressed the arrow button!
 					return;
 				}
-				Composite widget = getWidgetFromType(widgetType);
-				if (widget == null) {
-					return;
-				}
 
-				Position p = portalWidget.getWidgetPosition(widget);
-				logger.debug("posss = "+p+" of widget: "+widget);
+				Position p = portalWidget.getWidgetPosition(widgetType);
 				if (p == null) {
 					return;
 				}
@@ -650,63 +685,39 @@ public class TrpMainWidgetView extends Composite {
 				}
 			}
 		}
-		menuDockingDropItem.getToolItem().addSelectionListener(new DockingStateMainBtnListener(getWidgetTypes()[0]));
-		transcriptionDockingDropitem.getToolItem().addSelectionListener(new DockingStateMainBtnListener(getWidgetTypes()[1]));
+		menuDockingDropItem.getToolItem().addSelectionListener(new DockingStateMainBtnListener(MENU_WIDGET_TYPE));
+		transcriptionDockingDropitem.getToolItem().addSelectionListener(new DockingStateMainBtnListener(TRANSCRIPTION_WIDGET_TYPE));
 
 		class DockingStateMenuItemListener extends SelectionAdapter {
-			public DockingStateMenuItemListener() {
-			}
-			
 			@Override public void widgetSelected(SelectionEvent e) {
-				if (!(e.getSource() instanceof MenuItem)) {
-					return;
-				}
-				
 				MenuItem mi = (MenuItem) e.getSource();
-				Docking docking = (Docking) mi.getData("docking");
-				String widgetType = (String) mi.getData("widgetType");
-				Composite widget = getWidgetFromType(widgetType);
-				if (widget == null) {
-					logger.error("could not retrieve widget from type: "+widgetType);
-					return;
-				}
+				Docking docking = (Docking) mi.getData(DOCKING_DATA_KEY);
+				String widgetType = (String) mi.getData(WIDGET_TYPE_DATA_KEY);
 				
-				Position pos = portalWidget.getWidgetPosition(widget);
-				logger.debug("widget pos: "+pos+" new docking: "+docking+" widget: "+widget);
-				
-				if (pos != null) {
-					portalWidget.setWidgetDockingType(pos, docking);	
-				}
+				portalWidget.setWidgetDockingType(widgetType, docking);	
 			}
 		};
 		
-//		Position[] positions = { Position.LEFT, /*Position.RIGHT,*/ Position.BOTTOM };
-//		String[] widgetTypes = { "menuWidget", "transcriptionWidget" };
-		
 		Docking[] dockings = { Docking.DOCKED, Docking.UNDOCKED, Docking.INVISIBLE };
-//		String[] cascadeLabels = { "Left view", /*"Right view",*/ "Bottom view" };
 		String[] dockingsLabels = { "Docked", "Undocked", "Invisible" };
 
-		int i=0;
-		for (String widgetType : getWidgetTypes()) {
-			DropDownToolItemSimple ti = (i==0) ? menuDockingDropItem : transcriptionDockingDropitem;
+		for (String widgetType : WIDGET_TYPES) {
+			if (widgetType.equals(CANVAS_WIDGET_TYPE)) {
+				continue;
+			}
+			
+			DropDownToolItemSimple ti = widgetType.equals(MENU_WIDGET_TYPE) ? menuDockingDropItem : transcriptionDockingDropitem;
 			// create sub-menu items
 			int j=0;
 			for (Docking d : dockings) {
 				MenuItem dockItem = ti.addItem(dockingsLabels[j], null, SWT.RADIO);
-				dockItem.setData("widgetType", widgetType);
-				dockItem.setData("docking", d);
+				dockItem.setData(WIDGET_TYPE_DATA_KEY, widgetType);
+				dockItem.setData(DOCKING_DATA_KEY, d);
 
-//				MenuItem dockItem = new MenuItem(cmiMenu, SWT.RADIO);
-//				PositionDocking pd = new PositionDocking(p, d);
-//				dockItem.setData(new PositionDocking(p, d));
-//				dockItem.setText(dockingsLabels[j]);
 				dockItem.addSelectionListener(new DockingStateMenuItemListener());
 				dockingMenuItems.add(dockItem);
 				++j;
 			}
-
-			++i;
 		}
 		
 		// sub-menu to change position of transcription view:
@@ -715,104 +726,22 @@ public class TrpMainWidgetView extends Composite {
 	    Menu trWidgetPositionMenu = new Menu(transcriptionDockingDropitem.getMenu().getShell(), SWT.DROP_DOWN);
 	    trWidgetPositionMenuItem.setMenu(trWidgetPositionMenu);
 	    
-	    MenuItem bottomItem = new MenuItem(trWidgetPositionMenu, SWT.PUSH);
-	    bottomItem.setText("Bottom");
-	    SWTUtil.onSelectionEvent(bottomItem, e -> {
+	    MenuItem trViewBottomItem = new MenuItem(trWidgetPositionMenu, SWT.RADIO);
+	    trViewBottomItem.setText("Bottom");
+	    trViewBottomItem.setData(POSITION_DATA_KEY, Position.BOTTOM);
+	    SWTUtil.onSelectionEvent(trViewBottomItem, e -> {
 	    	portalWidget.setWidgetPosition(transcriptionWidgetContainer, Position.BOTTOM);
 	    });
+	    trViewPosMenuItems.add(trViewBottomItem);
 	    
-	    MenuItem rightItem = new MenuItem(trWidgetPositionMenu, SWT.PUSH);
-	    rightItem.setText("Right");
-	    SWTUtil.onSelectionEvent(rightItem, e -> {
+	    MenuItem trViewRightItem = new MenuItem(trWidgetPositionMenu, SWT.RADIO);
+	    trViewRightItem.setText("Right");
+	    trViewRightItem.setData(POSITION_DATA_KEY, Position.RIGHT);
+	    SWTUtil.onSelectionEvent(trViewRightItem, e -> {
 	    	portalWidget.setWidgetPosition(transcriptionWidgetContainer, Position.RIGHT);
 	    });
+	    trViewPosMenuItems.add(trViewRightItem);
 	}
-	
-	private String[] getWidgetTypes() {
-		return new String[]{ "menuWidget", "transcriptionWidget" };
-	}
-	
-	private Composite getWidgetFromType(String widgetType) {
-		if (widgetType == null) {
-			return null;
-		}
-		if (widgetType.equals("menuWidget")) {
-			return tabWidget;
-		}
-		else if (widgetType.equals("transcriptionWidget")) {
-			return transcriptionWidgetContainer;
-		}
-		return null;
-	}
-	
-//	private void initDockingToolItems() {
-//		boolean USE_TWO_DOCKING_ICONS=true;
-//		DropDownToolItem viewLeftDockingDropItem=null, viewBottomDockingDropitem=null, viewDockingDropItem=null;
-//		if (USE_TWO_DOCKING_ICONS) {
-//			viewLeftDockingDropItem = new DropDownToolItem(toolBar, false, false, true, SWT.RADIO);
-//			viewLeftDockingDropItem.ti.setImage(Images.APPLICATION_SIDE_CONTRACT);
-//			viewLeftDockingDropItem.ti.setToolTipText("Left view docking state...");
-//			
-//			
-//			viewBottomDockingDropitem = new DropDownToolItem(toolBar, false, false, true, SWT.RADIO);
-//			viewBottomDockingDropitem.ti.setImage(Images.APPLICATION_SIDE_PUT);
-//			viewBottomDockingDropitem.ti.setToolTipText("Bottom view docking state...");
-//		} else {
-//			viewDockingDropItem = new DropDownToolItem(toolBar, false, false, true, SWT.CASCADE);
-//			viewDockingDropItem.ti.setImage(Images.APPLICATION);
-//			viewDockingDropItem.ti.setToolTipText("Change docking state...");
-//		}
-//
-//		SelectionListener dockingStateSl = new SelectionAdapter() {
-//			@Override public void widgetSelected(SelectionEvent e) {
-//				if (!(e.getSource() instanceof MenuItem))
-//					return;
-//				
-//				MenuItem mi = (MenuItem) e.getSource();
-//				if (!(mi.getData() instanceof PositionDocking))
-//					return;
-//				
-//				portalWidget.setWidgetDockingType((PositionDocking) mi.getData());
-//			}
-//		};
-//		
-//		Position[] positions = { Position.LEFT, /*Position.RIGHT,*/ Position.BOTTOM };
-//		Docking[] dockings = { Docking.DOCKED, Docking.UNDOCKED, Docking.INVISIBLE };
-//		String[] cascadeLabels = { "Left view", /*"Right view",*/ "Bottom view" };
-//		String[] dockingsLabels = { "Docked", "Undocked", "Invisible" };	
-//
-//		int i=0;
-//		for (Position p : positions) {
-//			DropDownToolItem ti = USE_TWO_DOCKING_ICONS ? ( p == Position.LEFT ? viewLeftDockingDropItem : viewBottomDockingDropitem) : viewDockingDropItem;
-//						
-//			Menu cmiMenu = null;
-//			if (!USE_TWO_DOCKING_ICONS) {
-//				// create the cascade menu
-//				MenuItem cmi = ti.addItem(cascadeLabels[i], Images.APPLICATION, "Change docking states of the different views");
-//				
-//				// create sub-menu and attach it
-//				cmiMenu = new Menu(ti.getMenu());
-//				cmi.setMenu(cmiMenu);
-//			} else {
-//				cmiMenu = ti.getMenu();
-//			}
-//
-//			// create sub-menu items
-//			int j=0;
-//			for (Docking d : dockings) {
-//				MenuItem dockItem = new MenuItem(cmiMenu, SWT.RADIO);
-//				PositionDocking pd = new PositionDocking(p, d);
-//				dockItem.setData(new PositionDocking(p, d));
-//				dockItem.setText(dockingsLabels[j]);
-//				dockItem.addSelectionListener(dockingStateSl);
-//				
-//				dockingMenuItems.put(pd, dockItem);
-//				++j;
-//			}
-//
-//			++i;
-//		}	
-//	}
 
 	/**
 	 * add all toolbar buttons that come *after* the canvas toolbar
