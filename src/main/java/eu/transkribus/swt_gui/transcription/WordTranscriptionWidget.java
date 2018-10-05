@@ -690,9 +690,8 @@ public class WordTranscriptionWidget extends ATranscriptionWidget {
 				// send this information to this bloody method which causes the modification to be done in the underlying page element:
 				onTextChangedFromUser(start, end, replacementText);
 				
-				redrawText(true);
-//				text.redraw();
-//				text.redrawRange(0, text.getCharCount(), true);
+//				redrawText(true); // OLD --> ineffiecient!!
+				updateLineStylesForCharacterOffsets(start, end);
 			}
 		};
 		addUserExtendedModifyListener(extendedModifyListener);

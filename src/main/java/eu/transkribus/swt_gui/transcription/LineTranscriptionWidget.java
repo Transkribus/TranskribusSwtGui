@@ -85,9 +85,8 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				// send this information to this bloody method which causes the modification to be done in the underlying page element:
 				onTextChangedFromUser(start, end, replacementText);
 				
-				redrawText(true);
-//				text.redraw();
-//				text.redrawRange(0, text.getCharCount(), true);
+//				redrawText(true); // OLD --> ineffiecient!!
+				updateLineStylesForCharacterOffsets(start, end);
 			}
 		};
 		addUserExtendedModifyListener(extendedModifyListener);
@@ -400,7 +399,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 			public void verifyText(VerifyEvent e) {
 
 				//TODO:FIXME take out!
-				logger.debug("verifyText() "+e.keyCode + ": "+e.character + " - "+ e.text);
+				logger.trace("verifyText() "+e.keyCode + ": "+e.character + " - "+ e.text);
 				
 				// prevent del and backspace on begin and end of line:
 				preventDelAndBackspace(e);

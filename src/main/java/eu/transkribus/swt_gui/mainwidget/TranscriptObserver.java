@@ -126,15 +126,15 @@ public class TranscriptObserver implements Observer {
 	private void onTagsChanged(Object source, TrpTagsChangedEvent e) {
 		logger.trace("tags changed, source = "+source+" e = "+e);
 		
-		if (false) { // inefficient... keep out if possible!
-		if (source instanceof TrpTextLineType) {
-			lineTranscriptionWidget.redrawText(true);
-			lineEditor.redraw();
-		}
-		else if (source instanceof TrpWordType) {
-			wordTranscriptionWidget.redrawText(true);
-		}
-		}
+//		if (false) { // inefficient... keep out if possible!
+//		if (source instanceof TrpTextLineType) {
+//			lineTranscriptionWidget.redrawText(true);
+//			lineEditor.redraw();
+//		}
+//		else if (source instanceof TrpWordType) {
+//			wordTranscriptionWidget.redrawText(true);
+//		}
+//		}
 		
 		// usage of DelayedTask makes sure that update of list only occurs once after a 500ms time between two tag changes!
 		tagListUpdateTask.start();
@@ -146,15 +146,15 @@ public class TranscriptObserver implements Observer {
 		
 //		logger.debug("styles have changed, source = "+source+", who = "+e.who);
 		
-		if (false) { // inefficient
-		if (source instanceof TrpTextLineType) {
-			lineTranscriptionWidget.redrawText(true);
-			lineEditor.redraw();
-		}
-		else if (source instanceof TrpWordType) {
-			wordTranscriptionWidget.redrawText(true);
-		}
-		}
+//		if (false) { // inefficient
+//		if (source instanceof TrpTextLineType) {
+//			lineTranscriptionWidget.redrawText(true);
+//			lineEditor.redraw();
+//		}
+//		else if (source instanceof TrpWordType) {
+//			wordTranscriptionWidget.redrawText(true);
+//		}
+//		}
 	}
 
 	@Override

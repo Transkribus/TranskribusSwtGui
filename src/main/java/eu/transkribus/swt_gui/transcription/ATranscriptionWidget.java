@@ -431,7 +431,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 		
 		sendDefaultSelectionChangedSignal(false);
-		redrawText(true);
+		redrawText(true, false, false);
 	}
 	
 	protected WritingOrientation getWritingOrientation() {
@@ -975,7 +975,7 @@ public abstract class ATranscriptionWidget extends Composite{
 					TrpMainWidget.getInstance().updateSelectedTranscriptionWidgetData();
 				}
 				else if (pn.equals(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY)) {
-					redrawText(true);
+					redrawText(true, false, false);
 				}
 				
 				// saving on change not needed anymore... gets saved anyway
@@ -992,7 +992,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //					TrpConfig.save(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY);
 //				}	
 				
-				updateLineStyles(false);
+				updateLineStyles(false, false);
 				text.redraw();
 			}
 		});
@@ -1207,11 +1207,21 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 	}
 	
-	protected void setLineBulletAndStuff() {
+//	protected void updateLineBullets(boolean onlyVisibleLines) {
+//		int startIndex=0, endIndex=text.getLineCount();
+//		if (onlyVisibleLines) {
+//			startIndex = JFaceTextUtil.getPartialTopIndex(text);
+//			endIndex = JFaceTextUtil.getPartialBottomIndex(text);
+//		}
+//		
+//		updateLineBullets(startIndex, endIndex);
+//	}
+	
+	protected void updateLineBullets() {
 		text.setLineBullet(0, text.getLineCount(), null); // delete line bullet first to guarantee update! (bug in SWT?)
 		if (true && settings.isShowLineBullets() && getNTextLines()>0) {
 			logger.debug("settingLineBulletAndStuff");
-			Storage store = Storage.getInstance();
+//			Storage store = Storage.getInstance();
 			
 			String currentRegionId=null;
 			int l=1;
@@ -1226,10 +1236,8 @@ public abstract class ATranscriptionWidget extends Composite{
 			Fonts.setNormalFont(text);
 			gc.dispose();
 			logger.trace("bullet metrics width: "+glyphMetricsWidth);
-//			final int docId = store.getDoc().getId();
-//			final int pNr = store.getPage().getPageNr();
 			
-			for (int i=0; i<text.getLineCount(); ++i) {	
+			for (int i=0; i<text.getLineCount(); ++i) {
 				int bulletFgColor = SWT.COLOR_BLACK;
 				int fontStyle = SWT.NORMAL;
 				
@@ -1282,17 +1290,10 @@ public abstract class ATranscriptionWidget extends Composite{
 //			text.setLineIndent(0, text.getLineCount(), 25);
 //			text.setLineAlignment(0, text.getLineCount(), textAlignment);
 //			text.setLineWrapIndent(0, text.getLineCount(), 25+style.metrics.width);			
-			
-
-		} else {
-//			final int defaultLineIndent = 5;
-//			for (int i=0; i<text.getLineCount(); ++i) {
-//				text.setLineIndent(i, 1, defaultLineIndent);	
-//			}
 		}
 	}
 	
-	protected void updateLineStyles(boolean onlyVisibleLines) {
+	protected void updateLineStyles(boolean onlyVisibleLines, boolean updateLineBullets) {
 		int startIndex=0, endIndex=text.getLineCount();
 		if (onlyVisibleLines) {
 			startIndex = JFaceTextUtil.getPartialTopIndex(text);
@@ -1300,6 +1301,22 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 		
 		updateLineStyles(startIndex, endIndex);
+		
+		if (updateLineBullets) {
+			updateLineBullets();
+		}
+	}
+	
+	protected void updateLineStylesForCharacterOffsets(int start, int end) {
+		int startLine = text.getLineAtOffset(start);
+		if (startLine<0) { // should never happen...
+			startLine=0;
+		}
+		int endLine = text.getLineAtOffset(end);
+		if (endLine > text.getLineCount()) { // should never happen...
+			endLine = text.getLineCount();
+		}
+		updateLineStyles(startLine, endLine+1);
 	}
 	
 	protected void updateLineStyles(int startLineIndex, int endLineIndex) {
@@ -1311,7 +1328,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		// set line bullet:
 		// TODO: update line bullets for specified lines only also!
-		setLineBulletAndStuff();
+//		updateLineBullets();
 		
 		// set global style(s): <-- NO NEED TO DO SO, AS OVERWRITTEN BY setStyleRanges call below!!		
 //		StyleRange srDefault = new StyleRange(TrpUtil.getDefaultSWTTextStyle(text.getFont().getFontData()[0], settings));
@@ -1367,7 +1384,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		int bi = JFaceTextUtil.getBottomIndex(text);
 		if ((ci == ti && ci-1>=0) || (ci == bi && ci-1>=0)) {
 			text.setTopIndex(ci-1);
-			updateLineStyles(false);
+			updateLineStyles(false, false);
 		}
 	}
 	
@@ -2180,7 +2197,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //				setFontFromSettings();
 //				TrpConfig.save();
 								
-				updateLineStyles(false);
+				updateLineStyles(false, false);
 				text.redraw();
 			}
 		});	
@@ -2232,7 +2249,7 @@ public abstract class ATranscriptionWidget extends Composite{
 				currentLineObject.setStructure(TextTypeSimpleType.PARAGRAPH.value(), false, this);
 			}
 			
-			redrawText(true);
+			redrawText(true, true, false);
 		}
 	}
 	
@@ -2249,7 +2266,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		sendDefaultSelectionChangedSignal(false);
 //		setLineStyleRanges();
-		redrawText(true);
+		redrawText(true, false, false);
 	}
 	
 	protected void sendTextKeyDownEvent(int keyCode) {
@@ -2556,7 +2573,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			currentWordObject = null;
 			setText("");
 			oldTextSelection=new Point(-1, -1);
-			updateLineStyles(false);
+			updateLineStyles(false, true);
 			return;
 		}
 		
@@ -2591,7 +2608,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		sendDefaultSelectionChangedSignal(true);
 		
-		updateLineStyles(false);
+		updateLineStyles(false, true);
 		text.redraw();
 		
 		onDataUpdated();
@@ -2622,9 +2639,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		undoRedo.clear();
 	}
 		
-	public void redrawText(boolean updateStyles) {
+	public void redrawText(boolean updateStyles, boolean onlyVisibleLines, boolean updateLineBullets) {
+		logger.trace("redrawing text...!!!!!!!!");
 		if (updateStyles) {
-			updateLineStyles(true); // also redraw's text field...
+			updateLineStyles(onlyVisibleLines, updateLineBullets); // also redraw's text field...
 		}
 		else {
 			text.redraw();

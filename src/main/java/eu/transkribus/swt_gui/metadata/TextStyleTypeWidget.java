@@ -129,7 +129,7 @@ public class TextStyleTypeWidget extends Composite {
 		underlineTextStylesBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				if (TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget() != null)
-					TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
+					TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true, false, false);
 			}
 		});
 		

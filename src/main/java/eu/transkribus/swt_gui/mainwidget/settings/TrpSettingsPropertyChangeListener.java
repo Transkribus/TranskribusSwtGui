@@ -39,7 +39,7 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 			mainWidget.getScene().updateSegmentationViewSettings();	
 		} else if (pn.equals(TrpSettings.ENABLE_INDEXED_STYLES)) {
 			logger.debug("indexed styles visibility toggled: "+evt.getNewValue());
-			ui.getSelectedTranscriptionWidget().redrawText(true);
+			ui.getSelectedTranscriptionWidget().redrawText(true, false, false);
 			mainWidget.updatePageRelatedMetadata();
 		} else if (pn.equals(TrpSettings.RENDER_BLACKENINGS_PROPERTY)) {
 			canvas.redraw();

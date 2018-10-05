@@ -881,7 +881,7 @@ public class TrpMainWidget {
 						logger.debug("registry has changed ");
 						TagRegistryChangeEvent trce = (TagRegistryChangeEvent) arg;
 						if (trce.type.equals(TagRegistryChangeEvent.CHANGED_TAG_COLOR) && getUi()!=null && getUi().getSelectedTranscriptionWidget()!=null) {
-							TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
+							TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true, false, false);
 						}
 												
 						//if tag registry has changed and user is logged in -> store into DB for the current user
@@ -5770,8 +5770,8 @@ public class TrpMainWidget {
 			}
 	
 			updatePageRelatedMetadata();
-			getUi().getLineTranscriptionWidget().redrawText(true);
-			getUi().getWordTranscriptionWidget().redrawText(true);
+			getUi().getLineTranscriptionWidget().redrawText(true, false, false);
+			getUi().getWordTranscriptionWidget().redrawText(true, false, false);
 			refreshStructureView();
 			
 //			getUi().getTaggingWidget().getTagListWidget().refreshTable();
@@ -5798,8 +5798,8 @@ public class TrpMainWidget {
 			}
 			
 			updatePageRelatedMetadata();
-			getUi().getLineTranscriptionWidget().redrawText(true);
-			getUi().getWordTranscriptionWidget().redrawText(true);
+			getUi().getLineTranscriptionWidget().redrawText(true, false, false);
+			getUi().getWordTranscriptionWidget().redrawText(true, false, false);
 			refreshStructureView();
 		} catch (Exception e) {
 			onError("Unexpected error deleting tags", e.getMessage(), e);
@@ -5853,8 +5853,8 @@ public class TrpMainWidget {
 			}
 			
 			updatePageRelatedMetadata();
-			getUi().getLineTranscriptionWidget().redrawText(true);
-			getUi().getWordTranscriptionWidget().redrawText(true);
+			getUi().getLineTranscriptionWidget().redrawText(true, false, false);
+			getUi().getWordTranscriptionWidget().redrawText(true, false, false);
 			refreshStructureView();
 		} catch (Exception e) {
 			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
