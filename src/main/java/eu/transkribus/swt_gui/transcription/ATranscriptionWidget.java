@@ -842,6 +842,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		else
 			leftAlignmentItem.setSelection(true);
 		
+		text.setAlignment(settings.getTextAlignment());
+		
 		textStyleDisplayOptions = ti.addItem("Rendered tag styles", Images.getOrLoad("/icons/paintbrush.png"), SWT.CASCADE);
 		Menu textStyleDisplayOptionsMenu = new Menu(ti.getMenu());
 		textStyleDisplayOptions.setMenu(textStyleDisplayOptionsMenu);
@@ -990,7 +992,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //					TrpConfig.save(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY);
 //				}	
 				
-				updateLineStyles();
+				updateLineStyles(false);
 				text.redraw();
 			}
 		});
@@ -1080,14 +1082,16 @@ public abstract class ATranscriptionWidget extends Composite{
 		text.getVerticalBar().addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				logger.trace("text field vertical scroll: "+e);
-				updateLineStyles();
+//				updateLineStyles();
+				text.redraw();
 			}
 		});
 		
 		text.addControlListener(new ControlListener() {
 			@Override public void controlResized(ControlEvent e) {
 				logger.trace("text field resized: "+e);
-				updateLineStyles();
+//				updateLineStyles();
+				text.redraw();
 			}
 			@Override public void controlMoved(ControlEvent e) {
 			}
@@ -1205,7 +1209,8 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	protected void setLineBulletAndStuff() {
 		text.setLineBullet(0, text.getLineCount(), null); // delete line bullet first to guarantee update! (bug in SWT?)
-		if (settings.isShowLineBullets() && currentRegionObject!=null && getNTextLines()>0) {
+		if (true && settings.isShowLineBullets() && getNTextLines()>0) {
+			logger.debug("settingLineBulletAndStuff");
 			Storage store = Storage.getInstance();
 			
 			String currentRegionId=null;
@@ -1221,20 +1226,21 @@ public abstract class ATranscriptionWidget extends Composite{
 			Fonts.setNormalFont(text);
 			gc.dispose();
 			logger.trace("bullet metrics width: "+glyphMetricsWidth);
+//			final int docId = store.getDoc().getId();
+//			final int pNr = store.getPage().getPageNr();
 			
-			for (int i=0; i<text.getLineCount(); ++i) {		
-				final int docId = store.getDoc().getId();
-				final int pNr = store.getPage().getPageNr();
-				
+			for (int i=0; i<text.getLineCount(); ++i) {	
 				int bulletFgColor = SWT.COLOR_BLACK;
-				
 				int fontStyle = SWT.NORMAL;
+				
+				// determine if we have a word-graph for that line...
 				if (i>= 0 && i <currentRegionObject.getTextLine().size()) {
-					final String lineId = currentRegionObject.getTextLine().get(i).getId();
-					boolean hasWg = store.hasWordGraph(docId, pNr, lineId);
+					fontStyle = (i == getCurrentLineIndex()) ? SWT.BOLD : SWT.NORMAL;
 					
-					fontStyle = (i == getCurrentLineIndex()) ? SWT.BOLD : SWT.NORMAL;	
-					bulletFgColor = hasWg ? SWT.COLOR_DARK_GREEN : SWT.COLOR_BLACK;
+					// determine color, if it has a wordgraph...
+//					final String lineId = currentRegionObject.getTextLine().get(i).getId();
+//					boolean hasWg = store.hasWordGraph(docId, pNr, lineId);
+//					bulletFgColor = hasWg ? SWT.COLOR_DARK_GREEN : SWT.COLOR_BLACK;
 				}
 
 				StyleRange style = new StyleRange(0, text.getCharCount(), Colors.getSystemColor(bulletFgColor), Colors.getSystemColor(SWT.COLOR_GRAY), fontStyle);
@@ -1266,7 +1272,7 @@ public abstract class ATranscriptionWidget extends Composite{
 				int baseOffset = 0; // add some offset if line is selected
 				text.setLineBullet(i, 1, bullet);
 //				text.setLineIndent(i, 1, baseOffset);
-				text.setLineAlignment(i, 1, settings.getTextAlignment());
+//				text.setLineAlignment(i, 1, settings.getTextAlignment());
 				text.setLineWrapIndent(i, 1, baseOffset+style.metrics.width);
 				
 				++l;
@@ -1286,7 +1292,17 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 	}
 	
-	protected void updateLineStyles() {
+	protected void updateLineStyles(boolean onlyVisibleLines) {
+		int startIndex=0, endIndex=text.getLineCount();
+		if (onlyVisibleLines) {
+			startIndex = JFaceTextUtil.getPartialTopIndex(text);
+			endIndex = JFaceTextUtil.getPartialBottomIndex(text);
+		}
+		
+		updateLineStyles(startIndex, endIndex);
+	}
+	
+	protected void updateLineStyles(int startLineIndex, int endLineIndex) {
 		if (!text.isEnabled()) {
 			return;
 		}
@@ -1294,6 +1310,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		logger.trace("updating line styles!");
 		
 		// set line bullet:
+		// TODO: update line bullets for specified lines only also!
 		setLineBulletAndStuff();
 		
 		// set global style(s): <-- NO NEED TO DO SO, AS OVERWRITTEN BY setStyleRanges call below!!		
@@ -1305,16 +1322,31 @@ public abstract class ATranscriptionWidget extends Composite{
 		// get specific style ranges for all lines:
 		List<StyleRange> allStyles = new ArrayList<>();
 		
-		if (true)
-		for (int i=JFaceTextUtil.getPartialTopIndex(text); i<=JFaceTextUtil.getPartialBottomIndex(text); ++i) { // only for visible lines		
-//		for (int i=0; i<text.getLineCount(); ++i) {
+//		int startIndex=0, endIndex=text.getLineCount();
+//		if (onlyVisibleLines) {
+//			startIndex = JFaceTextUtil.getPartialTopIndex(text);
+//			endIndex = JFaceTextUtil.getPartialBottomIndex(text);
+//		}
+		
+//		for (int i=JFaceTextUtil.getPartialTopIndex(text); i<=JFaceTextUtil.getPartialBottomIndex(text); ++i) { // only for visible lines		
+		for (int i=startLineIndex; i<endLineIndex; ++i) {
 			List<StyleRange> styles = getLineStyleRanges(text.getOffsetAtLine(i));			
 			allStyles.addAll(styles);
 		}
 				
 		// set style ranges:
 		try {
-			text.setStyleRanges(allStyles.toArray(new StyleRange[0]));
+			int startOffset = text.getOffsetAtLine(startLineIndex);
+			int endOffset = text.getOffsetAtLine(endLineIndex-1)+text.getLine(endLineIndex-1).length();
+			int length = endOffset-startOffset;
+			
+			logger.debug("startOffset = "+startOffset+" endOffset = "+endOffset);
+			logger.debug("length = "+length);
+			
+//			text.setStyleRanges(allStyles.toArray(new StyleRange[0]));
+			text.replaceStyleRanges(startOffset, length, allStyles.toArray(new StyleRange[0]));
+			
+//			text.setStyleRanges(allStyles.toArray(new StyleRange[0]));
 		} catch (IllegalArgumentException e) {
 			logger.error("Could not update line styles - skipping");
 		}
@@ -1335,7 +1367,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		int bi = JFaceTextUtil.getBottomIndex(text);
 		if ((ci == ti && ci-1>=0) || (ci == bi && ci-1>=0)) {
 			text.setTopIndex(ci-1);
-			updateLineStyles();
+			updateLineStyles(false);
 		}
 	}
 	
@@ -2148,7 +2180,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //				setFontFromSettings();
 //				TrpConfig.save();
 								
-				updateLineStyles();
+				updateLineStyles(false);
 				text.redraw();
 			}
 		});	
@@ -2212,6 +2244,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		} else if (rightAlignmentItem.getSelection()) {
 			settings.setTextAlignment(SWT.RIGHT);
 		}
+		
+		text.setAlignment(settings.getTextAlignment());
 		
 		sendDefaultSelectionChangedSignal(false);
 //		setLineStyleRanges();
@@ -2522,7 +2556,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			currentWordObject = null;
 			setText("");
 			oldTextSelection=new Point(-1, -1);
-			updateLineStyles();
+			updateLineStyles(false);
 			return;
 		}
 		
@@ -2557,7 +2591,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		sendDefaultSelectionChangedSignal(true);
 		
-		updateLineStyles();
+		updateLineStyles(false);
 		text.redraw();
 		
 		onDataUpdated();
@@ -2590,7 +2624,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 	public void redrawText(boolean updateStyles) {
 		if (updateStyles) {
-			updateLineStyles(); // also redraw's text field...
+			updateLineStyles(true); // also redraw's text field...
 		}
 		else {
 			text.redraw();
