@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 
 /**
  * @author sebastianc
@@ -163,8 +164,7 @@ public class PagingToolBar /*extends Composite*/ {
 	
 	public void setToolbarEnabled(boolean value) {
 		for (ToolItem c : pagingItems) {
-			if (c!=null && !c.isDisposed())
-				c.setEnabled(value);
+			SWTUtil.setEnabled(c, value);
 		}
 		if (!value) {
 			setValues(0, 0);

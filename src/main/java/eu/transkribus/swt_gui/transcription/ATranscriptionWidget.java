@@ -2637,7 +2637,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	@Override public void setEnabled(boolean value) {
 //		super.setEnabled(value);
 		
-		regionsPagingToolBar.setToolbarEnabled(value);
+		regionsPagingToolBar.setToolbarEnabled(!settings.isShowAllLinesInTranscriptionView() && value);
 		for (ToolItem ti : additionalToolItems)
 			ti.setEnabled(value);
 		
