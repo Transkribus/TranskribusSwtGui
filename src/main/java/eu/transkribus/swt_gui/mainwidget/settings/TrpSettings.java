@@ -154,6 +154,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private int transcriptionFontStyle=SWT.NORMAL;
 	public static final String TRANSCRIPTION_FONT_STYLE_PROPERTY = "transcriptionFontStyle";
 	
+	private boolean showAllLinesInTranscriptionView=false;
+	public static final String SHOW_ALL_LINES_IN_TRANSCRIPTION_VIEW_PROPERTY="showAllLinesInTranscriptionView";
+	
 	private boolean renderFontStyles=false;
 	public static final String RENDER_FONT_STYLES = "renderFontStyles";
 	private boolean renderTextStyles=true;
@@ -623,6 +626,15 @@ public class TrpSettings extends APropertyChangeSupport {
 		}
 	}
 	
+	public boolean isShowAllLinesInTranscriptionView() {
+		return showAllLinesInTranscriptionView;
+	}
+
+	public void setShowAllLinesInTranscriptionView(boolean showAllLinesInTranscriptionView) {
+		this.showAllLinesInTranscriptionView = showAllLinesInTranscriptionView;
+		firePropertyChange(SHOW_ALL_LINES_IN_TRANSCRIPTION_VIEW_PROPERTY, !this.showAllLinesInTranscriptionView, this.showAllLinesInTranscriptionView);
+	}
+
 	public boolean isRenderFontStyles() {
 		return renderFontStyles;
 	}

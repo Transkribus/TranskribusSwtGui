@@ -95,7 +95,6 @@ import eu.transkribus.core.model.beans.customtags.UnclearTag;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -162,6 +161,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected ToolItem undoItem, redoItem;
 	
 	protected MenuItem autocompleteToggle;
+	protected MenuItem showAllLinesToggle;
 	
 	// additional characters:
 	protected ToolItem longDash;
@@ -813,6 +813,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		transcriptionTypeWordBasedItem= SWTUtil.createMenuItem(transcriptionTypeMenu, "Word based", null, SWT.RADIO);
 		transcriptionTypeWordBasedItem.setData(TranscriptionLevel.WORD_BASED);
 		
+		showAllLinesToggle = ti.addItem("Show all lines of page", null, SWT.CHECK);
 		autocompleteToggle = ti.addItem("Autocomplete (based on text of current transcript)", Images.getOrLoad("/icons/autocomplete.png"), SWT.CHECK);
 		
 		// old "view" sets...
@@ -967,6 +968,9 @@ public abstract class ATranscriptionWidget extends Composite{
 				
 				else if (pn.equals(TrpSettings.AUTOCOMPLETE_PROPERTY)) {
 					autocomplete.getAdapter().setEnabled(settings.isAutocomplete());
+				}
+				else if (pn.equals(TrpSettings.SHOW_ALL_LINES_IN_TRANSCRIPTION_VIEW_PROPERTY)) {
+					TrpMainWidget.getInstance().updateSelectedTranscriptionWidgetData();
 				}
 				else if (pn.equals(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY)) {
 					redrawText(true);
@@ -1247,7 +1251,7 @@ public abstract class ATranscriptionWidget extends Composite{
 					currentRegionId = line.getRegion().getId();
 					l = 1;
 				}
-				if (true) {
+				if (settings.isShowAllLinesInTranscriptionView()) {
 //					bulletText += "r"+r+"-l"+l;
 					bulletText += r+regionLineSeperator+l;
 				} else {
@@ -2181,6 +2185,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		db.bindBeanToWidgetSelection(TrpSettings.FOCUS_SHAPES_ACCORDING_TO_TEXT_ALIGNMENT, settings, focusShapesAccordingToTextAlignmentItem);
 		
 		db.bindBeanToWidgetSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, settings, autocompleteToggle);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_ALL_LINES_IN_TRANSCRIPTION_VIEW_PROPERTY, settings, showAllLinesToggle);
+		
 		
 //		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY, settings, showTagEditorItem);
 	}
@@ -2493,7 +2499,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		logger.debug("updateData, type="+getType()+" region = "+region+ " line = "+line+" word = "+word);
 		
 		final boolean TEST_SHOW_LINES_FOR_ALL_REGIONS = true;
-		if (TEST_SHOW_LINES_FOR_ALL_REGIONS) {
+		if (TEST_SHOW_LINES_FOR_ALL_REGIONS && settings.isShowAllLinesInTranscriptionView()) {
+//			if (TEST_SHOW_LINES_FOR_ALL_REGIONS) {
 			logger.debug("setting dummy region!");
 			TrpTextRegionType dummyRegion = TrpShapeElementFactory.createDummyTextRegionForCurrentPageWithAllLinesIncluded();
 			region = dummyRegion;
