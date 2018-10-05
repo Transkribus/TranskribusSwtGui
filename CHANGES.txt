@@ -588,3 +588,6 @@ CHANGES AND BUGFIXES
 	-> bug fix: vanishing properties in text tag property editor
 	-> new textfield to quickly open a document with a certain id
 	-> re-engineer the docking state buttons to quickly show/hide the control or transcription view with one click
+	-> remove flickering in transcription widget while typing and scrolling
+	-> add "show all lines of a page in the transcription widget" setting (enable via transcription widget toolbar wrench icon)
+	-> add possibility to move transcription widget to the right side (enable via corresponding docking state dropdown menu button, i.e. third button on top left)
