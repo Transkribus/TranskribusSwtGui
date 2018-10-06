@@ -690,8 +690,8 @@ public class UploadDialogUltimate extends Dialog {
 		return folder;
 	}
 	
-	public String getPdfFolder() {
-		return USER_TMP_DIR.getAbsolutePath();
+	public File getPdfFolderFile() {
+		return USER_TMP_DIR;
 	}
 	
 	public String getFile() {

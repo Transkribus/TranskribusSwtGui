@@ -591,3 +591,7 @@ CHANGES AND BUGFIXES
 	-> remove flickering in transcription widget while typing and scrolling
 	-> add "show all lines of a page in the transcription widget" setting (enable via transcription widget toolbar wrench icon)
 	-> add possibility to move transcription widget to the right side (enable via corresponding docking state dropdown menu button, i.e. third button on top left)
+	-> PDF import: show progress during image extraction
+	-> PDF import: path for temporary files is now correctly built in Linux
+	-> bug fix: closing export dialog immediately after opening caused an exception (widget disposed)
+	-> config.properties logHttp setting: enable to get full INFO level HTTP traffic log in console and log file  
