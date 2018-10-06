@@ -396,7 +396,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		initContextMenu();
 		
 		moveToolBar(settings.getTranscriptionToolbarOnTop());
+		
+		regionsPagingToolBar.setToolbarItemsVisible(!settings.isShowAllLinesInTranscriptionView(), 0);
 	}
+	
 	
 	public void addListener(ITranscriptionWidgetListener l) {
 		listener.add(l);
@@ -597,12 +600,10 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	protected void initToolBar() {
 //		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, true, this, SWT.FLAT | SWT.BOTTOM);
-		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, true, this, /*SWT.FLAT |*/ SWT.BOTTOM);
-		regionsPagingToolBar.removeReloadButton();
-		regionsPagingToolBar.removeDoubleButtons();
+		regionsPagingToolBar = new PagingToolBar("Region: ", true, false, true, false, true, this, /*SWT.FLAT |*/ SWT.BOTTOM);
 		regionsToolbar = regionsPagingToolBar.getToolBar();
-				
-		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+		
+//		pagingSeparator = new ToolItem(regionsToolbar, SWT.SEPARATOR);
 				
 //		initViewSetsDropDown();
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
@@ -973,6 +974,7 @@ public abstract class ATranscriptionWidget extends Composite{
 				}
 				else if (pn.equals(TrpSettings.SHOW_ALL_LINES_IN_TRANSCRIPTION_VIEW_PROPERTY)) {
 					TrpMainWidget.getInstance().updateSelectedTranscriptionWidgetData();
+					regionsPagingToolBar.setToolbarItemsVisible(!settings.isShowAllLinesInTranscriptionView(), 0);
 				}
 				else if (pn.equals(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY)) {
 					redrawText(true, false, false);
@@ -2688,8 +2690,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 	@Override public void setEnabled(boolean value) {
 //		super.setEnabled(value);
+		regionsPagingToolBar.setToolbarEnabled(value);
 		
-		regionsPagingToolBar.setToolbarEnabled(!settings.isShowAllLinesInTranscriptionView() && value);
 		for (ToolItem ti : additionalToolItems)
 			ti.setEnabled(value);
 		

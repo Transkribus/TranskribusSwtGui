@@ -1004,7 +1004,7 @@ public class SWTUtil {
 		if (item!=null && !item.isDisposed() && item.getEnabled()!=enabled) 
 			item.setEnabled(enabled);
 	}
-	
+
 	public static void setEnabled(Control composite, boolean enabled) {
 		if (composite!=null && !composite.isDisposed() && composite.getEnabled()!=enabled) 
 			composite.setEnabled(enabled);

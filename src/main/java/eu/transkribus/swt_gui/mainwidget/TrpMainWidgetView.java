@@ -558,7 +558,7 @@ public class TrpMainWidgetView extends Composite {
 		
 		new ToolItem(toolBar, SWT.SEPARATOR);
 		
-		pagesPagingToolBar = new PagingToolBar("Page: ", false, false, true, this, SWT.NONE, toolBar);
+		pagesPagingToolBar = new PagingToolBar("Page: ", false, false, true, true, false, this, SWT.NONE, toolBar);
 		pagesPagingToolBar.getReloadBtn().setToolTipText("Reload page");
 		
 		boolean USE_SAVE_DROP_DOWN=false;

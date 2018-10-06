@@ -154,7 +154,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	private int transcriptionFontStyle=SWT.NORMAL;
 	public static final String TRANSCRIPTION_FONT_STYLE_PROPERTY = "transcriptionFontStyle";
 	
-	private boolean showAllLinesInTranscriptionView=false;
+	private boolean showAllLinesInTranscriptionView=true;
 	public static final String SHOW_ALL_LINES_IN_TRANSCRIPTION_VIEW_PROPERTY="showAllLinesInTranscriptionView";
 	
 	private boolean renderFontStyles=false;

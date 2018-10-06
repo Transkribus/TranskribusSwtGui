@@ -45,107 +45,118 @@ public class PagingToolBar /*extends Composite*/ {
 	private final int MIN_CURRENT_PAGE_WIDTH = 35;
 	private boolean withDoubleButtons=true;
 	private boolean withFirstLastButtons=false;
+	private boolean withLabel=true;
+	private boolean addEndSeparator=false;
+	private boolean withReloadBtn=true;
+	
+	private String labelText="";
 	
 //	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, Composite parent, int style) {
 //		this(labelText, withLabel, withDoubleButtons, true, parent, style);
 //	
 //	}
 
-	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, boolean withFirstLastButtons, Composite parent, int style) {
-		this(labelText, withLabel, withDoubleButtons, withFirstLastButtons, parent, style, null);
+	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, boolean withFirstLastButtons, boolean withReloadBtn, boolean addEndSeparator, Composite parent, int style) {
+		this(labelText, withLabel, withDoubleButtons, withFirstLastButtons, withReloadBtn, addEndSeparator, parent, style, null);
 	}
 
-	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, boolean withFirstLastButtons, Composite parent, int style, ToolBar toolBar) {
+	public PagingToolBar(String labelText, boolean withLabel, boolean withDoubleButtons, boolean withFirstLastButtons, boolean withReloadBtn, boolean addEndSeparator, Composite parent, int style, ToolBar toolBar) {
 //		super(parent, style);
 //		setLayout(new FillLayout());
 		this.withDoubleButtons = withDoubleButtons;
 		this.withFirstLastButtons = withFirstLastButtons;
+		this.withLabel = withLabel;
+		this.labelText = labelText;
+		this.addEndSeparator = addEndSeparator;
+		this.withReloadBtn = withReloadBtn;
 		
 		if (toolBar == null)		
 			toolbar = new ToolBar(parent, SWT.FLAT | SWT.WRAP | SWT.RIGHT | style);
 		else
 			this.toolbar = toolBar;
-
-//		toolbar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		toolbar.setLayout(new GridLayout());
 		
-//		MyToolItem ti = new MyToolItem(toolbar, SWT.PUSH);
-//		ti.setText("hello");
+		clearItems();
+		initItems(-1);
+	}
+	
+	private void initItems(int startIndex) {
+		int i=startIndex;
+		if (startIndex < 0) {
+			i = toolbar.getItemCount();
+		}
 		
-		if (withLabel) {
-			labelItem = new LabelToolItem(toolbar, SWT.NONE);
+		if (this.withLabel) {
+			labelItem = new LabelToolItem(toolbar, SWT.NONE, i++);	
+			
 			labelItem.setText(labelText);
 			pagingItems.add(labelItem);
 		}
-
-//		System.out.println("instanceoftest: "+(labelItem instanceof ToolItem));
-//		label = new Label(toolbar, SWT.READ_ONLY);
-//		
-////		label.setBackground(toolbar.getBackground());
-////		label.setEditable(false);
-////		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//		label.setText(labelText);
-		
-		
-		
-		
-//		labelItem.setControl(label);
-		
-//		labelItem.setWidth(label.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
-//		labelItem.setText("helllllllllllllllo");
-//		Rectangle r = label.getBounds();
-//		label.setBounds(r.x, r.y+20, r.width, r.height);
-		
 		
 		if (this.withFirstLastButtons) {
-		pageFirstBtn = new ToolItem(toolbar, SWT.PUSH);
-		pageFirstBtn.setImage(Images.getOrLoad("/icons/page-first.gif"));
-		pagingItems.add(pageFirstBtn);
+			pageFirstBtn = new ToolItem(toolbar, SWT.PUSH, i++);
+			pageFirstBtn.setImage(Images.getOrLoad("/icons/page-first.gif"));
+			pagingItems.add(pageFirstBtn);
 		}
 		
 		if (this.withDoubleButtons) {
-		pagePrevDoubleBtn = new ToolItem(toolbar, SWT.PUSH);
-		pagePrevDoubleBtn.setImage(Images.getOrLoad("/icons/page-prev-double.gif"));
-		pagingItems.add(pagePrevDoubleBtn);
+			pagePrevDoubleBtn = new ToolItem(toolbar, SWT.PUSH, i++);
+			pagePrevDoubleBtn.setImage(Images.getOrLoad("/icons/page-prev-double.gif"));
+			pagingItems.add(pagePrevDoubleBtn);
 		}
 
-		pagePrevBtn = new ToolItem(toolbar, SWT.PUSH);
+		pagePrevBtn = new ToolItem(toolbar, SWT.PUSH, i++);
 		pagePrevBtn.setImage(Images.getOrLoad("/icons/page-prev.gif"));
 		pagingItems.add(pagePrevBtn);
 		
-		currentPageTextItem = new TextToolItem(toolbar, SWT.NONE);
+		currentPageTextItem = new TextToolItem(toolbar, SWT.NONE, i++);
 		currentPageTextItem.setAutoSelectTextOnFocus();
 		currentPageTextItem.setMinWidth(MIN_CURRENT_PAGE_WIDTH);
 		currentPageTextItem.setText("0");
 		currentPageTextItem.getTextControl().setOrientation(SWT.RIGHT_TO_LEFT);
 		pagingItems.add(currentPageTextItem);
 
-		nPagesLabelItem = new LabelToolItem(toolbar, SWT.NONE);
+		nPagesLabelItem = new LabelToolItem(toolbar, SWT.NONE, i++);
 //		nPagesLabelItem = new TextToolItem(toolbar, SWT.NONE);
 //		nPagesLabelItem.setNonEditable();
 		nPagesLabelItem.setText("/0");
 		nPagesLabelItem.setWidth(MIN_CURRENT_PAGE_WIDTH);
 		pagingItems.add(nPagesLabelItem);
 		
-		pageNextBtn = new ToolItem(toolbar, SWT.PUSH);
+		pageNextBtn = new ToolItem(toolbar, SWT.PUSH, i++);
 		pageNextBtn.setImage(Images.getOrLoad("/icons/page-next.gif"));
 		pagingItems.add(pageNextBtn);
 		
 		if (this.withDoubleButtons) {
-		pageNextDoubleBtn = new ToolItem(toolbar, SWT.PUSH);
-		pageNextDoubleBtn.setImage(Images.getOrLoad("/icons/page-next-double.gif"));
-		pagingItems.add(pageNextDoubleBtn);
+			pageNextDoubleBtn = new ToolItem(toolbar, SWT.PUSH, i++);
+			pageNextDoubleBtn.setImage(Images.getOrLoad("/icons/page-next-double.gif"));
+			pagingItems.add(pageNextDoubleBtn);
 		}
 		
 		if (this.withFirstLastButtons) {
-		pageLastBtn = new ToolItem(toolbar, SWT.PUSH);
-		pageLastBtn.setImage(Images.getOrLoad("/icons/page-last.gif"));
-		pagingItems.add(pageLastBtn);
+			pageLastBtn = new ToolItem(toolbar, SWT.PUSH, i++);
+			pageLastBtn.setImage(Images.getOrLoad("/icons/page-last.gif"));
+			pagingItems.add(pageLastBtn);
 		}
 		
-		reloadBtn = new ToolItem(toolbar, SWT.PUSH);
-		reloadBtn.setImage(Images.getOrLoad("/icons/refresh.gif"));
-		pagingItems.add(reloadBtn);
+		if (this.withReloadBtn) {
+			reloadBtn = new ToolItem(toolbar, SWT.PUSH, i++);
+			reloadBtn.setImage(Images.getOrLoad("/icons/refresh.gif"));
+			pagingItems.add(reloadBtn);
+		}
+		
+		if (this.addEndSeparator) {
+			ToolItem pagingSeparator = new ToolItem(toolbar, SWT.SEPARATOR);
+			pagingItems.add(pagingSeparator);
+		}
+	}
+	
+	private void clearItems() {
+		pagingItems.stream().forEach(c -> { 
+			if (!SWTUtil.isDisposed(c)) {
+				c.dispose();
+			}
+		});
+		pagingItems.clear();
 	}
 	
 	public LabelToolItem getLabelItem() { 
@@ -171,6 +182,18 @@ public class PagingToolBar /*extends Composite*/ {
 		}
 	}
 	
+	/**
+	 * @deprecated does not work yet...
+	 * @param visible
+	 */
+	public void setToolbarItemsVisible(boolean visible, int reinsertIndex) {
+		if (!visible) {
+			clearItems();
+		} else if (pagingItems.isEmpty()) {
+			initItems(reinsertIndex);
+		}
+	}
+	
 //	public void addListener(PagingToolBarListener listener) {
 //		if (pageFirstBtn!=null && !pageFirstBtn.isDisposed()) pageFirstBtn.addSelectionListener(listener);
 //		if (pagePrevDoubleBtn!=null && !pagePrevDoubleBtn.isDisposed()) pagePrevDoubleBtn.addSelectionListener(listener);
@@ -192,46 +215,31 @@ public class PagingToolBar /*extends Composite*/ {
 //		this.pack();	
 	}
 	
-	public void removeDoubleButtons() {
-		this.removeToolItem(pagePrevDoubleBtn);
-		this.removeToolItem(pageNextDoubleBtn);
-	}
-	public void removeReloadButton() {
-		this.removeToolItem(reloadBtn);
-	}
-	
-//	public void setDoublePageButtonsVisible(boolean showDoublePageButtons) {
-////		pagePrevDoubleBtn.setVisible(showDoublePageButtons);
-////		pageNextDoubleBtn.setVisible(showDoublePageButtons);
-//		
-//		GridData d = null;
-//		if (showDoublePageButtons)
-//			d = new GridData(SWT.DEFAULT, SWT.DEFAULT);
-//		else
-//			d = new GridData(0, 0);
-//		
-//		pagePrevDoubleBtn = null;
-//		
-//		pageNextDoubleBtn.setEnabled(showDoublePageButtons);
-//		
-//		
-//		
-////		pagePrevDoubleBtn.setLayoutData(d);
-////		pageNextDoubleBtn.setLayoutData(d);
-//		pack();
+//	public void removeDoubleButtons() {
+//		this.removeToolItem(pagePrevDoubleBtn);
+//		this.removeToolItem(pageNextDoubleBtn);
+//	}
+//	public void removeReloadButton() {
+//		this.removeToolItem(reloadBtn);
 //	}
 	
 	public String getCurrentPageValue() {
-		return currentPageTextItem.getText();
+		if (!SWTUtil.isDisposed(currentPageTextItem)) {
+			return currentPageTextItem.getText();
+		}
+		return "";
 	}
 	public void setCurrentPageValue(String text) {
-		currentPageTextItem.setText(text);
-//		int nW = currentPageText.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-//		currentPageTextItem.setWidth(MIN_CURRENT_PAGE_WIDTH > nW ? MIN_CURRENT_PAGE_WIDTH : nW);
+		if (!SWTUtil.isDisposed(currentPageTextItem)) {
+			currentPageTextItem.setText(text);	
+		}
 	}
 	
 	public Text getCurrentPageText() {
-		return (Text) currentPageTextItem.getControl();
+		if (!SWTUtil.isDisposed(currentPageTextItem)) {
+			return (Text) currentPageTextItem.getControl();	
+		}
+		return null;
 	}
 
 //	public Text getCurrentPageText() {
@@ -251,13 +259,16 @@ public class PagingToolBar /*extends Composite*/ {
 	}
 	
 	public void setNPagesValue(String value) {
-		nPagesLabelItem.setText(value);
-//		nPagesLabelItem.setWidth(nPagesLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
-		
+		if (!SWTUtil.isDisposed(nPagesLabelItem)) {
+			nPagesLabelItem.setText(value);	
+		}
 	}
 	
 	public String getNPagesValue() {
-		return nPagesLabelItem.getText();		
+		if (!SWTUtil.isDisposed(nPagesLabelItem)) {
+			return nPagesLabelItem.getText();
+		}
+		return "";
 	}	
 
 //	public Text getNPagesLabel() {
