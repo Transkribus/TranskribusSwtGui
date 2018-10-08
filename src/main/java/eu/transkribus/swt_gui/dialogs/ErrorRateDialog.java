@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 
 import eu.transkribus.core.model.beans.TrpErrorRate;
+import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.tool.error.ErrorTableViewer;
@@ -29,11 +30,11 @@ public class ErrorRateDialog extends Dialog {
 
 	private Composite composite;
 
-	private TrpErrorRate resultErr;
+	private TrpErrorRateResult resultErr;
 	
 	Button expertBtn, partialMatchBtn, caseSensitivityBtn, wikiErrButton, wikiFmeaButton;
 
-	public ErrorRateDialog(Shell parentShell, TrpErrorRate resultErr) {
+	public ErrorRateDialog(Shell parentShell, TrpErrorRateResult resultErr) {
 
 		super(parentShell);
 		this.resultErr = resultErr;
@@ -65,10 +66,15 @@ public class ErrorRateDialog extends Dialog {
 
 		Table table = viewer.getTable();
 		table.setHeaderVisible(true);
-
 		TableItem itemPage = new TableItem(table, SWT.NONE);
-		itemPage.setText(new String[] { "Page", resultErr.getWer(), resultErr.getCer(),resultErr.getwAcc(),resultErr.getcAcc(),resultErr.getBagTokensPrec(),resultErr.getBagTokensRec(),resultErr.getBagTokensF()});
 		
+		if(resultErr.getWerDouble().isNaN() || resultErr.getCerDouble().isNaN()) {
+			itemPage.setText(new String[] { "Page", "Could not be calculated", "Could not be calculated"," "," "," "," "," "});
+		}
+		else {
+			itemPage.setText(new String[] { "Page", ""+resultErr.getWerDouble(), ""+resultErr.getCerDouble()," "," "," "," "," "});
+		}
+	
 	}
 
 	@Override

@@ -37,6 +37,7 @@ import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
+import eu.transkribus.swt_gui.dialogs.ErrorRateDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
@@ -314,14 +315,11 @@ public class ToolsWidgetListener implements SelectionListener {
 					} else {					
 						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
 	
-						// Opens dialog which displays table
-	
 						TrpErrorRateResult resultErr = store.computeErrorRate(ref, hyp);
-	
-						// FIXME this dialog needs a fix to use the new Result type						
-//						ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
-//						dialog.open();
-						// FIXME END
+						logger.debug("resultError was calculated : "+resultErr.getCer());
+						ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
+						dialog.open();
+
 					}
 				}
 				
