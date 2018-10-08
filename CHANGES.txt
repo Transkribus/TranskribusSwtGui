@@ -594,4 +594,5 @@ CHANGES AND BUGFIXES
 	-> PDF import: show progress during image extraction
 	-> PDF import: path for temporary files is now correctly built in Linux
 	-> bug fix: closing export dialog immediately after opening caused an exception (widget disposed)
-	-> config.properties logHttp setting: enable to get full INFO level HTTP traffic log in console and log file  
+	-> config.properties logHttp setting: enable to get full INFO level HTTP traffic log in console and log file 
+	-> implement scrollbar mode for canvas and set it to default scrolling mode 

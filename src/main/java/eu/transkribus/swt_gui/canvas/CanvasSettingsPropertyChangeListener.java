@@ -47,5 +47,9 @@ public class CanvasSettingsPropertyChangeListener implements PropertyChangeListe
 //			else if (m == CanvasMode.SELECTION)
 //				ui.setStatusMessage("", 0);
 		}
+		else if (pn.equals(CanvasSettings.USE_SCROLL_BARS_PROPERTY)) {
+			canvas.syncScrollBars();
+//			canvas.fitWidth();
+		}
 	}
 }

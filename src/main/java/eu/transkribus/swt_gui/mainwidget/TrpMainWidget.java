@@ -962,6 +962,7 @@ public class TrpMainWidget {
 			db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINE_EDITOR_PROPERTY, trpSets, ui.showLineEditorToggle);
 		
 		db.bindBeanToWidgetSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getRectangleModeItem());
+		db.bindBeanToWidgetSelection(CanvasSettings.USE_SCROLL_BARS_PROPERTY, canvasSet, ui.canvasWidget.getToolbar().getUseScrollBarsItem());
 		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAutoCreateParentItem());
 		
 		db.bindBeanToWidgetSelection(TrpSettings.ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAddLineToOverlappingRegionItem());

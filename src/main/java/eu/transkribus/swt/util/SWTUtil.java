@@ -35,8 +35,6 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -88,6 +86,44 @@ import math.geom2d.Vector2D;
 
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
+	
+	
+	public static Rectangle getBoundingBoxAfterRotation(Rectangle r, CanvasTransform tr) {
+		if (CoreUtils.equalsEps(tr.getAngleDeg(), 0.0, 1e-1)) {
+			return r;
+		}
+		
+		CanvasTransform trCopy = new CanvasTransform(tr.getDevice());
+		trCopy.rotate(tr.getAngleDeg());
+		
+		List<Point> pts = new ArrayList<>();
+		pts.add(new Point(r.x, r.y));
+		pts.add(new Point(r.x+r.width, r.y));
+		pts.add(new Point(r.x+r.width, r.y+r.height));
+		pts.add(new Point(r.x, r.y+r.height));
+
+		int minX=Integer.MAX_VALUE, minY=Integer.MAX_VALUE;
+		int maxX=Integer.MIN_VALUE, maxY=Integer.MIN_VALUE;
+		for (int i=0; i<4; ++i) {
+//			logger.debug("p1 = "+pts.get(i));
+			Point p = trCopy.transform(pts.get(i));
+//			logger.debug("p = "+p);
+			if (p.x < minX) {
+				minX = p.x;
+			}
+			if (p.y < minY) {
+				minY = p.y;
+			}
+			if (p.x > maxX) {
+				maxX = p.x;
+			}
+			if (p.y > maxY) {
+				maxY = p.y;
+			}
+		}
+		trCopy.dispose();
+		return new Rectangle(minX, minY, maxX-minX, maxY-minY);
+	}
 	
 	/**
 	 * This method adds select-on-focus functionality to a {@link Text} component.

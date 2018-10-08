@@ -118,6 +118,7 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		public static final String DO_TRANSITION_PROPERTY = "doTransition";
 
 		private boolean lockZoomOnFocus = false;
+		public static final String LOCK_ZOOM_ON_FOCUS_PROPERTY = "lockZoomOnFocus";
 
 		private boolean showMouseCoords = false;
 		public static final String IS_SHOW_MOUSE_COORDS_PROPERTY = "showMouseCoords";
@@ -125,7 +126,8 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		private Color canvasBackgroundColor = Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
 		public static final String BACKGROUND_COLOR_PROPERTY = "canvasBackgroundColor";
 		
-		public static final String LOCK_ZOOM_ON_FOCUS_PROPERTY = "lockZoomOnFocus";
+		private boolean useScrollBars=false;
+		public static final String USE_SCROLL_BARS_PROPERTY = "useScrollBars";
 		
 		static final List<String> DO_NOT_SAVE_THOSE_PROPERTIES = new ArrayList<String>() {{
 		    	add(MODE_PROPERTY);
@@ -441,6 +443,15 @@ public class CanvasSettings extends APropertyChangeSupport  {
 			firePropertyChange(IS_SHOW_MOUSE_COORDS_PROPERTY, !showMouseCoords, showMouseCoords);
 		}
 		
+		public boolean isUseScrollBars() {
+			return useScrollBars;
+		}
+
+		public void setUseScrollBars(boolean useScrollBars) {
+			this.useScrollBars = useScrollBars;
+			firePropertyChange(USE_SCROLL_BARS_PROPERTY, !this.useScrollBars, this.useScrollBars);
+		}
+
 		@Override public List<String> getPropertiesToNotSave() {
 			return DO_NOT_SAVE_THOSE_PROPERTIES;
 		}
