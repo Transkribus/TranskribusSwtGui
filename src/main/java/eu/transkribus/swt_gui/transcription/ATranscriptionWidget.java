@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.docx4j.model.fields.merge.MailMergerWithNext;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.resource.JFaceResources;
@@ -100,6 +101,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
+import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
@@ -245,6 +247,8 @@ public abstract class ATranscriptionWidget extends Composite{
 	ToolItem underlinedTagItem;
 	ToolItem strikethroughTagItem;
 	MenuItem serifItem, monospaceItem, reverseVideoItem, smallCapsItem, letterSpacedItem;
+	
+	ToolItem widgetPositionItem;
 	
 //	ToolItem showTagEditorItem;
 	
@@ -704,6 +708,17 @@ public abstract class ATranscriptionWidget extends Composite{
 		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
 		initTranscriptionSetsDropDownItems(transcriptSetsDropDown);
 		
+		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+		
+		widgetPositionItem = new ToolItem(regionsToolbar, SWT.PUSH);
+		updateWidgetPositionItemImage();
+		widgetPositionItem.setToolTipText("Change position of transcription widget");
+		additionalToolItems.add(widgetPositionItem);
+		
+		
+		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
+		initTranscriptionSetsDropDownItems(transcriptSetsDropDown);		
+		
 		if (SHOW_WORD_GRAPH_STUFF && getType() == TranscriptionLevel.LINE_BASED) {
 			new ToolItem(regionsToolbar, SWT.SEPARATOR);
 			
@@ -979,6 +994,9 @@ public abstract class ATranscriptionWidget extends Composite{
 				else if (pn.equals(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY)) {
 					redrawText(true, false, false);
 				}
+				else if (pn.equals(TrpSettings.TRANSCRIPTION_VIEW_POSITION_PROPERTY)) {
+					updateWidgetPositionItemImage();
+				}
 				
 				// saving on change not needed anymore... gets saved anyway
 //				else if (pn.equals(TrpSettings.CENTER_CURRENT_TRANSCRIPTION_LINE_PROPERTY)) {
@@ -1115,6 +1133,17 @@ public abstract class ATranscriptionWidget extends Composite{
 		});
 		
 		initWordGraphListener();
+		
+		SWTUtil.onSelectionEvent(widgetPositionItem, e -> {
+			if (settings.getTranscriptionViewPosition() == Position.RIGHT) {
+				TrpMainWidget.getInstance().getUi().getPortalWidget().setWidgetPosition(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, Position.BOTTOM);
+				logger.debug("switching transcription widget to bottom!");
+			}
+			else if (settings.getTranscriptionViewPosition() == Position.BOTTOM) {
+				logger.debug("switching transcription widget to right side!");
+				TrpMainWidget.getInstance().getUi().getPortalWidget().setWidgetPosition(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, Position.RIGHT);
+			}
+		});
 	}
 	
 	protected void initWordGraphListener() {
@@ -2692,8 +2721,9 @@ public abstract class ATranscriptionWidget extends Composite{
 //		super.setEnabled(value);
 		regionsPagingToolBar.setToolbarEnabled(value);
 		
-		for (ToolItem ti : additionalToolItems)
+		for (ToolItem ti : additionalToolItems) {
 			ti.setEnabled(value);
+		}
 		
 		text.setEnabled(value);
 		
@@ -2708,6 +2738,20 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		if (value && showWordGraphEditorItem!=null)
 			setWordGraphEditorVisibility(showWordGraphEditorItem.getSelection());
+	}
+	
+	private void updateWidgetPositionItemImage() {
+		switch (settings.getTranscriptionViewPosition()) {
+		case BOTTOM:
+			widgetPositionItem.setImage(Images.getOrLoad("/icons/application_tile_horizontal.png"));
+			break;
+		case RIGHT:
+			widgetPositionItem.setImage(Images.getOrLoad("/icons/application_tile_vertical.png"));
+			break;
+		default:
+			widgetPositionItem.setImage(Images.getOrLoad("/icons/application_tile_horizontal.png"));
+			break;
+		}
 	}
 	
 	public WordGraphEditor getWordGraphEditor() { return wordGraphEditor; }

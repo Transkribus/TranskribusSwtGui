@@ -255,8 +255,6 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 				if (StringUtils.equals(widgetType, TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE)) {
 					TrpConfig.getTrpSettings().setTranscriptionViewPosition(pos);
 				}
-				
-				canvas.fitWidth();
 			}
 		});
 	}

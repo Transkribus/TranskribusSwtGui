@@ -3,11 +3,13 @@ package eu.transkribus.swt_gui.mainwidget.settings;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.portal.PortalWidget.Docking;
 import eu.transkribus.swt.portal.PortalWidget.Position;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
@@ -43,6 +45,10 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 			mainWidget.updatePageRelatedMetadata();
 		} else if (pn.equals(TrpSettings.RENDER_BLACKENINGS_PROPERTY)) {
 			canvas.redraw();
+		}
+		
+		else if (pn.equals(TrpSettings.TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY)) {
+			canvas.fitWidth();
 		}
 		
 		// NOTE: docking props are synced now in a PortalWidgetListener in TrpMainWidgetViewListener! 
