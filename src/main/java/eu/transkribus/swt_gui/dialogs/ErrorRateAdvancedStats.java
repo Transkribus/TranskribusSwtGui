@@ -37,7 +37,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpErrorList;
+import eu.transkribus.core.model.beans.TrpErrorRateListEntry;
 import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
@@ -235,7 +235,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		HSSFSheet sheet = workbook.createSheet("Error Measurements");
 		Map<String, Object[]> excelData = new HashMap<String, Object[]>();
 		int rowCount = 0;
-		List<TrpErrorList> list = resultErr.getList();
+		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
 		excelData.put(Integer.toString(rowCount++),new Object[] {
 				"Pages",
@@ -260,7 +260,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 				});
 		
 		if(resultErr.getList() != null) {
-			for (TrpErrorList page : list) {
+			for (TrpErrorRateListEntry page : list) {
 				if(rowCount < list.size()) {
 					rowCount++;
 				}
