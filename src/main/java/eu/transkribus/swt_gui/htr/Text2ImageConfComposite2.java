@@ -30,9 +30,6 @@ public class Text2ImageConfComposite2 extends Composite {
 	LabeledText epochsTxt;
 	LabeledText subsetsTxt;
 	Button respectLineBreaksCheck;
-	LabeledText thresholdTxt;
-	
-//	LabeledText numberOfThreadsTxt;
 	
 	LabeledText trainSizePerEpochTxt;
 	CitlabNoiseParamCombo noiseCmb;
@@ -255,13 +252,15 @@ public class Text2ImageConfComposite2 extends Composite {
 		boolean removeLineBreaks = !respectLineBreaksCheck.getSelection();
 		config.setRemoveLineBreaks(removeLineBreaks);
 		
-		/*
-		if (numberOfThreadsTxt.toIntVal()!=null) {
-			config.setnThreads(numberOfThreadsTxt.toIntVal());
-		} else {
-			throw new IOException("Cannot parse number of threads parameter: "+epochsTxt.getText());
+		int trainSizePerEpoch = CitLabSemiSupervisedHtrTrainConfig.DEFAULT_TRAIN_SIZE_PER_EPOCH;
+		if(trainSizePerEpochTxt.getText() != null) {
+			try {
+				trainSizePerEpoch = Integer.parseInt(trainSizePerEpochTxt.getText());
+			} catch (NumberFormatException nfe) {
+				throw new IOException("Invalid value for train size: " + trainSizePerEpochTxt.getText(), nfe);
+			}
 		}
-		*/
+		config.setTrainSizePerEpoch(trainSizePerEpoch);
 		
 		config.setNoise(noiseCmb.getNoise());
 		
