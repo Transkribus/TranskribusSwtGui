@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -100,6 +101,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.Colors;
@@ -254,6 +256,17 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
 	private static final boolean SHOW_WORD_GRAPH_STUFF = false;
+	
+	// a class to store the data needed to paint a tag
+	private class PaintTagData {
+		public int verticalIndex=0;
+		public StyleRange sr;
+		public List<Rectangle> bounds = new ArrayList<>();
+		public CustomTag tag;
+		public String color;
+	}
+	
+	Map<String, List<PaintTagData>> tagPaintData = new ConcurrentHashMap<>(); // stores the data needed to paint all tags
 	
 	private class ReloadWgRunnable implements Runnable {
 		Storage store;
@@ -1336,6 +1349,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		if (updateLineBullets) {
 			updateLineBullets();
 		}
+		
+		computeTagPaintData(-1);
 	}
 	
 	protected void updateLineStylesForCharacterOffsets(int start, int end) {
@@ -1347,7 +1362,12 @@ public abstract class ATranscriptionWidget extends Composite{
 		if (endLine > text.getLineCount()) { // should never happen...
 			endLine = text.getLineCount();
 		}
+		
 		updateLineStyles(startLine, endLine+1);
+		
+		for (int i=startLine; i<endLine+1; ++i) {
+			computeTagPaintData(i);
+		}
 	}
 	
 	protected void updateLineStyles(int startLineIndex, int endLineIndex) {
@@ -1635,31 +1655,77 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 	}
 	
-	/**
-	 * 
-	 * @param e
-	 * @param ctl The CustomTagList for which the tag markers are drawn
-	 * @param offset The character offset for the line of the given CustomTagList ctl
-	 */
-	protected void paintTagsFromCustomTagList(PaintEvent e, CustomTagList ctl, int offset) {
-		Set<String> tagNames = ctl.getIndexedTagNames();
+	protected abstract List<Pair<Integer, ITrpShapeType>> getShapesWithOffsets(int lineIndex);
+	
+	protected List<Pair<Integer, ITrpShapeType>> getShapesWithOffsets(boolean onlyVisible) {
+		List<Pair<Integer, ITrpShapeType>> shapes = new ArrayList<>();
+		if (text.getLineCount()==0) {
+			return shapes;
+		}
 		
+		int firstLine = onlyVisible ? JFaceTextUtil.getPartialTopIndex(text) : 0;
+		int lastLine = onlyVisible ? JFaceTextUtil.getPartialBottomIndex(text) : text.getLineCount();
+		logger.trace("firstline = "+firstLine+" lastLine = "+lastLine);
+		
+		for (int i = firstLine; i <= lastLine; ++i) {
+			shapes.addAll(getShapesWithOffsets(i));
+		}
+		
+		return shapes;
+	}
+	
+	/**
+	 * Computes the data needed to paint tags. If lineIndex < 0 then the data of all  
+	 * @param lineIndex
+	 */
+	private synchronized void computeTagPaintData(int lineIndex) {
+		SebisStopWatch sw = new SebisStopWatch();
+		List<Pair<Integer, ITrpShapeType>> shapes;
+		if (lineIndex < 0) { // recompute all data
+			tagPaintData.clear();
+			shapes = getShapesWithOffsets(false);
+		}
+		else {
+			shapes = getShapesWithOffsets(lineIndex);
+		}
+		
+		for (Pair<Integer, ITrpShapeType> p : shapes) {
+			List<PaintTagData> paintTagData = computeBoundsForCustomTagList(p.getRight(), p.getLeft());
+			tagPaintData.put(p.getRight().getId(), paintTagData);
+		}
+		
+		sw.stop(true, "computed tag paint data, lineIndex = "+lineIndex, logger);
+	}
+	
+	
+	private List<PaintTagData> computeBoundsForCustomTagList(ITrpShapeType shape, int offset) {
+		List<PaintTagData> paintTagData = new ArrayList<>();
+		CustomTagList ctl = shape.getCustomTagList();
+		if (ctl == null) {
+			return paintTagData;
+		}
+		
+		Set<String> tagNames = ctl.getIndexedTagNames();
 		if (!settings.isUnderlineTextStyles()) {
 			tagNames.remove(TextStyleTag.TAG_NAME); // do not underline  TextStyleTags, as they are
 			// rendered into the bloody text anyway			
 		}
 		
-		// adjust line spacing to fit all tags:
+		// adjust line spacing to fit all tags: FIXME -> more efficient and only once for all tags!
 		int spaceForTags = (TAG_LINE_WIDTH + 2*SPACE_BETWEEN_TAG_LINES) * tagNames.size();
 		if (spaceForTags > text.getLineSpacing())
 			text.setLineSpacing(spaceForTags);
-
+		
 		int j = -1;
 		for (String tagName : tagNames) {
 			++j;
 			logger.trace("tagName = " + tagName + " j = " + j);
 			List<CustomTag> tags = ctl.getIndexedTags(tagName);
 			for (CustomTag tag : tags) {
+				PaintTagData p = new PaintTagData();
+				p.verticalIndex = j;
+				p.tag = tag;
+				p.color = CustomTagFactory.getTagColor(tag.getTagName()); 
 				
 //				logger.debug("tag = "+tag);
 				
@@ -1681,6 +1747,8 @@ public abstract class ATranscriptionWidget extends Composite{
 				if (sr == null)
 					continue;
 				sr.length = tag.getLength();
+				
+				p.sr = sr;
 				
 				// since there is a word-wrap, we have to calculate multiple bounds to draw the tag-line correctly:
 				// 1: compute bounds:
@@ -1704,10 +1772,37 @@ public abstract class ATranscriptionWidget extends Composite{
 				if (cb!=null)
 					bounds.add(cb);
 				
+				p.bounds = bounds;
+				
+				paintTagData.add(p);
+			}
+		}
+		
+		return paintTagData;
+	}
+	
+	
+	/**
+	 * 
+	 * @param e
+	 * @param ctl The CustomTagList for which the tag markers are drawn
+	 * @param offset The character offset for the line of the given CustomTagList ctl
+	 */
+	protected void paintTagsForShape(PaintEvent e, ITrpShapeType shape) {
+		List<PaintTagData> data = tagPaintData.get(shape.getId());
+
+		for (PaintTagData paintTagData : data) {
+			List<Rectangle> bounds = paintTagData.bounds;
+			StyleRange sr = paintTagData.sr;
+			String color = paintTagData.color;
+			CustomTag tag = paintTagData.tag;
+			CustomTagList ctl = shape.getCustomTagList();
+			int j = paintTagData.verticalIndex;
+			
 				// 2: draw them bloody bounds:
 //				e.gc.setLineStyle(tag.isContinued() ? SWT.LINE_DASH : SWT.LINE_SOLID);
 				e.gc.setLineWidth(TAG_LINE_WIDTH);
-				Color c = Colors.decode2(CustomTagFactory.getTagColor(tagName));
+				Color c = Colors.decode2(color);
 				if (c == null) {
 					c = Colors.getSystemColor(SWT.COLOR_GRAY); // default tag color
 				}
@@ -1764,8 +1859,139 @@ public abstract class ATranscriptionWidget extends Composite{
 					}
 				}
 			}
-		}
 	}	
+	
+//	/**
+//	 * 
+//	 * @param e
+//	 * @param ctl The CustomTagList for which the tag markers are drawn
+//	 * @param offset The character offset for the line of the given CustomTagList ctl
+//	 */
+//	protected void paintTagsFromCustomTagList(PaintEvent e, CustomTagList ctl, int offset) {
+//		Set<String> tagNames = ctl.getIndexedTagNames();
+//		
+//		if (!settings.isUnderlineTextStyles()) {
+//			tagNames.remove(TextStyleTag.TAG_NAME); // do not underline  TextStyleTags, as they are
+//			// rendered into the bloody text anyway			
+//		}
+//		
+//		// adjust line spacing to fit all tags:
+//		int spaceForTags = (TAG_LINE_WIDTH + 2*SPACE_BETWEEN_TAG_LINES) * tagNames.size();
+//		if (spaceForTags > text.getLineSpacing())
+//			text.setLineSpacing(spaceForTags);
+//
+//		int j = -1;
+//		for (String tagName : tagNames) {
+//			++j;
+//			logger.trace("tagName = " + tagName + " j = " + j);
+//			List<CustomTag> tags = ctl.getIndexedTags(tagName);
+//			for (CustomTag tag : tags) {
+//				
+////				logger.debug("tag = "+tag);
+//				
+//				int li = text.getLineAtOffset(offset + tag.getOffset());
+//				int lo = text.getOffsetAtLine(li);
+//				int ll = text.getLine(li).length();
+//				
+//				StyleRange sr = null;
+//				int styleOffset = offset + tag.getOffset();
+//				if (styleOffset>=0 && styleOffset<text.getCharCount())
+//					sr = text.getStyleRangeAtOffset(offset + tag.getOffset());
+//				
+//				// handle special case where a tag is empty and at the end of the line -> sr will be null from the last call in this case --> construct 'artificial' StyleRange!!
+//				boolean canBeEmptyAndIsAtTheEnd = tag.canBeEmpty() && ( (offset+tag.getOffset()) == (lo+ll));
+//				if (canBeEmptyAndIsAtTheEnd)
+//					sr = new StyleRange(offset+tag.getOffset(), 0, null, null);
+//				
+//				logger.trace("stylerange at offset: "+sr);
+//				if (sr == null)
+//					continue;
+//				sr.length = tag.getLength();
+//				
+//				// since there is a word-wrap, we have to calculate multiple bounds to draw the tag-line correctly:
+//				// 1: compute bounds:
+//				List<Rectangle> bounds = new ArrayList<>();
+//				Rectangle cb = null;
+//				int co=sr.start;
+//				for (int k=sr.start; k<sr.start+sr.length; ++k) {
+//					logger.trace("text: "+text.getText(co, k)+" (s,e)="+co+"/"+k);
+//					Rectangle b = text.getTextBounds(co, k);
+//					logger.trace("y = "+b.y+" height = "+b.height);
+//					if (cb==null)
+//						cb = b;
+//					
+//					if (cb.height!=b.height) {
+//						bounds.add(new Rectangle(cb.x, cb.y, cb.width, cb.height));
+//						co = k;
+//						cb = null;									
+//					} else
+//						cb = b;
+//				}
+//				if (cb!=null)
+//					bounds.add(cb);
+//				
+//				// 2: draw them bloody bounds:
+////				e.gc.setLineStyle(tag.isContinued() ? SWT.LINE_DASH : SWT.LINE_SOLID);
+//				e.gc.setLineWidth(TAG_LINE_WIDTH);
+//				Color c = Colors.decode2(CustomTagFactory.getTagColor(tagName));
+//				if (c == null) {
+//					c = Colors.getSystemColor(SWT.COLOR_GRAY); // default tag color
+//				}
+//				
+//				e.gc.setForeground(c);
+//				e.gc.setBackground(c);				
+//				
+//				int spacerHeight = TAG_LINE_WIDTH+SPACE_BETWEEN_TAG_LINES;
+////				if (tag.canBeEmpty()) {
+////					logger.debug("tag = "+tag);
+////					logger.debug("bounds size = "+bounds.size());
+////					
+////				}
+//				
+//				if (tag.canBeEmpty() && tag.isEmpty()) {
+//					logger.trace("drawing empty tag: "+tag);
+//					Point p = text.getLocationAtOffset(sr.start);
+//					int lineHeight = text.getLineHeight(sr.start);
+//					
+//					logger.trace("line height: "+lineHeight+" point = "+p);
+//					
+//					// draw empty tags as vertical bar:
+////					Rectangle b1=bounds.get(0);
+//					e.gc.drawLine(p.x, p.y, p.x, p.y + lineHeight);
+//					
+////					e.gc.drawLine(x1, y1, x2, y2);
+//					
+//					e.gc.fillOval(p.x-spacerHeight, p.y, 2*spacerHeight, 2*spacerHeight);
+//					e.gc.fillOval(p.x-spacerHeight, p.y + lineHeight, 2*spacerHeight, 2*spacerHeight);
+//					
+////					e.gc.drawLine(b.x-spacerHeight, b.y, b.x+spacerHeight, b.y);
+////					e.gc.drawLine(b.x-spacerHeight, b.y + b.height, b.x+spacerHeight, b.y + b.height);
+//				} else {
+//					for (int k=0; k<bounds.size(); k++) {
+//						Rectangle b=bounds.get(k);
+//						logger.trace("bound: "+b);
+//						if (settings.isHighlightComments() && tag instanceof CommentTag) {
+//							e.gc.setAlpha(70);
+//							e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_YELLOW));
+//							e.gc.fillRoundRectangle(b.x, b.y, b.width, b.height, 2, 2);
+//						} else {
+//							e.gc.setAlpha(255);
+//							int yBottom = b.y + b.height + TAG_LINE_WIDTH / 2 + j * (TAG_LINE_WIDTH + 2*SPACE_BETWEEN_TAG_LINES);
+//							
+//							e.gc.drawLine(b.x, yBottom, b.x + b.width, yBottom);
+//							// draw start and end vertical lines:
+//							if (k==0 && ctl.getPreviousContinuedCustomTag(tag)==null) {
+//								e.gc.drawLine(b.x, yBottom+spacerHeight, b.x, yBottom-spacerHeight);
+//							}
+//							if (k==bounds.size()-1 && ctl.getNextContinuedCustomTag(tag)==null) {
+//								e.gc.drawLine(b.x + b.width, yBottom+spacerHeight, b.x + b.width, yBottom-spacerHeight);
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}	
 	
 	public List<Rectangle> getTagDrawBounds(CustomTag tag, int offset) {
 		int li = text.getLineAtOffset(offset + tag.getOffset());

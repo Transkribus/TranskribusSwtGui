@@ -102,6 +102,24 @@ public class WordTranscriptionWidget extends ATranscriptionWidget {
 	
 //	@Override protected void initCustomTagPaintListener() {
 //	}
+	
+	protected List<Pair<Integer, ITrpShapeType>> getShapesWithOffsets(int lineIndex) {
+		List<Pair<Integer, ITrpShapeType>> shapes = new ArrayList<>();
+		TrpTextLineType line = getLineObject(lineIndex);
+		if (line == null) {
+			return shapes;
+		}
+		
+		int lo = text.getOffsetAtLine(lineIndex);
+		TreeMap<TrpWordType, Pair<Integer, Integer>> wordRanges = getWordRanges(line);
+		for (TrpWordType word : wordRanges.keySet()) {
+			int wo = wordRanges.get(word).getLeft();
+			
+			shapes.add(Pair.of(lo+wo, word));
+		}		
+
+		return shapes;
+	}	
 		
 	@Override protected void onPaintTags(PaintEvent e) {
 		if (false) return;
@@ -123,10 +141,12 @@ public class WordTranscriptionWidget extends ATranscriptionWidget {
 			
 			TreeMap<TrpWordType, Pair<Integer, Integer>> wordRanges = getWordRanges(line);
 			for (TrpWordType word : wordRanges.keySet()) {
-				int wo = wordRanges.get(word).getLeft();
-				logger.trace("i = " + i + " lo: " + lo + " word: "+word.getId()+" wo: "+wo);
-				CustomTagList ctl = word.getCustomTagList();
-				paintTagsFromCustomTagList(e, ctl, lo+wo);
+				paintTagsForShape(e, word);
+				
+//				int wo = wordRanges.get(word).getLeft();
+//				logger.trace("i = " + i + " lo: " + lo + " word: "+word.getId()+" wo: "+wo);
+//				CustomTagList ctl = word.getCustomTagList();
+//				paintTagsFromCustomTagList(e, ctl, lo+wo);
 			}
 		}
 		e.gc.setFont(oldFont); // needed ?? (most probably not)

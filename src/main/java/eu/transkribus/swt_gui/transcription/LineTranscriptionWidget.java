@@ -348,7 +348,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		
 		logger.trace("onPaintTags!");
 
-		Font oldFont = e.gc.getFont();
+//		Font oldFont = e.gc.getFont();
 		// for all visible lines:
 		int firstLine = JFaceTextUtil.getPartialTopIndex(text);
 		int lastLine = JFaceTextUtil.getPartialBottomIndex(text);
@@ -360,14 +360,14 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				logger.error("Could not paint line tags for line "+i+" - should not happen here!");
 				return;
 			}
+			paintTagsForShape(e, line);
 			
-			CustomTagList ctl = line.getCustomTagList();
-			int lo = text.getOffsetAtLine(i);
-			logger.trace("i = " + i + " lo = " + lo);
-
-			paintTagsFromCustomTagList(e, ctl, lo);
+//			CustomTagList ctl = line.getCustomTagList();
+//			int lo = text.getOffsetAtLine(i);
+//			logger.trace("i = " + i + " lo = " + lo);
+//			paintTagsFromCustomTagList(e, ctl, lo);
 		}
-		e.gc.setFont(oldFont); // needed ?? (most probably not)
+//		e.gc.setFont(oldFont); // needed ?? (most probably not)
 	}
 	
 	private List<Pair<TrpTextLineType, IntRange>> getReplaceRanges(int start, int end) {
@@ -807,5 +807,17 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 //			return r;				
 //		}
 //	}
+	
+	protected List<Pair<Integer, ITrpShapeType>> getShapesWithOffsets(int lineIndex) {
+		List<Pair<Integer, ITrpShapeType>> shapes = new ArrayList<>();
+		TrpTextLineType line = getLineObject(lineIndex);
+		if (line == null) {
+			return shapes;
+		}
+		
+		int lo = text.getOffsetAtLine(lineIndex);
+		shapes.add(Pair.of(lo, line));
+		return shapes;
+	}
 	
 }
