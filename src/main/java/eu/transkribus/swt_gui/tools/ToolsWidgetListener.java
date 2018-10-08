@@ -17,7 +17,7 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
-import eu.transkribus.core.model.beans.TrpErrorRate;
+import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
@@ -37,7 +37,6 @@ import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
-import eu.transkribus.swt_gui.dialogs.ErrorRateDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
@@ -317,10 +316,12 @@ public class ToolsWidgetListener implements SelectionListener {
 	
 						// Opens dialog which displays table
 	
-						TrpErrorRate resultErr = store.computeErrorRate(ref, hyp);
+						TrpErrorRateResult resultErr = store.computeErrorRate(ref, hyp);
 	
-						ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
-						dialog.open();
+						// FIXME this dialog needs a fix to use the new Result type						
+//						ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
+//						dialog.open();
+						// FIXME END
 					}
 				}
 				
