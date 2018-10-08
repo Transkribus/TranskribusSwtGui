@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpErrorList;
+import eu.transkribus.core.model.beans.TrpErrorRateListEntry;
 import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.util.JaxbUtils;
 
@@ -32,9 +32,9 @@ public class ErrorAdvandedStatsTest {
 				e.setBagTokensPrec("24,91%");
 				e.setBagTokensRec("40.21528861154446177");
 				
-				ArrayList<TrpErrorList> list = new ArrayList<TrpErrorList>();
+				ArrayList<TrpErrorRateListEntry> list = new ArrayList<TrpErrorRateListEntry>();
 				
-				TrpErrorList page1 = new TrpErrorList();
+				TrpErrorRateListEntry page1 = new TrpErrorRateListEntry();
 				page1.setWer("2,2%");
 				page1.setwAcc("16,98%");
 				page1.setCer("20,66%");
@@ -44,7 +44,7 @@ public class ErrorAdvandedStatsTest {
 				page1.setBagTokensRec("30.21528861154446177");
 				page1.setPageNumber(2);
 				
-				TrpErrorList page2 = new TrpErrorList();
+				TrpErrorRateListEntry page2 = new TrpErrorRateListEntry();
 				page2.setWer("21,2%");
 				page2.setwAcc("62,98%");
 				page2.setCer("2,66%");
@@ -54,7 +54,7 @@ public class ErrorAdvandedStatsTest {
 				page2.setBagTokensRec("15.21528861154446177");
 				page2.setPageNumber(5);
 				
-				TrpErrorList page3 = new TrpErrorList();
+				TrpErrorRateListEntry page3 = new TrpErrorRateListEntry();
 				page3.setWer("1,2%");
 				page3.setwAcc("2,98%");
 				page3.setCer("42,66%");
@@ -64,7 +64,7 @@ public class ErrorAdvandedStatsTest {
 				page3.setBagTokensRec("5.21528861154446177");
 				page3.setPageNumber(6);
 				
-				TrpErrorList page4 = new TrpErrorList();
+				TrpErrorRateListEntry page4 = new TrpErrorRateListEntry();
 				page4.setWer("71,2%");
 				page4.setwAcc("2,98%");
 				page4.setCer("42,66%");
@@ -74,7 +74,7 @@ public class ErrorAdvandedStatsTest {
 				page4.setBagTokensRec("5.31528861154446177");
 				page4.setPageNumber(7);
 				
-				TrpErrorList page5 = new TrpErrorList();
+				TrpErrorRateListEntry page5 = new TrpErrorRateListEntry();
 				page5.setWer("61,2%");
 				page5.setwAcc("2,98%");
 				page5.setCer("42,66%");
@@ -84,7 +84,7 @@ public class ErrorAdvandedStatsTest {
 				page5.setBagTokensRec("5.51528861154446177");
 				page5.setPageNumber(8);
 				
-				TrpErrorList page6 = new TrpErrorList();
+				TrpErrorRateListEntry page6 = new TrpErrorRateListEntry();
 				page6.setWer("41,2%");
 				page6.setwAcc("2,98%");
 				page6.setCer("42,66%");
@@ -94,7 +94,7 @@ public class ErrorAdvandedStatsTest {
 				page6.setBagTokensRec("5.21528861154446177");
 				page6.setPageNumber(9);
 				
-				TrpErrorList page7 = new TrpErrorList();
+				TrpErrorRateListEntry page7 = new TrpErrorRateListEntry();
 				page7.setWer("11,2%");
 				page7.setwAcc("2,98%");
 				page7.setCer("42,66%");
@@ -104,7 +104,7 @@ public class ErrorAdvandedStatsTest {
 				page7.setBagTokensRec("27.21528861154446177");
 				page7.setPageNumber(12);
 				
-				TrpErrorList page8 = new TrpErrorList();
+				TrpErrorRateListEntry page8 = new TrpErrorRateListEntry();
 				page8.setWer("21,2%");
 				page8.setwAcc("2,98%");
 				page8.setCer("22,66%");
@@ -114,7 +114,7 @@ public class ErrorAdvandedStatsTest {
 				page8.setBagTokensRec("18.21528861154446177");
 				page8.setPageNumber(14);
 				
-				TrpErrorList page9 = new TrpErrorList();
+				TrpErrorRateListEntry page9 = new TrpErrorRateListEntry();
 				page9.setWer("31,2%");
 				page9.setwAcc("2,98%");
 				page9.setCer("32,66%");

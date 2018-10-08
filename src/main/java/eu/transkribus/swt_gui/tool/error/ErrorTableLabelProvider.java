@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpErrorList;
+import eu.transkribus.core.model.beans.TrpErrorRateListEntry;
 
 public class ErrorTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	private final static Logger logger = LoggerFactory.getLogger(ErrorTableLabelProvider.class);
@@ -56,9 +56,9 @@ public class ErrorTableLabelProvider implements ITableLabelProvider, ITableFontP
 	@Override
 	public String getColumnText(Object element, int columnIndex) {
 		logger.debug("setColumnText: " + element);
-		if (element instanceof TrpErrorList) {
+		if (element instanceof TrpErrorRateListEntry) {
 			
-			TrpErrorList list = (TrpErrorList) element;
+			TrpErrorRateListEntry list = (TrpErrorRateListEntry) element;
 			TableColumn column = table.getColumn(columnIndex);
 			String ct = column.getText();
 			
