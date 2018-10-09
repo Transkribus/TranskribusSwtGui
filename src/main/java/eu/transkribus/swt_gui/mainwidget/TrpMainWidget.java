@@ -89,6 +89,7 @@ import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.util.ImgFileFilter;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
+import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
@@ -477,8 +478,6 @@ public class TrpMainWidget {
 
 		loadTestDocSpecifiedInLocalFile();
 		
-
-		
 		// TEST:
 //		if (TESTTABLES) {
 //			loadTestDocSpecifiedInLocalFile();
@@ -493,10 +492,28 @@ public class TrpMainWidget {
 //		openChangeLogDialog(getTrpSets().isShowChangeLog() && !DISABLE_CHANGELOG);
 	}
 	
+	/**
+	 * Determines which document was most recently edited by the user and loads it.<br><br>
+	 * 
+	 * Currently, the most recent doc access action is retrieved from the server for the details.
+	 * This can be further refined by getting both "Save" (including a page) and "Access document" actions and picking the most recent one.
+	 * Server API needs to be enhanced a bit to do that in one request though.
+	 */
+	public void loadMostRecentDoc() {
+		try {
+			TrpAction action = storage.getConnection().getMostRecentDocLoadAction();
+			loadRemoteDoc(action.getDocId(), action.getColId());
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e) {
+			logger.error("Could not retrieve recently loaded doc. Doing nothin...", e);
+		}
+	}
+
 	/** Tries to read the local file "loadThisDocOnStartup.txt" and load the specified document.<br/>
      * To auto load a remote document: specify the first line as: "colId docId".<br/>
 	 * To auto load a local document: specify the path of the document (without spaces!) in the first line.<br/>
 	 * Comment out a line using a # sign at the start.
+	 * @return true if file was found and the document was loaded successfully
 	 */
 	public boolean loadTestDocSpecifiedInLocalFile() {
 		try {
