@@ -1,7 +1,6 @@
 package eu.transkribus.swt_gui.mainwidget.settings;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -310,7 +309,10 @@ public class TrpSettings extends APropertyChangeSupport {
 	public static final String SHOW_NON_EDITABLE_TEXT_TAG_PROPERTIES_PROPERTY = "showNonEditableTextTagProperties";
 	
 	private boolean logHttp = false;
-	public static final String LOG_HTTP_PROPERTIES_PROPERTY = "logHttp";
+	public static final String LOG_HTTP_PROPERTY = "logHttp";
+	
+	private boolean loadMostRecentDocOnLogin = false;
+	public static final String LOAD_MOST_RECENT_DOC_PROPERTY = "loadMostRecentDocOnLogin";
 	
 	static final String[] DO_NOT_SAVE_THOSE_PROPERTIES = { 
 			DRAW_SHAPES_IN_DEFAULT_COLORS_IN_STRUCT_EDITOR_PROPERTY,
@@ -1223,7 +1225,16 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	public void setLogHttp(boolean logHttp) {
 		this.logHttp = logHttp;
-		firePropertyChange(LOG_HTTP_PROPERTIES_PROPERTY, !this.logHttp, this.logHttp);
+		firePropertyChange(LOG_HTTP_PROPERTY, !this.logHttp, this.logHttp);
+	}
+
+	public boolean isLoadMostRecentDocOnLogin() {
+		return loadMostRecentDocOnLogin;
+	}
+	
+	public void setloadMostRecentDocOnLogin(boolean loadMostRecentDocOnLogin) {
+		this.loadMostRecentDocOnLogin = loadMostRecentDocOnLogin;
+		firePropertyChange(LOAD_MOST_RECENT_DOC_PROPERTY, !this.loadMostRecentDocOnLogin, this.loadMostRecentDocOnLogin);
 	}
 	
 //	public boolean isUseSnapshotUpdates() { return useSnapshotUpdates; }
