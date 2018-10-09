@@ -728,10 +728,6 @@ public abstract class ATranscriptionWidget extends Composite{
 		widgetPositionItem.setToolTipText("Change position of transcription widget");
 		additionalToolItems.add(widgetPositionItem);
 		
-		
-		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
-		initTranscriptionSetsDropDownItems(transcriptSetsDropDown);		
-		
 		if (SHOW_WORD_GRAPH_STUFF && getType() == TranscriptionLevel.LINE_BASED) {
 			new ToolItem(regionsToolbar, SWT.SEPARATOR);
 			

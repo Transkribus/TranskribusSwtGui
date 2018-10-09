@@ -537,7 +537,7 @@ public class CanvasToolBarNew {
 		String ott = "Canvas options...";
 		
 		rectangleModeItem = optionsItem.addItem("Rectangle mode - add all shapes as rectangles initially", Images.WRENCH, ott);
-		useScrollBarsItem = optionsItem.addItem("Use scrollbars instead of freely movable image", Images.WRENCH, ott);
+		useScrollBarsItem = optionsItem.addItem("Use scrollbars instead of freely movable image (experimental for rotated images)", Images.WRENCH, ott);
 		autoCreateParentItem = optionsItem.addItem("Create missing parent shapes (regions or lines) automatically", Images.WRENCH, ott);
 		addLineToOverlappingRegionItem = optionsItem.addItem("Add lines to overlapping parent regions (else: use the selected region as parent)", Images.WRENCH, ott);
 		addBaselineToOverlappingLineItem = optionsItem.addItem("Add baselines to overlapping parent lines (else: use the selected line as parent)", Images.WRENCH, ott);
