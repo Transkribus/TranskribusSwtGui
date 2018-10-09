@@ -88,8 +88,12 @@ public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
 	
 	
+	public static Rectangle scaleRectangle(Rectangle r, double sx, double sy) {
+		return new Rectangle((int) (r.x*sx), (int) (r.y*sy), (int) (r.width*sx), (int) (r.height*sy));
+	}
+	
 	public static Rectangle getBoundingBoxAfterRotation(Rectangle r, CanvasTransform tr) {
-		if (CoreUtils.equalsEps(tr.getAngleDeg(), 0.0, 1e-1)) {
+		if (!tr.hasRotation()) {
 			return r;
 		}
 		

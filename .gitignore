@@ -11,3 +11,4 @@ logs
 /style_sheets.xml
 /bin/
 /loadThisDocOnStartup.txt
+/test/
