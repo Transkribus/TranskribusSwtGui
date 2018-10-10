@@ -1,7 +1,6 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -24,8 +23,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
@@ -139,6 +136,12 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	
 	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
 		sw.updateLoggedIn();
+		/*
+		 * FIXME This will be overridden by the automatic collection loading event fired when logging in
+		 */
+//		if (arg.login && TrpConfig.getTrpSettings().isLoadMostRecentDocOnLogin()) {
+//			TrpMainWidget.getInstance().loadMostRecentDoc();
+//		}
 	}
 
 	@Override public void doubleClick(DoubleClickEvent event) {
@@ -289,17 +292,11 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		if (event.type == SWT.Selection && (event.widget == sw.collectionSelectorWidget || event.widget == sw)) {
 			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
 			Future<List<TrpDocMetadata>> docs = TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
-			try {
-				/*
-				 * load first doc immediately - otherwise the document from the previous collection is in the storage which can be 
-				 * really confusing
-				 */
-				if (docs.get().size() > 0 && docs.get().get(0) != null){
-					TrpMainWidget.getInstance().loadRemoteDoc(docs.get().get(0).getDocId(), sw.getSelectedCollectionId());
-				}
-			} catch (IllegalArgumentException | InterruptedException | ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
+			//unload currently loaded remote document (if any) on collection change
+			TrpMainWidget mw = TrpMainWidget.getInstance();
+			if(mw.getStorage().isDocLoaded() && mw.getStorage().isRemoteDoc()) {
+				mw.closeCurrentDocument(false);
 			}
 			
 			//now: if the document manager is open it gets refreshed with the data of the new collection
