@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.catti.CattiRequest;
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
@@ -53,6 +54,10 @@ public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListene
 	@Override
 	protected void handleDefaultSelectionChanged(Event event) {
 		try {
+			if (TrpMainWidget.getInstance().getUi().getSelectedTranscriptionType()!=TranscriptionLevel.LINE_BASED) {
+				return;
+			}			
+			
 			logger.debug("line default selection change, event: ["+event.start+"-"+event.end+"]");
 			super.handleDefaultSelectionChanged(event);
 			

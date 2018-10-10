@@ -139,8 +139,8 @@ public class TextStyleTypeWidgetListener implements SelectionListener, ModifyLis
 		}
 		
 		tw.updateStyleSheetAccordingToCurrentSelection();
-		mw.getUi().getLineTranscriptionWidget().redrawText(true);
-		mw.getUi().getWordTranscriptionWidget().redrawText(true);
+		mw.getUi().getLineTranscriptionWidget().redrawText(true, false, false);
+		mw.getUi().getWordTranscriptionWidget().redrawText(true, false, false);
 		mw.refreshStructureView();
 	}
 

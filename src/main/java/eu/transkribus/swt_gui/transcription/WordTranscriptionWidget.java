@@ -30,6 +30,8 @@ import eu.transkribus.util.Utils;
 
 import org.eclipse.jface.text.JFaceTextUtil;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ExtendedModifyEvent;
+import org.eclipse.swt.custom.ExtendedModifyListener;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.PaintEvent;
@@ -43,7 +45,7 @@ import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolItem;
 
-public class WordTranscriptionWidget extends LineTranscriptionWidget {
+public class WordTranscriptionWidget extends ATranscriptionWidget {
 	private final static Logger logger = LoggerFactory.getLogger(WordTranscriptionWidget.class);
 	
 	ToolItem applyTextFromWords;
@@ -83,8 +85,9 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 	@Override public TranscriptionLevel getType() { return TranscriptionLevel.WORD_BASED; }
 	
 	protected void applyTextFromWords() {
-		if (currentRegionObject!=null)
+		if (currentRegionObject!=null) {
 			currentRegionObject.applyTextFromWords();
+		}
 	}
 	
 	@Override 
@@ -99,6 +102,24 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 	
 //	@Override protected void initCustomTagPaintListener() {
 //	}
+	
+	protected List<Pair<Integer, ITrpShapeType>> getShapesWithOffsets(int lineIndex) {
+		List<Pair<Integer, ITrpShapeType>> shapes = new ArrayList<>();
+		TrpTextLineType line = getLineObject(lineIndex);
+		if (line == null) {
+			return shapes;
+		}
+		
+		int lo = text.getOffsetAtLine(lineIndex);
+		TreeMap<TrpWordType, Pair<Integer, Integer>> wordRanges = getWordRanges(line);
+		for (TrpWordType word : wordRanges.keySet()) {
+			int wo = wordRanges.get(word).getLeft();
+			
+			shapes.add(Pair.of(lo+wo, word));
+		}		
+
+		return shapes;
+	}	
 		
 	@Override protected void onPaintTags(PaintEvent e) {
 		if (false) return;
@@ -120,10 +141,12 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 			
 			TreeMap<TrpWordType, Pair<Integer, Integer>> wordRanges = getWordRanges(line);
 			for (TrpWordType word : wordRanges.keySet()) {
-				int wo = wordRanges.get(word).getLeft();
-				logger.trace("i = " + i + " lo: " + lo + " word: "+word.getId()+" wo: "+wo);
-				CustomTagList ctl = word.getCustomTagList();
-				paintTagsFromCustomTagList(e, ctl, lo+wo);
+				paintTagsForShape(e, word);
+				
+//				int wo = wordRanges.get(word).getLeft();
+//				logger.trace("i = " + i + " lo: " + lo + " word: "+word.getId()+" wo: "+wo);
+//				CustomTagList ctl = word.getCustomTagList();
+//				paintTagsFromCustomTagList(e, ctl, lo+wo);
 			}
 		}
 		e.gc.setFont(oldFont); // needed ?? (most probably not)
@@ -252,6 +275,14 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 	// FIXME: MACHE DAS A BISSL SCHÖNER!!!! (EXCEPTION SOLLTE AUCH KEINE GESCHMISSEN WERDEN!!) (oder doch?)
 	// FIXME: derzeit wird der Text immer für das ganze Wort ersetzt und nicht indexbasiert so wie beim line-based editor!
 	protected void onTextChangedFromUser(int start, int end, String replacementText) {
+		if (currentRegionObject == null || currentLineObject==null || currentWordObject==null) {
+			return;
+		}
+		int currentLineIndex = getCurrentLineIndex();
+		if (currentLineIndex == -1) {
+			return;
+		}
+		
 		int wi = currentLineObject.getWordIndex(currentWordObject);
 		if (wi == -1)
 			throw new RuntimeException("Fatal exception: could not find word in text change from user!");
@@ -259,8 +290,8 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 		// construct new word from replacement:
 		String newWordText = "";
 		Pair<Integer, Integer> wRange = new ArrayList<>(getWordRanges(currentLineObject).values()).get(wi);
-		int lineOffset = text.getOffsetAtLine(currentLineObject.getIndex());
-		
+//		int lineOffset = text.getOffsetAtLine(currentLineObject.getIndex());
+		int lineOffset = text.getOffsetAtLine(currentLineIndex);
 
 		if (!currentWordObject.getUnicodeText().isEmpty()) {
 			int bi = start - lineOffset - wRange.getLeft();
@@ -454,7 +485,14 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 			return -1;
 		} else {
 			logger.trace("tl index: "+tl.getIndex());
-			int lo = text.getOffsetAtLine(tl.getIndex());
+//			int lo = text.getOffsetAtLine(tl.getIndex());
+			
+			int lineIndex = currentRegionObject.getTrpTextLine().indexOf(tl);
+			if (lineIndex == -1) {
+				return -1;
+			}
+			
+			int lo = text.getOffsetAtLine(lineIndex);
 			return lo+wi.getLeft();
 		}		
 	}
@@ -646,6 +684,47 @@ public class WordTranscriptionWidget extends LineTranscriptionWidget {
 	@Override public boolean selectCustomTag(CustomTag t) {
 		// TODO
 		return false;
+	}
+	
+	@Override
+	public TranscriptionLevel getTranscriptionLevel() {
+		return TranscriptionLevel.WORD_BASED;
+	}	
+	
+	@Override
+	protected void initModifyListener() {
+		ExtendedModifyListener extendedModifyListener = new ExtendedModifyListener() {
+			@Override public void modifyText(ExtendedModifyEvent event) {
+				
+				logger.debug("modified event: "+event.start+"/"+event.length+"/"+event.replacedText);
+				// now 'invert' the modification, 
+				// i.e. compute start / end indices of the modification and the text that was replaced
+				int start = event.start;
+				int end = event.start + event.replacedText.length();
+				String replacementText = "";
+				if (event.length > 0)
+					replacementText = text.getText(event.start, event.start+event.length-1);
+				
+				logger.debug("modified as such: "+start+"/"+end+"/"+replacementText);
+				
+				// send this information to this bloody method which causes the modification to be done in the underlying page element:
+				onTextChangedFromUser(start, end, replacementText);
+				
+//				redrawText(true); // OLD --> ineffiecient!!
+				updateLineStylesForCharacterOffsets(start, end);
+			}
+		};
+		addUserExtendedModifyListener(extendedModifyListener);
+		
+//		ModifyListener modifyListener = new ModifyListener() {
+//			@Override
+//			public void modifyText(ModifyEvent e) {
+//				logger.debug("modified: "+e);
+//				
+////				sendTextModifiedSignal(currentLineObject, text.getLine(getCurrentLineIndex()), text.getSelection().x);
+//			}
+//		};
+//		addUserModifyListener(modifyListener);
 	}
 	
 //	@Override public Point getSelectionRangeRelativeToTranscriptionUnit() {

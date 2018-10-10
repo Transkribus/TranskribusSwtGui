@@ -14,6 +14,8 @@ import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.GC;
@@ -23,6 +25,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.ScrollBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,10 +115,14 @@ public class SWTCanvas extends Canvas {
 	
 	// private boolean scrollBarsVisible = false;
 	
-	LineEditor lineEditor;	
+	LineEditor lineEditor;
+	
+	SelectionAdapter horizontalSbListener, verticalSbListener;
+
+	private int scrollBarSpeed = 10; // somewhere between 10 - 100 while 100 is quite slow...
 
 	public SWTCanvas(final Composite parent, int style) {
-		super(parent, style | STYLE_BITS);
+		super(parent, style | STYLE_BITS | SWT.V_SCROLL| SWT.H_SCROLL);
 		// setLayout(new GridLayout(1, false));
 
 		setLayout(null); // absolute layout
@@ -124,7 +131,7 @@ public class SWTCanvas extends Canvas {
 		
 		init();
 	}
-
+	
 	// public DeaSWTCanvas(final Composite parent, int style) {
 	// super( parent, style | SWT.BORDER | SWT.V_SCROLL| SWT.H_SCROLL |
 	// SWT.NO_BACKGROUND);
@@ -143,7 +150,79 @@ public class SWTCanvas extends Canvas {
 
 		initListener();
 		setFocus();
+		initScrollBars(false);
 	}
+	
+	private void initScrollBars(boolean enable) {
+	    ScrollBar horizontal = getHorizontalBar();
+	    if (horizontal != null) {
+		    horizontal.setEnabled(enable);
+		    if (horizontalSbListener==null) {
+		    	horizontalSbListener = new SelectionAdapter() {
+			        public void widgetSelected(SelectionEvent event) {
+			        	if (!settings.isUseScrollBars() || !horizontal.isEnabled() || !horizontal.isVisible()) {
+			        		return;
+			        	}
+			        	
+			            scrollHorizontally();
+			        }
+			    };
+			    horizontal.addSelectionListener(horizontalSbListener);
+		    }
+	    }
+	    
+	    ScrollBar vertical = getVerticalBar();
+	    if (vertical != null) {
+	    	vertical.setEnabled(enable);
+		    if (verticalSbListener==null) {
+		    	verticalSbListener = new SelectionAdapter() {
+			        public void widgetSelected(SelectionEvent event) {
+			        	if (!settings.isUseScrollBars() || !vertical.isEnabled() || !vertical.isVisible()) {
+			        		return;
+			        	}
+			        	
+			        	logger.trace("vertical scrollbar listener called - "+event+" selection = "+vertical.getSelection());
+			        	scrollVertically();
+			        }
+			    };
+			    vertical.addSelectionListener(verticalSbListener);
+		    }
+	    }
+	}
+	
+	public void scrollHorizontally() {
+		if (scene.getMainImage() == null || getHorizontalBar() == null)
+			return;
+
+		ScrollBar scrollBar = getHorizontalBar();
+		
+		float tx = transform.getTranslateX();
+		float select = -scrollBar.getSelection();
+		
+		Rectangle imageBound = scene.getMainImage().getBounds();
+		imageBound = SWTUtil.getBoundingBoxAfterRotation(imageBound, transform);		
+		
+		transform.translate(select-tx-imageBound.x*transform.getScaleX(), 0);
+		onTransformChanged(transform);
+	}
+	
+	public void scrollVertically() {
+		if (scene.getMainImage() == null || getVerticalBar()==null)
+			return;
+
+		ScrollBar scrollBar = getVerticalBar();
+		logger.trace("scrolling vertically, selection = "+scrollBar.getSelection());
+		
+		float ty = transform.getTranslateY();
+		float select = -scrollBar.getSelection();
+		
+		Rectangle imageBound = scene.getMainImage().getBounds();
+		imageBound = SWTUtil.getBoundingBoxAfterRotation(imageBound, transform);
+		
+		transform.translate(0, select-ty-imageBound.y*transform.getScaleY());
+		onTransformChanged(transform);
+	}
+	
 	
 	//public TrpMainWidget getMainWidget() { return mainWidget; }
 	//public void setMainWidget(TrpMainWidget mainWidget) { this.mainWidget = mainWidget; }
@@ -189,6 +268,7 @@ public class SWTCanvas extends Canvas {
 			@Override
 			public void controlResized(ControlEvent event) {
 				redraw();
+				syncScrollBars();
 			}
 		});
 
@@ -389,6 +469,27 @@ public class SWTCanvas extends Canvas {
 		// top-left corner:
 		// transform.setTranslation(0, 0);
 		redraw();
+	}
+	
+	public void setCanvasAutoZoomMode(CanvasAutoZoomMode zoomMode) {
+		if (zoomMode != null) {
+			switch (zoomMode) {
+			case IDENTITY:
+				resetTransformation();
+				break;
+			case FIT_WIDTH:
+				fitWidth();
+				break;
+			case FIT_HEIGHT:
+				fitHeight();
+				break;
+			case FIT_TO_PAGE:
+				fitToPage();
+				break;
+			default:
+					break;
+			}
+		}
 	}
 
 	public void focusBounds(Rectangle bounds) {
@@ -1591,6 +1692,84 @@ public class SWTCanvas extends Canvas {
 
 	public void onTransformChanged(CanvasTransform transform) {		
 		lineEditor.updatePosition();
+		syncScrollBars();
+	}
+	
+	public void syncScrollBars() {
+		logger.trace("synycing scrollbars!");
+		if (!settings.isUseScrollBars()) {
+			getHorizontalBar().setVisible(false);
+			getVerticalBar().setVisible(false);
+			getParent().layout(true);
+			layout(true);
+			return;
+		}
+		
+		if (!getHorizontalBar().isVisible() || !getVerticalBar().isVisible()) {
+			getHorizontalBar().setVisible(true);
+			getVerticalBar().setVisible(true);
+			getParent().layout(true);
+		}
+		
+		if (scene.getMainImage()==null) {
+			redraw();
+			return;
+		}
+		
+		CanvasTransform af = transform;
+		float sx = af.getScaleX(), sy = af.getScaleY();
+		float tx = af.getTranslateX(), ty = af.getTranslateY();
+		
+		Rectangle imageBound = scene.getMainImage().getBounds();
+		imageBound = SWTUtil.getBoundingBoxAfterRotation(imageBound, transform);
+
+		// TODO: are those bounds needed??
+//		if (tx > 0) tx = 0;
+		if (tx > (-imageBound.x*sx)) {
+			tx = imageBound.x*sx;
+		}
+//		if (ty > 0) ty = 0;
+		if (ty > (-imageBound.y*sy)) {
+			ty = imageBound.y*sy;
+		}
+
+		logger.debug("imageBound = "+imageBound);
+		int cw = getClientArea().width, ch = getClientArea().height;
+		
+		ScrollBar horizontal = getHorizontalBar();
+		horizontal.setIncrement((int) (getClientArea().width / scrollBarSpeed));
+		horizontal.setPageIncrement(getClientArea().width);
+		if (imageBound.width * sx > cw) { /* image is wider than client area */
+			horizontal.setMaximum((int) (imageBound.width * sx));
+			horizontal.setEnabled(true);
+			if (((int) - tx) > horizontal.getMaximum() - cw)
+				tx = -horizontal.getMaximum() + cw;
+		} else { /* image is narrower than client area */
+			horizontal.setEnabled(false);
+			tx = (cw - imageBound.width * sx) / 2; //center if too small.
+		}
+		horizontal.setSelection((int) (-tx) - (int)(imageBound.x*sx));
+		horizontal.setThumb((int) (getClientArea().width));
+
+		ScrollBar vertical = getVerticalBar();
+		vertical.setIncrement((int) (getClientArea().height / scrollBarSpeed));
+		vertical.setPageIncrement((int) (getClientArea().height));
+		if (imageBound.height * sy > ch) { /* image is higher than client area */
+			vertical.setMaximum((int) (imageBound.height * sy));
+			vertical.setEnabled(true);
+			if (((int) - ty) > vertical.getMaximum() - ch)
+				ty = -vertical.getMaximum() + ch;
+		} else { /* image is less higher than client area */
+			vertical.setEnabled(false);
+			ty = (ch - imageBound.height * sy) / 2; //center if too small.
+		}
+		vertical.setSelection((int) (-ty) - (int)(imageBound.y*sy));
+		vertical.setThumb((int) (getClientArea().height));
+
+		logger.trace("syncScrollBars, tx = "+tx+", ty = "+ty+" ch = "+ch+" cw ="+cw+" thmb = "+vertical.getThumb()+" max = "+vertical.getMaximum());
+		transform.setTranslation(tx, ty);
+
+		redraw();
 	}
 
 	public void onScaleChanged(double scaleX, double scaleY) {
@@ -1875,5 +2054,5 @@ public class SWTCanvas extends Canvas {
 	}
 	
 	public LineEditor getLineEditor() { return lineEditor; }
-			
+	
 }

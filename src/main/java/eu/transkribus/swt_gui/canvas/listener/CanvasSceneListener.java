@@ -198,7 +198,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				e.stop = true;
 			}
 			finally {
-				mw.updateTranscriptionWidgetsData();
+				mw.updateSelectedTranscriptionWidgetData();
 				mw.refreshStructureView();
 				mw.redrawCanvas();
 			}
@@ -211,7 +211,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 		mw.refreshStructureView();
 		if (TrpMainWidget.getTrpSettings().isSelectNewlyCreatedShape())
 			mw.getScene().selectObject(e.getFirstShape(), true, false);
-		mw.updateTranscriptionWidgetsData();
+		mw.updateSelectedTranscriptionWidgetData();
 		mw.getScene().updateSegmentationViewSettings();
 	}
 
@@ -277,7 +277,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 			mw.getScene().updateAllShapesParentInfo();
 			mw.refreshStructureView();
 			mw.getScene().selectObject(null, true, false);
-			mw.updateTranscriptionWidgetsData();
+			mw.updateSelectedTranscriptionWidgetData();
 	
 		}
 		catch (Throwable ex) {
@@ -335,7 +335,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				mw.updateTreeSelectionFromCanvas();
 				if (newFirstSelected) {
 	//				mainWidget.selectTranscriptionWidgetOnSelectedShape(e.getFirstShape());
-					mw.updateTranscriptionWidgetsData();
+					mw.updateSelectedTranscriptionWidgetData();
 					mw.getCanvas().updateEditors();
 				}
 				/*
@@ -414,7 +414,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 			mw.getScene().updateSegmentationViewSettings();
 			mw.refreshStructureView();
 			mw.getScene().selectObject(null, true, false);
-			mw.updateTranscriptionWidgetsData();
+			mw.updateSelectedTranscriptionWidgetData();
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -475,7 +475,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					logger.debug("updating gui after last operation on undo split!");
 					mw.getScene().updateSegmentationViewSettings();
 					mw.refreshStructureView();
-					mw.updateTranscriptionWidgetsData();
+					mw.updateSelectedTranscriptionWidgetData();
 					mw.redrawCanvas();
 				}
 				
@@ -498,7 +498,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				mw.getScene().updateAllShapesParentInfo();
 				mw.getScene().updateSegmentationViewSettings();
 				mw.refreshStructureView();
-				mw.updateTranscriptionWidgetsData();
+				mw.updateSelectedTranscriptionWidgetData();
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 				mw.onError("Error undoing", "Could not undo delete operation "+op.getDescription(), e);
@@ -687,7 +687,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 		mw.getCanvasShapeObserver().updateObserverForAllShapes();
 		mw.getScene().updateAllShapesParentInfo();
 		mw.refreshStructureView();
-		mw.updateTranscriptionWidgetsData();
+		mw.updateSelectedTranscriptionWidgetData();
 		mw.redrawCanvas();
 	}
 
@@ -842,7 +842,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				//((ITrpShapeType) mergedSt.getParent()).sortChildren(true);
 				mw.refreshStructureView();
 				mw.getScene().selectObject(newShape, true, false);
-				mw.updateTranscriptionWidgetsData();
+				mw.updateSelectedTranscriptionWidgetData();
 				canvas.redraw();
 			} catch (Throwable th) {
 				e.stop = true;

@@ -44,7 +44,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.ImgType;
-import org.eclipse.core.databinding.observable.Observables;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.databinding.swt.SWTObservables;
@@ -89,6 +88,7 @@ import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.util.ImgFileFilter;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
+import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
@@ -141,7 +141,6 @@ import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
-import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.CreateThumbsService;
 import eu.transkribus.swt.util.DialogUtil;
@@ -156,6 +155,7 @@ import eu.transkribus.swt_gui.Msgs;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
+import eu.transkribus.swt_gui.canvas.CanvasAutoZoomMode;
 import eu.transkribus.swt_gui.canvas.CanvasContextMenuListener;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.CanvasScene;
@@ -303,7 +303,8 @@ public class TrpMainWidget {
 	ActivityDialog ad;
 	Shell sleakDiag;
 
-	Storage storage; // the data
+	/** Storage keeps track of the currently loaded collection, document, page, transcription etc. */
+	Storage storage;
 	boolean isPageLocked = false;
 
 	String lastExportFolder = System.getProperty("user.home");
@@ -475,9 +476,7 @@ public class TrpMainWidget {
 			}
 		}
 
-		loadTestDocSpecifiedInLocalFile();
-		
-
+//		loadTestDocSpecifiedInLocalFile();
 		
 		// TEST:
 //		if (TESTTABLES) {
@@ -493,10 +492,35 @@ public class TrpMainWidget {
 //		openChangeLogDialog(getTrpSets().isShowChangeLog() && !DISABLE_CHANGELOG);
 	}
 	
+	/**
+	 * Determines which document was most recently edited by the user and loads it.<br><br>
+	 * 
+	 * Currently, the most recent doc access action (Access Document, Save, change edit status) is retrieved from the server for the details.
+	 */
+	public void loadMostRecentDoc() {
+		try {
+			TrpAction action = storage.getConnection().getMostRecentDocumentAction();
+			if (action == null) {
+				logger.debug("no most recent doc found!");
+			}
+			logger.debug("most recent doc action: "+action);
+			
+//			load the collection and the document list
+//			 TODO
+			
+			// load the document and jump to page if pageNr is not null
+			loadRemoteDoc(action.getDocId(), action.getColId(), action.getPageNr() != null ? action.getPageNr()-1 : 0);
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e) {
+			logger.error("Could not retrieve recently loaded doc. Doing nothin...", e);
+		}
+	}
+
 	/** Tries to read the local file "loadThisDocOnStartup.txt" and load the specified document.<br/>
      * To auto load a remote document: specify the first line as: "colId docId".<br/>
 	 * To auto load a local document: specify the path of the document (without spaces!) in the first line.<br/>
 	 * Comment out a line using a # sign at the start.
+	 * @return true if file was found and the document was loaded successfully
 	 */
 	public boolean loadTestDocSpecifiedInLocalFile() {
 		try {
@@ -574,7 +598,11 @@ public class TrpMainWidget {
 				return null;
 
 			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
-
+			
+			if (storage.getCollection(colId)==null) { // collection not found in Storage -> reload doclist!
+				logger.warn("reloadDocList: colId not found in storage -> have to reload collections from server - should not happen here");
+				reloadCollections();
+			}
 			ui.getServerWidget().setSelectedCollection(storage.getCollection(colId));
 
 			Future<List<TrpDocMetadata>> doclist;
@@ -881,7 +909,7 @@ public class TrpMainWidget {
 						logger.debug("registry has changed ");
 						TagRegistryChangeEvent trce = (TagRegistryChangeEvent) arg;
 						if (trce.type.equals(TagRegistryChangeEvent.CHANGED_TAG_COLOR) && getUi()!=null && getUi().getSelectedTranscriptionWidget()!=null) {
-							TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
+							TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true, false, false);
 						}
 												
 						//if tag registry has changed and user is logged in -> store into DB for the current user
@@ -935,11 +963,12 @@ public class TrpMainWidget {
 		logger.debug("cw = "+cw);
 		
 		CanvasSettings canvasSet = cw.getCanvas().getSettings();
-				
-		db.bindBeanPropertyToObservableValue(TrpSettings.LEFT_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
-												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.LEFT));
-		db.bindBeanPropertyToObservableValue(TrpSettings.BOTTOM_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
-												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.BOTTOM));
+		
+		// NOTE: docking props are synced now in a PortalWidgetListener in TrpMainWidgetViewListener! 
+//		db.bindBeanPropertyToObservableValue(TrpSettings.MENU_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+//												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.LEFT));
+//		db.bindBeanPropertyToObservableValue(TrpSettings.TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
+//												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.BOTTOM));
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, cw.getShowPrintspaceItem());
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, cw.getShowRegionsItem());
@@ -961,6 +990,7 @@ public class TrpMainWidget {
 			db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_LINE_EDITOR_PROPERTY, trpSets, ui.showLineEditorToggle);
 		
 		db.bindBeanToWidgetSelection(TrpSettings.RECT_MODE_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getRectangleModeItem());
+		db.bindBeanToWidgetSelection(CanvasSettings.USE_SCROLL_BARS_PROPERTY, canvasSet, ui.canvasWidget.getToolbar().getUseScrollBarsItem());
 		db.bindBeanToWidgetSelection(TrpSettings.AUTO_CREATE_PARENT_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAutoCreateParentItem());
 		
 		db.bindBeanToWidgetSelection(TrpSettings.ADD_LINES_TO_OVERLAPPING_REGIONS_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getAddLineToOverlappingRegionItem());
@@ -1078,11 +1108,7 @@ public class TrpMainWidget {
 			TrpGuiPrefs.storeLastLogin(user);
 			TrpGuiPrefs.storeLastAccountType(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
 
-			storage.reloadCollections();
-
 			userCache.add(user);
-			
-
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
@@ -1189,8 +1215,6 @@ public class TrpMainWidget {
 			}
 			storage.loginOAuth(server, refreshToken, state, grantType, redirectUri, prov);
 			TrpGuiPrefs.storeLastAccountType(prov.toString());
-
-			storage.reloadCollections();
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
@@ -1826,10 +1850,15 @@ public class TrpMainWidget {
 
 		logger.debug("finished updating " + type + " based trancription widget");
 	}
-
-	public void updateTranscriptionWidgetsData() {
-		updateLineTranscriptionWidgetData();
-		updateWordTranscriptionWidgetData();
+	
+	public void updateSelectedTranscriptionWidgetData() {
+		if (ui!=null && ui.getSelectedTranscriptionWidget()!=null) {
+			updateTranscriptionWidget(ui.getSelectedTranscriptionWidget().getTranscriptionLevel());	
+		}
+		
+		// do *not* update all transcript widgets...
+//		updateLineTranscriptionWidgetData();
+//		updateWordTranscriptionWidgetData();
 	}
 
 	public void updateWordTranscriptionWidgetData() {
@@ -2125,12 +2154,20 @@ public class TrpMainWidget {
 	}
 
 	public boolean reloadCurrentPage(boolean force) {
-		return reloadCurrentPage(force, true);
+		return reloadCurrentPage(force, true, null);
 	}
 
-	public boolean reloadCurrentPage(boolean force, boolean reloadTranscript) {
-		if (!force && !saveTranscriptDialogOrAutosave())
+	/**
+	 * Reload the current page that is set in {@link #storage}.
+	 * @param force Forces a reload of the page without asking to save changes
+	 * @param reloadTranscript Also reload the current transcript?
+	 * @param zoomMode Specifies the zoom mode this page should be set to, if null the current transformation is kept.
+	 * @return True if page was reloaded, false otherwise
+	 */
+	public boolean reloadCurrentPage(boolean force, boolean reloadTranscript, CanvasAutoZoomMode zoomMode) {
+		if (!force && !saveTranscriptDialogOrAutosave()) {
 			return false;
+		}
 
 		try {
 			logger.info("loading page: " + storage.getPage());
@@ -2155,6 +2192,8 @@ public class TrpMainWidget {
 			if (storage.isPageLoaded() && storage.getCurrentImage() != null) {
 				getScene().setMainImage(storage.getCurrentImage());
 			}
+			
+			getScene().setCanvasAutoZoomMode(zoomMode);
 
 			if (reloadTranscript && storage.getNTranscripts() > 0) {
 				storage.setLatestTranscriptAsCurrent();
@@ -2261,7 +2300,7 @@ public class TrpMainWidget {
 			loadJAXBTranscriptIntoView(storage.getTranscript());
 
 //			ui.taggingWidget.updateAvailableTags();
-			updateTranscriptionWidgetsData();
+			updateSelectedTranscriptionWidgetData();
 			canvas.getScene().updateSegmentationViewSettings();
 
 			logger.debug("loaded transcript - edited = " + storage.isTranscriptEdited());
@@ -2495,7 +2534,7 @@ public class TrpMainWidget {
 			}
 
 			storage.setCurrentPage(pageIndex);
-			reloadCurrentPage(true);
+			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH);
 			
 			//store the path for the local doc
 			RecentDocsPreferences.push(folder);
@@ -2527,6 +2566,31 @@ public class TrpMainWidget {
 //	public boolean loadRemoteDoc(final int docId) {
 //		return loadRemoteDoc(docId, 0);
 //	}
+	
+	/**
+	 * Tries to load a document just with a document id - first searches for documents with this id, 
+	 * then loads the document for the first collection
+	 */
+	public boolean loadRemoteDoc(final int docId, boolean showMsgIfNotFound) {
+		List<TrpDocMetadata> docs;
+		try {
+			docs = storage.getConnection().findDocuments(0, docId, null, null, null, null, 
+					true, true, 0, 0, null, null);
+			
+			if (!docs.isEmpty()) {
+				TrpDocMetadata doc = docs.get(0);
+				return TrpMainWidget.getInstance().loadRemoteDoc(doc.getDocId(), doc.getFirstCollectionId());
+			} else if (showMsgIfNotFound) {
+				DialogUtil.showInfoMessageBox(getShell(), "No such document", "Could not find document with id "+docId+" in any collection!");
+			}
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e1) {
+			logger.error(e1.getMessage(), e1);
+			TrpMainWidget.getInstance().onError("Error", "Could not load document with id "+docId, e1);
+		}
+		
+		return false;
+	}
 
 	public boolean loadRemoteDoc(final int docId, int colId) {
 		return loadRemoteDoc(docId, colId, 0);
@@ -2551,13 +2615,14 @@ public class TrpMainWidget {
 		try {
 			boolean collectionChanged = colId != ui.serverWidget.getSelectedCollectionId();
 			if (collectionChanged) {
+				logger.debug("collection changed - reloading doclist!");
 				Future<List<TrpDocMetadata>> fut = reloadDocList(colId);
 				if (fut == null)
 					return false;
 				
 				fut.get(); // wait for doclist to be loaded!
+				logger.debug("loaded new doclist: "+fut.get()+" current-collection: "+getSelectedCollection());
 			}
-			
 			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
 
 			if (colId <= 0) {
@@ -2582,7 +2647,7 @@ public class TrpMainWidget {
 			}, "Loading document from server", false);
 
 			storage.setCurrentPage(pageIndex);
-			reloadCurrentPage(true);
+			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH);
 			if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
 				autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
 			}
@@ -5730,8 +5795,8 @@ public class TrpMainWidget {
 			}
 	
 			updatePageRelatedMetadata();
-			getUi().getLineTranscriptionWidget().redrawText(true);
-			getUi().getWordTranscriptionWidget().redrawText(true);
+			getUi().getLineTranscriptionWidget().redrawText(true, false, false);
+			getUi().getWordTranscriptionWidget().redrawText(true, false, false);
 			refreshStructureView();
 			
 //			getUi().getTaggingWidget().getTagListWidget().refreshTable();
@@ -5758,8 +5823,8 @@ public class TrpMainWidget {
 			}
 			
 			updatePageRelatedMetadata();
-			getUi().getLineTranscriptionWidget().redrawText(true);
-			getUi().getWordTranscriptionWidget().redrawText(true);
+			getUi().getLineTranscriptionWidget().redrawText(true, false, false);
+			getUi().getWordTranscriptionWidget().redrawText(true, false, false);
 			refreshStructureView();
 		} catch (Exception e) {
 			onError("Unexpected error deleting tags", e.getMessage(), e);
@@ -5813,8 +5878,8 @@ public class TrpMainWidget {
 			}
 			
 			updatePageRelatedMetadata();
-			getUi().getLineTranscriptionWidget().redrawText(true);
-			getUi().getWordTranscriptionWidget().redrawText(true);
+			getUi().getLineTranscriptionWidget().redrawText(true, false, false);
+			getUi().getWordTranscriptionWidget().redrawText(true, false, false);
 			refreshStructureView();
 		} catch (Exception e) {
 			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);

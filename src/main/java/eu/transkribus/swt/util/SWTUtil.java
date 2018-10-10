@@ -87,6 +87,125 @@ import math.geom2d.Vector2D;
 public class SWTUtil {
 	private final static Logger logger = LoggerFactory.getLogger(SWTUtil.class);
 	
+	
+	public static Rectangle scaleRectangle(Rectangle r, double sx, double sy) {
+		return new Rectangle((int) (r.x*sx), (int) (r.y*sy), (int) (r.width*sx), (int) (r.height*sy));
+	}
+	
+	public static Rectangle getBoundingBoxAfterRotation(Rectangle r, CanvasTransform tr) {
+		if (!tr.hasRotation()) {
+			return r;
+		}
+		
+		CanvasTransform trCopy = new CanvasTransform(tr.getDevice());
+		trCopy.rotate(tr.getAngleDeg());
+		
+		List<Point> pts = new ArrayList<>();
+		pts.add(new Point(r.x, r.y));
+		pts.add(new Point(r.x+r.width, r.y));
+		pts.add(new Point(r.x+r.width, r.y+r.height));
+		pts.add(new Point(r.x, r.y+r.height));
+
+		int minX=Integer.MAX_VALUE, minY=Integer.MAX_VALUE;
+		int maxX=Integer.MIN_VALUE, maxY=Integer.MIN_VALUE;
+		for (int i=0; i<4; ++i) {
+//			logger.debug("p1 = "+pts.get(i));
+			Point p = trCopy.transform(pts.get(i));
+//			logger.debug("p = "+p);
+			if (p.x < minX) {
+				minX = p.x;
+			}
+			if (p.y < minY) {
+				minY = p.y;
+			}
+			if (p.x > maxX) {
+				maxX = p.x;
+			}
+			if (p.y > maxY) {
+				maxY = p.y;
+			}
+		}
+		trCopy.dispose();
+		return new Rectangle(minX, minY, maxX-minX, maxY-minY);
+	}
+	
+	/**
+	 * This method adds select-on-focus functionality to a {@link Text} component.
+	 * 
+	 * Specific behavior:
+	 *  - when the Text is already focused -> normal behavior
+	 *  - when the Text is not focused:
+	 *    -> focus by keyboard -> select all text
+	 *    -> focus by mouse click -> select all text unless user manually selects text
+	 * 
+	 * @param text
+	 * {@link https://stackoverflow.com/questions/10038570/implementing-select-on-focus-behavior-for-an-eclipse-text-control#10048884}
+	 */
+	public static void addSelectOnFocusToText(Text text) {
+		if (text == null) {
+			return;
+		}
+		
+		Listener listener = new Listener() {
+
+			private boolean hasFocus = false;
+			private boolean hadFocusOnMousedown = false;
+
+			@Override
+			public void handleEvent(Event e) {
+				switch (e.type) {
+				case SWT.FocusIn: {
+					Text t = (Text) e.widget;
+
+					// Covers the case where the user focuses by keyboard.
+					t.selectAll();
+
+					// The case where the user focuses by mouse click is special because Eclipse,
+					// for some reason, fires SWT.FocusIn before SWT.MouseDown, and on mouse down
+					// it cancels the selection. So we set a variable to keep track of whether the
+					// control is focused (can't rely on isFocusControl() because sometimes it's
+					// wrong),
+					// and we make it asynchronous so it will get set AFTER SWT.MouseDown is fired.
+					t.getDisplay().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							hasFocus = true;
+						}
+					});
+
+					break;
+				}
+				case SWT.FocusOut: {
+					hasFocus = false;
+					((Text) e.widget).clearSelection();
+
+					break;
+				}
+				case SWT.MouseDown: {
+					// Set the variable which is used in SWT.MouseUp.
+					hadFocusOnMousedown = hasFocus;
+
+					break;
+				}
+				case SWT.MouseUp: {
+					Text t = (Text) e.widget;
+					if (t.getSelectionCount() == 0 && !hadFocusOnMousedown) {
+						((Text) e.widget).selectAll();
+					}
+
+					break;
+				}
+				}
+			}
+
+		};
+
+		text.addListener(SWT.FocusIn, listener);
+		text.addListener(SWT.FocusOut, listener);
+		text.addListener(SWT.MouseDown, listener);
+		text.addListener(SWT.MouseUp, listener);
+	}
+	
 	/**
 	 * @deprecated seems to be very inefficient - check that!
 	 *  Resize last column in tree viewer so that it fills the client area completely if extra space.
@@ -770,12 +889,21 @@ public class SWTUtil {
 //		}
 //	}
 	
-	public static int addBitIfNotSet(int mask, int bit) {
-		if ((mask & bit) != 0) {
-			return (mask | bit);
-		} else
-			return mask;
+	public static boolean isBitSet(int mask, int bit) {
+		return (mask & bit) == bit;
 	}
+	
+	public static int setBit(int mask, int bit) {
+		return mask | bit;
+	}
+
+	// not needed..
+//	public static int addBitIfNotSet(int mask, int bit) {
+//		if ((mask & bit) != 0) {
+//			return (mask | bit);
+//		} else
+//			return mask;
+//	}
 	
 	public static void addListener(Widget w, int eventType, Listener l) {		
 		if (w != null) {
@@ -916,7 +1044,7 @@ public class SWTUtil {
 		if (item!=null && !item.isDisposed() && item.getEnabled()!=enabled) 
 			item.setEnabled(enabled);
 	}
-	
+
 	public static void setEnabled(Control composite, boolean enabled) {
 		if (composite!=null && !composite.isDisposed() && composite.getEnabled()!=enabled) 
 			composite.setEnabled(enabled);

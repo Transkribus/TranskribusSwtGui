@@ -132,7 +132,7 @@ public class AutoSaveController {
 			e.printStackTrace();
 		}
 //		mw.ui.taggingWidget.updateAvailableTags();
-		mw.updateTranscriptionWidgetsData();
+		mw.updateSelectedTranscriptionWidgetData();
 		mw.canvas.getScene().updateSegmentationViewSettings();
 		mw.canvas.update();
 		

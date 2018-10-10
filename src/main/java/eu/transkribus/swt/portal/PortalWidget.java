@@ -1,7 +1,10 @@
 package eu.transkribus.swt.portal;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.databinding.observable.map.IObservableMap;
 import org.eclipse.core.databinding.observable.map.WritableMap;
 import org.eclipse.swt.SWT;
@@ -18,20 +21,21 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import junit.framework.Assert;
 
 public class PortalWidget extends Composite {
 	
-	public static class PositionDocking {
-		public PositionDocking(Position pos, Docking docking) {
-			super();
-			this.pos = pos;
-			this.docking = docking;
-		}
-		
-		public Position pos;
-		public Docking docking;
-	}
+//	public static class PositionDocking {
+//		public PositionDocking(Position pos, Docking docking) {
+//			super();
+//			this.pos = pos;
+//			this.docking = docking;
+//		}
+//		
+//		public Position pos;
+//		public Docking docking;
+//	}
 	
 	public static enum Position {		
 		TOP(true), BOTTOM(false), LEFT(true), RIGHT(false), CENTER(false);
@@ -40,6 +44,19 @@ public class PortalWidget extends Composite {
 		private Position(boolean isLeftSideOfSashForm) {
 			this.isLeftSideOfSashForm = isLeftSideOfSashForm;
 		}
+		
+		public static Position valueOf(String str, boolean caseInsensitve, boolean returnNullOnError) {
+			try {
+				return valueOf(caseInsensitve ? str.toUpperCase() : str);
+			} catch (Exception e) {
+				if (returnNullOnError) {
+					return null;
+				}
+				else {
+					throw e;
+				}
+			}
+		}	
 	};
 	
 	public static enum Docking { 
@@ -68,13 +85,21 @@ public class PortalWidget extends Composite {
 		}
 	};
 	
+	public interface PortalWidgetListener {
+		void onDockingChanged(String widgetType, Composite widget, Position pos, Docking docking);
+		void onPositionChanged(String widgetType, Composite widget, Position pos, Docking docking);
+	}
+	private List<PortalWidgetListener> listener = new ArrayList<>();
+	
 	private final static Logger logger = LoggerFactory.getLogger(PortalWidget.class);
 	
 	public static final int DEFAULT_SASH_WIDTH = 3;
 	
-	private static int[] DEFAULT_WEIGHTS_HORIZONTAL_TOP_LEVEL = new int[] { 800, 220};
-	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 350, 1000};
-	private static int[] DEFAULT_WEIGHTS_VERTICAL_TOP_LEVEL = new int[] {100, 30};
+//	private static int[] DEFAULT_WEIGHTS_HORIZONTAL_TOP_LEVEL = new int[] { 800, 220};
+	private static int[] DEFAULT_WEIGHTS_HORIZONTAL_TOP_LEVEL = new int[] { 25, 20};
+//	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 350, 1000};
+	private static int[] DEFAULT_WEIGHTS_HORIZONTAL = new int[] { 90, 200};
+	private static int[] DEFAULT_WEIGHTS_VERTICAL_TOP_LEVEL = new int[] {100, 50};
 	private static int[] DEFAULT_WEIGHTS_VERTICAL = new int[] {10, 70};
 	
 	private SashForm sashFormHorizontalTopLevel;
@@ -157,6 +182,98 @@ public class PortalWidget extends Composite {
 		else
 			setWidgetDockingType(Position.RIGHT, Docking.INVISIBLE);
 		
+	}
+	
+	public void addPortalWidgetListener(PortalWidgetListener l) {
+		listener.add(l);
+	}
+	
+	public void removePortalWidgetListener(PortalWidgetListener l) {
+		listener.add(l);
+	}	
+	
+	public String getWidgetType(ScrolledComposite sc) {
+		if (sc == null || sc.getContent()==null) {
+			return null;
+		}
+		
+		return (String) sc.getContent().getData(TrpMainWidgetView.WIDGET_TYPE_DATA_KEY);
+	}
+	
+	public Position getWidgetPosition(String widgetType) {
+		for (Position p : Position.values()) {
+			ScrolledComposite sc = widgets.get(p);
+			
+			if (sc != null && sc.getContent()!=null) {
+				String scWidgetType = getWidgetType(sc);
+			
+				if (StringUtils.equals(widgetType, scWidgetType)) {
+					return p;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public Position getWidgetPosition(Composite widget) {
+		for (Position p : Position.values()) {
+			ScrolledComposite sc = widgets.get(p);
+			if (sc != null && sc.getContent()==widget) {
+				return p;
+			}
+		}
+		return null;
+	}
+	
+	public Composite getWidgetFromType(String widgetType) {
+		for (ScrolledComposite sc : widgets.values()) {
+			if (sc.getContent() != null) {
+				String widgetTypeOfSc = getWidgetType(sc);
+				
+				if (StringUtils.equals(widgetType, widgetTypeOfSc)) {
+					return (Composite) sc.getContent();
+				}
+			}
+		}
+		return null;
+	}
+	
+	public boolean setWidgetPosition(String widgetType, Position newPos) {
+		Composite widget = getWidgetFromType(widgetType);
+		if (widget == null) {
+			return false;
+		}
+		else {
+			return setWidgetPosition(widget, newPos);
+		}
+	}
+	
+	public boolean setWidgetPosition(Composite widget, Position newPos) {
+		if (newPos == null) {
+			return false;
+		}
+		
+		for (Position p : Position.values()) {
+			ScrolledComposite sc = widgets.get(p);
+			if (sc != null && sc.getContent() == widget && p!=newPos) {
+				ScrolledComposite newSc = widgets.get(newPos);
+				fillScrolledComposite(newSc, widget);
+				setWidgetDockingType(newPos, Docking.DOCKED);
+				
+				sc.setContent(null);
+				setWidgetDockingType(p, Docking.INVISIBLE);
+				
+				String widgetType = getWidgetType(newSc);
+				
+				listener.stream().forEach(l -> {
+					l.onPositionChanged(widgetType, widget, newPos, Docking.DOCKED);
+				});				
+				
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	private void fillScrolledComposite(ScrolledComposite sc, Composite child) {
@@ -411,16 +528,35 @@ public class PortalWidget extends Composite {
 		return shell;
 	}
 	
-	public void setWidgetDockingType(PositionDocking posDock) {
-		setWidgetDockingType(posDock.pos, posDock.docking);
+//	public void setWidgetDockingType(PositionDocking posDock) {
+//		setWidgetDockingType(posDock.pos, posDock.docking);
+//	}
+	
+	public void setWidgetDockingType(String widgetType, Docking docking) {
+		Position pos = getWidgetPosition(widgetType);
+		if (pos != null) {
+			setWidgetDockingType(pos, docking);
+		} else {
+			logger.debug("could not find position of widgetType: "+widgetType);
+		}
+	}
+
+	public void setWidgetDockingType(Composite widget, Docking docking) {
+		Position pos = getWidgetPosition(widget);
+		if (pos != null) {
+			setWidgetDockingType(pos, docking);
+		} else {
+			logger.debug("could not find position of widget: "+widget);
+		}
 	}
 	
-	// TEST
+	
 	public void setWidgetDockingType(Position pos, Docking docking) {
 		Assert.assertNotNull(pos);
 		Assert.assertNotNull(docking);
 
 		logger.debug("setting "+ pos + " view docking type: "+docking);
+		
 
 //		if (getDocking(pos) == docking) {
 //			logger.debug("already in this docking state");
@@ -428,6 +564,9 @@ public class PortalWidget extends Composite {
 //		}
 		
 		SashForm sf = positionSashFormMap.get(pos);
+		ScrolledComposite sc = getContainerWidget(pos);
+		Composite widget = (Composite) sc.getContent();
+		String widgetType = getWidgetType(sc);
 		
 //		int nChildren = sf.getChildren().length;
 //		logger.debug("nChildren = "+nChildren);
@@ -461,6 +600,10 @@ public class PortalWidget extends Composite {
 		Event e = new Event();
 		e.data = pos;
 		this.notifyListeners(SWT.Selection, e);
+		
+		listener.stream().forEach(l -> {
+			l.onDockingChanged(widgetType, widget, pos, docking);
+		});
 	}
 	
 	public Docking getDocking(Position pos) {

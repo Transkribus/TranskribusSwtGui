@@ -1,7 +1,6 @@
 package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -19,21 +18,23 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class ServerWidgetListener extends SelectionAdapter implements Listener, ISelectionChangedListener, IDoubleClickListener, KeyListener, MouseTrackListener, IStorageListener {
+public class ServerWidgetListener extends SelectionAdapter implements Listener, ISelectionChangedListener, IDoubleClickListener, KeyListener, MouseTrackListener, IStorageListener, TraverseListener {
 	private final static Logger logger = LoggerFactory.getLogger(ServerWidgetListener.class);
 	
 	ServerWidget sw;
@@ -94,6 +95,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.addSelectionListener(sw.exportBtn, this);
 		SWTUtil.addSelectionListener(sw.findBtn, this);
 		
+		if (sw.quickLoadByDocId != null) {
+			sw.quickLoadByDocId.getTextControl().addTraverseListener(this);
+		}
+		
 		Storage.getInstance().addListener(this);
 	}
 	
@@ -134,11 +139,25 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.removeSelectionListener(sw.exportBtn, this);
 		SWTUtil.removeSelectionListener(sw.findBtn, this);
 		
+		if (sw.quickLoadByDocId != null) {
+			sw.quickLoadByDocId.getTextControl().removeTraverseListener(this);
+		}		
+		
 		Storage.getInstance().removeListener(this);
 	}
 	
 	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+		logger.debug("handling login/logout - "+arg);
+		
 		sw.updateLoggedIn();
+		
+		if (arg.login) {
+			TrpMainWidget.getInstance().reloadCollections();
+		}
+		
+		if (arg.login && TrpConfig.getTrpSettings().isLoadMostRecentDocOnLogin()) {
+			TrpMainWidget.getInstance().loadMostRecentDoc();
+		}
 	}
 
 	@Override public void doubleClick(DoubleClickEvent event) {
@@ -285,21 +304,16 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 
 	@Override
 	public void handleEvent(Event event) {
-		//logger.debug("event type : " +event.type + " event.widget is " + event.widget);
+		logger.debug("event type : " +event.type + " event.widget is " + event.widget);
 		if (event.type == SWT.Selection && (event.widget == sw.collectionSelectorWidget || event.widget == sw)) {
+			logger.debug("handling selection event that changed collection, event = "+event);
 			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
 			Future<List<TrpDocMetadata>> docs = TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
-			try {
-				/*
-				 * load first doc immediately - otherwise the document from the previous collection is in the storage which can be 
-				 * really confusing
-				 */
-				if (docs.get().size() > 0 && docs.get().get(0) != null){
-					TrpMainWidget.getInstance().loadRemoteDoc(docs.get().get(0).getDocId(), sw.getSelectedCollectionId());
-				}
-			} catch (IllegalArgumentException | InterruptedException | ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
+			//unload currently loaded remote document (if any) on collection change
+			TrpMainWidget mw = TrpMainWidget.getInstance();
+			if(mw.getStorage().isDocLoaded() && mw.getStorage().isRemoteDoc()) {
+				mw.closeCurrentDocument(false);
 			}
 			
 			//now: if the document manager is open it gets refreshed with the data of the new collection
@@ -312,6 +326,16 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		}
 	}
 
-
+	@Override
+	public void keyTraversed(TraverseEvent e) {
+		if (e.getSource() == sw.quickLoadByDocId.getTextControl()) {
+			if (e.detail == SWT.TRAVERSE_RETURN) {
+				int docId = CoreUtils.parseInt(sw.quickLoadByDocId.getText(), -1);
+				if (docId > 0 && storage.isLoggedIn()) {
+					TrpMainWidget.getInstance().loadRemoteDoc(docId, true);
+				}
+			}
+		}
+	}
 
 }

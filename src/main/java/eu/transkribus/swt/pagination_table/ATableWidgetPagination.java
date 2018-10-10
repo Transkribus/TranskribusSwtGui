@@ -280,9 +280,10 @@ public abstract class ATableWidgetPagination<T> extends Composite {
 //					Label filterLabel = new Label(bottom, 0);
 //					filterLabel.setText("Filter: ");
 					
-					filter = new Text(bottom, SWT.BORDER);
+					filter = new Text(bottom, SWT.BORDER | SWT.SEARCH);
 					filter.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					filter.setToolTipText("Filter");
+					filter.setToolTipText("Filter this list with a keyword");
+					filter.setMessage("Filter");
 //					filter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 2));
 				}
 				

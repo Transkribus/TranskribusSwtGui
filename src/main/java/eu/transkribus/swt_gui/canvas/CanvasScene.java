@@ -135,8 +135,15 @@ public class CanvasScene {
 	/** Sets the reference to the main image */
 	public void setMainImage(CanvasImage img) {
 		mainImage = img;
-		if (mainImage != null)
+		if (mainImage != null) {
 			logger.debug("nr of pixels in loaded image = " + mainImage.nPixels);
+		}
+		canvas.fitWidth();
+		
+	}
+	
+	public void setCanvasAutoZoomMode(CanvasAutoZoomMode zoomMode) {
+		canvas.setCanvasAutoZoomMode(zoomMode);
 	}
 
 	public CanvasImage getMainImage() {
@@ -845,15 +852,14 @@ public class CanvasScene {
 		
 		logger.debug("selecting, sendSignal: "+sendSignal+", multiselect: " + multiselect);
 		if (hasShape(shape)) {
-			logger.debug(", isSelected: "+shape.isSelected()+ " for "+shape.getTrpShapeType().toString());
+			logger.trace("isSelected: "+shape.isSelected()+ " for "+shape.getTrpShapeType().toString());
 			shape.setSelected(!shape.isSelected());
 			if (shape.isSelected()){
-				logger.debug("shape " + shape.getType() + " is selected !!!");
+				logger.trace("shape of type " + shape.getType() + " is selected");
 				selected.add(shape);
-				
 			}
 			else{
-				logger.debug("remove shape from selected !!!");
+				logger.trace("removing shape from selected");
 				selected.remove(shape);
 			}
 		}
@@ -964,13 +970,13 @@ public class CanvasScene {
 				
 		for (ICanvasShape s : tmpShapes) {
 			if (s.isReadingOrderVisible() && s.getReadingOrderCircle().contains(x, y) && !found){
-				logger.debug("reading order selected is true for mouse point " + x + " , " + y );
+				logger.trace("reading order selected is true for mouse point " + x + " , " + y );
 				//Display display = canvas.getDisplay();
 				Shell shell = canvas.getShell();
 				ChangeReadingOrderDialog diag = new ChangeReadingOrderDialog(shell);
 				String changedRo = diag.open(x, y);
 				if (changedRo != null && !changedRo.equals("")){
-					logger.debug(" new reading order is " + changedRo);
+					logger.trace(" new reading order is " + changedRo);
 					
 					notifyOnReadingOrderChanged(s, changedRo);
 				}
@@ -983,12 +989,12 @@ public class CanvasScene {
 			double dist = s.distance(x, y, true);
 
 			if (dist < 0) { // dist < 0 --> inside!
-			 logger.debug("s.data = "+s.getData().toString()+" dist = "+dist+" level = "+s.getLevel());
+			 logger.trace("s.data = "+s.getData().toString()+" dist = "+dist+" level = "+s.getLevel());
 
 				dist *= -1;
 				// prioritize shapes with a larger level:
 				dist += (100 - s.getLevel()) * 1e5;
-				logger.debug("dist after prior: "+dist);
+				logger.trace("dist after prior: "+dist);
 
 				if (dist < minDist) {
 					minDist = dist;
