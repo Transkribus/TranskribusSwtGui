@@ -476,6 +476,7 @@ public class TrpMainWidget {
 			}
 		}
 
+		// disabled this here --> use this functionality via ctrl+t+t+t
 //		loadTestDocSpecifiedInLocalFile();
 		
 		// TEST:
@@ -2821,13 +2822,12 @@ public class TrpMainWidget {
 						shell.layout();
 						mw.postInit();
 					}
+					
+					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
+					mw.openJavaVersionDialog(false);						
 
 					// the main display loop:
 					logger.debug("entering main event loop");
-					
-					
-					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
-					mw.openJavaVersionDialog();
 					
 					// while((Display.getCurrent().getShells().length != 0)
 					// && !Display.getCurrent().getShells()[0].isDisposed()) {
@@ -4978,9 +4978,11 @@ public class TrpMainWidget {
 
 	}
 	
-	public void openJavaVersionDialog() {
-		if (javaVersionDialog == null && (!javaInfo.getSystemArch().equals(javaInfo.getJavaArch())) || javaInfo.getVersion().startsWith("1.10") 
-				|| !javaInfo.getFileEnc().startsWith("UTF-8")) {
+	public void openJavaVersionDialog(boolean force) {
+		boolean isJaveInstallationBroken = javaVersionDialog == null && (!javaInfo.getSystemArch().equals(javaInfo.getJavaArch())) || javaInfo.getVersion().startsWith("1.10") 
+				|| !javaInfo.getFileEnc().startsWith("UTF-8");
+		
+		if (force || isJaveInstallationBroken) {
 			javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, javaInfo);
 			javaVersionDialog.open();
 		}
