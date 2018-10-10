@@ -346,13 +346,13 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		if (currentRegionObject == null || currentRegionObject.getTextLine().isEmpty())
 			return;
 		
-		logger.trace("onPaintTags!");
+		logger.debug("onPaintTags!");
 
 //		Font oldFont = e.gc.getFont();
 		// for all visible lines:
 		int firstLine = JFaceTextUtil.getPartialTopIndex(text);
 		int lastLine = JFaceTextUtil.getPartialBottomIndex(text);
-		logger.trace("firstline = "+firstLine+" lastLine = "+lastLine);
+		logger.debug("firstline = "+firstLine+" lastLine = "+lastLine);
 		
 		for (int i = firstLine; i <= lastLine; ++i) {
 			TrpTextLineType line = getLineObject(i);

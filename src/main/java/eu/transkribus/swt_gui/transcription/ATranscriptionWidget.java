@@ -258,15 +258,22 @@ public abstract class ATranscriptionWidget extends Composite{
 	private static final boolean SHOW_WORD_GRAPH_STUFF = false;
 	
 	// a class to store the data needed to paint a tag
-	private class PaintTagData {
+	public static class PaintTagData {
 		public int verticalIndex=0;
 		public StyleRange sr;
 		public List<Rectangle> bounds = new ArrayList<>();
 		public CustomTag tag;
 		public String color;
+		
+		@Override
+		public String toString() {
+			return "PaintTagData [verticalIndex=" + verticalIndex + ", sr=" + sr + ", bounds=" + bounds + ", tag=" + tag
+					+ ", color=" + color + "]";
+		}
+		
 	}
 	
-	Map<String, List<PaintTagData>> tagPaintData = new ConcurrentHashMap<>(); // stores the data needed to paint all tags
+	Map<String, List<PaintTagData>> tagPaintData = new ConcurrentHashMap<>(); // stores the data needed to paint visible tags
 	
 	private class ReloadWgRunnable implements Runnable {
 		Storage store;
@@ -1112,6 +1119,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			@Override public void widgetSelected(SelectionEvent e) {
 				logger.trace("text field vertical scroll: "+e);
 //				updateLineStyles();
+				computeTagPaintData(-1);
 				text.redraw();
 			}
 		});
@@ -1120,6 +1128,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			@Override public void controlResized(ControlEvent e) {
 				logger.trace("text field resized: "+e);
 //				updateLineStyles();
+				computeTagPaintData(-1);
 				text.redraw();
 			}
 			@Override public void controlMoved(ControlEvent e) {
@@ -1671,15 +1680,15 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	/**
-	 * Computes the data needed to paint tags. If lineIndex < 0 then the data of all  
-	 * @param lineIndex
+	 * Computes the data needed to paint tags.
+	 * @param lineIndex The line index for which the data is recomputed, if -1 then all visible lines are computed.
 	 */
 	private synchronized void computeTagPaintData(int lineIndex) {
 		SebisStopWatch sw = new SebisStopWatch();
 		List<Pair<Integer, ITrpShapeType>> shapes;
 		if (lineIndex < 0) { // recompute all data
 			tagPaintData.clear();
-			shapes = getShapesWithOffsets(false);
+			shapes = getShapesWithOffsets(true);
 		}
 		else {
 			shapes = getShapesWithOffsets(lineIndex);
@@ -1785,8 +1794,15 @@ public abstract class ATranscriptionWidget extends Composite{
 	 * @param offset The character offset for the line of the given CustomTagList ctl
 	 */
 	protected void paintTagsForShape(PaintEvent e, ITrpShapeType shape) {
+		logger.debug("painting tag for shape: "+shape.getId());
 		List<PaintTagData> data = tagPaintData.get(shape.getId());
-
+		if (data == null) {
+			return;
+		}
+		logger.debug("painttagdata: "+data.size());
+		for (PaintTagData d : data) {
+			logger.debug(""+d);
+		}
 		for (PaintTagData paintTagData : data) {
 			List<Rectangle> bounds = paintTagData.bounds;
 			StyleRange sr = paintTagData.sr;
