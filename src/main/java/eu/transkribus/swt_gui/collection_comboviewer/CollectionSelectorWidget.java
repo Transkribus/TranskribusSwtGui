@@ -82,7 +82,7 @@ public class CollectionSelectorWidget extends Composite implements Observer {
 		addListener();
 		
 		setSelectedCollection(null);
-		updateSelectedCollection();
+		updateSelectedCollectionForNewCollectionList();
 	}
 	
 	void addListener() {
@@ -91,7 +91,7 @@ public class CollectionSelectorWidget extends Composite implements Observer {
 				if (SWTUtil.isDisposed(CollectionSelectorWidget.this) || SWTUtil.isDisposed(getShell()))
 						return;
 				
-				updateSelectedCollection();
+				updateSelectedCollectionForNewCollectionList();
 			}
 		});
 	}
@@ -99,7 +99,9 @@ public class CollectionSelectorWidget extends Composite implements Observer {
 	/**
 	 * Checks if currently selected collection is still valid for new list of collections, else sets selection to first of new list that matches collectionPredicate
 	 */
-	void updateSelectedCollection() {
+	private void updateSelectedCollectionForNewCollectionList() {
+		logger.debug("selected collection = "+getSelectedCollection()+" current-doc-collid: "+storage.getCurrentDocumentCollectionId());
+		
 		if (getSelectedCollection() != null && storage.getCollection(getSelectedCollection().getColId())!=null) {
 			return;
 		}

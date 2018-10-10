@@ -3,9 +3,6 @@ package eu.transkribus.swt_gui.doc_overview;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.ServerErrorException;
-
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -32,6 +29,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -149,13 +147,16 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	}
 	
 	@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+		logger.debug("handling login/logout - "+arg);
+		
 		sw.updateLoggedIn();
 		/*
 		 * FIXME This will be overridden by the automatic collection loading event fired when logging in
 		 */
-//		if (arg.login && TrpConfig.getTrpSettings().isLoadMostRecentDocOnLogin()) {
-//			TrpMainWidget.getInstance().loadMostRecentDoc();
-//		}
+		if (arg.login && TrpConfig.getTrpSettings().isLoadMostRecentDocOnLogin()) {
+			TrpMainWidget.getInstance().reloadCollections();
+			TrpMainWidget.getInstance().loadMostRecentDoc();
+		}
 	}
 
 	@Override public void doubleClick(DoubleClickEvent event) {
@@ -302,8 +303,9 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 
 	@Override
 	public void handleEvent(Event event) {
-		//logger.debug("event type : " +event.type + " event.widget is " + event.widget);
+		logger.debug("event type : " +event.type + " event.widget is " + event.widget);
 		if (event.type == SWT.Selection && (event.widget == sw.collectionSelectorWidget || event.widget == sw)) {
+			logger.debug("handling selection event that changed collection, event = "+event);
 			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
 			Future<List<TrpDocMetadata>> docs = TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
 			

@@ -476,7 +476,7 @@ public class TrpMainWidget {
 			}
 		}
 
-		loadTestDocSpecifiedInLocalFile();
+//		loadTestDocSpecifiedInLocalFile();
 		
 		// TEST:
 //		if (TESTTABLES) {
@@ -500,9 +500,13 @@ public class TrpMainWidget {
 	public void loadMostRecentDoc() {
 		try {
 			TrpAction action = storage.getConnection().getMostRecentDocumentAction();
+			if (action == null) {
+				logger.debug("no most recent doc found!");
+			}
+			logger.debug("most recent doc action: "+action);
 			
-			//load the collection and the document list
-			// TODO
+//			load the collection and the document list
+//			 TODO
 			
 			// load the document and jump to page if pageNr is not null
 			loadRemoteDoc(action.getDocId(), action.getColId(), action.getPageNr() != null ? action.getPageNr()-1 : 0);
@@ -594,7 +598,11 @@ public class TrpMainWidget {
 				return null;
 
 			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
-
+			
+			if (storage.getCollection(colId)==null) { // collection not found in Storage -> reload doclist!
+				logger.warn("reloadDocList: colId not found in storage -> have to reload collections from server - should not happen here");
+				reloadCollections();
+			}
 			ui.getServerWidget().setSelectedCollection(storage.getCollection(colId));
 
 			Future<List<TrpDocMetadata>> doclist;
@@ -1100,11 +1108,7 @@ public class TrpMainWidget {
 			TrpGuiPrefs.storeLastLogin(user);
 			TrpGuiPrefs.storeLastAccountType(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
 
-			storage.reloadCollections();
-
 			userCache.add(user);
-			
-
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
@@ -1211,8 +1215,6 @@ public class TrpMainWidget {
 			}
 			storage.loginOAuth(server, refreshToken, state, grantType, redirectUri, prov);
 			TrpGuiPrefs.storeLastAccountType(prov.toString());
-
-			storage.reloadCollections();
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
@@ -2613,13 +2615,14 @@ public class TrpMainWidget {
 		try {
 			boolean collectionChanged = colId != ui.serverWidget.getSelectedCollectionId();
 			if (collectionChanged) {
+				logger.debug("collection changed - reloading doclist!");
 				Future<List<TrpDocMetadata>> fut = reloadDocList(colId);
 				if (fut == null)
 					return false;
 				
 				fut.get(); // wait for doclist to be loaded!
+				logger.debug("loaded new doclist: "+fut.get()+" current-collection: "+getSelectedCollection());
 			}
-			
 			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
 
 			if (colId <= 0) {
