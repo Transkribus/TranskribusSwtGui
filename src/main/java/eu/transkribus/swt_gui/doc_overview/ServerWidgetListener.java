@@ -150,11 +150,12 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		logger.debug("handling login/logout - "+arg);
 		
 		sw.updateLoggedIn();
-		/*
-		 * FIXME This will be overridden by the automatic collection loading event fired when logging in
-		 */
-		if (arg.login && TrpConfig.getTrpSettings().isLoadMostRecentDocOnLogin()) {
+		
+		if (arg.login) {
 			TrpMainWidget.getInstance().reloadCollections();
+		}
+		
+		if (arg.login && TrpConfig.getTrpSettings().isLoadMostRecentDocOnLogin()) {
 			TrpMainWidget.getInstance().loadMostRecentDoc();
 		}
 	}
