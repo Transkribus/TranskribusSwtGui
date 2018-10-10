@@ -154,7 +154,7 @@ public class CommentsWidget extends Composite {
 		showComments.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				if (TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget()!=null)
-					TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true);
+					TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true, false, false);
 			}
 		});
 		showComments.setSelection(TrpConfig.getTrpSettings().isHighlightComments());

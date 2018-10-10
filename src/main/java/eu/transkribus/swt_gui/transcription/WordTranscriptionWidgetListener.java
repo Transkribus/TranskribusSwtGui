@@ -1,14 +1,13 @@
 package eu.transkribus.swt_gui.transcription;
 
+import org.eclipse.swt.widgets.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
-import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-
-import org.eclipse.swt.widgets.Event;
 
 public class WordTranscriptionWidgetListener extends ATranscriptionWidgetListener {
 	private final static Logger logger = LoggerFactory.getLogger(WordTranscriptionWidgetListener.class);
@@ -23,6 +22,10 @@ public class WordTranscriptionWidgetListener extends ATranscriptionWidgetListene
 	@Override
 	protected void handleDefaultSelectionChanged(Event event) {
 		try {
+			if (TrpMainWidget.getInstance().getUi().getSelectedTranscriptionType()!=TranscriptionLevel.WORD_BASED) {
+				return;
+			}
+			
 			logger.debug("word default selection change, event: ["+event.start+"-"+event.end+"]");
 			super.handleDefaultSelectionChanged(event);
 

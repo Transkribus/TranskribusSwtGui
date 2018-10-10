@@ -520,15 +520,21 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 			if ((e.stateMask & SWT.CTRL) == SWT.CTRL)
 //				canvas.rotateLeft();
 				;
-			else
-				canvas.zoomIn(mpt.x, mpt.y);
+			else {
+				if (!settings.isUseScrollBars()) {
+					canvas.zoomIn(mpt.x, mpt.y);	
+				}
+			}
 		}
 		else {
 			if ((e.stateMask & SWT.CTRL) == SWT.CTRL)
 //				canvas.rotateRight();
 				;
-			else
-				canvas.zoomOut(mpt.x, mpt.y);
+			else {
+				if (!settings.isUseScrollBars()) {
+					canvas.zoomOut(mpt.x, mpt.y);	
+				}
+			}
 		}
 		
 //		canvas.scaleCenter(1+sign*settings.scalingFactor, 1+sign*settings.scalingFactor, false);

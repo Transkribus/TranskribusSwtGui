@@ -85,9 +85,8 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				// send this information to this bloody method which causes the modification to be done in the underlying page element:
 				onTextChangedFromUser(start, end, replacementText);
 				
-				redrawText(true);
-//				text.redraw();
-//				text.redrawRange(0, text.getCharCount(), true);
+//				redrawText(true); // OLD --> ineffiecient!!
+				updateLineStylesForCharacterOffsets(start, end);
 			}
 		};
 		addUserExtendedModifyListener(extendedModifyListener);
@@ -134,19 +133,6 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 			return null;
 		
 		return Pair.of(line, offset-text.getOffsetAtLine(li));
-	}
-	
-	protected void preventChangeOverMultipleLines(VerifyEvent e) {
-		// prevent changes on first line:
-		int lineIndex1 = text.getLineAtOffset(e.start);
-		int lineIndex2 = text.getLineAtOffset(e.end);
-		TrpTextLineType line1 = getLineObject(lineIndex1);
-		TrpTextLineType line2 = getLineObject(lineIndex2);
-		
-		if (currentLineObject == null || currentLineObject!=line1 || currentLineObject!=line2) {
-			logger.debug("changes over multiple lines not allowed!");
-			e.doit = false;
-		}
 	}
 	
 //	protected void onTextChangedFromUser(VerifyEvent e) {
@@ -362,7 +348,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		
 		logger.trace("onPaintTags!");
 
-		Font oldFont = e.gc.getFont();
+//		Font oldFont = e.gc.getFont();
 		// for all visible lines:
 		int firstLine = JFaceTextUtil.getPartialTopIndex(text);
 		int lastLine = JFaceTextUtil.getPartialBottomIndex(text);
@@ -374,14 +360,14 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				logger.error("Could not paint line tags for line "+i+" - should not happen here!");
 				return;
 			}
+			paintTagsForShape(e, line);
 			
-			CustomTagList ctl = line.getCustomTagList();
-			int lo = text.getOffsetAtLine(i);
-			logger.trace("i = " + i + " lo = " + lo);
-
-			paintTagsFromCustomTagList(e, ctl, lo);
+//			CustomTagList ctl = line.getCustomTagList();
+//			int lo = text.getOffsetAtLine(i);
+//			logger.trace("i = " + i + " lo = " + lo);
+//			paintTagsFromCustomTagList(e, ctl, lo);
 		}
-		e.gc.setFont(oldFont); // needed ?? (most probably not)
+//		e.gc.setFont(oldFont); // needed ?? (most probably not)
 	}
 	
 	private List<Pair<TrpTextLineType, IntRange>> getReplaceRanges(int start, int end) {
@@ -413,7 +399,7 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 			public void verifyText(VerifyEvent e) {
 
 				//TODO:FIXME take out!
-				logger.debug("verifyText() "+e.keyCode + ": "+e.character + " - "+ e.text);
+				logger.trace("verifyText() "+e.keyCode + ": "+e.character + " - "+ e.text);
 				
 				// prevent del and backspace on begin and end of line:
 				preventDelAndBackspace(e);
@@ -553,16 +539,16 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		addUserVerifyKeyListener(verifyKeyListener);
 	}
 	
-	/** Returns the index of the current cursor position in the current line */
-	public int getCurrentXIndex() {
-		return getXIndex(text.getCaretOffset());
-	}
-	
-	public int getXIndex(int caretOffset) {
-		int lineOffset = text.getOffsetAtLine(text.getLineAtOffset(caretOffset));
-		int xIndex = caretOffset - lineOffset;
-		return xIndex;
-	}
+//	/** Returns the index of the current cursor position in the current line */
+//	public int getCurrentXIndex() {
+//		return getXIndex(text.getCaretOffset());
+//	}
+//	
+//	public int getXIndex(int caretOffset) {
+//		int lineOffset = text.getOffsetAtLine(text.getLineAtOffset(caretOffset));
+//		int xIndex = caretOffset - lineOffset;
+//		return xIndex;
+//	}
 				
 //	private void highlightWords(LineStyleEvent event, List<StyleRange> styleList) {
 //		int lineToHighlight = text.getLineAtOffset(event.lineOffset);
@@ -695,67 +681,23 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		
 	@Override
 	protected void updateSelection(boolean textChanged, boolean lineChanged, boolean wordChanged) {
-		if (currentLineObject == null)
+		if (currentLineObject == null) {
 			text.setSelection(0);
+		}
 		else if (textChanged || lineChanged) {// text or line change from outside of transcription widget
-			int li = currentLineObject.getIndex();
+//			int li = currentLineObject.getIndex();
+			int li = getIndexOfLineInCurrentRegion(currentLineObject);
+			logger.debug("li123 = "+li);
 			if (li!=-1) {
 				int selectionOffset = text.getOffsetAtLine(li);
 				text.setSelection(selectionOffset);
 			}
 		}
 	}
-		
-//	protected void initLineObject(TrpTextLineType line) {
-//		if (line == null) {
-//			currentLineObject=null;
-//			text.setSelection(0);
-//		}
-//		// only update cursor if line has changed:
-//		else if (currentLineObject != line) {
-//			currentLineObject = line;
-//			int selectionOffset = text.getOffsetAtLine(currentLineObject.getIndex());
-//			text.setSelection(selectionOffset);
-//		}
-//	}
-//	
-//	protected void initWordObject(TrpWordType word) {
-//	}
-	
-//	public List<TrpTextLineType> getSelectedShapes() {
-//		List<TrpTextLineType> selectedLines = new ArrayList<>();
-//		if (currentRegionObject == null)
-//			return selectedLines;
-//
-//		Point sel = text.getSelectionRange();
-//		int l1 = text.getLineAtOffset(sel.x);
-//		int l2 = text.getLineAtOffset(sel.x+sel.y);
-//		for (int i=l1; i<=l2; ++i) {
-//			selectedLines.add(getLineObject(i));
-//		}
-//		logger.debug("sel = "+sel+"l1 = "+l1+", l2 = "+l2+ " selectedLiens = "+selectedLines.size());
-//		
-//		return selectedLines;
-//	}
 
-	/** Updates the current line object from the current caret offset. */
 	@Override
-	protected void updateLineObject() {
-//		logger.debug("selectiontext = '"+text.getSelectionText()+"'");
-		int newLineIndex = text.getLineAtOffset(text.getCaretOffset()); // text.getCaretOffset()		
-		TrpTextLineType newLine = getLineObject(newLineIndex);
-		logger.trace("updating line object, caretOffset = "+text.getCaretOffset()+", line-index = "+newLineIndex);
-		if (newLine != currentLineObject) {
-			currentLineObject = newLine;
-			if (getType() == TranscriptionLevel.LINE_BASED) { // only send signal if in line-based editor -> important to prevent overwriting updating of new word object!
-				sendSelectionChangedSignal();
-				text.redraw();
-			}
-		}
+	protected void updateWordObject() {
 	}
-	
-	@Override
-	protected void updateWordObject() {}
 	
 	@Override
 	protected String getTextFromRegion() {
@@ -805,16 +747,21 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		if (!(t.getCustomTagList().getShape() instanceof TrpTextLineType))
 			return false;
 		
-		if (currentLineObject==null)
+		if (currentRegionObject == null || currentLineObject==null)
 			return false;
 		
 		if (!t.getCustomTagList().getShape().getId().equals(currentLineObject.getId()))
 			return false;
 		
+		
+		
 		TrpTextLineType l = (TrpTextLineType) t.getCustomTagList().getShape();
+		int lineIndex = currentRegionObject.getTrpTextLine().indexOf(l);
+		if (lineIndex==-1) {
+			return false;
+		}
 
-		int lo = text.getOffsetAtLine(l.getIndex());
-//		int ll = text.getLine(l.getIndex()).length();
+		int lo = text.getOffsetAtLine(lineIndex);
 		
 		int s = lo+t.getOffset();
 		int e = s+t.getLength();
@@ -827,6 +774,11 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		text.setSelection(s, e);
 
 		return true;
+	}
+
+	@Override
+	public TranscriptionLevel getTranscriptionLevel() {
+		return TranscriptionLevel.LINE_BASED;
 	}
 	
 //	@Override public Point getSelectionRangeRelativeToTranscriptionUnit() {
@@ -855,5 +807,17 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 //			return r;				
 //		}
 //	}
+	
+	protected List<Pair<Integer, ITrpShapeType>> getShapesWithOffsets(int lineIndex) {
+		List<Pair<Integer, ITrpShapeType>> shapes = new ArrayList<>();
+		TrpTextLineType line = getLineObject(lineIndex);
+		if (line == null) {
+			return shapes;
+		}
+		
+		int lo = text.getOffsetAtLine(lineIndex);
+		shapes.add(Pair.of(lo, line));
+		return shapes;
+	}
 	
 }

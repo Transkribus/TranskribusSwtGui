@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ArmEvent;
@@ -13,6 +14,7 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +22,18 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.EnumUtils;
+import eu.transkribus.swt.portal.PortalWidget.Docking;
+import eu.transkribus.swt.portal.PortalWidget.PortalWidgetListener;
+import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
+import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasToolBarNew;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpTabWidget.TrpTabItemSelectionListener;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
@@ -221,6 +228,32 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 					if (transcriptionWidget != null) {
 						ui.getTaggingWidget().updateSelectedTag(transcriptionWidget.getCustomTagsForCurrentOffset());	
 					}
+				}
+			}
+		});
+		
+		ui.getPortalWidget().addPortalWidgetListener(new PortalWidgetListener() {
+			@Override
+			public void onDockingChanged(String widgetType, Composite widget, Position pos, Docking docking) {
+				logger.debug("onDockingChanged: widgetType = "+widgetType+" pos = "+pos+" docking = "+docking);
+				
+				if (StringUtils.equals(widgetType, TrpMainWidgetView.MENU_WIDGET_TYPE)) {
+					TrpConfig.getTrpSettings().setMenuViewDockingState(docking);
+				}
+				else if (StringUtils.equals(widgetType, TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE)) {
+					logger.debug("setting tr view docking state!");
+					TrpConfig.getTrpSettings().setTranscriptionViewDockingState(docking);
+				}
+				
+				canvas.fitWidth();
+			}
+			
+			@Override
+			public void onPositionChanged(String widgetType, Composite widget, Position pos, Docking docking) {
+				logger.debug("onPositionChanged: widgetType = "+widgetType+" pos = "+pos+" docking = "+docking);
+				
+				if (StringUtils.equals(widgetType, TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE)) {
+					TrpConfig.getTrpSettings().setTranscriptionViewPosition(pos);
 				}
 			}
 		});

@@ -82,10 +82,10 @@ public class TagListWidget extends Composite {
 		new ColumnConfig(TAG_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(TAG_VALUE_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(CONTEXT_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(PROPERTIES_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
+//		new ColumnConfig(REGION_COL, 40, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(PROPERTIES_COL, 400, false, DefaultTableColumnViewerSorter.ASC),
 //		new ColumnConfig(DOC_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
 //		new ColumnConfig(PAGE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(REGION_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
 	};
 	
 	static Storage store = Storage.getInstance();

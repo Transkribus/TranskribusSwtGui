@@ -158,7 +158,7 @@ class TagNormalizationWidget extends Composite {
 		}
 		//if loaded pae (loaded in GUI) has normalized tags then the new transcript must be loaded
 		if (currentPageAffected){
-			TrpMainWidget.getInstance().reloadCurrentPage(true, true);
+			TrpMainWidget.getInstance().reloadCurrentPage(true, true, null);
 		}
 	}
 	

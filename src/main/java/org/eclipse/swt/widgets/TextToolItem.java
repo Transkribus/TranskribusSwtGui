@@ -1,18 +1,22 @@
 package org.eclipse.swt.widgets;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
 
 public class TextToolItem extends ACustomToolItem {
+	private static final Logger logger = LoggerFactory.getLogger(TextToolItem.class);
 	
 	public final static int DEFAULT_FONT_SIZE = 10;
 	
 	Text text;
+	String hintText=null;
 	
 	public TextToolItem (ToolBar parent, int style) {
 		super (parent, style);
@@ -34,6 +38,10 @@ public class TextToolItem extends ACustomToolItem {
 		this.setControl(text);
 	}
 	
+	public void setAutoSelectTextOnFocus() {
+		SWTUtil.addSelectOnFocusToText(text);
+	}
+	
 	public void setNonEditable() {
 		text.setBackground(Colors.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		text.setEditable(false);
@@ -52,6 +60,23 @@ public class TextToolItem extends ACustomToolItem {
 	
 	public Text getTextControl() {
 		return text;
+	}
+	
+	public void resizeToMessage() {
+		if (text.getMessage()!=null) {
+			GC gc = new GC(text);
+			this.setWidth(gc.stringExtent(text.getMessage()).x+5);
+			gc.dispose();
+		}
+	}
+	
+	public void setMessage(String message) {
+		text.setMessage(message);
+	}
+	
+	@Override public void setToolTipText(String string) {
+//		super.setToolTipText(string);
+		text.setToolTipText(string);
 	}
 	
 }

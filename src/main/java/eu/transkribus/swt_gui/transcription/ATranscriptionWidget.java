@@ -12,12 +12,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.docx4j.model.fields.merge.MailMergerWithNext;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.resource.JFaceResources;
@@ -99,7 +101,9 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
+import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
@@ -109,6 +113,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.UndoRedoImpl;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
+import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
@@ -160,6 +165,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected ToolItem undoItem, redoItem;
 	
 	protected MenuItem autocompleteToggle;
+	protected MenuItem showAllLinesToggle;
 	
 	// additional characters:
 	protected ToolItem longDash;
@@ -244,10 +250,23 @@ public abstract class ATranscriptionWidget extends Composite{
 	ToolItem strikethroughTagItem;
 	MenuItem serifItem, monospaceItem, reverseVideoItem, smallCapsItem, letterSpacedItem;
 	
+	ToolItem widgetPositionItem;
+	
 //	ToolItem showTagEditorItem;
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
 	private static final boolean SHOW_WORD_GRAPH_STUFF = false;
+	
+	// a class to store the data needed to paint a tag
+	private class PaintTagData {
+		public int verticalIndex=0;
+		public StyleRange sr;
+		public List<Rectangle> bounds = new ArrayList<>();
+		public CustomTag tag;
+		public String color;
+	}
+	
+	Map<String, List<PaintTagData>> tagPaintData = new ConcurrentHashMap<>(); // stores the data needed to paint all tags
 	
 	private class ReloadWgRunnable implements Runnable {
 		Storage store;
@@ -394,7 +413,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		initContextMenu();
 		
 		moveToolBar(settings.getTranscriptionToolbarOnTop());
+		
+		regionsPagingToolBar.setToolbarItemsVisible(!settings.isShowAllLinesInTranscriptionView(), 0);
 	}
+	
 	
 	public void addListener(ITranscriptionWidgetListener l) {
 		listener.add(l);
@@ -429,7 +451,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 		
 		sendDefaultSelectionChangedSignal(false);
-		redrawText(true);
+		redrawText(true, false, false);
 	}
 	
 	protected WritingOrientation getWritingOrientation() {
@@ -517,6 +539,17 @@ public abstract class ATranscriptionWidget extends Composite{
 		return ranges;
 	}
 	
+	/** Returns the index of the current cursor position in the current line */
+	protected int getCurrentXIndex() {
+		return getXIndex(text.getCaretOffset());
+	}
+	
+	protected int getXIndex(int caretOffset) {
+		int lineOffset = text.getOffsetAtLine(text.getLineAtOffset(caretOffset));
+		int xIndex = caretOffset - lineOffset;
+		return xIndex;
+	}	
+	
 	protected int getMaxLineTextHeight(int lineIndex) {
 		if (lineIndex < 0 || lineIndex >= text.getLineCount())
 			return -1;
@@ -584,12 +617,10 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	protected void initToolBar() {
 //		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, true, this, SWT.FLAT | SWT.BOTTOM);
-		regionsPagingToolBar = new PagingToolBar("Region: ", true, true, true, this, /*SWT.FLAT |*/ SWT.BOTTOM);
-		regionsPagingToolBar.removeReloadButton();
-		regionsPagingToolBar.removeDoubleButtons();
+		regionsPagingToolBar = new PagingToolBar("Region: ", true, false, true, false, true, this, /*SWT.FLAT |*/ SWT.BOTTOM);
 		regionsToolbar = regionsPagingToolBar.getToolBar();
-				
-		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+		
+//		pagingSeparator = new ToolItem(regionsToolbar, SWT.SEPARATOR);
 				
 //		initViewSetsDropDown();
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
@@ -689,6 +720,13 @@ public abstract class ATranscriptionWidget extends Composite{
 		transcriptSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.WRENCH, "Transcription settings...");
 		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
 		initTranscriptionSetsDropDownItems(transcriptSetsDropDown);
+		
+		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+		
+		widgetPositionItem = new ToolItem(regionsToolbar, SWT.PUSH);
+		updateWidgetPositionItemImage();
+		widgetPositionItem.setToolTipText("Change position of transcription widget");
+		additionalToolItems.add(widgetPositionItem);
 		
 		if (SHOW_WORD_GRAPH_STUFF && getType() == TranscriptionLevel.LINE_BASED) {
 			new ToolItem(regionsToolbar, SWT.SEPARATOR);
@@ -800,6 +838,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		transcriptionTypeWordBasedItem= SWTUtil.createMenuItem(transcriptionTypeMenu, "Word based", null, SWT.RADIO);
 		transcriptionTypeWordBasedItem.setData(TranscriptionLevel.WORD_BASED);
 		
+		showAllLinesToggle = ti.addItem("Show all lines of page", null, SWT.CHECK);
 		autocompleteToggle = ti.addItem("Autocomplete (based on text of current transcript)", Images.getOrLoad("/icons/autocomplete.png"), SWT.CHECK);
 		
 		// old "view" sets...
@@ -827,6 +866,8 @@ public abstract class ATranscriptionWidget extends Composite{
 			centerAlignmentItem.setSelection(true);
 		else
 			leftAlignmentItem.setSelection(true);
+		
+		text.setAlignment(settings.getTextAlignment());
 		
 		textStyleDisplayOptions = ti.addItem("Rendered tag styles", Images.getOrLoad("/icons/paintbrush.png"), SWT.CASCADE);
 		Menu textStyleDisplayOptionsMenu = new Menu(ti.getMenu());
@@ -955,8 +996,15 @@ public abstract class ATranscriptionWidget extends Composite{
 				else if (pn.equals(TrpSettings.AUTOCOMPLETE_PROPERTY)) {
 					autocomplete.getAdapter().setEnabled(settings.isAutocomplete());
 				}
+				else if (pn.equals(TrpSettings.SHOW_ALL_LINES_IN_TRANSCRIPTION_VIEW_PROPERTY)) {
+					TrpMainWidget.getInstance().updateSelectedTranscriptionWidgetData();
+					regionsPagingToolBar.setToolbarItemsVisible(!settings.isShowAllLinesInTranscriptionView(), 0);
+				}
 				else if (pn.equals(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY)) {
-					redrawText(true);
+					redrawText(true, false, false);
+				}
+				else if (pn.equals(TrpSettings.TRANSCRIPTION_VIEW_POSITION_PROPERTY)) {
+					updateWidgetPositionItemImage();
 				}
 				
 				// saving on change not needed anymore... gets saved anyway
@@ -973,7 +1021,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //					TrpConfig.save(TrpSettings.SHOW_CONTROL_SIGNS_PROPERTY);
 //				}	
 				
-				updateLineStyles();
+				updateLineStyles(false, false);
 				text.redraw();
 			}
 		});
@@ -1063,14 +1111,16 @@ public abstract class ATranscriptionWidget extends Composite{
 		text.getVerticalBar().addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				logger.trace("text field vertical scroll: "+e);
-				updateLineStyles();
+//				updateLineStyles();
+				text.redraw();
 			}
 		});
 		
 		text.addControlListener(new ControlListener() {
 			@Override public void controlResized(ControlEvent e) {
 				logger.trace("text field resized: "+e);
-				updateLineStyles();
+//				updateLineStyles();
+				text.redraw();
 			}
 			@Override public void controlMoved(ControlEvent e) {
 			}
@@ -1092,6 +1142,17 @@ public abstract class ATranscriptionWidget extends Composite{
 		});
 		
 		initWordGraphListener();
+		
+		SWTUtil.onSelectionEvent(widgetPositionItem, e -> {
+			if (settings.getTranscriptionViewPosition() == Position.RIGHT) {
+				TrpMainWidget.getInstance().getUi().getPortalWidget().setWidgetPosition(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, Position.BOTTOM);
+				logger.debug("switching transcription widget to bottom!");
+			}
+			else if (settings.getTranscriptionViewPosition() == Position.BOTTOM) {
+				logger.debug("switching transcription widget to right side!");
+				TrpMainWidget.getInstance().getUi().getPortalWidget().setWidgetPosition(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, Position.RIGHT);
+			}
+		});
 	}
 	
 	protected void initWordGraphListener() {
@@ -1177,47 +1238,135 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 	}
 	
-	protected void setLineBulletAndStuff() {
+	protected int getIndexOfLineInCurrentRegion(TrpTextLineType line) {
+		if (currentRegionObject == null) {
+			return -1;
+		}
+		else {
+			return currentRegionObject.getTrpTextLine().indexOf(line);
+		}
+	}
+	
+//	protected void updateLineBullets(boolean onlyVisibleLines) {
+//		int startIndex=0, endIndex=text.getLineCount();
+//		if (onlyVisibleLines) {
+//			startIndex = JFaceTextUtil.getPartialTopIndex(text);
+//			endIndex = JFaceTextUtil.getPartialBottomIndex(text);
+//		}
+//		
+//		updateLineBullets(startIndex, endIndex);
+//	}
+	
+	protected void updateLineBullets() {
 		text.setLineBullet(0, text.getLineCount(), null); // delete line bullet first to guarantee update! (bug in SWT?)
-		if (settings.isShowLineBullets() && currentRegionObject!=null && getNTextLines()>0) {
-			Storage store = Storage.getInstance();
-			for (int i=0; i<text.getLineCount(); ++i) {				
-				final int docId = store.getDoc().getId();
-				final int pNr = store.getPage().getPageNr();
-				
+		if (true && settings.isShowLineBullets() && getNTextLines()>0) {
+			logger.debug("settingLineBulletAndStuff");
+//			Storage store = Storage.getInstance();
+			
+			String currentRegionId=null;
+			int l=1;
+			int r=0;
+			
+			final String regionLineSeperator = "-";
+			GC gc = new GC(text);
+			Fonts.setBoldFont(text);
+			String maxBulletStr = Integer.toString(currentRegionObject.getPage().getRegions().size())+regionLineSeperator+Integer.toString(text.getLineCount());
+			logger.trace("max bullet string: "+maxBulletStr);
+			int glyphMetricsWidth = gc.stringExtent(maxBulletStr).x + 10;
+			Fonts.setNormalFont(text);
+			gc.dispose();
+			logger.trace("bullet metrics width: "+glyphMetricsWidth);
+			
+			for (int i=0; i<text.getLineCount(); ++i) {
 				int bulletFgColor = SWT.COLOR_BLACK;
-				
 				int fontStyle = SWT.NORMAL;
+				
+				// determine if we have a word-graph for that line...
 				if (i>= 0 && i <currentRegionObject.getTextLine().size()) {
-					final String lineId = currentRegionObject.getTextLine().get(i).getId();
-					boolean hasWg = store.hasWordGraph(docId, pNr, lineId);
+					fontStyle = (i == getCurrentLineIndex()) ? SWT.BOLD : SWT.NORMAL;
 					
-					fontStyle = (i == getCurrentLineIndex()) ? SWT.BOLD : SWT.NORMAL;	
-					bulletFgColor = hasWg ? SWT.COLOR_DARK_GREEN : SWT.COLOR_BLACK;
+					// determine color, if it has a wordgraph...
+//					final String lineId = currentRegionObject.getTextLine().get(i).getId();
+//					boolean hasWg = store.hasWordGraph(docId, pNr, lineId);
+//					bulletFgColor = hasWg ? SWT.COLOR_DARK_GREEN : SWT.COLOR_BLACK;
 				}
 
 				StyleRange style = new StyleRange(0, text.getCharCount(), Colors.getSystemColor(bulletFgColor), Colors.getSystemColor(SWT.COLOR_GRAY), fontStyle);
-				style.metrics = new GlyphMetrics(0, 0, Integer.toString(text.getLineCount() + 1).length() * 12);
+//				style.metrics = new GlyphMetrics(0, 0, Integer.toString(text.getLineCount() + 1).length() * 12);
+				style.metrics = new GlyphMetrics(0, 0, glyphMetricsWidth);
 //				style.background = Colors.getSystemColor(SWT.COLOR_GRAY);
 				Bullet bullet = new Bullet(/*ST.BULLET_NUMBER |*/ ST.BULLET_TEXT, style);
-				bullet.text = ""+(i+1);
+//				bullet.text = ""+(i+1);
 				
+				String bulletText="";
+				TrpTextLineType line = currentRegionObject.getTrpTextLine().get(i);
+				if (currentRegionId==null || !line.getRegion().getId().equals(currentRegionId)) {
+					++r;
+					currentRegionId = line.getRegion().getId();
+					l = 1;
+				}
+				if (settings.isShowAllLinesInTranscriptionView()) {
+//					bulletText += "r"+r+"-l"+l;
+					bulletText += r+regionLineSeperator+l;
+				} else {
+					bulletText += ""+l;
+				}
+				bullet.text = bulletText;
+				
+				// OLD: just the line numbers
+//				bullet.text = ""+(i+1);
+//				int baseOffset = style.metrics.width*bulletText.length()+10; // add some offset if line is selected
+//				int baseOffset = style.metrics.width*bulletText.length()+25; // add some offset if line is selected
+				int baseOffset = 0; // add some offset if line is selected
 				text.setLineBullet(i, 1, bullet);
-				text.setLineIndent(i, 1, 25);
-				text.setLineAlignment(i, 1, settings.getTextAlignment());
-				text.setLineWrapIndent(i, 1, 25+style.metrics.width);
+//				text.setLineIndent(i, 1, baseOffset);
+//				text.setLineAlignment(i, 1, settings.getTextAlignment());
+				text.setLineWrapIndent(i, 1, baseOffset+style.metrics.width);
+				
+				++l;
 			}
 			
 //			text.setLineBullet(0, text.getLineCount(), bullet);
 //			text.setLineIndent(0, text.getLineCount(), 25);
 //			text.setLineAlignment(0, text.getLineCount(), textAlignment);
 //			text.setLineWrapIndent(0, text.getLineCount(), 25+style.metrics.width);			
-			
-
 		}
 	}
 	
-	protected void updateLineStyles() {
+	protected void updateLineStyles(boolean onlyVisibleLines, boolean updateLineBullets) {
+		int startIndex=0, endIndex=text.getLineCount();
+		if (onlyVisibleLines) {
+			startIndex = JFaceTextUtil.getPartialTopIndex(text);
+			endIndex = JFaceTextUtil.getPartialBottomIndex(text);
+		}
+		
+		updateLineStyles(startIndex, endIndex);
+		
+		if (updateLineBullets) {
+			updateLineBullets();
+		}
+		
+		computeTagPaintData(-1);
+	}
+	
+	protected void updateLineStylesForCharacterOffsets(int start, int end) {
+		int startLine = text.getLineAtOffset(start);
+		if (startLine<0) { // should never happen...
+			startLine=0;
+		}
+		int endLine = text.getLineAtOffset(end);
+		if (endLine > text.getLineCount()) { // should never happen...
+			endLine = text.getLineCount();
+		}
+		
+		updateLineStyles(startLine, endLine+1);
+		
+		for (int i=startLine; i<endLine+1; ++i) {
+			computeTagPaintData(i);
+		}
+	}
+	
+	protected void updateLineStyles(int startLineIndex, int endLineIndex) {
 		if (!text.isEnabled()) {
 			return;
 		}
@@ -1225,7 +1374,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		logger.trace("updating line styles!");
 		
 		// set line bullet:
-		setLineBulletAndStuff();
+		// TODO: update line bullets for specified lines only also!
+//		updateLineBullets();
 		
 		// set global style(s): <-- NO NEED TO DO SO, AS OVERWRITTEN BY setStyleRanges call below!!		
 //		StyleRange srDefault = new StyleRange(TrpUtil.getDefaultSWTTextStyle(text.getFont().getFontData()[0], settings));
@@ -1236,16 +1386,31 @@ public abstract class ATranscriptionWidget extends Composite{
 		// get specific style ranges for all lines:
 		List<StyleRange> allStyles = new ArrayList<>();
 		
-		if (true)
-		for (int i=JFaceTextUtil.getPartialTopIndex(text); i<=JFaceTextUtil.getPartialBottomIndex(text); ++i) { // only for visible lines		
-//		for (int i=0; i<text.getLineCount(); ++i) {
+//		int startIndex=0, endIndex=text.getLineCount();
+//		if (onlyVisibleLines) {
+//			startIndex = JFaceTextUtil.getPartialTopIndex(text);
+//			endIndex = JFaceTextUtil.getPartialBottomIndex(text);
+//		}
+		
+//		for (int i=JFaceTextUtil.getPartialTopIndex(text); i<=JFaceTextUtil.getPartialBottomIndex(text); ++i) { // only for visible lines		
+		for (int i=startLineIndex; i<endLineIndex; ++i) {
 			List<StyleRange> styles = getLineStyleRanges(text.getOffsetAtLine(i));			
 			allStyles.addAll(styles);
 		}
 				
 		// set style ranges:
 		try {
-			text.setStyleRanges(allStyles.toArray(new StyleRange[0]));
+			int startOffset = text.getOffsetAtLine(startLineIndex);
+			int endOffset = text.getOffsetAtLine(endLineIndex-1)+text.getLine(endLineIndex-1).length();
+			int length = endOffset-startOffset;
+			
+			logger.debug("startOffset = "+startOffset+" endOffset = "+endOffset);
+			logger.debug("length = "+length);
+			
+//			text.setStyleRanges(allStyles.toArray(new StyleRange[0]));
+			text.replaceStyleRanges(startOffset, length, allStyles.toArray(new StyleRange[0]));
+			
+//			text.setStyleRanges(allStyles.toArray(new StyleRange[0]));
 		} catch (IllegalArgumentException e) {
 			logger.error("Could not update line styles - skipping");
 		}
@@ -1266,12 +1431,14 @@ public abstract class ATranscriptionWidget extends Composite{
 		int bi = JFaceTextUtil.getBottomIndex(text);
 		if ((ci == ti && ci-1>=0) || (ci == bi && ci-1>=0)) {
 			text.setTopIndex(ci-1);
-			updateLineStyles();
+			updateLineStyles(false, false);
 		}
 	}
 	
+	// FIXME: have to fix for mode when all lines are shown for all regions
 	public int getCurrentLineIndex() {
-		return (currentLineObject == null) ? -1 : currentLineObject.getIndex();
+//		return (currentLineObject == null) ? -1 : currentLineObject.getIndex();
+		return (currentLineObject == null) ? -1 : text.getLineAtOffset(text.getCaretOffset());
 	}
 	
 	protected void initSelectionListener() {
@@ -1290,7 +1457,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	        	
 	        	if (true) {
 		        	// NEW: try to send event only when time diff between events is greater threshold to prevent overkill of signals!
-		    		final long DIFF_T = 500;
+		    		final long DIFF_T = 400;
 		    		new Timer().schedule(new TimerTask() {
 		    			@Override public void run() {
 		        			long selDiff = System.currentTimeMillis() - lastDefaultSelectionEventTime;
@@ -1371,7 +1538,23 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected abstract void initModifyListener();
 	protected abstract void initVerifyListener();
 	
-	protected abstract void updateLineObject();
+	/**
+	 * Updates the current line object from the current caret offset.
+	 */
+	protected void updateLineObject() {
+		int newLineIndex = text.getLineAtOffset(text.getCaretOffset());
+		TrpTextLineType newLine = getLineObject(newLineIndex);
+		logger.trace("updating line object, caretOffset = "+text.getCaretOffset()+", line-index = "+newLineIndex);
+		if (newLine != currentLineObject) {
+			currentLineObject = newLine;
+			if (getType() == TranscriptionLevel.LINE_BASED) { // only send signal if in line-based editor -> important to prevent overwriting updating of new word object!
+				sendSelectionChangedSignal();
+				text.redraw();
+			}
+		}
+	}
+	
+	// get implemented in WordTranscriptionWidget
 	protected abstract void updateWordObject();
 	
 	protected void updateLineAndWordObjects() {
@@ -1396,10 +1579,10 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	protected TrpTextLineType getLineObject(int textLineIndex) {
-		if (textLineIndex < 0 || textLineIndex >= getNTextLines())
+		if (currentRegionObject == null || textLineIndex < 0 || textLineIndex >= getNTextLines())
 			return null;
 		
-		return (TrpTextLineType) currentRegionObject.getTextLine().get(textLineIndex);
+		return currentRegionObject.getTrpTextLine().get(textLineIndex);
 	}
 	
 	protected abstract List<StyleRange> getLineStyleRanges(int lineOffset);
@@ -1431,7 +1614,9 @@ public abstract class ATranscriptionWidget extends Composite{
 					}
 					else { // if just enter pressed then jump one line down:
 						if (!autocomplete.getAdapter().isProposalPopupOpen()) {
-							sendTextKeyDownEvent(SWT.ARROW_DOWN);
+							jumpToFirstCharOfNeighborLine(false);
+							// OLD: just re-interpret as arrow-down, problem: caret not jumped to first char of new line
+//							sendTextKeyDownEvent(SWT.ARROW_DOWN);
 						}
 					}
 					return;
@@ -1446,31 +1631,97 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected abstract void initVerifyKeyListener();
 	protected abstract void onPaintTags(PaintEvent e);
 	
-	/**
-	 * 
-	 * @param e
-	 * @param ctl The CustomTagList for which the tag markers are drawn
-	 * @param offset The character offset for the line of the given CustomTagList ctl
-	 */
-	protected void paintTagsFromCustomTagList(PaintEvent e, CustomTagList ctl, int offset) {
-		Set<String> tagNames = ctl.getIndexedTagNames();
+	protected void jumpToFirstCharOfNeighborLine(boolean previous) {
+		try {
+			int cl = text.getLineAtOffset(text.getCaretOffset());
+			if (previous && cl == 0 || !previous && cl == text.getLineCount()-1) {// do nothing on last or first line
+				logger.trace("this is the first or last line, previous = "+previous);
+				return;
+			}
+			cl = previous ? cl-1 : cl+1;
+			
+			// jump to first character of line
+			int o = text.getOffsetAtLine(cl);
+			logger.trace("o = "+o);
+			if (o>=0 && o<text.getCharCount()) {
+				text.setSelection(o);
+			}
+		} catch (Exception e) {
+			logger.error("Could not jump to neighbor line: "+e.getMessage(), e);
+		}
+	}
+	
+	protected abstract List<Pair<Integer, ITrpShapeType>> getShapesWithOffsets(int lineIndex);
+	
+	protected List<Pair<Integer, ITrpShapeType>> getShapesWithOffsets(boolean onlyVisible) {
+		List<Pair<Integer, ITrpShapeType>> shapes = new ArrayList<>();
+		if (text.getLineCount()==0) {
+			return shapes;
+		}
 		
+		int firstLine = onlyVisible ? JFaceTextUtil.getPartialTopIndex(text) : 0;
+		int lastLine = onlyVisible ? JFaceTextUtil.getPartialBottomIndex(text) : text.getLineCount();
+		logger.trace("firstline = "+firstLine+" lastLine = "+lastLine);
+		
+		for (int i = firstLine; i <= lastLine; ++i) {
+			shapes.addAll(getShapesWithOffsets(i));
+		}
+		
+		return shapes;
+	}
+	
+	/**
+	 * Computes the data needed to paint tags. If lineIndex < 0 then the data of all  
+	 * @param lineIndex
+	 */
+	private synchronized void computeTagPaintData(int lineIndex) {
+		SebisStopWatch sw = new SebisStopWatch();
+		List<Pair<Integer, ITrpShapeType>> shapes;
+		if (lineIndex < 0) { // recompute all data
+			tagPaintData.clear();
+			shapes = getShapesWithOffsets(false);
+		}
+		else {
+			shapes = getShapesWithOffsets(lineIndex);
+		}
+		
+		for (Pair<Integer, ITrpShapeType> p : shapes) {
+			List<PaintTagData> paintTagData = computeBoundsForCustomTagList(p.getRight(), p.getLeft());
+			tagPaintData.put(p.getRight().getId(), paintTagData);
+		}
+		
+		sw.stop(true, "computed tag paint data, lineIndex = "+lineIndex, logger);
+	}
+	
+	
+	private List<PaintTagData> computeBoundsForCustomTagList(ITrpShapeType shape, int offset) {
+		List<PaintTagData> paintTagData = new ArrayList<>();
+		CustomTagList ctl = shape.getCustomTagList();
+		if (ctl == null) {
+			return paintTagData;
+		}
+		
+		Set<String> tagNames = ctl.getIndexedTagNames();
 		if (!settings.isUnderlineTextStyles()) {
 			tagNames.remove(TextStyleTag.TAG_NAME); // do not underline  TextStyleTags, as they are
 			// rendered into the bloody text anyway			
 		}
 		
-		// adjust line spacing to fit all tags:
+		// adjust line spacing to fit all tags: FIXME -> more efficient and only once for all tags!
 		int spaceForTags = (TAG_LINE_WIDTH + 2*SPACE_BETWEEN_TAG_LINES) * tagNames.size();
 		if (spaceForTags > text.getLineSpacing())
 			text.setLineSpacing(spaceForTags);
-
+		
 		int j = -1;
 		for (String tagName : tagNames) {
 			++j;
 			logger.trace("tagName = " + tagName + " j = " + j);
 			List<CustomTag> tags = ctl.getIndexedTags(tagName);
 			for (CustomTag tag : tags) {
+				PaintTagData p = new PaintTagData();
+				p.verticalIndex = j;
+				p.tag = tag;
+				p.color = CustomTagFactory.getTagColor(tag.getTagName()); 
 				
 //				logger.debug("tag = "+tag);
 				
@@ -1492,6 +1743,8 @@ public abstract class ATranscriptionWidget extends Composite{
 				if (sr == null)
 					continue;
 				sr.length = tag.getLength();
+				
+				p.sr = sr;
 				
 				// since there is a word-wrap, we have to calculate multiple bounds to draw the tag-line correctly:
 				// 1: compute bounds:
@@ -1515,10 +1768,37 @@ public abstract class ATranscriptionWidget extends Composite{
 				if (cb!=null)
 					bounds.add(cb);
 				
+				p.bounds = bounds;
+				
+				paintTagData.add(p);
+			}
+		}
+		
+		return paintTagData;
+	}
+	
+	
+	/**
+	 * 
+	 * @param e
+	 * @param ctl The CustomTagList for which the tag markers are drawn
+	 * @param offset The character offset for the line of the given CustomTagList ctl
+	 */
+	protected void paintTagsForShape(PaintEvent e, ITrpShapeType shape) {
+		List<PaintTagData> data = tagPaintData.get(shape.getId());
+
+		for (PaintTagData paintTagData : data) {
+			List<Rectangle> bounds = paintTagData.bounds;
+			StyleRange sr = paintTagData.sr;
+			String color = paintTagData.color;
+			CustomTag tag = paintTagData.tag;
+			CustomTagList ctl = shape.getCustomTagList();
+			int j = paintTagData.verticalIndex;
+			
 				// 2: draw them bloody bounds:
 //				e.gc.setLineStyle(tag.isContinued() ? SWT.LINE_DASH : SWT.LINE_SOLID);
 				e.gc.setLineWidth(TAG_LINE_WIDTH);
-				Color c = Colors.decode2(CustomTagFactory.getTagColor(tagName));
+				Color c = Colors.decode2(color);
 				if (c == null) {
 					c = Colors.getSystemColor(SWT.COLOR_GRAY); // default tag color
 				}
@@ -1575,8 +1855,139 @@ public abstract class ATranscriptionWidget extends Composite{
 					}
 				}
 			}
-		}
 	}	
+	
+//	/**
+//	 * 
+//	 * @param e
+//	 * @param ctl The CustomTagList for which the tag markers are drawn
+//	 * @param offset The character offset for the line of the given CustomTagList ctl
+//	 */
+//	protected void paintTagsFromCustomTagList(PaintEvent e, CustomTagList ctl, int offset) {
+//		Set<String> tagNames = ctl.getIndexedTagNames();
+//		
+//		if (!settings.isUnderlineTextStyles()) {
+//			tagNames.remove(TextStyleTag.TAG_NAME); // do not underline  TextStyleTags, as they are
+//			// rendered into the bloody text anyway			
+//		}
+//		
+//		// adjust line spacing to fit all tags:
+//		int spaceForTags = (TAG_LINE_WIDTH + 2*SPACE_BETWEEN_TAG_LINES) * tagNames.size();
+//		if (spaceForTags > text.getLineSpacing())
+//			text.setLineSpacing(spaceForTags);
+//
+//		int j = -1;
+//		for (String tagName : tagNames) {
+//			++j;
+//			logger.trace("tagName = " + tagName + " j = " + j);
+//			List<CustomTag> tags = ctl.getIndexedTags(tagName);
+//			for (CustomTag tag : tags) {
+//				
+////				logger.debug("tag = "+tag);
+//				
+//				int li = text.getLineAtOffset(offset + tag.getOffset());
+//				int lo = text.getOffsetAtLine(li);
+//				int ll = text.getLine(li).length();
+//				
+//				StyleRange sr = null;
+//				int styleOffset = offset + tag.getOffset();
+//				if (styleOffset>=0 && styleOffset<text.getCharCount())
+//					sr = text.getStyleRangeAtOffset(offset + tag.getOffset());
+//				
+//				// handle special case where a tag is empty and at the end of the line -> sr will be null from the last call in this case --> construct 'artificial' StyleRange!!
+//				boolean canBeEmptyAndIsAtTheEnd = tag.canBeEmpty() && ( (offset+tag.getOffset()) == (lo+ll));
+//				if (canBeEmptyAndIsAtTheEnd)
+//					sr = new StyleRange(offset+tag.getOffset(), 0, null, null);
+//				
+//				logger.trace("stylerange at offset: "+sr);
+//				if (sr == null)
+//					continue;
+//				sr.length = tag.getLength();
+//				
+//				// since there is a word-wrap, we have to calculate multiple bounds to draw the tag-line correctly:
+//				// 1: compute bounds:
+//				List<Rectangle> bounds = new ArrayList<>();
+//				Rectangle cb = null;
+//				int co=sr.start;
+//				for (int k=sr.start; k<sr.start+sr.length; ++k) {
+//					logger.trace("text: "+text.getText(co, k)+" (s,e)="+co+"/"+k);
+//					Rectangle b = text.getTextBounds(co, k);
+//					logger.trace("y = "+b.y+" height = "+b.height);
+//					if (cb==null)
+//						cb = b;
+//					
+//					if (cb.height!=b.height) {
+//						bounds.add(new Rectangle(cb.x, cb.y, cb.width, cb.height));
+//						co = k;
+//						cb = null;									
+//					} else
+//						cb = b;
+//				}
+//				if (cb!=null)
+//					bounds.add(cb);
+//				
+//				// 2: draw them bloody bounds:
+////				e.gc.setLineStyle(tag.isContinued() ? SWT.LINE_DASH : SWT.LINE_SOLID);
+//				e.gc.setLineWidth(TAG_LINE_WIDTH);
+//				Color c = Colors.decode2(CustomTagFactory.getTagColor(tagName));
+//				if (c == null) {
+//					c = Colors.getSystemColor(SWT.COLOR_GRAY); // default tag color
+//				}
+//				
+//				e.gc.setForeground(c);
+//				e.gc.setBackground(c);				
+//				
+//				int spacerHeight = TAG_LINE_WIDTH+SPACE_BETWEEN_TAG_LINES;
+////				if (tag.canBeEmpty()) {
+////					logger.debug("tag = "+tag);
+////					logger.debug("bounds size = "+bounds.size());
+////					
+////				}
+//				
+//				if (tag.canBeEmpty() && tag.isEmpty()) {
+//					logger.trace("drawing empty tag: "+tag);
+//					Point p = text.getLocationAtOffset(sr.start);
+//					int lineHeight = text.getLineHeight(sr.start);
+//					
+//					logger.trace("line height: "+lineHeight+" point = "+p);
+//					
+//					// draw empty tags as vertical bar:
+////					Rectangle b1=bounds.get(0);
+//					e.gc.drawLine(p.x, p.y, p.x, p.y + lineHeight);
+//					
+////					e.gc.drawLine(x1, y1, x2, y2);
+//					
+//					e.gc.fillOval(p.x-spacerHeight, p.y, 2*spacerHeight, 2*spacerHeight);
+//					e.gc.fillOval(p.x-spacerHeight, p.y + lineHeight, 2*spacerHeight, 2*spacerHeight);
+//					
+////					e.gc.drawLine(b.x-spacerHeight, b.y, b.x+spacerHeight, b.y);
+////					e.gc.drawLine(b.x-spacerHeight, b.y + b.height, b.x+spacerHeight, b.y + b.height);
+//				} else {
+//					for (int k=0; k<bounds.size(); k++) {
+//						Rectangle b=bounds.get(k);
+//						logger.trace("bound: "+b);
+//						if (settings.isHighlightComments() && tag instanceof CommentTag) {
+//							e.gc.setAlpha(70);
+//							e.gc.setBackground(Colors.getSystemColor(SWT.COLOR_YELLOW));
+//							e.gc.fillRoundRectangle(b.x, b.y, b.width, b.height, 2, 2);
+//						} else {
+//							e.gc.setAlpha(255);
+//							int yBottom = b.y + b.height + TAG_LINE_WIDTH / 2 + j * (TAG_LINE_WIDTH + 2*SPACE_BETWEEN_TAG_LINES);
+//							
+//							e.gc.drawLine(b.x, yBottom, b.x + b.width, yBottom);
+//							// draw start and end vertical lines:
+//							if (k==0 && ctl.getPreviousContinuedCustomTag(tag)==null) {
+//								e.gc.drawLine(b.x, yBottom+spacerHeight, b.x, yBottom-spacerHeight);
+//							}
+//							if (k==bounds.size()-1 && ctl.getNextContinuedCustomTag(tag)==null) {
+//								e.gc.drawLine(b.x + b.width, yBottom+spacerHeight, b.x + b.width, yBottom-spacerHeight);
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}	
 	
 	public List<Rectangle> getTagDrawBounds(CustomTag tag, int offset) {
 		int li = text.getLineAtOffset(offset + tag.getOffset());
@@ -2039,7 +2450,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //				setFontFromSettings();
 //				TrpConfig.save();
 								
-				updateLineStyles();
+				updateLineStyles(false, false);
 				text.redraw();
 			}
 		});	
@@ -2076,6 +2487,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		db.bindBeanToWidgetSelection(TrpSettings.FOCUS_SHAPES_ACCORDING_TO_TEXT_ALIGNMENT, settings, focusShapesAccordingToTextAlignmentItem);
 		
 		db.bindBeanToWidgetSelection(TrpSettings.AUTOCOMPLETE_PROPERTY, settings, autocompleteToggle);
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_ALL_LINES_IN_TRANSCRIPTION_VIEW_PROPERTY, settings, showAllLinesToggle);
+		
 		
 //		db.bindBoolBeanValueToToolItemSelection(TrpSettings.SHOW_TEXT_TAG_EDITOR_PROPERTY, settings, showTagEditorItem);
 	}
@@ -2089,7 +2502,7 @@ public abstract class ATranscriptionWidget extends Composite{
 				currentLineObject.setStructure(TextTypeSimpleType.PARAGRAPH.value(), false, this);
 			}
 			
-			redrawText(true);
+			redrawText(true, true, false);
 		}
 	}
 	
@@ -2102,9 +2515,11 @@ public abstract class ATranscriptionWidget extends Composite{
 			settings.setTextAlignment(SWT.RIGHT);
 		}
 		
+		text.setAlignment(settings.getTextAlignment());
+		
 		sendDefaultSelectionChangedSignal(false);
 //		setLineStyleRanges();
-		redrawText(true);
+		redrawText(true, false, false);
 	}
 	
 	protected void sendTextKeyDownEvent(int keyCode) {
@@ -2128,8 +2543,19 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		notifyListeners(SWT.Modify, e);
 	}
+	
+	/**
+	 * @return true if this editor is currently visible
+	 */
+	protected boolean isTranscriptionWidgetVisible() {
+		return view.getSelectedTranscriptionType() == getTranscriptionLevel();
+	}
 		
 	protected void sendDefaultSelectionChangedSignal(boolean onlyIfChanged) {
+		if (!isTranscriptionWidgetVisible()) {
+			logger.debug("transcription widget of type '"+getTranscriptionLevel()+"' not visible - not sending default selection event!");
+			return;
+		}
 //		if (true) return;
 		
 		// send event ONLY if changes occurred
@@ -2255,6 +2681,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	public TrpAutoCompleteField getAutoComplete() { return autocomplete; }
 	public StyledText getText() { return text; }
 	
+	public abstract TranscriptionLevel getTranscriptionLevel();
 	public abstract ITrpShapeType getTranscriptionUnit();
 	public abstract Class<? extends ITrpShapeType> getTranscriptionUnitClass();
 	public String getTranscriptionUnitText() {
@@ -2349,6 +2776,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	/**
 	 * not tested yet... is it really needed?
+	 * @deprecated
 	 */
 	public void updateData(ITrpShapeType shape) {
 		if (shape == null) {
@@ -2374,6 +2802,14 @@ public abstract class ATranscriptionWidget extends Composite{
 	public void updateData(TrpTextRegionType region, TrpTextLineType line, TrpWordType word) {
 		logger.debug("updateData, type="+getType()+" region = "+region+ " line = "+line+" word = "+word);
 		
+		final boolean TEST_SHOW_LINES_FOR_ALL_REGIONS = true;
+		if (TEST_SHOW_LINES_FOR_ALL_REGIONS && settings.isShowAllLinesInTranscriptionView()) {
+//			if (TEST_SHOW_LINES_FOR_ALL_REGIONS) {
+			logger.debug("setting dummy region!");
+			TrpTextRegionType dummyRegion = TrpShapeElementFactory.createDummyTextRegionForCurrentPageWithAllLinesIncluded();
+			region = dummyRegion;
+		}
+		
 		currentRegionObject = region;
 		if (region != currentRegionObject)
 			undoRedo.clear();
@@ -2390,7 +2826,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			currentWordObject = null;
 			setText("");
 			oldTextSelection=new Point(-1, -1);
-			updateLineStyles();
+			updateLineStyles(false, true);
 			return;
 		}
 		
@@ -2425,7 +2861,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		sendDefaultSelectionChangedSignal(true);
 		
-		updateLineStyles();
+		updateLineStyles(false, true);
 		text.redraw();
 		
 		onDataUpdated();
@@ -2456,9 +2892,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		undoRedo.clear();
 	}
 		
-	public void redrawText(boolean updateStyles) {
+	public void redrawText(boolean updateStyles, boolean onlyVisibleLines, boolean updateLineBullets) {
+		logger.trace("redrawing text...!!!!!!!!");
 		if (updateStyles) {
-			updateLineStyles(); // also redraw's text field...
+			updateLineStyles(onlyVisibleLines, updateLineBullets); // also redraw's text field...
 		}
 		else {
 			text.redraw();
@@ -2504,10 +2941,11 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 	@Override public void setEnabled(boolean value) {
 //		super.setEnabled(value);
-		
 		regionsPagingToolBar.setToolbarEnabled(value);
-		for (ToolItem ti : additionalToolItems)
+		
+		for (ToolItem ti : additionalToolItems) {
 			ti.setEnabled(value);
+		}
 		
 		text.setEnabled(value);
 		
@@ -2522,6 +2960,20 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		if (value && showWordGraphEditorItem!=null)
 			setWordGraphEditorVisibility(showWordGraphEditorItem.getSelection());
+	}
+	
+	private void updateWidgetPositionItemImage() {
+		switch (settings.getTranscriptionViewPosition()) {
+		case BOTTOM:
+			widgetPositionItem.setImage(Images.getOrLoad("/icons/application_tile_horizontal.png"));
+			break;
+		case RIGHT:
+			widgetPositionItem.setImage(Images.getOrLoad("/icons/application_tile_vertical.png"));
+			break;
+		default:
+			widgetPositionItem.setImage(Images.getOrLoad("/icons/application_tile_horizontal.png"));
+			break;
+		}
 	}
 	
 	public WordGraphEditor getWordGraphEditor() { return wordGraphEditor; }
@@ -2558,6 +3010,18 @@ public abstract class ATranscriptionWidget extends Composite{
 //		return transcriptionTaggingWidget;
 //	}
 	
+	protected void preventChangeOverMultipleLines(VerifyEvent e) {
+		// prevent changes on first line:
+		int lineIndex1 = text.getLineAtOffset(e.start);
+		int lineIndex2 = text.getLineAtOffset(e.end);
+		TrpTextLineType line1 = getLineObject(lineIndex1);
+		TrpTextLineType line2 = getLineObject(lineIndex2);
+		
+		if (currentLineObject == null || currentLineObject!=line1 || currentLineObject!=line2) {
+			logger.debug("changes over multiple lines not allowed!");
+			e.doit = false;
+		}
+	}
 	
 		
 }

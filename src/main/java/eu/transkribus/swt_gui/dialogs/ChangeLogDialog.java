@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.ProgramInfo;
 
 public class ChangeLogDialog extends Dialog {
@@ -106,6 +107,8 @@ public class ChangeLogDialog extends Dialog {
 		
 		
 		shell.pack();
+		
+		SWTUtil.centerShell(shell);
 	}
 
 	/**

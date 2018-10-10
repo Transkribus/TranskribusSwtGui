@@ -3,6 +3,9 @@ package eu.transkribus.swt_gui.doc_overview;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
+
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -18,19 +21,22 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class ServerWidgetListener extends SelectionAdapter implements Listener, ISelectionChangedListener, IDoubleClickListener, KeyListener, MouseTrackListener, IStorageListener {
+public class ServerWidgetListener extends SelectionAdapter implements Listener, ISelectionChangedListener, IDoubleClickListener, KeyListener, MouseTrackListener, IStorageListener, TraverseListener {
 	private final static Logger logger = LoggerFactory.getLogger(ServerWidgetListener.class);
 	
 	ServerWidget sw;
@@ -91,6 +97,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.addSelectionListener(sw.exportBtn, this);
 		SWTUtil.addSelectionListener(sw.findBtn, this);
 		
+		if (sw.quickLoadByDocId != null) {
+			sw.quickLoadByDocId.getTextControl().addTraverseListener(this);
+		}
+		
 		Storage.getInstance().addListener(this);
 	}
 	
@@ -130,6 +140,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		SWTUtil.removeSelectionListener(sw.importBtn, this);
 		SWTUtil.removeSelectionListener(sw.exportBtn, this);
 		SWTUtil.removeSelectionListener(sw.findBtn, this);
+		
+		if (sw.quickLoadByDocId != null) {
+			sw.quickLoadByDocId.getTextControl().removeTraverseListener(this);
+		}		
 		
 		Storage.getInstance().removeListener(this);
 	}
@@ -309,6 +323,16 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		}
 	}
 
-
+	@Override
+	public void keyTraversed(TraverseEvent e) {
+		if (e.getSource() == sw.quickLoadByDocId.getTextControl()) {
+			if (e.detail == SWT.TRAVERSE_RETURN) {
+				int docId = CoreUtils.parseInt(sw.quickLoadByDocId.getText(), -1);
+				if (docId > 0 && storage.isLoggedIn()) {
+					TrpMainWidget.getInstance().loadRemoteDoc(docId, true);
+				}
+			}
+		}
+	}
 
 }

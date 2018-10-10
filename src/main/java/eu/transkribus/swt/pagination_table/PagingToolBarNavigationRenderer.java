@@ -89,8 +89,7 @@ public class PagingToolBarNavigationRenderer extends AbstractPageControllerCompo
 
 	@Override protected void createUI(Composite arg0) {
 		this.setLayout(new FillLayout());
-		tb = new PagingToolBar("", true, false, true, this, SWT.NONE);
-		tb.removeReloadButton();
+		tb = new PagingToolBar("", true, false, true, false, false, this, SWT.NONE);
 		
 		SWTUtil.addSelectionListener(tb.getPageFirstBtn(), this);
 		SWTUtil.addSelectionListener(tb.getPageLastBtn(), this);

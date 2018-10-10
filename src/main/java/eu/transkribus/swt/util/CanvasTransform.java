@@ -6,6 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.util.MathUtil;
 
@@ -260,7 +261,14 @@ public class CanvasTransform extends Transform {
 		newTr.getElements(els);
 		oldTr.setElements(els);
 	}
-
+	
+	public boolean hasRotation() {
+		return hasRotation(0.1); // eps = 0.1 -> angle has to be at least > 0.1 degress to be regarded as valid rotation
+	}
+	
+	public boolean hasRotation(double eps) {
+		return !CoreUtils.equalsEps(getAngleDeg(), 0.0d, eps);
+	}
 
 	@Override
 	public String toString() {
