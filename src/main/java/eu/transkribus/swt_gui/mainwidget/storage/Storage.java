@@ -2319,7 +2319,7 @@ public class Storage {
 	
 	public List<TrpHtr> listHtrs(String provider) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
 		checkConnection(true);
-		logger.debug("Listing HTRs: " + this.getCollId() + " - " + provider);
+		logger.debug("Listing HTRs: colId = " + this.getCollId() + " - provider = " + provider);
 		return conn.getHtrs(this.getCollId(), provider);		
 	}
 	
