@@ -495,14 +495,17 @@ public class TrpMainWidget {
 	/**
 	 * Determines which document was most recently edited by the user and loads it.<br><br>
 	 * 
-	 * Currently, the most recent doc access action is retrieved from the server for the details.
-	 * This can be further refined by getting both "Save" (including a page) and "Access document" actions and picking the most recent one.
-	 * Server API needs to be enhanced a bit to do that in one request though.
+	 * Currently, the most recent doc access action (Access Document, Save, change edit status) is retrieved from the server for the details.
 	 */
 	public void loadMostRecentDoc() {
 		try {
-			TrpAction action = storage.getConnection().getMostRecentDocLoadAction();
-			loadRemoteDoc(action.getDocId(), action.getColId());
+			TrpAction action = storage.getConnection().getMostRecentDocumentAction();
+			
+			//load the collection and the document list
+			// TODO
+			
+			// load the document and jump to page if pageNr is not null
+			loadRemoteDoc(action.getDocId(), action.getColId(), action.getPageNr() != null ? action.getPageNr()-1 : 0);
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 				| IllegalArgumentException e) {
 			logger.error("Could not retrieve recently loaded doc. Doing nothin...", e);
