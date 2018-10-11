@@ -225,7 +225,8 @@ public class ProgramUpdaterDialog {
 		  builder.start();
 		  
 		  System.exit(0);
-		}
+	}
+	
 	
 		public static void showTrayNotificationOnAvailableUpdateAsync(final Shell shell, final String version, final Date timestamp) {
 			logger.info("Checking for updates, current version: " + version + ", timestamp: " + timestamp);
