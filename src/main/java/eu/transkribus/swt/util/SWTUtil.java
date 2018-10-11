@@ -72,6 +72,7 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.ToolTip;
 import org.eclipse.swt.widgets.Widget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -927,6 +928,9 @@ public class SWTUtil {
 		else if (w instanceof Combo){
 			addSelectionListener((Combo) w, l);
 		}
+		else if (w instanceof ToolTip) {
+			addSelectionListener((ToolTip) w, l);
+		}
 		else
 			throw new RuntimeException("Widget type not supported for selection events: " + w);
 	}
@@ -945,6 +949,14 @@ public class SWTUtil {
 		
 		i.ti.addSelectionListener(l);
 		return true;
+	}
+	
+	public static boolean addSelectionListener(ToolTip t, SelectionListener l) {
+		if (isDisposed(t))
+			return false;
+		
+		t.addSelectionListener(l);
+		return true;		
 	}
 	
 	public static boolean addSelectionListener(Combo i, SelectionListener l) {

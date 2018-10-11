@@ -3,19 +3,13 @@ package eu.transkribus.swt_gui.dialogs;
 import java.io.IOException;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +25,7 @@ public class ChangeLogDialog extends Dialog {
 	protected Object result;
 	protected Shell shell;
 	protected String changelog="";
+	protected StyledText text;
 
 	protected boolean hide=true;
 	
@@ -50,46 +45,22 @@ public class ChangeLogDialog extends Dialog {
 		createContents();
 	}
 
-	/**
-	 * Create contents of the dialog.
-	 */
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle());
 		shell.setText(getText());
 		shell.setImage(Images.getOrLoad("/icons/new.png"));
-
-		RowLayout rowLayout = new RowLayout();
-		rowLayout.type = SWT.VERTICAL;
-		rowLayout.fill = true;
-		shell.setLayout(rowLayout);
+		shell.setLayout(SWTUtil.createGridLayout(1, true, 5, 5));
 		
-	    ScrolledComposite scrolledComposite = new ScrolledComposite(shell, SWT.V_SCROLL | SWT.H_SCROLL);
-	    scrolledComposite.setLayout(new FillLayout());
-
-		StyledText text = new StyledText(scrolledComposite, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-		text.setText(changelog==null ? "" : changelog);
+		text = new StyledText(shell, SWT.BORDER | SWT.VERTICAL | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL | SWT.WRAP);
+		text.setLayoutData(new GridData(GridData.FILL_BOTH));
 		text.setSize(500, 250);
-
-		RowData rowData = new RowData(500, 250);
-		text.setLayoutData(rowData);
-		scrolledComposite.setLayoutData(rowData);
-		
-		shell.addListener(SWT.Resize,  new Listener () {
-			public void handleEvent(Event arg0) {
-				Rectangle rect = shell.getClientArea ();
-				RowData rd = new RowData(rect.width, rect.height-50);
-				text.setSize(rect.width-5, rect.height-50);
-				scrolledComposite.setLayoutData(rd);				
-			}
-		});
-
-		// shell.setMinimumSize(text.getSize());
-		// shell.setSize(new Point(text.getSize().x + 50, text.getSize().y+100));
-
+		text.setText(changelog==null ? "" : changelog);
 		text.setTopIndex(text.getLineCount() - 1);
 
-		
+		final boolean SHOW_HIDE_CHECKBOX = false;
+		if (SHOW_HIDE_CHECKBOX) {
 		Button hideOnStartup = new Button(shell, SWT.CHECK);
+		hideOnStartup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		hideOnStartup.setText("Hide changes at next program start");
 		hideOnStartup.setToolTipText("Check the box if you want to hide the changes on startup");
 		hideOnStartup.setSelection(hide);
@@ -101,9 +72,7 @@ public class ChangeLogDialog extends Dialog {
 		    	hide = hideOnStartup.getSelection();
 		    }
 		});
-		
-		rowData = new RowData(500, SWT.DEFAULT);
-		hideOnStartup.setLayoutData(rowData);
+		}
 		
 		
 		shell.pack();
@@ -111,16 +80,15 @@ public class ChangeLogDialog extends Dialog {
 		SWTUtil.centerShell(shell);
 	}
 
-	/**
-	 * Open the dialog.
-	 * 
-	 * @return the result
-	 */
 	public Object open() {
 		createContents();
 		Display display = getParent().getDisplay();
+		shell.setSize(800, 500);
+		SWTUtil.centerShell(shell);
+		text.setTopIndex(text.getLineCount() - 1);
 		shell.open();
 		shell.layout();
+		
 
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
@@ -146,5 +114,9 @@ public class ChangeLogDialog extends Dialog {
 	
 	public void setShowOnStartup(boolean show) {
 		hide = !show;
+	}
+	
+	public static void showChangeLogDialog() {
+		
 	}
 }

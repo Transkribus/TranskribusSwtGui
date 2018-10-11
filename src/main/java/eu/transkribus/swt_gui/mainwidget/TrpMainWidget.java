@@ -60,6 +60,8 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -74,6 +76,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2823,7 +2826,8 @@ public class TrpMainWidget {
 						mw.postInit();
 					}
 					
-					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
+//					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
+					mw.showTrayNotificationOnChangelog(false);
 					mw.openJavaVersionDialog(false);						
 
 					// the main display loop:
@@ -4963,9 +4967,28 @@ public class TrpMainWidget {
 			ui.getTrpMenuBar().getBugReportItem().notifyListeners(SWT.Selection, new Event());
 		}		
 	}
+	
+	public void showTrayNotificationOnChangelog(boolean forceShow) {
+		if (forceShow || getTrpSets().isShowChangeLog()) {
+			Rectangle r = ui.menuButton.getBounds();
+			Point p = new Point(r.x, r.y);
+			p = ui.toDisplay(new Point(r.x, r.y));
+			p.x += r.width/2;
+			p.y += r.height/2;
+			
+			ToolTip tip = DialogUtil.createBallonToolTip(ui.getShell(), SWT.ICON_INFORMATION, "New version", "Find out what's new!", 
+					p.x, p.y);
+			SWTUtil.onSelectionEvent(tip, e -> {
+				openChangeLogDialog(true);
+			});
+			tip.setAutoHide(true);
+			tip.setVisible(true);
+			
+			getTrpSets().setShowChangeLog(false);
+		}
+	}
 
 	public void openChangeLogDialog(boolean show) {
-		
 		if (changelogDialog == null) {
 			changelogDialog = new ChangeLogDialog(getShell(), SWT.NONE);
 			changelogDialog.setShowOnStartup(getTrpSets().isShowChangeLog());
@@ -4973,7 +4996,8 @@ public class TrpMainWidget {
 		
 		if (show) {
 			changelogDialog.open();
-			getTrpSets().setShowChangeLog(changelogDialog.isShowOnStartup());
+//			getTrpSets().setShowChangeLog(changelogDialog.isShowOnStartup());
+			getTrpSets().setShowChangeLog(false); // set property to false after every close -> property is set to true automatically after the user updates
 		}
 
 	}

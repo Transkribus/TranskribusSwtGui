@@ -15,8 +15,10 @@ public class ChangeLogTest {
 			@Override
 			protected Control createContents(Composite parent) {
 
-				getShell().setSize(600, 600);
+				getShell().setSize(1200, 600);
 				ChangeLogDialog changelog = new ChangeLogDialog(getShell(), SWT.NONE);
+//				changelog.shell.setSize(1500, 200);
+//				SWTUtil.centerShell(changelog.shell);
 				changelog.open();
 				
 				return parent;
