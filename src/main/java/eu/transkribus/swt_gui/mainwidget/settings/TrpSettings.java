@@ -231,7 +231,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean focusShapeOnDoubleClickInTranscriptionWidget=true;
 	public static final String FOCUS_SHAPE_ON_DOUBLE_CLICK_IN_TRANSCRIPTION_WIDGET = "focusShapeOnDoubleClickInTranscriptionWidget";
 	
-	private int showEventsMaxDays = 5;
+	private int showEventsMaxDays = 7;
 	public static final String SHOW_EVENTS_MAX_DAYS = "showEventsMaxDays";
 	
 	private String eventsTxtFileName = "events.txt";
