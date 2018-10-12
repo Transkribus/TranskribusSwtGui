@@ -2127,6 +2127,7 @@ public class TrpMainWidget {
 		// logger.debug("selected data size = "+selData.size());
 
 		StructuredSelection sel = new StructuredSelection(selData);
+		logger.debug("updateTreeSelectionFromCanvas, sel = "+sel);
 
 		// if (!selData.isEmpty()) {
 		// //
