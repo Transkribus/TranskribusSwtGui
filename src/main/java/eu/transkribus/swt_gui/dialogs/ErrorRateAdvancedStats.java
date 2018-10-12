@@ -83,6 +83,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 		this.resultErr = resultErr;
 		this.lastExportFolder = "";
 		this.docName = "DocId_"+docId;
+		setShellStyle(getShellStyle() | SWT.RESIZE);
+
 		
 	}
 
@@ -140,7 +142,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	
-		page = new ErrorTableViewer(body, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		page = new ErrorTableViewer(body, SWT.FILL | SWT.V_SCROLL | SWT.H_SCROLL);
 		page.getTable().setLinesVisible(true);
 		page.setContentProvider(new ArrayContentProvider());
 		labelProvider = new ErrorTableLabelProvider(page);
@@ -205,8 +207,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		wikiFmeaButton.setImage(Images.HELP);
 		
 		createButton(parent, IDialogConstants.OK_ID, "Ok", true);
-		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
-		GridData buttonLd = (GridData) getButton(IDialogConstants.CANCEL_ID).getLayoutData();	
+		GridData buttonLd = (GridData) getButton(IDialogConstants.OK_ID).getLayoutData();	
 		
 		wikiErrButton.setLayoutData(buttonLd);
 		wikiErrButton.addSelectionListener(new SelectionAdapter() {

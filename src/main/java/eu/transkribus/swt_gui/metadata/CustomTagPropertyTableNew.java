@@ -42,11 +42,15 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableViewerUtils;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class CustomTagPropertyTableNew extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(CustomTagPropertyTableNew.class);
@@ -377,51 +381,68 @@ public class CustomTagPropertyTableNew extends Composite {
 //	}	
 	
 	public void setInput(CustomTag selectedTag) {
-		logger.debug("setting input of property table to: selected: "+selectedTag);
-		if (selectedTag == null) {
-			this.selectedTag = null;
-			tv.setInput(null);
-			clearEditors();
-			return;
-		}
-		
-		this.selectedTag = selectedTag;
-		logger.debug("selectedTag: "+this.selectedTag+", shape: "+selectedTag.getCustomTagList().getShape());
-		CustomTag prototypeTag = CustomTagFactory.getTagObjectFromRegistry(selectedTag.getTagName());
-		if (prototypeTag != null) {
-			prototypeTag = prototypeTag.copy();
-		}
-		else {
-			prototypeTag = selectedTag.copy();
-		}
-		logger.debug("prototypeTag: "+prototypeTag);
-		
-		boolean caseSensitiveOrder = false;
-		List<String> attNames = prototypeTag.getAttributeNamesSortedByName(caseSensitiveOrder);
-		// 1st: remove all non-editable properties
-		attNames.remove(CustomTag.OFFSET_PROPERTY_NAME);
-		attNames.remove(CustomTag.LENGTH_PROPERTY_NAME);
-		attNames.remove(CustomTag.CONTINUED_PROPERTY_NAME);
-		
-		// add attributes that are unique to selectedTag
-		for (String an : selectedTag.getAttributeNamesSortedByName(caseSensitiveOrder)) {
-			if (!attNames.contains(an) && !CustomTag.isOffsetOrLengthOrContinuedProperty(an)) {
-				attNames.add(an);
+		try {
+			logger.debug("setting input of property table to: selected: "+selectedTag);
+			if (selectedTag == null) {
+				this.selectedTag = null;
+				tv.setInput(null);
+				clearEditors();
+				return;
 			}
+			
+			this.selectedTag = selectedTag;
+			CustomTagList ctl = selectedTag.getCustomTagList();
+			ITrpShapeType shape = ctl==null ? null : ctl.getShape();
+			
+	//		if (ctl==null) {
+	//			DialogUtil.showErrorMessageBox(getShell(), "Error setting tag", "This tag has no customtaglist!");
+	//			return;
+	//		}
+	//		ITrpShapeType shape = ctl.getShape();
+	//		if (shape==null) {
+	//			DialogUtil.showErrorMessageBox(getShell(), "Error setting tag", "This customtaglist has no shape!");
+	//			return;
+	//		}		
+			
+			logger.debug("selectedTag: "+this.selectedTag+", shape: "+shape);
+			CustomTag prototypeTag = CustomTagFactory.getTagObjectFromRegistry(selectedTag.getTagName());
+			if (prototypeTag != null) {
+				prototypeTag = prototypeTag.copy();
+			}
+			else {
+				prototypeTag = selectedTag.copy();
+			}
+			logger.debug("prototypeTag: "+prototypeTag);
+			
+			boolean caseSensitiveOrder = false;
+			List<String> attNames = prototypeTag.getAttributeNamesSortedByName(caseSensitiveOrder);
+			// 1st: remove all non-editable properties
+			attNames.remove(CustomTag.OFFSET_PROPERTY_NAME);
+			attNames.remove(CustomTag.LENGTH_PROPERTY_NAME);
+			attNames.remove(CustomTag.CONTINUED_PROPERTY_NAME);
+			
+			// add attributes that are unique to selectedTag
+			for (String an : selectedTag.getAttributeNamesSortedByName(caseSensitiveOrder)) {
+				if (!attNames.contains(an) && !CustomTag.isOffsetOrLengthOrContinuedProperty(an)) {
+					attNames.add(an);
+				}
+			}
+			Collections.sort(attNames, String.CASE_INSENSITIVE_ORDER);
+			
+			// if non-editable properties shall be shown, add them to the top of the list
+			if (showNonEditableProperties) {
+				int i=0;
+				attNames.add(i++, CustomTag.OFFSET_PROPERTY_NAME);
+				attNames.add(i++, CustomTag.LENGTH_PROPERTY_NAME);
+				attNames.add(i++, CustomTag.CONTINUED_PROPERTY_NAME);
+			}
+			
+			tv.setInput(attNames);
+			createEditors();
+			tv.refresh(); // needed?
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Unable to set input for text tag property editor!", e.getMessage(), e);
 		}
-		Collections.sort(attNames, String.CASE_INSENSITIVE_ORDER);
-		
-		// if non-editable properties shall be shown, add them to the top of the list
-		if (showNonEditableProperties) {
-			int i=0;
-			attNames.add(i++, CustomTag.OFFSET_PROPERTY_NAME);
-			attNames.add(i++, CustomTag.LENGTH_PROPERTY_NAME);
-			attNames.add(i++, CustomTag.CONTINUED_PROPERTY_NAME);
-		}
-		
-		tv.setInput(attNames);
-		createEditors();
-		tv.refresh(); // needed?
 	}
 	
 	List<TableEditor> editors = new ArrayList<>();

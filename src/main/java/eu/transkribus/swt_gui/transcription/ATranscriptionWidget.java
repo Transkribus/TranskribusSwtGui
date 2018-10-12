@@ -258,15 +258,22 @@ public abstract class ATranscriptionWidget extends Composite{
 	private static final boolean SHOW_WORD_GRAPH_STUFF = false;
 	
 	// a class to store the data needed to paint a tag
-	private class PaintTagData {
+	public static class PaintTagData {
 		public int verticalIndex=0;
 		public StyleRange sr;
 		public List<Rectangle> bounds = new ArrayList<>();
 		public CustomTag tag;
 		public String color;
+		
+		@Override
+		public String toString() {
+			return "PaintTagData [verticalIndex=" + verticalIndex + ", sr=" + sr + ", bounds=" + bounds + ", tag=" + tag
+					+ ", color=" + color + "]";
+		}
+		
 	}
 	
-	Map<String, List<PaintTagData>> tagPaintData = new ConcurrentHashMap<>(); // stores the data needed to paint all tags
+	Map<String, List<PaintTagData>> tagPaintData = new ConcurrentHashMap<>(); // stores the data needed to paint visible tags
 	
 	private class ReloadWgRunnable implements Runnable {
 		Storage store;
@@ -1112,6 +1119,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			@Override public void widgetSelected(SelectionEvent e) {
 				logger.trace("text field vertical scroll: "+e);
 //				updateLineStyles();
+				computeTagPaintData(-1);
 				text.redraw();
 			}
 		});
@@ -1120,6 +1128,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			@Override public void controlResized(ControlEvent e) {
 				logger.trace("text field resized: "+e);
 //				updateLineStyles();
+				computeTagPaintData(-1);
 				text.redraw();
 			}
 			@Override public void controlMoved(ControlEvent e) {
@@ -1260,7 +1269,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void updateLineBullets() {
 		text.setLineBullet(0, text.getLineCount(), null); // delete line bullet first to guarantee update! (bug in SWT?)
 		if (true && settings.isShowLineBullets() && getNTextLines()>0) {
-			logger.debug("settingLineBulletAndStuff");
+			logger.trace("updating line bullets");
 //			Storage store = Storage.getInstance();
 			
 			String currentRegionId=null;
@@ -1404,8 +1413,8 @@ public abstract class ATranscriptionWidget extends Composite{
 			int endOffset = text.getOffsetAtLine(endLineIndex-1)+text.getLine(endLineIndex-1).length();
 			int length = endOffset-startOffset;
 			
-			logger.debug("startOffset = "+startOffset+" endOffset = "+endOffset);
-			logger.debug("length = "+length);
+			logger.trace("startOffset = "+startOffset+" endOffset = "+endOffset);
+			logger.trace("length = "+length);
 			
 //			text.setStyleRanges(allStyles.toArray(new StyleRange[0]));
 			text.replaceStyleRanges(startOffset, length, allStyles.toArray(new StyleRange[0]));
@@ -1639,11 +1648,12 @@ public abstract class ATranscriptionWidget extends Composite{
 				return;
 			}
 			cl = previous ? cl-1 : cl+1;
+			logger.trace("cl = "+cl);
 			
 			// jump to first character of line
 			int o = text.getOffsetAtLine(cl);
-			logger.trace("o = "+o);
-			if (o>=0 && o<text.getCharCount()) {
+			logger.trace("o = "+o+" charcount = "+text.getCharCount());
+			if (o>=0 && o<=text.getCharCount()) {
 				text.setSelection(o);
 			}
 		} catch (Exception e) {
@@ -1671,15 +1681,15 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	/**
-	 * Computes the data needed to paint tags. If lineIndex < 0 then the data of all  
-	 * @param lineIndex
+	 * Computes the data needed to paint tags.
+	 * @param lineIndex The line index for which the data is recomputed, if -1 then all visible lines are computed.
 	 */
 	private synchronized void computeTagPaintData(int lineIndex) {
-		SebisStopWatch sw = new SebisStopWatch();
+//		SebisStopWatch sw = new SebisStopWatch();
 		List<Pair<Integer, ITrpShapeType>> shapes;
 		if (lineIndex < 0) { // recompute all data
 			tagPaintData.clear();
-			shapes = getShapesWithOffsets(false);
+			shapes = getShapesWithOffsets(true);
 		}
 		else {
 			shapes = getShapesWithOffsets(lineIndex);
@@ -1690,7 +1700,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			tagPaintData.put(p.getRight().getId(), paintTagData);
 		}
 		
-		sw.stop(true, "computed tag paint data, lineIndex = "+lineIndex, logger);
+//		sw.stop(true, "computed tag paint data, lineIndex = "+lineIndex, logger);
 	}
 	
 	
@@ -1785,8 +1795,15 @@ public abstract class ATranscriptionWidget extends Composite{
 	 * @param offset The character offset for the line of the given CustomTagList ctl
 	 */
 	protected void paintTagsForShape(PaintEvent e, ITrpShapeType shape) {
+		logger.trace("painting tag for shape: "+shape.getId());
 		List<PaintTagData> data = tagPaintData.get(shape.getId());
-
+		if (data == null) {
+			return;
+		}
+		logger.trace("painttagdata: "+data.size());
+		for (PaintTagData d : data) {
+			logger.trace(""+d);
+		}
 		for (PaintTagData paintTagData : data) {
 			List<Rectangle> bounds = paintTagData.bounds;
 			StyleRange sr = paintTagData.sr;
@@ -2805,7 +2822,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		final boolean TEST_SHOW_LINES_FOR_ALL_REGIONS = true;
 		if (TEST_SHOW_LINES_FOR_ALL_REGIONS && settings.isShowAllLinesInTranscriptionView()) {
 //			if (TEST_SHOW_LINES_FOR_ALL_REGIONS) {
-			logger.debug("setting dummy region!");
+			logger.trace("setting dummy region!");
 			TrpTextRegionType dummyRegion = TrpShapeElementFactory.createDummyTextRegionForCurrentPageWithAllLinesIncluded();
 			region = dummyRegion;
 		}

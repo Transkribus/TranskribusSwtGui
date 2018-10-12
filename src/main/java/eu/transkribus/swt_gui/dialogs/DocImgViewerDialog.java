@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.dialogs;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.nebula.widgets.gallery.GalleryItem;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -27,13 +26,10 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
-import eu.transkribus.swt_gui.htr.HtrTextRecognitionConfigDialog_Old;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class DocImgViewerDialog extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(HtrTextRecognitionConfigDialog_Old.class);
-
-	private Storage store = Storage.getInstance();
+	private static final Logger logger = LoggerFactory.getLogger(DocImgViewerDialog.class);
 
 	private ThumbnailWidgetVirtualMinimal tw;
 	private SWTCanvas canvas;

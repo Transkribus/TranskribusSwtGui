@@ -60,6 +60,8 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -74,6 +76,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,6 +91,7 @@ import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.util.ImgFileFilter;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
+import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
@@ -475,9 +479,8 @@ public class TrpMainWidget {
 			}
 		}
 
-		loadTestDocSpecifiedInLocalFile();
-		
-
+		// disabled this here --> use this functionality via ctrl+t+t+t
+//		loadTestDocSpecifiedInLocalFile();
 		
 		// TEST:
 //		if (TESTTABLES) {
@@ -493,10 +496,35 @@ public class TrpMainWidget {
 //		openChangeLogDialog(getTrpSets().isShowChangeLog() && !DISABLE_CHANGELOG);
 	}
 	
+	/**
+	 * Determines which document was most recently edited by the user and loads it.<br><br>
+	 * 
+	 * Currently, the most recent doc access action (Access Document, Save, change edit status) is retrieved from the server for the details.
+	 */
+	public void loadMostRecentDoc() {
+		try {
+			TrpAction action = storage.getConnection().getMostRecentDocumentAction();
+			if (action == null) {
+				logger.debug("no most recent doc found!");
+			}
+			logger.debug("most recent doc action: "+action);
+			
+//			load the collection and the document list
+//			 TODO
+			
+			// load the document and jump to page if pageNr is not null
+			loadRemoteDoc(action.getDocId(), action.getColId(), action.getPageNr() != null ? action.getPageNr()-1 : 0);
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e) {
+			logger.error("Could not retrieve recently loaded doc. Doing nothin...", e);
+		}
+	}
+
 	/** Tries to read the local file "loadThisDocOnStartup.txt" and load the specified document.<br/>
      * To auto load a remote document: specify the first line as: "colId docId".<br/>
 	 * To auto load a local document: specify the path of the document (without spaces!) in the first line.<br/>
 	 * Comment out a line using a # sign at the start.
+	 * @return true if file was found and the document was loaded successfully
 	 */
 	public boolean loadTestDocSpecifiedInLocalFile() {
 		try {
@@ -574,7 +602,11 @@ public class TrpMainWidget {
 				return null;
 
 			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
-
+			
+			if (storage.getCollection(colId)==null) { // collection not found in Storage -> reload doclist!
+				logger.warn("reloadDocList: colId not found in storage -> have to reload collections from server - should not happen here");
+				reloadCollections();
+			}
 			ui.getServerWidget().setSelectedCollection(storage.getCollection(colId));
 
 			Future<List<TrpDocMetadata>> doclist;
@@ -1080,11 +1112,7 @@ public class TrpMainWidget {
 			TrpGuiPrefs.storeLastLogin(user);
 			TrpGuiPrefs.storeLastAccountType(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
 
-			storage.reloadCollections();
-
 			userCache.add(user);
-			
-
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
@@ -1191,8 +1219,6 @@ public class TrpMainWidget {
 			}
 			storage.loginOAuth(server, refreshToken, state, grantType, redirectUri, prov);
 			TrpGuiPrefs.storeLastAccountType(prov.toString());
-
-			storage.reloadCollections();
 
 			if (sessionExpired && !lastLoginServer.equals(server)) {
 				closeCurrentDocument(true);
@@ -2593,13 +2619,14 @@ public class TrpMainWidget {
 		try {
 			boolean collectionChanged = colId != ui.serverWidget.getSelectedCollectionId();
 			if (collectionChanged) {
+				logger.debug("collection changed - reloading doclist!");
 				Future<List<TrpDocMetadata>> fut = reloadDocList(colId);
 				if (fut == null)
 					return false;
 				
 				fut.get(); // wait for doclist to be loaded!
+				logger.debug("loaded new doclist: "+fut.get()+" current-collection: "+getSelectedCollection());
 			}
-			
 			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
 
 			if (colId <= 0) {
@@ -2798,13 +2825,13 @@ public class TrpMainWidget {
 						shell.layout();
 						mw.postInit();
 					}
+					
+//					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
+					mw.showTrayNotificationOnChangelog(false);
+					mw.openJavaVersionDialog(false);						
 
 					// the main display loop:
 					logger.debug("entering main event loop");
-					
-					
-					mw.openChangeLogDialog(getTrpSettings().isShowChangeLog());
-					mw.openJavaVersionDialog();
 					
 					// while((Display.getCurrent().getShells().length != 0)
 					// && !Display.getCurrent().getShells()[0].isDisposed()) {
@@ -4940,9 +4967,28 @@ public class TrpMainWidget {
 			ui.getTrpMenuBar().getBugReportItem().notifyListeners(SWT.Selection, new Event());
 		}		
 	}
+	
+	public void showTrayNotificationOnChangelog(boolean forceShow) {
+		if (forceShow || getTrpSets().isShowChangeLog()) {
+			Rectangle r = ui.menuButton.getBounds();
+			Point p = new Point(r.x, r.y);
+			p = ui.toDisplay(new Point(r.x, r.y));
+			p.x += r.width/2;
+			p.y += r.height/2;
+			
+			ToolTip tip = DialogUtil.createBallonToolTip(ui.getShell(), SWT.ICON_INFORMATION, "New version", "Find out what's new!", 
+					p.x, p.y);
+			SWTUtil.onSelectionEvent(tip, e -> {
+				openChangeLogDialog(true);
+			});
+			tip.setAutoHide(true);
+			tip.setVisible(true);
+			
+			getTrpSets().setShowChangeLog(false);
+		}
+	}
 
 	public void openChangeLogDialog(boolean show) {
-		
 		if (changelogDialog == null) {
 			changelogDialog = new ChangeLogDialog(getShell(), SWT.NONE);
 			changelogDialog.setShowOnStartup(getTrpSets().isShowChangeLog());
@@ -4950,14 +4996,17 @@ public class TrpMainWidget {
 		
 		if (show) {
 			changelogDialog.open();
-			getTrpSets().setShowChangeLog(changelogDialog.isShowOnStartup());
+//			getTrpSets().setShowChangeLog(changelogDialog.isShowOnStartup());
+			getTrpSets().setShowChangeLog(false); // set property to false after every close -> property is set to true automatically after the user updates
 		}
 
 	}
 	
-	public void openJavaVersionDialog() {
-		if (javaVersionDialog == null && (!javaInfo.getSystemArch().equals(javaInfo.getJavaArch())) || javaInfo.getVersion().startsWith("1.10") 
-				|| !javaInfo.getFileEnc().startsWith("UTF-8")) {
+	public void openJavaVersionDialog(boolean force) {
+		boolean isJaveInstallationBroken = javaVersionDialog == null && (!javaInfo.getSystemArch().equals(javaInfo.getJavaArch())) || javaInfo.getVersion().startsWith("1.10") 
+				|| !javaInfo.getFileEnc().startsWith("UTF-8");
+		
+		if (force || isJaveInstallationBroken) {
 			javaVersionDialog = new JavaVersionDialog(getShell(), SWT.NONE, javaInfo);
 			javaVersionDialog.open();
 		}

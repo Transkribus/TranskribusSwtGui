@@ -1,7 +1,6 @@
 package eu.transkribus.util;
 
 import eu.transkribus.swt_gui.htr.HtrDictionaryComposite;
-import eu.transkribus.swt_gui.htr.HtrTextRecognitionConfigDialog_Old;
 
 public class TextRecognitionConfig {
 	

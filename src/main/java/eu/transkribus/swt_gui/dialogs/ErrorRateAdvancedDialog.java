@@ -13,6 +13,9 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ModifyEvent;
@@ -26,15 +29,20 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpErrorRateResult;
+import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
@@ -43,9 +51,12 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
+import eu.transkribus.swt_gui.tools.ToolsWidget;
+import eu.transkribus.swt_gui.tools.ToolsWidget.TranscriptVersionChooser;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
 public class ErrorRateAdvancedDialog extends Dialog {
@@ -53,6 +64,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	
 	Storage store;
 	private Composite composite;
+	private SashForm sashFormOverall,sashFormAdvance;
+	private CTabFolder tabFolder;
+	private CTabItem advanceCompare;
+	private CTabItem quickCompare;
+	private CTabItem sampleCompare;
 	private KwsResultTableWidget resultTable;
 	private Group resultGroup;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
@@ -61,6 +77,15 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	final ParameterMap params = new ParameterMap();
 	ResultLoader rl;
 	
+	TranscriptVersionChooser refVersionChooser, hypVersionChooser;
+	
+	Button computeWerBtn;
+	Button computeAdvancedBtn;
+	Button compareVersionsBtn;
+	Composite werGroup;
+	ExpandableComposite werExp;
+	
+	
 	protected static final String HELP_WIKI_OPTION = "https://en.wikipedia.org/wiki/Unicode_equivalence";
 
 	public ErrorRateAdvancedDialog(Shell parentShell) {
@@ -68,11 +93,60 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		super(parentShell);
 		store = Storage.getInstance();
 		rl = new ResultLoader();
+		setShellStyle(getShellStyle() | SWT.RESIZE);
+
+	}
+	
+	@Override
+	protected void configureShell(Shell shell) {
+		super.configureShell(shell);
+		shell.setText("Compare");
+	}
+
+	@Override
+	protected Control createDialogArea(final Composite parent) {
+		
+		this.composite = (Composite) super.createDialogArea(parent);
+		
+		sashFormOverall = new SashForm(this.composite,SWT.NONE);
+		
+		tabFolder = new CTabFolder(sashFormOverall,SWT.NONE);
+		
+		sashFormAdvance = new SashForm(tabFolder,SWT.VERTICAL);
+		
+		advanceCompare = new CTabItem(tabFolder,SWT.NONE);
+		advanceCompare.setText("Advanced Compare");
+		
+		quickCompare = new CTabItem(tabFolder,SWT.NONE);
+		quickCompare.setText("Quick Compare");
+		
+		sampleCompare = new CTabItem(tabFolder,SWT.NONE);
+		sampleCompare.setText("Samples Compare");
+		
+		createConfig();
+		
+		createExplainText();
+		
+		createJobTable();
+		
+		createQuickTab();
+		
+		rl.start();
+		this.composite.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				logger.debug("Disposing ErrorRateAdvancedDialog composite.");
+				rl.setStopped();
+			}
+		});
+		
+		advanceCompare.setControl(sashFormAdvance);
+		addListener();
+		return composite;
 	}
 	
 	public void createConfig() {
 		
-		Composite config = new Composite(composite,SWT.NONE);
+		Composite config = new Composite(sashFormAdvance,SWT.NONE);
 		
 		config.setLayout(new GridLayout(3,false));
 		
@@ -81,28 +155,17 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 
 		options = new LabeledCombo(config, "Options");
-		options.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
-		options.combo.setItems("default (case sensitive) ","normcompatibility","normcanonic","non-case-sensitive");
+		options.combo.setItems("default (case sensitive) ","case insensitive");
 		options.combo.select(0);
-		options.combo.setToolTipText("Default - case sensitive \n "
-				+ "normcompatibility - Characters may have distinct visual appearances or behaviors, but represent the same character \n "
-				+ "normcanonic - Characters correctly displayed should always have the same visual appearance and behavior \n "
-				+ "non-case-sensitive \n"
-				+ "More information : https://en.wikipedia.org/wiki/Unicode_equivalence ");
-		
+
 		compare = new Button(config,SWT.PUSH);
 		compare.setText("Compare");
-		compare.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
-
-		
-		addListener();
-		
 	
 	}
 	
 	public void createExplainText() {
 		
-		Composite textComp = new Composite(composite,SWT.NONE);
+		Composite textComp = new Composite(sashFormAdvance,SWT.NONE);
 		textComp.setLayout(new GridLayout(3,false));
 		Text text = new Text(textComp, SWT.FILL);
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
@@ -127,11 +190,62 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			
 		});
 		
+		Storage.getInstance().addListener(new IStorageListener() {
+			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+				refVersionChooser.setToGT();
+				hypVersionChooser.setToCurrent();
+			}
+		});
+		
+		computeWerBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				super.widgetSelected(e);
+
+				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) refVersionChooser.selectedMd;
+				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
+
+				if (ref != null && hyp != null) {
+					
+					if(ToolsWidget.IS_LEGACY_WER_GROUP) {
+						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
+						String result="";
+						try {
+							result = store.computeWer(ref, hyp);
+						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+								| NoConnectionException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);
+						mb.setText("Result");
+						mb.setMessage(result);
+						mb.open();
+					} else {					
+						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
+	
+						TrpErrorRateResult resultErr = null;
+						try {
+							resultErr = store.computeErrorRate(ref, hyp);
+						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+								| NoConnectionException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						logger.debug("resultError was calculated : "+resultErr.getCer());
+						ErrorRateDialog dialog = new ErrorRateDialog(getShell(), resultErr);
+						dialog.open();
+
+					}
+				}
+			}
+		});
+		
 	}
 
 	public void createJobTable() {
 		
-		Composite jobs = new Composite(composite,SWT.FILL);
+		Composite jobs = new Composite(sashFormOverall,SWT.NONE);
 		
 		jobs.setLayout(new GridLayout(1,false));
 		jobs.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
@@ -166,37 +280,31 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		TrpMainWidget mw = TrpMainWidget.getInstance();
 		return mw.getUi().getServerWidget().getSelectedCollection();
 	}
-	
-	@Override
-	protected void configureShell(Shell shell) {
-		super.configureShell(shell);
-		shell.setText("Advanced Compare");
-	}
 
-	@Override
-	protected Control createDialogArea(final Composite parent) {
+	private void createQuickTab() {
+
+		werGroup = new Composite(tabFolder, SWT.SHADOW_ETCHED_IN);
+		werGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		werGroup.setLayout(new GridLayout(2, false));
 		
-		this.composite = (Composite) super.createDialogArea(parent);
+		refVersionChooser = new TranscriptVersionChooser("Reference:\n(Correct Text) ", werGroup, 0);
+		refVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 		
-		createConfig();
+		hypVersionChooser = new TranscriptVersionChooser("Hypothesis:\n(HTR Text) ", werGroup, 0);
+		hypVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));		
+				
+		computeWerBtn = new Button(werGroup, SWT.PUSH);
+		computeWerBtn.setText("Quick Compare");
+		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 0, 1));
+		computeWerBtn.setToolTipText("Compares the two selected transcripts and computes word error rate and character error rate.");
 		
-		createExplainText();
+		compareVersionsBtn = new Button(werGroup, SWT.PUSH);
+		compareVersionsBtn.setText("Compare Versions in Textfile");
+		compareVersionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
+		compareVersionsBtn.setToolTipText("Shows the difference of the two selected versions");
 		
-		createJobTable();
-		
-		rl.start();
-		this.composite.addDisposeListener(new DisposeListener() {
-			@Override public void widgetDisposed(DisposeEvent e) {
-				logger.debug("Disposing ErrorRateAdvancedDialog composite.");
-				rl.setStopped();
-			}
-		});
-		
-		return composite;
+		quickCompare.setControl(werGroup);
 	}
-	
-	
-	
 
 	protected void startError() {
 
@@ -273,7 +381,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 		wikiOptions = createButton(parent, IDialogConstants.HELP_ID, "Options", false);
 		wikiOptions.setImage(Images.HELP);
-		createButton(parent, IDialogConstants.OK_ID, "Ok", true);
 		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
 		GridData buttonLd = (GridData) getButton(IDialogConstants.CANCEL_ID).getLayoutData();	
 		
