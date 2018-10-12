@@ -259,17 +259,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 			// a shape was removed - remove it from JAXB also:
 			if (e.getFirstShape().getData()!=null) {
 				ITrpShapeType s = (ITrpShapeType) e.getFirstShape().getData();
-				s.removeFromParent();
-				
-				// FIXME: what about the links on undo??
-				// remove all links related to this shape:
-				s.getPage().removeLinks(s);
-				
-				((ITrpShapeType) e.getFirstShape().getData()).getPage().removeDeadLinks();
-				
-				//sort children: means create new reading order without the deleted shape
-				if (s.getParentShape() != null)
-					s.getParentShape().sortChildren(true);
+				TrpShapeTypeUtils.removeShape(s);
 			}
 			logger.debug("removed "+e.getFirstShape().getData() +" from JAXB");
 		
