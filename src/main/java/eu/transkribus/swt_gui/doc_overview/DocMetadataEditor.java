@@ -419,7 +419,17 @@ public class DocMetadataEditor extends Composite {
 //		    hierarchyTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			//logger.debug("hierarchy " + md.getHierarchy());
 			
-			String[] levels = md.getHierarchy().split("/");
+			/*
+			 * extId is last level in hierarchy - sometimes it contains a slash; if so the extId needs to be ignored and added later on to the hierarchy tree
+			 */
+			String hierarchy =  md.getHierarchy();
+			boolean addExtIdAsTreeItem = false;
+			if (md.getExternalId() !=null && md.getHierarchy().endsWith(md.getExternalId())){
+				hierarchy = hierarchy.substring(0, hierarchy.lastIndexOf(md.getExternalId()));
+				addExtIdAsTreeItem = true;
+			}
+			
+			String[] levels = hierarchy.split("/");
 			List<TreeItem> treeItems = new ArrayList<TreeItem>();
 	        for (int i = 0; i < levels.length; i++) {
 	        	TreeItem treeItem;
@@ -435,6 +445,16 @@ public class DocMetadataEditor extends Composite {
 	        	treeItems.add(treeItem);
 
 		    }
+	        
+	        if (addExtIdAsTreeItem){
+	        	TreeItem treeItem = new TreeItem(treeItems.get(treeItems.size()-1), 0);
+	        	treeItems.get(treeItems.size()-1).setExpanded(true);
+	        	treeItem.setText(md.getExternalId());
+	        	treeItems.add(treeItem);
+	        	
+	        }
+	        
+	        
 	        hierarchyTree.layout();
 	        hierarchyTree.redraw();
 		}
