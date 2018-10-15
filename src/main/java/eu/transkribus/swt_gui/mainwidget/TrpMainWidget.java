@@ -3279,6 +3279,11 @@ public class TrpMainWidget {
 				int docId = storage.getDocId();
 				int colId = storage.getCollId();
 				
+				if (docId == -2){
+					DialogUtil.showInfoMessageBox(mw.getShell(), "No document loaded", "Page(s) can not be added - there is no remote document loaded");
+					return;
+				}
+				
 				if (!imgFile.canRead())
 					throw new Exception("Can't read file at: " + img);
 				
@@ -5708,12 +5713,12 @@ public class TrpMainWidget {
 				 * added milestones and messages from this session) get deleted because this seems to be his 
 				 * intention by clicking Cancel 
 				 */
-				if (ced.isCrowdMdChanged()){
-					storage.getConnection().deleteCrowdProjectMilestones(ced.getCollection().getColId());
-					storage.getConnection().deleteCrowdProjectMessages(ced.getCollection().getColId());
-					storage.reloadCollections();
-					
-				}
+//				if (ced.isCrowdMdChanged()){
+//					storage.getConnection().deleteCrowdProjectMilestones(ced.getCollection().getColId());
+//					storage.getConnection().deleteCrowdProjectMessages(ced.getCollection().getColId());
+//					storage.reloadCollections();
+//					
+//				}
 				return;
 			}
 			
@@ -5727,18 +5732,18 @@ public class TrpMainWidget {
 				storage.reloadCollections();
 			}
 			
-			if (ced.isCrowdMdChanged()){
-				TrpCollection newMd = ced.getCollection();
-				logger.debug("crowd metadata has changed");
-				storage.getConnection().postCrowdProject(newMd.getColId(), newMd.getCrowdProject());
-				for (TrpCrowdProjectMilestone mst : newMd.getCrowdProject().getCrowdProjectMilestones()){
-					storage.getConnection().postCrowdProjectMilestone(newMd.getCrowdProject().getColId(), mst);
-				}
-				for (TrpCrowdProjectMessage msg : newMd.getCrowdProject().getCrowdProjectMessages()){
-					storage.getConnection().postCrowdProjectMessage(newMd.getCrowdProject().getColId(), msg);
-				}
-				
-			}
+//			if (ced.isCrowdMdChanged()){
+//				TrpCollection newMd = ced.getCollection();
+//				logger.debug("crowd metadata has changed");
+//				storage.getConnection().postCrowdProject(newMd.getColId(), newMd.getCrowdProject());
+//				for (TrpCrowdProjectMilestone mst : newMd.getCrowdProject().getCrowdProjectMilestones()){
+//					storage.getConnection().postCrowdProjectMilestone(newMd.getCrowdProject().getColId(), mst);
+//				}
+//				for (TrpCrowdProjectMessage msg : newMd.getCrowdProject().getCrowdProjectMessages()){
+//					storage.getConnection().postCrowdProjectMessage(newMd.getCrowdProject().getColId(), msg);
+//				}
+//				
+//			}
 			
 //			DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully modified the colleciton!");
 		} catch (Exception e) {

@@ -403,6 +403,9 @@ public class DocMetadataEditor extends Composite {
 		descriptionText.setText(md!=null && md.getDesc() != null ? md.getDesc() : "");
 		langTable.setSelectedLanguages(md!=null ? md.getLanguage() : "");
 		initScriptTypeCombos(md!=null ? md.getScriptType() : null);
+				
+//		logger.debug("created from " + md.getCreatedFromDate());
+//		logger.debug("created to " + md.getCreatedToDate());
 		updateDateChooser(enableCreatedFromBtn, createdFrom, md != null ? md.getCreatedFromDate() : null);
 		updateDateChooser(enableCreatedToBtn, createdTo, md != null ? md.getCreatedToDate() : null);
 		
@@ -466,13 +469,13 @@ public class DocMetadataEditor extends Composite {
 	
 	
 	/**
-	 * FIXME does this set the current date if date is null?
+	 * 
 	 * @param b
 	 * @param c
 	 * @param date
 	 */
 	private void updateDateChooser(Button b, DateChooserCombo c, Date date) {
-		c.setValue(date!=null ? date : new Date());
+		c.setValue(date!=null ? date : null);
 		c.setEnabled(date!=null);
 		b.setSelection(date!=null);
 	}
