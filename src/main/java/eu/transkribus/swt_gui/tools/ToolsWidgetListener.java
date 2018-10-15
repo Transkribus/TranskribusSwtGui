@@ -82,7 +82,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
 		
 		if(!ToolsWidget.IS_LEGACY_WER_GROUP) {
-			SWTUtil.addSelectionListener(tw.computeAdvancedBtn, this);
+			SWTUtil.addSelectionListener(tw.computeWerBtn, this);
 		}
 		
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
@@ -298,32 +298,33 @@ public class ToolsWidgetListener implements SelectionListener {
 			// tw.detectFootnotesCheck.getSelection());
 			// }
 
+//			else if (s == tw.computeWerBtn) {
+//
+//				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;
+//				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) tw.hypVersionChooser.selectedMd;
+//
+//				if (ref != null && hyp != null) {
+//					
+//					if(ToolsWidget.IS_LEGACY_WER_GROUP) {
+//						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
+//						final String result = store.computeWer(ref, hyp);
+//						MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);
+//						mb.setText("Result");
+//						mb.setMessage(result);
+//						mb.open();
+//					} else {					
+//						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
+//	
+//						TrpErrorRateResult resultErr = store.computeErrorRate(ref, hyp);
+//						logger.debug("resultError was calculated : "+resultErr.getCer());
+//						ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
+//						dialog.open();
+//
+//					}
+//				}
+//				
+//			}
 			else if (s == tw.computeWerBtn) {
-
-				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;
-				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) tw.hypVersionChooser.selectedMd;
-
-				if (ref != null && hyp != null) {
-					
-					if(ToolsWidget.IS_LEGACY_WER_GROUP) {
-						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
-						final String result = store.computeWer(ref, hyp);
-						MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);
-						mb.setText("Result");
-						mb.setMessage(result);
-						mb.open();
-					} else {					
-						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
-	
-						TrpErrorRateResult resultErr = store.computeErrorRate(ref, hyp);
-						logger.debug("resultError was calculated : "+resultErr.getCer());
-						ErrorRateDialog dialog = new ErrorRateDialog(mw.getShell(), resultErr);
-						dialog.open();
-
-					}
-				}
-				
-			}else if (s == tw.computeAdvancedBtn) {
 				
 
 				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;
