@@ -596,4 +596,4 @@ CHANGES AND BUGFIXES
 	-> bug fix: closing export dialog immediately after opening caused an exception (widget disposed)
 	-> config.properties logHttp setting: enable to get full INFO level HTTP traffic log in console and log file 
 	-> implement scrollbar mode for canvas and set it to default scrolling mode 
-	-> convert from tables to simple textregions for all cells without losing lines and their transcriptions
+	-> convert from tables to simple textregions for all cells without losing lines and their transcriptions (via "Metadata->Structural" tab)
