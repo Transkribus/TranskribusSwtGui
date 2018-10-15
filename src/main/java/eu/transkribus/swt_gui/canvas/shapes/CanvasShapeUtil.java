@@ -20,6 +20,14 @@ import eu.transkribus.core.util.CoreUtils;
 public class CanvasShapeUtil {
 	public final static Logger logger = LoggerFactory.getLogger(CanvasShapeUtil.class);
 	
+	public static ICanvasShape copyShape(ITrpShapeType st) {
+		ICanvasShape shape = CanvasShapeUtil.getCanvasShape(st);
+		if (shape == null) {
+			return null;
+		}
+		return new CanvasPolyline(shape.getPoints());
+	}
+	
 	public static ICanvasShape getCanvasShape(ITrpShapeType st) {
 		return (st==null || !(st.getData() instanceof ICanvasShape)) ? null : (ICanvasShape) st.getData();
 	}
