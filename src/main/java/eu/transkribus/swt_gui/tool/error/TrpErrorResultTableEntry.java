@@ -40,15 +40,16 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 		String option = null;
 		switch((String)props.getProperty("parameters.3.value")) {
 		case "-1":
-			option = "default (case sensitive)";
+			option = "Quick Compare";
+			break;
 		case "0": 
-			option = "default (case sensitive)";
+			option = "case-sensitive";
 			break;
 		case "1":
 			option = "case-insensitive";
 			break;
 		}
-		return "Pages : "+props.getOrDefault("parameters.0.value", "Page-Query missing") +" | Option : "+option ;
+		return "Page(s) : "+props.getOrDefault("parameters.0.value", "Page-Query missing") +" | Option : "+option ;
 	} 
 
 }
