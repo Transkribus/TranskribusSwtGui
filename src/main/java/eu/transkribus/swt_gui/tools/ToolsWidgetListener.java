@@ -78,8 +78,6 @@ public class ToolsWidgetListener implements SelectionListener {
 		});
 
 		SWTUtil.addSelectionListener(tw.startLaBtn, this);
-
-		SWTUtil.addSelectionListener(tw.computeWerBtn, this);
 		
 		if(!ToolsWidget.IS_LEGACY_WER_GROUP) {
 			SWTUtil.addSelectionListener(tw.computeWerBtn, this);
