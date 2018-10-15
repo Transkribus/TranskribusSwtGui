@@ -1623,10 +1623,10 @@ public class DocumentManager extends Dialog {
 //			}
 
 			totalTranscriptsLabel = new Label(labelComposite, SWT.None);
-			totalTranscriptsLabel.setText("Nr. of lines trancribed: " + totalLinesTranscribed + " in doc / " + totalCollectionLines + " in collection");
+			totalTranscriptsLabel.setText("Nr. of lines transcribed: " + totalLinesTranscribed + " in doc / " + totalCollectionLines + " in collection");
 						
 			totalWordTranscriptsLabel = new Label(labelComposite, SWT.None);
-			totalWordTranscriptsLabel.setText("Nr. of words trancribed: " + totalWordsTranscribed + " in doc / " + totalCollectionWords + " in collection");
+			totalWordTranscriptsLabel.setText("Nr. of words transcribed: " + totalWordsTranscribed + " in doc / " + totalCollectionWords + " in collection");
 
 			groupComposite.layout(true, true);
 

@@ -61,7 +61,9 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		SWTUtil.onSelectionEvent(mb.deletePageMenuItem, (e) -> { mw.deletePage(); });
 		
-		SWTUtil.onSelectionEvent(mb.addPageMenuItem, (e) -> { mw.addPage(); });
+		//new: add one or more pages
+		SWTUtil.onSelectionEvent(mb.addPageMenuItem, (e) -> { mw.addSeveralPages2Doc(); });
+		//SWTUtil.onSelectionEvent(mb.addPageMenuItem, (e) -> { mw.addPage(); });
 		
 		//SWTUtil.onSelectionEvent(mb.manageCollectionsItem, (e) -> { mw.openCollectionManagerDialog(); });
 		

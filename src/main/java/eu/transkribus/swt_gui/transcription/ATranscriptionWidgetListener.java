@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.transcription;
 
+import java.util.List;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -12,6 +14,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -124,11 +127,16 @@ public abstract class ATranscriptionWidgetListener implements Listener, KeyListe
 	protected abstract void handleTextModified(Event event);
 
 	protected void handleDefaultSelectionChanged(Event event) {
-		logger.debug("called by " + event.widget + " " + event.item);
+		logger.debug("handleDefaultSelectionChanged, called by " + event.widget + " " + event.item);
+		List<CustomTag> tagsUnderCursor = transcriptionWidget.getCustomTagsForCurrentOffset();
+		logger.debug("tagsUnderCursor: "+tagsUnderCursor.size());
+		for (CustomTag t : tagsUnderCursor) {
+			logger.debug("t = "+t);
+		}
 		
 		// todo: nächste Zeile an dieser Stelle entfernen und nur durch TAG_SET_EVENT aufrufen
 		//if (event.widget.getClass() instance of )
-		mainWidget.getUi().getTaggingWidget().updateSelectedTag(transcriptionWidget.getCustomTagsForCurrentOffset());
+		mainWidget.getUi().getTaggingWidget().updateSelectedTag(tagsUnderCursor);
 	}
 
 	protected abstract void handleSelectionChanged(Event event);

@@ -403,6 +403,9 @@ public class DocMetadataEditor extends Composite {
 		descriptionText.setText(md!=null && md.getDesc() != null ? md.getDesc() : "");
 		langTable.setSelectedLanguages(md!=null ? md.getLanguage() : "");
 		initScriptTypeCombos(md!=null ? md.getScriptType() : null);
+				
+//		logger.debug("created from " + md.getCreatedFromDate());
+//		logger.debug("created to " + md.getCreatedToDate());
 		updateDateChooser(enableCreatedFromBtn, createdFrom, md != null ? md.getCreatedFromDate() : null);
 		updateDateChooser(enableCreatedToBtn, createdTo, md != null ? md.getCreatedToDate() : null);
 		
@@ -419,7 +422,17 @@ public class DocMetadataEditor extends Composite {
 //		    hierarchyTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			//logger.debug("hierarchy " + md.getHierarchy());
 			
-			String[] levels = md.getHierarchy().split("/");
+			/*
+			 * extId is last level in hierarchy - sometimes it contains a slash; if so the extId needs to be ignored and added later on to the hierarchy tree
+			 */
+			String hierarchy =  md.getHierarchy();
+			boolean addExtIdAsTreeItem = false;
+			if (md.getExternalId() !=null && md.getHierarchy().endsWith(md.getExternalId())){
+				hierarchy = hierarchy.substring(0, hierarchy.lastIndexOf(md.getExternalId()));
+				addExtIdAsTreeItem = true;
+			}
+			
+			String[] levels = hierarchy.split("/");
 			List<TreeItem> treeItems = new ArrayList<TreeItem>();
 	        for (int i = 0; i < levels.length; i++) {
 	        	TreeItem treeItem;
@@ -435,6 +448,16 @@ public class DocMetadataEditor extends Composite {
 	        	treeItems.add(treeItem);
 
 		    }
+	        
+	        if (addExtIdAsTreeItem){
+	        	TreeItem treeItem = new TreeItem(treeItems.get(treeItems.size()-1), 0);
+	        	treeItems.get(treeItems.size()-1).setExpanded(true);
+	        	treeItem.setText(md.getExternalId());
+	        	treeItems.add(treeItem);
+	        	
+	        }
+	        
+	        
 	        hierarchyTree.layout();
 	        hierarchyTree.redraw();
 		}
@@ -446,13 +469,13 @@ public class DocMetadataEditor extends Composite {
 	
 	
 	/**
-	 * FIXME does this set the current date if date is null?
+	 * 
 	 * @param b
 	 * @param c
 	 * @param date
 	 */
 	private void updateDateChooser(Button b, DateChooserCombo c, Date date) {
-		c.setValue(date!=null ? date : new Date());
+		c.setValue(date!=null ? date : null);
 		c.setEnabled(date!=null);
 		b.setSelection(date!=null);
 	}

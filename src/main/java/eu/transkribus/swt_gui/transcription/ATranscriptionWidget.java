@@ -1648,11 +1648,12 @@ public abstract class ATranscriptionWidget extends Composite{
 				return;
 			}
 			cl = previous ? cl-1 : cl+1;
+			logger.trace("cl = "+cl);
 			
 			// jump to first character of line
 			int o = text.getOffsetAtLine(cl);
-			logger.trace("o = "+o);
-			if (o>=0 && o<text.getCharCount()) {
+			logger.trace("o = "+o+" charcount = "+text.getCharCount());
+			if (o>=0 && o<=text.getCharCount()) {
 				text.setSelection(o);
 			}
 		} catch (Exception e) {
