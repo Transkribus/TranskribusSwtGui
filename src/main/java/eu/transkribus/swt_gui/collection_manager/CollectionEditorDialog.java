@@ -43,31 +43,33 @@ import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 
 public class CollectionEditorDialog extends Dialog {
 	
-	Text nameTxt, descrTxt, aimOfCrowdProjectTxt;
-	Button isCrowdsourceBtn, isELearningBtn, createBtnMsg, editBtnMsg, createBtnMst, editBtnMst;
-	Button deleteBtnMsg, deleteBtnMst, takeBtnMsg, takeBtnMst;
-	Label landingLbl, tblLblMsg, tblLblMst, aimLbl;
-	Link link;
+	Text nameTxt, descrTxt;
+	//Text aimOfCrowdProjectTxt;
+	Button isCrowdsourceBtn, isELearningBtn;
+	//Button createBtnMsg, editBtnMsg, createBtnMst, editBtnMst;
+	//Button deleteBtnMsg, deleteBtnMst, takeBtnMsg, takeBtnMst;
+	//Label landingLbl, tblLblMsg, tblLblMst, aimLbl;
+	//Link link;
 	
-	CrowdSourcingMessageDialog crowdMsgDiag;
-	CrowdSourcingMilestoneDialog crowdMstDiag;
-	Object dataEntered;
-		
-	Table tableMsg, tableMst;
+//	CrowdSourcingMessageDialog crowdMsgDiag;
+//	CrowdSourcingMilestoneDialog crowdMstDiag;
+//	Object dataEntered;
+//		
+//	Table tableMsg, tableMst;
 	
 	Storage storage = Storage.getInstance();
 	
-	List<Integer> mst2delete = new ArrayList<Integer>();
-	List<Integer> msg2delete = new ArrayList<Integer>();
-	
-	List<TrpCrowdProjectMilestone> mst2edit = new ArrayList<TrpCrowdProjectMilestone>();
-	List<TrpCrowdProjectMessage> msg2edit = new ArrayList<TrpCrowdProjectMessage>();
+//	List<Integer> mst2delete = new ArrayList<Integer>();
+//	List<Integer> msg2delete = new ArrayList<Integer>();
+//	
+//	List<TrpCrowdProjectMilestone> mst2edit = new ArrayList<TrpCrowdProjectMilestone>();
+//	List<TrpCrowdProjectMessage> msg2edit = new ArrayList<TrpCrowdProjectMessage>();
 
 	private TrpCollection collection;
 	
 	private boolean mdChanged = false;
-	private boolean crowdMdChanged = false;
-	private boolean saveAsNew = false;
+//	private boolean crowdMdChanged = false;
+//	private boolean saveAsNew = false;
 	
 	private boolean editAllowed = false;
 
@@ -109,7 +111,14 @@ public class CollectionEditorDialog extends Dialog {
 		descrTxt = new Text(cont, SWT.BORDER | SWT.MULTI);
 		descrTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		landingLbl = new Label(cont, SWT.NONE);
+		/*
+		 * No crowd project management in expert client, e.g. manage milestones and messages
+		 * May get useful in the future once again
+		 * 
+		 * 
+		 */
+		
+/*		landingLbl = new Label(cont, SWT.NONE);
 		landingLbl.setText("Landing web page");
 //		Text landingUrl = new Text(cont, SWT.READ_ONLY);
 //		landingUrl.setText(url);
@@ -389,7 +398,7 @@ public class CollectionEditorDialog extends Dialog {
 		createBtnMst.addSelectionListener(btnsListener);
 		editBtnMst.addSelectionListener(btnsListener);
 		takeBtnMst.addSelectionListener(btnsListener);
-		deleteBtnMst.addSelectionListener(btnsListener);
+		deleteBtnMst.addSelectionListener(btnsListener);*/
   	  	
 //	    ToolBar toolBar = new ToolBar(comp, SWT.RIGHT | SWT.FLAT);
 //
@@ -405,61 +414,61 @@ public class CollectionEditorDialog extends Dialog {
 		isCrowdsourceBtn = new Button(cont, SWT.CHECK);
 		isCrowdsourceBtn.setText("Crowdsourcing");
 		isCrowdsourceBtn.setEnabled(editAllowed);
-		isCrowdsourceBtn.addSelectionListener(new SelectionAdapter()
-		{
-		    @Override
-		    public void widgetSelected(SelectionEvent e)
-		    {
-		        Button button = (Button) e.widget;
-		        updateValues(button.getSelection());
+//		isCrowdsourceBtn.addSelectionListener(new SelectionAdapter()
+//		{
+//		    @Override
+//		    public void widgetSelected(SelectionEvent e)
+//		    {
+//		        Button button = (Button) e.widget;
+//		        updateValues(button.getSelection());
+//
+//		        //if crowd project is checked -> either there is already a project and needs to be loaded or we
+//		        //have to create a new one
+//		        if(button.getSelection()){
+//		        	if (collection.getCrowdProject() == null){
+//		        		//try to load from database
+//			        	try {
+//							TrpCrowdProject project = storage.loadCrowdProject(collection.getColId());
+//							collection.setCrowdProject(project);
+//						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+//								| NoConnectionException e1) {
+//							// TODO Auto-generated catch block
+//							//System.out.println("in catch block");
+//							e1.printStackTrace();
+//						}
+//			        	//if there is no crowd project in DB create one
+//			        	if (collection.getCrowdProject() == null){
+//			        		System.out.println("Create new crowd project");
+//			        		crowdMdChanged = true;
+//			        		collection.setCrowdProject(new TrpCrowdProject(collection.getColId()));
+//		        		}
+//			        	else{
+//			        		reloadCollectionEditorWidget();
+//			        	}
+//		        	}
+//		        	else{
+//		        		//System.out.println("reloading..");
+//		        		reloadCollectionEditorWidget();
+//		        	}
+//
+//		        }
+//		        else{
+//		        	clearCollectionEditorWidget();
+//		        }
+//		    }
 
-		        //if crowd project is checked -> either there is already a project and needs to be loaded or we
-		        //have to create a new one
-		        if(button.getSelection()){
-		        	if (collection.getCrowdProject() == null){
-		        		//try to load from database
-			        	try {
-							TrpCrowdProject project = storage.loadCrowdProject(collection.getColId());
-							collection.setCrowdProject(project);
-						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-								| NoConnectionException e1) {
-							// TODO Auto-generated catch block
-							//System.out.println("in catch block");
-							e1.printStackTrace();
-						}
-			        	//if there is no crowd project in DB create one
-			        	if (collection.getCrowdProject() == null){
-			        		System.out.println("Create new crowd project");
-			        		crowdMdChanged = true;
-			        		collection.setCrowdProject(new TrpCrowdProject(collection.getColId()));
-		        		}
-			        	else{
-			        		reloadCollectionEditorWidget();
-			        	}
-		        	}
-		        	else{
-		        		//System.out.println("reloading..");
-		        		reloadCollectionEditorWidget();
-		        	}
-
-		        }
-		        else{
-		        	clearCollectionEditorWidget();
-		        }
-		    }
 
 
-
-			private void reloadCollectionEditorWidget() {
-				link.setText("<a href=\"https://transkribus.eu/crowd/"+collection.getColId()+"\">"+url+"</a>");
-				if (collection.getCrowdProject().getAim() != null){
-					aimOfCrowdProjectTxt.setText(collection.getCrowdProject().getAim());
-				}
-				fillMilestoneTable();
-				fillMessageTable();
-				
-			}
-		});
+//			private void reloadCollectionEditorWidget() {
+//				link.setText("<a href=\"https://transkribus.eu/crowd/"+collection.getColId()+"\">"+url+"</a>");
+//				if (collection.getCrowdProject().getAim() != null){
+//					aimOfCrowdProjectTxt.setText(collection.getCrowdProject().getAim());
+//				}
+//				fillMilestoneTable();
+//				fillMessageTable();
+//				
+//			}
+//		});
 		
 		new Label(cont, SWT.NONE);
 		isELearningBtn = new Button(cont, SWT.CHECK);
@@ -471,224 +480,224 @@ public class CollectionEditorDialog extends Dialog {
 		return cont;
 	}
 	
-	private void clearCollectionEditorWidget() {
-		for (TableItem ti : tableMsg.getItems()){
-			ti.dispose();
-		}
-		for (TableItem ti : tableMst.getItems()){
-			ti.dispose();
-		}
-		tableMsg.clearAll();
-		tableMst.clearAll();
-		aimOfCrowdProjectTxt.setText("");
-		link.setText("");
-		
-	}
+//	private void clearCollectionEditorWidget() {
+//		for (TableItem ti : tableMsg.getItems()){
+//			ti.dispose();
+//		}
+//		for (TableItem ti : tableMst.getItems()){
+//			ti.dispose();
+//		}
+//		tableMsg.clearAll();
+//		tableMst.clearAll();
+//		aimOfCrowdProjectTxt.setText("");
+//		link.setText("");
+//		
+//	}
+//	
+//	private void fillMilestoneTable() {
+//		if (collection.getCrowdProject() != null){
+//			for (TrpCrowdProjectMilestone mst : collection.getCrowdProject().getCrowdProjectMilestones()){
+//				if (mst.getProjectId() == null){
+//					//continue;
+//				}
+//		  	  	TableItem newMst = new TableItem(tableMst, SWT.NULL);
+//		  	  	newMst.setText(new String[] {mst.getTitle(), mst.getDescription(), mst.getDueDate(), mst.getDate()});
+//		  	  	newMst.setData("id", mst.getMilestoneId());
+//			}
+//		}
+//	}
+//
+//	private void fillMessageTable() {
+//		if (collection.getCrowdProject() != null){
+//			//System.out.println("load messages");
+//			for (TrpCrowdProjectMessage msg : collection.getCrowdProject().getCrowdProjectMessages()){
+//				if (msg.getProjectId() == null){
+//					//continue;
+//				}
+//		  	  	TableItem newMsg = new TableItem(tableMsg, SWT.NULL);
+//		  	  	String emailInfo = "No";
+//		  	  	if (msg.isEmailSent()){
+//		  	  		emailInfo = "Yes";
+//		  	  	}
+//		  	  	String milestone = "No milestone assigned";
+//		  	  	if (msg.getMilestoneId() != null){
+//		  	  		milestone = collection.getCrowdProject().getCrowdProjectMilestone(msg.getMilestoneId()).toShortString();
+//		  	  	}
+//		  	  	newMsg.setText(new String[] {msg.getSubject(), msg.getMessage(), milestone, msg.getDate(), emailInfo});
+//		  	  	newMsg.setData("id", msg.getMessageId());
+//		  	  	newMsg.setData("mstId", msg.getMilestoneId());
+//			}
+//		}
+//	}
 	
-	private void fillMilestoneTable() {
-		if (collection.getCrowdProject() != null){
-			for (TrpCrowdProjectMilestone mst : collection.getCrowdProject().getCrowdProjectMilestones()){
-				if (mst.getProjectId() == null){
-					//continue;
-				}
-		  	  	TableItem newMst = new TableItem(tableMst, SWT.NULL);
-		  	  	newMst.setText(new String[] {mst.getTitle(), mst.getDescription(), mst.getDueDate(), mst.getDate()});
-		  	  	newMst.setData("id", mst.getMilestoneId());
-			}
-		}
-	}
-
-	private void fillMessageTable() {
-		if (collection.getCrowdProject() != null){
-			//System.out.println("load messages");
-			for (TrpCrowdProjectMessage msg : collection.getCrowdProject().getCrowdProjectMessages()){
-				if (msg.getProjectId() == null){
-					//continue;
-				}
-		  	  	TableItem newMsg = new TableItem(tableMsg, SWT.NULL);
-		  	  	String emailInfo = "No";
-		  	  	if (msg.isEmailSent()){
-		  	  		emailInfo = "Yes";
-		  	  	}
-		  	  	String milestone = "No milestone assigned";
-		  	  	if (msg.getMilestoneId() != null){
-		  	  		milestone = collection.getCrowdProject().getCrowdProjectMilestone(msg.getMilestoneId()).toShortString();
-		  	  	}
-		  	  	newMsg.setText(new String[] {msg.getSubject(), msg.getMessage(), milestone, msg.getDate(), emailInfo});
-		  	  	newMsg.setData("id", msg.getMessageId());
-		  	  	newMsg.setData("mstId", msg.getMilestoneId());
-			}
-		}
-	}
-	
-	public void createOrUpdateMessage(TableItem ti) {
-		ArrayList<TrpCrowdProjectMilestone> milestones = collection.getCrowdProject().getCrowdProjectMilestones();
-		String[] milestonesStrings = new String[milestones.size()];
-		int i = 0;
-		for (TableItem mst : tableMst.getItems()){
-			milestonesStrings[i++] = mst.getText(0);
-		}
-				
-		if(crowdMsgDiag == null && ti == null){
-			crowdMsgDiag = new CrowdSourcingMessageDialog(getShell(), SWT.NONE, milestones);
-			dataEntered = crowdMsgDiag.open();
-		}else if(crowdMsgDiag == null && ti != null){
-			//id contains the assigned milestoneor null if not assigned
-			TrpCrowdProjectMilestone currMst = null;
-			System.out.println(" milestone id = " + ti.getData("mstId"));
-			if (ti.getData("mstId") != null){
-				currMst = collection.getCrowdProject().getCrowdProjectMilestone((int)ti.getData("mstId"));
-			}
-			crowdMsgDiag = new CrowdSourcingMessageDialog(getShell(), SWT.NONE, ti.getText(0), ti.getText(1), currMst, milestones);
-			dataEntered = crowdMsgDiag.open();
-		}else{
-			System.out.println("crowdMsgDiag not null - set active");
-			crowdMsgDiag.setActive();
-		}
-						
-		try {
-			if (dataEntered == null){
-				System.out.println("no data entered");
-				crowdMsgDiag = null;
-				return;
-			}
-			
-		  	Integer mstId = null;
-		  	String mstString = "No milestone";
-	    	if (crowdMsgDiag.getSelectedMstId() != 0){
-	    		TrpCrowdProjectMilestone assignedMst = collection.getCrowdProject().getCrowdProjectMilestone(crowdMsgDiag.getSelectedMstId());
-	    		mstString = assignedMst.toShortString();
-	    		mstId = assignedMst.getMilestoneId();
-	    		System.out.println( " milstone ID for this message " + mstId);
-	    	}
-
-			if (ti == null || (ti != null && saveAsNew)){
-				
-			  	TableItem newItem = new TableItem(tableMsg, SWT.NULL);
-			  	newItem.setData("mstId", mstId);
-			  	newItem.setText(
-			      new String[] {
-			    	crowdMsgDiag.getSubject(),
-			    	crowdMsgDiag.getMessage(),
-			    	mstString,
-			    	crowdMsgDiag.getDate()
-			    	});
-			    
-			  	//tableMsg.select(tableMsg.getItemCount() - 1);
-			  	TrpCrowdProjectMessage currMessage = new TrpCrowdProjectMessage(crowdMsgDiag.getSubject(), crowdMsgDiag.getMessage(), mstId, crowdMsgDiag.getDate());
-			  	if (ti != null && saveAsNew){
-			  		//to enable deletion of the message in case of cancel
-			  		currMessage.setProjectId(null);
-			  	}	  	
-			  	int id = storage.storeCrowdProjectMessage(currMessage, collection.getColId());
-			  	currMessage.setMessageId(id);
-			  	currMessage.setProjectId(collection.getCrowdProject().getProjId());
-			  	newItem.setData("id", id);
-			  	collection.getCrowdProject().getCrowdProjectMessages().add(currMessage);
-			  	saveAsNew = false;
-			}
-			else{
-				ti.setText(0, crowdMsgDiag.getSubject());
-				ti.setText(1, crowdMsgDiag.getMessage());
-				ti.setText(2, mstString);
-				ti.setText(3, crowdMsgDiag.getDate());
-				ti.setData("mstId", mstId);
-				
-			  	TrpCrowdProjectMessage currMessage = collection.getCrowdProject().getCrowdProjectMessage((int)ti.getData("id"));
-			  	currMessage.update(crowdMsgDiag.getSubject(), crowdMsgDiag.getMessage(), mstId, crowdMsgDiag.getDate());
-			  	msg2edit.add(currMessage);
-				//storage.storeCrowdProjectMessage(currMessage, collection.getColId());
-			}
-		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		finally{
-			crowdMdChanged = true;
-			crowdMsgDiag = null;
-		}
-
-	}
-	
-	public void createOrUpdateMilestone(TableItem ti) {
-
-		if(crowdMstDiag == null && ti == null){
-			crowdMstDiag = new CrowdSourcingMilestoneDialog(getShell(), SWT.NONE);
-			dataEntered = crowdMstDiag.open();
-		}else if(crowdMstDiag == null && ti != null){
-
-			//collection.getCrowdProject().getCrowdProjectMilestone((int) ti.getData("id"));
-			crowdMstDiag = new CrowdSourcingMilestoneDialog(getShell(), SWT.NONE, ti.getText(0), ti.getText(1), ti.getText(2));
-			dataEntered = crowdMstDiag.open();
-		}else{
-			crowdMstDiag.setActive();
-		}
-						
-		try {
-			if (dataEntered == null){
-				System.out.println("no data entered");
-				crowdMstDiag = null;
-				return;
-			}
-			else if (ti == null || (ti != null && saveAsNew) ){
-				
-				TrpCrowdProjectMilestone currMst = new TrpCrowdProjectMilestone();
-				currMst.setTitle(crowdMstDiag.getSubject());
-				currMst.setDescription(crowdMstDiag.getMessage());
-				currMst.setDueDate(crowdMstDiag.getDueDate());
-				currMst.setDate(crowdMstDiag.getDate());
-				if (ti != null && saveAsNew){
-					currMst.setProjectId(null);
-				}
-				int id = storage.storeCrowdProjectMilestone(currMst, collection.getColId());
-				currMst.setMilestoneId(id);
-				currMst.setProjectId(collection.getCrowdProject().getProjId());
-				
-				//System.out.println("new milestone id = " + id);
-				
-				//System.out.println("mst size before = " + collection.getCrowdProject().getCrowdProjectMilestones().size());
-			  	collection.getCrowdProject().getCrowdProjectMilestones().add(currMst);
-			  	//System.out.println("mst size after = " + collection.getCrowdProject().getCrowdProjectMilestones().size());
-
-			  	TableItem newItem = new TableItem(tableMst, SWT.NULL);
-			  	newItem.setData("id", id);
-			  	newItem.setText(
-			      new String[] {
-			    		  crowdMstDiag.getSubject(),
-			    		  crowdMstDiag.getMessage(),
-			    		  crowdMstDiag.getDueDate(),
-			    		  crowdMstDiag.getDate()
-			    	});
-			    
-			  	//tableMst.select(tableMst.getItemCount() - 1);
-			  	saveAsNew = false;
-			}
-			else{
-				ti.setText(0, crowdMstDiag.getSubject());
-				ti.setText(1, crowdMstDiag.getMessage());
-				ti.setText(2, crowdMstDiag.getDueDate());
-				ti.setText(3, crowdMstDiag.getDate());
-				
-				TrpCrowdProjectMilestone currMst = collection.getCrowdProject().getCrowdProjectMilestone((int)ti.getData("id"));
-				currMst.setTitle(crowdMstDiag.getSubject());
-				currMst.setDescription(crowdMstDiag.getMessage());
-				currMst.setDueDate(crowdMstDiag.getDueDate());
-				currMst.setDate(crowdMstDiag.getDate());
-				
-				//storage.storeCrowdProjectMilestone(currMst, collection.getColId());
-				mst2edit.add(currMst);
-			
-			}
-		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException
-				| NoConnectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		finally{
-			crowdMdChanged = true;
-			crowdMstDiag = null;
-		}
-	}
+//	public void createOrUpdateMessage(TableItem ti) {
+//		ArrayList<TrpCrowdProjectMilestone> milestones = collection.getCrowdProject().getCrowdProjectMilestones();
+//		String[] milestonesStrings = new String[milestones.size()];
+//		int i = 0;
+//		for (TableItem mst : tableMst.getItems()){
+//			milestonesStrings[i++] = mst.getText(0);
+//		}
+//				
+//		if(crowdMsgDiag == null && ti == null){
+//			crowdMsgDiag = new CrowdSourcingMessageDialog(getShell(), SWT.NONE, milestones);
+//			dataEntered = crowdMsgDiag.open();
+//		}else if(crowdMsgDiag == null && ti != null){
+//			//id contains the assigned milestoneor null if not assigned
+//			TrpCrowdProjectMilestone currMst = null;
+//			System.out.println(" milestone id = " + ti.getData("mstId"));
+//			if (ti.getData("mstId") != null){
+//				currMst = collection.getCrowdProject().getCrowdProjectMilestone((int)ti.getData("mstId"));
+//			}
+//			crowdMsgDiag = new CrowdSourcingMessageDialog(getShell(), SWT.NONE, ti.getText(0), ti.getText(1), currMst, milestones);
+//			dataEntered = crowdMsgDiag.open();
+//		}else{
+//			System.out.println("crowdMsgDiag not null - set active");
+//			crowdMsgDiag.setActive();
+//		}
+//						
+//		try {
+//			if (dataEntered == null){
+//				System.out.println("no data entered");
+//				crowdMsgDiag = null;
+//				return;
+//			}
+//			
+//		  	Integer mstId = null;
+//		  	String mstString = "No milestone";
+//	    	if (crowdMsgDiag.getSelectedMstId() != 0){
+//	    		TrpCrowdProjectMilestone assignedMst = collection.getCrowdProject().getCrowdProjectMilestone(crowdMsgDiag.getSelectedMstId());
+//	    		mstString = assignedMst.toShortString();
+//	    		mstId = assignedMst.getMilestoneId();
+//	    		System.out.println( " milstone ID for this message " + mstId);
+//	    	}
+//
+//			if (ti == null || (ti != null && saveAsNew)){
+//				
+//			  	TableItem newItem = new TableItem(tableMsg, SWT.NULL);
+//			  	newItem.setData("mstId", mstId);
+//			  	newItem.setText(
+//			      new String[] {
+//			    	crowdMsgDiag.getSubject(),
+//			    	crowdMsgDiag.getMessage(),
+//			    	mstString,
+//			    	crowdMsgDiag.getDate()
+//			    	});
+//			    
+//			  	//tableMsg.select(tableMsg.getItemCount() - 1);
+//			  	TrpCrowdProjectMessage currMessage = new TrpCrowdProjectMessage(crowdMsgDiag.getSubject(), crowdMsgDiag.getMessage(), mstId, crowdMsgDiag.getDate());
+//			  	if (ti != null && saveAsNew){
+//			  		//to enable deletion of the message in case of cancel
+//			  		currMessage.setProjectId(null);
+//			  	}	  	
+//			  	int id = storage.storeCrowdProjectMessage(currMessage, collection.getColId());
+//			  	currMessage.setMessageId(id);
+//			  	currMessage.setProjectId(collection.getCrowdProject().getProjId());
+//			  	newItem.setData("id", id);
+//			  	collection.getCrowdProject().getCrowdProjectMessages().add(currMessage);
+//			  	saveAsNew = false;
+//			}
+//			else{
+//				ti.setText(0, crowdMsgDiag.getSubject());
+//				ti.setText(1, crowdMsgDiag.getMessage());
+//				ti.setText(2, mstString);
+//				ti.setText(3, crowdMsgDiag.getDate());
+//				ti.setData("mstId", mstId);
+//				
+//			  	TrpCrowdProjectMessage currMessage = collection.getCrowdProject().getCrowdProjectMessage((int)ti.getData("id"));
+//			  	currMessage.update(crowdMsgDiag.getSubject(), crowdMsgDiag.getMessage(), mstId, crowdMsgDiag.getDate());
+//			  	msg2edit.add(currMessage);
+//				//storage.storeCrowdProjectMessage(currMessage, collection.getColId());
+//			}
+//		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		finally{
+//			crowdMdChanged = true;
+//			crowdMsgDiag = null;
+//		}
+//
+//	}
+//	
+//	public void createOrUpdateMilestone(TableItem ti) {
+//
+//		if(crowdMstDiag == null && ti == null){
+//			crowdMstDiag = new CrowdSourcingMilestoneDialog(getShell(), SWT.NONE);
+//			dataEntered = crowdMstDiag.open();
+//		}else if(crowdMstDiag == null && ti != null){
+//
+//			//collection.getCrowdProject().getCrowdProjectMilestone((int) ti.getData("id"));
+//			crowdMstDiag = new CrowdSourcingMilestoneDialog(getShell(), SWT.NONE, ti.getText(0), ti.getText(1), ti.getText(2));
+//			dataEntered = crowdMstDiag.open();
+//		}else{
+//			crowdMstDiag.setActive();
+//		}
+//						
+//		try {
+//			if (dataEntered == null){
+//				System.out.println("no data entered");
+//				crowdMstDiag = null;
+//				return;
+//			}
+//			else if (ti == null || (ti != null && saveAsNew) ){
+//				
+//				TrpCrowdProjectMilestone currMst = new TrpCrowdProjectMilestone();
+//				currMst.setTitle(crowdMstDiag.getSubject());
+//				currMst.setDescription(crowdMstDiag.getMessage());
+//				currMst.setDueDate(crowdMstDiag.getDueDate());
+//				currMst.setDate(crowdMstDiag.getDate());
+//				if (ti != null && saveAsNew){
+//					currMst.setProjectId(null);
+//				}
+//				int id = storage.storeCrowdProjectMilestone(currMst, collection.getColId());
+//				currMst.setMilestoneId(id);
+//				currMst.setProjectId(collection.getCrowdProject().getProjId());
+//				
+//				//System.out.println("new milestone id = " + id);
+//				
+//				//System.out.println("mst size before = " + collection.getCrowdProject().getCrowdProjectMilestones().size());
+//			  	collection.getCrowdProject().getCrowdProjectMilestones().add(currMst);
+//			  	//System.out.println("mst size after = " + collection.getCrowdProject().getCrowdProjectMilestones().size());
+//
+//			  	TableItem newItem = new TableItem(tableMst, SWT.NULL);
+//			  	newItem.setData("id", id);
+//			  	newItem.setText(
+//			      new String[] {
+//			    		  crowdMstDiag.getSubject(),
+//			    		  crowdMstDiag.getMessage(),
+//			    		  crowdMstDiag.getDueDate(),
+//			    		  crowdMstDiag.getDate()
+//			    	});
+//			    
+//			  	//tableMst.select(tableMst.getItemCount() - 1);
+//			  	saveAsNew = false;
+//			}
+//			else{
+//				ti.setText(0, crowdMstDiag.getSubject());
+//				ti.setText(1, crowdMstDiag.getMessage());
+//				ti.setText(2, crowdMstDiag.getDueDate());
+//				ti.setText(3, crowdMstDiag.getDate());
+//				
+//				TrpCrowdProjectMilestone currMst = collection.getCrowdProject().getCrowdProjectMilestone((int)ti.getData("id"));
+//				currMst.setTitle(crowdMstDiag.getSubject());
+//				currMst.setDescription(crowdMstDiag.getMessage());
+//				currMst.setDueDate(crowdMstDiag.getDueDate());
+//				currMst.setDate(crowdMstDiag.getDate());
+//				
+//				//storage.storeCrowdProjectMilestone(currMst, collection.getColId());
+//				mst2edit.add(currMst);
+//			
+//			}
+//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException
+//				| NoConnectionException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		finally{
+//			crowdMdChanged = true;
+//			crowdMstDiag = null;
+//		}
+//	}
 	
 	private void updateValues() {
 		if (collection == null) {
@@ -697,7 +706,7 @@ public class CollectionEditorDialog extends Dialog {
 			isCrowdsourceBtn.setSelection(false);
 			isELearningBtn.setSelection(false);
 			
-			updateValues(false);
+			//updateValues(false);
 
 		} else {
 			nameTxt.setText(collection.getColName());
@@ -705,34 +714,34 @@ public class CollectionEditorDialog extends Dialog {
 			isCrowdsourceBtn.setSelection(collection.isCrowdsourcing());
 			isELearningBtn.setSelection(collection.isElearning());
 			
-			updateValues(collection.isCrowdsourcing() && editAllowed);
+			//updateValues(collection.isCrowdsourcing() && editAllowed);
 		}
 
 	}
 
-	private void updateValues(boolean visibility) {
-        landingLbl.setEnabled(visibility);
-        link.setEnabled(visibility);
-        tblLblMsg.setEnabled(visibility);
-        tableMsg.setEnabled(visibility);
-	    tableMsg.setLinesVisible(visibility);
-	    tableMsg.setHeaderVisible(visibility);
-        createBtnMsg.setEnabled(visibility);
-        editBtnMsg.setEnabled(visibility);
-        takeBtnMsg.setEnabled(visibility);
-        deleteBtnMsg.setEnabled(visibility);
-        tblLblMst.setEnabled(visibility);
-        tableMst.setEnabled(visibility);
-	    tableMst.setLinesVisible(visibility);
-	    tableMst.setHeaderVisible(visibility);
-        createBtnMst.setEnabled(visibility);
-        editBtnMst.setEnabled(visibility);
-        takeBtnMst.setEnabled(visibility);
-        deleteBtnMst.setEnabled(visibility);
-	    aimOfCrowdProjectTxt.setEnabled(visibility);
-	    aimLbl.setEnabled(visibility);
-		
-	}
+//	private void updateValues(boolean visibility) {
+//        landingLbl.setEnabled(visibility);
+//        link.setEnabled(visibility);
+//        tblLblMsg.setEnabled(visibility);
+//        tableMsg.setEnabled(visibility);
+//	    tableMsg.setLinesVisible(visibility);
+//	    tableMsg.setHeaderVisible(visibility);
+//        createBtnMsg.setEnabled(visibility);
+//        editBtnMsg.setEnabled(visibility);
+//        takeBtnMsg.setEnabled(visibility);
+//        deleteBtnMsg.setEnabled(visibility);
+//        tblLblMst.setEnabled(visibility);
+//        tableMst.setEnabled(visibility);
+//	    tableMst.setLinesVisible(visibility);
+//	    tableMst.setHeaderVisible(visibility);
+//        createBtnMst.setEnabled(visibility);
+//        editBtnMst.setEnabled(visibility);
+//        takeBtnMst.setEnabled(visibility);
+//        deleteBtnMst.setEnabled(visibility);
+//	    aimOfCrowdProjectTxt.setEnabled(visibility);
+//	    aimLbl.setEnabled(visibility);
+//		
+//	}
 
 	public TrpCollection getCollection() {
 		return collection;
@@ -742,13 +751,13 @@ public class CollectionEditorDialog extends Dialog {
 		return mdChanged;
 	}
 	
-	public boolean isCrowdMdChanged() {
-		return crowdMdChanged;
-	}
+//	public boolean isCrowdMdChanged() {
+//		return crowdMdChanged;
+//	}
 
 	@Override
 	protected void cancelPressed() {
-		clearCollectionEditorWidget();
+		//clearCollectionEditorWidget();
 		super.cancelPressed();
 	};
 	
@@ -757,7 +766,7 @@ public class CollectionEditorDialog extends Dialog {
 			
 		final String name = nameTxt.getText();
 		final String descr = descrTxt.getText();
-		final String aim = aimOfCrowdProjectTxt.getText(); 
+		//final String aim = aimOfCrowdProjectTxt.getText(); 
 		final boolean isCrowdsource = isCrowdsourceBtn.getSelection();
 		final boolean isELearning = isELearningBtn.getSelection();
 		
@@ -804,67 +813,67 @@ public class CollectionEditorDialog extends Dialog {
 			collection.setElearning(isELearning);
 		}
 		
-		if (collection.isCrowdsourcing() && collection.getCrowdProject().getProjId() == null){
-			try {
-				storage.storeCrowdProject(collection.getCrowdProject(), collection.getColId());
-				collection.setCrowdProject(storage.loadCrowdProject(collection.getColId()));
-			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
-					| NoConnectionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		//changes of crowdsourcing project are handled separatately
-		//if (collection.isCrowdsourcing() && collection.getCrowdProject() != null){
-		if (collection.getCrowdProject() != null){
-			//store a new crowd project
-			TrpCrowdProject crowdProject = collection.getCrowdProject();
-			if (!aim.equals(crowdProject.getAim())){
-				crowdMdChanged = true;
-				crowdProject.setAim(aim);
-			}
-			int projectId = crowdProject.getProjId();
-			try {
-				/*
-				 * here we save milestones and messages durable by setting the projectId for them
-				 * if Cancel is clicked they are deleted instead
-				 */
-				for (TrpCrowdProjectMilestone mst : crowdProject.getCrowdProjectMilestones()){
-					//System.out.println("mst id " + mst.getMilestoneId());
-					mst.setProjectId(projectId);
-					storage.storeCrowdProjectMilestone(mst, collection.getColId());
-				}
-				for (TrpCrowdProjectMessage msg : crowdProject.getCrowdProjectMessages()){
-					//System.out.println("msg id " + msg.getMessageId());
-					msg.setProjectId(projectId);
-					storage.storeCrowdProjectMessage(msg, collection.getColId());
-				}
-				/*
-				 * delete the chosen messages durable when Ok was pressed
-				 * Cancel keep them in the database and they get reloaded next time
-				 */
-				for (Integer id : mst2delete){
-					storage.getConnection().deleteCrowdProjectMilestone(collection.getColId(), id);
-				}
-				for (Integer id : msg2delete){
-					storage.getConnection().deleteCrowdProjectMessage(collection.getColId(), id);
-				}
-				for (TrpCrowdProjectMilestone currMst : mst2edit){
-					storage.storeCrowdProjectMilestone(currMst, collection.getColId());
-				}
-				for (TrpCrowdProjectMessage currMsg : msg2edit){
-					storage.storeCrowdProjectMessage(currMsg, collection.getColId());
-				}
-				
-
-			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
-					| NoConnectionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			collection.setCrowdProject(crowdProject);
-		}
+//		if (collection.isCrowdsourcing() && collection.getCrowdProject().getProjId() == null){
+//			try {
+//				storage.storeCrowdProject(collection.getCrowdProject(), collection.getColId());
+//				collection.setCrowdProject(storage.loadCrowdProject(collection.getColId()));
+//			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+//					| NoConnectionException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+//		
+//		//changes of crowdsourcing project are handled separatately
+//		//if (collection.isCrowdsourcing() && collection.getCrowdProject() != null){
+//		if (collection.getCrowdProject() != null){
+//			//store a new crowd project
+//			TrpCrowdProject crowdProject = collection.getCrowdProject();
+//			if (!aim.equals(crowdProject.getAim())){
+//				crowdMdChanged = true;
+//				crowdProject.setAim(aim);
+//			}
+//			int projectId = crowdProject.getProjId();
+//			try {
+//				/*
+//				 * here we save milestones and messages durable by setting the projectId for them
+//				 * if Cancel is clicked they are deleted instead
+//				 */
+//				for (TrpCrowdProjectMilestone mst : crowdProject.getCrowdProjectMilestones()){
+//					//System.out.println("mst id " + mst.getMilestoneId());
+//					mst.setProjectId(projectId);
+//					storage.storeCrowdProjectMilestone(mst, collection.getColId());
+//				}
+//				for (TrpCrowdProjectMessage msg : crowdProject.getCrowdProjectMessages()){
+//					//System.out.println("msg id " + msg.getMessageId());
+//					msg.setProjectId(projectId);
+//					storage.storeCrowdProjectMessage(msg, collection.getColId());
+//				}
+//				/*
+//				 * delete the chosen messages durable when Ok was pressed
+//				 * Cancel keep them in the database and they get reloaded next time
+//				 */
+//				for (Integer id : mst2delete){
+//					storage.getConnection().deleteCrowdProjectMilestone(collection.getColId(), id);
+//				}
+//				for (Integer id : msg2delete){
+//					storage.getConnection().deleteCrowdProjectMessage(collection.getColId(), id);
+//				}
+//				for (TrpCrowdProjectMilestone currMst : mst2edit){
+//					storage.storeCrowdProjectMilestone(currMst, collection.getColId());
+//				}
+//				for (TrpCrowdProjectMessage currMsg : msg2edit){
+//					storage.storeCrowdProjectMessage(currMsg, collection.getColId());
+//				}
+//				
+//
+//			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
+//					| NoConnectionException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			collection.setCrowdProject(crowdProject);
+//		}
 
 		super.okPressed();
 	}
