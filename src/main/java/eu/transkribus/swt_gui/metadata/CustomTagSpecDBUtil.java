@@ -41,7 +41,7 @@ public class CustomTagSpecDBUtil {
 			
 			builder.add("name", ct.getTagName());
 	        
-	        logger.debug("tagname to write " + ct.getTagName());
+	        logger.trace("tagname to write: " + ct.getTagName());
 
 	        JsonArrayBuilder arrb = Json.createArrayBuilder();
 
