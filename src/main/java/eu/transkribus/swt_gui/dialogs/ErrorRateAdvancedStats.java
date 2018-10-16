@@ -18,6 +18,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -34,6 +36,13 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.swt.ChartComposite;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +62,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 	private Composite composite;
 	Storage store;
 	Shell shell;
+	
+	ChartComposite jFreeChartComp;
+	JFreeChart chart = null;
 	
 	ErrorTableViewer overall;
 	ErrorTableViewer page;
@@ -98,6 +110,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected Control createDialogArea(final Composite parent) {
 		
 		this.composite = (Composite) super.createDialogArea(parent);
+		
+		chartComposite();
 
 		errOverallTable();
 		
@@ -108,6 +122,26 @@ public class ErrorRateAdvancedStats extends Dialog{
 		return composite;
 	}
 	
+	private void chartComposite() {
+		
+		jFreeChartComp = new ChartComposite(composite, SWT.FILL);
+		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 15, 30));
+		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+		dataset.addValue(resultErr.getWerDouble(), "WER", "Overall");
+		dataset.addValue(resultErr.getCerDouble(), "CER", "Overall");
+		dataset.addValue(resultErr.getwAccDouble(), "Word Accuracy", "Overall");
+		dataset.addValue(resultErr.getcAccDouble(), "Char Accuracy", "Overall");
+		dataset.addValue(resultErr.getBagTokensPrecDouble(), "Bag Tokens Precision", "Overall");
+		dataset.addValue(resultErr.getBagTokensRecDouble(), "Bag Tokens Recall", "Overall");
+		dataset.addValue(resultErr.getBagTokensFDouble(), "Bag Tokens F-Measure", "Overall");
+		
+		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
+		jFreeChartComp.setChart(chart);
+		chart.fireChartChanged();
+	
+	}
+
 	public void errOverallTable() {
 		
 		Composite body = new Composite(composite,SWT.NONE);
@@ -132,6 +166,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 									resultErr.getBagTokensRec(),
 									resultErr.getBagTokensF()
 									});
+		overall.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 	}
 	
@@ -149,14 +184,27 @@ public class ErrorRateAdvancedStats extends Dialog{
 		page.setLabelProvider(labelProvider);
 
 		page.getTable().setHeaderVisible(true);
-		
-		page.getTable().getColumns();
-	
+
 		page.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
+		
+		page.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				updateChart();
+			}
+		});
 
 	}
 	
+	protected void updateChart() {
+		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+		
+		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset);
+		jFreeChartComp.setChart(chart);
+		
+	}
+
 	public void downloadXls() {
 		
 		Composite body = new Composite(composite,SWT.NONE);
