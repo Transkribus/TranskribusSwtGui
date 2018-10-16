@@ -53,6 +53,7 @@ import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.tools.ToolsWidget;
@@ -74,7 +75,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private LabeledCombo options;
 	private Button compare, wikiOptions;
-	final ParameterMap params = new ParameterMap();
+	private ParameterMap params = new ParameterMap();
 	ResultLoader rl;
 	
 	TranscriptVersionChooser refVersionChooser, hypVersionChooser;
@@ -84,12 +85,10 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	Button compareVersionsBtn;
 	Composite werGroup;
 	ExpandableComposite werExp;
-	
-	
+
 	protected static final String HELP_WIKI_OPTION = "https://en.wikipedia.org/wiki/Unicode_equivalence";
 
 	public ErrorRateAdvancedDialog(Shell parentShell) {
-		
 		super(parentShell);
 		store = Storage.getInstance();
 		rl = new ResultLoader();
@@ -114,11 +113,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		sashFormAdvance = new SashForm(tabFolder,SWT.VERTICAL);
 		
-		advanceCompare = new CTabItem(tabFolder,SWT.NONE);
-		advanceCompare.setText("Advanced Compare");
-		
 		quickCompare = new CTabItem(tabFolder,SWT.NONE);
 		quickCompare.setText("Quick Compare");
+		
+		advanceCompare = new CTabItem(tabFolder,SWT.NONE);
+		advanceCompare.setText("Advanced Compare");
 		
 		sampleCompare = new CTabItem(tabFolder,SWT.NONE);
 		sampleCompare.setText("Samples Compare");
@@ -185,12 +184,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				params.addParameter("option", options.combo.getSelectionIndex());
-				startError();
+				startError(store.getDocId(), dps.getPagesStr());
 			}
 			
 		});
 		
-		Storage.getInstance().addListener(new IStorageListener() {
+		store.addListener(new IStorageListener() {
 			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
 				refVersionChooser.setToGT();
 				hypVersionChooser.setToCurrent();
@@ -206,37 +205,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
 
 				if (ref != null && hyp != null) {
-					
-					if(ToolsWidget.IS_LEGACY_WER_GROUP) {
-						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
-						String result="";
+					params.addIntParam("option", -1);
 						try {
-							result = store.computeWer(ref, hyp);
-						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
-								| NoConnectionException e1) {
-							// TODO Auto-generated catch block
+							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
+						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
 							e1.printStackTrace();
 						}
-						MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);
-						mb.setText("Result");
-						mb.setMessage(result);
-						mb.open();
-					} else {					
-						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
-	
-						TrpErrorRateResult resultErr = null;
-						try {
-							resultErr = store.computeErrorRate(ref, hyp);
-						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException
-								| NoConnectionException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-						logger.debug("resultError was calculated : "+resultErr.getCer());
-						ErrorRateDialog dialog = new ErrorRateDialog(getShell(), resultErr);
-						dialog.open();
-
-					}
 				}
 			}
 		});
@@ -306,10 +280,10 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		quickCompare.setControl(werGroup);
 	}
 
-	protected void startError() {
+	protected void startError(int docID, String pageString) {
 
 		try {
-			store.getConnection().computeErrorRateWithJob(store.getDocId(), dps.getPagesStr(), params);
+			store.getConnection().computeErrorRateWithJob(docID, pageString, params);
 		} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
 			logger.error(e.getMessage(), e);
 			DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessageToUser());

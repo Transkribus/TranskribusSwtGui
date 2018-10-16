@@ -440,15 +440,19 @@ public class TagConfWidget extends Composite {
 		tagsTableContainer.layout(true);
 	}
 	
-	private static Color getTagColor(String tagName) {
+	public static Color getTagColor(String tagName, int defaultColor) {
 		String tagColorStr = CustomTagFactory.getTagColor(tagName);
 		Color c = Colors.decode2(tagColorStr);
 
 		if (c == null) {
-			c = Colors.getSystemColor(SWT.COLOR_GRAY); // default tag color
+			c = Colors.getSystemColor(defaultColor); // default tag color
 		}
 		
 		return c;
+	}
+	
+	public static Color getTagColor(String tagName) {
+		return getTagColor(tagName, SWT.COLOR_GRAY);
 	}
 	
 	private void initPropertyTable(Composite parent) {
