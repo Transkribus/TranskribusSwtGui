@@ -3325,7 +3325,7 @@ public class TrpMainWidget {
 		try {
 			//during deleting a page we don't care if it was edited before
 			if (storage.isTranscriptEdited()) {
-				storage.getTranscript().getPage().setEdited(false);
+				storage.setCurrentTranscriptEdited(true);
 			}
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -4325,7 +4325,7 @@ public class TrpMainWidget {
 			}, "Exporting", false);
 
 			reloadCurrentTranscript(true, true);
-			storage.getTranscript().getPage().setEdited(true);
+			storage.setCurrentTranscriptEdited(true);
 
 //			ui.selectStructureTab();
 			updatePageInfo();
@@ -4484,7 +4484,7 @@ public class TrpMainWidget {
 		try {
 			PcGtsType p = PageXmlUtils.unmarshal(new File(fn));
 			storage.getTranscript().setPageData(p);
-			storage.getTranscript().getPage().setEdited(true);
+			storage.setCurrentTranscriptEdited(true);
 
 			reloadCurrentTranscript(true, false);
 		} catch (Exception e) {

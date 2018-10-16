@@ -245,7 +245,9 @@ public class TagListWidget extends Composite {
 			logger.debug("tag: "+t);
 		}
 
-		tv.setInput(tagList);
+		tv.setInputAndSortAgain(tagList);
+//		tv.setInput(tagList);
+		
 		TaggingWidgetUtils.updateEditors(delSelectedEditors, tagList);
 	}
 	
