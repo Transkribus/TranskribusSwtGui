@@ -5,17 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBException;
-
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.core.model.beans.pagecontent.BaselineType;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent.WordType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.PageXmlUtils;
@@ -32,25 +31,28 @@ public class IndexTextUtils {
 	 * @param	line	Trp text line
 	 * @return	List of TrpWordType in text line
 	 */
-	public static ArrayList<TrpWordType> getWordsFromLine(TrpTextLineType line){
+	public static Pair<TrpBaselineType, ArrayList<TrpWordType>> getWordsFromLine(TrpTextLineType line, boolean addBaselineToLine){
+		if (line == null) {
+			return Pair.of(null, new ArrayList<>());
+		}
+		
+		TrpBaselineType bl = null;
+		if (line.getTrpBaseline() == null) {
+			bl = generateTrpBaseline(line);
+			if (addBaselineToLine) {
+				line.setBaseline(bl);
+			}
+		} else {
+			bl = line.getTrpBaseline();
+		}
 		
 		ArrayList<TrpWordType> trpWords = new ArrayList<TrpWordType>();
-		if (line == null){
-			return trpWords;
-		}
 		
-		if(line.getBaseline() == null){
-			line.setBaseline(generateBaseline(line));
-		}
-				
-		
-		String baseLine = line.getBaseline().getPoints();
+		String baseLine = bl.getPoints();
 		String string = line.getUnicodeText();	
 		string = string.replaceAll("-"," ").replaceAll("\\p{Punct}", ".").replaceAll("¬", ".");
 		
 		String[] basePts = baseLine.trim().split(" ");
-
-		
 		ArrayList<Integer> xPts = new ArrayList<Integer>();
 		ArrayList<Integer> yPts = new ArrayList<Integer>();		
 		
@@ -111,7 +113,8 @@ public class IndexTextUtils {
 			}		
 			string = string.replaceFirst(s, replacement); //Replace word chars with empty spaces	
 		}
-		return trpWords;
+		
+		return Pair.of(bl, trpWords);
 	}
 	
 	/**
@@ -148,9 +151,8 @@ public class IndexTextUtils {
 	 * Generate a BaselineType from a Trp TextLine.
 	 * Estimates baseline coordinates from line coordinates
 	 */
-	private static BaselineType generateBaseline(TrpTextLineType line) {
-		
-		BaselineType baseLine = new BaselineType();
+	private static TrpBaselineType generateTrpBaseline(TrpTextLineType line) {
+		TrpBaselineType baseLine = new TrpBaselineType();
 		ArrayList<Integer> xPts = new ArrayList<Integer>();
 		ArrayList<Integer> yPts = new ArrayList<Integer>();		
 		String[] singleCoords = line.getCoordinates().split(" ");
@@ -263,7 +265,7 @@ public class IndexTextUtils {
 						}
 					}
 				}else{
-					List<TrpWordType> lineWords = IndexTextUtils.getWordsFromLine(ttl);
+					List<TrpWordType> lineWords = IndexTextUtils.getWordsFromLine(ttl, true).getRight();
 					for(TrpWordType tw : lineWords){
 						if(tw.getUnicodeText().trim().replaceAll("\\p{Punct}", "").equals(word)){
 							coords.put(tr.getId()+":"+tl.getId(), tw.getCoordinates());

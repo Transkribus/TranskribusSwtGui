@@ -228,7 +228,7 @@ public class DebuggerDialog extends Dialog {
 				if (tw!=null && tw.getCurrentLineObject()!=null) {
 					TrpTextLineType tl = tw.getCurrentLineObject();
 			
-					List<TrpWordType> segmentedWords = IndexTextUtils.getWordsFromLine(tl);
+					List<TrpWordType> segmentedWords = IndexTextUtils.getWordsFromLine(tl, false).getRight();
 					logger.debug("performed line 2 word seg");
 					
 					// remove old words:
