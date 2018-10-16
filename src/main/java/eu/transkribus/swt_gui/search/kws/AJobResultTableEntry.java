@@ -35,6 +35,13 @@ public abstract class AJobResultTableEntry<T> {
 		case TrpJobStatus.FAILED:
 			this.status = "Failed. See job overview for more info.";
 			break;
+		case TrpJobStatus.FINISHED:
+			this.status = "Completed";
+			break;
+		case TrpJobStatus.CREATED:
+		case TrpJobStatus.WAITING:
+			this.status = "Waiting";
+			break;
 		default:
 			this.status = "Completed";
 			break;
