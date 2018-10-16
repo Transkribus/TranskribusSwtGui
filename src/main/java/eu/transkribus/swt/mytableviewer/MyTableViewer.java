@@ -86,6 +86,15 @@ public class MyTableViewer extends TableViewer {
 		return getTable().getColumnCount();
 	}
 	
+	public void setInputAndSortAgain(Object input) {
+		setInput(input);
+		if (getTable().getSortColumn() != null) { // workaround to apply previously set sorting
+			getTable().setSortColumn(getTable().getSortColumn());
+			getTable().setSortDirection(getTable().getSortDirection());
+			refresh();
+		}
+	}
+	
 	private static Pair<TableColumn, TableViewerSorter> createColumn(TableViewer viewer, int style, 
 			String text, int width, 
 			boolean setSorting, int sortDirection, TableViewerSorter sorter) {

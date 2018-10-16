@@ -1,15 +1,15 @@
 package eu.transkribus.swt_gui.metadata;
 
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
@@ -18,24 +18,20 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpDbTag;
+import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableLabelProvider;
@@ -46,12 +42,7 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
-import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
-import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class TagListWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(TagListWidget.class);
@@ -83,7 +74,7 @@ public class TagListWidget extends Composite {
 		new ColumnConfig(TAG_VALUE_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(CONTEXT_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
 //		new ColumnConfig(REGION_COL, 40, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(PROPERTIES_COL, 400, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(PROPERTIES_COL, 1000, false, DefaultTableColumnViewerSorter.ASC),
 //		new ColumnConfig(DOC_COL, 60, true, DefaultTableColumnViewerSorter.ASC),
 //		new ColumnConfig(PAGE_COL, 60, false, DefaultTableColumnViewerSorter.ASC),
 	};
@@ -151,7 +142,10 @@ public class TagListWidget extends Composite {
 						return t.getContainedText();
 					}
 					else if (cn.equals(PROPERTIES_COL)) {
-						return t.getAttributesCssStrWoOffsetAndLength(true);
+						String propsStr = t.getAttributesCssStrWoOffsetAndLength(true);
+						// remove semicolons and multiple whitespaces:
+						propsStr = propsStr.replaceAll(";", "").replaceAll(":", ": ").trim().replaceAll(" +", " ");
+						return propsStr;
 					}
 					
 					return "";
@@ -177,6 +171,28 @@ public class TagListWidget extends Composite {
 							StyleRange sr = new StyleRange(o, l, cell.getForeground(), Colors.getSystemColor(SWT.COLOR_YELLOW));
 							cell.setStyleRanges(new StyleRange[] { sr } );
 						}
+					}
+					else if (cn.equals(PROPERTIES_COL)) {
+						if (!StringUtils.isEmpty(txt)) {
+							final Pattern propsPattern = Pattern.compile
+									(CssSyntaxTag.CSS_ATTRIBUTE_NAME_STYLE+":"/*+CssSyntaxTag.CSS_ATTRIBUTE_VALUE_STYLE*/,
+											Pattern.UNICODE_CHARACTER_CLASS);
+							Matcher matcher = propsPattern.matcher(txt);
+							List<StyleRange> srs = new ArrayList<>();
+							while (matcher.find()) {
+								StyleRange sr = new StyleRange(matcher.start(), matcher.end()-matcher.start(), Colors.getSystemColor(SWT.COLOR_DARK_GRAY), cell.getBackground());
+								srs.add(sr);
+							}			
+							logger.trace("srs: "+srs.size());
+							if (!srs.isEmpty()) {
+								cell.setStyleRanges(srs.toArray(new StyleRange[srs.size()]));
+							}
+						}
+					}
+					else if (cn.equals(TAG_COL)) {
+						Color c = TagConfWidget.getTagColor(txt, SWT.COLOR_BLACK);
+						StyleRange sr = new StyleRange(0, txt.length(), c, null);
+						cell.setStyleRanges(new StyleRange[] { sr } );
 					}
 
 					cell.setText(txt);
@@ -229,7 +245,9 @@ public class TagListWidget extends Composite {
 			logger.debug("tag: "+t);
 		}
 
-		tv.setInput(tagList);
+		tv.setInputAndSortAgain(tagList);
+//		tv.setInput(tagList);
+		
 		TaggingWidgetUtils.updateEditors(delSelectedEditors, tagList);
 	}
 	

@@ -51,6 +51,7 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableViewerUtils;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CustomTagPropertyTableNew extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(CustomTagPropertyTableNew.class);
@@ -125,120 +126,6 @@ public class CustomTagPropertyTableNew extends Composite {
 		});
 		tv.setContentProvider(ArrayContentProvider.getInstance());
 		
-//		// CONTENT PROVIDER:
-//		tv.setContentProvider(new IStructuredContentProvider() {
-//			@Override public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-//			}
-//			
-//			@Override public void dispose() {
-//			}
-//			
-//			@Override public Object[] getElements(Object inputElement) {
-//				if (prototypeTag == null) {
-//					return null;
-//				}
-//				
-//				
-//				
-//				if (prototypeTag != null) {
-//					Map<CustomTagAttribute, Object> m = prototypeTag.getAttributesValuesMap();
-//					logger.debug("getElements, nr of props = "+m.size()+" nr of atts = "+prototypeTag.getAttributes().size()+" class ="+prototypeTag.getClass().getSimpleName());
-//					logger.debug("att names: "+prototypeTag.getAttributeNames());
-//					
-//					// create list of entries with offset/length/continued properties first:
-//					List<Entry<CustomTagAttribute, Object>> entries = new ArrayList<>();
-//					
-//					if (withOffsetLengthContinuedProperties) {
-//						entries.add(new SimpleEntry(CustomTag.OFFSET_PROPERTY,  m.get(CustomTag.OFFSET_PROPERTY)));
-//						entries.add(new SimpleEntry(CustomTag.LENGTH_PROPETY,  m.get(CustomTag.LENGTH_PROPETY)));
-//						entries.add(new SimpleEntry(CustomTag.CONTINUED_PROPERTY,  m.get(CustomTag.CONTINUED_PROPERTY)));
-//					}
-//					
-//					for (CustomTagAttribute a : m.keySet()) {
-//						if (CustomTag.isOffsetOrLengthOrContinuedProperty(a.getName()))
-//							continue;
-//						
-//						entries.add(new SimpleEntry(a, m.get(a)));
-//					}					
-//					
-//					return entries.toArray();
-////					return prototypeTag.getAttributesValuesMap().entrySet().toArray();
-//				}
-//				
-//				return null;
-//			}
-//		});
-		
-		// EDITING SUPPORT:
-//		valueEditingSupport = new EditingSupport(tv) {
-//			@Override protected void setValue(Object element, Object value) {
-//				setValue(element, value);
-//			}
-//			
-//			@Override protected Object getValue(Object element) {
-//				return getAttributeValue(element);
-//			}
-//			
-//			@Override protected CellEditor getCellEditor(Object element) {
-//				if (selectedTag == null) {
-//					return null;
-//				}
-//				
-//				String attName = getAttributeName(element);
-//				CellEditor e = null;
-//				Class<?> t = selectedTag.getAttributeType(attName);
-//				
-//				logger.debug("cell editor, att = "+attName+" type = "+t);
-//				if (t==null) {
-//					e = new MyTextCellEditor(table);
-//				}
-//				else if (t.equals(Boolean.class) || t.equals(boolean.class)) {
-//					e = new MyCheckboxEditor(table);
-//				}
-//				// TODO: true for every class???
-//				else if (Enum.class.getClass().isAssignableFrom(t)) {
-//					ComboBoxViewerCellEditor cbe = new ComboBoxViewerCellEditor(table);
-//					cbe.setContentProvider(new ArrayContentProvider());
-//					cbe.setInput(t.getEnumConstants());
-//					cbe.setLabelProvider(new LabelProvider());
-//					e = cbe;					
-//				}
-//				else {
-//					e = new MyTextCellEditor(table);
-//				}
-//				
-//				ICellEditorValidator v = SWTUtil.createNumberCellValidator(t);
-//				if (v != null) {
-//					e.setValidator(v);
-//				}
-//				
-////				e.addListener(new ICellEditorListener() {
-////					
-////					@Override
-////					public void editorValueChanged(boolean arg0, boolean arg1) {
-////					}
-////					
-////					@Override
-////					public void cancelEditor() {
-////					}
-////					
-////					@Override
-////					public void applyEditorValue() {
-//////						listener.stream().forEach(l -> { 
-//////							l.onPropertyChanged(getAttributeName(element), getAttributeValue(element));
-//////						});
-////					}
-////				});
-//												
-//				return e;
-//			}
-//			
-//			@Override protected boolean canEdit(Object element) {
-//				return canEdit(element);
-//			}
-//		};
-//		valueCol.setEditingSupport(valueEditingSupport);
-		
 		initTraverseStuff();
 	}
 	
@@ -271,7 +158,8 @@ public class CustomTagPropertyTableNew extends Composite {
 						logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
 					}
 					logger.debug("tag after attribute set: "+selectedTag);
-				});					
+				});
+				Storage.getInstance().setCurrentTranscriptEdited(true);
 			}
 		} catch (Exception e) {
 			logger.error("Error applying attribute value from editor: "+e.getMessage(), e);
