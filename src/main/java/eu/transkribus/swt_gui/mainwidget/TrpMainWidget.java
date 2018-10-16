@@ -912,14 +912,19 @@ public class TrpMainWidget {
 					if (arg instanceof TagRegistryChangeEvent) {
 						logger.debug("registry has changed ");
 						TagRegistryChangeEvent trce = (TagRegistryChangeEvent) arg;
+						logger.debug("type of tag change " + trce.type);
 						if (trce.type.equals(TagRegistryChangeEvent.CHANGED_TAG_COLOR) && getUi()!=null && getUi().getSelectedTranscriptionWidget()!=null) {
 							TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget().redrawText(true, false, false);
 						}
 												
-						//if tag registry has changed and user is logged in -> store into DB for the current user
-//						if (storage.isLoggedIn()){
-//							Storage.getInstance().updateCustomTagSpecsForUserInDB();
-//						}
+						/*
+						 * if tag registry has changed and user is logged in -> store into DB for the current user
+						 * this tag list is used for the web interface!
+						 */
+						
+						if (storage.isLoggedIn()){
+							Storage.getInstance().updateCustomTagSpecsForUserInDB();
+						}
 					}
 				});
 			}
@@ -1123,7 +1128,7 @@ public class TrpMainWidget {
 			
 			/*
 			 * when user is logged in we can store the tag definitions into the DB
-			 * later on the are stored each time they change
+			 * later on they are stored each time they change
 			 */
 			try {
 				storage.updateCustomTagSpecsForUserInDB();

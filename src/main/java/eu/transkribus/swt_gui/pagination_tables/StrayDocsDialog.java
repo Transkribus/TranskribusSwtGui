@@ -79,7 +79,7 @@ public class StrayDocsDialog extends Dialog implements SelectionListener {
 	      super.configureShell(shell);
 	      shell.setSize(1000, 800);
 	      SWTUtil.centerShell(shell);
-	      shell.setText("Stray documents");
+	      shell.setText("Documents without collection");
 	}
 
 	@Override protected Control createDialogArea(Composite parent) {
@@ -110,7 +110,7 @@ public class StrayDocsDialog extends Dialog implements SelectionListener {
 		
 		linkSelected = new ToolItem(tb, SWT.NONE);
 		linkSelected.setData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
-		linkSelected.setToolTipText("Assign selected");
+		linkSelected.setToolTipText("Assign selected docs to collection");
 		linkSelected.setImage(Images.getOrLoad("/icons/add.png"));
 		SWTUtil.addSelectionListener(linkSelected, this);
 		
