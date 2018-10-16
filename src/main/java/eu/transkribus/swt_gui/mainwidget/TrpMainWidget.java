@@ -60,8 +60,6 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -93,8 +91,6 @@ import eu.transkribus.core.io.util.ImgFileFilter;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
-import eu.transkribus.core.model.beans.TrpCrowdProjectMilestone;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -210,6 +206,7 @@ import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.RecycleBinDialog;
 import eu.transkribus.swt_gui.pagination_tables.StrayDocsDialog;
 import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
+import eu.transkribus.swt_gui.preferences.PreferencesDialog;
 import eu.transkribus.swt_gui.search.SearchDialog;
 import eu.transkribus.swt_gui.search.SearchDialog.SearchType;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
@@ -289,6 +286,7 @@ public class TrpMainWidget {
 	TranscriptsDialog versionsDiag;
 	SettingsDialog viewSetsDiag;
 	ProxySettingsDialog proxyDiag;
+	PreferencesDialog preferencesDiag;
 	AutoSaveDialog autoSaveDiag;
 	DebuggerDialog debugDiag;
 	VersionsDiffBrowserDialog browserDiag;
@@ -4950,11 +4948,23 @@ public class TrpMainWidget {
 		if (proxyDiag!=null && !SWTUtil.isDisposed(proxyDiag.getShell())) {
 			proxyDiag.getShell().setVisible(true);
 		} else {
-			proxyDiag = new ProxySettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, TrpGuiPrefs.getProxyPrefs());
+			proxyDiag = new ProxySettingsDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM);
 			proxyDiag.open();
 			Storage.getInstance().updateProxySettings();
 		}
 	}
+	
+	public void openPreferencesDialog() {
+		logger.debug("opening preferences dialog");
+		if (preferencesDiag!=null && !SWTUtil.isDisposed(preferencesDiag.getShell())) {
+			preferencesDiag.getShell().setVisible(true);
+		} else {
+			preferencesDiag = new PreferencesDialog(getShell());
+			preferencesDiag.open();
+			Storage.getInstance().updateProxySettings();
+		}
+	}
+	
 	
 	public void openAutoSaveSetsDialog() {
 		logger.debug("opening autosave sets dialog");

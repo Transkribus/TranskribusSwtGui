@@ -10,14 +10,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
-import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.TrpGuiPrefs;
-import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
+import eu.transkribus.swt_gui.preferences.ProxySettingsWidget;
 
 /**
  * Test with proxy.uibk.ac.at:3128
@@ -29,14 +25,8 @@ public class ProxySettingsDialog extends Dialog {
 	protected Object result;
 	protected Shell shell;
 	
-	ProxyPrefs prefs;
+	ProxySettingsWidget widget;
 	
-	private Text proxyHostTxt;
-	private Text proxyPortTxt;
-	private Text proxyUserTxt;
-	private Text proxyPasswordTxt;
-	private Button isProxyEnabledBtn;
-	private Label msgLbl;
 	private Button saveButton;
 
 	/**
@@ -44,11 +34,9 @@ public class ProxySettingsDialog extends Dialog {
 	 * @param parent
 	 * @param style
 	 */
-	public ProxySettingsDialog(Shell parent, int style, ProxyPrefs prefs) {
+	public ProxySettingsDialog(Shell parent, int style) {
 		super(parent, style);
 		setText("Proxy Settings");
-		
-		this.prefs = prefs;
 	}
 	
 	public Shell getShell() {
@@ -85,45 +73,7 @@ public class ProxySettingsDialog extends Dialog {
 		
 		shell.setLocation(getParent().getSize().x/2, getParent().getSize().y/3);
 		
-		GridData gd  = new GridData(300, 20);
-		
-		Label lblHostLabel = new Label(shell, SWT.NONE);
-		lblHostLabel.setText("Proxy Host:");
-		
-		proxyHostTxt = new Text(shell, SWT.BORDER);
-//		proxyHostTxt.setText(trpSets.getProxyHost());
-		proxyHostTxt.setLayoutData(gd);
-
-		Label lblPortLabel = new Label(shell, SWT.NONE);
-		lblPortLabel.setText("Proxy Port:");
-		
-		proxyPortTxt = new Text(shell, SWT.BORDER);
-//		proxyPortTxt.setText(trpSets.getProxyPort());
-		proxyPortTxt.setLayoutData(gd);
-
-		Label lblUserLabel = new Label(shell, SWT.NONE);
-		lblUserLabel.setText("Proxy User:");
-		
-		proxyUserTxt = new Text(shell, SWT.BORDER);
-//		proxyUserTxt.setText(trpSets.getProxyUser());
-		proxyUserTxt.setLayoutData(gd);
-
-		Label lblPwLabel = new Label(shell, SWT.NONE);
-		lblPwLabel.setText("Proxy Password:");
-		
-		proxyPasswordTxt = new Text(shell, SWT.BORDER | SWT.PASSWORD);
-//		proxyPasswordTxt.setText(trpSets.getProxyPassword());
-		proxyPasswordTxt.setLayoutData(gd);
-
-		isProxyEnabledBtn = new Button(shell, SWT.CHECK);
-		isProxyEnabledBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-		isProxyEnabledBtn.setText("Enable proxy server");
-//		isProxyEnabledBtn.setSelection(trpSets.isProxyEnabled());
-//		isProxyEnabledBtn.setToolTipText("");
-				
-		msgLbl = new Label(shell, SWT.NONE);
-		msgLbl.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
-		msgLbl.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		widget = new ProxySettingsWidget(shell, SWT.NONE);
 		
 		Composite buttonComposite = new Composite(shell, SWT.NONE);
 		buttonComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
@@ -133,30 +83,12 @@ public class ProxySettingsDialog extends Dialog {
 		saveButton.setText("OK");
 		saveButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				prefs.setEnabled(isProxyEnabledBtn.getSelection());
-				prefs.setHost(proxyHostTxt.getText());
-				prefs.setUser(proxyUserTxt.getText());
-				prefs.setPassword(proxyPasswordTxt.getText());
-				
-				final String portStr = proxyPortTxt.getText();
-				if(!portStr.isEmpty()) {
-					final int port;
-					try {
-						port = Integer.parseInt(portStr);
-						if(port < 1) {
-							throw new IllegalArgumentException("Port has to be a positive number!");
-						}
-						prefs.setPort(port);
-					} catch (NumberFormatException nfe) {
-						msgLbl.setText("Port has to be a number!");
-						return;
-					} catch (IllegalArgumentException iae) {
-						msgLbl.setText(iae.getMessage());
-						return;
-					}
+				try {
+					widget.applyToSettings();
+				} catch (Exception ex) {
+					//widget will show exception in message label. do not close shell
+					return;
 				}
-				
-				TrpGuiPrefs.setProxyPrefs(prefs);
 				shell.close();
 			}
 		});
@@ -171,16 +103,6 @@ public class ProxySettingsDialog extends Dialog {
 		});
 		closeButton.setToolTipText("Closes this dialog without saving");
 		
-		updateFields();
-		
 		shell.pack();
-	}
-
-	private void updateFields() {
-		isProxyEnabledBtn.setSelection(prefs.isEnabled());
-		proxyHostTxt.setText(prefs.getHost());
-		proxyPortTxt.setText(prefs.getPort() > 0 ? ""+prefs.getPort() : "");
-		proxyUserTxt.setText(prefs.getUser());
-		proxyPasswordTxt.setText(prefs.getPassword());
 	}
 }
