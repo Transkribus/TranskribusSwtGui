@@ -1371,8 +1371,7 @@ public class TrpMainWidget {
 							error.add(errorMsg);
 						} else {
 							try {
-								d.setDeleted(0);
-								d.setDeletedTimestamp((long) 0);
+								d.setDeleted(false);
 								storage.updateDocMd(Storage.getInstance().getCollId(), d);
 								logger.info("restored document: "+d);
 							} catch (SessionExpiredException | TrpClientErrorException | TrpServerErrorException e) {

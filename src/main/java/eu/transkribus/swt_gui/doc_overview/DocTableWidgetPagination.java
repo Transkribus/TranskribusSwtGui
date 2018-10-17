@@ -338,10 +338,10 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 						try {
 							logger.debug("loading docs, sortDirection = "+sortDirection+" collectionId = "+collectionId+" fromIndex = "+fromIndex+" toIndex = "+toIndex);
 							if (!isRecycleBin){
-								docs = store.getConnection().getAllDocs(collectionId, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection,0);
+								docs = store.getConnection().getAllDocs(collectionId, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection, false);
 							}
 							else{
-								docs = store.getConnection().getAllDocs(collectionId, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection,1);
+								docs = store.getConnection().getAllDocs(collectionId, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection, true);
 							}
 						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 							TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
