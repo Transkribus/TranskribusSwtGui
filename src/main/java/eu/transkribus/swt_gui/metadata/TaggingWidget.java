@@ -242,7 +242,7 @@ public class TaggingWidget extends Composite {
 			}
 
 			public void handleTranscriptSaveEvent(TranscriptSaveEvent tse) {
-				refreshTagsFromStorageAndCurrentSelection();
+//				refreshTagsFromStorageAndCurrentSelection(); // FIXME: necessary???
 			}
 		});
 

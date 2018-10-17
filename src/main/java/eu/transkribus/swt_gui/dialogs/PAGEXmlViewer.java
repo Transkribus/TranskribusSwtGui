@@ -68,7 +68,7 @@ public class PAGEXmlViewer extends XmlViewer {
 			logger.debug("successfully unmarshalled new page from modified text - reload!");
 			
 			store.getTranscript().setPageData(pcGtsType);
-			store.getTranscript().getPage().setEdited(true);
+			store.setCurrentTranscriptEdited(true);
 			
 			mw.reloadCurrentTranscript(true, true);
 			

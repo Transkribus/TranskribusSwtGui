@@ -41,12 +41,12 @@ public class DefaultTableColumnViewerSorter extends TableViewerSorter {
 			int r1 = getRowIndex(viewer, e1);
 			int r2 = getRowIndex(viewer, e2);
 			
-			
-			
 			if (r1 != -1) {
 				l1 = t.getItem(r1).getText(columnIndex).replaceAll("%","").replaceAll("Page","");
-			}if (r2 != -1)
+			}
+			if (r2 != -1) {
 				l2 = t.getItem(r2).getText(columnIndex).replaceAll("%","").replaceAll("Page","");
+			}
 		}
 		
 		if (l1 == null && l2 == null)
@@ -62,11 +62,11 @@ public class DefaultTableColumnViewerSorter extends TableViewerSorter {
 			return Double.compare(i1, i2);
 		} catch (NumberFormatException e) {
 			if (isIgnoreCase()) {
-				logger.debug("Number Format Exception is IgnoreCase");
+				logger.trace("Number Format Exception is IgnoreCase");
 				return l1.compareToIgnoreCase(l2);
 			}
 			else {
-				logger.debug("Number Format Exception");
+				logger.trace("Number Format Exception");
 				return l1.compareTo(l2);
 			}
 		}

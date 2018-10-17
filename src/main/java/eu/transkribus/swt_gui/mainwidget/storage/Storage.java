@@ -1273,7 +1273,7 @@ public class Storage {
 		transcript.setMd(trMd);
 		transcript.setPageData(p.getPcGtsType());
 		
-		transcript.getPage().setEdited(false);
+		setCurrentTranscriptEdited(false);
 		if (!isLocalDoc()) {
 			// FIXME:
 			// PcGtsType pc = conn.getTranscript(doc.getId(), trMd.getPageNr());
@@ -2824,6 +2824,14 @@ public class Storage {
 		String tagNamesProp = CustomTagFactory.createTagDefPropertyForConfigFile();
 		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
 		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
+	}
+
+	public void setCurrentTranscriptEdited(boolean edited) {
+		if (transcript==null || transcript.getPage()==null) {
+			return;
+		}
+		
+		transcript.getPage().setEdited(edited);
 	}
 
 }
