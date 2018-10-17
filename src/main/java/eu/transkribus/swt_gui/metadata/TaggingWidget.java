@@ -284,7 +284,7 @@ public class TaggingWidget extends Composite {
 		updateSelectedTag(selectedTags);
 	}
 	
-	public void updateSelectedTag(List<CustomTag> tags) {
+	public synchronized void updateSelectedTag(List<CustomTag> tags) {
 		tagListWidget.updateSelectedTag(tags);
 		
 		if (TrpMainWidget.getInstance().getUi().getTabWidget().isTextTaggingItemSeleced() && TrpConfig.getTrpSettings().isShowTextTagEditor()) {

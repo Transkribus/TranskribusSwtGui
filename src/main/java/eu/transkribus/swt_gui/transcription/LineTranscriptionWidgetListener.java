@@ -61,7 +61,9 @@ public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListene
 			logger.debug("line default selection change, event: ["+event.start+"-"+event.end+"]");
 			super.handleDefaultSelectionChanged(event);
 			
-			transcriptionWidget.getWordGraphEditor().refresh();
+			if (ATranscriptionWidget.SHOW_WORD_GRAPH_STUFF) {
+				transcriptionWidget.getWordGraphEditor().refresh();
+			}
 
 			mainWidget.updatePageRelatedMetadata();
 			mainWidget.getUi().getStructureTreeWidget().updateTextLabels(null);

@@ -5918,6 +5918,7 @@ public class TrpMainWidget {
 			getUi().getLineTranscriptionWidget().redrawText(true, false, false);
 			getUi().getWordTranscriptionWidget().redrawText(true, false, false);
 			refreshStructureView();
+			getUi().getTaggingWidget().refreshTagsFromStorageAndCurrentSelection();
 		} catch (Exception e) {
 			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
 		}

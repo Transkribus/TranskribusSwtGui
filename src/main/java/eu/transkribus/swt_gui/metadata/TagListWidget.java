@@ -49,7 +49,7 @@ public class TagListWidget extends Composite {
 	
 	MyTableViewer tv;
 	
-	Map<CustomTag, ControlEditor> delSelectedEditors = new HashMap<>();
+//	Map<CustomTag, ControlEditor> delSelectedEditors = new HashMap<>();
 	Button clearTagsBtn;
 	
 	List<CustomTag> tagList = new ArrayList<>();
@@ -233,7 +233,7 @@ public class TagListWidget extends Composite {
 		return btnsContainer;
 	}
 	
-	public void refreshTable() {
+	public synchronized void refreshTable() {
 		tagList.clear();
 		
 		if (store.getTranscript()!= null && store.getTranscript().getPage()!=null) {
@@ -247,8 +247,7 @@ public class TagListWidget extends Composite {
 
 		tv.setInputAndSortAgain(tagList);
 //		tv.setInput(tagList);
-		
-		TaggingWidgetUtils.updateEditors(delSelectedEditors, tagList);
+//		TaggingWidgetUtils.updateEditors(delSelectedEditors, tagList);
 	}
 	
 	public TableViewer getTableViewer() {
@@ -287,7 +286,7 @@ public class TagListWidget extends Composite {
 //		return (CustomTag) ((IStructuredSelection) tv.getSelection()).getFirstElement();
 	}
 	
-	public void setDisableTagUpdate(boolean disableTagUpdate) {
+	public synchronized void setDisableTagUpdate(boolean disableTagUpdate) {
 		this.disableTagUpdate = disableTagUpdate;
 	}
 	
@@ -295,8 +294,8 @@ public class TagListWidget extends Composite {
 		return this.disableTagUpdate;
 	}
 
-	public void updateSelectedTag(List<CustomTag> tags) {
-		if (disableTagUpdate) {
+	public synchronized void updateSelectedTag(List<CustomTag> tags) {
+		if (isDisableTagUpdate()) {
 			return;
 		}	
 		

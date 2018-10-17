@@ -256,7 +256,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //	ToolItem showTagEditorItem;
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
-	private static final boolean SHOW_WORD_GRAPH_STUFF = false;
+	public static final boolean SHOW_WORD_GRAPH_STUFF = false;
 	
 	// a class to store the data needed to paint a tag
 	public static class PaintTagData {
@@ -1498,22 +1498,29 @@ public abstract class ATranscriptionWidget extends Composite{
 	        	updateLineAndWordObjects();
 	        	
 	        	if (true) {
+	        		final long DIFF_T = 300;
 		        	// NEW: try to send event only when time diff between events is greater threshold to prevent overkill of signals!
-		    		final long DIFF_T = 400;
-		    		new Timer().schedule(new TimerTask() {
-		    			@Override public void run() {
-		        			long selDiff = System.currentTimeMillis() - lastDefaultSelectionEventTime;
-		        			logger.trace("sel-diff = "+selDiff);
-		        			if (selDiff >= DIFF_T) {
-		        				Display.getDefault().asyncExec(new Runnable() {
-									@Override public void run() {
-										logger.debug("sending default selection changed signal!");
-										sendDefaultSelectionChangedSignal(false);
-									}
-								});
-		        			}
-		    			}
-		    		}, DIFF_T);	
+	        		long selDiff = System.currentTimeMillis() - lastDefaultSelectionEventTime;
+	        		if (selDiff >= DIFF_T) {
+	        			sendDefaultSelectionChangedSignal(false);
+	        		}
+	        		else {
+	        			// FIXME: this seems to be a cause for concern in the TagListWidget...
+			    		new Timer().schedule(new TimerTask() {
+			    			@Override public void run() {
+			        			long selDiff = System.currentTimeMillis() - lastDefaultSelectionEventTime;
+			        			logger.trace("sel-diff = "+selDiff);
+			        			if (selDiff >= DIFF_T) {
+			        				Display.getDefault().asyncExec(new Runnable() {
+										@Override public void run() {
+											logger.debug("sending default selection changed signal!");
+											sendDefaultSelectionChangedSignal(false);
+										}
+									});
+			        			}
+			    			}
+			    		}, DIFF_T);		
+	        		}
 	        	} else {
 		        	// OLD:
 		        	sendDefaultSelectionChangedSignal(true);
