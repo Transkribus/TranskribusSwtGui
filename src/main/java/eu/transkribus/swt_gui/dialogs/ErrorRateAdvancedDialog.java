@@ -263,19 +263,16 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		refVersionChooser = new TranscriptVersionChooser("Reference:\n(Correct Text) ", werGroup, 0);
 		refVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		refVersionChooser.setToGT();
 		
 		hypVersionChooser = new TranscriptVersionChooser("Hypothesis:\n(HTR Text) ", werGroup, 0);
-		hypVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));		
+		hypVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		hypVersionChooser.setToCurrent();
 				
 		computeWerBtn = new Button(werGroup, SWT.PUSH);
 		computeWerBtn.setText("Quick Compare");
 		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 0, 1));
 		computeWerBtn.setToolTipText("Compares the two selected transcripts and computes word error rate and character error rate.");
-		
-		compareVersionsBtn = new Button(werGroup, SWT.PUSH);
-		compareVersionsBtn.setText("Compare Versions in Textfile");
-		compareVersionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
-		compareVersionsBtn.setToolTipText("Shows the difference of the two selected versions");
 		
 		quickCompare.setControl(werGroup);
 	}
