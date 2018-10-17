@@ -509,7 +509,10 @@ public class HtrModelsComposite extends Composite {
 	private void updateHtrs() {
 		List<TrpHtr> uroHtrs = new ArrayList<>(0);
 		try {
-			uroHtrs = store.listHtrs("CITlab");
+			
+			//TODO allow to filter by HTR tech provider: CITlab | CITlabPlus | UpvlcLaia
+			final String provider = null; // HtrCITlabUtils.PROVIDER_CITLAB;
+			uroHtrs = store.listHtrs(provider);
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e1) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not load HTR model list!");
 			logger.error(e1.getMessage(), e1);
