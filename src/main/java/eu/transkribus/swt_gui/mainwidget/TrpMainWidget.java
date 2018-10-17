@@ -370,7 +370,7 @@ public class TrpMainWidget {
 		if(getTrpSets().getAutoSaveFolder().trim().isEmpty()){
 			getTrpSets().setAutoSaveFolder(TrpSettings.getDefaultAutoSaveFolder());
 		}
-		beginAutoSaveThread();
+		autoSaveController.beginAutoSaveThread();
 		
 		docJobUpdater = new DocJobUpdater(this);
 	}
@@ -1488,93 +1488,6 @@ public class TrpMainWidget {
 			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
 		}
 		logger.debug("finished writing xml output to " + f.getAbsolutePath());
-	}
-	
-	
-
-	Thread autoSaveThread;
-	
-	Runnable saveTask = new Runnable(){			
-		int autoSaveInterval;
-		String autoSavePath;
-		
-		@Override
-		public void run() {
-			while(true){
-				try{	
-					autoSaveInterval = getTrpSets().getAutoSaveInterval();
-					Thread.sleep(autoSaveInterval * 1000);					
-					autoSavePath = getTrpSets().getAutoSaveFolder();
-					
-					Display.getDefault().asyncExec(() -> {
-						localAutoSave(autoSavePath);	
-					});
-
-				} catch(Exception e){
-					logger.error("Exception " + e, e);
-				}
-			}
-		}
-	};
-	
-	public void beginAutoSaveThread(){
-		
-		if(autoSaveThread != null){
-			if(autoSaveThread.isAlive()){
-				autoSaveThread.interrupt();
-				logger.debug("AutoSave Thread interrupted");
-			}
-		}		
-		if(getTrpSets().getAutoSaveEnabled()){
-			autoSaveThread = new Thread(saveTask, "AutoSaveThread");
-			autoSaveThread.start();
-			logger.debug("AutoSave Thread started");
-		}
-	}
-	
-	
-	public boolean localAutosaveEnabled = true;
-	
-	public void localAutoSave(String path){
-		if(!storage.isPageLoaded()){
-			return;
-		}
-		if (storage.getTranscript() == null || storage.getTranscript().getMd() == null)
-			return;
-		
-		if(!localAutosaveEnabled){
-			return;
-		}
-		
-		if(!storage.isTranscriptEdited()){
-			return;
-		}
-		
-		File f = null;
-		try {
-			PcGtsType currentPage = storage.getTranscript().getPageData();
-			if(currentPage == null){
-				return;
-			}
-			Date datenow = new Date();
-			GregorianCalendar gc = new GregorianCalendar();
-			gc.setTime(datenow);
-			XMLGregorianCalendar xc = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
-			currentPage.getMetadata().setLastChange(xc);
-			String tempDir = path;
-			tempDir += File.separator + storage.getTranscript().getMd().getPageId()+".xml";
-//			tempDir += File.separator + "p" + storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
-			f = new File(tempDir);
-			
-			byte[] bytes = PageXmlUtils.marshalToBytes(currentPage);
-//			PageXmlUtils.marshalToFile(storage.getTranscript().getPageData(), f);
-			FileUtils.writeByteArrayToFile(f, bytes);
-			logger.trace("Auto-saved current transcript to " + f.getAbsolutePath());
-		} catch (Exception e1) {
-//			onError("Saving Error", "Error while saving transcription to " + f.getAbsolutePath(), e1);
-			String fn = f==null ? "NA" : f.getAbsolutePath();
-			logger.error("Error while autosaving transcription to " + fn, e1);
-		}
 	}
 	
 //	public boolean checkLocalSaves(TrpPage page) {

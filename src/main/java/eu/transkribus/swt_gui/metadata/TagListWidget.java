@@ -1,10 +1,7 @@
 package eu.transkribus.swt_gui.metadata;
 
-import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,7 +13,6 @@ import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ControlEditor;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
@@ -32,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.customtags.CssSyntaxTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableLabelProvider;
@@ -111,8 +108,19 @@ public class TagListWidget extends Composite {
 		for (int i=0; i<tv.getNColumns(); ++i) {
 			tv.getSorter(i).setIgnoreCase(true);
 		}
-		
 		tv.setContentProvider(ArrayContentProvider.getInstance());
+		
+//		tv.setContentProvider(new IStructuredContentProvider() {
+//			public Object[] getElements(Object inputElement) {
+//				String[] ret = new String[folders.size()];
+//				folders.toArray(ret);
+//				return ret;
+//			}
+//			public void dispose() {
+//			}
+//			public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+//			}
+//		});
 		
 		final int CONTEXT_LENGTH=15;
 		
@@ -293,8 +301,34 @@ public class TagListWidget extends Composite {
 	public boolean isDisableTagUpdate() {
 		return this.disableTagUpdate;
 	}
+	
+	private void printTagHashCodes() {
+		for (CustomTag t : tagList) {
+			logger.debug("t-hashcode: "+t.getCssStr()+": "+t.hashCode());
+		}
+	}
+	
+	private void printCurrentTranscriptHashCodes() {
+		if (store.getTranscript()!= null && store.getTranscript().getPage()!=null) {
+			logger.debug("transcript: "+store.getTranscript()+" page: "+store.getTranscript().getPage());
+			logger.debug("cls:");
+			for (TrpTextLineType l : store.getTranscript().getPage().getLines()) {
+				logger.debug("l: "+l+" cl: "+l.getCustomTagList().hashCode());
+			}
+			
+			List<CustomTag> tagsForPage = CustomTagUtil.extractCustomTags(store.getTranscript().getPage(), true);
+			for (CustomTag t : tagsForPage) {
+				logger.debug("t-hashcode1: "+t.getCssStr()+": "+t.hashCode());
+			}		
+		}
+	}
 
 	public synchronized void updateSelectedTag(List<CustomTag> tags) {
+		if (false) {
+			printTagHashCodes();
+			printCurrentTranscriptHashCodes();
+		}
+		logger.debug("updating selected tag, isDisableTagUpdate: "+isDisableTagUpdate()+" tags: "+tags);
 		if (isDisableTagUpdate()) {
 			return;
 		}	

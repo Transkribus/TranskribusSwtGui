@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
@@ -12,6 +13,8 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.batik.dom.GenericEntityReference;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
@@ -32,10 +35,88 @@ public class AutoSaveController {
 	TrpMainWidget mw;
 	TrpSettings trpSets;
 	static Storage storage = Storage.getInstance();
+	
+	Thread autoSaveThread=null;
+	
+	private final boolean localAutosaveEnabled = true;
+	
+	Runnable saveTask = new Runnable() {
+//		int autoSaveInterval;
+//		String autoSavePath;
 
+		@Override
+		public void run() {
+			while (true) {
+				try {
+					Thread.sleep(mw.getTrpSets().getAutoSaveInterval() * 1000);
+					Display.getDefault().asyncExec(() -> {
+						localAutoSave(mw.getTrpSets().getAutoSaveFolder());
+					});
+
+				} catch (Exception e) {
+					logger.error("Exception " + e, e);
+				}
+			}
+		}
+	};
+	
 	public AutoSaveController(TrpMainWidget mw) {
 		this.mw = mw;
 		this.trpSets = mw.getTrpSets();
+	}
+	
+	public void localAutoSave(String path) {
+		if (!storage.isPageLoaded()) {
+			return;
+		}
+		if (storage.getTranscript() == null || storage.getTranscript().getMd() == null)
+			return;
+
+		if (!localAutosaveEnabled) {
+			return;
+		}
+
+		if (!storage.isTranscriptEdited()) {
+			return;
+		}
+		
+		logger.debug("performing local autosave, interval: "+mw.getTrpSets().getAutoSaveInterval());
+
+		File f = null;
+		try {
+			PcGtsType currentPage = storage.getTranscript().getPageData();
+			if (currentPage == null) {
+				return;
+			}
+			Date datenow = new Date();
+			GregorianCalendar gc = new GregorianCalendar();
+			gc.setTime(datenow);
+			XMLGregorianCalendar xc = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
+			currentPage.getMetadata().setLastChange(xc);
+			String tempDir = path;
+			tempDir += File.separator + storage.getTranscript().getMd().getPageId() + ".xml";
+			// tempDir += File.separator + "p" +
+			// storage.getTranscript().getMd().getPageId()+"_autoSave.xml";
+			f = new File(tempDir);
+
+			byte[] bytes = PageXmlUtils.marshalToBytes(currentPage);
+			// PageXmlUtils.marshalToFile(storage.getTranscript().getPageData(), f);
+			FileUtils.writeByteArrayToFile(f, bytes);
+			logger.trace("Auto-saved current transcript to " + f.getAbsolutePath());
+		} catch (Exception e1) {
+			// onError("Saving Error", "Error while saving transcription to " +
+			// f.getAbsolutePath(), e1);
+			String fn = f == null ? "NA" : f.getAbsolutePath();
+			logger.error("Error while autosaving transcription to " + fn, e1);
+		}
+	}
+	
+	public void beginAutoSaveThread() {
+		if (mw.getTrpSets().getAutoSaveEnabled() && autoSaveThread == null) {
+			autoSaveThread = new Thread(saveTask, "AutoSaveThread");
+			autoSaveThread.start();
+			logger.debug("AutoSave Thread started");
+		}
 	}
 	
 	public List<File> getAutoSavesFiles(TrpPage page) {
