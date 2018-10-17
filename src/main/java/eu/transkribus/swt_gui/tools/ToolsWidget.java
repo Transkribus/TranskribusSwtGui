@@ -478,16 +478,16 @@ public class ToolsWidget extends Composite {
 		hypVersionChooser = new TranscriptVersionChooser("Hypothesis:\n(HTR Text) ", werGroup, 0);
 		hypVersionChooser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));		
 		
-		computeWerBtn = new Button(werGroup,SWT.PUSH);
-		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
-		computeWerBtn.setText("Compare");
-		
 //		computeWerBtn.pack();
 		
 		compareVersionsBtn = new Button(werGroup, SWT.PUSH);
 		compareVersionsBtn.setText("Compare Versions in Textfile");
 		compareVersionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
 		compareVersionsBtn.setToolTipText("Shows the difference of the two selected versions");
+		
+		computeWerBtn = new Button(werGroup,SWT.PUSH);
+		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
+		computeWerBtn.setText("Compare");
 		
 		werExp.setClient(werGroup);
 		werExp.setText("Compute Accuracy");

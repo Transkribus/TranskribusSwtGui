@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.dialogs;
 
 
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,11 +38,12 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.swt.ChartComposite;
-import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,21 +128,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		jFreeChartComp = new ChartComposite(composite, SWT.FILL);
 		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 15, 30));
-		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-
-		dataset.addValue(resultErr.getWerDouble(), "WER", "Overall");
-		dataset.addValue(resultErr.getCerDouble(), "CER", "Overall");
-		dataset.addValue(resultErr.getwAccDouble(), "Word Accuracy", "Overall");
-		dataset.addValue(resultErr.getcAccDouble(), "Char Accuracy", "Overall");
-		dataset.addValue(resultErr.getBagTokensPrecDouble(), "Bag Tokens Precision", "Overall");
-		dataset.addValue(resultErr.getBagTokensRecDouble(), "Bag Tokens Recall", "Overall");
-		dataset.addValue(resultErr.getBagTokensFDouble(), "Bag Tokens F-Measure", "Overall");
-		
-		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
-		jFreeChartComp.setChart(chart);
-		chart.fireChartChanged();
+		updateChartOverall();
 	
 	}
+
 
 	public void errOverallTable() {
 		
@@ -168,6 +159,12 @@ public class ErrorRateAdvancedStats extends Dialog{
 									});
 		overall.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		
+		overall.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				updateChartOverall();
+			}
+		});
 	}
 	
 	public void errPageTable() {
@@ -177,7 +174,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	
-		page = new ErrorTableViewer(body, SWT.FILL | SWT.V_SCROLL | SWT.H_SCROLL);
+		page = new ErrorTableViewer(body, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 		page.getTable().setLinesVisible(true);
 		page.setContentProvider(new ArrayContentProvider());
 		labelProvider = new ErrorTableLabelProvider(page);
@@ -187,21 +184,73 @@ public class ErrorRateAdvancedStats extends Dialog{
 
 		page.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
-		
+			
 		page.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				updateChart();
+			
+				TableItem[] selection = page.getTable().getSelection();
+				updateChart(selection);
 			}
 		});
 
 	}
 	
-	protected void updateChart() {
+	private void updateChartOverall() {
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		
-		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset);
+		List<TrpErrorRateListEntry> list = resultErr.getList();
+		
+		for(TrpErrorRateListEntry temp : list) {
+			dataset.addValue(temp.getWerDouble(), "WER", "Page "+temp.getPageNumber());
+			dataset.addValue(temp.getCerDouble(), "CER", "Page "+temp.getPageNumber());
+			dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
+			dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
+			dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
+			dataset.addValue(temp.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+temp.getPageNumber());
+			dataset.addValue(temp.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+temp.getPageNumber());
+		}
+		
+		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
+		CategoryPlot plot = chart.getCategoryPlot();
+		BarRenderer renderer = (BarRenderer) plot.getRenderer();
+		plot.setBackgroundPaint(new Color(255,255,255));
+		plot.setRangeGridlinePaint(Color.black);
+		renderer.setBarPainter(new StandardBarPainter());
+		
 		jFreeChartComp.setChart(chart);
+		chart.fireChartChanged();
+		
+	}
+	
+	protected void updateChart(TableItem[] selection) {
+		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+		TrpErrorRateListEntry page = (TrpErrorRateListEntry) selection[0].getData();
+		
+		dataset.addValue(page.getWerDouble(), "WER", "Page "+page.getPageNumber());
+		dataset.addValue(resultErr.getWerDouble(), "WER", "Overall");
+		dataset.addValue(page.getCerDouble(), "CER", "Page "+page.getPageNumber());
+		dataset.addValue(resultErr.getCerDouble(), "CER", "Overall");
+		dataset.addValue(page.getwAccDouble(), "Word Accuracy", "Page "+page.getPageNumber());
+		dataset.addValue(resultErr.getwAccDouble(), "Word Accuracy", "Overall");
+		dataset.addValue(page.getcAccDouble(), "Char Accuracy", "Page "+page.getPageNumber());
+		dataset.addValue(resultErr.getcAccDouble(), "Char Accuracy", "Overall");
+		dataset.addValue(page.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+page.getPageNumber());
+		dataset.addValue(resultErr.getBagTokensPrecDouble(), "Bag Tokens Precision", "Overall");
+		dataset.addValue(page.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+page.getPageNumber());
+		dataset.addValue(resultErr.getBagTokensRecDouble(), "Bag Tokens Recall", "Overall");
+		dataset.addValue(page.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+page.getPageNumber());
+		dataset.addValue(resultErr.getBagTokensFDouble(), "Bag Tokens F-Measure", "Overall");
+		
+		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
+		CategoryPlot plot = chart.getCategoryPlot();
+		BarRenderer renderer = (BarRenderer) plot.getRenderer();
+		plot.setBackgroundPaint(new Color(255,255,255));
+		plot.setRangeGridlinePaint(Color.black);
+		renderer.setBarPainter(new StandardBarPainter());
+		
+		jFreeChartComp.setChart(chart);
+		chart.fireChartChanged();
 		
 	}
 
@@ -209,7 +258,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		Composite body = new Composite(composite,SWT.NONE);
 		
-		body.setLayout(new GridLayout(2,false));
+		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 		
 		try {
