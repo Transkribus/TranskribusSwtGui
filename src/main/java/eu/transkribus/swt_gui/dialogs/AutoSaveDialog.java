@@ -132,8 +132,12 @@ public class AutoSaveDialog extends Dialog{
 		    	  if(timeMinCombo.getSelectionIndex() == 0 && timeSecCombo.getSelectionIndex() == 0){
 		    		  DialogUtil.showErrorMessageBox(getShell(), "Error", "Please select valid time interval");
 		    	  }else{
+		    		  int interval = timeMinCombo.getSelectionIndex()*60 + timeSecCombo.getSelectionIndex();
+		    		  if (interval <= 0) {
+		    			  interval = 60;
+		    		  }
 		    		  trpSets.setAutoSaveInterval(timeMinCombo.getSelectionIndex()*60 + timeSecCombo.getSelectionIndex());
-		    		  TrpMainWidget.getInstance().beginAutoSaveThread();
+		    		  TrpMainWidget.getInstance().getAutoSaveController().beginAutoSaveThread();
 		    	  }
 		        }
 		});

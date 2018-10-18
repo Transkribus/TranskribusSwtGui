@@ -862,7 +862,7 @@ public class Storage {
 		
 		Future<List<TrpDocMetadata>> fut = 
 //			conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
-			conn.getAllDocsAsync(colId, 0, 0, "docId", "desc", 0, new InvocationCallback<List<TrpDocMetadata>>() {
+			conn.getAllDocsAsync(colId, 0, 0, "docId", "desc", false, new InvocationCallback<List<TrpDocMetadata>>() {
 			@Override
 			public void completed(List<TrpDocMetadata> docs) {				
 				synchronized (this) {
@@ -889,7 +889,7 @@ public class Storage {
 		//load deleted docs list as well
 		Future<List<TrpDocMetadata>> fut2 = 
 //				conn.getAllDocsAsync(colId, 0, 0, null, null, new InvocationCallback<List<TrpDocMetadata>>() {
-				conn.getAllDocsAsync(colId, 0, 0, "docId", "desc", 1, new InvocationCallback<List<TrpDocMetadata>>() {
+				conn.getAllDocsAsync(colId, 0, 0, "docId", "desc", true, new InvocationCallback<List<TrpDocMetadata>>() {
 				@Override
 				public void completed(List<TrpDocMetadata> docs) {				
 					synchronized (this) {

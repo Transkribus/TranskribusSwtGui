@@ -142,9 +142,12 @@ public class TaggingWidget extends Composite {
 //					return;
 //				}
 				
+				// set this tag spec in tag property editor -> WARNING: dangerous!
+				if (true) {
 				CustomTag protoTagCopy = selectedSpec.getCustomTag().copy();
 				tagPropEditor.setCustomTag(protoTagCopy, false);
 				tagListWidget.getTableViewer().setSelection(null); // clear selection in tagListWidget
+				}
 			}
 		});
 		
@@ -265,6 +268,7 @@ public class TaggingWidget extends Composite {
 			CustomTag tag = selected.get(0);
 			mw.showLocation(new TrpLocation(tag));
 			mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagPropertyEditor().setCustomTag(tag, false);
+			mw.getUi().getTaggingWidget().getTranscriptionTaggingWidget().getTagSpecsWidget().getTableViewer().getTable().deselectAll();
 		}
 		tagListWidget.setDisableTagUpdate(false);				
 	}
@@ -284,7 +288,7 @@ public class TaggingWidget extends Composite {
 		updateSelectedTag(selectedTags);
 	}
 	
-	public void updateSelectedTag(List<CustomTag> tags) {
+	public synchronized void updateSelectedTag(List<CustomTag> tags) {
 		tagListWidget.updateSelectedTag(tags);
 		
 		if (TrpMainWidget.getInstance().getUi().getTabWidget().isTextTaggingItemSeleced() && TrpConfig.getTrpSettings().isShowTextTagEditor()) {

@@ -52,8 +52,8 @@ public class LayoutAnalysisComposite extends Composite {
 	private LabeledCombo methodCombo;
 //	private LabeledText customJobImplText;
 		
-	public static final String METHOD_NCSR_OLD = "NCSR";
-	public static final String METHOD_NCSR = "NCSR New (experimental)";
+	//public static final String METHOD_NCSR_OLD = "NCSR";
+	//public static final String METHOD_NCSR = "NCSR New (experimental)";
 	public static final String METHOD_CVL = "CVL (experimental)";
 	public static final String METHOD_CITLAB = "CITlab";
 	public static final String METHOD_CITLAB_ADVANCED = "CITlab Advanced";
@@ -211,14 +211,14 @@ public class LayoutAnalysisComposite extends Composite {
 		
 		boolean isMethodConfigurable = false;
 		switch(method) {
-		case METHOD_NCSR:
-			doBlockSegBtn.setEnabled(false);
-			doBlockSegBtn.setSelection(false);
-			break;
-		case METHOD_NCSR_OLD:
-			doWordSegBtn.setSelection(false);
-			doWordSegBtn.setEnabled(false);
-			break;
+//		case METHOD_NCSR:
+//			doBlockSegBtn.setEnabled(false);
+//			doBlockSegBtn.setSelection(false);
+//			break;
+//		case METHOD_NCSR_OLD:
+//			doWordSegBtn.setSelection(false);
+//			doWordSegBtn.setEnabled(false);
+//			break;
 		case METHOD_CITLAB:
 //			doBlockSegBtn.setSelection(true);
 //			doBlockSegBtn.setEnabled(false);
@@ -272,7 +272,7 @@ public class LayoutAnalysisComposite extends Composite {
 		List<String> methods = new ArrayList<>();
 		
 		methods.add(METHOD_CITLAB_ADVANCED);
-		methods.add(METHOD_NCSR_OLD);
+//		methods.add(METHOD_NCSR_OLD);
 //		methods.add(METHOD_NCSR);
 		methods.add(METHOD_CVL);
 		methods.add(METHOD_CITLAB);
@@ -368,10 +368,10 @@ public class LayoutAnalysisComposite extends Composite {
 	
 	public static JobImpl getJobImplForMethod(String selectedMethod) {
 		switch(selectedMethod) {
-		case METHOD_NCSR_OLD:
-			return JobImpl.NcsrOldLaJob;
-		case METHOD_NCSR:
-			return JobImpl.NcsrLaJob;
+//		case METHOD_NCSR_OLD:
+//			return JobImpl.NcsrOldLaJob;
+//		case METHOD_NCSR:
+//			return JobImpl.NcsrLaJob;
 		case METHOD_CVL:
 			return JobImpl.CvlLaJob;
 		case METHOD_CITLAB:

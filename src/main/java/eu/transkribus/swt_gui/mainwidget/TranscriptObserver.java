@@ -37,7 +37,7 @@ public class TranscriptObserver implements Observer {
 	WordTranscriptionWidget wordTranscriptionWidget;
 	LineEditor lineEditor;
 	boolean active=true;
-	DelayedTask tagListUpdateTask;
+//	DelayedTask tagListUpdateTask;
 
 	public TranscriptObserver(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;
@@ -46,10 +46,10 @@ public class TranscriptObserver implements Observer {
 		wordTranscriptionWidget = mainWidget.getUi().getWordTranscriptionWidget();
 		lineEditor = mainWidget.getCanvas().getLineEditor();
 		
-		this.tagListUpdateTask = new DelayedTask(() -> {
-//			mainWidget.getUi().getTaggingWidget().getTagListWidget().refreshTable();
-			mainWidget.getUi().getTaggingWidget().refreshTagList();
-		}, true);
+//		this.tagListUpdateTask = new DelayedTask(() -> {
+////			mainWidget.getUi().getTaggingWidget().getTagListWidget().refreshTable();
+//			mainWidget.getUi().getTaggingWidget().refreshTagList();
+//		}, true);
 	}
 	
 	public void setActive(boolean active) { this.active = active; }
@@ -137,7 +137,7 @@ public class TranscriptObserver implements Observer {
 //		}
 		
 		// usage of DelayedTask makes sure that update of list only occurs once after a 500ms time between two tag changes!
-		tagListUpdateTask.start();
+//		tagListUpdateTask.start();
 	}
 	
 	private void onStylesChanged(Object source, TrpTextStyleChangedEvent e) {

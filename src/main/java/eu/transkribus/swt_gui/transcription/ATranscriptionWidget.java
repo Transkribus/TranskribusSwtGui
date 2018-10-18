@@ -53,6 +53,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
@@ -255,7 +256,7 @@ public abstract class ATranscriptionWidget extends Composite{
 //	ToolItem showTagEditorItem;
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
-	private static final boolean SHOW_WORD_GRAPH_STUFF = false;
+	public static final boolean SHOW_WORD_GRAPH_STUFF = false;
 	
 	// a class to store the data needed to paint a tag
 	public static class PaintTagData {
@@ -274,6 +275,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	Map<String, List<PaintTagData>> tagPaintData = new ConcurrentHashMap<>(); // stores the data needed to paint visible tags
+	Rectangle currentLineBound=null; // holds the size of the line that is currently written in; needed to detect line wraps
 	
 	private class ReloadWgRunnable implements Runnable {
 		Storage store;
@@ -398,7 +400,6 @@ public abstract class ATranscriptionWidget extends Composite{
 				text.setCaretOffset(event.start);
 			}
 		};
-		
 //		text.setOrientation(SWT.RIGHT_TO_LEFT);
 ////		text.setTextDirection(SWT.RIGHT_TO_LEFT);
 //		text.addExtendedModifyListener(new ExtendedModifyListener() {
@@ -409,6 +410,34 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 
 		////////////////////////
+		
+		// TEST: detect line wrap and recompute tag paint tags when it occurs
+		if (true) { // TODO: how (in)efficient is this computation while typing??
+		text.addVerifyKeyListener(new VerifyKeyListener() {
+			@Override
+			public void verifyKey(VerifyEvent arg0) {
+//				SebisStopWatch sw = new SebisStopWatch();
+				currentLineBound = computeLineBound(getCurrentLineIndex());
+//				sw.stop(true);
+			}
+		});
+		
+		text.addExtendedModifyListener(new ExtendedModifyListener() {
+			@Override
+			public void modifyText(ExtendedModifyEvent arg0) {
+//				SebisStopWatch sw = new SebisStopWatch();
+				// new: recompute tag bounds if a line wrap has occured:
+				Rectangle newLineBounds = computeLineBound(getCurrentLineIndex());
+//				sw.stop(true);
+				logger.trace("currentLineBound = "+currentLineBound+" newLineBounds = "+newLineBounds);
+				if (currentLineBound!=null && newLineBounds!=null && currentLineBound.height != newLineBounds.height) {
+					logger.debug("line wrap occured -> computing new tag bounds!");
+					onLineWrapped();
+				}				
+			}
+		});
+		}
+		//////////////////////////////////
 		
 //		setTaggingEditorVisiblity(settings.isShowTextTagEditor());
 		setWordGraphEditorVisibility(false);
@@ -422,6 +451,10 @@ public abstract class ATranscriptionWidget extends Composite{
 		moveToolBar(settings.getTranscriptionToolbarOnTop());
 		
 		regionsPagingToolBar.setToolbarItemsVisible(!settings.isShowAllLinesInTranscriptionView(), 0);
+	}
+	
+	protected void onLineWrapped() {
+		computeTagPaintData(-1);
 	}
 	
 	
@@ -1465,22 +1498,29 @@ public abstract class ATranscriptionWidget extends Composite{
 	        	updateLineAndWordObjects();
 	        	
 	        	if (true) {
+	        		final long DIFF_T = 300;
 		        	// NEW: try to send event only when time diff between events is greater threshold to prevent overkill of signals!
-		    		final long DIFF_T = 400;
-		    		new Timer().schedule(new TimerTask() {
-		    			@Override public void run() {
-		        			long selDiff = System.currentTimeMillis() - lastDefaultSelectionEventTime;
-		        			logger.trace("sel-diff = "+selDiff);
-		        			if (selDiff >= DIFF_T) {
-		        				Display.getDefault().asyncExec(new Runnable() {
-									@Override public void run() {
-										logger.debug("sending default selection changed signal!");
-										sendDefaultSelectionChangedSignal(false);
-									}
-								});
-		        			}
-		    			}
-		    		}, DIFF_T);	
+	        		long selDiff = System.currentTimeMillis() - lastDefaultSelectionEventTime;
+	        		if (selDiff >= DIFF_T) {
+	        			sendDefaultSelectionChangedSignal(false);
+	        		}
+	        		else {
+	        			// FIXME: this seems to be a cause for concern in the TagListWidget...
+			    		new Timer().schedule(new TimerTask() {
+			    			@Override public void run() {
+			        			long selDiff = System.currentTimeMillis() - lastDefaultSelectionEventTime;
+			        			logger.trace("sel-diff = "+selDiff);
+			        			if (selDiff >= DIFF_T) {
+			        				Display.getDefault().asyncExec(new Runnable() {
+										@Override public void run() {
+											logger.debug("sending default selection changed signal!");
+											sendDefaultSelectionChangedSignal(false);
+										}
+									});
+			        			}
+			    			}
+			    		}, DIFF_T);		
+	        		}
 	        	} else {
 		        	// OLD:
 		        	sendDefaultSelectionChangedSignal(true);
@@ -1596,6 +1636,16 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	protected abstract List<StyleRange> getLineStyleRanges(int lineOffset);
 	
+	protected Rectangle computeLineBound(int lineIndex) {
+		if (lineIndex < 0 || lineIndex >= text.getLineCount()) {
+			return null;
+		}
+		
+		int start = text.getOffsetAtLine(getCurrentLineIndex());
+		int end = start+text.getLine(getCurrentLineIndex()).length();
+		return text.getTextBounds(start, end);
+	}
+	
 	protected void initBaseVerifyKeyListener() {
 		VerifyKeyListener baseVerifyKeyListener = new VerifyKeyListener() {
 			@Override
@@ -1684,7 +1734,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	 * Computes the data needed to paint tags.
 	 * @param lineIndex The line index for which the data is recomputed, if -1 then all visible lines are computed.
 	 */
-	private synchronized void computeTagPaintData(int lineIndex) {
+	protected synchronized void computeTagPaintData(int lineIndex) {
 //		SebisStopWatch sw = new SebisStopWatch();
 		List<Pair<Integer, ITrpShapeType>> shapes;
 		if (lineIndex < 0) { // recompute all data

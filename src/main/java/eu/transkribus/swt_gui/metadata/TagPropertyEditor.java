@@ -140,7 +140,7 @@ public class TagPropertyEditor extends Composite {
 		return btnsComposite;
 	}
 	
-	public void setCustomTag(CustomTag tag, boolean selectFirstAttribute) {
+	public synchronized void setCustomTag(CustomTag tag, boolean selectFirstAttribute) {
 		ATranscriptionWidget tWidget = getCurrentTranscriptionWidget();
 		if (tWidget == null) {
 			return;

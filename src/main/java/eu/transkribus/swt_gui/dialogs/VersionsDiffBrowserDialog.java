@@ -36,8 +36,12 @@ public class VersionsDiffBrowserDialog extends Dialog {
         browser.setText(browserString);
         browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         
-        if (Util.isMac())
-            browser.refresh();
+        /*
+         * in Mac no text is shown - is this the reason?? 
+         * And why is this here??
+         */
+//        if (Util.isMac())
+//            browser.refresh();
         
         composite.pack();
 

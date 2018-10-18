@@ -84,6 +84,8 @@ public class TranscriptionTaggingWidget extends Composite {
 //			return;
 //		}
 		
+		getTagSpecsWidget().getTableViewer().getTable().deselectAll();
+		
 		if (true /*|| isTagPropertyEditorSelected()*/) {
 			if (tagPropEditor.isSettingCustomTag()) { // if currently setting a custom tag in the property editor, ignore selection changed events from transcription widget!
 				return;
@@ -128,10 +130,6 @@ public class TranscriptionTaggingWidget extends Composite {
 
 		return tf;
 	}
-
-
-	
-	
 
 //	public boolean isTagPropertyEditorSelected() {
 //		return tabFolder.getSelection() == propsItem; 
