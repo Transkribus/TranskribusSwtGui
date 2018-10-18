@@ -78,7 +78,7 @@ public class ToolsWidget extends Composite {
 			
 			useCurrentBtn = new Button(this, SWT.PUSH);
 			useCurrentBtn.setText("Use current");
-			chooseVersionBtn.setToolTipText("Click to use the currently opened transcript version");
+			useCurrentBtn.setToolTipText("Click to use the currently opened transcript version");
 			
 			useCurrentBtn.addSelectionListener(new SelectionAdapter() {
 				@Override public void widgetSelected(SelectionEvent e) {
@@ -98,9 +98,12 @@ public class ToolsWidget extends Composite {
 		public void updateSelectedVersion() {
 			String l = selectedMd == null ? "Choose..." : getTranscriptLabel(selectedMd);
 			
-			chooseVersionBtn.setText(l);
-			chooseVersionBtn.pack();
-			layout();
+			if(!chooseVersionBtn.isDisposed()){
+				chooseVersionBtn.setText(l);
+				chooseVersionBtn.pack();
+				layout();
+			}
+
 		}
 		
 		public void chooseTranscriptVersion() {
