@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.preferences;
+package eu.transkribus.swt_gui.mainwidget.settings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +21,16 @@ import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
+/**
+ * A tabbed dialog that unifies configuration of the application in one place. 
+ * <br><br>
+ * work in progress
+ * 
+ * @author philip
+ *
+ */
 public class PreferencesDialog extends Dialog {
 	
 	//top tier tab bar in this dialog
@@ -209,6 +216,17 @@ public class PreferencesDialog extends Dialog {
 		
 	}	
 	
+	/**
+	 * An abstract class with base functionality for each tab:
+	 * <ul>
+	 * <li>apply button for saving the set config</li>
+	 * <li>reset button for updating the dialog with the stored settings</li>
+	 * <li>constructor registers the tab in a global list to allow for "apply all" and "reset all" functionality</li>
+	 * </ul>
+	 * Each settings tab extending this can maintain a separate configuration source (TrpSettings, CanvasSettings, ProxyPrefs, etc.).
+	 * @author philip
+	 *
+	 */
 	protected abstract class AConfigTab extends CTabItem {
 		
 		private final String tabName;

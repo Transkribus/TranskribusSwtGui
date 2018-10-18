@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.preferences;
+package eu.transkribus.swt_gui.mainwidget.settings;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;

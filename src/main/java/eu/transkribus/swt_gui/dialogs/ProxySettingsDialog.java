@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.preferences.ProxySettingsWidget;
+import eu.transkribus.swt_gui.mainwidget.settings.ProxySettingsWidget;
 
 /**
  * Test with proxy.uibk.ac.at:3128
