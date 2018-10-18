@@ -93,9 +93,12 @@ public class HtrModelsComposite extends Composite {
 //	Combo ocrLangCombo, typeFaceCombo;
 
 	TrpHtr htr;
+	
+	private String providerFilter;
 
-	public HtrModelsComposite(Composite parent, int flags) {
+	public HtrModelsComposite(Composite parent, final String providerFilter, int flags) {
 		super(parent, flags);
+		this.providerFilter = providerFilter;
 		this.setLayout(new GridLayout(1, false));
 		
 		folder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
@@ -354,6 +357,10 @@ public class HtrModelsComposite extends Composite {
 		});
 	}
 	
+	public HtrModelsComposite(Composite parent, int flags) {
+		this(parent, null, flags);
+	}
+	
 	public void setSelection(int htrId) {
 		htw.setSelection(htrId);
 	}
@@ -509,10 +516,7 @@ public class HtrModelsComposite extends Composite {
 	private void updateHtrs() {
 		List<TrpHtr> uroHtrs = new ArrayList<>(0);
 		try {
-			
-			//TODO allow to filter by HTR tech provider: CITlab | CITlabPlus | UpvlcLaia
-			final String provider = null; // HtrCITlabUtils.PROVIDER_CITLAB;
-			uroHtrs = store.listHtrs(provider);
+			uroHtrs = store.listHtrs(this.providerFilter);
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e1) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not load HTR model list!");
 			logger.error(e1.getMessage(), e1);

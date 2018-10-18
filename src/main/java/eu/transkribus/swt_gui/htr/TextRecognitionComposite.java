@@ -32,8 +32,6 @@ public class TextRecognitionComposite extends Composite {
 	
 	public static final String[] METHODS = { METHOD_HTR, METHOD_OCR };
 	
-	public static JobImpl[] htrTrainingJobImpls = {};
-	
 	Button runBtn;
 	
 	HtrModelChooserButton modelsBtn;
@@ -118,15 +116,8 @@ public class TextRecognitionComposite extends Composite {
 		return methodCombo.txt().equals(METHOD_HTR);
 	}
 
-//	private void createTrainBtn() {
-//		trainBtn = new Button(this, 0);
-//		trainBtn.moveAbove(runBtn);
-//		trainBtn.setText("Train...");
-//		trainBtn.setImage(Images.getOrLoad("/icons/muscle_16.png"));
-//		trainBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-//	}
-	
-	public void updateGui() {		
+	public void updateGui() {	
+		JobImpl[] htrTrainingJobImpls = {};
 		if(Storage.getInstance() != null && Storage.getInstance().isLoggedIn()) {
 			try {
 				htrTrainingJobImpls = Storage.getInstance().getHtrTrainingJobImpls();

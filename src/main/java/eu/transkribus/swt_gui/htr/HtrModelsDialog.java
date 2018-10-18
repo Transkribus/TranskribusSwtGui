@@ -22,9 +22,15 @@ public class HtrModelsDialog extends Dialog {
 	
 	HtrModelsComposite modelsComp;
 	TrpHtr selectedHtr;
+	private String providerFilter = null;
 
-	public HtrModelsDialog(Shell parentShell) {
+	public HtrModelsDialog(Shell parentShell, final String providerFilter) {
 		super(parentShell);
+		this.providerFilter = providerFilter;
+	}
+	
+	public HtrModelsDialog(Shell parentShell) {
+		this(parentShell, null);
 	}
 	
 	@Override
@@ -32,7 +38,7 @@ public class HtrModelsDialog extends Dialog {
 		Composite cont = (Composite) super.createDialogArea(parent);
 		cont.setLayout(new GridLayout(1, false));
 	
-		modelsComp = new HtrModelsComposite(cont, 0);
+		modelsComp = new HtrModelsComposite(cont, providerFilter, 0);
 		modelsComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		
