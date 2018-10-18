@@ -364,10 +364,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet sheet = workbook.createSheet("Error Measurements");
 		Map<String, Object[]> excelData = new HashMap<String, Object[]>();
-		int rowCount = 0;
+		int rowCount = 1;
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
-		excelData.put(Integer.toString(1),new Object[] {
+		excelData.put(Integer.toString(0),new Object[] {
 				"Pages",
 				"Word Error Rate",
 				"Char Error Rate",
@@ -378,7 +378,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 				"Bag Tokens F-Measure"
 				});
 		
-		excelData.put(Integer.toString(rowCount),new Object[] {
+		excelData.put(Integer.toString(1),new Object[] {
 				"Overall",
 				resultErr.getWerDouble(),
 				resultErr.getCerDouble(),
@@ -391,7 +391,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		if(resultErr.getList() != null) {
 			for (TrpErrorRateListEntry page : list) {
-				if(rowCount < list.size()) {
+				if(rowCount <= list.size()) {
 					rowCount++;
 				}
 				excelData.put(Integer.toString(rowCount),new Object[] {
@@ -423,6 +423,11 @@ public class ErrorRateAdvancedStats extends Dialog{
 				}
 			}
 		}
+		
+		// Resize all columns to fit the content size
+        for(int i = 0; i <= rownum; i++) {
+            sheet.autoSizeColumn(i);
+        }
 		
 		try {
 			FileOutputStream file = new FileOutputStream(new File(filePath));
