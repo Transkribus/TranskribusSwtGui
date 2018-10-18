@@ -1019,7 +1019,9 @@ public class CanvasScene {
 		for (ICanvasShape s : getShapes()) {
 			s.setEditable(val);
 		}
-		canvas.redraw();
+		if (!canvas.isDisposed()){
+			canvas.redraw();
+		}
 	}
 
 	// event stuff:
