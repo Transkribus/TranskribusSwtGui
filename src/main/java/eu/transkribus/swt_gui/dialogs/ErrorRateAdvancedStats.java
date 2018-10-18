@@ -205,11 +205,11 @@ public class ErrorRateAdvancedStats extends Dialog{
 		for(TrpErrorRateListEntry temp : list) {
 			dataset.addValue(temp.getWerDouble(), "WER", "Page "+temp.getPageNumber());
 			dataset.addValue(temp.getCerDouble(), "CER", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+temp.getPageNumber());
 		}
 		
 		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
@@ -367,7 +367,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		int rowCount = 0;
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
-		excelData.put(Integer.toString(rowCount++),new Object[] {
+		excelData.put(Integer.toString(1),new Object[] {
 				"Pages",
 				"Word Error Rate",
 				"Char Error Rate",
@@ -378,7 +378,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 				"Bag Tokens F-Measure"
 				});
 		
-		excelData.put(Integer.toString(rowCount++),new Object[] {
+		excelData.put(Integer.toString(rowCount),new Object[] {
 				"Overall",
 				resultErr.getWerDouble(),
 				resultErr.getCerDouble(),
