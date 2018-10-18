@@ -10,7 +10,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Widget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +31,8 @@ public class TextRecognitionComposite extends Composite {
 	public static final String METHOD_HTR = "HTR (CITlab)";
 	
 	public static final String[] METHODS = { METHOD_HTR, METHOD_OCR };
+	
+	public static JobImpl[] htrTrainingJobImpls = {};
 	
 	Button runBtn;
 	
@@ -125,19 +126,16 @@ public class TextRecognitionComposite extends Composite {
 //		trainBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 //	}
 	
-	public void updateGui() {
-		boolean withTrainBtn = false;
-		
+	public void updateGui() {		
 		if(Storage.getInstance() != null && Storage.getInstance().isLoggedIn()) {
 			try {
-				withTrainBtn = Storage.getInstance().getConnection().isUserAllowedForJob(JobImpl.CITlabHtrTrainingJob.toString());
+				htrTrainingJobImpls = Storage.getInstance().getHtrTrainingJobImpls();
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
 				logger.debug("An exception occurred while querying job acl. Training is off.", e);
-				withTrainBtn = false;
 			}
 		}
 		
-		setBtnVisibility(withTrainBtn);
+		setBtnVisibility(htrTrainingJobImpls.length > 0);
 	}
 	
 	private void setBtnVisibility(boolean withTrainBtn) {

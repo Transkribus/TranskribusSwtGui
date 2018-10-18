@@ -91,6 +91,7 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
@@ -2832,6 +2833,10 @@ public class Storage {
 		}
 		
 		transcript.getPage().setEdited(edited);
+	}
+
+	public JobImpl[] getHtrTrainingJobImpls() throws SessionExpiredException, ServerErrorException, ClientErrorException {
+		return new JobImpl[] {};//getConnection().getJobImplAcl();
 	}
 
 }

@@ -166,6 +166,9 @@ public class HtrTrainingDialog extends Dialog {
 
 	public HtrTrainingDialog(Shell parent, JobImpl... impls) {
 		super(parent);
+		if(impls == null || impls.length == 0) {
+			throw new IllegalStateException("No HTR training jobs defined.");
+		}
 		trainTwList = new LinkedList<>();
 		testTwList = new LinkedList<>();
 		docList = store.getDocList();
