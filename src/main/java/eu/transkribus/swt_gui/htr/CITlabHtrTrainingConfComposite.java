@@ -23,6 +23,11 @@ import eu.transkribus.core.util.HtrCITlabUtils;
 public class CITlabHtrTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(CITlabHtrTrainingConfComposite.class);
 		
+	public final static int DEFAULT_TRAIN_SIZE_PER_EPOCH = 10000;
+	public final static String DEFAULT_NOISE = "both";
+	public final static String DEFAULT_LEARNING_RATE = "1e-3";
+	public final static int DEFAULT_NUM_EPOCHS = 20;	
+	
 	private Text trainSizeTxt;
 
 	private CitlabNoiseParamCombo noiseCmb;
@@ -76,10 +81,10 @@ public class CITlabHtrTrainingConfComposite extends Composite {
 	}
 	
 	public void setCitlabTrainingDefaults() {
-		numEpochsTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_NUM_EPOCHS);
-		learningRateTxt.setText(CitLabHtrTrainConfig.DEFAULT_LEARNING_RATE);
+		numEpochsTxt.setText("" + DEFAULT_NUM_EPOCHS);
+		learningRateTxt.setText(DEFAULT_LEARNING_RATE);
 		noiseCmb.setDefault();
-		trainSizeTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_TRAIN_SIZE_PER_EPOCH);
+		trainSizeTxt.setText("" + DEFAULT_TRAIN_SIZE_PER_EPOCH);
 		baseModelBtn.setModel(null);
 	}
 	
