@@ -254,13 +254,18 @@ public class PortalWidget extends Composite {
 		}
 		
 		for (Position p : Position.values()) {
-			ScrolledComposite sc = widgets.get(p);
-			if (sc != null && sc.getContent() == widget && p!=newPos) {
+			ScrolledComposite oldSc = widgets.get(p);
+			if (oldSc != null && oldSc.getContent() == widget && p!=newPos) {
+				Docking dockingBefore = getDocking(p);
+				dockingBefore = dockingBefore==null ? Docking.DOCKED : dockingBefore; // to be sure dockingBefore is not null!
+				logger.debug("dockingBefore = "+dockingBefore);
+				
 				ScrolledComposite newSc = widgets.get(newPos);
 				fillScrolledComposite(newSc, widget);
-				setWidgetDockingType(newPos, Docking.DOCKED);
+//				setWidgetDockingType(newPos, Docking.DOCKED);
+				setWidgetDockingType(newPos, dockingBefore);
 				
-				sc.setContent(null);
+				oldSc.setContent(null);
 				setWidgetDockingType(p, Docking.INVISIBLE);
 				
 				String widgetType = getWidgetType(newSc);
@@ -550,7 +555,6 @@ public class PortalWidget extends Composite {
 		}
 	}
 	
-	
 	public void setWidgetDockingType(Position pos, Docking docking) {
 		Assert.assertNotNull(pos);
 		Assert.assertNotNull(docking);
@@ -604,6 +608,16 @@ public class PortalWidget extends Composite {
 		listener.stream().forEach(l -> {
 			l.onDockingChanged(widgetType, widget, pos, docking);
 		});
+	}
+	
+	public Docking getDocking(String widgetType) {
+		Position pos = getWidgetPosition(widgetType);
+		if (pos != null) {
+			return getDocking(pos);
+		}
+		else {
+			return null;
+		}
 	}
 	
 	public Docking getDocking(Position pos) {
@@ -736,9 +750,9 @@ public class PortalWidget extends Composite {
 	
 	public void setSashWidth(int sashWidth) { this.sashWidth = sashWidth; }
 	
-	public IObservableMap getDockingMap() {
-		return dockingMap;
-	}
+//	public IObservableMap getDockingMap() {
+//		return dockingMap;
+//	}
 
 	public void setNewSashFormVerticalTopLevelWeights(int [] weights) {
 		if (weights != null){

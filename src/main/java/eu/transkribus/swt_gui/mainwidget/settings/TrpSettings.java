@@ -1168,6 +1168,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	}
 
 	public void setTranscriptionViewDockingState(Docking transcriptionViewDockingState) {
+		logger.debug("setting transcription view docking state to: "+transcriptionViewDockingState);
 		Docking old = this.transcriptionViewDockingState;
 		this.transcriptionViewDockingState = transcriptionViewDockingState;
 		firePropertyChange(TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY, old, this.transcriptionViewDockingState);

@@ -973,7 +973,7 @@ public class TrpMainWidget {
 		
 		CanvasSettings canvasSet = cw.getCanvas().getSettings();
 		
-		// NOTE: docking props are synced now in a PortalWidgetListener in TrpMainWidgetViewListener! 
+		// NOTE: docking props are synced via TrpSettingsPropertyChangeListener
 //		db.bindBeanPropertyToObservableValue(TrpSettings.MENU_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
 //												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.LEFT));
 //		db.bindBeanPropertyToObservableValue(TrpSettings.TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY, trpSets, 

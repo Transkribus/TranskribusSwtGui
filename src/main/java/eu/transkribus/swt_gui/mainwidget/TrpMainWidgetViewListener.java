@@ -232,31 +232,31 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 			}
 		});
 		
-		ui.getPortalWidget().addPortalWidgetListener(new PortalWidgetListener() {
-			@Override
-			public void onDockingChanged(String widgetType, Composite widget, Position pos, Docking docking) {
-				logger.debug("onDockingChanged: widgetType = "+widgetType+" pos = "+pos+" docking = "+docking);
-				
-				if (StringUtils.equals(widgetType, TrpMainWidgetView.MENU_WIDGET_TYPE)) {
-					TrpConfig.getTrpSettings().setMenuViewDockingState(docking);
-				}
-				else if (StringUtils.equals(widgetType, TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE)) {
-					logger.debug("setting tr view docking state!");
-					TrpConfig.getTrpSettings().setTranscriptionViewDockingState(docking);
-				}
-				
-				canvas.fitWidth();
-			}
-			
-			@Override
-			public void onPositionChanged(String widgetType, Composite widget, Position pos, Docking docking) {
-				logger.debug("onPositionChanged: widgetType = "+widgetType+" pos = "+pos+" docking = "+docking);
-				
-				if (StringUtils.equals(widgetType, TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE)) {
-					TrpConfig.getTrpSettings().setTranscriptionViewPosition(pos);
-				}
-			}
-		});
+//		ui.getPortalWidget().addPortalWidgetListener(new PortalWidgetListener() {
+//			@Override
+//			public void onDockingChanged(String widgetType, Composite widget, Position pos, Docking docking) {
+//				logger.debug("onDockingChanged: widgetType = "+widgetType+" pos = "+pos+" docking = "+docking);
+//				
+//				if (StringUtils.equals(widgetType, TrpMainWidgetView.MENU_WIDGET_TYPE)) {
+//					TrpConfig.getTrpSettings().setMenuViewDockingState(docking);
+//				}
+//				else if (StringUtils.equals(widgetType, TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE)) {
+//					logger.debug("setting tr view docking state!");
+//					TrpConfig.getTrpSettings().setTranscriptionViewDockingState(docking);
+//				}
+//				
+//				canvas.fitWidth();
+//			}
+//			
+//			@Override
+//			public void onPositionChanged(String widgetType, Composite widget, Position pos, Docking docking) {
+//				logger.debug("onPositionChanged: widgetType = "+widgetType+" pos = "+pos+" docking = "+docking);
+//				
+//				if (StringUtils.equals(widgetType, TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE)) {
+//					TrpConfig.getTrpSettings().setTranscriptionViewPosition(pos);
+//				}
+//			}
+//		});
 	}
 	
 	@Override
