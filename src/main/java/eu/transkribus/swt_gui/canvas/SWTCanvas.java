@@ -337,7 +337,9 @@ public class SWTCanvas extends Canvas {
 		if (!settings.isEditingEnabled()) {
 			scene.clearMultiSelection();
 		}
-		redraw();
+		if(!isDisposed()){
+			redraw();
+		}
 	}
 
 	public void resetTransformation() {

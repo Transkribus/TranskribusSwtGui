@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.dialogs;
 
 
 import java.awt.Color;
+import java.awt.Paint;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -204,11 +205,11 @@ public class ErrorRateAdvancedStats extends Dialog{
 		for(TrpErrorRateListEntry temp : list) {
 			dataset.addValue(temp.getWerDouble(), "WER", "Page "+temp.getPageNumber());
 			dataset.addValue(temp.getCerDouble(), "CER", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+temp.getPageNumber());
+//			dataset.addValue(temp.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+temp.getPageNumber());
 		}
 		
 		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
@@ -216,7 +217,22 @@ public class ErrorRateAdvancedStats extends Dialog{
 		BarRenderer renderer = (BarRenderer) plot.getRenderer();
 		plot.setBackgroundPaint(new Color(255,255,255));
 		plot.setRangeGridlinePaint(Color.black);
+		plot.setOutlineVisible(false);
 		renderer.setBarPainter(new StandardBarPainter());
+		
+		Paint[] colors = {
+		                  new Color(0, 172, 178),      // blue
+		                  new Color(239, 70, 55),      // red
+		                  new Color(85, 177, 69),      // green
+		                  new Color(255, 255, 51),     //yellow
+		                  new Color(128, 128, 128),   //grey
+		                  new Color(255, 128, 0),  	  //orange
+		                  new Color(178,102,255)
+		};
+		
+		for(int i=0; i < 7; i++) {
+			renderer.setSeriesPaint(i, colors[i % colors.length]);
+		}
 		
 		jFreeChartComp.setChart(chart);
 		chart.fireChartChanged();
@@ -247,7 +263,23 @@ public class ErrorRateAdvancedStats extends Dialog{
 		BarRenderer renderer = (BarRenderer) plot.getRenderer();
 		plot.setBackgroundPaint(new Color(255,255,255));
 		plot.setRangeGridlinePaint(Color.black);
+		plot.setOutlineVisible(false);
+		
 		renderer.setBarPainter(new StandardBarPainter());
+		
+		Paint[] colors = {
+                new Color(0, 172, 178),      // blue
+                new Color(239, 70, 55),      // red
+                new Color(85, 177, 69),      // green
+                new Color(255, 255, 51),     //yellow
+                new Color(128, 128, 128),   //grey
+                new Color(255, 128, 0),  	  //orange
+                new Color(178,102,255)
+		};
+
+		for(int i=0; i < 7; i++) {
+			renderer.setSeriesPaint(i, colors[i % colors.length]);
+		}
 		
 		jFreeChartComp.setChart(chart);
 		chart.fireChartChanged();
@@ -332,10 +364,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet sheet = workbook.createSheet("Error Measurements");
 		Map<String, Object[]> excelData = new HashMap<String, Object[]>();
-		int rowCount = 0;
+		int rowCount = 1;
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
-		excelData.put(Integer.toString(rowCount++),new Object[] {
+		excelData.put(Integer.toString(0),new Object[] {
 				"Pages",
 				"Word Error Rate",
 				"Char Error Rate",
@@ -346,7 +378,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 				"Bag Tokens F-Measure"
 				});
 		
-		excelData.put(Integer.toString(rowCount++),new Object[] {
+		excelData.put(Integer.toString(1),new Object[] {
 				"Overall",
 				resultErr.getWerDouble(),
 				resultErr.getCerDouble(),
@@ -359,7 +391,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		if(resultErr.getList() != null) {
 			for (TrpErrorRateListEntry page : list) {
-				if(rowCount < list.size()) {
+				if(rowCount <= list.size()) {
 					rowCount++;
 				}
 				excelData.put(Integer.toString(rowCount),new Object[] {
@@ -391,6 +423,11 @@ public class ErrorRateAdvancedStats extends Dialog{
 				}
 			}
 		}
+		
+		// Resize all columns to fit the content size
+        for(int i = 0; i <= rownum; i++) {
+            sheet.autoSizeColumn(i);
+        }
 		
 		try {
 			FileOutputStream file = new FileOutputStream(new File(filePath));
