@@ -34,7 +34,7 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 
 	public CITlabHtrPlusTrainingConfComposite(Composite parent, int style) {
 		super(parent, style);
-		setLayout(new GridLayout(4, false));
+		setLayout(new GridLayout(2, false));
 
 		Label numEpochsLbl = new Label(this, SWT.NONE);
 		numEpochsLbl.setText("Nr. of Epochs:");
@@ -59,11 +59,11 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		Label baseModelLbl = new Label(this, SWT.NONE);
 		baseModelLbl.setText("Base Model:");		
 		baseModelBtn = new HtrModelChooserButton(this, getProvider());
-		baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
 		setCitlabTrainingDefaults();
 
-//		new Label(this, SWT.NONE);
+		new Label(this, SWT.NONE);
 		Button resetUroDefaultsBtn = new Button(this, SWT.PUSH);
 		resetUroDefaultsBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		resetUroDefaultsBtn.setText("Reset to defaults");
@@ -77,7 +77,7 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	}
 	
 	public void setCitlabTrainingDefaults() {
-		numEpochsTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_NUM_EPOCHS);
+		numEpochsTxt.setText("" + DEFAULT_NUM_EPOCHS);
 //		learningRateTxt.setText(CitLabHtrTrainConfig.DEFAULT_LEARNING_RATE);
 //		noiseCmb.setDefault();
 //		trainSizeTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_TRAIN_SIZE_PER_EPOCH);
