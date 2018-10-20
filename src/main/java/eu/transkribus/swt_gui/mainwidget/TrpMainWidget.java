@@ -365,12 +365,7 @@ public class TrpMainWidget {
 		
 		autoSaveController = new AutoSaveController(this);
 //		taggingController = new TaggingController(this);
-		
 		updateToolBars();
-		if(getTrpSets().getAutoSaveFolder().trim().isEmpty()){
-			getTrpSets().setAutoSaveFolder(TrpSettings.getDefaultAutoSaveFolder());
-		}
-		autoSaveController.beginAutoSaveThread();
 		
 		docJobUpdater = new DocJobUpdater(this);
 	}
@@ -4873,7 +4868,7 @@ public class TrpMainWidget {
 		if (autoSaveDiag!=null && !SWTUtil.isDisposed(autoSaveDiag.getShell())) {
 			autoSaveDiag.getShell().setVisible(true);
 		} else {
-			autoSaveDiag = new AutoSaveDialog(getShell(), /*SWT.PRIMARY_MODAL|*/ SWT.DIALOG_TRIM, getTrpSets());
+			autoSaveDiag = new AutoSaveDialog(getShell(), getTrpSets());
 			autoSaveDiag.open();
 		}
 	}
