@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
+import examples.AnimatedGif;
 import junit.framework.Assert;
 
 public class ProgressBarDialog extends Dialog implements IProgressMonitor {
@@ -42,6 +43,7 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 	// private Label lineLabel;
 	private Composite progressBarComposite;
 
+	private AnimatedGif waitingImage;
 	private CLabel taskNameLabel;
 	private CLabel subTaskLabel, detailLabel;
 	private ProgressBar progressBar = null;
@@ -68,9 +70,6 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 		super(parent);
 		parentShell=parent;
 		display = getParent().getDisplay();
-
-//		workerThread = new Thread() {
-		
 	}
 	
 	public static void open(Shell parent, final IRunnableWithProgress runnable, String title, boolean mayCancel) throws InterruptedException, Throwable {
@@ -79,7 +78,6 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 	}
 
 	public void open(final IRunnableWithProgress runnable, String title, boolean mayCancel) throws InterruptedException, Throwable {
-//		this.runnable = runnable;
 		this.done = false;
 		executorService = Executors.newSingleThreadScheduledExecutor();
 		initInternalRunnable(runnable);
@@ -87,12 +85,15 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 		this.setMayCancel(mayCancel);
 		Assert.assertNotNull(runnable);
 
-		createContents(); // create window
+		createContents();
 
 		shell.setText(title);
 		shell.open();
 		shell.layout();
 		
+		if (waitingImage != null) {
+			waitingImage.animate();
+		}
 				
 		Future<?> fut = executorService.submit(internalRunnable);
 		while (!shell.isDisposed()) {
@@ -102,7 +103,6 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 				display.sleep();	
 			}
 		}
-		// return result;
 	}
 	
 	private void checkIfFutIsDone(Future fut) throws Throwable {
@@ -130,7 +130,7 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 	}
 	
 	private void initInternalRunnable(final IRunnableWithProgress runnable) {
-		internalRunnable = new Callable() {
+		internalRunnable = new Callable<Object>() {
 			@Override
 			public Object call() throws Exception {
 				runnable.run(ProgressBarDialog.this);
@@ -177,16 +177,21 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 		shell.setSize(450, 250);
 
 		final Composite composite = new Composite(shell, SWT.NONE);
-		composite.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
-		composite.setLayout(new GridLayout());
+		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		composite.setLayout(new GridLayout(2, false));
+		
+		// TEST
+//		waitingImage = new AnimatedGif(composite, 0);
+//		waitingImage.load2("/icons/wait.gif");
+//		waitingImage.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 
 		taskNameLabel = new CLabel(composite, SWT.NONE);
 		taskNameLabel.setImage(processImage);
-		taskNameLabel.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+		taskNameLabel.setLayoutData(new GridData(SWT.FILL, GridData.CENTER, true, false, 1, 1));
 		taskNameLabel.setText(taskName);
 
 		subTaskLabel = new CLabel(composite, SWT.NONE);
-		subTaskLabel.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+		subTaskLabel.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, true, 2, 1));
 		subTaskLabel.setText("");
 
 		progressBarComposite = new Composite(shell, SWT.NONE);
@@ -255,14 +260,16 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 	    shell.setLocation(x, y);
 	}
 
-	public void setProcessImage(Image img) {
-		processImage = img;
-	}
+//	public void setProcessImage(Image img) {
+//		processImage = img;
+//	}
 
 	public void setMayCancel(boolean mayCancel) {
 		this.mayCancel = mayCancel;
 	}
 
+	// functions for IProgressMonitor:
+	
 	@Override
 	public void beginTask(String name, final int totalWork) {
 		setTaskName(name);
@@ -286,19 +293,18 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 
 	@Override
 	public void done() {
-		if (!shell.isDisposed()) {
-			display.asyncExec(new Runnable() {
-				@Override
-				public void run() {
-					done = true;
-//					shell.setVisible(false);
-					if (shell != null && !shell.isDisposed()) {
-						shell.close();
-						executorService.shutdown();
-					}
-				}
-			});
+		if (SWTUtil.isDisposed(shell)) {
+			return;
 		}
+		
+		display.asyncExec(() -> {
+			done = true;
+//			shell.setVisible(false);
+			if (!SWTUtil.isDisposed(shell)) {
+				shell.close();
+				executorService.shutdown();
+			}
+		});
 	}
 
 	@Override
@@ -361,90 +367,5 @@ public class ProgressBarDialog extends Dialog implements IProgressMonitor {
 						progressBar.setSelection(work);
 				}
 			});
-	}
-
-	// TEST STUFF:
-	public static class PBDialogDemo extends Shell {
-		public PBDialogDemo(Display display, int style) {
-			super(display, style);
-			createContents();
-		}
-
-		protected void createContents() {
-			final ProgressBarDialog pbd = new ProgressBarDialog(PBDialogDemo.this);
-			
-			setText("ProgressBar Dialog Example");
-			setSize(218, 98);
-			setLayout(new FillLayout());
-
-			final Button openProgressbarDialogButton = new Button(this, SWT.NONE);
-			openProgressbarDialogButton.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					
-					try {
-						pbd.open(new IRunnableWithProgress() {
-
-							@Override
-							public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-								monitor.beginTask("Counting to ten!", IProgressMonitor.UNKNOWN);
-
-								for (int i = 1; i <= 10; ++i) {
-									monitor.subTask("i=" + i);
-									logger.debug("progress: " + i);
-
-									Thread.sleep(500);
-									if (monitor.isCanceled()) {
-										monitor.done();
-										break;
-									}
-									if (i==9)
-										throw new InvocationTargetException(new CanvasException("yeah!!!"));
-
-									monitor.worked(i);
-								}
-
-								monitor.done();
-							}
-
-//							@Override
-//							public void runInGuiOnSuccess() {
-//								logger.debug("successfully completed operation!");
-//							}
-//
-//							@Override
-//							public void runInGuiOnError(Throwable ex) {
-//								logger.debug("an error occured: "+ex.getMessage(), ex);
-//							}
-						}, "Counting", true);
-					} catch (Throwable e1) {
-						e1.printStackTrace();
-					}
-				}
-			});
-			openProgressbarDialogButton.setText("Open ProgressBar Dialog");
-
-		}
-
-		@Override
-		protected void checkSubclass() {
-		}
-
-	}
-
-	public static void main(String[] args) {
-		try {
-			Display display = Display.getDefault();
-			PBDialogDemo shell = new PBDialogDemo(display, SWT.SHELL_TRIM);
-			SWTUtil.centerShell(shell);
-			shell.open();
-			shell.layout();
-			while (!shell.isDisposed()) {
-				if (!display.readAndDispatch())
-					display.sleep();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 }

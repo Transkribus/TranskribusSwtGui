@@ -80,6 +80,7 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.AsyncAppender;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
@@ -145,6 +146,7 @@ import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
+import eu.transkribus.swt.util.AsyncCallback;
 import eu.transkribus.swt.util.CreateThumbsService;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
@@ -441,8 +443,8 @@ public class TrpMainWidget {
 			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
 		}
 
-		boolean FORCE_AUTO_LOGIN = true;
-		if (FORCE_AUTO_LOGIN && getTrpSets().isAutoLogin()) {
+		final boolean ENABLE_AUTO_LOGIN = true;
+		if (ENABLE_AUTO_LOGIN && getTrpSets().isAutoLogin()) {
 			String lastAccount = TrpGuiPrefs.getLastLoginAccountType();
 
 			try {
@@ -1097,13 +1099,61 @@ public class TrpMainWidget {
 //		reloadHtrModels();
 		// reloadJobListForDocument();
 	}
+	
+	/*
+	public void loginAsync(String server, String user, String pw, boolean rememberCredentials) throws ClientVersionNotSupportedException, LoginException, Exception {
+		if (!getTrpSets().isServerSideActivated()) {
+			throw new NotSupportedException("Connecting to the server not supported yet!");
+		}
+		
+		storage.loginAsync(server, user, pw, new AsyncCallback<Object>() {
+			@Override
+			public void onSuccess(Object result) {
+				Display.getDefault().asyncExec(() -> {
+					if (rememberCredentials) { // store credentials on successful login
+						logger.debug("storing credentials for user: " + user);
+						TrpGuiPrefs.storeCredentials(user, pw);
+					}
+					TrpGuiPrefs.storeLastLogin(user);
+					TrpGuiPrefs.storeLastAccountType(OAuthGuiUtil.TRANSKRIBUS_ACCOUNT_TYPE);
+
+					userCache.add(user);
+
+					if (sessionExpired && !lastLoginServer.equals(server)) {
+						closeCurrentDocument(true);
+					}
+
+					sessionExpired = false;
+					lastLoginServer = server;
+					
+					// when user is logged in we can store the tag definitions into the DB
+					// later on they are stored each time they change
+					try {
+						storage.updateCustomTagSpecsForUserInDB();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				});
+			}
+
+			@Override
+			public void onError(Throwable error) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
+//		storage.login(server, user, pw);
+//		return true;
+	}*/
 
 	public boolean login(String server, String user, String pw, boolean rememberCredentials) throws ClientVersionNotSupportedException, LoginException, Exception {
 //		try {
 			if (!getTrpSets().isServerSideActivated()) {
 				throw new NotSupportedException("Connecting to the server not supported yet!");
 			}
-
+			
 			storage.login(server, user, pw);
 			if (rememberCredentials) { // store credentials on successful login
 				logger.debug("storing credentials for user: " + user);
