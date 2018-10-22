@@ -51,7 +51,7 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 	public CollectionUsersWidgetListener(CollectionUsersWidget cuw) {
 		this.cuw = cuw;
 		shell = cuw.getShell();
-		currCollection = store.getCollection(store.getCurrentDocumentCollectionId());
+		currCollection = store.getCollection(store.getCollId());
 				
 		cuw.getShell().addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {

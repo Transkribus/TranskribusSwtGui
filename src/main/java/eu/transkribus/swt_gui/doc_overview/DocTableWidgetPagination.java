@@ -216,9 +216,9 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		}
 		
 		Storage store = Storage.getInstance();
-		//use collectionId == -1 for the stray docuements widget
+		//use collectionId == -1 for the stray documents widget
 		if (collectionId == -1) {
-			logger.debug("collectionId=0");
+			logger.debug("collectionId=-1");
 			setDocList(store.getUserDocList(), resetPage);
 			return;
 		}
