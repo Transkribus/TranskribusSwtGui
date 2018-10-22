@@ -16,9 +16,12 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -38,6 +41,7 @@ import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
 import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
 import eu.transkribus.swt_gui.util.OAuthGuiUtil;
+import examples.AnimatedGif;
 
 public class LoginDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(LoginDialog.class);
@@ -56,6 +60,7 @@ public class LoginDialog extends Dialog {
 	protected String[] userProposals;
 
 	protected Label infoLabel;
+	protected Label imageLabel;
 
 	protected String[] serverProposals;
 	protected int defaultUriIndex;
@@ -110,6 +115,23 @@ public class LoginDialog extends Dialog {
 		infoLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
 		infoLabel.setForeground(Colors.getSystemColor(SWT.COLOR_DARK_RED));
 		infoLabel.setText(message);
+		
+//		AnimatedGif gif = new AnimatedGif(container, SWT.NONE);
+//		gif.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 2));
+//		gif.load2("/icons/loading.gif");
+//		gif.animate();
+//		gif.stop();
+		
+//		Button testBtn = new Button(container, SWT.PUSH);
+//		testBtn.setText("Test");
+//		SWTUtil.onSelectionEvent(testBtn, e -> {
+//			if (gif.isAnimating()) {
+//				gif.stop();
+//			}
+//			else {
+//				gif.animate();
+//			}
+//		});
 		
 		postInit();
 

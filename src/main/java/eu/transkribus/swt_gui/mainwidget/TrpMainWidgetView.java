@@ -477,35 +477,6 @@ public class TrpMainWidgetView extends Composite {
 	        }
 		});
 		
-//		menu.getMenuBar().addMenuListener(new org.eclipse.swt.events.MenuListener() {
-//			@Override public void menuShown(MenuEvent e) {
-//				menuButton.setSelection(true);
-//			}
-//			@Override public void menuHidden(MenuEvent e) {
-//				menuButton.setSelection(false);
-//			}
-//		});
-		
-		/*
-		loginToggle = new ToolItem(toolBar, SWT.PUSH, preInsertIndex++);
-		loginToggle.setToolTipText("Login");
-		loginToggle.setImage(Images.getOrLoad("/icons/disconnect.png"));
-		*/
-		
-//		ToolItem leftViewButton = new ToolItem(toolBar, SWT.CHECK);
-//		leftViewButton.setImage(Images.getOrLoad("/icons/three_dots_16.png"));
-////		leftViewButton.setText("yeah!");
-//		leftViewButton.setToolTipText("Show / hide menu view");
-//		leftViewButton.setSelection(trpSets.getLeftViewDockingState()==Docking.DOCKED);
-//		SWTUtil.onSelectionEvent(leftViewButton, e -> {
-//			if (!leftViewButton.getSelection()) {
-//				portalWidget.setWidgetDockingType(Position.LEFT, Docking.INVISIBLE);
-//			} else {
-//				portalWidget.setWidgetDockingType(Position.LEFT, Docking.DOCKED);
-//			}
-//		});
-		
-//		initDockingToolItems();
 		initDockingToolItems();
 
 		profilesToolItem = new DropDownToolItem(toolBar, false, false, true, SWT.NONE);
@@ -669,20 +640,24 @@ public class TrpMainWidgetView extends Composite {
 				if (e.detail == SWT.ARROW) { // don't react if user has pressed the arrow button!
 					return;
 				}
-
-				Position p = portalWidget.getWidgetPosition(widgetType);
-				if (p == null) {
-					return;
+				
+				Docking d = portalWidget.getDocking(widgetType);
+				Docking newDocking = d==Docking.DOCKED ? Docking.INVISIBLE : Docking.DOCKED;
+				
+				if (widgetType.equals(MENU_WIDGET_TYPE)) {
+					trpSets.setMenuViewDockingState(newDocking);
+				}
+				else if (widgetType.equals(TRANSCRIPTION_WIDGET_TYPE)) {
+					trpSets.setTranscriptionViewDockingState(newDocking);
 				}
 				
-				Docking d = portalWidget.getDocking(p);
-				if (d == Docking.DOCKED) {
-					portalWidget.setWidgetDockingType(p, Docking.INVISIBLE);
-				} else if (d == Docking.INVISIBLE) {
-					portalWidget.setWidgetDockingType(p, Docking.DOCKED);
-				} else if (d == Docking.UNDOCKED) {
-					portalWidget.setWidgetDockingType(p, Docking.DOCKED);
-				}
+//				if (d == Docking.DOCKED) {
+//					portalWidget.setWidgetDockingType(widgetType, Docking.INVISIBLE);
+//				} else if (d == Docking.INVISIBLE) {
+//					portalWidget.setWidgetDockingType(widgetType, Docking.DOCKED);
+//				} else if (d == Docking.UNDOCKED) {
+//					portalWidget.setWidgetDockingType(widgetType, Docking.DOCKED);
+//				}
 			}
 		}
 		menuDockingDropItem.getToolItem().addSelectionListener(new DockingStateMainBtnListener(MENU_WIDGET_TYPE));
@@ -694,7 +669,14 @@ public class TrpMainWidgetView extends Composite {
 				Docking docking = (Docking) mi.getData(DOCKING_DATA_KEY);
 				String widgetType = (String) mi.getData(WIDGET_TYPE_DATA_KEY);
 				
-				portalWidget.setWidgetDockingType(widgetType, docking);	
+				if (widgetType.equals(MENU_WIDGET_TYPE)) {
+					trpSets.setMenuViewDockingState(docking);
+				}
+				else if (widgetType.equals(TRANSCRIPTION_WIDGET_TYPE)) {
+					trpSets.setTranscriptionViewDockingState(docking);
+				}
+				
+//				portalWidget.setWidgetDockingType(widgetType, docking);
 			}
 		};
 		

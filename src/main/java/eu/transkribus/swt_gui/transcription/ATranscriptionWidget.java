@@ -1187,12 +1187,12 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		SWTUtil.onSelectionEvent(widgetPositionItem, e -> {
 			if (settings.getTranscriptionViewPosition() == Position.RIGHT) {
-				TrpMainWidget.getInstance().getUi().getPortalWidget().setWidgetPosition(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, Position.BOTTOM);
+				settings.setTranscriptionViewPosition(Position.BOTTOM);
 				logger.debug("switching transcription widget to bottom!");
 			}
 			else if (settings.getTranscriptionViewPosition() == Position.BOTTOM) {
 				logger.debug("switching transcription widget to right side!");
-				TrpMainWidget.getInstance().getUi().getPortalWidget().setWidgetPosition(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, Position.RIGHT);
+				settings.setTranscriptionViewPosition(Position.RIGHT);
 			}
 		});
 	}

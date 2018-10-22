@@ -1,18 +1,11 @@
 package eu.transkribus.swt_gui.dialogs;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jface.window.ApplicationWindow;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
 import eu.transkribus.core.model.beans.TrpErrorRate;
-import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class ErrorRateTest {
 	

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
@@ -289,8 +290,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	private String autoSaveFolder = "";
 	public static final String AUTOSAVE_FOLDER_PROPERTY = "autoSaveFolder";
 	
-	private int autoSaveInterval = 60;
+	private int autoSaveInterval = DEFAULT_AUTOSAVE_INTERVAL;
 	public static final String AUTOSAVE_INTERVAL_PROPERTY = "autoSaveInterval";
+	public static final int DEFAULT_AUTOSAVE_INTERVAL = 120;
 	
 	private boolean autoSaveEnabled = true;
 	public static final String AUTOSAVE_ENABLED = "autoSaveEnabled";
@@ -1058,6 +1060,10 @@ public class TrpSettings extends APropertyChangeSupport {
 	}
 
 	public void setAutoSaveFolder(String autoSaveFolder) {
+		if (StringUtils.isEmpty(autoSaveFolder)) {
+			autoSaveFolder = TrpSettings.getDefaultAutoSaveFolder();
+		}
+		
 		String old = this.autoSaveFolder;
 		this.autoSaveFolder = autoSaveFolder;
 		firePropertyChange(AUTOSAVE_FOLDER_PROPERTY, old, this.autoSaveFolder);
@@ -1084,9 +1090,11 @@ public class TrpSettings extends APropertyChangeSupport {
 	}
 	
 	public void setAutoSaveInterval(int seconds) {
-		int old = this.autoSaveInterval;
-		this.autoSaveInterval = seconds;
-		firePropertyChange(AUTOSAVE_INTERVAL_PROPERTY, old, this.autoSaveInterval);
+		if (seconds >= 5) {
+			int old = this.autoSaveInterval;
+			this.autoSaveInterval = seconds;
+			firePropertyChange(AUTOSAVE_INTERVAL_PROPERTY, old, this.autoSaveInterval);
+		}
 	}
 	
 	public boolean getAutoSaveEnabled(){
@@ -1168,6 +1176,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	}
 
 	public void setTranscriptionViewDockingState(Docking transcriptionViewDockingState) {
+		logger.debug("setting transcription view docking state to: "+transcriptionViewDockingState);
 		Docking old = this.transcriptionViewDockingState;
 		this.transcriptionViewDockingState = transcriptionViewDockingState;
 		firePropertyChange(TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY, old, this.transcriptionViewDockingState);

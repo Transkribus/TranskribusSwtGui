@@ -21,17 +21,19 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 	TrpMainWidget mainWidget;
 	TrpMainWidgetView ui;
 	SWTCanvas canvas;
+	TrpSettings sets;
 		
 	public TrpSettingsPropertyChangeListener(TrpMainWidget mainWidget) {
 		this.mainWidget = mainWidget;
 		this.ui = mainWidget.getUi();
 		this.canvas = mainWidget.getCanvas();
+		this.sets = ui.getTrpSets();
 	}
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		
-		logger.debug("get source of property: " + evt.getSource());
+		logger.trace("get source of property: " + evt.getSource());
 		logger.debug(evt.getPropertyName() + " property changed, new value: " + evt.getNewValue());
 		String pn = evt.getPropertyName();
 
@@ -47,8 +49,15 @@ public class TrpSettingsPropertyChangeListener implements PropertyChangeListener
 			canvas.redraw();
 		}
 		
+		else if (pn.equals(TrpSettings.MENU_VIEW_DOCKING_STATE_PROPERTY)) {
+			ui.getPortalWidget().setWidgetDockingType(TrpMainWidgetView.MENU_WIDGET_TYPE, sets.getMenuViewDockingState());
+		}
 		else if (pn.equals(TrpSettings.TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY)) {
+			ui.getPortalWidget().setWidgetDockingType(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, sets.getTranscriptionViewDockingState());
 			canvas.fitWidth();
+		}
+		else if (pn.equals(TrpSettings.TRANSCRIPTION_VIEW_POSITION_PROPERTY)) {
+			ui.getPortalWidget().setWidgetPosition(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, (Position) evt.getNewValue());
 		}
 		
 		// NOTE: docking props are synced now in a PortalWidgetListener in TrpMainWidgetViewListener! 
