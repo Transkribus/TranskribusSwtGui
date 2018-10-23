@@ -1642,7 +1642,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 		
 		int start = text.getOffsetAtLine(getCurrentLineIndex());
-		int end = start+text.getLine(getCurrentLineIndex()).length();
+		//GH fixed index out of bounds exception by adding -1 
+		int end = start+(text.getLine(getCurrentLineIndex()).length()-1);
 		return text.getTextBounds(start, end);
 	}
 	
