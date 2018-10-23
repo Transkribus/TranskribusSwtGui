@@ -10,8 +10,8 @@ import org.eclipse.swt.widgets.Control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpErrorRateListEntry;
 import eu.transkribus.core.model.beans.TrpErrorRate;
+import eu.transkribus.core.model.beans.TrpErrorRateListEntry;
 import eu.transkribus.core.util.JaxbUtils;
 
 public class ErrorAdvandedStatsTest {

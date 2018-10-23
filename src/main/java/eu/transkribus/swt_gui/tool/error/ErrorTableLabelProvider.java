@@ -74,11 +74,11 @@ public class ErrorTableLabelProvider implements ITableLabelProvider, ITableFontP
 				}else if (ct.equals(ErrorTableViewer.ACC_CHAR_COL)) {
 					return list.getcAccDouble()+" %";
 				}else if (ct.equals(ErrorTableViewer.BAG_PREC_COL)) {
-					return list.getBagTokensPrecDouble()+" %";
+					return list.getBagTokensPrecDouble()+"";
 				}else if (ct.equals(ErrorTableViewer.BAG_REC_COL)) {
 					return list.getBagTokensRecDouble()+"";
 				}else if (ct.equals(ErrorTableViewer.BAG_FMEA_COL)) {
-					return list.getBagTokensFDouble()+" %";
+					return list.getBagTokensFDouble()+"";
 
 			}
 			

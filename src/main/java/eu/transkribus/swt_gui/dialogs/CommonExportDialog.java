@@ -410,7 +410,7 @@ public class CommonExportDialog extends Dialog {
 		
 		createTitlePageBtn = new Button(otherOptionsComp, SWT.CHECK);
 		createTitlePageBtn.setText("Create Title Page");
-		createTitlePageBtn.setToolTipText("Title page contains author, title and editorial declaration");
+		createTitlePageBtn.setToolTipText("Title page contains document metadata like author, title,... and editorial declaration");
 		createTitlePageBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		
 		createTitlePageBtn.addSelectionListener(new SelectionAdapter() {

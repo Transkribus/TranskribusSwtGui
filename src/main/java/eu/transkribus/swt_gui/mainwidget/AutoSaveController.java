@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -36,25 +37,36 @@ public class AutoSaveController {
 	TrpSettings trpSets;
 	static Storage storage = Storage.getInstance();
 	
+	
 	Thread autoSaveThread=null;
 	
 	private final boolean localAutosaveEnabled = true;
+	private long lastAutoSaveTime = 0;
+	private int autoSaveErrorCounter=0;
+	private int outerAutoSaveErrorCounter=0;
+	static final int MAX_NR_OF_AUTO_SAVE_ERRORS = 5;
 	
 	Runnable saveTask = new Runnable() {
-//		int autoSaveInterval;
-//		String autoSavePath;
-
 		@Override
 		public void run() {
 			while (true) {
 				try {
+					logger.trace("in autosave thread: autosaveenabled = "+trpSets.getAutoSaveEnabled());
+					if (outerAutoSaveErrorCounter >= MAX_NR_OF_AUTO_SAVE_ERRORS) {
+						logger.warn("autosave feature broken --> skipping out of thread");
+						break;
+					}
+					
 					Thread.sleep(mw.getTrpSets().getAutoSaveInterval() * 1000);
-					Display.getDefault().asyncExec(() -> {
-						localAutoSave(mw.getTrpSets().getAutoSaveFolder());
-					});
-
+					if (trpSets.getAutoSaveEnabled()) {
+						Display.getDefault().asyncExec(() -> {
+							localAutoSave(mw.getTrpSets().getAutoSaveFolder());
+							outerAutoSaveErrorCounter=0;
+						});
+					}
 				} catch (Exception e) {
 					logger.error("Exception " + e, e);
+					outerAutoSaveErrorCounter++;
 				}
 			}
 		}
@@ -63,36 +75,54 @@ public class AutoSaveController {
 	public AutoSaveController(TrpMainWidget mw) {
 		this.mw = mw;
 		this.trpSets = mw.getTrpSets();
+		beginAutoSaveThread();
 	}
 	
-	public void localAutoSave(String path) {
-		if (!storage.isPageLoaded()) {
+	private void localAutoSave(String path) {
+		if (autoSaveErrorCounter >= MAX_NR_OF_AUTO_SAVE_ERRORS) {
+			logger.warn("reached max nr of subsequent autosave errors - skipping autosave from now on!");
 			return;
 		}
-		if (storage.getTranscript() == null || storage.getTranscript().getMd() == null)
-			return;
-
+		
 		if (!localAutosaveEnabled) {
 			return;
 		}
-
-		if (!storage.isTranscriptEdited()) {
+		if (!storage.isPageLoaded()) {
+			return;
+		}
+		if (!storage.hasTranscript() || !storage.hasTranscriptMetadata()) {
 			return;
 		}
 		
 		logger.debug("performing local autosave, interval: "+mw.getTrpSets().getAutoSaveInterval());
+		
+		JAXBPageTranscript tr = storage.getTranscript();
+		PcGtsType currentPage = tr.getPageData();
+		
+		if (!tr.getPage().isEdited()) {
+			logger.debug("transcript not edited... skipping autosave!");
+			return;
+		}
+
+		if (!tr.getPage().isEditedSince(lastAutoSaveTime)) {
+			logger.debug("transcript not edited since last autosave ("+CoreUtils.toTimeString(lastAutoSaveTime)+") - skipping autosave!");
+			return;
+		}
 
 		File f = null;
 		try {
-			PcGtsType currentPage = storage.getTranscript().getPageData();
 			if (currentPage == null) {
 				return;
 			}
+			
+			// FIXME: do not write setLastChange date into current transcript but directly into the autosave file xml
+			// (should not touch currently set transcript here!!)
 			Date datenow = new Date();
 			GregorianCalendar gc = new GregorianCalendar();
 			gc.setTime(datenow);
 			XMLGregorianCalendar xc = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
 			currentPage.getMetadata().setLastChange(xc);
+			
 			String tempDir = path;
 			tempDir += File.separator + storage.getTranscript().getMd().getPageId() + ".xml";
 			// tempDir += File.separator + "p" +
@@ -102,17 +132,20 @@ public class AutoSaveController {
 			byte[] bytes = PageXmlUtils.marshalToBytes(currentPage);
 			// PageXmlUtils.marshalToFile(storage.getTranscript().getPageData(), f);
 			FileUtils.writeByteArrayToFile(f, bytes);
-			logger.trace("Auto-saved current transcript to " + f.getAbsolutePath());
+			logger.debug("Auto-saved current transcript to " + f.getAbsolutePath());
+			lastAutoSaveTime = System.currentTimeMillis();
+			autoSaveErrorCounter = 0;
 		} catch (Exception e1) {
 			// onError("Saving Error", "Error while saving transcription to " +
 			// f.getAbsolutePath(), e1);
 			String fn = f == null ? "NA" : f.getAbsolutePath();
-			logger.error("Error while autosaving transcription to " + fn, e1);
+			++autoSaveErrorCounter;
+			logger.error("Error while autosaving transcription to " + fn+" (autoSaveErrorCounter = "+autoSaveErrorCounter+")", e1);
 		}
 	}
 	
-	public void beginAutoSaveThread() {
-		if (mw.getTrpSets().getAutoSaveEnabled() && autoSaveThread == null) {
+	private void beginAutoSaveThread() {
+		if (autoSaveThread==null) {
 			autoSaveThread = new Thread(saveTask, "AutoSaveThread");
 			autoSaveThread.start();
 			logger.debug("AutoSave Thread started");

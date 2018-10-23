@@ -4,10 +4,11 @@ package eu.transkribus.swt_gui.dialogs;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.DirectoryDialog;
@@ -15,18 +16,20 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 
 public class AutoSaveDialog extends Dialog{
-
+	
 	protected Object result;
 	protected Shell shell;
 	private TrpSettings trpSets;
 	
-	public AutoSaveDialog(Shell parent, int style, TrpSettings trpSets) {
-		super(parent, style);
+	public AutoSaveDialog(Shell parent, TrpSettings trpSets) {
+		super(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
 		setText("Autosave Settings");
 		this.trpSets = trpSets;
 	}
@@ -37,6 +40,8 @@ public class AutoSaveDialog extends Dialog{
 	
 	public Object open() {
 		createContents();
+		shell.setSize(600, shell.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		SWTUtil.centerShell(shell);
 		shell.open();
 		shell.layout();
 		Display display = getParent().getDisplay();
@@ -66,41 +71,24 @@ public class AutoSaveDialog extends Dialog{
 	    enableCheckForNewerAutoSave.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 	    
 		Label autoSaveIntervalLabel = new Label(shell, SWT.NONE);
-		autoSaveIntervalLabel.setText("Time Interval:");
+		autoSaveIntervalLabel.setText("Save interval in seconds: ");
 		autoSaveIntervalLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, true, 1, 1));		
 		
-	    Composite timeComp = new Composite(shell, SWT.NONE);
-	    timeComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));	
-	    timeComp.setLayout(new GridLayout(2, true));	  
-		
-	    Combo timeMinCombo = new Combo(timeComp, SWT.DROP_DOWN | SWT.BORDER);
-	    timeMinCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
-	    
-	    Combo timeSecCombo = new Combo(timeComp, SWT.DROP_DOWN | SWT.BORDER);
-	    timeSecCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
-	    
-	    for(int i=0; i<=60; i++) {
-	      timeMinCombo.add(i+"m");
-	      if(i<60)
-	      timeSecCombo.add(i+"s");
-	    }
-	    
-	    int secIndex = trpSets.getAutoSaveInterval()%60;
-	    int minIndex = (int)Math.floor((float)trpSets.getAutoSaveInterval()/60.0f);
-	    timeSecCombo.select(secIndex);
-	    timeMinCombo.select(minIndex);
+		Text autoSaveIntervalText = new Text(shell, 0);
+		autoSaveIntervalText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));	
+		autoSaveIntervalText.setText(""+trpSets.getAutoSaveInterval());
 	    
 		Label autoSaveFolderLabel = new Label(shell, SWT.NONE);
 		autoSaveFolderLabel.setText("AutoSave Folder:");
 		autoSaveFolderLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, true, 1, 1));
 		
 	    Composite folderComp = new Composite(shell, SWT.NONE);
-	    folderComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));	
-	    folderComp.setLayout(new GridLayout(2, false));
+	    folderComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));	
+	    folderComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
-		Text autoSaveFolderTxt = new Text(folderComp, SWT.BORDER);
+		Text autoSaveFolderTxt = new Text(folderComp, 0);
 		autoSaveFolderTxt.setText(trpSets.getAutoSaveFolder());
-		autoSaveFolderTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		autoSaveFolderTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
 		Button browseButton = new Button(folderComp, SWT.PUSH);
 	    browseButton.setText("Browse...");
@@ -124,22 +112,20 @@ public class AutoSaveDialog extends Dialog{
 	    buttons.setLayout(new GridLayout(2, false));
 	    
 		Button applyButton = new Button(buttons, SWT.PUSH);
-		applyButton.addSelectionListener(new SelectionAdapter(){
-		      public void widgetSelected(SelectionEvent e) {
-		    	  trpSets.setAutoSaveFolder(autoSaveFolderTxt.getText());
-		    	  trpSets.setAutoSaveEnabled(enableAutoSaveButton.getSelection());
-		    	  trpSets.setCheckForNewerAutosaveFile(enableCheckForNewerAutoSave.getSelection());
-		    	  if(timeMinCombo.getSelectionIndex() == 0 && timeSecCombo.getSelectionIndex() == 0){
-		    		  DialogUtil.showErrorMessageBox(getShell(), "Error", "Please select valid time interval");
-		    	  }else{
-		    		  int interval = timeMinCombo.getSelectionIndex()*60 + timeSecCombo.getSelectionIndex();
-		    		  if (interval <= 0) {
-		    			  interval = 60;
-		    		  }
-		    		  trpSets.setAutoSaveInterval(timeMinCombo.getSelectionIndex()*60 + timeSecCombo.getSelectionIndex());
-		    		  TrpMainWidget.getInstance().getAutoSaveController().beginAutoSaveThread();
-		    	  }
-		        }
+		applyButton.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				trpSets.setAutoSaveFolder(autoSaveFolderTxt.getText());
+				trpSets.setAutoSaveEnabled(enableAutoSaveButton.getSelection());
+				trpSets.setCheckForNewerAutosaveFile(enableCheckForNewerAutoSave.getSelection());
+				try {
+					int newInterval = Integer.parseInt(autoSaveIntervalText.getText());
+					trpSets.setAutoSaveInterval(newInterval);
+				} catch (Exception ex) {
+					DialogUtil.showErrorMessageBox(getShell(), "Error",
+							"Error setting new time interval: " + ex.getMessage());
+				}
+				autoSaveIntervalText.setText(""+trpSets.getAutoSaveInterval());
+			}
 		});
 	    applyButton.setText("Apply");
 	    applyButton.setLayoutData(gd);
@@ -148,13 +134,11 @@ public class AutoSaveDialog extends Dialog{
 	    resetButton.addSelectionListener(new SelectionAdapter(){
 	    	public void widgetSelected(SelectionEvent e){
 	    		String defaultDir = TrpSettings.getDefaultAutoSaveFolder();
-	    		int defaultInterval = 60;
 		    	trpSets.setAutoSaveFolder(defaultDir);
-		    	trpSets.setAutoSaveInterval(defaultInterval);
+		    	trpSets.setAutoSaveInterval(TrpSettings.DEFAULT_AUTOSAVE_INTERVAL);
 		    	trpSets.setAutoSaveEnabled(true);
 		    	autoSaveFolderTxt.setText(defaultDir);
-		    	timeSecCombo.select(0);
-		    	timeMinCombo.select(1);
+		    	autoSaveIntervalText.setText(""+TrpSettings.DEFAULT_AUTOSAVE_INTERVAL);
 		    	enableAutoSaveButton.setSelection(true);
 	    		
 	    	}

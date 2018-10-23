@@ -1187,12 +1187,12 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		SWTUtil.onSelectionEvent(widgetPositionItem, e -> {
 			if (settings.getTranscriptionViewPosition() == Position.RIGHT) {
-				TrpMainWidget.getInstance().getUi().getPortalWidget().setWidgetPosition(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, Position.BOTTOM);
+				settings.setTranscriptionViewPosition(Position.BOTTOM);
 				logger.debug("switching transcription widget to bottom!");
 			}
 			else if (settings.getTranscriptionViewPosition() == Position.BOTTOM) {
 				logger.debug("switching transcription widget to right side!");
-				TrpMainWidget.getInstance().getUi().getPortalWidget().setWidgetPosition(TrpMainWidgetView.TRANSCRIPTION_WIDGET_TYPE, Position.RIGHT);
+				settings.setTranscriptionViewPosition(Position.RIGHT);
 			}
 		});
 	}
@@ -1642,7 +1642,8 @@ public abstract class ATranscriptionWidget extends Composite{
 		}
 		
 		int start = text.getOffsetAtLine(getCurrentLineIndex());
-		int end = start+text.getLine(getCurrentLineIndex()).length();
+		//GH fixed index out of bounds exception by adding -1 
+		int end = start+(text.getLine(getCurrentLineIndex()).length()-1);
 		return text.getTextBounds(start, end);
 	}
 	

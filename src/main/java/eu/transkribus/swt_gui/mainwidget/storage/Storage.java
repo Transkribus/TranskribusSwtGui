@@ -117,6 +117,7 @@ import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.core.util.ProxyUtils;
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.swt.util.AsyncCallback;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
@@ -927,6 +928,23 @@ public class Storage {
 	public void invalidateSession() throws SessionExpiredException, ServerErrorException, Exception {
 		checkConnection(true);
 		conn.invalidate();
+	}
+	
+	/**
+	 * @deprecated not tested and used yet
+	 */
+	public void loginAsync(String serverUri, String username, String password, AsyncCallback<Object> callback) {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					login(serverUri, username, password);
+					callback.onSuccess(null);
+				} catch (Throwable e) {
+					callback.onError(e);
+				}
+			}
+		}).start();
 	}
 
 	public void login(String serverUri, String username, String password) throws ClientErrorException, LoginException {

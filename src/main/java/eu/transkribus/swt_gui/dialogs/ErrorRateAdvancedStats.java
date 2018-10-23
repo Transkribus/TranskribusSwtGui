@@ -255,8 +255,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 		dataset.addValue(resultErr.getBagTokensPrecDouble(), "Bag Tokens Precision", "Overall");
 		dataset.addValue(page.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+page.getPageNumber());
 		dataset.addValue(resultErr.getBagTokensRecDouble(), "Bag Tokens Recall", "Overall");
-		dataset.addValue(page.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+page.getPageNumber());
-		dataset.addValue(resultErr.getBagTokensFDouble(), "Bag Tokens F-Measure", "Overall");
+		dataset.addValue(100 * page.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Page "+page.getPageNumber());
+		dataset.addValue(100 * resultErr.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Overall");
 		
 		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
 		CategoryPlot plot = chart.getCategoryPlot();
