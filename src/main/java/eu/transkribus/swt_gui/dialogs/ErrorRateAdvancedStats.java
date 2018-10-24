@@ -154,8 +154,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 									resultErr.getCer(),
 									resultErr.getwAcc(),
 									resultErr.getcAcc(),
-									resultErr.getBagTokensPrec(),
-									resultErr.getBagTokensRec(),
+									""+resultErr.getBagTokensFDouble(),
+									""+resultErr.getBagTokensPrecDouble(),
 									resultErr.getBagTokensF()
 									});
 		overall.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -251,10 +251,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 		dataset.addValue(resultErr.getwAccDouble(), "Word Accuracy", "Overall");
 		dataset.addValue(page.getcAccDouble(), "Char Accuracy", "Page "+page.getPageNumber());
 		dataset.addValue(resultErr.getcAccDouble(), "Char Accuracy", "Overall");
-		dataset.addValue(page.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+page.getPageNumber());
-		dataset.addValue(resultErr.getBagTokensPrecDouble(), "Bag Tokens Precision", "Overall");
-		dataset.addValue(page.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+page.getPageNumber());
-		dataset.addValue(resultErr.getBagTokensRecDouble(), "Bag Tokens Recall", "Overall");
+		dataset.addValue(100 * page.getBagTokensPrecDouble(), "Bag Tokens Precision (scaled x100)", "Page "+page.getPageNumber());
+		dataset.addValue(100 * resultErr.getBagTokensPrecDouble(), "Bag Tokens Precision (scaled x100)", "Overall");
+		dataset.addValue(100 * page.getBagTokensRecDouble(), "Bag Tokens Recall (scaled x100)", "Page "+page.getPageNumber());
+		dataset.addValue(100 * resultErr.getBagTokensRecDouble(), "Bag Tokens Recall (scaled x100)", "Overall");
 		dataset.addValue(100 * page.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Page "+page.getPageNumber());
 		dataset.addValue(100 * resultErr.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Overall");
 		
