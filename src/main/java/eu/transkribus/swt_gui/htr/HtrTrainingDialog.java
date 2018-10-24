@@ -175,18 +175,22 @@ public class HtrTrainingDialog extends Dialog {
 	
 	private TrainMethodUITab createCitlabTrainingTab(final int tabIndex) {
 		citlabHtrTrainingTabItem = new CTabItem(paramTabFolder, SWT.NONE);
-		citlabHtrTrainingTabItem.setText("CITlab HTR");
 
 		citlabHtrParamCont = new CITlabHtrTrainingConfComposite(paramTabFolder, SWT.NONE);
+		final String label = HtrTableLabelProvider.getLabelForHtrProvider(citlabHtrParamCont.getProvider());
+		citlabHtrTrainingTabItem.setText(label);
+		
 		citlabHtrTrainingTabItem.setControl(citlabHtrParamCont);
 		return new TrainMethodUITab(tabIndex, citlabHtrTrainingTabItem, citlabHtrParamCont);
 	}
 	
 	private TrainMethodUITab createCitlabHtrPlusTrainingTab(final int tabIndex) {
 		citlabHtrPlusTrainingTabItem = new CTabItem(paramTabFolder, SWT.NONE);
-		citlabHtrPlusTrainingTabItem.setText("CITlab HTR+");
 
 		citlabHtrPlusParamCont = new CITlabHtrPlusTrainingConfComposite(paramTabFolder, SWT.NONE);
+		final String label = HtrTableLabelProvider.getLabelForHtrProvider(citlabHtrPlusParamCont.getProvider());
+		citlabHtrPlusTrainingTabItem.setText(label);
+		
 		citlabHtrPlusTrainingTabItem.setControl(citlabHtrPlusParamCont);
 		return new TrainMethodUITab(tabIndex, citlabHtrPlusTrainingTabItem, citlabHtrPlusParamCont);
 	}
