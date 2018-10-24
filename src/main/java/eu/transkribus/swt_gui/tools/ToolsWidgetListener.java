@@ -130,7 +130,7 @@ public class ToolsWidgetListener implements SelectionListener {
 			if (htd != null) {
 				htd.setVisible();
 			} else {
-				htd = new HtrTrainingDialog(mw.getShell());
+				htd = new HtrTrainingDialog(mw.getShell(), Storage.getInstance().getHtrTrainingJobImpls());
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
 					// if (!mw.saveTranscriptDialogOrAutosave()) {
@@ -156,40 +156,6 @@ public class ToolsWidgetListener implements SelectionListener {
 			mw.onError("Error while starting training job: " + e.getMessage(), e.getMessage(), e);
 		}
 	}
-
-	// private void startTextToImage() {
-	// try {
-	// store.checkLoggedIn();
-	// store.checkRemoteDocLoaded();
-	//
-	//// if(htd != null) {
-	//// htd.setVisible();
-	//// } else {
-	//// htd = new HtrTrainingDialog(mw.getShell());
-	//// if(htd.open() == IDialogConstants.OK_ID) {
-	//// CitLabHtrTrainConfig config = htd.getCitlabTrainConfig();
-	//// String jobId = store.runHtrTraining(config);
-	//// showSuccessMessage(jobId);
-	//// }
-	//// htd = null;
-	//// }
-	//
-	// Text2ImageConfDialog diag = new Text2ImageConfDialog(mw.getShell());
-	// if (diag.open() == Dialog.OK) {
-	// CitLabSemiSupervisedHtrTrainConfig config = diag.getConfig();
-	//
-	// String jobId = store.getConnection().runCitLabText2Image(config);
-	// showSuccessMessage(jobId);
-	// }
-	// }
-	// catch (StorageException e) {
-	// DialogUtil.showErrorMessageBox(mw.getShell(), "Error", e.getMessage());
-	// }
-	// catch (Exception e) {
-	// mw.onError("Error while starting text to image job: "+e.getMessage(),
-	// e.getMessage(), e);
-	// }
-	// }
 
 	private void showSuccessMessage(List<String> jobIds) {
 		showSuccessMessage(jobIds.toArray(new String[0]));
@@ -492,36 +458,6 @@ public class ToolsWidgetListener implements SelectionListener {
 	// if (s == tw.languageCombo && e.detail == SWT.TRAVERSE_RETURN) {
 	// logger.debug("enter pressed on language field!");
 	//// mw.saveDocMetadata();
-	// }
-	// }
-
-	// Deprecated: old OCR section.
-	// @Override
-	// public void modifyText(ModifyEvent e) {
-	// Object s = e.getSource();
-	//
-	// TrpDoc d = store.getDoc();
-	//
-	// if (s == tw.scriptTypeCombo) {
-	// logger.debug("new script type: "+tw.scriptTypeCombo.getText());
-	// ScriptType st = EnumUtils.fromString(ScriptType.class,
-	// tw.scriptTypeCombo.getText());
-	// if (d != null) {
-	// d.getMd().setScriptType(st);
-	//// mw.saveDocMetadata();
-	// }
-	// }
-	// }
-	// @Override
-	// public void checkStateChanged(CheckStateChangedEvent event) {
-	// logger.debug("check state changed!!");
-	// if (event.getSource() == tw.languagesTable.getTv()) {
-	// String languages = tw.languagesTable.getSelectedLanguagesString();
-	// logger.debug("setting languages: "+languages);
-	// TrpDoc d = store.getDoc();
-	// if (d != null)
-	// d.getMd().setLanguage(languages);
-	// return;
 	// }
 	// }
 }

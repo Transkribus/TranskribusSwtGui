@@ -18,6 +18,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.json.JsonArray;
@@ -91,6 +92,8 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
+import eu.transkribus.core.model.beans.job.enums.JobTask;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
@@ -2850,6 +2853,12 @@ public class Storage {
 		}
 		
 		transcript.getPage().setEdited(edited);
+	}
+
+	public JobImpl[] getHtrTrainingJobImpls() throws SessionExpiredException, ServerErrorException, ClientErrorException {
+		final Predicate<JobImpl> htrTrainingJobImplFilter = j -> j.getTask().equals(JobTask.HtrTraining);
+		List<JobImpl> list = getConnection().getJobImplAcl(htrTrainingJobImplFilter);
+		return list.toArray(new JobImpl[list.size()]);
 	}
 
 }

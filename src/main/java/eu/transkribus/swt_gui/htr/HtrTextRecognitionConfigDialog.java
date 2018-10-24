@@ -3,8 +3,6 @@ package eu.transkribus.swt_gui.htr;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -60,7 +58,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 
 		applyConfig();
 
-		sash.setWeights(new int[] { 80, 20 });
+		sash.setWeights(new int[] { 88, 12 });
 
 		return cont;
 	}
@@ -89,24 +87,40 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 
 	@Override
 	protected void okPressed() {
-
-		if (htrModelsComp.isCitlabHtrTabSelected()) {
-			config = new TextRecognitionConfig(Mode.CITlab);
-
-			config.setDictionary(htrDictComp.getSelectedDictionary());
-			TrpHtr htr = htrModelsComp.getSelectedHtr();
-			if (htr == null) {
-				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");
-				return;
-			}
-			config.setHtrId(htr.getHtrId());
-			config.setHtrName(htr.getName());
-			config.setLanguage(htr.getLanguage());
-		} else {
-			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Bad configuration!");
+		config = new TextRecognitionConfig(Mode.CITlab);
+		config.setDictionary(htrDictComp.getSelectedDictionary());
+		TrpHtr htr = htrModelsComp.getSelectedHtr();
+		if (htr == null) {
+			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");
+			return;
 		}
+		config.setHtrId(htr.getHtrId());
+		config.setHtrName(htr.getName());
+		config.setLanguage(htr.getLanguage());
 		super.okPressed();
 	}
+	
+	//This was used when the HTR Composite had tabs. remove by occasion.
+//	@Override
+//	protected void okPressed() {
+//
+//		if (htrModelsComp.isCitlabHtrTabSelected()) {
+//			config = new TextRecognitionConfig(Mode.CITlab);
+//
+//			config.setDictionary(htrDictComp.getSelectedDictionary());
+//			TrpHtr htr = htrModelsComp.getSelectedHtr();
+//			if (htr == null) {
+//				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");
+//				return;
+//			}
+//			config.setHtrId(htr.getHtrId());
+//			config.setHtrName(htr.getName());
+//			config.setLanguage(htr.getLanguage());
+//		} else {
+//			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Bad configuration!");
+//		}
+//		super.okPressed();
+//	}
 
 	@Override
 	protected void configureShell(Shell newShell) {
@@ -117,7 +131,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1024, 768);
+		return new Point(1280, 768);
 	}
 
 	@Override

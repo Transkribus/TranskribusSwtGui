@@ -13,7 +13,7 @@ public class HtrModelChooserButton extends Composite {
 	
 	Button baseModelBtn;
 
-	public HtrModelChooserButton(Composite parent) {
+	public HtrModelChooserButton(Composite parent, final String providerFilter) {
 		super(parent, 0);
 		
 		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
@@ -23,11 +23,14 @@ public class HtrModelChooserButton extends Composite {
 		updateModelText();
 		
 		SWTUtil.onSelectionEvent(baseModelBtn, (e) -> {
-			HtrModelsDialog diag = new HtrModelsDialog(getShell());
+			HtrModelsDialog diag = new HtrModelsDialog(getShell(), providerFilter);
 			if (diag.open() == Dialog.OK) {
 				setModel(diag.getSelectedHtr());
 			}
 		});
+	}
+	public HtrModelChooserButton(Composite parent) {
+		this(parent, null);
 	}
 	
 	private void updateModelText() {
