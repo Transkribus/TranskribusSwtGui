@@ -123,9 +123,6 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 //		citlabTrainConf.setLearningRate(learningRateTxt.getText());
 //		citlabTrainConf.setTrainSizePerEpoch(Integer.parseInt(trainSizeTxt.getText()));
 		
-		// FIXME as soon as update to CITlabModule 2.0.2 is done, this can be removed. 2.0.1 sets "-1" which would use the whole set in each epoch.
-		citlabTrainConf.setTrainSizePerEpoch(DEFAULT_TRAIN_SIZE_PER_EPOCH);
-		
 		TrpHtr htr = baseModelBtn.getModel();
 		if (htr != null) {
 			citlabTrainConf.setBaseModelId(htr.getHtrId());
