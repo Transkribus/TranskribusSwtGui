@@ -92,7 +92,7 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 		case HtrCITlabUtils.PROVIDER_CITLAB:
 			return "CITlab HTR";
 		case HtrCITlabUtils.PROVIDER_CITLAB_PLUS:
-			return "CITlab HTR++";
+			return "CITlab HTR+";
 		default:
 			return NOT_AVAILABLE_LABEL;
 		}
