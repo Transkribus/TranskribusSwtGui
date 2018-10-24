@@ -14,8 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -74,8 +72,8 @@ public class HtrModelsComposite extends Composite {
 
 	Storage store = Storage.getInstance();
 
-	CTabFolder folder;
-	CTabItem citLabTabItem;
+//	CTabFolder folder;
+//	CTabItem citLabTabItem;
 
 	HtrTableWidget htw;
 	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalTestCerTxt;
@@ -85,12 +83,9 @@ public class HtrModelsComposite extends Composite {
 	JFreeChart chart = null;
 
 	String charSetTitle, charSet;
-	// Integer trainSetId, testSetId;
 
 	DocImgViewerDialog trainDocViewer, testDocViewer = null;
 	CharSetViewerDialog charSetViewer = null;
-
-//	Combo ocrLangCombo, typeFaceCombo;
 
 	TrpHtr htr;
 	
@@ -101,17 +96,18 @@ public class HtrModelsComposite extends Composite {
 		this.providerFilter = providerFilter;
 		this.setLayout(new GridLayout(1, false));
 		
-		folder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
-		folder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		// all HTRs are in one table
+//		folder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
+//		folder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+//		citLabTabItem = new CTabItem(folder, SWT.NONE);
+//		citLabTabItem.setText("CITlab RNN HTR");
+//		SashForm uroSash = new SashForm(folder, SWT.HORIZONTAL);
+		
+		SashForm sashForm = new SashForm(this, SWT.HORIZONTAL);
+		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		sashForm.setLayout(new GridLayout(2, false));
 
-		citLabTabItem = new CTabItem(folder, SWT.NONE);
-		citLabTabItem.setText("CITlab RNN HTR");
-
-		SashForm uroSash = new SashForm(folder, SWT.HORIZONTAL);
-		uroSash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		uroSash.setLayout(new GridLayout(2, false));
-
-		htw = new HtrTableWidget(uroSash, SWT.BORDER);
+		htw = new HtrTableWidget(sashForm, SWT.BORDER, providerFilter);
 		htw.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
@@ -119,6 +115,13 @@ public class HtrModelsComposite extends Composite {
 			}
 		});
 
+		htw.getProviderCombo().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				updateHtrs(htw.getProviderComboValue());
+			}
+		});
+		
 		final Table t = htw.getTableViewer().getTable();
 
 		Menu menu = new Menu(t);
@@ -186,7 +189,7 @@ public class HtrModelsComposite extends Composite {
 
 		});
 
-		Group detailGrp = new Group(uroSash, SWT.BORDER);
+		Group detailGrp = new Group(sashForm, SWT.BORDER);
 		detailGrp.setText("Details");
 		detailGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		detailGrp.setLayout(new GridLayout(1, false));
@@ -335,13 +338,12 @@ public class HtrModelsComposite extends Composite {
 		finalTestCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
 		finalTestCerTxt.setLayoutData(gd);
 		
-		citLabTabItem.setControl(uroSash);
+//		citLabTabItem.setControl(uroSash);
+//		folder.setSelection(citLabTabItem);
 
-		folder.setSelection(citLabTabItem);
+		updateHtrs(htw.getProviderComboValue());
 
-		updateHtrs();
-
-		uroSash.setWeights(new int[] { 40, 60 });
+		sashForm.setWeights(new int[] { 60, 40 });
 		// fix for missing tooltip in chart after resize. Still does not work always...
 		this.getShell().addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
@@ -440,7 +442,6 @@ public class HtrModelsComposite extends Composite {
 			final double storedHtrTrainCer;
 			final double storedHtrAnnotationXVal;
 			// And create an annotation representing the stored net
-			final String annotLabel = "Stored HTR";
 			if (htr.isBestNetStored()) {
 				storedHtrTrainCer = trainMin;
 //				annot = new XYPointerAnnotation(annotLabel, trainMinEpoch, trainMin, trainMin < 0.5 ? 180 : 90);
@@ -487,24 +488,29 @@ public class HtrModelsComposite extends Composite {
 			storedHtrTestCerStr = HtrCITlabUtils.formatCerVal(storedHtrTestCer);
 		}
 
+		
 		chart = ChartFactory.createXYLineChart("Learning Curve", "Epochs", "Accuracy in CER", dataset,
 				PlotOrientation.VERTICAL, true, true, false);
 		XYPlot plot = (XYPlot) chart.getPlot();
-
-		NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-		DecimalFormat pctFormat = new DecimalFormat("#%");
-		rangeAxis.setNumberFormatOverride(pctFormat);
-		rangeAxis.setRange(0.0, 1.0);
-
-		plot.getRenderer().setSeriesPaint(0, Color.BLUE);
-		if (htr.hasCerTestLog()) {
-			plot.getRenderer().setSeriesPaint(1, Color.RED);
-		}
-		// if(annot != null) {
-		// plot.addAnnotation(annot);
-		// }
-		if (lineAnnot != null) {
-			plot.addAnnotation(lineAnnot);
+		
+		if(dataset.getSeries().isEmpty()) {
+			plot.setNoDataMessage("No data available");
+		} else {
+			NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+			DecimalFormat pctFormat = new DecimalFormat("#%");
+			rangeAxis.setNumberFormatOverride(pctFormat);
+			rangeAxis.setRange(0.0, 1.0);
+	
+			plot.getRenderer().setSeriesPaint(0, Color.BLUE);
+			if (htr.hasCerTestLog()) {
+				plot.getRenderer().setSeriesPaint(1, Color.RED);
+			}
+			// if(annot != null) {
+			// plot.addAnnotation(annot);
+			// }
+			if (lineAnnot != null) {
+				plot.addAnnotation(lineAnnot);
+			}
 		}
 		jFreeChartComp.setChart(chart);
 		chart.fireChartChanged();
@@ -513,10 +519,10 @@ public class HtrModelsComposite extends Composite {
 		finalTestCerTxt.setText(storedHtrTestCerStr);
 	}
 
-	private void updateHtrs() {
+	private void updateHtrs(final String providerFilter) {
 		List<TrpHtr> uroHtrs = new ArrayList<>(0);
 		try {
-			uroHtrs = store.listHtrs(this.providerFilter);
+			uroHtrs = store.listHtrs(providerFilter);
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e1) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not load HTR model list!");
 			logger.error(e1.getMessage(), e1);
@@ -526,18 +532,8 @@ public class HtrModelsComposite extends Composite {
 		htw.refreshList(uroHtrs);
 	}
 	
-	public boolean isCitlabHtrTabSelected() {
-		return folder.getSelection().equals(citLabTabItem);
-	}
-
-//	private void loadHtrDicts() {
-//		try {
-//			this.htrDicts = store.getHtrDicts();
-//		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
-//			TrpMainWidget.getInstance().onError("Error", "Could not load HTR model list!", e);
-//			htrDicts = new ArrayList<>(0);
-//		}
-//		htrDicts.add(0, NO_DICTIONARY);
+//	public boolean isCitlabHtrTabSelected() {
+//		return folder.getSelection().equals(citLabTabItem);
 //	}
 
 }

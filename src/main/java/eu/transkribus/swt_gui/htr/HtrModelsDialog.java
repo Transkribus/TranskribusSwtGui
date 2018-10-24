@@ -22,8 +22,14 @@ public class HtrModelsDialog extends Dialog {
 	
 	HtrModelsComposite modelsComp;
 	TrpHtr selectedHtr;
-	private String providerFilter = null;
+	private final String providerFilter;
 
+	/**
+	 * The dialog can be fixated to only show HTRs of a specific provider, e.g. for selecting a base model for the training.
+	 *  
+	 * @param parentShell
+	 * @param providerFilter fixates the HTR provider filter. Pass null to allow the use to filter by that.
+	 */
 	public HtrModelsDialog(Shell parentShell, final String providerFilter) {
 		super(parentShell);
 		this.providerFilter = providerFilter;
@@ -76,7 +82,7 @@ public class HtrModelsDialog extends Dialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1200, 800);
+		return new Point(1280, 900);
 	}
 
 	@Override
