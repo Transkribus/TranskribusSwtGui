@@ -58,7 +58,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 
 		applyConfig();
 
-		sash.setWeights(new int[] { 80, 20 });
+		sash.setWeights(new int[] { 88, 12 });
 
 		return cont;
 	}
@@ -131,7 +131,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1024, 768);
+		return new Point(1280, 768);
 	}
 
 	@Override
