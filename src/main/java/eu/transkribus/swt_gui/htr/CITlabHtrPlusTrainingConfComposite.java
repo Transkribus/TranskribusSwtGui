@@ -45,12 +45,6 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 //		learningRateLbl.setText("Learning Rate:");
 //		learningRateTxt = new Text(this, SWT.BORDER);
 //		learningRateTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-//
-//		Label noiseLbl = new Label(this, SWT.NONE);
-//		noiseLbl.setText("Noise:");
-//		noiseCmb = new CitlabNoiseParamCombo(this, 0);
-//		noiseCmb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-//
 //		Label trainSizeLbl = new Label(this, SWT.NONE);
 //		trainSizeLbl.setText("Train Size per Epoch:");
 //		trainSizeTxt = new Text(this, SWT.BORDER);
@@ -74,6 +68,28 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 				setCitlabTrainingDefaults();
 			}
 		});
+		
+		//TODO advanced parameters
+		
+//		Group customGrp = new Group(this, SWT.BORDER);
+//		customGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL,true, true, 4, 2));
+//		customGrp.setLayout(new GridLayout(2, true));
+//		
+//		Label noiseLbl = new Label(customGrp, SWT.NONE);
+//		noiseLbl.setText("Noise:");
+//		noiseCmb = new CitlabNoiseParamCombo(customGrp, 0);
+//		noiseCmb.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+//		
+//		new Label(customGrp, SWT.NONE);
+//		new Label(customGrp, SWT.NONE);
+//		
+//		final CustomParameter[] params = {
+//				new CustomParameter(CitLabHtrTrainConfig.LEARNING_RATE_KEY),
+//				new CustomParameter(CitLabHtrTrainConfig.TRAIN_SIZE_KEY)		
+//		};
+//		
+//		AdvancedParametersComposite advComp = new AdvancedParametersComposite(customGrp, params);
+//		advComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 	}
 	
 	public void setCitlabTrainingDefaults() {
