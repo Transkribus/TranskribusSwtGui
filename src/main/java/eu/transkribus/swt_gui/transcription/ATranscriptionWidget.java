@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.docx4j.model.fields.merge.MailMergerWithNext;
+import org.apache.pdfbox.jbig2.segments.RegionSegmentInformation;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.resource.JFaceResources;
@@ -53,7 +53,6 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
@@ -102,7 +101,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.IntRange;
-import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.Colors;
@@ -115,6 +113,7 @@ import eu.transkribus.swt.util.UndoRedoImpl;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
+import eu.transkribus.swt_gui.mainwidget.RegionsPagingToolBarListener;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
@@ -257,6 +256,8 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	public final static String CATTI_MESSAGE_EVENT="CATTI_MESSAGE_EVENT";
 	public static final boolean SHOW_WORD_GRAPH_STUFF = false;
+	
+	RegionsPagingToolBarListener regionsToolBarListener;
 	
 	// a class to store the data needed to paint a tag
 	public static class PaintTagData {
@@ -450,7 +451,23 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		moveToolBar(settings.getTranscriptionToolbarOnTop());
 		
-		regionsPagingToolBar.setToolbarItemsVisible(!settings.isShowAllLinesInTranscriptionView(), 0);
+		setRegionsToolBarVisible(!settings.isShowAllLinesInTranscriptionView());
+//		regionsPagingToolBar.setToolbarItemsVisible(!settings.isShowAllLinesInTranscriptionView(), 0);
+//		initRegionsToolBarListener();
+	}
+	
+	protected void initRegionsToolBarListener() {
+		regionsToolBarListener = new RegionsPagingToolBarListener(regionsPagingToolBar);
+	}
+	
+	protected void setRegionsToolBarVisible(boolean visible) {
+		if (!visible && regionsToolBarListener!=null) {
+			regionsToolBarListener.detach();
+		}
+		regionsPagingToolBar.setToolbarItemsVisible(visible, 0);
+		if (visible) {
+			initRegionsToolBarListener();
+		}
 	}
 	
 	protected void onLineWrapped() {
@@ -1038,7 +1055,7 @@ public abstract class ATranscriptionWidget extends Composite{
 				}
 				else if (pn.equals(TrpSettings.SHOW_ALL_LINES_IN_TRANSCRIPTION_VIEW_PROPERTY)) {
 					TrpMainWidget.getInstance().updateSelectedTranscriptionWidgetData();
-					regionsPagingToolBar.setToolbarItemsVisible(!settings.isShowAllLinesInTranscriptionView(), 0);
+					setRegionsToolBarVisible(!settings.isShowAllLinesInTranscriptionView());
 				}
 				else if (pn.equals(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY)) {
 					redrawText(true, false, false);

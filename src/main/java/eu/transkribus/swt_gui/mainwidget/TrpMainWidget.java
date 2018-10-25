@@ -258,8 +258,8 @@ public class TrpMainWidget {
 	// CanvasGlobalEventsFilter globalEventsListener;
 	TrpMainWidgetKeyListener keyListener;
 	PagesPagingToolBarListener pagesPagingToolBarListener;
-	RegionsPagingToolBarListener lineTrRegionsPagingToolBarListener;
-	RegionsPagingToolBarListener wordTrRegionsPagingToolBarListener;
+//	RegionsPagingToolBarListener lineTrRegionsPagingToolBarListener;
+//	RegionsPagingToolBarListener wordTrRegionsPagingToolBarListener;
 	// TranscriptsPagingToolBarListener transcriptsPagingToolBarListener;
 	ICanvasSceneListener canvasSceneListener;
 	LineTranscriptionWidgetListener lineTranscriptionWidgetListener;
@@ -842,8 +842,8 @@ public class TrpMainWidget {
 		// CanvasSceneListener acts on add / remove shape and selection change:
 		canvasSceneListener = new CanvasSceneListener(this);
 		// add toolbar listener for transcription widgets:
-		lineTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getLineTranscriptionWidget().getRegionsPagingToolBar(), this);
-		wordTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getWordTranscriptionWidget().getRegionsPagingToolBar(), this);
+//		lineTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getLineTranscriptionWidget().getRegionsPagingToolBar(), this);
+//		wordTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getWordTranscriptionWidget().getRegionsPagingToolBar(), this);
 		// act on transcription changes:
 		lineTranscriptionWidgetListener = new LineTranscriptionWidgetListener(this, ui.getLineTranscriptionWidget());
 		wordTranscriptionWidgetListener = new WordTranscriptionWidgetListener(this, ui.getWordTranscriptionWidget());

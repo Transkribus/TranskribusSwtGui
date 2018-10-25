@@ -183,7 +183,7 @@ public class PagingToolBar /*extends Composite*/ {
 	}
 	
 	/**
-	 * @deprecated does not work yet...
+//	 * @deprecated does not work yet...
 	 * @param visible
 	 */
 	public void setToolbarItemsVisible(boolean visible, int reinsertIndex) {

@@ -16,21 +16,49 @@ public class PagingToolBarListener implements SelectionListener, KeyListener {
 	public PagingToolBarListener(PagingToolBar toolbar) {
 		this.toolbar = toolbar;
 		
+		attach();
+	}
+	
+	public void attach() {
 		addSelectionListener(toolbar.getPageFirstBtn());
 		addSelectionListener(toolbar.getPagePrevDoubleBtn());
 		addSelectionListener(toolbar.getPageNextDoubleBtn());
 		addSelectionListener(toolbar.getPagePrevBtn());
 		
-		if (toolbar.getCurrentPageText()!=null && !toolbar.getCurrentPageText().isDisposed()) 
+		if (toolbar.getCurrentPageText()!=null && !toolbar.getCurrentPageText().isDisposed()) {
 			toolbar.getCurrentPageText().addKeyListener(this);
+		}
 		
 		addSelectionListener(toolbar.getPageNextBtn());
 		addSelectionListener(toolbar.getPageLastBtn());
-		addSelectionListener(toolbar.getReloadBtn());		
+		addSelectionListener(toolbar.getReloadBtn());	
+	}
+	
+	public void detach() {
+		removeSelectionListener(toolbar.getPageFirstBtn());
+		removeSelectionListener(toolbar.getPagePrevDoubleBtn());
+		removeSelectionListener(toolbar.getPageNextDoubleBtn());
+		removeSelectionListener(toolbar.getPagePrevBtn());
+		
+		if (toolbar.getCurrentPageText()!=null && !toolbar.getCurrentPageText().isDisposed()) {
+			toolbar.getCurrentPageText().removeKeyListener(this);
+		}
+		
+		removeSelectionListener(toolbar.getPageNextBtn());
+		removeSelectionListener(toolbar.getPageLastBtn());
+		removeSelectionListener(toolbar.getReloadBtn());	
 	}
 	
 	private void addSelectionListener(ToolItem el) {
-		if (el!=null && !el.isDisposed()) el.addSelectionListener(this);
+		if (el!=null && !el.isDisposed()) {
+			el.addSelectionListener(this);
+		}
+	}
+	
+	private void removeSelectionListener(ToolItem el) {
+		if (el!=null && !el.isDisposed()) {
+			el.removeSelectionListener(this);
+		}
 	}	
 	
 	public void onFirstPressed() {

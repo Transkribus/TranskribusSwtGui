@@ -94,18 +94,18 @@ public class AutoSaveController {
 			return;
 		}
 		
-		logger.debug("performing local autosave, interval: "+mw.getTrpSets().getAutoSaveInterval());
+		logger.trace("performing local autosave, interval: "+mw.getTrpSets().getAutoSaveInterval());
 		
 		JAXBPageTranscript tr = storage.getTranscript();
 		PcGtsType currentPage = tr.getPageData();
 		
 		if (!tr.getPage().isEdited()) {
-			logger.debug("transcript not edited... skipping autosave!");
+			logger.trace("transcript not edited... skipping autosave!");
 			return;
 		}
 
 		if (!tr.getPage().isEditedSince(lastAutoSaveTime)) {
-			logger.debug("transcript not edited since last autosave ("+CoreUtils.toTimeString(lastAutoSaveTime)+") - skipping autosave!");
+			logger.trace("transcript not edited since last autosave ("+CoreUtils.toTimeString(lastAutoSaveTime)+") - skipping autosave!");
 			return;
 		}
 
