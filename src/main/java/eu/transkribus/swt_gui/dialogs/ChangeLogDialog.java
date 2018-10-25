@@ -59,19 +59,19 @@ public class ChangeLogDialog extends Dialog {
 
 		final boolean SHOW_HIDE_CHECKBOX = false;
 		if (SHOW_HIDE_CHECKBOX) {
-		Button hideOnStartup = new Button(shell, SWT.CHECK);
-		hideOnStartup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		hideOnStartup.setText("Hide changes at next program start");
-		hideOnStartup.setToolTipText("Check the box if you want to hide the changes on startup");
-		hideOnStartup.setSelection(hide);
-		
-		hideOnStartup.addSelectionListener(new SelectionAdapter() {
-		    @Override
-		    public void widgetSelected(SelectionEvent e)
-		    {
-		    	hide = hideOnStartup.getSelection();
-		    }
-		});
+			Button hideOnStartup = new Button(shell, SWT.CHECK);
+			hideOnStartup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			hideOnStartup.setText("Hide changes at next program start");
+			hideOnStartup.setToolTipText("Check the box if you want to hide the changes on startup");
+			hideOnStartup.setSelection(hide);
+			
+			hideOnStartup.addSelectionListener(new SelectionAdapter() {
+			    @Override
+			    public void widgetSelected(SelectionEvent e)
+			    {
+			    	hide = hideOnStartup.getSelection();
+			    }
+			});
 		}
 		
 		

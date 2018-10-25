@@ -1735,7 +1735,7 @@ public class SWTCanvas extends Canvas {
 			ty = imageBound.y*sy;
 		}
 
-		logger.debug("imageBound = "+imageBound);
+		logger.trace("imageBound = "+imageBound);
 		int cw = getClientArea().width, ch = getClientArea().height;
 		
 		ScrollBar horizontal = getHorizontalBar();

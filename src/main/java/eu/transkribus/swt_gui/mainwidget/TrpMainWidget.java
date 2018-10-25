@@ -4946,15 +4946,21 @@ public class TrpMainWidget {
 		}		
 	}
 	
+	private Point getLocationOnTitleBarAfterVersion() {
+		Rectangle r = ui.menuButton.getBounds();
+		Point p = new Point(r.x, r.y);
+		p = ui.toDisplay(new Point(r.x, r.y));
+		p.x += r.width;
+		p.y += r.height;	
+		
+		return p;
+	}
+	
 	public void showTrayNotificationOnChangelog(boolean forceShow) {
 		if (forceShow || getTrpSets().isShowChangeLog()) {
-			Rectangle r = ui.menuButton.getBounds();
-			Point p = new Point(r.x, r.y);
-			p = ui.toDisplay(new Point(r.x, r.y));
-			p.x += r.width/2;
-			p.y += r.height/2;
+			Point p = getLocationOnTitleBarAfterVersion();
 			
-			ToolTip tip = DialogUtil.createBallonToolTip(ui.getShell(), SWT.ICON_INFORMATION, "New version", "Find out what's new!", 
+			ToolTip tip = DialogUtil.createBallonToolTip(ui.getShell(), SWT.ICON_INFORMATION, "New version", "Find out what's new in this version!", 
 					p.x, p.y);
 			SWTUtil.onSelectionEvent(tip, e -> {
 				openChangeLogDialog(true);
