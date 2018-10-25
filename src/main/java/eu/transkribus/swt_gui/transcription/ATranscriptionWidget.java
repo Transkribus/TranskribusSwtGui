@@ -1641,10 +1641,15 @@ public abstract class ATranscriptionWidget extends Composite{
 			return null;
 		}
 		
-		int start = text.getOffsetAtLine(getCurrentLineIndex());
-		//GH fixed index out of bounds exception by adding -1 
-		int end = start+(text.getLine(getCurrentLineIndex()).length()-1);
-		return text.getTextBounds(start, end);
+		int start = text.getOffsetAtLine(lineIndex);
+		
+		String lineTxt = text.getLine(lineIndex);
+		if (StringUtils.isEmpty(lineTxt)) {
+			return text.getTextBounds(start, start);
+		}
+		else {
+			return text.getTextBounds(start, start+lineTxt.length()-1);
+		}
 	}
 	
 	protected void initBaseVerifyKeyListener() {
