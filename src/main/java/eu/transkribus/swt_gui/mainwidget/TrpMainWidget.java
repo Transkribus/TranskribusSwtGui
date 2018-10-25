@@ -1414,7 +1414,7 @@ public class TrpMainWidget {
 						else if (!user.isAdmin() && user.getUserId()!=d.getUploaderId()) {
 //							DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the uploader of this document. " + md.getTitle());
 //							return false;
-							String errorMsg = "Unauthorized - you are not the owner of this document: "+d.getTitle()+", id: "+d.getDocId();
+							String errorMsg = "Unauthorized - you are not the uploader of this document: "+d.getTitle()+", id: "+d.getDocId();
 							logger.warn(errorMsg);
 							error.add(errorMsg);
 						} else {
@@ -1454,7 +1454,9 @@ public class TrpMainWidget {
 				msg += u + "\n";
 			}
 			msg += "You have to cancel the job if you want to restore the document!";
-			recycleBinDiag.close();
+			if (SWTUtil.isOpen(recycleBinDiag)){
+				recycleBinDiag.close();
+			}
 			mw.onError("Error restoring documents", msg, null);
 			try {
 				//storage.reloadCollections();
@@ -1467,8 +1469,6 @@ public class TrpMainWidget {
 				e.printStackTrace();
 			}
 			//ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
-			//Todo
-			//reload recycle bin if open??
 			return false;
 		} else {
 			String msg = "";
@@ -5272,7 +5272,7 @@ public class TrpMainWidget {
 						else if (!user.isAdmin() && user.getUserId()!=d.getUploaderId()) {
 //							DialogUtil.showErrorMessageBox(getShell(), "Unauthorized", "You are not the uploader of this document. " + md.getTitle());
 //							return false;
-							String errorMsg = "Unauthorized - you are not the owner of this document: "+d.getTitle()+", id: "+d.getDocId();
+							String errorMsg = "Unauthorized - you are not the uploader of this document: "+d.getTitle()+", id: "+d.getDocId();
 							logger.warn(errorMsg);
 							error.add(errorMsg);
 						} 					
@@ -5311,7 +5311,9 @@ public class TrpMainWidget {
 			for (String u : error) {
 				msg += u + "\n";
 			}
-			recycleBinDiag.close();
+			if (SWTUtil.isOpen(recycleBinDiag)){
+				recycleBinDiag.close();
+			}
 			mw.onError("Error deleting documents", msg, null);
 			try {
 				storage.reloadCollections();
@@ -5323,8 +5325,6 @@ public class TrpMainWidget {
 				e.printStackTrace();
 			}
 			ui.serverWidget.getDocTableWidget().reloadDocs(false, true);
-			//Todo
-			//reload recycle bin if open??
 			return false;
 		} else {
 			String msg = "";
@@ -5372,6 +5372,10 @@ public class TrpMainWidget {
 				
 				//Todo
 				//reload recycle bin if open??
+				//Todo
+//				if (SWTUtil.isOpen(recycleBinDiag)){
+//					recycleBinDiag.refresh();
+//				}
 			}
 			
 			return true;

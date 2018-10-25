@@ -146,6 +146,10 @@ public class RecycleBinDialog extends Dialog implements SelectionListener {
 		docTableWidget.refreshList(0, true, false);
 	}
 	
+	public void refresh() {
+		docTableWidget.refreshList(collectionId);
+	}
+	
 	public DocTableWidgetPagination getDocTableWidget() { return docTableWidget; }
 	
 	public TableViewer getTableViewer() { return docTableWidget.getTableViewer(); }
