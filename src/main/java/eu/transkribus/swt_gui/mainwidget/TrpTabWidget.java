@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.mainwidget;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.dea.fimagestore.core.util.SysPathUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -99,7 +100,8 @@ public class TrpTabWidget extends Composite {
 	
 	void init() {
 		mainTf = createTabFolder(this);
-		mainTf.setFont(Fonts.createFontWithHeight(mainTf.getFont(), 11));
+		int mainTfFontSize = SysPathUtils.isMac() ? 16 : 11;
+		mainTf.setFont(Fonts.createFontWithHeight(mainTf.getFont(), mainTfFontSize));
 
 		serverTf = createTabFolder(mainTf);
 		serverItem = createCTabItem(mainTf, serverTf, "Server", firstRowItems);
