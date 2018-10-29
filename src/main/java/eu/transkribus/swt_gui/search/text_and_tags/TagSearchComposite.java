@@ -481,12 +481,35 @@ public class TagSearchComposite extends Composite {
 					String t1 = mtlp.getColumnText(tc.getText(), o1, null);
 					String t2 = mtlp.getColumnText(tc.getText(), o2, null);
 					
-					if (t1 == null)
-						t1 = "";
-					if (t2 == null)
-						t2 = "";				
-					
-					return t1.compareTo(t2);
+					// resultsTable.getTable().getSortDirection()
+										
+					int rc = 0;
+				    // Determine which column and do the appropriate sort
+				    switch (tc.getText()) {
+				    case PAGE_COL:
+				    	int nrOne = Integer.parseInt(t1);
+				    	int nrTwo = Integer.parseInt(t2);
+				    	rc = nrOne > nrTwo ? 1 : -1;
+				    	if (nrOne == nrTwo)
+				    		rc = 0;
+				      break;
+				    case DOC_COL:
+				    	double nrUno = Double.parseDouble(t1);
+				    	double nrDuo = Double.parseDouble(t2);
+				    	rc = nrUno > nrDuo ? 1 : -1;
+				    	if (nrUno == nrDuo)
+				    		rc = 0;
+				      break;
+				    default:
+						if (t1 == null)
+							t1 = "";
+						if (t2 == null)
+							t2 = "";
+						rc = t1.compareTo(t2);
+						break;
+				    }
+				    
+					return rc;
 				}
 			});
 		}
