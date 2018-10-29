@@ -21,6 +21,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
@@ -228,10 +229,11 @@ public class ProgramUpdaterDialog {
 	}
 	
 	
-		public static void showTrayNotificationOnAvailableUpdateAsync(final Shell shell, final String version, final Date timestamp) {
+		public static void showTrayNotificationOnAvailableUpdateAsync(final Shell shell, final String version, 
+				final Date timestamp, boolean forceShow) {
 			logger.info("Checking for updates, current version: " + version + ", timestamp: " + timestamp);
-	
-			final Rectangle b = shell.getBounds();
+
+			final Point p = TrpMainWidget.getInstance() == null ? shell.getLocation() : TrpMainWidget.getInstance().getLocationOnTitleBarAfterMenuButton();	
 	
 			// get new version:
 			new Thread(new Runnable() {
@@ -247,7 +249,7 @@ public class ProgramUpdaterDialog {
 						}
 						logger.info("newest version on server: " + newV);
 	
-						if (TEST || newV != null) {
+						if (forceShow || TEST || newV != null) {
 							final String newV2 = newV;
 							Display.getDefault().asyncExec(new Runnable() {
 								@Override public void run() {
@@ -258,7 +260,7 @@ public class ProgramUpdaterDialog {
 																		// not
 																		// closeable
 									} else {
-										ToolTip tip = DialogUtil.createBallonToolTip(shell, SWT.ICON_INFORMATION, msg, title, b.x + b.width, b.y);
+										ToolTip tip = DialogUtil.createBallonToolTip(shell, SWT.ICON_INFORMATION, msg, title, p.x, p.y);
 										tip.addSelectionListener(new SelectionAdapter() {
 											@Override public void widgetSelected(SelectionEvent e) {
 												checkForUpdatesDialog(shell, version, timestamp, false, false);
@@ -278,7 +280,7 @@ public class ProgramUpdaterDialog {
 							@Override public void run() {
 								if (false) {
 									ToolTip tip = DialogUtil.createBallonToolTip(shell, SWT.ICON_INFORMATION, "Check your internet connection",
-											"Could not connect to update server", b.x + b.width, b.y);
+											"Could not connect to update server", p.x, p.y);
 									tip.setAutoHide(true);
 									tip.setVisible(true);
 								}

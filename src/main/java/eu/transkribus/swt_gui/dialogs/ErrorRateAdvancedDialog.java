@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -39,10 +38,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
-import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.TrpErrorRateResult;
-import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
@@ -50,13 +46,12 @@ import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
-import eu.transkribus.swt_gui.tools.ToolsWidget;
 import eu.transkribus.swt_gui.tools.ToolsWidget.TranscriptVersionChooser;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
@@ -85,6 +80,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	Button compareVersionsBtn;
 	Composite werGroup;
 	ExpandableComposite werExp;
+	
+	private IStorageListener storageListener;
 
 	protected static final String HELP_WIKI_OPTION = "https://en.wikipedia.org/wiki/Unicode_equivalence";
 	
@@ -137,6 +134,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			@Override public void widgetDisposed(DisposeEvent e) {
 				logger.debug("Disposing ErrorRateAdvancedDialog composite.");
 				rl.setStopped();
+				store.removeListener(storageListener);
 			}
 		});
 		
@@ -191,12 +189,17 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			
 		});
 		
-		store.addListener(new IStorageListener() {
+		storageListener = new IStorageListener() {
 			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
+				if (SWTUtil.isDisposed(refVersionChooser) || SWTUtil.isDisposed(hypVersionChooser)) {
+					return;
+				}
+				
 				refVersionChooser.setToGT();
 				hypVersionChooser.setToCurrent();
 			}
-		});
+		};
+		store.addListener(storageListener);
 		
 //		computeWerBtn.addSelectionListener(new SelectionAdapter() {
 //			@Override

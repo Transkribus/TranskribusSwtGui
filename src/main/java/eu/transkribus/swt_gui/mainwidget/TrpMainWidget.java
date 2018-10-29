@@ -438,7 +438,7 @@ public class TrpMainWidget {
 
 		// check for updates:
 		if (getTrpSets().isCheckForUpdates()) {
-			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp());
+			ProgramUpdaterDialog.showTrayNotificationOnAvailableUpdateAsync(ui.getShell(), VERSION, info.getTimestamp(), false);
 		}
 
 		final boolean ENABLE_AUTO_LOGIN = true;
@@ -4946,7 +4946,7 @@ public class TrpMainWidget {
 		}		
 	}
 	
-	private Point getLocationOnTitleBarAfterVersion() {
+	public Point getLocationOnTitleBarAfterMenuButton() {
 		Rectangle r = ui.menuButton.getBounds();
 		Point p = new Point(r.x, r.y);
 		p = ui.toDisplay(new Point(r.x, r.y));
@@ -4958,9 +4958,9 @@ public class TrpMainWidget {
 	
 	public void showTrayNotificationOnChangelog(boolean forceShow) {
 		if (forceShow || getTrpSets().isShowChangeLog()) {
-			Point p = getLocationOnTitleBarAfterVersion();
+			Point p = getLocationOnTitleBarAfterMenuButton();
 			
-			ToolTip tip = DialogUtil.createBallonToolTip(ui.getShell(), SWT.ICON_INFORMATION, "New version", "Find out what's new in this version!", 
+			ToolTip tip = DialogUtil.createBallonToolTip(ui.getShell(), SWT.ICON_INFORMATION, "New version "+VERSION, "Find out what's new in this version!", 
 					p.x, p.y);
 			SWTUtil.onSelectionEvent(tip, e -> {
 				openChangeLogDialog(true);

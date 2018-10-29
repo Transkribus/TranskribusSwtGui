@@ -98,7 +98,7 @@ public class ToolsWidget extends Composite {
 		public void updateSelectedVersion() {
 			String l = selectedMd == null ? "Choose..." : getTranscriptLabel(selectedMd);
 			
-			if(!chooseVersionBtn.isDisposed()){
+			if(!SWTUtil.isDisposed(chooseVersionBtn)){
 				chooseVersionBtn.setText(l);
 				chooseVersionBtn.pack();
 				layout();

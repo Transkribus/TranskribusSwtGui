@@ -564,7 +564,7 @@ CHANGES AND BUGFIXES
 1.4.2
 	-> bugfix for structural tagging with custom defined structure types
 
-1.4.3
+1.5.0
 	-> In the export dialog the server export is set as 'default' tab
 	-> TEI export (1): restricted to server export
 	-> TEI export (2): We use a xslt (from https://github.com/dariok/page2tei) to transform page XMLs into TEI XMLs
@@ -597,4 +597,7 @@ CHANGES AND BUGFIXES
 	-> config.properties logHttp setting: enable to get full INFO level HTTP traffic log in console and log file 
 	-> implement scrollbar mode for canvas and set it to default scrolling mode 
 	-> convert from tables to simple textregions for all cells without losing lines and their transcriptions (via "Metadata->Structural" tab)
-	-> CITlab HTR+ basic integration 
+	-> CITlab HTR+ basic integration
+	 
+1.5.1
+	-> hotfix for bug that crashed UI when opening advanced error rate tool and switching page afterwards
