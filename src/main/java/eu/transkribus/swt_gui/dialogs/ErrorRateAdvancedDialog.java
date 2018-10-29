@@ -87,6 +87,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	ExpandableComposite werExp;
 
 	protected static final String HELP_WIKI_OPTION = "https://en.wikipedia.org/wiki/Unicode_equivalence";
+	
+	public final static boolean IS_LEGACY_TAB = true;
 
 	public ErrorRateAdvancedDialog(Shell parentShell) {
 		super(parentShell);
@@ -113,14 +115,14 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		sashFormAdvance = new SashForm(tabFolder,SWT.VERTICAL);
 		
-		quickCompare = new CTabItem(tabFolder,SWT.NONE);
-		quickCompare.setText("Quick Compare");
+//		quickCompare = new CTabItem(tabFolder,SWT.NONE);
+//		quickCompare.setText("Quick Compare");
 		
 		advanceCompare = new CTabItem(tabFolder,SWT.NONE);
 		advanceCompare.setText("Advanced Compare");
 		
-		sampleCompare = new CTabItem(tabFolder,SWT.NONE);
-		sampleCompare.setText("Samples Compare");
+//		sampleCompare = new CTabItem(tabFolder,SWT.NONE);
+//		sampleCompare.setText("Samples Compare");
 		
 		createConfig();
 		
@@ -128,7 +130,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		createJobTable();
 		
-		createQuickTab();
+//		createQuickTab();
 		
 		rl.start();
 		this.composite.addDisposeListener(new DisposeListener() {
@@ -196,24 +198,24 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			}
 		});
 		
-		computeWerBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				super.widgetSelected(e);
-
-				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) refVersionChooser.selectedMd;
-				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
-
-				if (ref != null && hyp != null) {
-					params.addIntParam("option", -1);
-						try {
-							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
-						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
-							e1.printStackTrace();
-						}
-				}
-			}
-		});
+//		computeWerBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				super.widgetSelected(e);
+//
+//				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) refVersionChooser.selectedMd;
+//				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
+//
+//				if (ref != null && hyp != null) {
+//					params.addIntParam("option", -1);
+//						try {
+//							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
+//						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
+//							e1.printStackTrace();
+//						}
+//				}
+//			}
+//		});
 		
 	}
 

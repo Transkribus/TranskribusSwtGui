@@ -81,6 +81,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		
 		if(!ToolsWidget.IS_LEGACY_WER_GROUP) {
 			SWTUtil.addSelectionListener(tw.computeWerBtn, this);
+			SWTUtil.addSelectionListener(tw.computeAdvancedBtn, this);
 		}
 		
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
@@ -289,16 +290,26 @@ public class ToolsWidgetListener implements SelectionListener {
 //				
 //			}
 			else if (s == tw.computeWerBtn) {
-				
 
 				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) tw.hypVersionChooser.selectedMd;
+
+				if (ref != null && hyp != null) {
+					
+						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
+						final String result = store.computeWer(ref, hyp);
+						MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);
+						mb.setText("Result");
+						mb.setMessage(result);
+						mb.open();
+				}
 				
-				if(ref != null & hyp != null) {
+			} else if (s == tw.computeAdvancedBtn) {
+				
 					ErrorRateAdvancedDialog dialog = new ErrorRateAdvancedDialog(mw.getShell());
 					dialog.open();
 				
-				}
+				
 			} else if (s == tw.compareVersionsBtn) {
 
 				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;

@@ -362,7 +362,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	public void createWorkBook(String filePath , TrpErrorRate resultErr) {
 		
 		HSSFWorkbook workbook = new HSSFWorkbook();
-		HSSFSheet sheet = workbook.createSheet("Error Measurements");
+		HSSFSheet sheet = workbook.createSheet(docName);
 		Map<String, Object[]> excelData = new HashMap<String, Object[]>();
 		int rowCount = 1;
 		List<TrpErrorRateListEntry> list = resultErr.getList();
