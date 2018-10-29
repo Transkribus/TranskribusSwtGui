@@ -12,11 +12,12 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
@@ -24,6 +25,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.Msgs;
 
 public class TrpTabWidget extends Composite {
+	private static final Logger logger = LoggerFactory.getLogger(TrpTabWidget.class);
 
 	static class Item {
 		public Item() {
@@ -100,8 +102,9 @@ public class TrpTabWidget extends Composite {
 	
 	void init() {
 		mainTf = createTabFolder(this);
-		int mainTfFontSize = SysPathUtils.isMac() ? 16 : 11;
-		mainTf.setFont(Fonts.createFontWithHeight(mainTf.getFont(), mainTfFontSize));
+		int defaultFontSize = mainTf.getFont().getFontData()[0].getHeight();
+		logger.debug("defaultFontSize = "+defaultFontSize);
+		mainTf.setFont(Fonts.createFontWithHeight(mainTf.getFont(), defaultFontSize+2));
 
 		serverTf = createTabFolder(mainTf);
 		serverItem = createCTabItem(mainTf, serverTf, "Server", firstRowItems);
