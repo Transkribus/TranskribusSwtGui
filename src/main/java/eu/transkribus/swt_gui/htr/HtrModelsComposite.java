@@ -299,7 +299,7 @@ public class HtrModelsComposite extends Composite {
 		showCharSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<String> charList = HtrCITlabUtils.parseCitLabCharSet(charSet);
+				List<String> charList = HtrCITlabUtils.parseCitLabCharMap(charSet);
 				if (charSetViewer != null) {
 					charSetViewer.setVisible();
 				} else {

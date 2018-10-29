@@ -60,6 +60,11 @@ public class TrpMainWidgetKeyListener implements Listener {
 			mw.getCanvas().setMode(CanvasMode.SELECTION);
 		}
 		
+		// TEST
+		if (isCtrlOrCommand && kc == 'c' && count == 3) {
+			mw.showTrayNotificationOnChangelog(true);
+		} 
+		
 		if (isCtrlOrCommand && kc == 'd' && count == 3) {
 			mw.openDebugDialog();
 		}

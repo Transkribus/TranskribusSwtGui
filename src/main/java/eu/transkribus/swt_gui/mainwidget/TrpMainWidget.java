@@ -258,8 +258,8 @@ public class TrpMainWidget {
 	// CanvasGlobalEventsFilter globalEventsListener;
 	TrpMainWidgetKeyListener keyListener;
 	PagesPagingToolBarListener pagesPagingToolBarListener;
-	RegionsPagingToolBarListener lineTrRegionsPagingToolBarListener;
-	RegionsPagingToolBarListener wordTrRegionsPagingToolBarListener;
+//	RegionsPagingToolBarListener lineTrRegionsPagingToolBarListener;
+//	RegionsPagingToolBarListener wordTrRegionsPagingToolBarListener;
 	// TranscriptsPagingToolBarListener transcriptsPagingToolBarListener;
 	ICanvasSceneListener canvasSceneListener;
 	LineTranscriptionWidgetListener lineTranscriptionWidgetListener;
@@ -842,8 +842,8 @@ public class TrpMainWidget {
 		// CanvasSceneListener acts on add / remove shape and selection change:
 		canvasSceneListener = new CanvasSceneListener(this);
 		// add toolbar listener for transcription widgets:
-		lineTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getLineTranscriptionWidget().getRegionsPagingToolBar(), this);
-		wordTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getWordTranscriptionWidget().getRegionsPagingToolBar(), this);
+//		lineTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getLineTranscriptionWidget().getRegionsPagingToolBar(), this);
+//		wordTrRegionsPagingToolBarListener = new RegionsPagingToolBarListener(ui.getWordTranscriptionWidget().getRegionsPagingToolBar(), this);
 		// act on transcription changes:
 		lineTranscriptionWidgetListener = new LineTranscriptionWidgetListener(this, ui.getLineTranscriptionWidget());
 		wordTranscriptionWidgetListener = new WordTranscriptionWidgetListener(this, ui.getWordTranscriptionWidget());
@@ -4946,15 +4946,21 @@ public class TrpMainWidget {
 		}		
 	}
 	
+	private Point getLocationOnTitleBarAfterVersion() {
+		Rectangle r = ui.menuButton.getBounds();
+		Point p = new Point(r.x, r.y);
+		p = ui.toDisplay(new Point(r.x, r.y));
+		p.x += r.width;
+		p.y += r.height;	
+		
+		return p;
+	}
+	
 	public void showTrayNotificationOnChangelog(boolean forceShow) {
 		if (forceShow || getTrpSets().isShowChangeLog()) {
-			Rectangle r = ui.menuButton.getBounds();
-			Point p = new Point(r.x, r.y);
-			p = ui.toDisplay(new Point(r.x, r.y));
-			p.x += r.width/2;
-			p.y += r.height/2;
+			Point p = getLocationOnTitleBarAfterVersion();
 			
-			ToolTip tip = DialogUtil.createBallonToolTip(ui.getShell(), SWT.ICON_INFORMATION, "New version", "Find out what's new!", 
+			ToolTip tip = DialogUtil.createBallonToolTip(ui.getShell(), SWT.ICON_INFORMATION, "New version", "Find out what's new in this version!", 
 					p.x, p.y);
 			SWTUtil.onSelectionEvent(tip, e -> {
 				openChangeLogDialog(true);
