@@ -44,6 +44,8 @@ public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListene
 				
 				// NEW edit new text:
 				tl.editUnicodeText(event.start, event.end, event.text, transcriptionWidget);
+				
+				mainWidget.getUi().getStructureTreeWidget().updateTextLabels(null);
 			}
 		} catch (Throwable th) {
 			String msg = "Error during text line modification";
@@ -66,7 +68,6 @@ public class LineTranscriptionWidgetListener extends ATranscriptionWidgetListene
 			}
 
 			mainWidget.updatePageRelatedMetadata();
-			mainWidget.getUi().getStructureTreeWidget().updateTextLabels(null);
 		} catch (Throwable th) {
 			String msg = "Could not update default selection from transcription widget";
 			mainWidget.onError("Error updating selection", msg, th);

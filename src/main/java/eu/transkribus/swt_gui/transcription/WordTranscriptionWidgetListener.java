@@ -65,8 +65,9 @@ public class WordTranscriptionWidgetListener extends ATranscriptionWidgetListene
 				}
 				
 				if ( ((WordTranscriptionWidget)transcriptionWidget).getApplyTextFromWords().getSelection())
-					w.applyTextToLine(true);				
+					w.applyTextToLine(true);
 				
+				mainWidget.getUi().getStructureTreeWidget().updateTextLabels(null);
 			}
 		} catch (Throwable th) {
 			String msg = "Error during word modification";
@@ -84,8 +85,6 @@ public class WordTranscriptionWidgetListener extends ATranscriptionWidgetListene
 				logger.debug("word selection changed to: "+tl.getId());
 				ICanvasShape shape = mainWidget.selectObjectWithData(tl, true, false);
 				mainWidget.getScene().makeShapeVisible(shape);
-				
-				mainWidget.getUi().getStructureTreeWidget().updateTextLabels(null);
 			}
 		} catch (Throwable th) {
 			String msg = "Could not update selection from transcription widget";
