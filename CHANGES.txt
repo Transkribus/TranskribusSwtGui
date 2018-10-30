@@ -600,4 +600,7 @@ CHANGES AND BUGFIXES
 	-> CITlab HTR+ basic integration
 	 
 1.5.1
-	-> hotfix for bug that crashed UI when opening advanced error rate tool and switching page afterwards
+	-> bugfix: UI crashed when opening advanced error rate tool and switching page afterwards
+	
+1.5.2
+	-> bugfix: user could not edit last line if empty (index out of bounds exception)
