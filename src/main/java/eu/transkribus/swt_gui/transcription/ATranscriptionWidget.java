@@ -1058,7 +1058,12 @@ public abstract class ATranscriptionWidget extends Composite{
 					setRegionsToolBarVisible(!settings.isShowAllLinesInTranscriptionView());
 				}
 				else if (pn.equals(TrpSettings.UNDERLINE_TEXT_STYLES_PROPERTY)) {
+					logger.trace("redrawing text1, me = "+ATranscriptionWidget.this.getType());
 					redrawText(true, false, false);
+				}
+				else if (pn.equals(TrpSettings.SHOW_LINE_BULLETS_PROPERTY)) {
+					logger.trace("redrawing text with line bullets, me = "+ATranscriptionWidget.this.getType());
+					redrawText(true, false, true);
 				}
 				else if (pn.equals(TrpSettings.TRANSCRIPTION_VIEW_POSITION_PROPERTY)) {
 					updateWidgetPositionItemImage();
@@ -1319,7 +1324,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void updateLineBullets() {
 		text.setLineBullet(0, text.getLineCount(), null); // delete line bullet first to guarantee update! (bug in SWT?)
 		if (true && settings.isShowLineBullets() && getNTextLines()>0) {
-			logger.trace("updating line bullets");
+			logger.debug("updating line bullets");
 //			Storage store = Storage.getInstance();
 			
 			String currentRegionId=null;
@@ -1328,11 +1333,11 @@ public abstract class ATranscriptionWidget extends Composite{
 			
 			final String regionLineSeperator = "-";
 			GC gc = new GC(text);
-			Fonts.setBoldFont(text);
-			String maxBulletStr = Integer.toString(currentRegionObject.getPage().getRegions().size())+regionLineSeperator+Integer.toString(text.getLineCount());
-			logger.trace("max bullet string: "+maxBulletStr);
-			int glyphMetricsWidth = gc.stringExtent(maxBulletStr).x + 10;
-			Fonts.setNormalFont(text);
+//			Fonts.setBoldFont(text);
+			String maxBulletStr = Integer.toString(currentRegionObject.getPage().getTextRegions(true).size())+regionLineSeperator+Integer.toString(text.getLineCount());
+			logger.debug("max bullet string: "+maxBulletStr);
+			int glyphMetricsWidth = gc.stringExtent(maxBulletStr).x + 15;
+//			Fonts.setNormalFont(text);
 			gc.dispose();
 			logger.trace("bullet metrics width: "+glyphMetricsWidth);
 			
@@ -1340,9 +1345,11 @@ public abstract class ATranscriptionWidget extends Composite{
 				int bulletFgColor = SWT.COLOR_BLACK;
 				int fontStyle = SWT.NORMAL;
 				
+				boolean isSelected = i==getCurrentLineIndex();
+				
 				// determine if we have a word-graph for that line...
 				if (i>= 0 && i <currentRegionObject.getTextLine().size()) {
-					fontStyle = (i == getCurrentLineIndex()) ? SWT.BOLD : SWT.NORMAL;
+					fontStyle = isSelected ? SWT.BOLD : SWT.NORMAL;
 					
 					// determine color, if it has a wordgraph...
 //					final String lineId = currentRegionObject.getTextLine().get(i).getId();
@@ -1376,7 +1383,8 @@ public abstract class ATranscriptionWidget extends Composite{
 //				bullet.text = ""+(i+1);
 //				int baseOffset = style.metrics.width*bulletText.length()+10; // add some offset if line is selected
 //				int baseOffset = style.metrics.width*bulletText.length()+25; // add some offset if line is selected
-				int baseOffset = 0; // add some offset if line is selected
+//				int baseOffset = isSelected ? 5 : 0; // add some offset if line is selected
+				int baseOffset = 0;
 				text.setLineBullet(i, 1, bullet);
 //				text.setLineIndent(i, 1, baseOffset);
 //				text.setLineAlignment(i, 1, settings.getTextAlignment());
@@ -1654,18 +1662,28 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected abstract List<StyleRange> getLineStyleRanges(int lineOffset);
 	
 	protected Rectangle computeLineBound(int lineIndex) {
-		if (lineIndex < 0 || lineIndex >= text.getLineCount()) {
+		if (lineIndex < 0 || lineIndex >= text.getLineCount() || text.getCharCount()==0) {
 			return null;
 		}
-		
-		int start = text.getOffsetAtLine(lineIndex);
-		
-		String lineTxt = text.getLine(lineIndex);
-		if (StringUtils.isEmpty(lineTxt)) {
-			return text.getTextBounds(start, start);
-		}
-		else {
-			return text.getTextBounds(start, start+lineTxt.length()-1);
+
+		try {
+			int start = text.getOffsetAtLine(lineIndex);
+			logger.trace("start = "+start+" charcount = "+text.getCharCount());
+			
+			String lineTxt = text.getLine(lineIndex);
+			if (StringUtils.isEmpty(lineTxt) && start>=0 && start<text.getCharCount()) {
+				if (start>=0 && start<text.getCharCount()) {
+					return text.getTextBounds(start, start);	
+				} else {
+					return null;
+				}
+			}
+			else {
+				return text.getTextBounds(start, start+lineTxt.length()-1);
+			}
+		} catch (Exception e) {
+			logger.warn("warning: could not compute line bound for line: "+lineIndex+" - returning null!");
+			return null;
 		}
 	}
 	
