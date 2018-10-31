@@ -28,6 +28,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -40,11 +41,16 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.labels.CategoryToolTipGenerator;
+import org.jfree.chart.labels.StandardCategoryToolTipGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.swt.ChartComposite;
+import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +134,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 	private void chartComposite() {
 		
 		jFreeChartComp = new ChartComposite(composite, SWT.FILL);
-		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 15, 30));
+//		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,15,30));
+		jFreeChartComp.setLayoutData(new GridData(
+				(int) Math.floor(shell.getSize().x / 2.0), 400));
+		
 		updateChartOverall();
 	
 	}
@@ -188,8 +197,7 @@ public class ErrorRateAdvancedStats extends Dialog{
         gridData.verticalAlignment = GridData.FILL;
         gridData.grabExcessHorizontalSpace = true;
         gridData.grabExcessVerticalSpace = true;
-        gridData.horizontalSpan = 2;
-		gridData.heightHint=250;
+		gridData.heightHint=150;
 
 		page.getTable().setLayoutData(gridData);
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
@@ -211,8 +219,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
 		for(TrpErrorRateListEntry temp : list) {
-			dataset.addValue(temp.getWerDouble(), "WER", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getCerDouble(), "CER", "Page "+temp.getPageNumber());
+			dataset.addValue(temp.getWerDouble(), "WER", "p."+temp.getPageNumber());
+			dataset.addValue(temp.getCerDouble(), "CER", "p."+temp.getPageNumber());
 //			dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
 //			dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
 //			dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
@@ -223,6 +231,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
 		CategoryPlot plot = chart.getCategoryPlot();
 		BarRenderer renderer = (BarRenderer) plot.getRenderer();
+		
 		plot.setBackgroundPaint(new Color(255,255,255));
 		plot.setRangeGridlinePaint(Color.black);
 		plot.setOutlineVisible(false);
