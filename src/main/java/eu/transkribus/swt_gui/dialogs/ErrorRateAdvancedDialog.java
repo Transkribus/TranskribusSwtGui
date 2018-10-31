@@ -150,7 +150,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		config.setLayout(new GridLayout(3,false));
 		
 		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true);
-		dps.getCurrentTranscriptButton().setText("All pages");
+		dps.getCurrentTranscriptButton().setText("Current page");
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 
 		options = new LabeledCombo(config, "Options");
@@ -184,7 +184,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				params.addParameter("option", options.combo.getSelectionIndex());
-				startError(store.getDocId(), dps.getPagesStr());
+				if(dps.isCurrentTranscript()) {
+					startError(store.getDocId(),""+store.getPage().getPageNr());
+				}else {
+					startError(store.getDocId(), dps.getPagesStr());
+				}
+				
 			}
 			
 		});
