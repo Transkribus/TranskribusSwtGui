@@ -19,13 +19,11 @@ import java.util.regex.Pattern;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.pdfbox.jbig2.segments.RegionSegmentInformation;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.text.JFaceTextUtil;
-import org.eclipse.jface.util.BidiUtils;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.Bullet;
@@ -128,11 +126,6 @@ import eu.transkribus.swt_gui.util.DropDownToolItemSimple;
 import eu.transkribus.util.Utils;
 
 public abstract class ATranscriptionWidget extends Composite{
-	public static enum WritingOrientation {
-		LEFT_TO_RIGHT,
-		RIGHT_TO_LEFT;
-	}
-	
 	private final static Logger logger = LoggerFactory.getLogger(ATranscriptionWidget.class);
 	protected final static LocalResourceManager fontManager = new LocalResourceManager(JFaceResources.getResources());
 	
@@ -148,7 +141,6 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 //	protected DropDownToolItemSimple viewSetsDropDown;
 	
-	protected ToolItem writingOrientationItem;
 	protected MenuItem showControlSignsItem;
 	
 	protected MenuItem centerCurrentLineItem;
@@ -224,8 +216,6 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected MenuItem transcriptionTypeLineBasedItem;
 	protected MenuItem transcriptionTypeWordBasedItem;
 	
-//	protected WritingOrientation writingOrientation = WritingOrientation.LEFT_TO_RIGHT;
-	protected ExtendedModifyListener rightToLeftModifyListener;
 	protected ToolItem addParagraphItem;
 	protected ToolItem vkItem;
 		
@@ -373,7 +363,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		// FIXME: enabling BIDI processing triggers a bug in StyledText.getOffsetAtPoint -> Layout.getLineIndex -> IllegalArgumentException
 		// quick and dirty solution: added a try/catch block to the main event loop of TrapMainWidget.show method that prints out and ignores unexpected exceptions!
-		BidiUtils.applyBidiProcessing(text, BidiUtils.AUTO); 
+//		BidiUtils.applyBidiProcessing(text, BidiUtils.AUTO);
 
 		wordGraphEditor = new WordGraphEditor(container, SWT.NONE, this);
 		wordGraphEditor.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -396,24 +386,7 @@ public abstract class ATranscriptionWidget extends Composite{
 
 		initListener();
 		
-		// TEST RIGHT TO LEFT WRITING
-		rightToLeftModifyListener = new ExtendedModifyListener() {
-			@Override public void modifyText(ExtendedModifyEvent event) {
-				text.setCaretOffset(event.start);
-			}
-		};
-//		text.setOrientation(SWT.RIGHT_TO_LEFT);
-////		text.setTextDirection(SWT.RIGHT_TO_LEFT);
-//		text.addExtendedModifyListener(new ExtendedModifyListener() {
-//			@Override public void modifyText(ExtendedModifyEvent event) {
-//				text.setCaretOffset(event.start);
-//			}
-//		});
-		
-
-		////////////////////////
-		
-		// TEST: detect line wrap and recompute tag paint tags when it occurs
+		// detect line wrap and recompute tag paint tags when it occurs
 		if (true) { // TODO: how (in)efficient is this computation while typing??
 		text.addVerifyKeyListener(new VerifyKeyListener() {
 			@Override
@@ -486,34 +459,6 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	public List<ITranscriptionWidgetListener> getListener() {
 		return listener;
-	}
-	
-	protected void updateWritingOrientation() {
-		if (writingOrientationItem == null)
-			return;
-		
-		logger.debug("updating writing orientation: "+writingOrientationItem.getSelection());
-		
-		if (getWritingOrientation() == WritingOrientation.LEFT_TO_RIGHT) {
-			text.removeExtendedModifyListener(rightToLeftModifyListener);
-			
-			settings.setTextAlignment(SWT.LEFT);
-			leftAlignmentItem.setSelection(true);
-			rightAlignmentItem.setSelection(false);
-		} else if (getWritingOrientation() == WritingOrientation.RIGHT_TO_LEFT) {
-			text.addExtendedModifyListener(rightToLeftModifyListener);
-			
-			settings.setTextAlignment(SWT.RIGHT);
-			leftAlignmentItem.setSelection(false);
-			rightAlignmentItem.setSelection(true);			
-		}
-		
-		sendDefaultSelectionChangedSignal(false);
-		redrawText(true, false, false);
-	}
-	
-	protected WritingOrientation getWritingOrientation() {
-		return writingOrientationItem!=null && writingOrientationItem.getSelection() ? WritingOrientation.RIGHT_TO_LEFT : WritingOrientation.LEFT_TO_RIGHT;
 	}
 	
 	public abstract TranscriptionLevel getType();
@@ -683,16 +628,6 @@ public abstract class ATranscriptionWidget extends Composite{
 //		initViewSetsDropDown();
 //		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 						
-		if (false) { // obsolete button -> remove in later version!
-		writingOrientationItem = new ToolItem(regionsToolbar, SWT.CHECK);
-//		writingOrientationItem.setImage(Images.getOrLoad("/icons/text_align_right.png"));
-		writingOrientationItem.setImage(Images.ARROW_LEFT);
-		writingOrientationItem.setToolTipText("Toggle to write from right to left");
-//		writingOrientationItem.setSelection(writingOrientation == WritingOrientation.RIGHT_TO_LEFT);
-		writingOrientationItem.setSelection(false);
-		additionalToolItems.add(writingOrientationItem);
-		}
-						
 //		tagsToolItem = new DropDownToolItem(regionsToolbar, false, false, SWT.PUSH);
 //		tagsToolItem.ti.setText("Tags");
 //		tagsToolItem.ti.addSelectionListener(new SelectionAdapter() {
@@ -775,9 +710,31 @@ public abstract class ATranscriptionWidget extends Composite{
 		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
-		transcriptSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.WRENCH, "Transcription settings...");
-		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
-		initTranscriptionSetsDropDownItems(transcriptSetsDropDown);
+		// text orientation
+		DropDownToolItemSimple orientationOptions = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.ARROW_LEFT_RIGHT, "Text orientation");
+		additionalToolItems.add(orientationOptions.getToolItem());
+		Menu orientationMenu = orientationOptions.getMenu();
+		MenuItem leftToRightItem = SWTUtil.createMenuItem(orientationMenu, "Left to right", null, SWT.RADIO);
+		leftToRightItem.setData(SWT.LEFT_TO_RIGHT);
+		leftToRightItem.setSelection(text.getOrientation()==SWT.LEFT_TO_RIGHT);
+		MenuItem rightToLeftItem = SWTUtil.createMenuItem(orientationMenu, "Right to left", null, SWT.RADIO);
+		rightToLeftItem.setData(SWT.RIGHT_TO_LEFT);
+		rightToLeftItem.setSelection(text.getOrientation()==SWT.RIGHT_TO_LEFT);
+		class OrientationSelectionListener extends SelectionAdapter {
+			MenuItem mi;
+			public OrientationSelectionListener(MenuItem mi) {
+				this.mi = mi;
+			}
+			
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				logger.debug("setting bidi processing to: "+mi.getData());
+				text.setOrientation((int) mi.getData());
+				redrawText(true, false, true);
+			}
+		};
+		leftToRightItem.addSelectionListener(new OrientationSelectionListener(leftToRightItem));
+		rightToLeftItem.addSelectionListener(new OrientationSelectionListener(rightToLeftItem));
 		
 		new ToolItem(regionsToolbar, SWT.SEPARATOR);
 		
@@ -785,6 +742,12 @@ public abstract class ATranscriptionWidget extends Composite{
 		updateWidgetPositionItemImage();
 		widgetPositionItem.setToolTipText("Change position of transcription widget");
 		additionalToolItems.add(widgetPositionItem);
+		
+		new ToolItem(regionsToolbar, SWT.SEPARATOR);
+		
+		transcriptSetsDropDown = new DropDownToolItemSimple(regionsToolbar, SWT.PUSH, "", Images.WRENCH, "Transcription settings...");
+		additionalToolItems.add(transcriptSetsDropDown.getToolItem());
+		initTranscriptionSetsDropDownItems(transcriptSetsDropDown);
 		
 		if (SHOW_WORD_GRAPH_STUFF && getType() == TranscriptionLevel.LINE_BASED) {
 			new ToolItem(regionsToolbar, SWT.SEPARATOR);
@@ -933,7 +896,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		renderFontStyleTypeItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Font type styles: serif, monospace, letter spaced (will override default font!)", null, SWT.CHECK);
 		renderTextStylesItem= SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Text style: normal, italic, bold, bold&italic", null, SWT.CHECK);
 		renderOtherStyleTypeItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Other: underlined, strikethrough, etc.", null, SWT.CHECK);
-		renderTagsItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Tags: colored underlines for tags", null, SWT.CHECK);		
+		renderTagsItem = SWTUtil.createMenuItem(textStyleDisplayOptionsMenu, "Tags: colored underlines for tags", null, SWT.CHECK);	
 		
 //		autocompleteToggle = new ToolItem(regionsToolbar, SWT.CHECK);
 //		autocompleteToggle.setImage(Images.getOrLoad("/icons/autocomplete.png"));
@@ -995,13 +958,11 @@ public abstract class ATranscriptionWidget extends Composite{
 		text.setFocus();
 			text.insert(textToInsert);
 			
-			if (/*getWritingOrientation()==WritingOrientation.LEFT_TO_RIGHT &&*/ 
-					( getType() == TranscriptionLevel.LINE_BASED
+			if (( getType() == TranscriptionLevel.LINE_BASED
 				|| ( getType() == TranscriptionLevel.WORD_BASED && !getTranscriptionUnitText().isEmpty() ) ) ) {
 //				this.setFocus();
 //				text.setSelection(text.getSelection().x+1);
 				text.setCaretOffset(text.getCaretOffset()+StringUtils.length(textToInsert));
-				
 			}
 //		}
 	}
@@ -2534,14 +2495,6 @@ public abstract class ATranscriptionWidget extends Composite{
 		leftAlignmentItem.addSelectionListener(textAlignmentSelectionAdapter);
 		centerAlignmentItem.addSelectionListener(textAlignmentSelectionAdapter);
 		rightAlignmentItem.addSelectionListener(textAlignmentSelectionAdapter);
-		
-		if (writingOrientationItem != null) {
-			writingOrientationItem.addSelectionListener(new SelectionAdapter() {
-				@Override public void widgetSelected(SelectionEvent e) {
-					updateWritingOrientation();
-				}		
-			});
-		}
 		
 		fontItem.addSelectionListener(new SelectionAdapter() {
 			@Override

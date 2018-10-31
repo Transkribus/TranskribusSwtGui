@@ -606,5 +606,6 @@ CHANGES AND BUGFIXES
 	-> bugfix: user could not edit last line if empty (index out of bounds exception)
 	-> bugfix: index out of bounds exception when editing last, empty line
 	-> bugfix: nullpointer exception when merging table cells
+	-> bugfix: disable automatic bidi processing, which is broken and leads to a program crash, and let the user manually switch between left-to-right and right-to-left orientation
 	
 	
