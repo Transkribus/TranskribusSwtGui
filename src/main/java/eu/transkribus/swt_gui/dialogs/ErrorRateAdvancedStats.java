@@ -128,7 +128,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	private void chartComposite() {
 		
 		jFreeChartComp = new ChartComposite(composite, SWT.FILL);
-		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 15, 30));
+		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 15, 30));
 		updateChartOverall();
 	
 	}
@@ -175,15 +175,23 @@ public class ErrorRateAdvancedStats extends Dialog{
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	
-		page = new ErrorTableViewer(body, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		page = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		page.getTable().setLinesVisible(true);
 		page.setContentProvider(new ArrayContentProvider());
 		labelProvider = new ErrorTableLabelProvider(page);
 		page.setLabelProvider(labelProvider);
 
 		page.getTable().setHeaderVisible(true);
+		
+		GridData gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+        gridData.verticalAlignment = GridData.FILL;
+        gridData.grabExcessHorizontalSpace = true;
+        gridData.grabExcessVerticalSpace = true;
+        gridData.horizontalSpan = 2;
+		gridData.heightHint=250;
 
-		page.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
+		page.getTable().setLayoutData(gridData);
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
 			
 		page.addSelectionChangedListener(new ISelectionChangedListener() {
