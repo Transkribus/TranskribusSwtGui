@@ -100,6 +100,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.swt.pagingtoolbar.PagingToolBar;
 import eu.transkribus.swt.portal.PortalWidget.Position;
@@ -1417,19 +1418,25 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 	
 	protected void updateLineStylesForCharacterOffsets(int start, int end) {
-		int startLine = text.getLineAtOffset(start);
-		if (startLine<0) { // should never happen...
-			startLine=0;
-		}
-		int endLine = text.getLineAtOffset(end);
-		if (endLine > text.getLineCount()) { // should never happen...
-			endLine = text.getLineCount();
+		final int nLines = text.getLineCount();
+		final int nChars = text.getCharCount();
+		if (nLines <= 0 || nChars <= 0) {
+			return;
 		}
 		
-		updateLineStyles(startLine, endLine+1);
-		
-		for (int i=startLine; i<endLine+1; ++i) {
-			computeTagPaintData(i);
+		try {
+			logger.debug("start = "+start+" end = "+end);
+			start = CoreUtils.bound(start, 0, nChars-1);
+			int startLine = text.getLineAtOffset(start);
+			end = CoreUtils.bound(end, 0, nChars-1);
+			int endLine = text.getLineAtOffset(end);
+			
+			updateLineStyles(startLine, endLine+1);
+			for (int i=startLine; i<endLine+1; ++i) {
+				computeTagPaintData(i);
+			}
+		} catch (Exception e) {
+			logger.warn("Could not updateLineStylesForCharacterOffsets, start = "+start+" end = "+end+", msg = "+e.getMessage());
 		}
 	}
 	

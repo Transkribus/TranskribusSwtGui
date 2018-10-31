@@ -604,3 +604,5 @@ CHANGES AND BUGFIXES
 	
 1.5.2
 	-> bugfix: user could not edit last line if empty (index out of bounds exception)
+	-> bugfix: index out of bounds exception when editing last, empty line
+	
