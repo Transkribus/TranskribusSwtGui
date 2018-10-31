@@ -480,8 +480,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					mw.getCanvasShapeObserver().addShapeToObserve(s);
 					ITrpShapeType st = (ITrpShapeType) s.getData();
 					//preserve the old reading order
-					Integer ro = st.getReadingOrder();
-					st.reInsertIntoParent(ro==null ? -1 : ro);
+					st.reInsertIntoParent(st.getReadingOrderAsInt());
 	//				mw.getScene().updateParentInfo(s, false);	
 				}
 				
@@ -768,7 +767,8 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				}
 				text = StringUtils.removeEnd(text, " ");
 				
-				mergedSt.reInsertIntoParent(mergedSt.getReadingOrder());
+				logger.debug("mergedSt = "+mergedSt+" ro = "+mergedSt.getReadingOrderAsInt());
+				mergedSt.reInsertIntoParent(mergedSt.getReadingOrderAsInt());
 				
 				mergedSt.setUnicodeText(text, this);
 				//logger.debug("newshape data2: "+((ITrpShapeType)newShape.getData()).print());

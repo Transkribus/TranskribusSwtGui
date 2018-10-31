@@ -148,7 +148,9 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		List<Point2D> pts1 = this.getPoints2D();
 		List<Point2D> pts2 = shape.getPoints2D();
 
-		if (this.getTrpShapeType().getParentShape().getReadingOrder() < shape.getTrpShapeType().getParentShape().getReadingOrder()){
+		int ro1 = this.getTrpShapeType().getParentShape().getReadingOrderAsInt();
+		int ro2 = shape.getTrpShapeType().getParentShape().getReadingOrderAsInt();
+		if (ro1 < ro2) {
 			pts.addAll(pts1);
 			pts.addAll(pts2);
 		}
