@@ -211,8 +211,6 @@ public class InstallSpecificVersionDialog extends Dialog {
 		}
 		logger.debug("Selected file: "+selected.getName()+" version: "+selected.getName());
 		
-		TrpMainWidget.getTrpSettings().setShowChangeLog(true);
-		
 		shell.close();
 	}
 	

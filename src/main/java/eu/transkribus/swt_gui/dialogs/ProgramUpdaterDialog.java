@@ -415,6 +415,12 @@ public class ProgramUpdaterDialog {
 				return;
 								
 			installZipFile(shell, UPDATE_ZIP_FN, ".", keepConfigFiles);
+			
+			if (TrpMainWidget.getInstance()!=null && TrpMainWidget.getTrpSettings()!=null) {
+				logger.debug("setting showChangeLog=true for next program startup!");
+				TrpMainWidget.getTrpSettings().setShowChangeLog(true);	
+			}
+			
 			removeUpdateZip();
 			
 //			if (isNewVersion) { // if it is a new version (and not only a newer version with the same version string!), then remove old jar file!
