@@ -608,5 +608,7 @@ CHANGES AND BUGFIXES
 1.5.3
 	-> bugfix: nullpointer exception when merging table cells
 	-> bugfix: disable automatic bidi processing, which is broken and leads to a program crash, and let the user manually switch between left-to-right and right-to-left orientation
+	-> bugfix: fix broken baseline merging when merging lines with words
+	-> bugfix: fix broken client side export (update saxon version)
 	
 	
