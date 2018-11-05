@@ -1129,7 +1129,13 @@ public class CanvasScene {
 	
 		for (ICanvasShape s : getShapes()) {
 			if (s.hasDataType(TrpPrintSpaceType.class)) {
-				s.setVisible(sets.isShowPrintSpace() || (SHOW_PS_ON_SHOW_REGIONS && sets.isShowTextRegions()));				
+				if (SHOW_PS_ON_SHOW_REGIONS) {
+					s.setVisible(sets.isShowTextRegions());
+				} else {
+					s.setVisible(sets.isShowPrintSpace());
+				}
+				
+//				s.setVisible(sets.isShowPrintSpace());				
 			}
 			if (s.hasDataType(TrpTextRegionType.class)) {
 				s.setVisible(sets.isShowTextRegions());
