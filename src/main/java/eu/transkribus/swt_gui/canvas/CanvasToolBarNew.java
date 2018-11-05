@@ -36,30 +36,28 @@ public class CanvasToolBarNew {
 	
 	public ToolBar mainTb, viewTb, editTb;
 	
-	ToolItem showRegionsToolItem;
-	ToolItem showLinesToolItem;
-	ToolItem showBaselinesToolItem;
-	ToolItem showWordsToolItem;
+//	ToolItem showRegionsToolItem;
+//	ToolItem showLinesToolItem;
+//	ToolItem showBaselinesToolItem;
+//	ToolItem showWordsToolItem;
 		
-	DropDownToolItem visibilityItem;
+//	DropDownToolItem visibilityItem;
+//	MenuItem showRegionsItem;
+//	MenuItem showLinesItem;
+//	MenuItem showBaselinesItem;
+//	MenuItem showWordsItem;
+////	MenuItem showPrintspaceItem;
+//	MenuItem renderBlackeningsItem;
 	
-	MenuItem showRegionsItem;
-	MenuItem showLinesItem;
-	MenuItem showBaselinesItem;
-	MenuItem showWordsItem;
-	MenuItem showPrintspaceItem;
-	MenuItem renderBlackeningsItem;
-	
-	public Button showRegionsButton, showLinesButton, showBaselinesButton, showWordsButton, renderBlackeningsButton;
+	public Button showRegionsButton, showLinesButton, showBaselinesButton, showWordsButton, showPrintspaceButton, renderBlackeningsButton;
 	public Button showReadingOrderRegionsButton, showReadingOrderLinesButton, showReadingOrderWordsButton;
 	public Button rotateLeftBtn, rotateRightBtn, rotateLeft90Btn, rotateRight90Btn, translateLeftBtn, translateRightBtn, translateUpBtn, translateDownBtn;
 	public ToolItem fitPageItem, fitWidthItem, origSizeItem;
 	
-	DropDownToolItem readingOrderVisibilityItem;
-
-	MenuItem showReadingOrderRegionsMenuItem;
-	MenuItem showReadingOrderLinesMenuItem;
-	MenuItem showReadingOrderWordsMenuItem;	
+//	DropDownToolItem readingOrderVisibilityItem;
+//	MenuItem showReadingOrderRegionsMenuItem;
+//	MenuItem showReadingOrderLinesMenuItem;
+//	MenuItem showReadingOrderWordsMenuItem;	
 	
 	ToolItem zoomIn;
 	ToolItem zoomOut;
@@ -187,25 +185,6 @@ public class CanvasToolBarNew {
 		selectionMode.setImage(Images.getOrLoad("/icons/cursor.png"));
 		modeMap.put(selectionMode, CanvasMode.SELECTION);
 		
-		if (false) {
-		showRegionsToolItem = new ToolItem(tb, SWT.CHECK);
-		showRegionsToolItem.setToolTipText("Show regions");
-		showRegionsToolItem.setImage(Images.getOrLoad("/icons/show_regions_shape.png"));
-		
-		showLinesToolItem = new ToolItem(tb, SWT.CHECK);
-		showLinesToolItem.setToolTipText("Show lines");
-		showLinesToolItem.setImage(Images.getOrLoad("/icons/show_lines_shape.png"));
-		
-		showBaselinesToolItem = new ToolItem(tb, SWT.CHECK);
-		showBaselinesToolItem.setToolTipText("Show baselines");
-		showBaselinesToolItem.setImage(Images.getOrLoad("/icons/show_baselines_shape.png"));
-		
-		showWordsToolItem = new ToolItem(tb, SWT.CHECK);
-		showWordsToolItem.setToolTipText("Show words");
-		showWordsToolItem.setImage(Images.getOrLoad("/icons/show_word_shape.png"));
-		}
-		
-		if (true) {
 		ToolItem visItem = new ToolItem(tb, SWT.CHECK);
 		visItem.setToolTipText("Shape visibility...");
 		visItem.setImage(Images.EYE);
@@ -216,39 +195,11 @@ public class CanvasToolBarNew {
 		showLinesButton = visBox.addButton("Show lines", Images.getOrLoad("/icons/show_lines_shape.png"), SWT.CHECK);
 		showBaselinesButton = visBox.addButton("Show baselines", Images.getOrLoad("/icons/show_baselines_shape.png"), SWT.CHECK);
 		showWordsButton = visBox.addButton("Show words", Images.getOrLoad("/icons/show_word_shape.png"), SWT.CHECK);
+//		showPrintspaceButton = visBox.addButton("Show printspace", Images.getOrLoad("/icons/show_ps_shape.png"), SWT.CHECK);
 		renderBlackeningsButton = visBox.addButton("Render blackenings", Images.getOrLoad("/icons/rabbit-silhouette.png"), SWT.CHECK);
 		showReadingOrderRegionsButton = visBox.addButton("Show regions reading order", Images.READING_ORDER_REGIONS, SWT.CHECK);
 		showReadingOrderLinesButton = visBox.addButton("Show lines reading order", Images.READING_ORDER_LINES, SWT.CHECK);
 		showReadingOrderWordsButton = visBox.addButton("Show words reading order", Images.READING_ORDER_WORDS, SWT.CHECK);
-		}
-		else {
-		visibilityItem = new DropDownToolItem(tb, false, false, true, SWT.CHECK);
-		visibilityItem.ti.setImage(Images.EYE);
-		visibilityItem.ti.setToolTipText("Shape visibility...");
-				
-//		visibilityItem.setKeepMenuOpenOnClick(true);
-		
-//		String vtt = "Visibility of items on canvas";
-		String vtt = "Shape visibility...";
-		
-		showRegionsItem = visibilityItem.addItem("Show Regions", Images.EYE, vtt);
-		showLinesItem = visibilityItem.addItem("Show Lines", Images.EYE, vtt);
-		showBaselinesItem = visibilityItem.addItem("Show Baselines", Images.EYE, vtt);
-		showWordsItem = visibilityItem.addItem("Show Words", Images.EYE, vtt);
-//		showPrintspaceItem = visibilityItem.addItem("Show Printspace", Images.EYE, vtt);
-		renderBlackeningsItem = visibilityItem.addItem("Render blackenings", Images.EYE, vtt);
-		}
-		
-		if (false) {
-		readingOrderVisibilityItem = new DropDownToolItem(tb, false, false, true, SWT.CHECK);	
-		readingOrderVisibilityItem.ti.setImage(Images.READING_ORDER);
-		readingOrderVisibilityItem.ti.setToolTipText("Show reading order...");
-//		readingOrderVisibilityItem.setKeepMenuOpenOnClick(true);
-		String rtt = "Show reading order...";
-		showReadingOrderRegionsMenuItem = readingOrderVisibilityItem.addItem("Show regions reading order", Images.READING_ORDER, rtt);
-		showReadingOrderLinesMenuItem = readingOrderVisibilityItem.addItem("Show lines reading order", Images.READING_ORDER, rtt);
-		showReadingOrderWordsMenuItem = readingOrderVisibilityItem.addItem("Show words reading order", Images.READING_ORDER, rtt);
-		}
 
 		zoomSelection = new ToolItem(tb, SWT.RADIO);
 		zoomSelection.setToolTipText("Zoom selection mode");
@@ -308,17 +259,17 @@ public class CanvasToolBarNew {
 		moveItem.setText("...");
 		moveItem.setToolTipText("Other image transformations...");
 		
-		ToolBox visBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Image transformations");
-		visBox.addTriggerWidget(moveItem);
-		rotateLeftBtn = visBox.addButton("Rotate left", Images.getOrLoad("/icons/arrow_turn_left.png"), SWT.PUSH);
-		rotateRightBtn = visBox.addButton("Rotate right", Images.getOrLoad("/icons/arrow_turn_right.png"), SWT.PUSH);
-		rotateLeft90Btn = visBox.addButton("Rotate left 90 degrees", Images.getOrLoad("/icons/arrow_turn_left_90.png"), SWT.PUSH);
-		rotateRight90Btn = visBox.addButton("Rotate right 90 degrees", Images.getOrLoad("/icons/arrow_turn_right_90.png"), SWT.PUSH);
+		ToolBox imgTransformsToolBox = new ToolBox(canvasWidget.mainWidgetUi.getShell(), true, "Image transformations");
+		imgTransformsToolBox.addTriggerWidget(moveItem);
+		rotateLeftBtn = imgTransformsToolBox.addButton("Rotate left", Images.getOrLoad("/icons/arrow_turn_left.png"), SWT.PUSH);
+		rotateRightBtn = imgTransformsToolBox.addButton("Rotate right", Images.getOrLoad("/icons/arrow_turn_right.png"), SWT.PUSH);
+		rotateLeft90Btn = imgTransformsToolBox.addButton("Rotate left 90 degrees", Images.getOrLoad("/icons/arrow_turn_left_90.png"), SWT.PUSH);
+		rotateRight90Btn = imgTransformsToolBox.addButton("Rotate right 90 degrees", Images.getOrLoad("/icons/arrow_turn_right_90.png"), SWT.PUSH);
 		
-		translateLeftBtn = visBox.addButton("Translate left", Images.getOrLoad("/icons/arrow_left.png"), SWT.PUSH);
-		translateRightBtn = visBox.addButton("Translate right", Images.getOrLoad("/icons/arrow_right.png"), SWT.PUSH);
-		translateUpBtn = visBox.addButton("Translate up", Images.getOrLoad("/icons/arrow_up.png"), SWT.PUSH);
-		translateDownBtn = visBox.addButton("Translate down", Images.getOrLoad("/icons/arrow_down.png"), SWT.PUSH);
+		translateLeftBtn = imgTransformsToolBox.addButton("Translate left", Images.getOrLoad("/icons/arrow_left.png"), SWT.PUSH);
+		translateRightBtn = imgTransformsToolBox.addButton("Translate right", Images.getOrLoad("/icons/arrow_right.png"), SWT.PUSH);
+		translateUpBtn = imgTransformsToolBox.addButton("Translate up", Images.getOrLoad("/icons/arrow_up.png"), SWT.PUSH);
+		translateDownBtn = imgTransformsToolBox.addButton("Translate down", Images.getOrLoad("/icons/arrow_down.png"), SWT.PUSH);
 			new ToolItem(tb, SWT.SEPARATOR);
 		}
 		

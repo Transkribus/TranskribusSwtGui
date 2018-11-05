@@ -149,6 +149,10 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		List<Point2D> pts2 = shape.getPoints2D();
 		
 		if (true) { // "regular" merging of polylines -> takes points of this first, then the one of the given shape
+			if (!pts1.isEmpty() && !pts2.isEmpty() && pts1.get(pts1.size()-1).distance(pts2.get(0)) < 2) { // remove first point of new line if they are too close together
+				pts2.remove(0);
+			}
+			
 			pts.addAll(pts1);
 			pts.addAll(pts2);
 		}

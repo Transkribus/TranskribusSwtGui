@@ -240,58 +240,6 @@ public class CanvasWidget extends Composite {
 		}
 	}
 	
-	public ToolItem getShowRegionsToolItem() {
-		return toolbar.showRegionsToolItem;
-	}
-	
-	public ToolItem getShowLinesToolItem() {
-		return toolbar.showLinesToolItem;
-	}
-	
-	public ToolItem getShowBaselinesToolItem() {
-		return toolbar.showBaselinesToolItem;
-	}
-	
-	public ToolItem getShowWordsToolItem() {
-		return toolbar.showWordsToolItem;
-	}
-		
-	public MenuItem getShowRegionsItem() {
-		return toolbar.showRegionsItem;
-	}	
-	
-	public MenuItem getShowLinesItem() {
-		return toolbar.showLinesItem;
-	}
-	
-	public MenuItem getShowBaselinesItem() {
-		return toolbar.showBaselinesItem;
-	}
-	
-	public MenuItem getShowWordsItem() {
-		return toolbar.showWordsItem;
-	}
-	
-	public MenuItem getShowPrintspaceItem() {
-		return toolbar.showPrintspaceItem;
-	}
-	
-	public MenuItem getShowReadingOrderRegionsMenuItem() {
-		return toolbar.showReadingOrderRegionsMenuItem;
-	}
-	
-	public MenuItem getShowReadingOrderLinesMenuItem() {
-		return toolbar.showReadingOrderLinesMenuItem;
-	}
-	
-	public MenuItem getShowReadingOrderWordsMenuItem() {
-		return toolbar.showReadingOrderWordsMenuItem;
-	}
-	
-	public MenuItem getRenderBlackeningsItem() {
-		return toolbar.renderBlackeningsItem;
-	}
-
 	public ToolItem getEditingEnabledToolItem() {
 		return toolbar.editingEnabledToolItem;
 	}

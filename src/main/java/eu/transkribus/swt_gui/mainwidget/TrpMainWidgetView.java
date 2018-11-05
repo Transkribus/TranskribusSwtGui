@@ -128,7 +128,6 @@ public class TrpMainWidgetView extends Composite {
 //	MenuItem showLinesItem;
 //	MenuItem showBaselinesItem;
 //	MenuItem showWordsItem;
-//	MenuItem showPrintspaceItem;
 //	MenuItem renderBlackeningsItem;
 //	MenuItem showReadingOrderRegionsMenuItem;
 //	MenuItem showReadingOrderLinesMenuItem;
