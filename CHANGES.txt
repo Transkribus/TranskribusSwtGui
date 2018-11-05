@@ -611,5 +611,6 @@ CHANGES AND BUGFIXES
 	-> bugfix: fix broken baseline merging when merging lines with words
 	-> bugfix: fix broken client side export (update saxon version)
 	-> keep zoom when switching between pages
+	-> bugfix: unable to add some unicode values to virtual keyboard
 	
 	
