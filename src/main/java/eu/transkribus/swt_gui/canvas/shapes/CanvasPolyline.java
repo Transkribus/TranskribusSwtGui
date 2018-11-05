@@ -158,10 +158,13 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 			pts.addAll(pts2);
 			pts.addAll(pts1);	
 		}
+		CanvasPolyline pl = new CanvasPolyline(GeomUtils.toAwtPoints(pts));
+		logger.debug("new polyline pts " + pl.getPoints());
+		return pl;
 
-		this.setPoints2D(pts);
-		logger.debug("points " + this.getPoints());
-		return this;
+//		this.setPoints2D(pts);
+//		logger.debug("points " + this.getPoints());
+//		return this;
 		
 	}
 	

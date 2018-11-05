@@ -29,6 +29,7 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
@@ -286,6 +287,39 @@ public class CanvasScene {
 //		}
 	}
 	
+//	private boolean checkShapesForMerging(List<ICanvasShape> selectedShapes) {
+//		if (selectedShapes==null || selectedShapes.size()<2) {
+//			return false;
+//		}
+//		
+//		ITrpShapeType st = GuiUtil.getTrpShape(selectedShapes.get(0));
+//		for (ICanvasShape s : selectedShapes) {
+//			ITrpShapeType stC = GuiUtil.getTrpShape(s);
+//			//&& stC instanceof TrpBaselineType
+//			if (st.getClass() != stC.getClass() ) {
+////				throw new Exception("Cannot merge elements of different type!");
+//				DialogUtil.showErrorMessageBox(canvas.getShell(), "Error during merge", "Cannot merge elements of different type!");
+//				return false;
+//			}
+//			if (st.getParent() != stC.getParent()) {
+//				DialogUtil.showErrorMessageBox(canvas.getShell(), "Error during merge", "Cannot merge elements with different parent shape!");
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
+	
+//	public ShapeEditOperation mergeSelectedNew(boolean sendSignal, boolean replaceBaselinesWithLines) {
+//		List<ICanvasShape> selectedShapes = getSelectedAsNewArray();
+//		if (selectedShapes.size() < 2)
+//			return null;
+//		
+//		if (!checkShapesForMerging(selectedShapes)) {
+//			return null;
+//		}
+//
+//	}
+	
 	public ShapeEditOperation mergeSelected(boolean sendSignal, boolean replaceBaselinesWithLines) {
 		List<ICanvasShape> selectedShapes = getSelectedAsNewArray();
 		if (selectedShapes.size() < 2)
@@ -306,25 +340,33 @@ public class CanvasScene {
 		Collections.sort(selectedShapes, new CanvasShapeReadingOrderComparator());
 	
 		if (sendSignal) {
-			if (notifyOnBeforeShapesMerged(selectedShapes)) // calls the method CanvasSceneListener::onBeforeMerge which checks if all shapes are of same type etc.
+			if (notifyOnBeforeShapesMerged(selectedShapes)) { // calls the method CanvasSceneListener::onBeforeMerge which checks if all shapes are of same type etc.
 				return null;
+			}
 		}
 			
 		clearSelected();
 		ICanvasShape merged = selectedShapes.get(0).copy();
-
+		boolean isTextLine = GuiUtil.getTrpShape(merged) instanceof TrpTextLineType;
+		CanvasPolyline newBaseline = null;
 		for (int i=1; i<selectedShapes.size(); ++i) {
 			merged = merged.merge(selectedShapes.get(i));
-			//logger.debug("merged = "+merged);
 			if (merged == null)
 				return null;
 												
 			for (ICanvasShape child : selectedShapes.get(i).getChildren(false)) {
-				
-				child.setParentAndAddAsChild(merged);
-				
+				if (isTextLine && child instanceof CanvasPolyline) {
+					//child.removeFromParent();
+					newBaseline = newBaseline==null ? (CanvasPolyline) child.copy() : (CanvasPolyline) newBaseline.merge(child); 
+				} else {
+					child.setParentAndAddAsChild(merged);
+				}
 			}
-		}	
+		}
+		if (isTextLine && newBaseline != null) {
+			logger.debug("newBaseline = "+newBaseline);
+			newBaseline.setParentAndAddAsChild(merged);
+		}
 		
 		//remove all selected shapes
 		for (int i=0; i<selectedShapes.size(); ++i){
@@ -338,6 +380,7 @@ public class CanvasScene {
 		 * Hence we get the index of the top left point and resort the list
 		 * 
 		 */
+		if (true) {
 		List<java.awt.Point> pts1 = merged.getPoints();
 		List<java.awt.Point> sortedPts1 = new ArrayList<java.awt.Point>();
 		
@@ -348,10 +391,10 @@ public class CanvasScene {
 			sortedPts1.addAll(pts1.subList(0, tl));	
 			merged.setPoints(sortedPts1);
 		}
+		}
 				
 		//add the merged shape
 		ShapeEditOperation opa = addShape(merged, null, false);
-				
 		if (opa == null) {
 			addShape(selectedShapes.get(0), null, false);
 			logger.warn("unable to add merged shape: "+merged);
@@ -361,15 +404,18 @@ public class CanvasScene {
 		/*
 		 * merge baselines for the merged shape!!
 		 */
-		if (GuiUtil.getTrpShape(merged) instanceof TrpTextLineType){
-			List<ICanvasShape> childs = merged.getChildren(false);
-			logger.debug("childs nr is " + childs.size());
-			for (int i = 1; i<childs.size(); i++){
-				//logger.debug("child " + childs.get(0).getPoints());
-				childs.get(0).merge(childs.get(i));
-				childs.get(i).removeFromParent();
-			}
-		}
+//		if (GuiUtil.getTrpShape(merged) instanceof TrpTextLineType){
+//			List<ICanvasShape> children = merged.getChildren(false);
+//			logger.debug("textline, children nr is " + children.size());
+//			ICanvasShape newBaselineShape = children.get(0).copy();
+//			children.get(0).removeFromParent();
+//			for (int i = 1; i<children.size(); i++){
+//				
+//				//logger.debug("child " + childs.get(0).getPoints());
+//				newBaselineShape = newBaselineShape.merge(children.get(i));
+//				children.get(i).removeFromParent();
+//			}
+//		}
 		
 		logger.debug(selectedShapes.size()+" shapes merged");
 		ShapeEditOperation op = 

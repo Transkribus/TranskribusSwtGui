@@ -724,17 +724,13 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				// put all ITrpShapeType objects of merged shapes into list and sort it according to their coordinates:
 				List<ITrpShapeType> trpMergedShapes = new ArrayList<>();
 				
-				int minIndex= 10000000;
+				int minIndex= Integer.MAX_VALUE;
 				for (ICanvasShape s : e.op.getShapes()) {
 					ITrpShapeType st = GuiUtil.getTrpShape(s);
 					if (st==null)
 						throw new Exception("Could not extract the data from a merged shape - should not happen!");
 									
-					Integer oldReadingOrder = -1;
-					if (st != null){
-						oldReadingOrder = st.getReadingOrder();
-					}
-					
+					Integer oldReadingOrder = st.getReadingOrder();
 					int index = -1;
 					if (st.getParentShape() != null)
 						index = st.getParentShape().getChildren(false).indexOf(st);
@@ -759,13 +755,17 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				ITrpShapeType mergedSt = mw.getShapeFactory().copyJAXBElementFromShapeAndData(newShape, minIndex);
 				//logger.debug("newshape data: "+((ITrpShapeType)newShape.getData()).print());
 				
-				for (ITrpShapeType st : trpMergedShapes) {				
-					text = ( (text != "" && st.getUnicodeText() != "")? text + " " + st.getUnicodeText() : text + st.getUnicodeText());
+				for (ITrpShapeType st : trpMergedShapes) {
+					String delimiter = StringUtils.isEmpty(text) ? "" : " ";
+					if (!StringUtils.isEmpty(st.getUnicodeText())) {
+						text += delimiter+st.getUnicodeText();
+					}
+					//text = ( (text != "" && st.getUnicodeText() != "")? text + " " + st.getUnicodeText() : text + st.getUnicodeText());
 					st.removeFromParent();
 					// remove all links related to this shape TODO: links will be lost on undo!
 					st.getPage().removeLinks(st);
 				}
-				text = StringUtils.removeEnd(text, " ");
+				//text = StringUtils.removeEnd(text, " ");
 				
 				logger.debug("mergedSt = "+mergedSt+" ro = "+mergedSt.getReadingOrderAsInt());
 				mergedSt.reInsertIntoParent(mergedSt.getReadingOrderAsInt());
