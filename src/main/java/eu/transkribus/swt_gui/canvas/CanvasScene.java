@@ -139,8 +139,7 @@ public class CanvasScene {
 		if (mainImage != null) {
 			logger.debug("nr of pixels in loaded image = " + mainImage.nPixels);
 		}
-		canvas.fitWidth();
-		
+//		canvas.fitWidth();
 	}
 	
 	public void setCanvasAutoZoomMode(CanvasAutoZoomMode zoomMode) {
