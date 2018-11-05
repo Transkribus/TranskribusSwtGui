@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
@@ -26,7 +25,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
@@ -39,9 +37,6 @@ import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeReadingOrderComparator;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
-import eu.transkribus.swt_gui.exceptions.BaselineExistsException;
-import eu.transkribus.swt_gui.exceptions.NoParentLineException;
-import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -57,6 +52,12 @@ import eu.transkribus.swt_gui.util.GuiUtil;
  * Note that images are not intended to be actually stored in the scene - it
  * just stores a reference to them. You have to create and dispose them by
  * yourself!
+ * 
+ * <p><b>Important note from sebic:</b> all the shape editing stuff is done 
+ * in three different classes: CanvasShapeEditor, a controller where every edit operation should start,
+ * CanvasScene, where the editing of CanvasShape's is done and CanvasSceneListener, where all ITrpShapeType's related stuff is implemented.
+ * This is due to historic reasons, when I wanted to implement a clean separation between the canvas shapes and the PAGE related stuff.
+ * This separation has been abandoned however and now the code is scattered across those classes. Sorry for the confusion :-)</p>  
  */
 public class CanvasScene {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasScene.class);
@@ -286,15 +287,21 @@ public class CanvasScene {
 //		}
 	}
 	
+	/**
+	 * Merges the selected shapes. 
+	 * @param replaceBaselinesWithLines If true, baselines are replaced by lines and thus merging baselines and lines is treated equally.
+	 * @param sendSignal send signals to CanvasSceneListener or not.
+	 */
 	public ShapeEditOperation mergeSelected(boolean sendSignal, boolean replaceBaselinesWithLines) {
 		List<ICanvasShape> selectedShapes = getSelectedAsNewArray();
+		
 		if (selectedShapes.size() < 2)
 			return null;
 		
 		logger.debug("merging "+selectedShapes.size()+" shapes");
 
 		// replace baseline shapes by lines -> this leads to the effect that baselines and lines are handled equivalent during a merge 
-		if (replaceBaselinesWithLines){
+		if (replaceBaselinesWithLines) {
 			for (int i=0; i<selectedShapes.size(); ++i) {
 				ICanvasShape s = selectedShapes.get(i);
 				if (GuiUtil.getTrpShape(s) instanceof TrpBaselineType) {
@@ -306,25 +313,31 @@ public class CanvasScene {
 		Collections.sort(selectedShapes, new CanvasShapeReadingOrderComparator());
 	
 		if (sendSignal) {
-			if (notifyOnBeforeShapesMerged(selectedShapes)) // calls the method CanvasSceneListener::onBeforeMerge which checks if all shapes are of same type etc.
+			if (notifyOnBeforeShapesMerged(selectedShapes)) { // calls the method CanvasSceneListener::onBeforeMerge which checks if all shapes are of same type etc.
 				return null;
+			}
 		}
 			
 		clearSelected();
 		ICanvasShape merged = selectedShapes.get(0).copy();
-
 		for (int i=1; i<selectedShapes.size(); ++i) {
 			merged = merged.merge(selectedShapes.get(i));
-			//logger.debug("merged = "+merged);
 			if (merged == null)
 				return null;
 												
 			for (ICanvasShape child : selectedShapes.get(i).getChildren(false)) {
+				ITrpShapeType st = GuiUtil.getTrpShape(child);
+				if (st instanceof TrpBaselineType) { // skip baselines as they get merged explicitly in CanvasSceneListener::onMerge!
+					continue;
+				}
 				
 				child.setParentAndAddAsChild(merged);
-				
 			}
-		}	
+		}
+//		if (isTextLine && newBaseline != null) {
+//			logger.debug("newBaseline = "+newBaseline+" pts = "+newBaseline.getPoints());
+//			newBaseline.setParentAndAddAsChild(merged);
+//		}
 		
 		//remove all selected shapes
 		for (int i=0; i<selectedShapes.size(); ++i){
@@ -338,6 +351,7 @@ public class CanvasScene {
 		 * Hence we get the index of the top left point and resort the list
 		 * 
 		 */
+		if (true) {
 		List<java.awt.Point> pts1 = merged.getPoints();
 		List<java.awt.Point> sortedPts1 = new ArrayList<java.awt.Point>();
 		
@@ -348,27 +362,14 @@ public class CanvasScene {
 			sortedPts1.addAll(pts1.subList(0, tl));	
 			merged.setPoints(sortedPts1);
 		}
+		}
 				
 		//add the merged shape
 		ShapeEditOperation opa = addShape(merged, null, false);
-				
 		if (opa == null) {
 			addShape(selectedShapes.get(0), null, false);
 			logger.warn("unable to add merged shape: "+merged);
 			return null;
-		}
-		
-		/*
-		 * merge baselines for the merged shape!!
-		 */
-		if (GuiUtil.getTrpShape(merged) instanceof TrpTextLineType){
-			List<ICanvasShape> childs = merged.getChildren(false);
-			logger.debug("childs nr is " + childs.size());
-			for (int i = 1; i<childs.size(); i++){
-				//logger.debug("child " + childs.get(0).getPoints());
-				childs.get(0).merge(childs.get(i));
-				childs.get(i).removeFromParent();
-			}
 		}
 		
 		logger.debug(selectedShapes.size()+" shapes merged");
@@ -387,7 +388,7 @@ public class CanvasScene {
 	}
 	
 	/**
-	 * Splits the given shape by the line running through [x1,y1], [x1, y2]
+	 * Splits the given shape by the line running through [x1,y1], [x1, y2] 
 	 * @param shape The shape to split
 	 * @param sendSignal True if event signal shall be sent
 	 * @param p1 The parent shape for the first (left) split; if null, the parent shape of the splitted shape is used

@@ -226,7 +226,7 @@ public class TableUtils {
 		for (TrpTableCellType c : table.getTrpTableCell()) {
 			for (int s = 0; s < 4; ++s) {
 				List<TrpTableCellType> ns = c.getNeighborCells(s);
-				logger.debug("s = "+s+" ns.size() = "+ns.size());
+				logger.trace("s = "+s+" ns.size() = "+ns.size());
 				
 				if (ns.isEmpty())
 					continue;
@@ -234,20 +234,20 @@ public class TableUtils {
 				CanvasQuadPolygon qp1 = (CanvasQuadPolygon) c.getData();
 				
 				List<Point> segPts = qp1.getPointsOfSegment(s, true);
-				logger.debug("s = "+s+" segPts.size() = "+segPts.size());
+				logger.trace("s = "+s+" segPts.size() = "+segPts.size());
 				
 				for (Point p : segPts) {
 					boolean found = false;
 					for (TrpTableCellType nc : ns) {
 						CanvasQuadPolygon qpn = (CanvasQuadPolygon) nc.getData();						
 						if (qpn.getPoints().contains(p)) {
-							logger.debug("found: "+p+ " s = "+s+" id = "+c.getId());
+							logger.trace("found: "+p+ " s = "+s+" id = "+c.getId());
 							found = true;
 							break;
 						}
 					}
 					if (!found) {
-						logger.debug("not found: "+p+" s = "+s+" id = "+c.getId());
+						logger.trace("not found: "+p+" s = "+s+" id = "+c.getId());
 						invalid.add(Pair.of(c, c));
 					}
 				}

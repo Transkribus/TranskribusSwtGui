@@ -330,7 +330,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	public void keyTraversed(TraverseEvent e) {
 		if (e.getSource() == sw.quickLoadByDocId.getTextControl()) {
 			if (e.detail == SWT.TRAVERSE_RETURN) {
-				int docId = CoreUtils.parseInt(sw.quickLoadByDocId.getText(), -1);
+				int docId = CoreUtils.parseInt(sw.quickLoadByDocId.getText().trim(), -1);
 				if (docId > 0 && storage.isLoggedIn()) {
 					TrpMainWidget.getInstance().loadRemoteDoc(docId, true);
 				}

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.util.GeomUtils;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 
 public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode<ICanvasShape> {	
@@ -105,10 +106,7 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	// edit operations:
 	boolean setPoints(List<Point> pts);
 	default boolean setPoints2D(Collection<math.geom2d.Point2D> ptsIn) {
-		List<java.awt.Point> pts = new ArrayList<>();
-		for (math.geom2d.Point2D p : ptsIn)
-			pts.add(new Point((int)p.x(), (int)p.y()));
-		
+		List<java.awt.Point> pts = GeomUtils.toAwtPoints(ptsIn);
 		return setPoints(pts);
 	}
 	
