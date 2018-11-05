@@ -202,6 +202,7 @@ public class VirtualKeyboard extends Composite {
 			
 			String i = pair.getRight();
 			
+			if (false) // Character.isDefined denies some valid Unicode values, so skip that here...
 			if (!Character.isDefined(i.toCharArray()[0])) {
 				undefined += (int) i.toCharArray()[0]+" ";
 				
