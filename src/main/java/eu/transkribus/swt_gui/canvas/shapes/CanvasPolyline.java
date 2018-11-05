@@ -147,25 +147,32 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		List<Point2D> pts = new ArrayList<Point2D>();
 		List<Point2D> pts1 = this.getPoints2D();
 		List<Point2D> pts2 = shape.getPoints2D();
-
-		int ro1 = this.getTrpShapeType().getParentShape().getReadingOrderAsInt();
-		int ro2 = shape.getTrpShapeType().getParentShape().getReadingOrderAsInt();
-		if (ro1 < ro2) {
+		
+		if (true) { // "regular" merging of polylines -> takes points of this first, then the one of the given shape
 			pts.addAll(pts1);
 			pts.addAll(pts2);
 		}
-		else{
-			pts.addAll(pts2);
-			pts.addAll(pts1);	
+		// FIXME this code does not belong here, as it refers to the reading order which is a concept for trp-shapes not canvas-shapes...
+		// reading order should be considered outside this function, i.e. sort the shapes by reading order before merging
+		else {
+			int ro1=0, ro2=1;
+			if (this.getTrpShapeType()!=null && this.getTrpShapeType().getParentShape()!=null && shape.getTrpShapeType()!=null && shape.getTrpShapeType().getParentShape()!=null) {
+				ro1 = this.getTrpShapeType().getParentShape().getReadingOrderAsInt();
+				ro2 = shape.getTrpShapeType().getParentShape().getReadingOrderAsInt();			
+			}
+			if (ro1 < ro2) {
+				pts.addAll(pts1);
+				pts.addAll(pts2);
+			}
+			else{
+				pts.addAll(pts2);
+				pts.addAll(pts1);	
+			}
 		}
-		CanvasPolyline pl = new CanvasPolyline(GeomUtils.toAwtPoints(pts));
-		logger.debug("new polyline pts " + pl.getPoints());
-		return pl;
-
-//		this.setPoints2D(pts);
-//		logger.debug("points " + this.getPoints());
-//		return this;
 		
+		CanvasPolyline pl = new CanvasPolyline(GeomUtils.toAwtPoints(pts));
+		logger.trace("new polyline pts " + pl.getPoints());
+		return pl;
 	}
 	
 	public CanvasPolyline extendAtEnds(final double dist) {

@@ -42,7 +42,6 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.shapes.RectDirection;
 import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableCellUndoData;
 import eu.transkribus.swt_gui.table_editor.TableShapeEditOperation;
@@ -55,6 +54,12 @@ import math.geom2d.line.Line2D;
 /**
  * This class is resonsible for editing and drawing new shapes according to interactive points drawn by the user.
  * Currently supported shapes are: Polygon, Polyline, Rectangle
+ * 
+ * <p><b>Important note from sebic:</b> all the shape editing stuff is done 
+ * in three different classes: CanvasShapeEditor, a controller where every edit operation should start,
+ * CanvasScene, where the editing of CanvasShape's is done and CanvasSceneListener, where all ITrpShapeType's related stuff is implemented.
+ * This is due to historic reasons, when I wanted to implement a clean separation between the canvas shapes and the PAGE related stuff.
+ * This separation has been abandoned however and now the code is scattered across those classes. Sorry for the confusion :-)</p> 
  */
 public class CanvasShapeEditor {
 	static Logger logger = LoggerFactory.getLogger(CanvasShapeEditor.class);

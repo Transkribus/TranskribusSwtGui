@@ -1,25 +1,19 @@
 package eu.transkribus.swt_gui.canvas.listener;
 
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Collector;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.swt.widgets.Shell;
-import org.hamcrest.core.IsInstanceOf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementReadingOrderComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
@@ -29,7 +23,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpStructureChangedEvent;
-import eu.transkribus.core.util.PointStrUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
@@ -37,23 +30,24 @@ import eu.transkribus.swt_gui.canvas.CanvasScene;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
-import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener.SceneEvent;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.exceptions.BaselineExistsException;
 import eu.transkribus.swt_gui.exceptions.NoParentLineException;
 import eu.transkribus.swt_gui.exceptions.NoParentRegionException;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
-import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 import eu.transkribus.swt_gui.util.GuiUtil;
-import math.geom2d.Point2D;
-import math.geom2d.polygon.Polygon2D;
-import math.geom2d.polygon.SimplePolygon2D;
 
+/**
+ * <p><b>Important note from sebic:</b> all the shape editing stuff is done 
+ * in three different classes: CanvasShapeEditor, a controller where every edit operation should start,
+ * CanvasScene, where the editing of CanvasShape's is done and CanvasSceneListener, where all ITrpShapeType's related stuff is implemented.
+ * This is due to historic reasons, when I wanted to implement a clean separation between the canvas shapes and the PAGE related stuff.
+ * This separation has been abandoned however and now the code is scattered across those classes. Sorry for the confusion :-)</p> 
+ */
 public class CanvasSceneListener implements EventListener, ICanvasSceneListener {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasSceneListener.class);
 	
@@ -101,7 +95,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 	protected TrpMainWidget mw;
 	protected SWTCanvas canvas;
 	protected Shell shell;
-	
+
 	public CanvasSceneListener(TrpMainWidget mw) {
 		this.mw = mw;
 		this.canvas = mw.getCanvas();
@@ -543,12 +537,6 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 		}
 	}
 
-
-	private void checkLineAndBaselineFit(ITrpShapeType baseline, ITrpShapeType line) {
-		line.getCoordinates();
-		
-	}
-
 	@Override
 	public void onSplit(SceneEvent e) {
 			try {
@@ -701,6 +689,11 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					DialogUtil.showErrorMessageBox(shell, "Error during merge", "Cannot merge elements with different parent shape!");
 					return;
 				}
+//				if (GuiUtil.getCanvasShape(st)==null) {
+//					e.stop = true;
+//					DialogUtil.showDetailedErrorMessageBox(canvas.getShell(), "Error during merge", "Could not extract shape for element - should not happen - please report this bug!", null);
+//					return;
+//				}
 			}
 		} catch (Throwable th) {
 			e.stop = true;
@@ -715,15 +708,11 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				
 				ICanvasShape newShape = e.op.getNewShapes().get(0);
 				logger.debug("merged shape: "+newShape);
-				
-	//			boolean isTableCellMerge = (newShape instanceof CanvasQuadPolygon && newShape.getData() instanceof TrpTableCellType);
-	//			logger.debug("isTableCellMerge = "+isTableCellMerge);
 							
-				String text = "";
 				
-				// put all ITrpShapeType objects of merged shapes into list and sort it according to their coordinates:
+				
+				// put all ITrpShapeType objects of merged shapes into list and determine the minimal reading order:
 				List<ITrpShapeType> trpMergedShapes = new ArrayList<>();
-				
 				int minIndex= Integer.MAX_VALUE;
 				for (ICanvasShape s : e.op.getShapes()) {
 					ITrpShapeType st = GuiUtil.getTrpShape(s);
@@ -745,31 +734,29 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					
 					trpMergedShapes.add(st);
 				}
-				//Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>());
-				
-				/*
-				 * reading order should be crucial for merging shapes - not the coordinates!!
-				 */
 				Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));
+				
+				logger.debug("minIndex = "+minIndex);
 				
 				ITrpShapeType mergedSt = mw.getShapeFactory().copyJAXBElementFromShapeAndData(newShape, minIndex);
 				//logger.debug("newshape data: "+((ITrpShapeType)newShape.getData()).print());
+				logger.debug("new shape ro = "+mergedSt.getReadingOrderAsInt());
 				
+				// gather text of merged shapes and remove them from the PAGE:
+				String text = "";
 				for (ITrpShapeType st : trpMergedShapes) {
 					String delimiter = StringUtils.isEmpty(text) ? "" : " ";
 					if (!StringUtils.isEmpty(st.getUnicodeText())) {
 						text += delimiter+st.getUnicodeText();
 					}
-					//text = ( (text != "" && st.getUnicodeText() != "")? text + " " + st.getUnicodeText() : text + st.getUnicodeText());
 					st.removeFromParent();
-					// remove all links related to this shape TODO: links will be lost on undo!
+					// FIXME links are lost on undo!
 					st.getPage().removeLinks(st);
 				}
 				//text = StringUtils.removeEnd(text, " ");
 				
 				logger.debug("mergedSt = "+mergedSt+" ro = "+mergedSt.getReadingOrderAsInt());
 				mergedSt.reInsertIntoParent(mergedSt.getReadingOrderAsInt());
-				
 				mergedSt.setUnicodeText(text, this);
 				//logger.debug("newshape data2: "+((ITrpShapeType)newShape.getData()).print());
 				
@@ -777,55 +764,46 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 	//			mergedSt.setData(newShape);
 							
 				// assign children				
-				//logger.debug(" child number is : " + newShape.getChildren(false).size());
-				
+				logger.trace("nr of children is: " + newShape.getChildren(false).size());
 				for (ICanvasShape childShape : newShape.getChildren(false)) {
 					ITrpShapeType st = (ITrpShapeType) childShape.getData();
 					st.setParent(mergedSt);
 					st.reInsertIntoParent();					
 				}
 				
-				/*
-				 * if merged shapes were lines -> merge baselines also!
-				 * Now done already in the CanvasScene mergeSelected method
-				 */
-
-//				if (mergedSt instanceof TrpTextLineType) {
-//					//Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<ITrpShapeType>(false)); // sort lines by XY coordinates!
-//					Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));//reading order is crucial
-//					logger.debug("baseline merge - n-merged shapes: "+trpMergedShapes.size());
-//					TrpTextLineType mergedTl = (TrpTextLineType) mergedSt;
-//					
-//					// collect all baseline points (trpMergedShapes should be sorted by reading order!)
-//					List<Point> blPts = new ArrayList<>();
-//					for (ITrpShapeType st : trpMergedShapes) {
-//						if (st != null && st instanceof TrpTextLineType) {
-//							TrpTextLineType tl = (TrpTextLineType) st;
-//							if (tl.getTrpBaseline() != null) {
-//								mw.getScene().removeShape((ICanvasShape) tl.getTrpBaseline().getData(), false, false);
-//								blPts.addAll(PointStrUtils.parsePoints(tl.getTrpBaseline().getPoints()));
-//							}
-//						}
-//					}
-//					
-//					// create a new baseline if there were baseline points
-//					if (!blPts.isEmpty()) {
-//						CanvasPolyline pl = new CanvasPolyline(blPts);
-//						pl.setEditable(true);
-//						pl.setParent(newShape);
-//						mw.getScene().addShape(pl, newShape, false);
-//						
-//						TrpBaselineType bl = TrpShapeElementFactory.createPAGEBaseline(pl, mergedTl);
-//						TrpShapeElementFactory.syncCanvasShapeAndTrpShape(pl, bl);
-//					}
-//				}
+				// if merged shapes were lines -> merge baselines also!
+				if (mergedSt instanceof TrpTextLineType) {
+					logger.debug("baseline merge - n-merged shapes: "+trpMergedShapes.size());
+					TrpTextLineType mergedTl = (TrpTextLineType) mergedSt;
+					
+					ICanvasShape newBl = null;
+					for (ITrpShapeType st : trpMergedShapes) {
+						if (st != null && st instanceof TrpTextLineType) {
+							TrpTextLineType tl = (TrpTextLineType) st;
+							if (tl.getTrpBaseline() != null && tl.getTrpBaseline().getData() instanceof ICanvasShape) {
+								ICanvasShape blShape = (ICanvasShape) tl.getTrpBaseline().getData();
+								mw.getScene().removeShape(blShape, false, false);
+								newBl = newBl==null ? blShape.copy() : newBl.merge(blShape);
+							}
+						}
+					}
+					if (newBl!=null) {
+//							CanvasPolyline pl = new CanvasPolyline(blPts);
+						newBl.setEditable(true);
+						newBl.setParent(newShape);
+						mw.getScene().addShape(newBl, newShape, false);
+						
+						TrpBaselineType bl = TrpShapeElementFactory.createPAGEBaseline(newBl, mergedTl);
+						TrpShapeElementFactory.syncCanvasShapeAndTrpShape(newBl, bl);
+					}
+				}
 	
 				// update ui stuff
 				mw.getScene().updateAllShapesParentInfo();
 				if (mergedSt.getParent() instanceof TrpPageType){
 					((TrpPageType) mergedSt.getParent()).sortRegions();
 				}
-				else{
+				else {
 					((ITrpShapeType) mergedSt.getParent()).sortChildren(true);
 				}
 					
