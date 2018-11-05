@@ -356,7 +356,7 @@ public class CanvasScene {
 												
 			for (ICanvasShape child : selectedShapes.get(i).getChildren(false)) {
 				if (isTextLine && child instanceof CanvasPolyline) {
-					//child.removeFromParent();
+					child.removeFromParent();
 					newBaseline = newBaseline==null ? (CanvasPolyline) child.copy() : (CanvasPolyline) newBaseline.merge(child); 
 				} else {
 					child.setParentAndAddAsChild(merged);
@@ -364,7 +364,7 @@ public class CanvasScene {
 			}
 		}
 		if (isTextLine && newBaseline != null) {
-			logger.debug("newBaseline = "+newBaseline);
+			logger.debug("newBaseline = "+newBaseline+" pts = "+newBaseline.getPoints());
 			newBaseline.setParentAndAddAsChild(merged);
 		}
 		
