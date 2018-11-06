@@ -973,20 +973,13 @@ public class TrpMainWidget {
 //												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.LEFT));
 //		db.bindBeanPropertyToObservableValue(TrpSettings.TRANSCRIPTION_VIEW_DOCKING_STATE_PROPERTY, trpSets, 
 //												Observables.observeMapEntry(ui.portalWidget.getDockingMap(), Position.BOTTOM));
-		
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, cw.getShowPrintspaceItem());
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, cw.getShowRegionsItem());
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, cw.getShowLinesItem());
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, cw.getShowBaselinesItem());
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, cw.getShowWordsItem());
-		
+
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_TEXT_REGIONS_PROPERTY, trpSets, cw.getToolbar().showRegionsButton);
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_LINES_PROPERTY, trpSets, cw.getToolbar().showLinesButton);
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_BASELINES_PROPERTY, trpSets, cw.getToolbar().showBaselinesButton);
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, cw.getToolbar().showWordsButton);	
+		db.bindBeanToWidgetSelection(TrpSettings.SHOW_WORDS_PROPERTY, trpSets, cw.getToolbar().showWordsButton);
+//		db.bindBeanToWidgetSelection(TrpSettings.SHOW_PRINTSPACE_PROPERTY, trpSets, cw.getToolbar().showPrintspaceButton);
 		db.bindBeanToWidgetSelection(TrpSettings.RENDER_BLACKENINGS_PROPERTY, trpSets, cw.getToolbar().renderBlackeningsButton);
-		
-		
 				
 //		DataBinder.get().bindBoolBeanValueToToolItemSelection("editingEnabled", canvasSet, cw.getEditingEnabledToolItem());
 		
@@ -1006,10 +999,6 @@ public class TrpMainWidget {
 		db.bindBeanToWidgetSelection(TrpSettings.DELETE_LINE_IF_BASELINE_DELETED_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getDeleteLineIfBaselineDeletedItem());
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SELECT_NEWLY_CREATED_SHAPE_PROPERTY, trpSets, ui.canvasWidget.getToolbar().getSelectNewlyCreatedShapeItem());
-		
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, cw.getShowReadingOrderRegionsMenuItem());
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, cw.getShowReadingOrderLinesMenuItem());
-		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_WORDS_PROPERTY, trpSets, cw.getShowReadingOrderWordsMenuItem());
 		
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_REGIONS_PROPERTY, trpSets, cw.getToolbar().showReadingOrderRegionsButton);
 		db.bindBeanToWidgetSelection(TrpSettings.SHOW_READING_ORDER_LINES_PROPERTY, trpSets, cw.getToolbar().showReadingOrderLinesButton);

@@ -57,6 +57,8 @@ public class DefaultTableColumnViewerSorter extends TableViewerSorter {
 			return 1;
 
 		try {
+//			logger.debug("l1 " + l1);
+//			logger.debug("l2 " + l2);
 			double i1 = Double.parseDouble(l1);
 			double i2 = Double.parseDouble(l2);
 			return Double.compare(i1, i2);
