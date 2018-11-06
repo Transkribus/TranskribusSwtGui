@@ -137,7 +137,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		jFreeChartComp = new ChartComposite(composite, SWT.FILL);
 //		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,15,30));
 		jFreeChartComp.setLayoutData(new GridData(
-				(int) Math.floor(shell.getSize().x / 2.0), 400));
+				(int) Math.floor(shell.getSize().x / 2.2), 300));
 		
 		updateChartOverall();
 	
@@ -151,7 +151,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	
-		overall = new ErrorTableViewer(body, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		overall = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 
 		overall.getTable().setLinesVisible(true);
 
@@ -161,15 +161,15 @@ public class ErrorRateAdvancedStats extends Dialog{
 		TableItem item = new TableItem(table, SWT.NONE);
 		DecimalFormat df = new DecimalFormat("#.###");
 		item.setText(new String[] { "Overall", 
-									resultErr.getWer(),
-									resultErr.getCer(),
-									resultErr.getwAcc(),
-									resultErr.getcAcc(),
+									""+resultErr.getWerDouble()+" %",
+									""+resultErr.getCerDouble()+" %",
+									""+resultErr.getwAccDouble()+" %",
+									""+resultErr.getcAccDouble()+" %",
 									""+df.format(resultErr.getBagTokensFDouble()),
 									""+df.format(resultErr.getBagTokensPrecDouble()),
 									""+df.format(resultErr.getBagTokensFDouble())
 									});
-		overall.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
+		overall.getTable().setLayoutData(new GridData(GridData.CENTER));
 		
 		overall.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -195,11 +195,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		page.getTable().setHeaderVisible(true);
 		
 		GridData gridData = new GridData();
-		gridData.horizontalAlignment = GridData.FILL;
-        gridData.verticalAlignment = GridData.FILL;
-        gridData.grabExcessHorizontalSpace = true;
-        gridData.grabExcessVerticalSpace = true;
-		gridData.heightHint=150;
+		gridData.heightHint=240;
 
 		page.getTable().setLayoutData(gridData);
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
@@ -239,7 +235,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		}
 		
 		
-		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
+		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,false,false);
 		CategoryPlot plot = chart.getCategoryPlot();
 		BarRenderer renderer = (BarRenderer) plot.getRenderer();
 		
@@ -286,7 +282,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		dataset.addValue(100 * page.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Page "+page.getPageNumber());
 		dataset.addValue(100 * resultErr.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Overall");
 		
-		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
+		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,false,false);
 		CategoryPlot plot = chart.getCategoryPlot();
 		BarRenderer renderer = (BarRenderer) plot.getRenderer();
 		plot.setBackgroundPaint(new Color(255,255,255));
