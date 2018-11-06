@@ -75,6 +75,7 @@ public class Images {
 	public static final Image ARROW_UP = getOrLoad("/icons/arrow_up.png");
 	public static final Image ARROW_DOWN = getOrLoad("/icons/arrow_down.png");
 	public static final Image ARROW_LEFT = getOrLoad("/icons/arrow_left.png");
+	public static final Image ARROW_LEFT_RIGHT = getOrLoad("/icons/arrow_left_right.png");
 	public static final Image ARROW_RIGHT = getOrLoad("/icons/arrow_right.png");
 	public static final Image ARROW_UNDO = getOrLoad("/icons/arrow_undo.png");
 	public static final Image ARROW_REDO = getOrLoad("/icons/arrow_redo.png");

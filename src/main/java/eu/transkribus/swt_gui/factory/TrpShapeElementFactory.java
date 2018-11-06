@@ -173,6 +173,7 @@ public class TrpShapeElementFactory {
 		ITrpShapeType trpShape = GuiUtil.getTrpShape(shape);
 		
 		ITrpShapeType copyTrpShape=trpShape.copy();
+		copyTrpShape.setReadingOrder(trpShape.getReadingOrder(), this);
 		
 		// update parent info for trpShape:
 		logger.debug("setting new parent shape: "+GuiUtil.getTrpShape(shape.getParent())+ " shape: "+shape);
