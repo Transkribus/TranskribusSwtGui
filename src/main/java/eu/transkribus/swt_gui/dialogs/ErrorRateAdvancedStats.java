@@ -7,6 +7,7 @@ import java.awt.Paint;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -119,12 +120,12 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected Control createDialogArea(final Composite parent) {
 		
 		this.composite = (Composite) super.createDialogArea(parent);
-		
-		chartComposite();
 
 		errOverallTable();
 		
 		errPageTable();
+		
+		chartComposite();
 		
 		downloadXls();
 		
@@ -158,14 +159,15 @@ public class ErrorRateAdvancedStats extends Dialog{
 		table.setHeaderVisible(true);
 
 		TableItem item = new TableItem(table, SWT.NONE);
+		DecimalFormat df = new DecimalFormat("#.###");
 		item.setText(new String[] { "Overall", 
 									resultErr.getWer(),
 									resultErr.getCer(),
 									resultErr.getwAcc(),
 									resultErr.getcAcc(),
-									""+resultErr.getBagTokensFDouble(),
-									""+resultErr.getBagTokensPrecDouble(),
-									resultErr.getBagTokensF()
+									""+df.format(resultErr.getBagTokensFDouble()),
+									""+df.format(resultErr.getBagTokensPrecDouble()),
+									""+df.format(resultErr.getBagTokensFDouble())
 									});
 		overall.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		
@@ -218,15 +220,24 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
-		for(TrpErrorRateListEntry temp : list) {
-			dataset.addValue(temp.getWerDouble(), "WER", "p."+temp.getPageNumber());
-			dataset.addValue(temp.getCerDouble(), "CER", "p."+temp.getPageNumber());
-//			dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
-//			dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
-//			dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
-//			dataset.addValue(temp.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+temp.getPageNumber());
-//			dataset.addValue(temp.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+temp.getPageNumber());
+		if(list.size() > 10) {
+			for(int i = 0; i < 10; i++) {
+				dataset.addValue(list.get(i).getWerDouble(), "WER", "p."+list.get(i).getPageNumber());
+				dataset.addValue(list.get(i).getCerDouble(), "CER", "p."+list.get(i).getPageNumber());
+			}
 		}
+		else {
+			for(TrpErrorRateListEntry temp : list) {
+				dataset.addValue(temp.getWerDouble(), "WER", "p."+temp.getPageNumber());
+				dataset.addValue(temp.getCerDouble(), "CER", "p."+temp.getPageNumber());
+//				dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
+//				dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
+//				dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
+//				dataset.addValue(temp.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+temp.getPageNumber());
+//				dataset.addValue(temp.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+temp.getPageNumber());
+			}
+		}
+		
 		
 		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
 		CategoryPlot plot = chart.getCategoryPlot();
@@ -289,8 +300,8 @@ public class ErrorRateAdvancedStats extends Dialog{
                 new Color(239, 70, 55),      // red
                 new Color(85, 177, 69),      // green
                 new Color(255, 255, 51),     //yellow
-                new Color(128, 128, 128),   //grey
-                new Color(255, 128, 0),  	  //orange
+                new Color(128, 128, 128),    //grey
+                new Color(255, 128, 0),  	 //orange
                 new Color(178,102,255)
 		};
 
