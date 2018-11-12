@@ -27,6 +27,7 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.ProgramInfo;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -68,6 +69,7 @@ public class BugDialog extends Dialog {
 	public Object open() {		
 
 		createContents();
+		SWTUtil.centerShell(shell);
 		shell.open();
 		shell.layout();
 		Display display = getParent().getDisplay();
