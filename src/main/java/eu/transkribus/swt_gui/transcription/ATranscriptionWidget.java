@@ -205,9 +205,12 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected Point oldTextSelection=new Point(-1, -1);
 	protected Point contextMenuPoint=null;
 	protected Menu contextMenu = null;
-	protected MenuItem deleteTagMenuItem;
-	protected Menu deleteTagMenu;
-	protected MenuItem addCommentTagMenuItem;
+	
+	//protected MenuItem deleteTagMenuItem;
+	//protected Menu deleteTagMenu;
+	//protected MenuItem addCommentTagMenuItem;
+	protected MenuItem contextMenuTagSeperatorItem;
+	protected MenuItem copyMenuItem, pasteMenuItem;
 	
 	protected UndoRedoImpl undoRedo;
 	
@@ -2201,31 +2204,48 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected void initContextMenu() {
 		contextMenu = new Menu(text);
 		
-		MenuItem separatorItem = new MenuItem(contextMenu, SWT.SEPARATOR);
+		copyMenuItem = new MenuItem(contextMenu, SWT.PUSH);
+		copyMenuItem.setText("Copy text");
+		SWTUtil.onSelectionEvent(copyMenuItem, e -> {
+			text.copy();
+		});
 		
+		pasteMenuItem = new MenuItem(contextMenu, SWT.PUSH);
+		pasteMenuItem.setText("Paste text");
+		SWTUtil.onSelectionEvent(pasteMenuItem, e -> {
+			text.paste();
+		});
+		
+		contextMenuTagSeperatorItem = new MenuItem(contextMenu, SWT.SEPARATOR);
+		
+		/*
 		addCommentTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
+		addCommentTagMenuItem.setImage(Images.ADD);
 		addCommentTagMenuItem.setText("Add a comment");
 		SWTUtil.onSelectionEvent(addCommentTagMenuItem, e -> {
 			TrpMainWidget.getInstance().addCommentForSelection(null);
 		});
+		*/
 		
-		deleteTagMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
-		deleteTagMenuItem.setImage(Images.DELETE);
-		deleteTagMenuItem.setText("Delete...");
-		deleteTagMenu = new Menu(deleteTagMenuItem);
-		deleteTagMenuItem.setMenu(deleteTagMenu);		
+//		deleteTagMenuItem = new MenuItem(contextMenu, SWT.CASCADE);
+//		deleteTagMenuItem.setImage(Images.DELETE);
+//		deleteTagMenuItem.setText("Delete...");
+//		deleteTagMenu = new Menu(deleteTagMenuItem);
+//		deleteTagMenuItem.setMenu(deleteTagMenu);		
 		
 		contextMenu.addMenuListener(new MenuListener() {
 			void deleteDynamicMenuItems() {
-				SWTUtil.deleteMenuItems(contextMenu, deleteTagMenuItem, addCommentTagMenuItem, separatorItem);
-				SWTUtil.deleteMenuItems(deleteTagMenu);
+				SWTUtil.deleteMenuItems(contextMenu, copyMenuItem, pasteMenuItem, /*deleteTagMenuItem, addCommentTagMenuItem,*/ contextMenuTagSeperatorItem);
+//				SWTUtil.deleteMenuItems(deleteTagMenu);
 			}
 			
 			@Override
 			public void menuShown(MenuEvent e) {
+				copyMenuItem.setEnabled(text.isTextSelected());
+				
 				deleteDynamicMenuItems();
 				createCustomTagSpecsMenuItems(contextMenu);
-				createDeleteTagsMenuItems(deleteTagMenu);
+				createDeleteTagsMenuItems(contextMenu);
 			}
 			
 			@Override
@@ -2249,16 +2269,19 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	private List<MenuItem> createDeleteTagsMenuItems(Menu menu) {
 		List<MenuItem> items = new ArrayList<>();
+		
 		MenuItem deleteTagsForCurrentSelection = new MenuItem(menu, 0);
-		deleteTagsForCurrentSelection.setText("Tags for current selection");
+		deleteTagsForCurrentSelection.setImage(Images.DELETE_TAG);
+		deleteTagsForCurrentSelection.setText("Delete all tags for current selection");
 		SWTUtil.onSelectionEvent(deleteTagsForCurrentSelection, e -> {
 			TrpMainWidget.getInstance().deleteTagsForCurrentSelection();
 		});
 		
 		for (CustomTag t : getCustomTagsForCurrentOffset()) {
 			MenuItem deleteTagItem = new MenuItem(menu, 0);
+			deleteTagItem.setImage(Images.DELETE_TAG);
 			deleteTagItem.setData(t);
-			deleteTagItem.setText(t.getCssStr());
+			deleteTagItem.setText("Delete tag: "+t.getCssStr());
 			SWTUtil.onSelectionEvent(deleteTagItem, e -> {
 				TrpMainWidget.getInstance().deleteTags((CustomTag) deleteTagItem.getData());
 			});
@@ -2271,17 +2294,19 @@ public abstract class ATranscriptionWidget extends Composite{
 		List<MenuItem> items = new ArrayList<>();
 		
 		// create menu items for tag specs:
-		int i = 0;
+//		int i = contextMenu.indexOf(contextMenuTagSeperatorItem)+1;
 		for (CustomTagSpec spec : Storage.getInstance().getCustomTagSpecs()) {
-			MenuItem tagItem = new MenuItem(menu, SWT.PUSH, i++);
+			MenuItem tagItem = new MenuItem(menu, SWT.PUSH/*, i++*/);
+			tagItem.setImage(Images.ADD_TAG);
 			tagItem.setText(spec.getCustomTag().getCssStr());
 			tagItem.addSelectionListener(new TagSpecMenuItemListener(spec));
 			items.add(tagItem);
 		}
 		
 		// create sub menu for all tags:
-		MenuItem allTagsItem = new MenuItem(contextMenu, SWT.CASCADE, i++);
+		MenuItem allTagsItem = new MenuItem(contextMenu, SWT.CASCADE/*, i++*/);
 		allTagsItem.setText("All tags");
+		allTagsItem.setImage(Images.ADD_TAG);
 		Menu allTagsMenu = new Menu(allTagsItem);
 		allTagsItem.setMenu(allTagsMenu);
 		items.add(allTagsItem);
@@ -2293,6 +2318,13 @@ public abstract class ATranscriptionWidget extends Composite{
 				tagItem.addSelectionListener(new TagSpecMenuItemListener(tagName));
 			}
 		}
+		
+		MenuItem addCommentTagMenuItem = new MenuItem(contextMenu, SWT.PUSH);
+		addCommentTagMenuItem.setImage(Images.ADD_TAG);
+		addCommentTagMenuItem.setText("Add a comment");
+		SWTUtil.onSelectionEvent(addCommentTagMenuItem, e -> {
+			TrpMainWidget.getInstance().addCommentForSelection(null);
+		});		
 		
 		return items;
 	}
