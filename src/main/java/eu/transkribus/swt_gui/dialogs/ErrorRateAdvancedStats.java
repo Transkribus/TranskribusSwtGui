@@ -70,6 +70,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 
 	private TrpErrorRate resultErr;
 	private Composite composite;
+	Composite bodyChart;
 	Storage store;
 	Shell shell;
 	
@@ -83,7 +84,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	CTabItem clientExportItem;
 	CTabItem serverExportItem;
 
-	private Button wikiErrButton, wikiFmeaButton, downloadXLS;
+	private Button wikiErrButton, wikiFmeaButton, downloadXLS, scrollButton;
 	ErrorTableLabelProvider labelProvider;
 	Menu contextMenu;
 
@@ -133,11 +134,13 @@ public class ErrorRateAdvancedStats extends Dialog{
 	}
 	
 	private void chartComposite() {
-		
-		jFreeChartComp = new ChartComposite(composite, SWT.FILL);
-//		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,15,30));
-		jFreeChartComp.setLayoutData(new GridData(
-				(int) Math.floor(shell.getSize().x / 2.2), 300));
+		bodyChart = new Composite(composite,SWT.NONE);
+		bodyChart.setLayout(new GridLayout(2,false));
+		bodyChart.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,true));
+		jFreeChartComp = new ChartComposite(bodyChart, SWT.FILL);
+		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 0, 50));
+		//jFreeChartComp.setLayoutData(new GridData(
+		//	(int) Math.floor(shell.getSize().x / 2), 300));
 		
 		updateChartOverall();
 	
@@ -203,7 +206,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		page.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-			
+				scrollButton.setVisible(false);
 				TableItem[] selection = page.getTable().getSelection();
 				updateChart(selection);
 			}
@@ -212,15 +215,32 @@ public class ErrorRateAdvancedStats extends Dialog{
 	}
 	
 	private void updateChartOverall() {
+		
+		
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
-		if(list.size() > 10) {
-			for(int i = 0; i < 10; i++) {
+		if(list.size() > 10 ) {
+			scrollButton = new Button(bodyChart,SWT.PUSH);
+			scrollButton.setText("Show all");
+			scrollButton.setVisible(true);
+			bodyChart.layout(true,true);
+			for(int i= 0; i < 10; i++) {
 				dataset.addValue(list.get(i).getWerDouble(), "WER", "p."+list.get(i).getPageNumber());
 				dataset.addValue(list.get(i).getCerDouble(), "CER", "p."+list.get(i).getPageNumber());
 			}
+			scrollButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					for(int i = 0; i < list.size(); i++) {
+						dataset.addValue(list.get(i).getWerDouble(), "WER", "p."+list.get(i).getPageNumber());
+						dataset.addValue(list.get(i).getCerDouble(), "CER", "p."+list.get(i).getPageNumber());
+					}
+					
+				}
+				
+			});
 		}
 		else {
 			for(TrpErrorRateListEntry temp : list) {
@@ -264,6 +284,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 	}
 	
 	protected void updateChart(TableItem[] selection) {
+		
+		scrollButton.setVisible(false);
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		TrpErrorRateListEntry page = (TrpErrorRateListEntry) selection[0].getData();
 		
