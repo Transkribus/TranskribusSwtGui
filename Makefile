@@ -12,10 +12,13 @@ else
  mvn_test_flags = -Dmaven.test.skip=true
 endif
 
-all: pdfutils core client gui
+all: pdfutils intf core client gui
 
 pdfutils:
 	$(mvn) clean install -f ../PdfUtils/pom.xml $(mvn_test_flags)
+
+intf:
+	$(mvn) clean install -f ../TranskribusInterfaces/pom.xml -Dmaven.test.skip=true
 
 core:	
 	$(mvn) clean install -f ../TranskribusCore/pom.xml $(mvn_test_flags)
