@@ -65,7 +65,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private CTabFolder tabFolder;
 	private CTabItem advanceCompare;
 	private CTabItem quickCompare;
-	private CTabItem sampleCompare;
 	private KwsResultTableWidget resultTable;
 	private Group resultGroup;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
@@ -107,7 +106,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		this.composite = (Composite) super.createDialogArea(parent);
 		
-		sashFormOverall = new SashForm(this.composite,SWT.NONE);
+		sashFormOverall = new SashForm(composite,SWT.VERTICAL);
 		
 		tabFolder = new CTabFolder(sashFormOverall,SWT.NONE);
 		
@@ -118,9 +117,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		advanceCompare = new CTabItem(tabFolder,SWT.NONE);
 		advanceCompare.setText("Advanced Compare");
-		
-		sampleCompare = new CTabItem(tabFolder,SWT.NONE);
-		sampleCompare.setText("Samples Compare");
 		
 		createConfig();
 		
@@ -237,7 +233,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		GridLayout groupLayout = new GridLayout(1, true);
 		GridData groupGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-		groupGridData.heightHint = 350;
 		
 		
 		resultGroup = new Group(jobs, SWT.FILL);
