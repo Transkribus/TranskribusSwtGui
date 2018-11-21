@@ -7,6 +7,7 @@ import java.awt.Paint;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -40,11 +42,16 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.entity.EntityCollection;
+import org.jfree.chart.labels.CategoryToolTipGenerator;
+import org.jfree.chart.labels.StandardCategoryToolTipGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.swt.ChartComposite;
+import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +70,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 
 	private TrpErrorRate resultErr;
 	private Composite composite;
+	Composite bodyChart;
 	Storage store;
 	Shell shell;
 	
@@ -76,7 +84,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	CTabItem clientExportItem;
 	CTabItem serverExportItem;
 
-	private Button wikiErrButton, wikiFmeaButton, downloadXLS;
+	private Button wikiErrButton, wikiFmeaButton, downloadXLS, scrollButton;
 	ErrorTableLabelProvider labelProvider;
 	Menu contextMenu;
 
@@ -113,12 +121,12 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected Control createDialogArea(final Composite parent) {
 		
 		this.composite = (Composite) super.createDialogArea(parent);
-		
-		chartComposite();
 
 		errOverallTable();
 		
 		errPageTable();
+		
+		chartComposite();
 		
 		downloadXls();
 		
@@ -126,9 +134,14 @@ public class ErrorRateAdvancedStats extends Dialog{
 	}
 	
 	private void chartComposite() {
+		bodyChart = new Composite(composite,SWT.NONE);
+		bodyChart.setLayout(new GridLayout(2,false));
+		bodyChart.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,true));
+		jFreeChartComp = new ChartComposite(bodyChart, SWT.FILL);
+		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 0, 50));
+		//jFreeChartComp.setLayoutData(new GridData(
+		//	(int) Math.floor(shell.getSize().x / 2), 300));
 		
-		jFreeChartComp = new ChartComposite(composite, SWT.FILL);
-		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 15, 30));
 		updateChartOverall();
 	
 	}
@@ -141,7 +154,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	
-		overall = new ErrorTableViewer(body, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		overall = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 
 		overall.getTable().setLinesVisible(true);
 
@@ -149,16 +162,17 @@ public class ErrorRateAdvancedStats extends Dialog{
 		table.setHeaderVisible(true);
 
 		TableItem item = new TableItem(table, SWT.NONE);
+		DecimalFormat df = new DecimalFormat("#.###");
 		item.setText(new String[] { "Overall", 
-									resultErr.getWer(),
-									resultErr.getCer(),
-									resultErr.getwAcc(),
-									resultErr.getcAcc(),
-									""+resultErr.getBagTokensFDouble(),
-									""+resultErr.getBagTokensPrecDouble(),
-									resultErr.getBagTokensF()
+									""+resultErr.getWerDouble()+" %",
+									""+resultErr.getCerDouble()+" %",
+									""+resultErr.getwAccDouble()+" %",
+									""+resultErr.getcAccDouble()+" %",
+									""+df.format(resultErr.getBagTokensFDouble()),
+									""+df.format(resultErr.getBagTokensPrecDouble()),
+									""+df.format(resultErr.getBagTokensFDouble())
 									});
-		overall.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
+		overall.getTable().setLayoutData(new GridData(GridData.CENTER));
 		
 		overall.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -175,21 +189,24 @@ public class ErrorRateAdvancedStats extends Dialog{
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	
-		page = new ErrorTableViewer(body, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		page = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		page.getTable().setLinesVisible(true);
 		page.setContentProvider(new ArrayContentProvider());
 		labelProvider = new ErrorTableLabelProvider(page);
 		page.setLabelProvider(labelProvider);
 
 		page.getTable().setHeaderVisible(true);
+		
+		GridData gridData = new GridData();
+		gridData.heightHint=240;
 
-		page.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
+		page.getTable().setLayoutData(gridData);
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
 			
 		page.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-			
+				scrollButton.setVisible(false);
 				TableItem[] selection = page.getTable().getSelection();
 				updateChart(selection);
 			}
@@ -198,23 +215,50 @@ public class ErrorRateAdvancedStats extends Dialog{
 	}
 	
 	private void updateChartOverall() {
+		
+		
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
-		for(TrpErrorRateListEntry temp : list) {
-			dataset.addValue(temp.getWerDouble(), "WER", "Page "+temp.getPageNumber());
-			dataset.addValue(temp.getCerDouble(), "CER", "Page "+temp.getPageNumber());
-//			dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
-//			dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
-//			dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
-//			dataset.addValue(temp.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+temp.getPageNumber());
-//			dataset.addValue(temp.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+temp.getPageNumber());
+		if(list.size() > 10 ) {
+			scrollButton = new Button(bodyChart,SWT.PUSH);
+			scrollButton.setText("Show all");
+			scrollButton.setVisible(true);
+			bodyChart.layout(true,true);
+			for(int i= 0; i < 10; i++) {
+				dataset.addValue(list.get(i).getWerDouble(), "WER", "p."+list.get(i).getPageNumber());
+				dataset.addValue(list.get(i).getCerDouble(), "CER", "p."+list.get(i).getPageNumber());
+			}
+			scrollButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					for(int i = 0; i < list.size(); i++) {
+						dataset.addValue(list.get(i).getWerDouble(), "WER", "p."+list.get(i).getPageNumber());
+						dataset.addValue(list.get(i).getCerDouble(), "CER", "p."+list.get(i).getPageNumber());
+					}
+					
+				}
+				
+			});
+		}
+		else {
+			for(TrpErrorRateListEntry temp : list) {
+				dataset.addValue(temp.getWerDouble(), "WER", "p."+temp.getPageNumber());
+				dataset.addValue(temp.getCerDouble(), "CER", "p."+temp.getPageNumber());
+//				dataset.addValue(temp.getwAccDouble(), "Word Accuracy", "Page "+temp.getPageNumber());
+//				dataset.addValue(temp.getcAccDouble(), "Char Accuracy", "Page "+temp.getPageNumber());
+//				dataset.addValue(temp.getBagTokensPrecDouble(), "Bag Tokens Precision", "Page "+temp.getPageNumber());
+//				dataset.addValue(temp.getBagTokensRecDouble(), "Bag Tokens Recall", "Page "+temp.getPageNumber());
+//				dataset.addValue(temp.getBagTokensFDouble(), "Bag Tokens F-Measure", "Page "+temp.getPageNumber());
+			}
 		}
 		
-		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
+		
+		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,false,false);
 		CategoryPlot plot = chart.getCategoryPlot();
 		BarRenderer renderer = (BarRenderer) plot.getRenderer();
+		
 		plot.setBackgroundPaint(new Color(255,255,255));
 		plot.setRangeGridlinePaint(Color.black);
 		plot.setOutlineVisible(false);
@@ -240,6 +284,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 	}
 	
 	protected void updateChart(TableItem[] selection) {
+		
+		scrollButton.setVisible(false);
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		TrpErrorRateListEntry page = (TrpErrorRateListEntry) selection[0].getData();
 		
@@ -258,7 +304,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		dataset.addValue(100 * page.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Page "+page.getPageNumber());
 		dataset.addValue(100 * resultErr.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Overall");
 		
-		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,true,false);
+		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,false,false);
 		CategoryPlot plot = chart.getCategoryPlot();
 		BarRenderer renderer = (BarRenderer) plot.getRenderer();
 		plot.setBackgroundPaint(new Color(255,255,255));
@@ -272,8 +318,8 @@ public class ErrorRateAdvancedStats extends Dialog{
                 new Color(239, 70, 55),      // red
                 new Color(85, 177, 69),      // green
                 new Color(255, 255, 51),     //yellow
-                new Color(128, 128, 128),   //grey
-                new Color(255, 128, 0),  	  //orange
+                new Color(128, 128, 128),    //grey
+                new Color(255, 128, 0),  	 //orange
                 new Color(178,102,255)
 		};
 

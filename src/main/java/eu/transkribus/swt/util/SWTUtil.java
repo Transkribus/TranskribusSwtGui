@@ -730,6 +730,10 @@ public class SWTUtil {
 	}
 	
 	public static void centerShell(Shell shell) {
+		if (isDisposed(shell)) {
+			return;
+		}
+		
 		Display display = shell.getDisplay();
 
 		Monitor primary = display.getPrimaryMonitor();

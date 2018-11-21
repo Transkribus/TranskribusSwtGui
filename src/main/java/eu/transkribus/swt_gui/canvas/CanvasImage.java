@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.swt.util.CanvasTransform;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.ImgLoader;
@@ -195,6 +196,15 @@ final public class CanvasImage {
 		}
 	}
 	
+	private void drawImage(GC gc, SWTCanvas canvas) {
+		if (SysUtils.IS_WINDOWS) {
+			drawImageFromSeparateGC(gc, canvas);	
+		}
+		else {
+			gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS (uses GDI+ which is not hardware accelerated)	
+		}
+	}
+	
 	private void drawImageFromSeparateGC(GC gc, SWTCanvas canvas) {
 		// TODO: apply rotation directly on image also - for now, if rotated, draw image the usual way (which is slow on windows!)
 		if (!CoreUtils.equalsEps(0.0f, canvas.getPersistentTransform().getAngleDeg(), 1e-4)) {
@@ -291,15 +301,12 @@ final public class CanvasImage {
 				CanvasTransform myT = canvas.getTransformCopy();
 				myT.scale(1.0f/internalScalingFactor, 1.0f/internalScalingFactor); // revert internal scaling!
 				gc.setTransform(myT);
-
-				drawImageFromSeparateGC(gc, canvas);
-//				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS (uses GDI+ which is not hardware accelerated)
+				drawImage(gc, canvas);
 				gc.setTransform(canvas.getPersistentTransform());
 				myT.dispose();
 			}
 			else if (img != null && !img.isDisposed()) {
-				drawImageFromSeparateGC(gc, canvas);
-//				gc.drawImage(img, 0, 0); // VERY SLOW ON WINDOWS (uses GDI+ which is not hardware accelerated)
+				drawImage(gc, canvas);
 			}
 		}
 		catch (Throwable e) {
