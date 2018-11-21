@@ -30,6 +30,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -106,7 +107,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		this.resultErr = resultErr;
 		this.lastExportFolder = "";
 		this.docName = "DocId_"+docId;
-		setShellStyle(getShellStyle() | SWT.RESIZE);
+		setShellStyle(getShellStyle() | SWT.MIN | SWT.MAX |SWT.RESIZE);
 
 		
 	}
@@ -121,7 +122,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected Control createDialogArea(final Composite parent) {
 		
 		this.composite = (Composite) super.createDialogArea(parent);
-
+		
 		errOverallTable();
 		
 		errPageTable();
@@ -138,7 +139,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		bodyChart.setLayout(new GridLayout(2,false));
 		bodyChart.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,true));
 		jFreeChartComp = new ChartComposite(bodyChart, SWT.FILL);
-		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 0, 50));
+		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 0, 60));
 		//jFreeChartComp.setLayoutData(new GridData(
 		//	(int) Math.floor(shell.getSize().x / 2), 300));
 		
@@ -188,6 +189,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+		
 	
 		page = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		page.getTable().setLinesVisible(true);
@@ -198,7 +200,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		page.getTable().setHeaderVisible(true);
 		
 		GridData gridData = new GridData();
-		gridData.heightHint=240;
+		gridData.heightHint=230;
 
 		page.getTable().setLayoutData(gridData);
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
@@ -218,7 +220,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-		
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
 		if(list.size() > 10 ) {
@@ -233,6 +234,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 			scrollButton.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
+					
 					for(int i = 0; i < list.size(); i++) {
 						dataset.addValue(list.get(i).getWerDouble(), "WER", "p."+list.get(i).getPageNumber());
 						dataset.addValue(list.get(i).getCerDouble(), "CER", "p."+list.get(i).getPageNumber());
