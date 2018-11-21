@@ -135,7 +135,8 @@ public class TextRecognitionComposite extends Composite {
 		
 		if (showModelBtn){
 			modelsBtn.setParent(this);
-			modelsBtn.moveAbove(runBtn);
+			runBtn.moveBelow(modelsBtn);
+			//modelsBtn.moveAbove(runBtn);
 		}
 		else {
 			modelsBtn.setParent(SWTUtil.dummyShell);
@@ -144,14 +145,17 @@ public class TextRecognitionComposite extends Composite {
 		if (showTrainBtn) {
 			trainBtn.setParent(this);
 //			runBtn.moveBelow(trainBtn);
-			trainBtn.moveAbove(runBtn);
+			runBtn.moveBelow(trainBtn);
+			//trainBtn.moveAbove(runBtn);
 		} else {
 			trainBtn.setParent(SWTUtil.dummyShell);
 		}
 		
 
-				
-		this.layout();
+		this.layout(true, true);
+		this.pack();
+		this.redraw();
+		
 		logger.info("parent: "+getParent());
 		getParent().layout();
 	}
