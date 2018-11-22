@@ -131,17 +131,20 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		downloadXls();
 		
+		
 		return composite;
 	}
 	
 	private void chartComposite() {
 		bodyChart = new Composite(composite,SWT.NONE);
-		bodyChart.setLayout(new GridLayout(2,false));
+		bodyChart.setLayout(new GridLayout(1,false));
 		bodyChart.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,true));
 		jFreeChartComp = new ChartComposite(bodyChart, SWT.FILL);
 		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 0, 60));
-		//jFreeChartComp.setLayoutData(new GridData(
-		//	(int) Math.floor(shell.getSize().x / 2), 300));
+		if(resultErr.getList().size() > 10) {
+			scrollButton = new Button(bodyChart,SWT.PUSH);
+			scrollButton.setText("Show all results");
+		}
 		
 		updateChartOverall();
 	
@@ -153,9 +156,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 		Composite body = new Composite(composite,SWT.NONE);
 		
 		body.setLayout(new GridLayout(1,false));
-		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+		body.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,true));
 	
-		overall = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+		overall = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FILL);
 
 		overall.getTable().setLinesVisible(true);
 
@@ -188,10 +191,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 		Composite body = new Composite(composite,SWT.NONE);
 		
 		body.setLayout(new GridLayout(1,false));
-		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+		body.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,true));
 		
 	
-		page = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+		page = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FILL);
 		page.getTable().setLinesVisible(true);
 		page.setContentProvider(new ArrayContentProvider());
 		labelProvider = new ErrorTableLabelProvider(page);
@@ -209,7 +212,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				if(resultErr.getList().size() > 10) {
-					scrollButton.setVisible(false);
+					scrollButton.setEnabled(false);
 				}
 				TableItem[] selection = page.getTable().getSelection();
 				updateChart(selection);
@@ -225,9 +228,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
 		if(list.size() > 10 ) {
-			scrollButton = new Button(bodyChart,SWT.PUSH);
-			scrollButton.setText("Show all");
-			scrollButton.setVisible(true);
+			scrollButton.setEnabled(true);
 			bodyChart.layout(true,true);
 			for(int i= 0; i < 10; i++) {
 				dataset.addValue(list.get(i).getWerDouble(), "WER", "p."+list.get(i).getPageNumber());
