@@ -22,6 +22,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -91,7 +92,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		super(parentShell);
 		store = Storage.getInstance();
 		rl = new ResultLoader();
-		setShellStyle(getShellStyle() | SWT.RESIZE);
+		setShellStyle(getShellStyle());
 
 	}
 	
@@ -112,8 +113,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		sashFormAdvance = new SashForm(tabFolder,SWT.VERTICAL);
 		
-		quickCompare = new CTabItem(tabFolder,SWT.NONE);
-		quickCompare.setText("Quick Compare");
+//		quickCompare = new CTabItem(tabFolder,SWT.NONE);
+//		quickCompare.setText("Quick Compare");
 		
 		advanceCompare = new CTabItem(tabFolder,SWT.NONE);
 		advanceCompare.setText("Advanced Compare");
@@ -124,7 +125,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		createJobTable();
 		
-		createQuickTab();
+//		createQuickTab();
 		
 		rl.start();
 		this.composite.addDisposeListener(new DisposeListener() {
@@ -203,24 +204,24 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		};
 		store.addListener(storageListener);
 		
-		computeWerBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				super.widgetSelected(e);
-
-				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) refVersionChooser.selectedMd;
-				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
-
-				if (ref != null && hyp != null) {
-					params.addIntParam("option", -1);
-						try {
-							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
-						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
-							e1.printStackTrace();
-						}
-				}
-			}
-		});
+//		computeWerBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				super.widgetSelected(e);
+//
+//				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) refVersionChooser.selectedMd;
+//				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
+//
+//				if (ref != null && hyp != null) {
+//					params.addIntParam("option", -1);
+//						try {
+//							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
+//						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
+//							e1.printStackTrace();
+//						}
+//				}
+//			}
+//		});
 		
 	}
 
