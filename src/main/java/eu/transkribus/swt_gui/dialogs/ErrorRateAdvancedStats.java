@@ -208,7 +208,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 		page.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				scrollButton.setVisible(false);
+				if(resultErr.getList().size() > 10) {
+					scrollButton.setVisible(false);
+				}
 				TableItem[] selection = page.getTable().getSelection();
 				updateChart(selection);
 			}
@@ -287,7 +289,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 	
 	protected void updateChart(TableItem[] selection) {
 		
-		scrollButton.setVisible(false);
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		TrpErrorRateListEntry page = (TrpErrorRateListEntry) selection[0].getData();
 		
