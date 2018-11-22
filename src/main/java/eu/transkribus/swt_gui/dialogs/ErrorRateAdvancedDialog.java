@@ -92,7 +92,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		super(parentShell);
 		store = Storage.getInstance();
 		rl = new ResultLoader();
-		setShellStyle(getShellStyle());
+		setShellStyle(getShellStyle() | SWT.RESIZE);
 
 	}
 	
@@ -108,6 +108,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		this.composite = (Composite) super.createDialogArea(parent);
 		
 		sashFormOverall = new SashForm(composite,SWT.VERTICAL);
+		sashFormOverall.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
 		tabFolder = new CTabFolder(sashFormOverall,SWT.NONE);
 		
