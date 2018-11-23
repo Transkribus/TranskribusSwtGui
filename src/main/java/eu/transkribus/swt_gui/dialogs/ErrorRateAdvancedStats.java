@@ -30,6 +30,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -106,7 +107,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		this.resultErr = resultErr;
 		this.lastExportFolder = "";
 		this.docName = "DocId_"+docId;
-		setShellStyle(getShellStyle() | SWT.RESIZE);
+		setShellStyle(getShellStyle() | SWT.MIN | SWT.MAX |SWT.RESIZE);
 
 		
 	}
@@ -121,7 +122,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected Control createDialogArea(final Composite parent) {
 		
 		this.composite = (Composite) super.createDialogArea(parent);
-
+		
 		errOverallTable();
 		
 		errPageTable();
@@ -130,17 +131,20 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		downloadXls();
 		
+		
 		return composite;
 	}
 	
 	private void chartComposite() {
 		bodyChart = new Composite(composite,SWT.NONE);
-		bodyChart.setLayout(new GridLayout(2,false));
+		bodyChart.setLayout(new GridLayout(1,false));
 		bodyChart.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,true));
 		jFreeChartComp = new ChartComposite(bodyChart, SWT.FILL);
-		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 0, 50));
-		//jFreeChartComp.setLayoutData(new GridData(
-		//	(int) Math.floor(shell.getSize().x / 2), 300));
+		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 0, 60));
+		if(resultErr.getList().size() > 10) {
+			scrollButton = new Button(bodyChart,SWT.PUSH);
+			scrollButton.setText("Show all results");
+		}
 		
 		updateChartOverall();
 	
@@ -152,9 +156,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 		Composite body = new Composite(composite,SWT.NONE);
 		
 		body.setLayout(new GridLayout(1,false));
-		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+		body.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,true));
 	
-		overall = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+		overall = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FILL);
 
 		overall.getTable().setLinesVisible(true);
 
@@ -187,9 +191,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 		Composite body = new Composite(composite,SWT.NONE);
 		
 		body.setLayout(new GridLayout(1,false));
-		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+		body.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,true));
+		
 	
-		page = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+		page = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FILL);
 		page.getTable().setLinesVisible(true);
 		page.setContentProvider(new ArrayContentProvider());
 		labelProvider = new ErrorTableLabelProvider(page);
@@ -198,7 +203,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		page.getTable().setHeaderVisible(true);
 		
 		GridData gridData = new GridData();
-		gridData.heightHint=240;
+		gridData.heightHint=230;
 
 		page.getTable().setLayoutData(gridData);
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
@@ -206,7 +211,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 		page.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				scrollButton.setVisible(false);
+				if(resultErr.getList().size() > 10) {
+					scrollButton.setEnabled(false);
+				}
 				TableItem[] selection = page.getTable().getSelection();
 				updateChart(selection);
 			}
@@ -218,13 +225,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-		
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
 		if(list.size() > 10 ) {
-			scrollButton = new Button(bodyChart,SWT.PUSH);
-			scrollButton.setText("Show all");
-			scrollButton.setVisible(true);
+			scrollButton.setEnabled(true);
 			bodyChart.layout(true,true);
 			for(int i= 0; i < 10; i++) {
 				dataset.addValue(list.get(i).getWerDouble(), "WER", "p."+list.get(i).getPageNumber());
@@ -233,6 +237,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 			scrollButton.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
+					
 					for(int i = 0; i < list.size(); i++) {
 						dataset.addValue(list.get(i).getWerDouble(), "WER", "p."+list.get(i).getPageNumber());
 						dataset.addValue(list.get(i).getCerDouble(), "CER", "p."+list.get(i).getPageNumber());
@@ -285,7 +290,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 	
 	protected void updateChart(TableItem[] selection) {
 		
-		scrollButton.setVisible(false);
 		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 		TrpErrorRateListEntry page = (TrpErrorRateListEntry) selection[0].getData();
 		

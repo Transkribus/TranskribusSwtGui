@@ -296,12 +296,14 @@ public class ToolsWidgetListener implements SelectionListener {
 
 				if (ref != null && hyp != null) {
 					
-						logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
-						final String result = store.computeWer(ref, hyp);
-						MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);
-						mb.setText("Result");
-						mb.setMessage(result);
-						mb.open();
+					logger.debug("Computing WER: " + ref.getKey() + " - " + hyp.getKey());
+					TrpErrorRateResult result = store.computeErrorRate(ref, hyp);
+					final String resultText = "Word Error Rate:\n"+ result.getWerDouble()+"\n Character Error Rate:\n"+result.getCerDouble();
+					MessageBox mb = new MessageBox(TrpMainWidget.getInstance().getShell(), SWT.ICON_INFORMATION | SWT.OK);	
+					mb.setText("Result");
+					mb.setMessage(resultText);
+					mb.open();
+					
 				}
 				
 			} else if (s == tw.computeAdvancedBtn) {
