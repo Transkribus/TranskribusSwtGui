@@ -23,13 +23,12 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
-import com.drew.metadata.exif.ExifIFD0Directory;
 
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.interfaces.types.util.TrpImgMdParser;
+import eu.transkribus.interfaces.types.util.TrpImgMdParser.ImageTransformation;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 
 public class ImgLoader {
@@ -40,22 +39,6 @@ public class ImgLoader {
 	public static boolean TRY_LOAD_IMAGES_WITH_JFACE_FIRST = true;
 	public static boolean LOAD_LOCAL_IMAGES_WITH_JAI = false;
 	
-	public static int readExifOrientation(URL url) throws ImageProcessingException, IOException, MetadataException {
-		Metadata metadata = ImageMetadataReader.readMetadata(url.openStream());
-		ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-        return exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
-	}
-	
-	public static int readExifOrientation2(URL url) {
-		try {
-			return readExifOrientation(url);
-		}
-		catch (Exception e) {
-			//logger.error("Cannot read exif orientation field: "+e.getMessage()+" - returning -1");
-			return -1;
-		}
-	}
-	
 	/**
 	 * Fixes the orientation of the input image according to the given EXIF orientation tag.<br/>
 	 * <em>The original image is disposed if a transformation is performed!</em><br/>
@@ -63,13 +46,12 @@ public class ImgLoader {
 	 * @param url
 	 * @return
 	 */
-	public static Image fixOrientation(Image img, URL url) {
-		int orientation = readExifOrientation2(url);
-		if (orientation < 2 || orientation > 8) {
+	public static Image fixOrientation(Image img, int exifOrientation) {
+		if (exifOrientation < 2 || exifOrientation > 8) {
 			return img;
 		}
 		
-		logger.debug("fixing exif image orientation, value of orientation tag = "+orientation);
+		logger.debug("fixing exif image orientation, value of orientation tag = "+exifOrientation);
 		
 		int origWidth = img.getImageData().width;
 		int origHeight = img.getImageData().height;
@@ -78,7 +60,7 @@ public class ImgLoader {
 		int returnWidth = origWidth;
 		int returnHeight = origHeight;
 		
-	    switch (orientation) {
+	    switch (exifOrientation) {
 		    case 2: // Flip X
 		    	t.scale(-1.0f, 1.0f);
 		        t.translate(-origWidth, 0);
@@ -131,7 +113,38 @@ public class ImgLoader {
 	    return returnImg;
 	}
 	
+	/**
+	 * Loads an image from a URL, checks the EXIF data for an orientation value and orients the image correctly.
+	 * If the caller needs to be aware of the transformation done, it should use {@link TrpImgMdParser#readImageDimension(URL)} 
+	 * to get the {@link ImageTransformation} and then call {@link #load(URL, ImageTransformation)}.
+	 *  
+	 * @param url
+	 * @param transformation
+	 * @return the {@link Image}
+	 * @throws IOException
+	 */
 	public static Image load(URL url) throws IOException {
+		ImageTransformation transformation;
+		try {
+			transformation = TrpImgMdParser.readImageDimension(url);
+		} catch (ImageProcessingException | MetadataException e) {
+			logger.debug("Could not read metadata for : " + url);
+			transformation = null;
+		}
+		return load(url, transformation);
+	}
+	
+	/**
+	 * Loads an image from a URL.
+	 * If the {@link ImageTransformation} is not null, the EXIF orientation value included will be taken into account for orienting the image.
+	 * The transformation object can be obtained by {@link TrpImgMdParser#readImageDimension(URL)}.
+	 * 
+	 * @param url
+	 * @param transformation
+	 * @return the {@link Image}
+	 * @throws IOException
+	 */
+	public static Image load(URL url, ImageTransformation transformation) throws IOException {
 		String prot = url.getProtocol() == null ? "" : url.getProtocol();
 		boolean isLocal = prot.startsWith("file");
 
@@ -148,14 +161,11 @@ public class ImgLoader {
 			logger.debug("loading image with jai");
 			img = loadWithJAI(url);
 		}
-		
-		/*
-		 * no fixOrientation because of https://github.com/Transkribus/TranskribusSwtGui/issues/208
-		 * -> mismatch of image on server and image represented in GUI 
-		 * -> tools use image as it is on server (do not use exif data)
-		 */
-		//img = fixOrientation(img, url);
-		return img;
+		if(transformation == null) {
+			return img;
+		} else {
+			return fixOrientation(img, transformation.getExifOrientation());
+		}
 	}
 	
 	/**

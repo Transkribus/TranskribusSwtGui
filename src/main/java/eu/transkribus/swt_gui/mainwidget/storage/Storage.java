@@ -115,6 +115,7 @@ import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
+import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.ProxyUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.AsyncCallback;
@@ -259,8 +260,12 @@ public class Storage {
 		} else {
 			JAXBPageTranscript tr = new JAXBPageTranscript(md);
 			tr.build();
+			if(currentImg != null && currentImg.getTransformation() != null) {
+				PageXmlUtils.checkAndFixXmlOrientation(currentImg.getTransformation(), tr.getPageData());
+				//enable this if user is to be asked to save on orientation fix.
+//				setCurrentTranscriptEdited(true);
+			}
 			return tr.getPage();
-//			return TrpPageTranscriptBuilder.build(md);
 		}
 		
 	}

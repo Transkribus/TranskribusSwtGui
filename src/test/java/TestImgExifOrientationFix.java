@@ -12,6 +12,8 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
 
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.interfaces.types.util.TrpImgMdParser;
+import eu.transkribus.interfaces.types.util.TrpImgMdParser.ImageTransformation;
 import eu.transkribus.swt.util.ImgLoader;
 
 public class TestImgExifOrientationFix {
@@ -50,7 +52,8 @@ public class TestImgExifOrientationFix {
 		System.out.println("w x h = "+img.getImageData().width+" x "+img.getImageData().height);
 	        if (true) {
 	        	sw.start();
-	        	img = ImgLoader.fixOrientation(img, imgUrl);
+	        	ImageTransformation t = TrpImgMdParser.readImageDimension(imgUrl);
+	        	img = ImgLoader.fixOrientation(img, t.getExifOrientation());
 	        	sw.stop();
 	        	
 	        	Shell shell = new Shell (Display.getDefault());
