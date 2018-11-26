@@ -615,5 +615,6 @@ CHANGES AND BUGFIXES
 	
 1.5.4
 	-> bugfix: broken image display on Linux systems
+	-> enhancement/bugfix: remove unused jars from libs folder on program start
 	
 	
