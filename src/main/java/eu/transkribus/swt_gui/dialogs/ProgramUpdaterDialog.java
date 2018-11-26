@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -123,6 +124,7 @@ public class ProgramUpdaterDialog {
 	}
 	
 	public static List<String> getClassPathFromManifest() {
+		JarFile jarFile = null;
 		try {
 			final String MANIFEST_PATH = "/META-INF/MANIFEST.MF";
 			URL url = TrpMainWidget.class.getProtectionDomain().getCodeSource().getLocation();
@@ -136,19 +138,32 @@ public class ProgramUpdaterDialog {
 			}
 			else { // we have a jar file
 				logger.info("jar file: "+url.getPath());
-				InputStream is = TrpMainWidget.class.getResourceAsStream(MANIFEST_PATH);
+				jarFile = new JarFile(jarFilePath);
+				manifest = jarFile.getManifest();
+				
+//				InputStream is = TrpMainWidget.class.getResourceAsStream(MANIFEST_PATH);
 //				InputStream is = url.openStream();
-				manifest = new Manifest(is);
+//				manifest = new Manifest(is);
 			}
 			
 			Attributes attr = manifest.getMainAttributes();
 			String classPath = attr.getValue("Class-Path");
 			logger.info("Class-Path = "+classPath);
 			
+			
 			return Arrays.asList(classPath.split(" "));
 		} catch (Exception e) {
 			logger.error("Error parsing classpath from jar: "+e.getMessage(), e);
 			return null;
+		}
+		finally {
+			if (jarFile != null) {
+				try {
+					jarFile.close();
+				} catch (IOException e) {
+					logger.error("Error closing jar file: "+e.getMessage(), e);
+				}
+			}
 		}
 	}
 	

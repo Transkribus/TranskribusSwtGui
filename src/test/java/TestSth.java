@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -310,9 +311,15 @@ public class TestSth {
 			JaxbUtils.marshalToSysOut(mets, TrpDocMetadata.class);
 		}
 	}
+	
+	public static void testReadManifest() throws IOException {
+		System.out.println("cp = "+new JarFile("/home/hansm/Downloads/Transkribus-1.5.2/Transkribus-1.5.4.2-SNAPSHOT.jar")
+			.getManifest().getMainAttributes().getValue("Class-Path"));
+	}
 			
 	public static void main(String [] args) throws Exception {
-		createMetsForRemoteDoc(args);
+		testReadManifest();
+//		createMetsForRemoteDoc(args);
 		
 		if (true)
 			return;
