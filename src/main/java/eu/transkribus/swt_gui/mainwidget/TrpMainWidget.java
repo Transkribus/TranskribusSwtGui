@@ -4531,7 +4531,7 @@ public class TrpMainWidget {
 		try {
 			List<TrpEvent> events = storage.getEvents();
 			for (TrpEvent ev : events) {
-				final String msg = CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(ev.getDate()) + ": " + ev.getTitle() + "\n\n" + ev.getMessage();
+				final String msg = CoreUtils.newDateFormatUserFriendly().format(ev.getDate()) + ": " + ev.getTitle() + "\n\n" + ev.getMessage();
 				Pair<Integer, Boolean> ret = DialogUtil.showMessageDialogWithToggle(getShell(), "Notification", msg, "Do not show this message again", false,
 						SWT.NONE, "OK");
 				boolean doNotShowAgain = ret.getRight();

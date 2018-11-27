@@ -363,7 +363,7 @@ public class ProgramUpdaterDialog {
 					String versionPlusTimestamp = new String(newV);
 					logger.info("newV = "+newV+" version = "+version);
 					if (f.getRight()!=null) {
-						String date = CoreUtils.DATE_FORMAT.format(f.getRight());
+						String date = CoreUtils.newDateFormat().format(f.getRight());
 						versionPlusTimestamp+=" ("+date+")";
 					}
 					

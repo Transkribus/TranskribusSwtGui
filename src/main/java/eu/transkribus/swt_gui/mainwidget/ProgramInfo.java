@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Properties;
@@ -31,18 +32,16 @@ public class ProgramInfo {
 //			}
 				
 			ATrpServerConn.guiVersion = getVersion();
-			
+			DateFormat df = CoreUtils.newDateFormat();
 			try {
-				timestamp = CoreUtils.DATE_FORMAT.parse(getTimestampString());
+				timestamp = df.parse(getTimestampString());
 			} catch (ParseException pe) {
 				/* 
-				 * FIXME bei mir kanns den timestamp ned lesen. philip
-				 * ERROR [main] org.dea.transcript.trp.gui.mainwidget.Info  - Could not load info.properties: Unparseable date: "${maven.build.timestamp}"
-				 * java.text.ParseException: Unparseable date: "${maven.build.timestamp}"
-				 * at java.text.DateFormat.parse(DateFormat.java:357)
+				 * Might haben when build timestamp is not set:
+				 * Could not load info.properties: Unparseable date: "${maven.build.timestamp}"
 				 */
 				logger.error("Could not read build timestamp!");
-				timestamp = CoreUtils.DATE_FORMAT.parse("01_01_1970_00:00");
+				timestamp = df.parse("01_01_1970_00:00");
 			}
 			
 			logger.info("version = "+getVersion()+" timestamp = "+getTimestamp());

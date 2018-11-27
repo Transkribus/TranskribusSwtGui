@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.search.kws;
 
+import java.text.DateFormat;
+
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -19,11 +21,12 @@ public class KwsResultTableLabelProvider implements ITableLabelProvider, ITableF
 	
 	Table table;
 	TableViewer tableViewer;
-	
+	DateFormat dateFormat;
 
 	public KwsResultTableLabelProvider(TableViewer tableViewer) {
 		this.tableViewer = tableViewer;
 		this.table = tableViewer.getTable();
+		this.dateFormat = CoreUtils.newDateFormatUserFriendly();
 	}
 
 	@Override
@@ -59,7 +62,6 @@ public class KwsResultTableLabelProvider implements ITableLabelProvider, ITableF
 	@Override
 	public String getColumnText(Object element, int columnIndex) {
 		//logger.trace("get column text: "+element+" id: "+columnIndex);
-		
 		if (element instanceof TrpKwsResultTableEntry) {
 			TrpKwsResultTableEntry res = (TrpKwsResultTableEntry) element;
 			
@@ -67,7 +69,7 @@ public class KwsResultTableLabelProvider implements ITableLabelProvider, ITableF
 			String ct = column.getText();
 			
 			if (ct.equals(KwsResultTableWidget.KWS_CREATED_COL)) {
-				return CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(res.getCreated());
+				return dateFormat.format(res.getCreated());
 			} else if (ct.equals(KwsResultTableWidget.KWS_STATUS_COL)) {
 				return res.getStatus();
 			} else if (ct.equals(KwsResultTableWidget.KWS_SCOPE_COL)) {
@@ -85,7 +87,7 @@ public class KwsResultTableLabelProvider implements ITableLabelProvider, ITableF
 			String ct = column.getText();
 			
 			if (ct.equals(KwsResultTableWidget.KWS_CREATED_COL)) {
-				return CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(res.getCreated());
+				return dateFormat.format(res.getCreated());
 			} else if (ct.equals(KwsResultTableWidget.KWS_STATUS_COL)) {
 				return res.getStatus();
 			} else if (ct.equals(KwsResultTableWidget.KWS_SCOPE_COL)) {
