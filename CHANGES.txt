@@ -612,5 +612,7 @@ CHANGES AND BUGFIXES
 	-> bugfix: fix broken client side export (update saxon version)
 	-> keep zoom when switching between pages
 	-> bugfix: unable to add some unicode values to virtual keyboard
+1.5.4
+	-> Displayed images are rotated according to EXIF orientation tag value
 	
 	
