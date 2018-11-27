@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.htr;
 
+import java.text.DateFormat;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableFontProvider;
@@ -9,24 +11,23 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
 
 public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
-	private final static Logger logger = LoggerFactory.getLogger(HtrTableLabelProvider.class);
 
 	private final static String NOT_AVAILABLE_LABEL = "N/A";
 
 	Table table;
 	TableViewer tableViewer;
+	DateFormat createDateFormat;
 
 	public HtrTableLabelProvider(TableViewer tableViewer) {
 		this.tableViewer = tableViewer;
 		this.table = tableViewer.getTable();
+		this.createDateFormat = CoreUtils.newDateFormatddMMYY();
 	}
 
 	@Override
@@ -75,7 +76,7 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 			case HtrTableWidget.HTR_TECH_COL:
 				return getLabelForHtrProvider(htr.getProvider());
 			case HtrTableWidget.HTR_DATE_COL:
-				return CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(htr.getCreated());
+				return createDateFormat.format(htr.getCreated());
 			default:
 				return NOT_AVAILABLE_LABEL;
 			}
