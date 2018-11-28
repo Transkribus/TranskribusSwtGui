@@ -48,7 +48,7 @@ public class ToolsWidget extends Composite {
 
 	TranscriptVersionChooser refVersionChooser, hypVersionChooser;
 	
-	Button computeWerBtn,computeAdvancedBtn;
+	Button computeWerBtn,computeAdvancedBtn,compareSamplesBtn;
 	Button compareVersionsBtn;
 	Composite werGroup;
 	ExpandableComposite werExp;
@@ -455,7 +455,7 @@ public class ToolsWidget extends Composite {
 		compareVersionsBtn.setText("Compare Versions in Textfile");
 		compareVersionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
 		compareVersionsBtn.setToolTipText("Shows the difference of the two selected versions");
-		
+			
 		werExp.setClient(werGroup);
 		werExp.setText("Compute Accuracy");
 		Fonts.setBoldFont(werExp);
@@ -495,6 +495,11 @@ public class ToolsWidget extends Composite {
 		
 		computeAdvancedBtn = new Button(werGroup,SWT.PUSH);
 		computeAdvancedBtn.setText("Advanced...");
+		
+		compareSamplesBtn = new Button(werGroup, SWT.PUSH);
+		compareSamplesBtn.setText("Compare Samples");
+		compareSamplesBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 2, 1));
+		compareSamplesBtn.setToolTipText("Shows the difference of the two selected versions");
 		
 		werExp.setClient(werGroup);
 		werExp.setText("Compute Accuracy");
