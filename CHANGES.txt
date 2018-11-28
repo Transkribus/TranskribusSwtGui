@@ -615,4 +615,8 @@ CHANGES AND BUGFIXES
 1.5.4
 	-> Displayed images are rotated according to EXIF orientation tag value
 	
+1.5.4
+	-> bugfix: broken image display on Linux systems
+	-> enhancement/bugfix: remove unused jars from libs folder on program start
+	
 	
