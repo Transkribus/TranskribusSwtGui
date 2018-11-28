@@ -39,6 +39,7 @@ import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
+import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -85,7 +86,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		}
 		
 		SWTUtil.addSelectionListener(tw.compareVersionsBtn, this);
-
+		SWTUtil.addSelectionListener(tw.compareSamplesBtn, this);
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
 		
@@ -308,11 +309,16 @@ public class ToolsWidgetListener implements SelectionListener {
 				
 			} else if (s == tw.computeAdvancedBtn) {
 				
-					ErrorRateAdvancedDialog dialog = new ErrorRateAdvancedDialog(mw.getShell());
-					dialog.open();
+				ErrorRateAdvancedDialog dialog = new ErrorRateAdvancedDialog(mw.getShell());
+				dialog.open();
 				
 				
-			} else if (s == tw.compareVersionsBtn) {
+			} else if (s == tw.compareSamplesBtn) {
+				SamplesCompareDialog dialog = new SamplesCompareDialog(mw.getShell());
+				dialog.open();
+				
+				
+			}else if (s == tw.compareVersionsBtn) {
 
 				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) tw.hypVersionChooser.selectedMd;
