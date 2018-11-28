@@ -12,10 +12,14 @@ import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.MetadataException;
+
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.SysUtils;
+import eu.transkribus.interfaces.types.util.TrpImgMdParser;
+import eu.transkribus.interfaces.types.util.TrpImgMdParser.ImageTransformation;
 import eu.transkribus.swt.util.CanvasTransform;
-import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.util.MemoryUsage;
@@ -33,6 +37,8 @@ final public class CanvasImage {
 
 	Image imgRot;
 	
+	ImageTransformation transformation;
+	
 	public int width;
 	public int height;
 	public long nPixels;
@@ -48,7 +54,13 @@ final public class CanvasImage {
 		logger.debug("--- memory before loading image ---");
 		MemoryUsage.printMemoryUsage();
 		
-		Image imgIn = ImgLoader.load(url);
+		try {
+			transformation = TrpImgMdParser.readImageDimension(url);
+		} catch (ImageProcessingException | MetadataException e) {
+			logger.debug("Could not read metadata from: " + url);
+			transformation = null;
+		}
+		Image imgIn = ImgLoader.load(url, transformation);
 		
 		logger.debug("--- memory after loading image ---");
 		MemoryUsage.printMemoryUsage();
@@ -320,6 +332,10 @@ final public class CanvasImage {
 	 */
 	public Rectangle getBounds() {
 		return new Rectangle(0, 0, width, height);
+	}
+
+	public ImageTransformation getTransformation() {
+		return transformation;
 	}
 	
 }

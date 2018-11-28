@@ -4,6 +4,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,8 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,13 +28,13 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.io.FileDeleteStrategy;
 import org.apache.commons.io.FileExistsException;
@@ -78,7 +77,6 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.classic.AsyncAppender;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
@@ -142,7 +140,6 @@ import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
-import eu.transkribus.swt.util.AsyncCallback;
 import eu.transkribus.swt.util.CreateThumbsService;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
@@ -426,6 +423,13 @@ public class TrpMainWidget {
 		} catch (Exception e) {
 			logger.error("Error removing old jar files: " + e.getMessage());
 		}
+		
+		try {
+			ProgramUpdaterDialog.removeUnusedJarLibFiles();
+		} catch (Exception e) {
+			logger.error("Error removing old lib-jar files: " + e.getMessage(), e);
+		}
+		
 
 		//read and set proxy settings
 		storage.updateProxySettings();
@@ -2705,11 +2709,10 @@ public class TrpMainWidget {
 			logger.warn("Could not determine tracking property: "+e.getMessage());
 		}
 		return false;
-		
 	}
-	
 
 	public static void show() {
+		logger.debug("cwd = "+System.getProperty("user.dir"));
 		ProgramInfo info = new ProgramInfo();
 		Display.setAppName(info.getName());
 		Display.setAppVersion(info.getVersion());
@@ -2718,6 +2721,7 @@ public class TrpMainWidget {
 
 		data.tracking = shouldITrack();
 		logger.info("resource tracking = "+data.tracking);
+		logger.info("classpath = "+CoreUtils.getClassPathString(TrpMainWidget.class));
 		
 		Display display = new Display(data);
 
@@ -4531,7 +4535,7 @@ public class TrpMainWidget {
 		try {
 			List<TrpEvent> events = storage.getEvents();
 			for (TrpEvent ev : events) {
-				final String msg = CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(ev.getDate()) + ": " + ev.getTitle() + "\n\n" + ev.getMessage();
+				final String msg = CoreUtils.newDateFormatUserFriendly().format(ev.getDate()) + ": " + ev.getTitle() + "\n\n" + ev.getMessage();
 				Pair<Integer, Boolean> ret = DialogUtil.showMessageDialogWithToggle(getShell(), "Notification", msg, "Do not show this message again", false,
 						SWT.NONE, "OK");
 				boolean doNotShowAgain = ret.getRight();

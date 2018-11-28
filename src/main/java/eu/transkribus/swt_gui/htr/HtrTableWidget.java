@@ -44,7 +44,7 @@ public class HtrTableWidget extends Composite {
 	public static final String HTR_LANG_COL = "Language";
 	public static final String HTR_CREATOR_COL = "Curator";
 	public static final String HTR_TECH_COL = "Technology";
-	public static final String HTR_DATE_COL = "Creation Date";
+	public static final String HTR_DATE_COL = "Created";
 	public static final String HTR_ID_COL = "ID";
 	
 	private MyTableViewer htrTv;	
@@ -60,9 +60,9 @@ public class HtrTableWidget extends Composite {
 	public final ColumnConfig[] HTR_COLS = new ColumnConfig[] {
 		new ColumnConfig(HTR_NAME_COL, 220, false, DefaultTableColumnViewerSorter.DESC),
 		new ColumnConfig(HTR_LANG_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(HTR_CREATOR_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(HTR_CREATOR_COL, 120, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(HTR_TECH_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(HTR_DATE_COL, 120, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(HTR_DATE_COL, 70, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(HTR_ID_COL, 50, true, DefaultTableColumnViewerSorter.ASC),
 	};
 	

@@ -517,7 +517,7 @@ public class ToolsWidget extends Composite {
 	}
 
 	public static String getTranscriptLabel(TrpTranscriptMetadata t) {
-		final String labelStr = CoreUtils.DATE_FORMAT_USER_FRIENDLY.format(t.getTime()) 
+		final String labelStr = CoreUtils.newDateFormatUserFriendly().format(t.getTime()) 
 				+ " - " + t.getUserName() 
 				+ " - " + t.getStatus().getStr()
 				+ (t.getToolName() != null ? " - " + t.getToolName() : "");

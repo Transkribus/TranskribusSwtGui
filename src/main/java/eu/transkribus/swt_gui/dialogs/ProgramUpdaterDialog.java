@@ -4,16 +4,22 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.exec.OS;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -109,6 +115,115 @@ public class ProgramUpdaterDialog {
 			throw new IOException("Could not find current jar file: "+f.getName());
 		
 		return f;
+	}
+	
+	public static boolean isRunningInJarFile() throws IOException {
+		URL url = TrpMainWidget.class.getProtectionDomain().getCodeSource().getLocation();
+		String jarFilePath = java.net.URLDecoder.decode(url.getPath(), "UTF-8");
+		return jarFilePath.endsWith(".jar");
+	}
+	
+	public static List<String> getClassPathFromManifest() {
+		JarFile jarFile = null;
+		try {
+			final String MANIFEST_PATH = "/META-INF/MANIFEST.MF";
+			URL url = TrpMainWidget.class.getProtectionDomain().getCodeSource().getLocation();
+			String jarFilePath = java.net.URLDecoder.decode(url.getPath(), "UTF-8");
+			Manifest manifest=null;
+			logger.info("jar file path: "+jarFilePath);
+			if (!jarFilePath.endsWith(".jar")) { // we are most probably in Eclipse, starting the app via the class directly
+				File file = new File(jarFilePath+MANIFEST_PATH);
+				logger.info("file exists: "+file.exists());
+				manifest = new Manifest(new FileInputStream(file));
+			}
+			else { // we have a jar file
+				logger.info("jar file: "+url.getPath());
+				jarFile = new JarFile(jarFilePath);
+				manifest = jarFile.getManifest();
+				
+//				InputStream is = TrpMainWidget.class.getResourceAsStream(MANIFEST_PATH);
+//				InputStream is = url.openStream();
+//				manifest = new Manifest(is);
+			}
+			
+			Attributes attr = manifest.getMainAttributes();
+			String classPath = attr.getValue("Class-Path");
+			logger.info("Class-Path = "+classPath);
+			
+			
+			return Arrays.asList(classPath.split(" "));
+		} catch (Exception e) {
+			logger.error("Error parsing classpath from jar: "+e.getMessage(), e);
+			return null;
+		}
+		finally {
+			if (jarFile != null) {
+				try {
+					jarFile.close();
+				} catch (IOException e) {
+					logger.error("Error closing jar file: "+e.getMessage(), e);
+				}
+			}
+		}
+	}
+	
+	public static int removeUnusedJarLibFiles() throws Exception {
+		String baseDir = isRunningInJarFile() ? "./" : "./target/";
+		File libsDir = new File(baseDir+"libs");
+		logger.debug("libsDir = "+libsDir);
+		if (!libsDir.isDirectory()) {
+			logger.error("Could not find libs dir: "+libsDir.getAbsolutePath());
+			return 0;
+		}
+
+		List<File> jarFiles = Arrays.asList(libsDir.listFiles(new FilenameFilter() {
+			@Override public boolean accept(File dir, String name) {
+				return name.endsWith(".jar");
+			}
+		}));
+		
+		List<String> manifestJars = getClassPathFromManifest();
+		if (manifestJars==null) {
+			logger.warn("Could not find manifest classpath!");
+			return 0;
+		}
+		if (jarFiles.size() <= manifestJars.size()) {
+			logger.info("No jar files to remove from libs dir, jarFiles = "+jarFiles.size()+", manifestJars = "+manifestJars.size());
+			return 0;
+		}
+
+		int nDeletedFiles=0;
+		for (File jarFile : jarFiles) {
+			String jarFileName = jarFile.getName();
+			boolean isSwtJar = jarFileName.startsWith("swt-");
+			
+			boolean found = false;
+			for (String manifestJarFn : manifestJars) {
+				String manifestFn = StringUtils.removeStart(manifestJarFn, "libs/");
+				if (isSwtJar && manifestFn.startsWith("swt-")) {
+					String swtWithVersionSuffix = manifestFn.substring(0, manifestFn.lastIndexOf("."));
+					logger.trace("swtWithVersionSuffix = "+swtWithVersionSuffix);
+					if (jarFileName.startsWith(swtWithVersionSuffix)) {
+						logger.debug("Found swt jar in manifest: "+jarFileName);
+						found=true;
+						break;
+					}
+				}
+				else if (jarFileName.equals(manifestFn)) {
+					logger.debug("Found jar in manifest: "+manifestFn);
+					found=true;
+					break;
+				}
+			}
+			if (!found) {
+				logger.info("removing unused jar: "+jarFileName);
+				jarFile.delete();
+				++nDeletedFiles;
+			}
+		}
+		logger.info("Removed "+nDeletedFiles+" unused lib jars");
+		
+		return nDeletedFiles;
 	}
 	
 	public static void removeUnusedJarFiles() throws Exception {
@@ -363,7 +478,7 @@ public class ProgramUpdaterDialog {
 					String versionPlusTimestamp = new String(newV);
 					logger.info("newV = "+newV+" version = "+version);
 					if (f.getRight()!=null) {
-						String date = CoreUtils.DATE_FORMAT.format(f.getRight());
+						String date = CoreUtils.newDateFormat().format(f.getRight());
 						versionPlusTimestamp+=" ("+date+")";
 					}
 					
