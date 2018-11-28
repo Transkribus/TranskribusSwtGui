@@ -155,6 +155,7 @@ public class TextRecognitionComposite extends Composite {
 		this.layout(true, true);
 		this.pack();
 		this.redraw();
+		super.layout(true, true);
 		
 		logger.info("parent: "+getParent());
 		getParent().layout();
