@@ -100,6 +100,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	protected void configureShell(Shell shell) {
 		super.configureShell(shell);
 		shell.setText("Compare");
+		shell.setMinimumSize(800, 600);
 	}
 
 	@Override
@@ -354,6 +355,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			stopped = true;
 		}
 	}
+	
+
 	
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
