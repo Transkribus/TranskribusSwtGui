@@ -93,7 +93,12 @@ public class DiffCompareTool {
            
             text = text.trim();
             text = text.replace("\n", " ");
-            text = text.replace("\t", " ");
+            text = text.replace("\t", " ");        
+//            if(text.contains("\u202F") || text.contains("\u00A0")){
+//            	logger.debug("text contains non-break space");
+//            }         
+            text = text.replace("\u00A0", " ");
+            text = text.replace("\u202F", " ");
            
             while (text.contains("  ")) {
                 text = text.replace("  ", " ");
