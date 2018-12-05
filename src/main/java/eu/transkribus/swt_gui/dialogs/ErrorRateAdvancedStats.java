@@ -18,6 +18,8 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -411,13 +413,13 @@ public class ErrorRateAdvancedStats extends Dialog{
 	
 	public void createWorkBook(String filePath , TrpErrorRate resultErr) {
 		
-		HSSFWorkbook workbook = new HSSFWorkbook();
-		HSSFSheet sheet = workbook.createSheet(docName);
-		Map<String, Object[]> excelData = new HashMap<String, Object[]>();
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		XSSFSheet sheet = workbook.createSheet(docName);
+		Map<Integer, Object[]> excelData = new HashMap<Integer, Object[]>();
 		int rowCount = 1;
 		List<TrpErrorRateListEntry> list = resultErr.getList();
 		
-		excelData.put(Integer.toString(0),new Object[] {
+		excelData.put(0,new Object[] {
 				"Pages",
 				"Word Error Rate",
 				"Char Error Rate",
@@ -428,7 +430,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 				"Bag Tokens F-Measure"
 				});
 		
-		excelData.put(Integer.toString(1),new Object[] {
+		excelData.put(1,new Object[] {
 				"Overall",
 				resultErr.getWerDouble(),
 				resultErr.getCerDouble(),
@@ -444,7 +446,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 				if(rowCount <= list.size()) {
 					rowCount++;
 				}
-				excelData.put(Integer.toString(rowCount),new Object[] {
+				excelData.put(rowCount,new Object[] {
 						"Page "+page.getPageNumber(),
 						page.getWerDouble(),
 						page.getCerDouble(),
@@ -458,9 +460,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 		}
 		
 		
-		Set<String> keyset = excelData.keySet();
+		Set<Integer> keyset = excelData.keySet();
 		int rownum = 0;
-		for (String key : keyset) {
+		for (Integer key : keyset) {
 			Row row = sheet.createRow(rownum++);
 			Object[] objArr = excelData.get(key);
 			int cellnum = 0;
@@ -474,7 +476,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 			}
 		}
 		
-		// Resize all columns to fit the content size
         for(int i = 0; i <= rownum; i++) {
             sheet.autoSizeColumn(i);
         }
