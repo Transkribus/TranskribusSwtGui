@@ -1927,7 +1927,7 @@ public class TrpMainWidget {
 		}
 		return true;
 	}
-
+	
 	public void updatePageLock() {
 		if (storage.isPageLocked() != isPageLocked) { // page locking changed
 			isPageLocked = storage.isPageLocked();
@@ -4431,15 +4431,17 @@ public class TrpMainWidget {
 
 		logger.debug("loading a local page xml file...");
 		String fn = DialogUtil.showOpenFileDialog(getShell(), "Select xml file to load", null, new String[] { "*.xml" });
-		if (fn == null)
+		if (fn == null){
+			logger.debug("fn is null");
 			return;
+		}
 
 		try {
 			PcGtsType p = PageXmlUtils.unmarshal(new File(fn));
 			storage.getTranscript().setPageData(p);
 			storage.setCurrentTranscriptEdited(true);
-
-			reloadCurrentTranscript(true, false);
+			//saveTranscription(false);
+			reloadCurrentTranscript(true, true);
 		} catch (Exception e) {
 			onError("Error loading page XML", e.getMessage(), e);
 		}
@@ -4454,7 +4456,7 @@ public class TrpMainWidget {
 				return;
 			}
 
-			String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and page files", lastLocalDocFolder);
+			String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose the 'page' folder with the page XMLs", lastLocalDocFolder);
 			if (fn == null)
 				return;
 
