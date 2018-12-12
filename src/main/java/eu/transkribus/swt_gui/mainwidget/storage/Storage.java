@@ -33,8 +33,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.dea.fimagestore.core.beans.ImageMetadata;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
-import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
 import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -212,7 +212,7 @@ public class Storage {
 	public static final boolean USE_TRANSCRIPT_CACHE = false;
 	private DataCache<TrpTranscriptMetadata, JAXBPageTranscript> transcriptCache;
 	
-	FimgStoreImgMd imgMd;
+	ImageMetadata imgMd;
 	
 //	private int currentColId = -1;
 	
@@ -2199,7 +2199,7 @@ public class Storage {
 		return result;
 	}
 	
-	public FimgStoreImgMd getCurrentImageMetadata() {
+	public ImageMetadata getCurrentImageMetadata() {
 		return imgMd;
 	}
 	
@@ -2212,7 +2212,7 @@ public class Storage {
 		
 		try {
 			FimgStoreGetClient getter = new FimgStoreGetClient(page.getUrl());
-			imgMd = (FimgStoreImgMd)getter.getFileMd(page.getKey());
+			imgMd = (ImageMetadata)getter.getFileMd(page.getKey());
 		} catch (Exception e) {
 			logger.error("Couldn't read metadata for file: "+page.getUrl());
 			imgMd = null;
