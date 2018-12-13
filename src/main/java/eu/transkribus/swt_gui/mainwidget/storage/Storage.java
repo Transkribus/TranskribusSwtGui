@@ -2174,8 +2174,13 @@ public class Storage {
 		return StorageUtil.getRoleOfUserInCurrentCollection();
 	}
 	
-	public TrpJobStatus createSample(Map<TrpDocMetadata, List<TrpPage>> sampleDocMap, int nrOfLines, String sampleName, String sampleDescription) {
-		List<DocumentSelectionDescriptor> descList = DescriptorUtils.buildCompleteSelectionDescriptorList(sampleDocMap, null);
+	public TrpJobStatus createSample(Map<TrpDocMetadata, List<TrpPage>> sampleDocMap, int nrOfLines, String sampleName, String sampleDescription) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		List<DocumentSelectionDescriptor> descList = null;
+		try {
+			descList = DescriptorUtils.buildCompleteSelectionDescriptorList(sampleDocMap, null);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Could not build selection descriptor list");
+		}
 		conn.createSampleJob(collId,descList,nrOfLines, sampleName, sampleDescription);
 		return null;
 	}
