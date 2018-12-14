@@ -280,6 +280,13 @@ public class KeywordSpottingComposite extends Composite {
 		final int colId = currCol.getColId();
 		final String colName = currCol.getColName();
 		final int docId = store.getDocId();
+		if (docId == -1) {
+			DialogUtil.showErrorMessageBox(getShell(), "No remote document loaded", "Keyword spotting only works with online documents that have been processed with CITlab text recognition.");
+			return;
+		} else if (docId < 0) {
+			DialogUtil.showErrorMessageBox(getShell(), "No document loaded", "Please load an online document that has been processed with CITlab text recognition.");
+			return;
+		}
 		String docTitle = "";
 		try {
 			docTitle = store.getDoc().getMd().getTitle();
