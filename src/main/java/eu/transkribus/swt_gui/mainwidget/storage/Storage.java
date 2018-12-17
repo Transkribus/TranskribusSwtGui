@@ -113,6 +113,7 @@ import eu.transkribus.core.model.builder.tei.ATeiBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.core.util.PageXmlUtils;
@@ -2171,6 +2172,17 @@ public class Storage {
 	
 	public TrpRole getRoleOfUserInCurrentCollection() {
 		return StorageUtil.getRoleOfUserInCurrentCollection();
+	}
+	
+	public TrpJobStatus createSample(Map<TrpDocMetadata, List<TrpPage>> sampleDocMap, int nrOfLines, String sampleName, String sampleDescription) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		List<DocumentSelectionDescriptor> descList = null;
+		try {
+			descList = DescriptorUtils.buildCompleteSelectionDescriptorList(sampleDocMap, null);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Could not build selection descriptor list");
+		}
+		conn.createSampleJob(collId,descList,nrOfLines, sampleName, sampleDescription);
+		return null;
 	}
 	
 	public TrpJobStatus computeErrorRate(int docId, final String pageStr, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
