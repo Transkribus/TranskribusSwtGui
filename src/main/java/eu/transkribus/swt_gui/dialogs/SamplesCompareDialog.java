@@ -7,8 +7,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -40,10 +44,18 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
+import eu.transkribus.core.model.beans.rest.JobParameters;
+import eu.transkribus.core.rest.JobConst;
+import eu.transkribus.core.rest.RESTConst;
+import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
@@ -64,9 +76,9 @@ public class SamplesCompareDialog extends Dialog {
 	private final int colId;
 
 	private CTabFolder paramTabFolder;
-	private CTabItem samplesTabItem;
+	private CTabItem samplesTabItem, computeSampleTabItem;
 	
-	LabeledText nrOfLinesTxt, alphaValueTxt;
+	LabeledText nrOfLinesTxt;
 	
 	private Text modelNameTxt, descTxt;
 
@@ -216,7 +228,7 @@ public class SamplesCompareDialog extends Dialog {
 
 	private SamplesMethodUITab createSampelsTab(final int tabIndex) {
 		samplesTabItem = new CTabItem(paramTabFolder, SWT.NONE);
-		samplesTabItem.setText("Compare Options");
+		samplesTabItem.setText("Create Sample");
 		
 		Composite samplesConfComposite = new Composite(paramTabFolder,0);
 		samplesConfComposite.setLayout(new GridLayout(1,false));
@@ -225,11 +237,17 @@ public class SamplesCompareDialog extends Dialog {
 		nrOfLinesTxt.setText("100");
 		nrOfLinesTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , true , 1, 1));
 		
-		alphaValueTxt = new LabeledText(samplesConfComposite, "Alpha value", true);
-		alphaValueTxt.setText("0.05");
-		alphaValueTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , true , 1, 1));
-		
 		samplesTabItem.setControl(samplesConfComposite);
+		
+		computeSampleTabItem = new CTabItem(paramTabFolder, SWT.NONE);
+		computeSampleTabItem.setText("Compute");
+		
+		Composite samplesComputeComposite = new Composite(paramTabFolder,0);
+		samplesConfComposite.setLayout(new GridLayout(1,false));
+		
+		computeSampleTabItem.setControl(samplesComputeComposite);
+		
+		
 		return new SamplesMethodUITab(tabIndex, samplesTabItem, samplesConfComposite);
 	}
 	
@@ -242,12 +260,20 @@ public class SamplesCompareDialog extends Dialog {
 		msg += "\t\t\t\t" + sampleSetMd.getWords() + " words\n";
 		msg += "Samples Options:\n ";
 		msg += "\t\t\t\t" + nrOfLinesTxt.getText()  + " lines\n";
-		msg += "\t\t\t\t" + alphaValueTxt.getText() + " alpha value\n";
 		
 		int result = DialogUtil.showYesNoDialog(this.getShell(), "Start?", msg);
 		
 		if (result == SWT.YES) {
-			super.okPressed();
+			
+			try {
+				logger.debug("Nr of Lines : "+nrOfLinesTxt.getText());
+				store.createSample(sampleDocMap, Integer.parseInt(nrOfLinesTxt.getText()), modelNameTxt.getText(), descTxt.getText());
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+					| IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 	}
 	
