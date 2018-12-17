@@ -56,14 +56,11 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.connection.ATrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.io.FimgStoreReadConnection;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.searchresult.KeywordHit;
-import eu.transkribus.core.model.beans.searchresult.KeywordPageHit;
 import eu.transkribus.core.model.beans.searchresult.KeywordSearchResult;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
@@ -127,11 +124,7 @@ public class KWSearchComposite extends Composite{
 		shell = parent.getShell();
 		
 		storage = Storage.getInstance();
-		if(storage.getConnection() != null && ATrpServerConn.TEST_SERVER_URI.equals(storage.getConnection().getServerUri())) {
-			FimgStoreReadConnection.loadConfig("trpTest");
-			logger.debug("Setting Imagestore config to test: " + FimgStoreReadConnection.getInstance().getFImagestore());
-		}
-		imgStoreClient = FimgStoreReadConnection.getGetClient();
+		imgStoreClient = storage.getConnection().newFImagestoreGetClient();
 
 		createContents();
 		
