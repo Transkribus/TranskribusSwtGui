@@ -181,7 +181,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		labelRef.setText("Select reference:");
 		labelRef.setVisible(false);
 		comboRef = new Combo(comp, SWT.DROP_DOWN);
-		comboRef.setItems(new String[] {"GT","1st IN_PROGRESS","Last IN_PROGRESS"});
+		comboRef.setItems(new String[] {"GT","1st IN_PROGRESS","Last IN_PROGRESS","1st DONE","Last DONE"});
 		comboRef.setVisible(false);
 		labelHyp = new Label(comp,SWT.NONE );
 		labelHyp.setText("Select hypothese by toolname:");
@@ -260,17 +260,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 							for(TrpTranscriptMetadata transcript : transcripts){
 								if(transcript.getToolName() != null) {
 									if(transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
-										logger.debug("Page added to new page index "+pageIndex);
 										newPageIndices.add(pageIndex);
 									}
 								}
 							}	
 						}
-						for(Integer newPageIndex : newPageIndices) {
-							logger.debug("Hyp chosen for page "+newPageIndex);
-						}
 						newPageString = CoreUtils.getRangeListStrFromSet(newPageIndices);
-						logger.debug("New page string: "+newPageString);
 					} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e1) {
 						e1.printStackTrace();
 					}
@@ -280,7 +275,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					msg += "Hyp: " +params.getParameterValue("hyp");
 					int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
 					if (result == SWT.YES) {
-						startError(store.getDocId(), dps.getPagesStr());
+						startError(store.getDocId(), newPageString);
 					}
 					
 					
