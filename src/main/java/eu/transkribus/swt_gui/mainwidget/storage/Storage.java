@@ -2185,6 +2185,12 @@ public class Storage {
 		return null;
 	}
 	
+	public TrpJobStatus computeSampleRate(int docId, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
+		conn.computeSampleJob(docId,params);
+		return null;	
+	}
+
+	
 	public TrpJobStatus computeErrorRate(int docId, final String pageStr, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
 		//TODO
 		conn.computeErrorRateWithJob(docId, pageStr, params);
@@ -2878,4 +2884,5 @@ public class Storage {
 		return list.toArray(new JobImpl[list.size()]);
 	}
 
+	
 }
