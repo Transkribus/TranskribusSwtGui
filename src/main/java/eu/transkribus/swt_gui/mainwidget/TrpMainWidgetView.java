@@ -773,7 +773,7 @@ public class TrpMainWidgetView extends Composite {
 	
 	public CanvasShapeType getShapeTypeToDraw() {
 		CanvasMode m = getCanvas().getSettings().getMode();
-		if (m != CanvasMode.ADD_BASELINE) {
+		if (m != CanvasMode.ADD_BASELINE && m != CanvasMode.ADD_ARTICLE) {
 			if (trpSets.getRectMode())
 				return CanvasShapeType.RECTANGLE;
 			else

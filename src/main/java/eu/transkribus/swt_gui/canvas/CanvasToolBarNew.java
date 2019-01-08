@@ -387,6 +387,10 @@ public class CanvasToolBarNew {
 			mi = addElementDropdown.addItem(name, Images.getOrLoad("/icons/shape_square_add.png"), tt, false, RegionTypeUtil.getRegionClass(name));
 			modeMap.put(mi, CanvasMode.ADD_OTHERREGION);	
 		}	
+		
+		//is not a classical region but all lines belonging to an article will be marked 
+		mi = addElementDropdown.addItem(RegionTypeUtil.ARTICLE, Images.getOrLoad("/icons/shape_square_add.png"), tt, false, null);
+		modeMap.put(mi, CanvasMode.ADD_ARTICLE);
 				
 		removeShape = new ToolItem(tb, SWT.PUSH);
 		removeShape.setToolTipText("Remove a shape");

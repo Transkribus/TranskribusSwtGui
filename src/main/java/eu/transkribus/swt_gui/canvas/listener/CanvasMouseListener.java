@@ -442,6 +442,11 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		
 		// deselect point if mouse has not moved:
 		CanvasMode mode = canvas.getMode();
+		
+		if (mode.equals(CanvasMode.ADD_ARTICLE)){
+			
+		}
+		
 		boolean triedToMoveShapeOrImage = (mode == CanvasMode.MOVE || mode == CanvasMode.MOVE_SHAPE) && modeBackup == CanvasMode.SELECTION;
 		boolean hasMovedJustALittle = lastCanvasMoveDist>=0 && lastCanvasMoveDist<=15;
 		logger.debug("H0 "+triedToMoveShapeOrImage+" button: "+button+" selectedPoint: "+selectedPoint+" mode: "+canvas.getMode()+", hasMovedJustALittle: "+hasMovedJustALittle);

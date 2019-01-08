@@ -34,6 +34,8 @@ public class CanvasMode {
 	public static final CanvasMode ADD_OTHERREGION = new CanvasMode(true, false, false, true, "Region");
 	public static final CanvasMode ADD_TABLECELL = new CanvasMode(true, false, false, true, "TableCell");
 	
+	public static final CanvasMode ADD_ARTICLE = new CanvasMode(true, false, false, true, "Article");
+	
 	boolean isAddOperation;
 	boolean isEditOperation;
 	boolean highlightPointsRequired;

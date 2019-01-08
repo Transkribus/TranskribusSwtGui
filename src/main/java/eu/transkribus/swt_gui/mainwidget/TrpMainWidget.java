@@ -103,6 +103,7 @@ import eu.transkribus.core.model.beans.customtags.CommentTag;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory.TagRegistryChangeEvent;
+import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
@@ -6123,9 +6124,37 @@ public class TrpMainWidget {
 		refreshStructureView();
 		redrawCanvas();
 	}
+	
+	/*
+	 * In case the StructureTag also contains e.g. article ID this method is needed to keep that attribute instead of 
+	 * the above method
+	 */
+	public void setStructureTypeOfSelected(StructureTag st, boolean recursive) {
+		List<ICanvasShape> selected = getCanvas().getScene().getSelectedAsNewArray();
+		logger.debug("applying structure type to selected, n = "+selected.size()+" structType: "+st.getType());	
+		for (ICanvasShape sel : selected) {
+			ITrpShapeType shape = GuiUtil.getTrpShape(sel);
+			
+			if (!(shape instanceof TrpTextLineType)){
+				continue;
+			}
+			logger.debug("updating struct type for " + sel+" type = "+st.getType()+", TrpShapeType = "+shape);
+			
+			if (shape != null && shape.getCustomTagList() != null) {
+				shape.getCustomTagList().addOrMergeTag(st, null);
+			}
+			
+		}
+		
+		refreshStructureView();
+		redrawCanvas();
+		
+	}
 
 	public JavaInfo getJavaInfo() {
 		return javaInfo;
 	}
+
+
 
 }
