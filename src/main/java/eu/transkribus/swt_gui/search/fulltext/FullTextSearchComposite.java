@@ -61,10 +61,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.connection.ATrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NotImplementedException;
-import eu.transkribus.core.io.FimgStoreReadConnection;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -144,11 +142,7 @@ public class FullTextSearchComposite extends Composite{
 		shell = parent.getShell();	
 		
 		storage = Storage.getInstance();
-		if(storage.getConnection() != null && ATrpServerConn.TEST_SERVER_URI.equals(storage.getConnection().getServerUri())) {
-			FimgStoreReadConnection.loadConfig("trpTest");
-			logger.debug("Setting Imagestore config to test: " + FimgStoreReadConnection.getInstance().getFImagestore());
-		}
-		imgStoreClient = FimgStoreReadConnection.getGetClient();
+		imgStoreClient = storage.getConnection().newFImagestoreGetClient();
 
 		createContents();
 		

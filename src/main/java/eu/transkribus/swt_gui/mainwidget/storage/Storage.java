@@ -33,8 +33,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.dea.fimagestore.core.beans.ImageMetadata;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
-import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
 import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -113,6 +113,7 @@ import eu.transkribus.core.model.builder.tei.ATeiBuilder;
 import eu.transkribus.core.model.builder.tei.TeiExportPars;
 import eu.transkribus.core.model.builder.tei.TrpTeiStringBuilder;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.core.util.PageXmlUtils;
@@ -212,7 +213,7 @@ public class Storage {
 	public static final boolean USE_TRANSCRIPT_CACHE = false;
 	private DataCache<TrpTranscriptMetadata, JAXBPageTranscript> transcriptCache;
 	
-	FimgStoreImgMd imgMd;
+	ImageMetadata imgMd;
 	
 //	private int currentColId = -1;
 	
@@ -2173,6 +2174,23 @@ public class Storage {
 		return StorageUtil.getRoleOfUserInCurrentCollection();
 	}
 	
+	public TrpJobStatus createSample(Map<TrpDocMetadata, List<TrpPage>> sampleDocMap, int nrOfLines, String sampleName, String sampleDescription) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		List<DocumentSelectionDescriptor> descList = null;
+		try {
+			descList = DescriptorUtils.buildCompleteSelectionDescriptorList(sampleDocMap, null);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Could not build selection descriptor list");
+		}
+		conn.createSampleJob(collId,descList,nrOfLines, sampleName, sampleDescription);
+		return null;
+	}
+	
+	public TrpJobStatus computeSampleRate(int docId, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
+		conn.computeSampleJob(docId,params);
+		return null;	
+	}
+
+	
 	public TrpJobStatus computeErrorRate(int docId, final String pageStr, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
 		//TODO
 		conn.computeErrorRateWithJob(docId, pageStr, params);
@@ -2199,7 +2217,7 @@ public class Storage {
 		return result;
 	}
 	
-	public FimgStoreImgMd getCurrentImageMetadata() {
+	public ImageMetadata getCurrentImageMetadata() {
 		return imgMd;
 	}
 	
@@ -2212,7 +2230,7 @@ public class Storage {
 		
 		try {
 			FimgStoreGetClient getter = new FimgStoreGetClient(page.getUrl());
-			imgMd = (FimgStoreImgMd)getter.getFileMd(page.getKey());
+			imgMd = (ImageMetadata)getter.getFileMd(page.getKey());
 		} catch (Exception e) {
 			logger.error("Couldn't read metadata for file: "+page.getUrl());
 			imgMd = null;
@@ -2899,4 +2917,5 @@ public class Storage {
 		return list.toArray(new JobImpl[list.size()]);
 	}
 
+	
 }

@@ -49,7 +49,7 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 			option = "case-insensitive";
 			break;
 		}
-		return "Page(s) : "+props.getOrDefault("parameters.0.value", "Page-Query missing") +" | Option : "+option ;
+		return "Page(s) : "+props.getOrDefault("parameters.1.value", "Page-Query missing") +" | Option : "+option +" | Ref: "+props.getOrDefault("parameters.0.value", "latest GT")+" | Hyp : "+props.getOrDefault("parameters.4.value", "latest Version") ;
 	} 
 
 }

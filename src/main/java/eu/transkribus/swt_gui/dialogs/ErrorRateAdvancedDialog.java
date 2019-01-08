@@ -1,9 +1,13 @@
 package eu.transkribus.swt_gui.dialogs;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -22,16 +26,16 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,15 +44,17 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpDoc;
+import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
-import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -76,6 +82,10 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	
 	TranscriptVersionChooser refVersionChooser, hypVersionChooser;
 	
+	Combo comboRef;
+	Combo comboHyp;
+	Label labelRef;
+	Label labelHyp;
 	Button computeWerBtn;
 	Button computeAdvancedBtn;
 	Button compareVersionsBtn;
@@ -123,7 +133,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		createConfig();
 		
-		createExplainText();
+		refAndHypChooser();
 		
 		createJobTable();
 		
@@ -162,13 +172,40 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	
 	}
 	
-	public void createExplainText() {
+	public void refAndHypChooser() {
 		
-		Composite textComp = new Composite(sashFormAdvance,SWT.NONE);
-		textComp.setLayout(new GridLayout(3,false));
-		Text text = new Text(textComp, SWT.FILL);
-		text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-		text.setText("Compares the latest GT with latest version available (if no GT given compares the two latest versions)");
+		Composite comp = new Composite(sashFormAdvance,SWT.NONE);
+		comp.setLayout(new GridLayout(4,false));
+		
+		labelRef = new Label(comp,SWT.NONE );
+		labelRef.setText("Select reference:");
+		labelRef.setVisible(false);
+		comboRef = new Combo(comp, SWT.DROP_DOWN);
+		comboRef.setItems(new String[] {"GT","1st IN_PROGRESS","Last IN_PROGRESS","1st DONE","Last DONE"});
+		comboRef.setVisible(false);
+		labelHyp = new Label(comp,SWT.NONE );
+		labelHyp.setText("Select hypothese by toolname:");
+		labelHyp.setVisible(false);
+		comboHyp = new Combo(comp, SWT.DROP_DOWN);
+		comboHyp.setVisible(false);
+		try {
+			List<TrpPage> pages = store.getDoc().getPages();
+			for(TrpPage page : pages) {
+				List<TrpTranscriptMetadata> transcripts = page.getTranscripts();
+				for(TrpTranscriptMetadata transcript : transcripts){
+					if(transcript.getToolName() != null) {
+						String[] items = comboHyp.getItems();
+						if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
+							comboHyp.add(transcript.getToolName());
+						}
+					}
+					
+				}
+			}
+		} catch (ServerErrorException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+	
 	}
 	
 	private void addListener() {
@@ -179,32 +216,74 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			}
 		});
 		
+		comboHyp.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				logger.debug("Hyp Selction "+comboHyp.getItem(comboHyp.getSelectionIndex()));
+				params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
+			}
+		});
+		
+		comboRef.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				logger.debug("Ref Selction "+comboRef.getItem(comboRef.getSelectionIndex()));
+				params.addParameter("ref", comboRef.getItem(comboRef.getSelectionIndex()));
+			}
+		});
+		
+		dps.getCurrentTranscriptButton().addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				comboRef.setVisible(true);
+				comboHyp.setVisible(true);
+				labelHyp.setVisible(true);
+				labelRef.setVisible(true);
+			}
+		});
+		
 		compare.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				params.addParameter("option", options.combo.getSelectionIndex());
+				String newPageString = null;
 				if(dps.isCurrentTranscript()) {
 					startError(store.getDocId(),""+store.getPage().getPageNr());
 				}else {
-					startError(store.getDocId(), dps.getPagesStr());
+					try {
+						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), store.getDocId(), 10);
+						Set<Integer> pageIndices = CoreUtils.parseRangeListStr(dps.getPagesStr(), store.getDoc().getNPages());
+						Set<Integer> newPageIndices = new HashSet<Integer>();
+						List<TrpTranscriptMetadata> transcripts = new ArrayList<TrpTranscriptMetadata>();
+						logger.debug("Combo hyp selected : "+comboHyp.getItem(comboHyp.getSelectionIndex()));
+						for (Integer pageIndex : pageIndices) {
+							logger.debug("pageIndex : "+pageIndex);
+							transcripts = doc.getPages().get(pageIndex).getTranscripts();
+							for(TrpTranscriptMetadata transcript : transcripts){
+								if(transcript.getToolName() != null) {
+									if(transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
+										newPageIndices.add(pageIndex);
+									}
+								}
+							}	
+						}
+						newPageString = CoreUtils.getRangeListStrFromSet(newPageIndices);
+					} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e1) {
+						e1.printStackTrace();
+					}
+					String msg = "";
+					msg += "Compute error rate for page(s) :" + newPageString + "\n";
+					msg += "Ref: " +params.getParameterValue("ref")+"\n";
+					msg += "Hyp: " +params.getParameterValue("hyp");
+					int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
+					if (result == SWT.YES) {
+						startError(store.getDocId(), newPageString);
+					}
+					
+					
 				}
 				
 			}
 			
 		});
-		
-		storageListener = new IStorageListener() {
-			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
-				if (SWTUtil.isDisposed(refVersionChooser) || SWTUtil.isDisposed(hypVersionChooser)) {
-					return;
-				}
-				
-				refVersionChooser.setToGT();
-				hypVersionChooser.setToCurrent();
-			}
-		};
-		store.addListener(storageListener);
 		
 //		computeWerBtn.addSelectionListener(new SelectionAdapter() {
 //			@Override

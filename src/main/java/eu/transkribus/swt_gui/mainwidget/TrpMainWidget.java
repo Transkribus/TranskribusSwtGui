@@ -4,7 +4,6 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -28,8 +27,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
@@ -41,7 +38,7 @@ import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.dea.fimgstoreclient.beans.FimgStoreImgMd;
+import org.dea.fimagestore.core.beans.ImageMetadata;
 import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -765,9 +762,9 @@ public class TrpMainWidget {
 //			}
 
 			if (storage.getDoc().isRemoteDoc()) {
-				FimgStoreImgMd imgMd = storage.getCurrentImageMetadata();
+				ImageMetadata imgMd = storage.getCurrentImageMetadata();
 				if (imgMd != null)
-					title += " [Image Meta Info: (Resolution:" + imgMd.getXResolution() + ", w*h: " + imgMd.getWidth() + " * " + imgMd.getHeight() + ") ]";
+					title += " [Image Meta Info: (Resolution:" + imgMd.getxResolution() + ", w*h: " + imgMd.getWidth() + " * " + imgMd.getHeight() + ") ]";
 			}
 
 			TrpTextRegionType currRegion = storage.getCurrentRegionObject();
@@ -2627,16 +2624,16 @@ public class TrpMainWidget {
 			getCanvas().fitWidth();
 			
 			//change reading order circle width according to image resolution
-			FimgStoreImgMd imgMd = storage.getCurrentImageMetadata();
+			ImageMetadata imgMd = storage.getCurrentImageMetadata();
 			if (imgMd != null){
 				double initWidth = readingOrderCircleInitWidth;
 				logger.debug("initWidth " + initWidth);
 				
 				double resizeFactor = 1.0;
-				if (imgMd.getXResolution() < 210){
+				if (imgMd.getxResolution() < 210){
 					resizeFactor = 0.5;
 				}
-				else if(imgMd.getXResolution() > 210 && imgMd.getXResolution() < 390){
+				else if(imgMd.getxResolution() > 210 && imgMd.getxResolution() < 390){
 					resizeFactor = 0.75;
 				}
 				double tmpWith = initWidth*resizeFactor;
