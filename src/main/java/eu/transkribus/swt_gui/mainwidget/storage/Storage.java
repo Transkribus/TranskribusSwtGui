@@ -2186,8 +2186,7 @@ public class Storage {
 	}
 	
 	public TrpJobStatus computeSampleRate(int docId, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
-		conn.computeSampleJob(docId,params);
-		return null;	
+		return conn.computeSampleJob(docId,params);
 	}
 
 	
