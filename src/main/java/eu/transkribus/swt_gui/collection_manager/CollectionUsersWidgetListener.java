@@ -14,30 +14,25 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.connection.TrpServerConn;
+import eu.transkribus.client.util.TrpClientErrorException;
+import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.swt.util.ComboInputDialog;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.Fonts;
-import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionOverviewDialog;
-import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorDialog;
-import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.CollectionsLoadEvent;
 
 public class CollectionUsersWidgetListener implements IStorageListener, SelectionListener, DragSourceListener  {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionUsersWidgetListener.class);
@@ -152,10 +147,13 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 					logger.debug("edit user: "+u+ " new role: "+r.toString());				
 					try {
 						conn.addOrModifyUserInCollection(collection.getColId(), u.getUserId(), r);
-						logger.info("edited user: "+u+ " new role: "+r.toString());		
-					} catch (Throwable e) {
-						logger.warn("Could not edit user: "+u+ " new role: "+r.toString());		
-						error.add(u.getUserName()+" - reason: "+e.getMessage());
+						logger.info("edited user: "+u+ " new role: "+r.toString());
+					} catch (TrpClientErrorException | TrpServerErrorException e){
+						logger.warn("Could not edit user: "+u+ " new role: "+r.toString(), e);
+						error.add(u.getUserName() + " - Reason: " + e.getMessageToUser());
+					} catch (Exception e) {
+						logger.warn("Could not edit user: "+u+ " new role: "+r.toString(), e);		
+						error.add(u.getUserName()+" - Reason: "+e.getMessage());
 					}
 				}
 				
@@ -208,9 +206,12 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 						conn.removeUserFromCollection(collection.getColId(), u.getUserId());
 						logger.info("removed user: "+u);
 					}
-				} catch (Throwable e) {
-					logger.warn("Could not remove user: "+u);
-					error.add(u.getUserName()+" - reason: "+e.getMessage());
+				} catch (TrpClientErrorException | TrpServerErrorException e){
+					logger.warn("Could not remove user: "+u, e);
+					error.add(u.getUserName() + " - Reason: " + e.getMessageToUser());
+				} catch (Exception e) {
+					logger.warn("Could not remove user: "+u, e);
+					error.add(u.getUserName()+" - Reason: "+e.getMessage());
 				}
 			}
 			
@@ -316,9 +317,12 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 				try {
 					conn.addOrModifyUserInCollection(collection.getColId(), u.getUserId(), r);
 					logger.info("added user: "+u);
-				} catch (Throwable e) {
-					logger.warn("Could not add user: "+u);
-					error.add(u.getUserName()+" - reason: "+e.getMessage());
+				} catch (TrpClientErrorException | TrpServerErrorException e){
+					logger.warn("Could not add user: "+u, e);
+					error.add(u.getUserName() + " - Reason: " + e.getMessageToUser());
+				} catch (Exception e) {
+					logger.warn("Could not add user: "+u, e);
+					error.add(u.getUserName()+" - Reason: "+e.getMessage());
 				}
 			}
 			

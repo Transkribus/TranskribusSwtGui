@@ -2185,6 +2185,11 @@ public class Storage {
 		return null;
 	}
 	
+	public TrpJobStatus computeSampleRate(int docId, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
+		return conn.computeSampleJob(docId,params);
+	}
+
+	
 	public TrpJobStatus computeErrorRate(int docId, final String pageStr, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
 		//TODO
 		conn.computeErrorRateWithJob(docId, pageStr, params);
@@ -2654,12 +2659,42 @@ public class Storage {
 			int sizeBefore = structCustomTagSpecs.size();
 			for (ITrpShapeType st : transcript.getPage().getAllShapes(true)) {
 				String structType = CustomTagUtil.getStructure(st);	
+
 				if (!StringUtils.isEmpty(structType)) {
-					StructCustomTagSpec spec = getStructCustomTagSpec(structType);
-					if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
-						spec = new StructCustomTagSpec(new StructureTag(structType), getNewStructCustomTagColor());
-						logger.debug("adding foreing page from transcript: "+spec);
-						structCustomTagSpecs.add(spec);
+					
+					/*
+					 * for articles the structType could be extended with the id to get differentiation between different articles of a page
+					 */
+					logger.debug("structType for adding foreign struct tag specs: " + structType);
+					if (structType.equals("article")){
+						StructureTag stStructTag = CustomTagUtil.getStructureTag(st);
+						String id = (String) stStructTag.getAttributeValue("id");
+						//logger.debug("attribute id of structure" + id);
+						structType = structType.concat("_"+id);
+						StructCustomTagSpec spec = getStructCustomTagSpec(structType);	
+						
+						if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
+							StructureTag newStructTag = new StructureTag(structType);
+							try {
+								newStructTag.setAttribute("id", id, true);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							spec = new StructCustomTagSpec(newStructTag, getNewStructCustomTagColor());
+							logger.debug("adding foreign page from transcript: "+spec);
+							structCustomTagSpecs.add(spec);
+						}
+
+					}
+					else{
+					
+						StructCustomTagSpec spec = getStructCustomTagSpec(structType);		
+						if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
+							spec = new StructCustomTagSpec(new StructureTag(structType), getNewStructCustomTagColor());
+							logger.debug("adding foreign page from transcript: "+spec);
+							structCustomTagSpecs.add(spec);
+						}
 					}
 				}
 			}
@@ -2701,6 +2736,9 @@ public class Storage {
 	}
 	
 	public StructCustomTagSpec getStructCustomTagSpec(String type) {
+//		for (StructCustomTagSpec spec : structCustomTagSpecs){
+//			logger.debug("spec " + spec.getCustomTag().getType());
+//		}
 		return structCustomTagSpecs.stream().filter(c1 -> c1.getCustomTag().getType().equals(type)).findFirst().orElse(null);
 	}
 	
@@ -2878,4 +2916,5 @@ public class Storage {
 		return list.toArray(new JobImpl[list.size()]);
 	}
 
+	
 }

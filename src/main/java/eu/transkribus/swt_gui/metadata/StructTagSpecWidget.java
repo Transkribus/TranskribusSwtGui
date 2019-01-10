@@ -165,6 +165,12 @@ public class StructTagSpecWidget extends Composite {
 				
 				StructCustomTagSpec tagSpec = (StructCustomTagSpec) element;
 				String type = (String) tagSpec.getCustomTag().getType();
+				
+				if (type != null && type.equals("article")){
+					logger.debug("id: " + tagSpec.getCustomTag().getAttributeValue("id"));
+					type = type.concat("_" + tagSpec.getCustomTag().getAttributeValue("id"));
+				}
+				//logger.debug("type: " + type);
 				return type==null ? "error parsing structure type" : type;
 			}
 			
@@ -357,7 +363,25 @@ public class StructTagSpecWidget extends Composite {
 					SWTUtil.onSelectionEvent(addBtn, e -> {
 						if (TrpMainWidget.getInstance() != null && tagSpec != null && tagSpec.getCustomTag()!=null) {
 							StructureTag st = tagSpec.getCustomTag();
-							TrpMainWidget.getInstance().setStructureTypeOfSelected(st.getType(), false);
+							if (st.getType().startsWith("article")){
+								StructureTag newSt = new StructureTag("article");
+								try {
+									newSt.setAttribute("id", st.getAttributeValue("id"), true);
+								} catch (Exception e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+								logger.debug("st.getType: " + st.getType());
+								logger.debug("st.getID: " + st.getAttributeValue("id"));
+								logger.debug("tag spec color: " + tagSpec.getRGB());
+								logger.debug("shortcut: " + tagSpec.getShortCut());
+								TrpMainWidget.getInstance().setStructureTypeOfSelected(newSt, false);
+							}
+							else{
+								TrpMainWidget.getInstance().setStructureTypeOfSelected(st.getType(), false);
+							}
+
+							
 						}
 					});
 					                

@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.canvas;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -15,6 +16,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
+import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
@@ -32,6 +36,7 @@ import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener.SceneEvent;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener.SceneEventType;
+import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasQuadPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeReadingOrderComparator;
@@ -40,6 +45,8 @@ import eu.transkribus.swt_gui.dialogs.ChangeReadingOrderDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.StructTagSpecsChangedEvent;
+import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableShapeEditOperation;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
@@ -811,6 +818,119 @@ public class CanvasScene {
 			}
 		}
 		return maxShape;
+	}
+	
+	/**
+	 * Finds all lines that are intersected or contained inside a bounding box of a drawn polyline
+	 * dataType.<br>
+	 * Returns null if no such lines are found. <br>
+	 * @throws IOException 
+	 */
+	public List<ICanvasShape> findArticleLines(ICanvasShape shape) throws IOException {
+		if (!shape.getType().equals("POLYLINE")){
+			logger.error("Shape must be a polyline for selecting articles!");
+			return null;
+		}
+		
+		CanvasPolyline polyline = (CanvasPolyline) shape;
+		java.awt.Point startPoint = (polyline.getNPoints() > 0 ? polyline.getPoint(0) : new java.awt.Point(0,0)); 
+		java.awt.Point endPoint = startPoint;
+		ArrayList<Rectangle> rectangles = new ArrayList<Rectangle>();
+		
+		int nrOfPoints = polyline.getNPoints();
+		logger.debug("number of points " + nrOfPoints);
+		
+		for (int i = 1; i<nrOfPoints; i++){
+			java.awt.Point currPoint = polyline.getPoint(i);
+			
+//			logger.debug("i " + i);
+//			logger.debug("currPoint.y " + currPoint.y);
+//			logger.debug("endPoint.y " + endPoint.y);
+			
+			int endPointY = endPoint.y;
+			
+			if (currPoint.y > endPointY){
+				//logger.debug("set new endPoint ");
+				endPoint = currPoint;
+			}
+			
+			if (currPoint.y <= endPointY|| i == nrOfPoints-1){
+				logger.debug("create new rect for finding article lines: rectY: " + startPoint.y + ", rectX: " + startPoint.x + ", rectHeight " + (endPoint.y-startPoint.y) + ", rectWidth " + (endPoint.x-startPoint.x));
+				rectangles.add(new Rectangle(startPoint.x, startPoint.y, endPoint.x-startPoint.x, endPoint.y-startPoint.y));
+				startPoint = currPoint;
+				endPoint = currPoint;
+			}
+		}
+		
+		logger.debug("find all article lines in number of total shapes " + this.getShapes().size());
+		List<ICanvasShape> allLines = new ArrayList<ICanvasShape>();
+		int newArticleNr = 1;
+		
+		//first get next article number
+		for (ICanvasShape currentShape : this.getShapes()){
+			if (currentShape.getData() instanceof TrpTextLineType){
+				TrpTextLineType tl = (TrpTextLineType) currentShape.getData(); 
+
+				StructureTag structTag = CustomTagUtil.getStructureTag(tl);
+				if (structTag != null && structTag.getType().equals("article")){
+					String id = (String) structTag.getAttributeValue("id");
+										
+					//logger.debug("id of article: " + id);
+					String articleNr = ( (id != null && id.length() > 0) ? id.substring(1) : "0");
+					//logger.debug("articleNr: " + articleNr);
+					int nextArtNr = Integer.valueOf(articleNr)+1;
+					if (nextArtNr > newArticleNr){
+						newArticleNr = nextArtNr++;
+					}
+				}
+			}
+		}
+		
+		logger.debug("current article ID: " + newArticleNr);
+					
+		int k = 0;
+		for (ICanvasShape currShape : this.getShapes()){
+			
+			if (currShape.getData() instanceof TrpTextLineType){
+				//logger.debug(k++ + " th line found.");
+				for (Rectangle currRect : rectangles){
+//					logger.debug("curr Rect " + currRect.y + " currRect x " + currRect.x + " height " + currRect.height + " width " + currRect.width);
+//					logger.debug("curr currShape " + currShape.getY());
+					if (currRect.intersects(currShape.getX(), currShape.getY(), currShape.getBounds().width, currShape.getBounds().height)){
+						allLines.add(currShape);
+						logger.debug("drawn article rectangle intersects this line: " + ((TrpTextLineType) currShape.getData()).getId()); 
+						
+						ITrpShapeType st = GuiUtil.getTrpShape(currShape);
+						//logger.debug("updating struct type for " + currShape +" type = article, TrpShapeType = "+st);
+						
+						//CustomTagFactory.getAttribute(tagName, attributeName);
+						Storage.getDefaultStructCustomTagSpecs();
+						
+						if (st != null) {
+							StructureTag at = new StructureTag("article");
+							
+							at.setAttribute("id", "a"+newArticleNr, true);
+							st.getCustomTagList().addOrMergeTag(at, null);
+							
+							String structType = "article_a"+newArticleNr;
+
+							StructCustomTagSpec spec = Storage.getInstance().getStructCustomTagSpec(structType);
+							
+							if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
+								StructureTag newStructTag = new StructureTag(structType);
+								newStructTag.setAttribute("id", "a"+newArticleNr, true);
+								spec = new StructCustomTagSpec(newStructTag, Storage.getInstance().getNewStructCustomTagColor());
+								logger.debug("add undefined article: "+spec);	
+								Storage.getInstance().addStructCustomTagSpec(spec);
+							}
+						}	
+					}
+				}
+			}
+		}
+		canvas.redraw();
+		
+		return null;
 	}
 
 	public ICanvasShape selectObjectWithData(Object data, boolean sendSignal, boolean multiselect) {

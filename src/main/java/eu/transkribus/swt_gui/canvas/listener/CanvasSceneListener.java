@@ -23,6 +23,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
 import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpStructureChangedEvent;
+import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.canvas.CanvasException;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
@@ -115,6 +116,17 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				// add element to JAXB:
 				CanvasMode mode = mw.getCanvas().getMode();
 				try {
+					
+					//for creating article GT
+					if (mode.equals(CanvasMode.ADD_ARTICLE)){
+						//call method to find all lines which are intersected by a polyline or are inside the bounding rectangle
+						//PageXmlUtils.
+						logger.debug("Add article to pageXML - TODO: add check if user really wants to add the drawn article");
+						logger.debug("pointlist of article: " + shape.getPoints());
+						mw.getScene().findArticleLines(shape);
+						return;
+					}
+					
 					ITrpShapeType el = mw.getShapeFactory().createJAXBElementFromShape(shape, mw.getCanvas().getMode(), mw.getCanvas().getFirstSelected());
 					logger.debug("created trp element: "+el);
 					

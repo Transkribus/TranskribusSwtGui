@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
+import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.util.CoreUtils;
@@ -986,6 +987,11 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		boolean drawStructColor = isStructEditorSelected() && !TrpConfig.getTrpSettings().isDrawShapesInDefaultColorsInStructEditor();
 		if (drawStructColor) {
 			String structType = getTrpShapeType()==null ? "" : getTrpShapeType().getStructure();
+			if (structType.equals("article")){
+				StructureTag ct = CustomTagUtil.getStructureTag(getTrpShapeType());
+				if (ct != null && ct.getAttributeValue("id") != null)
+					structType = structType+"_"+ct.getAttributeValue("id");
+			}
 			Color structColor = Storage.getInstance().getStructureTypeColor(structType);
 			return structColor;
 		}
