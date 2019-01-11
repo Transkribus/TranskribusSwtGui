@@ -534,7 +534,8 @@ public class TrpMainWidget {
 				if (!docStr.startsWith("#")) {
 					logger.debug("found docStr: "+docStr);
 					String[] splits = docStr.split(" ");
-					if (splits.length == 2) { // remote doc
+					boolean isLocal = docStr.toLowerCase().startsWith("c:") || docStr.toLowerCase().startsWith("/");
+					if (!isLocal && splits.length == 2) { // remote doc
 						try {
 							int colid = Integer.parseInt(splits[0]);
 							int docid = Integer.parseInt(splits[1]);

@@ -49,6 +49,7 @@ public class StructCustomTagSpecAdapter extends TypeAdapter<StructCustomTagSpec>
 		      case "customTag":
 		        try {
 					CustomTag ct1 = CustomTagUtil.parseSingleCustomTag(reader.nextString());
+					logger.trace("ct1 = "+ct1+" class = "+ct1.getClass());
 					if (ct1 instanceof StructureTag) {
 						ct = (StructureTag) ct1;
 					}
