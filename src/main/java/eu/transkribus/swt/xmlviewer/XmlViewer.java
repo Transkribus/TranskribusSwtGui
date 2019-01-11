@@ -47,6 +47,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.UndoRedoImpl;
 import eu.transkribus.swt_gui.canvas.CanvasKeys;
+import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class XmlViewer extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(XmlViewer.class);
@@ -137,6 +138,7 @@ public class XmlViewer extends Dialog {
 		btnsC.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		keywordText = new Text(btnsC, SWT.SINGLE | SWT.BORDER);
+
 		keywordText.addKeyListener(new KeyAdapter() {
 			@Override public void keyReleased(KeyEvent e) {
 				if (e.keyCode == SWT.CR || e.keyCode == SWT.KEYPAD_CR) {
@@ -144,9 +146,14 @@ public class XmlViewer extends Dialog {
 				}
 			}
 		});
+		
+		DelayedTask searchTask = new DelayedTask(() -> {
+			search();
+		}, true);		
 		keywordText.addModifyListener(new ModifyListener() {
 			@Override public void modifyText(ModifyEvent e) {
-				search();
+				searchTask.start();
+//				search();
 			}
 		});
 		keywordText.setFocus();
