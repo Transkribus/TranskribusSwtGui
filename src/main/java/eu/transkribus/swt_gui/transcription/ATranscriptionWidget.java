@@ -2275,6 +2275,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		deleteTagsForCurrentSelection.setText("Delete all tags for current selection");
 		SWTUtil.onSelectionEvent(deleteTagsForCurrentSelection, e -> {
 			TrpMainWidget.getInstance().deleteTagsForCurrentSelection();
+			TrpMainWidget.getInstance().getUi().getTaggingWidget().refreshTagList();
 		});
 		
 		for (CustomTag t : getCustomTagsForCurrentOffset()) {
@@ -2284,6 +2285,7 @@ public abstract class ATranscriptionWidget extends Composite{
 			deleteTagItem.setText("Delete tag: "+t.getCssStr());
 			SWTUtil.onSelectionEvent(deleteTagItem, e -> {
 				TrpMainWidget.getInstance().deleteTags((CustomTag) deleteTagItem.getData());
+				TrpMainWidget.getInstance().getUi().getTaggingWidget().refreshTagList();
 			});
 		}
 		
