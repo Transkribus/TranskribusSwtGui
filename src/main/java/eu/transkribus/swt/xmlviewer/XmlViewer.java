@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
@@ -252,10 +253,13 @@ public class XmlViewer extends Dialog {
 			int startSearchIndex = lastFoundIndex+1 >= text.getCharCount() ? 0 : lastFoundIndex+1;
 			if (!keywordText.getText().equals(keyword)) { // new word!
 				lastFoundIndex = -1;
-				startSearchIndex = text.getCaretOffset();
+//				startSearchIndex = text.getCaretOffset();
+				startSearchIndex = 0;
 			}
 			keyword = keywordText.getText();		
-			logger.debug("search for keyword: "+keyword+" startSearchIndex: "+startSearchIndex);
+			logger.trace("search for keyword: "+keyword+" startSearchIndex: "+startSearchIndex);
+			
+//			text.getText().
 			
 			boolean caseSensitive = caseSensitveCheck.getSelection();
 			boolean wholeWord = wholeWordCheck.getSelection();
@@ -278,8 +282,10 @@ public class XmlViewer extends Dialog {
 			highlightXml();
 			
 			if (lastFoundIndex!=-1) {
-				text.setCaretOffset(lastFoundIndex);
-				centerCurrentLine();
+//				text.setCaretOffset(lastFoundIndex);
+//				centerCurrentLine();
+				text.setSelectionRange(lastFoundIndex, keyword.length());
+				text.showSelection();
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -323,6 +329,7 @@ public class XmlViewer extends Dialog {
 		
 		text.setStyleRanges(ranges.toArray(new StyleRange[0]));
 		
+		if (false)
 		if (lastFoundIndex !=-1) {
 			StyleRange styleRange = new StyleRange();
 		    styleRange.start = lastFoundIndex;
@@ -331,6 +338,17 @@ public class XmlViewer extends Dialog {
 		    tr.mergeStyleRange(styleRange);
 //		    text.setStyleRange(styleRange);
 		}
+		
+//		SebisStopWatch sw = new SebisStopWatch();
+		List<Integer> indexOfAll = CoreUtils.indexOfAll(text.getText(), keyword, previousCheck.getSelection(), caseSensitveCheck.getSelection(), wholeWordCheck.getSelection());
+		for (Integer index : indexOfAll) {
+			StyleRange styleRange = new StyleRange();
+		    styleRange.start = index;
+		    styleRange.length = keyword.length();
+		    styleRange.background = shell.getDisplay().getSystemColor(SWT.COLOR_YELLOW);
+		    tr.mergeStyleRange(styleRange);
+		}
+//		sw.stop(true, "t-for searching keyword and producing styleranges: ", logger);
 		
 		List<StyleRange> allSrs = new ArrayList<>();
 		Iterator<StyleRange> it = tr.getAllStyleRangeIterator();
