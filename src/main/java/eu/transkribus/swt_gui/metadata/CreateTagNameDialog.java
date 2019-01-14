@@ -63,7 +63,7 @@ public class CreateTagNameDialog extends Dialog {
 		if (addIsEmptyTagCheckBox) {
 			isEmptyTagBtn = new Button(container, SWT.CHECK);
 			isEmptyTagBtn.setText("Empty tag");
-			isEmptyTagBtn.setToolTipText("Creates a tag that contains no corresponding text, only a position inside the text (as e.g. the <gap/> tag)");
+			isEmptyTagBtn.setToolTipText("Create a tag that contains no text (as e.g. the <gap/> tag)");
 			isEmptyTagBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		}
 		
