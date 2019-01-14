@@ -124,6 +124,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 						logger.debug("Add article to pageXML - TODO: add check if user really wants to add the drawn article");
 						logger.debug("pointlist of article: " + shape.getPoints());
 						mw.getScene().findArticleLines(shape);
+						e.stop = true;
 						return;
 					}
 					
