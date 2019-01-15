@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
 
 public class TagConfDialog extends Dialog {
@@ -61,6 +62,11 @@ public class TagConfDialog extends Dialog {
 	protected void setShellStyle(int newShellStyle) {
 		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE | SWT.APPLICATION_MODAL);
 		// setBlockOnOpen(false);
+	}
+	
+	@Override
+	protected void initializeBounds() {
+		SWTUtil.centerShell(getShell());
 	}
 	
 }

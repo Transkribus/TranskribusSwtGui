@@ -2870,7 +2870,7 @@ public class Storage {
 		List<CustomTagSpec> userTagSpecs = new ArrayList<CustomTagSpec>();
 
 		//List<CustomTag> cts = CustomTagFactory.getCustomTagListFromProperties(tagNamesProp);
-		Collection<CustomTag> cts = CustomTagFactory.getRegisteredTagObjects();
+		Collection<CustomTag> cts = CustomTagFactory.getRegisteredCustomTags();
 		for (CustomTag ct : cts){
 			String color = CustomTagFactory.getTagColor(ct.getTagName());
 			CustomTagSpec spec = new CustomTagSpec(ct);

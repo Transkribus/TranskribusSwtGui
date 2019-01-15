@@ -8,7 +8,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -17,7 +17,6 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.customtags.CustomTagAttribute;
 import eu.transkribus.core.util.RegexPattern;
 import eu.transkribus.swt.util.Colors;
 
@@ -25,14 +24,20 @@ public class CreateTagNameDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(CreateTagNameDialog.class);
 
 	String title;
+	boolean addIsEmptyTagCheckBox;
+	
 	Text nameTxt;
+	Button isEmptyTagBtn;
 
 	String name = null;
+	boolean isEmptyTag=false;
+	
 	Text status;
 	
-	public CreateTagNameDialog(Shell parentShell, String title) {
+	public CreateTagNameDialog(Shell parentShell, String title, boolean addIsEmptyTagCheckBox) {
 		super(parentShell);
 		this.title = title;
+		this.addIsEmptyTagCheckBox = addIsEmptyTagCheckBox;
 	}
 	
 	@Override protected void configureShell(Shell shell) {
@@ -54,6 +59,13 @@ public class CreateTagNameDialog extends Dialog {
 				validateInput();
 			}
 		});
+		
+		if (addIsEmptyTagCheckBox) {
+			isEmptyTagBtn = new Button(container, SWT.CHECK);
+			isEmptyTagBtn.setText("Empty tag");
+			isEmptyTagBtn.setToolTipText("Create a tag that contains no text (as e.g. the <gap/> tag)");
+			isEmptyTagBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		}
 		
 		status = new Text(container, SWT.MULTI | SWT.READ_ONLY | SWT.WRAP);
 		status.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
@@ -84,6 +96,7 @@ public class CreateTagNameDialog extends Dialog {
 	
 	public void applyData() {
 		name = nameTxt.getText();
+		isEmptyTag = isEmptyTagBtn!=null ? isEmptyTagBtn.getSelection() : false;
 	}
 	
 	@Override protected void okPressed() {
@@ -93,6 +106,10 @@ public class CreateTagNameDialog extends Dialog {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public boolean isEmptyTag() {
+		return isEmptyTag;
 	}
 
 	/**

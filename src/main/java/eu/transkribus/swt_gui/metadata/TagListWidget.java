@@ -233,7 +233,8 @@ public class TagListWidget extends Composite {
 			logger.debug("deleting selected tags: "+selected.size());
 			if (!selected.isEmpty()) {
 				TrpMainWidget.getInstance().deleteTags(selected);
-			}			
+			}
+			refreshTable();
 		});
 	}
 	

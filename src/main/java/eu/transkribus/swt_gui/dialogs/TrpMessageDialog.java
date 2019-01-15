@@ -199,6 +199,10 @@ public class TrpMessageDialog extends Dialog {
 		return container;
 	}
 	
+	@Override protected void initializeBounds() {
+		SWTUtil.centerShell(getShell());
+	}
+	
 	private void updateSize() {
 		Point size;
 		if (ec != null && ec.isExpanded() == true) {

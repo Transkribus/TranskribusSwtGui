@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.InvocationCallback;
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
@@ -62,6 +63,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.searchresult.KeywordHit;
 import eu.transkribus.core.model.beans.searchresult.KeywordSearchResult;
+import eu.transkribus.core.util.KwsJSONUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
@@ -594,6 +596,12 @@ public class KWSearchComposite extends Composite{
 					Display.getDefault().asyncExec(()->{
 						logger.debug("searched word: "+searchWord);
 						logger.debug("num hits: "+kwSearchResult.getNumResults());
+						try {
+//							for showing xml raw result
+							logger.debug(KwsJSONUtils.searchResultToXML(response));
+						} catch (JAXBException e) {
+							e.printStackTrace();
+						}
 						updateResultsTable();
 					}); 					
 				}else{				

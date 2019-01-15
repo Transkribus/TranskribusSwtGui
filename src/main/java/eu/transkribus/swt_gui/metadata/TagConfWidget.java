@@ -231,11 +231,12 @@ public class TagConfWidget extends Composite {
 		
 		createTagBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				CreateTagNameDialog d = new CreateTagNameDialog(getShell(), "Specify new tag name");				
+				CreateTagNameDialog d = new CreateTagNameDialog(getShell(), "Specify new tag name", true);				
 				if (d.open() == Window.OK) {
 					String name = d.getName();
+					boolean isEmptyTag = d.isEmptyTag();
 					try {
-						CustomTagFactory.addToRegistry(CustomTagFactory.create(name), null, false);
+						CustomTagFactory.addToRegistry(CustomTagFactory.create(name), null, isEmptyTag, false);
 						saveTagDefs();
 					} catch (Exception e1) {
 						DialogUtil.showDetailedErrorMessageBox(getShell(), "Error creating tag", e1.getMessage(), e1);
@@ -365,6 +366,19 @@ public class TagConfWidget extends Composite {
 				}
 			});
 		}
+		
+		TableViewerColumn descCol = new TableViewerColumn(availableTagsTv, SWT.NONE);
+		descCol.getColumn().setText("");
+		descCol.getColumn().setResizable(true);
+		descCol.getColumn().setWidth(100);
+		ColumnLabelProvider isEmptyTagColLP = new ColumnLabelProvider() {
+			@Override public String getText(Object element) {
+//				return (String) element;
+				boolean isEmpty = CustomTagFactory.isEmptyTag((String) element);
+				return isEmpty ? "Empty tag" : "";
+			}
+		};
+		descCol.setLabelProvider(isEmptyTagColLP);	
 
 		if (false) { // add btns for table rows
 		TableViewerColumn addButtonCol = new TableViewerColumn(availableTagsTv, SWT.NONE);
@@ -475,7 +489,7 @@ public class TagConfWidget extends Composite {
 				if (tn == null)
 					return;
 				
-				CreateTagNameDialog d = new CreateTagNameDialog(getShell(), "Specify property for '"+tn+"' tag");				
+				CreateTagNameDialog d = new CreateTagNameDialog(getShell(), "Specify property for '"+tn+"' tag", false);				
 				if (d.open() == Window.OK) {
 					try {
 						String name = d.getName();
@@ -491,7 +505,8 @@ public class TagConfWidget extends Composite {
 						
 						if (t != null) {
 							t.setAttribute(att.getName(), null, true);
-							CustomTagFactory.addToRegistry(t, CustomTagFactory.getTagColor(t.getTagName()), true);
+							boolean isEmptyTag = CustomTagFactory.isEmptyTag(t.getTagName());
+							CustomTagFactory.addToRegistry(t, CustomTagFactory.getTagColor(t.getTagName()), isEmptyTag, true);
 						}
 						
 						
@@ -526,8 +541,9 @@ public class TagConfWidget extends Composite {
 						CustomTag t = CustomTagFactory.getTagObjectFromRegistry(tn);
 						if (t != null) {
 							t.deleteCustomAttribute(selectedProperty.getName());
+							boolean isEmptyTag = CustomTagFactory.isEmptyTag(t.getTagName());
 							//add to registry to update the attributes there as well
-							CustomTagFactory.addToRegistry(t, CustomTagFactory.getTagColor(t.getTagName()), true);
+							CustomTagFactory.addToRegistry(t, CustomTagFactory.getTagColor(t.getTagName()), isEmptyTag, true);
 						}
 						
 						updatePropertiesForSelectedTag();
@@ -573,7 +589,7 @@ public class TagConfWidget extends Composite {
 		logger.debug("updating available tags");
 		
 		availableTagNames.clear();
-		for (CustomTag t : CustomTagFactory.getRegisteredTagObjects()) {
+		for (CustomTag t : CustomTagFactory.getRegisteredCustomTags()) {
 			logger.trace("update of av. tags, tn = "+t.getTagName()+" showInTagWidget: "+t.showInTagWidget());
 			if (t.showInTagWidget()) {
 				availableTagNames.add(t.getTagName());
@@ -641,10 +657,7 @@ public class TagConfWidget extends Composite {
 	}
 	
 	private void saveTagDefs() {
-		String tagNamesProp = CustomTagFactory.createTagDefPropertyForConfigFile();
-		logger.debug("storing tag defs, tagNamesProp: "+tagNamesProp);
-		TrpConfig.getTrpSettings().setTagNames(tagNamesProp);
-
+		Storage.getInstance().saveTagDefinitions();
 	}
 	
 	private void updateTabItemStyles() {
