@@ -612,10 +612,13 @@ CHANGES AND BUGFIXES
 	-> bugfix: fix broken client side export (update saxon version)
 	-> keep zoom when switching between pages
 	-> bugfix: unable to add some unicode values to virtual keyboard
+	
 1.5.4
 	-> bugfix: broken image display on Linux systems
 	-> enhancement/bugfix: remove unused jars from libs folder on program start
+	
 1.5.5
 	-> Displayed images are rotated according to EXIF orientation tag value
+	-> support user defined empty tags (like the <gap/> tag)
 	
 	
