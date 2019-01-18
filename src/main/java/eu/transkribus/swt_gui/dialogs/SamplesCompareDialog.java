@@ -29,6 +29,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -41,6 +43,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -196,8 +199,12 @@ public class SamplesCompareDialog extends Dialog {
 		
 		createSampleTreeViewer(samplesConfComposite, SWT.HORIZONTAL);
 		
-		//treeViewerSelector = new TreeViewerDataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, docList);
-		
+		cont.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				logger.debug("Disposing SamplesCompareDialog composite.");
+				rl.setStopped();
+			}
+		});
 		
 		return cont;
 	}
@@ -439,17 +446,19 @@ public class SamplesCompareDialog extends Dialog {
 						 TrpJobStatus status =  store.computeSampleRate(docId,params);
 						 TrpJobStatus statusCER = store.computeErrorRate(docId, "1-"+docMd.getNrOfPages(), params);
 						
-						if(status != null &&  status.isFinished()) {
+						if(status != null &&  status.isFinished()) {			
 							drawChartFromJob();
 						}
 						if(statusCER != null && statusCER.isFinished()) {
 							setCERinText();
 						}
+						rl.start();
 						if (statusCER != null && status != null) {
 							if(status.isRunning() || statusCER.isRunning()) {
 								rl.start();
 							}
 						}
+						
 						
 					} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
 						e1.printStackTrace();
@@ -735,54 +744,35 @@ public class SamplesCompareDialog extends Dialog {
 	}
 	
 	private class ResultLoader extends Thread{
-		private final static int SLEEP = 2000;
+		private final static int SLEEP = 1000;
 		private boolean stopped = false;
 		@Override
 		public void run() {
 			logger.debug("Starting result polling.");
 			while(!stopped) {
-				List<TrpJobStatus> jobs;
-				jobs = this.getSampleJob();
-				for(TrpJobStatus job : jobs) {
-					if(job.isFinished()) {
-						TrpProperties props = job.getJobDataProps();
-						final String xmlStr = props.getString(JobConst.PROP_RESULT);
-						TrpComputeSample res = new TrpComputeSample();
-						if(xmlStr != null) {
-							try {
-								res = JaxbUtils.unmarshal(xmlStr, TrpComputeSample.class);
-								logger.debug("With the probability of 0.95 the CER of the given recognition is in the interval ["+res.getMinProp()+" "+res.getMaxProp()+"] with the mean : "+res.getMean());
-								BoxAndWhiskerXYDataset dataset = createDataset(res.getMean(),res.getMinProp(),res.getMaxProp(),job.getCreated());
-								chart = createChart(dataset);
-								chart.fireChartChanged();
-								chartResultComp.setVisible(true);
-								chartText.setText("With the probability of 0.95 the CER of the given recognition is in the interval ["+res.getMinProp()+" "+res.getMaxProp()+"] with the mean : "+res.getMean());
-								chartText.setVisible(true);
-							} catch (JAXBException e) {
-								logger.error("Could not unmarshal error result result from job!");
-							}
+				
+				Display.getDefault().asyncExec(new Runnable() {
+
+					@Override
+					public void run() {
+						
+						try {
+							setCERinText();
+							drawChartFromJob();
+						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+								| IllegalArgumentException e) {
+							e.printStackTrace();
 						}
 					}
-				}
+					
+				});
+				
 				try {
 					Thread.sleep(SLEEP);
 				} catch (InterruptedException e) {
 					logger.error("Sleep interrupted.", e);
 				}
 			}
-		}
-		private List<TrpJobStatus> getSampleJob() {
-			Integer docId = docMd.getDocId();
-			List<TrpJobStatus> jobs = new ArrayList<>();
-			if (store != null && store.isLoggedIn()) {
-				try {
-					jobs = store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, null, null);
-				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-						| IllegalArgumentException e) {
-					logger.error("Could not load Jobs!");
-				}
-			}
-			return jobs;
 		}
 		public void setStopped() {
 			logger.debug("Stopping result polling.");
