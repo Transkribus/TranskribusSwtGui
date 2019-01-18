@@ -2192,8 +2192,8 @@ public class Storage {
 	
 	public TrpJobStatus computeErrorRate(int docId, final String pageStr, ParameterMap params) throws TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
 		//TODO
-		conn.computeErrorRateWithJob(docId, pageStr, params);
-		return null;
+		return conn.computeErrorRateWithJob(docId, pageStr, params);
+		
 	}
 	
 	public TrpErrorRateResult computeErrorRate(TrpTranscriptMetadata ref, TrpTranscriptMetadata hyp) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
