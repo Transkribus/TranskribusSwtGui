@@ -2720,7 +2720,7 @@ public class TrpMainWidget {
 
 		data.tracking = shouldITrack();
 		logger.info("resource tracking = "+data.tracking);
-		logger.info("classpath = "+CoreUtils.getClassPathString(TrpMainWidget.class));
+//		logger.info("classpath = "+CoreUtils.getClassPathString(TrpMainWidget.class));
 		
 		Display display = new Display(data);
 

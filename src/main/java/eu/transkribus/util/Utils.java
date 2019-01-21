@@ -2,12 +2,15 @@ package eu.transkribus.util;
 
 import java.awt.Point;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.BreakIterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -22,6 +25,7 @@ import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.exec.OS;
 import org.eclipse.swt.graphics.RGB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +41,7 @@ import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;
 
 public class Utils {
-	private final static Logger logger = LoggerFactory.getLogger(Utils.class);
+	final static Logger logger = LoggerFactory.getLogger(Utils.class);
 		
 	public static int countTrue(Collection<Boolean> l) {
 		int c=0;
@@ -193,7 +197,30 @@ public class Utils {
 		return new Point(start, end);
 	}
 	
-	public static void addJarToClasspath(File jarFile) {
+	
+	/**
+	 * @deprecated does not really work -> replaced classloader is not loading all new classes
+	 */
+	public static void replaceSystemClassLoaderWithUrlClassLoaders(ClassLoader replacement) throws IOException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchFieldException {
+    	logger.info("replacing system classloader with urlclassloader");
+    	java.lang.reflect.Field objSCL = ClassLoader.class.getDeclaredField("scl");
+    	objSCL.setAccessible(true);
+    	
+    	SebisClassloader newClassLoader = new SebisClassloader(replacement==null ? ClassLoader.getSystemClassLoader() : replacement);
+    	objSCL.set(null, newClassLoader);
+//    	objSCL.set(null, new URLClassLoader(new URL[0]));
+    	Thread.currentThread().setContextClassLoader(new URLClassLoader(new URL[0], newClassLoader));
+    }
+	
+	/**
+	 * @deprecated Throws an error when called via java >= 9 (appclassloader cannot be cast to urlclassloader) 
+	 */
+	public static boolean addJarToClasspath(File jarFile) {
+		if (SysUtils.isJavaVersionGreater8()) {
+			logger.warn("Java version > 8 detected -> cannot add jar file to classpath via reflection: "+jarFile.getAbsolutePath());
+			return false;
+		}
+		
 		try {
 			URL url = jarFile.toURI().toURL();
 			URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
@@ -201,8 +228,10 @@ public class Utils {
 			Method method = urlClass.getDeclaredMethod("addURL", new Class<?>[] { URL.class });
 			method.setAccessible(true);
 			method.invoke(urlClassLoader, new Object[] { url });
+			return true;
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error(t.getMessage(), t);
+			return false;
 		}
 	}
 			
@@ -360,7 +389,44 @@ public class Utils {
 
 		
 	}
+	
+	public static String getStartScriptName() throws URISyntaxException {
+		String base="Transkribus.";
+		if (OS.isFamilyWindows()) {
+			String exe = base+"exe";
+			String cmd = "cmd /c start "+exe;
+//			cmd += "& del "+getCurrentJar().getName(); // this cleans the old version in windows after the new version has started --> should work, as current JVM should exit sooner than new program has started! 
+			return cmd;
+		} else if (OS.isFamilyMac()) {
+			return "./"+base+"command";
+		} else {
+			return "./"+base+"sh";
+		}
+	}
+	
+	public static void restartApplication(int exitCode) throws URISyntaxException, IOException {
+//		  final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+//		  final File currentJar = new File(TrpGui.class.getProtectionDomain().getCodeSource().getLocation().toURI());
 
+		  /* is it a jar file? */
+//		  if(!currentJar.getName().endsWith(".jar"))
+//		    return;
+
+		  /* Build command: java -jar application.jar */
+		  final ArrayList<String> command = new ArrayList<String>();
+		  
+		  logger.debug("restarting: "+getStartScriptName());
+		  command.addAll(Arrays.asList(getStartScriptName().split(" ")));
+		  
+//		  command.add(javaBin);
+//		  command.add("-jar");
+//		  command.add(currentJar.getPath());
+
+		  final ProcessBuilder builder = new ProcessBuilder(command);
+		  builder.start();
+		  
+		  System.exit(exitCode);
+	}
 	
 	public static void main(String [] args) {		
 		CanvasSettings cs = new CanvasSettings();

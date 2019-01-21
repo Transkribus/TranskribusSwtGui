@@ -366,6 +366,19 @@ public class TagConfWidget extends Composite {
 				}
 			});
 		}
+		
+		TableViewerColumn descCol = new TableViewerColumn(availableTagsTv, SWT.NONE);
+		descCol.getColumn().setText("");
+		descCol.getColumn().setResizable(true);
+		descCol.getColumn().setWidth(100);
+		ColumnLabelProvider isEmptyTagColLP = new ColumnLabelProvider() {
+			@Override public String getText(Object element) {
+//				return (String) element;
+				boolean isEmpty = CustomTagFactory.isEmptyTag((String) element);
+				return isEmpty ? "Empty tag" : "";
+			}
+		};
+		descCol.setLabelProvider(isEmptyTagColLP);	
 
 		if (false) { // add btns for table rows
 		TableViewerColumn addButtonCol = new TableViewerColumn(availableTagsTv, SWT.NONE);
