@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +29,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -40,6 +43,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -121,14 +125,15 @@ public class SamplesCompareDialog extends Dialog {
 	private static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
 	
 	private TreeViewer tv, tvCompute;
-	private CollectionContentProvider contentProv;
+	private CollectionContentProvider contentProv, contentProvComp;
 	private CollectionLabelProvider labelProv;
 	private Composite buttonComp,buttonComputeComp, chartResultComp, samplesConfComposite ;
 	private ChartComposite jFreeChartComp;
 	private Button addToSampleSetBtn, removeFromSampleSetBtn, computeSampleBtn;
 	private ParameterMap params = new ParameterMap();
+	DecimalFormat df;
 	Combo comboRef,comboHyp;
-	Label labelRef,labelHyp, chartText;
+	Label labelRef,labelHyp, chartText, cerText;
 	TrpDocMetadata docMd;
 	JFreeChart chart;
 	private Label previewLbl;
@@ -143,6 +148,8 @@ public class SamplesCompareDialog extends Dialog {
 		docList = store.getDocList();
 		colId = store.getCollId();
 		docMd = new TrpDocMetadata();
+		df = new DecimalFormat("#0.000");
+		rl = new ResultLoader();
 		
 	}
 	
@@ -192,8 +199,12 @@ public class SamplesCompareDialog extends Dialog {
 		
 		createSampleTreeViewer(samplesConfComposite, SWT.HORIZONTAL);
 		
-		//treeViewerSelector = new TreeViewerDataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, docList);
-		
+		cont.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				logger.debug("Disposing SamplesCompareDialog composite.");
+				rl.setStopped();
+			}
+		});
 		
 		return cont;
 	}
@@ -206,7 +217,7 @@ public class SamplesCompareDialog extends Dialog {
 		sampleTreeViewer.setLayout(new GridLayout(1, false));
 		
 		Group treeViewerCont = new Group(sampleTreeViewer, SWT.NONE);
-		treeViewerCont.setText("Sample Set");
+		treeViewerCont.setText("Collection");
 		treeViewerCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		treeViewerCont.setLayout(new GridLayout(1, false));
 		
@@ -228,7 +239,7 @@ public class SamplesCompareDialog extends Dialog {
 		
 		addToSampleSetBtn = new Button(buttonComp, SWT.PUSH);
 		addToSampleSetBtn.setImage(Images.ADD);
-		addToSampleSetBtn.setText("Sample Set");
+		addToSampleSetBtn.setText("Add to Sample Set");
 		addToSampleSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		
 		Group trainOverviewCont = new Group(sampleTreeViewer, SWT.NONE);
@@ -240,7 +251,7 @@ public class SamplesCompareDialog extends Dialog {
 		GridLayout tableGl = new GridLayout(1, true);
 		
 		Group sampleSetGrp = new Group(trainOverviewCont, SWT.NONE);
-		sampleSetGrp.setText("Sample Set");
+		sampleSetGrp.setText("Documents added to Sample Set");
 		sampleSetGrp.setLayoutData(tableGd);
 		sampleSetGrp.setLayout(tableGl);
 
@@ -253,7 +264,7 @@ public class SamplesCompareDialog extends Dialog {
 		removeFromSampleSetBtn.setImage(Images.CROSS);
 		removeFromSampleSetBtn.setText("Remove selected entries from train set");
 		
-		sampleTreeViewer.setWeights(new int[] {45,15,45});
+		sampleTreeViewer.setWeights(new int[] {45,20,40});
 		
 		treeViewerCont.pack();
 		buttonComp.pack();
@@ -265,7 +276,7 @@ public class SamplesCompareDialog extends Dialog {
 
 	private SamplesMethodUITab createSampelsTab(final int tabIndex) {
 		samplesTabItem = new CTabItem(paramTabFolder, SWT.NONE);
-		samplesTabItem.setText("Create Sample");
+		samplesTabItem.setText("Documents");
 		
 		samplesConfComposite = new Composite(paramTabFolder,0);
 		samplesConfComposite.setLayout(new GridLayout(1,false));
@@ -273,16 +284,16 @@ public class SamplesCompareDialog extends Dialog {
 		samplesTabItem.setControl(samplesConfComposite);
 		
 		computeSampleTabItem = new CTabItem(paramTabFolder, SWT.NONE);
-		computeSampleTabItem.setText("Compute");
+		computeSampleTabItem.setText("Samples");
 		
 		SashForm samplesComputesash = new SashForm(paramTabFolder, SWT.HORIZONTAL);
 		samplesComputesash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		samplesComputesash.setLayout(new GridLayout(3, false));
 		
 		tvCompute = new TreeViewer(samplesComputesash, SWT.BORDER | SWT.MULTI);
-		contentProv = new CollectionContentProvider();
+		contentProvComp = new CollectionContentProvider();
 		labelProv = new CollectionLabelProvider();
-		tvCompute.setContentProvider(contentProv);
+		tvCompute.setContentProvider(contentProvComp);
 		tvCompute.setLabelProvider(labelProv);
 		tvCompute.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		tvCompute.setInput(this.docList);
@@ -309,6 +320,14 @@ public class SamplesCompareDialog extends Dialog {
 		computeSampleBtn.setImage(Images.ARROW_RIGHT);
 		computeSampleBtn.setText("Compute");
 		computeSampleBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		chartText = new Label(buttonComputeComp, SWT.WRAP | SWT.BORDER | SWT.LEFT);
+		chartText.setText("With the probability of 95% the CER for the entire document will be in the interval [.. | .. ] with the mean : .. \n By taking 4 times the number of lines the interval size can be cut in half");
+		chartText.setLayoutData(new GridData(SWT.HORIZONTAL, SWT.TOP, true, false, 1, 1));
+		chartText.setVisible(false);
+		cerText = new Label(buttonComputeComp, SWT.WRAP|SWT.BORDER | SWT.LEFT);
+		cerText.setText("The CER for the sample pages is [ . . . . %]  ");
+		cerText.setLayoutData(new GridData(SWT.HORIZONTAL, SWT.TOP, true, true, 1, 1));
+		cerText.setVisible(false);
 		
 		chartResultComp = new Composite(samplesComputesash, SWT.NONE);
 		chartResultComp.setLayout(new GridLayout(1, true));
@@ -318,12 +337,9 @@ public class SamplesCompareDialog extends Dialog {
 		jFreeChartComp = new ChartComposite(chartResultComp, SWT.FILL);
 		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		jFreeChartComp.setChart(chart);
-		chartText = new Label(chartResultComp, SWT.FILL);
-		
-		
+	
 		computeSampleTabItem.setControl(samplesComputesash);
-		
-		
+
 		return new SamplesMethodUITab(tabIndex, samplesTabItem, samplesConfComposite);
 	}
 	
@@ -338,12 +354,12 @@ public class SamplesCompareDialog extends Dialog {
 
 		DefaultBoxAndWhiskerXYDataset dataset = new DefaultBoxAndWhiskerXYDataset("Upper and lower bound for CER");
 		
-		Number mean = meanDoub;
+		Number mean = meanDoub*100;
 		Number median = 0;
 		Number q1 = 0;
 		Number q3 = 0;
-		Number minRegularValue = minDoub;
-		Number maxRegularValue = maxDoub;
+		Number minRegularValue = minDoub*100;
+		Number maxRegularValue = maxDoub*100;
 		Number minOutlier = 0;
 		Number maxOutlier = 0;
 		List outliers = null;
@@ -419,15 +435,40 @@ public class SamplesCompareDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				int docId = docMd.getDocId();
 				params.addParameter("computeSample", "computeSample");
-				try {
-					store.computeSampleRate(docId,params);
-					rl = new ResultLoader();
-					
-				} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
-					e1.printStackTrace();
+				params.addIntParam("option", 0);
+				String msg = "";
+				msg += "Compute confidence interval for page(s) : 1-" + docMd.getNrOfPages() + "\n";
+				msg += "Ref: " +params.getParameterValue("ref")+"\n";
+				msg += "Hyp: " +params.getParameterValue("hyp");
+				int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
+				if (result == SWT.YES) {
+					try {
+						 TrpJobStatus status =  store.computeSampleRate(docId,params);
+						 TrpJobStatus statusCER = store.computeErrorRate(docId, "1-"+docMd.getNrOfPages(), params);
+						
+						if(status != null &&  status.isFinished()) {			
+							drawChartFromJob();
+						}
+						if(statusCER != null && statusCER.isFinished()) {
+							setCERinText();
+						}
+						rl.start();
+						if (statusCER != null && status != null) {
+							if(status.isRunning() || statusCER.isRunning()) {
+								rl.start();
+							}
+						}
+						
+						
+					} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
+						e1.printStackTrace();
+					}
 				}
 				
+				
 			}
+
+			
 			
 		});
 
@@ -443,8 +484,13 @@ public class SamplesCompareDialog extends Dialog {
 					comboRef.setVisible(true);
 					labelHyp.setVisible(true);
 					comboHyp.setVisible(true);
+					comboRef.deselectAll();
+					comboHyp.deselectAll();
+					for(int i = 0; i < comboHyp.getItemCount();i++) {
+						comboHyp.remove(i);
+					}
 					try {
-						Object[] pageObjArr = contentProv.getChildren(docMd);
+						Object[] pageObjArr = contentProvComp.getChildren(docMd);
 						for (Object obj : pageObjArr) {
 							TrpPage page = (TrpPage) obj;
 							List<TrpTranscriptMetadata> transcripts = page.getTranscripts();
@@ -453,36 +499,17 @@ public class SamplesCompareDialog extends Dialog {
 									String[] items = comboHyp.getItems();
 									if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
 										comboHyp.add(transcript.getToolName());
+										comboHyp.redraw();
 									}
 								}
 								
 							}
 							
 						}
-						Integer docId = docMd.getDocId();
-						List<TrpJobStatus> jobs = new ArrayList<>();
-						jobs = store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, null, null);
-						for(TrpJobStatus job : jobs) {
-							if(job.isFinished()) {
-								TrpProperties props = job.getJobDataProps();
-								final String xmlStr = props.getString(JobConst.PROP_RESULT);
-								TrpComputeSample res = new TrpComputeSample();
-								if(xmlStr != null) {
-									try {
-										res = JaxbUtils.unmarshal(xmlStr, TrpComputeSample.class);
-										BoxAndWhiskerXYDataset dataset = createDataset(res.getMean(),res.getMinProp(),res.getMaxProp(),job.getCreated());
-										chart = createChart(dataset);
-										jFreeChartComp.setChart(chart);
-										chart.fireChartChanged();
-										chartText.setText("With the probability of 0.95 the CER of the given recognition is in the interval ["+res.getMinProp()+" "+res.getMaxProp()+"] with the mean : "+res.getMean());
-									} catch (JAXBException e) {
-										logger.error("Could not unmarshal error result result from job!");
-									}
-								}
-							}
-						}
+						drawChartFromJob();
+						setCERinText();
 						
-					} catch (ServerErrorException | IllegalArgumentException | SessionExpiredException | ClientErrorException e) {
+					} catch (ServerErrorException | IllegalArgumentException | ClientErrorException | SessionExpiredException e) {
 						e.printStackTrace();
 					}
 					
@@ -571,6 +598,71 @@ public class SamplesCompareDialog extends Dialog {
 
 	}
 	
+	private void setCERinText() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException {
+		Integer docId = docMd.getDocId();
+		List<TrpJobStatus> jobs = new ArrayList<>();
+		jobs = store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, "jobId", "asc");
+		if(jobs == null || jobs.isEmpty()) {
+			cerText.setText("The CER for the sample pages is [ . . . . %]  ");
+		}else{
+			for(TrpJobStatus job : jobs) {
+				TrpProperties props = job.getJobDataProps();
+				final String xmlStr = props.getString(JobConst.PROP_RESULT);
+				 TrpErrorRate res = new TrpErrorRate ();
+				if(xmlStr != null) {
+					try {
+						res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
+						logger.debug("The CER for the sample pages is "+res.getCer());
+						cerText.setText("The CER for the sample pages is "+res.getCer());
+						cerText.setVisible(true);
+					} catch (JAXBException e) {
+						logger.error("Could not unmarshal error cer result from job!");
+					}
+				}
+			}
+		}
+		
+	}
+	
+	private void drawChartFromJob() throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
+		
+		Integer docId = docMd.getDocId();
+		List<TrpJobStatus> jobs = new ArrayList<>();
+		jobs = store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, "jobId", "asc");
+		if(jobs == null || jobs.isEmpty()) {
+			chartText.setText("With the probability of 95% the CER for the entire document will be in the interval [.. | .. ] with the mean : .. \n By taking 4 times the number of line the interval size can be cut in half");
+			Date date = new Date();
+			BoxAndWhiskerXYDataset dataset = createDataset(0,0,0,date);
+			chart = createChart(dataset);
+			jFreeChartComp.setChart(chart);
+			chart.fireChartChanged();
+		}else {
+			for(TrpJobStatus job : jobs) {
+				if(job.isFinished()) {
+					TrpProperties props = job.getJobDataProps();
+					final String xmlStr = props.getString(JobConst.PROP_RESULT);
+					TrpComputeSample res = new TrpComputeSample();
+					if(xmlStr != null) {
+						try {
+							res = JaxbUtils.unmarshal(xmlStr, TrpComputeSample.class);
+							BoxAndWhiskerXYDataset dataset = createDataset(res.getMean(),res.getMinProp(),res.getMaxProp(),job.getCreated());
+							chart = createChart(dataset);
+							jFreeChartComp.setChart(chart);
+							chart.fireChartChanged();
+							chartText.setText("With the probability of 95% the CER for the entire document will be in the interval ["+df.format(res.getMinProp()*100)  +"%  "+df.format(res.getMaxProp()*100) +"%] with the mean : "+df.format(res.getMean()*100) +"% \n By taking 4 times the number of line the interval size can be cut in half");
+							chartText.setVisible(true);
+							chartText.redraw();
+						} catch (JAXBException e) {
+							logger.error("Could not unmarshal interval result from job!");
+						}
+					}
+				}
+			}
+		}
+		
+		
+	}
+	
 	private void updateColors() {
 		List<TrpPage> trainPages;
 		for (TreeItem i : tv.getTree().getItems()) {
@@ -652,51 +744,35 @@ public class SamplesCompareDialog extends Dialog {
 	}
 	
 	private class ResultLoader extends Thread{
-		private final static int SLEEP = 2000;
+		private final static int SLEEP = 1000;
 		private boolean stopped = false;
 		@Override
 		public void run() {
 			logger.debug("Starting result polling.");
 			while(!stopped) {
-				List<TrpJobStatus> jobs;
-				jobs = this.getSampleJob();
-				for(TrpJobStatus job : jobs) {
-					if(job.isFinished()) {
-						TrpProperties props = job.getJobDataProps();
-						final String xmlStr = props.getString(JobConst.PROP_RESULT);
-						TrpComputeSample res = new TrpComputeSample();
-						if(xmlStr != null) {
-							try {
-								res = JaxbUtils.unmarshal(xmlStr, TrpComputeSample.class);
-								BoxAndWhiskerXYDataset dataset = createDataset(res.getMean(),res.getMinProp(),res.getMaxProp(),job.getCreated());
-								chart = createChart(dataset);
-								chartResultComp.setVisible(true);
-								chartText.setText("With the probability of 0.95 the CER of the given recognition is in the interval ["+res.getMinProp()+" "+res.getMaxProp()+"] with the mean : "+res.getMean());
-							} catch (JAXBException e) {
-								logger.error("Could not unmarshal error result result from job!");
-							}
+				
+				Display.getDefault().asyncExec(new Runnable() {
+
+					@Override
+					public void run() {
+						
+						try {
+							setCERinText();
+							drawChartFromJob();
+						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+								| IllegalArgumentException e) {
+							e.printStackTrace();
 						}
 					}
-				}
+					
+				});
+				
 				try {
 					Thread.sleep(SLEEP);
 				} catch (InterruptedException e) {
 					logger.error("Sleep interrupted.", e);
 				}
 			}
-		}
-		private List<TrpJobStatus> getSampleJob() {
-			Integer docId = docMd.getDocId();
-			List<TrpJobStatus> jobs = new ArrayList<>();
-			if (store != null && store.isLoggedIn()) {
-				try {
-					jobs = store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, null, null);
-				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-						| IllegalArgumentException e) {
-					logger.error("Could not load Jobs!");
-				}
-			}
-			return jobs;
 		}
 		public void setStopped() {
 			logger.debug("Stopping result polling.");

@@ -4,10 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.JOptionPane;
+
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,15 +24,47 @@ public class TrpGui {
 	private final static Logger logger = LoggerFactory.getLogger(TrpGui.class);
 	
 //	static final String LIBS_FOLDER = TrpConfig.getTrpSettings().getLibDir();
-	static final String LIBS_FOLDER = "libs";
+	static final String LIBS_FOLDER = new File("libs").exists() ? "libs" : "target/libs";
+	
+	public static final int EXIT_CODE_WORKDIR_NOT_WRITABLE = 100;
+	public static final int EXIT_CODE_COULD_NOT_COPY_SWT = 101;
+	public static final int EXIT_CODE_SWT_CONFIGURED = 200;
 	
 	private static String stripSwtVersion(String swtJarFileName) {
 		return swtJarFileName.split("-")[1];
 	}
 	
+	/**
+	 * @deprecated the app has to be restarted for java to find the swt lib in this way... 
+	 */
+	public static boolean copyLatestSWTJarFileToClasspathFromManifest(boolean force) throws IOException {
+		File latestSwt = getLatestSWTJarFile();
+		String latestSwtPath = latestSwt.getAbsolutePath();
+		logger.info("latestSwt: "+latestSwtPath);
+		String swtLibNameFromManifest = latestSwtPath.substring(0, latestSwtPath.lastIndexOf("-")) + ".jar";
+		File swtLibFromManifest = new File(swtLibNameFromManifest);
+		logger.info("swtLibNameFromManifest = "+swtLibNameFromManifest+", exists: "+swtLibFromManifest.exists());
+		
+		if (force || !swtLibFromManifest.exists()) {
+			try {
+				FileUtils.copyFile(latestSwt, swtLibFromManifest);
+				return true;
+			} catch (IOException e) {
+				logger.error("Could not copy swt file to classpath destination - do you have write access in the Transkribus folder?");
+				throw new IOException(e.getMessage(), e);
+			}
+		}
+		
+		return false;
+	}
+	
 	public static File getLatestSWTJarFile() {
 		File libsFolder = new File(LIBS_FOLDER);
-		logger.debug(""+libsFolder.exists());
+//		logger.debug(""+libsFolder.exists());
+//		if (!libsFolder.exists()) {
+//			logger.warn("libs folder does not exist - now assuming you are starting this class directly from Eclipse...");
+//			libsFolder = new File("target/"+LIBS_FOLDER);
+//		}
 		
 		File[] swtJars = libsFolder.listFiles(new FilenameFilter() {
 			@Override public boolean accept(File dir, String name) {
@@ -88,12 +124,54 @@ public class TrpGui {
 		return m;
 	}
 	
-	public static void main(String [] args) {
+	public static void checkWorkingDirectoryWriteable() {
+		String workDir = System.getProperty("user.dir");
+		logger.info("Working directory: "+workDir);
+		File f = new File(workDir);
+		if (!f.canWrite()) {
+			String msg = "Your installation directory is not writable!\n"
+					+ "Please install into another directory or check if the program has admin rights!";
+			JOptionPane.showMessageDialog(null, msg, "Error starting Transkribus", JOptionPane.ERROR_MESSAGE);
+			System.exit(EXIT_CODE_WORKDIR_NOT_WRITABLE);
+		}
+	}
+	
+	public static void configureSwtLib() {
 		File swtJarFile = getLatestSWTJarFile();
-		logger.debug("SWT version is: "+stripSwtVersion(swtJarFile.getName()));
-		
+		logger.info("Latest SWT version is: "+stripSwtVersion(swtJarFile.getName()));
 		logger.info("swt jar: "+swtJarFile.getName());
-		Utils.addJarToClasspath(swtJarFile);
+		
+		if (SysUtils.getJavaVersion().startsWith("1.")) { // java version <= 8 --> jump out
+			logger.info("Java version <= 8 --> including swt lib to classpath via reflection!");
+			Utils.addJarToClasspath(swtJarFile);
+			return;
+		}
+		else {
+			try {
+				if (copyLatestSWTJarFileToClasspathFromManifest(false)) {
+					String msg = "Performed initial SWT re-configuration for java version > 8\n";
+					msg += "Now trying to restart the program - restart manually if nothing happens!";
+					logger.info(msg);
+					JOptionPane.showMessageDialog(null, msg, "New SWT version configured", JOptionPane.INFORMATION_MESSAGE);
+					
+					// try to restart automatically here!
+//					System.exit(EXIT_CODE_SWT_CONFIGURED);
+					try {
+						Utils.restartApplication(EXIT_CODE_SWT_CONFIGURED);
+					} catch (URISyntaxException e) {
+						logger.error("Error restarting: "+e.getMessage(), e);
+					}
+				}
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(null, e.getMessage(), "Error starting Transkribus", JOptionPane.ERROR_MESSAGE);
+				System.exit(EXIT_CODE_COULD_NOT_COPY_SWT);
+			}
+		}
+	}
+	
+	public static void main(String [] args) throws Exception {
+		checkWorkingDirectoryWriteable();
+		configureSwtLib();
 		
 		TrpMainWidget.show();
 	}

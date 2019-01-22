@@ -181,7 +181,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		labelRef.setText("Select reference:");
 		labelRef.setVisible(false);
 		comboRef = new Combo(comp, SWT.DROP_DOWN);
-		comboRef.setItems(new String[] {"GT","1st IN_PROGRESS","Last IN_PROGRESS","1st DONE","Last DONE"});
+		comboRef.setItems(new String[] {"GT","1st IN_PROGRESS","Last IN_PROGRESS","1st DONE","Last DONE", "FINAL","NEW"});
 		comboRef.setVisible(false);
 		labelHyp = new Label(comp,SWT.NONE );
 		labelHyp.setText("Select hypothese by toolname:");
@@ -253,7 +253,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						Set<Integer> pageIndices = CoreUtils.parseRangeListStr(dps.getPagesStr(), store.getDoc().getNPages());
 						Set<Integer> newPageIndices = new HashSet<Integer>();
 						List<TrpTranscriptMetadata> transcripts = new ArrayList<TrpTranscriptMetadata>();
-						logger.debug("Combo hyp selected : "+comboHyp.getItem(comboHyp.getSelectionIndex()));
 						for (Integer pageIndex : pageIndices) {
 							logger.debug("pageIndex : "+pageIndex);
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
@@ -273,10 +272,15 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					msg += "Compute error rate for page(s) :" + newPageString + "\n";
 					msg += "Ref: " +params.getParameterValue("ref")+"\n";
 					msg += "Hyp: " +params.getParameterValue("hyp");
-					int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
-					if (result == SWT.YES) {
-						startError(store.getDocId(), newPageString);
+					if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null ) {
+						int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
+						if (result == SWT.YES) {
+							startError(store.getDocId(), newPageString);
+						}
+					}else {
+						DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
 					}
+					
 					
 					
 				}

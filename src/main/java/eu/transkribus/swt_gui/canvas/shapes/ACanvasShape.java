@@ -558,9 +558,12 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 			TrpBaselineType base = (TrpBaselineType) this.getData();
 			//logger.debug("Line : " + ((TrpTextLineType) base.getParent()).getId());
 			CanvasPolygon bp = ((CanvasPolyline) this).getDefaultPolyRectangle4Baseline();
+			if (bp != null){
+				gc.setAlpha(isSelected() ? sets.getBackgroundAlpha() : 25);
+				gc.fillPolygon(bp.getPointArray());
+			}
 			
-			gc.setAlpha(isSelected() ? sets.getBackgroundAlpha() : 25);
-			gc.fillPolygon(bp.getPointArray());
+
 //			bp.draw(canvas, gc);
 		}
 		
