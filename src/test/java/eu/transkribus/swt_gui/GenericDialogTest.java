@@ -60,7 +60,7 @@ public class GenericDialogTest {
 //						
 //					}
 					
-					if (false) {
+					if (true) {
 						final TrpVirtualKeyboardsWidget vk = new TrpVirtualKeyboardsWidget(parent, 0);
 						
 //						UnicodeList ul = new UnicodeList("Hebrew", "U+0590-U+05ff U+fb1d-U+fb4f");
