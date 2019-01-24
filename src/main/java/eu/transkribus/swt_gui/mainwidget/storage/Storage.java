@@ -2767,8 +2767,22 @@ public class Storage {
 		return null;
 	}
 	
-	public Pair<Integer, String> setVirtualKeyShortCut(String key, Pair<Integer, String> vk) {
-		return virtualKeysShortCuts.put(key, vk);
+	public Pair<Integer, String> removeVirtualKeyShortCut(String key) {
+		return virtualKeysShortCuts.remove(key);
+	}
+	
+	public Pair<Integer, String> setVirtualKeyShortCut(String newKey, Pair<Integer, String> vk) {
+		Iterator<String> it = virtualKeysShortCuts.keySet().iterator();
+		while (it.hasNext()) {
+			String key = it.next();
+			Pair<Integer, String> value = getVirtualKeyShortCutValue(key);
+			if (value.equals(vk)) {
+				logger.debug("removing old shorcut, key = "+key+", value = "+value);
+				virtualKeysShortCuts.remove(key);
+			}
+		}
+		
+		return virtualKeysShortCuts.put(newKey, vk);
 	}
 	
 	public boolean isValidVirtualKeyShortCutKey(String key) {

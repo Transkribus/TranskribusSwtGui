@@ -121,6 +121,16 @@ public class TrpVirtualKeyboardsTabWidget extends CTabFolder {
 		saveConf();
 	}
 	
+	public void clearShortcuts() {
+		Iterator<String> it=conf.getKeys();
+		while (it.hasNext()) {
+			String key = it.next();
+			if (key.startsWith(SHORTCUT_PROP_PREFIX) && key.length()>SHORTCUT_PROP_PREFIX.length()) {
+				conf.clearProperty(key);
+			}
+		}
+	}
+	
 	private static List<Pair<String, Pair<Integer, String>>> loadVirtalKeyboardsShortCuts(XMLPropertiesConfiguration conf) {
 		List<Pair<String, Pair<Integer, String>>> scs = new ArrayList<>();
 		Iterator<String> it=conf.getKeys();
