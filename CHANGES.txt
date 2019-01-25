@@ -623,5 +623,7 @@ CHANGES AND BUGFIXES
 	-> support java versions > 8 
 	-> bugfix: virtual keyboard shortcut issues
 	-> add login btn to toolbar
+	-> bugfix: clear doc table filter when loading another collection
+	-> bugfix: Speed up 'Add page(s) to document' in document manager
 	
 	
