@@ -3255,7 +3255,7 @@ public class TrpMainWidget {
 				}, "Upload", false);			
 
 
-				reloadCurrentDocument();
+				//reloadCurrentDocument();
 			}
 			
 		} catch (Throwable e) {
