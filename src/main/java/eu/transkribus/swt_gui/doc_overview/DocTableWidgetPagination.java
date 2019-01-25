@@ -146,9 +146,10 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 		refreshList(this.collectionId, false, true);
 	}
 	
-//	public void refreshList(int collectionId, boolean resetPage) {
-//		this.refreshList(collectionId, resetPage, false);
-//	}
+	//empty the filter text
+	public void clearFilter() {
+		filter.setText("");
+	}
 		
 //	public void refreshList(boolean resetPage) {
 //		this.refreshList(this.collectionId, resetPage, false);
