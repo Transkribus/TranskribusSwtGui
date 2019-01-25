@@ -155,12 +155,13 @@ public class ErrorRateAdvancedStats extends Dialog{
 
 	public void errOverallTable() {
 		
-		Composite body = new Composite(composite,SWT.NONE);
+		Composite body = new Composite(composite,SWT.FILL);
 		
 		body.setLayout(new GridLayout(1,false));
-		body.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,true));
+		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false,false));
 	
-		overall = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FILL);
+		overall = new ErrorTableViewer(body,SWT.NONE );
+		overall.getTable().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 
 		overall.getTable().setLinesVisible(true);
 
@@ -178,7 +179,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 									""+df.format(resultErr.getBagTokensPrecDouble()),
 									""+df.format(resultErr.getBagTokensFDouble())
 									});
-		overall.getTable().setLayoutData(new GridData(GridData.CENTER));
 		
 		overall.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -190,13 +190,13 @@ public class ErrorRateAdvancedStats extends Dialog{
 	
 	public void errPageTable() {
 		
-		Composite body = new Composite(composite,SWT.NONE);
+		Composite body = new Composite(composite,SWT.FILL);
 		
 		body.setLayout(new GridLayout(1,false));
-		body.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,true));
+		body.setLayoutData(new GridData(SWT.FILL,  SWT.CENTER, true,false));
 		
 	
-		page = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FILL);
+		page = new ErrorTableViewer(body,SWT.NONE);
 		page.getTable().setLinesVisible(true);
 		page.setContentProvider(new ArrayContentProvider());
 		labelProvider = new ErrorTableLabelProvider(page);
@@ -204,10 +204,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 
 		page.getTable().setHeaderVisible(true);
 		
-		GridData gridData = new GridData();
-		gridData.heightHint=230;
 
-		page.getTable().setLayoutData(gridData);
+		page.getTable().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
 			
 		page.addSelectionChangedListener(new ISelectionChangedListener() {

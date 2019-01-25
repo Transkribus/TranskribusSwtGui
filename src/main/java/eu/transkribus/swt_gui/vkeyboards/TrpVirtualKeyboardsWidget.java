@@ -65,7 +65,7 @@ public class TrpVirtualKeyboardsWidget extends Composite {
 			VirtualKeyboardEditor vkEditor = new VirtualKeyboardEditor(parent, 0);
 			vkEditor.setUnicodeList(vk.getUnicodeList().getUnicodes());
 			
-			if (DialogUtil.showCustomMessageDialog(getShell(), "Virtual Keyboard Editor", null, null, SWT.RESIZE, new String[]{"OK", "Cancel"}, 0, vkEditor, new Point(1000, 750))==0) {
+			if (DialogUtil.showCustomMessageDialog(getShell(), "Virtual Keyboard Editor", null, null, SWT.DIALOG_TRIM | SWT.RESIZE, new String[]{"OK", "Cancel"}, 0, vkEditor, new Point(1000, 750))==0) {
 				List<Pair<Integer, String>> unicodes = vkEditor.getUnicodes();
 				logger.debug("unicodes = "+unicodes);
 				
@@ -77,6 +77,7 @@ public class TrpVirtualKeyboardsWidget extends Composite {
 					
 					// store shortcuts:
 					logger.debug("storing shorcuts, N = "+Storage.getInstance().getVirtualKeysShortCuts().size());
+					tabWidget.clearShortcuts(); // first clear all existing shortcuts!
 					for (String key : Storage.getInstance().getVirtualKeysShortCuts().keySet()) {
 						logger.debug("storing shortcut: "+key);
 						

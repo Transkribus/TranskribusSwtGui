@@ -227,14 +227,23 @@ public class VirtualKeyboardEditor extends Composite {
 			
 			@Override
 			protected void setValue(Object element, Object value) {
-				logger.debug("setting value of: "+element+" to: "+value);
-				if (!storage.isValidVirtualKeyShortCutKey(""+value)) {
+				Pair<Integer, String> vk = getElement(element);
+				String oldShortcut = storage.getVirtualKeyShortCutKey(vk);
+				String newShortcut = ""+value;
+				logger.debug("setting shortcut for value: "+element+" to: "+newShortcut+" old shorcut: "+oldShortcut);
+				if (StringUtils.isEmpty(newShortcut)) { // delete shortcut if empty input
+					Pair<Integer, String> removed = storage.removeVirtualKeyShortCut(oldShortcut);
+					logger.debug("removed: "+removed);
+					tv.refresh(true);
+					return;
+				}
+				if (!storage.isValidVirtualKeyShortCutKey(newShortcut)) {
 					return;
 				}
 				
 				try {
-					Pair<Integer, String> vk = getElement(element);
-					storage.setVirtualKeyShortCut(""+value, vk);
+					storage.setVirtualKeyShortCut(newShortcut, vk);
+					logger.debug("new key: "+storage.getVirtualKeyShortCutKey(vk)+" new value: "+storage.getVirtualKeyShortCutValue(storage.getVirtualKeyShortCutKey(vk)));
 					tv.refresh(true);
 				} catch (Exception e) {
 					logger.error(e.getMessage(), e);

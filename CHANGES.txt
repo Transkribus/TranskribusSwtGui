@@ -621,5 +621,6 @@ CHANGES AND BUGFIXES
 	-> Displayed images are rotated according to EXIF orientation tag value
 	-> support user defined empty tags (like the <gap/> tag)
 	-> support java versions > 8 
+	-> bugfix: virtual keyboard shortcut issues
 	
 	
