@@ -3269,8 +3269,10 @@ public class TrpMainWidget {
 				}, "Upload", false);			
 
 
-				//reloadCurrentDocument();
+				//
 			}
+			reloadCurrentDocument();
+			ui.getServerWidget().getDocTableWidget().reloadDocs(false, true);
 			
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block

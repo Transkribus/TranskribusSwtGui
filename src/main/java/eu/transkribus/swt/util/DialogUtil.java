@@ -284,9 +284,25 @@ public class DialogUtil {
 		if (filterPath == null)
 			filterPath = System.getProperty("user.dir");
 		fd.setFilterPath(filterPath);
-		if (exts == null)
+		if (exts == null){
 			exts = new String[]{"*.*"};
-		fd.setFilterExtensions(exts);
+			fd.setFilterExtensions(exts);
+		}
+		else{
+			/*
+			 * this way the image extensions are hidden behind 'Images' in the filter
+			 */
+			String[] filterNames = {"Images (*.jpg,*.tif,*.png)"};
+			fd.setFilterNames(filterNames);
+			
+			String extString = "";
+			for (String ext : exts){
+				extString += ext+";";
+			}
+			String[] filterExts = {extString.substring(0, extString.length()-1)};
+			//logger.debug("filter exts: " + extString.substring(0, extString.length()-1));
+			fd.setFilterExtensions(filterExts);
+		}
 		
 		ArrayList<String> files = new ArrayList<String>();
 	    if (fd.open() != null) {
