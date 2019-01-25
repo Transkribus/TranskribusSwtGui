@@ -104,7 +104,7 @@ public class TrpMainWidgetView extends Composite {
 	// ##########
 	
 	// ##### Toolbar stuff: #####
-	ToolItem menuButton, /*loginToggle,*/ reloadDocumentButton, exportDocumentButton, openLocalFolderButton, closeDocBtn;
+	ToolItem menuButton, /*loginToggle,*/ loginBtn, reloadDocumentButton, exportDocumentButton, openLocalFolderButton, closeDocBtn;
 	ToolItem uploadDocsItem, searchBtn;
 
 	DropDownToolItem saveDrowDown;
@@ -475,6 +475,10 @@ public class TrpMainWidgetView extends Composite {
 	                menu.getMenuBar().setVisible(true);
 	        }
 		});
+		
+		loginBtn = new ToolItem(toolBar, SWT.PUSH);
+		loginBtn.setImage(Images.CONNECT);
+		
 		
 		initDockingToolItems();
 
@@ -871,10 +875,14 @@ public class TrpMainWidgetView extends Composite {
 			serverWidget.getLoginBtn().setText("Logout " + username + suffix);
 			serverWidget.getLoginBtn().setImage(Images.CONNECT);
 			serverWidget.getLoginBtn().setToolTipText("Server: "+server);
+			loginBtn.setImage(Images.CONNECT);
+			loginBtn.setToolTipText("Logout from server: "+server);
 		} else {
 			serverWidget.getLoginBtn().setText("Login");
 			serverWidget.getLoginBtn().setImage(Images.DISCONNECT);
 			serverWidget.getLoginBtn().setToolTipText("");
+			loginBtn.setImage(Images.DISCONNECT);
+			loginBtn.setToolTipText("Login");
 		}
 		
 		uploadDocsItem.setEnabled(loggedIn);

@@ -622,5 +622,6 @@ CHANGES AND BUGFIXES
 	-> support user defined empty tags (like the <gap/> tag)
 	-> support java versions > 8 
 	-> bugfix: virtual keyboard shortcut issues
+	-> add login btn to toolbar
 	
 	

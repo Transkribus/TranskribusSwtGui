@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.eclipse.swt.SWT;
@@ -125,12 +126,15 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 				
 		SWTUtil.onSelectionEvent(ui.getLoadTranscriptInTextEditor(), (e) -> { mw.openPAGEXmlViewer(); } );
 		
-		SWTUtil.onSelectionEvent(ui.getServerWidget().getLoginBtn(), (e) -> {
+		Consumer<SelectionEvent> loginConsumer = (e) -> {
 			if (!mw.getStorage().isLoggedIn())
 				mw.loginDialog("Enter your email and password");
 			else
 				mw.logout(false, true);
-		});
+		};
+		
+		SWTUtil.onSelectionEvent(ui.getServerWidget().getLoginBtn(), loginConsumer);
+		SWTUtil.onSelectionEvent(ui.loginBtn, loginConsumer);
 		
 		SWTUtil.onSelectionEvent(ui.getUploadDocsItem(), (e) -> { mw.uploadDocuments(); } );
 		
