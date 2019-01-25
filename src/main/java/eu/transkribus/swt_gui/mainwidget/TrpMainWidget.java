@@ -27,6 +27,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
@@ -84,6 +85,7 @@ import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.util.ImgFileFilter;
+import eu.transkribus.core.io.util.ImgPriority;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
@@ -3166,8 +3168,7 @@ public class TrpMainWidget {
 			return;
 		}
 		
-		//FIXME where to handle which file extensions are allowed?
-		final String[] extArr = new String[] { "*.jpg", "*.jpeg", "*.tiff", "*.tif", "*.TIF", "*.TIFF", "*.png" };
+		final String[] extArr = getAllowedFilenameExtensions();
 		
 		String filePath = DialogUtil.showOpenFileDialog(mw.getShell(), "Add page", null, extArr);
 		logger.debug("Uploading new page from: " + filePath);
@@ -3212,11 +3213,24 @@ public class TrpMainWidget {
 
 	}
 	
+	/**
+	 * @return array containing filename extension filters for allowed image filetypes compatible with the file picker dialog
+	 */
+	private String[] getAllowedFilenameExtensions() {
+		List<String> exts = ImgPriority.getAllowedFilenameExtensions();
+		final String filterPrefix = "*.";
+		String[] extArr = new String[exts.size()];
+		for(int i = 0; i < exts.size(); i++) {
+			extArr[i] = filterPrefix + exts.get(i);
+		}
+		logger.debug("Filename filter = " + Arrays.stream(extArr).collect(Collectors.joining(", ", "[", "]")));
+		return extArr;
+	}
+	
 	public void addSeveralPages2Doc() {
 		logger.debug("Open Dialog for adding images");
 
-		//FIXME where to handle which file extensions are allowed?
-		final String[] extArr = new String[] { "*.jpg", "*.jpeg", "*.tiff", "*.tif", "*.TIF", "*.TIFF", "*.png" };
+		final String[] extArr = getAllowedFilenameExtensions();
 		final ArrayList<String> imgNames = DialogUtil.showOpenFilesDialog(getShell(), "Select image files to add", null, extArr);
 		if (imgNames == null)
 			return;
@@ -3255,7 +3269,7 @@ public class TrpMainWidget {
 				}, "Upload", false);			
 
 
-				reloadCurrentDocument();
+				//reloadCurrentDocument();
 			}
 			
 		} catch (Throwable e) {
