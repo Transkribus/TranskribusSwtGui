@@ -625,5 +625,6 @@ CHANGES AND BUGFIXES
 	-> add login btn to toolbar
 	-> bugfix: clear doc table filter when loading another collection
 	-> bugfix: Speed up 'Add page(s) to document' in document manager
+	-> Enable export of versions created by 'tool'
 	
 	
