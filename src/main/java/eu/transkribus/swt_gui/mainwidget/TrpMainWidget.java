@@ -3396,6 +3396,9 @@ public class TrpMainWidget {
 			if (lastExportFolderTmp != null && !lastExportFolderTmp.equals("")) {
 				lastExportFolder = lastExportFolderTmp;
 			}
+			
+			storage.reloadDocWithAllTranscripts();
+			
 			final CommonExportDialog exportDiag = new CommonExportDialog(getShell(), SWT.NONE, lastExportFolder, adjTitle, storage.getDoc().getPages());
 			
 			dir = exportDiag.open();
