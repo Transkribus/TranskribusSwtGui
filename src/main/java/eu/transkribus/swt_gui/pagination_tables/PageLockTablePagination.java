@@ -7,6 +7,8 @@ import java.util.ListIterator;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.nebula.widgets.pagination.IPageLoader;
 import org.eclipse.nebula.widgets.pagination.collections.PageResult;
@@ -34,34 +36,42 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NotImplementedException;
 import eu.transkribus.core.model.beans.PageLock;
+import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionTableComboViewerWidget;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
+public class PageLockTablePagination extends ATableWidgetPagination<TrpAction> implements IDoubleClickListener {
 	private final static Logger logger = LoggerFactory.getLogger(PageLockTablePagination.class);
 	
 	static final boolean USE_LIST_LOADER = true;
-	PageResultLoaderList<PageLock> listLoader;
+	PageResultLoaderList<TrpAction> listLoader;
 	List<PageLock> locks = new ArrayList<>();
+	List<TrpAction> actions = new ArrayList<>();
 	
 	public static final String USERNAME_COL = "User";
-	public static final String LOGINTIME_COL = "Login-Time";
+	public static final String LOGINTIME_COL = "Time";
 	public static final String COL_ID_COL = "Col-ID";
 	public static final String DOC_ID_COL = "Doc-ID";
-	public static final String PAGE_NR_COL = "Page";
+	public static final String PAGE_NR_COL = "Page-NR";
+	public static final String TYPE = "Type";
 	
 	Button showAllLocksBtn;
 	CollectionSelectorWidget collectionsSelector;
 	Text docIdText;
+	Text pageNrText;
 	
 	Storage store = Storage.getInstance();
 
-	public PageLockTablePagination(Composite parent, int style, int initialPageSize) {
+	public PageLockTablePagination(Composite parent, int style, int initialPageSize, int collectionId) {
 		super(parent, style, initialPageSize);
 		
 		Composite btns = new Composite(this, 0);
@@ -82,12 +92,15 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 		
 		if (store.isAdminLoggedIn()) {
 			showAllLocksBtn = new Button(btns, SWT.CHECK);
-			showAllLocksBtn.setText("Show all");
+			showAllLocksBtn.setText("Show all locked pages");
 			showAllLocksBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
 		}
 		
 		collectionsSelector = new CollectionSelectorWidget(btns, SWT.READ_ONLY | SWT.DROP_DOWN, true, null);
 		collectionsSelector.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
+		if (collectionId != -1)
+			collectionsSelector.setSelectedCollection(store.getCollection(collectionId));
+		
 //		collectionsViewer.getCollectionLabel().setText("Collection:");
 //		Label l1 = new Label(collectionsViewer, 0);
 //		l1.setText("Collection: ");
@@ -99,6 +112,11 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 		docIdText = new Text(btns, SWT.SINGLE);
 		docIdText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		
+		Label l1 = new Label(btns, 0);
+		l1.setText("Page-Nr: ");
+		pageNrText = new Text(btns, SWT.SINGLE);
+		pageNrText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		
 		refreshLocks();
 		addListener();
 	}
@@ -106,6 +124,14 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 	int parseDocId() {
 		try {
 			return Integer.valueOf(docIdText.getText());
+		} catch (Exception e) {
+			return -1;
+		}
+	}
+	
+	int parsePageNr() {
+		try {
+			return Integer.valueOf(pageNrText.getText());
 		} catch (Exception e) {
 			return -1;
 		}
@@ -133,13 +159,25 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 			}
 		});
 		
+		pageNrText.addTraverseListener(new TraverseListener() {
+			@Override public void keyTraversed(TraverseEvent e) {
+				if (e.detail == SWT.TRAVERSE_RETURN) {
+					refreshLocks();
+				}
+			}
+		});
+		
 		collectionsSelector.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
 				logger.trace("refreshing locks...");
+				docIdText.setText("");
+				pageNrText.setText("");
 				refreshLocks();				
 			}
 		});
+		
+		this.getPageableTable().getViewer().addDoubleClickListener(this);
 				
 	}
 	
@@ -149,25 +187,61 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 	
 	void refreshLocks() {
 		try {
-			TrpCollection col = collectionsSelector.getSelectedCollection();
-			int colId = (col == null || isShowAllLocks()) ? -1 : col.getColId();
-			int docId = parseDocId();
+			//for admins: if show all locks - get list of all users currently have locked a page
+			List<TrpAction> actions = new ArrayList<TrpAction>();
+			int colId = -1;
+			if (isShowAllLocks()){
+				logger.debug("listing locks from server, colId = "+colId);
+				List<PageLock> locks = store.listPageLocks(colId, -1, -1);
+				logger.debug("got "+locks.size()+" locks!");
+				for (PageLock lock : locks){
+					TrpAction action = new TrpAction();
+					action.setUserName(lock.getUserName());
+					action.setColId(lock.getColId());
+					action.setDocId(lock.getDocId());
+					action.setTime(lock.getLoginTime());
+					action.setType("Page Lock");
+					action.setPageNr(lock.getPageNr());
+					actions.add(action);
+				}
+			}
+			//we show the edit history (save, status change) per collection
+			else{
 			
-			logger.debug("listing locks from server, colId = "+colId+" docId = "+docId);
-			List<PageLock> locks = store.listPageLocks(colId, -1, -1);
+				TrpCollection col = collectionsSelector.getSelectedCollection();
+				colId = (col == null) ? -1 : col.getColId();
+				
+				logger.debug("listing actions from server, colId = "+colId);
+				//List<PageLock> locks = store.listPageLocks(colId, -1, -1);
+				actions = store.listAllActions(colId, -1, 1000);
+			}
+			
+			int docId = parseDocId();
+			int pageNr = parsePageNr();
+		
 			// filter docId locally:
 			if (docId != -1) {
-				for (ListIterator<PageLock> it = locks.listIterator(); it.hasNext(); ) {
-					PageLock l = it.next();
+				for (ListIterator<TrpAction> it = actions.listIterator(); it.hasNext(); ) {
+					TrpAction l = it.next();
 					if (l.getDocId() != docId)
 						it.remove();
-					logger.debug("logged in at " + l.getLoginTime());
+				}
+				
+			}
+			
+			//filter pageNr
+			if (pageNr != -1) {
+				for (ListIterator<TrpAction> it = actions.listIterator(); it.hasNext(); ) {
+					TrpAction l = it.next();
+					if (l.getPageNr() != pageNr)
+						it.remove();
 				}
 				
 			}
 
-			logger.debug("got "+locks.size()+" locks!");
-			refreshList(locks);
+			logger.debug("got "+actions.size()+" actions!");
+			refreshList(actions);
+			
 		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e1) {
 			onError("Error loading page locks", e1);
 		}
@@ -178,11 +252,24 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 //		DialogUtil.showErrorMessageBox(getShell(), title, th.getMessage());
 	}
 	
-	public void refreshList(List<PageLock> locks) {
-		this.locks = locks;
+//	public void refreshLockList(List<PageLock> locks) {
+//		this.locks = locks;
+//		
+//		if (USE_LIST_LOADER && listLoader!=null) {
+//			listLoader.setItems(this.locks);
+////			for (PageLock lock : this.locks){
+////				logger.debug(" login time: " + lock.getLoginTime());
+////			}
+//		}
+//		
+//		refreshPage(true);
+//	}
+	
+	public void refreshList(List<TrpAction> actions) {
+		this.actions = actions;
 		
 		if (USE_LIST_LOADER && listLoader!=null) {
-			listLoader.setItems(this.locks);
+			listLoader.setItems(this.actions);
 //			for (PageLock lock : this.locks){
 //				logger.debug(" login time: " + lock.getLoginTime());
 //			}
@@ -192,11 +279,11 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 	}
 
 	@Override protected void setPageLoader() {
-		IPageLoader<PageResult<PageLock>> loader;
+		IPageLoader<PageResult<TrpAction>> loader;
 		
 		if (USE_LIST_LOADER) {
 //			List<TrpCollection> collections = Storage.getInstance().getCollections();
-			listLoader = new PageResultLoaderList<PageLock>(locks);
+			listLoader = new PageResultLoaderList<TrpAction>(actions);
 			loader = listLoader;
 		} else {
 			throw new NotImplementedException("remote paging loader not implemented for page locks yet!");
@@ -207,10 +294,11 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 
 	@Override protected void createColumns() {
 		createDefaultColumn(USERNAME_COL, 200, "userName", true);
-		createDefaultColumn(LOGINTIME_COL, 180, "loginTime", true);
+		createDefaultColumn(LOGINTIME_COL, 180, "time", true);
 		createDefaultColumn(COL_ID_COL, 50, "colId", true);
 		createDefaultColumn(DOC_ID_COL, 60, "docId", true);
 		createDefaultColumn(PAGE_NR_COL, 50, "pageNr", true);
+		createDefaultColumn(TYPE, 100, "type", true);
 	}
 	
 	public static void main(String[] args) {
@@ -220,7 +308,7 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 				// getShell().setLayout(new FillLayout());
 				getShell().setSize(300, 200);
 				
-				PageLockTablePagination w = new PageLockTablePagination(getShell(), 0, 25);
+				PageLockTablePagination w = new PageLockTablePagination(getShell(), 0, 25, -1);
 				
 				
 //				Button btn = new Button(parent, SWT.PUSH);
@@ -240,6 +328,21 @@ public class PageLockTablePagination extends ATableWidgetPagination<PageLock> {
 		aw.open();
 
 		Display.getCurrent().dispose();
+	}
+
+	@Override
+	public void doubleClick(DoubleClickEvent arg0) {
+		TrpMainWidget mw = TrpMainWidget.getInstance();
+		
+		TrpAction action = this.getFirstSelected();
+		logger.debug("double click on action: "+action);
+		
+		if (action!=null) {
+			logger.debug("Loading doc: " + action.getDocId());
+			int pageNr = (action.getPageNr() != null ? action.getPageNr() : 1);
+			mw.loadRemoteDoc(action.getDocId(), action.getColId(), pageNr-1);
+		}	
+		
 	}
 
 }

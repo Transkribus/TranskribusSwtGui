@@ -4806,7 +4806,8 @@ public class TrpMainWidget {
 		if (SWTUtil.isOpen(ad)) {
 			ad.getShell().setVisible(true);
 		} else {
-			ad = new ActivityDialog(getShell());
+			int col = (storage.getCollection(storage.getCollId()) != null ? storage.getCollId() : -1);
+			ad = new ActivityDialog(getShell(), col);
 			ad.open();
 		}
 	}

@@ -625,6 +625,7 @@ CHANGES AND BUGFIXES
 	-> add login btn to toolbar
 	-> bugfix: clear doc table filter when loading another collection
 	-> bugfix: Speed up 'Add page(s) to document' in document manager
-	-> Enable export of versions created by 'tool'
+	-> Enable export of versions created by some 'tool', User get selection of all 'toolnames' which have run on that document
+	-> User activity: Shows a edit history per collection - more specifically sees the latest 'saves' and 'status changes' for each page and can also load that page with double click
 	
 	
