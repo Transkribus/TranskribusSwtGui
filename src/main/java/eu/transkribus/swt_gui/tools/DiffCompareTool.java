@@ -9,7 +9,8 @@ import org.slf4j.LoggerFactory;
 public class DiffCompareTool {
 	
 		public String result = "";
-	        public String getResult() {
+		
+	    public String getResult() {
 			return result;
 		}
 	        

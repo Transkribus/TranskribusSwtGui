@@ -515,6 +515,14 @@ public class ToolsWidget extends Composite {
 	public Button getCompareVersionsBtn() {
 		return compareVersionsBtn;
 	}
+	
+	public TrpTranscriptMetadata getCorrectText(){
+		return this.refVersionChooser.selectedMd;
+	}
+	
+	public TrpTranscriptMetadata getHpothesisText(){
+		return this.hypVersionChooser.selectedMd;
+	}
 
 	public static String getTranscriptLabel(TrpTranscriptMetadata t) {
 		final String labelStr = CoreUtils.newDateFormatUserFriendly().format(t.getTime()) 
