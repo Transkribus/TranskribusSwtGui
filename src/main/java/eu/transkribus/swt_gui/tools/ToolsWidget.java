@@ -136,7 +136,7 @@ public class ToolsWidget extends Composite {
 						return;
 					}
 				}
-				selectedMd = Storage.getInstance().getTranscriptMetadata();
+				selectedMd = Storage.getInstance().getTranscriptsSortedByDate(true, -1).get(1);
 				updateSelectedVersion();				
 			}		
 		}
