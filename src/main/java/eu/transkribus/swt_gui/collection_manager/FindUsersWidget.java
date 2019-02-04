@@ -46,8 +46,8 @@ public class FindUsersWidget extends Composite {
 	public static final String USER_FULLNAME_COL = "Name";
 	
 	public static final ColumnConfig[] USER_COLS = new ColumnConfig[] {
-		new ColumnConfig(USER_USERNAME_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
-		new ColumnConfig(USER_FULLNAME_COL, 75, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(USER_USERNAME_COL, 300, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(USER_FULLNAME_COL, 200, false, DefaultTableColumnViewerSorter.ASC),
 	};
 
 	public FindUsersWidget(Composite parent, int style) {
