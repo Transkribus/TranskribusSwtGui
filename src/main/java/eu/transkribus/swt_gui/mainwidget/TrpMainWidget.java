@@ -33,6 +33,7 @@ import javax.security.auth.login.LoginException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotSupportedException;
 import javax.ws.rs.ServerErrorException;
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.io.FileDeleteStrategy;
 import org.apache.commons.io.FileExistsException;
@@ -81,6 +82,7 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
 import eu.transkribus.core.exceptions.NoConnectionException;
+import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
@@ -109,10 +111,13 @@ import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
+import eu.transkribus.core.model.beans.pagecontent.TableCellType;
+import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
@@ -211,6 +216,7 @@ import eu.transkribus.swt_gui.search.SearchDialog.SearchType;
 import eu.transkribus.swt_gui.search.fulltext.FullTextSearchComposite;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeListener;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
+import eu.transkribus.swt_gui.tools.DiffCompareTool;
 import eu.transkribus.swt_gui.tools.ToolsWidgetListener;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.LineEditorListener;
@@ -3269,8 +3275,10 @@ public class TrpMainWidget {
 				}, "Upload", false);			
 
 
-				reloadCurrentDocument();
+				//
 			}
+			reloadCurrentDocument();
+			ui.getServerWidget().getDocTableWidget().reloadDocs(false, true);
 			
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block
@@ -3394,6 +3402,9 @@ public class TrpMainWidget {
 			if (lastExportFolderTmp != null && !lastExportFolderTmp.equals("")) {
 				lastExportFolder = lastExportFolderTmp;
 			}
+			
+			storage.reloadDocWithAllTranscripts();
+			
 			final CommonExportDialog exportDiag = new CommonExportDialog(getShell(), SWT.NONE, lastExportFolder, adjTitle, storage.getDoc().getPages());
 			
 			dir = exportDiag.open();
@@ -4801,7 +4812,8 @@ public class TrpMainWidget {
 		if (SWTUtil.isOpen(ad)) {
 			ad.getShell().setVisible(true);
 		} else {
-			ad = new ActivityDialog(getShell());
+			int col = (storage.getCollection(storage.getCollId()) != null ? storage.getCollId() : -1);
+			ad = new ActivityDialog(getShell(), col);
 			ad.open();
 		}
 	}
@@ -4866,9 +4878,10 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public void openVersionsCompareDialog(String diffText) {
+	public void openVersionsCompareDialog(String diffText) throws NullValueException, JAXBException {
 		logger.debug("opening compare dialog");
 		if (SWTUtil.isOpen(browserDiag)) {
+			browserDiag.refreshText(this.getTextDifferenceOfVersions(browserDiag.isShowLineNrs()));
 			browserDiag.getShell().setVisible(true);
 		} else {
 			browserDiag = new VersionsDiffBrowserDialog(getShell(), diffText);
@@ -6167,6 +6180,69 @@ public class TrpMainWidget {
 		return javaInfo;
 	}
 
+	public String getTextDifferenceOfVersions(boolean withLineNrs) throws NullValueException, JAXBException {
+		TrpTranscriptMetadata ref = (TrpTranscriptMetadata) ui.getToolsWidget().getCorrectText();
+		TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) ui.getToolsWidget().getHpothesisText();
+
+		ArrayList<String> refText = new ArrayList<String>();
+		ArrayList<String> hypText = new ArrayList<String>();
+
+		TrpPageType refPage = (TrpPageType) ref.unmarshallTranscript().getPage();
+		TrpPageType hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
+
+		if (ref != null && hyp != null) {
+			
+			int i = 1;
+			int j = 1;
+
+			for (TrpRegionType region : refPage.getRegions()) {
+				if (region instanceof TrpTextRegionType) {
+					for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
+						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + ((TrpTextLineType) line).getUnicodeText();
+						refText.add(lineString);
+						// refText = refText.concat(region.getUnicodeText());
+						i++;
+					}
+					j++;
+				}
+
+				if (region instanceof TrpTableRegionType) {
+					for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
+						for (TextLineType line : cell.getTextLine()) {
+							refText.add(((TrpTextLineType) line).getUnicodeText());
+						}
+					}
+				}
+				i = 1;
+			}
+			i = 1;
+			j = 1;
+			
+			for (TrpRegionType region : hypPage.getRegions()) {
+				if (region instanceof TrpTextRegionType) {
+					for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
+						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + ((TrpTextLineType) line).getUnicodeText();
+						hypText.add(lineString);
+						// hypText = hypText.concat(region.getUnicodeText());
+						i++;
+					}
+					j++;
+				}
+				if (region instanceof TrpTableRegionType) {
+					for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
+						for (TextLineType line : cell.getTextLine()) {
+							hypText.add(((TrpTextLineType) line).getUnicodeText());
+						}
+					}
+				}
+				i = 1;
+			}
+
+			DiffCompareTool diff = new DiffCompareTool(mw.getShell().getDisplay(), hypText, refText);
+			return diff.getResult();
+		}
+		return "";
+	}
 
 
 }

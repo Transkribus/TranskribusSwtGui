@@ -128,6 +128,7 @@ public class TrpMenuBar {
 		exportItem = createItem(docsMenu.m, SWT.NONE, Images.FOLDER_GO, "Export document...");
 		syncXmlItem = createItem(docsMenu.m, SWT.NONE, Images.getOrLoad("/icons/database_refresh.png"), "Sync local transcriptions with doc...");
 		syncTextItem = createItem(docsMenu.m, SWT.NONE, Images.getOrLoad("/icons/page_add.png"), "Sync local text files with doc...");
+		addPageMenuItem = createItem(docsMenu.m, 0, Images.getOrLoad("/icons/image_add.png"), "Add page(s) to document on server...");
 		createThumbsMenuItem = createItem(docsMenu.m, SWT.CHECK, null, "Create thumbs when opening local folder");
 		
 		// FILE MENU:
@@ -138,7 +139,6 @@ public class TrpMenuBar {
 		replaceImageItem = createItem(fileMenu.m, SWT.NONE, Images.IMAGE_EDIT, "Replace image of current page on server...");
 		openLocalPageFileItem = createItem(fileMenu.m, 0, null, "Open local page file for current page...");		
 		deletePageMenuItem = createItem(fileMenu.m, 0, null, "Delete current page from server");
-		addPageMenuItem = createItem(fileMenu.m, 0, null, "Add page(s) to document on server...");
 		syncWordsWithLinesMenuItem = createItem(fileMenu.m, SWT.NONE, null, "Sync word transcription with text in lines");
 		
 		collMenu = createCascadeMenu(menuBar, null, "&Collections");

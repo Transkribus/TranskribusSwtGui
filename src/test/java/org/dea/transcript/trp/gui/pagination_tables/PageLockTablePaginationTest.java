@@ -25,7 +25,7 @@ public class PageLockTablePaginationTest {
 				// getShell().setLayout(new FillLayout());
 				getShell().setSize(600, 600);
 				
-				PageLockTablePagination w = new PageLockTablePagination(getShell(), 0, 25);
+				PageLockTablePagination w = new PageLockTablePagination(getShell(), 0, 25,-1);
 //				Button btn = new Button(parent, SWT.PUSH);
 //				btn.setText("Open upload dialog");
 //				btn.addSelectionListener(new SelectionAdapter() {

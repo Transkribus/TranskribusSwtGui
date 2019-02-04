@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.dialogs;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -46,6 +47,7 @@ import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
@@ -74,6 +76,7 @@ public class CommonExportDialog extends Dialog {
 
 	String lastExportFolder;
 	String docName;
+	List<TrpPage> pages = null;
 	File result=null;
 	Button wordBasedBtn;
 	Button exportTagsBtn;
@@ -193,6 +196,7 @@ public class CommonExportDialog extends Dialog {
 		super(parent, style |= SWT.DIALOG_TRIM | SWT.RESIZE);
 		this.lastExportFolder = lastExportFolder;
 		this.docName = docName;
+		this.pages = pages;
 		Set<String> regTagNames = CustomTagFactory.getRegisteredTagNames();
 		Set<String> usedTagNames = ExportUtils.getOnlyWantedTagnames(regTagNames);
 		setSelectedTagsList(usedTagNames);
@@ -774,19 +778,37 @@ public class CommonExportDialog extends Dialog {
 
 	    int size = EnumUtils.stringsArray(EditStatus.class).length + 2;
 	    
-	    String items[] = new String[size];
+	    //String items[] = new String[size];
+	    //String[] items = statusCombo.getItems();
 	    
-	    items[0] = "Latest version";
-	    setVersionStatus(items[0]);
-	    items[1] = "Loaded version (for current page)";
+	    statusCombo.add("Latest version",0);
+	    setVersionStatus(statusCombo.getItem(0));
+	    statusCombo.add("Loaded version (for current page)",1);
 	    int a = 2;
 
 	    for (String s : EnumUtils.stringsArray(EditStatus.class)){
-	    	items[a++] = s;
+	    	statusCombo.add(s,a++);
 	    	//logger.debug("editStatus " + s);
 	    }
 	    
-		statusCombo.setItems(items);
+	    //also select versions by toolname
+		//List<TrpPage> pages = Storage.getInstance().getDoc().getPages();
+		for(TrpPage page : pages) {
+			//logger.debug("get transcript of page " + page.getPageId());
+			List<TrpTranscriptMetadata> transcripts = page.getTranscripts();
+			//logger.debug("nr of transcripts "+ transcripts.size());
+			for(TrpTranscriptMetadata transcript : transcripts){
+				//logger.debug("get transcript  " + transcript.getToolName());
+				if(transcript.getToolName() != null) {
+					String[] items = statusCombo.getItems();
+					if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
+						statusCombo.add(transcript.getToolName(),a++);
+					}
+				}
+			}
+		}
+	    
+		//statusCombo.setItems(items);
 		statusCombo.select(0);
 		
 		statusCombo.addSelectionListener(new SelectionAdapter() {

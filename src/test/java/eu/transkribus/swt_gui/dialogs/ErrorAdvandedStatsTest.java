@@ -124,6 +124,26 @@ public class ErrorAdvandedStatsTest {
 				page9.setBagTokensRec("9.21528861154446177");
 				page9.setPageNumber(18);
 				
+				TrpErrorRateListEntry page10 = new TrpErrorRateListEntry();
+				page10.setWer("31,2%");
+				page10.setwAcc("2,98%");
+				page10.setCer("32,66%");
+				page10.setcAcc("59,38%");
+				page10.setBagTokensF("78,96%");
+				page10.setBagTokensPrec("87,91%");
+				page10.setBagTokensRec("9.21528861154446177");
+				page10.setPageNumber(19);
+				
+				TrpErrorRateListEntry page11 = new TrpErrorRateListEntry();
+				page11.setWer("31,2%");
+				page11.setwAcc("2,98%");
+				page11.setCer("32,66%");
+				page11.setcAcc("59,38%");
+				page11.setBagTokensF("78,96%");
+				page11.setBagTokensPrec("87,91%");
+				page11.setBagTokensRec("9.21528861154446177");
+				page11.setPageNumber(20);
+				
 				
 				list.add(page1);
 				list.add(page2);
@@ -134,6 +154,8 @@ public class ErrorAdvandedStatsTest {
 				list.add(page7);
 				list.add(page8);
 				list.add(page9);
+				list.add(page10);
+				list.add(page11);
 	
 				e.setList(list);
 				
@@ -143,7 +165,7 @@ public class ErrorAdvandedStatsTest {
 					ex.printStackTrace();
 				}
 				
-				ErrorRateAdvancedStats eDia = new ErrorRateAdvancedStats(getShell(),e,3133);
+				ErrorRateAdvancedStats eDia = new ErrorRateAdvancedStats(getShell(),e,3133,"add query here");
 			
 				eDia.open();
 				

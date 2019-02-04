@@ -68,6 +68,7 @@ import eu.transkribus.core.model.beans.EdOption;
 import eu.transkribus.core.model.beans.HtrModel;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.PageLock;
+import eu.transkribus.core.model.beans.TrpAction;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpCrowdProject;
 import eu.transkribus.core.model.beans.TrpCrowdProjectMessage;
@@ -1191,6 +1192,14 @@ public class Storage {
 		
 		return conn.listPageLocks(colId, docId, pageNr);
 	}
+	
+	public List<TrpAction> listAllActions(int colId, int docId, int nValues) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
+		checkConnection(true);
+		final Integer[] typeIds = {1, 3}; // = Save | Status Change | Access Document = 4 (no need)
+		return conn.listActions(typeIds, colId, docId, nValues);
+	}
+	
+	
 	
 	public void lockPage(int colId, TrpPage page) throws NoConnectionException, SessionExpiredException, ServerErrorException {
 		if (page.getDocId() > 0) {

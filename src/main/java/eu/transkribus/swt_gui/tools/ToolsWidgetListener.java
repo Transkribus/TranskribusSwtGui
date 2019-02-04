@@ -319,55 +319,10 @@ public class ToolsWidgetListener implements SelectionListener {
 				
 				
 			}else if (s == tw.compareVersionsBtn) {
-
-				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) tw.refVersionChooser.selectedMd;
-				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) tw.hypVersionChooser.selectedMd;
-
-				ArrayList<String> refText = new ArrayList<String>();
-				ArrayList<String> hypText = new ArrayList<String>();
-
-				TrpPageType refPage = (TrpPageType) ref.unmarshallTranscript().getPage();
-				TrpPageType hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
-
-				if (ref != null && hyp != null) {
-
-					for (TrpRegionType region : refPage.getRegions()) {
-						if (region instanceof TrpTextRegionType) {
-							for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
-								refText.add(((TrpTextLineType) line).getUnicodeText());
-								// refText = refText.concat(region.getUnicodeText());
-							}
-						}
-
-						if (region instanceof TrpTableRegionType) {
-							for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
-								for (TextLineType line : cell.getTextLine()) {
-									refText.add(((TrpTextLineType) line).getUnicodeText());
-								}
-							}
-						}
-					}
-
-					for (TrpRegionType region : hypPage.getRegions()) {
-						if (region instanceof TrpTextRegionType) {
-							for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
-								hypText.add(((TrpTextLineType) line).getUnicodeText());
-								// hypText = hypText.concat(region.getUnicodeText());
-							}
-						}
-						if (region instanceof TrpTableRegionType) {
-							for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
-								for (TextLineType line : cell.getTextLine()) {
-									hypText.add(((TrpTextLineType) line).getUnicodeText());
-								}
-							}
-						}
-					}
-
-					DiffCompareTool diff = new DiffCompareTool(mw.getShell().getDisplay(), hypText, refText);
-
-					mw.openVersionsCompareDialog(diff.getResult());
-				}
+				
+				String diffText = mw.getTextDifferenceOfVersions(false);
+				mw.openVersionsCompareDialog(diffText);
+				
 			}
 			// else if (tw.trComp.isHtr() && s == tw.trComp.getTrainBtn()) {
 			// if(htd != null) {

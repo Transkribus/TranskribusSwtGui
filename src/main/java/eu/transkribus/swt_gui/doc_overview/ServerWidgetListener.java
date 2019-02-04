@@ -308,6 +308,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		if (event.type == SWT.Selection && (event.widget == sw.collectionSelectorWidget || event.widget == sw)) {
 			logger.debug("handling selection event that changed collection, event = "+event);
 			logger.debug("selected a collection, id: "+sw.getSelectedCollectionId()+" coll: "+sw.getSelectedCollection());
+			
+			//need to empty document list filter when loading of new collection happened
+			sw.docTableWidget.clearFilter();
+			
 			Future<List<TrpDocMetadata>> docs = TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
 			
 			//unload currently loaded remote document (if any) on collection change
@@ -320,6 +324,8 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			if (ac != null && !ac.getShell().isDisposed() && ac.getShell().isVisible()){
 				ac.totalReload(sw.getSelectedCollectionId());
 			}
+			
+			
 			
 			//last and least: the role of a user in this collection must be taken into account for visibility of buttons, tabs, tools,...
 			TrpMainWidget.getInstance().getUi().updateVisibility();

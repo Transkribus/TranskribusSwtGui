@@ -25,9 +25,12 @@ public class ActivityDialog extends Dialog {
 	
 	Group pageLocksGroup;
 	PageLockTablePagination pageLockTable;
+	
+	int collectionId;
 
-	public ActivityDialog(Shell parentShell) {
+	public ActivityDialog(Shell parentShell, int col) {
 		super(parentShell);
+		collectionId = col;
 	}
 	
 	@Override protected void configureShell(Shell shell) {
@@ -64,9 +67,9 @@ public class ActivityDialog extends Dialog {
 		
 		pageLocksGroup = new Group(container, 0);
 		pageLocksGroup.setLayout(new FillLayout());
-		pageLocksGroup.setText("Opened pages per collection");
+		pageLocksGroup.setText("Change History");
 		pageLocksGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-		pageLockTable = new PageLockTablePagination(pageLocksGroup, 0, 25);
+		pageLockTable = new PageLockTablePagination(pageLocksGroup, 0, 25, collectionId);
 //		pageLockTable.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		/*
