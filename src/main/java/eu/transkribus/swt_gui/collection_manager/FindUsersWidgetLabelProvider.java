@@ -22,7 +22,7 @@ public class FindUsersWidgetLabelProvider implements ITableLabelProvider, ITable
 	public FindUsersWidgetLabelProvider(TableViewer tv) {
 		this.tv = tv;
 		this.table = tv.getTable();
-		this.greyedOutTextColor = Colors.getSystemColor(SWT.COLOR_GRAY);
+		this.greyedOutTextColor = Colors.getSystemColor(SWT.COLOR_DARK_GRAY);
 	}
 	
 	@Override public String getColumnText(Object element, int columnIndex) {
