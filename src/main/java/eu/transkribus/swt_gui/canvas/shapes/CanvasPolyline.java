@@ -248,6 +248,10 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 //		List<Point> pts = getPoints();
 		List<Point> pts = getPoints(true);
 		logger.trace("nr of pts in polyline = "+pts.size());
+		
+		if (pts.size()==0){
+			return null;
+		}
 
 		List<Point> ptsUp = new ArrayList<>();
 		List<Point> ptsDown = new ArrayList<>();
