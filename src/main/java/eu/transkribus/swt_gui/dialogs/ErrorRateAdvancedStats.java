@@ -494,6 +494,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		
 		downloadXLS = new Button(body,SWT.PUSH);
+		downloadXLS.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
 		downloadXLS.setText("Download XLS");
 		
 		
@@ -549,12 +550,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 	}
 	
 	public void openVersionsCompareDialog(String diffText) {
-		logger.debug("opening compare dialog");
-		logger.debug("Class of shell : "+this.shell.getClass());
+		
 		browserDiag = new VersionsDiffBrowserDialog(this.shell, diffText);
-		logger.debug("Text for browser dialog : "+diffText);
 		browserDiag.open();
-			
 		
 	}
 	
