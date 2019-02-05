@@ -1,5 +1,7 @@
 package eu.transkribus.swt_gui.tools;
 
+import java.util.List;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -128,15 +130,20 @@ public class ToolsWidget extends Composite {
 			}			
 		}
 		public void setToGT() {
+			List<TrpTranscriptMetadata> transcripts = Storage.getInstance().getTranscriptsSortedByDate(true, -1);
 			if (Storage.getInstance().hasTranscript()) {	
-				for (TrpTranscriptMetadata version : Storage.getInstance().getTranscriptsSortedByDate(true, -1)) {
+				for (TrpTranscriptMetadata version : transcripts) {
 					if (version.getStatus() == EditStatus.GT) {
 						selectedMd = version;
 						updateSelectedVersion();
 						return;
 					}
 				}
-				selectedMd = Storage.getInstance().getTranscriptMetadata();
+				if(transcripts.size() >= 2) {
+					selectedMd = transcripts.get(1);
+				}else{
+					selectedMd = Storage.getInstance().getTranscriptMetadata();
+				}
 				updateSelectedVersion();				
 			}		
 		}

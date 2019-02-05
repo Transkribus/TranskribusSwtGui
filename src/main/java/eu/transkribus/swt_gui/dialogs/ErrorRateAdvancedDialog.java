@@ -125,8 +125,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		sashFormAdvance = new SashForm(tabFolder,SWT.VERTICAL);
 		
-//		quickCompare = new CTabItem(tabFolder,SWT.NONE);
-//		quickCompare.setText("Quick Compare");
+		quickCompare = new CTabItem(tabFolder,SWT.NONE);
+		quickCompare.setText("Quick Compare");
 		
 		advanceCompare = new CTabItem(tabFolder,SWT.NONE);
 		advanceCompare.setText("Advanced Compare");
@@ -137,7 +137,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		createJobTable();
 		
-//		createQuickTab();
+		createQuickTab();
 		
 		rl.start();
 		this.composite.addDisposeListener(new DisposeListener() {
@@ -249,6 +249,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					startError(store.getDocId(),""+store.getPage().getPageNr());
 				}else {
 					try {
+						// reload documents from Storage
 						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), store.getDocId(), 10);
 						Set<Integer> pageIndices = CoreUtils.parseRangeListStr(dps.getPagesStr(), store.getDoc().getNPages());
 						Set<Integer> newPageIndices = new HashSet<Integer>();
@@ -289,24 +290,24 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			
 		});
 		
-//		computeWerBtn.addSelectionListener(new SelectionAdapter() {
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				super.widgetSelected(e);
-//
-//				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) refVersionChooser.selectedMd;
-//				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
-//
-//				if (ref != null && hyp != null) {
-//					params.addIntParam("option", -1);
-//						try {
-//							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
-//						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
-//							e1.printStackTrace();
-//						}
-//				}
-//			}
-//		});
+		computeWerBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				super.widgetSelected(e);
+
+				TrpTranscriptMetadata ref = (TrpTranscriptMetadata) refVersionChooser.selectedMd;
+				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
+
+				if (ref != null && hyp != null) {
+					params.addIntParam("option", -1);
+						try {
+							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
+						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
+							e1.printStackTrace();
+						}
+				}
+			}
+		});
 		
 	}
 
@@ -335,7 +336,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				TrpErrorResultTableEntry entry = (TrpErrorResultTableEntry) resultTable.getSelectedEntry();
 				if(entry != null && entry.getStatus().equals("Completed") ) {
 					Integer docId = store.getDocId();
-					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), entry.getResult(),docId);
+					String query = entry.getQuery();
+					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), entry.getResult(),docId,query);
 					stats.open();
 					}
 				}
