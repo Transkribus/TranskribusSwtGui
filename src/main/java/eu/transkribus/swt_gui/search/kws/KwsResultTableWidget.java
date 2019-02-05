@@ -14,6 +14,7 @@ import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
+import eu.transkribus.swt_gui.tool.error.TrpSampleResultTableEntry;
 
 public class KwsResultTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(KwsResultTableWidget.class);
@@ -129,7 +130,9 @@ public class KwsResultTableWidget extends Composite {
 			return (TrpKwsResultTableEntry) sel.getFirstElement();
 		} else if(sel.getFirstElement() instanceof TrpErrorResultTableEntry) {
 			return (TrpErrorResultTableEntry) sel.getFirstElement();
-		} 
+		} else if (sel.getFirstElement() instanceof TrpSampleResultTableEntry) {
+			return (TrpSampleResultTableEntry) sel.getFirstElement();
+		}
 		return null;
 	}
 //	public void setSelection(int htrId) {
