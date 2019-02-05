@@ -14,9 +14,11 @@ import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
 
 public class TrpSampleResultTableEntry extends AJobResultTableEntry<TrpComputeSample>{
 	
-
+	
+	private TrpJobStatus job;
 	public TrpSampleResultTableEntry(TrpJobStatus job) {
 		super(job);	
+		this.job = job;
 	}
 	private static final Logger logger = LoggerFactory.getLogger(TrpErrorResultTableEntry.class);
 
@@ -33,21 +35,15 @@ public class TrpSampleResultTableEntry extends AJobResultTableEntry<TrpComputeSa
 		}
 		return res;	
 	}
+	
+	public TrpJobStatus getJob() {
+		return job;
+	}
 
 	@Override
 	protected String extractQueries(TrpProperties props, TrpComputeSample result) {
 		String option = null;
-		switch((String)props.getProperty("parameters.3.value")) {
-		case "-1":
-			option = "Quick Compare";
-			break;
-		case "0": 
-			option = "case-sensitive";
-			break;
-		case "1":
-			option = "case-insensitive";
-			break;
-		}
+		
 		return "Page(s) : "+props.getOrDefault("parameters.1.value", "Page-Query missing") +" | Option : "+option +" | Ref: "+props.getOrDefault("parameters.0.value", "latest GT")+" | Hyp : "+props.getOrDefault("parameters.4.value", "latest Version") ;
 	} 
 
