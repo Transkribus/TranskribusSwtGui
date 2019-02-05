@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.GsonUtil;
+import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
 
@@ -53,7 +54,7 @@ public class Text2ImageConfComposite2 extends Composite {
 		baseModelCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Label labelBaseModel = new Label(baseModelCont, 0);
 		labelBaseModel.setText("Base model:");
-		baseModelBtn = new HtrModelChooserButton(baseModelCont);
+		baseModelBtn = new HtrModelChooserButton(baseModelCont, HtrCITlabUtils.PROVIDER_CITLAB);
 		baseModelBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		epochsTxt = new LabeledText(this, "Epochs per iteration: ", true);
