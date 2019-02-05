@@ -43,8 +43,10 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
+import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
@@ -103,7 +105,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		store = Storage.getInstance();
 		rl = new ResultLoader();
 		setShellStyle(getShellStyle() | SWT.RESIZE);
-
+		try {
+			store.reloadDocWithAllTranscripts();
+		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -126,7 +132,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		sashFormAdvance = new SashForm(tabFolder,SWT.VERTICAL);
 		
 		quickCompare = new CTabItem(tabFolder,SWT.NONE);
-		quickCompare.setText("Quick Compare");
+		quickCompare.setText("Compare");
 		
 		advanceCompare = new CTabItem(tabFolder,SWT.NONE);
 		advanceCompare.setText("Advanced Compare");
@@ -167,8 +173,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		options.combo.setItems("default (case sensitive) ","case insensitive");
 		options.combo.select(0);
 
-		compare = new Button(config,SWT.PUSH);
-		compare.setText("Compare");
 	
 	}
 	
@@ -178,10 +182,13 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		comp.setLayout(new GridLayout(4,false));
 		
 		labelRef = new Label(comp,SWT.NONE );
-		labelRef.setText("Select reference:");
+		labelRef.setText("Reference:");
 		labelRef.setVisible(false);
 		comboRef = new Combo(comp, SWT.DROP_DOWN);
-		comboRef.setItems(new String[] {"GT","1st IN_PROGRESS","Last IN_PROGRESS","1st DONE","Last DONE", "FINAL","NEW"});
+		comboRef.setItems(new String[] {"GT"});
+		comboRef.select(0);
+		params.addParameter("ref", comboRef.getItem(comboRef.getSelectionIndex()));
+		comboRef.setEnabled(false);
 		comboRef.setVisible(false);
 		labelHyp = new Label(comp,SWT.NONE );
 		labelHyp.setText("Select hypothese by toolname:");
@@ -201,31 +208,27 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					}
 					
 				}
+				
 			}
 		} catch (ServerErrorException | IllegalArgumentException e) {
 			e.printStackTrace();
 		}
-	
+		compare = new Button(comp,SWT.PUSH);
+		compare.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 4, 4));
+		compare.setText("Compare");
+		
 	}
 	
 	private void addListener() {
 		
-		options.combo.addModifyListener(new ModifyListener() {
-			@Override public void modifyText(ModifyEvent e) {
-				logger.debug("Selected Combo "+options.combo.getSelectionIndex());			
-			}
-		});
-		
 		comboHyp.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				logger.debug("Hyp Selction "+comboHyp.getItem(comboHyp.getSelectionIndex()));
 				params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
 			}
 		});
 		
 		comboRef.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				logger.debug("Ref Selction "+comboRef.getItem(comboRef.getSelectionIndex()));
 				params.addParameter("ref", comboRef.getItem(comboRef.getSelectionIndex()));
 			}
 		});
@@ -249,7 +252,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					startError(store.getDocId(),""+store.getPage().getPageNr());
 				}else {
 					try {
-						// reload documents from Storage
+						// create new pagestring, take only pages with chosen toolname
 						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), store.getDocId(), 10);
 						Set<Integer> pageIndices = CoreUtils.parseRangeListStr(dps.getPagesStr(), store.getDoc().getNPages());
 						Set<Integer> newPageIndices = new HashSet<Integer>();
@@ -281,9 +284,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					}else {
 						DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
 					}
-					
-					
-					
+		
 				}
 				
 			}
@@ -301,8 +302,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				if (ref != null && hyp != null) {
 					params.addIntParam("option", -1);
 						try {
-							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
-						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e1) {
+//							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
+							TrpErrorRateResult result = store.computeErrorRate(ref, hyp);
+							DialogUtil.showInfoMessageBox(getShell(), "Quick Compare Result", "Quick Compare Result :\n WER : "+result.getWer()+"\n CER : "+result.getCer());
+				
+						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e1) {
 							e1.printStackTrace();
 						}
 				}
@@ -364,7 +368,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		hypVersionChooser.setToCurrent();
 				
 		computeWerBtn = new Button(werGroup, SWT.PUSH);
-		computeWerBtn.setText("Quick Compare");
+		computeWerBtn.setText("Compare");
 		computeWerBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 0, 1));
 		computeWerBtn.setToolTipText("Compares the two selected transcripts and computes word error rate and character error rate.");
 		
@@ -392,7 +396,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		Display.getDefault().asyncExec(() -> {	
 			if(resultTable != null && !resultTable.isDisposed()) {
-				logger.debug("Updating Error result table");
 				resultTable.getTableViewer().setInput(errorList);
 			}
 		});
