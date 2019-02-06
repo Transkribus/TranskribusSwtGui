@@ -551,7 +551,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	
 	public void openVersionsCompareDialog(String diffText) {
 		
-		browserDiag = new VersionsDiffBrowserDialog(this.shell, diffText);
+		browserDiag = new VersionsDiffBrowserDialog(this.shell, diffText,true);
 		browserDiag.open();
 		
 	}
