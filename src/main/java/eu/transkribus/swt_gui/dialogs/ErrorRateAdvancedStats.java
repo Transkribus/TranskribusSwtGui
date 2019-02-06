@@ -122,7 +122,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 
 	protected static final String HELP_WIKI_ERR = "https://en.wikipedia.org/wiki/Word_error_rate";
 	protected static final String HELP_WIKI_FMEA = "https://en.wikipedia.org/wiki/F1_score";
-	protected static final int NUMBER_RESULTS_TABLE = 5;
+	protected static final int NUMBER_RESULTS_TABLE = 10;
 	
 
 	public ErrorRateAdvancedStats(Shell shell, TrpErrorRate resultErr, Integer docId, String query) {
@@ -446,7 +446,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		dataset.addValue(100 * page.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Page "+page.getPageNumber());
 		dataset.addValue(100 * resultErr.getBagTokensFDouble(), "Bag Tokens F-Measure (scaled x100)", "Overall");
 		
-		chart = ChartFactory.createBarChart("Error Rate Chart", "Category", "Value", dataset,PlotOrientation.VERTICAL,true,false,false);
+		chart = ChartFactory.createBarChart("Error Rate Chart | Ref:  "+refString+" | Hyp: "+hypString, "Category", "Value", dataset,PlotOrientation.VERTICAL,true,false,false);
 		CategoryPlot plot = chart.getCategoryPlot();
 		BarRenderer renderer = (BarRenderer) plot.getRenderer();
 		plot.setBackgroundPaint(new Color(255,255,255));
