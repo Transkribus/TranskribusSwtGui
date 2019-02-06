@@ -1,6 +1,6 @@
 package eu.transkribus.swt_gui.dialogs;
 
-import java.io.IOException;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Scanner;
 import java.util.TreeMap;
 
 import javax.ws.rs.ClientErrorException;
@@ -34,7 +33,6 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
@@ -53,14 +51,10 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeItem;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.swt.ChartComposite;
-import org.jfree.data.statistics.BoxAndWhiskerCalculator;
-import org.jfree.data.statistics.BoxAndWhiskerCategoryDataset;
 import org.jfree.data.statistics.BoxAndWhiskerItem;
 import org.jfree.data.statistics.BoxAndWhiskerXYDataset;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerXYDataset;
-import org.jfree.date.DateUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,9 +62,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.io.util.TrpProperties;
-import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpComputeSample;
-import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.TrpPage;
@@ -78,16 +70,12 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
-import eu.transkribus.core.model.beans.rest.JobParameters;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
-import eu.transkribus.core.rest.RESTConst;
-import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
@@ -97,9 +85,7 @@ import eu.transkribus.swt_gui.htr.TreeViewerDataSetSelectionSashForm.DataSetMeta
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
-import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.tool.error.TrpSampleResultTableEntry;
-import net.sf.saxon.lib.SaxonOutputKeys;
 
 
 public class SamplesCompareDialog extends Dialog {
@@ -134,14 +120,13 @@ public class SamplesCompareDialog extends Dialog {
 	private Composite buttonComp,buttonComputeComp, jobsComp, samplesConfComposite ;
 	private KwsResultTableWidget resultTable;
 	private ChartComposite jFreeChartComp;
-	private Button addToSampleSetBtn, removeFromSampleSetBtn, computeSampleBtn;
+	private Button addToSampleSetBtn, removeFromSampleSetBtn,createSampleButton, computeSampleBtn;
 	private ParameterMap params = new ParameterMap();
 	DecimalFormat df;
 	Combo comboRef,comboHyp;
 	Label labelRef,labelHyp, chartText, cerText;
 	TrpDocMetadata docMd;
 	JFreeChart chart;
-	private Label previewLbl;
 	private DataSetTableWidget sampleSetOverviewTable;
 	private Map<TrpDocMetadata, List<TrpPage>> sampleDocMap;
 	
@@ -162,6 +147,23 @@ public class SamplesCompareDialog extends Dialog {
 		if (super.getShell() != null && !super.getShell().isDisposed()) {
 			super.getShell().setVisible(true);
 		}
+	}
+	
+	@Override
+	protected void configureShell(Shell newShell) {
+		super.configureShell(newShell);
+		newShell.setText("Compare Samples");
+		newShell.setMinimumSize(900, 900);
+	}
+
+	@Override
+	protected Point getInitialSize() {
+		return new Point(1100, 900);
+	}
+
+	@Override
+	protected void setShellStyle(int newShellStyle) {
+		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
 	}
 	
 	@Override
@@ -238,14 +240,10 @@ public class SamplesCompareDialog extends Dialog {
 		buttonComp = new Composite(sampleTreeViewer, SWT.NONE);
 		buttonComp.setLayout(new GridLayout(1, true));
 		
-		previewLbl = new Label(buttonComp, SWT.NONE);
-		GridData gd2 = new GridData(SWT.CENTER, SWT.CENTER, true, true);
-		previewLbl.setLayoutData(gd2);
-		
 		addToSampleSetBtn = new Button(buttonComp, SWT.PUSH);
 		addToSampleSetBtn.setImage(Images.ADD);
 		addToSampleSetBtn.setText("Add to Sample Set");
-		addToSampleSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		addToSampleSetBtn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
 		
 		Group trainOverviewCont = new Group(sampleTreeViewer, SWT.NONE);
 		trainOverviewCont.setText("Overview");
@@ -268,6 +266,11 @@ public class SamplesCompareDialog extends Dialog {
 		removeFromSampleSetBtn.setLayoutData(buttonGd);
 		removeFromSampleSetBtn.setImage(Images.CROSS);
 		removeFromSampleSetBtn.setText("Remove selected entries from train set");
+		
+		createSampleButton = new Button(sampleSetGrp, SWT.PUSH);
+		createSampleButton.setLayoutData(buttonGd);
+		createSampleButton.setImage(Images.DISK);
+		createSampleButton.setText("Create Sample");
 		
 		sampleTreeViewer.setWeights(new int[] {45,20,40});
 		addListeners();
@@ -376,55 +379,7 @@ public class SamplesCompareDialog extends Dialog {
 		  
 		return dataset;
 
-	}
-
-	@Override
-	protected void okPressed() {
-		String msg = "";
-		DataSetMetadata sampleSetMd = getSampleSetMetadata();
-		msg += "Sample set size:\n \t\t\t\t" + sampleSetMd.getPages() + " pages\n";
-		msg += "\t\t\t\t" + sampleSetMd.getLines() + " lines\n";
-		msg += "\t\t\t\t" + sampleSetMd.getWords() + " words\n";
-		msg += "Samples Options:\n ";
-		msg += "\t\t\t\t" + nrOfLinesTxt.getText()  + " lines\n";
-		
-		if(sampleSetMd.getLines() < Integer.parseInt(nrOfLinesTxt.getText())) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error number of lines", "Choose at most "+nrOfLinesTxt.getText()+" for your sample");
-		}
-		
-		int result = DialogUtil.showYesNoDialog(this.getShell(), "Start?", msg);
-		
-		if (result == SWT.YES) {
-			
-			try {
-				logger.debug("Nr of Lines : "+nrOfLinesTxt.getText());
-				TrpJobStatus status = store.createSample(sampleDocMap, Integer.parseInt(nrOfLinesTxt.getText()), modelNameTxt.getText(), descTxt.getText());
-				DialogUtil.showInfoMessageBox(this.getShell(), "Sample Job started", "Started sample job with id = "+status.getJobId());
-
-			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-					| IllegalArgumentException e) {
-				e.printStackTrace();
-			}
-			
-		}
-	}
-	
-	@Override
-	protected void configureShell(Shell newShell) {
-		super.configureShell(newShell);
-		newShell.setText("Samples Compare");
-		newShell.setMinimumSize(1000, 800);
-	}
-
-	@Override
-	protected Point getInitialSize() {
-		return new Point(1024, 768);
-	}
-
-	@Override
-	protected void setShellStyle(int newShellStyle) {
-		super.setShellStyle(SWT.CLOSE | SWT.MAX | SWT.RESIZE | SWT.TITLE);
-	}
+	}	
 	
 	private void addListeners() {
 		
@@ -621,7 +576,39 @@ public class SamplesCompareDialog extends Dialog {
 				}
 			}
 		});
+		
+		createSampleButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				String msg = "";
+				DataSetMetadata sampleSetMd = getSampleSetMetadata();
+				msg += "Sample set size:\n \t\t\t\t" + sampleSetMd.getPages() + " pages\n";
+				msg += "\t\t\t\t" + sampleSetMd.getLines() + " lines\n";
+				msg += "\t\t\t\t" + sampleSetMd.getWords() + " words\n";
+				msg += "Samples Options:\n ";
+				msg += "\t\t\t\t" + nrOfLinesTxt.getText()  + " lines\n";
+				
+				if(sampleSetMd.getLines() < Integer.parseInt(nrOfLinesTxt.getText())) {
+					DialogUtil.showErrorMessageBox(getShell(), "Error number of lines", "Choose at most "+sampleSetMd.getLines()+" lines for your sample");
+				}else {
+					int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
+					
+					if (result == SWT.YES) {
+						
+						try {
+							logger.debug("Nr of Lines : "+nrOfLinesTxt.getText());
+							TrpJobStatus status = store.createSample(sampleDocMap, Integer.parseInt(nrOfLinesTxt.getText()), modelNameTxt.getText(), descTxt.getText());
+							DialogUtil.showInfoMessageBox(getShell(), "Sample Job started", "Started sample job with id = "+status.getJobId());
 
+						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+								| IllegalArgumentException ex) {
+							ex.printStackTrace();
+						}
+						
+					}
+				}
+			}
+		});
 	}
 	
 	private void setCERTextJob(TrpJobStatus job)  {		
@@ -888,15 +875,11 @@ public class SamplesCompareDialog extends Dialog {
 			this.tabItem = tabItem;
 			this.configComposite = configComposite;
 		}
-		public int getTabIndex() {
-			return tabIndex;
-		}
+		
 		public CTabItem getTabItem() {
 			return tabItem;
 		}
-		public Composite getConfigComposite() {
-			return configComposite;
-		}
+		
 	}
 
 }
