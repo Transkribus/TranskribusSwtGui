@@ -44,7 +44,7 @@ public class TrpSampleResultTableEntry extends AJobResultTableEntry<TrpComputeSa
 	protected String extractQueries(TrpProperties props, TrpComputeSample result) {
 		
 		
-		return "Ref: "+props.getOrDefault("parameters.0.value", "latest GT")+" | Hyp : "+props.getOrDefault("parameters.5.value", "latest Version") ;
+		return "Ref: "+props.getOrDefault("parameters.0.value", "latest GT")+" | Hyp : "+props.getOrDefault("parameters.3.value", "latest Version") ;
 	} 
 
 }
