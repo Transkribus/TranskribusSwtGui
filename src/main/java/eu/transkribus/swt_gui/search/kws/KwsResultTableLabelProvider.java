@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
+import eu.transkribus.swt_gui.tool.error.TrpSampleResultTableEntry;
 
 public class KwsResultTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	private final static Logger logger = LoggerFactory.getLogger(KwsResultTableLabelProvider.class);
@@ -99,6 +100,26 @@ public class KwsResultTableLabelProvider implements ITableLabelProvider, ITableF
 			}
 			
 		}
+		if(element instanceof TrpSampleResultTableEntry) {
+			TrpSampleResultTableEntry res = (TrpSampleResultTableEntry) element;
+			
+			TableColumn column = table.getColumn(columnIndex);
+			String ct = column.getText();
+			
+			if (ct.equals(KwsResultTableWidget.KWS_CREATED_COL)) {
+				return dateFormat.format(res.getCreated());
+			} else if (ct.equals(KwsResultTableWidget.KWS_STATUS_COL)) {
+				return res.getStatus();
+			} else if (ct.equals(KwsResultTableWidget.KWS_SCOPE_COL)) {
+				return res.getScope();
+			} else if (ct.equals(KwsResultTableWidget.KWS_DURATION_COL)) {
+				return res.getDuration();
+			} else if (ct.equals(KwsResultTableWidget.KWS_QUERY_COL)) {
+				return res.getQuery();
+			}
+			
+		}
+		
 		return "i am error";
 	}
 

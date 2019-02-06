@@ -55,7 +55,7 @@ public class ErrorTableLabelProvider implements ITableLabelProvider, ITableFontP
 
 	@Override
 	public String getColumnText(Object element, int columnIndex) {
-		logger.debug("setColumnText: " + element);
+		
 		if (element instanceof TrpErrorRateListEntry) {
 			
 			TrpErrorRateListEntry list = (TrpErrorRateListEntry) element;
