@@ -591,14 +591,15 @@ public class SamplesCompareDialog extends Dialog {
 				if(sampleSetMd.getLines() < Integer.parseInt(nrOfLinesTxt.getText())) {
 					DialogUtil.showErrorMessageBox(getShell(), "Error number of lines", "Choose at most "+sampleSetMd.getLines()+" lines for your sample");
 				}else {
+					
 					int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
 					
-					if (result == SWT.YES) {
-						
+					if (result == SWT.YES) {	
 						try {
-							logger.debug("Nr of Lines : "+nrOfLinesTxt.getText());
-							TrpJobStatus status = store.createSample(sampleDocMap, Integer.parseInt(nrOfLinesTxt.getText()), modelNameTxt.getText(), descTxt.getText());
-							DialogUtil.showInfoMessageBox(getShell(), "Sample Job started", "Started sample job with id = "+status.getJobId());
+							
+							store.createSample(sampleDocMap, Integer.parseInt(nrOfLinesTxt.getText()), modelNameTxt.getText(), descTxt.getText());
+							DialogUtil.showInfoMessageBox(getShell(), "Sample Job started", "Started sample job ");
+							
 
 						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 								| IllegalArgumentException ex) {
