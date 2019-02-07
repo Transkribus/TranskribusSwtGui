@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
+import ch.qos.logback.classic.Logger;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -28,6 +29,7 @@ public class VersionsDiffBrowserDialog extends Dialog {
     
     Button withLineNrs;
     boolean showLineNrs = false;
+    boolean showLineButton = true;
 
     public boolean isShowLineNrs() {
 		return showLineNrs;
@@ -41,6 +43,12 @@ public class VersionsDiffBrowserDialog extends Dialog {
         super(parentShell);
         this.browserString = browserString;
     }
+	
+	public VersionsDiffBrowserDialog(Shell parentShell, String browserString, boolean hideLineButton) {
+        super(parentShell);
+        this.browserString = browserString;
+        this.showLineButton = false;
+    }
 
     @Override
     protected Control createDialogArea(Composite parent) {
@@ -51,26 +59,28 @@ public class VersionsDiffBrowserDialog extends Dialog {
 
         GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
         composite.setLayoutData(data);
-               
-        withLineNrs = new Button(composite, SWT.CHECK);
-        withLineNrs.setText("Show line numbers");
-        withLineNrs.addSelectionListener(new SelectionAdapter() {
+        
+        if(showLineButton) {
+        	withLineNrs = new Button(composite, SWT.CHECK);
+            withLineNrs.setText("Show line numbers");
+            withLineNrs.addSelectionListener(new SelectionAdapter() {
 
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                Button btn = (Button) event.getSource();
-                System.out.println(btn.getSelection());
-                setShowLineNrs(btn.getSelection());
+                @Override
+                public void widgetSelected(SelectionEvent event) {
+                    Button btn = (Button) event.getSource();
+                    System.out.println(btn.getSelection());
+                    setShowLineNrs(btn.getSelection());
 
-            	try {
-					refreshText(TrpMainWidget.getInstance().getTextDifferenceOfVersions(btn.getSelection()));
-				} catch (NullValueException | JAXBException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-                
-            }
-        });
+                	try {
+    					refreshText(TrpMainWidget.getInstance().getTextDifferenceOfVersions(btn.getSelection()));
+    				} catch (NullValueException | JAXBException e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+                    
+                }
+            });
+        }   
 
         browser = new Browser(composite, SWT.NONE);
         browser.setText(browserString);
@@ -127,5 +137,6 @@ public class VersionsDiffBrowserDialog extends Dialog {
 		}
 		
 	}
+	
 
 }
