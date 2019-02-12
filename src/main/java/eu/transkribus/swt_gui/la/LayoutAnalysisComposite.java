@@ -274,16 +274,10 @@ public class LayoutAnalysisComposite extends Composite {
 		methods.add(METHOD_CITLAB_ADVANCED);
 //		methods.add(METHOD_NCSR_OLD);
 //		methods.add(METHOD_NCSR);
-		methods.add(METHOD_CVL);
-		methods.add(METHOD_CITLAB);
-		
-//		if (withCustom) {
-//			methods.add(METHOD_CUSTOM);
-//		}
-		
-		if (!isUserAllowedCitlab()) {
-			methods.remove(METHOD_CITLAB);
-//			methods.remove(METHOD_CUSTOM);
+//		methods.add(METHOD_CVL);
+				
+		if (isUserAllowedCitlab()) {
+			methods.add(METHOD_CITLAB);
 		}
 		
 		return methods;
