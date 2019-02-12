@@ -619,14 +619,16 @@ CHANGES AND BUGFIXES
 	
 1.5.5
 	-> Displayed images are rotated according to EXIF orientation tag value
-	-> support user defined empty tags (like the <gap/> tag)
-	-> support java versions > 8 
+	-> Support user defined empty tags (like the <gap/> tag)
+	-> Support java versions > 8 
 	-> bugfix: virtual keyboard shortcut issues
-	-> add login btn to toolbar
+	-> Add login btn to toolbar
 	-> bugfix: clear doc table filter when loading another collection
 	-> bugfix: Speed up 'Add page(s) to document' in document manager
 	-> Enable export of versions created by some 'tool', User get selection of all 'toolnames' which have run on that document
 	-> User activity: Shows a edit history per collection - more specifically sees the latest 'saves' and 'status changes' for each page and can also load that page with double click
 	-> 'Compare Text Differences Tool' does not block, and (if wished) it shows the line numbering like the text editor
+	-> Automatic saving tool: Stores transcript of a page from time to time locally to the user directory. If user loads a remote page it checks if a local version exists and if it is newer then 
+	the version on the server - if so it can be stored to the server. Settings can be made via the 'Save button' drop down menu.
 	
 	
