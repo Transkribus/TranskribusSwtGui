@@ -181,6 +181,20 @@ public class AutoSaveController {
 		else
 			return files.get(0);
 	}
+	
+	public boolean deleteAutoSavedFilesForThisPage(TrpPage page){
+		try {
+			List<File> files = getAutoSavesFiles(page);
+			for (File file : files){
+				file.delete();
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error("The locally stored 'auto save' file could not be deleted!");
+			e.printStackTrace();
+		}
+		return true;
+	}
 		
 	public File getLatestAutoSaveFileNewerThanPage(TrpPage page) {
 		try {

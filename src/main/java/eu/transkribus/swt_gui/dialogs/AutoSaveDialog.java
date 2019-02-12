@@ -140,7 +140,7 @@ public class AutoSaveDialog extends Dialog{
 		    	autoSaveFolderTxt.setText(defaultDir);
 		    	autoSaveIntervalText.setText(""+TrpSettings.DEFAULT_AUTOSAVE_INTERVAL);
 		    	enableAutoSaveButton.setSelection(true);
-	    		
+		    	enableCheckForNewerAutoSave.setSelection(true);
 	    	}
 	    });
 	    resetButton.setText("Reset");
