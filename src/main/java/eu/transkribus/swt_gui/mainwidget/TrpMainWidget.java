@@ -1928,6 +1928,15 @@ public class TrpMainWidget {
 					"There are unsaved changes in the transcript - do you want to save them first?");
 			if (r == SWT.CANCEL)
 				return false;
+			if (r == SWT.NO){
+				/*
+				 * if user does not want to keep this transcript the auto saved version should be deleted as well
+				 * otherwise the autosaved version will be found and suggested to the user as newer then the version he has stored latest when he came back 
+				 * to that page
+				 */
+				this.autoSaveController.deleteAutoSavedFilesForThisPage(storage.getPage());
+				return true;
+			}
 			if (r == SWT.YES) {
 				return this.saveTranscription(false);
 			}

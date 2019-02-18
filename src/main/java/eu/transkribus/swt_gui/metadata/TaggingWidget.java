@@ -10,6 +10,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
@@ -87,6 +89,49 @@ public class TaggingWidget extends Composite {
 			public void widgetSelected(SelectionEvent e) {
 				updateBtns();
 				selectSelectedTagFromTagListInTranscriptionWidget();
+			}
+		});
+		
+		tagListWidget.getTableViewer().getTable().addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+				CustomTag tag = tagListWidget.getSelectedTag();
+				logger.debug("the tag name: " + (tag != null ? tag.getTagName() : "no tagname"));
+				if (tag != null && tag.getTagName().equals("_checkMe")){
+					char key = arg0.character;
+					logger.debug("key pressed in tagging widget table: " + key);
+					ATranscriptionWidget tw = TrpMainWidget.getInstance().getUi().getSelectedTranscriptionWidget();
+					switch (key){
+						case 'a':
+							//logger.debug("selected tag: " + tagListWidget.getSelectedTag());
+							String altText = (String)tag.getAttributeValue("alternative");
+							String currLineText = tw.getCurrentLineObject().getUnicodeText();
+							String beforeTag = currLineText.substring(0, tag.getOffset());
+							String afterTag = currLineText.substring(tag.getEnd());
+							String newLineText = beforeTag.concat(altText).concat(afterTag);
+							logger.debug("User wants to replace the old text: " + tag.getContainedText() + " with this alternative: " + altText);	
+							tw.getCurrentLineObject().setUnicodeText(newLineText, this);
+							tagListWidget.refreshTable();
+							tw.redraw();
+							break;
+						case 's':
+							//user keeps the current text and deletes the _checkMe tag because it was checked
+							CustomTag tag2 = tagListWidget.getSelectedTag();
+							logger.debug("User keeps the current text " + tag2.getContainedText());
+							tw.getCurrentLineObject().getCustomTagList().deleteTagAndContinuations(tag2);
+							tagListWidget.refreshTable();
+							tw.redraw();
+							break;
+						default: break;
+					}
+				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+				// TODO Auto-generated method stub
+				
 			}
 		});
 		

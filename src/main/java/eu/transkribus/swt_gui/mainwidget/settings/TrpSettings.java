@@ -12,6 +12,8 @@ import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.drew.metadata.Directory;
+
 import eu.transkribus.client.catti.TrpCattiClientEndpoint;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.model.beans.pagecontent.BaselineType;
@@ -287,7 +289,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean loadThumbs = true;
 	public static final String LOAD_THUMBS_PROPERTY = "loadThumbs";
 	
-	private String autoSaveFolder = "";
+	private String autoSaveFolder = System.getProperty("user.home");
 	public static final String AUTOSAVE_FOLDER_PROPERTY = "autoSaveFolder";
 	
 	private int autoSaveInterval = DEFAULT_AUTOSAVE_INTERVAL;
@@ -303,7 +305,7 @@ public class TrpSettings extends APropertyChangeSupport {
 	private boolean underlineTextStyles = true;
 	public static final String UNDERLINE_TEXT_STYLES_PROPERTY = "underlineTextStyles";
 	
-	private boolean checkForNewerAutosaveFile = false;
+	private boolean checkForNewerAutosaveFile = true;
 	public static final String CHECK_FOR_NEWER_AUTO_SAVE_FILE = "checkForNewerAutosaveFile";
 	
 	private boolean focusShapesAccordingToTextAlignment = false;
@@ -1062,6 +1064,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setAutoSaveFolder(String autoSaveFolder) {
 		if (StringUtils.isEmpty(autoSaveFolder)) {
 			autoSaveFolder = TrpSettings.getDefaultAutoSaveFolder();
+			if (!new File(autoSaveFolder).exists()){
+				new File(autoSaveFolder).mkdir();
+			}			
 		}
 		
 		String old = this.autoSaveFolder;
@@ -1070,7 +1075,10 @@ public class TrpSettings extends APropertyChangeSupport {
 	}
 	
 	public static String getDefaultAutoSaveFolder() {
-		String path = System.getProperty("java.io.tmpdir");
+		
+		String path = System.getProperty("user.home");
+		//may above is better then the next variant
+		//String path = System.getProperty("java.io.tmpdir");
 		String pathNormalized = FilenameUtils.normalizeNoEndSeparator(path);
 		
 		return pathNormalized + File.separator + "Transkribus" + File.separator + "autoSave";
