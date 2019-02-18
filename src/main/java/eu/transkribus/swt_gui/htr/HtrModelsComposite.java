@@ -68,8 +68,6 @@ public class HtrModelsComposite extends Composite {
 	private static final String CER_TRAIN_KEY = "CER Train";
 	private static final String CER_TEST_KEY = "CER Test";
 
-	final String cerTestKey = "CER Test";
-
 	Storage store = Storage.getInstance();
 
 //	CTabFolder folder;
@@ -82,18 +80,13 @@ public class HtrModelsComposite extends Composite {
 	ChartComposite jFreeChartComp;
 	JFreeChart chart = null;
 
-	String charSetTitle, charSet;
-
 	DocImgViewerDialog trainDocViewer, testDocViewer = null;
 	CharSetViewerDialog charSetViewer = null;
 
 	TrpHtr htr;
-	
-	private String providerFilter;
 
 	public HtrModelsComposite(Composite parent, final String providerFilter, int flags) {
 		super(parent, flags);
-		this.providerFilter = providerFilter;
 		this.setLayout(new GridLayout(1, false));
 		
 		// all HTRs are in one table
@@ -133,6 +126,8 @@ public class HtrModelsComposite extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				ChooseCollectionDialog ccd = new ChooseCollectionDialog(getShell());
+				
+				@SuppressWarnings("unused")
 				int ret = ccd.open();
 				TrpCollection col = ccd.getSelectedCollection();
 				TrpHtr htr = htw.getSelectedHtr();
@@ -299,12 +294,13 @@ public class HtrModelsComposite extends Composite {
 		showCharSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<String> charList = HtrCITlabUtils.parseCitLabCharMap(charSet);
 				if (charSetViewer != null) {
 					charSetViewer.setVisible();
 				} else {
 					try {
-						charSetViewer = new CharSetViewerDialog(getShell(), "Character Set", charList);
+						charSetViewer = new CharSetViewerDialog(getShell(), 
+								"Character Set of Model: " + htr.getName(), 
+								htr.getCharSetList());
 						charSetViewer.open();
 					} catch (ClientErrorException | IllegalArgumentException e1) {
 						// TODO Auto-generated catch block
@@ -372,8 +368,10 @@ public class HtrModelsComposite extends Composite {
 	}
 	
 	private void updateDetails(TrpHtr htr) {
-		if (htr == null)
+		if (htr == null) {
 			return;
+		}
+		logger.debug("HTR = " + htr);
 		
 		nameTxt.setText(StrUtil.get(htr.getName()));
 		langTxt.setText(StrUtil.get(htr.getLanguage()));
@@ -383,17 +381,14 @@ public class HtrModelsComposite extends Composite {
 
 		updateParamTable(htr.getParamsProps());
 
-		charSetTitle = "Character Set of Model: " + htr.getName();
-		charSet = htr.getCharList() == null || htr.getCharList().isEmpty() ? NOT_AVAILABLE : htr.getCharList();
-
-		showCharSetBtn.setEnabled(htr.getCharList() != null && !htr.getCharList().isEmpty());
+		showCharSetBtn.setEnabled(htr.getCharSetList() != null && !htr.getCharSetList().isEmpty());
 
 		this.htr = htr;
 
 		showTestSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
 		showTrainSetBtn.setEnabled(htr.getGtDocId() != null);
 
-		updateChart();
+		updateChart(htr);
 	}
 
 	private void updateParamTable(Properties paramsProps) {
@@ -415,7 +410,7 @@ public class HtrModelsComposite extends Composite {
 		paramTable.getColumn(1).pack();
 	}
 
-	private void updateChart() {
+	private void updateChart(final TrpHtr htr) {
 		XYSeriesCollection dataset = new XYSeriesCollection();
 
 		String storedHtrTrainCerStr = NOT_AVAILABLE;
@@ -465,8 +460,8 @@ public class HtrModelsComposite extends Composite {
 			//thus reset those min vals.
 			trainMinEpoch = -1;
 			trainMin = 1.0;
-			XYSeries testSeries = new XYSeries(cerTestKey);
-			testSeries.setDescription(cerTestKey);
+			XYSeries testSeries = new XYSeries(CER_TEST_KEY);
+			testSeries.setDescription(CER_TEST_KEY);
 			for (int i = 0; i < htr.getCerTestLog().length; i++) {
 				double val = htr.getCerTestLog()[i];
 				testSeries.add(i + 1, val);
