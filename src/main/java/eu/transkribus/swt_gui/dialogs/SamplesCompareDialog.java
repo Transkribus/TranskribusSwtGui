@@ -1,15 +1,18 @@
 package eu.transkribus.swt_gui.dialogs;
 
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -17,6 +20,7 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.lang.NullArgumentException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
@@ -63,15 +67,18 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.TrpComputeSample;
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.DialogUtil;
@@ -419,34 +426,64 @@ public class SamplesCompareDialog extends Dialog {
 				int docId = docMd.getDocId();
 				params.addParameter("computeSample", "computeSample");
 				params.addIntParam("option", 0);
-				String msg = "";
-				msg += "Compute confidence interval for page(s) : 1-" + docMd.getNrOfPages() + "\n";
-				msg += "Ref: " +params.getParameterValue("ref")+"\n";
-				msg += "Hyp: " +params.getParameterValue("hyp");
-				if (params.getParameterValue("ref") == null || params.getParameterValue("hyp") == null) {
-					DialogUtil.showErrorMessageBox(getShell(), "Hyp or Ref missing", "Please choose a reference and hypothesis!");
-				}else {
-					int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
-					if (result == SWT.YES) {
-						try {
-							 TrpJobStatus status =  store.computeSampleRate(docId,params);
-							 TrpJobStatus statusCER = store.getConnection().computeErrorRateWithJob(docId, "1-"+docMd.getNrOfPages(), params);
-							
-							if(status != null &&  status.isFinished()) {			
-								drawChartFromJobs();
-							}
-							if(statusCER != null && statusCER.isFinished()) {
-								setCERinText();
-							}
-
-							DialogUtil.showInfoMessageBox(getShell(), "Compute Interval Job started", "Started compute interval job with id = "+status.getJobId());
-							
-							
-						} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
-							e1.printStackTrace();
+				String newPageString = null;
+				boolean hasGT = false;
+				try {
+					// create new pagestring, take only pages with chosen toolname
+					TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), store.getDocId(), 10);
+					Set<Integer> pageIndices = CoreUtils.parseRangeListStr("1-"+docMd.getNrOfPages(), store.getDoc().getNPages());
+					Set<Integer> newPageIndices = new HashSet<Integer>();
+					List<TrpTranscriptMetadata> transcripts = new ArrayList<TrpTranscriptMetadata>();
+					for (Integer pageIndex : pageIndices) {
+						logger.debug("pageIndex : "+pageIndex);
+						transcripts = doc.getPages().get(pageIndex).getTranscripts();
+						// check if all pages contain GT version
+						TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
+						if(transGT == null) {
+							throw new NullArgumentException("page "+ (pageIndex+1));
 						}
+						for(TrpTranscriptMetadata transcript : transcripts){
+							if(transcript.getToolName() != null) {
+								if(transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
+									newPageIndices.add(pageIndex);
+								}
+							}
+						}	
 					}
-				}	
+					newPageString = CoreUtils.getRangeListStrFromSet(newPageIndices);
+					String msg = "";
+					msg += "Compute confidence interval for page(s) : 1-" + docMd.getNrOfPages() + "\n";
+					msg += "Ref: " +params.getParameterValue("ref")+"\n";
+					msg += "Hyp: " +params.getParameterValue("hyp");
+					if (params.getParameterValue("ref") == null || params.getParameterValue("hyp") == null) {
+						DialogUtil.showErrorMessageBox(getShell(), "Hyp or Ref missing", "Please choose a reference and hypothesis!");
+					}else {
+						int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
+						if (result == SWT.YES) {
+							try {
+								 TrpJobStatus status =  store.computeSampleRate(docId,params);
+								 TrpJobStatus statusCER = store.getConnection().computeErrorRateWithJob(docId, "1-"+docMd.getNrOfPages(), params);
+								
+								if(status != null &&  status.isFinished()) {			
+									drawChartFromJobs();
+								}
+								if(statusCER != null && statusCER.isFinished()) {
+									setCERinText();
+								}
+
+								DialogUtil.showInfoMessageBox(getShell(), "Compute Interval Job started", "Started compute interval job with id = "+status.getJobId());
+								
+								
+							} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
+								e1.printStackTrace();
+							}
+						}
+					}	
+				} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException e1) {
+					e1.printStackTrace();
+				} catch (NullArgumentException e2) {
+					DialogUtil.showErrorMessageBox(getShell(), "Missing GT", "GT for " +e2.getLocalizedMessage());
+				}
 			}
 
 			
