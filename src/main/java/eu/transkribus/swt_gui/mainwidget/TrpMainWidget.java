@@ -633,7 +633,7 @@ public class TrpMainWidget {
 			
 //			updatePageInfo();
 		} catch (Throwable e) {
-			onError("Cannot load document list", "Could not connect to " + ui.getTrpSets().getTrpServer(), e);
+			onError("Cannot load document list", "Could not connect to " + getStorage().getConnection().getServerUri(), e);
 			return null;
 		}
 	}
@@ -1046,7 +1046,17 @@ public class TrpMainWidget {
 
 			List<String> storedUsers = TrpGuiPrefs.getUsers();
 			
-			loginDialog = new TrpLoginDialog(getShell(), this, message, storedUsers.toArray(new String[0]), TrpServerConn.SERVER_URIS, TrpServerConn.DEFAULT_URI_INDEX);
+			final String[] serverProposals;
+			final int defaultUriIndex;
+			if(getTrpSets().isServerSelectionEnabled()) {
+				serverProposals = TrpServerConn.SERVER_URIS;
+				defaultUriIndex = TrpServerConn.DEFAULT_URI_INDEX;
+			} else {
+				serverProposals = new String[] { TrpServerConn.SERVER_URIS[TrpServerConn.DEFAULT_URI_INDEX] };
+				defaultUriIndex = 0;
+			}
+			
+			loginDialog = new TrpLoginDialog(getShell(), this, message, storedUsers.toArray(new String[0]), serverProposals, defaultUriIndex);
 			loginDialog.open();
 
 			// attachListener();
@@ -1176,8 +1186,7 @@ public class TrpMainWidget {
 			try {
 				storage.updateCustomTagSpecsForUserInDB();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 			
 			return true;
