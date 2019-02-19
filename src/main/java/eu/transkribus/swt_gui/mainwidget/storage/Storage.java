@@ -1902,7 +1902,7 @@ public class Storage {
 				}
 			}
 		};
-		DocExporter de = new DocExporter(cache);
+		DocExporter de = new DocExporter(conn.newFImagestoreGetClient(), cache);
 		de.addObserver(o);
 		de.writeRawDoc(doc, path, true, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern, imgType);
 
