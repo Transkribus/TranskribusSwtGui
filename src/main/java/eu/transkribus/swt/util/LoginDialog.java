@@ -75,7 +75,7 @@ public class LoginDialog extends Dialog {
 			serverProposals = new String[]{};
 		}
 		this.serverProposals = serverProposals;
-		this.defaultUriIndex = CoreUtils.bound(defaultUriIndex, 0, serverProposals.length);
+		this.defaultUriIndex = CoreUtils.bound(defaultUriIndex, 0, serverProposals.length - 1);
 	}
 
 	@Override
