@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
@@ -38,6 +39,11 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 	protected String extractQueries(TrpProperties props, TrpErrorRate result) {
 		
 		String option = null;
+		ParameterMap params = new ParameterMap();
+		if(result != null) {
+			params = result.getParams();
+		}
+		
 		switch((String)props.getProperty("parameters.3.value")) {
 		case "-1":
 			option = "Quick Compare";
@@ -49,7 +55,11 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 			option = "case-insensitive";
 			break;
 		}
-		return "Page(s) : "+props.getOrDefault("parameters.1.value", "Page-Query missing") +" | Option : "+option +" | Ref: "+props.getOrDefault("parameters.0.value", "latest GT")+" | Hyp : "+props.getOrDefault("parameters.4.value", "latest Version") ;
+		if(params == null) {
+			return "Page(s) : "+props.getOrDefault("parameters.1.value", "Page-Query missing") +" | Option : "+option +" | Ref: "+props.getOrDefault("parameters.0.value", "latest GT")+" | Hyp : "+props.getOrDefault("parameters.4.value", "latest Version") ;
+		}else {
+			return "Page(s) : "+params.getParameterValue("pages") +" | Option : "+params.getParameterValue("option") +" | Ref: "+params.getParameterValue("ref")+" | Hyp : "+params.getParameterValue("hyp") ;
+		}
 	} 
 
 }
