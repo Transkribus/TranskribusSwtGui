@@ -12,8 +12,6 @@ import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.drew.metadata.Directory;
-
 import eu.transkribus.client.catti.TrpCattiClientEndpoint;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.model.beans.pagecontent.BaselineType;
@@ -51,7 +49,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	public static final String SERVER_SIDE_ACTIVATED_PROPERTY = "serverSideActivated";
 	public boolean isServerSideActivated() { return serverSideActivated; }
 	
+	@Deprecated
 	private String trpServer = TrpServerConn.SERVER_URIS[TrpServerConn.DEFAULT_URI_INDEX];
+	@Deprecated
 	public static final String TRP_SERVER_PROPERTY = "trpServer";
 	
 	// general view settings:
@@ -239,21 +239,6 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	private String eventsTxtFileName = "events.txt";
 	public static final String EVENTS_TXT_FILE_NAME = "eventsTxtFileName";
-
-	private boolean proxyEnabled = false;
-	public static final String PROXY_ENABLED = "proxyEnabled";
-	
-	private String proxyHost = "";
-	public static final String PROXY_HOST = "proxyHost";
-	
-	private String proxyPort = "";
-	public static final String PROXY_PORT = "proxyPort";
-	
-	private String proxyUser = "";
-	public static final String PROXY_USER = "proxyUser";
-	
-	private String proxyPassword = "";
-	public static final String PROXY_PW = "proxyPw";
 	
 	private boolean autoLogin = false;
 	public static final String AUTO_LOGIN_PROPERTY = "autoLogin";
@@ -322,6 +307,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	
 	private boolean loadMostRecentDocOnLogin = false;
 	public static final String LOAD_MOST_RECENT_DOC_PROPERTY = "loadMostRecentDocOnLogin";
+	
+	private boolean serverSelectionEnabled = false;
+	public static final String SERVER_SELECTION_ENABLED_PROPERTY = "serverSelectionEnabled";
 	
 	static final String[] DO_NOT_SAVE_THOSE_PROPERTIES = { 
 			DRAW_SHAPES_IN_DEFAULT_COLORS_IN_STRUCT_EDITOR_PROPERTY,
@@ -546,10 +534,22 @@ public class TrpSettings extends APropertyChangeSupport {
 //		firePropertyChange(SHOW_BOTTOM_VIEW_PROPERTY, !this.showBottomView, this.showBottomView);
 //	}
 	
+	/**
+	 * This used nowhere and up-to-date server URI is only set in TrpServerConn
+	 * 
+	 * @return
+	 */
+	@Deprecated
 	public String getTrpServer() {
 		return trpServer;
 	}
 
+	/**
+	 * This used nowhere and up-to-date server URI is only set in TrpServerConn
+	 * 
+	 * @return
+	 */
+	@Deprecated
 	public void setTrpServer(String trpServer) {
 		this.trpServer = trpServer;
 	}
@@ -1266,6 +1266,15 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setloadMostRecentDocOnLogin(boolean loadMostRecentDocOnLogin) {
 		this.loadMostRecentDocOnLogin = loadMostRecentDocOnLogin;
 		firePropertyChange(LOAD_MOST_RECENT_DOC_PROPERTY, !this.loadMostRecentDocOnLogin, this.loadMostRecentDocOnLogin);
+	}
+	
+	public boolean isServerSelectionEnabled() {
+		return serverSelectionEnabled;
+	}
+	
+	public void setServerSelectionEnabled(boolean serverSelectionEnabled) {
+		this.serverSelectionEnabled = serverSelectionEnabled;
+		firePropertyChange(SERVER_SELECTION_ENABLED_PROPERTY, !this.serverSelectionEnabled, this.serverSelectionEnabled);
 	}
 	
 //	public boolean isUseSnapshotUpdates() { return useSnapshotUpdates; }

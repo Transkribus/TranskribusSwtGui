@@ -963,6 +963,11 @@ public class Storage {
 		conn.enableDebugLogging(TrpMainWidget.getTrpSettings().isLogHttp());
 		user = conn.login(username, password);
 		logger.debug("Logged in as user: " + user + " connection: " + conn);
+		
+		if(user.isAdmin()) {
+			logger.info(user + " is admin.");
+			TrpMainWidget.getInstance().getTrpSets().setServerSelectionEnabled(user.isAdmin());
+		}
 
 		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
 	}
@@ -1902,7 +1907,7 @@ public class Storage {
 				}
 			}
 		};
-		DocExporter de = new DocExporter(cache);
+		DocExporter de = new DocExporter(conn.newFImagestoreGetClient(), cache);
 		de.addObserver(o);
 		de.writeRawDoc(doc, path, true, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern, imgType);
 
