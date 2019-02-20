@@ -6204,16 +6204,21 @@ public class TrpMainWidget {
 			
 			int i = 1;
 			int j = 1;
+			boolean containsLines = false;
 
 			for (TrpRegionType region : refPage.getRegions()) {
 				if (region instanceof TrpTextRegionType) {
 					for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
+						containsLines = true;
 						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + ((TrpTextLineType) line).getUnicodeText();
 						refText.add(lineString);
 						// refText = refText.concat(region.getUnicodeText());
 						i++;
 					}
-					j++;
+					if (containsLines){
+						j++;
+						containsLines = false;
+					}
 				}
 
 				if (region instanceof TrpTableRegionType) {
@@ -6227,16 +6232,21 @@ public class TrpMainWidget {
 			}
 			i = 1;
 			j = 1;
+			containsLines = false;
 			
 			for (TrpRegionType region : hypPage.getRegions()) {
 				if (region instanceof TrpTextRegionType) {
 					for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
+						containsLines = true;
 						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + ((TrpTextLineType) line).getUnicodeText();
 						hypText.add(lineString);
 						// hypText = hypText.concat(region.getUnicodeText());
 						i++;
 					}
-					j++;
+					if (containsLines){
+						j++;
+						containsLines = false;
+					}
 				}
 				if (region instanceof TrpTableRegionType) {
 					for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
