@@ -680,7 +680,7 @@ public class SamplesCompareDialog extends Dialog {
 					chart = createChart(dataset);
 					jFreeChartComp.setChart(chart);
 					chart.fireChartChanged();
-					chartText.setText("Upper bound : "+df.format(res.getMinProp()*100)  +"% \nLower bound : "+df.format(res.getMaxProp()*100) +"% \nMean : "+df.format(res.getMean()*100) +"% \n\nWith the probability of 95% the CER for the entire document will be in the interval ["+df.format(res.getMinProp()*100)  +"%  "+df.format(res.getMaxProp()*100) +"%] with the mean : "+df.format(res.getMean()*100) +"% \n By taking 4 times the number of lines the interval size can be cut in half");
+					chartText.setText("Upper bound : "+df.format(res.getMaxProp()*100)  +"% \nLower bound : "+df.format(res.getMinProp()*100) +"% \nMean : "+df.format(res.getMean()*100) +"% \n\nWith the probability of 95% the CER for the entire document will be in the interval ["+df.format(res.getMinProp()*100)  +"%  "+df.format(res.getMaxProp()*100) +"%] with the mean : "+df.format(res.getMean()*100) +"% \n By taking 4 times the number of lines the interval size can be cut in half");
 					chartText.setVisible(true);
 					chartText.redraw();
 				} catch (JAXBException e) {
