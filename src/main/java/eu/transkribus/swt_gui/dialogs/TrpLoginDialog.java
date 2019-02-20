@@ -33,7 +33,7 @@ public class TrpLoginDialog extends LoginDialog {
 	}
 	
 	@Override protected void okPressed() {
-		String server = getServerCombo().getText();
+		String server = super.getSelectedServer();
 		String accType = getAccountType();
 
 		boolean success = false;

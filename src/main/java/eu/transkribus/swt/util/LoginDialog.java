@@ -16,12 +16,9 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -37,11 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.OAuthCreds;
 import eu.transkribus.swt_gui.transcription.autocomplete.TrpAutoCompleteField;
 import eu.transkribus.swt_gui.util.OAuthGuiUtil;
-import examples.AnimatedGif;
 
 public class LoginDialog extends Dialog {
 	private final static Logger logger = LoggerFactory.getLogger(LoginDialog.class);
@@ -64,23 +61,21 @@ public class LoginDialog extends Dialog {
 
 	protected String[] serverProposals;
 	protected int defaultUriIndex;
-
-	// private String user = "";
-	// private char[] password = new char[]{};
+	
+	private String selectedServer;
 
 	TrpAutoCompleteField autocomplete;
-
-	// public LoginDialog(Shell parentShell, String message) {
-	// this(parentShell, message, new String[0], withServerCombo);
-	// }
 
 	public LoginDialog(Shell parentShell, String message, String[] userProposals, String[] serverProposals,
 			int defaultUriIndex) {
 		super(parentShell);
 		this.message = message;
 		this.userProposals = userProposals;
+		if(serverProposals == null) {
+			serverProposals = new String[]{};
+		}
 		this.serverProposals = serverProposals;
-		this.defaultUriIndex = defaultUriIndex;
+		this.defaultUriIndex = CoreUtils.bound(defaultUriIndex, 0, serverProposals.length);
 	}
 
 	@Override
@@ -102,8 +97,11 @@ public class LoginDialog extends Dialog {
 		
 		initAccountCombo();
 		
-		if (serverProposals != null)
+		if(serverProposals.length < 1 || serverProposals.length > 1) { 
 			initServerCombo(container);
+		} else {
+			selectedServer = serverProposals[0];
+		}
 
 		autoLogin = new Button(container, SWT.CHECK);
 		autoLogin.setText("Auto login");
@@ -216,9 +214,6 @@ public class LoginDialog extends Dialog {
 		rememberCredentials = new Button(grpCreds, SWT.CHECK);
 		rememberCredentials.setText("Remember credentials");
 		rememberCredentials.setToolTipText("If login is successful those credentials will be stored");
-		// rememberCredentials.setLayoutData(new GridData(SWT.FILL, SWT.FILL,
-		// true,
-		// true, 2, 2));
 
 		clearStoredCredentials = new Button(grpCreds, SWT.PUSH);
 		clearStoredCredentials.setText("Clear stored credentials");
@@ -292,14 +287,13 @@ public class LoginDialog extends Dialog {
 		}
 		for(int i = 0; i < 12; i++) {
 			Label l = new Label(grpCreds, SWT.FLAT);
-//			l.setText(""+i);
 		}
 	}
 	
 	private void initConnectOAuthAccountBtn(Button btnConnect, final OAuthProvider prov) {
 		btnConnect.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				final String server = getServerCombo().getText();
+				final String server = getSelectedServer();
 
 				try {
 					final String state = "test";
@@ -349,22 +343,30 @@ public class LoginDialog extends Dialog {
 
 		serverCombo = new CCombo(container, SWT.DROP_DOWN);
 		serverCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
-		for (String s : serverProposals)
+		for (String s : serverProposals) {
 			serverCombo.add(s);
-		if (serverProposals.length > 0)
+		}
+		if (serverProposals.length > 0) {
 			serverCombo.select(0);
-		if (defaultUriIndex >= 0 && defaultUriIndex < serverProposals.length)
+		}
+		if (defaultUriIndex >= 0 && defaultUriIndex < serverProposals.length) {
 			serverCombo.select(defaultUriIndex);
-
-		// serverCombo.pack();
+		}
+		selectedServer = serverCombo.getText();
+		serverCombo.addModifyListener(new ModifyListener() {
+			@Override public void modifyText(ModifyEvent e) {
+				logger.trace("Server combo text changed.");
+				selectedServer = serverCombo.getText();
+			}
+		});
 	}
 
 	public void setInfo(String info) {
 		infoLabel.setText(info);
 	}
 
-	public CCombo getServerCombo() {
-		return serverCombo;
+	public String getSelectedServer() {
+		return selectedServer;
 	}
 
 	@Override
@@ -390,15 +392,6 @@ public class LoginDialog extends Dialog {
 		return new Point(450, 380);
 	}
 
-	// @Override
-	// protected void okPressed() {
-	// user = txtUser.getText();
-	// password = txtPassword.getText().toCharArray();
-	// setReturnCode(OK);
-	//
-	//// super.okPressed();
-	// }
-
 	public void setMessage(String message) {
 		this.message = message;
 		infoLabel.setText(message);
@@ -407,10 +400,6 @@ public class LoginDialog extends Dialog {
 	public String getUser() {
 		return txtUser.getText();
 	}
-
-	// public void setUser(String user) {
-	// this.user = user;
-	// }
 
 	public void setPassword(String pw) {
 		txtPassword.setText(pw);
@@ -444,9 +433,4 @@ public class LoginDialog extends Dialog {
 			setPassword("");
 		}
 	}
-	
-	// public void setPassword(char[] password) {
-	// this.password = password;
-	// }
-
 }
