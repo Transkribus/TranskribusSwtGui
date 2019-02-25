@@ -141,12 +141,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Advanced Statistics");
-		newShell.setMinimumSize(900, 900);
-	}
-
-	@Override
-	protected Point getInitialSize() {
-		return new Point(1024, 900);
+		newShell.setMinimumSize(800, 600);
 	}
 
 	@Override
