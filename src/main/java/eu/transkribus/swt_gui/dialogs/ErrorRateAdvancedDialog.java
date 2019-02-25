@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.commons.lang.NullArgumentException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -49,6 +50,7 @@ import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
@@ -146,6 +148,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		createQuickTab();
 		
 		rl.start();
+		
 		this.composite.addDisposeListener(new DisposeListener() {
 			@Override public void widgetDisposed(DisposeEvent e) {
 				logger.debug("Disposing ErrorRateAdvancedDialog composite.");
@@ -247,7 +250,9 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				params.addParameter("option", options.combo.getSelectionIndex());
+				logger.debug("Option chosen : "+options.combo.getSelectionIndex());
 				String newPageString = null;
+				boolean hasGT = false;
 				if(dps.isCurrentTranscript()) {
 					startError(store.getDocId(),""+store.getPage().getPageNr());
 				}else {
@@ -260,6 +265,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						for (Integer pageIndex : pageIndices) {
 							logger.debug("pageIndex : "+pageIndex);
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
+							// check if all pages contain GT version
+							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
+							if(transGT == null) {
+								throw new NullArgumentException("page "+ (pageIndex+1));
+							}
 							for(TrpTranscriptMetadata transcript : transcripts){
 								if(transcript.getToolName() != null) {
 									if(transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
@@ -269,21 +279,24 @@ public class ErrorRateAdvancedDialog extends Dialog {
 							}	
 						}
 						newPageString = CoreUtils.getRangeListStrFromSet(newPageIndices);
-					} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e1) {
-						e1.printStackTrace();
-					}
-					String msg = "";
-					msg += "Compute error rate for page(s) :" + newPageString + "\n";
-					msg += "Ref: " +params.getParameterValue("ref")+"\n";
-					msg += "Hyp: " +params.getParameterValue("hyp");
-					if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null ) {
-						int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
-						if (result == SWT.YES) {
-							startError(store.getDocId(), newPageString);
+						String msg = "";
+						msg += "Compute error rate for page(s) :" + newPageString + "\n";
+						msg += "Ref: " +params.getParameterValue("ref")+"\n";
+						msg += "Hyp: " +params.getParameterValue("hyp");
+						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null ) {
+							int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
+							if (result == SWT.YES) {
+								startError(store.getDocId(), newPageString);
+							}
+						}else {
+							DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
 						}
-					}else {
-						DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
+					} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException e1) {
+						e1.printStackTrace();
+					} catch (NullArgumentException e2) {
+						DialogUtil.showErrorMessageBox(getShell(), "Missing GT", "GT for " +e2.getLocalizedMessage());
 					}
+					
 		
 				}
 				
@@ -327,7 +340,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		
 		resultGroup = new Group(jobs, SWT.FILL);
-		resultGroup.setText("Previous Compare Results");
+		resultGroup.setText("Previous Advanced Compare Results");
 		resultGroup.setLayout(groupLayout);
 		resultGroup.setLayoutData(groupGridData);
 		
