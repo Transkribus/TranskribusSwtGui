@@ -3,6 +3,7 @@ package eu.transkribus.swt.util;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.UUID;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.bindings.keys.KeyStroke;
@@ -296,7 +297,7 @@ public class LoginDialog extends Dialog {
 				final String server = getSelectedServer();
 
 				try {
-					final String state = "test";
+					final String state = UUID.randomUUID().toString();
 					final String code = OAuthGuiUtil.getUserConsent(getShell(), state, prov);
 					if(code != null) { //if user did not accept consent
 						boolean success = OAuthGuiUtil.authorizeOAuth(server, code, state, prov);

@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import javax.security.auth.login.LoginException;
 
@@ -37,7 +38,7 @@ public class TrpLoginDialog extends LoginDialog {
 		String accType = getAccountType();
 
 		boolean success = false;
-		String state = "test";
+		String state = UUID.randomUUID().toString();
 		String errorMsg = "";
 		
 		try {
