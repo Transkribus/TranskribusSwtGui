@@ -45,7 +45,8 @@ public class OAuthGuiUtil {
 			
 			uriStr = "https://accounts.google.com/o/oauth2/v2/auth?" + "scope=email%20profile" + "&state=" + state
 					+ "&redirect_uri=" + REDIRECT_URI + "&response_type=code" + "&client_id=" + clientId
-					+ "&access_type=offline"; //access_type=offline if google credentials are for web apps
+					+ "&access_type=offline" //access_type=offline if google credentials are for web apps
+					+ "&prompt=consent"; //this will prompt for consent again and make the following authorization request return a new refresh_token
 			codePattern = ".*\\?state=" + state + "&code=(.*)\\s.*";
 			break;
 		default:

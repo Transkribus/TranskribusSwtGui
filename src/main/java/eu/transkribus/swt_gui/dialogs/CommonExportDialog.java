@@ -232,13 +232,15 @@ public class CommonExportDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				boolean isServerTabSelected = exportTypeTabFolder.getSelection() == serverExportItem;
-				logger.debug("setting server type export: "+isServerTabSelected);
+				//logger.debug("setting server type export: "+isServerTabSelected);
 				setDoServerExport(isServerTabSelected);
 
-				if (!isDoServerExport() && btnTei.getSelection()){
-					btnTei.setSelection(false); 
-				}
-				btnTei.setEnabled(isDoServerExport());
+//				if (!isDoServerExport() && btnTei.getSelection()){
+//					btnTei.setSelection(false); 
+//				}
+				//btnTei.setEnabled(isDoServerExport());
+				tabItemTEI.setControl(getTabThreeControl(tabFolder));
+				recursiveSetEnabled(teiComposite, isTeiExport());
 				
 			}
 		});
@@ -318,7 +320,7 @@ public class CommonExportDialog extends Dialog {
 	    
 	    reloadExportHistoryBtn = new Button(exportHistoryHeader, SWT.PUSH);
 	    reloadExportHistoryBtn.setImage(Images.REFRESH);
-	    reloadExportHistoryBtn.setToolTipText("Refresh expost history");
+	    reloadExportHistoryBtn.setToolTipText("Refresh export history");
 	    SWTUtil.onSelectionEvent(reloadExportHistoryBtn, (e) -> { updateExportHistory(); });
 	    	    
 	    exportHistoryText = new StyledText(serverExportComposite, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER | SWT.V_SCROLL);
@@ -348,8 +350,9 @@ public class CommonExportDialog extends Dialog {
 	    final Button b1 = new Button(group1, SWT.CHECK); 
 	    b1.setText("PDF");
 	    btnTei = new Button(group1, SWT.CHECK);
-	    btnTei.setText("TEI (restricted to server export)");
-	    btnTei.setEnabled(isDoServerExport());
+	    btnTei.setText("TEI");
+	    //btnTei.setText("TEI (restricted to server export)");
+	    //btnTei.setEnabled(isDoServerExport());
 	    final Button b3 = new Button(group1, SWT.CHECK);
 	    b3.setText("DOCX");
 	    final Button b30 = new Button(group1, SWT.CHECK);
@@ -1154,7 +1157,10 @@ public class CommonExportDialog extends Dialog {
 	}
 
 	private Control getTabThreeControl(CTabFolder tabFolder) {
-		  
+		 
+		if (teiComposite != null && !teiComposite.isDisposed()){
+			teiComposite.dispose();
+		}
 	  	teiComposite = new Composite(tabFolder, SWT.NONE);
 	  	
 		teiComposite.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
@@ -1164,92 +1170,99 @@ public class CommonExportDialog extends Dialog {
 //		infoText.setBackground(shell.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
 //		infoText.setText("The xslt for the 'TEI base export' can be found here:");
 		
-		Link help = new Link(teiComposite, 0);
-		String t2iParsLink="https://github.com/dariok/page2tei";
-		help.setText("\nThe xslt for the 'TEI base export' can be found here:\n\nView it on Github: <a href=\""+t2iParsLink+"\">"+t2iParsLink+"</a>\n");
-		help.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event e) {
-				try {
-					org.eclipse.swt.program.Program.launch(e.text);
-				} catch (Exception ex) {
-					logger.error(ex.getMessage(), ex);
+		if (isDoServerExport()){
+		
+			Link help = new Link(teiComposite, 0);
+			String t2iParsLink="https://github.com/dariok/page2tei";
+			help.setText("\nThe xslt for the 'TEI base export' can be found here:\n\nView it on Github: <a href=\""+t2iParsLink+"\">"+t2iParsLink+"</a>\n");
+			help.addListener(SWT.Selection, new Listener() {
+				@Override
+				public void handleEvent(Event e) {
+					try {
+						org.eclipse.swt.program.Program.launch(e.text);
+					} catch (Exception ex) {
+						logger.error(ex.getMessage(), ex);
+					}
 				}
-			}
-		});
+			});
+			
+			Text infoText2 = new Text(teiComposite, SWT.MULTI);
+			infoText2.setEditable(false);
+			infoText2.setBackground(shell.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+			infoText2.setText("If you want to use your own transformation we/you can adapt this template.\n"
+					+ "Please send us a feature request or email (email@transkribus.eu)!\n"
+					+ "Afterwards we will check and integrate your xslt and put it here for selection.\n\n"
+					+ "Please be aware that the TEI files from the server are different to the TEI files\n"
+					+ "exported via the client!");
+		}
+		else{
 		
-		Text infoText2 = new Text(teiComposite, SWT.MULTI);
-		infoText2.setEditable(false);
-		infoText2.setBackground(shell.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-		infoText2.setText("If you want to use your own transformation we/you can adapt this template.\n"
-				+ "Please send us a feature request or email (email@transkribus.eu)!\n"
-				+ "Afterwards we will check and integrate your xslt and put it here for selection.");
-		
-////		zonesGroup = new CheckBoxGroup(teiComposite, 0);
-//		Group zonesGroup = new Group(teiComposite, SWT.CHECK);
-//		zonesGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-//		zonesGroup.setLayout(new GridLayout(1, true));
-//		zonesGroup.setText("Zones");
-////		zonesGroup.activate();
-//		
-////		zonesGroup.addSelectionListener(new SelectionAdapter() {
-////			@Override public void widgetSelected(SelectionEvent e) {
-////				System.out.println("selected!!");
-////				zonePerParRadio.setEnabled(zonesGroup.isActivated());
-////				zonePerLineRadio.setEnabled(zonesGroup.isActivated());
-////				zonePerWordRadio.setEnabled(zonesGroup.isActivated());
-////				zonesCoordsAsBoundingBoxChck.setEnabled(zonesGroup.isActivated());
-////			}
-////		});
-//
-//		noZonesRadio = new Button(zonesGroup, SWT.CHECK);
-//		noZonesRadio.setText("No zones");
-//		noZonesRadio.setToolTipText("Create no zones, just paragraphs");
-//		noZonesRadio.addSelectionListener(new SelectionAdapter() {
-//			@Override
-//			public void widgetSelected(SelectionEvent e) {
-//				zonePerParRadio.setEnabled(!noZonesRadio.getSelection());
-//				zonePerLineRadio.setEnabled(!noZonesRadio.getSelection());
-//				zonePerWordRadio.setEnabled(!noZonesRadio.getSelection());
-//				zonesCoordsAsBoundingBoxChck.setEnabled(!noZonesRadio.getSelection());
-//			}
-//		});
-//		
-//		zonePerParRadio = new Button(zonesGroup, SWT.CHECK);
-//		zonePerParRadio.setText("Zone per region");
-//		zonePerParRadio.setToolTipText("Create a zone element for each region");
-//		zonePerParRadio.setSelection(true);
-//		
-//		zonePerLineRadio = new Button(zonesGroup, SWT.CHECK);
-//		zonePerLineRadio.setToolTipText("Create a zone element for each region and line");
-//		zonePerLineRadio.setText("Zone per line");
-//		zonePerLineRadio.setSelection(true);
-//		
-//		zonePerWordRadio = new Button(zonesGroup, SWT.CHECK);
-//		zonePerWordRadio.setToolTipText("Create a zone element for each region, line and word");
-//		zonePerWordRadio.setText("Zone per word");
-//		
-//		zonesCoordsAsBoundingBoxChck = new Button(zonesGroup, SWT.CHECK);
-//		zonesCoordsAsBoundingBoxChck.setToolTipText("By default all polygon coordinates are exported as 'points' attribute in the zone tag.\nWhen checked, coordinates are reduced to bounding boxes using 'ulx, uly, lrx, lry' attributes");
-//		zonesCoordsAsBoundingBoxChck.setText("Use bounding box coordinates");
-//		
-//		pbImageNameXmlIdChck = new Button(zonesGroup, SWT.CHECK);
-//		pbImageNameXmlIdChck.setToolTipText("Use the image name as xml:id attribute for page break (pb) elements\nWarning: xml:id's starting with a number are not valid!");
-//		pbImageNameXmlIdChck.setText("Image name as <pb> xml:id"); 
-//		
-//		Group linebreakTypeGroup = new Group(teiComposite, 0);
-//		linebreakTypeGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
-//		linebreakTypeGroup.setLayout(new GridLayout(1, true));
-//		linebreakTypeGroup.setText("Line breaks");
-//		
-//		lineTagsRadio = new Button(linebreakTypeGroup, SWT.RADIO);
-//		lineTagsRadio.setToolTipText("Create a line tag (<l>...</l>) to tag a line");
-//		lineTagsRadio.setText("Line tags (<l>...</l>)");
-//		lineTagsRadio.setSelection(true);
-//		
-//		lineBreaksRadio = new Button(linebreakTypeGroup, SWT.RADIO);
-//		lineBreaksRadio.setToolTipText("Create a line break (<lb/>) to tag a line");
-//		lineBreaksRadio.setText("Line breaks (<lb/>");
+	//		zonesGroup = new CheckBoxGroup(teiComposite, 0);
+			Group zonesGroup = new Group(teiComposite, SWT.CHECK);
+			zonesGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			zonesGroup.setLayout(new GridLayout(1, true));
+			zonesGroup.setText("Zones");
+	//		zonesGroup.activate();
+			
+	//		zonesGroup.addSelectionListener(new SelectionAdapter() {
+	//			@Override public void widgetSelected(SelectionEvent e) {
+	//				System.out.println("selected!!");
+	//				zonePerParRadio.setEnabled(zonesGroup.isActivated());
+	//				zonePerLineRadio.setEnabled(zonesGroup.isActivated());
+	//				zonePerWordRadio.setEnabled(zonesGroup.isActivated());
+	//				zonesCoordsAsBoundingBoxChck.setEnabled(zonesGroup.isActivated());
+	//			}
+	//		});
+	
+			noZonesRadio = new Button(zonesGroup, SWT.CHECK);
+			noZonesRadio.setText("No zones");
+			noZonesRadio.setToolTipText("Create no zones, just paragraphs");
+			noZonesRadio.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					zonePerParRadio.setEnabled(!noZonesRadio.getSelection());
+					zonePerLineRadio.setEnabled(!noZonesRadio.getSelection());
+					zonePerWordRadio.setEnabled(!noZonesRadio.getSelection());
+					zonesCoordsAsBoundingBoxChck.setEnabled(!noZonesRadio.getSelection());
+				}
+			});
+			
+			zonePerParRadio = new Button(zonesGroup, SWT.CHECK);
+			zonePerParRadio.setText("Zone per region");
+			zonePerParRadio.setToolTipText("Create a zone element for each region");
+			zonePerParRadio.setSelection(true);
+			
+			zonePerLineRadio = new Button(zonesGroup, SWT.CHECK);
+			zonePerLineRadio.setToolTipText("Create a zone element for each region and line");
+			zonePerLineRadio.setText("Zone per line");
+			zonePerLineRadio.setSelection(true);
+			
+			zonePerWordRadio = new Button(zonesGroup, SWT.CHECK);
+			zonePerWordRadio.setToolTipText("Create a zone element for each region, line and word");
+			zonePerWordRadio.setText("Zone per word");
+			
+			zonesCoordsAsBoundingBoxChck = new Button(zonesGroup, SWT.CHECK);
+			zonesCoordsAsBoundingBoxChck.setToolTipText("By default all polygon coordinates are exported as 'points' attribute in the zone tag.\nWhen checked, coordinates are reduced to bounding boxes using 'ulx, uly, lrx, lry' attributes");
+			zonesCoordsAsBoundingBoxChck.setText("Use bounding box coordinates");
+			
+			pbImageNameXmlIdChck = new Button(zonesGroup, SWT.CHECK);
+			pbImageNameXmlIdChck.setToolTipText("Use the image name as xml:id attribute for page break (pb) elements\nWarning: xml:id's starting with a number are not valid!");
+			pbImageNameXmlIdChck.setText("Image name as <pb> xml:id"); 
+			
+			Group linebreakTypeGroup = new Group(teiComposite, 0);
+			linebreakTypeGroup.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
+			linebreakTypeGroup.setLayout(new GridLayout(1, true));
+			linebreakTypeGroup.setText("Line breaks");
+			
+			lineTagsRadio = new Button(linebreakTypeGroup, SWT.RADIO);
+			lineTagsRadio.setToolTipText("Create a line tag (<l>...</l>) to tag a line");
+			lineTagsRadio.setText("Line tags (<l>...</l>)");
+			lineTagsRadio.setSelection(true);
+			
+			lineBreaksRadio = new Button(linebreakTypeGroup, SWT.RADIO);
+			lineBreaksRadio.setToolTipText("Create a line break (<lb/>) to tag a line");
+			lineBreaksRadio.setText("Line breaks (<lb/>");
+		}
 
 	    return teiComposite;
 	}
@@ -1495,7 +1508,9 @@ public class CommonExportDialog extends Dialog {
 
 		updateCommonPars();
 		updateAltoPars();
-		//updateTeiPars();
+		if (!isDoServerExport()){
+			updateTeiPars();
+		}
 		updatePdfPars();
 		updateDocxPars();
 	}

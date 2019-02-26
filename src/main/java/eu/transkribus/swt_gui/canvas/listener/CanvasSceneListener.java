@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.canvas.listener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementReadingOrderComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
@@ -841,25 +843,62 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 		try {
 			//logger.debug("on reading order changed");
 			ITrpShapeType st = GuiUtil.getTrpShape(e.getFirstShape());
-			String newRo = (String) e.data;
-			logger.debug("on reading order changed " + newRo);
-			st.removeFromParent();
-			//decrease reading order with one to get proper index
-			int ro2Idx = Integer.valueOf(newRo)-1;
-			st.setReadingOrder(Integer.valueOf(ro2Idx), CanvasScene.class);
-			st.reInsertIntoParent(ro2Idx);
-			//logger.debug("after reinsert " + newRo);
+			String newRo = (String) ((Object[]) e.data)[0];
+			boolean doIt4All = (boolean) ((Object[]) e.data)[1];
+//			logger.debug("on reading order changed " + newRo);
+//			logger.debug("do this for all successors  " + doIt4All);
 			
-			//to store the reading order durable
-			st.getObservable().setChangedAndNotifyObservers(new TrpReadingOrderChangedEvent(this));
+			int successor = 0;
+			/*
+			 * if this is set the reading order will be changed for all successors of the selected shape as well
+			 * e.g. ro '35' changes to '3', afterwards '36' to '4', '37' -> '5', '38' -> '6', and so on till the end of the shape list.
+			 */
+			if (doIt4All){
+//				logger.debug("this shape: " + st.getName());
+//				logger.debug("parent shape: " + st.getParent());
+				List<ITrpShapeType> allShapes = new ArrayList<ITrpShapeType>();
+				if (st.getParent() instanceof TrpPageType){
+					allShapes.addAll(((TrpPageType) st.getParent()).getTextRegions(false));
+				}
+				else{
+					allShapes = st.getParentShape().getChildren(false);
+				}
+	
+				for (int i = 0; i<allShapes.size(); i++){
+					ITrpShapeType currShape = allShapes.get(i);
+					if (allShapes.get(i).getReadingOrder()>=st.getReadingOrder()){
+						currShape.removeFromParent();
+						//decrease reading order with one to get proper index
+						int ro2Idx = Integer.valueOf(newRo)-1+successor++;
+						currShape.setReadingOrder(Integer.valueOf(ro2Idx), CanvasScene.class);
+						currShape.reInsertIntoParent(ro2Idx);
+						//logger.debug("after reinsert " + newRo);
+						
+						//to store the reading order durable
+						currShape.getObservable().setChangedAndNotifyObservers(new TrpReadingOrderChangedEvent(this));
+					}
+					
+				}
+
+			}
+			else{
+				st.removeFromParent();
+				//decrease reading order with one to get proper index
+				int ro2Idx = Integer.valueOf(newRo)-1;
+				st.setReadingOrder(Integer.valueOf(ro2Idx), CanvasScene.class);
+				st.reInsertIntoParent(ro2Idx);
+				//logger.debug("after reinsert " + newRo);
+				
+				//to store the reading order durable
+				st.getObservable().setChangedAndNotifyObservers(new TrpReadingOrderChangedEvent(this));
+			}
 			
 			mw.getScene().updateAllShapesParentInfo();
+			mw.refreshStructureView();
 			canvas.setFocus();
 			canvas.redraw();
 			canvas.update();
-			
-	
-			
+
 		} catch (Throwable th) {
 			e.stop = true;
 			mw.onError("Error during operation", "Could not set new reading order", th);

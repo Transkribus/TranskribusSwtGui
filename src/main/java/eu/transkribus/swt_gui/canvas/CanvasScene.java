@@ -1098,7 +1098,7 @@ public class CanvasScene {
 				if (changedRo != null && !changedRo.equals("")){
 					logger.trace(" new reading order is " + changedRo);
 					
-					notifyOnReadingOrderChanged(s, changedRo);
+					notifyOnReadingOrderChanged(s, changedRo, diag.isDoItForAll());
 				}
 				found = true;
 			}
@@ -1217,9 +1217,9 @@ public class CanvasScene {
 		return notifyAllListener(e);
 	}
 	
-	public boolean notifyOnReadingOrderChanged(ICanvasShape changed, String newRo) {
+	public boolean notifyOnReadingOrderChanged(ICanvasShape changed, String newRo, boolean doItForAllFollowing) {
 		SceneEvent e = new SceneEvent(SceneEventType.READING_ORDER_CHANGED, this, changed);
-		e.data = newRo;
+		e.data = new Object[] {newRo, doItForAllFollowing};
 		return notifyAllListener(e);
 	}
 

@@ -633,7 +633,7 @@ public class TrpMainWidget {
 			
 //			updatePageInfo();
 		} catch (Throwable e) {
-			onError("Cannot load document list", "Could not connect to " + ui.getTrpSets().getTrpServer(), e);
+			onError("Cannot load document list", "Could not connect to " + getStorage().getConnection().getServerUri(), e);
 			return null;
 		}
 	}
@@ -1046,7 +1046,17 @@ public class TrpMainWidget {
 
 			List<String> storedUsers = TrpGuiPrefs.getUsers();
 			
-			loginDialog = new TrpLoginDialog(getShell(), this, message, storedUsers.toArray(new String[0]), TrpServerConn.SERVER_URIS, TrpServerConn.DEFAULT_URI_INDEX);
+			final String[] serverProposals;
+			final int defaultUriIndex;
+			if(getTrpSets().isServerSelectionEnabled()) {
+				serverProposals = TrpServerConn.SERVER_URIS;
+				defaultUriIndex = TrpServerConn.DEFAULT_URI_INDEX;
+			} else {
+				serverProposals = new String[] { TrpServerConn.SERVER_URIS[TrpServerConn.DEFAULT_URI_INDEX] };
+				defaultUriIndex = 0;
+			}
+			
+			loginDialog = new TrpLoginDialog(getShell(), this, message, storedUsers.toArray(new String[0]), serverProposals, defaultUriIndex);
 			loginDialog.open();
 
 			// attachListener();
@@ -1176,8 +1186,7 @@ public class TrpMainWidget {
 			try {
 				storage.updateCustomTagSpecsForUserInDB();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(e.getMessage(), e);
 			}
 			
 			return true;
@@ -3483,8 +3492,9 @@ public class TrpMainWidget {
 			boolean doTxtExport = false;
 			/*
 			 * tei export only available as server export because it is implemented as xslt transformation page -> tei
+			 * New: client tei export available again as it was before and hence differs from the server export
 			 */
-			//boolean doTeiExport = false;
+			boolean doTeiExport = false;
 			boolean doXlsxExport = false;
 			boolean doTableExport = false;
 
@@ -3496,8 +3506,8 @@ public class TrpMainWidget {
 			String pdfExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".pdf";
 			File pdfExportFile = new File(pdfExportFileOrDir);
 
-//			String teiExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + "_tei.xml";
-//			File teiExportFile = new File(teiExportFileOrDir);
+			String teiExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + "_tei.xml";
+			File teiExportFile = new File(teiExportFileOrDir);
 
 			String docxExportFileOrDir = dir.getAbsolutePath() + "/" + dir.getName() + ".docx";
 			File docxExportFile = new File(docxExportFileOrDir);
@@ -3522,7 +3532,7 @@ public class TrpMainWidget {
 
 				doPdfExport = (exportDiag.isPdfExport() && exportDiag.getExportPathComp().checkExportFile(pdfExportFile, ".pdf", getShell()));
 
-				//doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
+				doTeiExport = (exportDiag.isTeiExport() && exportDiag.getExportPathComp().checkExportFile(teiExportFile, ".xml", getShell()));
 
 				doDocxExport = (exportDiag.isDocxExport() && exportDiag.getExportPathComp().checkExportFile(docxExportFile, ".docx", getShell()));
 				
@@ -3540,7 +3550,7 @@ public class TrpMainWidget {
 				//logger.debug("temp dir is ..." + tempDir);
 			}
 
-			if (!doMetsExport && !doPdfExport && !doDocxExport && !doTxtExport && !doXlsxExport && !doZipExport && !doTableExport) {
+			if (!doMetsExport && !doTeiExport && !doPdfExport && !doDocxExport && !doTxtExport && !doXlsxExport && !doZipExport && !doTableExport) {
 				/*
 				 * if the export file exists and the user wants not to overwrite it then the 
 				 * export dialog shows up again with the possibility to choose another location
@@ -3720,15 +3730,15 @@ public class TrpMainWidget {
 
 			}
 
-//			if (doTeiExport) {
-//
-//				exportTei(teiExportFile, exportDiag, cache);
-//				if (exportFormats != "") {
-//					exportFormats += " and ";
-//				}
-//				exportFormats += "TEI";
-//
-//			}
+			if (doTeiExport) {
+
+				exportTei(teiExportFile, exportDiag, cache);
+				if (exportFormats != "") {
+					exportFormats += " and ";
+				}
+				exportFormats += "TEI";
+
+			}
 
 			if (doDocxExport) {
 
@@ -6203,16 +6213,21 @@ public class TrpMainWidget {
 			
 			int i = 1;
 			int j = 1;
+			boolean containsLines = false;
 
 			for (TrpRegionType region : refPage.getRegions()) {
 				if (region instanceof TrpTextRegionType) {
 					for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
+						containsLines = true;
 						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + ((TrpTextLineType) line).getUnicodeText();
 						refText.add(lineString);
 						// refText = refText.concat(region.getUnicodeText());
 						i++;
 					}
-					j++;
+					if (containsLines){
+						j++;
+						containsLines = false;
+					}
 				}
 
 				if (region instanceof TrpTableRegionType) {
@@ -6226,16 +6241,21 @@ public class TrpMainWidget {
 			}
 			i = 1;
 			j = 1;
+			containsLines = false;
 			
 			for (TrpRegionType region : hypPage.getRegions()) {
 				if (region instanceof TrpTextRegionType) {
 					for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
+						containsLines = true;
 						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + ((TrpTextLineType) line).getUnicodeText();
 						hypText.add(lineString);
 						// hypText = hypText.concat(region.getUnicodeText());
 						i++;
 					}
-					j++;
+					if (containsLines){
+						j++;
+						containsLines = false;
+					}
 				}
 				if (region instanceof TrpTableRegionType) {
 					for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {

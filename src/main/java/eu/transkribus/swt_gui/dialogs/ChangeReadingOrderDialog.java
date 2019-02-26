@@ -17,8 +17,19 @@ public class ChangeReadingOrderDialog extends Dialog {
   private String message;
 
   private String input;
+  
+  Button allFollowingBtn;
+  boolean doItForAll = false;
 
-  public ChangeReadingOrderDialog(Shell parent) {
+  public boolean isDoItForAll() {
+	return doItForAll;
+}
+
+public void setDoItForAll(boolean doItForAll) {
+	this.doItForAll = doItForAll;
+}
+
+public ChangeReadingOrderDialog(Shell parent) {
     this(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
   }
 
@@ -73,13 +84,22 @@ public class ChangeReadingOrderDialog extends Dialog {
     label.setLayoutData(data);
 
     final Text text = new Text(shell, SWT.BORDER);
-    data = new GridData(GridData.FILL_HORIZONTAL);
+    data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 2;
     text.setLayoutData(data);
+    
+    allFollowingBtn = new Button(shell, SWT.CHECK);
+    allFollowingBtn.setLayoutData(data);
+    allFollowingBtn.setText("Do it for all following");
+    allFollowingBtn.addSelectionListener(new SelectionAdapter() {
+    	public void widgetSelected(SelectionEvent event) {
+    		setDoItForAll(allFollowingBtn.getSelection());
+    	}
+	});
 
     Button ok = new Button(shell, SWT.PUSH);
     ok.setText("OK");
-    data = new GridData(GridData.FILL_HORIZONTAL);
+    data = new GridData(GridData.FILL_BOTH);
     ok.setLayoutData(data);
     ok.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
@@ -90,7 +110,7 @@ public class ChangeReadingOrderDialog extends Dialog {
 
     Button cancel = new Button(shell, SWT.PUSH);
     cancel.setText("Cancel");
-    data = new GridData(GridData.FILL_HORIZONTAL);
+    data = new GridData(GridData.FILL_BOTH);
     cancel.setLayoutData(data);
     cancel.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
@@ -98,7 +118,8 @@ public class ChangeReadingOrderDialog extends Dialog {
         shell.close();
       }
     });
-
+   
     shell.setDefaultButton(ok);
+    //shell.layout(true);
   }
 }

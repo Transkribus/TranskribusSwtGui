@@ -25,6 +25,9 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		
 	private Text numEpochsTxt;
 	private HtrModelChooserButton baseModelBtn;
+	
+	private final static boolean BASE_MODEL_SELECTION_ENABLED = false;
+	
 	// FIXME as soon as update to CITlabModule 2.0.2 is done, this can be removed. 2.0.1 sets "-1" which would use the whole set in each epoch.
 	public final static int DEFAULT_TRAIN_SIZE_PER_EPOCH = 8192;
 	public final static int DEFAULT_NUM_EPOCHS = 200;	
@@ -50,10 +53,15 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 //		trainSizeTxt = new Text(this, SWT.BORDER);
 //		trainSizeTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
-		Label baseModelLbl = new Label(this, SWT.NONE);
-		baseModelLbl.setText("Base Model:");		
-		baseModelBtn = new HtrModelChooserButton(this, getProvider());
-		baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		//Base models are not supported for CITlabPlus yet
+		if(BASE_MODEL_SELECTION_ENABLED) {
+			Label baseModelLbl = new Label(this, SWT.NONE);
+			baseModelLbl.setText("Base Model:");		
+			baseModelBtn = new HtrModelChooserButton(this, getProvider());
+			baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		} else {
+			baseModelBtn = null;
+		}
 
 		setCitlabTrainingDefaults();
 
@@ -97,7 +105,9 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 //		learningRateTxt.setText(CitLabHtrTrainConfig.DEFAULT_LEARNING_RATE);
 //		noiseCmb.setDefault();
 //		trainSizeTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_TRAIN_SIZE_PER_EPOCH);
-		baseModelBtn.setModel(null);
+		if(BASE_MODEL_SELECTION_ENABLED) {
+			baseModelBtn.setModel(null);
+		}
 	}
 	
 	public List<String> validateParameters(List<String> errorList) {
@@ -123,11 +133,13 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 //		citlabTrainConf.setLearningRate(learningRateTxt.getText());
 //		citlabTrainConf.setTrainSizePerEpoch(Integer.parseInt(trainSizeTxt.getText()));
 		
-		TrpHtr htr = baseModelBtn.getModel();
-		if (htr != null) {
-			citlabTrainConf.setBaseModelId(htr.getHtrId());
-		} else {
-			logger.debug("No base HTR selected.");
+		if(BASE_MODEL_SELECTION_ENABLED) {
+			TrpHtr htr = baseModelBtn.getModel();
+			if (htr != null) {
+				citlabTrainConf.setBaseModelId(htr.getHtrId());
+			} else {
+				logger.debug("No base HTR selected.");
+			}
 		}
 		return citlabTrainConf;
 	}
