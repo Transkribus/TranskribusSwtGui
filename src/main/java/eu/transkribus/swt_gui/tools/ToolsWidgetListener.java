@@ -21,13 +21,7 @@ import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
-import eu.transkribus.core.model.beans.pagecontent.TableCellType;
-import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
@@ -37,7 +31,6 @@ import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
-import eu.transkribus.swt_gui.dialogs.ErrorRateDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
@@ -132,7 +125,7 @@ public class ToolsWidgetListener implements SelectionListener {
 			if (htd != null) {
 				htd.setVisible();
 			} else {
-				htd = new HtrTrainingDialog(mw.getShell(), Storage.getInstance().getHtrTrainingJobImpls());
+				htd = new HtrTrainingDialog(mw.getShell(), store.listHtrs(null), store.getHtrTrainingJobImpls());
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
 					// if (!mw.saveTranscriptDialogOrAutosave()) {

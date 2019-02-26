@@ -27,6 +27,7 @@ import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.HtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.util.DescriptorUtils;
@@ -65,20 +66,29 @@ public class HtrTrainingDialog extends Dialog {
 	private Storage store = Storage.getInstance();
 
 	private List<TrpDocMetadata> docList;
+	private List<TrpHtr> htrList;
 	
 	private final List<JobImpl> trainJobImpls;
 	
 	private List<TrainMethodUITab> tabList; 
 
-	public HtrTrainingDialog(Shell parent, JobImpl[] impls) {
+	public HtrTrainingDialog(Shell parent, List<TrpHtr> htrList, JobImpl[] impls) {
 		super(parent);
 		if(impls == null || impls.length == 0) {
 			throw new IllegalStateException("No HTR training jobs defined.");
 		}
-		docList = store.getDocList();
-		colId = store.getCollId();	
-		trainJobImpls = Arrays.asList(impls);
-		tabList = new ArrayList<>(impls.length);
+		this.docList = store.getDocList();
+		this.colId = store.getCollId();	
+		this.trainJobImpls = Arrays.asList(impls);
+		this.tabList = new ArrayList<>(impls.length);
+		if(htrList == null) {
+			this.htrList = new ArrayList<>(0);
+		} else {
+			//show HTRs with train GT only 
+			this.htrList = htrList.stream()
+					.filter(h -> h.hasTrainGt())
+					.collect(Collectors.toList());
+		}
 	}
 
 	public void setVisible() {
@@ -147,7 +157,7 @@ public class HtrTrainingDialog extends Dialog {
 		paramCont.pack();
 		SWTUtil.onSelectionEvent(paramTabFolder, (e) -> { updateUI(); } );
 		
-		treeViewerSelector = new TreeViewerDataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, docList);
+		treeViewerSelector = new TreeViewerDataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, htrList, docList);
 		
 		sash.setWeights(new int[] { 45, 55 });
 		

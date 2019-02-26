@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
-import eu.transkribus.core.model.beans.KwsDocHit;
-import eu.transkribus.core.model.beans.KwsPageHit;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
@@ -34,7 +32,6 @@ public class CollectionContentProvider implements ITreeContentProvider {
 
 	@Override
 	public Object[] getElements(Object inputElement) {
-
 		if (inputElement instanceof List<?>) {
 			return ((List<TrpDocMetadata>) inputElement).toArray();			
 		} 
