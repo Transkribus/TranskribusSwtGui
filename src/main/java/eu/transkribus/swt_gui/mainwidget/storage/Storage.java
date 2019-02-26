@@ -966,7 +966,7 @@ public class Storage {
 		
 		if(user.isAdmin()) {
 			logger.info(user + " is admin.");
-			TrpMainWidget.getInstance().getTrpSets().setServerSelectionEnabled(user.isAdmin());
+			TrpMainWidget.getTrpSettings().setServerSelectionEnabled(user.isAdmin());
 		}
 
 		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
