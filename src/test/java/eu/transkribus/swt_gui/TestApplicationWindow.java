@@ -76,7 +76,6 @@ public abstract class TestApplicationWindow extends ApplicationWindow {
 		} catch (Exception e) {
 			throw new IllegalStateException("Could not create test content: " + e.getMessage(), e);
 		}
-		SWTUtil.centerShell(getShell());
 		return parent;
 	}
 

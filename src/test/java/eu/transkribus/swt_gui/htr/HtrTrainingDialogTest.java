@@ -42,7 +42,6 @@ public class HtrTrainingDialogTest {
 						logger.info("conig = " + config);
 					}
 				}
-				
 			}
 		}.show();
 	}

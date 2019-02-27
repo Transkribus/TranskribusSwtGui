@@ -1,4 +1,4 @@
-package eu.transkribus.swt_gui.htr;
+package eu.transkribus.swt_gui.htr.treeviewer;
 
 import java.io.IOException;
 import java.net.URL;
@@ -45,14 +45,13 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
-import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthLabelProvider;
+import eu.transkribus.swt_gui.htr.DataSetTableWidget;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.GroundTruthSet;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class TreeViewerDataSetSelectionSashForm extends SashForm {
@@ -107,12 +106,6 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		
 		this.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		this.setLayout(new GridLayout(1, false));
-
-//		Group treeViewerCont = new Group(this, SWT.NONE);
-//		treeViewerCont.setText("Training Set");
-//		treeViewerCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//		treeViewerCont.setLayout(new GridLayout(1, false));
-//		tv = new TreeViewer(treeViewerCont, SWT.BORDER | SWT.MULTI);
 		
 		dataTabFolder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
 		dataTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -122,10 +115,14 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		docTv = createDocumentTreeViewer(dataTabFolder);
 		documentsTabItem.setControl(docTv.getControl());
 
-		gtTabItem = new CTabItem(dataTabFolder, SWT.NONE);
-		gtTabItem.setText("HTR Data");
-		groundTruthTv = createGroundTruthTreeViewer(dataTabFolder);
-		gtTabItem.setControl(groundTruthTv.getControl());
+		if(!htrList.isEmpty()) {
+			gtTabItem = new CTabItem(dataTabFolder, SWT.NONE);
+			gtTabItem.setText("HTR Model Data");
+			groundTruthTv = createGroundTruthTreeViewer(dataTabFolder);
+			gtTabItem.setControl(groundTruthTv.getControl());
+		} else {
+			groundTruthTv = null;
+		}
 		
 		buttonComp = new Composite(this, SWT.NONE);
 		buttonComp.setLayout(new GridLayout(1, true));
@@ -221,150 +218,60 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		return tv;
 	}
 
+	private boolean isGroundTruthSelectionEnabled() {
+		return groundTruthTv != null;
+	}
+	
 	private void addListeners() {
-
-		ISelectionChangedListener treeViewerSelectionChangedListener = new ISelectionChangedListener() {
-			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
-				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-				updateThumbnail(selection);
-			}
-		};
-		docTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
-		groundTruthTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
-
-		IDoubleClickListener treeViewerDoubleClickListener = new IDoubleClickListener() {
-			@Override
-			public void doubleClick(DoubleClickEvent event) {
-				Object o = ((IStructuredSelection) event.getSelection()).getFirstElement();
-				if (o instanceof TrpDocMetadata) {
-					expandTreeItem(o, docTv);
-					updateDocTvColors();
-				} else if (o instanceof TrpPage) {
-					TrpPage p = (TrpPage)o;
-					TrpLocation loc = new TrpLocation();
-					loc.collId = colId;
-					loc.docId = p.getDocId();
-					loc.pageNr = p.getPageNr();
-					TrpMainWidget.getInstance().showLocation(loc);
-				} else if (o instanceof TrpHtr) {
-					expandTreeItem(o, groundTruthTv);
-					updateGtTvColors();
-				}
-			}
-			private void expandTreeItem(Object o, TreeViewer tv) {
-				for (TreeItem i : tv.getTree().getItems()) {
-					if (i.getData().equals(o)) {
-						groundTruthTv.setExpandedState(o, !i.getExpanded());
-						return;
-					}
-				}
-			}
-		};
+		IDoubleClickListener treeViewerDoubleClickListener = new TreeViewerDoubleClickListener();
+		ISelectionChangedListener treeViewerSelectionChangedListener = new TreeViewerSelectionChangedListener();
 		
+		docTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
 		docTv.addDoubleClickListener(treeViewerDoubleClickListener);
-		groundTruthTv.addDoubleClickListener(treeViewerDoubleClickListener);
-
+		
 		docTv.getTree().addListener(SWT.Expand, new Listener() {
 			public void handleEvent(Event e) {
 				updateDocTvColors();
 			}
 		});
 		
-		groundTruthTv.getTree().addListener(SWT.Expand, new Listener() {
-			public void handleEvent(Event e) {
-				updateGtTvColors();
-			}
-		});
+		if(isGroundTruthSelectionEnabled()) {
+			groundTruthTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
+			groundTruthTv.addDoubleClickListener(treeViewerDoubleClickListener);
+			groundTruthTv.getTree().addListener(SWT.Expand, new Listener() {
+				public void handleEvent(Event e) {
+					updateGtTvColors();
+				}
+			});
+		}
 
 		addToTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				IStructuredSelection sel = (IStructuredSelection) docTv.getSelection();
-				Iterator<?> it = sel.iterator();
-				while (it.hasNext()) {
-					Object o = it.next();
-					if (o instanceof TrpDocMetadata) {
-						TrpDocMetadata docMd = (TrpDocMetadata) o;
-						Object[] pageObjArr = docContentProv.getChildren(docMd);
-						List<TrpPage> pageList = new LinkedList<>();
-						for (Object page : pageObjArr) {
-							pageList.add((TrpPage) page);
-						}
-
-						trainDocMap.put(docMd, pageList);
-
-						if (testDocMap.containsKey(docMd)) {
-							testDocMap.remove(docMd);
-						}
-					} else if (o instanceof TrpPage) {
-						TrpPage p = (TrpPage) o;
-						TrpDocMetadata parent = (TrpDocMetadata) docContentProv.getParent(p);
-						if (trainDocMap.containsKey(parent) && !trainDocMap.get(parent).contains(p)) {
-							trainDocMap.get(parent).add(p);
-						} else if (!trainDocMap.containsKey(parent)) {
-							List<TrpPage> pageList = new LinkedList<>();
-							pageList.add(p);
-							trainDocMap.put(parent, pageList);
-						}
-
-						if (testDocMap.containsKey(parent) && testDocMap.get(parent).contains(p)) {
-							if (testDocMap.get(parent).size() == 1) {
-								testDocMap.remove(parent);
-							} else {
-								testDocMap.get(parent).remove(p);
-							}
-						}
-					}
+				if(documentsTabItem.equals(dataTabFolder.getSelection())) {
+					addDocumentSelectionToDataMap((IStructuredSelection) docTv.getSelection(), trainDocMap, testDocMap);
+					updateTable(trainSetOverviewTable, trainDocMap);
+					updateTable(testSetOverviewTable, testDocMap);
+					updateDocTvColors();
+				} else if (isGroundTruthSelectionEnabled() 
+						&& gtTabItem.equals(dataTabFolder.getSelection())) {
+					// TODO
 				}
-				updateTable(trainSetOverviewTable, trainDocMap);
-				updateTable(testSetOverviewTable, testDocMap);
-				updateDocTvColors();
 			}
 		});
 
 		addToTestSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				IStructuredSelection sel = (IStructuredSelection) docTv.getSelection();
-				Iterator<?> it = sel.iterator();
-				while (it.hasNext()) {
-					Object o = it.next();
-					if (o instanceof TrpDocMetadata) {
-						TrpDocMetadata docMd = (TrpDocMetadata) o;
-						Object[] pageObjArr = docContentProv.getChildren(docMd);
-						List<TrpPage> pageList = new LinkedList<>();
-						for (Object page : pageObjArr) {
-							pageList.add((TrpPage) page);
-						}
-						testDocMap.put(docMd, pageList);
-
-						if (trainDocMap.containsKey(docMd)) {
-							trainDocMap.remove(docMd);
-						}
-					} else if (o instanceof TrpPage) {
-						TrpPage p = (TrpPage) o;
-						TrpDocMetadata parent = (TrpDocMetadata) docContentProv.getParent(p);
-						if (testDocMap.containsKey(parent) && !testDocMap.get(parent).contains(p)) {
-							testDocMap.get(parent).add(p);
-						} else if (!testDocMap.containsKey(parent)) {
-							List<TrpPage> pageList = new LinkedList<>();
-							pageList.add(p);
-							testDocMap.put(parent, pageList);
-						}
-
-						if (trainDocMap.containsKey(parent) && trainDocMap.get(parent).contains(p)) {
-							if (trainDocMap.get(parent).size() == 1) {
-								trainDocMap.remove(parent);
-							} else {
-								trainDocMap.get(parent).remove(p);
-							}
-						}
-					}
+				if(documentsTabItem.equals(dataTabFolder.getSelection())) {
+					addDocumentSelectionToDataMap((IStructuredSelection) docTv.getSelection(), testDocMap, trainDocMap);
+					updateTable(trainSetOverviewTable, trainDocMap);
+					updateTable(testSetOverviewTable, testDocMap);
+					updateDocTvColors();
+				} else if (isGroundTruthSelectionEnabled() 
+						&& gtTabItem.equals(dataTabFolder.getSelection())) {
+					// TODO
 				}
-				updateTable(trainSetOverviewTable, trainDocMap);
-				updateTable(testSetOverviewTable, testDocMap);
-				updateDocTvColors();
 			}
 		});
 
@@ -395,6 +302,53 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 				}
 			}
 		});
+	}
+	
+	/**
+	 * Add selected items to the targetDataMap and remove them from the nonIntersectingDataMap if included.
+	 * 
+	 * @param selection
+	 * @param targetDataMap
+	 * @param nonIntersectingDataMap
+	 */
+	private void addDocumentSelectionToDataMap(IStructuredSelection selection,
+			Map<TrpDocMetadata, List<TrpPage>> targetDataMap, 
+			Map<TrpDocMetadata, List<TrpPage>> nonIntersectingDataMap) {
+		Iterator<?> it = selection.iterator();
+		while (it.hasNext()) {
+			Object o = it.next();
+			if (o instanceof TrpDocMetadata) {
+				TrpDocMetadata docMd = (TrpDocMetadata) o;
+				Object[] pageObjArr = docContentProv.getChildren(docMd);
+				List<TrpPage> pageList = new LinkedList<>();
+				for (Object page : pageObjArr) {
+					pageList.add((TrpPage) page);
+				}
+				targetDataMap.put(docMd, pageList);
+
+				if (nonIntersectingDataMap.containsKey(docMd)) {
+					nonIntersectingDataMap.remove(docMd);
+				}
+			} else if (o instanceof TrpPage) {
+				TrpPage p = (TrpPage) o;
+				TrpDocMetadata parent = (TrpDocMetadata) docContentProv.getParent(p);
+				if (targetDataMap.containsKey(parent) && !targetDataMap.get(parent).contains(p)) {
+					targetDataMap.get(parent).add(p);
+				} else if (!targetDataMap.containsKey(parent)) {
+					List<TrpPage> pageList = new LinkedList<>();
+					pageList.add(p);
+					targetDataMap.put(parent, pageList);
+				}
+
+				if (nonIntersectingDataMap.containsKey(parent) && nonIntersectingDataMap.get(parent).contains(p)) {
+					if (nonIntersectingDataMap.get(parent).size() == 1) {
+						nonIntersectingDataMap.remove(parent);
+					} else {
+						nonIntersectingDataMap.get(parent).remove(p);
+					}
+				}
+			}
+		}			
 	}
 	
 	private void updateThumbnail(IStructuredSelection selection) {
@@ -544,93 +498,51 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 	public Button getUseNewVersionChk() {
 		return useNewVersionChk;
 	}
-	
-	public static class DataSetEntry implements Comparable<DataSetEntry> {
-		private String pageString;
-		private TrpDocMetadata doc;
-		private List<TrpPage> pages;
-
-		public DataSetEntry(TrpDocMetadata doc, List<TrpPage> pages) {
-			Collections.sort(pages);
-			final int nrOfPages = doc.getNrOfPages();
-			List<Boolean> boolList = new ArrayList<>(nrOfPages);
-			for (int i = 0; i < nrOfPages; i++) {
-				boolList.add(i, Boolean.FALSE);
-			}
-
-			for (TrpPage p : pages) {
-				boolList.set(p.getPageNr() - 1, Boolean.TRUE);
-			}
-			this.pageString = CoreUtils.getRangeListStr(boolList);
-			this.pages = pages;
-			this.doc = doc;
-		}
-
-		public int getId() {
-			return doc.getDocId();
-		}
-
-		public String getTitle() {
-			return doc.getTitle();
-		}
-
-		public String getPageString() {
-			return pageString;
-		}
-
-		public void setPageString(String pageString) {
-			this.pageString = pageString;
-		}
-
-		public TrpDocMetadata getDoc() {
-			return doc;
-		}
-
-		public void setDoc(TrpDocMetadata doc) {
-			this.doc = doc;
-		}
-
-		public List<TrpPage> getPages() {
-			return pages;
-		}
-
-		public void setPages(List<TrpPage> pages) {
-			this.pages = pages;
-		}
-
+		
+	/**
+	 * Updates thumbnail image on selection change
+	 *
+	 */
+	private class TreeViewerSelectionChangedListener implements ISelectionChangedListener {
 		@Override
-		public int compareTo(DataSetEntry o) {
-			if (this.doc.getDocId() > o.getId()) {
-				return 1;
-			}
-			if (this.doc.getDocId() < o.getId()) {
-				return -1;
-			}
-			return 0;
+		public void selectionChanged(SelectionChangedEvent event) {
+			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+			updateThumbnail(selection);
 		}
-	}
+	};
 	
-	public static class DataSetMetadata {
-		private int pages;
-		private int lines;
-		private int words;
-
-		public DataSetMetadata(int pages, int lines, int words) {
-			this.pages = pages;
-			this.lines = lines;
-			this.words = words;
+	/**
+	 * Expands items that have children on double click. Leaf elements are displayed.
+	 * 
+	 * @author philip
+	 *
+	 */
+	private class TreeViewerDoubleClickListener implements IDoubleClickListener {
+		@Override
+		public void doubleClick(DoubleClickEvent event) {
+			Object o = ((IStructuredSelection) event.getSelection()).getFirstElement();
+			if (o instanceof TrpDocMetadata) {
+				expandTreeItem(o, docTv);
+				updateDocTvColors();
+			} else if (o instanceof TrpPage) {
+				TrpPage p = (TrpPage)o;
+				TrpLocation loc = new TrpLocation();
+				loc.collId = colId;
+				loc.docId = p.getDocId();
+				loc.pageNr = p.getPageNr();
+				TrpMainWidget.getInstance().showLocation(loc);
+			} else if (o instanceof TrpHtr || o instanceof GroundTruthSet) {
+				expandTreeItem(o, groundTruthTv);
+				updateGtTvColors();
+			}
 		}
-
-		public int getPages() {
-			return pages;
-		}
-
-		public int getLines() {
-			return lines;
-		}
-
-		public int getWords() {
-			return words;
+		private void expandTreeItem(Object o, TreeViewer tv) {
+			for (TreeItem i : tv.getTree().getItems()) {
+				if (i.getData().equals(o)) {
+					tv.setExpandedState(o, !i.getExpanded());
+					return;
+				}
+			}
 		}
 	}
 }

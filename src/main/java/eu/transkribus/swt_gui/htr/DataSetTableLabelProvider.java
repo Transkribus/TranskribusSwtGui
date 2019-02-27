@@ -9,7 +9,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
-import eu.transkribus.swt_gui.htr.TreeViewerDataSetSelectionSashForm.DataSetEntry;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetEntry;
 
 public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	

@@ -33,7 +33,8 @@ import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.htr.TreeViewerDataSetSelectionSashForm.DataSetMetadata;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetMetadata;
+import eu.transkribus.swt_gui.htr.treeviewer.TreeViewerDataSetSelectionSashForm;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -306,18 +307,15 @@ public class HtrTrainingDialog extends Dialog {
 			return;
 		}
 		catch (Exception e) {
-			TrpMainWidget.getInstance().onError("Unexcpected error", e.getMessage(), e);
+			TrpMainWidget.getInstance().onError("Unexpected error", e.getMessage(), e);
 			return;
 		}
 
 		DataSetMetadata trainSetMd = treeViewerSelector.getTrainSetMetadata();
 		DataSetMetadata testSetMd = treeViewerSelector.getTestSetMetadata();
-		msg += "Training set size:\t" + trainSetMd.getPages() + " pages\n";
-		msg += "\t\t\t\t" + trainSetMd.getLines() + " lines\n";
-		msg += "\t\t\t\t" + trainSetMd.getWords() + " words\n";
-		msg += "Test set size:\t\t" + testSetMd.getPages() + " pages\n";
-		msg += "\t\t\t\t" + +testSetMd.getLines() + " lines\n";
-		msg += "\t\t\t\t" + testSetMd.getWords() + " words\n";
+		final int indentSize = 24;
+		msg += trainSetMd.toFormattedString("Train set size:", indentSize);
+		msg += testSetMd.toFormattedString("Validation set size:", indentSize);
 
 		msg += "\nStart?";
 

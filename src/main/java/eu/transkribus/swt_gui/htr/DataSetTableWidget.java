@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.Table;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_gui.htr.TreeViewerDataSetSelectionSashForm.DataSetEntry;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetEntry;
 
 public class DataSetTableWidget extends Composite {
 //	private static final Logger logger = LoggerFactory.getLogger(DataSetTableWidget.class);

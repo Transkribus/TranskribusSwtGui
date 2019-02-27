@@ -125,7 +125,7 @@ public class HtrGroundTruthContentProvider implements ITreeContentProvider {
 		return false;
 	}
 	
-	static class GroundTruthSet {
+	public static class GroundTruthSet {
 		private final int htrId;
 		private final int nrOfPages;
 		private final GtSetType setType;
@@ -145,7 +145,7 @@ public class HtrGroundTruthContentProvider implements ITreeContentProvider {
 		}
 	}
 	
-	static enum GtSetType {
+	public static enum GtSetType {
 		TRAIN,
 		VALIDATION;
 	}

@@ -25,6 +25,7 @@ import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.util.ThumbnailWidgetVirtualMinimal;
+import eu.transkribus.swt_gui.htr.treeviewer.TreeViewerDataSetSelectionSashForm;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 /**
