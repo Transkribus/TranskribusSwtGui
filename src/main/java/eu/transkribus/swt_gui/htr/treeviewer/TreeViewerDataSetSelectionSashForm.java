@@ -386,7 +386,7 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 
 			List<TrpPage> pageList = entry.getValue();
 
-			list.add(new DataSetEntry(doc, pageList));
+			list.add(new DocumentDataSetEntry(doc, pageList));
 		}
 		Collections.sort(list);
 		t.setInput(list);

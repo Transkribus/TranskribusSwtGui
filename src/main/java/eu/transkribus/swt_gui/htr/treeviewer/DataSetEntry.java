@@ -1,76 +1,40 @@
 package eu.transkribus.swt_gui.htr.treeviewer;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.core.util.CoreUtils;
 
-public class DataSetEntry implements Comparable<DataSetEntry> {
-	private String pageString;
-	private TrpDocMetadata doc;
-	private List<TrpPage> pages;
+public abstract class DataSetEntry implements Comparable<DataSetEntry> {
+	
+	public abstract int getId();
 
-	public DataSetEntry(TrpDocMetadata doc, List<TrpPage> pages) {
-		Collections.sort(pages);
-		final int nrOfPages = doc.getNrOfPages();
-		List<Boolean> boolList = new ArrayList<>(nrOfPages);
-		for (int i = 0; i < nrOfPages; i++) {
-			boolList.add(i, Boolean.FALSE);
-		}
+	public abstract String getTitle();
 
-		for (TrpPage p : pages) {
-			boolList.set(p.getPageNr() - 1, Boolean.TRUE);
-		}
-		this.pageString = CoreUtils.getRangeListStr(boolList);
-		this.pages = pages;
-		this.doc = doc;
-	}
+	public abstract String getPageString();
 
-	public int getId() {
-		return doc.getDocId();
-	}
+	public abstract void setPageString(String pageString);
 
-	public String getTitle() {
-		return doc.getTitle();
-	}
+	public abstract TrpDocMetadata getDoc();
 
-	public String getPageString() {
-		return pageString;
-	}
+	public abstract void setDoc(TrpDocMetadata doc);
 
-	public void setPageString(String pageString) {
-		this.pageString = pageString;
-	}
+	public abstract List<TrpPage> getPages();
 
-	public TrpDocMetadata getDoc() {
-		return doc;
-	}
-
-	public void setDoc(TrpDocMetadata doc) {
-		this.doc = doc;
-	}
-
-	public List<TrpPage> getPages() {
-		return pages;
-	}
-
-	public void setPages(List<TrpPage> pages) {
-		this.pages = pages;
-	}
+	public abstract void setPages(List<TrpPage> pages);
 
 	@Override
 	public int compareTo(DataSetEntry o) {
-		if(o instanceof DataSetEntry) {
-			if (this.doc.getDocId() > o.getId()) {
-				return 1;
-			}
-			if (this.doc.getDocId() < o.getId()) {
-				return -1;
-			}
-		}
 		return 0;
+
+//		if(o instanceof DataSetEntry && this instanceof DataSetEntry) {
+//			if (this.doc.getDocId() > o.getId()) {
+//				return 1;
+//			}
+//			if (this.doc.getDocId() < o.getId()) {
+//				return -1;
+//			}
+//		}
+//		return 0;
 	}
 }

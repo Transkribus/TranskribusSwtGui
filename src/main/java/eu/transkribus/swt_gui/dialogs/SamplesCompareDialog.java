@@ -89,6 +89,7 @@ import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetEntry;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetMetadata;
+import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSetEntry;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
@@ -816,7 +817,7 @@ public class SamplesCompareDialog extends Dialog {
 
 			List<TrpPage> pageList = entry.getValue();
 
-			list.add(new DataSetEntry(doc, pageList));
+			list.add(new DocumentDataSetEntry(doc, pageList));
 		}
 		Collections.sort(list);
 		t.setInput(list);
