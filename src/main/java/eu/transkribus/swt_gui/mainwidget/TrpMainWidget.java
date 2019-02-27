@@ -511,6 +511,7 @@ public class TrpMainWidget {
 			TrpAction action = storage.getConnection().getMostRecentDocumentAction();
 			if (action == null) {
 				logger.debug("no most recent doc found!");
+				return;
 			}
 			logger.debug("most recent doc action: "+action);
 			
