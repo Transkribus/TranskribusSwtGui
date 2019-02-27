@@ -1064,8 +1064,9 @@ public class TrpSettings extends APropertyChangeSupport {
 	public void setAutoSaveFolder(String autoSaveFolder) {
 		if (StringUtils.isEmpty(autoSaveFolder)) {
 			autoSaveFolder = TrpSettings.getDefaultAutoSaveFolder();
-			if (!new File(autoSaveFolder).exists()){
-				new File(autoSaveFolder).mkdir();
+			File autoSaveFolderFile = new File(autoSaveFolder);
+			if (!autoSaveFolderFile.exists() && !autoSaveFolderFile.mkdirs()){
+				logger.warn("Could not create autosave directory at: " + autoSaveFolderFile.getAbsolutePath());
 			}			
 		}
 		
