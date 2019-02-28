@@ -34,7 +34,7 @@ import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetMetadata;
-import eu.transkribus.swt_gui.htr.treeviewer.TreeViewerDataSetSelectionSashForm;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -57,7 +57,7 @@ public class HtrTrainingDialog extends Dialog {
 	private CITlabHtrTrainingConfComposite citlabHtrParamCont;
 	private CITlabHtrPlusTrainingConfComposite citlabHtrPlusParamCont;
 	
-	private TreeViewerDataSetSelectionSashForm treeViewerSelector;
+	private DataSetSelectionSashForm treeViewerSelector;
 
 	private Text modelNameTxt, descTxt, langTxt;
 
@@ -158,7 +158,7 @@ public class HtrTrainingDialog extends Dialog {
 		paramCont.pack();
 		SWTUtil.onSelectionEvent(paramTabFolder, (e) -> { updateUI(); } );
 		
-		treeViewerSelector = new TreeViewerDataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, htrList, docList);
+		treeViewerSelector = new DataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, htrList, docList);
 		
 		sash.setWeights(new int[] { 45, 55 });
 		
