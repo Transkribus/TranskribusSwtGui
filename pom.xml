@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.5.5.4-SNAPSHOT</version>
+	<version>1.6.0</version>
 	<name>Transkribus</name>
 
 	<properties>
@@ -34,7 +34,7 @@
 		<jface.version>3.7.1.v20120104-1859</jface.version>
 		<jface.artifactId>org.eclipse.ui.workbench</jface.artifactId>
 		
-		<client.version>0.1.0-SNAPSHOT</client.version>
+		<client.version>0.1.0</client.version>
 	</properties>
 
 	<distributionManagement>
