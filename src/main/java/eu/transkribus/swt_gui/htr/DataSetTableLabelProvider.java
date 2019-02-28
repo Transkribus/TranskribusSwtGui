@@ -9,7 +9,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
-import eu.transkribus.swt_gui.htr.treeviewer.DataSetEntry;
+import eu.transkribus.swt_gui.htr.treeviewer.IDataSetEntry;
 
 public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	
@@ -56,8 +56,8 @@ public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFon
 	public String getColumnText(Object element, int columnIndex) {
 		//logger.trace("get column text: "+element+" id: "+columnIndex);
 		
-		if (element instanceof DataSetEntry) {
-			DataSetEntry d = (DataSetEntry) element;
+		if (element instanceof IDataSetEntry) {
+			IDataSetEntry d = (IDataSetEntry) element;
 			
 			TableColumn column = table.getColumn(columnIndex);
 			String ct = column.getText();

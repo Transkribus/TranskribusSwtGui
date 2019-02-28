@@ -86,8 +86,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
-import eu.transkribus.swt_gui.htr.DataSetTableWidget;
-import eu.transkribus.swt_gui.htr.treeviewer.DataSetEntry;
+import eu.transkribus.swt_gui.htr.DocumentDataSetTableWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSetEntry;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -136,7 +135,7 @@ public class SamplesCompareDialog extends Dialog {
 	Label labelRef,labelHyp, chartText, cerText;
 	TrpDocMetadata docMd;
 	JFreeChart chart;
-	private DataSetTableWidget sampleSetOverviewTable;
+	private DocumentDataSetTableWidget sampleSetOverviewTable;
 	private Map<TrpDocMetadata, List<TrpPage>> sampleDocMap;
 	
 	ResultLoader rl;
@@ -268,7 +267,7 @@ public class SamplesCompareDialog extends Dialog {
 		sampleSetGrp.setLayoutData(tableGd);
 		sampleSetGrp.setLayout(tableGl);
 
-		sampleSetOverviewTable = new DataSetTableWidget(sampleSetGrp, SWT.BORDER);
+		sampleSetOverviewTable = new DocumentDataSetTableWidget(sampleSetGrp, SWT.BORDER);
 		sampleSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		
 		GridData buttonGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
@@ -616,9 +615,9 @@ public class SamplesCompareDialog extends Dialog {
 		removeFromSampleSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<DataSetEntry> entries = sampleSetOverviewTable.getSelectedDataSets();
+				List<DocumentDataSetEntry> entries = sampleSetOverviewTable.getSelectedDataSets();
 				if (!entries.isEmpty()) {
-					for (DataSetEntry entry : entries) {
+					for (DocumentDataSetEntry entry : entries) {
 						sampleDocMap.remove(entry.getDoc());
 					}
 					updateTable(sampleSetOverviewTable, sampleDocMap);
@@ -810,8 +809,8 @@ public class SamplesCompareDialog extends Dialog {
 		}
 	}
 	
-	private void updateTable(DataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {
-		List<DataSetEntry> list = new ArrayList<>(map.entrySet().size());
+	private void updateTable(DocumentDataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {
+		List<DocumentDataSetEntry> list = new ArrayList<>(map.entrySet().size());
 		for (Entry<TrpDocMetadata, List<TrpPage>> entry : map.entrySet()) {
 			TrpDocMetadata doc = entry.getKey();
 

@@ -8,7 +8,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
 
-public class DocumentDataSetEntry extends DataSetEntry {
+public class DocumentDataSetEntry implements IDataSetEntry<TrpDocMetadata, TrpPage> {
 	private String pageString;
 	private TrpDocMetadata doc;
 	private List<TrpPage> pages;
@@ -62,15 +62,16 @@ public class DocumentDataSetEntry extends DataSetEntry {
 	}
 
 	@Override
-	public int compareTo(DataSetEntry o) {
-		if(o instanceof DataSetEntry && this instanceof DataSetEntry) {
+	public int compareTo(IDataSetEntry<?, ?> o) {
+		if(o instanceof DocumentDataSetEntry && this instanceof DocumentDataSetEntry) {
 			if (this.doc.getDocId() > o.getId()) {
 				return 1;
 			}
 			if (this.doc.getDocId() < o.getId()) {
 				return -1;
 			}
-		}
-		return 0;
+			return 0;
+		} 
+		return this.compareTo(o);
 	}
 }

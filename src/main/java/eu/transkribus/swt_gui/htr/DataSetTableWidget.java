@@ -13,9 +13,8 @@ import org.eclipse.swt.widgets.Table;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt_gui.htr.treeviewer.DataSetEntry;
 
-public class DataSetTableWidget extends Composite {
+public abstract class DataSetTableWidget<IDataSetEntry> extends Composite {
 //	private static final Logger logger = LoggerFactory.getLogger(DataSetTableWidget.class);
 
 	public static final String TITLE_COL = "Title";
@@ -27,7 +26,7 @@ public class DataSetTableWidget extends Composite {
 	// private final static GridData BUTTON_GD = new GridData(SWT.FILL,
 	// SWT.FILL, true, true);
 
-	MyTableViewer tv;
+	protected MyTableViewer tv;
 
 	public final ColumnConfig[] COLS = new ColumnConfig[] {
 			new ColumnConfig(ID_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
@@ -90,12 +89,12 @@ public class DataSetTableWidget extends Composite {
 		tv.setInput(input);
 	}
 
-	public List<DataSetEntry> getSelectedDataSets() {
+	public List<IDataSetEntry> getSelectedDataSets() {
 		IStructuredSelection sel = (IStructuredSelection) tv.getSelection();
 		if (!sel.isEmpty()) {
-			return (List<DataSetEntry>)sel.toList();
+			return (List<IDataSetEntry>)sel.toList();
 		} else {
-			return new ArrayList<DataSetEntry>(0);
+			return new ArrayList<IDataSetEntry>(0);
 		}
 	}
 }

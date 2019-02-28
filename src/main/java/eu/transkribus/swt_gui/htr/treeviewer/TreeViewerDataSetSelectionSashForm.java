@@ -86,14 +86,18 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 	private CTabItem documentsTabItem;
 	private CTabItem gtTabItem;
 	
-	private DataSetTableWidget testSetOverviewTable, trainSetOverviewTable;
+	private DataSetTableWidget<IDataSetEntry<?, ?>> testSetOverviewTable, trainSetOverviewTable;
 
 	private Button addToTrainSetBtn, addToTestSetBtn, removeFromTrainSetBtn, removeFromTestSetBtn;
 	
 	private int colId;
+	//the input to select data from
 	private List<TrpDocMetadata> docList;
 	private List<TrpHtr> htrList;
+	
+	//maps containing current selection. Maybe handling becomes less complex if this solely handled in table?
 	private Map<TrpDocMetadata, List<TrpPage>> trainDocMap, testDocMap;
+	private Map<TrpHtr, List<TrpGroundTruthPage>> trainGtMap, testGtMap;
 
 	public TreeViewerDataSetSelectionSashForm(Composite parent, int style, final int colId, List<TrpHtr> htrList, List<TrpDocMetadata> docList) {
 		super(parent, style);
@@ -102,7 +106,9 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		this.docList = docList;
 		this.htrList = htrList;
 		trainDocMap = new TreeMap<>();
-		testDocMap = new TreeMap<>();	
+		testDocMap = new TreeMap<>();
+		trainGtMap = new TreeMap<>();
+		testGtMap = new TreeMap<>();
 		
 		this.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		this.setLayout(new GridLayout(1, false));
@@ -162,7 +168,7 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		trainSetGrp.setLayoutData(tableGd);
 		trainSetGrp.setLayout(tableGl);
 
-		trainSetOverviewTable = new DataSetTableWidget(trainSetGrp, SWT.BORDER);
+		trainSetOverviewTable = new DataSetTableWidget<IDataSetEntry<?, ?>>(trainSetGrp, SWT.BORDER) {};
 		trainSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		GridData buttonGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
@@ -176,7 +182,7 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		testSetGrp.setLayoutData(tableGd);
 		testSetGrp.setLayout(tableGl);
 
-		testSetOverviewTable = new DataSetTableWidget(testSetGrp, SWT.BORDER);
+		testSetOverviewTable = new DataSetTableWidget<IDataSetEntry<?, ?>>(testSetGrp, SWT.BORDER) {};
 		testSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		removeFromTestSetBtn = new Button(testSetGrp, SWT.PUSH);
@@ -278,9 +284,9 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		removeFromTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<DataSetEntry> entries = trainSetOverviewTable.getSelectedDataSets();
+				List<IDataSetEntry<?, ?>> entries = trainSetOverviewTable.getSelectedDataSets();
 				if (!entries.isEmpty()) {
-					for (DataSetEntry entry : entries) {
+					for (IDataSetEntry<?, ?> entry : entries) {
 						trainDocMap.remove(entry.getDoc());
 					}
 					updateTable(trainSetOverviewTable, trainDocMap);
@@ -292,9 +298,9 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		removeFromTestSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<DataSetEntry> entries = testSetOverviewTable.getSelectedDataSets();
+				List<IDataSetEntry<?, ?>> entries = testSetOverviewTable.getSelectedDataSets();
 				if (!entries.isEmpty()) {
-					for (DataSetEntry entry : entries) {
+					for (IDataSetEntry<?, ?> entry : entries) {
 						testDocMap.remove(entry.getDoc());
 					}
 					updateTable(testSetOverviewTable, testDocMap);
@@ -379,8 +385,8 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		}
 	}
 	
-	private void updateTable(DataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {
-		List<DataSetEntry> list = new ArrayList<>(map.entrySet().size());
+	private void updateTable(DataSetTableWidget<IDataSetEntry<?, ?>> t, Map<TrpDocMetadata, List<TrpPage>> map) {
+		List<IDataSetEntry<?, ?>> list = new ArrayList<>(map.entrySet().size());
 		for (Entry<TrpDocMetadata, List<TrpPage>> entry : map.entrySet()) {
 			TrpDocMetadata doc = entry.getKey();
 
@@ -481,6 +487,14 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 	
 	public Map<TrpDocMetadata, List<TrpPage>> getTestDocMap() {
 		return testDocMap;
+	}
+	
+	public Map<TrpHtr, List<TrpGroundTruthPage>> getTrainGtMap() {
+		return trainGtMap;
+	}
+	
+	public Map<TrpHtr, List<TrpGroundTruthPage>> getTestGtMap() {
+		return testGtMap;
 	}
 	
 	public DataSetMetadata getTrainSetMetadata() {
