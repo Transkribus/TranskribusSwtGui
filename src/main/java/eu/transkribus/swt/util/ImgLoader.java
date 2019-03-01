@@ -128,7 +128,7 @@ public class ImgLoader {
 		try {
 			transformation = TrpImgMdParser.readImageDimension(url);
 		} catch (Exception e) {
-			logger.warn("Could not read metadata for : " + url, e);
+			logger.warn("Could not read metadata from " + url + ": " + e.getMessage());
 			transformation = null;
 		}
 		return load(url, transformation);

@@ -12,16 +12,22 @@ import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
 
-public class CollectionContentProvider implements ITreeContentProvider {
+public class CollectionContentProvider extends ACollectionBoundStructuredContentProvider implements ITreeContentProvider {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionContentProvider.class);
 	List<TrpDocMetadata> docs;
-	Storage store = Storage.getInstance();
+	
+	public CollectionContentProvider() {
+		super(null);
+	}
+	
+	public CollectionContentProvider(int colId) {
+		super(colId);
+	}
 	
 	@Override
-	public void dispose() {
-	}
+	public void dispose() {}
 
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {		
@@ -38,7 +44,7 @@ public class CollectionContentProvider implements ITreeContentProvider {
 		else if (inputElement instanceof TrpDocMetadata) {
 			TrpDoc doc;
 			try {
-				doc = store.getRemoteDoc(store.getCollId(), ((TrpDocMetadata) inputElement).getDocId(), -1);
+				doc = store.getRemoteDoc(super.getCollId(), ((TrpDocMetadata) inputElement).getDocId(), -1);
 				return doc.getPages().toArray();
 			} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
 				logger.error("No Connection!");
@@ -54,7 +60,7 @@ public class CollectionContentProvider implements ITreeContentProvider {
 		if (parentElement instanceof TrpDocMetadata) {
 			TrpDoc doc;
 			try {
-				doc = store.getRemoteDoc(store.getCollId(), ((TrpDocMetadata) parentElement).getDocId(), -1);
+				doc = store.getRemoteDoc(super.getCollId(), ((TrpDocMetadata) parentElement).getDocId(), -1);
 				return doc.getPages().toArray();
 			} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
 				logger.error("No Connection!");

@@ -1,54 +1,34 @@
 package eu.transkribus.swt_gui.htr.treeviewer;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TreeItem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.GroundTruthSet;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 
 public class DataSetSelectionSashForm extends SashForm {
-	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionSashForm.class);
 	
 	private static final RGB BLUE_RGB = new RGB(0, 0, 140);
 	private static final RGB LIGHT_BLUE_RGB = new RGB(0, 140, 255);
@@ -70,34 +50,26 @@ public class DataSetSelectionSashForm extends SashForm {
 	private static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
 	private static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
 	
-	private TreeViewer docTv, groundTruthTv;
-	private Button useGtVersionChk, useNewVersionChk;
+	TreeViewer docTv, groundTruthTv;
+	Button useGtVersionChk, useNewVersionChk;
+	Button addToTrainSetBtn, addToTestSetBtn, removeFromTrainSetBtn, removeFromTestSetBtn;
+	DataSetTableWidget<IDataSetEntry<Object, Object>> testSetOverviewTable, trainSetOverviewTable;
+	CTabFolder dataTabFolder;
+	CTabItem documentsTabItem;
+	CTabItem gtTabItem;
+	Label previewLbl;
 	
-	private Composite buttonComp;
-	private Label previewLbl;
-	
-	private CTabFolder dataTabFolder;
-	private CTabItem documentsTabItem;
-	private CTabItem gtTabItem;
-	
-	private DataSetTableWidget<IDataSetEntry<Object, Object>> testSetOverviewTable, trainSetOverviewTable;
-	private DataSetSelectionController dataHandler;
-	
-	private Button addToTrainSetBtn, addToTestSetBtn, removeFromTrainSetBtn, removeFromTestSetBtn;
-	
-	private int colId;
+	private DataSetSelectionHandler dataHandler;
+
 	//the input to select data from
 	private List<TrpDocMetadata> docList;
 	private List<TrpHtr> htrList;
 
 	public DataSetSelectionSashForm(Composite parent, int style, final int colId, List<TrpHtr> htrList, List<TrpDocMetadata> docList) {
 		super(parent, style);
-		
-		this.colId = colId;
 		this.docList = docList;
 		this.htrList = htrList;
-		
-		dataHandler = new DataSetSelectionController(this);
+		dataHandler = new DataSetSelectionHandler(colId, this);
 		
 		this.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		this.setLayout(new GridLayout(1, false));
@@ -110,16 +82,14 @@ public class DataSetSelectionSashForm extends SashForm {
 		docTv = createDocumentTreeViewer(dataTabFolder);
 		documentsTabItem.setControl(docTv.getControl());
 
+		groundTruthTv = createGroundTruthTreeViewer(dataTabFolder);
 		if(!htrList.isEmpty()) {
 			gtTabItem = new CTabItem(dataTabFolder, SWT.NONE);
 			gtTabItem.setText("HTR Model Data");
-			groundTruthTv = createGroundTruthTreeViewer(dataTabFolder);
 			gtTabItem.setControl(groundTruthTv.getControl());
-		} else {
-			groundTruthTv = null;
 		}
 		
-		buttonComp = new Composite(this, SWT.NONE);
+		Composite buttonComp = new Composite(this, SWT.NONE);
 		buttonComp.setLayout(new GridLayout(1, true));
 
 		previewLbl = new Label(buttonComp, SWT.NONE);
@@ -188,7 +158,7 @@ public class DataSetSelectionSashForm extends SashForm {
 		trainSetGrp.pack();
 		testSetGrp.pack();
 		
-		addListeners();
+		new DataSetSelectionSashFormListener(this, dataHandler);
 	}
 
 	private TreeViewer createDocumentTreeViewer(Composite parent) {
@@ -208,127 +178,66 @@ public class DataSetSelectionSashForm extends SashForm {
 		tv.setInput(this.htrList);
 		return tv;
 	}
-
-	private boolean isGroundTruthSelectionEnabled() {
-		return groundTruthTv != null;
-	}
 	
-	private void addListeners() {
-		IDoubleClickListener treeViewerDoubleClickListener = new TreeViewerDoubleClickListener();
-		ISelectionChangedListener treeViewerSelectionChangedListener = new TreeViewerSelectionChangedListener();
-		
-		docTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
-		docTv.addDoubleClickListener(treeViewerDoubleClickListener);
-		
-		docTv.getTree().addListener(SWT.Expand, new Listener() {
-			public void handleEvent(Event e) {
-				updateDocTvColors(dataHandler.getTrainDocMap(), dataHandler.getTestDocMap());
-			}
-		});
-		
-		if(isGroundTruthSelectionEnabled()) {
-			groundTruthTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
-			groundTruthTv.addDoubleClickListener(treeViewerDoubleClickListener);
-			groundTruthTv.getTree().addListener(SWT.Expand, new Listener() {
-				public void handleEvent(Event e) {
-					updateGtTvColors(dataHandler.getTrainGtMap(), dataHandler.getTestGtMap());
-				}
-			});
-		}
-
-		addToTrainSetBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(documentsTabItem.equals(dataTabFolder.getSelection())) {
-					dataHandler.addDocumentSelectionToTrainSet((IStructuredSelection) docTv.getSelection());
-				} else if (isGroundTruthSelectionEnabled() 
-						&& gtTabItem.equals(dataTabFolder.getSelection())) {
-					// TODO
-				}
-			}
-		});
-
-		addToTestSetBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(documentsTabItem.equals(dataTabFolder.getSelection())) {
-					dataHandler.addDocumentSelectionToValidationSet((IStructuredSelection) docTv.getSelection());
-				} else if (isGroundTruthSelectionEnabled() 
-						&& gtTabItem.equals(dataTabFolder.getSelection())) {
-					// TODO
-				}
-			}
-		});
-
-		removeFromTrainSetBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				List<IDataSetEntry<Object, Object>> entries = trainSetOverviewTable.getSelectedDataSets();
-				dataHandler.removeFromTrainSetSelection(entries);
-			}
-		});
-
-		removeFromTestSetBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				List<IDataSetEntry<Object, Object>> entries = testSetOverviewTable.getSelectedDataSets();
-				dataHandler.removeFromTestSetSelection(entries);
-			}
-		});
-	}
-	
-	private void updateThumbnail(IStructuredSelection selection) {
-		Object o = selection.getFirstElement();
-		if (o instanceof TrpPage) {
-			TrpPage p = (TrpPage) o;
-			updateThumbnail(p.getThumbUrl());
-		} else if (o instanceof TrpGroundTruthPage) {
-			TrpGroundTruthPage g = (TrpGroundTruthPage) o;
-			updateThumbnail(g.getImage().getThumbUrl());		
-		} else {
-			if (previewLbl.getImage() != null) {
-				previewLbl.getImage().dispose();
-			}
-			previewLbl.setImage(null);
-		}
-	}
-	
-	private void updateThumbnail(URL thumbUrl) {
-		try {
-			Image image = ImgLoader.load(thumbUrl);
-			if (previewLbl.getImage() != null) {
-				previewLbl.getImage().dispose();
-			}
-			previewLbl.setImage(image);
-		} catch (IOException e) {
-			logger.error("Could not load image", e);
-		}
-	}
-	
-	void updateTrainSetTable(Map<TrpDocMetadata, List<TrpPage>> trainDocMap) {
-		updateTable(trainSetOverviewTable, trainDocMap);
-	}
-	
-	void updateValidationSetTable(Map<TrpDocMetadata, List<TrpPage>> validationDocMap) {
-		updateTable(testSetOverviewTable, validationDocMap);		
-	}
-	
-	private void updateTable(DataSetTableWidget<IDataSetEntry<Object, Object>> t, Map<TrpDocMetadata, List<TrpPage>> map) {
-		List<IDataSetEntry<?, ?>> list = new ArrayList<>(map.entrySet().size());
-		for (Entry<TrpDocMetadata, List<TrpPage>> entry : map.entrySet()) {
-			TrpDocMetadata doc = entry.getKey();
-
-			List<TrpPage> pageList = entry.getValue();
-
-			list.add(new DocumentDataSetEntry(doc, pageList));
-		}
-		Collections.sort(list);
-		t.setInput(list);
-	}
-	
-	void updateGtTvColors(Map<TrpHtr, List<TrpGroundTruthPage>> trainGtMap, Map<TrpHtr, List<TrpGroundTruthPage>> testGtMap) {
-		// TODO Auto-generated method stub
-		
+	/**
+	 * TODO
+	 * 
+	 * @param trainGtMap
+	 * @param testGtMap
+	 */
+	void updateGtTvColors(Map<HtrGtDataSet, List<TrpGroundTruthPage>> trainGtMap, Map<HtrGtDataSet, List<TrpGroundTruthPage>> testGtMap) {
+//		List<TrpGroundTruthPage> trainPages, testPages;
+//		for (TreeItem i : groundTruthTv.getTree().getItems()) {
+//			TrpHtr htr = (TrpHtr) i.getData();
+//
+//			// default color set
+//			Color fgColor = BLACK;
+//			Color bgColor = WHITE;
+//
+//			if (trainGtMap.containsKey(htr) && testGtMap.containsKey(htr)) {
+//				fgColor = WHITE;
+//				bgColor = CYAN;
+//			} else if (trainGtMap.containsKey(htr)) {
+//				fgColor = WHITE;
+//				if (htr.getNrOfTrainGtPages() == trainGtMap.get(htr).size()) {
+//					bgColor = BLUE;
+//				} else {
+//					bgColor = LIGHT_BLUE;
+//				}
+//			} else if (testGtMap.containsKey(htr)) {
+//				fgColor = WHITE;
+//				if (htr.getNrOfValidationGtPages() == testGtMap.get(htr).size()) {
+//					bgColor = GREEN;
+//				} else {
+//					bgColor = LIGHT_GREEN;
+//				}
+//			}
+//			i.setBackground(bgColor);
+//			i.setForeground(fgColor);
+//
+//			trainPages = trainGtMap.containsKey(htr) ? trainGtMap.get(htr) : new ArrayList<>(0);
+//			testPages = testGtMap.containsKey(htr) ? testGtMap.get(htr) : new ArrayList<>(0);
+//
+//			for (TreeItem child : i.getItems()) {
+//				Object data = child.getData();
+//				if(data instanceof HtrGtDataSet) {
+//					HtrGtDataSet gtSet = (HtrGtDataSet) data;
+//					
+//				} else if (data instanceof TrpGroundTruthPage) {
+//					TrpGroundTruthPage page = (TrpGroundTruthPage) data;
+//					if (trainPages.contains(page)) {
+//						child.setBackground(BLUE);
+//						child.setForeground(WHITE);
+//					} else if (testPages.contains(page)) {
+//						child.setBackground(GREEN);
+//						child.setForeground(WHITE);
+//					} else {
+//						child.setBackground(WHITE);
+//						child.setForeground(BLACK);
+//					}
+//				}
+//			}
+//		}
 	}
 	
 	void updateDocTvColors(Map<TrpDocMetadata, List<TrpPage>> trainDocMap, Map<TrpDocMetadata, List<TrpPage>> testDocMap) {
@@ -388,11 +297,11 @@ public class DataSetSelectionSashForm extends SashForm {
 		return dataHandler.getTestDocMap();
 	}
 	
-	public Map<TrpHtr, List<TrpGroundTruthPage>> getTrainGtMap() {
+	public Map<HtrGtDataSet, List<TrpGroundTruthPage>> getTrainGtMap() {
 		return dataHandler.getTrainGtMap();
 	}
 	
-	public Map<TrpHtr, List<TrpGroundTruthPage>> getTestGtMap() {
+	public Map<HtrGtDataSet, List<TrpGroundTruthPage>> getTestGtMap() {
 		return dataHandler.getTestGtMap();
 	}
 	
@@ -411,51 +320,8 @@ public class DataSetSelectionSashForm extends SashForm {
 	public Button getUseNewVersionChk() {
 		return useNewVersionChk;
 	}
-		
-	/**
-	 * Updates thumbnail image on selection change
-	 *
-	 */
-	private class TreeViewerSelectionChangedListener implements ISelectionChangedListener {
-		@Override
-		public void selectionChanged(SelectionChangedEvent event) {
-			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-			updateThumbnail(selection);
-		}
-	};
-	
-	/**
-	 * Expands items that have children on double click. Leaf elements are displayed.
-	 * 
-	 * @author philip
-	 *
-	 */
-	private class TreeViewerDoubleClickListener implements IDoubleClickListener {
-		@Override
-		public void doubleClick(DoubleClickEvent event) {
-			Object o = ((IStructuredSelection) event.getSelection()).getFirstElement();
-			if (o instanceof TrpDocMetadata) {
-				expandTreeItem(o, docTv);
-				updateDocTvColors(dataHandler.getTrainDocMap(), dataHandler.getTestDocMap());
-			} else if (o instanceof TrpPage) {
-				TrpPage p = (TrpPage)o;
-				TrpLocation loc = new TrpLocation();
-				loc.collId = colId;
-				loc.docId = p.getDocId();
-				loc.pageNr = p.getPageNr();
-				TrpMainWidget.getInstance().showLocation(loc);
-			} else if (o instanceof TrpHtr || o instanceof GroundTruthSet) {
-				expandTreeItem(o, groundTruthTv);
-				updateGtTvColors(dataHandler.getTrainGtMap(), dataHandler.getTestGtMap());
-			}
-		}
-		private void expandTreeItem(Object o, TreeViewer tv) {
-			for (TreeItem i : tv.getTree().getItems()) {
-				if (i.getData().equals(o)) {
-					tv.setExpandedState(o, !i.getExpanded());
-					return;
-				}
-			}
-		}
+
+	DataSetSelectionHandler getDataHandler() {
+		return dataHandler;
 	}
 }

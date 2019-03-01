@@ -9,13 +9,13 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.GtSetType;
 
-public class GrountTruthDataSetEntry implements IDataSetEntry<TrpHtr, TrpGroundTruthPage> {
+public class HtrGroundTruthDataSetEntry implements IDataSetEntry<TrpHtr, TrpGroundTruthPage> {
 	private String pageString;
 	private TrpHtr htr;
 	private GtSetType gtSetType;
 	private List<TrpGroundTruthPage> pages;
 	
-	public GrountTruthDataSetEntry(TrpHtr htr, final GtSetType setType, List<TrpGroundTruthPage> pages) {
+	public HtrGroundTruthDataSetEntry(TrpHtr htr, final GtSetType setType, List<TrpGroundTruthPage> pages) {
 		if(pages == null || pages.size() < 1) {
 			throw new IllegalArgumentException("pages argument is null or empty");
 		}
@@ -64,7 +64,7 @@ public class GrountTruthDataSetEntry implements IDataSetEntry<TrpHtr, TrpGroundT
 			setName = " Validation Set";
 			break;
 		}
-		return htr.getName() + setName;
+		return "HTR '" + htr.getName() + "'" + setName;
 	}
 
 	public String getPageString() {
@@ -101,7 +101,7 @@ public class GrountTruthDataSetEntry implements IDataSetEntry<TrpHtr, TrpGroundT
 	
 	@Override
 	public int compareTo(IDataSetEntry<?, ?> o) {
-		if(o instanceof GrountTruthDataSetEntry && this instanceof GrountTruthDataSetEntry) {
+		if(o instanceof HtrGroundTruthDataSetEntry && this instanceof HtrGroundTruthDataSetEntry) {
 			if (this.getId() > o.getId()) {
 				return 1;
 			}

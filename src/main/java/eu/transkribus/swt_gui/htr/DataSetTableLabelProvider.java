@@ -57,7 +57,7 @@ public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFon
 		//logger.trace("get column text: "+element+" id: "+columnIndex);
 		
 		if (element instanceof IDataSetEntry) {
-			IDataSetEntry d = (IDataSetEntry) element;
+			IDataSetEntry<?, ?> d = (IDataSetEntry<?, ?>) element;
 			
 			TableColumn column = table.getColumn(columnIndex);
 			String ct = column.getText();

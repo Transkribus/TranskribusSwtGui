@@ -17,6 +17,9 @@ public class HtrTrainingDialogTest {
 		if(args.length == 0) {
 			throw new IllegalArgumentException("No arguments.");
 		}
+		
+		boolean showGtData = true;
+		
 		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, args[0], args[1]) {
 			@Override
 			protected void createTestContents(Composite parent) throws Exception {
@@ -24,7 +27,7 @@ public class HtrTrainingDialogTest {
 				parent.pack();
 				HtrTrainingDialog htd = new HtrTrainingDialog(
 						parent.getShell(), 
-						getStorage().listHtrs(null), 
+						showGtData ? getStorage().listHtrs(null) : null, 
 						getStorage().getHtrTrainingJobImpls()
 						);
 				if (htd.open() == IDialogConstants.OK_ID) {

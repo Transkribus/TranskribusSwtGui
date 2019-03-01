@@ -8,7 +8,7 @@ import org.eclipse.swt.graphics.Image;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.GroundTruthSet;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 
 public class HtrGroundTruthLabelProvider implements ILabelProvider {
 
@@ -30,7 +30,7 @@ public class HtrGroundTruthLabelProvider implements ILabelProvider {
 	public Image getImage(Object element) {
 		if(element instanceof TrpGroundTruthPage) {
 			return Images.IMAGE;
-		} else if (element instanceof GroundTruthSet) {
+		} else if (element instanceof HtrGtDataSet) {
 			return Images.FOLDER;
 		} else if (element instanceof TrpHtr) {
 			return Images.CHART_LINE;
@@ -42,15 +42,15 @@ public class HtrGroundTruthLabelProvider implements ILabelProvider {
 	public String getText(Object element) {
 		if(element instanceof TrpHtr) {
 			return ((TrpHtr)element).getName();
-		} else if (element instanceof GroundTruthSet) {
-			return getText((GroundTruthSet)element) ;
+		} else if (element instanceof HtrGtDataSet) {
+			return getText((HtrGtDataSet)element) ;
 		} else if (element instanceof TrpGroundTruthPage) {
 			return getText((TrpGroundTruthPage)element);
 		}
 		return null;
 	}
 
-	private String getText(GroundTruthSet s) {
+	private String getText(HtrGtDataSet s) {
 		final String nrOfPages = "(" + s.getNrOfPages() + " pages)";
 		final String name;
 		switch (s.getSetType()) {

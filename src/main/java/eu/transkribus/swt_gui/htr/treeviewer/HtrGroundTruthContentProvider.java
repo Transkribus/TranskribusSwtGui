@@ -9,12 +9,15 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
 
-public class HtrGroundTruthContentProvider implements ITreeContentProvider {
+public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredContentProvider implements ITreeContentProvider {
 	private static final Logger logger = LoggerFactory.getLogger(HtrGroundTruthContentProvider.class);
 	List<TrpHtr> htrs;
-	Storage store = Storage.getInstance();
+	
+	public HtrGroundTruthContentProvider(final int colId) {
+		super(colId);
+	}
 	
 	@Override
 	public void dispose() {
@@ -34,8 +37,8 @@ public class HtrGroundTruthContentProvider implements ITreeContentProvider {
 			return ((List<TrpHtr>) inputElement).toArray();			
 		} else if (inputElement instanceof TrpHtr) {
 			return getChildren((TrpHtr) inputElement);
-		} else if (inputElement instanceof GroundTruthSet) {
-			return getChildren((GroundTruthSet) inputElement);
+		} else if (inputElement instanceof HtrGtDataSet) {
+			return getChildren((HtrGtDataSet) inputElement);
 		}
 		return null;
 	}
@@ -44,40 +47,40 @@ public class HtrGroundTruthContentProvider implements ITreeContentProvider {
 	public Object[] getChildren(Object parentElement) {
 		if (parentElement instanceof TrpHtr) {
 			return getChildren((TrpHtr) parentElement);
-		} else if (parentElement instanceof GroundTruthSet) {
-			return getChildren((GroundTruthSet) parentElement);
+		} else if (parentElement instanceof HtrGtDataSet) {
+			return getChildren((HtrGtDataSet) parentElement);
 		}
 		return null;
 	}
 	
 	private Object[] getChildren(TrpHtr htr) {
-		GroundTruthSet trainSet = null;
-		GroundTruthSet valSet = null;
+		HtrGtDataSet trainSet = null;
+		HtrGtDataSet valSet = null;
 		if(htr.hasTrainGt()) {
-			trainSet = new GroundTruthSet(htr.getHtrId(), GtSetType.TRAIN, htr.getNrOfTrainGtPages());
+			trainSet = new HtrGtDataSet(htr, GtSetType.TRAIN);
 		}
 		if(htr.hasValidationGt()) {
-			valSet = new GroundTruthSet(htr.getHtrId(), GtSetType.VALIDATION, htr.getNrOfValidationGtPages());
+			valSet = new HtrGtDataSet(htr, GtSetType.VALIDATION);
 		}
 		if(trainSet != null && valSet != null) {
-			return new GroundTruthSet[] { trainSet, valSet };
+			return new HtrGtDataSet[] { trainSet, valSet };
 		} else if (trainSet != null) {
-			return new GroundTruthSet[] { trainSet };
+			return new HtrGtDataSet[] { trainSet };
 		}
 		return null;
 	}
 	
-	private Object[] getChildren(GroundTruthSet gt) {
+	private Object[] getChildren(HtrGtDataSet gt) {
 		switch(gt.getSetType()) {
 		case TRAIN:
 			try {
-				return store.getConnection().getHtrTrainData(store.getCollId(), gt.getHtrId()).toArray();
+				return store.getConnection().getHtrTrainData(super.getCollId(), gt.getHtrId()).toArray();
 			} catch (SessionExpiredException | IllegalArgumentException e) {
 				logger.error("Could not retrieve HTR train data set for HTR = " + gt.getHtrId(), e);
 			}
 		case VALIDATION:
 			try {
-				return store.getConnection().getHtrValidationData(store.getCollId(), gt.getHtrId()).toArray();
+				return store.getConnection().getHtrValidationData(super.getCollId(), gt.getHtrId()).toArray();
 			} catch (SessionExpiredException | IllegalArgumentException e) {
 				logger.error("Could not retrieve HTR validation data set for HTR = " + gt.getHtrId(), e);
 			}
@@ -91,15 +94,9 @@ public class HtrGroundTruthContentProvider implements ITreeContentProvider {
 			return null;
 		} else if (element instanceof TrpHtr) {
 			return htrs;
-		} else if (element instanceof GroundTruthSet) {
-			final int htrId = ((GroundTruthSet) element).getHtrId();
-			for(TrpHtr h : htrs) {
-				if(h.getHtrId() == htrId) {
-					return h;
-				}
-			}
+		} else if (element instanceof HtrGtDataSet) {
+			return((HtrGtDataSet) element).getHtr();
 		}
-
 		return null;
 	}
 
@@ -109,39 +106,90 @@ public class HtrGroundTruthContentProvider implements ITreeContentProvider {
 			return true;
 		} else if (element instanceof TrpHtr) {
 			return ((TrpHtr) element).hasTrainGt();
-		} else if (element instanceof GroundTruthSet) {
-			final GroundTruthSet s = ((GroundTruthSet) element);
-			for(TrpHtr h : htrs) {
-				if(h.getHtrId() == s.getHtrId()) {
-					switch (s.getSetType()) {
-					case TRAIN:
-						return h.hasTrainGt();
-					case VALIDATION:
-						return h.hasValidationGt();
-					}
-				}
+		} else if (element instanceof HtrGtDataSet) {
+			final HtrGtDataSet s = ((HtrGtDataSet) element);
+			TrpHtr h = ((HtrGtDataSet) element).getHtr();	
+			switch (s.getSetType()) {
+			case TRAIN:
+				return h.hasTrainGt();
+			case VALIDATION:
+				return h.hasValidationGt();
 			}
 		}
 		return false;
 	}
 	
-	public static class GroundTruthSet {
-		private final int htrId;
-		private final int nrOfPages;
+	/**
+	 * Helper class for displaying the ground truth set level in a HTR treeviewer
+	 */
+	public static class HtrGtDataSet implements Comparable<HtrGtDataSet> {
+		private final TrpHtr htr;
 		private final GtSetType setType;
-		public GroundTruthSet(int htrId, GtSetType setType, int nrOfPages) {
-			this.htrId = htrId;
+		public HtrGtDataSet(TrpHtr htr, GtSetType setType) {
+			this.htr = htr;
 			this.setType = setType;
-			this.nrOfPages = nrOfPages;
 		}
 		public int getHtrId() {
-			return htrId;
+			return htr.getHtrId();
+		}
+		public TrpHtr getHtr() {
+			return htr;
 		}
 		public GtSetType getSetType() {
 			return setType;
 		}
 		public int getNrOfPages() {
-			return nrOfPages;
+			switch(setType) {
+			case TRAIN:
+				return htr.getNrOfTrainGtPages();
+			case VALIDATION:
+				return htr.getNrOfValidationGtPages();
+			}
+			return -1;
+		}
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((htr == null) ? 0 : htr.hashCode());
+			result = prime * result + ((setType == null) ? 0 : setType.hashCode());
+			return result;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			HtrGtDataSet other = (HtrGtDataSet) obj;
+			if (htr == null) {
+				if (other.htr != null)
+					return false;
+			} else if (htr.getHtrId() != other.htr.getHtrId())
+				return false;
+			if (setType != other.setType)
+				return false;
+			return true;
+		}
+		@Override
+		public int compareTo(HtrGtDataSet o) {
+			if (this.getHtrId() > o.getHtrId()) {
+				return 1;
+			}
+			if (this.getHtrId() < o.getHtrId()) {
+				return -1;
+			}
+			if (GtSetType.TRAIN.equals(this.getSetType()) 
+					&& GtSetType.VALIDATION.equals(o.getSetType())) {
+				return 1;
+			}
+			if (GtSetType.VALIDATION.equals(this.getSetType()) 
+					&& GtSetType.TRAIN.equals(o.getSetType())) {
+				return -1;
+			}
+			return 0;			
 		}
 	}
 	
