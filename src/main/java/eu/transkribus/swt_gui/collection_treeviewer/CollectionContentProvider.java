@@ -58,16 +58,19 @@ public class CollectionContentProvider extends ACollectionBoundStructuredContent
 	@Override
 	public Object[] getChildren(Object parentElement) {
 		if (parentElement instanceof TrpDocMetadata) {
-			TrpDoc doc;
-			try {
-				doc = store.getRemoteDoc(super.getCollId(), ((TrpDocMetadata) parentElement).getDocId(), -1);
-				return doc.getPages().toArray();
-			} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
-				logger.error("No Connection!");
-				return new Object[] {};
-			}
+			return getChildren((TrpDocMetadata)parentElement);
 		}
 		return null;
+	}
+	
+	public TrpPage[] getChildren(TrpDocMetadata docMd) {
+		try {
+			TrpDoc doc = store.getRemoteDoc(super.getCollId(), docMd.getDocId(), -1);
+			return doc.getPages().toArray(new TrpPage[doc.getPages().size()]);
+		} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
+			logger.error("No Connection!");
+			return new TrpPage[] {};
+		}
 	}
 
 	@Override

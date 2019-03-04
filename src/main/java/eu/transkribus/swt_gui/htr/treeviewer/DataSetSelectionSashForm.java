@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.htr.treeviewer;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -17,43 +16,42 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.TreeItem;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
 public class DataSetSelectionSashForm extends SashForm {
 	
-	private static final RGB BLUE_RGB = new RGB(0, 0, 140);
-	private static final RGB LIGHT_BLUE_RGB = new RGB(0, 140, 255);
-	private static final RGB GREEN_RGB = new RGB(0, 140, 0);
-	private static final RGB LIGHT_GREEN_RGB = new RGB(0, 255, 0);
-	private static final RGB CYAN_RGB = new RGB(85, 240, 240);
+//	private static final RGB BLUE_RGB = new RGB(0, 0, 140);
+//	private static final RGB LIGHT_BLUE_RGB = new RGB(0, 140, 255);
+//	private static final RGB GREEN_RGB = new RGB(0, 140, 0);
+//	private static final RGB LIGHT_GREEN_RGB = new RGB(0, 255, 0);
+//	private static final RGB CYAN_RGB = new RGB(85, 240, 240);
 	
-//	private static final RGB BLUE_RGB = new RGB(0, 83, 138);
-//	private static final RGB LIGHT_BLUE_RGB = new RGB(115, 161, 191);
-//	private static final RGB GREEN_RGB = new RGB(0, 105, 66);
-//	private static final RGB LIGHT_GREEN_RGB = new RGB(69, 145, 117);
-//	private static final RGB CYAN_RGB = new RGB(0, 95, 99);
+	private static final RGB BLUE_RGB = new RGB(0, 83, 138);
+	private static final RGB LIGHT_BLUE_RGB = new RGB(115, 161, 191);
+	private static final RGB GREEN_RGB = new RGB(0, 105, 66);
+	private static final RGB LIGHT_GREEN_RGB = new RGB(69, 145, 117);
+	private static final RGB CYAN_RGB = new RGB(0, 150, 240);
 	
-	private static final Color BLUE = Colors.createColor(BLUE_RGB);
-	private static final Color LIGHT_BLUE = Colors.createColor(LIGHT_BLUE_RGB);
-	private static final Color GREEN = Colors.createColor(GREEN_RGB);
-	private static final Color LIGHT_GREEN = Colors.createColor(LIGHT_GREEN_RGB);
-	private static final Color CYAN = Colors.createColor(CYAN_RGB);
-	private static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
-	private static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
+	static final Color BLUE = Colors.createColor(BLUE_RGB);
+	static final Color LIGHT_BLUE = Colors.createColor(LIGHT_BLUE_RGB);
+	static final Color GREEN = Colors.createColor(GREEN_RGB);
+	static final Color LIGHT_GREEN = Colors.createColor(LIGHT_GREEN_RGB);
+	static final Color CYAN = Colors.createColor(CYAN_RGB);
+	static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
+	static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
 	
 	TreeViewer docTv, groundTruthTv;
 	Button useGtVersionChk, useNewVersionChk;
 	Button addToTrainSetBtn, addToTestSetBtn, removeFromTrainSetBtn, removeFromTestSetBtn;
-	DataSetTableWidget<IDataSetEntry<Object, Object>> testSetOverviewTable, trainSetOverviewTable;
+	DataSetTableWidget<IDataSelectionEntry<?, ?>> testSetOverviewTable, trainSetOverviewTable;
 	CTabFolder dataTabFolder;
 	CTabItem documentsTabItem;
 	CTabItem gtTabItem;
@@ -127,7 +125,7 @@ public class DataSetSelectionSashForm extends SashForm {
 		trainSetGrp.setLayoutData(tableGd);
 		trainSetGrp.setLayout(tableGl);
 
-		trainSetOverviewTable = new DataSetTableWidget<IDataSetEntry<Object, Object>>(trainSetGrp, SWT.BORDER) {};
+		trainSetOverviewTable = new DataSetTableWidget<IDataSelectionEntry<?, ?>>(trainSetGrp, SWT.BORDER) {};
 		trainSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		GridData buttonGd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
@@ -141,7 +139,7 @@ public class DataSetSelectionSashForm extends SashForm {
 		testSetGrp.setLayoutData(tableGd);
 		testSetGrp.setLayout(tableGl);
 
-		testSetOverviewTable = new DataSetTableWidget<IDataSetEntry<Object, Object>>(testSetGrp, SWT.BORDER) {};
+		testSetOverviewTable = new DataSetTableWidget<IDataSelectionEntry<?, ?>>(testSetGrp, SWT.BORDER) {};
 		testSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		removeFromTestSetBtn = new Button(testSetGrp, SWT.PUSH);
@@ -180,113 +178,19 @@ public class DataSetSelectionSashForm extends SashForm {
 	}
 	
 	/**
-	 * TODO
+	 * Update ground truth treeviewer row colors according to selected data set.
+	 * 
+	 * For now this will expect train/validation data to be selected to the respective sets!
 	 * 
 	 * @param trainGtMap
 	 * @param testGtMap
 	 */
-	void updateGtTvColors(Map<HtrGtDataSet, List<TrpGroundTruthPage>> trainGtMap, Map<HtrGtDataSet, List<TrpGroundTruthPage>> testGtMap) {
-//		List<TrpGroundTruthPage> trainPages, testPages;
-//		for (TreeItem i : groundTruthTv.getTree().getItems()) {
-//			TrpHtr htr = (TrpHtr) i.getData();
-//
-//			// default color set
-//			Color fgColor = BLACK;
-//			Color bgColor = WHITE;
-//
-//			if (trainGtMap.containsKey(htr) && testGtMap.containsKey(htr)) {
-//				fgColor = WHITE;
-//				bgColor = CYAN;
-//			} else if (trainGtMap.containsKey(htr)) {
-//				fgColor = WHITE;
-//				if (htr.getNrOfTrainGtPages() == trainGtMap.get(htr).size()) {
-//					bgColor = BLUE;
-//				} else {
-//					bgColor = LIGHT_BLUE;
-//				}
-//			} else if (testGtMap.containsKey(htr)) {
-//				fgColor = WHITE;
-//				if (htr.getNrOfValidationGtPages() == testGtMap.get(htr).size()) {
-//					bgColor = GREEN;
-//				} else {
-//					bgColor = LIGHT_GREEN;
-//				}
-//			}
-//			i.setBackground(bgColor);
-//			i.setForeground(fgColor);
-//
-//			trainPages = trainGtMap.containsKey(htr) ? trainGtMap.get(htr) : new ArrayList<>(0);
-//			testPages = testGtMap.containsKey(htr) ? testGtMap.get(htr) : new ArrayList<>(0);
-//
-//			for (TreeItem child : i.getItems()) {
-//				Object data = child.getData();
-//				if(data instanceof HtrGtDataSet) {
-//					HtrGtDataSet gtSet = (HtrGtDataSet) data;
-//					
-//				} else if (data instanceof TrpGroundTruthPage) {
-//					TrpGroundTruthPage page = (TrpGroundTruthPage) data;
-//					if (trainPages.contains(page)) {
-//						child.setBackground(BLUE);
-//						child.setForeground(WHITE);
-//					} else if (testPages.contains(page)) {
-//						child.setBackground(GREEN);
-//						child.setForeground(WHITE);
-//					} else {
-//						child.setBackground(WHITE);
-//						child.setForeground(BLACK);
-//					}
-//				}
-//			}
-//		}
+	void updateGtTvColors(Map<HtrGtDataSet, List<HtrGtDataSetElement>> trainGtMap, Map<HtrGtDataSet, List<HtrGtDataSetElement>> testGtMap) {
+		groundTruthTv.refresh(true);
 	}
 	
 	void updateDocTvColors(Map<TrpDocMetadata, List<TrpPage>> trainDocMap, Map<TrpDocMetadata, List<TrpPage>> testDocMap) {
-		List<TrpPage> trainPages, testPages;
-		for (TreeItem i : docTv.getTree().getItems()) {
-			TrpDocMetadata doc = (TrpDocMetadata) i.getData();
-
-			// default color set
-			Color fgColor = BLACK;
-			Color bgColor = WHITE;
-
-			if (trainDocMap.containsKey(doc) && testDocMap.containsKey(doc)) {
-				fgColor = WHITE;
-				bgColor = CYAN;
-			} else if (trainDocMap.containsKey(doc)) {
-				fgColor = WHITE;
-				if (doc.getNrOfPages() == trainDocMap.get(doc).size()) {
-					bgColor = BLUE;
-				} else {
-					bgColor = LIGHT_BLUE;
-				}
-			} else if (testDocMap.containsKey(doc)) {
-				fgColor = WHITE;
-				if (doc.getNrOfPages() == testDocMap.get(doc).size()) {
-					bgColor = GREEN;
-				} else {
-					bgColor = LIGHT_GREEN;
-				}
-			}
-			i.setBackground(bgColor);
-			i.setForeground(fgColor);
-
-			trainPages = trainDocMap.containsKey(doc) ? trainDocMap.get(doc) : new ArrayList<>(0);
-			testPages = testDocMap.containsKey(doc) ? testDocMap.get(doc) : new ArrayList<>(0);
-
-			for (TreeItem child : i.getItems()) {
-				TrpPage page = (TrpPage) child.getData();
-				if (trainPages.contains(page)) {
-					child.setBackground(BLUE);
-					child.setForeground(WHITE);
-				} else if (testPages.contains(page)) {
-					child.setBackground(GREEN);
-					child.setForeground(WHITE);
-				} else {
-					child.setBackground(WHITE);
-					child.setForeground(BLACK);
-				}
-			}
-		}
+		docTv.refresh(true);
 	}
 	
 	public Map<TrpDocMetadata, List<TrpPage>> getTrainDocMap() {
@@ -297,11 +201,11 @@ public class DataSetSelectionSashForm extends SashForm {
 		return dataHandler.getTestDocMap();
 	}
 	
-	public Map<HtrGtDataSet, List<TrpGroundTruthPage>> getTrainGtMap() {
+	public Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTrainGtMap() {
 		return dataHandler.getTrainGtMap();
 	}
 	
-	public Map<HtrGtDataSet, List<TrpGroundTruthPage>> getTestGtMap() {
+	public Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTestGtMap() {
 		return dataHandler.getTestGtMap();
 	}
 	

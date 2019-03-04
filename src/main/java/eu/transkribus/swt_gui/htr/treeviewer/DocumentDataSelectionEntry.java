@@ -7,13 +7,14 @@ import java.util.List;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 
-public class DocumentDataSetEntry implements IDataSetEntry<TrpDocMetadata, TrpPage> {
+public class DocumentDataSelectionEntry implements IDataSelectionEntry<TrpDocMetadata, TrpPage> {
 	private String pageString;
 	private TrpDocMetadata doc;
 	private List<TrpPage> pages;
 
-	public DocumentDataSetEntry(TrpDocMetadata doc, List<TrpPage> pages) {
+	public DocumentDataSelectionEntry(TrpDocMetadata doc, List<TrpPage> pages) {
 		Collections.sort(pages);
 		final int nrOfPages = doc.getNrOfPages();
 		List<Boolean> boolList = new ArrayList<>(nrOfPages);
@@ -62,16 +63,10 @@ public class DocumentDataSetEntry implements IDataSetEntry<TrpDocMetadata, TrpPa
 	}
 
 	@Override
-	public int compareTo(IDataSetEntry<?, ?> o) {
-		if(o instanceof DocumentDataSetEntry && this instanceof DocumentDataSetEntry) {
-			if (this.doc.getDocId() > o.getId()) {
-				return 1;
-			}
-			if (this.doc.getDocId() < o.getId()) {
-				return -1;
-			}
-			return 0;
-		} 
-		return this.compareTo(o);
+	public int compareTo(IDataSelectionEntry<?, ?> o) {
+		if(o instanceof DocumentDataSelectionEntry && this instanceof DocumentDataSelectionEntry) {
+			return this.getDoc().compareTo((TrpDocMetadata)o.getDoc());
+		}
+		return IDataSelectionEntry.super.compareTo(o);
 	}
 }

@@ -1,28 +1,13 @@
 package eu.transkribus.swt_gui.collection_treeviewer;
 
-import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.swt.util.Images;
 
-public class CollectionLabelProvider implements ILabelProvider {
-
-	@Override
-	public void addListener(ILabelProviderListener listener) {}
-
-	@Override
-	public void dispose() {}
-
-	@Override
-	public boolean isLabelProperty(Object element, String property) {
-		return false;
-	}
-
-	@Override
-	public void removeListener(ILabelProviderListener listener) {}
+public class CollectionLabelProvider extends LabelProvider {
 
 	@Override
 	public Image getImage(Object element) {

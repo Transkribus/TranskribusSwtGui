@@ -14,7 +14,7 @@ import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 
-public abstract class DataSetTableWidget<IDataSetEntry> extends Composite {
+public abstract class DataSetTableWidget<IDataSetSelectionEntry> extends Composite {
 //	private static final Logger logger = LoggerFactory.getLogger(DataSetTableWidget.class);
 
 	public static final String TITLE_COL = "Title";
@@ -89,12 +89,12 @@ public abstract class DataSetTableWidget<IDataSetEntry> extends Composite {
 		tv.setInput(input);
 	}
 
-	public List<IDataSetEntry> getSelectedDataSets() {
+	public List<IDataSetSelectionEntry> getSelectedDataSets() {
 		IStructuredSelection sel = (IStructuredSelection) tv.getSelection();
 		if (!sel.isEmpty()) {
-			return (List<IDataSetEntry>)sel.toList();
+			return (List<IDataSetSelectionEntry>)sel.toList();
 		} else {
-			return new ArrayList<IDataSetEntry>(0);
+			return new ArrayList<IDataSetSelectionEntry>(0);
 		}
 	}
 }

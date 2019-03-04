@@ -4,42 +4,31 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 
-import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
+/**
+ * CollectionLabelProvider that shows information on transcription progress for pages.
+ *
+ */
 public class CollectionLabelProviderExtended implements ILabelProvider {
 	
-	public void setPageSaves(TrpDoc doc){
-		
-	}
+	@Override
+	public void addListener(ILabelProviderListener listener) {}
 
 	@Override
-	public void addListener(ILabelProviderListener listener) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
-		
-	}
+	public void dispose() {}
 
 	@Override
 	public boolean isLabelProperty(Object element, String property) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public void removeListener(ILabelProviderListener listener) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void removeListener(ILabelProviderListener listener) {}
 
 	@Override
 	public Image getImage(Object element) {
@@ -65,11 +54,9 @@ public class CollectionLabelProviderExtended implements ILabelProvider {
 			TrpTranscriptMetadata tmd;
 			tmd = p.getCurrentTranscript();
 			Integer transcribedLines = 0;
-			Integer transcribedWords = 0;
 			Integer segmentedLines = 0;
 			if (tmd != null){
 				transcribedLines = tmd.getNrOfTranscribedLines();
-				transcribedWords = tmd.getNrOfWordsInLines();
 				segmentedLines = tmd.getNrOfLines();
 			}
 				

@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.htr.treeviewer;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
 
@@ -53,7 +55,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		return null;
 	}
 	
-	private Object[] getChildren(TrpHtr htr) {
+	HtrGtDataSet[] getChildren(TrpHtr htr) {
 		HtrGtDataSet trainSet = null;
 		HtrGtDataSet valSet = null;
 		if(htr.hasTrainGt()) {
@@ -70,22 +72,32 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		return null;
 	}
 	
-	private Object[] getChildren(HtrGtDataSet gt) {
+	HtrGtDataSetElement[] getChildren(HtrGtDataSet gt) {
+		List<TrpGroundTruthPage> gtList = null;
 		switch(gt.getSetType()) {
 		case TRAIN:
 			try {
-				return store.getConnection().getHtrTrainData(super.getCollId(), gt.getHtrId()).toArray();
+				gtList = store.getConnection().getHtrTrainData(super.getCollId(), gt.getHtrId());
 			} catch (SessionExpiredException | IllegalArgumentException e) {
 				logger.error("Could not retrieve HTR train data set for HTR = " + gt.getHtrId(), e);
 			}
+			break;
 		case VALIDATION:
 			try {
-				return store.getConnection().getHtrValidationData(super.getCollId(), gt.getHtrId()).toArray();
+				gtList = store.getConnection().getHtrValidationData(super.getCollId(), gt.getHtrId());
 			} catch (SessionExpiredException | IllegalArgumentException e) {
 				logger.error("Could not retrieve HTR validation data set for HTR = " + gt.getHtrId(), e);
 			}
+			break;
 		}
-		return null;
+		if(gtList == null) {
+			return null;
+		} else {
+			List<HtrGtDataSetElement> children = gtList.stream()
+					.map(g -> new HtrGtDataSetElement(gt, g))
+					.collect(Collectors.toList());
+			return children.toArray(new HtrGtDataSetElement[children.size()]);
+		}
 	}
 
 	@Override
@@ -96,6 +108,8 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			return htrs;
 		} else if (element instanceof HtrGtDataSet) {
 			return((HtrGtDataSet) element).getHtr();
+		} else if (element instanceof HtrGtDataSetElement) {
+			return ((HtrGtDataSetElement) element).getParentHtrGtDataSet();
 		}
 		return null;
 	}
@@ -120,7 +134,8 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	}
 	
 	/**
-	 * Helper class for displaying the ground truth set level in a HTR treeviewer
+	 * An instance of this type represents an HTR GroundTruth data set (e.g. train or validation set) and is used for 
+	 * displaying the ground truth set level in a HTR treeviewer.
 	 */
 	public static class HtrGtDataSet implements Comparable<HtrGtDataSet> {
 		private final TrpHtr htr;
@@ -196,5 +211,27 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	public static enum GtSetType {
 		TRAIN,
 		VALIDATION;
+	}
+	
+	/**
+	 * An instance of this type represents an HTR GroundTruth data set element (e.g. a page from train or validation set) and is used for 
+	 * displaying the ground truth page level in a HTR treeviewer. It wraps a TrpGroundTruthPage and has a reference to its parent HtrGtDataSet.
+	 * <br><br>
+	 * Using plain TrpGroundTruthPage objects would not allow to determine the original parent as a GroundTruthPage may be linked in 
+	 * several HTRs (with different pageNr though). This is a problem when a single page is added to the selection and {@link HtrGroundTruthContentProvider#getParent(Object)} is called.
+	 */
+	public static class HtrGtDataSetElement {
+		private final HtrGtDataSet parentHtrGtDataSet;
+		private final TrpGroundTruthPage gtPage;
+		public HtrGtDataSetElement(HtrGtDataSet parentHtrGtDataSet, TrpGroundTruthPage gtPage) {
+			this.parentHtrGtDataSet = parentHtrGtDataSet;
+			this.gtPage = gtPage;
+		}
+		public HtrGtDataSet getParentHtrGtDataSet() {
+			return parentHtrGtDataSet;
+		}
+		public TrpGroundTruthPage getGroundTruthPage() {
+			return gtPage;
+		}
 	}
 }

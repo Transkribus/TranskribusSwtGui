@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.htr.treeviewer;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
+import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
@@ -26,6 +28,7 @@ import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class DataSetSelectionHandler {
@@ -38,7 +41,7 @@ public class DataSetSelectionHandler {
 	
 	//maps containing current selection. Maybe handling becomes less complex if this solely handled in table?
 	private Map<TrpDocMetadata, List<TrpPage>> trainDocMap, testDocMap;
-	private Map<HtrGtDataSet, List<TrpGroundTruthPage>> trainGtMap, testGtMap;
+	private Map<HtrGtDataSet, List<HtrGtDataSetElement>> trainGtMap, testGtMap;
 	private final DataSetSelectionSashForm view;
 	
 	/**
@@ -58,9 +61,9 @@ public class DataSetSelectionHandler {
 		trainGtMap = new TreeMap<>();
 		testGtMap = new TreeMap<>();
 		docContentProvider = new CollectionContentProvider(colId);
-		docLabelProvider = new CollectionLabelProvider();
+		docLabelProvider = new CollectionColoredLabelProvider(this);
 		htrGtContentProvider = new HtrGroundTruthContentProvider(colId);
-		htrGtLabelProvider = new HtrGroundTruthLabelProvider();
+		htrGtLabelProvider = new HtrGroundTruthLabelProvider(this);
 		this.view = view;
 		this.colId = colId;
 	}
@@ -86,38 +89,30 @@ public class DataSetSelectionHandler {
 		updateView();
 	}
 
-	public void removeSelectionFromTrainSet(List<IDataSetEntry<Object, Object>> entries) {
+	public void removeSelectionFromTrainSet(List<IDataSelectionEntry<?, ?>> entries) {
 		if (entries == null || entries.isEmpty()) {
 			return;
 		}
-		for (IDataSetEntry<?, ?> entry : entries) {
-			if(entry instanceof DocumentDataSetEntry) {
-				trainDocMap.remove(((DocumentDataSetEntry)entry).getDoc());
-			} else if (entry instanceof HtrGroundTruthDataSetEntry) {
-				
-				//FIXME do I really need two types for this?
-				HtrGroundTruthDataSetEntry e = (HtrGroundTruthDataSetEntry)entry;
-				HtrGtDataSet key = new HtrGtDataSet(e.getDoc(), e.getGtSetType());
-				trainGtMap.remove(key);
+		for (IDataSelectionEntry<?, ?> entry : entries) {
+			if(entry instanceof DocumentDataSelectionEntry) {
+				trainDocMap.remove(((DocumentDataSelectionEntry)entry).getDoc());
+			} else if (entry instanceof HtrGroundTruthDataSelectionEntry) {
+				trainGtMap.remove(((HtrGroundTruthDataSelectionEntry)entry).getDoc());
 			}
 		}
 		updateView();
 	}
 
 
-	public void removeSelectionFromTestSet(List<IDataSetEntry<Object, Object>> entries) {
+	public void removeSelectionFromTestSet(List<IDataSelectionEntry<?, ?>> entries) {
 		if (entries == null || entries.isEmpty()) {
 			return;
 		}
-		for (IDataSetEntry<?, ?> entry : entries) {
-			if(entry instanceof DocumentDataSetEntry) {
-				testDocMap.remove(((DocumentDataSetEntry)entry).getDoc());
-			} else if (entry instanceof HtrGroundTruthDataSetEntry) {
-				
-				//FIXME see FIXME above. And the names are ambiguous
-				HtrGroundTruthDataSetEntry e = (HtrGroundTruthDataSetEntry)entry;
-				HtrGtDataSet key = new HtrGtDataSet(e.getDoc(), e.getGtSetType());
-				testGtMap.remove(key);
+		for (IDataSelectionEntry<?, ?> entry : entries) {
+			if(entry instanceof DocumentDataSelectionEntry) {
+				testDocMap.remove(((DocumentDataSelectionEntry)entry).getDoc());
+			} else if (entry instanceof HtrGroundTruthDataSelectionEntry) {
+				testGtMap.remove(((HtrGroundTruthDataSelectionEntry)entry).getDoc());
 			}
 		}
 		updateView();
@@ -130,14 +125,14 @@ public class DataSetSelectionHandler {
 		view.updateGtTvColors(trainGtMap, testGtMap);
 	}
 	
-	private List<IDataSetEntry<?, ?>> createTableEntries(Map<TrpDocMetadata, List<TrpPage>> docMap, 
-		Map<HtrGtDataSet, List<TrpGroundTruthPage>> gtMap) {
-		List<IDataSetEntry<?, ?>> list = new ArrayList<>(docMap.entrySet().size() + gtMap.entrySet().size());
+	private List<IDataSelectionEntry<?, ?>> createTableEntries(Map<TrpDocMetadata, List<TrpPage>> docMap, 
+		Map<HtrGtDataSet, List<HtrGtDataSetElement>> gtMap) {
+		List<IDataSelectionEntry<?, ?>> list = new ArrayList<>(docMap.entrySet().size() + gtMap.entrySet().size());
 		for (Entry<TrpDocMetadata, List<TrpPage>> entry : docMap.entrySet()) {
-			list.add(new DocumentDataSetEntry(entry.getKey(), entry.getValue()));
+			list.add(new DocumentDataSelectionEntry(entry.getKey(), entry.getValue()));
 		}
-		for (Entry<HtrGtDataSet, List<TrpGroundTruthPage>> entry : gtMap.entrySet()) {
-			list.add(new HtrGroundTruthDataSetEntry(entry.getKey().getHtr(), entry.getKey().getSetType(), entry.getValue()));
+		for (Entry<HtrGtDataSet, List<HtrGtDataSetElement>> entry : gtMap.entrySet()) {
+			list.add(new HtrGroundTruthDataSelectionEntry(entry.getKey(), entry.getValue()));
 		}
 		Collections.sort(list);
 		return list;
@@ -158,11 +153,8 @@ public class DataSetSelectionHandler {
 			Object o = it.next();
 			if (o instanceof TrpDocMetadata) {
 				TrpDocMetadata docMd = (TrpDocMetadata) o;
-				Object[] pageObjArr = docContentProvider.getChildren(docMd);
-				List<TrpPage> pageList = new LinkedList<>();
-				for (Object page : pageObjArr) {
-					pageList.add((TrpPage) page);
-				}
+				TrpPage[] pageObjArr = docContentProvider.getChildren(docMd);
+				List<TrpPage> pageList = Arrays.asList(pageObjArr);
 				targetDataMap.put(docMd, pageList);
 
 				if (nonIntersectingDataMap.containsKey(docMd)) {
@@ -200,59 +192,58 @@ public class DataSetSelectionHandler {
 	 * @param nonIntersectingDataMap
 	 */
 	private void addGtSelectionToDataMap(IStructuredSelection selection,
-			Map<HtrGtDataSet, List<TrpGroundTruthPage>> targetDataMap, 
-			Map<HtrGtDataSet, List<TrpGroundTruthPage>> nonIntersectingDataMap) {
+			Map<HtrGtDataSet, List<HtrGtDataSetElement>> targetDataMap, 
+			Map<HtrGtDataSet, List<HtrGtDataSetElement>> nonIntersectingDataMap) {
 		Iterator<?> it = selection.iterator();
 		while (it.hasNext()) {
 			Object o = it.next();
-			if (o instanceof HtrGtDataSet) {
-				HtrGtDataSet docMd = (HtrGtDataSet) o;
-				Object[] pageObjArr = htrGtContentProvider.getChildren(docMd);
-				List<TrpGroundTruthPage> pageList = new LinkedList<>();
-				for (Object page : pageObjArr) {
-					pageList.add((TrpGroundTruthPage) page);
-				}
-				targetDataMap.put(docMd, pageList);
-
-				if (nonIntersectingDataMap.containsKey(docMd)) {
-					nonIntersectingDataMap.remove(docMd);
+			if (o instanceof TrpHtr) {
+				
+				/*
+				 * TODO should adding the complete data of a HTR split up into train and validation set automatically?
+				 */
+				
+				TrpHtr htr = (TrpHtr) o;
+				Object[] htrGtSets = htrGtContentProvider.getChildren(htr);
+				for (Object gtDataSet : htrGtSets) {
+					HtrGtDataSet htrGtDataSet = (HtrGtDataSet)gtDataSet;
+					HtrGtDataSetElement[] gtPageArr = htrGtContentProvider.getChildren(htrGtDataSet);
+					if(gtPageArr == null) {
+						logger.error("No children could be determined for HTR GT set: " + htrGtDataSet);
+						return;
+					}
+					List<HtrGtDataSetElement> gtPageList = Arrays.asList(gtPageArr);
+					targetDataMap.put(htrGtDataSet, gtPageList);
+					if (nonIntersectingDataMap.containsKey(htrGtDataSet)) {
+						nonIntersectingDataMap.remove(htrGtDataSet);
+					}
 				}
 			} else if (o instanceof HtrGtDataSet) {
-//				HtrGtDataSet p = (HtrGtDataSet) o;
-//				TrpHtr parent = p.getHtr();
-//				if (targetDataMap.containsKey(parent) && !targetDataMap.get(parent).contains(p)) {
-//					targetDataMap.get(parent).add(p);
-//				} else if (!targetDataMap.containsKey(parent)) {
-//					List<TrpPage> pageList = new LinkedList<>();
-//					pageList.add(p);
-//					targetDataMap.put(parent, pageList);
-//				}
-//
-//				if (nonIntersectingDataMap.containsKey(parent) && nonIntersectingDataMap.get(parent).contains(p)) {
-//					if (nonIntersectingDataMap.get(parent).size() == 1) {
-//						nonIntersectingDataMap.remove(parent);
-//					} else {
-//						nonIntersectingDataMap.get(parent).remove(p);
-//					}
-//				}
+				HtrGtDataSet htrGtDataSet = (HtrGtDataSet) o;
+				HtrGtDataSetElement[] gtPageArr = htrGtContentProvider.getChildren(htrGtDataSet);
+				List<HtrGtDataSetElement> gtPageList = Arrays.asList(gtPageArr);
+				targetDataMap.put(htrGtDataSet, gtPageList);
+				if (nonIntersectingDataMap.containsKey(htrGtDataSet)) {
+					nonIntersectingDataMap.remove(htrGtDataSet);
+				}
 			} else if (o instanceof TrpGroundTruthPage) {
-//				TrpGroundTruthPage p = (TrpGroundTruthPage) o;
-//				TrpDocMetadata parent = (TrpDocMetadata) htrGtContentProvider.getParent(p);
-//				if (targetDataMap.containsKey(parent) && !targetDataMap.get(parent).contains(p)) {
-//					targetDataMap.get(parent).add(p);
-//				} else if (!targetDataMap.containsKey(parent)) {
-//					List<TrpPage> pageList = new LinkedList<>();
-//					pageList.add(p);
-//					targetDataMap.put(parent, pageList);
-//				}
-//
-//				if (nonIntersectingDataMap.containsKey(parent) && nonIntersectingDataMap.get(parent).contains(p)) {
-//					if (nonIntersectingDataMap.get(parent).size() == 1) {
-//						nonIntersectingDataMap.remove(parent);
-//					} else {
-//						nonIntersectingDataMap.get(parent).remove(p);
-//					}
-//				}
+				HtrGtDataSetElement p = (HtrGtDataSetElement) o;
+				HtrGtDataSet parent = (HtrGtDataSet) htrGtContentProvider.getParent(p);
+				if (targetDataMap.containsKey(parent) && !targetDataMap.get(parent).contains(p)) {
+					targetDataMap.get(parent).add(p);
+				} else if (!targetDataMap.containsKey(parent)) {
+					List<HtrGtDataSetElement> pageList = new LinkedList<>();
+					pageList.add(p);
+					targetDataMap.put(parent, pageList);
+				}
+
+				if (nonIntersectingDataMap.containsKey(parent) && nonIntersectingDataMap.get(parent).contains(p)) {
+					if (nonIntersectingDataMap.get(parent).size() == 1) {
+						nonIntersectingDataMap.remove(parent);
+					} else {
+						nonIntersectingDataMap.get(parent).remove(p);
+					}
+				}
 			}
 		}			
 	}
@@ -313,11 +304,11 @@ public class DataSetSelectionHandler {
 		return testDocMap;
 	}
 	
-	public Map<HtrGtDataSet, List<TrpGroundTruthPage>> getTrainGtMap() {
+	public Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTrainGtMap() {
 		return trainGtMap;
 	}
 	
-	public Map<HtrGtDataSet, List<TrpGroundTruthPage>> getTestGtMap() {
+	public Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTestGtMap() {
 		return testGtMap;
 	}
 	

@@ -88,7 +88,7 @@ import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.DocumentDataSetTableWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetMetadata;
-import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSetEntry;
+import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSelectionEntry;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
@@ -615,9 +615,9 @@ public class SamplesCompareDialog extends Dialog {
 		removeFromSampleSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<DocumentDataSetEntry> entries = sampleSetOverviewTable.getSelectedDataSets();
+				List<DocumentDataSelectionEntry> entries = sampleSetOverviewTable.getSelectedDataSets();
 				if (!entries.isEmpty()) {
-					for (DocumentDataSetEntry entry : entries) {
+					for (DocumentDataSelectionEntry entry : entries) {
 						sampleDocMap.remove(entry.getDoc());
 					}
 					updateTable(sampleSetOverviewTable, sampleDocMap);
@@ -810,13 +810,13 @@ public class SamplesCompareDialog extends Dialog {
 	}
 	
 	private void updateTable(DocumentDataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {
-		List<DocumentDataSetEntry> list = new ArrayList<>(map.entrySet().size());
+		List<DocumentDataSelectionEntry> list = new ArrayList<>(map.entrySet().size());
 		for (Entry<TrpDocMetadata, List<TrpPage>> entry : map.entrySet()) {
 			TrpDocMetadata doc = entry.getKey();
 
 			List<TrpPage> pageList = entry.getValue();
 
-			list.add(new DocumentDataSetEntry(doc, pageList));
+			list.add(new DocumentDataSelectionEntry(doc, pageList));
 		}
 		Collections.sort(list);
 		t.setInput(list);

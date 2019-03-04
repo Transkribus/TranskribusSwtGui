@@ -6,21 +6,21 @@ import java.util.List;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 
-import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSetEntry;
+import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSelectionEntry;
 
-public class DocumentDataSetTableWidget extends DataSetTableWidget<DocumentDataSetEntry> {
+public class DocumentDataSetTableWidget extends DataSetTableWidget<DocumentDataSelectionEntry> {
 	
 	public DocumentDataSetTableWidget(Composite parent, int style) {
 		super(parent, style);
 	}
 
 	@Override
-	public List<DocumentDataSetEntry> getSelectedDataSets() {
+	public List<DocumentDataSelectionEntry> getSelectedDataSets() {
 		IStructuredSelection sel = (IStructuredSelection) tv.getSelection();
 		if (!sel.isEmpty()) {
-			return (List<DocumentDataSetEntry>)sel.toList();
+			return (List<DocumentDataSelectionEntry>)sel.toList();
 		} else {
-			return new ArrayList<DocumentDataSetEntry>(0);
+			return new ArrayList<DocumentDataSelectionEntry>(0);
 		}
 	}
 }

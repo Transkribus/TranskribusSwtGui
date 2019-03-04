@@ -49,19 +49,20 @@ public class DataSetSelectionSashFormListener {
 		view.docTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
 		view.docTv.addDoubleClickListener(treeViewerDoubleClickListener);
 		
-		view.docTv.getTree().addListener(SWT.Expand, new Listener() {
-			public void handleEvent(Event e) {
-				view.updateDocTvColors(handler.getTrainDocMap(), handler.getTestDocMap());
-			}
-		});
+//		view.docTv.getTree().addListener(SWT.Expand, new Listener() {
+//			public void handleEvent(Event e) {
+//				view.updateDocTvColors(handler.getTrainDocMap(), handler.getTestDocMap());
+//			}
+//		});
 		
 		view.groundTruthTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
 		view.groundTruthTv.addDoubleClickListener(treeViewerDoubleClickListener);
-		view.groundTruthTv.getTree().addListener(SWT.Expand, new Listener() {
-			public void handleEvent(Event e) {
-				view.updateGtTvColors(handler.getTrainGtMap(), handler.getTestGtMap());
-			}
-		});
+		
+//		view.groundTruthTv.getTree().addListener(SWT.Expand, new Listener() {
+//			public void handleEvent(Event e) {
+//				view.updateGtTvColors(handler.getTrainGtMap(), handler.getTestGtMap());
+//			}
+//		});
 		
 		view.addToTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -88,7 +89,7 @@ public class DataSetSelectionSashFormListener {
 		view.removeFromTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<IDataSetEntry<Object, Object>> entries = view.trainSetOverviewTable.getSelectedDataSets();
+				List<IDataSelectionEntry<?, ?>> entries = view.trainSetOverviewTable.getSelectedDataSets();
 				handler.removeSelectionFromTrainSet(entries);
 			}
 		});
@@ -96,7 +97,7 @@ public class DataSetSelectionSashFormListener {
 		view.removeFromTestSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<IDataSetEntry<Object, Object>> entries = view.testSetOverviewTable.getSelectedDataSets();
+				List<IDataSelectionEntry<?, ?>> entries = view.testSetOverviewTable.getSelectedDataSets();
 				handler.removeSelectionFromTestSet(entries);
 			}
 		});

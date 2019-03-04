@@ -9,7 +9,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
-import eu.transkribus.swt_gui.htr.treeviewer.IDataSetEntry;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthDataSelectionEntry;
+import eu.transkribus.swt_gui.htr.treeviewer.IDataSelectionEntry;
 
 public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 	
@@ -56,13 +57,16 @@ public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFon
 	public String getColumnText(Object element, int columnIndex) {
 		//logger.trace("get column text: "+element+" id: "+columnIndex);
 		
-		if (element instanceof IDataSetEntry) {
-			IDataSetEntry<?, ?> d = (IDataSetEntry<?, ?>) element;
+		if (element instanceof IDataSelectionEntry) {
+			IDataSelectionEntry<?, ?> d = (IDataSelectionEntry<?, ?>) element;
 			
 			TableColumn column = table.getColumn(columnIndex);
 			String ct = column.getText();
 			
 			if (ct.equals(DataSetTableWidget.ID_COL)) {
+				if(element instanceof HtrGroundTruthDataSelectionEntry) {
+					return "HTR " + d.getId();
+				}
 				return ""+d.getId();
 			} else if (ct.equals(DataSetTableWidget.TITLE_COL)) {
 				return d.getTitle();
