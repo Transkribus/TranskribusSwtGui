@@ -26,6 +26,13 @@ import eu.transkribus.swt_gui.htr.DataSetTableWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
+/**
+ * TODO:
+ * <ul>
+ * <li>hide GT data tab when T2I is selected</li>
+ * </ul>
+ *
+ */
 public class DataSetSelectionSashForm extends SashForm {
 	
 //	private static final RGB BLUE_RGB = new RGB(0, 0, 140);
@@ -51,6 +58,7 @@ public class DataSetSelectionSashForm extends SashForm {
 	TreeViewer docTv, groundTruthTv;
 	Button useGtVersionChk, useNewVersionChk;
 	Button addToTrainSetBtn, addToTestSetBtn, removeFromTrainSetBtn, removeFromTestSetBtn;
+	Label infoLbl;
 	DataSetTableWidget<IDataSelectionEntry<?, ?>> testSetOverviewTable, trainSetOverviewTable;
 	CTabFolder dataTabFolder;
 	CTabItem documentsTabItem;
@@ -91,10 +99,14 @@ public class DataSetSelectionSashForm extends SashForm {
 		buttonComp.setLayout(new GridLayout(1, true));
 
 		previewLbl = new Label(buttonComp, SWT.NONE);
-		GridData gd2 = new GridData(SWT.CENTER, SWT.CENTER, true, true);
-		gd2.heightHint = 120;
-		gd2.widthHint = 100;
-		previewLbl.setLayoutData(gd2);
+		GridData previewLblGd = new GridData(SWT.CENTER, SWT.CENTER, true, true);
+		previewLblGd.heightHint = 120;
+		previewLblGd.widthHint = 100;
+		previewLbl.setLayoutData(previewLblGd);
+		
+		infoLbl = new Label(buttonComp, SWT.WRAP);
+		GridData infoLblGd = new GridData(SWT.FILL, SWT.BOTTOM, true, true);
+		infoLbl.setLayoutData(infoLblGd);
 
 		addToTrainSetBtn = new Button(buttonComp, SWT.PUSH);
 		addToTrainSetBtn.setImage(Images.ADD);

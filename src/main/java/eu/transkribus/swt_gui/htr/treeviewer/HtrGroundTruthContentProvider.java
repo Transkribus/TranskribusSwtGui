@@ -209,8 +209,15 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	}
 	
 	public static enum GtSetType {
-		TRAIN,
-		VALIDATION;
+		TRAIN("Train Set"),
+		VALIDATION("Validation Set");
+		private final String label;
+		private GtSetType(final String label) {
+			this.label = label;
+		}
+		public String getLabel() {
+			return label;
+		}
 	}
 	
 	/**

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Image;
@@ -18,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
@@ -80,13 +80,13 @@ public class DataSetSelectionHandler {
 	}
 	
 	public void addGtSelectionToTrainSet() {
-		addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), trainGtMap, testGtMap);
-		updateView();
+		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), trainGtMap, testGtMap);
+		updateView(infoLabelText);
 	}
 	
 	public void addGtSelectionToValidationSet() {
-		addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), testGtMap, trainGtMap);
-		updateView();
+		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), testGtMap, trainGtMap);
+		updateView(infoLabelText);
 	}
 
 	public void removeSelectionFromTrainSet(List<IDataSelectionEntry<?, ?>> entries) {
@@ -119,12 +119,17 @@ public class DataSetSelectionHandler {
 	}
 	
 	private void updateView() {
+		updateView(null);
+	}
+	
+	private void updateView(String infoLabelText) {
 		view.trainSetOverviewTable.setInput(createTableEntries(trainDocMap, trainGtMap));
 		view.testSetOverviewTable.setInput(createTableEntries(testDocMap, testGtMap));
 		view.updateDocTvColors(trainDocMap, testDocMap);
 		view.updateGtTvColors(trainGtMap, testGtMap);
+		updateInfoLabel(infoLabelText);
 	}
-	
+
 	private List<IDataSelectionEntry<?, ?>> createTableEntries(Map<TrpDocMetadata, List<TrpPage>> docMap, 
 		Map<HtrGtDataSet, List<HtrGtDataSetElement>> gtMap) {
 		List<IDataSelectionEntry<?, ?>> list = new ArrayList<>(docMap.entrySet().size() + gtMap.entrySet().size());
@@ -190,45 +195,33 @@ public class DataSetSelectionHandler {
 	 * @param selection
 	 * @param targetDataMap
 	 * @param nonIntersectingDataMap
+	 * @return message for display to user with information on issues with the given selection (e.g. is items where omitted due to inclusion). null if the whole selection was added.
 	 */
-	private void addGtSelectionToDataMap(IStructuredSelection selection,
+	private String addGtSelectionToDataMap(IStructuredSelection selection,
 			Map<HtrGtDataSet, List<HtrGtDataSetElement>> targetDataMap, 
 			Map<HtrGtDataSet, List<HtrGtDataSetElement>> nonIntersectingDataMap) {
+		int nrOfItemsOmitted = 0;
 		Iterator<?> it = selection.iterator();
 		while (it.hasNext()) {
 			Object o = it.next();
 			if (o instanceof TrpHtr) {
-				
-				/*
-				 * TODO should adding the complete data of a HTR split up into train and validation set automatically?
-				 */
-				
 				TrpHtr htr = (TrpHtr) o;
 				Object[] htrGtSets = htrGtContentProvider.getChildren(htr);
 				for (Object gtDataSet : htrGtSets) {
 					HtrGtDataSet htrGtDataSet = (HtrGtDataSet)gtDataSet;
-					HtrGtDataSetElement[] gtPageArr = htrGtContentProvider.getChildren(htrGtDataSet);
-					if(gtPageArr == null) {
-						logger.error("No children could be determined for HTR GT set: " + htrGtDataSet);
-						return;
-					}
-					List<HtrGtDataSetElement> gtPageList = Arrays.asList(gtPageArr);
-					targetDataMap.put(htrGtDataSet, gtPageList);
-					if (nonIntersectingDataMap.containsKey(htrGtDataSet)) {
-						nonIntersectingDataMap.remove(htrGtDataSet);
-					}
+					nrOfItemsOmitted += addGtSetToDataMap(htrGtDataSet, targetDataMap, nonIntersectingDataMap);
 				}
 			} else if (o instanceof HtrGtDataSet) {
 				HtrGtDataSet htrGtDataSet = (HtrGtDataSet) o;
-				HtrGtDataSetElement[] gtPageArr = htrGtContentProvider.getChildren(htrGtDataSet);
-				List<HtrGtDataSetElement> gtPageList = Arrays.asList(gtPageArr);
-				targetDataMap.put(htrGtDataSet, gtPageList);
-				if (nonIntersectingDataMap.containsKey(htrGtDataSet)) {
-					nonIntersectingDataMap.remove(htrGtDataSet);
-				}
-			} else if (o instanceof TrpGroundTruthPage) {
+				nrOfItemsOmitted += addGtSetToDataMap(htrGtDataSet, targetDataMap, nonIntersectingDataMap);
+			} else if (o instanceof HtrGtDataSetElement) {
 				HtrGtDataSetElement p = (HtrGtDataSetElement) o;
 				HtrGtDataSet parent = (HtrGtDataSet) htrGtContentProvider.getParent(p);
+				if(!getGtSetsFromSelectionIncludingElement(p).isEmpty()) {
+					//element already included via other set
+					nrOfItemsOmitted++;
+					continue;
+				}
 				if (targetDataMap.containsKey(parent) && !targetDataMap.get(parent).contains(p)) {
 					targetDataMap.get(parent).add(p);
 				} else if (!targetDataMap.containsKey(parent)) {
@@ -236,7 +229,6 @@ public class DataSetSelectionHandler {
 					pageList.add(p);
 					targetDataMap.put(parent, pageList);
 				}
-
 				if (nonIntersectingDataMap.containsKey(parent) && nonIntersectingDataMap.get(parent).contains(p)) {
 					if (nonIntersectingDataMap.get(parent).size() == 1) {
 						nonIntersectingDataMap.remove(parent);
@@ -245,7 +237,58 @@ public class DataSetSelectionHandler {
 					}
 				}
 			}
-		}			
+		}
+		return getItemsOmittedMessage(nrOfItemsOmitted);
+	}
+	
+	private String getItemsOmittedMessage(int nrOfItemsOmitted) {
+		if(nrOfItemsOmitted < 1) {
+			return null; 
+		}
+		return nrOfItemsOmitted + " pages are already included by other data sets. Expand items for details.";
+	}
+
+	private int addGtSetToDataMap(HtrGtDataSet htrGtDataSet,
+			Map<HtrGtDataSet, List<HtrGtDataSetElement>> targetDataMap, 
+			Map<HtrGtDataSet, List<HtrGtDataSetElement>> nonIntersectingDataMap) {
+		HtrGtDataSetElement[] gtPageArr = htrGtContentProvider.getChildren(htrGtDataSet);
+		if(gtPageArr == null) {
+			logger.error("No children could be determined for HTR GT set: " + htrGtDataSet);
+			return 0;
+		}
+		List<HtrGtDataSetElement> gtPagesInSet = Arrays.asList(gtPageArr);
+		//filter for elements that are not included via other selected sets
+		List<HtrGtDataSetElement> gtPageList = gtPagesInSet.stream()
+				.filter(e -> getGtSetsFromSelectionIncludingElement(e).isEmpty())
+				.collect(Collectors.toList());
+		if(gtPageList.isEmpty()) {
+			return gtPagesInSet.size();
+		}
+		targetDataMap.put(htrGtDataSet, gtPageList);
+		if (nonIntersectingDataMap.containsKey(htrGtDataSet)) {
+			nonIntersectingDataMap.remove(htrGtDataSet);
+		}
+		//return nr of pages added to selection
+		return gtPagesInSet.size() - gtPageList.size();
+	}
+	
+	public List<HtrGtDataSet> getGtSetsFromSelectionIncludingElement(HtrGtDataSetElement element) {
+		List<HtrGtDataSet> includedBySetList = new LinkedList<>();
+		for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : getTrainGtMap().entrySet()) {
+			if(e.getValue().stream()
+					.anyMatch(g -> g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId()) 
+					&& !e.getKey().equals(element.getParentHtrGtDataSet())) {
+				includedBySetList.add(e.getKey());
+			}
+		}
+		for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : getTestGtMap().entrySet()) {
+			if(e.getValue().stream()
+					.anyMatch(g -> g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId()) 
+					&& !e.getKey().equals(element.getParentHtrGtDataSet())) {
+				includedBySetList.add(e.getKey());
+			}
+		}
+		return includedBySetList;
 	}
 	
 	private DataSetMetadata computeDataSetSize(Map<TrpDocMetadata, List<TrpPage>> map) {
@@ -281,16 +324,13 @@ public class DataSetSelectionHandler {
 		return docContentProvider;
 	}
 
-
 	public CollectionLabelProvider getDocLabelProvider() {
 		return docLabelProvider;
 	}
 
-
 	public HtrGroundTruthContentProvider getHtrGtContentProvider() {
 		return htrGtContentProvider;
 	}
-
 
 	public HtrGroundTruthLabelProvider getHtrGtLabelProvider() {
 		return htrGtLabelProvider;
@@ -319,22 +359,40 @@ public class DataSetSelectionHandler {
 	public DataSetMetadata getTestSetMetadata() {
 		return computeDataSetSize(getTestDocMap());
 	}
-
+	
 	void updateThumbnail(IStructuredSelection selection) {
 		Object o = selection.getFirstElement();
 		final Image image;
 		if (o instanceof TrpPage) {
 			TrpPage p = (TrpPage) o;
 			image = loadThumbnail(p.getThumbUrl());
-		} else if (o instanceof TrpGroundTruthPage) {
-			TrpGroundTruthPage g = (TrpGroundTruthPage) o;
-			image = loadThumbnail(g.getImage().getThumbUrl());		
+		} else if (o instanceof HtrGtDataSetElement) {
+			HtrGtDataSetElement g = (HtrGtDataSetElement) o;
+			image = loadThumbnail(g.getGroundTruthPage().getImage().getThumbUrl());
 		} else {
 			image = null;
 		}
 		updateThumbnail(image);
 	}
 	
+	/**
+	 * TODO move to view
+	 * 
+	 * @param infoLabelText
+	 */
+	private void updateInfoLabel(String infoLabelText) {
+		if(infoLabelText == null) {
+			infoLabelText = "";
+		}
+		view.infoLbl.setText(infoLabelText);
+		view.infoLbl.requestLayout();
+	}
+	
+	/**
+	 * TODO move to view
+	 * 
+	 * @param image
+	 */
 	private void updateThumbnail(Image image) {
 		if (view.previewLbl.getImage() != null) {
 			view.previewLbl.getImage().dispose();

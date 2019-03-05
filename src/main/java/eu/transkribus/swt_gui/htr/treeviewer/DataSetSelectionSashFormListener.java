@@ -2,18 +2,16 @@ package eu.transkribus.swt_gui.htr.treeviewer;
 
 import java.util.List;
 
+import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.TreeItem;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
@@ -113,20 +111,21 @@ public class DataSetSelectionSashFormListener {
 			Object o = ((IStructuredSelection) event.getSelection()).getFirstElement();
 			if (o instanceof TrpDocMetadata) {
 				expandTreeItem(o, view.docTv);
-				view.updateDocTvColors(handler.getTrainDocMap(), handler.getTestDocMap());
 			} else if (o instanceof TrpPage) {
 				handler.loadPageInMainWidget((TrpPage)o);
 			} else if (o instanceof TrpHtr || o instanceof HtrGtDataSet) {
 				expandTreeItem(o, view.groundTruthTv);
-				view.updateGtTvColors(handler.getTrainGtMap(), handler.getTestGtMap());
 			}
 		}
 		private void expandTreeItem(Object o, TreeViewer tv) {
-			for (TreeItem i : tv.getTree().getItems()) {
-				if (i.getData().equals(o)) {
-					tv.setExpandedState(o, !i.getExpanded());
-					return;
-				}
+			final ITreeContentProvider provider = (ITreeContentProvider) tv.getContentProvider();
+			if(!provider.hasChildren(o)) {
+				return;
+			}
+			if (tv.getExpandedState(o)) {
+				tv.collapseToLevel(o, AbstractTreeViewer.ALL_LEVELS);
+			} else {
+				tv.expandToLevel(o, 1);
 			}
 		}
 	}

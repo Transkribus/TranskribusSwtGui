@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.htr.treeviewer;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.IColorProvider;
@@ -20,9 +21,6 @@ import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGt
 
 public class HtrGroundTruthLabelProvider extends LabelProvider implements IColorProvider {
 	private static final Logger logger = LoggerFactory.getLogger(HtrGroundTruthLabelProvider.class);
-	
-	private final static String TRAIN_SET_LABEL = "Train Set";
-	private final static String VALIDATION_SET_LABEL = "Validation Set";
 	
 	protected final DataSetSelectionHandler handler;
 	
@@ -56,49 +54,23 @@ public class HtrGroundTruthLabelProvider extends LabelProvider implements IColor
 
 	private String getText(HtrGtDataSet s) {
 		final String nrOfPages = "(" + s.getNrOfPages() + " pages)";
-		final String name;
-		switch (s.getSetType()) {
-		case TRAIN:
-			name = TRAIN_SET_LABEL;
-			break;
-		case VALIDATION:
-			name = VALIDATION_SET_LABEL;
-			break;
-		default:
-			//This might happen if another set type is defined and not catched here.
-			name = "Data Set";
-		}
-		return StringUtils.rightPad(name, 15) + nrOfPages;
+		return StringUtils.rightPad(s.getSetType().getLabel(), 15) + nrOfPages;
 	}
 
 	private String getText(HtrGtDataSetElement element) {
 		TrpGroundTruthPage p = element.getGroundTruthPage();
-		String text = "Page " + StringUtils.rightPad("" + p.getPageNr(), 5) 
+		final String text = "Page " + StringUtils.rightPad("" + p.getPageNr(), 5) 
 				+ "(" + p.getNrOfLines() + " lines, " + p.getNrOfWordsInLines() + " words)";
-		
-		switch (element.getParentHtrGtDataSet().getSetType()) {
-		case TRAIN:
-			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getTrainGtMap().entrySet()) {
-				if(e.getValue().stream()
-						.anyMatch(g -> g.getGroundTruthPage().getGtId() == p.getGtId()) 
-						&& !e.getKey().equals(element.getParentHtrGtDataSet())) {
-					text += " (included by HTR '" + e.getKey().getHtr().getName() 
-							+ "' " + TRAIN_SET_LABEL + ")";
-				}
-			}
-			break;
-		case VALIDATION:
-			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getTestGtMap().entrySet()) {
-				if(e.getValue().stream()
-						.anyMatch(g -> g.getGroundTruthPage().getGtId() == p.getGtId()) 
-						&& !e.getKey().equals(element.getParentHtrGtDataSet())) {
-					text += " (included by HTR '" + e.getKey().getHtr().getName() 
-							+ "' " + VALIDATION_SET_LABEL + ")";
-				}
-			}
-			break;
+		List<HtrGtDataSet> includedBySetList = handler.getGtSetsFromSelectionIncludingElement(element);
+		if(includedBySetList.isEmpty()) {
+			return text;
+		} else {
+			return text + " (included by " + 
+					includedBySetList.stream()
+						.map(s -> "HTR '" + s.getHtr().getName() + "' " + s.getSetType().getLabel())
+						.collect(Collectors.joining(", "))
+					+ ")";
 		}
-		return text;
 	}
 
 	@Override
