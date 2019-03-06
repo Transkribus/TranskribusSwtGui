@@ -26,18 +26,12 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
-import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
 public class DataSetSelectionHandler {
 	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionHandler.class);
-	
-	private final CollectionContentProvider docContentProvider;
-	private final CollectionLabelProvider docLabelProvider;
-	private final HtrGroundTruthContentProvider htrGtContentProvider;
-	private final HtrGroundTruthLabelProvider htrGtLabelProvider;
 	
 	//maps containing current selection. Maybe handling becomes less complex if this solely handled in table?
 	private Map<TrpDocMetadata, List<TrpPage>> trainDocMap, testDocMap;
@@ -60,10 +54,6 @@ public class DataSetSelectionHandler {
 		testDocMap = new TreeMap<>();
 		trainGtMap = new TreeMap<>();
 		testGtMap = new TreeMap<>();
-		docContentProvider = new CollectionContentProvider(colId);
-		docLabelProvider = new CollectionColoredLabelProvider(this);
-		htrGtContentProvider = new HtrGroundTruthContentProvider(colId);
-		htrGtLabelProvider = new HtrGroundTruthLabelProvider(this);
 		this.view = view;
 		this.colId = colId;
 	}
@@ -158,7 +148,7 @@ public class DataSetSelectionHandler {
 			Object o = it.next();
 			if (o instanceof TrpDocMetadata) {
 				TrpDocMetadata docMd = (TrpDocMetadata) o;
-				TrpPage[] pageObjArr = docContentProvider.getChildren(docMd);
+				TrpPage[] pageObjArr = ((CollectionContentProvider)view.docTv.getContentProvider()).getChildren(docMd);
 				List<TrpPage> pageList = Arrays.asList(pageObjArr);
 				targetDataMap.put(docMd, pageList);
 
@@ -167,7 +157,7 @@ public class DataSetSelectionHandler {
 				}
 			} else if (o instanceof TrpPage) {
 				TrpPage p = (TrpPage) o;
-				TrpDocMetadata parent = (TrpDocMetadata) docContentProvider.getParent(p);
+				TrpDocMetadata parent = (TrpDocMetadata) ((CollectionContentProvider)view.docTv.getContentProvider()).getParent(p);
 				if (targetDataMap.containsKey(parent) && !targetDataMap.get(parent).contains(p)) {
 					targetDataMap.get(parent).add(p);
 				} else if (!targetDataMap.containsKey(parent)) {
@@ -206,7 +196,7 @@ public class DataSetSelectionHandler {
 			Object o = it.next();
 			if (o instanceof TrpHtr) {
 				TrpHtr htr = (TrpHtr) o;
-				Object[] htrGtSets = htrGtContentProvider.getChildren(htr);
+				Object[] htrGtSets = ((HtrGroundTruthContentProvider)view.groundTruthTv.getContentProvider()).getChildren(htr);
 				for (Object gtDataSet : htrGtSets) {
 					HtrGtDataSet htrGtDataSet = (HtrGtDataSet)gtDataSet;
 					nrOfItemsOmitted += addGtSetToDataMap(htrGtDataSet, targetDataMap, nonIntersectingDataMap);
@@ -216,7 +206,7 @@ public class DataSetSelectionHandler {
 				nrOfItemsOmitted += addGtSetToDataMap(htrGtDataSet, targetDataMap, nonIntersectingDataMap);
 			} else if (o instanceof HtrGtDataSetElement) {
 				HtrGtDataSetElement p = (HtrGtDataSetElement) o;
-				HtrGtDataSet parent = (HtrGtDataSet) htrGtContentProvider.getParent(p);
+				HtrGtDataSet parent = (HtrGtDataSet) ((HtrGroundTruthContentProvider)view.groundTruthTv.getContentProvider()).getParent(p);
 				if(!getGtSetsFromSelectionIncludingElement(p).isEmpty()) {
 					//element already included via other set
 					nrOfItemsOmitted++;
@@ -251,7 +241,7 @@ public class DataSetSelectionHandler {
 	private int addGtSetToDataMap(HtrGtDataSet htrGtDataSet,
 			Map<HtrGtDataSet, List<HtrGtDataSetElement>> targetDataMap, 
 			Map<HtrGtDataSet, List<HtrGtDataSetElement>> nonIntersectingDataMap) {
-		HtrGtDataSetElement[] gtPageArr = htrGtContentProvider.getChildren(htrGtDataSet);
+		HtrGtDataSetElement[] gtPageArr = ((HtrGroundTruthContentProvider)view.groundTruthTv.getContentProvider()).getChildren(htrGtDataSet);
 		if(gtPageArr == null) {
 			logger.error("No children could be determined for HTR GT set: " + htrGtDataSet);
 			return 0;
@@ -318,22 +308,6 @@ public class DataSetSelectionHandler {
 			}
 		}
 		return new DataSetMetadata(pages, lines, words);
-	}
-	
-	public CollectionContentProvider getDocContentProvider() {
-		return docContentProvider;
-	}
-
-	public CollectionLabelProvider getDocLabelProvider() {
-		return docLabelProvider;
-	}
-
-	public HtrGroundTruthContentProvider getHtrGtContentProvider() {
-		return htrGtContentProvider;
-	}
-
-	public HtrGroundTruthLabelProvider getHtrGtLabelProvider() {
-		return htrGtLabelProvider;
 	}
 	
 	public Map<TrpDocMetadata, List<TrpPage>> getTrainDocMap() {

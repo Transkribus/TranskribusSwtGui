@@ -22,6 +22,8 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
+import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
@@ -70,11 +72,13 @@ public class DataSetSelectionSashForm extends SashForm {
 	//the input to select data from
 	private List<TrpDocMetadata> docList;
 	private List<TrpHtr> htrList;
+	private final int colId;
 
 	public DataSetSelectionSashForm(Composite parent, int style, final int colId, List<TrpHtr> htrList, List<TrpDocMetadata> docList) {
 		super(parent, style);
 		this.docList = docList;
 		this.htrList = htrList;
+		this.colId = colId;
 		dataHandler = new DataSetSelectionHandler(colId, this);
 		
 		this.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
@@ -173,8 +177,10 @@ public class DataSetSelectionSashForm extends SashForm {
 
 	private TreeViewer createDocumentTreeViewer(Composite parent) {
 		TreeViewer tv = new TreeViewer(parent, SWT.BORDER | SWT.MULTI);
-		tv.setContentProvider(dataHandler.getDocContentProvider());
-		tv.setLabelProvider(dataHandler.getDocLabelProvider());
+		final CollectionContentProvider docContentProvider = new CollectionContentProvider(colId);
+		final CollectionLabelProvider docLabelProvider = new CollectionDataSetLabelProvider(dataHandler);
+		tv.setContentProvider(docContentProvider);
+		tv.setLabelProvider(docLabelProvider);
 		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		tv.setInput(this.docList);
 		return tv;
@@ -182,8 +188,10 @@ public class DataSetSelectionSashForm extends SashForm {
 	
 	private TreeViewer createGroundTruthTreeViewer(Composite parent) {
 		TreeViewer tv = new TreeViewer(parent, SWT.BORDER | SWT.MULTI);
-		tv.setContentProvider(dataHandler.getHtrGtContentProvider());
-		tv.setLabelProvider(dataHandler.getHtrGtLabelProvider());
+		final HtrGroundTruthContentProvider htrGtContentProvider = new HtrGroundTruthContentProvider(colId);
+		final HtrGroundTruthDataSetLabelProvider htrGtLabelProvider = new HtrGroundTruthDataSetLabelProvider(dataHandler);
+		tv.setContentProvider(htrGtContentProvider);
+		tv.setLabelProvider(htrGtLabelProvider);
 		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		tv.setInput(this.htrList);
 		return tv;

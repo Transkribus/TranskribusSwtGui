@@ -11,11 +11,11 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 
-public class CollectionColoredLabelProvider extends CollectionLabelProvider implements IColorProvider {
+public class CollectionDataSetLabelProvider extends CollectionLabelProvider implements IColorProvider {
 		
 	DataSetSelectionHandler handler;
 	
-	public CollectionColoredLabelProvider(DataSetSelectionHandler handler) {
+	public CollectionDataSetLabelProvider(DataSetSelectionHandler handler) {
 		this.handler = handler;
 	}
 	

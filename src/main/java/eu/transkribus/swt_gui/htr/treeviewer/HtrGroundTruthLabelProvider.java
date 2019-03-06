@@ -1,33 +1,16 @@
 package eu.transkribus.swt_gui.htr.treeviewer;
 
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.GtSetType;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
-public class HtrGroundTruthLabelProvider extends LabelProvider implements IColorProvider {
-	private static final Logger logger = LoggerFactory.getLogger(HtrGroundTruthLabelProvider.class);
-	
-	protected final DataSetSelectionHandler handler;
-	
-	public HtrGroundTruthLabelProvider(DataSetSelectionHandler handler) {
-		this.handler = handler;
-	}
-
+public class HtrGroundTruthLabelProvider extends LabelProvider {	
 	@Override
 	public Image getImage(Object element) {
 		if(element instanceof HtrGtDataSetElement) {
@@ -52,88 +35,14 @@ public class HtrGroundTruthLabelProvider extends LabelProvider implements IColor
 		return null;
 	}
 
-	private String getText(HtrGtDataSet s) {
+	protected String getText(HtrGtDataSet s) {
 		final String nrOfPages = "(" + s.getNrOfPages() + " pages)";
 		return StringUtils.rightPad(s.getSetType().getLabel(), 15) + nrOfPages;
 	}
 
-	private String getText(HtrGtDataSetElement element) {
+	protected String getText(HtrGtDataSetElement element) {
 		TrpGroundTruthPage p = element.getGroundTruthPage();
-		final String text = "Page " + StringUtils.rightPad("" + p.getPageNr(), 5) 
+		return "Page " + StringUtils.rightPad("" + p.getPageNr(), 5) 
 				+ "(" + p.getNrOfLines() + " lines, " + p.getNrOfWordsInLines() + " words)";
-		List<HtrGtDataSet> includedBySetList = handler.getGtSetsFromSelectionIncludingElement(element);
-		if(includedBySetList.isEmpty()) {
-			return text;
-		} else {
-			return text + " (included by " + 
-					includedBySetList.stream()
-						.map(s -> "HTR '" + s.getHtr().getName() + "' " + s.getSetType().getLabel())
-						.collect(Collectors.joining(", "))
-					+ ")";
-		}
-	}
-
-	@Override
-	public Color getBackground(Object element) {
-		logger.debug("getBackground() on " + element);
-		if(element instanceof TrpHtr) {
-			HtrGtDataSet trainSet = new HtrGtDataSet((TrpHtr)element, GtSetType.TRAIN);
-			HtrGtDataSet validationSet = new HtrGtDataSet((TrpHtr)element, GtSetType.VALIDATION);
-			if(handler.getTrainGtMap().containsKey(trainSet) && handler.getTestGtMap().containsKey(validationSet)) {
-				return DataSetSelectionSashForm.CYAN;
-			} else if (handler.getTrainGtMap().containsKey(trainSet)) {
-				return DataSetSelectionSashForm.BLUE;
-			} else if (handler.getTestGtMap().containsKey(validationSet)) {
-				return DataSetSelectionSashForm.GREEN;
-			}
-		} else if (element instanceof HtrGtDataSet) {
-			HtrGtDataSet dataSet = (HtrGtDataSet) element;
-			if(handler.getTrainGtMap().containsKey(dataSet)) {
-				if(handler.getTrainGtMap().get(dataSet).size() == dataSet.getNrOfPages()) {
-					return DataSetSelectionSashForm.BLUE;
-				} else {
-					return DataSetSelectionSashForm.LIGHT_BLUE;
-				}
-			}
-			if(handler.getTestGtMap().containsKey(dataSet)) {
-				if(handler.getTestGtMap().get(dataSet).size() == dataSet.getNrOfPages()) {
-					return DataSetSelectionSashForm.GREEN;
-				} else {
-					return DataSetSelectionSashForm.LIGHT_GREEN;
-				}
-			}
-		} else if (element instanceof HtrGtDataSetElement) {
-			HtrGtDataSetElement gtPage = (HtrGtDataSetElement) element;
-			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getTrainGtMap().entrySet()) {
-				if(e.getValue().stream()
-						.anyMatch(g -> g.getGroundTruthPage().getGtId() == gtPage.getGroundTruthPage().getGtId())) {
-					if(e.getKey().equals(gtPage.getParentHtrGtDataSet())) {
-						return DataSetSelectionSashForm.BLUE;
-					} else {
-						return DataSetSelectionSashForm.LIGHT_BLUE;
-					}
-				}
-			}
-			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getTestGtMap().entrySet()) {
-				if(e.getValue().stream()
-						.anyMatch(g -> g.getGroundTruthPage().getGtId() == gtPage.getGroundTruthPage().getGtId())) {
-					if(e.getKey().equals(gtPage.getParentHtrGtDataSet())) {
-						return DataSetSelectionSashForm.GREEN;
-					} else {
-						return DataSetSelectionSashForm.LIGHT_GREEN;
-					}
-				}
-			}
-		}
-		return DataSetSelectionSashForm.WHITE;
-	}
-
-	@Override
-	public Color getForeground(Object element) {
-		logger.debug("getForeground() on " + element);
-		if(!DataSetSelectionSashForm.WHITE.equals(getBackground(element))) {
-			return DataSetSelectionSashForm.WHITE;
-		}
-		return DataSetSelectionSashForm.BLACK;
 	}
 }
