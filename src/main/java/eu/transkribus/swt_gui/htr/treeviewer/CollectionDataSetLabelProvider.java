@@ -11,6 +11,10 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 
+/**
+ * {@link CollectionLabelProvider} for use in training data set preparation with a {@link DataSetSelectionHandler}.
+ * Label texts and colors reflect information on data set inclusion of an element.
+ */
 public class CollectionDataSetLabelProvider extends CollectionLabelProvider implements IColorProvider {
 		
 	DataSetSelectionHandler handler;

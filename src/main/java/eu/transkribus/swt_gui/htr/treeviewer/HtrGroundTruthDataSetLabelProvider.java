@@ -14,6 +14,10 @@ import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.GtSet
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
+/**
+ * {@link HtrGroundTruthLabelProvider} for use in training data set preparation with a {@link DataSetSelectionHandler}.
+ * Label texts and colors reflect information on data set inclusion of an element.
+ */
 public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvider implements IColorProvider {
 	private static final Logger logger = LoggerFactory.getLogger(HtrGroundTruthDataSetLabelProvider.class);
 	
