@@ -540,7 +540,7 @@ CHANGES AND BUGFIXES
 	-> change text based tagging system
 	-> take local tmp directory as default for pdf upload
 	
-1.4.1
+1.4.1:
 	-> CITlabAdvanced layout analysis method can now be configured in user interface
 	-> KWS: experimental test feature
 	-> bugfix: cannot open local document
@@ -561,10 +561,10 @@ CHANGES AND BUGFIXES
 	-> updated config for test server with separate imagestore
 	-> Save changes dialog is now triggered also for table border mark-ups on leaving the current page
 	
-1.4.2
+1.4.2:
 	-> bugfix for structural tagging with custom defined structure types
 
-1.5.0
+1.5.0:
 	-> In the export dialog the server export is set as 'default' tab
 	-> TEI export (1): restricted to server export
 	-> TEI export (2): We use a xslt (from https://github.com/dariok/page2tei) to transform page XMLs into TEI XMLs
@@ -599,13 +599,13 @@ CHANGES AND BUGFIXES
 	-> convert from tables to simple textregions for all cells without losing lines and their transcriptions (via "Metadata->Structural" tab)
 	-> CITlab HTR+ basic integration
 	 
-1.5.1
+1.5.1:
 	-> bugfix: UI crashed when opening advanced error rate tool and switching page afterwards
 	
-1.5.2
+1.5.2:
 	-> bugfix: user could not edit last line if empty (index out of bounds exception)
 
-1.5.3
+1.5.3:
 	-> bugfix: nullpointer exception when merging table cells
 	-> bugfix: disable automatic bidi processing, which is broken and leads to a program crash, and let the user manually switch between left-to-right and right-to-left orientation
 	-> bugfix: fix broken baseline merging when merging lines with words
@@ -613,11 +613,11 @@ CHANGES AND BUGFIXES
 	-> keep zoom when switching between pages
 	-> bugfix: unable to add some unicode values to virtual keyboard
 	
-1.5.4
+1.5.4:
 	-> bugfix: broken image display on Linux systems
 	-> enhancement/bugfix: remove unused jars from libs folder on program start
 	
-1.5.5
+1.6.0:
 	-> Displayed images are rotated according to EXIF orientation tag value
 	-> Support user defined empty tags (like the <gap/> tag)
 	-> Support java versions > 8 

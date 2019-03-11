@@ -511,11 +511,9 @@ public class TrpMainWidget {
 			TrpAction action = storage.getConnection().getMostRecentDocumentAction();
 			if (action == null) {
 				logger.debug("no most recent doc found!");
+				return;
 			}
 			logger.debug("most recent doc action: "+action);
-			
-//			load the collection and the document list
-//			 TODO
 			
 			// load the document and jump to page if pageNr is not null
 			loadRemoteDoc(action.getDocId(), action.getColId(), action.getPageNr() != null ? action.getPageNr()-1 : 0);
