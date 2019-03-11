@@ -29,14 +29,15 @@ public void setDoItForAll(boolean doItForAll) {
 	this.doItForAll = doItForAll;
 }
 
-public ChangeReadingOrderDialog(Shell parent) {
-    this(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+public ChangeReadingOrderDialog(Shell parent, int ro) {
+    this(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL, ro);
   }
 
-  public ChangeReadingOrderDialog(Shell parent, int style) {
+  public ChangeReadingOrderDialog(Shell parent, int style, int ro) {
     super(parent, style);
     setText("Change Reading Order");
     setMessage("Please enter new reading order value:");
+    setInput(Integer.toString(ro+1));
   }
 
   public String getMessage() {
@@ -87,6 +88,7 @@ public ChangeReadingOrderDialog(Shell parent) {
     data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 2;
     text.setLayoutData(data);
+    text.setText(getInput());
     
     allFollowingBtn = new Button(shell, SWT.CHECK);
     allFollowingBtn.setLayoutData(data);
