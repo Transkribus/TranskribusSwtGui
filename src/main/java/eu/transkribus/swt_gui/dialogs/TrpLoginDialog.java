@@ -90,6 +90,22 @@ public class TrpLoginDialog extends LoginDialog {
 			success = false;
 			errorMsg = e.getMessage();
 		}
+		catch (IllegalStateException e) {
+			mw.logout(true, false);
+			logger.error(e.getMessage(), e);
+			success = false;
+			errorMsg = e.getMessage();
+			if("Already connected".equals(e.getMessage()) && e.getCause() != null) {
+				/*
+				 * Jersey throws an IllegalStateException "Already connected" for a variety of issues where actually no connection can be established.
+				 * see https://github.com/jersey/jersey/issues/3000
+				 */
+				Throwable cause = e.getCause();
+				//override misleading "Already connected" message
+				errorMsg = cause.getMessage();
+				logger.error("'Already connected' caused by: " + cause.getMessage(), cause);
+			}
+		}
 		catch (Exception e) {
 			mw.logout(true, false);
 			logger.error(e.getMessage(), e);
