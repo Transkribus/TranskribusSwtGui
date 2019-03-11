@@ -312,6 +312,14 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			//need to empty document list filter when loading of new collection happened
 			sw.docTableWidget.clearFilter();
 			
+			/*
+			 * otherwise loading a new collection gets stuck with the old collection due to this check:
+			 * DocTableWidgetPagination, line 228: forceReload || collectionId != store.getCollId()
+			 * but changing this may has effects on some other parts
+			 */
+			
+			sw.refreshDocListFromStorage();
+			
 			Future<List<TrpDocMetadata>> docs = TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
 			
 			//unload currently loaded remote document (if any) on collection change
