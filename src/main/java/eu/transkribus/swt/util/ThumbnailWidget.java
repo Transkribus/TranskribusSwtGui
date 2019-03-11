@@ -38,6 +38,7 @@ import eu.transkribus.core.model.beans.pagecontent.TextLineType;
 import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -138,10 +139,11 @@ public class ThumbnailWidget extends Composite {
 				
 				TrpSettings set = TrpMainWidget.getTrpSettings();
 				if (set!=null && !set.isLoadThumbs()) {
-					logger.trace("disabled thumbnail loading - setting ");
+					logger.trace("disabled thumbnail loading");
 					image = Images.LOADING_IMG;
 				} else {
-					image = ImgLoader.load(url);
+					logger.debug("loading thumbnail: "+url);
+					image = ImgLoader.load(url, null);
 				}
 								
 //				if (image.getBounds().height > THUMB_HEIGHT) {
@@ -320,11 +322,7 @@ public class ThumbnailWidget extends Composite {
 		
 		Composite btns = new Composite(this, 0);
 		btns.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
-		rowLayout.wrap = true;
-		rowLayout.pack = true;
-		btns.setLayout(rowLayout);
-		
+		btns.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
 		reload = new Button(btns, SWT.PUSH);
 		reload.setToolTipText("Reload thumbs");
 		reload.setImage(Images.REFRESH);
@@ -343,6 +341,10 @@ public class ThumbnailWidget extends Composite {
 		loadThumbs = new Button(btns, SWT.CHECK);
 		loadThumbs.setText("Load thumbs");
 		loadThumbs.setToolTipText("Uncheck to *not* load thumbnail images in this widget\nWas introduced to prevent the nasty 'no more handles' issue");
+		DataBinder.get().bindBeanToWidgetSelection(TrpSettings.LOAD_THUMBS_PROPERTY, TrpMainWidget.getTrpSettings(), loadThumbs);
+		SWTUtil.onSelectionEvent(loadThumbs, e -> {
+			reload();
+		});
 		
 //		showPageManager = new Button(btns, SWT.PUSH);
 //		showPageManager.setText("Document Overview");

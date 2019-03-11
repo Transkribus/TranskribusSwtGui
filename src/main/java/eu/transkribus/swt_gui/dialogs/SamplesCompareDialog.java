@@ -75,6 +75,7 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
+import eu.transkribus.core.model.beans.job.enums.JobType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
@@ -309,13 +310,16 @@ public class SamplesCompareDialog extends Dialog {
 		tvCompute.setLabelProvider(labelProv);
 		tvCompute.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
-		for(TrpDocMetadata document : docList) {
-			if(document.isSampleDoc()) {
-				sampleDocList.add(document);
-			}
-		}
+//		Only display sample documents in tree viewer
+//		for(TrpDocMetadata document : docList) {
+//			if(document.isSampleDoc()) {
+//				sampleDocList.add(document);
+//			}
+//		}
+//		
+//		tvCompute.setInput(this.sampleDocList);
 		
-		tvCompute.setInput(this.sampleDocList);
+		tvCompute.setInput(this.docList);
 		
 		buttonComputeComp = new Composite(samplesComputesash, SWT.NONE);
 		buttonComputeComp.setLayout(new GridLayout(1, true));
@@ -419,11 +423,14 @@ public class SamplesCompareDialog extends Dialog {
 	
 				if(entry != null && entry.getStatus().equals("Completed") ) {
 					try {
-						setCERTextJob(entry.getJob());
+						logger.debug(entry.getQuery());
+						setCERTextJob(entry.getJob(), entry.getQuery());
 						drawChartJob(entry.getJob());
 					} catch (ServerErrorException | ClientErrorException
 							| IllegalArgumentException e1) {
 						e1.printStackTrace();
+					} catch (SessionExpiredException e) {
+						e.printStackTrace();
 					}
 					}
 				}
@@ -661,22 +668,44 @@ public class SamplesCompareDialog extends Dialog {
 		});
 	}
 	
-	private void setCERTextJob(TrpJobStatus job)  {		
-		if(job.isFinished()) {
-			TrpProperties props = job.getJobDataProps();
-			final String xmlStr = props.getString(JobConst.PROP_RESULT);
-			TrpErrorRate res = new TrpErrorRate ();
-			logger.debug("Set CER by table entry "+job.getCreateTime());
-			if(xmlStr != null) {
-				try {
-					res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
-					cerText.setText("The CER for the sample pages is "+res.getCer());
-					cerText.setVisible(true);
-				} catch (JAXBException e) {
-					logger.error("Could not unmarshal error cer result from job!");
+	private void setCERTextJob(TrpJobStatus job, String query) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException  {
+		Integer docId = docMd.getDocId();
+		List<TrpJobStatus> jobs = new ArrayList<>();
+		jobs = store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, "jobId", "asc");
+		for(TrpJobStatus jobLoop : jobs) {
+			if(jobLoop.isFinished()) {
+					TrpProperties props = jobLoop.getJobDataProps();
+					final String xmlStr = props.getString(JobConst.PROP_RESULT);
+					TrpErrorRate res = new TrpErrorRate ();
+					ParameterMap paramsErr = res.getParams();
+				if(paramsErr != null && query.contains(paramsErr.getParameterValue("hyp"))) {
+					if(xmlStr != null) {
+						try {
+							res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
+							cerText.setText("The CER for the sample pages is "+res.getCer());
+							cerText.setVisible(true);
+						} catch (JAXBException e) {
+							logger.error("Could not unmarshal error cer result from job!");
+						}
+					}
 				}
 			}
 		}
+//		if(job.isFinished()) {
+//			TrpProperties props = job.getJobDataProps();
+//			final String xmlStr = props.getString(JobConst.PROP_RESULT);
+//			TrpErrorRate res = new TrpErrorRate ();
+//			logger.debug("Set CER by table entry "+job.getCreateTime());
+//			if(xmlStr != null) {
+//				try {
+//					res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
+//					cerText.setText("The CER for the sample pages is "+res.getCer());
+//					cerText.setVisible(true);
+//				} catch (JAXBException e) {
+//					logger.error("Could not unmarshal error cer result from job!");
+//				}
+//			}
+//		}
 	}
 	
 	private void drawChartJob(TrpJobStatus job) {

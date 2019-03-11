@@ -6215,17 +6215,24 @@ public class TrpMainWidget {
 
 			for (TrpRegionType region : refPage.getRegions()) {
 				if (region instanceof TrpTextRegionType) {
-					for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
-						containsLines = true;
+					List<TextLineType> lines = ((TrpTextRegionType) region).getTextLine();
+					if (lines == null || lines.size() == 0){
+						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + "";
+						refText.add(lineString);
+						i++;
+					}
+					for (TextLineType line : lines) {
+						//containsLines = true;
 						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + ((TrpTextLineType) line).getUnicodeText();
 						refText.add(lineString);
 						// refText = refText.concat(region.getUnicodeText());
 						i++;
 					}
-					if (containsLines){
-						j++;
-						containsLines = false;
-					}
+					j++;
+//					if (containsLines){
+//						j++;
+//						containsLines = false;
+//					}
 				}
 
 				if (region instanceof TrpTableRegionType) {
@@ -6243,17 +6250,24 @@ public class TrpMainWidget {
 			
 			for (TrpRegionType region : hypPage.getRegions()) {
 				if (region instanceof TrpTextRegionType) {
-					for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
-						containsLines = true;
+					List<TextLineType> lines = ((TrpTextRegionType) region).getTextLine();
+					if (lines == null || lines.size() == 0){
+						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + "";
+						hypText.add(lineString);
+						i++;
+					}
+					for (TextLineType line : lines) {
+						//containsLines = true;
 						String lineString = (withLineNrs ? "<i>" + j + "-" + i + " #</i> " : "") + ((TrpTextLineType) line).getUnicodeText();
 						hypText.add(lineString);
 						// hypText = hypText.concat(region.getUnicodeText());
 						i++;
 					}
-					if (containsLines){
-						j++;
-						containsLines = false;
-					}
+					j++;
+//					if (containsLines){
+//						j++;
+//						containsLines = false;
+//					}
 				}
 				if (region instanceof TrpTableRegionType) {
 					for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
