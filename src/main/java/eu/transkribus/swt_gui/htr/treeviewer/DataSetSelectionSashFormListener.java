@@ -21,46 +21,23 @@ import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGt
 public class DataSetSelectionSashFormListener {
 	private final DataSetSelectionHandler handler;
 	private DataSetSelectionSashForm view;
+	private final IDoubleClickListener treeViewerDoubleClickListener;
+	private final ISelectionChangedListener treeViewerSelectionChangedListener;
 	
 	DataSetSelectionSashFormListener(DataSetSelectionSashForm view, DataSetSelectionHandler handler) {
 		this.view = view;
 		this.handler = handler;
+		treeViewerDoubleClickListener = new TreeViewerDoubleClickListener();
+		treeViewerSelectionChangedListener = new TreeViewerSelectionChangedListener();
 		addListeners(view);
 	}
-
-	/**
-	 * Updates thumbnail image on selection change
-	 *
-	 */
-	private class TreeViewerSelectionChangedListener implements ISelectionChangedListener {
-		@Override
-		public void selectionChanged(SelectionChangedEvent event) {
-			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-			handler.updateThumbnail(selection);
-		}
-	};
 	
 	private void addListeners(DataSetSelectionSashForm view) {
-		IDoubleClickListener treeViewerDoubleClickListener = new TreeViewerDoubleClickListener();
-		ISelectionChangedListener treeViewerSelectionChangedListener = new TreeViewerSelectionChangedListener();
-		
 		view.docTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
 		view.docTv.addDoubleClickListener(treeViewerDoubleClickListener);
 		
-//		view.docTv.getTree().addListener(SWT.Expand, new Listener() {
-//			public void handleEvent(Event e) {
-//				view.updateDocTvColors(handler.getTrainDocMap(), handler.getTestDocMap());
-//			}
-//		});
-		
 		view.groundTruthTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
 		view.groundTruthTv.addDoubleClickListener(treeViewerDoubleClickListener);
-		
-//		view.groundTruthTv.getTree().addListener(SWT.Expand, new Listener() {
-//			public void handleEvent(Event e) {
-//				view.updateGtTvColors(handler.getTrainGtMap(), handler.getTestGtMap());
-//			}
-//		});
 		
 		view.addToTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -102,10 +79,22 @@ public class DataSetSelectionSashFormListener {
 	}
 	
 	/**
+	 * Updates thumbnail image on selection change
+	 *
+	 */
+	private class TreeViewerSelectionChangedListener implements ISelectionChangedListener {
+		@Override
+		public void selectionChanged(SelectionChangedEvent event) {
+			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+			handler.updateThumbnail(selection);
+		}
+	};
+	
+	/**
 	 * Expands items that have children on double click. Leaf elements are displayed.
 	 *
 	 */
-	private class TreeViewerDoubleClickListener implements IDoubleClickListener {
+	public class TreeViewerDoubleClickListener implements IDoubleClickListener {
 		@Override
 		public void doubleClick(DoubleClickEvent event) {
 			Object o = ((IStructuredSelection) event.getSelection()).getFirstElement();

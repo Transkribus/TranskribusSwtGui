@@ -30,10 +30,10 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
-import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetMetadata;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionHandler.DataSetSelection;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -173,6 +173,7 @@ public class HtrTrainingDialog extends Dialog {
 		modelNameTxt.setEnabled(!isT2I);
 		treeViewerSelector.getUseGtVersionChk().setEnabled(!isT2I);
 		treeViewerSelector.getUseNewVersionChk().setEnabled(isT2I);
+		treeViewerSelector.setGroundTruthSelectionEnabled(!isT2I);
 	}
 	
 	private TrainMethodUITab createCitlabT2ITab(final int tabIndex) {
@@ -208,12 +209,13 @@ public class HtrTrainingDialog extends Dialog {
 	
 	private void setTrainAndTestDocsInHtrConfig(HtrTrainConfig config, EditStatus status) throws IOException {
 		config.setColId(colId);
-		//FIXME activate this method once the training job can handle such descriptors
-//			config.setTrain(DescriptorUtils.buildSelectionDescriptorList(trainDocMap, status));
-//			config.setTest(DescriptorUtils.buildSelectionDescriptorList(testDocMap, status));
 		
-		config.setTrain(DescriptorUtils.buildCompleteSelectionDescriptorList(treeViewerSelector.getTrainDocMap(), status));
-		config.setTest(DescriptorUtils.buildCompleteSelectionDescriptorList(treeViewerSelector.getTestDocMap(), status));
+		DataSetSelection selection = treeViewerSelector.getSelection(status);
+		
+		config.setTrain(selection.getTrainDocDescriptorList());
+		config.setTest(selection.getValidationDocDescriptorList());
+		config.setTrainGt(selection.getTrainGtDescriptorList());
+		config.setTestGt(selection.getValidationGtDescriptorList());
 	
 		if (config.getTrain().isEmpty()) {
 			throw new IOException("Train set must not be empty!");

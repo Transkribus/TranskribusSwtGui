@@ -27,7 +27,7 @@ public abstract class TestApplicationWindow extends ApplicationWindow {
 	 * Create TestAppWindow without Storage
 	 */
 	public TestApplicationWindow() {
-		this(null, null, null);
+		this(null, null, null, null);
 	}
 
 	/**
@@ -37,15 +37,16 @@ public abstract class TestApplicationWindow extends ApplicationWindow {
 	 * @param serverUrl
 	 * @param user
 	 * @param pw
+	 * @param colId ID of collection to load, null to init with default
 	 * 
 	 * @throws IllegalStateException including cause if Storage could not be
 	 *                               initialized
 	 */
-	public TestApplicationWindow(String serverUrl, String user, String pw) {
+	public TestApplicationWindow(String serverUrl, String user, String pw, Integer colId) {
 		super(null);
 		if (serverUrl != null && user != null && pw != null) {
 			try {
-				this.initStorage(serverUrl, user, pw);
+				this.initStorage(serverUrl, user, pw, colId);
 			} catch (ClientErrorException | ServerErrorException | LoginException | IllegalArgumentException
 					| NoConnectionException | InterruptedException | ExecutionException e) {
 				throw new IllegalStateException("Could not initialize Storage!", e);
@@ -53,12 +54,16 @@ public abstract class TestApplicationWindow extends ApplicationWindow {
 		}
 	}
 
-	protected Storage initStorage(String serverUrl, String user, String pw)
+	protected Storage initStorage(String serverUrl, String user, String pw, Integer colId)
 			throws ClientErrorException, LoginException, ServerErrorException, IllegalArgumentException,
 			NoConnectionException, InterruptedException, ExecutionException {
 		store = Storage.getInstance();
 		store.login(serverUrl, user, pw);
-		Future<?> fut = store.reloadDocList(1); // reload doclist of a collection just that the collection id gets set!
+		if(colId == null) {
+			//set to test collection
+			colId = 2;
+		}
+		Future<?> fut = store.reloadDocList(colId); // reload doclist of a collection just that the collection id gets set!
 		fut.get();
 		return store;
 	}

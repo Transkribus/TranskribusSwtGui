@@ -20,7 +20,7 @@ public class HtrTrainingDialogTest {
 		
 		boolean showGtData = true;
 		
-		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, args[0], args[1]) {
+		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, args[0], args[1], 575) {
 			@Override
 			protected void createTestContents(Composite parent) throws Exception {
 				getShell().setSize(500, 700);

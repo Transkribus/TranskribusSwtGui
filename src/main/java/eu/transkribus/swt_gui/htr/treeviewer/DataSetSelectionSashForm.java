@@ -1,7 +1,10 @@
 package eu.transkribus.swt_gui.htr.treeviewer;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -9,6 +12,7 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -16,15 +20,22 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionHandler.DataSetSelection;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
@@ -36,6 +47,7 @@ import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGt
  *
  */
 public class DataSetSelectionSashForm extends SashForm {
+	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionSashForm.class);
 	
 //	private static final RGB BLUE_RGB = new RGB(0, 0, 140);
 //	private static final RGB LIGHT_BLUE_RGB = new RGB(0, 140, 255);
@@ -48,11 +60,15 @@ public class DataSetSelectionSashForm extends SashForm {
 	private static final RGB GREEN_RGB = new RGB(0, 105, 66);
 	private static final RGB LIGHT_GREEN_RGB = new RGB(69, 145, 117);
 	private static final RGB CYAN_RGB = new RGB(0, 150, 240);
+//	private static final RGB VERY_LIGHT_BLUE_RGB = new RGB(191, 212, 225);
+//	private static final RGB VERY_LIGHT_GREEN_RGB = new RGB(153, 195, 179);
 	
 	static final Color BLUE = Colors.createColor(BLUE_RGB);
 	static final Color LIGHT_BLUE = Colors.createColor(LIGHT_BLUE_RGB);
+//	static final Color VERY_LIGHT_BLUE = Colors.createColor(VERY_LIGHT_BLUE_RGB);
 	static final Color GREEN = Colors.createColor(GREEN_RGB);
 	static final Color LIGHT_GREEN = Colors.createColor(LIGHT_GREEN_RGB);
+//	static final Color VERY_LIGHT_GREEN = Colors.createColor(VERY_LIGHT_GREEN_RGB);
 	static final Color CYAN = Colors.createColor(CYAN_RGB);
 	static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
 	static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
@@ -65,7 +81,8 @@ public class DataSetSelectionSashForm extends SashForm {
 	CTabFolder dataTabFolder;
 	CTabItem documentsTabItem;
 	CTabItem gtTabItem;
-	Label previewLbl;
+	private Label previewLbl;
+	private URL currentThumbUrl = null;
 	
 	private DataSetSelectionHandler dataHandler;
 
@@ -94,9 +111,7 @@ public class DataSetSelectionSashForm extends SashForm {
 
 		groundTruthTv = createGroundTruthTreeViewer(dataTabFolder);
 		if(!htrList.isEmpty()) {
-			gtTabItem = new CTabItem(dataTabFolder, SWT.NONE);
-			gtTabItem.setText("HTR Model Data");
-			gtTabItem.setControl(groundTruthTv.getControl());
+			setGroundTruthSelectionEnabled(true);
 		}
 		
 		Composite buttonComp = new Composite(this, SWT.NONE);
@@ -175,6 +190,24 @@ public class DataSetSelectionSashForm extends SashForm {
 		new DataSetSelectionSashFormListener(this, dataHandler);
 	}
 
+	public void setGroundTruthSelectionEnabled(boolean enabled) {
+		if(enabled) {
+			if (gtTabItem == null || gtTabItem.isDisposed()) {
+				gtTabItem = new CTabItem(dataTabFolder, SWT.NONE);
+				gtTabItem.setText("HTR Model Data");
+				gtTabItem.setControl(groundTruthTv.getControl());
+				return;
+			}
+		} else {
+			if(gtTabItem != null) {
+				gtTabItem.dispose();
+				gtTabItem = null;
+				dataHandler.removeAllGtFromSelection();
+				return;
+			}
+		}
+	}
+
 	private TreeViewer createDocumentTreeViewer(Composite parent) {
 		TreeViewer tv = new TreeViewer(parent, SWT.BORDER | SWT.MULTI);
 		final CollectionContentProvider docContentProvider = new CollectionContentProvider(colId);
@@ -197,6 +230,64 @@ public class DataSetSelectionSashForm extends SashForm {
 		return tv;
 	}
 	
+
+	/**
+	 * Show dialog for resolving conflicts with overlapping images.
+	 * <ul>
+	 * <li>SWT.YES = replace data in selection with gtOverlapByImageId</li>
+	 * <li>SWT.NO = discard gtOverlapByImageId and keep previous selection</li>
+	 * <li>SWT.CANCEL = do nothing</li>
+	 * </ul>
+	 * @param docMd
+	 * @param gtOverlapByImageId
+	 * @return SWT.YES, SWT.NO, SWT.CANCEL
+	 */
+	int openConflictDialog(TrpDocMetadata docMd, List<TrpPage> gtOverlapByImageId) {
+		String title = "Some of the data is already selected";
+		String msg = "The images of the following pages are already included in the selection:\n\n";
+		String pageStr = CoreUtils.getRangeListStrFromList(gtOverlapByImageId.stream().map(p -> p.getPageNr()).collect(Collectors.toList()));
+		msg += "Document '" + docMd.getTitle() + "' pages " + pageStr;
+		msg += "\n\nDo you want to replace the previous selection with those pages?";
+		
+		MessageBox messageBox = new MessageBox(this.getShell(), SWT.ICON_QUESTION
+	            | SWT.YES | SWT.NO | SWT.CANCEL);
+        messageBox.setMessage(msg);
+        messageBox.setText(title);
+        return messageBox.open();	
+	}
+	
+	/**
+	 * Show dialog for resolving conflicts with overlapping images.
+	 * <ul>
+	 * <li>SWT.YES = replace data in selection with gtOverlapByImageId</li>
+	 * <li>SWT.NO = discard gtOverlapByImageId and keep previous selection</li>
+	 * <li>SWT.CANCEL = do nothing</li>
+	 * </ul>
+	 * @param docMd
+	 * @param gtOverlapByImageId
+	 * @return SWT.YES, SWT.NO, SWT.CANCEL
+	 */
+	int openConflictDialog(HtrGtDataSet gtSet, List<HtrGtDataSetElement> gtOverlapByImageId) {
+		String title = "Some of the image data is already included";
+		String msg = "The images of the following HTR model data are already included in the selection:\n\n";
+		if(gtOverlapByImageId.size() == 1) {
+			msg += "HTR '" + gtSet.getHtr().getName() + "' page " + gtOverlapByImageId.get(0).getGroundTruthPage().getPageNr();
+		} else {
+			List<Integer> pageIndices = gtOverlapByImageId.stream()
+					.map(g -> (g.getGroundTruthPage().getPageNr() - 1))
+					.collect(Collectors.toList());
+			String pageStr = CoreUtils.getRangeListStrFromList(pageIndices);
+			msg += "HTR '" + gtSet.getHtr().getName() + "' pages " + pageStr;
+		}
+		msg += "\n\nDo you want to replace the previous selection with those pages?";
+		
+		MessageBox messageBox = new MessageBox(this.getShell(), SWT.ICON_QUESTION
+	            | SWT.YES | SWT.NO | SWT.CANCEL);
+        messageBox.setMessage(msg);
+        messageBox.setText(title);
+        return messageBox.open();	
+	}
+	
 	/**
 	 * Update ground truth treeviewer row colors according to selected data set.
 	 * 
@@ -213,20 +304,43 @@ public class DataSetSelectionSashForm extends SashForm {
 		docTv.refresh(true);
 	}
 	
-	public Map<TrpDocMetadata, List<TrpPage>> getTrainDocMap() {
-		return dataHandler.getTrainDocMap();
+	public void updateThumbnail(URL thumbUrl) {
+		logger.debug("Update thumbnail: " + thumbUrl + " | current thumnail: " + currentThumbUrl);
+		if(thumbUrl == null) {
+			logger.debug("Remove image from view");
+			updateThumbnail((Image)null);
+			return;
+		}
+		if(!thumbUrl.equals(currentThumbUrl)) {
+			//update thumbnail on URL change only
+			updateThumbnail(loadThumbnail(thumbUrl));
+			currentThumbUrl = thumbUrl;
+		} else {
+			logger.debug("Keeping current thumb as URL has not changed");
+		}
 	}
 	
-	public Map<TrpDocMetadata, List<TrpPage>> getTestDocMap() {
-		return dataHandler.getTestDocMap();
+	/**
+	 * TODO move to view
+	 * 
+	 * @param image
+	 */
+	private void updateThumbnail(Image image) {
+		if (previewLbl.getImage() != null) {
+			previewLbl.getImage().dispose();
+		}
+		previewLbl.setImage(image);
 	}
-	
-	public Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTrainGtMap() {
-		return dataHandler.getTrainGtMap();
-	}
-	
-	public Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTestGtMap() {
-		return dataHandler.getTestGtMap();
+
+	private Image loadThumbnail(URL thumbUrl) {
+		Image image;
+		try {
+			image = ImgLoader.load(thumbUrl);
+		} catch (IOException e) {
+			logger.error("Could not load image", e);
+			image = null;
+		}
+		return image;
 	}
 	
 	public DataSetMetadata getTrainSetMetadata() {
@@ -247,5 +361,9 @@ public class DataSetSelectionSashForm extends SashForm {
 
 	DataSetSelectionHandler getDataHandler() {
 		return dataHandler;
+	}
+
+	public DataSetSelection getSelection(EditStatus status) {
+		return dataHandler.getSelection(status);
 	}
 }

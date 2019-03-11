@@ -44,7 +44,7 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 
 	@Override
 	public Color getBackground(Object element) {
-		logger.debug("getBackground() on " + element);
+		logger.trace("getBackground() on " + element.getClass().getSimpleName());
 		if(element instanceof TrpHtr) {
 			HtrGtDataSet trainSet = new HtrGtDataSet((TrpHtr)element, GtSetType.TRAIN);
 			HtrGtDataSet validationSet = new HtrGtDataSet((TrpHtr)element, GtSetType.VALIDATION);
@@ -99,7 +99,7 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 
 	@Override
 	public Color getForeground(Object element) {
-		logger.debug("getForeground() on " + element);
+		logger.trace("getForeground() on " + element.getClass().getSimpleName());
 		if(!DataSetSelectionSashForm.WHITE.equals(getBackground(element))) {
 			return DataSetSelectionSashForm.WHITE;
 		}
