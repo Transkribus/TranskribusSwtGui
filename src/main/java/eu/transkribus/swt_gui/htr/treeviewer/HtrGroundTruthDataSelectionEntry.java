@@ -3,8 +3,8 @@ package eu.transkribus.swt_gui.htr.treeviewer;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.transkribus.core.model.beans.GroundTruthSelectionDescriptor.GtSetType;
 import eu.transkribus.core.util.CoreUtils;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.GtSetType;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 

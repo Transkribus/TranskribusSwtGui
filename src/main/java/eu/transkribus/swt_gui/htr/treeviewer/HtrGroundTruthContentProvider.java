@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.GroundTruthSelectionDescriptor.GtSetType;
+import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
@@ -17,7 +19,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	private static final Logger logger = LoggerFactory.getLogger(HtrGroundTruthContentProvider.class);
 	List<TrpHtr> htrs;
 	
-	public HtrGroundTruthContentProvider(final int colId) {
+	public HtrGroundTruthContentProvider(final Integer colId) {
 		super(colId);
 	}
 	
@@ -206,17 +208,10 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			}
 			return 0;			
 		}
-	}
-	
-	public static enum GtSetType {
-		TRAIN("Train Set"),
-		VALIDATION("Validation Set");
-		private final String label;
-		private GtSetType(final String label) {
-			this.label = label;
-		}
-		public String getLabel() {
-			return label;
+		public TrpDocMetadata toTrpDocMetadata() {
+			TrpDocMetadata md = new TrpDocMetadata();
+			md.setTitle("HTR '" + this.htr.getName() + "' " + setType.getLabel());
+			return md;
 		}
 	}
 	

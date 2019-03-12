@@ -390,7 +390,7 @@ public class DataSetSelectionHandler {
 		int ret = view.openConflictDialog(gtSet, gtOverlapByImageId);
 		switch(ret) {
 		case SWT.YES:
-			removeOverlapFromDocSelectionByGt(gtOverlapByImageId);
+			removeOverlapFromSelectionByGt(gtOverlapByImageId);
 			break;
 		case SWT.NO:
 			gtList = new ArrayList<>(gtList);
@@ -473,7 +473,7 @@ public class DataSetSelectionHandler {
 	 * 
 	 * @param overlap
 	 */
-	private void removeOverlapFromDocSelectionByGt(List<HtrGtDataSetElement> overlap) {
+	private void removeOverlapFromSelectionByGt(List<HtrGtDataSetElement> overlap) {
 		List<Integer> imageIds = overlap.stream().map(g -> g.getGroundTruthPage().getImageId()).collect(Collectors.toList());
 		removeGtFromSelectionByImageId(imageIds, trainGtMap);
 		removeGtFromSelectionByImageId(imageIds, testGtMap);
@@ -561,19 +561,19 @@ public class DataSetSelectionHandler {
 		return new DataSetMetadata(pages, lines, words);
 	}
 	
-	public Map<TrpDocMetadata, List<TrpPage>> getTrainDocMap() {
+	Map<TrpDocMetadata, List<TrpPage>> getTrainDocMap() {
 		return trainDocMap;
 	}
 	
-	public Map<TrpDocMetadata, List<TrpPage>> getTestDocMap() {
+	Map<TrpDocMetadata, List<TrpPage>> getTestDocMap() {
 		return testDocMap;
 	}
 	
-	public Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTrainGtMap() {
+	Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTrainGtMap() {
 		return trainGtMap;
 	}
 	
-	public Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTestGtMap() {
+	Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTestGtMap() {
 		return testGtMap;
 	}
 	
@@ -583,6 +583,10 @@ public class DataSetSelectionHandler {
 	
 	public DataSetMetadata getTestSetMetadata() {
 		return computeDataSetSize(getTestDocMap());
+	}
+	
+	public int getColId() {
+		return colId;
 	}
 	
 	void updateThumbnail(IStructuredSelection selection) {
