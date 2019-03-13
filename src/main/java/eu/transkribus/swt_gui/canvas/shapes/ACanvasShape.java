@@ -1410,6 +1410,10 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	
 		if (isRegion){
 			arcWidth = arcWidth*.9;
+			if (rec.height < arcWidth){
+				arcWidth = rec.height;
+				logger.debug("new arcWidth because region is small: " + arcWidth);
+			}
 		}
 		else if (isLine){
 			arcWidth = arcWidth*.6;
