@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
@@ -65,7 +64,6 @@ import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
 import eu.transkribus.core.model.beans.EdFeature;
 import eu.transkribus.core.model.beans.EdOption;
-import eu.transkribus.core.model.beans.HtrModel;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.PageLock;
 import eu.transkribus.core.model.beans.TrpAction;
@@ -78,6 +76,7 @@ import eu.transkribus.core.model.beans.TrpDocDir;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpEvent;
+import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
@@ -127,6 +126,8 @@ import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.TrpHtrGtDocMetadata;
 import eu.transkribus.swt_gui.mainwidget.ImageDataDacheFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
@@ -134,6 +135,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.CollectionsLoa
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocMetadataUpdateEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.GroundTruthLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.MainImageLoadEvent;
@@ -183,8 +185,6 @@ public class Storage {
 	private Map<String, Pair<Integer, String>> virtualKeysShortCuts = new HashMap<>();
 	
 	private int collId;
-		
-	private List<String> htrModelList = new ArrayList<>(0);
 
 	private TrpDoc doc = null;
 	private TrpPage page = null;
@@ -517,6 +517,21 @@ public class Storage {
 	
 	public static boolean isRemoteDoc(TrpDoc doc) {
 		return doc != null && doc.isRemoteDoc();
+	}
+	
+	public boolean isGtDoc() {
+		return isGtDoc(doc);
+	}
+	
+	/**
+	 * GT is loaded as remote doc with docId < 0 but is not available via collections API.<br>
+	 * This methods checks  if the document is not null but no local folder and no docId is set.
+	 * 
+	 * @param doc
+	 * @return
+	 */
+	public static boolean isGtDoc(TrpDoc doc) {
+		return doc != null && doc.isRemoteDoc() && doc.getMd().getStatus() == TrpDocMetadata.STATUS_GROUND_TRUTH_DOC;
 	}
 	
 	public void closeCurrentDocument() {
@@ -1273,7 +1288,7 @@ public class Storage {
 		// if (!isPageLoaded())
 		// return;
 
-		if (isRemoteDoc()) {
+		if (isRemoteDoc() && !isGtDoc()) {
 			checkConnection(true);
 			
 			int nValues = 10; // 0 for all!
@@ -1367,6 +1382,42 @@ public class Storage {
 		logger.info("loaded remote document, docId = " + doc.getId() + ", title = " 
 				+ doc.getMd().getTitle() + ", nPages = " + doc.getPages().size() + ", pageId = " 
 				+ doc.getMd().getPageId());
+	}
+	
+	/**
+	 * Loads a HTR ground truth set from the server, transforms it into a document object and sets it as document in this Storage.
+	 * 
+	 * @param colId
+	 * @param set
+	 * @throws SessionExpiredException
+	 * @throws ClientErrorException
+	 * @throws IllegalArgumentException
+	 * @throws NoConnectionException
+	 */
+	public void loadHtrGtAsDoc(int colId, HtrGtDataSet set, int pageIndex) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		List<TrpGroundTruthPage> gt;
+		switch(set.getSetType()) {
+		case VALIDATION: 
+			gt = conn.getHtrValidationData(colId, set.getHtr().getHtrId());
+			break;
+		default:
+			gt = conn.getHtrTrainData(colId, set.getHtr().getHtrId());
+			break;
+		}
+		TrpDocMetadata md = new TrpHtrGtDocMetadata(set);
+		TrpDoc gtDoc = new TrpDoc();
+		gtDoc.setMd(md);
+		for(TrpGroundTruthPage g : gt) {
+			gtDoc.getPages().add(g.toTrpPage());
+		}
+		this.doc = gtDoc;
+		setCurrentPage(pageIndex < 0 ? 0 : pageIndex);
+		
+		sendEvent(new GroundTruthLoadEvent(this, doc));
+
+		logger.info("loaded HTR GT " + set.getSetType().getLabel() + " htrId = " + set.getHtr().getHtrId() + ", title = " 
+				+ gtDoc.getMd().getTitle() + ", nPages = " + gtDoc.getPages().size());
 	}
 
 	public TrpDoc getRemoteDoc(int colId, int docId, int nrOfTranscripts) throws SessionExpiredException, IllegalArgumentException, NoConnectionException {
@@ -2433,61 +2484,11 @@ public class Storage {
 		RecognitionPreferences.save(collId,  this.conn.getServerUri(), config);
 	}
 	
-	/*
-	 * old HTR stuff
-	 */
-	
-	public List<HtrModel> getHtrModels() throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
-		checkConnection(true);
-		List<HtrModel> models = conn.getHtrModelList();
-		//remove models that are incompatible with HTR in Transkribus 
-		List<HtrModel> out = new LinkedList<>();
-		for(HtrModel m : models){
-			if(m.getIsUsableInTranskribus() == 1){
-				out.add(m);
-			}
-		}
-		return models;
-	}
-	
-	public String[] getHtrModelsStr() {
-		return htrModelList.toArray(new String[htrModelList.size()]);
-	}
-	
-	public String runRnnHtr(int colId, int docId, String pageStr, String netName, String dictName) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.runRnnHtr(colId, docId, pageStr, netName, dictName);
-	}
-	
-	@Deprecated
-	public List<String> getHtrNets() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
-		checkConnection(true);
-		return conn.getHtrRnnListText();
-	}
-	
 	public List<String> getHtrDicts() throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException{
 		checkConnection(true);
 		List<String> sortedDictList = conn.getHtrDictListText();
 		Collections.sort(sortedDictList);
 		return sortedDictList;
-	}
-
-	public void reloadHtrModelsStr() throws SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		List<HtrModel> models = conn.getHtrModelList();
-		List<String> htrModelsStrArr = new ArrayList<>(models.size());
-		for(int i = 0; i < models.size(); i++){
-			final HtrModel m = models.get(i);
-			if(m.getIsUsableInTranskribus() == 1){
-				htrModelsStrArr.add(m.getModelName());
-			}
-		}
-		
-		htrModelList = htrModelsStrArr;		
-	}
-	
-	public void clearHtrModels(){
-		htrModelList = new ArrayList<>(0);
 	}
 
 	public void addHtrToCollection(TrpHtr htr, TrpCollection col) throws SessionExpiredException, ServerErrorException, ClientErrorException, NoConnectionException {

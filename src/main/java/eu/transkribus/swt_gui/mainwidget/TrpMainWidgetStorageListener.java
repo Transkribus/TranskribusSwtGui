@@ -63,6 +63,7 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 			if (mw.recycleBinDiag != null){
 				mw.recycleBinDiag.getDocTableWidget().refreshList(mw.getSelectedCollectionId());
 			}
+			mw.getUi().getServerWidget().updateGroundTruthTreeViewerFromStorage();
 		}
 	}
 	
@@ -89,6 +90,29 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 				mw.onError("The document contains faulty pages!", problems, null);
 			}
 		}
+		
+		//switch to collection tab if doc is no gt doc and other tab is selected
+		mw.getUi().getServerWidget().selectCollectionsTab();		
+		mw.getUi().updateVisibility();
+	}
+	
+	@Override public void handleGroundTruthLoadEvent(GroundTruthLoadEvent dle) {
+		logger.debug("ground truth loaded event: "+dle.doc);
+		canvas.setMode(CanvasMode.SELECTION);
+		
+		/**
+		 * FIXME
+		 * those settings are overwritten immediately after loading the document by a call to TrpMainWidget#updateToolBars in TrpMainWidget#reloadCurrentPage
+		 */
+		SWTUtil.setEnabled(mw.getUi().getExportDocumentButton(), false);
+		SWTUtil.setEnabled(mw.getUi().getVersionsButton(), false);
+		SWTUtil.setEnabled(mw.getUi().getLoadTranscriptInTextEditor(), dle.doc!=null);
+		SWTUtil.setEnabled(mw.getUi().getSaveTranscriptToolItem(), false);
+		SWTUtil.setEnabled(mw.getUi().getSaveTranscriptWithMessageToolItem(), false);
+		
+		mw.updateGroundTruthDocumentInfo();
+		
+		mw.getUi().updateVisibility();
 	}
 	
 	@Override public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {

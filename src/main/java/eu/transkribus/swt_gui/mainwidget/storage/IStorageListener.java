@@ -28,6 +28,8 @@ public interface IStorageListener {
 	
 	default void handleDocLoadEvent(DocLoadEvent dle) {}
 	
+	default void handleGroundTruthLoadEvent(GroundTruthLoadEvent gtle) {}
+	
 	default void handleTranscriptListLoadEvent(TranscriptListLoadEvent arg) {}
 
 	default void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {}
@@ -50,6 +52,9 @@ public interface IStorageListener {
 		}
 		else if (event instanceof DocLoadEvent) {
 			handleDocLoadEvent((DocLoadEvent) event);
+		}
+		else if (event instanceof GroundTruthLoadEvent) {
+			handleGroundTruthLoadEvent((GroundTruthLoadEvent) event);
 		}
 		else if (event instanceof PageLoadEvent) {
 			handlePageLoadEvent((PageLoadEvent) event);
@@ -137,6 +142,16 @@ public interface IStorageListener {
 
 		public DocLoadEvent(Object source, TrpDoc doc) {
 			super(source, "Document loaded");
+			this.doc = doc;
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public static class GroundTruthLoadEvent extends Event {
+		public final TrpDoc doc;
+
+		public GroundTruthLoadEvent(Object source, TrpDoc doc) {
+			super(source, "Ground Truth pages loaded");
 			this.doc = doc;
 		}
 	}

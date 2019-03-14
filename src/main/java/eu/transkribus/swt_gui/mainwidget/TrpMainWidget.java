@@ -198,6 +198,7 @@ import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBarListener;
 import eu.transkribus.swt_gui.mainwidget.settings.PreferencesDialog;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
@@ -598,7 +599,6 @@ public class TrpMainWidget {
 			try {
 				storage.checkConnection(true);
 			} catch (NoConnectionException e1) {
-				// TODO Auto-generated catch block
 				loginDialog("No conection to server!");
 			}
 			
@@ -617,7 +617,6 @@ public class TrpMainWidget {
 			try {
 				doclist = storage.reloadDocList(colId);
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException | IllegalArgumentException e) {
-				// TODO Auto-generated catch block
 				if(e instanceof SessionExpiredException){
 					loginDialog("Session Expired!");
 					//retry
@@ -628,8 +627,6 @@ public class TrpMainWidget {
 			}
 			
 			return doclist;
-			
-//			updatePageInfo();
 		} catch (Throwable e) {
 			onError("Cannot load document list", "Could not connect to " + getStorage().getConnection().getServerUri(), e);
 			return null;
@@ -710,10 +707,33 @@ public class TrpMainWidget {
 //		ui.getServerWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
-		ui.getServerWidget().updateHighlightedRow(docId);
+		ui.getServerWidget().updateHighlightedRow();
 
 //		ui.toolsWidget.updateParameter(st, language);
 
+		return loadedDocStr;
+	}
+	
+	public String updateGroundTruthDocumentInfo() {
+		String loadedDocStr = "", currentCollectionStr = "";
+		TrpCollection c = null;
+
+		if (storage.getDoc() != null) {
+			TrpDocMetadata md = storage.getDoc().getMd();
+
+			if (md.getTitle() != null && !md.getTitle().isEmpty()) {
+				loadedDocStr = md.getTitle();
+			}
+
+			c = storage.getCurrentDocumentCollection();
+			if (c != null) {
+				currentCollectionStr = c.getColName() + ", ID: " + c.getColId();
+			}
+		}
+		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
+		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
+
+		ui.getServerWidget().updateHighlightedGroundTruthTreeViewerRow();
 		return loadedDocStr;
 	}
 
@@ -796,12 +816,14 @@ public class TrpMainWidget {
 		ui.getDocInfoWidget().getLoadedImageUrl().setText(imgUrl);
 		ui.getDocInfoWidget().getLoadedTranscriptUrl().setText(transcriptUrl);
 		
-		if (!storage.isDocLoaded() || storage.isLocalDoc())
+		if (!storage.isDocLoaded() || storage.isLocalDoc()) {
 			ui.getDocInfoWidget().getIdsText().setText("NA");
-		else
+		} else {
 			ui.getDocInfoWidget().getIdsText().setText(pageId+"/"+tsid);
-
-		ui.getServerWidget().updateHighlightedRow(docId);
+		}
+		if(!storage.isGtDoc()) {
+			ui.getServerWidget().updateHighlightedRow();
+		}
 		ui.getShell().setText(title);
 		// updateDocMetadata();
 	}
@@ -2080,6 +2102,30 @@ public class TrpMainWidget {
 			ui.getTextStyleWidget().updateData();	
 		}
 	}
+	
+	/**
+	 * Change reading order circle width according to image resolution
+	 */
+	private void adjustReadingOrderDisplayToImageSize() {
+		ImageMetadata imgMd = storage.getCurrentImageMetadata();
+		if (imgMd == null){
+			return;
+		}
+		double initWidth = readingOrderCircleInitWidth;
+		logger.debug("initWidth " + initWidth);
+		
+		double resizeFactor = 1.0;
+		if (imgMd.getxResolution() < 210){
+			resizeFactor = 0.5;
+		}
+		else if(imgMd.getxResolution() > 210 && imgMd.getxResolution() < 390){
+			resizeFactor = 0.75;
+		}
+		double tmpWith = initWidth*resizeFactor;
+		logger.debug("set ro in settings " + tmpWith);
+		
+		canvas.getSettings().setReadingOrderCircleWidth((int) tmpWith);
+	}
 
 	public void updateTreeSelectionFromCanvas() {
 		if (structTreeListener.isInsideTreeSelectionEvent) {
@@ -2448,9 +2494,10 @@ public class TrpMainWidget {
 
 	public void updateToolBars() {
 		//boolean canManage = Storage.getInstance().getRoleOfUserInCurrentCollection().canManage();
-		boolean canTranscribe = Storage.getInstance().getRoleOfUserInCurrentCollection().canTranscribe();
-		
+
+		boolean canTranscribe = storage.getRoleOfUserInCurrentCollection().canTranscribe() && !storage.isGtDoc();
 		boolean isDocLoaded = storage.isDocLoaded();
+
 		int nNPages = storage.getNPages();
 		boolean isPageLocked = storage.isPageLocked();
 
@@ -2463,17 +2510,17 @@ public class TrpMainWidget {
 		}
 
 		SWTUtil.setEnabled(ui.getCloseDocBtn(), isDocLoaded);
-		SWTUtil.setEnabled(ui.getSaveDropDown(), isDocLoaded);
+		SWTUtil.setEnabled(ui.getSaveDropDown(), isDocLoaded && canTranscribe);
 		if (ui.saveOptionsToolItem != null)
-			SWTUtil.setEnabled(ui.saveOptionsToolItem.getToolItem(), isDocLoaded&&canTranscribe);
+			SWTUtil.setEnabled(ui.saveOptionsToolItem.getToolItem(), isDocLoaded && canTranscribe);
 
 		SWTUtil.setEnabled(ui.getReloadDocumentButton(), isDocLoaded);
 		SWTUtil.setEnabled(ui.getLoadTranscriptInTextEditor(), isDocLoaded);
-		SWTUtil.setEnabled(ui.getStatusCombo(), isDocLoaded&&canTranscribe);
-		SWTUtil.setEnabled(ui.getExportDocumentButton(), isDocLoaded&&canTranscribe);
+		SWTUtil.setEnabled(ui.getStatusCombo(), isDocLoaded && canTranscribe);
+		SWTUtil.setEnabled(ui.getExportDocumentButton(), isDocLoaded && canTranscribe);
 		
-		if (Storage.getInstance().getTranscript() != null && Storage.getInstance().getTranscript().getMd() != null){
-			ui.getStatusCombo().setText(Storage.getInstance().getTranscript().getMd().getStatus().getStr());
+		if (storage.getTranscript() != null && storage.getTranscript().getMd() != null){
+			ui.getStatusCombo().setText(storage.getTranscript().getMd().getStatus().getStr());
 		}
 		
 		ui.updateToolBarSize();
@@ -2594,33 +2641,15 @@ public class TrpMainWidget {
 		}
 
 		try {
-			boolean collectionChanged = colId != ui.serverWidget.getSelectedCollectionId();
-			if (collectionChanged) {
-				logger.debug("collection changed - reloading doclist!");
-				Future<List<TrpDocMetadata>> fut = reloadDocList(colId);
-				if (fut == null)
-					return false;
-				
-				fut.get(); // wait for doclist to be loaded!
-				logger.debug("loaded new doclist: "+fut.get()+" current-collection: "+getSelectedCollection());
-			}
-			canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
-
-			if (colId <= 0) {
-				colId = ui.getServerWidget().getSelectedCollectionId();
-				if (colId <= 0)
-					throw new Exception("No collection specified to load document!");
-			}
-
-			final int colIdFinal = colId;
+			updateSelectedCollection(colId);
 
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask("Loading remote document " + docId, IProgressMonitor.UNKNOWN);
 					try {
 						// if (true) throw new SessionExpiredException("Yo!");
-						storage.loadRemoteDoc(colIdFinal, docId);
-						logger.debug("loaded remote doc, colIdFinal = " + colIdFinal);
+						storage.loadRemoteDoc(colId, docId);
+						logger.debug("loaded remote doc, colIdFinal = " + colId);
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());
 					}
@@ -2635,10 +2664,10 @@ public class TrpMainWidget {
 			
 			//store the recent doc info to the preferences
 			if (pageIndex == 0){
-				RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal);
+				RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colId);
 			}
 			else if (pageIndex > 0){
-				RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colIdFinal + ";;;" + (pageIndex+1));
+				RecentDocsPreferences.push(Storage.getInstance().getDoc().getMd().getTitle() + ";;;" + docId + ";;;" + colId + ";;;" + (pageIndex+1));
 			}
 			ui.getServerWidget().updateRecentDocs();
 									
@@ -2648,24 +2677,7 @@ public class TrpMainWidget {
 			updateThumbs();
 			getCanvas().fitWidth();
 			
-			//change reading order circle width according to image resolution
-			ImageMetadata imgMd = storage.getCurrentImageMetadata();
-			if (imgMd != null){
-				double initWidth = readingOrderCircleInitWidth;
-				logger.debug("initWidth " + initWidth);
-				
-				double resizeFactor = 1.0;
-				if (imgMd.getxResolution() < 210){
-					resizeFactor = 0.5;
-				}
-				else if(imgMd.getxResolution() > 210 && imgMd.getxResolution() < 390){
-					resizeFactor = 0.75;
-				}
-				double tmpWith = initWidth*resizeFactor;
-				logger.debug("set ro in settings " + tmpWith);
-				
-				canvas.getSettings().setReadingOrderCircleWidth((int) tmpWith);
-			}			
+			adjustReadingOrderDisplayToImageSize();
 			
 			tmpCount++;
 			return true;
@@ -2676,6 +2688,67 @@ public class TrpMainWidget {
 		// finally {
 		// updatePageInfo();
 		// }
+	}
+	
+	/**
+	 * Load HTR GT pages as document in storage and show in main widget.
+	 */
+	public boolean loadHtrGroundTruth(HtrGtDataSet set, int colId, int pageIndex) {
+		if (!saveTranscriptDialogOrAutosave()) {
+			return false;
+		}
+
+		try {
+			updateSelectedCollection(colId);
+
+			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					monitor.beginTask("Loading HTR GT " + set.getSetType() + " HTR ID " + set.getHtrId(), IProgressMonitor.UNKNOWN);
+					try {
+						// if (true) throw new SessionExpiredException("Yo!");
+						storage.loadHtrGtAsDoc(colId, set, pageIndex);
+						logger.debug("loaded HTR GT, colId = " + colId);
+					} catch (Exception e) {
+						throw new InvocationTargetException(e, e.getMessage());
+					}
+				}
+			}, "Loading document from server", false);
+			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH);
+			updateThumbs();
+			getCanvas().fitWidth();
+			adjustReadingOrderDisplayToImageSize();
+			tmpCount++;
+			return true;
+		} catch (Throwable e) {
+			onError("Error loading HTR GT", "Could not load GT set for HTR with id  " + set.getHtrId(), e);
+			return false;
+		}
+	}
+	
+	/**
+	 * Checks if the collection with colId is already loaded in storage and, if necessary, switches the collection and reloads the document list.
+	 * 
+	 * @param colId
+	 * @throws Exception
+	 */
+	private void updateSelectedCollection(int colId) throws Exception {
+		boolean collectionChanged = colId != ui.serverWidget.getSelectedCollectionId();
+		if (collectionChanged) {
+			logger.debug("collection changed - reloading doclist!");
+			Future<List<TrpDocMetadata>> fut = reloadDocList(colId);
+			if (fut == null)
+				throw new Exception("Documents for collection " + colId + " could not be loaded.");
+			
+			fut.get(); // wait for doclist to be loaded!
+			logger.debug("loaded new doclist: "+fut.get()+" current-collection: "+getSelectedCollection());
+		}
+		canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
+
+		if (colId <= 0) {
+			colId = ui.getServerWidget().getSelectedCollectionId();
+			if (colId <= 0)
+				throw new Exception("No collection specified to load HTR ground truth data!");
+		}
 	}
 
 	public void center() {

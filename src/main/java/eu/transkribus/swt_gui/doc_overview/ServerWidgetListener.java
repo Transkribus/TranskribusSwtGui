@@ -26,10 +26,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -62,6 +65,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		dtv.addDoubleClickListener(this);
 		dtv.getTable().addMouseTrackListener(this);
 		dtv.getTable().addKeyListener(this);
+		sw.groundTruthTv.addDoubleClickListener(this);
 
 //		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
 		sw.collectionSelectorWidget.addListener(SWT.Selection, this);
@@ -107,6 +111,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		dtv.removeDoubleClickListener(this);
 		dtv.getTable().removeMouseTrackListener(this);
 		dtv.getTable().removeKeyListener(this);
+		sw.groundTruthTv.removeDoubleClickListener(this);
 		
 //		sw.collectionComboViewerWidget.collectionCombo.removeSelectionListener(this);
 		sw.collectionSelectorWidget.removeListener(SWT.Selection, this);
@@ -167,11 +172,21 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		if (el == null)
 			return;
 
-		if (el instanceof TrpDocMetadata) {
+		if(sw.isCollectionsTabSelected() && el instanceof TrpDocMetadata) {
 			int docId = ((TrpDocMetadata) el).getDocId();
 			logger.debug("Loading doc with id: " + docId);
 
 			mw.loadRemoteDoc(docId, sw.getSelectedCollectionId());
+		} else if(sw.isGroundTruthTabSelected()) {
+			if (el instanceof TrpHtr) {
+				sw.expandGroundTruthTreeItem(el);
+			} else if (el instanceof HtrGtDataSet) {
+				TrpMainWidget.getInstance().loadHtrGroundTruth((HtrGtDataSet)el, storage.getCollId(), 0);
+			} else if (el instanceof HtrGtDataSetElement) {
+				HtrGtDataSetElement page = (HtrGtDataSetElement)el;
+				TrpMainWidget.getInstance().loadHtrGroundTruth(page.getParentHtrGtDataSet(), 
+						storage.getCollId(), page.getGroundTruthPage().getPageNr() - 1);
+			}
 		}
 	}
 

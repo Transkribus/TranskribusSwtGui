@@ -208,10 +208,24 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			}
 			return 0;			
 		}
-		public TrpDocMetadata toTrpDocMetadata() {
-			TrpDocMetadata md = new TrpDocMetadata();
-			md.setTitle("HTR '" + this.htr.getName() + "' " + setType.getLabel());
-			return md;
+	}
+	
+	/**
+	 * TrpDocMetadata type that decorates a HtrGtDataSet. This type is needed to determine the origin of a GT doc that is loaded in Storage. 
+	 */
+	public static class TrpHtrGtDocMetadata extends TrpDocMetadata {
+		private static final long serialVersionUID = -3302933027729222456L;
+		private final HtrGtDataSet dataSet;
+		public TrpHtrGtDocMetadata(HtrGtDataSet dataSet) {
+			this.dataSet = dataSet;
+			this.setTitle("HTR '" + dataSet.getHtr().getName() + "' " + dataSet.setType.getLabel());
+		}
+		public HtrGtDataSet getDataSet() {
+			return dataSet;
+		}
+		@Override
+		public Integer getStatus() {
+			return TrpDocMetadata.STATUS_GROUND_TRUTH_DOC;
 		}
 	}
 	

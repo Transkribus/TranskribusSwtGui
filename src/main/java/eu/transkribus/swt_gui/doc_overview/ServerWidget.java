@@ -2,11 +2,21 @@ package eu.transkribus.swt_gui.doc_overview;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
+
+import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -31,14 +41,18 @@ import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthLabelAndFontProvider;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.util.DropDownButton;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
 public class ServerWidget extends Composite {
@@ -50,6 +64,10 @@ public class ServerWidget extends Composite {
 //	CollectionComboViewerWidget collectionComboViewerWidget;
 //	CollectionComboViewerWidget collectionComboViewerWidget;
 	CollectionSelectorWidget collectionSelectorWidget;
+	
+	CTabFolder tabFolder;
+	CTabItem collectionsTabItem, gtTabItem;
+	TreeViewer groundTruthTv;
 	
 	RecentDocsComboViewerWidget recentDocsComboViewerWidget;
 	
@@ -221,22 +239,24 @@ public class ServerWidget extends Composite {
 		showActivityWidgetBtn.setText("User activity");
 		userControls.add(showActivityWidgetBtn);
 		
-		////////////////
-		remoteDocsGroup = new Composite(container, 0); // orig-parent = container
 		
+		// tabFolder contains collections tab item and ground-truth tab item
+		tabFolder = new CTabFolder(container, SWT.BORDER | SWT.FLAT);
+		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
+		//create collections tab item
+		collectionsTabItem = new CTabItem(tabFolder, SWT.NONE);
+		collectionsTabItem.setText("Collections");		
+		//container for collections tab elements
+		remoteDocsGroup = new Composite(tabFolder, 0);
 		remoteDocsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		remoteDocsGroup.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
-		Label collectionsLabel = new Label(remoteDocsGroup, 0);
-		collectionsLabel.setText("Collections:");
-		Fonts.setBoldFont(collectionsLabel);
 		
 		collectionSelectorWidget = new CollectionSelectorWidget(remoteDocsGroup, 0, false, null);
 		collectionSelectorWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-//		collectionSelectorWidget.getCollectionFilterLabel().setText("Collections ");
-//		collectionComboViewerWidget = new CollectionComboViewerWidget(remoteDocsGroup, 0, true, true, false);
-//		collectionComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-//		collectionComboViewerWidget.getCollectionFilterLabel().setText("Collections ");
+		collectionsTabItem.setControl(remoteDocsGroup);
+		tabFolder.setSelection(collectionsTabItem);
 		
 		if (false) {
 		Composite collComp = collectionSelectorWidget.getCollComposite();
@@ -348,9 +368,67 @@ public class ServerWidget extends Composite {
 			((SashForm)remoteDocsGroup).setWeights(new int[]{50, 50});
 		}
 		
+		/*
+		 * Create ground truth treeviewer. 
+		 * The tab item is created/disposed depending on availability of data in collection
+		 */
+		groundTruthTv = createGroundTruthTreeViewer(tabFolder);
+		
 		initDocOverviewMenu();
 		
-		updateHighlightedRow(-1);
+		updateHighlightedRow();
+	}
+	
+	private TreeViewer createGroundTruthTreeViewer(Composite parent) {
+		TreeViewer tv = new TreeViewer(parent, SWT.BORDER | SWT.MULTI);
+		final ITreeContentProvider htrGtContentProvider = new HtrGroundTruthContentProvider(null);
+		final ILabelProvider htrGtLabelProvider = new HtrGroundTruthLabelAndFontProvider(tv.getControl().getFont());
+		tv.setContentProvider(htrGtContentProvider);
+		tv.setLabelProvider(htrGtLabelProvider);
+		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		return tv;
+	}
+	
+	void expandGroundTruthTreeItem(Object o) {
+		final ITreeContentProvider provider = (ITreeContentProvider) groundTruthTv.getContentProvider();
+		if(!provider.hasChildren(o)) {
+			return;
+		}
+		if (groundTruthTv.getExpandedState(o)) {
+			groundTruthTv.collapseToLevel(o, AbstractTreeViewer.ALL_LEVELS);
+		} else {
+			groundTruthTv.expandToLevel(o, 1);
+		}
+	}
+	
+	public void updateGroundTruthTreeViewerFromStorage() {
+		getDisplay().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				List<TrpHtr> treeViewerInput;
+				try {
+					//filter for HTRs with train GT
+					treeViewerInput = store.listHtrs(null).stream()
+							.filter(h -> h.getNrOfTrainGtPages() != null && h.getNrOfTrainGtPages() > 0)
+							.collect(Collectors.toList());
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e) {
+					logger.error("Could not load HTR list from server!", e);
+					treeViewerInput = new ArrayList<>(0);
+				}
+				
+				if(!treeViewerInput.isEmpty()) {
+					if (gtTabItem == null || gtTabItem.isDisposed()) {
+						gtTabItem = new CTabItem(tabFolder, SWT.NONE);
+						gtTabItem.setText("HTR Model Data");
+						gtTabItem.setControl(groundTruthTv.getControl());
+					}
+					groundTruthTv.setInput(treeViewerInput);
+				} else if(gtTabItem != null) {
+						gtTabItem.dispose();
+						gtTabItem = null;
+				}
+			}
+		});
 	}
 	
 	private void initDocOverviewMenu() {
@@ -386,8 +464,26 @@ public class ServerWidget extends Composite {
 		exp.setExpanded(expand);
 	}
 	
-	public void updateHighlightedRow(int selectedId) {
+	public void selectCollectionsTab() {
+		if(!isCollectionsTabSelected()) {
+			tabFolder.setSelection(collectionsTabItem);
+		}
+	}
+	
+	public boolean isCollectionsTabSelected() {
+		return collectionsTabItem.equals(tabFolder.getSelection());
+	}
+	
+	public boolean isGroundTruthTabSelected() {
+		return gtTabItem.equals(tabFolder.getSelection());
+	}
+	
+	public void updateHighlightedRow() {
 		docTableWidget.getTableViewer().refresh();
+	}
+	
+	public void updateHighlightedGroundTruthTreeViewerRow() {
+		groundTruthTv.refresh();
 	}
 	
 	public void refreshDocListFromStorage() {
@@ -448,5 +544,4 @@ public class ServerWidget extends Composite {
 	
 	public Button getShowJobsBtn() { return showJobsBtn; }
 	public Button getShowVersionsBtn() { return showVersionsBtn; }
-	
 }
