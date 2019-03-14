@@ -12,6 +12,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
@@ -40,6 +42,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
+import eu.transkribus.swt_gui.pagination_tables.UserInfoTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.UserTableWidgetPagination;
 
 /**
@@ -51,7 +54,12 @@ public class CollectionUsersWidget extends Composite {
 	static Storage store = Storage.getInstance(); 
 	
 	UserTableWidgetPagination collectionUsersTv;
+	UserInfoTableWidgetPagination collectionUsersInfoTv;
 	FindUsersWidget findUsersWidget;
+	
+	CTabFolder tabFolder;
+	CTabItem usersTabItem, userInfoTabItem;
+	Composite tabUserComposite,tabUserInfoComposite;
 	
 	Button addUserToColBtn, removeUserFromColBtn, showUserCollections/*, editUserFromColBtn*/;
 	Combo role;
@@ -76,9 +84,21 @@ public class CollectionUsersWidget extends Composite {
 	}
 	
 	private void createCollectionUsersTable(Composite container) {
-		group = new Group(container, SWT.SHADOW_ETCHED_IN);
+		
+		tabFolder = new CTabFolder(container, SWT.BORDER | SWT.FLAT);
+		tabFolder.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
+		
+		tabUserComposite = new Composite(tabFolder,SWT.FILL);
+		tabUserComposite.setLayout(new GridLayout(1,true));
+		tabUserComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
+	
+		usersTabItem= new CTabItem(tabFolder, SWT.NONE);
+		usersTabItem.setText("Users in collection ");
+		usersTabItem.setControl(tabUserComposite);
+		
+		group = new Group(tabUserComposite, SWT.SHADOW_ETCHED_IN);
 		group.setText("Users in collection ");
-		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		group.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true));
 		group.setLayout(new GridLayout(1, false));
 		group.setFont(Fonts.createBoldFont(group.getFont()));
 		
@@ -129,6 +149,17 @@ public class CollectionUsersWidget extends Composite {
 		showUserCollections.setVisible(false);
 		
 		selectRole(TrpRole.Transcriber);
+		
+		tabUserInfoComposite = new Composite(tabFolder,0);
+		tabUserInfoComposite.setLayout(new GridLayout(1,true));
+		tabUserInfoComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
+		
+		userInfoTabItem = new CTabItem(tabFolder,  SWT.NONE);
+		userInfoTabItem.setText("User Info ");
+		userInfoTabItem.setControl(tabUserInfoComposite);
+		
+		collectionUsersInfoTv = new UserInfoTableWidgetPagination(tabUserInfoComposite, 0, 25);
+		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				
 		group.pack();
 	}
@@ -279,11 +310,28 @@ public class CollectionUsersWidget extends Composite {
 		if (collection!=null && store.isLoggedIn()) {
 			try {
 				collectionUsersTv.refreshList(collection.getColId());
+				collectionUsersInfoTv.refreshList(collection.getColId());
 			} catch (ServerErrorException | IllegalArgumentException e) {
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, e.getMessage(), "Error loading users", -1, -1, true);
 			}
 		}
 		updateBtnVisibility();
+	}
+	
+	private class CollectionUsersTab {
+		final int tabIndex;
+		final CTabItem tabItem;
+		final Composite configComposite;
+		private CollectionUsersTab(int tabIndex, CTabItem tabItem, Composite configComposite) {
+			this.tabIndex = tabIndex;
+			this.tabItem = tabItem;
+			this.configComposite = configComposite;
+		}
+		
+		public CTabItem getTabItem() {
+			return tabItem;
+		}
+		
 	}
 
 }
