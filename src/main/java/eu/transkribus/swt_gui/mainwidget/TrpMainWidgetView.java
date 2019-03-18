@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.util.EnumUtils;
@@ -890,35 +891,29 @@ public class TrpMainWidgetView extends Composite {
 	}
 	
 	public void updateVisibility(){
-		//show only if role > transcriber (=editor, owner, admin)
-		boolean canManage = Storage.getInstance().getRoleOfUserInCurrentCollection().canManage();
-		boolean canTranscribe = Storage.getInstance().getRoleOfUserInCurrentCollection().canTranscribe();
+		//show only if role > transcriber (=editor, owner, admin) and current document can be edited (e.g. is not ground truth)
+		final TrpRole role = Storage.getInstance().getRoleOfUserInCurrentCollection();
+		final boolean canManage = role.canManage() && !Storage.getInstance().isGtDoc();
+		final boolean canTranscribe = role.canTranscribe() && !Storage.getInstance().isGtDoc();
 		
-//		logger.debug("can transcribe " + canTranscribe);
-//		logger.debug("can manage " + canManage);		
-		
-		if (tabWidget.isEnabled() && !tabWidget.toolsItem.isDisposed()){
-			if (!canTranscribe){
+		if (tabWidget.isEnabled() && !tabWidget.toolsItem.isDisposed()) {
+			if (!canTranscribe) {
 				tabWidget.toolsItem.setControl(null);
 				tabWidget.textTaggingItem.setControl(null);
 				tabWidget.structuralMdItem.setControl(null);
 				tabWidget.commentsItem.setControl(null);
 				tabWidget.docMdItem.setControl(null);
 				tabWidget.structureItem.setControl(null);
-				lineTranscriptionWidget.setParent(SWTUtil.dummyShell);
-				wordTranscriptionWidget.setParent(SWTUtil.dummyShell);				
-			}
-			else{
+			} else {
 				tabWidget.toolsItem.setControl(toolsWidget);
 				tabWidget.textTaggingItem.setControl(taggingWidget);
 				tabWidget.structuralMdItem.setControl(structuralMdWidget);
 				tabWidget.commentsItem.setControl(commentsWidget);
 				tabWidget.docMdItem.setControl(docMetadataEditor);
 				tabWidget.structureItem.setControl(structureTreeWidget);
-				changeToTranscriptionWidget(TranscriptionLevel.LINE_BASED);
 			}
-			
 		}
+		getSelectedTranscriptionWidget().setWriteable(canTranscribe);
 		
 		uploadDocsItem.setEnabled(canManage);
 		
@@ -937,7 +932,6 @@ public class TrpMainWidgetView extends Composite {
 		
 		//canvas toolbar
 		canvasWidget.getCanvas().getSettings().setEditingEnabled(canTranscribe);
-		
 	}
 
 	public void center() {

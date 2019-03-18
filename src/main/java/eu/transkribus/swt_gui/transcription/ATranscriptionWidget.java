@@ -229,6 +229,8 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	public static final boolean USE_AUTOCOMPLETE_FROM_PAGE=true;
 	
+	private boolean isWriteable;
+	
 	List<ITranscriptionWidgetListener> listener = new ArrayList<>(); // custom event listener
 //	private DropDownToolItem alignmentDropDown;
 	private MenuItem alignmentMenuItem;
@@ -324,6 +326,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	public ATranscriptionWidget(Composite parent, int style, TrpSettings settings, TrpMainWidgetView view) {
 		super(parent, style);
 		this.view = view;
+		this.isWriteable = true;
 		
 		GridLayout l = new GridLayout(1, true);
 		l.marginTop = 0;
@@ -2954,7 +2957,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		regionsPagingToolBar.setValues(region.getIndex()+1, Storage.getInstance().getNTextRegions());
 		
 //		if (currentRegionObject.getTextLine().isEmpty()) {
-		text.setEditable(!currentRegionObject.getTextLine().isEmpty());
+		text.setEditable(!currentRegionObject.getTextLine().isEmpty() && this.isWriteable);
 //		}
 		
 		attachTextListener();
@@ -3042,14 +3045,14 @@ public abstract class ATranscriptionWidget extends Composite{
 	}
 		
 	@Override public void setEnabled(boolean value) {
-//		super.setEnabled(value);
+		value = value && this.isWriteable;
 		regionsPagingToolBar.setToolbarEnabled(value);
 		
 		for (ToolItem ti : additionalToolItems) {
 			ti.setEnabled(value);
 		}
 		
-		text.setEnabled(value);
+		text.setEditable(value);
 		
 		if (!value) {
 			text.setLineBullet(0, text.getLineCount(), null);
@@ -3123,6 +3126,11 @@ public abstract class ATranscriptionWidget extends Composite{
 			logger.debug("changes over multiple lines not allowed!");
 			e.doit = false;
 		}
+	}
+
+	public void setWriteable(boolean writeable) {
+		this.isWriteable = writeable;
+		setEnabled(writeable);
 	}
 	
 		
