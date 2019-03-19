@@ -244,6 +244,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		page.getControl().setLayoutData(gridData);
 		
 		page.setInput(this.resultErr.getList() == null ? new ArrayList<>() : this.resultErr.getList());
+		page.getTable().setSortColumn(page.getColumn(0));
 		
 		
 		page.addSelectionChangedListener(new ISelectionChangedListener() {
