@@ -1057,8 +1057,12 @@ public class SWTUtil {
 	}
 	
 	public static void setEnabled(ToolItem item, boolean enabled) {
-		if (item!=null && !item.isDisposed() && item.getEnabled()!=enabled) 
+		if (item!=null && !item.isDisposed() && item.getEnabled()!=enabled) {
+			logger.trace("Changing enabled state of ToolItem: " 
+					+ (item.getToolTipText() != null ? item.getToolTipText() : item.getText()) 
+					+ " -> " + enabled);
 			item.setEnabled(enabled);
+		}
 	}
 
 	public static void setEnabled(Control composite, boolean enabled) {

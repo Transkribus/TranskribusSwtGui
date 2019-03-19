@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.util.LocalSelectionTransfer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -32,6 +31,16 @@ public class StructureTreeDropAdapter extends ViewerDropAdapter {
 	private static final Logger logger = LoggerFactory.getLogger(StructureTreeDropAdapter.class);
 	
 	public static final boolean ALLOW_DROPPING_ON_DIFFERENT_PARENT_SHAPE = true;
+	
+	/**
+	 * {@link #setEnabled(boolean)} (de)activates drag support. Current state is stored here.
+	 */
+	private boolean isEnabled = true;
+	/**
+	 * Balloon tip is shown on first drop.
+	 * This field's value is then set to true and is used to suppress further balloons to show.
+	 */
+	private boolean disabledInfoShown = false;
 	
 	TreeViewer treeViewer;
 
@@ -96,6 +105,10 @@ public class StructureTreeDropAdapter extends ViewerDropAdapter {
 
 	@Override
 	public boolean performDrop(Object arg0) {
+		if(!isEnabled) {
+			showDisabledInfoBalloon();			
+			return false;
+		}
 		// Note: data is null here since the Transfer type is LocalSelectionTransfer
 		logger.debug("performorming drop!");
 		
@@ -247,6 +260,10 @@ public class StructureTreeDropAdapter extends ViewerDropAdapter {
 	}
 
 	@Override public boolean validateDrop(Object target, int operation, TransferData transferType) {
+		if(!isEnabled) {
+			showDisabledInfoBalloon();			
+			return false;
+		}
 		int location = this.determineLocation(getCurrentEvent());
 		
 		if (!(target instanceof ITrpShapeType) || target instanceof TrpBaselineType)
@@ -291,5 +308,17 @@ public class StructureTreeDropAdapter extends ViewerDropAdapter {
 
 		return true;
 	}
-
+	
+	public void setEnabled(boolean enabled) {
+		this.disabledInfoShown = false;
+		this.isEnabled = enabled;
+	}
+	
+	protected void showDisabledInfoBalloon() {
+		if(this.disabledInfoShown) {
+			return;
+		}
+		DialogUtil.showBallonToolTip(treeViewer.getTree(), false, null, "Read-only mode", "Structure can't be edited.");
+		this.disabledInfoShown = true;
+	}
 }

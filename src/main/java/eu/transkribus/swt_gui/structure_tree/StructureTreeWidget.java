@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.structure_tree;
 
+import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Iterator;
 import java.util.List;
@@ -7,14 +8,11 @@ import java.util.ListIterator;
 import java.util.Stack;
 
 import org.eclipse.jface.util.LocalSelectionTransfer;
-import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
-import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.TreeViewerEditor;
@@ -41,12 +39,12 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class StructureTreeWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(StructureTreeWidget.class);
@@ -70,6 +68,14 @@ public class StructureTreeWidget extends Composite {
 	//ToolItem deleteReadingOrderRegions;
 	
 	ToolItem moveUpButton, moveDownButton;
+	
+	private StructureTreeDragSourceAdapter structTreeDragSourceAdapter;
+	private StructureTreeDropAdapter structTreeDropAdapter;
+	
+	/**
+	 * ToolItems that trigger any kind of editing are collected in this array and disabled in case the edit mode restricts certain actions.
+	 */
+	private final ArrayList<ToolItem> editToolItems;
 
 	public final static ColConfig TYPE_COL = new ColConfig("Type", 110);
 	public final static ColConfig ID_COL = new ColConfig("ID", 65);
@@ -86,7 +92,7 @@ public class StructureTreeWidget extends Composite {
 	
 	public StructureTreeWidget(Composite parent) {
 		super(parent, SWT.NONE);
-
+		this.editToolItems = new ArrayList<>(7);
 		this.setLayout(new GridLayout());
 		initToolBar();
 
@@ -96,6 +102,9 @@ public class StructureTreeWidget extends Composite {
 		treeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		tree = treeViewer.getTree();
+		
+		structTreeDropAdapter = new StructureTreeDropAdapter(treeViewer);
+		structTreeDragSourceAdapter = new StructureTreeDragSourceAdapter();
 
 		// initEditOnDoubleClick();
 		initCols();
@@ -119,24 +128,27 @@ public class StructureTreeWidget extends Composite {
 		clearPageItem = new ToolItem(toolBar, 0);
 		clearPageItem.setToolTipText("Clear page content");
 		clearPageItem.setImage(Images.CROSS);
+		editToolItems.add(clearPageItem);
 		
 		deleteSelectedBtn = new ToolItem(toolBar, 0);
 		deleteSelectedBtn.setToolTipText("Delete selected shapes");
 		deleteSelectedBtn.setImage(Images.DELETE);
+		editToolItems.add(deleteSelectedBtn);
 
 		updateIDsItem = new ToolItem(toolBar, SWT.NONE);
 		updateIDsItem.setToolTipText("Assigns unique IDs to all elements according to their current sorting");
-//		updateIDsItem.setImage(Images.getOrLoad("/icons/refresh.gif"));
 		updateIDsItem.setImage(Images.getOrLoad("/icons/update_id.png"));
-//		updateIDsItem.setText("Update IDs");
+		editToolItems.add(updateIDsItem);
 		
 		setReadingOrderRegions = new ToolItem(toolBar, SWT.NONE);
 		setReadingOrderRegions.setToolTipText("Sets the reading order of the children of the selected element(s) according to their coordinates!");
 		setReadingOrderRegions.setImage(Images.getOrLoad("/icons/reading_order_r.png"));
+		editToolItems.add(setReadingOrderRegions);
 		
 		assignGeometrically = new ToolItem(toolBar, SWT.NONE);
 		assignGeometrically.setToolTipText("Assign child shapes to selected shape according to geometric overlap. If page is selected, all shapes will be reinserted according to geometric overlap");
 		assignGeometrically.setImage(Images.getOrLoad("/icons/layout.png"));
+		editToolItems.add(assignGeometrically);
 //		
 //		deleteReadingOrderRegions = new ToolItem(toolBar, SWT.NONE);
 //		deleteReadingOrderRegions.setToolTipText("Deletes the reading order from the children of the selected element(s)!");
@@ -145,10 +157,12 @@ public class StructureTreeWidget extends Composite {
 		moveUpButton = new ToolItem(toolBar, SWT.NONE);
 		moveUpButton.setToolTipText("move shape up");
 		moveUpButton.setImage(Images.getOrLoad("/icons/up2.gif"));
+		editToolItems.add(moveUpButton);
 
 		moveDownButton = new ToolItem(toolBar, SWT.NONE);
 		moveDownButton.setToolTipText("move shape down");
 		moveDownButton.setImage(Images.getOrLoad("/icons/down2.gif"));
+		editToolItems.add(moveDownButton);
 		
 //		setReadingOrderLines = new ToolItem(toolBar, SWT.NONE);
 //		setReadingOrderLines.setToolTipText("Sets the reading order of lines in the selected regions according to their y-x-coordinates!");
@@ -179,17 +193,13 @@ public class StructureTreeWidget extends Composite {
 		int operations = DND.DROP_MOVE;
 		Transfer[] transferTypes = new Transfer[]{ LocalSelectionTransfer.getTransfer() };
 		
-		treeViewer.addDragSupport(operations, transferTypes, new DragSourceAdapter() {			
-			@Override public void dragStart(DragSourceEvent event) {
-				LocalSelectionTransfer.getTransfer().setSelection(treeViewer.getSelection()); // not really needed since we can get selection from member variable
-			}
-//			@Override public void dragSetData(DragSourceEvent event) {
-//			}
-//			@Override public void dragFinished(DragSourceEvent event) {
-//			}
-		});
-		
-		treeViewer.addDropSupport(operations, transferTypes, new StructureTreeDropAdapter(treeViewer));
+		treeViewer.addDragSupport(operations, transferTypes, structTreeDragSourceAdapter);
+		treeViewer.addDropSupport(operations, transferTypes, structTreeDropAdapter);
+	}
+	
+	void setDragAndDropEnabled(boolean enabled) {
+		structTreeDragSourceAdapter.setEnabled(enabled);
+		structTreeDropAdapter.setEnabled(enabled);
 	}
 	
 	
@@ -390,5 +400,35 @@ public class StructureTreeWidget extends Composite {
 //			}
 //		}
 
+	}
+	
+	/**
+	 * En-/disables toolbar items that trigger changes in the structure and drag/drop support on the treeviewer.
+	 * Further edit operations, e.g. "del" key press, are caught via the Canvas write lock (see {@link CanvasSettings#setEditingEnabled(boolean)}).
+	 * 
+	 * @param enabled
+	 */
+	public void setEditingEnabled(boolean enabled) {
+		for(ToolItem i : editToolItems) {
+			SWTUtil.setEnabled(i, enabled);
+		}
+		setDragAndDropEnabled(enabled);
+	}
+	
+	private class StructureTreeDragSourceAdapter extends DragSourceAdapter {
+		boolean isEnabled = true;
+		@Override public void dragStart(DragSourceEvent event) {
+			if(!isEnabled) {
+				return;
+			}
+			LocalSelectionTransfer.getTransfer().setSelection(treeViewer.getSelection()); // not really needed since we can get selection from member variable
+		}
+//		@Override public void dragSetData(DragSourceEvent event) {
+//		}
+//		@Override public void dragFinished(DragSourceEvent event) {
+//		}
+		void setEnabled(boolean enabled) {
+			this.isEnabled = enabled;
+		}
 	}
 }

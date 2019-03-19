@@ -412,6 +412,11 @@ public class CanvasShapeEditor {
 		if (shapesToRemove==null || shapesToRemove.isEmpty())
 			return null;
 		
+		if (!canvas.getSettings().isEditingEnabled()) {
+			logger.debug("Blocking canvas shape removal as editing is disabled.");
+			return null;
+		}
+		
 		// remove table if attempted to remove table cell:		
 		List<ICanvasShape> str2 = new ArrayList<>();
 		for (ICanvasShape s : shapesToRemove) {
