@@ -12,31 +12,31 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 
 /**
- * {@link CollectionLabelProvider} for use in training data set preparation with a {@link DataSetSelectionHandler}.
+ * {@link CollectionLabelProvider} for use in training data set preparation with a {@link DataSetSelectionController}.
  * Label texts and colors reflect information on data set inclusion of an element.
  */
 public class CollectionDataSetLabelProvider extends CollectionLabelProvider implements IColorProvider {
 		
-	DataSetSelectionHandler handler;
+	DataSetSelectionController controller;
 	
-	public CollectionDataSetLabelProvider(DataSetSelectionHandler handler) {
-		this.handler = handler;
+	public CollectionDataSetLabelProvider(DataSetSelectionController controller) {
+		this.controller = controller;
 	}
 	
 	@Override
 	public Color getBackground(Object element) {
 		if(element instanceof TrpDocMetadata) {
 			TrpDocMetadata doc = (TrpDocMetadata) element;
-			if (handler.getTrainDocMap().containsKey(doc) && handler.getTestDocMap().containsKey(doc)) {
+			if (controller.getTrainDocMap().containsKey(doc) && controller.getTestDocMap().containsKey(doc)) {
 				return DataSetSelectionSashForm.CYAN;
-			} else if (handler.getTrainDocMap().containsKey(doc)) {
-				if (doc.getNrOfPages() == handler.getTrainDocMap().get(doc).size()) {
+			} else if (controller.getTrainDocMap().containsKey(doc)) {
+				if (doc.getNrOfPages() == controller.getTrainDocMap().get(doc).size()) {
 					return DataSetSelectionSashForm.BLUE;
 				} else {
 					return DataSetSelectionSashForm.LIGHT_BLUE;
 				}
-			} else if (handler.getTestDocMap().containsKey(doc)) {
-				if (doc.getNrOfPages() == handler.getTestDocMap().get(doc).size()) {
+			} else if (controller.getTestDocMap().containsKey(doc)) {
+				if (doc.getNrOfPages() == controller.getTestDocMap().get(doc).size()) {
 					return DataSetSelectionSashForm.GREEN;
 				} else {
 					return DataSetSelectionSashForm.LIGHT_GREEN;
@@ -44,9 +44,9 @@ public class CollectionDataSetLabelProvider extends CollectionLabelProvider impl
 			}
 		} else if (element instanceof TrpPage) {
 			TrpPage page = (TrpPage) element;
-			if (isPageInMap(page, handler.getTrainDocMap())) {
+			if (isPageInMap(page, controller.getTrainDocMap())) {
 				return DataSetSelectionSashForm.BLUE;
-			} else if (isPageInMap(page, handler.getTestDocMap())) {
+			} else if (isPageInMap(page, controller.getTestDocMap())) {
 				return DataSetSelectionSashForm.GREEN;
 			}
 		}

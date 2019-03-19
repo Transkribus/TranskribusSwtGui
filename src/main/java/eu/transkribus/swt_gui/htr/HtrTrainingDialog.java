@@ -33,7 +33,7 @@ import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetMetadata;
-import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionHandler.DataSetSelection;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;

@@ -19,14 +19,14 @@ import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 
 public class DataSetSelectionSashFormListener {
-	private final DataSetSelectionHandler handler;
+	private final DataSetSelectionController controller;
 	private DataSetSelectionSashForm view;
 	private final IDoubleClickListener treeViewerDoubleClickListener;
 	private final ISelectionChangedListener treeViewerSelectionChangedListener;
 	
-	DataSetSelectionSashFormListener(DataSetSelectionSashForm view, DataSetSelectionHandler handler) {
+	DataSetSelectionSashFormListener(DataSetSelectionSashForm view, DataSetSelectionController controller) {
 		this.view = view;
-		this.handler = handler;
+		this.controller = controller;
 		treeViewerDoubleClickListener = new TreeViewerDoubleClickListener();
 		treeViewerSelectionChangedListener = new TreeViewerSelectionChangedListener();
 		addListeners(view);
@@ -43,9 +43,9 @@ public class DataSetSelectionSashFormListener {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(view.documentsTabItem.equals(view.dataTabFolder.getSelection())) {
-					handler.addDocumentSelectionToTrainSet();
+					controller.addDocumentSelectionToTrainSet();
 				} else if (view.gtTabItem.equals(view.dataTabFolder.getSelection())) {
-					handler.addGtSelectionToTrainSet();
+					controller.addGtSelectionToTrainSet();
 				}
 			}
 		});
@@ -54,9 +54,9 @@ public class DataSetSelectionSashFormListener {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(view.documentsTabItem.equals(view.dataTabFolder.getSelection())) {
-					handler.addDocumentSelectionToValidationSet();
+					controller.addDocumentSelectionToValidationSet();
 				} else if (view.gtTabItem.equals(view.dataTabFolder.getSelection())) {
-					handler.addGtSelectionToValidationSet();
+					controller.addGtSelectionToValidationSet();
 				}
 			}
 		});
@@ -65,7 +65,7 @@ public class DataSetSelectionSashFormListener {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				List<IDataSelectionEntry<?, ?>> entries = view.trainSetOverviewTable.getSelectedDataSets();
-				handler.removeSelectionFromTrainSet(entries);
+				controller.removeSelectionFromTrainSet(entries);
 			}
 		});
 
@@ -73,7 +73,7 @@ public class DataSetSelectionSashFormListener {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				List<IDataSelectionEntry<?, ?>> entries = view.testSetOverviewTable.getSelectedDataSets();
-				handler.removeSelectionFromTestSet(entries);
+				controller.removeSelectionFromTestSet(entries);
 			}
 		});
 	}
@@ -86,7 +86,7 @@ public class DataSetSelectionSashFormListener {
 		@Override
 		public void selectionChanged(SelectionChangedEvent event) {
 			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-			handler.updateThumbnail(selection);
+			controller.updateThumbnail(selection);
 		}
 	};
 	
@@ -101,7 +101,7 @@ public class DataSetSelectionSashFormListener {
 			if (o instanceof TrpDocMetadata) {
 				expandTreeItem(o, view.docTv);
 			} else if (o instanceof TrpPage) {
-				handler.loadPageInMainWidget((TrpPage)o);
+				controller.loadPageInMainWidget((TrpPage)o);
 			} else if (o instanceof TrpHtr || o instanceof HtrGtDataSet) {
 				expandTreeItem(o, view.groundTruthTv);
 			}

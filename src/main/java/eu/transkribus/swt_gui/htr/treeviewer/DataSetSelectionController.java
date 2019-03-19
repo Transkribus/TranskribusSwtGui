@@ -43,8 +43,8 @@ import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGt
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
-public class DataSetSelectionHandler {
-	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionHandler.class);
+public class DataSetSelectionController {
+	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionController.class);
 	
 	//maps containing current selection. Maybe handling becomes less complex if this solely handled in table?
 	private Map<TrpDocMetadata, List<TrpPage>> trainDocMap, testDocMap;
@@ -66,7 +66,7 @@ public class DataSetSelectionHandler {
 	 * @param colId
 	 * @param view
 	 */
-	public DataSetSelectionHandler(final int colId, DataSetSelectionSashForm view) {
+	public DataSetSelectionController(final int colId, DataSetSelectionSashForm view) {
 		trainDocMap = new TreeMap<>();
 		testDocMap = new TreeMap<>();
 		trainGtMap = new TreeMap<>();

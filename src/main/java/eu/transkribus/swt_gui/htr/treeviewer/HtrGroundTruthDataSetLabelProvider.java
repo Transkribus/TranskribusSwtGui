@@ -15,15 +15,15 @@ import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGt
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
 /**
- * {@link HtrGroundTruthLabelProvider} for use in training data set preparation with a {@link DataSetSelectionHandler}.
+ * {@link HtrGroundTruthLabelProvider} for use in training data set preparation with a {@link DataSetSelectionController}.
  * Label texts and colors reflect information on data set inclusion of an element.
  */
 public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvider implements IColorProvider {
 	private static final Logger logger = LoggerFactory.getLogger(HtrGroundTruthDataSetLabelProvider.class);
 	
-	protected final DataSetSelectionHandler handler;
+	protected final DataSetSelectionController handler;
 	
-	public HtrGroundTruthDataSetLabelProvider(DataSetSelectionHandler handler) {
+	public HtrGroundTruthDataSetLabelProvider(DataSetSelectionController handler) {
 		this.handler = handler;
 	}
 

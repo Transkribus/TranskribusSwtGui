@@ -35,7 +35,7 @@ import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
-import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionHandler.DataSetSelection;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
@@ -84,7 +84,7 @@ public class DataSetSelectionSashForm extends SashForm {
 	private Label previewLbl;
 	private URL currentThumbUrl = null;
 	
-	private DataSetSelectionHandler dataHandler;
+	private DataSetSelectionController dataSetSelectionController;
 
 	//the input to select data from
 	private List<TrpDocMetadata> docList;
@@ -96,7 +96,7 @@ public class DataSetSelectionSashForm extends SashForm {
 		this.docList = docList;
 		this.htrList = htrList;
 		this.colId = colId;
-		dataHandler = new DataSetSelectionHandler(colId, this);
+		dataSetSelectionController = new DataSetSelectionController(colId, this);
 		
 		this.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		this.setLayout(new GridLayout(1, false));
@@ -187,7 +187,7 @@ public class DataSetSelectionSashForm extends SashForm {
 		trainSetGrp.pack();
 		testSetGrp.pack();
 		
-		new DataSetSelectionSashFormListener(this, dataHandler);
+		new DataSetSelectionSashFormListener(this, dataSetSelectionController);
 	}
 
 	public void setGroundTruthSelectionEnabled(boolean enabled) {
@@ -202,7 +202,7 @@ public class DataSetSelectionSashForm extends SashForm {
 			if(gtTabItem != null) {
 				gtTabItem.dispose();
 				gtTabItem = null;
-				dataHandler.removeAllGtFromSelection();
+				dataSetSelectionController.removeAllGtFromSelection();
 				return;
 			}
 		}
@@ -211,7 +211,7 @@ public class DataSetSelectionSashForm extends SashForm {
 	private TreeViewer createDocumentTreeViewer(Composite parent) {
 		TreeViewer tv = new TreeViewer(parent, SWT.BORDER | SWT.MULTI);
 		final CollectionContentProvider docContentProvider = new CollectionContentProvider(colId);
-		final CollectionLabelProvider docLabelProvider = new CollectionDataSetLabelProvider(dataHandler);
+		final CollectionLabelProvider docLabelProvider = new CollectionDataSetLabelProvider(dataSetSelectionController);
 		tv.setContentProvider(docContentProvider);
 		tv.setLabelProvider(docLabelProvider);
 		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -222,7 +222,7 @@ public class DataSetSelectionSashForm extends SashForm {
 	private TreeViewer createGroundTruthTreeViewer(Composite parent) {
 		TreeViewer tv = new TreeViewer(parent, SWT.BORDER | SWT.MULTI);
 		final HtrGroundTruthContentProvider htrGtContentProvider = new HtrGroundTruthContentProvider(colId);
-		final HtrGroundTruthDataSetLabelProvider htrGtLabelProvider = new HtrGroundTruthDataSetLabelProvider(dataHandler);
+		final HtrGroundTruthDataSetLabelProvider htrGtLabelProvider = new HtrGroundTruthDataSetLabelProvider(dataSetSelectionController);
 		tv.setContentProvider(htrGtContentProvider);
 		tv.setLabelProvider(htrGtLabelProvider);
 		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -344,11 +344,11 @@ public class DataSetSelectionSashForm extends SashForm {
 	}
 	
 	public DataSetMetadata getTrainSetMetadata() {
-		return dataHandler.getTrainSetMetadata();
+		return dataSetSelectionController.getTrainSetMetadata();
 	}
 	
 	public DataSetMetadata getTestSetMetadata() {
-		return dataHandler.getTestSetMetadata();
+		return dataSetSelectionController.getTestSetMetadata();
 	}
 	
 	public Button getUseGtVersionChk() {
@@ -359,11 +359,11 @@ public class DataSetSelectionSashForm extends SashForm {
 		return useNewVersionChk;
 	}
 
-	DataSetSelectionHandler getDataHandler() {
-		return dataHandler;
+	DataSetSelectionController getController() {
+		return dataSetSelectionController;
 	}
 
 	public DataSetSelection getSelection(EditStatus status) {
-		return dataHandler.getSelection(status);
+		return dataSetSelectionController.getSelection(status);
 	}
 }
