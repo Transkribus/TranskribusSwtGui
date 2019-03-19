@@ -16,9 +16,7 @@ import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.events.VerifyListener;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -30,7 +28,6 @@ import eu.transkribus.client.catti.TrpCattiClientEndpoint.CattiMessageHandler;
 import eu.transkribus.core.catti.CattiMethod;
 import eu.transkribus.core.catti.CattiRequest;
 import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.CustomTagList;
 import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
@@ -514,6 +511,10 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 				
 				//TODO:FIXME take out!
 				logger.debug("verifyKey() "+e.keyCode + ": "+e.character + " - "+ e.text);
+				
+				if(!isWriteable()) {
+					showReadOnlyModeBalloon();
+				}
 				
 				// VERY OLD SHIT:
 //				boolean isSingleSelect = (e.start == e.end);

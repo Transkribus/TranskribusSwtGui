@@ -1,3 +1,4 @@
+
 package eu.transkribus.swt_gui.transcription;
 
 //import java.awt.Point;
@@ -229,7 +230,15 @@ public abstract class ATranscriptionWidget extends Composite{
 	
 	public static final boolean USE_AUTOCOMPLETE_FROM_PAGE=true;
 	
+	/**
+	 * {@link #setWriteable(boolean) will set the edit mode on the text field. Current state is stored here.
+	 */
 	private boolean isWriteable;
+	/**
+	 * Balloon tip is shown when in read-only mode after the first verify key event in the concrete transcription widgets.
+	 * This field's value is then set to true and is used to suppress further balloons to show.
+	 */
+	private boolean readOnlyInfoShown = false;
 	
 	List<ITranscriptionWidgetListener> listener = new ArrayList<>(); // custom event listener
 //	private DropDownToolItem alignmentDropDown;
@@ -3130,8 +3139,19 @@ public abstract class ATranscriptionWidget extends Composite{
 
 	public void setWriteable(boolean writeable) {
 		this.isWriteable = writeable;
+		this.readOnlyInfoShown = false;
 		setEnabled(writeable);
 	}
 	
-		
+	public boolean isWriteable() {
+		return isWriteable;
+	}
+	
+	protected void showReadOnlyModeBalloon() {
+		if(this.readOnlyInfoShown) {
+			return;
+		}
+		DialogUtil.showBallonToolTip(text, false, null, "Read-only mode", "This document can't be edited.");
+		this.readOnlyInfoShown = true;
+	}
 }

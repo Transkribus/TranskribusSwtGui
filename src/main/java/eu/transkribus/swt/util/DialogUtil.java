@@ -373,12 +373,21 @@ public class DialogUtil {
 	}
 	
 	public static void showBallonToolTip(Composite c, Integer iconType, String title, String message) {
+		showBallonToolTip(c, true, iconType, title, message);
+	}
+
+	public static void showBallonToolTip(Composite c, boolean displayOnBottom, Integer iconType, String title, String message) {
 		if (iconType == null)
 			iconType = SWT.ICON_INFORMATION;
 
+		int xOffset = 0, yOffset = 0;
+		if(displayOnBottom) {
+			Rectangle b = c.getBounds();
+			xOffset = b.width;
+			yOffset = b.height;
+		}
 		Rectangle b = c.getBounds();
 		Point l = c.getParent().toDisplay(c.getLocation());
-		DialogUtil.createAndShowBalloonToolTip(c.getShell(), iconType, message, title, l.x+b.width, l.y+b.height, true);		
+		DialogUtil.createAndShowBalloonToolTip(c.getShell(), iconType, message, title, l.x + xOffset, l.y + yOffset, true);		
 	}
-
 }

@@ -6,28 +6,6 @@ import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.tuple.Pair;
-//import org.apache.commons.math3.util.Pair;
-//import org.apache.commons.math3.util.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.CustomTagList;
-import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
-import eu.transkribus.core.model.beans.pagecontent.WordType;
-import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
-import eu.transkribus.core.util.IntRange;
-import eu.transkribus.swt.util.Colors;
-import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt_gui.canvas.CanvasKeys;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
-import eu.transkribus.swt_gui.util.GuiUtil;
-import eu.transkribus.util.Utils;
-
 import org.eclipse.jface.text.JFaceTextUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ExtendedModifyEvent;
@@ -44,6 +22,26 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ToolItem;
+//import org.apache.commons.math3.util.Pair;
+//import org.apache.commons.math3.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.model.beans.customtags.CustomTag;
+import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
+import eu.transkribus.core.model.beans.pagecontent.WordType;
+import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.util.IntRange;
+import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.canvas.CanvasKeys;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
+import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
+import eu.transkribus.swt_gui.util.GuiUtil;
+import eu.transkribus.util.Utils;
 
 public class WordTranscriptionWidget extends ATranscriptionWidget {
 	private final static Logger logger = LoggerFactory.getLogger(WordTranscriptionWidget.class);
@@ -424,7 +422,9 @@ public class WordTranscriptionWidget extends ATranscriptionWidget {
 						return;
 					}
 				}
-
+				if(!isWriteable()) {
+					showReadOnlyModeBalloon();
+				}
 			}
 		};
 		addUserVerifyKeyListener(verifyKeyListener);
