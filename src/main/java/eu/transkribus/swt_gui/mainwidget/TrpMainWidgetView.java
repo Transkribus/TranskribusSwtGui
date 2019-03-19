@@ -897,20 +897,23 @@ public class TrpMainWidgetView extends Composite {
 		final boolean canTranscribe = role.canTranscribe() && !Storage.getInstance().isGtDoc();
 		
 		if (tabWidget.isEnabled() && !tabWidget.toolsItem.isDisposed()) {
+			/**
+			 * FIXME 
+			 * This removes all content from respective tabs.
+			 * See issue #71
+			 */
 			if (!canTranscribe) {
 				tabWidget.toolsItem.setControl(null);
 				tabWidget.textTaggingItem.setControl(null);
 				tabWidget.structuralMdItem.setControl(null);
 				tabWidget.commentsItem.setControl(null);
 				tabWidget.docMdItem.setControl(null);
-				tabWidget.structureItem.setControl(null);
 			} else {
 				tabWidget.toolsItem.setControl(toolsWidget);
 				tabWidget.textTaggingItem.setControl(taggingWidget);
 				tabWidget.structuralMdItem.setControl(structuralMdWidget);
 				tabWidget.commentsItem.setControl(commentsWidget);
 				tabWidget.docMdItem.setControl(docMetadataEditor);
-				tabWidget.structureItem.setControl(structureTreeWidget);
 			}
 		}
 		getSelectedTranscriptionWidget().setWriteable(canTranscribe);
@@ -929,6 +932,9 @@ public class TrpMainWidgetView extends Composite {
 		
 		//doc overview tool bar
 		serverWidget.updateBtnVisibility(canManage);
+		
+		//layout tab tool bar button visibility
+		structureTreeWidget.setEditingEnabled(canTranscribe);
 		
 		//canvas toolbar
 		canvasWidget.getCanvas().getSettings().setEditingEnabled(canTranscribe);
