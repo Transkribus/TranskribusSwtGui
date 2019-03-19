@@ -3,7 +3,7 @@ package eu.transkribus.swt_gui.htr.treeviewer;
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.transkribus.core.model.beans.GroundTruthSelectionDescriptor.GtSetType;
+import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
@@ -75,7 +75,7 @@ public class HtrGroundTruthDataSelectionEntry implements IDataSelectionEntry<Htr
 		this.pages = pages;
 	}
 
-	public GtSetType getGtSetType() {
+	public DataSetType getGtSetType() {
 		return htrGtDataSet.getSetType();
 	}
 	

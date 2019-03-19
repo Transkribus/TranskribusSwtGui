@@ -9,8 +9,8 @@ import org.eclipse.swt.graphics.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.GroundTruthSelectionDescriptor.GtSetType;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
@@ -46,8 +46,8 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 	public Color getBackground(Object element) {
 		logger.trace("getBackground() on " + element.getClass().getSimpleName());
 		if(element instanceof TrpHtr) {
-			HtrGtDataSet trainSet = new HtrGtDataSet((TrpHtr)element, GtSetType.TRAIN);
-			HtrGtDataSet validationSet = new HtrGtDataSet((TrpHtr)element, GtSetType.VALIDATION);
+			HtrGtDataSet trainSet = new HtrGtDataSet((TrpHtr)element, DataSetType.TRAIN);
+			HtrGtDataSet validationSet = new HtrGtDataSet((TrpHtr)element, DataSetType.VALIDATION);
 			if(handler.getTrainGtMap().containsKey(trainSet) && handler.getTestGtMap().containsKey(validationSet)) {
 				return DataSetSelectionSashForm.CYAN;
 			} else if (handler.getTrainGtMap().containsKey(trainSet)) {

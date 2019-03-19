@@ -9,10 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.model.beans.GroundTruthSelectionDescriptor.GtSetType;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
 
 public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredContentProvider implements ITreeContentProvider {
@@ -61,10 +61,10 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		HtrGtDataSet trainSet = null;
 		HtrGtDataSet valSet = null;
 		if(htr.hasTrainGt()) {
-			trainSet = new HtrGtDataSet(htr, GtSetType.TRAIN);
+			trainSet = new HtrGtDataSet(htr, DataSetType.TRAIN);
 		}
 		if(htr.hasValidationGt()) {
-			valSet = new HtrGtDataSet(htr, GtSetType.VALIDATION);
+			valSet = new HtrGtDataSet(htr, DataSetType.VALIDATION);
 		}
 		if(trainSet != null && valSet != null) {
 			return new HtrGtDataSet[] { trainSet, valSet };
@@ -141,8 +141,8 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	 */
 	public static class HtrGtDataSet implements Comparable<HtrGtDataSet> {
 		private final TrpHtr htr;
-		private final GtSetType setType;
-		public HtrGtDataSet(TrpHtr htr, GtSetType setType) {
+		private final DataSetType setType;
+		public HtrGtDataSet(TrpHtr htr, DataSetType setType) {
 			this.htr = htr;
 			this.setType = setType;
 		}
@@ -152,7 +152,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		public TrpHtr getHtr() {
 			return htr;
 		}
-		public GtSetType getSetType() {
+		public DataSetType getSetType() {
 			return setType;
 		}
 		public int getNrOfPages() {
@@ -198,12 +198,12 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			if (this.getHtrId() < o.getHtrId()) {
 				return -1;
 			}
-			if (GtSetType.TRAIN.equals(this.getSetType()) 
-					&& GtSetType.VALIDATION.equals(o.getSetType())) {
+			if (DataSetType.TRAIN.equals(this.getSetType()) 
+					&& DataSetType.VALIDATION.equals(o.getSetType())) {
 				return 1;
 			}
-			if (GtSetType.VALIDATION.equals(this.getSetType()) 
-					&& GtSetType.TRAIN.equals(o.getSetType())) {
+			if (DataSetType.VALIDATION.equals(this.getSetType()) 
+					&& DataSetType.TRAIN.equals(o.getSetType())) {
 				return -1;
 			}
 			return 0;			
