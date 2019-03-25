@@ -142,7 +142,7 @@ public class CollectionSelectorDialog extends Dialog {
 	
 	@Override protected void okPressed() {
 		this.selectedCollection = collectionTable.getFirstSelected();
-		
+		//logger.debug("selected collection: " + selectedCollection.getColId());
 		super.okPressed();
 	}
 

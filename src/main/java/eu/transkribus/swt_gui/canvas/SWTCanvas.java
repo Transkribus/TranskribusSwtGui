@@ -1852,7 +1852,7 @@ public class SWTCanvas extends Canvas {
 
 		if (showRo) {
 			
-			s.updateReadingOrderShapeWidth(sets.getReadingOrderCircleWidth());
+			//s.updateReadingOrderShapeWidth(sets.getReadingOrderCircleWidth());
 
 			gc.setAlpha(CanvasSettings.DEFAULT.getForegroundAlpha());
 			
@@ -1898,13 +1898,14 @@ public class SWTCanvas extends Canvas {
 				int yOffset = 0;
 								
 				if (isRegion){
-					gc.setFont(sets.getFontTahoma50());
-					xOffset = 10;
-					yOffset = 0;
-					if (readingOrder2Show>=0 && readingOrder2Show<10)
-					{
-						xOffset = 20;
-					}
+					//gc.setFont(sets.getFontTahoma50());
+					gc.setFont(sets.getFontTahomaWithSize(arcWidth));
+					xOffset = arcWidth/5;
+					yOffset = arcWidth/5;
+//					if (readingOrder2Show>=0 && readingOrder2Show<10)
+//					{
+//						xOffset = 20;
+//					}
 
 				}
 				else if (isLine){

@@ -398,7 +398,16 @@ public class CanvasSettings extends APropertyChangeSupport  {
 		}
 
 		public Font getFontTahoma22() {
+			return fontTahoma22;		
+		}
+		
+		public Font getFontTahomaWithSize(int newHeight) {
+			FontData[] fd = fontTahoma22.getFontData();
+			for (FontData fds : fd){
+				fds.setHeight(newHeight);
+			}
 			return fontTahoma22;
+			
 		}
 
 		public Color getReadingOrderBackgroundColor() {

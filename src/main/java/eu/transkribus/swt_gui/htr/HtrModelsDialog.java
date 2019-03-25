@@ -57,12 +57,14 @@ public class HtrModelsDialog extends Dialog {
 				}
 			}
 		});
-		modelsComp.htw.getTableViewer().getTable().addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseDoubleClick(MouseEvent e) {
-				okPressed();
-			}
-		});
+		
+		//this closes the dialog but this is not wanted
+//		modelsComp.htw.getTableViewer().getTable().addMouseListener(new MouseAdapter() {
+//			@Override
+//			public void mouseDoubleClick(MouseEvent e) {
+//				//okPressed();
+//			}
+//		});
 		
 		return cont;
 	}

@@ -267,11 +267,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
 							// check if all pages contain GT version
 							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
-							if(transGT == null) {
-								throw new NullArgumentException("page "+ (pageIndex+1));
-							}
 							for(TrpTranscriptMetadata transcript : transcripts){
-								if(transcript.getToolName() != null) {
+								if(transGT != null && transcript.getToolName() != null) {
 									if(transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
 										newPageIndices.add(pageIndex);
 									}
@@ -293,9 +290,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						}
 					} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException e1) {
 						e1.printStackTrace();
-					} catch (NullArgumentException e2) {
-						DialogUtil.showErrorMessageBox(getShell(), "Missing GT", "GT for " +e2.getLocalizedMessage());
-					}
+					} 
 					
 		
 				}
