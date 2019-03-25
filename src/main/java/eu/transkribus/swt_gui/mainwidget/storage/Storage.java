@@ -56,6 +56,7 @@ import eu.transkribus.core.io.DocExporter;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.LocalDocWriter;
+import eu.transkribus.core.io.RemoteDocConst;
 import eu.transkribus.core.io.UnsupportedFormatException;
 import eu.transkribus.core.io.util.ExtensionFileFilter;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
@@ -531,7 +532,7 @@ public class Storage {
 	 * @return
 	 */
 	public static boolean isGtDoc(TrpDoc doc) {
-		return doc != null && doc.isRemoteDoc() && doc.getMd().getStatus() == TrpDocMetadata.STATUS_GROUND_TRUTH_DOC;
+		return doc != null && doc.isRemoteDoc() && doc.getMd().getStatus() == RemoteDocConst.STATUS_GROUND_TRUTH_DOC;
 	}
 	
 	public void closeCurrentDocument() {

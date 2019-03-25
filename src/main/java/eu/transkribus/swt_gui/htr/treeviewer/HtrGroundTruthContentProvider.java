@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.io.RemoteDocConst;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
@@ -225,7 +226,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		}
 		@Override
 		public Integer getStatus() {
-			return TrpDocMetadata.STATUS_GROUND_TRUTH_DOC;
+			return RemoteDocConst.STATUS_GROUND_TRUTH_DOC;
 		}
 	}
 	
