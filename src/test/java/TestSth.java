@@ -1,10 +1,13 @@
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -12,6 +15,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +26,7 @@ import Jama.Matrix;
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocWriter;
+import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpDoc;
@@ -316,10 +321,45 @@ public class TestSth {
 		System.out.println("cp = "+new JarFile("/home/hansm/Downloads/Transkribus-1.5.2/Transkribus-1.5.4.2-SNAPSHOT.jar")
 			.getManifest().getMainAttributes().getValue("Class-Path"));
 	}
+	
+	private static void printSth() {
+		String pagesStr="";
+		for (int i=203; i<=251; ++i) {
+			if (i%2 == 1) {
+				pagesStr+=i+",";	
+			}
+		}
+		pagesStr = StringUtils.removeEnd(pagesStr, ",");
+		System.out.println(pagesStr);
+	}
+	
+	private static void openP2PaLAConfig() throws FileNotFoundException, IOException {
+		Properties props = new Properties();
+		props.load(new FileReader(new File("Y:\\TRP\\p2pala\\models\\statz_bl_regions_1\\config_inference.txt")));
+		
+//		TrpProperties p = TrpProperties.fromFile("Y:\\TRP\\p2pala\\models\\statz_bl_regions_1\\config_inference.txt");
+//		System.out.println("p = "+p);
+		
+		
+		
+		for (Object key : props.keySet()) {
+			System.out.println("key = "+key+", value = "+props.getProperty((String) key));
+		}
+		
+		
+	}
+	
+	private static void createTrainAndTestSet(String folder, String outputFolder) {
+		
+		
+		
+	}
 			
 	public static void main(String [] args) throws Exception {
-		testReadManifest();
+//		testReadManifest();
 //		createMetsForRemoteDoc(args);
+//		printSth();
+		openP2PaLAConfig();
 		
 		if (true)
 			return;

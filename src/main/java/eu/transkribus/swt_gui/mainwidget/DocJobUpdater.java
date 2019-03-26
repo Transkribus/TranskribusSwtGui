@@ -147,7 +147,7 @@ public class DocJobUpdater {
 					}
 				}
 				//page string set e.g. 1-30; get list of page indices and check if loaded page is affected
-				else if(job.getPages() != null)
+				else if(job.getPages() != null) {
 					try {
 						for (Integer pageIdx : CoreUtils.parseRangeListStrToList(job.getPages(),store.getDoc().getNPages())){
 							if (store.getPageIndex() == pageIdx){
@@ -163,6 +163,7 @@ public class DocJobUpdater {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+				}
 			});
 		}
 	}
