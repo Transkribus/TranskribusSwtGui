@@ -1398,7 +1398,7 @@ public class Storage {
 	public void loadHtrGtAsDoc(int colId, HtrGtDataSet set, int pageIndex) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		List<TrpGroundTruthPage> gt;
-		switch(set.getSetType()) {
+		switch(set.getDataSetType()) {
 		case VALIDATION: 
 			gt = conn.getHtrValidationData(colId, set.getHtr().getHtrId());
 			break;
@@ -1417,7 +1417,7 @@ public class Storage {
 		
 		sendEvent(new GroundTruthLoadEvent(this, doc));
 
-		logger.info("loaded HTR GT " + set.getSetType().getLabel() + " htrId = " + set.getHtr().getHtrId() + ", title = " 
+		logger.info("loaded HTR GT " + set.getDataSetType().getLabel() + " htrId = " + set.getHtr().getHtrId() + ", title = " 
 				+ gtDoc.getMd().getTitle() + ", nPages = " + gtDoc.getPages().size());
 	}
 

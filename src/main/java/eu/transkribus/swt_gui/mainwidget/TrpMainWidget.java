@@ -2703,7 +2703,7 @@ public class TrpMainWidget {
 
 			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					monitor.beginTask("Loading HTR GT " + set.getSetType() + " HTR ID " + set.getHtrId(), IProgressMonitor.UNKNOWN);
+					monitor.beginTask("Loading HTR GT " + set.getDataSetType() + " HTR ID " + set.getId(), IProgressMonitor.UNKNOWN);
 					try {
 						// if (true) throw new SessionExpiredException("Yo!");
 						storage.loadHtrGtAsDoc(colId, set, pageIndex);
@@ -2720,7 +2720,7 @@ public class TrpMainWidget {
 			tmpCount++;
 			return true;
 		} catch (Throwable e) {
-			onError("Error loading HTR GT", "Could not load GT set for HTR with id  " + set.getHtrId(), e);
+			onError("Error loading HTR GT", "Could not load GT set for HTR with id  " + set.getId(), e);
 			return false;
 		}
 	}

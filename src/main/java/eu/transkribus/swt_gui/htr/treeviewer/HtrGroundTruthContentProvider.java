@@ -14,6 +14,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
+import eu.transkribus.core.util.DescriptorUtils.GroundTruthDataSetDescriptor;
 import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
 
 public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredContentProvider implements ITreeContentProvider {
@@ -77,19 +78,19 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	
 	HtrGtDataSetElement[] getChildren(HtrGtDataSet gt) {
 		List<TrpGroundTruthPage> gtList = null;
-		switch(gt.getSetType()) {
+		switch(gt.getDataSetType()) {
 		case TRAIN:
 			try {
-				gtList = store.getConnection().getHtrTrainData(super.getCollId(), gt.getHtrId());
+				gtList = store.getConnection().getHtrTrainData(super.getCollId(), gt.getId());
 			} catch (SessionExpiredException | IllegalArgumentException e) {
-				logger.error("Could not retrieve HTR train data set for HTR = " + gt.getHtrId(), e);
+				logger.error("Could not retrieve HTR train data set for HTR = " + gt.getId(), e);
 			}
 			break;
 		case VALIDATION:
 			try {
-				gtList = store.getConnection().getHtrValidationData(super.getCollId(), gt.getHtrId());
+				gtList = store.getConnection().getHtrValidationData(super.getCollId(), gt.getId());
 			} catch (SessionExpiredException | IllegalArgumentException e) {
-				logger.error("Could not retrieve HTR validation data set for HTR = " + gt.getHtrId(), e);
+				logger.error("Could not retrieve HTR validation data set for HTR = " + gt.getId(), e);
 			}
 			break;
 		}
@@ -126,7 +127,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		} else if (element instanceof HtrGtDataSet) {
 			final HtrGtDataSet s = ((HtrGtDataSet) element);
 			TrpHtr h = ((HtrGtDataSet) element).getHtr();	
-			switch (s.getSetType()) {
+			switch (s.getDataSetType()) {
 			case TRAIN:
 				return h.hasTrainGt();
 			case VALIDATION:
@@ -140,37 +141,33 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	 * An instance of this type represents an HTR GroundTruth data set (e.g. train or validation set) and is used for 
 	 * displaying the ground truth set level in a HTR treeviewer.
 	 */
-	public static class HtrGtDataSet implements Comparable<HtrGtDataSet> {
+	public static class HtrGtDataSet extends GroundTruthDataSetDescriptor implements Comparable<HtrGtDataSet> {
 		private final TrpHtr htr;
-		private final DataSetType setType;
-		public HtrGtDataSet(TrpHtr htr, DataSetType setType) {
+		public HtrGtDataSet(TrpHtr htr, DataSetType dataSetType) {
+			super(htr.getHtrId(), dataSetType);
 			this.htr = htr;
-			this.setType = setType;
-		}
-		public int getHtrId() {
-			return htr.getHtrId();
+			switch(dataSetType) {
+			case TRAIN:
+				if(htr.getNrOfTrainGtPages() != null) {
+					super.size = htr.getNrOfTrainGtPages();
+				}
+				break;
+			case VALIDATION:
+				if(htr.getNrOfValidationGtPages() != null) {
+					super.size = htr.getNrOfValidationGtPages();
+				}
+				break;
+			}
 		}
 		public TrpHtr getHtr() {
 			return htr;
-		}
-		public DataSetType getSetType() {
-			return setType;
-		}
-		public int getNrOfPages() {
-			switch(setType) {
-			case TRAIN:
-				return htr.getNrOfTrainGtPages();
-			case VALIDATION:
-				return htr.getNrOfValidationGtPages();
-			}
-			return -1;
 		}
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + ((htr == null) ? 0 : htr.hashCode());
-			result = prime * result + ((setType == null) ? 0 : setType.hashCode());
+			result = prime * result + ((getDataSetType() == null) ? 0 : getDataSetType().hashCode());
 			return result;
 		}
 		@Override
@@ -185,26 +182,26 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			if (htr == null) {
 				if (other.htr != null)
 					return false;
-			} else if (htr.getHtrId() != other.htr.getHtrId())
+			} else if (getId() != other.getId())
 				return false;
-			if (setType != other.setType)
+			if (getDataSetType() != other.getDataSetType())
 				return false;
 			return true;
 		}
 		@Override
 		public int compareTo(HtrGtDataSet o) {
-			if (this.getHtrId() > o.getHtrId()) {
+			if (this.getId() > o.getId()) {
 				return 1;
 			}
-			if (this.getHtrId() < o.getHtrId()) {
+			if (this.getId() < o.getId()) {
 				return -1;
 			}
-			if (DataSetType.TRAIN.equals(this.getSetType()) 
-					&& DataSetType.VALIDATION.equals(o.getSetType())) {
+			if (DataSetType.TRAIN.equals(this.getDataSetType()) 
+					&& DataSetType.VALIDATION.equals(o.getDataSetType())) {
 				return 1;
 			}
-			if (DataSetType.VALIDATION.equals(this.getSetType()) 
-					&& DataSetType.TRAIN.equals(o.getSetType())) {
+			if (DataSetType.VALIDATION.equals(this.getDataSetType()) 
+					&& DataSetType.TRAIN.equals(o.getDataSetType())) {
 				return -1;
 			}
 			return 0;			
@@ -219,7 +216,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		private final HtrGtDataSet dataSet;
 		public TrpHtrGtDocMetadata(HtrGtDataSet dataSet) {
 			this.dataSet = dataSet;
-			this.setTitle("HTR '" + dataSet.getHtr().getName() + "' " + dataSet.setType.getLabel());
+			this.setTitle("HTR '" + dataSet.getHtr().getName() + "' " + dataSet.getDataSetType().getLabel());
 		}
 		public HtrGtDataSet getDataSet() {
 			return dataSet;

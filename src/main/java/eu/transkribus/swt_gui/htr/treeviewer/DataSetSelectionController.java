@@ -38,6 +38,7 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.core.util.JaxbUtils;
+import eu.transkribus.core.util.DescriptorUtils.GroundTruthDataSetDescriptor;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
@@ -641,13 +642,19 @@ public class DataSetSelectionController {
 		return new DataSetSelection(trainDocDescs, validationDocDescs, trainGtDescs, validationGtDescs);
 	}
 	
+	/**
+	 * Translate internal HTR specific representation into a generic one and build the descriptor using DescriptorUtils.
+	 * 
+	 * @param internalGtMap
+	 * @return
+	 */
 	private List<GroundTruthSelectionDescriptor> buildGtSelectionDescriptorList(
 			Map<HtrGtDataSet, List<HtrGtDataSetElement>> internalGtMap) {
-		Map<TrpHtr, List<TrpGroundTruthPage>> gtMap = new HashMap<>();
+		Map<GroundTruthDataSetDescriptor, List<TrpGroundTruthPage>> gtMap = new HashMap<>();
 		for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : internalGtMap.entrySet()) {
 			List<TrpGroundTruthPage> unwrappedGt = e.getValue().stream()
 					.map(g -> g.getGroundTruthPage()).collect(Collectors.toList());
-			gtMap.put(e.getKey().getHtr(), unwrappedGt);
+			gtMap.put(e.getKey(), unwrappedGt);
 		}
 		return DescriptorUtils.buildGtSelectionDescriptorList(gtMap);
 	}
@@ -721,8 +728,12 @@ public class DataSetSelectionController {
 				CitLabHtrTrainConfig conf = new CitLabHtrTrainConfig();
 				conf.setTrain(sel.getTrainDocDescriptorList());
 				conf.setTest(sel.getValidationDocDescriptorList());
-				conf.setTrainGt(sel.getTrainGtDescriptorList());
-				conf.setTestGt(sel.getValidationGtDescriptorList());
+				if(!sel.getTrainGtDescriptorList().isEmpty()) {
+					conf.setTrainGt(sel.getTrainGtDescriptorList());
+				}
+				if(!sel.getValidationGtDescriptorList().isEmpty()) {
+					conf.setTestGt(sel.getValidationGtDescriptorList());
+				}
 				
 				text.setText(JaxbUtils.marshalToJsonString(conf, true));
 			} catch (JAXBException e) {

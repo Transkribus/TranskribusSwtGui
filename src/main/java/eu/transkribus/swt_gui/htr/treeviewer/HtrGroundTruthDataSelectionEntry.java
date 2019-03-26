@@ -20,7 +20,7 @@ public class HtrGroundTruthDataSelectionEntry implements IDataSelectionEntry<Htr
 		if(htrGtDataSet == null) {
 			throw new IllegalArgumentException("htrGtDataSet argument is null");
 		}
-		final int nrOfPages = htrGtDataSet.getNrOfPages();
+		final int nrOfPages = htrGtDataSet.getSize();
 		List<Boolean> boolList = new ArrayList<>(nrOfPages);
 		for (int i = 0; i < nrOfPages; i++) {
 			boolList.add(i, Boolean.FALSE);
@@ -76,7 +76,7 @@ public class HtrGroundTruthDataSelectionEntry implements IDataSelectionEntry<Htr
 	}
 
 	public DataSetType getGtSetType() {
-		return htrGtDataSet.getSetType();
+		return htrGtDataSet.getDataSetType();
 	}
 	
 	@Override

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
@@ -214,14 +215,18 @@ public class HtrTrainingDialog extends Dialog {
 		
 		config.setTrain(selection.getTrainDocDescriptorList());
 		config.setTest(selection.getValidationDocDescriptorList());
-		config.setTrainGt(selection.getTrainGtDescriptorList());
-		config.setTestGt(selection.getValidationGtDescriptorList());
-	
-		if (config.getTrain().isEmpty()) {
+		if(!selection.getTrainGtDescriptorList().isEmpty()) {
+			config.setTrainGt(selection.getTrainGtDescriptorList());
+		}
+		if(!selection.getValidationGtDescriptorList().isEmpty()) {
+			config.setTestGt(selection.getValidationGtDescriptorList());
+		}
+		if (config.getTrain().isEmpty() && CollectionUtils.isEmpty(config.getTrainGt())) {
 			throw new IOException("Train set must not be empty!");
 		}
 		
-		if(config.getTest().isEmpty() && !isCitlabT2ISelected()){
+		if((config.getTest().isEmpty() && CollectionUtils.isEmpty(config.getTestGt())) 
+				&& !isCitlabT2ISelected()){
 			throw new IOException("Test set must not be empty! \nAt least one page must be selected to get meaningful error curve."
 					+ " Please increase choice of text pages with increasing training pages.");
 		}

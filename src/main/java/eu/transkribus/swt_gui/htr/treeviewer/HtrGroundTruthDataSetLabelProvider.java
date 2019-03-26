@@ -36,7 +36,7 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 		} else {
 			return text + " (included by " + 
 					includedBySetList.stream()
-						.map(s -> "HTR '" + s.getHtr().getName() + "' " + s.getSetType().getLabel())
+						.map(s -> "HTR '" + s.getHtr().getName() + "' " + s.getDataSetType().getLabel())
 						.collect(Collectors.joining(", "))
 					+ ")";
 		}
@@ -58,14 +58,14 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 		} else if (element instanceof HtrGtDataSet) {
 			HtrGtDataSet dataSet = (HtrGtDataSet) element;
 			if(handler.getTrainGtMap().containsKey(dataSet)) {
-				if(handler.getTrainGtMap().get(dataSet).size() == dataSet.getNrOfPages()) {
+				if(handler.getTrainGtMap().get(dataSet).size() == dataSet.getSize()) {
 					return DataSetSelectionSashForm.BLUE;
 				} else {
 					return DataSetSelectionSashForm.LIGHT_BLUE;
 				}
 			}
 			if(handler.getTestGtMap().containsKey(dataSet)) {
-				if(handler.getTestGtMap().get(dataSet).size() == dataSet.getNrOfPages()) {
+				if(handler.getTestGtMap().get(dataSet).size() == dataSet.getSize()) {
 					return DataSetSelectionSashForm.GREEN;
 				} else {
 					return DataSetSelectionSashForm.LIGHT_GREEN;

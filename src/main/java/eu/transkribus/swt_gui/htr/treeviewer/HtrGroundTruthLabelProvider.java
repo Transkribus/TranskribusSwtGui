@@ -36,8 +36,8 @@ public class HtrGroundTruthLabelProvider extends LabelProvider {
 	}
 
 	protected String getText(HtrGtDataSet s) {
-		final String nrOfPages = "(" + s.getNrOfPages() + " pages)";
-		return StringUtils.rightPad(s.getSetType().getLabel(), 15) + nrOfPages;
+		final String nrOfPages = "(" + s.getSize() + " pages)";
+		return StringUtils.rightPad(s.getDataSetType().getLabel(), 15) + nrOfPages;
 	}
 
 	protected String getText(HtrGtDataSetElement element) {
