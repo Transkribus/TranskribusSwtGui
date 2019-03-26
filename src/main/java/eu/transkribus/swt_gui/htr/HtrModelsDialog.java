@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.htr;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -23,6 +24,8 @@ public class HtrModelsDialog extends Dialog {
 	HtrModelsComposite modelsComp;
 	TrpHtr selectedHtr;
 	private final String providerFilter;
+	
+	private final boolean doubleClickSelectionEnabled;
 
 	/**
 	 * The dialog can be fixated to only show HTRs of a specific provider, e.g. for selecting a base model for the training.
@@ -30,13 +33,14 @@ public class HtrModelsDialog extends Dialog {
 	 * @param parentShell
 	 * @param providerFilter fixates the HTR provider filter. Pass null to allow the use to filter by that.
 	 */
-	public HtrModelsDialog(Shell parentShell, final String providerFilter) {
+	public HtrModelsDialog(Shell parentShell, boolean doubleClickSelectionEnabled, final String providerFilter) {
 		super(parentShell);
 		this.providerFilter = providerFilter;
+		this.doubleClickSelectionEnabled = doubleClickSelectionEnabled;
 	}
-	
-	public HtrModelsDialog(Shell parentShell) {
-		this(parentShell, null);
+
+	public HtrModelsDialog(Shell parentShell, boolean doubleClickSelectionEnabled) {
+		this(parentShell, doubleClickSelectionEnabled, null);
 	}
 	
 	@Override
@@ -58,13 +62,14 @@ public class HtrModelsDialog extends Dialog {
 			}
 		});
 		
-		//this closes the dialog but this is not wanted
-//		modelsComp.htw.getTableViewer().getTable().addMouseListener(new MouseAdapter() {
-//			@Override
-//			public void mouseDoubleClick(MouseEvent e) {
-//				//okPressed();
-//			}
-//		});
+		if(doubleClickSelectionEnabled) {
+			modelsComp.htw.getTableViewer().getTable().addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseDoubleClick(MouseEvent e) {
+					okPressed();
+				}
+			});
+		}
 		
 		return cont;
 	}
@@ -96,5 +101,4 @@ public class HtrModelsDialog extends Dialog {
 	public TrpHtr getSelectedHtr() {
 		return selectedHtr;
 	}
-	
 }

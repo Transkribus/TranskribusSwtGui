@@ -89,7 +89,7 @@ public class GenericDialogTest {
 					}
 					
 					if (false) {
-					HtrModelsDialog diag = new HtrModelsDialog(getShell());
+					HtrModelsDialog diag = new HtrModelsDialog(getShell(), false);
 					if (diag.open() == Dialog.OK) {
 						System.out.println("selected model: "+diag.getSelectedHtr());
 					}

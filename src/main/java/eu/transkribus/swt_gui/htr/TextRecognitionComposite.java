@@ -57,7 +57,7 @@ public class TextRecognitionComposite extends Composite {
 			}
 		});
 		
-		modelsBtn = new HtrModelChooserButton(this) {
+		modelsBtn = new HtrModelChooserButton(this, false) {
 			@Override public void setModel(TrpHtr htr) {}
 		};
 		modelsBtn.setText("Models...");

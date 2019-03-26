@@ -13,7 +13,13 @@ public class HtrModelChooserButton extends Composite {
 	
 	Button baseModelBtn;
 
-	public HtrModelChooserButton(Composite parent, final String providerFilter) {
+	/**
+	 * Button opening the HTR models dialog for selecting a HTR or for display purposes.
+	 * 
+	 * @param parent
+	 * @param doubleClickSelectionEnabled if true, then double-clicking a table element confirms and saves the selection and closes the dialog.
+	 */
+	public HtrModelChooserButton(Composite parent, final boolean doubleClickSelectionEnabled, final String providerFilter) {
 		super(parent, 0);
 		
 		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
@@ -23,14 +29,21 @@ public class HtrModelChooserButton extends Composite {
 		updateModelText();
 		
 		SWTUtil.onSelectionEvent(baseModelBtn, (e) -> {
-			HtrModelsDialog diag = new HtrModelsDialog(getShell(), providerFilter);
+			HtrModelsDialog diag = new HtrModelsDialog(getShell(), doubleClickSelectionEnabled, providerFilter);
 			if (diag.open() == Dialog.OK) {
 				setModel(diag.getSelectedHtr());
 			}
 		});
 	}
-	public HtrModelChooserButton(Composite parent) {
-		this(parent, null);
+	
+	/**
+	 * Button opening the HTR models dialog for selecting a HTR or for display purposes.
+	 * 
+	 * @param parent
+	 * @param doubleClickSelectionEnabled if true, then double-clicking a table element confirms and saves the selection and closes the dialog.
+	 */
+	public HtrModelChooserButton(Composite parent, final boolean doubleClickSelectionEnabled) {
+		this(parent, doubleClickSelectionEnabled, null);
 	}
 	
 	private void updateModelText() {

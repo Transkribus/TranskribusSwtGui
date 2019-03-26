@@ -3,6 +3,8 @@ package eu.transkribus.swt_gui.htr;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -59,6 +61,13 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		applyConfig();
 
 		sash.setWeights(new int[] { 88, 12 });
+		
+		htrModelsComp.htw.getTableViewer().getTable().addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				okPressed();
+			}
+		});
 
 		return cont;
 	}

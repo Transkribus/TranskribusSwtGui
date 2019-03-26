@@ -57,7 +57,7 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		if(BASE_MODEL_SELECTION_ENABLED) {
 			Label baseModelLbl = new Label(this, SWT.NONE);
 			baseModelLbl.setText("Base Model:");		
-			baseModelBtn = new HtrModelChooserButton(this, getProvider());
+			baseModelBtn = new HtrModelChooserButton(this, true, getProvider());
 			baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		} else {
 			baseModelBtn = null;

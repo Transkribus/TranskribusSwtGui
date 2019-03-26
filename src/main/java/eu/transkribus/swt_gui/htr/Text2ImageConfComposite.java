@@ -58,7 +58,7 @@ public class Text2ImageConfComposite extends Composite {
 		Label labelBaseModel = new Label(this, 0);
 		labelBaseModel.setText("Base model:");
 		
-		baseModelBtn = new HtrModelChooserButton(this);
+		baseModelBtn = new HtrModelChooserButton(this, true);
 		baseModelBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		epochsTxt = new LabeledText(this, "Epochs: ");
