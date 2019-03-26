@@ -69,11 +69,16 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 						return new ArrayList<>();
 					
 					List<TrpUserInfo> userInfo = new ArrayList<>();
-					try {
-						userInfo = store.getConnection().getUserInfoForCollection(collectionId, null, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
-					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
-						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-					}
+					
+					/**
+					 * FIXME 2019-03-25
+					 * getUserInfoForCollection is missing in current TranskribusClient dev branch
+					 */
+//					try {
+//						userInfo = store.getConnection().getUserInfoForCollection(collectionId, null, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+//					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
+//						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
+//					}
 					return userInfo;
 				}
 			};
