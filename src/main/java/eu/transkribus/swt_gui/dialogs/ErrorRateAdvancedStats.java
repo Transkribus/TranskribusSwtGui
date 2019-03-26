@@ -125,7 +125,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected static final int NUMBER_RESULTS_TABLE = 10;
 	
 
-	public ErrorRateAdvancedStats(Shell shell, TrpErrorRate resultErr, Integer docId, String query) {
+	public ErrorRateAdvancedStats(Shell shell, TrpErrorRate resultErr, int docId, String query) {
 		super(shell);
 		this.shell = shell;
 		this.resultErr = resultErr;
@@ -136,7 +136,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		this.hypString = stringQuery[3].substring(7);
 		logger.debug(this.refString+ " "+this.hypString);
 	}
-	
+
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);

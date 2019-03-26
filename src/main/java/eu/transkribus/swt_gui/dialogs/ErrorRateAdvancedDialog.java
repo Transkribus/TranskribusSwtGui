@@ -309,12 +309,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 				if (ref != null && hyp != null) {
 					params.addIntParam("option", -1);
+					params.addParameter("refKey", ref.getKey());
+					params.addParameter("hypKey", hyp.getKey());
+					params.addIntParam("pageNr", store.getPage().getPageNr());
 						try {
-//							store.computeErrorRate(ref.getDocId(), ""+ref.getPageNr(), params);
-							TrpErrorRateResult result = store.computeErrorRate(ref, hyp);
-							DialogUtil.showInfoMessageBox(getShell(), "Quick Compare Result", "Quick Compare Result :\n WER : "+result.getWer()+"\n CER : "+result.getCer());
-				
-						} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e1) {
+							startError(store.getDocId(),""+store.getPage().getPageNr());				
+						} catch (ServerErrorException | IllegalArgumentException e1) {
 							e1.printStackTrace();
 						}
 				}
@@ -347,7 +347,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			public void doubleClick(DoubleClickEvent event) {
 				TrpErrorResultTableEntry entry = (TrpErrorResultTableEntry) resultTable.getSelectedEntry();
 				if(entry != null && entry.getStatus().equals("Completed") ) {
-					Integer docId = store.getDocId();
+					int docId = store.getDocId();
 					String query = entry.getQuery();
 					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), entry.getResult(),docId,query);
 					stats.open();
