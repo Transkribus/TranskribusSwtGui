@@ -14,6 +14,11 @@ import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 
+/**
+ * A table for displaying a data set selection.
+ *
+ * @param <IDataSetSelectionEntry> a document-like element with a page string
+ */
 public abstract class DataSetTableWidget<IDataSetSelectionEntry> extends Composite {
 //	private static final Logger logger = LoggerFactory.getLogger(DataSetTableWidget.class);
 
@@ -29,9 +34,10 @@ public abstract class DataSetTableWidget<IDataSetSelectionEntry> extends Composi
 	protected MyTableViewer tv;
 
 	public final ColumnConfig[] COLS = new ColumnConfig[] {
-			new ColumnConfig(ID_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
-			new ColumnConfig(TITLE_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
-			new ColumnConfig(PAGES_COL, 100, false, DefaultTableColumnViewerSorter.ASC) };
+		new ColumnConfig(ID_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(TITLE_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
+		new ColumnConfig(PAGES_COL, 100, false, DefaultTableColumnViewerSorter.ASC) 
+	};
 
 	public DataSetTableWidget(Composite parent, int style) {
 		super(parent, style);

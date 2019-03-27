@@ -40,6 +40,7 @@ import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.core.util.DescriptorUtils.GroundTruthDataSetDescriptor;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
+import eu.transkribus.swt_gui.htr.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -559,7 +560,21 @@ public class DataSetSelectionController {
 				words += tmd.getNrOfWordsInLines();
 			}
 		}
-		return new DataSetMetadata(pages, lines, words);
+		return new DataSetMetadata("Document Data", pages, lines, words);
+	}
+	
+	private DataSetMetadata computeGtDataSetSize(Map<HtrGtDataSet, List<HtrGtDataSetElement>> map) {
+		int pages = 0;
+		int lines = 0;
+		int words = 0;
+		for (Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : map.entrySet()) {
+			for (HtrGtDataSetElement el : e.getValue()) {
+				pages++;
+				lines += el.getGroundTruthPage().getNrOfTranscribedLines();
+				words += el.getGroundTruthPage().getNrOfWordsInLines();
+			}
+		}
+		return new DataSetMetadata("Ground Truth Data", pages, lines, words);
 	}
 	
 	Map<TrpDocMetadata, List<TrpPage>> getTrainDocMap() {
@@ -578,12 +593,16 @@ public class DataSetSelectionController {
 		return testGtMap;
 	}
 	
-	public DataSetMetadata getTrainSetMetadata() {
-		return computeDataSetSize(getTrainDocMap());
+	public List<DataSetMetadata> getTrainSetMetadata() {
+		DataSetMetadata trainDocMd = computeDataSetSize(getTrainDocMap());
+		DataSetMetadata trainGtMd = computeGtDataSetSize(getTrainGtMap());
+		return Arrays.asList(new DataSetMetadata[] { trainDocMd, trainGtMd });
 	}
 	
-	public DataSetMetadata getTestSetMetadata() {
-		return computeDataSetSize(getTestDocMap());
+	public List<DataSetMetadata> getTestSetMetadata() {
+		DataSetMetadata valDocMd = computeDataSetSize(getTestDocMap());
+		DataSetMetadata valGtMd = computeGtDataSetSize(getTestGtMap());
+		return Arrays.asList(new DataSetMetadata[] { valDocMd, valGtMd });
 	}
 	
 	public int getColId() {

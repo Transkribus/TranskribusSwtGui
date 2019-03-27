@@ -34,6 +34,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ImgLoader;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
+import eu.transkribus.swt_gui.htr.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
@@ -343,11 +344,11 @@ public class DataSetSelectionSashForm extends SashForm {
 		return image;
 	}
 	
-	public DataSetMetadata getTrainSetMetadata() {
+	public List<DataSetMetadata> getTrainSetMetadata() {
 		return dataSetSelectionController.getTrainSetMetadata();
 	}
 	
-	public DataSetMetadata getTestSetMetadata() {
+	public List<DataSetMetadata> getTestSetMetadata() {
 		return dataSetSelectionController.getTestSetMetadata();
 	}
 	

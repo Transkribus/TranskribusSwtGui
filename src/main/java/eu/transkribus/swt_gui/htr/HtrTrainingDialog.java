@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -33,7 +34,6 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.htr.treeviewer.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -318,18 +318,15 @@ public class HtrTrainingDialog extends Dialog {
 			return;
 		}
 
-		DataSetMetadata trainSetMd = treeViewerSelector.getTrainSetMetadata();
-		DataSetMetadata testSetMd = treeViewerSelector.getTestSetMetadata();
-		final int indentSize = 24;
-		msg += trainSetMd.toFormattedString("Train set size:", indentSize);
-		msg += testSetMd.toFormattedString("Validation set size:", indentSize);
-
-		msg += "\nStart?";
-
-		int result = DialogUtil.showYesNoDialog(this.getShell(), "Start?", msg);
+		List<DataSetMetadata> trainSetMd = treeViewerSelector.getTrainSetMetadata();
+		List<DataSetMetadata> validationSetMd = treeViewerSelector.getTestSetMetadata();
 		
-		if (result == SWT.YES) {
+		StartTrainingDialog diag = new StartTrainingDialog(this.getShell(), trainSetMd, validationSetMd);
+		if (diag.open() == Window.OK) {
+			logger.trace("User confirmed dataset selection");
 			super.okPressed();
+		} else {
+			logger.trace("User denied dataset selection");
 		}
 	}
 
