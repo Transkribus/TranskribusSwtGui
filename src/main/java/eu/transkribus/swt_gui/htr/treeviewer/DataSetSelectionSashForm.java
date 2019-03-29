@@ -367,4 +367,8 @@ public class DataSetSelectionSashForm extends SashForm {
 	public DataSetSelection getSelection(EditStatus status) {
 		return dataSetSelectionController.getSelection(status);
 	}
+
+	public void enableDebugDialog(boolean b) {
+		getController().SHOW_DEBUG_DIALOG = b;
+	}
 }

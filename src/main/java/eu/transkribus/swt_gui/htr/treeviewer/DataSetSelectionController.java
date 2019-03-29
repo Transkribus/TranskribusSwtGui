@@ -59,7 +59,7 @@ public class DataSetSelectionController {
 	 */
 	private final int colId;
 	
-	final boolean DEBUG = true;
+	boolean SHOW_DEBUG_DIALOG = false;
 	DebugDialog diag = null;
 	
 	/**
@@ -147,7 +147,7 @@ public class DataSetSelectionController {
 		view.updateGtTvColors(trainGtMap, testGtMap);
 		updateInfoLabel(infoLabelText);
 		
-		if(DEBUG) {
+		if(SHOW_DEBUG_DIALOG) {
 			if(diag == null || diag.getShell() == null || diag.getShell().isDisposed()) {
 				diag = new DebugDialog(view.getShell());
 				diag.open();

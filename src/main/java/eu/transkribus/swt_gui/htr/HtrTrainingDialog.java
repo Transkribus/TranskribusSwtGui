@@ -200,7 +200,7 @@ public class HtrTrainingDialog extends Dialog {
 	private TrainMethodUITab createCitlabHtrPlusTrainingTab(final int tabIndex) {
 		citlabHtrPlusTrainingTabItem = new CTabItem(paramTabFolder, SWT.NONE);
 
-		citlabHtrPlusParamCont = new CITlabHtrPlusTrainingConfComposite(paramTabFolder, SWT.NONE);
+		citlabHtrPlusParamCont = new CITlabHtrPlusTrainingConfComposite(paramTabFolder, store.isAdminLoggedIn(), SWT.NONE);
 		final String label = HtrTableLabelProvider.getLabelForHtrProvider(citlabHtrPlusParamCont.getProvider());
 		citlabHtrPlusTrainingTabItem.setText(label);
 		
@@ -407,5 +407,9 @@ public class HtrTrainingDialog extends Dialog {
 		public Composite getConfigComposite() {
 			return configComposite;
 		}
+	}
+
+	public void enableDebugDialog(boolean b) {
+		treeViewerSelector.enableDebugDialog(b);
 	}
 }

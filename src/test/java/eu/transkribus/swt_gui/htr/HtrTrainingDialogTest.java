@@ -30,6 +30,10 @@ public class HtrTrainingDialogTest {
 						showGtData ? getStorage().listHtrs(null) : null, 
 						getStorage().getHtrTrainingJobImpls()
 						);
+				
+				//show/update debug dialog with JSON descriptor on each change in data set
+				htd.enableDebugDialog(true);
+				
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
 					// if (!mw.saveTranscriptDialogOrAutosave()) {
