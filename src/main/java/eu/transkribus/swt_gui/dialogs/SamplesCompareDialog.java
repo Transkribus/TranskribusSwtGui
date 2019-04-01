@@ -678,7 +678,7 @@ public class SamplesCompareDialog extends Dialog {
 					final String xmlStr = props.getString(JobConst.PROP_RESULT);
 					TrpErrorRate res = new TrpErrorRate ();
 					ParameterMap paramsErr = res.getParams();
-				if(paramsErr != null && query.contains(paramsErr.getParameterValue("hyp"))) {
+				if(paramsErr.getParameterValue("hyp") != null && query.contains(paramsErr.getParameterValue("hyp"))) {
 					if(xmlStr != null) {
 						try {
 							res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
