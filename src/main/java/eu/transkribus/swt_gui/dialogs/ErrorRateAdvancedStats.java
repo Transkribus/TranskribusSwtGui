@@ -32,8 +32,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -260,6 +263,27 @@ public class ErrorRateAdvancedStats extends Dialog{
 				updateChart(selection);
 			}
 		});
+		
+		page.getTable().addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				Table source = (Table) e.getSource();
+				TableItem[] selection = source.getSelection();
+				TrpErrorRateListEntry entry = (TrpErrorRateListEntry) selection[0].getData();
+				openCompareTextVersion(entry);
+				
+			}
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				
+			}
+			
+		});
+		
+		
 		versionButton = new Button(body,SWT.PUSH);
 		versionButton.setText("Compare Text Versions for Page ..");
 		versionButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
@@ -268,88 +292,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 		versionButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				
 				TableItem[] selection = page.getTable().getSelection();
 				TrpErrorRateListEntry entry = (TrpErrorRateListEntry) selection[0].getData();
-				logger.debug("Page Number selected for version : "+entry.getPageNumber());
-				Integer pageNumber = entry.getPageNumber();
-				TrpDoc document = store.getDoc();
-				List<TrpPage> pageList = document.getPages();
-				TrpPage pageSelected = new TrpPage();
-				for(TrpPage page : pageList) {
-					if(page.getPageNr() == pageNumber) {
-						logger.debug("Page Number of selcted in list : "+page.getPageNr());
-						pageSelected = page;
-						break;
-					}
-				}
-				
-				List<TrpTranscriptMetadata> transcripts = pageSelected.getTranscripts();
-			
-				TrpTranscriptMetadata ref = new TrpTranscriptMetadata();
-				TrpTranscriptMetadata hyp = new TrpTranscriptMetadata();
-				ArrayList<String> refText = new ArrayList<String>();
-				ArrayList<String> hypText = new ArrayList<String>();
-				TrpPageType refPage = null,hypPage = null;
-				
-				for(int i = 0; i < transcripts.size();i++) {
-					
-					if(transcripts.get(i).getStatus() == EditStatus.GT) {
-		
-						ref = transcripts.get(i);
-						try {
-							refPage = (TrpPageType) ref.unmarshallTranscript().getPage();
-						} catch (NullValueException | JAXBException e1) {
-							e1.printStackTrace();
-						}
-						for (TrpRegionType region : refPage.getRegions()) {
-							if (region instanceof TrpTextRegionType) {
-								for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
-									refText.add(((TrpTextLineType) line).getUnicodeText());
-									logger.debug("Unicode text reference : "+((TrpTextLineType) line).getUnicodeText());
-									// refText = refText.concat(region.getUnicodeText());
-								}
-							}
-
-							if (region instanceof TrpTableRegionType) {
-								for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
-									for (TextLineType line : cell.getTextLine()) {
-										refText.add(((TrpTextLineType) line).getUnicodeText());
-									}
-								}
-							}
-						}
-					}
-					if(transcripts.get(i).getToolName() != null && transcripts.get(i).getToolName().equals(hypString)) {
-						hyp = transcripts.get(i);
-						logger.debug("Found hyp with toolname : "+hypString);
-						try {
-							hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
-						} catch (NullValueException | JAXBException e1) {
-							e1.printStackTrace();
-						}
-						for (TrpRegionType region : hypPage.getRegions()) {
-							if (region instanceof TrpTextRegionType) {
-								for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
-									hypText.add(((TrpTextLineType) line).getUnicodeText());
-									logger.debug("Unicode text hyp : "+((TrpTextLineType) line).getUnicodeText());
-									// hypText = hypText.concat(region.getUnicodeText());
-								}
-							}
-							if (region instanceof TrpTableRegionType) {
-								for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
-									for (TextLineType line : cell.getTextLine()) {
-										hypText.add(((TrpTextLineType) line).getUnicodeText());
-									}
-								}
-							}
-						}
-					}
-					
-				}
-				DiffCompareTool diff = new DiffCompareTool(getShell().getDisplay(), hypText, refText);
-
-				openVersionsCompareDialog(diff.getResult());
+				openCompareTextVersion(entry);
 			}
 		});
 
@@ -420,6 +365,90 @@ public class ErrorRateAdvancedStats extends Dialog{
 		jFreeChartComp.setChart(chart);
 		chart.fireChartChanged();
 		
+	}
+	private void openCompareTextVersion(TrpErrorRateListEntry entry) {
+
+		
+		logger.debug("Page Number selected for version : "+entry.getPageNumber());
+		Integer pageNumber = entry.getPageNumber();
+		TrpDoc document = store.getDoc();
+		List<TrpPage> pageList = document.getPages();
+		TrpPage pageSelected = new TrpPage();
+		for(TrpPage page : pageList) {
+			if(page.getPageNr() == pageNumber) {
+				logger.debug("Page Number of selcted in list : "+page.getPageNr());
+				pageSelected = page;
+				break;
+			}
+		}
+		
+		List<TrpTranscriptMetadata> transcripts = pageSelected.getTranscripts();
+	
+		TrpTranscriptMetadata ref = new TrpTranscriptMetadata();
+		TrpTranscriptMetadata hyp = new TrpTranscriptMetadata();
+		ArrayList<String> refText = new ArrayList<String>();
+		ArrayList<String> hypText = new ArrayList<String>();
+		TrpPageType refPage = null,hypPage = null;
+		
+		for(int i = 0; i < transcripts.size();i++) {
+			
+			if(transcripts.get(i).getStatus() == EditStatus.GT) {
+
+				ref = transcripts.get(i);
+				try {
+					refPage = (TrpPageType) ref.unmarshallTranscript().getPage();
+				} catch (NullValueException | JAXBException e1) {
+					e1.printStackTrace();
+				}
+				for (TrpRegionType region : refPage.getRegions()) {
+					if (region instanceof TrpTextRegionType) {
+						for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
+							refText.add(((TrpTextLineType) line).getUnicodeText());
+							logger.debug("Unicode text reference : "+((TrpTextLineType) line).getUnicodeText());
+							// refText = refText.concat(region.getUnicodeText());
+						}
+					}
+
+					if (region instanceof TrpTableRegionType) {
+						for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
+							for (TextLineType line : cell.getTextLine()) {
+								refText.add(((TrpTextLineType) line).getUnicodeText());
+							}
+						}
+					}
+				}
+			}
+			if(transcripts.get(i).getToolName() != null && transcripts.get(i).getToolName().equals(hypString)) {
+				hyp = transcripts.get(i);
+				logger.debug("Found hyp with toolname : "+hypString);
+				try {
+					hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
+				} catch (NullValueException | JAXBException e1) {
+					e1.printStackTrace();
+				}
+				for (TrpRegionType region : hypPage.getRegions()) {
+					if (region instanceof TrpTextRegionType) {
+						for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
+							hypText.add(((TrpTextLineType) line).getUnicodeText());
+							logger.debug("Unicode text hyp : "+((TrpTextLineType) line).getUnicodeText());
+							// hypText = hypText.concat(region.getUnicodeText());
+						}
+					}
+					if (region instanceof TrpTableRegionType) {
+						for (TableCellType cell : ((TrpTableRegionType) region).getTableCell()) {
+							for (TextLineType line : cell.getTextLine()) {
+								hypText.add(((TrpTextLineType) line).getUnicodeText());
+							}
+						}
+					}
+				}
+			}
+			
+		}
+		DiffCompareTool diff = new DiffCompareTool(getShell().getDisplay(), hypText, refText);
+
+		openVersionsCompareDialog(diff.getResult());
+	
 	}
 	
 	protected void updateChart(TableItem[] selection) {
