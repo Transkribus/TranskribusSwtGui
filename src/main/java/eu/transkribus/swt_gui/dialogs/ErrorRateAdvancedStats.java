@@ -77,6 +77,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -114,6 +115,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	Menu contextMenu;
 	VersionsDiffBrowserDialog browserDiag;
 
+	ParameterMap params;
 	String hypString,refString;
 	String lastExportFolder;
 	String lastExportFolderTmp;
@@ -135,8 +137,9 @@ public class ErrorRateAdvancedStats extends Dialog{
 		this.lastExportFolder = "";
 		this.docName = "DocId_"+docId;
 		String[] stringQuery = query.split("\\|");
+		params = resultErr.getParams();
 		this.refString = stringQuery[2].substring(6);
-		this.hypString = stringQuery[3].substring(7);
+		this.hypString = params.getParameterValue("hyp");
 		logger.debug(this.refString+ " "+this.hypString);
 	}
 

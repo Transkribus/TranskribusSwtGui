@@ -47,6 +47,7 @@ import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
+import eu.transkribus.core.model.beans.TrpErrorRate;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
@@ -311,6 +312,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					params.addIntParam("option", -1);
 					params.addParameter("refKey", ref.getKey());
 					params.addParameter("hypKey", hyp.getKey());
+					params.addParameter("hyp", hyp.getToolName());
+					params.addParameter("ref", ref.getToolName());
 					params.addIntParam("pageNr", store.getPage().getPageNr());
 						try {
 							startError(store.getDocId(),""+store.getPage().getPageNr());				
@@ -349,7 +352,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				if(entry != null && entry.getStatus().equals("Completed") ) {
 					int docId = store.getDocId();
 					String query = entry.getQuery();
-					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), entry.getResult(),docId,query);
+					TrpErrorRate result = entry.getResult();
+					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), result,docId,query);
 					stats.open();
 					}
 				}
