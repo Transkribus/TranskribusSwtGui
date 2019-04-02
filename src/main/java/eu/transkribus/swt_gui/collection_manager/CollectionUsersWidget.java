@@ -150,16 +150,16 @@ public class CollectionUsersWidget extends Composite {
 		
 		selectRole(TrpRole.Transcriber);
 		
-//		tabUserInfoComposite = new Composite(tabFolder,0);
-//		tabUserInfoComposite.setLayout(new GridLayout(1,true));
-//		tabUserInfoComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
-//		
-//		userInfoTabItem = new CTabItem(tabFolder,  SWT.NONE);
-//		userInfoTabItem.setText("User Info ");
-//		userInfoTabItem.setControl(tabUserInfoComposite);
-//		
-//		collectionUsersInfoTv = new UserInfoTableWidgetPagination(tabUserInfoComposite, 0, 25);
-//		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tabUserInfoComposite = new Composite(tabFolder,0);
+		tabUserInfoComposite.setLayout(new GridLayout(1,true));
+		tabUserInfoComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
+		
+		userInfoTabItem = new CTabItem(tabFolder,  SWT.NONE);
+		userInfoTabItem.setText("User Info ");
+		userInfoTabItem.setControl(tabUserInfoComposite);
+		
+		collectionUsersInfoTv = new UserInfoTableWidgetPagination(tabUserInfoComposite, 0, 25);
+		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 				
 		group.pack();
 	}
