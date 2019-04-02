@@ -50,6 +50,7 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
+import eu.transkribus.swt_gui.htr.treeviewer.GroundTruthTreeWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthLabelAndFontProvider;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -67,7 +68,9 @@ public class ServerWidget extends Composite {
 	
 	CTabFolder tabFolder;
 	CTabItem collectionsTabItem, gtTabItem;
-	TreeViewer groundTruthTv;
+	
+	GroundTruthTreeWidget groundTruthTreeWidget;
+//	TreeViewer groundTruthTv;
 	
 	RecentDocsComboViewerWidget recentDocsComboViewerWidget;
 	
@@ -372,7 +375,9 @@ public class ServerWidget extends Composite {
 		 * Create ground truth treeviewer. 
 		 * The tab item is created/disposed depending on availability of data in collection
 		 */
-		groundTruthTv = createGroundTruthTreeViewer(tabFolder);
+//		groundTruthTv = createGroundTruthTreeViewer(tabFolder);
+		groundTruthTreeWidget = createGroundTruthTreeWidget(tabFolder);
+//		groundTruthTv = groundTruthTreeWidget.getTreeViewer();
 		
 		initDocOverviewMenu();
 		
@@ -389,16 +394,14 @@ public class ServerWidget extends Composite {
 		return tv;
 	}
 	
+	private GroundTruthTreeWidget createGroundTruthTreeWidget(Composite parent) {
+		GroundTruthTreeWidget tw = new GroundTruthTreeWidget(parent);
+		tw.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		return tw;
+	}
+	
 	void expandGroundTruthTreeItem(Object o) {
-		final ITreeContentProvider provider = (ITreeContentProvider) groundTruthTv.getContentProvider();
-		if(!provider.hasChildren(o)) {
-			return;
-		}
-		if (groundTruthTv.getExpandedState(o)) {
-			groundTruthTv.collapseToLevel(o, AbstractTreeViewer.ALL_LEVELS);
-		} else {
-			groundTruthTv.expandToLevel(o, 1);
-		}
+		groundTruthTreeWidget.expandTreeItem(o);
 	}
 	
 	public void updateGroundTruthTreeViewerFromStorage() {
@@ -420,9 +423,9 @@ public class ServerWidget extends Composite {
 					if (gtTabItem == null || gtTabItem.isDisposed()) {
 						gtTabItem = new CTabItem(tabFolder, SWT.NONE);
 						gtTabItem.setText("HTR Model Data");
-						gtTabItem.setControl(groundTruthTv.getControl());
+						gtTabItem.setControl(groundTruthTreeWidget);
 					}
-					groundTruthTv.setInput(treeViewerInput);
+					groundTruthTreeWidget.setInput(treeViewerInput);
 				} else if(gtTabItem != null) {
 						gtTabItem.dispose();
 						gtTabItem = null;
@@ -483,7 +486,7 @@ public class ServerWidget extends Composite {
 	}
 	
 	public void updateHighlightedGroundTruthTreeViewerRow() {
-		groundTruthTv.refresh();
+		groundTruthTreeWidget.getTreeViewer().refresh();
 	}
 	
 	public void refreshDocListFromStorage() {

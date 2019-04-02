@@ -65,7 +65,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		dtv.addDoubleClickListener(this);
 		dtv.getTable().addMouseTrackListener(this);
 		dtv.getTable().addKeyListener(this);
-		sw.groundTruthTv.addDoubleClickListener(this);
+		sw.groundTruthTreeWidget.getTreeViewer().addDoubleClickListener(this);
 
 //		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
 		sw.collectionSelectorWidget.addListener(SWT.Selection, this);
@@ -111,7 +111,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		dtv.removeDoubleClickListener(this);
 		dtv.getTable().removeMouseTrackListener(this);
 		dtv.getTable().removeKeyListener(this);
-		sw.groundTruthTv.removeDoubleClickListener(this);
+		sw.groundTruthTreeWidget.getTreeViewer().removeDoubleClickListener(this);
 		
 //		sw.collectionComboViewerWidget.collectionCombo.removeSelectionListener(this);
 		sw.collectionSelectorWidget.removeListener(SWT.Selection, this);
