@@ -1,6 +1,9 @@
 package eu.transkribus.swt_gui.htr.treeviewer;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -16,13 +19,20 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.core.util.DescriptorUtils.GroundTruthDataSetDescriptor;
 import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 
-public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredContentProvider implements ITreeContentProvider {
+public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredContentProvider implements ITreeContentProvider, IStorageListener {
 	private static final Logger logger = LoggerFactory.getLogger(HtrGroundTruthContentProvider.class);
 	List<TrpHtr> htrs;
 	
+	/**
+	 * Omit constant API queries for data sets as those are static anyway.
+	 */
+	private final static Map<HtrGtDataSet, List<HtrGtDataSetElement>> DATA_SET_CACHE = Collections.synchronizedMap(new HashMap<>());
+	
 	public HtrGroundTruthContentProvider(final Integer colId) {
 		super(colId);
+		store.addListener(this);
 	}
 	
 	@Override
@@ -78,6 +88,13 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	
 	HtrGtDataSetElement[] getChildren(HtrGtDataSet gt) {
 		List<TrpGroundTruthPage> gtList = null;
+		
+		if(DATA_SET_CACHE.containsKey(gt)) {
+			logger.debug("Returning GT data set cache entry");
+			List<HtrGtDataSetElement> elements =  DATA_SET_CACHE.get(gt);
+			return elements.toArray(new HtrGtDataSetElement[elements.size()]);
+		}
+		
 		switch(gt.getDataSetType()) {
 		case TRAIN:
 			try {
@@ -100,6 +117,9 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			List<HtrGtDataSetElement> children = gtList.stream()
 					.map(g -> new HtrGtDataSetElement(gt, g))
 					.collect(Collectors.toList());
+			synchronized(DATA_SET_CACHE) {
+				DATA_SET_CACHE.put(gt, children);
+			}
 			return children.toArray(new HtrGtDataSetElement[children.size()]);
 		}
 	}
@@ -135,6 +155,14 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
+		synchronized(DATA_SET_CACHE) {
+			logger.debug("Clearing HtrGroundTruth data set cache.");
+			DATA_SET_CACHE.clear();
+		}
 	}
 	
 	/**
