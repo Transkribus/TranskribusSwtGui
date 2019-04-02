@@ -199,6 +199,7 @@ import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.TrpHtrGtDocMetadata;
 import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBarListener;
 import eu.transkribus.swt_gui.mainwidget.settings.PreferencesDialog;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
@@ -686,7 +687,7 @@ public class TrpMainWidget {
 		String language = null;
 		TrpCollection c = null;
 
-		if (storage.getDoc() != null) {
+		if (storage.isDocLoaded()) {
 			docId = storage.getDoc().getId();
 			TrpDocMetadata md = storage.getDoc().getMd();
 			st = md.getScriptType();
@@ -695,9 +696,12 @@ public class TrpMainWidget {
 			if (storage.isLocalDoc()) {
 				loadedDocStr = md.getLocalFolder().getAbsolutePath();
 			} else {
-				if (md.getTitle() != null && !md.getTitle().isEmpty())
-					loadedDocStr = md.getTitle() + ", ID: " + md.getDocId();
-
+				if (md.getTitle() != null && !md.getTitle().isEmpty()) {
+					loadedDocStr = md.getTitle();
+					if(docId > 0) {
+						loadedDocStr += ", ID: " + docId;
+					}
+				}
 				c = storage.getDoc().getCollection();
 				if (c != null)
 					currentCollectionStr = c.getColName() + ", ID: " + c.getColId();
@@ -707,33 +711,14 @@ public class TrpMainWidget {
 //		ui.getServerWidget().setAdminAreaVisible(storage.isAdminLoggedIn());
 		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
 		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
-		ui.getServerWidget().updateHighlightedRow();
+		if(storage.isGtDoc()) {
+			ui.getServerWidget().updateHighlightedGroundTruthTreeViewerRow();
+		} else {
+			ui.getServerWidget().updateHighlightedRow();
+		}
 
 //		ui.toolsWidget.updateParameter(st, language);
 
-		return loadedDocStr;
-	}
-	
-	public String updateGroundTruthDocumentInfo() {
-		String loadedDocStr = "", currentCollectionStr = "";
-		TrpCollection c = null;
-
-		if (storage.getDoc() != null) {
-			TrpDocMetadata md = storage.getDoc().getMd();
-
-			if (md.getTitle() != null && !md.getTitle().isEmpty()) {
-				loadedDocStr = md.getTitle();
-			}
-
-			c = storage.getCurrentDocumentCollection();
-			if (c != null) {
-				currentCollectionStr = c.getColName() + ", ID: " + c.getColId();
-			}
-		}
-		ui.getDocInfoWidget().getLoadedDocText().setText(loadedDocStr);
-		ui.getDocInfoWidget().getCurrentCollectionText().setText(currentCollectionStr);
-
-		ui.getServerWidget().updateHighlightedGroundTruthTreeViewerRow();
 		return loadedDocStr;
 	}
 
@@ -2698,6 +2683,19 @@ public class TrpMainWidget {
 			return false;
 		}
 
+		//if this data set is already loaded but another pageIndex was passed then jump to page
+		if(storage.isGtDoc() && storage.getDoc().getMd() instanceof TrpHtrGtDocMetadata 
+				&& ((TrpHtrGtDocMetadata)storage.getDoc().getMd()).getDataSet().equals(set)
+				&& storage.getPageIndex() != pageIndex) {
+			logger.debug("Page switch in HTR GT data set document. pageIndex = " + pageIndex);
+			//jump to page
+			if (storage.setCurrentPage(pageIndex)) {
+				reloadCurrentPage(true);
+			}
+			//skip any further loading below
+			return true;
+		}
+		
 		try {
 			updateSelectedCollection(colId);
 
@@ -2706,7 +2704,7 @@ public class TrpMainWidget {
 					monitor.beginTask("Loading HTR GT " + set.getDataSetType() + " HTR ID " + set.getId(), IProgressMonitor.UNKNOWN);
 					try {
 						// if (true) throw new SessionExpiredException("Yo!");
-						storage.loadHtrGtAsDoc(colId, set, pageIndex);
+						storage.loadHtrGtAsDoc(colId, set, pageIndex);						
 						logger.debug("loaded HTR GT, colId = " + colId);
 					} catch (Exception e) {
 						throw new InvocationTargetException(e, e.getMessage());

@@ -110,7 +110,7 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		SWTUtil.setEnabled(mw.getUi().getSaveTranscriptToolItem(), false);
 		SWTUtil.setEnabled(mw.getUi().getSaveTranscriptWithMessageToolItem(), false);
 		
-		mw.updateGroundTruthDocumentInfo();
+		mw.updateDocumentInfo();
 		
 		mw.getUi().updateVisibility();
 	}
