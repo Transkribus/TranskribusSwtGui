@@ -87,6 +87,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
+import eu.transkribus.swt_gui.collection_treeviewer.SampleLabelProvider;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
 import eu.transkribus.swt_gui.htr.TreeViewerDataSetSelectionSashForm.DataSetEntry;
 import eu.transkribus.swt_gui.htr.TreeViewerDataSetSelectionSashForm.DataSetMetadata;
@@ -125,7 +126,7 @@ public class SamplesCompareDialog extends Dialog {
 	
 	private TreeViewer tv, tvCompute;
 	private CollectionContentProvider contentProv, contentProvComp;
-	private CollectionLabelProvider labelProv;
+	private SampleLabelProvider labelProv;
 	private Composite buttonComp,buttonComputeComp, jobsComp, samplesConfComposite ;
 	private KwsResultTableWidget resultTable;
 	private ChartComposite jFreeChartComp;
@@ -241,7 +242,7 @@ public class SamplesCompareDialog extends Dialog {
 		
 		tv = new TreeViewer(treeViewerCont, SWT.BORDER | SWT.MULTI);
 		contentProv = new CollectionContentProvider();
-		labelProv = new CollectionLabelProvider();
+		labelProv = new SampleLabelProvider();
 		tv.setContentProvider(contentProv);
 		tv.setLabelProvider(labelProv);
 		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -305,7 +306,7 @@ public class SamplesCompareDialog extends Dialog {
 		
 		tvCompute = new TreeViewer(samplesComputesash, SWT.BORDER | SWT.MULTI);
 		contentProvComp = new CollectionContentProvider();
-		labelProv = new CollectionLabelProvider();
+		labelProv = new SampleLabelProvider();
 		tvCompute.setContentProvider(contentProvComp);
 		tvCompute.setLabelProvider(labelProv);
 		tvCompute.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -504,9 +505,7 @@ public class SamplesCompareDialog extends Dialog {
 				}
 				
 			}
-
-			
-			
+	
 		});
 
 		tvCompute.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -871,7 +870,7 @@ public class SamplesCompareDialog extends Dialog {
 							break;
 					}
 					pages++;
-					lines += tmd.getNrOfTranscribedLines();
+					lines += tmd.getNrOfLines();
 					words += tmd.getNrOfWordsInLines();
 				}
 				
