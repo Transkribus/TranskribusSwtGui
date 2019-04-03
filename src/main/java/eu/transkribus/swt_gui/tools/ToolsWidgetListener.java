@@ -82,6 +82,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.compareSamplesBtn, this);
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
+		SWTUtil.addSelectionListener(tw.p2palaBtn, this);
 		
 		Storage.getInstance().addListener(new IStorageListener() {
 			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
@@ -104,7 +105,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 
 	boolean isLayoutAnalysis(Object s) {
-		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn;
+		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn || s==tw.p2palaBtn;
 		// return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn
 		// || s == tw.baselineBtn || s == tw.polygon2baselinesBtn);
 	}
@@ -219,6 +220,8 @@ public class ToolsWidgetListener implements SelectionListener {
 				if (DialogUtil.showYesNoDialog(mw.getShell(), "Layout recognition", msg)!=SWT.YES) {
 					return;
 				}
+				
+				logger.debug("PARAMETERS = "+tw.laComp.getParameters());
 
 				if (!tw.laComp.isCurrentTranscript()) {
 					logger.debug("running la on pages: " + tw.laComp.getPages());
@@ -232,7 +235,8 @@ public class ToolsWidgetListener implements SelectionListener {
 							tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false,
 							tw.laComp.getJobImpl().toString(), tw.laComp.getParameters());
 				}
-			} else if (s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn) {
+			}
+			else if (s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn) {
 				boolean isPolygon2Baseline = s == tw.polygon2baselinesBtn;
 				String jobImpl = isPolygon2Baseline ? JobImpl.NcsrOldLaJob.toString() : JobImpl.UpvlcLaJob.toString();
 				String btnName = isPolygon2Baseline ? "polygon2baselinesBtn" : "baseline2PolygonBtn";
@@ -248,6 +252,19 @@ public class ToolsWidgetListener implements SelectionListener {
 					jobIds = store.analyzeLayoutOnCurrentTranscript(rids, false, false, false, isPolygon2Baseline,
 							!isPolygon2Baseline, jobImpl, null);
 				}
+			}
+			else if (s == tw.p2palaBtn) {
+				String jobImpl = JobImpl.P2PaLAJob.toString();
+				if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
+					logger.debug("p2palaBtn on pages: " + tw.otherToolsPagesSelector.getPagesStr());
+					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
+							true, true, false, false, false, jobImpl, null);
+				} else {
+					logger.debug("p2palaBtn on current transcript");
+//					List<String> rids = getSelectedRegionIds();
+					jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, null);
+				}
+				
 			}
 
 			// struct analysis:

@@ -29,10 +29,13 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 	
 	public static final String USER_USERNAME_COL = "Username";
 	public static final String USER_UPLOAD_COL = "Uploads";
+	public static final String USER_CREATE_COL = "Create Docs(MB)";
+	public static final String USER_DELETE_COL = "Delete Docs(MB)";
+	public static final String USER_TRAINING_COL = "Training";
 	public static final String USER_HTR_COL = "HTR Module";
 	public static final String USER_OCR_COL = "OCR Module";
 	public static final String USER_LA_COL = "LA Module";
-	public static final String USER_HOSTING_COL = "Hosting";
+	public static final String USER_HOSTING_COL = "Hosting(MB)";
 	
 	private int collectionId = 0;
 	
@@ -42,7 +45,6 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 
 	@Override
 	protected void setPageLoader() {
-		// TODO Auto-generated method stub
 		if (methods == null) {
 			methods = new IPageLoadMethods<TrpUserInfo>() {
 				Storage store = Storage.getInstance();
@@ -82,7 +84,7 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 			};
 		}
 			
-		RemotePageLoader<TrpUserInfo> pl = new RemotePageLoader<>(pageableTable.getController(), methods);
+		RemotePageLoader<TrpUserInfo> pl = new RemotePageLoader<TrpUserInfo>(pageableTable.getController(), methods);
 		pageableTable.setPageLoader(pl);
 		
 	}
@@ -98,9 +100,12 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 		
 		createDefaultColumn(USER_USERNAME_COL, 100, "userName", true);
 		createDefaultColumn(USER_UPLOAD_COL, 100, "uploads",true);
+		createDefaultColumn(USER_TRAINING_COL, 100, "training",true);
 		createDefaultColumn(USER_HTR_COL, 100, "htr", true);
 		createDefaultColumn(USER_OCR_COL, 100, "ocr", true);
 		createDefaultColumn(USER_LA_COL, 100, "la", true);
+		createDefaultColumn(USER_CREATE_COL, 100, "createDoc",true);
+		createDefaultColumn(USER_DELETE_COL, 100, "deleteDoc",true);
 		createDefaultColumn(USER_HOSTING_COL, 100, "hosting", true);
 	}
 	

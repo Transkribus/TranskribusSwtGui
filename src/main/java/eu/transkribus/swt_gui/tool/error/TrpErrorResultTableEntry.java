@@ -43,23 +43,25 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 		if(result != null) {
 			params = result.getParams();
 		}
-		
-		switch((String)props.getProperty("parameters.3.value")) {
-		case "-1":
-			option = "Quick Compare";
-			break;
-		case "0": 
-			option = "case-sensitive";
-			break;
-		case "1":
-			option = "case-insensitive";
-			break;
-		}
 		if(params == null) {
 			return "Page(s) : "+props.getOrDefault("parameters.1.value", "Page-Query missing") +" | Option : "+option +" | Ref: "+props.getOrDefault("parameters.0.value", "latest GT")+" | Hyp : "+props.getOrDefault("parameters.4.value", "latest Version") ;
-		}else {
-			return "Page(s) : "+params.getParameterValue("pages") +" | Option : "+params.getParameterValue("option") +" | Ref: "+params.getParameterValue("ref")+" | Hyp : "+params.getParameterValue("hyp") ;
 		}
+		if(params.getParameterValue("option") != null) {
+			switch(params.getParameterValue("option")) {
+			case "-1":
+				option = "Quick Compare";
+				break;
+			case "0": 
+				option = "case-sensitive";
+				break;
+			case "1":
+				option = "case-insensitive";
+				break;
+			}
+		}
+			
+		return "Page(s) : "+params.getParameterValue("pages") +" | Option : "+option +" | Ref: "+params.getParameterValue("ref")+" | Hyp : "+params.getParameterValue("hyp") ;
+		
 	} 
 
 }

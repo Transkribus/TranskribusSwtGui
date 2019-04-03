@@ -42,7 +42,7 @@ public class ToolsWidget extends Composite {
 	
 	TextRecognitionComposite trComp;
 	
-	Button polygon2baselinesBtn, baseline2PolygonBtn;
+	Button polygon2baselinesBtn, baseline2PolygonBtn, p2palaBtn;
 	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
 		
 	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
@@ -427,6 +427,11 @@ public class ToolsWidget extends Composite {
 		baseline2PolygonBtn.setText("Add Polygons to Baselines");
 		baseline2PolygonBtn.setToolTipText("Creates polygons for all baselines - warning: existing polygons will be lost (text is retained however!)");
 		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		p2palaBtn = new Button(c, SWT.PUSH);
+		p2palaBtn.setText("Start P2PaLA layout analysis");
+		p2palaBtn.setToolTipText("P2PaLA layout analysis - creates baselines, regions and structure tags");
+		p2palaBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				
 		exp.setClient(c);
 		new Label(c, SWT.NONE);

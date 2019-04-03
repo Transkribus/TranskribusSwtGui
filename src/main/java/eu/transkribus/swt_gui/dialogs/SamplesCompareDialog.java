@@ -75,7 +75,6 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
-import eu.transkribus.core.model.beans.job.enums.JobType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
@@ -86,7 +85,7 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
-import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
+import eu.transkribus.swt_gui.collection_treeviewer.SampleLabelProvider;
 import eu.transkribus.swt_gui.htr.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.DocumentDataSetTableWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSelectionEntry;
@@ -125,7 +124,7 @@ public class SamplesCompareDialog extends Dialog {
 	
 	private TreeViewer tv, tvCompute;
 	private CollectionContentProvider contentProv, contentProvComp;
-	private CollectionLabelProvider labelProv;
+	private SampleLabelProvider labelProv;
 	private Composite buttonComp,buttonComputeComp, jobsComp, samplesConfComposite ;
 	private KwsResultTableWidget resultTable;
 	private ChartComposite jFreeChartComp;
@@ -241,7 +240,7 @@ public class SamplesCompareDialog extends Dialog {
 		
 		tv = new TreeViewer(treeViewerCont, SWT.BORDER | SWT.MULTI);
 		contentProv = new CollectionContentProvider();
-		labelProv = new CollectionLabelProvider();
+		labelProv = new SampleLabelProvider();
 		tv.setContentProvider(contentProv);
 		tv.setLabelProvider(labelProv);
 		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -305,7 +304,7 @@ public class SamplesCompareDialog extends Dialog {
 		
 		tvCompute = new TreeViewer(samplesComputesash, SWT.BORDER | SWT.MULTI);
 		contentProvComp = new CollectionContentProvider();
-		labelProv = new CollectionLabelProvider();
+		labelProv = new SampleLabelProvider();
 		tvCompute.setContentProvider(contentProvComp);
 		tvCompute.setLabelProvider(labelProv);
 		tvCompute.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
@@ -504,9 +503,6 @@ public class SamplesCompareDialog extends Dialog {
 				}
 				
 			}
-
-			
-			
 		});
 
 		tvCompute.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -678,7 +674,7 @@ public class SamplesCompareDialog extends Dialog {
 					final String xmlStr = props.getString(JobConst.PROP_RESULT);
 					TrpErrorRate res = new TrpErrorRate ();
 					ParameterMap paramsErr = res.getParams();
-				if(paramsErr != null && query.contains(paramsErr.getParameterValue("hyp"))) {
+				if(paramsErr.getParameterValue("hyp") != null && query.contains(paramsErr.getParameterValue("hyp"))) {
 					if(xmlStr != null) {
 						try {
 							res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
@@ -871,7 +867,7 @@ public class SamplesCompareDialog extends Dialog {
 							break;
 					}
 					pages++;
-					lines += tmd.getNrOfTranscribedLines();
+					lines += tmd.getNrOfLines();
 					words += tmd.getNrOfWordsInLines();
 				}
 				
