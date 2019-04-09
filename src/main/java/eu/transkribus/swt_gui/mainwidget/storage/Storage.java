@@ -974,7 +974,7 @@ public class Storage {
 		user = conn.login(username, password);
 		logger.debug("Logged in as user: " + user + " connection: " + conn);
 		
-		if(user.isAdmin()) {
+		if(user.isAdmin() && TrpMainWidget.getInstance()!=null) {
 			logger.info(user + " is admin.");
 			TrpMainWidget.getInstance().getTrpSets().setServerSelectionEnabled(user.isAdmin());
 		}
