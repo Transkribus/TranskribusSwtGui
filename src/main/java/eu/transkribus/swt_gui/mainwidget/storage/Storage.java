@@ -79,6 +79,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.TrpP2PaLAModel;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpUpload;
@@ -222,6 +223,8 @@ public class Storage {
 	
 	// just for debugging purposes:
 	private static int reloadDocListCounter=0;
+	
+	private List<TrpP2PaLAModel> p2palaModels = new ArrayList<>();
 	
 	public static class StorageException extends Exception {
 		private static final long serialVersionUID = -2215354890031208420L;
@@ -501,6 +504,13 @@ public class Storage {
 
 	public String getCurrentServer() {
 		return isLoggedIn() ? conn.getServerUri().toString() : null;
+	}
+	
+	public boolean isLoggedInAtTestServer() {
+		if (getCurrentServer()==null) {
+			return false;
+		}
+		return getCurrentServer().startsWith(TrpServerConn.TEST_SERVER_URI);
 	}
 
 	public boolean isLocalDoc() {
@@ -2942,6 +2952,20 @@ public class Storage {
 		final Predicate<JobImpl> htrTrainingJobImplFilter = j -> j.getTask().equals(JobTask.HtrTraining);
 		List<JobImpl> list = getConnection().getJobImplAcl(htrTrainingJobImplFilter);
 		return list.toArray(new JobImpl[list.size()]);
+	}
+	
+	public void reloadP2PaLAModels() {
+		if (isLoggedInAtTestServer()) {
+			try {
+				p2palaModels = conn.getP2PaLAModels(-1);
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+				logger.error("Error loading P2PaLA models: "+e.getMessage(), e);
+			}
+		}
+	}
+	
+	public List<TrpP2PaLAModel> getP2PaLAModels() {
+		return p2palaModels;
 	}
 
 	

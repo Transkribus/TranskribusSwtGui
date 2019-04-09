@@ -113,6 +113,10 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 			 
 			//load future events from server and show a message box for each
 			mw.showEventMessages();
+			
+			// reload P2PaLA models and set them in ToolsWidget
+			storage.reloadP2PaLAModels();
+			ui.getToolsWidget().setP2PaLAModels(storage.getP2PaLAModels());
 		} else {
 			ui.updateLoginInfo(arg.login, "", "");
 		}
