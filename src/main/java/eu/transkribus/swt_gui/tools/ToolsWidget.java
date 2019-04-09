@@ -449,7 +449,7 @@ public class ToolsWidget extends Composite {
 		Button p2palaHelpBtn = new Button(p2palaContainer, 0);
 		p2palaHelpBtn.setImage(Images.HELP);
 		SWTUtil.onSelectionEvent(p2palaHelpBtn, e -> {
-			P2PaLAConfDialog diag = new P2PaLAConfDialog(getShell());
+			P2PaLAConfDialog diag = new P2PaLAConfDialog(getShell(), Storage.getInstance().getP2PaLAModels());
 			diag.open();
 		});
 				

@@ -978,7 +978,7 @@ public class Storage {
 			logger.info(user + " is admin.");
 			TrpMainWidget.getInstance().getTrpSets().setServerSelectionEnabled(user.isAdmin());
 		}
-
+		onLogin();
 		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
 	}
 	
@@ -1005,7 +1005,12 @@ public class Storage {
 				logger.error("Could not store OAuth refresh token!", e);
 			}
 		}
+		onLogin();
 		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
+	}
+	
+	protected void onLogin() {
+		reloadP2PaLAModels();
 	}
 	
 	public void logout() {
@@ -1016,6 +1021,7 @@ public class Storage {
 			logger.error("Error logging out: " + th.getMessage(), th);
 		} finally {
 			clearCollections();
+			clearP2PaLAModels();
 			conn = null;
 			user = null;
 //			clearDocList();
@@ -2957,11 +2963,19 @@ public class Storage {
 	public void reloadP2PaLAModels() {
 		if (isLoggedInAtTestServer()) {
 			try {
-				p2palaModels = conn.getP2PaLAModels(-1);
+				List<TrpP2PaLAModel> models = conn.getP2PaLAModels(-1);
+				if (CoreUtils.size(models)>0) {
+					p2palaModels = models;
+				}
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
 				logger.error("Error loading P2PaLA models: "+e.getMessage(), e);
 			}
+			
 		}
+	}
+	
+	public void clearP2PaLAModels() {
+		p2palaModels = new ArrayList<>();
 	}
 	
 	public List<TrpP2PaLAModel> getP2PaLAModels() {
