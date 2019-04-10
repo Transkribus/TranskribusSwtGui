@@ -41,7 +41,7 @@ public class P2PaLAConfDialog extends Dialog {
 	public static String TEST_SET_SIZE_COL = "N-Test";
 	
 	public static final ColumnConfig[] COLS = new ColumnConfig[] {
-			new ColumnConfig(NAME_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
+			new ColumnConfig(NAME_COL, 120, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(DESC_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(BASELINES_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "Does this model detect Baselines?"),
 			new ColumnConfig(STRUCT_TYPES_COL, 750, false, DefaultTableColumnViewerSorter.ASC, "The region structure types this model detects"),

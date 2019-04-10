@@ -439,12 +439,13 @@ public class ToolsWidget extends Composite {
 		p2palaContainer.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
 		
 		p2palaBtn = new Button(p2palaContainer, SWT.PUSH);
-		p2palaBtn.setText("P2PaLA layout analysis");
-		p2palaBtn.setToolTipText("P2PaLA layout analysis - creates baselines, regions and structure tags depending on the models selected on the right");
+		p2palaBtn.setText("P2PaLA Layout Analysis");
+		p2palaBtn.setToolTipText("Creates baselines, regions and structure tags depending on the models selected on the right");
 		p2palaBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		p2palaModelCombo = new Combo(p2palaContainer, SWT.READ_ONLY | SWT.DROP_DOWN);
 		p2palaModelCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		p2palaModelCombo.setToolTipText("The model used for the P2PaLA Layout Analysis");
 		
 		Button p2palaHelpBtn = new Button(p2palaContainer, 0);
 		p2palaHelpBtn.setImage(Images.HELP);
