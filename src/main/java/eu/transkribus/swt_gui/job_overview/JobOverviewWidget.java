@@ -67,7 +67,7 @@ public class JobOverviewWidget extends Composite {
 				
 				return 0;
 			}
-		}),
+		}, null),
 		new ColumnConfig(DOC_ID_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(USER_NAME_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(PAGE_COL, 50, false, DefaultTableColumnViewerSorter.ASC),

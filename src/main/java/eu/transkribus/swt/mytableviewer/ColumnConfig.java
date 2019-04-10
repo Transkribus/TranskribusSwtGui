@@ -11,24 +11,29 @@ public class ColumnConfig {
 	public int sortingDirection = TableViewerSorter.ASC;
 	public int style = SWT.LEFT;
 	public TableViewerSorter sorter=null;
+	public String tooltip=null;
 	
 	public ColumnConfig(String name, int width) {
-		this(name, width, false, TableViewerSorter.ASC, SWT.LEFT, null);
+		this(name, width, false, TableViewerSorter.ASC, SWT.LEFT, null, null);
 	}
 	
 	public ColumnConfig(String name, int width, boolean defaultSorting) {
-		this(name, width, defaultSorting, TableViewerSorter.ASC, SWT.LEFT, null);
+		this(name, width, defaultSorting, TableViewerSorter.ASC, SWT.LEFT, null, null);
 	}
 	
 	public ColumnConfig(String name, int width, boolean defaultSorting, int sortingDirection) {
-		this(name, width, defaultSorting, sortingDirection, SWT.LEFT, null);
+		this(name, width, defaultSorting, sortingDirection, SWT.LEFT, null, null);
+	}
+	
+	public ColumnConfig(String name, int width, boolean defaultSorting, int sortingDirection, String tooltip) {
+		this(name, width, defaultSorting, sortingDirection, SWT.LEFT, null, tooltip);
 	}	
 	
 	public ColumnConfig(String name, int width, boolean defaultSorting, int sortingDirection, TableViewerSorter sorter) {
-		this(name, width, defaultSorting, sortingDirection, SWT.LEFT, sorter);
+		this(name, width, defaultSorting, sortingDirection, SWT.LEFT, sorter, null);
 	}
 	
-	public ColumnConfig(String name, int width, boolean defaultSorting, int sortingDirection, int style, TableViewerSorter sorter) {
+	public ColumnConfig(String name, int width, boolean defaultSorting, int sortingDirection, int style, TableViewerSorter sorter, String tooltip) {
 		super();
 		this.name = name;
 		this.width = width;
@@ -36,6 +41,7 @@ public class ColumnConfig {
 		this.sortingDirection = sortingDirection;
 		this.style = style;
 		this.sorter = sorter;
+		this.tooltip = tooltip;
 	}
 
 }
