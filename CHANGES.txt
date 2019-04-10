@@ -632,5 +632,6 @@ CHANGES AND BUGFIXES
 	-> Option to change the reading order for all subsequent shapes as well, e.g. ro '35' changes to '3', afterwards '36' to '4', '37' to '5', '38' to '6' till the end of the shape list with the same parent.
 	
 1.6.1:
-	-> P2PaLA recognition functionality for pre-trained models under ToolsWidget->Other Tools 	
+	-> P2PaLA recognition functionality for pre-trained models under ToolsWidget->Other Tools
+	-> fix image exif orientation bug for MacOS, see bug TranskribusSwtGui#276
 	
