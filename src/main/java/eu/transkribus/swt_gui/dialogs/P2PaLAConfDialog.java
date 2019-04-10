@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.dialogs;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -32,12 +33,21 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	public static String NAME_COL = "Name";
 	public static String DESC_COL = "Description";
+	public static String BASELINES_COL = "Baselines";
 	public static String STRUCT_TYPES_COL = "Structure Types";
+	
+	public static String TRAIN_SET_SIZE_COL = "N-Train";
+	public static String VAL_SET_SIZE_COL = "N-Validation";
+	public static String TEST_SET_SIZE_COL = "N-Test";
 	
 	public static final ColumnConfig[] COLS = new ColumnConfig[] {
 			new ColumnConfig(NAME_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(DESC_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
-			new ColumnConfig(STRUCT_TYPES_COL, 800, false, DefaultTableColumnViewerSorter.ASC),
+			new ColumnConfig(BASELINES_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "Does this model detect Baselines?"),
+			new ColumnConfig(STRUCT_TYPES_COL, 750, false, DefaultTableColumnViewerSorter.ASC, "The region structure types this model detects"),
+			new ColumnConfig(TRAIN_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the training set"),
+			new ColumnConfig(VAL_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the validation set (which is used after every epoch during training to evaluate the model)"),
+			new ColumnConfig(TEST_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the test set (which is used once after training to evaluate the model)"),
 		};	
 	
 	List<TrpP2PaLAModel> models;
@@ -63,12 +73,18 @@ public class P2PaLAConfDialog extends Dialog {
 	}
 	
 	@Override
+	protected void configureShell(Shell newShell) {
+		super.configureShell(newShell);
+		newShell.setText("P2PaLA structure analysis tool");
+	}
+	
+	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite cont = (Composite) super.createDialogArea(parent);
 		
 		Link infoText = new Link(cont, 0);
 		String githubLink="https://github.com/lquirosd/P2PaLA";
-		infoText.setText("P2PaLA structure analysis tool, see <a href=\""+githubLink+"\">"+githubLink+"</a>");
+		infoText.setText("This tool detects regions including its structure types and baselines, see <a href=\""+githubLink+"\">"+githubLink+"</a>");
 		SWTUtil.onSelectionEvent(infoText, e -> {
 			try {
 				org.eclipse.swt.program.Program.launch(e.text);
@@ -76,7 +92,7 @@ public class P2PaLAConfDialog extends Dialog {
 				logger.error(ex.getMessage(), ex);
 			}
 		});
-		Fonts.setBoldFont(infoText);
+//		Fonts.setBoldFont(infoText);
 		
 		Label modelsLabel = new Label(cont, 0);
 		modelsLabel.setText("Available models:");
@@ -107,9 +123,22 @@ public class P2PaLAConfDialog extends Dialog {
 				else if (cn.equals(DESC_COL)) {
 					return m.getDescription();
 				}
+				else if (cn.equals(BASELINES_COL)) {
+					return StringUtils.contains(m.getOut_mode(), "L") ? "Yes" : "No";
+				}
 				else if (cn.equals(STRUCT_TYPES_COL)) {
+//					return StringUtils.contains(m.getOut_mode(), "R") ? m.getStruct_types() : "";
 					return m.getStruct_types();
 				}
+				else if (cn.equals(TRAIN_SET_SIZE_COL)) {
+					return m.getTrain_set_size()!=null ? ""+m.getTrain_set_size() : "NA";
+				}
+				else if (cn.equals(VAL_SET_SIZE_COL)) {
+					return m.getVal_set_size()!=null ? ""+m.getVal_set_size() : "NA";
+				}
+				else if (cn.equals(TEST_SET_SIZE_COL)) {
+					return m.getTest_set_size()!=null ? ""+m.getTest_set_size() : "NA";
+				}				
 				
 				return "i am error";
 			}
