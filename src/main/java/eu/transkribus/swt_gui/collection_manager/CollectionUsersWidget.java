@@ -78,10 +78,11 @@ public class CollectionUsersWidget extends Composite {
 		sf.setLayout(new GridLayout(1, false));
 		
 		createCollectionUsersTable(sf);
-		createFindUsersWidget(sf);
+		createFindUsersWidget(tabUserComposite);
 		
 		addListener();
 	}
+
 	
 	private void createCollectionUsersTable(Composite container) {
 		
@@ -310,7 +311,7 @@ public class CollectionUsersWidget extends Composite {
 		if (collection!=null && store.isLoggedIn()) {
 			try {
 				collectionUsersTv.refreshList(collection.getColId());
-//				collectionUsersInfoTv.refreshList(collection.getColId());
+				collectionUsersInfoTv.refreshList(collection.getColId());
 			} catch (ServerErrorException | IllegalArgumentException e) {
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, e.getMessage(), "Error loading users", -1, -1, true);
 			}

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.core.model.beans.auth.TrpUserInfo;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
@@ -28,7 +29,7 @@ public class UserInfoTableWidgetPagination extends ATableWidgetPagination<TrpUse
 private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidgetPagination.class);
 	
 	public static final String USER_USERNAME_COL = "Username";
-	public static final String USER_UPLOAD_COL = "Uploads";
+	public static final String USER_UPLOAD_COL = "Uploaded images";
 	public static final String USER_CREATE_COL = "Create Docs(MB)";
 	public static final String USER_DELETE_COL = "Delete Docs(MB)";
 	public static final String USER_TRAINING_COL = "Training";
@@ -69,7 +70,7 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 						return new ArrayList<>();
 					
 					List<TrpUserInfo> userInfo = new ArrayList<>();
-				
+		
 					try {
 						userInfo = store.getConnection().getUserInfoForCollection(collectionId, null, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
 					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
