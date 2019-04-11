@@ -168,7 +168,7 @@ public class SamplesCompareDialog extends Dialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(900, 850);
+		return new Point(900, 900);
 	}
 
 	@Override
@@ -318,8 +318,6 @@ public class SamplesCompareDialog extends Dialog {
 		}
 		
 		tvCompute.setInput(this.sampleDocList);
-		
-		tvCompute.setInput(this.docList);
 		
 		buttonComputeComp = new Composite(samplesComputesash, SWT.NONE);
 		buttonComputeComp.setLayout(new GridLayout(1, true));
