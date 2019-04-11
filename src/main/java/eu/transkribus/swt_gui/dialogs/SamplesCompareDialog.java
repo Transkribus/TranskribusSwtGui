@@ -168,7 +168,7 @@ public class SamplesCompareDialog extends Dialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(900, 750);
+		return new Point(900, 850);
 	}
 
 	@Override
@@ -311,13 +311,13 @@ public class SamplesCompareDialog extends Dialog {
 		tvCompute.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 //		Only display sample documents in tree viewer
-//		for(TrpDocMetadata document : docList) {
-//			if(document.isSampleDoc()) {
-//				sampleDocList.add(document);
-//			}
-//		}
-//		
-//		tvCompute.setInput(this.sampleDocList);
+		for(TrpDocMetadata document : docList) {
+			if(document.isSampleDoc()) {
+				sampleDocList.add(document);
+			}
+		}
+		
+		tvCompute.setInput(this.sampleDocList);
 		
 		tvCompute.setInput(this.docList);
 		
