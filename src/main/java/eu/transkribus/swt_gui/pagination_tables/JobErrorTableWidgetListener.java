@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.job.JobError;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -70,15 +71,20 @@ public class JobErrorTableWidgetListener extends SelectionAdapter implements ISt
 						storage.getConnection().findDocuments(0, error.getDocId(), "", "", "", "", true, false, 0, 0, null, null);
 				if (docList != null && docList.size() > 0){
 					col = docList.get(0).getColList().get(0).getColId();
-
 				}
 						
 			} catch (SessionExpiredException | ServerErrorException
 					| ClientErrorException | IllegalArgumentException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("Could not find document: " + e.getMessage(), e);
 			}
-			mw.loadRemoteDoc(error.getDocId(), col, error.getPageNr()-1);
+			if(col > 0) {
+				TrpLocation l = new TrpLocation();
+				l.collId = col;
+				l.docId = error.getDocId();
+				l.pageNr = error.getPageNr();
+				l.shapeId = error.getLineId();
+				mw.showLocation(l);
+			}
 		}		
 	}	
 }
