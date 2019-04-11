@@ -27,6 +27,7 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.MetadataException;
 
 import eu.transkribus.core.util.SebisStopWatch;
+import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.interfaces.types.util.TrpImgMdParser;
 import eu.transkribus.interfaces.types.util.TrpImgMdParser.ImageTransformation;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
@@ -148,11 +149,13 @@ public class ImgLoader {
 		String prot = url.getProtocol() == null ? "" : url.getProtocol();
 		boolean isLocal = prot.startsWith("file");
 
+		boolean loadedWithSwt=false;
 		Image img=null;
 		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST || !(isLocal && LOAD_LOCAL_IMAGES_WITH_JAI)) {
 			try {
-				logger.trace("loading image with jface");
+				logger.debug("loading image with jface");
 				img = loadWithSWTDownloadFirst(url);
+				loadedWithSwt=true;
 			} catch (Exception e) {
 				logger.warn("Error loading image with JFace - now trying to load with JAI (slower due to the awt->swt-image conversion process!, url: "+url);
 				img = loadWithJAI(url);
@@ -161,7 +164,8 @@ public class ImgLoader {
 			logger.debug("loading image with jai");
 			img = loadWithJAI(url);
 		}
-		if(transformation == null) {
+		if( (loadedWithSwt && SysUtils.IS_OSX) || transformation==null ) { // when image is loaded with SWT, we do not need to correct the transformation 
+			logger.debug("no transformation applied, loadedWithSwt: "+loadedWithSwt+", isOSX: "+SysUtils.IS_OSX+", transformation: "+transformation);
 			return img;
 		} else {
 			return fixOrientation(img, transformation.getExifOrientation());

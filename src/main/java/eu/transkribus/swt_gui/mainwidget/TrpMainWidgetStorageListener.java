@@ -140,6 +140,7 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		} else {
 			ui.updateLoginInfo(arg.login, "", "");
 		}
+		ui.getToolsWidget().setP2PaLAModels(storage.getP2PaLAModels());
 		
 		SWTUtil.setEnabled(mw.getUi().getJobsButton(), arg.login);
 	}

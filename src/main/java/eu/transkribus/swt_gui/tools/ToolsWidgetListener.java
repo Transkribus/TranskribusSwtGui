@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -13,16 +14,20 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
+import eu.transkribus.core.model.beans.TrpP2PaLAModel;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.util.DialogUtil;
@@ -85,6 +90,8 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.p2palaBtn, this);
 		
 		Storage.getInstance().addListener(new IStorageListener() {
+			Storage store = Storage.getInstance();
+			
 			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
 				tw.refVersionChooser.setToGT();
 				tw.hypVersionChooser.setToCurrent();
@@ -255,15 +262,26 @@ public class ToolsWidgetListener implements SelectionListener {
 			}
 			else if (s == tw.p2palaBtn) {
 				String jobImpl = JobImpl.P2PaLAJob.toString();
+				TrpP2PaLAModel model = tw.getSelectedP2PaLAModel();
+				if (model == null) {
+					DialogUtil.showErrorMessageBox(tw.getShell(), "No model selected", "Please select a P2PaLA model");
+					return;
+				}
+				logger.debug("Selected P2PaLA model: "+model);
+				ParameterMap pm = new ParameterMap();
+				pm.addIntParam(JobConst.PROP_MODEL_ID, model.getId());
+				pm.addParameter(JobConst.PROP_MODELNAME, model.getName());
+				
 				if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
 					logger.debug("p2palaBtn on pages: " + tw.otherToolsPagesSelector.getPagesStr());
 					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
-							true, true, false, false, false, jobImpl, null);
+							true, true, false, false, false, jobImpl, pm);
 				} else {
 					logger.debug("p2palaBtn on current transcript");
 //					List<String> rids = getSelectedRegionIds();
-					jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, null);
+					jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, pm);
 				}
+				
 				
 			}
 
