@@ -164,12 +164,11 @@ public class SamplesCompareDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Compare Samples");
-		newShell.setMinimumSize(900, 900);
 	}
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1100, 900);
+		return new Point(900, 750);
 	}
 
 	@Override
@@ -283,7 +282,7 @@ public class SamplesCompareDialog extends Dialog {
 		createSampleButton.setImage(Images.DISK);
 		createSampleButton.setText("Create Sample");
 		
-		sampleTreeViewer.setWeights(new int[] {45,20,40});
+		sampleTreeViewer.setWeights(new int[] {40,20,40});
 		addListeners();
 		
 	}
