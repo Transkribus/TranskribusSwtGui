@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
@@ -45,7 +46,7 @@ public class MyTableViewer extends TableViewer {
 		List<Pair<TableColumn, TableViewerSorter>> columns = new ArrayList<>();
 		for (ColumnConfig cf : cols) {
 			Pair<TableColumn, TableViewerSorter> p = 
-					createColumn(this, cf.style, cf.name, cf.width, cf.defaultSorting, cf.sortingDirection, cf.sorter);
+					createColumn(this, cf.style, cf.name, cf.width, cf.defaultSorting, cf.sortingDirection, cf.sorter, cf.tooltip);
 			sorter.add(p.getRight());
 			columns.add(p);
 		}
@@ -97,9 +98,12 @@ public class MyTableViewer extends TableViewer {
 	
 	private static Pair<TableColumn, TableViewerSorter> createColumn(TableViewer viewer, int style, 
 			String text, int width, 
-			boolean setSorting, int sortDirection, TableViewerSorter sorter) {
+			boolean setSorting, int sortDirection, TableViewerSorter sorter, String tooltip) {
 		
 		TableColumn col = TableViewerUtils.createTableColumn(viewer.getTable(), style, text, width);
+		if (!StringUtils.isEmpty(tooltip)) {
+			col.setToolTipText(tooltip);	
+		}
 	
 		if (sorter == null)
 			sorter = new DefaultTableColumnViewerSorter(viewer, col);

@@ -79,6 +79,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.TrpP2PaLAModel;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpUpload;
@@ -222,6 +223,8 @@ public class Storage {
 	
 	// just for debugging purposes:
 	private static int reloadDocListCounter=0;
+	
+	private List<TrpP2PaLAModel> p2palaModels = new ArrayList<>();
 	
 	public static class StorageException extends Exception {
 		private static final long serialVersionUID = -2215354890031208420L;
@@ -501,6 +504,13 @@ public class Storage {
 
 	public String getCurrentServer() {
 		return isLoggedIn() ? conn.getServerUri().toString() : null;
+	}
+	
+	public boolean isLoggedInAtTestServer() {
+		if (getCurrentServer()==null) {
+			return false;
+		}
+		return getCurrentServer().startsWith(TrpServerConn.TEST_SERVER_URI);
 	}
 
 	public boolean isLocalDoc() {
@@ -964,11 +974,11 @@ public class Storage {
 		user = conn.login(username, password);
 		logger.debug("Logged in as user: " + user + " connection: " + conn);
 		
-		if(user.isAdmin()) {
+		if(user.isAdmin() && TrpMainWidget.getInstance()!=null) {
 			logger.info(user + " is admin.");
 			TrpMainWidget.getInstance().getTrpSets().setServerSelectionEnabled(user.isAdmin());
 		}
-
+		onLogin();
 		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
 	}
 	
@@ -995,7 +1005,12 @@ public class Storage {
 				logger.error("Could not store OAuth refresh token!", e);
 			}
 		}
+		onLogin();
 		sendEvent(new LoginOrLogoutEvent(this, true, user, conn.getServerUri()));
+	}
+	
+	protected void onLogin() {
+		reloadP2PaLAModels();
 	}
 	
 	public void logout() {
@@ -1006,6 +1021,7 @@ public class Storage {
 			logger.error("Error logging out: " + th.getMessage(), th);
 		} finally {
 			clearCollections();
+			clearP2PaLAModels();
 			conn = null;
 			user = null;
 //			clearDocList();
@@ -2942,6 +2958,28 @@ public class Storage {
 		final Predicate<JobImpl> htrTrainingJobImplFilter = j -> j.getTask().equals(JobTask.HtrTraining);
 		List<JobImpl> list = getConnection().getJobImplAcl(htrTrainingJobImplFilter);
 		return list.toArray(new JobImpl[list.size()]);
+	}
+	
+	public void reloadP2PaLAModels() {
+		if (isLoggedInAtTestServer()) {
+			try {
+				List<TrpP2PaLAModel> models = conn.getP2PaLAModels(-1);
+				if (CoreUtils.size(models)>0) {
+					p2palaModels = models;
+				}
+			} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+				logger.error("Error loading P2PaLA models: "+e.getMessage(), e);
+			}
+			
+		}
+	}
+	
+	public void clearP2PaLAModels() {
+		p2palaModels = new ArrayList<>();
+	}
+	
+	public List<TrpP2PaLAModel> getP2PaLAModels() {
+		return p2palaModels;
 	}
 
 	
