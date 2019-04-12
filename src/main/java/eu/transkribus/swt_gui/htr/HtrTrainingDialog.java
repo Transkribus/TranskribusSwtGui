@@ -72,7 +72,9 @@ public class HtrTrainingDialog extends Dialog {
 	
 	private final List<JobImpl> trainJobImpls;
 	
-	private List<TrainMethodUITab> tabList; 
+	private List<TrainMethodUITab> tabList;
+
+	private boolean enableDebugDialog = false; 
 
 	public HtrTrainingDialog(Shell parent, List<TrpHtr> htrList, JobImpl[] impls) {
 		super(parent);
@@ -160,6 +162,7 @@ public class HtrTrainingDialog extends Dialog {
 		SWTUtil.onSelectionEvent(paramTabFolder, (e) -> { updateUI(); } );
 		
 		treeViewerSelector = new DataSetSelectionSashForm(sash, SWT.HORIZONTAL, colId, htrList, docList);
+		treeViewerSelector.enableDebugDialog(this.enableDebugDialog);
 		
 		sash.setWeights(new int[] { 45, 55 });
 		
@@ -410,6 +413,9 @@ public class HtrTrainingDialog extends Dialog {
 	}
 
 	public void enableDebugDialog(boolean b) {
-		treeViewerSelector.enableDebugDialog(b);
+		this.enableDebugDialog  = b;
+		if(treeViewerSelector != null) {
+			treeViewerSelector.enableDebugDialog(this.enableDebugDialog);
+		}
 	}
 }

@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.htr;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -515,15 +514,7 @@ public class HtrModelsComposite extends Composite {
 	}
 
 	private void updateHtrs(final String providerFilter) {
-		List<TrpHtr> uroHtrs = new ArrayList<>(0);
-		try {
-			uroHtrs = store.listHtrs(providerFilter);
-		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e1) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not load HTR model list!");
-			logger.error(e1.getMessage(), e1);
-			return;
-		}
-
+		List<TrpHtr> uroHtrs = store.getHtrs(providerFilter);
 		htw.refreshList(uroHtrs);
 	}
 	

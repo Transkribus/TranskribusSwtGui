@@ -224,8 +224,10 @@ public class Storage {
 	
 	// just for debugging purposes:
 	private static int reloadDocListCounter=0;
+	private static int reloadHtrListCounter=0;
 	
 	private List<TrpP2PaLAModel> p2palaModels = new ArrayList<>();
+	private List<TrpHtr> htrList = new ArrayList<>();
 	
 	public static class StorageException extends Exception {
 		private static final long serialVersionUID = -2215354890031208420L;
@@ -868,14 +870,14 @@ public class Storage {
 						userDocList.clear();
 						userDocList.addAll(response);
 						
-						sendEvent(new DocListLoadEvent(this, 0, userDocList, true));
+						sendEvent(new DocListLoadEvent(this, 0, userDocList, true, false));
 					}
 				}
 			});
 		} else {
 			synchronized (this) {
 				userDocList.clear();				
-				sendEvent(new DocListLoadEvent(this, 0, userDocList, true));
+				sendEvent(new DocListLoadEvent(this, 0, userDocList, true, false));
 			}
 		}
 	}
@@ -907,12 +909,19 @@ public class Storage {
 					docList.addAll(docs);
 				}
 				
+				/* 
+				 * Some actions triggered by DocListLoadEvent are only needed if the collection changed.
+				 * Capture this and send it with the event.
+				 */
+				boolean isCollectionChange = Storage.this.collId != colId;
+				logger.debug("Collection has changed ? " + isCollectionChange);
+				
 				Storage.this.collId = colId;
 				
 				logger.debug("async loaded "+docList.size()+" nr of docs of collection "+collId+" thread: "+Thread.currentThread().getName());
 				SebisStopWatch.SW.stop(true, "load time: ", logger);
 				
-				sendEvent(new DocListLoadEvent(this, colId, docList, false));
+				sendEvent(new DocListLoadEvent(this, colId, docList, false, isCollectionChange));
 			}
 
 			@Override public void failed(Throwable throwable) {
@@ -2442,10 +2451,27 @@ public class Storage {
 	 * HTR stuff
 	 */
 	
-	public List<TrpHtr> listHtrs(String provider) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
-		checkConnection(true);
-		logger.debug("Listing HTRs: colId = " + this.getCollId() + " - provider = " + provider);
-		return conn.getHtrs(this.getCollId(), provider);		
+	/**
+	 * Retrieve HTR models linked to the current collection from the server.
+	 */
+	public void reloadHtrs() {
+		logger.debug("Reloading HTRs (call #" + ++reloadHtrListCounter + ": colId = " + this.getCollId());
+		try {
+			checkConnection(true);
+			htrList = conn.getHtrs(this.getCollId(), null);
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e) {
+			logger.error("Error loading HTR models: " + e.getMessage(), e);
+			htrList.clear();
+		}
+	}
+	
+	public List<TrpHtr> getHtrs(String provider) {
+		if(provider == null) {
+			return htrList;
+		}
+		return htrList.stream()
+				.filter(h -> h.getProvider().equals(provider))
+				.collect(Collectors.toList());
 	}
 	
 	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
