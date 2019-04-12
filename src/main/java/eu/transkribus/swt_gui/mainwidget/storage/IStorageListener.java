@@ -163,12 +163,17 @@ public interface IStorageListener {
 //		public final int collId;
 //		public final TrpUserLogin user;
 		public final boolean isDocsByUser;
+		/**
+		 * true if this DocListLoadEvent was sent during a collection change
+		 */
+		public final boolean isCollectionChange;
 
-		public DocListLoadEvent(Object source, int collId, List<TrpDocMetadata> docs,  boolean isDocsByUser) {
+		public DocListLoadEvent(Object source, int collId, List<TrpDocMetadata> docs, boolean isDocsByUser, boolean isCollectionChange) {
 			super(source, docs.size()+" documents loaded from collection "+collId);
 			this.collId = collId;
 			this.docs = docs;
 			this.isDocsByUser = isDocsByUser;
+			this.isCollectionChange = isCollectionChange;
 		}
 	}
 	

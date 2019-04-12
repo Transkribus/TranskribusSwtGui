@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
-import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -404,34 +403,23 @@ public class ServerWidget extends Composite {
 		groundTruthTreeWidget.expandTreeItem(o);
 	}
 	
-	public void updateGroundTruthTreeViewerFromStorage() {
-		getDisplay().asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				List<TrpHtr> treeViewerInput;
-				try {
-					//filter for HTRs with train GT
-					treeViewerInput = store.listHtrs(null).stream()
-							.filter(h -> h.getNrOfTrainGtPages() != null && h.getNrOfTrainGtPages() > 0)
-							.collect(Collectors.toList());
-				} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e) {
-					logger.error("Could not load HTR list from server!", e);
-					treeViewerInput = new ArrayList<>(0);
-				}
-				
-				if(!treeViewerInput.isEmpty()) {
-					if (gtTabItem == null || gtTabItem.isDisposed()) {
-						gtTabItem = new CTabItem(tabFolder, SWT.NONE);
-						gtTabItem.setText("HTR Model Data");
-						gtTabItem.setControl(groundTruthTreeWidget);
-					}
-					groundTruthTreeWidget.setInput(treeViewerInput);
-				} else if(gtTabItem != null) {
-						gtTabItem.dispose();
-						gtTabItem = null;
-				}
+	public void updateGroundTruthTreeViewer() {	
+		List<TrpHtr> treeViewerInput;
+		//filter for HTRs with train GT
+		treeViewerInput = store.getHtrs(null).stream()
+				.filter(h -> h.getNrOfTrainGtPages() != null && h.getNrOfTrainGtPages() > 0)
+				.collect(Collectors.toList());
+		if(!treeViewerInput.isEmpty()) {
+			if (gtTabItem == null || gtTabItem.isDisposed()) {
+				gtTabItem = new CTabItem(tabFolder, SWT.NONE);
+				gtTabItem.setText("HTR Model Data");
+				gtTabItem.setControl(groundTruthTreeWidget);
 			}
-		});
+			groundTruthTreeWidget.setInput(treeViewerInput);
+		} else if(gtTabItem != null) {
+				gtTabItem.dispose();
+				gtTabItem = null;
+		}
 	}
 	
 	private void initDocOverviewMenu() {

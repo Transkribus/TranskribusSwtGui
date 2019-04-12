@@ -133,7 +133,7 @@ public class ToolsWidgetListener implements SelectionListener {
 			if (htd != null) {
 				htd.setVisible();
 			} else {
-				htd = new HtrTrainingDialog(mw.getShell(), store.listHtrs(null), store.getHtrTrainingJobImpls());
+				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrs(null), store.getHtrTrainingJobImpls());
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
 					// if (!mw.saveTranscriptDialogOrAutosave()) {

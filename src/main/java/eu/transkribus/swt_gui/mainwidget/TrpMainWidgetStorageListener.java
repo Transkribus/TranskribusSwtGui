@@ -20,6 +20,11 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 	TrpMainWidgetView ui;
 	SWTCanvas canvas;
 	
+	/**
+	 * Counts all DocListLoadEvents until the collection is changed.
+	 */
+	private int docListLoadEventCounter = 0;
+	
 	public TrpMainWidgetStorageListener(TrpMainWidget mainWidget) {
 		this.mw = mainWidget;
 		this.ui = mw.getUi();
@@ -53,6 +58,12 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 	}
 	
 	@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
+		if(e.isCollectionChange) {
+			logger.debug("Collection changed to ID = " + e.collId);
+			docListLoadEventCounter = 0;
+		}
+		logger.debug("Handling DocListLoadEvent #" + ++docListLoadEventCounter + " in collection " + e.collId + ": " + e);
+		
 		if (e.isDocsByUser){
 			if (SWTUtil.isOpen(mw.strayDocsDialog)){
 				mw.strayDocsDialog.refreshDocList();
@@ -63,7 +74,13 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 			if (mw.recycleBinDiag != null){
 				mw.recycleBinDiag.getDocTableWidget().refreshList(mw.getSelectedCollectionId());
 			}
-			mw.getUi().getServerWidget().updateGroundTruthTreeViewerFromStorage();
+			if(e.isCollectionChange) {
+				//force a reload of the HTR model list only if collection has changed
+				storage.reloadHtrs();
+			} else {
+				logger.debug("Omitting reload of HTR list as collection has not changed.");
+			}
+			mw.getUi().getServerWidget().updateGroundTruthTreeViewer();
 		}
 	}
 	
