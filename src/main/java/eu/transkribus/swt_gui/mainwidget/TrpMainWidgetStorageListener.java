@@ -57,30 +57,26 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 	@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
 	}
 	
+	@Override public void handleUserDocListLoadEvent(UserDocListLoadEvent e) {
+		if (SWTUtil.isOpen(mw.strayDocsDialog)){
+			mw.strayDocsDialog.refreshDocList();
+		}
+	}
+	
 	@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
 		if(e.isCollectionChange) {
 			logger.debug("Collection changed to ID = " + e.collId);
 			docListLoadEventCounter = 0;
 		}
-		logger.debug("Handling DocListLoadEvent #" + ++docListLoadEventCounter + " in collection " + e.collId + ": " + e);
-		
-		if (e.isDocsByUser){
-			if (SWTUtil.isOpen(mw.strayDocsDialog)){
-				mw.strayDocsDialog.refreshDocList();
-			}
+		logger.debug("Handling DocListLoadEvent #" + ++docListLoadEventCounter + " in collection " + e.collId + " sent by " + e.getSource());
+		if (mw.recycleBinDiag != null){
+			mw.recycleBinDiag.getDocTableWidget().refreshList(mw.getSelectedCollectionId());
 		}
-		else{
-			ui.getServerWidget().refreshDocListFromStorage();
-			if (mw.recycleBinDiag != null){
-				mw.recycleBinDiag.getDocTableWidget().refreshList(mw.getSelectedCollectionId());
-			}
-			if(e.isCollectionChange) {
-				//force a reload of the HTR model list only if collection has changed
-				storage.reloadHtrs();
-			} else {
-				logger.debug("Omitting reload of HTR list as collection has not changed.");
-			}
-			mw.getUi().getServerWidget().updateGroundTruthTreeViewer();
+		if(e.isCollectionChange) {
+			//force a reload of the HTR model list only if collection has changed
+			storage.reloadHtrs();
+		} else {
+			logger.debug("Omitting reload of HTR list as collection has not changed.");
 		}
 	}
 	

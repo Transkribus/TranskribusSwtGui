@@ -46,6 +46,11 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 	Storage storage = Storage.getInstance();
 	DocumentManager ac;
 	
+	/**
+	 * Counts all DocListLoadEvents until the collection is changed.
+	 */
+	private int docListLoadEventCounter = 0;
+	
 	public ServerWidgetListener(ServerWidget sw) {
 		this.sw = sw;
 		this.dtv = sw.getTableViewer();
@@ -163,6 +168,19 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		if (arg.login && TrpConfig.getTrpSettings().isLoadMostRecentDocOnLogin()) {
 			TrpMainWidget.getInstance().loadMostRecentDoc();
 		}
+	}
+	
+	@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
+		if(e.isCollectionChange) {
+			logger.debug("Collection changed to ID = " + e.collId);
+			docListLoadEventCounter = 0;
+		}
+		logger.debug("Handling DocListLoadEvent #" + ++docListLoadEventCounter + " in collection " + e.collId + " sent by " + e.getSource());
+		sw.refreshDocListFromStorage();
+	}
+	
+	@Override public void handleHtrListLoadEvent(HtrListLoadEvent e) {
+		sw.updateGroundTruthTreeViewer();
 	}
 
 	@Override public void doubleClick(DoubleClickEvent event) {
@@ -327,14 +345,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			//need to empty document list filter when loading of new collection happened
 			sw.docTableWidget.clearFilter();
 			
-			/*
-			 * otherwise loading a new collection gets stuck with the old collection due to this check:
-			 * DocTableWidgetPagination, line 228: forceReload || collectionId != store.getCollId()
-			 * but changing this may has effects on some other parts
-			 */
-			
-			sw.refreshDocListFromStorage();
-			
+			//switch collections and load documents from the server, which sends out DocListLoadEvent triggering UI updates in IStorageListener impls
 			Future<List<TrpDocMetadata>> docs = TrpMainWidget.getInstance().reloadDocList(sw.getSelectedCollectionId());
 			
 			//unload currently loaded remote document (if any) on collection change
@@ -347,9 +358,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			if (ac != null && !ac.getShell().isDisposed() && ac.getShell().isVisible()){
 				ac.totalReload(sw.getSelectedCollectionId());
 			}
-			
-			
-			
+
 			//last and least: the role of a user in this collection must be taken into account for visibility of buttons, tabs, tools,...
 			TrpMainWidget.getInstance().getUi().updateVisibility();
 		}

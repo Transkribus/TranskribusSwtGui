@@ -7,6 +7,7 @@ import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
@@ -41,6 +42,10 @@ public interface IStorageListener {
 	default void handleDocMetadataUpdateEvent(DocMetadataUpdateEvent e) {}
 	
 	default void handleDocListLoadEvent(DocListLoadEvent e) {}
+	
+	default void handleUserDocListLoadEvent(UserDocListLoadEvent e) {}
+	
+	default void handleHtrListLoadEvent(HtrListLoadEvent e) {}
 	
 	default void handlTagSpecsChangedEvent(TagSpecsChangedEvent e) {}
 	
@@ -82,6 +87,12 @@ public interface IStorageListener {
 		}
 		else if (event instanceof DocListLoadEvent) {
 			handleDocListLoadEvent((DocListLoadEvent) event);
+		}
+		else if (event instanceof UserDocListLoadEvent) {
+			handleUserDocListLoadEvent((UserDocListLoadEvent) event);
+		}
+		else if (event instanceof HtrListLoadEvent) {
+			handleHtrListLoadEvent((HtrListLoadEvent) event);
 		}
 		else if (event instanceof TagSpecsChangedEvent) {
 			handlTagSpecsChangedEvent((TagSpecsChangedEvent) event);
@@ -160,20 +171,38 @@ public interface IStorageListener {
 	public static class DocListLoadEvent extends Event {
 		public final int collId;
 		public final List<TrpDocMetadata> docs;
-//		public final int collId;
-//		public final TrpUserLogin user;
-		public final boolean isDocsByUser;
 		/**
 		 * true if this DocListLoadEvent was sent during a collection change
 		 */
 		public final boolean isCollectionChange;
 
-		public DocListLoadEvent(Object source, int collId, List<TrpDocMetadata> docs, boolean isDocsByUser, boolean isCollectionChange) {
+		public DocListLoadEvent(Object source, int collId, List<TrpDocMetadata> docs, boolean isCollectionChange) {
 			super(source, docs.size()+" documents loaded from collection "+collId);
 			this.collId = collId;
 			this.docs = docs;
-			this.isDocsByUser = isDocsByUser;
 			this.isCollectionChange = isCollectionChange;
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public static class UserDocListLoadEvent extends Event {
+		public final List<TrpDocMetadata> docs;
+
+		public UserDocListLoadEvent(Object source, List<TrpDocMetadata> docs) {
+			super(source, docs.size()+" user documents loaded from collection");
+			this.docs = docs;
+		}
+	}
+	
+	@SuppressWarnings("serial")
+	public static class HtrListLoadEvent extends Event {
+		public final int collId;
+		public final List<TrpHtr> htrs;
+
+		public HtrListLoadEvent(Object source, int collId, List<TrpHtr> htrs) {
+			super(source, htrs.size() + " HTRs loaded for collection " + collId);
+			this.collId = collId;
+			this.htrs = htrs;
 		}
 	}
 	

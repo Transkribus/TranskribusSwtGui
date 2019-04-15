@@ -138,6 +138,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocListLoadEve
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocMetadataUpdateEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.GroundTruthLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.HtrListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.JobUpdateEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.LoginOrLogoutEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.MainImageLoadEvent;
@@ -147,6 +148,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TagSpecsChange
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptListLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptLoadEvent;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.TranscriptSaveEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.UserDocListLoadEvent;
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecDBUtil;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
@@ -870,14 +872,14 @@ public class Storage {
 						userDocList.clear();
 						userDocList.addAll(response);
 						
-						sendEvent(new DocListLoadEvent(this, 0, userDocList, true, false));
+						sendEvent(new UserDocListLoadEvent(this, userDocList));
 					}
 				}
 			});
 		} else {
 			synchronized (this) {
 				userDocList.clear();				
-				sendEvent(new DocListLoadEvent(this, 0, userDocList, true, false));
+				sendEvent(new UserDocListLoadEvent(this, userDocList));
 			}
 		}
 	}
@@ -921,7 +923,7 @@ public class Storage {
 				logger.debug("async loaded "+docList.size()+" nr of docs of collection "+collId+" thread: "+Thread.currentThread().getName());
 				SebisStopWatch.SW.stop(true, "load time: ", logger);
 				
-				sendEvent(new DocListLoadEvent(this, colId, docList, false, isCollectionChange));
+				sendEvent(new DocListLoadEvent(this, colId, docList, isCollectionChange));
 			}
 
 			@Override public void failed(Throwable throwable) {
@@ -2463,6 +2465,7 @@ public class Storage {
 			logger.error("Error loading HTR models: " + e.getMessage(), e);
 			htrList.clear();
 		}
+		sendEvent(new HtrListLoadEvent(this, this.getCollId(), htrList));
 	}
 	
 	public List<TrpHtr> getHtrs(String provider) {

@@ -38,10 +38,7 @@ public class MyDocsTableWidgetPagination extends DocTableWidgetPagination {
 	
 	void addListener() {
 		storageListener = new IStorageListener() {
-			@Override public void handleDocListLoadEvent(DocListLoadEvent e) {
-				if (!e.isDocsByUser)
-					return;
-				
+			@Override public void handleUserDocListLoadEvent(UserDocListLoadEvent e) {
 				Display.getDefault().asyncExec(() -> {
 					if (SWTUtil.isDisposed(MyDocsTableWidgetPagination.this))
 						return;
