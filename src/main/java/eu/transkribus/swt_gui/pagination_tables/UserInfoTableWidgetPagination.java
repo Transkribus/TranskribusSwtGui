@@ -32,10 +32,14 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 	public static final String USER_UPLOAD_COL = "Uploaded images";
 	public static final String USER_CREATE_COL = "Create Docs(MB)";
 	public static final String USER_DELETE_COL = "Delete Docs(MB)";
-	public static final String USER_TRAINING_COL = "Training";
-	public static final String USER_HTR_COL = "HTR Module";
-	public static final String USER_OCR_COL = "OCR Module";
-	public static final String USER_LA_COL = "LA Module";
+	public static final String USER_TRAINING_COL = "Training Runs";
+	public static final String USER_TRAINING_TIME_COL = "Training Time";
+	public static final String USER_HTR_COL = "HTR Runs";
+	public static final String USER_HTR_TIME_COL = "HTR Time";
+	public static final String USER_OCR_COL = "OCR Runs";
+	public static final String USER_OCR_TIME_COL = "OCR Time";
+	public static final String USER_LA_COL = "LA Runs";
+	public static final String USER_LA_TIME_COL = "LA Time";
 	public static final String USER_HOSTING_COL = "Hosting(MB)";
 	
 	private int collectionId = 0;
@@ -98,9 +102,13 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 		createDefaultColumn(USER_USERNAME_COL, 100, "userName", true);
 		createDefaultColumn(USER_UPLOAD_COL, 100, "uploads",true);
 		createDefaultColumn(USER_TRAINING_COL, 100, "training",true);
+		createDefaultColumn(USER_TRAINING_TIME_COL, 100, "trainingTime",true);
 		createDefaultColumn(USER_HTR_COL, 100, "htr", true);
+		createDefaultColumn(USER_HTR_TIME_COL, 100, "htrTime", true);
 		createDefaultColumn(USER_OCR_COL, 100, "ocr", true);
+		createDefaultColumn(USER_OCR_TIME_COL, 100, "ocrTime", true);
 		createDefaultColumn(USER_LA_COL, 100, "la", true);
+		createDefaultColumn(USER_LA_TIME_COL, 100, "laTime", true);
 		createDefaultColumn(USER_CREATE_COL, 100, "createDoc",true);
 		createDefaultColumn(USER_DELETE_COL, 100, "deleteDoc",true);
 		createDefaultColumn(USER_HOSTING_COL, 100, "hosting", true);
