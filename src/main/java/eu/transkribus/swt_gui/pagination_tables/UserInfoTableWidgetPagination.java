@@ -43,6 +43,7 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 	public static final String USER_HOSTING_COL = "Hosting(MB)";
 	
 	private int collectionId = 0;
+	private List<TrpUserInfo> userInfo = new ArrayList<>();
 	
 	public UserInfoTableWidgetPagination(Composite parent, int style, int initialPageSize) {
 		super(parent, style, initialPageSize);
@@ -72,8 +73,6 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 					
 					if (!store.isLoggedIn() || collectionId <= 0)
 						return new ArrayList<>();
-					
-					List<TrpUserInfo> userInfo = new ArrayList<>();
 		
 					try {
 						userInfo = store.getConnection().getUserInfoForCollection(collectionId, null, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
@@ -94,6 +93,10 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 		
 		this.collectionId  = collectionId;	
 		refreshPage(true);
+	}
+	
+	public List<TrpUserInfo> getUserInfo() {
+		return userInfo;
 	}
 
 	@Override

@@ -1,9 +1,20 @@
 package eu.transkribus.swt_gui.collection_manager;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.ServerErrorException;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ISelection;
@@ -15,6 +26,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -26,6 +39,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,13 +47,18 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
+import eu.transkribus.core.model.beans.TrpErrorRate;
+import eu.transkribus.core.model.beans.TrpErrorRateListEntry;
 import eu.transkribus.core.model.beans.TrpUserCollection;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
+import eu.transkribus.core.model.beans.auth.TrpUserInfo;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.TrpGuiPrefs;
+import eu.transkribus.swt_gui.dialogs.ExportPathComposite;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
 import eu.transkribus.swt_gui.pagination_tables.UserInfoTableWidgetPagination;
@@ -53,6 +72,7 @@ public class CollectionUsersWidget extends Composite {
 	
 	static Storage store = Storage.getInstance(); 
 	
+	Composite sf;
 	UserTableWidgetPagination collectionUsersTv;
 	UserInfoTableWidgetPagination collectionUsersInfoTv;
 	FindUsersWidget findUsersWidget;
@@ -61,8 +81,15 @@ public class CollectionUsersWidget extends Composite {
 	CTabItem usersTabItem, userInfoTabItem;
 	Composite tabUserComposite,tabUserInfoComposite;
 	
-	Button addUserToColBtn, removeUserFromColBtn, showUserCollections/*, editUserFromColBtn*/;
+	Button addUserToColBtn, removeUserFromColBtn, showUserCollections, downloadXLS/*, editUserFromColBtn*/;
 	Combo role;
+	
+	List<TrpUserInfo> userInfo;
+	String lastExportFolder;
+	String lastExportFolderTmp;
+	String docName;
+	ExportPathComposite exportPathComp;
+	File result=null;
 
 	Group group;
 	TrpCollection collection;
@@ -73,9 +100,11 @@ public class CollectionUsersWidget extends Composite {
 		super(parent, style);
 		this.setLayout(new FillLayout());
 		
-		Composite sf = new SashForm(this, SWT.VERTICAL);
+		sf = new SashForm(this, SWT.VERTICAL);
 //		sf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		sf.setLayout(new GridLayout(1, false));
+		
+		docName = "Collection_"+store.getCollId()+"_UserInfo";
 		
 		createCollectionUsersTable(sf);
 		createFindUsersWidget(tabUserComposite);
@@ -161,7 +190,9 @@ public class CollectionUsersWidget extends Composite {
 		
 		collectionUsersInfoTv = new UserInfoTableWidgetPagination(tabUserInfoComposite, 0, 25);
 		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-				
+		
+		downloadXls();
+		
 		group.pack();
 	}
 	
@@ -186,6 +217,49 @@ public class CollectionUsersWidget extends Composite {
 				updateBtnVisibility();
 			}
 		});
+	}
+	
+public void downloadXls() {
+		
+		Composite body = new Composite(tabUserInfoComposite,SWT.NONE);
+		
+		body.setLayout(new GridLayout(1,false));
+		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
+		
+		try {
+			lastExportFolderTmp = TrpGuiPrefs.getLastExportFolder();
+		} catch (Exception e) {
+			logger.error("Could not load last export folder");
+		}
+		if (lastExportFolderTmp != null && !lastExportFolderTmp.equals("")) {
+			lastExportFolder = lastExportFolderTmp;
+		}
+	    
+		exportPathComp = new ExportPathComposite(body, lastExportFolder, "File/Folder name: ", ".xls", docName);
+		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		
+		downloadXLS = new Button(body,SWT.PUSH);
+		downloadXLS.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
+		downloadXLS.setText("Download XLS");
+		
+		
+		downloadXLS.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				result = exportPathComp.getExportFile();
+				logger.debug("Export path "+exportPathComp.getBaseFolderText());
+				TrpGuiPrefs.storeLastExportFolder(exportPathComp.getBaseFolderText());
+				userInfo = collectionUsersInfoTv.getUserInfo();
+				createWorkBook(result.getAbsolutePath(), userInfo);
+				MessageBox dialog = new MessageBox(sf.getShell(), SWT.ICON_QUESTION | SWT.OK| SWT.CANCEL);
+				dialog.setText("XLS created");
+				dialog.setMessage("The Worksheet has been created and saved in : "+result.getPath());
+				dialog.open();
+				
+			}	
+			
+		});
+		
 	}
 	
 	private void addListener() {
@@ -332,6 +406,91 @@ public class CollectionUsersWidget extends Composite {
 		public CTabItem getTabItem() {
 			return tabItem;
 		}
+		
+	}
+	
+public void createWorkBook(String filePath ,  List<TrpUserInfo> userInfo) {
+		
+		
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		XSSFSheet sheet = workbook.createSheet(docName);
+		Map<Integer, Object[]> excelData = new HashMap<Integer, Object[]>();
+		int rowCount = 0;
+		
+		excelData.put(0,new Object[] {
+				"Username",
+				"Uploaded Images",
+				"Training Runs",
+				"Training Time",
+				"HTR Runs",
+				"HTR Time",
+				"OCR Runs",
+				"OCR Time",
+				"LA Runs",
+				"LA Time",
+				"Create Docs (MB)",
+				"Delete Docs (MB)",
+				"Hosting (MB)"
+				});
+		
+		
+		if(userInfo != null) {
+			for(TrpUserInfo info : userInfo ) {
+				if(rowCount <= userInfo.size()) {
+					rowCount++;
+				}
+				excelData.put(rowCount,new Object[] {
+						info.getUserName(),
+						info.getUploads(),
+						info.getTraining(),
+						info.getTrainingTime(),
+						info.getHtr(),
+						info.getHtrTime(),
+						info.getOcr(),
+						info.getOcrTime(),
+						info.getLa(),
+						info.getLaTime(),
+						info.getCreateDoc(),
+						info.getDeleteDoc(),
+						info.getHosting()
+						});
+			}
+		}
+		
+		
+		Set<Integer> keyset = excelData.keySet();
+		int rownum = 0;
+		for (Integer key : keyset) {
+			Row row = sheet.createRow(rownum++);
+			Object[] objArr = excelData.get(key);
+			int cellnum = 0;
+			for (Object obj : objArr) {
+				Cell cell = row.createCell(cellnum++);
+				if (obj instanceof Double) {
+					cell.setCellValue((Double) obj);
+				}else if (obj instanceof Integer) {
+					cell.setCellValue((Integer) obj);
+				}else if (obj instanceof BigDecimal) {
+					cell.setCellValue(((BigDecimal) obj).doubleValue());
+				}else {
+					cell.setCellValue((String) obj);
+				}
+			}
+		}
+		
+        for(int i = 0; i <= rownum; i++) {
+            sheet.autoSizeColumn(i);
+        }
+		
+		try {
+			FileOutputStream file = new FileOutputStream(new File(filePath));
+			workbook.write(file);
+			file.close();
+			workbook.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		
 	}
 
