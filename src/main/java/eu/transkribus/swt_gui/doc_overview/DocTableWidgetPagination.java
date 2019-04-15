@@ -157,36 +157,20 @@ public class DocTableWidgetPagination extends ATableWidgetPagination<TrpDocMetad
 	
 	public void refreshList(int collectionId, boolean resetPage, boolean forceServerReload) {
 		logger.debug("old coll-id: "+this.collectionId+" new coll-id: "+collectionId);
-		
-		boolean hasChanged = this.collectionId != collectionId;
 		setCollectionId(collectionId);
-		
-		if (hasChanged)
-			forceServerReload = true;
-		
-		logger.debug("refreshing doc table, collectionId="+collectionId+" resetPage="+resetPage+" hasChanged="+hasChanged+" forceServerReload="+forceServerReload);
+		/*
+		 * reloadDocs() will check if the collectionId set here matches the one in Storage 
+		 * and force a reload if necessary or if forceServerReload argument is true.
+		 */
+		logger.debug("refreshing doc table, collectionId="+collectionId+" resetPage="+resetPage+" forceServerReload="+forceServerReload);
 		reloadDocs(resetPage, forceServerReload);
-		
-//		if (hasChanged || forceServerReload) {
-//			logger.debug("reloading docs from server...");
-//			reloadDocs(resetPage, forceServerReload);
-//		} 
-//		else {
-//			refreshPage(resetPage);
-//		}
 	}
 	
 	/*
 	 * for recycle bin - collectionId is the current one
 	 */
 	public void refreshList(int collectionId) {
-
-		setCollectionId(collectionId);
-				
-		logger.debug("refreshing doc table, collectionId="+collectionId);
-		reloadDocs(true, false);
-
-		
+		refreshList(collectionId, true, false);
 	}
 	
 	private void setDocList(List<TrpDocMetadata> newDocs, boolean resetPage) {
