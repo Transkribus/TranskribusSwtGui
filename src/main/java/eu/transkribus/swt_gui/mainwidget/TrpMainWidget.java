@@ -2737,8 +2737,10 @@ public class TrpMainWidget {
 			if (fut == null)
 				throw new Exception("Documents for collection " + colId + " could not be loaded.");
 			
-			fut.get(); // wait for doclist to be loaded!
-			logger.debug("loaded new doclist: "+fut.get()+" current-collection: "+getSelectedCollection());
+			List<TrpDocMetadata> docList = fut.get(); // wait for doclist to be loaded!
+			logger.debug("loaded new doclist of size "+docList.size()+" current-collection: "+getSelectedCollection());
+			//depending on collection size this log message impacts performance (prod collection 2 doclist size is ~900KB)
+			logger.trace("docList = " + docList);
 		}
 		canvas.getScene().selectObject(null, true, false); // security measure due to mysterious bug leading to freeze of progress dialog
 
