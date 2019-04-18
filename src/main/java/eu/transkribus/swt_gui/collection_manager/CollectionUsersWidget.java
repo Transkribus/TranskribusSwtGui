@@ -61,6 +61,7 @@ import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.dialogs.ExportPathComposite;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
+import eu.transkribus.swt_gui.pagination_tables.UserInfoOverallTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.UserInfoTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.UserTableWidgetPagination;
 
@@ -75,6 +76,7 @@ public class CollectionUsersWidget extends Composite {
 	Composite sf;
 	UserTableWidgetPagination collectionUsersTv;
 	UserInfoTableWidgetPagination collectionUsersInfoTv;
+	UserInfoOverallTableWidgetPagination userOverallInfoTv;
 	FindUsersWidget findUsersWidget;
 	
 	CTabFolder tabFolder;
@@ -188,10 +190,15 @@ public class CollectionUsersWidget extends Composite {
 		userInfoTabItem.setText("User Info ");
 		userInfoTabItem.setControl(tabUserInfoComposite);
 		
+		userOverallInfoTv = new UserInfoOverallTableWidgetPagination(tabUserInfoComposite, 0, 25);
+		userOverallInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
 		collectionUsersInfoTv = new UserInfoTableWidgetPagination(tabUserInfoComposite, 0, 25);
 		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		downloadXls();
+		
+		
 		
 		group.pack();
 	}
@@ -386,6 +393,7 @@ public void downloadXls() {
 			try {
 				collectionUsersTv.refreshList(collection.getColId());
 				collectionUsersInfoTv.refreshList(collection.getColId());
+				userOverallInfoTv.refreshList(collection.getColId());
 			} catch (ServerErrorException | IllegalArgumentException e) {
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, e.getMessage(), "Error loading users", -1, -1, true);
 			}

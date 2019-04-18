@@ -16,6 +16,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.core.model.beans.auth.TrpUserInfo;
+import eu.transkribus.core.model.beans.auth.TrpUserOverallInfo;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.pagination_table.RemotePageLoader;
@@ -24,9 +25,9 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class UserInfoTableWidgetPagination extends ATableWidgetPagination<TrpUserInfo>{
+public class UserInfoOverallTableWidgetPagination extends ATableWidgetPagination<TrpUserOverallInfo>{
 
-private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidgetPagination.class);
+private final static Logger logger = LoggerFactory.getLogger(UserInfoOverallTableWidgetPagination.class);
 	
 	public static final String USER_USERNAME_COL = "Username";
 	public static final String USER_UPLOAD_COL = "Uploaded images";
@@ -43,9 +44,10 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 	public static final String USER_HOSTING_COL = "Hosting(MB)";
 	
 	private int collectionId = 0;
-	private List<TrpUserInfo> userInfo = new ArrayList<>();
+	private TrpUserOverallInfo overallInfo = new TrpUserOverallInfo();
 	
-	public UserInfoTableWidgetPagination(Composite parent, int style, int initialPageSize) {
+	
+	public UserInfoOverallTableWidgetPagination(Composite parent, int style, int initialPageSize) {
 		super(parent, style, initialPageSize);
 		
 	}
@@ -53,7 +55,7 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 	@Override
 	protected void setPageLoader() {
 		if (methods == null) {
-			methods = new IPageLoadMethods<TrpUserInfo>() {
+			methods = new IPageLoadMethods<TrpUserOverallInfo>() {
 				Storage store = Storage.getInstance();
 				
 				@Override public int loadTotalSize() {
@@ -61,31 +63,30 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 					if (!store.isLoggedIn() || collectionId <= 0)
 						return 0;
 					
-					int totalSize = 0;
-					try {
-						totalSize = store.getConnection().countUsersForCollection(collectionId, null);
-					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
-						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
-					}
+					int totalSize = 1;
 					return totalSize;
 				}
 	
-				@Override public List<TrpUserInfo> loadPage(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {
+				@Override public List<TrpUserOverallInfo> loadPage(int fromIndex, int toIndex, String sortPropertyName, String sortDirection) {
 					
 					if (!store.isLoggedIn() || collectionId <= 0)
 						return new ArrayList<>();
 		
+					List<TrpUserInfo> userInfo;
+					List<TrpUserOverallInfo> overallList = new ArrayList<>();
 					try {
 						userInfo = store.getConnection().getUserInfoForCollection(collectionId, null, fromIndex, toIndex-fromIndex, sortPropertyName, sortDirection);
+						overallInfo = userInfo.get(0).getOverallInfo();
+						overallList.add(overallInfo);
 					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
 					}
-					return userInfo;
+					return overallList;
 				}
 			};
 		}
 			
-		RemotePageLoader<TrpUserInfo> pl = new RemotePageLoader<TrpUserInfo>(pageableTable.getController(), methods);
+		RemotePageLoader<TrpUserOverallInfo> pl = new RemotePageLoader<TrpUserOverallInfo>(pageableTable.getController(), methods);
 		pageableTable.setPageLoader(pl);
 		
 	}
@@ -96,28 +97,24 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 		refreshPage(true);
 	}
 	
-	public List<TrpUserInfo> getUserInfo() {
-		return userInfo;
-	}
 
 	@Override
 	protected void createColumns() {
-			
-			createDefaultColumn(USER_USERNAME_COL, 100, "userName", true);
-			createDefaultColumn(USER_UPLOAD_COL, 100, "uploads",true);
-			createDefaultColumn(USER_TRAINING_COL, 100, "training",true);
-			createDefaultColumn(USER_TRAINING_TIME_COL, 100, "trainingTime",true);
-			createDefaultColumn(USER_HTR_COL, 100, "htr", true);
-			createDefaultColumn(USER_HTR_TIME_COL, 100, "htrTime", true);
-			createDefaultColumn(USER_OCR_COL, 100, "ocr", true);
-			createDefaultColumn(USER_OCR_TIME_COL, 100, "ocrTime", true);
-			createDefaultColumn(USER_LA_COL, 100, "la", true);
-			createDefaultColumn(USER_LA_TIME_COL, 100, "laTime", true);
-			createDefaultColumn(USER_CREATE_COL, 100, "createDoc",true);
-			createDefaultColumn(USER_DELETE_COL, 100, "deleteDoc",true);
-			createDefaultColumn(USER_HOSTING_COL, 100, "hosting", true);
 
-
+			createDefaultColumn(USER_USERNAME_COL, 100, "overallUserName", true);
+			createDefaultColumn(USER_UPLOAD_COL, 100, "overallUploads",true);
+			createDefaultColumn(USER_TRAINING_COL, 100, "overallTraining",true);
+			createDefaultColumn(USER_TRAINING_TIME_COL, 100, "overallTrainingTime",true);
+			createDefaultColumn(USER_HTR_COL, 100, "overallHtr", true);
+			createDefaultColumn(USER_HTR_TIME_COL, 100, "overallHtrTime", true);
+			createDefaultColumn(USER_OCR_COL, 100, "overallOcr", true);
+			createDefaultColumn(USER_OCR_TIME_COL, 100, "overallOcrTime", true);
+			createDefaultColumn(USER_LA_COL, 100, "overallLa", true);
+			createDefaultColumn(USER_LA_TIME_COL, 100, "overallLaTime", true);
+			createDefaultColumn(USER_CREATE_COL, 100, "overallCreateDoc",true);
+			createDefaultColumn(USER_DELETE_COL, 100, "overallDeleteDoc",true);
+			createDefaultColumn(USER_HOSTING_COL, 100, "overallHosting", true);
+	
 	}
 	
 }
