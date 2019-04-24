@@ -3458,8 +3458,9 @@ public class TrpMainWidget {
 					logger.debug("server collection export, collId = "+storage.getCollId()+" dsds = "+CoreUtils.toListString(exportDiag.getDocumentsToExportOnServer()));
 					logger.debug("commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
 					
+					//teiPars are null for the server export because we use the xslt from Dario
 					jobId = storage.getConnection().exportDocuments(storage.getCollId(), exportDiag.getDocumentsToExportOnServer(), 
-							commonPars, altoPars, pdfPars, teiPars, docxPars);
+							commonPars, altoPars, pdfPars, null, docxPars);
 				}
 
 				if (jobId != null) {
