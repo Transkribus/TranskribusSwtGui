@@ -935,8 +935,16 @@ public class SWTUtil {
 		else if (w instanceof ToolTip) {
 			addSelectionListener((ToolTip) w, l);
 		}
-		else
-			throw new RuntimeException("Widget type not supported for selection events: " + w);
+		else {
+			w.addListener(SWT.Selection, new Listener() {
+				@Override
+				public void handleEvent(Event event) {
+					l.widgetSelected(new SelectionEvent(event));
+				}
+			});
+		}
+//		else
+//			throw new RuntimeException("Widget type not supported for selection events: " + w);
 	}
 	
 	public static boolean addSelectionListener(CTabFolder f, SelectionListener l) {

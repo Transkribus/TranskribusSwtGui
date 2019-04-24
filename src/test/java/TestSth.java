@@ -40,6 +40,7 @@ import eu.transkribus.core.model.beans.pagecontent.RegionRefIndexedType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.builder.mets.TrpMetsBuilder;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.util.DesktopApi;
 
@@ -349,17 +350,22 @@ public class TestSth {
 		
 	}
 	
-	private static void createTrainAndTestSet(String folder, String outputFolder) {
+	private static void printMapAsJsonString() {
+		Map<Object, Object> map = new HashMap<>();
+		map.put("id", 1);
+		map.put("value", "jaslkdjfklajlfd");
+		map.put("array", new String[] {"eins", "zwei", "drei"});
 		
-		
+		System.out.println(GsonUtil.toJson(map));
 		
 	}
 			
 	public static void main(String [] args) throws Exception {
+		printMapAsJsonString();
 //		testReadManifest();
 //		createMetsForRemoteDoc(args);
 //		printSth();
-		openP2PaLAConfig();
+//		openP2PaLAConfig();
 		
 		if (true)
 			return;
