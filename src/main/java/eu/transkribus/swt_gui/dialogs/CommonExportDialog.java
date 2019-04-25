@@ -140,6 +140,8 @@ public class CommonExportDialog extends Dialog {
 	boolean exportImagesPlusText;
 	Button highlightTagsBtn;
 	boolean highlightTags;
+	Button highlightArticlesBtn;
+	boolean highlightArticles;
 	CTabFolder tabFolder;
 	CTabItem tabItemMets;
 	CTabItem tabItemPDF;
@@ -1103,12 +1105,23 @@ public class CommonExportDialog extends Dialog {
 	    
 	    highlightTagsBtn = new Button(pdfComposite, SWT.CHECK);
 	    highlightTagsBtn.setText("Highlight tags");
-	    highlightTagsBtn.setToolTipText("The tags will be underlined with colors in the export PDF");
+	    highlightTagsBtn.setToolTipText("The tags will be underlined with colors in the exported PDF");
 	    highlightTagsBtn.setSelection(false);
 	    setHighlightTags(false);
 	    highlightTagsBtn.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				setHighlightTags(highlightTagsBtn.getSelection());
+			}
+		});
+	    
+	    highlightArticlesBtn = new Button(pdfComposite, SWT.CHECK);
+	    highlightArticlesBtn.setText("Highlight articles");
+	    highlightArticlesBtn.setToolTipText("The articles will be underlined with different colors in the exported PDF");
+	    highlightArticlesBtn.setSelection(false);
+	    setHighlightArticles(false);
+	    highlightArticlesBtn.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setHighlightArticles(highlightArticlesBtn.getSelection());
 			}
 		});
 	    
@@ -1153,6 +1166,11 @@ public class CommonExportDialog extends Dialog {
 	  
 	private void setHighlightTags(boolean b) {
 		highlightTags = b;
+		
+	}
+	
+	private void setHighlightArticles(boolean b) {
+		highlightArticles = b;
 		
 	}
 
@@ -1574,7 +1592,7 @@ public class CommonExportDialog extends Dialog {
 	}
 	
 	private void updatePdfPars() {		
-		pdfPars = new PdfExportPars(exportImagesOnly, exportImagesPlusText, addExtraTextPages2PDF, highlightTags);
+		pdfPars = new PdfExportPars(exportImagesOnly, exportImagesPlusText, addExtraTextPages2PDF, highlightTags, highlightArticles);
 		if(pdfImgQualityCmb != null) {
 			ImgType type = getSelectedImgType(pdfImgQualityCmb);
 			logger.debug("Setting img quality for export: " + type.toString());
@@ -1758,6 +1776,10 @@ public class CommonExportDialog extends Dialog {
 
 	public boolean isHighlightTags() {
 		return highlightTags;
+	}
+	
+	public boolean isHighlightArticles() {
+		return highlightArticles;
 	}
 
 	public String getFont() {
