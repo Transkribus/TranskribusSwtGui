@@ -285,8 +285,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 			}
 			
 		});
-		
-		
+			
 		versionButton = new Button(body,SWT.PUSH);
 		versionButton.setText("Compare Text Versions for Page ..");
 		versionButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
@@ -392,6 +391,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		ArrayList<String> refText = new ArrayList<String>();
 		ArrayList<String> hypText = new ArrayList<String>();
 		TrpPageType refPage = null,hypPage = null;
+		boolean executed = false;
 		
 		for(int i = 0; i < transcripts.size();i++) {
 			
@@ -421,8 +421,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 					}
 				}
 			}
-			if(transcripts.get(i).getToolName() != null && transcripts.get(i).getToolName().equals(hypString)) {
+			// Make sure that only one hypothesis is chosen if multiple with the same toolname exist
+			if(!executed && transcripts.get(i).getToolName() != null && transcripts.get(i).getToolName().equals(hypString)) {
 				hyp = transcripts.get(i);
+				executed = true;
 				logger.debug("Found hyp with toolname : "+hypString);
 				try {
 					hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
