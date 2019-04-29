@@ -93,7 +93,7 @@ public class CollectionUsersWidget extends Composite {
 	ExportPathComposite exportPathComp;
 	File result=null;
 
-	Group group;
+	Group group, ovGroup, userGroup;
 	TrpCollection collection;
 	
 	CollectionUsersWidgetListener listener;
@@ -190,10 +190,22 @@ public class CollectionUsersWidget extends Composite {
 		userInfoTabItem.setText("User Info ");
 		userInfoTabItem.setControl(tabUserInfoComposite);
 		
-		userOverallInfoTv = new UserInfoOverallTableWidgetPagination(tabUserInfoComposite, 0, 25);
+		ovGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
+		ovGroup.setText("Overall work across collections ");
+		ovGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		ovGroup.setLayout(new GridLayout(1, false));
+		ovGroup.setFont(Fonts.createBoldFont(group.getFont()));
+		
+		userOverallInfoTv = new UserInfoOverallTableWidgetPagination(ovGroup, 0, 25);
 		userOverallInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		collectionUsersInfoTv = new UserInfoTableWidgetPagination(tabUserInfoComposite, 0, 25);
+		userGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
+		userGroup.setText("Users work in collection ");
+		userGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		userGroup.setLayout(new GridLayout(1, false));
+		userGroup.setFont(Fonts.createBoldFont(group.getFont()));
+		
+		collectionUsersInfoTv = new UserInfoTableWidgetPagination(userGroup, 0, 25);
 		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		downloadXls();
