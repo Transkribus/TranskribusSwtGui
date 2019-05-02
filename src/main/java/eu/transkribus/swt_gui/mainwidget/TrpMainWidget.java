@@ -348,6 +348,7 @@ public class TrpMainWidget {
 		VERSION = info.getVersion();
 		NAME = info.getName();
 		javaInfo = SysUtils.getJavaInfo();
+		logger.info("Installed Java version:\n" + javaInfo.toPrettyString());
 
 		Display.setAppName(NAME);
 		Display.setAppVersion(VERSION);
