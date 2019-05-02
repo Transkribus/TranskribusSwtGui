@@ -162,12 +162,11 @@ public class SamplesCompareDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Compare Samples");
-		newShell.setMinimumSize(900, 900);
 	}
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1100, 900);
+		return new Point(900, 900);
 	}
 
 	@Override
@@ -281,7 +280,7 @@ public class SamplesCompareDialog extends Dialog {
 		createSampleButton.setImage(Images.DISK);
 		createSampleButton.setText("Create Sample");
 		
-		sampleTreeViewer.setWeights(new int[] {45,20,40});
+		sampleTreeViewer.setWeights(new int[] {40,20,40});
 		addListeners();
 		
 	}
@@ -310,15 +309,13 @@ public class SamplesCompareDialog extends Dialog {
 		tvCompute.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 //		Only display sample documents in tree viewer
-//		for(TrpDocMetadata document : docList) {
-//			if(document.isSampleDoc()) {
-//				sampleDocList.add(document);
-//			}
-//		}
-//		
-//		tvCompute.setInput(this.sampleDocList);
+		for(TrpDocMetadata document : docList) {
+			if(document.isSampleDoc()) {
+				sampleDocList.add(document);
+			}
+		}
 		
-		tvCompute.setInput(this.docList);
+		tvCompute.setInput(this.sampleDocList);
 		
 		buttonComputeComp = new Composite(samplesComputesash, SWT.NONE);
 		buttonComputeComp.setLayout(new GridLayout(1, true));

@@ -3525,15 +3525,16 @@ public class TrpMainWidget {
 				if (exportDiag.isExportCurrentDocOnServer()) {
 					logger.debug("server export, collId = "+storage.getCollId()+", docId = "+storage.getDocId()+", commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
 					jobId = storage.getConnection().exportDocument(storage.getCollId(), storage.getDocId(), 
-												commonPars, altoPars, pdfPars, teiPars, docxPars);
+												commonPars, altoPars, pdfPars, null, docxPars);
 				} else {
 					commonPars.setPages(null); // delete pagesStr for multiple document export!
 					
 					logger.debug("server collection export, collId = "+storage.getCollId()+" dsds = "+CoreUtils.toListString(exportDiag.getDocumentsToExportOnServer()));
 					logger.debug("commonPars = "+commonPars+", teiPars = "+teiPars+", pdfPars = "+pdfPars+", docxPars = "+docxPars+", altoPars = "+altoPars);
 					
+					//teiPars are null for the server export because we use the xslt from Dario
 					jobId = storage.getConnection().exportDocuments(storage.getCollId(), exportDiag.getDocumentsToExportOnServer(), 
-							commonPars, altoPars, pdfPars, teiPars, docxPars);
+							commonPars, altoPars, pdfPars, null, docxPars);
 				}
 
 				if (jobId != null) {
@@ -3721,7 +3722,7 @@ public class TrpMainWidget {
 							exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
-							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont(), pdfPars.getPdfImgQuality());
+							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), exportDiag.isHighlightArticles(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont(), pdfPars.getPdfImgQuality());
 				if (exportDiag.isTeiExport())
 					exportTei(new File(tempZipDirParent + "/" + dir.getName() + ".xml"), exportDiag, cache);
 				if (exportDiag.isDocxExport())
@@ -3794,7 +3795,7 @@ public class TrpMainWidget {
 			if (doPdfExport) {
 
 				exportPdf(pdfExportFile, pageIndices, exportDiag.isAddExtraTextPages2PDF(), exportDiag.isExportImagesOnly(), 
-						exportDiag.isHighlightTags(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont(), pdfPars.getPdfImgQuality());
+						exportDiag.isHighlightTags(), exportDiag.isHighlightArticles(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont(), pdfPars.getPdfImgQuality());
 				if (exportFormats != "") {
 					exportFormats += " and ";
 				}
@@ -4168,7 +4169,7 @@ public class TrpMainWidget {
 	// }
 
 	public void exportPdf(final File dir, final Set<Integer> pageIndices, final boolean extraTextPages, final boolean imagesOnly,
-			final boolean highlightTags, final boolean wordBased, final boolean doBlackening, final boolean createTitle, ExportCache cache, final String exportFontname, final ImgType imgType)
+			final boolean highlightTags, final boolean highlightArticles, final boolean wordBased, final boolean doBlackening, final boolean createTitle, ExportCache cache, final String exportFontname, final ImgType imgType)
 			throws Throwable {
 		try {
 			if (dir == null)
@@ -4184,7 +4185,7 @@ public class TrpMainWidget {
 			ProgressBarDialog.open(shell, new IRunnableWithProgress() {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, cache.getSelectedTags(), highlightTags, wordBased, doBlackening, createTitle, cache, exportFontname, imgType);
+						storage.exportPdf(dir, pageIndices, monitor, extraTextPages, imagesOnly, cache.getSelectedTags(), highlightTags, highlightArticles, wordBased, doBlackening, createTitle, cache, exportFontname, imgType);
 						monitor.done();
 					} catch (InterruptedException ie) {
 						throw ie;
