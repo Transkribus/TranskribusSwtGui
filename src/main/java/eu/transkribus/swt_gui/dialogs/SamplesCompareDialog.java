@@ -189,8 +189,9 @@ public class SamplesCompareDialog extends Dialog {
 		paramCont.setLayout(new GridLayout(1, false));
 
 		Label modelNameLbl = new Label(paramCont, SWT.FLAT);
-		modelNameLbl.setText("Sample Name:");
+		modelNameLbl.setText("Sample Title:");
 		modelNameTxt = new Text(paramCont, SWT.BORDER);
+		modelNameTxt.setText("Sample_ "+store.getDoc().getMd().getTitle());
 		modelNameTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
 		Label descLbl = new Label(paramCont, SWT.FLAT);
@@ -353,12 +354,12 @@ public class SamplesCompareDialog extends Dialog {
 		cerText.setLayoutData(new GridData(SWT.HORIZONTAL, SWT.TOP, true, true, 1, 1));
 		cerText.setVisible(false);
 		
-		Date date = new Date();
-		BoxAndWhiskerXYDataset dataset = createDataset(0,0,0,date);
-		chart = createChart(dataset);
-		jFreeChartComp = new ChartComposite(buttonComputeComp, SWT.FILL);
-		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		jFreeChartComp.setChart(chart);
+//		Date date = new Date();
+//		BoxAndWhiskerXYDataset dataset = createDataset(0,0,0,date);
+//		chart = createChart(dataset);
+//		jFreeChartComp = new ChartComposite(buttonComputeComp, SWT.FILL);
+//		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+//		jFreeChartComp.setChart(chart);
 		
 		jobsComp = new Composite(samplesComputesash,SWT.NONE); 
 		jobsComp.setLayout(new GridLayout(1,true));
@@ -589,6 +590,7 @@ public class SamplesCompareDialog extends Dialog {
 					Object o = it.next();
 					if (o instanceof TrpDocMetadata) {
 						TrpDocMetadata docMd = (TrpDocMetadata) o;
+						modelNameTxt.setText("Sample_"+docMd.getTitle());
 						Object[] pageObjArr = contentProv.getChildren(docMd);
 						List<TrpPage> pageList = new LinkedList<>();
 						for (Object page : pageObjArr) {
@@ -600,6 +602,7 @@ public class SamplesCompareDialog extends Dialog {
 					} else if (o instanceof TrpPage) {
 						TrpPage p = (TrpPage) o;
 						TrpDocMetadata parent = (TrpDocMetadata) contentProv.getParent(p);
+						modelNameTxt.setText("Sample_"+parent.getTitle());
 						if (sampleDocMap.containsKey(parent) && !sampleDocMap.get(parent).contains(p)) {
 							sampleDocMap.get(parent).add(p);
 						} else if (!sampleDocMap.containsKey(parent)) {
@@ -642,6 +645,8 @@ public class SamplesCompareDialog extends Dialog {
 				
 				if(sampleSetMd.getLines() < Integer.parseInt(nrOfLinesTxt.getText())) {
 					DialogUtil.showErrorMessageBox(getShell(), "Error number of lines", "Choose at most "+sampleSetMd.getLines()+" lines for your sample");
+				}else if (modelNameTxt.getText().equals("")) {
+					DialogUtil.showErrorMessageBox(getShell(), "Error title of sample", "Please choose a title for the sample");
 				}else {
 					
 					int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
@@ -714,9 +719,9 @@ public class SamplesCompareDialog extends Dialog {
 				try {
 					res = JaxbUtils.unmarshal(xmlStr, TrpComputeSample.class);
 					BoxAndWhiskerXYDataset dataset = createDataset(res.getMean(),res.getMinProp(),res.getMaxProp(),job.getCreated());
-					chart = createChart(dataset);
-					jFreeChartComp.setChart(chart);
-					chart.fireChartChanged();
+//					chart = createChart(dataset);
+//					jFreeChartComp.setChart(chart);
+//					chart.fireChartChanged();
 					chartText.setText("Upper bound : "+df.format(res.getMaxProp()*100)  +"% \nLower bound : "+df.format(res.getMinProp()*100) +"% \nMean : "+df.format(res.getMean()*100) +"% \n\nWith the probability of 95% the CER for the entire document will be in the interval ["+df.format(res.getMinProp()*100)  +"%  "+df.format(res.getMaxProp()*100) +"%] with the mean : "+df.format(res.getMean()*100) +"% \n \nBy taking 4 times the number of lines the interval size can be cut in half.");
 					chartText.setVisible(true);
 					chartText.redraw();
@@ -763,11 +768,11 @@ public class SamplesCompareDialog extends Dialog {
 		jobs = store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, "jobId", "asc");
 		if(jobs == null || jobs.isEmpty()) {
 			chartText.setText("Upper bound : \n Lower bound : \n Mean : \n\nWith the probability of 95% the CER for the entire document will be in the interval [.. | .. ] with the mean : .. \n \nBy taking 4 times the number of lines the interval size can be cut in half");
-			Date date = new Date();
-			BoxAndWhiskerXYDataset dataset = createDataset(0,0,0,date);
-			chart = createChart(dataset);
-			jFreeChartComp.setChart(chart);
-			chart.fireChartChanged();
+//			Date date = new Date();
+//			BoxAndWhiskerXYDataset dataset = createDataset(0,0,0,date);
+//			chart = createChart(dataset);
+//			jFreeChartComp.setChart(chart);
+//			chart.fireChartChanged();
 		}else {
 			for(TrpJobStatus job : jobs) {
 				if(job.isFinished()) {
@@ -777,10 +782,10 @@ public class SamplesCompareDialog extends Dialog {
 					if(xmlStr != null) {
 						try {
 							res = JaxbUtils.unmarshal(xmlStr, TrpComputeSample.class);
-							BoxAndWhiskerXYDataset dataset = createDataset(res.getMean(),res.getMinProp(),res.getMaxProp(),job.getCreated());
-							chart = createChart(dataset);
-							jFreeChartComp.setChart(chart);
-							chart.fireChartChanged();
+//							BoxAndWhiskerXYDataset dataset = createDataset(res.getMean(),res.getMinProp(),res.getMaxProp(),job.getCreated());
+//							chart = createChart(dataset);
+//							jFreeChartComp.setChart(chart);
+//							chart.fireChartChanged();
 							chartText.setText("Upper bound : "+df.format(res.getMaxProp()*100)  +"% \nLower bound : "+df.format(res.getMinProp()*100) +"% \nMean : "+df.format(res.getMean()*100) +"% \n\nWith the probability of 95% the CER for the entire document will be in the interval ["+df.format(res.getMinProp()*100)  +"%  "+df.format(res.getMaxProp()*100) +"%] with the mean : "+df.format(res.getMean()*100) +"% \n \nBy taking 4 times the number of lines the interval size can be cut in half.");
 							chartText.setVisible(true);
 							chartText.redraw();
@@ -929,7 +934,6 @@ public class SamplesCompareDialog extends Dialog {
 				jobs = store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, null, null);
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 					| IllegalArgumentException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return jobs;
