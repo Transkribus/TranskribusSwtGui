@@ -31,8 +31,11 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
+import eu.transkribus.swt_gui.htr.HtrModelChooserButton;
 import eu.transkribus.swt_gui.htr.TextRecognitionComposite;
 import eu.transkribus.swt_gui.la.LayoutAnalysisComposite;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
@@ -50,6 +53,8 @@ public class ToolsWidget extends Composite {
 	Button polygon2baselinesBtn, baseline2PolygonBtn, p2palaBtn;
 	Combo p2palaModelCombo;
 	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
+	
+	Button t2iBtn, t2iConfBtn;
 		
 	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
 	Label ncsrIconLbl;
@@ -453,7 +458,30 @@ public class ToolsWidget extends Composite {
 			P2PaLAConfDialog diag = new P2PaLAConfDialog(getShell(), Storage.getInstance().getP2PaLAModels());
 			diag.open();
 		});
-				
+		
+		Composite t2iContainer = new Composite(c, 0);
+		t2iContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
+		t2iContainer.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+		
+		t2iBtn = new Button(t2iContainer, SWT.PUSH);
+		t2iBtn.setText("Text2Image");
+		t2iBtn.setToolTipText("Tries to match the text contained in the transcriptions to the layout");
+		t2iBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		t2iConfBtn = new Button(t2iContainer, SWT.PUSH);
+		t2iConfBtn.setText("Configure...");
+		t2iConfBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		t2iConfBtn.setData(new Text2ImageConf());
+		SWTUtil.onSelectionEvent(t2iConfBtn, e -> {
+			Text2ImageConf conf = (Text2ImageConf) t2iConfBtn.getData();
+			Text2ImageSimplifiedConfDialog diag = new Text2ImageSimplifiedConfDialog(getShell(), conf);
+			if (diag.open()==0) {
+				conf = diag.getConfig();
+				logger.debug("setting t2i conf to: "+conf);
+				t2iConfBtn.setData(conf);
+			}
+		});
+		
 		exp.setClient(c);
 		new Label(c, SWT.NONE);
 		exp.setText("Other Tools");

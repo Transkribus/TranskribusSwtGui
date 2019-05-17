@@ -23,6 +23,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructTagConfWidget;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsWidget;
@@ -53,6 +54,17 @@ public class GenericDialogTest {
 	//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 					
 					if (true) {
+//						Text2ImageSimplifiedConfComposite confComp = new Text2ImageSimplifiedConfComposite(parent, 0, null);
+						Text2ImageSimplifiedConfDialog confDiag = new Text2ImageSimplifiedConfDialog(getShell(), null);
+						getShell().setSize(500, 700);
+						if (confDiag.open()==0) {
+							System.out.println("conf = "+confDiag.getConfig());
+						}
+//						getShell().setSize(500, 700);
+//						SWTUtil.centerShell(getShell());
+					}					
+					
+					if (false) {
 						List<TrpP2PaLAModel> models = new ArrayList<>();
 						if (Storage.getInstance()!=null) {
 							models = Storage.getInstance().getP2PaLAModels();

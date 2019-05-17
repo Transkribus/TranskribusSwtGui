@@ -1,0 +1,65 @@
+package eu.transkribus.swt_gui.la;
+
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
+
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
+
+public class Text2ImageSimplifiedConfDialog extends Dialog {
+	Text2ImageConf conf;
+	Text2ImageSimplifiedConfComposite confComp;
+
+	public Text2ImageSimplifiedConfDialog(Shell parentShell, Text2ImageConf conf) {
+		super(parentShell);
+		this.conf = conf;
+	}
+	
+	@Override
+	protected Point getInitialSize() {
+		return new Point(350, 250);
+	}
+	
+	@Override
+	protected boolean isResizable() {
+	    return true;
+	}
+	
+	@Override
+	protected void createButtonsForButtonBar(Composite parent) {
+	    createButton(parent, IDialogConstants.OK_ID, "OK", false);
+	}	
+	
+	@Override
+	protected void configureShell(Shell newShell) {
+		super.configureShell(newShell);
+		newShell.setText("Text2Image configuration");
+	}
+	
+	@Override
+	protected Control createDialogArea(Composite parent) {
+		Composite cont = (Composite) super.createDialogArea(parent);
+		
+		confComp = new Text2ImageSimplifiedConfComposite(cont, 0, conf);
+		
+		return cont;
+	}
+	
+	private void storeConf() {
+		this.conf = confComp.getConfigFromUi();
+	}
+	
+	public Text2ImageConf getConfig() {
+		return conf;
+	}
+	
+	@Override
+	protected void okPressed() {
+		storeConf();
+		super.okPressed();
+	}
+
+}
