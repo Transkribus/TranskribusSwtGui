@@ -634,4 +634,5 @@ CHANGES AND BUGFIXES
 1.6.1:
 	-> P2PaLA recognition functionality for pre-trained models under ToolsWidget->Other Tools
 	-> fix image exif orientation bug for MacOS, see bug TranskribusSwtGui#276
+	-> simplified Text2Image tool (without training step) integrated in ToolsWidget->Other Tools 
 	
