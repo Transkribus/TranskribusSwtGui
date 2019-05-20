@@ -3,10 +3,13 @@ package eu.transkribus.swt_gui.la;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
+import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
 
 public class Text2ImageSimplifiedConfDialog extends Dialog {
@@ -30,6 +33,12 @@ public class Text2ImageSimplifiedConfDialog extends Dialog {
 	
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
+		Button helpBtn = createButton(parent, IDialogConstants.HELP_ID, "Help", false);
+		helpBtn.setImage(Images.HELP);
+		SWTUtil.onSelectionEvent(helpBtn, e -> {
+			org.eclipse.swt.program.Program.launch("https://transkribus.eu/wiki/index.php/Text2Image");
+		});
+		
 	    createButton(parent, IDialogConstants.OK_ID, "OK", false);
 	}	
 	

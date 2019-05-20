@@ -49,7 +49,7 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		
 		Label modelLabel = new Label(this, 0);
 		modelLabel.setText("Base model");
-		modelLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		modelLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		
 		baseModelBtn = new HtrModelChooserButton(this, null);
 		baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
