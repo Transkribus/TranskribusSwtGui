@@ -5,9 +5,9 @@ import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.internal.SWTEventListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -18,7 +18,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
-import org.eclipse.ui.internal.layout.LayoutUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +30,6 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
-import eu.transkribus.swt_gui.htr.HtrModelChooserButton;
 import eu.transkribus.swt_gui.htr.TextRecognitionComposite;
 import eu.transkribus.swt_gui.la.LayoutAnalysisComposite;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
@@ -56,8 +54,8 @@ public class ToolsWidget extends Composite {
 	
 	Button t2iBtn, t2iConfBtn;
 		
-	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
-	Label ncsrIconLbl;
+//	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
+//	Label ncsrIconLbl;
 
 	TranscriptVersionChooser refVersionChooser, hypVersionChooser;
 	
@@ -65,6 +63,9 @@ public class ToolsWidget extends Composite {
 	Button compareVersionsBtn;
 	Composite werGroup;
 	ExpandableComposite werExp;
+	
+	Composite container; // this is the base container, where all expandable composite are put into
+	ScrolledComposite sc;
 	
 	/*
 	 * This can be safely removed when Error Rate tool integration is done.
@@ -116,7 +117,6 @@ public class ToolsWidget extends Composite {
 				chooseVersionBtn.pack();
 				layout();
 			}
-
 		}
 		
 		public void chooseTranscriptVersion() {
@@ -162,30 +162,47 @@ public class ToolsWidget extends Composite {
 	
 	public ToolsWidget(Composite parent, int style) {
 		super(parent, style);
-		this.setLayout(new GridLayout(1, false));
-				
-		Label ncsrIconL = new Label(SWTUtil.dummyShell, 0);
-		ncsrIconL.setImage(ncsrIcon);
+		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
-		initLayoutAnalysisTools();
-		initRecogTools();
+		sc = new ScrolledComposite(this, SWT.V_SCROLL);
+		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
+		sc.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		
+		container = new Composite(sc, SWT.NONE);
+		container.setLayout(new GridLayout(1, false));
+		container.setLayoutData(new GridData(GridData.FILL_BOTH));		
+		
+//		Label ncsrIconL = new Label(SWTUtil.dummyShell, 0);
+//		ncsrIconL.setImage(ncsrIcon);
+		
+		initLayoutAnalysisTools(container);
+		initRecogTools(container);
 		
 		if(IS_LEGACY_WER_GROUP) {
-			initLegacyWerGroup();
+			initLegacyWerGroup(container);
 		} else {
-			initWerGroup();
+			initWerGroup(container);
 		}
 		
-		initOtherTools();
-
+		initOtherTools(container);
+		
+		sc.setContent(container);
+	    sc.setExpandHorizontal(true);
+	    sc.setExpandVertical(true);
+	    sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));		
+	}
+	
+	private void layoutContainer() {
+		container.layout();
+	    sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	}
 	
 	public String getSelectedLaMethod() {
 		return laComp.getSelectedMethod();
 	}
 	
-	private void initLayoutAnalysisTools() {
-		ExpandableComposite laToolsExp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
+	private void initLayoutAnalysisTools(Composite container) {
+		ExpandableComposite laToolsExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		laToolsExp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Composite laToolsGroup = new Composite(laToolsExp, SWT.SHADOW_ETCHED_IN);
 		laToolsGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -377,7 +394,7 @@ public class ToolsWidget extends Composite {
 		Fonts.setBoldFont(laToolsExp);
 		laToolsExp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
-				layout();
+				layoutContainer();
 			}
 		});
 		
@@ -400,8 +417,8 @@ public class ToolsWidget extends Composite {
 //		}
 //	}
 	
-	private void initRecogTools() {
-		ExpandableComposite exp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
+	private void initRecogTools(Composite container) {
+		ExpandableComposite exp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		trComp = new TextRecognitionComposite(exp, 0);
@@ -413,14 +430,14 @@ public class ToolsWidget extends Composite {
 		exp.setExpanded(true);
 		exp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
-				layout();
+				layoutContainer();
 			}
 		});
 	}
 
 	
-	private void initOtherTools() {
-		ExpandableComposite exp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
+	private void initOtherTools(Composite container) {
+		ExpandableComposite exp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Composite c = new Composite(exp, SWT.SHADOW_ETCHED_IN);
 		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -428,16 +445,6 @@ public class ToolsWidget extends Composite {
 		
 		otherToolsPagesSelector = new CurrentTranscriptOrCurrentDocPagesSelector(c, SWT.NONE, true);
 		otherToolsPagesSelector.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		polygon2baselinesBtn = new Button(c, SWT.PUSH);
-		polygon2baselinesBtn.setText("Add Baselines to Polygons");
-		polygon2baselinesBtn.setToolTipText("Creates baselines for all surrounding polygons - warning: existing baselines will be lost (text is retained however!)");
-		polygon2baselinesBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		baseline2PolygonBtn = new Button(c, SWT.PUSH);
-		baseline2PolygonBtn.setText("Add Polygons to Baselines");
-		baseline2PolygonBtn.setToolTipText("Creates polygons for all baselines - warning: existing polygons will be lost (text is retained however!)");
-		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		Composite p2palaContainer = new Composite(c, 0);
 		p2palaContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -465,7 +472,7 @@ public class ToolsWidget extends Composite {
 		
 		t2iBtn = new Button(t2iContainer, SWT.PUSH);
 		t2iBtn.setText("Text2Image");
-		t2iBtn.setToolTipText("Tries to match the text contained in the transcriptions to the layout");
+		t2iBtn.setToolTipText("Tries to match the text contained in the transcriptions to a line segmentation");
 		t2iBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		t2iConfBtn = new Button(t2iContainer, SWT.PUSH);
@@ -482,6 +489,16 @@ public class ToolsWidget extends Composite {
 			}
 		});
 		
+		polygon2baselinesBtn = new Button(c, SWT.PUSH);
+		polygon2baselinesBtn.setText("Add Baselines to Polygons");
+		polygon2baselinesBtn.setToolTipText("Creates baselines for all surrounding polygons - warning: existing baselines will be lost (text is retained however!)");
+		polygon2baselinesBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		baseline2PolygonBtn = new Button(c, SWT.PUSH);
+		baseline2PolygonBtn.setText("Add Polygons to Baselines");
+		baseline2PolygonBtn.setToolTipText("Creates polygons for all baselines - warning: existing polygons will be lost (text is retained however!)");
+		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
+		
 		exp.setClient(c);
 		new Label(c, SWT.NONE);
 		exp.setText("Other Tools");
@@ -489,7 +506,7 @@ public class ToolsWidget extends Composite {
 		exp.setExpanded(true);
 		exp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
-				layout();
+				layoutContainer();
 			}
 		});
 	}
@@ -523,8 +540,8 @@ public class ToolsWidget extends Composite {
 		return null;
 	}
 
-	private void initLegacyWerGroup() {
-		werExp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
+	private void initLegacyWerGroup(Composite container) {
+		werExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		werExp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		werGroup = new Composite(werExp, SWT.SHADOW_ETCHED_IN);
 		werGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -552,13 +569,13 @@ public class ToolsWidget extends Composite {
 		werExp.setExpanded(true);
 		werExp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
-				layout();
+				layoutContainer();
 			}
 		});
 	}
 	
-	private void initWerGroup() {
-		werExp = new ExpandableComposite(this, ExpandableComposite.COMPACT);
+	private void initWerGroup(Composite container) {
+		werExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		werExp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		werGroup = new Composite(werExp, SWT.SHADOW_ETCHED_IN);
 		werGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -598,7 +615,7 @@ public class ToolsWidget extends Composite {
 		werExp.setExpanded(true);
 		werExp.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
-				layout();
+				layoutContainer();
 			}
 		});
 	}
