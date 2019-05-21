@@ -191,26 +191,24 @@ public class CollectionUsersWidget extends Composite {
 		userInfoTabItem.setControl(tabUserInfoComposite);
 		
 		ovGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
-		ovGroup.setText("Overall work across collections ");
+		ovGroup.setText("Overall work across collections");
 		ovGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		ovGroup.setLayout(new GridLayout(1, false));
 		ovGroup.setFont(Fonts.createBoldFont(group.getFont()));
 		
-		userOverallInfoTv = new UserInfoOverallTableWidgetPagination(ovGroup, 0, 25);
+		userOverallInfoTv = new UserInfoOverallTableWidgetPagination(ovGroup, 0, 0);
 		userOverallInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		userGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
-		userGroup.setText("Users work in collection ");
+		userGroup.setText("Users work in collection");
 		userGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		userGroup.setLayout(new GridLayout(1, false));
 		userGroup.setFont(Fonts.createBoldFont(group.getFont()));
 		
-		collectionUsersInfoTv = new UserInfoTableWidgetPagination(userGroup, 0, 25);
+		collectionUsersInfoTv = new UserInfoTableWidgetPagination(userGroup, 0, 0);
 		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		downloadXls();
-		
-		
 		
 		group.pack();
 	}

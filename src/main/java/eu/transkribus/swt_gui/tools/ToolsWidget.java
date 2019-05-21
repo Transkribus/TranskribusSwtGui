@@ -443,7 +443,7 @@ public class ToolsWidget extends Composite {
 		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		c.setLayout(new GridLayout(1, true));
 		
-		otherToolsPagesSelector = new CurrentTranscriptOrCurrentDocPagesSelector(c, SWT.NONE, true);
+		otherToolsPagesSelector = new CurrentTranscriptOrCurrentDocPagesSelector(c, SWT.NONE, true,true);
 		otherToolsPagesSelector.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		Composite p2palaContainer = new Composite(c, 0);
