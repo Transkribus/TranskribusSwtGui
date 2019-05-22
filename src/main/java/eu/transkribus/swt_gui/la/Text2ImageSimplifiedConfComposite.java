@@ -47,12 +47,12 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		super(parent, flags);
 		this.setLayout(new GridLayout(2, false));
 		
-		Label modelLabel = new Label(this, 0);
-		modelLabel.setText("Base model");
-		modelLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+//		Label modelLabel = new Label(this, 0);
+//		modelLabel.setText("Base model");
+//		modelLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		
-		baseModelBtn = new HtrModelChooserButton(this, null);
-		baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		baseModelBtn = new HtrModelChooserButton(this, null, "Base model");
+		baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		performLaBtn = new Button(this, SWT.CHECK);
 		performLaBtn.setText("Perform Layout Analysis");

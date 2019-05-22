@@ -371,7 +371,7 @@ public class HtrModelsComposite extends Composite {
 		if (htr == null) {
 			return;
 		}
-		logger.debug("HTR = " + htr);
+		logger.debug("HTR = " + (htr==null ? "null" : htr.toShortString()));
 		
 		nameTxt.setText(StrUtil.get(htr.getName()));
 		langTxt.setText(StrUtil.get(htr.getLanguage()));

@@ -3,6 +3,8 @@ package eu.transkribus.swt_gui.la;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -23,7 +25,7 @@ public class Text2ImageSimplifiedConfDialog extends Dialog {
 	
 	@Override
 	protected Point getInitialSize() {
-		return new Point(350, 250);
+		return new Point(400, 250);
 	}
 	
 	@Override
@@ -51,8 +53,10 @@ public class Text2ImageSimplifiedConfDialog extends Dialog {
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite cont = (Composite) super.createDialogArea(parent);
+		cont.setLayout(new GridLayout(1, false));
 		
 		confComp = new Text2ImageSimplifiedConfComposite(cont, 0, conf);
+		confComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		return cont;
 	}
