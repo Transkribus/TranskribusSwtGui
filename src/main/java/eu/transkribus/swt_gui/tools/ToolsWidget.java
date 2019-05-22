@@ -468,7 +468,7 @@ public class ToolsWidget extends Composite {
 		
 		Composite t2iContainer = new Composite(c, 0);
 		t2iContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
-		t2iContainer.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+		t2iContainer.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
 		t2iBtn = new Button(t2iContainer, SWT.PUSH);
 		t2iBtn.setText("Text2Image");
