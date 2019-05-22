@@ -407,8 +407,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 					if (region instanceof TrpTextRegionType) {
 						for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
 							refText.add(((TrpTextLineType) line).getUnicodeText());
-							logger.debug("Unicode text reference : "+((TrpTextLineType) line).getUnicodeText());
-							// refText = refText.concat(region.getUnicodeText());
 						}
 					}
 
@@ -425,7 +423,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 			if(!executed && transcripts.get(i).getToolName() != null && transcripts.get(i).getToolName().equals(hypString)) {
 				hyp = transcripts.get(i);
 				executed = true;
-				logger.debug("Found hyp with toolname : "+hypString);
 				try {
 					hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
 				} catch (NullValueException | JAXBException e1) {
@@ -435,8 +432,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 					if (region instanceof TrpTextRegionType) {
 						for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
 							hypText.add(((TrpTextLineType) line).getUnicodeText());
-							logger.debug("Unicode text hyp : "+((TrpTextLineType) line).getUnicodeText());
-							// hypText = hypText.concat(region.getUnicodeText());
 						}
 					}
 					if (region instanceof TrpTableRegionType) {
