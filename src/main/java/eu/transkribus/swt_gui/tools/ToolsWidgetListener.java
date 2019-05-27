@@ -20,6 +20,7 @@ import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
+import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpP2PaLAModel;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
@@ -40,6 +41,7 @@ import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -88,6 +90,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
 		SWTUtil.addSelectionListener(tw.p2palaBtn, this);
+		SWTUtil.addSelectionListener(tw.t2iBtn, this);
 		
 		Storage.getInstance().addListener(new IStorageListener() {
 			Storage store = Storage.getInstance();
@@ -112,7 +115,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 
 	boolean isLayoutAnalysis(Object s) {
-		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn || s==tw.p2palaBtn;
+		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn || s==tw.p2palaBtn || s==tw.t2iBtn;
 		// return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn
 		// || s == tw.baselineBtn || s == tw.polygon2baselinesBtn);
 	}
@@ -281,8 +284,33 @@ public class ToolsWidgetListener implements SelectionListener {
 //					List<String> rids = getSelectedRegionIds();
 					jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, pm);
 				}
+			}
+			else if (s == tw.t2iBtn) {
+				String jobImpl = JobImpl.T2IJob.toString();
 				
+				Text2ImageConf conf = (Text2ImageConf) tw.t2iConfBtn.getData();
+				logger.debug("starting t2i - conf = "+conf);
 				
+				TrpHtr htr = conf.model;
+				if (htr == null) {
+					DialogUtil.showErrorMessageBox(tw.getShell(), "No model selected", "Please select a base model for Text2Image");
+					return;
+				}
+				ParameterMap pm = new ParameterMap();
+				pm.addIntParam(JobConst.PROP_MODEL_ID, htr.getHtrId());
+				pm.addBoolParam(JobConst.PROP_PERFORM_LAYOUT_ANALYSIS, conf.performLa);
+				pm.addBoolParam(JobConst.PROP_REMOVE_LINE_BREAKS, conf.removeLineBreaks);
+				pm.addDoubleParam(JobConst.PROP_THRESHOLD, conf.threshold);
+				
+				if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
+					logger.debug("t2i on pages: " + tw.otherToolsPagesSelector.getPagesStr());
+					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
+							true, true, false, false, false, jobImpl, pm);
+				} else {
+					logger.debug("t2i on current transcript");
+//					List<String> rids = getSelectedRegionIds();
+					jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, pm);
+				}
 			}
 
 			// struct analysis:

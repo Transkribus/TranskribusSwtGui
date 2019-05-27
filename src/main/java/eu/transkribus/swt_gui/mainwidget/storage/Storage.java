@@ -2961,17 +2961,19 @@ public class Storage {
 	}
 	
 	public void reloadP2PaLAModels() {
-		if (isLoggedInAtTestServer()) {
-			try {
-				List<TrpP2PaLAModel> models = conn.getP2PaLAModels(-1);
-				if (CoreUtils.size(models)>0) {
-					p2palaModels = models;
-				}
-			} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
-				logger.error("Error loading P2PaLA models: "+e.getMessage(), e);
-			}
-			
+		if (!isLoggedIn()) {
+			return;
 		}
+		
+		try {
+			List<TrpP2PaLAModel> models = conn.getP2PaLAModels(-1);
+			if (CoreUtils.size(models)>0) {
+				p2palaModels = models;
+			}
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+			logger.error("Error loading P2PaLA models: "+e.getMessage(), e);
+		}
+			
 	}
 	
 	public void clearP2PaLAModels() {

@@ -285,8 +285,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 			}
 			
 		});
-		
-		
+			
 		versionButton = new Button(body,SWT.PUSH);
 		versionButton.setText("Compare Text Versions for Page ..");
 		versionButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
@@ -392,6 +391,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		ArrayList<String> refText = new ArrayList<String>();
 		ArrayList<String> hypText = new ArrayList<String>();
 		TrpPageType refPage = null,hypPage = null;
+		boolean executed = false;
 		
 		for(int i = 0; i < transcripts.size();i++) {
 			
@@ -407,8 +407,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 					if (region instanceof TrpTextRegionType) {
 						for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
 							refText.add(((TrpTextLineType) line).getUnicodeText());
-							logger.debug("Unicode text reference : "+((TrpTextLineType) line).getUnicodeText());
-							// refText = refText.concat(region.getUnicodeText());
 						}
 					}
 
@@ -421,9 +419,10 @@ public class ErrorRateAdvancedStats extends Dialog{
 					}
 				}
 			}
-			if(transcripts.get(i).getToolName() != null && transcripts.get(i).getToolName().equals(hypString)) {
+			// Make sure that only one hypothesis is chosen if multiple with the same toolname exist
+			if(!executed && transcripts.get(i).getToolName() != null && transcripts.get(i).getToolName().equals(hypString)) {
 				hyp = transcripts.get(i);
-				logger.debug("Found hyp with toolname : "+hypString);
+				executed = true;
 				try {
 					hypPage = (TrpPageType) hyp.unmarshallTranscript().getPage();
 				} catch (NullValueException | JAXBException e1) {
@@ -433,8 +432,6 @@ public class ErrorRateAdvancedStats extends Dialog{
 					if (region instanceof TrpTextRegionType) {
 						for (TextLineType line : ((TrpTextRegionType) region).getTextLine()) {
 							hypText.add(((TrpTextLineType) line).getUnicodeText());
-							logger.debug("Unicode text hyp : "+((TrpTextLineType) line).getUnicodeText());
-							// hypText = hypText.concat(region.getUnicodeText());
 						}
 					}
 					if (region instanceof TrpTableRegionType) {

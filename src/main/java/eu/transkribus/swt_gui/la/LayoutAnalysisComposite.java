@@ -88,7 +88,7 @@ public class LayoutAnalysisComposite extends Composite {
 //		methodCombo.combo.setItems(getMethods(true).toArray(new String[0]));
 //		methodCombo.combo.select(0);
 		
-		dps = new CurrentTranscriptOrCurrentDocPagesSelector(mainContainer, SWT.NONE, true);		
+		dps = new CurrentTranscriptOrCurrentDocPagesSelector(mainContainer, SWT.NONE, true,true);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 
 //		Group checkGrp = new Group(mainContainer,SWT.NONE);
