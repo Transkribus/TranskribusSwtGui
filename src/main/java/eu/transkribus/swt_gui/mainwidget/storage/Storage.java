@@ -1639,7 +1639,7 @@ public class Storage {
 			
 			conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
 					(remoteIndices.get(i)+1), EditStatus.IN_PROGRESS,
-					tmd.unmarshallTranscript(), tmd.getTsId(), "synched from local doc");
+					tmd.unmarshallTranscript(), tmd.getTsId(), "TRP: external source");
 
 			if (monitor != null)
 				monitor.worked(++worked);
