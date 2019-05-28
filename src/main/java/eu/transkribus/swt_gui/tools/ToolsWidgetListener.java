@@ -310,11 +310,13 @@ public class ToolsWidgetListener implements SelectionListener {
 					pm.addBoolParam(JobConst.PROP_PERFORM_LAYOUT_ANALYSIS, conf.performLa);
 					pm.addBoolParam(JobConst.PROP_REMOVE_LINE_BREAKS, conf.removeLineBreaks);
 					pm.addDoubleParam(JobConst.PROP_THRESHOLD, conf.threshold);
+					if (conf.editStatus!=null) {
+						pm.addParameter(JobConst.PROP_EDIT_STATUS, conf.editStatus.getStr());
+					}
 					
-					if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
-						logger.debug("t2i on pages: " + tw.otherToolsPagesSelector.getPagesStr());
-						jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
-								true, true, false, false, false, jobImpl, pm);
+					if (!conf.currentTranscript) {
+						logger.debug("t2i on pages: " + conf.pagesStr);
+						jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(conf.pagesStr, true, true, false, false, false, jobImpl, pm);
 					} else {
 						logger.debug("t2i on current transcript");
 //						List<String> rids = getSelectedRegionIds();
