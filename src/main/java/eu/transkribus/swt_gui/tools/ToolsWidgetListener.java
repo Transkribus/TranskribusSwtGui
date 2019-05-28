@@ -41,6 +41,7 @@ import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
@@ -286,31 +287,66 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 			}
 			else if (s == tw.t2iBtn) {
-				String jobImpl = JobImpl.T2IJob.toString();
-				
-				Text2ImageConf conf = (Text2ImageConf) tw.t2iConfBtn.getData();
-				logger.debug("starting t2i - conf = "+conf);
-				
-				TrpHtr htr = conf.model;
-				if (htr == null) {
-					DialogUtil.showErrorMessageBox(tw.getShell(), "No model selected", "Please select a base model for Text2Image");
-					return;
+				Text2ImageConf conf = (Text2ImageConf) tw.t2iBtn.getData();
+				Text2ImageSimplifiedDialog diag = new Text2ImageSimplifiedDialog(tw.getShell(), conf);
+				if (diag.open()==IDialogConstants.OK_ID) {
+					conf = diag.getConfig();
+					logger.debug("setting t2i conf to: "+conf);
+					tw.t2iBtn.setData(conf);
+					
+					// now run T2I:
+					String jobImpl = JobImpl.T2IJob.toString();
+					
+//					Text2ImageConf conf = (Text2ImageConf) tw.t2iConfBtn.getData();
+					logger.debug("starting t2i - conf = "+conf);
+					
+					TrpHtr htr = conf.model;
+					if (htr == null) {
+						DialogUtil.showErrorMessageBox(tw.getShell(), "No model selected", "Please select a base model for Text2Image");
+						return;
+					}
+					ParameterMap pm = new ParameterMap();
+					pm.addIntParam(JobConst.PROP_MODEL_ID, htr.getHtrId());
+					pm.addBoolParam(JobConst.PROP_PERFORM_LAYOUT_ANALYSIS, conf.performLa);
+					pm.addBoolParam(JobConst.PROP_REMOVE_LINE_BREAKS, conf.removeLineBreaks);
+					pm.addDoubleParam(JobConst.PROP_THRESHOLD, conf.threshold);
+					
+					if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
+						logger.debug("t2i on pages: " + tw.otherToolsPagesSelector.getPagesStr());
+						jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
+								true, true, false, false, false, jobImpl, pm);
+					} else {
+						logger.debug("t2i on current transcript");
+//						List<String> rids = getSelectedRegionIds();
+						jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, pm);
+					}
 				}
-				ParameterMap pm = new ParameterMap();
-				pm.addIntParam(JobConst.PROP_MODEL_ID, htr.getHtrId());
-				pm.addBoolParam(JobConst.PROP_PERFORM_LAYOUT_ANALYSIS, conf.performLa);
-				pm.addBoolParam(JobConst.PROP_REMOVE_LINE_BREAKS, conf.removeLineBreaks);
-				pm.addDoubleParam(JobConst.PROP_THRESHOLD, conf.threshold);
-				
-				if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
-					logger.debug("t2i on pages: " + tw.otherToolsPagesSelector.getPagesStr());
-					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
-							true, true, false, false, false, jobImpl, pm);
-				} else {
-					logger.debug("t2i on current transcript");
-//					List<String> rids = getSelectedRegionIds();
-					jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, pm);
-				}
+				// OLD
+//				String jobImpl = JobImpl.T2IJob.toString();
+//				
+//				Text2ImageConf conf = (Text2ImageConf) tw.t2iConfBtn.getData();
+//				logger.debug("starting t2i - conf = "+conf);
+//				
+//				TrpHtr htr = conf.model;
+//				if (htr == null) {
+//					DialogUtil.showErrorMessageBox(tw.getShell(), "No model selected", "Please select a base model for Text2Image");
+//					return;
+//				}
+//				ParameterMap pm = new ParameterMap();
+//				pm.addIntParam(JobConst.PROP_MODEL_ID, htr.getHtrId());
+//				pm.addBoolParam(JobConst.PROP_PERFORM_LAYOUT_ANALYSIS, conf.performLa);
+//				pm.addBoolParam(JobConst.PROP_REMOVE_LINE_BREAKS, conf.removeLineBreaks);
+//				pm.addDoubleParam(JobConst.PROP_THRESHOLD, conf.threshold);
+//				
+//				if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
+//					logger.debug("t2i on pages: " + tw.otherToolsPagesSelector.getPagesStr());
+//					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
+//							true, true, false, false, false, jobImpl, pm);
+//				} else {
+//					logger.debug("t2i on current transcript");
+////					List<String> rids = getSelectedRegionIds();
+//					jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, pm);
+//				}
 			}
 
 			// struct analysis:
