@@ -76,7 +76,7 @@ public class CollectionUsersWidget extends Composite {
 	Composite sf;
 	UserTableWidgetPagination collectionUsersTv;
 	UserInfoTableWidgetPagination collectionUsersInfoTv;
-	UserInfoOverallTableWidgetPagination userOverallInfoTv;
+//	UserInfoOverallTableWidgetPagination userOverallInfoTv;
 	FindUsersWidget findUsersWidget;
 	
 	CTabFolder tabFolder;
@@ -196,8 +196,8 @@ public class CollectionUsersWidget extends Composite {
 		ovGroup.setLayout(new GridLayout(1, false));
 		ovGroup.setFont(Fonts.createBoldFont(group.getFont()));
 		
-		userOverallInfoTv = new UserInfoOverallTableWidgetPagination(ovGroup, 0, 0);
-		userOverallInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		userOverallInfoTv = new UserInfoOverallTableWidgetPagination(ovGroup, 0, 0);
+//		userOverallInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		userGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
 		userGroup.setText("Users work in collection");
@@ -403,7 +403,7 @@ public void downloadXls() {
 			try {
 				collectionUsersTv.refreshList(collection.getColId());
 				collectionUsersInfoTv.refreshList(collection.getColId());
-				userOverallInfoTv.refreshList(collection.getColId());
+//				userOverallInfoTv.refreshList(collection.getColId());
 			} catch (ServerErrorException | IllegalArgumentException e) {
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, e.getMessage(), "Error loading users", -1, -1, true);
 			}
