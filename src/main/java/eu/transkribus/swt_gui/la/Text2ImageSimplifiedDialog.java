@@ -14,11 +14,11 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
 
-public class Text2ImageSimplifiedConfDialog extends Dialog {
+public class Text2ImageSimplifiedDialog extends Dialog {
 	Text2ImageConf conf;
 	Text2ImageSimplifiedConfComposite confComp;
 
-	public Text2ImageSimplifiedConfDialog(Shell parentShell, Text2ImageConf conf) {
+	public Text2ImageSimplifiedDialog(Shell parentShell, Text2ImageConf conf) {
 		super(parentShell);
 		this.conf = conf;
 	}
@@ -35,13 +35,16 @@ public class Text2ImageSimplifiedConfDialog extends Dialog {
 	
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
+		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
+		
 		Button helpBtn = createButton(parent, IDialogConstants.HELP_ID, "Help", false);
 		helpBtn.setImage(Images.HELP);
 		SWTUtil.onSelectionEvent(helpBtn, e -> {
 			org.eclipse.swt.program.Program.launch("https://transkribus.eu/wiki/index.php/Text2Image");
 		});
 		
-	    createButton(parent, IDialogConstants.OK_ID, "OK", false);
+	    Button runBtn = createButton(parent, IDialogConstants.OK_ID, "Run", false);
+	    runBtn.setImage(Images.ARROW_RIGHT);
 	}	
 	
 	@Override

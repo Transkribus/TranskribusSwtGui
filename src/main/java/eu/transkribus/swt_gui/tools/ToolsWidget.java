@@ -33,7 +33,7 @@ import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.htr.TextRecognitionComposite;
 import eu.transkribus.swt_gui.la.LayoutAnalysisComposite;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
-import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfDialog;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
@@ -52,7 +52,7 @@ public class ToolsWidget extends Composite {
 	Combo p2palaModelCombo;
 	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
 	
-	Button t2iBtn, t2iConfBtn;
+	Button t2iBtn/*, t2iConfBtn*/;
 		
 //	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
 //	Label ncsrIconLbl;
@@ -164,7 +164,7 @@ public class ToolsWidget extends Composite {
 		super(parent, style);
 		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
-		sc = new ScrolledComposite(this, SWT.V_SCROLL);
+		sc = new ScrolledComposite(this, SWT.V_SCROLL | SWT.H_SCROLL);
 		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
 		sc.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
@@ -468,26 +468,27 @@ public class ToolsWidget extends Composite {
 		
 		Composite t2iContainer = new Composite(c, 0);
 		t2iContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
-		t2iContainer.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		t2iContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
 		t2iBtn = new Button(t2iContainer, SWT.PUSH);
-		t2iBtn.setText("Text2Image");
+		t2iBtn.setText("Text2Image...");
 		t2iBtn.setToolTipText("Tries to match the text contained in the transcriptions to a line segmentation");
 		t2iBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		t2iBtn.setData(new Text2ImageConf());
 		
-		t2iConfBtn = new Button(t2iContainer, SWT.PUSH);
-		t2iConfBtn.setText("Configure...");
-		t2iConfBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-		t2iConfBtn.setData(new Text2ImageConf());
-		SWTUtil.onSelectionEvent(t2iConfBtn, e -> {
-			Text2ImageConf conf = (Text2ImageConf) t2iConfBtn.getData();
-			Text2ImageSimplifiedConfDialog diag = new Text2ImageSimplifiedConfDialog(getShell(), conf);
-			if (diag.open()==0) {
-				conf = diag.getConfig();
-				logger.debug("setting t2i conf to: "+conf);
-				t2iConfBtn.setData(conf);
-			}
-		});
+//		t2iConfBtn = new Button(t2iContainer, SWT.PUSH);
+//		t2iConfBtn.setText("Configure...");
+//		t2iConfBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+//		t2iConfBtn.setData(new Text2ImageConf());
+//		SWTUtil.onSelectionEvent(t2iConfBtn, e -> {
+//			Text2ImageConf conf = (Text2ImageConf) t2iConfBtn.getData();
+//			Text2ImageSimplifiedConfDialog diag = new Text2ImageSimplifiedConfDialog(getShell(), conf);
+//			if (diag.open()==0) {
+//				conf = diag.getConfig();
+//				logger.debug("setting t2i conf to: "+conf);
+//				t2iConfBtn.setData(conf);
+//			}
+//		});
 		
 		polygon2baselinesBtn = new Button(c, SWT.PUSH);
 		polygon2baselinesBtn.setText("Add Baselines to Polygons");
