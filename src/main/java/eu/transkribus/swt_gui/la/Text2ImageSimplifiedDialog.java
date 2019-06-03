@@ -2,6 +2,7 @@ package eu.transkribus.swt_gui.la;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -25,7 +26,7 @@ public class Text2ImageSimplifiedDialog extends Dialog {
 	
 	@Override
 	protected Point getInitialSize() {
-		return new Point(400, 250);
+		return new Point(400, 300);
 	}
 	
 	@Override
@@ -51,6 +52,7 @@ public class Text2ImageSimplifiedDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Text2Image configuration");
+		newShell.setMinimumSize(400, 250);
 	}
 	
 	@Override
@@ -60,6 +62,8 @@ public class Text2ImageSimplifiedDialog extends Dialog {
 		
 		confComp = new Text2ImageSimplifiedConfComposite(cont, 0, conf);
 		confComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+//		parent.getShell().setMinimumSize(confComp.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
 		return cont;
 	}
