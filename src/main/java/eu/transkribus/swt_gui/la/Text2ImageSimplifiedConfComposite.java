@@ -17,7 +17,6 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.EnumUtils;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.HtrModelChooserButton;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
@@ -75,7 +74,7 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		pagesSelector = new CurrentTranscriptOrCurrentDocPagesSelector(this, SWT.NONE, true,true);
 		pagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));	
 		
-		baseModelBtn = new HtrModelChooserButton(this, null, "Base model: ");
+		baseModelBtn = new HtrModelChooserButton(this, true, null, "Base model: ");
 		baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
 		
 		performLaBtn = new Button(this, SWT.CHECK);
