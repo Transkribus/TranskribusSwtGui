@@ -117,6 +117,7 @@ public class CollectionUsersWidgetListener implements IStorageListener, Selectio
 				showCollectionsOfUser(cuw.getFirstSelectedUser());
 			}
 
+
 		} catch (Throwable th) {
 			DialogUtil.showDetailedErrorMessageBox(shell, "Unexpected error",  "An unexpected error occured: "+th.getMessage(), th);
 			//mw.onError("Unexpected error", "An unexpected error occured: "+th.getMessage(), th);

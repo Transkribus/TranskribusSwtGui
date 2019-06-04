@@ -185,7 +185,7 @@ public class CollectionUsersWidget extends Composite {
 		tabUserInfoComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
 		
 		userInfoTabItem = new CTabItem(tabFolder,  SWT.NONE);
-		userInfoTabItem.setText("User Info ");
+		userInfoTabItem.setText("User Info WARNING may take long");
 		userInfoTabItem.setControl(tabUserInfoComposite);
 		
 		
@@ -224,6 +224,8 @@ public class CollectionUsersWidget extends Composite {
 				updateBtnVisibility();
 			}
 		});
+		
+		
 	}
 	
 public void downloadXls() {
@@ -284,6 +286,16 @@ public void downloadXls() {
 				updateBtnVisibility();
 			}
 		});
+		
+		tabFolder.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if(tabFolder.getItem(tabFolder.getSelectionIndex()).equals(userInfoTabItem)) {
+					collectionUsersInfoTv.refreshList(collection.getColId());
+				}
+			}
+		});
+		
+		
 	}
 	
 	public List<TrpUser> getSelectedUsersInCollection() {
@@ -392,7 +404,7 @@ public void downloadXls() {
 		if (collection!=null && store.isLoggedIn()) {
 			try {
 				collectionUsersTv.refreshList(collection.getColId());
-				collectionUsersInfoTv.refreshList(collection.getColId());
+//				collectionUsersInfoTv.refreshList(collection.getColId());
 //				userOverallInfoTv.refreshList(collection.getColId());
 			} catch (ServerErrorException | IllegalArgumentException e) {
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, e.getMessage(), "Error loading users", -1, -1, true);
