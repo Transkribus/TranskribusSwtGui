@@ -67,7 +67,7 @@ public class TrpTabWidget extends Composite {
 	// items for metadata tf:
 	CTabItem docMdItem;
 	CTabItem structuralMdItem;
-	CTabItem textStyleMdItem;
+//	CTabItem textStyleMdItem;
 	CTabItem textTaggingItem;
 	CTabItem commentsItem;
 

@@ -73,6 +73,8 @@ public class HtrTrainingDialog extends Dialog {
 	private final List<JobImpl> trainJobImpls;
 	
 	private List<TrainMethodUITab> tabList;
+	
+	public static final boolean ENABLE_T2I = false;
 
 	private boolean enableDebugDialog = false; 
 
@@ -147,8 +149,8 @@ public class HtrTrainingDialog extends Dialog {
 			selection = tab.getTabItem();
 			tabList.add(tab);
 		}
-		
-		if(trainJobImpls.contains(JobImpl.CITlabSemiSupervisedHtrTrainingJob)) {
+
+		if(ENABLE_T2I && trainJobImpls.contains(JobImpl.CITlabSemiSupervisedHtrTrainingJob)) {
 			TrainMethodUITab tab = createCitlabT2ITab(i++);
 			if(selection == null) {
 				//only select t2i if no other method is configured

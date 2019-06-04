@@ -208,7 +208,6 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
-import eu.transkribus.swt_gui.metadata.TextStyleTypeWidgetListener;
 import eu.transkribus.swt_gui.pagination_tables.JobsDialog;
 import eu.transkribus.swt_gui.pagination_tables.RecycleBinDialog;
 import eu.transkribus.swt_gui.pagination_tables.StrayDocsDialog;
@@ -277,7 +276,7 @@ public class TrpMainWidget {
 	TranscriptObserver transcriptObserver;
 	CanvasShapeObserver canvasShapeObserver;
 	PageMetadataWidgetListener pageMetadataWidgetListener;
-	TextStyleTypeWidgetListener textStyleWidgetListener;
+//	TextStyleTypeWidgetListener textStyleWidgetListener;
 //	TaggingWidgetOldListener taggingWidgetListener;
 	ToolsWidgetListener laWidgetListener;
 //	JobTableWidgetListener jobOverviewWidgetListener;
@@ -896,9 +895,9 @@ public class TrpMainWidget {
 		
 		pageMetadataWidgetListener = new PageMetadataWidgetListener(this);
 		
-		if (ui.getTextStyleWidget()!=null) {
-			textStyleWidgetListener = new TextStyleTypeWidgetListener(ui.getTextStyleWidget());
-		}
+//		if (ui.getTextStyleWidget()!=null) {
+//			textStyleWidgetListener = new TextStyleTypeWidgetListener(ui.getTextStyleWidget());
+//		}
 
 //		taggingWidgetListener = new TaggingWidgetOldListener(this);
 
@@ -2084,9 +2083,9 @@ public class TrpMainWidget {
 //		ui.taggingWidget.setSelectedTags(selectedTags);
 		ui.getStructuralMetadataWidget().updateData(storage.getTranscript(), st, nSel, structureType, selectedTags);
 		
-		if (ui.getTextStyleWidget()!=null) {
-			ui.getTextStyleWidget().updateData();	
-		}
+//		if (ui.getTextStyleWidget()!=null) {
+//			ui.getTextStyleWidget().updateData();	
+//		}
 	}
 	
 	/**

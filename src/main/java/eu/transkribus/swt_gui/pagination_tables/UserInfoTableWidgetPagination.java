@@ -1,6 +1,11 @@
 package eu.transkribus.swt_gui.pagination_tables;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.ServerErrorException;
@@ -80,6 +85,41 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 					} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException e) {
 						TrpMainWidget.getInstance().onError("Error loading documents", e.getMessage(), e);
 					}
+					TrpUserInfo total = new TrpUserInfo();
+					total.setUserName("TOTAL");
+					Integer totalUploads = 0 ,totalHtr = 0, totalOcr = 0 , totalLa = 0, totalTraining = 0 ;
+					String totalTrainingTime = "00:00:00", totalHtrTime = "00:00:00", totalOcrTime = "00:00:00", totalLaTime = "00:00:00";
+					double totalCreate = 0, totalDelete = 0, totalHosting = 0;
+					
+					for(TrpUserInfo user : userInfo) {
+						totalUploads += user.getUploads();
+						totalHtr += user.getHtr();
+						totalOcr += user.getOcr();
+						totalLa += user.getLa();
+						totalTraining += user.getTraining();
+						totalCreate += user.getCreateDoc().doubleValue();
+						totalDelete += user.getDeleteDoc().doubleValue();
+						totalHosting += user.getHosting().doubleValue();
+						totalTrainingTime = addStringTime(totalTrainingTime, user.getTrainingTime());
+						totalHtrTime = addStringTime(totalHtrTime, user.getHtrTime());
+						totalOcrTime = addStringTime(totalOcrTime, user.getOcrTime());
+						totalLaTime = addStringTime(totalLaTime, user.getLaTime());
+						
+					}
+					total.setUploads(totalUploads);
+					total.setTraining(totalTraining);
+					total.setHtr(totalHtr);
+					total.setOcr(totalOcr);
+					total.setLa(totalLa);
+					total.setCreateDoc(new BigDecimal(totalCreate));
+					total.setDeleteDoc(new BigDecimal(totalDelete));
+					total.setHosting(new BigDecimal(totalHosting));
+					total.setTrainingTime(totalTrainingTime);
+					total.setHtrTime(totalHtrTime);
+					total.setOcrTime(totalOcrTime);
+					total.setLaTime(totalLaTime);
+					userInfo.add(total);
+					
 					return userInfo;
 				}
 			};
@@ -98,6 +138,59 @@ private final static Logger logger = LoggerFactory.getLogger(UserInfoTableWidget
 	
 	public List<TrpUserInfo> getUserInfo() {
 		return userInfo;
+	}
+	
+	public String addStringTime(String time1 , String time2) {
+		
+		String[] firstTimeParts = time1.split(":");
+		int hours1 = Integer.parseInt(firstTimeParts[0]);
+		int minutes1 = Integer.parseInt(firstTimeParts[1]);
+		int seconds1 = Integer.parseInt(firstTimeParts[2]);
+		
+		if(time2 == null) {
+			time2 = "00:00:00";
+		}
+
+		String[] secondTimeParts = time2.split(":");
+
+		int hours2 = Integer.parseInt(secondTimeParts[0]);
+		int minutes2 = Integer.parseInt(secondTimeParts[1]);
+		int seconds2 = Integer.parseInt(secondTimeParts[2]);
+
+		int hours = hours1 + hours2;
+		int minutes = minutes1 + minutes2;
+		int seconds = seconds1 + seconds2;
+		int days = 0;
+
+		if (seconds > 59) {
+			seconds = seconds - 60;
+			minutes = minutes + 1;
+			if (minutes > 59) {
+				minutes = minutes - 60;
+				hours = hours + 1;
+				if (hours > 23) {
+					hours = hours - 24;
+					days = days + 1;
+				}
+			} else {
+
+				if (hours > 23) {
+					hours = hours - 24;
+					days = days + 1;
+				}
+			}
+		} else {
+			if (minutes > 59) {
+				minutes = minutes - 60;
+				hours = hours + 1;
+				if (hours > 23) {
+					hours = hours - 24;
+					days = days + 1;
+				}
+			} 
+		}
+		return String.valueOf(hours) + ":" + String.valueOf(minutes) + ":" + String.valueOf(seconds);
+		
 	}
 
 	@Override

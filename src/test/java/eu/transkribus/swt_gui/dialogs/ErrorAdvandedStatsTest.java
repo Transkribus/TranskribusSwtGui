@@ -165,7 +165,7 @@ public class ErrorAdvandedStatsTest {
 					ex.printStackTrace();
 				}
 				
-				ErrorRateAdvancedStats eDia = new ErrorRateAdvancedStats(getShell(),e,3133,"add query here");
+				ErrorRateAdvancedStats eDia = new ErrorRateAdvancedStats(getShell(),e,3133,"add | query | here |  adffsasdf | asdsadg | asds");
 			
 				eDia.open();
 				

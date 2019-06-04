@@ -53,7 +53,6 @@ import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructuralMetadataWidget;
 import eu.transkribus.swt_gui.metadata.TaggingWidget;
-import eu.transkribus.swt_gui.metadata.TextStyleTypeWidget;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget;
 import eu.transkribus.swt_gui.tools.ToolsWidget;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
@@ -90,7 +89,7 @@ public class TrpMainWidgetView extends Composite {
 //	JobTableWidgetPagination jobOverviewWidget;
 //	TranscriptsTableWidgetPagination versionsWidget;
 	StructuralMetadataWidget structuralMdWidget;
-	TextStyleTypeWidget textStyleWidget;
+//	TextStyleTypeWidget textStyleWidget;
 	
 //	public static boolean SHOW_NEW_TW = true;
 	TaggingWidget taggingWidget;
@@ -271,10 +270,10 @@ public class TrpMainWidgetView extends Composite {
 		commentsWidget = new CommentsWidget(tabWidget.metadataTf, SWT.TOP);
 		tabWidget.commentsItem.setControl(commentsWidget);
 		
-		if (tabWidget.textStyleMdItem != null) { // outdated and removed
-		textStyleWidget = new TextStyleTypeWidget(tabWidget.metadataTf, SWT.TOP);
-		tabWidget.textStyleMdItem.setControl(textStyleWidget);
-		}
+//		if (tabWidget.textStyleMdItem != null) { // outdated and removed
+//		textStyleWidget = new TextStyleTypeWidget(tabWidget.metadataTf, SWT.TOP);
+//		tabWidget.textStyleMdItem.setControl(textStyleWidget);
+//		}
 		
 		toolsWidget = new ToolsWidget(tabWidget.mainTf, SWT.TOP);
 		toolsWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -990,8 +989,8 @@ public class TrpMainWidgetView extends Composite {
 		return quickSearchText;
 	}
 	
-	public TextStyleTypeWidget getTextStyleWidget() {
-		return textStyleWidget;
-	}
+//	public TextStyleTypeWidget getTextStyleWidget() {
+//		return textStyleWidget;
+//	}
 
 }

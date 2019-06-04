@@ -54,7 +54,7 @@ public class Text2ImageConfComposite2 extends Composite {
 		baseModelCont.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Label labelBaseModel = new Label(baseModelCont, 0);
 		labelBaseModel.setText("Base model:");
-		baseModelBtn = new HtrModelChooserButton(baseModelCont, true, HtrCITlabUtils.PROVIDER_CITLAB);
+		baseModelBtn = new HtrModelChooserButton(baseModelCont, true, null);
 		baseModelBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		epochsTxt = new LabeledText(this, "Epochs per iteration: ", true);

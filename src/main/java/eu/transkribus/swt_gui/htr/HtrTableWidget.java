@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ILazyContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
@@ -19,8 +19,6 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -32,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
@@ -42,7 +41,48 @@ import eu.transkribus.swt_gui.util.DelayedTask;
 public class HtrTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTableWidget.class);
 	
-	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS };		
+	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS };	
+	
+	public class HtrLazyContentProvider implements ILazyContentProvider {
+		private MyTableViewer viewer;
+		private List<TrpHtr> elements=new ArrayList<>();
+		private List<TrpHtr> filteredElements=new ArrayList<>();
+		private ViewerFilter filter;
+
+		public HtrLazyContentProvider(MyTableViewer viewer) {
+			this.viewer = viewer;
+		}
+		
+		public void setFilter(ViewerFilter filter) {
+			this.filter = filter;
+		}
+
+		public void dispose() {
+		}
+
+		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+			logger.trace("inputChanged: "+CoreUtils.size((List<TrpHtr>) newInput));
+			this.elements = (List<TrpHtr>) newInput;
+			filterElements();
+		}
+		
+		public void filterElements() {
+			if (elements==null) {
+				return;
+			}
+			if (filter!=null) {
+				filteredElements = elements.stream().filter(htr -> filter.select(viewer, null, htr)).collect(Collectors.toList());
+			}
+			else {
+				filteredElements = elements;
+			}
+			viewer.setItemCount(CoreUtils.size(filteredElements));
+		}
+
+		public void updateElement(int index) {
+			viewer.replace(filteredElements.get(index), index);
+		}
+	};	
 	
 	public static final String HTR_NAME_COL = "Name";
 	public static final String HTR_LANG_COL = "Language";
@@ -58,6 +98,7 @@ public class HtrTableWidget extends Composite {
 	Composite filterComposite;
 	private Text filter;
 	private Combo providerCombo;
+	private HtrLazyContentProvider lazyContentProvider;
 	
 	private final String providerFilter;
 	
@@ -69,6 +110,8 @@ public class HtrTableWidget extends Composite {
 		new ColumnConfig(HTR_DATE_COL, 70, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(HTR_ID_COL, 50, true, DefaultTableColumnViewerSorter.ASC),
 	};
+	
+	public static boolean USE_LAZY_LOADING = true;
 	
 	public HtrTableWidget(Composite parent, int style, String providerFilter) {
 		super(parent, style);
@@ -82,9 +125,22 @@ public class HtrTableWidget extends Composite {
 //		this.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		this.setLayout(new GridLayout(1, false));
 //		this.setLayout(new RowLayout(1, true));
-				
-		htrTv = new MyTableViewer(this, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
-		htrTv.setContentProvider(new ArrayContentProvider());
+		
+		int tableFlags = SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION;
+		if (USE_LAZY_LOADING) {
+			tableFlags |= SWT.VIRTUAL;
+		}
+		htrTv = new MyTableViewer(this, tableFlags);
+		
+		if (USE_LAZY_LOADING) {
+			lazyContentProvider = new HtrLazyContentProvider(htrTv);
+			htrTv.setContentProvider(lazyContentProvider);
+			htrTv.setUseHashlookup(true);
+		}
+		else {
+			htrTv.setContentProvider(new ArrayContentProvider());	
+		}
+		
 		labelProvider = new HtrTableLabelProvider(htrTv);
 		htrTv.setLabelProvider(labelProvider);
 		htrTv.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -116,6 +172,9 @@ public class HtrTableWidget extends Composite {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (!isDisposed() && e.keyCode == SWT.KEYPAD_CR || e.keyCode == SWT.CR) {
+					if (USE_LAZY_LOADING) {
+						lazyContentProvider.filterElements();
+					}
 					htrTv.refresh();
 				}
 			}
@@ -176,6 +235,9 @@ public class HtrTableWidget extends Composite {
 				if (isDisposed())
 					return;
 				
+				if (USE_LAZY_LOADING) {
+					lazyContentProvider.filterElements();
+				}
 				htrTv.refresh();
 			}, true);
 			
@@ -183,9 +245,14 @@ public class HtrTableWidget extends Composite {
 				dt.start();
 			}
 		};
-		
 		filter.addModifyListener(filterModifyListener);
-		htrTv.addFilter(viewerFilter);
+		
+		if (USE_LAZY_LOADING) {
+			lazyContentProvider.setFilter(viewerFilter);
+		}
+		else {
+			htrTv.addFilter(viewerFilter);	
+		}
 	}
 	
 	private void addProviderFilter(Combo providerCombo, String label, String data) {

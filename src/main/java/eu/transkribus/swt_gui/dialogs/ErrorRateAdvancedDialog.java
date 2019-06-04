@@ -169,8 +169,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		config.setLayout(new GridLayout(3,false));
 		
-		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true);
-		dps.getCurrentTranscriptButton().setText("Current page");
+		dps = new CurrentTranscriptOrCurrentDocPagesSelector(config, SWT.NONE, true,false);
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 
 		options = new LabeledCombo(config, "Options");
@@ -187,18 +186,18 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		
 		labelRef = new Label(comp,SWT.NONE );
 		labelRef.setText("Reference:");
-		labelRef.setVisible(false);
+		labelRef.setVisible(true);
 		comboRef = new Combo(comp, SWT.DROP_DOWN);
 		comboRef.setItems(new String[] {"GT"});
 		comboRef.select(0);
 		params.addParameter("ref", comboRef.getItem(comboRef.getSelectionIndex()));
 		comboRef.setEnabled(false);
-		comboRef.setVisible(false);
+		comboRef.setVisible(true);
 		labelHyp = new Label(comp,SWT.NONE );
 		labelHyp.setText("Select hypothese by toolname:");
-		labelHyp.setVisible(false);
+		labelHyp.setVisible(true);
 		comboHyp = new Combo(comp, SWT.DROP_DOWN);
-		comboHyp.setVisible(false);
+		comboHyp.setVisible(true);
 		try {
 			List<TrpPage> pages = store.getDoc().getPages();
 			for(TrpPage page : pages) {
@@ -209,6 +208,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
 							comboHyp.add(transcript.getToolName());
 						}
+						comboHyp.select(0);
 					}
 					
 				}
@@ -237,15 +237,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			}
 		});
 		
-		dps.getCurrentTranscriptButton().addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				comboRef.setVisible(true);
-				comboHyp.setVisible(true);
-				labelHyp.setVisible(true);
-				labelRef.setVisible(true);
-			}
-		});
-		
 		compare.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -253,39 +244,56 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				params.addParameter("option", options.combo.getSelectionIndex());
 				logger.debug("Option chosen : "+options.combo.getSelectionIndex());
 				String newPageString = null;
-				boolean hasGT = false;
-				if(dps.isCurrentTranscript()) {
-					startError(store.getDocId(),""+store.getPage().getPageNr());
-				}else {
+				String deleteGTPageString = null;
+				String deleteHypPageString = null;
 					try {
 						// create new pagestring, take only pages with chosen toolname
 						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), store.getDocId(), 10);
 						Set<Integer> pageIndices = CoreUtils.parseRangeListStr(dps.getPagesStr(), store.getDoc().getNPages());
 						Set<Integer> newPageIndices = new HashSet<Integer>();
+						Set<Integer> delGTIndices = new HashSet<Integer>();
+						Set<Integer> delHypIndices = new HashSet<Integer>();
 						List<TrpTranscriptMetadata> transcripts = new ArrayList<TrpTranscriptMetadata>();
 						for (Integer pageIndex : pageIndices) {
 							logger.debug("pageIndex : "+pageIndex);
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
 							// check if all pages contain GT version
 							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
+//							if(transGT == null) {
+//								DialogUtil.showErrorMessageBox(getShell(), "Error", "The GT for page "+pageIndex+ " can not be found");
+//							}
 							for(TrpTranscriptMetadata transcript : transcripts){
 								if(transGT != null && transcript.getToolName() != null) {
-									if(transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
+									if(comboHyp.getItem(comboHyp.getSelectionIndex()) != null &&  transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
 										newPageIndices.add(pageIndex);
 									}
+								}
+								if(transGT == null) {
+									delGTIndices.add(pageIndex);
+								}
+								if(transcript.getToolName() != null && !transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
+									delHypIndices.add(pageIndex);
 								}
 							}	
 						}
 						newPageString = CoreUtils.getRangeListStrFromSet(newPageIndices);
+						deleteGTPageString = CoreUtils.getRangeListStrFromSet(delGTIndices);
+						deleteHypPageString = CoreUtils.getRangeListStrFromSet(delHypIndices);
 						String msg = "";
 						msg += "Compute error rate for page(s) :" + newPageString + "\n";
+						msg += "Pages ignored for missing GT : " + deleteGTPageString + "\n";
+						msg += "Pages ignored for missing Hyp : " + deleteHypPageString + "\n";
 						msg += "Ref: " +params.getParameterValue("ref")+"\n";
 						msg += "Hyp: " +params.getParameterValue("hyp");
-						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null ) {
+						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null && newPageString != "") {
 							int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
 							if (result == SWT.YES) {
 								startError(store.getDocId(), newPageString);
 							}
+						}
+						else if(newPageString == "") {
+							DialogUtil.showErrorMessageBox(getShell(), "Error", "Selected pages have no GT version or hypothesis, please check the versions");
+						
 						}else {
 							DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
 						}
@@ -294,7 +302,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					} 
 					
 		
-				}
 				
 			}
 			

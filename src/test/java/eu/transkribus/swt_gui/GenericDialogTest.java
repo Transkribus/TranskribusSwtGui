@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -23,6 +26,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructTagConfWidget;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsWidget;
@@ -31,16 +35,29 @@ import eu.transkribus.swt_gui.vkeyboards.VirtualKeyboardEditor;
 public class GenericDialogTest {
 	private static final Logger logger = LoggerFactory.getLogger(GenericDialogTest.class);
 	
+	public static void logout() {
+		if (Storage.getInstance()!=null) {
+			logger.info("Logging out...");
+			Storage.getInstance().logout();
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
 		Storage store=null;
 		try {
 			if (true) { // load Storage?
-			store = Storage.getInstance();
-			store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
-			Future<?> fut = store.reloadDocList(1); // reload doclist of a collection just that the collection id gets set!
-//			store.loadRemoteDoc(1, 455); // bentham doc on testserver
-			
-			fut.get();
+				store = Storage.getInstance();
+				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
+				Future<?> fut = store.reloadDocList(1); // reload doclist of a collection just that the collection id gets set!
+	//			store.loadRemoteDoc(1, 455); // bentham doc on testserver
+				
+				fut.get();
+				Runtime.getRuntime().addShutdownHook(new Thread() {
+					@Override
+					public void run() {
+						logout();
+					}
+				});			
 			}
 			
 			ApplicationWindow aw = new ApplicationWindow(null) {
@@ -53,6 +70,17 @@ public class GenericDialogTest {
 	//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 					
 					if (true) {
+//						Text2ImageSimplifiedConfComposite confComp = new Text2ImageSimplifiedConfComposite(parent, 0, null);
+						Text2ImageSimplifiedDialog confDiag = new Text2ImageSimplifiedDialog(getShell(), null);
+//						getShell().setSize(500, 700);
+						if (confDiag.open()==IDialogConstants.OK_ID) {
+							System.out.println("conf = "+confDiag.getConfig());
+						}
+//						getShell().setSize(500, 700);
+//						SWTUtil.centerShell(getShell());
+					}					
+					
+					if (false) {
 						List<TrpP2PaLAModel> models = new ArrayList<>();
 						if (Storage.getInstance()!=null) {
 							models = Storage.getInstance().getP2PaLAModels();
@@ -130,7 +158,7 @@ public class GenericDialogTest {
 					return parent;
 				}
 			};
-			aw.setBlockOnOpen(true);
+//			aw.setBlockOnOpen(true);
 			aw.open();
 	
 			Display.getCurrent().dispose();
