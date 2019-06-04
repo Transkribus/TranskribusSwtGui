@@ -188,12 +188,6 @@ public class CollectionUsersWidget extends Composite {
 		userInfoTabItem.setText("User Info ");
 		userInfoTabItem.setControl(tabUserInfoComposite);
 		
-		ovGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
-		ovGroup.setText("Overall work across collections");
-		ovGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		ovGroup.setLayout(new GridLayout(1, false));
-		ovGroup.setFont(Fonts.createBoldFont(group.getFont()));
-		
 		
 		userGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
 		userGroup.setText("Users work in collection");
