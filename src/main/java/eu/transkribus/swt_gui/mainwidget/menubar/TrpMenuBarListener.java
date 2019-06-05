@@ -98,6 +98,8 @@ public class TrpMenuBarListener implements SelectionListener {
 		SWTUtil.onSelectionEvent(mb.bugReportItem, (e) -> { mw.sendBugReport(); });
 		
 		SWTUtil.onSelectionEvent(mb.exitItem, (e) -> { mw.getShell().close(); });	
+		
+		SWTUtil.onSelectionEvent(mb.movePagesByFilelistItem, (e) -> { mw.movePagesByFilelist(); });
 	}
 
 	@Override public void widgetSelected(SelectionEvent e) {

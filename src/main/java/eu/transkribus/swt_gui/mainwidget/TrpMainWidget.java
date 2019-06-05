@@ -6285,5 +6285,27 @@ public class TrpMainWidget {
 		return "";
 	}
 
+	public void movePagesByFilelist() {
+		try {
+			if (!storage.isRemoteDoc()) {
+				DialogUtil.showErrorMessageBox(getShell(), "No remote doc loaded", "Please load a remote document first!");
+				return;
+			}
+			
+			String filename = DialogUtil.showOpenFileDialog(getShell(), "Select txt file with image filenames of document in desired order", null, new String[] {"*.txt"});
+			logger.debug("filename = "+filename);
+			if (filename != null) {
+				storage.getConnection().moveImagesByNames(storage.getCollId(), storage.getDocId(), new File(filename));
+				
+				reloadCurrentDocument();
+			}
+		}
+		catch (Exception e) {
+			onError("Error moving pages by image file list", e.getMessage(), e, true, false);
+		}
+		
+		
+	}
+
 
 }

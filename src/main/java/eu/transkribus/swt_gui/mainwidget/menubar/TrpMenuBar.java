@@ -55,6 +55,7 @@ public class TrpMenuBar {
 	MenuItem proxySettingsMenuItem;
 	MenuItem autoSaveSettingsMenuItem;
 	MenuItem createThumbsMenuItem;
+	MenuItem movePagesByFilelistItem;
 	MenuItem deletePageMenuItem;
 	MenuItem addPageMenuItem;
 	
@@ -130,6 +131,7 @@ public class TrpMenuBar {
 		syncTextItem = createItem(docsMenu.m, SWT.NONE, Images.getOrLoad("/icons/page_add.png"), "Sync local text files with doc...");
 		addPageMenuItem = createItem(docsMenu.m, 0, Images.getOrLoad("/icons/image_add.png"), "Add page(s) to document on server...");
 		createThumbsMenuItem = createItem(docsMenu.m, SWT.CHECK, null, "Create thumbs when opening local folder");
+		movePagesByFilelistItem = createItem(docsMenu.m, SWT.PUSH, null, "Sort pages by filename list...");
 		
 		// FILE MENU:
 		fileMenu = createCascadeMenu(menuBar, null, "&Page");
