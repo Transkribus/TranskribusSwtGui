@@ -1767,6 +1767,12 @@ public class Storage {
 		}
 	}
 	
+	public void uploadDocumentFromIiifUrl(int colId, String iiifUrl) throws NoConnectionException, TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
+		checkConnection(true);
+		logger.debug("Reached upload Doc from IIIF in storage ");
+		conn.ingestDocFromIiifUrl(colId, iiifUrl);
+	}
+	
 	public String analyzeBlocks(int colId, int docId, int pageNr, PcGtsType pageData, boolean usePrintspaceOnly) throws SessionExpiredException, ServerErrorException,
 			IllegalArgumentException, NoConnectionException {
 		checkConnection(true);

@@ -81,7 +81,7 @@ public class CollectionUsersWidget extends Composite {
 	CTabItem usersTabItem, userInfoTabItem;
 	Composite tabUserComposite,tabUserInfoComposite;
 	
-	Button addUserToColBtn, removeUserFromColBtn, showUserCollections, downloadXLS/*, editUserFromColBtn*/;
+	Button addUserToColBtn, removeUserFromColBtn, showUserCollections,loadUserInfo, downloadXLS/*, editUserFromColBtn*/;
 	Combo role;
 	
 	List<TrpUserInfo> userInfo;
@@ -185,7 +185,7 @@ public class CollectionUsersWidget extends Composite {
 		tabUserInfoComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
 		
 		userInfoTabItem = new CTabItem(tabFolder,  SWT.NONE);
-		userInfoTabItem.setText("User Info WARNING may take long");
+		userInfoTabItem.setText("User Info");
 		userInfoTabItem.setControl(tabUserInfoComposite);
 		
 		
@@ -197,6 +197,11 @@ public class CollectionUsersWidget extends Composite {
 		
 		collectionUsersInfoTv = new UserInfoTableWidgetPagination(userGroup, 0, 0);
 		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		loadUserInfo = new Button(userGroup, SWT.PUSH);
+		loadUserInfo.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
+		loadUserInfo.setText("Load User Info (May take some time)");
+		loadUserInfo.setImage(Images.ERROR);
 		
 		downloadXls();
 		
@@ -287,13 +292,14 @@ public void downloadXls() {
 			}
 		});
 		
-		tabFolder.addSelectionListener(new SelectionAdapter() {
+		loadUserInfo.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(tabFolder.getItem(tabFolder.getSelectionIndex()).equals(userInfoTabItem)) {
-					collectionUsersInfoTv.refreshList(collection.getColId());
-				}
+				collectionUsersInfoTv.refreshList(collection.getColId());
 			}
+			
 		});
+		
 		
 		
 	}
