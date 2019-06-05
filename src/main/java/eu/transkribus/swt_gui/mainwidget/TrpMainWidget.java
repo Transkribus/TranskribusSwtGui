@@ -3010,12 +3010,21 @@ public class TrpMainWidget {
 					}
 
 				}
+			
 //				catch (SessionExpiredException | ServerErrorException eo) {
 //				// TODO Auto-generated catch block
 //				throw eo;
 //			}
 				// extract images from pdf and upload extracted images
-			} else if (ud.isUploadFromPdf()) {
+			}else if (ud.isIiifUrlUpload()) {
+				logger.debug("uploading title: " + ud.getTitle() + " to collection: " + cId);
+				int h = DialogUtil.showInfoMessageBox(getShell(), "Upload Information",
+						"Upload document from IIIF manifest!\nNote: the document will be ready after document processing on the server is finished - this takes a while - reload the document list occasionally");
+				storage.uploadDocumentFromIiifUrl(cId, ud.getIiifUrl());
+			}
+			
+			
+			else if (ud.isUploadFromPdf()) {
 				File pdfFolderFile = ud.getPdfFolderFile();
 				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + pdfFolderFile.getAbsolutePath());
 				logger.debug("ingest into collection: " + cId);
