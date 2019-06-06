@@ -295,17 +295,24 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		private final static String konzilsProtNetName = "LA_alvermann1.pb";
 		protected final static String postcardNetLabel = "Postcards";
 		private final static String postcardNetName = "postcards_aru_c3.pb";
-		private final static String newspaperNetLabel = "Newspapers";
-		private final static String newspaperNetName = "ara_news_aru_mix_90_ema.pb";
+		//old newspaper LA net
+		private final static String newspaperV1NetLabel = "Newspapers Old";
+		private final static String newspaperV1NetName = "LA_ara_news_aru_mix_90_ema.pb";
+		//new newspaper LA net
+		private final static String newspaperV2NetLabel = "Newspapers";
+		private final static String newspaperV2NetName = "LA_news_onb_att.pb";
 		private LaDataProvider() {}
 		public static List<LaModel> getModels() {
 			final List<LaModel> nets = new ArrayList<>(1);
 			LaModel konzilsProt = new LaModel(konzilsProtNetLabel, konzilsProtNetName);
 			LaModel postcards = new LaModel(postcardNetLabel, postcardNetName);
-			LaModel newspapers = new LaModel(newspaperNetLabel, newspaperNetName);
+			@SuppressWarnings("unused")
+			//old newspaper net is not shown in the combo
+			LaModel newspaperV1 = new LaModel(newspaperV1NetLabel, newspaperV1NetName);
+			LaModel newspaperV2 = new LaModel(newspaperV2NetLabel, newspaperV2NetName);
 			nets.add(konzilsProt);
 			nets.add(postcards);
-			nets.add(newspapers);
+			nets.add(newspaperV2);
 			return nets;
 		}
 	}

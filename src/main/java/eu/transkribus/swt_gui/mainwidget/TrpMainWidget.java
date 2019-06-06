@@ -3084,12 +3084,21 @@ public class TrpMainWidget {
 					}
 
 				}
+			
 //				catch (SessionExpiredException | ServerErrorException eo) {
 //				// TODO Auto-generated catch block
 //				throw eo;
 //			}
 				// extract images from pdf and upload extracted images
-			} else if (ud.isUploadFromPdf()) {
+			}else if (ud.isIiifUrlUpload()) {
+				logger.debug("uploading title: " + ud.getTitle() + " to collection: " + cId);
+				int h = DialogUtil.showInfoMessageBox(getShell(), "Upload Information",
+						"Upload document from IIIF manifest!\nNote: the document will be ready after document processing on the server is finished - this takes a while - reload the document list occasionally");
+				storage.uploadDocumentFromIiifUrl(cId, ud.getIiifUrl());
+			}
+			
+			
+			else if (ud.isUploadFromPdf()) {
 				File pdfFolderFile = ud.getPdfFolderFile();
 				logger.debug("extracting images from pdf " + ud.getFile() + " to local folder " + pdfFolderFile.getAbsolutePath());
 				logger.debug("ingest into collection: " + cId);
@@ -6357,6 +6366,28 @@ public class TrpMainWidget {
 			return diff.getResult();
 		}
 		return "";
+	}
+
+	public void movePagesByFilelist() {
+		try {
+			if (!storage.isRemoteDoc()) {
+				DialogUtil.showErrorMessageBox(getShell(), "No remote doc loaded", "Please load a remote document first!");
+				return;
+			}
+			
+			String filename = DialogUtil.showOpenFileDialog(getShell(), "Select txt file with image filenames of document in desired order", null, new String[] {"*.txt"});
+			logger.debug("filename = "+filename);
+			if (filename != null) {
+				storage.getConnection().moveImagesByNames(storage.getCollId(), storage.getDocId(), new File(filename));
+				
+				reloadCurrentDocument();
+			}
+		}
+		catch (Exception e) {
+			onError("Error moving pages by image file list", e.getMessage(), e, true, false);
+		}
+		
+		
 	}
 
 
