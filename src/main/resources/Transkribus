@@ -3,17 +3,22 @@
 echoerr() { echo "$@" 1>&2; }
 
 isValidJava() {
-	#echo "checking java version of: "$1
+	echo "Checking java version of: "$1
 	if [[ "$1" ]]; then
-    version=$("$1" -version 2>&1 | awk -F '"' '/version/ {print $2}')
-    #echo "Java version = "$version
-    if [[ "$version" < "1.7" ]]; then
-    	#echo "false"
-        return 1;
-    else
-    	#echo "true"
-    	return 0;
-    fi
+		function version { echo "$@" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }';}
+
+		first_version=$("$1" -version 2>&1 | awk -F '"' '/version/ {print $2}')
+		second_version="1.7"
+
+		echo "Java version = "$first_version
+
+		if [ "$(version "$first_version")" -le "$(version "$second_version")" ]; then
+			#echo "false"
+			return 1;
+		else
+			#echo "true"
+			return 0;
+		fi
 	fi
 	return 1;
 }
@@ -60,13 +65,16 @@ fi
 
 # set some java flags
 # set max heap space to 2 GB
-java_flags="" 
+java_flags=""
 # add -XstartOnFirstThread flag for mac-os (i.e. $OSTYPE == 'darwin'*)
 # since elsewise there will be a deadlock on startup: 
 if [[ $OSTYPE == 'darwin'* ]]; then
 java_flags=$java_flags" -XstartOnFirstThread"
 fi
 echo "java flags are: "$java_flags
+
+# do *not* use gtk 3 on linux systems!
+export SWT_GTK3=0
 
 # start the bloody thing:
 $_java -jar $java_flags ${project.build.finalName}.jar
