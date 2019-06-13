@@ -1638,7 +1638,7 @@ public class Storage {
 				return;
 			
 			conn.updateTranscript(getCurrentDocumentCollectionId(), doc.getMd().getDocId(), 
-					(remoteIndices.get(i)+1), EditStatus.IN_PROGRESS,
+					(remoteIndices.get(i)+1), EditStatus.DONE,
 					tmd.unmarshallTranscript(), tmd.getTsId(), "TRP: external source");
 
 			if (monitor != null)
