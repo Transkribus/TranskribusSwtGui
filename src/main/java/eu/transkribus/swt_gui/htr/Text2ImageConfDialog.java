@@ -14,6 +14,9 @@ import org.eclipse.swt.widgets.Shell;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.swt.util.DialogUtil;
 
+/**
+ * @deprecated out of date
+ */
 public class Text2ImageConfDialog extends Dialog {
 	
 	Text2ImageConfComposite text2ImageComp;

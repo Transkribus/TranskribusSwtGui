@@ -61,7 +61,6 @@ import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.dialogs.ExportPathComposite;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
-import eu.transkribus.swt_gui.pagination_tables.UserInfoOverallTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.UserInfoTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.UserTableWidgetPagination;
 
@@ -76,14 +75,13 @@ public class CollectionUsersWidget extends Composite {
 	Composite sf;
 	UserTableWidgetPagination collectionUsersTv;
 	UserInfoTableWidgetPagination collectionUsersInfoTv;
-	UserInfoOverallTableWidgetPagination userOverallInfoTv;
 	FindUsersWidget findUsersWidget;
 	
 	CTabFolder tabFolder;
 	CTabItem usersTabItem, userInfoTabItem;
 	Composite tabUserComposite,tabUserInfoComposite;
 	
-	Button addUserToColBtn, removeUserFromColBtn, showUserCollections, downloadXLS/*, editUserFromColBtn*/;
+	Button addUserToColBtn, removeUserFromColBtn, showUserCollections,loadUserInfo, downloadXLS/*, editUserFromColBtn*/;
 	Combo role;
 	
 	List<TrpUserInfo> userInfo;
@@ -187,17 +185,9 @@ public class CollectionUsersWidget extends Composite {
 		tabUserInfoComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
 		
 		userInfoTabItem = new CTabItem(tabFolder,  SWT.NONE);
-		userInfoTabItem.setText("User Info ");
+		userInfoTabItem.setText("User Info");
 		userInfoTabItem.setControl(tabUserInfoComposite);
 		
-		ovGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
-		ovGroup.setText("Overall work across collections");
-		ovGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		ovGroup.setLayout(new GridLayout(1, false));
-		ovGroup.setFont(Fonts.createBoldFont(group.getFont()));
-		
-		userOverallInfoTv = new UserInfoOverallTableWidgetPagination(ovGroup, 0, 0);
-		userOverallInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		userGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
 		userGroup.setText("Users work in collection");
@@ -207,6 +197,11 @@ public class CollectionUsersWidget extends Composite {
 		
 		collectionUsersInfoTv = new UserInfoTableWidgetPagination(userGroup, 0, 0);
 		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		loadUserInfo = new Button(userGroup, SWT.PUSH);
+		loadUserInfo.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
+		loadUserInfo.setText("Load User Info (May take some time)");
+		loadUserInfo.setImage(Images.ERROR);
 		
 		downloadXls();
 		
@@ -234,6 +229,8 @@ public class CollectionUsersWidget extends Composite {
 				updateBtnVisibility();
 			}
 		});
+		
+		
 	}
 	
 public void downloadXls() {
@@ -294,6 +291,17 @@ public void downloadXls() {
 				updateBtnVisibility();
 			}
 		});
+		
+		loadUserInfo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				collectionUsersInfoTv.refreshList(collection.getColId());
+			}
+			
+		});
+		
+		
+		
 	}
 	
 	public List<TrpUser> getSelectedUsersInCollection() {
@@ -402,8 +410,8 @@ public void downloadXls() {
 		if (collection!=null && store.isLoggedIn()) {
 			try {
 				collectionUsersTv.refreshList(collection.getColId());
-				collectionUsersInfoTv.refreshList(collection.getColId());
-				userOverallInfoTv.refreshList(collection.getColId());
+//				collectionUsersInfoTv.refreshList(collection.getColId());
+//				userOverallInfoTv.refreshList(collection.getColId());
 			} catch (ServerErrorException | IllegalArgumentException e) {
 				DialogUtil.createAndShowBalloonToolTip(getShell(), SWT.ICON_ERROR, e.getMessage(), "Error loading users", -1, -1, true);
 			}

@@ -26,7 +26,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
-import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfDialog;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructTagConfWidget;
 import eu.transkribus.swt_gui.vkeyboards.TrpVirtualKeyboardsWidget;
@@ -71,7 +71,7 @@ public class GenericDialogTest {
 					
 					if (true) {
 //						Text2ImageSimplifiedConfComposite confComp = new Text2ImageSimplifiedConfComposite(parent, 0, null);
-						Text2ImageSimplifiedConfDialog confDiag = new Text2ImageSimplifiedConfDialog(getShell(), null);
+						Text2ImageSimplifiedDialog confDiag = new Text2ImageSimplifiedDialog(getShell(), null);
 //						getShell().setSize(500, 700);
 						if (confDiag.open()==IDialogConstants.OK_ID) {
 							System.out.println("conf = "+confDiag.getConfig());

@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.mainwidget.storage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -1765,6 +1766,12 @@ public class Storage {
 		else{
 			conn.ingestDocFromUrl(cId, metsUrl);
 		}
+	}
+	
+	public void uploadDocumentFromIiifUrl(int colId, String iiifUrl) throws NoConnectionException, TrpServerErrorException, TrpClientErrorException, SessionExpiredException, UnsupportedEncodingException {
+		checkConnection(true);
+		logger.debug("Reached upload Doc from IIIF in storage ");
+		conn.ingestDocFromIiifUrl(colId, iiifUrl);
 	}
 	
 	public String analyzeBlocks(int colId, int docId, int pageNr, PcGtsType pageData, boolean usePrintspaceOnly) throws SessionExpiredException, ServerErrorException,

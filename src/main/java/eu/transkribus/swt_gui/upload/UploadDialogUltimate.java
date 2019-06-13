@@ -71,8 +71,8 @@ public class UploadDialogUltimate extends Dialog {
 			+ "the documents should be linked, within this Dialog.";
 	
 	
-	Button singleDocButton, ftpButton, metsUrlButton, pdfButton;
-	Group ftpGroup, singleGroup, metsUrlGroup, pdfGroup;
+	Button singleDocButton, ftpButton, metsUrlButton,iiifUrlButton, pdfButton;
+	Group ftpGroup, singleGroup, metsUrlGroup,iiifUrlGroup, pdfGroup;
 	
 	Text folderText; //, pdfFolderText;
 	Text titleText, urlText;
@@ -81,7 +81,7 @@ public class UploadDialogUltimate extends Dialog {
 //	String dirName;
 	String file, folder, /*pdffolder, */ title, url;
 	
-	boolean isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false;
+	boolean isSingleDocUpload=true, isMetsUrlUpload=false, isPdfUpload=false , isIiifUpload = false;
 	
 //	TrpDoc doc;
 	
@@ -157,6 +157,10 @@ public class UploadDialogUltimate extends Dialog {
 		metsUrlButton.setText("Upload via URL of DFG Viewer METS");
 		metsUrlButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		
+		iiifUrlButton = new Button(container, SWT.RADIO);
+		iiifUrlButton.setText("Upload via URL of IIIF manifest");
+		iiifUrlButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+		
 		pdfButton = new Button(container, SWT.RADIO);
 		pdfButton.setText("Extract and upload images from pdf");
 		pdfButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
@@ -179,7 +183,13 @@ public class UploadDialogUltimate extends Dialog {
 		metsUrlGroup.setText("Document upload via METS");
 		metsUrlGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		metsUrlGroup.setLayout(new GridLayout(3, false));
-		createMetsUrlGroup(metsUrlGroup);
+		createUrlGroup(metsUrlGroup,"METS URL:");
+		
+		iiifUrlGroup = new Group(SWTUtil.dummyShell, 0);
+		iiifUrlGroup.setText("Document upload via IIIF manifest");
+		iiifUrlGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		iiifUrlGroup.setLayout(new GridLayout(3, false));
+		createUrlGroup(iiifUrlGroup,"IIIF manifest URL:");
 		
 		pdfGroup = new Group(SWTUtil.dummyShell, 0);
 		pdfGroup.setText("Extract images from pdf (locally) and upload");
@@ -299,10 +309,10 @@ public class UploadDialogUltimate extends Dialog {
 		lblInfo.setEnabled(false);
 	}
 	
-	private void createMetsUrlGroup(Composite container) {
+	private void createUrlGroup(Composite container, String lable) {
 		Label lblNewLabel = new Label(container, SWT.NONE);
 		lblNewLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		lblNewLabel.setText("METS URL:");
+		lblNewLabel.setText(lable);
 
 		urlText = new Text(container, SWT.BORDER);
 		urlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -376,11 +386,13 @@ public class UploadDialogUltimate extends Dialog {
 		if (singleDocButton.getSelection()) {
 			add = singleGroup;
 			ftpGroup.setParent(SWTUtil.dummyShell);
+			iiifUrlGroup.setParent(SWTUtil.dummyShell);
 			metsUrlGroup.setParent(SWTUtil.dummyShell);
 			pdfGroup.setParent(SWTUtil.dummyShell);
 		} else if (ftpButton.getSelection()){
 			add = ftpGroup;
 			singleGroup.setParent(SWTUtil.dummyShell);
+			iiifUrlGroup.setParent(SWTUtil.dummyShell);
 			metsUrlGroup.setParent(SWTUtil.dummyShell);
 			pdfGroup.setParent(SWTUtil.dummyShell);
 			//remove = singleGroup;
@@ -388,13 +400,21 @@ public class UploadDialogUltimate extends Dialog {
 			// new case: pdf upload
 			add = pdfGroup;
 			ftpGroup.setParent(SWTUtil.dummyShell);
+			iiifUrlGroup.setParent(SWTUtil.dummyShell);
 			singleGroup.setParent(SWTUtil.dummyShell);
 			metsUrlGroup.setParent(SWTUtil.dummyShell);
+		} else if (iiifUrlButton.getSelection()) {
+			add = iiifUrlGroup;
+			singleGroup.setParent(SWTUtil.dummyShell);
+			ftpGroup.setParent(SWTUtil.dummyShell);
+			metsUrlGroup.setParent(SWTUtil.dummyShell);
+			pdfGroup.setParent(SWTUtil.dummyShell);
 		}
 		//new case: upload via url 
 		else{
 			add = metsUrlGroup;
 			singleGroup.setParent(SWTUtil.dummyShell);
+			iiifUrlGroup.setParent(SWTUtil.dummyShell);
 			ftpGroup.setParent(SWTUtil.dummyShell);
 			pdfGroup.setParent(SWTUtil.dummyShell);
 		}
@@ -431,6 +451,12 @@ public class UploadDialogUltimate extends Dialog {
 		});	
 		
 		metsUrlButton.addSelectionListener(new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				updateGroupVisibility();
+			}
+		});
+		
+		iiifUrlButton.addSelectionListener(new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
 				updateGroupVisibility();
 			}
@@ -585,10 +611,10 @@ public class UploadDialogUltimate extends Dialog {
 		if (isSingleDocUpload && StringUtils.isEmpty(folder) ) {
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please specify a valid input folder!");
 		}
-		else if(isMetsUrlUpload && StringUtils.isEmpty(url)){
+		else if((isMetsUrlUpload || isIiifUpload) && StringUtils.isEmpty(url)){
 			DialogUtil.showErrorMessageBox(getParentShell(), "Info", "Please copy a valid url into the text field!");
 		}
-		else if(!isSingleDocUpload && !isMetsUrlUpload && !isPdfUpload) {
+		else if(!isSingleDocUpload && !isMetsUrlUpload && !isPdfUpload && !isIiifUpload) {
 			// this is Upload from private FTP
 			if(selDocDirs == null || selDocDirs.isEmpty()) {
 				DialogUtil.showErrorMessageBox(getParentShell(), "Info", "You have to select directories for ingesting.");
@@ -661,6 +687,7 @@ public class UploadDialogUltimate extends Dialog {
 	private void saveInput() {
 		this.isSingleDocUpload = singleDocButton.getSelection();
 		this.isMetsUrlUpload = metsUrlButton.getSelection();
+		this.isIiifUpload = iiifUrlButton.getSelection();
 		this.isPdfUpload = pdfButton.getSelection();
 		
 		this.selDocDirs = getSelectedDocDirs();
@@ -721,10 +748,19 @@ public class UploadDialogUltimate extends Dialog {
 	public boolean isMetsUrlUpload() {
 		return isMetsUrlUpload;
 	}
+	
+	public boolean isIiifUrlUpload() {
+		return isIiifUpload;
+	}
 
 	public String getMetsUrl() {
 		return url;
 	}
+	
+	public String getIiifUrl() {
+		return url;
+	}
+	
 	
 //	public static void main(String[] args) throws Exception {
 //		ApplicationWindow aw = new ApplicationWindow(null) {

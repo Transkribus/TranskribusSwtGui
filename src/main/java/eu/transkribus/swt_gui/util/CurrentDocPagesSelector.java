@@ -2,8 +2,9 @@ package eu.transkribus.swt_gui.util;
 
 import java.util.ArrayList;
 
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.internal.dnd.SwtUtil;
 
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
@@ -14,11 +15,12 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
  * @author sebastian
  */
 public class CurrentDocPagesSelector extends DocPagesSelector {
+	IStorageListener storageListener;
 
 	public CurrentDocPagesSelector(Composite parent, int style, boolean showLabel, boolean showCurrentPageBtn, boolean showAllPagesBtn) {
 		super(parent, style, showLabel, showCurrentPageBtn, showAllPagesBtn, new ArrayList<>());
 
-		Storage.getInstance().addListener(new IStorageListener() {
+		storageListener = new IStorageListener() {
 			// on doc load, set pages of selector
 			public void handleDocLoadEvent(DocLoadEvent dle) { 
 				updatePagesFromStorage();
@@ -27,6 +29,15 @@ public class CurrentDocPagesSelector extends DocPagesSelector {
 			// on page load, set pages text field to current page
 			public void handlePageLoadEvent(PageLoadEvent arg) { 
 				updatePageStrFromStorage();
+			}
+		};
+		Storage.getInstance().addListener(storageListener);
+		
+		this.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				if (Storage.getInstance()!=null) {
+					Storage.getInstance().removeListener(storageListener);	
+				}
 			}
 		});
 		
