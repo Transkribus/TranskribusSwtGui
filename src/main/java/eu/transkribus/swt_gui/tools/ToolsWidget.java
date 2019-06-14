@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.tools;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -12,7 +11,6 @@ import org.eclipse.swt.internal.SWTEventListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
@@ -21,7 +19,6 @@ import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpP2PaLAModel;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.CoreUtils;
@@ -29,11 +26,9 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.ChooseTranscriptDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.htr.TextRecognitionComposite;
 import eu.transkribus.swt_gui.la.LayoutAnalysisComposite;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
-import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
@@ -49,10 +44,9 @@ public class ToolsWidget extends Composite {
 	TextRecognitionComposite trComp;
 	
 	Button polygon2baselinesBtn, baseline2PolygonBtn, p2palaBtn;
-	Combo p2palaModelCombo;
 	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
 	
-	Button t2iBtn/*, t2iConfBtn*/;
+	Button t2iBtn;
 		
 //	Image ncsrIcon = Images.getOrLoad("/NCSR_icon.png");
 //	Label ncsrIconLbl;
@@ -448,23 +442,12 @@ public class ToolsWidget extends Composite {
 		
 		Composite p2palaContainer = new Composite(c, 0);
 		p2palaContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
-		p2palaContainer.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+		p2palaContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
 		p2palaBtn = new Button(p2palaContainer, SWT.PUSH);
-		p2palaBtn.setText("P2PaLA Layout Analysis");
-		p2palaBtn.setToolTipText("Creates baselines, regions and structure tags depending on the models selected on the right");
+		p2palaBtn.setText("P2PaLA...");
+		p2palaBtn.setToolTipText("Creates regions with structure tags and baselines from pre-trained models");
 		p2palaBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		p2palaModelCombo = new Combo(p2palaContainer, SWT.READ_ONLY | SWT.DROP_DOWN);
-		p2palaModelCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		p2palaModelCombo.setToolTipText("The model used for the P2PaLA Layout Analysis");
-		
-		Button p2palaHelpBtn = new Button(p2palaContainer, 0);
-		p2palaHelpBtn.setImage(Images.HELP);
-		SWTUtil.onSelectionEvent(p2palaHelpBtn, e -> {
-			P2PaLAConfDialog diag = new P2PaLAConfDialog(getShell(), Storage.getInstance().getP2PaLAModels());
-			diag.open();
-		});
 		
 		Composite t2iContainer = new Composite(c, 0);
 		t2iContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -475,20 +458,6 @@ public class ToolsWidget extends Composite {
 		t2iBtn.setToolTipText("Tries to match the text contained in the transcriptions to a line segmentation");
 		t2iBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		t2iBtn.setData(new Text2ImageConf());
-		
-//		t2iConfBtn = new Button(t2iContainer, SWT.PUSH);
-//		t2iConfBtn.setText("Configure...");
-//		t2iConfBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-//		t2iConfBtn.setData(new Text2ImageConf());
-//		SWTUtil.onSelectionEvent(t2iConfBtn, e -> {
-//			Text2ImageConf conf = (Text2ImageConf) t2iConfBtn.getData();
-//			Text2ImageSimplifiedConfDialog diag = new Text2ImageSimplifiedConfDialog(getShell(), conf);
-//			if (diag.open()==0) {
-//				conf = diag.getConfig();
-//				logger.debug("setting t2i conf to: "+conf);
-//				t2iConfBtn.setData(conf);
-//			}
-//		});
 		
 		polygon2baselinesBtn = new Button(c, SWT.PUSH);
 		polygon2baselinesBtn.setText("Add Baselines to Polygons");
@@ -512,34 +481,34 @@ public class ToolsWidget extends Composite {
 		});
 	}
 	
-	public void setP2PaLAModels(List<TrpP2PaLAModel> models) {
-		logger.debug("setting p2pala models, N = "+CoreUtils.size(models));
-		if (models==null || models.isEmpty()) {
-			p2palaModelCombo.setItems(new String[] {});
-		}
-		
-		List<String> items = new ArrayList<>();
-		int i=0;
-		for (TrpP2PaLAModel m : models) {
-			items.add(m.getName());
-			p2palaModelCombo.setData(""+i, m);
-			++i;
-		}
-		p2palaModelCombo.setItems(items.toArray(new String[0]));
-		p2palaModelCombo.select(0);
-	}
-	
-	public TrpP2PaLAModel getSelectedP2PaLAModel() {
-		int i = p2palaModelCombo.getSelectionIndex();
-		if (i>=0 && i<p2palaModelCombo.getItemCount()) {
-			try {
-				return (TrpP2PaLAModel) p2palaModelCombo.getData(""+i);
-			} catch (Exception e) {
-				logger.error("Error casting selected P2PaLAModel: "+e.getMessage(), e);
-			}
-		}
-		return null;
-	}
+//	public void setP2PaLAModels(List<TrpP2PaLAModel> models) {
+//		logger.debug("setting p2pala models, N = "+CoreUtils.size(models));
+//		if (models==null || models.isEmpty()) {
+//			p2palaModelCombo.setItems(new String[] {});
+//		}
+//		
+//		List<String> items = new ArrayList<>();
+//		int i=0;
+//		for (TrpP2PaLAModel m : models) {
+//			items.add(m.getName());
+//			p2palaModelCombo.setData(""+i, m);
+//			++i;
+//		}
+//		p2palaModelCombo.setItems(items.toArray(new String[0]));
+//		p2palaModelCombo.select(0);
+//	}
+//	
+//	public TrpP2PaLAModel getSelectedP2PaLAModel() {
+//		int i = p2palaModelCombo.getSelectionIndex();
+//		if (i>=0 && i<p2palaModelCombo.getItemCount()) {
+//			try {
+//				return (TrpP2PaLAModel) p2palaModelCombo.getData(""+i);
+//			} catch (Exception e) {
+//				logger.error("Error casting selected P2PaLAModel: "+e.getMessage(), e);
+//			}
+//		}
+//		return null;
+//	}
 
 	private void initLegacyWerGroup(Composite container) {
 		werExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);

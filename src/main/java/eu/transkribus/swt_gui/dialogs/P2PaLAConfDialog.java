@@ -10,6 +10,9 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -24,12 +27,23 @@ import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableLabelProvider;
+import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 
 public class P2PaLAConfDialog extends Dialog {
+	public static class P2PaLARecogConf {
+		public boolean currentTranscript=true;
+		public String pagesStr=null;
+		public TrpP2PaLAModel model;
+	}
+	
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLAConfDialog.class);
 	MyTableViewer modelsTable;
+	CurrentTranscriptOrCurrentDocPagesSelector pagesSelector;
+	Combo modelCombo;
+	P2PaLARecogConf conf = null;
 	
 	public static String NAME_COL = "Name";
 	public static String DESC_COL = "Description";
@@ -59,7 +73,7 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	@Override
 	protected Point getInitialSize() {
-		return new Point(800, 300);
+		return new Point(1000, 400);
 	}
 	
 	@Override
@@ -69,7 +83,16 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-	    createButton(parent, IDialogConstants.OK_ID,"OK", false);
+		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
+		
+		Button helpBtn = createButton(parent, IDialogConstants.HELP_ID, "Help", false);
+		helpBtn.setImage(Images.HELP);
+		SWTUtil.onSelectionEvent(helpBtn, e -> {
+			org.eclipse.swt.program.Program.launch("https://transkribus.eu/wiki/index.php/P2PaLA");
+		});
+		
+	    Button runBtn = createButton(parent, IDialogConstants.OK_ID, "Run", false);
+	    runBtn.setImage(Images.ARROW_RIGHT);
 	}
 	
 	@Override
@@ -81,25 +104,38 @@ public class P2PaLAConfDialog extends Dialog {
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite cont = (Composite) super.createDialogArea(parent);
+		cont.setLayout(new GridLayout(2, false));
 		
-		Link infoText = new Link(cont, 0);
-		String githubLink="https://github.com/lquirosd/P2PaLA";
-		infoText.setText("This tool detects regions including its structure types and baselines, see <a href=\""+githubLink+"\">"+githubLink+"</a>");
-		SWTUtil.onSelectionEvent(infoText, e -> {
-			try {
-				org.eclipse.swt.program.Program.launch(e.text);
-			} catch (Exception ex) {
-				logger.error(ex.getMessage(), ex);
-			}
-		});
+//		Link infoText = new Link(cont, 0);
+//		infoText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1));
+//		String githubLink="https://github.com/lquirosd/P2PaLA";
+//		infoText.setText("This tool detects regions including its structure types and (optionally) baselines, see <a href=\""+githubLink+"\">"+githubLink+"</a>");
+//		SWTUtil.onSelectionEvent(infoText, e -> {
+//			try {
+//				org.eclipse.swt.program.Program.launch(e.text);
+//			} catch (Exception ex) {
+//				logger.error(ex.getMessage(), ex);
+//			}
+//		});
 //		Fonts.setBoldFont(infoText);
+		
+		pagesSelector = new CurrentTranscriptOrCurrentDocPagesSelector(cont, SWT.NONE, true,true);
+		pagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1));
+		
+		Label recogModelLabel = new Label(cont, 0);
+		recogModelLabel.setText("Select a model for recognition: ");
+		Fonts.setBoldFont(recogModelLabel);
+		modelCombo = new Combo(cont, SWT.READ_ONLY | SWT.DROP_DOWN);
+		modelCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		modelCombo.setToolTipText("The model used for the P2PaLA Layout Analysis");
 		
 		Label modelsLabel = new Label(cont, 0);
 		modelsLabel.setText("Available models:");
+		modelsLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1));
 //		Fonts.setBoldFont(modelsLabel);
 		
 		modelsTable = new MyTableViewer(cont, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
-		modelsTable.getTable().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		modelsTable.getTable().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1));
 		modelsTable.getTable().setHeaderVisible(true);
 		modelsTable.getTable().setLinesVisible(true);
 		modelsTable.addColumns(COLS);
@@ -144,7 +180,6 @@ public class P2PaLAConfDialog extends Dialog {
 			}
 		});
 		
-		// TEST
 		setModels(models);
 		
 		return cont;
@@ -153,13 +188,36 @@ public class P2PaLAConfDialog extends Dialog {
 	public void setModels(List<TrpP2PaLAModel> models) {
 		logger.debug("setting input models, N = "+CoreUtils.size(models));
 		
-		if (models != null) { // null check needed???
-			modelsTable.setInput(models);	
+		if (models != null && !models.isEmpty()) { // null check needed???
+			modelsTable.setInput(models);
+			
+			List<String> items = new ArrayList<>();
+			int i=0;
+			for (TrpP2PaLAModel m : models) {
+				items.add(m.getName());
+				modelCombo.setData(""+i, m);
+				++i;
+			}
+			modelCombo.setItems(items.toArray(new String[0]));
+			modelCombo.select(0);			
 		}
 		else {
 			modelsTable.setInput(new ArrayList<>());
+			modelCombo.setItems(new String[] {});
 		}
 	}
+	
+	public TrpP2PaLAModel getSelectedP2PaLAModel() {
+		int i = modelCombo.getSelectionIndex();
+		if (i>=0 && i<modelCombo.getItemCount()) {
+			try {
+				return (TrpP2PaLAModel) modelCombo.getData(""+i);
+			} catch (Exception e) {
+				logger.error("Error casting selected P2PaLAModel: "+e.getMessage(), e);
+			}
+		}
+		return null;
+	}	
 	
 	public void setVisible() {
 		if (super.getShell() != null && !super.getShell().isDisposed()) {
@@ -167,10 +225,27 @@ public class P2PaLAConfDialog extends Dialog {
 		}
 	}
 	
+	private void storeConf() {
+		TrpP2PaLAModel model = getSelectedP2PaLAModel();
+		if (model != null) {
+			conf = new P2PaLARecogConf();
+			conf.currentTranscript = pagesSelector.isCurrentTranscript();
+			conf.pagesStr = pagesSelector.getPagesStr();
+			conf.model = model;
+		}
+		else {
+			conf = null;
+		}
+	}
+	
+	public P2PaLARecogConf getConf() {
+		return conf;
+	}
+	
 	@Override
 	protected void okPressed() {
-//		storeSelectionInParameterMap();
+		storeConf();
 		super.okPressed();
-	}	
+	}
 
 }
