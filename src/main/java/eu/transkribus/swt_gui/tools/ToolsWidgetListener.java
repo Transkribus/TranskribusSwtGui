@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -14,7 +13,6 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
@@ -43,8 +41,9 @@ import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog.P2PaLARecogConf;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
-import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
+import eu.transkribus.swt_gui.htr.HtrTrainingDialogLegacy;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -63,6 +62,8 @@ public class ToolsWidgetListener implements SelectionListener {
 
 	ThumbnailManager tm;
 	HtrTrainingDialog htd;
+	@Deprecated
+	HtrTrainingDialogLegacy htdLegacy;
 	OcrDialog od;
 	HtrTextRecognitionDialog trd2;
 
@@ -79,6 +80,10 @@ public class ToolsWidgetListener implements SelectionListener {
 
 		SWTUtil.onSelectionEvent(tw.trComp.getTrainBtn(), (e) -> {
 			startHtrTrainingDialog();
+		});
+		
+		SWTUtil.onSelectionEvent(tw.trComp.getTrainBtnLegacy(), (e) -> {
+			startLegacyHtrTrainingDialog();
 		});
 
 		SWTUtil.addSelectionListener(tw.startLaBtn, this);
@@ -132,6 +137,41 @@ public class ToolsWidgetListener implements SelectionListener {
 				|| s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn;
 	}
 
+	
+	private void startLegacyHtrTrainingDialog() {
+		try {
+			store.checkLoggedIn();
+
+			if (htdLegacy != null) {
+				htdLegacy.setVisible();
+			} else {
+				htdLegacy = new HtrTrainingDialogLegacy(mw.getShell(), Storage.getInstance().getHtrTrainingJobImpls());
+				if (htdLegacy.open() == IDialogConstants.OK_ID) {
+					// new: check here if user wants to store or not
+					// if (!mw.saveTranscriptDialogOrAutosave()) {
+					// //if user canceled this
+					// return;
+					// }
+					String jobId = null;
+					if (htdLegacy.getCitlabTrainConfig() != null) {
+						CitLabHtrTrainConfig config = htdLegacy.getCitlabTrainConfig();
+						jobId = store.runHtrTraining(config);
+						showSuccessMessage(jobId);
+					} else if (htdLegacy.getCitlabT2IConfig() != null) {
+						CitLabSemiSupervisedHtrTrainConfig config = htdLegacy.getCitlabT2IConfig();
+						jobId = store.runCitLabText2Image(config);
+						showSuccessMessage(jobId);
+					}
+				}
+				htdLegacy = null;
+			}
+		} catch (StorageException e) {
+			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", e.getMessage());
+		} catch (Exception e) {
+			mw.onError("Error while starting training job: " + e.getMessage(), e.getMessage(), e);
+		}
+	}
+	
 	private void startHtrTrainingDialog() {
 		try {
 			store.checkLoggedIn();

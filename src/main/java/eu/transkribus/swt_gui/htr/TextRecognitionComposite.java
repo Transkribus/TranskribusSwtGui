@@ -36,6 +36,7 @@ public class TextRecognitionComposite extends Composite {
 	
 	HtrModelChooserButton modelsBtn;
 	Button trainBtn;
+	Button trainBtnLegacy;
 //	Button text2ImageBtn;
 	
 	public TextRecognitionComposite(Composite parent, int style) {
@@ -63,12 +64,18 @@ public class TextRecognitionComposite extends Composite {
 		modelsBtn.setText("Models...");
 		modelsBtn.setImage(Images.getOrLoad("/icons/model2_16.png"));
 		modelsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
+
 		trainBtn = new Button(this, 0);
-		trainBtn.setText("Train...");
+		trainBtn.setText("α Train...");
 		trainBtn.setImage(Images.getOrLoad("/icons/muscle_16.png"));
-//		trainBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		trainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		trainBtnLegacy = new Button(this, 0);
+		trainBtnLegacy.setText("Train...");
+		trainBtnLegacy.setImage(Images.getOrLoad("/icons/muscle_16.png"));
+//		trainBtnLegacy.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		trainBtnLegacy.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+
 		
 //		text2ImageBtn = new Button(this, SWT.PUSH);
 //		text2ImageBtn.setText("Text2Image (experimental)...");
@@ -98,6 +105,10 @@ public class TextRecognitionComposite extends Composite {
 	
 	public Button getTrainBtn() {
 		return trainBtn;
+	}
+	
+	public Button getTrainBtnLegacy() {
+		return trainBtnLegacy;
 	}
 	
 //	public Button getText2ImageBtn() {
@@ -130,7 +141,8 @@ public class TextRecognitionComposite extends Composite {
 	}
 	
 	private void setBtnVisibility(boolean withTrainBtn) {
-		boolean showTrainBtn = withTrainBtn && isHtr();
+		boolean showTrainBtnLegacy = withTrainBtn && isHtr();
+		boolean showTrainBtn = withTrainBtn && isHtr() && Storage.getInstance().isAdminLoggedIn();
 		boolean showModelBtn = isHtr();
 		
 		if (showModelBtn){
@@ -142,15 +154,20 @@ public class TextRecognitionComposite extends Composite {
 			modelsBtn.setParent(SWTUtil.dummyShell);
 		}
 
+		if (showTrainBtnLegacy) {
+			trainBtnLegacy.setParent(this);
+			runBtn.moveBelow(trainBtnLegacy);
+		} else {
+			trainBtnLegacy.setParent(SWTUtil.dummyShell);
+		}
+
 		if (showTrainBtn) {
 			trainBtn.setParent(this);
-//			runBtn.moveBelow(trainBtn);
 			runBtn.moveBelow(trainBtn);
-			//trainBtn.moveAbove(runBtn);
 		} else {
 			trainBtn.setParent(SWTUtil.dummyShell);
 		}
-		
+
 
 		this.layout(true, true);
 		this.pack();
