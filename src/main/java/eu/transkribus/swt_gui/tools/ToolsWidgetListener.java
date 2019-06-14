@@ -38,6 +38,8 @@ import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
+import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
+import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog.P2PaLARecogConf;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
@@ -265,26 +267,57 @@ public class ToolsWidgetListener implements SelectionListener {
 				}
 			}
 			else if (s == tw.p2palaBtn) {
-				String jobImpl = JobImpl.P2PaLAJob.toString();
-				TrpP2PaLAModel model = tw.getSelectedP2PaLAModel();
-				if (model == null) {
-					DialogUtil.showErrorMessageBox(tw.getShell(), "No model selected", "Please select a P2PaLA model");
-					return;
+				P2PaLAConfDialog diag = new P2PaLAConfDialog(tw.getShell(), Storage.getInstance().getP2PaLAModels());
+				if (diag.open()==IDialogConstants.OK_ID) {
+					P2PaLARecogConf conf = diag.getConf();
+					if (conf != null) {
+						String jobImpl = JobImpl.P2PaLAJob.toString();
+						TrpP2PaLAModel model = conf.model;
+						if (model == null) {
+							DialogUtil.showErrorMessageBox(tw.getShell(), "No model selected", "Please select a P2PaLA model");
+							return;
+						}
+						logger.debug("Selected P2PaLA model: "+model);
+						ParameterMap pm = new ParameterMap();
+						pm.addIntParam(JobConst.PROP_MODEL_ID, model.getId());
+						pm.addParameter(JobConst.PROP_MODELNAME, model.getName());
+						
+						if (!conf.currentTranscript) {
+							logger.debug("p2palaBtn on pages: " + tw.otherToolsPagesSelector.getPagesStr());
+							jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(conf.pagesStr,
+									true, true, false, false, false, jobImpl, pm);
+						} else {
+							logger.debug("p2palaBtn on current transcript");
+//							List<String> rids = getSelectedRegionIds();
+							jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, pm);
+						}
+					}
+					else {
+						DialogUtil.showErrorMessageBox(tw.getShell(), "No configuration", "Please select a P2PaLA model");
+						return;
+					}
 				}
-				logger.debug("Selected P2PaLA model: "+model);
-				ParameterMap pm = new ParameterMap();
-				pm.addIntParam(JobConst.PROP_MODEL_ID, model.getId());
-				pm.addParameter(JobConst.PROP_MODELNAME, model.getName());
-				
-				if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
-					logger.debug("p2palaBtn on pages: " + tw.otherToolsPagesSelector.getPagesStr());
-					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
-							true, true, false, false, false, jobImpl, pm);
-				} else {
-					logger.debug("p2palaBtn on current transcript");
-//					List<String> rids = getSelectedRegionIds();
-					jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, pm);
-				}
+				//// -------------- old code:
+//				String jobImpl = JobImpl.P2PaLAJob.toString();
+//				TrpP2PaLAModel model = tw.getSelectedP2PaLAModel();
+//				if (model == null) {
+//					DialogUtil.showErrorMessageBox(tw.getShell(), "No model selected", "Please select a P2PaLA model");
+//					return;
+//				}
+//				logger.debug("Selected P2PaLA model: "+model);
+//				ParameterMap pm = new ParameterMap();
+//				pm.addIntParam(JobConst.PROP_MODEL_ID, model.getId());
+//				pm.addParameter(JobConst.PROP_MODELNAME, model.getName());
+//				
+//				if (!tw.otherToolsPagesSelector.isCurrentTranscript()) {
+//					logger.debug("p2palaBtn on pages: " + tw.otherToolsPagesSelector.getPagesStr());
+//					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.otherToolsPagesSelector.getPagesStr(),
+//							true, true, false, false, false, jobImpl, pm);
+//				} else {
+//					logger.debug("p2palaBtn on current transcript");
+////					List<String> rids = getSelectedRegionIds();
+//					jobIds = store.analyzeLayoutOnCurrentTranscript(null, true, true, false, false, false, jobImpl, pm);
+//				}
 			}
 			else if (s == tw.t2iBtn) {
 				Text2ImageConf conf = (Text2ImageConf) tw.t2iBtn.getData();

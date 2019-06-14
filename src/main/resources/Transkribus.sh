@@ -5,7 +5,7 @@ echoerr() { echo "$@" 1>&2; }
 isValidJava() {
 	echo "Checking java version of: "$1
 	if [[ "$1" ]]; then
-		function version { echo "$@" | gawk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }';}
+		function version { echo "$@" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }';}
 
 		first_version=$("$1" -version 2>&1 | awk -F '"' '/version/ {print $2}')
 		second_version="1.7"
