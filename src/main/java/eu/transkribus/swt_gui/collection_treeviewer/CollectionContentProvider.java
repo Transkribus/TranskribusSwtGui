@@ -65,6 +65,7 @@ public class CollectionContentProvider extends ACollectionBoundStructuredContent
 	
 	public TrpPage[] getChildren(TrpDocMetadata docMd) {
 		try {
+			logger.debug("Fetching pages for docId = {}", docMd.getDocId());
 			TrpDoc doc = store.getRemoteDoc(super.getCollId(), docMd.getDocId(), -1);
 			return doc.getPages().toArray(new TrpPage[doc.getPages().size()]);
 		} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
