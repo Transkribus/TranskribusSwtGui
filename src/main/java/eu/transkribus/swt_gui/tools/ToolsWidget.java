@@ -12,6 +12,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
@@ -437,9 +438,6 @@ public class ToolsWidget extends Composite {
 		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		c.setLayout(new GridLayout(1, true));
 		
-		otherToolsPagesSelector = new CurrentTranscriptOrCurrentDocPagesSelector(c, SWT.NONE, true,true);
-		otherToolsPagesSelector.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
 		Composite p2palaContainer = new Composite(c, 0);
 		p2palaContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 		p2palaContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
@@ -459,12 +457,19 @@ public class ToolsWidget extends Composite {
 		t2iBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		t2iBtn.setData(new Text2ImageConf());
 		
-		polygon2baselinesBtn = new Button(c, SWT.PUSH);
+		Group otherOtherToolsGroup = new Group(c, 0);
+		otherOtherToolsGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
+		otherOtherToolsGroup.setLayout(new GridLayout(1, true));
+		
+		otherToolsPagesSelector = new CurrentTranscriptOrCurrentDocPagesSelector(otherOtherToolsGroup, SWT.NONE, true,true);
+		otherToolsPagesSelector.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
+		
+		polygon2baselinesBtn = new Button(otherOtherToolsGroup, SWT.PUSH);
 		polygon2baselinesBtn.setText("Add Baselines to Polygons");
 		polygon2baselinesBtn.setToolTipText("Creates baselines for all surrounding polygons - warning: existing baselines will be lost (text is retained however!)");
 		polygon2baselinesBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		baseline2PolygonBtn = new Button(c, SWT.PUSH);
+		baseline2PolygonBtn = new Button(otherOtherToolsGroup, SWT.PUSH);
 		baseline2PolygonBtn.setText("Add Polygons to Baselines");
 		baseline2PolygonBtn.setToolTipText("Creates polygons for all baselines - warning: existing polygons will be lost (text is retained however!)");
 		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
