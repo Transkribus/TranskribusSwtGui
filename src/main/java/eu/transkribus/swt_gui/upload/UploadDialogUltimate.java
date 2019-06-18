@@ -157,9 +157,11 @@ public class UploadDialogUltimate extends Dialog {
 		metsUrlButton.setText("Upload via URL of DFG Viewer METS");
 		metsUrlButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		
+		if (false) {
 		iiifUrlButton = new Button(container, SWT.RADIO);
 		iiifUrlButton.setText("Upload via URL of IIIF manifest");
 		iiifUrlButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+		}
 		
 		pdfButton = new Button(container, SWT.RADIO);
 		pdfButton.setText("Extract and upload images from pdf");
@@ -403,7 +405,7 @@ public class UploadDialogUltimate extends Dialog {
 			iiifUrlGroup.setParent(SWTUtil.dummyShell);
 			singleGroup.setParent(SWTUtil.dummyShell);
 			metsUrlGroup.setParent(SWTUtil.dummyShell);
-		} else if (iiifUrlButton.getSelection()) {
+		} else if (iiifUrlButton!=null && iiifUrlButton.getSelection()) {
 			add = iiifUrlGroup;
 			singleGroup.setParent(SWTUtil.dummyShell);
 			ftpGroup.setParent(SWTUtil.dummyShell);
@@ -456,11 +458,13 @@ public class UploadDialogUltimate extends Dialog {
 			}
 		});
 		
-		iiifUrlButton.addSelectionListener(new SelectionAdapter() {
-			@Override public void widgetSelected(SelectionEvent e) {
-				updateGroupVisibility();
-			}
-		});
+		if (iiifUrlButton!=null) {
+			iiifUrlButton.addSelectionListener(new SelectionAdapter() {
+				@Override public void widgetSelected(SelectionEvent e) {
+					updateGroupVisibility();
+				}
+			});
+		}
 		
 //		store.addListener(new IStorageListener() {
 //			@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
@@ -687,7 +691,7 @@ public class UploadDialogUltimate extends Dialog {
 	private void saveInput() {
 		this.isSingleDocUpload = singleDocButton.getSelection();
 		this.isMetsUrlUpload = metsUrlButton.getSelection();
-		this.isIiifUpload = iiifUrlButton.getSelection();
+		this.isIiifUpload = iiifUrlButton!=null ? iiifUrlButton.getSelection() : false;
 		this.isPdfUpload = pdfButton.getSelection();
 		
 		this.selDocDirs = getSelectedDocDirs();
