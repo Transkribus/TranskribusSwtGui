@@ -631,7 +631,8 @@ CHANGES AND BUGFIXES
 	-> Automatic saving tool: Stores transcript of a page from time to time locally to the user directory. If user loads a remote page it checks if a local version exists and if it is newer then the version on the server - if so it can be stored to the server. Settings can be made via the 'Save button' drop down menu.
 	-> Option to change the reading order for all subsequent shapes as well, e.g. ro '35' changes to '3', afterwards '36' to '4', '37' to '5', '38' to '6' till the end of the shape list with the same parent.
 	
-1.6.1:
+1.7.0:
+	-> several bugfixes
 	-> P2PaLA recognition functionality for pre-trained models under ToolsWidget->Other Tools
 	-> fix image exif orientation bug for MacOS, see bug TranskribusSwtGui#276
 	-> simplified Text2Image tool (without training step) integrated in ToolsWidget->Other Tools 
