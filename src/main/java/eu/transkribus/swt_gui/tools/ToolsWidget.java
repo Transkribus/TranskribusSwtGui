@@ -184,12 +184,15 @@ public class ToolsWidget extends Composite {
 		sc.setContent(container);
 	    sc.setExpandHorizontal(true);
 	    sc.setExpandVertical(true);
-	    sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));		
+//	    sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+//	    sc.setMinSize(container.computeSize(0, SWT.DEFAULT));
+	    layoutContainer();
 	}
 	
 	private void layoutContainer() {
 		container.layout();
-	    sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+	    sc.setMinSize(0, container.computeSize(SWT.DEFAULT, SWT.DEFAULT).y-1);
+//	    sc.setMinSize(container.computeSize(0, SWT.DEFAULT));
 	}
 	
 	public String getSelectedLaMethod() {
