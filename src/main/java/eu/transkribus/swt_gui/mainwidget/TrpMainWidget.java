@@ -3430,7 +3430,6 @@ public class TrpMainWidget {
 			storage.reloadDocWithAllTranscripts();
 			
 			final CommonExportDialog exportDiag = new CommonExportDialog(getShell(), SWT.NONE, lastExportFolder, adjTitle, storage.getDoc().getPages());
-			
 			dir = exportDiag.open();
 			if (dir == null){
 				return;
@@ -3441,9 +3440,10 @@ public class TrpMainWidget {
 			 * -> reload the doc with all available transcripts to allow export of specific versions
 			 * param -1
 			 */
-			if (!exportDiag.getVersionStatus().contains("Latest")){
-				storage.reloadDocWithAllTranscripts();
-			}
+			// already done before...
+//			if (!exportDiag.getVersionStatus().contains("Latest")){
+//				storage.reloadDocWithAllTranscripts();
+//			}
 			
 			String pages = exportDiag.getPagesStr();
 			Set<Integer> pageIndices = exportDiag.getPageIndices();
