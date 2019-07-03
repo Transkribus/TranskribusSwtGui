@@ -638,3 +638,7 @@ CHANGES AND BUGFIXES
 	-> simplified Text2Image tool (without training step) integrated in ToolsWidget->Other Tools 
 	-> add feature to move pages of document by image filename list; start either via Main Menu->Document or the Document-Manager context menu on a loaded document
 	
+1.7.1:
+	-> fix scrollbar layout issue in tools widget
+	-> fix broken export for local documents
+	

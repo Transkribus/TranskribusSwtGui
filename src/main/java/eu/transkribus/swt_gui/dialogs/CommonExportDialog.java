@@ -14,10 +14,14 @@ import org.dea.fimgstoreclient.beans.ImgType;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Listener;
+import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -64,7 +68,10 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.DocLoadEvent;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener.PageLoadEvent;
 import eu.transkribus.swt_gui.util.CurrentDocPagesSelector;
 import eu.transkribus.swt_gui.util.TagsSelector;
 
@@ -204,66 +211,7 @@ public class CommonExportDialog extends Dialog {
 		setSelectedTagsList(usedTagNames);
 	}
 	
-	/**
-	 * Create contents of the dialog.
-	 */
-	private void createContents() {
-		shell = new Shell(getParent(), getStyle() | SWT.RESIZE);
-		
-		shell.setSize(1000, 800);
-		shell.setText("Export document");
-//		shell.setLayout(new GridLayout(1, false));
-		shell.setLayout(new FillLayout(SWT.VERTICAL));
-		
-		SashForm sf = new SashForm(shell, SWT.VERTICAL);
-		sf.setLayout(new GridLayout(1, false));		
-		
-//	    ScrolledComposite sc = new ScrolledComposite(sf, SWT.H_SCROLL
-//		        | SWT.V_SCROLL);
-	    
-		SashForm sf1 = new SashForm(sf, SWT.VERTICAL);
-	    sf1.setLayout(new GridLayout(1, false));
-
-//	    Composite mainComp = new Composite(sc, SWT.NONE);
-//	    mainComp.setLayout(new GridLayout(1,false));
-	    	    
-	    exportTypeTabFolder = new CTabFolder(sf1, SWT.NONE);
-	    exportTypeTabFolder.setLayout(new GridLayout(1,false));
-	    exportTypeTabFolder.setSelectionBackground(new Color[]{shell.getDisplay().getSystemColor(SWT.COLOR_TITLE_INACTIVE_BACKGROUND_GRADIENT), shell.getDisplay().getSystemColor(SWT.COLOR_TITLE_BACKGROUND)}, new int[]{100}, true);
-	    exportTypeTabFolder.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				boolean isServerTabSelected = exportTypeTabFolder.getSelection() == serverExportItem;
-				//logger.debug("setting server type export: "+isServerTabSelected);
-				setDoServerExport(isServerTabSelected);
-
-//				if (!isDoServerExport() && btnTei.getSelection()){
-//					btnTei.setSelection(false); 
-//				}
-				//btnTei.setEnabled(isDoServerExport());
-				tabItemTEI.setControl(getTabThreeControl(tabFolder));
-				recursiveSetEnabled(teiComposite, isTeiExport());
-				
-			}
-		});
-	    
-	    serverExportItem = new CTabItem(exportTypeTabFolder, SWT.FILL);
-	    serverExportItem.setText("Server export");
-	    
-	    /*
-	     * set server export as default
-	     */
-	    exportTypeTabFolder.setSelection(serverExportItem);
-	    setDoServerExport(true);
-	    
-	    clientExportItem = new CTabItem(exportTypeTabFolder, SWT.FILL);
-	    clientExportItem.setText("Client export");
-		exportPathComp = new ExportPathComposite(exportTypeTabFolder, lastExportFolder, "File/Folder name: ", null, docName);
-		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-		clientExportItem.setControl(exportPathComp);
-		
-
-	    
+	private void createServerExportContent() {
 	    Composite serverExportComposite = new Composite(exportTypeTabFolder, 0);
 	    serverExportComposite.setLayout(new GridLayout(1, false));
 	    
@@ -331,6 +279,86 @@ public class CommonExportDialog extends Dialog {
 	    
 	    serverExportItem.setControl(serverExportComposite);
 	    updateServerExportLabel();
+	}
+	
+	private void onDocLoad() {
+		doServerExport = !Storage.getInstance().isLocalDoc();
+	    exportTypeTabFolder.setSelection(doServerExport ? serverExportItem : clientExportItem);
+	    setDoServerExport(doServerExport);
+	    updateServerExportLabel();
+	}
+	
+	/**
+	 * Create contents of the dialog.
+	 */
+	private void createContents() {
+		shell = new Shell(getParent(), getStyle() | SWT.RESIZE);
+		
+		shell.setSize(1000, 800);
+		shell.setText("Export document");
+//		shell.setLayout(new GridLayout(1, false));
+		shell.setLayout(new FillLayout(SWT.VERTICAL));
+		
+		SashForm sf = new SashForm(shell, SWT.VERTICAL);
+		sf.setLayout(new GridLayout(1, false));		
+		
+//	    ScrolledComposite sc = new ScrolledComposite(sf, SWT.H_SCROLL
+//		        | SWT.V_SCROLL);
+	    
+		SashForm sf1 = new SashForm(sf, SWT.VERTICAL);
+	    sf1.setLayout(new GridLayout(1, false));
+	    
+//	    Composite mainComp = new Composite(sc, SWT.NONE);
+//	    mainComp.setLayout(new GridLayout(1,false));
+	    	    
+	    exportTypeTabFolder = new CTabFolder(sf1, SWT.NONE);
+	    exportTypeTabFolder.setLayout(new GridLayout(1,false));
+	    exportTypeTabFolder.setSelectionBackground(new Color[]{shell.getDisplay().getSystemColor(SWT.COLOR_TITLE_INACTIVE_BACKGROUND_GRADIENT), shell.getDisplay().getSystemColor(SWT.COLOR_TITLE_BACKGROUND)}, new int[]{100}, true);
+	    exportTypeTabFolder.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (Storage.getInstance().isLocalDoc()) { // prevent switching to server-type export for local docs
+					exportTypeTabFolder.setSelection(clientExportItem);
+					e.doit = false;
+					return;
+				}
+				
+				boolean isServerTabSelected = exportTypeTabFolder.getSelection() == serverExportItem;
+				//logger.debug("setting server type export: "+isServerTabSelected);
+				setDoServerExport(isServerTabSelected);
+
+//				if (!isDoServerExport() && btnTei.getSelection()){
+//					btnTei.setSelection(false); 
+//				}
+				//btnTei.setEnabled(isDoServerExport());
+				tabItemTEI.setControl(getTabThreeControl(tabFolder));
+				recursiveSetEnabled(teiComposite, isTeiExport());
+			}
+		});
+	    
+	    IStorageListener storageListener = new IStorageListener() {
+			public void handleDocLoadEvent(DocLoadEvent dle) {
+				onDocLoad();
+			}
+		};
+		Storage.getInstance().addListener(storageListener);
+		shell.addDisposeListener(e -> {
+			if (Storage.getInstance()!=null) {
+				Storage.getInstance().removeListener(storageListener);	
+			}
+		});
+	    
+	    serverExportItem = new CTabItem(exportTypeTabFolder, SWT.FILL);
+	    serverExportItem.setText("Server export");
+	    
+	    clientExportItem = new CTabItem(exportTypeTabFolder, SWT.FILL);
+	    clientExportItem.setText("Client export");
+		exportPathComp = new ExportPathComposite(exportTypeTabFolder, lastExportFolder, "File/Folder name: ", null, docName);
+		exportPathComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		clientExportItem.setControl(exportPathComp);
+	    
+	    createServerExportContent();
+	    onDocLoad();
 	    
 //	    CTabFolder mainComp = new CTabFolder(sc, SWT.NONE);
 //	    mainComp.setLayout(new GridLayout(1,false));
