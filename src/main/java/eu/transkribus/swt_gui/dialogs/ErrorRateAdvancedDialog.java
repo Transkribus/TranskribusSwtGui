@@ -196,7 +196,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		labelHyp = new Label(comp,SWT.NONE );
 		labelHyp.setText("Select hypothese by toolname:");
 		labelHyp.setVisible(true);
-		comboHyp = new Combo(comp, SWT.DROP_DOWN);
+		comboHyp = new Combo(comp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		comboHyp.setVisible(true);
 		try {
 			List<TrpPage> pages = store.getDoc().getPages();
@@ -208,7 +208,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
 							comboHyp.add(transcript.getToolName());
 						}
-						comboHyp.select(0);
 					}
 					
 				}
@@ -216,7 +215,9 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			}
 		} catch (ServerErrorException | IllegalArgumentException e) {
 			e.printStackTrace();
-		}
+		}	
+		comboHyp.select(0);
+		params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
 		compare = new Button(comp,SWT.PUSH);
 		compare.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 4, 4));
 		compare.setText("Compare");
@@ -263,6 +264,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 //								DialogUtil.showErrorMessageBox(getShell(), "Error", "The GT for page "+pageIndex+ " can not be found");
 //							}
 							for(TrpTranscriptMetadata transcript : transcripts){
+								logger.debug(""+comboHyp.getSelectionIndex());
 								if(transGT != null && transcript.getToolName() != null) {
 									if(comboHyp.getItem(comboHyp.getSelectionIndex()) != null &&  transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
 										newPageIndices.add(pageIndex);
@@ -291,7 +293,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 								startError(store.getDocId(), newPageString);
 							}
 						}
-						else if(newPageString == "") {
+						else if("".equals(newPageString)) {
 							DialogUtil.showErrorMessageBox(getShell(), "Error", "Selected pages have no GT version or hypothesis, please check the versions");
 						
 						}else {
