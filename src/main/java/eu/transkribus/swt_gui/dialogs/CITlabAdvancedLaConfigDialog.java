@@ -387,12 +387,11 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			final List<LaModel> nets = new ArrayList<>(1);
 			LaModel konzilsProt = new LaModel(konzilsProtNetLabel, konzilsProtNetName);
 			LaModel postcards = new LaModel(postcardNetLabel, postcardNetName);
-			@SuppressWarnings("unused")
-			//old newspaper net is not shown in the combo
 			LaModel newspaperV1 = new LaModel(newspaperV1NetLabel, newspaperV1NetName);
 			LaModel newspaperV2 = new LaModel(newspaperV2NetLabel, newspaperV2NetName);
 			nets.add(konzilsProt);
 			nets.add(postcards);
+			nets.add(newspaperV1);
 			nets.add(newspaperV2);
 			return nets;
 		}
