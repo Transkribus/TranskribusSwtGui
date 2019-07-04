@@ -36,6 +36,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
@@ -227,14 +228,23 @@ public class ToolsWidgetListener implements SelectionListener {
 			}
 
 			if (s == tw.startLaBtn) {
-				
+				logger.debug("PARAMETERS = " + tw.laComp.getParameters());
 				String pageStr = (!tw.laComp.isCurrentTranscript() ? tw.laComp.getPages() : Integer.toString(store.getPage().getPageNr()));
 				String msg = "Do you really want to start the LA for page(s) " + pageStr + "  ?";
+				
+				String configInfoStr = null;
+				//get information on config for configurable methods
+				if(JobImpl.CITlabAdvancedLaJob.equals(tw.laComp.getJobImpl())) {
+					configInfoStr = new CITlabAdvancedLaConfigDialog(mw.getShell(), tw.laComp.getParameters()).getConfigInfoString();
+				}
+				
+				if(configInfoStr != null) {
+					msg += "\n\nSettings:\n" + configInfoStr;
+				}
+				
 				if (DialogUtil.showYesNoDialog(mw.getShell(), "Layout recognition", msg)!=SWT.YES) {
 					return;
 				}
-				
-				logger.debug("PARAMETERS = "+tw.laComp.getParameters());
 
 				if (!tw.laComp.isCurrentTranscript()) {
 					logger.debug("running la on pages: " + tw.laComp.getPages());

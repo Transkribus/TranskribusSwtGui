@@ -637,4 +637,9 @@ CHANGES AND BUGFIXES
 	-> fix image exif orientation bug for MacOS, see bug TranskribusSwtGui#276
 	-> simplified Text2Image tool (without training step) integrated in ToolsWidget->Other Tools 
 	-> add feature to move pages of document by image filename list; start either via Main Menu->Document or the Document-Manager context menu on a loaded document
+1.7.1:
+	-> fix scrollbar layout issue in tools widget
+	-> fix broken export for local documents
+	-> CITlab HTR training obeys Unicode 12.1.0 character specification instead of Unicode 6.2
+	-> usability: show configuration before running CITlabAdvanced layout analysis
 	

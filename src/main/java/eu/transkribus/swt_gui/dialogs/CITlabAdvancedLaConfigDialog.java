@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.dialogs;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -29,8 +30,41 @@ import eu.transkribus.swt.util.Images;
 
 public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 
-	private final static String PRESET_NET_NAME = "Preset";
-	private final static String HELP_WIKI_PAGE = "https://transkribus.eu/wiki/index.php/Layout_Analysis_Help";
+	final static String PRESET_NET_NAME = "Preset";
+	final static String HELP_WIKI_PAGE = "https://transkribus.eu/wiki/index.php/Layout_Analysis_Help";
+	
+	final static String NEURAL_NET_LBL = "Neural Net:";
+	
+	/**
+	 * @deprecated moved to {@link LaCITlabUtils}
+	 */
+	final static String DEFAULT_LBL = "Default";
+	
+	/**
+	 * @deprecated moved to {@link LaCITlabUtils}
+	 */
+	final static String ROT_SCHEME_LBL = "Text orientation";	
+	/**
+	 * @deprecated moved to {@link LaCITlabUtils}
+	 */
+	final static String ROT_HET_LBL = "Heterogeneous";	
+	/**
+	 * @deprecated moved to {@link LaCITlabUtils}
+	 */
+	final static String ROT_HOM_LBL = "Homogeneous";	
+	/**
+	 * @deprecated moved to {@link LaCITlabUtils}
+	 */
+	
+	final static String SEP_SCHEME_LBL = "Use separators";	
+	/**
+	 * @deprecated moved to {@link LaCITlabUtils}
+	 */
+	final static String SEP_NEVER_LBL = "Never";	
+	/**
+	 * @deprecated moved to {@link LaCITlabUtils}
+	 */
+	final static String SEP_ALWAYS_LBL = "Always";	
 	
 	private Combo neuralNetCombo;
 	private Button rotSchemeDef, rotSchemeHom, rotSchemeHet, sepSchemeDef, sepSchemeAlways, sepSchemeNever;
@@ -53,7 +87,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		GridData gd = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
 		
 		Group netGroup = new Group(cont, SWT.NONE);
-		netGroup.setText("Neural Net:");
+		netGroup.setText(NEURAL_NET_LBL);
 		netGroup.setLayout(new GridLayout(1, false));
 		netGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 2));
 		
@@ -69,15 +103,15 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		rotGroup = new Group(settingsGroup, SWT.NONE);
 		rotGroup.setLayout(new GridLayout(3, false));
 		rotGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		rotGroup.setText("Text orientation");
+		rotGroup.setText(ROT_SCHEME_LBL);
 		rotSchemeDef = new Button(rotGroup, SWT.RADIO);
-		rotSchemeDef.setText("Default");
+		rotSchemeDef.setText(DEFAULT_LBL);
 		rotSchemeDef.setToolTipText("Assume text is horizontal");
 		rotSchemeHet = new Button(rotGroup, SWT.RADIO);
-		rotSchemeHet.setText("Heterogeneous");
+		rotSchemeHet.setText(ROT_HET_LBL);
 		rotSchemeHet.setToolTipText("Mixture of text orientations");
 		rotSchemeHom = new Button(rotGroup, SWT.RADIO);
-		rotSchemeHom.setText("Homogeneous");
+		rotSchemeHom.setText(ROT_HOM_LBL);
 		rotSchemeHom.setToolTipText("Entire text is equally oriented (0°, 90°, 180° or 270°)");
 		
 //		independentSettingsGrp = new Group(cont, SWT.NONE);
@@ -85,19 +119,18 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 //		independentSettingsGrp.setLayout(new GridLayout(1, false));
 //		independentSettingsGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 2));
 		
-		
 		sepGroup = new Group(settingsGroup, SWT.NONE);
 		sepGroup.setLayout(new GridLayout(3, false));
 		sepGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		sepGroup.setText("Use separators");
+		sepGroup.setText(SEP_SCHEME_LBL);
 		sepSchemeDef = new Button(sepGroup, SWT.RADIO);
-		sepSchemeDef.setText("Default");
+		sepSchemeDef.setText(DEFAULT_LBL);
 		sepSchemeDef.setToolTipText("Only use separators if no regions are given");
 		sepSchemeNever = new Button(sepGroup, SWT.RADIO);
-		sepSchemeNever.setText("Never");
+		sepSchemeNever.setText(SEP_NEVER_LBL);
 		sepSchemeNever.setToolTipText("Never use separators");
 		sepSchemeAlways = new Button(sepGroup, SWT.RADIO);
-		sepSchemeAlways.setText("Always");
+		sepSchemeAlways.setText(SEP_ALWAYS_LBL);
 		sepSchemeAlways.setToolTipText("Always use separators");
 		
 		loadData();
@@ -124,8 +157,10 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		//TODO get from Storage
 		modelList = LaDataProvider.getModels();
 		modelList.add(0, new LaModel(PRESET_NET_NAME, null));
-		modelList.stream().forEach(m -> neuralNetCombo.add(m.getLabel()));		
-		neuralNetCombo.select(0);
+		if(neuralNetCombo != null) {
+			modelList.stream().forEach(m -> neuralNetCombo.add(m.getLabel()));
+			neuralNetCombo.select(0);
+		}
 	}
 	
 	@Override
@@ -163,17 +198,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 
 	@Override
 	protected void applyParameterMapToDialog() {
-		String netFilename = parameters.getParameterValue(JobConst.PROP_MODELNAME);
-		//FIXME map internal filename to label here for now. Should be solved with TableViewer
-		LaModel model = null;
-		if(netFilename != null) {
-			for(LaModel m : modelList) {
-				if(netFilename.equals(m.getFilename())) {
-					model = m;
-					break;
-				}
-			}
-		}
+		LaModel model = resolveSelectedNetFromParameters();
 		setSelectedNet(model);
 				
 		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
@@ -196,6 +221,39 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		}
 		
 		updateGui();
+	}
+	
+	@Override
+	public String getConfigInfoString() {
+		if(CollectionUtils.isEmpty(modelList)) {
+			loadData();
+		}
+		String infoStr = "";
+		LaModel model = resolveSelectedNetFromParameters();
+		infoStr += NEURAL_NET_LBL + " " + (model == null ? "Preset" : model.getLabel());
+		
+		infoStr +=  "\n" + ROT_SCHEME_LBL + ": ";
+		final String rotScheme = parameters.getParameterValue(LaCITlabUtils.ROT_SCHEME_KEY);
+		if(RotScheme.het.toString().equals(rotScheme)) {
+			infoStr += ROT_HET_LBL;
+		} else if (RotScheme.hom.toString().equals(rotScheme)){
+			infoStr += ROT_HOM_LBL;
+		} else {
+			//default
+			infoStr += DEFAULT_LBL;
+		}
+		infoStr += "\n" + SEP_SCHEME_LBL + ": ";
+		final String sepScheme = parameters.getParameterValue(LaCITlabUtils.SEP_SCHEME_KEY);
+		if(SepScheme.always.toString().equals(sepScheme)) {
+			infoStr += SEP_ALWAYS_LBL;
+		} else if (SepScheme.never.toString().equals(sepScheme)) {
+			infoStr += SEP_NEVER_LBL;
+		} else {
+			//default
+			infoStr += DEFAULT_LBL;
+		}
+		
+		return infoStr;
 	}
 
 	private void updateGui() {
@@ -225,6 +283,10 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			}
 		}
 	}
+	/**
+	 * Get selection from neuralNetCombo
+	 * @return the selected LaModel
+	 */
 	private LaModel getSelectedNet() {
 		final String label = neuralNetCombo.getText();
 		for(LaModel m : modelList) {
@@ -233,6 +295,25 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			}
 		}
 		return modelList.get(0);
+	}
+	
+	/**
+	 * Checks the current parameter map for the LA model's filename and finds it in the modelList
+	 * @return the resolved LaModel
+	 */
+	private LaModel resolveSelectedNetFromParameters() {
+		//FIXME map internal filename to label here for now. Should be solved with TableViewer
+		String netFilename = parameters.getParameterValue(JobConst.PROP_MODELNAME);
+		LaModel model = null;
+		if(netFilename != null) {
+			for(LaModel m : modelList) {
+				if(netFilename.equals(m.getFilename())) {
+					model = m;
+					break;
+				}
+			}
+		}
+		return model;
 	}
 	
 	@Override
@@ -283,7 +364,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 			}
 		});		
 	}
-	
+
 	/**
 	 * TODO Replace that with respective methods in Storage/TrpServerConn
 	 * 
@@ -296,22 +377,21 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 		protected final static String postcardNetLabel = "Postcards";
 		private final static String postcardNetName = "postcards_aru_c3.pb";
 		//old newspaper LA net
-		private final static String newspaperV1NetLabel = "Newspapers Old";
+		private final static String newspaperV1NetLabel = "Newspapers";
 		private final static String newspaperV1NetName = "LA_ara_news_aru_mix_90_ema.pb";
 		//new newspaper LA net
-		private final static String newspaperV2NetLabel = "Newspapers";
-		private final static String newspaperV2NetName = "LA_news_onb_att.pb";
+		private final static String newspaperV2NetLabel = "Newspapers (NewsEye)";
+		private final static String newspaperV2NetName = "LA_news_onb_att_newseye.pb";
 		private LaDataProvider() {}
 		public static List<LaModel> getModels() {
 			final List<LaModel> nets = new ArrayList<>(1);
 			LaModel konzilsProt = new LaModel(konzilsProtNetLabel, konzilsProtNetName);
 			LaModel postcards = new LaModel(postcardNetLabel, postcardNetName);
-			@SuppressWarnings("unused")
-			//old newspaper net is not shown in the combo
 			LaModel newspaperV1 = new LaModel(newspaperV1NetLabel, newspaperV1NetName);
 			LaModel newspaperV2 = new LaModel(newspaperV2NetLabel, newspaperV2NetName);
 			nets.add(konzilsProt);
 			nets.add(postcards);
+			nets.add(newspaperV1);
 			nets.add(newspaperV2);
 			return nets;
 		}

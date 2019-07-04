@@ -42,4 +42,6 @@ public abstract class ALaConfigDialog extends Dialog {
 	public ParameterMap getParameters() {
 		return parameters;
 	}
+
+	public abstract String getConfigInfoString();
 }
