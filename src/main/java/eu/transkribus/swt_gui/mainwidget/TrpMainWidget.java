@@ -141,6 +141,7 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
@@ -4542,6 +4543,14 @@ public class TrpMainWidget {
 	}
 
 	public void openSearchDialog() {
+//		SebisStopWatch.SW.start();
+		checkSession(true);
+//		SebisStopWatch.SW.stop(true);
+		if (!storage.isLoggedIn()) {
+			logger.debug("not logged in!");
+			return;
+		}
+		
 		if (searchDiag != null) {
 			if(searchDiag.getShell() != null ){
 
@@ -5152,6 +5161,9 @@ public class TrpMainWidget {
 		if(Storage.getInstance().getDoc() == null){
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "No document loaded.");
 			return;
+		}
+		if (!Storage.getInstance().isLoggedIn()) {
+			
 		}
 		
 		openSearchDialog();
@@ -6313,6 +6325,20 @@ public class TrpMainWidget {
 			onError("Error moving pages by image file list", e.getMessage(), e, true, false);
 		}
 		
+		
+	}
+	
+	public void checkSession(boolean showLoginDialogOnSessionExpiration) {
+		try {
+			if (storage.isLoggedIn()) {
+				storage.getConnection().checkSession();
+			}
+		} catch (SessionExpiredException e) {
+			storage.logout();
+			if (showLoginDialogOnSessionExpiration) {
+				loginDialog("Session Expired!");
+			}
+		}
 		
 	}
 
