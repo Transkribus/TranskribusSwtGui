@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.core.net.ssl.ConfigurableSSLServerSocketFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
@@ -353,6 +354,17 @@ public class ToolsWidgetListener implements SelectionListener {
 					pm.addBoolParam(JobConst.PROP_PERFORM_LAYOUT_ANALYSIS, conf.performLa);
 					pm.addBoolParam(JobConst.PROP_REMOVE_LINE_BREAKS, conf.removeLineBreaks);
 					pm.addDoubleParam(JobConst.PROP_THRESHOLD, conf.threshold);
+					
+					if (conf.skip_word!=null) {
+						pm.addDoubleParam(JobConst.PROP_T2I_SKIP_WORD, conf.skip_word);
+					}
+					if (conf.skip_bl!=null) {
+						pm.addDoubleParam(JobConst.PROP_T2I_SKIP_BASELINE, conf.skip_bl);
+					}
+					if (conf.jump_bl!=null) {
+						logger.debug("setting jump_bl = "+conf.jump_bl);
+						pm.addDoubleParam(JobConst.PROP_T2I_JUMP_BASELINE, conf.jump_bl);
+					}
 					if (conf.editStatus!=null) {
 						pm.addParameter(JobConst.PROP_EDIT_STATUS, conf.editStatus.getStr());
 					}
