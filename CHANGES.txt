@@ -644,3 +644,7 @@ CHANGES AND BUGFIXES
 	-> CITlab HTR training obeys Unicode 12.1.0 character specification instead of Unicode 6.2
 	-> usability: show configuration before running CITlabAdvanced layout analysis
 	
+1.7.2:
+	-> additional parameters for Text2Image
+	
+	
