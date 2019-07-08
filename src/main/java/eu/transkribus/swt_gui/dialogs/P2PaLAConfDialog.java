@@ -73,7 +73,7 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1000, 400);
+		return new Point(1000, 450);
 	}
 	
 	@Override
