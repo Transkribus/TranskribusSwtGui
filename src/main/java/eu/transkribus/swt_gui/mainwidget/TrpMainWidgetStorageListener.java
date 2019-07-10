@@ -54,9 +54,6 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 		}
 	}
 	
-	@Override public void handleCollectionsLoadEvent(CollectionsLoadEvent cle) {
-	}
-	
 	@Override public void handleUserDocListLoadEvent(UserDocListLoadEvent e) {
 		if (SWTUtil.isOpen(mw.strayDocsDialog)){
 			mw.strayDocsDialog.refreshDocList();
