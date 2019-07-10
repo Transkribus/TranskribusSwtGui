@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -325,7 +326,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					params.addParameter("ref", ref.getToolName());
 					params.addIntParam("pageNr", store.getPage().getPageNr());
 						try {
-							startError(store.getDocId(),""+store.getPage().getPageNr());				
+							startError(store.getDocId(),""+store.getPage().getPageNr());
 						} catch (ServerErrorException | IllegalArgumentException e1) {
 							e1.printStackTrace();
 						}
@@ -400,6 +401,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 		try {
 			store.getConnection().computeErrorRateWithJob(docID, pageString, params);
+			rl.resumePolling();
 		} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
 			logger.error(e.getMessage(), e);
 			DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessageToUser());
@@ -420,29 +422,42 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				resultTable.getTableViewer().setInput(errorList);
 			}
 		});
+		if(jobs.get(0).isFinished()) {
+			rl.pause();
+		}
 	}
 	
 	
 	private class ResultLoader extends Thread {
-		private final static int SLEEP = 3000;
+		private final static int SLEEP = 1000;
 		private boolean stopped = false;
+		private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
 		
 		@Override
 		public void run() {
-			logger.debug("Starting result polling.");
 			while(!stopped) {
-				List<TrpJobStatus> jobs;
-				try {
-					jobs = this.getErrorJobs();
-					updateResultTable(jobs);
-				} catch (ServerErrorException | ClientErrorException
-						| IllegalArgumentException e) {
-					logger.error("Could not update ResultTable!", e);
-				}
-				try {
-					Thread.sleep(SLEEP);
-				} catch (InterruptedException e) {
-					logger.error("Sleep interrupted.", e);
+				while (!Thread.currentThread().isInterrupted()) {
+					List<TrpJobStatus> jobs;
+					try {
+						jobs = this.getErrorJobs();
+						logger.debug("Polling jobs started");
+						updateResultTable(jobs);		
+					} catch (ServerErrorException | ClientErrorException
+							| IllegalArgumentException e) {
+						logger.error("Could not update ResultTable!", e);
+					}
+				    if (pauseFlag.get()) {
+				       synchronized (pauseFlag) {   	  
+				          while (pauseFlag.get()) {
+				             try {	 
+				                pauseFlag.wait();
+				             } catch (InterruptedException e) {
+				                Thread.currentThread().interrupt();
+				                return;
+				             }
+				          }
+				       }
+				    }
 				}
 			}
 		}
@@ -463,6 +478,20 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			logger.debug("Stopping result polling.");
 			stopped = true;
 		}
+		
+		public void pause() {
+			   pauseFlag.set(true);
+		}
+		
+		public void resumePolling() {
+			   pauseFlag.set(false);
+			   synchronized (pauseFlag) {
+			       pauseFlag.notify();
+			   }
+		}
+		
+		
+		
 	}
 	
 
