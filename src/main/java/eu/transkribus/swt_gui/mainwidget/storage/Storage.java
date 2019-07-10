@@ -248,21 +248,12 @@ public class Storage {
 	private Storage() {
 		initImCache();
 		initTranscriptCache();
-		addInternalListener();
 		readTagSpecsFromLocalSettings();
 		readStructTagSpecsFromLocalSettings();
 		
 		// init some dummy vk shortcuts:
 //		setVirtualKeyShortCut("1", Pair.of(1, "hello"));
 //		setVirtualKeyShortCut("2", Pair.of(2, "-"));
-	}
-	
-	private void addInternalListener() {
-		addListener(new IStorageListener() {
-			@Override public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
-				//reloadUserDocs();
-			}
-		});
 	}
 	
 	public TrpPageType getOrBuildPage(TrpTranscriptMetadata md, boolean keepAlways) throws Exception {
@@ -2464,7 +2455,7 @@ public class Storage {
 	 * Retrieve HTR models linked to the current collection from the server.
 	 */
 	public void reloadHtrs() {
-		logger.debug("Reloading HTRs (call #" + ++reloadHtrListCounter + ": colId = " + this.getCollId());
+		logger.debug("Reloading HTRs (call #{}: colId = {})", ++reloadHtrListCounter, this.getCollId());
 		try {
 			checkConnection(true);
 			htrList = conn.getHtrs(this.getCollId(), null);
