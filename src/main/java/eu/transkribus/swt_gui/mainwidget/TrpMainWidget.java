@@ -141,6 +141,7 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
+import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
@@ -3504,7 +3505,6 @@ public class TrpMainWidget {
 			storage.reloadDocWithAllTranscripts();
 			
 			final CommonExportDialog exportDiag = new CommonExportDialog(getShell(), SWT.NONE, lastExportFolder, adjTitle, storage.getDoc().getPages());
-			
 			dir = exportDiag.open();
 			if (dir == null){
 				return;
@@ -3515,9 +3515,10 @@ public class TrpMainWidget {
 			 * -> reload the doc with all available transcripts to allow export of specific versions
 			 * param -1
 			 */
-			if (!exportDiag.getVersionStatus().contains("Latest")){
-				storage.reloadDocWithAllTranscripts();
-			}
+			// already done before...
+//			if (!exportDiag.getVersionStatus().contains("Latest")){
+//				storage.reloadDocWithAllTranscripts();
+//			}
 			
 			String pages = exportDiag.getPagesStr();
 			Set<Integer> pageIndices = exportDiag.getPageIndices();
@@ -4616,6 +4617,14 @@ public class TrpMainWidget {
 	}
 
 	public void openSearchDialog() {
+//		SebisStopWatch.SW.start();
+		checkSession(true);
+//		SebisStopWatch.SW.stop(true);
+		if (!storage.isLoggedIn()) {
+			logger.debug("not logged in!");
+			return;
+		}
+		
 		if (searchDiag != null) {
 			if(searchDiag.getShell() != null ){
 
@@ -5226,6 +5235,9 @@ public class TrpMainWidget {
 		if(Storage.getInstance().getDoc() == null){
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", "No document loaded.");
 			return;
+		}
+		if (!Storage.getInstance().isLoggedIn()) {
+			
 		}
 		
 		openSearchDialog();
@@ -6387,6 +6399,20 @@ public class TrpMainWidget {
 			onError("Error moving pages by image file list", e.getMessage(), e, true, false);
 		}
 		
+		
+	}
+	
+	public void checkSession(boolean showLoginDialogOnSessionExpiration) {
+		try {
+			if (storage.isLoggedIn()) {
+				storage.getConnection().checkSession();
+			}
+		} catch (SessionExpiredException e) {
+			storage.logout();
+			if (showLoginDialogOnSessionExpiration) {
+				loginDialog("Session Expired!");
+			}
+		}
 		
 	}
 

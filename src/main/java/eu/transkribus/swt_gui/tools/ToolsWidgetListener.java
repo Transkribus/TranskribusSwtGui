@@ -34,6 +34,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.ThumbnailManager;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
+import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
@@ -42,8 +43,8 @@ import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialogLegacy;
-import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -267,14 +268,23 @@ public class ToolsWidgetListener implements SelectionListener {
 			}
 
 			if (s == tw.startLaBtn) {
-				
+				logger.debug("PARAMETERS = " + tw.laComp.getParameters());
 				String pageStr = (!tw.laComp.isCurrentTranscript() ? tw.laComp.getPages() : Integer.toString(store.getPage().getPageNr()));
 				String msg = "Do you really want to start the LA for page(s) " + pageStr + "  ?";
+				
+				String configInfoStr = null;
+				//get information on config for configurable methods
+				if(JobImpl.CITlabAdvancedLaJob.equals(tw.laComp.getJobImpl())) {
+					configInfoStr = new CITlabAdvancedLaConfigDialog(mw.getShell(), tw.laComp.getParameters()).getConfigInfoString();
+				}
+				
+				if(configInfoStr != null) {
+					msg += "\n\nSettings:\n" + configInfoStr;
+				}
+				
 				if (DialogUtil.showYesNoDialog(mw.getShell(), "Layout recognition", msg)!=SWT.YES) {
 					return;
 				}
-				
-				logger.debug("PARAMETERS = "+tw.laComp.getParameters());
 
 				if (!tw.laComp.isCurrentTranscript()) {
 					logger.debug("running la on pages: " + tw.laComp.getPages());
@@ -383,6 +393,17 @@ public class ToolsWidgetListener implements SelectionListener {
 					pm.addBoolParam(JobConst.PROP_PERFORM_LAYOUT_ANALYSIS, conf.performLa);
 					pm.addBoolParam(JobConst.PROP_REMOVE_LINE_BREAKS, conf.removeLineBreaks);
 					pm.addDoubleParam(JobConst.PROP_THRESHOLD, conf.threshold);
+					
+					if (conf.skip_word!=null) {
+						pm.addDoubleParam(JobConst.PROP_T2I_SKIP_WORD, conf.skip_word);
+					}
+					if (conf.skip_bl!=null) {
+						pm.addDoubleParam(JobConst.PROP_T2I_SKIP_BASELINE, conf.skip_bl);
+					}
+					if (conf.jump_bl!=null) {
+						logger.debug("setting jump_bl = "+conf.jump_bl);
+						pm.addDoubleParam(JobConst.PROP_T2I_JUMP_BASELINE, conf.jump_bl);
+					}
 					if (conf.editStatus!=null) {
 						pm.addParameter(JobConst.PROP_EDIT_STATUS, conf.editStatus.getStr());
 					}

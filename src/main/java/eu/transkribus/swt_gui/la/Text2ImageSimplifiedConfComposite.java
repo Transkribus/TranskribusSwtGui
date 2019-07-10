@@ -33,6 +33,7 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 	Combo editStatusCombo;
 //	Combo thresholdText;
 	CurrentTranscriptOrCurrentDocPagesSelector pagesSelector;
+	Button allowIgnoringTranscriptsBtn, allowSkippingBaselinesBtn, allowIgnoringReadingOrderBtn;
 	
 	public static class Text2ImageConf {
 		public TrpHtr model=null;
@@ -41,6 +42,10 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 //		public String versionsStatus=null;
 		public EditStatus editStatus=null;
 		public double threshold=0.0d;
+		
+		public Double skip_word=null;
+		public Double skip_bl=null;
+		public Double jump_bl=null;
 		
 		public boolean currentTranscript=true;
 		public String pagesStr=null;
@@ -57,7 +62,9 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		public String toString() {
 			return "Text2ImageConf [model=" + model + ", performLa=" + performLa + ", removeLineBreaks="
 					+ removeLineBreaks + ", editStatus=" + editStatus + ", threshold=" + threshold
-					+ ", currentTranscript=" + currentTranscript + ", pagesStr=" + pagesStr + "]";
+					+ ", skip_word=" + skip_word
+					+ ", skip_bl=" + skip_bl + ", jump_bl=" + jump_bl + ", currentTranscript=" + currentTranscript
+					+ ", pagesStr=" + pagesStr + "]";
 		}
 	}
 	
@@ -110,7 +117,7 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 
 		Composite thresholdComp = new Composite(this, 0);
 		thresholdComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
-		thresholdComp.setLayout(SWTUtil.createGridLayout(nCols, false, 0, 0));
+		thresholdComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
 		thresholdLabel = new Label(thresholdComp, 0);
 		thresholdLabel.setText("Threshold: ");
@@ -126,9 +133,20 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		thresholdCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		thresholdCombo.setToolTipText(thresholdToolTip);
 		
-//		thresholdText = new LabeledText(this, "Threshold:");
-//		thresholdText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-//		thresholdText.setToolTipText(thresholdToolTip);
+		allowIgnoringTranscriptsBtn = new Button(this, SWT.CHECK);
+		allowIgnoringTranscriptsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		allowIgnoringTranscriptsBtn.setText("Allow ignoring text");
+		allowIgnoringTranscriptsBtn.setToolTipText("Allows the tool to skip a word, for example if a baseline is too short");
+		
+		allowSkippingBaselinesBtn = new Button(this, SWT.CHECK);
+		allowSkippingBaselinesBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
+		allowSkippingBaselinesBtn.setText("Allow skipping baselines");
+		allowSkippingBaselinesBtn.setToolTipText("Allows the tool to skip a baseline of the layout");
+		
+		allowIgnoringReadingOrderBtn = new Button(this, SWT.CHECK);
+		allowIgnoringReadingOrderBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nCols, 1));
+		allowIgnoringReadingOrderBtn.setText("Ignore reading order");
+		allowIgnoringReadingOrderBtn.setToolTipText("Allows the tool to ignore the reading order of the layout");
 		
 		setUiFromGivenConf(conf);
 	}
@@ -151,6 +169,9 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 		removeLineBreaksBtn.setSelection(conf.removeLineBreaks);
 //		thresholdText.setText(""+conf.threshold);
 		thresholdCombo.setText(""+conf.threshold);
+		allowIgnoringTranscriptsBtn.setSelection(conf.skip_word!=null);
+		allowSkippingBaselinesBtn.setSelection(conf.skip_bl!=null);
+		allowIgnoringReadingOrderBtn.setSelection(conf.jump_bl!=null);
 	}
 	
 	public Text2ImageConf getConfigFromUi() {
@@ -181,6 +202,10 @@ public class Text2ImageSimplifiedConfComposite extends Composite {
 			thresholdCombo.setText("0.0");
 			conf.threshold = 0.0d;
 		}
+		
+		conf.skip_word = allowIgnoringTranscriptsBtn.getSelection() ? 4.0d : null;
+		conf.skip_bl = allowSkippingBaselinesBtn.getSelection() ? 0.2d : null;
+		conf.jump_bl = allowIgnoringReadingOrderBtn.getSelection() ? 0.0d : null;	
 		
 		return conf;
 	}

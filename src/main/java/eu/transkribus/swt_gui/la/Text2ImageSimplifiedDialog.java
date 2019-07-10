@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.la;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -26,7 +25,7 @@ public class Text2ImageSimplifiedDialog extends Dialog {
 	
 	@Override
 	protected Point getInitialSize() {
-		return new Point(400, 300);
+		return new Point(400, 350);
 	}
 	
 	@Override

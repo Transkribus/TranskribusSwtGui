@@ -97,21 +97,19 @@ public class LayoutAnalysisComposite extends Composite {
 		
 		Composite tmpContainer = new Composite(mainContainer, SWT.FILL);
 		tmpContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		tmpContainer.setLayout(new GridLayout(2, true));
+		tmpContainer.setLayout(new GridLayout(2, false));
 		
 		doBlockSegBtn = new Button(tmpContainer, SWT.CHECK);
 		doBlockSegBtn.setText("Find Text Regions");
 		doBlockSegBtn.setSelection(true);
-		doBlockSegBtn.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, true, 1, 1));
+		doBlockSegBtn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 1));
 		
 		unsegmentedBtn = new Button(tmpContainer, SWT.PUSH);
-		unsegmentedBtn.setText("Use only unsegmented pages for LA");
+		unsegmentedBtn.setText("Only use unsegmented pages");
 		unsegmentedBtn.setForeground(new Color(Display.getCurrent(),0, 100, 0));
 		unsegmentedBtn.setSelection(false);
-		unsegmentedBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, true, true, 1, 1));
-		
-		unsegmentedBtn.addSelectionListener(new SelectionListener() {
-
+		unsegmentedBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, true, 1, 1));
+		unsegmentedBtn.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
 				String pageString = "";
 				List<Boolean> checked = new ArrayList<>();
@@ -119,8 +117,7 @@ public class LayoutAnalysisComposite extends Composite {
 					try {
 						Storage.getInstance().reloadDocWithAllTranscripts();
 					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error(e.getMessage(), e);
 					}
 					for (TrpPage page : Storage.getInstance().getDoc().getPages()){
 						TrpTranscriptMetadata ttm = page.getCurrentTranscript();
@@ -138,13 +135,6 @@ public class LayoutAnalysisComposite extends Composite {
 					dps.selectPagesRadio();
 				}
 			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent arg0) {
-				// TODO Auto-generated method stub
-					
-			}
-		
 		});
 		
 		/*

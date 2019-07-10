@@ -2559,9 +2559,12 @@ public class Storage {
 		return conn.getCrowdProject(colId);		
 	}
 
-	public void reloadDocWithAllTranscripts() throws SessionExpiredException, ClientErrorException, IllegalArgumentException {
-		doc = conn.getTrpDoc(this.collId, doc.getMd().getDocId(), -1);
-		
+	public boolean reloadDocWithAllTranscripts() throws SessionExpiredException, ClientErrorException, IllegalArgumentException {
+		if (isRemoteDoc()) {
+			doc = conn.getTrpDoc(this.collId, doc.getMd().getDocId(), -1);
+			return true;
+		}
+		return false;
 	}
 	
 	
