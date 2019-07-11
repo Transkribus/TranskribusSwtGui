@@ -66,7 +66,7 @@ public class ServerWidget extends Composite {
 	CollectionSelectorWidget collectionSelectorWidget;
 	
 	CTabFolder tabFolder;
-	CTabItem collectionsTabItem, gtTabItem;
+	CTabItem documentsTabItem, gtTabItem;
 	
 	GroundTruthTreeWidget groundTruthTreeWidget;
 //	TreeViewer groundTruthTv;
@@ -241,64 +241,67 @@ public class ServerWidget extends Composite {
 		showActivityWidgetBtn.setText("User activity");
 		userControls.add(showActivityWidgetBtn);
 		
+		Label collectionsLabel = new Label(container, 0);
+		collectionsLabel.setText("Collections:");
+		Fonts.setBoldFont(collectionsLabel);
 		
-		// tabFolder contains collections tab item and ground-truth tab item
+		collectionSelectorWidget = new CollectionSelectorWidget(container, 0, false, null);
+		collectionSelectorWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		
+		if (false) {
+			Composite collComp = collectionSelectorWidget.getCollComposite();
+//			collComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0)); // have to change nr of columns to add a new buttons
+			openEditCollectionMenuBtn = new Button(collComp, SWT.PUSH);
+			openEditCollectionMenuBtn.setImage(Images.PENCIL);
+			openEditCollectionMenuBtn.setToolTipText("Manage collection...");
+			openEditCollectionMenuBtn.addSelectionListener(new SelectionAdapter() {			
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					Point loc = openEditCollectionMenuBtn.getLocation();
+	                Rectangle rect = openEditCollectionMenuBtn.getBounds();
+	                Point mLoc = new Point(loc.x-1, loc.y+rect.height);
+	
+	                editCollectionMenu.setLocation(getShell().getDisplay().map(openEditCollectionMenuBtn.getParent(), null, mLoc));
+	                editCollectionMenu.setVisible(true);
+				}
+			});
+			
+			editCollectionMenu = new Menu(getShell(), SWT.POP_UP);
+			
+			createCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
+			createCollectionBtn.setImage(Images.ADD);
+			createCollectionBtn.setText("Create a new collection...");
+			
+			deleteCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
+			deleteCollectionBtn.setImage(Images.DELETE);
+			deleteCollectionBtn.setText("Delete this collection...");
+			
+			modifyCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
+			modifyCollectionBtn.setText("Edit metadata of collection...");
+			
+			collectionUsersBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
+			collectionUsersBtn.setImage(Images.USER_EDIT);
+			collectionUsersBtn.setText("Manage users in collection...");
+			
+			collComp.layout();
+		}
+		userControls.add(collectionSelectorWidget);
+		
+		// tabFolder contains documents tab item and ground-truth tab item
 		tabFolder = new CTabFolder(container, SWT.BORDER | SWT.FLAT);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		//create collections tab item
-		collectionsTabItem = new CTabItem(tabFolder, SWT.NONE);
-		collectionsTabItem.setText("Collections");		
-		//container for collections tab elements
+		//create documents tab item
+		documentsTabItem = new CTabItem(tabFolder, SWT.NONE);
+		documentsTabItem.setText("Documents");		
+		//container for documents tab elements
 		remoteDocsGroup = new Composite(tabFolder, 0);
 		remoteDocsGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		remoteDocsGroup.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
 		
+		documentsTabItem.setControl(remoteDocsGroup);
+		tabFolder.setSelection(documentsTabItem);
 		
-		collectionSelectorWidget = new CollectionSelectorWidget(remoteDocsGroup, 0, false, null);
-		collectionSelectorWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		collectionsTabItem.setControl(remoteDocsGroup);
-		tabFolder.setSelection(collectionsTabItem);
-		
-		if (false) {
-		Composite collComp = collectionSelectorWidget.getCollComposite();
-//		collComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0)); // have to change nr of columns to add a new buttons
-		openEditCollectionMenuBtn = new Button(collComp, SWT.PUSH);
-		openEditCollectionMenuBtn.setImage(Images.PENCIL);
-		openEditCollectionMenuBtn.setToolTipText("Manage collection...");
-		openEditCollectionMenuBtn.addSelectionListener(new SelectionAdapter() {			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				Point loc = openEditCollectionMenuBtn.getLocation();
-                Rectangle rect = openEditCollectionMenuBtn.getBounds();
-                Point mLoc = new Point(loc.x-1, loc.y+rect.height);
-
-                editCollectionMenu.setLocation(getShell().getDisplay().map(openEditCollectionMenuBtn.getParent(), null, mLoc));
-                editCollectionMenu.setVisible(true);
-			}
-		});
-		
-		editCollectionMenu = new Menu(getShell(), SWT.POP_UP);
-		
-		createCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
-		createCollectionBtn.setImage(Images.ADD);
-		createCollectionBtn.setText("Create a new collection...");
-		
-		deleteCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
-		deleteCollectionBtn.setImage(Images.DELETE);
-		deleteCollectionBtn.setText("Delete this collection...");
-		
-		modifyCollectionBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
-		modifyCollectionBtn.setText("Edit metadata of collection...");
-		
-		collectionUsersBtn = new MenuItem(editCollectionMenu, SWT.PUSH);
-		collectionUsersBtn.setImage(Images.USER_EDIT);
-		collectionUsersBtn.setText("Manage users in collection...");
-		
-		collComp.layout();
-		}
-		
-		userControls.add(collectionSelectorWidget);
 		
 		Composite docsContainer = new Composite(remoteDocsGroup, 0);
 		docsContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -457,12 +460,12 @@ public class ServerWidget extends Composite {
 	
 	public void selectCollectionsTab() {
 		if(!isCollectionsTabSelected()) {
-			tabFolder.setSelection(collectionsTabItem);
+			tabFolder.setSelection(documentsTabItem);
 		}
 	}
 	
 	public boolean isCollectionsTabSelected() {
-		return collectionsTabItem.equals(tabFolder.getSelection());
+		return documentsTabItem.equals(tabFolder.getSelection());
 	}
 	
 	public boolean isGroundTruthTabSelected() {
