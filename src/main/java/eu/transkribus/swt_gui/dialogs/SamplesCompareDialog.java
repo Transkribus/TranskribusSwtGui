@@ -134,7 +134,7 @@ public class SamplesCompareDialog extends Dialog {
 	DecimalFormat df;
 	Combo comboRef,comboHyp;
 	Label labelRef,labelHyp, chartText, cerText;
-	TrpDocMetadata docMd;
+	TrpDocMetadata docMd, docMdCompute;
 	JFreeChart chart;
 	private DocumentDataSetTableWidget sampleSetOverviewTable;
 	private Map<TrpDocMetadata, List<TrpPage>> sampleDocMap;
@@ -354,13 +354,6 @@ public class SamplesCompareDialog extends Dialog {
 		cerText.setLayoutData(new GridData(SWT.HORIZONTAL, SWT.TOP, true, true, 1, 1));
 		cerText.setVisible(false);
 		
-//		Date date = new Date();
-//		BoxAndWhiskerXYDataset dataset = createDataset(0,0,0,date);
-//		chart = createChart(dataset);
-//		jFreeChartComp = new ChartComposite(buttonComputeComp, SWT.FILL);
-//		jFreeChartComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-//		jFreeChartComp.setChart(chart);
-		
 		jobsComp = new Composite(samplesComputesash,SWT.NONE); 
 		jobsComp.setLayout(new GridLayout(1,true));
 		
@@ -368,8 +361,6 @@ public class SamplesCompareDialog extends Dialog {
 		resultTable.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
 	
 		computeSampleTabItem.setControl(samplesComputesash);
-		
-		rl.start();
 
 		return new SamplesMethodUITab(0, samplesTabItem, samplesConfComposite);
 	}
@@ -425,13 +416,11 @@ public class SamplesCompareDialog extends Dialog {
 				if(entry != null && entry.getStatus().equals("Completed") ) {
 					try {
 						logger.debug(entry.getQuery());
-						setCERTextJob(entry.getJob(), entry.getQuery());
+//						setCERTextJob(entry.getJob(), entry.getQuery());
 						drawChartJob(entry.getJob());
 					} catch (ServerErrorException | ClientErrorException
 							| IllegalArgumentException e1) {
 						e1.printStackTrace();
-					} catch (SessionExpiredException e) {
-						e.printStackTrace();
 					}
 					}
 				}
@@ -507,11 +496,28 @@ public class SamplesCompareDialog extends Dialog {
 				
 			}
 		});
+		
+		paramTabFolder.addSelectionListener(new SelectionAdapter( ) {
+			 public void widgetSelected(org.eclipse.swt.events.SelectionEvent event) {
+				 	if(paramTabFolder.getSelectionIndex() == 0) {
+				 		logger.debug("Create tab selected, rl stopped");
+				 		rl.setStopped();
+				 	} else {
+				 		logger.debug("Compute tab selected, rl start");
+				 		docMd = new TrpDocMetadata();
+				 		rl = new ResultLoader();
+				 		rl.start();
+				 		
+				 	}
+				  }
+			
+		});
 
 		tvCompute.addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
+				
 				computeSampleBtn.setEnabled(true);
 				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 				Object o = selection.getFirstElement();
@@ -544,10 +550,9 @@ public class SamplesCompareDialog extends Dialog {
 							}
 							
 						}
-						drawChartFromJobs();
-						setCERinText();
+//						setCERinText();
 						
-					} catch (ServerErrorException | IllegalArgumentException | ClientErrorException | SessionExpiredException e) {
+					} catch (ServerErrorException | IllegalArgumentException | ClientErrorException e) {
 						e.printStackTrace();
 					}
 					
@@ -696,21 +701,6 @@ public class SamplesCompareDialog extends Dialog {
 				}
 			}
 		}
-//		if(job.isFinished()) {
-//			TrpProperties props = job.getJobDataProps();
-//			final String xmlStr = props.getString(JobConst.PROP_RESULT);
-//			TrpErrorRate res = new TrpErrorRate ();
-//			logger.debug("Set CER by table entry "+job.getCreateTime());
-//			if(xmlStr != null) {
-//				try {
-//					res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
-//					cerText.setText("The CER for the sample pages is "+res.getCer());
-//					cerText.setVisible(true);
-//				} catch (JAXBException e) {
-//					logger.error("Could not unmarshal error cer result from job!");
-//				}
-//			}
-//		}
 	}
 	
 	private void drawChartJob(TrpJobStatus job) {
@@ -722,10 +712,6 @@ public class SamplesCompareDialog extends Dialog {
 			if(xmlStr != null) {
 				try {
 					res = JaxbUtils.unmarshal(xmlStr, TrpComputeSample.class);
-					BoxAndWhiskerXYDataset dataset = createDataset(res.getMean(),res.getMinProp(),res.getMaxProp(),job.getCreated());
-//					chart = createChart(dataset);
-//					jFreeChartComp.setChart(chart);
-//					chart.fireChartChanged();
 					chartText.setText("Upper bound : "+df.format(res.getMaxProp()*100)  +"% \nLower bound : "+df.format(res.getMinProp()*100) +"% \nMean : "+df.format(res.getMean()*100) +"% \n\nWith the probability of 95% the CER for the entire document will be in the interval ["+df.format(res.getMinProp()*100)  +"%  "+df.format(res.getMaxProp()*100) +"%] with the mean : "+df.format(res.getMean()*100) +"% \n \nBy taking 4 times the number of lines the interval size can be cut in half.");
 					chartText.setVisible(true);
 					chartText.redraw();
@@ -904,7 +890,7 @@ public class SamplesCompareDialog extends Dialog {
 	}
 	
 	private class ResultLoader extends Thread{
-		private final static int SLEEP = 2000;
+		private final static int SLEEP = 3000;
 		private boolean stopped = false;
 		private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
 		@Override
@@ -925,19 +911,11 @@ public class SamplesCompareDialog extends Dialog {
 						}
 						
 					});
-					
-					 if (pauseFlag.get()) {
-					       synchronized (pauseFlag) {   	  
-					          while (pauseFlag.get()) {
-					             try {	 
-					                pauseFlag.wait();
-					             } catch (InterruptedException e) {
-					                Thread.currentThread().interrupt();
-					                return;
-					             }
-					          }
-					       }
-					    }
+					try {
+						Thread.sleep(SLEEP);
+					} catch (InterruptedException e) {
+						logger.error("Sleep interrupted.", e);
+					}
 				}
 			}
 		}
