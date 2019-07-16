@@ -65,6 +65,7 @@ import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.tools.ToolsWidget.TranscriptVersionChooser;
@@ -420,9 +421,15 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
-		Display.getDefault().asyncExec(() -> {  
+		Display.getDefault().asyncExec(() -> { 
+			AJobResultTableEntry<?> e = resultTable.getSelectedEntry();
 			if(resultTable != null && !resultTable.isDisposed()) {
 				resultTable.getTableViewer().setInput(errorList);
+			}
+			if(e != null) {
+				TrpErrorResultTableEntry o = (TrpErrorResultTableEntry)e;
+				int index = errorList.indexOf(o);
+				resultTable.getTableViewer().getTable().select(index);
 			}
 		});
 		if(jobs.get(0).isFinished()) {
