@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -211,7 +212,7 @@ public class SamplesCompareDialog extends Dialog {
 		
 		paramTabFolder.setSelection(selection);		
 		paramCont.pack();
-		rl.start();
+		
 		
 		createSampleDocTab(samplesConfComposite, SWT.HORIZONTAL);
 		
@@ -342,6 +343,7 @@ public class SamplesCompareDialog extends Dialog {
 		computeSampleBtn = new Button(buttonComputeComp, SWT.PUSH);
 		computeSampleBtn.setImage(Images.ARROW_RIGHT);
 		computeSampleBtn.setText("Compute");
+		computeSampleBtn.setEnabled(false);
 		computeSampleBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		chartText = new Label(buttonComputeComp, SWT.WRAP | SWT.LEFT);
 		chartText.setText("Upper bound : \n Lower bound : \n Mean : \n \nWith the probability of 95% the CER for the entire document will be in the interval [.. | .. ] with the mean : .. \n \nBy taking 4 times the number of lines the interval size can be cut in half");
@@ -366,6 +368,8 @@ public class SamplesCompareDialog extends Dialog {
 		resultTable.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
 	
 		computeSampleTabItem.setControl(samplesComputesash);
+		
+		rl.start();
 
 		return new SamplesMethodUITab(0, samplesTabItem, samplesConfComposite);
 	}
@@ -441,6 +445,7 @@ public class SamplesCompareDialog extends Dialog {
 				params.addIntParam("option", 0);
 				String newPageString = null;
 				boolean hasGT = false;
+				rl.resumePolling();
 				if(params.getParameterValue("hyp") != null) {
 					try {
 						// create new pagestring, take only pages with chosen toolname
@@ -507,8 +512,10 @@ public class SamplesCompareDialog extends Dialog {
 
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
+				computeSampleBtn.setEnabled(true);
 				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 				Object o = selection.getFirstElement();
+				rl.resumePolling();
 				if (o instanceof TrpDocMetadata) {
 					docMd = (TrpDocMetadata) o;
 					labelRef.setVisible(true);
@@ -737,6 +744,9 @@ public class SamplesCompareDialog extends Dialog {
 		if(jobs == null || jobs.isEmpty()) {
 			cerText.setText("The CER for the sample pages is [ . . . . %]  ");
 		}else{
+			if(jobs.get(0).isFinished()) {
+				rl.pause();
+			}
 			for(TrpJobStatus job : jobs) {
 				if(job.isFinished()) {
 					TrpProperties props = job.getJobDataProps();
@@ -896,32 +906,51 @@ public class SamplesCompareDialog extends Dialog {
 	private class ResultLoader extends Thread{
 		private final static int SLEEP = 2000;
 		private boolean stopped = false;
+		private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
 		@Override
 		public void run() {
-			logger.debug("Starting result polling.");
 			while(!stopped) {
-				Display.getDefault().asyncExec(new Runnable() {
-
-					@Override
-					public void run() {
-						List<TrpJobStatus> jobs;
-						try {
-							jobs = getSampleComputeJobs();
-							updateResultTable(jobs);
-						} catch (ServerErrorException | ClientErrorException
-								| IllegalArgumentException e) {
-							e.printStackTrace();
+				while (!Thread.currentThread().isInterrupted()) {
+					Display.getDefault().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							List<TrpJobStatus> jobs;
+							try {
+								jobs = getSampleComputeJobs();
+								updateResultTable(jobs);
+							} catch (ServerErrorException | ClientErrorException
+									| IllegalArgumentException e) {
+								e.printStackTrace();
+							}
 						}
-					}
+						
+					});
 					
-				});
-				
-				try {
-					Thread.sleep(SLEEP);
-				} catch (InterruptedException e) {
-					logger.error("Sleep interrupted.", e);
+					 if (pauseFlag.get()) {
+					       synchronized (pauseFlag) {   	  
+					          while (pauseFlag.get()) {
+					             try {	 
+					                pauseFlag.wait();
+					             } catch (InterruptedException e) {
+					                Thread.currentThread().interrupt();
+					                return;
+					             }
+					          }
+					       }
+					    }
 				}
 			}
+		}
+		
+		public void pause() {
+			   pauseFlag.set(true);
+		}
+		
+		public void resumePolling() {
+			   pauseFlag.set(false);
+			   synchronized (pauseFlag) {
+			       pauseFlag.notify();
+			   }
 		}
 		
 		private List<TrpJobStatus> getSampleComputeJobs(){
