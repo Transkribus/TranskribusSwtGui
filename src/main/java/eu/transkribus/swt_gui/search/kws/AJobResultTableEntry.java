@@ -17,6 +17,7 @@ public abstract class AJobResultTableEntry<T> {
 	private String query;
 	private String scope;
 	private String status;
+	private int jobId;
 
 	public AJobResultTableEntry(TrpJobStatus job) {
 //		logger.debug(job.toString());
@@ -49,6 +50,7 @@ public abstract class AJobResultTableEntry<T> {
 		TrpProperties props = job.getJobDataProps();
 		this.result = extractResult(props);
 		this.query = extractQueries(props, result);
+		this.jobId = job.getJobIdInt();
 	}
 
 	protected abstract T extractResult(TrpProperties props);
@@ -98,4 +100,10 @@ public abstract class AJobResultTableEntry<T> {
 	public void setStatus(String status) {
 		this.status = status;
 	}
+
+	public int getJobId() {
+		return jobId;
+	}
+	
+	
 }
