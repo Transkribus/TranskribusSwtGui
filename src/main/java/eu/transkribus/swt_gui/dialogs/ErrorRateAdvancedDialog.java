@@ -18,6 +18,7 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -419,7 +420,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
-		Display.getDefault().asyncExec(() -> {	
+		Display.getDefault().asyncExec(() -> {  
 			if(resultTable != null && !resultTable.isDisposed()) {
 				resultTable.getTableViewer().setInput(errorList);
 			}
@@ -438,12 +439,13 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		@Override
 		public void run() {
 			while(!stopped) {
-				while (!Thread.currentThread().isInterrupted()) {
 					List<TrpJobStatus> jobs;
 					try {
+						
 						jobs = this.getErrorJobs();
 						logger.debug("Polling jobs started");
-						updateResultTable(jobs);		
+						updateResultTable(jobs);
+						
 					} catch (ServerErrorException | ClientErrorException
 							| IllegalArgumentException e) {
 						logger.error("Could not update ResultTable!", e);
@@ -460,7 +462,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				          }
 				       }
 				    }
-				}
 			}
 		}
 		private List<TrpJobStatus> getErrorJobs()  {
