@@ -23,6 +23,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -82,6 +83,7 @@ import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledText;
@@ -129,7 +131,7 @@ public class SamplesCompareDialog extends Dialog {
 	private Composite buttonComp,buttonComputeComp, jobsComp, samplesConfComposite ;
 	private KwsResultTableWidget resultTable;
 	private ChartComposite jFreeChartComp;
-	private Button addToSampleSetBtn, removeFromSampleSetBtn,createSampleButton, computeSampleBtn;
+	private Button addToSampleSetBtn, removeFromSampleSetBtn,createSampleButton, computeSampleBtn, wikiHelp;
 	private ParameterMap params = new ParameterMap();
 	DecimalFormat df;
 	Combo comboRef,comboHyp;
@@ -141,6 +143,8 @@ public class SamplesCompareDialog extends Dialog {
 	
 	ResultLoader rl;
 	
+	protected static final String HELP_WIKI = "https://en.wikipedia.org/wiki/Confidence_interval";
+	
 
 	public SamplesCompareDialog(Shell parentShell) {
 		super(parentShell);
@@ -150,7 +154,7 @@ public class SamplesCompareDialog extends Dialog {
 		docMd = new TrpDocMetadata();
 		df = new DecimalFormat("#0.000");
 		rl = new ResultLoader();
-		
+		rl.start();
 	}
 	
 	public void setVisible() {
@@ -179,40 +183,18 @@ public class SamplesCompareDialog extends Dialog {
 	protected Control createDialogArea(Composite parent) {
 		Composite cont = (Composite) super.createDialogArea(parent);
 
-		SashForm sash = new SashForm(cont, SWT.VERTICAL);
-		sash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		sash.setLayout(new GridLayout(1, false));
-
-		Composite paramCont = new Composite(sash, SWT.BORDER);
-		paramCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		paramCont.setLayout(new GridLayout(1, false));
-
-		Label modelNameLbl = new Label(paramCont, SWT.FLAT);
-		modelNameLbl.setText("Sample Title:");
-		modelNameTxt = new Text(paramCont, SWT.BORDER);
-		modelNameTxt.setText("Sample_ "+store.getDoc().getMd().getTitle());
-		modelNameTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-		Label descLbl = new Label(paramCont, SWT.FLAT);
-		descLbl.setText("Description:");
-		descTxt = new Text(paramCont, SWT.BORDER);
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
-		gd.heightHint = 20;
-		descTxt.setLayoutData(gd);
-		
-		nrOfLinesTxt = new LabeledText(paramCont, "Nr. of lines", true);
-		nrOfLinesTxt.setText("100");
-		nrOfLinesTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , false ));
-
-		paramTabFolder = new CTabFolder(paramCont, SWT.BORDER | SWT.FLAT);
+		paramTabFolder = new CTabFolder(cont, SWT.BORDER | SWT.FLAT);
 		paramTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 		SamplesMethodUITab tab = createSampelsComputeTab();
 		CTabItem selection = tab.getTabItem();
 		
 		paramTabFolder.setSelection(selection);		
-		paramCont.pack();
 		
+		samplesConfComposite = new Composite(paramTabFolder,0);
+		samplesConfComposite.setLayout(new GridLayout(1,false));
+		
+		samplesTabItem.setControl(samplesConfComposite);
 		
 		createSampleDocTab(samplesConfComposite, SWT.HORIZONTAL);
 		
@@ -228,7 +210,31 @@ public class SamplesCompareDialog extends Dialog {
 	
 	private void createSampleDocTab(Composite parent, int style) {
 		
-		SashForm sampleTreeViewer = new SashForm(parent,style);
+		SashForm overall = new SashForm(parent,SWT.VERTICAL);
+		overall.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		overall.setLayout(new GridLayout(1, false));
+		
+		Composite paramCont = new Composite(overall, SWT.FILL);
+		paramCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		paramCont.setLayout(new GridLayout(1, true));
+
+		Label modelNameLbl = new Label(paramCont, SWT.NULL);
+		modelNameLbl.setText("Sample Title:");
+		modelNameTxt = new Text(paramCont, SWT.FILL);
+		modelNameTxt.setText("Sample_ "+store.getDoc().getMd().getTitle());
+		modelNameTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+
+		Label descLbl = new Label(paramCont, SWT.NULL);
+		descLbl.setText("Description:");
+		descTxt = new Text(paramCont, SWT.FILL);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+		gd.heightHint = 20;
+		descTxt.setLayoutData(gd);
+		
+		nrOfLinesTxt = new LabeledText(paramCont, "Nr. of lines", true);
+		nrOfLinesTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true , false ));
+		
+		SashForm sampleTreeViewer = new SashForm(overall,style);
 		sampleDocMap = new TreeMap<>();
 		sampleTreeViewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		sampleTreeViewer.setLayout(new GridLayout(1, false));
@@ -255,15 +261,10 @@ public class SamplesCompareDialog extends Dialog {
 		addToSampleSetBtn.setText("Add to Sample Set");
 		addToSampleSetBtn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
 		
-		Group trainOverviewCont = new Group(sampleTreeViewer, SWT.NONE);
-		trainOverviewCont.setText("Overview");
-		trainOverviewCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		trainOverviewCont.setLayout(new GridLayout(1, false));
-		
 		GridData tableGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		GridLayout tableGl = new GridLayout(1, true);
 		
-		Group sampleSetGrp = new Group(trainOverviewCont, SWT.NONE);
+		Group sampleSetGrp = new Group(sampleTreeViewer, SWT.NONE);
 		sampleSetGrp.setText("Documents added to Sample Set");
 		sampleSetGrp.setLayoutData(tableGd);
 		sampleSetGrp.setLayout(tableGl);
@@ -282,6 +283,7 @@ public class SamplesCompareDialog extends Dialog {
 		createSampleButton.setImage(Images.DISK);
 		createSampleButton.setText("Create Sample");
 		
+		overall.setWeights(new int[] { 1, 3});
 		sampleTreeViewer.setWeights(new int[] {40,20,40});
 		addListeners();
 		
@@ -291,10 +293,10 @@ public class SamplesCompareDialog extends Dialog {
 		samplesTabItem = new CTabItem(paramTabFolder, SWT.NONE);
 		samplesTabItem.setText("Documents");
 		
-		samplesConfComposite = new Composite(paramTabFolder,0);
-		samplesConfComposite.setLayout(new GridLayout(1,false));
-		
-		samplesTabItem.setControl(samplesConfComposite);
+//		samplesConfComposite = new Composite(paramTabFolder,0);
+//		samplesConfComposite.setLayout(new GridLayout(1,false));
+//		
+//		samplesTabItem.setControl(samplesConfComposite);
 		
 		computeSampleTabItem = new CTabItem(paramTabFolder, SWT.NONE);
 		computeSampleTabItem.setText("Samples");
@@ -303,7 +305,12 @@ public class SamplesCompareDialog extends Dialog {
 		samplesComputesash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		samplesComputesash.setLayout(new GridLayout(3, false));
 		
-		tvCompute = new TreeViewer(samplesComputesash, SWT.BORDER | SWT.MULTI);
+		Group treeViewerCont = new Group(samplesComputesash, SWT.NONE);
+		treeViewerCont.setText("Sample Collection");
+		treeViewerCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		treeViewerCont.setLayout(new GridLayout(1, false));
+		
+		tvCompute = new TreeViewer(treeViewerCont, SWT.BORDER | SWT.MULTI);
 		contentProvComp = new CollectionContentProvider();
 		labelProv = new SampleLabelProvider();
 		tvCompute.setContentProvider(contentProvComp);
@@ -334,7 +341,7 @@ public class SamplesCompareDialog extends Dialog {
 		labelHyp = new Label(buttonComputeComp,SWT.NONE );
 		labelHyp.setText("Select hypothese by toolname : ");
 		labelHyp.setVisible(false);
-		comboHyp = new Combo(buttonComputeComp, SWT.DROP_DOWN);
+		comboHyp = new Combo(buttonComputeComp, SWT.DROP_DOWN | SWT.READ_ONLY);
 		final GridData gd_combo = new GridData(SWT.FILL,SWT.FILL, true, false);
 		gd_combo.widthHint = 250;
 		comboHyp.setLayoutData(gd_combo);
@@ -354,10 +361,12 @@ public class SamplesCompareDialog extends Dialog {
 		cerText.setLayoutData(new GridData(SWT.HORIZONTAL, SWT.TOP, true, true, 1, 1));
 		cerText.setVisible(false);
 		
-		jobsComp = new Composite(samplesComputesash,SWT.NONE); 
-		jobsComp.setLayout(new GridLayout(1,true));
-		
-		resultTable = new KwsResultTableWidget(jobsComp, 0);
+		Group jobsViewerCont = new Group(samplesComputesash, SWT.NONE);
+		jobsViewerCont.setText("Results");
+		jobsViewerCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		jobsViewerCont.setLayout(new GridLayout(1, false));
+			
+		resultTable = new KwsResultTableWidget(jobsViewerCont, 0);
 		resultTable.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
 	
 		computeSampleTabItem.setControl(samplesComputesash);
@@ -365,33 +374,33 @@ public class SamplesCompareDialog extends Dialog {
 		return new SamplesMethodUITab(0, samplesTabItem, samplesConfComposite);
 	}
 	
-	private JFreeChart createChart(BoxAndWhiskerXYDataset dataset) {
-		JFreeChart chart = ChartFactory.createBoxAndWhiskerChart(
-				"Confidence Interval for CER", "Sample", "CER",  dataset, true);
-		return chart;
-
-	}
-	
-	private BoxAndWhiskerXYDataset createDataset(double meanDoub, double minDoub, double maxDoub, Date date) {
-
-		DefaultBoxAndWhiskerXYDataset dataset = new DefaultBoxAndWhiskerXYDataset("Upper and lower bound for CER");
-		
-		Number mean = meanDoub*100;
-		Number median = 0;
-		Number q1 = 0;
-		Number q3 = 0;
-		Number minRegularValue = minDoub*100;
-		Number maxRegularValue = maxDoub*100;
-		Number minOutlier = 0;
-		Number maxOutlier = 0;
-		List outliers = null;
-		
-		BoxAndWhiskerItem item = new BoxAndWhiskerItem(mean, median, q1, q3, minRegularValue, maxRegularValue, minOutlier, maxOutlier, outliers);
-		dataset.add(date,item);
-		  
-		return dataset;
-
-	}	
+//	private JFreeChart createChart(BoxAndWhiskerXYDataset dataset) {
+//		JFreeChart chart = ChartFactory.createBoxAndWhiskerChart(
+//				"Confidence Interval for CER", "Sample", "CER",  dataset, true);
+//		return chart;
+//
+//	}
+//	
+//	private BoxAndWhiskerXYDataset createDataset(double meanDoub, double minDoub, double maxDoub, Date date) {
+//
+//		DefaultBoxAndWhiskerXYDataset dataset = new DefaultBoxAndWhiskerXYDataset("Upper and lower bound for CER");
+//		
+//		Number mean = meanDoub*100;
+//		Number median = 0;
+//		Number q1 = 0;
+//		Number q3 = 0;
+//		Number minRegularValue = minDoub*100;
+//		Number maxRegularValue = maxDoub*100;
+//		Number minOutlier = 0;
+//		Number maxOutlier = 0;
+//		List outliers = null;
+//		
+//		BoxAndWhiskerItem item = new BoxAndWhiskerItem(mean, median, q1, q3, minRegularValue, maxRegularValue, minOutlier, maxOutlier, outliers);
+//		dataset.add(date,item);
+//		  
+//		return dataset;
+//
+//	}	
 	
 	private void addListeners() {
 		
@@ -429,43 +438,53 @@ public class SamplesCompareDialog extends Dialog {
 		computeSampleBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				
 				int docId = docMd.getDocId();
+				logger.debug("DocId for selected doc : "+docId);
 				params.addParameter("computeSample", "computeSample");
 				params.addIntParam("option", 0);
 				String newPageString = null;
 				boolean hasGT = false;
-				rl.resumePolling();
 				if(params.getParameterValue("hyp") != null) {
 					try {
 						// create new pagestring, take only pages with chosen toolname
-						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), store.getDocId(), 10);
-						Set<Integer> pageIndices = CoreUtils.parseRangeListStr("1-"+docMd.getNrOfPages(), store.getDoc().getNPages());
+						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), docId, 10);
+						Set<Integer> pageIndices = CoreUtils.parseRangeListStr("1-"+docMd.getNrOfPages(), docMd.getNrOfPages());
 						Set<Integer> newPageIndices = new HashSet<Integer>();
+						Set<Integer> delGTIndices = new HashSet<Integer>();
+						Set<Integer> delHypIndices = new HashSet<Integer>();
 						List<TrpTranscriptMetadata> transcripts = new ArrayList<TrpTranscriptMetadata>();
 						for (Integer pageIndex : pageIndices) {
 							logger.debug("pageIndex : "+pageIndex);
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
 							// check if all pages contain GT version
 							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
-							if(transGT == null) {
-								throw new NullArgumentException("page "+ (pageIndex+1));
-							}
+
 							for(TrpTranscriptMetadata transcript : transcripts){
-								if(transcript.getToolName() != null) {
-									if(transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
+								if(transGT != null && transcript.getToolName() != null) {
+									if(comboHyp.getItem(comboHyp.getSelectionIndex()) != null &&  transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
 										newPageIndices.add(pageIndex);
 									}
 								}
-							}	
+								if(transGT == null) {
+									delGTIndices.add(pageIndex);
+								}
+
+							}
+							if(!newPageIndices.contains(pageIndex) && !delGTIndices.contains(pageIndex)) {
+								delHypIndices.add(pageIndex);
+							}
 						}
 						newPageString = CoreUtils.getRangeListStrFromSet(newPageIndices);
+						String deleteGTPageString = CoreUtils.getRangeListStrFromSet(delGTIndices);
+						String deleteHypPageString = CoreUtils.getRangeListStrFromSet(delHypIndices);
 						String msg = "";
-						msg += "Compute confidence interval for page(s) : 1-" + docMd.getNrOfPages() + "\n";
+						msg += "Compute confidence interval for page(s) : " + newPageString + "\n";
+						msg += "Pages ignored for missing GT : " + deleteGTPageString + "\n";
+						msg += "Pages ignored for missing Hyp : " + deleteHypPageString + "\n";
 						msg += "Ref: " +params.getParameterValue("ref")+"\n";
 						msg += "Hyp: " +params.getParameterValue("hyp");
-						if (params.getParameterValue("ref") == null || params.getParameterValue("hyp") == null) {
-							DialogUtil.showErrorMessageBox(getShell(), "Hyp or Ref missing", "Please choose a reference and hypothesis!");
-						}else {
+						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null) {
 							int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
 							if (result == SWT.YES) {
 								try {
@@ -483,45 +502,38 @@ public class SamplesCompareDialog extends Dialog {
 									
 									
 								} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
-									e1.printStackTrace();
+									logger.error(e1.getMessage(),e1);
 								}
 							}
-						}	
+						}
+						else if("".equals(newPageString)) {
+							DialogUtil.showErrorMessageBox(getShell(), "Error", "Selected pages have no GT version or hypothesis, please check the versions");
+						
+						}else {
+							DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
+						}
+						
 					} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException e1) {
 						e1.printStackTrace();
 					} catch (NullArgumentException e2) {
 						DialogUtil.showErrorMessageBox(getShell(), "Missing GT", "GT for " +e2.getLocalizedMessage());
 					}
+					
 				}
 				
 			}
-		});
-		
-		paramTabFolder.addSelectionListener(new SelectionAdapter( ) {
-			 public void widgetSelected(org.eclipse.swt.events.SelectionEvent event) {
-				 	if(paramTabFolder.getSelectionIndex() == 0) {
-				 		logger.debug("Create tab selected, rl stopped");
-				 		rl.setStopped();
-				 	} else {
-				 		logger.debug("Compute tab selected, rl start");
-				 		docMd = new TrpDocMetadata();
-				 		rl = new ResultLoader();
-				 		rl.start();
-				 		
-				 	}
-				  }
-			
 		});
 
 		tvCompute.addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				
+				if(rl != null && rl.isAlive()){
+					rl.setStopped();
+				}
 				computeSampleBtn.setEnabled(true);
 				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 				Object o = selection.getFirstElement();
-				rl.resumePolling();
 				if (o instanceof TrpDocMetadata) {
 					docMd = (TrpDocMetadata) o;
 					labelRef.setVisible(true);
@@ -533,32 +545,60 @@ public class SamplesCompareDialog extends Dialog {
 					for(int i = 0; i < comboHyp.getItemCount();i++) {
 						comboHyp.remove(i);
 					}
-					try {
-						Object[] pageObjArr = contentProvComp.getChildren(docMd);
-						for (Object obj : pageObjArr) {
-							TrpPage page = (TrpPage) obj;
-							List<TrpTranscriptMetadata> transcripts = page.getTranscripts();
-							for(TrpTranscriptMetadata transcript : transcripts){
-								if(transcript.getToolName() != null) {
-									String[] items = comboHyp.getItems();
-									if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
-										comboHyp.add(transcript.getToolName());
-										comboHyp.redraw();
+					
+					getShell().getDisplay().asyncExec(new Runnable() {
+						
+						@Override
+						public void run() {
+							List<TrpJobStatus> jobs = getSampleComputeJobs(docMd.getDocId());
+							updateResultTable(jobs);
+							try {
+								Object[] pageObjArr = contentProvComp.getChildren(docMd);
+								for (Object obj : pageObjArr) {
+									TrpPage page = (TrpPage) obj;
+									List<TrpTranscriptMetadata> transcripts = page.getTranscripts();
+									for(TrpTranscriptMetadata transcript : transcripts){
+										if(transcript.getToolName() != null) {
+											String[] items = comboHyp.getItems();
+											if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
+												comboHyp.add(transcript.getToolName());
+												comboHyp.redraw();
+											}
+										}
+										
 									}
+									
+								}
+//									setCERinText();
+								if(comboHyp.getItemCount() != 0) {
+									comboHyp.select(0);
+									params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
 								}
 								
+							} catch (ServerErrorException | IllegalArgumentException | ClientErrorException e) {
+								e.printStackTrace();
 							}
-							
 						}
-//						setCERinText();
-						
-					} catch (ServerErrorException | IllegalArgumentException | ClientErrorException e) {
-						e.printStackTrace();
-					}
-					
+					});
 				}
 
 			}
+		});
+		
+		tv.addSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+				Object o = selection.getFirstElement();
+				if (o instanceof TrpDocMetadata) {
+					docMd = (TrpDocMetadata) o;
+					modelNameTxt.setText("Sample_ "+docMd.getTitle());
+					nrOfLinesTxt.setText(""+getSampleSetMetadata().getLines());
+				}
+				
+			}
+		
 		});
 
 		tv.addDoubleClickListener(new IDoubleClickListener() {
@@ -624,6 +664,7 @@ public class SamplesCompareDialog extends Dialog {
 				}
 				updateTable(sampleSetOverviewTable, sampleDocMap);
 				updateColors();
+				nrOfLinesTxt.setText(""+getSampleSetMetadata().getLines());
 			}
 		});
 
@@ -637,6 +678,7 @@ public class SamplesCompareDialog extends Dialog {
 					}
 					updateTable(sampleSetOverviewTable, sampleDocMap);
 					updateColors();
+					nrOfLinesTxt.setText(""+getSampleSetMetadata().getLines());
 				}
 			}
 		});
@@ -678,30 +720,30 @@ public class SamplesCompareDialog extends Dialog {
 		});
 	}
 	
-	private void setCERTextJob(TrpJobStatus job, String query) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException  {
-		Integer docId = docMd.getDocId();
-		List<TrpJobStatus> jobs = new ArrayList<>();
-		jobs = store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, "jobId", "asc");
-		for(TrpJobStatus jobLoop : jobs) {
-			if(jobLoop.isFinished()) {
-					TrpProperties props = jobLoop.getJobDataProps();
-					final String xmlStr = props.getString(JobConst.PROP_RESULT);
-					TrpErrorRate res = new TrpErrorRate ();
-					ParameterMap paramsErr = res.getParams();
-				if(paramsErr.getParameterValue("hyp") != null && query.contains(paramsErr.getParameterValue("hyp"))) {
-					if(xmlStr != null) {
-						try {
-							res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
-							cerText.setText("The CER for the sample pages is "+res.getCer());
-							cerText.setVisible(true);
-						} catch (JAXBException e) {
-							logger.error("Could not unmarshal error cer result from job!");
-						}
-					}
-				}
-			}
-		}
-	}
+//	private void setCERTextJob(TrpJobStatus job, String query) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException  {
+//		Integer docId = docMd.getDocId();
+//		List<TrpJobStatus> jobs = new ArrayList<>();
+//		jobs = store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, "jobId", "asc");
+//		for(TrpJobStatus jobLoop : jobs) {
+//			if(jobLoop.isFinished()) {
+//					TrpProperties props = jobLoop.getJobDataProps();
+//					final String xmlStr = props.getString(JobConst.PROP_RESULT);
+//					TrpErrorRate res = new TrpErrorRate ();
+//					ParameterMap paramsErr = res.getParams();
+//				if(paramsErr.getParameterValue("hyp") != null && query.contains(paramsErr.getParameterValue("hyp"))) {
+//					if(xmlStr != null) {
+//						try {
+//							res = JaxbUtils.unmarshal(xmlStr, TrpErrorRate.class);
+//							cerText.setText("The CER for the sample pages is "+res.getCer());
+//							cerText.setVisible(true);
+//						} catch (JAXBException e) {
+//							logger.error("Could not unmarshal error cer result from job!");
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
 	
 	private void drawChartJob(TrpJobStatus job) {
 		if(job.isFinished()) {
@@ -730,9 +772,6 @@ public class SamplesCompareDialog extends Dialog {
 		if(jobs == null || jobs.isEmpty()) {
 			cerText.setText("The CER for the sample pages is [ . . . . %]  ");
 		}else{
-			if(jobs.get(0).isFinished()) {
-				rl.pause();
-			}
 			for(TrpJobStatus job : jobs) {
 				if(job.isFinished()) {
 					TrpProperties props = job.getJobDataProps();
@@ -890,13 +929,12 @@ public class SamplesCompareDialog extends Dialog {
 	}
 	
 	private class ResultLoader extends Thread{
-		private final static int SLEEP = 3000;
+		private final static int SLEEP = 1000;
 		private boolean stopped = false;
-		private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
+
 		@Override
 		public void run() {
 			while(!stopped) {
-				while (!Thread.currentThread().isInterrupted()) {
 					Display.getDefault().asyncExec(new Runnable() {
 						@Override
 						public void run() {
@@ -904,6 +942,9 @@ public class SamplesCompareDialog extends Dialog {
 							try {
 								jobs = getSampleComputeJobs();
 								updateResultTable(jobs);
+								if(!jobs.get(0).isRunning()) {
+									rl.setStopped();
+								}
 							} catch (ServerErrorException | ClientErrorException
 									| IllegalArgumentException e) {
 								e.printStackTrace();
@@ -915,21 +956,10 @@ public class SamplesCompareDialog extends Dialog {
 						Thread.sleep(SLEEP);
 					} catch (InterruptedException e) {
 						logger.error("Sleep interrupted.", e);
-					}
-				}
+					}	
 			}
 		}
 		
-		public void pause() {
-			   pauseFlag.set(true);
-		}
-		
-		public void resumePolling() {
-			   pauseFlag.set(false);
-			   synchronized (pauseFlag) {
-			       pauseFlag.notify();
-			   }
-		}
 		
 		private List<TrpJobStatus> getSampleComputeJobs(){
 			Integer docId = docMd.getDocId();
@@ -949,6 +979,16 @@ public class SamplesCompareDialog extends Dialog {
 		
 	}
 	
+	List<TrpJobStatus> getSampleComputeJobs(int docId) {
+		try {
+			return store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, null, null);
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e) {
+			logger.error(e.getMessage(), e);
+			return new ArrayList<>(0);
+		}
+	}
+	
 	private class SamplesMethodUITab {
 		final int tabIndex;
 		final CTabItem tabItem;
@@ -963,6 +1003,24 @@ public class SamplesCompareDialog extends Dialog {
 			return tabItem;
 		}
 		
+	}
+	
+	@Override
+	protected void createButtonsForButtonBar(Composite parent) {
+
+		wikiHelp = createButton(parent, IDialogConstants.HELP_ID, "Help", false);
+		wikiHelp.setImage(Images.HELP);
+		createButton(parent, IDialogConstants.CANCEL_ID, "Cancel", false);
+		GridData buttonLd = (GridData) getButton(IDialogConstants.CANCEL_ID).getLayoutData();	
+		
+		wikiHelp.setLayoutData(buttonLd);
+		wikiHelp.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DesktopUtil.browse(HELP_WIKI, "You can find the relevant information on the Wikipedia page.",
+						getParentShell());
+			}
+		});
 	}
 
 }
