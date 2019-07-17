@@ -265,9 +265,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
 							// check if all pages contain GT version
 							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
-//							if(transGT == null) {
-//								DialogUtil.showErrorMessageBox(getShell(), "Error", "The GT for page "+pageIndex+ " can not be found");
-//							}
+//							
 							for(TrpTranscriptMetadata transcript : transcripts){
 								logger.debug(""+comboHyp.getSelectionIndex());
 								if(transGT != null && transcript.getToolName() != null) {
@@ -278,10 +276,10 @@ public class ErrorRateAdvancedDialog extends Dialog {
 								if(transGT == null) {
 									delGTIndices.add(pageIndex);
 								}
-								if(transcript.getToolName() != null && !transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
-									delHypIndices.add(pageIndex);
-								}
-							}	
+							}
+							if(!newPageIndices.contains(pageIndex) && !delGTIndices.contains(pageIndex)) {
+								delHypIndices.add(pageIndex);
+							}
 						}
 						newPageString = CoreUtils.getRangeListStrFromSet(newPageIndices);
 						deleteGTPageString = CoreUtils.getRangeListStrFromSet(delGTIndices);
@@ -405,7 +403,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 		try {
 			store.getConnection().computeErrorRateWithJob(docID, pageString, params);
-			rl.resumePolling();
 		} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
 			logger.error(e.getMessage(), e);
 			DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessageToUser());
@@ -432,43 +429,30 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				resultTable.getTableViewer().getTable().select(index);
 			}
 		});
-		if(jobs.get(0).isFinished()) {
-			rl.pause();
-		}
 	}
 	
 	
 	private class ResultLoader extends Thread {
-		private final static int SLEEP = 1000;
+		private final static int SLEEP = 3000;
 		private boolean stopped = false;
-		private final AtomicBoolean pauseFlag = new AtomicBoolean(false);
 		
 		@Override
 		public void run() {
+			logger.debug("Starting result polling.");
 			while(!stopped) {
-					List<TrpJobStatus> jobs;
-					try {
-						
-						jobs = this.getErrorJobs();
-						logger.debug("Polling jobs started");
-						updateResultTable(jobs);
-						
-					} catch (ServerErrorException | ClientErrorException
-							| IllegalArgumentException e) {
-						logger.error("Could not update ResultTable!", e);
-					}
-				    if (pauseFlag.get()) {
-				       synchronized (pauseFlag) {   	  
-				          while (pauseFlag.get()) {
-				             try {	 
-				                pauseFlag.wait();
-				             } catch (InterruptedException e) {
-				                Thread.currentThread().interrupt();
-				                return;
-				             }
-				          }
-				       }
-				    }
+				List<TrpJobStatus> jobs;
+				try {
+					jobs = this.getErrorJobs();
+					updateResultTable(jobs);
+				} catch (ServerErrorException | ClientErrorException
+						| IllegalArgumentException e) {
+					logger.error("Could not update ResultTable!", e);
+				}
+				try {
+					Thread.sleep(SLEEP);
+				} catch (InterruptedException e) {
+					logger.error("Sleep interrupted.", e);
+				}
 			}
 		}
 		private List<TrpJobStatus> getErrorJobs()  {
@@ -488,19 +472,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			logger.debug("Stopping result polling.");
 			stopped = true;
 		}
-		
-		public void pause() {
-			   pauseFlag.set(true);
-		}
-		
-		public void resumePolling() {
-			   pauseFlag.set(false);
-			   synchronized (pauseFlag) {
-			       pauseFlag.notify();
-			   }
-		}
-		
-		
 		
 	}
 	
