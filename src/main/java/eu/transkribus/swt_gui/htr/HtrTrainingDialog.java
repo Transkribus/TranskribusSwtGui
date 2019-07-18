@@ -32,6 +32,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
+import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
@@ -249,6 +250,12 @@ public class HtrTrainingDialog extends Dialog {
 		final boolean useGt = treeViewerSelector.getUseGtVersionChk().isEnabled() && treeViewerSelector.getUseGtVersionChk().getSelection();
 		EditStatus status = useGt ? EditStatus.GT : null;
 		setTrainAndTestDocsInHtrConfig(configObject, status);
+		
+		ParameterMap customParams = new ParameterMap();
+		//send flag to activate new train workflow when starting the training from this dialog
+		customParams.addIntParam("useGtWorkflow", 1);
+		configObject.setCustomParams(customParams);
+		
 		return configObject;
 	}
 	
