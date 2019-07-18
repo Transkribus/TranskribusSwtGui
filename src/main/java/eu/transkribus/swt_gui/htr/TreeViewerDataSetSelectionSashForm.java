@@ -448,7 +448,7 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 				words += tmd.getNrOfWordsInLines();
 			}
 		}
-		return new DataSetMetadata(pages, lines, words);
+		return new DataSetMetadata(DataSetMetadataTableLabelProvider.TOTAL_ROW_LABEL, pages, lines, words);
 	}
 	
 	public Map<TrpDocMetadata, List<TrpPage>> getTrainDocMap() {

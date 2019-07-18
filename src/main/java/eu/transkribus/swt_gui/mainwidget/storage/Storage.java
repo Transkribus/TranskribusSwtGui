@@ -1040,6 +1040,7 @@ public class Storage {
 			logger.error("Error logging out: " + th.getMessage(), th);
 		} finally {
 			clearCollections();
+			htrList = new ArrayList<>(0);
 			clearP2PaLAModels();
 			conn = null;
 			user = null;

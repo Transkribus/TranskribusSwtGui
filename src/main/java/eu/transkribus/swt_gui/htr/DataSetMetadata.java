@@ -38,6 +38,10 @@ public class DataSetMetadata {
 		return words;
 	}
 	
+	public boolean isDataSetEmpty() {
+		return lines < 1 && words < 1;
+	}
+
 	/**
 	 * FIXME this String needs still be rendered in a monospaced font...
 	 * 
