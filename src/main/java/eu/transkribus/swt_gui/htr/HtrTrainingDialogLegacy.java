@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -32,7 +33,6 @@ import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -189,7 +189,7 @@ public class HtrTrainingDialogLegacy extends Dialog {
 	private TrainMethodUITab createCitlabHtrPlusTrainingTab(final int tabIndex) {
 		citlabHtrPlusTrainingTabItem = new CTabItem(paramTabFolder, SWT.NONE);
 
-		citlabHtrPlusParamCont = new CITlabHtrPlusTrainingConfComposite(paramTabFolder, false, SWT.NONE);
+		citlabHtrPlusParamCont = new CITlabHtrPlusTrainingConfComposite(paramTabFolder, store.isAdminLoggedIn(), SWT.NONE);
 		final String label = HtrTableLabelProvider.getLabelForHtrProvider(citlabHtrPlusParamCont.getProvider());
 		citlabHtrPlusTrainingTabItem.setText(label);
 		
@@ -304,19 +304,17 @@ public class HtrTrainingDialogLegacy extends Dialog {
 
 		DataSetMetadata trainSetMd = treeViewerSelector.getTrainSetMetadata();
 		DataSetMetadata testSetMd = treeViewerSelector.getTestSetMetadata();
-		msg += "Training set size:\t" + trainSetMd.getPages() + " pages\n";
-		msg += "\t\t\t\t" + trainSetMd.getLines() + " lines\n";
-		msg += "\t\t\t\t" + trainSetMd.getWords() + " words\n";
-		msg += "Test set size:\t\t" + testSetMd.getPages() + " pages\n";
-		msg += "\t\t\t\t" + +testSetMd.getLines() + " lines\n";
-		msg += "\t\t\t\t" + testSetMd.getWords() + " words\n";
-
-		msg += "\nStart?";
-
-		int result = DialogUtil.showYesNoDialog(this.getShell(), "Start?", msg);
 		
-		if (result == SWT.YES) {
+		StartTrainingDialog diag = new StartTrainingDialog(
+				this.getShell(), 
+				Arrays.asList(new DataSetMetadata[] { trainSetMd }), 
+				Arrays.asList(new DataSetMetadata[] { testSetMd })
+			);
+		if (diag.open() == Window.OK) {
+			logger.trace("User confirmed dataset selection");
 			super.okPressed();
+		} else {
+			logger.trace("User denied dataset selection");
 		}
 	}
 
