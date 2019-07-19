@@ -277,6 +277,15 @@ public class HtrTrainingDialog extends Dialog {
 	protected void okPressed() {
 		citlabTrainConfig = citlabT2IConf = null;
 		String msg = "";
+		DataSetMetadata trainSetMd = treeViewerSelector.getTrainSetMetadata();
+		DataSetMetadata testSetMd = treeViewerSelector.getTestSetMetadata();
+		String dataSetStatsStr = "Training set size:\t" + trainSetMd.getPages() + " pages\n";
+		dataSetStatsStr += "\t\t\t\t" + trainSetMd.getLines() + " lines\n";
+		dataSetStatsStr += "\t\t\t\t" + trainSetMd.getWords() + " words\n";
+		dataSetStatsStr += "Test set size:\t\t" + testSetMd.getPages() + " pages\n";
+		dataSetStatsStr += "\t\t\t\t" + +testSetMd.getLines() + " lines\n";
+		dataSetStatsStr += "\t\t\t\t" + testSetMd.getWords() + " words\n";
+		
 		try {
 			if (isCitlabTrainingSelected()) {
 				msg = "You are about to start an HTR Training using CITlab HTR\n\n";
@@ -286,6 +295,22 @@ public class HtrTrainingDialog extends Dialog {
 				msg = "You are about to start a Text2Image alignment using CITlab HTR\n\n";
 				citlabT2IConf = createCitlabT2IConfig();
 			} else if (isCitlabHtrPlusTrainingSelected()){
+				
+				final int trainSetWordsMin = 500;
+				final int trainSetLinesMin = 100;
+				final int testSetWordsMin = 50;
+				final int testSetLinesMin = 10;
+
+				//Stop user from running trainings with insufficient data
+				if(trainSetMd.getLines() < trainSetLinesMin || trainSetMd.getWords() < trainSetWordsMin
+						|| testSetMd.getLines() < testSetLinesMin || testSetMd.getWords() < testSetWordsMin) {
+					String errorMsgStr = "Select at least " + trainSetLinesMin + " lines or " + trainSetWordsMin + " words as train set and "
+							+ testSetLinesMin + " lines or " + testSetWordsMin + " words as test set.\n\n";
+					errorMsgStr += dataSetStatsStr;
+					DialogUtil.showErrorMessageBox(getShell(), "Insufficient Training Data", errorMsgStr);
+					return;
+				}
+
 				msg = "You are about to start an HTR Training using CITlab HTR+\n\n";
 				citlabTrainConfig = createCitlabHtrPlusTrainConfig();
 			} else {
@@ -302,15 +327,7 @@ public class HtrTrainingDialog extends Dialog {
 			return;
 		}
 
-		DataSetMetadata trainSetMd = treeViewerSelector.getTrainSetMetadata();
-		DataSetMetadata testSetMd = treeViewerSelector.getTestSetMetadata();
-		msg += "Training set size:\t" + trainSetMd.getPages() + " pages\n";
-		msg += "\t\t\t\t" + trainSetMd.getLines() + " lines\n";
-		msg += "\t\t\t\t" + trainSetMd.getWords() + " words\n";
-		msg += "Test set size:\t\t" + testSetMd.getPages() + " pages\n";
-		msg += "\t\t\t\t" + +testSetMd.getLines() + " lines\n";
-		msg += "\t\t\t\t" + testSetMd.getWords() + " words\n";
-
+		msg += dataSetStatsStr;
 		msg += "\nStart?";
 
 		int result = DialogUtil.showYesNoDialog(this.getShell(), "Start?", msg);
