@@ -202,8 +202,10 @@ public class ToolsWidgetListener implements SelectionListener {
 			}
 		} catch (StorageException e) {
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", e.getMessage());
+			htd = null;
 		} catch (Exception e) {
 			mw.onError("Error while starting training job: " + e.getMessage(), e.getMessage(), e);
+			htd = null;
 		}
 	}
 

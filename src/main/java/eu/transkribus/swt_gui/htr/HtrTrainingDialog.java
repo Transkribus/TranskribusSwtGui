@@ -253,7 +253,7 @@ public class HtrTrainingDialog extends Dialog {
 		
 		ParameterMap customParams = new ParameterMap();
 		//send flag to activate new train workflow when starting the training from this dialog
-		customParams.addIntParam("useGtWorkflow", 1);
+		customParams.addBoolParam("useGtWorkflow", true);
 		configObject.setCustomParams(customParams);
 		
 		return configObject;
