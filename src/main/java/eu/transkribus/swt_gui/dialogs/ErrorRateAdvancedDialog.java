@@ -290,16 +290,13 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						msg += "Pages ignored for missing Hyp : " + deleteHypPageString + "\n";
 						msg += "Ref: " +params.getParameterValue("ref")+"\n";
 						msg += "Hyp: " +params.getParameterValue("hyp");
-						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null && newPageString != "") {
+						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null) {
 							int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
 							if (result == SWT.YES) {
 								startError(store.getDocId(), newPageString);
 							}
 						}
-						else if("".equals(newPageString)) {
-							DialogUtil.showErrorMessageBox(getShell(), "Error", "Selected pages have no GT version or hypothesis, please check the versions");
-						
-						}else {
+						else {
 							DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
 						}
 					} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException e1) {
@@ -321,12 +318,9 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
 
 				if (ref != null && hyp != null) {
-					params.addIntParam("option", -1);
-					params.addParameter("refKey", ref.getKey());
-					params.addParameter("hypKey", hyp.getKey());
+					params.addIntParam("option", 0);
 					params.addParameter("hyp", hyp.getToolName());
 					params.addParameter("ref", ref.getToolName());
-					params.addIntParam("pageNr", store.getPage().getPageNr());
 						try {
 							startError(store.getDocId(),""+store.getPage().getPageNr());
 						} catch (ServerErrorException | IllegalArgumentException e1) {
