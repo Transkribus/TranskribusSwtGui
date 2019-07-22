@@ -7,15 +7,19 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+
+import eu.transkribus.swt.util.Colors;
 
 public class StartTrainingDialog extends Dialog {
 
-	List<DataSetMetadata> trainSetMd;
-	List<DataSetMetadata> validationSetMd;
+	List<DataSetMetadata> trainSetMd, validationSetMd;
+	boolean insufficientTrainData = false, insufficientValidationData = false;
 	
 	public StartTrainingDialog(Shell parentShell, List<DataSetMetadata> trainSetMd, List<DataSetMetadata> validationSetMd) {
 		super(parentShell);
@@ -41,28 +45,50 @@ public class StartTrainingDialog extends Dialog {
 		
 		Group trainGrp = new Group(container, SWT.NONE);
 		trainGrp.setText("Train Set:");
-		trainGrp.setLayoutData(gd);
 		trainGrp.setLayout(gl);
+		trainGrp.setLayoutData(gd);
 		
 		DataSetMetadataTableWidget trainMdTable = new DataSetMetadataTableWidget(trainGrp, SWT.NONE);
-		trainMdTable.setLayoutData(gd);
 		trainMdTable.setInput(trainSetMd);
 		
+		insufficientTrainData = trainMdTable.getTotalDataSetMetadata().isDataSetEmpty();
+		if (insufficientTrainData) {
+			createErrorLabel(container, "Insufficient transcribed pages in train set!"); 
+		}
+		
 		Group valGrp = new Group(container, SWT.NONE);
-		valGrp.setText("Validation Set:");
-		valGrp.setLayoutData(gd);
+		
+		//Keep this named "test set" for now
+		valGrp.setText("Test Set:");
+//		valGrp.setText("Validation Set:");
 		valGrp.setLayout(gl);
+		valGrp.setLayoutData(gd);
 		
 		DataSetMetadataTableWidget valMdTable = new DataSetMetadataTableWidget(valGrp, SWT.NONE);
-		valMdTable.setLayoutData(gd);
 		valMdTable.setInput(validationSetMd);
 		
+		insufficientValidationData = valMdTable.getTotalDataSetMetadata().isDataSetEmpty();
+		if (insufficientValidationData) {
+			createErrorLabel(container, "Insufficient transcribed pages in test set!");
+		}
+		
 		return container;
-	}
+	}	
 	
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		super.createButtonsForButtonBar(parent);
-		getButton(IDialogConstants.OK_ID).setText("Start Training"); 
+		Button startBtn = getButton(IDialogConstants.OK_ID);
+		startBtn.setText("Start Training");
+		//disable start button if selected data is insufficient
+		startBtn.setEnabled(!insufficientTrainData && !insufficientValidationData);
+	}
+	
+	private Label createErrorLabel(Composite comp, final String errorMsg) {
+		Label lbl = new Label(comp, SWT.WRAP);
+		lbl.setText(errorMsg);
+		lbl.setForeground(Colors.getSystemColor(SWT.COLOR_RED));
+		lbl.setLayoutData(new GridData(SWT.CENTER, SWT.BOTTOM, true, false));
+		return lbl;
 	}
 }

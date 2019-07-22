@@ -4,7 +4,8 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 
@@ -31,6 +32,8 @@ public class DataSetMetadataTableWidget extends Composite {
 
 	protected MyTableViewer tv;
 	
+	protected DataSetMetadata totalDataSetMetadata;
+	
 	public final ColumnConfig[] COLS = new ColumnConfig[] {
 		new ColumnConfig(LABEL_COL, 100, false, DefaultTableColumnViewerSorter.ASC),
 		new ColumnConfig(PAGES_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
@@ -41,31 +44,36 @@ public class DataSetMetadataTableWidget extends Composite {
 	public DataSetMetadataTableWidget(Composite parent, int style) {
 		super(parent, style);
 
-		this.setLayout(new FillLayout());
+		this.setLayout(new GridLayout(1, false));
 
 		tv = new MyTableViewer(this, SWT.NONE);
+		tv.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
 		tv.setContentProvider(new ArrayContentProvider());
 		tv.setLabelProvider(new DataSetMetadataTableLabelProvider(tv));
 
 		Table table = tv.getTable();
 		table.setHeaderVisible(true);
 
+		totalDataSetMetadata = new DataSetMetadata(DataSetMetadataTableLabelProvider.TOTAL_ROW_LABEL, 0, 0, 0);
+		
 		tv.addColumns(COLS);
 	}
 
 	/**
-	 * Set the input data for the table. If the list is larger than 1, a total is computed and displayed at the bottom.
+	 * Set the input data for the table and compute total size. If the list is larger than 1, the total is displayed at the bottom of the table.
 	 * 
 	 * @param input
 	 */
 	public void setInput(List<DataSetMetadata> input) {
+		//compute total size of data set
+		totalDataSetMetadata = calculateTotalSize(input);
 		if(input == null || input.size() <= 1) {
 			tv.setInput(input);
 			return;
 		}
-		//compute a total and add it to the data
+		//add total to the data
 		List<DataSetMetadata> enrichedInput = new ArrayList<>(input);
-		enrichedInput.add(calculateTotalSize(input));
+		enrichedInput.add(totalDataSetMetadata);
 		tv.setInput(enrichedInput);
 	}
 	
@@ -82,4 +90,8 @@ public class DataSetMetadataTableWidget extends Composite {
 		}
 		return new DataSetMetadata(name, pages, lines, words);
 	}		
+	
+	public DataSetMetadata getTotalDataSetMetadata() {
+		return totalDataSetMetadata;
+	}
 }
