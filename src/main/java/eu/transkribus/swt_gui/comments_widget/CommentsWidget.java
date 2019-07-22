@@ -260,6 +260,17 @@ public class CommentsWidget extends Composite {
 		
 		commentsTable.setInput(comments);
 	}
+	
+	public void updateVisibility(boolean setEnabled){
+			
+		commentText.setEnabled(setEnabled);
+		refresh.setEnabled(setEnabled);
+		addComment.setEnabled(setEnabled);
+		editComment.setEnabled(setEnabled);
+		deleteComment.setEnabled(setEnabled);
+		showComments.setEnabled(setEnabled);
+		
+		}
 
 	public boolean isShowComments() {
 		return showComments.getSelection();

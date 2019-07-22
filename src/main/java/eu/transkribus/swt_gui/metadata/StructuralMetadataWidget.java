@@ -477,6 +477,20 @@ public class StructuralMetadataWidget extends Composite {
 		
 	}
 	
+	public void updateVisibility(boolean setEnabled){
+		pageStyleCombo.setEnabled(setEnabled);
+		linkBtn.setEnabled(setEnabled);
+		breakLinkBtn.setEnabled(setEnabled);
+		structureText.setEnabled(setEnabled);
+		shapeTypeCombo.setEnabled(setEnabled);
+		for(Button button : structureRadios) {
+			button.setEnabled(setEnabled);
+		}
+		this.setEnabled(setEnabled);
+		structTagSpecWidget.updateVisibility(setEnabled);
+		structTagListWidget.updateVisibility(setEnabled);
+	}
+	
 //	public void updateData(boolean hasPageType, PageTypeSimpleType pageType, boolean hasTextType, TextTypeSimpleType regionType, boolean hasTextStyle, TextStyleType textType) {
 //		SWTUtil.recursiveSetEnabled(mdGroup, hasPageType);
 //		SWTUtil.select(pageStyleCombo, EnumUtils.indexOf(pageType));

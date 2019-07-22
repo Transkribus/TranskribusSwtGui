@@ -902,17 +902,18 @@ public class TrpMainWidgetView extends Composite {
 			 * See issue #71
 			 */
 			if (!canTranscribe) {
-				tabWidget.toolsItem.setControl(null);
 				tabWidget.textTaggingItem.setControl(null);
 				tabWidget.structuralMdItem.setControl(null);
-				tabWidget.commentsItem.setControl(null);
-				tabWidget.docMdItem.setControl(null);
+				docMetadataEditor.updateVisibility(canTranscribe);
+				toolsWidget.updateVisibility(canTranscribe);
+				commentsWidget.updateVisibility(canTranscribe);
 			} else {
 				tabWidget.toolsItem.setControl(toolsWidget);
 				tabWidget.textTaggingItem.setControl(taggingWidget);
 				tabWidget.structuralMdItem.setControl(structuralMdWidget);
 				tabWidget.commentsItem.setControl(commentsWidget);
 				tabWidget.docMdItem.setControl(docMetadataEditor);
+				
 			}
 		}
 		getSelectedTranscriptionWidget().setWriteable(canTranscribe);

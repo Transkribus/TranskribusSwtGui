@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;
@@ -478,6 +479,26 @@ public class DocMetadataEditor extends Composite {
 		c.setValue(date!=null ? date : null);
 		c.setEnabled(date!=null);
 		b.setSelection(date!=null);
+	}
+	
+	public void updateVisibility(boolean setEnabled){
+		
+		titleText.setEnabled(setEnabled);
+		authorityText.setEnabled(setEnabled);
+		extIdText.setEnabled(setEnabled);
+		authorText.setEnabled(setEnabled);
+		hierarchyTree.setEnabled(setEnabled);
+		genreText.setEnabled(setEnabled);
+		writerText.setEnabled(setEnabled);
+		langTable.setEnabled(setEnabled);
+		scriptTypeCombo.setEnabled(setEnabled);
+		scriptTypeCombo2.setEnabled(setEnabled);
+		descriptionText.setEnabled(setEnabled);
+		enableCreatedToBtn.setEnabled(setEnabled);
+		enableCreatedFromBtn.setEnabled(setEnabled);
+		saveBtn.setEnabled(setEnabled);
+		openEditDeclManagerBtn.setEnabled(setEnabled);
+		
 	}
 	
 	private void initScriptTypeCombos(ScriptType st) {
