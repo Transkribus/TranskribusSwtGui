@@ -530,9 +530,7 @@ public class SamplesCompareDialog extends Dialog {
 
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				if(rl != null && rl.isAlive()){
-					rl.setStopped();
-				}
+				
 				computeSampleBtn.setEnabled(true);
 				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 				Object o = selection.getFirstElement();
@@ -543,11 +541,14 @@ public class SamplesCompareDialog extends Dialog {
 					comboRef.setVisible(true);
 					labelHyp.setVisible(true);
 					comboHyp.setVisible(true);
-					comboHyp.deselectAll();
-					for(int i = 0; i < comboHyp.getItemCount();i++) {
-						comboHyp.remove(i);
-					}
-					
+//					comboHyp.deselectAll();
+//					int comboCount = comboHyp.getItemCount();
+//					if(comboCount != 0) {
+//						for(int i = 0; i < comboCount ;i++) {
+//							comboHyp.remove(i);
+//						}
+//					}
+					comboHyp.removeAll();
 					getShell().getDisplay().asyncExec(new Runnable() {
 						
 						@Override
@@ -582,8 +583,7 @@ public class SamplesCompareDialog extends Dialog {
 							} catch (ServerErrorException | IllegalArgumentException | ClientErrorException e) {
 								e.printStackTrace();
 							} catch (SessionExpiredException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								logger.error("Session Expired",e.getMessage());
 							}
 						}
 					});
@@ -805,9 +805,7 @@ public class SamplesCompareDialog extends Dialog {
 		Integer docId = docMd.getDocId();
 		List<TrpJobStatus> jobs = new ArrayList<>();
 		jobs = store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, "jobId", "asc");
-		if(rl.isAlive() && jobs.get(0).isFinished()) {
-			rl.setStopped();
-		}
+		
 		if(jobs == null || jobs.isEmpty()) {
 			chartText.setText("Upper bound : \n Lower bound : \n Mean : \n\nWith the probability of 95% the CER for the entire document will be in the interval [.. | .. ] with the mean : .. \n \nBy taking 4 times the number of lines the interval size can be cut in half");
 //			Date date = new Date();
@@ -816,6 +814,9 @@ public class SamplesCompareDialog extends Dialog {
 //			jFreeChartComp.setChart(chart);
 //			chart.fireChartChanged();
 		}else {
+			if(rl.isAlive() && jobs.get(0).isFinished()) {
+				rl.setStopped();
+			}
 			for(TrpJobStatus job : jobs) {
 				if(job.isFinished()) {
 					TrpProperties props = job.getJobDataProps();
