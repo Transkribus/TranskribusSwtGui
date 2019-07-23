@@ -10,6 +10,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
@@ -42,22 +43,34 @@ public class DataSetSelectionSashFormListener {
 		view.addToTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(view.documentsTabItem.equals(view.dataTabFolder.getSelection())) {
-					controller.addDocumentSelectionToTrainSet();
-				} else if (view.gtTabItem.equals(view.dataTabFolder.getSelection())) {
-					controller.addGtSelectionToTrainSet();
-				}
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						if(view.documentsTabItem.equals(view.dataTabFolder.getSelection())) {
+							controller.addDocumentSelectionToTrainSet();
+						} else if (view.gtTabItem.equals(view.dataTabFolder.getSelection())) {
+							controller.addGtSelectionToTrainSet();
+						}
+					}
+				};
+				BusyIndicator.showWhile(view.getDisplay(), r);
 			}
 		});
 
 		view.addToTestSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(view.documentsTabItem.equals(view.dataTabFolder.getSelection())) {
-					controller.addDocumentSelectionToValidationSet();
-				} else if (view.gtTabItem.equals(view.dataTabFolder.getSelection())) {
-					controller.addGtSelectionToValidationSet();
-				}
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						if(view.documentsTabItem.equals(view.dataTabFolder.getSelection())) {
+							controller.addDocumentSelectionToValidationSet();
+						} else if (view.gtTabItem.equals(view.dataTabFolder.getSelection())) {
+							controller.addGtSelectionToValidationSet();
+						}
+					}
+				};
+				BusyIndicator.showWhile(view.getDisplay(), r);
 			}
 		});
 
@@ -97,25 +110,37 @@ public class DataSetSelectionSashFormListener {
 	public class TreeViewerDoubleClickListener implements IDoubleClickListener {
 		@Override
 		public void doubleClick(DoubleClickEvent event) {
-			Object o = ((IStructuredSelection) event.getSelection()).getFirstElement();
-			if (o instanceof TrpDocMetadata) {
-				expandTreeItem(o, view.docTv);
-			} else if (o instanceof TrpPage) {
-				controller.loadPageInMainWidget((TrpPage)o);
-			} else if (o instanceof TrpHtr || o instanceof HtrGtDataSet) {
-				expandTreeItem(o, view.groundTruthTv);
-			}
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					Object o = ((IStructuredSelection) event.getSelection()).getFirstElement();
+					if (o instanceof TrpDocMetadata) {
+						expandTreeItem(o, view.docTv);
+					} else if (o instanceof TrpPage) {
+						controller.loadPageInMainWidget((TrpPage)o);
+					} else if (o instanceof TrpHtr || o instanceof HtrGtDataSet) {
+						expandTreeItem(o, view.groundTruthTv);
+					}
+				}
+			};
+			BusyIndicator.showWhile(view.getDisplay(), r);
 		}
 		private void expandTreeItem(Object o, TreeViewer tv) {
-			final ITreeContentProvider provider = (ITreeContentProvider) tv.getContentProvider();
-			if(!provider.hasChildren(o)) {
-				return;
-			}
-			if (tv.getExpandedState(o)) {
-				tv.collapseToLevel(o, AbstractTreeViewer.ALL_LEVELS);
-			} else {
-				tv.expandToLevel(o, 1);
-			}
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					final ITreeContentProvider provider = (ITreeContentProvider) tv.getContentProvider();
+					if(!provider.hasChildren(o)) {
+						return;
+					}
+					if (tv.getExpandedState(o)) {
+						tv.collapseToLevel(o, AbstractTreeViewer.ALL_LEVELS);
+					} else {
+						tv.expandToLevel(o, 1);
+					}
+				}
+			};
+			BusyIndicator.showWhile(view.getDisplay(), r);
 		}
 	}
 }
