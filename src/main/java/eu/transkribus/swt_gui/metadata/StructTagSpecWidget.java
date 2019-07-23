@@ -555,6 +555,15 @@ public class StructTagSpecWidget extends Composite {
 		});
 	}
 	
+	public void updateVisibility(boolean setEnabled){
+		
+		customizeBtn.setEnabled(setEnabled);
+		drawDefaultColorsBtn.setEnabled(setEnabled);
+		drawStructTypeTextBtn.setEnabled(setEnabled);
+		tableViewer.getTable().setEnabled(setEnabled);
+	
+	}
+	
 	public TableViewer getTableViewer() {
 		return tableViewer;
 	}

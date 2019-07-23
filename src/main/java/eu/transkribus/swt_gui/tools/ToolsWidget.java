@@ -57,7 +57,7 @@ public class ToolsWidget extends Composite {
 	Button computeWerBtn,computeAdvancedBtn,compareSamplesBtn;
 	Button compareVersionsBtn;
 	Composite werGroup;
-	ExpandableComposite werExp;
+	ExpandableComposite werExp, laToolsExp, expRecog,expOther;
 	
 	Composite container; // this is the base container, where all expandable composite are put into
 	ScrolledComposite sc;
@@ -200,7 +200,7 @@ public class ToolsWidget extends Composite {
 	}
 	
 	private void initLayoutAnalysisTools(Composite container) {
-		ExpandableComposite laToolsExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
+		laToolsExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
 		laToolsExp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Composite laToolsGroup = new Composite(laToolsExp, SWT.SHADOW_ETCHED_IN);
 		laToolsGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -416,17 +416,17 @@ public class ToolsWidget extends Composite {
 //	}
 	
 	private void initRecogTools(Composite container) {
-		ExpandableComposite exp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
-		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		expRecog = new ExpandableComposite(container, ExpandableComposite.COMPACT);
+		expRecog.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		trComp = new TextRecognitionComposite(exp, 0);
+		trComp = new TextRecognitionComposite(expRecog, 0);
 		trComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
-		exp.setClient(trComp);
-		exp.setText("Text Recognition");
-		Fonts.setBoldFont(exp);
-		exp.setExpanded(true);
-		exp.addExpansionListener(new ExpansionAdapter() {
+		expRecog.setClient(trComp);
+		expRecog.setText("Text Recognition");
+		Fonts.setBoldFont(expRecog);
+		expRecog.setExpanded(true);
+		expRecog.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
 				layoutContainer();
 			}
@@ -435,9 +435,9 @@ public class ToolsWidget extends Composite {
 
 	
 	private void initOtherTools(Composite container) {
-		ExpandableComposite exp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
-		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Composite c = new Composite(exp, SWT.SHADOW_ETCHED_IN);
+		expOther = new ExpandableComposite(container, ExpandableComposite.COMPACT);
+		expOther.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		Composite c = new Composite(expOther, SWT.SHADOW_ETCHED_IN);
 		c.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		c.setLayout(new GridLayout(1, true));
 		
@@ -477,16 +477,17 @@ public class ToolsWidget extends Composite {
 		baseline2PolygonBtn.setToolTipText("Creates polygons for all baselines - warning: existing polygons will be lost (text is retained however!)");
 		baseline2PolygonBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
 		
-		exp.setClient(c);
+		expOther.setClient(c);
 		new Label(c, SWT.NONE);
-		exp.setText("Other Tools");
-		Fonts.setBoldFont(exp);
-		exp.setExpanded(true);
-		exp.addExpansionListener(new ExpansionAdapter() {
+		expOther.setText("Other Tools");
+		Fonts.setBoldFont(expOther);
+		expOther.setExpanded(true);
+		expOther.addExpansionListener(new ExpansionAdapter() {
 			public void expansionStateChanged(ExpansionEvent e) {
 				layoutContainer();
 			}
 		});
+	
 	}
 	
 //	public void setP2PaLAModels(List<TrpP2PaLAModel> models) {
@@ -600,6 +601,16 @@ public class ToolsWidget extends Composite {
 
 	public Button getCompareVersionsBtn() {
 		return compareVersionsBtn;
+	}
+	
+	public void updateVisibility(boolean setEnabled){
+		werExp.setExpanded(setEnabled);
+		werExp.setEnabled(setEnabled);
+		laToolsExp.setExpanded(setEnabled);
+		laToolsExp.setEnabled(setEnabled);
+		expOther.setExpanded(setEnabled);
+		expOther.setEnabled(setEnabled);
+		
 	}
 	
 	public TrpTranscriptMetadata getCorrectText(){

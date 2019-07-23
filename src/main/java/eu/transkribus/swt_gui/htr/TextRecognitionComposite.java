@@ -107,6 +107,10 @@ public class TextRecognitionComposite extends Composite {
 		return trainBtn;
 	}
 	
+	public HtrModelChooserButton getModelBtn() {
+		return modelsBtn;
+	}
+	
 	public Button getTrainBtnLegacy() {
 		return trainBtnLegacy;
 	}

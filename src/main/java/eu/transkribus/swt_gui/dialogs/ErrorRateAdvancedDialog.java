@@ -296,8 +296,6 @@ public class ErrorRateAdvancedDialog extends Dialog {
 							int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
 							if (result == SWT.YES) {
 								startError(store.getDocId(), newPageString);
-								rl = new ResultLoader();
-								rl.start();
 							}
 						}
 						else if (StringUtils.isEmpty(newPageString)) {
@@ -328,6 +326,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					params.addIntParam("option", 0);
 					params.addParameter("hyp", hyp.getToolName());
 					params.addParameter("ref", ref.getToolName());
+					rl.setStopped();
 						try {
 							startError(store.getDocId(),""+store.getPage().getPageNr());
 						} catch (ServerErrorException | IllegalArgumentException e1) {
@@ -404,6 +403,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 		try {
 			store.getConnection().computeErrorRateWithJob(docID, pageString, params);
+			rl = new ResultLoader();
+			rl.start();
 		} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
 			logger.error(e.getMessage(), e);
 			DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessageToUser());
@@ -419,6 +420,9 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
+		if(jobs != null && jobs.size() != 0 && jobs.get(0).isFinished()) {
+			rl.setStopped();
+		}
 		Display.getDefault().asyncExec(() -> { 
 			AJobResultTableEntry<?> e = resultTable.getSelectedEntry();
 			if(resultTable != null && !resultTable.isDisposed()) {

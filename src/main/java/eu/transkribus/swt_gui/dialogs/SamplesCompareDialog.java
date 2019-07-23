@@ -22,6 +22,7 @@ import javax.ws.rs.ServerErrorException;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -484,13 +485,14 @@ public class SamplesCompareDialog extends Dialog {
 						msg += "Pages ignored for missing Hyp : " + deleteHypPageString + "\n";
 						msg += "Ref: " +params.getParameterValue("ref")+"\n";
 						msg += "Hyp: " +params.getParameterValue("hyp");
-						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null) {
+						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null && !StringUtils.isEmpty(newPageString)) {
 							int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
 							if (result == SWT.YES) {
 								try {
-									 TrpJobStatus status =  store.computeSampleRate(docId,params);
-									 TrpJobStatus statusCER = store.getConnection().computeErrorRateWithJob(docId, "1-"+docMd.getNrOfPages(), params);
-									
+									TrpJobStatus status =  store.computeSampleRate(docId,params);
+									TrpJobStatus statusCER = store.getConnection().computeErrorRateWithJob(docId, "1-"+docMd.getNrOfPages(), params);
+									rl = new ResultLoader();
+									rl.start();
 									if(status != null &&  status.isFinished()) {			
 										drawChartFromJobs();
 									}
@@ -506,7 +508,7 @@ public class SamplesCompareDialog extends Dialog {
 								}
 							}
 						}
-						else if("".equals(newPageString)) {
+						else if(StringUtils.isEmpty(newPageString)) {
 							DialogUtil.showErrorMessageBox(getShell(), "Error", "Selected pages have no GT version or hypothesis, please check the versions");
 						
 						}else {
@@ -528,9 +530,7 @@ public class SamplesCompareDialog extends Dialog {
 
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				if(rl != null && rl.isAlive()){
-					rl.setStopped();
-				}
+				
 				computeSampleBtn.setEnabled(true);
 				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 				Object o = selection.getFirstElement();
@@ -541,18 +541,23 @@ public class SamplesCompareDialog extends Dialog {
 					comboRef.setVisible(true);
 					labelHyp.setVisible(true);
 					comboHyp.setVisible(true);
-					comboHyp.deselectAll();
-					for(int i = 0; i < comboHyp.getItemCount();i++) {
-						comboHyp.remove(i);
-					}
-					
+//					comboHyp.deselectAll();
+//					int comboCount = comboHyp.getItemCount();
+//					if(comboCount != 0) {
+//						for(int i = 0; i < comboCount ;i++) {
+//							comboHyp.remove(i);
+//						}
+//					}
+					comboHyp.removeAll();
 					getShell().getDisplay().asyncExec(new Runnable() {
 						
 						@Override
 						public void run() {
 							List<TrpJobStatus> jobs = getSampleComputeJobs(docMd.getDocId());
 							updateResultTable(jobs);
+							
 							try {
+								drawChartFromJobs();
 								Object[] pageObjArr = contentProvComp.getChildren(docMd);
 								for (Object obj : pageObjArr) {
 									TrpPage page = (TrpPage) obj;
@@ -577,6 +582,8 @@ public class SamplesCompareDialog extends Dialog {
 								
 							} catch (ServerErrorException | IllegalArgumentException | ClientErrorException e) {
 								e.printStackTrace();
+							} catch (SessionExpiredException e) {
+								logger.error("Session Expired",e.getMessage());
 							}
 						}
 					});
@@ -798,6 +805,7 @@ public class SamplesCompareDialog extends Dialog {
 		Integer docId = docMd.getDocId();
 		List<TrpJobStatus> jobs = new ArrayList<>();
 		jobs = store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, "jobId", "asc");
+		
 		if(jobs == null || jobs.isEmpty()) {
 			chartText.setText("Upper bound : \n Lower bound : \n Mean : \n\nWith the probability of 95% the CER for the entire document will be in the interval [.. | .. ] with the mean : .. \n \nBy taking 4 times the number of lines the interval size can be cut in half");
 //			Date date = new Date();
@@ -806,6 +814,9 @@ public class SamplesCompareDialog extends Dialog {
 //			jFreeChartComp.setChart(chart);
 //			chart.fireChartChanged();
 		}else {
+			if(rl.isAlive() && jobs.get(0).isFinished()) {
+				rl.setStopped();
+			}
 			for(TrpJobStatus job : jobs) {
 				if(job.isFinished()) {
 					TrpProperties props = job.getJobDataProps();
@@ -942,9 +953,6 @@ public class SamplesCompareDialog extends Dialog {
 							try {
 								jobs = getSampleComputeJobs();
 								updateResultTable(jobs);
-								if(!jobs.get(0).isRunning()) {
-									rl.setStopped();
-								}
 							} catch (ServerErrorException | ClientErrorException
 									| IllegalArgumentException e) {
 								e.printStackTrace();

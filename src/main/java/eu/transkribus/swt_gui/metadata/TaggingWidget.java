@@ -421,6 +421,15 @@ public class TaggingWidget extends Composite {
 		return transcriptionTaggingWidget;
 	}
 	
+	public void updateVisibility(boolean setEnabled){
+		
+		enableTagEditorBtn.setEnabled(setEnabled);
+		searchTagsBtn.setEnabled(setEnabled);
+		applyPropertiesToAllSelectedBtn.setEnabled(setEnabled);
+		tagListWidget.tv.getTable().setEnabled(setEnabled);
+		
+	}
+	
 	public void jumpToNextTag(boolean previous) {
 		logger.trace("jumpToNextTag: previous="+previous);
 		
