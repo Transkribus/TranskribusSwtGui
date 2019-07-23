@@ -420,7 +420,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
-		if(jobs.get(0).isFinished()) {
+		if(jobs != null && jobs.size() != 0 && jobs.get(0).isFinished()) {
 			rl.setStopped();
 		}
 		Display.getDefault().asyncExec(() -> { 
