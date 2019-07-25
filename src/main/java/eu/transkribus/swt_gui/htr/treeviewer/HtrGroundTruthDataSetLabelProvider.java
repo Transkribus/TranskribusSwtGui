@@ -30,7 +30,7 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 	@Override
 	protected String getText(HtrGtDataSetElement element) {
 		final String text = super.getText(element);
-		List<HtrGtDataSet> includedBySetList = handler.getGtSetsFromSelectionIncludingElement(element);
+		List<HtrGtDataSet> includedBySetList = handler.getGtSetsFromSelectionIncludingElement(element, true);
 		if(includedBySetList.isEmpty()) {
 			return text;
 		} else {

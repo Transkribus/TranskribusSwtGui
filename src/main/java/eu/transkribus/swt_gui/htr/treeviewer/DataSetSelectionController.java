@@ -17,6 +17,7 @@ import javax.xml.bind.JAXBException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -37,14 +38,24 @@ import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.util.DescriptorUtils;
-import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.core.util.DescriptorUtils.GroundTruthDataSetDescriptor;
+import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.htr.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 
+/**
+ * Controller for the DataSetSelectionSashform widget.
+ * <br><br>
+ * TODO open issues:
+ * <br><br>
+ * - implicit inclusion of GT pages is not display in the tree on HTR and HtrGtDataSet level but only on page level. 
+ * 
+ * @author philip
+ *
+ */
 public class DataSetSelectionController {
 	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionController.class);
 	
@@ -78,24 +89,48 @@ public class DataSetSelectionController {
 	}
 	
 	public void addDocumentSelectionToTrainSet() {
-		addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), trainDocMap, testDocMap);
-		updateView();
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), trainDocMap, testDocMap);
+				updateView(infoLabelText);
+			}
+		};
+		BusyIndicator.showWhile(view.getDisplay(), r);	
 	}
 
 
 	public void addDocumentSelectionToValidationSet() {
-		addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), testDocMap, trainDocMap);
-		updateView();
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), testDocMap, trainDocMap);
+				updateView(infoLabelText);
+			}
+		};
+		BusyIndicator.showWhile(view.getDisplay(), r);	
 	}
 	
 	public void addGtSelectionToTrainSet() {
-		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), trainGtMap, testGtMap);
-		updateView(infoLabelText);
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), trainGtMap, testGtMap);
+				updateView(infoLabelText);
+			}
+		};
+		BusyIndicator.showWhile(view.getDisplay(), r);	
 	}
 	
 	public void addGtSelectionToValidationSet() {
-		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), testGtMap, trainGtMap);
-		updateView(infoLabelText);
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), testGtMap, trainGtMap);
+				updateView(infoLabelText);
+			}
+		};
+		BusyIndicator.showWhile(view.getDisplay(), r);	
 	}
 
 	public void removeSelectionFromTrainSet(List<IDataSelectionEntry<?, ?>> entries) {
@@ -145,7 +180,7 @@ public class DataSetSelectionController {
 		view.testSetOverviewTable.setInput(createTableEntries(testDocMap, testGtMap));
 		view.updateDocTvColors(trainDocMap, testDocMap);
 		view.updateGtTvColors(trainGtMap, testGtMap);
-		updateInfoLabel(infoLabelText);
+		view.updateInfoLabel(infoLabelText);
 		
 		if(SHOW_DEBUG_DIALOG) {
 			if(diag == null || diag.getShell() == null || diag.getShell().isDisposed()) {
@@ -179,9 +214,10 @@ public class DataSetSelectionController {
 	 * @param targetDataMap
 	 * @param nonIntersectingDataMap
 	 */
-	private void addDocumentSelectionToDataMap(IStructuredSelection selection,
+	protected String addDocumentSelectionToDataMap(IStructuredSelection selection,
 			Map<TrpDocMetadata, List<TrpPage>> targetDataMap, 
 			Map<TrpDocMetadata, List<TrpPage>> nonIntersectingDataMap) {
+		int nrOfItemsOmitted = 0;
 		Iterator<?> it = selection.iterator();
 		while (it.hasNext()) {
 			Object o = it.next();
@@ -189,9 +225,20 @@ public class DataSetSelectionController {
 				TrpDocMetadata docMd = (TrpDocMetadata) o;
 				TrpPage[] pageObjArr = ((CollectionContentProvider)view.docTv.getContentProvider()).getChildren(docMd);
 				
-				List<TrpPage> pagesToAdd = detectAndResolveConflicts(docMd, new ArrayList<>(Arrays.asList(pageObjArr)));
+				//remove overlap  with selection
+				logger.debug("Adding pages to selection: " + pageObjArr.length);
+				
+				//filter for elements that are not included via other selected GT sets
+				List<TrpPage> pageList = Arrays.stream(pageObjArr)
+						.filter(p -> !isPageInSelection(p))
+						.collect(Collectors.toList());
+				logger.debug("Filtered already included pages. Remaining: " + pageList.size());
+				nrOfItemsOmitted += pageObjArr.length - pageList.size();
+				
+				List<TrpPage> pagesToAdd = detectAndResolveConflicts(docMd, pageList);
 				if(pagesToAdd.isEmpty()) {
-					return;
+					nrOfItemsOmitted += pageObjArr.length;
+					continue;
 				}
 				
 				targetDataMap.put(docMd, pagesToAdd);
@@ -201,9 +248,17 @@ public class DataSetSelectionController {
 			} else if (o instanceof TrpPage) {
 				TrpPage p = (TrpPage) o;
 				TrpDocMetadata parent = (TrpDocMetadata) ((CollectionContentProvider)view.docTv.getContentProvider()).getParent(p);
+				
+				//omit if this page is already included
+				if(isPageInSelection(p)) {
+					nrOfItemsOmitted++;
+					continue;
+				}
+				
 				TrpPage pageToAdd = detectAndResolveConflicts(parent, p);
 				if(pageToAdd == null) {
-					return;
+					nrOfItemsOmitted++;
+					continue;
 				}
 				
 				if (targetDataMap.containsKey(parent) && !targetDataMap.get(parent).contains(p)) {
@@ -222,13 +277,12 @@ public class DataSetSelectionController {
 					}
 				}
 			}
-		}			
+		}
+		return getPageItemsOmittedMessage(nrOfItemsOmitted);
 	}
 
 	/**
 	 * Add selected items to the targetDataMap and remove them from the nonIntersectingDataMap if included.
-	 * 
-	 * TODO
 	 * 
 	 * @param selection
 	 * @param targetDataMap
@@ -258,14 +312,14 @@ public class DataSetSelectionController {
 				HtrGtDataSet parent = (HtrGtDataSet) ((HtrGroundTruthContentProvider)view.groundTruthTv.getContentProvider()).getParent(p);
 				
 				//check if Ground Truth entity with this ID is already in selection and omit automatically
-				if(!getGtSetsFromSelectionIncludingElement(p).isEmpty()) {
+				if(!getGtSetsFromSelectionIncludingElement(p, false).isEmpty()) {
 					//element already included via other set
 					nrOfItemsOmitted++;
 					continue;
 				}
 				
 				//if another entity, using the same image is already included in selection, ask user to resolve conflict
-				p = detectAndResolveImageConflicts(parent, p);
+				p = detectAndResolveConflicts(parent, p);
 				if(p == null) {
 					continue;
 				}
@@ -286,14 +340,21 @@ public class DataSetSelectionController {
 				}
 			}
 		}
-		return getItemsOmittedMessage(nrOfItemsOmitted);
+		return getGtItemsOmittedMessage(nrOfItemsOmitted);
 	}
 	
-	private String getItemsOmittedMessage(int nrOfItemsOmitted) {
+	private String getGtItemsOmittedMessage(int nrOfItemsOmitted) {
 		if(nrOfItemsOmitted < 1) {
 			return null; 
 		}
 		return nrOfItemsOmitted + " pages are already included by other data sets. Expand items for details.";
+	}
+	
+	private String getPageItemsOmittedMessage(int nrOfItemsOmitted) {
+		if(nrOfItemsOmitted < 1) {
+			return null; 
+		}
+		return nrOfItemsOmitted + " pages from selection are already included.";
 	}
 
 	private int addGtSetToDataMap(HtrGtDataSet htrGtDataSet,
@@ -305,11 +366,13 @@ public class DataSetSelectionController {
 			return 0;
 		}
 		final int gtSetSize = gtPageArr.length;
+		logger.debug("Adding gt pages to selection: " + gtSetSize);
 		
 		//filter for elements that are not included via other selected GT sets
 		List<HtrGtDataSetElement> gtPageList = Arrays.stream(gtPageArr)
-				.filter(e -> getGtSetsFromSelectionIncludingElement(e).isEmpty())
+				.filter(e -> getGtSetsFromSelectionIncludingElement(e, false).isEmpty())
 				.collect(Collectors.toList());
+		logger.debug("Filtered already included gt pages. Remaining: " + gtPageList.size());
 		
 		if(gtPageList.isEmpty()) {
 			//all GT entities already included
@@ -329,25 +392,104 @@ public class DataSetSelectionController {
 		return gtSetSize - gtPageList.size();
 	}
 	
-	public List<HtrGtDataSet> getGtSetsFromSelectionIncludingElement(HtrGtDataSetElement element) {
+	/**
+	 * Retrieve all HtrGtDataSets from train set and validation set selection tables that include the given HtrGtDataSetElement.
+	 * This is needed for detecting conflicts when adding new data to the selection (GT may be used in several models) and in 
+	 * the GroundTruthTreeViewer's label provider for showing implicit inclusion of GT pages.
+	 * 
+	 * @param element the HtrGtDataSetElement to search for
+	 * @param excludeOriginalSet if true then the result list will exclude the HtrGtDataSet where this element belongs to
+	 * @return
+	 */
+	public List<HtrGtDataSet> getGtSetsFromSelectionIncludingElement(HtrGtDataSetElement element, boolean excludeOriginalSet) {
 		List<HtrGtDataSet> includedBySetList = new ArrayList<>();
 		for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : getTrainGtMap().entrySet()) {
-			if(e.getValue().stream()
+			HtrGtDataSet gtSet = e.getKey();
+			List<HtrGtDataSetElement> gtPageList = e.getValue();
+			logger.debug("Check if gtId = " + element.getGroundTruthPage().getGtId() + " is included with train set selection in HTR '" 
+					+ gtSet.getHtr().getName() + "' " + gtSet.getDataSetType().getLabel());
+			
+			if(excludeOriginalSet && gtSet.equals(element.getParentHtrGtDataSet())) {
+				logger.debug("Skipping original gt set as excludeOriginalSet = true");
+				continue;
+			}
+			
+			for(HtrGtDataSetElement g : gtPageList) {
+				logger.trace(element.getGroundTruthPage().getGtId() + " <-> " + g.getGroundTruthPage().getGtId());
+				
+				if(g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId()) {
+					logger.debug("Element already in trainset: " + element.getGroundTruthPage().getGtId());
+					includedBySetList.add(e.getKey());
+					break;
+				}
+			}
+			/* use for loop with logging
+			if(gtPageList.stream()
 					.anyMatch(g -> g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId()) 
-					&& !e.getKey().equals(element.getParentHtrGtDataSet())) {
+					&& (excludeOriginalSet || !gtSet.equals(element.getParentHtrGtDataSet()))) {
+				logger.debug("Element already in trainset: " + element.getGroundTruthPage().getGtId());
 				includedBySetList.add(e.getKey());
 			}
+			*/
 		}
+		
 		for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : getTestGtMap().entrySet()) {
-			if(e.getValue().stream()
-					.anyMatch(g -> g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId()) 
-					&& !e.getKey().equals(element.getParentHtrGtDataSet())) {
+			HtrGtDataSet gtSet = e.getKey();
+			List<HtrGtDataSetElement> gtPageList = e.getValue();
+			logger.debug("Check if gtId  = " + element.getGroundTruthPage().getGtId() + " is included with validation set selection in '" 
+					+ gtSet.getHtr().getName() + "' " + gtSet.getDataSetType().getLabel());
+			
+			if(excludeOriginalSet && gtSet.equals(element.getParentHtrGtDataSet())) {
+				logger.debug("Skipping original gt set as excludeOriginalSet = true");
+				continue;
+			}
+			for(HtrGtDataSetElement g : gtPageList) {
+				logger.trace(element.getGroundTruthPage().getGtId() + " <-> " + g.getGroundTruthPage().getGtId());
+			
+				if(g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId()) {
+					logger.debug("Element already in validationset: " + element.getGroundTruthPage().getGtId());
+					includedBySetList.add(e.getKey());
+					break;
+				}
+			}
+			
+			/* use for loop with logging
+			if(gtPageList.stream()
+				.anyMatch(g -> g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId())) {
+				logger.debug("Element already in validationset: " + element.getGroundTruthPage().getGtId());
 				includedBySetList.add(e.getKey());
 			}
+			*/
 		}
 		return includedBySetList;
 	}
 	
+	private boolean isPageInSelection(TrpPage page) {
+		List<TrpPage> trainPages = trainDocMap.values().stream()
+				.flatMap(List::stream)
+				.collect(Collectors.toList());
+		if(trainPages.stream().anyMatch(p -> p.getPageId() == page.getPageId())) {
+			return true;
+		}
+	
+		List<TrpPage> testPages = testDocMap.values().stream()
+				.flatMap(List::stream)
+				.collect(Collectors.toList());
+		if(testPages.stream().anyMatch(p -> p.getPageId() == page.getPageId())) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Find implicit overlap by image IDs in data to be added to and data already in the selection.
+	 * User is asked how he wants to resolve any conflict.
+	 * 
+	 * @param docMd
+	 * @param page
+	 * @return
+	 */
 	private TrpPage detectAndResolveConflicts(TrpDocMetadata docMd, TrpPage page) {
 		List<TrpPage> pagesToAdd = detectAndResolveConflicts(docMd, Arrays.asList(new TrpPage[]{page}));
 		if(pagesToAdd.isEmpty()) {
@@ -356,6 +498,14 @@ public class DataSetSelectionController {
 		return pagesToAdd.get(0);
 	}
 	
+	/**
+	 * Find implicit overlap by image IDs in data to be added to and data already in the selection.
+	 * User is asked how he wants to resolve any conflict.
+	 * 
+	 * @param docMd
+	 * @param pageList
+	 * @return
+	 */
 	private List<TrpPage> detectAndResolveConflicts(TrpDocMetadata docMd, List<TrpPage> pageList) {
 		List<TrpPage> gtOverlapByImageId = findPageImageOverlapWithSelection(pageList);
 		if(gtOverlapByImageId.isEmpty()) {
@@ -376,7 +526,15 @@ public class DataSetSelectionController {
 		return pageList;
 	}
 	
-	private HtrGtDataSetElement detectAndResolveImageConflicts(HtrGtDataSet gtSet, HtrGtDataSetElement gt) {
+	/**
+	 * Find implicit overlap by image IDs in data to be added to and data already in the selection.
+	 * User is asked how he wants to resolve any conflict.
+	 * 
+	 * @param gtSet
+	 * @param gt
+	 * @return
+	 */
+	private HtrGtDataSetElement detectAndResolveConflicts(HtrGtDataSet gtSet, HtrGtDataSetElement gt) {
 		List<HtrGtDataSetElement> gtToAdd = detectAndResolveConflicts(gtSet, Arrays.asList(new HtrGtDataSetElement[]{gt}));
 		if(gtToAdd.isEmpty()) {
 			return null;
@@ -384,8 +542,16 @@ public class DataSetSelectionController {
 		return gtToAdd.get(0);
 	}
 	
+	/**
+	 * Find implicit overlap by image IDs in data to be added to and data already in the selection.
+	 * User is asked how he wants to resolve any conflict.
+	 * 
+	 * @param gtSet
+	 * @param gtList
+	 * @return
+	 */
 	private List<HtrGtDataSetElement> detectAndResolveConflicts(HtrGtDataSet gtSet, List<HtrGtDataSetElement> gtList) {
-		List<HtrGtDataSetElement> gtOverlapByImageId = findGtOverlapWithSelection(gtList);
+		List<HtrGtDataSetElement> gtOverlapByImageId = findGtImageOverlapWithSelection(gtList);
 		if(gtOverlapByImageId.isEmpty()) {
 			return gtList; //nothing to do
 		}
@@ -423,7 +589,7 @@ public class DataSetSelectionController {
 	 * @param pageList
 	 * @return the list of overlapping elements
 	 */
-	private List<HtrGtDataSetElement> findGtOverlapWithSelection(List<HtrGtDataSetElement> gtList) {
+	private List<HtrGtDataSetElement> findGtImageOverlapWithSelection(List<HtrGtDataSetElement> gtList) {
 		List<Integer> imageIds = getAllImageIdsInSelection();
 		//return overlap
 		return gtList.stream()
@@ -529,10 +695,10 @@ public class DataSetSelectionController {
 	}
 	
 	/**
-	 * TODO
+	 * Summarize the number of lines and words for the given data map.
 	 * 
-	 * @param map
-	 * @return
+	 * @param map with selected documents and pages respectively
+	 * @return a {@link DataSetMetadata} object with statistics
 	 */
 	private DataSetMetadata computeDataSetSize(Map<TrpDocMetadata, List<TrpPage>> map) {
 		final boolean useGt = view.getUseGtVersionChk().isEnabled() && view.getUseGtVersionChk().getSelection();
@@ -623,19 +789,6 @@ public class DataSetSelectionController {
 		}
 		view.updateThumbnail(thumbUrl);
 	}
-	
-	/**
-	 * TODO move to view
-	 * 
-	 * @param infoLabelText
-	 */
-	private void updateInfoLabel(String infoLabelText) {
-		if(infoLabelText == null) {
-			infoLabelText = "";
-		}
-		view.infoLbl.setText(infoLabelText);
-		view.infoLbl.requestLayout();
-	}
 
 	public void loadPageInMainWidget(TrpPage p) {
 		TrpLocation loc = new TrpLocation();
@@ -654,7 +807,7 @@ public class DataSetSelectionController {
 		List<DocumentSelectionDescriptor> trainDocDescs = DescriptorUtils.buildCompleteSelectionDescriptorList(getTrainDocMap(), status);
 		List<DocumentSelectionDescriptor> validationDocDescs = DescriptorUtils.buildCompleteSelectionDescriptorList(getTestDocMap(), status);
 		
-		//TODO
+		//build the GT descriptor
 		List<GroundTruthSelectionDescriptor> trainGtDescs = buildGtSelectionDescriptorList(getTrainGtMap());
 		List<GroundTruthSelectionDescriptor> validationGtDescs = buildGtSelectionDescriptorList(getTestGtMap());
 		
