@@ -89,48 +89,23 @@ public class DataSetSelectionController {
 	}
 	
 	public void addDocumentSelectionToTrainSet() {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), trainDocMap, testDocMap);
-				updateView(infoLabelText);
-			}
-		};
-		BusyIndicator.showWhile(view.getDisplay(), r);	
+		String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), trainDocMap, testDocMap);
+		updateView(infoLabelText);
 	}
 
-
 	public void addDocumentSelectionToValidationSet() {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), testDocMap, trainDocMap);
-				updateView(infoLabelText);
-			}
-		};
-		BusyIndicator.showWhile(view.getDisplay(), r);	
+		String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), testDocMap, trainDocMap);
+		updateView(infoLabelText);
 	}
 	
 	public void addGtSelectionToTrainSet() {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), trainGtMap, testGtMap);
-				updateView(infoLabelText);
-			}
-		};
-		BusyIndicator.showWhile(view.getDisplay(), r);	
+		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), trainGtMap, testGtMap);
+		updateView(infoLabelText);
 	}
 	
 	public void addGtSelectionToValidationSet() {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), testGtMap, trainGtMap);
-				updateView(infoLabelText);
-			}
-		};
-		BusyIndicator.showWhile(view.getDisplay(), r);	
+		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), testGtMap, trainGtMap);
+		updateView(infoLabelText);
 	}
 
 	public void removeSelectionFromTrainSet(List<IDataSelectionEntry<?, ?>> entries) {

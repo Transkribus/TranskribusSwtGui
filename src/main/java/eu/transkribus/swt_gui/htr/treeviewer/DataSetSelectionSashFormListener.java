@@ -32,15 +32,15 @@ import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGt
 
 public class DataSetSelectionSashFormListener {
 	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionSashFormListener.class);
-	
+
 	private final DataSetSelectionController controller;
 	private DataSetSelectionSashForm view;
 	private final IDoubleClickListener treeViewerDoubleClickListener;
 	private final ISelectionChangedListener treeViewerSelectionChangedListener;
-	
+
 	private DragSourceListener docTreeDragSourceListener, gtTreeDragSourceListener;
 	private DropTargetListener trainSetDropTargetListener, valSetDropTargetListener;
-	
+
 	DataSetSelectionSashFormListener(DataSetSelectionSashForm view, DataSetSelectionController controller) {
 		this.view = view;
 		this.controller = controller;
@@ -49,69 +49,96 @@ public class DataSetSelectionSashFormListener {
 		addListeners(view);
 		addDndSupport(view);
 	}
-	
-	private void  addDndSupport(DataSetSelectionSashForm view) {
-		trainSetDropTargetListener = new DataSetSelectionDropAdapter(view.trainSetOverviewTable.getTableViewer(), DataSetType.TRAIN);
-		valSetDropTargetListener = new DataSetSelectionDropAdapter(view.testSetOverviewTable.getTableViewer(), DataSetType.VALIDATION);
+
+	private void addDndSupport(DataSetSelectionSashForm view) {
+		trainSetDropTargetListener = new DataSetSelectionDropAdapter(view.trainSetOverviewTable.getTableViewer(),
+				DataSetType.TRAIN);
+		valSetDropTargetListener = new DataSetSelectionDropAdapter(view.testSetOverviewTable.getTableViewer(),
+				DataSetType.VALIDATION);
 		docTreeDragSourceListener = new DataTreeDragSourceListener(view.docTv);
 		gtTreeDragSourceListener = new DataTreeDragSourceListener(view.groundTruthTv);
-		
+
 		final int operations = DND.DROP_MOVE;// | DND.DROP_COPY | DND.DROP_LINK;
 		Transfer[] transferTypes = new Transfer[] { LocalSelectionTransfer.getTransfer() };
-		
+
 		view.docTv.addDragSupport(operations, transferTypes, docTreeDragSourceListener);
 		view.groundTruthTv.addDragSupport(operations, transferTypes, gtTreeDragSourceListener);
 
-		view.trainSetOverviewTable.getTableViewer().addDropSupport(operations, transferTypes, trainSetDropTargetListener);
+		view.trainSetOverviewTable.getTableViewer().addDropSupport(operations, transferTypes,
+				trainSetDropTargetListener);
 		view.testSetOverviewTable.getTableViewer().addDropSupport(operations, transferTypes, valSetDropTargetListener);
 	}
-	
+
 	private void addListeners(DataSetSelectionSashForm view) {
 		view.docTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
 		view.docTv.addDoubleClickListener(treeViewerDoubleClickListener);
-		
+
 		view.groundTruthTv.addSelectionChangedListener(treeViewerSelectionChangedListener);
 		view.groundTruthTv.addDoubleClickListener(treeViewerDoubleClickListener);
-		
+
 		view.addToTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(view.isDocumentsTabActive()) {
-					controller.addDocumentSelectionToTrainSet();
-				} else if (view.isGtTabActive()) {
-					controller.addGtSelectionToTrainSet();
-				}
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						if (view.isDocumentsTabActive()) {
+							controller.addDocumentSelectionToTrainSet();
+						} else if (view.isGtTabActive()) {
+							controller.addGtSelectionToTrainSet();
+						}
+					}
+				};
+				BusyIndicator.showWhile(view.getDisplay(), r);
 			}
 		});
 
 		view.addToTestSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(view.isDocumentsTabActive()) {
-					controller.addDocumentSelectionToValidationSet();
-				} else if (view.isGtTabActive()) {
-					controller.addGtSelectionToValidationSet();
-				}
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						if (view.isDocumentsTabActive()) {
+							controller.addDocumentSelectionToValidationSet();
+						} else if (view.isGtTabActive()) {
+							controller.addGtSelectionToValidationSet();
+						}
+					}
+				};
+				BusyIndicator.showWhile(view.getDisplay(), r);
 			}
 		});
 
 		view.removeFromTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<IDataSelectionEntry<?, ?>> entries = view.trainSetOverviewTable.getSelectedDataSets();
-				controller.removeSelectionFromTrainSet(entries);
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						List<IDataSelectionEntry<?, ?>> entries = view.trainSetOverviewTable.getSelectedDataSets();
+						controller.removeSelectionFromTrainSet(entries);
+					}
+				};
+				BusyIndicator.showWhile(view.getDisplay(), r);
 			}
 		});
 
 		view.removeFromTestSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				List<IDataSelectionEntry<?, ?>> entries = view.testSetOverviewTable.getSelectedDataSets();
-				controller.removeSelectionFromTestSet(entries);
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						List<IDataSelectionEntry<?, ?>> entries = view.testSetOverviewTable.getSelectedDataSets();
+						controller.removeSelectionFromTestSet(entries);
+					}
+				};
+				BusyIndicator.showWhile(view.getDisplay(), r);
 			}
 		});
 	}
-	
+
 	/**
 	 * Updates thumbnail image on selection change
 	 *
@@ -123,9 +150,10 @@ public class DataSetSelectionSashFormListener {
 			controller.updateThumbnail(selection);
 		}
 	};
-	
+
 	/**
-	 * Expands items that have children on double click. Leaf elements are displayed.
+	 * Expands items that have children on double click. Leaf elements are
+	 * displayed.
 	 *
 	 */
 	public class TreeViewerDoubleClickListener implements IDoubleClickListener {
@@ -138,7 +166,7 @@ public class DataSetSelectionSashFormListener {
 					if (o instanceof TrpDocMetadata) {
 						expandTreeItem(o, view.docTv);
 					} else if (o instanceof TrpPage) {
-						controller.loadPageInMainWidget((TrpPage)o);
+						controller.loadPageInMainWidget((TrpPage) o);
 					} else if (o instanceof TrpHtr || o instanceof HtrGtDataSet) {
 						expandTreeItem(o, view.groundTruthTv);
 					}
@@ -146,12 +174,13 @@ public class DataSetSelectionSashFormListener {
 			};
 			BusyIndicator.showWhile(view.getDisplay(), r);
 		}
+
 		private void expandTreeItem(Object o, TreeViewer tv) {
 			Runnable r = new Runnable() {
 				@Override
 				public void run() {
 					final ITreeContentProvider provider = (ITreeContentProvider) tv.getContentProvider();
-					if(!provider.hasChildren(o)) {
+					if (!provider.hasChildren(o)) {
 						return;
 					}
 					if (tv.getExpandedState(o)) {
@@ -164,23 +193,23 @@ public class DataSetSelectionSashFormListener {
 			BusyIndicator.showWhile(view.getDisplay(), r);
 		}
 	}
-	
+
 	class DataTreeDragSourceListener implements DragSourceListener {
-		
+
 		private final TreeViewer treeViewer;
-		
+
 		public DataTreeDragSourceListener(TreeViewer dataTreeViewer) {
 			this.treeViewer = dataTreeViewer;
 		}
-		
-		@Override 
+
+		@Override
 		public void dragStart(DragSourceEvent event) {
 			logger.debug("DragStart: " + event);
-			//the controller will retrieve the selection in the end.
+			// the controller will retrieve the selection in the end.
 			LocalSelectionTransfer.getTransfer().setSelection(treeViewer.getSelection());
 		}
-		
-		@Override 
+
+		@Override
 		public void dragSetData(DragSourceEvent event) {
 			logger.debug("DragSetData: " + event);
 			event.data = (IStructuredSelection) treeViewer.getSelection();
@@ -188,12 +217,13 @@ public class DataSetSelectionSashFormListener {
 
 		@Override
 		public void dragFinished(DragSourceEvent event) {
-			logger.debug("DragFinished: " + event);	
+			logger.debug("DragFinished: " + event);
 		}
 	}
-	
+
 	class DataSetSelectionDropAdapter implements DropTargetListener {
-		private DataSetType setType;		
+		private DataSetType setType;
+
 		protected DataSetSelectionDropAdapter(Viewer viewer, DataSetType setType) {
 			this.setType = setType;
 		}
@@ -201,36 +231,42 @@ public class DataSetSelectionSashFormListener {
 		@Override
 		public void drop(DropTargetEvent event) {
 			logger.debug("Dropping on " + setType + ": " + event);
-			if(view.isDocumentsTabActive()) {
-				addDocumentSelectionToSet();
-			} else if (view.isGtTabActive()) {
-				addGtSelectionToSet();
-			}
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					if (view.isDocumentsTabActive()) {
+						addDocumentSelectionToSet();
+					} else if (view.isGtTabActive()) {
+						addGtSelectionToSet();
+					}
+				}
+			};
+			BusyIndicator.showWhile(view.getDisplay(), r);
 		}
-		
+
 		private void addDocumentSelectionToSet() {
-			switch(setType) {
-				case TRAIN:
-					controller.addDocumentSelectionToTrainSet();
-					break;
-				case VALIDATION:
-					controller.addDocumentSelectionToValidationSet();
-					break;
-				default:
-					break;
+			switch (setType) {
+			case TRAIN:
+				controller.addDocumentSelectionToTrainSet();
+				break;
+			case VALIDATION:
+				controller.addDocumentSelectionToValidationSet();
+				break;
+			default:
+				break;
 			}
 		}
-		
+
 		private void addGtSelectionToSet() {
-			switch(setType) {
-				case TRAIN:
-					controller.addGtSelectionToTrainSet();
-					break;
-				case VALIDATION:
-					controller.addGtSelectionToValidationSet();
-					break;
-				default:
-					break;
+			switch (setType) {
+			case TRAIN:
+				controller.addGtSelectionToTrainSet();
+				break;
+			case VALIDATION:
+				controller.addGtSelectionToValidationSet();
+				break;
+			default:
+				break;
 			}
 		}
 
@@ -257,7 +293,7 @@ public class DataSetSelectionSashFormListener {
 		@Override
 		public void dropAccept(DropTargetEvent event) {
 			logger.debug("DropAccept: " + event);
-			//in some cases we want to block the drop action. set event.detail = DND.DROP_NONE to do this
+			// in some cases we want to block the drop action. set event.detail = DND.DROP_NONE to do this
 //			event.detail = DND.DROP_NONE;
 		}
 	}
