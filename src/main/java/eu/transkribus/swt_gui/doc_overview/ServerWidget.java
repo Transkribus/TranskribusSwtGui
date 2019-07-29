@@ -228,7 +228,8 @@ public class ServerWidget extends Composite {
 //		userControls.add(manageCollectionsBtn);
 	
 		recentDocsComboViewerWidget = new RecentDocsComboViewerWidget(btns1, 0);
-		recentDocsComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+//		recentDocsComboViewerWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		recentDocsComboViewerWidget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		userControls.add(recentDocsComboViewerWidget);
 		
 		showActivityWidgetBtn = new Button(btns1, SWT.PUSH);
