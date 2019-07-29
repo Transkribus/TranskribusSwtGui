@@ -237,11 +237,15 @@ public class ServerWidget extends Composite {
 		showActivityWidgetBtn.setText("User activity");
 		userControls.add(showActivityWidgetBtn);
 		
-		Label collectionsLabel = new Label(container, 0);
+		Composite collsCont = new Composite(container, 0);
+		collsCont.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		collsCont.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		
+		Label collectionsLabel = new Label(collsCont, 0);
 		collectionsLabel.setText("Collections:");
 		Fonts.setBoldFont(collectionsLabel);
 		
-		collectionSelectorWidget = new CollectionSelectorWidget(container, 0, false, null);
+		collectionSelectorWidget = new CollectionSelectorWidget(collsCont, 0, false, null);
 		collectionSelectorWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		
 		if (false) {
@@ -376,6 +380,7 @@ public class ServerWidget extends Composite {
 //		groundTruthTv = createGroundTruthTreeViewer(tabFolder);
 		groundTruthTreeWidget = createGroundTruthTreeWidget(tabFolder);
 //		groundTruthTv = groundTruthTreeWidget.getTreeViewer();
+		SWTUtil.setTabFolderBoldOnItemSelection(tabFolder);
 		
 		initDocOverviewMenu();
 		
