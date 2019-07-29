@@ -1622,7 +1622,7 @@ public class Storage {
 	 * @throws NullValueException
 	 * @throws JAXBException
 	 * 
-	 * @deprecated use generic method {@link #syncFilesWithDoc(List, CheckedConsumer, String, IProgressMonitor)}
+	 * @deprecated old and outdated; use generic method {@link #syncFilesWithDoc(List, CheckedConsumer, String, IProgressMonitor)}
 	 */
 	public void syncDocPages(List<TrpPage> pages, List<Boolean> checked, IProgressMonitor monitor) 
 			throws IOException, SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException, NullValueException, JAXBException {
@@ -1705,54 +1705,6 @@ public class Storage {
 			if (monitor != null)
 				monitor.worked(++worked);
 		}
-	}
-	
-	/**
-	 * @deprecated use generic method {@link #syncFilesWithDoc(List, CheckedConsumer, String, IProgressMonitor)}
-	 */
-	public List<Pair<TrpPage, File>> syncTxtFilesWithDoc(List<Pair<TrpPage, File>> matches, boolean useExistingLayout, IProgressMonitor monitor) throws NoConnectionException {
-		if (isRemoteDoc()) {
-			checkConnection(true);
-		}
-
-		MonitorUtil.beginTask(monitor, "Applying txt files to document", matches.size());
-		
-		int worked=0;
-		List<Pair<TrpPage, File>> errors = new ArrayList<>();
-		for (Pair<TrpPage, File> match : matches) {
-			try {
-				MonitorUtil.subTask(monitor, "Syncing "+(worked+1)+" / "+matches.size()+": "+match.getRight().getName());
-				
-				TrpPage p = match.getLeft();
-				File f = match.getRight();
-				
-				logger.debug((worked+1)+"/"+matches.size()+" Matching file '"+f.getAbsolutePath()+"' to page: "+p);
-				
-				if (p.isLocalFile()) {
-					String text = LocalDocReader.readTextFromFile(f);
-					PcGtsType pcGtsType = PageXmlUtils.unmarshal(p.getCurrentTranscript().getFile());
-					PageXmlUtils.applyTextToLines((TrpPageType) pcGtsType.getPage(), text);
-					PageXmlUtils.marshalToFile(pcGtsType, p.getCurrentTranscript().getFile());
-				} else {
-					String text = LocalDocReader.readTextFromFile(f);
-					conn.assignPlainTextToPage(getCurrentDocumentCollectionId(), p.getDocId(), p.getPageNr(), EditStatus.IN_PROGRESS, 
-							text, p.getPageId(), useExistingLayout);
-				}
-			}
-			catch (Exception e) {
-				logger.error("Could not match file: "+e.getMessage(), e);
-				errors.add(match);
-			}
-			finally {
-				if (MonitorUtil.isCanceled(monitor)) {
-					return null;
-				}
-				
-				MonitorUtil.worked(monitor, ++worked);
-			}
-		}
-		return errors;
-		
 	}
 	
 	public List<Pair<TrpPage, File>> syncFilesWithDoc(List<Pair<TrpPage, File>> matches, CheckedConsumer<Pair<TrpPage,File>> c, String typeOfFiles, IProgressMonitor monitor) throws NoConnectionException {
