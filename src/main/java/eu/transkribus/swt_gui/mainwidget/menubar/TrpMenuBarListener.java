@@ -73,9 +73,10 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		SWTUtil.onSelectionEvent(mb.exportItem, (e) -> { mw.unifiedExport(); });
 		
-		SWTUtil.onSelectionEvent(mb.syncXmlItem, (e) -> {mw.syncWithLocalDoc();} );
+		SWTUtil.onSelectionEvent(mb.syncXmlItem, (e) -> {mw.getDocSyncController().syncPAGEFilesWithLoadedDoc();} );
 		
-		SWTUtil.onSelectionEvent(mb.syncTextItem, (e) -> {mw.syncWithLocalDoc();} );
+//		SWTUtil.onSelectionEvent(mb.syncTextItem, (e) -> {mw.getDocSyncController().syncWithLocalDoc();} );
+		SWTUtil.onSelectionEvent(mb.syncTextItem, (e) -> {mw.getDocSyncController().syncTxtFilesWithLoadedDoc();} );
 
 		SWTUtil.onSelectionEvent(mb.syncWordsWithLinesMenuItem, (e) -> { mw.syncTextOfDocFromWordsToLinesAndRegions(); });
 		

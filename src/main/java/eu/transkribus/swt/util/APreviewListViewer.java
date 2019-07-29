@@ -1,7 +1,7 @@
 package eu.transkribus.swt.util;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,21 +12,18 @@ import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -38,64 +35,51 @@ import eu.transkribus.swt.mytableviewer.MyTableViewer;
 public abstract class APreviewListViewer<T> extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(ImgUrlListViewer.class);
 	
-	MyTableViewer tv;
-	Label imgLabel;
-	Label titleLabel;
+	protected MyTableViewer tv;
+//	protected Label imgLabel;
+	protected Control previewControl;
+	protected Label titleLabel;
 	
-	List<T> dataList;
-	Button upBtn, downBtn;
-	Composite tableContainer;
-	Button showPreviewBtn;
-	SashForm sf;
-	
-	Image selectedImage = null;
+	protected List<T> dataList;
+	protected Button upBtn, downBtn, sortBtn;
+	protected Composite tableContainer;
+	protected Composite previewContainer;
+	protected Button showPreviewBtn;
+	protected SashForm sf;
 	
 	protected boolean showUpDownBtns;
 	protected boolean withCheckboxes;
-	protected boolean renderOriginalImages;
-	protected boolean showPreviewImage;
+	protected boolean showPreview;
+
+	protected List<PreviewListViewerListener> listener = new ArrayList<>();
+	protected Comparator<T> comparator = null;
+	
+	public interface PreviewListViewerListener {
+		void sortingChanged();
+		void checkStatesChanged();
+	}
 		
-	public APreviewListViewer(Composite parent, int style, ColumnConfig[] columns, ITableLabelProvider labelProvider, boolean showUpDownBtns, boolean withCheckboxes, boolean renderOriginalImages) {
-		this(parent, style, columns, labelProvider, showUpDownBtns, withCheckboxes, renderOriginalImages, true);
+	public APreviewListViewer(Composite parent, int style, ColumnConfig[] columns, ITableLabelProvider labelProvider, boolean showUpDownBtns, boolean withCheckboxes) {
+		this(parent, style, columns, labelProvider, showUpDownBtns, withCheckboxes, true);
 	}
 
-	public APreviewListViewer(Composite parent, int style, ColumnConfig[] columns, ITableLabelProvider labelProvider, boolean showUpDownBtns, boolean withCheckboxes, boolean renderOriginalImages, boolean showPreviewImage) {
+	public APreviewListViewer(Composite parent, int style, ColumnConfig[] columns, ITableLabelProvider labelProvider, boolean showUpDownBtns, boolean withCheckboxes, boolean showPreview) {
 		super(parent, style);
 		this.setLayout(new GridLayout(1, false));
 		
 		this.showUpDownBtns = showUpDownBtns;
 		this.withCheckboxes = withCheckboxes;
-		this.renderOriginalImages = renderOriginalImages;
-		this.showPreviewImage = showPreviewImage;
+		this.showPreview = showPreview;
 		
 		boolean hasBtns = showUpDownBtns || withCheckboxes;
 		
 		int tableStyle = SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION;
-		if (withCheckboxes)
+		if (withCheckboxes) {
 			tableStyle |= SWT.CHECK;
+		}
 		
 		titleLabel = new Label(SWTUtil.dummyShell, 0);
 		titleLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
-		
-		if (this.showPreviewImage) {
-			showPreviewBtn = new Button(this, SWT.CHECK);
-			showPreviewBtn.setText("Show preview");
-			showPreviewBtn.setSelection(true);
-			showPreviewBtn.addSelectionListener(new SelectionListener() {
-				
-				@Override
-				public void widgetSelected(SelectionEvent event) {
-					// TODO Auto-generated method stub
-					togglePreview(showPreviewBtn.getSelection());
-				}
-				
-				@Override
-				public void widgetDefaultSelected(SelectionEvent arg0) {
-					// TODO Auto-generated method stub
-					togglePreview(showPreviewBtn.getSelection());
-				}
-			});
-		}
 		
 		sf = new SashForm(this, SWT.VERTICAL);
 		sf.setLayout(new GridLayout(1, false));
@@ -111,14 +95,41 @@ public abstract class APreviewListViewer<T> extends Composite {
 		tv.getTable().setHeaderVisible(true);
 		tv.setContentProvider(new ArrayContentProvider());
 		
-		tv.setLabelProvider(labelProvider);
+		if (labelProvider!=null) {
+			tv.setLabelProvider(labelProvider);
+		}
 		
 		tv.addColumns(columns);
 		tv.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {
-				reloadImageForSelection();
+				reloadPreviewForSelection();
 			}
 		});
+		
+		if (withCheckboxes) {
+			tv.getTable().addListener(SWT.Selection, (e) -> {      
+			    if (e.detail == SWT.CHECK) {
+			    	onCheckStatesChanged();
+			    }
+			});
+		}
+		
+		// makes sure that sorting the table via the column buttons does not clear checkboxes and sends events:
+		for (int i=0; i<tv.getTable().getColumnCount(); ++i) {
+			TableColumn tc = tv.getTable().getColumn(i);
+			Listener[] listener = tc.getListeners(SWT.Selection);
+			logger.debug("got "+listener.length+" selection listener");
+			for (Listener l : listener) {
+				tc.removeListener(SWT.Selection, l);
+				
+				tc.addListener(SWT.Selection, event -> {
+						preserveSelection(() -> {
+							l.handleEvent(event);
+						});
+						onSortingChanged();
+					});
+			}
+		}		
 		
 		if (hasBtns) {
 			Composite btns = new Composite(tableContainer, 0);
@@ -153,6 +164,14 @@ public abstract class APreviewListViewer<T> extends Composite {
 				downBtn.setImage(Images.ARROW_DOWN);
 				upBtn.setToolTipText("Move page down");
 				
+				// not really required, since sorting can be done via column buttons
+//				sortBtn = new Button(btns, SWT.PUSH);
+//				sortBtn.setImage(Images.TABLE_SORT);
+//				sortBtn.setToolTipText("Sort according to filename");
+//				SWTUtil.onSelectionEvent(sortBtn, e -> {
+//					sortDataList();
+//				});
+				
 				SelectionAdapter upDownSelLis = new SelectionAdapter() {
 					@Override public void widgetSelected(SelectionEvent event) {
 						T url = getFirstSelected();
@@ -179,6 +198,8 @@ public abstract class APreviewListViewer<T> extends Composite {
 						
 						tv.getTable().getItem(index).setChecked(c2);
 						tv.getTable().getItem(iSwap).setChecked(c1);
+						
+						onSortingChanged();
 					}
 				};
 				
@@ -188,40 +209,57 @@ public abstract class APreviewListViewer<T> extends Composite {
 			
 		}
 		
-		if (this.showPreviewImage) {
-			imgLabel = new Label(sf, SWT.BORDER);
-			GridData gd = new GridData(SWT.CENTER, SWT.BOTTOM, true, false, 1, 1);
-			gd.widthHint = 120;
-			gd.heightHint = 180;
-			imgLabel.setLayoutData(gd);
-			imgLabel.addPaintListener(new PaintListener() {
-				@Override public void paintControl(PaintEvent e) {
-					if (selectedImage != null && !selectedImage.isDisposed()) {
-						e.gc.setInterpolation(SWT.HIGH);
-						
-						int srcWidth = selectedImage.getImageData().width;
-						int srcHeight = selectedImage.getImageData().height;
-						
-						double sf = (double) imgLabel.getSize().y / (double) srcHeight;
-						int destWidth = (int)(sf * srcWidth);
-						e.gc.drawImage(selectedImage, 0, 0, srcWidth, srcHeight, 0, 0, destWidth, imgLabel.getSize().y);
-					} else {
-						e.gc.drawImage(Images.LOCK, 0, 0);
-						e.gc.drawText("No image selected", 0, 0);
-					}
+		if (this.showPreview) {
+			showPreviewBtn = new Button(tableContainer, SWT.CHECK);
+			showPreviewBtn.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false, 2, 1));
+			showPreviewBtn.setText("Show preview");
+			showPreviewBtn.setSelection(true);
+			showPreviewBtn.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent event) {
+					togglePreview(showPreviewBtn.getSelection());
 				}
+				
+//				@Override
+//				public void widgetDefaultSelected(SelectionEvent arg0) {
+//					togglePreview(showPreviewBtn.getSelection());
+//				}
 			});
+			
+			previewContainer = new Composite(sf, 0);
+			previewContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));			
+			previewControl = createPreviewArea(previewContainer);
+
 			sf.setWeights(new int[] { 2, 1} );
 		}
-		
-		this.addDisposeListener(new DisposeListener() {
-			@Override public void widgetDisposed(DisposeEvent e) {
-				SWTUtil.dispose(selectedImage);
-			}
-		});
 	}
 	
-	T getFirstSelected() {
+	abstract protected Control createPreviewArea(Composite previewContainer);
+	
+	abstract protected void reloadPreviewForSelection();
+	
+	/**
+	 * Performs an operation, specified as a Runnable, preserving the original check states
+	 */
+	protected void preserveSelection(Runnable r) {
+		List<T> checked = getCheckedDataList();
+		r.run();
+		setCheckedElements(checked);
+	}
+	
+	public void setComparator(Comparator<T> comparator) {
+		this.comparator = comparator;
+	}
+	
+	protected void sortDataList() {
+		preserveSelection(() -> {
+			dataList.sort(comparator);
+			tv.refresh(false, true);
+			onSortingChanged();
+		});
+	}
+
+	public T getFirstSelected() {
 		IStructuredSelection sel = (IStructuredSelection) tv.getSelection();
 		if (sel.isEmpty())
 			return null;
@@ -229,36 +267,32 @@ public abstract class APreviewListViewer<T> extends Composite {
 			return (T) sel.getFirstElement();
 	}
 	
-	protected abstract Image loadImageForData(T data) throws IOException;
-		
-	void reloadImageForSelection() {
-		if ( !showPreviewImage || !showPreviewBtn.getSelection() ) {
-			selectedImage = Images.ERROR_IMG;
-			if(imgLabel != null) {
-				imgLabel.redraw();
-			}
-			return;
+	protected void onSortingChanged() {
+		logger.debug("onSortingChanged");
+		for (PreviewListViewerListener l : listener) {
+			l.sortingChanged();
 		}
-		T selected = getFirstSelected();
-		logger.debug("reloading image for element: "+selected);
-		// this line caused errors when the dialog was called more than once, so omit!
-		// SWTUtil.dispose(selectedImage);
-		selectedImage = null;
-		if (selected == null && dataList != null && dataList.size() > 0) {
-			//if no page is selected in GUI show the first page on canvas
-			selected = dataList.get(0);
+	}
+	
+	protected void onCheckStatesChanged() {
+		logger.debug("onCheckStatesChanged");
+		for (PreviewListViewerListener l : listener) {
+			l.checkStatesChanged();
 		}
-		
-		try {
-			Image img = loadImageForData(selected);
-			selectedImage = img;
-		} catch (IOException e) {
-			selectedImage = Images.ERROR_IMG;
+	}	
+	
+	public void addListener(PreviewListViewerListener l) {
+		if (!listener.contains(l)) {
+			listener.add(l);
 		}
-		
-		if (imgLabel != null) {
-			imgLabel.redraw();
-		}
+	}
+	
+	public boolean removeListener(PreviewListViewerListener l) {
+		return listener.remove(l);
+	}
+	
+	public void setLabelProvider(ITableLabelProvider labelProvider) {
+		tv.setLabelProvider(labelProvider);
 	}
 	
 //	void reloadSelectedImage() {
@@ -296,6 +330,10 @@ public abstract class APreviewListViewer<T> extends Composite {
 		layout();
 	}
 	
+	public Label getTitleLabel() {
+		return titleLabel;
+	}
+	
 	public void setDataList(List<T> dataList) {
 		Assert.assertNotNull("dataList cannot be null!", dataList);
 		
@@ -306,6 +344,10 @@ public abstract class APreviewListViewer<T> extends Composite {
 	public List<T> getDataList() {
 		return dataList;
 	}
+	
+	public int indexOf(T data) {
+		return dataList==null ? -1 : dataList.indexOf(data);
+	}
 		
 	void reloadList(boolean initCheckState) {
 		tv.setInput(dataList);
@@ -313,13 +355,15 @@ public abstract class APreviewListViewer<T> extends Composite {
 		if (initCheckState)
 			selectAll(true);
 				
-		reloadImageForSelection();
+		reloadPreviewForSelection();
 	}
 	
 	void selectAll(boolean checked) {
 		for (TableItem ti : tv.getTable().getItems()) {
 			ti.setChecked(checked);
 		}
+		
+		onCheckStatesChanged();
 	}
 	
 	public void selectFromList(List<Integer> checked) {
@@ -353,13 +397,27 @@ public abstract class APreviewListViewer<T> extends Composite {
 		
 		return checked;
 	}
+	
+	public void setCheckedElements(List<T> checked) {
+		for (TableItem ti : tv.getTable().getItems()) {
+			ti.setChecked(checked.contains((T) ti.getData()));
+		}
+	}	
 
 	public void togglePreview(boolean newState) {
 		showPreviewBtn.setSelection(newState);
-		if (!newState && imgLabel != null) {
-			selectedImage = null;
+		reloadPreviewForSelection();
+		
+		if (!showPreviewBtn.getSelection()) {
+			previewControl.setParent(SWTUtil.dummyShell);
+			previewContainer.layout();
+			sf.setWeights(new int[] { 1, 0} );
 		}
-		reloadImageForSelection();
+		else {
+			previewControl.setParent(previewContainer);
+			previewControl.moveBelow(showPreviewBtn);
+			sf.setWeights(new int[] { 2, 1} );
+		}
 	}
 }
 

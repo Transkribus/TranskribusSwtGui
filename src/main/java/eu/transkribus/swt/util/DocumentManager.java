@@ -474,9 +474,6 @@ public class DocumentManager extends Dialog {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (NullValueException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 
 		updateColors();
@@ -1106,8 +1103,7 @@ public class DocumentManager extends Dialog {
 				mw.addSeveralPages2Doc();
 				try {
 					Storage.getInstance().reloadCurrentDocument(colId);
-				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException
-						| NullValueException e) {
+				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -1120,14 +1116,12 @@ public class DocumentManager extends Dialog {
 
 		MenuItem syncDoc = new MenuItem(contextMenu, SWT.NONE);
 		syncDoc.setText("Add local transcriptions");
-		syncDoc.setToolTipText("Add several transcriptions for this document, names must correspond to the filenames!");
+		syncDoc.setToolTipText("Add local transcriptions for this document");
 		syncDoc.addListener(SWT.Selection, new Listener() {
-
 			@Override
 			public void handleEvent(Event event) {
-				mw.syncWithLocalDoc();
+				mw.getDocSyncController().syncPAGEFilesWithLoadedDoc();
 			}
-
 		});
 		
 		MenuItem moveBack = new MenuItem(contextMenu, SWT.NONE);
@@ -1228,8 +1222,7 @@ public class DocumentManager extends Dialog {
 						// tv.setDoc(Storage.getInstance().getDoc(), false);
 						reload();
 						mw.getUi().getThumbnailWidget().reload();
-					} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException
-							| NullValueException e) {
+					} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e) {
 						e.printStackTrace();
 					}
 
@@ -1317,8 +1310,7 @@ public class DocumentManager extends Dialog {
 							mw.getUi().getThumbnailWidget().reload();
 							tv.getTree().redraw();
 						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-								| IllegalArgumentException | NoConnectionException | IOException
-								| NullValueException e) {
+								| IllegalArgumentException | NoConnectionException | IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
