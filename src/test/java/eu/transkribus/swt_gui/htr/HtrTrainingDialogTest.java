@@ -20,6 +20,8 @@ public class HtrTrainingDialogTest {
 		
 		boolean showGtData = true;
 		
+		boolean displayJsonDescriptorOnChange = false;
+		
 		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, args[0], args[1], 575) {
 			@Override
 			protected void createTestContents(Composite parent) throws Exception {
@@ -32,7 +34,7 @@ public class HtrTrainingDialogTest {
 						);
 				
 				//show/update debug dialog with JSON descriptor on each change in data set
-				htd.enableDebugDialog(true);
+				htd.enableDebugDialog(displayJsonDescriptorOnChange);
 				
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
