@@ -410,8 +410,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 				mw.addSeveralPages2Doc();
 				try {
 					Storage.getInstance().reloadCurrentDocument(tw.getDoc().getCollection().getColId());
-				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException
-						| NullValueException e) {
+				} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -440,8 +439,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 						tw.setDoc(Storage.getInstance().getDoc(), false);
 						reload();
 						mw.getUi().getThumbnailWidget().reload();
-					} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException
-							| NullValueException e) {
+					} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException | IOException e) {
 						e.printStackTrace();
 					}
 					
@@ -543,8 +541,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 							mw.getUi().getThumbnailWidget().reload();		    		
 							tw.getGallery().redraw();
 						} catch (SessionExpiredException | ServerErrorException | ClientErrorException
-								| IllegalArgumentException | NoConnectionException | IOException
-								| NullValueException e) {
+								| IllegalArgumentException | NoConnectionException | IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
@@ -665,9 +662,6 @@ public class ThumbnailManagerVirtual extends Dialog{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (NullValueException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

@@ -74,7 +74,7 @@ public class DocSyncDialog extends Dialog {
 		targetViewer.setDataList(target.getPages());
 		targetViewer.setTitle("Target: "+target.getMd().getTitle());
 		
-		sourceViewer = new DocPageViewer(sf, 0, false, true, false,false);
+		sourceViewer = new DocPageViewer(sf, 0, false, true, false,false, true);
 		sourceViewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		sourceViewer.setDataList(source.getPages());
 		sourceViewer.setTitle("Source: "+source.getMd().getTitle());

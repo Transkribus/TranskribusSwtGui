@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 
-public class ImgUrlListViewer extends APreviewListViewer<URL> {
+public class ImgUrlListViewer extends AImagePreviewListViewer<URL> {
 	private final static Logger logger = LoggerFactory.getLogger(ImgUrlListViewer.class);
 	
 	MyTableViewer tv;
