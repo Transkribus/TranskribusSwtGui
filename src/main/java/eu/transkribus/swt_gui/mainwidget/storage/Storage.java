@@ -102,7 +102,6 @@ import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
@@ -230,7 +229,8 @@ public class Storage {
 	private static int reloadHtrListCounter=0;
 	
 	private List<TrpP2PaLAModel> p2palaModels = new ArrayList<>();
-	private List<TrpHtr> htrList = new ArrayList<>();
+//	private List<TrpHtr> htrList = new ArrayList<>();
+	private HtrStorage htrStore = new HtrStorage(this);
 	
 	public static class StorageException extends Exception {
 		private static final long serialVersionUID = -2215354890031208420L;
@@ -1040,7 +1040,8 @@ public class Storage {
 			logger.error("Error logging out: " + th.getMessage(), th);
 		} finally {
 			clearCollections();
-			htrList = new ArrayList<>(0);
+//			htrList = new ArrayList<>(0);
+			htrStore.clear();
 			clearP2PaLAModels();
 			conn = null;
 			user = null;
@@ -1589,7 +1590,7 @@ public class Storage {
 			tr.build();
 			
 			// apply transformation:
-			TrpPageTypeUtils.applyAffineTransformation(tr.getPage(), tx, ty, sx, sy, rotRad);
+			PageXmlUtils.applyAffineTransformation(tr.getPage(), tx, ty, sx, sy, rotRad);
 			
 			String msg = "Applied affine transformation: "+trTxt;
 			
@@ -1827,31 +1828,6 @@ public class Storage {
 		checkConnection(true);
 		logger.debug("Reached upload Doc from IIIF in storage ");
 		conn.ingestDocFromIiifUrl(colId, iiifUrl);
-	}
-	
-	public String analyzeBlocks(int colId, int docId, int pageNr, PcGtsType pageData, boolean usePrintspaceOnly) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		
-		return conn.analyzeBlocks(colId, docId, pageNr, pageData, usePrintspaceOnly);
-	}
-
-	public String analyzeLines(int colId, int docId, int pageNr, PcGtsType pageData, List<String> regIds) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.analyzeLines(colId, docId, pageNr, pageData, regIds);
-	}
-
-	public String analyzeWords(int colId, int docId, int pageNr, PcGtsType pageData, List<String> regIds) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.analyzeWords(colId, docId, pageNr, pageData, regIds);
-	}
-
-	public String addBaselines(int colId, int docId, int pageNr, PcGtsType pageData, List<String> regIds) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
 	}
 	
 	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
@@ -2116,8 +2092,10 @@ public class Storage {
 		return ccm;
 	}
 	
-	public synchronized void clearCollections() {
+	private synchronized void clearCollections() {
 		collections.clear();
+		//reset collId to initial value.
+		this.collId = 0;
 		sendEvent(new CollectionsLoadEvent(this, user, collections));
 	}
 	
@@ -2456,18 +2434,28 @@ public class Storage {
 	 * Retrieve HTR models linked to the current collection from the server.
 	 */
 	public void reloadHtrs() {
+		List<TrpHtr> htrList = new ArrayList<>(0);
 		logger.debug("Reloading HTRs (call #{}: colId = {})", ++reloadHtrListCounter, this.getCollId());
 		try {
 			checkConnection(true);
-			htrList = conn.getHtrs(this.getCollId(), null);
+//			htrList = conn.getHtrs(this.getCollId(), null);
+			htrList = htrStore.getList();
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e) {
 			logger.error("Error loading HTR models: " + e.getMessage(), e);
-			htrList.clear();
+//			htrList.clear();
+			htrStore.clear();
 		}
 		sendEvent(new HtrListLoadEvent(this, this.getCollId(), htrList));
 	}
 	
 	public List<TrpHtr> getHtrs(String provider) {
+		List<TrpHtr> htrList = new ArrayList<>(0);
+		try {
+			htrList = htrStore.getList();
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		if(provider == null) {
 			return htrList;
 		}
