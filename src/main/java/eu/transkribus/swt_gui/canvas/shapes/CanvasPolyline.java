@@ -464,5 +464,4 @@ public class CanvasPolyline extends ACanvasShape<java.awt.Polygon> {
 		setPoints(pts);
 	}
 
-
 }

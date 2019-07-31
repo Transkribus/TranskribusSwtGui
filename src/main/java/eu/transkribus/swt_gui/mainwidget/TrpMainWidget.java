@@ -330,6 +330,7 @@ public class TrpMainWidget {
 	
 	AutoSaveController autoSaveController;
 	DocSyncController docSyncController;
+	ShapeEditController shapeEditController;
 //	TaggingController taggingController;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
@@ -368,6 +369,7 @@ public class TrpMainWidget {
 		
 		autoSaveController = new AutoSaveController(this);
 		docSyncController = new DocSyncController(this);
+		shapeEditController = new ShapeEditController(this);
 //		taggingController = new TaggingController(this);
 		updateToolBars();
 		
@@ -416,6 +418,10 @@ public class TrpMainWidget {
 	
 	public DocSyncController getDocSyncController() {
 		return docSyncController;
+	}
+	
+	public ShapeEditController getShapeEditController() {
+		return shapeEditController;
 	}
 	
 	public String getLastLocalDocFolder() {
@@ -5833,64 +5839,6 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public void createImageSizeTextRegion() {
-		try {
-			if (!storage.hasTranscript()) {
-				return;
-			}
-			
-			canvas.getScene().getMainImage().getBounds();
-			Rectangle imgBounds = canvas.getScene().getMainImage().getBounds();
-			
-			if (CanvasShapeUtil.getFirstTextRegionWithSize(storage.getTranscript().getPage(), 0, 0, imgBounds.width, imgBounds.height, false) != null) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error", "Top level region with size of image already exists!");
-				return;
-			}
-			
-			CanvasPolygon imgBoundsPoly = new CanvasPolygon(imgBounds);
-//			CanvasMode modeBackup = canvas.getMode();
-			canvas.setMode(CanvasMode.ADD_TEXTREGION);
-			ShapeEditOperation op = canvas.getShapeEditor().addShapeToCanvas(imgBoundsPoly, true);
-			canvas.setMode(CanvasMode.SELECTION);
-		} catch (Exception e) {
-			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
-		}	
-	}
-
-	public void createDefaultLineForSelectedShape() {
-		if (canvas.getFirstSelected() == null)
-			return;
-		
-		try {
-			logger.debug("creating default line for seected line/baseline!");
-			
-//			CanvasPolyline baselineShape = (CanvasPolyline) shape;
-//			shapeOfParent = baselineShape.getDefaultPolyRectangle();
-			
-			ICanvasShape shape = canvas.getFirstSelected();
-			CanvasPolyline blShape = (CanvasPolyline) CanvasShapeUtil.getBaselineShape(shape);
-			if (blShape == null)
-				return;
-			
-			CanvasPolygon pl = blShape.getDefaultPolyRectangle();
-			if (pl == null)
-				return;
-			
-			ITrpShapeType st = (ITrpShapeType) shape.getData();
-			TrpTextLineType line = TrpShapeTypeUtils.getLine(st);
-			if (line != null) {
-				ICanvasShape lineShape = (ICanvasShape) line.getData();
-				if (lineShape != null) {
-					lineShape.setPoints(pl.getPoints());
-					
-					canvas.redraw();
-				}
-			}
-		} catch (Exception e) {
-			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
-		}	
-	}
-	
 	public void deleteTags(CustomTag... tags) {
 		if (tags != null) {
 			deleteTags(Arrays.asList(tags));
@@ -6346,28 +6294,6 @@ public class TrpMainWidget {
 		return "";
 	}
 
-	public void movePagesByFilelist() {
-		try {
-			if (!storage.isRemoteDoc()) {
-				DialogUtil.showErrorMessageBox(getShell(), "No remote doc loaded", "Please load a remote document first!");
-				return;
-			}
-			
-			String filename = DialogUtil.showOpenFileDialog(getShell(), "Select txt file with image filenames of document in desired order", null, new String[] {"*.txt"});
-			logger.debug("filename = "+filename);
-			if (filename != null) {
-				storage.getConnection().moveImagesByNames(storage.getCollId(), storage.getDocId(), new File(filename));
-				
-				reloadCurrentDocument();
-			}
-		}
-		catch (Exception e) {
-			onError("Error moving pages by image file list", e.getMessage(), e, true, false);
-		}
-		
-		
-	}
-	
 	public void checkSession(boolean showLoginDialogOnSessionExpiration) {
 		try {
 			if (storage.isLoggedIn()) {

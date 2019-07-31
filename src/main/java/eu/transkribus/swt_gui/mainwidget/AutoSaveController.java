@@ -30,13 +30,8 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class AutoSaveController {
+public class AutoSaveController extends AMainWidgetController {
 	private static final Logger logger = LoggerFactory.getLogger(AutoSaveController.class);
-	
-	TrpMainWidget mw;
-	TrpSettings trpSets;
-	static Storage storage = Storage.getInstance();
-	
 	
 	Thread autoSaveThread=null;
 	
@@ -73,8 +68,7 @@ public class AutoSaveController {
 	};
 	
 	public AutoSaveController(TrpMainWidget mw) {
-		this.mw = mw;
-		this.trpSets = mw.getTrpSets();
+		super(mw);
 		beginAutoSaveThread();
 	}
 	

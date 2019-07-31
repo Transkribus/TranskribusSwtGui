@@ -9,7 +9,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,27 +28,16 @@ import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncWithFilesDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncWithTxtFilesDialog;
 import eu.transkribus.swt_gui.exceptions.CustomDataException;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.util.CheckedConsumer;
 
-public class DocSyncController {
+public class DocSyncController extends AMainWidgetController {
 	private static final Logger logger = LoggerFactory.getLogger(DocSyncController.class);
-	
-	TrpMainWidget mw;
-	TrpSettings trpSets;
-	static Storage storage = Storage.getInstance();
 	
 	String lastTxtFileSyncFolder = null;
 	String lastPageFileSyncFolder = null;
 	
 	public DocSyncController(TrpMainWidget mw) {
-		this.mw = mw;
-		this.trpSets = mw.getTrpSets();
-	}
-	
-	public Shell getShell() {
-		return mw.getShell();
+		super(mw);
 	}
 	
 	/**
@@ -219,6 +207,26 @@ public class DocSyncController {
 			mw.onError("Sync error", "Error during sync of remote document", e);
 		}
 
+	}
+	
+	public void movePagesByFilelist() {
+		try {
+			if (!storage.isRemoteDoc()) {
+				DialogUtil.showErrorMessageBox(getShell(), "No remote doc loaded", "Please load a remote document first!");
+				return;
+			}
+			
+			String filename = DialogUtil.showOpenFileDialog(getShell(), "Select txt file with image filenames of document in desired order", null, new String[] {"*.txt"});
+			logger.debug("filename = "+filename);
+			if (filename != null) {
+				storage.getConnection().moveImagesByNames(storage.getCollId(), storage.getDocId(), new File(filename));
+				
+				mw.reloadCurrentDocument();
+			}
+		}
+		catch (Exception e) {
+			mw.onError("Error moving pages by image file list", e.getMessage(), e, true, false);
+		}
 	}
 
 }

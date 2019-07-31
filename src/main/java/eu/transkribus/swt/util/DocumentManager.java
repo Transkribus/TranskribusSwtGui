@@ -1146,7 +1146,7 @@ public class DocumentManager extends Dialog {
 		
 		MenuItem movePagesByFilelist = new MenuItem(contextMenu, 0);
 		movePagesByFilelist.setText("Sort pages by filename list...");
-		SWTUtil.onSelectionEvent(movePagesByFilelist, e -> mw.movePagesByFilelist());
+		SWTUtil.onSelectionEvent(movePagesByFilelist, e -> mw.getDocSyncController().movePagesByFilelist());
 	}
 
 	private void addMenuItems4PageLevel(Menu contextMenu, String[] editStatusArray) {
