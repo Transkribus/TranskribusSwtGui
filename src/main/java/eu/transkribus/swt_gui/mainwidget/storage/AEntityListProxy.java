@@ -80,6 +80,18 @@ public abstract class AEntityListProxy<T> extends Observable {
 		list.addAll(entityList.getIndex(), entityList.getList());
 	}
 	
+	/**
+	 * Update the internal list with the values according to the requested range and filters.
+	 * <br><br>
+	 * If filters do not match the internally stored filterset or the total number of values (returned with the values) has changed, the list is reinitialized.
+	 * 
+	 * @param index
+	 * @param nValues
+	 * @param filters
+	 * @throws SessionExpiredException
+	 * @throws ServerErrorException
+	 * @throws ClientErrorException
+	 */
 	private void loadRange(int index, int nValues, String...filters) throws SessionExpiredException, ServerErrorException, ClientErrorException {
 		//bound the parameters
 		if(index < 0) {

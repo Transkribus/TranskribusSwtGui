@@ -1867,31 +1867,6 @@ public class Storage {
 		conn.ingestDocFromIiifUrl(colId, iiifUrl);
 	}
 	
-	public String analyzeBlocks(int colId, int docId, int pageNr, PcGtsType pageData, boolean usePrintspaceOnly) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		
-		return conn.analyzeBlocks(colId, docId, pageNr, pageData, usePrintspaceOnly);
-	}
-
-	public String analyzeLines(int colId, int docId, int pageNr, PcGtsType pageData, List<String> regIds) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.analyzeLines(colId, docId, pageNr, pageData, regIds);
-	}
-
-	public String analyzeWords(int colId, int docId, int pageNr, PcGtsType pageData, List<String> regIds) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.analyzeWords(colId, docId, pageNr, pageData, regIds);
-	}
-
-	public String addBaselines(int colId, int docId, int pageNr, PcGtsType pageData, List<String> regIds) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
-	}
-	
 	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
 		checkConnection(true);
 		
