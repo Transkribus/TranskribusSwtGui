@@ -249,6 +249,21 @@ public class SWTUtil {
 		}
 	}
 	
+	public static SelectionListener setTabFolderBoldOnItemSelection(CTabFolder tf) {
+		if (tf == null) {
+			return null;
+		}
+		
+		SelectionListener sl = new SelectionAdapter() {
+			@Override public void widgetSelected(SelectionEvent e) {
+				setBoldFontForSelectedCTabItem(tf);
+			}
+		};
+		tf.addSelectionListener(sl);
+		setBoldFontForSelectedCTabItem(tf);
+		return sl;
+	}
+	
 	public static Composite createContainerComposite(Composite parent, int nColumns, boolean makeColumnsEqualWidth) {
 		Composite c = new Composite(parent, 0);
 		c.setLayout(createGridLayout(nColumns, makeColumnsEqualWidth, 0, 0));

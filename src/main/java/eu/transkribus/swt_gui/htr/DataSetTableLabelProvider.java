@@ -24,36 +24,6 @@ public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFon
 	}
 
 	@Override
-	public void addListener(ILabelProviderListener listener) {
-		
-		
-	}
-
-	@Override
-	public void dispose() {
-		
-		
-	}
-
-	@Override
-	public boolean isLabelProperty(Object element, String property) {
-		
-		return false;
-	}
-
-	@Override
-	public void removeListener(ILabelProviderListener listener) {
-		
-		
-	}
-
-	@Override
-	public Image getColumnImage(Object element, int columnIndex) {
-		
-		return null;
-	}
-
-	@Override
 	public String getColumnText(Object element, int columnIndex) {
 		//logger.trace("get column text: "+element+" id: "+columnIndex);
 		
@@ -79,7 +49,25 @@ public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFon
 
 	@Override
 	public Font getFont(Object element, int columnIndex) {
-		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addListener(ILabelProviderListener listener) {}
+
+	@Override
+	public void dispose() {}
+
+	@Override
+	public boolean isLabelProperty(Object element, String property) {
+		return false;
+	}
+
+	@Override
+	public void removeListener(ILabelProviderListener listener) {}
+
+	@Override
+	public Image getColumnImage(Object element, int columnIndex) {
 		return null;
 	}
 }

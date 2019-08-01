@@ -8,15 +8,18 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -63,6 +66,7 @@ import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
 import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.tools.ToolsWidget.TranscriptVersionChooser;
@@ -215,9 +219,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			}
 		} catch (ServerErrorException | IllegalArgumentException e) {
 			e.printStackTrace();
-		}	
-		comboHyp.select(0);
-		params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
+		}
+		if(comboHyp.getItemCount() != 0) {
+			comboHyp.select(0);
+			params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
+		}
 		compare = new Button(comp,SWT.PUSH);
 		compare.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 4, 4));
 		compare.setText("Compare");
@@ -260,9 +266,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
 							// check if all pages contain GT version
 							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
-//							if(transGT == null) {
-//								DialogUtil.showErrorMessageBox(getShell(), "Error", "The GT for page "+pageIndex+ " can not be found");
-//							}
+//							
 							for(TrpTranscriptMetadata transcript : transcripts){
 								logger.debug(""+comboHyp.getSelectionIndex());
 								if(transGT != null && transcript.getToolName() != null) {
@@ -273,10 +277,10 @@ public class ErrorRateAdvancedDialog extends Dialog {
 								if(transGT == null) {
 									delGTIndices.add(pageIndex);
 								}
-								if(transcript.getToolName() != null && !transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
-									delHypIndices.add(pageIndex);
-								}
-							}	
+							}
+							if(!newPageIndices.contains(pageIndex) && !delGTIndices.contains(pageIndex)) {
+								delHypIndices.add(pageIndex);
+							}
 						}
 						newPageString = CoreUtils.getRangeListStrFromSet(newPageIndices);
 						deleteGTPageString = CoreUtils.getRangeListStrFromSet(delGTIndices);
@@ -287,16 +291,17 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						msg += "Pages ignored for missing Hyp : " + deleteHypPageString + "\n";
 						msg += "Ref: " +params.getParameterValue("ref")+"\n";
 						msg += "Hyp: " +params.getParameterValue("hyp");
-						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null && newPageString != "") {
+						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null && !StringUtils.isEmpty(newPageString)) {
+							rl.setStopped();
 							int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
 							if (result == SWT.YES) {
 								startError(store.getDocId(), newPageString);
 							}
 						}
-						else if("".equals(newPageString)) {
-							DialogUtil.showErrorMessageBox(getShell(), "Error", "Selected pages have no GT version or hypothesis, please check the versions");
-						
-						}else {
+						else if (StringUtils.isEmpty(newPageString)) {
+							DialogUtil.showErrorMessageBox(getShell(), "Error", "Pagestring is empty \nPages ignored for missing GT : " + deleteGTPageString +"\nPages ignored for missing Hyp : " + deleteHypPageString);
+						}
+						else {
 							DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
 						}
 					} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException e1) {
@@ -318,14 +323,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
 
 				if (ref != null && hyp != null) {
-					params.addIntParam("option", -1);
-					params.addParameter("refKey", ref.getKey());
-					params.addParameter("hypKey", hyp.getKey());
+					params.addIntParam("option", 0);
 					params.addParameter("hyp", hyp.getToolName());
 					params.addParameter("ref", ref.getToolName());
-					params.addIntParam("pageNr", store.getPage().getPageNr());
+					rl.setStopped();
 						try {
-							startError(store.getDocId(),""+store.getPage().getPageNr());				
+							startError(store.getDocId(),""+store.getPage().getPageNr());
 						} catch (ServerErrorException | IllegalArgumentException e1) {
 							e1.printStackTrace();
 						}
@@ -400,6 +403,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 		try {
 			store.getConnection().computeErrorRateWithJob(docID, pageString, params);
+			rl = new ResultLoader();
+			rl.start();
 		} catch (SessionExpiredException | TrpServerErrorException | TrpClientErrorException e) {
 			logger.error(e.getMessage(), e);
 			DialogUtil.showErrorMessageBox(getShell(), "Something went wrong.", e.getMessageToUser());
@@ -415,9 +420,18 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
-		Display.getDefault().asyncExec(() -> {	
+		if(jobs != null && jobs.size() != 0 && jobs.get(0).isFinished()) {
+			rl.setStopped();
+		}
+		Display.getDefault().asyncExec(() -> { 
+			AJobResultTableEntry<?> e = resultTable.getSelectedEntry();
 			if(resultTable != null && !resultTable.isDisposed()) {
 				resultTable.getTableViewer().setInput(errorList);
+			}
+			if(e != null) {
+				TrpErrorResultTableEntry o = (TrpErrorResultTableEntry)e;
+				int index = errorList.indexOf(o);
+				resultTable.getTableViewer().getTable().select(index);
 			}
 		});
 	}
@@ -463,6 +477,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			logger.debug("Stopping result polling.");
 			stopped = true;
 		}
+		
 	}
 	
 

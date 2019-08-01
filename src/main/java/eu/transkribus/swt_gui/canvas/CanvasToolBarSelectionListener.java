@@ -82,6 +82,8 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		
 		SWTUtil.addSelectionListener(tb.createDefaultLineItem, this);
 		SWTUtil.addSelectionListener(tb.createImageSizeTextRegionItem, this);
+		SWTUtil.addSelectionListener(tb.simplifySelectedLinesItem, this);
+		SWTUtil.addSelectionListener(tb.simplifyAllLinesItem, this);
 		
 		// table stuff
 //		SWTUtil.addSelectionListener(tb.deleteRowItem, this);
@@ -161,10 +163,15 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 		else if (s == toolbar.getRemoveShape()) {
 			canvas.getShapeEditor().removeSelected();
 		}
-		else if (SWTUtil.isSubItemSelected(s, toolbar.getSimplifyEpsItem(), e.detail)) {
-//		else if (s == toolbar.getSimplifyEpsItem().ti && e.detail != SWT.ARROW) {
-			canvas.getShapeEditor().simplifySelected(Double.valueOf(toolbar.getSimplifyEpsItem().getSelected().getText()));
+//		else if (SWTUtil.isSubItemSelected(s, toolbar.getSimplifyEpsItem(), e.detail)) {
+//			canvas.getShapeEditor().simplifySelected(Double.valueOf(toolbar.getSimplifyEpsItem().getSelected().getText()));
+//		}
+		else if (s == toolbar.simplifySelectedLinesItem) {
+			mw.getShapeEditController().simplifySelectedLineShapes(true);
 		}
+		else if (s == toolbar.simplifyAllLinesItem) {
+			mw.getShapeEditController().simplifySelectedLineShapes(false);
+		}		
 		else if (s == toolbar.getUndo()) {
 			canvas.getUndoStack().undo();
 		}
@@ -207,10 +214,10 @@ public class CanvasToolBarSelectionListener extends SelectionAdapter {
 			mw.openCanvasHelpDialog();
 		}
 		else if (s == toolbar.createDefaultLineItem) {
-			mw.createDefaultLineForSelectedShape();
+			mw.getShapeEditController().createDefaultLineForSelectedShape();
 		}
 		else if (s == toolbar.createImageSizeTextRegionItem) {
-			mw.createImageSizeTextRegion();
+			mw.getShapeEditController().createImageSizeTextRegion();
 		}
 
 	}

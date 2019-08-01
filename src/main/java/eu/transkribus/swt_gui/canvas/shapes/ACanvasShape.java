@@ -1464,8 +1464,7 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 	public boolean isReadingOrderVisible() {
 		return RoVisible;
 	}
-
-    
+	
 //	@Override
 //	public boolean isShowReadingOrder() {
 //		// TODO Auto-generated method stub

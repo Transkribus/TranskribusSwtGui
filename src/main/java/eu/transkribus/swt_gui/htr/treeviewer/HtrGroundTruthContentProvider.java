@@ -212,7 +212,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 					return false;
 			} else if (getId() != other.getId())
 				return false;
-			if (getDataSetType() != other.getDataSetType())
+			if (!getDataSetType().equals(other.getDataSetType()))
 				return false;
 			return true;
 		}

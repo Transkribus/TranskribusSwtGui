@@ -127,6 +127,8 @@ public class CanvasToolBarNew {
 	
 	MenuItem createDefaultLineItem;
 	MenuItem createImageSizeTextRegionItem;
+	MenuItem simplifySelectedLinesItem;
+	MenuItem simplifyAllLinesItem;
 	
 //	MenuItem deleteRowItem;
 //	MenuItem deleteColumnItem;
@@ -472,6 +474,8 @@ public class CanvasToolBarNew {
 
 		createImageSizeTextRegionItem = otherSegmentationToolsDropDown.addItem("Create top level text region with size of image", null, null);
 		createDefaultLineItem = otherSegmentationToolsDropDown.addItem("Create default line for selected line / baseline", null, null);
+		simplifySelectedLinesItem = otherSegmentationToolsDropDown.addItem("Simplify shape of selected lines", Images.getOrLoad("/icons/vector.png"), null);
+		simplifyAllLinesItem = otherSegmentationToolsDropDown.addItem("Simplify shape of all lines on this page", Images.getOrLoad("/icons/vector.png"), null);
 		}
 		
 		if (false) {

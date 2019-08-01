@@ -84,8 +84,6 @@ import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
-import eu.transkribus.core.io.LocalDocReader;
-import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.util.ImgFileFilter;
 import eu.transkribus.core.io.util.ImgPriority;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
@@ -141,7 +139,6 @@ import eu.transkribus.core.util.AuthUtils;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.IntRange;
 import eu.transkribus.core.util.PageXmlUtils;
-import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.core.util.SysUtils.JavaInfo;
 import eu.transkribus.core.util.ZipUtils;
@@ -187,7 +184,6 @@ import eu.transkribus.swt_gui.dialogs.ChangeLogDialog;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
-import eu.transkribus.swt_gui.dialogs.DocSyncDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
 import eu.transkribus.swt_gui.dialogs.JavaVersionDialog;
 import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
@@ -333,6 +329,8 @@ public class TrpMainWidget {
 	static DocJobUpdater docJobUpdater;
 	
 	AutoSaveController autoSaveController;
+	DocSyncController docSyncController;
+	ShapeEditController shapeEditController;
 //	TaggingController taggingController;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
@@ -370,6 +368,8 @@ public class TrpMainWidget {
 		addUiBindings();
 		
 		autoSaveController = new AutoSaveController(this);
+		docSyncController = new DocSyncController(this);
+		shapeEditController = new ShapeEditController(this);
 //		taggingController = new TaggingController(this);
 		updateToolBars();
 		
@@ -414,6 +414,22 @@ public class TrpMainWidget {
 	
 	public AutoSaveController getAutoSaveController() {
 		return autoSaveController;
+	}
+	
+	public DocSyncController getDocSyncController() {
+		return docSyncController;
+	}
+	
+	public ShapeEditController getShapeEditController() {
+		return shapeEditController;
+	}
+	
+	public String getLastLocalDocFolder() {
+		return lastLocalDocFolder;
+	}
+	
+	public void setLastLocalDocFolder(String lastLocalDocFolder) {
+		this.lastLocalDocFolder = lastLocalDocFolder;
 	}
 	
 //	public TaggingController getTaggingController() {
@@ -4572,50 +4588,6 @@ public class TrpMainWidget {
 		}
 	}
 
-	public void syncWithLocalDoc() {
-		try {
-			logger.debug("syncing with local doc!");
-
-			if (!storage.isLoggedIn() || !storage.isRemoteDoc()) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error", "No remote document loaded!");
-				return;
-			}
-
-			String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose the 'page' folder with the page XMLs", lastLocalDocFolder);
-			if (fn == null)
-				return;
-
-			// store current location 
-			lastLocalDocFolder = fn;
-			
-			// enable sync mode to allow for local docs without images
-			DocLoadConfig config = new DocLoadConfig();
-			config.setEnableSyncWithoutImages(true);
-			config.setDimensionMapFromDoc(storage.getDoc());
-			TrpDoc localDoc = LocalDocReader.load(fn, config);
-
-			final DocSyncDialog d = new DocSyncDialog(getShell(), storage.getDoc(), localDoc);
-			if (d.open() != Dialog.OK) {
-				return;
-			}
-
-			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						storage.syncDocPages(d.getSourcePages(), d.getChecked(), monitor);
-					} catch (Exception e) {
-						throw new InvocationTargetException(e, e.getMessage());
-					}
-				}
-			}, "Syncing", true);
-
-			reloadCurrentDocument();
-		} catch (Throwable e) {
-			onError("Sync error", "Error during sync of remote document", e);
-		}
-
-	}
-
 	public void openSearchDialog() {
 //		SebisStopWatch.SW.start();
 		checkSession(true);
@@ -5867,64 +5839,6 @@ public class TrpMainWidget {
 		}
 	}
 	
-	public void createImageSizeTextRegion() {
-		try {
-			if (!storage.hasTranscript()) {
-				return;
-			}
-			
-			canvas.getScene().getMainImage().getBounds();
-			Rectangle imgBounds = canvas.getScene().getMainImage().getBounds();
-			
-			if (CanvasShapeUtil.getFirstTextRegionWithSize(storage.getTranscript().getPage(), 0, 0, imgBounds.width, imgBounds.height, false) != null) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error", "Top level region with size of image already exists!");
-				return;
-			}
-			
-			CanvasPolygon imgBoundsPoly = new CanvasPolygon(imgBounds);
-//			CanvasMode modeBackup = canvas.getMode();
-			canvas.setMode(CanvasMode.ADD_TEXTREGION);
-			ShapeEditOperation op = canvas.getShapeEditor().addShapeToCanvas(imgBoundsPoly, true);
-			canvas.setMode(CanvasMode.SELECTION);
-		} catch (Exception e) {
-			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
-		}	
-	}
-
-	public void createDefaultLineForSelectedShape() {
-		if (canvas.getFirstSelected() == null)
-			return;
-		
-		try {
-			logger.debug("creating default line for seected line/baseline!");
-			
-//			CanvasPolyline baselineShape = (CanvasPolyline) shape;
-//			shapeOfParent = baselineShape.getDefaultPolyRectangle();
-			
-			ICanvasShape shape = canvas.getFirstSelected();
-			CanvasPolyline blShape = (CanvasPolyline) CanvasShapeUtil.getBaselineShape(shape);
-			if (blShape == null)
-				return;
-			
-			CanvasPolygon pl = blShape.getDefaultPolyRectangle();
-			if (pl == null)
-				return;
-			
-			ITrpShapeType st = (ITrpShapeType) shape.getData();
-			TrpTextLineType line = TrpShapeTypeUtils.getLine(st);
-			if (line != null) {
-				ICanvasShape lineShape = (ICanvasShape) line.getData();
-				if (lineShape != null) {
-					lineShape.setPoints(pl.getPoints());
-					
-					canvas.redraw();
-				}
-			}
-		} catch (Exception e) {
-			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
-		}	
-	}
-	
 	public void deleteTags(CustomTag... tags) {
 		if (tags != null) {
 			deleteTags(Arrays.asList(tags));
@@ -6380,28 +6294,6 @@ public class TrpMainWidget {
 		return "";
 	}
 
-	public void movePagesByFilelist() {
-		try {
-			if (!storage.isRemoteDoc()) {
-				DialogUtil.showErrorMessageBox(getShell(), "No remote doc loaded", "Please load a remote document first!");
-				return;
-			}
-			
-			String filename = DialogUtil.showOpenFileDialog(getShell(), "Select txt file with image filenames of document in desired order", null, new String[] {"*.txt"});
-			logger.debug("filename = "+filename);
-			if (filename != null) {
-				storage.getConnection().moveImagesByNames(storage.getCollId(), storage.getDocId(), new File(filename));
-				
-				reloadCurrentDocument();
-			}
-		}
-		catch (Exception e) {
-			onError("Error moving pages by image file list", e.getMessage(), e, true, false);
-		}
-		
-		
-	}
-	
 	public void checkSession(boolean showLoginDialogOnSessionExpiration) {
 		try {
 			if (storage.isLoggedIn()) {

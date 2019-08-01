@@ -272,13 +272,14 @@ public class DataSetSelectionSashForm extends SashForm {
 		String title = "Some of the image data is already included";
 		String msg = "The images of the following HTR model data are already included in the selection:\n\n";
 		if(gtOverlapByImageId.size() == 1) {
-			msg += "HTR '" + gtSet.getHtr().getName() + "' page " + gtOverlapByImageId.get(0).getGroundTruthPage().getPageNr();
+			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getHtr().getName() 
+					+ "' page " + gtOverlapByImageId.get(0).getGroundTruthPage().getPageNr();
 		} else {
 			List<Integer> pageIndices = gtOverlapByImageId.stream()
 					.map(g -> (g.getGroundTruthPage().getPageNr() - 1))
 					.collect(Collectors.toList());
 			String pageStr = CoreUtils.getRangeListStrFromList(pageIndices);
-			msg += "HTR '" + gtSet.getHtr().getName() + "' pages " + pageStr;
+			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getHtr().getName() + "' pages " + pageStr;
 		}
 		msg += "\n\nDo you want to replace the previous selection with those pages?";
 		
@@ -314,17 +315,23 @@ public class DataSetSelectionSashForm extends SashForm {
 		}
 		if(!thumbUrl.equals(currentThumbUrl)) {
 			//update thumbnail on URL change only
-			updateThumbnail(loadThumbnail(thumbUrl));
-			currentThumbUrl = thumbUrl;
+			Runnable r = new Runnable() {
+				@Override
+				public void run() {
+					updateThumbnail(loadThumbnail(thumbUrl));
+					currentThumbUrl = thumbUrl;
+				}
+			};
+			getDisplay().asyncExec(r);
 		} else {
 			logger.debug("Keeping current thumb as URL has not changed");
 		}
 	}
 	
 	/**
-	 * TODO move to view
+	 * Update the thumbnail label with given image.
 	 * 
-	 * @param image
+	 * @param image the image or null to clear the label
 	 */
 	private void updateThumbnail(Image image) {
 		if (previewLbl.getImage() != null) {
@@ -342,6 +349,19 @@ public class DataSetSelectionSashForm extends SashForm {
 			image = null;
 		}
 		return image;
+	}
+	
+	/**
+	 * Set infoLabelText on info label.
+	 * 
+	 * @param infoLabelText the text or null to clear the label.
+	 */
+	void updateInfoLabel(String infoLabelText) {
+		if(infoLabelText == null) {
+			infoLabelText = "";
+		}
+		this.infoLbl.setText(infoLabelText);
+		this.infoLbl.requestLayout();
 	}
 	
 	public List<DataSetMetadata> getTrainSetMetadata() {
@@ -366,6 +386,13 @@ public class DataSetSelectionSashForm extends SashForm {
 
 	public DataSetSelection getSelection(EditStatus status) {
 		return dataSetSelectionController.getSelection(status);
+	}
+	
+	boolean isGtTabActive() {
+		return this.gtTabItem.equals(this.dataTabFolder.getSelection());
+	}
+	boolean isDocumentsTabActive() {
+		return this.documentsTabItem.equals(this.dataTabFolder.getSelection());
 	}
 
 	public void enableDebugDialog(boolean b) {
