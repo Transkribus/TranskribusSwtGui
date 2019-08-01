@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.canvas.shapes;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Line2D;
-import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -14,6 +13,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.util.CoreUtils;
 
@@ -138,6 +138,14 @@ public class CanvasShapeUtil {
 		}
 		
 		return null;
+	}
+	
+	public static ICanvasShape getLineShape(ICanvasShape s) {
+		if (s==null) {
+			return null;
+		}
+		TrpTextLineType l = TrpShapeTypeUtils.getLine((ITrpShapeType) s.getData());
+		return l==null ? null : (CanvasPolygon) l.getData();
 	}
 	
 	public static ICanvasShape getBaselineShape(ICanvasShape s) {

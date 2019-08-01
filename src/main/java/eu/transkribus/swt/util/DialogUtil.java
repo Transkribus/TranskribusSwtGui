@@ -98,7 +98,11 @@ public class DialogUtil {
 	}
 	
 	public static int showErrorMessageBox(Shell shell, String title, String message) {
-		return showMessageBox(shell, title, message, SWT.ERROR);
+		return showMessageBox(shell, title, message, SWT.ICON_ERROR);
+	}
+	
+	public static int showDetailedErrorMessageBox(Shell shell, String title, String message, String detailedErrorMsg) {
+		return TrpMessageDialog.showErrorDialog(shell, title, message, detailedErrorMsg, null);
 	}
 	
 	public static int showDetailedErrorMessageBox(Shell shell, String title, String message, Throwable th) {
@@ -240,7 +244,7 @@ public class DialogUtil {
 	}	
 	
 	public static int showMessageBox(Shell shell, String title, String message, int style) {
-		MessageBox mBox = new MessageBox(shell, style | SWT.RESIZE);
+		MessageBox mBox = new MessageBox(shell, style);
 
 		mBox.setMessage(message==null ? "" : message);
 		mBox.setText(title);

@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -124,6 +125,7 @@ import eu.transkribus.core.util.ProxyUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.AsyncCallback;
 import eu.transkribus.swt.util.Colors;
+import eu.transkribus.swt.util.MonitorUtil;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
@@ -155,6 +157,7 @@ import eu.transkribus.swt_gui.metadata.CustomTagSpecDBUtil;
 import eu.transkribus.swt_gui.metadata.CustomTagSpecUtil;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
+import eu.transkribus.util.CheckedConsumer;
 import eu.transkribus.util.DataCache;
 import eu.transkribus.util.DataCacheFactory;
 import eu.transkribus.util.MathUtil;
@@ -1618,6 +1621,8 @@ public class Storage {
 	 * @throws NoConnectionException
 	 * @throws NullValueException
 	 * @throws JAXBException
+	 * 
+	 * @deprecated old and outdated; use generic method {@link #syncFilesWithDoc(List, CheckedConsumer, String, IProgressMonitor)}
 	 */
 	public void syncDocPages(List<TrpPage> pages, List<Boolean> checked, IProgressMonitor monitor) 
 			throws IOException, SessionExpiredException, ServerErrorException, IllegalArgumentException, NoConnectionException, NullValueException, JAXBException {
@@ -1700,6 +1705,39 @@ public class Storage {
 			if (monitor != null)
 				monitor.worked(++worked);
 		}
+	}
+	
+	public List<Pair<TrpPage, File>> syncFilesWithDoc(List<Pair<TrpPage, File>> matches, CheckedConsumer<Pair<TrpPage,File>> c, String typeOfFiles, IProgressMonitor monitor) throws NoConnectionException {
+		if (isRemoteDoc()) {
+			checkConnection(true);
+		}
+		
+		Objects.requireNonNull(c);
+
+		MonitorUtil.beginTask(monitor, "Syncing "+typeOfFiles+" files with document", matches.size());
+		
+		int worked=0;
+		List<Pair<TrpPage, File>> errors = new ArrayList<>();
+		for (Pair<TrpPage, File> match : matches) {
+			try {
+				MonitorUtil.subTask(monitor, "Syncing "+(worked+1)+" / "+matches.size()+": "+match.getRight().getName());
+				logger.debug((worked+1)+"/"+matches.size()+" Matching file '"+match.getRight().getAbsolutePath()+"' to page: "+match.getLeft());
+				
+				c.accept(match);
+			}
+			catch (Exception e) {
+				logger.error("Could not match file: "+e.getMessage(), e);
+				errors.add(match);
+			}
+			finally {
+				if (MonitorUtil.isCanceled(monitor)) {
+					return null;
+				}
+				
+				MonitorUtil.worked(monitor, ++worked);
+			}
+		}
+		return errors;
 	}
 
 	public void saveDocMd(int colId) throws SessionExpiredException, IllegalArgumentException, Exception {
@@ -1827,31 +1865,6 @@ public class Storage {
 		checkConnection(true);
 		logger.debug("Reached upload Doc from IIIF in storage ");
 		conn.ingestDocFromIiifUrl(colId, iiifUrl);
-	}
-	
-	public String analyzeBlocks(int colId, int docId, int pageNr, PcGtsType pageData, boolean usePrintspaceOnly) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		
-		return conn.analyzeBlocks(colId, docId, pageNr, pageData, usePrintspaceOnly);
-	}
-
-	public String analyzeLines(int colId, int docId, int pageNr, PcGtsType pageData, List<String> regIds) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.analyzeLines(colId, docId, pageNr, pageData, regIds);
-	}
-
-	public String analyzeWords(int colId, int docId, int pageNr, PcGtsType pageData, List<String> regIds) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.analyzeWords(colId, docId, pageNr, pageData, regIds);
-	}
-
-	public String addBaselines(int colId, int docId, int pageNr, PcGtsType pageData, List<String> regIds) throws SessionExpiredException, ServerErrorException,
-			IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.addBaselines(colId, docId, pageNr, pageData, regIds);
 	}
 	
 	public List<String> analyzeLayoutOnCurrentTranscript(List<String> regIds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {

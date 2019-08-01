@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.util;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +7,7 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,11 +69,7 @@ public class DocumentsSelector extends APreviewListViewer<TrpDocMetadata> {
 			@Override public Image getColumnImage(Object element, int columnIndex) {
 				return null;
 			}
-		}, showUpDownBtns, withCheckboxes, false, false);
-	}
-	
-	@Override protected Image loadImageForData(TrpDocMetadata data) throws IOException {
-		return null;
+		}, showUpDownBtns, withCheckboxes, false);
 	}
 	
 	public List<TrpDocMetadata> getCheckedDocuments() {
@@ -86,5 +82,14 @@ public class DocumentsSelector extends APreviewListViewer<TrpDocMetadata> {
 			dsds.add(new DocumentSelectionDescriptor(d.getDocId()));
 		}
 		return dsds;
+	}
+
+	@Override
+	protected Control createPreviewArea(Composite previewContainer) {
+		return null;
+	}
+
+	@Override
+	protected void reloadPreviewForSelection() {
 	}
 }

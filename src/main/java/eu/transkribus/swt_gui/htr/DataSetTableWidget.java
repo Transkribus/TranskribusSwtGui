@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -102,5 +103,9 @@ public abstract class DataSetTableWidget<IDataSetSelectionEntry> extends Composi
 		} else {
 			return new ArrayList<IDataSetSelectionEntry>(0);
 		}
+	}
+	
+	public TableViewer getTableViewer() {
+		return tv;
 	}
 }

@@ -43,7 +43,7 @@ public class CanvasContextMenuListener implements ICanvasContextMenuListener {
 	}
 	
 	public void handleCreateDefaultLineEvent(CreateDefaultLineEvent event) {
-		TrpMainWidget.getInstance().createDefaultLineForSelectedShape();
+		TrpMainWidget.getInstance().getShapeEditController().createDefaultLineForSelectedShape();
 	}
 	
 	public void handleTableHelpEvent(TableHelpEvent event) {

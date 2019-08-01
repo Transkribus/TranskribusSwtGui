@@ -56,7 +56,7 @@ public class RamerDouglasPeuckerFilter {
 
 		for (int i = startIndex + 1; i < endIndex; ++i) {
 			double dist = line.ptSegDist(pts.get(i));
-			logger.debug("dist = " + dist);
+			logger.trace("dist = " + dist);
 			if (dist > dmax) {
 				index = i;
 				dmax = dist;

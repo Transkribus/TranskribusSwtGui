@@ -194,7 +194,7 @@ public class DebuggerDialog extends Dialog {
 		invalidateSessionBtn.addSelectionListener(selectionAdapter);
 		sortBaselinePts.addSelectionListener(selectionAdapter);
 		
-		SWTUtil.onSelectionEvent(syncWithLocalDocBtn, (e) -> {mw.syncWithLocalDoc();} );
+		SWTUtil.onSelectionEvent(syncWithLocalDocBtn, (e) -> {mw.getDocSyncController().syncPAGEFilesWithLoadedDoc();} );
 		SWTUtil.onSelectionEvent(applyAffineTransformBtn, (e) -> {mw.applyAffineTransformToDoc();} );
 		SWTUtil.onSelectionEvent(batchReplaceImgsBtn, (e) -> {mw.batchReplaceImagesForDoc();} );
 		SWTUtil.onSelectionEvent(openSleakBtn, (e) -> { mw.openSleak(); } );

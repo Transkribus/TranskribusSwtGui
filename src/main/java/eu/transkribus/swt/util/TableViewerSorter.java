@@ -113,7 +113,7 @@ public abstract class TableViewerSorter extends ViewerComparator {
 		}
 	}
 
-	public int compare(Viewer viewer, Object e1, Object e2) {
+	@Override public int compare(Viewer viewer, Object e1, Object e2) {
 		return direction * doCompare(viewer, e1, e2);
 	}
 	

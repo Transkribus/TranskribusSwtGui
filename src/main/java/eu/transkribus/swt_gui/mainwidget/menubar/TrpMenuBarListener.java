@@ -73,9 +73,10 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		SWTUtil.onSelectionEvent(mb.exportItem, (e) -> { mw.unifiedExport(); });
 		
-		SWTUtil.onSelectionEvent(mb.syncXmlItem, (e) -> {mw.syncWithLocalDoc();} );
+		SWTUtil.onSelectionEvent(mb.syncXmlItem, (e) -> {mw.getDocSyncController().syncPAGEFilesWithLoadedDoc();} );
 		
-		SWTUtil.onSelectionEvent(mb.syncTextItem, (e) -> {mw.syncWithLocalDoc();} );
+//		SWTUtil.onSelectionEvent(mb.syncTextItem, (e) -> {mw.getDocSyncController().syncWithLocalDoc();} );
+		SWTUtil.onSelectionEvent(mb.syncTextItem, (e) -> {mw.getDocSyncController().syncTxtFilesWithLoadedDoc();} );
 
 		SWTUtil.onSelectionEvent(mb.syncWordsWithLinesMenuItem, (e) -> { mw.syncTextOfDocFromWordsToLinesAndRegions(); });
 		
@@ -99,7 +100,7 @@ public class TrpMenuBarListener implements SelectionListener {
 		
 		SWTUtil.onSelectionEvent(mb.exitItem, (e) -> { mw.getShell().close(); });	
 		
-		SWTUtil.onSelectionEvent(mb.movePagesByFilelistItem, (e) -> { mw.movePagesByFilelist(); });
+		SWTUtil.onSelectionEvent(mb.movePagesByFilelistItem, (e) -> { mw.getDocSyncController().movePagesByFilelist(); });
 	}
 
 	@Override public void widgetSelected(SelectionEvent e) {

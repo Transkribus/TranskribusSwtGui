@@ -206,7 +206,7 @@ public class HtrTrainingDialog extends Dialog {
 	private TrainMethodUITab createCitlabHtrPlusTrainingTab(final int tabIndex) {
 		citlabHtrPlusTrainingTabItem = new CTabItem(paramTabFolder, SWT.NONE);
 
-		citlabHtrPlusParamCont = new CITlabHtrPlusTrainingConfComposite(paramTabFolder, store.isAdminLoggedIn(), SWT.NONE);
+		citlabHtrPlusParamCont = new CITlabHtrPlusTrainingConfComposite(paramTabFolder, true, SWT.NONE);
 		final String label = HtrTableLabelProvider.getLabelForHtrProvider(citlabHtrPlusParamCont.getProvider());
 		citlabHtrPlusTrainingTabItem.setText(label);
 		

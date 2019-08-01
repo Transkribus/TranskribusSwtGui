@@ -669,6 +669,10 @@ public class CanvasScene {
 		return new ArrayList<ICanvasShape>(selected);
 	}
 	
+	public List<ICanvasShape> getSelected() {
+		return selected;
+	}
+	
 	public List<Object> getSelectedData() {
 		List<Object> sd = new ArrayList<Object>();
 		for (ICanvasShape s : selected) {
@@ -1144,6 +1148,33 @@ public class CanvasScene {
 		if (!canvas.isDisposed()){
 			canvas.redraw();
 		}
+	}
+	
+	public ShapeEditOperation simplifyShapeByPercentageOfLength(ICanvasShape shape, double perc) {
+		if (!hasShape(shape)) {
+			return null;
+		}
+		logger.debug("simplifyShapeByPercentageOfLength, perc = "+perc);
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Polygon simplification", shape);
+		shape.simplifyByPercentageOfLength(perc);
+		
+		return op;
+	}
+	
+	public ShapeEditOperation simplifyShape(ICanvasShape shape, double perc, Integer length) {
+		if (!hasShape(shape)) {
+			return null;
+		}
+		
+		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Polygon simplification", shape);
+		if (length == null) {
+			length = shape.getPolygonLength();
+		}
+		double eps = (length * perc)/100.0d;
+		logger.debug("simplifying shape with perc: "+perc+" length = "+length+ " eps = "+eps);
+		shape.simplify(eps);
+		
+		return op;
 	}
 
 	// event stuff:

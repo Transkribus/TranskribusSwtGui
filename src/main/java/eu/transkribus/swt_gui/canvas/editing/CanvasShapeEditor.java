@@ -357,19 +357,51 @@ public class CanvasShapeEditor {
 		}
 	}
 	
-	public void simplifySelected(double perc) {
-		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Polygon simplification", canvas.getScene().getSelectedAsNewArray());
-		
-		for (ICanvasShape s : op.getShapes()) {			
-			double d = s.getPoint(0).distance(s.getPoint(2));
-			double eps = (d * perc)/100.0d;
-			logger.debug("simplifying selected with perc: "+perc+" diameter = "+d+ " eps = "+eps);
-			s.simplify(eps);	
+	public void simplifyShape(double perc, Integer length, ICanvasShape shape) {
+		ShapeEditOperation op = scene.simplifyShape(shape, perc, length);
+		if (op != null) {
+			addToUndoStack(op);
 		}
-		addToUndoStack(op);
-
 		canvas.redraw();
-	}	
+	}
+	
+	public void simplifyTextLines(double perc, boolean onlySelected) {
+		List<ShapeEditOperation> ops = new ArrayList<>();
+		List<ICanvasShape> shapes = onlySelected ? scene.getSelected() : scene.getShapes();
+		
+		for (ICanvasShape s : shapes) {
+			s = CanvasShapeUtil.getLineShape(s);
+			if (s == null) {
+				continue;
+			}
+			ShapeEditOperation op = scene.simplifyShapeByPercentageOfLength(s, perc);
+			if (op != null) {
+				ops.add(op);
+			}
+		}
+		if (!ops.isEmpty()) {
+			addToUndoStack(ops);
+		}
+		canvas.redraw();
+	}
+	
+//	public void simplifySelected(double perc) {
+//		addToUndoStack(ops);
+//		
+//		
+//		ShapeEditOperation op = new ShapeEditOperation(ShapeEditType.EDIT, "Polygon simplification", canvas.getScene().getSelectedAsNewArray());
+//		
+//		for (ICanvasShape s : op.getShapes()) {
+//			double d = s.getPolygonLength();
+////			double d = s.getPoint(0).distance(s.getPoint(2));
+//			double eps = (d * perc)/100.0d;
+//			logger.debug("simplifying selected with perc: "+perc+" polygon length = "+d+ " eps = "+eps);
+//			s.simplify(eps);	
+//		}
+//		addToUndoStack(op);
+//
+//		canvas.redraw();
+//	}	
 	
 	public void addToUndoStack(ShapeEditOperation op) {
 		if (op != null)
