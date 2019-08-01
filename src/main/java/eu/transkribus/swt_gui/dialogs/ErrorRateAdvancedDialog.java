@@ -299,7 +299,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 							}
 						}
 						else if (StringUtils.isEmpty(newPageString)) {
-							DialogUtil.showErrorMessageBox(getShell(), "Error", "Pagestring is empty \nPages ignored for missing GT : " + deleteGTPageString +"\nPages ignored for missing Hyp : " + deleteHypPageString);
+							DialogUtil.showErrorMessageBox(getShell(), "Error", "No pages chosen, reasons for skipping pages below: \nPages ignored for missing GT : " + deleteGTPageString +"\nPages ignored for missing Hyp : " + deleteHypPageString);
 						}
 						else {
 							DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
