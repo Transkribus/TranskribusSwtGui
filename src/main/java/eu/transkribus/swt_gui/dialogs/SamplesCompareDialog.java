@@ -159,7 +159,6 @@ public class SamplesCompareDialog extends Dialog {
 		docMd = new TrpDocMetadata();
 		df = new DecimalFormat("#0.000");
 		rl = new ResultLoader();
-		rl.start();
 	}
 	
 	public void setVisible() {
@@ -990,9 +989,6 @@ public class SamplesCompareDialog extends Dialog {
 			errorList.add(new TrpErrorResultTableEntry(j));
 		}
 		
-		if(jobs != null && jobs.size() != 0 && jobs.get(0).isFinished()) {
-			rl.setStopped();
-		}
 		Display.getDefault().asyncExec(() -> { 
 			AJobResultTableEntry<?> e = resultTable.getSelectedEntry();
 			if(resultTableError != null && !resultTableError.isDisposed()) {
