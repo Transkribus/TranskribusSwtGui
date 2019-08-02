@@ -7,7 +7,6 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -52,14 +51,6 @@ public class HtrModelsDialog extends Dialog {
 		modelsComp = new HtrModelsComposite(cont, providerFilter, 0);
 		modelsComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
-		modelsComp.htw.getTableViewer().getTable().addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseDoubleClick(MouseEvent e) {
-				if (modelsComp.getSelectedHtr()!=null) {
-					okPressed();	
-				}
-			}
-		});
 		
 		modelsComp.htw.getTableViewer().getTable().addKeyListener(new KeyAdapter() {			
 			@Override
