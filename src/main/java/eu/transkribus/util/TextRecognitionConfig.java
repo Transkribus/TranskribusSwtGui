@@ -12,11 +12,37 @@ public class TextRecognitionConfig {
 	//CITlab and UPVLC
 	private int htrId;
 	private String htrName;
+	private boolean doLinePolygonSimplification=true;
+	private boolean keepOriginalLinePolygons=false; 
 	
 	public TextRecognitionConfig(Mode mode) {
 		this.mode = mode;
 	}
 	
+	public boolean isDoLinePolygonSimplification() {
+		return doLinePolygonSimplification;
+	}
+
+
+
+	public void setDoLinePolygonSimplification(boolean doLinePolygonSimplification) {
+		this.doLinePolygonSimplification = doLinePolygonSimplification;
+	}
+
+
+
+	public boolean isKeepOriginalLinePolygons() {
+		return keepOriginalLinePolygons;
+	}
+
+
+
+	public void setKeepOriginalLinePolygons(boolean keepOriginalLinePolygons) {
+		this.keepOriginalLinePolygons = keepOriginalLinePolygons;
+	}
+
+
+
 	public Mode getMode() {
 		return mode;
 	}

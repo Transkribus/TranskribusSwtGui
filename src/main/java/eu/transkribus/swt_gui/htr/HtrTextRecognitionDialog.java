@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 import eu.transkribus.util.TextRecognitionConfig;
@@ -31,12 +32,12 @@ public class HtrTextRecognitionDialog extends Dialog {
 	
 	private Button thisPageBtn, severalPagesBtn;
 	private DocPagesSelector dps;
+	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn;
 	
 	private Storage store = Storage.getInstance();
 	
 	private TextRecognitionConfig config;
 	private String pages;
-
 	
 	public HtrTextRecognitionDialog(Shell parent) {
 		super(parent);
@@ -72,6 +73,22 @@ public class HtrTextRecognitionDialog extends Dialog {
 				dps.setEnabled(severalPagesBtn.getSelection());
 			}
 		});
+		
+		doLinePolygonSimplificationBtn = new Button(cont, SWT.CHECK);
+		doLinePolygonSimplificationBtn.setText("Do polygon simplification");
+		doLinePolygonSimplificationBtn.setToolTipText("Perform a line polygon simplification after the recognition process to reduce the number of output points and thus the size of the file");
+		doLinePolygonSimplificationBtn.setSelection(true);
+		doLinePolygonSimplificationBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		
+		keepOriginalLinePolygonsBtn = new Button(cont, SWT.CHECK);
+		keepOriginalLinePolygonsBtn.setText("Keep original line polygons");
+		keepOriginalLinePolygonsBtn.setToolTipText("Keep the original line polygons after the recognition process, e.g. if they have been already corrected");
+		keepOriginalLinePolygonsBtn.setSelection(false);
+		keepOriginalLinePolygonsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
+			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
+		});
+		doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
 		
 		Text configTxt = new Text(cont, SWT.MULTI | SWT.READ_ONLY | SWT.BORDER);
 		configTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 6));
@@ -133,6 +150,9 @@ public class HtrTextRecognitionDialog extends Dialog {
 			return;
 		}
 		
+		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
+		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
+		
 		super.okPressed();
 	}
 
@@ -161,4 +181,5 @@ public class HtrTextRecognitionDialog extends Dialog {
 	public String getPages() {
 		return this.pages;
 	}
+
 }

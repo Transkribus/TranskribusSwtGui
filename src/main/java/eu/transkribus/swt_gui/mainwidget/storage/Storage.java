@@ -2510,7 +2510,7 @@ public class Storage {
 		switch(config.getMode()) {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), getDocId(), pages, 
-					config.getHtrId(), config.getDictionary());
+					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons());
 		case UPVLC:
 			return null;
 		default:
