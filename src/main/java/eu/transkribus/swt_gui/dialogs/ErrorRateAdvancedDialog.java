@@ -14,6 +14,7 @@ import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.apache.commons.lang.NullArgumentException;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -290,7 +291,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						msg += "Pages ignored for missing Hyp : " + deleteHypPageString + "\n";
 						msg += "Ref: " +params.getParameterValue("ref")+"\n";
 						msg += "Hyp: " +params.getParameterValue("hyp");
-						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null) {
+						if(params.getParameterValue("ref") != null && params.getParameterValue("hyp") != null && !StringUtils.isEmpty(newPageString)) {
 							rl.setStopped();
 							int result = DialogUtil.showYesNoDialog(getShell(), "Start?", msg);
 							if (result == SWT.YES) {
@@ -298,6 +299,9 @@ public class ErrorRateAdvancedDialog extends Dialog {
 								rl = new ResultLoader();
 								rl.start();
 							}
+						}
+						else if (StringUtils.isEmpty(newPageString)) {
+							DialogUtil.showErrorMessageBox(getShell(), "Error", "Pagestring is empty \nPages ignored for missing GT : " + deleteGTPageString +"\nPages ignored for missing Hyp : " + deleteHypPageString);
 						}
 						else {
 							DialogUtil.showErrorMessageBox(getShell(), "Error", "The hypothesis and reference must be set for the computation");
