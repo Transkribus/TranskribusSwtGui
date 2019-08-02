@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +31,9 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.GeomUtils;
+import eu.transkribus.core.util.RamerDouglasPeuckerFilter;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
-import eu.transkribus.swt.util.RamerDouglasPeuckerFilter;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;
@@ -1051,18 +1050,6 @@ public abstract class ACanvasShape<S extends Shape> extends Observable implement
 		
 		
 		return (signedDist && contains(x, y)) ? -1*minDist : minDist;
-	}
-	
-	@Override
-	public void simplify(double eps) {
-		List<Point> pts = getPoints();
-		
-		RamerDouglasPeuckerFilter f = new RamerDouglasPeuckerFilter(eps);
-//		RamerDouglasPeuckerFilter f = new RamerDouglasPeuckerFilter(0.0000001);
-		List<Point> simpl = f.filter(pts);
-		logger.debug("Simplified polygon from "+pts.size()+" to "+simpl.size()+" nr of points!");
-		
-		this.setPoints(simpl);
 	}
 	
 	@Override

@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.util.GeomUtils;
+import eu.transkribus.core.util.RamerDouglasPeuckerFilter;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 
 public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode<ICanvasShape> {	
@@ -164,12 +165,13 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 //	Rectangle getBounds();
 	
 	/** Simplifies this shape with the given epsilon parameter using the Ramer-Douglas-Peucker algorithm */
-	void simplify(double eps);
-//	List<ICanvasShape> splitShape(CanvasPolyline line);
-	
+	default void simplify(double eps) {
+		this.setPoints(RamerDouglasPeuckerFilter.filter(eps, getPoints()));
+	}
 	default void simplifyByPercentageOfLength(double perc) {
 		simplify((getPolygonLength() * perc)/100.0d);
-	}
+	}	
+//	List<ICanvasShape> splitShape(CanvasPolyline line);
 	
 	boolean contains(java.awt.Point p);
 	boolean contains(org.eclipse.swt.graphics.Point p);
@@ -267,11 +269,7 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	 * Returns the sum of all polygon lines in this shapes
 	 */
 	default int getPolygonLength() {
-		int l=0;
-		for (int i=0; i<getNPoints()-1; ++i) {
-			l+=getPoint(i).distance(getPoint(i+1));
-		}
-		return l;
+		return GeomUtils.getPolygonLength(getPoints());
 	}
 	
 	Pair<ICanvasShape, ICanvasShape> splitByPolyline(CanvasPolyline pl);
