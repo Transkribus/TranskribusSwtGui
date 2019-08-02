@@ -30,6 +30,7 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -95,7 +96,9 @@ import eu.transkribus.swt_gui.htr.DocumentDataSetTableWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSelectionEntry;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.search.kws.AJobResultTableEntry;
 import eu.transkribus.swt_gui.search.kws.KwsResultTableWidget;
+import eu.transkribus.swt_gui.tool.error.TrpErrorResultTableEntry;
 import eu.transkribus.swt_gui.tool.error.TrpSampleResultTableEntry;
 
 
@@ -130,10 +133,11 @@ public class SamplesCompareDialog extends Dialog {
 	private CollectionContentProvider contentProv, contentProvComp;
 	private SampleLabelProvider labelProv;
 	private Composite buttonComp,buttonComputeComp, jobsComp, samplesConfComposite ;
-	private KwsResultTableWidget resultTable;
+	private KwsResultTableWidget resultTable,resultTableError;
 	private ChartComposite jFreeChartComp;
 	private Button addToSampleSetBtn, removeFromSampleSetBtn,createSampleButton, computeSampleBtn, wikiHelp;
 	private ParameterMap params = new ParameterMap();
+	private Group resultGroup;
 	DecimalFormat df;
 	Combo comboRef,comboHyp;
 	Label labelRef,labelHyp, chartText, cerText;
@@ -155,7 +159,6 @@ public class SamplesCompareDialog extends Dialog {
 		docMd = new TrpDocMetadata();
 		df = new DecimalFormat("#0.000");
 		rl = new ResultLoader();
-		rl.start();
 	}
 	
 	public void setVisible() {
@@ -294,11 +297,6 @@ public class SamplesCompareDialog extends Dialog {
 		samplesTabItem = new CTabItem(paramTabFolder, SWT.NONE);
 		samplesTabItem.setText("Documents");
 		
-//		samplesConfComposite = new Composite(paramTabFolder,0);
-//		samplesConfComposite.setLayout(new GridLayout(1,false));
-//		
-//		samplesTabItem.setControl(samplesConfComposite);
-		
 		computeSampleTabItem = new CTabItem(paramTabFolder, SWT.NONE);
 		computeSampleTabItem.setText("Samples");
 		
@@ -361,6 +359,7 @@ public class SamplesCompareDialog extends Dialog {
 		cerText.setText("The CER for the sample pages is [ . . . . %]  ");
 		cerText.setLayoutData(new GridData(SWT.HORIZONTAL, SWT.TOP, true, true, 1, 1));
 		cerText.setVisible(false);
+		createJobTable(buttonComputeComp);
 		
 		Group jobsViewerCont = new Group(samplesComputesash, SWT.NONE);
 		jobsViewerCont.setText("Results");
@@ -425,14 +424,30 @@ public class SamplesCompareDialog extends Dialog {
 	
 				if(entry != null && entry.getStatus().equals("Completed") ) {
 					try {
-						logger.debug(entry.getQuery());
-//						setCERTextJob(entry.getJob(), entry.getQuery());
 						drawChartJob(entry.getJob());
+						int index = resultTable.getTableViewer().getTable().getSelectionIndex();
+						resultTableError.getTableViewer().getTable().select(index);
+						resultTableError.setFocus();
+						
 					} catch (ServerErrorException | ClientErrorException
 							| IllegalArgumentException e1) {
-						e1.printStackTrace();
+						logger.error(e1.getMessage());
 					}
 					}
+				}
+			});
+		
+		resultTableError.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener(){
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				int index = resultTableError.getTableViewer().getTable().getSelectionIndex();
+				resultTable.getTableViewer().getTable().select(index);
+				resultTable.setFocus();
+				TrpSampleResultTableEntry entry = (TrpSampleResultTableEntry) resultTable.getSelectedEntry();
+				if(entry != null ) {
+					drawChartJob(entry.getJob());
+				}
+				
 				}
 			});
 		
@@ -516,7 +531,7 @@ public class SamplesCompareDialog extends Dialog {
 						}
 						
 					} catch (IOException | SessionExpiredException | ServerErrorException | ClientErrorException e1) {
-						e1.printStackTrace();
+						logger.error(e1.getMessage());
 					} catch (NullArgumentException e2) {
 						DialogUtil.showErrorMessageBox(getShell(), "Missing GT", "GT for " +e2.getLocalizedMessage());
 					}
@@ -541,21 +556,15 @@ public class SamplesCompareDialog extends Dialog {
 					comboRef.setVisible(true);
 					labelHyp.setVisible(true);
 					comboHyp.setVisible(true);
-//					comboHyp.deselectAll();
-//					int comboCount = comboHyp.getItemCount();
-//					if(comboCount != 0) {
-//						for(int i = 0; i < comboCount ;i++) {
-//							comboHyp.remove(i);
-//						}
-//					}
 					comboHyp.removeAll();
 					getShell().getDisplay().asyncExec(new Runnable() {
 						
 						@Override
 						public void run() {
 							List<TrpJobStatus> jobs = getSampleComputeJobs(docMd.getDocId());
+							List<TrpJobStatus> errorJobs = getErrorJobs(docMd.getDocId());
 							updateResultTable(jobs);
-							
+							updateResultTableError(errorJobs);
 							try {
 								drawChartFromJobs();
 								Object[] pageObjArr = contentProvComp.getChildren(docMd);
@@ -752,6 +761,40 @@ public class SamplesCompareDialog extends Dialog {
 //		}
 //	}
 	
+	public void createJobTable(Composite parent) {
+		
+		Composite jobs = new Composite(parent,SWT.NONE);
+		
+		jobs.setLayout(new GridLayout(1,false));
+		jobs.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
+		
+		GridLayout groupLayout = new GridLayout(1, true);
+		GridData groupGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		
+		
+		resultGroup = new Group(jobs, SWT.FILL);
+		resultGroup.setText("CER per sample page");
+		resultGroup.setLayout(groupLayout);
+		resultGroup.setLayoutData(groupGridData);
+		
+		resultTableError = new KwsResultTableWidget(resultGroup,0);
+		resultTableError.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		
+		resultTableError.getTableViewer().addDoubleClickListener(new IDoubleClickListener(){
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				TrpErrorResultTableEntry entry = (TrpErrorResultTableEntry) resultTableError.getSelectedEntry();
+				if(entry != null && entry.getStatus().equals("Completed") ) {
+					int docId = docMd.getDocId();
+					String query = entry.getQuery();
+					TrpErrorRate result = entry.getResult();
+					ErrorRateAdvancedStats stats = new ErrorRateAdvancedStats(getShell(), result,docId,query);
+					stats.open();
+					}
+				}
+			});
+	}
+	
 	private void drawChartJob(TrpJobStatus job) {
 		if(job.isFinished()) {
 			TrpProperties props = job.getJobDataProps();
@@ -939,6 +982,26 @@ public class SamplesCompareDialog extends Dialog {
 		});
 	}
 	
+	private void updateResultTableError(List<TrpJobStatus> jobs) {
+		List<TrpErrorResultTableEntry> errorList = new LinkedList<>();
+
+		for(TrpJobStatus j : jobs) {
+			errorList.add(new TrpErrorResultTableEntry(j));
+		}
+		
+		Display.getDefault().asyncExec(() -> { 
+			AJobResultTableEntry<?> e = resultTable.getSelectedEntry();
+			if(resultTableError != null && !resultTableError.isDisposed()) {
+				resultTableError.getTableViewer().setInput(errorList);
+			}
+			if(e != null) {
+				TrpErrorResultTableEntry o = (TrpErrorResultTableEntry)e;
+				int index = errorList.indexOf(o);
+				resultTableError.getTableViewer().getTable().select(index);
+			}
+		});
+	}
+	
 	private class ResultLoader extends Thread{
 		private final static int SLEEP = 1000;
 		private boolean stopped = false;
@@ -950,9 +1013,12 @@ public class SamplesCompareDialog extends Dialog {
 						@Override
 						public void run() {
 							List<TrpJobStatus> jobs;
+							List<TrpJobStatus> errorJobs;
 							try {
 								jobs = getSampleComputeJobs();
 								updateResultTable(jobs);
+								errorJobs = getErrorJobs();
+								updateResultTableError(errorJobs);
 							} catch (ServerErrorException | ClientErrorException
 									| IllegalArgumentException e) {
 								e.printStackTrace();
@@ -976,7 +1042,21 @@ public class SamplesCompareDialog extends Dialog {
 				jobs = store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, null, null);
 			} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 					| IllegalArgumentException e) {
-				e.printStackTrace();
+				logger.error("Could not load Jobs!");
+			}
+			return jobs;
+		}
+		
+		private List<TrpJobStatus> getErrorJobs()  {
+			Integer docId = docMd.getDocId();
+			List<TrpJobStatus> jobs = new ArrayList<>();
+			if (store != null && store.isLoggedIn()) {
+				try {
+					jobs = store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, null, null);
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+						| IllegalArgumentException e) {	
+					logger.error("Could not load Jobs!");
+				}
 			}
 			return jobs;
 		}
@@ -990,6 +1070,16 @@ public class SamplesCompareDialog extends Dialog {
 	List<TrpJobStatus> getSampleComputeJobs(int docId) {
 		try {
 			return store.getConnection().getJobs(true, null, JobImpl.ComputeSampleJob.getLabel(), docId, 0, 0, null, null);
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+				| IllegalArgumentException e) {
+			logger.error(e.getMessage(), e);
+			return new ArrayList<>(0);
+		}
+	}
+	
+	List<TrpJobStatus> getErrorJobs(int docId) {
+		try {
+			return store.getConnection().getJobs(true, null, JobImpl.ErrorRateJob.getLabel(), docId, 0, 0, null, null);
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 				| IllegalArgumentException e) {
 			logger.error(e.getMessage(), e);

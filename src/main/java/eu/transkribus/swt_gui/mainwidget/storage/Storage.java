@@ -992,7 +992,15 @@ public class Storage {
 			conn.close();
 
 		conn = new TrpServerConn(serverUri);
-		conn.enableDebugLogging(TrpMainWidget.getTrpSettings().isLogHttp());
+		
+		final boolean logHttp = TrpMainWidget.getTrpSettings().isLogHttp();
+		if(logHttp) {
+			conn.enableDebugLogging();
+		} else {
+			//gzip encoding and debug logging do not go well together...
+			conn.enableGzipEncoding();
+		}
+		
 		user = conn.login(username, password);
 		logger.debug("Logged in as user: " + user + " connection: " + conn);
 		
@@ -1010,7 +1018,15 @@ public class Storage {
 			conn.close();
 
 		conn = new TrpServerConn(serverUri);
-		conn.enableDebugLogging(TrpMainWidget.getTrpSettings().isLogHttp());
+		
+		final boolean logHttp = TrpMainWidget.getTrpSettings().isLogHttp();
+		if(logHttp) {
+			conn.enableDebugLogging();
+		} else {
+			//gzip encoding and debug logging do not go well together...
+			conn.enableGzipEncoding();
+		}
+		
 		user = conn.loginOAuth(code, state, grantType, redirectUri, prov);
 		
 		logger.debug("Logged in as user: " + user + " connection: " + conn);
