@@ -45,7 +45,7 @@ public class XmlViewerTest {
 //				});
 				
 				try {
-					v.open(new URL("https://dbis-thure.uibk.ac.at/f/Get?id=XBJUPGOGPTKOLLGWSFJIALZN"));
+					v.open(new URL("https://files.transkribus.eu/Get?id=XBJUPGOGPTKOLLGWSFJIALZN"));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

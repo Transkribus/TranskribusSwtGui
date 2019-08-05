@@ -16,6 +16,7 @@ import javax.ws.rs.client.InvocationCallback;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.dea.fimagestore.core.util.FilekeyUtils;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -572,15 +573,9 @@ public class FullTextSearchComposite extends Composite{
 						
 						String coords = ((Hit)hoverItem.getData()).getPixelCoords();
 						Point mousePos = Display.getCurrent().getCursorLocation();							
-						if(coords != lastHoverCoords){
-						
-							//hShell.imgLabel.setImage(Images.LOADING_IMG);
-							String imgKey = ((Hit)hoverItem.getData()).getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
-							imgKey = imgKey.replace("&fileType=view", "");
-//							logger.debug(imgKey);							
-							
+						if(coords != lastHoverCoords){							
 							try {						
-								
+								final String imgKey = FilekeyUtils.extractKey(new URL(((Hit)hoverItem.getData()).getImgUrl()));
 								
 								Image img;							
 								int[] cropValues = getCropValues(coords);
@@ -599,7 +594,7 @@ public class FullTextSearchComposite extends Composite{
 								hShell.hoverShell.setVisible(true);
 								
 							} catch (Exception ex) {								
-								ex.printStackTrace();
+								logger.error("Could not load preview image!", ex);
 								hShell.imgLabel.setText("Could not load preview image");
 							}						
 							
@@ -948,17 +943,13 @@ public class FullTextSearchComposite extends Composite{
 //			}
 			
 		} catch (SessionExpiredException e) {
-			logger.error("Error when trying to search: Session expired!"+e);
-			e.printStackTrace();
+			logger.error("Error when trying to search: Session expired!", e);
 		} catch (ServerErrorException e) {
-			logger.error("Error when trying to search: ServerError!"+e);
-			e.printStackTrace();
+			logger.error("Error when trying to search: ServerError!", e);
 		} catch (ClientErrorException e) {
-			logger.error("Error when trying to search: ClientError!"+e);
-			e.printStackTrace();
+			logger.error("Error when trying to search: ClientError!", e);
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 //		catch (NoConnectionException e) {
 //			logger.error("Error when trying to search: No connection!"+e);
@@ -1143,8 +1134,6 @@ public class FullTextSearchComposite extends Composite{
 	        			if(Thread.currentThread().isInterrupted()) stopFlag = true;
 	        			if (stopFlag) return;
 	        			String coords = hit.getPixelCoords();
-//						String imgKey = hit.getImgUrl().replace("https://dbis-thure.uibk.ac.at/f/Get?id=", "");
-//						imgKey = imgKey.replace("&fileType=view", "");
 	        			
 	        			//Extract key from URL
 	        			String imgKey = StringUtils.substringBetween(hit.getImgUrl(), "Get?id=", "&fileType=view");	
@@ -1163,14 +1152,14 @@ public class FullTextSearchComposite extends Composite{
 							}
 							
 						} catch (Exception ex) {								
-							ex.printStackTrace();
+							logger.error("Could not load preview image!", ex);
 						}	
 		        			
         			}
 	        		logger.debug("Background word thumbnail loading complete");
-	        		}catch(Exception iEx){
-	        			logger.debug("Exception"+iEx);
-	        		}   	
+        		}catch(Exception iEx){
+        			logger.debug("Exception", iEx);
+        		}   	
         	}
         };
         
