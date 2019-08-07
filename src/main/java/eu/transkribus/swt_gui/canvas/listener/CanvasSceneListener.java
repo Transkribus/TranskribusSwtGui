@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator4Columns;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementReadingOrderComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
@@ -749,7 +750,15 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 					
 					trpMergedShapes.add(st);
 				}
-				Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));
+				
+				
+				/* NOT USE THE READING ORDER COMPARATOR - WE CANT'T TRUST THE READING ORDER!!
+				 * Collections.sort(trpMergedShapes, new TrpElementReadingOrderComparator<ITrpShapeType>(true));
+				 * use the one beneath!!! because reading order must not be correct, e.g. line1 has ro 3 and line2 has ro 2 then the merged baseline
+				 *  goes from the end of line 2 back to beginning of line 1 and the HTR fails for that 'circular' line
+				 *  So the coordinates of the lines should be taken for the comparison
+				 */
+				Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator4Columns<>());
 				
 				logger.debug("minIndex = "+minIndex);
 				
