@@ -441,20 +441,24 @@ public class CanvasScene {
 		 * for some reason the shape points start not at top left but at the lowest level of the shape?? - don't know why the hell!!
 		 * must be the result of the splitByPolyline - intersection function (GPCJ library) 
 		 * Hence we get the index of the top left point and resort the list
+		 * But only for text line types - for baselines this is not valid
 		 * 
 		 */
-		int tl = getIndexOfLeftTopPoint(pts1);	
-		if (tl != -1){
-			sortedPts1.addAll(pts1.subList(tl, pts1.size()));
-			sortedPts1.addAll(pts1.subList(0, tl));	
-			s1.setPoints(sortedPts1);
-		}
 		
-		int t2 = getIndexOfLeftTopPoint(pts2);	
-		if(t2 != -1){
-			sortedPts2.addAll(pts2.subList(t2, pts2.size()));
-			sortedPts2.addAll(pts2.subList(0, t2));	
-			s2.setPoints(sortedPts2);
+		if (!(shape instanceof TrpBaselineType)){
+			int tl = getIndexOfLeftTopPoint(pts1);	
+			if (tl != -1){
+				sortedPts1.addAll(pts1.subList(tl, pts1.size()));
+				sortedPts1.addAll(pts1.subList(0, tl));	
+				s1.setPoints(sortedPts1);
+			}
+			
+			int t2 = getIndexOfLeftTopPoint(pts2);	
+			if(t2 != -1){
+				sortedPts2.addAll(pts2.subList(t2, pts2.size()));
+				sortedPts2.addAll(pts2.subList(0, t2));	
+				s2.setPoints(sortedPts2);
+			}
 		}
 
 //		logger.debug("shape 1 sorted: " + s1.getPoints());
