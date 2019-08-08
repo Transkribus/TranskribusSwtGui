@@ -911,7 +911,7 @@ public class Storage {
 				 * Capture this and send it with the event.
 				 */
 				boolean isCollectionChange = Storage.this.collId != colId;
-				logger.debug("Collection has changed ? " + isCollectionChange);
+				logger.debug("Collection has changed ({} -> {}) ? {}", Storage.this.collId, colId, isCollectionChange);
 				
 				Storage.this.collId = colId;
 				
@@ -2147,6 +2147,8 @@ public class Storage {
 	
 	public synchronized void clearCollections() {
 		collections.clear();
+		//reset selected collId to detect change on next login
+		collId = 0;
 		sendEvent(new CollectionsLoadEvent(this, user, collections));
 	}
 	
