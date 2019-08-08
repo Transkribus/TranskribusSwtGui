@@ -82,7 +82,7 @@ public class DocSyncWithFilesDialog extends Dialog {
 		
 		infoLabel = new Label(container, SWT.WRAP | SWT.LEFT);
 		infoLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 2));
-		infoLabel.setText("Select source files on the left to match with pages of loaded document on the right");
+		infoLabel.setText("Select source files on the left to match with pages of the loaded document on the right");
 		Fonts.setItalicFont(infoLabel);
 //		titleLabel.setText("Select pages from the text source files on the right to correspond with pages on the target document on the left. \n"
 //				+ "\n"
