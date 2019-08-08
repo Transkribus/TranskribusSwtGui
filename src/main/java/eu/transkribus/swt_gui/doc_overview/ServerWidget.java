@@ -414,17 +414,23 @@ public class ServerWidget extends Composite {
 		treeViewerInput = store.getHtrs(null).stream()
 				.filter(h -> h.getNrOfTrainGtPages() != null && h.getNrOfTrainGtPages() > 0)
 				.collect(Collectors.toList());
-		if(!treeViewerInput.isEmpty()) {
-			if (gtTabItem == null || gtTabItem.isDisposed()) {
-				gtTabItem = new CTabItem(tabFolder, SWT.NONE);
-				gtTabItem.setText("HTR Model Data");
-				gtTabItem.setControl(groundTruthTreeWidget);
+		
+		//run UI update asynchronously
+		getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				if(!treeViewerInput.isEmpty()) {
+					if (gtTabItem == null || gtTabItem.isDisposed()) {
+						gtTabItem = new CTabItem(tabFolder, SWT.NONE);
+						gtTabItem.setText("HTR Model Data");
+						gtTabItem.setControl(groundTruthTreeWidget);
+					}
+					groundTruthTreeWidget.setInput(treeViewerInput);
+				} else if(gtTabItem != null) {
+						gtTabItem.dispose();
+						gtTabItem = null;
+				}
 			}
-			groundTruthTreeWidget.setInput(treeViewerInput);
-		} else if(gtTabItem != null) {
-				gtTabItem.dispose();
-				gtTabItem = null;
-		}
+		});
 	}
 	
 	private void initDocOverviewMenu() {
