@@ -15,20 +15,16 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.window.IShellProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -36,19 +32,15 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.TrpErrorRate;
-import eu.transkribus.core.model.beans.TrpErrorRateListEntry;
 import eu.transkribus.core.model.beans.TrpUserCollection;
 import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.auth.TrpUser;
@@ -56,11 +48,9 @@ import eu.transkribus.core.model.beans.auth.TrpUserInfo;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.dialogs.ExportPathComposite;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.pagination_tables.PageLockTablePagination;
 import eu.transkribus.swt_gui.pagination_tables.UserInfoTableWidgetPagination;
 import eu.transkribus.swt_gui.pagination_tables.UserTableWidgetPagination;
 
@@ -334,13 +324,18 @@ public void downloadXls() {
 	void updateBtnVisibility() {
 		boolean isAdmin = store.getUser() != null ? store.getUser().isAdmin() : false;
 		
-		try {
-			//if the role of the user has changed we should take care of that by reloading it
-			store.reloadCollections();
-			collection = store.getCollection(store.getCollId());
-		} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		final boolean doReload = false;
+		if(doReload) {	
+			/* this reloads all collections synchronously from the server and makes the dialog very slow
+			 * for now use the data as loaded, or get the collection by ID from the server if needed.
+			*/
+			try {
+				//if the role of the user has changed we should take care of that by reloading it
+				store.reloadCollections();
+				collection = store.getCollection(store.getCollId());
+			} catch (SessionExpiredException | ServerErrorException | IllegalArgumentException | NoConnectionException e) {
+				logger.error("Could not reload collections.", e);
+			}
 		}
 		
 		boolean hasRole = collection!=null && collection.getRole()!=null;
