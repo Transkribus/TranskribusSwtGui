@@ -108,6 +108,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.core.model.beans.rest.TrpHtrList;
 import eu.transkribus.core.model.beans.searchresult.FulltextSearchResult;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportCache;
@@ -2488,14 +2489,37 @@ public class Storage {
 	 */
 	public void reloadHtrs() {
 		logger.debug("Reloading HTRs (call #{}: colId = {})", ++reloadHtrListCounter, this.getCollId());
+		final Integer currentColId;
+		if(isAdminLoggedIn()) {
+			//for now emulate behavior of old endpoint here: Admin gets to see all HTR models
+			currentColId = null;
+		} else {
+			//filter by collection ID by default
+			currentColId = this.getCollId();
+		}
+		
 		try {
 			checkConnection(true);
-			htrList = conn.getHtrs(this.getCollId(), null);
-		} catch (SessionExpiredException | ServerErrorException | ClientErrorException | NoConnectionException e) {
-			logger.error("Error loading HTR models: " + e.getMessage(), e);
-			htrList.clear();
+			conn.getHtrs(currentColId, null, new InvocationCallback<TrpHtrList>() {
+				
+				@Override
+				public void completed(TrpHtrList htrList) {					
+					logger.debug("async loaded HTR list: total = {}, size = {}, index = {}, nValues = {}, thread = {} ", 
+							htrList.getTotal(), htrList.getList().size(), htrList.getIndex(), 
+							htrList.getnValues(), Thread.currentThread().getName());
+					Storage.this.htrList = htrList.getList();
+					sendEvent(new HtrListLoadEvent(this, Storage.this.collId, htrList));
+				}
+
+				@Override public void failed(Throwable throwable) {
+					logger.error("Error loading HTR models: " + throwable.getMessage(), throwable);
+					htrList.clear();
+				}
+			});
+		} catch (NoConnectionException e) {
+			Storage.this.htrList = new ArrayList<>(0);
+			logger.error("No connection to server!", e);
 		}
-		sendEvent(new HtrListLoadEvent(this, this.getCollId(), htrList));
 	}
 	
 	public List<TrpHtr> getHtrs(String provider) {

@@ -7,11 +7,11 @@ import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.auth.TrpUserLogin;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.rest.TrpHtrList;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt_gui.canvas.CanvasImage;
 import eu.transkribus.swt_gui.metadata.CustomTagSpec;
@@ -197,10 +197,10 @@ public interface IStorageListener {
 	@SuppressWarnings("serial")
 	public static class HtrListLoadEvent extends Event {
 		public final int collId;
-		public final List<TrpHtr> htrs;
+		public final TrpHtrList htrs;
 
-		public HtrListLoadEvent(Object source, int collId, List<TrpHtr> htrs) {
-			super(source, htrs.size() + " HTRs loaded for collection " + collId);
+		public HtrListLoadEvent(Object source, int collId, TrpHtrList htrs) {
+			super(source, htrs.getList().size() + " HTRs loaded for collection " + collId);
 			this.collId = collId;
 			this.htrs = htrs;
 		}
