@@ -70,14 +70,9 @@ public class TrpMainWidgetStorageListener implements IStorageListener {
 			mw.recycleBinDiag.getDocTableWidget().refreshList(mw.getSelectedCollectionId());
 		}
 		if(e.isCollectionChange) {
-			mw.getShell().getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					//force a reload of the HTR model list only if collection has changed
-					logger.debug("Async load HTR list");
-					storage.reloadHtrs();
-					logger.debug("Loading HTR list done.");
-				}
-			});
+			//force a reload of the HTR model list only if collection has changed
+			logger.debug("Load HTR list");
+			storage.reloadHtrs();
 		} else {
 			logger.debug("Omitting reload of HTR list as collection has not changed.");
 		}
