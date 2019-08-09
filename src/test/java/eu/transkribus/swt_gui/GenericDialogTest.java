@@ -52,6 +52,7 @@ public class GenericDialogTest {
 			if (true) { // load Storage?
 				store = Storage.getInstance();
 				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
+//				store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
 				Future<?> fut = store.reloadDocList(1); // reload doclist of a collection just that the collection id gets set!
 	//			store.loadRemoteDoc(1, 455); // bentham doc on testserver
 				
@@ -76,7 +77,7 @@ public class GenericDialogTest {
 	//					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 		//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 						
-						if (true) {
+						if (false) {
 //							TrpDoc targetDoc = store.getConnection().getTrpDoc(2, 6766, 1); // Bentham Box 2, 5 pages
 							TrpDoc targetDoc = store.getConnection().getTrpDoc(2, 6226, 1); // 10 pages
 //							TrpDoc targetDoc = LocalDocReader.load("C:\\tmp\\Bentham_box_035");
@@ -106,7 +107,7 @@ public class GenericDialogTest {
 	//						SWTUtil.centerShell(getShell());
 						}					
 						
-						if (false) {
+						if (true) {
 							List<TrpP2PaLAModel> models = new ArrayList<>();
 							if (Storage.getInstance()!=null) {
 								models = Storage.getInstance().getP2PaLAModels();
