@@ -610,7 +610,8 @@ public class ToolsWidget extends Composite {
 		laToolsExp.setEnabled(setEnabled);
 		expOther.setExpanded(setEnabled);
 		expOther.setEnabled(setEnabled);
-		
+		trComp.getRunBtn().setEnabled(setEnabled);
+		layoutContainer();
 	}
 	
 	public TrpTranscriptMetadata getCorrectText(){

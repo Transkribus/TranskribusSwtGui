@@ -905,7 +905,6 @@ public class TrpMainWidgetView extends Composite {
 				tabWidget.textTaggingItem.setControl(null);
 				tabWidget.structuralMdItem.setControl(null);
 				docMetadataEditor.updateVisibility(canTranscribe);
-				toolsWidget.updateVisibility(canTranscribe);
 				commentsWidget.updateVisibility(canTranscribe);
 			} else {
 				tabWidget.toolsItem.setControl(toolsWidget);
@@ -913,7 +912,6 @@ public class TrpMainWidgetView extends Composite {
 				tabWidget.structuralMdItem.setControl(structuralMdWidget);
 				tabWidget.commentsItem.setControl(commentsWidget);
 				tabWidget.docMdItem.setControl(docMetadataEditor);
-				
 			}
 		}
 		getSelectedTranscriptionWidget().setWriteable(canTranscribe);
@@ -935,6 +933,9 @@ public class TrpMainWidgetView extends Composite {
 		
 		//layout tab tool bar button visibility
 		structureTreeWidget.setEditingEnabled(canTranscribe);
+	
+		//update toolsWidget items according to user's rights
+		toolsWidget.updateVisibility(canTranscribe);
 		
 		//canvas toolbar
 		canvasWidget.getCanvas().getSettings().setEditingEnabled(canTranscribe);
