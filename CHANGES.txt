@@ -647,5 +647,7 @@ CHANGES AND BUGFIXES
 1.7.2:
 	-> additional parameters for Text2Image
 	-> new sync txt-files and PAGE-XMLs with existing doc dialog (including: apply txt-files to existing layouts)
-	
+	-> enable gzip encoding for HTTP API connection 
+	-> ground truth management features
+	-> fix bug that caused image rotation according to EXIF thumbnail section
 	
