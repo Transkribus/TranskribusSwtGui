@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.swt.SWT;
@@ -393,5 +396,27 @@ public class DialogUtil {
 		Rectangle b = c.getBounds();
 		Point l = c.getParent().toDisplay(c.getLocation());
 		DialogUtil.createAndShowBalloonToolTip(c.getShell(), iconType, message, title, l.x + xOffset, l.y + yOffset, true);		
+	}
+	
+	public static Double showDoubleInputDialog(Shell parentShell, String dialogTitle, String dialogMessage, double initialValue) {
+		InputDialog d = new InputDialog(parentShell, dialogTitle, dialogMessage, ""+initialValue, new IInputValidator() {
+			@Override
+			public String isValid(String newText) {
+				try {
+					Double.parseDouble(newText);
+					return null;
+				} catch (Exception e) {
+					return "Not a valid number";
+				}
+			}
+		});
+		if (d.open() == IDialogConstants.OK_ID) {
+			try {
+				return Double.parseDouble(d.getValue());
+			} catch (Exception e) {
+				logger.error("Could not parse value to double: "+d.getValue());
+			}
+		}
+		return null;
 	}
 }

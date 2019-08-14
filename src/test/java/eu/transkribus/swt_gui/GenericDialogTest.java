@@ -28,6 +28,7 @@ import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.DocSyncWithFilesDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncWithTxtFilesDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
+import eu.transkribus.swt_gui.dialogs.RemoveTextRegionsConfDialog;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
@@ -51,8 +52,8 @@ public class GenericDialogTest {
 		try {
 			if (true) { // load Storage?
 				store = Storage.getInstance();
-				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
-//				store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
+//				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
+				store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
 				Future<?> fut = store.reloadDocList(1); // reload doclist of a collection just that the collection id gets set!
 	//			store.loadRemoteDoc(1, 455); // bentham doc on testserver
 				
@@ -76,6 +77,11 @@ public class GenericDialogTest {
 						
 	//					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 		//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
+						
+						if (false) {
+							RemoveTextRegionsConfDialog d = new RemoveTextRegionsConfDialog(getShell());
+							d.open();
+						}
 						
 						if (false) {
 //							TrpDoc targetDoc = store.getConnection().getTrpDoc(2, 6766, 1); // Bentham Box 2, 5 pages
