@@ -651,4 +651,5 @@ CHANGES AND BUGFIXES
 	-> enable gzip encoding for HTTP API connection
 	-> ground truth management features
 	-> fix bug that caused image rotation according to EXIF thumbnail section
+	-> remove small text-regions feature
 	
