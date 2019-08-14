@@ -4,7 +4,7 @@
 	<groupId>eu.transkribus</groupId>
 	<artifactId>TranskribusSwtGui</artifactId>
 	<packaging>jar</packaging>
-	<version>1.7.2.2-SNAPSHOT</version>
+	<version>1.7.2.3-SNAPSHOT</version>
 	<name>Transkribus</name>
 
 	<properties>
