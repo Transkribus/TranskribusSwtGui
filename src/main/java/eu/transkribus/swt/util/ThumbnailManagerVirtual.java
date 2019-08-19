@@ -248,7 +248,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 		Label la = new Label(editCombos, SWT.CENTER);
 		la.setText("Layout Analysis");
 		startLA = new Button(editCombos, SWT.PUSH);
-		startLA.setText("Setting up");
+		startLA.setText("Configure");
 		startLA.setEnabled(false);
 		startLA.addListener(SWT.Selection, event-> {
 			String pages = getPagesString();
@@ -754,7 +754,7 @@ public class ThumbnailManagerVirtual extends Dialog{
 //		tmp.setEnabled(false);
 		
 		tmp = new MenuItem(layoutMenu, SWT.None);
-		tmp.setText("Setting Up");
+		tmp.setText("Configure");
 		//tmp.setEnabled(false);
 		
 		tmp.addListener(SWT.Selection, event-> {
