@@ -1010,6 +1010,14 @@ public class SWTUtil {
 		return true;
 	}
 	
+	public static boolean removeTraverseListener(Text ti, TraverseListener l) {
+		if (isDisposed(ti))
+			return false;
+		
+		ti.removeTraverseListener(l);
+		return true;
+	}
+	
 	public static boolean addListener(Composite c, int eventType, Listener l) {
 		if (isDisposed(c))
 			return false;
