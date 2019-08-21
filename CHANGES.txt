@@ -651,6 +651,9 @@ CHANGES AND BUGFIXES
 	-> HTR+ training using base models
 	-> enable gzip encoding for HTTP API connection
 	-> ground truth management features
+	-> new HTR options regarding the line segments produced by CITlab HTR
+		-> "Do polygon simplification": reduce the complexity of line segments, saving bandwidth and storage space. 
+		-> "Keep original line polygons": copy the recognized text to the line segments without altering them.
 	-> fix bug that caused image rotation according to EXIF thumbnail section
 	-> remove small text-regions feature
 	
