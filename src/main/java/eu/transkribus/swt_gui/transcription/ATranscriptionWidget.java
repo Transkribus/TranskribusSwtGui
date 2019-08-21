@@ -38,6 +38,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
+import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
@@ -1681,6 +1682,50 @@ public abstract class ATranscriptionWidget extends Composite{
 //					updateLineObject();
 				}
 				
+				if (e.character == '\u0008') {
+					
+					logger.debug("Backspace key pressed - move all lines one up if the caret is at the first position");
+					int xIndex = getCurrentXIndex();
+					if (xIndex == 0){
+						//logger.debug("xIndex = " + xIndex);
+						int offset = text.getCaretOffset();
+						
+//						logger.debug("line index = " + getCurrentLineIndex());
+//						logger.debug("region index = " + getCurrentRegionObject().getId());
+												
+						int newOffset = offset-2;
+						//logger.debug("new offset " + newOffset);
+						
+						//here the text for copying is selected
+						text.setSelection(offset,text.getText().length());					
+						text.copy();
+	
+						//and here the selection is made where the text gets inserted
+						text.setSelection(newOffset,text.getText().length());
+						text.paste();
+						
+						text.setCaretOffset(newOffset);
+					}
+
+//					logger.debug("text: " + text.getText());
+//					String [] newlines = text.getText().split(System.lineSeparator());
+//					for (String line : newlines){
+//						text.del
+//					}
+					
+//					logger.debug("count newline chars: " + newlines.length);
+					
+//					String part1 = text.getText(0, offset-2);
+//					String part2 = text.getText(offset, text.getCharCount()-1);
+//					text.replaceTextRange(0, 0, part1);						
+//					text.replaceTextRange(offset-1, 0, part2);					
+//					
+//					//text.replaceTextRange(offset-1, 1, "");
+//					updateData(null, null, null);
+					//e.doit = false;
+					return;
+				}
+				
 				// reinterpret enter as arrow down
 				if (e.keyCode == SWT.CR || e.keyCode == SWT.KEYPAD_CR) {
 					if (CanvasKeys.isShiftKeyDown(e.stateMask)) { // shift and enter -> mark as paragraph!
@@ -1689,11 +1734,53 @@ public abstract class ATranscriptionWidget extends Composite{
 					
 					e.keyCode = SWT.ARROW_DOWN;
 					e.doit = false;
+					
+					/*
+					 * new use case when pressing ctrl and carriage return we want to move the text from the current line to the next line
+					 */
 					if (CanvasKeys.isCtrlKeyDown(e)) { // if ctrl-enter pressed: focus element, i.e. send mouse double click signal
-						if (ATranscriptionWidget.this instanceof WordTranscriptionWidget)
-							sendFocusInSignal(currentWordObject);
-						else
-							sendFocusInSignal(currentLineObject);
+//						if (ATranscriptionWidget.this instanceof WordTranscriptionWidget)
+//							sendFocusInSignal(currentWordObject);
+//						else
+//							sendFocusInSignal(currentLineObject);
+						
+						/*
+						 * use case is to correct text input which was synchroniced from a text file with the existent layout
+						 * so mostly the text must be moved to subsequent lines or moved to previous lines (will be done with ctrlKeyDown and Delete button
+						 * 
+						 */
+						logger.debug("CtrlKeyDown and enter - text should be shifted one line down in the text editor");
+												
+//						Parameters:
+//						    start - offset of first character to replace
+//						    length - number of characters to replace. Use 0 to insert text
+//						    text - new text. May be empty to delete text.
+						int offset = text.getCaretOffset();
+						
+						//here the text for copying is selected and copied
+						text.setSelection(offset,text.getText().length());		
+						text.copy();
+						
+						//String part2 = text.getText(offset, text.getCharCount()-1);
+						
+						//then the line delimeter is inserted at the offset position
+						text.replaceTextRange(offset, 0, text.getLineDelimiter());						
+						//text.replaceTextRange(offset+2, 0, part2);
+						//text.setCaretOffset(offset+2);
+						//logger.debug("line delimiter length " + text.getLineDelimiter().length());
+						
+						
+						
+						//and here the selection is made where the text gets inserted
+						text.setSelection(offset+(1),text.getText().length());
+						text.paste();	
+						
+						text.setCaretOffset(offset+1);
+						//logger.debug("caret offset: " + text.getCaretOffset());
+						
+						//next line not necessary for it and prevents the correct setting of the caret!!!!
+						//updateData(null, null, null);
+						
 					}
 					else { // if just enter pressed then jump one line down:
 						if (!autocomplete.getAdapter().isProposalPopupOpen()) {
@@ -3025,6 +3112,7 @@ public abstract class ATranscriptionWidget extends Composite{
 	protected boolean initText() {
 		// only update text if it has changed:
 		String textAll = getTextFromRegion();
+		//logger.debug(textAll);
 		if (!textAll.equals(text.getText())) {
 			logger.trace("text changed, old = "+text.getText());
 			logger.trace("text changed, new = "+textAll);

@@ -51,6 +51,7 @@ public class LabeledText extends Composite {
 	}
 	
 	@Override public void setToolTipText(String tooltip) {
+		label.setToolTipText(tooltip);
 		text.setToolTipText(tooltip);
 	}
 	

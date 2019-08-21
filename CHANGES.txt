@@ -647,8 +647,10 @@ CHANGES AND BUGFIXES
 1.7.2:
 	-> additional parameters for Text2Image
 	-> new sync txt-files and PAGE-XMLs with existing doc dialog (including: apply txt-files to existing layouts)
+	-> text editor: 'Backspace' and 'Ctrl+Return' behavior - moves text one line up or down; Use case: applying txt-files to existing layouts may start at the wrong line which can be corrected
 	-> HTR+ training using base models
 	-> enable gzip encoding for HTTP API connection
 	-> ground truth management features
 	-> fix bug that caused image rotation according to EXIF thumbnail section
+	-> remove small text-regions feature
 	

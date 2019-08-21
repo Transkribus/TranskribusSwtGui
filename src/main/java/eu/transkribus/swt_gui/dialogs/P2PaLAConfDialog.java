@@ -87,7 +87,8 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	@Override
 	protected Point getInitialSize() {
-		return new Point(600, 250);
+//		return new Point(600, 250);
+		return new Point(500, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 	}
 	
 	@Override

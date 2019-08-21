@@ -106,11 +106,11 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		
 		// prevent backspace on start of line
 		int xIndex = getCurrentXIndex();
-		if (lastKeyCode == SWT.BS && xIndex == 0 && isSingleSelect && e.text.equals("")) { 
-			logger.debug("preventing bs");
-			e.doit = false;
-			return;
-		}
+//		if (lastKeyCode == SWT.BS && xIndex == 0 && isSingleSelect && e.text.equals("")) { 
+//			logger.debug("preventing bs");
+//			e.doit = false;
+//			return;
+//		}
 		
 		// prevent del on end of line
 		int lineLength = text.getLine(text.getLineAtOffset(text.getCaretOffset())).length();
@@ -373,6 +373,9 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 		int sl = text.getLineAtOffset(start);
 		int el = text.getLineAtOffset(end);
 		
+//		logger.debug("line at offset start: " + sl);
+//		logger.debug("line at offset end: " + el);
+		
 		for (int i=sl; i<=el; ++i) {
 			TrpTextLineType line = getLineObject(i);
 			IntRange r = new IntRange(0, line.getUnicodeText().length());
@@ -433,6 +436,8 @@ public class LineTranscriptionWidget extends ATranscriptionWidget {
 	private void checkAndReinterpretMultilineInsertions(VerifyEvent e) {
 		// TODO here: change event s.t. insertion does never change the nr of lines!!!
 		List<Pair<TrpTextLineType, IntRange>> rrs = getReplaceRanges(e.start, e.end);
+//		logger.debug("hi start : " + e.start);
+//		logger.debug("hi end : " + e.end);
 		logger.debug("e.text = "+e.text);
 		
 		List<String> linesToInsert = Utils.getLines(e.text);
