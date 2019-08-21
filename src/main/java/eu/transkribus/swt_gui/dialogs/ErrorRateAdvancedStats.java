@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.ClientErrorException;
 import javax.xml.bind.JAXBException;
 
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -78,6 +79,9 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
+import eu.transkribus.client.connection.TrpServerConn;
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
@@ -120,6 +124,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	String lastExportFolder;
 	String lastExportFolderTmp;
 	String docName;
+	int docId;
 	ExportPathComposite exportPathComp;
 	File result=null;
 	SashForm sf;
@@ -136,6 +141,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		this.resultErr = resultErr;
 		this.lastExportFolder = "";
 		this.docName = "DocId_"+docId;
+		this.docId = docId;
 		String[] stringQuery = query.split("\\|");
 		params = resultErr.getParams();
 		this.refString = stringQuery[2].substring(6);
@@ -147,7 +153,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Advanced Statistics");
-		newShell.setMinimumSize(800, 600);
+		newShell.setMinimumSize(800, 800);
 	}
 
 	@Override
@@ -200,7 +206,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	
-		overall = new ErrorTableViewer(body,SWT.NONE );
+		overall = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER);
 		overall.getTable().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 
 		overall.getTable().setLinesVisible(true);
@@ -370,15 +376,18 @@ public class ErrorRateAdvancedStats extends Dialog{
 	}
 	private void openCompareTextVersion(TrpErrorRateListEntry entry) {
 
-		
-		logger.debug("Page Number selected for version : "+entry.getPageNumber());
+		TrpDoc document = new TrpDoc();
+		try {
+			document = store.getConnection().getTrpDoc(store.getCollId(), docId, 20);
+		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+			logger.error("Could not load remote document");
+		}
 		Integer pageNumber = entry.getPageNumber();
-		TrpDoc document = store.getDoc();
+		logger.debug("Doc ID for text compare : "+document.getId());
 		List<TrpPage> pageList = document.getPages();
 		TrpPage pageSelected = new TrpPage();
 		for(TrpPage page : pageList) {
 			if(page.getPageNr() == pageNumber) {
-				logger.debug("Page Number of selcted in list : "+page.getPageNr());
 				pageSelected = page;
 				break;
 			}
@@ -445,6 +454,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 			}
 			
 		}
+		logger.debug("HypText to compare : "+hypText);
+		logger.debug("RefText to compare : "+refText);
 		DiffCompareTool diff = new DiffCompareTool(getShell().getDisplay(), hypText, refText);
 
 		openVersionsCompareDialog(diff.getResult());
