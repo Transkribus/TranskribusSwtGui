@@ -20,11 +20,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -42,7 +39,6 @@ import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.pagination_tables.TranscriptsDialog;
 
 public class ThumbnailWidget extends Composite {
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailWidget.class);
@@ -53,6 +49,7 @@ public class ThumbnailWidget extends Composite {
 	public static final int THUMB_HEIGHT = 120;
 	
 	protected List<ThmbImg> thumbs = new ArrayList<>();
+	protected boolean thumbsLoaded;
 	
 	protected ThmbImgLoadThread loadThread;
 	
@@ -283,9 +280,8 @@ public class ThumbnailWidget extends Composite {
 						}
 					});	
 				}
-
 			}
-			
+			thumbsLoaded = !cancel;
 			logger.debug("thumbnail thread finished!");
 		}
 	} // end ThmbImgLoadThread
@@ -405,7 +401,7 @@ public class ThumbnailWidget extends Composite {
 				
 			}
 		});
-		
+		thumbsLoaded = false;
 		this.pack();
 	}
 	
@@ -598,6 +594,11 @@ public class ThumbnailWidget extends Composite {
 //			logger.debug("disabled thumbnail loading!");
 //			return;
 //		}
+		
+		if ((loadThread != null && loadThread.isAlive()) || thumbsLoaded) {
+			logger.debug("Thumbs already loaded or still loading. Skipping reload.");
+			return;
+		}
 		
 		Storage storage = Storage.getInstance();
 		
@@ -804,6 +805,12 @@ public class ThumbnailWidget extends Composite {
 	
 	public boolean isLoadThumbs() {
 		return loadThumbs.getSelection();
+	}
+
+	public void clear() {
+		stopActiveThread();
+		disposeOldData();
+		thumbsLoaded = false;
 	}
 
 }

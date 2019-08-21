@@ -1354,7 +1354,7 @@ public class TrpMainWidget {
 		
 //		clearHtrModelList();
 //		ui.getJobOverviewWidget().refreshPage(true);
-		updateThumbs();
+		clearThumbs();
 
 		// reloadJobListForDocument();
 		// ui.updateLoginInfo(false, getCurrentUserName(), "");
@@ -2005,9 +2005,9 @@ public class TrpMainWidget {
 			storage.closeCurrentDocument();
 
 			reloadCurrentPage(false, () -> {
-				updatePageInfo();	
+				updatePageInfo();
 			}, null);
-//			updatePageInfo();
+			clearThumbs();
 		}
 	}
 
@@ -2309,12 +2309,26 @@ public class TrpMainWidget {
 			CreateThumbsService.createThumbForPage(storage.getPage(), storage.getCurrentImage().img, false, null);
 		}
 	}
-
+	
+	public void clearThumbs() {
+		//clear and reload only on next click on next selection of DocInfoWidget
+		logger.debug("Clearing thumbnailwidget.");
+		ui.getThumbnailWidget().clear();
+		
+		//or force immediate reload if DocInfoWidget is currently shown and a doc is already loaded
+		final boolean docInfoWidgetIsShown = ui.getTabWidget().isDocInfoItemSelected();
+		final boolean docLoaded = storage.isDocLoaded();
+		final boolean forceThumbReloadNow = docInfoWidgetIsShown && docLoaded;
+		logger.debug("DocInfoWidget forces thumb reload = {}", forceThumbReloadNow);
+		if(forceThumbReloadNow) {
+			updateThumbs();
+		}
+	}
+	
 	public void updateThumbs() {
 		logger.trace("updating thumbs");
-
 		Display.getDefault().asyncExec(updateThumbsWidgetRunnable); // asyncExec needed??
-
+		
 		// try {
 		// ui.thumbnailWidget.setUrls(storage.getDoc().getThumbUrls(),
 		// storage.getDoc().getPageImgNames());
@@ -2633,7 +2647,7 @@ public class TrpMainWidget {
 			RecentDocsPreferences.push(folder);
 			ui.getServerWidget().updateRecentDocs();
 			
-			updateThumbs();
+			clearThumbs();
 //			getCanvas().fitWidth();
 			return true;
 		} catch (Throwable th) {
@@ -2745,7 +2759,7 @@ public class TrpMainWidget {
 //			getUi().getServerWidget().setSelectedCollection(colId);
 			getUi().getServerWidget().getDocTableWidget().loadPage("docId", docId, true);
 
-			updateThumbs();
+			clearThumbs();
 //			getCanvas().fitWidth();
 //			adjustReadingOrderDisplayToImageSize();
 			
@@ -2800,7 +2814,7 @@ public class TrpMainWidget {
 				getCanvas().fitWidth();
 				adjustReadingOrderDisplayToImageSize();
 			}, null);
-			updateThumbs();
+			clearThumbs();
 //			getCanvas().fitWidth();
 //			adjustReadingOrderDisplayToImageSize();
 			tmpCount++;
