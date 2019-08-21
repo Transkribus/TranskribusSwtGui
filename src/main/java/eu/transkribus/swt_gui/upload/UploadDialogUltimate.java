@@ -157,11 +157,10 @@ public class UploadDialogUltimate extends Dialog {
 		metsUrlButton.setText("Upload via URL of DFG Viewer METS");
 		metsUrlButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		
-		if (false) {
+		
 		iiifUrlButton = new Button(container, SWT.RADIO);
 		iiifUrlButton.setText("Upload via URL of IIIF manifest");
 		iiifUrlButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
-		}
 		
 		pdfButton = new Button(container, SWT.RADIO);
 		pdfButton.setText("Extract and upload images from pdf");
@@ -185,13 +184,13 @@ public class UploadDialogUltimate extends Dialog {
 		metsUrlGroup.setText("Document upload via METS");
 		metsUrlGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		metsUrlGroup.setLayout(new GridLayout(3, false));
-		createUrlGroup(metsUrlGroup,"METS URL:");
+		createUrlGroup(metsUrlGroup,"METS URL:",false);
 		
 		iiifUrlGroup = new Group(SWTUtil.dummyShell, 0);
 		iiifUrlGroup.setText("Document upload via IIIF manifest");
 		iiifUrlGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		iiifUrlGroup.setLayout(new GridLayout(3, false));
-		createUrlGroup(iiifUrlGroup,"IIIF manifest URL:");
+		createUrlGroup(iiifUrlGroup,"IIIF manifest URL:",true);
 		
 		pdfGroup = new Group(SWTUtil.dummyShell, 0);
 		pdfGroup.setText("Extract images from pdf (locally) and upload");
@@ -311,7 +310,7 @@ public class UploadDialogUltimate extends Dialog {
 		lblInfo.setEnabled(false);
 	}
 	
-	private void createUrlGroup(Composite container, String lable) {
+	private void createUrlGroup(Composite container, String lable, boolean iiif) {
 		Label lblNewLabel = new Label(container, SWT.NONE);
 		lblNewLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		lblNewLabel.setText(lable);
@@ -319,9 +318,12 @@ public class UploadDialogUltimate extends Dialog {
 		urlText = new Text(container, SWT.BORDER);
 		urlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		Label lblTitle = new Label(container, SWT.NONE);
-		lblTitle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		lblTitle.setText("Title on server:");
+		if (!iiif) {
+			Label lblTitle = new Label(container, SWT.NONE);
+			lblTitle.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+			lblTitle.setText("Title on server:");
+		}
+		
 
 		if(titleText == null)
 			titleText = new Text(container, SWT.BORDER);
