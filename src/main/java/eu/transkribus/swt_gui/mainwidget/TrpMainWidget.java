@@ -165,11 +165,8 @@ import eu.transkribus.swt_gui.canvas.CanvasSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.canvas.CanvasShapeObserver;
 import eu.transkribus.swt_gui.canvas.CanvasWidget;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
-import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.listener.CanvasSceneListener;
 import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
-import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
-import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.collection_manager.CollectionEditorDialog;
@@ -2570,7 +2567,6 @@ public class TrpMainWidget {
 			RecentDocsPreferences.push(folder);
 			ui.getServerWidget().updateRecentDocs();
 			
-			updateThumbs();
 			getCanvas().fitWidth();
 			return true;
 		} catch (Throwable th) {
@@ -2676,7 +2672,6 @@ public class TrpMainWidget {
 //			getUi().getServerWidget().setSelectedCollection(colId);
 			getUi().getServerWidget().getDocTableWidget().loadPage("docId", docId, true);
 
-			updateThumbs();
 			getCanvas().fitWidth();
 			
 			adjustReadingOrderDisplayToImageSize();
@@ -2729,7 +2724,6 @@ public class TrpMainWidget {
 				}
 			}, "Loading document from server", false);
 			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH);
-			updateThumbs();
 			getCanvas().fitWidth();
 			adjustReadingOrderDisplayToImageSize();
 			tmpCount++;

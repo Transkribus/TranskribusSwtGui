@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.mainwidget;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dea.fimagestore.core.util.SysPathUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -269,6 +268,10 @@ public class TrpTabWidget extends Composite {
 	
 	public boolean isStructTaggingItemSelected() {
 		return isMetadataItemSeleced() && metadataTf.getSelection().equals(structuralMdItem);
+	}
+
+	public boolean isDocInfoItemSelected() {
+		return  mainTf.getSelection().equals(documentItem);
 	}
 
 	public void selectServerTab() {

@@ -2,39 +2,26 @@ package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.apache.commons.codec.binary.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.ArmEvent;
-import org.eclipse.swt.events.ArmListener;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.core.model.beans.enums.EditStatus;
-import eu.transkribus.core.util.EnumUtils;
-import eu.transkribus.swt.portal.PortalWidget.Docking;
-import eu.transkribus.swt.portal.PortalWidget.PortalWidgetListener;
-import eu.transkribus.swt.portal.PortalWidget.Position;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasToolBarNew;
 import eu.transkribus.swt_gui.canvas.SWTCanvas;
 import eu.transkribus.swt_gui.mainwidget.TrpTabWidget.TrpTabItemSelectionListener;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.transcription.ATranscriptionWidget;
@@ -232,6 +219,11 @@ public class TrpMainWidgetViewListener extends SelectionAdapter implements ITrpV
 					if (transcriptionWidget != null) {
 						ui.getTaggingWidget().updateSelectedTag(transcriptionWidget.getCustomTagsForCurrentOffset());	
 					}
+				} else if (ui.getTabWidget().isDocInfoItemSelected()) {
+					//mw.updateThumbs() was called in loadLocalDoc(), loadRemoteDoc() and loadHtrGroundTruth()
+					//The call was moved here to reduce server load. Thumbs will only be loaded once the overview tab is selected.
+					logger.debug("DocInfoWidget selected => load thumbnails now");
+					mw.updateThumbs();
 				}
 			}
 		});
