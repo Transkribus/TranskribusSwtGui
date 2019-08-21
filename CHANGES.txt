@@ -656,4 +656,6 @@ CHANGES AND BUGFIXES
 		-> "Keep original line polygons": copy the recognized text to the line segments without altering them.
 	-> fix bug that caused image rotation according to EXIF thumbnail section
 	-> remove small text-regions feature
+	-> async page/transcript loading (do not show progress bar anymore)
+	-> quickload of collection by id
 	
