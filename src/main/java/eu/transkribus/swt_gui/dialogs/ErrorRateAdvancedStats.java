@@ -99,6 +99,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	private final static Logger logger = LoggerFactory.getLogger(ErrorRateAdvancedStats.class);
 
 	private TrpErrorRate resultErr;
+	TrpDoc document;
 	private Composite composite;
 	Composite bodyChart;
 	Storage store = Storage.getInstance();
@@ -147,6 +148,12 @@ public class ErrorRateAdvancedStats extends Dialog{
 		this.refString = stringQuery[2].substring(6);
 		this.hypString = params.getParameterValue("hyp");
 		logger.debug(this.refString+ " "+this.hypString);
+		this.document = new TrpDoc();
+		try {
+			document = store.getConnection().getTrpDoc(store.getCollId(), docId, 20);
+		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+			logger.error("Could not load remote document");
+		}
 	}
 
 	@Override
@@ -376,12 +383,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	}
 	private void openCompareTextVersion(TrpErrorRateListEntry entry) {
 
-		TrpDoc document = new TrpDoc();
-		try {
-			document = store.getConnection().getTrpDoc(store.getCollId(), docId, 20);
-		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
-			logger.error("Could not load remote document");
-		}
+		
 		Integer pageNumber = entry.getPageNumber();
 		logger.debug("Doc ID for text compare : "+document.getId());
 		List<TrpPage> pageList = document.getPages();
