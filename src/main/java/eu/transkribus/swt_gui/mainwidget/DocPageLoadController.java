@@ -14,7 +14,7 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.AsyncExecutor.AsyncCallback;
 import eu.transkribus.swt_gui.canvas.CanvasAutoZoomMode;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage.PageLoadResult;
+import eu.transkribus.swt_gui.mainwidget.storage.PageLoadResult;
 
 public class DocPageLoadController extends AMainWidgetController {
 	private static final Logger logger = LoggerFactory.getLogger(DocPageLoadController.class);

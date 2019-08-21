@@ -34,7 +34,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.xmlrpc.XmlRpcRequest;
 import org.dea.fimagestore.core.beans.ImageMetadata;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
@@ -43,7 +42,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.internal.dnd.SwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +58,6 @@ import eu.transkribus.core.io.DocExporter;
 import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.io.LocalDocReader.DocLoadConfig;
 import eu.transkribus.core.io.LocalDocWriter;
-import eu.transkribus.core.io.RemoteDocConst;
 import eu.transkribus.core.io.UnsupportedFormatException;
 import eu.transkribus.core.io.util.ExtensionFileFilter;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
@@ -1290,14 +1287,6 @@ public class Storage {
 			logger.debug("preloading images is turned off!");
 
 		sendEvent(new PageLoadEvent(this, doc, page));
-	}
-	
-	public final class PageLoadResult {
-		public TrpDoc doc;
-		public TrpPage page;
-		public CanvasImage image;
-		public ImageMetadata imgMd;
-		public List<TrpTranscriptMetadata> metadataList;
 	}
 	
 	public Future<PageLoadResult> reloadCurrentPageAsync(int colId, String fileType, AsyncCallback<PageLoadResult> callback) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {

@@ -201,8 +201,8 @@ import eu.transkribus.swt_gui.mainwidget.menubar.TrpMenuBarListener;
 import eu.transkribus.swt_gui.mainwidget.settings.PreferencesDialog;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListener;
+import eu.transkribus.swt_gui.mainwidget.storage.PageLoadResult;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage.PageLoadResult;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
@@ -2211,7 +2211,7 @@ public class TrpMainWidget {
 		else {
 			boolean success = docPageController.reloadCurrentPage(force, reloadTranscript, zoomMode, onSuccess, onError);
 			if (success) { // return a pseudo Future that instantly returns result
-				return new Future<Storage.PageLoadResult>() {
+				return new Future<PageLoadResult>() {
 					@Override
 					public boolean cancel(boolean mayInterruptIfRunning) {
 						return false;
