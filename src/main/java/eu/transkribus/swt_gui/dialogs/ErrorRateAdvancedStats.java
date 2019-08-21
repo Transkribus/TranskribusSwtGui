@@ -147,7 +147,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Advanced Statistics");
-		newShell.setMinimumSize(800, 600);
+		newShell.setMinimumSize(800, 800);
 	}
 
 	@Override
@@ -200,7 +200,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		body.setLayout(new GridLayout(1,false));
 		body.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true,false));
 	
-		overall = new ErrorTableViewer(body,SWT.NONE );
+		overall = new ErrorTableViewer(body,SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER);
 		overall.getTable().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1));
 
 		overall.getTable().setLinesVisible(true);
