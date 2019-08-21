@@ -40,8 +40,9 @@ public class PagesPagingToolBarListener extends PagingToolBarListener {
 
 	@Override
 	public void onReloadPressed() {
-		widget.reloadCurrentPage(false);
-		updateToolBarValue();
+		widget.reloadCurrentPage(false, () -> {
+			updateToolBarValue();	
+		}, null);
 	}
 
 	private void updateToolBarValue() {

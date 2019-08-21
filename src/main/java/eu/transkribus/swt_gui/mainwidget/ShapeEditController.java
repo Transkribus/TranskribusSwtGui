@@ -131,8 +131,9 @@ public class ShapeEditController extends AMainWidgetController {
 			PageXmlUtils.filterOutSmallRegions(storage.getTranscript().getPageData(), fractionOfImageSize*area);
 			
 			canvas.redraw();
-			mw.reloadCurrentTranscript(true, true);
-			storage.setCurrentTranscriptEdited(true);
+			mw.reloadCurrentTranscript(true, true, () -> {
+				storage.setCurrentTranscriptEdited(true);	
+			}, null);
 			
 //			if (CanvasShapeUtil.getFirstTextRegionWithSize(storage.getTranscript().getPage(), 0, 0, imgBounds.width, imgBounds.height, false) != null) {
 //				DialogUtil.showErrorMessageBox(getShell(), "Error", "Top level region with size of image already exists!");
@@ -242,7 +243,7 @@ public class ShapeEditController extends AMainWidgetController {
 			DialogUtil.showInfoMessageBox(getShell(), "Removed text-regions", res.msg+"\nAffected pages: "+CoreUtils.getRangeListStrFromList(res.affectedPageIndices));
 			
 			if (!dryRun) {
-				mw.reloadCurrentPage(true);	
+				mw.reloadCurrentPage(true, null, null);	
 			}
 		} catch (Throwable e) {
 			mw.onError("Affine transformation error", "Error during affine transformation of document", e);

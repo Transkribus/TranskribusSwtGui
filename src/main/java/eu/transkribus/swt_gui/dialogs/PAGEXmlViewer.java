@@ -70,7 +70,7 @@ public class PAGEXmlViewer extends XmlViewer {
 			store.getTranscript().setPageData(pcGtsType);
 			store.setCurrentTranscriptEdited(true);
 			
-			mw.reloadCurrentTranscript(true, true);
+			mw.reloadCurrentTranscript(true, true, null, null);
 			
 //			store.getTranscript().getPage().setEdited(true);
 //			mw.updatePageInfo();

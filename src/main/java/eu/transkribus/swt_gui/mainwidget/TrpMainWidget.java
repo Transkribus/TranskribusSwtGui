@@ -26,7 +26,10 @@ import java.util.Observer;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import javax.security.auth.login.LoginException;
@@ -202,6 +205,7 @@ import eu.transkribus.swt_gui.mainwidget.settings.PreferencesDialog;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettingsPropertyChangeListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage.PageLoadResult;
 import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 import eu.transkribus.swt_gui.metadata.PageMetadataWidgetListener;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
@@ -233,6 +237,8 @@ import eu.transkribus.util.RecentDocsPreferences;
 
 public class TrpMainWidget {
 	private final static boolean USE_SPLASH = true;
+	private static final boolean RELOAD_TRANSCRIPT_ASYNC = true;
+	private static final boolean RELOAD_PAGE_ASYNC = true;
 	private final static Logger logger = LoggerFactory.getLogger(TrpMainWidget.class);
 
 	private static Shell mainShell;
@@ -331,6 +337,7 @@ public class TrpMainWidget {
 	AutoSaveController autoSaveController;
 	DocSyncController docSyncController;
 	ShapeEditController shapeEditController;
+	DocPageLoadController docPageController;
 //	TaggingController taggingController;
 
 	private Runnable updateThumbsWidgetRunnable = new Runnable() {
@@ -370,6 +377,7 @@ public class TrpMainWidget {
 		autoSaveController = new AutoSaveController(this);
 		docSyncController = new DocSyncController(this);
 		shapeEditController = new ShapeEditController(this);
+		docPageController = new DocPageLoadController(this);
 //		taggingController = new TaggingController(this);
 		updateToolBars();
 		
@@ -604,7 +612,7 @@ public class TrpMainWidget {
 			onError("Could not apply text", "Could not apply text", e);
 		} finally {
 			// reloadCurrentDocument(true);
-			reloadCurrentPage(true);
+			reloadCurrentPage(true, null, null);
 		}
 	}
 
@@ -1867,10 +1875,14 @@ public class TrpMainWidget {
 	public void jumpToPage(int index) {
 		if (saveTranscriptDialogOrAutosave()) {
 			if (storage.setCurrentPage(index)) {
-				reloadCurrentPage(true);
-				if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
-					autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
-				}
+				reloadCurrentPage(true, () -> {
+					if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
+						autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
+					}					
+				}, null);
+//				if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
+//					autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
+//				}
 			}
 		}
 	}
@@ -1880,7 +1892,7 @@ public class TrpMainWidget {
 			boolean changed = storage.setCurrentTranscript(md);
 
 			if (reloadSamePage || changed) {
-				reloadCurrentTranscript(false, true);
+				reloadCurrentTranscript(false, true, null, null);
 			}
 		}
 	}
@@ -1995,8 +2007,10 @@ public class TrpMainWidget {
 		if (force || saveTranscriptDialogOrAutosave()) {
 			storage.closeCurrentDocument();
 
-			reloadCurrentPage(false);
-			updatePageInfo();
+			reloadCurrentPage(false, () -> {
+				updatePageInfo();	
+			}, null);
+//			updatePageInfo();
 		}
 	}
 
@@ -2182,8 +2196,8 @@ public class TrpMainWidget {
 		}
 	}
 
-	public boolean reloadCurrentPage(boolean force) {
-		return reloadCurrentPage(force, true, null);
+	public Future<PageLoadResult> reloadCurrentPage(boolean force, Runnable onSuccess, Runnable onError) {
+		return reloadCurrentPage(force, true, null, onSuccess, onError);
 	}
 
 	/**
@@ -2193,58 +2207,103 @@ public class TrpMainWidget {
 	 * @param zoomMode Specifies the zoom mode this page should be set to, if null the current transformation is kept.
 	 * @return True if page was reloaded, false otherwise
 	 */
-	public boolean reloadCurrentPage(boolean force, boolean reloadTranscript, CanvasAutoZoomMode zoomMode) {
-		if (!force && !saveTranscriptDialogOrAutosave()) {
-			return false;
+	public Future<PageLoadResult> reloadCurrentPage(boolean force, boolean reloadTranscript, CanvasAutoZoomMode zoomMode, Runnable onSuccess, Runnable onError) {
+		if (RELOAD_PAGE_ASYNC) {
+			return docPageController.reloadCurrentPageAsync(force, reloadTranscript, zoomMode, onSuccess, onError);
 		}
-
-		try {
-			logger.info("loading page: " + storage.getPage());
-			clearCurrentPage();
-
-			final int colId = storage.getCurrentDocumentCollectionId();
-			final String fileType = mw.getSelectedImageFileType();
-			logger.debug("selected img filetype = " + fileType);
-
-			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						logger.debug("Runnable reloads page with index = " + (storage.getPageIndex() + 1));
-						monitor.beginTask("Loading page " + (storage.getPageIndex() + 1), IProgressMonitor.UNKNOWN);
-						storage.reloadCurrentPage(colId, fileType);
-					} catch (Exception e) {
-						throw new InvocationTargetException(e);
+		else {
+			boolean success = docPageController.reloadCurrentPage(force, reloadTranscript, zoomMode, onSuccess, onError);
+			if (success) { // return a pseudo Future that instantly returns result
+				return new Future<Storage.PageLoadResult>() {
+					@Override
+					public boolean cancel(boolean mayInterruptIfRunning) {
+						return false;
 					}
-				}
-			}, "Loading page", false);
 
-			if (storage.isPageLoaded() && storage.getCurrentImage() != null) {
-				getScene().setMainImage(storage.getCurrentImage());
+					@Override
+					public boolean isCancelled() {
+						return false;
+					}
+
+					@Override
+					public boolean isDone() {
+						return true;
+					}
+
+					@Override
+					public PageLoadResult get() throws InterruptedException, ExecutionException {
+						PageLoadResult p = new PageLoadResult();
+						p.doc = storage.getDoc();
+						p.page = storage.getPage();
+						p.image = storage.getCurrentImage();
+						p.imgMd = storage.getCurrentImageMetadata();
+						p.metadataList = storage.getPage().getTranscripts();
+						return p;
+					}
+
+					@Override
+					public PageLoadResult get(long timeout, TimeUnit unit)
+							throws InterruptedException, ExecutionException, TimeoutException {
+						return get();
+					}
+				};
 			}
-			
-			getScene().setCanvasAutoZoomMode(zoomMode);
-
-			if (reloadTranscript && storage.getNTranscripts() > 0) {
-				storage.setLatestTranscriptAsCurrent();
-				reloadCurrentTranscript(false, true);
-				updateVersionStatus();
+			else {
+				return null;	
 			}
-
-			return true;
-		} catch (Throwable th) {
-			String msg = "Could not load page " + (storage.getPageIndex() + 1);
-			onError("Error loading page", msg, th);
-
-			return false;
-		} finally {
-			updatePageLock();
-			ui.getCanvasWidget().updateUiStuff();
-			updateSegmentationEditStatus();
-			getCanvas().updateEditors();
-			updatePageRelatedMetadata();
-			updateToolBars();
-			updatePageInfo();
 		}
+		
+//		if (!force && !saveTranscriptDialogOrAutosave()) {
+//			return false;
+//		}
+//
+//		try {
+//			logger.info("loading page: " + storage.getPage());
+//			clearCurrentPage();
+//
+//			final int colId = storage.getCurrentDocumentCollectionId();
+//			final String fileType = mw.getSelectedImageFileType();
+//			logger.debug("selected img filetype = " + fileType);
+//
+//			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+//				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+//					try {
+//						logger.debug("Runnable reloads page with index = " + (storage.getPageIndex() + 1));
+//						monitor.beginTask("Loading page " + (storage.getPageIndex() + 1), IProgressMonitor.UNKNOWN);
+//						storage.reloadCurrentPage(colId, fileType);
+//					} catch (Exception e) {
+//						throw new InvocationTargetException(e);
+//					}
+//				}
+//			}, "Loading page", false);
+//
+//			if (storage.isPageLoaded() && storage.getCurrentImage() != null) {
+//				getScene().setMainImage(storage.getCurrentImage());
+//			}
+//			
+//			getScene().setCanvasAutoZoomMode(zoomMode);
+//
+//			if (reloadTranscript && storage.getNTranscripts() > 0) {
+//				storage.setLatestTranscriptAsCurrent();
+//				reloadCurrentTranscript(false, true);
+//				updateVersionStatus();
+//			}
+//
+//			return true;
+//		} catch (Throwable th) {
+//			String msg = "Could not load page " + (storage.getPageIndex() + 1);
+//			onError("Error loading page", msg, th);
+//
+//			return false;
+//		} finally {
+//			updatePageLock();
+//			ui.getCanvasWidget().updateUiStuff();
+//			updateSegmentationEditStatus();
+//			getCanvas().updateEditors();
+//			updatePageRelatedMetadata();
+//			updateToolBars();
+//			updatePageInfo();
+//		}
 	}
 
 	public void createThumbForCurrentPage() {
@@ -2267,7 +2326,7 @@ public class TrpMainWidget {
 		// }
 	}
 
-	private void clearCurrentPage() {
+	void clearCurrentPage() {
 		getScene().clear();
 		// getScene().selectObject(null);
 		ui.getStructureTreeViewer().setInput(null);
@@ -2293,50 +2352,44 @@ public class TrpMainWidget {
 	 *            If true, the transcription is reloaded from the locally stored
 	 *            object (if it has been loaded already!)
 	 */
-	public void reloadCurrentTranscript(boolean tryLocalReload, boolean force) {
-		if (!force && !saveTranscriptDialogOrAutosave()) {
-			return;
+	public Future<TrpPageType> reloadCurrentTranscript(boolean tryLocalReload, boolean force, Runnable onSuccess, Runnable onError) {
+		if (RELOAD_TRANSCRIPT_ASYNC) {
+			logger.debug("loading transcript async...");
+			return docPageController.reloadCurrentTranscriptAsync(tryLocalReload, force, onSuccess, onError);
 		}
-
-		// LOAD STRUCT ELEMENTS FROM TRANSCRIPTS
-		try {
-			// save transcript if edited:
-			// clearTranscriptFromView();
-			logger.info("loading transcript: " + storage.getTranscript().getMd() + " tryLocalReload: " + tryLocalReload);
-			canvas.getScene().selectObject(null, true, false); // security
-																// measure due
-																// to mysterious
-																// bug leading
-																// to freeze of
-																// progress
-																// dialog
-			if (!tryLocalReload || !storage.hasTranscript()) {
-				ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-					@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						try {
-							monitor.beginTask("Loading transcription", IProgressMonitor.UNKNOWN);
-							storage.reloadTranscript();
-						} catch (Exception e) {
-							throw new InvocationTargetException(e);
-						}
+		else {
+			if (docPageController.reloadCurrentTranscript(tryLocalReload, force, onSuccess, onError)) { // on success of sync execution -> return pseudo Future that instantly returns result
+				return new Future<TrpPageType>() {
+					@Override
+					public boolean cancel(boolean mayInterruptIfRunning) {
+						return false;
 					}
-				}, "Loading transcription", false);
-				// storage.reloadTranscript();
-				// add observers for transcript:
-				// addTranscriptObserver();
+
+					@Override
+					public boolean isCancelled() {
+						return false;
+					}
+
+					@Override
+					public boolean isDone() {
+						return true;
+					}
+
+					@Override
+					public TrpPageType get() throws InterruptedException, ExecutionException {
+						return storage.hasTranscript() ? storage.getTranscript().getPage() : null;
+					}
+
+					@Override
+					public TrpPageType get(long timeout, TimeUnit unit)
+							throws InterruptedException, ExecutionException, TimeoutException {
+						return get();
+					}
+				};
 			}
-			// logger.debug("CHANGED: "+storage.getTranscript().getPage().isEdited());
-			loadJAXBTranscriptIntoView(storage.getTranscript());
-
-//			ui.taggingWidget.updateAvailableTags();
-			updateSelectedTranscriptionWidgetData();
-			canvas.getScene().updateSegmentationViewSettings();
-
-			logger.debug("loaded transcript - edited = " + storage.isTranscriptEdited());
-		} catch (Throwable th) {
-			String msg = "Could not load transcript for page " + (storage.getPageIndex() + 1);
-			onError("Error loading transcript", msg, th);
-			clearTranscriptFromView();
+			else {
+				return null;
+			}
 		}
 	}
 
@@ -2378,8 +2431,19 @@ public class TrpMainWidget {
 		if (!wasDocLoaded && storage.getPageIndex() != l.pageNr - 1) {
 			if (!storage.setCurrentPage(l.pageNr - 1))
 				return;
-			if (!reloadCurrentPage(true))
+			
+			Future<PageLoadResult> future = reloadCurrentPage(true, null, null);
+			if (future == null) {
 				return;
+			}
+			 // wait for page to be loaded!
+			try {
+				future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				logger.error(e.getMessage(), e);
+			}
+//			if (!reloadCurrentPage(true))
+//				return;
 		}
 
 		// 3rd: select region / line / word:
@@ -2428,14 +2492,14 @@ public class TrpMainWidget {
 //		}
 	}
 
-	private void clearTranscriptFromView() {
+	void clearTranscriptFromView() {
 		getUi().getStructureTreeViewer().setInput(null);
 		getCanvas().getScene().clearShapes();
 		getCanvas().redraw();
 	}
 
 	// @SuppressWarnings("rawtypes")
-	void loadJAXBTranscriptIntoView(JAXBPageTranscript transcript) throws Exception {
+	void loadJAXBTranscriptIntoView(JAXBPageTranscript transcript) {
 
 		// add shapes to canvas:
 		getCanvas().getScene().clearShapes();
@@ -2564,14 +2628,16 @@ public class TrpMainWidget {
 			}
 
 			storage.setCurrentPage(pageIndex);
-			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH);
+			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH, () -> {
+				getCanvas().fitWidth();
+			}, null);
 			
 			//store the path for the local doc
 			RecentDocsPreferences.push(folder);
 			ui.getServerWidget().updateRecentDocs();
 			
 			updateThumbs();
-			getCanvas().fitWidth();
+//			getCanvas().fitWidth();
 			return true;
 		} catch (Throwable th) {
 			onError("Error loading local document", "Could not load document: " + th.getMessage(), th);
@@ -2659,10 +2725,16 @@ public class TrpMainWidget {
 			}, "Loading document from server", false);
 
 			storage.setCurrentPage(pageIndex);
-			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH);
-			if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
-				autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
-			}
+			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH, () -> {
+				if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
+					autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
+				}
+				getCanvas().fitWidth();
+				adjustReadingOrderDisplayToImageSize();				
+			}, null);
+//			if (getTrpSets().getAutoSaveEnabled() && getTrpSets().isCheckForNewerAutosaveFile()) {
+//				autoSaveController.checkForNewerAutoSavedPage(storage.getPage());
+//			}
 			
 			//store the recent doc info to the preferences
 			if (pageIndex == 0){
@@ -2677,9 +2749,8 @@ public class TrpMainWidget {
 			getUi().getServerWidget().getDocTableWidget().loadPage("docId", docId, true);
 
 			updateThumbs();
-			getCanvas().fitWidth();
-			
-			adjustReadingOrderDisplayToImageSize();
+//			getCanvas().fitWidth();
+//			adjustReadingOrderDisplayToImageSize();
 			
 			tmpCount++;
 			return true;
@@ -2707,7 +2778,7 @@ public class TrpMainWidget {
 			logger.debug("Page switch in HTR GT data set document. pageIndex = " + pageIndex);
 			//jump to page
 			if (storage.setCurrentPage(pageIndex)) {
-				reloadCurrentPage(true);
+				reloadCurrentPage(true, null, null);
 			}
 			//skip any further loading below
 			return true;
@@ -2728,10 +2799,13 @@ public class TrpMainWidget {
 					}
 				}
 			}, "Loading document from server", false);
-			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH);
+			reloadCurrentPage(true, true, CanvasAutoZoomMode.FIT_WIDTH, () -> {
+				getCanvas().fitWidth();
+				adjustReadingOrderDisplayToImageSize();
+			}, null);
 			updateThumbs();
-			getCanvas().fitWidth();
-			adjustReadingOrderDisplayToImageSize();
+//			getCanvas().fitWidth();
+//			adjustReadingOrderDisplayToImageSize();
 			tmpCount++;
 			return true;
 		} catch (Throwable e) {
@@ -3479,7 +3553,7 @@ public class TrpMainWidget {
 				}
 			}, "Replacing...", true);
 			//reload page
-			this.reloadCurrentPage(false);
+			this.reloadCurrentPage(false, null, null);
 		} catch (Throwable e) {
 			onError("Error replacing page image", e.getMessage(), e);
 		}
@@ -4418,11 +4492,11 @@ public class TrpMainWidget {
 				}
 			}, "Exporting", false);
 
-			reloadCurrentTranscript(true, true);
-			storage.setCurrentTranscriptEdited(true);
-
-//			ui.selectStructureTab();
-			updatePageInfo();
+			reloadCurrentTranscript(true, true, () -> {
+				storage.setCurrentTranscriptEdited(true);
+//				ui.selectStructureTab();
+				updatePageInfo();				
+			}, null);
 		} catch (Throwable e) {
 			onError("Analyze Page Structure", e.getMessage(), e);
 		}
@@ -4582,7 +4656,7 @@ public class TrpMainWidget {
 			storage.getTranscript().setPageData(p);
 			storage.setCurrentTranscriptEdited(true);
 			//saveTranscription(false);
-			reloadCurrentTranscript(true, true);
+			reloadCurrentTranscript(true, true, null, null);
 		} catch (Exception e) {
 			onError("Error loading page XML", e.getMessage(), e);
 		}
@@ -4688,7 +4762,7 @@ public class TrpMainWidget {
 			}, "Transforming coordinates", true);
 
 			if (d.getSelectedPages().contains(storage.getPageIndex())) {
-				reloadCurrentPage(true);
+				reloadCurrentPage(true, null, null);
 			}
 		} catch (Throwable e) {
 			onError("Affine transformation error", "Error during affine transformation of document", e);
@@ -4755,7 +4829,7 @@ public class TrpMainWidget {
 			}, "Batch replacing images", true);
 
 			if (d.getCheckedPages().contains(storage.getPage())) {
-				reloadCurrentPage(false);
+				reloadCurrentPage(false, null, null);
 			}
 
 		} catch (Throwable e) {
@@ -6098,12 +6172,12 @@ public class TrpMainWidget {
 			finally{
 				for (TrpPage page : pageList) {
 					//reload the page in the GUI if status has changed
-					if (page.getPageId() == Storage.getInstance().getPage().getPageId()){
-						reloadCurrentPage(true);
+					if (page.getPageId() == Storage.getInstance().getPage().getPageId()) {
+						reloadCurrentPage(true, null, null);
+						break;
 					}
 				}
 				updateVersionStatus();
-				
 			}
 		}
 
