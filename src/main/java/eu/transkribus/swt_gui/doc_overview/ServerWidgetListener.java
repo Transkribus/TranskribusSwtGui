@@ -107,6 +107,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		if (sw.quickLoadByDocId != null) {
 			sw.quickLoadByDocId.getTextControl().addTraverseListener(this);
 		}
+		SWTUtil.addTraverseListener(sw.quickLoadColId, this);
 		
 		Storage.getInstance().addListener(this);
 	}
@@ -152,6 +153,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		if (sw.quickLoadByDocId != null) {
 			sw.quickLoadByDocId.getTextControl().removeTraverseListener(this);
 		}		
+		SWTUtil.removeTraverseListener(sw.quickLoadColId, this);
 		
 		Storage.getInstance().removeListener(this);
 	}
@@ -366,12 +368,16 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 
 	@Override
 	public void keyTraversed(TraverseEvent e) {
-		if (e.getSource() == sw.quickLoadByDocId.getTextControl()) {
-			if (e.detail == SWT.TRAVERSE_RETURN) {
-				int docId = CoreUtils.parseInt(sw.quickLoadByDocId.getText().trim(), -1);
-				if (docId > 0 && storage.isLoggedIn()) {
-					TrpMainWidget.getInstance().loadRemoteDoc(docId, true);
-				}
+		if (e.detail == SWT.TRAVERSE_RETURN && e.getSource() == sw.quickLoadByDocId.getTextControl()) {
+			int docId = CoreUtils.parseInt(sw.quickLoadByDocId.getText().trim(), -1);
+			if (docId > 0 && storage.isLoggedIn()) {
+				TrpMainWidget.getInstance().loadRemoteDoc(docId, true);
+			}
+		}
+		else if (e.detail == SWT.TRAVERSE_RETURN && e.getSource() == sw.quickLoadColId) {
+			int colId = CoreUtils.parseInt(sw.quickLoadColId.getText().trim(), -1);
+			if (colId > 0 && storage.isLoggedIn()) {
+				TrpMainWidget.getInstance().reloadDocList(colId);	
 			}
 		}
 	}

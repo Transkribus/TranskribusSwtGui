@@ -143,7 +143,7 @@ public class DocJobUpdater {
 					// reload page if doc and page is open:					
 					if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "Do you want to reload the current page? By saying 'No' you can save your latest changes first!") == SWT.YES) {
 						logger.debug("reloading page!");
-						mw.reloadCurrentPage(true);						
+						mw.reloadCurrentPage(true, null, null);						
 					}
 				}
 				//page string set e.g. 1-30; get list of page indices and check if loaded page is affected
@@ -153,15 +153,14 @@ public class DocJobUpdater {
 							if (store.getPageIndex() == pageIdx){
 								if (DialogUtil.showYesNoDialog(mw.getShell(), "A job for this page finished", "Do you want to reload the current page? By saying 'No' you can save your latest changes first!") == SWT.YES) {
 									logger.debug("reloading page!");
-									mw.reloadCurrentPage(true);						
+									mw.reloadCurrentPage(true, null, null);						
 								}
 								break;
 							}
 							
 						}
 					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error(e.getMessage(), e);
 					}
 				}
 			});

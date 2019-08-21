@@ -153,7 +153,7 @@ public class ImgLoader {
 		Image img=null;
 		if (TRY_LOAD_IMAGES_WITH_JFACE_FIRST || !(isLocal && LOAD_LOCAL_IMAGES_WITH_JAI)) {
 			try {
-				logger.debug("loading image with jface");
+				logger.trace("loading image with jface");
 				img = loadWithSWTDownloadFirst(url);
 				loadedWithSwt=true;
 			} catch (Exception e) {
@@ -165,7 +165,7 @@ public class ImgLoader {
 			img = loadWithJAI(url);
 		}
 		if( (loadedWithSwt && SysUtils.IS_OSX) || transformation==null ) { // when image is loaded with SWT, we do not need to correct the transformation 
-			logger.debug("no transformation applied, loadedWithSwt: "+loadedWithSwt+", isOSX: "+SysUtils.IS_OSX+", transformation: "+transformation);
+			logger.trace("no transformation applied, loadedWithSwt: "+loadedWithSwt+", isOSX: "+SysUtils.IS_OSX+", transformation: "+transformation);
 			return img;
 		} else {
 			return fixOrientation(img, transformation.getExifOrientation());

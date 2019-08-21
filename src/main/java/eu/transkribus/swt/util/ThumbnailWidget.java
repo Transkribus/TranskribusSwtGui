@@ -142,7 +142,7 @@ public class ThumbnailWidget extends Composite {
 					logger.trace("disabled thumbnail loading");
 					image = Images.LOADING_IMG;
 				} else {
-					logger.debug("loading thumbnail: "+url);
+					logger.trace("loading thumbnail: "+url);
 					image = ImgLoader.load(url, null);
 				}
 								
