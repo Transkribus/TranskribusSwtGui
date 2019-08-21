@@ -84,7 +84,7 @@ public class TrpMainWidgetKeyListener implements Listener {
 			mw.openSearchDialog();
 		}
 		else if (isCtrlOrCommand && kc == 'r') {
-			mw.reloadCurrentTranscript(false, false);
+			mw.reloadCurrentTranscript(false, false, null, null);
 		}
 		else if (isCtrlOrCommand && kc == 'o') {
 			mw.loadLocalFolder();

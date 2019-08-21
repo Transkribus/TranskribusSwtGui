@@ -59,6 +59,7 @@ public class ServerWidget extends Composite {
 //	CollectionComboViewerWidget collectionComboViewerWidget;
 //	CollectionComboViewerWidget collectionComboViewerWidget;
 	CollectionSelectorWidget collectionSelectorWidget;
+	Text quickLoadColId;
 	
 	CTabFolder tabFolder;
 	CTabItem documentsTabItem, gtTabItem;
@@ -70,7 +71,7 @@ public class ServerWidget extends Composite {
 	
 	Button manageCollectionsBtn;
 	Button showActivityWidgetBtn;
-	Text quickLoadByID;
+//	Text quickLoadByID;
 	
 	MenuItem openLocalDocBtn;
 	MenuItem importBtn;
@@ -240,7 +241,7 @@ public class ServerWidget extends Composite {
 		
 		Composite collsCont = new Composite(container, 0);
 		collsCont.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		collsCont.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		collsCont.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
 		
 		Label collectionsLabel = new Label(collsCont, 0);
 		collectionsLabel.setText("Collections:");
@@ -248,6 +249,12 @@ public class ServerWidget extends Composite {
 		
 		collectionSelectorWidget = new CollectionSelectorWidget(collsCont, 0, false, null);
 		collectionSelectorWidget.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+		
+		quickLoadColId = new Text(collsCont, SWT.NONE);
+		SWTUtil.addSelectOnFocusToText(quickLoadColId);
+		quickLoadColId.setMessage("Col-ID");
+//		quickLoadColId.resizeToMessage();
+		quickLoadColId.setToolTipText("Load collection with this ID");		
 		
 		if (false) {
 			Composite collComp = collectionSelectorWidget.getCollComposite();

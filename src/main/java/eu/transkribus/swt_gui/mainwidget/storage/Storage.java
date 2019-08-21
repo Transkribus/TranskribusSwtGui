@@ -34,6 +34,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.xmlrpc.XmlRpcRequest;
 import org.dea.fimagestore.core.beans.ImageMetadata;
 import org.dea.fimgstoreclient.FimgStoreGetClient;
 import org.dea.fimgstoreclient.beans.FimgStoreTxt;
@@ -42,6 +43,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.internal.dnd.SwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +126,8 @@ import eu.transkribus.core.util.HtrUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.ProxyUtils;
 import eu.transkribus.core.util.SebisStopWatch;
-import eu.transkribus.swt.util.AsyncCallback;
+import eu.transkribus.swt.util.AsyncExecutor;
+import eu.transkribus.swt.util.AsyncExecutor.AsyncCallback;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.MonitorUtil;
 import eu.transkribus.swt_gui.TrpConfig;
@@ -235,6 +238,9 @@ public class Storage {
 	
 	private List<TrpP2PaLAModel> p2palaModels = new ArrayList<>();
 	private List<TrpHtr> htrList = new ArrayList<>();
+	
+	private AsyncExecutor loadPageAsyncExecutor = new AsyncExecutor();
+	private AsyncExecutor loadTranscriptAsyncExecutor = new AsyncExecutor();
 	
 	public static class StorageException extends Exception {
 		private static final long serialVersionUID = -2215354890031208420L;
@@ -542,7 +548,7 @@ public class Storage {
 	 * @return
 	 */
 	public static boolean isGtDoc(TrpDoc doc) {
-		return doc != null && doc.isRemoteDoc() && doc.getMd().getStatus() == RemoteDocConst.STATUS_GROUND_TRUTH_DOC;
+		return doc != null && doc.isRemoteDoc() && doc.isGtDoc();
 	}
 	
 	public void closeCurrentDocument() {
@@ -707,9 +713,14 @@ public class Storage {
 	}
 
 	public TrpTranscriptMetadata getTranscriptMetadata() {
-		return transcript.getMd();
+		return transcript == null ? null : transcript.getMd();
 	}
-
+	
+	public boolean isCurrentTranscript(TrpTranscriptMetadata metadata) {
+		logger.debug("isCurrentTranscript, transcript = "+transcript+", md = "+transcript.getMd());
+		return transcript!=null && transcript.getMd()!=null && transcript.getMd().equals(metadata);
+	}
+	
 	public int getCurrentRegion() {
 		if (regionObject != null)
 			return regionObject.getIndex();
@@ -719,6 +730,10 @@ public class Storage {
 
 	public TrpPage getPage() {
 		return page;
+	}
+	
+	public boolean isCurrentPage(TrpPage other) {
+		return page!=null && page.equals(other);
 	}
 
 	public int getPageIndex() {
@@ -806,9 +821,9 @@ public class Storage {
 		return doc==null ? -2 : doc.getId();
 	}
 	
-	public CanvasImage getCurrentImg() {
-		return currentImg;
-	}
+//	public CanvasImage getCurrentImg() {
+//		return currentImg;
+//	}
 	
 	public boolean addListener(IStorageListener l) {
 		return listener.add(l);
@@ -1205,6 +1220,35 @@ public class Storage {
 		
 		sendEvent(new MainImageLoadEvent(this, currentImg));
 	}
+	
+	private static CanvasImage loadCanvasImage(DataCache<URL, CanvasImage> imCache, TrpDoc doc, TrpPage page, String fileType) throws MalformedURLException, Exception {
+		if (doc==null || page==null)
+			return null;
+		
+		String urlStr = page.getUrl().toString();
+		UriBuilder ub = UriBuilder.fromUri(urlStr);
+		
+		ub = ub.replaceQueryParam("fileType", null); // remove existing fileType par
+		
+		logger.debug("img uri: "+ub.toString());
+		
+		if (ub.toString().startsWith("file:") || new File(ub.toString()).exists()) {
+			logger.debug("this is a local image file!");
+			urlStr = ub.toString();
+		} else {
+			logger.debug("this is a remote image file - adding fileType parameter for fileType="+fileType);
+			urlStr = UriBuilder.fromUri(urlStr).replaceQueryParam("fileType", fileType).toString();
+		}
+					
+		logger.debug("Loading image from url: " + urlStr);
+		final boolean FORCE_RELOAD = false;
+		
+		// always reload original image if asked for it
+		CanvasImage img = imCache.getOrPut(new URL(urlStr), true, fileType, (fileType == "orig") || FORCE_RELOAD);
+		logger.trace("loaded image!");
+		
+		return img;
+	}
 
 	/**
 	 * Reloads the current page, i.e. its corresponding image and a list of
@@ -1247,6 +1291,111 @@ public class Storage {
 
 		sendEvent(new PageLoadEvent(this, doc, page));
 	}
+	
+	public final class PageLoadResult {
+		public TrpDoc doc;
+		public TrpPage page;
+		public CanvasImage image;
+		public ImageMetadata imgMd;
+		public List<TrpTranscriptMetadata> metadataList;
+	}
+	
+	public Future<PageLoadResult> reloadCurrentPageAsync(int colId, String fileType, AsyncCallback<PageLoadResult> callback) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
+		if (!isPageLoaded())
+			return null;
+		if (isRemoteDoc())
+			checkConnection(true);
+
+		clearPageContent();
+
+		// FIXME: is this really necessary?
+		final TrpDoc doc = this.doc;
+		final TrpPage page = this.page;
+		
+		Future<PageLoadResult> future = loadPageAsyncExecutor.runAsync("Load page "+page.getPageNr(), () -> {
+			logger.debug("reloadCurrentPageAsync");
+			PageLoadResult res = new PageLoadResult();
+			res.doc = doc;
+			res.page = page;
+			
+			logger.debug("loading image...");
+			res.image = loadCanvasImage(imCache, doc, page, fileType);
+			logger.debug("loading image metadata...");
+			res.imgMd = getImageMetadata(doc, page);
+			logger.debug("loading page transcript list...");
+			res.metadataList = loadTranscriptsList(conn, doc, page, colId);
+			
+			return res;
+		},
+		new AsyncCallback<PageLoadResult>() {
+			@Override
+			public void onError(Throwable error) {
+				if (!isCurrentPage(page)) {
+					logger.debug("current page already switched - not forwarding error!");
+					return;
+				}
+				
+				AsyncExecutor.onError(callback, error);
+			}
+
+			@Override
+			public void onSuccess(PageLoadResult result) {
+				if (!isCurrentPage(page)) {
+					logger.debug("current page already switched - not forwarding success!");
+					return;
+				}				
+				
+				logger.debug("setting current image: "+result.image+", disposed = "+result.image.isDisposed());
+				currentImg = result.image;
+				imgMd = result.imgMd;
+				Storage.this.page.setTranscripts(result.metadataList);
+				setLatestTranscriptAsCurrent();
+				
+				sendEvent(new MainImageLoadEvent(this, result.image));
+				sendEvent(new TranscriptListLoadEvent(this, result.doc, result.page, isPageLoaded() ? result.page.getTranscripts() : null));
+				
+				logger.debug("nr of transcripts: " + getNTranscripts());
+				logger.debug("image filename: " + page.getUrl());
+				
+				if (isRemoteDoc() && getRoleOfUserInCurrentCollection().getValue() > TrpRole.Reader.getValue()) {
+					try {
+						lockPage(getCurrentDocumentCollectionId(), page);
+					} catch (SessionExpiredException | ServerErrorException | NoConnectionException e) {
+						onError(e);
+						// TODO Auto-generated catch block
+//						e.printStackTrace();
+					}
+				}
+				
+				if (TrpConfig.getTrpSettings().isPreloadImages())
+					preloadSurroundingImages(fileType);
+				else
+					logger.debug("preloading images is turned off!");
+
+				sendEvent(new PageLoadEvent(this, doc, page));	
+				
+				AsyncExecutor.onSuccess(callback, result);
+			}
+		});
+		return future;
+		
+		// load image
+//		reloadCurrentImage(fileType);
+//		reloadTranscriptsList(colId);
+//		setLatestTranscriptAsCurrent();
+//		logger.debug("nr of transcripts: " + getNTranscripts());
+//		logger.debug("image filename: " + page.getUrl());
+//		
+//		if (isRemoteDoc() && this.getRoleOfUserInCurrentCollection().getValue() > TrpRole.Reader.getValue())
+//			lockPage(getCurrentDocumentCollectionId(), page);
+//		
+//		if (TrpConfig.getTrpSettings().isPreloadImages())
+//			preloadSurroundingImages(fileType);
+//		else
+//			logger.debug("preloading images is turned off!");
+//
+//		sendEvent(new PageLoadEvent(this, doc, page));
+	}	
 	
 	public List<PageLock> listPageLocks(int colId, int docId, int pageNr) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
@@ -1340,6 +1489,22 @@ public class Storage {
 
 		sendEvent(new TranscriptListLoadEvent(this, doc, page, isPageLoaded() ? page.getTranscripts() : null));
 	}
+	
+	private static List<TrpTranscriptMetadata> loadTranscriptsList(TrpServerConn conn, TrpDoc doc, TrpPage page, int colId) throws SessionExpiredException, ServerErrorException, IllegalArgumentException, Exception {
+		if (doc==null || page==null || !doc.isRemoteDoc() || doc.isGtDoc()) {
+			return null;
+		}
+
+//		if (doc!=null && page!=null && doc.isRemoteDoc() && !doc.isGtDoc()) {
+			checkConnection(conn, true);
+			
+			int nValues = 10; // 0 for all!
+			List<TrpTranscriptMetadata> list = conn.getTranscriptMdList(colId, doc.getMd().getDocId(), doc.getPageIndex(page) + 1, 0, nValues, null, null);
+			logger.debug("got transcripts: " + list.size());
+			page.setTranscripts(list);
+			return list;
+//		}
+	}
 
 	/**
 	 * Reloads the current transcrition
@@ -1386,6 +1551,67 @@ public class Storage {
 
 		sendEvent(new TranscriptLoadEvent(this, doc, page, transcript));
 		logger.debug("loaded JAXB, regions: " + getNTextRegions());
+	}
+	
+	public Future<TrpPageType> reloadTranscriptAsync(AsyncCallback<TrpPageType> callback) throws Exception  {
+		if (!isLocalDoc() && !isLoggedIn())
+			throw new Exception("No connection");
+		else if (!isPageLoaded())
+			throw new Exception("No page loaded");
+		
+		TrpTranscriptMetadata trMd = getTranscriptMetadata();
+		if (trMd == null)
+			throw new Exception("Transcript metadata is null -> should not happen...");
+		
+//		clearTranscriptContent(); // here or in onSuccess? I guess its safe to do it here...
+		
+		return loadTranscriptAsyncExecutor.runAsync("Load transcript "+trMd.getKey()==null ? trMd.getXmlFileName() : trMd.getKey(), () -> {
+			logger.debug("reloading transcript async: " + trMd);
+			SebisStopWatch sw = new SebisStopWatch();
+			TrpPageType p = getOrBuildPage(trMd, true);
+			sw.stop(true, "time for unmarshalling page: ", logger);
+			
+			if (false) { // test: throw exception after some delay to test how exceptions are handled 
+				Thread.currentThread().sleep(1000);
+				throw new Exception("I am error "+System.currentTimeMillis());
+			}
+			
+			return p;
+		}, new AsyncCallback<TrpPageType>() {
+			@Override
+			public void onError(Throwable error) {
+				if (!isCurrentTranscript(trMd)) {
+					logger.debug("current transcript already switched - not forwarding error!");
+					return;
+				}
+				clearTranscriptContent();
+				AsyncExecutor.onError(callback, error);
+			}
+
+			@Override
+			public void onSuccess(TrpPageType result) {
+				if (!isCurrentTranscript(trMd)) {
+					logger.debug("current transcript already switched - not forwarding success!");
+					return;
+				}
+				
+				logger.debug("onSuccess: "+result);
+				
+				clearTranscriptContent();
+				transcript.setMd(trMd);
+				transcript.setPageData(result.getPcGtsType());
+				
+				setCurrentTranscriptEdited(false);
+				
+				// add foreign tags from this transcript:
+				addForeignStructTagSpecsFromTranscript();
+
+				sendEvent(new TranscriptLoadEvent(this, doc, page, transcript));
+				logger.debug("loaded JAXB, regions: " + getNTextRegions());
+				
+				AsyncExecutor.onSuccess(callback, result);
+			}
+		});
 	}
 	
 	public void analyzeStructure(int colId, int docId, int pageNr, boolean detectPageNumbers, boolean detectRunningTitles, boolean detectFootnotes) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException, JAXBException {
@@ -2173,10 +2399,14 @@ public class Storage {
 	}
 	
 
-	public void checkConnection(boolean checkLoggedIn) throws NoConnectionException {
+	public static void checkConnection(TrpServerConn conn, boolean checkLoggedIn) throws NoConnectionException {
 		if (conn == null || (checkLoggedIn && conn.getUserLogin() == null)) {
 			throw new NoConnectionException("No connection to the server!");
 		}
+	}
+		
+	public void checkConnection(boolean checkLoggedIn) throws NoConnectionException {
+		checkConnection(conn, checkLoggedIn);
 	}
 	
 //	public List<EdFeature> getEditDeclFeatures(TrpDoc doc) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
@@ -2344,19 +2574,34 @@ public class Storage {
 		return imgMd;
 	}
 	
-	private void setCurrentImageMetadata() throws IOException{
-		TrpPage page = getPage();
-		if (isLocalDoc() || page == null) {
-			imgMd = null;
-			return;
+	private void setCurrentImageMetadata() throws IOException {
+		imgMd = getImageMetadata(doc, getPage());
+		
+//		TrpPage page = getPage();
+//		if (isLocalDoc() || page == null) {
+//			imgMd = null;
+//			return;
+//		}
+//		
+//		try (FimgStoreGetClient getter = new FimgStoreGetClient(page.getUrl())) {
+//			imgMd = (ImageMetadata)getter.getFileMd(page.getKey());
+//		} catch (Exception e) {
+//			logger.error("Couldn't read metadata for file: "+page.getUrl());
+//			imgMd = null;
+//		}
+	}
+	
+	private static ImageMetadata getImageMetadata(TrpDoc doc, TrpPage page) throws IOException{
+//		TrpPage page = getPage();
+		if (doc.isLocalDoc() || page == null) {
+			return null;
 		}
 		
-		try {
-			FimgStoreGetClient getter = new FimgStoreGetClient(page.getUrl());
-			imgMd = (ImageMetadata)getter.getFileMd(page.getKey());
+		try (FimgStoreGetClient getter = new FimgStoreGetClient(page.getUrl())) {
+			return (ImageMetadata)getter.getFileMd(page.getKey());
 		} catch (Exception e) {
 			logger.error("Couldn't read metadata for file: "+page.getUrl());
-			imgMd = null;
+			return null;
 		}
 	}
 
