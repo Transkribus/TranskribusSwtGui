@@ -85,7 +85,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 	private Group resultGroup;
 	private CurrentTranscriptOrCurrentDocPagesSelector dps;
 	private LabeledCombo options;
-	private Button compare, wikiOptions;
+	private Button compare, wikiOptions, tableCheck;
 	private ParameterMap params = new ParameterMap();
 	ResultLoader rl;
 	
@@ -179,7 +179,9 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		options = new LabeledCombo(config, "Options");
 		options.combo.setItems("default (case sensitive) ","case insensitive");
 		options.combo.select(0);
-
+		
+		tableCheck = new Button(config, SWT.CHECK);
+		tableCheck.setText("Exclude tables");
 	
 	}
 	
@@ -241,6 +243,15 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		comboRef.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				params.addParameter("ref", comboRef.getItem(comboRef.getSelectionIndex()));
+			}
+		});
+		
+		tableCheck.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				Button btn = (Button) event.getSource();
+				params.addBoolParam("tableCheck", btn.getSelection());
 			}
 		});
 		
