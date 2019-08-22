@@ -53,8 +53,10 @@ public class DocSyncController extends AMainWidgetController {
 
 			if (!p.isLocalFile()) {
 				PcGtsType pcGtsType = PageXmlUtils.unmarshal(f);
+				String toolname = "Synced with PAGE-XML";
+				String note = "TRP: Synced from local PAGE-XML file: '"+f.getName()+"'";
 				conn.updateTranscript(collId, p.getDocId(), p.getPageNr(), EditStatus.IN_PROGRESS,
-						pcGtsType, p.getPageId(), "TRP: Synced from local PAGE-XML file: '"+f.getName()+"'");				
+						pcGtsType, p.getPageId(), toolname, note);				
 			}
 			else {
 				logger.error("Syncing PAGE-XML files with local docs does not make sense - you shouldn't get here anyway...");
@@ -84,8 +86,10 @@ public class DocSyncController extends AMainWidgetController {
 				PageXmlUtils.applyTextToLines((TrpPageType) pcGtsType.getPage(), text);
 				PageXmlUtils.marshalToFile(pcGtsType, p.getCurrentTranscript().getFile());
 			} else {
+				String toolname = "Synced with TXT";
+				String note = "Synced from local plaintext file: '"+f.getName()+"'";
 				conn.assignPlainTextToPage(collId, p.getDocId(), p.getPageNr(), EditStatus.IN_PROGRESS, text,
-						p.getPageId(), useExistingData, "TRP: Synced from local plaintext file: '"+f.getName()+"'");
+						p.getPageId(), useExistingData, toolname, note);
 			}
 		}, new String[] {".txt"}, typeOfFiles, false);
 	}
