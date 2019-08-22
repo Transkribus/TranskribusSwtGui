@@ -365,12 +365,8 @@ public class ErrorRateAdvancedStats extends Dialog{
 		
 		Paint[] colors = {
 		                  new Color(0, 172, 178),      // blue
-		                  new Color(239, 70, 55),      // red
-		                  new Color(85, 177, 69),      // green
-		                  new Color(255, 255, 51),     //yellow
-		                  new Color(128, 128, 128),   //grey
-		                  new Color(255, 128, 0),  	  //orange
-		                  new Color(178,102,255)
+		                  new Color(239, 70, 55)     // red
+
 		};
 		
 		for(int i=0; i < 7; i++) {
@@ -456,8 +452,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 			}
 			
 		}
-		logger.debug("HypText to compare : "+hypText);
-		logger.debug("RefText to compare : "+refText);
+
 		DiffCompareTool diff = new DiffCompareTool(getShell().getDisplay(), hypText, refText);
 
 		openVersionsCompareDialog(diff.getResult());
@@ -491,16 +486,17 @@ public class ErrorRateAdvancedStats extends Dialog{
 		plot.setRangeGridlinePaint(Color.black);
 		plot.setOutlineVisible(false);
 		
+		
 		renderer.setBarPainter(new StandardBarPainter());
 		
 		Paint[] colors = {
-                new Color(0, 172, 178),      // blue
-                new Color(239, 70, 55),      // red
-                new Color(85, 177, 69),      // green
-                new Color(255, 255, 51),     //yellow
-                new Color(128, 128, 128),    //grey
-                new Color(255, 128, 0),  	 //orange
-                new Color(178,102,255)
+			    new Color(166,  206, 227),      
+                new Color(31, 120, 180),      
+                new Color(178, 223, 138),      
+                new Color(51, 160, 44),     
+                new Color(251, 154, 153),   
+                new Color(227, 26, 28),  	 
+                new Color(253, 191, 111)
 		};
 
 		for(int i=0; i < 7; i++) {
