@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.dialogs.Dialog;
@@ -13,12 +14,15 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.junit.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
@@ -29,6 +33,7 @@ import eu.transkribus.swt_gui.util.DocPageViewer;
 import eu.transkribus.swt_gui.util.FileListViewer;
 
 public class DocSyncWithFilesDialog extends Dialog {
+	private static final Logger logger = LoggerFactory.getLogger(DocSyncWithFilesDialog.class);
 	
 	protected String typeOfFiles;
 	protected TrpDoc target;
@@ -36,6 +41,8 @@ public class DocSyncWithFilesDialog extends Dialog {
 	
 	protected DocPageViewer targetViewer;
 	protected FileListViewer sourceViewer;
+	
+	protected Button matchOnlyEqualFileNameBtn;
 	
 	protected List<Pair<TrpPage, File>> matches;
 	protected Text matchesText;
@@ -122,7 +129,19 @@ public class DocSyncWithFilesDialog extends Dialog {
 		targetViewer.addListener(listViewerListener);
 		sourceViewer.addListener(listViewerListener);
 		
-		matchesText = new Text(sfVertical, SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL);
+		Composite bottomContainer = new Composite(sfVertical, 0);
+		bottomContainer.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
+		bottomContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		
+		matchOnlyEqualFileNameBtn = new Button(bottomContainer, SWT.CHECK);
+		matchOnlyEqualFileNameBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		matchOnlyEqualFileNameBtn.setText("Match by filename");
+		matchOnlyEqualFileNameBtn.setToolTipText("Match only files that have the same filename (without extension) as the corresponding page");
+		SWTUtil.onSelectionEvent(matchOnlyEqualFileNameBtn, e -> {
+			updateMatchesText();
+		});
+		
+		matchesText = new Text(bottomContainer, SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL);
 		matchesText.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 		
 //		Button reloadMatchesBtn = new Button(container, 0);
@@ -141,10 +160,24 @@ public class DocSyncWithFilesDialog extends Dialog {
 		List<TrpPage> pages = targetViewer.getCheckedDataList();
 		List<File> files = sourceViewer.getCheckedDataList();
 		
-		int N = Math.min(pages.size(), files.size());
 		List<Pair<TrpPage, File>> matches = new ArrayList<>();
-		for (int i=0; i<N; ++i) {
-			matches.add(Pair.of(pages.get(i), files.get(i)));
+		if (matchOnlyEqualFileNameBtn.getSelection()) {
+			for (File f : files) {
+				TrpPage matchedPage = pages.stream().filter(p -> {
+//					return StringUtils.equalsIgnoreCase(FilenameUtils.getBaseName(f.getName()), FilenameUtils.getBaseName(p.getImgFileName()));
+					return StringUtils.equals(FilenameUtils.getBaseName(f.getName()), FilenameUtils.getBaseName(p.getImgFileName()));
+				}).findFirst().orElse(null);
+				if (matchedPage != null) {
+					logger.debug("matche file by filename: "+f.getName()+" --> "+matchedPage);
+					matches.add(Pair.of(matchedPage, f));
+				}
+			}
+		}
+		else {
+			int N = Math.min(pages.size(), files.size());
+			for (int i=0; i<N; ++i) {
+				matches.add(Pair.of(pages.get(i), files.get(i)));
+			}			
 		}
 		
 		return matches;

@@ -52,8 +52,8 @@ public class GenericDialogTest {
 		try {
 			if (true) { // load Storage?
 				store = Storage.getInstance();
-//				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
-				store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
+				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
+//				store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
 				Future<?> fut = store.reloadDocList(1); // reload doclist of a collection just that the collection id gets set!
 	//			store.loadRemoteDoc(1, 455); // bentham doc on testserver
 				
@@ -83,21 +83,22 @@ public class GenericDialogTest {
 							d.open();
 						}
 						
-						if (false) {
+						if (true) {
 //							TrpDoc targetDoc = store.getConnection().getTrpDoc(2, 6766, 1); // Bentham Box 2, 5 pages
 							TrpDoc targetDoc = store.getConnection().getTrpDoc(2, 6226, 1); // 10 pages
 //							TrpDoc targetDoc = LocalDocReader.load("C:\\tmp\\Bentham_box_035");
 							
 //							String pathOfFiles = "C:\\tmp\\t2i_test\\txt";
-							String pathOfFiles = "C:\\tmp\\Bentham_box_035\\page";
+//							String pathOfFiles = "C:\\tmp\\Bentham_box_035\\page";
+							String pathOfFiles = "C:\\tmp\\random_page_files";
 							File[] files = new File(pathOfFiles).listFiles((dir,name) -> {
 //								return name.toLowerCase().endsWith(".txt");
 								return name.toLowerCase().endsWith(".xml");
 							});
 							
-//							DocSyncWithFilesDialog d = new DocSyncWithFilesDialog(getShell(), targetDoc, Arrays.asList(files));
-							DocSyncWithTxtFilesDialog d = new DocSyncWithTxtFilesDialog(getShell());
-							d.setData(targetDoc, Arrays.asList(files));
+							DocSyncWithFilesDialog d = new DocSyncWithFilesDialog(getShell(), "PAGE-XML", targetDoc, Arrays.asList(files));
+//							DocSyncWithTxtFilesDialog d = new DocSyncWithTxtFilesDialog(getShell());
+//							d.setData(targetDoc, Arrays.asList(files));
 //							DocSyncWithTxtFilesDialog d = new DocSyncWithTxtFilesDialog(getShell(), targetDoc, Arrays.asList(files));
 							d.open();
 						}
@@ -113,7 +114,7 @@ public class GenericDialogTest {
 	//						SWTUtil.centerShell(getShell());
 						}					
 						
-						if (true) {
+						if (false) {
 							List<TrpP2PaLAModel> models = new ArrayList<>();
 							if (Storage.getInstance()!=null) {
 								models = Storage.getInstance().getP2PaLAModels();
