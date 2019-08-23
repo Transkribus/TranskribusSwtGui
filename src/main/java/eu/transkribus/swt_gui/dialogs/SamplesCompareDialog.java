@@ -463,16 +463,20 @@ public class SamplesCompareDialog extends Dialog {
 				boolean hasGT = false;
 				if(params.getParameterValue("hyp") != null) {
 					try {
-						// create new pagestring, take only pages with chosen toolname
-						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), docId, 10);
+						/*
+						 *  create new pagestring, take only pages with chosen toolname
+						 */
+						TrpDoc doc = store.getConnection().getTrpDoc(store.getCollId(), docId, -1);
 						Set<Integer> pageIndices = CoreUtils.parseRangeListStr("1-"+docMd.getNrOfPages(), docMd.getNrOfPages());
 						Set<Integer> newPageIndices = new HashSet<Integer>();
 						Set<Integer> delGTIndices = new HashSet<Integer>();
 						Set<Integer> delHypIndices = new HashSet<Integer>();
 						List<TrpTranscriptMetadata> transcripts = new ArrayList<TrpTranscriptMetadata>();
 						for (Integer pageIndex : pageIndices) {
-							logger.debug("pageIndex : "+pageIndex);
+							//logger.debug("pageIndex : "+pageIndex);
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
+							
+							//logger.debug("number of transcripts: " + transcripts.size());
 							// check if all pages contain GT version
 							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
 
@@ -976,7 +980,7 @@ public class SamplesCompareDialog extends Dialog {
 		
 		Display.getDefault().asyncExec(() -> {	
 			if(resultTable != null && !resultTable.isDisposed()) {
-				logger.debug("Updating Error result table");
+				//logger.debug("Updating Error result table");
 				resultTable.getTableViewer().setInput(errorList);
 			}
 		});
