@@ -1472,7 +1472,8 @@ public class Storage {
 		if (isRemoteDoc() && !isGtDoc()) {
 			checkConnection(true);
 			
-			int nValues = 10; // 0 for all!
+			//int nValues = 10; // 0 for all!
+			int nValues = 0;
 			List<TrpTranscriptMetadata> list = conn.getTranscriptMdList(colId, doc.getMd().getDocId(), getPageIndex() + 1, 0, nValues, null, null);
 			logger.debug("got transcripts: " + list.size());
 			page.setTranscripts(list);
@@ -1489,7 +1490,7 @@ public class Storage {
 //		if (doc!=null && page!=null && doc.isRemoteDoc() && !doc.isGtDoc()) {
 			checkConnection(conn, true);
 			
-			int nValues = 10; // 0 for all!
+			int nValues = 0;//int nValues = 10; // 0 for all!
 			List<TrpTranscriptMetadata> list = conn.getTranscriptMdList(colId, doc.getMd().getDocId(), doc.getPageIndex(page) + 1, 0, nValues, null, null);
 			logger.debug("got transcripts: " + list.size());
 			page.setTranscripts(list);
