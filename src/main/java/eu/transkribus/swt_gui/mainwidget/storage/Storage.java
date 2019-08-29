@@ -678,7 +678,8 @@ public class Storage {
 	}
 
 	public boolean setLatestTranscriptAsCurrent() {
-		if (doc == null || page == null || page.getTranscripts().isEmpty())
+		logger.trace("Page: {}", page);
+		if (doc == null || page == null || CoreUtils.isEmpty(page.getTranscripts()))
 			return false;
 
 		List<TrpTranscriptMetadata> trs = getTranscriptsSortedByDate(false, 0);
@@ -1337,8 +1338,11 @@ public class Storage {
 				logger.debug("setting current image: "+result.image+", disposed = "+result.image.isDisposed());
 				currentImg = result.image;
 				imgMd = result.imgMd;
-				Storage.this.page.setTranscripts(result.metadataList);
-				setLatestTranscriptAsCurrent();
+				//metadata result.metadataList will be null for GT and local docs! Do not overwrite the given transcripts list then.
+				if (result.metadataList != null)  {
+					Storage.this.page.setTranscripts(result.metadataList);
+					setLatestTranscriptAsCurrent();
+				}
 				
 				sendEvent(new MainImageLoadEvent(this, result.image));
 				sendEvent(new TranscriptListLoadEvent(this, result.doc, result.page, isPageLoaded() ? result.page.getTranscripts() : null));
@@ -1351,8 +1355,6 @@ public class Storage {
 						lockPage(getCurrentDocumentCollectionId(), page);
 					} catch (SessionExpiredException | ServerErrorException | NoConnectionException e) {
 						onError(e);
-						// TODO Auto-generated catch block
-//						e.printStackTrace();
 					}
 				}
 				
@@ -1470,7 +1472,8 @@ public class Storage {
 		if (isRemoteDoc() && !isGtDoc()) {
 			checkConnection(true);
 			
-			int nValues = 10; // 0 for all!
+			//int nValues = 10; // 0 for all!
+			int nValues = 0;
 			List<TrpTranscriptMetadata> list = conn.getTranscriptMdList(colId, doc.getMd().getDocId(), getPageIndex() + 1, 0, nValues, null, null);
 			logger.debug("got transcripts: " + list.size());
 			page.setTranscripts(list);
@@ -1487,7 +1490,7 @@ public class Storage {
 //		if (doc!=null && page!=null && doc.isRemoteDoc() && !doc.isGtDoc()) {
 			checkConnection(conn, true);
 			
-			int nValues = 10; // 0 for all!
+			int nValues = 0;//int nValues = 10; // 0 for all!
 			List<TrpTranscriptMetadata> list = conn.getTranscriptMdList(colId, doc.getMd().getDocId(), doc.getPageIndex(page) + 1, 0, nValues, null, null);
 			logger.debug("got transcripts: " + list.size());
 			page.setTranscripts(list);
