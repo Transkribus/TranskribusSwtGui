@@ -456,6 +456,7 @@ public class SamplesCompareDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				
+				//TODO use page selection in tree viewer to determine page string
 				IStructuredSelection sel = (IStructuredSelection) tvCompute.getSelection();
 				Iterator<?> it = sel.iterator();
 				while (it.hasNext()) {
