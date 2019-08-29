@@ -456,6 +456,21 @@ public class SamplesCompareDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				
+				IStructuredSelection sel = (IStructuredSelection) tvCompute.getSelection();
+				Iterator<?> it = sel.iterator();
+				while (it.hasNext()) {
+					Object o = it.next();
+					if (o instanceof TrpDocMetadata) {
+						TrpDocMetadata docMd = (TrpDocMetadata) o;
+						modelNameTxt.setText("Sample_"+docMd.getTitle());
+						Object[] pageObjArr = contentProv.getChildren(docMd);
+						List<TrpPage> pageList = new LinkedList<>();
+						for (Object page : pageObjArr) {
+							pageList.add((TrpPage) page);
+						}
+					}
+				}
+				
 				int docId = docMd.getDocId();
 				logger.debug("DocId for selected doc : "+docId);
 				params.addParameter("computeSample", "computeSample");
