@@ -2110,20 +2110,25 @@ public class Storage {
 		}
 		int colId = getCurrentDocumentCollectionId();
 		
-		DocumentSelectionDescriptor dd = new DocumentSelectionDescriptor(getDocId());
-		PageDescriptor pd = dd.addPage(getPage().getPageId());
-		if (regIds != null && !regIds.isEmpty()) {
-			pd.getRegionIds().addAll(regIds);
-		}
-		pd.setTsId(getTranscriptMetadata().getTsId());
-		
-		List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
-		dsds.add(dd);
-		
 		List<String> jobids = new ArrayList<>();
-		List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
-		for (TrpJobStatus j : jobs) {
-			jobids.add(j.getJobId());
+		if(JobImpl.FinereaderLaJob.toString().equals(jobImpl)) {
+			String jobIdStr = conn.runTypewrittenBlockSegmentation(colId, getDoc().getId(), ""+getPage().getPageNr());
+			jobids.add(jobIdStr);
+		} else {
+			DocumentSelectionDescriptor dd = new DocumentSelectionDescriptor(getDocId());
+			PageDescriptor pd = dd.addPage(getPage().getPageId());
+			if (regIds != null && !regIds.isEmpty()) {
+				pd.getRegionIds().addAll(regIds);
+			}
+			pd.setTsId(getTranscriptMetadata().getTsId());
+			
+			List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+			dsds.add(dd);
+			
+			List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
+			for (TrpJobStatus j : jobs) {
+				jobids.add(j.getJobId());
+			}
 		}
 				
 		return jobids;
@@ -2141,22 +2146,21 @@ public class Storage {
 		}
 		int colId = getCurrentDocumentCollectionId();
 		
-		DocumentSelectionDescriptor dd = getDoc().getDocSelectionDescriptorForPagesString(pageStr);
-		List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
-		dsds.add(dd);
-		
 		List<String> jobids = new ArrayList<>();
-		List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
-		for (TrpJobStatus j : jobs) {
-			jobids.add(j.getJobId());
+		if(JobImpl.FinereaderLaJob.toString().equals(jobImpl)) {
+			String jobIdStr = conn.runTypewrittenBlockSegmentation(colId, getDoc().getId(), pageStr);
+			jobids.add(jobIdStr);
+		} else {
+			DocumentSelectionDescriptor dd = getDoc().getDocSelectionDescriptorForPagesString(pageStr);
+			List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+			dsds.add(dd);
+
+			List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
+			for (TrpJobStatus j : jobs) {
+				jobids.add(j.getJobId());
+			}
 		}
-				
 		return jobids;
-	}
-	
-	public List<TrpJobStatus> analyzeLayout(int colId, List<DocumentSelectionDescriptor> dsds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException {
-		checkConnection(true);
-		return conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
 	}
 	
 	public String runOcr(int colId, int docId, String pageStr, OcrConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
