@@ -140,7 +140,8 @@ public class SamplesCompareDialog extends Dialog {
 	private Group resultGroup;
 	DecimalFormat df;
 	Combo comboRef,comboHyp;
-	Label labelRef,labelHyp, chartText, cerText;
+	Label labelRef,labelHyp;
+	Text cerText,chartText;
 	TrpDocMetadata docMd, docMdCompute;
 	JFreeChart chart;
 	private DocumentDataSetTableWidget sampleSetOverviewTable;
@@ -351,11 +352,11 @@ public class SamplesCompareDialog extends Dialog {
 		computeSampleBtn.setText("Compute");
 		computeSampleBtn.setEnabled(false);
 		computeSampleBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-		chartText = new Label(buttonComputeComp, SWT.WRAP | SWT.LEFT);
+		chartText = new Text(buttonComputeComp, SWT.READ_ONLY | SWT.WRAP | SWT.LEFT);
 		chartText.setText("Upper bound : \n Lower bound : \n Mean : \n \nWith the probability of 95% the CER for the entire document will be in the interval [.. | .. ] with the mean : .. \n \nBy taking 4 times the number of lines the interval size can be cut in half");
 		chartText.setLayoutData(new GridData(SWT.HORIZONTAL, SWT.TOP, true, false, 1, 1));
 		chartText.setVisible(false);
-		cerText = new Label(buttonComputeComp, SWT.WRAP | SWT.LEFT);
+		cerText = new Text(buttonComputeComp, SWT.WRAP | SWT.LEFT);
 		cerText.setText("The CER for the sample pages is [ . . . . %]  ");
 		cerText.setLayoutData(new GridData(SWT.HORIZONTAL, SWT.TOP, true, true, 1, 1));
 		cerText.setVisible(false);
@@ -454,6 +455,22 @@ public class SamplesCompareDialog extends Dialog {
 		computeSampleBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				
+				//TODO use page selection in tree viewer to determine page string
+				IStructuredSelection sel = (IStructuredSelection) tvCompute.getSelection();
+				Iterator<?> it = sel.iterator();
+				while (it.hasNext()) {
+					Object o = it.next();
+					if (o instanceof TrpDocMetadata) {
+						TrpDocMetadata docMd = (TrpDocMetadata) o;
+						modelNameTxt.setText("Sample_"+docMd.getTitle());
+						Object[] pageObjArr = contentProv.getChildren(docMd);
+						List<TrpPage> pageList = new LinkedList<>();
+						for (Object page : pageObjArr) {
+							pageList.add((TrpPage) page);
+						}
+					}
+				}
 				
 				int docId = docMd.getDocId();
 				logger.debug("DocId for selected doc : "+docId);
