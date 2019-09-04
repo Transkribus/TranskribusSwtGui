@@ -89,7 +89,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		doStoreConfMatsBtn = new Button(cont, SWT.CHECK);
 		doStoreConfMatsBtn.setText("Enable Keyword Spotting");
 		doStoreConfMatsBtn.setToolTipText("The internal recognition result respresentation, needed for keyword spotting, will be stored in addition to the transcription.");
-		doStoreConfMatsBtn.setSelection(false);
+		doStoreConfMatsBtn.setSelection(true);
 		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
 		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
