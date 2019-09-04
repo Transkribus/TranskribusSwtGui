@@ -334,7 +334,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
 
 				if (ref != null && hyp != null) {
-					params.addIntParam("option", 0);
+					params.addIntParam("option", -1);
 					params.addParameter("hyp", hyp.getToolName());
 					params.addParameter("ref", ref.getToolName());
 					rl.setStopped();
