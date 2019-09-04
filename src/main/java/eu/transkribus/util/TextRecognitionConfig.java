@@ -12,8 +12,9 @@ public class TextRecognitionConfig {
 	//CITlab and UPVLC
 	private int htrId;
 	private String htrName;
-	private boolean doLinePolygonSimplification=true;
-	private boolean keepOriginalLinePolygons=false; 
+	private boolean doLinePolygonSimplification = true;
+	private boolean keepOriginalLinePolygons = false;
+	private boolean doStoreConfMats = true;
 	
 	public TextRecognitionConfig(Mode mode) {
 		this.mode = mode;
@@ -41,7 +42,13 @@ public class TextRecognitionConfig {
 		this.keepOriginalLinePolygons = keepOriginalLinePolygons;
 	}
 
-
+	public boolean isDoStoreConfMats() {
+		return doStoreConfMats;
+	}
+	
+	public void setDoStoreConfMats(boolean doStoreConfMats) {
+		this.doStoreConfMats = doStoreConfMats;
+	}
 
 	public Mode getMode() {
 		return mode;
