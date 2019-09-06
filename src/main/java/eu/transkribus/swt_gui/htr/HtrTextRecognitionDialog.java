@@ -39,9 +39,6 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private TextRecognitionConfig config;
 	private String pages;
 	
-	//TODO remove this field after Server update 2.8.2
-	private final static boolean CONFMAT_IS_OPTIONAL = false;
-	
 	public HtrTextRecognitionDialog(Shell parent) {
 		super(parent);
 	}
@@ -89,13 +86,11 @@ public class HtrTextRecognitionDialog extends Dialog {
 		keepOriginalLinePolygonsBtn.setSelection(false);
 		keepOriginalLinePolygonsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
-		if(CONFMAT_IS_OPTIONAL) {
-			doStoreConfMatsBtn = new Button(cont, SWT.CHECK);
-			doStoreConfMatsBtn.setText("Enable Keyword Spotting");
-			doStoreConfMatsBtn.setToolTipText("The internal recognition result respresentation, needed for keyword spotting, will be stored in addition to the transcription.");
-			doStoreConfMatsBtn.setSelection(true);
-			doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		}
+		doStoreConfMatsBtn = new Button(cont, SWT.CHECK);
+		doStoreConfMatsBtn.setText("Enable Keyword Spotting");
+		doStoreConfMatsBtn.setToolTipText("The internal recognition result respresentation, needed for keyword spotting, will be stored in addition to the transcription.");
+		doStoreConfMatsBtn.setSelection(true);
+		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
 		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
 			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
@@ -164,10 +159,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		
 		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
 		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
-		
-		if(CONFMAT_IS_OPTIONAL) {
-			config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
-		}
+		config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
 		
 		super.okPressed();
 	}
