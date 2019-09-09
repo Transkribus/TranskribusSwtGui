@@ -658,4 +658,5 @@ CHANGES AND BUGFIXES
 	-> remove small text-regions feature
 	-> async page/transcript loading (do not show progress bar anymore)
 	-> quickload of collection by id
-	
+	-> CITlab HTR: creating and storing ConfMats can be disabled if keyword spotting functionality is not required
+	-> HTR models detail view bugfix: final CER values shown in text fields did not match the best net stored in all cases 

@@ -366,7 +366,7 @@ public class HtrModelsComposite extends Composite {
 		return htw.getSelectedHtr();
 	}
 	
-	private void updateDetails(TrpHtr htr) {
+	void updateDetails(TrpHtr htr) {
 		if (htr == null) {
 			return;
 		}
@@ -411,106 +411,89 @@ public class HtrModelsComposite extends Composite {
 
 	private void updateChart(final TrpHtr htr) {
 		XYSeriesCollection dataset = new XYSeriesCollection();
-
 		String storedHtrTrainCerStr = NOT_AVAILABLE;
-		int trainMinEpoch = -1;
-		double trainMin = 1.0;
-//		XYPointerAnnotation annot = null;
-		XYLineAnnotation lineAnnot = null;
-		if (htr.hasCerLog()) {
-			XYSeries series = new XYSeries(CER_TRAIN_KEY);
-			series.setDescription(CER_TRAIN_KEY);
-
-			// build XYSeries and find minimum
-			for (int i = 0; i < htr.getCerLog().length; i++) {
-				double val = htr.getCerLog()[i];
-				series.add(i + 1, val);
-				if (val < trainMin) {
-					trainMin = val;
-					trainMinEpoch = i + 1;
-				}
-			}
-			dataset.addSeries(series);
-
-			// determine text for stored HTR performance field
-			final double storedHtrTrainCer;
-			final double storedHtrAnnotationXVal;
-			// And create an annotation representing the stored net
-			if (htr.isBestNetStored()) {
-				storedHtrTrainCer = trainMin;
-//				annot = new XYPointerAnnotation(annotLabel, trainMinEpoch, trainMin, trainMin < 0.5 ? 180 : 90);
-				storedHtrAnnotationXVal = trainMinEpoch;
-			} else {
-				storedHtrTrainCer = htr.getCerLog()[htr.getCerLog().length - 1];
-//				annot = new XYPointerAnnotation(annotLabel, htr.getCerLog().length, htr.getFinalTrainCerVal(),
-//						htr.getFinalTrainCerVal() < 0.5 ? 180 : 90);
-				storedHtrAnnotationXVal = htr.getCerLog().length;
-			}
-//			annot.setTipRadius(2);
-			lineAnnot = new XYLineAnnotation(storedHtrAnnotationXVal, 0.0, storedHtrAnnotationXVal, 100.0,
-					new BasicStroke(), Color.GREEN);
-			lineAnnot.setToolTipText("Stored HTR");
-			storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
-		}
-
 		String storedHtrTestCerStr = NOT_AVAILABLE;
-		if (htr.hasCerTestLog()) {
-			//then the minimum of this curve represents the best net stored
-			//thus reset those min vals.
-			trainMinEpoch = -1;
-			trainMin = 1.0;
-			XYSeries testSeries = new XYSeries(CER_TEST_KEY);
-			testSeries.setDescription(CER_TEST_KEY);
-			for (int i = 0; i < htr.getCerTestLog().length; i++) {
-				double val = htr.getCerTestLog()[i];
-				testSeries.add(i + 1, val);
-				if (val < trainMin) {
-					trainMin = val;
-					trainMinEpoch = i + 1;
-				}
-			}
-			dataset.addSeries(testSeries);
 
-			// determine text for stored HTR performance field
-			final double storedHtrTestCer;
-			if (htr.isBestNetStored() && trainMinEpoch > -1) {
-				storedHtrTestCer = htr.getCerTestLog()[trainMinEpoch - 1];
-			} else {
-				storedHtrTestCer = htr.getCerTestLog()[htr.getCerTestLog().length - 1];
-			}
-
-			storedHtrTestCerStr = HtrCITlabUtils.formatCerVal(storedHtrTestCer);
+		double[] referenceSeries = null;
+		if (htr.hasCerLog()) {
+			XYSeries series = buildXYSeries(CER_TRAIN_KEY, htr.getCerLog());
+			dataset.addSeries(series);
+			referenceSeries = htr.getCerLog();
 		}
 
+		if (htr.hasCerTestLog()) {
+			XYSeries testSeries = buildXYSeries(CER_TEST_KEY, htr.getCerTestLog());
+			dataset.addSeries(testSeries);
+			//if available then test CER is reference for stored net
+			referenceSeries = htr.getCerTestLog();
+		}
 		
 		chart = ChartFactory.createXYLineChart("Learning Curve", "Epochs", "Accuracy in CER", dataset,
 				PlotOrientation.VERTICAL, true, true, false);
 		XYPlot plot = (XYPlot) chart.getPlot();
+		NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+		DecimalFormat pctFormat = new DecimalFormat("#%");
+		rangeAxis.setNumberFormatOverride(pctFormat);
+		rangeAxis.setRange(0.0, 1.0);
 		
-		if(dataset.getSeries().isEmpty()) {
-			plot.setNoDataMessage("No data available");
-		} else {
-			NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-			DecimalFormat pctFormat = new DecimalFormat("#%");
-			rangeAxis.setNumberFormatOverride(pctFormat);
-			rangeAxis.setRange(0.0, 1.0);
-	
-			plot.getRenderer().setSeriesPaint(0, Color.BLUE);
+		int storedNetEpoch = -1;
+		XYLineAnnotation lineAnnot = null;
+		if(referenceSeries != null && referenceSeries.length > 0) {
+			//determine location of best net annotation line and final CER values to show in text fields
+			double min = Double.MAX_VALUE;
+			if(htr.isBestNetStored()) {
+				//if best net is stored then seach reference CER series for the minimum value
+				for (int i = 0; i < referenceSeries.length; i++) {
+					final double val = referenceSeries[i];
+					//HTR+ always stores best net. If validation CER does not change, the first net with this CER is kept
+					if (val < min) {
+						min = val;
+						storedNetEpoch = i + 1;
+					}
+				}
+			} else {
+				//set last epoch as minimum
+				storedNetEpoch = referenceSeries.length;
+			}
+			logger.debug("best net stored after epoch {}", storedNetEpoch);
+			int seriesIndex = 0;
+			if(htr.hasCerLog()) {
+				double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
+				storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
+				plot.getRenderer().setSeriesPaint(seriesIndex++, Color.BLUE);
+			}
+			
 			if (htr.hasCerTestLog()) {
-				plot.getRenderer().setSeriesPaint(1, Color.RED);
+				double storedHtrTestCer = htr.getCerTestLog()[storedNetEpoch - 1];
+				storedHtrTestCerStr = HtrCITlabUtils.formatCerVal(storedHtrTestCer);
+				plot.getRenderer().setSeriesPaint(seriesIndex++, Color.RED);
 			}
-			// if(annot != null) {
-			// plot.addAnnotation(annot);
-			// }
-			if (lineAnnot != null) {
-				plot.addAnnotation(lineAnnot);
-			}
+			
+			//annotate storedNetEpoch in the chart
+			lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
+					new BasicStroke(), Color.GREEN);
+			lineAnnot.setToolTipText("Stored HTR");
+			plot.addAnnotation(lineAnnot);
+		} else {
+			plot.setNoDataMessage("No data available");
 		}
+		
 		jFreeChartComp.setChart(chart);
 		chart.fireChartChanged();
 
 		finalTrainCerTxt.setText(storedHtrTrainCerStr);
 		finalTestCerTxt.setText(storedHtrTestCerStr);
+	}
+
+	private XYSeries buildXYSeries(String name, double[] cerLog) {
+		XYSeries series = new XYSeries(name);
+		series.setDescription(name);
+		// build XYSeries
+		for (int i = 0; i < cerLog.length; i++) {
+			double val = cerLog[i];
+			series.add(i + 1, val);
+		}
+		return series;
 	}
 
 	private void updateHtrs(final String providerFilter) {
