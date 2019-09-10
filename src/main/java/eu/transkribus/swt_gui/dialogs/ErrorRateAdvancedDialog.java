@@ -335,8 +335,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 
 				if (ref != null && hyp != null) {
 					params.addIntParam("option", -1);
-					params.addParameter("hyp", hyp.getToolName());
-					params.addParameter("ref", ref.getToolName());
+					params.addParameter("hyp", hyp.getKey());
+					params.addParameter("ref", ref.getKey());
 					rl.setStopped();
 						try {
 							startError(store.getDocId(),""+store.getPage().getPageNr());
