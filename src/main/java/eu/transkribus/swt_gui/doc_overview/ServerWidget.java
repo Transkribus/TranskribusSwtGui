@@ -425,7 +425,7 @@ public class ServerWidget extends Composite {
 		//run UI update asynchronously
 		getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				if(!treeViewerInput.isEmpty()) {
+				if(!treeViewerInput.isEmpty() && store.isAdminLoggedIn()) {
 					if (gtTabItem == null || gtTabItem.isDisposed()) {
 						gtTabItem = new CTabItem(tabFolder, SWT.NONE);
 						gtTabItem.setText("HTR Model Data");
