@@ -39,7 +39,7 @@ public class TrpErrorResultTableEntry extends AJobResultTableEntry<TrpErrorRate>
 	protected String extractQueries(TrpProperties props, TrpErrorRate result) {
 		
 		String option = null;
-		ParameterMap params = new ParameterMap();
+		ParameterMap params = null;
 		if(result != null) {
 			params = result.getParams();
 		}

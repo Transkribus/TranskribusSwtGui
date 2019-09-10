@@ -180,8 +180,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		options.combo.setItems("default (case sensitive) ","case insensitive");
 		options.combo.select(0);
 		
-		tableCheck = new Button(config, SWT.CHECK);
-		tableCheck.setText("Exclude tables");
+//		tableCheck = new Button(config, SWT.CHECK);
+//		tableCheck.setText("Exclude tables");
 	
 	}
 	
@@ -246,21 +246,22 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			}
 		});
 		
-		tableCheck.addSelectionListener(new SelectionAdapter() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent event) {
-				Button btn = (Button) event.getSource();
-				params.addBoolParam("tableCheck", btn.getSelection());
-			}
-		});
+		//TODO option to exclude tables
+		
+//		tableCheck.addSelectionListener(new SelectionAdapter() {
+//			
+//			@Override
+//			public void widgetSelected(SelectionEvent event) {
+//				Button btn = (Button) event.getSource();
+//				params.addBoolParam("tableCheck", btn.getSelection());
+//			}
+//		});
 		
 		compare.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
 				params.addParameter("option", options.combo.getSelectionIndex());
-				logger.debug("Option chosen : "+options.combo.getSelectionIndex());
 				String newPageString = null;
 				String deleteGTPageString = null;
 				String deleteHypPageString = null;
@@ -337,6 +338,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					params.addIntParam("option", -1);
 					params.addParameter("hyp", hyp.getKey());
 					params.addParameter("ref", ref.getKey());
+					params.addIntParam("pageNr", store.getPage().getPageNr());
+					
 					rl.setStopped();
 						try {
 							startError(store.getDocId(),""+store.getPage().getPageNr());
