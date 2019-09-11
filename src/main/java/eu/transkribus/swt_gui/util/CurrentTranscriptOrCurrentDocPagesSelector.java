@@ -1,5 +1,9 @@
 package eu.transkribus.swt_gui.util;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -7,6 +11,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 	
@@ -85,6 +91,24 @@ public class CurrentTranscriptOrCurrentDocPagesSelector extends Composite {
 	
 	public CurrentDocPagesSelector getPagesSelector() {
 		return ps;
+	}
+	
+	/**
+	 * if current-transcript is selected, return the page index of this transcript, else the indices of the pages-str
+	 * @throws IOException 
+	 */
+	public Set<Integer> getSelectedPageIndices() throws IOException {
+		Storage store = Storage.getInstance();
+		if (isCurrentTranscript()) {
+			Set<Integer> res = new HashSet<>();
+			if (store != null && store.getPage()!=null) {
+				res.add(store.getPage().getPageNr()-1);
+			}
+			return res;
+		}
+		else {
+			return ps.getSelectedPageIndices();
+		}
 	}
 	
 }
