@@ -261,7 +261,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
+				int optionIndex = options.combo.getSelectionIndex();
+				logger.debug("Option index : "+optionIndex);
 				params.addParameter("option", options.combo.getSelectionIndex());
+				params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
+				params.addParameter("ref", comboRef.getItem(comboRef.getSelectionIndex()));
 				String newPageString = null;
 				String deleteGTPageString = null;
 				String deleteHypPageString = null;
@@ -274,13 +278,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						Set<Integer> delHypIndices = new HashSet<Integer>();
 						List<TrpTranscriptMetadata> transcripts = new ArrayList<TrpTranscriptMetadata>();
 						for (Integer pageIndex : pageIndices) {
-							logger.debug("pageIndex : "+pageIndex);
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
 							// check if all pages contain GT version
-							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
-//							
+							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);							
+							
 							for(TrpTranscriptMetadata transcript : transcripts){
-								logger.debug(""+comboHyp.getSelectionIndex());
 								if(transGT != null && transcript.getToolName() != null) {
 									if(comboHyp.getItem(comboHyp.getSelectionIndex()) != null &&  transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
 										newPageIndices.add(pageIndex);
