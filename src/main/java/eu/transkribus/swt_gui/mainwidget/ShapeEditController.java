@@ -155,14 +155,15 @@ public class ShapeEditController extends AMainWidgetController {
 			logger.debug("removeSmallTextRegionsFromLoadedDoc!");
 
 			if (!storage.isDocLoaded()) {
-				throw new IOException("No document loaded!");
+				DialogUtil.showErrorMessageBox(getShell(), "Error", "No document loaded!");
+				return;
 			}
 			RemoveTextRegionsConfDialog d = new RemoveTextRegionsConfDialog(getShell());
 			if (d.open() != IDialogConstants.OK_ID) {
 				return;
 			}
 			
-			double fractionOfImageSize = d.getFraction();
+			double fractionOfImageSize = d.getThreshPerc();
 			Set<Integer> pageIndices = d.getPageIndices();
 			boolean dryRun = d.isDryRun();
 
@@ -246,7 +247,7 @@ public class ShapeEditController extends AMainWidgetController {
 				mw.reloadCurrentPage(true, null, null);	
 			}
 		} catch (Throwable e) {
-			mw.onError("Affine transformation error", "Error during affine transformation of document", e);
+			mw.onError("Error", e.getMessage(), e);
 		}		
 	}
 
