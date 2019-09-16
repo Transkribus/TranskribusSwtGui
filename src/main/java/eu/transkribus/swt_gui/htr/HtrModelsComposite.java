@@ -172,6 +172,9 @@ public class HtrModelsComposite extends Composite {
 		hdw.getShowTrainSetBtn().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if(selectedHtr == null) {
+					return;
+				}
 				if (trainDocViewer != null) {
 					trainDocViewer.setVisible();
 				} else {
@@ -180,8 +183,7 @@ public class HtrModelsComposite extends Composite {
 						trainDocViewer.open();
 					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException
 							| NoConnectionException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						logger.error(e1.getMessage(), e);
 					}
 
 					trainDocViewer = null;
@@ -193,6 +195,9 @@ public class HtrModelsComposite extends Composite {
 		hdw.getShowTestSetBtn().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if(selectedHtr == null) {
+					return;
+				}
 				if (testDocViewer != null) {
 					testDocViewer.setVisible();
 				} else {
@@ -201,8 +206,7 @@ public class HtrModelsComposite extends Composite {
 						testDocViewer.open();
 					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException
 							| NoConnectionException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						logger.error(e1.getMessage(), e);
 					}
 
 					testDocViewer = null;
@@ -214,6 +218,9 @@ public class HtrModelsComposite extends Composite {
 		hdw.getShowCharSetBtn().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if(selectedHtr == null) {
+					return;
+				}
 				if (charSetViewer != null) {
 					charSetViewer.setVisible();
 				} else {
@@ -223,8 +230,7 @@ public class HtrModelsComposite extends Composite {
 								selectedHtr.getCharSetList());
 						charSetViewer.open();
 					} catch (ClientErrorException | IllegalArgumentException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						logger.error(e1.getMessage(), e);
 					}
 
 					charSetViewer = null;

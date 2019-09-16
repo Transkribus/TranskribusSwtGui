@@ -123,7 +123,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		});
 		
 		config = store.loadTextRecognitionConfig();
-		logger.debug("" + config);
+		logger.debug("Config loaded:" + config);
 		if(config != null) {
 			configTxt.setText(config.toString());
 		}

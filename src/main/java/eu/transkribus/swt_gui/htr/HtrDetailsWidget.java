@@ -32,6 +32,7 @@ import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.StrUtil;
+import eu.transkribus.swt.util.Images;
 
 public class HtrDetailsWidget extends SashForm {
 	private static final Logger logger = LoggerFactory.getLogger(HtrDetailsWidget.class);
@@ -47,9 +48,11 @@ public class HtrDetailsWidget extends SashForm {
 	
 	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalTestCerTxt;
 	Table paramTable;
-	Button showTrainSetBtn, showTestSetBtn, showCharSetBtn;
+	Button updateMetadataBtn, showTrainSetBtn, showTestSetBtn, showCharSetBtn;
 	ChartComposite jFreeChartComp;
 	JFreeChart chart = null;
+	
+	private boolean allowMetadataEditing = true;
 	
 	public HtrDetailsWidget(Composite parent, int style) {
 		super(parent, style);
@@ -64,9 +67,18 @@ public class HtrDetailsWidget extends SashForm {
 		Label langLbl = new Label(mdComp, SWT.NONE);
 		langLbl.setText("Language:");
 
-		nameTxt = new Text(mdComp, SWT.BORDER | SWT.READ_ONLY);
+		int nameTxtStyle = SWT.BORDER;
+		if(!allowMetadataEditing) {
+			nameTxtStyle |= SWT.READ_ONLY;
+		}
+		nameTxt = new Text(mdComp, nameTxtStyle);
 		nameTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		langTxt = new Text(mdComp, SWT.BORDER | SWT.READ_ONLY);
+		
+		int langTxtStyle = SWT.BORDER;
+		if(!allowMetadataEditing) {
+			langTxtStyle |= SWT.READ_ONLY;
+		}
+		langTxt = new Text(mdComp, langTxtStyle);
 		langTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
 		Label descLbl = new Label(mdComp, SWT.NONE);
@@ -74,11 +86,14 @@ public class HtrDetailsWidget extends SashForm {
 		Label paramLbl = new Label(mdComp, SWT.NONE);
 		paramLbl.setText("Parameters:");
 
-		// TODO possibly descTxt and paramTxt should have x/y scroll
-		// functionality?
-		descTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP);
+		int descTxtStyle = SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP;
+		if(!allowMetadataEditing) {
+			descTxtStyle |= SWT.READ_ONLY;
+		}
+		descTxt = new Text(mdComp, descTxtStyle);
 		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		paramTable = new Table(mdComp, SWT.BORDER);
+		
+		paramTable = new Table(mdComp, SWT.BORDER | SWT.V_SCROLL);
 		paramTable.setHeaderVisible(false);
 		TableColumn paramCol = new TableColumn(paramTable, SWT.NONE);
 		paramCol.setText("Parameter");
@@ -98,8 +113,19 @@ public class HtrDetailsWidget extends SashForm {
 
 		Composite btnComp = new Composite(mdComp, SWT.NONE);
 		btnComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		btnComp.setLayout(new GridLayout(3, true));
+		int numButtons = 3;
+		if(allowMetadataEditing) { 
+			numButtons = 4;
+		}
+		btnComp.setLayout(new GridLayout(numButtons, true));
 
+		if(allowMetadataEditing) {
+			updateMetadataBtn = new Button(btnComp, SWT.PUSH);
+			updateMetadataBtn.setText("Save");
+			updateMetadataBtn.setImage(Images.DISK);
+			updateMetadataBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		}
+		
 		showTrainSetBtn = new Button(btnComp, SWT.PUSH);
 		showTrainSetBtn.setText("Show Train Set");
 		showTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -109,7 +135,7 @@ public class HtrDetailsWidget extends SashForm {
 		showTestSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		showCharSetBtn = new Button(btnComp, SWT.PUSH);
-		showCharSetBtn.setText("Show Character Set");
+		showCharSetBtn.setText("Show Characters");
 		showCharSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
 		// a composite for the CER stuff
@@ -133,13 +159,35 @@ public class HtrDetailsWidget extends SashForm {
 		finalTestCerLbl.setText("CER on Test Set:");
 		finalTestCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
 		finalTestCerTxt.setLayoutData(gd);
+		
+		//init with no HTR selected, i.e. disable controls
+		updateDetails(null);
 	}
 	
 	void updateDetails(TrpHtr htr) {
+		updateMetadataBtn.setEnabled(false);
+		nameTxt.setEnabled(htr != null);
+		descTxt.setEnabled(htr != null);
+		langTxt.setEnabled(htr != null);
+		jFreeChartComp.setEnabled(htr != null);
+		
+		logger.debug("HTR = " + (htr==null ? "null" : htr.toShortString()));
+		
 		if (htr == null) {
+			//clear text fields and disable buttons
+			nameTxt.setText("");
+			descTxt.setText("");
+			langTxt.setText("");
+			finalTrainCerTxt.setText("");
+			finalTestCerTxt.setText("");
+			paramTable.clearAll();
+			nrOfLinesTxt.setText("");
+			nrOfWordsTxt.setText("");
+			showCharSetBtn.setEnabled(false);
+			showTestSetBtn.setEnabled(false);
+			showTrainSetBtn.setEnabled(false);
 			return;
 		}
-		logger.debug("HTR = " + (htr==null ? "null" : htr.toShortString()));
 		
 		nameTxt.setText(StrUtil.get(htr.getName()));
 		langTxt.setText(StrUtil.get(htr.getLanguage()));
@@ -149,6 +197,7 @@ public class HtrDetailsWidget extends SashForm {
 
 		updateParamTable(htr.getParamsProps());
 
+		updateMetadataBtn.setEnabled(false);
 		showCharSetBtn.setEnabled(htr.getCharSetList() != null && !htr.getCharSetList().isEmpty());
 
 		showTestSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
@@ -261,6 +310,10 @@ public class HtrDetailsWidget extends SashForm {
 			series.add(i + 1, val);
 		}
 		return series;
+	}
+	
+	Button getUpdateMetadataBtn() {
+		return updateMetadataBtn;
 	}
 	
 	Button getShowTrainSetBtn() {
