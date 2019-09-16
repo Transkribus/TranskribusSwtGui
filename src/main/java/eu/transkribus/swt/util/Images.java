@@ -6,7 +6,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wb.swt.SWTResourceManager;
 
@@ -62,8 +61,6 @@ public class Images {
 	public static final Image CONTROL_EQUALIZER = Images.getOrLoad("/icons/control_equalizer.png");
 	
 	public static final Image TEXT_FIELD_DELETE = getOrLoad("/icons/textfield_delete.png");
-	
-	public static final Image DISK1 = Images.getOrLoad("/icons/disk.png");
 
 	public static final Image IMAGE_EDIT = Images.getOrLoad("/icons/image_edit.png");
 	public static final Image IMAGE_DELETE = Images.getOrLoad("/icons/image_delete.png");
