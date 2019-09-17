@@ -244,6 +244,7 @@ public class HtrModelsComposite extends Composite {
 	}
 	
 	public void setSelection(int htrId) {
+		logger.trace("Setting selection to htrId = {}", htrId);
 		htw.setSelection(htrId);
 	}
 	
