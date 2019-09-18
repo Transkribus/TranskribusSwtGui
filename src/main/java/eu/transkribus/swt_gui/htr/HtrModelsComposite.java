@@ -11,6 +11,8 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -21,7 +23,6 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +34,10 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.dialogs.CharSetViewerDialog;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
 import eu.transkribus.swt_gui.dialogs.DocImgViewerDialog;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
-public class HtrModelsComposite extends Composite {
+public class HtrModelsComposite extends Composite implements IStorageListener {
 	private static final Logger logger = LoggerFactory.getLogger(HtrModelsComposite.class);
 
 	Storage store = Storage.getInstance();
@@ -46,6 +48,8 @@ public class HtrModelsComposite extends Composite {
 	DocImgViewerDialog trainDocViewer, testDocViewer = null;
 	CharSetViewerDialog charSetViewer = null;
 
+	MenuItem shareItem, delItem;
+	
 	TrpHtr selectedHtr;
 
 	public HtrModelsComposite(Composite parent, final String providerFilter, int flags) {
@@ -57,10 +61,50 @@ public class HtrModelsComposite extends Composite {
 		sashForm.setLayout(new GridLayout(2, false));
 
 		htw = new HtrTableWidget(sashForm, SWT.BORDER, providerFilter);
+
+		Menu menu = new Menu(htw.getTableViewer().getTable());
+		htw.getTableViewer().getTable().setMenu(menu);
+
+		shareItem = new MenuItem(menu, SWT.NONE);
+		shareItem.setText("Share model...");
+
+		delItem = new MenuItem(menu, SWT.NONE);
+		delItem.setText("Remove model from collection");
+
+		Group detailGrp = new Group(sashForm, SWT.BORDER);
+		detailGrp.setText("Details");
+		detailGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		detailGrp.setLayout(new GridLayout(1, false));
+
+		hdw = new HtrDetailsWidget(detailGrp, SWT.VERTICAL);
+		hdw.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		hdw.setLayout(new GridLayout(2, false));
+
+		sashForm.setWeights(new int[] { 60, 40 });
+		
+		updateHtrs(htw.getProviderComboValue());
+		
+		addListeners();
+	}
+	
+	private void addListeners() {
+		
+		// fix for missing tooltip in chart after resize. Still does not work always...
+		this.getShell().addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event e) {
+				logger.trace("Resizing...");
+				if(getShell().getMaximized()) {
+					logger.trace("To MAX!");
+				}
+				
+				hdw.triggerChartUpdate();
+			}
+		});
+		
 		htw.getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				BusyIndicator.showWhile(parent.getDisplay(), new Runnable() {
+				BusyIndicator.showWhile(getParent().getDisplay(), new Runnable() {
 					@Override
 					public void run() {
 						updateDetails(getSelectedHtr());
@@ -76,13 +120,6 @@ public class HtrModelsComposite extends Composite {
 			}
 		});
 		
-		final Table t = htw.getTableViewer().getTable();
-
-		Menu menu = new Menu(t);
-		t.setMenu(menu);
-
-		MenuItem shareItem = new MenuItem(menu, SWT.NONE);
-		shareItem.setText("Share model...");
 		shareItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -116,8 +153,6 @@ public class HtrModelsComposite extends Composite {
 			}
 		});
 
-		MenuItem delItem = new MenuItem(menu, SWT.NONE);
-		delItem.setText("Remove model from collection");
 		delItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -134,40 +169,16 @@ public class HtrModelsComposite extends Composite {
 			}
 		});
 
-		t.addListener(SWT.MenuDetect, new Listener() {
+		htw.getTableViewer().getTable().addListener(SWT.MenuDetect, new Listener() {
 
 			@Override
 			public void handleEvent(Event event) {
-				if (t.getSelectionCount() <= 0) {
+				if (htw.getTableViewer().getTable().getSelectionCount() <= 0) {
 					event.doit = false;
 				}
 			}
 
 		});
-
-		Group detailGrp = new Group(sashForm, SWT.BORDER);
-		detailGrp.setText("Details");
-		detailGrp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		detailGrp.setLayout(new GridLayout(1, false));
-
-		hdw = new HtrDetailsWidget(detailGrp, SWT.VERTICAL);
-		hdw.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		hdw.setLayout(new GridLayout(2, false));
-
-		sashForm.setWeights(new int[] { 60, 40 });
-		// fix for missing tooltip in chart after resize. Still does not work always...
-		this.getShell().addListener(SWT.Resize, new Listener() {
-			public void handleEvent(Event e) {
-				logger.trace("Resizing...");
-				if(getShell().getMaximized()) {
-					logger.trace("To MAX!");
-				}
-				
-				hdw.triggerChartUpdate();
-			}
-		});
-		
-		updateHtrs(htw.getProviderComboValue());
 		
 		hdw.getShowTrainSetBtn().addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -237,6 +248,17 @@ public class HtrModelsComposite extends Composite {
 				}
 			}
 		});
+		
+		//listen to HtrListLoadEvents
+		store.addListener(this);
+		
+		this.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				logger.debug("Detaching HtrModelsComposite IStorageListener from Storage");
+				store.removeListener(HtrModelsComposite.this);
+			}
+		});
 	}
 	
 	public HtrModelsComposite(Composite parent, int flags) {
@@ -260,5 +282,11 @@ public class HtrModelsComposite extends Composite {
 	private void updateHtrs(final String providerFilter) {
 		List<TrpHtr> uroHtrs = store.getHtrs(providerFilter);
 		htw.refreshList(uroHtrs);
+	}
+	
+	@Override
+	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
+		htw.resetProviderFilter();
+		htw.refreshList(e.htrs.getList());
 	}
 }

@@ -195,7 +195,7 @@ public class HtrTableWidget extends Composite {
 			providerCombo.setEnabled(false);
 		}
 		
-		providerCombo.select(0);
+		resetProviderFilter();
 		providerCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		
@@ -255,6 +255,10 @@ public class HtrTableWidget extends Composite {
 		}
 	}
 	
+	void resetProviderFilter() {
+		providerCombo.select(0);
+	}
+
 	private void addProviderFilter(Combo providerCombo, String label, String data) {
 		providerCombo.add(label);
 		providerCombo.setData(label, data);
