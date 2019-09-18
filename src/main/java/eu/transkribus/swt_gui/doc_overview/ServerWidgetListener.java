@@ -86,6 +86,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		
 		SWTUtil.addSelectionListener(sw.duplicateDocTi, this);
 		SWTUtil.addSelectionListener(sw.deleteDocTi, this);
+		SWTUtil.addSelectionListener(sw.manageUsersTi, this);
 		SWTUtil.addSelectionListener(sw.addToCollectionTi, this);
 		SWTUtil.addSelectionListener(sw.removeFromCollectionTi, this);
 		SWTUtil.addSelectionListener(sw.administerCollectionTi, this);
@@ -132,6 +133,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		
 		SWTUtil.removeSelectionListener(sw.duplicateDocTi, this);
 		SWTUtil.removeSelectionListener(sw.deleteDocTi, this);
+		SWTUtil.removeSelectionListener(sw.manageUsersTi, this);
 		SWTUtil.removeSelectionListener(sw.addToCollectionTi, this);
 		SWTUtil.removeSelectionListener(sw.removeFromCollectionTi, this);		
 		SWTUtil.removeSelectionListener(sw.administerCollectionTi, this);
@@ -238,6 +240,9 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		else if (s == sw.deleteDocMenuItem || s == sw.deleteDocTi) {
 			mw.deleteDocuments(sw.getSelectedDocuments(), false);
 			mw.reloadDocList(mw.getSelectedCollectionId());
+		}
+		else if (s == sw.manageUsersTi) {
+			mw.openCollectionUsersDialog(mw.getUi().getServerWidget().getSelectedCollection());
 		}
 		else if (s == sw.addToCollectionMenuItem || s == sw.addToCollectionTi) {
 			mw.addDocumentsToCollection(mw.getSelectedCollectionId(), sw.getSelectedDocuments(), false);

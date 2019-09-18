@@ -16,6 +16,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -112,7 +113,7 @@ public class ServerWidget extends Composite {
 	MenuItem deleteDocMenuItem;
 	MenuItem duplicateDocMenuItem;
 	
-	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, duplicateDocTi, administerCollectionTi, recycleBin;
+	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, manageUsersTi, duplicateDocTi, administerCollectionTi, recycleBin;
 	TextToolItem quickLoadByDocId;
 		
 	public ServerWidget(Composite parent) {
@@ -202,7 +203,7 @@ public class ServerWidget extends Composite {
 		docManager = new Button(btns1, 0);
 		docManager.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		docManager.setText("Document Manager");
-		docManager.setToolTipText("Add pages, add transcripts, choose symbolic images,...");
+		docManager.setToolTipText("Add pages, add transcripts, choose symbolic images, ...");
 		docManager.setImage(Images.FOLDER_WRENCH);
 		userControls.add(docManager);
 			
@@ -258,8 +259,8 @@ public class ServerWidget extends Composite {
 		quickLoadColId = new Text(collsCont, SWT.NONE);
 		SWTUtil.addSelectOnFocusToText(quickLoadColId);
 		quickLoadColId.setMessage("Col-ID");
-//		quickLoadColId.resizeToMessage();
-		quickLoadColId.setToolTipText("Load collection with this ID");		
+		quickLoadColId.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true, 1, 1));
+		quickLoadColId.setToolTipText("Load collection with this ID");
 		
 		if (false) {
 			Composite collComp = collectionSelectorWidget.getCollComposite();
@@ -346,13 +347,18 @@ public class ServerWidget extends Composite {
 		deleteDocTi.setImage(Images.FOLDER_DELETE);
 		deleteDocTi.setToolTipText("Delete the selected documents from Transkribus...");
 		
+		manageUsersTi = new ToolItem(tb, SWT.PUSH);
+		manageUsersTi.setImage(Images.USER_EDIT);
+		manageUsersTi.setToolTipText("Manage users in this collection...");
+		
 		duplicateDocTi = new ToolItem(tb, SWT.PUSH);
 		duplicateDocTi.setImage(Images.PAGE_COPY);
 		duplicateDocTi.setToolTipText("Duplicate/Copy the selected documents into another collection...");
 		
 		administerCollectionTi = new ToolItem(tb, SWT.PUSH);
-		administerCollectionTi.setImage(Images.COG_EDIT);
-		administerCollectionTi.setToolTipText("Administrate docs in collection, e.g. Add pages, Choose symbolic images,...");
+//		administerCollectionTi.setImage(Images.COG_EDIT);
+		administerCollectionTi.setImage(Images.FOLDER_WRENCH);
+		administerCollectionTi.setToolTipText("Document Manager: add pages & transcripts, choose symbolic images, ...");
 		
 		recycleBin = new ToolItem(tb, SWT.PUSH);
 		recycleBin.setImage(Images.BIN);
@@ -544,6 +550,7 @@ public class ServerWidget extends Composite {
 	
 	public void updateBtnVisibility(boolean canManage){
 		deleteDocTi.setEnabled(canManage);
+		manageUsersTi.setEnabled(canManage);
 		removeFromCollectionTi.setEnabled(canManage);
 		addToCollectionTi.setEnabled(canManage);
 		duplicateDocTi.setEnabled(canManage);
