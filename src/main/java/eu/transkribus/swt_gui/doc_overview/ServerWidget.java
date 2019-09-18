@@ -53,6 +53,11 @@ import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 public class ServerWidget extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(ServerWidget.class);
 
+	/**
+	 * Switch for disabling the GT tab to be shown to all users during transition
+	 */
+	private static boolean SHOW_GT_TAB_ITEM = false;
+	
 	Label usernameLabel;
 	DocTableWidgetPagination docTableWidget;
 
@@ -425,7 +430,7 @@ public class ServerWidget extends Composite {
 		//run UI update asynchronously
 		getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				if(!treeViewerInput.isEmpty() && store.isAdminLoggedIn()) {
+				if(!treeViewerInput.isEmpty() && (SHOW_GT_TAB_ITEM || store.isAdminLoggedIn())) {
 					if (gtTabItem == null || gtTabItem.isDisposed()) {
 						gtTabItem = new CTabItem(tabFolder, SWT.NONE);
 						gtTabItem.setText("HTR Model Data");
