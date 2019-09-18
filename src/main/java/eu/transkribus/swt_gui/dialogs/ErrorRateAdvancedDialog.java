@@ -341,6 +341,7 @@ public class ErrorRateAdvancedDialog extends Dialog {
 					params.addParameter("hyp", hyp.getKey());
 					params.addParameter("ref", ref.getKey());
 					params.addIntParam("pageNr", store.getPage().getPageNr());
+					params.addParameter("hypTool", hyp.getToolName());
 					
 					rl.setStopped();
 						try {
