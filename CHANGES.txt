@@ -644,7 +644,7 @@ CHANGES AND BUGFIXES
 	-> CITlab HTR training obeys Unicode 12.1.0 character specification instead of Unicode 6.2
 	-> usability: show configuration before running CITlabAdvanced layout analysis
 	
-1.7.2:
+1.8.0:
 	-> additional parameters for Text2Image
 	-> new sync txt-files and PAGE-XMLs with existing doc dialog (including: apply txt-files to existing layouts)
 	-> text editor: 'Backspace' and 'Ctrl+Return' behavior - moves text one line up or down; Use case: applying txt-files to existing layouts may start at the wrong line which can be corrected
