@@ -1,6 +1,11 @@
 package eu.transkribus.swt_gui.htr;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -11,13 +16,17 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
@@ -33,6 +42,8 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private Button thisPageBtn, severalPagesBtn;
 	private DocPagesSelector dps;
 	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn;
+	private Label structureLable;
+	private Combo structureTags;
 	
 	private Storage store = Storage.getInstance();
 	
@@ -91,6 +102,34 @@ public class HtrTextRecognitionDialog extends Dialog {
 		doStoreConfMatsBtn.setToolTipText("The internal recognition result respresentation, needed for keyword spotting, will be stored in addition to the transcription.");
 		doStoreConfMatsBtn.setSelection(true);
 		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+			
+		structureLable = new Label(cont,SWT.NONE );
+		structureLable.setText("Structure");
+		structureTags = new Combo(cont,  SWT.DROP_DOWN | SWT.READ_ONLY);
+		structureTags.setToolTipText("Perfrom recognition only on chosen structure tags");
+		structureTags.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		
+		try {
+			List<TrpPage> pages = store.getDoc().getPages();
+	
+			for(TrpPage page : pages) {
+				Timestamp tags = page.getTagsStored();
+				
+//				List<TrpTranscriptMetadata> transcripts = page.getTranscripts();
+//				for(TrpTranscriptMetadata transcript : transcripts){
+//					if(transcript.getToolName() != null) {
+//						String[] items = comboHyp.getItems();
+//						if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
+//							comboHyp.add(transcript.getToolName());
+//						}
+//					}
+//					
+//				}
+				
+			}
+		} catch (ServerErrorException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
 		
 		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
 			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
