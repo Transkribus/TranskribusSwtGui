@@ -1,5 +1,7 @@
 package eu.transkribus.util;
 
+import java.util.List;
+
 import eu.transkribus.swt_gui.htr.HtrDictionaryComposite;
 
 public class TextRecognitionConfig {
@@ -12,6 +14,8 @@ public class TextRecognitionConfig {
 	//CITlab and UPVLC
 	private int htrId;
 	private String htrName;
+	private List<String> regions;
+
 	private boolean doLinePolygonSimplification = true;
 	private boolean keepOriginalLinePolygons = false;
 	private boolean doStoreConfMats = true;
@@ -98,6 +102,14 @@ public class TextRecognitionConfig {
 
 	public void setHtrName(String htrName) {
 		this.htrName = htrName;
+	}
+	
+	public List<String> getRegions() {
+		return regions;
+	}
+
+	public void setRegions(List<String> regions) {
+		this.regions = regions;
 	}
 
 	@Override

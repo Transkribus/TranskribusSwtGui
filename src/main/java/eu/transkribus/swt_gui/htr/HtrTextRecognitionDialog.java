@@ -2,9 +2,13 @@ package eu.transkribus.swt_gui.htr;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -22,15 +26,23 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.events.ExpansionAdapter;
+import org.eclipse.ui.forms.events.ExpansionEvent;
+import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.TrpDbTag;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.builder.ExportCache;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.util.DocPagesSelector;
 import eu.transkribus.util.TextRecognitionConfig;
 
@@ -44,6 +56,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn;
 	private Label structureLable;
 	private Combo structureTags;
+	private ExpandableComposite structure;
 	
 	private Storage store = Storage.getInstance();
 	
@@ -102,34 +115,68 @@ public class HtrTextRecognitionDialog extends Dialog {
 		doStoreConfMatsBtn.setToolTipText("The internal recognition result respresentation, needed for keyword spotting, will be stored in addition to the transcription.");
 		doStoreConfMatsBtn.setSelection(true);
 		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-			
-		structureLable = new Label(cont,SWT.NONE );
-		structureLable.setText("Structure");
-		structureTags = new Combo(cont,  SWT.DROP_DOWN | SWT.READ_ONLY);
-		structureTags.setToolTipText("Perfrom recognition only on chosen structure tags");
+		
+		structure = new ExpandableComposite(cont, ExpandableComposite.COMPACT);
+		structure.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		structure.setText("Structure");
+		Fonts.setBoldFont(structure);
+		
+		Composite structureToolsGroup = new Composite(structure, SWT.SHADOW_ETCHED_IN);
+		structureToolsGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		structureToolsGroup.setLayout(new GridLayout(2, false));
+		
+		structure.setClient(structureToolsGroup);
+
+		structureTags = new Combo(structureToolsGroup,  SWT.DROP_DOWN | SWT.READ_ONLY);
+		structureTags.setToolTipText("Perform recognition only on chosen structure tags");
 		structureTags.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
-		try {
-			List<TrpPage> pages = store.getDoc().getPages();
-	
-			for(TrpPage page : pages) {
-				Timestamp tags = page.getTagsStored();
-				
-//				List<TrpTranscriptMetadata> transcripts = page.getTranscripts();
-//				for(TrpTranscriptMetadata transcript : transcripts){
-//					if(transcript.getToolName() != null) {
-//						String[] items = comboHyp.getItems();
-//						if(!Arrays.stream(items).anyMatch(transcript.getToolName()::equals)) {
-//							comboHyp.add(transcript.getToolName());
-//						}
+		List<StructCustomTagSpec> tags = store.getStructCustomTagSpecs();
+		
+
+//		Set<Integer> collIds = null;
+//		Set<Integer> docIds = null;
+//
+//		collIds = CoreUtils.createSet(store.getCollId());
+//		docIds = CoreUtils.createSet(store.getDocId());
+//		List<TrpDbTag> searchTags = null;
+//		
+//		try {
+//			searchTags = store.getConnection().searchTags(collIds, docIds,  null, null, null, null, true,
+//					false, null);
+//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
+//			e1.printStackTrace();
+//		}
+
+		structureTags.add("All");
+		
+		for(StructCustomTagSpec tag : tags) {
+			logger.debug(tag.toString());
+			String[] items = structureTags.getItems();
+			
+			if(!Arrays.stream(items).anyMatch(tag.getCustomTag().getType()::equals)) {
+				structureTags.add(tag.getCustomTag().getType());
+			}
+			
+		}
+		
+		structure.setExpanded(true);		
+		
+//		structure.addExpansionListener(new ExpansionAdapter() {
+//			public void expansionStateChanged(ExpansionEvent e) {
+//				
+//				List<StructCustomTagSpec> tags = store.getStructCustomTagSpecs();
+//				for(StructCustomTagSpec tag : tags) {
+//					logger.debug(tag.toString());
+//					String[] items = structureTags.getItems();
+//					if(!Arrays.stream(items).anyMatch(tag.getCustomTag().getType()::equals)) {
+//						structureTags.add(tag.getCustomTag().getType());
 //					}
 //					
 //				}
-				
-			}
-		} catch (ServerErrorException | IllegalArgumentException e) {
-			e.printStackTrace();
-		}
+//			}
+//		});
+		structureTags.select(0);
 		
 		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
 			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
@@ -173,6 +220,9 @@ public class HtrTextRecognitionDialog extends Dialog {
 		
 	@Override
 	protected void okPressed() {
+		List<String> structures = new ArrayList<>();
+		structures.add(structureTags.getItem(structureTags.getSelectionIndex()));
+		
 		if(thisPageBtn.getSelection()) {
 			pages = ""+store.getPage().getPageNr();
 		} else if(severalPagesBtn.getSelection()) {
@@ -196,6 +246,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 			return;
 		}
 		
+		config.setRegions(structures);
 		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
 		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
 		config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
