@@ -26,7 +26,6 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 	private HtrDictionaryComposite htrDictComp;
 	private HtrModelsComposite htrModelsComp;
 
-//	private TrpHtr htr;
 	private TextRecognitionConfig config;
 
 	public HtrTextRecognitionConfigDialog(Shell parent, TextRecognitionConfig config) {
