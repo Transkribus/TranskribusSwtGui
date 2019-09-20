@@ -78,12 +78,12 @@ public class GenericDialogTest {
 	//					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 		//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 						
-						if (false) {
+						if (true) {
 							RemoveTextRegionsConfDialog d = new RemoveTextRegionsConfDialog(getShell());
 							d.open();
 						}
 						
-						if (true) {
+						if (false) {
 //							TrpDoc targetDoc = store.getConnection().getTrpDoc(2, 6766, 1); // Bentham Box 2, 5 pages
 							TrpDoc targetDoc = store.getConnection().getTrpDoc(2, 6226, 1); // 10 pages
 //							TrpDoc targetDoc = LocalDocReader.load("C:\\tmp\\Bentham_box_035");

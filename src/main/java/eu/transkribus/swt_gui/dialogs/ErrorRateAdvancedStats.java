@@ -148,6 +148,7 @@ public class ErrorRateAdvancedStats extends Dialog{
 		this.refString = stringQuery[2].substring(6);
 		this.hypString = params.getParameterValue("hyp");
 		logger.debug(this.refString+ " "+this.hypString);
+		logger.info("Query string : "+query);
 		this.document = new TrpDoc();
 		try {
 			document = store.getConnection().getTrpDoc(store.getCollId(), docId, 20);

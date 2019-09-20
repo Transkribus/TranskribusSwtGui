@@ -195,7 +195,7 @@ public class HtrTableWidget extends Composite {
 			providerCombo.setEnabled(false);
 		}
 		
-		providerCombo.select(0);
+		resetProviderFilter();
 		providerCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		
@@ -255,6 +255,10 @@ public class HtrTableWidget extends Composite {
 		}
 	}
 	
+	void resetProviderFilter() {
+		providerCombo.select(0);
+	}
+
 	private void addProviderFilter(Combo providerCombo, String label, String data) {
 		providerCombo.add(label);
 		providerCombo.setData(label, data);
@@ -293,14 +297,16 @@ public class HtrTableWidget extends Composite {
 
 	public void setSelection(int htrId) {
 		List<TrpHtr> htrs = (List<TrpHtr>)htrTv.getInput();
-		
 		TrpHtr htr = null;
 		for(int i = 0; i < htrs.size(); i++){
-			if(htrs.get(i).getHtrId() == htrId){
-				htr = (TrpHtr)htrTv.getElementAt(i);
+			final TrpHtr curr = htrs.get(i);
+			if(curr.getHtrId() == htrId){
+				logger.trace("Found htrId {}", htrId);
+				htr = curr;
 				break;
 			}
 		}
+		logger.trace("Selecting HTR in table viewer: {}", htr);
 		if(htr != null) { //if model has been removed from this collection it is not in the list.
 			htrTv.setSelection(new StructuredSelection(htr), true);
 		}

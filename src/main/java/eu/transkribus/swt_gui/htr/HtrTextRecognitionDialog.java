@@ -32,7 +32,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 	
 	private Button thisPageBtn, severalPagesBtn;
 	private DocPagesSelector dps;
-	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn;
+	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn;
 	
 	private Storage store = Storage.getInstance();
 	
@@ -85,6 +85,13 @@ public class HtrTextRecognitionDialog extends Dialog {
 		keepOriginalLinePolygonsBtn.setToolTipText("Keep the original line polygons after the recognition process, e.g. if they have been already corrected");
 		keepOriginalLinePolygonsBtn.setSelection(false);
 		keepOriginalLinePolygonsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		
+		doStoreConfMatsBtn = new Button(cont, SWT.CHECK);
+		doStoreConfMatsBtn.setText("Enable Keyword Spotting");
+		doStoreConfMatsBtn.setToolTipText("The internal recognition result respresentation, needed for keyword spotting, will be stored in addition to the transcription.");
+		doStoreConfMatsBtn.setSelection(true);
+		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		
 		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
 			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
 		});
@@ -116,7 +123,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		});
 		
 		config = store.loadTextRecognitionConfig();
-		logger.debug("" + config);
+		logger.debug("Config loaded:" + config);
 		if(config != null) {
 			configTxt.setText(config.toString());
 		}
@@ -152,6 +159,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		
 		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
 		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
+		config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
 		
 		super.okPressed();
 	}

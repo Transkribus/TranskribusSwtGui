@@ -55,8 +55,16 @@ public class HtrModelsDialog extends Dialog {
 		modelsComp.htw.getTableViewer().getTable().addKeyListener(new KeyAdapter() {			
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (e.keyCode == SWT.CR
-                        || e.keyCode == SWT.KEYPAD_CR) {
+				boolean isEnterKey = e.keyCode == SWT.CR
+                        || e.keyCode == SWT.KEYPAD_CR;
+				
+				//don't close dialog on enter key pressed if an editable text field is focused because this sucks hard.
+				//TODO show "Do you want to save" dialog instead
+				boolean isTxtFieldFocused = modelsComp.hdw.descTxt.isFocusControl() 
+						|| modelsComp.hdw.langTxt.isFocusControl()
+						|| modelsComp.hdw.nameTxt.isFocusControl();
+				
+				if (isEnterKey && !isTxtFieldFocused) {
 					okPressed();
 				}
 			}

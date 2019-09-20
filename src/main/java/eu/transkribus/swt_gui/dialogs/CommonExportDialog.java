@@ -135,7 +135,7 @@ public class CommonExportDialog extends Dialog {
 	DocxExportPars docxPars;
 
 	boolean docxExport, pdfExport, teiExport, altoExport, splitUpWords, imgExport, metsExport, 
-	pageExport, tagXlsxExport, tableXlsxExport, zipExport, txtExport;
+	pageExport, tagXlsxExport, tagIOBExport, tableXlsxExport, zipExport, txtExport;
 
 //	String fileNamePattern = ExportFilePatternUtils.FILENAME_PATTERN;
 	
@@ -389,6 +389,8 @@ public class CommonExportDialog extends Dialog {
 	    b30.setText("Simple TXT");
 	    final Button b4 = new Button(group1, SWT.CHECK);
 	    b4.setText("Tag Export (Excel)");
+	    final Button b40 = new Button(group1, SWT.CHECK);
+	    b40.setText("Tag Export (IOB)");
 	    final Button b41 = new Button(group1, SWT.CHECK);
 	    b41.setText("Table Export into Excel");
 	    // Create a horizontal separator
@@ -603,6 +605,19 @@ public class CommonExportDialog extends Dialog {
 	        }
 	    });
 	    
+	    b40.addSelectionListener(new SelectionAdapter() {
+
+	        @Override
+	        public void widgetSelected(SelectionEvent event) {
+	            Button btn = (Button) event.getSource();
+	            setTagIOBExport(btn.getSelection());
+	            showPageChoice();
+	            showTagChoice();
+	            shell.layout();
+	            
+	        }
+	    });
+	    
 	    b41.addSelectionListener(new SelectionAdapter() {
 
 	        @Override
@@ -632,6 +647,8 @@ public class CommonExportDialog extends Dialog {
 	            b30.notifyListeners(SWT.Selection, new Event());
 	            b4.setSelection(btn.getSelection());
 	            b4.notifyListeners(SWT.Selection, new Event());
+	            b40.setSelection(btn.getSelection());
+	            b40.notifyListeners(SWT.Selection, new Event());
 	            b41.setSelection(btn.getSelection());
 	            b41.notifyListeners(SWT.Selection, new Event());
 
@@ -673,7 +690,7 @@ public class CommonExportDialog extends Dialog {
 				
 				updateParameters();
 				
-				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTxtExport() && !isTeiExport() && !isAltoExport() && !isTagXlsxExport()&& !isTableXlsxExport()){
+				if (!isMetsExport() && !isPdfExport() && !isDocxExport() && !isTxtExport() && !isTeiExport() && !isAltoExport() && !isTagXlsxExport()&& !isTableXlsxExport() && !isTagIOBExport()){
 					DialogUtil.showErrorMessageBox(shell, "Missing export format", "Please choose an export format to continue");
 					return;
 				}
@@ -1563,7 +1580,7 @@ public class CommonExportDialog extends Dialog {
 		
 	private void updateCommonPars() {
 		commonPars = new CommonExportPars(getPagesStr(), metsExport, imgExport, pageExport, altoExport, 
-				pdfExport, teiExport, docxExport, txtExport, tagXlsxExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList(), font);
+				pdfExport, teiExport, docxExport, txtExport, tagXlsxExport, tagIOBExport, tableXlsxExport, createTitlePage, versionStatus, wordBased, doBlackening, getSelectedTagsList(), font);
 		commonPars.setFileNamePattern(filenamePatternComp.pattern.text.getText());
 		
 		if(isImgExport() && imgQualityCmb != null) {
@@ -1788,6 +1805,14 @@ public class CommonExportDialog extends Dialog {
 
 	public void setTagXlsxExport(boolean tagXlsxExport) {
 		this.tagXlsxExport = tagXlsxExport;
+	}
+	
+	public boolean isTagIOBExport() {
+		return tagIOBExport;
+	}
+	
+	public void setTagIOBExport(boolean tagIOBExport) {
+		this.tagIOBExport = tagIOBExport;
 	}
 	
 	public boolean isTableXlsxExport() {

@@ -180,8 +180,8 @@ public class ErrorRateAdvancedDialog extends Dialog {
 		options.combo.setItems("default (case sensitive) ","case insensitive");
 		options.combo.select(0);
 		
-		tableCheck = new Button(config, SWT.CHECK);
-		tableCheck.setText("Exclude tables");
+//		tableCheck = new Button(config, SWT.CHECK);
+//		tableCheck.setText("Exclude tables");
 	
 	}
 	
@@ -246,21 +246,26 @@ public class ErrorRateAdvancedDialog extends Dialog {
 			}
 		});
 		
-		tableCheck.addSelectionListener(new SelectionAdapter() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent event) {
-				Button btn = (Button) event.getSource();
-				params.addBoolParam("tableCheck", btn.getSelection());
-			}
-		});
+		//TODO option to exclude tables
+		
+//		tableCheck.addSelectionListener(new SelectionAdapter() {
+//			
+//			@Override
+//			public void widgetSelected(SelectionEvent event) {
+//				Button btn = (Button) event.getSource();
+//				params.addBoolParam("tableCheck", btn.getSelection());
+//			}
+//		});
 		
 		compare.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				super.widgetSelected(e);
+				int optionIndex = options.combo.getSelectionIndex();
+				logger.debug("Option index : "+optionIndex);
 				params.addParameter("option", options.combo.getSelectionIndex());
-				logger.debug("Option chosen : "+options.combo.getSelectionIndex());
+				params.addParameter("hyp", comboHyp.getItem(comboHyp.getSelectionIndex()));
+				params.addParameter("ref", comboRef.getItem(comboRef.getSelectionIndex()));
 				String newPageString = null;
 				String deleteGTPageString = null;
 				String deleteHypPageString = null;
@@ -273,13 +278,11 @@ public class ErrorRateAdvancedDialog extends Dialog {
 						Set<Integer> delHypIndices = new HashSet<Integer>();
 						List<TrpTranscriptMetadata> transcripts = new ArrayList<TrpTranscriptMetadata>();
 						for (Integer pageIndex : pageIndices) {
-							logger.debug("pageIndex : "+pageIndex);
 							transcripts = doc.getPages().get(pageIndex).getTranscripts();
 							// check if all pages contain GT version
-							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);
-//							
+							TrpTranscriptMetadata transGT = doc.getPages().get(pageIndex).getTranscriptWithStatusOrNull(EditStatus.GT);							
+							
 							for(TrpTranscriptMetadata transcript : transcripts){
-								logger.debug(""+comboHyp.getSelectionIndex());
 								if(transGT != null && transcript.getToolName() != null) {
 									if(comboHyp.getItem(comboHyp.getSelectionIndex()) != null &&  transcript.getToolName().equals(comboHyp.getItem(comboHyp.getSelectionIndex()))) {
 										newPageIndices.add(pageIndex);
@@ -334,9 +337,12 @@ public class ErrorRateAdvancedDialog extends Dialog {
 				TrpTranscriptMetadata hyp = (TrpTranscriptMetadata) hypVersionChooser.selectedMd;
 
 				if (ref != null && hyp != null) {
-					params.addIntParam("option", 0);
-					params.addParameter("hyp", hyp.getToolName());
-					params.addParameter("ref", ref.getToolName());
+					params.addIntParam("option", -1);
+					params.addParameter("hyp", hyp.getKey());
+					params.addParameter("ref", ref.getKey());
+					params.addIntParam("pageNr", store.getPage().getPageNr());
+					params.addParameter("hypTool", hyp.getToolName());
+					
 					rl.setStopped();
 						try {
 							startError(store.getDocId(),""+store.getPage().getPageNr());
