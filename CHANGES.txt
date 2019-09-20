@@ -663,4 +663,5 @@ CHANGES AND BUGFIXES
 	
 1.8.1:
 	-> tag-search: minimum number of characters in tagname reduced to 1 (to be able to search for tags like e.g. "hi" or "p")
+	-> bugfix: do *not* select underlying shape if image is moved with left mouse button 
 	
