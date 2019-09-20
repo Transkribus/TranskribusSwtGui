@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator4Columns;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementReadingOrderComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
@@ -758,7 +758,7 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				 *  goes from the end of line 2 back to beginning of line 1 and the HTR fails for that 'circular' line
 				 *  So the coordinates of the lines should be taken for the comparison
 				 */
-				Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator4Columns<>());
+				Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<>());
 				
 				logger.debug("minIndex = "+minIndex);
 				
