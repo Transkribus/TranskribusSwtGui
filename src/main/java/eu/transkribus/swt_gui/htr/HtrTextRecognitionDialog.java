@@ -14,6 +14,8 @@ import javax.ws.rs.ServerErrorException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -40,6 +42,7 @@ import eu.transkribus.core.model.builder.ExportCache;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
+import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
@@ -54,9 +57,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private Button thisPageBtn, severalPagesBtn;
 	private DocPagesSelector dps;
 	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn;
-	private Label structureLable;
-	private Combo structureTags;
-	private ExpandableComposite structure;
+	private MultiCheckSelectionCombo multiCombo;
 	
 	private Storage store = Storage.getInstance();
 	
@@ -116,67 +117,22 @@ public class HtrTextRecognitionDialog extends Dialog {
 		doStoreConfMatsBtn.setSelection(true);
 		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
-		structure = new ExpandableComposite(cont, ExpandableComposite.COMPACT);
-		structure.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		structure.setText("Structure");
-		Fonts.setBoldFont(structure);
-		
-		Composite structureToolsGroup = new Composite(structure, SWT.SHADOW_ETCHED_IN);
-		structureToolsGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		structureToolsGroup.setLayout(new GridLayout(2, false));
-		
-		structure.setClient(structureToolsGroup);
-
-		structureTags = new Combo(structureToolsGroup,  SWT.DROP_DOWN | SWT.READ_ONLY);
-		structureTags.setToolTipText("Perform recognition only on chosen structure tags");
-		structureTags.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		
 		List<StructCustomTagSpec> tags = store.getStructCustomTagSpecs();
 		
-
-//		Set<Integer> collIds = null;
-//		Set<Integer> docIds = null;
-//
-//		collIds = CoreUtils.createSet(store.getCollId());
-//		docIds = CoreUtils.createSet(store.getDocId());
-//		List<TrpDbTag> searchTags = null;
-//		
-//		try {
-//			searchTags = store.getConnection().searchTags(collIds, docIds,  null, null, null, null, true,
-//					false, null);
-//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
-//			e1.printStackTrace();
-//		}
-
-		structureTags.add("All");
+		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Structures");
 		
 		for(StructCustomTagSpec tag : tags) {
 			logger.debug(tag.toString());
-			String[] items = structureTags.getItems();
-			
-			if(!Arrays.stream(items).anyMatch(tag.getCustomTag().getType()::equals)) {
-				structureTags.add(tag.getCustomTag().getType());
-			}
-			
+			int itemCount = multiCombo.getItemCount();
+			List<String> items = new ArrayList<>();
+			for(int i = 0; i < itemCount; i++) {
+				items.add(multiCombo.getItem(i));
+			}	
+			if(!items.contains(tag.getCustomTag().getType())) {
+				multiCombo.add(tag.getCustomTag().getType());
+			}	
 		}
-		
-		structure.setExpanded(true);		
-		
-//		structure.addExpansionListener(new ExpansionAdapter() {
-//			public void expansionStateChanged(ExpansionEvent e) {
-//				
-//				List<StructCustomTagSpec> tags = store.getStructCustomTagSpecs();
-//				for(StructCustomTagSpec tag : tags) {
-//					logger.debug(tag.toString());
-//					String[] items = structureTags.getItems();
-//					if(!Arrays.stream(items).anyMatch(tag.getCustomTag().getType()::equals)) {
-//						structureTags.add(tag.getCustomTag().getType());
-//					}
-//					
-//				}
-//			}
-//		});
-		structureTags.select(0);
+
 		
 		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
 			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
@@ -214,14 +170,19 @@ public class HtrTextRecognitionDialog extends Dialog {
 			configTxt.setText(config.toString());
 		}
 		
+		cont.addDisposeListener(new DisposeListener() {
+			@Override public void widgetDisposed(DisposeEvent e) {
+				logger.debug("Disposing HtrTextRecognitionDialog composite.");
+				//TODO remove all items from combo box
+			}
+		});
+		
 		return cont;
 	}
 
 		
 	@Override
 	protected void okPressed() {
-		List<String> structures = new ArrayList<>();
-		structures.add(structureTags.getItem(structureTags.getSelectionIndex()));
 		
 		if(thisPageBtn.getSelection()) {
 			pages = ""+store.getPage().getPageNr();
@@ -246,7 +207,11 @@ public class HtrTextRecognitionDialog extends Dialog {
 			return;
 		}
 		
-		config.setRegions(structures);
+		List<String> selectionArray = new ArrayList<>(Arrays.asList(multiCombo.getSelections()));
+		for(String selection : selectionArray) {
+			logger.debug("Selection for multi combo : "+selection);
+		}		
+		config.setStructures(selectionArray);
 		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
 		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
 		config.setDoStoreConfMats(doStoreConfMatsBtn.getSelection());
