@@ -667,8 +667,9 @@ public class TagSearchComposite extends Composite {
 			}			
 		}
 		else {
-			if (StringUtils.length(f.getTagName(false)) < 3) {
-				DialogUtil.showErrorMessageBox(getShell(), "Error searching for tags", "Please specify a valid tagname - at least 3 characters are needed!");
+			final int minTagLength = 1;
+			if (StringUtils.length(f.getTagName(false)) < minTagLength) {
+				DialogUtil.showErrorMessageBox(getShell(), "Error searching for tags", "Please specify a valid tagname with at least "+minTagLength+" character");
 				return;
 			}
 		}

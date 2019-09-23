@@ -448,11 +448,13 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 		}
 		
 		boolean triedToMoveShapeOrImage = (mode == CanvasMode.MOVE || mode == CanvasMode.MOVE_SHAPE) && modeBackup == CanvasMode.SELECTION;
-		boolean hasMovedJustALittle = lastCanvasMoveDist>=0 && lastCanvasMoveDist<=15;
-		logger.debug("H0 "+triedToMoveShapeOrImage+" button: "+button+" selectedPoint: "+selectedPoint+" mode: "+canvas.getMode()+", hasMovedJustALittle: "+hasMovedJustALittle);
+
+		long tdiffDownUp = System.currentTimeMillis() - timeDown; // time between mouse down and up
+		boolean wasSingleClick = tdiffDownUp < 300; // if mouse down and up was under threshold --> classify as single click
 		
+		logger.debug("triedToMoveShapeOrImage: "+triedToMoveShapeOrImage+" button: "+button+" selectedPoint: "+selectedPoint+" mode: "+canvas.getMode()+", tdiffDownUp = "+tdiffDownUp+", wasSingleClick = "+wasSingleClick);
 		if (button == settings.getSelectMouseButton()
-				&& (!hasMouseMoved || hasMovedJustALittle) 
+				&& (!hasMouseMoved || wasSingleClick) 
 				&& (canvas.getMode() == CanvasMode.SELECTION || triedToMoveShapeOrImage)
 				) { // perform de-selection of point or selection of shape on mouse up
 			ICanvasShape selected = canvas.getFirstSelected();			
@@ -461,6 +463,7 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 				wasPointSelected = false;
 			}
 			// TEST:
+//			if (selectedPoint == -1 && selectedDirection == RectDirection.NONE && selectedLine == null) { // orig if
 			if (selectedPoint == -1 && selectedDirection == RectDirection.NONE && selectedLine == null) {
 				logger.debug("selecting object on: "+e.x+"x"+e.y);
 				canvas.selectObject(new Point(e.x, e.y), true, isMultiselect);
