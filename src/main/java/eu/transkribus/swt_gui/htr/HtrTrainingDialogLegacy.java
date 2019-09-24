@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +17,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -32,6 +34,7 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -58,6 +61,8 @@ public class HtrTrainingDialogLegacy extends Dialog {
 	private TreeViewerDataSetSelectionSashForm treeViewerSelector;
 
 	private Text modelNameTxt, descTxt, langTxt;
+	private MultiCheckSelectionCombo langSelection;
+	private Combo scriptType;
 
 	private CitLabHtrTrainConfig citlabTrainConfig;
 	private CitLabSemiSupervisedHtrTrainConfig citlabT2IConf;
@@ -105,22 +110,18 @@ public class HtrTrainingDialogLegacy extends Dialog {
 		modelNameLbl.setText("Model Name:");
 		modelNameTxt = new Text(paramCont, SWT.BORDER);
 		modelNameTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-
-		Label langLbl = new Label(paramCont, SWT.FLAT);
-		langLbl.setText("Language:");
-		langTxt = new Text(paramCont, SWT.BORDER);
-		langTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		paramTabFolder = new CTabFolder(paramCont, SWT.BORDER | SWT.FLAT);
+		paramTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 4));
 
 		Label descLbl = new Label(paramCont, SWT.FLAT);
 		descLbl.setText("Description:");
 		descTxt = new Text(paramCont, SWT.MULTI | SWT.BORDER);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gd.heightHint = 3;
-		// gd.horizontalSpan = 3;
 		descTxt.setLayoutData(gd);
 
-		paramTabFolder = new CTabFolder(paramCont, SWT.BORDER | SWT.FLAT);
-		paramTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
 		
 		int i = 0;
 		CTabItem selection = null;

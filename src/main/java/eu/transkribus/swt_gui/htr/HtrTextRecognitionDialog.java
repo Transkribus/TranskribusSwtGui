@@ -1,15 +1,10 @@
 package eu.transkribus.swt_gui.htr;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -22,26 +17,15 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.forms.events.ExpansionAdapter;
-import org.eclipse.ui.forms.events.ExpansionEvent;
-import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.model.beans.TrpDbTag;
-import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.core.model.builder.ExportCache;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -119,7 +103,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		
 		List<StructCustomTagSpec> tags = store.getStructCustomTagSpecs();
 		
-		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Structures");
+		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Restrict on structure tags", 1, 200, 300 );
 		
 		for(StructCustomTagSpec tag : tags) {
 			logger.debug(tag.toString());
@@ -143,7 +127,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		configTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 6));
 				
 		Button configBtn = new Button(cont, SWT.PUSH);
-		configBtn.setText("Configure...");
+		configBtn.setText("Select HTR model");
 		configBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
 		configBtn.addSelectionListener(new SelectionAdapter() {
