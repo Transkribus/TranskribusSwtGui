@@ -14,7 +14,7 @@ public class TextRecognitionConfig {
 	//CITlab and UPVLC
 	private int htrId;
 	private String htrName;
-	private List<String> regions;
+	private List<String> structures;
 
 	private boolean doLinePolygonSimplification = true;
 	private boolean keepOriginalLinePolygons = false;
@@ -104,12 +104,12 @@ public class TextRecognitionConfig {
 		this.htrName = htrName;
 	}
 	
-	public List<String> getRegions() {
-		return regions;
+	public List<String> getStructures() {
+		return structures;
 	}
 
-	public void setRegions(List<String> regions) {
-		this.regions = regions;
+	public void setStructures(List<String> structures) {
+		this.structures = structures;
 	}
 
 	@Override
