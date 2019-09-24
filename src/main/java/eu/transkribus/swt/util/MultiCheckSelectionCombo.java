@@ -4,8 +4,12 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -15,12 +19,18 @@ import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
+
+
+//MultiCombo from  https://github.com/lawhcd/SWTMultiCheckSelectionCombo
 
 public class MultiCheckSelectionCombo extends Composite {
 	
@@ -32,6 +42,9 @@ public class MultiCheckSelectionCombo extends Composite {
 	
 	private String defaultText = "options";
 	private Text display;
+	private int numCol;
+	private int width;
+	private int height;
 	
 	private class Option {
 		String text;
@@ -80,10 +93,13 @@ public class MultiCheckSelectionCombo extends Composite {
     * @throws SWTException if not called from the thread that created the parent
     * @since version 1.0.0.0
     */
-	public MultiCheckSelectionCombo(Composite parent, int style, String defaultText) {
+	public MultiCheckSelectionCombo(Composite parent, int style, String defaultText, int numCol, int width, int height) {
 		super(parent, style);
 		if (defaultText == null) throw new IllegalArgumentException("Default Text cannot be null");
 		this.defaultText = defaultText;
+		this.numCol = numCol;
+		this.width = width;
+		this.height = height;
 		init();
 	}
 	
@@ -110,9 +126,20 @@ public class MultiCheckSelectionCombo extends Composite {
 		Point size = display.getSize();
 		Rectangle shellRect = new Rectangle(p.x, p.y + size.y, size.x, 0);
 		Shell shell = new Shell(MultiCheckSelectionCombo.this.getShell(), SWT.BORDER);
-		shell.setLayout(new GridLayout());
+		shell.setLayout(new FillLayout());
+		shell.setSize(this.width, this.height);
 		
-		Button toggle = new Button(shell, SWT.BUTTON1);
+		ScrolledComposite sc = new ScrolledComposite(shell, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		sc.setLayout(new GridLayout());
+		
+		
+		GridLayout layout = new GridLayout();
+		layout.numColumns = this.numCol;
+
+		Composite child = new Composite(sc, SWT.NONE);
+		child.setLayout(layout);
+		
+		Button toggle = new Button(child, SWT.BUTTON1);
 		toggle.setText("Toggle");
 		toggle.addListener(SWT.MouseDown, e -> {
 			toggleAll();
@@ -120,10 +147,9 @@ public class MultiCheckSelectionCombo extends Composite {
 				l.widgetSelected(new SelectionEvent(e));
 			}
 		});
-		
 		buttons = new Button[options.size()];
 		for (int i =0; i < options.size(); i++) {
-			Button b = new Button(shell, SWT.CHECK);
+			Button b = new Button(child, SWT.CHECK);
 			Option o = options.get(i);
 			b.setText(o.text);
 			b.setSelection(o.selection);
@@ -137,8 +163,14 @@ public class MultiCheckSelectionCombo extends Composite {
 			buttons[i] = b;
 		}
 		
-	    shell.pack();
+		sc.setContent(child);
+	    sc.setExpandHorizontal(true);
+	    sc.setExpandVertical(true);
+
+	    child.layout();
+	    sc.setMinSize(0, child.computeSize(SWT.DEFAULT, SWT.DEFAULT).y-1);
 	   	shell.setLocation(shellRect.x, shellRect.y);
+  
 	   	
 	   	shell.addListener(SWT.Deactivate, e-> {
        	 if (shell != null && !shell.isDisposed()) {
@@ -164,6 +196,7 @@ public class MultiCheckSelectionCombo extends Composite {
     		 shell.dispose();    		 
     	 }
 	   	});
+	   
 		
 	   	shell.open();
 	}
