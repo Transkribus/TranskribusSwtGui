@@ -16,7 +16,6 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -57,7 +56,7 @@ public class ServerWidget extends Composite {
 	/**
 	 * Switch for disabling the GT tab to be shown to all users during transition
 	 */
-	private static boolean SHOW_GT_TAB_ITEM = false;
+	private static boolean SHOW_GT_TAB_ITEM = true;
 	
 	Label usernameLabel;
 	DocTableWidgetPagination docTableWidget;
