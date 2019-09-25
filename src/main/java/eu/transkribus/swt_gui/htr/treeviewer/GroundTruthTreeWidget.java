@@ -13,6 +13,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.swt_gui.htr.HtrFilterWidget;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget.ColConfig;
 
 public class GroundTruthTreeWidget extends Composite {
@@ -21,6 +22,8 @@ public class GroundTruthTreeWidget extends Composite {
 	private final CellLabelProvider labelProvider;
 	
 	private final ITreeContentProvider treeContentProvider;
+	
+	private Composite filterWidget;
 	
 	//TODO paging
 	//ToolItem clearPageItem, deleteSelectedBtn;
@@ -56,6 +59,8 @@ public class GroundTruthTreeWidget extends Composite {
 		this.treeViewer.setContentProvider(this.treeContentProvider);
 		this.treeViewer.setLabelProvider(this.labelProvider);
 		this.treeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		this.filterWidget = new HtrFilterWidget(this, treeViewer, SWT.None);
 
 		initCols();
 		

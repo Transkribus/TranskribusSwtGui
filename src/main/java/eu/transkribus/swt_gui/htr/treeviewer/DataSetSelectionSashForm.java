@@ -36,6 +36,7 @@ import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
+import eu.transkribus.swt_gui.htr.HtrFilterWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
@@ -74,7 +75,9 @@ public class DataSetSelectionSashForm extends SashForm {
 	static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
 	static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
 	
+	Composite dataTabComp;
 	TreeViewer docTv, groundTruthTv;
+	
 	Button useGtVersionChk, useNewVersionChk;
 	Button addToTrainSetBtn, addToTestSetBtn, removeFromTrainSetBtn, removeFromTestSetBtn;
 	Label infoLbl;
@@ -110,10 +113,18 @@ public class DataSetSelectionSashForm extends SashForm {
 		docTv = createDocumentTreeViewer(dataTabFolder);
 		documentsTabItem.setControl(docTv.getControl());
 
-		groundTruthTv = createGroundTruthTreeViewer(dataTabFolder);
+		dataTabComp = new Composite(dataTabFolder, SWT.NONE);
+		GridLayout dataTabCompLayout = new GridLayout(1, true);
+		//remove margins to make it consistents with documentsTab
+		dataTabCompLayout.marginHeight = dataTabCompLayout.marginWidth = 0;
+		dataTabComp.setLayout(dataTabCompLayout);
+		dataTabComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
+		groundTruthTv = createGroundTruthTreeViewer(dataTabComp);
 		if(!htrList.isEmpty()) {
 			setGroundTruthSelectionEnabled(true);
 		}
+		HtrFilterWidget filterWidget = new HtrFilterWidget(dataTabComp, groundTruthTv, SWT.NONE);
 		
 		Composite buttonComp = new Composite(this, SWT.NONE);
 		buttonComp.setLayout(new GridLayout(1, true));
@@ -196,7 +207,7 @@ public class DataSetSelectionSashForm extends SashForm {
 			if (gtTabItem == null || gtTabItem.isDisposed()) {
 				gtTabItem = new CTabItem(dataTabFolder, SWT.NONE);
 				gtTabItem.setText("HTR Model Data");
-				gtTabItem.setControl(groundTruthTv.getControl());
+				gtTabItem.setControl(dataTabComp);
 				return;
 			}
 		} else {

@@ -3,11 +3,8 @@ package eu.transkribus.swt_gui.htr;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ILazyContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -15,17 +12,11 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +26,6 @@ import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class HtrTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTableWidget.class);
@@ -95,9 +84,8 @@ public class HtrTableWidget extends Composite {
 	private HtrTableLabelProvider labelProvider;
 	
 	// filter:
-	Composite filterComposite;
-	private Text filter;
-	private Combo providerCombo;
+	HtrFilterWithProviderWidget filterComposite;
+
 	private HtrLazyContentProvider lazyContentProvider;
 	
 	private final String providerFilter;
@@ -159,125 +147,40 @@ public class HtrTableWidget extends Composite {
 	}
 	
 	private void addFilter() {
-		filterComposite = new Composite(this, SWT.NONE);
-		filterComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		filterComposite.setLayout(new GridLayout(4, false));
-		
-		Label filterLabel = new Label(filterComposite, SWT.NONE);
-		filterLabel.setText("Search:");
-		filterLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
-		filter = new Text(filterComposite, SWT.BORDER | SWT.SINGLE);
-		filter.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		filter.addKeyListener(new KeyAdapter() {			
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (!isDisposed() && e.keyCode == SWT.KEYPAD_CR || e.keyCode == SWT.CR) {
-					if (USE_LAZY_LOADING) {
-						lazyContentProvider.filterElements();
-					}
-					htrTv.refresh();
-				}
-			}
-		});
-		Label providerLabel = new Label(filterComposite, SWT.NONE);
-		providerLabel.setText("Technology:");
-		providerLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
-		providerCombo = new Combo(filterComposite, SWT.READ_ONLY);
-		
-		if(providerFilter == null) {
-			addProviderFilter(providerCombo, "Show all", null);
-			for (String p : providerValues) {
-				addProviderFilter(providerCombo, labelProvider.getLabelForHtrProvider(p), p);
-			}
-		} else {
-			addProviderFilter(providerCombo, labelProvider.getLabelForHtrProvider(providerFilter), providerFilter);
-			//lock the combo as no choice is allowed
-			providerCombo.setEnabled(false);
-		}
-		
-		resetProviderFilter();
-		providerCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		
-		filterComposite.moveAbove(htrTv.getTable());
-		
-		//FIXME the filter should be replaced by a server API endpoint
-		ViewerFilter viewerFilter = new ViewerFilter() {
-			@Override public boolean select(Viewer viewer, Object parentElement, Object element) {
-				if (SWTUtil.isDisposed(filter)) {
-					return true;
-				}
-				String ft = filter.getText();
-				if (StringUtils.isEmpty(ft))
-					return true;
-				
-				ft = Pattern.quote(ft);
-				
-				String reg = "(?i)(.*"+ft+".*)";
-				final String[] filterProperties = { "htrId", "name", "language" };
-				for (String property : filterProperties) {
-					try {
-						String propValue = BeanUtils.getSimpleProperty(element, property);
-						if (propValue.matches(reg)) {
-							return true;
-						}
-					} catch (Exception e) {
-						logger.error("Error getting filter property '"+property+"': "+e.getMessage());
-					}
-				}
-
-				return false;
-			}
-		};
-		
-		ModifyListener filterModifyListener = new ModifyListener() {
-			DelayedTask dt = new DelayedTask(() -> {
-				if (isDisposed())
-					return;
-				
-				if (USE_LAZY_LOADING) {
+		if(USE_LAZY_LOADING) {
+			filterComposite = new HtrFilterWithProviderWidget(this, htrTv, providerFilter, SWT.NONE) {
+				@Override
+				protected void refreshViewer() {
 					lazyContentProvider.filterElements();
+					super.refreshViewer();
 				}
-				htrTv.refresh();
-			}, true);
-			
-			@Override public void modifyText(ModifyEvent e) {
-				dt.start();
-			}
-		};
-		filter.addModifyListener(filterModifyListener);
-		
-		if (USE_LAZY_LOADING) {
-			lazyContentProvider.setFilter(viewerFilter);
+				
+				@Override
+				protected void attachFilter() {
+					//set the viewerFilter on the contentProvider instead of the viewer.
+					lazyContentProvider.setFilter(viewerFilter);
+				}
+			};
+		} else {
+			filterComposite = new HtrFilterWithProviderWidget(this, htrTv, providerFilter, SWT.NONE);
 		}
-		else {
-			htrTv.addFilter(viewerFilter);	
-		}
-	}
-	
-	void resetProviderFilter() {
-		providerCombo.select(0);
-	}
-
-	private void addProviderFilter(Combo providerCombo, String label, String data) {
-		providerCombo.add(label);
-		providerCombo.setData(label, data);
+		filterComposite.moveAbove(htrTv.getTable());
 	}
 
 	public MyTableViewer getTableViewer() {
 		return htrTv;
 	}
 	
+	void resetProviderFilter() {
+		filterComposite.resetProviderFilter();
+	}
+	
 	public Combo getProviderCombo() {
-		return providerCombo;
+		return filterComposite.getProviderCombo();
 	}
 	
 	public String getProviderComboValue() {
-		return (String)providerCombo.getData(providerCombo.getText());
-	}
-	
-	public Text getFilterText() {
-		return filter;
+		return (String)getProviderCombo().getData(getProviderCombo().getText());
 	}
 
 	public TrpHtr getSelectedHtr() {
