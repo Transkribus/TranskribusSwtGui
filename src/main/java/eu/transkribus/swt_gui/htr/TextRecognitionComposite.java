@@ -1,3 +1,4 @@
+
 package eu.transkribus.swt_gui.htr;
 
 import javax.ws.rs.ClientErrorException;
@@ -37,7 +38,6 @@ public class TextRecognitionComposite extends Composite {
 	HtrModelChooserButton modelsBtn;
 	Button trainBtn;
 	Button trainBtnLegacy;
-//	Button text2ImageBtn;
 	
 	public TextRecognitionComposite(Composite parent, int style) {
 		super(parent, style);
@@ -66,12 +66,12 @@ public class TextRecognitionComposite extends Composite {
 		modelsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
 		trainBtn = new Button(this, 0);
-		trainBtn.setText("α Train...");
+		trainBtn.setText("Train..."); //α Train
 		trainBtn.setImage(Images.getOrLoad("/icons/muscle_16.png"));
 		trainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		trainBtnLegacy = new Button(this, 0);
-		trainBtnLegacy.setText("Train...");
+		trainBtnLegacy.setText("Train... (legacy)");
 		trainBtnLegacy.setImage(Images.getOrLoad("/icons/muscle_16.png"));
 //		trainBtnLegacy.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		trainBtnLegacy.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -145,8 +145,13 @@ public class TextRecognitionComposite extends Composite {
 	}
 	
 	private void setBtnVisibility(boolean withTrainBtn) {
+		//show old train button only for Admins
 		boolean showTrainBtnLegacy = withTrainBtn && isHtr();
-		boolean showTrainBtn = withTrainBtn && isHtr() && Storage.getInstance().isAdminLoggedIn();
+		
+		//disable legacy train button
+		showTrainBtnLegacy &= false; // or for admins only: Storage.getInstance().isAdminLoggedIn()
+		
+		boolean showTrainBtn = withTrainBtn && isHtr();
 		boolean showModelBtn = isHtr();
 		
 		if (showModelBtn){
@@ -158,20 +163,19 @@ public class TextRecognitionComposite extends Composite {
 			modelsBtn.setParent(SWTUtil.dummyShell);
 		}
 
-		if (showTrainBtnLegacy) {
-			trainBtnLegacy.setParent(this);
-			runBtn.moveBelow(trainBtnLegacy);
-		} else {
-			trainBtnLegacy.setParent(SWTUtil.dummyShell);
-		}
-
 		if (showTrainBtn) {
 			trainBtn.setParent(this);
 			runBtn.moveBelow(trainBtn);
 		} else {
 			trainBtn.setParent(SWTUtil.dummyShell);
 		}
-
+		
+		if (showTrainBtnLegacy) {
+			trainBtnLegacy.setParent(this);
+			runBtn.moveBelow(trainBtnLegacy);
+		} else {
+			trainBtnLegacy.setParent(SWTUtil.dummyShell);
+		}
 
 		this.layout(true, true);
 		this.pack();
