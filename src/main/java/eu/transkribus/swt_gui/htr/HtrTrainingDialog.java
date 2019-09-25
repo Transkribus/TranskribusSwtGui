@@ -64,7 +64,7 @@ public class HtrTrainingDialog extends Dialog {
 	private DataSetSelectionSashForm treeViewerSelector;
 
 	private Text modelNameTxt, descTxt, langTxt;
-	private MultiCheckSelectionCombo langSelection;
+//	private MultiCheckSelectionCombo langSelection;
 
 	private CitLabHtrTrainConfig citlabTrainConfig;
 	private CitLabSemiSupervisedHtrTrainConfig citlabT2IConf;
@@ -124,9 +124,9 @@ public class HtrTrainingDialog extends Dialog {
 		modelNameTxt = new Text(paramCont, SWT.BORDER);
 		modelNameTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
-		langSelection = new MultiCheckSelectionCombo(paramCont, SWT.FILL,"Languages", 3, 250, 400);
-		langSelection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		langSelection.setItems(Locale.getISOLanguages());
+//		langSelection = new MultiCheckSelectionCombo(paramCont, SWT.FILL,"Languages", 3, 250, 400);
+//		langSelection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+//		langSelection.setItems(Locale.getISOLanguages());
 
 		Label langLbl = new Label(paramCont, SWT.FLAT);
 		langLbl.setText("Language:");

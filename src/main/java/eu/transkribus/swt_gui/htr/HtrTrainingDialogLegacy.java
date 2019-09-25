@@ -61,8 +61,6 @@ public class HtrTrainingDialogLegacy extends Dialog {
 	private TreeViewerDataSetSelectionSashForm treeViewerSelector;
 
 	private Text modelNameTxt, descTxt, langTxt;
-	private MultiCheckSelectionCombo langSelection;
-	private Combo scriptType;
 
 	private CitLabHtrTrainConfig citlabTrainConfig;
 	private CitLabSemiSupervisedHtrTrainConfig citlabT2IConf;
@@ -110,18 +108,22 @@ public class HtrTrainingDialogLegacy extends Dialog {
 		modelNameLbl.setText("Model Name:");
 		modelNameTxt = new Text(paramCont, SWT.BORDER);
 		modelNameTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		
-		paramTabFolder = new CTabFolder(paramCont, SWT.BORDER | SWT.FLAT);
-		paramTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 4));
+
+		Label langLbl = new Label(paramCont, SWT.FLAT);
+		langLbl.setText("Language:");
+		langTxt = new Text(paramCont, SWT.BORDER);
+		langTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
 		Label descLbl = new Label(paramCont, SWT.FLAT);
 		descLbl.setText("Description:");
 		descTxt = new Text(paramCont, SWT.MULTI | SWT.BORDER);
 		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gd.heightHint = 3;
+		// gd.horizontalSpan = 3;
 		descTxt.setLayoutData(gd);
 
-		
+		paramTabFolder = new CTabFolder(paramCont, SWT.BORDER | SWT.FLAT);
+		paramTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
 		int i = 0;
 		CTabItem selection = null;

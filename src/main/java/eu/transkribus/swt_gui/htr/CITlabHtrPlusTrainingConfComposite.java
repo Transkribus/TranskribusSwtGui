@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.htr;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
@@ -11,7 +10,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -21,14 +19,14 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.HtrCITlabUtils;
-import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 
 public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(CITlabHtrPlusTrainingConfComposite.class);
 		
-	private Text numEpochsTxt, langTxt;
-	private MultiCheckSelectionCombo langSelection;
-	private Combo scriptType;
+	private Text numEpochsTxt;
+//	private Text langTxt;
+//	private MultiCheckSelectionCombo langSelection;
+//	private Combo scriptType;
 	private HtrModelChooserButton baseModelBtn;
 	
 	// FIXME as soon as update to CITlabModule 2.0.2 is done, this can be removed. 2.0.1 sets "-1" which would use the whole set in each epoch.
@@ -66,20 +64,20 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 			baseModelBtn = null;
 		}
 		
-		Label scriptLbl = new Label(this, SWT.NONE);
-		scriptLbl.setText("Script Type");
-		scriptType = new Combo(this, SWT.FLAT | SWT.READ_ONLY);
-		scriptType.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
-		scriptType.setItems(new String[] {"Handwritten" , "Printed", "Mixed"});
-		
-		Label langLbl = new Label(this, SWT.FLAT);
-		langLbl.setText("Language (Detailed):");
-		langTxt = new Text(this, SWT.BORDER);
-		langTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		
-		langSelection = new MultiCheckSelectionCombo(this, SWT.FLAT,"Languages ISO Codes", 3, 250, 400);
-		langSelection.setLayoutData(new GridData(SWT.FLAT, SWT.FLAT, false, false));
-		langSelection.setItems(Locale.getISOLanguages());
+//		Label scriptLbl = new Label(this, SWT.NONE);
+//		scriptLbl.setText("Script Type");
+//		scriptType = new Combo(this, SWT.FLAT | SWT.READ_ONLY);
+//		scriptType.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+//		scriptType.setItems(new String[] {"Handwritten" , "Printed", "Mixed"});
+//		
+//		Label langLbl = new Label(this, SWT.FLAT);
+//		langLbl.setText("Language (Detailed):");
+//		langTxt = new Text(this, SWT.BORDER);
+//		langTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+//		
+//		langSelection = new MultiCheckSelectionCombo(this, SWT.FLAT,"Languages ISO Codes", 3, 250, 400);
+//		langSelection.setLayoutData(new GridData(SWT.FLAT, SWT.FLAT, false, false));
+//		langSelection.setItems(Locale.getISOLanguages());
 
 
 		setCitlabTrainingDefaults();
