@@ -60,7 +60,12 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 			if(element instanceof TrpHtr) {
 				return ((TrpHtr)element).getName();
 			} else if (element instanceof HtrGtDataSet) {
-				return ((HtrGtDataSet)element).getDataSetType().getLabel() ;
+				HtrGtDataSet set = (HtrGtDataSet) element;
+				String suffix = "";
+				if(!store.isUserAllowedToViewDataSets(set.getHtr())) {
+					suffix = " (private)";
+				}
+				return set.getDataSetType().getLabel() + suffix;
 			} else if (element instanceof HtrGtDataSetElement) {
 				return "Page " + ((HtrGtDataSetElement)element).getGroundTruthPage().getPageNr();
 			}
