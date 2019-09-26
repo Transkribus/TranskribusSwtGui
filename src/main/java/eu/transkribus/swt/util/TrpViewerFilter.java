@@ -87,7 +87,7 @@ public abstract class TrpViewerFilter extends ViewerFilter {
 				&& element != null
 				&& !(filterTarget.isAssignableFrom(element.getClass()))) {
 			//let other types pass the filter
-			logger.debug("Foreign object of type {} passes filter.", element.getClass().getSimpleName());
+			logger.trace("Foreign object of type {} passes filter.", element.getClass().getSimpleName());
 			return true;
 		}
 		
@@ -119,7 +119,7 @@ public abstract class TrpViewerFilter extends ViewerFilter {
 	}
 	
 	/**
-	 * This method is called upon changes in the filter input and needs to trigger updates of the view (and/or the model).
+	 * This method is called upon changes in the filter input and needs to trigger updates of the view.
 	 */
 	protected abstract void updateView();
 }
