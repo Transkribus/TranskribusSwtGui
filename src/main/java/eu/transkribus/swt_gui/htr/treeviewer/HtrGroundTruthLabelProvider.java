@@ -26,7 +26,9 @@ public class HtrGroundTruthLabelProvider extends LabelProvider {
 	@Override
 	public String getText(Object element) {
 		if(element instanceof TrpHtr) {
-			return ((TrpHtr)element).getName();
+			TrpHtr htr = (TrpHtr) element;
+			//be consistent with the documents view and add the ID as long as this is not a treeviewer with table columns
+			return htr.getHtrId() + " - " + htr.getName();
 		} else if (element instanceof HtrGtDataSet) {
 			return getText((HtrGtDataSet)element) ;
 		} else if (element instanceof HtrGtDataSetElement) {
