@@ -904,8 +904,6 @@ public class TrpMainWidgetView extends Composite {
 			if (!canTranscribe) {
 				tabWidget.textTaggingItem.setControl(null);
 				tabWidget.structuralMdItem.setControl(null);
-				docMetadataEditor.updateVisibility(canTranscribe);
-				commentsWidget.updateVisibility(canTranscribe);
 			} else {
 				tabWidget.toolsItem.setControl(toolsWidget);
 				tabWidget.textTaggingItem.setControl(taggingWidget);
@@ -939,6 +937,12 @@ public class TrpMainWidgetView extends Composite {
 		
 		//canvas toolbar
 		canvasWidget.getCanvas().getSettings().setEditingEnabled(canTranscribe);
+		
+		//TODO #71 elements in md editor are shown normally but don't react
+		docMetadataEditor.updateVisibility(canTranscribe);
+		
+		//update comments widget enabled state
+		commentsWidget.updateVisibility(canTranscribe);
 	}
 
 	public void center() {
