@@ -64,6 +64,7 @@ import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
+import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.core.model.beans.EdFeature;
 import eu.transkribus.core.model.beans.EdOption;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
@@ -1644,6 +1645,34 @@ public class Storage {
 	}
 	
 	/**
+	 * ReleaseLevel of the HTR may imply that the dataset is not visible to current user.<br>
+	 * None = model is obviously linked to collection. Otherwise it wouldn't be visible.<br>
+	 * DisclosedDataSet = Handle like "None".<br>
+	 * UndisclosedDataSet = only show children if current user is curator OR the model is linked to this collection.<br>
+	 */
+	public boolean isUserAllowedToViewDataSets(TrpHtr h) {
+		if(h == null) {
+			logger.warn("HTR argument is null!");
+			return false;
+		}
+		logger.debug("Checking HTR ReleaseLevel: {}", h.toShortString());
+		
+		//check if this is a private data set
+		boolean isAllowed = !ReleaseLevel.isPrivateDataSet(h.getReleaseLevel());
+		logger.debug("isAllowed based on release level: {}", isAllowed);
+		
+		//check for direct collection link which will allow the user to see the set
+		isAllowed |=  h.getCollectionIdLink() != null && h.getCollectionIdLink() == this.getCollId();
+		logger.debug("isAllowed based on collectionIdLink: {}", isAllowed);
+		
+		//curator may always see the sets even if no explicit link is set to this collection
+		isAllowed |= h.getUserId() == getUserId();
+		logger.debug("isAllowed based on userId: {}", isAllowed);		
+		
+		return isAllowed;
+	}
+	
+	/**
 	 * Loads a HTR ground truth set from the server, transforms it into a document object and sets it as document in this Storage.
 	 * 
 	 * @param colId
@@ -2771,7 +2800,7 @@ public class Storage {
 				.filter(h -> h.getProvider().equals(provider))
 				.collect(Collectors.toList());
 	}
-	
+
 	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
 		checkConnection(true);
 		switch(config.getMode()) {
@@ -3311,7 +3340,5 @@ public class Storage {
 	
 	public List<TrpP2PaLAModel> getP2PaLAModels() {
 		return p2palaModels;
-	}
-
-	
+	}	
 }
