@@ -203,9 +203,18 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			if (el instanceof TrpHtr) {
 				sw.expandGroundTruthTreeItem(el);
 			} else if (el instanceof HtrGtDataSet) {
-				TrpMainWidget.getInstance().loadHtrGroundTruth((HtrGtDataSet)el, storage.getCollId(), 0);
+				HtrGtDataSet set = (HtrGtDataSet) el;
+				if(!storage.isUserAllowedToViewDataSets(set.getHtr())) {
+					//no action
+					return;
+				}
+				TrpMainWidget.getInstance().loadHtrGroundTruth(set, storage.getCollId(), 0);
 			} else if (el instanceof HtrGtDataSetElement) {
 				HtrGtDataSetElement page = (HtrGtDataSetElement)el;
+				if(!storage.isUserAllowedToViewDataSets(page.getParentHtrGtDataSet().getHtr())) {
+					//no action
+					return;
+				}
 				TrpMainWidget.getInstance().loadHtrGroundTruth(page.getParentHtrGtDataSet(), 
 						storage.getCollId(), page.getGroundTruthPage().getPageNr() - 1);
 			}
