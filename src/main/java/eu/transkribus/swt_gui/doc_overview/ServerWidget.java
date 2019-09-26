@@ -425,11 +425,10 @@ public class ServerWidget extends Composite {
 		groundTruthTreeWidget.expandTreeItem(o);
 	}
 	
-	public void updateGroundTruthTreeViewer() {	
-		List<TrpHtr> treeViewerInput;
+	public void updateGroundTruthTreeViewer() {
 		//filter for HTRs with train GT
-		treeViewerInput = store.getHtrs(null).stream()
-				.filter(h -> h.getNrOfTrainGtPages() != null && h.getNrOfTrainGtPages() > 0)
+		final List<TrpHtr> treeViewerInput = store.getHtrs(null).stream()
+				.filter(h -> h.hasTrainGt())
 				.collect(Collectors.toList());
 		
 		//run UI update asynchronously
