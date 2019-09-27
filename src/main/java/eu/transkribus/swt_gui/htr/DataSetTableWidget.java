@@ -11,9 +11,11 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 
+import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm.VersionComboStatus;
 
 /**
  * A table for displaying a data set selection.
@@ -107,5 +109,10 @@ public abstract class DataSetTableWidget<IDataSetSelectionEntry> extends Composi
 	
 	public TableViewer getTableViewer() {
 		return tv;
+	}
+
+	public void setTranscriptStatusFilter(EditStatus status) {
+		((DataSetTableLabelProvider)tv.getLabelProvider()).setTranscriptStatusFilter(status);
+		tv.refresh(true);
 	}
 }

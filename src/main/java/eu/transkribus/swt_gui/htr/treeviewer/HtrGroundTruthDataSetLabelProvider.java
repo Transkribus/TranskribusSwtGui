@@ -76,7 +76,7 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getTrainGtMap().entrySet()) {
 				if(e.getValue().stream()
 						.anyMatch(g -> g.getGroundTruthPage().getGtId() == gtPage.getGroundTruthPage().getGtId())) {
-					if(e.getKey().equals(gtPage.getParentHtrGtDataSet())) {
+					if(e.getKey().equals(gtPage.getParentGtDataSet())) {
 						return DataSetSelectionSashForm.BLUE;
 					} else {
 						return DataSetSelectionSashForm.LIGHT_BLUE;
@@ -86,7 +86,7 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getValGtMap().entrySet()) {
 				if(e.getValue().stream()
 						.anyMatch(g -> g.getGroundTruthPage().getGtId() == gtPage.getGroundTruthPage().getGtId())) {
-					if(e.getKey().equals(gtPage.getParentHtrGtDataSet())) {
+					if(e.getKey().equals(gtPage.getParentGtDataSet())) {
 						return DataSetSelectionSashForm.GREEN;
 					} else {
 						return DataSetSelectionSashForm.LIGHT_GREEN;

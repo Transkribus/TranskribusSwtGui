@@ -28,6 +28,7 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.enums.DataSetType;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm.VersionComboStatus;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 
 public class DataSetSelectionSashFormListener {
@@ -132,6 +133,21 @@ public class DataSetSelectionSashFormListener {
 					public void run() {
 						List<IDataSelectionEntry<?, ?>> entries = view.valSetOverviewTable.getSelectedDataSets();
 						controller.removeSelectionFromValSet(entries);
+					}
+				};
+				BusyIndicator.showWhile(view.getDisplay(), r);
+			}
+		});
+		
+		view.versionCombo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						VersionComboStatus status = view.getVersionComboStatus();
+						logger.debug("Selection of versionCombo changed: {}", status);
+						controller.setTranscriptVersionToUse(status);
 					}
 				};
 				BusyIndicator.showWhile(view.getDisplay(), r);

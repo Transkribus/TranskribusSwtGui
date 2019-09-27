@@ -17,6 +17,7 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -73,12 +74,12 @@ public class DataSetSelectionSashForm extends SashForm {
 	static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
 	
 	//show pages with no transcribed lines in gray
-	static final Color GRAY = Colors.getSystemColor(SWT.COLOR_GRAY);
+	public static final Color GRAY = Colors.getSystemColor(SWT.COLOR_GRAY);
 	
 	Composite dataTabComp;
 	TreeViewer docTv, groundTruthTv;
 	
-	Button useGtVersionChk, useNewVersionChk;
+	Combo versionCombo;
 	Button addToTrainSetBtn, addToValSetBtn, removeFromTrainSetBtn, removeFromValSetBtn;
 	Label infoLbl;
 	DataSetTableWidget<IDataSelectionEntry<?, ?>> valSetOverviewTable, trainSetOverviewTable;
@@ -152,13 +153,22 @@ public class DataSetSelectionSashForm extends SashForm {
 		trainOverviewCont.setText("Overview");
 		trainOverviewCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		trainOverviewCont.setLayout(new GridLayout(1, false));
-
-		useGtVersionChk = new Button(trainOverviewCont, SWT.CHECK);
-		useGtVersionChk.setText("Use Groundtruth versions");
 		
-		useNewVersionChk = new Button(trainOverviewCont, SWT.CHECK);
-		useNewVersionChk.setText("Use initial('New') versions");
-		useNewVersionChk.setSelection(true);
+		Composite versionSelectionComp = new Composite(trainOverviewCont, SWT.NONE);
+		versionSelectionComp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		GridLayout versionSelectionCompLayout = new GridLayout(2, false);
+		versionSelectionCompLayout.marginHeight = versionSelectionCompLayout.marginWidth = 0;
+		versionSelectionComp.setLayout(versionSelectionCompLayout);
+		
+		Label versionComboLbl = new Label(versionSelectionComp, SWT.NONE);
+		versionComboLbl.setText("Transcript version");
+		versionCombo = new Combo(versionSelectionComp, SWT.READ_ONLY);
+		
+		for(VersionComboStatus s : VersionComboStatus.values()) {
+			versionCombo.add(s.getLabel());
+		}
+		versionCombo.select(0);
+		versionCombo.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false));
 
 		GridData tableGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		GridLayout tableGl = new GridLayout(1, true);
@@ -314,15 +324,12 @@ public class DataSetSelectionSashForm extends SashForm {
 	 * Update ground truth treeviewer row colors according to selected data set.
 	 * 
 	 * For now this will expect train/validation data to be selected to the respective sets!
-	 * 
-	 * @param trainGtMap
-	 * @param valGtMap
 	 */
-	void updateGtTvColors(Map<HtrGtDataSet, List<HtrGtDataSetElement>> trainGtMap, Map<HtrGtDataSet, List<HtrGtDataSetElement>> valGtMap) {
+	void updateGtTvColors() {
 		groundTruthTv.refresh(true);
 	}
 	
-	void updateDocTvColors(Map<TrpDocMetadata, List<TrpPage>> trainDocMap, Map<TrpDocMetadata, List<TrpPage>> valDocMap) {
+	void updateDocTvColors() {
 		docTv.refresh(true);
 	}
 	
@@ -392,14 +399,19 @@ public class DataSetSelectionSashForm extends SashForm {
 		return dataSetSelectionController.getValSetMetadata();
 	}
 	
-	public Button getUseGtVersionChk() {
-		return useGtVersionChk;
+	public VersionComboStatus getVersionComboStatus() {
+		VersionComboStatus status = VersionComboStatus.Latest;
+		String text = versionCombo.getText();
+		for(VersionComboStatus s : VersionComboStatus.values()) {
+			if(s.getLabel().equals(text)) {
+				status = s;
+				break;
+			}
+		}
+		logger.debug("Selected VersionComboStatus = {}", status);
+		return status;
 	}
 	
-	public Button getUseNewVersionChk() {
-		return useNewVersionChk;
-	}
-
 	DataSetSelectionController getController() {
 		return dataSetSelectionController;
 	}
@@ -417,5 +429,24 @@ public class DataSetSelectionSashForm extends SashForm {
 
 	public void enableDebugDialog(boolean b) {
 		getController().SHOW_DEBUG_DIALOG = b;
+	}
+	
+	public static enum VersionComboStatus {
+		Latest("Latest transcript", null),
+		GT("Ground truth only", EditStatus.GT),
+		Initial("Initial transcript", EditStatus.NEW);
+		
+		private final String label;
+		private final EditStatus status;
+		private VersionComboStatus(String label, EditStatus status) {
+			this.label = label;
+			this.status = status;
+		}
+		public String getLabel() {
+			return label;
+		}
+		public EditStatus getStatus() {
+			return status;
+		}
 	}
 }

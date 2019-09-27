@@ -211,11 +211,11 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 				TrpMainWidget.getInstance().loadHtrGroundTruth(set, storage.getCollId(), 0);
 			} else if (el instanceof HtrGtDataSetElement) {
 				HtrGtDataSetElement page = (HtrGtDataSetElement)el;
-				if(!storage.isUserAllowedToViewDataSets(page.getParentHtrGtDataSet().getHtr())) {
+				if(!storage.isUserAllowedToViewDataSets(page.getParentGtDataSet().getHtr())) {
 					//no action
 					return;
 				}
-				TrpMainWidget.getInstance().loadHtrGroundTruth(page.getParentHtrGtDataSet(), 
+				TrpMainWidget.getInstance().loadHtrGroundTruth(page.getParentGtDataSet(), 
 						storage.getCollId(), page.getGroundTruthPage().getPageNr() - 1);
 			}
 		}

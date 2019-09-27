@@ -143,7 +143,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		} else if (element instanceof HtrGtDataSet) {
 			return((HtrGtDataSet) element).getHtr();
 		} else if (element instanceof HtrGtDataSetElement) {
-			return ((HtrGtDataSetElement) element).getParentHtrGtDataSet();
+			return ((HtrGtDataSetElement) element).getParentGtDataSet();
 		}
 		return null;
 	}
@@ -295,15 +295,25 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	 * Using plain TrpGroundTruthPage objects would not allow to determine the original parent as a GroundTruthPage may be linked in 
 	 * several HTRs (with different pageNr though). This is a problem when a single page is added to the selection and {@link HtrGroundTruthContentProvider#getParent(Object)} is called.
 	 */
-	public static class HtrGtDataSetElement {
-		private final HtrGtDataSet parentHtrGtDataSet;
-		private final TrpGroundTruthPage gtPage;
+	public static class HtrGtDataSetElement extends AGtDataSetElement<HtrGtDataSet> {
 		public HtrGtDataSetElement(HtrGtDataSet parentHtrGtDataSet, TrpGroundTruthPage gtPage) {
-			this.parentHtrGtDataSet = parentHtrGtDataSet;
+			super(parentHtrGtDataSet, gtPage);
+		}
+		@Deprecated
+		public HtrGtDataSet getParentHtrGtDataSet() {
+			return super.getParentGtDataSet();
+		}
+	}
+	
+	public abstract static class AGtDataSetElement<T extends GroundTruthDataSetDescriptor> {
+		private final T parentGtDataSet;
+		private final TrpGroundTruthPage gtPage;
+		public AGtDataSetElement(T parentGtDataSet, TrpGroundTruthPage gtPage) {
+			this.parentGtDataSet = parentGtDataSet;
 			this.gtPage = gtPage;
 		}
-		public HtrGtDataSet getParentHtrGtDataSet() {
-			return parentHtrGtDataSet;
+		public T getParentGtDataSet() {
+			return parentGtDataSet;
 		}
 		public TrpGroundTruthPage getGroundTruthPage() {
 			return gtPage;

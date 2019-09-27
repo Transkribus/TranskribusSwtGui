@@ -9,6 +9,7 @@ import org.eclipse.swt.graphics.Color;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 
 /**
@@ -21,6 +22,19 @@ public class CollectionDataSetLabelProvider extends CollectionLabelProvider impl
 	
 	public CollectionDataSetLabelProvider(DataSetSelectionController controller) {
 		this.controller = controller;
+	}
+	
+	@Override
+	public String getText(Object element) {
+		if(element instanceof TrpDocMetadata) {
+			return super.getText(element);
+		} else if (element instanceof TrpPage) {
+			//adapt behavior for pages for respecting the selected transcript version
+			TrpPage p = (TrpPage)element;
+			TrpTranscriptMetadata tmd = p.getTranscriptWithStatus(controller.getTranscriptVersionToUse().getStatus());
+			return "Page " + p.getPageNr() + " (" + tmd.getNrOfTranscribedLines() + " lines)";
+		}
+		return null;
 	}
 	
 	@Override
@@ -57,6 +71,9 @@ public class CollectionDataSetLabelProvider extends CollectionLabelProvider impl
 	public Color getForeground(Object element) {
 		if(!DataSetSelectionSashForm.WHITE.equals(getBackground(element))) {
 			return DataSetSelectionSashForm.WHITE;
+		}
+		if(controller.isPageObjectWithoutText(element)) {
+			return DataSetSelectionSashForm.GRAY;
 		}
 		return DataSetSelectionSashForm.BLACK;
 	}

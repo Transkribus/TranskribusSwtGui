@@ -17,7 +17,6 @@ import javax.xml.bind.JAXBException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -42,6 +41,7 @@ import eu.transkribus.core.util.DescriptorUtils.GroundTruthDataSetDescriptor;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.htr.DataSetMetadata;
+import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm.VersionComboStatus;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -72,6 +72,8 @@ public class DataSetSelectionController {
 	
 	boolean SHOW_DEBUG_DIALOG = false;
 	DebugDialog diag = null;
+	
+	private VersionComboStatus transcriptVersionToUse = VersionComboStatus.Latest;
 	
 	/**
 	 * Encapsulate logic for handling the selection of distinct datasets upon user selection and updating the view accordingly.
@@ -153,8 +155,8 @@ public class DataSetSelectionController {
 	private void updateView(String infoLabelText) {
 		view.trainSetOverviewTable.setInput(createTableEntries(trainDocMap, trainGtMap));
 		view.valSetOverviewTable.setInput(createTableEntries(valDocMap, valGtMap));
-		view.updateDocTvColors(trainDocMap, valDocMap);
-		view.updateGtTvColors(trainGtMap, valGtMap);
+		view.updateDocTvColors();
+		view.updateGtTvColors();
 		view.updateInfoLabel(infoLabelText);
 		
 		if(SHOW_DEBUG_DIALOG) {
@@ -192,6 +194,7 @@ public class DataSetSelectionController {
 	protected String addDocumentSelectionToDataMap(IStructuredSelection selection,
 			Map<TrpDocMetadata, List<TrpPage>> targetDataMap, 
 			Map<TrpDocMetadata, List<TrpPage>> nonIntersectingDataMap) {
+		int nrOfItemsWithoutTextOmitted = 0;
 		int nrOfItemsOmitted = 0;
 		Iterator<?> it = selection.iterator();
 		while (it.hasNext()) {
@@ -200,19 +203,31 @@ public class DataSetSelectionController {
 				TrpDocMetadata docMd = (TrpDocMetadata) o;
 				TrpPage[] pageObjArr = ((CollectionContentProvider)view.docTv.getContentProvider()).getChildren(docMd);
 				
+				final int originalPageSelectionSize = pageObjArr.length;
 				//remove overlap  with selection
-				logger.debug("Adding pages to selection: " + pageObjArr.length);
+				logger.debug("Adding pages to selection: " + originalPageSelectionSize);
+				
+				//filter for pages that contain transcribed lines
+				List<TrpPage> pageList = Arrays.stream(pageObjArr)
+						.filter(p -> !isPageObjectWithoutText(p))
+						.collect(Collectors.toList());
+				
+				final int nrOfTranscribedPagesInSelection = pageList.size();
+				logger.debug("Filtered pages with transcribed lines. Remaining: " + nrOfTranscribedPagesInSelection);
+				nrOfItemsWithoutTextOmitted += originalPageSelectionSize - nrOfTranscribedPagesInSelection;
 				
 				//filter for elements that are not included via other selected GT sets
-				List<TrpPage> pageList = Arrays.stream(pageObjArr)
+				pageList = pageList.stream()
 						.filter(p -> !isPageInSelection(p))
 						.collect(Collectors.toList());
-				logger.debug("Filtered already included pages. Remaining: " + pageList.size());
-				nrOfItemsOmitted += pageObjArr.length - pageList.size();
 				
+				logger.debug("Filtered already included pages. Remaining: " + pageList.size());
+				nrOfItemsOmitted += nrOfTranscribedPagesInSelection - pageList.size();
+				
+				//check for images already in the selection and ask user which ones to use
 				List<TrpPage> pagesToAdd = detectAndResolveConflicts(docMd, pageList);
 				if(pagesToAdd.isEmpty()) {
-					nrOfItemsOmitted += pageObjArr.length;
+					nrOfItemsOmitted += nrOfTranscribedPagesInSelection;
 					continue;
 				}
 				
@@ -223,6 +238,12 @@ public class DataSetSelectionController {
 			} else if (o instanceof TrpPage) {
 				TrpPage p = (TrpPage) o;
 				TrpDocMetadata parent = (TrpDocMetadata) ((CollectionContentProvider)view.docTv.getContentProvider()).getParent(p);
+				
+				//omit if this page has no transcribed lines
+				if(isPageObjectWithoutText(p)) {
+					nrOfItemsWithoutTextOmitted++;
+					continue;
+				}
 				
 				//omit if this page is already included
 				if(isPageInSelection(p)) {
@@ -253,12 +274,16 @@ public class DataSetSelectionController {
 				}
 			}
 		}
-		return getPageItemsOmittedMessage(nrOfItemsOmitted);
+		return getPageItemsOmittedMessage(nrOfItemsOmitted, nrOfItemsWithoutTextOmitted);
 	}
 
 	/**
 	 * Add selected items to the targetDataMap and remove them from the nonIntersectingDataMap if included.
-	 * 
+	 * <br><br>
+	 * FIXME: the migration of existing train docs revealed that there is a large amount of HTR "ground truth" that actually contains no transcription.
+	 * This data should be deleted from the database at some point and HTR_GROUND_TRUTH.PAGE_NR has to be reassigned then.
+	 * So I don't take effort to handle that here. However, "empty" pages are filtered out when document data is added so new ground truth without text is not produced.
+	 *  
 	 * @param selection
 	 * @param targetDataMap
 	 * @param nonIntersectingDataMap
@@ -325,11 +350,16 @@ public class DataSetSelectionController {
 		return nrOfItemsOmitted + " pages are already included by other data sets. Expand items for details.";
 	}
 	
-	private String getPageItemsOmittedMessage(int nrOfItemsOmitted) {
-		if(nrOfItemsOmitted < 1) {
-			return null; 
+	private String getPageItemsOmittedMessage(int nrOfItemsOmitted, int nrOfItemsWithoutTextOmitted) {
+		String msg = "";
+		if(nrOfItemsWithoutTextOmitted > 0) {
+			msg += nrOfItemsWithoutTextOmitted + " pages without transcription ignored.\n";
 		}
-		return nrOfItemsOmitted + " pages from selection are already included.";
+		
+		if(nrOfItemsOmitted > 0) {
+			msg += nrOfItemsOmitted + " pages from selection were already included.";
+		}
+		return msg.trim();
 	}
 
 	private int addGtSetToDataMap(HtrGtDataSet htrGtDataSet,
@@ -384,7 +414,7 @@ public class DataSetSelectionController {
 			logger.debug("Check if gtId = " + element.getGroundTruthPage().getGtId() + " is included with train set selection in HTR '" 
 					+ gtSet.getHtr().getName() + "' " + gtSet.getDataSetType().getLabel());
 			
-			if(excludeOriginalSet && gtSet.equals(element.getParentHtrGtDataSet())) {
+			if(excludeOriginalSet && gtSet.equals(element.getParentGtDataSet())) {
 				logger.debug("Skipping original gt set as excludeOriginalSet = true");
 				continue;
 			}
@@ -414,7 +444,7 @@ public class DataSetSelectionController {
 			logger.debug("Check if gtId  = " + element.getGroundTruthPage().getGtId() + " is included with validation set selection in '" 
 					+ gtSet.getHtr().getName() + "' " + gtSet.getDataSetType().getLabel());
 			
-			if(excludeOriginalSet && gtSet.equals(element.getParentHtrGtDataSet())) {
+			if(excludeOriginalSet && gtSet.equals(element.getParentGtDataSet())) {
 				logger.debug("Skipping original gt set as excludeOriginalSet = true");
 				continue;
 			}
@@ -455,6 +485,48 @@ public class DataSetSelectionController {
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * TODO:this uses page.getTranscriptWithStatus but should use page.getTranscriptWithStatusOrNull
+	 * Also the functionality for checking if a transcript is used or not for training is added in different places now 
+	 * Maybe there should be a helper doing this in one place
+	 * 
+	 * @see eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSelectionEntry
+	 * @see eu.transkribus.swt_gui.htr.treeviewer.CollectionDataSetLabelProvider
+	 * 
+	 * @param element
+	 * @return
+	 */
+	boolean isPageObjectWithoutText(Object element) {
+		if(!(element instanceof TrpPage)) {
+			return false;
+		}
+		TrpPage page = ((TrpPage)element);
+		return page.getTranscriptWithStatus(transcriptVersionToUse.getStatus()).getNrOfTranscribedLines() == 0;
+	}
+	
+	/**
+	 * TODO see above. where to put this!?
+	 * 
+	 * @param p
+	 * @param status
+	 * @return
+	 */
+	public static boolean isPageObjectWithText(TrpPage p, EditStatus status) {
+		TrpTranscriptMetadata tmd;
+
+		//if no filter is set use latest, otherwise check content of transcript with status
+		if(status == null) {
+			tmd = p.getCurrentTranscript();
+		} else {
+			tmd = p.getTranscriptWithStatusOrNull(status);
+		}
+		if(tmd == null) {
+			//no transcript with this status containing text
+			return false;
+		}
+		return tmd.getNrOfTranscribedLines() > 0;
 	}
 	
 	/**
@@ -676,22 +748,18 @@ public class DataSetSelectionController {
 	 * @return a {@link DataSetMetadata} object with statistics
 	 */
 	private DataSetMetadata computeDataSetSize(Map<TrpDocMetadata, List<TrpPage>> map) {
-		final boolean useGt = view.getUseGtVersionChk().isEnabled() && view.getUseGtVersionChk().getSelection();
-		final boolean useInitial = view.getUseNewVersionChk().isEnabled() && view.getUseNewVersionChk().getSelection();
+		EditStatus status = view.getVersionComboStatus().getStatus();
+		logger.debug("Computing data set size with version selection = {}", status);
 		int pages = 0;
 		int lines = 0;
 		int words = 0;
 		for (Entry<TrpDocMetadata, List<TrpPage>> e : map.entrySet()) {
 			for (TrpPage p : e.getValue()) {
 				TrpTranscriptMetadata tmd = p.getCurrentTranscript();
-				if (useGt || useInitial) {
+				if (status != null) {
 					for (TrpTranscriptMetadata t : p.getTranscripts()) {
-						if (useGt && t.getStatus().equals(EditStatus.GT)) {
+						if (t.getStatus().equals(status)) {
 							tmd = t;
-							break;
-						}
-						if (useInitial && t.getStatus().equals(EditStatus.NEW)){
-							tmd=t;
 							break;
 						}
 					}
@@ -887,5 +955,16 @@ public class DataSetSelectionController {
 				text.setText(e.getMessage());
 			}
 		}
+	}
+
+	public void setTranscriptVersionToUse(VersionComboStatus versionComboStatus) {
+		this.transcriptVersionToUse = versionComboStatus;
+		view.trainSetOverviewTable.setTranscriptStatusFilter(versionComboStatus.getStatus());
+		view.valSetOverviewTable.setTranscriptStatusFilter(versionComboStatus.getStatus());
+		view.updateDocTvColors();
+	}
+
+	public VersionComboStatus getTranscriptVersionToUse() {
+		return transcriptVersionToUse;
 	}
 }

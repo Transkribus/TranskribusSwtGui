@@ -20,6 +20,9 @@ public class HtrGroundTruthDataSelectionEntry implements IDataSelectionEntry<Htr
 		if(htrGtDataSet == null) {
 			throw new IllegalArgumentException("htrGtDataSet argument is null");
 		}
+		this.htrGtDataSet = htrGtDataSet;
+		this.pages = new ArrayList<>(pages);
+		
 		final int nrOfPages = htrGtDataSet.getSize();
 		List<Boolean> boolList = new ArrayList<>(nrOfPages);
 		for (int i = 0; i < nrOfPages; i++) {
@@ -30,8 +33,6 @@ public class HtrGroundTruthDataSelectionEntry implements IDataSelectionEntry<Htr
 			boolList.set(p.getGroundTruthPage().getPageNr() - 1, Boolean.TRUE);
 		}
 		this.pageString = CoreUtils.getRangeListStr(boolList);
-		this.htrGtDataSet = htrGtDataSet;
-		this.pages = pages;
 	}
 	
 	public int getId() {
@@ -53,10 +54,6 @@ public class HtrGroundTruthDataSelectionEntry implements IDataSelectionEntry<Htr
 
 	public String getPageString() {
 		return pageString;
-	}
-
-	public void setPageString(String pageString) {
-		this.pageString = pageString;
 	}
 
 	public HtrGtDataSet getDoc() {

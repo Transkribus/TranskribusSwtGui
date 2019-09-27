@@ -185,8 +185,6 @@ public class HtrTrainingDialog extends Dialog {
 		boolean isT2I = isCitlabT2ISelected();
 		descTxt.setEnabled(!isT2I);
 		modelNameTxt.setEnabled(!isT2I);
-		treeViewerSelector.getUseGtVersionChk().setEnabled(!isT2I);
-		treeViewerSelector.getUseNewVersionChk().setEnabled(isT2I);
 		treeViewerSelector.setGroundTruthSelectionEnabled(!isT2I);
 	}
 	
@@ -254,8 +252,7 @@ public class HtrTrainingDialog extends Dialog {
 		configObject.setDescription(descTxt.getText());
 		configObject.setModelName(modelNameTxt.getText());
 		configObject.setLanguage(langTxt.getText());
-		final boolean useGt = treeViewerSelector.getUseGtVersionChk().isEnabled() && treeViewerSelector.getUseGtVersionChk().getSelection();
-		EditStatus status = useGt ? EditStatus.GT : null;
+		EditStatus status = treeViewerSelector.getVersionComboStatus().getStatus();
 		setTrainAndValDocsInHtrConfig(configObject, status);
 		
 		ParameterMap customParams = new ParameterMap();
@@ -288,9 +285,9 @@ public class HtrTrainingDialog extends Dialog {
 	
 	private CitLabSemiSupervisedHtrTrainConfig createCitlabT2IConfig() throws IOException {
 		CitLabSemiSupervisedHtrTrainConfig config = t2iConfComp.getConfig();
-		final boolean useInitial = treeViewerSelector.getUseNewVersionChk().isEnabled() 
-				&& treeViewerSelector.getUseNewVersionChk().getSelection();
-		EditStatus status = useInitial ? EditStatus.NEW : null;
+		//TODO this part is not tested as t2i is not included here anymore but the checkboxes were changed to a combo in the meantime
+		final EditStatus selectedStatus = treeViewerSelector.getVersionComboStatus().getStatus();
+		EditStatus status = EditStatus.NEW.equals(selectedStatus) ? EditStatus.NEW : null;
 		setTrainAndValDocsInHtrConfig(config, status);
 		
 		return config;

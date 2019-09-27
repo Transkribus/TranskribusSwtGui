@@ -93,7 +93,7 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 				return boldFont;
 			}
 		} else if (element instanceof HtrGtDataSetElement 
-				&& ((HtrGtDataSetElement)element).getParentHtrGtDataSet().equals(loadedSet) 
+				&& ((HtrGtDataSetElement)element).getParentGtDataSet().equals(loadedSet) 
 				&& ((HtrGtDataSetElement)element).getGroundTruthPage().getPageNr() == store.getPage().getPageNr()) {
 			return boldFont;
 		}
