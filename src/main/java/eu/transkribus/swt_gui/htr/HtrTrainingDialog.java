@@ -221,7 +221,7 @@ public class HtrTrainingDialog extends Dialog {
 		return new TrainMethodUITab(tabIndex, citlabHtrPlusTrainingTabItem, citlabHtrPlusParamCont);
 	}
 	
-	private void setTrainAndTestDocsInHtrConfig(HtrTrainConfig config, EditStatus status) throws IOException {
+	private void setTrainAndValDocsInHtrConfig(HtrTrainConfig config, EditStatus status) throws IOException {
 		config.setColId(colId);
 		
 		DataSetSelection selection = treeViewerSelector.getSelection(status);
@@ -240,12 +240,12 @@ public class HtrTrainingDialog extends Dialog {
 		
 		if((config.getTest().isEmpty() && CollectionUtils.isEmpty(config.getTestGt())) 
 				&& !isCitlabT2ISelected()){
-			throw new IOException("Test set must not be empty! \nAt least one page must be selected to get meaningful error curve."
+			throw new IOException("Validation set must not be empty! \nAt least one page must be selected to get meaningful error curve."
 					+ " Please increase choice of text pages with increasing training pages.");
 		}
 
 		if (config.isTestAndTrainOverlapping()) {
-			throw new IOException("Train and Test sets must not overlap!");
+			throw new IOException("Train and validation sets must not overlap!");
 		}
 	}
 	
@@ -256,7 +256,7 @@ public class HtrTrainingDialog extends Dialog {
 		configObject.setLanguage(langTxt.getText());
 		final boolean useGt = treeViewerSelector.getUseGtVersionChk().isEnabled() && treeViewerSelector.getUseGtVersionChk().getSelection();
 		EditStatus status = useGt ? EditStatus.GT : null;
-		setTrainAndTestDocsInHtrConfig(configObject, status);
+		setTrainAndValDocsInHtrConfig(configObject, status);
 		
 		ParameterMap customParams = new ParameterMap();
 		//send flag to activate new train workflow when starting the training from this dialog
@@ -291,7 +291,7 @@ public class HtrTrainingDialog extends Dialog {
 		final boolean useInitial = treeViewerSelector.getUseNewVersionChk().isEnabled() 
 				&& treeViewerSelector.getUseNewVersionChk().getSelection();
 		EditStatus status = useInitial ? EditStatus.NEW : null;
-		setTrainAndTestDocsInHtrConfig(config, status);
+		setTrainAndValDocsInHtrConfig(config, status);
 		
 		return config;
 	}
@@ -338,7 +338,7 @@ public class HtrTrainingDialog extends Dialog {
 		}
 
 		List<DataSetMetadata> trainSetMd = treeViewerSelector.getTrainSetMetadata();
-		List<DataSetMetadata> validationSetMd = treeViewerSelector.getTestSetMetadata();
+		List<DataSetMetadata> validationSetMd = treeViewerSelector.getValSetMetadata();
 		
 		StartTrainingDialog diag = new StartTrainingDialog(this.getShell(), trainSetMd, validationSetMd);
 		if (diag.open() == Window.OK) {

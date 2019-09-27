@@ -2828,11 +2828,31 @@ public class Storage {
 		return conn.runCitLabText2Image(config);
 	}
 	
+	/**
+	 * @deprecated datasets are no longer duplicated to documents but stored as ground truth
+	 * 
+	 * @param htr
+	 * @return
+	 * @throws SessionExpiredException
+	 * @throws ClientErrorException
+	 * @throws IllegalArgumentException
+	 * @throws NoConnectionException
+	 */
 	public TrpDoc getTestSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.getHtrTestDoc(collId, htr.getHtrId(), 1);
 	}
 	
+	/**
+	 * @deprecated datasets are no longer duplicated to documents but stored as ground truth
+	 * 
+	 * @param htr
+	 * @return
+	 * @throws SessionExpiredException
+	 * @throws ClientErrorException
+	 * @throws IllegalArgumentException
+	 * @throws NoConnectionException
+	 */
 	public TrpDoc getTrainSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.getHtrTrainDoc(collId, htr.getHtrId(), 1);

@@ -48,11 +48,11 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 		if(element instanceof TrpHtr) {
 			HtrGtDataSet trainSet = new HtrGtDataSet((TrpHtr)element, DataSetType.TRAIN);
 			HtrGtDataSet validationSet = new HtrGtDataSet((TrpHtr)element, DataSetType.VALIDATION);
-			if(handler.getTrainGtMap().containsKey(trainSet) && handler.getTestGtMap().containsKey(validationSet)) {
+			if(handler.getTrainGtMap().containsKey(trainSet) && handler.getValGtMap().containsKey(validationSet)) {
 				return DataSetSelectionSashForm.CYAN;
 			} else if (handler.getTrainGtMap().containsKey(trainSet)) {
 				return DataSetSelectionSashForm.BLUE;
-			} else if (handler.getTestGtMap().containsKey(validationSet)) {
+			} else if (handler.getValGtMap().containsKey(validationSet)) {
 				return DataSetSelectionSashForm.GREEN;
 			}
 		} else if (element instanceof HtrGtDataSet) {
@@ -64,8 +64,8 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 					return DataSetSelectionSashForm.LIGHT_BLUE;
 				}
 			}
-			if(handler.getTestGtMap().containsKey(dataSet)) {
-				if(handler.getTestGtMap().get(dataSet).size() == dataSet.getSize()) {
+			if(handler.getValGtMap().containsKey(dataSet)) {
+				if(handler.getValGtMap().get(dataSet).size() == dataSet.getSize()) {
 					return DataSetSelectionSashForm.GREEN;
 				} else {
 					return DataSetSelectionSashForm.LIGHT_GREEN;
@@ -83,7 +83,7 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 					}
 				}
 			}
-			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getTestGtMap().entrySet()) {
+			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getValGtMap().entrySet()) {
 				if(e.getValue().stream()
 						.anyMatch(g -> g.getGroundTruthPage().getGtId() == gtPage.getGroundTruthPage().getGtId())) {
 					if(e.getKey().equals(gtPage.getParentHtrGtDataSet())) {

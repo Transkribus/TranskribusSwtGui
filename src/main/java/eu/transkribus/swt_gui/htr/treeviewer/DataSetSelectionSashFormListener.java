@@ -53,7 +53,7 @@ public class DataSetSelectionSashFormListener {
 	private void addDndSupport(DataSetSelectionSashForm view) {
 		trainSetDropTargetListener = new DataSetSelectionDropAdapter(view.trainSetOverviewTable.getTableViewer(),
 				DataSetType.TRAIN);
-		valSetDropTargetListener = new DataSetSelectionDropAdapter(view.testSetOverviewTable.getTableViewer(),
+		valSetDropTargetListener = new DataSetSelectionDropAdapter(view.valSetOverviewTable.getTableViewer(),
 				DataSetType.VALIDATION);
 		docTreeDragSourceListener = new DataTreeDragSourceListener(view.docTv);
 		gtTreeDragSourceListener = new DataTreeDragSourceListener(view.groundTruthTv);
@@ -66,7 +66,7 @@ public class DataSetSelectionSashFormListener {
 
 		view.trainSetOverviewTable.getTableViewer().addDropSupport(operations, transferTypes,
 				trainSetDropTargetListener);
-		view.testSetOverviewTable.getTableViewer().addDropSupport(operations, transferTypes, valSetDropTargetListener);
+		view.valSetOverviewTable.getTableViewer().addDropSupport(operations, transferTypes, valSetDropTargetListener);
 	}
 
 	private void addListeners(DataSetSelectionSashForm view) {
@@ -93,7 +93,7 @@ public class DataSetSelectionSashFormListener {
 			}
 		});
 
-		view.addToTestSetBtn.addSelectionListener(new SelectionAdapter() {
+		view.addToValSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Runnable r = new Runnable() {
@@ -124,14 +124,14 @@ public class DataSetSelectionSashFormListener {
 			}
 		});
 
-		view.removeFromTestSetBtn.addSelectionListener(new SelectionAdapter() {
+		view.removeFromValSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
-						List<IDataSelectionEntry<?, ?>> entries = view.testSetOverviewTable.getSelectedDataSets();
-						controller.removeSelectionFromTestSet(entries);
+						List<IDataSelectionEntry<?, ?>> entries = view.valSetOverviewTable.getSelectedDataSets();
+						controller.removeSelectionFromValSet(entries);
 					}
 				};
 				BusyIndicator.showWhile(view.getDisplay(), r);

@@ -42,10 +42,7 @@ import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGt
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
 /**
- * TODO:
- * <ul>
- * <li>hide GT data tab when T2I is selected</li>
- * </ul>
+ * Sashform UI element for selecting datasets from document and ground truth data.
  *
  */
 public class DataSetSelectionSashForm extends SashForm {
@@ -75,13 +72,16 @@ public class DataSetSelectionSashForm extends SashForm {
 	static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
 	static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
 	
+	//show pages with no transcribed lines in gray
+	static final Color GRAY = Colors.getSystemColor(SWT.COLOR_GRAY);
+	
 	Composite dataTabComp;
 	TreeViewer docTv, groundTruthTv;
 	
 	Button useGtVersionChk, useNewVersionChk;
-	Button addToTrainSetBtn, addToTestSetBtn, removeFromTrainSetBtn, removeFromTestSetBtn;
+	Button addToTrainSetBtn, addToValSetBtn, removeFromTrainSetBtn, removeFromValSetBtn;
 	Label infoLbl;
-	DataSetTableWidget<IDataSelectionEntry<?, ?>> testSetOverviewTable, trainSetOverviewTable;
+	DataSetTableWidget<IDataSelectionEntry<?, ?>> valSetOverviewTable, trainSetOverviewTable;
 	CTabFolder dataTabFolder;
 	CTabItem documentsTabItem;
 	CTabItem gtTabItem;
@@ -143,10 +143,10 @@ public class DataSetSelectionSashForm extends SashForm {
 		addToTrainSetBtn.setImage(Images.ADD);
 		addToTrainSetBtn.setText("Training");
 		addToTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-		addToTestSetBtn = new Button(buttonComp, SWT.PUSH);
-		addToTestSetBtn.setImage(Images.ADD);
-		addToTestSetBtn.setText("Testing");
-		addToTestSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		addToValSetBtn = new Button(buttonComp, SWT.PUSH);
+		addToValSetBtn.setImage(Images.ADD);
+		addToValSetBtn.setText("Validation");
+		addToValSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
 		Group trainOverviewCont = new Group(this, SWT.NONE);
 		trainOverviewCont.setText("Overview");
@@ -175,20 +175,20 @@ public class DataSetSelectionSashForm extends SashForm {
 		removeFromTrainSetBtn = new Button(trainSetGrp, SWT.PUSH);
 		removeFromTrainSetBtn.setLayoutData(buttonGd);
 		removeFromTrainSetBtn.setImage(Images.CROSS);
-		removeFromTrainSetBtn.setText("Remove selected entries from train set");
+		removeFromTrainSetBtn.setText("Remove selected entries from training set");
 
-		Group testSetGrp = new Group(trainOverviewCont, SWT.NONE);
-		testSetGrp.setText("Test Set");
-		testSetGrp.setLayoutData(tableGd);
-		testSetGrp.setLayout(tableGl);
+		Group valSetGrp = new Group(trainOverviewCont, SWT.NONE);
+		valSetGrp.setText("Validation Set");
+		valSetGrp.setLayoutData(tableGd);
+		valSetGrp.setLayout(tableGl);
 
-		testSetOverviewTable = new DataSetTableWidget<IDataSelectionEntry<?, ?>>(testSetGrp, SWT.BORDER) {};
-		testSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		valSetOverviewTable = new DataSetTableWidget<IDataSelectionEntry<?, ?>>(valSetGrp, SWT.BORDER) {};
+		valSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-		removeFromTestSetBtn = new Button(testSetGrp, SWT.PUSH);
-		removeFromTestSetBtn.setLayoutData(buttonGd);
-		removeFromTestSetBtn.setImage(Images.CROSS);
-		removeFromTestSetBtn.setText("Remove selected entries from test set");
+		removeFromValSetBtn = new Button(valSetGrp, SWT.PUSH);
+		removeFromValSetBtn.setLayoutData(buttonGd);
+		removeFromValSetBtn.setImage(Images.CROSS);
+		removeFromValSetBtn.setText("Remove selected entries from validation set");
 
 		this.setWeights(new int[] { 45, 10, 45 });
 		dataTabFolder.setSelection(documentsTabItem);
@@ -197,7 +197,7 @@ public class DataSetSelectionSashForm extends SashForm {
 		buttonComp.pack();
 		trainOverviewCont.pack();
 		trainSetGrp.pack();
-		testSetGrp.pack();
+		valSetGrp.pack();
 		
 		new DataSetSelectionSashFormListener(this, dataSetSelectionController);
 	}
@@ -316,13 +316,13 @@ public class DataSetSelectionSashForm extends SashForm {
 	 * For now this will expect train/validation data to be selected to the respective sets!
 	 * 
 	 * @param trainGtMap
-	 * @param testGtMap
+	 * @param valGtMap
 	 */
-	void updateGtTvColors(Map<HtrGtDataSet, List<HtrGtDataSetElement>> trainGtMap, Map<HtrGtDataSet, List<HtrGtDataSetElement>> testGtMap) {
+	void updateGtTvColors(Map<HtrGtDataSet, List<HtrGtDataSetElement>> trainGtMap, Map<HtrGtDataSet, List<HtrGtDataSetElement>> valGtMap) {
 		groundTruthTv.refresh(true);
 	}
 	
-	void updateDocTvColors(Map<TrpDocMetadata, List<TrpPage>> trainDocMap, Map<TrpDocMetadata, List<TrpPage>> testDocMap) {
+	void updateDocTvColors(Map<TrpDocMetadata, List<TrpPage>> trainDocMap, Map<TrpDocMetadata, List<TrpPage>> valDocMap) {
 		docTv.refresh(true);
 	}
 	
@@ -388,8 +388,8 @@ public class DataSetSelectionSashForm extends SashForm {
 		return dataSetSelectionController.getTrainSetMetadata();
 	}
 	
-	public List<DataSetMetadata> getTestSetMetadata() {
-		return dataSetSelectionController.getTestSetMetadata();
+	public List<DataSetMetadata> getValSetMetadata() {
+		return dataSetSelectionController.getValSetMetadata();
 	}
 	
 	public Button getUseGtVersionChk() {

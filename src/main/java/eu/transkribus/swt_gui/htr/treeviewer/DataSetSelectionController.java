@@ -51,7 +51,7 @@ import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
  * <br><br>
  * TODO open issues:
  * <br><br>
- * - implicit inclusion of GT pages is not display in the tree on HTR and HtrGtDataSet level but only on page level. 
+ * - implicit inclusion of GT pages is not displayed in the tree on HTR and HtrGtDataSet level but only on page level. 
  * 
  * @author philip
  *
@@ -60,8 +60,8 @@ public class DataSetSelectionController {
 	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionController.class);
 	
 	//maps containing current selection. Maybe handling becomes less complex if this solely handled in table?
-	private Map<TrpDocMetadata, List<TrpPage>> trainDocMap, testDocMap;
-	private Map<HtrGtDataSet, List<HtrGtDataSetElement>> trainGtMap, testGtMap;
+	private Map<TrpDocMetadata, List<TrpPage>> trainDocMap, valDocMap;
+	private Map<HtrGtDataSet, List<HtrGtDataSetElement>> trainGtMap, valGtMap;
 	
 	private final DataSetSelectionSashForm view;
 	
@@ -81,30 +81,30 @@ public class DataSetSelectionController {
 	 */
 	public DataSetSelectionController(final int colId, DataSetSelectionSashForm view) {
 		trainDocMap = new TreeMap<>();
-		testDocMap = new TreeMap<>();
+		valDocMap = new TreeMap<>();
 		trainGtMap = new TreeMap<>();
-		testGtMap = new TreeMap<>();
+		valGtMap = new TreeMap<>();
 		this.view = view;
 		this.colId = colId;
 	}
 	
 	public void addDocumentSelectionToTrainSet() {
-		String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), trainDocMap, testDocMap);
+		String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), trainDocMap, valDocMap);
 		updateView(infoLabelText);
 	}
 
 	public void addDocumentSelectionToValidationSet() {
-		String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), testDocMap, trainDocMap);
+		String infoLabelText = addDocumentSelectionToDataMap((IStructuredSelection) view.docTv.getSelection(), valDocMap, trainDocMap);
 		updateView(infoLabelText);
 	}
 	
 	public void addGtSelectionToTrainSet() {
-		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), trainGtMap, testGtMap);
+		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), trainGtMap, valGtMap);
 		updateView(infoLabelText);
 	}
 	
 	public void addGtSelectionToValidationSet() {
-		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), testGtMap, trainGtMap);
+		String infoLabelText = addGtSelectionToDataMap((IStructuredSelection) view.groundTruthTv.getSelection(), valGtMap, trainGtMap);
 		updateView(infoLabelText);
 	}
 
@@ -123,15 +123,15 @@ public class DataSetSelectionController {
 	}
 
 
-	public void removeSelectionFromTestSet(List<IDataSelectionEntry<?, ?>> entries) {
+	public void removeSelectionFromValSet(List<IDataSelectionEntry<?, ?>> entries) {
 		if (entries == null || entries.isEmpty()) {
 			return;
 		}
 		for (IDataSelectionEntry<?, ?> entry : entries) {
 			if(entry instanceof DocumentDataSelectionEntry) {
-				testDocMap.remove(((DocumentDataSelectionEntry)entry).getDoc());
+				valDocMap.remove(((DocumentDataSelectionEntry)entry).getDoc());
 			} else if (entry instanceof HtrGroundTruthDataSelectionEntry) {
-				testGtMap.remove(((HtrGroundTruthDataSelectionEntry)entry).getDoc());
+				valGtMap.remove(((HtrGroundTruthDataSelectionEntry)entry).getDoc());
 			}
 		}
 		updateView();
@@ -142,7 +142,7 @@ public class DataSetSelectionController {
 	 */
 	public void removeAllGtFromSelection() {
 		trainGtMap.clear();
-		testGtMap.clear();
+		valGtMap.clear();
 		updateView();		
 	}
 	
@@ -152,9 +152,9 @@ public class DataSetSelectionController {
 	
 	private void updateView(String infoLabelText) {
 		view.trainSetOverviewTable.setInput(createTableEntries(trainDocMap, trainGtMap));
-		view.testSetOverviewTable.setInput(createTableEntries(testDocMap, testGtMap));
-		view.updateDocTvColors(trainDocMap, testDocMap);
-		view.updateGtTvColors(trainGtMap, testGtMap);
+		view.valSetOverviewTable.setInput(createTableEntries(valDocMap, valGtMap));
+		view.updateDocTvColors(trainDocMap, valDocMap);
+		view.updateGtTvColors(trainGtMap, valGtMap);
 		view.updateInfoLabel(infoLabelText);
 		
 		if(SHOW_DEBUG_DIALOG) {
@@ -408,7 +408,7 @@ public class DataSetSelectionController {
 			*/
 		}
 		
-		for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : getTestGtMap().entrySet()) {
+		for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : getValGtMap().entrySet()) {
 			HtrGtDataSet gtSet = e.getKey();
 			List<HtrGtDataSetElement> gtPageList = e.getValue();
 			logger.debug("Check if gtId  = " + element.getGroundTruthPage().getGtId() + " is included with validation set selection in '" 
@@ -447,10 +447,10 @@ public class DataSetSelectionController {
 			return true;
 		}
 	
-		List<TrpPage> testPages = testDocMap.values().stream()
+		List<TrpPage> valPages = valDocMap.values().stream()
 				.flatMap(List::stream)
 				.collect(Collectors.toList());
-		if(testPages.stream().anyMatch(p -> p.getPageId() == page.getPageId())) {
+		if(valPages.stream().anyMatch(p -> p.getPageId() == page.getPageId())) {
 			return true;
 		}
 		
@@ -575,9 +575,9 @@ public class DataSetSelectionController {
 	private List<Integer> getAllImageIdsInSelection() {
 		List<Integer> imageIds = new ArrayList<>(getNrOfPagesInSelection());
 		imageIds.addAll(extractImageIdsFromGtSelection(trainGtMap));
-		imageIds.addAll(extractImageIdsFromGtSelection(testGtMap));
+		imageIds.addAll(extractImageIdsFromGtSelection(valGtMap));
 		imageIds.addAll(extractImageIdsFromDocSelection(trainDocMap));
-		imageIds.addAll(extractImageIdsFromDocSelection(testDocMap));
+		imageIds.addAll(extractImageIdsFromDocSelection(valDocMap));
 		return imageIds;
 	}
 	
@@ -606,9 +606,9 @@ public class DataSetSelectionController {
 	private void removeOverlapFromSelectionByPages(List<TrpPage> overlap) {
 		List<Integer> imageIds = overlap.stream().map(p -> p.getImageId()).collect(Collectors.toList());
 		removeGtFromSelectionByImageId(imageIds, trainGtMap);
-		removeGtFromSelectionByImageId(imageIds, testGtMap);
+		removeGtFromSelectionByImageId(imageIds, valGtMap);
 		removePagesFromSelectionByImageId(imageIds, trainDocMap);
-		removePagesFromSelectionByImageId(imageIds, testDocMap);
+		removePagesFromSelectionByImageId(imageIds, valDocMap);
 	}
 	
 	/**
@@ -619,9 +619,9 @@ public class DataSetSelectionController {
 	private void removeOverlapFromSelectionByGt(List<HtrGtDataSetElement> overlap) {
 		List<Integer> imageIds = overlap.stream().map(g -> g.getGroundTruthPage().getImageId()).collect(Collectors.toList());
 		removeGtFromSelectionByImageId(imageIds, trainGtMap);
-		removeGtFromSelectionByImageId(imageIds, testGtMap);
+		removeGtFromSelectionByImageId(imageIds, valGtMap);
 		removePagesFromSelectionByImageId(imageIds, trainDocMap);
-		removePagesFromSelectionByImageId(imageIds, testDocMap);
+		removePagesFromSelectionByImageId(imageIds, valDocMap);
 	}
 
 	private void removeGtFromSelectionByImageId(List<Integer> imageIds,
@@ -662,9 +662,9 @@ public class DataSetSelectionController {
 
 	private int getNrOfPagesInSelection() {
 		int count = trainDocMap.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
-		count += testDocMap.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
+		count += valDocMap.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
 		count += trainGtMap.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
-		count += testGtMap.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
+		count += valGtMap.entrySet().stream().mapToInt(e -> e.getValue().size()).sum();
 		logger.debug("Nr of pages in selection: " + count);
 		return count;
 	}
@@ -722,16 +722,16 @@ public class DataSetSelectionController {
 		return trainDocMap;
 	}
 	
-	Map<TrpDocMetadata, List<TrpPage>> getTestDocMap() {
-		return testDocMap;
+	Map<TrpDocMetadata, List<TrpPage>> getValDocMap() {
+		return valDocMap;
 	}
 	
 	Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTrainGtMap() {
 		return trainGtMap;
 	}
 	
-	Map<HtrGtDataSet, List<HtrGtDataSetElement>> getTestGtMap() {
-		return testGtMap;
+	Map<HtrGtDataSet, List<HtrGtDataSetElement>> getValGtMap() {
+		return valGtMap;
 	}
 	
 	public List<DataSetMetadata> getTrainSetMetadata() {
@@ -740,9 +740,9 @@ public class DataSetSelectionController {
 		return Arrays.asList(new DataSetMetadata[] { trainDocMd, trainGtMd });
 	}
 	
-	public List<DataSetMetadata> getTestSetMetadata() {
-		DataSetMetadata valDocMd = computeDataSetSize(getTestDocMap());
-		DataSetMetadata valGtMd = computeGtDataSetSize(getTestGtMap());
+	public List<DataSetMetadata> getValSetMetadata() {
+		DataSetMetadata valDocMd = computeDataSetSize(getValDocMap());
+		DataSetMetadata valGtMd = computeGtDataSetSize(getValGtMap());
 		return Arrays.asList(new DataSetMetadata[] { valDocMd, valGtMd });
 	}
 	
@@ -780,11 +780,11 @@ public class DataSetSelectionController {
 //		config.setTest(DescriptorUtils.buildSelectionDescriptorList(testDocMap, status));
 	
 		List<DocumentSelectionDescriptor> trainDocDescs = DescriptorUtils.buildCompleteSelectionDescriptorList(getTrainDocMap(), status);
-		List<DocumentSelectionDescriptor> validationDocDescs = DescriptorUtils.buildCompleteSelectionDescriptorList(getTestDocMap(), status);
+		List<DocumentSelectionDescriptor> validationDocDescs = DescriptorUtils.buildCompleteSelectionDescriptorList(getValDocMap(), status);
 		
 		//build the GT descriptor
 		List<GroundTruthSelectionDescriptor> trainGtDescs = buildGtSelectionDescriptorList(getTrainGtMap());
-		List<GroundTruthSelectionDescriptor> validationGtDescs = buildGtSelectionDescriptorList(getTestGtMap());
+		List<GroundTruthSelectionDescriptor> validationGtDescs = buildGtSelectionDescriptorList(getValGtMap());
 		
 		return new DataSetSelection(trainDocDescs, validationDocDescs, trainGtDescs, validationGtDescs);
 	}
