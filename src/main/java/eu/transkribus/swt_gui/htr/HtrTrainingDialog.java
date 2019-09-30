@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -34,6 +35,7 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
@@ -62,6 +64,7 @@ public class HtrTrainingDialog extends Dialog {
 	private DataSetSelectionSashForm treeViewerSelector;
 
 	private Text modelNameTxt, descTxt, langTxt;
+	private MultiCheckSelectionCombo langSelection;
 
 	private CitLabHtrTrainConfig citlabTrainConfig;
 	private CitLabSemiSupervisedHtrTrainConfig citlabT2IConf;
@@ -120,6 +123,10 @@ public class HtrTrainingDialog extends Dialog {
 		modelNameLbl.setText("Model Name:");
 		modelNameTxt = new Text(paramCont, SWT.BORDER);
 		modelNameTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		
+		langSelection = new MultiCheckSelectionCombo(paramCont, SWT.FILL,"Languages", 3, 250, 400);
+		langSelection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		langSelection.setItems(Locale.getISOLanguages());
 
 		Label langLbl = new Label(paramCont, SWT.FLAT);
 		langLbl.setText("Language:");

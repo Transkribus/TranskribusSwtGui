@@ -32,23 +32,38 @@ public class GroundTruthTreeWidget extends Composite {
 
 	public final static ColConfig[] COLUMNS = new ColConfig[] { NAME_COL, SIZE_COL, ID_COL };
 	
-	public GroundTruthTreeWidget(Composite parent) {
+	public GroundTruthTreeWidget(Composite parent, ITreeContentProvider contentProvider, CellLabelProvider labelProvider) {
 		super(parent, SWT.NONE);
 		this.setLayout(new GridLayout(1, true));		
 		
-		treeViewer = new TreeViewer(this, SWT.BORDER | SWT.MULTI);
-		treeViewer.getTree().setHeaderVisible(true);
+		this.treeViewer = new TreeViewer(this, SWT.BORDER | SWT.MULTI);
+		this.treeViewer.getTree().setHeaderVisible(true);
 		
-		//TODO providers may be passed as arguments to make this more flexible
-		treeContentProvider = new HtrGroundTruthContentProvider(null);
-		labelProvider = new HtrGroundTruthTableLabelAndFontProvider(treeViewer.getControl().getFont());
-		treeViewer.setContentProvider(treeContentProvider);
-		treeViewer.setLabelProvider(labelProvider);
-		treeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		//providers may be passed as arguments to make this more flexible
+		if(contentProvider != null) {
+			this.treeContentProvider = contentProvider;
+		} else {
+			//default contentProvider shows HTR GT for now
+			this.treeContentProvider = new HtrGroundTruthContentProvider(null);
+		}
+		
+		if(labelProvider != null) {
+			this.labelProvider = labelProvider;
+		} else {
+			this.labelProvider = new HtrGroundTruthTableLabelAndFontProvider(treeViewer.getControl().getFont());
+		}
+		
+		this.treeViewer.setContentProvider(this.treeContentProvider);
+		this.treeViewer.setLabelProvider(this.labelProvider);
+		this.treeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
 		initCols();
 		
 		initListener();
+	}
+	
+	public GroundTruthTreeWidget(Composite parent) {
+		this(parent, null, null);
 	}
 	
 	void initToolBar() {

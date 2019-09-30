@@ -227,7 +227,16 @@ public class DataSetSelectionSashForm extends SashForm {
 		tv.setContentProvider(htrGtContentProvider);
 		tv.setLabelProvider(htrGtLabelProvider);
 		tv.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
+		//the GroundTruthTreeWidget with table treeviewer is not compatible with the content- and labelprovider here.
+//		final ITreeContentProvider htrGtContentProvider = new HtrGroundTruthContentProvider(colId);
+//		final CellLabelProvider htrGtLabelProvider = new HtrGroundTruthDataSetLabelProvider(dataSetSelectionController);
+//		GroundTruthTreeWidget gtWidget = new GroundTruthTreeWidget(parent, htrGtContentProvider, htrGtLabelProvider);
+//		gtWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		
 		tv.setInput(this.htrList);
+		
+		
 		return tv;
 	}
 	

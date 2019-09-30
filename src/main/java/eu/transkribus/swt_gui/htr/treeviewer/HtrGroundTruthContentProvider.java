@@ -12,10 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.core.io.RemoteDocConst;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.core.util.DescriptorUtils.GroundTruthDataSetDescriptor;
 import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
@@ -89,6 +91,10 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	HtrGtDataSetElement[] getChildren(HtrGtDataSet gt) {
 		List<TrpGroundTruthPage> gtList = null;
 		
+		if(!isUserAllowedToViewDataSets(gt.getHtr(), store.getUserId())) {
+			return null;
+		}
+		
 		if(DATA_SET_CACHE.containsKey(gt)) {
 			logger.debug("Returning GT data set cache entry");
 			List<HtrGtDataSetElement> elements =  DATA_SET_CACHE.get(gt);
@@ -99,6 +105,8 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		case TRAIN:
 			try {
 				gtList = store.getConnection().getHtrTrainData(super.getCollId(), gt.getId());
+			} catch (TrpClientErrorException e) {
+				logger.warn("Could not retrieve GT: {}", e.getMessageToUser());
 			} catch (SessionExpiredException | IllegalArgumentException e) {
 				logger.error("Could not retrieve HTR train data set for HTR = " + gt.getId(), e);
 			}
@@ -106,6 +114,8 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		case VALIDATION:
 			try {
 				gtList = store.getConnection().getHtrValidationData(super.getCollId(), gt.getId());
+			} catch (TrpClientErrorException e) {
+				logger.warn("Could not retrieve GT: {}", e.getMessageToUser());
 			} catch (SessionExpiredException | IllegalArgumentException e) {
 				logger.error("Could not retrieve HTR validation data set for HTR = " + gt.getId(), e);
 			}
@@ -146,7 +156,11 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			return ((TrpHtr) element).hasTrainGt();
 		} else if (element instanceof HtrGtDataSet) {
 			final HtrGtDataSet s = ((HtrGtDataSet) element);
-			TrpHtr h = ((HtrGtDataSet) element).getHtr();	
+			TrpHtr h = ((HtrGtDataSet) element).getHtr();
+			if(!isUserAllowedToViewDataSets(h, store.getUserId())) {
+				return false;
+			}
+			
 			switch (s.getDataSetType()) {
 			case TRAIN:
 				return h.hasTrainGt();
@@ -157,6 +171,25 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		return false;
 	}
 	
+	/**
+	 * ReleaseLevel of the HTR may imply that the dataset is not visible to current user.<br>
+	 * None = model is obviously linked to collection. Otherwise it wouldn't be visible.<br>
+	 * DisclosedDataSet = Handle like "None".<br>
+	 * UndisclosedDataSet = only show children if current user is curator OR the model is linked to this collection.<br>
+	 */
+	private boolean isUserAllowedToViewDataSets(TrpHtr h, int userId) {
+		if(h == null) {
+			logger.warn("HTR argument is null!");
+			return false;
+		}
+		logger.debug("Checking HTR ReleaseLevel: {}", h.toShortString());
+		return !ReleaseLevel.isPrivateDataSet(h.getReleaseLevel())
+				//check for direct collection link
+				|| h.getCollectionIdLink() == store.getCollId()
+				//curator may always see the sets even if no explicit link is set to this collection
+				|| h.getUserId() == store.getUserId();
+	}
+
 	@Override
 	public void handleLoginOrLogout(LoginOrLogoutEvent arg) {
 		synchronized(DATA_SET_CACHE) {
