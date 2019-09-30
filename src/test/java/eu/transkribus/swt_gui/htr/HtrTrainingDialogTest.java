@@ -20,12 +20,13 @@ public class HtrTrainingDialogTest {
 		
 		boolean showGtData = true;
 		
-		boolean displayJsonDescriptorOnChange = false;
+		boolean displayJsonDescriptorOnChange = true;
 		
 		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, args[0], args[1], 575) {
 			@Override
 			protected void createTestContents(Composite parent) throws Exception {
 				getShell().setSize(500, 700);
+//				getStorage().reloadHtrs();
 				parent.pack();
 				HtrTrainingDialog htd = new HtrTrainingDialog(
 						parent.getShell(), 

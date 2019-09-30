@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
 import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSelectionEntry;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthDataSelectionEntry;
+import eu.transkribus.swt_gui.htr.treeviewer.GroundTruthDataSelectionEntry;
 import eu.transkribus.swt_gui.htr.treeviewer.IDataSelectionEntry;
 
 public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFontProvider, IColorProvider {
@@ -44,7 +44,7 @@ public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFon
 			String ct = column.getText();
 			
 			if (ct.equals(DataSetTableWidget.ID_COL)) {
-				if(element instanceof HtrGroundTruthDataSelectionEntry) {
+				if(element instanceof GroundTruthDataSelectionEntry) {
 					return "HTR " + d.getId();
 				}
 				return ""+d.getId();

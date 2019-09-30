@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
+import eu.transkribus.core.util.DescriptorUtils.AGtDataSet;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.AGtDataSetElement;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 
@@ -30,13 +32,13 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 	@Override
 	protected String getText(HtrGtDataSetElement element) {
 		final String text = super.getText(element);
-		List<HtrGtDataSet> includedBySetList = handler.getGtSetsFromSelectionIncludingElement(element, true);
+		List<AGtDataSet<?>> includedBySetList = handler.getGtSetsFromSelectionIncludingElement(element, true);
 		if(includedBySetList.isEmpty()) {
 			return text;
 		} else {
 			return text + " (included by " + 
 					includedBySetList.stream()
-						.map(s -> "HTR '" + s.getHtr().getName() + "' " + s.getDataSetType().getLabel())
+						.map(s -> "HTR '" + s.getName() + "' " + s.getDataSetType().getLabel())
 						.collect(Collectors.joining(", "))
 					+ ")";
 		}
@@ -73,7 +75,7 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 			}
 		} else if (element instanceof HtrGtDataSetElement) {
 			HtrGtDataSetElement gtPage = (HtrGtDataSetElement) element;
-			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getTrainGtMap().entrySet()) {
+			for(Entry<AGtDataSet<?>, List<AGtDataSetElement<?>>> e : handler.getTrainGtMap().entrySet()) {
 				if(e.getValue().stream()
 						.anyMatch(g -> g.getGroundTruthPage().getGtId() == gtPage.getGroundTruthPage().getGtId())) {
 					if(e.getKey().equals(gtPage.getParentGtDataSet())) {
@@ -83,7 +85,7 @@ public class HtrGroundTruthDataSetLabelProvider extends HtrGroundTruthLabelProvi
 					}
 				}
 			}
-			for(Entry<HtrGtDataSet, List<HtrGtDataSetElement>> e : handler.getValGtMap().entrySet()) {
+			for(Entry<AGtDataSet<?>, List<AGtDataSetElement<?>>> e : handler.getValGtMap().entrySet()) {
 				if(e.getValue().stream()
 						.anyMatch(g -> g.getGroundTruthPage().getGtId() == gtPage.getGroundTruthPage().getGtId())) {
 					if(e.getKey().equals(gtPage.getParentGtDataSet())) {

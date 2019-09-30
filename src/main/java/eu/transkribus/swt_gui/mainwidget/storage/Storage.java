@@ -64,7 +64,6 @@ import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
-import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.core.model.beans.EdFeature;
 import eu.transkribus.core.model.beans.EdOption;
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
@@ -81,6 +80,7 @@ import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpP2PaLAModel;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
@@ -1687,10 +1687,10 @@ public class Storage {
 		List<TrpGroundTruthPage> gt;
 		switch(set.getDataSetType()) {
 		case VALIDATION: 
-			gt = conn.getHtrValidationData(colId, set.getHtr().getHtrId());
+			gt = conn.getHtrValidationData(colId, set.getId());
 			break;
 		default:
-			gt = conn.getHtrTrainData(colId, set.getHtr().getHtrId());
+			gt = conn.getHtrTrainData(colId, set.getId());
 			break;
 		}
 		TrpDocMetadata md = new TrpHtrGtDocMetadata(set);
@@ -1704,7 +1704,7 @@ public class Storage {
 		
 		sendEvent(new GroundTruthLoadEvent(this, doc));
 
-		logger.info("loaded HTR GT " + set.getDataSetType().getLabel() + " htrId = " + set.getHtr().getHtrId() + ", title = " 
+		logger.info("loaded HTR GT " + set.getDataSetType().getLabel() + " htrId = " + set.getId() + ", title = " 
 				+ gtDoc.getMd().getTitle() + ", nPages = " + gtDoc.getPages().size());
 	}
 

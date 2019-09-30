@@ -19,7 +19,7 @@ import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.core.model.beans.enums.DataSetType;
-import eu.transkribus.core.util.DescriptorUtils.GroundTruthDataSetDescriptor;
+import eu.transkribus.core.util.DescriptorUtils.AGtDataSet;
 import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 
@@ -91,7 +91,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	HtrGtDataSetElement[] getChildren(HtrGtDataSet gt) {
 		List<TrpGroundTruthPage> gtList = null;
 		
-		if(!isUserAllowedToViewDataSets(gt.getHtr(), store.getUserId())) {
+		if(!isUserAllowedToViewDataSets(gt.getModel(), store.getUserId())) {
 			return null;
 		}
 		
@@ -141,7 +141,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		} else if (element instanceof TrpHtr) {
 			return htrs;
 		} else if (element instanceof HtrGtDataSet) {
-			return((HtrGtDataSet) element).getHtr();
+			return((HtrGtDataSet) element).getModel();
 		} else if (element instanceof HtrGtDataSetElement) {
 			return ((HtrGtDataSetElement) element).getParentGtDataSet();
 		}
@@ -156,7 +156,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 			return ((TrpHtr) element).hasTrainGt();
 		} else if (element instanceof HtrGtDataSet) {
 			final HtrGtDataSet s = ((HtrGtDataSet) element);
-			TrpHtr h = ((HtrGtDataSet) element).getHtr();
+			TrpHtr h = ((HtrGtDataSet) element).getModel();
 			if(!isUserAllowedToViewDataSets(h, store.getUserId())) {
 				return false;
 			}
@@ -202,11 +202,9 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 	 * An instance of this type represents an HTR GroundTruth data set (e.g. train or validation set) and is used for 
 	 * displaying the ground truth set level in a HTR treeviewer.
 	 */
-	public static class HtrGtDataSet extends GroundTruthDataSetDescriptor implements Comparable<HtrGtDataSet> {
-		private final TrpHtr htr;
+	public static class HtrGtDataSet extends AGtDataSet<TrpHtr> {
 		public HtrGtDataSet(TrpHtr htr, DataSetType dataSetType) {
-			super(htr.getHtrId(), dataSetType);
-			this.htr = htr;
+			super(htr, dataSetType);
 			switch(dataSetType) {
 			case TRAIN:
 				if(htr.getNrOfTrainGtPages() != null) {
@@ -220,52 +218,13 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 				break;
 			}
 		}
-		public TrpHtr getHtr() {
-			return htr;
+		@Override
+		public int getId() {
+			return getModel().getHtrId();
 		}
 		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((htr == null) ? 0 : htr.hashCode());
-			result = prime * result + ((getDataSetType() == null) ? 0 : getDataSetType().hashCode());
-			return result;
-		}
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			HtrGtDataSet other = (HtrGtDataSet) obj;
-			if (htr == null) {
-				if (other.htr != null)
-					return false;
-			} else if (getId() != other.getId())
-				return false;
-			if (!getDataSetType().equals(other.getDataSetType()))
-				return false;
-			return true;
-		}
-		@Override
-		public int compareTo(HtrGtDataSet o) {
-			if (this.getId() > o.getId()) {
-				return 1;
-			}
-			if (this.getId() < o.getId()) {
-				return -1;
-			}
-			if (DataSetType.TRAIN.equals(this.getDataSetType()) 
-					&& DataSetType.VALIDATION.equals(o.getDataSetType())) {
-				return 1;
-			}
-			if (DataSetType.VALIDATION.equals(this.getDataSetType()) 
-					&& DataSetType.TRAIN.equals(o.getDataSetType())) {
-				return -1;
-			}
-			return 0;			
+		public String getName() {
+			return getModel().getName();
 		}
 	}
 	
@@ -277,7 +236,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		private final HtrGtDataSet dataSet;
 		public TrpHtrGtDocMetadata(HtrGtDataSet dataSet) {
 			this.dataSet = dataSet;
-			this.setTitle("HTR '" + dataSet.getHtr().getName() + "' " + dataSet.getDataSetType().getLabel());
+			this.setTitle("HTR '" + dataSet.getModel().getName() + "' " + dataSet.getDataSetType().getLabel());
 		}
 		public HtrGtDataSet getDataSet() {
 			return dataSet;
@@ -305,7 +264,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		}
 	}
 	
-	public abstract static class AGtDataSetElement<T extends GroundTruthDataSetDescriptor> {
+	public abstract static class AGtDataSetElement<T extends AGtDataSet<?>> {
 		private final T parentGtDataSet;
 		private final TrpGroundTruthPage gtPage;
 		public AGtDataSetElement(T parentGtDataSet, TrpGroundTruthPage gtPage) {

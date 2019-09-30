@@ -6,8 +6,6 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -17,7 +15,6 @@ import org.eclipse.swt.widgets.Text;
 
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.util.TrpViewerFilter;
-import eu.transkribus.swt_gui.util.DelayedTask;
 
 public class HtrFilterWidget extends Composite {
 

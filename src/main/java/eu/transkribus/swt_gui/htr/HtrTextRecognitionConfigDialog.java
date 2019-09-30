@@ -12,8 +12,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Shell;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.swt.util.DialogUtil;
@@ -21,7 +19,6 @@ import eu.transkribus.util.TextRecognitionConfig;
 import eu.transkribus.util.TextRecognitionConfig.Mode;
 
 public class HtrTextRecognitionConfigDialog extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(HtrTextRecognitionConfigDialog.class);
 
 	private HtrDictionaryComposite htrDictComp;
 	private HtrModelsComposite htrModelsComp;

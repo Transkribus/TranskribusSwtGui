@@ -4,21 +4,38 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.CoreUtils;
 
 public class DocumentDataSelectionEntry implements IDataSelectionEntry<TrpDocMetadata, TrpPage> {
+	private static final Logger logger = LoggerFactory.getLogger(DocumentDataSelectionEntry.class);
+	
 	private String pageString;
 	private TrpDocMetadata doc;
 	private List<TrpPage> pages;
+	
+	private TrainDataValidator validator;
 
-	public DocumentDataSelectionEntry(TrpDocMetadata doc, List<TrpPage> pages) {
+	public DocumentDataSelectionEntry(TrpDocMetadata doc, List<TrpPage> pages, TrainDataValidator validator) {
+		if(validator == null) {
+			//use base impl
+			this.validator = new TrainDataValidator();
+		} else {
+			this.validator = validator;
+		}
 		this.pages = new ArrayList<>(pages);
 		this.doc = doc;
 		Collections.sort(this.pages);
 		pageString = computePageStr(null);
+	}
+	
+	public DocumentDataSelectionEntry(TrpDocMetadata doc, List<TrpPage> pages) {
+		this(doc, pages, null);
 	}
 
 	public int getId() {
@@ -67,7 +84,8 @@ public class DocumentDataSelectionEntry implements IDataSelectionEntry<TrpDocMet
 		}
 
 		for (TrpPage p : pages) {
-			if(DataSetSelectionController.isPageObjectWithText(p, status)) {
+			logger.debug("Checking page nr. {} for status {}", p, status);
+			if(validator.isQualifiedForTraining(p, status)) {
 				boolList.set(p.getPageNr() - 1, Boolean.TRUE);
 			}
 		}

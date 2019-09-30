@@ -9,7 +9,6 @@ import org.eclipse.swt.graphics.Color;
 
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 
 /**
@@ -31,8 +30,7 @@ public class CollectionDataSetLabelProvider extends CollectionLabelProvider impl
 		} else if (element instanceof TrpPage) {
 			//adapt behavior for pages for respecting the selected transcript version
 			TrpPage p = (TrpPage)element;
-			TrpTranscriptMetadata tmd = p.getTranscriptWithStatus(controller.getTranscriptVersionToUse().getStatus());
-			return "Page " + p.getPageNr() + " (" + tmd.getNrOfTranscribedLines() + " lines)";
+			return "Page " + p.getPageNr() + " (" + controller.getTrainDataSizeLabel(p) + ")";
 		}
 		return null;
 	}
@@ -72,7 +70,7 @@ public class CollectionDataSetLabelProvider extends CollectionLabelProvider impl
 		if(!DataSetSelectionSashForm.WHITE.equals(getBackground(element))) {
 			return DataSetSelectionSashForm.WHITE;
 		}
-		if(controller.isPageObjectWithoutText(element)) {
+		if(element instanceof TrpPage && !controller.isQualifiedForTraining((TrpPage) element)) {
 			return DataSetSelectionSashForm.GRAY;
 		}
 		return DataSetSelectionSashForm.BLACK;

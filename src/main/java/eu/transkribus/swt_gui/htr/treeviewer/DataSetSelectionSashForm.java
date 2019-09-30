@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.htr.treeviewer;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.eclipse.jface.viewers.TreeViewer;
@@ -11,6 +10,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
@@ -30,6 +31,7 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.DescriptorUtils.AGtDataSet;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ImgLoader;
@@ -39,14 +41,16 @@ import eu.transkribus.swt_gui.htr.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
 import eu.transkribus.swt_gui.htr.HtrFilterWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.AGtDataSetElement;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 /**
  * Sashform UI element for selecting datasets from document and ground truth data.
- *
+ * 
+ * @see DataSetSelectionController
  */
-public class DataSetSelectionSashForm extends SashForm {
+public class DataSetSelectionSashForm extends SashForm implements IStorageListener {
 	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionSashForm.class);
 	
 //	private static final RGB BLUE_RGB = new RGB(0, 0, 140);
@@ -131,7 +135,7 @@ public class DataSetSelectionSashForm extends SashForm {
 		buttonComp.setLayout(new GridLayout(1, true));
 
 		previewLbl = new Label(buttonComp, SWT.NONE);
-		GridData previewLblGd = new GridData(SWT.CENTER, SWT.CENTER, true, true);
+		GridData previewLblGd = new GridData(SWT.CENTER, SWT.TOP, true, true);
 		previewLblGd.heightHint = 120;
 		previewLblGd.widthHint = 100;
 		previewLbl.setLayoutData(previewLblGd);
@@ -209,6 +213,13 @@ public class DataSetSelectionSashForm extends SashForm {
 		trainSetGrp.pack();
 		valSetGrp.pack();
 		
+		Storage.getInstance().addListener(this);
+		this.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				Storage.getInstance().removeListener(DataSetSelectionSashForm.this);
+			}
+		});
 		new DataSetSelectionSashFormListener(this, dataSetSelectionController);
 	}
 
@@ -255,9 +266,7 @@ public class DataSetSelectionSashForm extends SashForm {
 //		GroundTruthTreeWidget gtWidget = new GroundTruthTreeWidget(parent, htrGtContentProvider, htrGtLabelProvider);
 //		gtWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
-		tv.setInput(this.htrList);
-		
-		
+		tv.setInput(this.htrList);		
 		return tv;
 	}
 	
@@ -298,18 +307,18 @@ public class DataSetSelectionSashForm extends SashForm {
 	 * @param gtOverlapByImageId
 	 * @return SWT.YES, SWT.NO, SWT.CANCEL
 	 */
-	int openConflictDialog(HtrGtDataSet gtSet, List<HtrGtDataSetElement> gtOverlapByImageId) {
+	int openConflictDialog(AGtDataSet<?> gtSet, List<AGtDataSetElement<?>> gtOverlapByImageId) {
 		String title = "Some of the image data is already included";
 		String msg = "The images of the following HTR model data are already included in the selection:\n\n";
 		if(gtOverlapByImageId.size() == 1) {
-			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getHtr().getName() 
+			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getName() 
 					+ "' page " + gtOverlapByImageId.get(0).getGroundTruthPage().getPageNr();
 		} else {
 			List<Integer> pageIndices = gtOverlapByImageId.stream()
 					.map(g -> (g.getGroundTruthPage().getPageNr() - 1))
 					.collect(Collectors.toList());
 			String pageStr = CoreUtils.getRangeListStrFromList(pageIndices);
-			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getHtr().getName() + "' pages " + pageStr;
+			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getName() + "' pages " + pageStr;
 		}
 		msg += "\n\nDo you want to replace the previous selection with those pages?";
 		
@@ -429,6 +438,16 @@ public class DataSetSelectionSashForm extends SashForm {
 
 	public void enableDebugDialog(boolean b) {
 		getController().SHOW_DEBUG_DIALOG = b;
+	}
+	
+	@Override
+	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
+		if(e.collId != this.colId) {
+			logger.debug("Ignoring update of htrList for foreign collection ID = " + e.collId);
+			return;
+		}
+		this.htrList = e.htrs.getList();
+		groundTruthTv.setInput(this.htrList);
 	}
 	
 	public static enum VersionComboStatus {
