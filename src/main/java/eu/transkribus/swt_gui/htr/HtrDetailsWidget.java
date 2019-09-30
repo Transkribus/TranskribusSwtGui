@@ -52,7 +52,7 @@ public class HtrDetailsWidget extends SashForm {
 	ChartComposite jFreeChartComp;
 	JFreeChart chart = null;
 	
-	private boolean allowMetadataEditing = true;
+	private boolean allowMetadataEditing = false;
 	
 	public HtrDetailsWidget(Composite parent, int style) {
 		super(parent, style);
