@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -17,6 +18,8 @@ import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpP2PaLAModel;
@@ -272,7 +275,12 @@ public class ToolsWidgetListener implements SelectionListener {
 			if (s == tw.startLaBtn) {
 				logger.debug("PARAMETERS = " + tw.laComp.getParameters());
 				String pageStr = (!tw.laComp.isCurrentTranscript() ? tw.laComp.getPages() : Integer.toString(store.getPage().getPageNr()));
-				String msg = "Do you really want to start the LA for page(s) " + pageStr + "  ?";
+				
+//				logger.debug("docs selection " + tw.laComp.isDocsSelection());
+//				logger.debug(" tw.laComp.getDocs() != null " +  (tw.laComp.getDocs() != null));
+//				logger.debug("Storage.getInstance().isAdminLoggedIn() " +  (Storage.getInstance().isAdminLoggedIn()));
+				
+				String msg = (tw.laComp.isDocsSelection() && tw.laComp.getDocs() != null && Storage.getInstance().isAdminLoggedIn()) ? "Do you really want to start the LA for "+ tw.laComp.getDocs().size() + " docs in this collection?" : "Do you really want to start the LA for page(s) " + pageStr + "  ?";
 				
 				String configInfoStr = null;
 				//get information on config for configurable methods
@@ -287,8 +295,24 @@ public class ToolsWidgetListener implements SelectionListener {
 				if (DialogUtil.showYesNoDialog(mw.getShell(), "Layout recognition", msg)!=SWT.YES) {
 					return;
 				}
+				
+				if (tw.laComp.isDocsSelection() && tw.laComp.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
+					/*
+					 * ToDo: we could start LA for all docs at once in a single job instead of starting it for each doc separately
+					 * this way the jobs are parallelized automatically, results will be finsished earlier
+					 * but job list will be much longer
+					 */
+					for (DocumentSelectionDescriptor docDescr : tw.laComp.getDocs()){
+						logger.debug("start LA for docs: " + docDescr.getDocId());
+						List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+						dsds.add(docDescr);
+						List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(dsds, true, true, false, false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters());
+						jobIds.addAll(tmp);
+						
+					}
+				}
 
-				if (!tw.laComp.isCurrentTranscript()) {
+				else if (!tw.laComp.isCurrentTranscript()) {
 					logger.debug("running la on pages: " + tw.laComp.getPages());
 					jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(tw.laComp.getPages(),
 							tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), false, false,
@@ -330,11 +354,27 @@ public class ToolsWidgetListener implements SelectionListener {
 							return;
 						}
 						logger.debug("Selected P2PaLA model: "+model);
+						
+						String msg = (diag.isDocsSelected() && diag.getDocs() != null && Storage.getInstance().isAdminLoggedIn()) ? "Do you really want to start P2PaLA for "+ diag.getDocs().size() + " docs in this collection?" : "Do you really want to start P2PaLA for all selected page(s)?";
+						
+						if (DialogUtil.showYesNoDialog(mw.getShell(), "P2PaLA", msg)!=SWT.YES) {
+							return;
+						}
+						
 						ParameterMap pm = new ParameterMap();
 						pm.addIntParam(JobConst.PROP_MODEL_ID, model.getId());
 						pm.addParameter(JobConst.PROP_MODELNAME, model.getName());
 						
-						if (!conf.currentTranscript) {
+						if (diag.isDocsSelected() && diag.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
+							for (DocumentSelectionDescriptor docDescr : diag.getDocs()){
+								logger.debug("start p2pala for doc: " + docDescr.getDocId());
+								List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+								dsds.add(docDescr);
+								List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(dsds, true, true, false, false, false, jobImpl, pm);
+								jobIds.addAll(tmp);								
+							}
+						}
+						else if (!conf.currentTranscript) {
 							logger.debug("p2palaBtn on pages: " + tw.otherToolsPagesSelector.getPagesStr());
 							jobIds = store.analyzeLayoutOnLatestTranscriptOfPages(conf.pagesStr,
 									true, true, false, false, false, jobImpl, pm);
@@ -538,15 +578,43 @@ public class ToolsWidgetListener implements SelectionListener {
 						TextRecognitionConfig config = trd2.getConfig();
 						final String pages = trd2.getPages();
 						
-						String msg = "Do you really want to start the HTR for page(s) " + pages + "  ?";
+						String msg = (trd2.isDocsSelection() && trd2.getDocs() != null && Storage.getInstance().isAdminLoggedIn()) ? "Do you really want to start the HTR for "+ trd2.getDocs().size() + " docs in this collection?" : "Do you really want to start the HTR for page(s) " + pages + "  ?";
+						
+						//String msg = "Do you really want to start the HTR for page(s) " + pages + "  ?";
 						if (DialogUtil.showYesNoDialog(mw.getShell(), "Handwritten Text Recognition", msg)!=SWT.YES) {
 							trd2 = null;
 							return;
 						}
 						
 						try {
-							String jobId = store.runHtr(pages, config);
-							jobIds.add(jobId);
+							
+							if (trd2.isDocsSelection() && trd2.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
+								/*
+								 * ToDo: we could start LA for all docs at once in a single job instead of starting it for each doc separately
+								 * this way the jobs are parallelized automatically, results will be finsished earlier
+								 * but job list will be much longer
+								 */
+								for (DocumentSelectionDescriptor docDescr : trd2.getDocs()){
+									logger.debug("start HTR for doc: " + docDescr.getDocId());
+																		
+									int nrPages = docDescr.getPages().size();
+									logger.debug("number of pages in descriptor: " + nrPages);
+									List<Integer> pagesList = new ArrayList<>();
+									for (int i = 0; i<nrPages; i++){
+										pagesList.add(i);
+									}
+									String currDocPages = CoreUtils.getRangeListStrFromList(pagesList);
+									logger.debug("start HTR for this pageString: (should be all pages): " + currDocPages);
+									String tmp = store.runHtr(docDescr.getDocId(), currDocPages, config);
+									jobIds.add(tmp);
+									
+								}
+							}
+							else{
+								
+								String jobId = store.runHtr(pages, config);
+								jobIds.add(jobId);
+							}
 						} finally {
 							trd2 = null;
 						}

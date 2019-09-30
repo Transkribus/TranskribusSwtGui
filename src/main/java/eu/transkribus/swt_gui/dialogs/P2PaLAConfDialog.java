@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpP2PaLAModel;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
@@ -39,6 +40,7 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
+import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 
 public class P2PaLAConfDialog extends Dialog {
 	public static class P2PaLARecogConf {
@@ -49,7 +51,17 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLAConfDialog.class);
 //	MyTableViewer modelsTable;
-	CurrentTranscriptOrCurrentDocPagesSelector pagesSelector;
+	CurrentTranscriptOrDocPagesOrCollectionSelector pagesSelector;
+	private boolean docsSelected = false;
+	public boolean isDocsSelected() {
+		return docsSelected;
+	}
+
+	public List<DocumentSelectionDescriptor> getSelectedDocDescriptors() {
+		return selectedDocDescriptors;
+	}
+
+	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
 //	Combo modelCombo;
 	ComboViewer modelComboViewer;
 	AutoCompleteField modelsAutocomplete;
@@ -143,7 +155,7 @@ public class P2PaLAConfDialog extends Dialog {
 //		});
 //		Fonts.setBoldFont(infoText);
 		
-		pagesSelector = new CurrentTranscriptOrCurrentDocPagesSelector(cont, SWT.NONE, true,true);
+		pagesSelector = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, false,true);
 		pagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
 		Label recogModelLabel = new Label(cont, 0);
@@ -294,7 +306,7 @@ public class P2PaLAConfDialog extends Dialog {
 			b.setEnabled(m!=null);	
 		}
 	}
-	
+		
 //	public void setModels(List<TrpP2PaLAModel> models) {
 //		logger.debug("setting input models, N = "+CoreUtils.size(models));
 //		
@@ -388,9 +400,19 @@ public class P2PaLAConfDialog extends Dialog {
 		return conf;
 	}
 	
+	public List<DocumentSelectionDescriptor> getDocs(){
+		return selectedDocDescriptors;
+	}
+	
 	@Override
 	protected void okPressed() {
 		storeConf();
+		if(pagesSelector.isDocsSelection()){
+
+			docsSelected = pagesSelector.isDocsSelection();
+			selectedDocDescriptors = pagesSelector.getDocumentsToExportOnServer();
+			
+		}
 		super.okPressed();
 	}
 

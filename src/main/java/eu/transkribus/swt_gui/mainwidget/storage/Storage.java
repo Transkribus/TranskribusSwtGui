@@ -2163,6 +2163,24 @@ public class Storage {
 		return jobids;
 	}
 	
+	/*
+	 *	used to start LA for several docs of the collection: admin feature 
+	 */
+	public List<String> analyzeLayoutOnDocumentSelectionDescriptor(List<DocumentSelectionDescriptor> dsds, boolean doBlockSeg, boolean doLineSeg, boolean doWordSeg, boolean doPolygonToBaseline, boolean doBaselineToPolygon, String jobImpl, ParameterMap pars) throws SessionExpiredException, ServerErrorException, ClientErrorException, IllegalArgumentException, NoConnectionException, IOException {
+		checkConnection(true);
+		
+		int colId = getCollId();
+		
+		List<String> jobids = new ArrayList<>();
+
+		List<TrpJobStatus> jobs = conn.analyzeLayout(colId, dsds, doBlockSeg, doLineSeg, doWordSeg, doPolygonToBaseline, doBaselineToPolygon, jobImpl, pars);
+		for (TrpJobStatus j : jobs) {
+			jobids.add(j.getJobId());
+		}
+		
+		return jobids;
+	}
+	
 	public String runOcr(int colId, int docId, String pageStr, OcrConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException {
 		checkConnection(true);
 		return conn.runOcr(colId, docId, pageStr, config.getTypeFace(), config.getLanguageString());
@@ -2777,6 +2795,19 @@ public class Storage {
 		switch(config.getMode()) {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), getDocId(), pages, 
+					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats());
+		case UPVLC:
+			return null;
+		default:
+			return null;
+		}
+	}
+	
+	public String runHtr(int docId, String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		checkConnection(true);
+		switch(config.getMode()) {
+		case CITlab:
+			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), docId, pages, 
 					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats());
 		case UPVLC:
 			return null;
