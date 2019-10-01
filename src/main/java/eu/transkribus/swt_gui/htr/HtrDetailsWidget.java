@@ -165,7 +165,6 @@ public class HtrDetailsWidget extends SashForm {
 	}
 	
 	void updateDetails(TrpHtr htr) {
-		updateMetadataBtn.setEnabled(false);
 		nameTxt.setEnabled(htr != null);
 		descTxt.setEnabled(htr != null);
 		langTxt.setEnabled(htr != null);
@@ -197,7 +196,9 @@ public class HtrDetailsWidget extends SashForm {
 
 		updateParamTable(htr.getParamsProps());
 
-		updateMetadataBtn.setEnabled(false);
+		if(updateMetadataBtn != null) {
+			updateMetadataBtn.setEnabled(false);
+		}
 		showCharSetBtn.setEnabled(htr.getCharSetList() != null && !htr.getCharSetList().isEmpty());
 
 		showValSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
