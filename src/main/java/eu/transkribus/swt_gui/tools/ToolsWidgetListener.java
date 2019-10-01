@@ -9,7 +9,10 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -221,8 +224,14 @@ public class ToolsWidgetListener implements SelectionListener {
 			mw.updatePageLock();
 
 			String jobsStr = jobIds.length > 1 ? "jobs" : "job";
-			DialogUtil.showInfoMessageBox(tw.getShell(), jobIds.length + " " + jobsStr + " started!",
-					"IDs:\n " + jobIdsStr);
+			final String title = jobIds.length + " " + jobsStr + " started!";
+			final String msg = "IDs:\n " + jobIdsStr;
+			
+			//Dialog may block the GUI. 
+//			DialogUtil.showInfoMessageBox(tw.getShell(), title, msg);
+			
+			//show balloon tip on jobs button instead
+			DialogUtil.showBallonToolTip(mw.getUi().getJobsButton(), null, title, msg);
 		}
 	}
 

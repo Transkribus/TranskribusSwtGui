@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -389,13 +390,29 @@ public class DialogUtil {
 
 		int xOffset = 0, yOffset = 0;
 		if(displayOnBottom) {
+			logger.debug("Computing position for balloon tip on: {}", c);
 			Rectangle b = c.getBounds();
 			xOffset = b.width;
 			yOffset = b.height;
 		}
-		Rectangle b = c.getBounds();
 		Point l = c.getParent().toDisplay(c.getLocation());
-		DialogUtil.createAndShowBalloonToolTip(c.getShell(), iconType, message, title, l.x + xOffset, l.y + yOffset, true);		
+		DialogUtil.createAndShowBalloonToolTip(c.getShell(), iconType, message, title, l.x + xOffset, l.y + yOffset, true);
+	}
+	
+	public static void showBallonToolTip(ToolItem t, Integer iconType, String title, String message) {
+		if (iconType == null) {
+			iconType = SWT.ICON_INFORMATION;
+		}
+		
+		Rectangle btnBounds = t.getBounds();
+		//add x and y as we need to respect the position within the toolbar, divide width and height by two to make ballon point on icon
+		int xOffset = btnBounds.x + btnBounds.width / 2;
+		int yOffset = btnBounds.y + btnBounds.height / 2;
+		
+		Point toolBarLoc = t.getParent().toDisplay(t.getParent().getLocation());
+		
+		logger.debug("Toolbar at x = {}, y = {}, item offset x = {}, y = {}", toolBarLoc.x, toolBarLoc.y, xOffset, yOffset);
+		DialogUtil.createAndShowBalloonToolTip(t.getParent().getShell(), SWT.ICON_INFORMATION, message, title, toolBarLoc.x + xOffset, toolBarLoc.y + yOffset, true);
 	}
 	
 	public static Double showDoubleInputDialog(Shell parentShell, String dialogTitle, String dialogMessage, double initialValue) {
