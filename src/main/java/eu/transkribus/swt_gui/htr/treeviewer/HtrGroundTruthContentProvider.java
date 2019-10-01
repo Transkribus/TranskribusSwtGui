@@ -185,7 +185,7 @@ public class HtrGroundTruthContentProvider extends ACollectionBoundStructuredCon
 		logger.debug("Checking HTR ReleaseLevel: {}", h.toShortString());
 		return !ReleaseLevel.isPrivateDataSet(h.getReleaseLevel())
 				//check for direct collection link
-				|| h.getCollectionIdLink() == store.getCollId()
+				|| (h.getCollectionIdLink() != null && h.getCollectionIdLink() == store.getCollId())
 				//curator may always see the sets even if no explicit link is set to this collection
 				|| h.getUserId() == store.getUserId();
 	}
