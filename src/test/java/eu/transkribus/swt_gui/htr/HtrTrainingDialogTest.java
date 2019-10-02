@@ -22,7 +22,10 @@ public class HtrTrainingDialogTest {
 		
 		boolean displayJsonDescriptorOnChange = true;
 		
-		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, args[0], args[1], 575) {
+		final int colId = 2; //575 = CITlab GT collection
+		
+		
+		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, args[0], args[1], colId) {
 			@Override
 			protected void createTestContents(Composite parent) throws Exception {
 				getShell().setSize(500, 700);
