@@ -112,6 +112,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		List<StructCustomTagSpec> tags = store.getStructCustomTagSpecs();
 		
 		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Restrict on structure tags", 1, 200, 300 );
+		multiCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
 		
 		for(StructCustomTagSpec tag : tags) {
 			logger.debug(tag.toString());

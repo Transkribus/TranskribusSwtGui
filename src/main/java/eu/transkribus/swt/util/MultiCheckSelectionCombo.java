@@ -211,8 +211,6 @@ public class MultiCheckSelectionCombo extends Composite {
 			}			
 		}
 		display.setText((sb.length() > 0)? sb.toString() : defaultText);
-		display.pack();
-		this.pack();
 	}
 	
     /**
