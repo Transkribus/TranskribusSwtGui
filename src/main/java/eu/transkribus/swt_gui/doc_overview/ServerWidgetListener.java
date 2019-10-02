@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.doc_overview;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -31,6 +32,7 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
+import eu.transkribus.swt_gui.htr.HtrDetailsDialog;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -201,7 +203,10 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 			mw.loadRemoteDoc(docId, sw.getSelectedCollectionId());
 		} else if(sw.isGroundTruthTabSelected()) {
 			if (el instanceof TrpHtr) {
-				sw.expandGroundTruthTreeItem(el);
+				//double-click opens the models dialog showing details of this HTR
+				sw.showHtrDetailsDialog((TrpHtr) el);
+				//expand tree item
+				//sw.expandGroundTruthTreeItem(el);
 			} else if (el instanceof HtrGtDataSet) {
 				HtrGtDataSet set = (HtrGtDataSet) el;
 				if(!storage.isUserAllowedToViewDataSets(set.getModel())) {

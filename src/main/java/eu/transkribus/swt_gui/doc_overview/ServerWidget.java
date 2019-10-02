@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -44,6 +45,7 @@ import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.collection_comboviewer.CollectionSelectorWidget;
+import eu.transkribus.swt_gui.htr.HtrDetailsDialog;
 import eu.transkribus.swt_gui.htr.treeviewer.GroundTruthTreeWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthLabelAndFontProvider;
@@ -114,6 +116,8 @@ public class ServerWidget extends Composite {
 	
 	ToolItem addToCollectionTi, removeFromCollectionTi, deleteDocTi, manageUsersTi, duplicateDocTi, administerCollectionTi, recycleBin;
 	TextToolItem quickLoadByDocId;
+	
+	HtrDetailsDialog htrDetailsDialog;
 		
 	public ServerWidget(Composite parent) {
 		super(parent, SWT.NONE);
@@ -447,6 +451,19 @@ public class ServerWidget extends Composite {
 				}
 			}
 		});
+	}
+	
+	public void showHtrDetailsDialog(TrpHtr htr) {
+		if(htr == null) {
+			return;
+		}
+		if(htrDetailsDialog == null || htrDetailsDialog.isDisposed()) {
+			htrDetailsDialog = new HtrDetailsDialog(getShell(), htr);
+			htrDetailsDialog.open();
+		} else {
+			htrDetailsDialog.setVisible();
+			htrDetailsDialog.setHtr(htr);
+		}
 	}
 	
 	private void initDocOverviewMenu() {
