@@ -35,6 +35,7 @@ import eu.transkribus.core.util.DescriptorUtils.AGtDataSet;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ImgLoader;
+import eu.transkribus.swt.util.TrpViewerFilterWidget;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.DataSetMetadata;
@@ -80,8 +81,9 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 	//show pages with no transcribed lines in gray
 	public static final Color GRAY = Colors.getSystemColor(SWT.COLOR_GRAY);
 	
-	Composite dataTabComp;
+	Composite docTabComp, dataTabComp;
 	TreeViewer docTv, groundTruthTv;
+	TrpViewerFilterWidget docFilterWidget, gtFilterWidget;
 	
 	Combo versionCombo;
 	Button addToTrainSetBtn, addToValSetBtn, removeFromTrainSetBtn, removeFromValSetBtn;
@@ -113,23 +115,30 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		dataTabFolder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
 		dataTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
+		GridLayout tabCompLayout = new GridLayout(1, true);
+		//remove margins to make it consistents with documentsTab
+		tabCompLayout.marginHeight = tabCompLayout.marginWidth = 0;
+		GridData tabCompLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
+		
+		docTabComp = new Composite(dataTabFolder, SWT.NONE);
+		docTabComp.setLayout(tabCompLayout);
+		docTabComp.setLayoutData(tabCompLayoutData);
+		
 		documentsTabItem = new CTabItem(dataTabFolder, SWT.NONE);
 		documentsTabItem.setText("Documents");
-		docTv = createDocumentTreeViewer(dataTabFolder);
-		documentsTabItem.setControl(docTv.getControl());
+		docTv = createDocumentTreeViewer(docTabComp);
+		docFilterWidget = new TrpViewerFilterWidget(docTabComp, docTv, SWT.NONE, TrpDocMetadata.class, "docId", "title");
+		documentsTabItem.setControl(docTabComp);
 
 		dataTabComp = new Composite(dataTabFolder, SWT.NONE);
-		GridLayout dataTabCompLayout = new GridLayout(1, true);
-		//remove margins to make it consistents with documentsTab
-		dataTabCompLayout.marginHeight = dataTabCompLayout.marginWidth = 0;
-		dataTabComp.setLayout(dataTabCompLayout);
-		dataTabComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		dataTabComp.setLayout(tabCompLayout);
+		dataTabComp.setLayoutData(tabCompLayoutData);
 		
 		groundTruthTv = createGroundTruthTreeViewer(dataTabComp);
 		if(!htrList.isEmpty()) {
 			setGroundTruthSelectionEnabled(true);
 		}
-		HtrFilterWidget filterWidget = new HtrFilterWidget(dataTabComp, groundTruthTv, SWT.NONE);
+		gtFilterWidget = new HtrFilterWidget(dataTabComp, groundTruthTv, SWT.NONE);
 		
 		Composite buttonComp = new Composite(this, SWT.NONE);
 		buttonComp.setLayout(new GridLayout(1, true));
