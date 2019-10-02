@@ -608,6 +608,7 @@ public class ToolsWidget extends Composite {
 		werExp.setEnabled(setEnabled);
 		laToolsExp.setExpanded(setEnabled);
 		laToolsExp.setEnabled(setEnabled);
+		laComp.updateSelectionChooserForLA();
 		expOther.setExpanded(setEnabled);
 		expOther.setEnabled(setEnabled);
 		trComp.getRunBtn().setEnabled(setEnabled);

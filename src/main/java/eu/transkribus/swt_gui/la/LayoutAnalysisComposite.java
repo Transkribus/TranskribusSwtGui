@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
@@ -37,6 +38,7 @@ import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
+import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 
 public class LayoutAnalysisComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(LayoutAnalysisComposite.class);
@@ -46,7 +48,7 @@ public class LayoutAnalysisComposite extends Composite {
 	
 	static private Storage store = TEST ? null : Storage.getInstance();
 //	private DocPagesSelector dps;
-	private CurrentTranscriptOrCurrentDocPagesSelector dps;
+	private CurrentTranscriptOrDocPagesOrCollectionSelector dps;
 	private Button doBlockSegBtn, doLineSegBtn, doWordSegBtn, unsegmentedBtn;
 //	private LabeledComboWithButton methodCombo;
 	private LabeledCombo methodCombo;
@@ -89,7 +91,8 @@ public class LayoutAnalysisComposite extends Composite {
 //		methodCombo.combo.setItems(getMethods(true).toArray(new String[0]));
 //		methodCombo.combo.select(0);
 		
-		dps = new CurrentTranscriptOrCurrentDocPagesSelector(mainContainer, SWT.NONE, true,true);		
+		//with this selector jobs can be started for complete collections
+		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(mainContainer, SWT.NONE, true,true);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
 
 //		Group checkGrp = new Group(mainContainer,SWT.NONE);
@@ -130,7 +133,7 @@ public class LayoutAnalysisComposite extends Composite {
 						}
 					}
 					pageString = CoreUtils.getRangeListStr(checked);
-					logger.debug("pageString with pages containing no lines = "+pageString);
+					//logger.debug("pageString with pages containing no lines = "+pageString);
 
 					dps.setPagesStr(pageString);
 					dps.selectPagesRadio();
@@ -379,6 +382,11 @@ public class LayoutAnalysisComposite extends Composite {
 		}
 	}
 	
+	public void updateSelectionChooserForLA(){
+		dps.updateGui();
+	}
+	
+	
 	public boolean isDoLineSeg(){
 		return doLineSegBtn.getSelection();
 	}
@@ -395,12 +403,20 @@ public class LayoutAnalysisComposite extends Composite {
 		return dps.isCurrentTranscript();
 	}
 	
+	public boolean isDocsSelection() {
+		return dps.isDocsSelection();
+	}
+	
 	public String getPages(){
 		return dps.getPagesStr();
 	}
 	
 	public ParameterMap getParameters() {
 		return paramMap;
+	}
+	
+	public List<DocumentSelectionDescriptor> getDocs(){
+		return dps.getDocumentsToExportOnServer();
 	}
 	
 	public JobImpl getJobImpl() {

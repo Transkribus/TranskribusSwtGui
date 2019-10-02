@@ -3,6 +3,8 @@ package eu.transkribus.swt_gui.dialogs;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.ClientErrorException;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -15,8 +17,13 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor.PageDescriptor;
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
+import eu.transkribus.core.model.beans.TrpPage;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocumentsSelector;
 
 public class DocumentsSelectorDialog extends Dialog {
@@ -64,12 +71,30 @@ public class DocumentsSelectorDialog extends Dialog {
 		return checkedDocs;
 	}
 	
-	public List<DocumentSelectionDescriptor> getCheckedDocumentDescriptors() {
-		List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
-		for (TrpDocMetadata d : getCheckedDocs()) {
-			dsds.add(new DocumentSelectionDescriptor(d.getDocId()));
+	/*
+	 * get the documentSelectionDescriptor list inclusive the page descriptors
+	 */
+	public List<DocumentSelectionDescriptor> getCheckedDocumentDescriptors(){
+		try{
+			List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
+			for (TrpDocMetadata d : getCheckedDocs()) {
+				DocumentSelectionDescriptor currDescr = new DocumentSelectionDescriptor(d.getDocId());
+				TrpDoc currDoc;
+	
+					currDoc = Storage.getInstance().getConnection().getTrpDoc(Storage.getInstance().getCollId(), d.getDocId(), 1);
+				
+				List<TrpPage> currPages = currDoc.getPages();
+				for (int i = 0; i < d.getNrOfPages(); i++){		
+					currDescr.addPage(new PageDescriptor(currPages.get(i).getPageId()));
+				}
+				dsds.add(currDescr);	
+			}
+			return dsds;
+		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
 		}
-		return dsds;
 	}
 	
 	@Override protected void createButtonsForButtonBar(Composite parent) {

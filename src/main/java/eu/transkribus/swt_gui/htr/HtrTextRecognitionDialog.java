@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -24,13 +23,15 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+
+import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
-import eu.transkribus.swt_gui.util.DocPagesSelector;
 import eu.transkribus.util.TextRecognitionConfig;
 
 public class HtrTextRecognitionDialog extends Dialog {
@@ -39,7 +40,10 @@ public class HtrTextRecognitionDialog extends Dialog {
 	private HtrTextRecognitionConfigDialog trcd = null;
 	
 	private Button thisPageBtn, severalPagesBtn;
-	private DocPagesSelector dps;
+	private CurrentTranscriptOrDocPagesOrCollectionSelector dps;
+	private boolean docsSelected = false;
+	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
+	
 	private Button doLinePolygonSimplificationBtn, keepOriginalLinePolygonsBtn, doStoreConfMatsBtn;
 	private MultiCheckSelectionCombo multiCombo;
 	
@@ -63,25 +67,29 @@ public class HtrTextRecognitionDialog extends Dialog {
 		Composite cont = (Composite) super.createDialogArea(parent);
 		cont.setLayout(new GridLayout(3, false));
 		
-		thisPageBtn = new Button(cont, SWT.RADIO);
-		thisPageBtn.setText("On this page");
-		thisPageBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		thisPageBtn.setSelection(true);
+		//with this selector jobs can be started for complete collections
+		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, true,true);		
+		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 3, 1));
 		
-		severalPagesBtn = new Button(cont, SWT.RADIO);
-		severalPagesBtn.setText("Pages:");
-		severalPagesBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		dps = new DocPagesSelector(cont, SWT.NONE, false, store.getDoc().getPages());
-		dps.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		dps.setEnabled(false);
-		
-		severalPagesBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				dps.setEnabled(severalPagesBtn.getSelection());
-			}
-		});
+//		thisPageBtn = new Button(cont, SWT.RADIO);
+//		thisPageBtn.setText("On this page");
+//		thisPageBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+//		thisPageBtn.setSelection(true);
+//		
+//		severalPagesBtn = new Button(cont, SWT.RADIO);
+//		severalPagesBtn.setText("Pages:");
+//		severalPagesBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		
+//		dps = new DocPagesSelector(cont, SWT.NONE, false, store.getDoc().getPages());
+//		dps.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+//		dps.setEnabled(false);
+//		
+//		severalPagesBtn.addSelectionListener(new SelectionAdapter() {
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				dps.setEnabled(severalPagesBtn.getSelection());
+//			}
+//		});
 		
 		doLinePolygonSimplificationBtn = new Button(cont, SWT.CHECK);
 		doLinePolygonSimplificationBtn.setText("Do polygon simplification");
@@ -163,27 +171,40 @@ public class HtrTextRecognitionDialog extends Dialog {
 		
 		return cont;
 	}
-
-		
+	
+	public boolean isDocsSelection(){
+		return docsSelected;
+	}
+	
+	public List<DocumentSelectionDescriptor> getDocs(){
+		return selectedDocDescriptors;
+	}
+	
 	@Override
 	protected void okPressed() {
-		
-		if(thisPageBtn.getSelection()) {
+
+		if(dps.isCurrentTranscript()) {
 			pages = ""+store.getPage().getPageNr();
-		} else if(severalPagesBtn.getSelection()) {
-			pages = dps.getPagesText().getText();
+		} else if(!dps.isDocsSelection()) {
+			pages = dps.getPagesStr();
 		}
 		
-		if(pages == null || pages.isEmpty()) {
-			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please specify pages for recognition.");
-			return;
+		if (!dps.isDocsSelection()){
+			if(pages == null || pages.isEmpty()) {
+				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please specify pages for recognition.");
+				return;
+			}
+			
+			try {
+				CoreUtils.parseRangeListStr(pages, store.getDoc().getNPages());
+			} catch (IOException e) {
+				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Page selection is invalid.");
+				return;
+			}
 		}
-		
-		try {
-			CoreUtils.parseRangeListStr(pages, store.getDoc().getNPages());
-		} catch (IOException e) {
-			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Page selection is invalid.");
-			return;
+		else{
+			docsSelected = dps.isDocsSelection();
+			selectedDocDescriptors = dps.getDocumentsToExportOnServer();
 		}
 		
 		if(config == null) {
