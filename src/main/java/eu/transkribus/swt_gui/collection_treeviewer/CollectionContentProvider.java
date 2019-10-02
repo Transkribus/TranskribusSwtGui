@@ -1,6 +1,9 @@
 package eu.transkribus.swt_gui.collection_treeviewer;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -16,7 +19,7 @@ import eu.transkribus.swt.util.ACollectionBoundStructuredContentProvider;
 
 public class CollectionContentProvider extends ACollectionBoundStructuredContentProvider implements ITreeContentProvider {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionContentProvider.class);
-	List<TrpDocMetadata> docs;
+	Map<TrpDocMetadata, List<TrpPage>> docMap;
 	
 	public CollectionContentProvider() {
 		super(null);
@@ -32,7 +35,10 @@ public class CollectionContentProvider extends ACollectionBoundStructuredContent
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {		
 		if (newInput instanceof List<?>) {
-			this.docs = (List<TrpDocMetadata>) newInput;
+			this.docMap = new HashMap<>();
+			for(TrpDocMetadata d : (List<TrpDocMetadata>) newInput) {
+				this.docMap.put(d, new ArrayList<>(0));
+			}
 		}
 	}
 
@@ -42,15 +48,7 @@ public class CollectionContentProvider extends ACollectionBoundStructuredContent
 			return ((List<TrpDocMetadata>) inputElement).toArray();			
 		} 
 		else if (inputElement instanceof TrpDocMetadata) {
-			TrpDoc doc;
-			try {
-				doc = store.getRemoteDoc(super.getCollId(), ((TrpDocMetadata) inputElement).getDocId(), -1);
-				return doc.getPages().toArray();
-			} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
-				logger.error("No Connection!");
-				return new Object[] {};
-			}
-			
+			return getPagesOfDoc((TrpDocMetadata) inputElement).toArray();		
 		}
 		return null;
 	}
@@ -64,14 +62,8 @@ public class CollectionContentProvider extends ACollectionBoundStructuredContent
 	}
 	
 	public TrpPage[] getChildren(TrpDocMetadata docMd) {
-		try {
-			logger.debug("Fetching pages for docId = {}", docMd.getDocId());
-			TrpDoc doc = store.getRemoteDoc(super.getCollId(), docMd.getDocId(), -1);
-			return doc.getPages().toArray(new TrpPage[doc.getPages().size()]);
-		} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
-			logger.error("No Connection!");
-			return new TrpPage[] {};
-		}
+		List<TrpPage> pageList = getPagesOfDoc(docMd);
+		return pageList.toArray(new TrpPage[pageList.size()]);
 	}
 
 	@Override
@@ -81,7 +73,7 @@ public class CollectionContentProvider extends ACollectionBoundStructuredContent
 		}
 		else if (element instanceof TrpPage) {
 			final int docId = ((TrpPage)element).getDocId();
-			for(TrpDocMetadata d : docs) {
+			for(TrpDocMetadata d : docMap.keySet()) {
 				if(d.getDocId() == docId) {
 					return d;
 				}
@@ -98,5 +90,23 @@ public class CollectionContentProvider extends ACollectionBoundStructuredContent
 		}
 
 		return false;
+	}
+	
+	protected List<TrpPage> getPagesOfDoc(TrpDocMetadata docMd) {
+		if(!docMap.get(docMd).isEmpty()) {
+			logger.debug("Returning cached pages for docId = {}", docMd.getDocId());
+			return docMap.get(docMd);
+		}
+		List<TrpPage> pages;
+		try {
+			logger.debug("Fetching pages for docId = {}", docMd.getDocId());
+			TrpDoc doc = store.getRemoteDoc(super.getCollId(), docMd.getDocId(), -1);
+			pages = doc.getPages();
+			docMap.put(docMd, pages);
+		} catch (SessionExpiredException | IllegalArgumentException | NoConnectionException e) {
+			logger.error("No Connection!");
+			pages = new ArrayList<>(0);
+		}
+		return pages;
 	}
 }
