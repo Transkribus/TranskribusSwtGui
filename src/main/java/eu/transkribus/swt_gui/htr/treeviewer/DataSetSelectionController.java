@@ -39,6 +39,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.core.util.DescriptorUtils.AGtDataSet;
 import eu.transkribus.core.util.JaxbUtils;
+import eu.transkribus.core.util.PageTranscriptSelector;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.htr.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm.VersionComboStatus;
@@ -78,7 +79,7 @@ public class DataSetSelectionController {
 	 * TrainDataValidator is responsible for picking a transcript from a page's version history and determining
 	 * if the transcript has content to be trained on.
 	 */
-	private final TrainDataValidator validator;
+	private final PageTranscriptSelector selector;
 	
 	boolean SHOW_DEBUG_DIALOG = false;
 	DebugDialog diag = null;
@@ -100,7 +101,7 @@ public class DataSetSelectionController {
 		this.colId = colId;
 		
 		//this should be exchangeable at some point
-		validator = new HtrTrainDataValidator();
+		selector = new HtrTrainDataSelector();
 	}
 	
 	public void addDocumentSelectionToTrainSet() {
@@ -188,7 +189,13 @@ public class DataSetSelectionController {
 		Map<AGtDataSet<?>, List<AGtDataSetElement<?>>> gtMap) {
 		List<IDataSelectionEntry<?, ?>> list = new ArrayList<>(docMap.entrySet().size() + gtMap.entrySet().size());
 		for (Entry<TrpDocMetadata, List<TrpPage>> entry : docMap.entrySet()) {
-			list.add(new DocumentDataSelectionEntry(entry.getKey(), entry.getValue(), validator));
+			
+			//filter pages that match the current selection in VersionComboStatus
+			List<TrpPage> pagesMatchingVersionComboStatus = entry.getValue().stream()
+					.filter(p -> selector.isQualifiedForTraining(p, getTranscriptVersionToUse().getStatus()))
+					.collect(Collectors.toList());
+			
+			list.add(new DocumentDataSelectionEntry(entry.getKey(), pagesMatchingVersionComboStatus));
 		}
 		for (Entry<AGtDataSet<?>, List<AGtDataSetElement<?>>> entry : gtMap.entrySet()) {
 			list.add(new GroundTruthDataSelectionEntry(entry.getKey(), entry.getValue()));
@@ -222,7 +229,7 @@ public class DataSetSelectionController {
 				
 				//filter for pages that e.g. contain transcribed lines
 				List<TrpPage> pageList = Arrays.stream(pageObjArr)
-						.filter(p -> validator.isQualifiedForTraining(p, getTranscriptVersionToUse().getStatus()))
+						.filter(p -> selector.isQualifiedForTraining(p, getTranscriptVersionToUse().getStatus()))
 						.collect(Collectors.toList());
 				
 				final int nrOfTranscribedPagesInSelection = pageList.size();
@@ -253,7 +260,7 @@ public class DataSetSelectionController {
 				TrpDocMetadata parent = (TrpDocMetadata) ((CollectionContentProvider)view.docTv.getContentProvider()).getParent(p);
 				
 				//omit if this page has no transcribed lines
-				if(!validator.isQualifiedForTraining(p, getTranscriptVersionToUse().getStatus())) {
+				if(!selector.isQualifiedForTraining(p, getTranscriptVersionToUse().getStatus())) {
 					nrOfEmptyItemsOmitted++;
 					continue;
 				}
@@ -812,14 +819,14 @@ public class DataSetSelectionController {
 		TrpMainWidget.getInstance().showLocation(loc);
 	}
 
-	public DataSetSelection getSelection(EditStatus status) {
+	public DataSetSelection getSelection() {
 		
 		//FIXME activate this method once the training job can handle such descriptors
 //		config.setTrain(DescriptorUtils.buildSelectionDescriptorList(trainDocMap, status));
 //		config.setTest(DescriptorUtils.buildSelectionDescriptorList(testDocMap, status));
 	
-		List<DocumentSelectionDescriptor> trainDocDescs = DescriptorUtils.buildCompleteSelectionDescriptorList(getTrainDocMap(), status);
-		List<DocumentSelectionDescriptor> validationDocDescs = DescriptorUtils.buildCompleteSelectionDescriptorList(getValDocMap(), status);
+		List<DocumentSelectionDescriptor> trainDocDescs = DescriptorUtils.buildSelectionDescriptorList(getTrainDocMap(), selector, getTranscriptVersionToUse().getStatus());
+		List<DocumentSelectionDescriptor> validationDocDescs = DescriptorUtils.buildSelectionDescriptorList(getValDocMap(), selector, getTranscriptVersionToUse().getStatus());
 		
 		//build the GT descriptor
 		List<GroundTruthSelectionDescriptor> trainGtDescs = buildGtSelectionDescriptorList(getTrainGtMap());
@@ -910,7 +917,7 @@ public class DataSetSelectionController {
 
 		void updateText() {
 			try {
-				DataSetSelection sel = getSelection(null);
+				DataSetSelection sel = getSelection();
 				CitLabHtrTrainConfig conf = new CitLabHtrTrainConfig();
 				conf.setTrain(sel.getTrainDocDescriptorList());
 				conf.setTest(sel.getValidationDocDescriptorList());
@@ -928,11 +935,16 @@ public class DataSetSelectionController {
 		}
 	}
 
+	/**
+	 * Depending on the versionComboStatus the display is updated but the selection remains the same. 
+	 * If items would be discarded we are not able to restore them when the selection changes again.
+	 * The ultimate selection is done when the DocumentSelectionDescriptor is built using the same TrainDataSelector.
+	 * 
+	 * @param versionComboStatus
+	 */
 	public void setTranscriptVersionToUse(VersionComboStatus versionComboStatus) {
 		this.transcriptVersionToUse = versionComboStatus;
-		view.trainSetOverviewTable.setTranscriptStatusFilter(versionComboStatus.getStatus());
-		view.valSetOverviewTable.setTranscriptStatusFilter(versionComboStatus.getStatus());
-		view.updateDocTvColors();
+		updateView();
 	}
 
 	public VersionComboStatus getTranscriptVersionToUse() {
@@ -940,14 +952,14 @@ public class DataSetSelectionController {
 	}
 
 	public TrpTranscriptMetadata getSelectedTranscriptForPage(TrpPage p) {
-		return validator.selectTranscript(p, getTranscriptVersionToUse().getStatus());
+		return selector.selectTranscript(p, getTranscriptVersionToUse().getStatus());
 	}
 
 	public String getTrainDataSizeLabel(TrpPage p) {
-		return validator.getTrainDataSizeLabel(p, getTranscriptVersionToUse().getStatus());
+		return selector.getTrainDataSizeLabel(p, getTranscriptVersionToUse().getStatus());
 	}
 
 	public boolean isQualifiedForTraining(TrpPage p) {
-		return validator.isQualifiedForTraining(p, getTranscriptVersionToUse().getStatus());
+		return selector.isQualifiedForTraining(p, getTranscriptVersionToUse().getStatus());
 	}
 }

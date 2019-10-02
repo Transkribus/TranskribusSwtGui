@@ -425,8 +425,8 @@ public class DataSetSelectionSashForm extends SashForm implements IStorageListen
 		return dataSetSelectionController;
 	}
 
-	public DataSetSelection getSelection(EditStatus status) {
-		return dataSetSelectionController.getSelection(status);
+	public DataSetSelection getSelection() {
+		return dataSetSelectionController.getSelection();
 	}
 	
 	boolean isGtTabActive() {

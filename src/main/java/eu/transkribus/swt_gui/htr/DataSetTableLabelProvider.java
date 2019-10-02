@@ -25,8 +25,6 @@ public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFon
 	
 	Table table;
 	TableViewer tableViewer;
-	
-	private EditStatus transcriptStatusFilter = null;
 
 	public DataSetTableLabelProvider(TableViewer tableViewer) {
 		this.tableViewer = tableViewer;
@@ -51,26 +49,17 @@ public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFon
 			} else if (ct.equals(DataSetTableWidget.TITLE_COL)) {
 				return d.getTitle();
 			} else if (ct.equals(DataSetTableWidget.PAGES_COL)) {
-				return getPageString(d);
+				return d.getPageString();
 			}
 		}
 		return "i am error";
-	}
-	
-	private String getPageString(IDataSelectionEntry<?, ?> d) {
-		if(d instanceof DocumentDataSelectionEntry && transcriptStatusFilter != null) {
-			logger.debug("Producing pagestring on demand as filter is set.");
-			return ((DocumentDataSelectionEntry)d).getPageString(transcriptStatusFilter);
-		}
-		return d.getPageString();
 	}
 
 	@Override
 	public Color getForeground(Object element) {
 		if(element instanceof DocumentDataSelectionEntry 
-				&& transcriptStatusFilter != null
-				//determine if the set version filter would remove all pages from the set
-				&& StringUtils.isEmpty(getPageString((IDataSelectionEntry<?, ?>) element))) {
+				//determine if the data given to this view contains pages (this might not be the case of the versionCombo filter removes all)
+				&& StringUtils.isEmpty(((IDataSelectionEntry<?, ?>) element).getPageString())) {
 			return DataSetSelectionSashForm.GRAY;
 		}
 		return null;
@@ -103,9 +92,5 @@ public class DataSetTableLabelProvider implements ITableLabelProvider, ITableFon
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
 		return null;
-	}
-	
-	public void setTranscriptStatusFilter(EditStatus status) {
-		this.transcriptStatusFilter = status;
 	}
 }

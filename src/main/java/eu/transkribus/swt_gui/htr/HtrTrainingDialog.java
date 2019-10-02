@@ -220,7 +220,7 @@ public class HtrTrainingDialog extends Dialog {
 	private void setTrainAndValDocsInHtrConfig(HtrTrainConfig config, EditStatus status) throws IOException {
 		config.setColId(colId);
 		
-		DataSetSelection selection = treeViewerSelector.getSelection(status);
+		DataSetSelection selection = treeViewerSelector.getSelection();
 		
 		config.setTrain(selection.getTrainDocDescriptorList());
 		config.setTest(selection.getValidationDocDescriptorList());

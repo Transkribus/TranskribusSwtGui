@@ -4,9 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.util.PageTranscriptSelector;
 
-public class HtrTrainDataValidator extends TrainDataValidator {
-	private static final Logger logger = LoggerFactory.getLogger(HtrTrainDataValidator.class);
+public class HtrTrainDataSelector extends PageTranscriptSelector {
+	private static final Logger logger = LoggerFactory.getLogger(HtrTrainDataSelector.class);
 	
 	@Override
 	protected String getTrainableItemCount(TrpTranscriptMetadata tmd) {
