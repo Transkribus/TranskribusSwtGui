@@ -1,22 +1,19 @@
 package eu.transkribus.swt_gui.util;
 
-import java.awt.Color;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.xmlgraphics.java2d.color.ColorUtil;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
@@ -25,11 +22,10 @@ import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDoc;
-import eu.transkribus.core.model.beans.auth.TrpRole;
+import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt_gui.dialogs.DocumentsSelectorDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.mainwidget.storage.StorageUtil;
 
 public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 	
@@ -38,7 +34,7 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 	Button multipleDocsRadio;
 	Button docsSelectorBtn;
 	
-	org.eclipse.swt.graphics.Color red = Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED);
+	Color red = Colors.getSystemColor(SWT.COLOR_DARK_RED);
 	
 	Label docsLabel;
 	
