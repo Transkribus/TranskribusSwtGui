@@ -132,7 +132,7 @@ public class TrpMessageDialog extends Dialog {
 		
 		messageText = new StyledText(container, SWT.FLAT | SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.VERTICAL);
 		messageText.setBackground(container.getBackground());
-		messageText.setText(message);
+		messageText.setText(message != null ? message : "");
 		messageText.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		hasDetails = !StringUtils.isEmpty(detailedMessage) || exception != null;

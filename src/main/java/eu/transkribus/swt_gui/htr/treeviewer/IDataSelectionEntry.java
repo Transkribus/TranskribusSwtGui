@@ -13,7 +13,6 @@ public interface IDataSelectionEntry<D extends Comparable<D>, P> extends Compara
 	public int getId();
 	public String getTitle();
 	public String getPageString();
-	public void setPageString(String pageString);
 	public D getDoc();
 	public void setDoc(D doc);
 	public List<P> getPages();

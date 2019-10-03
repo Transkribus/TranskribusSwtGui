@@ -650,7 +650,6 @@ CHANGES AND BUGFIXES
 	-> text editor: 'Backspace' and 'Ctrl+Return' behavior - moves text one line up or down; Use case: applying txt-files to existing layouts may start at the wrong line which can be corrected
 	-> HTR+ training using base models
 	-> enable gzip encoding for HTTP API connection
-	-> ground truth management features
 	-> new HTR options regarding the line segments produced by CITlab HTR
 		-> "Do polygon simplification": reduce the complexity of line segments, saving bandwidth and storage space. 
 		-> "Keep original line polygons": copy the recognized text to the line segments without altering them.
@@ -663,5 +662,7 @@ CHANGES AND BUGFIXES
 	
 1.8.1:
 	-> tag-search: minimum number of characters in tagname reduced to 1 (to be able to search for tags like e.g. "hi" or "p")
-	-> bugfix: do *not* select underlying shape if image is moved with left mouse button 
+	-> bugfix: do *not* select underlying shape if image is moved with left mouse button
+	-> ground truth management features
+	-> rename test set to validation set as it is the more accurate term
 	

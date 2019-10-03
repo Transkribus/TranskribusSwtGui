@@ -8,8 +8,6 @@ import java.util.List;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -29,9 +27,8 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-
-import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
+import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 import eu.transkribus.util.TextRecognitionConfig;
 
 public class HtrTextRecognitionDialog extends Dialog {
@@ -112,6 +109,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		List<StructCustomTagSpec> tags = store.getStructCustomTagSpecs();
 		
 		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Restrict on structure tags", 1, 200, 300 );
+		multiCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
 		
 		for(StructCustomTagSpec tag : tags) {
 			logger.debug(tag.toString());
@@ -135,7 +133,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		configTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 6));
 				
 		Button configBtn = new Button(cont, SWT.PUSH);
-		configBtn.setText("Select HTR model");
+		configBtn.setText("Select HTR model...");
 		configBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
 		configBtn.addSelectionListener(new SelectionAdapter() {
@@ -161,13 +159,6 @@ public class HtrTextRecognitionDialog extends Dialog {
 		if(config != null) {
 			configTxt.setText(config.toString());
 		}
-		
-		cont.addDisposeListener(new DisposeListener() {
-			@Override public void widgetDisposed(DisposeEvent e) {
-				logger.debug("Disposing HtrTextRecognitionDialog composite.");
-				//TODO remove all items from combo box
-			}
-		});
 		
 		return cont;
 	}

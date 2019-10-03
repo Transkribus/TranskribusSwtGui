@@ -360,6 +360,13 @@ public class TreeViewerDataSetSelectionSashForm extends SashForm {
 		});
 	}
 	
+	/**
+	 * @deprecated only needed by legacy training dialog
+	 * 
+	 * @param t
+	 * @param map
+	 */
+	@Deprecated
 	private void updateTable(DataSetTableWidget t, Map<TrpDocMetadata, List<TrpPage>> map) {
 		List<DocumentDataSelectionEntry> list = new ArrayList<>(map.entrySet().size());
 		for (Entry<TrpDocMetadata, List<TrpPage>> entry : map.entrySet()) {

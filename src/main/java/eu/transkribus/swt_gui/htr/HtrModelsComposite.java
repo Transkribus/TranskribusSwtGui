@@ -45,7 +45,7 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 	HtrTableWidget htw;
 	
 	HtrDetailsWidget hdw;
-	DocImgViewerDialog trainDocViewer, testDocViewer = null;
+	DocImgViewerDialog trainDocViewer, valDocViewer = null;
 	CharSetViewerDialog charSetViewer = null;
 
 	MenuItem shareItem, delItem;
@@ -203,24 +203,24 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 			}
 		});
 		
-		hdw.getShowTestSetBtn().addSelectionListener(new SelectionAdapter() {
+		hdw.getShowValSetBtn().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(selectedHtr == null) {
 					return;
 				}
-				if (testDocViewer != null) {
-					testDocViewer.setVisible();
+				if (valDocViewer != null) {
+					valDocViewer.setVisible();
 				} else {
 					try {
-						testDocViewer = new DocImgViewerDialog(getShell(), "Test Set", store.getTestSet(selectedHtr));
-						testDocViewer.open();
+						valDocViewer = new DocImgViewerDialog(getShell(), "Validation Set", store.getTestSet(selectedHtr));
+						valDocViewer.open();
 					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException
 							| NoConnectionException e1) {
 						logger.error(e1.getMessage(), e);
 					}
 
-					testDocViewer = null;
+					valDocViewer = null;
 				}
 				super.widgetSelected(e);
 			}

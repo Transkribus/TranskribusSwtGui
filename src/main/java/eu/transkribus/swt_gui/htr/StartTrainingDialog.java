@@ -58,9 +58,7 @@ public class StartTrainingDialog extends Dialog {
 		
 		Group valGrp = new Group(container, SWT.NONE);
 		
-		//Keep this named "test set" for now
-		valGrp.setText("Test Set:");
-//		valGrp.setText("Validation Set:");
+		valGrp.setText("Validation Set:");
 		valGrp.setLayout(gl);
 		valGrp.setLayoutData(gd);
 		
@@ -69,7 +67,7 @@ public class StartTrainingDialog extends Dialog {
 		
 		insufficientValidationData = valMdTable.getTotalDataSetMetadata().isDataSetEmpty();
 		if (insufficientValidationData) {
-			createErrorLabel(container, "Insufficient transcribed pages in test set!");
+			createErrorLabel(container, "Insufficient transcribed pages in validation set!");
 		}
 		
 		return container;

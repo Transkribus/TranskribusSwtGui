@@ -286,6 +286,9 @@
 <!--  								<maxHeapSize>2048</maxHeapSize> -->
 <!-- 								<maxHeapPercent>50</maxHeapPercent>			 -->
 							</jre>
+							<messages>
+							    <jreVersionErr>Transkribus requires a Java Runtime Environments version >= 1.8.0.\n\nPlease install or update Java.\n\nFor more information visit https://transkribus.eu/wiki</jreVersionErr>
+						  	</messages>
 							<!-- <versionInfo> -->
 							<!-- <fileVersion>1.0.0.0</fileVersion> -->
 							<!-- <txtFileVersion>${project.version}</txtFileVersion> -->

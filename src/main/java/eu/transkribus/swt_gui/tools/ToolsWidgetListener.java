@@ -46,8 +46,8 @@ import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialogLegacy;
-import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
+import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
@@ -224,8 +224,14 @@ public class ToolsWidgetListener implements SelectionListener {
 			mw.updatePageLock();
 
 			String jobsStr = jobIds.length > 1 ? "jobs" : "job";
-			DialogUtil.showInfoMessageBox(tw.getShell(), jobIds.length + " " + jobsStr + " started!",
-					"IDs:\n " + jobIdsStr);
+			final String title = jobIds.length + " " + jobsStr + " started!";
+			final String msg = "IDs:\n " + jobIdsStr;
+			
+			//Dialog may block the GUI. 
+//			DialogUtil.showInfoMessageBox(tw.getShell(), title, msg);
+			
+			//show balloon tip on jobs button instead
+			DialogUtil.showBallonToolTip(mw.getUi().getJobsButton(), null, title, msg);
 		}
 	}
 

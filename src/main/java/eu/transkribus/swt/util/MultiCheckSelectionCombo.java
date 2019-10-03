@@ -189,9 +189,12 @@ public class MultiCheckSelectionCombo extends Composite {
     		 for (ModifyListener l : modifyListeners) {
     			 l.modifyText(new ModifyEvent(e));
     		 }
-    		 for (Button b : buttons) {
-    			 b.dispose();
+    		 if(buttons != null) {
+    			 for (Button b : buttons) {
+        			 b.dispose();
+        		 }
     		 }
+    		 
     		 buttons = null;
     		 shell.dispose();    		 
     	 }
@@ -211,8 +214,6 @@ public class MultiCheckSelectionCombo extends Composite {
 			}			
 		}
 		display.setText((sb.length() > 0)? sb.toString() : defaultText);
-		display.pack();
-		this.pack();
 	}
 	
     /**

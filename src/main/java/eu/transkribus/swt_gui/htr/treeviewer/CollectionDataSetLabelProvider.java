@@ -24,10 +24,22 @@ public class CollectionDataSetLabelProvider extends CollectionLabelProvider impl
 	}
 	
 	@Override
+	public String getText(Object element) {
+		if(element instanceof TrpDocMetadata) {
+			return super.getText(element);
+		} else if (element instanceof TrpPage) {
+			//adapt behavior for pages for respecting the selected transcript version
+			TrpPage p = (TrpPage)element;
+			return "Page " + p.getPageNr() + " (" + controller.getTrainDataSizeLabel(p) + ")";
+		}
+		return null;
+	}
+	
+	@Override
 	public Color getBackground(Object element) {
 		if(element instanceof TrpDocMetadata) {
 			TrpDocMetadata doc = (TrpDocMetadata) element;
-			if (controller.getTrainDocMap().containsKey(doc) && controller.getTestDocMap().containsKey(doc)) {
+			if (controller.getTrainDocMap().containsKey(doc) && controller.getValDocMap().containsKey(doc)) {
 				return DataSetSelectionSashForm.CYAN;
 			} else if (controller.getTrainDocMap().containsKey(doc)) {
 				if (doc.getNrOfPages() == controller.getTrainDocMap().get(doc).size()) {
@@ -35,8 +47,8 @@ public class CollectionDataSetLabelProvider extends CollectionLabelProvider impl
 				} else {
 					return DataSetSelectionSashForm.LIGHT_BLUE;
 				}
-			} else if (controller.getTestDocMap().containsKey(doc)) {
-				if (doc.getNrOfPages() == controller.getTestDocMap().get(doc).size()) {
+			} else if (controller.getValDocMap().containsKey(doc)) {
+				if (doc.getNrOfPages() == controller.getValDocMap().get(doc).size()) {
 					return DataSetSelectionSashForm.GREEN;
 				} else {
 					return DataSetSelectionSashForm.LIGHT_GREEN;
@@ -46,7 +58,7 @@ public class CollectionDataSetLabelProvider extends CollectionLabelProvider impl
 			TrpPage page = (TrpPage) element;
 			if (isPageInMap(page, controller.getTrainDocMap())) {
 				return DataSetSelectionSashForm.BLUE;
-			} else if (isPageInMap(page, controller.getTestDocMap())) {
+			} else if (isPageInMap(page, controller.getValDocMap())) {
 				return DataSetSelectionSashForm.GREEN;
 			}
 		}
@@ -57,6 +69,9 @@ public class CollectionDataSetLabelProvider extends CollectionLabelProvider impl
 	public Color getForeground(Object element) {
 		if(!DataSetSelectionSashForm.WHITE.equals(getBackground(element))) {
 			return DataSetSelectionSashForm.WHITE;
+		}
+		if(element instanceof TrpPage && !controller.isQualifiedForTraining((TrpPage) element)) {
+			return DataSetSelectionSashForm.GRAY;
 		}
 		return DataSetSelectionSashForm.BLACK;
 	}

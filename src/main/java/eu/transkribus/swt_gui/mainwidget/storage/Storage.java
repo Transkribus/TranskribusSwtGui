@@ -80,6 +80,7 @@ import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
 import eu.transkribus.core.model.beans.TrpP2PaLAModel;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
@@ -1644,6 +1645,34 @@ public class Storage {
 	}
 	
 	/**
+	 * ReleaseLevel of the HTR may imply that the dataset is not visible to current user.<br>
+	 * None = model is obviously linked to collection. Otherwise it wouldn't be visible.<br>
+	 * DisclosedDataSet = Handle like "None".<br>
+	 * UndisclosedDataSet = only show children if current user is curator OR the model is linked to this collection.<br>
+	 */
+	public boolean isUserAllowedToViewDataSets(TrpHtr h) {
+		if(h == null) {
+			logger.warn("HTR argument is null!");
+			return false;
+		}
+		logger.debug("Checking HTR ReleaseLevel: {}", h.toShortString());
+		
+		//check if this is a private data set
+		boolean isAllowed = !ReleaseLevel.isPrivateDataSet(h.getReleaseLevel());
+		logger.debug("isAllowed based on release level: {}", isAllowed);
+		
+		//check for direct collection link which will allow the user to see the set
+		isAllowed |=  h.getCollectionIdLink() != null && h.getCollectionIdLink() == this.getCollId();
+		logger.debug("isAllowed based on collectionIdLink: {}", isAllowed);
+		
+		//curator may always see the sets even if no explicit link is set to this collection
+		isAllowed |= h.getUserId() == getUserId();
+		logger.debug("isAllowed based on userId: {}", isAllowed);		
+		
+		return isAllowed;
+	}
+	
+	/**
 	 * Loads a HTR ground truth set from the server, transforms it into a document object and sets it as document in this Storage.
 	 * 
 	 * @param colId
@@ -1658,10 +1687,10 @@ public class Storage {
 		List<TrpGroundTruthPage> gt;
 		switch(set.getDataSetType()) {
 		case VALIDATION: 
-			gt = conn.getHtrValidationData(colId, set.getHtr().getHtrId());
+			gt = conn.getHtrValidationData(colId, set.getId());
 			break;
 		default:
-			gt = conn.getHtrTrainData(colId, set.getHtr().getHtrId());
+			gt = conn.getHtrTrainData(colId, set.getId());
 			break;
 		}
 		TrpDocMetadata md = new TrpHtrGtDocMetadata(set);
@@ -1675,7 +1704,7 @@ public class Storage {
 		
 		sendEvent(new GroundTruthLoadEvent(this, doc));
 
-		logger.info("loaded HTR GT " + set.getDataSetType().getLabel() + " htrId = " + set.getHtr().getHtrId() + ", title = " 
+		logger.info("loaded HTR GT " + set.getDataSetType().getLabel() + " htrId = " + set.getId() + ", title = " 
 				+ gtDoc.getMd().getTitle() + ", nPages = " + gtDoc.getPages().size());
 	}
 
@@ -2789,7 +2818,7 @@ public class Storage {
 				.filter(h -> h.getProvider().equals(provider))
 				.collect(Collectors.toList());
 	}
-	
+
 	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
 		checkConnection(true);
 		switch(config.getMode()) {
@@ -2830,11 +2859,31 @@ public class Storage {
 		return conn.runCitLabText2Image(config);
 	}
 	
+	/**
+	 * @deprecated datasets are no longer duplicated to documents but stored as ground truth
+	 * 
+	 * @param htr
+	 * @return
+	 * @throws SessionExpiredException
+	 * @throws ClientErrorException
+	 * @throws IllegalArgumentException
+	 * @throws NoConnectionException
+	 */
 	public TrpDoc getTestSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.getHtrTestDoc(collId, htr.getHtrId(), 1);
 	}
 	
+	/**
+	 * @deprecated datasets are no longer duplicated to documents but stored as ground truth
+	 * 
+	 * @param htr
+	 * @return
+	 * @throws SessionExpiredException
+	 * @throws ClientErrorException
+	 * @throws IllegalArgumentException
+	 * @throws NoConnectionException
+	 */
 	public TrpDoc getTrainSet(TrpHtr htr) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
 		return conn.getHtrTrainDoc(collId, htr.getHtrId(), 1);
@@ -3342,7 +3391,5 @@ public class Storage {
 	
 	public List<TrpP2PaLAModel> getP2PaLAModels() {
 		return p2palaModels;
-	}
-
-	
+	}	
 }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -35,7 +34,6 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
@@ -64,7 +62,7 @@ public class HtrTrainingDialog extends Dialog {
 	private DataSetSelectionSashForm treeViewerSelector;
 
 	private Text modelNameTxt, descTxt, langTxt;
-	private MultiCheckSelectionCombo langSelection;
+//	private MultiCheckSelectionCombo langSelection;
 
 	private CitLabHtrTrainConfig citlabTrainConfig;
 	private CitLabSemiSupervisedHtrTrainConfig citlabT2IConf;
@@ -94,9 +92,9 @@ public class HtrTrainingDialog extends Dialog {
 		if(htrList == null) {
 			this.htrList = new ArrayList<>(0);
 		} else {
-			//show HTRs with train GT only 
+			//show HTRs with disclosed train GT only 
 			this.htrList = htrList.stream()
-					.filter(h -> h.hasTrainGt())
+					.filter(h -> h.hasTrainGt() && store.isUserAllowedToViewDataSets(h))
 					.collect(Collectors.toList());
 		}
 	}
@@ -124,9 +122,9 @@ public class HtrTrainingDialog extends Dialog {
 		modelNameTxt = new Text(paramCont, SWT.BORDER);
 		modelNameTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
-		langSelection = new MultiCheckSelectionCombo(paramCont, SWT.FILL,"Languages", 3, 250, 400);
-		langSelection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		langSelection.setItems(Locale.getISOLanguages());
+//		langSelection = new MultiCheckSelectionCombo(paramCont, SWT.FILL,"Languages", 3, 250, 400);
+//		langSelection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+//		langSelection.setItems(Locale.getISOLanguages());
 
 		Label langLbl = new Label(paramCont, SWT.FLAT);
 		langLbl.setText("Language:");
@@ -185,8 +183,6 @@ public class HtrTrainingDialog extends Dialog {
 		boolean isT2I = isCitlabT2ISelected();
 		descTxt.setEnabled(!isT2I);
 		modelNameTxt.setEnabled(!isT2I);
-		treeViewerSelector.getUseGtVersionChk().setEnabled(!isT2I);
-		treeViewerSelector.getUseNewVersionChk().setEnabled(isT2I);
 		treeViewerSelector.setGroundTruthSelectionEnabled(!isT2I);
 	}
 	
@@ -221,10 +217,10 @@ public class HtrTrainingDialog extends Dialog {
 		return new TrainMethodUITab(tabIndex, citlabHtrPlusTrainingTabItem, citlabHtrPlusParamCont);
 	}
 	
-	private void setTrainAndTestDocsInHtrConfig(HtrTrainConfig config, EditStatus status) throws IOException {
+	private void setTrainAndValDocsInHtrConfig(HtrTrainConfig config, EditStatus status) throws IOException {
 		config.setColId(colId);
 		
-		DataSetSelection selection = treeViewerSelector.getSelection(status);
+		DataSetSelection selection = treeViewerSelector.getSelection();
 		
 		config.setTrain(selection.getTrainDocDescriptorList());
 		config.setTest(selection.getValidationDocDescriptorList());
@@ -240,12 +236,12 @@ public class HtrTrainingDialog extends Dialog {
 		
 		if((config.getTest().isEmpty() && CollectionUtils.isEmpty(config.getTestGt())) 
 				&& !isCitlabT2ISelected()){
-			throw new IOException("Test set must not be empty! \nAt least one page must be selected to get meaningful error curve."
+			throw new IOException("Validation set must not be empty! \nAt least one page must be selected to get meaningful error curve."
 					+ " Please increase choice of text pages with increasing training pages.");
 		}
 
 		if (config.isTestAndTrainOverlapping()) {
-			throw new IOException("Train and Test sets must not overlap!");
+			throw new IOException("Train and validation sets must not overlap!");
 		}
 	}
 	
@@ -254,9 +250,8 @@ public class HtrTrainingDialog extends Dialog {
 		configObject.setDescription(descTxt.getText());
 		configObject.setModelName(modelNameTxt.getText());
 		configObject.setLanguage(langTxt.getText());
-		final boolean useGt = treeViewerSelector.getUseGtVersionChk().isEnabled() && treeViewerSelector.getUseGtVersionChk().getSelection();
-		EditStatus status = useGt ? EditStatus.GT : null;
-		setTrainAndTestDocsInHtrConfig(configObject, status);
+		EditStatus status = treeViewerSelector.getVersionComboStatus().getStatus();
+		setTrainAndValDocsInHtrConfig(configObject, status);
 		
 		ParameterMap customParams = new ParameterMap();
 		//send flag to activate new train workflow when starting the training from this dialog
@@ -288,10 +283,10 @@ public class HtrTrainingDialog extends Dialog {
 	
 	private CitLabSemiSupervisedHtrTrainConfig createCitlabT2IConfig() throws IOException {
 		CitLabSemiSupervisedHtrTrainConfig config = t2iConfComp.getConfig();
-		final boolean useInitial = treeViewerSelector.getUseNewVersionChk().isEnabled() 
-				&& treeViewerSelector.getUseNewVersionChk().getSelection();
-		EditStatus status = useInitial ? EditStatus.NEW : null;
-		setTrainAndTestDocsInHtrConfig(config, status);
+		//TODO this part is not tested as t2i is not included here anymore but the checkboxes were changed to a combo in the meantime
+		final EditStatus selectedStatus = treeViewerSelector.getVersionComboStatus().getStatus();
+		EditStatus status = EditStatus.NEW.equals(selectedStatus) ? EditStatus.NEW : null;
+		setTrainAndValDocsInHtrConfig(config, status);
 		
 		return config;
 	}
@@ -338,7 +333,7 @@ public class HtrTrainingDialog extends Dialog {
 		}
 
 		List<DataSetMetadata> trainSetMd = treeViewerSelector.getTrainSetMetadata();
-		List<DataSetMetadata> validationSetMd = treeViewerSelector.getTestSetMetadata();
+		List<DataSetMetadata> validationSetMd = treeViewerSelector.getValSetMetadata();
 		
 		StartTrainingDialog diag = new StartTrainingDialog(this.getShell(), trainSetMd, validationSetMd);
 		if (diag.open() == Window.OK) {

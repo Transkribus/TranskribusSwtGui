@@ -44,15 +44,15 @@ public class HtrDetailsWidget extends SashForm {
 			CitLabHtrTrainConfig.BASE_MODEL_ID_KEY, CitLabHtrTrainConfig.BASE_MODEL_NAME_KEY };
 
 	private static final String CER_TRAIN_KEY = "CER Train";
-	private static final String CER_TEST_KEY = "CER Test";
+	private static final String CER_VAL_KEY = "CER Validation";
 	
-	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalTestCerTxt;
+	Text nameTxt, langTxt, descTxt, nrOfLinesTxt, nrOfWordsTxt, finalTrainCerTxt, finalValCerTxt;
 	Table paramTable;
-	Button updateMetadataBtn, showTrainSetBtn, showTestSetBtn, showCharSetBtn;
+	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn;
 	ChartComposite jFreeChartComp;
 	JFreeChart chart = null;
 	
-	private boolean allowMetadataEditing = true;
+	private boolean allowMetadataEditing = false;
 	
 	public HtrDetailsWidget(Composite parent, int style) {
 		super(parent, style);
@@ -130,9 +130,9 @@ public class HtrDetailsWidget extends SashForm {
 		showTrainSetBtn.setText("Show Train Set");
 		showTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
-		showTestSetBtn = new Button(btnComp, SWT.PUSH);
-		showTestSetBtn.setText("Show Test Set");
-		showTestSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		showValSetBtn = new Button(btnComp, SWT.PUSH);
+		showValSetBtn.setText("Show Validation Set");
+		showValSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		showCharSetBtn = new Button(btnComp, SWT.PUSH);
 		showCharSetBtn.setText("Show Characters");
@@ -155,17 +155,16 @@ public class HtrDetailsWidget extends SashForm {
 		finalTrainCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
 		finalTrainCerTxt.setLayoutData(gd);
 
-		Label finalTestCerLbl = new Label(cerComp, SWT.NONE);
-		finalTestCerLbl.setText("CER on Test Set:");
-		finalTestCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
-		finalTestCerTxt.setLayoutData(gd);
+		Label finalValCerLbl = new Label(cerComp, SWT.NONE);
+		finalValCerLbl.setText("CER on Validation Set:");
+		finalValCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
+		finalValCerTxt.setLayoutData(gd);
 		
 		//init with no HTR selected, i.e. disable controls
 		updateDetails(null);
 	}
 	
 	void updateDetails(TrpHtr htr) {
-		updateMetadataBtn.setEnabled(false);
 		nameTxt.setEnabled(htr != null);
 		descTxt.setEnabled(htr != null);
 		langTxt.setEnabled(htr != null);
@@ -179,12 +178,12 @@ public class HtrDetailsWidget extends SashForm {
 			descTxt.setText("");
 			langTxt.setText("");
 			finalTrainCerTxt.setText("");
-			finalTestCerTxt.setText("");
+			finalValCerTxt.setText("");
 			paramTable.clearAll();
 			nrOfLinesTxt.setText("");
 			nrOfWordsTxt.setText("");
 			showCharSetBtn.setEnabled(false);
-			showTestSetBtn.setEnabled(false);
+			showValSetBtn.setEnabled(false);
 			showTrainSetBtn.setEnabled(false);
 			return;
 		}
@@ -197,10 +196,12 @@ public class HtrDetailsWidget extends SashForm {
 
 		updateParamTable(htr.getParamsProps());
 
-		updateMetadataBtn.setEnabled(false);
+		if(updateMetadataBtn != null) {
+			updateMetadataBtn.setEnabled(false);
+		}
 		showCharSetBtn.setEnabled(htr.getCharSetList() != null && !htr.getCharSetList().isEmpty());
 
-		showTestSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
+		showValSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
 		showTrainSetBtn.setEnabled(htr.getGtDocId() != null);
 
 		updateChart(htr);
@@ -228,7 +229,7 @@ public class HtrDetailsWidget extends SashForm {
 	private void updateChart(final TrpHtr htr) {
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		String storedHtrTrainCerStr = NOT_AVAILABLE;
-		String storedHtrTestCerStr = NOT_AVAILABLE;
+		String storedHtrValCerStr = NOT_AVAILABLE;
 
 		double[] referenceSeries = null;
 		if (htr.hasCerLog()) {
@@ -238,9 +239,9 @@ public class HtrDetailsWidget extends SashForm {
 		}
 
 		if (htr.hasCerTestLog()) {
-			XYSeries testSeries = buildXYSeries(CER_TEST_KEY, htr.getCerTestLog());
-			dataset.addSeries(testSeries);
-			//if available then test CER is reference for stored net
+			XYSeries valSeries = buildXYSeries(CER_VAL_KEY, htr.getCerTestLog());
+			dataset.addSeries(valSeries);
+			//if available then validation CER is reference for stored net
 			referenceSeries = htr.getCerTestLog();
 		}
 		
@@ -280,8 +281,8 @@ public class HtrDetailsWidget extends SashForm {
 			}
 			
 			if (htr.hasCerTestLog()) {
-				double storedHtrTestCer = htr.getCerTestLog()[storedNetEpoch - 1];
-				storedHtrTestCerStr = HtrCITlabUtils.formatCerVal(storedHtrTestCer);
+				double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
+				storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
 				plot.getRenderer().setSeriesPaint(seriesIndex++, Color.RED);
 			}
 			
@@ -298,7 +299,7 @@ public class HtrDetailsWidget extends SashForm {
 		chart.fireChartChanged();
 
 		finalTrainCerTxt.setText(storedHtrTrainCerStr);
-		finalTestCerTxt.setText(storedHtrTestCerStr);
+		finalValCerTxt.setText(storedHtrValCerStr);
 	}
 
 	private XYSeries buildXYSeries(String name, double[] cerLog) {
@@ -320,8 +321,8 @@ public class HtrDetailsWidget extends SashForm {
 		return showTrainSetBtn;
 	}
 	
-	Button getShowTestSetBtn() {
-		return showTestSetBtn;
+	Button getShowValSetBtn() {
+		return showValSetBtn;
 	}
 	
 	Button getShowCharSetBtn() {

@@ -1,7 +1,6 @@
 package eu.transkribus.swt_gui.htr;
 
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -13,13 +12,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpHtr;
 
 public class HtrModelsDialog extends Dialog {
-	private static final Logger logger = LoggerFactory.getLogger(HtrModelsDialog.class);
 	
 	HtrModelsComposite modelsComp;
 	TrpHtr selectedHtr;

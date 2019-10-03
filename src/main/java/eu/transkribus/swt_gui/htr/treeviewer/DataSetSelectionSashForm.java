@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.htr.treeviewer;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.eclipse.jface.viewers.TreeViewer;
@@ -11,12 +10,15 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -29,25 +31,27 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.DescriptorUtils.AGtDataSet;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.ImgLoader;
+import eu.transkribus.swt.util.TrpViewerFilterWidget;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionLabelProvider;
 import eu.transkribus.swt_gui.htr.DataSetMetadata;
 import eu.transkribus.swt_gui.htr.DataSetTableWidget;
+import eu.transkribus.swt_gui.htr.HtrFilterWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionController.DataSetSelection;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
-import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
+import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.AGtDataSetElement;
+import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 /**
- * TODO:
- * <ul>
- * <li>hide GT data tab when T2I is selected</li>
- * </ul>
- *
+ * Sashform UI element for selecting datasets from document and ground truth data.
+ * 
+ * @see DataSetSelectionController
  */
-public class DataSetSelectionSashForm extends SashForm {
+public class DataSetSelectionSashForm extends SashForm implements IStorageListener {
 	private static final Logger logger = LoggerFactory.getLogger(DataSetSelectionSashForm.class);
 	
 //	private static final RGB BLUE_RGB = new RGB(0, 0, 140);
@@ -74,11 +78,17 @@ public class DataSetSelectionSashForm extends SashForm {
 	static final Color WHITE = Colors.getSystemColor(SWT.COLOR_WHITE);
 	static final Color BLACK = Colors.getSystemColor(SWT.COLOR_BLACK);
 	
+	//show pages with no transcribed lines in gray
+	public static final Color GRAY = Colors.getSystemColor(SWT.COLOR_GRAY);
+	
+	Composite docTabComp, dataTabComp;
 	TreeViewer docTv, groundTruthTv;
-	Button useGtVersionChk, useNewVersionChk;
-	Button addToTrainSetBtn, addToTestSetBtn, removeFromTrainSetBtn, removeFromTestSetBtn;
+	TrpViewerFilterWidget docFilterWidget, gtFilterWidget;
+	
+	Combo versionCombo;
+	Button addToTrainSetBtn, addToValSetBtn, removeFromTrainSetBtn, removeFromValSetBtn;
 	Label infoLbl;
-	DataSetTableWidget<IDataSelectionEntry<?, ?>> testSetOverviewTable, trainSetOverviewTable;
+	DataSetTableWidget<IDataSelectionEntry<?, ?>> valSetOverviewTable, trainSetOverviewTable;
 	CTabFolder dataTabFolder;
 	CTabItem documentsTabItem;
 	CTabItem gtTabItem;
@@ -105,21 +115,36 @@ public class DataSetSelectionSashForm extends SashForm {
 		dataTabFolder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
 		dataTabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
+		GridLayout tabCompLayout = new GridLayout(1, true);
+		//remove margins to make it consistents with documentsTab
+		tabCompLayout.marginHeight = tabCompLayout.marginWidth = 0;
+		GridData tabCompLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
+		
+		docTabComp = new Composite(dataTabFolder, SWT.NONE);
+		docTabComp.setLayout(tabCompLayout);
+		docTabComp.setLayoutData(tabCompLayoutData);
+		
 		documentsTabItem = new CTabItem(dataTabFolder, SWT.NONE);
 		documentsTabItem.setText("Documents");
-		docTv = createDocumentTreeViewer(dataTabFolder);
-		documentsTabItem.setControl(docTv.getControl());
+		docTv = createDocumentTreeViewer(docTabComp);
+		docFilterWidget = new TrpViewerFilterWidget(docTabComp, docTv, SWT.NONE, TrpDocMetadata.class, "docId", "title");
+		documentsTabItem.setControl(docTabComp);
 
-		groundTruthTv = createGroundTruthTreeViewer(dataTabFolder);
+		dataTabComp = new Composite(dataTabFolder, SWT.NONE);
+		dataTabComp.setLayout(tabCompLayout);
+		dataTabComp.setLayoutData(tabCompLayoutData);
+		
+		groundTruthTv = createGroundTruthTreeViewer(dataTabComp);
 		if(!htrList.isEmpty()) {
 			setGroundTruthSelectionEnabled(true);
 		}
+		gtFilterWidget = new HtrFilterWidget(dataTabComp, groundTruthTv, SWT.NONE);
 		
 		Composite buttonComp = new Composite(this, SWT.NONE);
 		buttonComp.setLayout(new GridLayout(1, true));
 
 		previewLbl = new Label(buttonComp, SWT.NONE);
-		GridData previewLblGd = new GridData(SWT.CENTER, SWT.CENTER, true, true);
+		GridData previewLblGd = new GridData(SWT.CENTER, SWT.TOP, true, true);
 		previewLblGd.heightHint = 120;
 		previewLblGd.widthHint = 100;
 		previewLbl.setLayoutData(previewLblGd);
@@ -132,22 +157,31 @@ public class DataSetSelectionSashForm extends SashForm {
 		addToTrainSetBtn.setImage(Images.ADD);
 		addToTrainSetBtn.setText("Training");
 		addToTrainSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-		addToTestSetBtn = new Button(buttonComp, SWT.PUSH);
-		addToTestSetBtn.setImage(Images.ADD);
-		addToTestSetBtn.setText("Testing");
-		addToTestSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		addToValSetBtn = new Button(buttonComp, SWT.PUSH);
+		addToValSetBtn.setImage(Images.ADD);
+		addToValSetBtn.setText("Validation");
+		addToValSetBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
 		Group trainOverviewCont = new Group(this, SWT.NONE);
 		trainOverviewCont.setText("Overview");
 		trainOverviewCont.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		trainOverviewCont.setLayout(new GridLayout(1, false));
-
-		useGtVersionChk = new Button(trainOverviewCont, SWT.CHECK);
-		useGtVersionChk.setText("Use Groundtruth versions");
 		
-		useNewVersionChk = new Button(trainOverviewCont, SWT.CHECK);
-		useNewVersionChk.setText("Use initial('New') versions");
-		useNewVersionChk.setSelection(true);
+		Composite versionSelectionComp = new Composite(trainOverviewCont, SWT.NONE);
+		versionSelectionComp.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		GridLayout versionSelectionCompLayout = new GridLayout(2, false);
+		versionSelectionCompLayout.marginHeight = versionSelectionCompLayout.marginWidth = 0;
+		versionSelectionComp.setLayout(versionSelectionCompLayout);
+		
+		Label versionComboLbl = new Label(versionSelectionComp, SWT.NONE);
+		versionComboLbl.setText("Transcript version");
+		versionCombo = new Combo(versionSelectionComp, SWT.READ_ONLY);
+		
+		for(VersionComboStatus s : VersionComboStatus.values()) {
+			versionCombo.add(s.getLabel());
+		}
+		versionCombo.select(0);
+		versionCombo.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false));
 
 		GridData tableGd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		GridLayout tableGl = new GridLayout(1, true);
@@ -164,20 +198,20 @@ public class DataSetSelectionSashForm extends SashForm {
 		removeFromTrainSetBtn = new Button(trainSetGrp, SWT.PUSH);
 		removeFromTrainSetBtn.setLayoutData(buttonGd);
 		removeFromTrainSetBtn.setImage(Images.CROSS);
-		removeFromTrainSetBtn.setText("Remove selected entries from train set");
+		removeFromTrainSetBtn.setText("Remove selected entries from training set");
 
-		Group testSetGrp = new Group(trainOverviewCont, SWT.NONE);
-		testSetGrp.setText("Test Set");
-		testSetGrp.setLayoutData(tableGd);
-		testSetGrp.setLayout(tableGl);
+		Group valSetGrp = new Group(trainOverviewCont, SWT.NONE);
+		valSetGrp.setText("Validation Set");
+		valSetGrp.setLayoutData(tableGd);
+		valSetGrp.setLayout(tableGl);
 
-		testSetOverviewTable = new DataSetTableWidget<IDataSelectionEntry<?, ?>>(testSetGrp, SWT.BORDER) {};
-		testSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		valSetOverviewTable = new DataSetTableWidget<IDataSelectionEntry<?, ?>>(valSetGrp, SWT.BORDER) {};
+		valSetOverviewTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
-		removeFromTestSetBtn = new Button(testSetGrp, SWT.PUSH);
-		removeFromTestSetBtn.setLayoutData(buttonGd);
-		removeFromTestSetBtn.setImage(Images.CROSS);
-		removeFromTestSetBtn.setText("Remove selected entries from test set");
+		removeFromValSetBtn = new Button(valSetGrp, SWT.PUSH);
+		removeFromValSetBtn.setLayoutData(buttonGd);
+		removeFromValSetBtn.setImage(Images.CROSS);
+		removeFromValSetBtn.setText("Remove selected entries from validation set");
 
 		this.setWeights(new int[] { 45, 10, 45 });
 		dataTabFolder.setSelection(documentsTabItem);
@@ -186,8 +220,15 @@ public class DataSetSelectionSashForm extends SashForm {
 		buttonComp.pack();
 		trainOverviewCont.pack();
 		trainSetGrp.pack();
-		testSetGrp.pack();
+		valSetGrp.pack();
 		
+		Storage.getInstance().addListener(this);
+		this.addDisposeListener(new DisposeListener() {
+			@Override
+			public void widgetDisposed(DisposeEvent e) {
+				Storage.getInstance().removeListener(DataSetSelectionSashForm.this);
+			}
+		});
 		new DataSetSelectionSashFormListener(this, dataSetSelectionController);
 	}
 
@@ -196,7 +237,7 @@ public class DataSetSelectionSashForm extends SashForm {
 			if (gtTabItem == null || gtTabItem.isDisposed()) {
 				gtTabItem = new CTabItem(dataTabFolder, SWT.NONE);
 				gtTabItem.setText("HTR Model Data");
-				gtTabItem.setControl(groundTruthTv.getControl());
+				gtTabItem.setControl(dataTabComp);
 				return;
 			}
 		} else {
@@ -234,9 +275,7 @@ public class DataSetSelectionSashForm extends SashForm {
 //		GroundTruthTreeWidget gtWidget = new GroundTruthTreeWidget(parent, htrGtContentProvider, htrGtLabelProvider);
 //		gtWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 		
-		tv.setInput(this.htrList);
-		
-		
+		tv.setInput(this.htrList);		
 		return tv;
 	}
 	
@@ -277,18 +316,18 @@ public class DataSetSelectionSashForm extends SashForm {
 	 * @param gtOverlapByImageId
 	 * @return SWT.YES, SWT.NO, SWT.CANCEL
 	 */
-	int openConflictDialog(HtrGtDataSet gtSet, List<HtrGtDataSetElement> gtOverlapByImageId) {
+	int openConflictDialog(AGtDataSet<?> gtSet, List<AGtDataSetElement<?>> gtOverlapByImageId) {
 		String title = "Some of the image data is already included";
 		String msg = "The images of the following HTR model data are already included in the selection:\n\n";
 		if(gtOverlapByImageId.size() == 1) {
-			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getHtr().getName() 
+			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getName() 
 					+ "' page " + gtOverlapByImageId.get(0).getGroundTruthPage().getPageNr();
 		} else {
 			List<Integer> pageIndices = gtOverlapByImageId.stream()
 					.map(g -> (g.getGroundTruthPage().getPageNr() - 1))
 					.collect(Collectors.toList());
 			String pageStr = CoreUtils.getRangeListStrFromList(pageIndices);
-			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getHtr().getName() + "' pages " + pageStr;
+			msg += "HTR " + gtSet.getDataSetType().getLabel() + " '" + gtSet.getName() + "' pages " + pageStr;
 		}
 		msg += "\n\nDo you want to replace the previous selection with those pages?";
 		
@@ -303,15 +342,12 @@ public class DataSetSelectionSashForm extends SashForm {
 	 * Update ground truth treeviewer row colors according to selected data set.
 	 * 
 	 * For now this will expect train/validation data to be selected to the respective sets!
-	 * 
-	 * @param trainGtMap
-	 * @param testGtMap
 	 */
-	void updateGtTvColors(Map<HtrGtDataSet, List<HtrGtDataSetElement>> trainGtMap, Map<HtrGtDataSet, List<HtrGtDataSetElement>> testGtMap) {
+	void updateGtTvColors() {
 		groundTruthTv.refresh(true);
 	}
 	
-	void updateDocTvColors(Map<TrpDocMetadata, List<TrpPage>> trainDocMap, Map<TrpDocMetadata, List<TrpPage>> testDocMap) {
+	void updateDocTvColors() {
 		docTv.refresh(true);
 	}
 	
@@ -377,24 +413,29 @@ public class DataSetSelectionSashForm extends SashForm {
 		return dataSetSelectionController.getTrainSetMetadata();
 	}
 	
-	public List<DataSetMetadata> getTestSetMetadata() {
-		return dataSetSelectionController.getTestSetMetadata();
+	public List<DataSetMetadata> getValSetMetadata() {
+		return dataSetSelectionController.getValSetMetadata();
 	}
 	
-	public Button getUseGtVersionChk() {
-		return useGtVersionChk;
+	public VersionComboStatus getVersionComboStatus() {
+		VersionComboStatus status = VersionComboStatus.Latest;
+		String text = versionCombo.getText();
+		for(VersionComboStatus s : VersionComboStatus.values()) {
+			if(s.getLabel().equals(text)) {
+				status = s;
+				break;
+			}
+		}
+		logger.debug("Selected VersionComboStatus = {}", status);
+		return status;
 	}
 	
-	public Button getUseNewVersionChk() {
-		return useNewVersionChk;
-	}
-
 	DataSetSelectionController getController() {
 		return dataSetSelectionController;
 	}
 
-	public DataSetSelection getSelection(EditStatus status) {
-		return dataSetSelectionController.getSelection(status);
+	public DataSetSelection getSelection() {
+		return dataSetSelectionController.getSelection();
 	}
 	
 	boolean isGtTabActive() {
@@ -406,5 +447,34 @@ public class DataSetSelectionSashForm extends SashForm {
 
 	public void enableDebugDialog(boolean b) {
 		getController().SHOW_DEBUG_DIALOG = b;
+	}
+	
+	@Override
+	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
+		if(e.collId != this.colId) {
+			logger.debug("Ignoring update of htrList for foreign collection ID = " + e.collId);
+			return;
+		}
+		this.htrList = e.htrs.getList();
+		groundTruthTv.setInput(this.htrList);
+	}
+	
+	public static enum VersionComboStatus {
+		Latest("Latest transcript", null),
+		GT("Ground truth only", EditStatus.GT),
+		Initial("Initial transcript", EditStatus.NEW);
+		
+		private final String label;
+		private final EditStatus status;
+		private VersionComboStatus(String label, EditStatus status) {
+			this.label = label;
+			this.status = status;
+		}
+		public String getLabel() {
+			return label;
+		}
+		public EditStatus getStatus() {
+			return status;
+		}
 	}
 }

@@ -36,9 +36,10 @@ public class CITlabHtrTrainingConfComposite extends Composite {
 	private CitlabNoiseParamCombo noiseCmb;
 	private HtrModelChooserButton baseModelBtn;
 
-	private Text numEpochsTxt, learningRateTxt, langTxt;
-	private MultiCheckSelectionCombo langSelection;
-	private Combo scriptType;
+	private Text numEpochsTxt, learningRateTxt;
+//	private Text langTxt;
+//	private MultiCheckSelectionCombo langSelection;
+//	private Combo scriptType;
 
 	public CITlabHtrTrainingConfComposite(Composite parent, int style) {
 		super(parent, style);
@@ -69,22 +70,22 @@ public class CITlabHtrTrainingConfComposite extends Composite {
 		baseModelBtn = new HtrModelChooserButton(this, true, getProvider());
 		baseModelBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
-		Label scriptLbl = new Label(this, SWT.NONE);
-		scriptLbl.setText("Script Type");
-		scriptType = new Combo(this, SWT.FLAT | SWT.READ_ONLY);
-		scriptType.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
-		scriptType.setItems(new String[] {"Handwritten" , "Printed", "Mixed"});
-		
-		langSelection = new MultiCheckSelectionCombo(this, SWT.FLAT,"Languages ISO Codes", 3, 250, 400);
-		langSelection.setLayoutData(new GridData(SWT.FLAT, SWT.FLAT, false, false));
-		langSelection.setItems(Locale.getISOLanguages());
-
-		Label langLbl = new Label(this, SWT.NONE);
-		langLbl.setText("Language (Detailed):");
-		langTxt = new Text(this, SWT.BORDER);
-		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-		gd.horizontalSpan = 2;
-		langTxt.setLayoutData(gd);
+//		Label scriptLbl = new Label(this, SWT.NONE);
+//		scriptLbl.setText("Script Type");
+//		scriptType = new Combo(this, SWT.FLAT | SWT.READ_ONLY);
+//		scriptType.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+//		scriptType.setItems(new String[] {"Handwritten" , "Printed", "Mixed"});
+//		
+//		langSelection = new MultiCheckSelectionCombo(this, SWT.FLAT,"Languages ISO Codes", 3, 250, 400);
+//		langSelection.setLayoutData(new GridData(SWT.FLAT, SWT.FLAT, false, false));
+//		langSelection.setItems(Locale.getISOLanguages());
+//
+//		Label langLbl = new Label(this, SWT.NONE);
+//		langLbl.setText("Language (Detailed):");
+//		langTxt = new Text(this, SWT.BORDER);
+//		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+//		gd.horizontalSpan = 2;
+//		langTxt.setLayoutData(gd);
 				
 
 		setCitlabTrainingDefaults();
