@@ -79,18 +79,22 @@ public class DocumentsSelectorDialog extends Dialog {
 			List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
 			for (TrpDocMetadata d : getCheckedDocs()) {
 				DocumentSelectionDescriptor currDescr = new DocumentSelectionDescriptor(d.getDocId());
-				TrpDoc currDoc;
-	
-					currDoc = Storage.getInstance().getConnection().getTrpDoc(Storage.getInstance().getCollId(), d.getDocId(), 1);
 				
-				List<TrpPage> currPages = currDoc.getPages();
-				for (int i = 0; i < d.getNrOfPages(); i++){		
-					currDescr.addPage(new PageDescriptor(currPages.get(i).getPageId()));
-				}
+				/*
+				 * if no PageDescriptor given the job will make all pages - hopefully!
+				 */
+//				TrpDoc currDoc;
+//	
+//					currDoc = Storage.getInstance().getConnection().getTrpDoc(Storage.getInstance().getCollId(), d.getDocId(), 1);
+//				
+//				List<TrpPage> currPages = currDoc.getPages();
+//				for (int i = 0; i < d.getNrOfPages(); i++){		
+//					currDescr.addPage(new PageDescriptor(currPages.get(i).getPageId()));
+//				}
 				dsds.add(currDescr);	
 			}
 			return dsds;
-		} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException e) {
+		} catch (ClientErrorException | IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
