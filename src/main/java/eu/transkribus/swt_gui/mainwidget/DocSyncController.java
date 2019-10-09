@@ -89,7 +89,7 @@ public class DocSyncController extends AMainWidgetController {
 				String toolname = "Synced with TXT";
 				String note = "Synced from local plaintext file: '"+f.getName()+"'";
 				conn.assignPlainTextToPage(collId, p.getDocId(), p.getPageNr(), EditStatus.IN_PROGRESS, text,
-						p.getPageId(), useExistingData, toolname, note);
+						p.getCurrentTranscript().getTsId(), useExistingData, toolname, note);
 			}
 		}, new String[] {".txt"}, typeOfFiles, false);
 	}
