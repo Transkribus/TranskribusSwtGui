@@ -1682,7 +1682,12 @@ public abstract class ATranscriptionWidget extends Composite{
 //					updateLineObject();
 				}
 				
-				if (e.character == '\u0008') {
+				//logger.debug("marked text: " + text.getSelectionText());
+				/*
+				 * the caret must be at the beginning and no text selected!!
+				 * 2nd point is important - otherwise selecting a word at the beginning of a line and pressing BS will move lines up instead of deleting the word
+				 */
+				if (e.character == '\u0008' && (text.getSelectionText() != null && text.getSelectionText().equals(""))) {
 					
 					logger.debug("Backspace key pressed - move all lines one up if the caret is at the first position");
 					int xIndex = getCurrentXIndex();
