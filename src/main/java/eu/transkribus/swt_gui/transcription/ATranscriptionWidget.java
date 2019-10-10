@@ -1693,23 +1693,40 @@ public abstract class ATranscriptionWidget extends Composite{
 					int xIndex = getCurrentXIndex();
 					if (xIndex == 0){
 						//logger.debug("xIndex = " + xIndex);
-						int offset = text.getCaretOffset();
+						int offset = text.getCaretOffset();														
 						
-//						logger.debug("line index = " + getCurrentLineIndex());
-//						logger.debug("region index = " + getCurrentRegionObject().getId());
+						int idx1 = text.getLineAtOffset(offset);
+						//nothing to do in first line
+						if (idx1==0){
+							return;
+						}
+						
+						int idx2 = idx1-1;
+						
+						int offsetL1 = text.getOffsetAtLine(idx1);
+						int offsetL2 = text.getOffsetAtLine(idx2);
 												
-						int newOffset = offset-2;
-						//logger.debug("new offset " + newOffset);
-						
-						//here the text for copying is selected
-						text.setSelection(offset,text.getText().length());					
-						text.copy();
-	
-						//and here the selection is made where the text gets inserted
-						text.setSelection(newOffset,text.getText().length());
-						text.paste();
-						
-						text.setCaretOffset(newOffset);
+						String prevTextLine = text.getLine(idx2);
+						//logger.debug("--prevTextLine.length(): " + prevTextLine.length());
+
+						/*
+						 * Problem with this method: one char gets deleted; fast fix: only use Backspace if previous line is empty 
+						 * use case is to shift text lines up, if text is contained in previous line user can use cut and paste
+						 */
+						if (prevTextLine.length() == 0){
+							//text.replaceTextRange(offsetL2+text.getLine(idx2).length(), text.getLine(idx1).length()+ld.length(), text.getText(start, end);
+							
+							//here the text for copying is selected
+							text.setSelection(offsetL1,text.getText().length());					
+							text.copy();
+		
+							//and here the selection is made where the text gets inserted
+							text.setSelection(offsetL2,text.getText().length());
+							text.paste();
+							
+							text.setCaretOffset(offsetL2);
+						}
+
 					}
 
 //					logger.debug("text: " + text.getText());
