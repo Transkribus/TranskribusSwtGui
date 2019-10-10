@@ -64,7 +64,7 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 		
 		
 		pagesRadio = new Button(this, SWT.RADIO);
-		pagesRadio.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
+		pagesRadio.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		pagesRadio.setToolTipText("Restrict method to selected pages");
 		pagesRadio.setText("");
 		
@@ -73,7 +73,7 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 		
 		SelectionAdapter radioSelection = new SelectionAdapter() {
 			@Override public void widgetSelected(SelectionEvent e) {
-				System.out.println("e source: " + ((Button) e.getSource()));
+				//System.out.println("e source: " + ((Button) e.getSource()));
 				if (e.getSource().equals(pagesRadio)){
 					multipleDocsRadio.setSelection(!pagesRadio.getSelection());
 				}
@@ -140,7 +140,7 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 			}
 		});
 		
-
+		parent.pack();
 		updateGui();
 	}
 	
@@ -204,7 +204,8 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 		docChooserExp.setExpanded(docSelectionAllowed);
 		docChooserExp.setVisible(docSelectionAllowed);
 		
-		this.layout();
+		//to omit space when docChooser not visible
+		((GridData) docChooserExp.getLayoutData()).exclude = !docSelectionAllowed;
 	}
 	
 	public boolean isCurrentTranscript() {
