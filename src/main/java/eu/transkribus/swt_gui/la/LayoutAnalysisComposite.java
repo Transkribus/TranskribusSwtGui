@@ -92,8 +92,9 @@ public class LayoutAnalysisComposite extends Composite {
 //		methodCombo.combo.select(0);
 		
 		//with this selector jobs can be started for complete collections
-		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(mainContainer, SWT.NONE, true,true);		
+		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(mainContainer, SWT.NONE, false, true);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 1, 1));
+		
 
 //		Group checkGrp = new Group(mainContainer,SWT.NONE);
 //		checkGrp.setLayout(new GridLayout(1, false));
@@ -384,6 +385,7 @@ public class LayoutAnalysisComposite extends Composite {
 	
 	public void updateSelectionChooserForLA(){
 		dps.updateGui();
+		this.layout(true);
 	}
 	
 	

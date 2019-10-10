@@ -159,7 +159,6 @@ public class HtrTextRecognitionDialog extends Dialog {
 		if(config != null) {
 			configTxt.setText(config.toString());
 		}
-		
 		return cont;
 	}
 	
@@ -219,7 +218,11 @@ public class HtrTextRecognitionDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Text Recognition");
-		newShell.setMinimumSize(300, 400);
+		if (Storage.getInstance().isAdminLoggedIn())
+			newShell.setMinimumSize(300, 430);
+		else{
+			newShell.setMinimumSize(300, 400);
+		}
 	}
 
 	@Override
