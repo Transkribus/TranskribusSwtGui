@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.htr;
 
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -87,6 +88,17 @@ public class HtrDetailsDialog extends Dialog {
 	@Override
 	protected Point getInitialSize() {
 		return new Point(640, 768);
+	}
+	
+	@Override
+	protected IDialogSettings getDialogBoundsSettings() {
+		IDialogSettings settings = super.getDialogBoundsSettings();
+		/* 
+		 * On a user's machine with Windows 8.1 the dialog did not start using the value from getInitialSize() but roughly twice the width.
+		 * This method returns null on Win 10 and GTK 2.0 and the issue could not be reproduced yet. 
+		 */
+		logger.debug("Retrieved dialog settings: {}", settings);
+		return settings;
 	}
 
 	@Override
