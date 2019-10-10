@@ -305,6 +305,7 @@ public class TrpMainWidget {
 	CollectionManagerDialog cm;
 	CollectionUsersDialog collUsersDiag;
 	StrayDocsDialog strayDocsDialog;
+	InstallSpecificVersionDialog updateDialog;
 	
 	EditDeclManagerDialog edDiag;
 	ActivityDialog ad;
@@ -4443,12 +4444,26 @@ public class TrpMainWidget {
 		ProgramUpdaterDialog.checkForUpdatesDialog(ui.getShell(), VERSION, info.getTimestamp(), false, false);
 	}
 
+	public void notifyOnRequiredUpdate(final String errorMessage) {
+		final String msg = errorMessage + "\n" +
+				"Please update if you want to use the server-based tools.";
+		showUpdateDialog("Update", msg);
+	}
+	
 	public void installSpecificVersion() {
-		InstallSpecificVersionDialog d = new InstallSpecificVersionDialog(ui.getShell(), SWT.NONE);
-		int answer = d.open();
+		showUpdateDialog(null, null);
+	}
+	
+	public void showUpdateDialog(final String title, final String customMessage) {
+		if(updateDialog != null && !updateDialog.isDisposed()) {
+			updateDialog.closeDialog();
+			updateDialog = null;
+		}
+		updateDialog = new InstallSpecificVersionDialog(ui.getShell(), title, customMessage, SWT.NONE);
+		int answer = updateDialog.open();
 		if (answer == 0 || answer == 1) {
-			ProgramPackageFile f = d.getSelectedFile();
-			boolean downloadAll = d.isDownloadAll();
+			ProgramPackageFile f = updateDialog.getSelectedFile();
+			boolean downloadAll = updateDialog.isDownloadAll();
 			logger.debug("installing selected file: " + f + " downloadAll: " + downloadAll);
 			if (f == null)
 				return;
@@ -4467,11 +4482,12 @@ public class TrpMainWidget {
 			} catch (Throwable e) {
 				TrpMainWidget.getInstance().onError("Error during update", "Error during update: \n\n" + e.getMessage(), e);
 			} finally {
-				if (!ProgramUpdaterDialog.TEST_ONLY_DOWNLOAD)
+				if (!ProgramUpdaterDialog.TEST_ONLY_DOWNLOAD) {
 					ProgramUpdaterDialog.removeUpdateZip();
+				}
+				updateDialog = null;
 			}
 		}
-
 	}
 
 	public void analyzePageStructure(final boolean detectPageNumbers, final boolean detectRunningTitles, final boolean detectFootnotes) {

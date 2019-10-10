@@ -46,14 +46,24 @@ public class InstallSpecificVersionDialog extends Dialog {
 	Label timestampRelease, timestampSnapshots;
 	Label infoLabel;
 	
+	final String customMessage;
+	
 	/**
 	 * Create the dialog.
 	 * @param parent
 	 * @param style
 	 */
 	public InstallSpecificVersionDialog(Shell parent, int style) {
+		this(parent, null, null, style);
+	}
+	
+	public InstallSpecificVersionDialog(Shell parent, String dialogTitle, String customMessage, int style) {
 		super(parent, style|= (SWT.DIALOG_TRIM | SWT.RESIZE) );
-		setText("Install a specific version of the tool");
+		if(dialogTitle == null) {
+			dialogTitle = "Install a specific version of the tool";
+		}
+		setText(dialogTitle);
+		this.customMessage = customMessage;
 	}
 
 	/**
@@ -65,7 +75,7 @@ public class InstallSpecificVersionDialog extends Dialog {
 		if (shell.isDisposed())
 			return result;
 		
-		SWTUtil.centerShell(shell);
+		SWTUtil.centerShell(shell, false);
 		shell.open();
 		shell.layout();
 		Display display = getParent().getDisplay();
@@ -86,6 +96,13 @@ public class InstallSpecificVersionDialog extends Dialog {
 		shell.setText(getText());
 		int nCols = 3;
 		shell.setLayout(new GridLayout(nCols, false));
+		
+		if(customMessage != null) {
+			Label messageLbl = new Label(shell, SWT.BOLD);
+			messageLbl.setFont(Fonts.createBoldFont(messageLbl.getFont()));
+			messageLbl.setLayoutData(new GridData(SWT.CENTER, SWT.TOP, true, false, nCols, 1));
+			messageLbl.setText(customMessage);
+		}
 		
 		releasesRadio = new Button(shell, SWT.RADIO);
 		releasesRadio.setText("Releases: ");
@@ -263,5 +280,19 @@ public class InstallSpecificVersionDialog extends Dialog {
 	public boolean isDownloadAll() {
 		return isDownloadAll;
 	}
+	
+	public void setVisible() {
+		if (shell != null && !shell.isDisposed()) {
+			shell.setVisible(true);
+		}
+	}
+	public boolean isDisposed() {
+		return shell == null || shell.isDisposed();
+	}
 
+	public void closeDialog() {
+		if(!isDisposed()) {
+			shell.close();
+		}
+	}
 }

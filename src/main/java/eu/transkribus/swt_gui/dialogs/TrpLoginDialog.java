@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.exceptions.ClientVersionNotSupportedException;
 import eu.transkribus.core.exceptions.OAuthTokenRevokedException;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
-import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.LoginDialog;
 import eu.transkribus.swt.util.databinding.DataBinder;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
@@ -78,11 +77,11 @@ public class TrpLoginDialog extends LoginDialog {
 			errorMsg = oau.getMessage();
 		}		
 		catch (ClientVersionNotSupportedException e) {
-			String errorMsgStripped = StringUtils.removeStart(e.getMessage(), "Client error: ");
-			DialogUtil.showErrorMessageBox(getShell(), "Version not supported anymore!", errorMsgStripped);
 			logger.error(e.getMessage(), e);
-			success = false;
-			errorMsg = errorMsgStripped;
+			close();
+			String errorMsgStripped = StringUtils.removeStart(e.getMessage(), "Client error: ");
+			mw.notifyOnRequiredUpdate(errorMsgStripped);
+			return;
 		}
 		catch (LoginException e) {
 			mw.logout(true, false);

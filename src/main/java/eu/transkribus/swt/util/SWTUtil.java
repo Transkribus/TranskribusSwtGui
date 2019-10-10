@@ -744,15 +744,28 @@ public class SWTUtil {
 		return newR;
 	}
 	
+	/**
+	 * Centers the shell on the primary monitor. This might not be the one where Transkribus runs!
+	 * 
+	 * @param shell
+	 */
 	public static void centerShell(Shell shell) {
+		centerShell(shell, true);
+	}
+	
+	public static void centerShell(Shell shell, boolean onPrimaryMonitor) {
 		if (isDisposed(shell)) {
 			return;
 		}
 		
-		Display display = shell.getDisplay();
-
-		Monitor primary = display.getPrimaryMonitor();
-	    Rectangle bounds = primary.getBounds();
+		final Monitor monitor;
+		if(onPrimaryMonitor) {
+			Display display = shell.getDisplay();
+			monitor = display.getPrimaryMonitor();
+		} else {
+			monitor = shell.getParent().getMonitor();
+		}
+	    Rectangle bounds = monitor.getBounds();
 	    Rectangle rect = shell.getBounds();
 	    
 	    int x = bounds.x + (bounds.width - rect.width) / 2;
