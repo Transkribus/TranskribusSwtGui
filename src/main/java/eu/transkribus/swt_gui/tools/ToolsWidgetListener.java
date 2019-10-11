@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -19,7 +18,6 @@ import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
-import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpP2PaLAModel;
@@ -105,8 +103,6 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.t2iBtn, this);
 		
 		Storage.getInstance().addListener(new IStorageListener() {
-			Storage store = Storage.getInstance();
-			
 			public void handleTranscriptLoadEvent(TranscriptLoadEvent arg) {
 				tw.refVersionChooser.setToGT();
 				tw.hypVersionChooser.setToCurrent();
@@ -312,7 +308,10 @@ public class ToolsWidgetListener implements SelectionListener {
 						logger.debug("start LA for docs: " + docDescr.getDocId());
 						List<DocumentSelectionDescriptor> dsds = new ArrayList<>();
 						dsds.add(docDescr);
-						List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(dsds, true, true, false, false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters());
+						List<String> tmp = store.analyzeLayoutOnDocumentSelectionDescriptor(
+								dsds, tw.laComp.isDoBlockSeg(), tw.laComp.isDoLineSeg(), tw.laComp.isDoWordSeg(), 
+								false, false, tw.laComp.getJobImpl().toString(), tw.laComp.getParameters()
+								);
 						jobIds.addAll(tmp);
 						
 					}
