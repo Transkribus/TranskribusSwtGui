@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TextToolItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -50,6 +51,8 @@ import eu.transkribus.swt_gui.htr.treeviewer.GroundTruthTreeWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthLabelAndFontProvider;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.tools.ToolsWidget.TranscriptVersionChooser;
+import eu.transkribus.swt_gui.util.DropDownButton;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 
 public class ServerWidget extends Composite {
@@ -80,10 +83,12 @@ public class ServerWidget extends Composite {
 	Button showActivityWidgetBtn;
 //	Text quickLoadByID;
 	
-	MenuItem openLocalDocBtn;
-	MenuItem importBtn;
-	MenuItem exportBtn;
-	MenuItem findBtn;
+//	MenuItem openLocalDocBtn, importBtn, exportBtn, findBtn;
+	ExpandableComposite docExp;
+//	Button openLocalDocBtn, importBtn, exportBtn, findBtn;
+	
+	MenuItem openLocalDocBtn, importBtn, exportBtn;
+	Button findBtn;
 	
 	Menu editCollectionMenu;
 	MenuItem collectionUsersBtn;
@@ -105,7 +110,8 @@ public class ServerWidget extends Composite {
 	
 	ServerWidgetListener serverWidgetListener;
 	
-	List<Control> userControls = new ArrayList<>();
+//	List<Control> userControls = new ArrayList<>();
+	List<Object> userControls = new ArrayList<>();
 	
 	Menu docOverviewMenu;
 	
@@ -134,8 +140,9 @@ public class ServerWidget extends Composite {
 	void updateLoggedIn() {
 		boolean isLoggedIn = store.isLoggedIn();
 		
-		for (Control c : userControls) {			
-			c.setEnabled(isLoggedIn);
+		for (Object c : userControls) {			
+//			c.setEnabled(isLoggedIn);
+			SWTUtil.setEnabled(c, isLoggedIn);
 		}
 		
 		if (!isLoggedIn) {
@@ -144,6 +151,108 @@ public class ServerWidget extends Composite {
 			updateGroundTruthTreeViewer();
 		}
 	}
+	
+//	private void initDocumentBtnsGroup() {
+//		docExp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
+//		docExp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		docExp.setLayout(new GridLayout(1, false));
+//		
+//		Composite docExpComp = new Composite(docExp, SWT.SHADOW_ETCHED_IN);
+//		docExpComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		docExpComp.setLayout(SWTUtil.createGridLayout(4, false, 0, 0));
+//		
+//		openLocalDocBtn = new Button(docExpComp, SWT.PUSH);
+//		openLocalDocBtn.setText("Open");
+//		openLocalDocBtn.setToolTipText("Open a local document from a folder of images");
+//		openLocalDocBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		openLocalDocBtn.setImage(Images.FOLDER);
+//		
+//		importBtn = new Button(docExpComp, SWT.PUSH);
+//		importBtn.setText("Import");
+//		importBtn.setToolTipText("Import a document to the server");
+//		importBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		importBtn.setImage(Images.FOLDER_IMPORT);
+//		
+//		exportBtn = new Button(docExpComp, SWT.PUSH);
+//		exportBtn.setText("Export");
+//		exportBtn.setToolTipText("Export the current document to your local machine");
+//		exportBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		exportBtn.setImage(Images.FOLDER_GO);
+//		
+//		findBtn = new Button(docExpComp, SWT.PUSH);
+//		findBtn.setText("Find");
+//		findBtn.setToolTipText("Find documents, text or tags");
+//		findBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		findBtn.setImage(Images.FIND);	
+//				
+//		docExp.setClient(docExpComp);
+//		docExp.setText("Document");
+//		Fonts.setBoldFont(docExp);
+//		docExp.setExpanded(true);
+//		docExp.addExpansionListener(new ExpansionAdapter() {
+//			public void expansionStateChanged(ExpansionEvent e) {
+//				container.layout();
+//			}
+//		});
+//	}
+	
+//	private void initManagerExp() {
+//		ExpandableComposite exp = new ExpandableComposite(container, ExpandableComposite.COMPACT);
+//		exp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		exp.setLayout(new GridLayout(1, false));
+//		
+//		Composite comp = new Composite(exp, SWT.SHADOW_ETCHED_IN);
+//		comp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		comp.setLayout(SWTUtil.createGridLayout(3, false, 0, 0));
+//		
+//		docManager = new Button(comp, 0);
+//		docManager.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		docManager.setText("Document Manager");
+//		docManager.setToolTipText("Add pages, add transcripts, choose symbolic images, ...");
+//		docManager.setImage(Images.FOLDER_WRENCH);
+//		userControls.add(docManager);
+//			
+//		userManager = new Button(comp, 0);
+//		userManager.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		userManager.setText("User Manager");
+//		userManager.setToolTipText("Add/Remove users to your collections");
+//		userManager.setImage(Images.USER_EDIT);
+//		userControls.add(userManager);
+//		
+//		showActivityWidgetBtn = new Button(comp, SWT.PUSH);
+//		showActivityWidgetBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		showActivityWidgetBtn.setImage(Images.GROUP);
+//		showActivityWidgetBtn.setText("User activity");
+//		userControls.add(showActivityWidgetBtn);		
+//	
+//		exp.setClient(comp);
+//		exp.setText("Manager");
+//		Fonts.setBoldFont(exp);
+//		exp.setExpanded(true);
+//		exp.addExpansionListener(new ExpansionAdapter() {
+//			public void expansionStateChanged(ExpansionEvent e) {
+//				container.layout();
+//			}
+//		});	
+//	}
+	
+//	private void initTopLevelBtns() {
+//		Composite btns1 = new Composite(container, 0);
+//		btns1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		btns1.setLayout(SWTUtil.createGridLayout(3, true, 0, 0));
+//		
+//		
+//	}
+	
+//	private void initTopLevelBtns() {
+//		Composite btns1 = new Composite(container, 0);
+//		btns1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		btns1.setLayout(SWTUtil.createGridLayout(2, true, 0, 0));
+//		
+//		
+//		
+//		
+//	}
 	
 	private void init() {
 		this.setLayout(new GridLayout());
@@ -157,51 +266,53 @@ public class ServerWidget extends Composite {
 		loginBtn.setImage(Images.DISCONNECT);
 		Fonts.setBoldFont(loginBtn);
 		
+//		initDocumentBtnsGroup();
+//		initManagerExp();
+		
 		Composite btns1 = new Composite(container, 0);
 		btns1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		btns1.setLayout(SWTUtil.createGridLayout(2, true, 0, 0));
 		
-		
-		
-		
-//		DropDownButton docDropDown = new DropDownButton(btns1, SWT.PUSH, "Document...", Images.FOLDER, null);
-//		docDropDown.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		DropDownButton docDropDown = new DropDownButton(btns1, SWT.PUSH, "Document...", Images.FOLDER, null);
+		docDropDown.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 //		userControls.add(docDropDown);
-//		
-//		openLocalDocBtn = docDropDown.addItem("Open local document...", Images.FOLDER);
-//		importBtn = docDropDown.addItem("Import document to server...", Images.FOLDER_IMPORT);
-//		exportBtn = docDropDown.addItem("Export document to your local machine...", Images.FOLDER_GO);
-//		findBtn = docDropDown.addItem("Find documents, text or tags...", Images.FIND);
+		openLocalDocBtn = docDropDown.addItem("Open local document...", Images.FOLDER, SWT.PUSH);
+		importBtn = docDropDown.addItem("Import document to server...", Images.FOLDER_IMPORT, SWT.PUSH);
+		userControls.add(importBtn);
+		exportBtn = docDropDown.addItem("Export document to your local machine...", Images.FOLDER_GO, SWT.PUSH);
+		userControls.add(exportBtn);
+//		findBtn = docDropDown.addItem("Find documents, text or tags...", Images.FIND, SWT.PUSH);
 		
-//		if (false) {
+		if (true) {
 //		Composite docsComposite = new Composite(btns1, 0);
 //		docsComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 //		docsComposite.setLayout(SWTUtil.createGridLayout(4, false, 3, 3));
-//		        		
-//		openLocalDocBtn = new Button(docsComposite, SWT.PUSH);
+		        		
+//		openLocalDocBtn = new Button(btns1, SWT.PUSH);
 //		openLocalDocBtn.setText("Open");
 //		openLocalDocBtn.setToolTipText("Open a local document from a folder of images");
 //		openLocalDocBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 //		openLocalDocBtn.setImage(Images.FOLDER);
 //		
-//		importBtn = new Button(docsComposite, SWT.PUSH);
+//		importBtn = new Button(btns1, SWT.PUSH);
 //		importBtn.setText("Import");
 //		importBtn.setToolTipText("Import a document to the server");
 //		importBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 //		importBtn.setImage(Images.FOLDER_IMPORT);
 //		
-//		exportBtn = new Button(docsComposite, SWT.PUSH);
+//		exportBtn = new Button(btns1, SWT.PUSH);
 //		exportBtn.setText("Export");
 //		exportBtn.setToolTipText("Export the current document to your local machine");
 //		exportBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 //		exportBtn.setImage(Images.FOLDER_GO);
-//		
-//		findBtn = new Button(docsComposite, SWT.PUSH);
-//		findBtn.setText("Find");
-//		findBtn.setToolTipText("Find documents, text or tags");
-//		findBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-//		findBtn.setImage(Images.FIND);
-//		}
+		
+		findBtn = new Button(btns1, SWT.PUSH);
+		findBtn.setText("Find");
+		findBtn.setToolTipText("Find documents, text or tags");
+		findBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		findBtn.setImage(Images.FIND);
+		userControls.add(findBtn);
+		}
 		
 		docManager = new Button(btns1, 0);
 		docManager.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
