@@ -179,7 +179,7 @@ public class ToolsWidgetListener implements SelectionListener {
 			if (htd != null) {
 				htd.setVisible();
 			} else {
-				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrs(null), store.getHtrTrainingJobImpls());
+				htd = new HtrTrainingDialog(mw.getShell(), store.getHtrs(null, true), store.getHtrTrainingJobImpls());
 				if (htd.open() == IDialogConstants.OK_ID) {
 					// new: check here if user wants to store or not
 					// if (!mw.saveTranscriptDialogOrAutosave()) {
@@ -579,44 +579,37 @@ public class ToolsWidgetListener implements SelectionListener {
 				} else {
 					trd2 = new HtrTextRecognitionDialog(mw.getShell());
 					if (trd2.open() == IDialogConstants.OK_ID) {
-												
+						
+						final String pages;
 						TextRecognitionConfig config = trd2.getConfig();
-						final String pages = trd2.getPages();
-						
-						String msg = (trd2.isDocsSelection() && trd2.getDocs() != null && Storage.getInstance().isAdminLoggedIn()) ? "Do you really want to start the HTR for "+ trd2.getDocs().size() + " docs in this collection?" : "Do you really want to start the HTR for page(s) " + pages + "  ?";
-						
-						//String msg = "Do you really want to start the HTR for page(s) " + pages + "  ?";
-						if (DialogUtil.showYesNoDialog(mw.getShell(), "Handwritten Text Recognition", msg)!=SWT.YES) {
-							trd2 = null;
-							return;
-						}
-						
+						String msg;
 						try {
+							final boolean isDocsSelection = trd2.isDocsSelection() && trd2.getDocs() != null && Storage.getInstance().isAdminLoggedIn();
+							if (isDocsSelection) {
+								pages = null;
+								msg = "Do you really want to start the HTR for "+ trd2.getDocs().size() + " docs in this collection?";
+							} else {
+								pages = trd2.getPages();
+								msg = "Do you really want to start the HTR for page(s) " + pages + " ?";
+							}
 							
-							if (trd2.isDocsSelection() && trd2.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
+							if (DialogUtil.showYesNoDialog(mw.getShell(), "Handwritten Text Recognition", msg)!=SWT.YES) {
+								return;
+							}
+
+							if (isDocsSelection){
 								/*
 								 * ToDo: we could start LA for all docs at once in a single job instead of starting it for each doc separately
 								 * this way the jobs are parallelized automatically, results will be finsished earlier
 								 * but job list will be much longer
 								 */
 								for (DocumentSelectionDescriptor docDescr : trd2.getDocs()){
-									logger.debug("start HTR for doc: " + docDescr.getDocId());
-																		
-									int nrPages = docDescr.getPages().size();
-									logger.debug("number of pages in descriptor: " + nrPages);
-									List<Integer> pagesList = new ArrayList<>();
-									for (int i = 0; i<nrPages; i++){
-										pagesList.add(i);
-									}
-									String currDocPages = CoreUtils.getRangeListStrFromList(pagesList);
-									logger.debug("start HTR for this pageString: (should be all pages): " + currDocPages);
-									String tmp = store.runHtr(docDescr.getDocId(), currDocPages, config);
+									logger.debug("start HTR for all pages with docId = {}", docDescr.getDocId());
+
+									String tmp = store.runHtr(docDescr, config);
 									jobIds.add(tmp);
-									
 								}
-							}
-							else{
-								
+							} else {
 								String jobId = store.runHtr(pages, config);
 								jobIds.add(jobId);
 							}

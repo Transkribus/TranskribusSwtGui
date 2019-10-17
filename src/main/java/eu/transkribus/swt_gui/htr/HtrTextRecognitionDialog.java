@@ -64,6 +64,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		Composite cont = (Composite) super.createDialogArea(parent);
 		cont.setLayout(new GridLayout(3, false));
 		
+		//FIXME the document selection is not initialized before the selection dialog is opened once
 		//with this selector jobs can be started for complete collections
 		dps = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, true,true);		
 		dps.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false, 3, 1));
@@ -177,9 +178,6 @@ public class HtrTextRecognitionDialog extends Dialog {
 			pages = ""+store.getPage().getPageNr();
 		} else if(!dps.isDocsSelection()) {
 			pages = dps.getPagesStr();
-		}
-		
-		if (!dps.isDocsSelection()){
 			if(pages == null || pages.isEmpty()) {
 				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please specify pages for recognition.");
 				return;
@@ -191,8 +189,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Page selection is invalid.");
 				return;
 			}
-		}
-		else{
+		} else {
 			docsSelected = dps.isDocsSelection();
 			selectedDocDescriptors = dps.getDocumentsToExportOnServer();
 		}

@@ -2818,13 +2818,38 @@ public class Storage {
 				.filter(h -> h.getProvider().equals(provider))
 				.collect(Collectors.toList());
 	}
+	
+	public List<TrpHtr> getHtrs(String provider, boolean excludeHtrsWithoutGTData) {
+		//filter by provider
+		List<TrpHtr> htrs = getHtrs(provider);
+		//return HTRs with disclosed train GT only 
+		return htrs.stream()
+				.filter(h -> h.hasTrainGt() && this.isUserAllowedToViewDataSets(h))
+				.collect(Collectors.toList());
+	}
 
 	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
 		checkConnection(true);
 		switch(config.getMode()) {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), getDocId(), pages, 
-					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), config.getStructures());
+					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
+					config.isDoStoreConfMats(), config.getStructures());
+		case UPVLC:
+			return null;
+		default:
+			return null;
+		}
+	}
+	
+	public String runHtr(DocumentSelectionDescriptor descriptor, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		checkConnection(true);
+		switch(config.getMode()) {
+		case CITlab:
+			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), 
+					config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
+					config.isDoStoreConfMats(), config.getStructures()
+					);
 		case UPVLC:
 			return null;
 		default:

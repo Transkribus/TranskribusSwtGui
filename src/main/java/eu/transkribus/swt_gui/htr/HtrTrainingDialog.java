@@ -92,10 +92,7 @@ public class HtrTrainingDialog extends Dialog {
 		if(htrList == null) {
 			this.htrList = new ArrayList<>(0);
 		} else {
-			//show HTRs with disclosed train GT only 
-			this.htrList = htrList.stream()
-					.filter(h -> h.hasTrainGt() && store.isUserAllowedToViewDataSets(h))
-					.collect(Collectors.toList());
+			this.htrList = htrList;
 		}
 	}
 
