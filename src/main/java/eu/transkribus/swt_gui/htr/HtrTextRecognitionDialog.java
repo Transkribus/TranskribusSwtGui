@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -192,6 +193,10 @@ public class HtrTextRecognitionDialog extends Dialog {
 		} else {
 			docsSelected = dps.isDocsSelection();
 			selectedDocDescriptors = dps.getDocumentsToExportOnServer();
+			if(CollectionUtils.isEmpty(selectedDocDescriptors)) {
+				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "No documents selected for recognition.");
+				return;
+			}
 		}
 		
 		if(config == null) {
