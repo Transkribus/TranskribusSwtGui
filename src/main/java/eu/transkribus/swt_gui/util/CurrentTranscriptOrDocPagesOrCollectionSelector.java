@@ -67,7 +67,7 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 		pagesRadio = new Button(this, SWT.RADIO);
 		pagesRadio.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		pagesRadio.setToolTipText("Restrict method to selected pages");
-		pagesRadio.setText("");
+		pagesRadio.setText("Current document:");
 		
 		ps = new CurrentDocPagesSelector(this, 0, true, false, false);
 		ps.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, oneRow ? 2 : 1, 1));
