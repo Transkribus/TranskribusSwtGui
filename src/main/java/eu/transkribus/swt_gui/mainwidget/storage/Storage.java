@@ -3101,40 +3101,13 @@ public class Storage {
 
 				if (!StringUtils.isEmpty(structType)) {
 					
-					/*
-					 * for articles the structType could be extended with the id to get differentiation between different articles of a page
-					 */
-					logger.debug("structType for adding foreign struct tag specs: " + structType);
-					if (structType.equals("article")){
-						StructureTag stStructTag = CustomTagUtil.getStructureTag(st);
-						String id = (String) stStructTag.getAttributeValue("id");
-						//logger.debug("attribute id of structure" + id);
-						structType = structType.concat("_"+id);
-						StructCustomTagSpec spec = getStructCustomTagSpec(structType);	
-						
-						if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
-							StructureTag newStructTag = new StructureTag(structType);
-							try {
-								newStructTag.setAttribute("id", id, true);
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							spec = new StructCustomTagSpec(newStructTag, getNewStructCustomTagColor());
-							logger.debug("adding foreign page from transcript: "+spec);
-							structCustomTagSpecs.add(spec);
-						}
+					StructCustomTagSpec spec = getStructCustomTagSpec(structType);		
+					if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
+						spec = new StructCustomTagSpec(new StructureTag(structType), getNewStructCustomTagColor());
+						//logger.debug("adding foreign page from transcript: "+spec);
+						structCustomTagSpecs.add(spec);
+					}
 
-					}
-					else{
-					
-						StructCustomTagSpec spec = getStructCustomTagSpec(structType);		
-						if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
-							spec = new StructCustomTagSpec(new StructureTag(structType), getNewStructCustomTagColor());
-							logger.debug("adding foreign page from transcript: "+spec);
-							structCustomTagSpecs.add(spec);
-						}
-					}
 				}
 			}
 			if (sizeBefore != structCustomTagSpecs.size()) {
