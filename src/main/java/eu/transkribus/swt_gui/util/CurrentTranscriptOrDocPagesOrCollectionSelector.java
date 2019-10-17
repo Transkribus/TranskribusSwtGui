@@ -162,7 +162,7 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 			} else {
 				TrpCollection c = Storage.getInstance().getCollection(id);
 				int total = Storage.getInstance().getDocList().size();
-				int nToExport = documentsSelected == null ? total : documentsSelected.size();
+				int nToExport = documentsSelected == null ? 0 : documentsSelected.size();
 				txt += "Select "+nToExport+"/"+total+" docs from collection "+c.getColName()+" ("+c.getColId()+")";
 			}
 		}
