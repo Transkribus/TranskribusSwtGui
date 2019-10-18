@@ -2818,13 +2818,38 @@ public class Storage {
 				.filter(h -> h.getProvider().equals(provider))
 				.collect(Collectors.toList());
 	}
+	
+	public List<TrpHtr> getHtrs(String provider, boolean excludeHtrsWithoutGTData) {
+		//filter by provider
+		List<TrpHtr> htrs = getHtrs(provider);
+		//return HTRs with disclosed train GT only 
+		return htrs.stream()
+				.filter(h -> h.hasTrainGt() && this.isUserAllowedToViewDataSets(h))
+				.collect(Collectors.toList());
+	}
 
 	public String runHtr(String pages, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
 		checkConnection(true);
 		switch(config.getMode()) {
 		case CITlab:
 			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), getDocId(), pages, 
-					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), config.isDoStoreConfMats(), config.getStructures());
+					config.getHtrId(), config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
+					config.isDoStoreConfMats(), config.getStructures());
+		case UPVLC:
+			return null;
+		default:
+			return null;
+		}
+	}
+	
+	public String runHtr(DocumentSelectionDescriptor descriptor, TextRecognitionConfig config) throws NoConnectionException, SessionExpiredException, ServerErrorException, ClientErrorException {
+		checkConnection(true);
+		switch(config.getMode()) {
+		case CITlab:
+			return conn.runCitLabHtr(getCurrentDocumentCollectionId(), descriptor, config.getHtrId(), 
+					config.getDictionary(), config.isDoLinePolygonSimplification(), config.isKeepOriginalLinePolygons(), 
+					config.isDoStoreConfMats(), config.getStructures()
+					);
 		case UPVLC:
 			return null;
 		default:
@@ -3101,40 +3126,13 @@ public class Storage {
 
 				if (!StringUtils.isEmpty(structType)) {
 					
-					/*
-					 * for articles the structType could be extended with the id to get differentiation between different articles of a page
-					 */
-					logger.debug("structType for adding foreign struct tag specs: " + structType);
-					if (structType.equals("article")){
-						StructureTag stStructTag = CustomTagUtil.getStructureTag(st);
-						String id = (String) stStructTag.getAttributeValue("id");
-						//logger.debug("attribute id of structure" + id);
-						structType = structType.concat("_"+id);
-						StructCustomTagSpec spec = getStructCustomTagSpec(structType);	
-						
-						if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
-							StructureTag newStructTag = new StructureTag(structType);
-							try {
-								newStructTag.setAttribute("id", id, true);
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							spec = new StructCustomTagSpec(newStructTag, getNewStructCustomTagColor());
-							logger.debug("adding foreign page from transcript: "+spec);
-							structCustomTagSpecs.add(spec);
-						}
+					StructCustomTagSpec spec = getStructCustomTagSpec(structType);		
+					if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
+						spec = new StructCustomTagSpec(new StructureTag(structType), getNewStructCustomTagColor());
+						//logger.debug("adding foreign page from transcript: "+spec);
+						structCustomTagSpecs.add(spec);
+					}
 
-					}
-					else{
-					
-						StructCustomTagSpec spec = getStructCustomTagSpec(structType);		
-						if (spec == null) { // tag not found --> create new one and add it to the list with a new color!
-							spec = new StructCustomTagSpec(new StructureTag(structType), getNewStructCustomTagColor());
-							logger.debug("adding foreign page from transcript: "+spec);
-							structCustomTagSpecs.add(spec);
-						}
-					}
 				}
 			}
 			if (sizeBefore != structCustomTagSpecs.size()) {

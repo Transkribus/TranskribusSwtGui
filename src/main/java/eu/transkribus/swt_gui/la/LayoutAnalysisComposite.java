@@ -59,7 +59,7 @@ public class LayoutAnalysisComposite extends Composite {
 	public static final String METHOD_CVL = "CVL (experimental)";
 	public static final String METHOD_CITLAB = "CITlab";
 	public static final String METHOD_CITLAB_ADVANCED = "CITlab Advanced";
-	public static final String METHOD_TYPEWRITTEN_BLOCKS = "Typewritten Block Detection";
+	public static final String METHOD_PRINTED_BLOCKS = "Printed Block Detection";
 	
 //	public static final String METHOD_CUSTOM = "Custom";
 	
@@ -241,7 +241,7 @@ public class LayoutAnalysisComposite extends Composite {
 			doLineSegBtn.setEnabled(false);
 			isMethodConfigurable = true;
 			break;
-		case METHOD_TYPEWRITTEN_BLOCKS:
+		case METHOD_PRINTED_BLOCKS:
 			doBlockSegBtn.setSelection(true);
 			doBlockSegBtn.setEnabled(false);
 			doLineSegBtn.setSelection(false);
@@ -275,7 +275,7 @@ public class LayoutAnalysisComposite extends Composite {
 		List<String> methods = new ArrayList<>();
 		
 		methods.add(METHOD_CITLAB_ADVANCED);
-		methods.add(METHOD_TYPEWRITTEN_BLOCKS);
+		methods.add(METHOD_PRINTED_BLOCKS);
 //		methods.add(METHOD_NCSR_OLD);
 //		methods.add(METHOD_NCSR);
 //		methods.add(METHOD_CVL);
@@ -376,7 +376,7 @@ public class LayoutAnalysisComposite extends Composite {
 			return JobImpl.CITlabLaJob;
 		case METHOD_CITLAB_ADVANCED:
 			return JobImpl.CITlabAdvancedLaJob;
-		case METHOD_TYPEWRITTEN_BLOCKS:
+		case METHOD_PRINTED_BLOCKS:
 			return JobImpl.FinereaderLaJob;
 		default:
 			return null;
