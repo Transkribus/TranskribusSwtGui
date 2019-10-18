@@ -203,9 +203,6 @@ public class HtrTextRecognitionDialog extends Dialog {
 		}
 		
 		List<String> selectionArray = new ArrayList<>(Arrays.asList(multiCombo.getSelections()));
-		for(String selection : selectionArray) {
-			logger.debug("Selection for multi combo : "+selection);
-		}		
 		config.setStructures(selectionArray);
 		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
 		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
