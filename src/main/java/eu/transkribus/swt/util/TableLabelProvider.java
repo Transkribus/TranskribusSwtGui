@@ -4,7 +4,6 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableFontProvider;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 
 public class TableLabelProvider implements ITableLabelProvider, ITableFontProvider {
@@ -31,9 +30,6 @@ public class TableLabelProvider implements ITableLabelProvider, ITableFontProvid
 	}
 
 	@Override public Font getFont(Object element, int columnIndex) {
-		
-		Font f = new Font(null, new FontData());
-		
 		return null;
 	}
 
