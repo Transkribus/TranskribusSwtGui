@@ -67,9 +67,9 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 		pagesRadio = new Button(this, SWT.RADIO);
 		pagesRadio.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		pagesRadio.setToolTipText("Restrict method to selected pages");
-		pagesRadio.setText("Current document:");
+		pagesRadio.setText("Pages (0):");
 		
-		ps = new CurrentDocPagesSelector(this, 0, true, false, false);
+		ps = new CurrentDocPagesSelector(this, 0, false, false, false);
 		ps.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, oneRow ? 2 : 1, 1));
 		
 		SelectionAdapter radioSelection = new SelectionAdapter() {
@@ -198,6 +198,9 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 		docsLabel.setVisible(docSelectionAllowed);
 		multipleDocsRadio.setVisible(docSelectionAllowed);
 		docsSelectorBtn.setVisible(docSelectionAllowed);
+		if (Storage.getInstance().isDocLoaded()){
+			pagesRadio.setText("Pages ("+Storage.getInstance().getDoc().getPages().size()+"):");
+		}
 		if (docSelectionAllowed){
 			docsSelectorBtn.setEnabled(multipleDocsRadio.getSelection());
 			updateDocsNumberLabel();
