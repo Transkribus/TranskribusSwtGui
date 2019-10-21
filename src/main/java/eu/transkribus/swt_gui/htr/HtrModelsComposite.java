@@ -236,13 +236,8 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 					charSetViewer.setVisible();
 					charSetViewer.update(selectedHtr);
 				} else {
-					try {
-						charSetViewer = new CharSetViewerDialog(getShell(), selectedHtr);
-						charSetViewer.open();
-					} catch (ClientErrorException | IllegalArgumentException e1) {
-						logger.error(e1.getMessage(), e);
-					}
-
+					charSetViewer = new CharSetViewerDialog(getShell(), selectedHtr);
+					charSetViewer.open();
 					charSetViewer = null;
 				}
 			}
