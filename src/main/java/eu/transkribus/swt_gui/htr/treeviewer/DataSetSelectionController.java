@@ -238,7 +238,7 @@ public class DataSetSelectionController {
 				
 				//filter for elements that are not included via other selected GT sets
 				pageList = pageList.stream()
-						.filter(p -> !isPageInSelection(p))
+						.filter(p -> !isPageInSelection(p, targetDataMap))
 						.collect(Collectors.toList());
 				
 				logger.debug("Filtered already included pages. Remaining: " + pageList.size());
@@ -266,7 +266,7 @@ public class DataSetSelectionController {
 				}
 				
 				//omit if this page is already included
-				if(isPageInSelection(p)) {
+				if(isPageInSelection(p, targetDataMap)) {
 					nrOfItemsOmitted++;
 					continue;
 				}
@@ -398,6 +398,7 @@ public class DataSetSelectionController {
 				.filter(e -> getGtSetsFromSelectionIncludingElement(e, false).isEmpty())
 				.collect(Collectors.toList());
 		logger.debug("Filtered already included gt pages. Remaining: " + gtPageList.size());
+		final int conflictingGtIdItems = gtSetSize - gtPageList.size(); 		
 		
 		if(gtPageList.isEmpty()) {
 			//all GT entities already included
@@ -408,15 +409,47 @@ public class DataSetSelectionController {
 		if(gtPagesToAdd.isEmpty()) {
 			return 0;
 		}
+		final int gtPagesToAddWithDuplicates = gtPagesToAdd.size();
 		
-		targetDataMap.put(htrGtDataSet, gtPageList);
+		/* 
+		* check for imageId overlaps within gtPagesToAdd and discard older transcripts
+		* The check is now disabled as the cleanup needs to be done in the database. Handling illegal data combinations at this point is a mess.
+		*/
+		int duplicatesRemoved = 0;
+//		gtPagesToAdd = removeDuplicatesByImage(gtPagesToAdd);	
+//		int duplicatesRemoved = gtPagesToAddWithDuplicates - gtPagesToAdd.size();		
+		
+		//pass list prepared by detectAndResolveConflicts()
+		targetDataMap.put(htrGtDataSet, gtPagesToAdd);
 		if (nonIntersectingDataMap.containsKey(htrGtDataSet)) {
 			nonIntersectingDataMap.remove(htrGtDataSet);
 		}
 		//return nr of pages that have been automatically removed from selection
-		return gtSetSize - gtPageList.size();
+		return conflictingGtIdItems + duplicatesRemoved;
 	}
 	
+	/**
+	 * TODO All those efforts to clean out data here (e.g. image overlaps in a single set) should be sorted out by cleaning the database which makes it much easier here.
+	 * Then this method can be removed.
+	 * 
+	 * @param gtPagesToAdd
+	 * @return
+	 */
+	private List<AGtDataSetElement<?>> removeDuplicatesByImage(List<AGtDataSetElement<?>> gtPagesToAdd) {
+		Map<Integer, AGtDataSetElement<?>> gt = new HashMap<>();
+		for(AGtDataSetElement<?> e : gtPagesToAdd) {
+			final Integer imageId = e.getGroundTruthPage().getImageId();
+			if(gt.containsKey(imageId)
+					&& gt.get(imageId).getGroundTruthPage().getCreated().after(e.getGroundTruthPage().getCreated())
+					) {
+				//keep this entry and ignore current e
+				continue;
+			}
+			gt.put(e.getGroundTruthPage().getImageId(), e);
+		}
+		return new ArrayList<>(gt.values());
+	}
+
 	/**
 	 * Retrieve all HtrGtDataSets from train set and validation set selection tables that include the given HtrGtDataSetElement.
 	 * This is needed for detecting conflicts when adding new data to the selection (GT may be used in several models) and in 
@@ -443,19 +476,24 @@ public class DataSetSelectionController {
 				logger.trace(element.getGroundTruthPage().getGtId() + " <-> " + g.getGroundTruthPage().getGtId());
 				
 				if(g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId()) {
-					logger.debug("Element already in trainset: " + element.getGroundTruthPage().getGtId());
+					logger.debug("GT with this ID is already in trainset: " + element.getGroundTruthPage().getGtId());
 					includedBySetList.add(e.getKey());
 					break;
 				}
+				
+				//those two checks do not work in the labelprovider as exluceOriginalSet is then true! FIXME
+//				if(g.getGroundTruthPage().getOriginPageId() == element.getGroundTruthPage().getOriginPageId()) {
+//					logger.debug("GT with this originPageId is already in trainset: " + element.getGroundTruthPage().getOriginPageId());
+//					includedBySetList.add(e.getKey());
+//					break;
+//				}
+//				//images included via other pages are checked in detectAndResolveConflicts()
+//				if(g.getGroundTruthPage().getImageId() == element.getGroundTruthPage().getImageId()) {
+//					logger.debug("GT with this imageId is already in trainset: " + element.getGroundTruthPage().getImageId());
+//					includedBySetList.add(e.getKey());
+//					break;
+//				}
 			}
-			/* use for loop with logging
-			if(gtPageList.stream()
-					.anyMatch(g -> g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId()) 
-					&& (excludeOriginalSet || !gtSet.equals(element.getParentHtrGtDataSet()))) {
-				logger.debug("Element already in trainset: " + element.getGroundTruthPage().getGtId());
-				includedBySetList.add(e.getKey());
-			}
-			*/
 		}
 		
 		for(Entry<AGtDataSet<?>, List<AGtDataSetElement<?>>> e : getValGtMap().entrySet()) {
@@ -477,33 +515,17 @@ public class DataSetSelectionController {
 					break;
 				}
 			}
-			
-			/* use for loop with logging
-			if(gtPageList.stream()
-				.anyMatch(g -> g.getGroundTruthPage().getGtId() == element.getGroundTruthPage().getGtId())) {
-				logger.debug("Element already in validationset: " + element.getGroundTruthPage().getGtId());
-				includedBySetList.add(e.getKey());
-			}
-			*/
 		}
 		return includedBySetList;
 	}
 	
-	private boolean isPageInSelection(TrpPage page) {
-		List<TrpPage> trainPages = trainDocMap.values().stream()
+	private boolean isPageInSelection(TrpPage page, Map<TrpDocMetadata, List<TrpPage>> targetDataMap) {
+		List<TrpPage> trainPages = targetDataMap.values().stream()
 				.flatMap(List::stream)
 				.collect(Collectors.toList());
 		if(trainPages.stream().anyMatch(p -> p.getPageId() == page.getPageId())) {
 			return true;
 		}
-	
-		List<TrpPage> valPages = valDocMap.values().stream()
-				.flatMap(List::stream)
-				.collect(Collectors.toList());
-		if(valPages.stream().anyMatch(p -> p.getPageId() == page.getPageId())) {
-			return true;
-		}
-		
 		return false;
 	}
 	
@@ -820,11 +842,6 @@ public class DataSetSelectionController {
 	}
 
 	public DataSetSelection getSelection() {
-		
-		//FIXME activate this method once the training job can handle such descriptors
-//		config.setTrain(DescriptorUtils.buildSelectionDescriptorList(trainDocMap, status));
-//		config.setTest(DescriptorUtils.buildSelectionDescriptorList(testDocMap, status));
-	
 		List<DocumentSelectionDescriptor> trainDocDescs = DescriptorUtils.buildSelectionDescriptorList(getTrainDocMap(), selector, getTranscriptVersionToUse().getStatus());
 		List<DocumentSelectionDescriptor> validationDocDescs = DescriptorUtils.buildSelectionDescriptorList(getValDocMap(), selector, getTranscriptVersionToUse().getStatus());
 		
