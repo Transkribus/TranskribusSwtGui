@@ -144,7 +144,7 @@ public class UploadDialogUltimate extends Dialog {
 //		container.setSize(700, 600);
 		
 		ftpButton = new Button(container, SWT.RADIO);
-		ftpButton.setText("Upload via private FTP");
+		ftpButton.setText("Upload via private FTP (also PDF files)");
 		//ftpButton.setSelection(true);
 		ftpButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		

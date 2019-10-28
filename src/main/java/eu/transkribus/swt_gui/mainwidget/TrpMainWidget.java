@@ -79,6 +79,9 @@ import org.eclipse.swt.widgets.ToolTip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+
 import eu.transkribus.client.connection.TrpServerConn;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
@@ -131,6 +134,7 @@ import eu.transkribus.core.model.builder.ExportUtils;
 import eu.transkribus.core.model.builder.alto.AltoExportPars;
 import eu.transkribus.core.model.builder.docx.DocxBuilder;
 import eu.transkribus.core.model.builder.docx.DocxExportPars;
+import eu.transkribus.core.model.builder.iiif.IIIFUtils;
 import eu.transkribus.core.model.builder.ms.TrpXlsxBuilder;
 import eu.transkribus.core.model.builder.ms.TrpXlsxTableBuilder;
 import eu.transkribus.core.model.builder.pdf.PdfExportPars;
@@ -3194,10 +3198,29 @@ public class TrpMainWidget {
 //			}
 				// extract images from pdf and upload extracted images
 			}else if (ud.isIiifUrlUpload()) {
-				logger.debug("uploading title: " + ud.getTitle() + " to collection: " + cId);
-				int h = DialogUtil.showInfoMessageBox(getShell(), "Upload Information",
-						"Upload document from IIIF manifest!\nNote: the document will be ready after document processing on the server is finished - this takes a while - reload the document list occasionally");
-				storage.uploadDocumentFromIiifUrl(cId, ud.getIiifUrl());
+				// check if Manifest is valid before starting job
+				boolean valid = false;
+				try {
+					URL url = new URL(ud.getIiifUrl());
+					IIIFUtils.checkManifestValid(url);
+					valid = true;
+				} catch(JsonMappingException | JsonParseException e) {
+					DialogUtil.showDetailedErrorMessageBox(getShell(), "Manifest not valid",
+							"Upload document from IIIF manifest not possible!\n"
+							+ "Note: IIIF manifest is not valid and therefore cannot be parsed.", e.getMessage());
+				
+				} catch( IOException e) {
+					DialogUtil.showDetailedErrorMessageBox(getShell(), "Manifest could not be fetched",
+							"Upload document from IIIF manifest not possible!\n"
+							+ "Note: IIIF manifest could not be fetched and therefore cannot be parsed.", e.getMessage());
+				}
+				if(valid) {
+					logger.debug("uploading title: " + ud.getTitle() + " to collection: " + cId);
+					int h = DialogUtil.showInfoMessageBox(getShell(), "Upload Information",
+							"Upload document from IIIF manifest!\nNote: the document will be ready after document processing on the server is finished - this takes a while - reload the document list occasionally");
+					storage.uploadDocumentFromIiifUrl(cId, ud.getIiifUrl());
+				}
+	
 			}
 			
 			

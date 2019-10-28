@@ -9,6 +9,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -19,14 +21,18 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
+import eu.transkribus.swt.util.DropDownToolItem;
 import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
@@ -49,6 +55,12 @@ public class HtrTextRecognitionDialog extends Dialog {
 	
 	private TextRecognitionConfig config;
 	private String pages;
+	
+	ToolBar structureBar;
+	ToolItem structureItem;
+	ToolBox structureBox;
+	
+	List<String> selectionArray = new ArrayList<>();
 	
 	public HtrTextRecognitionDialog(Shell parent) {
 		super(parent);
@@ -108,23 +120,45 @@ public class HtrTextRecognitionDialog extends Dialog {
 		doStoreConfMatsBtn.setSelection(true);
 		doStoreConfMatsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
 		
-		List<StructCustomTagSpec> tags = store.getStructCustomTagSpecs();
+		List<StructCustomTagSpec> tags = new ArrayList<>();
+		tags = store.getStructCustomTagSpecs();
 		
-		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Restrict on structure tags", 1, 200, 300 );
-		multiCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
+//		multiCombo = new MultiCheckSelectionCombo(cont, SWT.FILL,"Restrict on structure tags", 1, 200, 300 );
+//		multiCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));		
+//		
+//		for(StructCustomTagSpec tag : tags) {
+//			int itemCount = multiCombo.getItemCount();
+//			List<String> items = new ArrayList<>();
+//			for(int i = 0; i < itemCount; i++) {
+//				items.add(multiCombo.getItem(i));
+//			}	
+//			if(!items.contains(tag.getCustomTag().getType())) {
+//				multiCombo.add(tag.getCustomTag().getType());
+//			}	
+//		}
+		
+		structureBar = new ToolBar(cont, SWT.FILL);
+		
+		structureItem = new ToolItem(structureBar, SWT.CHECK);
+		structureItem.setToolTipText("Choose structures...");
+		structureItem.setText("Restrict on structure tags");
+		
+		structureBox = new ToolBox(getShell(), true, "Structures");
+		structureBox.addTriggerWidget(structureItem);
 		
 		for(StructCustomTagSpec tag : tags) {
-			logger.debug(tag.toString());
-			int itemCount = multiCombo.getItemCount();
-			List<String> items = new ArrayList<>();
-			for(int i = 0; i < itemCount; i++) {
-				items.add(multiCombo.getItem(i));
-			}	
-			if(!items.contains(tag.getCustomTag().getType())) {
-				multiCombo.add(tag.getCustomTag().getType());
-			}	
+			Button button = structureBox.addButton(tag.getCustomTag().getType(), null, SWT.CHECK);
+			button.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent event) {
+					if(selectionArray.contains(tag.getCustomTag().getType())) {
+						selectionArray.remove(tag.getCustomTag().getType());
+					}else {
+						selectionArray.add(tag.getCustomTag().getType());
+					}
+			      }
+			});
+			
 		}
-
 		
 		SWTUtil.onSelectionEvent(keepOriginalLinePolygonsBtn, e -> {
 			doLinePolygonSimplificationBtn.setEnabled(!keepOriginalLinePolygonsBtn.getSelection());
@@ -204,10 +238,6 @@ public class HtrTextRecognitionDialog extends Dialog {
 			return;
 		}
 		
-		List<String> selectionArray = new ArrayList<>(Arrays.asList(multiCombo.getSelections()));
-		for(String selection : selectionArray) {
-			logger.debug("Selection for multi combo : "+selection);
-		}		
 		config.setStructures(selectionArray);
 		config.setKeepOriginalLinePolygons(keepOriginalLinePolygonsBtn.getSelection());
 		config.setDoLinePolygonSimplification(doLinePolygonSimplificationBtn.getSelection());
