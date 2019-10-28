@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -32,7 +31,6 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TextToolItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.forms.events.ExpansionAdapter;
 import org.eclipse.ui.forms.events.ExpansionEvent;
 import org.eclipse.ui.forms.widgets.ExpandableComposite;
@@ -51,7 +49,6 @@ import eu.transkribus.swt_gui.htr.treeviewer.GroundTruthTreeWidget;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthLabelAndFontProvider;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.tools.ToolsWidget.TranscriptVersionChooser;
 import eu.transkribus.swt_gui.util.DropDownButton;
 import eu.transkribus.swt_gui.util.RecentDocsComboViewerWidget;
 

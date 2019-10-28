@@ -23,9 +23,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.MetadataException;
-
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.core.util.SysUtils;
 import eu.transkribus.interfaces.types.util.TrpImgMdParser;

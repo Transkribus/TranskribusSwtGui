@@ -6,7 +6,6 @@ import java.util.List;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -26,14 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.util.Colors;
-import eu.transkribus.swt.util.ComboInputDialog;
-import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt_gui.collection_manager.CollectionManagerDialog;
 import eu.transkribus.swt_gui.doc_overview.DocTableWidget;

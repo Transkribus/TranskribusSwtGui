@@ -3,7 +3,6 @@ package eu.transkribus.swt.util;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -16,13 +15,14 @@ public class LabeledCombo extends Composite {
 	public ComboViewer comboV;
 
 	public LabeledCombo(Composite parent, String labelText) {
-		this(parent, labelText, 2);
+		this(parent, labelText, 2, false);
 	}
 
-	protected LabeledCombo(Composite parent, String labelText, final int numColumns) {
+	protected LabeledCombo(Composite parent, String labelText, int numColumns, boolean makeColumnsEqualWidth) {
 		super(parent, 0);
 
-		this.setLayout(new GridLayout(numColumns, false));
+//		this.setLayout(new GridLayout(numColumns, false));
+		this.setLayout(SWTUtil.createGridLayout(numColumns, makeColumnsEqualWidth, 0, 0));
 
 		label = new Label(this, 0);
 		label.setText(labelText);
@@ -33,5 +33,28 @@ public class LabeledCombo extends Composite {
 
 	public String txt() {
 		return combo.getText();
+	}
+
+	public void setItems(String[] items) {
+		combo.setItems(items);
+	}
+	
+	@Override
+	public void setEnabled(boolean enabled) {
+		SWTUtil.setEnabled(label, enabled);
+		SWTUtil.setEnabled(combo, enabled);
+	}
+	
+	@Override public void setToolTipText(String tooltip) {
+		label.setToolTipText(tooltip);
+		combo.setToolTipText(tooltip);
+	}
+
+	public Combo getCombo() {
+		return combo;
+	}
+	
+	public Label getLabel() {
+		return label;
 	}
 }

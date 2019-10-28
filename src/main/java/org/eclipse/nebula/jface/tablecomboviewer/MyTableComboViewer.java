@@ -4,7 +4,6 @@ import org.eclipse.jface.viewers.AbstractTableViewer;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.ViewerRow;
-import org.eclipse.nebula.jface.tablecomboviewer.TableComboViewerRow;
 import org.eclipse.nebula.widgets.tablecombo.MyTableCombo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;

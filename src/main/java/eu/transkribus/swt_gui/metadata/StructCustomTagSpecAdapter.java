@@ -11,7 +11,6 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.customtags.StructureTag;
 import eu.transkribus.swt.util.Colors;

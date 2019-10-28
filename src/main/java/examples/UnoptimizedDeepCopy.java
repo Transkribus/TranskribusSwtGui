@@ -1,9 +1,9 @@
 package examples;
-import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  * Utility for making deep copies (vs. clone()'s shallow copies) of 

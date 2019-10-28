@@ -23,7 +23,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEven
 import eu.transkribus.swt_gui.transcription.LineEditor;
 import eu.transkribus.swt_gui.transcription.LineTranscriptionWidget;
 import eu.transkribus.swt_gui.transcription.WordTranscriptionWidget;
-import eu.transkribus.swt_gui.util.DelayedTask;
 
 /**
  * Observes changes (text, coordinates...) in any PAGE segmentation element, 

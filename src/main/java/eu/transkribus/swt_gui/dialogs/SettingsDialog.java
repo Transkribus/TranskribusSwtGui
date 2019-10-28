@@ -16,7 +16,6 @@ import org.eclipse.swt.widgets.Spinner;
 
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.canvas.CanvasSettings;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 

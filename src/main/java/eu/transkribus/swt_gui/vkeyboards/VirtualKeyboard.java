@@ -1,7 +1,6 @@
 package eu.transkribus.swt_gui.vkeyboards;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -17,14 +16,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.UnicodeList;
 import eu.transkribus.swt.util.Fonts;
-import eu.transkribus.swt.util.Images;
 
 public class VirtualKeyboard extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(VirtualKeyboard.class);

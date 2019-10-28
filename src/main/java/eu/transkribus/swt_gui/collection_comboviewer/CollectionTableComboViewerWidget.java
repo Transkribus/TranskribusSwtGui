@@ -17,7 +17,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.nebula.jface.tablecomboviewer.MyTableComboViewer;
-import org.eclipse.nebula.jface.tablecomboviewer.TableComboViewer;
 import org.eclipse.nebula.widgets.tablecombo.MyTableCombo;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;

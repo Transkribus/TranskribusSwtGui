@@ -53,6 +53,7 @@ public abstract class APreviewListViewer<T> extends Composite {
 
 	protected List<PreviewListViewerListener> listener = new ArrayList<>();
 	protected Comparator<T> comparator = null;
+	protected ColumnConfig[] columns;
 	
 	public interface PreviewListViewerListener {
 		void sortingChanged();
@@ -99,6 +100,7 @@ public abstract class APreviewListViewer<T> extends Composite {
 			tv.setLabelProvider(labelProvider);
 		}
 		
+		this.columns = columns;
 		tv.addColumns(columns);
 		tv.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override public void selectionChanged(SelectionChangedEvent event) {

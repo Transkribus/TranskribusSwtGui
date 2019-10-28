@@ -194,7 +194,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 		}
 		else{
 			docsSelected = dps.isDocsSelection();
-			selectedDocDescriptors = dps.getDocumentsToExportOnServer();
+			selectedDocDescriptors = dps.getDocumentsSelected();
 		}
 		
 		if(config == null) {

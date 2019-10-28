@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.auth.TrpUser;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.ComboInputDialog;

@@ -20,12 +20,13 @@ import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpErrorRateResult;
 import eu.transkribus.core.model.beans.TrpHtr;
-import eu.transkribus.core.model.beans.TrpP2PaLAModel;
+import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
+import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.util.CoreUtils;
@@ -39,7 +40,9 @@ import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog.P2PaLARecogConf;
+import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog.P2PaLARecogUiConf;
+import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog;
+import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
@@ -100,6 +103,7 @@ public class ToolsWidgetListener implements SelectionListener {
 		SWTUtil.addSelectionListener(tw.polygon2baselinesBtn, this);
 		SWTUtil.addSelectionListener(tw.baseline2PolygonBtn, this);
 		SWTUtil.addSelectionListener(tw.p2palaBtn, this);
+		SWTUtil.addSelectionListener(tw.p2palaTrainBtn, this);
 		SWTUtil.addSelectionListener(tw.t2iBtn, this);
 		
 		Storage.getInstance().addListener(new IStorageListener() {
@@ -123,12 +127,15 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 
 	boolean isLayoutAnalysis(Object s) {
-		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn || s==tw.p2palaBtn || s==tw.t2iBtn;
+		return s == tw.startLaBtn || s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn || s==tw.p2palaBtn || s==tw.p2palaTrainBtn || s==tw.t2iBtn;
 		// return (s == tw.batchLaBtn || s == tw.regAndLineSegBtn || s == tw.lineSegBtn
 		// || s == tw.baselineBtn || s == tw.polygon2baselinesBtn);
 	}
 
 	boolean needsRegions(PcGtsType pageData, Object s) {
+		if (pageData==null) {
+			return false;
+		}
 		if (PageXmlUtils.hasRegions(pageData)) {
 			return false;
 		}
@@ -230,23 +237,39 @@ public class ToolsWidgetListener implements SelectionListener {
 			DialogUtil.showBallonToolTip(mw.getUi().getJobsButton(), null, title, msg);
 		}
 	}
+	
+	private boolean isDocLoadedNeeded(Object s) {
+		if (s == tw.p2palaTrainBtn) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private boolean isPageLoadedNeeded(Object s) {
+		if (s == tw.p2palaTrainBtn) {
+			return false;
+		}
+		
+		return true;
+	}
 
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		Object s = e.getSource();
 
-		if (!store.isDocLoaded()) {
+		if (isDocLoadedNeeded(s) && !store.isDocLoaded()) {
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No document loaded!");
 			return;
 		}
 
-		if (!store.isPageLoaded()) {
+		if (isPageLoadedNeeded(s) && !store.isPageLoaded()) {
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "No page loaded!");
 			return;
 		} else if (!store.isLoggedIn()) {
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available", "You are not logged in!");
 			return;
-		} else if (store.isLocalDoc()) {
+		} else if (isDocLoadedNeeded(s) && store.isLocalDoc()) {
 			DialogUtil.showErrorMessageBox(mw.getShell(), "Not available",
 					"The tools are only available for remote documents!");
 			return;
@@ -347,13 +370,31 @@ public class ToolsWidgetListener implements SelectionListener {
 							!isPolygon2Baseline, jobImpl, null);
 				}
 			}
+			else if (s == tw.p2palaTrainBtn) {
+				logger.debug("p2palaTrainBtn pressed...");
+				if (!store.getConnection().isUserAllowedForJob(JobImpl.P2PaLATrainJob.toString())) {
+					DialogUtil.showErrorMessageBox(tw.getShell(), "Not allowed!", "You are not allowed to start a P2PaLA training.\n If you are interested, please apply at email@transkribus.eu");
+					return;
+				}
+				P2PaLATrainDialog d = new P2PaLATrainDialog(tw.getShell());
+				if (d.open() == IDialogConstants.OK_ID) {
+					P2PaLATrainUiConf conf = d.getConf();
+					if (conf==null) {
+						return;
+					}
+					P2PaLATrainJobPars jobPars = conf.toP2PaLATrainJobPars();
+					String jobId = store.getConnection().trainP2PaLAModel(colId, jobPars);
+					jobIds.add(jobId);
+					logger.info("Started P2PaLA training job "+jobId);
+				}
+			}
 			else if (s == tw.p2palaBtn) {
-				P2PaLAConfDialog diag = new P2PaLAConfDialog(tw.getShell(), Storage.getInstance().getP2PaLAModels());
+				P2PaLAConfDialog diag = new P2PaLAConfDialog(tw.getShell()/*, Storage.getInstance().getP2PaLAModels()*/);
 				if (diag.open()==IDialogConstants.OK_ID) {
-					P2PaLARecogConf conf = diag.getConf();
+					P2PaLARecogUiConf conf = diag.getConf();
 					if (conf != null) {
 						String jobImpl = JobImpl.P2PaLAJob.toString();
-						TrpP2PaLAModel model = conf.model;
+						TrpP2PaLA model = conf.model;
 						if (model == null) {
 							DialogUtil.showErrorMessageBox(tw.getShell(), "No model selected", "Please select a P2PaLA model");
 							return;
@@ -367,7 +408,7 @@ public class ToolsWidgetListener implements SelectionListener {
 						}
 						
 						ParameterMap pm = new ParameterMap();
-						pm.addIntParam(JobConst.PROP_MODEL_ID, model.getId());
+						pm.addIntParam(JobConst.PROP_MODEL_ID, model.getModelId());
 						pm.addParameter(JobConst.PROP_MODELNAME, model.getName());
 						
 						if (diag.isDocsSelected() && diag.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){

@@ -10,7 +10,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
 import eu.transkribus.core.model.beans.EdFeature;
-import eu.transkribus.core.model.beans.EdOption;
 
 public class FeatureTableLabelProvider implements ITableLabelProvider, ITableColorProvider {
 	TableViewer tv;

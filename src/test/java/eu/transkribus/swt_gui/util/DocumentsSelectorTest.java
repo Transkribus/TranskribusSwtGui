@@ -10,8 +10,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
-import eu.transkribus.client.connection.ATrpServerConn;
+import eu.transkribus.client.connection.ATrpServerConn.TrpServer;
 import eu.transkribus.client.connection.TrpServerConn;
+import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.SWTUtil;
@@ -22,9 +23,8 @@ public class DocumentsSelectorTest {
 		ApplicationWindow aw = new ApplicationWindow(null) {
 			@Override
 			protected Control createContents(Composite parent) {
-				TrpServerConn conn;
-				try {
-					conn = new TrpServerConn(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
+				TrpProperties creds = new TrpProperties("testCreds.properties");
+				try (TrpServerConn conn = new TrpServerConn(TrpServer.Test, creds.getString("username"), creds.getString("password"))) {
 					List<TrpDocMetadata> docs = conn.getAllDocs(1);
 					System.out.println("nr of docs = "+docs.size());
 
@@ -33,11 +33,29 @@ public class DocumentsSelectorTest {
 					
 					getShell().setSize(500, 800);
 					SWTUtil.centerShell(getShell());
-					DocumentsSelectorDialog dsd = new DocumentsSelectorDialog(getShell(), "Select documents", docs);
+					
+					DocumentsSelectorDialog dsd = new DocumentsSelectorDialog(getShell(), "Select documents", docs, true);
 					if (dsd.open() == IDialogConstants.OK_ID) {
-						System.out.println("n selected documents: "+dsd.getCheckedDocs().size());
-						System.out.println("selected documents: "+CoreUtils.toListString(dsd.getCheckedDocs()));
+//						System.out.println("n selected documents: "+dsd.getCheckedDocs().size());
+//						System.out.println("selected documents: "+CoreUtils.toListString(dsd.getCheckedDocs()));
+						System.out.println("docselections: "+CoreUtils.join(dsd.getCheckedDocSelections()));
+						
+						for (TrpDocMetadata d : docs) {
+							System.out.println(d);
+						}
+						
+						DocumentsSelectorDialog dsd2 = new DocumentsSelectorDialog(getShell(), "Select documents2", docs, true, dsd.getCheckedDocSelections());
+						if (dsd2.open() == IDialogConstants.OK_ID) {
+							System.out.println("n selected documents: "+dsd2.getCheckedDocs().size());
+							System.out.println("selected documents: "+CoreUtils.toListString(dsd2.getCheckedDocs()));
+							System.out.println(CoreUtils.join(dsd.getCheckedDocSelections()));
+						}						
 					}
+					
+//					if (true)
+//						break;
+					
+			
 				} catch (Exception e1) {
 					e1.printStackTrace();
 					System.exit(1);

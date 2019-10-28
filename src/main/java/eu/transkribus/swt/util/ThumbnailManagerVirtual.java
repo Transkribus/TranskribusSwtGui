@@ -1,43 +1,25 @@
 package eu.transkribus.swt.util;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Comparator;
+import java.util.List;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.nebula.widgets.gallery.AbstractGridGroupRenderer;
-import org.eclipse.nebula.widgets.gallery.Gallery;
 import org.eclipse.nebula.widgets.gallery.GalleryItem;
-import org.eclipse.nebula.widgets.gallery.ListItemRenderer;
-import org.eclipse.nebula.widgets.gallery.MyDefaultGalleryItemRenderer;
-import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MenuAdapter;
-import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -54,9 +36,6 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.ui.ISelectionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,21 +48,12 @@ import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.enums.EditStatus;
-import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
-import eu.transkribus.core.model.beans.pagecontent.TextLineType;
-import eu.transkribus.core.model.beans.pagecontent.TextRegionType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.EnumUtils;
-import eu.transkribus.core.util.PageXmlUtils;
-import eu.transkribus.core.util.SebisStopWatch;
-import eu.transkribus.swt.progress.ProgressBarDialog;
-import eu.transkribus.swt.util.ThumbnailManager.EditStatusMenuItemListener;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImg;
 import eu.transkribus.swt.util.ThumbnailWidget.ThmbImgLoadThread;
 import eu.transkribus.swt_gui.la.LayoutAnalysisDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import jersey.repackaged.com.google.common.collect.Lists;
 
 public class ThumbnailManagerVirtual extends Dialog{
 	protected final static Logger logger = LoggerFactory.getLogger(ThumbnailManagerVirtual.class);

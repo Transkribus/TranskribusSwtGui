@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.tools;
 
 import java.util.ArrayList;
+
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

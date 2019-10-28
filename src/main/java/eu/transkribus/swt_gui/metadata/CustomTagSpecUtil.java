@@ -13,7 +13,6 @@ import com.google.gson.reflect.TypeToken;
 import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class CustomTagSpecUtil {
 	private static final Logger logger = LoggerFactory.getLogger(CustomTagSpecUtil.class);

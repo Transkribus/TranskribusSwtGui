@@ -3,9 +3,7 @@ package eu.transkribus.swt_gui;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -25,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
-import eu.transkribus.core.model.beans.job.enums.JobType;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.util.ProxyUtils.ProxySettings;
 import eu.transkribus.swt_gui.util.OAuthGuiUtil;

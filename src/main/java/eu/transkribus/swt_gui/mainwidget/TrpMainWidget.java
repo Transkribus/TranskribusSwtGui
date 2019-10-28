@@ -332,6 +332,7 @@ public class TrpMainWidget {
 	static Thread asyncSaveThread;
 	static DocJobUpdater docJobUpdater;
 	
+//	DocLoadController docLoadController;
 	AutoSaveController autoSaveController;
 	DocSyncController docSyncController;
 	ShapeEditController shapeEditController;
@@ -372,6 +373,7 @@ public class TrpMainWidget {
 		addListener();
 		addUiBindings();
 		
+//		docLoadController = new DocLoadController(this);
 		autoSaveController = new AutoSaveController(this);
 		docSyncController = new DocSyncController(this);
 		shapeEditController = new ShapeEditController(this);
@@ -417,6 +419,10 @@ public class TrpMainWidget {
 	public static TrpSettings getTrpSettings() {
 		return TrpConfig.getTrpSettings();
 	}
+	
+//	public DocLoadController getDocLoadController() {
+//		return docLoadController;
+//	}
 	
 	public AutoSaveController getAutoSaveController() {
 		return autoSaveController;
@@ -2659,7 +2665,7 @@ public class TrpMainWidget {
 
 	public void loadLocalFolder() {
 		logger.debug("loading a local folder...");
-		String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and (optional) PAGE XML files", lastLocalDocFolder);
+		String fn = DialogUtil.showOpenFolderDialog(getShell(), "Choose a folder with images and (optional) PAGE XML files in a subfolder 'page'", lastLocalDocFolder);
 		if (fn == null)
 			return;
 
