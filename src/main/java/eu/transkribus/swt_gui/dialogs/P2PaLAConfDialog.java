@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
+
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ServerErrorException;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -20,6 +24,7 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -31,22 +36,24 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
-import eu.transkribus.core.model.beans.TrpP2PaLAModel;
+import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 
 public class P2PaLAConfDialog extends Dialog {
-	public static class P2PaLARecogConf {
+	public static class P2PaLARecogUiConf {
 		public boolean currentTranscript=true;
 		public String pagesStr=null;
-		public TrpP2PaLAModel model;
+		public TrpP2PaLA model;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLAConfDialog.class);
@@ -69,7 +76,9 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	Button modelDetailsBtn;
 	
-	P2PaLARecogConf conf = null;
+	Button collBasedRadio, userBasedRadio, showPublicRadio, showAllRadio;
+	
+	P2PaLARecogUiConf conf = null;
 	
 	public static String NAME_COL = "Name";
 	public static String DESC_COL = "Description";
@@ -90,12 +99,20 @@ public class P2PaLAConfDialog extends Dialog {
 			new ColumnConfig(TEST_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the test set (which is used once after training to evaluate the model)"),
 		};	
 	
-	List<TrpP2PaLAModel> models;
-
-	public P2PaLAConfDialog(Shell parentShell, List<TrpP2PaLAModel> models) {
+//	List<TrpP2PaLAModel> models;
+	List<TrpP2PaLA> models = new ArrayList<>();
+	Storage store;
+	
+	public P2PaLAConfDialog(Shell parentShell) {
 		super(parentShell);
-		this.models = models;
+		store = Storage.getInstance();
+//		this(parentShell, null);
 	}
+
+//	public P2PaLAConfDialog(Shell parentShell /*, List<TrpP2PaLA> models*/) {
+//		super(parentShell);
+//		this.models = models;
+//	}
 	
 	@Override
 	protected Point getInitialSize() {
@@ -178,9 +195,14 @@ public class P2PaLAConfDialog extends Dialog {
 		modelComboViewer.setLabelProvider(new LabelProvider() {
 	        @Override
 	        public String getText(Object element) {
-	            if (element instanceof TrpP2PaLAModel) {
-	            	TrpP2PaLAModel model = (TrpP2PaLAModel) element;
-	            	return model.getName();
+	            if (element instanceof TrpP2PaLA) {
+	            	TrpP2PaLA model = (TrpP2PaLA) element;
+	            	String lbl = model.getName();
+	            	if (model.getCreated()!=null) {
+	            		lbl += " - "+model.getCreated();
+	            	}
+	            	
+	            	return lbl;
 	            }
 	            return "<i am error>";
 	        }
@@ -220,74 +242,81 @@ public class P2PaLAConfDialog extends Dialog {
 			}
 		});
 		
-//		modelDetailsBtn = new Button(cont, SWT.PUSH);
-//		modelDetailsBtn.setText("Show model details...");
-//		modelDetailsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-//		SWTUtil.onSelectionEvent(modelDetailsBtn, e -> {
-//			P2PaLAModelDetailsDialog d = new P2PaLAModelDetailsDialog(getShell(), models);
-//			d.open();
-//		});
-//		new Label(cont, 0); // placeholder
+		initModelFacetsCombo(cont);
 		
-//		Label modelsLabel = new Label(cont, 0);
-//		modelsLabel.setText("Available models:");
-//		modelsLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1));
-//		Fonts.setBoldFont(modelsLabel);
+		reloadModels();
 		
-//		modelsTable = new MyTableViewer(cont, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
-//		modelsTable.getTable().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, true, 2, 1));
-//		modelsTable.getTable().setHeaderVisible(true);
-//		modelsTable.getTable().setLinesVisible(true);
-//		modelsTable.addColumns(COLS);
-//		// ignore case when sorting columns:
-////		for (int i=0; i<tv.getNColumns(); ++i) {
-////			tv.getSorter(i).setIgnoreCase(true);
-////		}
-//		modelsTable.setContentProvider(ArrayContentProvider.getInstance());
-//		modelsTable.setLabelProvider(new TableLabelProvider() {
-//			@Override
-//			public String getColumnText(Object element, int index) {
-//				if (!(element instanceof TrpP2PaLAModel)) {
-//					return "i am serious error";
-//				}
-//				TrpP2PaLAModel m = (TrpP2PaLAModel) element;
-//				String cn = COLS[index].name;
-//				
-//				if (cn.equals(NAME_COL)) {
-//					return m.getName();
-//				}
-//				else if (cn.equals(DESC_COL)) {
-//					return m.getDescription();
-//				}
-//				else if (cn.equals(BASELINES_COL)) {
-//					return StringUtils.contains(m.getOut_mode(), "L") ? "Yes" : "No";
-//				}
-//				else if (cn.equals(STRUCT_TYPES_COL)) {
-////					return StringUtils.contains(m.getOut_mode(), "R") ? m.getStruct_types() : "";
-//					return m.getStruct_types();
-//				}
-//				else if (cn.equals(TRAIN_SET_SIZE_COL)) {
-//					return m.getTrain_set_size()!=null ? ""+m.getTrain_set_size() : "NA";
-//				}
-//				else if (cn.equals(VAL_SET_SIZE_COL)) {
-//					return m.getVal_set_size()!=null ? ""+m.getVal_set_size() : "NA";
-//				}
-//				else if (cn.equals(TEST_SET_SIZE_COL)) {
-//					return m.getTest_set_size()!=null ? ""+m.getTest_set_size() : "NA";
-//				}				
-//				
-//				return "i am error";
-//			}
-//		});
-		
-		setModels(models);
+//		setModels(models);
 		onSelectedModelChanged();
 		
 		return cont;
 	}
 	
+	private void initModelFacetsCombo(Composite parent) {
+		Composite c = new Composite(parent, 0);
+//		c.setLayout(new GridLayout(store.isAdminLoggedIn() ? 5 : 4, false));
+		c.setLayout(new GridLayout(6, false));
+		c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		
+		Label lbl = new Label(c, 0);
+		lbl.setText("Restrict models to: ");
+		
+		collBasedRadio = new Button(c, SWT.RADIO);
+		collBasedRadio.setText("Collection");
+		collBasedRadio.setToolTipText("Show only models of the current colllection");
+		collBasedRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		collBasedRadio.setSelection(true);
+		
+		userBasedRadio = new Button(c, SWT.RADIO);
+		userBasedRadio.setText("User");
+		userBasedRadio.setToolTipText("Show only models that were trained by you");
+		userBasedRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		showPublicRadio = new Button(c, SWT.RADIO);
+		showPublicRadio.setText("Public models");
+		showPublicRadio.setToolTipText("Show only models that are publicly available");
+		showPublicRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		showAllRadio = new Button(c, SWT.RADIO);
+		showAllRadio.setText("All");
+		showPublicRadio.setToolTipText("Show all models (only for admins)");
+		showAllRadio.setVisible(store.isAdminLoggedIn());
+		showAllRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		if (store.isAdminLoggedIn()) {
+			collBasedRadio.setSelection(false);
+			showAllRadio.setSelection(true);
+		}
+		
+		SWTUtil.onSelectionEvent(collBasedRadio, e -> reloadModels());
+		SWTUtil.onSelectionEvent(userBasedRadio, e -> reloadModels());
+		SWTUtil.onSelectionEvent(showPublicRadio, e -> reloadModels());
+		SWTUtil.onSelectionEvent(showAllRadio, e -> reloadModels());
+		
+		Button reloadModelsBtn = new Button(c, SWT.PUSH);
+		reloadModelsBtn.setImage(Images.REFRESH);
+		SWTUtil.onSelectionEvent(reloadModelsBtn, e -> reloadModels());
+		reloadModelsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		reloadModelsBtn.setToolTipText("Reload models according to filter");
+	}
+	
+	private void reloadModels() {
+		boolean showAll = showAllRadio.getSelection();
+		Integer colId = collBasedRadio.getSelection() ? store.getCollId() : null;
+		Integer userId = userBasedRadio.getSelection() ? store.getUserId() : null;
+		Integer releaseLevel = showPublicRadio.getSelection() ? 1 : null;
+		try {
+			this.models = store.getConnection().getP2PaLAModels(true, showAll, colId, userId, releaseLevel);
+			logger.debug("loaded "+models.size()+" models");
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
+			DialogUtil.showErrorMessageBox(getShell(), "Error loading models", e1.getMessage());
+			this.models = new ArrayList<>();
+		}	
+		
+		setModels(models);
+	}
+	
 	private void onSelectedModelChanged() {
-		TrpP2PaLAModel m = getSelectedP2PaLAModel();
+		TrpP2PaLA m = getSelectedP2PaLAModel();
 		
 		if (m == null) { // try to select model from text in combo
 			m = models.stream().filter(m1 -> m1.getName().equals(modelComboViewer.getCombo().getText())).findFirst().orElse(null);
@@ -329,11 +358,15 @@ public class P2PaLAConfDialog extends Dialog {
 //		}
 //	}
 	
-	private void setModels(List<TrpP2PaLAModel> models) {
+	public void setModels(List<TrpP2PaLA> models) {
+		if (models==null) {
+			models = new ArrayList<>();
+		}
+		
 		models = new ArrayList<>(models);
-		Collections.sort(models, new Comparator<TrpP2PaLAModel>() {
+		Collections.sort(models, new Comparator<TrpP2PaLA>() {
 			@Override
-			public int compare(TrpP2PaLAModel o1, TrpP2PaLAModel o2) {
+			public int compare(TrpP2PaLA o1, TrpP2PaLA o2) {
 				String n1 = o1.getName()==null ? "" : o1.getName();
 				String n2 = o2.getName()==null ? "" : o2.getName();
 				return n1.compareTo(n2);
@@ -347,7 +380,7 @@ public class P2PaLAConfDialog extends Dialog {
 			modelComboViewer.setInput(models);
 			
 			List<String> items = new ArrayList<>();
-			for (TrpP2PaLAModel m : models) {
+			for (TrpP2PaLA m : models) {
 				items.add(m.getName());
 			}
 			modelsAutocomplete.setProposals(items.toArray(new String[0]));
@@ -371,8 +404,8 @@ public class P2PaLAConfDialog extends Dialog {
 //		return null;
 //	}	
 	
-	public TrpP2PaLAModel getSelectedP2PaLAModel() {
-		return (TrpP2PaLAModel) modelComboViewer.getStructuredSelection().getFirstElement();
+	public TrpP2PaLA getSelectedP2PaLAModel() {
+		return (TrpP2PaLA) modelComboViewer.getStructuredSelection().getFirstElement();
 //		IStructuredSelection sel = modelComboViewer.getStructuredSelection();
 //		return sel.isEmpty() ? null : (TrpP2PaLAModel) sel.getFirstElement();
 	}	
@@ -384,9 +417,9 @@ public class P2PaLAConfDialog extends Dialog {
 	}
 	
 	private void storeConf() {
-		TrpP2PaLAModel model = getSelectedP2PaLAModel();
+		TrpP2PaLA model = getSelectedP2PaLAModel();
 		if (model != null) {
-			conf = new P2PaLARecogConf();
+			conf = new P2PaLARecogUiConf();
 			conf.currentTranscript = pagesSelector.isCurrentTranscript();
 			conf.pagesStr = pagesSelector.getPagesStr();
 			conf.model = model;
@@ -396,7 +429,7 @@ public class P2PaLAConfDialog extends Dialog {
 		}
 	}
 	
-	public P2PaLARecogConf getConf() {
+	public P2PaLARecogUiConf getConf() {
 		return conf;
 	}
 	
@@ -410,7 +443,7 @@ public class P2PaLAConfDialog extends Dialog {
 		if(pagesSelector.isDocsSelection()){
 
 			docsSelected = pagesSelector.isDocsSelection();
-			selectedDocDescriptors = pagesSelector.getDocumentsToExportOnServer();
+			selectedDocDescriptors = pagesSelector.getDocumentsSelected();
 			
 		}
 		super.okPressed();

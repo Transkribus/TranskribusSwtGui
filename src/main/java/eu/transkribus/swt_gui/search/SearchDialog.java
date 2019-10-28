@@ -18,11 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.client.util.TrpClientErrorException;
-import eu.transkribus.client.util.TrpServerErrorException;
-import eu.transkribus.core.model.beans.TrpTotalTranscriptStatistics;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
-import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;

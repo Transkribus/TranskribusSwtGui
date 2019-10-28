@@ -1,7 +1,6 @@
 package org.eclipse.swt.widgets;
 
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 

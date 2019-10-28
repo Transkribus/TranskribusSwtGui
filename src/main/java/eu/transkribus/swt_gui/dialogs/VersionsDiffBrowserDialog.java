@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.dialogs;
 import javax.xml.bind.JAXBException;
 
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.util.Util;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -14,10 +13,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
-import ch.qos.logback.classic.Logger;
 import eu.transkribus.core.exceptions.NullValueException;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;

@@ -6,8 +6,6 @@ import org.eclipse.swt.SWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
-
 /**
  * Helper to create implementation of {@link PageResult} from a Java
  * {@link List}.

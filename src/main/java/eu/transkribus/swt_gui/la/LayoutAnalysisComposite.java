@@ -11,15 +11,12 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +34,6 @@ import eu.transkribus.swt_gui.dialogs.ALaConfigDialog;
 import eu.transkribus.swt_gui.dialogs.CITlabAdvancedLaConfigDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.util.CurrentTranscriptOrCurrentDocPagesSelector;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 
 public class LayoutAnalysisComposite extends Composite {
@@ -418,7 +414,7 @@ public class LayoutAnalysisComposite extends Composite {
 	}
 	
 	public List<DocumentSelectionDescriptor> getDocs(){
-		return dps.getDocumentsToExportOnServer();
+		return dps.getDocumentsSelected();
 	}
 	
 	public JobImpl getJobImpl() {

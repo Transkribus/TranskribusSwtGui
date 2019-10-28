@@ -1,18 +1,13 @@
 package eu.transkribus.swt_gui.structure_tree;
 
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.Viewer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
-import eu.transkribus.core.model.beans.pagecontent.TableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-
-import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.Viewer;
 
 public class StructureTreeContentProvider implements ITreeContentProvider {
 	private static final Logger logger = LoggerFactory.getLogger(StructureTreeContentProvider.class);

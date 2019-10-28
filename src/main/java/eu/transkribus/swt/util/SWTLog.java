@@ -10,9 +10,8 @@
  ******************************************************************************/
 package eu.transkribus.swt.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
 
 public class SWTLog {
 	public static int showError(Logger logger, Shell shell, String title, String message, Throwable th) {

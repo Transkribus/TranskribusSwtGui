@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -20,15 +19,12 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
-import eu.transkribus.core.model.beans.customtags.CustomTag;
-import eu.transkribus.core.model.beans.customtags.TextStyleTag;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent.PageTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent.RegionRefType;
 import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent.RelationType;
 import eu.transkribus.core.model.beans.pagecontent.TableCellType;
-import eu.transkribus.core.model.beans.pagecontent.TextStyleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.RegionTypeUtil;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
@@ -47,15 +43,11 @@ import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation.ShapeEditType;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolyline;
-import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeFactory;
-import eu.transkribus.swt_gui.canvas.shapes.CanvasShapeUtil;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
-import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidgetView;
 import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.util.GuiUtil;
 
 public class PageMetadataWidgetListener implements SelectionListener, ModifyListener, Listener {
 	private final static Logger logger = LoggerFactory.getLogger(PageMetadataWidgetListener.class);

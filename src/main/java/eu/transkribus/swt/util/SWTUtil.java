@@ -1108,10 +1108,40 @@ public class SWTUtil {
 			item.setEnabled(enabled);
 		}
 	}
+	
+	public static void setEnabled(MenuItem item, boolean enabled) {
+		if (item!=null && !item.isDisposed() && item.getEnabled()!=enabled) {
+//			logger.trace("Changing enabled state of MenuItem: " 
+//					+ (item.getToolTipText() != null ? item.getToolTipText() : item.getText()) 
+//					+ " -> " + enabled);
+			item.setEnabled(enabled);
+		}
+	}	
 
 	public static void setEnabled(Control composite, boolean enabled) {
 		if (composite!=null && !composite.isDisposed() && composite.getEnabled()!=enabled) 
 			composite.setEnabled(enabled);
+	}
+	
+	public static void setEnabled(Object composite, boolean enabled) {
+		if (composite==null) {
+			return;
+		}
+		if (composite instanceof Control) {
+			setEnabled((Control) composite, enabled);
+		}
+		else if (composite instanceof DropDownToolItem) {
+			setEnabled((DropDownToolItem) composite, enabled);
+		}
+		else if (composite instanceof ToolItem) {
+			setEnabled((ToolItem) composite, enabled);
+		}
+		else if (composite instanceof MenuItem) {
+			setEnabled((MenuItem) composite, enabled);
+		}
+		else {
+			throw new IllegalArgumentException("Cannot enable/disable control: "+composite+", type: "+composite.getClass().getSimpleName());	
+		}
 	}
 	
 	public static List<java.awt.Point> getPoints(java.awt.Rectangle r) {

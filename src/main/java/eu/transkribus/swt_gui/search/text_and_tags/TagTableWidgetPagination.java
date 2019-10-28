@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.search.text_and_tags;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.ServerErrorException;
@@ -12,8 +11,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
-import org.eclipse.nebula.widgets.pagination.IPageLoader;
-import org.eclipse.nebula.widgets.pagination.collections.PageResult;
 import org.eclipse.nebula.widgets.pagination.collections.PageResultLoaderList;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -25,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.TrpDbTag;
-import eu.transkribus.core.model.beans.TrpDocMetadata;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.pagination_table.ATableWidgetPagination;
 import eu.transkribus.swt.pagination_table.IPageLoadMethods;

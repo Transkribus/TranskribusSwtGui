@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.GsonUtil;
-import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
 

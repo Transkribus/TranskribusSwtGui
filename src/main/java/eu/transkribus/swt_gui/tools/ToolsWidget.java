@@ -44,7 +44,7 @@ public class ToolsWidget extends Composite {
 	
 	TextRecognitionComposite trComp;
 	
-	Button polygon2baselinesBtn, baseline2PolygonBtn, p2palaBtn;
+	Button polygon2baselinesBtn, baseline2PolygonBtn, p2palaBtn, p2palaTrainBtn;
 	CurrentTranscriptOrCurrentDocPagesSelector otherToolsPagesSelector;
 	
 	Button t2iBtn;
@@ -443,12 +443,17 @@ public class ToolsWidget extends Composite {
 		
 		Composite p2palaContainer = new Composite(c, 0);
 		p2palaContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
-		p2palaContainer.setLayout(SWTUtil.createGridLayout(1, false, 0, 0));
+		p2palaContainer.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
 		p2palaBtn = new Button(p2palaContainer, SWT.PUSH);
 		p2palaBtn.setText("P2PaLA...");
 		p2palaBtn.setToolTipText("Creates regions with structure tags and baselines from pre-trained models");
 		p2palaBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		p2palaTrainBtn = new Button(p2palaContainer, SWT.PUSH);
+		p2palaTrainBtn.setText("P2PaLA training...");
+		p2palaTrainBtn.setToolTipText("Train a new model for P2PaLA");
+		p2palaTrainBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		Composite t2iContainer = new Composite(c, 0);
 		t2iContainer.setLayoutData(new GridData(GridData.FILL_BOTH));

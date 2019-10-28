@@ -1,8 +1,5 @@
 package eu.transkribus.swt.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -12,6 +9,8 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DateTableColumnViewerSorter extends TableViewerSorter {
 	private final static Logger logger = LoggerFactory.getLogger(DefaultTableColumnViewerSorter.class);

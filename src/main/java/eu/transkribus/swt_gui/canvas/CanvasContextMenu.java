@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Observable;
 import java.util.Set;
 
-import org.apache.poi.hpsf.MarkUnsupportedException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -32,15 +31,12 @@ import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.RemoveIntermedia
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SelectTableCellsEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SetStructureEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.SplitTableCellEvent;
-import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderEditEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderDialogEvent;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableHelpEvent;
 import eu.transkribus.swt_gui.canvas.shapes.ICanvasShape;
 import eu.transkribus.swt_gui.canvas.shapes.TableDimension;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.metadata.StructCustomTagSpec;
-import eu.transkribus.swt_gui.table_editor.BorderFlags;
 import eu.transkribus.swt_gui.table_editor.TableUtils;
 
 public class CanvasContextMenu extends Observable {

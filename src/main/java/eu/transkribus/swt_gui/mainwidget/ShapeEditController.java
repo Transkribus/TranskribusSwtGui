@@ -1,6 +1,5 @@
 package eu.transkribus.swt_gui.mainwidget;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +20,10 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.util.CoreUtils;
+import eu.transkribus.core.util.MonitorUtil;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.progress.ProgressBarDialog;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.MonitorUtil;
 import eu.transkribus.swt_gui.canvas.CanvasMode;
 import eu.transkribus.swt_gui.canvas.editing.ShapeEditOperation;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;

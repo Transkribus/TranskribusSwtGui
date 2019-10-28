@@ -18,7 +18,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.listener.ICanvasSceneListener;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeContentProvider;

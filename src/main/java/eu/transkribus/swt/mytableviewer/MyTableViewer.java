@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
-import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableViewerSorter;
 import eu.transkribus.swt.util.TableViewerUtils;
 
