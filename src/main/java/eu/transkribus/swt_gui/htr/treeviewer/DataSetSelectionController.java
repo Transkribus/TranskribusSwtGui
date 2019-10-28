@@ -38,6 +38,7 @@ import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpLocation;
 import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.core.util.DescriptorUtils.AGtDataSet;
+import eu.transkribus.core.util.HtrTrainDataSelector;
 import eu.transkribus.core.util.JaxbUtils;
 import eu.transkribus.core.util.PageTranscriptSelector;
 import eu.transkribus.swt_gui.collection_treeviewer.CollectionContentProvider;
