@@ -426,7 +426,7 @@ public class CommonExportDialog extends Dialog {
 	    createChooseVersionGroup(otherOptionsComp);	    
 	    
 		wordBasedBtn = new Button(otherOptionsComp, SWT.CHECK);
-		wordBasedBtn.setText("Word based");
+		wordBasedBtn.setText("Use word layer (if available)");
 		wordBasedBtn.setToolTipText("If checked, text from word based segmentation will be exported");
 		wordBasedBtn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		
@@ -1001,7 +1001,7 @@ public class CommonExportDialog extends Dialog {
 			
 			e1.setText("Export Page");
 			e2.setText("Export ALTO (Line Level)");
-			e21.setText("Export ALTO (Word Level)");
+			e21.setText("Export ALTO (Split Lines Into Words)");
 			e21.setToolTipText("Words get determined from the lines with some degree of fuzziness");
 			e3.setText("Export Image");
 			
