@@ -2,13 +2,6 @@ package eu.transkribus.swt_gui.dialogs;
 
 import java.io.File;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt.util.Images;
-import eu.transkribus.swt.util.SWTUtil;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -24,7 +17,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
-import org.eclipse.swt.widgets.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.swt.util.SWTUtil;
 
 public class PdfExportDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(PdfExportDialog.class);

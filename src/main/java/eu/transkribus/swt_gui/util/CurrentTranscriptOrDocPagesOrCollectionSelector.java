@@ -43,7 +43,7 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 	ExpandableComposite docChooserExp;
 	
 	List<DocumentSelectionDescriptor> documentsSelected = null;
-
+	
 	/*
 	 * selection of pages can be done for current page, several/all pages of current doc or several/all documents of loaded collection
 	 */
@@ -170,7 +170,7 @@ public class CurrentTranscriptOrDocPagesOrCollectionSelector extends Composite {
 		docsLabel.setText(txt);
 	}
 	
-	public List<DocumentSelectionDescriptor> getDocumentsToExportOnServer() {
+	public List<DocumentSelectionDescriptor> getDocumentsSelected() {
 		if (documentsSelected == null || documentsSelected.isEmpty()){
 			return null;
 		}

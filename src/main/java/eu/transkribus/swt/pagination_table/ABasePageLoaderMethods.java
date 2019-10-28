@@ -1,7 +1,5 @@
 package eu.transkribus.swt.pagination_table;
 
-import java.util.List;
-
 public abstract class ABasePageLoaderMethods<T> implements IPageLoadMethods<T> {
 
 //	@Override public int loadTotalSize() {

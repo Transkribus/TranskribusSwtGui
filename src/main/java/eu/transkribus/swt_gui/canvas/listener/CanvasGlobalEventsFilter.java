@@ -1,10 +1,5 @@
 package eu.transkribus.swt_gui.canvas.listener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.swt_gui.canvas.SWTCanvas;
-
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
@@ -13,6 +8,10 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.swt_gui.canvas.SWTCanvas;
 
 /**
  * Filters events on a global (Display) scope and transfers them to the canvas if necessary.

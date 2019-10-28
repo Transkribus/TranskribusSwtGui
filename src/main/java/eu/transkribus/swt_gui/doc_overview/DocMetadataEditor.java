@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.auth.TrpRole;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.EnumUtils;

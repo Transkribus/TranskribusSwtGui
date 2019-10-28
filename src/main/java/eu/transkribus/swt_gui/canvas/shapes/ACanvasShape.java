@@ -31,7 +31,6 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.GeomUtils;
-import eu.transkribus.core.util.RamerDouglasPeuckerFilter;
 import eu.transkribus.swt.util.Colors;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.SWTUtil;

@@ -3,10 +3,8 @@ package eu.transkribus.swt.pagingtoolbar;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.CoolBar;
 import org.eclipse.swt.widgets.LabelToolItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TextToolItem;

@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 import javax.swing.JPanel;
 
-import org.docx4j.model.datastorage.XPathEnhancerParser.main_return;
 import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.swt.SWT;

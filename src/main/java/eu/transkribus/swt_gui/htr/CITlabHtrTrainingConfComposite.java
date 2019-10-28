@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.htr;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
@@ -11,7 +10,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -21,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.HtrCITlabUtils;
-import eu.transkribus.swt.util.MultiCheckSelectionCombo;
 
 public class CITlabHtrTrainingConfComposite extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(CITlabHtrTrainingConfComposite.class);

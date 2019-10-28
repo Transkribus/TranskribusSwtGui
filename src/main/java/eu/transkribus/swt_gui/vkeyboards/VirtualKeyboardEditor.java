@@ -45,7 +45,6 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.MultilineInputDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
-import eu.transkribus.swt_gui.metadata.CustomTagSpec;
 import eu.transkribus.swt_gui.metadata.TaggingWidgetUtils;
 
 public class VirtualKeyboardEditor extends Composite {

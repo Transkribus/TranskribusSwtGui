@@ -10,13 +10,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-
-import eu.transkribus.swt.util.databinding.DataBinder;
-import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
 
 /**
  * Test with proxy.uibk.ac.at:3128

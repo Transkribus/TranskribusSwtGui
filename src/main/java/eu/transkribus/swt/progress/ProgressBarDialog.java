@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.canvas.CanvasException;
 import examples.AnimatedGif;
 import junit.framework.Assert;
 

@@ -1,10 +1,10 @@
 package examples;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.SWT;
 
 public class VKeyboardDialog extends Dialog {
 
