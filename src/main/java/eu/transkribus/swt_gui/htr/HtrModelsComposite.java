@@ -120,6 +120,13 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 			}
 		});
 		
+		htw.getReloadButton().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				store.reloadHtrs();
+			}
+		});
+		
 		shareItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

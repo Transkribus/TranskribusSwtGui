@@ -3,7 +3,6 @@ package eu.transkribus.swt_gui.doc_overview;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -32,7 +31,6 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DocumentManager;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.TrpConfig;
-import eu.transkribus.swt_gui.htr.HtrDetailsDialog;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSet;
 import eu.transkribus.swt_gui.htr.treeviewer.HtrGroundTruthContentProvider.HtrGtDataSetElement;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -73,6 +71,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		dtv.getTable().addMouseTrackListener(this);
 		dtv.getTable().addKeyListener(this);
 		sw.groundTruthTreeWidget.getTreeViewer().addDoubleClickListener(this);
+		sw.groundTruthTreeWidget.getReloadButton().addSelectionListener(this);
 
 //		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
 		sw.collectionSelectorWidget.addListener(SWT.Selection, this);
@@ -298,7 +297,9 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		else if (s == sw.findBtn) {
 			mw.openSearchDialog();
 		}
-		
+		else if (s == sw.groundTruthTreeWidget.getReloadButton()) {
+			mw.getStorage().reloadHtrs();
+		}
 	}
 
 	@Override
