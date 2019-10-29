@@ -49,6 +49,7 @@ import eu.transkribus.swt_gui.util.DocsSelectorBtn;
 public class P2PaLATrainDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLATrainDialog.class);
 	
+	// FIXME: use P2PaLATrainJobPars instaed of this helper class already inside this dialog class...
 	public static class P2PaLATrainUiConf {
 		public String name=null;
 		public String description=null;
@@ -467,6 +468,10 @@ public class P2PaLATrainDialog extends Dialog {
 
 	public P2PaLATrainUiConf getConf() {
 		return this.conf;
+	}
+	
+	public P2PaLATrainJobPars getTrainJobPars() {
+		return conf != null ? conf.toP2PaLATrainJobPars() : null;
 	}
 
 }

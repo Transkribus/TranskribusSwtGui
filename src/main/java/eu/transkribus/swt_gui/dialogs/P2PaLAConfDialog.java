@@ -305,7 +305,7 @@ public class P2PaLAConfDialog extends Dialog {
 		Integer userId = userBasedRadio.getSelection() ? store.getUserId() : null;
 		Integer releaseLevel = showPublicRadio.getSelection() ? 1 : null;
 		try {
-			this.models = store.getConnection().getP2PaLAModels(true, showAll, colId, userId, releaseLevel);
+			this.models = store.getConnection().getModelCalls().getP2PaLAModels(true, showAll, colId, userId, releaseLevel);
 			logger.debug("loaded "+models.size()+" models");
 		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error loading models", e1.getMessage());

@@ -1607,13 +1607,13 @@ public class Storage {
 		});
 	}
 	
-	public void analyzeStructure(int colId, int docId, int pageNr, boolean detectPageNumbers, boolean detectRunningTitles, boolean detectFootnotes) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException, JAXBException {
-		checkConnection(true);
-		
-		PcGtsType pcGts = conn.analyzePageStructure(colId, docId, pageNr, detectPageNumbers, detectRunningTitles, detectFootnotes);
-		
-		transcript.setPageData(pcGts);
-	}
+//	public void analyzeStructure(int colId, int docId, int pageNr, boolean detectPageNumbers, boolean detectRunningTitles, boolean detectFootnotes) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException, JAXBException {
+//		checkConnection(true);
+//		
+//		PcGtsType pcGts = conn.analyzePageStructure(colId, docId, pageNr, detectPageNumbers, detectRunningTitles, detectFootnotes);
+//		
+//		transcript.setPageData(pcGts);
+//	}
 
 	public void loadLocalDoc(String folder, IProgressMonitor monitor) throws UnsupportedFormatException, IOException, NullValueException {
 		tryReleaseLocks();

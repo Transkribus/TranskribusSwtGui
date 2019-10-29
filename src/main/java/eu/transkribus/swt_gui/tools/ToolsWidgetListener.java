@@ -239,7 +239,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 	
 	private boolean isDocLoadedNeeded(Object s) {
-		if (s == tw.p2palaTrainBtn) {
+		if (s == tw.p2palaTrainBtn || s==tw.p2palaBtn) {
 			return false;
 		}
 		

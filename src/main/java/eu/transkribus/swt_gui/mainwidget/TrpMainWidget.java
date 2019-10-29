@@ -4519,45 +4519,44 @@ public class TrpMainWidget {
 		}
 	}
 
-	public void analyzePageStructure(final boolean detectPageNumbers, final boolean detectRunningTitles, final boolean detectFootnotes) {
-		try {
-			if (!storage.isPageLoaded()) {
-				DialogUtil.showErrorMessageBox(getShell(), "Analyze Page Structure", "No page loaded!");
-				return;
-			}
-			if (!storage.isLoggedIn()) {
-				DialogUtil.showErrorMessageBox(getShell(), "Analyze Page Structure", "You are not logged in!");
-				return;
-			}
-
-			final int colId = storage.getCurrentDocumentCollectionId();
-			final int docId = storage.getDoc().getId();
-			final int pageNr = storage.getPage().getPageNr();
-
-			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
-				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						logger.debug("analyzing structure...");
-						monitor.beginTask("Analyzing structure", IProgressMonitor.UNKNOWN);
-						storage.analyzeStructure(colId, docId, pageNr, detectPageNumbers, detectRunningTitles, detectFootnotes);
-						monitor.done();
-						// displaySuccessMessage("Written TEI file to "+path);
-					} catch (Exception e) {
-						throw new InvocationTargetException(e, e.getMessage());
-					}
-				}
-			}, "Exporting", false);
-
-			reloadCurrentTranscript(true, true, () -> {
-				storage.setCurrentTranscriptEdited(true);
-//				ui.selectStructureTab();
-				updatePageInfo();				
-			}, null);
-		} catch (Throwable e) {
-			onError("Analyze Page Structure", e.getMessage(), e);
-		}
-
-	}
+//	public void analyzePageStructure(final boolean detectPageNumbers, final boolean detectRunningTitles, final boolean detectFootnotes) {
+//		try {
+//			if (!storage.isPageLoaded()) {
+//				DialogUtil.showErrorMessageBox(getShell(), "Analyze Page Structure", "No page loaded!");
+//				return;
+//			}
+//			if (!storage.isLoggedIn()) {
+//				DialogUtil.showErrorMessageBox(getShell(), "Analyze Page Structure", "You are not logged in!");
+//				return;
+//			}
+//
+//			final int colId = storage.getCurrentDocumentCollectionId();
+//			final int docId = storage.getDoc().getId();
+//			final int pageNr = storage.getPage().getPageNr();
+//
+//			ProgressBarDialog.open(getShell(), new IRunnableWithProgress() {
+//				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+//					try {
+//						logger.debug("analyzing structure...");
+//						monitor.beginTask("Analyzing structure", IProgressMonitor.UNKNOWN);
+//						storage.analyzeStructure(colId, docId, pageNr, detectPageNumbers, detectRunningTitles, detectFootnotes);
+//						monitor.done();
+//						// displaySuccessMessage("Written TEI file to "+path);
+//					} catch (Exception e) {
+//						throw new InvocationTargetException(e, e.getMessage());
+//					}
+//				}
+//			}, "Exporting", false);
+//
+//			reloadCurrentTranscript(true, true, () -> {
+//				storage.setCurrentTranscriptEdited(true);
+////				ui.selectStructureTab();
+//				updatePageInfo();				
+//			}, null);
+//		} catch (Throwable e) {
+//			onError("Analyze Page Structure", e.getMessage(), e);
+//		}
+//	}
 	
 	public void updateParentRelationshipAccordingToGeometricOverlap() {
 		if (!storage.hasTranscript())
