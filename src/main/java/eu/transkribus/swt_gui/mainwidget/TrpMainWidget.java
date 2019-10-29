@@ -3859,7 +3859,7 @@ public class TrpMainWidget {
 
 				if (exportDiag.isMetsExport())
 					exportDocument(tempZipFileDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-							exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
+							exportDiag.isSplitUpWords(), wordBased, commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
 				if (exportDiag.isPdfExport())
 					exportPdf(new File(tempZipDirParent + "/" + dir.getName() + ".pdf"), pageIndices, exportDiag.isAddExtraTextPages2PDF(),
 							exportDiag.isExportImagesOnly(), exportDiag.isHighlightTags(), exportDiag.isHighlightArticles(), wordBased, doBlackening, createTitle, cache, exportDiag.getFont(), pdfPars.getPdfImgQuality());
@@ -3870,7 +3870,7 @@ public class TrpMainWidget {
 							createTitle, exportDiag.isMarkUnclearWords(), exportDiag.isExpandAbbrevs(), exportDiag.isSubstituteAbbreviations(),
 							exportDiag.isPreserveLinebreaks(), exportDiag.isForcePagebreaks(), exportDiag.isShowSuppliedWithBrackets(), exportDiag.isIgnoreSupplied(), cache);
 				if (exportDiag.isTxtExport())
-					exportTxt(new File(tempZipDirParent + "/" + dir.getName() + ".txt"), pageIndices, createTitle, exportDiag.isWordBased(), true, cache);
+					exportTxt(new File(tempZipDirParent + "/" + dir.getName() + ".txt"), pageIndices, createTitle, wordBased, true, cache);
 				if (exportDiag.isTagXlsxExport())
 					exportXlsx(new File(tempZipDirParent + "/" + dir.getName() + ".xlsx"), pageIndices, exportDiag.isWordBased(), exportDiag.isDocxTagExport(), cache);
 				if (exportDiag.isTableXlsxExport())
@@ -3908,7 +3908,7 @@ public class TrpMainWidget {
 			if (doMetsExport) {
 
 				exportDocument(metsExportDir, pageIndices, exportDiag.isImgExport(), exportDiag.isPageExport(), exportDiag.isAltoExport(),
-						exportDiag.isSplitUpWords(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
+						exportDiag.isSplitUpWords(), exportDiag.isWordBased(), commonPars.getFileNamePattern(), commonPars.getRemoteImgQuality(), cache);
 				if (exportDiag.isPageExport()) {
 					if (exportFormats != "") {
 						exportFormats += " and ";
@@ -4028,7 +4028,7 @@ public class TrpMainWidget {
 	}
 
 	public void exportDocument(final File dir, final Set<Integer> pageIndices, final boolean exportImg, final boolean exportPage, final boolean exportAlto,
-			final boolean splitIntoWordsInAlto, final String fileNamePattern, final ImgType imgType, ExportCache cache) throws Throwable {
+			final boolean splitIntoWordsInAlto, final boolean useWordLayer, final String fileNamePattern, final ImgType imgType, ExportCache cache) throws Throwable {
 		try {
 
 			if (dir == null)
@@ -4040,7 +4040,7 @@ public class TrpMainWidget {
 				@Override public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						logger.debug("exporting document...");
-						final String path = storage.exportDocument(dir, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern,
+						final String path = storage.exportDocument(dir, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, useWordLayer, fileNamePattern,
 								imgType, monitor, cache);
 						monitor.done();
 						// displaySuccessMessage("Written export to "+path);
