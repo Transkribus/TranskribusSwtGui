@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.model.beans.DocumentSelectionDescriptor;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
+import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
@@ -46,6 +48,8 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
+import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.CurrentTranscriptOrDocPagesOrCollectionSelector;
 
@@ -80,24 +84,24 @@ public class P2PaLAConfDialog extends Dialog {
 			collBasedRadio = new Button(this, SWT.RADIO);
 			collBasedRadio.setText("Collection");
 			collBasedRadio.setToolTipText("Show only models of the current colllection");
-			collBasedRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			collBasedRadio.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 			collBasedRadio.setSelection(true);
 			
 			userBasedRadio = new Button(this, SWT.RADIO);
 			userBasedRadio.setText("User");
 			userBasedRadio.setToolTipText("Show only models that were trained by you");
-			userBasedRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			userBasedRadio.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 			
 			showPublicRadio = new Button(this, SWT.RADIO);
 			showPublicRadio.setText("Public models");
 			showPublicRadio.setToolTipText("Show only models that are publicly available");
-			showPublicRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			showPublicRadio.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 			
 			showAllRadio = new Button(this, SWT.RADIO);
 			showAllRadio.setText("All");
 			showPublicRadio.setToolTipText("Show all models (only for admins)");
 			showAllRadio.setVisible(store.isAdminLoggedIn());
-			showAllRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			showAllRadio.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 			if (store.isAdminLoggedIn()) {
 				collBasedRadio.setSelection(false);
 				showAllRadio.setSelection(true);
@@ -105,7 +109,7 @@ public class P2PaLAConfDialog extends Dialog {
 			
 			reloadModelsBtn = new Button(this, SWT.PUSH);
 			reloadModelsBtn.setImage(Images.REFRESH);
-			reloadModelsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			reloadModelsBtn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			reloadModelsBtn.setToolTipText("Reload models according to filter");
 			
 			SWTUtil.onSelectionEvent(reloadModelsBtn, e -> onFilterChanged());
@@ -192,6 +196,12 @@ public class P2PaLAConfDialog extends Dialog {
 		store = Storage.getInstance();
 //		this(parentShell, null);
 	}
+	
+	@Override
+	protected void setShellStyle(int newShellStyle) {           
+	    super.setShellStyle(SWT.CLOSE | SWT.MODELESS| SWT.BORDER | SWT.TITLE);
+	    setBlockOnOpen(false);
+	}
 
 //	public P2PaLAConfDialog(Shell parentShell /*, List<TrpP2PaLA> models*/) {
 //		super(parentShell);
@@ -201,7 +211,8 @@ public class P2PaLAConfDialog extends Dialog {
 	@Override
 	protected Point getInitialSize() {
 //		return new Point(600, 250);
-		return new Point(500, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+//		return new Point(500, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		return new Point(getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).x, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 	}
 	
 	@Override
@@ -219,7 +230,37 @@ public class P2PaLAConfDialog extends Dialog {
 			org.eclipse.swt.program.Program.launch("https://transkribus.eu/wiki/index.php/P2PaLA");
 		});
 		
-		Button modelDetailsBtn = createButton(parent, IDialogConstants.HELP_ID, "Model info", false);
+		boolean isUserAllowedForP2PaLATraining = false;
+		try {
+			isUserAllowedForP2PaLATraining = store.getConnection().isUserAllowedForJob(JobImpl.P2PaLATrainJob.toString());
+		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+			isUserAllowedForP2PaLATraining=false;
+			logger.error("Error determining if user is allowed for "+JobImpl.P2PaLATrainJob.toString()+": "+e.getMessage(), e);
+		}
+		
+		if (store.isAdminLoggedIn() || isUserAllowedForP2PaLATraining) {
+			Button trainBtn = createButton(parent, IDialogConstants.HELP_ID, "Train", false);
+			trainBtn.setImage(Images.TRAIN);
+			SWTUtil.onSelectionEvent(trainBtn, e -> {
+				TrpMainWidget mw = TrpMainWidget.i();
+				
+				String jobId;
+				try {
+					jobId = trainP2PaLAModel();
+					if (jobId != null && mw!=null) {
+						mw.registerJobStatusUpdateAndShowSuccessMessage(jobId);
+					}					
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
+					if (mw != null) {
+						mw.onError("Error training P2PaLA model", e1.getMessage(), e1);	
+					} else {
+						logger.error(e1.getMessage(), e1);
+					}
+				}
+			});
+		}
+		
+		Button modelDetailsBtn = createButton(parent, IDialogConstants.DETAILS_ID, "Model info", false);
 		modelDetailsBtn.setImage(Images.INFO);
 		SWTUtil.onSelectionEvent(modelDetailsBtn, e -> {
 			P2PaLAModelDetailsDialog d = new P2PaLAModelDetailsDialog(getShell(), models);
@@ -231,6 +272,32 @@ public class P2PaLAConfDialog extends Dialog {
 	    
 	    onSelectedModelChanged();
 	}
+	
+	public String trainP2PaLAModel() throws SessionExpiredException, ServerErrorException, ClientErrorException {
+//		try {
+			logger.debug("p2palaTrainBtn pressed...");
+			if (!store.getConnection().isUserAllowedForJob(JobImpl.P2PaLATrainJob.toString())) {
+				DialogUtil.showErrorMessageBox(getShell(), "Not allowed!", "You are not allowed to start a P2PaLA training.\n If you are interested, please apply at email@transkribus.eu");
+				return null;
+			}
+			P2PaLATrainDialog d = new P2PaLATrainDialog(getShell());
+			if (d.open() == IDialogConstants.OK_ID) {
+				P2PaLATrainUiConf conf = d.getConf();
+				if (conf==null) {
+					return null;
+				}
+				P2PaLATrainJobPars jobPars = conf.toP2PaLATrainJobPars();
+				String jobId = store.getConnection().trainP2PaLAModel(store.getCollId(), jobPars);
+				logger.info("Started P2PaLA training job "+jobId);
+				return jobId;
+//				mw.registerJobStatusUpdateAndShowSuccessMessage(jobId);
+				
+			}
+			return null;
+//		} catch (Exception e) {
+//			mw.onError("Error starting P2PaLA training", e.getMessage(), e);
+//		}
+	}	
 	
 	@Override
 	protected void configureShell(Shell newShell) {

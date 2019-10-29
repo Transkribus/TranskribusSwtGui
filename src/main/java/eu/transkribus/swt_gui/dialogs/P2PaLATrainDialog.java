@@ -29,6 +29,7 @@ import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.enums.EditStatus;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.rest.JobConstP2PaLA;
@@ -44,6 +45,7 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocsSelectorBtn;
 
@@ -442,11 +444,25 @@ public class P2PaLATrainDialog extends Dialog {
 		// TODO: check if trainDocs not empty!
 		
 		if (autoSplitTrainSetCheck.getSelection()) {
-			double[] fracs = new double[3];
-			fracs[0] = parseFraction(trainFrac.getText());
-			fracs[1] = parseFraction(valFrac.getText());
-			fracs[2] = parseFraction(testFrac.getText());
-			conf.fracs = GsonUtil.toJson(fracs);
+			List<Double> fracList = new ArrayList<>();
+			double trainFracD = parseFraction(trainFrac.getText()); 
+			fracList.add(trainFracD);
+			double valFracD = parseFraction(valFrac.getText());
+			if (valFracD<=0.0d) {
+				throw new NumberFormatException("Validation fraction must be greater 0!");
+			}
+			fracList.add(valFracD);
+			double testFracD = parseFraction(testFrac.getText());
+			if (testFracD > 0) {
+				fracList.add(testFracD);
+			}
+			
+//			double[] fracs = new double[3];
+//			fracs[0] = parseFraction(trainFrac.getText());
+//			fracs[1] = parseFraction(valFrac.getText());
+//			fracs[2] = parseFraction(testFrac.getText());
+			
+			conf.fracs = GsonUtil.toJson(fracList);
 			logger.debug("parsed frace = "+conf.fracs);
 		} else {
 			conf.fracs = null;

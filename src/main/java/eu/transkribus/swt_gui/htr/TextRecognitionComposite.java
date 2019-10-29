@@ -67,7 +67,7 @@ public class TextRecognitionComposite extends Composite {
 
 		trainBtn = new Button(this, 0);
 		trainBtn.setText("Train..."); //α Train
-		trainBtn.setImage(Images.getOrLoad("/icons/muscle_16.png"));
+		trainBtn.setImage(Images.TRAIN);
 		trainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		trainBtnLegacy = new Button(this, 0);

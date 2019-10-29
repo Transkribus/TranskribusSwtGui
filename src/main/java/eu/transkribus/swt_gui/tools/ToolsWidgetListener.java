@@ -216,26 +216,29 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 
 	private void showSuccessMessage(List<String> jobIds) {
-		showSuccessMessage(jobIds.toArray(new String[0]));
+		mw.registerJobStatusUpdateAndShowSuccessMessage(jobIds.toArray(new String[0]));
+//		showSuccessMessage(jobIds.toArray(new String[0]));
 	}
 
 	private void showSuccessMessage(String... jobIds) {
-		if (!CoreUtils.isEmpty(jobIds)) {
-			logger.debug("started " + jobIds.length + " jobs");
-			String jobIdsStr = mw.registerJobsToUpdate(jobIds);
-			store.sendJobListUpdateEvent();
-			mw.updatePageLock();
-
-			String jobsStr = jobIds.length > 1 ? "jobs" : "job";
-			final String title = jobIds.length + " " + jobsStr + " started!";
-			final String msg = "IDs:\n " + jobIdsStr;
-			
-			//Dialog may block the GUI. 
-//			DialogUtil.showInfoMessageBox(tw.getShell(), title, msg);
-			
-			//show balloon tip on jobs button instead
-			DialogUtil.showBallonToolTip(mw.getUi().getJobsButton(), null, title, msg);
-		}
+		mw.registerJobStatusUpdateAndShowSuccessMessage(jobIds);
+		
+//		if (!CoreUtils.isEmpty(jobIds)) {
+//			logger.debug("started " + jobIds.length + " jobs");
+//			String jobIdsStr = mw.registerJobsToUpdate(jobIds);
+//			store.sendJobListUpdateEvent();
+//			mw.updatePageLock();
+//
+//			String jobsStr = jobIds.length > 1 ? "jobs" : "job";
+//			final String title = jobIds.length + " " + jobsStr + " started!";
+//			final String msg = "IDs:\n " + jobIdsStr;
+//			
+//			//Dialog may block the GUI. 
+////			DialogUtil.showInfoMessageBox(tw.getShell(), title, msg);
+//			
+//			//show balloon tip on jobs button instead
+//			DialogUtil.showBallonToolTip(mw.getUi().getJobsButton(), null, title, msg);
+//		}
 	}
 	
 	private boolean isDocLoadedNeeded(Object s) {
@@ -247,7 +250,7 @@ public class ToolsWidgetListener implements SelectionListener {
 	}
 	
 	private boolean isPageLoadedNeeded(Object s) {
-		if (s == tw.p2palaTrainBtn) {
+		if (s == tw.p2palaTrainBtn || s==tw.p2palaBtn) {
 			return false;
 		}
 		
@@ -370,24 +373,24 @@ public class ToolsWidgetListener implements SelectionListener {
 							!isPolygon2Baseline, jobImpl, null);
 				}
 			}
-			else if (s == tw.p2palaTrainBtn) {
-				logger.debug("p2palaTrainBtn pressed...");
-				if (!store.getConnection().isUserAllowedForJob(JobImpl.P2PaLATrainJob.toString())) {
-					DialogUtil.showErrorMessageBox(tw.getShell(), "Not allowed!", "You are not allowed to start a P2PaLA training.\n If you are interested, please apply at email@transkribus.eu");
-					return;
-				}
-				P2PaLATrainDialog d = new P2PaLATrainDialog(tw.getShell());
-				if (d.open() == IDialogConstants.OK_ID) {
-					P2PaLATrainUiConf conf = d.getConf();
-					if (conf==null) {
-						return;
-					}
-					P2PaLATrainJobPars jobPars = conf.toP2PaLATrainJobPars();
-					String jobId = store.getConnection().trainP2PaLAModel(colId, jobPars);
-					jobIds.add(jobId);
-					logger.info("Started P2PaLA training job "+jobId);
-				}
-			}
+//			else if (s == tw.p2palaTrainBtn) {
+//				logger.debug("p2palaTrainBtn pressed...");
+//				if (!store.getConnection().isUserAllowedForJob(JobImpl.P2PaLATrainJob.toString())) {
+//					DialogUtil.showErrorMessageBox(tw.getShell(), "Not allowed!", "You are not allowed to start a P2PaLA training.\n If you are interested, please apply at email@transkribus.eu");
+//					return;
+//				}
+//				P2PaLATrainDialog d = new P2PaLATrainDialog(tw.getShell());
+//				if (d.open() == IDialogConstants.OK_ID) {
+//					P2PaLATrainUiConf conf = d.getConf();
+//					if (conf==null) {
+//						return;
+//					}
+//					P2PaLATrainJobPars jobPars = conf.toP2PaLATrainJobPars();
+//					String jobId = store.getConnection().trainP2PaLAModel(colId, jobPars);
+//					jobIds.add(jobId);
+//					logger.info("Started P2PaLA training job "+jobId);
+//				}
+//			}
 			else if (s == tw.p2palaBtn) {
 				P2PaLAConfDialog diag = new P2PaLAConfDialog(tw.getShell()/*, Storage.getInstance().getP2PaLAModels()*/);
 				if (diag.open()==IDialogConstants.OK_ID) {

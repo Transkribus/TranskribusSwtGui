@@ -114,6 +114,7 @@ import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.ScriptType;
 import eu.transkribus.core.model.beans.enums.TranscriptionLevel;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TableCellType;
 import eu.transkribus.core.model.beans.pagecontent.TextLineType;
@@ -128,6 +129,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.model.builder.CommonExportPars;
 import eu.transkribus.core.model.builder.ExportCache;
 import eu.transkribus.core.model.builder.ExportUtils;
@@ -190,12 +192,14 @@ import eu.transkribus.swt_gui.dialogs.CommonExportDialog;
 import eu.transkribus.swt_gui.dialogs.DebuggerDialog;
 import eu.transkribus.swt_gui.dialogs.InstallSpecificVersionDialog;
 import eu.transkribus.swt_gui.dialogs.JavaVersionDialog;
+import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog;
 import eu.transkribus.swt_gui.dialogs.PAGEXmlViewer;
 import eu.transkribus.swt_gui.dialogs.ProgramUpdaterDialog;
 import eu.transkribus.swt_gui.dialogs.ProxySettingsDialog;
 import eu.transkribus.swt_gui.dialogs.SettingsDialog;
 import eu.transkribus.swt_gui.dialogs.TrpLoginDialog;
 import eu.transkribus.swt_gui.dialogs.VersionsDiffBrowserDialog;
+import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclManagerDialog;
 import eu.transkribus.swt_gui.edit_decl_manager.EditDeclViewerDialog;
 import eu.transkribus.swt_gui.factory.TrpShapeElementFactory;
@@ -391,6 +395,10 @@ public class TrpMainWidget {
 	public static TrpMainWidget getInstance() {
 		return mw;
 	}
+	
+	public static TrpMainWidget i() {
+		return getInstance();
+	}	
 	
 	public String registerJobsToUpdate(Collection<String> jobIds) {
 		if (jobIds == null)
@@ -6436,6 +6444,46 @@ public class TrpMainWidget {
 		}
 		
 	}
+	
+//	public void trainP2PaLAModel() {
+//		try {
+//			logger.debug("p2palaTrainBtn pressed...");
+//			if (!storage.getConnection().isUserAllowedForJob(JobImpl.P2PaLATrainJob.toString())) {
+//				DialogUtil.showErrorMessageBox(getShell(), "Not allowed!", "You are not allowed to start a P2PaLA training.\n If you are interested, please apply at email@transkribus.eu");
+//				return;
+//			}
+//			P2PaLATrainDialog d = new P2PaLATrainDialog(getShell());
+//			if (d.open() == IDialogConstants.OK_ID) {
+//				P2PaLATrainUiConf conf = d.getConf();
+//				if (conf==null) {
+//					return;
+//				}
+//				P2PaLATrainJobPars jobPars = conf.toP2PaLATrainJobPars();
+//				String jobId = storage.getConnection().trainP2PaLAModel(storage.getCurrentDocumentCollectionId(), jobPars);
+//				logger.info("Started P2PaLA training job "+jobId);
+//				registerJobStatusUpdateAndShowSuccessMessage(jobId);
+//			}
+//		} catch (Exception e) {
+//			mw.onError("Error starting P2PaLA training", e.getMessage(), e);
+//		}
+//	}
 
+	public void registerJobStatusUpdateAndShowSuccessMessage(String... jobIds) {
+		if (!CoreUtils.isEmpty(jobIds)) {
+			logger.debug("started " + jobIds.length + " jobs");
+			String jobIdsStr = mw.registerJobsToUpdate(jobIds);
+			storage.sendJobListUpdateEvent();
+			mw.updatePageLock();
 
+			String jobsStr = jobIds.length > 1 ? "jobs" : "job";
+			final String title = jobIds.length + " " + jobsStr + " started!";
+			final String msg = "IDs:\n " + jobIdsStr;
+			
+			//Dialog may block the GUI. 
+//			DialogUtil.showInfoMessageBox(tw.getShell(), title, msg);
+			
+			//show balloon tip on jobs button instead
+			DialogUtil.showBallonToolTip(mw.getUi().getJobsButton(), null, title, msg);
+		}
+	}
 }
