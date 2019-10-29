@@ -56,6 +56,91 @@ public class P2PaLAConfDialog extends Dialog {
 		public TrpP2PaLA model;
 	}
 	
+	public static class P2PaLAModelFilterComposite extends Composite {
+		public static interface P2PaLAModelFilterChangedListener {
+			public void onFilterChanged();
+		}
+		
+		public Label label;
+		public Button collBasedRadio, userBasedRadio, showPublicRadio, showAllRadio, reloadModelsBtn;
+		
+		Storage store = Storage.getInstance();
+		List<P2PaLAModelFilterChangedListener> listener = new ArrayList<>(); 
+
+		public P2PaLAModelFilterComposite(Composite parent) {
+			super(parent, 0);
+			
+			this.setLayout(new GridLayout(6, false));
+			this.setLayout(SWTUtil.createGridLayout(6, false, 0, 0));
+			
+			label = new Label(this, 0);
+			label.setText("Model filter: ");
+			Fonts.setBoldFont(label);
+			
+			collBasedRadio = new Button(this, SWT.RADIO);
+			collBasedRadio.setText("Collection");
+			collBasedRadio.setToolTipText("Show only models of the current colllection");
+			collBasedRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			collBasedRadio.setSelection(true);
+			
+			userBasedRadio = new Button(this, SWT.RADIO);
+			userBasedRadio.setText("User");
+			userBasedRadio.setToolTipText("Show only models that were trained by you");
+			userBasedRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			
+			showPublicRadio = new Button(this, SWT.RADIO);
+			showPublicRadio.setText("Public models");
+			showPublicRadio.setToolTipText("Show only models that are publicly available");
+			showPublicRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			
+			showAllRadio = new Button(this, SWT.RADIO);
+			showAllRadio.setText("All");
+			showPublicRadio.setToolTipText("Show all models (only for admins)");
+			showAllRadio.setVisible(store.isAdminLoggedIn());
+			showAllRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			if (store.isAdminLoggedIn()) {
+				collBasedRadio.setSelection(false);
+				showAllRadio.setSelection(true);
+			}			
+			
+			reloadModelsBtn = new Button(this, SWT.PUSH);
+			reloadModelsBtn.setImage(Images.REFRESH);
+			reloadModelsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			reloadModelsBtn.setToolTipText("Reload models according to filter");
+			
+			SWTUtil.onSelectionEvent(reloadModelsBtn, e -> onFilterChanged());
+			SWTUtil.onSelectionEvent(collBasedRadio, e -> onFilterChanged());
+			SWTUtil.onSelectionEvent(userBasedRadio, e -> onFilterChanged());
+			SWTUtil.onSelectionEvent(showPublicRadio, e -> onFilterChanged());
+			SWTUtil.onSelectionEvent(showAllRadio, e -> onFilterChanged());
+		}
+		
+		public void addListener(P2PaLAModelFilterChangedListener l) {
+			this.listener.add(l);
+		}
+		
+		public void onFilterChanged() {
+			for (P2PaLAModelFilterChangedListener l : listener) {
+				l.onFilterChanged();
+			}
+		}
+		
+		public List<TrpP2PaLA> loadModelsForCurrentFilter() {
+				boolean showAll = showAllRadio.getSelection();
+				Integer colId = collBasedRadio.getSelection() ? store.getCollId() : null;
+				Integer userId = userBasedRadio.getSelection() ? store.getUserId() : null;
+				Integer releaseLevel = showPublicRadio.getSelection() ? 1 : null;
+				try {
+					List<TrpP2PaLA> models = store.getConnection().getModelCalls().getP2PaLAModels(true, showAll, colId, userId, releaseLevel);
+					logger.debug("loaded "+models.size()+" models");
+					return models;
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
+					DialogUtil.showErrorMessageBox(getShell(), "Error loading models", e1.getMessage());
+					return new ArrayList<>();
+				}
+		}
+	}
+	
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLAConfDialog.class);
 //	MyTableViewer modelsTable;
 	CurrentTranscriptOrDocPagesOrCollectionSelector pagesSelector;
@@ -75,8 +160,7 @@ public class P2PaLAConfDialog extends Dialog {
 	Label selectedModelLbl;
 	
 	Button modelDetailsBtn;
-	
-	Button collBasedRadio, userBasedRadio, showPublicRadio, showAllRadio;
+	P2PaLAModelFilterComposite modelFilterComp;
 	
 	P2PaLARecogUiConf conf = null;
 	
@@ -214,11 +298,9 @@ public class P2PaLAConfDialog extends Dialog {
 		Fonts.setItalicFont(selectedModelLbl);
 		
 		modelComboViewer.addPostSelectionChangedListener(new ISelectionChangedListener() {
-			
 			@Override
 			public void selectionChanged(SelectionChangedEvent arg0) {
 				onSelectedModelChanged();
-				
 			}
 		});
 		
@@ -253,66 +335,28 @@ public class P2PaLAConfDialog extends Dialog {
 	}
 	
 	private void initModelFacetsCombo(Composite parent) {
-		Composite c = new Composite(parent, 0);
-//		c.setLayout(new GridLayout(store.isAdminLoggedIn() ? 5 : 4, false));
-		c.setLayout(new GridLayout(6, false));
-		c.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
-		
-		Label lbl = new Label(c, 0);
-		lbl.setText("Restrict models to: ");
-		
-		collBasedRadio = new Button(c, SWT.RADIO);
-		collBasedRadio.setText("Collection");
-		collBasedRadio.setToolTipText("Show only models of the current colllection");
-		collBasedRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		collBasedRadio.setSelection(true);
-		
-		userBasedRadio = new Button(c, SWT.RADIO);
-		userBasedRadio.setText("User");
-		userBasedRadio.setToolTipText("Show only models that were trained by you");
-		userBasedRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		showPublicRadio = new Button(c, SWT.RADIO);
-		showPublicRadio.setText("Public models");
-		showPublicRadio.setToolTipText("Show only models that are publicly available");
-		showPublicRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
-		showAllRadio = new Button(c, SWT.RADIO);
-		showAllRadio.setText("All");
-		showPublicRadio.setToolTipText("Show all models (only for admins)");
-		showAllRadio.setVisible(store.isAdminLoggedIn());
-		showAllRadio.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		if (store.isAdminLoggedIn()) {
-			collBasedRadio.setSelection(false);
-			showAllRadio.setSelection(true);
-		}
-		
-		SWTUtil.onSelectionEvent(collBasedRadio, e -> reloadModels());
-		SWTUtil.onSelectionEvent(userBasedRadio, e -> reloadModels());
-		SWTUtil.onSelectionEvent(showPublicRadio, e -> reloadModels());
-		SWTUtil.onSelectionEvent(showAllRadio, e -> reloadModels());
-		
-		Button reloadModelsBtn = new Button(c, SWT.PUSH);
-		reloadModelsBtn.setImage(Images.REFRESH);
-		SWTUtil.onSelectionEvent(reloadModelsBtn, e -> reloadModels());
-		reloadModelsBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		reloadModelsBtn.setToolTipText("Reload models according to filter");
+		modelFilterComp = new P2PaLAModelFilterComposite(parent);
+		modelFilterComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+		modelFilterComp.addListener(() -> reloadModels());
 	}
 	
 	private void reloadModels() {
-		boolean showAll = showAllRadio.getSelection();
-		Integer colId = collBasedRadio.getSelection() ? store.getCollId() : null;
-		Integer userId = userBasedRadio.getSelection() ? store.getUserId() : null;
-		Integer releaseLevel = showPublicRadio.getSelection() ? 1 : null;
-		try {
-			this.models = store.getConnection().getModelCalls().getP2PaLAModels(true, showAll, colId, userId, releaseLevel);
-			logger.debug("loaded "+models.size()+" models");
-		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
-			DialogUtil.showErrorMessageBox(getShell(), "Error loading models", e1.getMessage());
-			this.models = new ArrayList<>();
-		}	
-		
+		this.models = modelFilterComp.loadModelsForCurrentFilter();
 		setModels(models);
+		
+//		boolean showAll = moderFilterComp.showAllRadio.getSelection();
+//		Integer colId = moderFilterComp.collBasedRadio.getSelection() ? store.getCollId() : null;
+//		Integer userId = moderFilterComp.userBasedRadio.getSelection() ? store.getUserId() : null;
+//		Integer releaseLevel = moderFilterComp.showPublicRadio.getSelection() ? 1 : null;
+//		try {
+//			this.models = store.getConnection().getModelCalls().getP2PaLAModels(true, showAll, colId, userId, releaseLevel);
+//			logger.debug("loaded "+models.size()+" models");
+//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
+//			DialogUtil.showErrorMessageBox(getShell(), "Error loading models", e1.getMessage());
+//			this.models = new ArrayList<>();
+//		}	
+//		
+//		setModels(models);
 	}
 	
 	private void onSelectedModelChanged() {

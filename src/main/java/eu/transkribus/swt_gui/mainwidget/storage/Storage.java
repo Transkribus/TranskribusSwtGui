@@ -328,6 +328,10 @@ public class Storage {
 //		logger.debug("Storage finalize - stopping job update thread!");
 //		docUpdater.stopJobThread();
 //	}
+	
+	public static Storage i() {
+		return getInstance();
+	}
 
 	public static Storage getInstance() {
 		if (storage == null) {

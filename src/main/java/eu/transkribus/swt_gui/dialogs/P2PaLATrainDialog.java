@@ -38,6 +38,7 @@ import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.core.util.MonitorUtil;
 import eu.transkribus.core.util.StructTypesAnal;
 import eu.transkribus.swt.progress.ProgressBarDialog;
+import eu.transkribus.swt.util.ComboInputDialog;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
@@ -179,19 +180,34 @@ public class P2PaLATrainDialog extends Dialog {
 		
 		modelNameText = new LabeledText(cont, "Name: ");
 		modelNameText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		descriptionText = new LabeledText(cont, "Description: ");
+		descriptionText = new LabeledText(cont, "Description: (optional)");
 		descriptionText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		numEpochsText = new LabeledText(cont, "Number of epochs: ");
 		numEpochsText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		numEpochsText.setText(""+150);
 		numEpochsText.setToolTipText("The number of epochs the training should run");
 
-		structureTypesText = new LabeledText(cont, "Structures: ");
+		Composite structsComp = new Composite(cont, 0);
+		structsComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		structsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		structureTypesText = new LabeledText(structsComp, "Structures: ");
 		structureTypesText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		structureTypesText.setToolTipText("A list of all structure types to be trained separated by whitespaces\n"
 				+ "E.g.: 'paragraph heading footnote page-number'");
 		
-		mergedStructureTypesText = new LabeledText(cont, "Merged structures: ");
+		Button addStructBtn = new Button(structsComp, 0);
+		addStructBtn.setImage(Images.ADD);
+		addStructBtn.setToolTipText("Add a structure type from tags specified in this collection");
+		SWTUtil.onSelectionEvent(addStructBtn, e -> {
+			String[] items = Storage.i().getStructCustomTagSpecsTypeStrings().toArray(new String[0]);
+			ComboInputDialog d = new ComboInputDialog(getShell(), "Select a structure: ", items, SWT.DROP_DOWN, true);
+			if (d.open() == Dialog.OK) {
+				structureTypesText.setText((structureTypesText.getText()+" "+d.getSelectedText()).trim());
+			}
+		});
+		
+		mergedStructureTypesText = new LabeledText(cont, "Merged structures: (optional)");
 		mergedStructureTypesText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		mergedStructureTypesText.setToolTipText("A list of all structure types to be merged into others.\n"
 				+ "E.g.: 'footnote:footnote-continued,footer heading:header' means that 'footnote-continue' and 'footnote' are regarded as 'footnote' while 'header' is regarded as 'heading'");		
@@ -205,7 +221,7 @@ public class P2PaLATrainDialog extends Dialog {
 		
 		Composite statusComp = new Composite(cont, 0);
 		statusComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		statusComp.setLayout(new GridLayout(2, false));
+		statusComp.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
 		
 		statusCombo = new LabeledCombo(statusComp, "Edit Status: ");
 		List<String> stati = EnumUtils.stringsList(EditStatus.class);
@@ -224,10 +240,17 @@ public class P2PaLATrainDialog extends Dialog {
 		
 		trainSel = new DocsSelectorBtn(cont, "Training set: ");
 		trainSel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		valSel = new DocsSelectorBtn(cont, "Validation set: ");
+		trainSel.setToolTipText("The training used for training this model. This is mandatory.");
+		
+		valSel = new DocsSelectorBtn(cont, "Validation set: (optional) ");
 		valSel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		testSel = new DocsSelectorBtn(cont, "Test set: ");
+		valSel.setToolTipText("The validation set used *during* each epoch of training to avoid overfitting to the training data.\n"
+				+ "Not mandatory but very much recommended!");
+		
+		testSel = new DocsSelectorBtn(cont, "Test set: (optional) ");
 		testSel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		testSel.setToolTipText("The test set is used *after* the training to measure the quality of the overall model.\n"
+				+ "This is not mandatory if you are not interested in an overall quality measure of your model.");
 		
 		autoSplitTrainSetCheck = new Button(cont, SWT.CHECK);
 		autoSplitTrainSetCheck.setText("Auto split train set");
@@ -239,7 +262,7 @@ public class P2PaLATrainDialog extends Dialog {
 		fractionsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		fractionsComp.setLayout(new GridLayout(3, false));
 		trainFrac = new LabeledText(fractionsComp, "Train: ");
-		trainFrac.setText("85");
+		trainFrac.setText("90");
 		trainFrac.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		trainFrac.setToolTipText("Percentage of the data that is used as training set");
 		
@@ -249,7 +272,7 @@ public class P2PaLATrainDialog extends Dialog {
 		valFrac.setToolTipText("Percentage of the data that is used as validation set");
 		
 		testFrac = new LabeledText(fractionsComp, "Test: ");
-		testFrac.setText("5");
+		testFrac.setText("0");
 		testFrac.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		testFrac.setToolTipText("Percentage of the data that is used as test set");
 		

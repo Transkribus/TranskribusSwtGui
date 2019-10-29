@@ -33,12 +33,11 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableLabelProvider;
+import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog.P2PaLAModelFilterComposite;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class P2PaLAModelDetailsDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLAModelDetailsDialog.class);
-	
-	MyTableViewer modelsTable;
 	
 	public static String NAME_COL = "Name";
 	public static String DESC_COL = "Description";
@@ -63,21 +62,26 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 //			new ColumnConfig(TEST_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the test set (which is used once after training to evaluate the model)"),
 		};
 	
+	MyTableViewer modelsTable;
+	P2PaLAModelFilterComposite modelFilterComp;
+	Button shareSelectedModelBtn, removeModelFromThisCollBtn;
+	
 	List<TrpP2PaLA> models;
 	Storage store;
 	Map<Integer, String> modelCollections = new HashMap<>();
 
 	public P2PaLAModelDetailsDialog(Shell parentShell, List<TrpP2PaLA> models) {
 		super(parentShell);
-		this.models = models;
-		this.store = Storage.getInstance();
 		
+		this.store = Storage.getInstance();
+		this.models = models;
 		this.models.forEach(m -> updateCollectionsForModel(m));
 	}
 	
 	@Override
 	protected Point getInitialSize() {
-		return new Point(1000, 800);
+//		return new Point(1000, 1000);
+		return new Point(1000, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 	}
 	
 	@Override
@@ -173,25 +177,37 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 		delItem.setText("Remove model from current collection");
 		SWTUtil.onSelectionEvent(delItem, e -> {
 			removeSelectedModelFromCollection();
+		});
+		
+		modelFilterComp = new P2PaLAModelFilterComposite(cont);
+		modelFilterComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		modelFilterComp.addListener(() -> reloadModels());
+		
+		shareSelectedModelBtn = new Button(cont, 0);
+		shareSelectedModelBtn.setText("Share selected model...");
+		SWTUtil.onSelectionEvent(shareSelectedModelBtn, e -> {
+			addSelectedModelToCollection();
+		});
+		
+		removeModelFromThisCollBtn = new Button(cont, 0);
+		removeModelFromThisCollBtn.setText("Remove seleced model from current collection");
+		SWTUtil.onSelectionEvent(removeModelFromThisCollBtn, e -> {
+			removeSelectedModelFromCollection();
 		});		
 		
-		
-//		modelsTable.getTable().addMenuDetectListener(new MenuDetectListener() {
-//			@Override
-//			public void menuDetected(MenuDetectEvent e) {
-//				TrpP2PaLA model = (TrpP2PaLA) modelsTable.getStructuredSelection().getFirstElement();
-//
-//				int index = table.getSelectionIndex();
-//				if (index == -1)
-//					return; // no row selected
-//
-//				TableItem item = table.getItem(index);
-//				item.getData(); // use this to identify which row was clicked.
-//				// The popup can now be displayed as usual using table.toDisplay(e.x, e.y)
-//			}
-//		});
-		
 		return cont;
+	}
+	
+	public void reloadModels() {
+		this.models = modelFilterComp.loadModelsForCurrentFilter();
+		setModels(this.models);
+	}
+	
+	private void setModels(List<TrpP2PaLA> models) {
+		this.models = models;
+		modelsTable.setInput(models);
+		modelCollections.clear();
+		this.models.forEach(m -> updateCollectionsForModel(m));		
 	}
 
 	public TrpP2PaLA getSelectedModel() {
@@ -199,16 +215,17 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 	}
 	
 	private void addSelectedModelToCollection() {
+		TrpP2PaLA model = getSelectedModel();
+		if (model==null) {
+			return;
+		}		
+		
 		ChooseCollectionDialog ccd = new ChooseCollectionDialog(getShell());
 		
 		@SuppressWarnings("unused")
 		int ret = ccd.open();
 		TrpCollection col = ccd.getSelectedCollection();
 		if (col==null) {
-			return;
-		}
-		TrpP2PaLA model = getSelectedModel();
-		if (model==null) {
 			return;
 		}
 
@@ -252,7 +269,7 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 		if (model != null) {
 			try {
 				List<TrpCollection> colls = store.getConnection().getModelCalls().getModelCollections(model.getModelId());
-				logger.debug("loaeded n-colls = "+colls.size());
+				logger.trace("loaded n-colls = "+colls.size());
 				String collsSummary = colls.stream().map(c -> "("+c.getColId()+","+c.getColName()+")").reduce((t, u) ->  t+ ", " + u).orElse("");
 				modelCollections.put(model.getModelId(), collsSummary);
 			} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e) {

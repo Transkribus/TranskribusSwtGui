@@ -2,6 +2,8 @@ package eu.transkribus.swt.util;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.fieldassist.AutoCompleteField;
+import org.eclipse.jface.fieldassist.ComboContentAdapter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -20,22 +22,28 @@ public class ComboInputDialog extends Dialog {
 	public Label label;
 	public Combo combo;
 	
+	private int comboStyle;
+	private AutoCompleteField comboAutoComplete;
+	private boolean addAutoComplete;
+	
 	String selectedText;
 	int selectedIndex;
 	
 	String labelTxt;
 	String[] items;
 
-	/**
-	 * Create the dialog.
-	 * @param parentShell
-	 */
 	public ComboInputDialog(Shell parentShell, String labelTxt, String[] items) {
+		this(parentShell, labelTxt, items, SWT.READ_ONLY | SWT.DROP_DOWN, false);
+	}
+	
+	public ComboInputDialog(Shell parentShell, String labelTxt, String[] items, int comboStyle, boolean addAutoComplete) {
 		super(parentShell);
 
 		Assert.assertTrue(items != null && items.length > 0);
 		Assert.assertNotNull(labelTxt);
 		
+		this.comboStyle = comboStyle;
+		this.addAutoComplete = addAutoComplete;
 		this.labelTxt = labelTxt;
 		this.items = items;
 	}
@@ -61,7 +69,7 @@ public class ComboInputDialog extends Dialog {
 		label = new Label(container, 0);
 		label.setText(labelTxt);
 		
-		combo = new Combo(container, SWT.READ_ONLY | SWT.DROP_DOWN);
+		combo = new Combo(container, comboStyle);
 		combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		combo.addModifyListener(new ModifyListener() {
@@ -71,6 +79,10 @@ public class ComboInputDialog extends Dialog {
 		});
 		combo.setItems(items);
 		combo.select(0);
+		
+		if (addAutoComplete) {
+			comboAutoComplete = new AutoCompleteField(combo, new ComboContentAdapter(), items);
+		}
 		
 		updateVals();
 		

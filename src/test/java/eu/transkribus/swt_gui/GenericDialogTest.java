@@ -86,7 +86,7 @@ public class GenericDialogTest {
 	//					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 		//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 						
-						if (false) {
+						if (true) {
 //							List<TrpP2PaLA> models = new ArrayList<>();
 //							if (Storage.getInstance()!=null) {
 //								models = Storage.getInstance().getP2PaLAModels();
@@ -105,7 +105,7 @@ public class GenericDialogTest {
 							}
 						}
 						
-						if (true) {
+						if (false) {
 //							List<TrpP2PaLA> models = new ArrayList<>();
 //							if (Storage.getInstance()!=null) {
 //								models = Storage.getInstance().getP2PaLAModels();

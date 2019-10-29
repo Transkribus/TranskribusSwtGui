@@ -24,7 +24,7 @@ import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 public class DocsSelectorBtn extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(DocsSelectorBtn.class);
 	
-	public static final String DEFAULT_LABEL = "Choose docs...";
+	public static final String DEFAULT_BTN_LABEL = "Choose docs...";
 	
 	Label lbl;
 	Button btn;
@@ -49,7 +49,7 @@ public class DocsSelectorBtn extends Composite {
 		}
 		
 		btn = new Button(this, SWT.PUSH);
-		btn.setText(DEFAULT_LABEL);
+		btn.setText(DEFAULT_BTN_LABEL);
 		btn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		SWTUtil.onSelectionEvent(btn, e -> {
 			DocumentsSelectorDialog dsd = new DocumentsSelectorDialog(getShell(), "Select documents", 
@@ -83,7 +83,7 @@ public class DocsSelectorBtn extends Composite {
 	
 	private void updateLabel() {
 		if (CoreUtils.isEmpty(docSelection)) {
-			btn.setText(DEFAULT_LABEL);
+			btn.setText(DEFAULT_BTN_LABEL);
 		}
 		else {
 			int nDocs=docSelection.size(); 
@@ -96,7 +96,7 @@ public class DocsSelectorBtn extends Composite {
 			} catch (Exception e) {
 				logger.error("Could not determine nr of pages for all selected documents "+e.getMessage(), e);
 				DialogUtil.showErrorMessageBox(getShell(), "Error", "Could not determine nr of pages for all selected documents "+e.getMessage());
-				btn.setText(DEFAULT_LABEL);
+				btn.setText(DEFAULT_BTN_LABEL);
 			}
 		}
 	}
