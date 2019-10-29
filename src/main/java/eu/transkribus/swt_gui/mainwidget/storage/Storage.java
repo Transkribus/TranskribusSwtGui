@@ -2246,7 +2246,7 @@ public class Storage {
 	}
 
 	public String exportDocument(File dir, Set<Integer> pageIndices, boolean exportImg, 
-			boolean exportPage, boolean exportAlto, boolean splitIntoWordsInAlto, 
+			boolean exportPage, boolean exportAlto, boolean splitIntoWordsInAlto, boolean useWordLayer,
 			final String fileNamePattern, final ImgType imgType, final IProgressMonitor monitor, ExportCache cache) throws SessionExpiredException, ServerErrorException, IllegalArgumentException,
 			NoConnectionException, Exception {
 		if (!isDocLoaded())
@@ -2286,7 +2286,7 @@ public class Storage {
 		};
 		DocExporter de = new DocExporter(conn.newFImagestoreGetClient(), cache);
 		de.addObserver(o);
-		de.writeRawDoc(doc, path, true, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, fileNamePattern, imgType);
+		de.writeRawDoc(doc, path, true, pageIndices, exportImg, exportPage, exportAlto, splitIntoWordsInAlto, useWordLayer, fileNamePattern, imgType);
 
 		return path;
 	}
