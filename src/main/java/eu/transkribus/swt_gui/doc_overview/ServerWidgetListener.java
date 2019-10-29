@@ -71,6 +71,7 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		dtv.getTable().addMouseTrackListener(this);
 		dtv.getTable().addKeyListener(this);
 		sw.groundTruthTreeWidget.getTreeViewer().addDoubleClickListener(this);
+		sw.groundTruthTreeWidget.getReloadButton().addSelectionListener(this);
 
 //		sw.collectionComboViewerWidget.collectionCombo.addSelectionListener(this);
 		sw.collectionSelectorWidget.addListener(SWT.Selection, this);
@@ -296,7 +297,9 @@ public class ServerWidgetListener extends SelectionAdapter implements Listener, 
 		else if (s == sw.findBtn) {
 			mw.openSearchDialog();
 		}
-		
+		else if (s == sw.groundTruthTreeWidget.getReloadButton()) {
+			mw.getStorage().reloadHtrs();
+		}
 	}
 
 	@Override
