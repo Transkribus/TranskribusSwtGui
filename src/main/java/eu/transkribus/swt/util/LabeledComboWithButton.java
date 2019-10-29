@@ -9,7 +9,7 @@ public class LabeledComboWithButton extends LabeledCombo {
 	protected Button button;
 	
 	public LabeledComboWithButton(Composite parent, String labelText, String buttonText) {
-		super(parent, labelText, 3);
+		super(parent, labelText, 3, false);
 		button = new Button(this, SWT.PUSH);
 		button.setText(buttonText);
 	}

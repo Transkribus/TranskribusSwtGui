@@ -226,7 +226,7 @@ public class HtrTextRecognitionDialog extends Dialog {
 			}
 		} else {
 			docsSelected = dps.isDocsSelection();
-			selectedDocDescriptors = dps.getDocumentsToExportOnServer();
+			selectedDocDescriptors = dps.getDocumentsSelected();
 			if(CollectionUtils.isEmpty(selectedDocDescriptors)) {
 				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "No documents selected for recognition.");
 				return;

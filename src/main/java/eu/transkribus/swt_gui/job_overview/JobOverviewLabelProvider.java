@@ -3,13 +3,6 @@ package eu.transkribus.swt_gui.job_overview;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import eu.transkribus.core.model.beans.job.TrpJobStatus;
-import eu.transkribus.swt.util.Colors;
 
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableColorProvider;
@@ -20,7 +13,11 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.model.beans.job.TrpJobStatus;
+import eu.transkribus.swt.util.Colors;
 
 public class JobOverviewLabelProvider implements ITableLabelProvider, ITableColorProvider {
 	private final static Logger logger = LoggerFactory.getLogger(JobOverviewLabelProvider.class);

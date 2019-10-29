@@ -10,9 +10,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
-import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.TrpConfig;
 
 public class TagConfDialog extends Dialog {
 	

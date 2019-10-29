@@ -67,7 +67,7 @@ public abstract class TestApplicationWindow extends ApplicationWindow {
 		fut.get();
 		
 		store.reloadHtrs();
-		store.reloadP2PaLAModels();
+//		store.reloadP2PaLAModels();
 		
 		return store;
 	}

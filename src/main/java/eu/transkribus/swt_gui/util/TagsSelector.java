@@ -1,8 +1,5 @@
 package eu.transkribus.swt_gui.util;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -15,20 +12,11 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.client.connection.TrpServerConn;
-import eu.transkribus.core.model.beans.TrpDoc;
-import eu.transkribus.core.model.beans.TrpPage;
-import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.util.Utils;
 
 public class TagsSelector extends Composite {
 	private final static Logger logger = LoggerFactory.getLogger(TagsSelector.class);

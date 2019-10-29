@@ -81,7 +81,7 @@ import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
-import eu.transkribus.core.model.beans.TrpP2PaLAModel;
+import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpUpload;
@@ -121,13 +121,13 @@ import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.DescriptorUtils;
 import eu.transkribus.core.util.Event;
 import eu.transkribus.core.util.HtrUtils;
+import eu.transkribus.core.util.MonitorUtil;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.core.util.ProxyUtils;
 import eu.transkribus.core.util.SebisStopWatch;
 import eu.transkribus.swt.util.AsyncExecutor;
 import eu.transkribus.swt.util.AsyncExecutor.AsyncCallback;
 import eu.transkribus.swt.util.Colors;
-import eu.transkribus.swt.util.MonitorUtil;
 import eu.transkribus.swt_gui.TrpConfig;
 import eu.transkribus.swt_gui.TrpGuiPrefs;
 import eu.transkribus.swt_gui.TrpGuiPrefs.ProxyPrefs;
@@ -234,7 +234,7 @@ public class Storage {
 	private static int reloadDocListCounter=0;
 	private static int reloadHtrListCounter=0;
 	
-	private List<TrpP2PaLAModel> p2palaModels = new ArrayList<>();
+//	private List<TrpP2PaLA> p2palaModels = new ArrayList<>();
 	private List<TrpHtr> htrList = new ArrayList<>();
 	
 	private AsyncExecutor loadPageAsyncExecutor = new AsyncExecutor();
@@ -1063,7 +1063,7 @@ public class Storage {
 	}
 	
 	protected void onLogin() {
-		reloadP2PaLAModels();
+//		reloadP2PaLAModels();
 	}
 	
 	public void logout() {
@@ -1075,7 +1075,7 @@ public class Storage {
 		} finally {
 			clearCollections();
 			htrList = new ArrayList<>(0);
-			clearP2PaLAModels();
+//			clearP2PaLAModels();
 			conn = null;
 			user = null;
 //			clearDocList();
@@ -1607,13 +1607,13 @@ public class Storage {
 		});
 	}
 	
-	public void analyzeStructure(int colId, int docId, int pageNr, boolean detectPageNumbers, boolean detectRunningTitles, boolean detectFootnotes) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException, JAXBException {
-		checkConnection(true);
-		
-		PcGtsType pcGts = conn.analyzePageStructure(colId, docId, pageNr, detectPageNumbers, detectRunningTitles, detectFootnotes);
-		
-		transcript.setPageData(pcGts);
-	}
+//	public void analyzeStructure(int colId, int docId, int pageNr, boolean detectPageNumbers, boolean detectRunningTitles, boolean detectFootnotes) throws NoConnectionException, SessionExpiredException, ServerErrorException, IllegalArgumentException, JAXBException {
+//		checkConnection(true);
+//		
+//		PcGtsType pcGts = conn.analyzePageStructure(colId, docId, pageNr, detectPageNumbers, detectRunningTitles, detectFootnotes);
+//		
+//		transcript.setPageData(pcGts);
+//	}
 
 	public void loadLocalDoc(String folder, IProgressMonitor monitor) throws UnsupportedFormatException, IOException, NullValueException {
 		tryReleaseLocks();
@@ -3367,27 +3367,31 @@ public class Storage {
 		return list.toArray(new JobImpl[list.size()]);
 	}
 	
-	public void reloadP2PaLAModels() {
-		if (!isLoggedIn()) {
-			return;
-		}
-		
-		try {
-			List<TrpP2PaLAModel> models = conn.getP2PaLAModels(-1);
-			if (CoreUtils.size(models)>0) {
-				p2palaModels = models;
-			}
-		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
-			logger.error("Error loading P2PaLA models: "+e.getMessage(), e);
-		}
-			
-	}
-	
-	public void clearP2PaLAModels() {
-		p2palaModels = new ArrayList<>();
-	}
-	
-	public List<TrpP2PaLAModel> getP2PaLAModels() {
-		return p2palaModels;
-	}	
+//	public void reloadP2PaLAModels() {
+//		reloadP2PaLAModels(true, isAdminLoggedIn(), null, null, null);
+//	}
+//	
+//	public void reloadP2PaLAModels(boolean onlyActive, boolean allModels, Integer colId, Integer userId, Integer releaseLevel) {
+//		if (!isLoggedIn()) {
+//			return;
+//		}
+//		
+//		try {
+//			List<TrpP2PaLA> models = conn.getP2PaLAModels(onlyActive, isAdminLoggedIn(), colId, userId, releaseLevel);
+//			if (CoreUtils.size(models)>0) {
+//				p2palaModels = models;
+//			}
+//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e) {
+//			logger.error("Error loading P2PaLA models: "+e.getMessage(), e);
+//		}
+//			
+//	}
+//	
+//	public void clearP2PaLAModels() {
+//		p2palaModels = new ArrayList<>();
+//	}
+//	
+//	public List<TrpP2PaLA> getP2PaLAModels() {
+//		return p2palaModels;
+//	}	
 }

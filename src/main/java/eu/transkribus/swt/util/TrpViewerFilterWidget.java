@@ -15,6 +15,9 @@ import org.eclipse.swt.widgets.Text;
 
 public class TrpViewerFilterWidget extends Composite {
 
+	public final static String FILTER_TOOLTIP = "Filter this list with a keyword";
+	public final static String FILTER_MESSAGE = "Filter";
+	
 	protected StructuredViewer viewer;
 	protected ViewerFilter viewerFilter;
 	protected Text filterTxt;
@@ -30,6 +33,8 @@ public class TrpViewerFilterWidget extends Composite {
 		filterLabel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
 		filterTxt = new Text(this, SWT.BORDER | SWT.SINGLE);
 		filterTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		filterTxt.setMessage(FILTER_MESSAGE);
+		filterTxt.setToolTipText(FILTER_TOOLTIP);
 		filterTxt.addKeyListener(new KeyAdapter() {			
 			@Override
 			public void keyPressed(KeyEvent e) {

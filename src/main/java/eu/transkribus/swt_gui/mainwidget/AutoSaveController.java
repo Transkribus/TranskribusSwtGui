@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.mainwidget;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -14,7 +13,6 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.batik.dom.GenericEntityReference;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -27,8 +25,6 @@ import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt_gui.mainwidget.settings.TrpSettings;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class AutoSaveController extends AMainWidgetController {
 	private static final Logger logger = LoggerFactory.getLogger(AutoSaveController.class);

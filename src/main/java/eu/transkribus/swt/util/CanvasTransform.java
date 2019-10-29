@@ -3,17 +3,16 @@ package eu.transkribus.swt.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Transform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt_gui.canvas.shapes.CanvasPolygon;
 import eu.transkribus.util.MathUtil;
-
-import org.eclipse.swt.graphics.Device;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Transform;
 
 public class CanvasTransform extends Transform {
 	private final static Logger logger = LoggerFactory.getLogger(CanvasTransform.class);

@@ -14,7 +14,6 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.swt_gui.htr.treeviewer.DataSetSelectionSashForm;
 import eu.transkribus.swt_gui.htr.treeviewer.DocumentDataSelectionEntry;
 import eu.transkribus.swt_gui.htr.treeviewer.GroundTruthDataSelectionEntry;

@@ -19,16 +19,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.connection.ATrpServerConn;
-import eu.transkribus.core.io.LocalDocReader;
 import eu.transkribus.core.model.beans.TrpDoc;
-import eu.transkribus.core.model.beans.TrpP2PaLAModel;
+import eu.transkribus.core.model.beans.TrpP2PaLA;
+import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.util.UnicodeList;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.DocSyncWithFilesDialog;
-import eu.transkribus.swt_gui.dialogs.DocSyncWithTxtFilesDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
+import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog;
 import eu.transkribus.swt_gui.dialogs.RemoveTextRegionsConfDialog;
+import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.htr.HtrModelsDialog;
 import eu.transkribus.swt_gui.htr.Text2ImageConfDialog;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
@@ -54,10 +55,12 @@ public class GenericDialogTest {
 				store = Storage.getInstance();
 				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
 //				store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
-				Future<?> fut = store.reloadDocList(1); // reload doclist of a collection just that the collection id gets set!
+//				Future<?> fut = store.reloadDocList(2); // reload doclist of a collection just that the collection id gets set!
+				store.reloadCollections();
+				Future<?> fut = store.reloadDocList(2815); // reload doclist of a collection just that the collection id gets set!
 	//			store.loadRemoteDoc(1, 455); // bentham doc on testserver
-				
 				fut.get();
+				
 				Runtime.getRuntime().addShutdownHook(new Thread() {
 					@Override
 					public void run() {
@@ -67,6 +70,11 @@ public class GenericDialogTest {
 			}
 			
 			ApplicationWindow aw = new ApplicationWindow(null) {
+				@Override
+				protected int getShellStyle() {
+					return super.getShellStyle() | SWT.SHELL_TRIM;
+				}
+				
 				@Override
 				protected Control createContents(Composite parent) {
 					try {
@@ -78,7 +86,35 @@ public class GenericDialogTest {
 	//					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 		//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 						
+						if (false) {
+//							List<TrpP2PaLA> models = new ArrayList<>();
+//							if (Storage.getInstance()!=null) {
+//								models = Storage.getInstance().getP2PaLAModels();
+//							}
+							P2PaLATrainDialog d = new P2PaLATrainDialog(getShell());
+							if (d.open() == IDialogConstants.OK_ID) {
+								P2PaLATrainUiConf conf = d.getConf();
+								if (conf!=null) {
+									P2PaLATrainJobPars jobPars = conf.toP2PaLATrainJobPars();
+									logger.debug("conf = "+conf);
+									logger.debug("jobPars = "+jobPars);
+									String jobId = store.getConnection().trainP2PaLAModel(Storage.getInstance().getCollId(), jobPars);
+									logger.info("Started P2PaLA training job "+jobId);								
+								}
+
+							}
+						}
+						
 						if (true) {
+//							List<TrpP2PaLA> models = new ArrayList<>();
+//							if (Storage.getInstance()!=null) {
+//								models = Storage.getInstance().getP2PaLAModels();
+//							}
+							P2PaLAConfDialog d = new P2PaLAConfDialog(getShell()/*, models*/);
+							d.open();
+						}						
+						
+						if (false) {
 							RemoveTextRegionsConfDialog d = new RemoveTextRegionsConfDialog(getShell());
 							d.open();
 						}
@@ -113,15 +149,6 @@ public class GenericDialogTest {
 	//						getShell().setSize(500, 700);
 	//						SWTUtil.centerShell(getShell());
 						}					
-						
-						if (false) {
-							List<TrpP2PaLAModel> models = new ArrayList<>();
-							if (Storage.getInstance()!=null) {
-								models = Storage.getInstance().getP2PaLAModels();
-							}
-							P2PaLAConfDialog d = new P2PaLAConfDialog(getShell(), models);
-							d.open();
-						}
 						
 						if (false) {
 							StructTagConfWidget structTagConfWidget = new StructTagConfWidget(parent, 0);

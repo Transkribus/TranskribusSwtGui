@@ -1,8 +1,6 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.fontbox.afm.Composite;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -13,27 +11,18 @@ import org.eclipse.swt.events.ShellListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.swt.widgets.Widget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.itextpdf.text.io.GetBufferedRandomAccessSource;
 
 import eu.transkribus.core.util.Event;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt.util.ToolBox;
 import eu.transkribus.swt_gui.canvas.ICanvasContextMenuListener.TableBorderEditEvent;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 import eu.transkribus.swt_gui.table_editor.BorderFlags;
-import eu.transkribus.swt_gui.table_editor.TableUtils;
 
 public class TableMarkupBox { // extends ToolBox {
 	private final static Logger logger = LoggerFactory.getLogger(TableMarkupBox.class);

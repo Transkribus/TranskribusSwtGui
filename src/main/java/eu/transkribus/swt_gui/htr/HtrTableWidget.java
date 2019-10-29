@@ -14,6 +14,7 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
@@ -26,6 +27,7 @@ import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
+import eu.transkribus.swt.util.Images;
 
 public class HtrTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTableWidget.class);
@@ -84,7 +86,9 @@ public class HtrTableWidget extends Composite {
 	private HtrTableLabelProvider labelProvider;
 	
 	// filter:
+	Composite filterAndReloadComp;
 	HtrFilterWithProviderWidget filterComposite;
+	Button reloadBtn;
 
 	private HtrLazyContentProvider lazyContentProvider;
 	
@@ -147,8 +151,12 @@ public class HtrTableWidget extends Composite {
 	}
 	
 	private void addFilter() {
+		filterAndReloadComp = new Composite(this, SWT.NONE);
+		filterAndReloadComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		filterAndReloadComp.setLayout(new GridLayout(2, false));
+		
 		if(USE_LAZY_LOADING) {
-			filterComposite = new HtrFilterWithProviderWidget(this, htrTv, providerFilter, SWT.NONE) {
+			filterComposite = new HtrFilterWithProviderWidget(filterAndReloadComp, htrTv, providerFilter, SWT.NONE) {
 				@Override
 				protected void refreshViewer() {
 					lazyContentProvider.filterElements();
@@ -162,9 +170,13 @@ public class HtrTableWidget extends Composite {
 				}
 			};
 		} else {
-			filterComposite = new HtrFilterWithProviderWidget(this, htrTv, providerFilter, SWT.NONE);
+			filterComposite = new HtrFilterWithProviderWidget(filterAndReloadComp, htrTv, providerFilter, SWT.NONE);
 		}
-		filterComposite.moveAbove(htrTv.getTable());
+		this.reloadBtn = new Button(filterAndReloadComp, SWT.PUSH);
+		reloadBtn.setToolTipText("Reload current page");
+		reloadBtn.setImage(Images.getOrLoad("/icons/refresh.gif"));
+		reloadBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true));
+		filterAndReloadComp.moveAbove(htrTv.getTable());
 	}
 
 	public MyTableViewer getTableViewer() {
@@ -178,11 +190,15 @@ public class HtrTableWidget extends Composite {
 	public Combo getProviderCombo() {
 		return filterComposite.getProviderCombo();
 	}
+
+	public Button getReloadButton() {
+		return reloadBtn;
+	}
 	
 	public String getProviderComboValue() {
 		return (String)getProviderCombo().getData(getProviderCombo().getText());
 	}
-
+	
 	public TrpHtr getSelectedHtr() {
 		IStructuredSelection sel = (IStructuredSelection) htrTv.getSelection();
 		if (sel.getFirstElement() != null && sel.getFirstElement() instanceof TrpHtr) {

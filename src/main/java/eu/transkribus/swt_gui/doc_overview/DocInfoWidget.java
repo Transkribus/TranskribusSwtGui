@@ -6,8 +6,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import eu.transkribus.swt.util.ThumbnailWidgetVirtual;
-import eu.transkribus.swt.util.ThumbnailManagerVirtual;
+
 import eu.transkribus.swt.util.ThumbnailWidget;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
 

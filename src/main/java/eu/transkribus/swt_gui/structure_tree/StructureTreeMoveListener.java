@@ -8,8 +8,6 @@ import org.eclipse.swt.widgets.Tree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-
 public class StructureTreeMoveListener implements Listener {
 
 	private final static Logger logger = LoggerFactory.getLogger(StructureTreeListener.class);

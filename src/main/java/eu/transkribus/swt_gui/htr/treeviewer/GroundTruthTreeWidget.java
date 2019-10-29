@@ -10,9 +10,11 @@ import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt_gui.htr.HtrFilterWidget;
 import eu.transkribus.swt_gui.structure_tree.StructureTreeWidget.ColConfig;
 
@@ -24,6 +26,7 @@ public class GroundTruthTreeWidget extends Composite {
 	private final ITreeContentProvider treeContentProvider;
 	
 	private Composite filterWidget;
+	private Button reloadBtn;
 	
 	//TODO paging
 	//ToolItem clearPageItem, deleteSelectedBtn;
@@ -60,7 +63,15 @@ public class GroundTruthTreeWidget extends Composite {
 		this.treeViewer.setLabelProvider(this.labelProvider);
 		this.treeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		this.filterWidget = new HtrFilterWidget(this, treeViewer, SWT.None);
+		Composite filterAndReloadComp = new Composite(this, SWT.NONE);
+		filterAndReloadComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		filterAndReloadComp.setLayout(new GridLayout(2, false));
+		
+		this.filterWidget = new HtrFilterWidget(filterAndReloadComp, treeViewer, SWT.None);
+		this.reloadBtn = new Button(filterAndReloadComp, SWT.PUSH);
+		reloadBtn.setToolTipText("Reload current page");
+		reloadBtn.setImage(Images.getOrLoad("/icons/refresh.gif"));
+		reloadBtn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, true));
 
 		initCols();
 		
@@ -102,6 +113,10 @@ public class GroundTruthTreeWidget extends Composite {
 
 	public TreeViewer getTreeViewer() {
 		return treeViewer;
+	}
+	
+	public Button getReloadButton() {
+		return reloadBtn;
 	}
 
 	public void refreshLabels(Object source) {

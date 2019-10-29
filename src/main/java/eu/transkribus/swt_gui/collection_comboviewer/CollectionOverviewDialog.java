@@ -1,16 +1,11 @@
 package eu.transkribus.swt_gui.collection_comboviewer;
 
-import java.util.function.Predicate;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -19,12 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.auth.TrpUser;
-import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.pagination_tables.CollectionsOfUserTableWidgetPagination;
-import eu.transkribus.swt_gui.pagination_tables.CollectionsTableWidgetPagination;
 
 public class CollectionOverviewDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(CollectionOverviewDialog.class);

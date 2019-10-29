@@ -4,30 +4,11 @@ import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceDropEvent;
 import java.awt.dnd.DragSourceEvent;
 import java.awt.dnd.DragSourceListener;
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.ws.rs.ServerErrorException;
-
-import org.apache.commons.lang.StringUtils;
-import org.eclipse.jface.dialogs.IInputValidator;
-import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.window.Window;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.transkribus.client.connection.TrpServerConn;
-import eu.transkribus.client.util.SessionExpiredException;
-import eu.transkribus.core.model.beans.TrpCollection;
-import eu.transkribus.core.model.beans.TrpDocMetadata;
-import eu.transkribus.core.model.beans.auth.TrpRole;
-import eu.transkribus.core.model.beans.auth.TrpUser;
-import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
-import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 //
 public class EditFeaturesListener implements SelectionListener, DragSourceListener {
 	private final static Logger logger = LoggerFactory.getLogger(EditFeaturesListener.class);

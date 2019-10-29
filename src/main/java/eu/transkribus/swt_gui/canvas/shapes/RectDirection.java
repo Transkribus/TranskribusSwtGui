@@ -3,9 +3,9 @@ package eu.transkribus.swt_gui.canvas.shapes;
 import java.awt.Point;
 import java.awt.Rectangle;
 
+import org.eclipse.swt.SWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.eclipse.swt.SWT;
 
 public enum RectDirection {
 	NONE(SWT.CURSOR_ARROW, false),
