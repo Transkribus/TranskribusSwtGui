@@ -1,5 +1,6 @@
 package eu.transkribus.swt_gui.dialogs;
 
+import java.security.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -239,7 +240,7 @@ public class P2PaLAConfDialog extends Dialog {
 		}
 		
 		if (store.isAdminLoggedIn() || isUserAllowedForP2PaLATraining) {
-			Button trainBtn = createButton(parent, IDialogConstants.HELP_ID, "Train", false);
+			Button trainBtn = createButton(parent, IDialogConstants.CLIENT_ID, "Train", false);
 			trainBtn.setImage(Images.TRAIN);
 			SWTUtil.onSelectionEvent(trainBtn, e -> {
 				TrpMainWidget mw = TrpMainWidget.i();
@@ -478,9 +479,11 @@ public class P2PaLAConfDialog extends Dialog {
 		Collections.sort(models, new Comparator<TrpP2PaLA>() {
 			@Override
 			public int compare(TrpP2PaLA o1, TrpP2PaLA o2) {
-				String n1 = o1.getName()==null ? "" : o1.getName();
-				String n2 = o2.getName()==null ? "" : o2.getName();
-				return n1.compareTo(n2);
+				return CoreUtils.compareTo(o1.getCreated(), o2.getCreated());
+				
+//				String n1 = o1.getName()==null ? "" : o1.getName();
+//				String n2 = o2.getName()==null ? "" : o2.getName();
+//				return n1.compareTo(n2);
 			}
 		});
 		

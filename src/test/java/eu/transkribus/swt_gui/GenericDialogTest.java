@@ -54,10 +54,12 @@ public class GenericDialogTest {
 			if (true) { // load Storage?
 				store = Storage.getInstance();
 				store.login(ATrpServerConn.TEST_SERVER_URI, args[0], args[1]);
+//				store.login(ATrpServerConn.TEST_SERVER_URI, "sebastian.colutto@gmx.at", "asdf1");
 //				store.login(ATrpServerConn.PROD_SERVER_URI, args[0], args[1]);
 //				Future<?> fut = store.reloadDocList(2); // reload doclist of a collection just that the collection id gets set!
 				store.reloadCollections();
-				Future<?> fut = store.reloadDocList(2815); // reload doclist of a collection just that the collection id gets set!
+//				Future<?> fut = store.reloadDocList(2815); // reload doclist of a collection just that the collection id gets set!
+				Future<?> fut = store.reloadDocList(2); // reload doclist of a collection just that the collection id gets set!
 	//			store.loadRemoteDoc(1, 455); // bentham doc on testserver
 				fut.get();
 				
@@ -86,7 +88,7 @@ public class GenericDialogTest {
 	//					System.out.println(Storage.getInstance().loadTextRecognitionConfig());
 		//				HtrTextRecognitionConfigDialog diag = new HtrTextRecognitionConfigDialog(getShell(), null);
 						
-						if (false) {
+						if (true) {
 //							List<TrpP2PaLA> models = new ArrayList<>();
 //							if (Storage.getInstance()!=null) {
 //								models = Storage.getInstance().getP2PaLAModels();
@@ -105,7 +107,7 @@ public class GenericDialogTest {
 							}
 						}
 						
-						if (true) {
+						if (false) {
 //							List<TrpP2PaLA> models = new ArrayList<>();
 //							if (Storage.getInstance()!=null) {
 //								models = Storage.getInstance().getP2PaLAModels();

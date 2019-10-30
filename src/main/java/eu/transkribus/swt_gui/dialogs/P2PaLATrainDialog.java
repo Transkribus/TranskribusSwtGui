@@ -2,7 +2,6 @@ package eu.transkribus.swt_gui.dialogs;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +28,6 @@ import eu.transkribus.core.model.beans.DocSelection;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.enums.EditStatus;
-import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.rest.JobConstP2PaLA;
@@ -45,7 +43,6 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.LabeledText;
 import eu.transkribus.swt.util.SWTUtil;
-import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 import eu.transkribus.swt_gui.util.DocsSelectorBtn;
 
@@ -255,7 +252,7 @@ public class P2PaLATrainDialog extends Dialog {
 				+ "This is not mandatory if you are not interested in an overall quality measure of your model.");
 		
 		autoSplitTrainSetCheck = new Button(cont, SWT.CHECK);
-		autoSplitTrainSetCheck.setText("Auto split train set");
+		autoSplitTrainSetCheck.setText("Split train set randomly");
 		autoSplitTrainSetCheck.setToolTipText("Perform a random split of the training set into validation and testset according to the given fractions");
 		autoSplitTrainSetCheck.setSelection(true);
 		SWTUtil.onSelectionEvent(autoSplitTrainSetCheck, e -> updateUi());		
@@ -489,8 +486,14 @@ public class P2PaLATrainDialog extends Dialog {
 		try {
 			storeConf();
 			if (this.conf != null) {
-				// TODO here: yes/no dialog --> do you really want to start a training with xx pages and this and that parameters...
-				if (DialogUtil.showYesNoDialog(getShell(), "Starting training...", "Do you really want to start the training job?") == SWT.YES) {
+				String msgDetail="";
+				Storage s = Storage.i();
+				if (s!=null) {
+					msgDetail+="\n\tCollection: "+s.getCollId();
+				}
+				
+				if (DialogUtil.showYesNoDialog(getShell(), "Starting training...", 
+						"Do you really want to start the training job?"+msgDetail) == SWT.YES) {
 					super.okPressed();	
 				}
 				else {
