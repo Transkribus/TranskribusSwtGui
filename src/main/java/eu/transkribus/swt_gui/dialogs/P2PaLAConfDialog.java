@@ -103,10 +103,10 @@ public class P2PaLAConfDialog extends Dialog {
 			showPublicRadio.setToolTipText("Show all models (only for admins)");
 			showAllRadio.setVisible(store.isAdminLoggedIn());
 			showAllRadio.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
-			if (store.isAdminLoggedIn()) {
-				collBasedRadio.setSelection(false);
-				showAllRadio.setSelection(true);
-			}			
+//			if (store.isAdminLoggedIn()) {
+//				collBasedRadio.setSelection(false);
+//				showAllRadio.setSelection(true);
+//			}			
 			
 			reloadModelsBtn = new Button(this, SWT.PUSH);
 			reloadModelsBtn.setImage(Images.REFRESH);
@@ -479,7 +479,7 @@ public class P2PaLAConfDialog extends Dialog {
 		Collections.sort(models, new Comparator<TrpP2PaLA>() {
 			@Override
 			public int compare(TrpP2PaLA o1, TrpP2PaLA o2) {
-				return CoreUtils.compareTo(o1.getCreated(), o2.getCreated());
+				return -1*CoreUtils.compareTo(o1.getCreated(), o2.getCreated());
 				
 //				String n1 = o1.getName()==null ? "" : o1.getName();
 //				String n2 = o2.getName()==null ? "" : o2.getName();
