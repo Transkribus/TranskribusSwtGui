@@ -1,6 +1,9 @@
 package eu.transkribus.swt_gui.htr;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServerErrorException;
@@ -30,6 +33,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.rest.TrpHtrList;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.dialogs.CharSetViewerDialog;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
@@ -48,7 +52,7 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 	DocImgViewerDialog trainDocViewer, valDocViewer = null;
 	CharSetViewerDialog charSetViewer = null;
 
-	MenuItem shareItem, delItem;
+	MenuItem shareToCollectionItem, removeFromCollectionItem, deleteItem;
 	
 	TrpHtr selectedHtr;
 
@@ -65,11 +69,14 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 		Menu menu = new Menu(htw.getTableViewer().getTable());
 		htw.getTableViewer().getTable().setMenu(menu);
 
-		shareItem = new MenuItem(menu, SWT.NONE);
-		shareItem.setText("Share model...");
+		shareToCollectionItem = new MenuItem(menu, SWT.NONE);
+		shareToCollectionItem.setText("Share model...");
 
-		delItem = new MenuItem(menu, SWT.NONE);
-		delItem.setText("Remove model from collection");
+		removeFromCollectionItem = new MenuItem(menu, SWT.NONE);
+		removeFromCollectionItem.setText("Remove model from collection");
+		
+		deleteItem = new MenuItem(menu, SWT.NONE);
+		deleteItem.setText("Delete model...");
 
 		Group detailGrp = new Group(sashForm, SWT.BORDER);
 		detailGrp.setText("Details");
@@ -127,7 +134,7 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 			}
 		});
 		
-		shareItem.addSelectionListener(new SelectionAdapter() {
+		shareToCollectionItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				ChooseCollectionDialog ccd = new ChooseCollectionDialog(getShell());
@@ -160,15 +167,44 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 			}
 		});
 
-		delItem.addSelectionListener(new SelectionAdapter() {
+		removeFromCollectionItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				TrpHtr htr = htw.getSelectedHtr();
 				try {
 					store.removeHtrFromCollection(htr);
+					reloadHtrsFromServer(true);
 				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 						| NoConnectionException e1) {
 					logger.debug("Could not remove HTR from collection!", e1);
+					DialogUtil.showErrorMessageBox(getShell(), "Error removing HTR",
+							"The selected HTR could not be removed from this collection.");
+				}
+				super.widgetSelected(e);
+			}
+		});
+		
+		deleteItem.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				//menu item is only enabled if delete action is allowed. See menu detect listener
+				TrpHtr htr = getSelectedHtr();
+				final String msg = "You are about to delete the HTR model '" + htr.getName() 
+					+ "'.\nDo you really want to do this?";
+				final int response = DialogUtil.showYesNoDialog(getShell(), "Delete HTR model?", msg);
+				
+				if(response != SWT.YES) {
+					logger.debug("User canceled deletion of HTR with ID = {}", htr.getHtrId());
+					return;
+				}
+				
+				try {
+					store.deleteHtr(htr);
+					//if that worked update the list in Storage
+					reloadHtrsFromServer(true);
+				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
+						| NoConnectionException e1) {
+					logger.error("Could not delete HTR!", e1);
 					DialogUtil.showErrorMessageBox(getShell(), "Error removing HTR",
 							"The selected HTR could not be removed from this collection.");
 				}
@@ -182,9 +218,10 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 			public void handleEvent(Event event) {
 				if (htw.getTableViewer().getTable().getSelectionCount() <= 0) {
 					event.doit = false;
-				}
+					return;
+				} 
+				deleteItem.setEnabled(isOwnerOfSelectedHtr());
 			}
-
 		});
 		
 		hdw.getShowTrainSetBtn().addSelectionListener(new SelectionAdapter() {
@@ -275,6 +312,19 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 		return htw.getSelectedHtr();
 	}
 	
+	public boolean isOwnerOfSelectedHtr() {
+		if(getSelectedHtr() == null) {
+			return false;
+		}
+		if(!store.isLoggedIn()) {
+			return false;
+		}
+		if(store.isAdminLoggedIn()) {
+			return true;
+		}
+		return getSelectedHtr().getUserId() == store.getUserId();
+	}
+	
 	void updateDetails(TrpHtr selectedHtr) {
 		this.selectedHtr = selectedHtr;
 		hdw.updateDetails(selectedHtr);
@@ -289,5 +339,58 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 	public void handleHtrListLoadEvent(HtrListLoadEvent e) {
 		htw.resetProviderFilter();
 		htw.refreshList(e.htrs.getList());
+	}
+	
+	private void reloadHtrsFromServer(boolean clearTableSelection) {
+		//reload HTRs and show busy indicator in the meantime.
+		ReloadHtrListRunnable reloadRunnable = new ReloadHtrListRunnable();
+		BusyIndicator.showWhile(getDisplay(), reloadRunnable);
+		
+		if(reloadRunnable.hasError()) {
+			logger.error("Reload of HTR models failed!", reloadRunnable.getError());
+			DialogUtil.showDetailedErrorMessageBox(getShell(), "Error loading HTR models",
+					"Could not reload the HTR model list from the server.", reloadRunnable.getError());
+		}
+		
+		if(clearTableSelection) {
+			setSelection(-1);
+			//clear data of the deleted HTR from the HtrDetailsWidget
+			updateDetails(getSelectedHtr());
+		}
+	}
+	
+	/**
+	 * Helper class for reloading the HTR list as task with a BusyIndicator.
+	 * Any error can be retrieved from it and handled after BusyIndicator.showWhile() completes.
+	 * Opening dialogs within the Runnable would block the BusyIndicator from completing.
+	 */
+	private class ReloadHtrListRunnable implements Runnable {
+		private Throwable error;
+		
+		ReloadHtrListRunnable() {
+			error = null;
+		}
+		
+		public void run() {
+			//update of the view is done in the handleHtrListLoadEvent method
+			Future<TrpHtrList> future = store.reloadHtrs();
+			try {
+				//after 60 seconds we can assume that something is wrong
+				future.get(60, TimeUnit.SECONDS);
+			} catch(ExecutionException e) {
+				//extract the exception thrown within the future's task
+				error = e.getCause();
+			} catch(Exception e) {
+				error = e;
+			}
+		}
+		
+		boolean hasError() {
+			return error != null;
+		}
+		
+		Throwable getError() {
+			return error;
+		}
 	}
 }

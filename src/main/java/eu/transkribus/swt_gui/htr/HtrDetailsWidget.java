@@ -185,6 +185,8 @@ public class HtrDetailsWidget extends SashForm {
 			showCharSetBtn.setEnabled(false);
 			showValSetBtn.setEnabled(false);
 			showTrainSetBtn.setEnabled(false);
+			updateParamTable(null);
+			updateChart(null);
 			return;
 		}
 		
@@ -209,7 +211,7 @@ public class HtrDetailsWidget extends SashForm {
 
 	private void updateParamTable(Properties paramsProps) {
 		paramTable.removeAll();
-		if (paramsProps.isEmpty()) {
+		if (paramsProps == null || paramsProps.isEmpty()) {
 			TableItem item = new TableItem(paramTable, SWT.NONE);
 			item.setText(0, NOT_AVAILABLE);
 			item.setText(1, NOT_AVAILABLE);
@@ -232,13 +234,13 @@ public class HtrDetailsWidget extends SashForm {
 		String storedHtrValCerStr = NOT_AVAILABLE;
 
 		double[] referenceSeries = null;
-		if (htr.hasCerLog()) {
+		if (htr != null && htr.hasCerLog()) {
 			XYSeries series = buildXYSeries(CER_TRAIN_KEY, htr.getCerLog());
 			dataset.addSeries(series);
 			referenceSeries = htr.getCerLog();
 		}
 
-		if (htr.hasCerTestLog()) {
+		if (htr != null && htr.hasCerTestLog()) {
 			XYSeries valSeries = buildXYSeries(CER_VAL_KEY, htr.getCerTestLog());
 			dataset.addSeries(valSeries);
 			//if available then validation CER is reference for stored net

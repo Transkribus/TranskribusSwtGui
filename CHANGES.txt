@@ -665,4 +665,5 @@ CHANGES AND BUGFIXES
 	-> bugfix: do *not* select underlying shape if image is moved with left mouse button
 	-> ground truth management features
 	-> rename test set to validation set as it is the more accurate term
+	-> Allow deletion of HTR model via context menu (HTR overview table -> right-click -> Delete model...)
 	

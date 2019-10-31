@@ -228,6 +228,8 @@ public class HtrTableWidget extends Composite {
 		logger.trace("Selecting HTR in table viewer: {}", htr);
 		if(htr != null) { //if model has been removed from this collection it is not in the list.
 			htrTv.setSelection(new StructuredSelection(htr), true);
+		} else {
+			htrTv.setSelection(null);
 		}
 	}	
 }

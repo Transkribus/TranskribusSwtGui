@@ -81,7 +81,6 @@ import eu.transkribus.core.model.beans.TrpEvent;
 import eu.transkribus.core.model.beans.TrpGroundTruthPage;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.TrpHtr.ReleaseLevel;
-import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
 import eu.transkribus.core.model.beans.TrpUpload;
@@ -98,7 +97,6 @@ import eu.transkribus.core.model.beans.enums.SearchType;
 import eu.transkribus.core.model.beans.job.TrpJobStatus;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.job.enums.JobTask;
-import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent.TextTypeSimpleType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
@@ -2778,8 +2776,9 @@ public class Storage {
 	
 	/**
 	 * Retrieve HTR models linked to the current collection from the server.
+	 * @return Future object representing the reload task or null if no connection to the server can be established.
 	 */
-	public void reloadHtrs() {
+	public Future<TrpHtrList> reloadHtrs() {
 		logger.debug("Reloading HTRs (call #{}: colId = {})", ++reloadHtrListCounter, this.getCollId());
 		final Integer currentColId;
 		if(isAdminLoggedIn()) {
@@ -2792,7 +2791,7 @@ public class Storage {
 		
 		try {
 			checkConnection(true);
-			conn.getHtrs(currentColId, null, new InvocationCallback<TrpHtrList>() {
+			return conn.getHtrs(currentColId, null, new InvocationCallback<TrpHtrList>() {
 				
 				@Override
 				public void completed(TrpHtrList htrList) {					
@@ -2811,7 +2810,17 @@ public class Storage {
 		} catch (NoConnectionException e) {
 			Storage.this.htrList = new ArrayList<>(0);
 			logger.error("No connection to server!", e);
+			return null;
 		}
+	}
+	
+	public void deleteHtr(TrpHtr htr) throws NoConnectionException, TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
+		checkConnection(true);
+		if(htr == null) {
+			logger.debug("htr argument is null in deleteHtr. Doing nothing.");
+			return;
+		}
+		conn.deleteHtr(getCollId(), htr.getHtrId());
 	}
 	
 	public List<TrpHtr> getHtrs(String provider) {
