@@ -91,6 +91,7 @@ import eu.transkribus.core.model.beans.customtags.CustomTag;
 import eu.transkribus.core.model.beans.customtags.CustomTagFactory;
 import eu.transkribus.core.model.beans.customtags.CustomTagUtil;
 import eu.transkribus.core.model.beans.customtags.StructureTag;
+import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.core.model.beans.enums.EditStatus;
 import eu.transkribus.core.model.beans.enums.OAuthProvider;
 import eu.transkribus.core.model.beans.enums.SearchType;
@@ -1686,28 +1687,43 @@ public class Storage {
 	 */
 	public void loadHtrGtAsDoc(int colId, HtrGtDataSet set, int pageIndex) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
 		checkConnection(true);
-		List<TrpGroundTruthPage> gt;
-		switch(set.getDataSetType()) {
-		case VALIDATION: 
-			gt = conn.getHtrValidationData(colId, set.getId());
-			break;
-		default:
-			gt = conn.getHtrTrainData(colId, set.getId());
-			break;
-		}
+		this.doc = getHtrDataSetAsDoc(colId, set);
+		setCurrentPage(pageIndex < 0 ? 0 : pageIndex);
+		
+		sendEvent(new GroundTruthLoadEvent(this, doc));
+
+		logger.info("loaded HTR GT " + set.getDataSetType().getLabel() + " htrId = " + set.getId() + ", title = " 
+				+ doc.getMd().getTitle() + ", nPages = " + doc.getPages().size());
+	}
+
+	public TrpDoc getHtrDataSetAsDoc(int colId, TrpHtr htr, DataSetType dataSetType) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		return getHtrDataSetAsDoc(colId, new HtrGtDataSet(htr, dataSetType));
+	}
+	
+	private TrpDoc getHtrDataSetAsDoc(int colId, HtrGtDataSet set) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		List<TrpGroundTruthPage> gt = getHtrDataSet(colId, set.getId(), set.getDataSetType());
+		
 		TrpDocMetadata md = new TrpHtrGtDocMetadata(set);
 		TrpDoc gtDoc = new TrpDoc();
 		gtDoc.setMd(md);
 		for(TrpGroundTruthPage g : gt) {
 			gtDoc.getPages().add(g.toTrpPage());
 		}
-		this.doc = gtDoc;
-		setCurrentPage(pageIndex < 0 ? 0 : pageIndex);
-		
-		sendEvent(new GroundTruthLoadEvent(this, doc));
+		return gtDoc;
+	}
 
-		logger.info("loaded HTR GT " + set.getDataSetType().getLabel() + " htrId = " + set.getId() + ", title = " 
-				+ gtDoc.getMd().getTitle() + ", nPages = " + gtDoc.getPages().size());
+	public List<TrpGroundTruthPage> getHtrDataSet(int colId, int id, final DataSetType dataSetType) throws SessionExpiredException, ClientErrorException, IllegalArgumentException, NoConnectionException {
+		checkConnection(true);
+		List<TrpGroundTruthPage> gt;
+		switch(dataSetType) {
+		case VALIDATION: 
+			gt = conn.getHtrValidationData(colId, id);
+			break;
+		default:
+			gt = conn.getHtrTrainData(colId, id);
+			break;
+		}
+		return gt;
 	}
 
 	public TrpDoc getRemoteDoc(int colId, int docId, int nrOfTranscripts) throws SessionExpiredException, IllegalArgumentException, NoConnectionException {

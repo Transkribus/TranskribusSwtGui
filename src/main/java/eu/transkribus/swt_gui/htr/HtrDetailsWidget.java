@@ -5,8 +5,12 @@ import java.awt.Color;
 import java.text.DecimalFormat;
 import java.util.Properties;
 
+import javax.ws.rs.ClientErrorException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -28,11 +32,18 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import eu.transkribus.client.util.SessionExpiredException;
+import eu.transkribus.core.exceptions.NoConnectionException;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
+import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpHtr;
+import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.StrUtil;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt_gui.dialogs.CharSetViewerDialog;
+import eu.transkribus.swt_gui.dialogs.DocImgViewerDialog;
+import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class HtrDetailsWidget extends SashForm {
 	private static final Logger logger = LoggerFactory.getLogger(HtrDetailsWidget.class);
@@ -51,8 +62,13 @@ public class HtrDetailsWidget extends SashForm {
 	Button updateMetadataBtn, showTrainSetBtn, showValSetBtn, showCharSetBtn;
 	ChartComposite jFreeChartComp;
 	JFreeChart chart = null;
+	DocImgViewerDialog trainDocViewer, valDocViewer = null;
+	CharSetViewerDialog charSetViewer = null;
 	
 	private boolean allowMetadataEditing = false;
+	
+	private final Storage store;
+	private TrpHtr htr;
 	
 	public HtrDetailsWidget(Composite parent, int style) {
 		super(parent, style);
@@ -160,11 +176,18 @@ public class HtrDetailsWidget extends SashForm {
 		finalValCerTxt = new Text(cerComp, SWT.BORDER | SWT.READ_ONLY);
 		finalValCerTxt.setLayoutData(gd);
 		
+		this.htr = null;
+		store = Storage.getInstance();
+		
 		//init with no HTR selected, i.e. disable controls
 		updateDetails(null);
+		
+		addListeners();
 	}
-	
+
 	void updateDetails(TrpHtr htr) {
+		this.htr = htr;
+		
 		nameTxt.setEnabled(htr != null);
 		descTxt.setEnabled(htr != null);
 		langTxt.setEnabled(htr != null);
@@ -203,9 +226,9 @@ public class HtrDetailsWidget extends SashForm {
 		}
 		showCharSetBtn.setEnabled(htr.getCharSetList() != null && !htr.getCharSetList().isEmpty());
 
-		showValSetBtn.setEnabled(htr.getTestGtDocId() != null && htr.getTestGtDocId() > 0);
-		showTrainSetBtn.setEnabled(htr.getGtDocId() != null);
-
+		showTrainSetBtn.setEnabled(htr.hasTrainGt());
+		showValSetBtn.setEnabled(htr.hasValidationGt());
+		
 		updateChart(htr);
 	}
 
@@ -313,6 +336,74 @@ public class HtrDetailsWidget extends SashForm {
 			series.add(i + 1, val);
 		}
 		return series;
+	}
+	
+	
+	private void addListeners() {
+		this.getShowTrainSetBtn().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(htr == null) {
+					return;
+				}
+				if (trainDocViewer != null) {
+					trainDocViewer.setVisible();
+				} else {
+					try {
+						TrpDoc doc = store.getHtrDataSetAsDoc(store.getCollId(), htr, DataSetType.TRAIN);
+						trainDocViewer = new DocImgViewerDialog(getShell(), "Train Set", doc);
+						trainDocViewer.open();
+					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException
+							| NoConnectionException e1) {
+						logger.error(e1.getMessage(), e);
+					}
+
+					trainDocViewer = null;
+				}
+				super.widgetSelected(e);
+			}
+		});
+		
+		this.getShowValSetBtn().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(htr == null) {
+					return;
+				}
+				if (valDocViewer != null) {
+					valDocViewer.setVisible();
+				} else {
+					try {
+						TrpDoc doc = store.getHtrDataSetAsDoc(store.getCollId(), htr, DataSetType.VALIDATION);
+						valDocViewer = new DocImgViewerDialog(getShell(), "Validation Set", doc);
+						valDocViewer.open();
+					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException
+							| NoConnectionException e1) {
+						logger.error(e1.getMessage(), e);
+					}
+
+					valDocViewer = null;
+				}
+				super.widgetSelected(e);
+			}
+		});
+
+		this.getShowCharSetBtn().addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(htr == null) {
+					return;
+				}
+				if (charSetViewer != null) {
+					charSetViewer.setVisible();
+					charSetViewer.update(htr);
+				} else {
+					charSetViewer = new CharSetViewerDialog(getShell(), htr);
+					charSetViewer.open();
+					charSetViewer = null;
+				}
+			}
+		});
 	}
 	
 	Button getUpdateMetadataBtn() {

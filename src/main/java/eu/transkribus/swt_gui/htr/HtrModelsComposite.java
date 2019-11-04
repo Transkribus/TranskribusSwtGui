@@ -35,9 +35,7 @@ import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.rest.TrpHtrList;
 import eu.transkribus.swt.util.DialogUtil;
-import eu.transkribus.swt_gui.dialogs.CharSetViewerDialog;
 import eu.transkribus.swt_gui.dialogs.ChooseCollectionDialog;
-import eu.transkribus.swt_gui.dialogs.DocImgViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.IStorageListener;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
@@ -49,8 +47,6 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 	HtrTableWidget htw;
 	
 	HtrDetailsWidget hdw;
-	DocImgViewerDialog trainDocViewer, valDocViewer = null;
-	CharSetViewerDialog charSetViewer = null;
 
 	MenuItem shareToCollectionItem, removeFromCollectionItem, deleteItem;
 	
@@ -221,69 +217,6 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 					return;
 				} 
 				deleteItem.setEnabled(isOwnerOfSelectedHtr());
-			}
-		});
-		
-		hdw.getShowTrainSetBtn().addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(selectedHtr == null) {
-					return;
-				}
-				if (trainDocViewer != null) {
-					trainDocViewer.setVisible();
-				} else {
-					try {
-						trainDocViewer = new DocImgViewerDialog(getShell(), "Train Set", store.getTrainSet(selectedHtr));
-						trainDocViewer.open();
-					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException
-							| NoConnectionException e1) {
-						logger.error(e1.getMessage(), e);
-					}
-
-					trainDocViewer = null;
-				}
-				super.widgetSelected(e);
-			}
-		});
-		
-		hdw.getShowValSetBtn().addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(selectedHtr == null) {
-					return;
-				}
-				if (valDocViewer != null) {
-					valDocViewer.setVisible();
-				} else {
-					try {
-						valDocViewer = new DocImgViewerDialog(getShell(), "Validation Set", store.getTestSet(selectedHtr));
-						valDocViewer.open();
-					} catch (SessionExpiredException | ClientErrorException | IllegalArgumentException
-							| NoConnectionException e1) {
-						logger.error(e1.getMessage(), e);
-					}
-
-					valDocViewer = null;
-				}
-				super.widgetSelected(e);
-			}
-		});
-
-		hdw.getShowCharSetBtn().addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if(selectedHtr == null) {
-					return;
-				}
-				if (charSetViewer != null) {
-					charSetViewer.setVisible();
-					charSetViewer.update(selectedHtr);
-				} else {
-					charSetViewer = new CharSetViewerDialog(getShell(), selectedHtr);
-					charSetViewer.open();
-					charSetViewer = null;
-				}
 			}
 		});
 		
