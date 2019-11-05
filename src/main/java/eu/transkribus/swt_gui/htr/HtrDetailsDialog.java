@@ -55,6 +55,7 @@ public class HtrDetailsDialog extends Dialog {
 			// don't clear the fields here.
 			return;
 		}
+		hdw.checkForUnsavedChanges();
 		this.getShell().setText("HTR '" + htr.getName() + "'");
 		hdw.updateDetails(htr);
 	}
@@ -76,7 +77,12 @@ public class HtrDetailsDialog extends Dialog {
 			//the empty button bar still has a margin. Remove it.
 			layout.marginHeight = 0;
 		}
-
+	}
+	
+	@Override
+	public boolean close() {
+		hdw.checkForUnsavedChanges();
+		return super.close();
 	}
 
 	@Override

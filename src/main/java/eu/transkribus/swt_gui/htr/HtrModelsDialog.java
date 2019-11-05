@@ -80,10 +80,17 @@ public class HtrModelsDialog extends Dialog {
 	
 	@Override
 	protected void okPressed() {
+		modelsComp.hdw.checkForUnsavedChanges();
 		selectedHtr = modelsComp.getSelectedHtr();
 		super.okPressed();
 	}
 	
+	@Override
+	protected void cancelPressed() {
+		modelsComp.hdw.checkForUnsavedChanges();
+		super.cancelPressed();
+	}
+
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
