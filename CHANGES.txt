@@ -666,4 +666,5 @@ CHANGES AND BUGFIXES
 	-> ground truth management features
 	-> rename test set to validation set as it is the more accurate term
 	-> Allow deletion of HTR model via context menu (HTR overview table -> right-click -> Delete model...)
+	-> HTR model metadata can be edited by owner/curator of model
 	

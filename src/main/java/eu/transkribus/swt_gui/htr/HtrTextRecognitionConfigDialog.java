@@ -92,6 +92,7 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 
 	@Override
 	protected void okPressed() {
+		htrModelsComp.hdw.checkForUnsavedChanges();
 		config = new TextRecognitionConfig(Mode.CITlab);
 		config.setDictionary(htrDictComp.getSelectedDictionary());
 		TrpHtr htr = htrModelsComp.getSelectedHtr();
@@ -105,27 +106,11 @@ public class HtrTextRecognitionConfigDialog extends Dialog {
 		super.okPressed();
 	}
 	
-	//This was used when the HTR Composite had tabs. remove by occasion.
-//	@Override
-//	protected void okPressed() {
-//
-//		if (htrModelsComp.isCitlabHtrTabSelected()) {
-//			config = new TextRecognitionConfig(Mode.CITlab);
-//
-//			config.setDictionary(htrDictComp.getSelectedDictionary());
-//			TrpHtr htr = htrModelsComp.getSelectedHtr();
-//			if (htr == null) {
-//				DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Please select a HTR.");
-//				return;
-//			}
-//			config.setHtrId(htr.getHtrId());
-//			config.setHtrName(htr.getName());
-//			config.setLanguage(htr.getLanguage());
-//		} else {
-//			DialogUtil.showErrorMessageBox(this.getParentShell(), "Error", "Bad configuration!");
-//		}
-//		super.okPressed();
-//	}
+	@Override
+	protected void cancelPressed() {
+		htrModelsComp.hdw.checkForUnsavedChanges();
+		super.cancelPressed();
+	}
 
 	@Override
 	protected void configureShell(Shell newShell) {

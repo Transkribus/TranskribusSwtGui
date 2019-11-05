@@ -380,11 +380,11 @@ public class DialogUtil {
 		return tt;
 	}
 	
-	public static void showBallonToolTip(Composite c, Integer iconType, String title, String message) {
+	public static void showBallonToolTip(Control c, Integer iconType, String title, String message) {
 		showBallonToolTip(c, true, iconType, title, message);
 	}
 
-	public static void showBallonToolTip(Composite c, boolean displayOnBottom, Integer iconType, String title, String message) {
+	public static void showBallonToolTip(Control c, boolean displayOnBottom, Integer iconType, String title, String message) {
 		if (iconType == null)
 			iconType = SWT.ICON_INFORMATION;
 

@@ -929,6 +929,10 @@ public class SWTUtil {
 	public static int setBit(int mask, int bit) {
 		return mask | bit;
 	}
+	
+	public static int removeBit(int mask, int bit) {
+		return mask & ~bit;
+	}
 
 	// not needed..
 //	public static int addBitIfNotSet(int mask, int bit) {
