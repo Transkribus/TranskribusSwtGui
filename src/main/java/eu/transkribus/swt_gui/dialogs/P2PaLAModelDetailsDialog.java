@@ -35,8 +35,10 @@ import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableLabelProvider;
-import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog.P2PaLAModelFilterComposite;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.models.ModelFilterComposite;
+import eu.transkribus.swt_gui.models.ShareModelDialog;
+import eu.transkribus.swt_gui.models.ModelFilterComposite.ModelFilter;
 
 public class P2PaLAModelDetailsDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLAModelDetailsDialog.class);
@@ -72,19 +74,23 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 		};
 	
 	MyTableViewer modelsTable;
-	P2PaLAModelFilterComposite modelFilterComp;
+	ModelFilterComposite modelFilterComp;
+	
 	Button shareSelectedModelBtn, removeModelFromThisCollBtn;
+	Button shareModelBtn;
 	
 	List<TrpP2PaLA> models;
+	ModelFilter modelFilter;
 	Storage store;
-	Map<Integer, String> modelCollections = new HashMap<>();
+	Map<Integer, String> modelCollections = new HashMap<>(); // not used currently!!
 
-	public P2PaLAModelDetailsDialog(Shell parentShell, List<TrpP2PaLA> models) {
+	public P2PaLAModelDetailsDialog(Shell parentShell, List<TrpP2PaLA> models, ModelFilter modelFilter) {
 		super(parentShell);
 		
 		this.store = Storage.getInstance();
 		this.models = models;
-		this.models.forEach(m -> updateCollectionsForModel(m));
+		this.modelFilter = modelFilter;
+//		this.models.forEach(m -> updateCollectionsForModel(m)); // disabled for now...
 	}
 	
 	private Point getPreferredSize() {
@@ -204,20 +210,24 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 
 		MenuItem shareItem = new MenuItem(menu, SWT.NONE);
 		shareItem.setText("Share model...");
+		shareItem.setImage(Images.GROUP);
 		SWTUtil.onSelectionEvent(shareItem, e -> {
-			addSelectedModelToCollection();
+//			addSelectedModelToCollection();
+			openShareModelDialog();
 		});
 
-		MenuItem delItem = new MenuItem(menu, SWT.NONE);
-		delItem.setText("Remove model from current collection");
-		SWTUtil.onSelectionEvent(delItem, e -> {
-			removeSelectedModelFromCollection();
-		});
+//		MenuItem delItem = new MenuItem(menu, SWT.NONE);
+//		delItem.setText("Remove model from current collection");
+//		SWTUtil.onSelectionEvent(delItem, e -> {
+//			removeSelectedModelFromCollection();
+//		});
 		
-		modelFilterComp = new P2PaLAModelFilterComposite(cont);
+		modelFilterComp = new ModelFilterComposite(cont);
 		modelFilterComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		modelFilterComp.addListener(() -> reloadModels());
+		modelFilterComp.setModelFilter(modelFilter);
 		
+		if (false) {
 		shareSelectedModelBtn = new Button(cont, 0);
 		shareSelectedModelBtn.setText("Share selected model...");
 		SWTUtil.onSelectionEvent(shareSelectedModelBtn, e -> {
@@ -228,13 +238,18 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 		removeModelFromThisCollBtn.setText("Remove seleced model from current collection");
 		SWTUtil.onSelectionEvent(removeModelFromThisCollBtn, e -> {
 			removeSelectedModelFromCollection();
-		});		
+		});
+		}
+		shareModelBtn = new Button(cont, 0);
+		shareModelBtn.setText("Share model...");
+		shareModelBtn.setImage(Images.GROUP);
+		SWTUtil.onSelectionEvent(shareModelBtn, e -> openShareModelDialog());
 		
 		return cont;
 	}
 	
 	public void reloadModels() {
-		this.models = modelFilterComp.loadModelsForCurrentFilter();
+		this.models = modelFilterComp.loadModelsForCurrentFilter(TrpP2PaLA.class);
 		setModels(this.models);
 		
 		getShell().setSize(getPreferredSize());
@@ -250,6 +265,15 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 
 	public TrpP2PaLA getSelectedModel() {
 		return (TrpP2PaLA) modelsTable.getStructuredSelection().getFirstElement();
+	}
+	
+	private void openShareModelDialog() {
+		if (getSelectedModel()==null) {
+			return;
+		}
+		
+		ShareModelDialog d = new ShareModelDialog(getShell(), getSelectedModel());
+		d.open();
 	}
 	
 	private void addSelectedModelToCollection() {
@@ -304,6 +328,10 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 	}
 	
 	private void updateCollectionsForModel(TrpP2PaLA model) {
+		if (true) { // disabled due to inefficiency of querying collections for all models...
+			return;
+		}
+		
 		if (model != null) {
 			try {
 				List<TrpCollection> colls = store.getConnection().getModelCalls().getModelCollections(model.getModelId());

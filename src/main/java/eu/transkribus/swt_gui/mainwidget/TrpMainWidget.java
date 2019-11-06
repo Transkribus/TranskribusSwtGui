@@ -6483,7 +6483,7 @@ public class TrpMainWidget {
 //			DialogUtil.showInfoMessageBox(tw.getShell(), title, msg);
 			
 			//show balloon tip on jobs button instead
-			DialogUtil.showBallonToolTip(mw.getUi().getJobsButton(), null, title, msg);
+			DialogUtil.showBalloonToolTip(mw.getUi().getJobsButton(), null, title, msg);
 		}
 	}
 }

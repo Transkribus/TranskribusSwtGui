@@ -243,7 +243,7 @@ public class PageLockTablePagination extends ATableWidgetPagination<TrpAction> i
 	}
 	
 	protected void onError(String title, Throwable th) {
-		DialogUtil.showBallonToolTip(this, SWT.ICON_ERROR, title, th.getMessage());
+		DialogUtil.showBalloonToolTip(this, SWT.ICON_ERROR, title, th.getMessage());
 //		DialogUtil.showErrorMessageBox(getShell(), title, th.getMessage());
 	}
 	

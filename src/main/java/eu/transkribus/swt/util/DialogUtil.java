@@ -380,13 +380,22 @@ public class DialogUtil {
 		return tt;
 	}
 	
-	public static void showBallonToolTip(Control c, Integer iconType, String title, String message) {
-		showBallonToolTip(c, true, iconType, title, message);
+	public static void showInfoBalloonToolTip(Control c, String title, String message) {
+		showBalloonToolTip(c, true, SWT.ICON_INFORMATION, title, message);
+	}
+	
+	public static void showErrorBalloonToolTip(Control c, String title, String message) {
+		showBalloonToolTip(c, true, SWT.ICON_ERROR, title, message);
+	}
+	
+	public static void showBalloonToolTip(Control c, Integer iconType, String title, String message) {
+		showBalloonToolTip(c, true, iconType, title, message);
 	}
 
-	public static void showBallonToolTip(Control c, boolean displayOnBottom, Integer iconType, String title, String message) {
-		if (iconType == null)
+	public static void showBalloonToolTip(Control c, boolean displayOnBottom, Integer iconType, String title, String message) {
+		if (iconType == null) {
 			iconType = SWT.ICON_INFORMATION;
+		}
 
 		int xOffset = 0, yOffset = 0;
 		if(displayOnBottom) {
@@ -399,7 +408,7 @@ public class DialogUtil {
 		DialogUtil.createAndShowBalloonToolTip(c.getShell(), iconType, message, title, l.x + xOffset, l.y + yOffset, true);
 	}
 	
-	public static void showBallonToolTip(ToolItem t, Integer iconType, String title, String message) {
+	public static void showBalloonToolTip(ToolItem t, Integer iconType, String title, String message) {
 		if (iconType == null) {
 			iconType = SWT.ICON_INFORMATION;
 		}

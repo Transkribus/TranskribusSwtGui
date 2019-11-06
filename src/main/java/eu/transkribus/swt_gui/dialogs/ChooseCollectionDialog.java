@@ -49,10 +49,6 @@ public class ChooseCollectionDialog extends Dialog {
 	    return true;
 	}
 	
-	/**
-	 * Create contents of the dialog.
-	 * @param parent
-	 */
 	@Override protected Control createDialogArea(Composite parent) {
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(new GridLayout(2, false));

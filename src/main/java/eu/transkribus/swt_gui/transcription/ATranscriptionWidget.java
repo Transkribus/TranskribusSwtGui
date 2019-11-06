@@ -3260,7 +3260,7 @@ public abstract class ATranscriptionWidget extends Composite{
 		if(this.readOnlyInfoShown) {
 			return;
 		}
-		DialogUtil.showBallonToolTip(text, false, null, "Read-only mode", "This document can't be edited.");
+		DialogUtil.showBalloonToolTip(text, false, null, "Read-only mode", "This document can't be edited.");
 		this.readOnlyInfoShown = true;
 	}
 }
