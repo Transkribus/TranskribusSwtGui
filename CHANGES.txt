@@ -660,11 +660,12 @@ CHANGES AND BUGFIXES
 	-> CITlab HTR: creating and storing ConfMats can be disabled if keyword spotting functionality is not required
 	-> HTR models detail view bugfix: final CER values shown in text fields did not match the best net stored in all cases 
 	
-1.8.1:
+1.9.0:
 	-> tag-search: minimum number of characters in tagname reduced to 1 (to be able to search for tags like e.g. "hi" or "p")
 	-> bugfix: do *not* select underlying shape if image is moved with left mouse button
 	-> ground truth management features
 	-> rename test set to validation set as it is the more accurate term
 	-> Allow deletion of HTR model via context menu (HTR overview table -> right-click -> Delete model...)
 	-> HTR model metadata can be edited by owner/curator of model
+	-> first draft of P2PaLA training (for interested early adopters only)
 	

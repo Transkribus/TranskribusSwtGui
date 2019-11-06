@@ -200,7 +200,7 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	@Override
 	protected void setShellStyle(int newShellStyle) {           
-	    super.setShellStyle(SWT.CLOSE | SWT.MODELESS| SWT.BORDER | SWT.TITLE);
+	    super.setShellStyle(SWT.CLOSE | SWT.MODELESS| SWT.BORDER | SWT.TITLE | SWT.MIN);
 	    setBlockOnOpen(false);
 	}
 

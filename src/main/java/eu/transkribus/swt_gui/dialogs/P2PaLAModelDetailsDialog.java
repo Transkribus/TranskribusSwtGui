@@ -24,8 +24,10 @@ import org.slf4j.LoggerFactory;
 import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
+import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
+import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
 import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
@@ -50,16 +52,23 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 	public static String VAL_SET_SIZE_COL = "N-Validation";
 	public static String TEST_SET_SIZE_COL = "N-Test";
 	
+	public static String USER_COL = "User";
+	public static String MIN_ERROR_COL = "Min-Error";
+	
 	public static final ColumnConfig[] COLS = new ColumnConfig[] {
 			new ColumnConfig(NAME_COL, 120, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(DESC_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(BASELINES_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "Does this model detect Baselines?"),
 			new ColumnConfig(STRUCT_TYPES_COL, 150, false, DefaultTableColumnViewerSorter.ASC, "The region structure types this model detects"),
-			new ColumnConfig(COLLECTIONS_COL, 750, false, DefaultTableColumnViewerSorter.ASC, "The collections this models is part of"),
+//			new ColumnConfig(COLLECTIONS_COL, 750, false, DefaultTableColumnViewerSorter.ASC, "The collections this models is part of"),
 			
-//			new ColumnConfig(TRAIN_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the training set"),
-//			new ColumnConfig(VAL_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the validation set (which is used after every epoch during training to evaluate the model)"),
+			new ColumnConfig(MIN_ERROR_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The minimum error rate this model has achieved"),
+			new ColumnConfig(TRAIN_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the training set"),
+			new ColumnConfig(VAL_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the validation set (which is used after every epoch during training to evaluate the model)"),
 //			new ColumnConfig(TEST_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the test set (which is used once after training to evaluate the model)"),
+			new ColumnConfig(USER_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The user that has trained this model"),
+			
+			
 		};
 	
 	MyTableViewer modelsTable;
@@ -78,10 +87,16 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 		this.models.forEach(m -> updateCollectionsForModel(m));
 	}
 	
+	private Point getPreferredSize() {
+		Point preferredSize = new Point(getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).x, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		return new Point(preferredSize.x, Math.min(preferredSize.y, 750));
+	}
+	
 	@Override
 	protected Point getInitialSize() {
 //		return new Point(1000, 1000);
-		return new Point(1000, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+//		return new Point(getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).x, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		return getPreferredSize();
 	}
 	
 	@Override
@@ -130,6 +145,13 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 				}
 				TrpP2PaLA m = (TrpP2PaLA) element;
 				String cn = COLS[index].name;
+				TrpProperties customProps = m.parseCustomProperties();
+				List<Integer> dataSetSizes = null;
+				try {
+					dataSetSizes = GsonUtil.toIntegerList(customProps.getString("dataSetSizes"));
+				} catch (Exception e) {
+				}
+				String structInfo = customProps.getString("structInfo");
 				
 				if (cn.equals(NAME_COL)) {
 					return m.getName();
@@ -141,23 +163,36 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 					return StringUtils.contains(m.getOutMode(), "L") ? "Yes" : "No";
 				}
 				else if (cn.equals(STRUCT_TYPES_COL)) {
+					return structInfo!=null ? structInfo : (m.getStructTypes() != null ? m.getStructTypes() : "");
 //					return StringUtils.contains(m.getOut_mode(), "R") ? m.getStruct_types() : "";
-					return m.getStructTypes();
+//					return m.getStructTypes();
 				}
 				else if (cn.equals(COLLECTIONS_COL)) {
 					String collsStr = modelCollections.get(m.getModelId());
 					return collsStr == null ? "" : collsStr;
 				}
+				else if (cn.equals(USER_COL)) {
+					return m.getUserName()==null ? "unknown" : m.getUserName();
+				}
 				// TODO
-//				else if (cn.equals(TRAIN_SET_SIZE_COL)) {
+				else if (cn.equals(TRAIN_SET_SIZE_COL)) {
 //					return m.getTrain_set_size()!=null ? ""+m.getTrain_set_size() : "NA";
-//				}
-//				else if (cn.equals(VAL_SET_SIZE_COL)) {
+					return dataSetSizes != null ? (""+dataSetSizes.get(0)) : "";
+//					return "NA";
+				}
+				else if (cn.equals(VAL_SET_SIZE_COL)) {
 //					return m.getVal_set_size()!=null ? ""+m.getVal_set_size() : "NA";
-//				}
-//				else if (cn.equals(TEST_SET_SIZE_COL)) {
+					return dataSetSizes != null ? (""+dataSetSizes.get(1)) : "";
+//					return "NA";
+				}
+				else if (cn.equals(TEST_SET_SIZE_COL)) {
 //					return m.getTest_set_size()!=null ? ""+m.getTest_set_size() : "NA";
-//				}				
+					return dataSetSizes != null ? (""+dataSetSizes.get(2)) : "";
+//					return "NA";
+				}
+				else if (cn.equals(MIN_ERROR_COL)) {
+					return m.getMinError()==null ? "" : (""+m.getMinError());
+				}
 				
 				return "i am error";
 			}
@@ -180,7 +215,7 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 		});
 		
 		modelFilterComp = new P2PaLAModelFilterComposite(cont);
-		modelFilterComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		modelFilterComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		modelFilterComp.addListener(() -> reloadModels());
 		
 		shareSelectedModelBtn = new Button(cont, 0);
@@ -201,6 +236,9 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 	public void reloadModels() {
 		this.models = modelFilterComp.loadModelsForCurrentFilter();
 		setModels(this.models);
+		
+		getShell().setSize(getPreferredSize());
+		SWTUtil.centerShell(getShell());
 	}
 	
 	private void setModels(List<TrpP2PaLA> models) {
