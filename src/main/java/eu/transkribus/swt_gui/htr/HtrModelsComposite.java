@@ -169,7 +169,8 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 				TrpHtr htr = htw.getSelectedHtr();
 				try {
 					store.removeHtrFromCollection(htr);
-					reloadHtrsFromServer(true);
+					reloadHtrsFromServer();
+					clearTableSelection();
 				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 						| NoConnectionException e1) {
 					logger.debug("Could not remove HTR from collection!", e1);
@@ -197,7 +198,8 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 				try {
 					store.deleteHtr(htr);
 					//if that worked update the list in Storage
-					reloadHtrsFromServer(true);
+					reloadHtrsFromServer();
+					clearTableSelection();
 				} catch (SessionExpiredException | ServerErrorException | ClientErrorException
 						| NoConnectionException e1) {
 					logger.error("Could not delete HTR!", e1);
@@ -260,6 +262,7 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 	
 	void updateDetails(TrpHtr selectedHtr) {
 		this.selectedHtr = selectedHtr;
+		hdw.checkForUnsavedChanges();
 		hdw.updateDetails(selectedHtr);
 	}
 
@@ -274,7 +277,7 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 		htw.refreshList(e.htrs.getList());
 	}
 	
-	private void reloadHtrsFromServer(boolean clearTableSelection) {
+	private void reloadHtrsFromServer() {
 		//reload HTRs and show busy indicator in the meantime.
 		ReloadHtrListRunnable reloadRunnable = new ReloadHtrListRunnable();
 		BusyIndicator.showWhile(getDisplay(), reloadRunnable);
@@ -284,12 +287,13 @@ public class HtrModelsComposite extends Composite implements IStorageListener {
 			DialogUtil.showDetailedErrorMessageBox(getShell(), "Error loading HTR models",
 					"Could not reload the HTR model list from the server.", reloadRunnable.getError());
 		}
-		
-		if(clearTableSelection) {
-			setSelection(-1);
-			//clear data of the deleted HTR from the HtrDetailsWidget
-			updateDetails(getSelectedHtr());
-		}
+	}
+	
+	private void clearTableSelection() {
+		//remove any selection in table
+		setSelection(-1);
+		//clear any data from HtrDetailsWidget
+		updateDetails(getSelectedHtr());
 	}
 	
 	/**

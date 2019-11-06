@@ -2839,6 +2839,16 @@ public class Storage {
 		conn.deleteHtr(getCollId(), htr.getHtrId());
 	}
 	
+	public void updateHtrMetadata(TrpHtr htr) throws NoConnectionException, TrpServerErrorException, TrpClientErrorException, SessionExpiredException {
+		checkConnection(true);
+		if(htr == null) {
+			logger.debug("htr argument is null in deleteHtr. Doing nothing.");
+			return;
+		}
+		conn.updateHtrMetadata(getCollId(), htr);
+		reloadHtrs();
+	}
+	
 	public List<TrpHtr> getHtrs(String provider) {
 		if(provider == null) {
 			return htrList;

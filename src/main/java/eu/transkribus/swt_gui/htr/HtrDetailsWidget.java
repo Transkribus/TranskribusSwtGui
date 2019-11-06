@@ -1,9 +1,9 @@
 package eu.transkribus.swt_gui.htr;
 
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.text.DecimalFormat;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.ClientErrorException;
 
@@ -40,14 +40,16 @@ import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.model.beans.enums.DataSetType;
 import eu.transkribus.core.util.HtrCITlabUtils;
 import eu.transkribus.core.util.StrUtil;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.MetadataTextFieldValidator;
 import eu.transkribus.swt_gui.dialogs.CharSetViewerDialog;
 import eu.transkribus.swt_gui.dialogs.DocImgViewerDialog;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
 
 public class HtrDetailsWidget extends SashForm {
 	private static final Logger logger = LoggerFactory.getLogger(HtrDetailsWidget.class);
-
+	
 	private static final String NOT_AVAILABLE = "N/A";
 
 	private static final String[] CITLAB_TRAIN_PARAMS = { CitLabHtrTrainConfig.NUM_EPOCHS_KEY,
@@ -65,13 +67,13 @@ public class HtrDetailsWidget extends SashForm {
 	DocImgViewerDialog trainDocViewer, valDocViewer = null;
 	CharSetViewerDialog charSetViewer = null;
 	
-	private boolean allowMetadataEditing = false;
-	
 	private final Storage store;
 	private TrpHtr htr;
+	private final MetadataTextFieldValidator<TrpHtr> validator;
 	
 	public HtrDetailsWidget(Composite parent, int style) {
 		super(parent, style);
+		validator = new MetadataTextFieldValidator<>();
 		
 		// a composite for the HTR metadata
 		Composite mdComp = new Composite(this, SWT.BORDER);
@@ -83,31 +85,22 @@ public class HtrDetailsWidget extends SashForm {
 		Label langLbl = new Label(mdComp, SWT.NONE);
 		langLbl.setText("Language:");
 
-		int nameTxtStyle = SWT.BORDER;
-		if(!allowMetadataEditing) {
-			nameTxtStyle |= SWT.READ_ONLY;
-		}
-		nameTxt = new Text(mdComp, nameTxtStyle);
+		nameTxt = new Text(mdComp, SWT.BORDER);
 		nameTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		validator.attach("Name", nameTxt, 1, 100, h -> h.getName());
 		
-		int langTxtStyle = SWT.BORDER;
-		if(!allowMetadataEditing) {
-			langTxtStyle |= SWT.READ_ONLY;
-		}
-		langTxt = new Text(mdComp, langTxtStyle);
+		langTxt = new Text(mdComp, SWT.BORDER);
 		langTxt.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		validator.attach("Language", langTxt, 1, 100, h -> h.getLanguage());
 
 		Label descLbl = new Label(mdComp, SWT.NONE);
 		descLbl.setText("Description:");
 		Label paramLbl = new Label(mdComp, SWT.NONE);
 		paramLbl.setText("Parameters:");
 
-		int descTxtStyle = SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP;
-		if(!allowMetadataEditing) {
-			descTxtStyle |= SWT.READ_ONLY;
-		}
-		descTxt = new Text(mdComp, descTxtStyle);
+		descTxt = new Text(mdComp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP);
 		descTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		validator.attach("Description", descTxt, 1, 2048, h -> h.getDescription());
 		
 		paramTable = new Table(mdComp, SWT.BORDER | SWT.V_SCROLL);
 		paramTable.setHeaderVisible(false);
@@ -129,18 +122,15 @@ public class HtrDetailsWidget extends SashForm {
 
 		Composite btnComp = new Composite(mdComp, SWT.NONE);
 		btnComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		int numButtons = 3;
-		if(allowMetadataEditing) { 
-			numButtons = 4;
-		}
+		
+		//save, trainSet, valSet, charSet buttons
+		final int numButtons = 4;
 		btnComp.setLayout(new GridLayout(numButtons, true));
 
-		if(allowMetadataEditing) {
-			updateMetadataBtn = new Button(btnComp, SWT.PUSH);
-			updateMetadataBtn.setText("Save");
-			updateMetadataBtn.setImage(Images.DISK);
-			updateMetadataBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		}
+		updateMetadataBtn = new Button(btnComp, SWT.PUSH);
+		updateMetadataBtn.setText("Save");
+		updateMetadataBtn.setImage(Images.DISK);
+		updateMetadataBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		showTrainSetBtn = new Button(btnComp, SWT.PUSH);
 		showTrainSetBtn.setText("Show Train Set");
@@ -185,8 +175,9 @@ public class HtrDetailsWidget extends SashForm {
 		addListeners();
 	}
 
-	void updateDetails(TrpHtr htr) {
+	void updateDetails(TrpHtr htr) {		
 		this.htr = htr;
+		validator.setOriginalObject(htr);
 		
 		nameTxt.setEnabled(htr != null);
 		descTxt.setEnabled(htr != null);
@@ -221,15 +212,26 @@ public class HtrDetailsWidget extends SashForm {
 
 		updateParamTable(htr.getParamsProps());
 
-		if(updateMetadataBtn != null) {
-			updateMetadataBtn.setEnabled(false);
-		}
 		showCharSetBtn.setEnabled(htr.getCharSetList() != null && !htr.getCharSetList().isEmpty());
 
 		showTrainSetBtn.setEnabled(htr.hasTrainGt());
 		showValSetBtn.setEnabled(htr.hasValidationGt());
 		
 		updateChart(htr);
+		
+		enableMetadataEditing(store.isAdminLoggedIn() || store.getUserId() == htr.getUserId());
+	}
+	
+	private void enableMetadataEditing(boolean enabled) {
+		updateMetadataBtn.setEnabled(enabled);
+		Text[] mdTextFields = {
+				nameTxt,
+				descTxt,
+				langTxt
+			};
+		for(Text t : mdTextFields) {
+			t.setEditable(enabled);
+		}
 	}
 
 	private void updateParamTable(Properties paramsProps) {
@@ -302,18 +304,18 @@ public class HtrDetailsWidget extends SashForm {
 			if(htr.hasCerLog()) {
 				double storedHtrTrainCer = htr.getCerLog()[storedNetEpoch - 1];
 				storedHtrTrainCerStr = HtrCITlabUtils.formatCerVal(storedHtrTrainCer);
-				plot.getRenderer().setSeriesPaint(seriesIndex++, Color.BLUE);
+				plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.BLUE);
 			}
 			
 			if (htr.hasCerTestLog()) {
 				double storedHtrValCer = htr.getCerTestLog()[storedNetEpoch - 1];
 				storedHtrValCerStr = HtrCITlabUtils.formatCerVal(storedHtrValCer);
-				plot.getRenderer().setSeriesPaint(seriesIndex++, Color.RED);
+				plot.getRenderer().setSeriesPaint(seriesIndex++, java.awt.Color.RED);
 			}
 			
 			//annotate storedNetEpoch in the chart
 			lineAnnot = new XYLineAnnotation(storedNetEpoch, 0.0, storedNetEpoch, 100.0,
-					new BasicStroke(), Color.GREEN);
+					new BasicStroke(), java.awt.Color.GREEN);
 			lineAnnot.setToolTipText("Stored HTR");
 			plot.addAnnotation(lineAnnot);
 		} else {
@@ -321,10 +323,16 @@ public class HtrDetailsWidget extends SashForm {
 		}
 		
 		jFreeChartComp.setChart(chart);
-		chart.fireChartChanged();
+		triggerChartUpdate();
 
 		finalTrainCerTxt.setText(storedHtrTrainCerStr);
 		finalValCerTxt.setText(storedHtrValCerStr);
+	}
+	
+	void triggerChartUpdate() {
+		if(chart != null) {
+			chart.fireChartChanged();
+		}
 	}
 
 	private XYSeries buildXYSeries(String name, double[] cerLog) {
@@ -340,7 +348,7 @@ public class HtrDetailsWidget extends SashForm {
 	
 	
 	private void addListeners() {
-		this.getShowTrainSetBtn().addSelectionListener(new SelectionAdapter() {
+		this.showTrainSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(htr == null) {
@@ -364,7 +372,7 @@ public class HtrDetailsWidget extends SashForm {
 			}
 		});
 		
-		this.getShowValSetBtn().addSelectionListener(new SelectionAdapter() {
+		this.showValSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(htr == null) {
@@ -388,7 +396,7 @@ public class HtrDetailsWidget extends SashForm {
 			}
 		});
 
-		this.getShowCharSetBtn().addSelectionListener(new SelectionAdapter() {
+		this.showCharSetBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(htr == null) {
@@ -404,27 +412,52 @@ public class HtrDetailsWidget extends SashForm {
 				}
 			}
 		});
+		
+		this.updateMetadataBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(!validator.hasInputChanged()) {
+					logger.debug("No changes. Ignoring {}", e);
+					return;
+				}
+				updateMetadata();
+			}
+		});
 	}
 	
-	Button getUpdateMetadataBtn() {
-		return updateMetadataBtn;
+	private void updateMetadata() {
+		if(!validator.isInputValid()) {
+			final String msg = validator.getValidationErrorMessages().stream().collect(Collectors.joining("\n"));
+			DialogUtil.showBallonToolTip(updateMetadataBtn, SWT.ICON_WARNING, "Invalid input", msg);
+			return;
+		}
+		TrpHtr htrToStore = new TrpHtr(HtrDetailsWidget.this.htr);
+		htrToStore.setHtrId(htr.getHtrId());
+		htrToStore.setName(nameTxt.getText());
+		htrToStore.setDescription(descTxt.getText());
+		htrToStore.setLanguage(langTxt.getText());
+		try {
+			store.updateHtrMetadata(htrToStore);
+			//reset the text fields to new values
+			updateDetails(htrToStore);
+			DialogUtil.showBallonToolTip(updateMetadataBtn, SWT.ICON_INFORMATION, "", "Changes saved.");
+		} catch(Exception ex) {
+			DialogUtil.showDetailedErrorMessageBox(getShell(), "Error while saving metadata", "HTR metadata could not be updated.", ex);
+		}
 	}
 	
-	Button getShowTrainSetBtn() {
-		return showTrainSetBtn;
-	}
-	
-	Button getShowValSetBtn() {
-		return showValSetBtn;
-	}
-	
-	Button getShowCharSetBtn() {
-		return showCharSetBtn;
-	}
-	
-	void triggerChartUpdate() {
-		if(chart != null) {
-			chart.fireChartChanged();
+	/**
+	 * Checks all editable text fields for unsaved changes and bothers the user with a yes/no-dialog that allows to save or discard changes.
+	 */
+	public void checkForUnsavedChanges() {
+		if(!validator.hasInputChanged()) {
+			//no changes. Go on
+			return;
+		}
+		int answer = DialogUtil.showYesNoDialog(getShell(), "Unsaved Changes", 
+				"You have edited the metadata of this model. Do you want to save the changes?", SWT.ICON_WARNING);
+		if(answer == SWT.YES) {
+			updateMetadata();
 		}
 	}
 }
