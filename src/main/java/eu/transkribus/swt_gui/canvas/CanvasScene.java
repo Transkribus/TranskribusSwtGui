@@ -27,6 +27,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpWordType;
+import eu.transkribus.core.model.beans.pagecontent_trp.observable.TrpObserveEvent.TrpReadingOrderChangedEvent;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.TextStyleTypeUtils;
 import eu.transkribus.swt.util.Colors;
@@ -893,10 +894,17 @@ public class CanvasScene {
 		
 		logger.debug("current article ID: " + newArticleNr);
 					
-		int k = 0;
+		boolean isFirstLine = true;
+		boolean regionChanged = false;
+		
+		TrpTextRegionType parentRegion = null;
+		TrpTextRegionType previousRegion = null;
+		
+		int readingOrder = 0;
 		for (ICanvasShape currShape : this.getShapes()){
 			
 			if (currShape.getData() instanceof TrpTextLineType){
+									
 				//logger.debug(k++ + " th line found.");
 				for (Rectangle currRect : rectangles){
 //					logger.debug("curr Rect " + currRect.y + " currRect x " + currRect.x + " height " + currRect.height + " width " + currRect.width);
@@ -904,6 +912,28 @@ public class CanvasScene {
 					if (currRect.intersects(currShape.getX(), currShape.getY(), currShape.getBounds().width, currShape.getBounds().height)){
 						allLines.add(currShape);
 						logger.debug("drawn article rectangle intersects this line: " + ((TrpTextLineType) currShape.getData()).getId()); 
+						
+						TrpTextLineType lineType = (TrpTextLineType) currShape.getData();
+						parentRegion = (TrpTextRegionType) lineType.getParentShape();
+						
+						//get reading order of first region in this article
+						if (isFirstLine){
+							isFirstLine = false;
+							readingOrder = parentRegion.getReadingOrder();
+							logger.debug("first region ro: " + readingOrder); 
+						}
+						
+						if (parentRegion != previousRegion){
+							if (previousRegion != null){
+								readingOrder = readingOrder+1;
+							}
+							if (previousRegion != null && parentRegion.getReadingOrder() != (readingOrder)){
+								logger.debug("reinsert: " + readingOrder); 
+								
+								setNewReadingOrder(parentRegion, readingOrder);
+							}
+							previousRegion = parentRegion;
+						}
 						
 						ITrpShapeType st = GuiUtil.getTrpShape(currShape);
 						//logger.debug("updating struct type for " + currShape +" type = article, TrpShapeType = "+st);
@@ -936,6 +966,18 @@ public class CanvasScene {
 		canvas.redraw();
 		
 		return null;
+	}
+	
+	public void setNewReadingOrder(TrpTextRegionType st, int newRo){
+		st.removeFromParent();
+		//decrease reading order with one to get proper index
+		int ro2Idx = Integer.valueOf(newRo);
+		st.setReadingOrder(Integer.valueOf(ro2Idx), CanvasScene.class);
+		st.reInsertIntoParent(ro2Idx);
+		//logger.debug("after reinsert " + newRo);
+		
+		//to store the reading order durable
+		st.getObservable().setChangedAndNotifyObservers(new TrpReadingOrderChangedEvent(this));
 	}
 
 	public ICanvasShape selectObjectWithData(Object data, boolean sendSignal, boolean multiselect) {
