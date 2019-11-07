@@ -88,6 +88,12 @@ public class ModelFilterComposite extends Composite {
 		if (modelFilter == null) {
 			return;
 		}
+		
+		collBasedRadio.setSelection(false);
+		userBasedRadio.setSelection(false);
+		showPublicRadio.setSelection(false);
+		showAllRadio.setSelection(false);		
+		
 		switch (modelFilter) {
 		case COLLECTION:
 			collBasedRadio.setSelection(true);

@@ -9,6 +9,10 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -27,6 +31,7 @@ import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.GsonUtil;
 import eu.transkribus.swt.mytableviewer.ColumnConfig;
 import eu.transkribus.swt.mytableviewer.MyTableViewer;
@@ -36,13 +41,15 @@ import eu.transkribus.swt.util.Images;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt.util.TableLabelProvider;
 import eu.transkribus.swt_gui.mainwidget.storage.Storage;
+import eu.transkribus.swt_gui.models.EditModelDialog;
 import eu.transkribus.swt_gui.models.ModelFilterComposite;
-import eu.transkribus.swt_gui.models.ShareModelDialog;
 import eu.transkribus.swt_gui.models.ModelFilterComposite.ModelFilter;
+import eu.transkribus.swt_gui.models.ShareModelDialog;
 
 public class P2PaLAModelDetailsDialog extends Dialog {
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLAModelDetailsDialog.class);
 	
+	public static String ID_COL = "ID";
 	public static String NAME_COL = "Name";
 	public static String DESC_COL = "Description";
 	public static String BASELINES_COL = "Baselines";
@@ -58,6 +65,7 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 	public static String MIN_ERROR_COL = "Min-Error";
 	
 	public static final ColumnConfig[] COLS = new ColumnConfig[] {
+			new ColumnConfig(ID_COL, 50, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(NAME_COL, 120, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(DESC_COL, 250, false, DefaultTableColumnViewerSorter.ASC),
 			new ColumnConfig(BASELINES_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "Does this model detect Baselines?"),
@@ -77,12 +85,15 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 	ModelFilterComposite modelFilterComp;
 	
 	Button shareSelectedModelBtn, removeModelFromThisCollBtn;
-	Button shareModelBtn;
+	Button shareModelBtn, editModelBtn;
 	
 	List<TrpP2PaLA> models;
 	ModelFilter modelFilter;
 	Storage store;
 	Map<Integer, String> modelCollections = new HashMap<>(); // not used currently!!
+	
+	MenuItem shareItem, editItem, delItem;
+	Menu menu;
 
 	public P2PaLAModelDetailsDialog(Shell parentShell, List<TrpP2PaLA> models, ModelFilter modelFilter) {
 		super(parentShell);
@@ -159,7 +170,10 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 				}
 				String structInfo = customProps.getString("structInfo");
 				
-				if (cn.equals(NAME_COL)) {
+				if (cn.equals(ID_COL)) {
+					return m.getModelId()+"";
+				}
+				else if (cn.equals(NAME_COL)) {
 					return m.getName();
 				}
 				else if (cn.equals(DESC_COL)) {
@@ -204,23 +218,8 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 			}
 		});
 		modelsTable.setInput(models);
-		
-		Menu menu = new Menu(modelsTable.getTable());
-		modelsTable.getTable().setMenu(menu);
 
-		MenuItem shareItem = new MenuItem(menu, SWT.NONE);
-		shareItem.setText("Share model...");
-		shareItem.setImage(Images.GROUP);
-		SWTUtil.onSelectionEvent(shareItem, e -> {
-//			addSelectedModelToCollection();
-			openShareModelDialog();
-		});
-
-//		MenuItem delItem = new MenuItem(menu, SWT.NONE);
-//		delItem.setText("Remove model from current collection");
-//		SWTUtil.onSelectionEvent(delItem, e -> {
-//			removeSelectedModelFromCollection();
-//		});
+		createMenu();
 		
 		modelFilterComp = new ModelFilterComposite(cont);
 		modelFilterComp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -245,7 +244,58 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 		shareModelBtn.setImage(Images.GROUP);
 		SWTUtil.onSelectionEvent(shareModelBtn, e -> openShareModelDialog());
 		
+		editModelBtn = new Button(cont, 0);
+		editModelBtn.setText("Edit model...");
+		editModelBtn.setImage(Images.PENCIL);
+		SWTUtil.onSelectionEvent(editModelBtn, e -> editSelectedModel());
+		
 		return cont;
+	}
+	
+	private void createMenu() {
+		menu = new Menu(modelsTable.getTable());
+		
+		shareItem = new MenuItem(menu, SWT.NONE);
+		shareItem.setText("Share model...");
+		shareItem.setImage(Images.GROUP);
+		SWTUtil.onSelectionEvent(shareItem, e -> {
+			openShareModelDialog();
+		});
+		
+		editItem = new MenuItem(menu, 0);
+		editItem.setText("Edit model...");
+		editItem.setImage(Images.PENCIL);
+		SWTUtil.onSelectionEvent(editItem, ev -> editSelectedModel());
+		
+		if (store.isAdminLoggedIn()) { // for now, restrict deleting models to admins...
+			delItem = new MenuItem(menu, 0);
+			delItem.setText("Delete model...");
+			delItem.setImage(Images.DELETE);
+			SWTUtil.onSelectionEvent(delItem, ev -> deleteSelectedModel());			
+		}
+		
+		menu.addMenuListener(new MenuListener() {
+			@Override
+			public void menuShown(MenuEvent e) {
+				TrpP2PaLA m = getSelectedModel();
+				if (m==null) {
+					return;
+				}
+				
+				boolean canEditModel = store.isAdminLoggedIn() || CoreUtils.compareTo(m.getUserId(), store.getUserId())==0;
+				editItem.setEnabled(canEditModel);
+				SWTUtil.setEnabled(editModelBtn, canEditModel);
+				
+				boolean canDeleteModel = store.isAdminLoggedIn() || CoreUtils.compareTo(m.getUserId(), store.getUserId())==0;
+				SWTUtil.setEnabled(delItem, canDeleteModel);
+			}
+			
+			@Override
+			public void menuHidden(MenuEvent e) {
+			}
+		});
+		
+		modelsTable.getTable().setMenu(menu);		
 	}
 	
 	public void reloadModels() {
@@ -274,6 +324,41 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 		
 		ShareModelDialog d = new ShareModelDialog(getShell(), getSelectedModel());
 		d.open();
+	}
+	
+	private void editSelectedModel() {
+		TrpP2PaLA model = getSelectedModel();
+		logger.debug("editing selected model, selected = "+model);
+		if (model==null) {
+			return;
+		}
+		
+		EditModelDialog d = new EditModelDialog(getShell(), model);
+		if (d.open() == IDialogConstants.OK_ID) {
+			modelsTable.refresh(d.getModel());
+		}
+	}
+	
+	private void deleteSelectedModel() {
+		TrpP2PaLA model = getSelectedModel();
+		if (model==null) {
+			return;
+		}	
+		
+		if (DialogUtil.showYesNoDialog(getShell(), "Confirm deletion", "Do you really want to delete model "+model.getModelId()+"/"+model.getName()+"?") != SWT.YES) {
+			return;
+		}
+		
+		logger.debug("deleting model: "+model);
+		
+		try {
+			store.getConnection().getModelCalls().setModelDeleted(model.getModelId());
+			reloadModels();
+		} catch (Exception e) {
+			logger.debug("Could not add model to collection: "+e.getMessage(), e);
+			String errorMsg = e.getMessage();
+			DialogUtil.showErrorMessageBox(getShell(), "Error deleting model", errorMsg);
+		}
 	}
 	
 	private void addSelectedModelToCollection() {

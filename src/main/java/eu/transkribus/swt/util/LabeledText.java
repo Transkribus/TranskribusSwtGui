@@ -66,7 +66,9 @@ public class LabeledText extends Composite {
 	
 	public String getText() { return txt(); }
 	
-	public void setText(String txt) {text.setText(txt);}
+	public void setText(String txt) {
+		text.setText(txt==null ? "" : txt);
+	}
 	
 	public Text getTextField() { return text; }
 	public Label getLabel() { return label; }
