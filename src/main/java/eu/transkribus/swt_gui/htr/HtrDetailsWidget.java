@@ -428,7 +428,7 @@ public class HtrDetailsWidget extends SashForm {
 	private void updateMetadata() {
 		if(!validator.isInputValid()) {
 			final String msg = validator.getValidationErrorMessages().stream().collect(Collectors.joining("\n"));
-			DialogUtil.showBallonToolTip(updateMetadataBtn, SWT.ICON_WARNING, "Invalid input", msg);
+			DialogUtil.showBalloonToolTip(updateMetadataBtn, SWT.ICON_WARNING, "Invalid input", msg);
 			return;
 		}
 		TrpHtr htrToStore = new TrpHtr(HtrDetailsWidget.this.htr);
@@ -440,7 +440,7 @@ public class HtrDetailsWidget extends SashForm {
 			store.updateHtrMetadata(htrToStore);
 			//reset the text fields to new values
 			updateDetails(htrToStore);
-			DialogUtil.showBallonToolTip(updateMetadataBtn, SWT.ICON_INFORMATION, "", "Changes saved.");
+			DialogUtil.showBalloonToolTip(updateMetadataBtn, SWT.ICON_INFORMATION, "", "Changes saved.");
 		} catch(Exception ex) {
 			DialogUtil.showDetailedErrorMessageBox(getShell(), "Error while saving metadata", "HTR metadata could not be updated.", ex);
 		}

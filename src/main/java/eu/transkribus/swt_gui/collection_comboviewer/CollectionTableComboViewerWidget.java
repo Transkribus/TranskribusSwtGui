@@ -405,7 +405,7 @@ public class CollectionTableComboViewerWidget extends Composite implements Obser
 		if (iconType == null)
 			iconType = SWT.ICON_INFORMATION;
 		
-		DialogUtil.showBallonToolTip(collectionCombo, iconType, title, message);	
+		DialogUtil.showBalloonToolTip(collectionCombo, iconType, title, message);	
 	}
 	
 	public TrpCollection getSelectedCollection() {		

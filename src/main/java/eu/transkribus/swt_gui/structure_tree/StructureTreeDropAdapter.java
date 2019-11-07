@@ -318,7 +318,7 @@ public class StructureTreeDropAdapter extends ViewerDropAdapter {
 		if(this.disabledInfoShown) {
 			return;
 		}
-		DialogUtil.showBallonToolTip(treeViewer.getTree(), false, null, "Read-only mode", "Structure can't be edited.");
+		DialogUtil.showBalloonToolTip(treeViewer.getTree(), false, null, "Read-only mode", "Structure can't be edited.");
 		this.disabledInfoShown = true;
 	}
 }

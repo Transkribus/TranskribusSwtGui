@@ -605,7 +605,6 @@ public class UploadDialogUltimate extends Dialog {
 		return new Point(700, 500);
 	}
 
-	// override method to use "Upload" as label for the OK button
 	@Override protected void createButtonsForButtonBar(Composite parent) {
 		createButton(parent, IDialogConstants.OK_ID, "Upload", true);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);

@@ -1790,4 +1790,13 @@ public class SWTUtil {
 		addListener(w, SWT.Traverse, l);
 	}
 	
+	public static Point getPreferredSize(Shell shell) {
+		return shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+	}
+	
+	public static void resizeFromPreferredSize(Shell shell, int xPlus, int yPlus) {
+		Point s = getPreferredSize(shell);
+		shell.setSize(s.x+xPlus, s.y+yPlus);
+	}
+	
 }

@@ -3218,7 +3218,7 @@ public class TrpMainWidget {
 					URL url = new URL(ud.getIiifUrl());
 					IIIFUtils.checkManifestValid(url);
 					valid = true;
-				} catch(JsonMappingException | JsonParseException e) {
+				} catch(IllegalArgumentException|JsonMappingException | JsonParseException e) {
 					DialogUtil.showDetailedErrorMessageBox(getShell(), "Manifest not valid",
 							"Upload document from IIIF manifest not possible!\n"
 							+ "Note: IIIF manifest is not valid and therefore cannot be parsed.", e.getMessage());
@@ -6483,7 +6483,7 @@ public class TrpMainWidget {
 //			DialogUtil.showInfoMessageBox(tw.getShell(), title, msg);
 			
 			//show balloon tip on jobs button instead
-			DialogUtil.showBallonToolTip(mw.getUi().getJobsButton(), null, title, msg);
+			DialogUtil.showBalloonToolTip(mw.getUi().getJobsButton(), null, title, msg);
 		}
 	}
 }
