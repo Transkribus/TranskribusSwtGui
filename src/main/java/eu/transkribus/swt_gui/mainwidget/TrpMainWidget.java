@@ -2211,6 +2211,13 @@ public class TrpMainWidget {
 			onError("Image load error", "Error loading main image", e);
 		}
 	}
+	
+	/**
+	 * Reloads the current page synchronously -> use *only* when you need to have the page loaded after this call  
+	 */
+	public boolean reloadCurrentPageSync(boolean force, boolean reloadTranscript, CanvasAutoZoomMode zoomMode) {
+		return docPageController.reloadCurrentPage(force, reloadTranscript, zoomMode, null, null);
+	}
 
 	public Future<PageLoadResult> reloadCurrentPage(boolean force, Runnable onSuccess, Runnable onError) {
 		return reloadCurrentPage(force, true, null, onSuccess, onError);
@@ -2466,21 +2473,26 @@ public class TrpMainWidget {
 				return;
 			}
 			logger.info("Document is already loaded. Switching to page {}", l.pageNr);
-			Future<PageLoadResult> future = reloadCurrentPage(true, null, null);
-			if (future == null) {
-				logger.debug("PageLoadResult future is null.");
+			
+			// FIXME: waiting for the future on async-loading blocks the UI (but only if the page is already loaded)
+//			Future<PageLoadResult> future = reloadCurrentPage(true, null, null);
+//			if (future == null) {
+//				logger.debug("PageLoadResult future is null.");
+//				return;
+//			}
+//			 // wait for page to be loaded!
+//			try {
+//				logger.debug("Waiting for PageLoadResult...");
+//				PageLoadResult result = future.get();
+//				logger.debug("Reload done: {}", result);
+//			} catch (InterruptedException | ExecutionException e) {
+//				logger.error(e.getMessage(), e);
+//			}
+			
+			// this is the safe way to reload the page, although the annoying ProgressBar's will pop up... doesn't matter here!
+			if (!reloadCurrentPageSync(true, true, null)) {
 				return;
 			}
-			 // wait for page to be loaded!
-			try {
-				logger.debug("Waiting for PageLoadResult...");
-				PageLoadResult result = future.get();
-				logger.debug("Reload done: {}", result);
-			} catch (InterruptedException | ExecutionException e) {
-				logger.error(e.getMessage(), e);
-			}
-//			if (!reloadCurrentPage(true))
-//				return;
 		}
 
 		// 3rd: select region / line / word:
