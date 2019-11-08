@@ -1,13 +1,20 @@
 package eu.transkribus.swt.util;
 
+import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import eu.transkribus.core.util.DeaFileUtils;
+import eu.transkribus.core.util.StrUtil;
 
 public class MetadataTextFieldValidator<T> {
+	private static final Logger logger = LoggerFactory.getLogger(MetadataTextFieldValidator.class);
 	
 	List<MetadataTextFieldWrapper> textFields;
 	
@@ -97,7 +104,7 @@ public class MetadataTextFieldValidator<T> {
 			if(object == null) {
 				return "";
 			} else {
-				 return getter.apply(object);
+				return removeCarriageReturn(getter.apply(object));
 			}
 		}
 		
@@ -105,14 +112,31 @@ public class MetadataTextFieldValidator<T> {
 		 * @return the current value entered in the text field
 		 */
 		String getValue() {
-			return textField.getText();
+			return removeCarriageReturn(textField.getText());
 		}
 		
+		/**
+		 * In Windows checking String equality returns false for some HTR descriptions as they might contain carriage returns, while the other String doesn't altough (HTR object vs. text field value)
+		 * This is a quick fix just to make the dialog not moan about unsaved changes that do not exist...
+		 * 
+		 * @param value to check
+		 * @return the value without any carriage returns
+		 */
+		private String removeCarriageReturn(String value) {
+			if(value != null && value.contains("\r")) {
+				logger.warn("value contains carriage return:\n{}", value);
+				return value.replaceAll("\r\n", "\n");
+			}
+			return value;
+		}
+
 		/**
 		 * @return true if the values from getOrigValue() and getValue() differ.
 		 */
 		boolean hasChanged() {
-			return !getOrigValue().equals(getValue());
+			final boolean isEqual = getOrigValue().equals(getValue());
+			logger.debug("origValue '{}' {} textFieldValue '{}'", getOrigValue(), isEqual ? "==" : "!=",getValue());
+			return !isEqual;
 		}
 		
 		/**
