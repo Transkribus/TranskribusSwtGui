@@ -250,9 +250,8 @@ public class HtrTrainingDialog extends Dialog {
 		EditStatus status = treeViewerSelector.getVersionComboStatus().getStatus();
 		setTrainAndValDocsInHtrConfig(configObject, status);
 		
+		//init empty customParams
 		ParameterMap customParams = new ParameterMap();
-		//send flag to activate new train workflow when starting the training from this dialog
-		customParams.addBoolParam("useGtWorkflow", true);
 		configObject.setCustomParams(customParams);
 		
 		return configObject;
