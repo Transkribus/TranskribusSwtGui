@@ -1318,7 +1318,7 @@ public class Storage {
 			res.imgMd = getImageMetadata(doc, page);
 			logger.debug("loading page transcript list...");
 			res.metadataList = loadTranscriptsList(conn, doc, page, colId);
-			
+			logger.debug("Returning PageLoadResult: {}", res);
 			return res;
 		},
 		new AsyncCallback<PageLoadResult>() {

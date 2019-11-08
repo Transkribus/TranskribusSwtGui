@@ -2457,18 +2457,25 @@ public class TrpMainWidget {
 			logger.debug("location has no page specified!");
 			return;
 		}
-
+		
+		logger.debug("wasDocLoaded = {}", wasDocLoaded);
+		logger.debug("storage.getPageIndex() = {}", storage.getPageIndex());
+		logger.debug("TrpLocation::pageNr = {}", l.pageNr);
 		if (!wasDocLoaded && storage.getPageIndex() != l.pageNr - 1) {
-			if (!storage.setCurrentPage(l.pageNr - 1))
+			if (!storage.setCurrentPage(l.pageNr - 1)) {
 				return;
-			
+			}
+			logger.info("Document is already loaded. Switching to page {}", l.pageNr);
 			Future<PageLoadResult> future = reloadCurrentPage(true, null, null);
 			if (future == null) {
+				logger.debug("PageLoadResult future is null.");
 				return;
 			}
 			 // wait for page to be loaded!
 			try {
-				future.get();
+				logger.debug("Waiting for PageLoadResult...");
+				PageLoadResult result = future.get();
+				logger.debug("Reload done: {}", result);
 			} catch (InterruptedException | ExecutionException e) {
 				logger.error(e.getMessage(), e);
 			}
