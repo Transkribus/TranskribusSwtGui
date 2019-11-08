@@ -44,6 +44,9 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 		} else if (element instanceof HtrGtDataSet) {
 			return Images.FOLDER;
 		} else if (element instanceof TrpHtr) {
+			if(((TrpHtr)element).getReleaseLevelValue() > 0) {
+				return Images.CHART_LINE_LINK;
+			}
 			return Images.CHART_LINE;
 		}
 		return null;
@@ -75,6 +78,10 @@ public class HtrGroundTruthTableLabelAndFontProvider extends CellLabelProvider i
 			} else if (element instanceof HtrGtDataSetElement) {
 				TrpGroundTruthPage p = ((HtrGtDataSetElement)element).getGroundTruthPage();
 				return p.getNrOfLines() + " lines, " + p.getNrOfWordsInLines() + " words";
+			}
+		} else if(GroundTruthTreeWidget.CURATOR_COL.equals(col)) {
+			if(element instanceof TrpHtr) {
+				return ((TrpHtr)element).getUserName();
 			}
 		}
 		return null;
