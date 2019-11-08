@@ -16,6 +16,7 @@ import eu.transkribus.core.model.beans.JAXBPageTranscript;
 import eu.transkribus.core.model.beans.TrpDoc;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.TrpTranscriptMetadata;
+import eu.transkribus.core.model.beans.pagecontent.RegionType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
@@ -248,6 +249,27 @@ public class ShapeEditController extends AMainWidgetController {
 		} catch (Throwable e) {
 			mw.onError("Error", e.getMessage(), e);
 		}		
+	}
+
+	public void rectifyAllRegions() {
+		try {
+			if (!storage.hasTranscript()) {
+				return;
+			}
+			
+			logger.debug("rectifyAllRegions");
+			
+			for (ICanvasShape s : mw.getCanvas().getScene().getShapes()) {
+				ITrpShapeType st = CanvasShapeUtil.getTrpShapeType(s);
+				if (st instanceof RegionType) {
+					s.setPoints(s.getBoundsPoints());
+				}
+			}
+			mw.getCanvas().redraw();
+			storage.setCurrentTranscriptEdited(true);
+		} catch (Exception e) {
+			TrpMainWidget.getInstance().onError("Error", e.getMessage(), e);
+		}
 	}
 
 }

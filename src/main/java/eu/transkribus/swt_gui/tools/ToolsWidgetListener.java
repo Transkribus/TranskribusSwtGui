@@ -29,6 +29,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
 import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
+import eu.transkribus.core.rest.JobConstP2PaLA;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.PageXmlUtils;
 import eu.transkribus.swt.util.DialogUtil;
@@ -413,6 +414,10 @@ public class ToolsWidgetListener implements SelectionListener {
 						ParameterMap pm = new ParameterMap();
 						pm.addIntParam(JobConst.PROP_MODEL_ID, model.getModelId());
 						pm.addParameter(JobConst.PROP_MODELNAME, model.getName());
+						if (conf.minArea!=null) {
+							pm.addParameter(JobConstP2PaLA.MIN_AREA_PAR, conf.minArea);	
+						}
+						pm.addParameter(JobConstP2PaLA.RECTIFY_REGIONS_PAR, conf.rectifyRegions);
 						
 						if (diag.isDocsSelected() && diag.getDocs() != null && Storage.getInstance().isAdminLoggedIn()){
 							for (DocumentSelectionDescriptor docDescr : diag.getDocs()){

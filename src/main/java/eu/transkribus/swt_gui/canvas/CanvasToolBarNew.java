@@ -128,6 +128,7 @@ public class CanvasToolBarNew {
 	MenuItem simplifySelectedLinesItem;
 	MenuItem simplifyAllLinesItem;
 	MenuItem removeSmallTextRegionsItem;
+	MenuItem rectifyAllRegionsItem;
 	
 //	MenuItem deleteRowItem;
 //	MenuItem deleteColumnItem;
@@ -475,7 +476,8 @@ public class CanvasToolBarNew {
 		createDefaultLineItem = otherSegmentationToolsDropDown.addItem("Create default line for selected line / baseline", null, null);
 		simplifySelectedLinesItem = otherSegmentationToolsDropDown.addItem("Simplify shape of selected lines", Images.getOrLoad("/icons/vector.png"), null);
 		simplifyAllLinesItem = otherSegmentationToolsDropDown.addItem("Simplify shape of all lines on this page", Images.getOrLoad("/icons/vector.png"), null);
-		removeSmallTextRegionsItem = otherSegmentationToolsDropDown.addItem("Remove small text regions", null, null);
+		removeSmallTextRegionsItem = otherSegmentationToolsDropDown.addItem("Remove small text regions...", null, null);
+		rectifyAllRegionsItem = otherSegmentationToolsDropDown.addItem("Convert all region shapes to rectangles", null, null);
 		}
 		
 		if (false) {

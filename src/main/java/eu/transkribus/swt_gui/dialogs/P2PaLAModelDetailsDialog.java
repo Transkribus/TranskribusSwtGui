@@ -61,7 +61,7 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 	public static String VAL_SET_SIZE_COL = "N-Validation";
 	public static String TEST_SET_SIZE_COL = "N-Test";
 	
-	public static String USER_COL = "User";
+	public static String USER_COL = "Owner";
 	public static String MIN_ERROR_COL = "Min-Error";
 	
 	public static final ColumnConfig[] COLS = new ColumnConfig[] {
@@ -73,12 +73,10 @@ public class P2PaLAModelDetailsDialog extends Dialog {
 //			new ColumnConfig(COLLECTIONS_COL, 750, false, DefaultTableColumnViewerSorter.ASC, "The collections this models is part of"),
 			
 			new ColumnConfig(MIN_ERROR_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The minimum error rate this model has achieved"),
-			new ColumnConfig(TRAIN_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the training set"),
-			new ColumnConfig(VAL_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the validation set (which is used after every epoch during training to evaluate the model)"),
+			new ColumnConfig(TRAIN_SET_SIZE_COL, 60, false, DefaultTableColumnViewerSorter.ASC, "The size of the training set"),
+			new ColumnConfig(VAL_SET_SIZE_COL, 60, false, DefaultTableColumnViewerSorter.ASC, "The size of the validation set (which is used after every epoch during training to evaluate the model)"),
 //			new ColumnConfig(TEST_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the test set (which is used once after training to evaluate the model)"),
-			new ColumnConfig(USER_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The user that has trained this model"),
-			
-			
+			new ColumnConfig(USER_COL, 120, false, DefaultTableColumnViewerSorter.ASC, "The user that has trained this model"),
 		};
 	
 	MyTableViewer modelsTable;

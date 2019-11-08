@@ -45,6 +45,7 @@ import eu.transkribus.swt.util.DefaultTableColumnViewerSorter;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.LabeledCombo;
 import eu.transkribus.swt.util.SWTUtil;
 import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -57,20 +58,15 @@ public class P2PaLAConfDialog extends Dialog {
 		public boolean currentTranscript=true;
 		public String pagesStr=null;
 		public TrpP2PaLA model;
+		
+		public boolean rectifyRegions=false;
+		public Double minArea=0.01d;
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(P2PaLAConfDialog.class);
 //	MyTableViewer modelsTable;
 	CurrentTranscriptOrDocPagesOrCollectionSelector pagesSelector;
 	private boolean docsSelected = false;
-	public boolean isDocsSelected() {
-		return docsSelected;
-	}
-
-	public List<DocumentSelectionDescriptor> getSelectedDocDescriptors() {
-		return selectedDocDescriptors;
-	}
-
 	private List<DocumentSelectionDescriptor> selectedDocDescriptors;
 //	Combo modelCombo;
 	ComboViewer modelComboViewer;
@@ -79,6 +75,10 @@ public class P2PaLAConfDialog extends Dialog {
 	
 	Button modelDetailsBtn;
 	ModelFilterComposite modelFilterComp;
+	Button rectifyRegionsBtn;
+	LabeledCombo minAreaCombo;
+	
+	Button simplifyRegionsCheck; // TODO
 	
 	P2PaLARecogUiConf conf = null;
 	
@@ -101,14 +101,12 @@ public class P2PaLAConfDialog extends Dialog {
 			new ColumnConfig(TEST_SET_SIZE_COL, 75, false, DefaultTableColumnViewerSorter.ASC, "The size of the test set (which is used once after training to evaluate the model)"),
 		};	
 	
-//	List<TrpP2PaLAModel> models;
 	List<TrpP2PaLA> models = new ArrayList<>();
 	Storage store;
 	
 	public P2PaLAConfDialog(Shell parentShell) {
 		super(parentShell);
 		store = Storage.getInstance();
-//		this(parentShell, null);
 	}
 	
 	@Override
@@ -117,16 +115,10 @@ public class P2PaLAConfDialog extends Dialog {
 	    setBlockOnOpen(false);
 	}
 
-//	public P2PaLAConfDialog(Shell parentShell /*, List<TrpP2PaLA> models*/) {
-//		super(parentShell);
-//		this.models = models;
-//	}
-	
 	@Override
 	protected Point getInitialSize() {
-//		return new Point(600, 250);
-//		return new Point(500, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
-		return new Point(getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).x, getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		Point s = getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		return new Point(s.x+30, s.y+15);
 	}
 	
 	@Override
@@ -174,8 +166,8 @@ public class P2PaLAConfDialog extends Dialog {
 			});
 		}
 		
-		Button modelDetailsBtn = createButton(parent, IDialogConstants.DETAILS_ID, "Model info", false);
-		modelDetailsBtn.setImage(Images.INFO);
+		Button modelDetailsBtn = createButton(parent, IDialogConstants.DETAILS_ID, "Models", false);
+		modelDetailsBtn.setImage(Images.CHART_LINE);
 		SWTUtil.onSelectionEvent(modelDetailsBtn, e -> {
 			P2PaLAModelDetailsDialog d = new P2PaLAModelDetailsDialog(getShell(), models, modelFilterComp.getModelFilter());
 			d.open();
@@ -307,6 +299,21 @@ public class P2PaLAConfDialog extends Dialog {
 		
 		initModelFacetsCombo(cont);
 		
+		rectifyRegionsBtn = new Button(cont, SWT.CHECK);
+		rectifyRegionsBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		rectifyRegionsBtn.setText("Rectify regions");
+		rectifyRegionsBtn.setToolTipText("Convert all shapes to rectangles after recognition");
+		
+		minAreaCombo = new LabeledCombo(cont, "Min area: ", false, SWT.DROP_DOWN);
+		minAreaCombo.setToolTipText("Shapes with an *area* smaller than this fraction of the image *width* will be removed");
+		minAreaCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		minAreaCombo.getCombo().add("0.01");
+		minAreaCombo.getCombo().add("0.1");
+		minAreaCombo.getCombo().add("1");
+		minAreaCombo.getCombo().add("10");
+		minAreaCombo.getCombo().add("100");
+		minAreaCombo.getCombo().setText("0.01");
+		
 		reloadModels();
 		
 //		setModels(models);
@@ -324,20 +331,6 @@ public class P2PaLAConfDialog extends Dialog {
 	private void reloadModels() {
 		this.models = modelFilterComp.loadModelsForCurrentFilter(TrpP2PaLA.class);
 		setModels(models);
-		
-//		boolean showAll = moderFilterComp.showAllRadio.getSelection();
-//		Integer colId = moderFilterComp.collBasedRadio.getSelection() ? store.getCollId() : null;
-//		Integer userId = moderFilterComp.userBasedRadio.getSelection() ? store.getUserId() : null;
-//		Integer releaseLevel = moderFilterComp.showPublicRadio.getSelection() ? 1 : null;
-//		try {
-//			this.models = store.getConnection().getModelCalls().getP2PaLAModels(true, showAll, colId, userId, releaseLevel);
-//			logger.debug("loaded "+models.size()+" models");
-//		} catch (SessionExpiredException | ServerErrorException | ClientErrorException e1) {
-//			DialogUtil.showErrorMessageBox(getShell(), "Error loading models", e1.getMessage());
-//			this.models = new ArrayList<>();
-//		}	
-//		
-//		setModels(models);
 	}
 	
 	private void onSelectedModelChanged() {
@@ -361,28 +354,6 @@ public class P2PaLAConfDialog extends Dialog {
 		}
 	}
 		
-//	public void setModels(List<TrpP2PaLAModel> models) {
-//		logger.debug("setting input models, N = "+CoreUtils.size(models));
-//		
-//		if (models != null && !models.isEmpty()) { // null check needed???
-//			modelsTable.setInput(models);
-//			
-//			List<String> items = new ArrayList<>();
-//			int i=0;
-//			for (TrpP2PaLAModel m : models) {
-//				items.add(m.getName());
-//				modelCombo.setData(""+i, m);
-//				++i;
-//			}
-//			modelCombo.setItems(items.toArray(new String[0]));
-//			modelCombo.select(0);			
-//		}
-//		else {
-//			modelsTable.setInput(new ArrayList<>());
-//			modelCombo.setItems(new String[] {});
-//		}
-//	}
-	
 	public void setModels(List<TrpP2PaLA> models) {
 		if (models==null) {
 			models = new ArrayList<>();
@@ -393,17 +364,12 @@ public class P2PaLAConfDialog extends Dialog {
 			@Override
 			public int compare(TrpP2PaLA o1, TrpP2PaLA o2) {
 				return -1*CoreUtils.compareTo(o1.getCreated(), o2.getCreated());
-				
-//				String n1 = o1.getName()==null ? "" : o1.getName();
-//				String n2 = o2.getName()==null ? "" : o2.getName();
-//				return n1.compareTo(n2);
 			}
 		});
 		
 		logger.debug("setting input models, N = "+CoreUtils.size(models));
 		
 		if (models != null && !models.isEmpty()) { // null check needed???
-//			modelsTable.setInput(models);
 			modelComboViewer.setInput(models);
 			
 			List<String> items = new ArrayList<>();
@@ -414,27 +380,12 @@ public class P2PaLAConfDialog extends Dialog {
 			modelComboViewer.getCombo().select(0);
 		}
 		else {
-//			modelsTable.setInput(new ArrayList<>());
 			modelComboViewer.setInput(new ArrayList<>());
 		}
 	}	
 	
-//	public TrpP2PaLAModel getSelectedP2PaLAModel() {
-//		int i = modelCombo.getSelectionIndex();
-//		if (i>=0 && i<modelCombo.getItemCount()) {
-//			try {
-//				return (TrpP2PaLAModel) modelCombo.getData(""+i);
-//			} catch (Exception e) {
-//				logger.error("Error casting selected P2PaLAModel: "+e.getMessage(), e);
-//			}
-//		}
-//		return null;
-//	}	
-	
 	public TrpP2PaLA getSelectedP2PaLAModel() {
 		return (TrpP2PaLA) modelComboViewer.getStructuredSelection().getFirstElement();
-//		IStructuredSelection sel = modelComboViewer.getStructuredSelection();
-//		return sel.isEmpty() ? null : (TrpP2PaLAModel) sel.getFirstElement();
 	}	
 	
 	public void setVisible() {
@@ -443,17 +394,27 @@ public class P2PaLAConfDialog extends Dialog {
 		}
 	}
 	
-	private void storeConf() {
+	private boolean storeConf() {
 		TrpP2PaLA model = getSelectedP2PaLAModel();
 		if (model != null) {
 			conf = new P2PaLARecogUiConf();
 			conf.currentTranscript = pagesSelector.isCurrentTranscript();
 			conf.pagesStr = pagesSelector.getPagesStr();
 			conf.model = model;
+			conf.rectifyRegions = rectifyRegionsBtn.getSelection();
+
+			try {
+				conf.minArea = Double.parseDouble(minAreaCombo.getCombo().getText());
+			} catch (Exception e) {
+				DialogUtil.showErrorMessageBox(getShell(), "Could not parse min-area parameter", e.getMessage());
+				return false;
+			}
 		}
 		else {
 			conf = null;
 		}
+		
+		return true;
 	}
 	
 	public P2PaLARecogUiConf getConf() {
@@ -464,9 +425,20 @@ public class P2PaLAConfDialog extends Dialog {
 		return selectedDocDescriptors;
 	}
 	
+	public boolean isDocsSelected() {
+		return docsSelected;
+	}
+
+	public List<DocumentSelectionDescriptor> getSelectedDocDescriptors() {
+		return selectedDocDescriptors;
+	}	
+	
 	@Override
 	protected void okPressed() {
-		storeConf();
+		if (!storeConf()) {
+			return;
+		}
+		
 		if(pagesSelector.isDocsSelection()){
 
 			docsSelected = pagesSelector.isDocsSelection();
@@ -475,5 +447,4 @@ public class P2PaLAConfDialog extends Dialog {
 		}
 		super.okPressed();
 	}
-
 }
