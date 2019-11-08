@@ -425,18 +425,18 @@ public class P2PaLATrainDialog extends Dialog {
 			throw new Exception("Could not parse number of epochs: "+e.getMessage(), e);
 		}
 		
+		conf.outMode = parseOutMode();
+		logger.debug("outMode = "+conf.outMode);
+		
 		conf.structTypes = structureTypesText.getText();
-		if (StringUtils.isEmpty(conf.structTypes)) {
-			throw new Exception("No structure types provided for training!");
+		if (StringUtils.isEmpty(conf.structTypes) && !conf.outMode.equals(TrpP2PaLA.OUT_MODE_LINES_ONLY)) {
+			throw new Exception("No structure types provided for training with regions!");
 		}
 		
 		// TODO: parse validity of mergedStructTypes syntax, i.e. s1:s2,s3,s4 s5:s6
 		if (!mergedStructureTypesText.getText().isEmpty()) {
 			conf.mergedStructTypes = mergedStructureTypesText.getText();
 		}
-		
-		conf.outMode = parseOutMode();
-		logger.debug("outMode = "+conf.outMode);
 		
 		conf.trainDocs = trainSel.getDocSelection();
 		if (conf.trainDocs==null || conf.trainDocs.isEmpty()) {
