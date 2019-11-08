@@ -520,28 +520,40 @@ public class CanvasMouseListener implements MouseListener, MouseMoveListener, Mo
 
 		logger.trace("mouselistener wheel, e1 = "+e);
 		float sign = Math.signum(e.count); // > 0 --> wheel up, < 0 --> wheel down
+		boolean isCmdOrCtrl = CanvasKeys.isCtrlOrCommandKeyDown(e.stateMask);
+		logger.trace("isCmdOrCtrl = "+isCmdOrCtrl);
 						
 		Point mpt = canvas.inverseTransform(new Point(e.x, e.y));
-		if (sign > 0) {
-			if ((e.stateMask & SWT.CTRL) == SWT.CTRL)
-//				canvas.rotateLeft();
-				;
-			else {
-				if (!settings.isUseScrollBars()) {
-					canvas.zoomIn(mpt.x, mpt.y);	
-				}
+		
+		if (!settings.isUseScrollBars() || isCmdOrCtrl) {
+			if (sign>0) {
+				canvas.zoomIn(mpt.x, mpt.y);
+			} else {
+				canvas.zoomOut(mpt.x, mpt.y);
 			}
 		}
-		else {
-			if ((e.stateMask & SWT.CTRL) == SWT.CTRL)
-//				canvas.rotateRight();
-				;
-			else {
-				if (!settings.isUseScrollBars()) {
-					canvas.zoomOut(mpt.x, mpt.y);	
-				}
-			}
-		}
+		
+		// OLD CODE
+//		if (sign > 0) {
+//			if ((e.stateMask & SWT.CTRL) == SWT.CTRL)
+////				canvas.rotateLeft();
+//				;
+//			else {
+//				if (!settings.isUseScrollBars() || isCmdOrCtrl) {
+//					canvas.zoomIn(mpt.x, mpt.y);	
+//				}
+//			}
+//		}
+//		else {
+//			if ((e.stateMask & SWT.CTRL) == SWT.CTRL)
+////				canvas.rotateRight();
+//				;
+//			else {
+//				if (!settings.isUseScrollBars() || isCmdOrCtrl) {
+//					canvas.zoomOut(mpt.x, mpt.y);	
+//				}
+//			}
+//		}
 		
 //		canvas.scaleCenter(1+sign*settings.scalingFactor, 1+sign*settings.scalingFactor, false);
 	}
