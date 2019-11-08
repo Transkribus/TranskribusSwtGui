@@ -25,6 +25,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.DocSelection;
+import eu.transkribus.core.model.beans.TrpCollection;
 import eu.transkribus.core.model.beans.TrpP2PaLA;
 import eu.transkribus.core.model.beans.TrpPage;
 import eu.transkribus.core.model.beans.enums.EditStatus;
@@ -438,7 +439,9 @@ public class P2PaLATrainDialog extends Dialog {
 		logger.debug("outMode = "+conf.outMode);
 		
 		conf.trainDocs = trainSel.getDocSelection();
-		// TODO: check if trainDocs not empty!
+		if (conf.trainDocs==null || conf.trainDocs.isEmpty()) {
+			throw new Exception("Training set cannot be empty!");
+		}
 		
 		if (autoSplitTrainSetCheck.getSelection()) {
 			List<Double> fracList = new ArrayList<>();
@@ -488,8 +491,11 @@ public class P2PaLATrainDialog extends Dialog {
 			if (this.conf != null) {
 				String msgDetail="";
 				Storage s = Storage.i();
-				if (s!=null) {
-					msgDetail+="\n\tCollection: "+s.getCollId();
+				
+				if (s!=null && s.getCollection(s.getCollId())!=null) {
+					TrpCollection c = s.getCollection(s.getCollId());
+					msgDetail+="\n\tCollection: "+c.getColId()+", "+c.getColName();
+					msgDetail+="\n\tModel owner: "+s.getUserName();
 				}
 				
 				if (DialogUtil.showYesNoDialog(getShell(), "Starting training...", 

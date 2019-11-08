@@ -118,7 +118,7 @@ public class P2PaLAConfDialog extends Dialog {
 	@Override
 	protected Point getInitialSize() {
 		Point s = getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		return new Point(s.x+30, s.y+15);
+		return new Point(Math.max(300, s.x+30), s.y+15);
 	}
 	
 	@Override
@@ -232,7 +232,12 @@ public class P2PaLAConfDialog extends Dialog {
 		pagesSelector = new CurrentTranscriptOrDocPagesOrCollectionSelector(cont, SWT.NONE, false,true);
 		pagesSelector.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		
-		Label recogModelLabel = new Label(cont, 0);
+		Composite modelContainer = new Composite(cont, 0);
+		modelContainer.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+		modelContainer.setLayout(SWTUtil.createGridLayout(2, false, 0, 0));
+		
+		Label recogModelLabel = new Label(modelContainer, 0);
+		recogModelLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		recogModelLabel.setText("Select a model for recognition: ");
 		Fonts.setBoldFont(recogModelLabel);
 		
@@ -245,8 +250,8 @@ public class P2PaLAConfDialog extends Dialog {
 //		textField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 //		modelsAutocomplete = new AutoCompleteField(textField, new TextContentAdapter(), new String[] {});
 		
-		modelComboViewer = new ComboViewer(cont, SWT.DROP_DOWN);
-		modelComboViewer.getCombo().setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		modelComboViewer = new ComboViewer(modelContainer, SWT.DROP_DOWN);
+		modelComboViewer.getCombo().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		modelComboViewer.getCombo().setToolTipText("The model used for the P2PaLA Layout Analysis");
 		modelComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		modelComboViewer.setLabelProvider(new LabelProvider() {
