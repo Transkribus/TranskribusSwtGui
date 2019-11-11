@@ -25,6 +25,7 @@ import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.util.UnicodeList;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.SWTUtil;
+import eu.transkribus.swt_gui.dialogs.AllowUsersForJobDialog;
 import eu.transkribus.swt_gui.dialogs.DocSyncWithFilesDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog;
@@ -103,6 +104,11 @@ public class GenericDialogTest {
 						}
 						
 						if (true) {
+							AllowUsersForJobDialog d = new AllowUsersForJobDialog(getShell());
+							d.open();
+						}
+						
+						if (false) {
 							P2PaLAConfDialog d = new P2PaLAConfDialog(getShell());
 							d.open();
 						}						
