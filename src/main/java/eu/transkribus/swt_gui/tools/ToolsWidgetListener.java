@@ -26,7 +26,6 @@ import eu.transkribus.core.model.beans.job.enums.JobImpl;
 import eu.transkribus.core.model.beans.pagecontent.PcGtsType;
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
-import eu.transkribus.core.model.beans.rest.P2PaLATrainJobPars;
 import eu.transkribus.core.model.beans.rest.ParameterMap;
 import eu.transkribus.core.rest.JobConst;
 import eu.transkribus.core.rest.JobConstP2PaLA;
@@ -42,12 +41,9 @@ import eu.transkribus.swt_gui.dialogs.ErrorRateAdvancedDialog;
 import eu.transkribus.swt_gui.dialogs.OcrDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog;
 import eu.transkribus.swt_gui.dialogs.P2PaLAConfDialog.P2PaLARecogUiConf;
-import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog;
-import eu.transkribus.swt_gui.dialogs.P2PaLATrainDialog.P2PaLATrainUiConf;
 import eu.transkribus.swt_gui.dialogs.SamplesCompareDialog;
 import eu.transkribus.swt_gui.htr.HtrTextRecognitionDialog;
 import eu.transkribus.swt_gui.htr.HtrTrainingDialog;
-import eu.transkribus.swt_gui.htr.HtrTrainingDialogLegacy;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedConfComposite.Text2ImageConf;
 import eu.transkribus.swt_gui.la.Text2ImageSimplifiedDialog;
 import eu.transkribus.swt_gui.mainwidget.TrpMainWidget;
@@ -68,8 +64,6 @@ public class ToolsWidgetListener implements SelectionListener {
 
 	ThumbnailManager tm;
 	HtrTrainingDialog htd;
-	@Deprecated
-	HtrTrainingDialogLegacy htdLegacy;
 	OcrDialog od;
 	HtrTextRecognitionDialog trd2;
 
@@ -86,10 +80,6 @@ public class ToolsWidgetListener implements SelectionListener {
 
 		SWTUtil.onSelectionEvent(tw.trComp.getTrainBtn(), (e) -> {
 			startHtrTrainingDialog();
-		});
-		
-		SWTUtil.onSelectionEvent(tw.trComp.getTrainBtnLegacy(), (e) -> {
-			startLegacyHtrTrainingDialog();
 		});
 
 		SWTUtil.addSelectionListener(tw.startLaBtn, this);
@@ -143,41 +133,6 @@ public class ToolsWidgetListener implements SelectionListener {
 
 		return (s == tw.startLaBtn && !tw.laComp.isDoBlockSeg() && tw.laComp.isDoLineSeg())
 				|| s == tw.polygon2baselinesBtn || s == tw.baseline2PolygonBtn;
-	}
-
-	
-	private void startLegacyHtrTrainingDialog() {
-		try {
-			store.checkLoggedIn();
-
-			if (htdLegacy != null) {
-				htdLegacy.setVisible();
-			} else {
-				htdLegacy = new HtrTrainingDialogLegacy(mw.getShell(), Storage.getInstance().getHtrTrainingJobImpls());
-				if (htdLegacy.open() == IDialogConstants.OK_ID) {
-					// new: check here if user wants to store or not
-					// if (!mw.saveTranscriptDialogOrAutosave()) {
-					// //if user canceled this
-					// return;
-					// }
-					String jobId = null;
-					if (htdLegacy.getCitlabTrainConfig() != null) {
-						CitLabHtrTrainConfig config = htdLegacy.getCitlabTrainConfig();
-						jobId = store.runHtrTraining(config);
-						showSuccessMessage(jobId);
-					} else if (htdLegacy.getCitlabT2IConfig() != null) {
-						CitLabSemiSupervisedHtrTrainConfig config = htdLegacy.getCitlabT2IConfig();
-						jobId = store.runCitLabText2Image(config);
-						showSuccessMessage(jobId);
-					}
-				}
-				htdLegacy = null;
-			}
-		} catch (StorageException e) {
-			DialogUtil.showErrorMessageBox(mw.getShell(), "Error", e.getMessage());
-		} catch (Exception e) {
-			mw.onError("Error while starting training job: " + e.getMessage(), e.getMessage(), e);
-		}
 	}
 	
 	private void startHtrTrainingDialog() {

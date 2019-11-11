@@ -42,6 +42,8 @@ public class HtrDetailsDialog extends Dialog {
 		hdw.setLayout(new GridLayout(1, false));
 
 		updateDetails(htr);
+		
+		cont.layout();
 		return cont;
 	}
 
@@ -88,12 +90,12 @@ public class HtrDetailsDialog extends Dialog {
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
-		newShell.setMinimumSize(640, 768);
+		newShell.setMinimumSize(640, 640);
 	}
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(640, 768);
+		return new Point(640, 640);
 	}
 	
 	@Override

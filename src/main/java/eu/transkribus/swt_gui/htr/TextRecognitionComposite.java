@@ -37,7 +37,6 @@ public class TextRecognitionComposite extends Composite {
 	
 	HtrModelChooserButton modelsBtn;
 	Button trainBtn;
-	Button trainBtnLegacy;
 	
 	public TextRecognitionComposite(Composite parent, int style) {
 		super(parent, style);
@@ -69,12 +68,6 @@ public class TextRecognitionComposite extends Composite {
 		trainBtn.setText("Train..."); //α Train
 		trainBtn.setImage(Images.TRAIN);
 		trainBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		trainBtnLegacy = new Button(this, 0);
-		trainBtnLegacy.setText("Train... (legacy)");
-		trainBtnLegacy.setImage(Images.getOrLoad("/icons/muscle_16.png"));
-//		trainBtnLegacy.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		trainBtnLegacy.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
 		
 //		text2ImageBtn = new Button(this, SWT.PUSH);
@@ -111,10 +104,6 @@ public class TextRecognitionComposite extends Composite {
 		return modelsBtn;
 	}
 	
-	public Button getTrainBtnLegacy() {
-		return trainBtnLegacy;
-	}
-	
 //	public Button getText2ImageBtn() {
 //		return text2ImageBtn;
 //	}
@@ -145,11 +134,6 @@ public class TextRecognitionComposite extends Composite {
 	}
 	
 	private void setBtnVisibility(boolean withTrainBtn) {
-		//show old train button only for Admins
-		boolean showTrainBtnLegacy = withTrainBtn && isHtr();
-		
-		//disable legacy train button
-		showTrainBtnLegacy &= false; // or for admins only: Storage.getInstance().isAdminLoggedIn()
 		
 		boolean showTrainBtn = withTrainBtn && isHtr();
 		boolean showModelBtn = isHtr();
@@ -168,13 +152,6 @@ public class TextRecognitionComposite extends Composite {
 			runBtn.moveBelow(trainBtn);
 		} else {
 			trainBtn.setParent(SWTUtil.dummyShell);
-		}
-		
-		if (showTrainBtnLegacy) {
-			trainBtnLegacy.setParent(this);
-			runBtn.moveBelow(trainBtnLegacy);
-		} else {
-			trainBtnLegacy.setParent(SWTUtil.dummyShell);
 		}
 
 		this.layout(true, true);

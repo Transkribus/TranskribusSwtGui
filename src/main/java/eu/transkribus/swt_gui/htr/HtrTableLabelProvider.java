@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import eu.transkribus.core.model.beans.TrpHtr;
 import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.core.util.HtrCITlabUtils;
+import eu.transkribus.swt.util.Images;
 
 public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontProvider {
 
@@ -53,7 +54,19 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 
 	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
-
+		TableColumn column = table.getColumn(columnIndex);
+		String ct = column.getText();
+		if (element instanceof TrpHtr) {
+			switch (ct) {
+			case HtrTableWidget.HTR_NAME_COL:
+				if(((TrpHtr)element).getReleaseLevelValue() > 0) {
+					return Images.CHART_LINE_LINK;
+				}
+				return Images.CHART_LINE;
+			default:
+				return null;
+			}
+		}
 		return null;
 	}
 

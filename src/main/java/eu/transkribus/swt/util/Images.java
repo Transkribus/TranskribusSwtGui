@@ -135,6 +135,7 @@ public class Images {
 	public static final Image ERROR = Images.getOrLoad("/icons/error.png");
 	
 	public static final Image CHART_LINE = Images.getOrLoad("/icons/chart_line_reversed.png");
+	public static final Image CHART_LINE_LINK = Images.getOrLoad("/icons/chart_line_link_reversed.png");
 	
 
 	static HashMap<String, Image> imageMap;
