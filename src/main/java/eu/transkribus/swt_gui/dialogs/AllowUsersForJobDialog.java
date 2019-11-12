@@ -115,9 +115,9 @@ public class AllowUsersForJobDialog extends Dialog {
 			int res = DialogUtil.showYesNoDialog(getShell(), "Add "+userList.size()+" users", "Do you really want to add the following "+userList.size()+" user to job "+jobImpl+":\n"+userListStr);
 			if (res == SWT.YES) {
 				logger.info("adding users to job '"+jobImpl+"': "+userListStr);
-				
 				try {
 					String resp = store.getConnection().getAdminCalls().allowUsersForJob(userList, jobImpl);
+					DialogUtil.showInfoMessageBox(getShell(), "Success", "Successfully added "+userList.size()+" user to '"+jobImpl+"'");
 				} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
 					DialogUtil.showErrorMessageBox(getShell(), "Error allowing users for job "+jobImpl, e1.getMessage());
 				}
@@ -138,6 +138,8 @@ public class AllowUsersForJobDialog extends Dialog {
 		reloadAllowedUsersBtn = new Button(cont, 0);
 		reloadAllowedUsersBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		SWTUtil.onSelectionEvent(reloadAllowedUsersBtn, e -> reloadAllowedUsersForJob());
+		reloadAllowedUsersBtn.setText("Reload");
+		reloadAllowedUsersBtn.setImage(Images.REFRESH);
 		
 		reloadAllowedUsersForJob();
 		
