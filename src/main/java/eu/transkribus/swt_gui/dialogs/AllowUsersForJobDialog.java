@@ -1,6 +1,7 @@
 package eu.transkribus.swt_gui.dialogs;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import eu.transkribus.client.util.SessionExpiredException;
 import eu.transkribus.client.util.TrpClientErrorException;
 import eu.transkribus.client.util.TrpServerErrorException;
 import eu.transkribus.core.model.beans.job.enums.JobImpl;
+import eu.transkribus.core.util.CoreUtils;
 import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt.util.Fonts;
 import eu.transkribus.swt.util.Images;
@@ -128,8 +130,10 @@ public class AllowUsersForJobDialog extends Dialog {
 		allowedUsersLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		Fonts.setBoldFont(allowedUsersLabel);
 		
-		allowedUsersText = new Text(cont, SWT.READ_ONLY | SWT.MULTI | SWT.BORDER);
-		allowedUsersText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		allowedUsersText = new Text(cont, SWT.READ_ONLY | SWT.MULTI | SWT.BORDER | SWT.V_SCROLL);
+		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1);
+		gridData.heightHint = 10 * allowedUsersText.getLineHeight();
+		allowedUsersText.setLayoutData(gridData);
 		
 		reloadAllowedUsersBtn = new Button(cont, 0);
 		reloadAllowedUsersBtn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -148,9 +152,13 @@ public class AllowUsersForJobDialog extends Dialog {
 		}		
 		
 		String jobImpl = jobImplCombo.getCombo().getText();
-		allowedUsersLabel.setText("Allowed users for job '"+jobImpl+"':");
 		try {
 			List<String> usernames = store.getConnection().getAdminCalls().getUserNamesForJobImpl(jobImpl);
+			int N = CoreUtils.size(usernames);
+			allowedUsersLabel.setText("Allowed users for job '"+jobImpl+"' ("+N+")");
+			if (N>0) {
+				Collections.sort(usernames);
+			}
 			allowedUsersText.setText(usernames.isEmpty() ? "<all users allowed>" : usernames.stream().collect(Collectors.joining("\n")));
 		} catch (TrpServerErrorException | TrpClientErrorException | SessionExpiredException e1) {
 			DialogUtil.showErrorMessageBox(getShell(), "Error querying allowed users for job: "+jobImpl, e1.getMessage());
