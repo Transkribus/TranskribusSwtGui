@@ -668,4 +668,5 @@ CHANGES AND BUGFIXES
 	-> Allow deletion of HTR model via context menu (HTR overview table -> right-click -> Delete model...)
 	-> HTR model metadata can be edited by owner/curator of model
 	-> first draft of P2PaLA training (for interested early adopters only)
+	-> bugfix: jumping to location of search result did not work anymore if page had to be changed
 	
