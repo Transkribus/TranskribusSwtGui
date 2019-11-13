@@ -166,7 +166,7 @@ public interface ICanvasShape extends Comparable<ICanvasShape>, Shape, ITreeNode
 	
 	/** Simplifies this shape with the given epsilon parameter using the Ramer-Douglas-Peucker algorithm */
 	default void simplify(double eps) {
-		this.setPoints(RamerDouglasPeuckerFilter.filter(eps, getPoints()));
+		this.setPoints(RamerDouglasPeuckerFilter.filter(eps, getPoints(), 3));
 	}
 	default void simplifyByPercentageOfLength(double perc) {
 		simplify((getPolygonLength() * perc)/100.0d);
