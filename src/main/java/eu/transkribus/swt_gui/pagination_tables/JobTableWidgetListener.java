@@ -72,6 +72,11 @@ public class JobTableWidgetListener extends SelectionAdapter implements IStorage
 		logger.debug("double click on transcript: "+jobStatus);
 		
 		if (jobStatus!=null) {
+			Integer docId = jobStatus.getDocId();
+			if (docId == null || docId<=0) {
+				return;
+			}
+			
 			logger.debug("Loading doc: " + jobStatus.getDocId());
 			int col = 0;
 			TrpDocMetadata el = null;
