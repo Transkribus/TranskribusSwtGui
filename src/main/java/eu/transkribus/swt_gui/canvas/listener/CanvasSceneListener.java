@@ -1,7 +1,6 @@
 package eu.transkribus.swt_gui.canvas.listener;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EventListener;
 import java.util.List;
 
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
-import eu.transkribus.core.model.beans.pagecontent_trp.TrpElementCoordinatesComparator;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPageType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
@@ -754,7 +752,8 @@ public class CanvasSceneListener implements EventListener, ICanvasSceneListener 
 				 *  goes from the end of line 2 back to beginning of line 1 and the HTR fails for that 'circular' line
 				 *  So the coordinates of the lines should be taken for the comparison
 				 */
-				Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<>());
+//				Collections.sort(trpMergedShapes, new TrpElementCoordinatesComparator<>());
+				TrpShapeTypeUtils.sortShapesByCoordinates(trpMergedShapes, false);
 				
 				logger.debug("minIndex = "+minIndex);
 				

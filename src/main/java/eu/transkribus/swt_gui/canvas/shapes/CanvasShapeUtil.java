@@ -3,6 +3,7 @@ package eu.transkribus.swt_gui.canvas.shapes;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Line2D;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -19,6 +20,17 @@ import eu.transkribus.core.util.CoreUtils;
 
 public class CanvasShapeUtil {
 	public final static Logger logger = LoggerFactory.getLogger(CanvasShapeUtil.class);
+	
+	public static <T> boolean sortCanvasShapesByReadingOrder(List<ICanvasShape> canvasShapes) {
+		try {
+			Collections.sort(canvasShapes, new CanvasShapeReadingOrderComparator());
+			return true;
+		}
+		catch (Exception e) {
+			logger.error("Could not sort canvas shapes by reading order, exception = "+e.getMessage() +" - not sorting!");
+			return false;
+		}
+	}
 	
 	public static ICanvasShape copyShape(ITrpShapeType st) {
 		ICanvasShape shape = CanvasShapeUtil.getCanvasShape(st);
