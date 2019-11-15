@@ -103,7 +103,7 @@ public class GenericDialogTest {
 							}
 						}
 						
-						if (true) {
+						if (false) {
 							AllowUsersForJobDialog d = new AllowUsersForJobDialog(getShell());
 							d.open();
 						}
