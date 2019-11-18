@@ -1795,7 +1795,13 @@ public class SWTUtil {
 	}
 	
 	public static Point getPreferredSize(Shell shell) {
-		return shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+//		return shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		return getPreferredOrMinSize(shell, 0, 0);
+	}
+	
+	public static Point getPreferredOrMinSize(Shell shell, int minX, int minY) {
+		Point p = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		return new Point(Math.max(minX, p.x), Math.max(minX, p.y));
 	}
 	
 	public static void resizeFromPreferredSize(Shell shell, int xPlus, int yPlus) {
