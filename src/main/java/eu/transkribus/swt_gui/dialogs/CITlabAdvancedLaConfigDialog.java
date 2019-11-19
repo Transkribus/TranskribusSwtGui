@@ -27,6 +27,7 @@ import eu.transkribus.core.util.LaCITlabUtils.RotScheme;
 import eu.transkribus.core.util.LaCITlabUtils.SepScheme;
 import eu.transkribus.swt.util.DesktopUtil;
 import eu.transkribus.swt.util.Images;
+import eu.transkribus.swt.util.SWTUtil;
 
 public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 
@@ -325,7 +326,7 @@ public class CITlabAdvancedLaConfigDialog extends ALaConfigDialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(480, 300);
+		return SWTUtil.getPreferredOrMinSize(getShell(), 480, 300);
 	}
 
 	@Override

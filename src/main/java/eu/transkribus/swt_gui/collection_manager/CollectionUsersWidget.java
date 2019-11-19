@@ -62,7 +62,7 @@ public class CollectionUsersWidget extends Composite {
 	
 	static Storage store = Storage.getInstance(); 
 	
-	Composite sf;
+//	Composite sf;
 	UserTableWidgetPagination collectionUsersTv;
 	UserInfoTableWidgetPagination collectionUsersInfoTv;
 	FindUsersWidget findUsersWidget;
@@ -88,29 +88,35 @@ public class CollectionUsersWidget extends Composite {
 
 	public CollectionUsersWidget(Composite parent, int style) {
 		super(parent, style);
-		this.setLayout(new FillLayout());
+//		this.setLayout(new FillLayout());
+		this.setLayout(new GridLayout(1, false));
 		
-		sf = new SashForm(this, SWT.VERTICAL);
-//		sf.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		sf.setLayout(new GridLayout(1, false));
+//		sf = new SashForm(this, SWT.VERTICAL);
+//		sf.setLayout(new GridLayout(1, false));
 		
 		docName = "Collection_"+store.getCollId()+"_UserInfo";
 		
-		createCollectionUsersTable(sf);
-		createFindUsersWidget(tabUserComposite);
+		tabFolder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
+		tabFolder.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
+		
+		createCollectionUsersTabItem();
+		createUserInfoTabItem();
 		
 		addListener();
 	}
 
 	
-	private void createCollectionUsersTable(Composite container) {
+	private void createCollectionUsersTabItem() {
+//		tabFolder = new CTabFolder(this, SWT.BORDER | SWT.FLAT);
+//		tabFolder.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
 		
-		tabFolder = new CTabFolder(container, SWT.BORDER | SWT.FLAT);
-		tabFolder.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
-		
-		tabUserComposite = new Composite(tabFolder,SWT.FILL);
-		tabUserComposite.setLayout(new GridLayout(1,true));
+		tabUserComposite = new SashForm(tabFolder, SWT.HORIZONTAL);
+		tabUserComposite.setLayout(new GridLayout(1, false));
 		tabUserComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
+		
+//		tabUserComposite = new Composite(tabFolder,SWT.FILL);
+//		tabUserComposite.setLayout(new GridLayout(1,true));
+//		tabUserComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
 	
 		usersTabItem= new CTabItem(tabFolder, SWT.NONE);
 		usersTabItem.setText("Users in collection ");
@@ -170,30 +176,11 @@ public class CollectionUsersWidget extends Composite {
 		
 		selectRole(TrpRole.Transcriber);
 		
-		tabUserInfoComposite = new Composite(tabFolder,0);
-		tabUserInfoComposite.setLayout(new GridLayout(1,true));
-		tabUserInfoComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
+		createFindUsersWidget(tabUserComposite);
 		
-		userInfoTabItem = new CTabItem(tabFolder,  SWT.NONE);
-		userInfoTabItem.setText("User Info");
-		userInfoTabItem.setControl(tabUserInfoComposite);
-		
-		
-		userGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
-		userGroup.setText("Users work in collection");
-		userGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		userGroup.setLayout(new GridLayout(1, false));
-		userGroup.setFont(Fonts.createBoldFont(group.getFont()));
-		
-		collectionUsersInfoTv = new UserInfoTableWidgetPagination(userGroup, 0, 0);
-		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		loadUserInfo = new Button(userGroup, SWT.PUSH);
-		loadUserInfo.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
-		loadUserInfo.setText("Load User Info (May take some time)");
-		loadUserInfo.setImage(Images.ERROR);
-		
-		downloadXls();
+		if (tabUserComposite instanceof SashForm) {
+			((SashForm) tabUserComposite).setWeights(new int[] {60, 40});
+		}
 		
 		group.pack();
 	}
@@ -221,10 +208,36 @@ public class CollectionUsersWidget extends Composite {
 		});
 		
 		
+	}	
+	
+	private void createUserInfoTabItem() {
+		tabUserInfoComposite = new Composite(tabFolder,0);
+		tabUserInfoComposite.setLayout(new GridLayout(1,true));
+		tabUserInfoComposite.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,true));
+		
+		userInfoTabItem = new CTabItem(tabFolder,  SWT.NONE);
+		userInfoTabItem.setText("User Info");
+		userInfoTabItem.setControl(tabUserInfoComposite);
+		
+		
+		userGroup = new Group(tabUserInfoComposite, SWT.SHADOW_ETCHED_IN);
+		userGroup.setText("Users work in collection");
+		userGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		userGroup.setLayout(new GridLayout(1, false));
+		userGroup.setFont(Fonts.createBoldFont(group.getFont()));
+		
+		collectionUsersInfoTv = new UserInfoTableWidgetPagination(userGroup, 0, 0);
+		collectionUsersInfoTv.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		loadUserInfo = new Button(userGroup, SWT.PUSH);
+		loadUserInfo.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
+		loadUserInfo.setText("Load User Info (May take some time)");
+		loadUserInfo.setImage(Images.ERROR);
+		
+		createDownloadXlsWidgets();
 	}
 	
-public void downloadXls() {
-		
+	public void createDownloadXlsWidgets() {
 		Composite body = new Composite(tabUserInfoComposite,SWT.NONE);
 		
 		body.setLayout(new GridLayout(1,false));
@@ -246,7 +259,6 @@ public void downloadXls() {
 		downloadXLS.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1));
 		downloadXLS.setText("Download XLS");
 		
-		
 		downloadXLS.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -255,15 +267,9 @@ public void downloadXls() {
 				TrpGuiPrefs.storeLastExportFolder(exportPathComp.getBaseFolderText());
 				userInfo = collectionUsersInfoTv.getUserInfo();
 				createWorkBook(result.getAbsolutePath(), userInfo);
-				MessageBox dialog = new MessageBox(sf.getShell(), SWT.ICON_QUESTION | SWT.OK| SWT.CANCEL);
-				dialog.setText("XLS created");
-				dialog.setMessage("The Worksheet has been created and saved in : "+result.getPath());
-				dialog.open();
-				
-			}	
-			
+				DialogUtil.showInfoMessageBox(getShell(), "XLS created", "The Worksheet has been created and saved in : "+result.getPath());
+			}
 		});
-		
 	}
 	
 	private void addListener() {
@@ -289,9 +295,6 @@ public void downloadXls() {
 			}
 			
 		});
-		
-		
-		
 	}
 	
 	public List<TrpUser> getSelectedUsersInCollection() {
