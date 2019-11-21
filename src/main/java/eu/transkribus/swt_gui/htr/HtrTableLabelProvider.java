@@ -107,6 +107,8 @@ public class HtrTableLabelProvider implements ITableLabelProvider, ITableFontPro
 			return "CITlab HTR";
 		case HtrCITlabUtils.PROVIDER_CITLAB_PLUS:
 			return "CITlab HTR+";
+		case HtrCITlabUtils.PROVIDER_PYLAIA:
+			return "PyLaia";
 		default:
 			return NOT_AVAILABLE_LABEL;
 		}

@@ -32,7 +32,7 @@ import eu.transkribus.swt.util.Images;
 public class HtrTableWidget extends Composite {
 	private static final Logger logger = LoggerFactory.getLogger(HtrTableWidget.class);
 	
-	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS };	
+	public final static String[] providerValues = { HtrCITlabUtils.PROVIDER_CITLAB, HtrCITlabUtils.PROVIDER_CITLAB_PLUS, HtrCITlabUtils.PROVIDER_PYLAIA };	
 	
 	public class HtrLazyContentProvider implements ILazyContentProvider {
 		private MyTableViewer viewer;

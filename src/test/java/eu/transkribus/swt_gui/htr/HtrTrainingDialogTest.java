@@ -6,8 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.transkribus.client.connection.TrpServerConn;
+import eu.transkribus.core.io.util.TrpProperties;
 import eu.transkribus.core.model.beans.CitLabHtrTrainConfig;
 import eu.transkribus.core.model.beans.CitLabSemiSupervisedHtrTrainConfig;
+import eu.transkribus.core.model.beans.PyLaiaHtrTrainConfig;
+import eu.transkribus.swt.util.DialogUtil;
 import eu.transkribus.swt_gui.TestApplicationWindow;
 
 public class HtrTrainingDialogTest {
@@ -24,8 +27,9 @@ public class HtrTrainingDialogTest {
 		
 		final int colId = 2; //575 = CITlab GT collection
 		
-		
-		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, args[0], args[1], colId) {
+		TrpProperties creds = new TrpProperties("testCreds.properties");
+		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, creds.getString("username"), creds.getString("password"), colId) {
+//		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, args[0], args[1], colId) {
 			@Override
 			protected void createTestContents(Composite parent) throws Exception {
 				getShell().setSize(500, 700);
@@ -53,6 +57,18 @@ public class HtrTrainingDialogTest {
 					} else if (htd.getCitlabT2IConfig() != null) {
 						CitLabSemiSupervisedHtrTrainConfig config = htd.getCitlabT2IConfig();
 						logger.info("conig = " + config);
+					}
+					else if (htd.getPyLaiaConfig() != null) {
+						try {
+							PyLaiaHtrTrainConfig config = htd.getPyLaiaConfig();
+							logger.info("conig = " + config);
+						 
+							jobId = getStorage().runPyLaiaTraining(config);
+							DialogUtil.showInfoMessageBox(getShell(), "Success", "Started the PyLaia training, jobId="+jobId);
+						} catch (Exception e) {
+							logger.error(e.getMessage(), e);
+							DialogUtil.showErrorMessageBox(getShell(), "Error starting PyLaia training", e.getMessage());
+						}
 					}
 				}
 			}
