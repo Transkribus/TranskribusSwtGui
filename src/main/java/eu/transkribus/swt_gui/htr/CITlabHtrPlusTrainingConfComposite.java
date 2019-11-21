@@ -48,11 +48,13 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		numEpochsTxt = new Text(this, SWT.BORDER);
 		numEpochsTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
+		if (false) {
 		Label earlyStoppingLbl = new Label(this, SWT.NONE);
 		earlyStoppingLbl.setText("Early Stopping: ");
 		earlyStoppingTxt = new Text(this, SWT.BORDER);
 		earlyStoppingTxt.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		earlyStoppingTxt.setToolTipText("Stop training early, if model does not improve for this number of epochs. (Optional)");
+		}
 
 //		Label learningRateLbl = new Label(this, SWT.NONE);
 //		learningRateLbl.setText("Learning Rate:");
@@ -128,7 +130,9 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	
 	public void setCitlabTrainingDefaults() {
 		numEpochsTxt.setText("" + DEFAULT_NUM_EPOCHS);
-		earlyStoppingTxt.setText(""+ CitLabHtrTrainConfig.DEFAULT_EARLY_STOPPING);
+		if (earlyStoppingTxt!=null) {
+			earlyStoppingTxt.setText(""+ CitLabHtrTrainConfig.DEFAULT_EARLY_STOPPING);
+		}
 //		learningRateTxt.setText(CitLabHtrTrainConfig.DEFAULT_LEARNING_RATE);
 //		noiseCmb.setDefault();
 //		trainSizeTxt.setText("" + CitLabHtrTrainConfig.DEFAULT_TRAIN_SIZE_PER_EPOCH);
@@ -144,9 +148,12 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 		if (!StringUtils.isNumeric(numEpochsTxt.getText())) {
 			errorList.add("Number of Epochs must contain a number!");
 		}
-		if (!StringUtils.isEmpty(earlyStoppingTxt.getText()) && !StringUtils.isNumeric(earlyStoppingTxt.getText())) {
-			errorList.add("Early stopping must be empty or a number!");
+		if (earlyStoppingTxt!=null) {
+			if (!StringUtils.isEmpty(earlyStoppingTxt.getText()) && !StringUtils.isNumeric(earlyStoppingTxt.getText())) {
+				errorList.add("Early stopping must be empty or a number!");
+			}			
 		}
+
 //		if (StringUtils.isEmpty(learningRateTxt.getText())) {
 //			errorList.add("Learning rate must not be empty!");
 //		}
@@ -159,7 +166,9 @@ public class CITlabHtrPlusTrainingConfComposite extends Composite {
 	public CitLabHtrTrainConfig addParameters(CitLabHtrTrainConfig citlabTrainConf) {
 		citlabTrainConf.setProvider(this.getProvider());
 		citlabTrainConf.setNumEpochs(Integer.parseInt(numEpochsTxt.getText()));
-		citlabTrainConf.setEarlyStopping(CoreUtils.parseInteger(earlyStoppingTxt.getText(), null));
+		if (earlyStoppingTxt != null) {
+			citlabTrainConf.setEarlyStopping(CoreUtils.parseInteger(earlyStoppingTxt.getText(), null));	
+		}
 //		citlabTrainConf.setNoise(noiseCmb.getNoise());
 //		citlabTrainConf.setLearningRate(learningRateTxt.getText());
 //		citlabTrainConf.setTrainSizePerEpoch(Integer.parseInt(trainSizeTxt.getText()));
