@@ -23,6 +23,7 @@ import eu.transkribus.core.model.beans.pagecontent_trp.ITrpShapeType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpBaselineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpPrintSpaceType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpRegionType;
+import eu.transkribus.core.model.beans.pagecontent_trp.TrpShapeTypeUtils;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTableCellType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextLineType;
 import eu.transkribus.core.model.beans.pagecontent_trp.TrpTextRegionType;
@@ -316,8 +317,12 @@ public class CanvasScene {
 			}
 		}
 		
-		// sort shapes by reading order (if possible...)
-		CanvasShapeUtil.sortCanvasShapesByReadingOrder(selectedShapes);
+		// sort shapes if possible
+//		CanvasShapeUtil.sortCanvasShapesByReadingOrder(selectedShapes);
+		CanvasShapeUtil.sortCanvasShapesByXY(selectedShapes);
+		for (ICanvasShape s : selectedShapes) {
+			logger.debug(CanvasShapeUtil.getTrpShapeType(s).getId());
+		}
 		
 		if (sendSignal) {
 			if (notifyOnBeforeShapesMerged(selectedShapes)) { // calls the method CanvasSceneListener::onBeforeMerge which checks if all shapes are of same type etc.

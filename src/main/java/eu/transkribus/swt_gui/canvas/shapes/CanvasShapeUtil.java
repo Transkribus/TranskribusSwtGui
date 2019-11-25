@@ -32,6 +32,18 @@ public class CanvasShapeUtil {
 		}
 	}
 	
+	public static <T> boolean sortCanvasShapesByXY(List<ICanvasShape> canvasShapes) {
+		try {
+			logger.debug("sorting canvas shapes by XY!");
+			Collections.sort(canvasShapes, new CanvasShapeXYComparator());
+			return true;
+		}
+		catch (Exception e) {
+			logger.error("Could not sort canvas shapes by XY, exception = "+e.getMessage() +" - not sorting!");
+			return false;
+		}
+	}	
+	
 	public static ICanvasShape copyShape(ITrpShapeType st) {
 		ICanvasShape shape = CanvasShapeUtil.getCanvasShape(st);
 		if (shape == null) {
