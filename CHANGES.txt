@@ -672,3 +672,6 @@ CHANGES AND BUGFIXES
 	-> bugfix: column-sensitive sorting resulted in errors -> skip those cases and sort by y-x coords only
 	-> fix several layout issues
 	
+1.9.1:
+	-> bugfix: force merge of baselines in horizontal direction
+	
