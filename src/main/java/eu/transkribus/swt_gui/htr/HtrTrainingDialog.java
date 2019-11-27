@@ -158,7 +158,7 @@ public class HtrTrainingDialog extends Dialog {
 			tabList.add(tab);
 		}
 		
-		if(true || trainJobImpls.contains(JobImpl.PyLaiaTrainingJob)) { // for testing purposes: always true...
+		if(trainJobImpls.contains(JobImpl.PyLaiaTrainingJob)) { // for testing purposes: always true...
 			TrainMethodUITab tab = createPylaiaTrainTabItem(i++);
 			if (true) { // select for testing purposes
 				selection = tab.getTabItem();	

@@ -23,9 +23,12 @@ public class HtrTrainingDialogTest {
 		
 		boolean showGtData = true;
 		
-		boolean displayJsonDescriptorOnChange = true;
+		boolean displayJsonDescriptorOnChange = false;
 		
-		final int colId = 2; //575 = CITlab GT collection
+//		final int colId = 2; //575 = CITlab GT collection
+		final int colId = 1; //575 = CITlab GT collection
+		
+		boolean startTrainingOnServer=true;
 		
 		TrpProperties creds = new TrpProperties("testCreds.properties");
 		new TestApplicationWindow(TrpServerConn.TEST_SERVER_URI, creds.getString("username"), creds.getString("password"), colId) {
@@ -62,9 +65,11 @@ public class HtrTrainingDialogTest {
 						try {
 							PyLaiaHtrTrainConfig config = htd.getPyLaiaConfig();
 							logger.info("conig = " + config);
-						 
-							jobId = getStorage().runPyLaiaTraining(config);
-							DialogUtil.showInfoMessageBox(getShell(), "Success", "Started the PyLaia training, jobId="+jobId);
+							
+							if (startTrainingOnServer) {
+								jobId = getStorage().runPyLaiaTraining(config);
+								DialogUtil.showInfoMessageBox(getShell(), "Success", "Started the PyLaia training, jobId="+jobId);								
+							}
 						} catch (Exception e) {
 							logger.error(e.getMessage(), e);
 							DialogUtil.showErrorMessageBox(getShell(), "Error starting PyLaia training", e.getMessage());
